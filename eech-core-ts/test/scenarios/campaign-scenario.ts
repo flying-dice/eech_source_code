@@ -25,7 +25,6 @@ import { getClosestKeysite, type KeysiteRaw } from "../../src/entity/special/key
 import type { ForceRaw } from "../../src/entity/special/force/force";
 import { insertLocalEntityIntoParentsChildListRaw } from "../../src/entity/system/en_list";
 import { createLocalEntityRaw, setSessionEntityRaw, takeUnportedMessageLog, type Entity } from "../../src/entity/system/entity";
-import { GROUP_DATABASE_RESUPPLY_SOURCE } from "../../src/generated/c-group-database";
 import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, ListType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
@@ -312,7 +311,7 @@ export function serialiseScenario(spec: ScenarioSpec, formatNumber: (n: number) 
 		const leader = g.leader.kind === "none" ? "0 0 0" : `1 ${formatNumber(g.leader.x)} ${formatNumber(g.leader.z)}`;
 
 		lines.push(
-			`group ${g.subType} ${GROUP_DATABASE_RESUPPLY_SOURCE[g.subType]} ${g.side} ${formatNumber(g.ammo)} ${formatNumber(g.fuel)} ${parentKind} ${parentIndex} ${g.busy ? 1 : 0} ${leader}`,
+			`group ${g.subType} ${g.side} ${formatNumber(g.ammo)} ${formatNumber(g.fuel)} ${parentKind} ${parentIndex} ${g.busy ? 1 : 0} ${leader}`,
 		);
 	}
 
