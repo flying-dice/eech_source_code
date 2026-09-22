@@ -1,0 +1,18 @@
+{
+	"$schema": "https://raw.githubusercontent.com/TypeScriptToLua/TypeScriptToLua/master/tsconfig-schema.json",
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"noEmit": false,
+		"rootDir": ".",
+		"outDir": "build/lua-test",
+		"types": ["lua-types/5.1"]
+	},
+	"include": ["src", "test/lua", "test/scenarios", "test/adapters"],
+	"exclude": [],
+	"tstl": {
+		"luaTarget": "5.1",
+		"luaBundle": "conformance.lua",
+		"luaBundleEntry": "test/lua/conformance.ts",
+		"noImplicitSelf": true
+	}
+}
