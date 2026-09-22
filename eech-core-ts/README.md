@@ -40,6 +40,8 @@ npm run verify        # every gate below, in order
 | C reference | `npm run test:cref` | The original EECH C, extracted verbatim and executed, agrees with the expectations and with the TS port |
 | Negative controls | `npm run mutation` | Meaningful behavioural regressions are detected |
 
+CI runs the same gates step by step in `.github/workflows/eech-core-ts.yml` for pull requests and pushes to `master` that touch `eech-core-ts/`, `aphavoc/` or `modules/`.
+
 `npm run cref:record` re-records `test/scenarios/generated/c-reference-random.cases.ts`
 from the executed C. `npm run gen:c` regenerates `src/generated` from the C sources.
 

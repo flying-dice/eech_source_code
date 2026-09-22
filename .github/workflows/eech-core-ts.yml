@@ -1,0 +1,82 @@
+name: eech-core-ts
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "eech-core-ts/**"
+      - "aphavoc/**"
+      - "modules/**"
+      - ".github/workflows/eech-core-ts.yml"
+  pull_request:
+    paths:
+      - "eech-core-ts/**"
+      # the port generates code from, and runs, the original C sources
+      - "aphavoc/**"
+      - "modules/**"
+      - ".github/workflows/eech-core-ts.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: eech-core-ts-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: eech-core-ts
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: eech-core-ts/package-lock.json
+
+      - name: Install Lua 5.1 and a C compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends lua5.1 gcc
+          lua5.1 -v
+          cc --version
+
+      - run: npm ci
+
+      - name: Generated sources match the EECH C
+        run: npm run check:c
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests with 100% coverage
+        run: npm run coverage
+
+      - name: Lua 5.1 build and smoke test
+        run: npm run smoke:lua
+
+      - name: Lua 5.1 conformance
+        run: npm run test:lua
+
+      - name: C reference differential tests
+        run: npm run test:cref
+
+      - name: Mutation controls
+        run: npm run mutation
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eech-core-ts-coverage
+          path: eech-core-ts/build/coverage
+          if-no-files-found: ignore
