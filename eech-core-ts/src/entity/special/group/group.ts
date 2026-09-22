@@ -8,6 +8,7 @@
 import { ASSERT } from "../../../core/assert";
 import { toFloat32 } from "../../../core/float32";
 import { bound, KILOMETRE } from "../../../core/maths/miscmath";
+import { AMMO_USAGE_ACCELERATOR, FUEL_USAGE_ACCELERATOR } from "../../../generated/c-constants";
 import { GROUP_DATABASE_RESUPPLY_SOURCE } from "../../../generated/c-group-database";
 import {
 	CommsModelType,
@@ -42,11 +43,6 @@ import {
 import { getLocalEntityData, getLocalEntityType, type Entity } from "../../system/entity";
 import { getLocalForceEntity } from "../force/force";
 import { getClosestKeysite, type SupplyRaw } from "../keysite/keysite";
-
-// C provenance: en_types/en_suply.h
-export const FUEL_USAGE_ACCELERATOR = 1.0;
-
-export const AMMO_USAGE_ACCELERATOR = 1.0;
 
 // C provenance: group.h :: struct GROUP (ported fields only)
 export interface GroupRaw {

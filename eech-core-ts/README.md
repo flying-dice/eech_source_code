@@ -31,7 +31,7 @@ npm run verify        # every gate below, in order
 
 | Gate | Command | What it proves |
 |---|---|---|
-| C-derived sources are current | `npm run check:c` | Enum ordinals and database columns in `src/generated` match the EECH C |
+| C-derived sources are current | `npm run check:c` | Enum ordinals, database columns and numeric constants in `src/generated` match the EECH C |
 | Types | `npm run typecheck` | Node-side and Lua-side projects typecheck cleanly |
 | Lint | `npm run lint` | No numeric/string truthiness (0 is true in Lua); no DCS, Node or host globals in `src` |
 | Tests + coverage | `npm run coverage` | 100% statements, branches, functions and lines over `src` |
@@ -53,7 +53,7 @@ src/
   entity/system/   entity runtime: lists (with shared links), value function tables, messages, comms model
   entity/special/  session, force, keysite, group, guide: the ported overloads and campaign functions
   entity/mobile/   campaign-visible surface of aircraft and vehicles (position comes from a port)
-  generated/       enums and database columns generated from the EECH C (never hand-edited)
+  generated/       enums, database columns and constants generated from the EECH C (never hand-edited)
   ports/           what the campaign needs from the environment
 test/
   adapters/        deterministic port implementations (no campaign policy)

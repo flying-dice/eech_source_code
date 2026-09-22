@@ -181,9 +181,10 @@ What limits it or blocks it next:
 ## 7. Which coverage tooling enforces 100% reachable TS coverage?
 
 Vitest with `@vitest/coverage-istanbul`. `vitest.config.ts` sets `thresholds` of
-100 for statements, branches, functions and lines over `src/**`. Istanbul counts
-implicit `else` branches, `??` and default parameters. The only excluded path is
-`src/ports/**`, which is type-only and emits no JavaScript. There are **no**
+100 for statements, branches, functions and lines over `src/**`, with no exclusions. Istanbul counts
+implicit `else` branches, `??` and default parameters. Type-only modules such as `src/ports/**`
+emit no statements; if one starts emitting runtime code it is measured and must
+be covered like anything else. There are **no**
 `istanbul ignore` comments in campaign code. A future unreachable defensive path
 must be excluded individually in the source and listed in
 `docs/port-manifest.md`.
@@ -228,7 +229,7 @@ check without adding a branch to the caller.
   is.
 - Every TS module and function carries a `C provenance:` comment naming the file
   and function it came from.
-- Enum ordinals and database columns are **generated** from the C sources
+- Enum ordinals, database columns and numeric `#define` constants are **generated** from the C sources
   (`npm run gen:c`, drift check `npm run check:c`). They are never typed by hand.
 - Unported table entries fail at runtime with the name of the missing C overload.
 

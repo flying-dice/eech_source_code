@@ -130,6 +130,33 @@ function generateGroupDatabase() {
 	return lines.join("\n");
 }
 
+// [macro, header path relative to repo root]: object-like macros whose value is a plain numeric literal
+const NUMERIC_DEFINES = [
+	["FUEL_USAGE_ACCELERATOR", "aphavoc/source/entity/system/en_types/en_suply.h"],
+	["AMMO_USAGE_ACCELERATOR", "aphavoc/source/entity/system/en_types/en_suply.h"],
+];
+
+export function parseNumericDefine(source, name) {
+	const match = new RegExp(`^\\s*#define\\s+${name}\\s+([^\\s/]+)\\s*(?://.*|/\\*.*)?$`, "m").exec(source);
+	if (!match) {
+		throw new Error(`#define ${name} not found`);
+	}
+	if (!/^-?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?[fF]?$/.test(match[1])) {
+		throw new Error(`#define ${name} is not a numeric literal: ${match[1]}; extend the generator`);
+	}
+	return match[1].replace(/[fF]$/, "");
+}
+
+function generateConstants() {
+	const lines = [...HEADER];
+	for (const [name, header] of NUMERIC_DEFINES) {
+		const value = parseNumericDefine(readFileSync(join(repoRoot, header), "latin1"), name);
+		lines.push(`// C provenance: #define ${name} (${header})`);
+		lines.push(`export const ${name} = ${value};`, "");
+	}
+	return lines.join("\n");
+}
+
 function generateEnums() {
 	const lines = [...HEADER];
 	for (const [tag, header, tsName] of ENUMS) {
@@ -146,6 +173,7 @@ function generateEnums() {
 
 export function generate() {
 	return {
+		"c-constants.ts": generateConstants(),
 		"c-enums.ts": generateEnums(),
 		"c-group-database.ts": generateGroupDatabase(),
 	};

@@ -7,10 +7,11 @@ export default defineConfig({
 		coverage: {
 			provider: "istanbul",
 			include: ["src/**/*.ts"],
-			// Type-only modules emit no JavaScript; nothing else is excluded.
+			// Nothing is excluded. Type-only modules (src/ports) emit no
+			// statements and are reported as fully covered; if one starts
+			// emitting runtime code it is measured like everything else.
 			// Individually justified exclusions live in the source as
 			// `istanbul ignore` comments and are listed in docs/port-manifest.md.
-			exclude: ["src/ports/**"],
 			reporter: ["text", "json-summary", "html"],
 			reportsDirectory: "build/coverage",
 			thresholds: {

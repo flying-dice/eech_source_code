@@ -47,6 +47,7 @@ where practical.
 | `aphavoc/source/comms/comms.c` (`get_comms_model`) | `src/entity/system/comms.ts` | partial |
 | `modules/maths/range.c` | `src/core/maths/range.ts` | partial |
 | `modules/maths/miscmath.h`, `constant.h`, `vector.h` | `src/core/maths/miscmath.ts`, `vec3d.ts` | partial |
+| `aphavoc/source/entity/system/en_types/en_suply.h` (`FUEL_USAGE_ACCELERATOR`, `AMMO_USAGE_ACCELERATOR`) | `src/generated/c-constants.ts` (generated) | partial |
 | `modules/system/assert.h` | `src/core/assert.ts` | partial |
 | enum headers (`en_types.h`, `en_side.h`, `en_list.h`, `en_int.h`, `en_float.h`, `en_vec3d.h`, `en_ptr.h`, `en_msgs.h`, `en_sbtyp.h`, `ai_extrn.h`, `comms.h`, `en_suply.h`) | `src/generated/c-enums.ts` (generated) | ported (selected enums, generated verbatim) |
 | `ai/highlevl/*`, `ai/taskgen/*`, `ai/frontl/*`, `ai/faction/*`, `ai/ai_misc/*` | none | unported |
@@ -113,8 +114,8 @@ by source reading only (see architecture question 6).
 
 ## Deviations and exclusions
 
-- **Coverage exclusions:** only `src/ports/**`, which is type-only and emits no
-  JavaScript. There are no `istanbul ignore` comments in campaign code.
+- **Coverage exclusions:** none. Type-only modules (`src/ports/**`) emit no
+  statements. There are no `istanbul ignore` comments in campaign code.
 - **ASSERT and NULL dereference.** A failed EECH `ASSERT` / `debug_assert` throws
   `EechAssertionError` quoting the C expression. Where the C dereferences NULL
   without an assert (`get_closest_keysite` with no force for the side), the port
