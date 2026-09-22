@@ -8,6 +8,7 @@ import { existsSync } from "node:fs";
 // @ts-expect-error plain ESM build script without type declarations
 import { HARNESS_BINARY } from "../../c-reference/build.mjs";
 import { serialiseScenario, type ScenarioOutcome, type ScenarioSpec } from "../scenarios/campaign-scenario";
+import { serialiseTimeline, type TimelineOutcome, type TimelineSpec, type TimelineStepState } from "../scenarios/update-timeline";
 
 // Built once by test/c-reference/global-setup.ts; never rebuilt from a worker.
 function harness(): string {
@@ -92,4 +93,35 @@ export function runCRange(x1: number, z1: number, x2: number, z2: number): { ran
 	const w = run.stdout.split("\n")[0].split(" ");
 
 	return { range: floatFromBits(w[1]), approx: floatFromBits(w[2]) };
+}
+
+export function runCTimeline(spec: TimelineSpec): TimelineOutcome {
+	const input = serialiseTimeline(spec, formatNumberForC);
+	const run = spawnSync(harness(), [], { input, encoding: "utf8" });
+
+	if (run.status !== 0) {
+		throw new Error(`C harness failed (${describeFailure(run)})\ninput:\n${input}`);
+	}
+
+	const outcome: TimelineOutcome = { result: "", transmissions: [], steps: [] };
+	let current: TimelineStepState | undefined;
+
+	for (const line of run.stdout.split("\n")) {
+		const w = line.split(" ");
+
+		if (w[0] === "transmit") {
+			outcome.transmissions.push({ step: outcome.steps.length, entity: w[1], floatType: Number(w[2]), value: floatFromBits(w[3]) });
+		} else if (w[0] === "step") {
+			current = { delta: floatFromBits(w[2]), updateList: w[3] === "-" ? [] : w[3].split(","), groups: [] };
+			outcome.steps.push(current);
+		} else if (w[0] === "timer") {
+			current?.groups.push({ sleep: floatFromBits(w[1]), assist: floatFromBits(w[2]) });
+		} else if (w[0] === "result") {
+			outcome.result = w[1] === "assert" ? `assert:${w.slice(2).join(" ")}` : w[1];
+		} else if (line !== "") {
+			throw new Error(`unexpected C harness output: ${line}`);
+		}
+	}
+
+	return outcome;
 }

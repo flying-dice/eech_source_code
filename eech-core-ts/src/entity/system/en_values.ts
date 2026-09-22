@@ -17,12 +17,15 @@ import { getCampaignPorts, type Entity } from "./entity";
 import { EntityFunctionTable } from "./function-table";
 
 export type GetIntValueFn = (en: Entity, type: IntType) => number;
+export type SetIntValueFn = (en: Entity, type: IntType, value: number) => void;
 export type GetFloatValueFn = (en: Entity, type: FloatType) => number;
 export type SetFloatValueFn = (en: Entity, type: FloatType, value: number) => void;
 export type GetVec3dPtrFn = (en: Entity, type: Vec3dType) => Vec3d | undefined;
 export type GetPtrValueFn = (en: Entity, type: PtrType) => Entity | undefined;
 
 export const fnGetLocalEntityIntValue = new EntityFunctionTable<GetIntValueFn>("fn_get_local_entity_int_value");
+
+export const fnSetLocalEntityIntValue = new EntityFunctionTable<SetIntValueFn>("fn_set_local_entity_int_value");
 
 export const fnGetLocalEntityFloatValue = new EntityFunctionTable<GetFloatValueFn>("fn_get_local_entity_float_value");
 
@@ -38,6 +41,15 @@ export const fnGetLocalEntityPtrValue = new EntityFunctionTable<GetPtrValueFn>("
 export function getLocalEntityIntValue(en: Entity, type: IntType): number {
 	return fnGetLocalEntityIntValue.lookup(en.type, type, IntType[type])(en, type);
 }
+
+// The C prototype takes `int value`.
+export function setLocalEntityIntValue(en: Entity, type: IntType, value: number): void {
+	fnSetLocalEntityIntValue.lookup(en.type, type, IntType[type])(en, type, value);
+}
+
+// C provenance: en_int.c :: default_set_entity_int_value (does nothing). Only
+// installed where the C overload tables are known to keep this default.
+export function defaultSetEntityIntValue(_en: Entity, _type: IntType, _value: number): void {}
 
 export function getLocalEntityFloatValue(en: Entity, type: FloatType): number {
 	return fnGetLocalEntityFloatValue.lookup(en.type, type, FloatType[type])(en, type);

@@ -26,6 +26,12 @@ export function notifyLocalEntity(message: EntityMessage, receiver: Entity | und
 	return messageResponses.lookup(receiver.type, message, EntityMessage[message])(message, receiver, sender, args);
 }
 
+// C provenance: en_msgs.c :: default_message_response. Only installed where the
+// C message table is known to keep this default.
+export function defaultMessageResponse(): number {
+	return 0;
+}
+
 //
 // Marks a message response that EECH overloads but the port has not ported
 // yet. With the "throw" policy (production) delivery fails loudly. With the

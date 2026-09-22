@@ -28,6 +28,7 @@ import { createLocalEntityRaw, setSessionEntityRaw, takeUnportedMessageLog, type
 import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, ListType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
+import { ScriptedClock } from "../adapters/scripted-clock";
 
 export interface KeysiteSpec {
 	side: EntitySide;
@@ -124,7 +125,7 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 	const physical = new InMemoryMobilePhysicalState();
 	const replication = new RecordingEntityReplication();
 
-	initialiseCampaignCore({ mobilePhysicalState: physical, entityReplication: replication }, { unportedMessagePolicy: "record" });
+	initialiseCampaignCore({ mobilePhysicalState: physical, entityReplication: replication, clock: new ScriptedClock() }, { unportedMessagePolicy: "record" });
 
 	const labels: Record<number, string> = {};
 
@@ -187,6 +188,8 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 			sub_type: g.subType,
 			side: g.side,
 			supplies: { ammo_supply_level: toFloat32(g.ammo), fuel_supply_level: toFloat32(g.fuel) },
+			sleep: 0,
+			assist_timer: 0,
 		};
 		group = createLocalEntityRaw(EntityType.ENTITY_TYPE_GROUP, groupRaw);
 		labels[group.index] = "group";

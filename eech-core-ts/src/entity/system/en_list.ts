@@ -13,8 +13,10 @@
 // whichever of those lists the group is in. That aliasing is preserved.
 //
 
-import { ASSERT, UnportedBehaviourError } from "../../core/assert";
+import { ASSERT, EechFatalError, UnportedBehaviourError } from "../../core/assert";
+import { EntityMessage } from "../../generated/c-enums";
 import { EntityType, ListType } from "../../generated/c-enums";
+import { notifyLocalEntity } from "./en_msgs";
 import type { Entity, EntityListLink, EntityListRoot } from "./entity";
 
 interface ListLayout {
@@ -102,6 +104,106 @@ export function getLocalEntityParent(en: Entity, type: ListType): Entity | undef
 // C provenance: en_list.c :: get_local_entity_child_succ
 export function getLocalEntityChildSucc(en: Entity, type: ListType): Entity | undefined {
 	return getLink(en, type).child_succ;
+}
+
+// C provenance: en_list.c :: get_local_entity_child_pred
+export function getLocalEntityChildPred(en: Entity, type: ListType): Entity | undefined {
+	return getLink(en, type).child_pred;
+}
+
+function setLocalEntityFirstChild(en: Entity, type: ListType, first_child: Entity | undefined): void {
+	getRoot(en, type).first_child = first_child;
+}
+
+function setLocalEntityParent(en: Entity, type: ListType, parent: Entity | undefined): void {
+	getLink(en, type).parent = parent;
+}
+
+function setLocalEntityChildSucc(en: Entity, type: ListType, child_succ: Entity | undefined): void {
+	getLink(en, type).child_succ = child_succ;
+}
+
+function setLocalEntityChildPred(en: Entity, type: ListType, child_pred: Entity | undefined): void {
+	getLink(en, type).child_pred = child_pred;
+}
+
+//
+// C provenance: en_list.c :: insert_local_entity_into_parents_child_list
+//
+// The #ifdef DEBUG list validation is kept, with EECH's debug-build meaning
+// (as ASSERT is): inserting an entity into a list it is already in is fatal.
+//
+export function insertLocalEntityIntoParentsChildList(en: Entity, type: ListType, parent: Entity | undefined, pred: Entity | undefined): void {
+	ASSERT(parent !== undefined, "parent");
+
+	ASSERT(pred !== parent, "pred != parent");
+
+	const current_parent = getLocalEntityParent(en, type);
+
+	if (current_parent) {
+		let item = getLocalEntityFirstChild(current_parent, type);
+
+		while (item) {
+			if (item === en) {
+				throw new EechFatalError(`Entity already in list (entity type = ${EntityType[en.type]}, list type = ${ListType[type]})`);
+			}
+
+			item = getLocalEntityChildSucc(item, type);
+		}
+	}
+
+	const succ = pred ? getLocalEntityChildSucc(pred, type) : getLocalEntityFirstChild(parent, type);
+
+	setLocalEntityChildSucc(en, type, succ);
+
+	setLocalEntityChildPred(en, type, pred);
+
+	setLocalEntityParent(en, type, parent);
+
+	if (succ) {
+		setLocalEntityChildPred(succ, type, en);
+	}
+
+	if (pred) {
+		setLocalEntityChildSucc(pred, type, en);
+	} else {
+		setLocalEntityFirstChild(parent, type, en);
+	}
+
+	notifyLocalEntity(EntityMessage.ENTITY_MESSAGE_LINK_CHILD, parent, en, type);
+
+	notifyLocalEntity(EntityMessage.ENTITY_MESSAGE_LINK_PARENT, en, parent, type);
+}
+
+// C provenance: en_list.c :: delete_local_entity_from_parents_child_list
+export function deleteLocalEntityFromParentsChildList(en: Entity, type: ListType): void {
+	const parent = getLocalEntityParent(en, type);
+
+	if (parent) {
+		notifyLocalEntity(EntityMessage.ENTITY_MESSAGE_UNLINK_CHILD, parent, en, type);
+
+		notifyLocalEntity(EntityMessage.ENTITY_MESSAGE_UNLINK_PARENT, en, parent, type);
+
+		const succ = getLocalEntityChildSucc(en, type);
+
+		const pred = getLocalEntityChildPred(en, type);
+
+		if (pred) {
+			setLocalEntityChildSucc(pred, type, succ);
+		} else {
+			setLocalEntityFirstChild(parent, type, succ);
+		}
+
+		if (succ) {
+			setLocalEntityChildPred(succ, type, pred);
+		}
+
+		setLocalEntityParent(en, type, undefined);
+
+		setLocalEntityChildSucc(en, type, undefined);
+
+		setLocalEntityChildPred(en, type, undefined);
+	}
 }
 
 //
