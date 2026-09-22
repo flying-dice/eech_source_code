@@ -1,0 +1,181 @@
+#!/usr/bin/env node
+//
+// Negative controls: each mutant is a meaningful behavioural regression of the
+// ported campaign code. The conformance suites must fail ("kill") every one.
+// A surviving mutant means the tests cannot see that behaviour.
+//
+// Each mutant runs in a throwaway copy of the project; the working tree is
+// never modified.
+//
+
+import { spawnSync } from "node:child_process";
+import { cpSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const projectRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+// suite "js": vitest (JavaScript semantics); suite "lua": TSTL + Lua 5.1 conformance runner
+const MUTANTS = [
+	{
+		name: "group requests supplies at exactly 100 (< becomes <=)",
+		file: "src/entity/special/group/group.ts",
+		from: "if (raw.supplies.ammo_supply_level < 100.0) {\n\t\t\tconst force",
+		to: "if (raw.supplies.ammo_supply_level <= 100.0) {\n\t\t\tconst force",
+		suite: "js",
+	},
+	{
+		name: "group requests ammo and fuel in one assessment (else if becomes if)",
+		file: "src/entity/special/group/group.ts",
+		from: "} else if (raw.supplies.fuel_supply_level < 100.0) {",
+		to: "}\n\t\tif (raw.supplies.fuel_supply_level < 100.0) {",
+		suite: "js",
+	},
+	{
+		name: "busy groups are resupplied (GROUP_MODE_IDLE test inverted)",
+		file: "src/entity/special/group/group.ts",
+		from: "=== GroupModeType.GROUP_MODE_IDLE) {",
+		to: "!== GroupModeType.GROUP_MODE_IDLE) {",
+		suite: "js",
+	},
+	{
+		name: "rearming ignores keysite stock (bound upper limit 100)",
+		file: "src/entity/special/group/group.ts",
+		from: "required = toFloat32(bound(required, 0.0, level));\n\n\t\t\t\tlevel = toFloat32(level - required);\n\n\t\t\t\tsetClientServerEntityFloatValue(keysite, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL",
+		to: "required = toFloat32(bound(required, 0.0, 100.0));\n\n\t\t\t\tlevel = toFloat32(level - required);\n\n\t\t\t\tsetClientServerEntityFloatValue(keysite, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL",
+		suite: "js",
+	},
+	{
+		name: "a keysite parent is ignored (always search the closest keysite)",
+		file: "src/entity/special/group/group.ts",
+		from: "if (!keysite || getLocalEntityType(keysite) !== EntityType.ENTITY_TYPE_KEYSITE) {\n\t\t\t\t\tkeysite = getClosestKeysite(\n\t\t\t\t\t\tEntitySubTypeKeysite.NUM_ENTITY_SUB_TYPE_KEYSITES,\n\t\t\t\t\t\traw.side,\n\t\t\t\t\t\tgetLocalEntityVec3dPtr(en, Vec3dType.VEC3D_TYPE_POSITION),\n\t\t\t\t\t\t1.0 * KILOMETRE,\n\t\t\t\t\t\tundefined,\n\t\t\t\t\t\ttrue,\n\t\t\t\t\t\tundefined,\n\t\t\t\t\t);\n\t\t\t\t}\n\n\t\t\t\tASSERT(keysite !== undefined, \"keysite\");\n\n\t\t\t\tlet level = getLocalEntityFloatValue(keysite, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL);",
+		to: "{\n\t\t\t\t\tkeysite = getClosestKeysite(\n\t\t\t\t\t\tEntitySubTypeKeysite.NUM_ENTITY_SUB_TYPE_KEYSITES,\n\t\t\t\t\t\traw.side,\n\t\t\t\t\t\tgetLocalEntityVec3dPtr(en, Vec3dType.VEC3D_TYPE_POSITION),\n\t\t\t\t\t\t1.0 * KILOMETRE,\n\t\t\t\t\t\tundefined,\n\t\t\t\t\t\ttrue,\n\t\t\t\t\t\tundefined,\n\t\t\t\t\t);\n\t\t\t\t}\n\n\t\t\t\tASSERT(keysite !== undefined, \"keysite\");\n\n\t\t\t\tlet level = getLocalEntityFloatValue(keysite, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL);",
+		suite: "js",
+	},
+	{
+		name: "closest keysite has no early out (nearest wins instead of first within 1 km)",
+		file: "src/entity/special/keysite/keysite.ts",
+		from: "if (range <= min_range) {",
+		to: "if (range <= min_range && false) {",
+		suite: "js",
+	},
+	{
+		name: "closest keysite ties keep the last (< becomes <=)",
+		file: "src/entity/special/keysite/keysite.ts",
+		from: "if (range < best_range && outside_of_range) {",
+		to: "if (range <= best_range && outside_of_range) {",
+		suite: "js",
+	},
+	{
+		name: "closest keysite reports the approximate range for the closest keysite",
+		file: "src/entity/special/keysite/keysite.ts",
+		from: "best_range = get2dRange(keysite_pos, pos);",
+		to: "best_range = getApprox2dRange(keysite_pos, pos);",
+		suite: "js",
+	},
+	{
+		name: "closest keysite ignores exclude_keysite",
+		file: "src/entity/special/keysite/keysite.ts",
+		from: "if (current_keysite !== exclude_keysite) {",
+		to: "if (current_keysite !== exclude_keysite || true) {",
+		suite: "js",
+	},
+	{
+		name: "supply requests go to the first force regardless of side",
+		file: "src/entity/special/force/force.ts",
+		from: "if (getLocalEntityIntValue(force, IntType.INT_TYPE_SIDE) === side) {",
+		to: "if (getLocalEntityIntValue(force, IntType.INT_TYPE_SIDE) === side || true) {",
+		suite: "js",
+	},
+	{
+		name: "C float narrowing of set_client_server_entity_float_value is lost",
+		file: "src/entity/system/en_values.ts",
+		from: "(en, type, toFloat32(value));",
+		to: "(en, type, value);",
+		suite: "js",
+	},
+	{
+		name: "approximate range uses the smaller axis as the major term",
+		file: "src/core/maths/range.ts",
+		from: "if (dx > dz) {",
+		to: "if (dx < dz) {",
+		suite: "js",
+	},
+	{
+		name: "in-use test relies on JavaScript truthiness (0 is true in Lua)",
+		file: "src/entity/special/keysite/keysite.ts",
+		from: "if (getLocalEntityIntValue(current_keysite, IntType.INT_TYPE_IN_USE) !== 0) {",
+		// hidden from TypeScript so only the Lua semantics can catch it
+		to: "if ((getLocalEntityIntValue(current_keysite, IntType.INT_TYPE_IN_USE) as unknown as boolean)) {",
+		suite: "lua",
+	},
+];
+
+function run(cwd, command, args) {
+	return spawnSync(command, args, { cwd, encoding: "utf8" });
+}
+
+function runSuite(cwd, suite) {
+	if (suite === "js") {
+		return run(cwd, join(cwd, "node_modules", ".bin", "vitest"), ["run", "--reporter=dot"]);
+	}
+	const build = run(cwd, join(cwd, "node_modules", ".bin", "tstl"), ["-p", "tsconfig.lua-test.json"]);
+	if (build.status !== 0) {
+		return build;
+	}
+	return run(cwd, process.execPath, ["scripts/lua.mjs", "run", "build/lua-test/conformance.lua"]);
+}
+
+function copyProject() {
+	const dir = mkdtempSync(join(tmpdir(), "eech-core-ts-mutant-"));
+	for (const entry of ["src", "test", "scripts", "c-reference", "package.json", "tsconfig.json", "tsconfig.lua-test.json", "vitest.config.ts"]) {
+		cpSync(join(projectRoot, entry), join(dir, entry), { recursive: true });
+	}
+	symlinkSync(join(projectRoot, "node_modules"), join(dir, "node_modules"), "dir");
+	return dir;
+}
+
+let survivors = 0;
+
+const baseline = copyProject();
+try {
+	for (const suite of ["js", "lua"]) {
+		const result = runSuite(baseline, suite);
+		if (result.status !== 0) {
+			console.error(`baseline ${suite} suite fails without mutation:\n${result.stdout}${result.stderr}`);
+			process.exit(1);
+		}
+	}
+} finally {
+	rmSync(baseline, { recursive: true, force: true });
+}
+
+for (const mutant of MUTANTS) {
+	const dir = copyProject();
+	try {
+		const path = join(dir, mutant.file);
+		const source = readFileSync(path, "utf8");
+		if (!source.includes(mutant.from)) {
+			console.error(`mutant "${mutant.name}": pattern not found in ${mutant.file}`);
+			process.exit(1);
+		}
+		writeFileSync(path, source.replace(mutant.from, mutant.to));
+		const result = runSuite(dir, mutant.suite);
+		if (result.status === 0) {
+			survivors += 1;
+			console.log(`SURVIVED  [${mutant.suite}] ${mutant.name}`);
+		} else {
+			console.log(`killed    [${mutant.suite}] ${mutant.name}`);
+		}
+	} finally {
+		rmSync(dir, { recursive: true, force: true });
+	}
+}
+
+if (survivors > 0) {
+	console.error(`${survivors} of ${MUTANTS.length} mutants survived`);
+	process.exit(1);
+}
+
+console.log(`all ${MUTANTS.length} mutants killed`);

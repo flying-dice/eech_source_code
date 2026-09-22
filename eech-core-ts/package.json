@@ -1,0 +1,36 @@
+{
+	"name": "eech-core-ts",
+	"version": "0.1.0",
+	"private": true,
+	"description": "Frozen, mechanically faithful TypeScript port of the EECH dynamic campaign core, compiled to Lua 5.1 with TypeScriptToLua.",
+	"license": "SEE LICENCE IN ../LICENCE",
+	"type": "module",
+	"engines": {
+		"node": ">=20"
+	},
+	"scripts": {
+		"gen:c": "node scripts/gen-c-sources.mjs",
+		"check:c": "node scripts/gen-c-sources.mjs --check",
+		"typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.lua-test.json --noEmit",
+		"lint": "eslint .",
+		"test": "vitest run",
+		"coverage": "vitest run --coverage",
+		"build": "node scripts/lua.mjs build tsconfig.lua.json",
+		"smoke:lua": "npm run build && node scripts/lua.mjs run test/lua/smoke.lua",
+		"test:lua": "node scripts/lua.mjs build tsconfig.lua-test.json && node scripts/lua.mjs run build/lua-test/conformance.lua",
+		"test:cref": "vitest run --config vitest.cref.config.ts",
+		"cref:record": "RECORD_CREF=1 vitest run --config vitest.cref.config.ts test/c-reference/differential.cref.test.ts",
+		"mutation": "node scripts/mutation-check.mjs",
+		"verify": "npm run check:c && npm run typecheck && npm run lint && npm run coverage && npm run smoke:lua && npm run test:lua && npm run test:cref && npm run mutation"
+	},
+	"devDependencies": {
+		"@types/node": "26.6.2",
+		"@vitest/coverage-istanbul": "5.0.1",
+		"eslint": "10.11.0",
+		"lua-types": "2.14.1",
+		"typescript": "6.0.2",
+		"typescript-eslint": "8.70.1",
+		"typescript-to-lua": "1.37.1",
+		"vitest": "5.0.1"
+	}
+}
