@@ -20,3 +20,7 @@ as the TypeScript port.
 The comparison covers the extracted functions. The accessor overloads
 (`gp_int.c`, `ks_int.c`, ...) are shim-provided and are verified by source
 reading. See `docs/architecture.md`, question 6.
+
+The shim is meant to shrink over time. `docs/architecture.md`, "Shrinking the C
+reference shim", lists the current shim entries, the order in which real EECH
+translation units replace them, and the rules that stop the shim growing.

@@ -71,7 +71,9 @@ where practical.
 ### Accessor overloads reached by the slice
 
 In the C harness these accessors are supplied by the shim, so they are verified
-by source reading only (see architecture question 6).
+by source reading only (see architecture question 6). The plan for replacing
+the shim with the real translation units, and the rules for new slices, are in
+`docs/architecture.md`, "Shrinking the C reference shim".
 
 | C | TS | Status |
 |---|---|---|

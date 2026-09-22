@@ -250,7 +250,70 @@ check without adding a branch to the caller.
    introduce the `LandingObservation` port. The DCS adapter reports "member
    landed at keysite", and the campaign does the accounting.
 5. **Harness depth.** Compile the real `gp_int.c`/`ks_int.c`/`ks_float.c` against
-   a reduced `project.h`, so the accessors are C-verified as well.
+   a reduced `project.h`, so the accessors are C-verified as well. See
+   "Shrinking the C reference shim" below.
+
+## Shrinking the C reference shim
+
+The C reference is only as strong as the part of it that is original EECH. Slice
+1 executes the original campaign functions verbatim, but `c-reference/harness.c`
+still implements, by hand, the accessor behaviour those functions call. The goal
+is to replace each hand-written shim entry with the real EECH translation unit,
+until the shim only supplies what is truly environmental: time, randomness,
+terrain, physical positions and the comms transport.
+
+### Current shim surface
+
+Each entry is written by hand in `harness.c` and mirrors behaviour that exists in
+a real EECH file:
+
+| Shim entry | Real EECH source that should replace it |
+|---|---|
+| Group `INT_TYPE_RESUPPLY_SOURCE`, `INT_TYPE_GROUP_MODE`, `INT_TYPE_SIDE` | `gp_int.c :: get_local_int_value` |
+| Group `resupply_source` passed in by the scenario | `gp_dbase.c :: group_database` |
+| Keysite `INT_TYPE_ENTITY_SUB_TYPE`, `INT_TYPE_IN_USE`, `INT_TYPE_SIDE` | `ks_int.c :: get_local_int_value` |
+| Force `INT_TYPE_SIDE` | `fc_int.c :: get_local_int_value` |
+| Group and keysite supply level get/set | `gp_float.c`, `ks_float.c` (`get_local_float_value`, `set_local_float_value`, `set_server_float_value`) |
+| Group, keysite and mobile `VEC3D_TYPE_POSITION` | `gp_vec3d.c`, `ks_vec3d.c`, and `gp_ptr.c` for the group leader. The mobile position itself stays shim-supplied: it is physical state. |
+| List roots, links and the shared `group_link` | `en_list/get_frst.h`, `get_prnt.h`, `get_succ.h` included by the real `xx_list.c` files |
+| Dispatch through the `fn_*` tables | `en_int.c`, `en_float.c`, `en_vec3d.c`, `en_ptr.c` (tables, defaults and dispatch macros) |
+
+### Order of work
+
+1. **Reduced `project.h`.** Create a harness-only header that satisfies the real
+   `xx_int.c`/`xx_float.c` files: the entity struct layouts they read, the
+   `fn_*` tables, and stubs for unrelated subsystems that fail loudly if called.
+   The real layout structs (`group`, `keysite`, `force`) come from their
+   original headers where possible.
+2. **Value accessors first.** Compile `gp_int.c`, `ks_int.c`, `fc_int.c`,
+   `gp_float.c` and `ks_float.c` into the harness, and call their
+   `overload_*_functions ()` so dispatch goes through the real tables. Delete the
+   matching shim branches.
+3. **Database.** Compile `gp_dbase.c` so `resupply_source` comes from the real
+   `group_database`, not from the scenario.
+4. **Lists.** Compile the real `xx_list.c` files with their `en_list/*.h`
+   includes, so the shared `group_link` aliasing is executed from the original C.
+5. **Positions.** Compile `gp_vec3d.c`, `gp_ptr.c` and `ks_vec3d.c`. The mobile
+   position stays a scenario-supplied shim entry, because that value is
+   physical.
+
+Each step lands with the slice that first needs it, or as its own small PR.
+Every step must keep the existing C reference cases and the recorded random
+fixture passing unchanged. If an expectation changes, that is a finding about
+the TS port, and must be investigated before anything is re-recorded.
+
+### Rules for new slices
+
+- **No new hand-written accessor behaviour in the harness** unless
+  `docs/port-manifest.md` records why the real translation unit cannot be
+  compiled yet, and what blocks it.
+- **A manifest status moves from `source-read` to `C-reference-verified`** only
+  when the harness executes the original function or overload for that entry.
+- **The shim may only grow for truly environmental inputs** (physical state,
+  time, randomness, terrain, transport). These inputs must be driven by the
+  same scenario data as the TS port adapters.
+- **This table is kept current.** A PR that adds or removes a shim entry
+  updates it.
 
 ## Freeze policy
 
