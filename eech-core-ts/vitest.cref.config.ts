@@ -4,6 +4,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
 	test: {
 		include: ["test/c-reference/**/*.cref.test.ts"],
+		globalSetup: ["test/c-reference/global-setup.ts"],
 		testTimeout: 120_000,
 	},
 });

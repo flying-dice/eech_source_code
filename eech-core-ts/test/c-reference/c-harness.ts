@@ -3,18 +3,22 @@
 // converts its output into a ScenarioOutcome comparable with the TS port.
 //
 
-import { spawnSync } from "node:child_process";
+import { spawnSync, type SpawnSyncReturns } from "node:child_process";
+import { existsSync } from "node:fs";
 // @ts-expect-error plain ESM build script without type declarations
-import { buildHarness } from "../../c-reference/build.mjs";
+import { HARNESS_BINARY } from "../../c-reference/build.mjs";
 import { serialiseScenario, type ScenarioOutcome, type ScenarioSpec } from "../scenarios/campaign-scenario";
 
-let harnessPath: string | undefined;
-
+// Built once by test/c-reference/global-setup.ts; never rebuilt from a worker.
 function harness(): string {
-	if (harnessPath === undefined) {
-		harnessPath = buildHarness() as string;
+	if (!existsSync(HARNESS_BINARY as string)) {
+		throw new Error(`C harness ${HARNESS_BINARY as string} is missing; run through vitest.cref.config.ts (global setup builds it)`);
 	}
-	return harnessPath;
+	return HARNESS_BINARY as string;
+}
+
+function describeFailure(run: SpawnSyncReturns<string>): string {
+	return run.error ? `${run.error.message}` : `exit ${run.status}: ${run.stderr}`;
 }
 
 export function formatNumberForC(n: number): string {
@@ -36,7 +40,7 @@ export function runCInput(input: string): ScenarioOutcome {
 	const run = spawnSync(harness(), [], { input, encoding: "utf8" });
 
 	if (run.status !== 0) {
-		throw new Error(`C harness failed (${run.status}): ${run.stderr}\ninput:\n${input}`);
+		throw new Error(`C harness failed (${describeFailure(run)})\ninput:\n${input}`);
 	}
 
 	const outcome: ScenarioOutcome = {
@@ -82,7 +86,7 @@ export function runCRange(x1: number, z1: number, x2: number, z2: number): { ran
 	const run = spawnSync(harness(), [], { input, encoding: "utf8" });
 
 	if (run.status !== 0) {
-		throw new Error(`C harness failed (${run.status}): ${run.stderr}`);
+		throw new Error(`C harness failed (${describeFailure(run)})`);
 	}
 
 	const w = run.stdout.split("\n")[0].split(" ");
