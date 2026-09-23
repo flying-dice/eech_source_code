@@ -174,7 +174,7 @@ The force's reaction (`fc_msgs.c :: response_to_force_low_on_supplies`) creates
 supply tasks and pulls in task creation. The slice stopped at that message
 boundary, recording each delivery. Slice 5a ports the response behind the same
 trace line, up to its own boundary, `create_supply_task`, which tests record
-(`record` policy, `takeUnportedCallLog`) and production refuses (`throw`).
+through a seam for that one function (`interceptCreateSupplyTask`); without it the call fails loudly.
 
 ## 6. What enables or blocks running the C implementation under a harness?
 

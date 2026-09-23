@@ -103,7 +103,7 @@ export function runTimeline(spec: TimelineSpec): TimelineOutcome {
 
 	initialiseCampaignCore(
 		{ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication, clock, object3DMetadata: new InMemoryObject3DMetadata() },
-		{ unportedMessagePolicy: "record", entityUpdateFrameRate: spec.entityUpdateFrameRate },
+		{ entityUpdateFrameRate: spec.entityUpdateFrameRate },
 	);
 
 	const labels: Record<number, string> = {};

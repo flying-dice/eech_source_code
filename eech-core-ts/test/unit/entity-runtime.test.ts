@@ -6,7 +6,7 @@
 
 import { afterEach, describe, expect, it } from "vitest";
 import { initialiseCampaignCore } from "../../src";
-import { createSupplyTask } from "../../src/ai/taskgen/taskgen";
+import { createSupplyTask, interceptCreateSupplyTask } from "../../src/ai/taskgen/taskgen";
 import { EechAssertionError, UnportedBehaviourError } from "../../src/core/assert";
 import { setCommsModel } from "../../src/entity/system/comms";
 import { getLocalEntityChildSucc, getLocalEntityFirstChild, getLocalEntityParent, insertLocalEntityIntoParentsChildListRaw } from "../../src/entity/system/en_list";
@@ -116,16 +116,29 @@ describe("entity runtime", () => {
 });
 
 describe("entity messages", () => {
-	it("throws when the create_supply_task boundary is reached by default (production policy)", () => {
+	it("create_supply_task (Slice 5b) fails loudly unless a test intercepts it", () => {
 		initialiseCampaignCore(ports());
 		const keysite = createLocalEntityRaw(EntityType.ENTITY_TYPE_KEYSITE, {});
-		expect(() => createSupplyTask(keysite, keysite, keysite, MovementType.MOVEMENT_TYPE_AIR, 4, undefined, undefined)).toThrow(
-			new UnportedBehaviourError("create_supply_task (taskgen.c :: create_supply_task (Slice 5b))"),
-		);
+		const call = (): unknown => createSupplyTask(keysite, keysite, keysite, MovementType.MOVEMENT_TYPE_AIR, 4, undefined, undefined);
+
+		expect(call).toThrow(new UnportedBehaviourError("taskgen.c :: create_supply_task (Slice 5b)"));
+
+		// the interceptor answers only while installed, and initialisation removes it
+		const seen: number[] = [];
+		interceptCreateSupplyTask((requester, _supplier, _cargo, movement_type) => {
+			seen.push(requester.index, movement_type);
+			return keysite;
+		});
+		expect(call()).toBe(keysite);
+		expect(seen).toEqual([keysite.index, MovementType.MOVEMENT_TYPE_AIR]);
+
+		initialiseCampaignCore(ports());
+		expect(call).toThrow(UnportedBehaviourError);
 	});
 
+
 	it("fails loudly on message responses not declared at all", () => {
-		initialiseCampaignCore(ports(), { unportedMessagePolicy: "record" });
+		initialiseCampaignCore(ports());
 		const group = createLocalEntityRaw(EntityType.ENTITY_TYPE_GROUP, {});
 		expect(() => notifyLocalEntity(EntityMessage.ENTITY_MESSAGE_LINK_CHILD, group, undefined)).toThrow(UnportedBehaviourError);
 	});

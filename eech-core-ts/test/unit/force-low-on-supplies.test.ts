@@ -36,7 +36,6 @@ describe("fc_msgs.c :: response_to_force_low_on_supplies", () => {
 	it("refuses a cargo sub type its switch has no case for (C reads factory uninitialised)", () => {
 		initialiseCampaignCore(
 			{ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new RecordingEntityReplication(), clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata() },
-			{ unportedMessagePolicy: "record" },
 		);
 		const session = createLocalEntityRaw(EntityType.ENTITY_TYPE_SESSION, {});
 		setSessionEntityRaw(session);

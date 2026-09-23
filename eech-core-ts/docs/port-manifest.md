@@ -142,7 +142,7 @@ where practical.
 | `ks_list.c`, `gp_list.c :: task_dependent_root` | `overloadKeysiteFunctions`, `overloadGroupFunctions` | ported, tested, 100%-covered, C-reference-verified |
 | `keysite.c :: get_keysite_supply_position` | `getKeysiteSupplyPosition` | ported, C-reference-verified |
 | `ts_dbase.c :: task_database [].task_priority` | `TASK_DATABASE_TASK_PRIORITY` | ported (generated from C, drift-checked), C-reference-verified (the harness compiles `ts_dbase.c`) |
-| `taskgen.c :: create_supply_task` | `createSupplyTask` | boundary (slice 5b): `callUnportedFunction` records it in tests and throws `UnportedBehaviourError` in production |
+| `taskgen.c :: create_supply_task` | `createSupplyTask` | boundary (slice 5b): throws `UnportedBehaviourError`; conformance tests replace it through `interceptCreateSupplyTask`, a seam for this one function that is not public API and that `initialiseCampaignCore` removes |
 | task and waypoint creation, `ts_creat.c`, `create_task`, `croute.c` | `createLocalEntityRaw` restores them in tests | unported (slice 5b) |
 
 ### Frozen slice: entity lifecycle, CARGO, sector membership (slice 3)
@@ -236,10 +236,14 @@ by the harness shim, and are verified by source reading only. The plan and the r
   (`response_to_force_low_on_supplies` for a cargo sub type its switch has no
   case for), the port throws `EechUndefinedBehaviourError` instead of inventing
   a value.
-- **Unported calls.** A C function a later slice ports is a named boundary
-  (`callUnportedFunction`): it throws in production and is recorded under the
-  `record` policy (`takeUnportedCallLog`). Since slice 5a this replaces the
-  unported message responses of slices 1 and 4, which no longer exist.
+- **Unported behaviour always fails loudly.** There is no policy that turns
+  unported campaign code into a no-op. Slice 5a's boundary,
+  `taskgen.c :: create_supply_task`, throws `UnportedBehaviourError`;
+  conformance tests replace that one function through `interceptCreateSupplyTask`
+  (not public API, removed by `initialiseCampaignCore`), which records the call
+  and returns what the test decides. The unported message responses and the
+  `unportedMessagePolicy` option of slices 1 and 4 are gone: the response they
+  stood for is ported.
 - **`max`** is the Windows SDK macro, not `Math.max`: `max (NaN, 0.0f)` is `0.0f`.
 - **Findings about the original C** (recorded, not fixed): `time.c ::
   set_manual_delta_time` has an undefined-behaviour history index update, and

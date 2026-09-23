@@ -31,7 +31,7 @@ import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physic
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
 import { ScriptedClock } from "../adapters/scripted-clock";
-import { takeSupplyTaskLines, traceForceLowOnSupplies } from "./supply-boundary";
+import { traceForceLowOnSupplies } from "./supply-boundary";
 
 export interface KeysiteSpec {
 	side: EntitySide;
@@ -128,7 +128,7 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 	const physical = new InMemoryMobilePhysicalState();
 	const replication = new RecordingEntityReplication();
 
-	initialiseCampaignCore({ mobilePhysicalState: physical, entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata() }, { unportedMessagePolicy: "record" });
+	initialiseCampaignCore({ mobilePhysicalState: physical, entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata() });
 
 	const labels: Record<number, string> = {};
 
@@ -136,16 +136,9 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 	// the (since Slice 5a, ported) force response runs; see supply-boundary.ts
 	const messages: MessageEvent[] = [];
 
-	traceForceLowOnSupplies(
-		(d) => messages.push({ receiver: labelOf(labels, d.receiver), sender: labelOf(labels, d.sender), message: d.message, arg: d.subType }),
-		() => {
-			// Slice 1 scenarios never set the game status, so the response
-			// returns at its guard and never reaches create_supply_task
-			if (takeSupplyTaskLines((en) => labelOf(labels, en)).length !== 0) {
-				throw new Error("a Slice 1 scenario reached create_supply_task");
-			}
-		},
-	);
+	// Slice 1 scenarios never set the game status, so the response returns at
+	// its guard; create_supply_task is left fail-loud
+	traceForceLowOnSupplies((d) => messages.push({ receiver: labelOf(labels, d.receiver), sender: labelOf(labels, d.sender), message: d.message, arg: d.subType }));
 
 	const session = createLocalEntityRaw(EntityType.ENTITY_TYPE_SESSION, {});
 

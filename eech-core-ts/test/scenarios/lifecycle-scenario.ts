@@ -71,7 +71,7 @@ import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physic
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
 import { ScriptedClock } from "../adapters/scripted-clock";
 import type { KeysiteSpec, PositionSpec } from "./campaign-scenario";
-import { takeSupplyTaskLines, traceForceLowOnSupplies } from "./supply-boundary";
+import { interceptSupplyTasks, traceForceLowOnSupplies } from "./supply-boundary";
 import { float32Hex } from "./float-bits";
 
 export type LifecycleAttribute =
@@ -172,26 +172,22 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 
 	const physical = new InMemoryMobilePhysicalState();
 
-	// "record": the create_supply_task boundary (Slice 5b) is recorded, not thrown
 	initialiseCampaignCore(
 		{ mobilePhysicalState: physical, entityReplication: new LineReplication(lines, labelOfIndex), clock: new ScriptedClock(), object3DMetadata: objects },
-		{ unportedMessagePolicy: "record", numberOfEntities: spec.heap },
+		{ numberOfEntities: spec.heap },
 	);
 
 	let observeSupplyTasks = false;
 
-	const takeBoundary = (): void => {
-		for (const line of takeSupplyTaskLines(labelOf)) {
-			if (observeSupplyTasks) {
-				lines.push(line);
-			}
-		}
-	};
+	traceForceLowOnSupplies((d) => lines.push(`message ${labelOf(d.receiver)} ${labelOf(d.sender)} ${d.message} ${d.subType}`));
 
-	traceForceLowOnSupplies(
-		(d) => lines.push(`message ${labelOf(d.receiver)} ${labelOf(d.sender)} ${d.message} ${d.subType}`),
-		takeBoundary,
-	);
+	// create_supply_task (Slice 5b) is answered by the test stand-in; its calls
+	// are printed only once the scenario observes them
+	interceptSupplyTasks(labelOf, (line) => {
+		if (observeSupplyTasks) {
+			lines.push(line);
+		}
+	});
 
 	const session = createLocalEntityRaw(EntityType.ENTITY_TYPE_SESSION, {});
 	labels[session.index] = "session";
@@ -416,10 +412,8 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 				destroyClientServerEntityFamily(find(op.label) as Entity);
 			}
 
-			takeBoundary();
 		}
 	} catch (e) {
-		takeBoundary();
 
 		if (e instanceof EechAssertionError) {
 			result = `assert ${e.expression}`;

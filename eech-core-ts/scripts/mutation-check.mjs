@@ -711,6 +711,20 @@ const MUTANTS = [
 		to: "if (getLocalEntityFloatValue(task, FloatType.FLOAT_TYPE_TASK_USER_DATA) === sub_type && getLocalEntityIntValue(task, IntType.INT_TYPE_TASK_STATE) !== 2) {",
 		suite: "lua",
 	},
+	{
+		name: "Slice 5a review: an unintercepted create_supply_task returns instead of failing loudly",
+		file: "src/ai/taskgen/taskgen.ts",
+		from: "throw new UnportedBehaviourError(\"taskgen.c :: create_supply_task (Slice 5b)\");",
+		to: "return undefined;",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a review: initialisation keeps a test's create_supply_task interceptor",
+		file: "src/index.ts",
+		from: "\tresetCreateSupplyTaskInterceptor();\n",
+		to: "",
+		suite: "js",
+	},
 ];
 
 function run(cwd, command, args) {

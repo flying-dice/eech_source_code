@@ -22,7 +22,7 @@
 // without running creation-time behaviour. Creation proper is en_creat.ts.
 //
 
-import { ASSERT, UnportedBehaviourError } from "../../core/assert";
+import { ASSERT } from "../../core/assert";
 import { CommsModelType, EntityType } from "../../generated/c-enums";
 import type { CampaignPorts } from "../../ports";
 import { setCommsModel } from "./comms";
@@ -48,17 +48,7 @@ export interface Entity {
 	pred: number;
 }
 
-export type UnportedMessagePolicy = "throw" | "record";
-
 export type MessageArg = number | Entity | undefined;
-
-// A call into a C function that a later slice ports, reached under the
-// "record" policy (the function's boundary, e.g. taskgen.c :: create_supply_task).
-export interface UnportedCall {
-	name: string;
-	args: MessageArg[];
-	provenance: string;
-}
 
 interface EntityRuntime {
 	ports: CampaignPorts;
@@ -67,22 +57,18 @@ interface EntityRuntime {
 	entities: Record<number, Entity>;
 	firstFreeEntity: number;
 	firstUsedEntity: number;
-	unportedMessagePolicy: UnportedMessagePolicy;
-	unportedCallLog: UnportedCall[];
 	sessionEntity: Entity | undefined;
 }
 
 let runtime: EntityRuntime | undefined;
 
-export function initialiseEntityRuntime(ports: CampaignPorts, unportedMessagePolicy: UnportedMessagePolicy): void {
+export function initialiseEntityRuntime(ports: CampaignPorts): void {
 	runtime = {
 		ports,
 		numberOfEntities: 0,
 		entities: {},
 		firstFreeEntity: -1,
 		firstUsedEntity: -1,
-		unportedMessagePolicy,
-		unportedCallLog: [],
 		sessionEntity: undefined,
 	};
 
@@ -100,27 +86,6 @@ function getRuntime(): EntityRuntime {
 
 export function getCampaignPorts(): CampaignPorts {
 	return getRuntime().ports;
-}
-
-//
-// A call to a C function the port has not ported yet. With the "throw" policy
-// (production) it fails loudly; with "record" (tests) it is recorded, so the
-// ported caller can be tested up to that boundary.
-//
-export function callUnportedFunction(call: UnportedCall): void {
-	const rt = getRuntime();
-
-	if (rt.unportedMessagePolicy === "throw") {
-		throw new UnportedBehaviourError(`${call.name} (${call.provenance})`);
-	}
-
-	rt.unportedCallLog.push(call);
-}
-
-export function takeUnportedCallLog(): UnportedCall[] {
-	const log = getRuntime().unportedCallLog;
-
-	return log.splice(0, log.length);
 }
 
 // C provenance: entity/special/session/session.h :: #define get_session_entity() (session_entity)

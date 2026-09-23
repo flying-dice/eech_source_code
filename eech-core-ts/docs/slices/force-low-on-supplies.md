@@ -32,7 +32,7 @@ The response decides whether a supply task should exist, and identifies its supp
 | `ks_list.c`, `gp_list.c`: `task_dependent_root` | `overloadKeysiteFunctions`, `overloadGroupFunctions` |
 | `keysite.c :: get_keysite_supply_position` | `getKeysiteSupplyPosition` |
 | `ts_dbase.c :: task_database [].task_priority` | `TASK_DATABASE_TASK_PRIORITY` (generated, drift-checked) |
-| `taskgen.c :: create_supply_task` | `createSupplyTask`: the boundary. It fails loudly in production and is recorded in tests (`callUnportedFunction`) |
+| `taskgen.c :: create_supply_task` | `createSupplyTask`: the boundary. It always fails loudly; conformance tests install a stand-in for this one function (`interceptCreateSupplyTask`) that records the call and returns NULL, as the C harness's stub does |
 
 Tasks and waypoints are *read* here, never created. A scenario restores them raw onto their objective's `LIST_TYPE_TASK_DEPENDENT` list, the way keysites and forces are already restored. Their creation is 5b.
 
