@@ -40,10 +40,12 @@ jobs:
           cache: npm
           cache-dependency-path: eech-core-ts/package-lock.json
 
-      - name: Install Lua 5.1 and a C compiler
+      # gcc-multilib: the C reference harness is built for 32-bit x86, EECH's
+      # platform (c-reference/README.md, "Platform")
+      - name: Install Lua 5.1 and a 32-bit capable C compiler
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends lua5.1 gcc
+          sudo apt-get install -y --no-install-recommends lua5.1 gcc gcc-multilib
           lua5.1 -v
           cc --version
 

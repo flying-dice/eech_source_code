@@ -34,6 +34,13 @@ TypeScript port.
   `-fno-stack-protector`. `test/c-reference/harness-signal-safety.cref.test.ts`
   walks the call graph in the compiled object with `objdump` and fails on
   anything else, including calls the compiler inserts.
+- **Platform.** The harness is built for 32-bit x86 (`-m32`), EECH's platform,
+  with SSE float arithmetic (`-msse2 -mfpmath=sse`, `FLT_EVAL_METHOD == 0`).
+  The original code depends on the 32-bit calling convention: `en_creat.c`
+  converts a `va_list` into the `char *` attribute buffer
+  (`pargs_buffer = (char *) pargs`), which only works where `va_list` points
+  into the argument stack. On x86-64 that pointer is meaningless. A compiler
+  with 32-bit support is required (`gcc-multilib` on Debian and Ubuntu).
 - `build.mjs` compiles everything. Our own files build with `-Werror`. Original
   files keep their historical warnings, but mismatches with the environment are
   errors (implicit declarations, pointer and int conversions). The build fails

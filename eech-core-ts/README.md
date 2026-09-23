@@ -22,7 +22,8 @@ through narrow ports in `src/ports`.
 - Node.js ≥ 20
 - a **Lua 5.1** interpreter (`lua5.1`, or set `LUA=/path/to/lua`). For example,
   `apt-get install lua5.1`.
-- a C compiler (`cc`, or set `CC`) for the C reference gate
+- a C compiler with 32-bit x86 support (`cc`, or set `CC`; for example
+  `apt-get install gcc gcc-multilib`) for the C reference gate
 
 ## Commands
 

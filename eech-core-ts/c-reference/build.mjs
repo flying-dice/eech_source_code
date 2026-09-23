@@ -20,8 +20,18 @@ export const HARNESS_BINARY = join(outDir, "harness");
 
 export const HARNESS_BUILD_DIR = outDir;
 
+// -m32: EECH is a 32-bit x86 program and relies on its calling convention:
+// en_creat.c turns a va_list into the char * attribute buffer
+// (pargs_buffer = (char *) pargs), which is only meaningful where va_list is a
+// pointer into the argument stack. -msse2 -mfpmath=sse: C float arithmetic is
+// evaluated at declared type (FLT_EVAL_METHOD 0, checked in
+// eech_harness_env.h), as the TypeScript port models it; x87 excess precision
+// is not used.
 const COMMON = [
 	"-std=gnu99",
+	"-m32",
+	"-msse2",
+	"-mfpmath=sse",
 	"-O0",
 	"-ffp-contract=off",
 	"-fno-fast-math",
@@ -67,7 +77,7 @@ export function buildHarness() {
 		...REAL_TRANSLATION_UNITS.map((unit) => compile(cc, join(repoRoot, unit), ORIGINAL_FLAGS)),
 	];
 
-	const link = spawnSync(cc, [...objects, "-lm", "-o", HARNESS_BINARY], { encoding: "utf8" });
+	const link = spawnSync(cc, ["-m32", ...objects, "-lm", "-o", HARNESS_BINARY], { encoding: "utf8" });
 	if (link.error || link.status !== 0) {
 		throw new Error(`C reference harness link failed:\n${link.error ?? ""}${link.stdout}${link.stderr}`);
 	}
