@@ -18,8 +18,17 @@ function harness(): string {
 	return HARNESS_BINARY as string;
 }
 
+// A run that did not exit normally with status 0 is never an outcome: in
+// particular a process killed by a signal (e.g. a SIGSEGV outside the NULL page,
+// which the harness deliberately does not handle) is a harness failure.
 function describeFailure(run: SpawnSyncReturns<string>): string {
-	return run.error ? `${run.error.message}` : `exit ${run.status}: ${run.stderr}`;
+	if (run.error) {
+		return run.error.message;
+	}
+	if (run.signal !== null) {
+		return `killed by ${run.signal}: ${run.stderr}`;
+	}
+	return `exit ${run.status}: ${run.stderr}`;
 }
 
 export function formatNumberForC(n: number): string {

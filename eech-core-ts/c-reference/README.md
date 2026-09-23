@@ -22,8 +22,13 @@ TypeScript port.
   `overload_*_functions ()`. It adds hand-written rows only for entity types
   whose files are not compiled yet, and supplies the environment: frame delta,
   comms, transport and mobile positions. It then reads a scenario on stdin and
-  prints the outcome, with floats as bit patterns. NULL dereferences in the
-  original code are reported as `result null-dereference` (`SIGSEGV`).
+  prints the outcome, with floats as bit patterns. `stdout` is unbuffered.
+- **Faults.** A `SIGSEGV` inside the NULL page is EECH's unguarded NULL
+  dereference. An async-signal-safe handler (`write` and `_exit` only) reports
+  `result null-dereference` and the final state, then ends the process; it
+  never resumes it. Any other fault kills the process by signal, and the test
+  driver treats that as a failed run, never as an outcome
+  (`test/c-reference/harness-faults.cref.test.ts`).
 - `build.mjs` compiles everything. Our own files build with `-Werror`. Original
   files keep their historical warnings, but mismatches with the environment are
   errors (implicit declarations, pointer and int conversions). The build fails

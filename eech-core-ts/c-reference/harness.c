@@ -33,12 +33,18 @@
  *   step <n> <delta bits> <update list labels, comma separated, or ->
  *   timer <sleep bits> <assist_timer bits>       one line per timeline group after each step
  *   result ok | result assert <expression> | result null-dereference
+ *
+ * A NULL dereference (a fault inside the NULL page) is an EECH outcome and is
+ * reported. Any other fatal signal is a harness or original-code defect: the
+ * process dies by that signal and the caller treats the run as failed.
  *   final group <ammo bits> <fuel bits>
  *   final keysite <ammo bits> <fuel bits>        one line per keysite, scenario order
  */
 
 #include <setjmp.h>
 #include <signal.h>
+#include <stdint.h>
+#include <sys/mman.h>
 #include <unistd.h>
 
 #include "project.h"
@@ -134,7 +140,7 @@ int
 FILE
 	*tacview_log_file = NULL;		/* tacview logging is excluded: never logging */
 
-static sigjmp_buf
+static jmp_buf
 	abort_operation;
 
 static char
@@ -147,31 +153,184 @@ static void harness_fail (const char *what)
 	exit (2);
 }
 
+/* ASSERT runs in normal control flow (never in a signal handler) */
 void harness_assert (const char *expression)
 {
 	printf ("result assert %s\n", expression);
 
-	siglongjmp (abort_operation, 1);
+	longjmp (abort_operation, 1);
+}
+
+/* raw data of entity types whose files are not compiled yet (hand-written rows below) */
+
+typedef struct
+{
+	entity_sub_types
+		sub_type;
+
+	entity_sides
+		side;
+
+	int
+		in_use;
+
+	vec3d
+		position;
+
+	supply_type
+		supplies;
+} shim_keysite;
+
+typedef struct
+{
+	entity_sides
+		side;
+} shim_force;
+
+typedef struct
+{
+	vec3d
+		position;		/* physical state: supplied by the scenario */
+} shim_mobile;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// final state output and NULL dereference outcome
+//
+// Everything reachable from the SIGSEGV handler is async-signal-safe: write (),
+// reads of harness globals, sigaction () and _exit (). stdout is unbuffered
+// (setvbuf in main), so nothing printed before a fault is lost and nothing
+// needs flushing.
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define NULL_PAGE_SIZE 4096
+
+static group
+	*final_group_raw;
+
+static shim_keysite
+	*final_keysites;
+
+static int
+	final_keysite_count;
+
+static void write_all (const char *text, size_t length)
+{
+	while (length > 0)
+	{
+		ssize_t written = write (STDOUT_FILENO, text, length);
+
+		if (written <= 0)
+		{
+			_exit (3);
+		}
+
+		text += written;
+		length -= (size_t) written;
+	}
+}
+
+static void write_text (const char *text)
+{
+	write_all (text, strlen (text));
+}
+
+static void write_float_bits (float value)
+{
+	static const char
+		digits[] = "0123456789abcdef";
+
+	char
+		hex[8];
+
+	unsigned int
+		bits;
+
+	int
+		i;
+
+	memcpy (&bits, &value, sizeof (bits));
+
+	for (i = 7; i >= 0; i--)
+	{
+		hex[i] = digits[bits & 0xf];
+		bits >>= 4;
+	}
+
+	write_all (hex, sizeof (hex));
+}
+
+static void write_final_pair (const char *prefix, float a, float b)
+{
+	write_text (prefix);
+	write_float_bits (a);
+	write_text (" ");
+	write_float_bits (b);
+	write_text ("\n");
+}
+
+static void emit_final_state (void)
+{
+	int
+		i;
+
+	if (final_group_raw)
+	{
+		write_final_pair ("final group ", final_group_raw->supplies.ammo_supply_level, final_group_raw->supplies.fuel_supply_level);
+	}
+
+	for (i = 0; i < final_keysite_count; i++)
+	{
+		write_final_pair ("final keysite ", final_keysites[i].supplies.ammo_supply_level, final_keysites[i].supplies.fuel_supply_level);
+	}
 }
 
 /*
  * EECH dereferences NULL entity pointers without a check in release builds
  * (e.g. get_local_entity_type (EN) is ((EN)->type)). The original code runs
- * unguarded here too; the resulting SIGSEGV is reported as the outcome.
+ * unguarded here too. A fault inside the NULL page is that outcome: it is
+ * reported, the final state is written and the process ends. It is never
+ * resumed. Any other fault restores the default action and returns, so the
+ * faulting instruction re-executes and the process dies by SIGSEGV.
  */
-static void null_dereference (int signal_number)
+static void segmentation_fault (int signal_number, siginfo_t *info, void *context)
 {
-	static const char
-		message[] = "result null-dereference\n";
+	struct sigaction
+		default_action;
 
-	fflush (stdout);
-
-	if (write (STDOUT_FILENO, message, sizeof (message) - 1) < 0)
+	if ((uintptr_t) info->si_addr < NULL_PAGE_SIZE)
 	{
-		_exit (3);
+		write_text ("result null-dereference\n");
+
+		emit_final_state ();
+
+		_exit (0);
 	}
 
-	siglongjmp (abort_operation, 1);
+	memset (&default_action, 0, sizeof (default_action));
+
+	default_action.sa_handler = SIG_DFL;
+
+	sigemptyset (&default_action.sa_mask);
+
+	sigaction (SIGSEGV, &default_action, NULL);
+}
+
+static void install_segmentation_fault_handler (void)
+{
+	struct sigaction
+		action;
+
+	memset (&action, 0, sizeof (action));
+
+	action.sa_sigaction = segmentation_fault;
+
+	action.sa_flags = SA_SIGINFO | SA_RESETHAND;
+
+	sigemptyset (&action.sa_mask);
+
+	sigaction (SIGSEGV, &action, NULL);
 }
 
 void debug_fatal (const char *string, ...)
@@ -285,35 +444,6 @@ static int unsupplied_message_response (entity_messages message, entity *receive
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct
-{
-	entity_sub_types
-		sub_type;
-
-	entity_sides
-		side;
-
-	int
-		in_use;
-
-	vec3d
-		position;
-
-	supply_type
-		supplies;
-} shim_keysite;
-
-typedef struct
-{
-	entity_sides
-		side;
-} shim_force;
-
-typedef struct
-{
-	vec3d
-		position;		/* physical state: supplied by the scenario */
-} shim_mobile;
 
 /* list storage for shim entity types */
 static entity
@@ -659,9 +789,15 @@ int main (void)
 		*cursor,
 		*word;
 
+	/* unbuffered: output written before a fault is never lost, and the fault
+	   handler never needs to flush */
+	setvbuf (stdout, NULL, _IONBF, 0);
+
 	initialise_tables ();
 
-	signal (SIGSEGV, null_dereference);
+	install_segmentation_fault_handler ();
+
+	final_keysites = keysite_data;
 
 	session = new_entity (ENTITY_TYPE_SESSION, NULL, "session");
 
@@ -726,6 +862,8 @@ int main (void)
 			}
 
 			num_keysites++;
+
+			final_keysite_count = num_keysites;
 		}
 		else if (strcmp (word, "group") == 0)
 		{
@@ -751,6 +889,8 @@ int main (void)
 			leader_data.position.z = next_double (&cursor);
 
 			group_en = new_entity (ENTITY_TYPE_GROUP, raw, "group");
+
+			final_group_raw = raw;
 
 			num_groups++;
 
@@ -831,7 +971,7 @@ int main (void)
 				count = next_int (&cursor);
 			}
 
-			if (sigsetjmp (abort_operation, 1) != 0)
+			if (setjmp (abort_operation) != 0)
 			{
 				return 0;
 			}
@@ -871,7 +1011,7 @@ int main (void)
 		{
 			word = next_token (&cursor);
 
-			if (sigsetjmp (abort_operation, 1) == 0)
+			if (setjmp (abort_operation) == 0)
 			{
 				if (strcmp (word, "assess") == 0)
 				{
@@ -922,6 +1062,25 @@ int main (void)
 
 					printf ("range %08x %08x\n", float_bits (get_2d_range (&v1, &v2)), float_bits (get_approx_2d_range (&v1, &v2)));
 				}
+				else if (strcmp (word, "fault-null") == 0)
+				{
+					/* harness self-test: a read inside the NULL page */
+					volatile int *volatile null_pointer = NULL;
+
+					printf ("read %d\n", null_pointer[1]);
+				}
+				else if (strcmp (word, "fault-unmapped") == 0)
+				{
+					/* harness self-test: a fault outside the NULL page must kill the process */
+					volatile int *guard = mmap (NULL, 65536, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
+					if ((void *) guard == MAP_FAILED)
+					{
+						harness_fail ("mmap failed");
+					}
+
+					printf ("read %d\n", guard[4096]);
+				}
 				else
 				{
 					harness_fail ("unknown op");
@@ -930,17 +1089,7 @@ int main (void)
 				printf ("result ok\n");
 			}
 
-			if (group_en)
-			{
-				group *raw = (group *) get_local_entity_data (group_en);
-
-				printf ("final group %08x %08x\n", float_bits (raw->supplies.ammo_supply_level), float_bits (raw->supplies.fuel_supply_level));
-			}
-
-			for (i = 0; i < num_keysites; i++)
-			{
-				printf ("final keysite %08x %08x\n", float_bits (keysite_data[i].supplies.ammo_supply_level), float_bits (keysite_data[i].supplies.fuel_supply_level));
-			}
+			emit_final_state ();
 
 			return 0;
 		}
