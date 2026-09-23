@@ -3,7 +3,8 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
 	test: {
 		include: ["test/**/*.test.ts"],
-		exclude: ["test/c-reference/**"],
+		// the FPU spike (issue #7) is investigation only: npm run spike:fpu
+		exclude: ["test/c-reference/**", "test/fpu-spike/**"],
 		coverage: {
 			provider: "istanbul",
 			include: ["src/**/*.ts"],

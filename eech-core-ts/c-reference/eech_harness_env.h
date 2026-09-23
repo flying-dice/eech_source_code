@@ -26,7 +26,7 @@
 
 /* the TypeScript port models C float arithmetic as IEEE single precision
    evaluated at declared type; the reference must do the same */
-#if !defined (FLT_EVAL_METHOD) || FLT_EVAL_METHOD != 0
+#if !defined (FLT_EVAL_METHOD) || ((FLT_EVAL_METHOD != 0) && !defined (HARNESS_FPU_VARIANT))
 #error "the C reference harness requires FLT_EVAL_METHOD == 0"
 #endif
 

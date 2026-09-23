@@ -56,6 +56,14 @@ TypeScript port.
   (`pargs_buffer = (char *) pargs`), which only works where `va_list` points
   into the argument stack. On x86-64 that pointer is meaningless. A compiler
   with 32-bit support is required (`gcc-multilib` on Debian and Ubuntu).
+- **Floating-point environment.** Round to nearest is the platform default.
+  EECH itself runs its campaign thread with round-toward-zero x87 arithmetic,
+  so this default is an open fidelity question. Issue #7 investigates it; the
+  evidence and the proposed rule are in `docs/fidelity/fpu-semantics.md`.
+  `test/c-reference/fpu-environment.cref.test.ts` pins the canonical
+  environment through the harness `fpu` command.
+  The investigation-only variants (`fpu-variants.mjs`, `buildHarnessVariant`,
+  `HARNESS_FPU_VARIANT`, `fpu-probes/`) never affect the canonical build.
 - `build.mjs` compiles everything. Our own files build with `-Werror`. Original
   files keep their historical warnings, but mismatches with the environment are
   errors (implicit declarations, pointer and int conversions). Before Slice 3
