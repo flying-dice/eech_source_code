@@ -24,11 +24,16 @@ TypeScript port.
   comms, transport and mobile positions. It then reads a scenario on stdin and
   prints the outcome, with floats as bit patterns. `stdout` is unbuffered.
 - **Faults.** A `SIGSEGV` inside the NULL page is EECH's unguarded NULL
-  dereference. An async-signal-safe handler (`write` and `_exit` only) reports
-  `result null-dereference` and the final state, then ends the process; it
-  never resumes it. Any other fault kills the process by signal, and the test
-  driver treats that as a failed run, never as an outcome
-  (`test/c-reference/harness-faults.cref.test.ts`).
+  dereference. The handler reports `result null-dereference` and the final
+  state, then ends the process; it never resumes it. Any other fault kills the
+  process by signal, and the test driver treats that as a failed run, never as
+  an outcome (`test/c-reference/harness-faults.cref.test.ts`).
+- **Signal safety is checked on the binary.** The handler's call graph may reach
+  no library call except `write` and `_exit`: fixed strings have compile-time
+  lengths, float bits are hex-encoded by hand, and `harness.c` is built with
+  `-fno-stack-protector`. `test/c-reference/harness-signal-safety.cref.test.ts`
+  walks the call graph in the compiled object with `objdump` and fails on
+  anything else, including calls the compiler inserts.
 - `build.mjs` compiles everything. Our own files build with `-Werror`. Original
   files keep their historical warnings, but mismatches with the environment are
   errors (implicit declarations, pointer and int conversions). The build fails

@@ -18,6 +18,8 @@ const outDir = join(projectRoot, "build", "c-reference");
 
 export const HARNESS_BINARY = join(outDir, "harness");
 
+export const HARNESS_BUILD_DIR = outDir;
+
 const COMMON = [
 	"-std=gnu99",
 	"-O0",
@@ -33,14 +35,19 @@ const COMMON = [
 ];
 
 // Our own sources: every warning is an error.
-const OWN_FLAGS = ["-Wall", "-Werror", "-Wno-unused-function", "-Wno-unused-variable", "-Wno-unused-but-set-variable"];
+// -fno-stack-protector: the SIGSEGV handler's call graph must reach no library
+// call but write () and _exit (), and the stack protector would add
+// __stack_chk_fail (checked by test/c-reference/harness-signal-safety.cref.test.ts).
+const OWN_FLAGS = ["-Wall", "-Werror", "-Wno-unused-function", "-Wno-unused-variable", "-Wno-unused-but-set-variable", "-fno-stack-protector"];
+
+export const HARNESS_OBJECT_NAME = "harness.c.o";
 
 // Original EECH sources: their historical warnings are not ours to fix, but the
 // ones that would hide a mismatch with the harness environment are errors.
 const ORIGINAL_FLAGS = ["-Werror=implicit-function-declaration", "-Werror=incompatible-pointer-types", "-Werror=int-conversion", "-Werror=return-type", "-w"];
 
-function compile(cc, source, flags) {
-	const object = join(outDir, `${source.replace(/[\\/]/g, "_")}.o`);
+function compile(cc, source, flags, objectName = `${source.replace(/[\\/]/g, "_")}.o`) {
+	const object = join(outDir, objectName);
 	const args = [...COMMON, ...flags, "-c", source, "-o", object];
 	const result = spawnSync(cc, args, { encoding: "utf8" });
 	if (result.error || result.status !== 0) {
@@ -54,7 +61,7 @@ export function buildHarness() {
 
 	const cc = process.env.CC || "cc";
 	const objects = [
-		compile(cc, join(here, "harness.c"), OWN_FLAGS),
+		compile(cc, join(here, "harness.c"), OWN_FLAGS, HARNESS_OBJECT_NAME),
 		// verbatim original code: original-code flags
 		compile(cc, join(outDir, "eech_extracted.c"), ORIGINAL_FLAGS),
 		...REAL_TRANSLATION_UNITS.map((unit) => compile(cc, join(repoRoot, unit), ORIGINAL_FLAGS)),

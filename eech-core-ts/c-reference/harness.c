@@ -197,14 +197,18 @@ typedef struct
 //
 // final state output and NULL dereference outcome
 //
-// Everything reachable from the SIGSEGV handler is async-signal-safe: write (),
-// reads of harness globals, sigaction () and _exit (). stdout is unbuffered
-// (setvbuf in main), so nothing printed before a fault is lost and nothing
-// needs flushing.
+// The SIGSEGV handler's call graph contains no C library call except write ()
+// and _exit (): fixed strings have compile-time lengths, and float bits are
+// read through a union and hex-encoded by hand. The same code writes the final
+// state on the normal path, so both paths produce identical text. stdout is
+// unbuffered (setvbuf in main), so nothing printed before a fault is lost.
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define NULL_PAGE_SIZE 4096
+
+/* a string literal and its length, without the terminator */
+#define LITERAL(TEXT) (TEXT), (sizeof (TEXT) - 1)
 
 static group
 	*final_group_raw;
@@ -231,43 +235,41 @@ static void write_all (const char *text, size_t length)
 	}
 }
 
-static void write_text (const char *text)
-{
-	write_all (text, strlen (text));
-}
-
 static void write_float_bits (float value)
 {
-	static const char
-		digits[] = "0123456789abcdef";
+	union
+	{
+		float
+			f;
+
+		unsigned int
+			u;
+	} bits;
 
 	char
 		hex[8];
 
-	unsigned int
-		bits;
-
 	int
 		i;
 
-	memcpy (&bits, &value, sizeof (bits));
+	bits.f = value;
 
 	for (i = 7; i >= 0; i--)
 	{
-		hex[i] = digits[bits & 0xf];
-		bits >>= 4;
+		hex[i] = "0123456789abcdef"[bits.u & 0xf];
+		bits.u >>= 4;
 	}
 
 	write_all (hex, sizeof (hex));
 }
 
-static void write_final_pair (const char *prefix, float a, float b)
+static void write_final_pair (const char *prefix, size_t prefix_length, float a, float b)
 {
-	write_text (prefix);
+	write_all (prefix, prefix_length);
 	write_float_bits (a);
-	write_text (" ");
+	write_all (LITERAL (" "));
 	write_float_bits (b);
-	write_text ("\n");
+	write_all (LITERAL ("\n"));
 }
 
 static void emit_final_state (void)
@@ -277,12 +279,12 @@ static void emit_final_state (void)
 
 	if (final_group_raw)
 	{
-		write_final_pair ("final group ", final_group_raw->supplies.ammo_supply_level, final_group_raw->supplies.fuel_supply_level);
+		write_final_pair (LITERAL ("final group "), final_group_raw->supplies.ammo_supply_level, final_group_raw->supplies.fuel_supply_level);
 	}
 
 	for (i = 0; i < final_keysite_count; i++)
 	{
-		write_final_pair ("final keysite ", final_keysites[i].supplies.ammo_supply_level, final_keysites[i].supplies.fuel_supply_level);
+		write_final_pair (LITERAL ("final keysite "), final_keysites[i].supplies.ammo_supply_level, final_keysites[i].supplies.fuel_supply_level);
 	}
 }
 
@@ -291,30 +293,22 @@ static void emit_final_state (void)
  * (e.g. get_local_entity_type (EN) is ((EN)->type)). The original code runs
  * unguarded here too. A fault inside the NULL page is that outcome: it is
  * reported, the final state is written and the process ends. It is never
- * resumed. Any other fault restores the default action and returns, so the
- * faulting instruction re-executes and the process dies by SIGSEGV.
+ * resumed.
+ *
+ * SA_RESETHAND has already restored the default action on entry, so for any
+ * other fault the handler simply returns: the faulting instruction re-executes
+ * and the process dies by SIGSEGV, which the test driver reports as a failure.
  */
 static void segmentation_fault (int signal_number, siginfo_t *info, void *context)
 {
-	struct sigaction
-		default_action;
-
 	if ((uintptr_t) info->si_addr < NULL_PAGE_SIZE)
 	{
-		write_text ("result null-dereference\n");
+		write_all (LITERAL ("result null-dereference\n"));
 
 		emit_final_state ();
 
 		_exit (0);
 	}
-
-	memset (&default_action, 0, sizeof (default_action));
-
-	default_action.sa_handler = SIG_DFL;
-
-	sigemptyset (&default_action.sa_mask);
-
-	sigaction (SIGSEGV, &default_action, NULL);
 }
 
 static void install_segmentation_fault_handler (void)
