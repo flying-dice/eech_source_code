@@ -30,6 +30,14 @@ where practical.
 | `aphavoc/source/entity/special/group/gp_ptr.c` | `src/entity/special/group/group.ts` | partial |
 | `aphavoc/source/entity/special/group/gp_vec3d.c` | `src/entity/special/group/group.ts` | partial |
 | `aphavoc/source/entity/special/group/gp_list.c` | `src/entity/special/group/group.ts` | partial |
+| `aphavoc/source/entity/special/group/gp_updt.c` | `src/entity/special/group/group.ts` (`updateServer`) | ported |
+| `aphavoc/source/entity/special/group/gp_msgs.c` | `src/entity/special/group/group.ts` (link/unlink parent responses) | partial |
+| `aphavoc/source/entity/special/update/up_update.c` | `src/entity/special/update/update.ts` | partial (tacview and mobile bitsets excluded) |
+| `aphavoc/source/entity/special/update/up_msgs.c` | `src/entity/special/update/update.ts` | ported |
+| `aphavoc/source/entity/special/update/up_list.c` | `src/entity/special/update/update.ts` | ported |
+| `aphavoc/source/entity/system/en_funcs/en_updt.c` | `src/entity/system/en_updt.ts` | ported (default handler deliberately not installed) |
+| `modules/system/time.c` | `src/core/time.ts`, `src/ports/clock.ts` (port) | partial (measurement is the `Clock` port; delta history not ported) |
+| `aphavoc/source/cmndline.c` (`command_line_entity_update_frame_rate`) | `src/core/cmndline.ts` | partial |
 | `aphavoc/source/entity/special/group/gp_dbase.c` | `src/generated/c-group-database.ts` (generated) | partial |
 | `aphavoc/source/entity/special/keysite/keysite.c` | `src/entity/special/keysite/keysite.ts` | partial |
 | `aphavoc/source/entity/special/keysite/ks_int.c`, `ks_float.c`, `ks_vec3d.c`, `ks_list.c` | `src/entity/special/keysite/keysite.ts` | partial |
@@ -68,24 +76,47 @@ where practical.
 | `en_msgs.c :: notify_local_entity` | `notifyLocalEntity` | ported, tested, 100%-covered, C-reference-verified |
 | `miscmath.h :: bound` | `bound` | ported, tested, 100%-covered, C-reference-verified (through the slice) |
 
-### Accessor overloads reached by the slice
+### Frozen slice: group update timing (slice 2)
 
-In the C harness these accessors are supplied by the shim, so they are verified
-by source reading only (see architecture question 6). The plan for replacing
-the shim with the real translation units, and the rules for new slices, are in
+| C function | TS | Status |
+|---|---|---|
+| `gp_updt.c :: update_server`, `overload_group_update_functions` | `updateServer` | ported, tested, 100%-covered, C-reference-verified |
+| `gp_float.c :: set_local_float_value` (`FLOAT_TYPE_SLEEP`, `FLOAT_TYPE_ASSIST_TIMER`), `set_server_float_value` | `setLocalTimerValue` via `serverFloatValueSetter` | ported, tested, 100%-covered, C-reference-verified |
+| `gp_float.c :: get_local_float_value` (`FLOAT_TYPE_SLEEP`, `FLOAT_TYPE_ASSIST_TIMER`) | `overloadGroupFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `up_update.c :: update_client_server_entities` | `updateClientServerEntities` | ported, tested, 100%-covered, C-reference-verified (tacview excluded) |
+| `up_update.c :: set_entity_update_frame_rate` | `setEntityUpdateFrameRate` | ported, tested, 100%-covered, C-reference-verified |
+| `up_update.c :: set_update_entity`, `get_update_entity`, `get/set_update_succ` | `update.ts` | ported, tested, 100%-covered |
+| `up_msgs.c :: response_to_unlink_child` | `responseToUnlinkChild` | ported, tested, 100%-covered, C-reference-verified (successor fix-up branch: unit test only; no ported update function unlinks its successor) |
+| `up_msgs.c` C-default link responses (`LINK_CHILD`, `LINK_PARENT`, `UNLINK_PARENT`) | `defaultMessageResponse` | ported, tested, 100%-covered, C-reference-verified |
+| `gp_msgs.c :: response_to_link_parent` | `responseToLinkParent` | partial: the `LIST_TYPE_DIVISION` case (`set_local_division_name`) is unported and throws |
+| `gp_msgs.c :: response_to_unlink_parent` | `responseToUnlinkParent` | ported, tested, 100%-covered, C-reference-verified |
+| `en_list.c :: insert_local_entity_into_parents_child_list` | `insertLocalEntityIntoParentsChildList` | ported, tested, 100%-covered, C-reference-verified (the `#ifdef DEBUG` validation is kept, with debug-build meaning) |
+| `en_list.c :: delete_local_entity_from_parents_child_list` | `deleteLocalEntityFromParentsChildList` | ported, tested, 100%-covered, C-reference-verified |
+| `en_updt.c` dispatch (`update_client_server_entity`) | `updateClientServerEntity` | ported, tested, 100%-covered |
+| `en_int.c :: default_set_entity_int_value` (group `INT_TYPE_UPDATED`) | `defaultSetEntityIntValue` | ported, tested, 100%-covered, C-reference-verified |
+| `time.c :: set_manual_delta_time`, `get_delta_time`, `locked_frame_rate` | `src/core/time.ts` | ported, tested, 100%-covered, C-reference-verified (history and `system_one_over_delta_time` not ported: no ported reader) |
+| `time.c :: set_delta_time`, `lock_frame_rate` | `Clock` port | blocked-engine-boundary (frame measurement) |
+| Windows SDK `max` | `max` in `miscmath.ts` | ported, tested, 100%-covered |
+
+### Accessor overloads reached by the slices
+
+Since slice 2 the harness compiles the original group translation units, so
+group accessors are `C-reference-verified`. Keysite, force, session, guide and
+mobile accessors are still supplied by the harness shim, and are verified by
+source reading only. The plan and the rules for new slices are in
 `docs/architecture.md`, "Shrinking the C reference shim".
 
 | C | TS | Status |
 |---|---|---|
-| `gp_int.c :: get_local_int_value` (`INT_TYPE_GROUP_MODE`, `INT_TYPE_RESUPPLY_SOURCE`, `INT_TYPE_SIDE`) | `overloadGroupFunctions` | ported, tested, 100%-covered, source-read |
+| `gp_int.c :: get_local_int_value` (`INT_TYPE_GROUP_MODE`, `INT_TYPE_RESUPPLY_SOURCE`, `INT_TYPE_SIDE`) | `overloadGroupFunctions` | ported, tested, 100%-covered, C-reference-verified |
 | `gp_int.c` (all other int types) | none | unported |
-| `gp_float.c :: set_local_float_value`, `set_server_float_value` (`AMMO_SUPPLY_LEVEL`, `FUEL_SUPPLY_LEVEL`) | `overloadGroupFunctions` | ported, tested, 100%-covered, source-read |
-| `gp_float.c :: set_client_float_value`, all other float types | none | unported |
-| `gp_ptr.c :: get_local_ptr_value (PTR_TYPE_GROUP_LEADER)` | `overloadGroupFunctions` | ported, tested, 100%-covered, source-read |
+| `gp_float.c :: set_local_float_value`, `set_server_float_value` (`AMMO_SUPPLY_LEVEL`, `FUEL_SUPPLY_LEVEL`) | `overloadGroupFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `gp_float.c :: set_client_float_value`, the remaining float types | none | unported |
+| `gp_ptr.c :: get_local_ptr_value (PTR_TYPE_GROUP_LEADER)` | `overloadGroupFunctions` | ported, tested, 100%-covered, C-reference-verified |
 | `gp_ptr.c :: set_local_ptr_value (PTR_TYPE_GROUP_LEADER)` | none | unported |
-| `gp_vec3d.c :: get_local_vec3d_ptr (VEC3D_TYPE_POSITION)` | `overloadGroupFunctions` | ported, tested, 100%-covered, source-read |
-| `gp_list.c` / `en_list/*.h`: `member_root`, `guide_stack_root`, `group_link` (BUILDING/INDEPENDENT/KEYSITE_GROUP) | `overloadGroupFunctions` | ported, tested, 100%-covered, source-read |
-| `gp_dbase.c :: group_database[].resupply_source` | `GROUP_DATABASE_RESUPPLY_SOURCE` | ported (generated from C, drift-checked) |
+| `gp_vec3d.c :: get_local_vec3d_ptr (VEC3D_TYPE_POSITION)` | `overloadGroupFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `gp_list.c` / `en_list/*.h`: `member_root`, `guide_stack_root`, `group_link` (BUILDING/INDEPENDENT/KEYSITE_GROUP), `update_link` | `overloadGroupFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `gp_dbase.c :: group_database[].resupply_source` | `GROUP_DATABASE_RESUPPLY_SOURCE` | ported (generated from C, drift-checked), C-reference-verified (the harness reads the compiled `group_database`) |
 | `ks_int.c :: get_local_int_value` (`ENTITY_SUB_TYPE`, `IN_USE`) | `overloadKeysiteFunctions` | ported, tested, 100%-covered, source-read |
 | `ks_float.c :: get_local_float_value`, `set_server_float_value` (`AMMO_SUPPLY_LEVEL`, `FUEL_SUPPLY_LEVEL`) | `overloadKeysiteFunctions` | ported, tested, 100%-covered, source-read |
 | `ks_vec3d.c :: get_local_vec3d_ptr (VEC3D_TYPE_POSITION)` | `overloadKeysiteFunctions` | ported, tested, 100%-covered, source-read |
@@ -103,14 +134,14 @@ the shim with the real translation units, and the rules for new slices, are in
 | C | TS | Status |
 |---|---|---|
 | `en_list.c :: get_local_entity_first_child`, `get_local_entity_parent`, `get_local_entity_child_succ` | `en_list.ts` | ported, tested, 100%-covered |
-| `en_list.c :: get_local_entity_child_pred` | none | unported (no adopted caller) |
-| `en_list.c :: insert_local_entity_into_parents_child_list` | `insertLocalEntityIntoParentsChildListRaw` (pointer updates only, no `LINK_CHILD`/`LINK_PARENT` notifications) | partial |
-| `en_list.c :: delete_local_entity_from_parents_child_list` and the other list functions | none | unported |
+| `en_list.c :: get_local_entity_child_pred` | `getLocalEntityChildPred` | ported, tested, 100%-covered |
+| `en_list.c :: insert_local_entity_into_parents_child_list` | `insertLocalEntityIntoParentsChildList` (slice 2), and `insertLocalEntityIntoParentsChildListRaw` for restoring state without notifications | ported |
+| the other `en_list.c` functions | none | unported |
 | `en_main.c :: get_local_entity_type`, `get_local_entity_data` | `entity.ts` | ported, tested, 100%-covered |
-| `en_creat.c`, `en_dstry.c`, `en_pack.c`, `en_updt.c` | `createLocalEntityRaw` (restore primitive only) | unported |
+| `en_creat.c`, `en_dstry.c`, `en_pack.c` | `createLocalEntityRaw` (restore primitive only) | unported |
 | `en_int.c`, `en_float.c`, `en_vec3d.c`, `en_ptr.c` dispatch macros | `en_values.ts` | ported, tested, 100%-covered |
 | `en_*.c :: default_*` handlers | the unported sentinel (throws) instead of EECH defaults | deliberate: see architecture question 2 |
-| `en_msgs.c :: default_message_response` | none | unported (no response proven to use it yet) |
+| `en_msgs.c :: default_message_response` | `defaultMessageResponse` | ported; installed only where the C table keeps the default (the update entity's link responses) |
 | `en_valid.h :: validate_client_server_local_fn / remote_fn` | none | excluded (debug-build dispatch validation) |
 | client comms model overloads (`set_client_float_value`) | none | unported (the core is the server authority) |
 
@@ -122,6 +153,11 @@ the shim with the real translation units, and the rules for new slices, are in
   `EechAssertionError` quoting the C expression. Where the C dereferences NULL
   without an assert (`get_closest_keysite` with no force for the side), the port
   throws `EechNullDereferenceError`. EECH itself would crash in both cases.
+- **`max`** is the Windows SDK macro, not `Math.max`: `max (NaN, 0.0f)` is `0.0f`.
+- **Findings about the original C** (recorded, not fixed): `time.c ::
+  set_manual_delta_time` has an undefined-behaviour history index update, and
+  `up_update.c` clears only a quarter of its entity bitsets. Neither affects
+  ported behaviour; see `docs/slices/group-update-timing.md`.
 - **Float arithmetic** follows IEEE single precision at declared type
   (`FLT_EVAL_METHOD == 0`). Historical x87 builds may differ in the last bit.
 - **`debug_log`** under `DEBUG_MODULE` / `DEBUG_SUPPLY` is compiled out in EECH

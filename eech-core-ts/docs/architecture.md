@@ -1,6 +1,8 @@
 # eech-core-ts architecture report
 
-This is the bootstrap report for the frozen EECH campaign-core port (issue #1).
+This is the architecture report for the frozen EECH campaign-core port. It was
+written at bootstrap (issue #1, slice 1) and is kept current: slice 2 (issue #3)
+added update timing, the `Clock` port and the first C-reference shim reduction.
 The original C under `aphavoc/` and `modules/` is the behavioural authority. The
 current `ee-dcs` implementation is not used as a reference anywhere.
 
@@ -37,7 +39,8 @@ DCS objects standing in for it.
 
 ## 2. Which entity-system facilities does the kernel need?
 
-The first slice needed these, and all of them are ported in `src/entity/system`:
+Slices 1 and 2 needed these, and all of them are ported in `src/entity/system`
+and `src/entity/special/update`:
 
 - identity, type and raw data (`entity.ts`; C: `en_main.c`)
 - per-type list roots and links, including **shared links**: a group's
@@ -48,14 +51,19 @@ The first slice needed these, and all of them are ported in `src/entity/system`:
 - client/server dispatch, `set_client_server_entity_float_value [..][comms_model]`,
   with the server path "set local, then transmit" (`comms.ts`, `serverFloatValueSetter`)
 - messages: `notify_local_entity` and the `message_responses` table (`en_msgs.ts`)
+- list insertion and deletion **with** link notifications (`en_list.c`, slice 2).
+  They can only be used on lists whose parent and child responses are ported:
+  group, keysite, task, regen and waypoint respond to these messages, and an
+  unported response fails loudly.
+- the entity update loop and update dispatch (`up_update.c`, `en_updt.c`,
+  `LIST_TYPE_UPDATE`, slice 2)
+- the campaign side of time: `get_delta_time`, `set_manual_delta_time` and
+  `locked_frame_rate` (`src/core/time.ts`, slice 2)
 
 The kernel will need these later. They are not ported yet:
 
 - creation and destruction with attribute lists (`en_creat.c`, `en_dstry.c`)
-- list insertion with link notifications: `insert_local_entity_into_parents_child_list`
-  sends `ENTITY_MESSAGE_LINK_CHILD` / `LINK_PARENT`, and group, keysite, task,
-  regen and waypoint respond to those
-- the update list and sleep timers (`en_updt.c`, `LIST_TYPE_UPDATE`)
+- update functions of entity types other than the group
 - pack/unpack, i.e. save games (`en_pack.c`)
 - string values
 
@@ -75,7 +83,7 @@ Measured over the kernel directories listed in question 1:
 | terrain (`get_3d_terrain_*`, `terrain_*`) | 158 in 17 files | Environmental. Becomes a future `Terrain` port. |
 | `set_client_server_entity_*` / `transmit_entity_comms_message` | 381 / 255 | Network transport, which DCS replaces. The semantic contract is "authoritative value changed". **Port: `EntityReplication`.** |
 | `create_/destroy_client_server_entity` | 109 in 31 files | Campaign-core entity lifecycle. It becomes a physical materialisation port where a mobile appears in or leaves the world. |
-| `get_delta_time`, `get_system_time`, time acceleration | 40 in 6 files | Environmental. Future `Clock` port. |
+| `get_delta_time`, `get_system_time`, time acceleration | 40 in 6 files | Environmental measurement. **Port: `Clock`** (slice 2). The campaign's override of the delta (`set_manual_delta_time`) is core. |
 | `frand1`, `sfrand1`, `rand16` | 48 in 14 files | Environmental. Future `RandomSource` port, which must reproduce EECH's generator sequence. |
 | sound and speech (`play_client_server_*`, speech) | 59 in 7 files | Physical/presentation. Excluded, or an optional notification port. |
 | flight dynamics, velocities | 20 in 5 files | Physical simulation, which DCS replaces. Excluded. Only the semantic observation (landed, taken off, arrived) crosses a port. |
@@ -86,18 +94,17 @@ membership, type, side and position. See `src/entity/mobile/mobile.ts`.
 
 ## 4. Which ports emerge naturally?
 
-The first slice introduced exactly two ports, both derived from C call sites:
+The ports introduced so far, each derived from C call sites:
 
 | Port | C origin | Test adapter |
 |---|---|---|
 | `MobilePhysicalState.getMobilePosition` | `ac_vec3d.c` / `vh_vec3d.c` `get_local_vec3d_ptr (VEC3D_TYPE_POSITION)` | `InMemoryMobilePhysicalState` (positions come only from the scenario, never invented) |
 | `EntityReplication.transmitEntityFloatValue` | `set_server_float_value` → `transmit_entity_comms_message (ENTITY_COMMS_FLOAT_VALUE, ..)` | `RecordingEntityReplication` (ordered log) |
+| `Clock.getDeltaTime`, `Clock.isFrameRateLocked` (slice 2) | `time.c :: set_delta_time` (frame measurement) and `locked_frame_rate` | `ScriptedClock` (the frame driver states each frame) |
 
 These are the next ports in order of need. None is created before a ported slice
 calls it.
 
-- `Clock`: `get_delta_time`. The update loop decrements `FLOAT_TYPE_SLEEP` and
-  `assist_timer` (`gp_updt.c`).
 - `RandomSource`: `rand16`, `frand1`, `sfrand1`. The adapter must reproduce the
   EECH generator bit for bit, so the C harness can verify it.
 - `Terrain`: elevation and terrain type queries.
@@ -109,14 +116,21 @@ calls it.
 - `CampaignStore`: loading campaign/population files and save games (`ai/faction`
   parsers, `en_pack.c`).
 
-**On scheduling.** EECH has no callback scheduler. Time advances through a
-per-frame `get_delta_time ()`. Entities on `LIST_TYPE_UPDATE` count down
-`FLOAT_TYPE_SLEEP` and act when it expires, and the high-level AI runs from
-session and force updates. The deterministic "virtual scheduler" is therefore a
-`Clock` adapter driving the ported update list, not a callback queue. It is
-introduced with the first slice that contains an update function (see question 10).
-Its runaway guard will bound the frame count. Tests must not call the private
-update functions directly.
+**On scheduling (implemented in slice 2).** EECH has no callback scheduler.
+Each frame the host measures time (`set_delta_time`), then calls
+`update_client_server_entities ()` once per time-acceleration step. That walks
+`LIST_TYPE_UPDATE`, calling each entity's update function, and splits the frame
+into `(int) (delta * rate + 1)` equal float sub-steps. The deterministic
+"virtual scheduler" is therefore:
+- the `ScriptedClock` plus a host-loop driver (`test/scenarios/update-timeline.ts`);
+- running the **ported** update loop, which executes the real campaign update
+  functions in list order. That includes entities that remove themselves during
+  the walk, and entities inserted at the head, which are not visited until the
+  next pass.
+
+The runaway guard is test-side (`validateTimeline`): it refuses frames that
+would need more than 10,000 update passes, and never changes a result. Tests
+never call private update functions directly.
 
 ## 5. Which function is the first vertical slice, and why?
 
@@ -143,40 +157,46 @@ the `record` policy. Production uses `throw`.
 
 ## 6. What enables or blocks running the C implementation under a harness?
 
-It works today, for this slice. `c-reference/extract.mjs` copies the original
-definitions **verbatim** into `build/c-reference/eech_extracted.c`, with `#line`
-directives back to the original files: the enums, the supply struct, the macros,
-and the five functions `assess_group_supplies`, `get_closest_keysite`,
-`get_local_force_entity`, `get_2d_range`, `get_approx_2d_range` and
-`notify_local_entity`. `c-reference/harness.c` supplies the environment: entity
-records, lists, the accessor values and a recording message response. It then
-calls the original functions. It compiles with `-Wall -Werror`.
+It works, and since slice 2 most of it is original code rather than shim.
+`c-reference/extract.mjs` generates:
+- **`build/c-reference/project.h`**: the harness environment, verbatim
+  fragments, and **whole original headers**, including every entity dispatch
+  macro and table declaration;
+- **`eech_extracted.c`**: verbatim functions from files too large to compile
+  whole, each with a `#line` directive back to its original file.
+
+Nine original translation units then compile **unchanged**: `gp_int.c`,
+`gp_float.c`, `gp_list.c`, `gp_vec3d.c`, `gp_ptr.c`, `gp_updt.c`, `gp_dbase.c`,
+`up_list.c` and `up_msgs.c`. Dispatch goes through the original `fn_*` tables,
+filled by the original `overload_*_functions ()`. The harness defines the
+tables, the environment, and hand-written rows only for entity types whose files
+are not compiled yet (see "Shrinking the C reference shim").
 
 What enables this:
 
-- the target functions reach the entity system only through accessor macros, so
-  a shim can stand in for it;
-- `DEBUG_MODULE` / `DEBUG_SUPPLY` logging is compiled out;
-- the extractor fails loudly if a signature or enum disappears.
+- EECH's headers are well layered; a curated include order plus a few fragments
+  satisfies the original files. No reconstruction of `project.h` was needed
+  (`docs/slices/group-update-timing.md`, investigation 3).
+- `DEBUG_MODULE` / `DEBUG_SUPPLY` logging is compiled out.
+- The extractor and the build fail loudly if a definition disappears or a
+  prototype is missing (`-Werror=implicit-function-declaration`).
 
 What limits it or blocks it next:
 
-- **Accessor overloads are shim-provided.** Files such as `gp_int.c` are `static`
-  switches inside translation units that include `project.h`, the whole game. The
-  harness therefore verifies the slice functions, not `gp_int.c`/`ks_int.c`
-  themselves. Those accessors are small and are verified by source reading. To
-  execute them too, the next step is to compile the real `xx_int.c`/`xx_float.c`
-  files against a reduced `project.h`.
+- **Keysite, force and session accessors are still hand-written.** Compiling
+  `ks_*.c`, `fc_*.c` and `ss_*.c` needs their headers in the reduced
+  `project.h`, and fail-loud stubs for their other dependencies. This is the
+  next shim-reduction step.
 - **Floating point.** The harness requires `FLT_EVAL_METHOD == 0`, i.e. IEEE
   single precision evaluated at the declared type (x86-64 SSE, arm64). The
   historical 32-bit MSVC x87 builds could differ in the last bit where
   intermediates stayed in extended precision. The port follows the IEEE model.
 - **Varargs messages.** They work unchanged. The shim installs the response for
   the one message it observes, and any other message aborts the harness.
-- **Global state** (`session_entity`, `message_responses`) is defined by the
-  harness. Slices that use `get_delta_time`, `rand16` or terrain need those
-  environment functions in the shim, driven by the same scenario as the TS
-  adapters.
+- **Global state** (`session_entity`, the dispatch tables, `entities`) is
+  defined by the harness. The frame delta (`set_delta_time`) is supplied from
+  the same scenario as the TS `ScriptedClock`. Slices that use `rand16` or
+  terrain need those environment functions in the harness, driven the same way.
 
 ## 7. Which coverage tooling enforces 100% reachable TS coverage?
 
@@ -198,8 +218,9 @@ check without adding a branch to the caller.
 
 - `npm run test:lua` transpiles `src/` plus the shared scenarios with TSTL
   (`tsconfig.lua-test.json`) and **executes them in a real Lua 5.1 interpreter**:
-  the 41-case matrix, 250 scenarios whose outcomes were recorded from the
-  executed C, and the float32 edge cases. That is 313 checks. The runner refuses
+  both behaviour matrices (41 supply cases, 22 timeline cases), 250 scenarios
+  and 150 timelines whose outcomes were recorded from the executed C, and the
+  float32 edge cases. That is 485 checks. The runner refuses
   to run on anything but `_VERSION == "Lua 5.1"`, the version DCS embeds.
 - `npm run smoke:lua` loads the production bundle `build/lua/eech-core.lua` from
   plain Lua with Lua-table ports, as a DCS host would, and runs a campaign
@@ -217,8 +238,9 @@ check without adding a branch to the caller.
   2. `{ ...defaults, leader: undefined }` keeps the default in Lua, because a
      table cannot hold `nil`. Optional scenario values are therefore explicit
      variants.
-- One mutant only fails under Lua: `in_use` tested by JavaScript truthiness. It
-  proves the Lua run adds detection power beyond the JavaScript run.
+- Two mutants only fail under Lua: `in_use` (slice 1) and the timer setters'
+  `value != 0.0` (slice 2), each tested by JavaScript truthiness. They prove the
+  Lua run adds detection power beyond the JavaScript run.
 
 ## 9. How is C→TS migration tracked?
 
@@ -235,10 +257,8 @@ check without adding a branch to the caller.
 
 ## 10. What should the next slices be?
 
-1. **Group update and sleep timers** (`gp_updt.c :: update_server`,
-   `en_updt.c`). This introduces the `Clock` port and the deterministic update
-   loop, i.e. the virtual scheduler, with a runaway guard. It is small, and it is
-   the prerequisite for anything time-driven.
+1. ~~**Group update and sleep timers**~~ Done in slice 2
+   (`docs/slices/group-update-timing.md`).
 2. **`keysite.c :: update_keysite_cargo`** (the second
    sender of `FORCE_LOW_ON_SUPPLIES`). It reuses this slice's runtime and extends
    keysite accessors.
@@ -249,9 +269,12 @@ check without adding a branch to the caller.
 4. **The `mb_msgs.c` landing handlers that call `assess_group_supplies`**, which
    introduce the `LandingObservation` port. The DCS adapter reports "member
    landed at keysite", and the campaign does the accounting.
-5. **Harness depth.** Compile the real `gp_int.c`/`ks_int.c`/`ks_float.c` against
-   a reduced `project.h`, so the accessors are C-verified as well. See
+5. **Harness depth.** The group files are done. Next, compile `ks_*.c` and
+   `fc_int.c`, ideally together with item 2, which touches the keysite. See
    "Shrinking the C reference shim" below.
+6. **The readers of `sleep`**, e.g. task assignment and the `mb_msgs.c` landing
+   handler that sets `sleep` after rearming. These give slice 2's timers their
+   campaign meaning.
 
 ## Shrinking the C reference shim
 
@@ -264,43 +287,70 @@ terrain, physical positions and the comms transport.
 
 ### Current shim surface
 
-Each entry is written by hand in `harness.c` and mirrors behaviour that exists in
-a real EECH file:
+The harness builds a reduced `project.h` from the harness environment, verbatim
+fragments and **whole original headers**, and compiles original translation
+units unchanged (`c-reference/extract.mjs`, `REAL_TRANSLATION_UNITS`). Dispatch
+goes through the original `fn_*` tables, filled by the original
+`overload_*_functions ()`.
 
-| Shim entry | Real EECH source that should replace it |
+**Retired** (now executed from the original C):
+
+| Retired shim entry | Original code now executed | Slice |
+|---|---|---|
+| Group `INT_TYPE_RESUPPLY_SOURCE`, `INT_TYPE_GROUP_MODE`, `INT_TYPE_SIDE` | `gp_int.c` | 2 |
+| Group `resupply_source` passed in by the scenario | `gp_dbase.c :: group_database` | 2 |
+| Group supply level get/set, timer get/set | `gp_float.c` | 2 |
+| Group position and leader | `gp_vec3d.c`, `gp_ptr.c` | 2 |
+| Group list roots and links, including the shared `group_link` | `gp_list.c` with `en_list/*.h` | 2 |
+| Hand-written NULL checks | the original unguarded code; a `SIGSEGV` is the reported outcome | 2 |
+
+**Remaining** (hand-written in `harness.c`):
+
+| Shim entry | Original source that should replace it |
 |---|---|
-| Group `INT_TYPE_RESUPPLY_SOURCE`, `INT_TYPE_GROUP_MODE`, `INT_TYPE_SIDE` | `gp_int.c :: get_local_int_value` |
-| Group `resupply_source` passed in by the scenario | `gp_dbase.c :: group_database` |
-| Keysite `INT_TYPE_ENTITY_SUB_TYPE`, `INT_TYPE_IN_USE`, `INT_TYPE_SIDE` | `ks_int.c :: get_local_int_value` |
+| Keysite `INT_TYPE_ENTITY_SUB_TYPE`, `INT_TYPE_IN_USE` | `ks_int.c :: get_local_int_value` |
+| Keysite supply level get and server set | `ks_float.c` |
+| Keysite `VEC3D_TYPE_POSITION` | `ks_vec3d.c` |
 | Force `INT_TYPE_SIDE` | `fc_int.c :: get_local_int_value` |
-| Group and keysite supply level get/set | `gp_float.c`, `ks_float.c` (`get_local_float_value`, `set_local_float_value`, `set_server_float_value`) |
-| Group, keysite and mobile `VEC3D_TYPE_POSITION` | `gp_vec3d.c`, `ks_vec3d.c`, and `gp_ptr.c` for the group leader. The mobile position itself stays shim-supplied: it is physical state. |
-| List roots, links and the shared `group_link` | `en_list/get_frst.h`, `get_prnt.h`, `get_succ.h` included by the real `xx_list.c` files |
-| Dispatch through the `fn_*` tables | `en_int.c`, `en_float.c`, `en_vec3d.c`, `en_ptr.c` (tables, defaults and dispatch macros) |
+| List storage of session, force, keysite, guide and helicopter | `ss_list.c`, `fc_list.c`, `ks_list.c`, `gd_list.c`, `ac_list.c` |
+| Delivery of `FORCE_LOW_ON_SUPPLIES` (recorded, not handled) | `fc_msgs.c :: response_to_force_low_on_supplies`. This is the slice 1 message boundary, and is ported with that response. |
+
+**Environment** (legitimately hand-written, driven by the same scenario data as
+the TS adapters):
+- the frame delta and locked flag (`set_delta_time`);
+- the host loop's time acceleration;
+- the comms model and data flow;
+- the transport (`transmit_entity_comms_message`);
+- the mobile position (physical);
+- debug output;
+- tacview (never logging);
+- the Windows SDK `min`/`max`.
+
+**Fail-loud stubs** for code that is reachable only outside the adopted
+behaviour: `add/remove_group_type_to/from_force_info`, `set_local_division_name`,
+and every dispatch-table default except the C default setters, which are
+extracted verbatim.
 
 ### Order of work
 
-1. **Reduced `project.h`.** Create a harness-only header that satisfies the real
-   `xx_int.c`/`xx_float.c` files: the entity struct layouts they read, the
-   `fn_*` tables, and stubs for unrelated subsystems that fail loudly if called.
-   The real layout structs (`group`, `keysite`, `force`) come from their
-   original headers where possible.
-2. **Value accessors first.** Compile `gp_int.c`, `ks_int.c`, `fc_int.c`,
-   `gp_float.c` and `ks_float.c` into the harness, and call their
-   `overload_*_functions ()` so dispatch goes through the real tables. Delete the
-   matching shim branches.
-3. **Database.** Compile `gp_dbase.c` so `resupply_source` comes from the real
-   `group_database`, not from the scenario.
-4. **Lists.** Compile the real `xx_list.c` files with their `en_list/*.h`
-   includes, so the shared `group_link` aliasing is executed from the original C.
-5. **Positions.** Compile `gp_vec3d.c`, `gp_ptr.c` and `ks_vec3d.c`. The mobile
-   position stays a scenario-supplied shim entry, because that value is
-   physical.
+1. ~~**Reduced `project.h`.**~~ Done in slice 2. It needed no reconstruction of
+   `project.h`, only whole original headers plus a few fragments (see
+   `docs/slices/group-update-timing.md`, investigation 3).
+2. **Value accessors.** Group done (slice 2). Next: compile `ks_int.c`,
+   `ks_float.c` and `fc_int.c`, which need `keysite.h` / `force.h` in the
+   reduced `project.h`.
+3. ~~**Database.**~~ `gp_dbase.c` is done (slice 2).
+4. **Lists.** Group done (slice 2). Next: `ks_list.c`, `fc_list.c`,
+   `ss_list.c`, `gd_list.c`.
+5. **Positions.** Group done (slice 2). Next: `ks_vec3d.c`. The mobile position
+   stays a scenario-supplied entry, because that value is physical.
 
 Each step lands with the slice that first needs it, or as its own small PR.
 Every step must keep the existing C reference cases and the recorded random
-fixture passing unchanged. If an expectation changes, that is a finding about
-the TS port, and must be investigated before anything is re-recorded.
+fixtures passing unchanged. If an expectation changes, that is a finding about
+the TS port, and must be investigated before anything is re-recorded. When
+slice 2 replaced the group shim, slice 1's 41 cases passed unchanged, and
+re-recording its 250-scenario fixture produced a byte-identical file.
 
 ### Rules for new slices
 
@@ -319,8 +369,12 @@ the TS port, and must be investigated before anything is re-recorded.
 
 A slice is **frozen** when it has complete source mapping, 100% reachable
 coverage, source-derived expectations, passing TSTL/Lua execution, and a C
-reference comparison where practical. `assess_group_supplies` and
-`get_closest_keysite` meet all of these (see the manifest). After freezing:
+reference comparison where practical. Frozen so far (see the manifest):
+- slice 1: `assess_group_supplies` and `get_closest_keysite`;
+- slice 2: group update timing (`update_server`, the timer setters, the update
+  loop).
+
+After freezing:
 
 - A behavioural change needs evidence from the EECH C, and the behaviour matrix
   and C reference must agree with it.

@@ -1,7 +1,6 @@
 # Slice 2: group update timing (issue #3)
 
-**Status:** investigation complete, boundary selected. Freezing waits on the
-conformance gates at the end of this document.
+**Status:** frozen. All conformance gates pass (see "Evidence" at the end).
 
 The investigation is recorded first, because issue #3 makes it a gate before
 the boundary is fixed.
@@ -193,3 +192,40 @@ against this oracle (commit `e5c34da`).
 function, setters, list code and time override. The shim entries retired by
 this slice are listed in `docs/architecture.md`, "Shrinking the C reference
 shim".
+
+## Behaviour matrix
+
+Every row is a case in `test/scenarios/update-timeline.cases.ts`. Each case runs
+three ways: under JavaScript, under Lua 5.1, and through the executed original C.
+
+| Area | EECH behaviour | Cases |
+|---|---|---|
+| Timer setters | a non-zero value inserts the group at the **head** of the update list (negative values too); 0 does not; a group already on the list is not re-inserted; values narrow to float and are transmitted | `sleep-set-inserts-and-transmits`, `assist-set-inserts-at-head`, `set-zero-does-not-insert`, `set-negative-inserts`, `set-while-on-list-does-not-reinsert`, `set-narrows-to-float` |
+| `update_server` | only a timer `> 0.0` is decremented; results clamp at 0; the group leaves the list when **both** timers are 0, exactly or after overshoot; a negative timer never expires | `sleep-counts-down`, `expiry-exactly-at-zero-leaves-update-list`, `overshoot-clamps-to-zero`, `both-timers-must-expire`, `negative-timer-is-never-decremented-and-never-expires`, `zero-timers-on-list-leave-on-first-update` |
+| Update walk | the successor is saved first, so a group can remove itself mid-walk | `self-removal-does-not-break-the-walk` |
+| Frame subdivision | `(int) (delta * rate + 1)` passes of `delta / passes` in float; the frame delta is restored | `frame-is-subdivided-into-equal-float-sub-steps`, `sub-step-float-rounding` |
+| Host loop | time acceleration repeats the update; paused frames update nothing but still set the delta | `time-acceleration-repeats-the-update`, `paused-frame-updates-nothing` |
+| Locked frame rate | one pass with the whole delta; the rate is not consulted | `locked-frame-rate-is-not-subdivided`, `frame-rate-not-used-when-locked` |
+| Frame rate range | `ASSERT ((frame_rate >= 1) && (frame_rate <= 100))`, only when the loop actually runs unlocked | `frame-rate-below-range-asserts`, `frame-rate-above-range-asserts`, `frame-rate-not-used-when-paused` |
+
+Primitives that the group behaviour cannot reach by itself are covered by
+isolated unit tests with C-derived expectations (`test/unit/update-runtime.test.ts`):
+- `set_manual_delta_time` refused while locked;
+- the C `(int)` cast on negative values;
+- the `en_list.c` debug "already in list" check;
+- deleting an entity that is in no list;
+- the update entity's successor fix-up;
+- the group's `LIST_TYPE_DIVISION` link response (unported).
+
+## Evidence
+
+| Check | Result |
+|---|---|
+| 22 timeline cases, JavaScript (`npm test`) | pass |
+| the same 22 cases against the executed original C (`npm run test:cref`) | pass: expectations were derived by hand and all matched on the first run |
+| 1,000 fresh random timelines, TS == C | pass (the generator is required to reach expiry, subdivision, locking and the rate assertion) |
+| 150 random timelines recorded from the C, replayed in JavaScript and Lua 5.1 | pass |
+| slice 1: 41 cases and 250 recorded scenarios against the new, less shimmed oracle | pass **unchanged**; re-recording the fixture was byte-identical |
+| Lua 5.1 conformance (`npm run test:lua`) | 485 / 485 |
+| coverage (statements / branches / functions / lines) | 100 / 100 / 100 / 100, no exclusions |
+| mutation controls (`npm run mutation`) | 23 / 23 killed, including 10 new slice 2 mutants; the timer setters' truthiness mutant is caught only by Lua |
