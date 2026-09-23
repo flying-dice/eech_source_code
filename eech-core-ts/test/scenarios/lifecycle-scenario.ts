@@ -10,6 +10,7 @@
 //   map      set_entity_world_map_size + create_local_sector_entities
 //   create   create_client_server_entity (type, index, attributes...)
 //   destroy  destroy_client_server_entity_family
+//   allocate get_free_entity with a specific index
 //
 // The outcome is the same text the C harness prints: transmissions, created
 // indices, the result, and the entity graph (heap order, cargo values, keysite
@@ -27,11 +28,11 @@ import { createLocalSectorEntities, getLocalRawSectorEntity } from "../../src/en
 import type { EntityAttribute } from "../../src/entity/system/en_attrs";
 import { createClientServerEntity } from "../../src/entity/system/en_creat";
 import { destroyClientServerEntityFamily } from "../../src/entity/system/en_dstry";
-import { createLocalEntityRaw, getFirstFreeEntity, getLocalEntityList, getLocalEntitySucc } from "../../src/entity/system/en_heap";
+import { createLocalEntityRaw, getFirstFreeEntity, getFreeEntity, getLocalEntityList, getLocalEntitySucc } from "../../src/entity/system/en_heap";
 import { getLocalEntityChildSucc, getLocalEntityFirstChild, getLocalEntityParent, insertLocalEntityIntoParentsChildListRaw } from "../../src/entity/system/en_list";
 import { getLocalEntityIntValue, getLocalEntityVec3dPtr } from "../../src/entity/system/en_values";
 import { getWorldMap, setEntityWorldMapSize } from "../../src/entity/system/en_world";
-import { setSessionEntityRaw, type Entity } from "../../src/entity/system/entity";
+import { setLocalEntityData, setLocalEntityType, setSessionEntityRaw, type Entity } from "../../src/entity/system/entity";
 import { setUpdateEntity } from "../../src/entity/special/update/update";
 import { EntitySide, EntityType, IntType, ListType, Vec3dType, type EntityType as EntityTypeT } from "../../src/generated/c-enums";
 import type { EntityReplication, ReplicatedEntityAttribute } from "../../src/ports";
@@ -50,7 +51,10 @@ export type LifecycleAttribute =
 export type LifecycleOp =
 	| { kind: "map"; xSectors: number; zSectors: number; sideLength: number }
 	| { kind: "create"; label: string; type: number; index: number; attributes: LifecycleAttribute[] }
-	| { kind: "destroy"; label: string };
+	| { kind: "destroy"; label: string }
+	// get_free_entity (index), as restoring a saved group does; the entry gets
+	// ENTITY_TYPE_GROUP and empty raw data
+	| { kind: "allocate"; label: string; index: number };
 
 export interface LifecycleSpec {
 	heap: number;
@@ -241,6 +245,13 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 				labels[en.index] = op.label;
 				created[op.label] = en;
 				lines.push(`created ${op.label} ${en.index}`);
+			} else if (op.kind === "allocate") {
+				const en = getFreeEntity(op.index) as Entity;
+
+				setLocalEntityType(en, EntityType.ENTITY_TYPE_GROUP);
+				setLocalEntityData(en, {});
+				labels[en.index] = op.label;
+				lines.push(`allocated ${op.label} ${en.index}`);
 			} else {
 				destroyClientServerEntityFamily(find(op.label) as Entity);
 			}
@@ -346,6 +357,8 @@ export function serialiseLifecycle(spec: LifecycleSpec, formatNumber: (n: number
 			}
 
 			lines.push(`${text} end`);
+		} else if (op.kind === "allocate") {
+			lines.push(`allocate ${op.label} ${op.index}`);
 		} else {
 			lines.push(`destroy ${op.label}`);
 		}

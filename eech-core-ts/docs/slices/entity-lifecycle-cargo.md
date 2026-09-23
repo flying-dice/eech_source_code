@@ -288,8 +288,12 @@ crate-specific one. It lands in Slice 4 with `update_keysite_cargo`.
 ## Selected boundary
 
 **Ported to TypeScript:**
-- **Entity heap** (`en_heap.c`): `initialise_entity_heap`, `get_free_entity`,
-  `set_free_entity`. The heap size becomes a campaign option.
+- **Entity heap** (`en_heap.c`): `initialise_entity_heap`, `get_free_entity`
+  (both arms: the free-list head for `ENTITY_INDEX_DONT_CARE`, and a specific
+  index, unlinked from wherever it sits in the free list), `set_free_entity`.
+  The heap size becomes a campaign option. Client creation, which is what
+  passes a specific index at run time, stays unported one level up, at the
+  create tables.
 - **Creation** (`en_creat.c`):
   - `create_local_entity` and `create_client_server_entity`, with the type
     `ASSERT` and fatal NULL results;
@@ -380,6 +384,7 @@ keysite's cargo list and each sector's list.
 | Map setup | z-major sector creation; float extents; power-of-two and positive-size `ASSERT`s; recreating over live sectors is fatal; heap exhaustion during setup is fatal | `sector-entities-are-created-z-major`, `the-map-extents-are-floats`, `a-side-length-that-is-not-a-power-of-two-asserts`, `a-map-without-sectors-asserts`, `creating-the-map-twice-is-fatal`, `running-out-of-heap-while-creating-sectors-is-fatal` |
 | Validation | server creates need `ENTITY_INDEX_DONT_CARE`; the entity type range `ASSERT` | `a-server-create-with-an-index-asserts`, `an-entity-type-out-of-range-asserts`, `num-entity-types-is-out-of-range` |
 | Heap | exhaustion is fatal on the server; the most recently freed index is reused first | `running-out-of-heap-while-creating-cargo-is-fatal`, `the-most-recently-freed-index-is-reused-first` |
+| Allocation at an index | `get_free_entity (index)` unlinks the entry from the head, middle or tail of the free list (also after reuse reordered it) and pushes it on the used list; an entry in use is `debug_fatal` before any list changes; outside the heap is the `ASSERT`; `ENTITY_INDEX_DONT_CARE` takes the head | `allocating-the-free-list-head-by-index`, `allocating-a-middle-free-entry-by-index`, `allocating-the-free-list-tail-by-index`, `allocating-by-index-after-reuse-reordered-the-free-list`, `allocating-the-freed-head-by-index`, `allocating-the-only-free-entry-by-index-empties-the-heap`, `allocating-an-entity-in-use-is-fatal`, `allocating-a-sector-index-is-fatal`, `allocating-past-the-heap-asserts`, `allocating-a-negative-index-asserts`, `allocating-with-entity-index-dont-care-takes-the-head` |
 | Destruction | `ENTITY_COMMS_DESTROY` first; unlinked from the keysite and sector lists (head, middle, tail); freed; destroying a freed entity does nothing | `destroying-the-only-crate-restores-the-graph`, `destroying-the-head-crate`, `destroying-a-middle-crate`, `destroying-the-tail-crate`, `destroying-a-freed-entity-does-nothing`, `crates-of-two-keysites-in-one-sector` |
 
 Some primitives cannot be reached by the cargo corpus by itself. They are
@@ -389,7 +394,7 @@ covered by isolated unit tests with C-derived expectations
 - integer division by zero (a cargo created before any world map);
 - the unchecked read of a missing sector map;
 - the raw float setter reached through an attribute;
-- specific-index allocation;
+- allocating by index into an empty used list;
 - freeing into an empty free list, and freeing the used list's tail;
 - recreating the map after its sectors were freed.
 
@@ -397,14 +402,20 @@ covered by isolated unit tests with C-derived expectations
 
 | Check | Result |
 |---|---|
-| 33 lifecycle cases, JavaScript (`npm test`) | pass |
-| the same 33 cases against the executed original C, plus TS output == C output line for line | pass: expectations were derived by hand and all matched on the first run |
-| 1,000 fresh random lifecycles, TS == C | pass. The generator must reach ok, destroy, two crates in one keysite, every fatal (off map, heap exhausted on create and on map, map recreated) and every assert (index, type, side length, sector count) |
+| 44 lifecycle cases, JavaScript (`npm test`) | pass |
+| the same 44 cases against the executed original C, plus TS output == C output line for line | pass: expectations were derived by hand and all matched on the first run (the 11 allocation cases were added after review) |
+| 1,000 fresh random lifecycles, TS == C | pass. The generator must reach ok, destroy, two crates in one keysite, allocation at an index, every fatal (off map, heap exhausted on create and on map, map recreated, entity in use) and every assert (create index, type, side length, sector count, heap index) |
 | 150 random lifecycles recorded from the C, replayed in JavaScript and Lua 5.1 | pass |
 | Slices 1 and 2: all cases and recorded fixtures, against the 32-bit, TX, less shimmed oracle | pass **unchanged**; re-recording their fixtures was byte-identical |
-| Lua 5.1 conformance (`npm run test:lua`) | 668 / 668 |
+| Lua 5.1 conformance (`npm run test:lua`) | 679 / 679 |
 | coverage (statements / branches / functions / lines) | 100 / 100 / 100 / 100, no exclusions |
-| mutation controls (`npm run mutation`) | 37 / 37 killed, including 14 new slice 3 mutants |
+| mutation controls (`npm run mutation`) | 40 / 40 killed, including 17 new slice 3 mutants |
+
+Review of PR #6 found that this slice first left the specific-index arm of
+`get_free_entity` unported while claiming the heap primitive as ported. The arm
+is now ported and verified against the executed C. The lifecycle scenarios
+have an `allocate` operation that calls the original `get_free_entity (index)`,
+as restoring a saved group does. The random generator uses it too.
 
 The random differential found one gap in the port, not in this slice's new
 code. Every original list setter (`en_list/set_frst.h`, `set_prnt.h`,

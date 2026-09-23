@@ -33,6 +33,7 @@
  *   transmit-create <type> <index> <attributes>  ENTITY_COMMS_CREATE (attributes as in the scenario line)
  *   transmit-destroy <entity>                    ENTITY_COMMS_DESTROY
  *   created <label> <index|NULL>                 result of a create line
+ *   allocated <label> <index>                    result of an allocate line
  *   message <receiver> <sender> <message> <arg>  delivery to FORCE/LOW_ON_SUPPLIES response
  *   closest <entity|NULL> <bits|->               result of op closest
  *   range <bits get_2d_range> <bits get_approx_2d_range>
@@ -1533,7 +1534,7 @@ int main (void)
 
 			step++;
 		}
-		else if ((strcmp (word, "map") == 0) || (strcmp (word, "create") == 0) || (strcmp (word, "destroy") == 0))
+		else if ((strcmp (word, "map") == 0) || (strcmp (word, "create") == 0) || (strcmp (word, "destroy") == 0) || (strcmp (word, "allocate") == 0))
 		{
 			/* lifecycle operations: each runs the original code; an ASSERT or debug_fatal ends the scenario */
 			char op[16], label[32];
@@ -1554,6 +1555,11 @@ int main (void)
 				type = next_int (&cursor);
 				index = next_int (&cursor);
 				parse_attributes (&cursor);
+			}
+			else if (strcmp (op, "allocate") == 0)
+			{
+				snprintf (label, sizeof (label), "%s", next_token (&cursor));
+				index = next_int (&cursor);
 			}
 			else
 			{
@@ -1605,6 +1611,20 @@ int main (void)
 				{
 					printf ("created %s NULL\n", label);
 				}
+			}
+			else if (strcmp (op, "allocate") == 0)
+			{
+				/* en_heap.c :: get_free_entity with a specific index, as restoring a
+				   saved group does (en_pack.c); the scenario gives it raw data */
+				en = get_free_entity (index);
+
+				set_local_entity_type (en, ENTITY_TYPE_GROUP);
+
+				set_local_entity_data (en, new_raw (sizeof (group)));
+
+				snprintf (labels[get_local_entity_index (en)], sizeof (labels[0]), "%s", label);
+
+				printf ("allocated %s %d\n", label, get_local_entity_index (en));
 			}
 			else
 			{

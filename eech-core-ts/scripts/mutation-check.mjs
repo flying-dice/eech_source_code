@@ -280,6 +280,27 @@ const MUTANTS = [
 		to: "break;",
 		suite: "js",
 	},
+	{
+		name: "allocating an index in use is not refused (get_free_entity check dropped)",
+		file: "src/entity/system/en_heap.ts",
+		from: "if (en.type !== EntityType.ENTITY_TYPE_UNKNOWN) {",
+		to: "if (false) {",
+		suite: "js",
+	},
+	{
+		name: "allocating a middle free entry does not relink its predecessor",
+		file: "src/entity/system/en_heap.ts",
+		from: "\tif (pred) {\n\t\tpred.succ = en.succ;\n\t} else {\n\t\theap.firstFreeEntity = en.succ;\n\t}",
+		to: "\tif (!pred) {\n\t\theap.firstFreeEntity = en.succ;\n\t}",
+		suite: "js",
+	},
+	{
+		name: "allocating by index leaves the entry off the used list",
+		file: "src/entity/system/en_heap.ts",
+		from: "\ten.pred = -1;\n\n\theap.firstUsedEntity = en.index;\n\n\treturn en;",
+		to: "\ten.pred = -1;\n\n\treturn en;",
+		suite: "js",
+	},
 ];
 
 function run(cwd, command, args) {

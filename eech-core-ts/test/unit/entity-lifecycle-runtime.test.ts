@@ -269,9 +269,26 @@ describe("attributes and the heap outside the cargo corpus", () => {
 		expect((getLocalRawSectorEntity(1, 0) as Entity).type).toBe(EntityType.ENTITY_TYPE_SECTOR);
 	});
 
-	it("get_free_entity with a specific index (clients, saved games) is not ported", () => {
-		start(false);
-		expect(() => getFreeEntity(5)).toThrow(UnportedBehaviourError);
+	it("allocating by index into an empty used list (the first allocation of a restore)", () => {
+		initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new RecordingEntityReplication(), clock: new ScriptedClock() }, { numberOfEntities: 4 });
+		const en = getFreeEntity(2) as Entity;
+		// free list 0 1 3; used list 2
+		expect(getLocalEntityList()).toBe(en);
+		expect(en.succ).toBe(-1);
+		expect(en.pred).toBe(-1);
+		const order: number[] = [];
+		for (let free = getFirstFreeEntity(); free !== undefined; free = getLocalEntitySucc(free)) {
+			order.push(free.index);
+		}
+		expect(order).toEqual([0, 1, 3]);
+	});
+
+	it("client creation stays unported at the create tables, above the heap", () => {
+		start();
+		setCommsModel(CommsModelType.COMMS_MODEL_CLIENT);
+		expect(() => createClientServerEntity(EntityType.ENTITY_TYPE_CARGO, 20, [])).toThrow(/fn_create_client_server_entity \[ENTITY_TYPE_CARGO\] \[COMMS_MODEL_CLIENT\]/);
+		// the heap itself allocates a specific index (en_heap.c; C-reference-verified in the lifecycle matrix)
+		expect(getFreeEntity(20)?.index).toBe(20);
 	});
 
 	it("restoring more entities than the heap holds is refused", () => {

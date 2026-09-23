@@ -8,15 +8,17 @@
 // pushes the entity at the head of the used list; freeing pushes it back at
 // the head of the free list, so the most recently freed index is reused first.
 //
+// get_free_entity with a specific index (clients and saved games choose the
+// index) takes that entry out of the middle of the free list; creating
+// entities on a client stays unported at the create tables.
+//
 // Not ported:
-//   - get_free_entity with a specific index (clients and saved games choose
-//     the index; the server always passes ENTITY_INDEX_DONT_CARE);
 //   - the downwash local-only heap (command_line_downwash,
 //     ENTITY_INDEX_CREATE_LOCAL), off by default;
 //   - pack_entity_safe_index and friends (saved games and network messages).
 //
 
-import { ASSERT, UnportedBehaviourError } from "../../core/assert";
+import { ASSERT, EechFatalError } from "../../core/assert";
 import { EntityType } from "../../generated/c-enums";
 import { getEntityHeapState, getLocalEntityPtr, getLocalEntitySafePtr, resetEntityRecords, setLocalEntityData, setLocalEntityType, type Entity } from "./entity";
 
@@ -43,7 +45,7 @@ export function initialiseEntityHeap(num_entities: number): void {
 // C provenance: en_heap.c :: get_free_entity
 export function getFreeEntity(index: number): Entity | undefined {
 	if (index !== ENTITY_INDEX_DONT_CARE) {
-		throw new UnportedBehaviourError("en_heap.c :: get_free_entity with a specific index (client or saved game)");
+		return getFreeEntityAt(index);
 	}
 
 	const heap = getEntityHeapState();
@@ -73,6 +75,48 @@ export function getFreeEntity(index: number): Entity | undefined {
 	}
 
 	// else: debug_colour_log ("WARNING! Failed to get a free entity") and NULL
+
+	return en;
+}
+
+// C provenance: en_heap.c :: get_free_entity, the `index != ENTITY_INDEX_DONT_CARE` arm
+function getFreeEntityAt(index: number): Entity {
+	const heap = getEntityHeapState();
+
+	// ASSERT ((index >= 0) && (index < number_of_entities)), in get_local_entity_ptr
+	const en = getLocalEntityPtr(index);
+
+	if (en.type !== EntityType.ENTITY_TYPE_UNKNOWN) {
+		throw new EechFatalError("Entity already in use: %s (index = %d)", `Entity already in use: ${EntityType[en.type]} (index = ${index})`);
+	}
+
+	// unlink entity from free list
+	const pred = getLocalEntitySafePtr(en.pred);
+
+	if (pred) {
+		pred.succ = en.succ;
+	} else {
+		heap.firstFreeEntity = en.succ;
+	}
+
+	const succ = getLocalEntitySafePtr(en.succ);
+
+	if (succ) {
+		succ.pred = en.pred;
+	}
+
+	// insert entity into start of used list
+	en.succ = heap.firstUsedEntity;
+
+	const used = getLocalEntitySafePtr(en.succ);
+
+	if (used) {
+		used.pred = en.index;
+	}
+
+	en.pred = -1;
+
+	heap.firstUsedEntity = en.index;
 
 	return en;
 }

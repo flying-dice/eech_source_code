@@ -193,6 +193,9 @@ describe("C reference: live differential", () => {
 				if (line.startsWith("transmit-destroy")) {
 					reached["destroy"] = true;
 				}
+				if (line.startsWith("allocated ")) {
+					reached["allocated"] = true;
+				}
 			}
 			if (c.some((line) => line.startsWith("created ")) && c.some((line) => /^keysite \S+ \S+ \S+/.test(line))) {
 				reached["two crates in one keysite"] = true;
@@ -202,6 +205,9 @@ describe("C reference: live differential", () => {
 		for (const key of [
 			"result ok",
 			"destroy",
+			"allocated",
+			"result fatal Entity already in use: %s (index = %d)",
+			"result assert (index >= 0) && (index < number_of_entities)",
 			"two crates in one keysite",
 			"result fatal Position off map: (x = %f, z = %f)",
 			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",

@@ -146,6 +146,7 @@ export function generateRandomTimelines(seed: number, count: number): TimelineSp
 // they are exact floats whatever the rounding mode (see
 // docs/slices/entity-lifecycle-cargo.md). Parents are keysites, NULL, or live
 // sectors for the sector list; destroys name created entities, destroyed or not.
+// Some operations allocate a specific heap index.
 //
 export function generateRandomLifecycles(seed: number, count: number): LifecycleSpec[] {
 	const rnd = mulberry32(seed);
@@ -180,18 +181,35 @@ export function generateRandomLifecycles(seed: number, count: number): Lifecycle
 		const heap = chance(0.08) ? Math.max(restored, used - 1 - int(3)) : used + 1 + int(10);
 
 		const labels: string[] = [];
+		const destroyed: Record<string, boolean> = {};
+		let allocated = false;
 		const numOps = int(12);
 
 		for (let i = 0; i < numOps; i++) {
 			const roll = rnd();
 
-			if (roll < 0.25 && labels.length > 0) {
-				ops.push({ kind: "destroy", label: labels[int(labels.length)] });
+			// once an index may have been allocated, destroying a crate a second time
+			// could reach the allocated group through the stale pointer
+			const destroyable = allocated ? labels.filter((l) => !destroyed[l]) : labels;
+
+			if (roll < 0.25 && destroyable.length > 0) {
+				const label = destroyable[int(destroyable.length)];
+				destroyed[label] = true;
+				ops.push({ kind: "destroy", label });
 				continue;
 			}
 
 			if (roll >= 0.25 && roll < 0.26) {
 				ops.push({ kind: "map", xSectors: 1 + int(2), zSectors: 1, sideLength: 512 });
+				continue;
+			}
+
+			// get_free_entity with a specific index: usually a free entry, sometimes
+			// one in use, outside the heap, or ENTITY_INDEX_DONT_CARE. Allocated
+			// entries are never destroyed or referenced (their type is not ported).
+			if (roll >= 0.26 && roll < 0.36) {
+				allocated = true;
+				ops.push({ kind: "allocate", label: `g${i}`, index: chance(0.05) ? -1 : chance(0.05) ? heap + int(2) : int(heap) });
 				continue;
 			}
 

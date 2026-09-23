@@ -55,7 +55,7 @@ where practical.
 | `aphavoc/source/entity/system/en_funcs/en_list.c`, `en_list/*.h` | `src/entity/system/en_list.ts` | partial |
 | `aphavoc/source/entity/system/en_funcs/en_int.c`, `en_float.c`, `en_vec3d.c`, `en_ptr.c` | `src/entity/system/en_values.ts`, `function-table.ts` | partial |
 | `aphavoc/source/entity/system/en_msgs/en_msgs.c` | `src/entity/system/en_msgs.ts` | partial |
-| `aphavoc/source/entity/system/en_main/en_heap.c`, `en_heap.h` | `src/entity/system/en_heap.ts`, `entity.ts` | partial (specific-index allocation, downwash heap and packing not ported) |
+| `aphavoc/source/entity/system/en_main/en_heap.c`, `en_heap.h` | `src/entity/system/en_heap.ts`, `entity.ts` | partial (downwash heap and packing not ported) |
 | `aphavoc/source/entity/system/en_main/en_world.c`, `en_world.h`; `misc/miscell.c :: int_bit_count` | `src/entity/system/en_world.ts` | partial |
 | `aphavoc/source/entity/system/en_main/*` (other files) | `src/entity/system/entity.ts` | partial |
 | `aphavoc/source/entity/system/en_attrs/en_attrs.c` | `src/entity/system/en_attrs.ts` | partial (`set_local_entity_attributes`; pack/unpack not ported) |
@@ -114,7 +114,7 @@ where practical.
 | C function | TS | Status |
 |---|---|---|
 | `en_heap.c :: initialise_entity_heap`, `reset_entity_heap` | `initialiseEntityHeap`, lazily materialised records (`getLocalEntityPtr`) | ported, tested, 100%-covered, C-reference-verified |
-| `en_heap.c :: get_free_entity` (`ENTITY_INDEX_DONT_CARE`) | `getFreeEntity` | ported, tested, 100%-covered, C-reference-verified; a specific index throws unported |
+| `en_heap.c :: get_free_entity` (`ENTITY_INDEX_DONT_CARE` and a specific index) | `getFreeEntity` | ported, tested, 100%-covered, C-reference-verified (client creation, the run-time caller with a specific index, stays unported at the create tables) |
 | `en_heap.c :: set_free_entity` | `setFreeEntity` | ported, tested, 100%-covered, C-reference-verified |
 | `en_creat.c :: create_client_server_entity`, `create_local_entity` | `createClientServerEntity`, `createLocalEntity` | ported, tested, 100%-covered, C-reference-verified (TX stack attributes and RX buffer both become the attribute array) |
 | `en_valid.c :: assert_local_create_entity_index`, `assert_remote_create_entity_index` (server) | `validateLocalCreateEntityIndex`, `validateRemoteCreateEntityIndex` | ported, tested, 100%-covered, C-reference-verified |

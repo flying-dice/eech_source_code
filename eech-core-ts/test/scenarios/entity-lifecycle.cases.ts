@@ -59,6 +59,10 @@ function destroy(label: string): LifecycleOp {
 	return { kind: "destroy", label };
 }
 
+function allocate(label: string, index: number): LifecycleOp {
+	return { kind: "allocate", label, index };
+}
+
 function base(ops: LifecycleOp[]): LifecycleSpec {
 	return { heap: 16, forces: [BLUE], keysites: [keysite(BLUE, 1500, 1500)], ops: [MAP, ...ops] };
 }
@@ -350,5 +354,73 @@ export const ENTITY_LIFECYCLE_CASES: LifecycleCase[] = [
 		},
 		// indices: session 0, update 1, force0 2, force1 3, keysite0 4, keysite1 5, sectors 6..9
 		expected: ["created b0 10", "created r0 11", "created b1 12", "keysite keysite0 b1", "keysite keysite1 r0", "sector sector1_1 9 1 1 b1 r0"],
+	},
+
+	// ------------------------------------------- allocation at a specific index
+	{
+		id: "allocating-the-free-list-head-by-index",
+		c: "en_heap.c :: get_free_entity (index): no pred, so first_free_entity = en->succ; pushed at the head of the used list",
+		spec: base([allocate("g", 8)]),
+		expected: ["allocated g 8", "result ok", `heap free ${numbers(9, 15)}`, "heap used g sector1_1"],
+	},
+	{
+		id: "allocating-a-middle-free-entry-by-index",
+		c: "en_heap.c :: get_free_entity (index): en->pred->succ = en->succ, en->succ->pred = en->pred; the free list head is kept",
+		spec: base([allocate("g", 11), crate("c0", 1500, 1500)]),
+		expected: ["allocated g 11", "created c0 8", `heap free 9 10 ${numbers(12, 15)}`, "heap used c0 g sector1_1"],
+	},
+	{
+		id: "allocating-the-free-list-tail-by-index",
+		c: "en_heap.c :: get_free_entity (index): no succ to relink",
+		spec: base([allocate("g", 15)]),
+		expected: [`heap free ${numbers(8, 14)}`, "heap used g sector1_1"],
+	},
+	{
+		id: "allocating-by-index-after-reuse-reordered-the-free-list",
+		c: "en_heap.c :: set_free_entity pushes 8 before 10; get_free_entity (10) then unlinks between 8 and 11",
+		spec: base([crate("c0", 1500, 1500), crate("c1", 1500, 1500), destroy("c0"), allocate("g", 10), crate("c2", 512, 512)]),
+		expected: ["allocated g 10", "created c2 8", `heap free ${numbers(11, 15)}`, "heap used c2 g c1 sector1_1"],
+	},
+	{
+		id: "allocating-the-freed-head-by-index",
+		c: "en_heap.c :: set_free_entity makes 8 the head again; get_free_entity (8) moves the head to its succ",
+		spec: base([crate("c0", 1500, 1500), crate("c1", 1500, 1500), destroy("c0"), allocate("g", 8)]),
+		expected: ["allocated g 8", `heap free ${numbers(10, 15)}`, "heap used g c1 sector1_1"],
+	},
+	{
+		id: "allocating-the-only-free-entry-by-index-empties-the-heap",
+		c: "en_heap.c :: get_free_entity (index) leaves first_free_entity NULL; the next create has no entry",
+		spec: { heap: 9, forces: [BLUE], keysites: [keysite(BLUE, 1500, 1500)], ops: [MAP, allocate("g", 8), crate("c0", 1500, 1500)] },
+		expected: ["allocated g 8", "result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached", "heap free", "heap used g sector1_1"],
+	},
+	{
+		id: "allocating-an-entity-in-use-is-fatal",
+		c: "en_heap.c :: get_free_entity (index): debug_fatal (\"Entity already in use...\") before touching the lists",
+		spec: base([crate("c0", 1500, 1500), allocate("g", 8)]),
+		expected: ["created c0 8", "result fatal Entity already in use: %s (index = %d)", `heap free ${numbers(9, 15)}`, "heap used c0 sector1_1"],
+	},
+	{
+		id: "allocating-a-sector-index-is-fatal",
+		c: "en_heap.c :: get_free_entity (index): a local-only sector entry is in use too",
+		spec: base([allocate("g", 4)]),
+		expected: ["result fatal Entity already in use: %s (index = %d)", `heap free ${numbers(8, 15)}`],
+	},
+	{
+		id: "allocating-past-the-heap-asserts",
+		c: "en_heap.c :: get_free_entity (index): ASSERT ((index >= 0) && (index < number_of_entities))",
+		spec: base([allocate("g", 16)]),
+		expected: ["result assert (index >= 0) && (index < number_of_entities)", `heap free ${numbers(8, 15)}`],
+	},
+	{
+		id: "allocating-a-negative-index-asserts",
+		c: "en_heap.c :: get_free_entity (index): only ENTITY_INDEX_DONT_CARE (-1) is not an index",
+		spec: base([allocate("g", -2)]),
+		expected: ["result assert (index >= 0) && (index < number_of_entities)"],
+	},
+	{
+		id: "allocating-with-entity-index-dont-care-takes-the-head",
+		c: "en_heap.c :: get_free_entity (ENTITY_INDEX_DONT_CARE)",
+		spec: base([allocate("g", -1)]),
+		expected: ["allocated g 8", `heap free ${numbers(9, 15)}`],
 	},
 ];

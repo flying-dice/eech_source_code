@@ -248,22 +248,41 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					]
 				},
 				{
+					"kind": "allocate",
+					"label": "g1",
+					"index": 10
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
 					"kind": "create",
 					"label": "c1",
 					"type": 4,
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 1458.5,
-							"y": 419.5,
-							"z": 199.5
+							"x": 814,
+							"y": 342,
+							"z": 524
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
 						}
 					]
 				},
@@ -274,30 +293,21 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
 							"kind": "parent",
 							"type": 6,
 							"target": "NULL"
 						},
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 988.75,
-							"y": 404,
-							"z": 1006.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1458,
-							"y": 299.5,
-							"z": 219.25
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
 						}
 					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g5",
+					"index": 9
 				},
 				{
 					"kind": "create",
@@ -306,51 +316,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1287.75,
-							"y": -53.25,
-							"z": 225.25
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 37
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -29.5,
-							"y": 318.25,
-							"z": 393
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c2"
-				},
-				{
-					"kind": "destroy",
-					"label": "c3"
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 384.5,
-							"y": 457,
-							"z": 689
+							"kind": "pred",
+							"type": 6,
+							"target": "c2"
 						}
 					]
 				}
@@ -359,34 +327,65 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 		"expected": [
 			"transmit-create 4 5 vec3d 8 44903800 43514000 445d4000 int 191 2 int 191 3 end",
 			"created c0 5",
-			"transmit-create 4 6 int 191 4 vec3d 8 44b65000 43d1c000 43478000 end",
-			"created c1 6",
-			"transmit-create 4 7 int 7 2 parent 6 NULL vec3d 8 44773000 43ca0000 447ba000 vec3d 8 44b64000 4395c000 435b4000 end",
-			"created c2 7",
-			"result fatal Position off map: (x = %f, z = %f)",
-			"heap free 9 10 11 12 13",
-			"heap used  c2 c1 c0 sector1_0 sector0_0 force0 update session",
-			"cargo  8 0 37 1 c1ec0000 439f2000 43c48000 NULL NULL",
-			"cargo c2 7 3 -1 0 44b64000 4395c000 435b4000 NULL sector1_0",
-			"cargo c1 6 0 -1 1 44b65000 43d1c000 43478000 NULL sector1_0",
-			"cargo c0 5 3 -1 1 44903800 43514000 445d4000 NULL sector1_0",
-			"sector sector0_0 3 0 0 -",
-			"sector sector1_0 4 1 0 c2 c1 c0"
+			"allocated g1 10",
+			"transmit-destroy c0",
+			"transmit-create 4 5 parent 6 NULL parent 6 NULL vec3d 8 444b8000 43ab0000 44030000 parent 6 NULL end",
+			"created c1 5",
+			"transmit-create 4 6 parent 6 NULL parent 6 NULL end",
+			"created c2 6",
+			"allocated g5 9",
+			"transmit-create 4 7 pred 6 c2 end",
+			"created c3 7",
+			"result ok",
+			"heap free 8 11 12 13",
+			"heap used c3 g5 c2 c1 g1 sector1_0 sector0_0 force0 update session",
+			"cargo c3 7 3 -1 1 447fe000 46e0bf00 43ffc000 NULL sector0_0",
+			"cargo c2 6 3 -1 1 447fe000 46e0bf00 43ffc000 NULL sector0_0",
+			"cargo c1 5 3 -1 1 444b8000 43ab0000 44030000 NULL sector0_0",
+			"sector sector0_0 3 0 0 c3 c2 c1",
+			"sector sector1_0 4 1 0 -"
 		]
 	},
 	{
 		"id": "lifecycle-20260924-3",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 20,
+			"heap": 16,
+			"forces": [
+				1
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 3,
+					"zSectors": 1,
+					"sideLength": 256
+				}
+			]
+		},
+		"expected": [
+			"result ok",
+			"heap free 6 7 8 9 10 11 12 13 14 15",
+			"heap used sector2_0 sector1_0 sector0_0 force0 update session",
+			"sector sector0_0 3 0 0 -",
+			"sector sector1_0 4 1 0 -",
+			"sector sector2_0 5 2 0 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-4",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 19,
 			"forces": [
 				1,
 				2
 			],
 			"keysites": [
 				{
-					"side": 1,
-					"subType": 6,
+					"side": 2,
+					"subType": 7,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -395,7 +394,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"side": 1,
-					"subType": 2,
+					"subType": 8,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -403,6 +402,138 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"fuel": 100
 				}
 			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 4,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 0,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 173.75,
+							"y": 159.5,
+							"z": 258.75
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 136.75,
+							"y": 24.75,
+							"z": 626.25
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g1",
+					"index": 12
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 135.75,
+							"y": -25.5,
+							"z": 309
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 38
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g4",
+					"index": 8
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 87.5,
+							"y": 327,
+							"z": 617.5
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result assert (type > ENTITY_TYPE_UNKNOWN) && (type < NUM_ENTITY_TYPES)",
+			"heap free 10 11 12 13 14 15 16 17 18",
+			"heap used sector0_3 sector0_2 sector0_1 sector0_0 keysite1 keysite0 force1 force0 update session",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 6 0 0 -",
+			"sector sector0_1 7 0 1 -",
+			"sector sector0_2 8 0 2 -",
+			"sector sector0_3 9 0 3 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-5",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 14,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [],
 			"ops": [
 				{
 					"kind": "map",
@@ -417,9 +548,16 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
+							"kind": "vec3d",
+							"type": 8,
+							"x": 113.75,
+							"y": 37.75,
+							"z": 628
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
 						}
 					]
 				},
@@ -430,24 +568,23 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 437,
-							"y": 299.5,
-							"z": 232.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 184.5,
-							"y": 219.5,
-							"z": 401.75
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g2",
+					"index": 12
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
 						{
 							"kind": "pred",
 							"type": 6,
@@ -457,99 +594,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 32
-						}
-					]
-				},
-				{
-					"kind": "create",
 					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 73.25,
-							"y": 318.25,
-							"z": 405.25
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c2"
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 340,
-							"y": 229,
-							"z": 315.75
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c1"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c7",
 					"type": 4,
 					"index": -1,
 					"attributes": [
@@ -571,359 +616,57 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"value": 0
 						}
 					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 12 parent 33 sector0_0 end",
-			"created c0 12",
-			"transmit-create 4 13 vec3d 8 43da8000 4395c000 43688000 vec3d 8 43388000 435b8000 43c8e000 int 191 2 pred 6 c0 end",
-			"created c1 13",
-			"transmit-create 4 14 int 191 2 parent 6 keysite0 int 53 32 end",
-			"created c2 14",
-			"transmit-create 4 15 vec3d 8 42928000 439f2000 43caa000 parent 6 keysite0 int 191 3 end",
-			"created c3 15",
-			"transmit-destroy c2",
-			"transmit-create 4 14 vec3d 8 43aa0000 43650000 439de000 end",
-			"created c4 14",
-			"transmit-create 4 16 end",
-			"created c5 16",
-			"transmit-create 4 17 parent 6 keysite0 pred 6 c1 end",
-			"created c6 17",
-			"transmit-create 4 18 vec3d 8 42be0000 439fe000 41960000 int 191 2 int 191 0 end",
-			"created c7 18",
-			"result ok",
-			"heap free 19",
-			"heap used c7 c6 c5 c4 c3 c1 c0 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite1 keysite0 force1 force0 update session",
-			"cargo c7 18 0 -1 1 42be0000 439fe000 41960000 NULL sector0_0",
-			"cargo c6 17 3 -1 1 437f8000 46e0bf00 43bfc000 keysite0 sector0_1",
-			"cargo c5 16 3 -1 1 437f8000 46e0bf00 43bfc000 NULL sector0_1",
-			"cargo c4 14 3 -1 1 43aa0000 43650000 439de000 NULL sector1_1",
-			"cargo c3 15 3 -1 1 42928000 439f2000 43caa000 keysite0 sector0_1",
-			"cargo c1 13 2 -1 1 43388000 435b8000 43c8e000 NULL sector0_1",
-			"cargo c0 12 3 -1 1 437f8000 46e0bf00 43bfc000 NULL sector0_1",
-			"keysite keysite0 c6 c3",
-			"keysite keysite1 -",
-			"sector sector0_0 6 0 0 c7",
-			"sector sector1_0 7 1 0 -",
-			"sector sector0_1 8 0 1 c6 c5 c3 c1 c0",
-			"sector sector1_1 9 1 1 c4",
-			"sector sector0_2 10 0 2 -",
-			"sector sector1_2 11 1 2 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-4",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 12,
-			"forces": [
-				1
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 6,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 4,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 35
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 255.5,
-							"y": 352.25,
-							"z": 19.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 129.75,
-							"y": 264.25,
-							"z": 922
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 168.25,
-							"y": 215.25,
-							"z": 975.25
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 213.5,
-							"y": 285,
-							"z": 380.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -36.75,
-							"y": 361.75,
-							"z": 249.5
-						}
-					]
 				},
 				{
 					"kind": "create",
 					"label": "c4",
 					"type": 4,
 					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 17
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 163,
-							"y": 58.75,
-							"z": 78.75
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 213.25,
-							"y": 94,
-							"z": 781
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 31
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c7",
-					"type": 4,
-					"index": -1,
 					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c8",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c7"
-				},
-				{
-					"kind": "create",
-					"label": "c9",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 102.5,
-							"y": 258.75,
-							"z": 809.5
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						}
-					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 8 int 53 35 int 191 3 end",
-			"created c0 8",
-			"result fatal Position off map: (x = %f, z = %f)",
-			"heap free 10 11",
-			"heap used  c0 sector0_3 sector0_2 sector0_1 sector0_0 keysite0 force0 update session",
-			"cargo  9 3 -1 0 437f8000 43b02000 419a0000 NULL NULL",
-			"cargo c0 8 3 35 1 42ff0000 46e0bf00 43ffc000 NULL sector0_1",
-			"keysite keysite0 -",
-			"sector sector0_0 4 0 0 -",
-			"sector sector0_1 5 0 1 c0",
-			"sector sector0_2 6 0 2 -",
-			"sector sector0_3 7 0 3 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-5",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 20,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 5,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 4,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 295.25,
-							"y": 154.5,
-							"z": 1383.25
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector2_2"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 6
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
+			"transmit-create 4 10 vec3d 8 42e38000 42170000 441d0000 int 7 2 end",
+			"created c0 10",
+			"transmit-create 4 11 parent 6 NULL end",
+			"created c1 11",
+			"allocated g2 12",
+			"transmit-create 4 13 pred 6 c0 end",
+			"created c2 13",
+			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
 			"heap free",
-			"heap used                keysite0 force1 force0 update session",
-			"keysite keysite0 -"
+			"heap used c2 g2 c1 c0 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 force1 force0 update session",
+			"cargo c2 13 3 -1 1 437f8000 46e0bf00 43bfc000 NULL sector0_1",
+			"cargo c1 11 3 -1 1 437f8000 46e0bf00 43bfc000 NULL sector0_1",
+			"cargo c0 10 3 -1 0 42e38000 42170000 441d0000 NULL sector0_2",
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 -",
+			"sector sector0_1 6 0 1 c2 c1",
+			"sector sector1_1 7 1 1 -",
+			"sector sector0_2 8 0 2 c0",
+			"sector sector1_2 9 1 2 -"
 		]
 	},
 	{
 		"id": "lifecycle-20260924-6",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 22,
+			"heap": 18,
 			"forces": [
-				1,
 				2
 			],
-			"keysites": [],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 8,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
 			"ops": [
 				{
 					"kind": "map",
@@ -940,20 +683,21 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 1001,
-							"y": -99.5,
-							"z": 877.25
+							"x": 953.25,
+							"y": 293.25,
+							"z": 205.75
 						},
 						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
+							"kind": "parent",
+							"type": 33,
+							"target": "sector1_1"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
 						}
 					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
 				},
 				{
 					"kind": "create",
@@ -962,28 +706,14 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
+							"kind": "int",
+							"type": 191,
+							"value": 0
 						},
 						{
 							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1214,
-							"y": 230,
-							"z": 974.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1508.25,
-							"y": -10.75,
-							"z": 67.5
+							"type": 7,
+							"value": 1
 						}
 					]
 				},
@@ -994,16 +724,11 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 1002,
-							"y": -77,
-							"z": 693.5
+							"x": 1350.25,
+							"y": 215.25,
+							"z": 975.25
 						},
 						{
 							"kind": "parent",
@@ -1011,18 +736,29 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"target": "NULL"
 						},
 						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
+							"kind": "pred",
+							"type": 6,
+							"target": "c1"
 						},
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 119.5,
-							"y": 69.25,
-							"z": 646
+							"kind": "int",
+							"type": 191,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 6
 						}
 					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
 				},
 				{
 					"kind": "create",
@@ -1032,106 +768,104 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": [
 						{
 							"kind": "parent",
-							"type": 33,
-							"target": "sector3_0"
+							"type": 6,
+							"target": "keysite0"
 						},
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2047,
-							"y": 147,
-							"z": 626.75
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
 						},
 						{
 							"kind": "int",
-							"type": 191,
-							"value": 0
+							"type": 53,
+							"value": 29
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector1_1"
 						}
 					]
 				},
 				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 118.25,
-							"y": 422.25,
-							"z": 679.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 987,
-							"y": 221.75,
-							"z": 914.25
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 27
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 13
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1697.75,
-							"y": -85.25,
-							"z": 524.5
-						}
-					]
+					"kind": "allocate",
+					"label": "g6",
+					"index": 4
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				},
+				{
+					"kind": "allocate",
+					"label": "g8",
+					"index": 9
+				},
+				{
+					"kind": "destroy",
+					"label": "c3"
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 12 vec3d 8 447a4000 c2c70000 445b5000 int 7 1 end",
+			"transmit-create 4 12 vec3d 8 446e5000 4392a000 434dc000 parent 33 sector1_1 parent 6 keysite0 end",
 			"created c0 12",
+			"transmit-create 4 13 int 191 0 int 7 1 end",
+			"created c1 13",
+			"transmit-create 4 14 vec3d 8 44a8c800 43574000 4473d000 parent 6 NULL pred 6 c1 int 191 0 int 53 6 end",
+			"created c2 14",
+			"transmit-destroy c1",
 			"transmit-destroy c0",
-			"transmit-create 4 12 parent 6 NULL int 191 4 vec3d 8 4497c000 43660000 44739000 vec3d 8 44bc8800 c12c0000 42870000 end",
-			"created c1 12",
-			"transmit-create 4 13 int 191 5 vec3d 8 447a8000 c29a0000 442d6000 parent 6 NULL int 191 3 vec3d 8 42ef0000 428a8000 44218000 end",
-			"created c2 13",
-			"transmit-create 4 14 parent 33 sector3_0 vec3d 8 44ffe000 43130000 441cb000 int 191 0 end",
-			"created c3 14",
-			"transmit-create 4 15 vec3d 8 42ec8000 43d32000 4429e000 vec3d 8 4476c000 435dc000 44649000 int 53 27 int 53 13 vec3d 8 44d43800 c2aa8000 44032000 end",
-			"created c4 15",
-			"result ok",
-			"heap free 16 17 18 19 20 21",
-			"heap used c4 c3 c2 c1 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 force1 force0 update session",
-			"cargo c4 15 3 13 1 44d43800 c2aa8000 44032000 NULL sector3_1",
-			"cargo c3 14 0 -1 1 44ffe000 43130000 441cb000 NULL sector3_1",
-			"cargo c2 13 3 -1 1 42ef0000 428a8000 44218000 NULL sector0_1",
-			"cargo c1 12 0 -1 1 44bc8800 c12c0000 42870000 NULL sector2_0",
+			"transmit-create 4 12 parent 6 keysite0 parent 33 sector0_0 int 53 29 parent 33 sector1_1 end",
+			"created c3 12",
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 13 15 16 17",
+			"heap used c3 c2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite0 force0 update session",
+			"cargo c3 12 3 29 1 447fe000 46e0bf00 43ffc000 keysite0 sector1_0",
+			"cargo c2 14 0 6 1 44a8c800 43574000 4473d000 NULL sector2_1",
+			"keysite keysite0 c3",
 			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector2_0 6 2 0 c1",
+			"sector sector1_0 5 1 0 c3",
+			"sector sector2_0 6 2 0 -",
 			"sector sector3_0 7 3 0 -",
-			"sector sector0_1 8 0 1 c2",
+			"sector sector0_1 8 0 1 -",
 			"sector sector1_1 9 1 1 -",
-			"sector sector2_1 10 2 1 -",
-			"sector sector3_1 11 3 1 c4 c3"
+			"sector sector2_1 10 2 1 c2",
+			"sector sector3_1 11 3 1 -"
 		]
 	},
 	{
 		"id": "lifecycle-20260924-7",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 7,
+			"heap": 13,
 			"forces": [
 				1,
 				2
 			],
 			"keysites": [
 				{
+					"side": 1,
+					"subType": 5,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
 					"side": 2,
-					"subType": 8,
+					"subType": 7,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 7,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -1143,13 +877,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				{
 					"kind": "map",
 					"xSectors": 1,
-					"zSectors": 1,
-					"sideLength": 256
-				},
-				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 1,
+					"zSectors": 2,
 					"sideLength": 512
 				},
 				{
@@ -1159,9 +887,262 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 16
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 24
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_1"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 424,
+							"y": 42.75,
+							"z": 505.25
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g3",
+					"index": 11
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 15,
+							"y": 0.5,
+							"z": 287
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 9
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c6",
+					"type": 0,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 397.75,
+							"y": 380.25,
+							"z": 738.25
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 303,
+							"y": 230,
+							"z": 974.25
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c7",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c8",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c6"
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c9",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 29.75,
+							"y": 69.25,
+							"z": 646
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c6"
+						},
+						{
 							"kind": "int",
 							"type": 7,
 							"value": 3
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 9 parent 33 sector0_0 int 7 0 parent 6 keysite1 int 53 16 end",
+			"created c0 9",
+			"transmit-create 4 10 end",
+			"created c1 10",
+			"transmit-create 4 11 int 53 24 parent 33 sector0_1 int 191 -1 vec3d 8 43d40000 422b0000 43fca000 end",
+			"created c2 11",
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 12",
+			"heap used c2 c1 c0 sector0_1 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
+			"cargo c2 11 3 24 1 43d40000 422b0000 43fca000 NULL sector0_0",
+			"cargo c1 10 3 -1 1 437f8000 46e0bf00 43ffc000 NULL sector0_0",
+			"cargo c0 9 3 16 0 437f8000 46e0bf00 43ffc000 keysite1 sector0_0",
+			"keysite keysite0 -",
+			"keysite keysite1 c0",
+			"keysite keysite2 -",
+			"sector sector0_0 7 0 0 c2 c1 c0",
+			"sector sector0_1 8 0 1 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-8",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 9,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 1,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 14.75,
+							"y": 422.25,
+							"z": 169.25
 						}
 					]
 				},
@@ -1172,136 +1153,96 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 98.25,
-							"y": 457.5,
-							"z": 222.25
-						},
-						{
 							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 168,
-							"y": 6.25,
-							"z": 11.75
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -39.75,
-							"y": 263.5,
-							"z": 40
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 133,
-							"y": 490.75,
-							"z": 45.75
+							"type": 53,
+							"value": 23
 						},
 						{
 							"kind": "parent",
 							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 138.25,
-							"y": -84.25,
-							"z": 59.5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 192.25,
-							"y": -93,
-							"z": 217.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c2"
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c3"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -34,
-							"y": 113.75,
-							"z": 114
+							"target": "NULL"
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"result fatal SC_CREAT: uninitialised sector entity",
-			"heap free 6",
-			"heap used sector0_0 keysite0 force1 force0 update session",
-			"keysite keysite0 -"
+			"transmit-create 4 5 int 191 5 vec3d 8 416c0000 43d32000 43294000 end",
+			"created c0 5",
+			"transmit-create 4 6 int 53 23 parent 6 NULL end",
+			"created c1 6",
+			"result ok",
+			"heap free 7 8",
+			"heap used c1 c0 sector0_0 force1 force0 update session",
+			"cargo c1 6 3 23 1 42ff0000 46e0bf00 42ff0000 NULL sector0_0",
+			"cargo c0 5 1 -1 1 416c0000 43d32000 43294000 NULL sector0_0",
+			"sector sector0_0 4 0 0 c1 c0"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-8",
+		"id": "lifecycle-20260924-9",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 22,
+			"heap": 21,
 			"forces": [
-				1,
-				2
+				1
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 3,
+					"zSectors": 4,
+					"sideLength": 1000
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1818.25,
+							"y": 411.5,
+							"z": 871.75
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result assert int_bit_count (sector_side_length) == 1",
+			"heap free 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20",
+			"heap used force0 update session"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-10",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 14,
+			"forces": [
+				1
 			],
 			"keysites": [
 				{
 					"side": 1,
-					"subType": 4,
+					"subType": 6,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -1309,8 +1250,8 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"fuel": 100
 				},
 				{
-					"side": 1,
-					"subType": 0,
+					"side": 2,
+					"subType": 6,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -1332,11 +1273,109 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 2047,
+							"y": 423.5,
+							"z": 2793.5
+						},
+						{
 							"kind": "parent",
 							"type": 6,
 							"target": "keysite0"
 						}
 					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 13 int 7 0 int 191 -1 vec3d 8 44ffe000 43d3c000 452e9800 parent 6 keysite0 end",
+			"created c0 13",
+			"result ok",
+			"heap free",
+			"heap used c0 sector1_3 sector0_3 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
+			"cargo c0 13 3 -1 0 44ffe000 43d3c000 452e9800 keysite0 sector1_2",
+			"keysite keysite0 c0",
+			"keysite keysite1 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -",
+			"sector sector0_1 7 0 1 -",
+			"sector sector1_1 8 1 1 -",
+			"sector sector0_2 9 0 2 -",
+			"sector sector1_2 10 1 2 c0",
+			"sector sector0_3 11 0 3 -",
+			"sector sector1_3 12 1 3 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-11",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 10,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 2,
+					"sideLength": 1024
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1110,
+							"y": -84.25,
+							"z": 476.75
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 439.75,
+							"y": 57,
+							"z": 1642
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1904.75,
+							"y": 254,
+							"z": 1353.25
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector1_1"
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
 				},
 				{
 					"kind": "create",
@@ -1345,9 +1384,65 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g3",
+					"index": 4
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
 							"kind": "parent",
 							"type": 6,
-							"target": "keysite1"
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 82.5,
+							"y": 88,
+							"z": 1494.5
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
 						},
 						{
 							"kind": "int",
@@ -1359,76 +1454,70 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"type": 8,
 							"x": 1298.5,
 							"y": 150,
-							"z": 3288.75
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1460.5,
-							"y": 293.25,
-							"z": 3848.5
+							"z": 1644
 						}
 					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c3"
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": []
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 14 parent 6 keysite0 end",
-			"created c0 14",
-			"transmit-create 4 15 parent 6 keysite1 int 53 6 vec3d 8 44a25000 43160000 454d8c00 parent 6 keysite0 vec3d 8 44b69000 4392a000 45708800 end",
-			"created c1 15",
-			"result ok",
-			"heap free 16 17 18 19 20 21",
-			"heap used c1 c0 sector1_3 sector0_3 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite1 keysite0 force1 force0 update session",
-			"cargo c1 15 3 6 1 44b69000 4392a000 45708800 keysite0 sector1_3",
-			"cargo c0 14 3 -1 1 447fe000 46e0bf00 44fff000 keysite0 sector0_1",
-			"keysite keysite0 c1 c0",
-			"keysite keysite1 -",
-			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 -",
-			"sector sector0_1 8 0 1 c0",
-			"sector sector1_1 9 1 1 -",
-			"sector sector0_2 10 0 2 -",
-			"sector sector1_2 11 1 2 -",
-			"sector sector0_3 12 0 3 -",
-			"sector sector1_3 13 1 3 c1"
+			"transmit-create 4 8 vec3d 8 448ac000 c2a88000 43ee6000 vec3d 8 43dbe000 42640000 44cd4000 parent 6 NULL vec3d 8 44ee1800 437e0000 44a92800 parent 33 sector1_1 end",
+			"created c0 8",
+			"transmit-destroy c0",
+			"transmit-create 4 8 int 7 1 int 7 1 end",
+			"created c1 8",
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 9",
+			"heap used c1 sector1_1 sector0_1 sector1_0 sector0_0 force1 force0 update session",
+			"cargo c1 8 3 -1 1 447fe000 46e0bf00 447fe000 NULL sector0_0",
+			"sector sector0_0 4 0 0 c1",
+			"sector sector1_0 5 1 0 -",
+			"sector sector0_1 6 0 1 -",
+			"sector sector1_1 7 1 1 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-9",
+		"id": "lifecycle-20260924-12",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 10,
+			"heap": 17,
 			"forces": [
+				1,
 				2
 			],
 			"keysites": [
 				{
-					"side": 1,
+					"side": 2,
+					"subType": 6,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 7,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
 					"subType": 4,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 2,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 1,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -1439,31 +1528,47 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 1,
-					"sideLength": 256
+					"xSectors": 2,
+					"zSectors": 2,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
 				}
 			]
 		},
 		"expected": [
+			"transmit-create 4 11 end",
+			"created c0 11",
+			"transmit-destroy c0",
 			"result ok",
-			"heap free 9",
-			"heap used sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
+			"heap free 11 12 13 14 15 16",
+			"heap used sector1_1 sector0_1 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
 			"keysite keysite0 -",
 			"keysite keysite1 -",
 			"keysite keysite2 -",
-			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 -",
-			"sector sector2_0 8 2 0 -"
+			"sector sector0_0 7 0 0 -",
+			"sector sector1_0 8 1 0 -",
+			"sector sector0_1 9 0 1 -",
+			"sector sector1_1 10 1 1 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-10",
+		"id": "lifecycle-20260924-13",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 30,
+			"heap": 31,
 			"forces": [
-				1
+				1,
+				2
 			],
 			"keysites": [
 				{
@@ -1629,31 +1734,31 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 		},
 		"expected": [
 			"result assert (type > ENTITY_TYPE_UNKNOWN) && (type < NUM_ENTITY_TYPES)",
-			"heap free 22 23 24 25 26 27 28 29",
-			"heap used sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
+			"heap free 23 24 25 26 27 28 29 30",
+			"heap used sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
 			"keysite keysite0 -",
 			"keysite keysite1 -",
 			"keysite keysite2 -",
-			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 -",
-			"sector sector2_0 8 2 0 -",
-			"sector sector3_0 9 3 0 -",
-			"sector sector0_1 10 0 1 -",
-			"sector sector1_1 11 1 1 -",
-			"sector sector2_1 12 2 1 -",
-			"sector sector3_1 13 3 1 -",
-			"sector sector0_2 14 0 2 -",
-			"sector sector1_2 15 1 2 -",
-			"sector sector2_2 16 2 2 -",
-			"sector sector3_2 17 3 2 -",
-			"sector sector0_3 18 0 3 -",
-			"sector sector1_3 19 1 3 -",
-			"sector sector2_3 20 2 3 -",
-			"sector sector3_3 21 3 3 -"
+			"sector sector0_0 7 0 0 -",
+			"sector sector1_0 8 1 0 -",
+			"sector sector2_0 9 2 0 -",
+			"sector sector3_0 10 3 0 -",
+			"sector sector0_1 11 0 1 -",
+			"sector sector1_1 12 1 1 -",
+			"sector sector2_1 13 2 1 -",
+			"sector sector3_1 14 3 1 -",
+			"sector sector0_2 15 0 2 -",
+			"sector sector1_2 16 1 2 -",
+			"sector sector2_2 17 2 2 -",
+			"sector sector3_2 18 3 2 -",
+			"sector sector0_3 19 0 3 -",
+			"sector sector1_3 20 1 3 -",
+			"sector sector2_3 21 2 3 -",
+			"sector sector3_3 22 3 3 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-11",
+		"id": "lifecycle-20260924-14",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
 			"heap": 12,
@@ -1823,54 +1928,48 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					]
 				},
 				{
+					"kind": "allocate",
+					"label": "g5",
+					"index": 11
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
 					"kind": "create",
 					"label": "c5",
 					"type": 4,
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c1"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
+							"kind": "vec3d",
+							"type": 8,
+							"x": 802.75,
+							"y": 70.25,
+							"z": 4019.25
 						},
 						{
 							"kind": "int",
 							"type": 7,
 							"value": 3
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
 						}
 					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
 				}
 			]
 		},
@@ -1892,240 +1991,27 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 		]
 	},
 	{
-		"id": "lifecycle-20260924-12",
+		"id": "lifecycle-20260924-15",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 19,
-			"forces": [
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 3,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 24
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 739.5,
-							"y": 73.25,
-							"z": 557.25
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -15.5,
-							"y": 304.75,
-							"z": 530.25
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c3"
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 499.25,
-							"y": 394,
-							"z": 622.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c7",
-					"type": 4,
-					"index": 4,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 707,
-							"y": 409,
-							"z": 309
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c4"
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 15 int 191 -1 int 53 24 int 191 5 end",
-			"created c0 15",
-			"transmit-destroy c0",
-			"result assert en != child_pred",
-			"heap free 16 17 18",
-			"heap used c0 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 force0 update session",
-			"cargo c0 15 3 -1 1 43ffc000 46e0bf00 43bfc000 NULL NULL",
-			"sector sector0_0 3 0 0 -",
-			"sector sector1_0 4 1 0 -",
-			"sector sector2_0 5 2 0 -",
-			"sector sector3_0 6 3 0 -",
-			"sector sector0_1 7 0 1 -",
-			"sector sector1_1 8 1 1 -",
-			"sector sector2_1 9 2 1 -",
-			"sector sector3_1 10 3 1 -",
-			"sector sector0_2 11 0 2 -",
-			"sector sector1_2 12 1 2 -",
-			"sector sector2_2 13 2 2 -",
-			"sector sector3_2 14 3 2 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-13",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 12,
+			"heap": 17,
 			"forces": [
 				2
 			],
 			"keysites": [
 				{
 					"side": 1,
-					"subType": 7,
-					"inUse": true,
+					"subType": 0,
+					"inUse": false,
 					"x": 0,
 					"z": 0,
 					"ammo": 100,
 					"fuel": 100
 				},
 				{
-					"side": 2,
-					"subType": 7,
-					"inUse": false,
+					"side": 1,
+					"subType": 8,
+					"inUse": true,
 					"x": 0,
 					"z": 0,
 					"ammo": 100,
@@ -2144,13 +2030,114 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c0",
 					"type": 4,
 					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
 					"attributes": [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 675.25,
-							"y": 30.75,
-							"z": 142.5
+							"x": 647,
+							"y": 159.25,
+							"z": 498.5
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 0
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 739.5,
+							"y": 73.25,
+							"z": 371.25
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 37
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 283,
+							"y": 370.75,
+							"z": 379.75
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 7 end",
+			"created c0 7",
+			"transmit-create 4 8 vec3d 8 4421c000 431f4000 43f94000 int 191 0 vec3d 8 4438e000 42928000 43b9a000 int 53 37 vec3d 8 438d8000 43b96000 43bde000 end",
+			"created c1 8",
+			"transmit-destroy c1",
+			"result ok",
+			"heap free 8 9 10 11 12 13 14 15 16",
+			"heap used c0 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
+			"cargo c0 7 3 -1 1 43ffc000 46e0bf00 437f8000 NULL sector0_0",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 5 0 0 c0",
+			"sector sector1_0 6 1 0 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-16",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 8,
+			"forces": [
+				2
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 0,
+					"zSectors": 4,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": -0.5,
+							"y": 242,
+							"z": 633.75
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": -0.75,
+							"y": 8.75,
+							"z": 999
 						}
 					]
 				},
@@ -2166,14 +2153,106 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c2",
 					"type": 4,
 					"index": -1,
-					"attributes": []
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": -49,
+							"y": 405.75,
+							"z": 610.25
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result assert num_map_x_sectors > 0",
+			"heap free 3 4 5 6 7",
+			"heap used force0 update session"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-17",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 13,
+			"forces": [
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 8,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 5,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 4,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 2,
+					"sideLength": 512
+				},
+				{
+					"kind": "allocate",
+					"label": "g0",
+					"index": 6
 				},
 				{
 					"kind": "create",
-					"label": "c3",
+					"label": "c0",
 					"type": 4,
 					"index": -1,
 					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 606.25,
+							"y": 347.5,
+							"z": 1018.25
+						},
 						{
 							"kind": "int",
 							"type": 53,
@@ -2184,90 +2263,14 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"type": 8,
 							"x": 585.5,
 							"y": 472.25,
-							"z": 320.25
+							"z": 641
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
 							"x": 704.25,
 							"y": 94.25,
-							"z": 58.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 192.25,
-							"y": 267.75,
-							"z": 250.5
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 7 vec3d 8 4428d000 41f60000 430e8000 end",
-			"created c0 7",
-			"transmit-create 4 8 end",
-			"created c1 8",
-			"transmit-create 4 9 end",
-			"created c2 9",
-			"transmit-create 4 10 int 53 27 vec3d 8 44126000 43ec2000 43a02000 vec3d 8 44301000 42bc8000 426a0000 vec3d 8 43404000 4385e000 437a8000 pred 6 c0 end",
-			"created c3 10",
-			"result ok",
-			"heap free 11",
-			"heap used c3 c2 c1 c0 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
-			"cargo c3 10 3 27 1 43404000 4385e000 437a8000 NULL sector0_0",
-			"cargo c2 9 3 -1 1 43ffc000 46e0bf00 437f8000 NULL sector0_0",
-			"cargo c1 8 3 -1 1 43ffc000 46e0bf00 437f8000 NULL sector0_0",
-			"cargo c0 7 3 -1 1 4428d000 41f60000 430e8000 NULL sector1_0",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"sector sector0_0 5 0 0 c3 c2 c1",
-			"sector sector1_0 6 1 0 c0"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-14",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 25,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 4,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
+							"z": 117.25
 						}
 					]
 				},
@@ -2278,73 +2281,112 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
+							"kind": "int",
+							"type": 7,
+							"value": 1
 						}
 					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": 3,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 15
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite2"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 175.75,
+							"y": 433,
+							"z": 703.5
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g5",
+					"index": 4
+				},
+				{
+					"kind": "destroy",
+					"label": "c3"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 16 int 191 5 parent 6 NULL parent 6 NULL end",
-			"created c0 16",
-			"transmit-create 4 17 parent 6 NULL end",
-			"created c1 17",
-			"result ok",
-			"heap free 18 19 20 21 22 23 24",
-			"heap used c1 c0 sector2_3 sector1_3 sector0_3 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 force1 force0 update session",
-			"cargo c1 17 3 -1 1 443fe000 46e0bf00 447fe000 NULL sector1_1",
-			"cargo c0 16 1 -1 1 443fe000 46e0bf00 447fe000 NULL sector1_1",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector2_0 6 2 0 -",
-			"sector sector0_1 7 0 1 -",
-			"sector sector1_1 8 1 1 c1 c0",
-			"sector sector2_1 9 2 1 -",
-			"sector sector0_2 10 0 2 -",
-			"sector sector1_2 11 1 2 -",
-			"sector sector2_2 12 2 2 -",
-			"sector sector0_3 13 0 3 -",
-			"sector sector1_3 14 1 3 -",
-			"sector sector2_3 15 2 3 -"
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 10 11 12",
+			"heap used sector1_1 sector0_1 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"keysite keysite2 -",
+			"sector sector0_0 6 0 0 -",
+			"sector sector1_0 7 1 0 -",
+			"sector sector0_1 8 0 1 -",
+			"sector sector1_1 9 1 1 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-15",
+		"id": "lifecycle-20260924-18",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 9,
+			"heap": 17,
 			"forces": [
 				1,
 				2
 			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 2,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 1,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
+			"keysites": [],
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 1,
-					"sideLength": 256
+					"xSectors": 4,
+					"zSectors": 2,
+					"sideLength": 1024
 				},
 				{
 					"kind": "create",
@@ -2353,74 +2395,24 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
 							"kind": "parent",
 							"type": 33,
-							"target": "sector0_0"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 28
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
+							"target": "sector3_0"
 						},
 						{
 							"kind": "int",
 							"type": 53,
 							"value": 38
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 7 int 191 2 parent 33 sector0_0 int 53 28 parent 33 sector0_0 int 53 38 end",
-			"created c0 7",
-			"result ok",
-			"heap free 8",
-			"heap used c0 sector0_0 keysite1 keysite0 force1 force0 update session",
-			"cargo c0 7 2 38 1 42ff0000 46e0bf00 42ff0000 NULL sector0_0",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"sector sector0_0 6 0 0 c0"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-16",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 18,
-			"forces": [
-				1
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 4,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
+						},
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 22.5,
-							"y": -37.5,
-							"z": 976.5
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
 						}
 					]
 				},
@@ -2431,11 +2423,35 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 676,
-							"y": 266.5,
-							"z": 769.75
+							"x": 1316,
+							"y": -44.5,
+							"z": 1795
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 3909.25,
+							"y": -23.25,
+							"z": 980
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 3287.25,
+							"y": 428.75,
+							"z": 143
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
 						}
 					]
 				},
@@ -2508,133 +2524,16 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "parent",
 							"type": 33,
-							"target": "sector1_0"
+							"target": "sector2_0"
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 767.5,
+							"x": 4095.5,
 							"y": 131,
-							"z": 86.5
+							"z": 173.25
 						}
 					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 15 vec3d 8 41b40000 c2160000 44742000 end",
-			"created c0 15",
-			"transmit-create 4 16 vec3d 8 44290000 43854000 44407000 end",
-			"created c1 16",
-			"transmit-create 4 17 int 7 2 end",
-			"created c2 17",
-			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used c2 c1 c0 sector2_3 sector1_3 sector0_3 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 force0 update session",
-			"cargo c2 17 3 -1 0 43bfc000 46e0bf00 43ffc000 NULL sector1_1",
-			"cargo c1 16 3 -1 1 44290000 43854000 44407000 NULL sector2_3",
-			"cargo c0 15 3 -1 1 41b40000 c2160000 44742000 NULL sector0_3",
-			"sector sector0_0 3 0 0 -",
-			"sector sector1_0 4 1 0 -",
-			"sector sector2_0 5 2 0 -",
-			"sector sector0_1 6 0 1 -",
-			"sector sector1_1 7 1 1 c2",
-			"sector sector2_1 8 2 1 -",
-			"sector sector0_2 9 0 2 -",
-			"sector sector1_2 10 1 2 -",
-			"sector sector2_2 11 2 2 -",
-			"sector sector0_3 12 0 3 c0",
-			"sector sector1_3 13 1 3 -",
-			"sector sector2_3 14 2 3 c1"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-17",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 4,
-			"forces": [
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 1,
-					"sideLength": 1000
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2493.5,
-							"y": 81.75,
-							"z": 901.75
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 0,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 279.5,
-							"y": 99.25,
-							"z": 446.75
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": []
 				},
 				{
 					"kind": "create",
@@ -2645,61 +2544,66 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 124.25,
-							"y": -93.5,
-							"z": 851
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2045.5,
-							"y": 448.75,
-							"z": 829.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 55,
-							"y": 325,
-							"z": 112.25
+							"x": 608,
+							"y": -97.25,
+							"z": 893.75
 						},
 						{
 							"kind": "int",
-							"type": 191,
-							"value": 0
+							"type": 53,
+							"value": 37
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1536,
+							"y": 398.75,
+							"z": 851.75
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"result assert int_bit_count (sector_side_length) == 1",
-			"heap free 3",
-			"heap used force0 update session"
+			"transmit-create 4 12 parent 33 sector3_0 int 53 38 int 191 1 int 7 1 end",
+			"created c0 12",
+			"transmit-create 4 13 pred 6 c0 vec3d 8 44a48000 c2320000 44e06000 vec3d 8 45745400 c1ba0000 44750000 vec3d 8 454d7400 43d66000 430f0000 parent 6 NULL end",
+			"created c1 13",
+			"transmit-create 4 14 int 7 2 end",
+			"created c2 14",
+			"transmit-create 4 15 parent 6 NULL int 191 2 pred 6 c2 int 191 5 end",
+			"created c3 15",
+			"transmit-destroy c1",
+			"result fatal Position off map: (x = %f, z = %f)",
+			"heap free 16",
+			"heap used c1 c3 c2 c0 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 force1 force0 update session",
+			"cargo c1 13 1 -1 1 457ff800 43030000 432d4000 NULL sector2_0",
+			"cargo c3 15 1 -1 1 44fff000 46e0bf00 447fe000 NULL sector1_0",
+			"cargo c2 14 3 -1 0 44fff000 46e0bf00 447fe000 NULL sector1_0",
+			"cargo c0 12 1 38 1 44fff000 46e0bf00 447fe000 NULL sector1_0",
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 c3 c2 c0",
+			"sector sector2_0 6 2 0 -",
+			"sector sector3_0 7 3 0 -",
+			"sector sector0_1 8 0 1 -",
+			"sector sector1_1 9 1 1 -",
+			"sector sector2_1 10 2 1 -",
+			"sector sector3_1 11 3 1 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-18",
+		"id": "lifecycle-20260924-19",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 15,
+			"heap": 9,
 			"forces": [
 				1,
 				2
 			],
 			"keysites": [
 				{
-					"side": 2,
-					"subType": 8,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 1,
+					"side": 1,
+					"subType": 6,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -2710,8 +2614,81 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 2,
+					"xSectors": 3,
+					"zSectors": 1,
+					"sideLength": 1024
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 16
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 8 int 53 16 int 191 5 int 7 1 end",
+			"created c0 8",
+			"result ok",
+			"heap free",
+			"heap used c0 sector2_0 sector1_0 sector0_0 keysite0 force1 force0 update session",
+			"cargo c0 8 1 16 1 44bff000 46e0bf00 43ffc000 NULL sector1_0",
+			"keysite keysite0 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 c0",
+			"sector sector2_0 7 2 0 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-20",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 5,
+			"forces": [
+				1
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 6,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 6,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 1,
 					"sideLength": 256
 				},
 				{
@@ -2726,9 +2703,268 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"target": "keysite1"
 						},
 						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": -14.75,
+							"y": 56.5,
+							"z": 46.75
+						},
+						{
 							"kind": "parent",
-							"type": 33,
-							"target": "sector0_1"
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c3"
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 4
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 30
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 18
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 22
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g9",
+					"index": 4
+				}
+			]
+		},
+		"expected": [
+			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used keysite1 keysite0 force0 update session",
+			"keysite keysite0 -",
+			"keysite keysite1 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-21",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 16,
+			"forces": [
+				1
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 4,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 5,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 0,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 1,
+					"sideLength": 1024
+				}
+			]
+		},
+		"expected": [
+			"result ok",
+			"heap free 7 8 9 10 11 12 13 14 15",
+			"heap used sector0_0 keysite2 keysite1 keysite0 force0 update session",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"keysite keysite2 -",
+			"sector sector0_0 6 0 0 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-22",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 17,
+			"forces": [
+				2
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 0,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 6,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 3,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 4,
+					"zSectors": 2,
+					"sideLength": 1024
+				},
+				{
+					"kind": "allocate",
+					"label": "g0",
+					"index": 12
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 3850.25,
+							"y": 288.25,
+							"z": 1916.25
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 26
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite2"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": -24,
+							"y": 210.25,
+							"z": 1839.5
 						}
 					]
 				},
@@ -2744,11 +2980,134 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c2",
 					"type": 4,
 					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 3099.5,
+							"y": 493,
+							"z": 324.75
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector2_1"
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector3_1"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite2"
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 14 15 16",
+			"heap used sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"keysite keysite2 -",
+			"sector sector0_0 6 0 0 -",
+			"sector sector1_0 7 1 0 -",
+			"sector sector2_0 8 2 0 -",
+			"sector sector3_0 9 3 0 -",
+			"sector sector0_1 10 0 1 -",
+			"sector sector1_1 11 1 1 -",
+			"sector sector2_1 12 2 1 -",
+			"sector sector3_1 13 3 1 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-23",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 11,
+			"forces": [
+				1
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 1,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
 					"attributes": [
 						{
 							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "int",
 							"type": 53,
-							"value": 22
+							"value": 23
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 362.5,
+							"y": -75.25,
+							"z": 19.5
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 183.75,
+							"y": 117.25,
+							"z": 370.25
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
 						},
 						{
 							"kind": "parent",
@@ -2759,37 +3118,70 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 294,
+							"y": 285,
+							"z": 244.5
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 7
+						}
+					]
+				},
+				{
+					"kind": "create",
 					"label": "c3",
 					"type": 4,
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 53,
-							"value": 35
+							"kind": "vec3d",
+							"type": 8,
+							"x": 512,
+							"y": -42,
+							"z": 81.25
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 874.25,
-							"y": 387,
-							"z": 475
+							"x": 332,
+							"y": 446.5,
+							"z": 456
 						},
 						{
 							"kind": "parent",
 							"type": 6,
-							"target": "keysite1"
+							"target": "NULL"
 						},
 						{
 							"kind": "int",
-							"type": 191,
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 7,
 							"value": 3
 						}
 					]
 				},
 				{
-					"kind": "destroy",
-					"label": "c2"
+					"kind": "allocate",
+					"label": "g5",
+					"index": 9
 				},
 				{
 					"kind": "create",
@@ -2798,11 +3190,14 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1008.75,
-							"y": 402,
-							"z": 511.25
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
 						}
 					]
 				},
@@ -2811,15 +3206,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c5",
 					"type": 4,
 					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 715.75,
-							"y": 108.5,
-							"z": 195.25
-						}
-					]
+					"attributes": []
 				},
 				{
 					"kind": "create",
@@ -2828,105 +3215,76 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 403.5,
-							"y": 329.5,
-							"z": 93.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c7",
-					"type": 4,
-					"index": 9,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector2_1"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 26
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c8",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 528,
-							"y": 305.5,
-							"z": 511.25
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
+							"x": 454.75,
+							"y": 85,
+							"z": 178.75
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 14 parent 6 keysite1 parent 33 sector0_1 end",
-			"created c0 14",
-			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"transmit-create 4 4 int 7 0 int 53 23 vec3d 8 43b54000 c2968000 419c0000 parent 6 NULL end",
+			"created c0 4",
+			"transmit-destroy c0",
+			"transmit-create 4 4 int 191 1 vec3d 8 4337c000 42ea8000 43b92000 int 191 -1 int 7 0 parent 6 NULL end",
+			"created c1 4",
+			"transmit-create 4 5 parent 6 NULL vec3d 8 43930000 438e8000 43748000 int 53 7 end",
+			"created c2 5",
+			"transmit-create 4 6 vec3d 8 44000000 c2280000 42a28000 vec3d 8 43a60000 43df4000 43e40000 parent 6 NULL int 7 0 int 7 3 end",
+			"created c3 6",
+			"allocated g5 9",
+			"transmit-create 4 7 parent 33 sector0_0 parent 6 NULL end",
+			"created c4 7",
+			"transmit-create 4 8 end",
+			"created c5 8",
+			"transmit-create 4 10 vec3d 8 43e36000 42aa0000 4332c000 end",
+			"created c6 10",
+			"result ok",
 			"heap free",
-			"heap used c0 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force1 force0 update session",
-			"cargo c0 14 3 -1 1 43ffc000 46e0bf00 437f8000 keysite1 sector1_0",
-			"keysite keysite0 -",
-			"keysite keysite1 c0",
-			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 c0",
-			"sector sector2_0 8 2 0 -",
-			"sector sector3_0 9 3 0 -",
-			"sector sector0_1 10 0 1 -",
-			"sector sector1_1 11 1 1 -",
-			"sector sector2_1 12 2 1 -",
-			"sector sector3_1 13 3 1 -"
+			"heap used c6 c5 c4 g5 c3 c2 c1 sector0_0 force0 update session",
+			"cargo c6 10 3 -1 1 43e36000 42aa0000 4332c000 NULL sector0_0",
+			"cargo c5 8 3 -1 1 437f8000 46e0bf00 437f8000 NULL sector0_0",
+			"cargo c4 7 3 -1 1 437f8000 46e0bf00 437f8000 NULL sector0_0",
+			"cargo c3 6 3 -1 1 43a60000 43df4000 43e40000 NULL sector0_0",
+			"cargo c2 5 3 7 1 43930000 438e8000 43748000 NULL sector0_0",
+			"cargo c1 4 3 -1 0 4337c000 42ea8000 43b92000 NULL sector0_0",
+			"sector sector0_0 3 0 0 c6 c5 c4 c3 c2 c1"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-19",
+		"id": "lifecycle-20260924-24",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 3,
+			"forces": [
+				2
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 2,
+					"sideLength": 256
+				},
+				{
+					"kind": "allocate",
+					"label": "g0",
+					"index": -1
+				}
+			]
+		},
+		"expected": [
+			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used force0 update session"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-25",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
 			"heap": 23,
@@ -2938,7 +3296,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 3,
+					"xSectors": 4,
 					"zSectors": 3,
 					"sideLength": 1024
 				},
@@ -2949,9 +3307,11 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
+							"kind": "vec3d",
+							"type": 8,
+							"x": 2388.75,
+							"y": 316,
+							"z": 2769.5
 						},
 						{
 							"kind": "parent",
@@ -2960,18 +3320,20 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						},
 						{
 							"kind": "int",
+							"type": 53,
+							"value": 20
+						},
+						{
+							"kind": "int",
 							"type": 191,
-							"value": 5
+							"value": 0
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
 						}
 					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
 				},
 				{
 					"kind": "create",
@@ -2981,17 +3343,32 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": [
 						{
 							"kind": "int",
-							"type": 7,
-							"value": 3
+							"type": 191,
+							"value": 1
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
 						}
 					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
 				},
 				{
 					"kind": "create",
 					"label": "c2",
 					"type": 4,
 					"index": -1,
-					"attributes": []
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						}
+					]
 				},
 				{
 					"kind": "create",
@@ -3000,28 +3377,14 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 3071.5,
-							"y": -77,
-							"z": 2923.25
-						},
-						{
-							"kind": "parent",
+							"kind": "pred",
 							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2597.5,
-							"y": 131,
-							"z": 527
+							"target": "c1"
 						},
 						{
 							"kind": "int",
-							"type": 7,
-							"value": 1
+							"type": 53,
+							"value": 0
 						}
 					]
 				},
@@ -3029,27 +3392,27 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"kind": "create",
 					"label": "c4",
 					"type": 4,
-					"index": -1,
+					"index": 7,
 					"attributes": [
 						{
 							"kind": "int",
-							"type": 191,
-							"value": -1
+							"type": 7,
+							"value": 1
 						},
 						{
 							"kind": "int",
-							"type": 7,
-							"value": 0
+							"type": 191,
+							"value": 1
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
 						},
 						{
 							"kind": "parent",
 							"type": 6,
 							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
 						}
 					]
 				},
@@ -3059,54 +3422,163 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"type": 4,
 					"index": -1,
 					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c6",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 3762.25,
+							"y": 181.5,
+							"z": 1627.5
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 16
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c7",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c8",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c9",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 4095,
+							"y": 63.5,
+							"z": 3071.25
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 0
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 4096,
+							"y": 96.75,
+							"z": 2930.75
+						}
+					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 13 parent 6 NULL parent 6 NULL int 191 5 end",
-			"created c0 13",
-			"transmit-destroy c0",
-			"transmit-create 4 13 int 7 3 end",
-			"created c1 13",
-			"transmit-create 4 14 end",
-			"created c2 14",
-			"transmit-create 4 15 vec3d 8 453ff800 c29a0000 4536b400 parent 6 NULL vec3d 8 45225800 43030000 4403c000 int 7 1 end",
-			"created c3 15",
-			"transmit-create 4 16 int 191 -1 int 7 0 parent 6 NULL int 7 1 end",
-			"created c4 16",
-			"transmit-create 4 17 end",
-			"created c5 17",
-			"result ok",
-			"heap free 18 19 20 21 22",
-			"heap used c5 c4 c3 c2 c1 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 force1 force0 update session",
-			"cargo c5 17 3 -1 1 44bff000 46e0bf00 44bff000 NULL sector1_1",
-			"cargo c4 16 3 -1 1 44bff000 46e0bf00 44bff000 NULL sector1_1",
-			"cargo c3 15 3 -1 1 45225800 43030000 4403c000 NULL sector2_0",
-			"cargo c2 14 3 -1 1 44bff000 46e0bf00 44bff000 NULL sector1_1",
-			"cargo c1 13 3 -1 1 44bff000 46e0bf00 44bff000 NULL sector1_1",
+			"transmit-create 4 16 vec3d 8 45154c00 439e0000 452d1800 parent 6 NULL int 53 20 int 191 0 parent 6 NULL end",
+			"created c0 16",
+			"transmit-create 4 17 int 191 1 parent 6 NULL end",
+			"created c1 17",
+			"transmit-destroy c1",
+			"transmit-create 4 17 parent 6 NULL end",
+			"created c2 17",
+			"transmit-create 4 18 pred 6 c2 int 53 0 end",
+			"created c3 18",
+			"result assert assert_local_create_entity_index ((index))",
+			"heap free 19 20 21 22",
+			"heap used c3 c2 c0 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 force1 force0 update session",
+			"cargo c3 18 3 0 1 44fff000 46e0bf00 44bff000 NULL sector1_1",
+			"cargo c2 17 3 -1 1 44fff000 46e0bf00 44bff000 NULL sector1_1",
+			"cargo c0 16 0 20 1 45154c00 439e0000 452d1800 NULL sector2_2",
 			"sector sector0_0 4 0 0 -",
 			"sector sector1_0 5 1 0 -",
-			"sector sector2_0 6 2 0 c3",
-			"sector sector0_1 7 0 1 -",
-			"sector sector1_1 8 1 1 c5 c4 c2 c1",
-			"sector sector2_1 9 2 1 -",
-			"sector sector0_2 10 0 2 -",
-			"sector sector1_2 11 1 2 -",
-			"sector sector2_2 12 2 2 -"
+			"sector sector2_0 6 2 0 -",
+			"sector sector3_0 7 3 0 -",
+			"sector sector0_1 8 0 1 -",
+			"sector sector1_1 9 1 1 c3 c2",
+			"sector sector2_1 10 2 1 -",
+			"sector sector3_1 11 3 1 -",
+			"sector sector0_2 12 0 2 -",
+			"sector sector1_2 13 1 2 -",
+			"sector sector2_2 14 2 2 c0",
+			"sector sector3_2 15 3 2 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-20",
+		"id": "lifecycle-20260924-26",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 14,
+			"heap": 8,
 			"forces": [
+				1,
 				2
 			],
 			"keysites": [
 				{
+					"side": 2,
+					"subType": 5,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
 					"side": 1,
-					"subType": 4,
+					"subType": 6,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 3,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -3117,8 +3589,8 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 3,
+					"xSectors": 1,
+					"zSectors": 2,
 					"sideLength": 256
 				},
 				{
@@ -3128,28 +3600,19 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 215.25,
-							"y": 289.75,
-							"z": 660
+							"kind": "int",
+							"type": 7,
+							"value": 1
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 0
 						},
 						{
 							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 737.25,
-							"y": 495,
-							"z": 719.5
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
+							"type": 33,
+							"target": "sector0_0"
 						}
 					]
 				},
@@ -3160,178 +3623,54 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 236.5,
-							"y": 136,
-							"z": 266.5
+							"x": 89.5,
+							"y": 351.5,
+							"z": 465.5
 						},
 						{
 							"kind": "parent",
 							"type": 6,
-							"target": "keysite0"
+							"target": "keysite1"
 						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 767.5,
-							"y": 200.75,
-							"z": 18.5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
 						{
 							"kind": "int",
 							"type": 7,
-							"value": 0
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector2_0"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 31
+							"value": 1
 						}
 					]
 				},
 				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c4"
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						}
-					]
+					"kind": "allocate",
+					"label": "g2",
+					"index": 1
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 13 vec3d 8 43574000 4390e000 44250000 parent 6 keysite0 vec3d 8 44385000 43f78000 4433e000 parent 6 keysite0 end",
-			"created c0 13",
-			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
 			"heap free",
-			"heap used c0 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite0 force0 update session",
-			"cargo c0 13 3 -1 1 44385000 43f78000 4433e000 keysite0 sector2_2",
-			"keysite keysite0 c0",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector2_0 6 2 0 -",
-			"sector sector0_1 7 0 1 -",
-			"sector sector1_1 8 1 1 -",
-			"sector sector2_1 9 2 1 -",
-			"sector sector0_2 10 0 2 -",
-			"sector sector1_2 11 1 2 -",
-			"sector sector2_2 12 2 2 c0"
+			"heap used  keysite2 keysite1 keysite0 force1 force0 update session",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"keysite keysite2 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-21",
+		"id": "lifecycle-20260924-27",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 17,
+			"heap": 12,
 			"forces": [
 				1
 			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 0,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
+			"keysites": [],
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 3,
+					"xSectors": 2,
+					"zSectors": 4,
 					"sideLength": 512
 				},
 				{
@@ -3343,26 +3682,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": -42.75,
-							"y": 373.25,
-							"z": 862.25
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1410.25,
-							"y": 181.5,
-							"z": 813.5
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
+							"x": 713.5,
+							"y": 40,
+							"z": 1757
 						}
 					]
 				},
@@ -3373,35 +3695,31 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 693.25,
-							"y": 77.75,
-							"z": 1428
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
 						},
 						{
 							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
+							"type": 33,
+							"target": "sector0_1"
 						},
 						{
 							"kind": "int",
 							"type": 191,
-							"value": 4
+							"value": 5
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 141,
-							"y": 192.5,
-							"z": 402.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -25.25,
-							"y": 24.5,
-							"z": 39
+							"x": -21.5,
+							"y": 482.25,
+							"z": 1923
 						}
 					]
 				},
@@ -3412,53 +3730,328 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 610,
-							"y": 472.5,
-							"z": 1426.5
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
 						},
 						{
 							"kind": "int",
 							"type": 191,
-							"value": 4
+							"value": -1
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g3",
+					"index": 5
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g6",
+					"index": 4
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 304.5,
+							"y": 319.5,
+							"z": 1974.5
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 11
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 24,
+							"y": 360.75,
+							"z": 1858.75
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 10
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 13 vec3d 8 c22b0000 43baa000 44579000 parent 6 keysite0 vec3d 8 44b04800 43358000 444b6000 int 7 0 end",
-			"created c0 13",
-			"result fatal Position off map: (x = %f, z = %f)",
-			"heap free 15 16",
-			"heap used  c0 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite0 force0 update session",
-			"cargo  14 0 -1 1 c1ca0000 41c40000 421c0000 keysite0 NULL",
-			"cargo c0 13 3 -1 0 44b04800 43358000 444b6000 keysite0 sector2_1",
-			"keysite keysite0  c0",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector2_0 6 2 0 -",
-			"sector sector0_1 7 0 1 -",
-			"sector sector1_1 8 1 1 -",
-			"sector sector2_1 9 2 1 c0",
-			"sector sector0_2 10 0 2 -",
-			"sector sector1_2 11 1 2 -",
-			"sector sector2_2 12 2 2 -"
+			"transmit-create 4 11 vec3d 8 44326000 42200000 44dba000 end",
+			"created c0 11",
+			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used c0 sector1_3 sector0_3 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 force0 update session",
+			"cargo c0 11 3 -1 1 44326000 42200000 44dba000 NULL sector1_3",
+			"sector sector0_0 3 0 0 -",
+			"sector sector1_0 4 1 0 -",
+			"sector sector0_1 5 0 1 -",
+			"sector sector1_1 6 1 1 -",
+			"sector sector0_2 7 0 2 -",
+			"sector sector1_2 8 1 2 -",
+			"sector sector0_3 9 0 3 -",
+			"sector sector1_3 10 1 3 c0"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-22",
+		"id": "lifecycle-20260924-28",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 13,
+			"heap": 12,
 			"forces": [
-				1
+				1,
+				2
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 1,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector1_0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 280.75,
+							"y": -52.25,
+							"z": 3
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 2
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector1_0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 470.75,
+							"y": 350,
+							"z": 116.25
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c6",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 6 parent 33 sector1_0 vec3d 8 438c6000 c2510000 40400000 end",
+			"created c0 6",
+			"transmit-destroy c0",
+			"transmit-create 4 6 int 53 2 parent 6 NULL int 191 2 end",
+			"created c1 6",
+			"transmit-destroy c1",
+			"transmit-create 4 6 parent 33 sector1_0 parent 6 NULL int 191 4 parent 6 NULL end",
+			"created c2 6",
+			"transmit-create 4 7 end",
+			"created c3 7",
+			"transmit-create 4 8 int 191 -1 end",
+			"created c4 8",
+			"transmit-create 4 9 pred 6 c2 parent 33 sector0_0 int 191 3 vec3d 8 43eb6000 43af0000 42e88000 end",
+			"created c5 9",
+			"transmit-create 4 10 end",
+			"created c6 10",
+			"result ok",
+			"heap free 11",
+			"heap used c6 c5 c4 c3 c2 sector1_0 sector0_0 force1 force0 update session",
+			"cargo c6 10 3 -1 1 437f8000 46e0bf00 42ff0000 NULL sector0_0",
+			"cargo c5 9 3 -1 1 43eb6000 43af0000 42e88000 NULL sector1_0",
+			"cargo c4 8 3 -1 1 437f8000 46e0bf00 42ff0000 NULL sector0_0",
+			"cargo c3 7 3 -1 1 437f8000 46e0bf00 42ff0000 NULL sector0_0",
+			"cargo c2 6 0 -1 1 437f8000 46e0bf00 42ff0000 NULL sector0_0",
+			"sector sector0_0 4 0 0 c6 c4 c3 c2",
+			"sector sector1_0 5 1 0 c5"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-29",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 20,
+			"forces": [
+				1,
+				2
 			],
 			"keysites": [
 				{
-					"side": 1,
-					"subType": 4,
+					"side": 2,
+					"subType": 6,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -3480,7 +4073,13 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"kind": "map",
 					"xSectors": 4,
 					"zSectors": 1,
-					"sideLength": 1000
+					"sideLength": 256
+				},
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 1,
+					"sideLength": 512
 				},
 				{
 					"kind": "create",
@@ -3490,20 +4089,15 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": [
 						{
 							"kind": "int",
-							"type": 191,
+							"type": 7,
 							"value": 1
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 2424.25,
-							"y": -56.5,
-							"z": 852.5
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
+							"x": 729,
+							"y": 86.25,
+							"z": 250.25
 						}
 					]
 				},
@@ -3514,14 +4108,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
+							"kind": "pred",
 							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
+							"target": "c0"
 						}
 					]
 				},
@@ -3534,175 +4123,50 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 997,
-							"y": 233.75,
-							"z": 31.25
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c1"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
+							"x": 488.25,
+							"y": 338.5,
+							"z": 98
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 2800.75,
-							"y": 130.5,
-							"z": 307
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c7",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1270.5,
-							"y": -28.75,
-							"z": 424
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1389.75,
-							"y": 199.75,
-							"z": 395.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c8",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 3103.75,
-							"y": 243.5,
-							"z": 974.5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c9",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 4000,
-							"y": 84.75,
-							"z": 398.25
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c10",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 10
+							"x": 1023,
+							"y": 185,
+							"z": 245.75
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"result assert int_bit_count (sector_side_length) == 1",
-			"heap free 5 6 7 8 9 10 11 12",
-			"heap used keysite1 keysite0 force0 update session",
+			"result fatal SC_CREAT: uninitialised sector entity",
+			"heap free 10 11 12 13 14 15 16 17 18 19",
+			"heap used sector3_0 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force1 force0 update session",
 			"keysite keysite0 -",
 			"keysite keysite1 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-23",
+		"id": "lifecycle-20260924-30",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 22,
+			"heap": 24,
 			"forces": [
 				1
 			],
 			"keysites": [
 				{
 					"side": 1,
-					"subType": 1,
+					"subType": 2,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 3,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -3714,350 +4178,21 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				{
 					"kind": "map",
 					"xSectors": 4,
-					"zSectors": 2,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": 15,
-					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 22
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1063.5,
-							"y": 290.75,
-							"z": 242.5
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 12 parent 6 keysite0 end",
-			"created c0 12",
-			"result assert assert_local_create_entity_index ((index))",
-			"heap free 13 14 15 16 17 18 19 20 21",
-			"heap used c0 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite0 force0 update session",
-			"cargo c0 12 3 -1 1 447fe000 46e0bf00 43ffc000 keysite0 sector1_0",
-			"keysite keysite0 c0",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 c0",
-			"sector sector2_0 6 2 0 -",
-			"sector sector3_0 7 3 0 -",
-			"sector sector0_1 8 0 1 -",
-			"sector sector1_1 9 1 1 -",
-			"sector sector2_1 10 2 1 -",
-			"sector sector3_1 11 3 1 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-24",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 21,
-			"forces": [
-				2
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 6,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 7,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 3,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 2,
 					"zSectors": 4,
-					"sideLength": 512
+					"sideLength": 256
 				},
 				{
 					"kind": "create",
 					"label": "c0",
 					"type": 4,
-					"index": -1,
+					"index": 12,
 					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_3"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 155,
-							"y": -34.75,
-							"z": 1885.5
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1023,
-							"y": 72.5,
-							"z": 1991
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 317.5,
-							"y": 145.75,
-							"z": 1907
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 969.5,
-							"y": 69.25,
-							"z": 1996.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 185.75,
-							"y": 458.25,
-							"z": 977.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 14 parent 33 sector0_3 int 7 0 vec3d 8 431b0000 c20b0000 44ebb000 parent 6 keysite1 end",
-			"created c0 14",
-			"transmit-create 4 15 end",
-			"created c1 15",
-			"transmit-destroy c1",
-			"transmit-create 4 15 int 7 1 int 191 4 vec3d 8 447fc000 42910000 44f8e000 int 191 0 end",
-			"created c2 15",
-			"transmit-create 4 16 int 191 1 vec3d 8 439ec000 4311c000 44ee6000 vec3d 8 44726000 428a8000 44f98800 vec3d 8 4339c000 43e52000 44745000 end",
-			"created c3 16",
-			"transmit-create 4 17 int 191 -1 end",
-			"created c4 17",
-			"result ok",
-			"heap free 18 19 20",
-			"heap used c4 c3 c2 c0 sector1_3 sector0_3 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
-			"cargo c4 17 3 -1 1 43ffc000 46e0bf00 447fe000 NULL sector0_1",
-			"cargo c3 16 1 -1 1 4339c000 43e52000 44745000 NULL sector0_1",
-			"cargo c2 15 0 -1 1 447fc000 42910000 44f8e000 NULL sector1_3",
-			"cargo c0 14 3 -1 0 431b0000 c20b0000 44ebb000 keysite1 sector0_3",
-			"keysite keysite0 -",
-			"keysite keysite1 c0",
-			"keysite keysite2 -",
-			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 -",
-			"sector sector0_1 8 0 1 c4 c3",
-			"sector sector1_1 9 1 1 -",
-			"sector sector0_2 10 0 2 -",
-			"sector sector1_2 11 1 2 -",
-			"sector sector0_3 12 0 3 c0",
-			"sector sector1_3 13 1 3 c2"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-25",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 21,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 3,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 4,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 6,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 4,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector1_3"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						},
 						{
 							"kind": "int",
 							"type": 53,
 							"value": 31
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
 						}
 					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
 				},
 				{
 					"kind": "create",
@@ -4065,6 +4200,13 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"type": 4,
 					"index": -1,
 					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 10.5,
+							"y": 101,
+							"z": 960.5
+						},
 						{
 							"kind": "parent",
 							"type": 6,
@@ -4074,27 +4216,8 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"kind": "parent",
 							"type": 6,
 							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
 						}
 					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
 				},
 				{
 					"kind": "create",
@@ -4103,11 +4226,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2034.5,
-							"y": 145.75,
-							"z": 4095.25
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
 						}
 					]
 				},
@@ -4124,9 +4245,28 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 1875.5,
+							"x": 677.75,
+							"y": 145.75,
+							"z": 1023.25
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c3"
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 624.75,
 							"y": 493,
-							"z": 2379.25
+							"z": 594.25
 						},
 						{
 							"kind": "int",
@@ -4144,51 +4284,78 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"target": "sector2_0"
 						}
 					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 677.25,
+							"y": 127.75,
+							"z": 931.25
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						}
+					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 19 parent 33 sector1_3 int 191 -1 int 53 31 int 7 0 end",
-			"created c0 19",
-			"transmit-destroy c0",
-			"transmit-create 4 19 parent 6 keysite1 parent 6 NULL int 191 -1 int 7 0 parent 6 keysite0 end",
-			"created c1 19",
-			"transmit-destroy c1",
-			"result fatal Position off map: (x = %f, z = %f)",
-			"heap free 20",
-			"heap used c1 sector2_3 sector1_3 sector0_3 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
-			"cargo c1 19 3 -1 1 44fe5000 4311c000 457ff400 NULL NULL",
+			"result assert assert_local_create_entity_index ((index))",
+			"heap free 21 22 23",
+			"heap used sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
 			"keysite keysite0 -",
 			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 7 0 0 -",
-			"sector sector1_0 8 1 0 -",
-			"sector sector2_0 9 2 0 -",
-			"sector sector0_1 10 0 1 -",
-			"sector sector1_1 11 1 1 -",
-			"sector sector2_1 12 2 1 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -",
+			"sector sector2_0 7 2 0 -",
+			"sector sector3_0 8 3 0 -",
+			"sector sector0_1 9 0 1 -",
+			"sector sector1_1 10 1 1 -",
+			"sector sector2_1 11 2 1 -",
+			"sector sector3_1 12 3 1 -",
 			"sector sector0_2 13 0 2 -",
 			"sector sector1_2 14 1 2 -",
 			"sector sector2_2 15 2 2 -",
-			"sector sector0_3 16 0 3 -",
-			"sector sector1_3 17 1 3 -",
-			"sector sector2_3 18 2 3 -"
+			"sector sector3_2 16 3 2 -",
+			"sector sector0_3 17 0 3 -",
+			"sector sector1_3 18 1 3 -",
+			"sector sector2_3 19 2 3 -",
+			"sector sector3_3 20 3 3 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-26",
+		"id": "lifecycle-20260924-31",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 17,
+			"heap": 19,
 			"forces": [
-				1
+				1,
+				2
 			],
-			"keysites": [],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 2,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 3,
+					"xSectors": 3,
+					"zSectors": 2,
 					"sideLength": 512
 				},
 				{
@@ -4198,28 +4365,35 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
+							"kind": "vec3d",
+							"type": 8,
+							"x": 795,
+							"y": 46.25,
+							"z": 341.5
 						},
 						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_1"
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 736,
-							"y": 67.75,
-							"z": 888
+							"x": 947.75,
+							"y": 240,
+							"z": 174
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 38
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 809,
-							"y": 454.25,
-							"z": 523.25
+							"x": 1133.5,
+							"y": 428,
+							"z": 473.25
 						}
 					]
 				},
@@ -4239,84 +4413,103 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"target": "c0"
 						},
 						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 631.75,
-							"y": 240,
-							"z": 261
+							"x": 137,
+							"y": 242,
+							"z": 507
 						},
 						{
 							"kind": "int",
 							"type": 53,
-							"value": 38
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 755.5,
-							"y": 428,
-							"z": 710.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 376.25,
-							"y": 320,
-							"z": 1431.5
+							"value": 4
 						}
 					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g3",
+					"index": 7
 				},
 				{
 					"kind": "create",
 					"label": "c2",
 					"type": 4,
 					"index": -1,
-					"attributes": []
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1156,
+							"y": 436.5,
+							"z": 255.25
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 984.5,
+							"y": 212.75,
+							"z": 61
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 32,
+							"y": 396.25,
+							"z": 885
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						}
+					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 9 int 191 -1 int 191 0 vec3d 8 44380000 42878000 445e0000 vec3d 8 444a4000 43e32000 4402d000 end",
-			"created c0 9",
+			"transmit-create 4 11 vec3d 8 4446c000 42390000 43aac000 parent 33 sector0_1 vec3d 8 446cf000 43700000 432e0000 int 53 38 vec3d 8 448db000 43d60000 43eca000 end",
+			"created c0 11",
 			"transmit-destroy c0",
 			"result assert en != child_pred",
-			"heap free 10 11 12 13 14 15 16",
-			"heap used c0 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 force0 update session",
-			"cargo c0 9 3 -1 1 43ffc000 46e0bf00 443fe000 NULL NULL",
-			"sector sector0_0 3 0 0 -",
-			"sector sector1_0 4 1 0 -",
-			"sector sector0_1 5 0 1 -",
-			"sector sector1_1 6 1 1 -",
-			"sector sector0_2 7 0 2 -",
-			"sector sector1_2 8 1 2 -"
+			"heap free 12 13 14 15 16 17 18",
+			"heap used c0 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite0 force1 force0 update session",
+			"cargo c0 11 3 -1 1 443fe000 46e0bf00 43ffc000 NULL NULL",
+			"keysite keysite0 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -",
+			"sector sector2_0 7 2 0 -",
+			"sector sector0_1 8 0 1 -",
+			"sector sector1_1 9 1 1 -",
+			"sector sector2_1 10 2 1 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-27",
+		"id": "lifecycle-20260924-32",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 18,
+			"heap": 10,
 			"forces": [
 				1,
 				2
 			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 8,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
+			"keysites": [],
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 3,
+					"xSectors": 1,
 					"zSectors": 3,
-					"sideLength": 512
+					"sideLength": 256
 				},
 				{
 					"kind": "create",
@@ -4327,88 +4520,15 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 1128.25,
-							"y": -78.25,
-							"z": 1504
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
+							"x": 84.75,
+							"y": 94.5,
+							"z": 519.5
 						}
 					]
 				},
 				{
 					"kind": "destroy",
 					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 38
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -46,
-							"y": 460.75,
-							"z": 1535.25
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 341,
-							"y": 313.25,
-							"z": 440.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": 1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						}
-					]
 				},
 				{
 					"kind": "map",
@@ -4418,7 +4538,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"kind": "create",
-					"label": "c4",
+					"label": "c1",
 					"type": 4,
 					"index": -1,
 					"attributes": [
@@ -4445,44 +4565,107 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "parent",
 							"type": 6,
-							"target": "keysite0"
+							"target": "NULL"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 255,
+							"y": -82.5,
+							"z": 268.75
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 1,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 19
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 14 vec3d 8 448d0800 c29c8000 44bc0000 parent 6 NULL end",
-			"created c0 14",
+			"transmit-create 4 7 vec3d 8 42a98000 42bd0000 4401e000 end",
+			"created c0 7",
 			"transmit-destroy c0",
-			"result fatal Position off map: (x = %f, z = %f)",
-			"heap free 15 16 17",
-			"heap used c0 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite0 force1 force0 update session",
-			"cargo c0 14 3 38 1 c2380000 43e66000 44bfe800 keysite0 NULL",
-			"keysite keysite0 c0",
-			"sector sector0_0 5 0 0 -",
-			"sector sector1_0 6 1 0 -",
-			"sector sector2_0 7 2 0 -",
-			"sector sector0_1 8 0 1 -",
-			"sector sector1_1 9 1 1 -",
-			"sector sector2_1 10 2 1 -",
-			"sector sector0_2 11 0 2 -",
-			"sector sector1_2 12 1 2 -",
-			"sector sector2_2 13 2 2 -"
+			"result fatal SC_CREAT: uninitialised sector entity",
+			"heap free 7 8 9",
+			"heap used sector0_2 sector0_1 sector0_0 force1 force0 update session"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-28",
+		"id": "lifecycle-20260924-33",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 9,
+			"heap": 8,
 			"forces": [
 				1
 			],
 			"keysites": [
 				{
 					"side": 1,
-					"subType": 0,
+					"subType": 1,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 6,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -4491,8 +4674,8 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"side": 1,
-					"subType": 3,
-					"inUse": true,
+					"subType": 2,
+					"inUse": false,
 					"x": 0,
 					"z": 0,
 					"ammo": 100,
@@ -4504,138 +4687,6 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"kind": "map",
 					"xSectors": 1,
 					"zSectors": 3,
-					"sideLength": 1024
-				}
-			]
-		},
-		"expected": [
-			"result ok",
-			"heap free 8",
-			"heap used sector0_2 sector0_1 sector0_0 keysite1 keysite0 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"sector sector0_0 5 0 0 -",
-			"sector sector0_1 6 0 1 -",
-			"sector sector0_2 7 0 2 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-29",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 15,
-			"forces": [
-				1
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 3,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 1,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 2,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": 0,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"result assert assert_local_create_entity_index ((index))",
-			"heap free 11 12 13 14",
-			"heap used sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"sector sector0_0 5 0 0 -",
-			"sector sector1_0 6 1 0 -",
-			"sector sector2_0 7 2 0 -",
-			"sector sector0_1 8 0 1 -",
-			"sector sector1_1 9 1 1 -",
-			"sector sector2_1 10 2 1 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-30",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 13,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 5,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 8,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 8,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 4,
 					"sideLength": 1000
 				},
 				{
@@ -4650,239 +4701,50 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"target": "keysite2"
 						},
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 482.25,
-							"y": 129.25,
-							"z": 1011
-						},
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
 						{
 							"kind": "int",
 							"type": 7,
 							"value": 3
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 555.5,
-							"y": 242,
-							"z": 2488.75
+							"x": 959.5,
+							"y": 265.5,
+							"z": 1146.25
 						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 30
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"result assert int_bit_count (sector_side_length) == 1",
-			"heap free 7 8 9 10 11 12",
-			"heap used keysite2 keysite1 keysite0 force1 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-31",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 21,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 7,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 6,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 2,
-					"sideLength": 512
-				}
-			]
-		},
-		"expected": [
-			"result ok",
-			"heap free 12 13 14 15 16 17 18 19 20",
-			"heap used sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force1 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 -",
-			"sector sector2_0 8 2 0 -",
-			"sector sector0_1 9 0 1 -",
-			"sector sector1_1 10 1 1 -",
-			"sector sector2_1 11 2 1 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-32",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 9,
-			"forces": [
-				2
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 2,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 5,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 5,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 0,
-					"zSectors": 3,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": -1,
-							"y": 251.25,
-							"z": 219.75
+							"x": 793.75,
+							"y": 184.25,
+							"z": 506.25
 						},
 						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -41.75,
-							"y": 362.75,
-							"z": 583
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 27
-						},
-						{
-							"kind": "parent",
+							"kind": "pred",
 							"type": 6,
-							"target": "keysite2"
+							"target": "c1"
 						}
 					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
 				},
 				{
 					"kind": "create",
@@ -4893,9 +4755,33 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": -0.5,
-							"y": 196.75,
-							"z": 316.5
+							"x": 658.75,
+							"y": 162.5,
+							"z": 2999.25
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 555.5,
+							"y": 242,
+							"z": 1866.5
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 30
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 999.5,
+							"y": 137.25,
+							"z": 1576.75
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
 						}
 					]
 				},
@@ -4906,29 +4792,85 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": -1,
-							"y": 354.75,
-							"z": 578.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -0.25,
-							"y": 271.25,
-							"z": 108.75
+							"x": 802,
+							"y": -99.5,
+							"z": 1740
 						}
 					]
 				},
 				{
+					"kind": "allocate",
+					"label": "g5",
+					"index": 5
+				},
+				{
 					"kind": "create",
 					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c3"
+				},
+				{
+					"kind": "create",
+					"label": "c6",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 871.25,
+							"y": 311,
+							"z": 2662.75
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result assert int_bit_count (sector_side_length) == 1",
+			"heap free 6 7",
+			"heap used keysite2 keysite1 keysite0 force0 update session",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"keysite keysite2 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-34",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 16,
+			"forces": [
+				1
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 6,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 3,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
 					"type": 4,
 					"index": -1,
 					"attributes": [
@@ -4938,36 +4880,124 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"target": "NULL"
 						},
 						{
-							"kind": "int",
-							"type": 53,
-							"value": 12
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"result assert num_map_x_sectors > 0",
-			"heap free 6 7 8",
-			"heap used keysite2 keysite1 keysite0 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 -"
+			"transmit-create 4 10 parent 6 NULL parent 6 keysite0 end",
+			"created c0 10",
+			"result ok",
+			"heap free 11 12 13 14 15",
+			"heap used c0 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite0 force0 update session",
+			"cargo c0 10 3 -1 1 437f8000 46e0bf00 43bfc000 keysite0 sector0_1",
+			"keysite keysite0 c0",
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 -",
+			"sector sector0_1 6 0 1 c0",
+			"sector sector1_1 7 1 1 -",
+			"sector sector0_2 8 0 2 -",
+			"sector sector1_2 9 1 2 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-33",
+		"id": "lifecycle-20260924-35",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 14,
+			"heap": 8,
 			"forces": [
 				2
 			],
 			"keysites": [
 				{
-					"side": 2,
-					"subType": 5,
+					"side": 1,
+					"subType": 0,
 					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 1,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 5 int 191 2 parent 33 sector0_0 parent 6 keysite0 end",
+			"created c0 5",
+			"result ok",
+			"heap free 6 7",
+			"heap used c0 sector0_0 keysite0 force0 update session",
+			"cargo c0 5 2 -1 1 42ff0000 46e0bf00 42ff0000 keysite0 sector0_0",
+			"keysite keysite0 c0",
+			"sector sector0_0 4 0 0 c0"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-36",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 15,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 8,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 6,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 7,
+					"inUse": true,
 					"x": 0,
 					"z": 0,
 					"ammo": 100,
@@ -4993,6 +5023,41 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"value": 4
 						},
 						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector1_0"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite2"
+						},
+						{
 							"kind": "int",
 							"type": 191,
 							"value": -1
@@ -5003,17 +5068,16 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"x": 3071.5,
 							"y": 240.5,
 							"z": 1019
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
 						}
 					]
 				},
 				{
+					"kind": "destroy",
+					"label": "c2"
+				},
+				{
 					"kind": "create",
-					"label": "c1",
+					"label": "c3",
 					"type": 4,
 					"index": -1,
 					"attributes": [
@@ -5048,7 +5112,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"kind": "create",
-					"label": "c2",
+					"label": "c4",
 					"type": 4,
 					"index": -1,
 					"attributes": [
@@ -5072,7 +5136,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "pred",
 							"type": 6,
-							"target": "c1"
+							"target": "c3"
 						},
 						{
 							"kind": "int",
@@ -5083,7 +5147,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"kind": "create",
-					"label": "c3",
+					"label": "c5",
 					"type": 4,
 					"index": -1,
 					"attributes": [
@@ -5096,14 +5160,14 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"kind": "create",
-					"label": "c4",
+					"label": "c6",
 					"type": 4,
 					"index": -1,
 					"attributes": [
 						{
 							"kind": "parent",
 							"type": 6,
-							"target": "keysite0"
+							"target": "keysite1"
 						},
 						{
 							"kind": "vec3d",
@@ -5116,7 +5180,397 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"kind": "destroy",
+					"label": "c4"
+				},
+				{
+					"kind": "create",
+					"label": "c7",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 10 int 191 4 parent 6 NULL parent 33 sector1_0 end",
+			"created c0 10",
+			"transmit-create 4 11 end",
+			"created c1 11",
+			"result fatal Position off map: (x = %f, z = %f)",
+			"heap free 13 14",
+			"heap used  c1 c0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
+			"cargo  12 3 -1 0 453ff800 43708000 447ec000 keysite2 NULL",
+			"cargo c1 11 3 -1 1 44bff000 46e0bf00 43ffc000 NULL sector1_0",
+			"cargo c0 10 0 -1 1 44bff000 46e0bf00 43ffc000 NULL sector1_0",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"keysite keysite2 ",
+			"sector sector0_0 7 0 0 -",
+			"sector sector1_0 8 1 0 c1 c0",
+			"sector sector2_0 9 2 0 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-37",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 21,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 8,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 0,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 1,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 4,
+					"zSectors": 1,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 38,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 12
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 70,
+							"y": 33,
+							"z": 163
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1023.5,
+							"y": 424.5,
+							"z": 255.25
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 175.75,
+							"y": 465.25,
+							"z": 100.5
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite2"
+						}
+					]
+				},
+				{
+					"kind": "destroy",
 					"label": "c2"
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": 16,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 36
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c6",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 0
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result assert (type > ENTITY_TYPE_UNKNOWN) && (type < NUM_ENTITY_TYPES)",
+			"heap free 11 12 13 14 15 16 17 18 19 20",
+			"heap used sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"keysite keysite2 -",
+			"sector sector0_0 7 0 0 -",
+			"sector sector1_0 8 1 0 -",
+			"sector sector2_0 9 2 0 -",
+			"sector sector3_0 10 3 0 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-38",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 14,
+			"forces": [
+				1
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 8,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 1,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": 6,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 88,
+							"y": -66.75,
+							"z": 109.25
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 28.5,
+							"y": 315.25,
+							"z": 81.5
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 109.75,
+							"y": 338.75,
+							"z": 93.75
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c3"
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 153.75,
+							"y": 19.75,
+							"z": 154.5
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 10
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 0
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 165.5,
+							"y": 15.5,
+							"z": 200
+						}
+					]
 				},
 				{
 					"kind": "create",
@@ -5132,370 +5586,61 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
+							"kind": "int",
+							"type": 53,
+							"value": 17
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 24
+						},
+						{
+							"kind": "pred",
 							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 598.75,
-							"y": 498.75,
-							"z": 983.75
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 424,
-							"y": 446.75,
-							"z": 957.25
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"result fatal Position off map: (x = %f, z = %f)",
-			"heap free 8 9 10 11 12 13",
-			"heap used  sector2_0 sector1_0 sector0_0 keysite0 force0 update session",
-			"cargo  7 3 -1 1 453ff800 43708000 447ec000 NULL NULL",
-			"keysite keysite0 -",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector2_0 6 2 0 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-34",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 21,
-			"forces": [
-				1
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 1,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 8,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 1,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 4,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 260.5,
-							"y": 3,
-							"z": 864.5
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 182.75,
-							"y": 301.75,
-							"z": 114.75
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 509.25,
-							"y": 94,
-							"z": 201.75
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
+							"target": "c4"
 						}
 					]
 				},
 				{
 					"kind": "create",
-					"label": "c3",
+					"label": "c7",
 					"type": 38,
 					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 36
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
+							"kind": "vec3d",
+							"type": 8,
+							"x": 34.5,
+							"y": 203.25,
+							"z": 237
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 7.5,
-							"y": 285.5,
-							"z": 931
+							"x": 128,
+							"y": 1,
+							"z": 187.75
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 26
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 14 end",
-			"created c0 14",
-			"transmit-create 4 15 vec3d 8 43824000 40400000 44582000 int 191 3 int 7 2 int 7 3 vec3d 8 4336c000 4396e000 42e58000 end",
-			"created c1 15",
-			"transmit-destroy c1",
-			"transmit-create 4 15 vec3d 8 43fea000 42bc0000 4349c000 int 191 5 int 191 4 end",
-			"created c2 15",
-			"result assert (type > ENTITY_TYPE_UNKNOWN) && (type < NUM_ENTITY_TYPES)",
-			"heap free 16 17 18 19 20",
-			"heap used c2 c0 sector1_3 sector0_3 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
-			"cargo c2 15 0 -1 1 43fea000 42bc0000 4349c000 NULL sector1_0",
-			"cargo c0 14 3 -1 1 437f8000 46e0bf00 43ffc000 NULL sector0_1",
+			"result assert assert_local_create_entity_index ((index))",
+			"heap free 5 6 7 8 9 10 11 12 13",
+			"heap used sector0_0 keysite0 force0 update session",
 			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 c2",
-			"sector sector0_1 8 0 1 c0",
-			"sector sector1_1 9 1 1 -",
-			"sector sector0_2 10 0 2 -",
-			"sector sector1_2 11 1 2 -",
-			"sector sector0_3 12 0 3 -",
-			"sector sector1_3 13 1 3 -"
+			"sector sector0_0 4 0 0 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-35",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 9,
-			"forces": [
-				1
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 4,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 3
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 61.25,
-							"y": 145.75,
-							"z": 152
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 440.5,
-							"y": 338.75,
-							"z": 752.5
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used       force0 update session"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-36",
+		"id": "lifecycle-20260924-39",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
 			"heap": 13,
@@ -5506,25 +5651,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"keysites": [
 				{
 					"side": 2,
-					"subType": 7,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 4,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 1,
+					"subType": 2,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -5535,7 +5662,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 2,
+					"xSectors": 3,
 					"zSectors": 2,
 					"sideLength": 256
 				},
@@ -5546,26 +5673,16 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_1"
-						},
-						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 296.75,
-							"y": 181,
-							"z": 329
+							"x": -53,
+							"y": 115.5,
+							"z": 84.5
 						},
 						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector1_0"
+							"kind": "int",
+							"type": 191,
+							"value": 4
 						}
 					]
 				},
@@ -5574,76 +5691,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c1",
 					"type": 4,
 					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
 					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 256.75,
-							"y": 1,
-							"z": 376
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 26
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 177.75,
-							"y": 154,
-							"z": 121.25
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 9
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 186.75,
-							"y": 358,
-							"z": 251.5
-						},
 						{
 							"kind": "int",
 							"type": 191,
@@ -5652,80 +5700,13 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "parent",
 							"type": 6,
-							"target": "keysite2"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
 							"target": "keysite0"
 						}
 					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 11 parent 6 NULL parent 33 sector0_1 vec3d 8 43946000 43350000 43a48000 parent 33 sector1_0 end",
-			"created c0 11",
-			"transmit-create 4 12 end",
-			"created c1 12",
-			"transmit-destroy c1",
-			"transmit-create 4 12 vec3d 8 43806000 3f800000 43bc0000 int 53 26 vec3d 8 4331c000 431a0000 42f28000 int 7 2 int 53 9 end",
-			"created c2 12",
-			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used c2 c0 sector1_1 sector0_1 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
-			"cargo c2 12 3 9 0 4331c000 431a0000 42f28000 NULL sector0_0",
-			"cargo c0 11 3 -1 1 43946000 43350000 43a48000 NULL sector1_1",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 7 0 0 c2",
-			"sector sector1_0 8 1 0 -",
-			"sector sector0_1 9 0 1 -",
-			"sector sector1_1 10 1 1 c0"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-37",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 11,
-			"forces": [
-				1
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 1,
-					"sideLength": 1000
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": []
 				},
 				{
 					"kind": "destroy",
 					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2851.75,
-							"y": -9.25,
-							"z": 381.5
-						}
-					]
 				},
 				{
 					"kind": "create",
@@ -5734,103 +5715,25 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
+							"kind": "vec3d",
+							"type": 8,
+							"x": 451,
+							"y": -46.75,
+							"z": 511.25
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 936.75,
-							"y": 90.75,
-							"z": 970.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2254.5,
-							"y": 138,
-							"z": 352
+							"x": 5.75,
+							"y": -65,
+							"z": 448
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 1836.75,
-							"y": 82.75,
-							"z": 230.5
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c2"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2646,
-							"y": -77.5,
-							"z": 300.25
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
+							"x": 279.25,
+							"y": 63.5,
+							"z": 181.5
 						}
 					]
 				},
@@ -5839,22 +5742,88 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c1"
 				},
 				{
-					"kind": "destroy",
-					"label": "c6"
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 424.5,
+							"y": 87.75,
+							"z": 337.5
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 5
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g6",
+					"index": 12
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 35
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 576.5,
+							"y": 138,
+							"z": 180
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 469.75,
+							"y": 82.75,
+							"z": 117.75
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
+						}
+					]
 				}
 			]
 		},
 		"expected": [
-			"result assert int_bit_count (sector_side_length) == 1",
-			"heap free 3 4 5 6 7 8 9 10",
-			"heap used force0 update session"
+			"result fatal Position off map: (x = %f, z = %f)",
+			"heap free 12",
+			"heap used  sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite0 force1 force0 update session",
+			"cargo  11 0 -1 1 c2540000 42e70000 42a90000 NULL NULL",
+			"keysite keysite0 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -",
+			"sector sector2_0 7 2 0 -",
+			"sector sector0_1 8 0 1 -",
+			"sector sector1_1 9 1 1 -",
+			"sector sector2_1 10 2 1 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-38",
+		"id": "lifecycle-20260924-40",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 21,
+			"heap": 22,
 			"forces": [
 				1,
 				2
@@ -5862,26 +5831,26 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"keysites": [
 				{
 					"side": 2,
-					"subType": 1,
+					"subType": 6,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 2,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 3,
 					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 1,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 7,
-					"inUse": true,
 					"x": 0,
 					"z": 0,
 					"ammo": 100,
@@ -5893,7 +5862,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"kind": "map",
 					"xSectors": 4,
 					"zSectors": 3,
-					"sideLength": 256
+					"sideLength": 512
 				},
 				{
 					"kind": "create",
@@ -5904,9 +5873,37 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 520.5,
-							"y": 251.75,
-							"z": 767.25
+							"x": 805.25,
+							"y": 274,
+							"z": 138
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 2048,
+							"y": -8.25,
+							"z": 1447.5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 249.75,
+							"y": 329.25,
+							"z": 1332
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": -14.5,
+							"y": 344.75,
+							"z": 217
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1649,
+							"y": 24,
+							"z": 1535.25
 						}
 					]
 				},
@@ -5917,9 +5914,11 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1815.75,
+							"y": 438.75,
+							"z": 232.75
 						},
 						{
 							"kind": "parent",
@@ -5930,18 +5929,6 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"kind": "int",
 							"type": 191,
 							"value": 1
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 39,
-							"y": 99.5,
-							"z": 121
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite2"
 						}
 					]
 				},
@@ -5950,35 +5937,48 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c2",
 					"type": 4,
 					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector3_0"
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c1"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector1_1"
-						}
-					]
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
 				},
 				{
 					"kind": "create",
 					"label": "c3",
 					"type": 4,
 					"index": -1,
-					"attributes": []
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1515.5,
+							"y": 441.25,
+							"z": 1376
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1503,
+							"y": 371.5,
+							"z": 867
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector1_1"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						}
+					]
 				},
 				{
 					"kind": "create",
@@ -6004,9 +6004,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 582.5,
+							"x": 1165.25,
 							"y": 403.75,
-							"z": 57.75
+							"z": 115.25
 						}
 					]
 				},
@@ -6015,95 +6015,14 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"xSectors": 1,
 					"zSectors": 1,
 					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c3"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -38.5,
-							"y": 217,
-							"z": 130.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite2"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c7",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						}
-					]
 				}
 			]
 		},
 		"expected": [
 			"result fatal Position off map: (x = %f, z = %f)",
-			"heap free 20",
+			"heap free 20 21",
 			"heap used  sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
-			"cargo  19 3 -1 1 44022000 437bc000 443fd000 NULL NULL",
+			"cargo  19 3 -1 1 44ce2000 41c00000 44bfe800 NULL NULL",
 			"keysite keysite0 -",
 			"keysite keysite1 -",
 			"keysite keysite2 -",
@@ -6122,18 +6041,17 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 		]
 	},
 	{
-		"id": "lifecycle-20260924-39",
+		"id": "lifecycle-20260924-41",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 16,
+			"heap": 12,
 			"forces": [
-				1,
-				2
+				1
 			],
 			"keysites": [
 				{
 					"side": 1,
-					"subType": 0,
+					"subType": 6,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -6142,7 +6060,230 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"side": 1,
-					"subType": 8,
+					"subType": 3,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 1,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 4,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 880,
+							"y": 288.25,
+							"z": 812.75
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_1"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 864.25,
+							"y": 155,
+							"z": 2047.25
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 34
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1024,
+							"y": 96.75,
+							"z": 574
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c2"
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				}
+			]
+		},
+		"expected": [
+			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used       keysite2 keysite1 keysite0 force0 update session",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"keysite keysite2 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-42",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 17,
+			"forces": [
+				1
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 1,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 3,
+					"zSectors": 3,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 7
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 362,
+							"y": 103.5,
+							"z": 1075
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1536,
+							"y": -36.5,
+							"z": 168.25
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result fatal Position off map: (x = %f, z = %f)",
+			"heap free 14 15 16",
+			"heap used  sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite0 force0 update session",
+			"cargo  13 1 7 1 44c00000 c2120000 43284000 NULL NULL",
+			"keysite keysite0 -",
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 -",
+			"sector sector2_0 6 2 0 -",
+			"sector sector0_1 7 0 1 -",
+			"sector sector1_1 8 1 1 -",
+			"sector sector2_1 9 2 1 -",
+			"sector sector0_2 10 0 2 -",
+			"sector sector1_2 11 1 2 -",
+			"sector sector2_2 12 2 2 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-43",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 31,
+			"forces": [
+				1
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 3,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -6162,105 +6303,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 1,
+					"xSectors": 4,
 					"zSectors": 4,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 111,
-							"y": 147,
-							"z": 954.25
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 11 vec3d 8 42de0000 43130000 446e9000 int 191 5 end",
-			"created c0 11",
-			"transmit-destroy c0",
-			"transmit-create 4 11 end",
-			"created c1 11",
-			"transmit-destroy c1",
-			"result ok",
-			"heap free 11 12 13 14 15",
-			"heap used sector0_3 sector0_2 sector0_1 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 7 0 0 -",
-			"sector sector0_1 8 0 1 -",
-			"sector sector0_2 9 0 2 -",
-			"sector sector0_3 10 0 3 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-40",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 13,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 1,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 3,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 2,
-					"sideLength": 512
+					"sideLength": 1024
 				},
 				{
 					"kind": "create",
@@ -6272,158 +6317,11 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"kind": "int",
 							"type": 191,
 							"value": 1
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 20
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector2_1"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 35
 						},
 						{
 							"kind": "int",
 							"type": 53,
-							"value": 7
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c5"
-				},
-				{
-					"kind": "create",
-					"label": "c7",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector2_1"
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 12 int 191 1 end",
-			"created c0 12",
-			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used c0 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force1 force0 update session",
-			"cargo c0 12 1 -1 1 443fe000 46e0bf00 43ffc000 NULL sector1_0",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 c0",
-			"sector sector2_0 8 2 0 -",
-			"sector sector0_1 9 0 1 -",
-			"sector sector1_1 10 1 1 -",
-			"sector sector2_1 11 2 1 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-41",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 10,
-			"forces": [
-				1
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 4,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_2"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 28.5,
-							"y": 464.5,
-							"z": 3487
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
+							"value": 19
 						}
 					]
 				},
@@ -6438,16 +6336,22 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_3"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
+							"kind": "vec3d",
+							"type": 8,
+							"x": 2476,
+							"y": 88.75,
+							"z": 2911.75
 						}
 					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g3",
+					"index": 5
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
 				},
 				{
 					"kind": "create",
@@ -6456,10 +6360,119 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
+							"kind": "int",
+							"type": 191,
+							"value": 3
 						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c1"
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 21 int 191 1 int 53 19 end",
+			"created c0 21",
+			"transmit-destroy c0",
+			"transmit-create 4 21 vec3d 8 451ac000 42b18000 4535fc00 end",
+			"created c1 21",
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 22 23 24 25 26 27 28 29 30",
+			"heap used c1 sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
+			"cargo c1 21 3 -1 1 451ac000 42b18000 4535fc00 NULL sector2_2",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -",
+			"sector sector2_0 7 2 0 -",
+			"sector sector3_0 8 3 0 -",
+			"sector sector0_1 9 0 1 -",
+			"sector sector1_1 10 1 1 -",
+			"sector sector2_1 11 2 1 -",
+			"sector sector3_1 12 3 1 -",
+			"sector sector0_2 13 0 2 -",
+			"sector sector1_2 14 1 2 -",
+			"sector sector2_2 15 2 2 c1",
+			"sector sector3_2 16 3 2 -",
+			"sector sector0_3 17 0 3 -",
+			"sector sector1_3 18 1 3 -",
+			"sector sector2_3 19 2 3 -",
+			"sector sector3_3 20 3 3 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-44",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 20,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 1,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 1,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 3,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 4,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
 						{
 							"kind": "int",
 							"type": 191,
@@ -6474,6 +6487,83 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"kind": "parent",
 							"type": 6,
 							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 512,
+							"y": 211,
+							"z": 438.75
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 210.25,
+							"y": 495.25,
+							"z": 711.75
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 24
 						}
 					]
 				},
@@ -6482,27 +6572,20 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c3",
 					"type": 4,
 					"index": -1,
-					"attributes": []
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						}
+					]
 				},
 				{
 					"kind": "create",
 					"label": "c4",
-					"type": 0,
+					"type": 4,
 					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1023.5,
-							"y": 282.5,
-							"z": 2812.75
-						}
-					]
+					"attributes": []
 				},
 				{
 					"kind": "create",
@@ -6512,36 +6595,27 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": [
 						{
 							"kind": "int",
-							"type": 53,
-							"value": 5
+							"type": 7,
+							"value": 3
 						},
 						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c2"
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_1"
+							"kind": "vec3d",
+							"type": 8,
+							"x": 200.75,
+							"y": 396.75,
+							"z": 453.75
 						},
 						{
 							"kind": "int",
 							"type": 53,
-							"value": 8
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
+							"value": 38
+						},
 						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c4"
+							"kind": "vec3d",
+							"type": 8,
+							"x": 42,
+							"y": 183.25,
+							"z": 1015.75
 						},
 						{
 							"kind": "pred",
@@ -6552,203 +6626,80 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"kind": "create",
-					"label": "c7",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c5"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c8",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c9",
+					"label": "c6",
 					"type": 4,
 					"index": -1,
 					"attributes": [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 402,
-							"y": 396.75,
-							"z": 1816.5
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 38
+							"x": 421,
+							"y": 283,
+							"z": 735.25
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 83.75,
-							"y": 183.25,
-							"z": 4065.75
+							"x": 512,
+							"y": 438.75,
+							"z": 995.75
 						},
 						{
-							"kind": "pred",
+							"kind": "parent",
+							"type": 33,
+							"target": "sector1_3"
+						},
+						{
+							"kind": "parent",
 							"type": 6,
-							"target": "c1"
+							"target": "keysite0"
 						},
 						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 7 parent 33 sector0_2 vec3d 8 41e40000 43e84000 4559f000 int 7 0 end",
-			"created c0 7",
-			"transmit-destroy c0",
-			"transmit-create 4 7 parent 33 sector0_3 int 191 0 end",
-			"created c1 7",
-			"transmit-create 4 8 parent 6 NULL int 191 0 int 191 3 parent 6 NULL end",
-			"created c2 8",
-			"transmit-create 4 9 end",
-			"created c3 9",
-			"result assert (type > ENTITY_TYPE_UNKNOWN) && (type < NUM_ENTITY_TYPES)",
-			"heap free",
-			"heap used c3 c2 c1 sector0_3 sector0_2 sector0_1 sector0_0 force0 update session",
-			"cargo c3 9 3 -1 1 43ffc000 46e0bf00 44fff000 NULL sector0_1",
-			"cargo c2 8 3 -1 1 43ffc000 46e0bf00 44fff000 NULL sector0_1",
-			"cargo c1 7 0 -1 1 43ffc000 46e0bf00 44fff000 NULL sector0_1",
-			"sector sector0_0 3 0 0 -",
-			"sector sector0_1 4 0 1 c3 c2 c1",
-			"sector sector0_2 5 0 2 -",
-			"sector sector0_3 6 0 3 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-42",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 18,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 3,
-					"sideLength": 1024
-				}
-			]
-		},
-		"expected": [
-			"result ok",
-			"heap free 16 17",
-			"heap used sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 force1 force0 update session",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector2_0 6 2 0 -",
-			"sector sector3_0 7 3 0 -",
-			"sector sector0_1 8 0 1 -",
-			"sector sector1_1 9 1 1 -",
-			"sector sector2_1 10 2 1 -",
-			"sector sector3_1 11 3 1 -",
-			"sector sector0_2 12 0 2 -",
-			"sector sector1_2 13 1 2 -",
-			"sector sector2_2 14 2 2 -",
-			"sector sector3_2 15 3 2 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-43",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 22,
-			"forces": [
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 4,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 19 end",
-			"created c0 19",
-			"transmit-create 4 20 end",
-			"created c1 20",
-			"result ok",
-			"heap free 21",
-			"heap used c1 c0 sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 force0 update session",
-			"cargo c1 20 3 -1 1 44fff000 46e0bf00 44fff000 NULL sector1_1",
-			"cargo c0 19 3 -1 1 44fff000 46e0bf00 44fff000 NULL sector1_1",
-			"sector sector0_0 3 0 0 -",
-			"sector sector1_0 4 1 0 -",
-			"sector sector2_0 5 2 0 -",
-			"sector sector3_0 6 3 0 -",
-			"sector sector0_1 7 0 1 -",
-			"sector sector1_1 8 1 1 c1 c0",
-			"sector sector2_1 9 2 1 -",
-			"sector sector3_1 10 3 1 -",
+			"result fatal Position off map: (x = %f, z = %f)",
+			"heap free 16 17 18 19",
+			"heap used  sector1_3 sector0_3 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
+			"cargo  15 3 -1 1 44000000 43530000 43db6000 NULL NULL",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"keysite keysite2 -",
+			"sector sector0_0 7 0 0 -",
+			"sector sector1_0 8 1 0 -",
+			"sector sector0_1 9 0 1 -",
+			"sector sector1_1 10 1 1 -",
 			"sector sector0_2 11 0 2 -",
 			"sector sector1_2 12 1 2 -",
-			"sector sector2_2 13 2 2 -",
-			"sector sector3_2 14 3 2 -",
-			"sector sector0_3 15 0 3 -",
-			"sector sector1_3 16 1 3 -",
-			"sector sector2_3 17 2 3 -",
-			"sector sector3_3 18 3 3 -"
+			"sector sector0_3 13 0 3 -",
+			"sector sector1_3 14 1 3 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-44",
+		"id": "lifecycle-20260924-45",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 18,
+			"heap": 24,
 			"forces": [
 				1,
 				2
 			],
 			"keysites": [
+				{
+					"side": 2,
+					"subType": 0,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
 				{
 					"side": 1,
 					"subType": 8,
@@ -6766,88 +6717,12 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"z": 0,
 					"ammo": 100,
 					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 6,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
 				}
 			],
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 4,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite2"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 15 parent 6 keysite2 int 191 0 end",
-			"created c0 15",
-			"transmit-create 4 16 end",
-			"created c1 16",
-			"result ok",
-			"heap free 17",
-			"heap used c1 c0 sector1_3 sector0_3 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
-			"cargo c1 16 3 -1 1 447fe000 46e0bf00 44fff000 NULL sector0_1",
-			"cargo c0 15 0 -1 1 447fe000 46e0bf00 44fff000 keysite2 sector0_1",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 c0",
-			"sector sector0_0 7 0 0 -",
-			"sector sector1_0 8 1 0 -",
-			"sector sector0_1 9 0 1 c1 c0",
-			"sector sector1_1 10 1 1 -",
-			"sector sector0_2 11 0 2 -",
-			"sector sector1_2 12 1 2 -",
-			"sector sector0_3 13 0 3 -",
-			"sector sector1_3 14 1 3 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-45",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 30,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
+					"xSectors": 3,
 					"zSectors": 4,
 					"sideLength": 512
 				},
@@ -6856,18 +6731,35 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c0",
 					"type": 4,
 					"index": -1,
-					"attributes": []
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1171.25,
+							"y": 46.25,
+							"z": 729.75
+						}
+					]
 				},
 				{
 					"kind": "create",
 					"label": "c1",
 					"type": 4,
 					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 201,
+							"y": 39,
+							"z": 1805.75
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						}
+					]
 				},
 				{
 					"kind": "create",
@@ -6878,630 +6770,38 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 810,
-							"y": 377.5,
-							"z": 329.25
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 9
+							"x": 729.25,
+							"y": -92,
+							"z": 385.25
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 1185.75,
+							"x": 1445.25,
+							"y": 53.75,
+							"z": 336.5
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 889.25,
 							"y": 495.25,
 							"z": 1950.5
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c2"
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 20 end",
-			"created c0 20",
-			"transmit-create 4 21 end",
-			"created c1 21",
-			"transmit-destroy c1",
-			"transmit-create 4 21 vec3d 8 444a8000 43bcc000 43a4a000 int 7 1 int 53 9 vec3d 8 44943800 43f7a000 44f3d000 int 191 3 end",
-			"created c2 21",
-			"transmit-destroy c2",
-			"result ok",
-			"heap free 21 22 23 24 25 26 27 28 29",
-			"heap used c0 sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 force1 force0 update session",
-			"cargo c0 20 3 -1 1 447fe000 46e0bf00 447fe000 NULL sector1_1",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector2_0 6 2 0 -",
-			"sector sector3_0 7 3 0 -",
-			"sector sector0_1 8 0 1 -",
-			"sector sector1_1 9 1 1 c0",
-			"sector sector2_1 10 2 1 -",
-			"sector sector3_1 11 3 1 -",
-			"sector sector0_2 12 0 2 -",
-			"sector sector1_2 13 1 2 -",
-			"sector sector2_2 14 2 2 -",
-			"sector sector3_2 15 3 2 -",
-			"sector sector0_3 16 0 3 -",
-			"sector sector1_3 17 1 3 -",
-			"sector sector2_3 18 2 3 -",
-			"sector sector3_3 19 3 3 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-46",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 31,
-			"forces": [
-				1
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 2,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 4,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 4,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 4,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2047.5,
-							"y": 55.25,
-							"z": 1268.75
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1335.5,
-							"y": 493.5,
-							"z": 1415.5
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 614.75,
-							"y": 416.25,
-							"z": 390
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 722.25,
-							"y": 490.5,
-							"z": 724.75
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 13
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1383.25,
-							"y": -43.25,
-							"z": 1088.25
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1030.75,
-							"y": 6.5,
-							"z": 1764.25
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite2"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1446,
-							"y": 29.5,
-							"z": 1031.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1412.75,
-							"y": 92.75,
-							"z": 1894.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 34
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c7",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1738.25,
-							"y": 65.25,
-							"z": 772
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2047.5,
-							"y": -73.75,
-							"z": 1195.75
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1893,
-							"y": 425.25,
-							"z": 219
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c8",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 13
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 941.75,
-							"y": 233.5,
-							"z": 1872.75
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 22 end",
-			"created c0 22",
-			"transmit-create 4 23 vec3d 8 44fff000 425d0000 449e9800 vec3d 8 44a6f000 43f6c000 44b0f000 int 191 -1 vec3d 8 4419b000 43d02000 43c30000 end",
-			"created c1 23",
-			"transmit-create 4 24 vec3d 8 44349000 43f54000 44353000 parent 6 NULL int 53 13 vec3d 8 44ace800 c22d0000 44880800 int 191 4 end",
-			"created c2 24",
-			"transmit-create 4 25 vec3d 8 4480d800 40d00000 44dc8800 int 191 3 parent 6 keysite2 int 191 4 end",
-			"created c3 25",
-			"transmit-create 4 26 int 191 5 int 7 3 vec3d 8 44b4c000 41ec0000 4480e800 vec3d 8 44b09800 42b98000 44ecc800 end",
-			"created c4 26",
-			"transmit-create 4 27 end",
-			"created c5 27",
-			"transmit-create 4 28 int 53 34 parent 6 NULL end",
-			"created c6 28",
-			"transmit-create 4 29 int 7 3 parent 6 NULL vec3d 8 44d94800 42828000 44410000 vec3d 8 44fff000 c2938000 44957800 vec3d 8 44eca000 43d4a000 435b0000 end",
-			"created c7 29",
-			"transmit-create 4 30 int 53 13 int 191 3 parent 6 keysite0 vec3d 8 446b7000 43698000 44ea1800 end",
-			"created c8 30",
-			"result ok",
-			"heap free",
-			"heap used c8 c7 c6 c5 c4 c3 c2 c1 c0 sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
-			"cargo c8 30 3 13 1 446b7000 43698000 44ea1800 keysite0 sector1_3",
-			"cargo c7 29 3 -1 1 44eca000 43d4a000 435b0000 NULL sector3_0",
-			"cargo c6 28 3 34 1 447fe000 46e0bf00 447fe000 NULL sector1_1",
-			"cargo c5 27 3 -1 1 447fe000 46e0bf00 447fe000 NULL sector1_1",
-			"cargo c4 26 1 -1 1 44b09800 42b98000 44ecc800 NULL sector2_3",
-			"cargo c3 25 0 -1 1 4480d800 40d00000 44dc8800 keysite2 sector2_3",
-			"cargo c2 24 0 13 1 44ace800 c22d0000 44880800 NULL sector2_2",
-			"cargo c1 23 3 -1 1 4419b000 43d02000 43c30000 NULL sector1_0",
-			"cargo c0 22 3 -1 1 447fe000 46e0bf00 447fe000 NULL sector1_1",
-			"keysite keysite0 c8",
-			"keysite keysite1 -",
-			"keysite keysite2 c3",
-			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 c1",
-			"sector sector2_0 8 2 0 -",
-			"sector sector3_0 9 3 0 c7",
-			"sector sector0_1 10 0 1 -",
-			"sector sector1_1 11 1 1 c6 c5 c0",
-			"sector sector2_1 12 2 1 -",
-			"sector sector3_1 13 3 1 -",
-			"sector sector0_2 14 0 2 -",
-			"sector sector1_2 15 1 2 -",
-			"sector sector2_2 16 2 2 c2",
-			"sector sector3_2 17 3 2 -",
-			"sector sector0_3 18 0 3 -",
-			"sector sector1_3 19 1 3 c8",
-			"sector sector2_3 20 2 3 c4 c3",
-			"sector sector3_3 21 3 3 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-47",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 18,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 3,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 16 parent 6 NULL end",
-			"created c0 16",
-			"transmit-destroy c0",
-			"result ok",
-			"heap free 16 17",
-			"heap used sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 force1 force0 update session",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector2_0 6 2 0 -",
-			"sector sector3_0 7 3 0 -",
-			"sector sector0_1 8 0 1 -",
-			"sector sector1_1 9 1 1 -",
-			"sector sector2_1 10 2 1 -",
-			"sector sector3_1 11 3 1 -",
-			"sector sector0_2 12 0 2 -",
-			"sector sector1_2 13 1 2 -",
-			"sector sector2_2 14 2 2 -",
-			"sector sector3_2 15 3 2 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-48",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 8,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 5,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 2,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": 6,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 144.5,
-							"y": 176.25,
-							"z": 47.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 34.75,
-							"y": 172.25,
-							"z": 293.75
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 106.5,
-							"y": 371.25,
-							"z": 345.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 107.25,
-							"y": 136,
-							"z": 387
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 17
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 56.5,
-							"y": 5.75,
-							"z": 511.25
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 255,
-							"y": 92.75,
-							"z": 436.75
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 59.25,
-							"y": 361,
-							"z": 257
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 59.25,
-							"y": 452.5,
-							"z": 201.75
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 26
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
 						}
 					]
 				},
@@ -7512,235 +6812,16 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 248.25,
-							"y": -45.75,
-							"z": 330.25
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 13
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 183.25,
-							"y": -59.5,
-							"z": 268
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 7 int 191 5 end",
-			"created c0 7",
-			"result assert assert_local_create_entity_index ((index))",
-			"heap free",
-			"heap used c0 sector0_1 sector0_0 keysite0 force1 force0 update session",
-			"cargo c0 7 1 -1 1 42ff0000 46e0bf00 437f8000 NULL sector0_0",
-			"keysite keysite0 -",
-			"sector sector0_0 5 0 0 c0",
-			"sector sector0_1 6 0 1 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-49",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 7,
-			"forces": [
-				1
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 1,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 17
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 5 int 191 0 int 191 -1 parent 6 NULL int 53 17 end",
-			"created c0 5",
-			"transmit-destroy c0",
-			"result ok",
-			"heap free 5 6",
-			"heap used sector1_0 sector0_0 force0 update session",
-			"sector sector0_0 3 0 0 -",
-			"sector sector1_0 4 1 0 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-50",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 13,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 0,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 1,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1505,
-							"y": 463.75,
-							"z": 662.75
+							"x": 371.25,
+							"y": 431.75,
+							"z": 566.5
 						},
 						{
 							"kind": "int",
 							"type": 7,
-							"value": 2
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector1_0"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 3095,
-							"y": 110.25,
-							"z": 156.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 4096,
-							"y": 192.75,
-							"z": 758.25
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 36
+							"value": 3
 						},
 						{
 							"kind": "int",
@@ -7750,34 +6831,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 2447.25,
-							"y": 358.75,
-							"z": 519.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 872.25,
-							"y": -39.5,
-							"z": 579.75
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
+							"x": 471.25,
+							"y": 372.25,
+							"z": 1398.5
 						}
 					]
 				},
@@ -7788,215 +6844,28 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -32,
-							"y": 90.5,
-							"z": 970.75
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 9 int 53 5 vec3d 8 44bc2000 43e7e000 4425b000 int 7 2 end",
-			"created c0 9",
-			"transmit-destroy c0",
-			"transmit-create 4 9 parent 33 sector1_0 end",
-			"created c1 9",
-			"transmit-create 4 10 end",
-			"created c2 10",
-			"transmit-destroy c1",
-			"transmit-create 4 9 end",
-			"created c3 9",
-			"transmit-create 4 11 vec3d 8 45417000 42dc8000 431c4000 vec3d 8 45800000 4340c000 443d9000 int 53 36 int 53 35 vec3d 8 4518f400 43b36000 4401d000 end",
-			"created c4 11",
-			"transmit-create 4 12 vec3d 8 445a1000 c21e0000 4410f000 int 7 1 int 7 2 end",
-			"created c5 12",
-			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used c5 c4 c3 c2 sector3_0 sector2_0 sector1_0 sector0_0 keysite0 force1 force0 update session",
-			"cargo c5 12 3 -1 0 445a1000 c21e0000 4410f000 NULL sector0_0",
-			"cargo c4 11 3 35 1 4518f400 43b36000 4401d000 NULL sector2_0",
-			"cargo c3 9 3 -1 1 44fff000 46e0bf00 43ffc000 NULL sector1_0",
-			"cargo c2 10 3 -1 1 44fff000 46e0bf00 43ffc000 NULL sector1_0",
-			"keysite keysite0 -",
-			"sector sector0_0 5 0 0 c5",
-			"sector sector1_0 6 1 0 c3 c2",
-			"sector sector2_0 7 2 0 c4",
-			"sector sector3_0 8 3 0 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-51",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 15,
-			"forces": [
-				1
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 2,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 0,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 272.25,
-							"y": 237.25,
-							"z": 316
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 500.5,
-							"y": 317,
-							"z": 394.75
-						},
-						{
 							"kind": "int",
 							"type": 191,
-							"value": 2
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 30
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_1"
+							"value": -1
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 473,
-							"y": 347.5,
-							"z": 892.75
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 194.75,
-							"y": 439.75,
-							"z": 218
+							"x": 1199,
+							"y": -23.25,
+							"z": 172.5
 						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -13.5,
-							"y": 168.5,
-							"z": 728.5
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 37
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
 						{
 							"kind": "int",
 							"type": 7,
-							"value": 0
-						},
-						{
-							"kind": "int",
-							"type": 191,
 							"value": 1
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 464.75,
-							"y": 370.25,
-							"z": 393.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 212.25,
-							"y": -77.75,
-							"z": 921.75
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c3"
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 7
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
+							"x": 1535.5,
+							"y": 123.75,
+							"z": 2025
 						}
 					]
 				},
@@ -8005,705 +6874,59 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c7",
 					"type": 4,
 					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 1
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						}
-					]
+					"attributes": []
 				}
 			]
 		},
 		"expected": [
-			"result assert (type > ENTITY_TYPE_UNKNOWN) && (type < NUM_ENTITY_TYPES)",
-			"heap free 7 8 9 10 11 12 13 14",
-			"heap used sector1_1 sector0_1 sector1_0 sector0_0 force0 update session",
-			"sector sector0_0 3 0 0 -",
-			"sector sector1_0 4 1 0 -",
-			"sector sector0_1 5 0 1 -",
-			"sector sector1_1 6 1 1 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-52",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 22,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 4,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -39.5,
-							"y": 308.5,
-							"z": 776.75
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"result fatal Position off map: (x = %f, z = %f)",
-			"heap free 13 14 15 16 17 18 19 20 21",
-			"heap used  sector1_3 sector0_3 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 force1 force0 update session",
-			"cargo  12 3 -1 1 c21e0000 439a4000 44423000 NULL NULL",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector0_1 6 0 1 -",
-			"sector sector1_1 7 1 1 -",
-			"sector sector0_2 8 0 2 -",
-			"sector sector1_2 9 1 2 -",
-			"sector sector0_3 10 0 3 -",
-			"sector sector1_3 11 1 3 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-53",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 8,
-			"forces": [
-				2
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 0,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 3,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 7 int 191 5 int 191 -1 end",
-			"created c0 7",
-			"result ok",
+			"transmit-create 4 19 vec3d 8 44926800 42390000 44367000 end",
+			"created c0 19",
+			"transmit-create 4 20 vec3d 8 43490000 421c0000 44e1b800 parent 6 keysite1 end",
+			"created c1 20",
+			"transmit-create 4 21 vec3d 8 44365000 c2b80000 43c0a000 vec3d 8 44b4a800 42570000 43a84000 end",
+			"created c2 21",
+			"transmit-create 4 22 end",
+			"created c3 22",
+			"transmit-create 4 23 vec3d 8 445e5000 43f7a000 44f3d000 end",
+			"created c4 23",
+			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
 			"heap free",
-			"heap used c0 sector0_2 sector0_1 sector0_0 keysite0 force0 update session",
-			"cargo c0 7 3 -1 1 437f8000 46e0bf00 443fe000 NULL sector0_1",
+			"heap used c4 c3 c2 c1 c0 sector2_3 sector1_3 sector0_3 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
+			"cargo c4 23 3 -1 1 445e5000 43f7a000 44f3d000 NULL sector1_3",
+			"cargo c3 22 3 -1 1 443fe000 46e0bf00 447fe000 NULL sector1_1",
+			"cargo c2 21 3 -1 1 44b4a800 42570000 43a84000 NULL sector2_0",
+			"cargo c1 20 3 -1 1 43490000 421c0000 44e1b800 keysite1 sector0_3",
+			"cargo c0 19 3 -1 1 44926800 42390000 44367000 NULL sector2_1",
 			"keysite keysite0 -",
-			"sector sector0_0 4 0 0 -",
-			"sector sector0_1 5 0 1 c0",
-			"sector sector0_2 6 0 2 -"
+			"keysite keysite1 c1",
+			"keysite keysite2 -",
+			"sector sector0_0 7 0 0 -",
+			"sector sector1_0 8 1 0 -",
+			"sector sector2_0 9 2 0 c2",
+			"sector sector0_1 10 0 1 -",
+			"sector sector1_1 11 1 1 c3",
+			"sector sector2_1 12 2 1 c0",
+			"sector sector0_2 13 0 2 -",
+			"sector sector1_2 14 1 2 -",
+			"sector sector2_2 15 2 2 -",
+			"sector sector0_3 16 0 3 c1",
+			"sector sector1_3 17 1 3 c4",
+			"sector sector2_3 18 2 3 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-54",
+		"id": "lifecycle-20260924-46",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 14,
+			"heap": 20,
 			"forces": [
-				1,
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 1,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 743.5,
-							"y": 167.5,
-							"z": 84.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 95.5,
-							"y": 8,
-							"z": 178.25
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector1_0"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 30
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 23
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 475,
-							"y": 322.75,
-							"z": 174.5
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 7 vec3d 8 4439e000 43278000 42a88000 vec3d 8 42bf0000 41000000 43324000 parent 33 sector1_0 int 53 30 int 53 23 end",
-			"created c0 7",
-			"transmit-create 4 8 vec3d 8 43ed8000 43a16000 432e8000 int 7 2 parent 6 NULL int 7 3 pred 6 c0 end",
-			"created c1 8",
-			"transmit-destroy c0",
-			"result ok",
-			"heap free 7 9 10 11 12 13",
-			"heap used c1 sector2_0 sector1_0 sector0_0 force1 force0 update session",
-			"cargo c1 8 3 -1 1 43ed8000 43a16000 432e8000 NULL sector1_0",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 c1",
-			"sector sector2_0 6 2 0 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-55",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 24,
-			"forces": [
-				2
+				1
 			],
 			"keysites": [
-				{
-					"side": 1,
-					"subType": 3,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
 				{
 					"side": 2,
-					"subType": 6,
+					"subType": 1,
 					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 4,
-					"sideLength": 1000
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2407,
-							"y": 203.75,
-							"z": 1296.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 868.5,
-							"y": 21.5,
-							"z": 3926.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 699,
-							"y": 363.25,
-							"z": 1935.25
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 878.75,
-							"y": -62.5,
-							"z": 1281.5
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2972.25,
-							"y": 311.75,
-							"z": 2641.75
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c1"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 693.25,
-							"y": -98.75,
-							"z": 3945
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c3"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1082.75,
-							"y": 406,
-							"z": 1776.5
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2886,
-							"y": 475.5,
-							"z": 3427.5
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"result assert int_bit_count (sector_side_length) == 1",
-			"heap free 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23",
-			"heap used keysite1 keysite0 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-56",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 5,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 0,
-					"zSectors": 3,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 0,
-							"y": 279.5,
-							"z": 3049.25
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": 4,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -0.75,
-							"y": -70,
-							"z": 2657
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 32
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c2"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				}
-			]
-		},
-		"expected": [
-			"result assert num_map_x_sectors > 0",
-			"heap free 4",
-			"heap used force1 force0 update session"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-57",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 17,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 5,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 1,
-					"sideLength": 1000
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 998,
-							"y": 420.25,
-							"z": 877.25
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 93,
-							"y": -65.25,
-							"z": 60
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"result assert int_bit_count (sector_side_length) == 1",
-			"heap free 5 6 7 8 9 10 11 12 13 14 15 16",
-			"heap used keysite0 force1 force0 update session",
-			"keysite keysite0 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-58",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 21,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 3,
-					"inUse": false,
 					"x": 0,
 					"z": 0,
 					"ammo": 100,
@@ -8712,14 +6935,14 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				{
 					"side": 2,
 					"subType": 5,
-					"inUse": true,
+					"inUse": false,
 					"x": 0,
 					"z": 0,
 					"ammo": 100,
 					"fuel": 100
 				},
 				{
-					"side": 2,
+					"side": 1,
 					"subType": 1,
 					"inUse": true,
 					"x": 0,
@@ -8742,16 +6965,33 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "int",
+							"type": 53,
+							"value": 26
+						},
+						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 376,
-							"y": -24.25,
-							"z": 1381
+							"x": 1495.5,
+							"y": 362.5,
+							"z": 1007.75
 						},
 						{
 							"kind": "int",
-							"type": 7,
-							"value": 0
+							"type": 191,
+							"value": 4
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 2062,
+							"y": 6.5,
+							"z": 1764.25
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
 						}
 					]
 				},
@@ -8760,7 +7000,18 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c1",
 					"type": 4,
 					"index": -1,
-					"attributes": []
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 25
+						}
+					]
 				},
 				{
 					"kind": "create",
@@ -8771,84 +7022,23 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 1657.5,
-							"y": 345.5,
-							"z": 477
+							"x": 2892.5,
+							"y": 29.5,
+							"z": 1031.25
 						},
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
+							"kind": "vec3d",
+							"type": 8,
+							"x": 2826.25,
+							"y": 92.75,
+							"z": 1894.25
 						},
 						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector3_1"
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 15 vec3d 8 43bc0000 c1c20000 44aca000 int 7 0 end",
-			"created c0 15",
-			"transmit-create 4 16 end",
-			"created c1 16",
-			"transmit-create 4 17 vec3d 8 44cf3000 43acc000 43ee8000 parent 6 keysite0 parent 33 sector3_1 end",
-			"created c2 17",
-			"transmit-destroy c0",
-			"transmit-destroy c1",
-			"result ok",
-			"heap free 16 15 18 19 20",
-			"heap used c2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
-			"cargo c2 17 3 -1 1 44cf3000 43acc000 43ee8000 keysite0 sector1_0",
-			"keysite keysite0 c2",
-			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 7 0 0 -",
-			"sector sector1_0 8 1 0 c2",
-			"sector sector2_0 9 2 0 -",
-			"sector sector3_0 10 3 0 -",
-			"sector sector0_1 11 0 1 -",
-			"sector sector1_1 12 1 1 -",
-			"sector sector2_1 13 2 1 -",
-			"sector sector3_1 14 3 1 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-59",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 9,
-			"forces": [
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 2,
-					"sideLength": 1000
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
+							"kind": "vec3d",
+							"type": 8,
+							"x": 381.5,
+							"y": 377.25,
+							"z": 1554
 						},
 						{
 							"kind": "int",
@@ -8856,328 +7046,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"value": 3
 						},
 						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				}
-			]
-		},
-		"expected": [
-			"result assert int_bit_count (sector_side_length) == 1",
-			"heap free 3 4 5 6 7 8",
-			"heap used force0 update session"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-60",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 12,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 2,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 4,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 2,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 2,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 38,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 6
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 25,
-							"y": 120.5,
-							"z": 657.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 314.25,
-							"y": 305.5,
-							"z": 1466.75
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 234,
-							"y": 45.75,
-							"z": 2047.25
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": 11,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 893.5,
-							"y": -34.5,
-							"z": 395.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 833,
-							"y": 55.75,
-							"z": 2047.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 0,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 27
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 58.25,
-							"y": 10.5,
-							"z": 830.25
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite2"
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				}
-			]
-		},
-		"expected": [
-			"result assert (type > ENTITY_TYPE_UNKNOWN) && (type < NUM_ENTITY_TYPES)",
-			"heap free 9 10 11",
-			"heap used sector0_1 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 7 0 0 -",
-			"sector sector0_1 8 0 1 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-61",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 12,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 2,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
 							"kind": "parent",
 							"type": 6,
 							"target": "NULL"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 10 int 7 0 int 7 1 int 191 2 parent 6 NULL parent 6 NULL end",
-			"created c0 10",
-			"result ok",
-			"heap free 11",
-			"heap used c0 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 force1 force0 update session",
-			"cargo c0 10 2 -1 1 44bff000 46e0bf00 447fe000 NULL sector1_0",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 c0",
-			"sector sector2_0 6 2 0 -",
-			"sector sector0_1 7 0 1 -",
-			"sector sector1_1 8 1 1 -",
-			"sector sector2_1 9 2 1 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-62",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 18,
-			"forces": [
-				1
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 2,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 2,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 2
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": 15,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 622,
-							"y": -78.5,
-							"z": 471.5
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 698.75,
-							"y": -76.5,
-							"z": 189.75
 						}
 					]
 				},
@@ -9189,78 +7060,79 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": [
 						{
 							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": 15,
-					"attributes": [
+							"type": 33,
+							"target": "sector3_1"
+						},
 						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 655.5,
-							"y": 232.5,
-							"z": 309.5
+							"x": 520.5,
+							"y": 126.25,
+							"z": 1900.5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 4095,
+							"y": 250.5,
+							"z": 1700.5
 						},
 						{
 							"kind": "int",
-							"type": 191,
-							"value": -1
+							"type": 53,
+							"value": 35
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 10 end",
-			"created c0 10",
-			"transmit-create 4 11 pred 6 c0 int 53 2 end",
-			"created c1 11",
-			"result assert assert_local_create_entity_index ((index))",
-			"heap free 12 13 14 15 16 17",
-			"heap used c1 c0 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite0 force0 update session",
-			"cargo c1 11 3 2 1 43bfc000 46e0bf00 437f8000 NULL sector1_0",
-			"cargo c0 10 3 -1 1 43bfc000 46e0bf00 437f8000 NULL sector1_0",
-			"keysite keysite0 -",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 c1 c0",
-			"sector sector2_0 6 2 0 -",
-			"sector sector0_1 7 0 1 -",
-			"sector sector1_1 8 1 1 -",
-			"sector sector2_1 9 2 1 -"
+			"transmit-create 4 14 int 53 26 vec3d 8 44baf000 43b54000 447bf000 int 191 4 vec3d 8 4500e000 40d00000 44dc8800 int 191 3 end",
+			"created c0 14",
+			"transmit-create 4 15 parent 6 keysite1 int 53 25 end",
+			"created c1 15",
+			"transmit-create 4 16 vec3d 8 4534c800 41ec0000 4480e800 vec3d 8 4530a400 42b98000 44ecc800 vec3d 8 43bec000 43bca000 44c24000 int 191 3 parent 6 NULL end",
+			"created c2 16",
+			"transmit-create 4 17 parent 33 sector3_1 parent 6 keysite0 vec3d 8 44022000 42fc8000 44ed9000 vec3d 8 457ff000 437a8000 44d49000 int 53 35 end",
+			"created c3 17",
+			"result ok",
+			"heap free 18 19",
+			"heap used c3 c2 c1 c0 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
+			"cargo c3 17 3 35 1 457ff000 437a8000 44d49000 keysite0 sector3_1",
+			"cargo c2 16 3 -1 1 43bec000 43bca000 44c24000 NULL sector0_1",
+			"cargo c1 15 3 25 1 44fff000 46e0bf00 447fe000 keysite1 sector1_0",
+			"cargo c0 14 3 26 1 4500e000 40d00000 44dc8800 NULL sector2_1",
+			"keysite keysite0 c3",
+			"keysite keysite1 c1",
+			"keysite keysite2 -",
+			"sector sector0_0 6 0 0 -",
+			"sector sector1_0 7 1 0 c1",
+			"sector sector2_0 8 2 0 -",
+			"sector sector3_0 9 3 0 -",
+			"sector sector0_1 10 0 1 c2",
+			"sector sector1_1 11 1 1 -",
+			"sector sector2_1 12 2 1 c0",
+			"sector sector3_1 13 3 1 c3"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-63",
+		"id": "lifecycle-20260924-47",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 9,
+			"heap": 30,
 			"forces": [
+				1,
 				2
 			],
 			"keysites": [
 				{
 					"side": 1,
-					"subType": 4,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 6,
+					"subType": 3,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -9280,16 +7152,1220 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
+					"xSectors": 4,
+					"zSectors": 4,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector3_1"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": 11,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 124.5,
+							"y": 3.5,
+							"z": 239
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 287.25,
+							"y": 495,
+							"z": 372.5
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g2",
+					"index": 1
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c1"
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 22 parent 33 sector3_1 end",
+			"created c0 22",
+			"result assert assert_local_create_entity_index ((index))",
+			"heap free 23 24 25 26 27 28 29",
+			"heap used c0 sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force1 force0 update session",
+			"cargo c0 22 3 -1 1 43ffc000 46e0bf00 43ffc000 NULL sector1_1",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 6 0 0 -",
+			"sector sector1_0 7 1 0 -",
+			"sector sector2_0 8 2 0 -",
+			"sector sector3_0 9 3 0 -",
+			"sector sector0_1 10 0 1 -",
+			"sector sector1_1 11 1 1 c0",
+			"sector sector2_1 12 2 1 -",
+			"sector sector3_1 13 3 1 -",
+			"sector sector0_2 14 0 2 -",
+			"sector sector1_2 15 1 2 -",
+			"sector sector2_2 16 2 2 -",
+			"sector sector3_2 17 3 2 -",
+			"sector sector0_3 18 0 3 -",
+			"sector sector1_3 19 1 3 -",
+			"sector sector2_3 20 2 3 -",
+			"sector sector3_3 21 3 3 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-48",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 11,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 8,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 2,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
 					"xSectors": 2,
 					"zSectors": 1,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": 9,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 429.75,
+							"y": 136,
+							"z": 387
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 17
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result assert assert_local_create_entity_index ((index))",
+			"heap free 8 9 10",
+			"heap used sector1_0 sector0_0 keysite1 keysite0 force1 force0 update session",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 6 0 0 -",
+			"sector sector1_0 7 1 0 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-49",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 13,
+			"forces": [
+				2
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 3,
+					"zSectors": 1,
+					"sideLength": 256
+				},
+				{
+					"kind": "allocate",
+					"label": "g0",
+					"index": 4
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 178,
+							"y": 361,
+							"z": 128.25
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 6 7 8 9 10 11 12",
+			"heap used sector2_0 sector1_0 sector0_0 force0 update session",
+			"sector sector0_0 3 0 0 -",
+			"sector sector1_0 4 1 0 -",
+			"sector sector2_0 5 2 0 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-50",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 21,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 2,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 3,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 6,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 4,
+					"zSectors": 3,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1148.75,
+							"y": 118,
+							"z": 275.25
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 433.25,
+							"y": -41,
+							"z": 1102.5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1000.25,
+							"y": 22,
+							"z": 7.5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 470.75,
+							"y": -9.25,
+							"z": 991.25
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 21
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 19 vec3d 8 448f9800 42ec0000 4389a000 parent 6 keysite0 vec3d 8 43d8a000 c2240000 4489d000 vec3d 8 447a1000 41b00000 40f00000 vec3d 8 43eb6000 c1140000 4477d000 end",
+			"created c0 19",
+			"transmit-create 4 20 int 191 0 int 191 -1 parent 6 keysite1 int 191 2 end",
+			"created c1 20",
+			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used c1 c0 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
+			"cargo c1 20 2 -1 1 447fe000 46e0bf00 443fe000 keysite1 sector1_1",
+			"cargo c0 19 3 -1 1 43eb6000 c1140000 4477d000 keysite0 sector0_1",
+			"keysite keysite0 c0",
+			"keysite keysite1 c1",
+			"keysite keysite2 -",
+			"sector sector0_0 7 0 0 -",
+			"sector sector1_0 8 1 0 -",
+			"sector sector2_0 9 2 0 -",
+			"sector sector3_0 10 3 0 -",
+			"sector sector0_1 11 0 1 c0",
+			"sector sector1_1 12 1 1 c1",
+			"sector sector2_1 13 2 1 -",
+			"sector sector3_1 14 3 1 -",
+			"sector sector0_2 15 0 2 -",
+			"sector sector1_2 16 1 2 -",
+			"sector sector2_2 17 2 2 -",
+			"sector sector3_2 18 3 2 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-51",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 27,
+			"forces": [
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 8,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 7,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 4,
+					"zSectors": 3,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 2047.5,
+							"y": 348.75,
+							"z": 1332
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1547.25,
+							"y": 110.25,
+							"z": 234.5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 2048,
+							"y": 192.75,
+							"z": 1137.5
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1223.25,
+							"y": 358.75,
+							"z": 779
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1203.5,
+							"y": 29.75,
+							"z": 246.75
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 2047.5,
+							"y": 284,
+							"z": 997
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 18
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 14
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				}
+			]
+		},
+		"expected": [
+			"result fatal Position off map: (x = %f, z = %f)",
+			"heap free 18 19 20 21 22 23 24 25 26",
+			"heap used  sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
+			"cargo  17 3 -1 0 45000000 4340c000 448e3000 NULL NULL",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -",
+			"sector sector2_0 7 2 0 -",
+			"sector sector3_0 8 3 0 -",
+			"sector sector0_1 9 0 1 -",
+			"sector sector1_1 10 1 1 -",
+			"sector sector2_1 11 2 1 -",
+			"sector sector3_1 12 3 1 -",
+			"sector sector0_2 13 0 2 -",
+			"sector sector1_2 14 1 2 -",
+			"sector sector2_2 15 2 2 -",
+			"sector sector3_2 16 3 2 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-52",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 16,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 8,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 0,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 3,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 31
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 14
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 480.5,
+							"y": 292.5,
+							"z": 1207.25
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_1"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_2"
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				},
+				{
+					"kind": "allocate",
+					"label": "g8",
+					"index": 7
+				},
+				{
+					"kind": "create",
+					"label": "c6",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 462.25,
+							"y": 26.5,
+							"z": 57
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 119.75,
+							"y": -14.25,
+							"z": 1367.25
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 288.25,
+							"y": 190.75,
+							"z": 1479.75
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c7",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 9 parent 6 keysite0 parent 6 keysite0 int 53 31 int 191 -1 end",
+			"created c0 9",
+			"transmit-create 4 10 int 53 14 int 191 2 vec3d 8 43f04000 43924000 4496e800 parent 33 sector0_1 end",
+			"created c1 10",
+			"transmit-create 4 11 parent 6 keysite1 parent 33 sector0_0 end",
+			"created c2 11",
+			"transmit-create 4 12 parent 6 keysite0 end",
+			"created c3 12",
+			"transmit-destroy c1",
+			"transmit-create 4 10 parent 6 keysite0 end",
+			"created c4 10",
+			"transmit-create 4 13 parent 6 keysite1 parent 33 sector0_2 end",
+			"created c5 13",
+			"transmit-destroy c2",
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 11 14 15",
+			"heap used c5 c4 c3 c0 sector0_2 sector0_1 sector0_0 keysite1 keysite0 force1 force0 update session",
+			"cargo c5 13 3 -1 1 437f8000 46e0bf00 443fe000 keysite1 sector0_1",
+			"cargo c4 10 3 -1 1 437f8000 46e0bf00 443fe000 keysite0 sector0_1",
+			"cargo c3 12 3 -1 1 437f8000 46e0bf00 443fe000 keysite0 sector0_1",
+			"cargo c0 9 3 31 1 437f8000 46e0bf00 443fe000 keysite0 sector0_1",
+			"keysite keysite0 c4 c3 c0",
+			"keysite keysite1 c5",
+			"sector sector0_0 6 0 0 -",
+			"sector sector0_1 7 0 1 c5 c4 c3 c0",
+			"sector sector0_2 8 0 2 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-53",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 8,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 2,
 					"sideLength": 1024
 				},
 				{
 					"kind": "create",
 					"label": "c0",
-					"type": 0,
+					"type": 4,
+					"index": 3,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 603,
+							"y": 317.25,
+							"z": 1787.75
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 13
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1023.5,
+							"y": 280.25,
+							"z": 340.25
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 17
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
 					"index": -1,
 					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "allocate",
+					"label": "g7",
+					"index": 2
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 991.75,
+							"y": 167.5,
+							"z": 677
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 127.25,
+							"y": 8,
+							"z": 1431.75
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_1"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 30
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 23
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result assert assert_local_create_entity_index ((index))",
+			"heap free 6 7",
+			"heap used sector0_1 sector0_0 force1 force0 update session",
+			"sector sector0_0 4 0 0 -",
+			"sector sector0_1 5 0 1 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-54",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 23,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 5,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 6,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 5,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 3,
+					"zSectors": 4,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g1",
+					"index": 16
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 19 int 7 2 end",
+			"created c0 19",
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 20 21 22",
+			"heap used c0 sector2_3 sector1_3 sector0_3 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
+			"cargo c0 19 3 -1 0 43bfc000 46e0bf00 43ffc000 NULL sector1_1",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"keysite keysite2 -",
+			"sector sector0_0 7 0 0 -",
+			"sector sector1_0 8 1 0 -",
+			"sector sector2_0 9 2 0 -",
+			"sector sector0_1 10 0 1 -",
+			"sector sector1_1 11 1 1 c0",
+			"sector sector2_1 12 2 1 -",
+			"sector sector0_2 13 0 2 -",
+			"sector sector1_2 14 1 2 -",
+			"sector sector2_2 15 2 2 -",
+			"sector sector0_3 16 0 3 -",
+			"sector sector1_3 17 1 3 -",
+			"sector sector2_3 18 2 3 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-55",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 16,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 4,
+					"zSectors": 1,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g1",
+					"index": 5
+				},
+				{
+					"kind": "allocate",
+					"label": "g2",
+					"index": 15
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 477,
+							"y": 363.25,
+							"z": 247.25
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 8 parent 6 NULL parent 6 NULL end",
+			"created c0 8",
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 9 10 11 12 13 14 15",
+			"heap used c0 sector3_0 sector2_0 sector1_0 sector0_0 force1 force0 update session",
+			"cargo c0 8 3 -1 1 447fe000 46e0bf00 437f8000 NULL sector1_0",
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 c0",
+			"sector sector2_0 6 2 0 -",
+			"sector sector3_0 7 3 0 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-56",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 8,
+			"forces": [
+				1
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 4,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 629,
+							"y": 494.75,
+							"z": 471.25
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 876,
+							"y": -71,
+							"z": 1853.75
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						}
+					]
 				},
 				{
 					"kind": "destroy",
@@ -9300,11 +8376,899 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c1",
 					"type": 4,
 					"index": -1,
-					"attributes": []
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 998.5,
+							"y": 5.5,
+							"z": 261.75
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						}
+					]
 				},
 				{
 					"kind": "create",
 					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 984.5,
+							"y": 475.5,
+							"z": 1754.5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 195.25,
+							"y": -89,
+							"z": 311.75
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 0
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_1"
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": 6,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c6",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 726.25,
+							"y": -70,
+							"z": 1771
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 32
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g8",
+					"index": 7
+				},
+				{
+					"kind": "create",
+					"label": "c7",
+					"type": 4,
+					"index": 0,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 10.5,
+							"y": -62.25,
+							"z": 215
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used      force0 update session"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-57",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 11,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 1,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 1,
+					"sideLength": 1024
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g1",
+					"index": 9
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 938.25,
+							"y": 8.75,
+							"z": 919.75
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": -37.25,
+							"y": 357.75,
+							"z": 504.5
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c2"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c6",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 29
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 2
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 6 parent 6 keysite0 parent 6 keysite0 end",
+			"created c0 6",
+			"allocated g1 9",
+			"transmit-destroy c0",
+			"transmit-create 4 6 parent 6 NULL parent 6 keysite0 end",
+			"created c1 6",
+			"transmit-create 4 7 end",
+			"created c2 7",
+			"transmit-create 4 8 end",
+			"created c3 8",
+			"transmit-create 4 10 vec3d 8 446a9000 410c0000 4465f000 end",
+			"created c4 10",
+			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used c4 c3 c2 c1 g1 sector0_0 keysite0 force1 force0 update session",
+			"cargo c4 10 3 -1 1 446a9000 410c0000 4465f000 NULL sector0_0",
+			"cargo c3 8 3 -1 1 43ffc000 46e0bf00 43ffc000 NULL sector0_0",
+			"cargo c2 7 3 -1 1 43ffc000 46e0bf00 43ffc000 NULL sector0_0",
+			"cargo c1 6 3 -1 1 43ffc000 46e0bf00 43ffc000 keysite0 sector0_0",
+			"keysite keysite0 c1",
+			"sector sector0_0 5 0 0 c4 c3 c2 c1"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-58",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 12,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 3,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 149.25,
+							"y": -89,
+							"z": 729.75
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 8
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g1",
+					"index": -1
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 10 parent 6 NULL parent 6 NULL vec3d 8 43154000 c2b20000 44367000 int 53 8 end",
+			"created c0 10",
+			"allocated g1 11",
+			"result ok",
+			"heap free",
+			"heap used g1 c0 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 force1 force0 update session",
+			"cargo c0 10 3 8 1 43154000 c2b20000 44367000 NULL sector0_2",
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 -",
+			"sector sector0_1 6 0 1 -",
+			"sector sector1_1 7 1 1 -",
+			"sector sector0_2 8 0 2 c0",
+			"sector sector1_2 9 1 2 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-59",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 24,
+			"forces": [
+				1
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 3,
+					"zSectors": 4,
+					"sideLength": 512
+				},
+				{
+					"kind": "allocate",
+					"label": "g0",
+					"index": 0
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "allocate",
+					"label": "g3",
+					"index": 4
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 38,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 6
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 37.75,
+							"y": 120.5,
+							"z": 657.5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 471.5,
+							"y": 305.5,
+							"z": 1466.75
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 351.25,
+							"y": 45.75,
+							"z": 2047.25
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				}
+			]
+		},
+		"expected": [
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 15 16 17 18 19 20 21 22 23",
+			"heap used sector2_3 sector1_3 sector0_3 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 force0 update session",
+			"sector sector0_0 3 0 0 -",
+			"sector sector1_0 4 1 0 -",
+			"sector sector2_0 5 2 0 -",
+			"sector sector0_1 6 0 1 -",
+			"sector sector1_1 7 1 1 -",
+			"sector sector2_1 8 2 1 -",
+			"sector sector0_2 9 0 2 -",
+			"sector sector1_2 10 1 2 -",
+			"sector sector2_2 11 2 2 -",
+			"sector sector0_3 12 0 3 -",
+			"sector sector1_3 13 1 3 -",
+			"sector sector2_3 14 2 3 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-60",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 8,
+			"forces": [
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 8,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 3,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 0,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 1,
+					"sideLength": 1024
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 27
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 58.25,
+							"y": 10.5,
+							"z": 415
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "allocate",
+					"label": "g3",
+					"index": 4
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 7 parent 6 NULL int 53 27 parent 6 keysite0 vec3d 8 42690000 41280000 43cf8000 int 191 1 end",
+			"created c0 7",
+			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used c0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
+			"cargo c0 7 1 27 1 42690000 41280000 43cf8000 keysite0 sector0_0",
+			"keysite keysite0 c0",
+			"keysite keysite1 -",
+			"keysite keysite2 -",
+			"sector sector0_0 6 0 0 c0"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-61",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 21,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 4,
+					"zSectors": 3,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 23
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 2047,
+							"y": 197.5,
+							"z": 1145.5
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 0
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": -1
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 0
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 10
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 31
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 16 parent 6 NULL int 53 23 vec3d 8 44ffe000 43458000 448f3000 int 191 0 end",
+			"created c0 16",
+			"transmit-create 4 17 int 53 -1 int 191 0 end",
+			"created c1 17",
+			"transmit-create 4 18 end",
+			"created c2 18",
+			"transmit-destroy c1",
+			"transmit-create 4 17 int 53 10 parent 6 NULL int 53 31 end",
+			"created c3 17",
+			"result ok",
+			"heap free 19 20",
+			"heap used c3 c2 c0 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 force1 force0 update session",
+			"cargo c3 17 3 31 1 447fe000 46e0bf00 443fe000 NULL sector1_1",
+			"cargo c2 18 3 -1 1 447fe000 46e0bf00 443fe000 NULL sector1_1",
+			"cargo c0 16 0 23 1 44ffe000 43458000 448f3000 NULL sector3_2",
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 -",
+			"sector sector2_0 6 2 0 -",
+			"sector sector3_0 7 3 0 -",
+			"sector sector0_1 8 0 1 -",
+			"sector sector1_1 9 1 1 c3 c2",
+			"sector sector2_1 10 2 1 -",
+			"sector sector3_1 11 3 1 -",
+			"sector sector0_2 12 0 2 -",
+			"sector sector1_2 13 1 2 -",
+			"sector sector2_2 14 2 2 -",
+			"sector sector3_2 15 3 2 c0"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-62",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 4,
+			"forces": [
+				1
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 3,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 3,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 436.75,
+							"y": 232.5,
+							"z": 930
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_1"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 22
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 0
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 19.75,
+							"y": -96,
+							"z": 257.25
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g5",
+					"index": 1
+				},
+				{
+					"kind": "create",
+					"label": "c3",
 					"type": 4,
 					"index": -1,
 					"attributes": [
@@ -9316,18 +9280,18 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "pred",
 							"type": 6,
-							"target": "c1"
+							"target": "c2"
 						},
 						{
 							"kind": "parent",
 							"type": 6,
-							"target": "keysite2"
+							"target": "keysite0"
 						}
 					]
 				},
 				{
 					"kind": "create",
-					"label": "c3",
+					"label": "c4",
 					"type": 4,
 					"index": -1,
 					"attributes": [
@@ -9344,9 +9308,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 2047,
+							"x": 511,
 							"y": 496.5,
-							"z": 902.5
+							"z": 1354.25
 						},
 						{
 							"kind": "parent",
@@ -9357,23 +9321,23 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"kind": "create",
-					"label": "c4",
+					"label": "c5",
 					"type": 4,
 					"index": -1,
 					"attributes": [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 717.5,
+							"x": 179,
 							"y": 365.75,
-							"z": 692.25
+							"z": 1038.75
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 498,
+							"x": 124.25,
 							"y": 401.75,
-							"z": 182
+							"z": 273.25
 						},
 						{
 							"kind": "parent",
@@ -9384,80 +9348,47 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"kind": "create",
-					"label": "c5",
+					"label": "c6",
 					"type": 4,
 					"index": -1,
 					"attributes": []
-				}
-			]
-		},
-		"expected": [
-			"result assert (type > ENTITY_TYPE_UNKNOWN) && (type < NUM_ENTITY_TYPES)",
-			"heap free 8",
-			"heap used sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-64",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 17,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 5,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
 				},
 				{
-					"side": 2,
-					"subType": 4,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 4,
-					"sideLength": 1024
+					"kind": "create",
+					"label": "c7",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 473,
+							"y": 210.25,
+							"z": 1487.5
+						}
+					]
 				}
 			]
 		},
 		"expected": [
-			"result ok",
-			"heap free 14 15 16",
-			"heap used sector1_3 sector0_3 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite1 keysite0 force1 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 -",
-			"sector sector0_1 8 0 1 -",
-			"sector sector1_1 9 1 1 -",
-			"sector sector0_2 10 0 2 -",
-			"sector sector1_2 11 1 2 -",
-			"sector sector0_3 12 0 3 -",
-			"sector sector1_3 13 1 3 -"
+			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used keysite0 force0 update session",
+			"keysite keysite0 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-65",
+		"id": "lifecycle-20260924-63",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
 			"heap": 6,
@@ -9473,6 +9404,11 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"sideLength": 1024
 				},
 				{
+					"kind": "allocate",
+					"label": "g0",
+					"index": 7
+				},
+				{
 					"kind": "create",
 					"label": "c0",
 					"type": 4,
@@ -9481,54 +9417,31 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 1023,
-							"y": -63.25,
-							"z": 515
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 94,
-							"y": -13.25,
-							"z": 898.5
+							"x": 455,
+							"y": 210.5,
+							"z": 929.25
 						}
 					]
 				},
 				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
 					"kind": "create",
 					"label": "c1",
-					"type": 0,
+					"type": 4,
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
 							"kind": "int",
 							"type": 7,
-							"value": 3
+							"value": 2
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
 						}
 					]
 				},
@@ -9539,28 +9452,28 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 319.5,
+							"y": 335,
+							"z": 258.5
 						},
 						{
 							"kind": "int",
 							"type": 7,
 							"value": 0
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 882,
-							"y": 114.5,
-							"z": 923.25
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
 						}
 					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g5",
+					"index": 0
 				},
 				{
 					"kind": "create",
@@ -9569,16 +9482,19 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 102.75,
-							"y": 3.25,
-							"z": 611.25
+							"kind": "int",
+							"type": 7,
+							"value": 0
 						},
 						{
 							"kind": "int",
-							"type": 7,
-							"value": 3
+							"type": 53,
+							"value": 11
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
 						}
 					]
 				},
@@ -9593,14 +9509,23 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c2"
+							"kind": "int",
+							"type": 7,
+							"value": 3
 						},
 						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
+							"kind": "vec3d",
+							"type": 8,
+							"x": 508.25,
+							"y": 383,
+							"z": 992
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 772.75,
+							"y": 40.75,
+							"z": 877
 						}
 					]
 				},
@@ -9613,77 +9538,98 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "int",
 							"type": 191,
-							"value": 1
-						},
-						{
-							"kind": "int",
-							"type": 191,
 							"value": 2
 						},
 						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
+							"kind": "int",
+							"type": 53,
+							"value": 36
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c3"
+				}
+			]
+		},
+		"expected": [
+			"result assert (index >= 0) && (index < number_of_entities)",
+			"heap free 4 5",
+			"heap used sector0_0 force0 update session",
+			"sector sector0_0 3 0 0 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-64",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 10,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 2,
+					"sideLength": 256
+				},
+				{
+					"kind": "allocate",
+					"label": "g0",
+					"index": 4
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 28
 						},
 						{
 							"kind": "int",
-							"type": 191,
+							"type": 7,
 							"value": 1
 						},
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 473.75,
-							"y": 383,
-							"z": 698
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 937.25,
-							"y": 233.75,
-							"z": 653.5
+							"kind": "int",
+							"type": 7,
+							"value": 3
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 251.5,
-							"y": 403.5,
-							"z": 313.5
+							"x": 78.25,
+							"y": 166.5,
+							"z": 507
 						},
 						{
 							"kind": "int",
 							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c1"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 791,
-							"y": 39.5,
-							"z": 859.25
+							"value": 0
 						}
 					]
 				},
 				{
 					"kind": "create",
-					"label": "c7",
+					"label": "c1",
 					"type": 4,
 					"index": -1,
 					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 20.75,
+							"y": 451.75,
+							"z": 333
+						},
 						{
 							"kind": "int",
 							"type": 53,
@@ -9703,135 +9649,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"kind": "destroy",
-					"label": "c7"
-				},
-				{
-					"kind": "create",
-					"label": "c8",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1018,
-							"y": 403.75,
-							"z": 159.25
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 4 vec3d 8 447fc000 c27d0000 4400c000 int 191 2 vec3d 8 42bc0000 c1540000 4460a000 end",
-			"created c0 4",
-			"result assert (type > ENTITY_TYPE_UNKNOWN) && (type < NUM_ENTITY_TYPES)",
-			"heap free 5",
-			"heap used c0 sector0_0 force0 update session",
-			"cargo c0 4 2 -1 1 42bc0000 c1540000 4460a000 NULL sector0_0",
-			"sector sector0_0 3 0 0 c0"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-66",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 6,
-			"forces": [
-				2
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 0,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 0,
-					"zSectors": 4,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -0.25,
-							"y": 57.75,
-							"z": 308
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -0.75,
-							"y": 445.5,
-							"z": 732.25
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 13
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 19
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						}
-					]
+					"label": "c1"
 				},
 				{
 					"kind": "create",
@@ -9840,33 +9658,26 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_1"
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": -0.5,
-							"y": 446.25,
-							"z": 582.75
+							"x": 253.75,
+							"y": 403.75,
+							"z": 79.5
 						},
 						{
 							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -0.75,
-							"y": 349.5,
-							"z": 904
+							"type": 33,
+							"target": "sector0_0"
 						}
 					]
 				},
@@ -9878,8 +9689,164 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": [
 						{
 							"kind": "int",
+							"type": 191,
+							"value": 3
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 256,
+							"y": 469.75,
+							"z": 437.5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 242.25,
+							"y": 42.5,
+							"z": 255
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 76.75,
+							"y": 325.5,
+							"z": 112.25
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 6 7 8 9",
+			"heap used sector0_1 sector0_0 force1 force0 update session",
+			"sector sector0_0 4 0 0 -",
+			"sector sector0_1 5 0 1 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-65",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 14,
+			"forces": [
+				2
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 1,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 17
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector1_0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
 							"type": 7,
 							"value": 3
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 636.25,
+							"y": 446.25,
+							"z": 291
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 29
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 15
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
 						}
 					]
 				},
@@ -9891,115 +9858,41 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": [
 						{
 							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
+							"type": 53,
+							"value": 26
 						}
 					]
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -0.25,
-							"y": 368.75,
-							"z": 766.25
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c7",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -0.5,
-							"y": 205,
-							"z": 162.25
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c8",
-					"type": 0,
-					"index": -1,
-					"attributes": []
 				}
 			]
 		},
 		"expected": [
-			"result assert num_map_x_sectors > 0",
-			"heap free 4 5",
-			"heap used keysite0 force0 update session",
-			"keysite keysite0 -"
+			"transmit-create 4 5 int 53 17 parent 33 sector1_0 parent 6 NULL end",
+			"created c0 5",
+			"transmit-create 4 6 int 7 3 vec3d 8 441f1000 43df2000 43918000 parent 6 NULL int 7 2 parent 6 NULL end",
+			"created c1 6",
+			"transmit-destroy c1",
+			"transmit-create 4 6 end",
+			"created c2 6",
+			"transmit-destroy c2",
+			"transmit-create 4 6 int 53 29 int 53 15 parent 6 NULL pred 6 c0 end",
+			"created c3 6",
+			"transmit-create 4 7 int 53 26 end",
+			"created c4 7",
+			"result ok",
+			"heap free 8 9 10 11 12 13",
+			"heap used c4 c3 c0 sector1_0 sector0_0 force0 update session",
+			"cargo c4 7 3 26 1 43ffc000 46e0bf00 437f8000 NULL sector0_0",
+			"cargo c3 6 3 15 1 43ffc000 46e0bf00 437f8000 NULL sector0_0",
+			"cargo c0 5 3 17 1 43ffc000 46e0bf00 437f8000 NULL sector0_0",
+			"sector sector0_0 3 0 0 c4 c3 c0",
+			"sector sector1_0 4 1 0 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-67",
+		"id": "lifecycle-20260924-66",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 16,
+			"heap": 20,
 			"forces": [
 				1,
 				2
@@ -10007,8 +9900,17 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"keysites": [
 				{
 					"side": 2,
-					"subType": 5,
-					"inUse": false,
+					"subType": 2,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 6,
+					"inUse": true,
 					"x": 0,
 					"z": 0,
 					"ammo": 100,
@@ -10018,8 +9920,8 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 1,
+					"xSectors": 2,
+					"zSectors": 4,
 					"sideLength": 256
 				},
 				{
@@ -10031,17 +9933,16 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "int",
 							"type": 191,
-							"value": 5
+							"value": 2
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 324.5,
+							"y": 139.5,
+							"z": 648.5
 						}
 					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
 				},
 				{
 					"kind": "create",
@@ -10050,21 +9951,18 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 53,
-							"value": 27
+							"kind": "vec3d",
+							"type": 8,
+							"x": 340.5,
+							"y": 82.25,
+							"z": 751.25
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 792.25,
-							"y": 248.5,
-							"z": 197.25
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
+							"x": -53.25,
+							"y": 117,
+							"z": 501.25
 						}
 					]
 				},
@@ -10077,15 +9975,28 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "parent",
 							"type": 6,
-							"target": "keysite0"
+							"target": "keysite1"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 487.75,
+							"y": 291.25,
+							"z": 425.75
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 512,
+							"y": 279.75,
+							"z": 588.25
 						}
 					]
-				},
-				{
-					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 1,
-					"sideLength": 512
 				},
 				{
 					"kind": "create",
@@ -10094,35 +10005,55 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
 						},
 						{
 							"kind": "parent",
-							"type": 33,
-							"target": "sector2_0"
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 1023.5,
-							"y": -10.75,
-							"z": 148.5
+							"x": 214,
+							"y": 418.5,
+							"z": 264.25
 						}
 					]
 				},
 				{
-					"kind": "destroy",
-					"label": "c0"
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector1_2"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 0
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g5",
+					"index": 11
 				},
 				{
 					"kind": "destroy",
-					"label": "c3"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
+					"label": "c2"
 				},
 				{
 					"kind": "destroy",
@@ -10131,31 +10062,53 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			]
 		},
 		"expected": [
-			"transmit-create 4 9 int 191 5 end",
-			"created c0 9",
-			"transmit-destroy c0",
-			"transmit-create 4 9 int 53 27 vec3d 8 44461000 43788000 43454000 int 191 1 end",
-			"created c1 9",
-			"transmit-create 4 10 parent 6 keysite0 end",
-			"created c2 10",
-			"result fatal SC_CREAT: uninitialised sector entity",
-			"heap free 11 12 13 14 15",
-			"heap used c2 c1 sector3_0 sector2_0 sector1_0 sector0_0 keysite0 force1 force0 update session",
-			"cargo c2 10 3 -1 1 43ffc000 46e0bf00 42ff0000 keysite0 sector1_0",
-			"cargo c1 9 1 27 1 44461000 43788000 43454000 NULL sector3_0",
-			"keysite keysite0 c2"
+			"transmit-create 4 14 int 191 2 vec3d 8 43a24000 430b8000 44222000 end",
+			"created c0 14",
+			"result fatal Position off map: (x = %f, z = %f)",
+			"heap free 16 17 18 19",
+			"heap used  c0 sector1_3 sector0_3 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite1 keysite0 force1 force0 update session",
+			"cargo  15 3 -1 1 c2550000 42ea0000 43faa000 NULL NULL",
+			"cargo c0 14 2 -1 1 43a24000 430b8000 44222000 NULL sector1_2",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 6 0 0 -",
+			"sector sector1_0 7 1 0 -",
+			"sector sector0_1 8 0 1 -",
+			"sector sector1_1 9 1 1 -",
+			"sector sector0_2 10 0 2 -",
+			"sector sector1_2 11 1 2 c0",
+			"sector sector0_3 12 0 3 -",
+			"sector sector1_3 13 1 3 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-68",
+		"id": "lifecycle-20260924-67",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 18,
+			"heap": 20,
 			"forces": [
 				1,
 				2
 			],
 			"keysites": [
+				{
+					"side": 1,
+					"subType": 1,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 0,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
 				{
 					"side": 1,
 					"subType": 3,
@@ -10219,7 +10172,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "parent",
 							"type": 6,
-							"target": "keysite0"
+							"target": "keysite2"
 						},
 						{
 							"kind": "int",
@@ -10240,6 +10193,16 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": []
 				},
 				{
+					"kind": "allocate",
+					"label": "g4",
+					"index": 10
+				},
+				{
+					"kind": "allocate",
+					"label": "g5",
+					"index": 12
+				},
+				{
 					"kind": "create",
 					"label": "c3",
 					"type": 4,
@@ -10248,9 +10211,16 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 486.75,
-							"y": 178.5,
-							"z": 1979
+							"x": 1207.25,
+							"y": -95.75,
+							"z": 857
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 700.5,
+							"y": 235.75,
+							"z": 3071.25
 						}
 					]
 				},
@@ -10263,7 +10233,35 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c4",
 					"type": 4,
 					"index": -1,
-					"attributes": []
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector1_2"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 24
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1312.75,
+							"y": 428.25,
+							"z": 1227.75
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g9",
+					"index": -1
 				},
 				{
 					"kind": "create",
@@ -10272,21 +10270,187 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 843,
+							"y": 356.75,
+							"z": 1626.75
+						},
+						{
 							"kind": "pred",
 							"type": 6,
-							"target": "c2"
+							"target": "c1"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 309.5,
-							"y": 306,
-							"z": 2195
+							"x": 223.75,
+							"y": 430,
+							"z": 3071.25
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 13 int 53 1 int 53 13 vec3d 8 44f90800 c1300000 4467b000 end",
+			"created c0 13",
+			"result fatal Position off map: (x = %f, z = %f)",
+			"heap free 15 16 17 18 19",
+			"heap used  c0 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
+			"cargo  14 3 38 1 44fff000 43b0e000 45369400 keysite2 NULL",
+			"cargo c0 13 3 13 1 44f90800 c1300000 4467b000 NULL sector1_0",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"keysite keysite2 ",
+			"sector sector0_0 7 0 0 -",
+			"sector sector1_0 8 1 0 c0",
+			"sector sector0_1 9 0 1 -",
+			"sector sector1_1 10 1 1 -",
+			"sector sector0_2 11 0 2 -",
+			"sector sector1_2 12 1 2 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-68",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 20,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 7,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 1,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 3,
+					"zSectors": 4,
+					"sideLength": 1024
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 2870.25,
+							"y": 342.5,
+							"z": 4014.5
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 2943.75,
+							"y": 255.5,
+							"z": 3744.75
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 27
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
 						},
 						{
 							"kind": "parent",
 							"type": 33,
-							"target": "sector1_2"
+							"target": "sector1_3"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 25
 						}
 					]
 				},
@@ -10299,49 +10463,52 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": -5.25,
-							"y": 79.5,
-							"z": 2703.25
+							"x": 1928.75,
+							"y": 393.25,
+							"z": 1778.75
 						}
 					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c2"
-				},
-				{
-					"kind": "create",
-					"label": "c7",
-					"type": 4,
-					"index": -1,
-					"attributes": []
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 11 int 53 1 int 53 13 vec3d 8 44f90800 c1300000 4467b000 end",
-			"created c0 11",
-			"result fatal Position off map: (x = %f, z = %f)",
-			"heap free 13 14 15 16 17",
-			"heap used  c0 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite0 force1 force0 update session",
-			"cargo  12 3 38 1 44fff000 43b0e000 45369400 keysite0 NULL",
-			"cargo c0 11 3 13 1 44f90800 c1300000 4467b000 NULL sector1_0",
-			"keysite keysite0 ",
-			"sector sector0_0 5 0 0 -",
-			"sector sector1_0 6 1 0 c0",
-			"sector sector0_1 7 0 1 -",
-			"sector sector1_1 8 1 1 -",
-			"sector sector0_2 9 0 2 -",
-			"sector sector1_2 10 1 2 -"
+			"transmit-create 4 18 end",
+			"created c0 18",
+			"transmit-destroy c0",
+			"transmit-create 4 18 end",
+			"created c1 18",
+			"transmit-create 4 19 end",
+			"created c2 19",
+			"transmit-destroy c2",
+			"transmit-create 4 19 int 7 3 vec3d 8 45336400 43ab4000 457ae800 int 7 1 end",
+			"created c3 19",
+			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used c3 c1 sector2_3 sector1_3 sector0_3 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force1 force0 update session",
+			"cargo c3 19 3 -1 1 45336400 43ab4000 457ae800 NULL sector2_3",
+			"cargo c1 18 3 -1 1 44bff000 46e0bf00 44fff000 NULL sector1_1",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 6 0 0 -",
+			"sector sector1_0 7 1 0 -",
+			"sector sector2_0 8 2 0 -",
+			"sector sector0_1 9 0 1 -",
+			"sector sector1_1 10 1 1 c1",
+			"sector sector2_1 11 2 1 -",
+			"sector sector0_2 12 0 2 -",
+			"sector sector1_2 13 1 2 -",
+			"sector sector2_2 14 2 2 -",
+			"sector sector0_3 15 0 3 -",
+			"sector sector1_3 16 1 3 -",
+			"sector sector2_3 17 2 3 c3"
 		]
 	},
 	{
 		"id": "lifecycle-20260924-69",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 15,
+			"heap": 13,
 			"forces": [
-				1,
 				2
 			],
 			"keysites": [],
@@ -10349,7 +10516,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				{
 					"kind": "map",
 					"xSectors": 2,
-					"zSectors": 4,
+					"zSectors": 3,
 					"sideLength": 512
 				},
 				{
@@ -10359,37 +10526,20 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 111.75,
-							"y": 430,
-							"z": 2047.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 761.5,
-							"y": -30.75,
-							"z": 1159.25
+							"kind": "int",
+							"type": 53,
+							"value": 11
 						},
 						{
 							"kind": "parent",
 							"type": 33,
-							"target": "sector0_3"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 31
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 196.5,
-							"y": 361.75,
-							"z": 76.25
+							"target": "sector0_0"
 						}
 					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
 				},
 				{
 					"kind": "destroy",
@@ -10400,52 +10550,164 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c1",
 					"type": 4,
 					"index": -1,
-					"attributes": []
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 241.5,
+							"y": -45.5,
+							"z": 5.75
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_1"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 952.75,
+							"y": 321.5,
+							"z": 696.5
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 31
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 8
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": -53.75,
+							"y": 413.25,
+							"z": 1035.25
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 159.5,
+							"y": 303.25,
+							"z": 146.75
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 930,
+							"y": -50.25,
+							"z": 367
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c4"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						}
+					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 12 vec3d 8 42df8000 43d70000 44ffe800 vec3d 8 443e6000 c1f60000 4490e800 parent 33 sector0_3 int 53 31 vec3d 8 43448000 43b4e000 42988000 end",
-			"created c0 12",
+			"transmit-create 4 9 int 53 11 parent 33 sector0_0 end",
+			"created c0 9",
 			"transmit-destroy c0",
-			"transmit-create 4 12 end",
-			"created c1 12",
-			"result ok",
-			"heap free 13 14",
-			"heap used c1 sector1_3 sector0_3 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 force1 force0 update session",
-			"cargo c1 12 3 -1 1 43ffc000 46e0bf00 447fe000 NULL sector0_1",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector0_1 6 0 1 c1",
-			"sector sector1_1 7 1 1 -",
-			"sector sector0_2 8 0 2 -",
-			"sector sector1_2 9 1 2 -",
-			"sector sector0_3 10 0 3 -",
-			"sector sector1_3 11 1 3 -"
+			"transmit-create 4 9 parent 6 NULL parent 6 NULL vec3d 8 43718000 c2360000 40b80000 parent 33 sector0_1 end",
+			"created c1 9",
+			"transmit-create 4 10 int 191 -1 vec3d 8 446e3000 43a0c000 442e2000 int 53 31 end",
+			"created c2 10",
+			"transmit-create 4 11 int 53 8 end",
+			"created c3 11",
+			"transmit-create 4 12 vec3d 8 c2570000 43cea000 44816800 vec3d 8 431f8000 4397a000 4312c000 parent 6 NULL end",
+			"created c4 12",
+			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used c4 c3 c2 c1 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 force0 update session",
+			"cargo c4 12 3 -1 1 431f8000 4397a000 4312c000 NULL sector0_0",
+			"cargo c3 11 3 8 1 43ffc000 46e0bf00 443fe000 NULL sector0_1",
+			"cargo c2 10 3 31 1 446e3000 43a0c000 442e2000 NULL sector1_1",
+			"cargo c1 9 3 -1 1 43718000 c2360000 40b80000 NULL sector0_0",
+			"sector sector0_0 3 0 0 c4 c1",
+			"sector sector1_0 4 1 0 -",
+			"sector sector0_1 5 0 1 c3",
+			"sector sector1_1 6 1 1 c2",
+			"sector sector0_2 7 0 2 -",
+			"sector sector1_2 8 1 2 -"
 		]
 	},
 	{
 		"id": "lifecycle-20260924-70",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 12,
+			"heap": 22,
 			"forces": [
-				1
+				1,
+				2
 			],
 			"keysites": [
 				{
-					"side": 2,
-					"subType": 0,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
+					"side": 1,
 					"subType": 5,
-					"inUse": true,
+					"inUse": false,
 					"x": 0,
 					"z": 0,
 					"ammo": 100,
@@ -10455,9 +10717,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 3,
-					"sideLength": 1024
+					"xSectors": 4,
+					"zSectors": 2,
+					"sideLength": 256
 				},
 				{
 					"kind": "create",
@@ -10466,9 +10728,16 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 53,
-							"value": 31
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 80,
+							"y": 432.75,
+							"z": 62
 						},
 						{
 							"kind": "int",
@@ -10486,225 +10755,6 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c1",
 					"type": 4,
 					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 28
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_2"
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 642.5,
-							"y": 393.25,
-							"z": 1334
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 591,
-							"y": -28.25,
-							"z": 1836.25
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 169,
-							"y": 56,
-							"z": 2172.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 241.5,
-							"y": -45.5,
-							"z": 11.75
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_1"
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c2"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c3"
-				},
-				{
-					"kind": "create",
-					"label": "c7",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 239.25,
-							"y": 241.25,
-							"z": 2271.75
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 28
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 749.25,
-							"y": 304.75,
-							"z": 2192.25
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 8 int 53 31 int 7 2 end",
-			"created c0 8",
-			"transmit-destroy c0",
-			"transmit-create 4 8 int 53 28 parent 33 sector0_0 parent 6 keysite1 int 7 1 parent 33 sector0_2 end",
-			"created c1 8",
-			"transmit-destroy c1",
-			"transmit-create 4 8 vec3d 8 4420a000 43c4a000 44a6c000 end",
-			"created c2 8",
-			"transmit-create 4 9 vec3d 8 4413c000 c1e20000 44e58800 int 191 3 parent 6 keysite1 end",
-			"created c3 9",
-			"transmit-create 4 10 vec3d 8 43290000 42600000 4507c400 end",
-			"created c4 10",
-			"transmit-create 4 11 vec3d 8 43718000 c2360000 413c0000 parent 33 sector0_1 pred 6 c2 int 7 1 end",
-			"created c5 11",
-			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used c5 c4 c3 c2 sector0_2 sector0_1 sector0_0 keysite1 keysite0 force0 update session",
-			"cargo c5 11 3 -1 1 43718000 c2360000 413c0000 NULL sector0_0",
-			"cargo c4 10 3 -1 1 43290000 42600000 4507c400 NULL sector0_2",
-			"cargo c3 9 3 -1 1 4413c000 c1e20000 44e58800 keysite1 sector0_1",
-			"cargo c2 8 3 -1 1 4420a000 43c4a000 44a6c000 NULL sector0_1",
-			"keysite keysite0 -",
-			"keysite keysite1 c3",
-			"sector sector0_0 5 0 0 c5",
-			"sector sector0_1 6 0 1 c3 c2",
-			"sector sector0_2 7 0 2 c4"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-71",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 4,
-			"forces": [
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 1,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
 					"attributes": []
 				},
 				{
@@ -10714,69 +10764,14 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 315.75,
-							"y": 377.25,
-							"z": 194.5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1145.5,
-							"y": 390.25,
-							"z": 511.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1536,
-							"y": 350.75,
-							"z": 333.75
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
 							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
+							"type": 6,
+							"target": "keysite0"
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 248.75,
+							"x": 165.75,
 							"y": 135.5,
 							"z": 476.5
 						},
@@ -10799,52 +10794,59 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"kind": "create",
-					"label": "c6",
+					"label": "c3",
 					"type": 4,
 					"index": -1,
 					"attributes": [
 						{
 							"kind": "parent",
 							"type": 33,
-							"target": "sector1_0"
+							"target": "sector2_1"
 						}
 					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c6"
-				},
-				{
-					"kind": "destroy",
-					"label": "c4"
-				},
-				{
-					"kind": "create",
-					"label": "c7",
-					"type": 4,
-					"index": -1,
-					"attributes": []
 				}
 			]
 		},
 		"expected": [
-			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used  force0 update session"
+			"transmit-create 4 13 parent 6 keysite0 vec3d 8 42a00000 43d86000 42780000 int 7 2 end",
+			"created c0 13",
+			"transmit-destroy c0",
+			"transmit-create 4 13 end",
+			"created c1 13",
+			"transmit-create 4 14 parent 6 keysite0 vec3d 8 4325c000 43078000 43ee4000 int 53 31 int 53 14 int 191 2 end",
+			"created c2 14",
+			"transmit-create 4 15 parent 33 sector2_1 end",
+			"created c3 15",
+			"result ok",
+			"heap free 16 17 18 19 20 21",
+			"heap used c3 c2 c1 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite0 force1 force0 update session",
+			"cargo c3 15 3 -1 1 43ffc000 46e0bf00 437f8000 NULL sector1_0",
+			"cargo c2 14 2 14 1 4325c000 43078000 43ee4000 keysite0 sector0_1",
+			"cargo c1 13 3 -1 1 43ffc000 46e0bf00 437f8000 NULL sector1_0",
+			"keysite keysite0 c2",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 c3 c1",
+			"sector sector2_0 7 2 0 -",
+			"sector sector3_0 8 3 0 -",
+			"sector sector0_1 9 0 1 c2",
+			"sector sector1_1 10 1 1 -",
+			"sector sector2_1 11 2 1 -",
+			"sector sector3_1 12 3 1 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-72",
+		"id": "lifecycle-20260924-71",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 13,
+			"heap": 22,
 			"forces": [
-				1
+				1,
+				2
 			],
 			"keysites": [
 				{
-					"side": 2,
-					"subType": 3,
+					"side": 1,
+					"subType": 5,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -10853,8 +10855,17 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"side": 1,
-					"subType": 8,
+					"subType": 6,
 					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 0,
+					"inUse": true,
 					"x": 0,
 					"z": 0,
 					"ammo": 100,
@@ -10864,9 +10875,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 1,
+					"xSectors": 2,
 					"zSectors": 3,
-					"sideLength": 256
+					"sideLength": 1024
 				},
 				{
 					"kind": "create",
@@ -10875,288 +10886,50 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 136.75,
-							"y": 441.75,
-							"z": 389.5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 252.75,
-							"y": 81.25,
-							"z": 390.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 183.25,
-							"y": -50.5,
-							"z": 717.5
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 145.75,
-							"y": 31.5,
-							"z": 493.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 223.5,
-							"y": 119.75,
-							"z": 372.5
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 18.75,
-							"y": 361,
-							"z": 467.5
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
+							"x": 1945.5,
+							"y": 44,
+							"z": 1237.5
 						}
 					]
 				},
 				{
 					"kind": "destroy",
-					"label": "c2"
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": 12,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 137.75,
-							"y": 425.25,
-							"z": 368.5
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 225.5,
-							"y": 287,
-							"z": 57.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c2"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 65.5,
-							"y": 22.75,
-							"z": 213.25
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c7",
-					"type": 4,
-					"index": 10,
-					"attributes": [
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c1"
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c2"
-				},
-				{
-					"kind": "create",
-					"label": "c8",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 27
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 126.75,
-							"y": 408,
-							"z": 111.75
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						}
-					]
+					"label": "c0"
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 8 int 191 3 vec3d 8 4308c000 43dce000 43c2c000 end",
-			"created c0 8",
-			"transmit-create 4 9 int 191 1 vec3d 8 437cc000 42a28000 43c32000 vec3d 8 43374000 c24a0000 44336000 pred 6 c0 end",
-			"created c1 9",
-			"transmit-create 4 10 vec3d 8 4311c000 41fc0000 43f6a000 vec3d 8 435f8000 42ef8000 43ba4000 parent 6 NULL vec3d 8 41960000 43b48000 43e9c000 int 7 3 end",
-			"created c2 10",
-			"transmit-create 4 11 end",
-			"created c3 11",
-			"transmit-create 4 12 parent 6 keysite1 int 191 4 parent 6 keysite1 parent 6 keysite0 end",
-			"created c4 12",
-			"transmit-destroy c2",
-			"result assert assert_local_create_entity_index ((index))",
-			"heap free 10",
-			"heap used c4 c3 c1 c0 sector0_2 sector0_1 sector0_0 keysite1 keysite0 force0 update session",
-			"cargo c4 12 0 -1 1 42ff0000 46e0bf00 43bfc000 keysite0 sector0_1",
-			"cargo c3 11 3 -1 1 42ff0000 46e0bf00 43bfc000 NULL sector0_1",
-			"cargo c1 9 1 -1 1 43374000 c24a0000 44336000 NULL sector0_2",
-			"cargo c0 8 3 -1 1 4308c000 43dce000 43c2c000 NULL sector0_1",
-			"keysite keysite0 c4",
+			"transmit-create 4 13 vec3d 8 44f33000 42300000 449ab000 end",
+			"created c0 13",
+			"transmit-destroy c0",
+			"result ok",
+			"heap free 13 14 15 16 17 18 19 20 21",
+			"heap used sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
+			"keysite keysite0 -",
 			"keysite keysite1 -",
-			"sector sector0_0 5 0 0 -",
-			"sector sector0_1 6 0 1 c4 c3 c0",
-			"sector sector0_2 7 0 2 c1"
+			"keysite keysite2 -",
+			"sector sector0_0 7 0 0 -",
+			"sector sector1_0 8 1 0 -",
+			"sector sector0_1 9 0 1 -",
+			"sector sector1_1 10 1 1 -",
+			"sector sector0_2 11 0 2 -",
+			"sector sector1_2 12 1 2 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-73",
+		"id": "lifecycle-20260924-72",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 27,
+			"heap": 16,
 			"forces": [
 				2
 			],
 			"keysites": [
 				{
-					"side": 1,
-					"subType": 2,
+					"side": 2,
+					"subType": 1,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -11164,8 +10937,8 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"fuel": 100
 				},
 				{
-					"side": 2,
-					"subType": 5,
+					"side": 1,
+					"subType": 7,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -11185,160 +10958,65 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 4,
-					"sideLength": 1024
+					"xSectors": 4,
+					"zSectors": 2,
+					"sideLength": 512
 				},
 				{
 					"kind": "create",
 					"label": "c0",
 					"type": 4,
 					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 32
-						}
-					]
+					"attributes": []
 				},
 				{
 					"kind": "create",
 					"label": "c1",
 					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
+					"index": 8,
 					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1583.5,
-							"y": 273.75,
-							"z": 3511
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
 						{
 							"kind": "parent",
 							"type": 33,
 							"target": "sector0_0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1594,
-							"y": 211,
-							"z": 3634.75
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1479.25,
-							"y": -85.25,
-							"z": 1593.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 638,
-							"y": 402.75,
-							"z": 4095.25
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 18 int 7 2 int 191 4 int 53 32 end",
-			"created c0 18",
-			"transmit-create 4 19 end",
-			"created c1 19",
-			"transmit-create 4 20 vec3d 8 44c5f000 4388e000 455b7000 int 7 0 end",
-			"created c2 20",
-			"transmit-create 4 21 parent 6 keysite1 parent 33 sector0_0 int 191 1 vec3d 8 44c74000 43530000 45632c00 end",
-			"created c3 21",
-			"result fatal Position off map: (x = %f, z = %f)",
-			"heap free 23 24 25 26",
-			"heap used  c3 c2 c1 c0 sector2_3 sector1_3 sector0_3 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
-			"cargo  22 3 -1 1 441f8000 43c96000 457ff400 NULL NULL",
-			"cargo c3 21 1 -1 1 44c74000 43530000 45632c00 keysite1 sector1_3",
-			"cargo c2 20 3 -1 0 44c5f000 4388e000 455b7000 NULL sector1_3",
-			"cargo c1 19 3 -1 1 44bff000 46e0bf00 44fff000 NULL sector1_1",
-			"cargo c0 18 0 32 0 44bff000 46e0bf00 44fff000 NULL sector1_1",
+			"transmit-create 4 14 end",
+			"created c0 14",
+			"result assert assert_local_create_entity_index ((index))",
+			"heap free 15",
+			"heap used c0 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
+			"cargo c0 14 3 -1 1 447fe000 46e0bf00 43ffc000 NULL sector1_0",
 			"keysite keysite0 -",
-			"keysite keysite1 c3",
+			"keysite keysite1 -",
 			"keysite keysite2 -",
 			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 -",
+			"sector sector1_0 7 1 0 c0",
 			"sector sector2_0 8 2 0 -",
-			"sector sector0_1 9 0 1 -",
-			"sector sector1_1 10 1 1 c1 c0",
-			"sector sector2_1 11 2 1 -",
-			"sector sector0_2 12 0 2 -",
-			"sector sector1_2 13 1 2 -",
-			"sector sector2_2 14 2 2 -",
-			"sector sector0_3 15 0 3 -",
-			"sector sector1_3 16 1 3 c3 c2",
-			"sector sector2_3 17 2 3 -"
+			"sector sector3_0 9 3 0 -",
+			"sector sector0_1 10 0 1 -",
+			"sector sector1_1 11 1 1 -",
+			"sector sector2_1 12 2 1 -",
+			"sector sector3_1 13 3 1 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-74",
+		"id": "lifecycle-20260924-73",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 15,
+			"heap": 13,
 			"forces": [
+				1,
 				2
 			],
 			"keysites": [
 				{
-					"side": 2,
-					"subType": 7,
+					"side": 1,
+					"subType": 8,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -11347,17 +11025,8 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"side": 1,
-					"subType": 2,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 6,
-					"inUse": false,
+					"subType": 1,
+					"inUse": true,
 					"x": 0,
 					"z": 0,
 					"ammo": 100,
@@ -11368,8 +11037,300 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				{
 					"kind": "map",
 					"xSectors": 2,
-					"zSectors": 1,
-					"sideLength": 256
+					"zSectors": 3,
+					"sideLength": 1024
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1621.5,
+							"y": 368.5,
+							"z": 2299.25
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 32
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": 12,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1105,
+							"y": 425.25,
+							"z": 1475
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1810,
+							"y": 287,
+							"z": 229.25
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c1"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 526.25,
+							"y": 22.75,
+							"z": 854.25
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": 10,
+					"attributes": [
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				},
+				{
+					"kind": "create",
+					"label": "c6",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 27
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1017.25,
+							"y": 408,
+							"z": 447.25
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector1_0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c7",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c2"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 250.75,
+							"y": 249.75,
+							"z": 2263
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c8",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1396.75,
+							"y": 176.75,
+							"z": 1695.75
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 12 end",
+			"created c0 12",
+			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used c0 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite1 keysite0 force1 force0 update session",
+			"cargo c0 12 3 -1 1 447fe000 46e0bf00 44bff000 NULL sector0_1",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 6 0 0 -",
+			"sector sector1_0 7 1 0 -",
+			"sector sector0_1 8 0 1 c0",
+			"sector sector1_1 9 1 1 -",
+			"sector sector0_2 10 0 2 -",
+			"sector sector1_2 11 1 2 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-74",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 17,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 1,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 4,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 7,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 4,
+					"sideLength": 1024
 				},
 				{
 					"kind": "create",
@@ -11380,19 +11341,98 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 484,
+							"x": 787.75,
+							"y": 10.5,
+							"z": 2760.25
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 19
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 18
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 113.25,
+							"y": 166.5,
+							"z": 851
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite2"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1336.75,
+							"y": 345,
+							"z": 3384.5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 648.75,
+							"y": 328.5,
+							"z": 2147.25
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1938.5,
 							"y": 90.5,
-							"z": 243.75
+							"z": 3913
 						}
 					]
 				},
 				{
 					"kind": "destroy",
-					"label": "c0"
+					"label": "c1"
 				},
 				{
 					"kind": "create",
-					"label": "c1",
+					"label": "c3",
 					"type": 4,
 					"index": -1,
 					"attributes": [
@@ -11422,100 +11462,45 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"target": "keysite1"
 						}
 					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 511,
-							"y": 482.25,
-							"z": 142.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						}
-					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 8 vec3d 8 43f20000 42b50000 4373c000 end",
-			"created c0 8",
-			"transmit-destroy c0",
-			"result assert en != child_pred",
-			"heap free 9 10 11 12 13 14",
-			"heap used c0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
-			"cargo c0 8 3 -1 1 437f8000 46e0bf00 42ff0000 NULL NULL",
+			"transmit-create 4 15 vec3d 8 4444f000 41280000 452c8400 int 53 19 parent 6 NULL int 191 2 int 53 18 end",
+			"created c0 15",
+			"transmit-create 4 16 vec3d 8 42e28000 43268000 4454c000 parent 6 keysite2 end",
+			"created c1 16",
+			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used c1 c0 sector1_3 sector0_3 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
+			"cargo c1 16 3 -1 1 42e28000 43268000 4454c000 keysite2 sector0_0",
+			"cargo c0 15 2 18 1 4444f000 41280000 452c8400 NULL sector0_2",
 			"keysite keysite0 -",
 			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 -"
+			"keysite keysite2 c1",
+			"sector sector0_0 7 0 0 c1",
+			"sector sector1_0 8 1 0 -",
+			"sector sector0_1 9 0 1 -",
+			"sector sector1_1 10 1 1 -",
+			"sector sector0_2 11 0 2 c0",
+			"sector sector1_2 12 1 2 -",
+			"sector sector0_3 13 0 3 -",
+			"sector sector1_3 14 1 3 -"
 		]
 	},
 	{
 		"id": "lifecycle-20260924-75",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 15,
+			"heap": 8,
 			"forces": [
 				1
 			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 0,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 7,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 3,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
+			"keysites": [],
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 4,
+					"xSectors": 3,
 					"zSectors": 2,
 					"sideLength": 256
 				},
@@ -11526,9 +11511,21 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector2_0"
+						},
+						{
 							"kind": "int",
-							"type": 191,
-							"value": -1
+							"type": 7,
+							"value": 1
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 264.5,
+							"y": 380.25,
+							"z": 19.75
 						}
 					]
 				},
@@ -11541,21 +11538,21 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 338.5,
-							"y": 291.5,
-							"z": 10.25
+							"x": 768,
+							"y": 387,
+							"z": 54.25
 						},
 						{
 							"kind": "int",
 							"type": 191,
-							"value": 3
+							"value": 0
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 1023,
-							"y": -9,
-							"z": 123.75
+							"x": 238.25,
+							"y": 105.25,
+							"z": 200.5
 						}
 					]
 				},
@@ -11564,23 +11561,29 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c2",
 					"type": 4,
 					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 1
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						}
-					]
+					"attributes": []
+				},
+				{
+					"kind": "allocate",
+					"label": "g3",
+					"index": 0
+				},
+				{
+					"kind": "allocate",
+					"label": "g4",
+					"index": 5
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
 				},
 				{
 					"kind": "create",
@@ -11589,11 +11592,35 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 1
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						},
+						{
 							"kind": "parent",
-							"type": 33,
-							"target": "sector2_0"
+							"type": 6,
+							"target": "NULL"
 						}
 					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c3"
 				},
 				{
 					"kind": "create",
@@ -11602,14 +11629,16 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 53,
-							"value": 5
+							"kind": "vec3d",
+							"type": 8,
+							"x": 444.25,
+							"y": 430,
+							"z": 85.75
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 8,
+							"x": 6,
 							"y": 146.25,
 							"z": 180.75
 						},
@@ -11617,85 +11646,68 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"kind": "int",
 							"type": 7,
 							"value": 1
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite2"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 523.75,
-							"y": 402.25,
-							"z": 442.75
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 14 int 191 -1 end",
-			"created c0 14",
-			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
 			"heap free",
-			"heap used c0 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
-			"cargo c0 14 3 -1 1 43ffc000 46e0bf00 437f8000 NULL sector1_0",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 c0",
-			"sector sector2_0 8 2 0 -",
-			"sector sector3_0 9 3 0 -",
-			"sector sector0_1 10 0 1 -",
-			"sector sector1_1 11 1 1 -",
-			"sector sector2_1 12 2 1 -",
-			"sector sector3_1 13 3 1 -"
+			"heap used      force0 update session"
 		]
 	},
 	{
 		"id": "lifecycle-20260924-76",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 15,
+			"heap": 9,
 			"forces": [
 				1,
 				2
 			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 1,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
+			"keysites": [],
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 3,
+					"xSectors": 2,
+					"zSectors": 4,
+					"sideLength": 1024
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 32
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used      force1 force0 update session"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-77",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 7,
+			"forces": [
+				1
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 2,
 					"zSectors": 1,
 					"sideLength": 512
 				},
@@ -11706,73 +11718,16 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
+							"kind": "int",
+							"type": 7,
+							"value": 0
 						},
 						{
 							"kind": "parent",
 							"type": 33,
 							"target": "sector1_0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 736,
-							"y": 483.25,
-							"z": 255
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 271,
-							"y": 373.25,
-							"z": 471
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
 						}
 					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 8 parent 6 keysite0 parent 33 sector1_0 vec3d 8 44380000 43f1a000 437f0000 vec3d 8 43878000 43baa000 43eb8000 int 7 2 end",
-			"created c0 8",
-			"result ok",
-			"heap free 9 10 11 12 13 14",
-			"heap used c0 sector2_0 sector1_0 sector0_0 keysite0 force1 force0 update session",
-			"cargo c0 8 3 -1 0 43878000 43baa000 43eb8000 keysite0 sector0_0",
-			"keysite keysite0 c0",
-			"sector sector0_0 5 0 0 c0",
-			"sector sector1_0 6 1 0 -",
-			"sector sector2_0 7 2 0 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-77",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 17,
-			"forces": [
-				1
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 3,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": []
 				},
 				{
 					"kind": "destroy",
@@ -11785,11 +11740,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 619.5,
-							"y": 50.5,
-							"z": 376.5
+							"kind": "int",
+							"type": 7,
+							"value": 2
 						}
 					]
 				},
@@ -11798,71 +11751,101 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c2",
 					"type": 4,
 					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 180.75,
+							"y": 373.25,
+							"z": 471
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
+						}
+					]
 				},
 				{
 					"kind": "create",
 					"label": "c3",
 					"type": 4,
 					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
 					"attributes": [
 						{
 							"kind": "int",
 							"type": 191,
-							"value": 1
+							"value": 2
 						},
 						{
 							"kind": "parent",
 							"type": 6,
 							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
 						}
 					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 301,
+							"y": -23.25,
+							"z": 52.75
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g7",
+					"index": 3
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 12 end",
-			"created c0 12",
+			"transmit-create 4 5 int 7 0 parent 33 sector1_0 end",
+			"created c0 5",
 			"transmit-destroy c0",
-			"transmit-create 4 12 vec3d 8 441ae000 424a0000 43bc4000 end",
-			"created c1 12",
-			"transmit-create 4 13 end",
-			"created c2 13",
-			"transmit-destroy c1",
-			"transmit-create 4 12 int 191 1 parent 6 NULL end",
-			"created c3 12",
-			"result ok",
-			"heap free 14 15 16",
-			"heap used c3 c2 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 force0 update session",
-			"cargo c3 12 1 -1 1 443fe000 46e0bf00 443fe000 NULL sector1_1",
-			"cargo c2 13 3 -1 1 443fe000 46e0bf00 443fe000 NULL sector1_1",
-			"sector sector0_0 3 0 0 -",
-			"sector sector1_0 4 1 0 -",
-			"sector sector2_0 5 2 0 -",
-			"sector sector0_1 6 0 1 -",
-			"sector sector1_1 7 1 1 c3 c2",
-			"sector sector2_1 8 2 1 -",
-			"sector sector0_2 9 0 2 -",
-			"sector sector1_2 10 1 2 -",
-			"sector sector2_2 11 2 2 -"
+			"transmit-create 4 5 int 7 2 end",
+			"created c1 5",
+			"transmit-create 4 6 vec3d 8 4334c000 43baa000 43eb8000 int 7 2 end",
+			"created c2 6",
+			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used c2 c1 sector1_0 sector0_0 force0 update session",
+			"cargo c2 6 3 -1 0 4334c000 43baa000 43eb8000 NULL sector0_0",
+			"cargo c1 5 3 -1 0 43ffc000 46e0bf00 437f8000 NULL sector0_0",
+			"sector sector0_0 3 0 0 c2 c1",
+			"sector sector1_0 4 1 0 -"
 		]
 	},
 	{
 		"id": "lifecycle-20260924-78",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 23,
+			"heap": 16,
 			"forces": [
-				1,
-				2
+				1
 			],
 			"keysites": [
 				{
-					"side": 2,
+					"side": 1,
 					"subType": 0,
 					"inUse": true,
 					"x": 0,
@@ -11874,9 +11857,14 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 4,
-					"sideLength": 256
+					"xSectors": 2,
+					"zSectors": 2,
+					"sideLength": 1024
+				},
+				{
+					"kind": "allocate",
+					"label": "g0",
+					"index": 2
 				},
 				{
 					"kind": "create",
@@ -11886,30 +11874,104 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": [
 						{
 							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1904.25,
+							"y": 417.25,
+							"z": 1409
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 886.75,
+							"y": 499.5,
+							"z": 177
+						},
+						{
+							"kind": "parent",
 							"type": 6,
-							"target": "NULL"
+							"target": "keysite0"
 						},
 						{
 							"kind": "int",
 							"type": 7,
 							"value": 0
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
 						}
 					]
+				}
+			]
+		},
+		"expected": [
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 8 9 10 11 12 13 14 15",
+			"heap used sector1_1 sector0_1 sector1_0 sector0_0 keysite0 force0 update session",
+			"keysite keysite0 -",
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 -",
+			"sector sector0_1 6 0 1 -",
+			"sector sector1_1 7 1 1 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-79",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 14,
+			"forces": [
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 4,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 3,
+					"zSectors": 1,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 767,
+							"y": 165,
+							"z": 95
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 526.75,
+							"y": 48.25,
+							"z": 70.75
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
 				},
 				{
 					"kind": "create",
@@ -11918,71 +11980,49 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 876.75,
-							"y": 257.25,
-							"z": 942.5
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 15
-						},
-						{
 							"kind": "int",
 							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 255,
-							"y": 270.75,
-							"z": 823
+							"value": 3
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 21 parent 6 NULL int 7 0 int 191 0 int 191 5 int 191 -1 end",
-			"created c0 21",
-			"transmit-create 4 22 vec3d 8 445b3000 4380a000 446ba000 int 53 15 int 191 4 vec3d 8 437f0000 43876000 444dc000 end",
-			"created c1 22",
+			"transmit-create 4 7 int 7 2 vec3d 8 443fc000 43250000 42be0000 vec3d 8 4403b000 42410000 428d8000 end",
+			"created c0 7",
+			"transmit-destroy c0",
+			"transmit-create 4 7 int 191 3 end",
+			"created c1 7",
 			"result ok",
-			"heap free",
-			"heap used c1 c0 sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite0 force1 force0 update session",
-			"cargo c1 22 0 15 1 437f0000 43876000 444dc000 NULL sector0_3",
-			"cargo c0 21 3 -1 0 43ffc000 46e0bf00 43ffc000 NULL sector1_1",
+			"heap free 8 9 10 11 12 13",
+			"heap used c1 sector2_0 sector1_0 sector0_0 keysite0 force0 update session",
+			"cargo c1 7 3 -1 1 43bfc000 46e0bf00 42ff0000 NULL sector1_0",
 			"keysite keysite0 -",
-			"sector sector0_0 5 0 0 -",
-			"sector sector1_0 6 1 0 -",
-			"sector sector2_0 7 2 0 -",
-			"sector sector3_0 8 3 0 -",
-			"sector sector0_1 9 0 1 -",
-			"sector sector1_1 10 1 1 c0",
-			"sector sector2_1 11 2 1 -",
-			"sector sector3_1 12 3 1 -",
-			"sector sector0_2 13 0 2 -",
-			"sector sector1_2 14 1 2 -",
-			"sector sector2_2 15 2 2 -",
-			"sector sector3_2 16 3 2 -",
-			"sector sector0_3 17 0 3 c1",
-			"sector sector1_3 18 1 3 -",
-			"sector sector2_3 19 2 3 -",
-			"sector sector3_3 20 3 3 -"
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 c1",
+			"sector sector2_0 6 2 0 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-79",
+		"id": "lifecycle-20260924-80",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 11,
+			"heap": 14,
 			"forces": [
-				1
+				1,
+				2
 			],
 			"keysites": [
+				{
+					"side": 1,
+					"subType": 5,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
 				{
 					"side": 1,
 					"subType": 2,
@@ -11996,95 +12036,32 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 2,
+					"xSectors": 3,
 					"zSectors": 2,
-					"sideLength": 512
+					"sideLength": 1000
+				},
+				{
+					"kind": "allocate",
+					"label": "g0",
+					"index": 8
 				},
 				{
 					"kind": "create",
 					"label": "c0",
 					"type": 4,
 					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
 					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 809.5,
-							"y": 327.5,
-							"z": 763
-						},
 						{
 							"kind": "int",
 							"type": 191,
-							"value": 3
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 8 int 7 0 int 7 1 vec3d 8 444a6000 43a3c000 443ec000 int 191 3 end",
-			"created c0 8",
-			"result ok",
-			"heap free 9 10",
-			"heap used c0 sector1_1 sector0_1 sector1_0 sector0_0 keysite0 force0 update session",
-			"cargo c0 8 3 -1 1 444a6000 43a3c000 443ec000 NULL sector1_1",
-			"keysite keysite0 -",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector0_1 6 0 1 -",
-			"sector sector1_1 7 1 1 c0"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-80",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 11,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 6,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 0,
-					"zSectors": 3,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -1,
-							"y": 458.25,
-							"z": 1427
+							"value": 2
 						},
 						{
 							"kind": "parent",
@@ -12096,7 +12073,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"type": 8,
 							"x": -23.25,
 							"y": 456.25,
-							"z": 1205.5
+							"z": 784.75
 						},
 						{
 							"kind": "int",
@@ -12112,14 +12089,14 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"kind": "create",
-					"label": "c1",
+					"label": "c2",
 					"type": 4,
 					"index": -1,
 					"attributes": [
 						{
 							"kind": "pred",
 							"type": 6,
-							"target": "c0"
+							"target": "c1"
 						},
 						{
 							"kind": "int",
@@ -12129,9 +12106,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": -0.5,
+							"x": 1838.25,
 							"y": 88,
-							"z": 1108.5
+							"z": 721.5
 						},
 						{
 							"kind": "int",
@@ -12147,7 +12124,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"kind": "create",
-					"label": "c2",
+					"label": "c3",
 					"type": 4,
 					"index": -1,
 					"attributes": [
@@ -12159,15 +12136,15 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": -0.25,
+							"x": 559.5,
 							"y": 146.5,
-							"z": 1449.5
+							"z": 943.5
 						}
 					]
 				},
 				{
 					"kind": "create",
-					"label": "c3",
+					"label": "c4",
 					"type": 4,
 					"index": 0,
 					"attributes": []
@@ -12178,14 +12155,14 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"kind": "create",
-					"label": "c4",
+					"label": "c5",
 					"type": 4,
 					"index": -1,
 					"attributes": [
 						{
 							"kind": "parent",
 							"type": 6,
-							"target": "keysite0"
+							"target": "keysite1"
 						},
 						{
 							"kind": "parent",
@@ -12202,10 +12179,11 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			]
 		},
 		"expected": [
-			"result assert num_map_x_sectors > 0",
-			"heap free 5 6 7 8 9 10",
-			"heap used keysite0 force1 force0 update session",
-			"keysite keysite0 -"
+			"result assert int_bit_count (sector_side_length) == 1",
+			"heap free 6 7 8 9 10 11 12 13",
+			"heap used keysite1 keysite0 force1 force0 update session",
+			"keysite keysite0 -",
+			"keysite keysite1 -"
 		]
 	},
 	{
@@ -12767,71 +12745,33 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": []
 				},
 				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 6
-						}
-					]
+					"kind": "allocate",
+					"label": "g1",
+					"index": 3
 				},
 				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": []
+					"kind": "destroy",
+					"label": "c0"
 				},
 				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector2_0"
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
-						}
-					]
+					"kind": "allocate",
+					"label": "g3",
+					"index": 6
 				}
 			]
 		},
 		"expected": [
 			"transmit-create 4 10 end",
 			"created c0 10",
-			"transmit-create 4 11 int 53 6 end",
-			"created c1 11",
-			"transmit-create 4 12 end",
-			"created c2 12",
-			"transmit-create 4 13 int 7 3 parent 33 sector2_0 parent 33 sector0_0 end",
-			"created c3 13",
-			"result ok",
-			"heap free 14 15 16 17 18",
-			"heap used c3 c2 c1 c0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
-			"cargo c3 13 3 -1 1 43bfc000 46e0bf00 42ff0000 NULL sector1_0",
-			"cargo c2 12 3 -1 1 43bfc000 46e0bf00 42ff0000 NULL sector1_0",
-			"cargo c1 11 3 6 1 43bfc000 46e0bf00 42ff0000 NULL sector1_0",
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 11 12 13 14 15 16 17 18",
+			"heap used c0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
 			"cargo c0 10 3 -1 1 43bfc000 46e0bf00 42ff0000 NULL sector1_0",
 			"keysite keysite0 -",
 			"keysite keysite1 -",
 			"keysite keysite2 -",
 			"sector sector0_0 7 0 0 -",
-			"sector sector1_0 8 1 0 c3 c2 c1 c0",
+			"sector sector1_0 8 1 0 c0",
 			"sector sector2_0 9 2 0 -"
 		]
 	},
@@ -12841,8 +12781,92 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 		"spec": {
 			"heap": 17,
 			"forces": [
-				1,
 				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 8,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 0,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 2,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": -61.75,
+							"y": -5.5,
+							"z": 71.25
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_1"
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				}
+			]
+		},
+		"expected": [
+			"result fatal Position off map: (x = %f, z = %f)",
+			"heap free 8 9 10 11 12 13 14 15 16",
+			"heap used  sector0_1 sector0_0 keysite1 keysite0 force0 update session",
+			"cargo  7 3 -1 1 c2770000 c0b00000 428e8000 NULL sector0_1",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector0_1 6 0 1 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-86",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 17,
+			"forces": [
+				1
 			],
 			"keysites": [
 				{
@@ -12856,8 +12880,8 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"side": 2,
-					"subType": 8,
-					"inUse": false,
+					"subType": 5,
+					"inUse": true,
 					"x": 0,
 					"z": 0,
 					"ammo": 100,
@@ -12866,6 +12890,185 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				{
 					"side": 1,
 					"subType": 0,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 4,
+					"zSectors": 2,
+					"sideLength": 1024
+				},
+				{
+					"kind": "allocate",
+					"label": "g0",
+					"index": 15
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector2_1"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 23
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g2",
+					"index": 5
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 990.5,
+							"y": 105.5,
+							"z": 1925.5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1686.75,
+							"y": 414.75,
+							"z": 1000.5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 3758.75,
+							"y": 414,
+							"z": 509.25
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 2488.5,
+							"y": -37.75,
+							"z": 211.75
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 3310.25,
+							"y": -39.5,
+							"z": 1661
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 4095.5,
+							"y": -96.5,
+							"z": 1288.75
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c2"
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"allocated g0 15",
+			"transmit-create 4 14 int 191 3 parent 33 sector2_1 int 53 23 end",
+			"created c0 14",
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 16",
+			"heap used c0 g0 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
+			"cargo c0 14 3 23 1 44fff000 46e0bf00 447fe000 NULL sector1_0",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"keysite keysite2 -",
+			"sector sector0_0 6 0 0 -",
+			"sector sector1_0 7 1 0 c0",
+			"sector sector2_0 8 2 0 -",
+			"sector sector3_0 9 3 0 -",
+			"sector sector0_1 10 0 1 -",
+			"sector sector1_1 11 1 1 -",
+			"sector sector2_1 12 2 1 -",
+			"sector sector3_1 13 3 1 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-87",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 13,
+			"forces": [
+				1
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 0,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 3,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -12877,8 +13080,959 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				{
 					"kind": "map",
 					"xSectors": 1,
-					"zSectors": 3,
+					"zSectors": 4,
 					"sideLength": 1024
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 17
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g4",
+					"index": 12
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 179.5,
+							"y": 399.75,
+							"z": 3405
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c6",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c5"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c7",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c8",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 749.25,
+							"y": 31.5,
+							"z": 1846.5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1024,
+							"y": 112,
+							"z": 2060.25
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 9 int 7 2 parent 6 keysite0 end",
+			"created c0 9",
+			"transmit-create 4 10 parent 6 keysite1 int 53 17 int 191 -1 end",
+			"created c1 10",
+			"transmit-destroy c0",
+			"result assert en != child_pred",
+			"heap free 11 12",
+			"heap used c0 c1 sector0_3 sector0_2 sector0_1 sector0_0 keysite1 keysite0 force0 update session",
+			"cargo c0 9 3 -1 1 43ffc000 46e0bf00 44fff000 NULL sector0_0",
+			"cargo c1 10 3 17 1 43ffc000 46e0bf00 44fff000 keysite1 sector0_1",
+			"keysite keysite0 -",
+			"keysite keysite1 c1",
+			"sector sector0_0 5 0 0 -",
+			"sector sector0_1 6 0 1 c1",
+			"sector sector0_2 7 0 2 -",
+			"sector sector0_3 8 0 3 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-88",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 13,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 7,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 1,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 0,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g1",
+					"index": 0
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector1_0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 221.5,
+							"y": -9.75,
+							"z": 219
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 4,
+							"y": 131.25,
+							"z": 11.25
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				}
+			]
+		},
+		"expected": [
+			"result assert (type > ENTITY_TYPE_UNKNOWN) && (type < NUM_ENTITY_TYPES)",
+			"heap free 7 8 9 10 11 12",
+			"heap used sector1_0 sector0_0 keysite0 force1 force0 update session",
+			"keysite keysite0 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-89",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 19,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 1,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 3,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 5,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 4,
+					"zSectors": 2,
+					"sideLength": 256
+				}
+			]
+		},
+		"expected": [
+			"result ok",
+			"heap free 15 16 17 18",
+			"heap used sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"keysite keysite2 -",
+			"sector sector0_0 7 0 0 -",
+			"sector sector1_0 8 1 0 -",
+			"sector sector2_0 9 2 0 -",
+			"sector sector3_0 10 3 0 -",
+			"sector sector0_1 11 0 1 -",
+			"sector sector1_1 12 1 1 -",
+			"sector sector2_1 13 2 1 -",
+			"sector sector3_1 14 3 1 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-90",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 21,
+			"forces": [
+				1
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 5,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 6,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 4,
+					"zSectors": 3,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 33
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 34
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c2"
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_1"
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 17 end",
+			"created c0 17",
+			"transmit-destroy c0",
+			"transmit-create 4 17 int 7 1 int 53 33 end",
+			"created c1 17",
+			"transmit-create 4 18 int 191 4 end",
+			"created c2 18",
+			"transmit-destroy c1",
+			"transmit-create 4 17 parent 6 keysite1 int 53 34 pred 6 c2 parent 33 sector0_1 end",
+			"created c3 17",
+			"result ok",
+			"heap free 19 20",
+			"heap used c3 c2 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
+			"cargo c3 17 3 34 1 447fe000 46e0bf00 443fe000 keysite1 sector1_1",
+			"cargo c2 18 0 -1 1 447fe000 46e0bf00 443fe000 NULL sector1_1",
+			"keysite keysite0 -",
+			"keysite keysite1 c3",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -",
+			"sector sector2_0 7 2 0 -",
+			"sector sector3_0 8 3 0 -",
+			"sector sector0_1 9 0 1 -",
+			"sector sector1_1 10 1 1 c3 c2",
+			"sector sector2_1 11 2 1 -",
+			"sector sector3_1 12 3 1 -",
+			"sector sector0_2 13 0 2 -",
+			"sector sector1_2 14 1 2 -",
+			"sector sector2_2 15 2 2 -",
+			"sector sector3_2 16 3 2 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-91",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 14,
+			"forces": [
+				1
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 4,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 2,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 1,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 2,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 10 int 7 3 end",
+			"created c0 10",
+			"result ok",
+			"heap free 11 12 13",
+			"heap used c0 sector1_1 sector0_1 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
+			"cargo c0 10 3 -1 1 437f8000 46e0bf00 437f8000 NULL sector0_0",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"keysite keysite2 -",
+			"sector sector0_0 6 0 0 c0",
+			"sector sector1_0 7 1 0 -",
+			"sector sector0_1 8 0 1 -",
+			"sector sector1_1 9 1 1 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-92",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 11,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 2,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 2,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 9
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector1_0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 58.5,
+							"y": 287,
+							"z": 477
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g4",
+					"index": 10
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 9 parent 6 keysite0 end",
+			"created c0 9",
+			"transmit-create 4 10 end",
+			"created c1 10",
+			"transmit-destroy c0",
+			"transmit-create 4 9 int 53 9 int 7 1 parent 33 sector1_0 parent 6 keysite0 vec3d 8 426a0000 438f8000 43ee8000 end",
+			"created c2 9",
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free",
+			"heap used c2 c1 sector1_1 sector0_1 sector1_0 sector0_0 keysite0 force1 force0 update session",
+			"cargo c2 9 3 9 1 426a0000 438f8000 43ee8000 keysite0 sector0_1",
+			"cargo c1 10 3 -1 1 437f8000 46e0bf00 437f8000 NULL sector0_0",
+			"keysite keysite0 c2",
+			"sector sector0_0 5 0 0 c1",
+			"sector sector1_0 6 1 0 -",
+			"sector sector0_1 7 0 1 c2",
+			"sector sector1_1 8 1 1 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-93",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 17,
+			"forces": [
+				2
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 0,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 4,
+					"zSectors": 3,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector1_1"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 48.5,
+							"y": 407.5,
+							"z": 752.5
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 708.75,
+							"y": 421.25,
+							"z": 336.5
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_1"
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 16 parent 6 keysite0 parent 33 sector1_1 end",
+			"created c0 16",
+			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used c0 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite0 force0 update session",
+			"cargo c0 16 3 -1 1 43ffc000 46e0bf00 43bfc000 keysite0 sector1_1",
+			"keysite keysite0 c0",
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 -",
+			"sector sector2_0 6 2 0 -",
+			"sector sector3_0 7 3 0 -",
+			"sector sector0_1 8 0 1 -",
+			"sector sector1_1 9 1 1 c0",
+			"sector sector2_1 10 2 1 -",
+			"sector sector3_1 11 3 1 -",
+			"sector sector0_2 12 0 2 -",
+			"sector sector1_2 13 1 2 -",
+			"sector sector2_2 14 2 2 -",
+			"sector sector3_2 15 3 2 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-94",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 6,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 5,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 3,
+					"zSectors": 1,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 545.5,
+							"y": 65.5,
+							"z": 110.75
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 162.75,
+							"y": 197.75,
+							"z": 77.25
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 429.75,
+							"y": 195.5,
+							"z": 28.25
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 365.25,
+							"y": -10,
+							"z": 34
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 27
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used  keysite0 force1 force0 update session",
+			"keysite keysite0 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-95",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 13,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 4,
+					"sideLength": 512
 				},
 				{
 					"kind": "create",
@@ -12889,21 +14043,140 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 1023,
-							"y": -33.75,
-							"z": 2961.5
+							"x": 268.75,
+							"y": 385.5,
+							"z": 670.5
 						},
 						{
 							"kind": "int",
-							"type": 191,
-							"value": 5
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": -30.25,
+							"y": 48.25,
+							"z": 472.5
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 889.25,
-							"y": 249,
-							"z": 245.5
+							"x": 5.5,
+							"y": -59.25,
+							"z": 1159.25
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 8 vec3d 8 43866000 43c0c000 4427a000 int 7 0 parent 6 NULL int 7 3 end",
+			"created c0 8",
+			"transmit-destroy c0",
+			"transmit-create 4 8 end",
+			"created c1 8",
+			"transmit-create 4 9 vec3d 8 c1f20000 42410000 43ec4000 parent 6 NULL vec3d 8 40b00000 c26d0000 4490e800 end",
+			"created c2 9",
+			"result ok",
+			"heap free 10 11 12",
+			"heap used c2 c1 sector0_3 sector0_2 sector0_1 sector0_0 force1 force0 update session",
+			"cargo c2 9 3 -1 1 40b00000 c26d0000 4490e800 NULL sector0_2",
+			"cargo c1 8 3 -1 1 437f8000 46e0bf00 447fe000 NULL sector0_1",
+			"sector sector0_0 4 0 0 -",
+			"sector sector0_1 5 0 1 c1",
+			"sector sector0_2 6 0 2 c2",
+			"sector sector0_3 7 0 3 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-96",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 9,
+			"forces": [
+				2
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 5,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 4,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 5,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 2,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
 						}
 					]
 				},
@@ -12916,259 +14189,46 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "int",
 							"type": 191,
-							"value": 2
+							"value": 0
 						},
 						{
 							"kind": "parent",
 							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
+							"target": "keysite2"
 						},
 						{
 							"kind": "int",
 							"type": 53,
-							"value": 23
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 236.75,
-							"y": -0.75,
-							"z": 1901
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
+							"value": 18
 						}
 					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 421.25,
-							"y": 414.75,
-							"z": 1501
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 939,
-							"y": 414,
-							"z": 764
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 621.75,
-							"y": -37.75,
-							"z": 317.5
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 142.75,
-							"y": 115.75,
-							"z": 606
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c3"
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 10 vec3d 8 447fc000 c2070000 45391800 int 191 5 vec3d 8 445e5000 43790000 43758000 end",
-			"created c0 10",
-			"transmit-create 4 11 int 191 2 parent 6 keysite0 int 7 1 int 7 3 pred 6 c0 end",
-			"created c1 11",
-			"transmit-create 4 12 int 7 3 int 53 23 vec3d 8 436cc000 bf400000 44eda000 parent 33 sector0_0 int 191 2 end",
-			"created c2 12",
-			"transmit-create 4 13 vec3d 8 43d2a000 43cf6000 44bba000 vec3d 8 446ac000 43cf0000 443f0000 vec3d 8 441b7000 c2170000 439ec000 int 191 5 vec3d 8 430ec000 42e78000 44178000 end",
-			"created c3 13",
-			"transmit-create 4 14 end",
-			"created c4 14",
-			"transmit-create 4 15 end",
-			"created c5 15",
-			"transmit-create 4 16 end",
-			"created c6 16",
-			"transmit-destroy c3",
-			"transmit-destroy c1",
-			"result ok",
-			"heap free 11 13",
-			"heap used c6 c5 c4 c2 c0 sector0_2 sector0_1 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
-			"cargo c6 16 3 -1 1 43ffc000 46e0bf00 44bff000 NULL sector0_1",
-			"cargo c5 15 3 -1 1 43ffc000 46e0bf00 44bff000 NULL sector0_1",
-			"cargo c4 14 3 -1 1 43ffc000 46e0bf00 44bff000 NULL sector0_1",
-			"cargo c2 12 2 23 1 436cc000 bf400000 44eda000 NULL sector0_1",
-			"cargo c0 10 1 -1 1 445e5000 43790000 43758000 NULL sector0_0",
-			"keysite keysite0 -",
+			"transmit-create 4 8 parent 6 keysite0 end",
+			"created c0 8",
+			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used c0 sector0_1 sector0_0 keysite2 keysite1 keysite0 force0 update session",
+			"cargo c0 8 3 -1 1 437f8000 46e0bf00 43ffc000 keysite0 sector0_0",
+			"keysite keysite0 c0",
 			"keysite keysite1 -",
 			"keysite keysite2 -",
-			"sector sector0_0 7 0 0 c0",
-			"sector sector0_1 8 0 1 c6 c5 c4 c2",
-			"sector sector0_2 9 0 2 -"
+			"sector sector0_0 6 0 0 c0",
+			"sector sector0_1 7 0 1 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-86",
+		"id": "lifecycle-20260924-97",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 14,
-			"forces": [
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 3,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector1_2"
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 9 int 191 4 parent 33 sector1_2 end",
-			"created c0 9",
-			"result ok",
-			"heap free 10 11 12 13",
-			"heap used c0 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 force0 update session",
-			"cargo c0 9 0 -1 1 437f8000 46e0bf00 43bfc000 NULL sector0_1",
-			"sector sector0_0 3 0 0 -",
-			"sector sector1_0 4 1 0 -",
-			"sector sector0_1 5 0 1 c0",
-			"sector sector1_1 6 1 1 -",
-			"sector sector0_2 7 0 2 -",
-			"sector sector1_2 8 1 2 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-87",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 24,
+			"heap": 17,
 			"forces": [
 				1,
 				2
 			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 3,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 7,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 0,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
+			"keysites": [],
 			"ops": [
 				{
 					"kind": "map",
@@ -13183,361 +14243,109 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -51,
-							"y": 338,
-							"z": 3957.5
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector1_3"
 						},
 						{
 							"kind": "parent",
 							"type": 6,
-							"target": "keysite0"
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
+							"target": "NULL"
 						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite2"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 603.75,
-							"y": -31.5,
-							"z": 2331.25
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"result fatal Position off map: (x = %f, z = %f)",
-			"heap free 20 21 22 23",
-			"heap used  sector2_3 sector1_3 sector0_3 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
-			"cargo  19 3 -1 1 c24c0000 43a90000 45775800 keysite0 NULL",
-			"keysite keysite0 ",
-			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 7 0 0 -",
-			"sector sector1_0 8 1 0 -",
-			"sector sector2_0 9 2 0 -",
-			"sector sector0_1 10 0 1 -",
-			"sector sector1_1 11 1 1 -",
-			"sector sector2_1 12 2 1 -",
-			"sector sector0_2 13 0 2 -",
-			"sector sector1_2 14 1 2 -",
-			"sector sector2_2 15 2 2 -",
-			"sector sector0_3 16 0 3 -",
-			"sector sector1_3 17 1 3 -",
-			"sector sector2_3 18 2 3 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-88",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 15,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 1,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 8,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 7,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 0,
-					"zSectors": 1,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -1,
-							"y": 488.75,
-							"z": 760.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -1,
-							"y": 234.75,
-							"z": 828.75
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 17
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 18
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 0,
-							"y": 127.25,
-							"z": 821.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 0,
-							"y": 271,
-							"z": 436.75
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 12
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -0.25,
-							"y": 150.25,
-							"z": 6.5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
 						{
 							"kind": "int",
 							"type": 7,
 							"value": 0
 						}
 					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1442.25,
+							"y": 317,
+							"z": 2830.5
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 0,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "allocate",
+					"label": "g5",
+					"index": 8
 				}
 			]
 		},
 		"expected": [
-			"result assert num_map_x_sectors > 0",
-			"heap free 7 8 9 10 11 12 13 14",
-			"heap used keysite2 keysite1 keysite0 force1 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 -"
+			"transmit-create 4 16 parent 6 NULL parent 33 sector1_3 parent 6 NULL int 7 0 end",
+			"created c0 16",
+			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used c0 sector2_3 sector1_3 sector0_3 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 force1 force0 update session",
+			"cargo c0 16 3 -1 0 44bff000 46e0bf00 44fff000 NULL sector1_1",
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 -",
+			"sector sector2_0 6 2 0 -",
+			"sector sector0_1 7 0 1 -",
+			"sector sector1_1 8 1 1 c0",
+			"sector sector2_1 9 2 1 -",
+			"sector sector0_2 10 0 2 -",
+			"sector sector1_2 11 1 2 -",
+			"sector sector2_2 12 2 2 -",
+			"sector sector0_3 13 0 3 -",
+			"sector sector1_3 14 1 3 -",
+			"sector sector2_3 15 2 3 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-89",
+		"id": "lifecycle-20260924-98",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 11,
-			"forces": [
-				2
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 2,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 3,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 7,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 2,
-					"sideLength": 256
-				}
-			]
-		},
-		"expected": [
-			"result ok",
-			"heap free 8 9 10",
-			"heap used sector0_1 sector0_0 keysite2 keysite1 keysite0 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 6 0 0 -",
-			"sector sector0_1 7 0 1 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-90",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 17,
+			"heap": 18,
 			"forces": [
 				1,
 				2
 			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 1,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 8,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 7,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
+			"keysites": [],
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 1,
+					"xSectors": 4,
 					"zSectors": 3,
-					"sideLength": 1024
-				}
-			]
-		},
-		"expected": [
-			"result ok",
-			"heap free 10 11 12 13 14 15 16",
-			"heap used sector0_2 sector0_1 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 7 0 0 -",
-			"sector sector0_1 8 0 1 -",
-			"sector sector0_2 9 0 2 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-91",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 6,
-			"forces": [
-				2
-			],
-			"keysites": [
+					"sideLength": 1000
+				},
 				{
-					"side": 2,
-					"subType": 2,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 4,
-					"sideLength": 512
+					"kind": "allocate",
+					"label": "g0",
+					"index": 10
 				},
 				{
 					"kind": "create",
@@ -13546,11 +14354,34 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "int",
+							"type": 53,
+							"value": 3
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						},
+						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 344.25,
-							"y": 20.5,
-							"z": 1954.25
+							"x": 3236.75,
+							"y": 145,
+							"z": 527.75
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
 						},
 						{
 							"kind": "int",
@@ -13558,146 +14389,17 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"value": 2
 						},
 						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_1"
-						},
-						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 205,
-							"y": 311,
-							"z": 1127
+							"x": 2297.5,
+							"y": 490.25,
+							"z": 786.25
 						}
 					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 408.75,
-							"y": 419.5,
-							"z": 1897.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c2"
 				},
 				{
 					"kind": "destroy",
 					"label": "c1"
-				}
-			]
-		},
-		"expected": [
-			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used   keysite0 force0 update session",
-			"keysite keysite0 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-92",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 19,
-			"forces": [
-				1
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 1,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 2,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 655.25,
-							"y": 251.75,
-							"z": 442
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 5
-						}
-					]
 				},
 				{
 					"kind": "create",
@@ -13708,118 +14410,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 1356.5,
-							"y": 11,
-							"z": 409.5
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 12 int 191 3 parent 6 keysite0 int 191 2 end",
-			"created c0 12",
-			"transmit-create 4 13 vec3d 8 4423d000 437bc000 43dd0000 int 53 5 end",
-			"created c1 13",
-			"transmit-create 4 14 vec3d 8 44a99000 41300000 43ccc000 end",
-			"created c2 14",
-			"result ok",
-			"heap free 15 16 17 18",
-			"heap used c2 c1 c0 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite0 force0 update session",
-			"cargo c2 14 3 -1 1 44a99000 41300000 43ccc000 NULL sector2_0",
-			"cargo c1 13 3 5 1 4423d000 437bc000 43dd0000 NULL sector1_0",
-			"cargo c0 12 2 -1 1 447fe000 46e0bf00 43ffc000 keysite0 sector1_0",
-			"keysite keysite0 c0",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 c1 c0",
-			"sector sector2_0 6 2 0 c2",
-			"sector sector3_0 7 3 0 -",
-			"sector sector0_1 8 0 1 -",
-			"sector sector1_1 9 1 1 -",
-			"sector sector2_1 10 2 1 -",
-			"sector sector3_1 11 3 1 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-93",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 16,
-			"forces": [
-				1
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 8,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 1,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 1,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 38,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector1_0"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 484.5,
-							"y": 17.75,
-							"z": 491.25
+							"x": 3707.5,
+							"y": 51.5,
+							"z": 2090.25
 						},
 						{
 							"kind": "int",
@@ -13827,34 +14420,6 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"value": 2
 						}
 					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 97,
-							"y": 407.5,
-							"z": 501.25
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c2"
-				},
-				{
-					"kind": "destroy",
-					"label": "c2"
 				},
 				{
 					"kind": "create",
@@ -13863,16 +14428,31 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1418,
-							"y": 421.25,
-							"z": 224.25
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
 						},
 						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
+							"kind": "vec3d",
+							"type": 8,
+							"x": 2280.75,
+							"y": 497.25,
+							"z": 915
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
 						}
 					]
 				},
@@ -13883,46 +14463,40 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 0
 						}
 					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
 				}
 			]
 		},
 		"expected": [
-			"result assert (type > ENTITY_TYPE_UNKNOWN) && (type < NUM_ENTITY_TYPES)",
-			"heap free 9 10 11 12 13 14 15",
-			"heap used sector3_0 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"sector sector0_0 5 0 0 -",
-			"sector sector1_0 6 1 0 -",
-			"sector sector2_0 7 2 0 -",
-			"sector sector3_0 8 3 0 -"
+			"result assert int_bit_count (sector_side_length) == 1",
+			"heap free 4 5 6 7 8 9 10 11 12 13 14 15 16 17",
+			"heap used force1 force0 update session"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-94",
+		"id": "lifecycle-20260924-99",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 12,
+			"heap": 8,
 			"forces": [
-				1,
-				2
+				1
 			],
 			"keysites": [],
 			"ops": [
 				{
 					"kind": "map",
 					"xSectors": 2,
-					"zSectors": 3,
-					"sideLength": 512
+					"zSectors": 1,
+					"sideLength": 256
 				},
 				{
 					"kind": "create",
@@ -13931,30 +14505,19 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 500.5,
-							"y": -22.5,
-							"z": 630.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 368.75,
-							"y": 81.75,
-							"z": 604.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 510,
-							"y": -52.75,
-							"z": 1526
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
 						},
 						{
 							"kind": "int",
-							"type": 53,
-							"value": 18
+							"type": 7,
+							"value": 3
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
 						}
 					]
 				},
@@ -13969,60 +14532,10 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 412.75,
-							"y": 377.75,
-							"z": 1535.25
-						},
-						{
 							"kind": "parent",
 							"type": 6,
 							"target": "NULL"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 504,
-							"y": 228.25,
-							"z": 662.75
 						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector1_1"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1024,
-							"y": 49.5,
-							"z": 783.75
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c2"
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
 						{
 							"kind": "parent",
 							"type": 6,
@@ -14034,17 +14547,17 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"value": 1
 						},
 						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
 						}
 					]
 				},
 				{
 					"kind": "create",
-					"label": "c4",
+					"label": "c2",
 					"type": 4,
-					"index": 5,
+					"index": 0,
 					"attributes": [
 						{
 							"kind": "int",
@@ -14052,9 +14565,76 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"value": -1
 						},
 						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 77,
+							"y": 20,
+							"z": 45.25
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						},
+						{
 							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
+							"type": 33,
+							"target": "sector0_0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 55.25,
+							"y": 489,
+							"z": 189.75
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 510.75,
+							"y": 295.75,
+							"z": 32.5
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector1_0"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
 						}
 					]
 				},
@@ -14066,49 +14646,154 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": [
 						{
 							"kind": "int",
-							"type": 53,
-							"value": 7
+							"type": 191,
+							"value": 3
 						},
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 702.25,
-							"y": 38.5,
-							"z": 247.25
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
 						}
 					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 10 vec3d 8 43fa4000 c1b40000 441d9000 vec3d 8 43b86000 42a38000 44171000 vec3d 8 43ff0000 c2530000 44bec000 int 53 18 end",
-			"created c0 10",
+			"transmit-create 4 5 parent 33 sector0_0 int 7 3 int 191 3 end",
+			"created c0 5",
 			"transmit-destroy c0",
-			"result fatal Position off map: (x = %f, z = %f)",
-			"heap free 11",
-			"heap used c0 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 force1 force0 update session",
-			"cargo c0 10 3 -1 1 43ce6000 43bce000 44bfe800 NULL NULL",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector0_1 6 0 1 -",
-			"sector sector1_1 7 1 1 -",
-			"sector sector0_2 8 0 2 -",
-			"sector sector1_2 9 1 2 -"
+			"transmit-create 4 5 parent 6 NULL parent 6 NULL int 7 1 parent 6 NULL end",
+			"created c1 5",
+			"result assert assert_local_create_entity_index ((index))",
+			"heap free 6 7",
+			"heap used c1 sector1_0 sector0_0 force0 update session",
+			"cargo c1 5 3 -1 1 437f8000 46e0bf00 42ff0000 NULL sector0_0",
+			"sector sector0_0 3 0 0 c1",
+			"sector sector1_0 4 1 0 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-95",
+		"id": "lifecycle-20260924-100",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 18,
+			"heap": 9,
+			"forces": [
+				1
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 3,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 3,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 218.5,
+							"y": 337,
+							"z": 547.25
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 3
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 140.25,
+							"y": 423.75,
+							"z": 392.25
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 7 vec3d 8 435a8000 43a88000 4408d000 parent 6 keysite0 end",
+			"created c0 7",
+			"transmit-create 4 8 parent 6 NULL int 53 3 parent 6 keysite0 vec3d 8 430c4000 43d3e000 43c42000 end",
+			"created c1 8",
+			"result ok",
+			"heap free",
+			"heap used c1 c0 sector0_2 sector0_1 sector0_0 keysite0 force0 update session",
+			"cargo c1 8 3 3 1 430c4000 43d3e000 43c42000 keysite0 sector0_1",
+			"cargo c0 7 3 -1 1 435a8000 43a88000 4408d000 keysite0 sector0_2",
+			"keysite keysite0 c1 c0",
+			"sector sector0_0 4 0 0 -",
+			"sector sector0_1 5 0 1 c1",
+			"sector sector0_2 6 0 2 c0"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-101",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 23,
 			"forces": [
 				2
 			],
 			"keysites": [
+				{
+					"side": 1,
+					"subType": 5,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
 				{
 					"side": 2,
 					"subType": 6,
@@ -14117,710 +14802,8 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"z": 0,
 					"ammo": 100,
 					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 3,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
 				}
 			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 3,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 34.5,
-							"y": 37.5,
-							"z": 458.25
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 18
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 505,
-							"y": 211.75,
-							"z": 504.25
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_1"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 498.25,
-							"y": -97.75,
-							"z": 1394
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 139.25,
-							"y": 54,
-							"z": 1340.75
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 0,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 18
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 401.25,
-							"y": 322.75,
-							"z": 1535.25
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 8 vec3d 8 420a0000 42160000 43e52000 end",
-			"created c0 8",
-			"transmit-destroy c0",
-			"transmit-create 4 8 int 53 18 vec3d 8 43fc8000 4353c000 43fc2000 parent 6 keysite0 end",
-			"created c1 8",
-			"transmit-create 4 9 parent 33 sector0_1 vec3d 8 43f92000 c2c38000 44ae4000 parent 6 keysite0 vec3d 8 430b4000 42580000 44a79800 int 191 3 end",
-			"created c2 9",
-			"transmit-destroy c1",
-			"result assert (type > ENTITY_TYPE_UNKNOWN) && (type < NUM_ENTITY_TYPES)",
-			"heap free 8 10 11 12 13 14 15 16 17",
-			"heap used c2 sector0_2 sector0_1 sector0_0 keysite1 keysite0 force0 update session",
-			"cargo c2 9 3 -1 1 430b4000 42580000 44a79800 keysite0 sector0_2",
-			"keysite keysite0 c2",
-			"keysite keysite1 -",
-			"sector sector0_0 5 0 0 -",
-			"sector sector0_1 6 0 1 -",
-			"sector sector0_2 7 0 2 c2"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-96",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 17,
-			"forces": [
-				1
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 2,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 3,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 2,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 473,
-							"y": -71.25,
-							"z": 177.75
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 38
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 367.75,
-							"y": 28,
-							"z": 445.5
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 620.5,
-							"y": 83,
-							"z": 505
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 212.25,
-							"y": 324,
-							"z": 504.75
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector1_1"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector2_1"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 13 vec3d 8 43ec8000 c28e8000 4331c000 int 53 38 end",
-			"created c0 13",
-			"transmit-create 4 14 vec3d 8 43b7e000 41e00000 43dec000 pred 6 c0 int 7 1 end",
-			"created c1 14",
-			"transmit-create 4 15 parent 33 sector0_0 vec3d 8 441b2000 42a60000 43fc8000 int 191 2 end",
-			"created c2 15",
-			"transmit-destroy c0",
-			"transmit-create 4 13 int 191 3 int 191 0 end",
-			"created c3 13",
-			"transmit-create 4 16 vec3d 8 43544000 43a20000 43fc6000 end",
-			"created c4 16",
-			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used c4 c3 c2 c1 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
-			"cargo c4 16 3 -1 1 43544000 43a20000 43fc6000 NULL sector0_1",
-			"cargo c3 13 0 -1 1 43ffc000 46e0bf00 437f8000 NULL sector1_0",
-			"cargo c2 15 2 -1 1 441b2000 42a60000 43fc8000 NULL sector2_1",
-			"cargo c1 14 3 -1 1 43b7e000 41e00000 43dec000 NULL sector1_1",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"sector sector0_0 5 0 0 -",
-			"sector sector1_0 6 1 0 c3",
-			"sector sector2_0 7 2 0 -",
-			"sector sector3_0 8 3 0 -",
-			"sector sector0_1 9 0 1 c4",
-			"sector sector1_1 10 1 1 c1",
-			"sector sector2_1 11 2 1 c2",
-			"sector sector3_1 12 3 1 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-97",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 7,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 1,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 3,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 761.5,
-							"y": -59.25,
-							"z": 970.75
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_2"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 3
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 204.5,
-							"y": -81.75,
-							"z": 327
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 713,
-							"y": 350.75,
-							"z": 1541.75
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_2"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 19
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c5"
-				}
-			]
-		},
-		"expected": [
-			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used   keysite0 force1 force0 update session",
-			"keysite keysite0 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-98",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 11,
-			"forces": [
-				2
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 8,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 8,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 3,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 8 int 191 3 end",
-			"created c0 8",
-			"transmit-create 4 9 int 191 3 int 191 0 int 191 4 end",
-			"created c1 9",
-			"result ok",
-			"heap free 10",
-			"heap used c1 c0 sector0_2 sector0_1 sector0_0 keysite1 keysite0 force0 update session",
-			"cargo c1 9 0 -1 1 43ffc000 46e0bf00 44bff000 NULL sector0_1",
-			"cargo c0 8 3 -1 1 43ffc000 46e0bf00 44bff000 NULL sector0_1",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"sector sector0_0 5 0 0 -",
-			"sector sector0_1 6 0 1 c1 c0",
-			"sector sector0_2 7 0 2 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-99",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 27,
-			"forces": [
-				2
-			],
-			"keysites": [],
 			"ops": [
 				{
 					"kind": "map",
@@ -14835,11 +14818,19 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 3832,
-							"y": 436.75,
-							"z": 769.75
+							"kind": "int",
+							"type": 53,
+							"value": 36
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 8
 						}
 					]
 				},
@@ -14850,9 +14841,14 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
 						},
 						{
 							"kind": "int",
@@ -14860,11 +14856,100 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"value": 0
 						},
 						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 21 int 53 36 parent 6 keysite0 int 53 8 end",
+			"created c0 21",
+			"transmit-create 4 22 int 191 3 int 191 3 int 191 0 int 191 4 int 191 4 end",
+			"created c1 22",
+			"result ok",
+			"heap free",
+			"heap used c1 c0 sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
+			"cargo c1 22 0 -1 1 44fff000 46e0bf00 44fff000 NULL sector1_1",
+			"cargo c0 21 3 8 1 44fff000 46e0bf00 44fff000 keysite0 sector1_1",
+			"keysite keysite0 c0",
+			"keysite keysite1 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -",
+			"sector sector2_0 7 2 0 -",
+			"sector sector3_0 8 3 0 -",
+			"sector sector0_1 9 0 1 -",
+			"sector sector1_1 10 1 1 c1 c0",
+			"sector sector2_1 11 2 1 -",
+			"sector sector3_1 12 3 1 -",
+			"sector sector0_2 13 0 2 -",
+			"sector sector1_2 14 1 2 -",
+			"sector sector2_2 15 2 2 -",
+			"sector sector3_2 16 3 2 -",
+			"sector sector0_3 17 0 3 -",
+			"sector sector1_3 18 1 3 -",
+			"sector sector2_3 19 2 3 -",
+			"sector sector3_3 20 3 3 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-102",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 19,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 4,
+					"zSectors": 3,
+					"sideLength": 256
+				},
+				{
+					"kind": "allocate",
+					"label": "g0",
+					"index": 7
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 2552.5,
-							"y": 474.75,
-							"z": 1868
+							"x": 974.25,
+							"y": 327.75,
+							"z": 97
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 14
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": -9,
+							"y": 45.25,
+							"z": 734.75
 						},
 						{
 							"kind": "parent",
@@ -14872,49 +14957,248 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"target": "NULL"
 						}
 					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 9
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 13
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 143.75,
+							"y": 134.25,
+							"z": 39.75
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 23
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 631.25,
+							"y": 314.25,
+							"z": 574.5
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c4"
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c6",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c2"
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
+						}
+					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 19 vec3d 8 456f8000 43da6000 44407000 end",
-			"created c0 19",
-			"transmit-create 4 20 pred 6 c0 int 191 0 vec3d 8 451f8800 43ed6000 44e98000 parent 6 NULL end",
-			"created c1 20",
-			"result ok",
-			"heap free 21 22 23 24 25 26",
-			"heap used c1 c0 sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 force0 update session",
-			"cargo c1 20 0 -1 1 451f8800 43ed6000 44e98000 NULL sector2_1",
-			"cargo c0 19 3 -1 1 456f8000 43da6000 44407000 NULL sector3_0",
-			"sector sector0_0 3 0 0 -",
-			"sector sector1_0 4 1 0 -",
-			"sector sector2_0 5 2 0 -",
-			"sector sector3_0 6 3 0 c0",
-			"sector sector0_1 7 0 1 -",
-			"sector sector1_1 8 1 1 -",
-			"sector sector2_1 9 2 1 c1",
-			"sector sector3_1 10 3 1 -",
-			"sector sector0_2 11 0 2 -",
-			"sector sector1_2 12 1 2 -",
-			"sector sector2_2 13 2 2 -",
-			"sector sector3_2 14 3 2 -",
-			"sector sector0_3 15 0 3 -",
-			"sector sector1_3 16 1 3 -",
-			"sector sector2_3 17 2 3 -",
-			"sector sector3_3 18 3 3 -"
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 16 17 18",
+			"heap used sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 force1 force0 update session",
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 -",
+			"sector sector2_0 6 2 0 -",
+			"sector sector3_0 7 3 0 -",
+			"sector sector0_1 8 0 1 -",
+			"sector sector1_1 9 1 1 -",
+			"sector sector2_1 10 2 1 -",
+			"sector sector3_1 11 3 1 -",
+			"sector sector0_2 12 0 2 -",
+			"sector sector1_2 13 1 2 -",
+			"sector sector2_2 14 2 2 -",
+			"sector sector3_2 15 3 2 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-100",
+		"id": "lifecycle-20260924-103",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 13,
+			"heap": 16,
 			"forces": [
+				1,
+				2
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 3,
+					"zSectors": 2,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1487,
+							"y": 188.25,
+							"z": 842.25
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 10 parent 6 NULL int 191 4 vec3d 8 44b9e000 433c4000 44529000 int 191 1 end",
+			"created c0 10",
+			"result ok",
+			"heap free 11 12 13 14 15",
+			"heap used c0 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 force1 force0 update session",
+			"cargo c0 10 1 -1 1 44b9e000 433c4000 44529000 NULL sector2_1",
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 -",
+			"sector sector2_0 6 2 0 -",
+			"sector sector0_1 7 0 1 -",
+			"sector sector1_1 8 1 1 -",
+			"sector sector2_1 9 2 1 c0"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-104",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 24,
+			"forces": [
+				1,
 				2
 			],
 			"keysites": [
 				{
 					"side": 2,
-					"subType": 1,
+					"subType": 7,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -14926,36 +15210,31 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				{
 					"kind": "map",
 					"xSectors": 4,
-					"zSectors": 1,
-					"sideLength": 1024
+					"zSectors": 4,
+					"sideLength": 512
 				},
 				{
 					"kind": "create",
 					"label": "c0",
 					"type": 4,
-					"index": -1,
+					"index": 2,
 					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
 						{
 							"kind": "int",
 							"type": 191,
-							"value": -1
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
+							"value": 0
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 3441.5,
-							"y": 221.5,
-							"z": 494
+							"x": 1315,
+							"y": 110.25,
+							"z": 78.25
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 35
 						}
 					]
 				},
@@ -14964,25 +15243,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c1",
 					"type": 4,
 					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2546.5,
-							"y": 204,
-							"z": 710.25
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						}
-					]
+					"attributes": []
 				},
 				{
 					"kind": "create",
@@ -14991,34 +15252,34 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c1"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 28
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1678.25,
+							"y": -92.75,
+							"z": 883
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 127.5,
-							"y": 316.5,
-							"z": 964.25
+							"x": 1611.5,
+							"y": 215,
+							"z": 590.75
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 984.25,
-							"y": 271.75,
-							"z": 726
+							"x": 1832.25,
+							"y": 331.5,
+							"z": 1219
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 710.25,
+							"y": -43.25,
+							"z": 1875.25
 						}
 					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
 				},
 				{
 					"kind": "create",
@@ -15027,11 +15288,31 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						},
+						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 2065.25,
-							"y": -43.25,
-							"z": 785.5
+							"x": 2005.25,
+							"y": 55.5,
+							"z": 2047.25
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
 						}
 					]
 				},
@@ -15042,9 +15323,23 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1758.5,
+							"y": 70,
+							"z": 1348.75
+						},
+						{
 							"kind": "int",
-							"type": 191,
-							"value": 5
+							"type": 53,
+							"value": 24
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 693,
+							"y": 307.25,
+							"z": 411.75
 						}
 					]
 				},
@@ -15053,28 +15348,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c5",
 					"type": 4,
 					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
-						}
-					]
+					"attributes": []
 				},
 				{
 					"kind": "create",
@@ -15083,14 +15357,26 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "int",
+							"type": 53,
+							"value": 10
+						},
+						{
 							"kind": "parent",
 							"type": 6,
 							"target": "keysite0"
 						},
 						{
 							"kind": "int",
-							"type": 53,
-							"value": 19
+							"type": 7,
+							"value": 3
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 257.5,
+							"y": 211.75,
+							"z": 1444
 						}
 					]
 				},
@@ -15103,81 +15389,69 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 433,
-							"y": -77,
-							"z": 924.5
+							"x": 1198.5,
+							"y": -52.25,
+							"z": 42.5
 						},
 						{
 							"kind": "int",
-							"type": 7,
+							"type": 53,
 							"value": 0
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 3698.25,
-							"y": 447.5,
-							"z": 784.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 3357.5,
-							"y": -92.75,
-							"z": 441.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 3224,
-							"y": 215,
-							"z": 295.25
 						}
 					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c4"
+				},
+				{
+					"kind": "allocate",
+					"label": "g9",
+					"index": 17
+				},
+				{
+					"kind": "allocate",
+					"label": "g10",
+					"index": 14
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 8 parent 6 keysite0 int 191 -1 parent 6 keysite0 vec3d 8 45571800 435d8000 43f70000 end",
-			"created c0 8",
-			"transmit-create 4 9 vec3d 8 451f2800 434c0000 44319000 int 191 0 int 191 1 end",
-			"created c1 9",
-			"transmit-create 4 10 pred 6 c1 int 53 28 vec3d 8 42ff0000 439e4000 44711000 vec3d 8 44761000 4387e000 44358000 end",
-			"created c2 10",
-			"transmit-destroy c0",
-			"transmit-create 4 8 vec3d 8 45011400 c22d0000 44446000 end",
-			"created c3 8",
-			"transmit-create 4 11 int 191 5 end",
-			"created c4 11",
-			"transmit-create 4 12 int 191 1 int 7 0 int 191 2 parent 33 sector0_0 end",
-			"created c5 12",
-			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used c5 c4 c3 c2 c1 sector3_0 sector2_0 sector1_0 sector0_0 keysite0 force0 update session",
-			"cargo c5 12 2 -1 0 44fff000 46e0bf00 43ffc000 NULL sector1_0",
-			"cargo c4 11 1 -1 1 44fff000 46e0bf00 43ffc000 NULL sector1_0",
-			"cargo c3 8 3 -1 1 45011400 c22d0000 44446000 NULL sector2_0",
-			"cargo c2 10 3 28 1 44761000 4387e000 44358000 NULL sector0_0",
-			"cargo c1 9 1 -1 1 451f2800 434c0000 44319000 NULL sector2_0",
+			"result assert assert_local_create_entity_index ((index))",
+			"heap free 21 22 23",
+			"heap used sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite0 force1 force0 update session",
 			"keysite keysite0 -",
-			"sector sector0_0 4 0 0 c2",
-			"sector sector1_0 5 1 0 c5 c4",
-			"sector sector2_0 6 2 0 c3 c1",
-			"sector sector3_0 7 3 0 -"
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -",
+			"sector sector2_0 7 2 0 -",
+			"sector sector3_0 8 3 0 -",
+			"sector sector0_1 9 0 1 -",
+			"sector sector1_1 10 1 1 -",
+			"sector sector2_1 11 2 1 -",
+			"sector sector3_1 12 3 1 -",
+			"sector sector0_2 13 0 2 -",
+			"sector sector1_2 14 1 2 -",
+			"sector sector2_2 15 2 2 -",
+			"sector sector3_2 16 3 2 -",
+			"sector sector0_3 17 0 3 -",
+			"sector sector1_3 18 1 3 -",
+			"sector sector2_3 19 2 3 -",
+			"sector sector3_3 20 3 3 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-101",
+		"id": "lifecycle-20260924-105",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 22,
+			"heap": 13,
 			"forces": [
+				1,
 				2
 			],
 			"keysites": [
 				{
 					"side": 2,
-					"subType": 5,
+					"subType": 7,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -15186,7 +15460,16 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"side": 2,
-					"subType": 8,
+					"subType": 1,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 0,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -15197,9 +15480,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 4,
-					"sideLength": 256
+					"xSectors": 4,
+					"zSectors": 1,
+					"sideLength": 1024
 				},
 				{
 					"kind": "create",
@@ -15208,9 +15491,26 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1870.25,
+							"y": -59.5,
+							"z": 556.25
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite2"
+						},
+						{
 							"kind": "int",
-							"type": 53,
-							"value": 24
+							"type": 191,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
 						}
 					]
 				},
@@ -15226,269 +15526,13 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": [
 						{
 							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 439,
-							"y": 70,
-							"z": 674
-						},
-						{
-							"kind": "int",
 							"type": 53,
-							"value": 24
+							"value": 29
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 173,
-							"y": 307.25,
-							"z": 205.75
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 13 int 53 24 end",
-			"created c0 13",
-			"transmit-destroy c0",
-			"transmit-create 4 13 int 191 2 parent 6 keysite1 end",
-			"created c1 13",
-			"transmit-create 4 14 vec3d 8 43db8000 428c0000 44288000 int 53 24 vec3d 8 432d0000 4399a000 434dc000 end",
-			"created c2 14",
-			"result ok",
-			"heap free 15 16 17 18 19 20 21",
-			"heap used c2 c1 sector1_3 sector0_3 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
-			"cargo c2 14 3 24 1 432d0000 4399a000 434dc000 NULL sector0_0",
-			"cargo c1 13 2 -1 1 437f8000 46e0bf00 43ffc000 keysite1 sector0_1",
-			"keysite keysite0 -",
-			"keysite keysite1 c1",
-			"sector sector0_0 5 0 0 c2",
-			"sector sector1_0 6 1 0 -",
-			"sector sector0_1 7 0 1 c1",
-			"sector sector1_1 8 1 1 -",
-			"sector sector0_2 9 0 2 -",
-			"sector sector1_2 10 1 2 -",
-			"sector sector0_3 11 0 3 -",
-			"sector sector1_3 12 1 3 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-102",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 21,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 2,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 257.5,
-							"y": 211.75,
-							"z": 721.75
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 938,
-							"y": -38.5,
-							"z": 838.75
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 12 parent 6 NULL vec3d 8 4380c000 4353c000 44347000 vec3d 8 446a8000 c21a0000 4451b000 end",
-			"created c0 12",
-			"result ok",
-			"heap free 13 14 15 16 17 18 19 20",
-			"heap used c0 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 force1 force0 update session",
-			"cargo c0 12 3 -1 1 446a8000 c21a0000 4451b000 NULL sector1_1",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector2_0 6 2 0 -",
-			"sector sector3_0 7 3 0 -",
-			"sector sector0_1 8 0 1 -",
-			"sector sector1_1 9 1 1 c0",
-			"sector sector2_1 10 2 1 -",
-			"sector sector3_1 11 3 1 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-103",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 20,
-			"forces": [
-				1
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 2,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 5,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 3,
-					"sideLength": 1024
-				}
-			]
-		},
-		"expected": [
-			"result ok",
-			"heap free 14 15 16 17 18 19",
-			"heap used sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"sector sector0_0 5 0 0 -",
-			"sector sector1_0 6 1 0 -",
-			"sector sector2_0 7 2 0 -",
-			"sector sector0_1 8 0 1 -",
-			"sector sector1_1 9 1 1 -",
-			"sector sector2_1 10 2 1 -",
-			"sector sector0_2 11 0 2 -",
-			"sector sector1_2 12 1 2 -",
-			"sector sector2_2 13 2 2 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-104",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 24,
-			"forces": [
-				2
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 6,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 4,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 6,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 4,
-					"sideLength": 256
-				},
-				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 1,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 812,
-							"y": 403.25,
-							"z": 338
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 31.5,
-							"y": 348.25,
-							"z": 865.75
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 43.75,
+							"x": 175,
 							"y": 261.75,
 							"z": 961.25
 						},
@@ -15500,12 +15544,12 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "parent",
 							"type": 33,
-							"target": "sector1_3"
+							"target": "sector1_0"
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 625.75,
+							"x": 2505.25,
 							"y": 499.75,
 							"z": 511.25
 						}
@@ -15551,7 +15595,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 66.5,
+							"x": 265.75,
 							"y": 488.25,
 							"z": 461.5
 						},
@@ -15563,38 +15607,77 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 183.75,
+							"x": 735.25,
 							"y": 1.5,
 							"z": 603
 						}
 					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
 				}
 			]
 		},
 		"expected": [
-			"result fatal SC_CREAT: uninitialised sector entity",
-			"heap free 22 23",
-			"heap used sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
+			"transmit-create 4 11 vec3d 8 44e9c800 c26e0000 440b1000 parent 6 keysite2 int 191 0 int 191 2 end",
+			"created c0 11",
+			"transmit-destroy c0",
+			"transmit-create 4 11 int 53 29 vec3d 8 432f0000 4382e000 44705000 int 191 1 parent 33 sector1_0 vec3d 8 451c9400 43f9e000 43ffa000 end",
+			"created c1 11",
+			"transmit-destroy c1",
+			"transmit-create 4 11 end",
+			"created c2 11",
+			"transmit-destroy c2",
+			"transmit-create 4 11 end",
+			"created c3 11",
+			"transmit-destroy c3",
+			"transmit-create 4 11 int 191 1 vec3d 8 4384e000 43f42000 43e6c000 int 7 1 vec3d 8 4437d000 3fc00000 4416c000 end",
+			"created c4 11",
+			"transmit-create 4 12 end",
+			"created c5 12",
+			"transmit-destroy c4",
+			"result ok",
+			"heap free 11",
+			"heap used c5 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
+			"cargo c5 12 3 -1 1 44fff000 46e0bf00 43ffc000 NULL sector1_0",
 			"keysite keysite0 -",
 			"keysite keysite1 -",
-			"keysite keysite2 -"
+			"keysite keysite2 -",
+			"sector sector0_0 7 0 0 -",
+			"sector sector1_0 8 1 0 c5",
+			"sector sector2_0 9 2 0 -",
+			"sector sector3_0 10 3 0 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-105",
+		"id": "lifecycle-20260924-106",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 12,
+			"heap": 23,
 			"forces": [
-				1
+				1,
+				2
 			],
 			"keysites": [],
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 2,
-					"sideLength": 256
+					"xSectors": 3,
+					"zSectors": 3,
+					"sideLength": 512
+				},
+				{
+					"kind": "allocate",
+					"label": "g0",
+					"index": 3
 				},
 				{
 					"kind": "create",
@@ -15603,25 +15686,33 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1040.75,
+							"y": 91,
+							"z": 714.25
 						},
 						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
+							"kind": "int",
+							"type": 53,
+							"value": 27
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 24
 						},
 						{
 							"kind": "int",
 							"type": 7,
-							"value": 0
+							"value": 2
 						}
 					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
 				},
 				{
 					"kind": "create",
@@ -15632,22 +15723,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "int",
 							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
+							"value": -1
 						}
 					]
 				},
@@ -15656,25 +15732,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c2",
 					"type": 4,
 					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 19
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 255,
-							"y": 496,
-							"z": 42.5
-						}
-					]
+					"attributes": []
 				},
 				{
 					"kind": "destroy",
@@ -15711,27 +15769,22 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			]
 		},
 		"expected": [
-			"transmit-create 4 5 parent 6 NULL parent 33 sector0_0 int 7 0 end",
-			"created c0 5",
-			"transmit-destroy c0",
-			"transmit-create 4 5 int 191 3 int 191 2 parent 6 NULL int 191 1 end",
-			"created c1 5",
-			"transmit-create 4 6 parent 6 NULL int 53 19 vec3d 8 437f0000 43f80000 422a0000 end",
-			"created c2 6",
-			"transmit-destroy c2",
-			"transmit-create 4 6 int 191 2 int 191 -1 parent 6 NULL int 7 1 end",
-			"created c3 6",
-			"result ok",
-			"heap free 7 8 9 10 11",
-			"heap used c3 c1 sector0_1 sector0_0 force0 update session",
-			"cargo c3 6 3 -1 1 42ff0000 46e0bf00 437f8000 NULL sector0_0",
-			"cargo c1 5 1 -1 1 42ff0000 46e0bf00 437f8000 NULL sector0_0",
-			"sector sector0_0 3 0 0 c3 c1",
-			"sector sector0_1 4 0 1 -"
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 13 14 15 16 17 18 19 20 21 22",
+			"heap used sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 force1 force0 update session",
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 -",
+			"sector sector2_0 6 2 0 -",
+			"sector sector0_1 7 0 1 -",
+			"sector sector1_1 8 1 1 -",
+			"sector sector2_1 9 2 1 -",
+			"sector sector0_2 10 0 2 -",
+			"sector sector1_2 11 1 2 -",
+			"sector sector2_2 12 2 2 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-106",
+		"id": "lifecycle-20260924-107",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
 			"heap": 21,
@@ -15775,7 +15828,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 		]
 	},
 	{
-		"id": "lifecycle-20260924-107",
+		"id": "lifecycle-20260924-108",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
 			"heap": 24,
@@ -15891,7 +15944,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 		]
 	},
 	{
-		"id": "lifecycle-20260924-108",
+		"id": "lifecycle-20260924-109",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
 			"heap": 19,
@@ -16104,56 +16157,13 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					]
 				},
 				{
-					"kind": "create",
-					"label": "c8",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						}
-					]
+					"kind": "allocate",
+					"label": "g9",
+					"index": 5
 				},
 				{
-					"kind": "create",
-					"label": "c9",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 428.75,
-							"y": 409.25,
-							"z": 199
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -42.5,
-							"y": 73.25,
-							"z": 858.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 484.25,
-							"y": 258.5,
-							"z": 310
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						}
-					]
+					"kind": "destroy",
+					"label": "c6"
 				}
 			]
 		},
@@ -16181,43 +16191,33 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 		]
 	},
 	{
-		"id": "lifecycle-20260924-109",
+		"id": "lifecycle-20260924-110",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 15,
+			"heap": 14,
 			"forces": [
-				1
+				2
 			],
 			"keysites": [],
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 2,
+					"xSectors": 1,
 					"zSectors": 3,
-					"sideLength": 512
+					"sideLength": 1024
 				},
 				{
 					"kind": "create",
 					"label": "c0",
 					"type": 4,
-					"index": 3,
+					"index": -1,
 					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector1_1"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 867.25,
-							"y": 262,
-							"z": 85
+							"x": 892,
+							"y": 403.5,
+							"z": 2857.75
 						}
 					]
 				},
@@ -16229,28 +16229,418 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": [
 						{
 							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
 							"type": 191,
 							"value": 1
 						},
 						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 6 vec3d 8 445f0000 43c9c000 45329c00 end",
+			"created c0 6",
+			"transmit-create 4 7 int 191 1 int 191 5 int 191 4 end",
+			"created c1 7",
+			"transmit-destroy c0",
+			"transmit-create 4 6 int 7 3 end",
+			"created c2 6",
+			"result ok",
+			"heap free 8 9 10 11 12 13",
+			"heap used c2 c1 sector0_2 sector0_1 sector0_0 force0 update session",
+			"cargo c2 6 3 -1 1 43ffc000 46e0bf00 44bff000 NULL sector0_1",
+			"cargo c1 7 0 -1 1 43ffc000 46e0bf00 44bff000 NULL sector0_1",
+			"sector sector0_0 3 0 0 -",
+			"sector sector0_1 4 0 1 c2 c1",
+			"sector sector0_2 5 0 2 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-111",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 18,
+			"forces": [
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 6,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 2,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 8,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 3,
+					"zSectors": 1,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						},
+						{
 							"kind": "parent",
 							"type": 6,
-							"target": "NULL"
+							"target": "keysite1"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite2"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 468,
+							"y": 55.5,
+							"z": 255.25
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite2"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 26
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 261.75,
+							"y": -66.75,
+							"z": 61.25
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 183,
+							"y": 45.25,
+							"z": 119.25
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c1"
+						}
+					]
+				},
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 1,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g6",
+					"index": 19
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 142.5,
+							"y": 24,
+							"z": 158
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 459.25,
+							"y": 69,
+							"z": 150.75
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 521,
+							"y": 324.25,
+							"z": 26.5
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c6",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g9",
+					"index": 9
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 9 int 191 3 parent 6 keysite1 parent 6 keysite1 parent 6 keysite2 parent 6 keysite1 end",
+			"created c0 9",
+			"transmit-create 4 10 end",
+			"created c1 10",
+			"result fatal Position off map: (x = %f, z = %f)",
+			"heap free 12 13 14 15 16 17",
+			"heap used  c1 c0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
+			"cargo  11 3 26 1 43ea0000 425e0000 437f4000 keysite2 NULL",
+			"cargo c1 10 3 -1 1 43bfc000 46e0bf00 42ff0000 NULL sector1_0",
+			"cargo c0 9 3 -1 1 43bfc000 46e0bf00 42ff0000 keysite1 sector1_0",
+			"keysite keysite0 -",
+			"keysite keysite1 c0",
+			"keysite keysite2 ",
+			"sector sector0_0 6 0 0 -",
+			"sector sector1_0 7 1 0 c1 c0",
+			"sector sector2_0 8 2 0 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-112",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 11,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 4,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 5,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 0,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 2,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 23
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 194.5,
+							"y": 451,
+							"z": 346.5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 165,
+							"y": -70.5,
+							"z": 85.5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 113.25,
+							"y": 71.5,
+							"z": 297.5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 186.25,
+							"y": 412,
+							"z": 486.25
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 201.75,
+							"y": 449.75,
+							"z": 7
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 231.5,
+							"y": 121.75,
+							"z": 80.75
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 242,
+							"y": -59.5,
+							"z": 158
 						}
 					]
 				},
@@ -16261,52 +16651,136 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
+							"kind": "pred",
 							"type": 6,
-							"target": "NULL"
+							"target": "c0"
 						},
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
+							"kind": "int",
+							"type": 191,
+							"value": 2
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 791.25,
-							"y": 337.25,
-							"z": 1535.25
+							"x": 154.5,
+							"y": 110.75,
+							"z": 237.75
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 164.5,
+							"y": 233.25,
+							"z": 482.5
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 7
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c6",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": -45,
+							"y": 21,
+							"z": 140.25
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"result assert assert_local_create_entity_index ((index))",
-			"heap free 9 10 11 12 13 14",
-			"heap used sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 force0 update session",
-			"sector sector0_0 3 0 0 -",
-			"sector sector1_0 4 1 0 -",
-			"sector sector0_1 5 0 1 -",
-			"sector sector1_1 6 1 1 -",
-			"sector sector0_2 7 0 2 -",
-			"sector sector1_2 8 1 2 -"
+			"transmit-create 4 9 int 53 23 vec3d 8 43428000 43e18000 43ad4000 vec3d 8 43250000 c28d0000 42ab0000 vec3d 8 42e28000 428f0000 4394c000 vec3d 8 433a4000 43ce0000 43f32000 end",
+			"created c0 9",
+			"transmit-create 4 10 vec3d 8 4349c000 43e0e000 40e00000 vec3d 8 43678000 42f38000 42a18000 vec3d 8 43720000 c26e0000 431e0000 end",
+			"created c1 10",
+			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used c1 c0 sector0_1 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
+			"cargo c1 10 3 -1 1 43720000 c26e0000 431e0000 NULL sector0_0",
+			"cargo c0 9 3 23 1 433a4000 43ce0000 43f32000 NULL sector0_1",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"keysite keysite2 -",
+			"sector sector0_0 7 0 0 c1",
+			"sector sector0_1 8 0 1 c0"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-110",
+		"id": "lifecycle-20260924-113",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 17,
+			"heap": 18,
 			"forces": [
-				1,
 				2
 			],
 			"keysites": [
 				{
-					"side": 1,
-					"subType": 4,
-					"inUse": true,
+					"side": 2,
+					"subType": 0,
+					"inUse": false,
 					"x": 0,
 					"z": 0,
 					"ammo": 100,
@@ -16322,9 +16796,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"fuel": 100
 				},
 				{
-					"side": 1,
-					"subType": 0,
-					"inUse": false,
+					"side": 2,
+					"subType": 4,
+					"inUse": true,
 					"x": 0,
 					"z": 0,
 					"ammo": 100,
@@ -16335,8 +16809,8 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				{
 					"kind": "map",
 					"xSectors": 4,
-					"zSectors": 3,
-					"sideLength": 1024
+					"zSectors": 1,
+					"sideLength": 512
 				},
 				{
 					"kind": "create",
@@ -16346,31 +16820,39 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": [
 						{
 							"kind": "int",
-							"type": 191,
-							"value": 1
+							"type": 53,
+							"value": 21
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 788.75,
-							"y": 69.25,
-							"z": 732.5
+							"x": 793.75,
+							"y": 85.25,
+							"z": 486.5
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 4030.75,
-							"y": 54,
-							"z": 1425
+							"x": 1969.5,
+							"y": -66.25,
+							"z": 36.5
 						},
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 3194.25,
-							"y": 41.25,
-							"z": 867.5
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 25
 						}
 					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g1",
+					"index": -1
 				},
 				{
 					"kind": "create",
@@ -16379,9 +16861,35 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1978.5,
+							"y": -58,
+							"z": 368
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 266,
+							"y": 370.25,
+							"z": 127.5
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1442.5,
+							"y": 446.75,
+							"z": 269.5
+						},
+						{
 							"kind": "int",
 							"type": 191,
-							"value": -1
+							"value": 4
 						}
 					]
 				},
@@ -16394,9 +16902,21 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 845.5,
-							"y": 343.5,
-							"z": 140.25
+							"x": 1091.25,
+							"y": 262.25,
+							"z": 276.25
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": -42.75,
+							"y": 309.75,
+							"z": 494.5
 						}
 					]
 				},
@@ -16405,58 +16925,65 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c3",
 					"type": 4,
 					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
-						}
-					]
+					"attributes": []
 				},
 				{
 					"kind": "create",
 					"label": "c4",
 					"type": 4,
 					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector2_1"
+							"kind": "vec3d",
+							"type": 8,
+							"x": 557.25,
+							"y": 160.75,
+							"z": 27.25
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1300.75,
+							"y": 398.75,
+							"z": 511.25
 						},
 						{
 							"kind": "int",
-							"type": 53,
-							"value": 33
+							"type": 191,
+							"value": 4
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used           keysite2 keysite1 keysite0 force1 force0 update session",
+			"transmit-create 4 10 int 53 21 vec3d 8 44467000 42aa8000 43f34000 vec3d 8 44f63000 c2848000 42120000 parent 33 sector0_0 int 53 25 end",
+			"created c0 10",
+			"allocated g1 11",
+			"transmit-create 4 12 vec3d 8 44f75000 c2680000 43b80000 vec3d 8 43850000 43b92000 42ff0000 int 7 0 vec3d 8 44b45000 43df6000 4386c000 int 191 4 end",
+			"created c1 12",
+			"result fatal Position off map: (x = %f, z = %f)",
+			"heap free 14 15 16 17",
+			"heap used  c1 g1 c0 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
+			"cargo  13 3 -1 1 c22b0000 439ae000 43f74000 NULL NULL",
+			"cargo c1 12 0 -1 0 44b45000 43df6000 4386c000 NULL sector2_0",
+			"cargo c0 10 3 25 1 44f63000 c2848000 42120000 NULL sector3_0",
 			"keysite keysite0 -",
 			"keysite keysite1 -",
-			"keysite keysite2 -"
+			"keysite keysite2 -",
+			"sector sector0_0 6 0 0 -",
+			"sector sector1_0 7 1 0 -",
+			"sector sector2_0 8 2 0 c1",
+			"sector sector3_0 9 3 0 c0"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-111",
+		"id": "lifecycle-20260924-114",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 29,
+			"heap": 11,
 			"forces": [
-				1,
-				2
+				1
 			],
 			"keysites": [
 				{
@@ -16470,6 +16997,189 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"side": 1,
+					"subType": 2,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 2,
+					"sideLength": 1024
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 38,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "allocate",
+					"label": "g2",
+					"index": 8
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 29
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 537,
+							"y": 388.5,
+							"z": 635
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c4"
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 426.25,
+							"y": 57.75,
+							"z": 165.25
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 148.5,
+							"y": -36,
+							"z": 1654.5
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c6",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 308.25,
+							"y": 461.75,
+							"z": 659.25
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 7 int 7 3 int 191 2 end",
+			"created c0 7",
+			"result assert (type > ENTITY_TYPE_UNKNOWN) && (type < NUM_ENTITY_TYPES)",
+			"heap free 8 9 10",
+			"heap used c0 sector0_1 sector0_0 keysite1 keysite0 force0 update session",
+			"cargo c0 7 2 -1 1 43ffc000 46e0bf00 447fe000 NULL sector0_0",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 5 0 0 c0",
+			"sector sector0_1 6 0 1 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-115",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 18,
+			"forces": [
+				1
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 1,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 8,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
 					"subType": 6,
 					"inUse": true,
 					"x": 0,
@@ -16481,9 +17191,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 4,
-					"sideLength": 1024
+					"xSectors": 3,
+					"zSectors": 3,
+					"sideLength": 256
 				},
 				{
 					"kind": "create",
@@ -16491,10 +17201,6 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"type": 4,
 					"index": -1,
 					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
 				},
 				{
 					"kind": "create",
@@ -16506,6 +17212,21 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"kind": "pred",
 							"type": 6,
 							"target": "c0"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 28
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 0
 						}
 					]
 				},
@@ -16516,25 +17237,31 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 3124.5,
-							"y": 451,
-							"z": 2776.25
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_1"
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 2650,
-							"y": -70.5,
-							"z": 684.75
+							"x": 474.5,
+							"y": -31.25,
+							"z": 330
 						},
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1818.75,
-							"y": 71.5,
-							"z": 2383.5
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
 						}
 					]
 				},
@@ -16545,26 +17272,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2062.75,
-							"y": -17.5,
-							"z": 1799.5
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
 							"kind": "int",
-							"type": 7,
-							"value": 0
+							"type": 53,
+							"value": 28
 						}
 					]
 				},
@@ -16575,33 +17285,28 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
+							"kind": "vec3d",
+							"type": 8,
+							"x": 246.25,
+							"y": 282.75,
+							"z": 630.25
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite2"
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 1571,
-							"y": 469.75,
-							"z": 283.75
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 3982,
-							"y": 16,
-							"z": 1621.75
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
+							"x": 767,
+							"y": 243.75,
+							"z": 21.5
 						}
 					]
 				},
@@ -16612,129 +17317,86 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2953.25,
-							"y": 311.75,
-							"z": 2587.25
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
 							"kind": "parent",
 							"type": 6,
 							"target": "NULL"
 						},
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 7
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c7",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 11
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c8",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": -1
+							"kind": "vec3d",
+							"type": 8,
+							"x": 466.5,
+							"y": 173.75,
+							"z": 475.25
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 716,
-							"y": 64.5,
-							"z": 346
+							"x": 249.25,
+							"y": 83.5,
+							"z": 143.25
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 100,
+							"y": 88.75,
+							"z": 360.75
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 22 end",
-			"created c0 22",
-			"transmit-destroy c0",
-			"result assert en != child_pred",
-			"heap free 23 24 25 26 27 28",
-			"heap used c0 sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force1 force0 update session",
-			"cargo c0 22 3 -1 1 44fff000 46e0bf00 44fff000 NULL NULL",
+			"transmit-create 4 15 end",
+			"created c0 15",
+			"transmit-create 4 16 pred 6 c0 int 53 28 pred 6 c0 int 191 0 end",
+			"created c1 16",
+			"transmit-create 4 17 int 191 -1 parent 33 sector0_1 int 7 1 vec3d 8 43ed4000 c1fa0000 43a50000 parent 6 keysite1 end",
+			"created c2 17",
+			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used c2 c1 c0 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
+			"cargo c2 17 3 -1 1 43ed4000 c1fa0000 43a50000 keysite1 sector1_1",
+			"cargo c1 16 0 28 1 43bfc000 46e0bf00 43bfc000 NULL sector1_1",
+			"cargo c0 15 3 -1 1 43bfc000 46e0bf00 43bfc000 NULL sector1_1",
 			"keysite keysite0 -",
-			"keysite keysite1 -",
+			"keysite keysite1 c2",
+			"keysite keysite2 -",
 			"sector sector0_0 6 0 0 -",
 			"sector sector1_0 7 1 0 -",
 			"sector sector2_0 8 2 0 -",
-			"sector sector3_0 9 3 0 -",
-			"sector sector0_1 10 0 1 -",
-			"sector sector1_1 11 1 1 -",
-			"sector sector2_1 12 2 1 -",
-			"sector sector3_1 13 3 1 -",
-			"sector sector0_2 14 0 2 -",
-			"sector sector1_2 15 1 2 -",
-			"sector sector2_2 16 2 2 -",
-			"sector sector3_2 17 3 2 -",
-			"sector sector0_3 18 0 3 -",
-			"sector sector1_3 19 1 3 -",
-			"sector sector2_3 20 2 3 -",
-			"sector sector3_3 21 3 3 -"
+			"sector sector0_1 9 0 1 -",
+			"sector sector1_1 10 1 1 c2 c1 c0",
+			"sector sector2_1 11 2 1 -",
+			"sector sector0_2 12 0 2 -",
+			"sector sector1_2 13 1 2 -",
+			"sector sector2_2 14 2 2 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-112",
+		"id": "lifecycle-20260924-116",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 11,
+			"heap": 12,
 			"forces": [
-				1
+				1,
+				2
 			],
 			"keysites": [
+				{
+					"side": 2,
+					"subType": 7,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
 				{
 					"side": 2,
 					"subType": 6,
@@ -16743,32 +17405,14 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"z": 0,
 					"ammo": 100,
 					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 0,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 2,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
 				}
 			],
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 1,
-					"sideLength": 1024
+					"xSectors": 1,
+					"zSectors": 3,
+					"sideLength": 512
 				},
 				{
 					"kind": "create",
@@ -16778,1562 +17422,106 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": [
 						{
 							"kind": "int",
-							"type": 53,
-							"value": 23
+							"type": 191,
+							"value": 2
 						},
 						{
 							"kind": "parent",
 							"type": 33,
-							"target": "sector1_0"
+							"target": "sector0_0"
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 631.75,
-							"y": 182.75,
-							"z": 69.75
+							"x": 187.25,
+							"y": 419.25,
+							"z": 284.25
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 115,
-							"y": 114.25,
-							"z": 987.5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 168.5,
-							"y": 26,
-							"z": 988.75
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c2"
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c2"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1254.75,
-							"y": 77,
-							"z": 364.5
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 23
+							"x": 185.5,
+							"y": 39.75,
+							"z": 450.75
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 8 int 53 23 parent 33 sector1_0 vec3d 8 441df000 4336c000 428b8000 vec3d 8 42e60000 42e48000 4476e000 end",
-			"created c0 8",
-			"transmit-create 4 9 int 7 3 int 191 0 vec3d 8 43288000 41d00000 44773000 end",
-			"created c1 9",
-			"transmit-create 4 10 end",
-			"created c2 10",
-			"transmit-destroy c2",
-			"transmit-create 4 10 int 7 0 end",
-			"created c3 10",
-			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used c3 c1 c0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
-			"cargo c3 10 3 -1 0 447fe000 46e0bf00 43ffc000 NULL sector0_0",
-			"cargo c1 9 0 -1 1 43288000 41d00000 44773000 NULL sector0_0",
-			"cargo c0 8 3 23 1 42e60000 42e48000 4476e000 NULL sector0_0",
+			"transmit-create 4 9 int 191 2 parent 33 sector0_0 vec3d 8 433b4000 43d1a000 438e2000 vec3d 8 43398000 421f0000 43e16000 end",
+			"created c0 9",
+			"result ok",
+			"heap free 10 11",
+			"heap used c0 sector0_2 sector0_1 sector0_0 keysite1 keysite0 force1 force0 update session",
+			"cargo c0 9 2 -1 1 43398000 421f0000 43e16000 NULL sector0_0",
 			"keysite keysite0 -",
 			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 6 0 0 c3 c1 c0",
-			"sector sector1_0 7 1 0 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-113",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 7,
-			"forces": [
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 0,
-					"zSectors": 2,
-					"sideLength": 256
-				}
-			]
-		},
-		"expected": [
-			"result assert num_map_x_sectors > 0",
-			"heap free 3 4 5 6",
-			"heap used force0 update session"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-114",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 9,
-			"forces": [
-				1
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 8,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 7,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 3,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 1,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1023.5,
-							"y": 128.5,
-							"z": 293.5
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				}
-			]
-		},
-		"expected": [
-			"result fatal Position off map: (x = %f, z = %f)",
-			"heap free",
-			"heap used  sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
-			"cargo  8 3 -1 1 447fe000 43008000 4392c000 NULL NULL",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-115",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 14,
-			"forces": [
-				2
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 7,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 5,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 4,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 418.25,
-							"y": 80.25,
-							"z": 2523.5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1074.5,
-							"y": 388.5,
-							"z": 1270.5
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1328.5,
-							"y": -39.5,
-							"z": 3992
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1114.5,
-							"y": -9.5,
-							"z": 1650
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 38,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 281.75,
-							"y": 231.75,
-							"z": 3171.75
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 616.75,
-							"y": 461.75,
-							"z": 1318.75
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1292.75,
-							"y": -50,
-							"z": 2354.75
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 26.25,
-							"y": 29.75,
-							"z": 2970.5
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -27.75,
-							"y": 346,
-							"z": 1381.5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 13 vec3d 8 43d12000 42a08000 451db800 end",
-			"created c0 13",
-			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used c0 sector1_3 sector0_3 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
-			"cargo c0 13 3 -1 1 43d12000 42a08000 451db800 NULL sector0_2",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"sector sector0_0 5 0 0 -",
-			"sector sector1_0 6 1 0 -",
+			"sector sector0_0 6 0 0 c0",
 			"sector sector0_1 7 0 1 -",
-			"sector sector1_1 8 1 1 -",
-			"sector sector0_2 9 0 2 c0",
-			"sector sector1_2 10 1 2 -",
-			"sector sector0_3 11 0 3 -",
-			"sector sector1_3 12 1 3 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-116",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 8,
-			"forces": [
-				1
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 1,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1322.75,
-							"y": 200.5,
-							"z": 332.25
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 742,
-							"y": 431,
-							"z": 389.5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1137.75,
-							"y": 404,
-							"z": 505.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 933.5,
-							"y": 173.75,
-							"z": 316.75
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 498.75,
-							"y": 83.5,
-							"z": 95.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 200,
-							"y": 88.75,
-							"z": 240.25
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c3"
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 6 vec3d 8 44a55800 43488000 43a62000 int 191 5 vec3d 8 44398000 43d78000 43c2c000 end",
-			"created c0 6",
-			"transmit-create 4 7 int 7 1 end",
-			"created c1 7",
-			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used c1 c0 sector2_0 sector1_0 sector0_0 force0 update session",
-			"cargo c1 7 3 -1 1 443fe000 46e0bf00 437f8000 NULL sector1_0",
-			"cargo c0 6 1 -1 1 44398000 43d78000 43c2c000 NULL sector1_0",
-			"sector sector0_0 3 0 0 -",
-			"sector sector1_0 4 1 0 c1 c0",
-			"sector sector2_0 5 2 0 -"
+			"sector sector0_2 8 0 2 -"
 		]
 	},
 	{
 		"id": "lifecycle-20260924-117",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 13,
+			"heap": 21,
 			"forces": [
-				1
+				2
 			],
-			"keysites": [],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 2,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 6,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 2,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector3_0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 3740.75,
-							"y": 117.75,
-							"z": 1705.75
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 3123.25,
-							"y": 258,
-							"z": 1641.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2865,
-							"y": 365.25,
-							"z": 1232.75
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						}
-					]
+					"xSectors": 3,
+					"zSectors": 3,
+					"sideLength": 256
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 11 parent 33 sector3_0 vec3d 8 4569cc00 42eb8000 44d53800 vec3d 8 45433400 43810000 44cd2800 vec3d 8 45331000 43b6a000 449a1800 end",
-			"created c0 11",
-			"transmit-create 4 12 int 7 0 parent 6 NULL int 7 0 end",
-			"created c1 12",
 			"result ok",
-			"heap free",
-			"heap used c1 c0 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 force0 update session",
-			"cargo c1 12 3 -1 0 44fff000 46e0bf00 447fe000 NULL sector1_0",
-			"cargo c0 11 3 -1 1 45331000 43b6a000 449a1800 NULL sector2_1",
-			"sector sector0_0 3 0 0 -",
-			"sector sector1_0 4 1 0 c1",
-			"sector sector2_0 5 2 0 -",
-			"sector sector3_0 6 3 0 -",
-			"sector sector0_1 7 0 1 -",
-			"sector sector1_1 8 1 1 -",
-			"sector sector2_1 9 2 1 c0",
-			"sector sector3_1 10 3 1 -"
+			"heap free 14 15 16 17 18 19 20",
+			"heap used sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -",
+			"sector sector2_0 7 2 0 -",
+			"sector sector0_1 8 0 1 -",
+			"sector sector1_1 9 1 1 -",
+			"sector sector2_1 10 2 1 -",
+			"sector sector0_2 11 0 2 -",
+			"sector sector1_2 12 1 2 -",
+			"sector sector2_2 13 2 2 -"
 		]
 	},
 	{
 		"id": "lifecycle-20260924-118",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 22,
+			"heap": 17,
 			"forces": [
-				1,
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 4,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 185.25,
-							"y": 140.25,
-							"z": 614.75
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector1_0"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 16 vec3d 8 43394000 430c4000 4419b000 parent 33 sector1_0 parent 6 NULL int 7 0 end",
-			"created c0 16",
-			"result ok",
-			"heap free 17 18 19 20 21",
-			"heap used c0 sector2_3 sector1_3 sector0_3 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 force1 force0 update session",
-			"cargo c0 16 3 -1 0 43394000 430c4000 4419b000 NULL sector0_1",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector2_0 6 2 0 -",
-			"sector sector0_1 7 0 1 c0",
-			"sector sector1_1 8 1 1 -",
-			"sector sector2_1 9 2 1 -",
-			"sector sector0_2 10 0 2 -",
-			"sector sector1_2 11 1 2 -",
-			"sector sector2_2 12 2 2 -",
-			"sector sector0_3 13 0 3 -",
-			"sector sector1_3 14 1 3 -",
-			"sector sector2_3 15 2 3 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-119",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 9,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 1,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2864.25,
-							"y": 470,
-							"z": 369
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 38,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1074.5,
-							"y": 281.25,
-							"z": 338
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 8 int 191 4 vec3d 8 45330400 43eb0000 43b88000 int 7 0 end",
-			"created c0 8",
-			"transmit-destroy c0",
-			"result assert (type > ENTITY_TYPE_UNKNOWN) && (type < NUM_ENTITY_TYPES)",
-			"heap free 8",
-			"heap used sector3_0 sector2_0 sector1_0 sector0_0 force1 force0 update session",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector2_0 6 2 0 -",
-			"sector sector3_0 7 3 0 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-120",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 13,
-			"forces": [
-				1
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 8,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 2,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 23
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 312.25,
-							"y": 234.25,
-							"z": 315.5
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1023.5,
-							"y": 445.5,
-							"z": 298.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1023,
-							"y": 333,
-							"z": 276.25
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 351.75,
-							"y": 440.75,
-							"z": 353.5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1023.5,
-							"y": 393.25,
-							"z": 279.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1024,
-							"y": 77,
-							"z": 210.75
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1023,
-							"y": 324.25,
-							"z": 47
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c4"
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 0,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c7",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 667.5,
-							"y": 498.5,
-							"z": 45.25
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 12 end",
-			"created c0 12",
-			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used c0 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite0 force0 update session",
-			"cargo c0 12 3 -1 1 43ffc000 46e0bf00 437f8000 NULL sector1_0",
-			"keysite keysite0 -",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 c0",
-			"sector sector2_0 6 2 0 -",
-			"sector sector3_0 7 3 0 -",
-			"sector sector0_1 8 0 1 -",
-			"sector sector1_1 9 1 1 -",
-			"sector sector2_1 10 2 1 -",
-			"sector sector3_1 11 3 1 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-121",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 14,
-			"forces": [
-				2
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 3,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 0,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 2,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 1,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2359.5,
-							"y": 200,
-							"z": 471.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -34.25,
-							"y": -1.25,
-							"z": 485.5
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 3217.5,
-							"y": 240.5,
-							"z": 104.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2154.5,
-							"y": -80.5,
-							"z": 700.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1555.75,
-							"y": 101.25,
-							"z": 649.5
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 10 int 191 0 int 7 0 parent 6 keysite0 end",
-			"created c0 10",
-			"transmit-create 4 11 end",
-			"created c1 11",
-			"transmit-create 4 12 int 191 4 int 191 -1 int 7 1 vec3d 8 45137800 43480000 43eba000 end",
-			"created c2 12",
-			"result fatal Position off map: (x = %f, z = %f)",
-			"heap free",
-			"heap used  c2 c1 c0 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
-			"cargo  13 3 -1 1 c2090000 bfa00000 43f2c000 NULL NULL",
-			"cargo c2 12 3 -1 1 45137800 43480000 43eba000 NULL sector2_0",
-			"cargo c1 11 3 -1 1 44fff000 46e0bf00 43ffc000 NULL sector1_0",
-			"cargo c0 10 0 -1 0 44fff000 46e0bf00 43ffc000 keysite0 sector1_0",
-			"keysite keysite0 c0",
-			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 c1 c0",
-			"sector sector2_0 8 2 0 c2",
-			"sector sector3_0 9 3 0 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-122",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 25,
-			"forces": [
-				2
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 1,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 1,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 5,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 4,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1387.25,
-							"y": 208.5,
-							"z": 24.75
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 211.75,
-							"y": -66,
-							"z": 243.25
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 22 vec3d 8 44ad6800 43508000 41c60000 end",
-			"created c0 22",
-			"transmit-create 4 23 vec3d 8 4353c000 c2840000 43734000 end",
-			"created c1 23",
-			"result ok",
-			"heap free 24",
-			"heap used c1 c0 sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
-			"cargo c1 23 3 -1 1 4353c000 c2840000 43734000 NULL sector0_0",
-			"cargo c0 22 3 -1 1 44ad6800 43508000 41c60000 NULL sector1_0",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 6 0 0 c1",
-			"sector sector1_0 7 1 0 c0",
-			"sector sector2_0 8 2 0 -",
-			"sector sector3_0 9 3 0 -",
-			"sector sector0_1 10 0 1 -",
-			"sector sector1_1 11 1 1 -",
-			"sector sector2_1 12 2 1 -",
-			"sector sector3_1 13 3 1 -",
-			"sector sector0_2 14 0 2 -",
-			"sector sector1_2 15 1 2 -",
-			"sector sector2_2 16 2 2 -",
-			"sector sector3_2 17 3 2 -",
-			"sector sector0_3 18 0 3 -",
-			"sector sector1_3 19 1 3 -",
-			"sector sector2_3 20 2 3 -",
-			"sector sector3_3 21 3 3 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-123",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 16,
-			"forces": [
-				1
-			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 2,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 3,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 2,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 198.75,
-							"y": 137.25,
-							"z": 325.75
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector2_1"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1023.5,
-							"y": 255.25,
-							"z": 345.5
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 164.25,
-							"y": 155,
-							"z": 376
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 274.5,
-							"y": 168.25,
-							"z": 488
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -30.5,
-							"y": 290.75,
-							"z": 477.5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 13 vec3d 8 4346c000 43094000 43a2e000 parent 33 sector2_1 end",
-			"created c0 13",
-			"transmit-create 4 14 parent 6 keysite0 end",
-			"created c1 14",
-			"transmit-create 4 15 parent 6 keysite1 vec3d 8 447fe000 437f4000 43acc000 parent 6 NULL vec3d 8 43244000 431b0000 43bc0000 vec3d 8 43894000 43284000 43f40000 end",
-			"created c2 15",
-			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used c2 c1 c0 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
-			"cargo c2 15 3 -1 1 43894000 43284000 43f40000 NULL sector1_1",
-			"cargo c1 14 3 -1 1 43ffc000 46e0bf00 437f8000 keysite0 sector1_0",
-			"cargo c0 13 3 -1 1 4346c000 43094000 43a2e000 NULL sector0_1",
-			"keysite keysite0 c1",
-			"keysite keysite1 -",
-			"sector sector0_0 5 0 0 -",
-			"sector sector1_0 6 1 0 c1",
-			"sector sector2_0 7 2 0 -",
-			"sector sector3_0 8 3 0 -",
-			"sector sector0_1 9 0 1 c0",
-			"sector sector1_1 10 1 1 c2",
-			"sector sector2_1 11 2 1 -",
-			"sector sector3_1 12 3 1 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-124",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 16,
-			"forces": [
-				1,
 				2
 			],
 			"keysites": [],
@@ -18353,16 +17541,53 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 1706,
-							"y": 283.75,
-							"z": 577.75
+							"x": 591,
+							"y": -66.25,
+							"z": 241.25
 						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 1561.5,
-							"y": 329.25,
-							"z": 1999.25
+							"x": 1715,
+							"y": -66.25,
+							"z": 786.5
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 11
 						},
 						{
 							"kind": "parent",
@@ -18370,14 +17595,99 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"target": "NULL"
 						},
 						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 2097.5,
+							"y": 470,
+							"z": 721
+						},
+						{
 							"kind": "int",
-							"type": 191,
-							"value": 4
+							"type": 7,
+							"value": 0
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "allocate",
+					"label": "g7",
+					"index": -1
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				}
+			]
+		},
+		"expected": [
+			"result assert int_bit_count (sector_side_length) == 1",
+			"heap free 3 4 5 6 7 8 9 10 11 12 13 14 15 16",
+			"heap used force0 update session"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-119",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 14,
+			"forces": [
+				1
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 2,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 5,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 3,
+					"zSectors": 1,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1518.5,
+							"y": 36.5,
+							"z": 444.25
 						},
 						{
 							"kind": "int",
 							"type": 191,
-							"value": 5
+							"value": 2
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1536,
+							"y": -52,
+							"z": 143.25
 						}
 					]
 				},
@@ -18389,28 +17699,18 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": [
 						{
 							"kind": "int",
-							"type": 191,
+							"type": 7,
 							"value": 1
 						},
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
+							"kind": "int",
+							"type": 191,
+							"value": 5
 						},
 						{
 							"kind": "int",
 							"type": 191,
 							"value": 2
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
 						}
 					]
 				},
@@ -18421,19 +17721,577 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result fatal Position off map: (x = %f, z = %f)",
+			"heap free 9 10 11 12 13",
+			"heap used  sector2_0 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
+			"cargo  8 2 -1 1 44c00000 c2500000 430f4000 NULL NULL",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -",
+			"sector sector2_0 7 2 0 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-120",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 27,
+			"forces": [
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 0,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 0,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 3,
+					"zSectors": 4,
+					"sideLength": 256
+				},
+				{
+					"kind": "allocate",
+					"label": "g0",
+					"index": 18
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
 							"kind": "int",
 							"type": 7,
 							"value": 2
 						},
 						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 768,
+							"y": 77,
+							"z": 421.75
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						},
+						{
 							"kind": "pred",
 							"type": 6,
-							"target": "c1"
+							"target": "c0"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 120.75,
+							"y": 102.25,
+							"z": 1023.25
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g4",
+					"index": 21
+				}
+			]
+		},
+		"expected": [
+			"allocated g0 18",
+			"transmit-create 4 17 parent 6 keysite1 parent 6 keysite0 end",
+			"created c0 17",
+			"result fatal Position off map: (x = %f, z = %f)",
+			"heap free 20 21 22 23 24 25 26",
+			"heap used  c0 g0 sector2_3 sector1_3 sector0_3 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
+			"cargo  19 3 -1 0 44400000 429a0000 43d2e000 keysite1 NULL",
+			"cargo c0 17 3 -1 1 43bfc000 46e0bf00 43ffc000 keysite0 sector1_1",
+			"keysite keysite0 c0",
+			"keysite keysite1 ",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -",
+			"sector sector2_0 7 2 0 -",
+			"sector sector0_1 8 0 1 -",
+			"sector sector1_1 9 1 1 c0",
+			"sector sector2_1 10 2 1 -",
+			"sector sector0_2 11 0 2 -",
+			"sector sector1_2 12 1 2 -",
+			"sector sector2_2 13 2 2 -",
+			"sector sector0_3 14 0 3 -",
+			"sector sector1_3 15 1 3 -",
+			"sector sector2_3 16 2 3 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-121",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 18,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 0,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 7,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 3,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 1,
+					"sideLength": 1024
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite2"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "allocate",
+					"label": "g2",
+					"index": 13
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 8 parent 6 keysite2 parent 6 NULL end",
+			"created c0 8",
+			"transmit-create 4 9 end",
+			"created c1 9",
+			"allocated g2 13",
+			"transmit-destroy c0",
+			"result ok",
+			"heap free 8 10 11 12 14 15 16 17",
+			"heap used g2 c1 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
+			"cargo c1 9 3 -1 1 43ffc000 46e0bf00 43ffc000 NULL sector0_0",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"keysite keysite2 -",
+			"sector sector0_0 7 0 0 c1"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-122",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 6,
+			"forces": [
+				1
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 0,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 3,
+					"sideLength": 1024
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 544.75,
+							"y": 356.25,
+							"z": 2219
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": 2,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 4
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used   keysite0 force0 update session",
+			"keysite keysite0 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-123",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 17,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 3,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 3,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 0,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 3,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 28
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 87.5,
+							"y": 215.75,
+							"z": 1535.25
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 194.25,
+							"y": 101.25,
+							"z": 974.5
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 329.75,
+							"y": 129.5,
+							"z": 1204.75
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 511,
+							"y": 16.5,
+							"z": 1368.5
 						},
 						{
 							"kind": "int",
 							"type": 191,
 							"value": 2
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 26.5,
+							"y": -66,
+							"z": 91.25
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 223.5,
+							"y": 184.5,
+							"z": 1315.75
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c4"
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				},
+				{
+					"kind": "create",
+					"label": "c6",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 99.25,
+							"y": 137.25,
+							"z": 978.75
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c3"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c7",
+					"type": 0,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 112,
+							"y": 273.75,
+							"z": 1040.5
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_2"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 511.5,
+							"y": 255.25,
+							"z": 1037.75
 						},
 						{
 							"kind": "parent",
@@ -18445,16 +18303,43 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			]
 		},
 		"expected": [
-			"result assert int_bit_count (sector_side_length) == 1",
-			"heap free 4 5 6 7 8 9 10 11 12 13 14 15",
-			"heap used force1 force0 update session"
+			"transmit-create 4 10 end",
+			"created c0 10",
+			"transmit-destroy c0",
+			"transmit-create 4 10 int 53 28 vec3d 8 42af0000 4357c000 44bfe800 int 191 3 vec3d 8 43424000 42ca8000 4473a000 end",
+			"created c1 10",
+			"transmit-create 4 11 parent 6 keysite0 parent 6 NULL vec3d 8 43a4e000 43018000 44969800 end",
+			"created c2 11",
+			"transmit-create 4 12 vec3d 8 43ff8000 41840000 44ab1000 int 191 2 int 191 -1 end",
+			"created c3 12",
+			"transmit-create 4 13 vec3d 8 41d40000 c2840000 42b68000 end",
+			"created c4 13",
+			"transmit-create 4 14 int 7 3 vec3d 8 435f8000 43388000 44a47800 end",
+			"created c5 14",
+			"transmit-destroy c4",
+			"transmit-destroy c2",
+			"transmit-create 4 11 vec3d 8 42c68000 43094000 4474b000 pred 6 c3 end",
+			"created c6 11",
+			"result assert (type > ENTITY_TYPE_UNKNOWN) && (type < NUM_ENTITY_TYPES)",
+			"heap free 13 15 16",
+			"heap used c6 c5 c3 c1 sector0_2 sector0_1 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
+			"cargo c6 11 3 -1 1 42c68000 43094000 4474b000 NULL sector0_1",
+			"cargo c5 14 3 -1 1 435f8000 43388000 44a47800 NULL sector0_2",
+			"cargo c3 12 3 -1 1 43ff8000 41840000 44ab1000 NULL sector0_2",
+			"cargo c1 10 3 28 1 43424000 42ca8000 4473a000 NULL sector0_1",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"keysite keysite2 -",
+			"sector sector0_0 7 0 0 -",
+			"sector sector0_1 8 0 1 c6 c1",
+			"sector sector0_2 9 0 2 c5 c3"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-125",
+		"id": "lifecycle-20260924-124",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 11,
+			"heap": 20,
 			"forces": [
 				1,
 				2
@@ -18473,49 +18358,57 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 0,
-					"zSectors": 3,
+					"xSectors": 4,
+					"zSectors": 2,
 					"sideLength": 256
+				},
+				{
+					"kind": "allocate",
+					"label": "g0",
+					"index": 2
 				},
 				{
 					"kind": "create",
 					"label": "c0",
 					"type": 4,
 					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 16
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						}
-					]
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
 				},
 				{
 					"kind": "create",
 					"label": "c1",
 					"type": 4,
-					"index": -1,
+					"index": 10,
 					"attributes": [
 						{
-							"kind": "parent",
+							"kind": "pred",
 							"type": 6,
-							"target": "keysite0"
+							"target": "c0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1023.5,
+							"y": 235.5,
+							"z": 14.75
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 135.5,
+							"y": 482.5,
+							"z": 422.5
 						},
 						{
 							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
+							"type": 33,
+							"target": "sector2_1"
 						}
 					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
 				},
 				{
 					"kind": "create",
@@ -18524,23 +18417,19 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
 							"kind": "int",
-							"type": 7,
-							"value": 3
+							"type": 191,
+							"value": 4
 						},
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -0.25,
-							"y": 33.5,
-							"z": 372
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -0.5,
-							"y": 122.75,
-							"z": 623.5
+							"kind": "int",
+							"type": 191,
+							"value": 5
 						}
 					]
 				},
@@ -18552,18 +18441,202 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": [
 						{
 							"kind": "int",
+							"type": 191,
+							"value": 1
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 901,
+							"y": 458.75,
+							"z": 355.25
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 37
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 691.5,
+							"y": 253,
+							"z": 511.25
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 28
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
 							"type": 7,
+							"value": 1
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 16
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 511,
+							"y": 352.25,
+							"z": 79
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 13 14 15 16 17 18 19",
+			"heap used sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite0 force1 force0 update session",
+			"keysite keysite0 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -",
+			"sector sector2_0 7 2 0 -",
+			"sector sector3_0 8 3 0 -",
+			"sector sector0_1 9 0 1 -",
+			"sector sector1_1 10 1 1 -",
+			"sector sector2_1 11 2 1 -",
+			"sector sector3_1 12 3 1 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-125",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 13,
+			"forces": [
+				2
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 4,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 5,
+					"inUse": false,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 3,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 1,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite1"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
 							"value": 0
 						},
 						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite2"
 						}
 					]
 				},
@@ -18575,32 +18648,6 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": [
 						{
 							"kind": "int",
-							"type": 7,
-							"value": 3
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
 							"type": 191,
 							"value": 3
 						}
@@ -18608,7 +18655,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"kind": "create",
-					"label": "c7",
+					"label": "c5",
 					"type": 4,
 					"index": -1,
 					"attributes": [
@@ -18627,7 +18674,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 							"type": 8,
 							"x": -28,
 							"y": 126.75,
-							"z": 97
+							"z": 32.25
 						},
 						{
 							"kind": "int",
@@ -18639,10 +18686,29 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			]
 		},
 		"expected": [
-			"result assert num_map_x_sectors > 0",
-			"heap free 5 6 7 8 9 10",
-			"heap used keysite0 force1 force0 update session",
-			"keysite keysite0 -"
+			"transmit-create 4 7 parent 6 keysite1 end",
+			"created c0 7",
+			"transmit-create 4 8 end",
+			"created c1 8",
+			"transmit-create 4 9 int 191 -1 int 7 0 end",
+			"created c2 9",
+			"transmit-create 4 10 int 191 0 parent 6 keysite2 end",
+			"created c3 10",
+			"transmit-create 4 11 int 191 3 end",
+			"created c4 11",
+			"result fatal Position off map: (x = %f, z = %f)",
+			"heap free",
+			"heap used  c4 c3 c2 c1 c0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
+			"cargo  12 0 1 1 c1e00000 42fd8000 42010000 NULL NULL",
+			"cargo c4 11 3 -1 1 42ff0000 46e0bf00 42ff0000 NULL sector0_0",
+			"cargo c3 10 0 -1 1 42ff0000 46e0bf00 42ff0000 keysite2 sector0_0",
+			"cargo c2 9 3 -1 0 42ff0000 46e0bf00 42ff0000 NULL sector0_0",
+			"cargo c1 8 3 -1 1 42ff0000 46e0bf00 42ff0000 NULL sector0_0",
+			"cargo c0 7 3 -1 1 42ff0000 46e0bf00 42ff0000 keysite1 sector0_0",
+			"keysite keysite0 -",
+			"keysite keysite1 c0",
+			"keysite keysite2 c3",
+			"sector sector0_0 6 0 0 c4 c3 c2 c1 c0"
 		]
 	},
 	{
@@ -18700,39 +18766,65 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					]
 				},
 				{
+					"kind": "allocate",
+					"label": "g1",
+					"index": 2
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 6 vec3d 8 43750000 43e3a000 42ab8000 parent 33 sector0_0 vec3d 8 42030000 c1840000 42450000 end",
+			"created c0 6",
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 7 8 9 10 11 12 13 14 15",
+			"heap used c0 sector0_0 keysite0 force1 force0 update session",
+			"cargo c0 6 3 -1 1 42030000 c1840000 42450000 NULL sector0_0",
+			"keysite keysite0 -",
+			"sector sector0_0 5 0 0 c0"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-127",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 10,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 1,
+					"sideLength": 256
+				},
+				{
 					"kind": "create",
-					"label": "c1",
+					"label": "c0",
 					"type": 4,
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 255,
-							"y": -81.75,
-							"z": 33.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": -15,
-							"y": 121.75,
-							"z": 155.25
+							"kind": "int",
+							"type": 53,
+							"value": 23
 						},
 						{
 							"kind": "parent",
 							"type": 6,
-							"target": "keysite0"
+							"target": "NULL"
 						},
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
+							"kind": "int",
+							"type": 7,
+							"value": 3
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 155,
+							"x": 310.75,
 							"y": 484.75,
 							"z": 145.75
 						}
@@ -18741,21 +18833,18 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			]
 		},
 		"expected": [
-			"transmit-create 4 6 vec3d 8 43750000 43e3a000 42ab8000 parent 33 sector0_0 vec3d 8 42030000 c1840000 42450000 end",
+			"transmit-create 4 6 int 53 23 parent 6 NULL int 7 3 vec3d 8 439b6000 43f26000 4311c000 end",
 			"created c0 6",
-			"transmit-create 4 7 vec3d 8 437f0000 c2a38000 42060000 vec3d 8 c1700000 42f38000 431b4000 parent 6 keysite0 parent 6 keysite0 vec3d 8 431b0000 43f26000 4311c000 end",
-			"created c1 7",
 			"result ok",
-			"heap free 8 9 10 11 12 13 14 15",
-			"heap used c1 c0 sector0_0 keysite0 force1 force0 update session",
-			"cargo c1 7 3 -1 1 431b0000 43f26000 4311c000 keysite0 sector0_0",
-			"cargo c0 6 3 -1 1 42030000 c1840000 42450000 NULL sector0_0",
-			"keysite keysite0 c1",
-			"sector sector0_0 5 0 0 c1 c0"
+			"heap free 7 8 9",
+			"heap used c0 sector1_0 sector0_0 force1 force0 update session",
+			"cargo c0 6 3 23 1 439b6000 43f26000 4311c000 NULL sector1_0",
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 c0"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-127",
+		"id": "lifecycle-20260924-128",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
 			"heap": 19,
@@ -18823,7 +18912,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 		]
 	},
 	{
-		"id": "lifecycle-20260924-128",
+		"id": "lifecycle-20260924-129",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
 			"heap": 18,
@@ -18940,42 +19029,13 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					]
 				},
 				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2311,
-							"y": 424.75,
-							"z": 906.75
-						}
-					]
+					"kind": "allocate",
+					"label": "g3",
+					"index": 18
 				},
 				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						}
-					]
+					"kind": "destroy",
+					"label": "c2"
 				}
 			]
 		},
@@ -19002,7 +19062,258 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 		]
 	},
 	{
-		"id": "lifecycle-20260924-129",
+		"id": "lifecycle-20260924-130",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 17,
+			"forces": [
+				1
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 3,
+					"zSectors": 3,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 217.5,
+							"y": 495.5,
+							"z": 771.75
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1317.75,
+							"y": 480.5,
+							"z": 496.5
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": 11,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 581.75,
+							"y": 469.75,
+							"z": 310.75
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 326.5,
+							"y": 62.75,
+							"z": 248.5
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 26
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 60,
+							"y": 211.25,
+							"z": 1031
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 283,
+							"y": 27.25,
+							"z": 866.5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 775.75,
+							"y": 207.5,
+							"z": 504.75
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1021.75,
+							"y": 237,
+							"z": 108.25
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1037.5,
+							"y": 330.5,
+							"z": 1382.5
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c6",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 5
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1030.75,
+							"y": 74.75,
+							"z": 233
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 12 int 191 2 vec3d 8 43598000 43f7c000 4440f000 vec3d 8 44a4b800 43f04000 43f84000 int 7 0 parent 6 NULL end",
+			"created c0 12",
+			"result assert assert_local_create_entity_index ((index))",
+			"heap free 13 14 15 16",
+			"heap used c0 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 force0 update session",
+			"cargo c0 12 2 -1 0 44a4b800 43f04000 43f84000 NULL sector2_0",
+			"sector sector0_0 3 0 0 -",
+			"sector sector1_0 4 1 0 -",
+			"sector sector2_0 5 2 0 c0",
+			"sector sector0_1 6 0 1 -",
+			"sector sector1_1 7 1 1 -",
+			"sector sector2_1 8 2 1 -",
+			"sector sector0_2 9 0 2 -",
+			"sector sector1_2 10 1 2 -",
+			"sector sector2_2 11 2 2 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-131",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
 			"heap": 14,
@@ -19013,627 +19324,6 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"keysites": [
 				{
 					"side": 2,
-					"subType": 1,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 4,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 8,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 2,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 96.75,
-							"y": 469.75,
-							"z": 103.5
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 101.75,
-							"y": -2.75,
-							"z": 10.5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 252.25,
-							"y": 366.5,
-							"z": 400.5
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 0
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 34
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite2"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 124.25,
-							"y": 19,
-							"z": 511.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 183,
-							"y": 384,
-							"z": 428
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_1"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 177.5,
-							"y": 88,
-							"z": 447.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 65,
-							"y": 64.25,
-							"z": 83
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c3"
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 9 int 53 5 vec3d 8 42c18000 43eae000 42cf0000 parent 6 keysite1 vec3d 8 42cb8000 c0300000 41280000 end",
-			"created c0 9",
-			"transmit-create 4 10 parent 6 keysite1 int 7 2 vec3d 8 437c4000 43b74000 43c84000 int 53 0 end",
-			"created c1 10",
-			"transmit-create 4 11 end",
-			"created c2 11",
-			"transmit-destroy c0",
-			"transmit-destroy c1",
-			"transmit-create 4 10 int 191 3 int 53 34 parent 6 keysite1 parent 6 keysite1 parent 6 keysite2 end",
-			"created c3 10",
-			"transmit-create 4 9 vec3d 8 42f88000 41980000 43ffa000 vec3d 8 43370000 43c00000 43d60000 int 191 3 parent 33 sector0_1 int 191 2 end",
-			"created c4 9",
-			"transmit-create 4 12 vec3d 8 43318000 42b00000 43dfc000 vec3d 8 42820000 42808000 42a60000 int 191 1 pred 6 c3 end",
-			"created c5 12",
-			"result ok",
-			"heap free 13",
-			"heap used c5 c4 c3 c2 sector0_1 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
-			"cargo c5 12 1 -1 1 42820000 42808000 42a60000 NULL sector0_0",
-			"cargo c4 9 2 -1 1 43370000 43c00000 43d60000 NULL sector0_1",
-			"cargo c3 10 3 34 1 42ff0000 46e0bf00 437f8000 keysite2 sector0_0",
-			"cargo c2 11 3 -1 1 42ff0000 46e0bf00 437f8000 NULL sector0_0",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 c3",
-			"sector sector0_0 7 0 0 c5 c3 c2",
-			"sector sector0_1 8 0 1 c4"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-130",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 16,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 3,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 420,
-							"y": 228.25,
-							"z": 967.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1023.5,
-							"y": 485.75,
-							"z": 1385
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 21
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c2"
-				},
-				{
-					"kind": "destroy",
-					"label": "c2"
-				},
-				{
-					"kind": "destroy",
-					"label": "c2"
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 10 end",
-			"created c0 10",
-			"result fatal Position off map: (x = %f, z = %f)",
-			"heap free 12 13 14 15",
-			"heap used  c0 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 force1 force0 update session",
-			"cargo  11 3 -1 1 447fe000 43f2e000 44ad2000 NULL NULL",
-			"cargo c0 10 3 -1 1 43ffc000 46e0bf00 443fe000 NULL sector0_1",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector0_1 6 0 1 c0",
-			"sector sector1_1 7 1 1 -",
-			"sector sector0_2 8 0 2 -",
-			"sector sector1_2 9 1 2 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-131",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 25,
-			"forces": [
-				1
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 4,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 1,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 3,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 4,
-					"sideLength": 1024
-				}
-			]
-		},
-		"expected": [
-			"result ok",
-			"heap free 22 23 24",
-			"heap used sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 -",
-			"sector sector2_0 8 2 0 -",
-			"sector sector3_0 9 3 0 -",
-			"sector sector0_1 10 0 1 -",
-			"sector sector1_1 11 1 1 -",
-			"sector sector2_1 12 2 1 -",
-			"sector sector3_1 13 3 1 -",
-			"sector sector0_2 14 0 2 -",
-			"sector sector1_2 15 1 2 -",
-			"sector sector2_2 16 2 2 -",
-			"sector sector3_2 17 3 2 -",
-			"sector sector0_3 18 0 3 -",
-			"sector sector1_3 19 1 3 -",
-			"sector sector2_3 20 2 3 -",
-			"sector sector3_3 21 3 3 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-132",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 28,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 4,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 30.75,
-							"y": 421.25,
-							"z": 586.75
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 349.25,
-							"y": 145.75,
-							"z": 197.25
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c3"
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 0
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 20 int 7 1 vec3d 8 41f60000 43d2a000 4412b000 end",
-			"created c0 20",
-			"transmit-create 4 21 int 191 4 vec3d 8 43aea000 4311c000 43454000 int 7 0 end",
-			"created c1 21",
-			"transmit-destroy c1",
-			"transmit-create 4 21 end",
-			"created c2 21",
-			"transmit-create 4 22 end",
-			"created c3 22",
-			"transmit-destroy c3",
-			"transmit-create 4 22 parent 6 NULL parent 6 NULL int 53 0 end",
-			"created c4 22",
-			"result ok",
-			"heap free 23 24 25 26 27",
-			"heap used c4 c2 c0 sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 force1 force0 update session",
-			"cargo c4 22 3 0 1 43ffc000 46e0bf00 43ffc000 NULL sector1_1",
-			"cargo c2 21 3 -1 1 43ffc000 46e0bf00 43ffc000 NULL sector1_1",
-			"cargo c0 20 3 -1 1 41f60000 43d2a000 4412b000 NULL sector0_2",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector2_0 6 2 0 -",
-			"sector sector3_0 7 3 0 -",
-			"sector sector0_1 8 0 1 -",
-			"sector sector1_1 9 1 1 c4 c2",
-			"sector sector2_1 10 2 1 -",
-			"sector sector3_1 11 3 1 -",
-			"sector sector0_2 12 0 2 c0",
-			"sector sector1_2 13 1 2 -",
-			"sector sector2_2 14 2 2 -",
-			"sector sector3_2 15 3 2 -",
-			"sector sector0_3 16 0 3 -",
-			"sector sector1_3 17 1 3 -",
-			"sector sector2_3 18 2 3 -",
-			"sector sector3_3 19 3 3 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-133",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 16,
-			"forces": [
-				1
-			],
-			"keysites": [
-				{
-					"side": 1,
 					"subType": 2,
 					"inUse": true,
 					"x": 0,
@@ -19645,44 +19335,16 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 1,
-					"sideLength": 256
+					"xSectors": 1,
+					"zSectors": 2,
+					"sideLength": 1024
 				},
 				{
 					"kind": "create",
 					"label": "c0",
 					"type": 4,
 					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 920.5,
-							"y": 24.5,
-							"z": 106.5
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector3_0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						}
-					]
+					"attributes": []
 				},
 				{
 					"kind": "create",
@@ -19691,9 +19353,19 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
 							"kind": "int",
-							"type": 191,
-							"value": 0
+							"type": 53,
+							"value": 31
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
 						}
 					]
 				},
@@ -19702,33 +19374,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c2",
 					"type": 4,
 					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						}
-					]
+					"attributes": []
 				},
 				{
 					"kind": "create",
@@ -19739,112 +19385,143 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 272.5,
-							"y": -19.5,
-							"z": 128.75
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 673.75,
-							"y": 344.25,
-							"z": 111
+							"x": 1024,
+							"y": -57.5,
+							"z": 1998.25
 						},
 						{
 							"kind": "int",
 							"type": 191,
-							"value": 4
+							"value": 5
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 7 end",
+			"created c0 7",
+			"transmit-create 4 8 parent 6 keysite0 int 53 31 parent 6 keysite0 end",
+			"created c1 8",
+			"transmit-create 4 9 end",
+			"created c2 9",
+			"result fatal Position off map: (x = %f, z = %f)",
+			"heap free 11 12 13",
+			"heap used  c2 c1 c0 sector0_1 sector0_0 keysite0 force1 force0 update session",
+			"cargo  10 3 -1 1 44800000 c2660000 44f9c800 NULL NULL",
+			"cargo c2 9 3 -1 1 43ffc000 46e0bf00 447fe000 NULL sector0_0",
+			"cargo c1 8 3 31 1 43ffc000 46e0bf00 447fe000 keysite0 sector0_0",
+			"cargo c0 7 3 -1 1 43ffc000 46e0bf00 447fe000 NULL sector0_0",
+			"keysite keysite0 c1",
+			"sector sector0_0 5 0 0 c2 c1 c0",
+			"sector sector0_1 6 0 1 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-132",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 16,
+			"forces": [
+				1
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 5,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 4,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 4,
+					"zSectors": 2,
+					"sideLength": 1000
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 2641.5,
+							"y": 119.25,
+							"z": 416.5
 						},
 						{
 							"kind": "int",
 							"type": 7,
 							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
 						}
 					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 264.5,
-							"y": 259,
-							"z": 35.5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 49.5,
-							"y": 357.5,
-							"z": 82.25
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c2"
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 8 int 191 4 vec3d 8 44662000 41c40000 42d50000 parent 33 sector3_0 int 191 1 int 191 2 end",
-			"created c0 8",
-			"transmit-create 4 9 int 191 0 end",
-			"created c1 9",
-			"transmit-create 4 10 parent 6 NULL parent 6 keysite0 int 191 4 parent 6 keysite0 int 191 0 end",
-			"created c2 10",
-			"transmit-create 4 11 vec3d 8 43884000 c19c0000 4300c000 vec3d 8 44287000 43ac2000 42de0000 int 191 4 int 7 2 int 191 2 end",
-			"created c3 11",
-			"transmit-destroy c1",
-			"transmit-create 4 9 int 191 0 vec3d 8 43844000 43818000 420e0000 vec3d 8 42460000 43b2c000 42a48000 parent 33 sector0_0 end",
-			"created c4 9",
-			"transmit-destroy c2",
-			"result ok",
-			"heap free 10 12 13 14 15",
-			"heap used c4 c3 c0 sector3_0 sector2_0 sector1_0 sector0_0 keysite0 force0 update session",
-			"cargo c4 9 0 -1 1 42460000 43b2c000 42a48000 NULL sector0_0",
-			"cargo c3 11 2 -1 0 44287000 43ac2000 42de0000 NULL sector2_0",
-			"cargo c0 8 2 -1 1 44662000 41c40000 42d50000 NULL sector3_0",
+			"result assert int_bit_count (sector_side_length) == 1",
+			"heap free 5 6 7 8 9 10 11 12 13 14 15",
+			"heap used keysite1 keysite0 force0 update session",
 			"keysite keysite0 -",
-			"sector sector0_0 4 0 0 c4",
-			"sector sector1_0 5 1 0 -",
-			"sector sector2_0 6 2 0 c3",
-			"sector sector3_0 7 3 0 c0"
+			"keysite keysite1 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-134",
+		"id": "lifecycle-20260924-133",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 15,
+			"heap": 18,
 			"forces": [
-				1,
-				2
+				1
 			],
-			"keysites": [],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 4,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 5,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
 			"ops": [
 				{
 					"kind": "map",
@@ -19857,7 +19534,15 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c0",
 					"type": 4,
 					"index": -1,
-					"attributes": []
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 427.5,
+							"y": 20.25,
+							"z": 796
+						}
+					]
 				},
 				{
 					"kind": "create",
@@ -19866,26 +19551,92 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
 							"kind": "int",
 							"type": 7,
-							"value": 2
+							"value": 1
 						},
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
+							"kind": "vec3d",
+							"type": 8,
+							"x": 15.25,
+							"y": 421.25,
+							"z": 586.75
 						}
 					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 13 vec3d 8 43d5c000 41a20000 44470000 end",
+			"created c0 13",
+			"transmit-create 4 14 int 7 1 vec3d 8 41740000 43d2a000 4412b000 end",
+			"created c1 14",
+			"result ok",
+			"heap free 15 16 17",
+			"heap used c1 c0 sector1_3 sector0_3 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
+			"cargo c1 14 3 -1 1 41740000 43d2a000 4412b000 NULL sector0_2",
+			"cargo c0 13 3 -1 1 43d5c000 41a20000 44470000 NULL sector1_3",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -",
+			"sector sector0_1 7 0 1 -",
+			"sector sector1_1 8 1 1 -",
+			"sector sector0_2 9 0 2 c1",
+			"sector sector1_2 10 1 2 -",
+			"sector sector0_3 11 0 3 -",
+			"sector sector1_3 12 1 3 c0"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-134",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 10,
+			"forces": [
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 0,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 2,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_1"
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": []
 				},
 				{
 					"kind": "create",
@@ -19894,9 +19645,26 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
 							"kind": "int",
-							"type": 53,
-							"value": 32
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 54,
+							"y": 497,
+							"z": 213.25
 						}
 					]
 				},
@@ -19905,31 +19673,132 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c3",
 					"type": 4,
 					"index": -1,
-					"attributes": []
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 38
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 459.75,
+							"y": 24.5,
+							"z": 213.25
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 162,
+							"y": 484.5,
+							"z": 441
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				},
+				{
+					"kind": "destroy",
+					"label": "c4"
+				},
+				{
+					"kind": "create",
+					"label": "c6",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c2"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 9
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 77,
+							"y": 43.5,
+							"z": 336.5
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						}
+					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 12 end",
-			"created c0 12",
-			"transmit-create 4 13 parent 6 NULL int 191 2 int 7 2 parent 6 NULL end",
-			"created c1 13",
-			"transmit-create 4 14 int 53 32 end",
-			"created c2 14",
+			"transmit-create 4 8 parent 33 sector0_1 end",
+			"created c0 8",
+			"transmit-destroy c0",
+			"transmit-create 4 8 end",
+			"created c1 8",
+			"transmit-create 4 9 parent 6 keysite0 int 7 0 parent 6 keysite0 vec3d 8 42580000 43f88000 43554000 end",
+			"created c2 9",
 			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
 			"heap free",
-			"heap used c2 c1 c0 sector1_3 sector0_3 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 force1 force0 update session",
-			"cargo c2 14 3 32 1 437f8000 46e0bf00 43ffc000 NULL sector0_1",
-			"cargo c1 13 2 -1 0 437f8000 46e0bf00 43ffc000 NULL sector0_1",
-			"cargo c0 12 3 -1 1 437f8000 46e0bf00 43ffc000 NULL sector0_1",
-			"sector sector0_0 4 0 0 -",
+			"heap used c2 c1 sector1_1 sector0_1 sector1_0 sector0_0 keysite0 force0 update session",
+			"cargo c2 9 3 -1 0 42580000 43f88000 43554000 keysite0 sector0_0",
+			"cargo c1 8 3 -1 1 437f8000 46e0bf00 437f8000 NULL sector0_0",
+			"keysite keysite0 c2",
+			"sector sector0_0 4 0 0 c2 c1",
 			"sector sector1_0 5 1 0 -",
-			"sector sector0_1 6 0 1 c2 c1 c0",
-			"sector sector1_1 7 1 1 -",
-			"sector sector0_2 8 0 2 -",
-			"sector sector1_2 9 1 2 -",
-			"sector sector0_3 10 0 3 -",
-			"sector sector1_3 11 1 3 -"
+			"sector sector0_1 6 0 1 -",
+			"sector sector1_1 7 1 1 -"
 		]
 	},
 	{
@@ -19944,8 +19813,145 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"keysites": [
 				{
 					"side": 1,
-					"subType": 7,
-					"inUse": false,
+					"subType": 1,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 4,
+					"zSectors": 3,
+					"sideLength": 256
+				},
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 1,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 250,
+							"y": 161.25,
+							"z": 767.25
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 48.25,
+							"y": 266.25,
+							"z": 241.75
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 2
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 2
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 1,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 38,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1023.5,
+							"y": 368,
+							"z": 742.75
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"result fatal SC_CREAT: uninitialised sector entity",
+			"heap free 17 18 19 20",
+			"heap used sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite0 force1 force0 update session",
+			"keysite keysite0 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-136",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 23,
+			"forces": [
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 3,
+					"inUse": true,
 					"x": 0,
 					"z": 0,
 					"ammo": 100,
@@ -19954,6 +19960,425 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				{
 					"side": 2,
 					"subType": 8,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 4,
+					"zSectors": 4,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 419.25,
+							"y": 486,
+							"z": 511.75
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1003,
+							"y": 23.75,
+							"z": 988
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 24
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector3_0"
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_3"
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 28
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 37
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 0
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c1"
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 21 vec3d 8 43d1a000 43f30000 43ffe000 vec3d 8 447ac000 41be0000 44770000 int 53 24 int 191 3 parent 33 sector3_0 end",
+			"created c0 21",
+			"transmit-create 4 22 parent 33 sector0_3 int 7 0 int 53 28 end",
+			"created c1 22",
+			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used c1 c0 sector3_3 sector2_3 sector1_3 sector0_3 sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
+			"cargo c1 22 3 28 0 43ffc000 46e0bf00 43ffc000 NULL sector1_1",
+			"cargo c0 21 3 24 1 447ac000 41be0000 44770000 NULL sector3_3",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -",
+			"sector sector2_0 7 2 0 -",
+			"sector sector3_0 8 3 0 -",
+			"sector sector0_1 9 0 1 -",
+			"sector sector1_1 10 1 1 c1",
+			"sector sector2_1 11 2 1 -",
+			"sector sector3_1 12 3 1 -",
+			"sector sector0_2 13 0 2 -",
+			"sector sector1_2 14 1 2 -",
+			"sector sector2_2 15 2 2 -",
+			"sector sector3_2 16 3 2 -",
+			"sector sector0_3 17 0 3 -",
+			"sector sector1_3 18 1 3 -",
+			"sector sector2_3 19 2 3 -",
+			"sector sector3_3 20 3 3 c0"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-137",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 13,
+			"forces": [
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 0,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 2,
+					"zSectors": 3,
+					"sideLength": 1024
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_2"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1611,
+							"y": 345,
+							"z": 1959.25
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 141.5,
+							"y": 302.25,
+							"z": 442.25
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1466.5,
+							"y": 179.25,
+							"z": 2021.25
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 10 int 7 0 parent 33 sector0_2 vec3d 8 44c96000 43ac8000 44f4e800 end",
+			"created c0 10",
+			"transmit-create 4 11 vec3d 8 430d8000 43972000 43dd2000 vec3d 8 44b75000 43334000 44fca800 end",
+			"created c1 11",
+			"result ok",
+			"heap free 12",
+			"heap used c1 c0 sector1_2 sector0_2 sector1_1 sector0_1 sector1_0 sector0_0 keysite0 force0 update session",
+			"cargo c1 11 3 -1 1 44b75000 43334000 44fca800 NULL sector1_1",
+			"cargo c0 10 3 -1 0 44c96000 43ac8000 44f4e800 NULL sector1_1",
+			"keysite keysite0 -",
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 -",
+			"sector sector0_1 6 0 1 -",
+			"sector sector1_1 7 1 1 c1 c0",
+			"sector sector0_2 8 0 2 -",
+			"sector sector1_2 9 1 2 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-138",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 13,
+			"forces": [
+				2
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 7,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 4,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 3,
+					"sideLength": 1024
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1019,
+							"y": 446.25,
+							"z": 3045
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 19
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "allocate",
+					"label": "g4",
+					"index": 0
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 246.5,
+							"y": -59.25,
+							"z": 2009.25
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 28
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 1
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 83.25,
+							"y": 16,
+							"z": 1845.5
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 505.75,
+							"y": 301.75,
+							"z": 2478
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector0_0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": -27,
+							"y": 127,
+							"z": 2578.25
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c4"
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 8 vec3d 8 447ec000 43df2000 453e5000 int 53 19 end",
+			"created c0 8",
+			"transmit-create 4 9 end",
+			"created c1 9",
+			"transmit-destroy c0",
+			"transmit-create 4 8 end",
+			"created c2 8",
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 10 11 12",
+			"heap used c2 c1 sector0_2 sector0_1 sector0_0 keysite1 keysite0 force0 update session",
+			"cargo c2 8 3 -1 1 43ffc000 46e0bf00 44bff000 NULL sector0_1",
+			"cargo c1 9 3 -1 1 43ffc000 46e0bf00 44bff000 NULL sector0_1",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector0_1 6 0 1 c2 c1",
+			"sector sector0_2 7 0 2 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-139",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 14,
+			"forces": [
+				2
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 2,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 2,
+					"subType": 4,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -19973,44 +20398,148 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 1,
-					"sideLength": 1024
+					"xSectors": 1,
+					"zSectors": 3,
+					"sideLength": 256
+				},
+				{
+					"kind": "allocate",
+					"label": "g0",
+					"index": 14
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 19
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 0
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c0"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 8
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 34,
+							"y": 89.25,
+							"z": 756.25
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 34
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c2",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 8
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite2"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 2.75,
+							"y": 374,
+							"z": 668.5
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g4",
+					"index": 12
+				},
+				{
+					"kind": "allocate",
+					"label": "g5",
+					"index": 12
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "allocate",
+					"label": "g8",
+					"index": 7
 				}
 			]
 		},
 		"expected": [
-			"result ok",
-			"heap free 11 12 13 14 15 16 17 18 19 20",
-			"heap used sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
+			"result assert (index >= 0) && (index < number_of_entities)",
+			"heap free 9 10 11 12 13",
+			"heap used sector0_2 sector0_1 sector0_0 keysite2 keysite1 keysite0 force0 update session",
 			"keysite keysite0 -",
 			"keysite keysite1 -",
 			"keysite keysite2 -",
-			"sector sector0_0 7 0 0 -",
-			"sector sector1_0 8 1 0 -",
-			"sector sector2_0 9 2 0 -",
-			"sector sector3_0 10 3 0 -"
+			"sector sector0_0 6 0 0 -",
+			"sector sector0_1 7 0 1 -",
+			"sector sector0_2 8 0 2 -"
 		]
 	},
 	{
-		"id": "lifecycle-20260924-136",
+		"id": "lifecycle-20260924-140",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 9,
+			"heap": 12,
 			"forces": [
-				1
+				1,
+				2
 			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 7,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
+			"keysites": [],
 			"ops": [
 				{
 					"kind": "map",
@@ -20019,6 +20548,12 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"sideLength": 1024
 				},
 				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 1,
+					"sideLength": 512
+				},
+				{
 					"kind": "create",
 					"label": "c0",
 					"type": 4,
@@ -20027,9 +20562,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 1116.25,
-							"y": 289.25,
-							"z": 1354.25
+							"x": 1615.75,
+							"y": 279,
+							"z": 77.25
 						},
 						{
 							"kind": "parent",
@@ -20039,378 +20574,7 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "int",
 							"type": 53,
-							"value": 3
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_1"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 19
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 935.5,
-							"y": 236,
-							"z": 1903.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1046,
-							"y": 201.5,
-							"z": 65.75
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1611,
-							"y": 345,
-							"z": 1306
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector1_0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 141.5,
-							"y": 302.25,
-							"z": 294.75
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1466.5,
-							"y": 179.25,
-							"z": 1347.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 12
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c5",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c6",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2039,
-							"y": 446.25,
-							"z": 2029.75
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 19
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 8 vec3d 8 448b8800 4390a000 44a94800 parent 33 sector1_0 int 53 3 int 7 2 parent 33 sector0_1 end",
-			"created c0 8",
-			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used c0 sector1_1 sector0_1 sector1_0 sector0_0 keysite0 force0 update session",
-			"cargo c0 8 3 3 0 448b8800 4390a000 44a94800 NULL sector1_1",
-			"keysite keysite0 -",
-			"sector sector0_0 4 0 0 -",
-			"sector sector1_0 5 1 0 -",
-			"sector sector0_1 6 0 1 -",
-			"sector sector1_1 7 1 1 c0"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-137",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 18,
-			"forces": [
-				1
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 0,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 0,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 2,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 2,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 20.75,
-							"y": 16,
-							"z": 307
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 8 int 7 2 parent 6 keysite1 vec3d 8 41a60000 41800000 43998000 end",
-			"created c0 8",
-			"transmit-create 4 9 parent 6 keysite0 end",
-			"created c1 9",
-			"result ok",
-			"heap free 10 11 12 13 14 15 16 17",
-			"heap used c1 c0 sector0_1 sector0_0 keysite2 keysite1 keysite0 force0 update session",
-			"cargo c1 9 3 -1 1 42ff0000 46e0bf00 437f8000 keysite0 sector0_0",
-			"cargo c0 8 3 -1 0 41a60000 41800000 43998000 keysite1 sector0_1",
-			"keysite keysite0 c1",
-			"keysite keysite1 c0",
-			"keysite keysite2 -",
-			"sector sector0_0 6 0 0 c1",
-			"sector sector0_1 7 0 1 c0"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-138",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 19,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 7,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 5,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 3,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_2"
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 125.5,
-							"y": 156.75,
-							"z": 306.75
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 256,
-							"y": 476.5,
-							"z": 767.25
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 14
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 116.75,
-							"y": 423.25,
-							"z": 136.5
+							"value": 17
 						},
 						{
 							"kind": "parent",
@@ -20420,118 +20584,8 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					]
 				},
 				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 34,
-							"y": 89.25,
-							"z": 756.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				}
-			]
-		},
-		"expected": [
-			"result fatal Position off map: (x = %f, z = %f)",
-			"heap free 10 11 12 13 14 15 16 17 18",
-			"heap used  sector0_2 sector0_1 sector0_0 keysite1 keysite0 force1 force0 update session",
-			"cargo  9 3 -1 1 43800000 43ee4000 443fd000 NULL sector0_0",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"sector sector0_0 6 0 0 -",
-			"sector sector0_1 7 0 1 -",
-			"sector sector0_2 8 0 2 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-139",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 21,
-			"forces": [
-				1
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 8,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 2,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 0,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 2,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 102.5,
-							"y": 488,
-							"z": 51.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 114.5,
-							"y": 231.75,
-							"z": 511.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 426.5,
-							"y": 333.5,
-							"z": 120.5
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						}
-					]
+					"kind": "destroy",
+					"label": "c0"
 				},
 				{
 					"kind": "create",
@@ -20542,30 +20596,11 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 807.5,
-							"y": 279,
-							"z": 19.25
-						},
-						{
-							"kind": "pred",
-							"type": 6,
-							"target": "c0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 4
+							"x": 629,
+							"y": 240.5,
+							"z": 78.5
 						}
 					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
 				},
 				{
 					"kind": "create",
@@ -20576,24 +20611,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 314.25,
-							"y": 240.5,
-							"z": 19.75
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 278,
+							"x": 556.5,
 							"y": 242,
-							"z": 79.5
+							"z": 319
 						},
 						{
 							"kind": "pred",
@@ -20608,26 +20628,65 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"kind": "create",
-					"label": "c4",
+					"label": "c3",
 					"type": 4,
 					"index": -1,
 					"attributes": [
 						{
 							"kind": "parent",
 							"type": 6,
-							"target": "keysite2"
+							"target": "NULL"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 38
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 220.25,
+							"x": 440.75,
 							"y": 304,
-							"z": 511.25
+							"z": 2047.25
+						}
+					]
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 792.25,
+							"y": 144,
+							"z": 2013.75
 						},
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite2"
+							"kind": "int",
+							"type": 7,
+							"value": 3
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1870.25,
+							"y": 112.75,
+							"z": 1121.25
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1253.5,
+							"y": 437,
+							"z": 2047.25
 						}
 					]
 				},
@@ -20638,31 +20697,28 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 564.75,
+							"y": 435.25,
+							"z": 115.25
+						},
+						{
 							"kind": "int",
 							"type": 191,
 							"value": 1
 						},
 						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 891,
-							"y": 98.5,
-							"z": 133.75
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite2"
-						},
-						{
 							"kind": "int",
 							"type": 191,
-							"value": 4
+							"value": 5
 						},
 						{
-							"kind": "int",
-							"type": 53,
-							"value": 3
+							"kind": "vec3d",
+							"type": 8,
+							"x": 912.75,
+							"y": 87.75,
+							"z": 847
 						}
 					]
 				},
@@ -20675,250 +20731,62 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 398,
-							"y": 338.5,
-							"z": 511.25
+							"x": 1337.5,
+							"y": 433,
+							"z": 1116
 						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 1
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c7",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c8",
-					"type": 4,
-					"index": -1,
-					"attributes": [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 908.75,
-							"y": 396,
-							"z": 18.75
+							"x": 310.75,
+							"y": 120.25,
+							"z": 1288.25
+						},
+						{
+							"kind": "pred",
+							"type": 6,
+							"target": "c4"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 815.5,
+							"y": -19.5,
+							"z": 1565
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 14 vec3d 8 42cd0000 43f40000 424d0000 vec3d 8 42e50000 4367c000 43ffa000 vec3d 8 43d54000 43a6c000 42f10000 int 191 5 end",
-			"created c0 14",
-			"transmit-create 4 15 vec3d 8 4449e000 438b8000 419a0000 pred 6 c0 int 191 2 int 191 4 end",
-			"created c1 15",
-			"transmit-destroy c1",
-			"transmit-create 4 15 vec3d 8 439d2000 43708000 419e0000 end",
-			"created c2 15",
-			"transmit-create 4 16 vec3d 8 438b0000 43720000 429f0000 pred 6 c0 end",
-			"created c3 16",
-			"transmit-destroy c0",
-			"result fatal Position off map: (x = %f, z = %f)",
-			"heap free 17 18 19 20",
-			"heap used c0 c3 c2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force0 update session",
-			"cargo c0 14 3 -1 1 435c4000 43980000 43ffa000 keysite2 NULL",
-			"cargo c3 16 3 -1 1 438b0000 43720000 429f0000 NULL sector1_0",
-			"cargo c2 15 3 -1 1 439d2000 43708000 419e0000 NULL sector1_0",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 c0",
-			"sector sector0_0 6 0 0 -",
-			"sector sector1_0 7 1 0 c3 c2",
-			"sector sector2_0 8 2 0 -",
-			"sector sector3_0 9 3 0 -",
-			"sector sector0_1 10 0 1 -",
-			"sector sector1_1 11 1 1 -",
-			"sector sector2_1 12 2 1 -",
-			"sector sector3_1 13 3 1 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-140",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 11,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 5,
-					"inUse": false,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 1,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector2_0"
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 432,
-							"y": 244.25,
-							"z": 244.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 650.75,
-							"y": 106.25,
-							"z": 487
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 20
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 491.25,
-							"y": -79,
-							"z": 78.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 823.5,
-							"y": 492,
-							"z": 135.5
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 9 parent 33 sector0_0 parent 33 sector2_0 end",
-			"created c0 9",
-			"transmit-create 4 10 end",
-			"created c1 10",
-			"result fatal EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used c1 c0 sector3_0 sector2_0 sector1_0 sector0_0 keysite0 force1 force0 update session",
-			"cargo c1 10 3 -1 1 447fe000 46e0bf00 437f8000 NULL sector1_0",
-			"cargo c0 9 3 -1 1 447fe000 46e0bf00 437f8000 NULL sector1_0",
-			"keysite keysite0 -",
-			"sector sector0_0 5 0 0 -",
-			"sector sector1_0 6 1 0 c1 c0",
-			"sector sector2_0 7 2 0 -",
-			"sector sector3_0 8 3 0 -"
+			"result fatal SC_CREAT: uninitialised sector entity",
+			"heap free 8 9 10 11",
+			"heap used sector1_1 sector0_1 sector1_0 sector0_0 force1 force0 update session"
 		]
 	},
 	{
 		"id": "lifecycle-20260924-141",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 13,
+			"heap": 23,
 			"forces": [
 				1,
 				2
 			],
-			"keysites": [
-				{
-					"side": 2,
-					"subType": 5,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
+			"keysites": [],
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 1,
+					"xSectors": 4,
 					"zSectors": 3,
-					"sideLength": 1024
+					"sideLength": 256
 				},
 				{
 					"kind": "create",
 					"label": "c0",
 					"type": 4,
-					"index": 7,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 862.5,
-							"y": 21,
-							"z": 3071.25
-						}
-					]
+					"index": -1,
+					"attributes": []
 				},
 				{
 					"kind": "create",
@@ -20926,140 +20794,121 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"type": 4,
 					"index": -1,
 					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c1"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "allocate",
+					"label": "g6",
+					"index": 12
 				},
 				{
 					"kind": "create",
 					"label": "c2",
 					"type": 4,
 					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "destroy",
+					"label": "c2"
+				},
+				{
+					"kind": "create",
+					"label": "c3",
+					"type": 38,
+					"index": -1,
+					"attributes": []
+				},
+				{
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
 					"attributes": [
 						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
+							"kind": "vec3d",
+							"type": 8,
+							"x": 855,
+							"y": 59.25,
+							"z": 663.5
 						},
 						{
 							"kind": "int",
-							"type": 53,
-							"value": 24
+							"type": 7,
+							"value": 1
 						},
 						{
 							"kind": "parent",
 							"type": 6,
 							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 922,
+							"y": 428,
+							"z": 253.25
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 464,
+							"y": 421.75,
+							"z": 154.75
 						}
 					]
 				}
 			]
 		},
 		"expected": [
-			"result assert assert_local_create_entity_index ((index))",
-			"heap free 8 9 10 11 12",
-			"heap used sector0_2 sector0_1 sector0_0 keysite0 force1 force0 update session",
-			"keysite keysite0 -",
-			"sector sector0_0 5 0 0 -",
-			"sector sector0_1 6 0 1 -",
-			"sector sector0_2 7 0 2 -"
+			"transmit-create 4 16 end",
+			"created c0 16",
+			"transmit-create 4 17 end",
+			"created c1 17",
+			"transmit-destroy c1",
+			"transmit-destroy c0",
+			"result fatal Entity already in use: %s (index = %d)",
+			"heap free 16 17 18 19 20 21 22",
+			"heap used sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 force1 force0 update session",
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 -",
+			"sector sector2_0 6 2 0 -",
+			"sector sector3_0 7 3 0 -",
+			"sector sector0_1 8 0 1 -",
+			"sector sector1_1 9 1 1 -",
+			"sector sector2_1 10 2 1 -",
+			"sector sector3_1 11 3 1 -",
+			"sector sector0_2 12 0 2 -",
+			"sector sector1_2 13 1 2 -",
+			"sector sector2_2 14 2 2 -",
+			"sector sector3_2 15 3 2 -"
 		]
 	},
 	{
 		"id": "lifecycle-20260924-142",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 12,
-			"forces": [
-				2
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 7,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 2,
-					"zSectors": 1,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_0"
-						}
-					]
-				},
-				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 1,
-					"sideLength": 512
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 6 parent 6 keysite0 parent 6 keysite0 parent 33 sector0_0 end",
-			"created c0 6",
-			"result fatal SC_CREAT: uninitialised sector entity",
-			"heap free 7 8 9 10 11",
-			"heap used c0 sector1_0 sector0_0 keysite0 force0 update session",
-			"cargo c0 6 3 -1 1 447fe000 46e0bf00 43ffc000 keysite0 sector0_0",
-			"keysite keysite0 c0"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-143",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 21,
+			"heap": 15,
 			"forces": [
 				1,
 				2
 			],
 			"keysites": [
-				{
-					"side": 2,
-					"subType": 7,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
 				{
 					"side": 1,
 					"subType": 0,
@@ -21071,8 +20920,8 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 				},
 				{
 					"side": 2,
-					"subType": 4,
-					"inUse": false,
+					"subType": 3,
+					"inUse": true,
 					"x": 0,
 					"z": 0,
 					"ammo": 100,
@@ -21082,8 +20931,262 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 4,
+					"xSectors": 3,
+					"zSectors": 1,
+					"sideLength": 256
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 523.75,
+							"y": 93,
+							"z": 211.5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 56.75,
+							"y": 373.25,
+							"z": 59
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 9
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 116.25,
+							"y": 51.75,
+							"z": 48
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 420.75,
+							"y": 478,
+							"z": 58.5
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "NULL"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 315,
+							"y": 20,
+							"z": 173.25
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 4
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 9 vec3d 8 4402f000 42ba0000 43538000 vec3d 8 42630000 43baa000 426c0000 int 53 9 vec3d 8 42e88000 424f0000 42400000 int 191 5 end",
+			"created c0 9",
+			"transmit-destroy c0",
+			"transmit-create 4 9 parent 6 keysite0 vec3d 8 43d26000 43ef0000 426a0000 parent 6 NULL vec3d 8 439d8000 41a00000 432d4000 int 53 4 end",
+			"created c1 9",
+			"result ok",
+			"heap free 10 11 12 13 14",
+			"heap used c1 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force1 force0 update session",
+			"cargo c1 9 3 4 1 439d8000 41a00000 432d4000 NULL sector1_0",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 6 0 0 -",
+			"sector sector1_0 7 1 0 c1",
+			"sector sector2_0 8 2 0 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-143",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 18,
+			"forces": [
+				1
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 7,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				},
+				{
+					"side": 1,
+					"subType": 8,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 4,
+					"zSectors": 2,
+					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1777.5,
+							"y": 109.25,
+							"z": 1023.25
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 395.25,
+							"y": 242.75,
+							"z": 463
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
+					"kind": "create",
+					"label": "c1",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 3
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 932.75,
+							"y": 467,
+							"z": 1023.25
+						},
+						{
+							"kind": "int",
+							"type": 7,
+							"value": 0
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 33
+						}
+					]
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 13 vec3d 8 44de3000 42da8000 447fd000 vec3d 8 43c5a000 4372c000 43e78000 end",
+			"created c0 13",
+			"transmit-destroy c0",
+			"result fatal Position off map: (x = %f, z = %f)",
+			"heap free 14 15 16 17",
+			"heap used c0 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite1 keysite0 force0 update session",
+			"cargo c0 13 3 33 0 44693000 43e98000 447fd000 NULL NULL",
+			"keysite keysite0 -",
+			"keysite keysite1 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -",
+			"sector sector2_0 7 2 0 -",
+			"sector sector3_0 8 3 0 -",
+			"sector sector0_1 9 0 1 -",
+			"sector sector1_1 10 1 1 -",
+			"sector sector2_1 11 2 1 -",
+			"sector sector3_1 12 3 1 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-144",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 15,
+			"forces": [
+				1
+			],
+			"keysites": [
+				{
+					"side": 2,
+					"subType": 8,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 4,
+					"zSectors": 1,
 					"sideLength": 256
 				},
 				{
@@ -21094,58 +21197,100 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"attributes": [
 						{
 							"kind": "int",
-							"type": 7,
-							"value": 2
+							"type": 191,
+							"value": 1
 						},
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 199.75,
-							"y": 1.75,
-							"z": 562.5
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite1"
-						},
-						{
-							"kind": "parent",
-							"type": 33,
-							"target": "sector0_3"
+							"x": 873.75,
+							"y": 295.5,
+							"z": 240.5
 						},
 						{
 							"kind": "int",
 							"type": 191,
-							"value": 3
+							"value": 0
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 885,
+							"y": -99.5,
+							"z": 124
 						}
 					]
 				},
 				{
+					"kind": "destroy",
+					"label": "c0"
+				},
+				{
 					"kind": "create",
 					"label": "c1",
-					"type": 0,
+					"type": 4,
 					"index": -1,
 					"attributes": [
 						{
 							"kind": "vec3d",
 							"type": 8,
-							"x": 99.75,
-							"y": 21.25,
-							"z": 357
+							"x": 321,
+							"y": -23.5,
+							"z": 64
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 344,
+							"y": -48.25,
+							"z": 26.75
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": -1
 						}
 					]
 				},
 				{
 					"kind": "create",
 					"label": "c2",
-					"type": 4,
+					"type": 0,
 					"index": -1,
 					"attributes": [
 						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 824.25,
+							"y": -73.5,
+							"z": 18.5
+						},
+						{
 							"kind": "int",
-							"type": 53,
-							"value": 15
+							"type": 7,
+							"value": 3
+						},
+						{
+							"kind": "parent",
+							"type": 33,
+							"target": "sector3_0"
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 1024,
+							"y": -83,
+							"z": 7.25
 						}
 					]
 				},
@@ -21154,72 +21299,109 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c3",
 					"type": 4,
 					"index": -1,
-					"attributes": []
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 11 int 7 2 vec3d 8 4347c000 3fe00000 440ca000 parent 6 keysite1 parent 33 sector0_3 int 191 3 end",
-			"created c0 11",
-			"result assert (type > ENTITY_TYPE_UNKNOWN) && (type < NUM_ENTITY_TYPES)",
-			"heap free 12 13 14 15 16 17 18 19 20",
-			"heap used c0 sector0_3 sector0_2 sector0_1 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
-			"cargo c0 11 3 -1 0 4347c000 3fe00000 440ca000 keysite1 sector0_2",
-			"keysite keysite0 -",
-			"keysite keysite1 c0",
-			"keysite keysite2 -",
-			"sector sector0_0 7 0 0 -",
-			"sector sector0_1 8 0 1 -",
-			"sector sector0_2 9 0 2 c0",
-			"sector sector0_3 10 0 3 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-144",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 18,
-			"forces": [
-				1
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 8,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
+					"attributes": [
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 931.75,
+							"y": 445.25,
+							"z": 180.25
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 31,
+							"y": 395.5,
+							"z": 222.75
+						}
+					]
 				},
 				{
-					"side": 1,
-					"subType": 8,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
+					"kind": "create",
+					"label": "c4",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						}
+					]
+				},
 				{
-					"kind": "map",
-					"xSectors": 1,
-					"zSectors": 3,
-					"sideLength": 512
+					"kind": "destroy",
+					"label": "c2"
+				},
+				{
+					"kind": "create",
+					"label": "c5",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 1
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 150,
+							"y": 248.25,
+							"z": 109
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 699.75,
+							"y": 53.75,
+							"z": 132.25
+						}
+					]
+				},
+				{
+					"kind": "allocate",
+					"label": "g8",
+					"index": 1
 				}
 			]
 		},
 		"expected": [
-			"result ok",
-			"heap free 8 9 10 11 12 13 14 15 16 17",
-			"heap used sector0_2 sector0_1 sector0_0 keysite1 keysite0 force0 update session",
+			"transmit-create 4 8 int 191 1 vec3d 8 445a7000 4393c000 43708000 int 191 0 parent 6 keysite0 vec3d 8 445d4000 c2c70000 42f80000 end",
+			"created c0 8",
+			"transmit-destroy c0",
+			"transmit-create 4 8 vec3d 8 43a08000 c1bc0000 42800000 vec3d 8 43ac0000 c2410000 41d60000 int 191 -1 end",
+			"created c1 8",
+			"result assert (type > ENTITY_TYPE_UNKNOWN) && (type < NUM_ENTITY_TYPES)",
+			"heap free 9 10 11 12 13 14",
+			"heap used c1 sector3_0 sector2_0 sector1_0 sector0_0 keysite0 force0 update session",
+			"cargo c1 8 3 -1 1 43ac0000 c2410000 41d60000 NULL sector1_0",
 			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"sector sector0_0 5 0 0 -",
-			"sector sector0_1 6 0 1 -",
-			"sector sector0_2 7 0 2 -"
+			"sector sector0_0 4 0 0 -",
+			"sector sector1_0 5 1 0 c1",
+			"sector sector2_0 6 2 0 -",
+			"sector sector3_0 7 3 0 -"
 		]
 	},
 	{
@@ -21233,295 +21415,9 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			],
 			"keysites": [
 				{
-					"side": 2,
-					"subType": 4,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 1,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
 					"side": 1,
-					"subType": 5,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				}
-			],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 4,
-					"zSectors": 4,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 237.75,
-							"y": 416.75,
-							"z": 893.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 885,
-							"y": -99.5,
-							"z": 497.25
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1023,
-							"y": 466.25,
-							"z": 261
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 347.75,
-							"y": -14.5,
-							"z": 481.25
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "keysite0"
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
-			"heap free",
-			"heap used              keysite2 keysite1 keysite0 force1 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-146",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 25,
-			"forces": [
-				1
-			],
-			"keysites": [],
-			"ops": [
-				{
-					"kind": "map",
-					"xSectors": 3,
-					"zSectors": 4,
-					"sideLength": 1024
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2797.25,
-							"y": 445.25,
-							"z": 2892.75
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 93.5,
-							"y": 395.5,
-							"z": 3576.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 21
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 2801.75,
-							"y": 386,
-							"z": 52.5
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 4
-						}
-					]
-				}
-			]
-		},
-		"expected": [
-			"transmit-create 4 15 end",
-			"created c0 15",
-			"transmit-destroy c0",
-			"transmit-create 4 15 vec3d 8 452ed400 43dea000 4534cc00 vec3d 8 42bb0000 43c5c000 455f8400 end",
-			"created c1 15",
-			"transmit-create 4 16 parent 6 NULL parent 6 NULL int 7 1 end",
-			"created c2 16",
-			"transmit-create 4 17 int 53 21 vec3d 8 452f1c00 43c10000 42520000 end",
-			"created c3 17",
-			"transmit-create 4 18 int 53 4 end",
-			"created c4 18",
-			"result ok",
-			"heap free 19 20 21 22 23 24",
-			"heap used c4 c3 c2 c1 sector2_3 sector1_3 sector0_3 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 force0 update session",
-			"cargo c4 18 3 4 1 44bff000 46e0bf00 44fff000 NULL sector1_1",
-			"cargo c3 17 3 21 1 452f1c00 43c10000 42520000 NULL sector2_0",
-			"cargo c2 16 3 -1 1 44bff000 46e0bf00 44fff000 NULL sector1_1",
-			"cargo c1 15 3 -1 1 42bb0000 43c5c000 455f8400 NULL sector0_3",
-			"sector sector0_0 3 0 0 -",
-			"sector sector1_0 4 1 0 -",
-			"sector sector2_0 5 2 0 c3",
-			"sector sector0_1 6 0 1 -",
-			"sector sector1_1 7 1 1 c4 c2",
-			"sector sector2_1 8 2 1 -",
-			"sector sector0_2 9 0 2 -",
-			"sector sector1_2 10 1 2 -",
-			"sector sector2_2 11 2 2 -",
-			"sector sector0_3 12 0 3 c1",
-			"sector sector1_3 13 1 3 -",
-			"sector sector2_3 14 2 3 -"
-		]
-	},
-	{
-		"id": "lifecycle-20260924-147",
-		"c": "random lifecycle, output recorded from the original C",
-		"spec": {
-			"heap": 20,
-			"forces": [
-				1,
-				2
-			],
-			"keysites": [
-				{
-					"side": 1,
-					"subType": 2,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 5,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 1,
-					"subType": 6,
-					"inUse": true,
+					"subType": 8,
+					"inUse": false,
 					"x": 0,
 					"z": 0,
 					"ammo": 100,
@@ -21533,7 +21429,139 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"kind": "map",
 					"xSectors": 4,
 					"zSectors": 2,
+					"sideLength": 1024
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": [
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 4
+						},
+						{
+							"kind": "int",
+							"type": 191,
+							"value": 5
+						},
+						{
+							"kind": "vec3d",
+							"type": 8,
+							"x": 3451.25,
+							"y": 234.5,
+							"z": 1594.75
+						},
+						{
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
+						},
+						{
+							"kind": "int",
+							"type": 53,
+							"value": 19
+						}
+					]
+				},
+				{
+					"kind": "destroy",
+					"label": "c0"
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 13 int 191 4 int 191 5 vec3d 8 4557b400 436a8000 44c75800 parent 6 keysite0 int 53 19 end",
+			"created c0 13",
+			"transmit-destroy c0",
+			"result ok",
+			"heap free 13 14 15 16 17 18 19",
+			"heap used sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite0 force1 force0 update session",
+			"keysite keysite0 -",
+			"sector sector0_0 5 0 0 -",
+			"sector sector1_0 6 1 0 -",
+			"sector sector2_0 7 2 0 -",
+			"sector sector3_0 8 3 0 -",
+			"sector sector0_1 9 0 1 -",
+			"sector sector1_1 10 1 1 -",
+			"sector sector2_1 11 2 1 -",
+			"sector sector3_1 12 3 1 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-146",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 25,
+			"forces": [
+				2
+			],
+			"keysites": [],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 3,
+					"zSectors": 4,
 					"sideLength": 512
+				},
+				{
+					"kind": "create",
+					"label": "c0",
+					"type": 4,
+					"index": -1,
+					"attributes": []
+				}
+			]
+		},
+		"expected": [
+			"transmit-create 4 15 end",
+			"created c0 15",
+			"result ok",
+			"heap free 16 17 18 19 20 21 22 23 24",
+			"heap used c0 sector2_3 sector1_3 sector0_3 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 force0 update session",
+			"cargo c0 15 3 -1 1 443fe000 46e0bf00 447fe000 NULL sector1_1",
+			"sector sector0_0 3 0 0 -",
+			"sector sector1_0 4 1 0 -",
+			"sector sector2_0 5 2 0 -",
+			"sector sector0_1 6 0 1 -",
+			"sector sector1_1 7 1 1 c0",
+			"sector sector2_1 8 2 1 -",
+			"sector sector0_2 9 0 2 -",
+			"sector sector1_2 10 1 2 -",
+			"sector sector2_2 11 2 2 -",
+			"sector sector0_3 12 0 3 -",
+			"sector sector1_3 13 1 3 -",
+			"sector sector2_3 14 2 3 -"
+		]
+	},
+	{
+		"id": "lifecycle-20260924-147",
+		"c": "random lifecycle, output recorded from the original C",
+		"spec": {
+			"heap": 12,
+			"forces": [
+				1,
+				2
+			],
+			"keysites": [
+				{
+					"side": 1,
+					"subType": 0,
+					"inUse": true,
+					"x": 0,
+					"z": 0,
+					"ammo": 100,
+					"fuel": 100
+				}
+			],
+			"ops": [
+				{
+					"kind": "map",
+					"xSectors": 1,
+					"zSectors": 1,
+					"sideLength": 256
 				},
 				{
 					"kind": "create",
@@ -21544,31 +21572,17 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 						{
 							"kind": "parent",
 							"type": 33,
-							"target": "sector3_0"
+							"target": "sector0_0"
 						},
 						{
-							"kind": "int",
-							"type": 53,
-							"value": 33
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
 						},
 						{
-							"kind": "int",
-							"type": 191,
-							"value": 3
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 856.5,
-							"y": 354,
-							"z": 878
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 1725.25,
-							"y": 234.5,
-							"z": 797
+							"kind": "parent",
+							"type": 6,
+							"target": "keysite0"
 						}
 					]
 				},
@@ -21577,78 +21591,34 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 					"label": "c0"
 				},
 				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 191,
-							"value": -1
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						}
-					]
+					"kind": "destroy",
+					"label": "c0"
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 15 parent 33 sector3_0 int 53 33 int 191 3 vec3d 8 44562000 43b10000 445b8000 vec3d 8 44d7a800 436a8000 44474000 end",
-			"created c0 15",
+			"transmit-create 4 6 parent 33 sector0_0 parent 6 keysite0 parent 6 keysite0 end",
+			"created c0 6",
 			"transmit-destroy c0",
-			"transmit-create 4 15 int 191 -1 int 191 2 end",
-			"created c1 15",
 			"result ok",
-			"heap free 16 17 18 19",
-			"heap used c1 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 keysite2 keysite1 keysite0 force1 force0 update session",
-			"cargo c1 15 2 -1 1 447fe000 46e0bf00 43ffc000 NULL sector1_0",
+			"heap free 6 7 8 9 10 11",
+			"heap used sector0_0 keysite0 force1 force0 update session",
 			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 -",
-			"sector sector0_0 7 0 0 -",
-			"sector sector1_0 8 1 0 c1",
-			"sector sector2_0 9 2 0 -",
-			"sector sector3_0 10 3 0 -",
-			"sector sector0_1 11 0 1 -",
-			"sector sector1_1 12 1 1 -",
-			"sector sector2_1 13 2 1 -",
-			"sector sector3_1 14 3 1 -"
+			"sector sector0_0 5 0 0 -"
 		]
 	},
 	{
 		"id": "lifecycle-20260924-148",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 12,
+			"heap": 7,
 			"forces": [
-				2
+				1
 			],
 			"keysites": [
 				{
-					"side": 2,
-					"subType": 4,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
-					"side": 2,
-					"subType": 1,
-					"inUse": true,
-					"x": 0,
-					"z": 0,
-					"ammo": 100,
-					"fuel": 100
-				},
-				{
 					"side": 1,
-					"subType": 7,
+					"subType": 8,
 					"inUse": true,
 					"x": 0,
 					"z": 0,
@@ -21659,26 +21629,24 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 0,
-					"zSectors": 2,
+					"xSectors": 2,
+					"zSectors": 3,
 					"sideLength": 256
 				}
 			]
 		},
 		"expected": [
-			"result assert num_map_x_sectors > 0",
-			"heap free 6 7 8 9 10 11",
-			"heap used keysite2 keysite1 keysite0 force0 update session",
-			"keysite keysite0 -",
-			"keysite keysite1 -",
-			"keysite keysite2 -"
+			"result fatal EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached",
+			"heap free",
+			"heap used    keysite0 force0 update session",
+			"keysite keysite0 -"
 		]
 	},
 	{
 		"id": "lifecycle-20260924-149",
 		"c": "random lifecycle, output recorded from the original C",
 		"spec": {
-			"heap": 23,
+			"heap": 19,
 			"forces": [
 				1,
 				2
@@ -21687,164 +21655,28 @@ export const C_REFERENCE_RANDOM_LIFECYCLES: LifecycleCase[] = [
 			"ops": [
 				{
 					"kind": "map",
-					"xSectors": 3,
+					"xSectors": 4,
 					"zSectors": 3,
-					"sideLength": 256
-				},
-				{
-					"kind": "create",
-					"label": "c0",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 53,
-							"value": 33
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c1",
-					"type": 4,
-					"index": 17,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 0
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 3
-						},
-						{
-							"kind": "int",
-							"type": 191,
-							"value": 2
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 768,
-							"y": 180.5,
-							"z": 183.25
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "destroy",
-					"label": "c0"
-				},
-				{
-					"kind": "create",
-					"label": "c2",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 2
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 0
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 458.25,
-							"y": 161.5,
-							"z": 729.25
-						}
-					]
-				},
-				{
-					"kind": "create",
-					"label": "c3",
-					"type": 4,
-					"index": -1,
-					"attributes": []
-				},
-				{
-					"kind": "create",
-					"label": "c4",
-					"type": 4,
-					"index": -1,
-					"attributes": [
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 10.75,
-							"y": 170.5,
-							"z": 365
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 526,
-							"y": 375.5,
-							"z": 6
-						},
-						{
-							"kind": "vec3d",
-							"type": 8,
-							"x": 535.5,
-							"y": 253.5,
-							"z": 42.25
-						},
-						{
-							"kind": "parent",
-							"type": 6,
-							"target": "NULL"
-						},
-						{
-							"kind": "int",
-							"type": 7,
-							"value": 1
-						}
-					]
-				},
-				{
-					"kind": "destroy",
-					"label": "c1"
+					"sideLength": 512
 				}
 			]
 		},
 		"expected": [
-			"transmit-create 4 13 parent 6 NULL int 53 33 end",
-			"created c0 13",
-			"result assert assert_local_create_entity_index ((index))",
-			"heap free 14 15 16 17 18 19 20 21 22",
-			"heap used c0 sector2_2 sector1_2 sector0_2 sector2_1 sector1_1 sector0_1 sector2_0 sector1_0 sector0_0 force1 force0 update session",
-			"cargo c0 13 3 33 1 43bfc000 46e0bf00 43bfc000 NULL sector1_1",
+			"result ok",
+			"heap free 16 17 18",
+			"heap used sector3_2 sector2_2 sector1_2 sector0_2 sector3_1 sector2_1 sector1_1 sector0_1 sector3_0 sector2_0 sector1_0 sector0_0 force1 force0 update session",
 			"sector sector0_0 4 0 0 -",
 			"sector sector1_0 5 1 0 -",
 			"sector sector2_0 6 2 0 -",
-			"sector sector0_1 7 0 1 -",
-			"sector sector1_1 8 1 1 c0",
-			"sector sector2_1 9 2 1 -",
-			"sector sector0_2 10 0 2 -",
-			"sector sector1_2 11 1 2 -",
-			"sector sector2_2 12 2 2 -"
+			"sector sector3_0 7 3 0 -",
+			"sector sector0_1 8 0 1 -",
+			"sector sector1_1 9 1 1 -",
+			"sector sector2_1 10 2 1 -",
+			"sector sector3_1 11 3 1 -",
+			"sector sector0_2 12 0 2 -",
+			"sector sector1_2 13 1 2 -",
+			"sector sector2_2 14 2 2 -",
+			"sector sector3_2 15 3 2 -"
 		]
 	}
 ];
