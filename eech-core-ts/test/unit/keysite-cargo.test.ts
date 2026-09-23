@@ -9,6 +9,7 @@ import { getGameStatus, initialiseCampaignCore, setGameStatus } from "../../src"
 import { GameStatusType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
+import { RecordingCampaignEvents } from "../adapters/recording-campaign-events";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
 import { ScriptedClock } from "../adapters/scripted-clock";
 import { C_REFERENCE_RANDOM_KEYSITE_CARGO } from "../scenarios/generated/c-reference-random-keysite-cargo.cases";
@@ -47,6 +48,7 @@ describe("global.c :: game_status", () => {
 			entityReplication: new RecordingEntityReplication(),
 			clock: new ScriptedClock(),
 			object3DMetadata: new InMemoryObject3DMetadata(),
+			campaignEvents: new RecordingCampaignEvents(),
 		});
 		initialiseCampaignCore(ports());
 		expect(getGameStatus()).toBe(GameStatusType.GAME_STATUS_UNINITIALISED);

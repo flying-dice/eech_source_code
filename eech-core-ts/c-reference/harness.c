@@ -209,7 +209,6 @@ entity_type_data entity_type_database[NUM_ENTITY_TYPES];
 list_type_data list_type_database[NUM_LIST_TYPES];
 int_type_data int_type_database[NUM_INT_TYPES];
 float_type_data float_type_database[NUM_FLOAT_TYPES];
-vec3d_type_data vec3d_type_database[NUM_VEC3D_TYPES];
 static const char *harness_entity_type_names[NUM_ENTITY_TYPES];
 const char **entity_type_names = harness_entity_type_names;
 ptr_type_data ptr_type_database[NUM_PTR_TYPES];
@@ -500,9 +499,15 @@ void convert_float_to_int (float value, int *ptr)
 
 #define NOT_REACHED(WHAT) harness_fail (WHAT " is not part of the port (reached unexpectedly)")
 
+/* slice 5b: the only packing the harness runs is ENTITY_COMMS_SET_TASK_POINTERS's
+   route nodes (the original pack_vec3d); its bits go nowhere, the packed nodes
+   are printed. Any other packing is not part of the port. */
+static int
+	packing_task_pointers = FALSE;
+
 /* en_pack.c / modules/multi: save games and network messages */
-void pack_signed_data (int unpacked_data, int number_of_bits_to_pack) { NOT_REACHED ("pack_signed_data"); }
-void pack_unsigned_data (unsigned int unpacked_data, int number_of_bits_to_pack) { NOT_REACHED ("pack_unsigned_data"); }
+void pack_signed_data (int unpacked_data, int number_of_bits_to_pack) { if (!packing_task_pointers) NOT_REACHED ("pack_signed_data"); }
+void pack_unsigned_data (unsigned int unpacked_data, int number_of_bits_to_pack) { if (!packing_task_pointers) NOT_REACHED ("pack_unsigned_data"); }
 int unpack_signed_data (int number_of_bits_to_unpack) { NOT_REACHED ("unpack_signed_data"); return 0; }
 unsigned int unpack_unsigned_data (int number_of_bits_to_unpack) { NOT_REACHED ("unpack_unsigned_data"); return 0; }
 void pack_attitude_angles (entity *en, float heading, float pitch, float roll) { NOT_REACHED ("pack_attitude_angles"); }
@@ -527,7 +532,6 @@ void pack_string (entity *en, string_types type, const char *s) { NOT_REACHED ("
 void unpack_string (entity *en, string_types type, char *s) { NOT_REACHED ("unpack_string"); }
 void pack_vec3d_type (vec3d_types type) { NOT_REACHED ("pack_vec3d_type"); }
 vec3d_types unpack_vec3d_type (void) { NOT_REACHED ("unpack_vec3d_type"); return 0; }
-void pack_vec3d (entity *en, vec3d_types type, vec3d *v) { NOT_REACHED ("pack_vec3d"); }
 void unpack_vec3d (entity *en, vec3d_types type, vec3d *v) { NOT_REACHED ("unpack_vec3d"); }
 
 /* comms.c / en_comms.c: only create_local_only_entities switches these */
@@ -598,6 +602,17 @@ int set_local_division_name (entity *en, char *s)
 static const char *label_of (entity *en)
 {
 	return en ? labels[en - entities] : "NULL";
+}
+
+/* slice 5b: a task the original creates is labelled task<index> when it is first printed */
+static const char *task_label_of (entity *en)
+{
+	if (en && (labels[en - entities][0] == '\0'))
+	{
+		snprintf (labels[en - entities], sizeof (labels[0]), "task%d", (int) (en - entities));
+	}
+
+	return label_of (en);
 }
 
 static unsigned int float_bits (float value)
@@ -680,10 +695,22 @@ static void print_attributes (const char *buffer)
 }
 
 /* transport: en_comms.c transmit_entity_comms_message */
+/* comms: single player (direct_play_get_comms_mode () == DIRECT_PLAY_COMMS_MODE_NONE)
+   transmits nothing; the scenario's "single-player" line selects it */
+static int
+	single_player = FALSE;
+
+
 void transmit_entity_comms_message (entity_comms_messages message, entity *en, ...)
 {
 	va_list
 		pargs;
+
+	/* en_comms.c: "trap single player or comms messages disabled" */
+	if (single_player)
+	{
+		return;
+	}
 
 	va_start (pargs, en);
 
@@ -713,6 +740,51 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 	else if (message == ENTITY_COMMS_DESTROY)
 	{
 		printf ("transmit-destroy %s\n", label_of (en));
+	}
+	else if (message == ENTITY_COMMS_SET_TASK_POINTERS)
+	{
+		/* en_comms.c :: ENTITY_COMMS_SET_TASK_POINTERS: the original packs each
+		   route node with pack_vec3d (VEC3D_TYPE_POSITION), which checks and
+		   bounds it in place; the packed nodes are printed */
+		task *raw = (task *) get_local_entity_data (en);
+		unsigned int loop;
+
+		/* pack every node first: a failed ASSERT ends the operation before anything of the line is printed */
+		packing_task_pointers = TRUE;
+
+		for (loop = 0; loop < raw->route_length; loop ++)
+		{
+			pack_vec3d (en, VEC3D_TYPE_POSITION, &raw->route_nodes [loop]);
+		}
+
+		packing_task_pointers = FALSE;
+
+		printf ("transmit-task-pointers %s nodes", task_label_of (en));
+
+		for (loop = 0; loop < raw->route_length; loop ++)
+		{
+			printf (" %08x %08x %08x", float_bits (raw->route_nodes [loop].x), float_bits (raw->route_nodes [loop].y), float_bits (raw->route_nodes [loop].z));
+		}
+
+		printf (" formations");
+		for (loop = 0; loop < raw->route_length; loop ++) printf (" %d", (int) raw->route_formation_types [loop]);
+
+		printf (" waypoints");
+		for (loop = 0; loop < raw->route_length; loop ++) printf (" %d", (int) raw->route_waypoint_types [loop]);
+
+		printf (" dependents");
+		for (loop = 0; loop < raw->route_length; loop ++) printf (" %s", label_of (raw->route_dependents [loop]));
+
+		printf (" return %s\n", label_of (raw->return_keysite));
+	}
+	else if (message == ENTITY_COMMS_SWITCH_PARENT)
+	{
+		/* (entity_comms_messages message, entity *en, list_types type, entity *parent) */
+		list_types type = va_arg (pargs, list_types);
+
+		entity *parent = va_arg (pargs, entity *);
+
+		printf ("transmit-switch-parent %s %d %s\n", task_label_of (en), (int) type, label_of (parent));
 	}
 	else
 	{
@@ -790,7 +862,6 @@ const char *(*fn_get_local_entity_string[NUM_ENTITY_TYPES][NUM_STRING_TYPES]) (e
 
 void add_default_entity_to_regen_queue (entity_sides side, entity_sub_types group_type) { NOT_REACHED ("add_default_entity_to_regen_queue"); }
 int increment_regen_queue_size (entity_sides side, entity_types type, int shift) { NOT_REACHED ("increment_regen_queue_size"); return 0; }
-entity *get_local_group_primary_task (entity *en) { NOT_REACHED ("get_local_group_primary_task"); return NULL; }
 entity *get_local_group_member_landing_entity_from_task (entity *en) { NOT_REACHED ("get_local_group_member_landing_entity_from_task"); return NULL; }
 void update_imap_sector_side (entity *en, int in_use) { NOT_REACHED ("update_imap_sector_side"); }
 void update_imap_importance_level (entity *en, int in_use) { NOT_REACHED ("update_imap_importance_level"); }
@@ -799,10 +870,8 @@ void restore_local_fixed_entity (entity *en) { NOT_REACHED ("restore_local_fixed
 void group_kill_all_members (entity *en) { NOT_REACHED ("group_kill_all_members"); }
 entity *get_local_landing_entity_route (entity *landing_en, entity_sub_types type) { NOT_REACHED ("get_local_landing_entity_route"); return NULL; }
 entity *get_local_entity_landing_entity (entity *en, entity_sub_types landing_type) { NOT_REACHED ("get_local_entity_landing_entity"); return NULL; }
-entity *get_local_entity_current_task (entity *member) { NOT_REACHED ("get_local_entity_current_task"); return NULL; }
 int create_group_emergency_transfer_task (entity *en) { NOT_REACHED ("create_group_emergency_transfer_task"); return 0; }
 void update_imap_distance_to_friendly_base (entity_sides side) { NOT_REACHED ("update_imap_distance_to_friendly_base"); }
-void set_client_server_entity_parent (entity *en, list_types type, entity *parent) { NOT_REACHED ("set_client_server_entity_parent"); }
 void send_text_message (entity *sender, entity *target, message_text_types type, const char *text) { NOT_REACHED ("send_text_message"); }
 int play_client_server_speech (entity *parent, entity *sender, entity_sides side, entity_sub_types sub_type, sound_locality_types locality, float delay, float priority, float expire_time, speech_originator_types originator, speech_category_types category, float category_silence_timer, ...) { NOT_REACHED ("play_client_server_speech"); return 0; }
 int *get_speech_sector_coordinates (vec3d *pos) { NOT_REACHED ("get_speech_sector_coordinates"); return NULL; }
@@ -817,7 +886,6 @@ int file_exist (const char *filename) { NOT_REACHED ("file_exist"); return 0; }
 entity *create_cap_task (entity_sides side, entity *this_keysite, entity *originator, int critical, float priority, float duration, entity *start_keysite, entity *end_keysite) { NOT_REACHED ("create_cap_task"); return NULL; }
 void assign_keysite_tasks (entity *keysite, task_category_types category) { NOT_REACHED ("assign_keysite_tasks"); }
 int assign_group_callsign (entity *en) { NOT_REACHED ("assign_group_callsign"); return 0; }
-task_completed_types assess_task_completeness (entity *en, task_terminated_types task_terminated) { NOT_REACHED ("assess_task_completeness"); return 0; }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -828,27 +896,52 @@ task_completed_types assess_task_completeness (entity *en, task_terminated_types
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
- * taskgen.c :: create_supply_task is Slice 5b (issue #12). Slice 5a's
- * boundary: the call is recorded with its arguments. It returns NULL: the
- * response uses the result only in its DEBUG_SUPPLY log, which is compiled out.
- * The call has no other effect, so whether a scenario prints it changes
- * nothing else in its output.
+ * taskgen.c :: create_supply_task, ported in slice 5b, is linked with
+ * --wrap=create_supply_task: fc_msgs.c's call passes through this trace, which
+ * prints Slice 5a's boundary line once a scenario observes it (so scenarios
+ * recorded before 5b keep their output), and then runs the original.
  */
-/* scenarios written before Slice 5a do not observe the boundary: see the "observe-supply-tasks" line */
 static int
 	observe_supply_tasks = FALSE;
 
-entity *create_supply_task (entity *requester, entity *supplier, entity *cargo, movement_types movement_type, float priority, entity *start_keysite, entity *end_keysite)
+/* slice 5b: print tasks and task lists in the graph (the "observe-tasks" line) */
+static int
+	observe_tasks = FALSE;
+
+entity *__real_create_supply_task (entity *requester, entity *supplier, entity *cargo, movement_types movement_type, float priority, entity *start_keysite, entity *end_keysite);
+
+entity *__wrap_create_supply_task (entity *requester, entity *supplier, entity *cargo, movement_types movement_type, float priority, entity *start_keysite, entity *end_keysite)
 {
 	if (observe_supply_tasks) printf ("create-supply-task %s %s %s %d %08x %s %s\n", label_of (requester), label_of (supplier), label_of (cargo), (int) movement_type, float_bits (priority), label_of (start_keysite), label_of (end_keysite));
 
-	return NULL;
+	return __real_create_supply_task (requester, supplier, cargo, movement_type, priority, start_keysite, end_keysite);
 }
+
+/*
+ * slice 5b: the campaign screen. notify_campaign_screen (ca_msgs.c, extracted)
+ * keeps its guard; its response table is the UI. The mission list's
+ * MISSION_CREATED entry records the semantic event (the TS CampaignEvents
+ * port's missionCreated); every other entry is the UI's default (FALSE).
+ */
+game_types
+	game_type;
+
+int (*campaign_screen_message_responses[NUM_CAMPAIGN_SCREEN_MESSAGE_TARGETS][NUM_CAMPAIGN_SCREEN_MESSAGES]) (campaign_screen_messages message, entity *sender);
+
+static int campaign_screen_default (campaign_screen_messages message, entity *sender) { return FALSE; }
+
+static int record_mission_created (campaign_screen_messages message, entity *sender)
+{
+	printf ("campaign mission-created %s\n", task_label_of (sender));
+
+	return TRUE;
+}
+
+float get_sector_fog_of_war_value (entity *en, entity_sides side) { NOT_REACHED ("get_sector_fog_of_war_value"); return 0.0f; }
 
 aircraft_data
 	aircraft_database [NUM_ENTITY_SUB_TYPE_AIRCRAFT];
 
-float get_local_sector_entity_enemy_surface_to_air_defence_level (entity *sector_en, entity_sides side) { NOT_REACHED ("get_local_sector_entity_enemy_surface_to_air_defence_level"); return 0.0f; }
 float get_local_sector_entity_enemy_surface_to_surface_defence_level (entity *sector_en, entity_sides side) { NOT_REACHED ("get_local_sector_entity_enemy_surface_to_surface_defence_level"); return 0.0f; }
 void play_mobile_under_attack_speech (entity *en, entity *aggressor) { NOT_REACHED ("play_mobile_under_attack_speech"); }
 void play_client_server_radio_message_response (entity *en, int speech_index, float priority, float expire_time) { NOT_REACHED ("play_client_server_radio_message_response"); }
@@ -1067,6 +1160,25 @@ static void initialise_tables (void)
 	overload_task_int_value_functions ();
 	overload_task_float_value_functions ();
 	overload_task_list_functions ();
+
+	/* slice 5b: task creation, route pointers, the task's LINK_PARENT response,
+	   a group's LINK_CHILD response (a group can be a task's objective), and
+	   the group-to-task suitability table (highlevl.c builds it at start-up) */
+	overload_task_create_functions ();
+	overload_task_ptr_value_functions ();
+	harness_overload_task_link_parent_response ();
+	harness_overload_group_link_child_response ();
+	initialise_group_task_array ();
+
+	for (i = 0; i < NUM_CAMPAIGN_SCREEN_MESSAGE_TARGETS; i++)
+	{
+		for (j = 0; j < NUM_CAMPAIGN_SCREEN_MESSAGES; j++)
+		{
+			campaign_screen_message_responses[i][j] = campaign_screen_default;
+		}
+	}
+
+	campaign_screen_message_responses[CAMPAIGN_SCREEN_TARGET_MISSION_LIST][CAMPAIGN_SCREEN_MISSION_CREATED] = record_mission_created;
 
 	/* waypoint accessors: a route waypoint on a requester's LIST_TYPE_TASK_DEPENDENT
 	   list (slice 5a); wp_float.c does not overload FLOAT_TYPE_TASK_USER_DATA, so the
@@ -1370,6 +1482,21 @@ static entity *find_created (const char *label)
 	return NULL;
 }
 
+/* slice 5b: tasks the original created are labelled task<index> */
+static void label_new_tasks (void)
+{
+	entity
+		*en;
+
+	for (en = first_used_entity; en; en = en->succ)
+	{
+		if ((get_local_entity_type (en) == ENTITY_TYPE_TASK) && (labels[get_local_entity_index (en)][0] == '\0'))
+		{
+			snprintf (labels[get_local_entity_index (en)], sizeof (labels[0]), "task%d", get_local_entity_index (en));
+		}
+	}
+}
+
 static void print_list (list_types type, entity *parent)
 {
 	entity
@@ -1455,6 +1582,93 @@ static void print_lifecycle_state (void)
 		print_list (LIST_TYPE_CARGO, keysites[i]);
 
 		printf ("\n");
+	}
+
+	/* slice 5b: tasks, their route and lists, and the forces' task counters,
+	   once a scenario observes them (scenarios recorded earlier do not) */
+	if (observe_tasks)
+	{
+		for (en = first_used_entity; en; en = en->succ)
+		{
+			if (get_local_entity_type (en) == ENTITY_TYPE_FORCE)
+			{
+				printf ("force %s supply-tasks-created %d\n", label_of (en), ((force *) get_local_entity_data (en))->task_generation[ENTITY_SUB_TYPE_TASK_SUPPLY].created);
+			}
+			else if (get_local_entity_type (en) == ENTITY_TYPE_TASK)
+			{
+				task *raw = (task *) get_local_entity_data (en);
+				unsigned int loop;
+
+				printf
+				(
+					"task %s %d sub %d side %d state %d id %d critical %d movement %d length %d difficulty %d expire %08x priority %08x user %08x objective %s keysite %s sector %s update %s\n",
+					label_of (en),
+					get_local_entity_index (en),
+					(int) raw->sub_type,
+					(int) raw->side,
+					(int) raw->task_state,
+					(int) raw->task_id,
+					(int) raw->critical_task,
+					(int) raw->movement_type,
+					(int) raw->route_length,
+					(int) raw->difficulty,
+					float_bits (raw->expire_timer),
+					float_bits (raw->task_priority),
+					float_bits (raw->task_user_data),
+					label_of (raw->task_dependent_link.parent),
+					label_of (raw->task_link.parent),
+					label_of (raw->sector_task_link.parent),
+					label_of (raw->update_link.parent)
+				);
+
+				if (raw->route_nodes)
+				{
+					printf ("route %s", label_of (en));
+
+					for (loop = 0; loop <= raw->route_length; loop ++)
+					{
+						printf (" %08x %08x %08x %d %d %s", float_bits (raw->route_nodes[loop].x), float_bits (raw->route_nodes[loop].y), float_bits (raw->route_nodes[loop].z), (int) raw->route_waypoint_types[loop], (int) raw->route_formation_types[loop], label_of (raw->route_dependents[loop]));
+					}
+
+					printf (" return %s\n", label_of (raw->return_keysite));
+				}
+			}
+		}
+
+		for (i = 0; i < num_keysites; i++)
+		{
+			printf ("unassigned %s", label_of (keysites[i]));
+
+			print_list (LIST_TYPE_UNASSIGNED_TASK, keysites[i]);
+
+			printf ("\n");
+
+			printf ("dependents %s", label_of (keysites[i]));
+
+			print_list (LIST_TYPE_TASK_DEPENDENT, keysites[i]);
+
+			printf ("\n");
+		}
+
+		if (map_complete)
+		{
+			for (z = MIN_MAP_Z_SECTOR; z <= MAX_MAP_Z_SECTOR; z++)
+			{
+				for (x = MIN_MAP_X_SECTOR; x <= MAX_MAP_X_SECTOR; x++)
+				{
+					en = entity_sector_map[x + (z * NUM_MAP_X_SECTORS)];
+
+					if (get_local_entity_first_child (en, LIST_TYPE_SECTOR_TASK))
+					{
+						printf ("sector-tasks %s", label_of (en));
+
+						print_list (LIST_TYPE_SECTOR_TASK, en);
+
+						printf ("\n");
+					}
+				}
+			}
+		}
 	}
 
 	/* a map line that ended early leaves unassigned cells */
@@ -1991,6 +2205,60 @@ int main (void)
 			/* slice 5a: print the create_supply_task boundary from here on */
 			observe_supply_tasks = TRUE;
 		}
+		else if (strcmp (word, "observe-tasks") == 0)
+		{
+			/* slice 5b: print tasks, routes and task lists in the graph */
+			observe_tasks = TRUE;
+		}
+		else if (strcmp (word, "single-player") == 0)
+		{
+			/* slice 5b: a single-player session: direct_play_get_comms_mode () is
+			   DIRECT_PLAY_COMMS_MODE_NONE, so transmit_entity_comms_message sends
+			   (and packs) nothing */
+			single_player = TRUE;
+		}
+		else if (strcmp (word, "game-type") == 0)
+		{
+			/* gametype.c :: game_type, as the front end assigns it */
+			game_type = (game_types) next_int (&cursor);
+		}
+		else if (strcmp (word, "keysite-landing") == 0)
+		{
+			/* slice 5b: raw keysite state a saved game holds: landing types and usable state */
+			keysite *raw = (keysite *) get_local_entity_data (find_created (next_token (&cursor)));
+
+			raw->landing_types = next_int (&cursor);
+			raw->keysite_usable_state = next_int (&cursor);
+		}
+		else if (strcmp (word, "task-counter") == 0)
+		{
+			/* slice 5b: a force's task generation counter, as a saved game holds it:
+			   task-counter <force label> <task sub type> <created> */
+			force *raw = (force *) get_local_entity_data (find_created (next_token (&cursor)));
+
+			int sub_type = next_int (&cursor);
+
+			raw->task_generation[sub_type].created = next_int (&cursor);
+		}
+		else if (strcmp (word, "group-alive") == 0)
+		{
+			/* slice 5b: a restored group's alive bit */
+			group *raw = (group *) get_local_entity_data (find_created (next_token (&cursor)));
+
+			raw->alive = next_int (&cursor);
+		}
+		else if (strcmp (word, "sector-state") == 0)
+		{
+			/* slice 5b: raw sector state a saved game holds: the sides' presence
+			   and surface-to-air defence levels (neutral, blue, red) */
+			sector *raw = (sector *) get_local_entity_data (find_created (next_token (&cursor)));
+
+			raw->sector_side[ENTITY_SIDE_BLUE_FORCE] = next_float (&cursor);
+			raw->sector_side[ENTITY_SIDE_RED_FORCE] = next_float (&cursor);
+			raw->surface_to_air_defence_level[ENTITY_SIDE_NEUTRAL] = next_float (&cursor);
+			raw->surface_to_air_defence_level[ENTITY_SIDE_BLUE_FORCE] = next_float (&cursor);
+			raw->surface_to_air_defence_level[ENTITY_SIDE_RED_FORCE] = next_float (&cursor);
+		}
 		else if (strcmp (word, "comms-model") == 0)
 		{
 			/* comms.c :: set_comms_model, as the host's session set-up sets it */
@@ -2127,6 +2395,8 @@ int main (void)
 			assess_group_supplies (target);
 
 			in_operation = FALSE;
+
+			label_new_tasks ();
 		}
 		else if (strcmp (word, "update-cargo") == 0)
 		{
@@ -2160,6 +2430,8 @@ int main (void)
 					snprintf (labels[get_local_entity_index (en)], sizeof (labels[0]), "crate%d", get_local_entity_index (en));
 				}
 			}
+
+			label_new_tasks ();
 		}
 		else if ((strcmp (word, "map") == 0) || (strcmp (word, "create") == 0) || (strcmp (word, "destroy") == 0) || (strcmp (word, "allocate") == 0))
 		{

@@ -32,4 +32,21 @@ export interface EntityReplication {
 
 	// C: transmit_entity_comms_message (ENTITY_COMMS_DESTROY, en)
 	transmitEntityDestroy(entityIndex: number): void;
+
+	// C: transmit_entity_comms_message (ENTITY_COMMS_SET_TASK_POINTERS, task):
+	// a new task's route (route_length nodes, the terminator not included) and
+	// return keysite. Nodes are floats; entities by index (-1: NULL).
+	transmitTaskPointers(taskIndex: number, route: ReplicatedTaskRoute): void;
+
+	// C: transmit_entity_comms_message (ENTITY_COMMS_SWITCH_PARENT, en, type, parent)
+	transmitSwitchParent(entityIndex: number, type: ListType, parentIndex: number): void;
+}
+
+// What ENTITY_COMMS_SET_TASK_POINTERS packs (en_comms.c), in its order.
+export interface ReplicatedTaskRoute {
+	nodes: { x: number; y: number; z: number }[];
+	formationTypes: number[];
+	waypointTypes: number[];
+	dependentIndices: number[];
+	returnKeysiteIndex: number;
 }

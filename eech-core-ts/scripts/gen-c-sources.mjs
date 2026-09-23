@@ -39,6 +39,11 @@ const ENUMS = [
 	["GAME_STATUS_TYPES", "aphavoc/source/global.h", "GameStatusType"],
 	["ENTITY_SUB_TYPE_TASKS", "aphavoc/source/entity/system/en_types/en_sbtyp.h", "EntitySubTypeTask"],
 	["ENTITY_SUB_TYPE_WAYPOINTS", "aphavoc/source/entity/system/en_types/en_sbtyp.h", "EntitySubTypeWaypoint"],
+	["ENTITY_SUB_TYPE_LANDING", "aphavoc/source/entity/system/en_types/en_sbtyp.h", "EntitySubTypeLanding"],
+	["KEYSITE_AIR_FORCE_CAPACITY_TYPES", "aphavoc/source/entity/special/keysite/keysite.h", "KeysiteAirForceCapacityType"],
+	["KEYSITE_USABLE_STATES", "aphavoc/source/entity/system/en_types/en_state.h", "KeysiteUsableState"],
+	["GAME_TYPES", "aphavoc/source/global.h", "GameType"],
+	["FORMATION_TYPES", "aphavoc/source/entity/system/en_types/en_forms.h", "FormationType"],
 	["TASK_STATE_TYPES", "aphavoc/source/entity/system/en_types/en_task.h", "TaskStateType"],
 	["MOVEMENT_TYPES", "aphavoc/source/ai_extrn.h", "MovementType"],
 ];
@@ -132,6 +137,22 @@ function generateGroupDatabase() {
 		lines.push(`\tResupplySourceType.${value}, // ${i} ${name}`);
 	});
 	lines.push("];", "");
+
+	const landings = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/entity/system/en_types/en_sbtyp.h"), "latin1"), "ENTITY_SUB_TYPE_LANDING");
+	const movements = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/ai_extrn.h"), "latin1"), "MOVEMENT_TYPES");
+	const column = (comment) => databaseColumn(source, groups, "ENTITY_SUB_TYPE_GROUP_", comment, "group_database");
+	const emit = (tsName, field, values) => {
+		lines.push(`// C provenance: ${header} :: group_database [].${field}`);
+		lines.push(`export const ${tsName}: readonly number[] = [`);
+		values.forEach((value, i) => lines.push(`\t${value}, // ${i} ${groups[i][0]}`));
+		lines.push("];", "");
+	};
+	emit("GROUP_DATABASE_MOVEMENT_TYPE", "movement_type (MovementType)", column("\\.movement type").map((v) => enumMemberValue(movements, v, ".movement type")));
+	emit("GROUP_DATABASE_DEFAULT_LANDING_TYPE", "default_landing_type (EntitySubTypeLanding)", column("landing type").map((v) => enumMemberValue(landings, v, "landing type")));
+	emit("GROUP_DATABASE_DEFAULT_ENGAGE_ENEMY", "default_engage_enemy (TRUE 1, FALSE 0)", column("default_engage_enemy").map((v) => booleanLiteral(v, "default_engage_enemy")));
+	for (const [field, , groupComment] of AI_STAT_FIELDS) {
+		emit(`GROUP_DATABASE_AI_STATS_${field.toUpperCase()}`, `ai_stats.${field}`, column(escapeRegExp(groupComment)).map((v) => integerLiteral(v, groupComment)));
+	}
 	return lines.join("\n");
 }
 
@@ -142,6 +163,18 @@ const NUMERIC_DEFINES = [
 	["KEYSITE_SUPPLY_REQUEST_THRESHOLD", "aphavoc/source/entity/system/en_types/en_suply.h"],
 	["CARGO_AMMO_SIZE", "aphavoc/source/entity/mobile/cargo/cargo.h"],
 	["CARGO_FUEL_SIZE", "aphavoc/source/entity/mobile/cargo/cargo.h"],
+	// slice 5b: task bit-field widths (en_int.h)
+	["NUM_TASK_ID_BITS", "aphavoc/source/entity/system/en_funcs/en_int.h"],
+	["NUM_ROUTE_LENGTH_BITS", "aphavoc/source/entity/system/en_funcs/en_int.h"],
+	["NUM_TASK_DIFFICULTY_BITS", "aphavoc/source/entity/system/en_funcs/en_int.h"],
+	["NUM_CRITICAL_TASK_BITS", "aphavoc/source/entity/system/en_funcs/en_int.h"],
+	["NUM_MOVEMENT_TYPE_BITS", "aphavoc/source/entity/system/en_funcs/en_int.h"],
+	["NUM_SIDE_BITS", "aphavoc/source/entity/system/en_funcs/en_int.h"],
+	["NUM_ALIVE_BITS", "aphavoc/source/entity/system/en_funcs/en_int.h"],
+	["NUM_LANDING_TYPE_BITS", "aphavoc/source/entity/system/en_funcs/en_int.h"],
+	["NUM_KEYSITE_USABLE_STATE_BITS", "aphavoc/source/entity/system/en_funcs/en_int.h"],
+	["SECONDS_IN_A_MINUTE", "modules/maths/constant.h"],
+	["MAX_ROUTE_NODES", "aphavoc/source/ai/taskgen/taskgen.h"],
 ];
 
 // OBJECT_3D_INDEX_NUMBERS members the port names: [member, header]
@@ -178,10 +211,12 @@ export function parseNumericDefine(source, name) {
 	if (!match) {
 		throw new Error(`#define ${name} not found`);
 	}
-	if (!/^-?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?[fF]?$/.test(match[1])) {
+	// one level of parentheses around the literal, e.g. (12)
+	const literal = /^\((.*)\)$/.exec(match[1]) ? match[1].slice(1, -1) : match[1];
+	if (!/^-?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?[fF]?$/.test(literal)) {
 		throw new Error(`#define ${name} is not a numeric literal: ${match[1]}; extend the generator`);
 	}
-	return match[1].replace(/[fF]$/, "");
+	return literal.replace(/[fF]$/, "");
 }
 
 function generateConstants() {
@@ -228,7 +263,101 @@ function generateKeysiteDatabase() {
 		});
 		lines.push("];", "");
 	}
+	const capacities = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/entity/special/keysite/keysite.h"), "latin1"), "KEYSITE_AIR_FORCE_CAPACITY_TYPES");
+	const capacity = databaseColumn(source, keysites, "ENTITY_SUB_TYPE_KEYSITE_", "air force capacity", "keysite_database");
+	lines.push(`// C provenance: ${header} :: keysite_database [].air_force_capacity (KeysiteAirForceCapacityType)`);
+	lines.push("export const KEYSITE_DATABASE_AIR_FORCE_CAPACITY: readonly number[] = [");
+	capacity.forEach((value, i) => lines.push(`\t${enumMemberValue(capacities, value, "air force capacity")}, // ${i} ${keysites[i][0]}`));
+	lines.push("];", "");
 	return lines.join("\n");
+}
+
+// One column of an EECH database, checked against the enum it is indexed by.
+// `banner` maps an entry's banner to the enum member it stands for.
+function databaseColumn(source, members, enumPrefix, fieldComment, what, banner = (name, member) => name === member) {
+	const rows = parseDatabaseColumn(source, enumPrefix, fieldComment);
+	if (rows.length !== members.length) {
+		throw new Error(`${what}: ${rows.length} "${fieldComment}" rows for ${members.length} members`);
+	}
+	return rows.map(([name, value], i) => {
+		if (!banner(name, members[i][0])) {
+			throw new Error(`${what} entry ${i} is ${name}, expected ${members[i][0]}`);
+		}
+		return value.trim();
+	});
+}
+
+function integerLiteral(value, what) {
+	if (!/^-?\d+$/.test(value)) {
+		throw new Error(`${what}: not an integer literal: ${value}`);
+	}
+	return value;
+}
+
+function booleanLiteral(value, what) {
+	if (value !== "TRUE" && value !== "FALSE") {
+		throw new Error(`${what}: not TRUE or FALSE: ${value}`);
+	}
+	return value === "TRUE" ? "1" : "0";
+}
+
+function enumMemberValue(members, value, what) {
+	for (const [name, ordinal] of members) {
+		if (name === value) {
+			return String(ordinal);
+		}
+	}
+	throw new Error(`${what}: ${value} is not a member of the expected enum`);
+}
+
+const AI_STAT_FIELDS = [
+	["air_attack_strength", "Air Attack strength", ".air attack strength"],
+	["ground_attack_strength", "Ground Attack strength", ".ground attack strength"],
+	["movement_speed", "Movement Speed", ".movement speed"],
+	["movement_stealth", "Movement Stealth", ".movement stealth"],
+	["cargo_space", "Cargo Space", ".cargo space"],
+	["troop_space", "Troop Space", ".troop space"],
+];
+
+function escapeRegExp(text) {
+	return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+//
+// ts_dbase.c :: task_database [].landing_types: the expression after the
+// `// landing types` comment, a sum of (1 << ENTITY_SUB_TYPE_LANDING_*) terms
+// (or 0) up to its trailing comma.
+//
+function parseTaskLandingTypes(source, landings) {
+	const lines = source.split(/\r?\n/);
+	const values = [];
+	for (let i = 0; i < lines.length; i++) {
+		if (!/^\s*\/\/\s*landing types\s*$/.test(lines[i])) {
+			continue;
+		}
+		let expression = "";
+		for (i++; i < lines.length; i++) {
+			expression += ` ${lines[i].trim()}`;
+			if (/,\s*$/.test(lines[i])) {
+				break;
+			}
+		}
+		expression = expression.trim().replace(/,$/, "").trim();
+		if (expression === "0") {
+			values.push(0);
+			continue;
+		}
+		let value = 0;
+		for (const term of expression.split("+")) {
+			const m = /^\(1 << (ENTITY_SUB_TYPE_LANDING_[A-Z_]+)\)$/.exec(term.trim());
+			if (!m) {
+				throw new Error(`task_database landing types: cannot parse "${expression}"`);
+			}
+			value += Math.pow(2, Number(enumMemberValue(landings, m[1], "landing types")));
+		}
+		values.push(value);
+	}
+	return values;
 }
 
 //
@@ -262,6 +391,31 @@ function generateTaskDatabase() {
 		lines.push(`\t${value}, // ${i} ${member}`);
 	});
 	lines.push("];", "");
+
+	const sbtyp = readFileSync(join(repoRoot, "aphavoc/source/entity/system/en_types/en_sbtyp.h"), "latin1");
+	const landings = parseEnum(sbtyp, "ENTITY_SUB_TYPE_LANDING");
+	const movements = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/ai_extrn.h"), "latin1"), "MOVEMENT_TYPES");
+	const capacities = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/entity/special/keysite/keysite.h"), "latin1"), "KEYSITE_AIR_FORCE_CAPACITY_TYPES");
+	const banner = (name, member) => name === member || name === member.replace(/^ENTITY_SUB_TYPE_TASK_/, "ENTITY_SUB_TYPE_");
+	const column = (comment) => databaseColumn(source, tasks, "ENTITY_SUB_TYPE_", comment, "task_database", banner);
+	const emit = (tsName, field, values) => {
+		lines.push(`// C provenance: ${header} :: task_database [].${field}`);
+		lines.push(`export const ${tsName}: readonly number[] = [`);
+		values.forEach((value, i) => lines.push(`\t${value}, // ${i} ${tasks[i][0]}`));
+		lines.push("];", "");
+	};
+	emit("TASK_DATABASE_PRIMARY_TASK", "primary_task (TRUE 1, FALSE 0)", column("primary task").map((v) => booleanLiteral(v, "primary task")));
+	emit("TASK_DATABASE_ENGAGE_ENEMY", "engage_enemy (TRUE 1, FALSE 0)", column("Engage Enemy").map((v) => booleanLiteral(v, "Engage Enemy")));
+	emit("TASK_DATABASE_MOVEMENT_TYPE", "movement_type (MovementType)", column("Movement Type").map((v) => enumMemberValue(movements, v, "Movement Type")));
+	emit("TASK_DATABASE_KEYSITE_AIR_FORCE_CAPACITY", "keysite_air_force_capacity (KeysiteAirForceCapacityType)", column("keysite air force capacity").map((v) => enumMemberValue(capacities, v, "keysite air force capacity")));
+	const landingTypes = parseTaskLandingTypes(source, landings);
+	if (landingTypes.length !== tasks.length) {
+		throw new Error(`task_database: ${landingTypes.length} landing types for ${tasks.length} tasks`);
+	}
+	emit("TASK_DATABASE_LANDING_TYPES", "landing_types (bits of EntitySubTypeLanding)", landingTypes.map(String));
+	for (const [field, taskComment] of AI_STAT_FIELDS) {
+		emit(`TASK_DATABASE_AI_STATS_${field.toUpperCase()}`, `ai_stats.${field}`, column(escapeRegExp(taskComment)).map((v) => integerLiteral(v, taskComment)));
+	}
 	return lines.join("\n");
 }
 

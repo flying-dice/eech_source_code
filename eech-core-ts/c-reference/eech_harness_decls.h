@@ -34,6 +34,10 @@ extern void harness_overload_aircraft_link_parent_responses (entity_types type);
 
 extern void harness_overload_keysite_link_child_responses (void);
 
+extern void harness_overload_group_link_child_response (void);
+
+extern void harness_overload_task_link_parent_response (void);
+
 extern int (*harness_default_get_entity_int_value) (entity *en, int_types type);
 
 extern void (*harness_default_set_entity_int_value) (entity *en, int_types type, int value);

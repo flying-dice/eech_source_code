@@ -10,6 +10,8 @@ local core = dofile("build/lua/eech-core.lua")
 
 local transmitted = {}
 
+local missions = {}
+
 -- Ports are objects: the core calls their functions as methods (port:method (...)),
 -- so every port function receives the port table first.
 core.initialiseCampaignCore({
@@ -37,6 +39,17 @@ core.initialiseCampaignCore({
 		transmitEntityDestroy = function(self, entityIndex)
 			transmitted[#transmitted + 1] = { destroy = entityIndex }
 		end,
+		transmitTaskPointers = function(self, taskIndex, route)
+			transmitted[#transmitted + 1] = { taskPointers = taskIndex, route = route }
+		end,
+		transmitSwitchParent = function(self, entityIndex, listType, parentIndex)
+			transmitted[#transmitted + 1] = { switchParent = entityIndex, listType = listType, parentIndex = parentIndex }
+		end,
+	},
+	campaignEvents = {
+		missionCreated = function(self, taskIndex)
+			missions[#missions + 1] = taskIndex
+		end,
 	},
 }, { numberOfEntities = 64 })
 
@@ -45,7 +58,11 @@ local T, L = core.EntityType, core.ListType
 local session = core.createLocalEntityRaw(T.ENTITY_TYPE_SESSION, {})
 core.setSessionEntityRaw(session)
 
-local force = core.createLocalEntityRaw(T.ENTITY_TYPE_FORCE, { side = core.EntitySide.ENTITY_SIDE_BLUE_FORCE })
+local task_generation = {}
+for i = 1, core.EntitySubTypeTask.NUM_ENTITY_SUB_TYPE_TASKS do
+	task_generation[i] = { created = 0 }
+end
+local force = core.createLocalEntityRaw(T.ENTITY_TYPE_FORCE, { side = core.EntitySide.ENTITY_SIDE_BLUE_FORCE, task_generation = task_generation })
 core.insertLocalEntityIntoParentsChildListRaw(force, L.LIST_TYPE_FORCE, session, nil)
 
 local keysite = core.createLocalEntityRaw(T.ENTITY_TYPE_KEYSITE, {
@@ -55,12 +72,15 @@ local keysite = core.createLocalEntityRaw(T.ENTITY_TYPE_KEYSITE, {
 	in_use = 1,
 	position = { x = 0, y = 0, z = 0 },
 	supplies = { ammo_supply_level = 50, fuel_supply_level = 50 },
+	landing_types = 0,
+	keysite_usable_state = 0,
 })
 core.insertLocalEntityIntoParentsChildListRaw(keysite, L.LIST_TYPE_KEYSITE_FORCE, force, nil)
 
 local group_raw = {
 	sub_type = core.EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_ATTACK_HELICOPTER,
 	side = core.EntitySide.ENTITY_SIDE_BLUE_FORCE,
+	alive = 1,
 	supplies = { ammo_supply_level = 30, fuel_supply_level = 40 },
 	sleep = 0,
 	assist_timer = 0,
@@ -126,10 +146,16 @@ assert(#transmitted == sent + 2 and transmitted[sent + 1].destroy ~= nil, "two c
 assert(keysite.roots.cargo_root.first_child == newest, "the newest crate survives")
 
 -- an airbase supplies itself (it is the closest airbase to its own position):
--- its own crate becomes the cargo, and task construction (taskgen.c ::
--- create_supply_task, Slice 5b) is not ported, so production fails loudly there
+-- its own crate becomes the cargo, and create_supply_task (Slice 5b) looks for
+-- a start keysite: none takes helicopters or transports (landing types 0), so
+-- no task is created and nothing is transmitted
 keysite.data.sub_type = core.EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_AIRBASE
+core.setGameType(core.GameType.GAME_TYPE_CAMPAIGN)
+sent = #transmitted
 local ok, err = pcall(core.updateKeysiteCargo, keysite, 12, core.EntitySubTypeCargo.ENTITY_SUB_TYPE_CARGO_AMMO, core.CARGO_AMMO_SIZE)
-assert(not ok and tostring(err.message or err):find("create_supply_task", 1, true), "expected the unported create_supply_task")
+assert(ok, "no start keysite: " .. tostring(err))
+assert(#transmitted == sent, "no task transmitted")
+assert(#missions == 0, "no mission created")
+assert(task_generation[core.EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_SUPPLY + 1].created == 0, "no supply task counted")
 
 print(_VERSION .. ": eech-core.lua smoke test passed")

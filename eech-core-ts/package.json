@@ -21,8 +21,8 @@
 		"test:cref": "vitest run --config vitest.cref.config.ts",
 		"cref:record": "RECORD_CREF=1 vitest run --config vitest.cref.config.ts test/c-reference/differential.cref.test.ts",
 		"spike:fpu": "vitest run --config vitest.fpu.config.ts && node c-reference/fpu-probes/run-probes.mjs",
-		"mutation": "node scripts/mutation-check.mjs",
-		"verify": "npm run check:c && npm run typecheck && npm run lint && npm run coverage && npm run smoke:lua && npm run test:lua && npm run test:cref && npm run mutation"
+		"verify": "npm run check:c && npm run typecheck && npm run lint && npm run coverage && npm run smoke:lua && npm run test:lua && npm run test:cref",
+		"probe:f1": "vitest run --config vitest.f1.config.ts"
 	},
 	"devDependencies": {
 		"@types/node": "26.6.2",

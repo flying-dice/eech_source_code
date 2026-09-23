@@ -13,7 +13,8 @@ import { toFloat32RTZ } from "../../core/float32";
 import type { Vec3d } from "../../core/maths/vec3d";
 import { CommsModelType, FloatType, IntType, PtrType, Vec3dType } from "../../generated/c-enums";
 import { getCommsModel, type CommsModel } from "./comms";
-import { getCampaignPorts, type Entity } from "./entity";
+import { transmitEntityFloatValue } from "./en_comms";
+import type { Entity } from "./entity";
 import { EntityFunctionTable } from "./function-table";
 
 export type GetIntValueFn = (en: Entity, type: IntType) => number;
@@ -23,6 +24,8 @@ export type SetFloatValueFn = (en: Entity, type: FloatType, value: number) => vo
 export type GetVec3dPtrFn = (en: Entity, type: Vec3dType) => Vec3d | undefined;
 export type SetVec3dFn = (en: Entity, type: Vec3dType, v: Vec3d) => void;
 export type GetPtrValueFn = (en: Entity, type: PtrType) => Entity | undefined;
+// C: void (*) (entity *en, ptr_types type, void *ptr)
+export type SetPtrValueFn = (en: Entity, type: PtrType, ptr: unknown) => void;
 
 export const fnGetLocalEntityIntValue = new EntityFunctionTable<GetIntValueFn>("fn_get_local_entity_int_value");
 
@@ -35,6 +38,10 @@ export const fnSetLocalEntityRawFloatValue = new EntityFunctionTable<SetFloatVal
 export const fnSetLocalEntityRawVec3d = new EntityFunctionTable<SetVec3dFn>("fn_set_local_entity_raw_vec3d");
 
 export const fnGetLocalEntityFloatValue = new EntityFunctionTable<GetFloatValueFn>("fn_get_local_entity_float_value");
+
+export const fnSetLocalEntityFloatValue = new EntityFunctionTable<SetFloatValueFn>("fn_set_local_entity_float_value");
+
+export const fnSetLocalEntityPtrValue = new EntityFunctionTable<SetPtrValueFn>("fn_set_local_entity_ptr_value");
 
 export const fnSetClientServerEntityFloatValue: Record<CommsModel, EntityFunctionTable<SetFloatValueFn>> = {
 	[CommsModelType.COMMS_MODEL_SERVER]: new EntityFunctionTable<SetFloatValueFn>("fn_set_client_server_entity_float_value [COMMS_MODEL_SERVER]"),
@@ -88,6 +95,16 @@ export function defaultGetEntityFloatValue(_en: Entity, _type: FloatType): numbe
 // installed where the C overload tables are known to keep this default.
 export function defaultSetEntityIntValue(_en: Entity, _type: IntType, _value: number): void {}
 
+// The C prototype takes `float value`, so the argument is narrowed on entry (toward zero).
+export function setLocalEntityFloatValue(en: Entity, type: FloatType, value: number): void {
+	fnSetLocalEntityFloatValue.lookup(en.type, type, FloatType[type])(en, type, toFloat32RTZ(value));
+}
+
+// The C prototype takes `void *ptr`.
+export function setLocalEntityPtrValue(en: Entity, type: PtrType, ptr: unknown): void {
+	fnSetLocalEntityPtrValue.lookup(en.type, type, PtrType[type])(en, type, ptr);
+}
+
 export function getLocalEntityFloatValue(en: Entity, type: FloatType): number {
 	return fnGetLocalEntityFloatValue.lookup(en.type, type, FloatType[type])(en, type);
 }
@@ -123,6 +140,6 @@ export function serverFloatValueSetter(setLocalFloatValue: SetFloatValueFn): Set
 	return (en, type, value) => {
 		setLocalFloatValue(en, type, value);
 
-		getCampaignPorts().entityReplication.transmitEntityFloatValue(en.index, type, value);
+		transmitEntityFloatValue(en, type, value);
 	};
 }

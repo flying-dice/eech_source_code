@@ -62,6 +62,8 @@ import { getUpdateEntity } from "../update/update";
 export interface GroupRaw {
 	sub_type: EntitySubTypeGroup;
 	side: EntitySide;
+	// unsigned int alive : NUM_ALIVE_BITS (1)
+	alive: number;
 	supplies: SupplyRaw;
 	sleep: number;
 	assist_timer: number;
@@ -218,6 +220,21 @@ const responseToLinkParent: MessageResponseFn = (_message, _receiver, _sender, a
 	return 1;
 };
 
+//
+// C provenance: gp_msgs.c :: response_to_link_child
+//
+// Only LIST_TYPE_MEMBER has an arm (member counts, keysite importance, the
+// campaign screen); every other list, such as a task joining the group's
+// LIST_TYPE_TASK_DEPENDENT list, returns TRUE.
+//
+const responseToLinkChild: MessageResponseFn = (_message, _receiver, _sender, args) => {
+	if ((args[0] as ListType) === ListType.LIST_TYPE_MEMBER) {
+		throw new UnportedBehaviourError("gp_msgs.c :: response_to_link_child (LIST_TYPE_MEMBER)");
+	}
+
+	return 1;
+};
+
 // C provenance: gp_msgs.c :: response_to_unlink_parent (only debug_log_entity_message)
 const responseToUnlinkParent: MessageResponseFn = () => 1;
 
@@ -238,6 +255,8 @@ export function overloadGroupFunctions(): void {
 	);
 	fnGetLocalEntityIntValue.overload(GROUP, IntType.INT_TYPE_RESUPPLY_SOURCE, (en) => GROUP_DATABASE_RESUPPLY_SOURCE[getLocalEntityData<GroupRaw>(en).sub_type]);
 	fnGetLocalEntityIntValue.overload(GROUP, IntType.INT_TYPE_SIDE, (en) => getLocalEntityData<GroupRaw>(en).side);
+	fnGetLocalEntityIntValue.overload(GROUP, IntType.INT_TYPE_ENTITY_SUB_TYPE, (en) => getLocalEntityData<GroupRaw>(en).sub_type);
+	fnGetLocalEntityIntValue.overload(GROUP, IntType.INT_TYPE_ALIVE, (en) => getLocalEntityData<GroupRaw>(en).alive);
 
 	// C provenance: gp_int.c does not overload INT_TYPE_UPDATED; en_int.c's default setter applies
 	fnSetLocalEntityIntValue.overload(GROUP, IntType.INT_TYPE_UPDATED, defaultSetEntityIntValue);
@@ -272,7 +291,8 @@ export function overloadGroupFunctions(): void {
 	// C provenance: gp_updt.c :: overload_group_update_functions
 	fnUpdateClientServerEntity.overload(GROUP, CommsModelType.COMMS_MODEL_SERVER, updateServer);
 
-	// C provenance: gp_msgs.c :: overload_group_message_responses (LINK_PARENT, UNLINK_PARENT only)
+	// C provenance: gp_msgs.c :: overload_group_message_responses (LINK_CHILD, LINK_PARENT, UNLINK_PARENT only)
+	messageResponses.overload(GROUP, EntityMessage.ENTITY_MESSAGE_LINK_CHILD, responseToLinkChild);
 	messageResponses.overload(GROUP, EntityMessage.ENTITY_MESSAGE_LINK_PARENT, responseToLinkParent);
 	messageResponses.overload(GROUP, EntityMessage.ENTITY_MESSAGE_UNLINK_PARENT, responseToUnlinkParent);
 

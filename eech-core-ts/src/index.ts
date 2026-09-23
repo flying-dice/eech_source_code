@@ -12,7 +12,11 @@ import { resetGameStatus } from "./core/game-status";
 import { getCampaignPorts } from "./entity/system/entity";
 import { overloadUpdateFunctions, resetUpdateEntity } from "./entity/special/update/update";
 import { initialiseEntityRuntime } from "./entity/system/entity";
-import { resetCreateSupplyTaskInterceptor } from "./ai/taskgen/taskgen";
+import { resetCreateSupplyTaskObserver } from "./ai/taskgen/taskgen";
+import { initialiseGroupTaskArray } from "./ai/highlevl/suitable";
+import { resetGameType } from "./core/game-type";
+import { resetEntityCommsTransmission } from "./entity/system/en_comms";
+import { overloadTaskCreateFunctions } from "./entity/special/task/ts_creat";
 import { overloadMobileFunctions } from "./entity/mobile/mobile";
 import { overloadForceFunctions } from "./entity/special/force/force";
 import { overloadForceMessageResponses } from "./entity/special/force/fc_msgs";
@@ -38,13 +42,15 @@ export interface CampaignCoreOptions {
 
 export function initialiseCampaignCore(ports: CampaignPorts, options: CampaignCoreOptions = {}): void {
 	initialiseEntityRuntime(ports);
-	resetCreateSupplyTaskInterceptor();
+	resetCreateSupplyTaskObserver();
+	resetEntityCommsTransmission();
 	initialiseEntityHeap(options.numberOfEntities ?? DEFAULT_NUMBER_OF_ENTITIES);
 	resetWorldMap();
 	resetSectorMap();
 
 	resetDeltaTime();
 	resetGameStatus();
+	resetGameType();
 	resetUpdateEntity();
 	setCommandLineEntityUpdateFrameRate(options.entityUpdateFrameRate ?? DEFAULT_ENTITY_UPDATE_FRAME_RATE);
 
@@ -59,8 +65,12 @@ export function initialiseCampaignCore(ports: CampaignPorts, options: CampaignCo
 	overloadSectorFunctions();
 	overloadCargoFunctions();
 	overloadTaskFunctions();
+	overloadTaskCreateFunctions();
 	overloadWaypointFunctions();
 	overloadUnknownEntityDestroyFunctions();
+
+	// C provenance: highlevl.c :: initialise_highlevel_ai -> initialise_group_task_array
+	initialiseGroupTaskArray();
 }
 
 //
@@ -73,7 +83,17 @@ export function setDeltaTime(): void {
 	setDeltaTimeFrom(getCampaignPorts().clock);
 }
 
-export type { CampaignPorts, Clock, EntityReplication, MobilePhysicalState, Object3DBounds, Object3DMetadata, ReplicatedEntityAttribute } from "./ports";
+export type {
+	CampaignEvents,
+	CampaignPorts,
+	Clock,
+	EntityReplication,
+	MobilePhysicalState,
+	Object3DBounds,
+	Object3DMetadata,
+	ReplicatedEntityAttribute,
+	ReplicatedTaskRoute,
+} from "./ports";
 export { assessGroupSupplies } from "./entity/special/group/group";
 export { setUpdateEntity, updateClientServerEntities } from "./entity/special/update/update";
 export { setClientServerEntityFloatValue } from "./entity/system/en_values";
@@ -81,6 +101,11 @@ export { setClientServerEntityFloatValue } from "./entity/system/en_values";
 // Keysite cargo (slice 4) and the host's game status
 export { updateKeysiteCargo } from "./entity/special/keysite/keysite";
 export { getGameStatus, setGameStatus } from "./core/game-status";
+
+// Supply task construction (slice 5b) and the session state it reads
+export { createSupplyTask } from "./ai/taskgen/taskgen";
+export { getGameType, setGameType } from "./core/game-type";
+export { setEntityCommsTransmission } from "./entity/system/en_comms";
 export { CARGO_AMMO_SIZE, CARGO_FUEL_SIZE, OBJECT_3D_SINGLE_CRATE } from "./generated/c-constants";
 
 // Entity lifecycle and the world map
@@ -98,4 +123,4 @@ export { insertLocalEntityIntoParentsChildListRaw } from "./entity/system/en_lis
 export { createLocalEntityRaw } from "./entity/system/en_heap";
 export { setSessionEntityRaw } from "./entity/system/entity";
 export { EntitySide, EntitySubTypeCargo, EntitySubTypeGroup, EntitySubTypeKeysite, EntitySubTypeTask, EntityType, FloatType, GameStatusType, IntType, ListType, MovementType, TaskStateType, Vec3dType } from "./generated/c-enums";
-export { EntitySubTypeWaypoint } from "./generated/c-enums";
+export { EntitySubTypeWaypoint, GameType, KeysiteUsableState } from "./generated/c-enums";

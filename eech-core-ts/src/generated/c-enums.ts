@@ -899,6 +899,62 @@ export enum EntitySubTypeWaypoint {
 	NUM_ENTITY_SUB_TYPE_WAYPOINTS = 38,
 }
 
+// C provenance: enum ENTITY_SUB_TYPE_LANDING (aphavoc/source/entity/system/en_types/en_sbtyp.h)
+export enum EntitySubTypeLanding {
+	ENTITY_SUB_TYPE_LANDING_FIXED_WING = 0,
+	ENTITY_SUB_TYPE_LANDING_FIXED_WING_TRANSPORT = 1,
+	ENTITY_SUB_TYPE_LANDING_HELICOPTER = 2,
+	ENTITY_SUB_TYPE_LANDING_GROUND = 3,
+	ENTITY_SUB_TYPE_LANDING_PEOPLE = 4,
+	ENTITY_SUB_TYPE_LANDING_SEA = 5,
+	NUM_ENTITY_SUB_TYPE_LANDINGS = 6,
+}
+
+// C provenance: enum KEYSITE_AIR_FORCE_CAPACITY_TYPES (aphavoc/source/entity/special/keysite/keysite.h)
+export enum KeysiteAirForceCapacityType {
+	KEYSITE_AIR_FORCE_CAPACITY_NONE = 0,
+	KEYSITE_AIR_FORCE_CAPACITY_SMALL = 1,
+	KEYSITE_AIR_FORCE_CAPACITY_LARGE = 2,
+	NUM_KEYSITE_AIR_FORCE_CAPACITY_TYPES = 3,
+}
+
+// C provenance: enum KEYSITE_USABLE_STATES (aphavoc/source/entity/system/en_types/en_state.h)
+export enum KeysiteUsableState {
+	KEYSITE_STATE_USABLE = 0,
+	KEYSITE_STATE_UNUSABLE = 1,
+	KEYSITE_STATE_REPAIRING = 2,
+	NUM_KEYSITE_USABLE_STATES = 3,
+}
+
+// C provenance: enum GAME_TYPES (aphavoc/source/global.h)
+export enum GameType {
+	GAME_TYPE_INVALID = 0,
+	GAME_TYPE_FREE_FLIGHT = 1,
+	GAME_TYPE_CAMPAIGN = 2,
+	GAME_TYPE_SKIRMISH = 3,
+	GAME_TYPE_DEMO = 4,
+	NUM_GAME_TYPES = 5,
+}
+
+// C provenance: enum FORMATION_TYPES (aphavoc/source/entity/system/en_types/en_forms.h)
+export enum FormationType {
+	FORMATION_NONE = 0,
+	FORMATION_1 = 1,
+	FORMATION_ROW_LEFT = 2,
+	FORMATION_ROW_RIGHT = 3,
+	FORMATION_ECHELON_LEFT = 4,
+	FORMATION_ECHELON_RIGHT = 5,
+	FORMATION_COLUMN = 6,
+	FORMATION_WEDGE = 7,
+	FORMATION_DIAMOND = 8,
+	FORMATION_STAGGERED_TRAIL_LEFT = 9,
+	FORMATION_STAGGERED_TRAIL_RIGHT = 10,
+	FORMATION_80M_ROAD_NODE_16_TANKS = 11,
+	FORMATION_INFANTRY_COLUMN = 12,
+	FORMATION_INVALID = 13,
+	NUM_FORMATION_TYPES = 14,
+}
+
 // C provenance: enum TASK_STATE_TYPES (aphavoc/source/entity/system/en_types/en_task.h)
 export enum TaskStateType {
 	TASK_STATE_UNASSIGNED = 0,

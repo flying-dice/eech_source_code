@@ -20,6 +20,7 @@ import {
 	FloatType,
 	GameStatusType,
 	IntType,
+	KeysiteUsableState,
 	ListType,
 	Vec3dType,
 } from "../../../generated/c-enums";
@@ -57,6 +58,10 @@ export interface KeysiteRaw {
 	in_use: number;
 	position: Vec3d;
 	supplies: SupplyRaw;
+	// unsigned int landing_types : NUM_LANDING_TYPE_BITS (bits of EntitySubTypeLanding)
+	landing_types: number;
+	// unsigned int keysite_usable_state : NUM_KEYSITE_USABLE_STATE_BITS
+	keysite_usable_state: KeysiteUsableState;
 }
 
 //
@@ -293,17 +298,21 @@ const responseToLinkOrUnlinkChild: MessageResponseFn = () => 1;
 export function overloadKeysiteFunctions(): void {
 	const KEYSITE = EntityType.ENTITY_TYPE_KEYSITE;
 
-	// C provenance: ks_list.c :: LIST_TYPE_KEYSITE_GROUP_ROOT, LIST_TYPE_BUILDING_GROUP_ROOT, LIST_TYPE_CARGO_ROOT, LIST_TYPE_KEYSITE_FORCE_LINK
+	// C provenance: ks_list.c :: LIST_TYPE_KEYSITE_GROUP_ROOT, LIST_TYPE_BUILDING_GROUP_ROOT, LIST_TYPE_CARGO_ROOT, LIST_TYPE_TASK_DEPENDENT_ROOT,
+	//               LIST_TYPE_UNASSIGNED_TASK_ROOT, LIST_TYPE_KEYSITE_FORCE_LINK
 	overloadEntityListRoot(KEYSITE, "keysite_group_root", [ListType.LIST_TYPE_KEYSITE_GROUP]);
 	overloadEntityListRoot(KEYSITE, "building_group_root", [ListType.LIST_TYPE_BUILDING_GROUP]);
 	overloadEntityListRoot(KEYSITE, "cargo_root", [ListType.LIST_TYPE_CARGO]);
 	overloadEntityListRoot(KEYSITE, "task_dependent_root", [ListType.LIST_TYPE_TASK_DEPENDENT]);
+	overloadEntityListRoot(KEYSITE, "unassigned_task_root", [ListType.LIST_TYPE_UNASSIGNED_TASK]);
 	overloadEntityListLink(KEYSITE, "keysite_force_link", [ListType.LIST_TYPE_KEYSITE_FORCE]);
 
 	// C provenance: ks_int.c :: get_local_int_value
 	fnGetLocalEntityIntValue.overload(KEYSITE, IntType.INT_TYPE_ENTITY_SUB_TYPE, (en) => getLocalEntityData<KeysiteRaw>(en).sub_type);
 	fnGetLocalEntityIntValue.overload(KEYSITE, IntType.INT_TYPE_IN_USE, (en) => getLocalEntityData<KeysiteRaw>(en).in_use);
 	fnGetLocalEntityIntValue.overload(KEYSITE, IntType.INT_TYPE_SIDE, (en) => getLocalEntityData<KeysiteRaw>(en).side);
+	fnGetLocalEntityIntValue.overload(KEYSITE, IntType.INT_TYPE_LANDING_TYPES, (en) => getLocalEntityData<KeysiteRaw>(en).landing_types);
+	fnGetLocalEntityIntValue.overload(KEYSITE, IntType.INT_TYPE_KEYSITE_USABLE_STATE, (en) => getLocalEntityData<KeysiteRaw>(en).keysite_usable_state);
 
 	// C provenance: ks_float.c :: get_local_float_value
 	fnGetLocalEntityFloatValue.overload(KEYSITE, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL, (en) => getLocalEntityData<KeysiteRaw>(en).supplies.ammo_supply_level);

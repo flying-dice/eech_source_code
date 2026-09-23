@@ -28,6 +28,8 @@ import { advanceCrateRow } from "../../src/entity/special/keysite/keysite";
 import { firstUnmatchedLine, runLifecycle } from "../scenarios/lifecycle-scenario";
 import { FORCE_LOW_ON_SUPPLIES_CASES } from "../scenarios/force-low-on-supplies.cases";
 import { C_REFERENCE_RANDOM_FORCE_LOW_ON_SUPPLIES } from "../scenarios/generated/c-reference-random-force-low-on-supplies.cases";
+import { C_REFERENCE_RANDOM_SUPPLY_TASK_CONSTRUCTION } from "../scenarios/generated/c-reference-random-supply-task-construction.cases";
+import { SUPPLY_TASK_CONSTRUCTION_CASES, f1CompatibilityPair, f1SemanticRouteFailure, supplyTaskExpectationFailure } from "../scenarios/supply-task-construction.cases";
 import { runTimeline } from "../scenarios/update-timeline";
 
 declare const _VERSION: string;
@@ -163,6 +165,20 @@ for (const c of FORCE_LOW_ON_SUPPLIES_CASES) {
 }
 
 for (const c of C_REFERENCE_RANDOM_FORCE_LOW_ON_SUPPLIES) {
+	check(c.id, runLifecycle(c.spec), c.expected);
+}
+
+// Slice 5b: taskgen.c :: create_supply_task -> create_task
+for (const c of SUPPLY_TASK_CONSTRUCTION_CASES) {
+	check(c.id, supplyTaskExpectationFailure(c, runLifecycle(c.spec), firstUnmatchedLine), "");
+}
+
+{
+	const pair = f1CompatibilityPair();
+	check("f1-single-player-and-multiplayer-construct-the-same-route", f1SemanticRouteFailure(runLifecycle(pair.singlePlayer), runLifecycle(pair.multiplayer)), "");
+}
+
+for (const c of C_REFERENCE_RANDOM_SUPPLY_TASK_CONSTRUCTION) {
 	check(c.id, runLifecycle(c.spec), c.expected);
 }
 

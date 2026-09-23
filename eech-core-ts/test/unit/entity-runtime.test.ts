@@ -6,7 +6,6 @@
 
 import { afterEach, describe, expect, it } from "vitest";
 import { initialiseCampaignCore } from "../../src";
-import { createSupplyTask, interceptCreateSupplyTask } from "../../src/ai/taskgen/taskgen";
 import { EechAssertionError, UnportedBehaviourError } from "../../src/core/assert";
 import { setCommsModel } from "../../src/entity/system/comms";
 import { getLocalEntityChildSucc, getLocalEntityFirstChild, getLocalEntityParent, insertLocalEntityIntoParentsChildListRaw } from "../../src/entity/system/en_list";
@@ -14,14 +13,15 @@ import { notifyLocalEntity } from "../../src/entity/system/en_msgs";
 import { getLocalEntityFloatValue, getLocalEntityIntValue, setClientServerEntityFloatValue } from "../../src/entity/system/en_values";
 import { createLocalEntityRaw } from "../../src/entity/system/en_heap";
 import { deinitialiseEntityRuntime, getCampaignPorts } from "../../src/entity/system/entity";
-import { CommsModelType, EntityMessage, EntitySide, EntityType, FloatType, IntType, ListType, MovementType } from "../../src/generated/c-enums";
+import { CommsModelType, EntityMessage, EntitySide, EntityType, FloatType, IntType, ListType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
+import { RecordingCampaignEvents } from "../adapters/recording-campaign-events";
 import { ScriptedClock } from "../adapters/scripted-clock";
 
 function ports() {
-	return { mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new RecordingEntityReplication(), clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata() };
+	return { mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new RecordingEntityReplication(), clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata(), campaignEvents: new RecordingCampaignEvents() };
 }
 
 afterEach(() => {
@@ -107,7 +107,7 @@ describe("entity runtime", () => {
 		initialiseCampaignCore(ports());
 		setCommsModel(CommsModelType.COMMS_MODEL_CLIENT);
 		const replication = new RecordingEntityReplication();
-		initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata() });
+		initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata(), campaignEvents: new RecordingCampaignEvents() });
 		const keysite = createLocalEntityRaw(EntityType.ENTITY_TYPE_KEYSITE, { supplies: { ammo_supply_level: 0, fuel_supply_level: 0 } });
 		setClientServerEntityFloatValue(keysite, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL, 0.1);
 		// the C prototype's float parameter narrows the value, toward zero (0x3dcccccc)
@@ -116,31 +116,10 @@ describe("entity runtime", () => {
 });
 
 describe("entity messages", () => {
-	it("create_supply_task (Slice 5b) fails loudly unless a test intercepts it", () => {
-		initialiseCampaignCore(ports());
-		const keysite = createLocalEntityRaw(EntityType.ENTITY_TYPE_KEYSITE, {});
-		const call = (): unknown => createSupplyTask(keysite, keysite, keysite, MovementType.MOVEMENT_TYPE_AIR, 4, undefined, undefined);
-
-		expect(call).toThrow(new UnportedBehaviourError("taskgen.c :: create_supply_task (Slice 5b)"));
-
-		// the interceptor answers only while installed, and initialisation removes it
-		const seen: number[] = [];
-		interceptCreateSupplyTask((requester, _supplier, _cargo, movement_type) => {
-			seen.push(requester.index, movement_type);
-			return keysite;
-		});
-		expect(call()).toBe(keysite);
-		expect(seen).toEqual([keysite.index, MovementType.MOVEMENT_TYPE_AIR]);
-
-		initialiseCampaignCore(ports());
-		expect(call).toThrow(UnportedBehaviourError);
-	});
-
-
 	it("fails loudly on message responses not declared at all", () => {
 		initialiseCampaignCore(ports());
 		const group = createLocalEntityRaw(EntityType.ENTITY_TYPE_GROUP, {});
-		expect(() => notifyLocalEntity(EntityMessage.ENTITY_MESSAGE_LINK_CHILD, group, undefined)).toThrow(UnportedBehaviourError);
+		expect(() => notifyLocalEntity(EntityMessage.ENTITY_MESSAGE_UNLINK_CHILD, group, undefined)).toThrow(UnportedBehaviourError);
 	});
 
 	it("asserts the message range (notify_local_entity)", () => {

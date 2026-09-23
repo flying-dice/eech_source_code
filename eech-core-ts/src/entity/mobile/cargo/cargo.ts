@@ -33,7 +33,8 @@ import {
 	unlinkLocalEntityChildren,
 } from "../../system/en_list";
 import { getWorldMap } from "../../system/en_world";
-import { getCampaignPorts, setLocalEntityData, setLocalEntityType, type Entity } from "../../system/entity";
+import { transmitEntityCreate, transmitEntityDestroy } from "../../system/en_comms";
+import { setLocalEntityData, setLocalEntityType, type Entity } from "../../system/entity";
 
 // C provenance: cargo.h :: struct CARGO (ported fields only)
 export interface CargoRaw {
@@ -83,7 +84,7 @@ function createLocal(type: EntityType, index: number, attributes: EntityAttribut
 function createRemote(type: EntityType, index: number, attributes: EntityAttribute[]): Entity | undefined {
 	validateRemoteCreateEntityIndex(index);
 
-	getCampaignPorts().entityReplication.transmitEntityCreate(type, index, replicatedEntityAttributes(attributes));
+	transmitEntityCreate(type, index, replicatedEntityAttributes(attributes));
 
 	return undefined;
 }
@@ -119,7 +120,7 @@ function destroyLocal(en: Entity): void {
 
 // C provenance: cg_dstry.c :: destroy_remote
 function destroyRemote(en: Entity): void {
-	getCampaignPorts().entityReplication.transmitEntityDestroy(en.index);
+	transmitEntityDestroy(en);
 }
 
 // C provenance: cg_dstry.c :: destroy_server (destroy remote entity first, keeping local entity valid)
