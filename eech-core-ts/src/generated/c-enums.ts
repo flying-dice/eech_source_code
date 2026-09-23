@@ -1065,3 +1065,10 @@ export enum GuideCriteriaType {
 	GUIDE_CRITERIA_WEAPON_VECTOR = 5,
 	NUM_GUIDE_CRITERIA_TYPES = 6,
 }
+
+// C provenance: enum CHAR_TYPES (aphavoc/source/entity/system/en_funcs/en_char.h)
+export enum CharType {
+	CHAR_TYPE_TAG = 0,
+	CHAR_TYPE_VALUE = 1,
+	NUM_CHAR_TYPES = 2,
+}

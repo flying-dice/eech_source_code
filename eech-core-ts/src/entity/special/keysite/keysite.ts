@@ -305,6 +305,9 @@ export function overloadKeysiteFunctions(): void {
 	overloadEntityListRoot(KEYSITE, "cargo_root", [ListType.LIST_TYPE_CARGO]);
 	overloadEntityListRoot(KEYSITE, "task_dependent_root", [ListType.LIST_TYPE_TASK_DEPENDENT]);
 	overloadEntityListRoot(KEYSITE, "unassigned_task_root", [ListType.LIST_TYPE_UNASSIGNED_TASK]);
+	// slice 6b: ks_list.c :: LIST_TYPE_ASSIGNED_TASK_ROOT, LIST_TYPE_LANDING_SITE_ROOT
+	overloadEntityListRoot(KEYSITE, "assigned_task_root", [ListType.LIST_TYPE_ASSIGNED_TASK]);
+	overloadEntityListRoot(KEYSITE, "landing_site_root", [ListType.LIST_TYPE_LANDING_SITE]);
 	overloadEntityListLink(KEYSITE, "keysite_force_link", [ListType.LIST_TYPE_KEYSITE_FORCE]);
 
 	// C provenance: ks_int.c :: get_local_int_value

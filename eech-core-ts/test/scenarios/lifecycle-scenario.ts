@@ -86,7 +86,7 @@ import { clearedTaskGeneration, type ForceRaw } from "../../src/entity/special/f
 import { updateKeysiteCargo, type KeysiteRaw } from "../../src/entity/special/keysite/keysite";
 import { assessGroupSupplies, type GroupRaw } from "../../src/entity/special/group/group";
 import { clearedTaskRaw, type TaskRaw } from "../../src/entity/special/task/task";
-import type { WaypointRaw } from "../../src/entity/special/waypoint/waypoint";
+import { clearedWaypointRaw } from "../../src/entity/special/waypoint/waypoint";
 import { setCommsModel, type CommsModel } from "../../src/entity/system/comms";
 import { createLocalSectorEntities, getLocalRawSectorEntity, type SectorRaw } from "../../src/entity/special/sector/sector";
 import { setEntityCommsTransmission } from "../../src/entity/system/en_comms";
@@ -100,9 +100,11 @@ import { getWorldMap, setEntityWorldMapSize } from "../../src/entity/system/en_w
 import { getLocalEntityData, setLocalEntityData, setLocalEntityType, setSessionEntityRaw, type Entity } from "../../src/entity/system/entity";
 import { setUpdateEntity } from "../../src/entity/special/update/update";
 import { EntitySide, EntitySubTypeTask, EntityType, IntType, ListType, TaskStateType, Vec3dType, type EntityType as EntityTypeT } from "../../src/generated/c-enums";
-import type { CampaignEvents, EntityReplication, ReplicatedEntityAttribute, ReplicatedTaskRoute } from "../../src/ports";
+import type { CampaignEvents, EntityReplication, ReplicatedEntityAttribute, ReplicatedTaskRoute, ReplicatedWaypointRoute } from "../../src/ports";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
+import { GridTerrainElevation } from "../adapters/grid-terrain-elevation";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
+import { InMemoryRoadNetwork } from "../adapters/in-memory-road-network";
 import { ScriptedClock } from "../adapters/scripted-clock";
 import type { KeysiteSpec, PositionSpec } from "./campaign-scenario";
 import { observeSupplyTasks as observeSupplyTaskCalls, traceForceLowOnSupplies } from "./supply-boundary";
@@ -233,6 +235,32 @@ class LineReplication implements EntityReplication {
 	public transmitSwitchParent(entityIndex: number, type: ListType, parentIndex: number): void {
 		this.lines.push(`transmit-switch-parent ${this.taskLabelOfIndex(entityIndex)} ${type} ${this.labelOfIndex(parentIndex)}`);
 	}
+
+	public transmitEntityIntValue(entityIndex: number, type: number, value: number): void {
+		this.lines.push(`transmit-int ${this.taskLabelOfIndex(entityIndex)} ${type} ${value}`);
+	}
+
+	public transmitCreateWaypointRoute(taskIndex: number, route: ReplicatedWaypointRoute): void {
+		const position = (p: { x: number; y: number; z: number } | undefined): string => (p === undefined ? " -" : ` ${float32Hex(p.x)} ${float32Hex(p.y)} ${float32Hex(p.z)}`);
+
+		let text = `transmit-waypoint-route ${this.taskLabelOfIndex(taskIndex)} ${this.labelOfIndex(route.groupIndex)} ${this.labelOfIndex(route.returnKeysiteIndex)}`;
+
+		text += ` start${position(route.start)} stop${position(route.stop)} checksum ${route.checkSum} waypoints`;
+
+		for (const index of route.waypointIndices) {
+			text += ` ${this.labelOfIndex(index)}`;
+		}
+
+		this.lines.push(text);
+	}
+
+	public transmitSwitchList(entityIndex: number, fromType: ListType, parentIndex: number, toType: ListType): void {
+		this.lines.push(`transmit-switch-list ${this.taskLabelOfIndex(entityIndex)} ${fromType} ${this.labelOfIndex(parentIndex)} ${toType}`);
+	}
+
+	public transmitSetGuideCriteria(guideIndex: number, type: number, valid: number, value: number): void {
+		this.lines.push(`transmit-guide-criteria ${this.labelOfIndex(guideIndex)} ${type} ${valid} ${float32Hex(value)}`);
+	}
 }
 
 // The campaign screen's MISSION_CREATED response, as the C harness records it
@@ -244,6 +272,10 @@ class LineCampaignEvents implements CampaignEvents {
 
 	public missionCreated(taskIndex: number): void {
 		this.lines.push(`campaign mission-created ${this.taskLabelOfIndex(taskIndex)}`);
+	}
+
+	public missionAssigned(taskIndex: number): void {
+		this.lines.push(`campaign mission-assigned ${this.taskLabelOfIndex(taskIndex)}`);
 	}
 }
 
@@ -286,6 +318,11 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 
 	const physical = new InMemoryMobilePhysicalState();
 
+	// slice 6b: the route generator's environment (the harness's "terrain" and "road-node" lines)
+	const terrain = new GridTerrainElevation();
+
+	const roads = new InMemoryRoadNetwork();
+
 	initialiseCampaignCore(
 		{
 			mobilePhysicalState: physical,
@@ -293,6 +330,8 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 			clock: new ScriptedClock(),
 			object3DMetadata: objects,
 			campaignEvents: new LineCampaignEvents(lines, taskLabelOfIndex),
+			terrainElevation: terrain,
+			roadNetwork: roads,
 		},
 		{ numberOfEntities: spec.heap },
 	);
@@ -488,6 +527,7 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 					sleep: 0,
 					assist_timer: 0,
 					member_count: 0,
+					group_list_type: 0,
 				};
 				const group = createLocalEntityRaw(EntityType.ENTITY_TYPE_GROUP, raw);
 				labels[group.index] = op.label;
@@ -528,7 +568,8 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 				const objective = find(op.objective) as Entity;
 				insertLocalEntityIntoParentsChildListRaw(task, ListType.LIST_TYPE_TASK_DEPENDENT, objective, lastChild(objective, ListType.LIST_TYPE_TASK_DEPENDENT));
 			} else if (op.kind === "waypoint") {
-				const raw: WaypointRaw = { sub_type: op.subType };
+				const raw = clearedWaypointRaw();
+				raw.sub_type = op.subType;
 				const waypoint = createLocalEntityRaw(EntityType.ENTITY_TYPE_WAYPOINT, raw);
 				labels[waypoint.index] = op.label;
 				const dependent = find(op.dependent) as Entity;

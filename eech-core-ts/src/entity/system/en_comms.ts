@@ -28,7 +28,7 @@
 
 import { ASSERT } from "../../core/assert";
 import type { Vec3d } from "../../core/maths/vec3d";
-import type { EntityType, FloatType, ListType } from "../../generated/c-enums";
+import type { EntityType, FloatType, IntType, ListType } from "../../generated/c-enums";
 import type { ReplicatedEntityAttribute } from "../../ports";
 import { pointInsideMapVolume } from "./en_world";
 import { getCampaignPorts, type Entity } from "./entity";
@@ -130,6 +130,77 @@ export function transmitTaskPointers(task: Entity, route: TaskRoutePointers): vo
 		dependentIndices,
 		returnKeysiteIndex: indexOf(route.return_keysite),
 	});
+}
+
+// C: ENTITY_COMMS_INT_VALUE (slice 6b: the task's route checksum)
+export function transmitEntityIntValue(en: Entity, type: IntType, value: number): void {
+	if (!transmission) {
+		return;
+	}
+
+	getCampaignPorts().entityReplication.transmitEntityIntValue(en.index, type, value);
+}
+
+//
+// C: ENTITY_COMMS_CREATE_WAYPOINT_ROUTE (task, group, return_keysite, start, stop, check_sum, node_count).
+// The start and stop positions are packed with pack_vec3d (VEC3D_TYPE_POSITION),
+// the same check as the task pointers'; the waypoints are the task's
+// LIST_TYPE_WAYPOINT list at transmission (node_count is not packed: the list
+// is counted again).
+//
+export function transmitCreateWaypointRoute(
+	task: Entity,
+	group: Entity,
+	returnKeysite: Entity | undefined,
+	start: Vec3d | undefined,
+	stop: Vec3d | undefined,
+	checkSum: number,
+	waypoints: Entity[],
+): void {
+	if (!transmission) {
+		return;
+	}
+
+	if (start !== undefined) {
+		packPosition(start);
+	}
+
+	if (stop !== undefined) {
+		packPosition(stop);
+	}
+
+	const waypointIndices: number[] = [];
+
+	for (const wp of waypoints) {
+		waypointIndices.push(wp.index);
+	}
+
+	getCampaignPorts().entityReplication.transmitCreateWaypointRoute(task.index, {
+		groupIndex: group.index,
+		returnKeysiteIndex: indexOf(returnKeysite),
+		start: start === undefined ? undefined : { x: start.x, y: start.y, z: start.z },
+		stop: stop === undefined ? undefined : { x: stop.x, y: stop.y, z: stop.z },
+		checkSum,
+		waypointIndices,
+	});
+}
+
+// C: ENTITY_COMMS_SWITCH_LIST (en, from list type, parent, to list type)
+export function transmitSwitchList(en: Entity, fromType: ListType, parent: Entity | undefined, toType: ListType): void {
+	if (!transmission) {
+		return;
+	}
+
+	getCampaignPorts().entityReplication.transmitSwitchList(en.index, fromType, indexOf(parent), toType);
+}
+
+// C: ENTITY_COMMS_SET_GUIDE_CRITERIA (guide, criteria type, valid, value)
+export function transmitSetGuideCriteria(guide: Entity, type: number, valid: number, value: number): void {
+	if (!transmission) {
+		return;
+	}
+
+	getCampaignPorts().entityReplication.transmitSetGuideCriteria(guide.index, type, valid, value);
 }
 
 // C: ENTITY_COMMS_SWITCH_PARENT

@@ -118,7 +118,7 @@ function world(register = true): World {
 	};
 	const airbase = createLocalEntityRaw(EntityType.ENTITY_TYPE_KEYSITE, keysiteRaw);
 	insertLocalEntityIntoParentsChildListRaw(airbase, ListType.LIST_TYPE_KEYSITE_FORCE, force, undefined);
-	const groupRaw: GroupRaw = { sub_type: MLT, side: BLUE, alive: 1, supplies: { ammo_supply_level: 100, fuel_supply_level: 100 }, sleep: 0, assist_timer: 0, member_count: 1 };
+	const groupRaw: GroupRaw = { sub_type: MLT, side: BLUE, alive: 1, supplies: { ammo_supply_level: 100, fuel_supply_level: 100 }, sleep: 0, assist_timer: 0, member_count: 1, group_list_type: 0 };
 	const group = createLocalEntityRaw(EntityType.ENTITY_TYPE_GROUP, groupRaw);
 	insertLocalEntityIntoParentsChildListRaw(group, ListType.LIST_TYPE_KEYSITE_GROUP, airbase, undefined);
 	if (register) {

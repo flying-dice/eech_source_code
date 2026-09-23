@@ -7,7 +7,7 @@
 // hears about changes only while a campaign or skirmish is running. The
 // screen's responses (campaign_screen_message_responses) are the UI; the
 // port reports the semantic event instead (CampaignEvents). DEMO_VERSION is 0
-// in EECH builds. Only the message adopted slices send is ported.
+// in EECH builds. Only the messages adopted slices send are ported.
 //
 
 import { getGameStatus } from "../../core/game-status";
@@ -34,6 +34,17 @@ export function notifyCampaignScreenMissionCreated(sender: Entity): boolean {
 	}
 
 	getCampaignPorts().campaignEvents.missionCreated(sender.index);
+
+	return true;
+}
+
+// C: notify_campaign_screen (CAMPAIGN_SCREEN_MISSION_ASSIGNED, sender) (slice 6b)
+export function notifyCampaignScreenMissionAssigned(sender: Entity): boolean {
+	if (!campaignScreenListening()) {
+		return false;
+	}
+
+	getCampaignPorts().campaignEvents.missionAssigned(sender.index);
 
 	return true;
 }

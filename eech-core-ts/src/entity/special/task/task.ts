@@ -16,7 +16,7 @@
 // reads or writes.
 //
 
-import { ASSERT, EechFatalError, EechUndefinedBehaviourError, UnportedBehaviourError } from "../../../core/assert";
+import { ASSERT, assertNotNullDereference, EechFatalError, EechUndefinedBehaviourError, UnportedBehaviourError } from "../../../core/assert";
 import { cBit, cBitAnd, cIntDivide, storeUnsignedBitfield } from "../../../core/cint";
 import { f32Add, f32Div, f32Mul, f32Sub, toFloat32 } from "../../../core/float32";
 import { getApprox2dRange } from "../../../core/maths/range";
@@ -25,6 +25,7 @@ import type { Vec3d } from "../../../core/maths/vec3d";
 import {
 	NUM_CRITICAL_TASK_BITS,
 	NUM_MOVEMENT_TYPE_BITS,
+	NUM_ROUTE_CHECK_SUM_BITS,
 	NUM_ROUTE_LENGTH_BITS,
 	NUM_SIDE_BITS,
 	NUM_TASK_DIFFICULTY_BITS,
@@ -48,6 +49,7 @@ import {
 } from "../../../generated/c-enums";
 import { KEYSITE_DATABASE_AIR_FORCE_CAPACITY } from "../../../generated/c-keysite-database";
 import {
+	TASK_DATABASE_ASSESS_LANDING,
 	TASK_DATABASE_KEYSITE_AIR_FORCE_CAPACITY,
 	TASK_DATABASE_LANDING_TYPES,
 	TASK_DATABASE_MINIMUM_MEMBER_COUNT,
@@ -55,14 +57,17 @@ import {
 	TASK_DATABASE_TASK_CATEGORY,
 } from "../../../generated/c-task-database";
 import { getGroupToTaskSuitability } from "../../../ai/highlevl/suitable";
-import { notifyCampaignScreenMissionCreated } from "../../../ui_menu/campaign/ca_msgs";
+import { notifyCampaignScreenMissionAssigned, notifyCampaignScreenMissionCreated } from "../../../ui_menu/campaign/ca_msgs";
 import { getCommsModel } from "../../system/comms";
 import { getLocalEntityChildSucc, getLocalEntityFirstChild, getLocalEntityParent, overloadEntityListLink, overloadEntityListRoot } from "../../system/en_list";
-import { messageResponses, type MessageResponseFn } from "../../system/en_msgs";
+import { defaultMessageResponse, messageResponses, type MessageResponseFn } from "../../system/en_msgs";
 import {
 	fnGetLocalEntityFloatValue,
 	fnGetLocalEntityIntValue,
+	fnGetLocalEntityPtrValue,
+	fnGetLocalEntityVec3dPtr,
 	fnSetClientServerEntityFloatValue,
+	fnSetClientServerEntityIntValue,
 	fnSetLocalEntityFloatValue,
 	fnSetLocalEntityIntValue,
 	fnSetLocalEntityPtrValue,
@@ -71,6 +76,7 @@ import {
 	getLocalEntityIntValue,
 	getLocalEntityVec3dPtr,
 	serverFloatValueSetter,
+	serverIntValueSetter,
 	setLocalEntityIntValue,
 	type SetFloatValueFn,
 	type SetIntValueFn,
@@ -101,6 +107,7 @@ export interface TaskRaw {
 	difficulty: number;
 	critical_task: number;
 	route_length: number;
+	route_check_sum: number;
 	side: EntitySide;
 }
 
@@ -123,6 +130,7 @@ export function clearedTaskRaw(): TaskRaw {
 		difficulty: 0,
 		critical_task: 0,
 		route_length: 0,
+		route_check_sum: 0,
 		side: 0,
 	};
 }
@@ -498,9 +506,10 @@ export function findMostSuitableKeysiteForTask(task_type: EntitySubTypeTask, sid
 // C provenance: ts_msgs.c :: response_to_link_parent
 //
 // Joining the unassigned list makes the task unassigned and, for a primary
-// task, tells the campaign screen a mission was created. The assigned and
-// completed arms (assignment and completion) are not ported. Other lists
-// (update, task dependent, sector task) have no arm.
+// task, tells the campaign screen a mission was created; joining the assigned
+// list (slice 6b: push_task_onto_group_task_stack) makes it assigned and tells
+// the screen the mission was assigned. The completed arm (completion) is not
+// ported. Other lists (update, task dependent, sector task) have no arm.
 //
 const responseToLinkParent: MessageResponseFn = (_message, receiver, _sender, args) => {
 	const list_type = args[0] as ListType;
@@ -513,12 +522,52 @@ const responseToLinkParent: MessageResponseFn = (_message, receiver, _sender, ar
 		if (TASK_DATABASE_PRIMARY_TASK[sub_type] !== 0) {
 			notifyCampaignScreenMissionCreated(receiver);
 		}
-	} else if (list_type === ListType.LIST_TYPE_ASSIGNED_TASK || list_type === ListType.LIST_TYPE_COMPLETED_TASK) {
+	} else if (list_type === ListType.LIST_TYPE_ASSIGNED_TASK) {
+		setLocalEntityIntValue(receiver, IntType.INT_TYPE_TASK_STATE, TaskStateType.TASK_STATE_ASSIGNED);
+
+		if (TASK_DATABASE_PRIMARY_TASK[sub_type] !== 0) {
+			notifyCampaignScreenMissionAssigned(receiver);
+		}
+	} else if (list_type === ListType.LIST_TYPE_COMPLETED_TASK) {
 		throw new UnportedBehaviourError(`ts_msgs.c :: response_to_link_parent (${ListType[list_type]})`);
 	}
 
 	return 1;
 };
+
+//
+// C provenance: task.c :: get_local_group_primary_task
+//
+// The task of the group's guide stack whose type is a primary task (at most
+// one: ASSERT (count <= 1)).
+//
+export function getLocalGroupPrimaryTask(en: Entity | undefined): Entity | undefined {
+	ASSERT(en !== undefined, "en");
+
+	let count = 0;
+
+	let primary_task: Entity | undefined = undefined;
+
+	let guide = getLocalEntityFirstChild(en, ListType.LIST_TYPE_GUIDE_STACK);
+
+	while (guide) {
+		const task = getLocalEntityParent(guide, ListType.LIST_TYPE_GUIDE) as Entity;
+
+		const sub_type = getLocalEntityIntValue(task, IntType.INT_TYPE_ENTITY_SUB_TYPE);
+
+		if (TASK_DATABASE_PRIMARY_TASK[sub_type] !== 0) {
+			count++;
+
+			primary_task = task;
+		}
+
+		guide = getLocalEntityChildSucc(guide, ListType.LIST_TYPE_GUIDE_STACK);
+	}
+
+	ASSERT(count <= 1, "count <= 1");
+
+	return primary_task;
+}
 
 // ts_int.c :: set_local_int_value, for one field: `unsigned int field : bits`,
 // or a whole int when bits is 0
@@ -559,6 +608,11 @@ export function overloadTaskFunctions(): void {
 	fnGetLocalEntityIntValue.overload(TASK, IntType.INT_TYPE_CRITICAL_TASK, (en) => getLocalEntityData<TaskRaw>(en).critical_task);
 	fnGetLocalEntityIntValue.overload(TASK, IntType.INT_TYPE_TASK_CATEGORY, (en) => TASK_DATABASE_TASK_CATEGORY[getLocalEntityData<TaskRaw>(en).sub_type]);
 	fnGetLocalEntityIntValue.overload(TASK, IntType.INT_TYPE_MINIMUM_MEMBER_COUNT, (en) => TASK_DATABASE_MINIMUM_MEMBER_COUNT[getLocalEntityData<TaskRaw>(en).sub_type]);
+	// slice 6b: read by assign.c :: assign_task_to_group and croute.c :: create_generic_waypoint_route
+	fnGetLocalEntityIntValue.overload(TASK, IntType.INT_TYPE_ASSESS_LANDING, (en) => TASK_DATABASE_ASSESS_LANDING[getLocalEntityData<TaskRaw>(en).sub_type]);
+	fnGetLocalEntityIntValue.overload(TASK, IntType.INT_TYPE_PRIMARY_TASK, (en) => TASK_DATABASE_PRIMARY_TASK[getLocalEntityData<TaskRaw>(en).sub_type]);
+	fnGetLocalEntityIntValue.overload(TASK, IntType.INT_TYPE_ROUTE_CHECK_SUM, (en) => getLocalEntityData<TaskRaw>(en).route_check_sum);
+	fnGetLocalEntityIntValue.overload(TASK, IntType.INT_TYPE_ROUTE_LENGTH, (en) => getLocalEntityData<TaskRaw>(en).route_length);
 
 	// C provenance: ts_int.c :: set_local_int_value, installed as both the raw and the local setter
 	const intSetters: [IntType, SetIntValueFn][] = [
@@ -568,6 +622,7 @@ export function overloadTaskFunctions(): void {
 		[IntType.INT_TYPE_CRITICAL_TASK, intFieldSetter((raw, value) => (raw.critical_task = value), NUM_CRITICAL_TASK_BITS)],
 		[IntType.INT_TYPE_MOVEMENT_TYPE, intFieldSetter((raw, value) => (raw.movement_type = value), NUM_MOVEMENT_TYPE_BITS)],
 		[IntType.INT_TYPE_ROUTE_LENGTH, intFieldSetter((raw, value) => (raw.route_length = value), NUM_ROUTE_LENGTH_BITS)],
+		[IntType.INT_TYPE_ROUTE_CHECK_SUM, intFieldSetter((raw, value) => (raw.route_check_sum = value), NUM_ROUTE_CHECK_SUM_BITS)],
 		[IntType.INT_TYPE_SIDE, intFieldSetter((raw, value) => (raw.side = value), NUM_SIDE_BITS)],
 		[IntType.INT_TYPE_TASK_DIFFICULTY, intFieldSetter((raw, value) => (raw.difficulty = value), NUM_TASK_DIFFICULTY_BITS)],
 	];
@@ -576,6 +631,13 @@ export function overloadTaskFunctions(): void {
 		fnSetLocalEntityRawIntValue.overload(TASK, type, setter);
 		fnSetLocalEntityIntValue.overload(TASK, type, setter);
 	}
+
+	// C provenance: ts_int.c :: set_server_int_value (slice 6b: the route checksum)
+	fnSetClientServerEntityIntValue[CommsModelType.COMMS_MODEL_SERVER].overload(
+		TASK,
+		IntType.INT_TYPE_ROUTE_CHECK_SUM,
+		serverIntValueSetter(intFieldSetter((raw, value) => (raw.route_check_sum = value), NUM_ROUTE_CHECK_SUM_BITS)),
+	);
 
 	// C provenance: ts_float.c :: get_local_float_value
 	fnGetLocalEntityFloatValue.overload(TASK, FloatType.FLOAT_TYPE_TASK_USER_DATA, (en) => getLocalEntityData<TaskRaw>(en).task_user_data);
@@ -614,6 +676,26 @@ export function overloadTaskFunctions(): void {
 		getLocalEntityData<TaskRaw>(en).route_waypoint_types = ptr as number[];
 	});
 
-	// C provenance: ts_msgs.c :: overload_task_message_responses (LINK_PARENT)
+	// C provenance: ts_ptr.c :: get_local_ptr_value (slice 6b)
+	fnGetLocalEntityPtrValue.overload(TASK, PtrType.PTR_TYPE_RETURN_KEYSITE, (en) => getLocalEntityData<TaskRaw>(en).return_keysite);
+	fnGetLocalEntityPtrValue.overload(TASK, PtrType.PTR_TYPE_ROUTE_DEPENDENTS, (en) => getLocalEntityData<TaskRaw>(en).route_dependents);
+	fnGetLocalEntityPtrValue.overload(TASK, PtrType.PTR_TYPE_ROUTE_FORMATION_TYPES, (en) => getLocalEntityData<TaskRaw>(en).route_formation_types);
+	fnGetLocalEntityPtrValue.overload(TASK, PtrType.PTR_TYPE_ROUTE_NODE, (en) => getLocalEntityData<TaskRaw>(en).route_nodes);
+	fnGetLocalEntityPtrValue.overload(TASK, PtrType.PTR_TYPE_ROUTE_WAYPOINT_TYPES, (en) => getLocalEntityData<TaskRaw>(en).route_waypoint_types);
+
+	// C provenance: ts_vec3d.c :: get_local_vec3d_ptr (VEC3D_TYPE_STOP_POSITION: &raw->route_nodes [raw->route_length - 1])
+	fnGetLocalEntityVec3dPtr.overload(TASK, Vec3dType.VEC3D_TYPE_STOP_POSITION, (en) => {
+		const raw = getLocalEntityData<TaskRaw>(en);
+
+		assertNotNullDereference(raw.route_nodes, "raw->route_nodes");
+
+		return raw.route_nodes[raw.route_length - 1];
+	});
+
+	// C provenance: ts_msgs.c :: overload_task_message_responses. LINK_CHILD, UNLINK_CHILD and
+	// UNLINK_PARENT are overloaded only under DEBUG_MODULE, so en_msgs.c's default applies.
 	messageResponses.overload(TASK, EntityMessage.ENTITY_MESSAGE_LINK_PARENT, responseToLinkParent);
+	messageResponses.overload(TASK, EntityMessage.ENTITY_MESSAGE_LINK_CHILD, defaultMessageResponse);
+	messageResponses.overload(TASK, EntityMessage.ENTITY_MESSAGE_UNLINK_CHILD, defaultMessageResponse);
+	messageResponses.overload(TASK, EntityMessage.ENTITY_MESSAGE_UNLINK_PARENT, defaultMessageResponse);
 }

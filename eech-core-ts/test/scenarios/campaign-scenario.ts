@@ -209,6 +209,7 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 			sleep: 0,
 			assist_timer: 0,
 			member_count: 0,
+			group_list_type: 0,
 		};
 		group = createLocalEntityRaw(EntityType.ENTITY_TYPE_GROUP, groupRaw);
 		labels[group.index] = "group";

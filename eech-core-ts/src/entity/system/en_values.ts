@@ -11,9 +11,9 @@
 
 import { toFloat32RTZ } from "../../core/float32";
 import type { Vec3d } from "../../core/maths/vec3d";
-import { CommsModelType, FloatType, IntType, PtrType, Vec3dType } from "../../generated/c-enums";
+import { CharType, CommsModelType, FloatType, IntType, PtrType, Vec3dType } from "../../generated/c-enums";
 import { getCommsModel, type CommsModel } from "./comms";
-import { transmitEntityFloatValue } from "./en_comms";
+import { transmitEntityFloatValue, transmitEntityIntValue } from "./en_comms";
 import type { Entity } from "./entity";
 import { EntityFunctionTable } from "./function-table";
 
@@ -23,7 +23,13 @@ export type GetFloatValueFn = (en: Entity, type: FloatType) => number;
 export type SetFloatValueFn = (en: Entity, type: FloatType, value: number) => void;
 export type GetVec3dPtrFn = (en: Entity, type: Vec3dType) => Vec3d | undefined;
 export type SetVec3dFn = (en: Entity, type: Vec3dType, v: Vec3d) => void;
-export type GetPtrValueFn = (en: Entity, type: PtrType) => Entity | undefined;
+// C: void * (*) (entity *en, ptr_types type): an entity, or a route array for the task pointers
+export type GetPtrValueFn = (en: Entity, type: PtrType) => unknown;
+// C: void (*) (entity *en, vec3d_types type, vec3d *v): the value is copied into *v
+export type GetVec3dFn = (en: Entity, type: Vec3dType) => Vec3d;
+// C: char (*) (entity *en, char_types type) and void (*) (entity *en, char_types type, char value)
+export type GetCharValueFn = (en: Entity, type: CharType) => number;
+export type SetCharValueFn = (en: Entity, type: CharType, value: number) => void;
 // C: void (*) (entity *en, ptr_types type, void *ptr)
 export type SetPtrValueFn = (en: Entity, type: PtrType, ptr: unknown) => void;
 
@@ -47,6 +53,19 @@ export const fnSetClientServerEntityFloatValue: Record<CommsModel, EntityFunctio
 	[CommsModelType.COMMS_MODEL_SERVER]: new EntityFunctionTable<SetFloatValueFn>("fn_set_client_server_entity_float_value [COMMS_MODEL_SERVER]"),
 	[CommsModelType.COMMS_MODEL_CLIENT]: new EntityFunctionTable<SetFloatValueFn>("fn_set_client_server_entity_float_value [COMMS_MODEL_CLIENT]"),
 };
+
+export const fnSetClientServerEntityIntValue: Record<CommsModel, EntityFunctionTable<SetIntValueFn>> = {
+	[CommsModelType.COMMS_MODEL_SERVER]: new EntityFunctionTable<SetIntValueFn>("fn_set_client_server_entity_int_value [COMMS_MODEL_SERVER]"),
+	[CommsModelType.COMMS_MODEL_CLIENT]: new EntityFunctionTable<SetIntValueFn>("fn_set_client_server_entity_int_value [COMMS_MODEL_CLIENT]"),
+};
+
+export const fnGetLocalEntityVec3d = new EntityFunctionTable<GetVec3dFn>("fn_get_local_entity_vec3d");
+
+export const fnSetLocalEntityVec3d = new EntityFunctionTable<SetVec3dFn>("fn_set_local_entity_vec3d");
+
+export const fnGetLocalEntityCharValue = new EntityFunctionTable<GetCharValueFn>("fn_get_local_entity_char_value");
+
+export const fnSetLocalEntityCharValue = new EntityFunctionTable<SetCharValueFn>("fn_set_local_entity_char_value");
 
 export const fnGetLocalEntityVec3dPtr = new EntityFunctionTable<GetVec3dPtrFn>("fn_get_local_entity_vec3d_ptr");
 
@@ -114,12 +133,37 @@ export function setClientServerEntityFloatValue(en: Entity, type: FloatType, val
 	fnSetClientServerEntityFloatValue[getCommsModel()].lookup(en.type, type, FloatType[type])(en, type, toFloat32RTZ(value));
 }
 
+// The C prototype takes `int value`.
+export function setClientServerEntityIntValue(en: Entity, type: IntType, value: number): void {
+	fnSetClientServerEntityIntValue[getCommsModel()].lookup(en.type, type, IntType[type])(en, type, value);
+}
+
+// C: get_local_entity_vec3d (en, type, &v): a copy
+export function getLocalEntityVec3d(en: Entity, type: Vec3dType): Vec3d {
+	return fnGetLocalEntityVec3d.lookup(en.type, type, Vec3dType[type])(en, type);
+}
+
+// The C prototype takes `vec3d *v`; vec3d members are floats.
+export function setLocalEntityVec3d(en: Entity, type: Vec3dType, v: Vec3d): void {
+	fnSetLocalEntityVec3d.lookup(en.type, type, Vec3dType[type])(en, type, v);
+}
+
+export function getLocalEntityCharValue(en: Entity, type: CharType): number {
+	return fnGetLocalEntityCharValue.lookup(en.type, type, CharType[type])(en, type);
+}
+
+// The C prototype takes `char value`.
+export function setLocalEntityCharValue(en: Entity, type: CharType, value: number): void {
+	fnSetLocalEntityCharValue.lookup(en.type, type, CharType[type])(en, type, value);
+}
+
 export function getLocalEntityVec3dPtr(en: Entity, type: Vec3dType): Vec3d | undefined {
 	return fnGetLocalEntityVec3dPtr.lookup(en.type, type, Vec3dType[type])(en, type);
 }
 
-export function getLocalEntityPtrValue(en: Entity, type: PtrType): Entity | undefined {
-	return fnGetLocalEntityPtrValue.lookup(en.type, type, PtrType[type])(en, type);
+// The C returns `void *`; the caller casts it, as here.
+export function getLocalEntityPtrValue<T = Entity | undefined>(en: Entity, type: PtrType): T {
+	return fnGetLocalEntityPtrValue.lookup(en.type, type, PtrType[type])(en, type) as T;
 }
 
 //
@@ -141,5 +185,24 @@ export function serverFloatValueSetter(setLocalFloatValue: SetFloatValueFn): Set
 		setLocalFloatValue(en, type, value);
 
 		transmitEntityFloatValue(en, type, value);
+	};
+}
+
+//
+// C provenance: the set_server_int_value found in every xx_int.c:
+//
+//   static void set_server_int_value (entity *en, int_types type, int value)
+//   {
+//     validate_client_server_local_fn ();
+//     set_local_int_value (en, type, value);
+//     validate_client_server_remote_fn ();
+//     set_remote_int_value (en, type, value);   // transmit_entity_comms_message (ENTITY_COMMS_INT_VALUE, ...)
+//   }
+//
+export function serverIntValueSetter(setLocalIntValue: SetIntValueFn): SetIntValueFn {
+	return (en, type, value) => {
+		setLocalIntValue(en, type, value);
+
+		transmitEntityIntValue(en, type, value);
 	};
 }

@@ -52,5 +52,23 @@ export const SECONDS_IN_A_MINUTE = 60;
 // C provenance: #define MAX_ROUTE_NODES (aphavoc/source/ai/taskgen/taskgen.h)
 export const MAX_ROUTE_NODES = 32;
 
+// C provenance: #define NUM_ROUTE_CHECK_SUM_BITS (aphavoc/source/entity/system/en_funcs/en_int.h)
+export const NUM_ROUTE_CHECK_SUM_BITS = 8;
+
+// C provenance: #define NUM_POSITION_TYPE_BITS (aphavoc/source/entity/system/en_funcs/en_int.h)
+export const NUM_POSITION_TYPE_BITS = 2;
+
+// C provenance: #define NUM_ROUTE_NODE_BITS (aphavoc/source/entity/system/en_funcs/en_int.h)
+export const NUM_ROUTE_NODE_BITS = 10;
+
+// C provenance: #define NUM_TAG_BITS (aphavoc/source/entity/system/en_funcs/en_int.h)
+export const NUM_TAG_BITS = 8;
+
+// C provenance: #define NUM_WAYPOINT_FORMATION_BITS (aphavoc/source/entity/system/en_funcs/en_int.h)
+export const NUM_WAYPOINT_FORMATION_BITS = 16;
+
+// C provenance: #define TASK_ASSIGN_ALL_MEMBERS (aphavoc/source/ai/taskgen/taskgen.h)
+export const TASK_ASSIGN_ALL_MEMBERS = 4294967295;
+
 // C provenance: enum OBJECT_3D_INDEXS :: OBJECT_3D_SINGLE_CRATE (modules/3d/3dmodels.h, OBJECT_3D_INDEX list position)
 export const OBJECT_3D_SINGLE_CRATE = 2698;

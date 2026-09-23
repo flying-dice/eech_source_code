@@ -52,6 +52,7 @@ const ENUMS = [
 	["ENTITY_SUB_TYPE_GUIDES", "aphavoc/source/entity/system/en_types/en_sbtyp.h", "EntitySubTypeGuide"],
 	["POSITION_TYPES", "aphavoc/source/entity/system/en_types/en_wp.h", "PositionType"],
 	["GUIDE_CRITERIA_TYPES", "aphavoc/source/entity/special/guide/guide.h", "GuideCriteriaType"],
+	["CHAR_TYPES", "aphavoc/source/entity/system/en_funcs/en_char.h", "CharType"],
 ];
 
 function stripComments(text) {
@@ -203,6 +204,13 @@ const NUMERIC_DEFINES = [
 	["NUM_KEYSITE_USABLE_STATE_BITS", "aphavoc/source/entity/system/en_funcs/en_int.h"],
 	["SECONDS_IN_A_MINUTE", "modules/maths/constant.h"],
 	["MAX_ROUTE_NODES", "aphavoc/source/ai/taskgen/taskgen.h"],
+	// slice 6b: task and waypoint bit-field widths (en_int.h), the all-members guide mask (taskgen.h)
+	["NUM_ROUTE_CHECK_SUM_BITS", "aphavoc/source/entity/system/en_funcs/en_int.h"],
+	["NUM_POSITION_TYPE_BITS", "aphavoc/source/entity/system/en_funcs/en_int.h"],
+	["NUM_ROUTE_NODE_BITS", "aphavoc/source/entity/system/en_funcs/en_int.h"],
+	["NUM_TAG_BITS", "aphavoc/source/entity/system/en_funcs/en_int.h"],
+	["NUM_WAYPOINT_FORMATION_BITS", "aphavoc/source/entity/system/en_funcs/en_int.h"],
+	["TASK_ASSIGN_ALL_MEMBERS", "aphavoc/source/ai/taskgen/taskgen.h"],
 ];
 
 // OBJECT_3D_INDEX_NUMBERS members the port names: [member, header]
@@ -241,6 +249,10 @@ export function parseNumericDefine(source, name) {
 	}
 	// one level of parentheses around the literal, e.g. (12)
 	const literal = /^\((.*)\)$/.exec(match[1]) ? match[1].slice(1, -1) : match[1];
+	// a hexadecimal integer literal (e.g. TASK_ASSIGN_ALL_MEMBERS (0xffffffff)), emitted in decimal
+	if (/^0[xX][0-9a-fA-F]+$/.test(literal)) {
+		return String(Number(literal));
+	}
 	if (!/^-?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?[fF]?$/.test(literal)) {
 		throw new Error(`#define ${name} is not a numeric literal: ${match[1]}; extend the generator`);
 	}

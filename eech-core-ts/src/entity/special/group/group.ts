@@ -29,17 +29,11 @@ import {
 	ResupplySourceType,
 	Vec3dType,
 } from "../../../generated/c-enums";
-import {
-	deleteLocalEntityFromParentsChildList,
-	getLocalEntityFirstChild,
-	getLocalEntityParent,
-	insertLocalEntityIntoParentsChildList,
-	overloadEntityListLink,
-	overloadEntityListRoot,
-} from "../../system/en_list";
+import { deleteLocalEntityFromParentsChildList, getLocalEntityChildSucc, getLocalEntityFirstChild, getLocalEntityParent, insertLocalEntityIntoParentsChildList, overloadEntityListLink, overloadEntityListRoot } from "../../system/en_list";
 import { messageResponses, notifyLocalEntity, type MessageResponseFn } from "../../system/en_msgs";
 import { fnUpdateClientServerEntity } from "../../system/en_updt";
 import {
+	defaultGetEntityIntValue,
 	defaultSetEntityIntValue,
 	fnGetLocalEntityFloatValue,
 	fnGetLocalEntityIntValue,
@@ -71,6 +65,25 @@ export interface GroupRaw {
 	// unsigned int member_count : NUM_MEMBER_COUNT_BITS (6). Slice 6a reads it; its live
 	// maintenance (gp_msgs.c :: response_to_link_child, LIST_TYPE_MEMBER) is not ported.
 	member_count: number;
+	// list_types group_list_type: the list gp_creat.c inserted the group into (gp_pack.c
+	// persists it). Slice 6b: assign.c :: assign_task_to_group takes the group's keysite
+	// as the route's start only when it is LIST_TYPE_KEYSITE_GROUP.
+	group_list_type: ListType;
+}
+
+// C provenance: group.c :: get_local_group_member_count (the LIST_TYPE_MEMBER list, counted)
+export function getLocalGroupMemberCount(group: Entity): number {
+	let count = 0;
+
+	let member = getLocalEntityFirstChild(group, ListType.LIST_TYPE_MEMBER);
+
+	while (member) {
+		count++;
+
+		member = getLocalEntityChildSucc(member, ListType.LIST_TYPE_MEMBER);
+	}
+
+	return count;
 }
 
 //
@@ -330,6 +343,15 @@ export function overloadGroupFunctions(): void {
 	fnGetLocalEntityIntValue.overload(GROUP, IntType.INT_TYPE_ENTITY_SUB_TYPE, (en) => getLocalEntityData<GroupRaw>(en).sub_type);
 	fnGetLocalEntityIntValue.overload(GROUP, IntType.INT_TYPE_ALIVE, (en) => getLocalEntityData<GroupRaw>(en).alive);
 	fnGetLocalEntityIntValue.overload(GROUP, IntType.INT_TYPE_MEMBER_COUNT, (en) => getLocalEntityData<GroupRaw>(en).member_count);
+	// slice 6b: read by assign.c :: assign_task_to_group
+	fnGetLocalEntityIntValue.overload(GROUP, IntType.INT_TYPE_GROUP_LIST_TYPE, (en) => getLocalEntityData<GroupRaw>(en).group_list_type);
+
+	// C provenance: en_int.c :: default_get_entity_int_value. No group file overloads
+	// INT_TYPE_SECTOR_SIDE, so croute.c :: create_generic_waypoint_route's
+	// get_local_entity_int_value (group, INT_TYPE_SECTOR_SIDE) is the default 0
+	// (ENTITY_SIDE_NEUTRAL) for every group: the route search's side bias compares
+	// sector sides with NEUTRAL (slice 6b decision D2).
+	fnGetLocalEntityIntValue.overload(GROUP, IntType.INT_TYPE_SECTOR_SIDE, defaultGetEntityIntValue);
 
 	// C provenance: gp_int.c does not overload INT_TYPE_UPDATED; en_int.c's default setter applies
 	fnSetLocalEntityIntValue.overload(GROUP, IntType.INT_TYPE_UPDATED, defaultSetEntityIntValue);

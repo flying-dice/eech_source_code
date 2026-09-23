@@ -22,6 +22,8 @@ import { overloadForceFunctions } from "./entity/special/force/force";
 import { overloadForceMessageResponses } from "./entity/special/force/fc_msgs";
 import { overloadTaskFunctions } from "./entity/special/task/task";
 import { overloadWaypointFunctions } from "./entity/special/waypoint/waypoint";
+import { overloadWaypointCreateFunctions } from "./entity/special/waypoint/wp_creat";
+import { initialiseInverseSquareRootTable } from "./core/maths/invsqrt";
 import { overloadGroupFunctions } from "./entity/special/group/group";
 import { overloadGuideFunctions } from "./entity/special/guide/guide";
 import { overloadPilotFunctions } from "./entity/special/pilot/pilot";
@@ -68,11 +70,15 @@ export function initialiseCampaignCore(ports: CampaignPorts, options: CampaignCo
 	overloadTaskFunctions();
 	overloadTaskCreateFunctions();
 	overloadWaypointFunctions();
+	overloadWaypointCreateFunctions();
 	overloadPilotFunctions();
 	overloadUnknownEntityDestroyFunctions();
 
 	// C provenance: highlevl.c :: initialise_highlevel_ai -> initialise_group_task_array
 	initialiseGroupTaskArray();
+
+	// C provenance: modules/maths/initmath.c :: initialise_maths_library -> initialise_inverse_square_root_table (at start-up)
+	initialiseInverseSquareRootTable();
 }
 
 //
@@ -95,6 +101,9 @@ export type {
 	Object3DMetadata,
 	ReplicatedEntityAttribute,
 	ReplicatedTaskRoute,
+	ReplicatedWaypointRoute,
+	RoadNetwork,
+	TerrainElevation,
 } from "./ports";
 export { assessGroupSupplies } from "./entity/special/group/group";
 export { setUpdateEntity, updateClientServerEntities } from "./entity/special/update/update";

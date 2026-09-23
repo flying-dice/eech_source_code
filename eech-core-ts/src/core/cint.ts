@@ -60,3 +60,9 @@ export function cBitAnd(a: number, b: number): number {
 export function cBit(bit: number): number {
 	return Math.pow(2, bit);
 }
+
+// C conversion of an unsigned int (0 .. 2^32 - 1) to int, as passing one
+// through an `int` parameter does: the same bits, two's complement.
+export function unsignedToCInt(value: number): number {
+	return value >= Math.pow(2, 31) ? value - Math.pow(2, 32) : value;
+}
