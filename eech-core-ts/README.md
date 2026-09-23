@@ -16,6 +16,8 @@ through narrow ports in `src/ports`.
   trace and behaviour matrix.
 - `docs/slices/group-update-timing.md`: slice 2, frozen, with its investigation,
   boundary and behaviour matrix.
+- `docs/slices/entity-lifecycle-cargo.md`: slice 3, in progress, with its
+  investigation, findings and boundary.
 
 ## Requirements
 
