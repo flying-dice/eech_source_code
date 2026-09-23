@@ -40,6 +40,8 @@ extern void (*harness_default_set_entity_int_value) (entity *en, int_types type,
 
 extern void (*harness_default_set_entity_float_value) (entity *en, float_types type, float value);
 
+extern float (*harness_default_get_entity_float_value) (entity *en, float_types type);
+
 extern void update_client_server_entities (void);
 
 extern float get_2d_range (const vec3d *v1, const vec3d *v2);

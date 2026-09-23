@@ -171,9 +171,10 @@ functions take the port table first, for example
 6. **Bounded.** Five C functions plus the accessors they reach.
 
 The force's reaction (`fc_msgs.c :: response_to_force_low_on_supplies`) creates
-supply tasks and pulls in task creation. The slice stops at that message
-boundary: the response is declared unported. Tests observe the delivery through
-the `record` policy. Production uses `throw`.
+supply tasks and pulls in task creation. The slice stopped at that message
+boundary, recording each delivery. Slice 5a ports the response behind the same
+trace line, up to its own boundary, `create_supply_task`, which tests record
+through a seam for that one function (`interceptCreateSupplyTask`); without it the call fails loudly.
 
 ## 6. What enables or blocks running the C implementation under a harness?
 
@@ -295,10 +296,12 @@ check without adding a branch to the caller.
    the `Object3DMetadata` port keyed by `object_3d_index_numbers`
    (`get_object_3d_bounding_box`, also read by the sector link response for
    fixed entities) and the game status as core state.
-4. **`fc_msgs.c :: response_to_force_low_on_supplies` and `create_supply_task`**
-   (slice 5). They close the supply loop by finding a supplier and creating the
-   supply task around a crate. They require task creation; the game status
-   they read is core state since slice 4.
+4. **`fc_msgs.c :: response_to_force_low_on_supplies`** (slice 5a, issue #12;
+   `docs/slices/force-low-on-supplies.md`): the duplicate-task decision and the
+   supplier and cargo choice, up to the `create_supply_task` boundary. **Slice
+   5b**: `create_supply_task`, `create_task` and the task entity, start-keysite
+   scoring, difficulty and route construction, after the F1 investigation of
+   the uninitialised route heights (`docs/slices/supply-task-investigation.md`).
 5. **Pickup, transport and delivery** (the `mb_msgs.c` waypoint handlers, cargo
    movement), and the landing handlers that call `assess_group_supplies`. These
    introduce a `LandingObservation`-style port: the DCS adapter reports that a
@@ -347,13 +350,14 @@ goes through the original `fn_*` tables, filled by the original
 | Force list roots and links | `fc_list.c` | 3 |
 | The harness's own entity array | `en_heap.c`: scenario entities come from the original heap | 3 |
 | "Not supplied" default for int getters | `en_int.c :: default_get_entity_int_value`, extracted verbatim | 3 |
+| Recording of `FORCE_LOW_ON_SUPPLIES` deliveries in place of the response | `fc_msgs.c` compiled whole; the original response runs behind the unchanged trace line | 5a |
+| `task_database` defined without meaning | `ts_dbase.c :: task_database` | 5a |
 
 **Remaining** (hand-written in `harness.c`):
 
 | Shim entry | Original source that should replace it |
 |---|---|
 | List storage of session, guide and helicopter | `ss_list.c`, `gd_list.c`, `ac_list.c` |
-| Delivery of `FORCE_LOW_ON_SUPPLIES` (recorded, not handled) | `fc_msgs.c :: response_to_force_low_on_supplies`. This is the slice 1 message boundary, and is ported with that response (Slice 5). |
 
 **Environment** (legitimately hand-written, driven by the same scenario data as
 the TS adapters):
@@ -403,7 +407,18 @@ behaviour. They fail the run if reached.
   the data only they read (`random_number_seed`,
   `command_line_capture_aircraft`, `speech_sector_coordinates`, the side name
   tables, `task_database`, the string accessor table with a fail-loud default)
-  is defined without meaning.
+  is defined without meaning (`task_database` is the original since slice 5a).
+- **Slice 5a:** `fc_msgs.c` is compiled whole, but only its
+  `FORCE_LOW_ON_SUPPLIES` row is kept in the dispatch table; the functions only
+  the other responses call (`campaign_completed`, the reactionary tasks,
+  `engage_targets_in_group`, speech, sector defence levels, `get_sqr_2d_range`)
+  and the waypoint list maintenance (`update_local_entity_waypoint_list_tags`,
+  `get_formation_database_count`) are fail-loud stubs, and `aircraft_database`
+  is defined without meaning. The task and waypoint accessors (`ts_int.c`,
+  `ts_float.c`, `ts_list.c`, `wp_int.c`, `wp_list.c`, `wp_dbase.c`) are compiled
+  whole; `entity_is_object_of_task` and `en_float.c ::
+  default_get_entity_float_value` are extracted verbatim.
+  `create_supply_task` (slice 5b) is the recording boundary.
 
 **Environment entries driven by the scenario** (slice 4):
 - `get_object_3d_bounding_box`: the scenario's `bounds` lines (the 3D object

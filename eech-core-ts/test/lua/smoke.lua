@@ -117,16 +117,19 @@ assert(#transmitted == sent + 3, "three crates created")
 local newest = keysite.roots.cargo_root.first_child
 assert(newest.data.mob.position.x == 6 and newest.data.mob.position.y == 0.5, "newest crate at x 6, y 0.5")
 -- a lower level destroys the oldest crates; nothing is left to create, so the
--- FARP (which consumes ammo) tells its force, which is not ported yet
+-- FARP (which consumes ammo) tells its force, whose response (fc_msgs.c) finds
+-- no factory, refinery or airbase to supply it: no supply task is asked for
 sent = #transmitted
 local ok, err = pcall(core.updateKeysiteCargo, keysite, 12, core.EntitySubTypeCargo.ENTITY_SUB_TYPE_CARGO_AMMO, core.CARGO_AMMO_SIZE)
+assert(ok, "no supplier: " .. tostring(err))
 assert(#transmitted == sent + 2 and transmitted[sent + 1].destroy ~= nil, "two crates destroyed")
 assert(keysite.roots.cargo_root.first_child == newest, "the newest crate survives")
-assert(not ok and tostring(err.message or err):find("response_to_force_low_on_supplies", 1, true), "expected the unported force response")
 
--- production policy: reaching an unported message response fails loudly
-group_raw.sub_type = core.EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_PRIMARY_FRONTLINE
-local ok, err = pcall(core.assessGroupSupplies, group)
-assert(not ok and tostring(err.message or err):find("response_to_force_low_on_supplies", 1, true), "expected unported message failure")
+-- an airbase supplies itself (it is the closest airbase to its own position):
+-- its own crate becomes the cargo, and task construction (taskgen.c ::
+-- create_supply_task, Slice 5b) is not ported, so production fails loudly there
+keysite.data.sub_type = core.EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_AIRBASE
+local ok, err = pcall(core.updateKeysiteCargo, keysite, 12, core.EntitySubTypeCargo.ENTITY_SUB_TYPE_CARGO_AMMO, core.CARGO_AMMO_SIZE)
+assert(not ok and tostring(err.message or err):find("create_supply_task", 1, true), "expected the unported create_supply_task")
 
 print(_VERSION .. ": eech-core.lua smoke test passed")

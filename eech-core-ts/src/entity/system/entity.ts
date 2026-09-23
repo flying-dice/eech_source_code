@@ -23,7 +23,7 @@
 //
 
 import { ASSERT } from "../../core/assert";
-import { CommsModelType, EntityType, type EntityMessage } from "../../generated/c-enums";
+import { CommsModelType, EntityType } from "../../generated/c-enums";
 import type { CampaignPorts } from "../../ports";
 import { setCommsModel } from "./comms";
 
@@ -48,17 +48,7 @@ export interface Entity {
 	pred: number;
 }
 
-export type UnportedMessagePolicy = "throw" | "record";
-
 export type MessageArg = number | Entity | undefined;
-
-export interface UnportedMessageDelivery {
-	message: EntityMessage;
-	receiver: Entity;
-	sender: Entity | undefined;
-	args: MessageArg[];
-	provenance: string;
-}
 
 interface EntityRuntime {
 	ports: CampaignPorts;
@@ -67,22 +57,18 @@ interface EntityRuntime {
 	entities: Record<number, Entity>;
 	firstFreeEntity: number;
 	firstUsedEntity: number;
-	unportedMessagePolicy: UnportedMessagePolicy;
-	unportedMessageLog: UnportedMessageDelivery[];
 	sessionEntity: Entity | undefined;
 }
 
 let runtime: EntityRuntime | undefined;
 
-export function initialiseEntityRuntime(ports: CampaignPorts, unportedMessagePolicy: UnportedMessagePolicy): void {
+export function initialiseEntityRuntime(ports: CampaignPorts): void {
 	runtime = {
 		ports,
 		numberOfEntities: 0,
 		entities: {},
 		firstFreeEntity: -1,
 		firstUsedEntity: -1,
-		unportedMessagePolicy,
-		unportedMessageLog: [],
 		sessionEntity: undefined,
 	};
 
@@ -100,20 +86,6 @@ function getRuntime(): EntityRuntime {
 
 export function getCampaignPorts(): CampaignPorts {
 	return getRuntime().ports;
-}
-
-export function getUnportedMessagePolicy(): UnportedMessagePolicy {
-	return getRuntime().unportedMessagePolicy;
-}
-
-export function recordUnportedMessage(delivery: UnportedMessageDelivery): void {
-	getRuntime().unportedMessageLog.push(delivery);
-}
-
-export function takeUnportedMessageLog(): UnportedMessageDelivery[] {
-	const log = getRuntime().unportedMessageLog;
-
-	return log.splice(0, log.length);
 }
 
 // C provenance: entity/special/session/session.h :: #define get_session_entity() (session_entity)

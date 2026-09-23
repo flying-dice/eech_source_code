@@ -11,9 +11,13 @@ import { resetDeltaTime, setDeltaTimeFrom } from "./core/time";
 import { resetGameStatus } from "./core/game-status";
 import { getCampaignPorts } from "./entity/system/entity";
 import { overloadUpdateFunctions, resetUpdateEntity } from "./entity/special/update/update";
-import { initialiseEntityRuntime, type UnportedMessagePolicy } from "./entity/system/entity";
+import { initialiseEntityRuntime } from "./entity/system/entity";
+import { resetCreateSupplyTaskInterceptor } from "./ai/taskgen/taskgen";
 import { overloadMobileFunctions } from "./entity/mobile/mobile";
 import { overloadForceFunctions } from "./entity/special/force/force";
+import { overloadForceMessageResponses } from "./entity/special/force/fc_msgs";
+import { overloadTaskFunctions } from "./entity/special/task/task";
+import { overloadWaypointFunctions } from "./entity/special/waypoint/waypoint";
 import { overloadGroupFunctions } from "./entity/special/group/group";
 import { overloadGuideFunctions } from "./entity/special/guide/guide";
 import { overloadKeysiteFunctions } from "./entity/special/keysite/keysite";
@@ -25,10 +29,6 @@ import { overloadUnknownEntityDestroyFunctions } from "./entity/system/en_dstry"
 import { resetWorldMap } from "./entity/system/en_world";
 
 export interface CampaignCoreOptions {
-	// "throw" in production. Test harnesses may use "record" to observe
-	// deliveries to message responses that are not ported yet.
-	unportedMessagePolicy?: UnportedMessagePolicy;
-
 	// EECH.INI "entity update frame rate" (cmndline.c default 2)
 	entityUpdateFrameRate?: number;
 
@@ -37,7 +37,8 @@ export interface CampaignCoreOptions {
 }
 
 export function initialiseCampaignCore(ports: CampaignPorts, options: CampaignCoreOptions = {}): void {
-	initialiseEntityRuntime(ports, options.unportedMessagePolicy ?? "throw");
+	initialiseEntityRuntime(ports);
+	resetCreateSupplyTaskInterceptor();
 	initialiseEntityHeap(options.numberOfEntities ?? DEFAULT_NUMBER_OF_ENTITIES);
 	resetWorldMap();
 	resetSectorMap();
@@ -49,6 +50,7 @@ export function initialiseCampaignCore(ports: CampaignPorts, options: CampaignCo
 
 	overloadSessionListFunctions();
 	overloadForceFunctions();
+	overloadForceMessageResponses();
 	overloadKeysiteFunctions();
 	overloadGroupFunctions();
 	overloadGuideFunctions();
@@ -56,6 +58,8 @@ export function initialiseCampaignCore(ports: CampaignPorts, options: CampaignCo
 	overloadUpdateFunctions();
 	overloadSectorFunctions();
 	overloadCargoFunctions();
+	overloadTaskFunctions();
+	overloadWaypointFunctions();
 	overloadUnknownEntityDestroyFunctions();
 }
 
@@ -92,5 +96,6 @@ export { createLocalSectorEntities } from "./entity/special/sector/sector";
 // is ported; until then hosts and tests build state with them.
 export { insertLocalEntityIntoParentsChildListRaw } from "./entity/system/en_list";
 export { createLocalEntityRaw } from "./entity/system/en_heap";
-export { setSessionEntityRaw, takeUnportedMessageLog } from "./entity/system/entity";
-export { EntitySide, EntitySubTypeCargo, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, FloatType, GameStatusType, IntType, ListType, Vec3dType } from "./generated/c-enums";
+export { setSessionEntityRaw } from "./entity/system/entity";
+export { EntitySide, EntitySubTypeCargo, EntitySubTypeGroup, EntitySubTypeKeysite, EntitySubTypeTask, EntityType, FloatType, GameStatusType, IntType, ListType, MovementType, TaskStateType, Vec3dType } from "./generated/c-enums";
+export { EntitySubTypeWaypoint } from "./generated/c-enums";

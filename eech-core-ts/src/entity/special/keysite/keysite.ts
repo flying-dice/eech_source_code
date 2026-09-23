@@ -129,6 +129,11 @@ export function getClosestKeysite(
 	return closest_keysite;
 }
 
+// C provenance: keysite.c :: get_keysite_supply_position
+export function getKeysiteSupplyPosition(keysite: Entity): Vec3d | undefined {
+	return getLocalEntityVec3dPtr(keysite, Vec3dType.VEC3D_TYPE_POSITION);
+}
+
 //
 // C provenance: keysite.c :: update_keysite_cargo (lines 428 and 464)
 //
@@ -292,6 +297,7 @@ export function overloadKeysiteFunctions(): void {
 	overloadEntityListRoot(KEYSITE, "keysite_group_root", [ListType.LIST_TYPE_KEYSITE_GROUP]);
 	overloadEntityListRoot(KEYSITE, "building_group_root", [ListType.LIST_TYPE_BUILDING_GROUP]);
 	overloadEntityListRoot(KEYSITE, "cargo_root", [ListType.LIST_TYPE_CARGO]);
+	overloadEntityListRoot(KEYSITE, "task_dependent_root", [ListType.LIST_TYPE_TASK_DEPENDENT]);
 	overloadEntityListLink(KEYSITE, "keysite_force_link", [ListType.LIST_TYPE_KEYSITE_FORCE]);
 
 	// C provenance: ks_int.c :: get_local_int_value

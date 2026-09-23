@@ -6,6 +6,7 @@
 
 import { afterEach, describe, expect, it } from "vitest";
 import { initialiseCampaignCore } from "../../src";
+import { createSupplyTask, interceptCreateSupplyTask } from "../../src/ai/taskgen/taskgen";
 import { EechAssertionError, UnportedBehaviourError } from "../../src/core/assert";
 import { setCommsModel } from "../../src/entity/system/comms";
 import { getLocalEntityChildSucc, getLocalEntityFirstChild, getLocalEntityParent, insertLocalEntityIntoParentsChildListRaw } from "../../src/entity/system/en_list";
@@ -13,7 +14,7 @@ import { notifyLocalEntity } from "../../src/entity/system/en_msgs";
 import { getLocalEntityFloatValue, getLocalEntityIntValue, setClientServerEntityFloatValue } from "../../src/entity/system/en_values";
 import { createLocalEntityRaw } from "../../src/entity/system/en_heap";
 import { deinitialiseEntityRuntime, getCampaignPorts } from "../../src/entity/system/entity";
-import { CommsModelType, EntityMessage, EntitySide, EntitySubTypeCargo, EntityType, FloatType, IntType, ListType } from "../../src/generated/c-enums";
+import { CommsModelType, EntityMessage, EntitySide, EntityType, FloatType, IntType, ListType, MovementType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
@@ -115,20 +116,29 @@ describe("entity runtime", () => {
 });
 
 describe("entity messages", () => {
-	it("throws on delivery to an unported response by default (production policy)", () => {
+	it("create_supply_task (Slice 5b) fails loudly unless a test intercepts it", () => {
 		initialiseCampaignCore(ports());
-		const force = createLocalEntityRaw(EntityType.ENTITY_TYPE_FORCE, {});
-		expect(() =>
-			notifyLocalEntity(EntityMessage.ENTITY_MESSAGE_FORCE_LOW_ON_SUPPLIES, force, undefined, EntitySubTypeCargo.ENTITY_SUB_TYPE_CARGO_AMMO),
-		).toThrow(
-			new UnportedBehaviourError(
-				"message_responses [ENTITY_TYPE_FORCE] [ENTITY_MESSAGE_FORCE_LOW_ON_SUPPLIES] (fc_msgs.c :: response_to_force_low_on_supplies)",
-			),
-		);
+		const keysite = createLocalEntityRaw(EntityType.ENTITY_TYPE_KEYSITE, {});
+		const call = (): unknown => createSupplyTask(keysite, keysite, keysite, MovementType.MOVEMENT_TYPE_AIR, 4, undefined, undefined);
+
+		expect(call).toThrow(new UnportedBehaviourError("taskgen.c :: create_supply_task (Slice 5b)"));
+
+		// the interceptor answers only while installed, and initialisation removes it
+		const seen: number[] = [];
+		interceptCreateSupplyTask((requester, _supplier, _cargo, movement_type) => {
+			seen.push(requester.index, movement_type);
+			return keysite;
+		});
+		expect(call()).toBe(keysite);
+		expect(seen).toEqual([keysite.index, MovementType.MOVEMENT_TYPE_AIR]);
+
+		initialiseCampaignCore(ports());
+		expect(call).toThrow(UnportedBehaviourError);
 	});
 
+
 	it("fails loudly on message responses not declared at all", () => {
-		initialiseCampaignCore(ports(), { unportedMessagePolicy: "record" });
+		initialiseCampaignCore(ports());
 		const group = createLocalEntityRaw(EntityType.ENTITY_TYPE_GROUP, {});
 		expect(() => notifyLocalEntity(EntityMessage.ENTITY_MESSAGE_LINK_CHILD, group, undefined)).toThrow(UnportedBehaviourError);
 	});

@@ -25,12 +25,13 @@ import { getClosestKeysite, type KeysiteRaw } from "../../src/entity/special/key
 import type { ForceRaw } from "../../src/entity/special/force/force";
 import { insertLocalEntityIntoParentsChildListRaw } from "../../src/entity/system/en_list";
 import { createLocalEntityRaw } from "../../src/entity/system/en_heap";
-import { setSessionEntityRaw, takeUnportedMessageLog, type Entity } from "../../src/entity/system/entity";
+import { setSessionEntityRaw, type Entity } from "../../src/entity/system/entity";
 import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, ListType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
 import { ScriptedClock } from "../adapters/scripted-clock";
+import { traceForceLowOnSupplies } from "./supply-boundary";
 
 export interface KeysiteSpec {
 	side: EntitySide;
@@ -127,9 +128,17 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 	const physical = new InMemoryMobilePhysicalState();
 	const replication = new RecordingEntityReplication();
 
-	initialiseCampaignCore({ mobilePhysicalState: physical, entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata() }, { unportedMessagePolicy: "record" });
+	initialiseCampaignCore({ mobilePhysicalState: physical, entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata() });
 
 	const labels: Record<number, string> = {};
+
+	// every FORCE_LOW_ON_SUPPLIES delivery, as the C harness traces it before
+	// the (since Slice 5a, ported) force response runs; see supply-boundary.ts
+	const messages: MessageEvent[] = [];
+
+	// Slice 1 scenarios never set the game status, so the response returns at
+	// its guard; create_supply_task is left fail-loud
+	traceForceLowOnSupplies((d) => messages.push({ receiver: labelOf(labels, d.receiver), sender: labelOf(labels, d.sender), message: d.message, arg: d.subType }));
 
 	const session = createLocalEntityRaw(EntityType.ENTITY_TYPE_SESSION, {});
 
@@ -252,16 +261,6 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 		}
 	}
 
-	const messages: MessageEvent[] = [];
-
-	for (const delivery of takeUnportedMessageLog()) {
-		messages.push({
-			receiver: labelOf(labels, delivery.receiver),
-			sender: labelOf(labels, delivery.sender),
-			message: delivery.message,
-			arg: delivery.args[0] as number,
-		});
-	}
 
 	const transmissions: TransmitEvent[] = [];
 
