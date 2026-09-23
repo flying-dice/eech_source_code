@@ -226,10 +226,11 @@ describe("taskgen.c :: get_task_start_keysite", () => {
 		expect(given.value).toBe(w.airbase);
 	});
 
-	it("a ground task ignores air force capacity and landing types: any keysite with groups scores 12", () => {
+	it("a ground task ignores air force capacity, landing types and the groups themselves: any keysite with groups scores 12", () => {
 		const w = world();
 		const farp = keysite(w, w.force, EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_FARP, BLUE, 8000, 0);
-		basedGroup(farp, EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_PRIMARY_FRONTLINE);
+		// a dead group: without the capacity check groups are not scored at all
+		getLocalEntityData<GroupRaw>(basedGroup(farp, EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_PRIMARY_FRONTLINE)).alive = 0;
 		const start = { value: undefined as Entity | undefined };
 		// ADVANCE lands on the ground: the FARP (inserted at the list head) is nearer to (7000, 16000)
 		expect(getTaskStartKeysite(EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_ADVANCE, BLUE, { x: 7000, y: 0, z: 16000 }, start)).toBe(true);
