@@ -40,12 +40,23 @@ TypeScript port.
     `result fatal <format>`) and end the scenario.
   - Slice 5a (`fc_msgs.c`): every `FORCE_LOW_ON_SUPPLIES` delivery prints its
     `message` trace line and then runs the original response. Its boundary,
-    `create_supply_task`, is a recording stub; a scenario prints those calls
-    (`create-supply-task ...`) only after an `observe-supply-tasks` line, so
-    scenarios recorded before slice 5a keep their output. Groups (`restore-group`),
+    `create_supply_task`, is linked with `--wrap`. A scenario prints those
+    calls (`create-supply-task ...`) only after an `observe-supply-tasks`
+    line, so scenarios recorded before slice 5a keep their output. After
+    printing, the wrapper runs the original (slice 5b). Groups (`restore-group`),
     tasks (`task`) and route waypoints (`waypoint`) are restored raw by label;
     `assess-group` and `comms-model` complete the lines
     (`docs/slices/force-low-on-supplies.md`).
+  - Slice 5b (`create_supply_task` → `create_task`): transmissions print
+    `transmit-task-pointers` (the route after the original `pack_vec3d`) and
+    `transmit-switch-parent`. The campaign screen prints
+    `campaign mission-created`. An `observe-tasks` line adds the tasks, their
+    routes and task lists, and the forces' supply task counters to the graph.
+    Other new lines: `single-player`, `game-type`, `keysite-landing`,
+    `group-alive`, `sector-state` and `task-counter`
+    (`docs/slices/supply-task-construction.md`). `eech_extracted_taskgen.c` is
+    compiled with zero-initialised automatic variables (F1).
+    `npm run probe:f1` builds that unit zero-, pattern- and un-initialised.
 - **Faults.** A `SIGSEGV` inside the NULL page is EECH's unguarded NULL
   dereference. The handler reports `result null-dereference` and the final
   state, then ends the process; it never resumes it. Any other fault kills the

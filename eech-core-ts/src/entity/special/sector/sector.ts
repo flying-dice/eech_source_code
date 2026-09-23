@@ -15,10 +15,11 @@
 // FORCE_ENTERED_SECTOR) fail loudly.
 //
 
-import { ASSERT, assertNotNullDereference, EechFatalError, UnportedBehaviourError } from "../../../core/assert";
+import { ASSERT, assertNotNullDereference, EechFatalError, EechUndefinedBehaviourError, UnportedBehaviourError } from "../../../core/assert";
 import { storeUnsignedBitfield } from "../../../core/cint";
 import type { Vec3d } from "../../../core/maths/vec3d";
-import { CommsModelType, EntityMessage, EntityType, IntType, ListType } from "../../../generated/c-enums";
+import { f32Add } from "../../../core/float32";
+import { CommsModelType, EntityMessage, EntitySide, EntityType, IntType, ListType } from "../../../generated/c-enums";
 import { getCommsModel } from "../../system/comms";
 import { createLocalEntity, fnCreateLocalEntity, validateLocalCreateEntityIndex } from "../../system/en_creat";
 import { setLocalEntityAttributes, type EntityAttribute } from "../../system/en_attrs";
@@ -36,6 +37,10 @@ export const NUM_SECTOR_BITS = 8;
 export interface SectorRaw {
 	x_sector: number;
 	z_sector: number;
+	// float sector_side [NUM_ENTITY_SIDES]
+	sector_side: number[];
+	// float surface_to_air_defence_level [NUM_ENTITY_SIDES]
+	surface_to_air_defence_level: number[];
 }
 
 interface SectorMapState {
@@ -76,7 +81,15 @@ export function getLocalRawSectorEntity(x_sec: number, z_sec: number): Entity | 
 	// C indexes entity_sector_map without a check
 	assertNotNullDereference(map, "entity_sector_map [(X_SEC) + ((Z_SEC) * (NUM_MAP_X_SECTORS))]");
 
-	return map[x_sec + z_sec * getWorldMap().num_map_x_sectors];
+	const index = x_sec + z_sec * getWorldMap().num_map_x_sectors;
+
+	// C reads past the array for a cell outside the map (e.g. a route node off
+	// the map in task.c :: assess_task_difficulty)
+	if (index < 0 || index >= getWorldMap().num_map_sectors) {
+		throw new EechUndefinedBehaviourError("entity_sector_map read outside the map");
+	}
+
+	return map[index];
 }
 
 // C provenance: sc_seccreat.c :: create_local_sector_entities
@@ -137,7 +150,7 @@ function createLocal(type: EntityType, index: number, attributes: EntityAttribut
 	if (en) {
 		setLocalEntityType(en, type);
 
-		const raw: SectorRaw = { x_sector: 0, z_sector: 0 };
+		const raw: SectorRaw = { x_sector: 0, z_sector: 0, sector_side: [0.0, 0.0, 0.0], surface_to_air_defence_level: [0.0, 0.0, 0.0] };
 
 		setLocalEntityData(en, raw);
 
@@ -161,6 +174,31 @@ export function getLocalSectorEntity(pos: Vec3d): Entity {
 	ASSERT(en !== undefined, "en");
 
 	return en;
+}
+
+//
+// C provenance: sector.c :: get_local_sector_entity_enemy_defence_level (static)
+//
+// The sum of every side's level but `side`'s, neutral excluded:
+// loop = ENTITY_SIDE_NEUTRAL; while (++ loop < NUM_ENTITY_SIDES). Float sums.
+//
+function getLocalSectorEntityEnemyDefenceLevel(array: number[], side: EntitySide): number {
+	let defence_level = 0;
+
+	for (let loop = EntitySide.ENTITY_SIDE_NEUTRAL + 1; loop < EntitySide.NUM_ENTITY_SIDES; loop++) {
+		if (side === loop) {
+			continue;
+		}
+
+		defence_level = f32Add(defence_level, array[loop]);
+	}
+
+	return defence_level;
+}
+
+// C provenance: sector.c :: get_local_sector_entity_enemy_surface_to_air_defence_level
+export function getLocalSectorEntityEnemySurfaceToAirDefenceLevel(sector_en: Entity, side: EntitySide): number {
+	return getLocalSectorEntityEnemyDefenceLevel(getLocalEntityData<SectorRaw>(sector_en).surface_to_air_defence_level, side);
 }
 
 // C provenance: sector.c :: add_mobile_values_to_sector
@@ -246,6 +284,15 @@ export function overloadSectorFunctions(): void {
 	});
 	fnGetLocalEntityIntValue.overload(SECTOR, IntType.INT_TYPE_X_SECTOR, (en) => getLocalEntityData<SectorRaw>(en).x_sector);
 	fnGetLocalEntityIntValue.overload(SECTOR, IntType.INT_TYPE_Z_SECTOR, (en) => getLocalEntityData<SectorRaw>(en).z_sector);
+
+	// C provenance: sc_int.c :: get_local_int_value (INT_TYPE_SECTOR_SIDE): RED unless blue's presence is greater
+	fnGetLocalEntityIntValue.overload(SECTOR, IntType.INT_TYPE_SECTOR_SIDE, (en) => {
+		const raw = getLocalEntityData<SectorRaw>(en);
+
+		return raw.sector_side[EntitySide.ENTITY_SIDE_BLUE_FORCE] > raw.sector_side[EntitySide.ENTITY_SIDE_RED_FORCE]
+			? EntitySide.ENTITY_SIDE_BLUE_FORCE
+			: EntitySide.ENTITY_SIDE_RED_FORCE;
+	});
 
 	// C provenance: sc_msgs.c :: overload_sector_message_responses
 	messageResponses.overload(SECTOR, EntityMessage.ENTITY_MESSAGE_LINK_CHILD, responseToLinkChild);

@@ -28,6 +28,18 @@
 //   waypoint              a route waypoint on its dependent's LIST_TYPE_TASK_DEPENDENT list, as a saved game holds it
 //   assess-group          assess_group_supplies (group)
 //
+// and, since Slice 5b (taskgen.c :: create_supply_task -> create_task, issue #14):
+//
+//   observe-tasks    print tasks, their routes and task lists, and the forces' supply task counters
+//   single-player    a single player session: nothing is transmitted (or packed)
+//   game-type        the front end's game type
+//   keysite-landing  a keysite's raw landing types and usable state, as a saved game holds them
+//   group-alive      a restored group's raw alive bit
+//   task-counter     a force's raw task generation counter (task_generation [sub_type].created)
+//   sector-state     a sector's raw side presence and surface-to-air defence levels
+//
+// Tasks the original creates are labelled task<index> when first printed.
+//
 // A NULL dereference (reachable through assess_group_supplies, Slice 1) ends
 // the output with "result null-dereference" and the keysites' final supply
 // levels, as the C harness's fault handler writes them.
@@ -48,14 +60,16 @@ import { EechAssertionError, EechFatalError, EechNullDereferenceError } from "..
 import { storeUnsignedBitfield } from "../../src/core/cint";
 import { toFloat32 } from "../../src/core/float32";
 import { setGameStatus } from "../../src/core/game-status";
+import { setGameType } from "../../src/core/game-type";
 import { initialiseCampaignCore } from "../../src";
-import type { ForceRaw } from "../../src/entity/special/force/force";
+import { clearedTaskGeneration, type ForceRaw } from "../../src/entity/special/force/force";
 import { updateKeysiteCargo, type KeysiteRaw } from "../../src/entity/special/keysite/keysite";
 import { assessGroupSupplies, type GroupRaw } from "../../src/entity/special/group/group";
-import type { TaskRaw } from "../../src/entity/special/task/task";
+import { clearedTaskRaw, type TaskRaw } from "../../src/entity/special/task/task";
 import type { WaypointRaw } from "../../src/entity/special/waypoint/waypoint";
 import { setCommsModel, type CommsModel } from "../../src/entity/system/comms";
-import { createLocalSectorEntities, getLocalRawSectorEntity } from "../../src/entity/special/sector/sector";
+import { createLocalSectorEntities, getLocalRawSectorEntity, type SectorRaw } from "../../src/entity/special/sector/sector";
+import { setEntityCommsTransmission } from "../../src/entity/system/en_comms";
 import type { EntityAttribute } from "../../src/entity/system/en_attrs";
 import { createClientServerEntity } from "../../src/entity/system/en_creat";
 import { destroyClientServerEntityFamily } from "../../src/entity/system/en_dstry";
@@ -65,13 +79,13 @@ import { getLocalEntityIntValue, getLocalEntityVec3dPtr } from "../../src/entity
 import { getWorldMap, setEntityWorldMapSize } from "../../src/entity/system/en_world";
 import { getLocalEntityData, setLocalEntityData, setLocalEntityType, setSessionEntityRaw, type Entity } from "../../src/entity/system/entity";
 import { setUpdateEntity } from "../../src/entity/special/update/update";
-import { EntitySide, EntityType, IntType, ListType, Vec3dType, type EntityType as EntityTypeT } from "../../src/generated/c-enums";
-import type { EntityReplication, ReplicatedEntityAttribute } from "../../src/ports";
+import { EntitySide, EntitySubTypeTask, EntityType, IntType, ListType, Vec3dType, type EntityType as EntityTypeT } from "../../src/generated/c-enums";
+import type { CampaignEvents, EntityReplication, ReplicatedEntityAttribute, ReplicatedTaskRoute } from "../../src/ports";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
 import { ScriptedClock } from "../adapters/scripted-clock";
 import type { KeysiteSpec, PositionSpec } from "./campaign-scenario";
-import { interceptSupplyTasks, traceForceLowOnSupplies } from "./supply-boundary";
+import { observeSupplyTasks as observeSupplyTaskCalls, traceForceLowOnSupplies } from "./supply-boundary";
 import { float32Hex } from "./float-bits";
 
 export type LifecycleAttribute =
@@ -98,7 +112,15 @@ export type LifecycleOp =
 	| { kind: "restore-group"; label: string; subType: number; side: number; ammo: number; fuel: number; parent: string; busy: boolean; leader: PositionSpec }
 	| { kind: "task"; label: string; objective: string; subType: number; side: number; state: number; userData: number }
 	| { kind: "waypoint"; label: string; dependent: string; subType: number }
-	| { kind: "assess-group"; group: string };
+	| { kind: "assess-group"; group: string }
+	| { kind: "observe-tasks" }
+	| { kind: "single-player" }
+	| { kind: "game-type"; type: number }
+	| { kind: "keysite-landing"; keysite: string; landingTypes: number; usableState: number }
+	| { kind: "group-alive"; group: string; alive: number }
+	| { kind: "task-counter"; force: string; subType: number; created: number }
+	// sector_side [BLUE], [RED]; surface_to_air_defence_level [NEUTRAL], [BLUE], [RED]
+	| { kind: "sector-state"; sector: string; blue: number; red: number; samNeutral: number; samBlue: number; samRed: number };
 
 export interface LifecycleSpec {
 	heap: number;
@@ -121,6 +143,7 @@ class LineReplication implements EntityReplication {
 	public constructor(
 		private readonly lines: string[],
 		private readonly labelOfIndex: (index: number) => string,
+		private readonly taskLabelOfIndex: (index: number) => string,
 	) {}
 
 	public transmitEntityFloatValue(entityIndex: number, type: number, value: number): void {
@@ -148,6 +171,50 @@ class LineReplication implements EntityReplication {
 	public transmitEntityDestroy(entityIndex: number): void {
 		this.lines.push(`transmit-destroy ${this.labelOfIndex(entityIndex)}`);
 	}
+
+	public transmitTaskPointers(taskIndex: number, route: ReplicatedTaskRoute): void {
+		let text = `transmit-task-pointers ${this.taskLabelOfIndex(taskIndex)} nodes`;
+
+		for (const node of route.nodes) {
+			text += ` ${float32Hex(node.x)} ${float32Hex(node.y)} ${float32Hex(node.z)}`;
+		}
+
+		text += " formations";
+
+		for (const formation of route.formationTypes) {
+			text += ` ${formation}`;
+		}
+
+		text += " waypoints";
+
+		for (const waypoint of route.waypointTypes) {
+			text += ` ${waypoint}`;
+		}
+
+		text += " dependents";
+
+		for (const dependent of route.dependentIndices) {
+			text += ` ${this.labelOfIndex(dependent)}`;
+		}
+
+		this.lines.push(`${text} return ${this.labelOfIndex(route.returnKeysiteIndex)}`);
+	}
+
+	public transmitSwitchParent(entityIndex: number, type: ListType, parentIndex: number): void {
+		this.lines.push(`transmit-switch-parent ${this.taskLabelOfIndex(entityIndex)} ${type} ${this.labelOfIndex(parentIndex)}`);
+	}
+}
+
+// The campaign screen's MISSION_CREATED response, as the C harness records it
+class LineCampaignEvents implements CampaignEvents {
+	public constructor(
+		private readonly lines: string[],
+		private readonly taskLabelOfIndex: (index: number) => string,
+	) {}
+
+	public missionCreated(taskIndex: number): void {
+		this.lines.push(`campaign mission-created ${this.taskLabelOfIndex(taskIndex)}`);
+	}
 }
 
 export function runLifecycle(spec: LifecycleSpec): string[] {
@@ -168,22 +235,46 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 
 	const labelOf = (en: Entity | undefined): string => (en === undefined ? "NULL" : labelOfIndex(en.index));
 
+	// a task the original creates is labelled task<index> when it is first printed
+	const taskLabelOfIndex = (index: number): string => {
+		if (labels[index] === undefined) {
+			labels[index] = `task${index}`;
+		}
+
+		return labelOfIndex(index);
+	};
+
+	const labelNewTasks = (): void => {
+		for (let en = getLocalEntityList(); en !== undefined; en = getLocalEntitySucc(en)) {
+			if (en.type === EntityType.ENTITY_TYPE_TASK) {
+				taskLabelOfIndex(en.index);
+			}
+		}
+	};
+
 	const objects = new InMemoryObject3DMetadata();
 
 	const physical = new InMemoryMobilePhysicalState();
 
 	initialiseCampaignCore(
-		{ mobilePhysicalState: physical, entityReplication: new LineReplication(lines, labelOfIndex), clock: new ScriptedClock(), object3DMetadata: objects },
+		{
+			mobilePhysicalState: physical,
+			entityReplication: new LineReplication(lines, labelOfIndex, taskLabelOfIndex),
+			clock: new ScriptedClock(),
+			object3DMetadata: objects,
+			campaignEvents: new LineCampaignEvents(lines, taskLabelOfIndex),
+		},
 		{ numberOfEntities: spec.heap },
 	);
 
 	let observeSupplyTasks = false;
 
+	let observeTasks = false;
+
 	traceForceLowOnSupplies((d) => lines.push(`message ${labelOf(d.receiver)} ${labelOf(d.sender)} ${d.message} ${d.subType}`));
 
-	// create_supply_task (Slice 5b) is answered by the test stand-in; its calls
-	// are printed only once the scenario observes them
-	interceptSupplyTasks(labelOf, (line) => {
+	// create_supply_task's calls are printed only once the scenario observes them
+	observeSupplyTaskCalls(labelOf, (line) => {
 		if (observeSupplyTasks) {
 			lines.push(line);
 		}
@@ -200,7 +291,7 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 	const forces: Entity[] = [];
 
 	for (let i = 0; i < spec.forces.length; i++) {
-		const raw: ForceRaw = { side: spec.forces[i] };
+		const raw: ForceRaw = { side: spec.forces[i], task_generation: clearedTaskGeneration() };
 		const force = createLocalEntityRaw(EntityType.ENTITY_TYPE_FORCE, raw);
 		labels[force.index] = `force${i}`;
 		insertLocalEntityIntoParentsChildListRaw(force, ListType.LIST_TYPE_FORCE, session, i > 0 ? forces[i - 1] : undefined);
@@ -219,6 +310,8 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 			in_use: k.inUse ? 1 : 0,
 			position: { x: toFloat32(k.x), y: 0, z: toFloat32(k.z) },
 			supplies: { ammo_supply_level: toFloat32(k.ammo), fuel_supply_level: toFloat32(k.fuel) },
+			landing_types: 0,
+			keysite_usable_state: 0,
 		};
 		const keysite = createLocalEntityRaw(EntityType.ENTITY_TYPE_KEYSITE, raw);
 		labels[keysite.index] = `keysite${i}`;
@@ -350,6 +443,8 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 						labels[en.index] = `crate${en.index}`;
 					}
 				}
+
+				labelNewTasks();
 			} else if (op.kind === "observe-supply-tasks") {
 				observeSupplyTasks = true;
 			} else if (op.kind === "comms-model") {
@@ -358,6 +453,7 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 				const raw: GroupRaw = {
 					sub_type: op.subType,
 					side: op.side,
+					alive: 0,
 					supplies: { ammo_supply_level: toFloat32(op.ammo), fuel_supply_level: toFloat32(op.fuel) },
 					sleep: 0,
 					assist_timer: 0,
@@ -390,12 +486,11 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 					physical.setMobilePosition(leader.index, { x: toFloat32(op.leader.x), y: 0, z: toFloat32(op.leader.z) });
 				}
 			} else if (op.kind === "task") {
-				const raw: TaskRaw = {
-					sub_type: op.subType,
-					task_state: op.state,
-					task_user_data: toFloat32(op.userData),
-					side: storeUnsignedBitfield(op.side, 2),
-				};
+				const raw: TaskRaw = clearedTaskRaw();
+				raw.sub_type = op.subType;
+				raw.task_state = op.state;
+				raw.task_user_data = toFloat32(op.userData);
+				raw.side = storeUnsignedBitfield(op.side, 2);
 				const task = createLocalEntityRaw(EntityType.ENTITY_TYPE_TASK, raw);
 				labels[task.index] = op.label;
 				const objective = find(op.objective) as Entity;
@@ -408,6 +503,32 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 				insertLocalEntityIntoParentsChildListRaw(waypoint, ListType.LIST_TYPE_TASK_DEPENDENT, dependent, lastChild(dependent, ListType.LIST_TYPE_TASK_DEPENDENT));
 			} else if (op.kind === "assess-group") {
 				assessGroupSupplies(find(op.group) as Entity);
+
+				labelNewTasks();
+			} else if (op.kind === "observe-tasks") {
+				observeTasks = true;
+			} else if (op.kind === "single-player") {
+				setEntityCommsTransmission(false);
+			} else if (op.kind === "game-type") {
+				setGameType(op.type);
+			} else if (op.kind === "keysite-landing") {
+				const raw = getLocalEntityData<KeysiteRaw>(find(op.keysite) as Entity);
+
+				raw.landing_types = storeUnsignedBitfield(op.landingTypes, 4);
+				raw.keysite_usable_state = storeUnsignedBitfield(op.usableState, 3);
+			} else if (op.kind === "task-counter") {
+				getLocalEntityData<ForceRaw>(find(op.force) as Entity).task_generation[op.subType].created = op.created;
+			} else if (op.kind === "group-alive") {
+				getLocalEntityData<GroupRaw>(find(op.group) as Entity).alive = storeUnsignedBitfield(op.alive, 1);
+			} else if (op.kind === "sector-state") {
+				// scenario input: narrowed to nearest, as the C harness parses it
+				const raw = getLocalEntityData<SectorRaw>(find(op.sector) as Entity);
+
+				raw.sector_side[EntitySide.ENTITY_SIDE_BLUE_FORCE] = toFloat32(op.blue);
+				raw.sector_side[EntitySide.ENTITY_SIDE_RED_FORCE] = toFloat32(op.red);
+				raw.surface_to_air_defence_level[EntitySide.ENTITY_SIDE_NEUTRAL] = toFloat32(op.samNeutral);
+				raw.surface_to_air_defence_level[EntitySide.ENTITY_SIDE_BLUE_FORCE] = toFloat32(op.samBlue);
+				raw.surface_to_air_defence_level[EntitySide.ENTITY_SIDE_RED_FORCE] = toFloat32(op.samRed);
 			} else {
 				destroyClientServerEntityFamily(find(op.label) as Entity);
 			}
@@ -481,6 +602,60 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 		lines.push(`keysite ${labelOf(keysite)}${listText(keysite, ListType.LIST_TYPE_CARGO)}`);
 	}
 
+	// tasks, their routes and lists, and the forces' task counters, once observed
+	if (observeTasks) {
+		for (let en = getLocalEntityList(); en !== undefined; en = getLocalEntitySucc(en)) {
+			if (en.type === EntityType.ENTITY_TYPE_FORCE) {
+				lines.push(`force ${labelOf(en)} supply-tasks-created ${getLocalEntityData<ForceRaw>(en).task_generation[EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_SUPPLY].created}`);
+			} else if (en.type === EntityType.ENTITY_TYPE_TASK) {
+				const raw = getLocalEntityData<TaskRaw>(en);
+
+				lines.push(
+					`task ${labelOf(en)} ${en.index} sub ${raw.sub_type} side ${raw.side} state ${raw.task_state} id ${raw.task_id} critical ${raw.critical_task} ` +
+						`movement ${raw.movement_type} length ${raw.route_length} difficulty ${raw.difficulty} expire ${float32Hex(raw.expire_timer)} ` +
+						`priority ${float32Hex(raw.task_priority)} user ${float32Hex(raw.task_user_data)} ` +
+						`objective ${labelOf(getLocalEntityParent(en, ListType.LIST_TYPE_TASK_DEPENDENT))} keysite ${labelOf(getLocalEntityParent(en, ListType.LIST_TYPE_UNASSIGNED_TASK))} ` +
+						`sector ${labelOf(getLocalEntityParent(en, ListType.LIST_TYPE_SECTOR_TASK))} update ${labelOf(getLocalEntityParent(en, ListType.LIST_TYPE_UPDATE))}`,
+				);
+
+				const nodes = raw.route_nodes;
+
+				if (nodes !== undefined) {
+					const waypoints = raw.route_waypoint_types as number[];
+					const formations = raw.route_formation_types as number[];
+					const dependents = raw.route_dependents as (Entity | undefined)[];
+
+					let text = `route ${labelOf(en)}`;
+
+					for (let i = 0; i <= raw.route_length; i++) {
+						text += ` ${float32Hex(nodes[i].x)} ${float32Hex(nodes[i].y)} ${float32Hex(nodes[i].z)} ${waypoints[i]} ${formations[i]} ${labelOf(dependents[i])}`;
+					}
+
+					lines.push(`${text} return ${labelOf(raw.return_keysite)}`);
+				}
+			}
+		}
+
+		for (const keysite of keysites) {
+			lines.push(`unassigned ${labelOf(keysite)}${listText(keysite, ListType.LIST_TYPE_UNASSIGNED_TASK)}`);
+			lines.push(`dependents ${labelOf(keysite)}${listText(keysite, ListType.LIST_TYPE_TASK_DEPENDENT)}`);
+		}
+
+		if (mapComplete) {
+			const map = getWorldMap();
+
+			for (let z = map.min_map_z_sector; z <= map.max_map_z_sector; z++) {
+				for (let x = map.min_map_x_sector; x <= map.max_map_x_sector; x++) {
+					const sector = getLocalRawSectorEntity(x, z) as Entity;
+
+					if (getLocalEntityFirstChild(sector, ListType.LIST_TYPE_SECTOR_TASK) !== undefined) {
+						lines.push(`sector-tasks ${labelOf(sector)}${listText(sector, ListType.LIST_TYPE_SECTOR_TASK)}`);
+					}
+				}
+			}
+		}
+	}
+
 	if (mapComplete) {
 		const map = getWorldMap();
 
@@ -550,6 +725,20 @@ export function serialiseLifecycle(spec: LifecycleSpec, formatNumber: (n: number
 			lines.push(`waypoint ${op.label} ${op.dependent} ${op.subType}`);
 		} else if (op.kind === "assess-group") {
 			lines.push(`assess-group ${op.group}`);
+		} else if (op.kind === "observe-tasks") {
+			lines.push("observe-tasks");
+		} else if (op.kind === "single-player") {
+			lines.push("single-player");
+		} else if (op.kind === "game-type") {
+			lines.push(`game-type ${op.type}`);
+		} else if (op.kind === "keysite-landing") {
+			lines.push(`keysite-landing ${op.keysite} ${op.landingTypes} ${op.usableState}`);
+		} else if (op.kind === "task-counter") {
+			lines.push(`task-counter ${op.force} ${op.subType} ${op.created}`);
+		} else if (op.kind === "group-alive") {
+			lines.push(`group-alive ${op.group} ${op.alive}`);
+		} else if (op.kind === "sector-state") {
+			lines.push(`sector-state ${op.sector} ${[op.blue, op.red, op.samNeutral, op.samBlue, op.samRed].map((n) => formatNumber(n)).join(" ")}`);
 		} else {
 			lines.push(`destroy ${op.label}`);
 		}

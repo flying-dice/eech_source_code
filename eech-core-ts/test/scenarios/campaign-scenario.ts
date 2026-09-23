@@ -22,7 +22,7 @@ import { toFloat32 } from "../../src/core/float32";
 import { initialiseCampaignCore } from "../../src";
 import { assessGroupSupplies, type GroupRaw } from "../../src/entity/special/group/group";
 import { getClosestKeysite, type KeysiteRaw } from "../../src/entity/special/keysite/keysite";
-import type { ForceRaw } from "../../src/entity/special/force/force";
+import { clearedTaskGeneration, type ForceRaw } from "../../src/entity/special/force/force";
 import { insertLocalEntityIntoParentsChildListRaw } from "../../src/entity/system/en_list";
 import { createLocalEntityRaw } from "../../src/entity/system/en_heap";
 import { setSessionEntityRaw, type Entity } from "../../src/entity/system/entity";
@@ -30,6 +30,7 @@ import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, ListT
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
+import { RecordingCampaignEvents } from "../adapters/recording-campaign-events";
 import { ScriptedClock } from "../adapters/scripted-clock";
 import { traceForceLowOnSupplies } from "./supply-boundary";
 
@@ -128,7 +129,7 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 	const physical = new InMemoryMobilePhysicalState();
 	const replication = new RecordingEntityReplication();
 
-	initialiseCampaignCore({ mobilePhysicalState: physical, entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata() });
+	initialiseCampaignCore({ mobilePhysicalState: physical, entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata(), campaignEvents: new RecordingCampaignEvents() });
 
 	const labels: Record<number, string> = {};
 
@@ -151,7 +152,7 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 	let pred: Entity | undefined = undefined;
 
 	for (let i = 0; i < spec.forces.length; i++) {
-		const raw: ForceRaw = { side: spec.forces[i] };
+		const raw: ForceRaw = { side: spec.forces[i], task_generation: clearedTaskGeneration() };
 		const force = createLocalEntityRaw(EntityType.ENTITY_TYPE_FORCE, raw);
 		labels[force.index] = `force${i}`;
 		insertLocalEntityIntoParentsChildListRaw(force, ListType.LIST_TYPE_FORCE, session, pred);
@@ -180,6 +181,8 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 			in_use: k.inUse ? 1 : 0,
 			position: { x: toFloat32(k.x), y: 0, z: toFloat32(k.z) },
 			supplies: { ammo_supply_level: toFloat32(k.ammo), fuel_supply_level: toFloat32(k.fuel) },
+			landing_types: 0,
+			keysite_usable_state: 0,
 		};
 		const keysite = createLocalEntityRaw(EntityType.ENTITY_TYPE_KEYSITE, raw);
 		labels[keysite.index] = `keysite${i}`;
@@ -199,6 +202,7 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 		groupRaw = {
 			sub_type: g.subType,
 			side: g.side,
+			alive: 0,
 			supplies: { ammo_supply_level: toFloat32(g.ammo), fuel_supply_level: toFloat32(g.fuel) },
 			sleep: 0,
 			assist_timer: 0,

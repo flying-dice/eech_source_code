@@ -35,3 +35,28 @@ export function storeUnsignedBitfield(value: number, bits: number): number {
 export function toCUnsignedInt(value: number): number {
 	return storeUnsignedBitfield(value, 32);
 }
+
+// C `a & b` for non-negative ints (as the port's bit-field and flag values
+// are). Lua 5.1 has no bitwise operators, so this walks the bits.
+export function cBitAnd(a: number, b: number): number {
+	let result = 0;
+
+	let bit = 1;
+
+	while (a > 0 && b > 0) {
+		if (a % 2 === 1 && b % 2 === 1) {
+			result += bit;
+		}
+
+		a = Math.floor(a / 2);
+		b = Math.floor(b / 2);
+		bit *= 2;
+	}
+
+	return result;
+}
+
+// C `1 << bit` for 0 <= bit < 31
+export function cBit(bit: number): number {
+	return Math.pow(2, bit);
+}

@@ -8,6 +8,16 @@ The issue sets two gates, in order:
 
 This document records both. The F1 compatibility choice at the end is a **proposal for review**. Nothing is implemented until it is agreed.
 
+**Outcome.** Both proposals were accepted as written:
+- the F1 compatibility choice (0.0, pinned in the C reference by zero auto-initialisation of the one extracted unit, with the zero / pattern / uninitialised probe kept as evidence);
+- the boundary (`create_supply_task` → `create_task` through return).
+
+The review added two requirements:
+- the campaign screen becomes a semantic port (`CampaignEvents.missionCreated`);
+- an acceptance case must show that single player and multiplayer construct the same route.
+
+The slice is `docs/slices/supply-task-construction.md`. There, the probe's results replace the "(above)" pointer below. The probe itself is `npm run probe:f1`.
+
 ## Gate 1: F1, `prepare.y` and `finish.y`
 
 ### The source facts

@@ -31,16 +31,18 @@ where practical.
 | `aphavoc/source/entity/special/group/gp_vec3d.c` | `src/entity/special/group/group.ts` | partial |
 | `aphavoc/source/entity/special/group/gp_list.c` | `src/entity/special/group/group.ts` | partial |
 | `aphavoc/source/entity/special/group/gp_updt.c` | `src/entity/special/group/group.ts` (`updateServer`) | ported |
-| `aphavoc/source/entity/special/group/gp_msgs.c` | `src/entity/special/group/group.ts` (link/unlink parent responses) | partial |
+| `aphavoc/source/entity/special/group/gp_msgs.c` | `src/entity/special/group/group.ts` (link/unlink parent responses; link child, slice 5b) | partial |
 | `aphavoc/source/entity/special/update/up_update.c` | `src/entity/special/update/update.ts` | partial (tacview and mobile bitsets excluded) |
 | `aphavoc/source/entity/special/update/up_msgs.c` | `src/entity/special/update/update.ts` | ported |
 | `aphavoc/source/entity/special/update/up_list.c` | `src/entity/special/update/update.ts` | ported |
 | `aphavoc/source/entity/system/en_funcs/en_updt.c` | `src/entity/system/en_updt.ts` | ported (default handler deliberately not installed) |
 | `modules/system/time.c` | `src/core/time.ts`, `src/ports/clock.ts` (port) | partial (measurement is the `Clock` port; delta history not ported) |
 | `aphavoc/source/cmndline.c` (`command_line_entity_update_frame_rate`) | `src/core/cmndline.ts` | partial |
-| `aphavoc/source/entity/special/group/gp_dbase.c` | `src/generated/c-group-database.ts` (generated) | partial |
-| `aphavoc/source/entity/special/keysite/ks_dbase.c` (`default_supply_usage` ammo and fuel) | `src/generated/c-keysite-database.ts` (generated) | partial (compiled defaults; `wutcfg.c` overrides not ported) |
+| `aphavoc/source/entity/special/group/gp_dbase.c` | `src/generated/c-group-database.ts` (generated) | partial (resupply source; movement type, landing type, engage enemy and AI statistics, slice 5b) |
+| `aphavoc/source/entity/special/keysite/ks_dbase.c` (`default_supply_usage` ammo and fuel; `air_force_capacity`, slice 5b) | `src/generated/c-keysite-database.ts` (generated) | partial (compiled defaults; `wutcfg.c` overrides not ported) |
 | `aphavoc/source/global.c`, `global.h` (`game_status`, `set_game_status`, `get_game_status`) | `src/core/game-status.ts` | partial (`game_status_string` not ported: no campaign reader) |
+| `aphavoc/source/ui_menu/gametype/gametype.c`, `gametype.h` (`game_type`, `get_game_type`) | `src/core/game-type.ts` | partial (the front end's assignments are `setGameType`) |
+| `aphavoc/source/ui_menu/ingame/campaign/ca_msgs.c` (`notify_campaign_screen`) | `src/ui_menu/campaign/ca_msgs.ts`, `src/ports/campaign-events.ts` (port) | partial (the guard is core; the screen's responses are the `CampaignEvents` port; `MISSION_CREATED` only) |
 | `modules/3d/3dobjvis.c :: get_object_3d_bounding_box`, `objects.h :: struct OBJECT_3D_BOUNDS` | `src/ports/object-3d-metadata.ts` (port) | blocked-engine-boundary (the 3D object database) |
 | `modules/3d/3dmodels.h` (`OBJECT_3D_SINGLE_CRATE`) | `src/generated/c-constants.ts` (generated) | partial (the indices the port names) |
 | `aphavoc/source/entity/special/keysite/keysite.c` | `src/entity/special/keysite/keysite.ts` | partial |
@@ -48,37 +50,41 @@ where practical.
 | `aphavoc/source/entity/special/force/force.c` | `src/entity/special/force/force.ts` | partial |
 | `aphavoc/source/entity/special/force/fc_int.c`, `fc_list.c` | `src/entity/special/force/force.ts` | partial |
 | `aphavoc/source/entity/special/force/fc_msgs.c` | `src/entity/special/force/fc_msgs.ts` | partial (`response_to_force_low_on_supplies`, slice 5a) |
-| `aphavoc/source/entity/special/task/task.c` (`entity_is_object_of_task`), `ts_int.c`, `ts_float.c`, `ts_list.c` | `src/entity/special/task/task.ts` | partial (a restored task's sub type, side, state, user data and `task_dependent_link`, slice 5a; creation is slice 5b) |
-| `aphavoc/source/entity/special/task/ts_dbase.c` (`task_priority`) | `src/generated/c-task-database.ts` (generated) | partial |
+| `aphavoc/source/entity/special/task/task.c` (`entity_is_object_of_task`, slice 5a; `get_local_task_list_type`, `find_most_suitable_keysite_for_task`, `assess_task_difficulty`, `assess_task_sector_difficulty`, slice 5b), `ts_int.c`, `ts_float.c`, `ts_ptr.c`, `ts_list.c` | `src/entity/special/task/task.ts` | partial (the values, pointers and lists task construction sets and reads) |
+| `aphavoc/source/entity/special/task/ts_creat.c` | `src/entity/special/task/ts_creat.ts` | partial (server model; the client model is not ported) |
+| `aphavoc/source/entity/special/task/ts_msgs.c` (`response_to_link_parent`) | `src/entity/special/task/task.ts` | partial (the unassigned arm; assigned and completed throw unported) |
+| `aphavoc/source/entity/special/task/ts_dbase.c` (`task_priority`, slice 5a; `primary_task`, `engage_enemy`, `movement_type`, `keysite_air_force_capacity`, `landing_types`, `ai_stats`, slice 5b) | `src/generated/c-task-database.ts` (generated) | partial |
 | `aphavoc/source/entity/special/waypoint/wp_int.c`, `wp_list.c` | `src/entity/special/waypoint/waypoint.ts` | partial (a restored waypoint's sub type and `task_dependent_link`, slice 5a) |
-| `aphavoc/source/ai/taskgen/taskgen.c` (`create_supply_task`) | `src/ai/taskgen/taskgen.ts` | boundary: the slice 5a call is recorded in tests and fails loudly in production; ported in slice 5b |
+| `aphavoc/source/ai/taskgen/taskgen.c` (`create_supply_task`, `create_task`, `get_task_start_keysite`, `validate_task_generation`, `terminator_point`) | `src/ai/taskgen/taskgen.ts` | partial (slice 5b; the other task generators are not ported) |
+| `aphavoc/source/ai/highlevl/suitable.c` | `src/ai/highlevl/suitable.ts` | ported (`deinitialise_group_task_array` is the next initialisation's reset) |
 | `aphavoc/source/entity/special/session/session.h`, `ss_list.c` | `src/entity/special/session/session.ts`, `src/entity/system/entity.ts` | partial |
 | `aphavoc/source/entity/special/guide/gd_list.c` | `src/entity/special/guide/guide.ts` | partial |
 | `aphavoc/source/entity/mobile/aircraft/ac_list.c`, `ac_vec3d.c`; `vehicle/vh_list.c`, `vh_vec3d.c` | `src/entity/mobile/mobile.ts` | partial (campaign surface only) |
 | `aphavoc/source/entity/mobile/mb_int.c`, `mb_vec3d.c`, `mb_list.c` | `src/entity/mobile/mobile.ts` (`overloadMobileRawStateFunctions`) | partial (the rows cargo reaches) |
 | `aphavoc/source/entity/mobile/aircraft/ac_msgs.c` | `src/entity/mobile/aircraft/ac_msgs.ts` | partial (link / unlink parent responses) |
 | `aphavoc/source/entity/mobile/cargo/cg_creat.c`, `cg_dstry.c`, `cg_list.c`, `cg_funcs.c`, `cg_msgs.c` | `src/entity/mobile/cargo/cargo.ts` | partial (kill, movement, update, draw, pack and `cg_int.c` not ported) |
-| `aphavoc/source/entity/special/sector/sector.c`, `sc_seccreat.c`, `sc_int.c`, `sc_list.c`, `sc_msgs.c` | `src/entity/special/sector/sector.ts` | partial |
+| `aphavoc/source/entity/special/sector/sector.c`, `sc_seccreat.c`, `sc_int.c`, `sc_list.c`, `sc_msgs.c` | `src/entity/special/sector/sector.ts` | partial (slice 5b adds sector side and the enemy surface-to-air defence level) |
 | `aphavoc/source/entity/special/effect/soundeff/soundeff.c` | `src/entity/special/effect/soundeff.ts` | partial (`destroy_client_server_sound_effects`) |
 | `aphavoc/source/entity/mobile/**` (flight models, movement, weapons, damage, drawing) | none | excluded-physical-simulation |
 | `aphavoc/source/entity/system/en_funcs/en_list.c`, `en_list/*.h` | `src/entity/system/en_list.ts` | partial |
 | `aphavoc/source/entity/system/en_funcs/en_int.c`, `en_float.c`, `en_vec3d.c`, `en_ptr.c` | `src/entity/system/en_values.ts`, `function-table.ts` | partial |
 | `aphavoc/source/entity/system/en_msgs/en_msgs.c` | `src/entity/system/en_msgs.ts` | partial |
 | `aphavoc/source/entity/system/en_main/en_heap.c`, `en_heap.h` | `src/entity/system/en_heap.ts`, `entity.ts` | partial (downwash heap and packing not ported) |
-| `aphavoc/source/entity/system/en_main/en_world.c`, `en_world.h`; `misc/miscell.c :: int_bit_count` | `src/entity/system/en_world.ts` | partial |
+| `aphavoc/source/entity/system/en_main/en_world.c`, `en_world.h`; `misc/miscell.c :: int_bit_count` | `src/entity/system/en_world.ts` | partial (slice 5b adds `point_inside_map_volume`, `MAP_PERIMETER_SIZE`, `bound_position_to_adjusted_map_area`) |
 | `aphavoc/source/entity/system/en_main/*` (other files) | `src/entity/system/entity.ts` | partial |
 | `aphavoc/source/entity/system/en_attrs/en_attrs.c` | `src/entity/system/en_attrs.ts` | partial (`set_local_entity_attributes`; pack/unpack not ported) |
 | `aphavoc/source/entity/system/en_funcs/en_creat.c`; `en_debug/en_valid.c` (create index checks) | `src/entity/system/en_creat.ts` | partial |
 | `aphavoc/source/entity/system/en_funcs/en_dstry.c` | `src/entity/system/en_dstry.ts` | partial (kill and whole-heap destruction not ported) |
 | `modules/system/fpu.c :: convert_float_to_int` | `toCInt` (`src/core/cint.ts`) | ported (truncation: EECH's round-toward-zero FPU mode) |
-| `aphavoc/source/entity/system/en_comms/en_comms.c` | `src/ports/entity-replication.ts` (port) | blocked-engine-boundary |
+| `aphavoc/source/entity/system/en_comms/en_comms.c` | `src/entity/system/en_comms.ts` (the single player trap; `pack_vec3d`'s position check for task pointers), `src/ports/entity-replication.ts` (port) | partial: the transport is blocked-engine-boundary |
 | `aphavoc/source/comms/comms.c` (`get_comms_model`) | `src/entity/system/comms.ts` | partial |
 | `modules/maths/range.c` | `src/core/maths/range.ts` | partial |
 | `modules/maths/miscmath.h`, `constant.h`, `vector.h` | `src/core/maths/miscmath.ts`, `vec3d.ts` | partial |
+| `modules/maths/vector.c` (`normalise_any_3d_vector`) | `src/core/maths/vector.ts` | partial |
 | `aphavoc/source/entity/system/en_types/en_suply.h` (`FUEL_USAGE_ACCELERATOR`, `AMMO_USAGE_ACCELERATOR`, `KEYSITE_SUPPLY_REQUEST_THRESHOLD`); `cargo.h` (`CARGO_AMMO_SIZE`, `CARGO_FUEL_SIZE`) | `src/generated/c-constants.ts` (generated) | partial |
 | `modules/system/assert.h` | `src/core/assert.ts` | partial |
 | enum headers (`en_types.h`, `en_side.h`, `en_list.h`, `en_int.h`, `en_float.h`, `en_vec3d.h`, `en_ptr.h`, `en_msgs.h`, `en_sbtyp.h`, `ai_extrn.h`, `comms.h`, `en_suply.h`) | `src/generated/c-enums.ts` (generated) | ported (selected enums, generated verbatim) |
-| `ai/highlevl/*`, `ai/taskgen/*` (except the `create_supply_task` boundary), `ai/frontl/*`, `ai/faction/*`, `ai/ai_misc/*` | none | unported |
+| `ai/highlevl/*` (except `suitable.c`), `ai/taskgen/*` (except the functions above), `ai/frontl/*`, `ai/faction/*`, `ai/ai_misc/*` | none | unported |
 | `entity/special/division`, `landing`, `regen`; the rest of `task` and `waypoint` | none | unported |
 | `wutcfg.c`, `gwutcfg.c` (runtime overrides of `group_database` and `keysite_database`) | none | unported |
 
@@ -142,8 +148,41 @@ where practical.
 | `ks_list.c`, `gp_list.c :: task_dependent_root` | `overloadKeysiteFunctions`, `overloadGroupFunctions` | ported, tested, 100%-covered, C-reference-verified |
 | `keysite.c :: get_keysite_supply_position` | `getKeysiteSupplyPosition` | ported, C-reference-verified |
 | `ts_dbase.c :: task_database [].task_priority` | `TASK_DATABASE_TASK_PRIORITY` | ported (generated from C, drift-checked), C-reference-verified (the harness compiles `ts_dbase.c`) |
-| `taskgen.c :: create_supply_task` | `createSupplyTask` | boundary (slice 5b): throws `UnportedBehaviourError`; conformance tests replace it through `interceptCreateSupplyTask`, a seam for this one function that is not public API and that `initialiseCampaignCore` removes |
-| task and waypoint creation, `ts_creat.c`, `create_task`, `croute.c` | `createLocalEntityRaw` restores them in tests | unported (slice 5b) |
+| `taskgen.c :: create_supply_task` | `createSupplyTask` | the slice 5a boundary: ported in slice 5b (below). Tests observe its calls through `observeCreateSupplyTask`, a seam for this one function that cannot change what it does, is not public API, and is removed by `initialiseCampaignCore` |
+| waypoint creation, `croute.c` | `createLocalEntityRaw` restores waypoints in tests | unported |
+
+### Slice 5b: supply task construction (issue #14)
+
+`create_supply_task` → `create_task` through its return. Assignment, waypoint
+materialisation, expiry, packing and destruction of tasks are later slices.
+`docs/slices/supply-task-construction.md` maps every step.
+
+| C function | TS | Status |
+|---|---|---|
+| `taskgen.c :: create_supply_task` | `createSupplyTask` | ported, tested, 100%-covered, C-reference-verified (extracted verbatim; **F1**: see the compatibility decision below) |
+| `taskgen.c :: create_task` | `createTask` | ported, tested, 100%-covered, C-reference-verified (extracted verbatim; the variable arguments are a route array; the paths other task types take are unit-tested and fail loudly where their callees are unported) |
+| `taskgen.c :: get_task_start_keysite` | `getTaskStartKeysite` | ported, tested, 100%-covered, C-reference-verified (the ground and given-keysite paths: unit tests) |
+| `taskgen.c :: validate_task_generation` | inlined: it returns `TRUE` (the rest is `#if 0`) | ported, C-reference-verified |
+| `task.c :: find_most_suitable_keysite_for_task` | `findMostSuitableKeysiteForTask` | ported, tested, 100%-covered, C-reference-verified (`task.c` compiled whole) |
+| `task.c :: assess_task_difficulty`, `assess_task_sector_difficulty` | `assessTaskDifficulty`, `assessTaskSectorDifficulty` | ported, tested, 100%-covered, C-reference-verified (`route_length` 0 is `EechUndefinedBehaviourError`) |
+| `task.c :: get_local_task_list_type` | `getLocalTaskListType` | ported, tested, 100%-covered (unit tests: `create_task` never gives a `task_link` parent attribute) |
+| `suitable.c :: calculate_group_to_task_suitability`, `get_group_to_task_suitability`, `initialise_group_task_array` | `suitable.ts` | ported, tested, 100%-covered (one justified exclusion, below), C-reference-verified (`suitable.c` compiled whole) |
+| `ts_creat.c :: create_local`, `create_remote`, `create_server`, `overload_task_create_functions` (server) | `ts_creat.ts` | ported, tested, 100%-covered, C-reference-verified (compiled whole) |
+| `ts_int.c :: set_local_int_value` (`ENTITY_SUB_TYPE`, `TASK_STATE`, `TASK_ID` 12 bits, `CRITICAL_TASK` 1, `MOVEMENT_TYPE` 3, `ROUTE_LENGTH` 16, `SIDE` 2, `TASK_DIFFICULTY` 4) | `overloadTaskFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `ts_float.c :: set_local_float_value`, `set_server_float_value` (`EXPIRE_TIMER`, `STOP_TIMER`, `TASK_PRIORITY`, `TASK_USER_DATA`) | `overloadTaskFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `ts_ptr.c :: set_local_ptr_value` (route nodes, dependents, waypoint and formation types, return keysite) | `overloadTaskFunctions` | ported, tested, 100%-covered, C-reference-verified (compiled whole) |
+| `ts_list.c` (all roots and links; `task_link` serves the unassigned, assigned and completed lists) | `overloadTaskFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `ts_msgs.c :: response_to_link_parent` | `responseToLinkParent` (`task.ts`) | partial: the unassigned arm (state, `MISSION_CREATED` for a primary task); the assigned and completed arms throw unported |
+| `ks_list.c :: unassigned_task_root`; `ks_int.c` (`LANDING_TYPES`, `KEYSITE_USABLE_STATE`) | `overloadKeysiteFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `gp_int.c` (`ENTITY_SUB_TYPE`, `ALIVE`); `gp_msgs.c :: response_to_link_child` | `overloadGroupFunctions` | ported, tested, 100%-covered, C-reference-verified (`response_to_link_child`: the member arm throws unported) |
+| `sector.c :: get_local_sector_entity_enemy_defence_level`, `get_local_sector_entity_enemy_surface_to_air_defence_level`; `sc_int.c` (`SECTOR_SIDE`) | `sector.ts` | ported, tested, 100%-covered, C-reference-verified |
+| `en_list.c :: set_client_server_entity_parent` (server) | `setClientServerEntityParent` | ported, tested, 100%-covered, C-reference-verified (extracted; the client model throws unported) |
+| `en_comms.c :: transmit_entity_comms_message` (the single player trap; `ENTITY_COMMS_CREATE`, `FLOAT_VALUE`, `DESTROY`, `SET_TASK_POINTERS`, `SWITCH_PARENT`) | `en_comms.ts` → `EntityReplication` | ported, tested, 100%-covered, C-reference-verified (the harness runs the original `pack_vec3d` on the route) |
+| `en_vec3d.c :: pack_vec3d` (`VEC3D_PACK_TYPE_POSITION`: the check) | `packPosition` (`en_comms.ts`) | ported with debug-build meaning: the `ASSERT` fails; the release build's in-place `bound_position_to_map_volume` is not reachable |
+| `ca_msgs.c :: notify_campaign_screen` (`MISSION_CREATED`) | `notifyCampaignScreenMissionCreated` → `CampaignEvents.missionCreated` | ported, tested, 100%-covered, C-reference-verified (extracted; the harness's response table records the event) |
+| `vector.c :: normalise_any_3d_vector` | `normaliseAny3dVector` | ported, tested, 100%-covered, C-reference-verified (extracted) |
+| `en_world.c :: bound_position_to_adjusted_map_area`; `en_world.h :: point_inside_map_volume` | `en_world.ts` | ported, tested, 100%-covered, C-reference-verified (extracted) |
+| Windows SDK `min` | `min` in `miscmath.ts` | ported, tested, 100%-covered |
 
 ### Frozen slice: entity lifecycle, CARGO, sector membership (slice 3)
 
@@ -225,8 +264,13 @@ by the harness shim, and are verified by source reading only. The plan and the r
 
 ## Deviations and exclusions
 
-- **Coverage exclusions:** none. Type-only modules (`src/ports/**`) emit no
-  statements. There are no `istanbul ignore` comments in campaign code.
+- **Coverage exclusions:** one. `suitable.c`'s movement stealth rejection
+  (`src/ai/highlevl/suitable.ts`, `/* istanbul ignore if */`) cannot fire with
+  EECH's databases: only BDA and RECON need stealth, and every group that has
+  passed the checks before it for them has it.
+  `test/unit/supply-task-construction.test.ts` recomputes this from the
+  generated databases, so a database change that makes it reachable fails a
+  test. Type-only modules (`src/ports/**`) emit no statements.
 - **ASSERT and NULL dereference.** A failed EECH `ASSERT` / `debug_assert` throws
   `EechAssertionError` quoting the C expression. Where the C dereferences NULL
   without an assert (`get_closest_keysite` with no force for the side), the port
@@ -237,13 +281,29 @@ by the harness shim, and are verified by source reading only. The plan and the r
   case for), the port throws `EechUndefinedBehaviourError` instead of inventing
   a value.
 - **Unported behaviour always fails loudly.** There is no policy that turns
-  unported campaign code into a no-op. Slice 5a's boundary,
-  `taskgen.c :: create_supply_task`, throws `UnportedBehaviourError`;
-  conformance tests replace that one function through `interceptCreateSupplyTask`
-  (not public API, removed by `initialiseCampaignCore`), which records the call
-  and returns what the test decides. The unported message responses and the
-  `unportedMessagePolicy` option of slices 1 and 4 are gone: the response they
-  stood for is ported.
+  unported campaign code into a no-op, and observation never alters control
+  flow. Slice 5a's boundary, `taskgen.c :: create_supply_task`, is ported in
+  slice 5b; its test seam is now an observer (`observeCreateSupplyTask`), which
+  sees the arguments and cannot change what the function does or returns. Its
+  interceptor (slice 5a) is gone. The `unportedMessagePolicy` option of slices 1 and 4 is
+  gone too.
+- **F1: a compatibility decision, not a translation** (slice 5b, issue #14).
+  `create_supply_task` never initialises `prepare.y` or `finish.y`, and
+  `create_task` stores `ceil ()` of them in the route. EECH defines no value:
+  the heights are whatever the build's stack or registers held, and they
+  reach the saved route, the multiplayer transmission (where `pack_vec3d`
+  asserts in debug builds and clamps in release builds) and the campaign's
+  route checksum. **The port sets both to 0.0 by decision.** This resolves
+  undefined behaviour in the EECH source. It does not reproduce a value EECH
+  defined, and nothing claims EECH produced 0.0. The C reference pins the
+  otherwise unchanged original to the same choice by compiling
+  `eech_extracted_taskgen.c`, and only that unit, with
+  `-ftrivial-auto-var-init=zero` (`c-reference/extract.mjs`, `UNIT_FLAGS`).
+  The F1 probe (`npm run probe:f1`) keeps the evidence. The same code built
+  pattern- or un-initialised stores other heights (0xfefefefe, a NaN, a code
+  address), and multiplayer packing then fails where single player does not.
+  With 0.0, single player and multiplayer construct the same route (an
+  acceptance case in every runner).
 - **`max`** is the Windows SDK macro, not `Math.max`: `max (NaN, 0.0f)` is `0.0f`.
 - **Findings about the original C** (recorded, not fixed): `time.c ::
   set_manual_delta_time` has an undefined-behaviour history index update, and
@@ -267,8 +327,14 @@ by the harness shim, and are verified by source reading only. The plan and the r
   (compared with the C reference) and a formatted message.
 - **Undefined behaviour** that crashes EECH (integer division by zero, e.g. a
   cargo created before any world map) throws `EechUndefinedBehaviourError`.
+  Slice 5b adds three more cases. `create_task` reading past its last route
+  argument is one, and `assess_task_difficulty` reading `route_nodes [-1]` is
+  another. The third is `get_local_raw_sector_entity` indexing outside the
+  sector map.
 - **Bit-fields.** Stores into `unsigned int` bit-fields keep the low bits
   (`storeUnsignedBitfield`): mobile `alive` (1), `side` (2), sector
-  `x_sector` / `z_sector` (8).
+  `x_sector` / `z_sector` (8), and (slice 5b) task `task_id` (12),
+  `critical_task` (1), `movement_type` (3), `difficulty` (4), `route_length`
+  (16), `side` (2).
 - **`debug_log`** under `DEBUG_MODULE` / `DEBUG_SUPPLY` is compiled out in EECH
   and not ported.

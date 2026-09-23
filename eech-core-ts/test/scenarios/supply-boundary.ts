@@ -7,10 +7,10 @@
 //   recorded at that boundary before the force response was ported
 //   ("message <receiver> <sender> <message> <sub type>"), and then runs the
 //   ported response;
-// - taskgen.c :: create_supply_task (Slice 5b) is the new boundary. The
-//   port fails loudly there; a test installs the port's interceptor for that
-//   one function, which records the call and returns NULL, as the harness's
-//   stub does. A scenario that observes it prints "create-supply-task
+// - taskgen.c :: create_supply_task is Slice 5a's boundary. Since Slice 5b
+//   ports it, the port's observer for that one function sees each call's
+//   arguments before it runs (the harness wraps the original the same way,
+//   with --wrap). A scenario that observes it prints "create-supply-task
 //   <requester> <supplier> <cargo> <movement> <priority bits> <start keysite>
 //   <end keysite>".
 //
@@ -19,7 +19,7 @@
 
 import { EntityMessage, EntityType } from "../../src/generated/c-enums";
 import { messageResponses } from "../../src/entity/system/en_msgs";
-import { interceptCreateSupplyTask } from "../../src/ai/taskgen/taskgen";
+import { observeCreateSupplyTask } from "../../src/ai/taskgen/taskgen";
 import type { Entity, MessageArg } from "../../src/entity/system/entity";
 import { float32Hex } from "./float-bits";
 
@@ -45,16 +45,14 @@ export function traceForceLowOnSupplies(onDelivery: (delivery: LowOnSuppliesDeli
 }
 
 //
-// Stands in for create_supply_task: each call is passed to onCall as its
-// boundary line, and returns NULL (undefined), as the C harness's stub does.
+// Observes create_supply_task: each call is passed to onCall as its boundary
+// line before the ported function runs.
 //
-export function interceptSupplyTasks(labelOf: (en: Entity | undefined) => string, onCall: (line: string) => void): void {
-	interceptCreateSupplyTask((requester, supplier, cargo, movement_type, priority, start_keysite, end_keysite) => {
+export function observeSupplyTasks(labelOf: (en: Entity | undefined) => string, onCall: (line: string) => void): void {
+	observeCreateSupplyTask((requester, supplier, cargo, movement_type, priority, start_keysite, end_keysite) => {
 		onCall(
 			`create-supply-task ${labelOf(requester)} ${labelOf(supplier)} ${labelOf(cargo)} ${movement_type} ${float32Hex(priority)} ` +
 				`${labelOf(start_keysite)} ${labelOf(end_keysite)}`,
 		);
-
-		return undefined;
 	});
 }

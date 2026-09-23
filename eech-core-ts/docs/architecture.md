@@ -173,8 +173,10 @@ functions take the port table first, for example
 The force's reaction (`fc_msgs.c :: response_to_force_low_on_supplies`) creates
 supply tasks and pulls in task creation. The slice stopped at that message
 boundary, recording each delivery. Slice 5a ports the response behind the same
-trace line, up to its own boundary, `create_supply_task`, which tests record
-through a seam for that one function (`interceptCreateSupplyTask`); without it the call fails loudly.
+trace line, up to its own boundary, `create_supply_task`. Slice 5b ports that
+function through `create_task`'s return, and tests observe its calls through a
+seam for that one function (`observeCreateSupplyTask`). The seam cannot change
+what the function does.
 
 ## 6. What enables or blocks running the C implementation under a harness?
 
@@ -298,10 +300,14 @@ check without adding a branch to the caller.
    fixed entities) and the game status as core state.
 4. **`fc_msgs.c :: response_to_force_low_on_supplies`** (slice 5a, issue #12;
    `docs/slices/force-low-on-supplies.md`): the duplicate-task decision and the
-   supplier and cargo choice, up to the `create_supply_task` boundary. **Slice
-   5b**: `create_supply_task`, `create_task` and the task entity, start-keysite
-   scoring, difficulty and route construction, after the F1 investigation of
-   the uninitialised route heights (`docs/slices/supply-task-investigation.md`).
+   supplier and cargo choice, up to the `create_supply_task` boundary.
+   ~~**Slice 5b**~~ Done (issue #14, `docs/slices/supply-task-construction.md`):
+   `create_supply_task` → `create_task` through its return. That covers the
+   task entity, start-keysite scoring, difficulty, route construction,
+   replication ordering and the parent switch. F1 (the uninitialised route
+   heights) is resolved by a compatibility decision, 0.0
+   (`docs/slices/supply-task-construction-investigation.md`).
+   Next on this path: task assignment and waypoint materialisation.
 5. **Pickup, transport and delivery** (the `mb_msgs.c` waypoint handlers, cargo
    movement), and the landing handlers that call `assess_group_supplies`. These
    introduce a `LandingObservation`-style port: the DCS adapter reports that a
@@ -418,7 +424,19 @@ behaviour. They fail the run if reached.
   `ts_float.c`, `ts_list.c`, `wp_int.c`, `wp_list.c`, `wp_dbase.c`) are compiled
   whole; `entity_is_object_of_task` and `en_float.c ::
   default_get_entity_float_value` are extracted verbatim.
-  `create_supply_task` (slice 5b) is the recording boundary.
+- **Slice 5b:** `task.c`, `ts_creat.c`, `ts_ptr.c` and `suitable.c` are
+  compiled whole. `create_task`, `create_supply_task`, `get_task_start_keysite`
+  and `validate_task_generation` are extracted from `taskgen.c` (the rest of
+  that file reaches the 3D engine) into `eech_extracted_taskgen.c`, compiled
+  with `-ftrivial-auto-var-init=zero` for F1 and nothing else
+  (`UNIT_FLAGS`). `fc_msgs.c`'s call reaches the original through
+  `--wrap=create_supply_task`, which prints slice 5a's boundary line first.
+  `pack_vec3d`, `notify_campaign_screen`, `set_client_server_entity_parent`,
+  `normalise_any_3d_vector` and `bound_position_to_adjusted_map_area` are
+  extracted. The harness's transmit prints `ENTITY_COMMS_SET_TASK_POINTERS`
+  (after packing each node with the original `pack_vec3d`) and
+  `ENTITY_COMMS_SWITCH_PARENT`, and traps single player as `en_comms.c` does.
+  The campaign screen's response table records `MISSION_CREATED`.
 
 **Environment entries driven by the scenario** (slice 4):
 - `get_object_3d_bounding_box`: the scenario's `bounds` lines (the 3D object

@@ -16,6 +16,9 @@
 import { ASSERT, EechFatalError, UnportedBehaviourError } from "../../core/assert";
 import { EntityMessage } from "../../generated/c-enums";
 import { EntityType, ListType } from "../../generated/c-enums";
+import { CommsModelType } from "../../generated/c-enums";
+import { getCommsModel } from "./comms";
+import { transmitSwitchParent } from "./en_comms";
 import { notifyLocalEntity } from "./en_msgs";
 import type { Entity, EntityListLink, EntityListRoot } from "./entity";
 
@@ -221,6 +224,26 @@ export function deleteLocalEntityFromParentsChildList(en: Entity, type: ListType
 
 		setLocalEntityChildPred(en, type, undefined);
 	}
+}
+
+//
+// C provenance: en_list.c :: set_client_server_entity_parent
+//
+// The server case: the change is made locally and transmitted. The client
+// cases are not ported (no client overload is; see comms.ts).
+//
+export function setClientServerEntityParent(en: Entity, type: ListType, parent: Entity | undefined): void {
+	if (getCommsModel() !== CommsModelType.COMMS_MODEL_SERVER) {
+		throw new UnportedBehaviourError("en_list.c :: set_client_server_entity_parent (COMMS_MODEL_CLIENT)");
+	}
+
+	deleteLocalEntityFromParentsChildList(en, type);
+
+	if (parent) {
+		insertLocalEntityIntoParentsChildList(en, type, parent, undefined);
+	}
+
+	transmitSwitchParent(en, type, parent);
 }
 
 // C provenance: en_list.c :: unlink_local_entity_children

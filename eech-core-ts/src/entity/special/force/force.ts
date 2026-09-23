@@ -4,7 +4,7 @@
 // C provenance: entity/special/force/force.c, fc_int.c, fc_list.c, fc_msgs.c
 //
 
-import { EntitySide, EntityType, IntType, ListType } from "../../../generated/c-enums";
+import { EntitySide, EntitySubTypeTask, EntityType, IntType, ListType } from "../../../generated/c-enums";
 import { ASSERT } from "../../../core/assert";
 import { getLocalEntityChildSucc, getLocalEntityFirstChild, overloadEntityListLink, overloadEntityListRoot } from "../../system/en_list";
 import { fnGetLocalEntityIntValue, getLocalEntityIntValue } from "../../system/en_values";
@@ -13,6 +13,24 @@ import { getLocalEntityData, getLocalEntityType, getSessionEntity, type Entity }
 // C provenance: force.h :: struct FORCE (ported fields only)
 export interface ForceRaw {
 	side: EntitySide;
+	// task_generation [NUM_ENTITY_SUB_TYPE_TASKS] (struct TASK_GENERATION_TYPE, ported fields only)
+	task_generation: TaskGenerationRaw[];
+}
+
+// C provenance: en_types/en_force.h :: struct TASK_GENERATION_TYPE (ported fields only; int created)
+export interface TaskGenerationRaw {
+	created: number;
+}
+
+// A force's task_generation array as a cleared raw struct holds it.
+export function clearedTaskGeneration(): TaskGenerationRaw[] {
+	const task_generation: TaskGenerationRaw[] = [];
+
+	for (let i = 0; i < EntitySubTypeTask.NUM_ENTITY_SUB_TYPE_TASKS; i++) {
+		task_generation.push({ created: 0 });
+	}
+
+	return task_generation;
 }
 
 // C provenance: force.c :: get_local_force_entity

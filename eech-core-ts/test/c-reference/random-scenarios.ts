@@ -659,3 +659,174 @@ export function generateRandomForceLowOnSupplies(seed: number, count: number): L
 
 	return specs;
 }
+
+//
+// Slice 5b: random supply task construction scenarios (taskgen.c ::
+// create_supply_task -> create_task). Requests come from real senders through
+// the real Slice 5a response. Candidate start keysites vary in type, use,
+// landing types, usable state and based groups (type, alive, busy); sectors
+// in side and surface-to-air defence; keysites in height (some beyond the
+// map volume, which multiplayer packing refuses); the game type; single
+// player or multiplayer; and the force's supply task counter (around the
+// 12-bit id's wrap). One map in five is 16 x 16 sectors, where start
+// keysites can be 100 km away. Every position is on the map.
+//
+export function generateRandomSupplyTaskConstruction(seed: number, count: number): LifecycleSpec[] {
+	const rnd = mulberry32(seed);
+	const int = (n: number) => Math.floor(rnd() * n);
+	const chance = (p: number) => rnd() < p;
+	const pick = <T>(values: T[]): T => values[int(values.length)];
+	const BLUE = EntitySide.ENTITY_SIDE_BLUE_FORCE;
+	const RED = EntitySide.ENTITY_SIDE_RED_FORCE;
+
+	const groupTypes = [
+		EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_MEDIUM_LIFT_TRANSPORT_HELICOPTER,
+		EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_MEDIUM_LIFT_TRANSPORT_HELICOPTER,
+		EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_MEDIUM_LIFT_TRANSPORT_HELICOPTER,
+		EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_HEAVY_LIFT_TRANSPORT_HELICOPTER,
+		EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_HEAVY_LIFT_TRANSPORT_HELICOPTER,
+		EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_MEDIUM_LIFT_TRANSPORT_AIRCRAFT,
+		EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_HEAVY_LIFT_TRANSPORT_AIRCRAFT,
+		EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_ATTACK_HELICOPTER,
+		EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_ASSAULT_HELICOPTER,
+	];
+
+	const specs: LifecycleSpec[] = [];
+
+	for (let n = 0; n < count; n++) {
+		const big = chance(0.2);
+		const sectors = big ? 16 : 4;
+		const extent = sectors * 8192 - 1;
+		// crates are created up to ~10 m east of and 3 m north of their keysite
+		const clamp = (v: number) => Math.min(extent - 100, Math.max(100, v));
+		const forces: EntitySide[] = chance(0.3) ? [BLUE, RED] : [BLUE];
+		const sideOf = (): EntitySide => (forces.length > 1 && chance(0.1) ? RED : BLUE);
+
+		// requesters and suppliers near a centre; start keysite candidates anywhere
+		const cx = 1000 * (4 + int(big ? 120 : 25));
+		const cz = 1000 * (4 + int(big ? 120 : 25));
+		const spread = big ? 60000 : 16000;
+
+		const keysites: KeysiteSpec[] = [];
+		const numKeysites = 2 + int(6);
+		for (let i = 0; i < numKeysites; i++) {
+			const near = i < 2 || chance(0.4);
+			keysites.push({
+				side: chance(0.03) ? RED : sideOf(),
+				// keysite0 requests (FARP, airbase or another), keysite1 supplies (factory or refinery), then airbases mostly
+				subType: i === 0 ? pick([3, 3, 0, int(9)]) : i === 1 ? pick([2, 2, 7]) : chance(0.7) ? 0 : int(9),
+				inUse: chance(0.93),
+				x: clamp(near ? cx + int(12000) - 6000 : cx + int(2 * spread) - spread),
+				z: clamp(near ? cz + int(12000) - 6000 : cz + int(2 * spread) - spread),
+				ammo: 100,
+				fuel: 100,
+			});
+		}
+
+		const ops: LifecycleOp[] = [{ kind: "observe-supply-tasks" }, { kind: "observe-tasks" }];
+
+		for (let i = 0; i < numKeysites; i++) {
+			const y = chance(0.85) ? 0 : pick([3000, 250.5, 65535, 70000, -9000]);
+			ops.push({ kind: "keysite-state", keysite: `keysite${i}`, alive: chance(0.97) ? 1 : 0, y });
+		}
+
+		ops.push(
+			{ kind: "bounds", object: OBJECT_3D_SINGLE_CRATE, xmin: -1, xmax: 1, ymin: chance(0.1) ? 0 : -0.5, ymax: 0.5, zmin: -1.5, zmax: 1.5 },
+			{ kind: "map", xSectors: sectors, zSectors: sectors, sideLength: 8192 },
+			{ kind: "game-status", status: GameStatusType.GAME_STATUS_INITIALISED },
+			{ kind: "game-type", type: pick([2, 2, 2, 3, 1, 0, 4]) },
+		);
+
+		if (chance(0.3)) {
+			ops.push({ kind: "single-player" });
+		}
+
+		if (chance(0.15)) {
+			for (const i of forces.map((_, f) => f)) {
+				ops.push({ kind: "task-counter", force: `force${i}`, subType: EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_SUPPLY, created: pick([4093, 4094, 4095, 8189, 8190, 12285, 100000]) });
+			}
+		}
+
+		// start keysite candidates: landing types, usable state and based groups
+		const groups: string[] = [];
+		for (let i = 0; i < numKeysites; i++) {
+			if (chance(0.85)) {
+				ops.push({ kind: "keysite-landing", keysite: `keysite${i}`, landingTypes: chance(0.75) ? pick([4, 6, 2]) : int(16), usableState: chance(0.8) ? 0 : 1 + int(2) });
+			}
+			const numBased = chance(0.8) ? 1 + int(chance(0.2) ? 7 : 3) : 0;
+			for (let g = 0; g < numBased; g++) {
+				const label = `k${i}g${g}`;
+				ops.push(
+					{
+						kind: "restore-group",
+						label,
+						subType: chance(0.9) ? pick(groupTypes) : int(EntitySubTypeGroup.NUM_ENTITY_SUB_TYPE_GROUPS),
+						side: keysites[i].side,
+						ammo: 100,
+						fuel: 100,
+						parent: `keysite${i}`,
+						busy: chance(0.25),
+						leader: { kind: "none" },
+					},
+					{ kind: "group-alive", group: label, alive: chance(0.9) ? 1 : 0 },
+				);
+				groups.push(label);
+			}
+		}
+
+		// sector presence and defences on some cells
+		const numSectorStates = int(big ? 30 : 10);
+		for (let s = 0; s < numSectorStates; s++) {
+			ops.push({
+				kind: "sector-state",
+				sector: `sector${int(sectors)}_${int(sectors)}`,
+				blue: pick([0, 1, 2, 0.5]),
+				red: pick([0, 1, 2, 0.5]),
+				samNeutral: chance(0.2) ? 1 : 0,
+				samBlue: chance(0.3) ? pick([1, 0.25]) : 0,
+				samRed: chance(0.3) ? pick([1, 0.25]) : 0,
+			});
+		}
+
+		// stock suppliers (and requesters) through the real update_keysite_cargo
+		for (let i = 0; i < numKeysites; i++) {
+			for (const subType of [0, 1]) {
+				if (i === 1 ? chance(0.9) : chance(0.3)) {
+					ops.push({ kind: "update-cargo", keysite: `keysite${i}`, level: pick([15, 35, 55]), subType, size: 10 });
+				}
+			}
+		}
+
+		// front line groups that resupply through supply tasks
+		const frontline: string[] = [];
+		if (chance(0.3)) {
+			const label = "line";
+			ops.push({
+				kind: "restore-group",
+				label,
+				subType: EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_PRIMARY_FRONTLINE,
+				side: forces[0],
+				ammo: pick([50, 0]),
+				fuel: pick([100, 50]),
+				parent: "NULL",
+				busy: false,
+				leader: { kind: "at", x: clamp(cx + int(8000) - 4000), z: clamp(cz + int(8000) - 4000) },
+			});
+			frontline.push(label);
+		}
+
+		// the requests: keysites low on supplies, and front line groups
+		const numRequests = 1 + int(4);
+		for (let r = 0; r < numRequests; r++) {
+			if (frontline.length > 0 && chance(0.3)) {
+				ops.push({ kind: "assess-group", group: frontline[0] });
+			} else {
+				ops.push({ kind: "update-cargo", keysite: `keysite${chance(0.7) ? 0 : int(numKeysites)}`, level: pick([5, 10, 35, 60, 75]), subType: int(2), size: 10 });
+			}
+		}
+
+		specs.push({ heap: big ? 700 : 400, forces, keysites, ops });
+	}
+
+	return specs;
+}

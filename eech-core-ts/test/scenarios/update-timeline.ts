@@ -32,6 +32,7 @@ import { EntitySide, EntitySubTypeGroup, EntityType, FloatType, ListType } from 
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
+import { RecordingCampaignEvents } from "../adapters/recording-campaign-events";
 import { ScriptedClock } from "../adapters/scripted-clock";
 
 export interface TimelineGroupSpec {
@@ -102,7 +103,7 @@ export function runTimeline(spec: TimelineSpec): TimelineOutcome {
 	const clock = new ScriptedClock();
 
 	initialiseCampaignCore(
-		{ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication, clock, object3DMetadata: new InMemoryObject3DMetadata() },
+		{ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication, clock, object3DMetadata: new InMemoryObject3DMetadata(), campaignEvents: new RecordingCampaignEvents() },
 		{ entityUpdateFrameRate: spec.entityUpdateFrameRate },
 	);
 
@@ -121,6 +122,7 @@ export function runTimeline(spec: TimelineSpec): TimelineOutcome {
 		const raw: GroupRaw = {
 			sub_type: g.subType,
 			side: g.side,
+			alive: 0,
 			supplies: { ammo_supply_level: 0, fuel_supply_level: 0 },
 			sleep: toFloat32(g.sleep),
 			assist_timer: toFloat32(g.assist),

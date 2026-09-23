@@ -24,6 +24,12 @@ dimensions) reaches it only through narrow ports in `src/ports`.
   low-on-supplies response to its terminus, and the 5a / 5b split.
 - `docs/slices/force-low-on-supplies.md`: slice 5a, the force's
   low-on-supplies response up to the `create_supply_task` boundary.
+- `docs/slices/supply-task-construction-investigation.md`: the F1 gate (the
+  uninitialised route heights) and the `create_supply_task` → `create_task`
+  trace that fixed slice 5b's boundary.
+- `docs/slices/supply-task-construction.md`: slice 5b, supply task
+  construction through `create_task`'s return, and the F1 compatibility
+  decision.
 
 ## Requirements
 
@@ -64,7 +70,9 @@ src/
   entity/system/   entity runtime: heap, lists (with shared links), value function tables, messages, comms model,
                    creation attributes, creation / destruction dispatch, the world map
   entity/special/  session, force, keysite, group, guide, update, sector, effect, task, waypoint: the ported overloads, campaign functions and the update loop
-  ai/taskgen/      task generation (so far only the create_supply_task boundary)
+  ai/taskgen/      task generation: create_supply_task, create_task, get_task_start_keysite
+  ai/highlevl/     the group-to-task suitability table (suitable.c)
+  ui_menu/         the campaign screen's notification guard (the screen itself is the CampaignEvents port)
   entity/mobile/   campaign-visible surface of aircraft and vehicles (position comes from a port), and cargo
   generated/       enums, database columns and constants generated from the EECH C (never hand-edited)
   ports/           what the campaign needs from the environment

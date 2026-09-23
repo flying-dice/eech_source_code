@@ -18,6 +18,7 @@
 import { ASSERT } from "../../core/assert";
 import { cIntDivide, toCInt, toCUnsignedInt } from "../../core/cint";
 import { f32Add, f32Sub, toFloat32RTZ } from "../../core/float32";
+import { KILOMETRE } from "../../core/maths/miscmath";
 import type { Vec3d } from "../../core/maths/vec3d";
 
 // C provenance: en_world.h :: struct WORLD_MAP_DATA
@@ -136,6 +137,50 @@ export function setEntityWorldMapSize(num_map_x_sectors: number, num_map_z_secto
 // C provenance: en_world.h :: #define point_inside_map_area(POS)
 export function pointInsideMapArea(pos: Vec3d): boolean {
 	return pos.x >= world_map.min_map_x && pos.x <= world_map.max_map_x && pos.z >= world_map.min_map_z && pos.z <= world_map.max_map_z;
+}
+
+// C provenance: en_world.h :: #define point_inside_map_volume(POS)
+export function pointInsideMapVolume(pos: Vec3d): boolean {
+	return (
+		pos.x >= world_map.min_map_x &&
+		pos.x <= world_map.max_map_x &&
+		pos.y >= world_map.min_map_y &&
+		pos.y <= world_map.max_map_y &&
+		pos.z >= world_map.min_map_z &&
+		pos.z <= world_map.max_map_z
+	);
+}
+
+// C provenance: en_world.h :: #define MAP_PERIMETER_SIZE (5.0 * KILOMETRE)
+export const MAP_PERIMETER_SIZE = 5.0 * KILOMETRE;
+
+//
+// C provenance: en_world.c :: bound_position_to_adjusted_map_area
+//
+// MIN_MAP_X + MAP_PERIMETER_SIZE is a float plus a double: compared in double
+// and stored to the float member (toward zero). The map extents are whole
+// numbers of metres, so these sums are exact.
+//
+export function boundPositionToAdjustedMapArea(position: Vec3d): boolean {
+	let result = false;
+
+	if (position.x < world_map.min_map_x + MAP_PERIMETER_SIZE) {
+		position.x = f32Add(world_map.min_map_x, MAP_PERIMETER_SIZE);
+		result = true;
+	} else if (position.x > world_map.max_map_x - MAP_PERIMETER_SIZE) {
+		position.x = f32Add(world_map.max_map_x, -MAP_PERIMETER_SIZE);
+		result = true;
+	}
+
+	if (position.z < world_map.min_map_z + MAP_PERIMETER_SIZE) {
+		position.z = f32Add(world_map.min_map_z, MAP_PERIMETER_SIZE);
+		result = true;
+	} else if (position.z > world_map.max_map_z - MAP_PERIMETER_SIZE) {
+		position.z = f32Add(world_map.max_map_z, -MAP_PERIMETER_SIZE);
+		result = true;
+	}
+
+	return result;
 }
 
 // C provenance: en_world.h :: #define get_x_sector(X_SEC,X)

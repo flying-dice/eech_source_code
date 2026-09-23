@@ -32,7 +32,7 @@ The response decides whether a supply task should exist, and identifies its supp
 | `ks_list.c`, `gp_list.c`: `task_dependent_root` | `overloadKeysiteFunctions`, `overloadGroupFunctions` |
 | `keysite.c :: get_keysite_supply_position` | `getKeysiteSupplyPosition` |
 | `ts_dbase.c :: task_database [].task_priority` | `TASK_DATABASE_TASK_PRIORITY` (generated, drift-checked) |
-| `taskgen.c :: create_supply_task` | `createSupplyTask`: the boundary. It always fails loudly; conformance tests install a stand-in for this one function (`interceptCreateSupplyTask`) that records the call and returns NULL, as the C harness's stub does |
+| `taskgen.c :: create_supply_task` | `createSupplyTask`: the boundary. At 5a it always failed loudly, and conformance tests installed a stand-in for this one function that recorded the call and returned NULL, as the C harness's stub did. Slice 5b ports it (`docs/slices/supply-task-construction.md`). Tests now observe the call (`observeCreateSupplyTask`) and the original runs |
 
 Tasks and waypoints are *read* here, never created. A scenario restores them raw onto their objective's `LIST_TYPE_TASK_DEPENDENT` list, the way keysites and forces are already restored. Their creation is 5b.
 
@@ -73,7 +73,7 @@ All of the following is deterministic source behaviour. It is reproduced, not co
 - **Extracted verbatim.** `entity_is_object_of_task` is extracted from `task.c`, and `default_get_entity_float_value` from `en_float.c`.
 - **Only the one force response is live.** The harness calls the original `overload_force_message_responses ()`, keeps only the `FORCE_LOW_ON_SUPPLIES` row, and resets every other force row to its fail-loud default.
 - **Stubs.** The functions only the other responses call are fail-loud stubs: `campaign_completed`, the reactionary tasks, `engage_targets_in_group`, speech, sector defence levels, and `get_sqr_2d_range`. So are the waypoint list maintenance functions. `aircraft_database` is defined without meaning.
-- **The boundary.** `create_supply_task` is the harness's recording stub (`create-supply-task …`). It returns NULL: the response reads the result only in its compiled-out `DEBUG_SUPPLY` log.
+- **The boundary.** At 5a, `create_supply_task` was the harness's recording stub (`create-supply-task …`). It returned NULL: the response reads the result only in its compiled-out `DEBUG_SUPPLY` log. Since 5b the stub is a `--wrap` trace in front of the original.
 
 New scenario lines, mirrored by `test/scenarios/lifecycle-scenario.ts`:
 

@@ -62,6 +62,12 @@ export const REAL_TRANSLATION_UNITS = [
 	"aphavoc/source/entity/special/waypoint/wp_dbase.c",
 	"aphavoc/source/entity/special/waypoint/wp_int.c",
 	"aphavoc/source/entity/special/waypoint/wp_list.c",
+	// slice 5b: supply task construction (create_supply_task -> create_task;
+	// the taskgen.c functions are extracted: eech_extracted_taskgen.c)
+	"aphavoc/source/entity/special/task/task.c",
+	"aphavoc/source/entity/special/task/ts_creat.c",
+	"aphavoc/source/entity/special/task/ts_ptr.c",
+	"aphavoc/source/ai/highlevl/suitable.c",
 	// slice 3: entity heap, attributes, creation and destruction
 	"aphavoc/source/entity/system/en_main/en_heap.c",
 	"aphavoc/source/entity/system/en_attrs/en_attrs.c",
@@ -80,6 +86,22 @@ export const REAL_TRANSLATION_UNITS = [
 	"aphavoc/source/entity/special/sector/sc_msgs.c",
 	"aphavoc/source/entity/special/sector/sc_seccreat.c",
 ];
+
+//
+// Extra compile flags for one unit.
+//
+// Slice 5b, F1 (docs/slices/supply-task-construction.md): create_supply_task
+// leaves prepare.y and finish.y uninitialised, and create_task reads them. EECH
+// defines no value for them. The port resolves that undefined behaviour with a
+// compatibility choice, 0.0, and the harness pins the otherwise unmodified
+// original to the same choice by zero-initialising automatic variables in this
+// unit only. This is not a claim that EECH produced 0.0: the F1 probe
+// (npm run probe:f1, test/f1-probe) builds the same code zero-, pattern- and
+// un-initialised to show the value is the build's, not the source's.
+//
+export const UNIT_FLAGS = {
+	"eech_extracted_taskgen.c": ["-ftrivial-auto-var-init=zero"],
+};
 
 // Contents of the generated project.h, in order.
 // kind "include": a whole original header (path relative to aphavoc/source)
@@ -193,6 +215,20 @@ export const PROJECT_H = [
 	{ kind: "prototype", name: "campaign_completed", file: "aphavoc/source/ui_menu/ingame/campaign/campaign.h" },
 	{ kind: "prototype", name: "play_client_server_radio_message_response", file: "aphavoc/source/misc/msg_in.h" },
 	{ kind: "prototype", name: "get_sqr_2d_range", file: "modules/maths/range.h" },
+	// slice 5b: create_supply_task
+	{ kind: "prototype", name: "normalise_any_3d_vector", file: "modules/maths/vector.h" },
+	{ kind: "prototype", name: "initialise_group_task_array", file: "aphavoc/source/ai/highlevl/suitable.h" },
+	// slice 5b: the campaign screen notification (a port in the TS core)
+	{ kind: "enum", name: "CAMPAIGN_SCREEN_MESSAGES", file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.h" },
+	{ kind: "regex", pattern: "\\ntypedef enum CAMPAIGN_SCREEN_MESSAGES campaign_screen_messages;", file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.h" },
+	{ kind: "prototype", name: "notify_campaign_screen", file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.h" },
+	{ kind: "enum", name: "CAMPAIGN_SCREEN_MESSAGE_TARGETS", file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.h" },
+	{ kind: "regex", pattern: "\\nextern int \\(\\*campaign_screen_message_responses\\[NUM_CAMPAIGN_SCREEN_MESSAGE_TARGETS\\]\\[NUM_CAMPAIGN_SCREEN_MESSAGES\\]\\) \\(campaign_screen_messages message, entity \\*sender\\);", file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.h" },
+	{ kind: "define", name: "DEMO_VERSION", file: "aphavoc/source/project.h" },
+	{ kind: "enum", name: "GAME_TYPES", file: "aphavoc/source/global.h" },
+	{ kind: "regex", pattern: "\\ntypedef enum GAME_TYPES game_types;", file: "aphavoc/source/global.h" },
+	{ kind: "regex", pattern: "\\nextern game_types\\n\\tgame_type;", file: "aphavoc/source/ui_menu/gametype/gametype.h" },
+	{ kind: "define", name: "get_game_type", file: "aphavoc/source/ui_menu/gametype/gametype.h" },
 	{ kind: "include", name: "entity/special/waypoint/waypoint.h" },
 	// prototypes of functions the slice 3 translation units call; the harness
 	// supplies them as environment or fail-loud stubs (harness.c)
@@ -236,8 +272,6 @@ export const EXTRACTED_C = [
 	{ kind: "function", name: "get_2d_range", signature: "float get_2d_range (const vec3d *v1, const vec3d *v2)", file: "modules/maths/range.c" },
 	{ kind: "function", name: "get_approx_2d_range", signature: "float get_approx_2d_range (const vec3d *v1, const vec3d *v2)", file: "modules/maths/range.c" },
 
-	// slice 5a: the duplicate-task count response_to_force_low_on_supplies makes
-	{ kind: "function", name: "entity_is_object_of_task", signature: "int entity_is_object_of_task (entity *en, entity_sub_types task_type, entity_sides side)", file: "aphavoc/source/entity/special/task/task.c" },
 
 	// entity system defaults and runtime
 	{ kind: "function", name: "default_set_entity_int_value", signature: "static void default_set_entity_int_value (entity *en, int_types type, int value)", file: "aphavoc/source/entity/system/en_funcs/en_int.c" },
@@ -278,6 +312,17 @@ export const EXTRACTED_C = [
 	{ kind: "function", name: "update_client_server_entities", signature: "void update_client_server_entities (void)", file: "aphavoc/source/entity/special/update/up_update.c" },
 	{ kind: "function", name: "set_entity_update_frame_rate", signature: "int set_entity_update_frame_rate (int frame_rate)", file: "aphavoc/source/entity/special/update/up_update.c" },
 
+	// slice 5b: supply task construction reaches these (their files are otherwise not compiled)
+	{ kind: "function", name: "normalise_any_3d_vector", signature: "float normalise_any_3d_vector ( vec3d *vector )", file: "modules/maths/vector.c" },
+	{ kind: "function", name: "bound_position_to_adjusted_map_area", signature: "int bound_position_to_adjusted_map_area (vec3d *position)", file: "aphavoc/source/entity/system/en_main/en_world.c" },
+	{ kind: "function", name: "get_local_sector_entity_enemy_defence_level", signature: "static float get_local_sector_entity_enemy_defence_level (float *array, entity_sides side)", file: "aphavoc/source/entity/special/sector/sector.c" },
+	{ kind: "function", name: "get_local_sector_entity_enemy_surface_to_air_defence_level", signature: "float get_local_sector_entity_enemy_surface_to_air_defence_level (entity *sector_en, entity_sides side)", file: "aphavoc/source/entity/special/sector/sector.c" },
+	{ kind: "function", name: "set_client_server_entity_parent", signature: "void set_client_server_entity_parent (entity *en, list_types type, entity *parent)", file: "aphavoc/source/entity/system/en_funcs/en_list.c" },
+
+	// slice 5b: the campaign screen's guard (game status, game type); its
+	// response table is the UI, supplied by the harness
+	{ kind: "function", name: "notify_campaign_screen", signature: "int notify_campaign_screen (campaign_screen_messages message, entity *sender)", file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.c" },
+
 	// campaign functions (slice 1)
 	{ kind: "function", name: "get_local_force_entity", signature: "entity *get_local_force_entity (entity_sides side)", file: "aphavoc/source/entity/special/force/force.c" },
 	{ kind: "function", name: "assess_group_supplies", signature: "void assess_group_supplies (entity *en)", file: "aphavoc/source/entity/special/group/group.c" },
@@ -294,6 +339,14 @@ export const EXTRACTED_C = [
 			{ kind: "regex", pattern: "\\n\\tmessage_responses\\[ENTITY_TYPE_GROUP\\]\\[ENTITY_MESSAGE_UNLINK_PARENT\\][^;]*;", file: "aphavoc/source/entity/special/group/gp_msgs.c" },
 		],
 	},
+	// slice 5b: a task joins a group's LIST_TYPE_TASK_DEPENDENT list (the group is its objective)
+	{ kind: "function", name: "response_to_link_child", signature: "static int response_to_link_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)", file: "aphavoc/source/entity/special/group/gp_msgs.c" },
+	{
+		kind: "wrap",
+		prologue: "void harness_overload_group_link_child_response (void)\n{",
+		epilogue: "}",
+		parts: [{ kind: "regex", pattern: "\\n\\tmessage_responses\\[ENTITY_TYPE_GROUP\\]\\[ENTITY_MESSAGE_LINK_CHILD\\][^;]*;", file: "aphavoc/source/entity/special/group/gp_msgs.c" }],
+	},
 	{
 		kind: "raw",
 		text: "/* C defaults for the update entity: its link responses are only overloaded under DEBUG_MODULE (up_msgs.c) */\nvoid harness_default_update_link_responses (void)\n{\n\tmessage_responses[ENTITY_TYPE_UPDATE][ENTITY_MESSAGE_LINK_CHILD] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_UPDATE][ENTITY_MESSAGE_LINK_PARENT] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_UPDATE][ENTITY_MESSAGE_UNLINK_PARENT] = default_message_response;\n}\n\nvoid (*harness_default_set_entity_int_value) (entity *en, int_types type, int value) = default_set_entity_int_value;\n\nvoid (*harness_default_set_entity_float_value) (entity *en, float_types type, float value) = default_set_entity_float_value;\n\nint (*harness_default_get_entity_int_value) (entity *en, int_types type) = default_get_entity_int_value;\n\nfloat (*harness_default_get_entity_float_value) (entity *en, float_types type) = default_get_entity_float_value;\n",
@@ -304,6 +357,43 @@ export const EXTRACTED_C = [
 // would collide with other extracts (each original .c file is its own scope).
 export const EXTRACTED_UNITS = {
 	"eech_extracted.c": EXTRACTED_C,
+	// slice 5b: taskgen.c's supply task construction. The rest of taskgen.c
+	// (the other task generators) reaches the 3D engine and is not part of the
+	// port. Compiled with UNIT_FLAGS below.
+	"eech_extracted_taskgen.c": [
+		{ kind: "raw", text: '#include "project.h"\n\n#include "ai/taskgen/taskgen.h"\n' },
+		{ kind: "define", name: "DEBUG_MODULE", file: "aphavoc/source/ai/taskgen/taskgen.c" },
+		{ kind: "define", name: "TASK_SAFE_LIMIT", file: "aphavoc/source/ai/taskgen/taskgen.c" },
+		{ kind: "regex", pattern: "\\nvec3d\\n   terminator_point = \\{-1\\.0, -1\\.0, -1\\.0\\};", file: "aphavoc/source/ai/taskgen/taskgen.c" },
+		{ kind: "regex", pattern: "\\nstatic int get_task_start_keysite \\(entity_sub_types sub_type, entity_sides side, vec3d \\*start_pos, entity \\*\\*start_keysite\\);", file: "aphavoc/source/ai/taskgen/taskgen.c" },
+		{ kind: "function", name: "create_task", signature: "entity *create_task", file: "aphavoc/source/ai/taskgen/taskgen.c" },
+		{ kind: "function", name: "create_supply_task", signature: "entity *create_supply_task (entity *requester, entity *supplier, entity *cargo, movement_types movement_type, float priority, entity *start_keysite, entity *end_keysite)", file: "aphavoc/source/ai/taskgen/taskgen.c" },
+		{ kind: "function", name: "validate_task_generation", signature: "int validate_task_generation (entity_sides side, entity_sub_types sub_type)", file: "aphavoc/source/ai/taskgen/taskgen.c" },
+		{ kind: "function", name: "get_task_start_keysite", signature: "int get_task_start_keysite (entity_sub_types sub_type, entity_sides side, vec3d *start_pos, entity **start_keysite)", file: "aphavoc/source/ai/taskgen/taskgen.c" },
+	],
+	// slice 5b: the task's LINK_PARENT response (unassigned: state and the
+	// campaign screen); ts_msgs.c's other responses are not part of the port
+	"eech_extracted_ts_msgs.c": [
+		{ kind: "raw", text: '#include "project.h"\n\n#define DEBUG_MODULE 0\n' },
+		{ kind: "function", name: "response_to_link_parent", signature: "static int response_to_link_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)", file: "aphavoc/source/entity/special/task/ts_msgs.c" },
+		{
+			kind: "wrap",
+			prologue: "void harness_overload_task_link_parent_response (void)\n{",
+			epilogue: "}",
+			parts: [{ kind: "regex", pattern: "\\n\\tmessage_responses\\[ENTITY_TYPE_TASK\\]\\[ENTITY_MESSAGE_LINK_PARENT\\][^;]*;", file: "aphavoc/source/entity/special/task/ts_msgs.c" }],
+		},
+	],
+	// slice 5b: ENTITY_COMMS_SET_TASK_POINTERS packs the route nodes with the
+	// original pack_vec3d (its position check and in-place bound); the harness
+	// supplies only the bit-stream sinks
+	"eech_extracted_en_vec3d.c": [
+		{ kind: "raw", text: '#include "project.h"\n' },
+		{ kind: "define", name: "DEBUG_MODULE_PACK_ONE", file: "aphavoc/source/entity/system/en_funcs/en_vec3d.c" },
+		{ kind: "define", name: "DEBUG_MODULE_PACK_ALL", file: "aphavoc/source/entity/system/en_funcs/en_vec3d.c" },
+		{ kind: "regex", pattern: "\\nvec3d_type_data\\n\\tvec3d_type_database\\[NUM_VEC3D_TYPES\\] =\\n\\t\\{[\\s\\S]*?\\n\\t\\};", file: "aphavoc/source/entity/system/en_funcs/en_vec3d.c" },
+		{ kind: "function", name: "pack_vec3d", signature: "void pack_vec3d (entity *en, vec3d_types type, vec3d *v)", file: "aphavoc/source/entity/system/en_funcs/en_vec3d.c" },
+		{ kind: "function", name: "bound_position_to_map_volume", signature: "int bound_position_to_map_volume (vec3d *position)", file: "aphavoc/source/entity/system/en_main/en_world.c" },
+	],
 	"eech_extracted_ac_msgs.c": [
 	{ kind: "raw", text: '#include "project.h"\n\n#define DEBUG_MODULE 0\n' },
 	{ kind: "define", name: "AIR_RADAR_CONTACT_TIMEOUT", file: "aphavoc/source/gunships/avionics/common/co_radar.h" },

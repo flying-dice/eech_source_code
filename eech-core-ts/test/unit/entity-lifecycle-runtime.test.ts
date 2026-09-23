@@ -31,6 +31,7 @@ import { CommsModelType, EntityMessage, EntityType, FloatType, IntType, ListType
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
+import { RecordingCampaignEvents } from "../adapters/recording-campaign-events";
 import { ScriptedClock } from "../adapters/scripted-clock";
 
 // EECH narrows toward zero (docs/fidelity/fpu-semantics.md): 1.1 -> 0x3f8ccccc, 0.1 -> 0x3dcccccc
@@ -41,7 +42,7 @@ let replication: RecordingEntityReplication;
 
 function start(withMap = true): { sector: Entity; cargo: Entity } {
 	replication = new RecordingEntityReplication();
-	initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata() }, { numberOfEntities: 32 });
+	initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata(), campaignEvents: new RecordingCampaignEvents() }, { numberOfEntities: 32 });
 	setUpdateEntity(createLocalEntityRaw(EntityType.ENTITY_TYPE_UPDATE, {}));
 	if (withMap) {
 		setEntityWorldMapSize(1, 1, 1024);
@@ -275,7 +276,7 @@ describe("attributes and the heap outside the cargo corpus", () => {
 	});
 
 	it("allocating by index into an empty used list (the first allocation of a restore)", () => {
-		initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new RecordingEntityReplication(), clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata() }, { numberOfEntities: 4 });
+		initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new RecordingEntityReplication(), clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata(), campaignEvents: new RecordingCampaignEvents() }, { numberOfEntities: 4 });
 		const en = getFreeEntity(2) as Entity;
 		// free list 0 1 3; used list 2
 		expect(getLocalEntityList()).toBe(en);

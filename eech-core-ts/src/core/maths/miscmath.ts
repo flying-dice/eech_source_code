@@ -14,6 +14,11 @@ export function max(a: number, b: number): number {
 	return a > b ? a : b;
 }
 
+// C provenance: Windows SDK windef.h :: #define min(a,b) (((a) < (b)) ? (a) : (b))
+export function min(a: number, b: number): number {
+	return a < b ? a : b;
+}
+
 // C provenance: constant.h :: #define METRE (1.0f), #define KILOMETRE (1000 * METRE)
 export const METRE = 1.0;
 

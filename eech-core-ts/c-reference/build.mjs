@@ -9,7 +9,7 @@
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { AP_SOURCE, EXTRACTED_UNITS, REAL_TRANSLATION_UNITS, writeGenerated } from "./extract.mjs";
+import { AP_SOURCE, EXTRACTED_UNITS, REAL_TRANSLATION_UNITS, UNIT_FLAGS, writeGenerated } from "./extract.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(here, "..");
@@ -73,19 +73,21 @@ export function buildHarness() {
 	return buildHarnessInto(outDir, COMMON);
 }
 
-function buildHarnessInto(dir, common) {
+function buildHarnessInto(dir, common, unitFlags = UNIT_FLAGS) {
 	writeGenerated(dir);
 
 	const cc = process.env.CC || "cc";
 	const objects = [
 		compile(cc, join(here, "harness.c"), OWN_FLAGS, HARNESS_OBJECT_NAME, dir, common),
 		// verbatim original code: original-code flags
-		...Object.keys(EXTRACTED_UNITS).map((unit) => compile(cc, join(dir, unit), ORIGINAL_FLAGS, undefined, dir, common)),
+		...Object.keys(EXTRACTED_UNITS).map((unit) => compile(cc, join(dir, unit), [...ORIGINAL_FLAGS, ...(unitFlags[unit] ?? [])], undefined, dir, common)),
 		...REAL_TRANSLATION_UNITS.map((unit) => compile(cc, join(repoRoot, unit), ORIGINAL_FLAGS, undefined, dir, common)),
 	];
 
 	const binary = join(dir, "harness");
-	const link = spawnSync(cc, ["-m32", ...objects, "-lm", "-o", binary], { encoding: "utf8" });
+	// --wrap: fc_msgs.c's call of create_supply_task passes through the
+	// harness's trace (Slice 5a's boundary line), then runs the original
+	const link = spawnSync(cc, ["-m32", ...objects, "-Wl,--wrap=create_supply_task", "-lm", "-o", binary], { encoding: "utf8" });
 	if (link.error || link.status !== 0) {
 		throw new Error(`C reference harness link failed:\n${link.error ?? ""}${link.stdout}${link.stderr}`);
 	}
@@ -104,6 +106,20 @@ export function buildHarnessVariant(variant) {
 	const include = COMMON.slice(COMMON.indexOf("-I"));
 	const common = ["-std=gnu99", "-m32", ...variant.flags, "-DHARNESS_FPU_VARIANT", ...variant.defines, ...include.map((a) => (a === outDir ? dir : a))];
 	return buildHarnessInto(dir, common);
+}
+
+//
+// INVESTIGATION ONLY (issue #14, F1): the canonical harness except that
+// eech_extracted_taskgen.c (create_supply_task, create_task) is compiled with
+// `variant.unitFlags` instead of its UNIT_FLAGS: zero-, pattern- or
+// un-initialised automatic variables, optimised or not. The F1 probe
+// (npm run probe:f1) runs the same scenarios through each. The canonical
+// oracle (buildHarness) is never affected.
+//
+export function buildHarnessF1Variant(variant) {
+	const dir = join(projectRoot, "build", "c-reference-f1", variant.name);
+	const common = COMMON.map((a) => (a === outDir ? dir : a));
+	return buildHarnessInto(dir, common, { "eech_extracted_taskgen.c": variant.unitFlags });
 }
 
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
