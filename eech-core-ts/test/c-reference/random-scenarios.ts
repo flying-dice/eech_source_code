@@ -10,6 +10,7 @@ import type { GroupParentSpec, KeysiteSpec, PositionSpec, ScenarioSpec } from ".
 import type { LifecycleAttribute, LifecycleOp, LifecycleSpec } from "../scenarios/lifecycle-scenario";
 import type { TimelineSpec, TimelineStep } from "../scenarios/update-timeline";
 import type { Float32RtzOp } from "../scenarios/float32-rtz";
+import { migrateSlice6aSpec, type LegacyOp, type LegacySpec } from "../scenarios/slice-6a-migration";
 
 export function mulberry32(seed: number): () => number {
 	let a = seed >>> 0;
@@ -844,7 +845,14 @@ export function generateRandomSupplyTaskConstruction(seed: number, count: number
 // 4 - 5b path first constructs a supply task. Keysites are then assigned in
 // random order and categories; the first boundary ends the scenario.
 //
-export function generateRandomSupplyTaskAssignment(seed: number, count: number): LifecycleSpec[] {
+//
+// Slice 6a's generator, unchanged in its draws: its scenarios are Slice 6a
+// scenarios (LegacySpec: route-less unassigned tasks, aircraft anywhere, no
+// world map in most). The recorded fixtures are these scenarios migrated
+// (slice-6a-migration.ts); generateValidRandomSupplyTaskAssignment migrates a
+// fresh batch to Slice 6b's state invariants.
+//
+export function generateRandomSupplyTaskAssignment(seed: number, count: number): LegacySpec[] {
 	const rnd = mulberry32(seed);
 	const int = (n: number) => Math.floor(rnd() * n);
 	const chance = (p: number) => rnd() < p;
@@ -882,7 +890,7 @@ export function generateRandomSupplyTaskAssignment(seed: number, count: number):
 	];
 	const otherTasks = [T.ENTITY_SUB_TYPE_TASK_BAI, T.ENTITY_SUB_TYPE_TASK_RECON, T.ENTITY_SUB_TYPE_TASK_REPAIR, T.ENTITY_SUB_TYPE_TASK_TRANSFER_HELICOPTER, T.ENTITY_SUB_TYPE_TASK_BARCAP];
 
-	const specs: LifecycleSpec[] = [];
+	const specs: LegacySpec[] = [];
 
 	for (let n = 0; n < count; n++) {
 		const forces: EntitySide[] = chance(0.3) ? [BLUE, RED] : [BLUE];
@@ -902,7 +910,7 @@ export function generateRandomSupplyTaskAssignment(seed: number, count: number):
 			});
 		}
 
-		const ops: LifecycleOp[] = [];
+		const ops: LegacyOp[] = [];
 		for (let i = 0; i < numKeysites; i++) {
 			ops.push({ kind: "keysite-state", keysite: `keysite${i}`, alive: 1, y: 0 });
 		}
@@ -1040,4 +1048,10 @@ export function generateRandomSupplyTaskAssignment(seed: number, count: number):
 	}
 
 	return specs;
+}
+
+// Fresh Slice 6a scenarios migrated to Slice 6b's state invariants (every
+// correction applied): valid campaign state whichever task is selected.
+export function generateValidRandomSupplyTaskAssignment(seed: number, count: number): LifecycleSpec[] {
+	return generateRandomSupplyTaskAssignment(seed, count).map((legacy) => migrateSlice6aSpec(legacy, true).spec);
 }

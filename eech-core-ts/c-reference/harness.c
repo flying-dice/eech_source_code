@@ -275,6 +275,11 @@ static jmp_buf
 static char
 	labels[MAX_HARNESS_ENTITIES][32];
 
+/* slice 6b: a persisted task's route arrays hold route_length entries (ts_pack.c); a
+   constructed task's (create_task) also hold the terminator, which the graph prints */
+static int
+	persisted_route[MAX_HARNESS_ENTITIES];
+
 /* TRUE while original code runs under a setjmp (abort_operation) */
 static int
 	in_operation = FALSE;
@@ -1000,6 +1005,34 @@ static int
 /* slice 6b: print the assignment graph (the "observe-assignment" line) */
 static int
 	observe_assignment = FALSE;
+
+/*
+ * slice 6b: the port adopts assign.c :: assign_primary_task_to_group's
+ * transaction for SUPPLY tasks (the supply chain) only. For any other task
+ * type the call stays Slice 6a's decision boundary: it ends the operation
+ * with the selected group and task before anything of the transaction runs,
+ * as the TS core's UnportedBoundaryError does.
+ */
+int __real_assign_primary_task_to_group (entity *group_en, entity *task_en);
+
+int __wrap_assign_primary_task_to_group (entity *group_en, entity *task_en)
+{
+	if (get_local_entity_int_value (task_en, INT_TYPE_ENTITY_SUB_TYPE) == ENTITY_SUB_TYPE_TASK_SUPPLY)
+	{
+		return __real_assign_primary_task_to_group (group_en, task_en);
+	}
+
+	if (!in_operation)
+	{
+		harness_fail ("assign_primary_task_to_group outside an operation");
+	}
+
+	printf ("result boundary assign_primary_task_to_group %s %s\n", label_of (group_en), task_label_of (task_en));
+
+	longjmp (abort_operation, 1);
+
+	return FALSE;
+}
 
 entity *__real_create_supply_task (entity *requester, entity *supplier, entity *cargo, movement_types movement_type, float priority, entity *start_keysite, entity *end_keysite);
 
@@ -1925,7 +1958,7 @@ static void print_lifecycle_state (void)
 				{
 					printf ("route %s", label_of (en));
 
-					for (loop = 0; loop <= raw->route_length; loop ++)
+					for (loop = 0; loop < raw->route_length + (persisted_route[en - entities] ? 0 : 1); loop ++)
 					{
 						printf (" %08x %08x %08x %d %d %s", float_bits (raw->route_nodes[loop].x), float_bits (raw->route_nodes[loop].y), float_bits (raw->route_nodes[loop].z), (int) raw->route_waypoint_types[loop], (int) raw->route_formation_types[loop], label_of (raw->route_dependents[loop]));
 					}
@@ -2752,16 +2785,23 @@ int main (void)
 
 			raw->mob.sub_type = next_int (&cursor);
 		}
-		else if (strcmp (word, "unassigned-task") == 0)
+		else if (strcmp (word, "persisted-task") == 0)
 		{
 			/*
-			 * slice 6a: a task on a keysite's LIST_TYPE_UNASSIGNED_TASK list (appended),
-			 * and on its objective's LIST_TYPE_TASK_DEPENDENT list unless NULL, as a
-			 * saved game holds it:
-			 * unassigned-task <label> <keysite> <objective | NULL> <sub_type> <side> <critical> <priority> <expire>
+			 * slice 6b (replacing slice 6a's unassigned-task): an unassigned task as a
+			 * saved game holds it (ts_pack.c :: unpack_local_data), with its route:
+			 * on a keysite's LIST_TYPE_UNASSIGNED_TASK list (appended), and on its
+			 * objective's LIST_TYPE_TASK_DEPENDENT list unless NULL:
+			 *
+			 * persisted-task <label> <keysite> <objective | NULL> <sub_type> <side> <critical> <priority> <expire>
+			 *   route <n> (<x> <y> <z> <waypoint type> <formation> <dependent | NULL>) x n return <keysite | NULL>
+			 *
+			 * The route and the return keysite are required: a task is never without
+			 * its route (n >= 1), so an incomplete line fails the harness.
 			 */
 			char label[32];
 			entity *en, *keysite_en, *objective;
+			int n, loop;
 
 			task *raw = new_raw (sizeof (task));
 
@@ -2777,7 +2817,44 @@ int main (void)
 			raw->task_priority = next_float (&cursor);
 			raw->expire_timer = next_float (&cursor);
 
+			if (strcmp (next_token (&cursor), "route") != 0)
+			{
+				harness_fail ("persisted-task without its route");
+			}
+
+			n = next_int (&cursor);
+
+			if (n < 1)
+			{
+				harness_fail ("persisted-task with an empty route");
+			}
+
+			raw->route_length = n;
+			raw->route_nodes = new_raw (sizeof (vec3d) * n);
+			raw->route_waypoint_types = new_raw (sizeof (entity_sub_types) * n);
+			raw->route_formation_types = new_raw (sizeof (formation_types) * n);
+			raw->route_dependents = new_raw (sizeof (entity *) * n);
+
+			for (loop = 0; loop < n; loop ++)
+			{
+				raw->route_nodes [loop].x = next_float (&cursor);
+				raw->route_nodes [loop].y = next_float (&cursor);
+				raw->route_nodes [loop].z = next_float (&cursor);
+				raw->route_waypoint_types [loop] = next_int (&cursor);
+				raw->route_formation_types [loop] = next_int (&cursor);
+				raw->route_dependents [loop] = find_created (next_token (&cursor));
+			}
+
+			if (strcmp (next_token (&cursor), "return") != 0)
+			{
+				harness_fail ("persisted-task without its return keysite");
+			}
+
+			raw->return_keysite = find_created (next_token (&cursor));
+
 			en = new_entity (ENTITY_TYPE_TASK, raw, label);
+
+			persisted_route[en - entities] = TRUE;
 
 			link_entity_raw (en, LIST_TYPE_UNASSIGNED_TASK, keysite_en, last_child (keysite_en, LIST_TYPE_UNASSIGNED_TASK));
 

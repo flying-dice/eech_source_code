@@ -416,10 +416,9 @@ export const EXTRACTED_UNITS = {
 	// (the other task generators) reaches the 3D engine and is not part of the
 	// port. Compiled with UNIT_FLAGS below.
 	// slice 6a: assign.c's assignment decision. The rest of assign.c is the
-	// assignment transaction (slice 6b / 6c) and the player's requests;
-	// assign_primary_task_to_group is the harness's boundary trap.
+	// assignment transaction (eech_extracted_assign_transaction.c) and the player's requests.
 	"eech_extracted_assign.c": [
-		{ kind: "raw", text: '#include <limits.h>\n\n#include "project.h"\n\n#include "ai/taskgen/assign.h"\n#include "ai/taskgen/taskgen.h"\n#include "ai/taskgen/croute.h"\n#include "ai/highlevl/suitable.h"\n' },
+		{ kind: "raw", text: '#include <limits.h>\n\n#include "project.h"\n\n#include "ai/taskgen/assign.h"\n#include "ai/taskgen/taskgen.h"\n#include "ai/highlevl/suitable.h"\n' },
 		{ kind: "prototype", name: "quicksort_entity_list", file: "aphavoc/source/entity/en_misc/en_misc.h" },
 		// the release (non-DEBUG, non-WIN32) ai_log of highlevl.h: compiled out
 		{ kind: "regex", pattern: "\\n#define ai_log\\(a, x\\.\\.\\.\\) do \\{ \\} while\\(0\\);", file: "aphavoc/source/ai/highlevl/highlevl.h" },
@@ -428,7 +427,17 @@ export const EXTRACTED_UNITS = {
 		{ kind: "function", name: "suitable_group_task_specific_checks", signature: "static int suitable_group_task_specific_checks (entity *task, entity *group)", file: "aphavoc/source/ai/taskgen/assign.c" },
 		{ kind: "function", name: "get_suitable_registered_group", signature: "entity *get_suitable_registered_group (entity *task, int *idle_group_count)", file: "aphavoc/source/ai/taskgen/assign.c" },
 		{ kind: "function", name: "check_group_members_awake", signature: "int check_group_members_awake (entity *group)", file: "aphavoc/source/ai/taskgen/assign.c" },
-		// slice 6b: the transaction up to assign_task_to_group_members, the harness's boundary trap
+	],
+	// slice 6b: assign.c's assignment transaction up to assign_task_to_group_members, the
+	// harness's boundary trap. Its own unit, so that assign_keysite_tasks's call of
+	// assign_primary_task_to_group is an external reference the link can --wrap: the port
+	// adopts the transaction for SUPPLY tasks only, and every other task type stays at
+	// Slice 6a's decision boundary (harness.c :: __wrap_assign_primary_task_to_group).
+	"eech_extracted_assign_transaction.c": [
+		{ kind: "raw", text: '#include "project.h"\n\n#include "ai/taskgen/assign.h"\n#include "ai/taskgen/taskgen.h"\n#include "ai/taskgen/croute.h"\n' },
+		// the release (non-DEBUG, non-WIN32) ai_log of highlevl.h: compiled out
+		{ kind: "regex", pattern: "\\n#define ai_log\\(a, x\\.\\.\\.\\) do \\{ \\} while\\(0\\);", file: "aphavoc/source/ai/highlevl/highlevl.h" },
+		{ kind: "define", name: "DEBUG_MODULE", file: "aphavoc/source/ai/taskgen/assign.c" },
 		{ kind: "function", name: "assign_primary_task_to_group", signature: "int assign_primary_task_to_group (entity *group_en, entity *task_en)", file: "aphavoc/source/ai/taskgen/assign.c" },
 		{ kind: "function", name: "push_task_onto_group_task_stack", signature: "entity *push_task_onto_group_task_stack (entity *group, entity *task, unsigned int valid_members)", file: "aphavoc/source/ai/taskgen/assign.c" },
 		{ kind: "function", name: "assign_task_to_group", signature: "int assign_task_to_group (entity *group, entity *task_en, unsigned int valid_members)", file: "aphavoc/source/ai/taskgen/assign.c" },

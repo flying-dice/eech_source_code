@@ -20,6 +20,7 @@
 		"test:lua": "node scripts/lua.mjs build tsconfig.lua-test.json && node scripts/lua.mjs run build/lua-test/conformance.lua",
 		"test:cref": "vitest run --config vitest.cref.config.ts",
 		"cref:record": "RECORD_CREF=1 vitest run --config vitest.cref.config.ts test/c-reference/differential.cref.test.ts",
+		"cref:migrate-6a": "RECORD_CREF=1 vitest run --config vitest.cref.config.ts test/c-reference/slice-6a-migration.cref.test.ts",
 		"spike:fpu": "vitest run --config vitest.fpu.config.ts && node c-reference/fpu-probes/run-probes.mjs",
 		"verify": "npm run check:c && npm run typecheck && npm run lint && npm run coverage && npm run smoke:lua && npm run test:lua && npm run test:cref",
 		"probe:f1": "vitest run --config vitest.f1.config.ts"

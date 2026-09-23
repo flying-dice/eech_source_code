@@ -46,15 +46,31 @@
 //   air-register     a group on its force's LIST_TYPE_AIR_REGISTRY list (appended)
 //   aircraft-type    a restored member's aircraft sub type
 //   add-member       an aircraft member (helicopter or fixed wing) appended to a group's member list
-//   unassigned-task  a task on a keysite's LIST_TYPE_UNASSIGNED_TASK list (and its objective's
-//                    LIST_TYPE_TASK_DEPENDENT list unless NULL), as a saved game holds it
+//   persisted-task   an unassigned task as a saved game holds it (ts_pack.c): on a keysite's
+//                    LIST_TYPE_UNASSIGNED_TASK list (and its objective's LIST_TYPE_TASK_DEPENDENT list
+//                    unless NULL), with its route and return keysite, both required (Slice 6b
+//                    replaced 6a's route-less unassigned-task: a task without its route is not a
+//                    state EECH can hold, and the assignment transaction reads the route)
 //   pilot            a pilot entity (pilot lock holder)
 //   pilot-lock       a task or group on a pilot's LIST_TYPE_PILOT_LOCK list (appended)
 //   assign-tasks     assign_keysite_tasks (keysite, category)
 //
-// Reaching assign_primary_task_to_group (the slice 6a boundary) ends the
-// scenario with "result boundary assign_primary_task_to_group <group> <task>",
-// as the C harness's boundary trap does.
+// and, since Slice 6b (assign.c's transaction up to assign_task_to_group_members, issue #18):
+//
+//   terrain              the map's terrain elevations (TerrainElevation): a default and a grid of cells
+//   road-node            the next node of the map's road table (RoadNetwork)
+//   observe-environment  print every terrain lookup, in call order
+//   observe-assignment   print the assignment graph (assigned lists, routes, waypoints, guides, guide stacks)
+//
+// Reaching assign_primary_task_to_group for a task other than SUPPLY (the
+// slice 6a decision boundary) ends the scenario with "result boundary
+// assign_primary_task_to_group <group> <task>"; reaching
+// assign_task_to_group_members (the slice 6b boundary) ends it with "result
+// boundary assign_task_to_group_members <group> <guide> <valid members>", as
+// the C harness's traps do.
+//
+// Waypoints and guides the original creates are labelled wp<index> and
+// guide<index> when first printed.
 //
 // Tasks the original creates are labelled task<index> when first printed.
 //
@@ -86,7 +102,8 @@ import { clearedTaskGeneration, type ForceRaw } from "../../src/entity/special/f
 import { updateKeysiteCargo, type KeysiteRaw } from "../../src/entity/special/keysite/keysite";
 import { assessGroupSupplies, type GroupRaw } from "../../src/entity/special/group/group";
 import { clearedTaskRaw, type TaskRaw } from "../../src/entity/special/task/task";
-import { clearedWaypointRaw } from "../../src/entity/special/waypoint/waypoint";
+import type { GuideRaw } from "../../src/entity/special/guide/guide";
+import { clearedWaypointRaw, type WaypointRaw } from "../../src/entity/special/waypoint/waypoint";
 import { setCommsModel, type CommsModel } from "../../src/entity/system/comms";
 import { createLocalSectorEntities, getLocalRawSectorEntity, type SectorRaw } from "../../src/entity/special/sector/sector";
 import { setEntityCommsTransmission } from "../../src/entity/system/en_comms";
@@ -108,7 +125,7 @@ import { InMemoryRoadNetwork } from "../adapters/in-memory-road-network";
 import { ScriptedClock } from "../adapters/scripted-clock";
 import type { KeysiteSpec, PositionSpec } from "./campaign-scenario";
 import { observeSupplyTasks as observeSupplyTaskCalls, traceForceLowOnSupplies } from "./supply-boundary";
-import { float32Hex } from "./float-bits";
+import { float32Hex, hex8 } from "./float-bits";
 
 export type LifecycleAttribute =
 	| { kind: "int"; type: number; value: number }
@@ -148,11 +165,38 @@ export type LifecycleOp =
 	| { kind: "air-register"; group: string }
 	| { kind: "aircraft-type"; member: string; subType: number }
 	// objective: an entity label or "NULL"
-	| { kind: "unassigned-task"; label: string; keysite: string; objective: string; subType: number; side: number; critical: number; priority: number; expire: number }
+	// objective, dependents and return keysite: entity labels or "NULL"; the route has at least one node
+	| {
+			kind: "persisted-task";
+			label: string;
+			keysite: string;
+			objective: string;
+			subType: number;
+			side: number;
+			critical: number;
+			priority: number;
+			expire: number;
+			route: PersistedRouteNode[];
+			returnKeysite: string;
+	  }
+	| { kind: "terrain"; defaultElevation: number; cellSize: number; cellsX: number; cellsZ: number; cells: number[] }
+	| { kind: "road-node"; x: number; y: number; z: number; links: number }
+	| { kind: "observe-environment" }
+	| { kind: "observe-assignment" }
 	| { kind: "add-member"; label: string; group: string; type: number; subType: number; x: number; z: number }
 	| { kind: "pilot"; label: string }
 	| { kind: "pilot-lock"; entity: string; pilot: string }
 	| { kind: "assign-tasks"; keysite: string; category: number };
+
+// One node of a persisted task's route (ts_pack.c: position, waypoint type, formation, dependent)
+export interface PersistedRouteNode {
+	x: number;
+	y: number;
+	z: number;
+	waypointType: number;
+	formation: number;
+	dependent: string;
+}
 
 export interface LifecycleSpec {
 	heap: number;
@@ -176,6 +220,7 @@ class LineReplication implements EntityReplication {
 		private readonly lines: string[],
 		private readonly labelOfIndex: (index: number) => string,
 		private readonly taskLabelOfIndex: (index: number) => string,
+		private readonly isTask: (index: number) => boolean,
 	) {}
 
 	public transmitEntityFloatValue(entityIndex: number, type: number, value: number): void {
@@ -255,7 +300,10 @@ class LineReplication implements EntityReplication {
 	}
 
 	public transmitSwitchList(entityIndex: number, fromType: ListType, parentIndex: number, toType: ListType): void {
-		this.lines.push(`transmit-switch-list ${this.taskLabelOfIndex(entityIndex)} ${fromType} ${this.labelOfIndex(parentIndex)} ${toType}`);
+		// the harness labels a task task<index>, anything else (a guide) as label_of does
+		const label = this.isTask(entityIndex) ? this.taskLabelOfIndex(entityIndex) : this.labelOfIndex(entityIndex);
+
+		this.lines.push(`transmit-switch-list ${label} ${fromType} ${this.labelOfIndex(parentIndex)} ${toType}`);
 	}
 
 	public transmitSetGuideCriteria(guideIndex: number, type: number, valid: number, value: number): void {
@@ -290,9 +338,32 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 			return "NULL";
 		}
 
+		if (labels[index] === undefined) {
+			// waypoints and guides the original creates: wp<index>, guide<index> when first printed
+			for (let en = getLocalEntityList(); en !== undefined; en = getLocalEntitySucc(en)) {
+				if (en.index === index) {
+					if (en.type === EntityType.ENTITY_TYPE_WAYPOINT) {
+						labels[index] = `wp${index}`;
+					} else if (en.type === EntityType.ENTITY_TYPE_GUIDE) {
+						labels[index] = `guide${index}`;
+					}
+				}
+			}
+		}
+
 		const label = labels[index];
 
 		return label === undefined ? "" : label;
+	};
+
+	const isTaskIndex = (index: number): boolean => {
+		for (let en = getLocalEntityList(); en !== undefined; en = getLocalEntitySucc(en)) {
+			if (en.index === index) {
+				return en.type === EntityType.ENTITY_TYPE_TASK;
+			}
+		}
+
+		return false;
 	};
 
 	const labelOf = (en: Entity | undefined): string => (en === undefined ? "NULL" : labelOfIndex(en.index));
@@ -326,7 +397,7 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 	initialiseCampaignCore(
 		{
 			mobilePhysicalState: physical,
-			entityReplication: new LineReplication(lines, labelOfIndex, taskLabelOfIndex),
+			entityReplication: new LineReplication(lines, labelOfIndex, taskLabelOfIndex, isTaskIndex),
 			clock: new ScriptedClock(),
 			object3DMetadata: objects,
 			campaignEvents: new LineCampaignEvents(lines, taskLabelOfIndex),
@@ -339,6 +410,17 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 	let observeSupplyTasks = false;
 
 	let observeTasks = false;
+
+	let observeAssignment = false;
+
+	// every terrain lookup is printed once the scenario observes the environment
+	let observeEnvironment = false;
+
+	terrain.observe((x, z, elevation) => {
+		if (observeEnvironment) {
+			lines.push(`terrain ${float32Hex(x)} ${float32Hex(z)} ${float32Hex(elevation)}`);
+		}
+	});
 
 	traceForceLowOnSupplies((d) => lines.push(`message ${labelOf(d.receiver)} ${labelOf(d.sender)} ${d.message} ${d.subType}`));
 
@@ -532,16 +614,19 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 				const group = createLocalEntityRaw(EntityType.ENTITY_TYPE_GROUP, raw);
 				labels[group.index] = op.label;
 
+				// slice 6b: gp_creat.c stores the list a group joins in group_list_type (gp_pack.c restores it)
 				if (op.parent === "independent") {
 					for (const force of forces) {
 						if ((force.data as ForceRaw).side === op.side) {
 							insertLocalEntityIntoParentsChildListRaw(group, ListType.LIST_TYPE_INDEPENDENT_GROUP, force, lastChild(force, ListType.LIST_TYPE_INDEPENDENT_GROUP));
+							raw.group_list_type = ListType.LIST_TYPE_INDEPENDENT_GROUP;
 							break;
 						}
 					}
 				} else if (op.parent !== "NULL") {
 					const parent = find(op.parent) as Entity;
 					insertLocalEntityIntoParentsChildListRaw(group, ListType.LIST_TYPE_KEYSITE_GROUP, parent, lastChild(parent, ListType.LIST_TYPE_KEYSITE_GROUP));
+					raw.group_list_type = ListType.LIST_TYPE_KEYSITE_GROUP;
 				}
 
 				if (op.busy) {
@@ -619,7 +704,11 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 				}
 			} else if (op.kind === "aircraft-type") {
 				getLocalEntityData<AircraftRaw>(find(op.member) as Entity).mob.sub_type = op.subType;
-			} else if (op.kind === "unassigned-task") {
+			} else if (op.kind === "persisted-task") {
+				if (op.route.length < 1) {
+					throw new Error("persisted-task with an empty route");
+				}
+
 				const raw: TaskRaw = clearedTaskRaw();
 				raw.sub_type = op.subType;
 				raw.side = storeUnsignedBitfield(op.side, 2);
@@ -627,6 +716,13 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 				raw.critical_task = storeUnsignedBitfield(op.critical, 1);
 				raw.task_priority = toFloat32(op.priority);
 				raw.expire_timer = toFloat32(op.expire);
+				// ts_pack.c :: unpack_local_data: route_length entries of each array
+				raw.route_length = op.route.length;
+				raw.route_nodes = op.route.map((n) => ({ x: toFloat32(n.x), y: toFloat32(n.y), z: toFloat32(n.z) }));
+				raw.route_waypoint_types = op.route.map((n) => n.waypointType);
+				raw.route_formation_types = op.route.map((n) => n.formation);
+				raw.route_dependents = op.route.map((n) => find(n.dependent));
+				raw.return_keysite = find(op.returnKeysite);
 				const task = createLocalEntityRaw(EntityType.ENTITY_TYPE_TASK, raw);
 				labels[task.index] = op.label;
 				const keysite = find(op.keysite) as Entity;
@@ -636,6 +732,15 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 				if (objective !== undefined) {
 					insertLocalEntityIntoParentsChildListRaw(task, ListType.LIST_TYPE_TASK_DEPENDENT, objective, lastChild(objective, ListType.LIST_TYPE_TASK_DEPENDENT));
 				}
+			} else if (op.kind === "terrain") {
+				// scenario input: narrowed to nearest, as the C harness parses it
+				terrain.setGrid(toFloat32(op.defaultElevation), toFloat32(op.cellSize), op.cellsX, op.cellsZ, op.cells.map((c) => toFloat32(c)));
+			} else if (op.kind === "road-node") {
+				roads.addRoadNode({ x: toFloat32(op.x), y: toFloat32(op.y), z: toFloat32(op.z) }, op.links);
+			} else if (op.kind === "observe-environment") {
+				observeEnvironment = true;
+			} else if (op.kind === "observe-assignment") {
+				observeAssignment = true;
 			} else if (op.kind === "add-member") {
 				if (op.type !== EntityType.ENTITY_TYPE_HELICOPTER && op.type !== EntityType.ENTITY_TYPE_FIXED_WING) {
 					throw new Error("add-member: not an aircraft entity type");
@@ -662,8 +767,11 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 		}
 	} catch (e) {
 
-		if (e instanceof UnportedBoundaryError) {
-			// the slice 6a boundary: assign_primary_task_to_group (group_en, task_en)
+		if (e instanceof UnportedBoundaryError && e.boundary === "assign.c :: assign_task_to_group_members") {
+			// the slice 6b boundary: assign_task_to_group_members (group, guide, valid_members)
+			result = `boundary assign_task_to_group_members ${labelOf(e.args[0] as Entity)} ${labelOf(e.args[1] as Entity)} ${hex8(e.args[2] as number)}`;
+		} else if (e instanceof UnportedBoundaryError) {
+			// the slice 6a decision boundary (non-SUPPLY tasks): assign_primary_task_to_group (group_en, task_en)
 			result = `boundary assign_primary_task_to_group ${labelOf(e.args[0] as Entity)} ${taskLabelOfIndex((e.args[1] as Entity).index)}`;
 		} else if (e instanceof EechAssertionError) {
 			result = `assert ${e.expression}`;
@@ -756,7 +864,8 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 
 					let text = `route ${labelOf(en)}`;
 
-					for (let i = 0; i <= raw.route_length; i++) {
+					// a constructed task's arrays also hold the terminator; a persisted task's (ts_pack.c) do not
+					for (let i = 0; i <= raw.route_length && i < nodes.length; i++) {
 						text += ` ${float32Hex(nodes[i].x)} ${float32Hex(nodes[i].y)} ${float32Hex(nodes[i].z)} ${waypoints[i]} ${formations[i]} ${labelOf(dependents[i])}`;
 					}
 
@@ -781,6 +890,48 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 						lines.push(`sector-tasks ${labelOf(sector)}${listText(sector, ListType.LIST_TYPE_SECTOR_TASK)}`);
 					}
 				}
+			}
+		}
+	}
+
+	// slice 6b: the assignment graph, once observed
+	if (observeAssignment) {
+		for (const keysite of keysites) {
+			lines.push(`assigned ${labelOf(keysite)}${listText(keysite, ListType.LIST_TYPE_ASSIGNED_TASK)}`);
+		}
+
+		for (let en = getLocalEntityList(); en !== undefined; en = getLocalEntitySucc(en)) {
+			if (en.type === EntityType.ENTITY_TYPE_TASK) {
+				const raw = getLocalEntityData<TaskRaw>(en);
+
+				lines.push(
+					`task-assignment ${taskLabelOfIndex(en.index)} state ${raw.task_state} checksum ${raw.route_check_sum} return ${labelOf(raw.return_keysite)} waypoints` +
+						`${listText(en, ListType.LIST_TYPE_WAYPOINT)} guides${listText(en, ListType.LIST_TYPE_GUIDE)}`,
+				);
+			} else if (en.type === EntityType.ENTITY_TYPE_WAYPOINT) {
+				const raw = getLocalEntityData<WaypointRaw>(en);
+
+				lines.push(
+					`waypoint ${labelOf(en)} ${en.index} task ${labelOf(getLocalEntityParent(en, ListType.LIST_TYPE_WAYPOINT))} sub ${raw.sub_type} formation ${raw.waypoint_formation} ` +
+						`position-type ${raw.position_type} ${float32Hex(raw.position.x)} ${float32Hex(raw.position.y)} ${float32Hex(raw.position.z)} route-node ${raw.route_node} ` +
+						`altitude ${float32Hex(raw.altitude)} flight-time ${float32Hex(raw.flight_time)} tag ${raw.tag} dependent ${labelOf(getLocalEntityParent(en, ListType.LIST_TYPE_TASK_DEPENDENT))}`,
+				);
+			} else if (en.type === EntityType.ENTITY_TYPE_GUIDE) {
+				const raw = getLocalEntityData<GuideRaw>(en);
+
+				let text =
+					`guide ${labelOf(en)} ${en.index} task ${labelOf(getLocalEntityParent(en, ListType.LIST_TYPE_GUIDE))} current ${labelOf(getLocalEntityParent(en, ListType.LIST_TYPE_CURRENT_WAYPOINT))} ` +
+					`stack ${labelOf(getLocalEntityParent(en, ListType.LIST_TYPE_GUIDE_STACK))} sub ${raw.sub_type} valid ${hex8(raw.valid_guide_members)} ` +
+					`position ${float32Hex(raw.position.x)} ${float32Hex(raw.position.y)} ${float32Hex(raw.position.z)} velocity ${float32Hex(raw.velocity)} ` +
+					`update ${labelOf(getLocalEntityParent(en, ListType.LIST_TYPE_UPDATE))} criteria`;
+
+				for (const criterion of raw.criteria) {
+					text += ` ${criterion.valid}:${float32Hex(criterion.value)}`;
+				}
+
+				lines.push(text);
+			} else if (en.type === EntityType.ENTITY_TYPE_GROUP) {
+				lines.push(`group ${labelOf(en)} mode ${getLocalEntityIntValue(en, IntType.INT_TYPE_GROUP_MODE)} guides${listText(en, ListType.LIST_TYPE_GUIDE_STACK)}`);
 			}
 		}
 	}
@@ -876,8 +1027,22 @@ export function serialiseLifecycle(spec: LifecycleSpec, formatNumber: (n: number
 			lines.push(`air-register ${op.group}`);
 		} else if (op.kind === "aircraft-type") {
 			lines.push(`aircraft-type ${op.member} ${op.subType}`);
-		} else if (op.kind === "unassigned-task") {
-			lines.push(`unassigned-task ${op.label} ${op.keysite} ${op.objective} ${op.subType} ${op.side} ${op.critical} ${formatNumber(op.priority)} ${formatNumber(op.expire)}`);
+		} else if (op.kind === "persisted-task") {
+			let text = `persisted-task ${op.label} ${op.keysite} ${op.objective} ${op.subType} ${op.side} ${op.critical} ${formatNumber(op.priority)} ${formatNumber(op.expire)} route ${op.route.length}`;
+
+			for (const n of op.route) {
+				text += ` ${formatNumber(n.x)} ${formatNumber(n.y)} ${formatNumber(n.z)} ${n.waypointType} ${n.formation} ${n.dependent}`;
+			}
+
+			lines.push(`${text} return ${op.returnKeysite}`);
+		} else if (op.kind === "terrain") {
+			lines.push(`terrain ${formatNumber(op.defaultElevation)} ${formatNumber(op.cellSize)} ${op.cellsX} ${op.cellsZ}${op.cells.map((c) => ` ${formatNumber(c)}`).join("")}`);
+		} else if (op.kind === "road-node") {
+			lines.push(`road-node ${formatNumber(op.x)} ${formatNumber(op.y)} ${formatNumber(op.z)} ${op.links}`);
+		} else if (op.kind === "observe-environment") {
+			lines.push("observe-environment");
+		} else if (op.kind === "observe-assignment") {
+			lines.push("observe-assignment");
 		} else if (op.kind === "add-member") {
 			lines.push(`add-member ${op.label} ${op.group} ${op.type} ${op.subType} ${formatNumber(op.x)} ${formatNumber(op.z)}`);
 		} else if (op.kind === "pilot") {

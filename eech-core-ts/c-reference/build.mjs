@@ -86,8 +86,10 @@ function buildHarnessInto(dir, common, unitFlags = UNIT_FLAGS) {
 
 	const binary = join(dir, "harness");
 	// --wrap: fc_msgs.c's call of create_supply_task passes through the
-	// harness's trace (Slice 5a's boundary line), then runs the original
-	const link = spawnSync(cc, ["-m32", ...objects, "-Wl,--wrap=create_supply_task", "-lm", "-o", binary], { encoding: "utf8" });
+	// harness's trace (Slice 5a's boundary line), then runs the original.
+	// assign_keysite_tasks's call of assign_primary_task_to_group passes through
+	// the harness's scope check (Slice 6b adopts the transaction for SUPPLY tasks).
+	const link = spawnSync(cc, ["-m32", ...objects, "-Wl,--wrap=create_supply_task", "-Wl,--wrap=assign_primary_task_to_group", "-lm", "-o", binary], { encoding: "utf8" });
 	if (link.error || link.status !== 0) {
 		throw new Error(`C reference harness link failed:\n${link.error ?? ""}${link.stdout}${link.stderr}`);
 	}

@@ -11,7 +11,7 @@
 // answers it: an aircraft member is always awake.
 //
 
-import { AIRCRAFT_DATABASE_CRUISE_VELOCITY } from "../../../generated/c-aircraft-database";
+import { AIRCRAFT_DATABASE_CRUISE_ALTITUDE, AIRCRAFT_DATABASE_CRUISE_VELOCITY } from "../../../generated/c-aircraft-database";
 import { FloatType, type EntitySubTypeAircraft, type EntityType } from "../../../generated/c-enums";
 import { defaultGetEntityFloatValue, fnGetLocalEntityFloatValue } from "../../system/en_values";
 import { getLocalEntityData } from "../../system/entity";
@@ -25,6 +25,9 @@ export interface AircraftRaw {
 export function overloadAircraftFloatValueFunctions(type: EntityType): void {
 	// C provenance: ac_float.c :: get_local_float_value (FLOAT_TYPE_CRUISE_VELOCITY)
 	fnGetLocalEntityFloatValue.overload(type, FloatType.FLOAT_TYPE_CRUISE_VELOCITY, (en) => AIRCRAFT_DATABASE_CRUISE_VELOCITY[getLocalEntityData<AircraftRaw>(en).mob.sub_type]);
+
+	// C provenance: ac_float.c :: get_local_float_value (FLOAT_TYPE_CRUISE_ALTITUDE): read by croute.c (slice 6b)
+	fnGetLocalEntityFloatValue.overload(type, FloatType.FLOAT_TYPE_CRUISE_ALTITUDE, (en) => AIRCRAFT_DATABASE_CRUISE_ALTITUDE[getLocalEntityData<AircraftRaw>(en).mob.sub_type]);
 
 	// C provenance: en_float.c :: default_get_entity_float_value (0.0): no aircraft file overloads FLOAT_TYPE_SLEEP
 	fnGetLocalEntityFloatValue.overload(type, FloatType.FLOAT_TYPE_SLEEP, defaultGetEntityFloatValue);

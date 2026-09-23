@@ -33,6 +33,7 @@ import { getLocalEntityChildSucc, getLocalEntityFirstChild, overloadEntityListLi
 import {
 	fnGetLocalEntityFloatValue,
 	fnGetLocalEntityIntValue,
+	fnGetLocalEntityVec3d,
 	fnGetLocalEntityVec3dPtr,
 	fnSetClientServerEntityFloatValue,
 	getLocalEntityIntValue,
@@ -346,4 +347,11 @@ export function overloadKeysiteFunctions(): void {
 
 	// C provenance: ks_vec3d.c :: get_local_vec3d_ptr (VEC3D_TYPE_POSITION) -> &raw->position
 	fnGetLocalEntityVec3dPtr.overload(KEYSITE, Vec3dType.VEC3D_TYPE_POSITION, (en) => getLocalEntityData<KeysiteRaw>(en).position);
+
+	// C provenance: ks_vec3d.c :: get_local_vec3d (VEC3D_TYPE_POSITION): *v = raw->position (slice 6b)
+	fnGetLocalEntityVec3d.overload(KEYSITE, Vec3dType.VEC3D_TYPE_POSITION, (en) => {
+		const position = getLocalEntityData<KeysiteRaw>(en).position;
+
+		return { x: position.x, y: position.y, z: position.z };
+	});
 }

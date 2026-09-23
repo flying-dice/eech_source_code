@@ -46,12 +46,14 @@ import {
 	EntityType,
 	GameStatusType,
 	GameType,
+	IntType,
 	KeysiteUsableState,
 	TaskCategoryType,
 } from "../../src/generated/c-enums";
 import { OBJECT_3D_SINGLE_CRATE } from "../../src/generated/c-constants";
 import type { KeysiteSpec } from "./campaign-scenario";
-import type { LifecycleOp, LifecycleSpec } from "./lifecycle-scenario";
+import type { LifecycleSpec } from "./lifecycle-scenario";
+import { migrateSlice6aSpec, type LegacyOp, type LegacySpec } from "./slice-6a-migration";
 
 export interface SupplyTaskAssignmentCase {
 	id: string;
@@ -60,6 +62,8 @@ export interface SupplyTaskAssignmentCase {
 	spec: LifecycleSpec;
 	expected: string[];
 	absent: string[];
+	// the selected task is a SUPPLY task: the case runs the Slice 6b transaction
+	transaction: boolean;
 }
 
 const BLUE = EntitySide.ENTITY_SIDE_BLUE_FORCE;
@@ -91,6 +95,19 @@ const UH60 = EntitySubTypeAircraft.ENTITY_SUB_TYPE_AIRCRAFT_UH60_BLACK_HAWK;
 const FA18 = EntitySubTypeAircraft.ENTITY_SUB_TYPE_AIRCRAFT_FA18_HORNET;
 
 const BOUNDARY = "result boundary assign_primary_task_to_group";
+
+const TRANSACTION_BOUNDARY = "result boundary assign_task_to_group_members";
+
+// a legacy scenario's task type: a restored task's, or SUPPLY for a task the scenario constructs (Slice 5b)
+function legacyTaskType(spec: LegacySpec, label: string): number {
+	for (const op of spec.ops) {
+		if (op.kind === "unassigned-task" && op.label === label) {
+			return op.subType;
+		}
+	}
+
+	return SUPPLY;
+}
 
 // ETA at 85 knots from 1000 m to 1000 + d on the x axis: eta = d / 43.80644226...f,
 // truncated to float. These distances are consecutive floats (steps of 2^-8 m):
@@ -131,7 +148,7 @@ interface TaskOptions {
 }
 
 class Scenario {
-	public readonly ops: LifecycleOp[] = [];
+	public readonly ops: LegacyOp[] = [];
 
 	public constructor(private readonly sites: Site[] = [
 		{ subType: AIRBASE, x: 1000, z: 16000 },
@@ -186,7 +203,7 @@ class Scenario {
 		});
 	}
 
-	public op(op: LifecycleOp): void {
+	public op(op: LegacyOp): void {
 		this.ops.push(op);
 	}
 
@@ -194,14 +211,15 @@ class Scenario {
 		this.ops.push({ kind: "observe-tasks" }, { kind: "assign-tasks", keysite: `keysite${keysite}`, category });
 	}
 
-	public spec(): LifecycleSpec {
+	// the Slice 6a scenario, before the Slice 6b migration (slice-6a-migration.ts)
+	public spec(): LegacySpec {
 		const keysites: KeysiteSpec[] = this.sites.map((s) => ({ side: s.side ?? BLUE, subType: s.subType, inUse: true, x: s.x, z: s.z, ammo: 100, fuel: 100 }));
 
 		return {
 			heap: 200,
 			forces: [BLUE],
 			keysites,
-			ops: [...this.sites.map((_s, i): LifecycleOp => ({ kind: "keysite-state", keysite: `keysite${i}`, alive: 1, y: 0 })), ...this.ops],
+			ops: [...this.sites.map((_s, i): LegacyOp => ({ kind: "keysite-state", keysite: `keysite${i}`, alive: 1, y: 0 })), ...this.ops],
 		};
 	}
 }
@@ -219,8 +237,8 @@ function boundary(group: string, task: string): string {
 // 0, update 1, force0 2, keysites 3-5, 16 sectors 6-21, g0 22, g0.leader 23,
 // crates 24-26, the task 27.
 //
-function socialChain(): LifecycleSpec {
-	const ops: LifecycleOp[] = [
+function socialChain(): LegacySpec {
+	const ops: LegacyOp[] = [
 		{ kind: "bounds", object: OBJECT_3D_SINGLE_CRATE, xmin: -1, xmax: 1, ymin: -0.5, ymax: 0.5, zmin: -1.5, zmax: 1.5 },
 		{ kind: "map", xSectors: 4, zSectors: 4, sideLength: 8192 },
 		{ kind: "game-status", status: GameStatusType.GAME_STATUS_INITIALISED },
@@ -247,15 +265,43 @@ function socialChain(): LifecycleSpec {
 		heap: 200,
 		forces: [BLUE],
 		keysites: sites.map(([subType, x]) => ({ side: BLUE, subType, inUse: true, x, z: 16000, ammo: 100, fuel: 100 })),
-		ops: [...sites.map((_s, i): LifecycleOp => ({ kind: "keysite-state", keysite: `keysite${i}`, alive: 1, y: 0 })), ...ops],
+		ops: [...sites.map((_s, i): LegacyOp => ({ kind: "keysite-state", keysite: `keysite${i}`, alive: 1, y: 0 })), ...ops],
 	};
 }
 
 function build(): SupplyTaskAssignmentCase[] {
 	const cases: SupplyTaskAssignmentCase[] = [];
 
-	const add = (id: string, c: string, s: Scenario | LifecycleSpec, expected: string[], absent: string[] = []): void => {
-		cases.push({ id, c, spec: s instanceof Scenario ? s.spec() : s, expected, absent });
+	//
+	// Every case is a Slice 6a scenario migrated to Slice 6b's state invariants
+	// (slice-6a-migration.ts). A case whose selected task is a SUPPLY task now
+	// runs the transaction: its decision is observed as the route checksum
+	// transmitted for the same task and the Slice 6b boundary for the same
+	// group, in place of the Slice 6a boundary line. Any other selection stays
+	// at the 6a decision boundary.
+	//
+	const add = (id: string, c: string, s: Scenario | LegacySpec, expected: string[], absent: string[] = []): void => {
+		const legacy = s instanceof Scenario ? s.spec() : s;
+
+		let transaction = false;
+
+		const migratedExpected: string[] = [];
+
+		for (const line of expected) {
+			if (line.substring(0, BOUNDARY.length) === BOUNDARY) {
+				const [group, task] = line.substring(BOUNDARY.length + 1).split(" ");
+
+				if (legacyTaskType(legacy, task) === SUPPLY) {
+					transaction = true;
+					migratedExpected.push(`transmit-int ${task} ${IntType.INT_TYPE_ROUTE_CHECK_SUM}`, `${TRANSACTION_BOUNDARY} ${group}`);
+					continue;
+				}
+			}
+
+			migratedExpected.push(line);
+		}
+
+		cases.push({ id, c, spec: migrateSlice6aSpec(legacy, transaction).spec, expected: migratedExpected, absent: transaction ? [...absent, BOUNDARY] : absent, transaction });
 	};
 
 	// ---- the social chain
@@ -267,8 +313,9 @@ function build(): SupplyTaskAssignmentCase[] {
 		[
 			"transmit-switch-parent task27 40 keysite2",
 			boundary("g0", "task27"),
-			"task task27 27 sub 21 side 1 state 0",
-			"unassigned keysite2 task27",
+			// Slice 6b: the task is ASSIGNED (state 1) and on the airbase's assigned list
+			"task task27 27 sub 21 side 1 state 1",
+			"unassigned keysite2 -",
 		],
 	);
 
@@ -279,7 +326,7 @@ function build(): SupplyTaskAssignmentCase[] {
 		s.group("g0", 0);
 		s.task("t0", 0);
 		s.assign(0);
-		add("zero-distance-with-real-cruise-velocity-is-eligible", "eta = 0 / 43.8f = 0 <= 1200; check_group_members_awake: the UH-60's sleep is en_float.c's default 0.0", s, [boundary("g0", "t0"), "task t0", "unassigned keysite0 t0"]);
+		add("zero-distance-with-real-cruise-velocity-is-eligible", "eta = 0 / 43.8f = 0 <= 1200; check_group_members_awake: the UH-60's sleep is en_float.c's default 0.0", s, [boundary("g0", "t0"), "task t0", "unassigned keysite0 -"]);
 	}
 
 	for (const [id, d, eligible] of [

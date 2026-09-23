@@ -4,24 +4,27 @@
 // C provenance: ai/taskgen/assign.c :: assign_keysite_tasks,
 //               suitable_group_task_specific_checks (static),
 //               get_suitable_registered_group, check_group_members_awake,
-//               assign_primary_task_to_group (boundary only)
+//               assign_primary_task_to_group, assign_task_to_group,
+//               push_task_onto_group_task_stack, assign_task_to_group_members (boundary only)
 //
 // Slice 6a (issue #16) ports which task a keysite assigns and to which group:
 // the category's unassigned tasks in en_misc.c's quicksort order, the
 // keysite's assign and reserve counts, the pilot lock, and the least suitable
-// qualifying group. assign_primary_task_to_group (the assignment transaction:
-// route, guide, the task becoming ASSIGNED, the members) is slice 6b / 6c;
-// reaching it throws UnportedBoundaryError with the selected group and task.
+// qualifying group. Slice 6b (issue #18) ports the assignment transaction for
+// SUPPLY tasks (route, guide, the task becoming ASSIGNED) up to
+// assign_task_to_group_members, which throws UnportedBoundaryError with the
+// group, guide and valid members; for other task types
+// assign_primary_task_to_group stays 6a's boundary (the selected group and task).
 //
 // ai_log is the release macro (highlevl.h: do { } while (0)), which evaluates
 // none of its arguments; debug_log calls are guarded by DEBUG_MODULE (0).
 // Neither is ported.
 //
 
-import { ASSERT, UnportedBoundaryError } from "../../core/assert";
+import { ASSERT, UnportedBehaviourError, UnportedBoundaryError } from "../../core/assert";
 import { FLT_MAX, f32Mul } from "../../core/float32";
 import { max } from "../../core/maths/miscmath";
-import { SECONDS_IN_A_MINUTE } from "../../generated/c-constants";
+import { SECONDS_IN_A_MINUTE, TASK_ASSIGN_ALL_MEMBERS } from "../../generated/c-constants";
 import {
 	CommsModelType,
 	EntitySubTypeGroup,
@@ -32,17 +35,26 @@ import {
 	GroupModeType,
 	IntType,
 	ListType,
+	PtrType,
 	type TaskCategoryType,
+	Vec3dType,
 } from "../../generated/c-enums";
-import { GROUP_DATABASE_AI_STATS_MOVEMENT_SPEED, GROUP_DATABASE_MINIMUM_IDLE_COUNT } from "../../generated/c-group-database";
+import { GROUP_DATABASE_AI_STATS_MOVEMENT_SPEED, GROUP_DATABASE_DEFAULT_LANDING_TYPE, GROUP_DATABASE_MINIMUM_IDLE_COUNT } from "../../generated/c-group-database";
+import { TASK_DATABASE_PRIMARY_TASK } from "../../generated/c-task-database";
 import { KEYSITE_DATABASE_ASSIGN_TASK_COUNT, KEYSITE_DATABASE_RESERVE_TASK_COUNT } from "../../generated/c-keysite-database";
 import { quicksortEntityList } from "../../entity/en_misc/en_misc";
-import { assessGroupTaskLocalityFactor, type GroupRaw } from "../../entity/special/group/group";
+import { getLocalForceEntity } from "../../entity/special/force/force";
+import { assessGroupTaskLocalityFactor, getLocalGroupMemberCount, type GroupRaw } from "../../entity/special/group/group";
+import { attachGroupToGuideEntity, createClientServerGuideEntity } from "../../entity/special/guide/guide";
+import { getLocalEntityLandingEntity } from "../../entity/special/landing/landing";
+import { getLocalGroupPrimaryTask, getLocalTaskListType, type TaskRaw } from "../../entity/special/task/task";
+import { transmitSwitchList } from "../../entity/system/en_comms";
 import { getCommsModel } from "../../entity/system/comms";
-import { getLocalEntityChildSucc, getLocalEntityFirstChild, getLocalEntityParent } from "../../entity/system/en_list";
-import { getLocalEntityFloatValue, getLocalEntityIntValue } from "../../entity/system/en_values";
+import { deleteLocalEntityFromParentsChildList, getLocalEntityChildSucc, getLocalEntityFirstChild, getLocalEntityParent, insertLocalEntityIntoParentsChildList } from "../../entity/system/en_list";
+import { getLocalEntityFloatValue, getLocalEntityIntValue, getLocalEntityPtrValue, getLocalEntityVec3dPtr, setLocalEntityPtrValue } from "../../entity/system/en_values";
 import { getLocalEntityData, getLocalEntityType, type Entity } from "../../entity/system/entity";
 import { getGroupToTaskSuitability } from "../highlevl/suitable";
+import { createGenericWaypointRoute } from "./croute";
 
 // C provenance: keysite.h :: #define KEYSITE_TASK_ASSIGN_TIMER (3.0 * ONE_MINUTE); constant.h ::
 //               #define ONE_MINUTE (SECONDS_IN_A_MINUTE). A double.
@@ -155,7 +167,7 @@ export function assignKeysiteTasks(keysite: Entity | undefined, category: TaskCa
 	let non_critical_task_count = KEYSITE_DATABASE_RESERVE_TASK_COUNT[keysite_type];
 
 	for (let loop = 0; loop < task_count; loop++) {
-		// assign_count only falls when assign_primary_task_to_group succeeds, which is past the boundary
+		// assign_count only falls when assign_primary_task_to_group succeeds, which is past the slice 6b boundary
 		/* istanbul ignore if */
 		if (assign_count === 0) {
 			break;
@@ -188,7 +200,9 @@ export function assignKeysiteTasks(keysite: Entity | undefined, category: TaskCa
 		group = getSuitableRegisteredGroup(task, idle_group_count);
 
 		if (group) {
-			// assign_primary_task_to_group is the boundary: it throws, so neither arm is reached
+			// assign_primary_task_to_group returns TRUE only past the slice 6b boundary
+			// (assign_task_to_group_members throws), and FALSE only for states 6a never
+			// selects (a group without members, an assault ship, a landing or takeoff task)
 			/* istanbul ignore next */
 			if (assignPrimaryTaskToGroup(group, task) !== 0) {
 				//
@@ -373,14 +387,240 @@ export function getSuitableRegisteredGroup(task: Entity | undefined, idle_group_
 }
 
 //
-// C provenance: assign.c :: assign_primary_task_to_group (entity *group_en, entity *task_en)
+// C provenance: assign.c :: int assign_primary_task_to_group (entity *group_en, entity *task_en)
 //
-// The boundary of slice 6a. The assignment transaction is not ported
-// (slice 6b / 6c), so reaching it always fails loudly, carrying the group and
-// task the ported decision selected.
+// Slice 6b (issue #18) adopts the assignment transaction for SUPPLY tasks, the
+// supply chain: the route, the guide, the task becoming ASSIGNED, up to
+// assign_task_to_group_members (the new boundary). For every other task type
+// the transaction is not ported, so the call stays Slice 6a's decision
+// boundary: it fails loudly with the selected group and task before anything
+// of the transaction runs.
 //
-export function assignPrimaryTaskToGroup(group_en: Entity, task_en: Entity): number {
-	throw new UnportedBoundaryError("assign.c :: assign_primary_task_to_group", [group_en, task_en]);
+// Everything after assign_task_to_group returns TRUE (default formation, the
+// return keysite re-parent, the force's TASK_ASSIGNED, escort assessment, the
+// start time and the expiry reset) follows assign_task_to_group_members and is
+// not reached.
+//
+export function assignPrimaryTaskToGroup(group_en: Entity, task_en: Entity): 0 {
+	if (getLocalEntityIntValue(task_en, IntType.INT_TYPE_ENTITY_SUB_TYPE) !== EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_SUPPLY) {
+		throw new UnportedBoundaryError("assign.c :: assign_primary_task_to_group", [group_en, task_en]);
+	}
+
+	ASSERT(getCommsModel() === CommsModelType.COMMS_MODEL_SERVER, "get_comms_model () == COMMS_MODEL_SERVER");
+
+	const task_type: EntitySubTypeTask = getLocalEntityIntValue(task_en, IntType.INT_TYPE_ENTITY_SUB_TYPE);
+
+	ASSERT(TASK_DATABASE_PRIMARY_TASK[task_type] !== 0, "task_database [task_type].primary_task");
+
+	// group_type: read, not used before the boundary
+	getLocalEntityIntValue(group_en, IntType.INT_TYPE_ENTITY_SUB_TYPE);
+
+	ASSERT(getLocalGroupPrimaryTask(group_en) === undefined, "!get_local_group_primary_task (group_en)");
+
+	// if (assign_task_to_group (...)) { ... return TRUE; }: assign_task_to_group
+	// returns TRUE only after assign_task_to_group_members, the boundary
+	assignTaskToGroup(group_en, task_en, TASK_ASSIGN_ALL_MEMBERS);
+
+	return 0;
+}
+
+//
+// C provenance: assign.c :: entity *push_task_onto_group_task_stack (entity *group, entity *task, unsigned int valid_members)
+//
+// The task's guide, on the group's guide stack; then (after the guide is
+// created and attached, as the source requires) the task moves from its
+// keysite's unassigned list to the head of its assigned list, which makes it
+// ASSIGNED (ts_msgs.c), and the switch is transmitted. The #ifdef DEBUG
+// duplicate check is not in release builds.
+//
+export function pushTaskOntoGroupTaskStack(group: Entity | undefined, task: Entity, valid_members: number): Entity {
+	ASSERT(getCommsModel() === CommsModelType.COMMS_MODEL_SERVER, "get_comms_model () == COMMS_MODEL_SERVER");
+
+	ASSERT(group !== undefined, "group");
+
+	//
+	// create guide entity for task
+	//
+
+	const guide = createClientServerGuideEntity(task, undefined, valid_members) as Entity;
+
+	attachGroupToGuideEntity(group, guide);
+
+	//
+	// remove task and group from lists (must be done AFTER guide is created and attached)
+	//
+
+	const list_type = getLocalTaskListType(task);
+
+	if (list_type === ListType.LIST_TYPE_UNASSIGNED_TASK) {
+		const task_parent = getLocalEntityParent(task, list_type);
+
+		if (task_parent) {
+			deleteLocalEntityFromParentsChildList(task, list_type);
+
+			//
+			// add task to assigned task list, if not already on it.
+			//
+
+			insertLocalEntityIntoParentsChildList(task, ListType.LIST_TYPE_ASSIGNED_TASK, task_parent, undefined);
+
+			transmitSwitchList(task, ListType.LIST_TYPE_UNASSIGNED_TASK, task_parent, ListType.LIST_TYPE_ASSIGNED_TASK);
+		}
+	}
+
+	return guide;
+}
+
+//
+// C provenance: assign.c :: int assign_task_to_group (entity *group, entity *task_en, unsigned int valid_members)
+//
+// FALSE for a group without members, an assault ship given anything but
+// ENGAGE, and the landing and takeoff tasks. A task that assesses landing
+// returns to its return keysite, or (none given) to the group's keysite, which
+// is then stored as the return keysite. The route is created, then the task is
+// pushed onto the group's guide stack, then its members are assigned: the
+// slice 6b boundary.
+//
+export function assignTaskToGroup(group: Entity | undefined, task_en: Entity | undefined, valid_members: number): false {
+	ASSERT(getCommsModel() === CommsModelType.COMMS_MODEL_SERVER, "get_comms_model () == COMMS_MODEL_SERVER");
+
+	ASSERT(task_en !== undefined, "task_en");
+
+	ASSERT(group !== undefined, "group");
+
+	ASSERT(
+		!(getLocalGroupPrimaryTask(group) !== undefined && getLocalEntityIntValue(task_en, IntType.INT_TYPE_PRIMARY_TASK) !== 0),
+		"!(get_local_group_primary_task (group) && (get_local_entity_int_value (task_en, INT_TYPE_PRIMARY_TASK)))",
+	);
+
+	const task_raw = getLocalEntityData<TaskRaw>(task_en);
+
+	const group_type: EntitySubTypeGroup = getLocalEntityIntValue(group, IntType.INT_TYPE_ENTITY_SUB_TYPE);
+
+	const member = getLocalEntityFirstChild(group, ListType.LIST_TYPE_MEMBER);
+
+	// don't if no members or if the group is a CARRIER
+	if (!member) {
+		return false;
+	}
+
+	if (group_type === EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_ASSAULT_SHIP) {
+		if (task_raw.sub_type !== EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_ENGAGE) {
+			return false;
+		}
+	}
+
+	//
+	// check for invalid tasks (debug_fatal only #ifdef DEBUG)
+	//
+
+	switch (task_raw.sub_type) {
+		case EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_LANDING:
+		case EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_LANDING_HOLDING:
+		case EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_TAKEOFF:
+		case EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_TAKEOFF_HOLDING: {
+			return false;
+		}
+	}
+
+	//
+	// Create route
+	//
+
+	let start_keysite: Entity | undefined;
+
+	if (getLocalEntityIntValue(group, IntType.INT_TYPE_GROUP_LIST_TYPE) === ListType.LIST_TYPE_KEYSITE_GROUP) {
+		start_keysite = getLocalEntityParent(group, ListType.LIST_TYPE_KEYSITE_GROUP);
+	} else {
+		start_keysite = undefined;
+	}
+
+	// pos and force: read, not used
+	getLocalEntityVec3dPtr(task_en, Vec3dType.VEC3D_TYPE_STOP_POSITION);
+
+	getLocalForceEntity(getLocalEntityIntValue(task_en, IntType.INT_TYPE_SIDE));
+
+	const sub_type = GROUP_DATABASE_DEFAULT_LANDING_TYPE[group_type];
+
+	let end_keysite: Entity | undefined = undefined;
+
+	// SUPPLY assesses landing (the only task type the port assigns)
+	/* istanbul ignore else */
+	if (getLocalEntityIntValue(task_en, IntType.INT_TYPE_ASSESS_LANDING) !== 0) {
+		end_keysite = getLocalEntityPtrValue(task_en, PtrType.PTR_TYPE_RETURN_KEYSITE);
+
+		if (end_keysite) {
+			//
+			// check end keysite has suitble free landing sites
+			//
+
+			if (start_keysite !== end_keysite) {
+				//
+				// if end keysite == start keysite then keysite MUST have enough sites because the aircraft are already there
+				//
+
+				const sites_required = getLocalGroupMemberCount(group);
+
+				if (getKeysiteLandingSitesAvailable(end_keysite, sub_type) < sites_required) {
+					//
+					// END keysite was specified - but no free landing sites for this group
+					//
+
+					return false;
+				}
+			}
+		} else {
+			if (!start_keysite) {
+				// get_closest_keysite (NUM_ENTITY_SUB_TYPE_KEYSITES, side, leader position, 1.0 * KILOMETRE, NULL, TRUE, NULL)
+				// and the new keysite's landing sites: not ported
+				throw new UnportedBehaviourError("assign.c :: assign_task_to_group: no start keysite (get_closest_keysite)");
+			}
+
+			//
+			// No END keysite specified so return to start keysite
+			//
+
+			end_keysite = start_keysite;
+
+			setLocalEntityPtrValue(task_en, PtrType.PTR_TYPE_RETURN_KEYSITE, end_keysite);
+		}
+
+		ASSERT(end_keysite !== undefined, "end_keysite");
+
+		// landing: read, not used before the boundary
+		getLocalEntityLandingEntity(end_keysite, GROUP_DATABASE_DEFAULT_LANDING_TYPE[getLocalEntityIntValue(group, IntType.INT_TYPE_ENTITY_SUB_TYPE)]);
+	}
+
+	// always TRUE (croute.ts)
+	createGenericWaypointRoute(group, task_en, end_keysite);
+
+	//
+	// Assign task
+	//
+
+	const guide = pushTaskOntoGroupTaskStack(group, task_en, valid_members);
+
+	return assignTaskToGroupMembers(group, guide, valid_members);
+}
+
+//
+// C provenance: assign.c :: int assign_task_to_group_members (entity *group, entity *guide, unsigned int valid_members)
+//
+// The boundary of slice 6b: each member's attachment to the guide, its
+// TASK_ASSIGNED message (takeoff, landing reservation, weapons) and helicopter
+// preparation are not ported. Reaching it fails loudly with the group, the
+// guide and the valid member mask.
+//
+export function assignTaskToGroupMembers(group: Entity, guide: Entity, valid_members: number): never {
+	throw new UnportedBoundaryError("assign.c :: assign_task_to_group_members", [group, guide, valid_members]);
+}
+
+//
+// C provenance: landing.c :: get_keysite_landing_sites_available: not ported. assign_task_to_group
+// asks it only for a return keysite other than the group's own, which no unassigned supply task has.
+//
+function getKeysiteLandingSitesAvailable(_keysite: Entity, _landing_type: number): number {
+	throw new UnportedBehaviourError("landing.c :: get_keysite_landing_sites_available");
 }
 
 //

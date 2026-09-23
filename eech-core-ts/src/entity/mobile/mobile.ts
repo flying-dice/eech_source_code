@@ -16,7 +16,7 @@ import { toFloat32RTZ } from "../../core/float32";
 import type { Vec3d } from "../../core/maths/vec3d";
 import { EntityType, IntType, ListType, Vec3dType } from "../../generated/c-enums";
 import { overloadEntityListLink, overloadEntityListRoot } from "../system/en_list";
-import { defaultGetEntityIntValue, fnGetLocalEntityIntValue, fnGetLocalEntityVec3dPtr, fnSetLocalEntityRawIntValue, fnSetLocalEntityRawVec3d } from "../system/en_values";
+import { defaultGetEntityIntValue, fnGetLocalEntityIntValue, fnGetLocalEntityVec3d, fnGetLocalEntityVec3dPtr, fnSetLocalEntityRawIntValue, fnSetLocalEntityRawVec3d, getLocalEntityVec3dPtr } from "../system/en_values";
 import { getCampaignPorts, getLocalEntityData, type Entity } from "../system/entity";
 import { overloadAircraftFloatValueFunctions } from "./aircraft/ac_float";
 
@@ -117,6 +117,13 @@ export function overloadMobileFunctions(): void {
 				y: toFloat32RTZ(position.y),
 				z: toFloat32RTZ(position.z),
 			};
+		});
+
+		// C provenance: mb_vec3d.c :: get_local_vec3d (VEC3D_TYPE_POSITION): *v = the position (slice 6b)
+		fnGetLocalEntityVec3d.overload(type, Vec3dType.VEC3D_TYPE_POSITION, (en) => {
+			const position = getLocalEntityVec3dPtr(en, Vec3dType.VEC3D_TYPE_POSITION) as Vec3d;
+
+			return { x: position.x, y: position.y, z: position.z };
 		});
 	}
 
