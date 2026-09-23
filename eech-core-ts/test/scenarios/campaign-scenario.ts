@@ -206,6 +206,7 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 			supplies: { ammo_supply_level: toFloat32(g.ammo), fuel_supply_level: toFloat32(g.fuel) },
 			sleep: 0,
 			assist_timer: 0,
+			member_count: 0,
 		};
 		group = createLocalEntityRaw(EntityType.ENTITY_TYPE_GROUP, groupRaw);
 		labels[group.index] = "group";

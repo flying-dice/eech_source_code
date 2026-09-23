@@ -196,3 +196,24 @@ export function runCCrateRow(operands: [number, number, number][]): string[] {
 		.filter((l) => l !== "")
 		.map((l) => l.split(" ")[1]);
 }
+
+// Slice 6a: the compiled ac_dbase.c aircraft_database [].cruise_velocity,
+// through the harness `aircraft-cruise-velocity` command: float bits by index.
+export function runCAircraftCruiseVelocity(): string[] {
+	const run = spawnSync(harness(), [], { input: "aircraft-cruise-velocity\n", encoding: "utf8" });
+
+	if (run.status !== 0) {
+		throw new Error(`C harness failed (${describeFailure(run)})`);
+	}
+
+	return run.stdout
+		.split("\n")
+		.filter((l) => l !== "")
+		.map((l, i) => {
+			const [index, bits] = l.split(" ");
+			if (Number(index) !== i) {
+				throw new Error(`aircraft-cruise-velocity: line ${i} is index ${index}`);
+			}
+			return bits;
+		});
+}

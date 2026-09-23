@@ -220,3 +220,26 @@ The campaign-screen `MISSION_ASSIGNED` comes from `LINK_PARENT`, before the task
 The alternative is one slice covering the whole transaction. That goes against the issue's "do not silently broaden", so it is only listed here.
 
 **The decision needed:** adopt the 6a / 6b / 6c split with the boundaries above, or say where the boundary should be instead.
+
+## Decision (technical lead) and outcome
+
+**The decision.** The lead adopted 6a, with these changes and pins:
+- **The boundary.** It uses an observer, not an interceptor. Nothing inside `assign_primary_task_to_group` is ported. Production always fails loudly there. Conformance scenarios end at a dedicated boundary error whose payload is the selected group and task, and the C harness mirrors it with a trap. There is no configurable no-op.
+- **The sort.** `en_misc.c`'s `qs` is ported, not a library sort with a comparator.
+- **The pins:**
+  - least suitable wins, and the first of equals wins;
+  - dead groups remain candidates;
+  - the force-wide registered idle count qualifies an unregistered local group;
+  - player slot reservation;
+  - category filtering;
+  - the exact unstable order of equal-priority tasks.
+- **`member_count`.** It is restored raw, as `gp_pack.c :: unpack_local_data` does (:430, :560). This is legitimate persisted EECH state, not live maintenance. `gp_msgs.c`'s `LINK_CHILD (MEMBER)` arm is reached only through helicopter creation, whose dependencies explode, so it stays unported and fail-loud.
+- **Zero velocity and sleep.**
+  - Test the reachable boundary: ETA just below, at and just above the expiry, and zero distance with a real cruise velocity.
+  - Generate the cruise velocity column from C and prove mechanically that it is positive.
+  - Exclude the unreachable branches narrowly, each backed by an invariant test.
+- **6b and 6c** stay provisional. They are neither created nor implemented.
+
+**Outcome.** The outcome is in `supply-task-assignment.md`. Two findings supersede this investigation's "Undefined or compatibility-sensitive behaviour" note on the cruise velocity divisor:
+- **6a-F1.** Every nonzero suitability is exactly 1.0 with the compiled databases. "Least suitable wins" is therefore always "the first qualifying group wins".
+- **6a-F2.** The divisor is never 0 on this path: every aircraft's cruise velocity is positive, and only aircraft groups join the air registry. An aircraft member's sleep is `en_float.c`'s default 0.0, since no aircraft file overloads it. `check_group_members_awake` therefore never rejects an aircraft group.

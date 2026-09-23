@@ -24,6 +24,7 @@ import { overloadTaskFunctions } from "./entity/special/task/task";
 import { overloadWaypointFunctions } from "./entity/special/waypoint/waypoint";
 import { overloadGroupFunctions } from "./entity/special/group/group";
 import { overloadGuideFunctions } from "./entity/special/guide/guide";
+import { overloadPilotFunctions } from "./entity/special/pilot/pilot";
 import { overloadKeysiteFunctions } from "./entity/special/keysite/keysite";
 import { overloadSessionListFunctions } from "./entity/special/session/session";
 import { overloadCargoFunctions } from "./entity/mobile/cargo/cargo";
@@ -67,6 +68,7 @@ export function initialiseCampaignCore(ports: CampaignPorts, options: CampaignCo
 	overloadTaskFunctions();
 	overloadTaskCreateFunctions();
 	overloadWaypointFunctions();
+	overloadPilotFunctions();
 	overloadUnknownEntityDestroyFunctions();
 
 	// C provenance: highlevl.c :: initialise_highlevel_ai -> initialise_group_task_array

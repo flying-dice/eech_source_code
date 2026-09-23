@@ -47,7 +47,13 @@ import {
 	Vec3dType,
 } from "../../../generated/c-enums";
 import { KEYSITE_DATABASE_AIR_FORCE_CAPACITY } from "../../../generated/c-keysite-database";
-import { TASK_DATABASE_KEYSITE_AIR_FORCE_CAPACITY, TASK_DATABASE_LANDING_TYPES, TASK_DATABASE_PRIMARY_TASK } from "../../../generated/c-task-database";
+import {
+	TASK_DATABASE_KEYSITE_AIR_FORCE_CAPACITY,
+	TASK_DATABASE_LANDING_TYPES,
+	TASK_DATABASE_MINIMUM_MEMBER_COUNT,
+	TASK_DATABASE_PRIMARY_TASK,
+	TASK_DATABASE_TASK_CATEGORY,
+} from "../../../generated/c-task-database";
 import { getGroupToTaskSuitability } from "../../../ai/highlevl/suitable";
 import { notifyCampaignScreenMissionCreated } from "../../../ui_menu/campaign/ca_msgs";
 import { getCommsModel } from "../../system/comms";
@@ -549,6 +555,10 @@ export function overloadTaskFunctions(): void {
 	fnGetLocalEntityIntValue.overload(TASK, IntType.INT_TYPE_ENTITY_SUB_TYPE, (en) => getLocalEntityData<TaskRaw>(en).sub_type);
 	fnGetLocalEntityIntValue.overload(TASK, IntType.INT_TYPE_SIDE, (en) => getLocalEntityData<TaskRaw>(en).side);
 	fnGetLocalEntityIntValue.overload(TASK, IntType.INT_TYPE_TASK_STATE, (en) => getLocalEntityData<TaskRaw>(en).task_state);
+	// slice 6a: read by assign.c :: assign_keysite_tasks, get_suitable_registered_group
+	fnGetLocalEntityIntValue.overload(TASK, IntType.INT_TYPE_CRITICAL_TASK, (en) => getLocalEntityData<TaskRaw>(en).critical_task);
+	fnGetLocalEntityIntValue.overload(TASK, IntType.INT_TYPE_TASK_CATEGORY, (en) => TASK_DATABASE_TASK_CATEGORY[getLocalEntityData<TaskRaw>(en).sub_type]);
+	fnGetLocalEntityIntValue.overload(TASK, IntType.INT_TYPE_MINIMUM_MEMBER_COUNT, (en) => TASK_DATABASE_MINIMUM_MEMBER_COUNT[getLocalEntityData<TaskRaw>(en).sub_type]);
 
 	// C provenance: ts_int.c :: set_local_int_value, installed as both the raw and the local setter
 	const intSetters: [IntType, SetIntValueFn][] = [
@@ -569,6 +579,9 @@ export function overloadTaskFunctions(): void {
 
 	// C provenance: ts_float.c :: get_local_float_value
 	fnGetLocalEntityFloatValue.overload(TASK, FloatType.FLOAT_TYPE_TASK_USER_DATA, (en) => getLocalEntityData<TaskRaw>(en).task_user_data);
+	// slice 6a: read by assign.c :: assign_keysite_tasks and group.c :: assess_group_task_locality_factor
+	fnGetLocalEntityFloatValue.overload(TASK, FloatType.FLOAT_TYPE_EXPIRE_TIMER, (en) => getLocalEntityData<TaskRaw>(en).expire_timer);
+	fnGetLocalEntityFloatValue.overload(TASK, FloatType.FLOAT_TYPE_TASK_PRIORITY, (en) => getLocalEntityData<TaskRaw>(en).task_priority);
 
 	// C provenance: ts_float.c :: set_local_float_value (raw and local), set_server_float_value
 	const floatSetters: [FloatType, SetFloatValueFn][] = [

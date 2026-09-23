@@ -307,7 +307,11 @@ check without adding a branch to the caller.
    replication ordering and the parent switch. F1 (the uninitialised route
    heights) is resolved by a compatibility decision, 0.0
    (`docs/slices/supply-task-construction-investigation.md`).
-   Next on this path: task assignment and waypoint materialisation.
+   ~~**Slice 6a**~~ Done (issue #16, `docs/slices/supply-task-assignment.md`):
+   `assign_keysite_tasks` up to `assign_primary_task_to_group`, which always
+   fails loudly with `UnportedBoundaryError` carrying the selected group and
+   task. Next on this path, provisionally: 6b (route, waypoints, guide, the
+   ASSIGNED transition) and 6c (members, takeoff and landing).
 5. **Pickup, transport and delivery** (the `mb_msgs.c` waypoint handlers, cargo
    movement), and the landing handlers that call `assess_group_supplies`. These
    introduce a `LandingObservation`-style port: the DCS adapter reports that a
@@ -437,6 +441,14 @@ behaviour. They fail the run if reached.
   (after packing each node with the original `pack_vec3d`) and
   `ENTITY_COMMS_SWITCH_PARENT`, and traps single player as `en_comms.c` does.
   The campaign screen's response table records `MISSION_CREATED`.
+- **Slice 6a:** `ac_float.c`, `ac_dbase.c` and `pi_list.c` are compiled whole.
+  Group members, helicopter and fixed wing, are the original `aircraft`
+  struct. `assign_keysite_tasks`, `suitable_group_task_specific_checks`,
+  `get_suitable_registered_group` and `check_group_members_awake` are
+  extracted from `assign.c`, `qs` and `quicksort_entity_list` from
+  `en_misc.c`, and `assess_group_task_locality_factor` from `group.c`.
+  `assign_primary_task_to_group` is a trap: it prints the boundary line and
+  ends the operation as a failed `ASSERT` does.
 
 **Environment entries driven by the scenario** (slice 4):
 - `get_object_3d_bounding_box`: the scenario's `bounds` lines (the 3D object

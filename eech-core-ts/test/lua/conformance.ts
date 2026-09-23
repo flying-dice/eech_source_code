@@ -29,6 +29,8 @@ import { firstUnmatchedLine, runLifecycle } from "../scenarios/lifecycle-scenari
 import { FORCE_LOW_ON_SUPPLIES_CASES } from "../scenarios/force-low-on-supplies.cases";
 import { C_REFERENCE_RANDOM_FORCE_LOW_ON_SUPPLIES } from "../scenarios/generated/c-reference-random-force-low-on-supplies.cases";
 import { C_REFERENCE_RANDOM_SUPPLY_TASK_CONSTRUCTION } from "../scenarios/generated/c-reference-random-supply-task-construction.cases";
+import { C_REFERENCE_RANDOM_SUPPLY_TASK_ASSIGNMENT } from "../scenarios/generated/c-reference-random-supply-task-assignment.cases";
+import { SUPPLY_TASK_ASSIGNMENT_CASES, supplyTaskAssignmentExpectationFailure } from "../scenarios/supply-task-assignment.cases";
 import { SUPPLY_TASK_CONSTRUCTION_CASES, f1CompatibilityPair, f1SemanticRouteFailure, supplyTaskExpectationFailure } from "../scenarios/supply-task-construction.cases";
 import { runTimeline } from "../scenarios/update-timeline";
 
@@ -179,6 +181,15 @@ for (const c of SUPPLY_TASK_CONSTRUCTION_CASES) {
 }
 
 for (const c of C_REFERENCE_RANDOM_SUPPLY_TASK_CONSTRUCTION) {
+	check(c.id, runLifecycle(c.spec), c.expected);
+}
+
+// Slice 6a: assign.c :: assign_keysite_tasks up to assign_primary_task_to_group
+for (const c of SUPPLY_TASK_ASSIGNMENT_CASES) {
+	check(c.id, supplyTaskAssignmentExpectationFailure(c, runLifecycle(c.spec), firstUnmatchedLine), "");
+}
+
+for (const c of C_REFERENCE_RANDOM_SUPPLY_TASK_ASSIGNMENT) {
 	check(c.id, runLifecycle(c.spec), c.expected);
 }
 

@@ -830,3 +830,214 @@ export function generateRandomSupplyTaskConstruction(seed: number, count: number
 
 	return specs;
 }
+
+//
+// Slice 6a: random supply task assignment scenarios (assign.c ::
+// assign_keysite_tasks up to assign_primary_task_to_group). Keysites (types,
+// sides) hold restored unassigned tasks (mostly SUPPLY; ESCORT of a group,
+// TROOP_INSERTION of a keysite, other types and categories; priorities with
+// ties, critical or not, expiry around KEYSITE_TASK_ASSIGN_TIMER and the
+// locality ETAs) and based groups (types, sides, alive, busy, sleep, air
+// registration, members: helicopters or, for jet groups, fixed wing, with
+// member counts equal to the members restored, their aircraft and distances).
+// Pilots lock some tasks and groups. In one scenario in four the real Slice
+// 4 - 5b path first constructs a supply task. Keysites are then assigned in
+// random order and categories; the first boundary ends the scenario.
+//
+export function generateRandomSupplyTaskAssignment(seed: number, count: number): LifecycleSpec[] {
+	const rnd = mulberry32(seed);
+	const int = (n: number) => Math.floor(rnd() * n);
+	const chance = (p: number) => rnd() < p;
+	const pick = <T>(values: T[]): T => values[int(values.length)];
+	const BLUE = EntitySide.ENTITY_SIDE_BLUE_FORCE;
+	const RED = EntitySide.ENTITY_SIDE_RED_FORCE;
+	const G = EntitySubTypeGroup;
+	const T = EntitySubTypeTask;
+
+	const groupTypes = [
+		G.ENTITY_SUB_TYPE_GROUP_MEDIUM_LIFT_TRANSPORT_HELICOPTER,
+		G.ENTITY_SUB_TYPE_GROUP_MEDIUM_LIFT_TRANSPORT_HELICOPTER,
+		G.ENTITY_SUB_TYPE_GROUP_MEDIUM_LIFT_TRANSPORT_HELICOPTER,
+		G.ENTITY_SUB_TYPE_GROUP_MEDIUM_LIFT_TRANSPORT_HELICOPTER,
+		G.ENTITY_SUB_TYPE_GROUP_MEDIUM_LIFT_TRANSPORT_HELICOPTER,
+		G.ENTITY_SUB_TYPE_GROUP_HEAVY_LIFT_TRANSPORT_HELICOPTER,
+		G.ENTITY_SUB_TYPE_GROUP_HEAVY_LIFT_TRANSPORT_HELICOPTER,
+		G.ENTITY_SUB_TYPE_GROUP_MEDIUM_LIFT_TRANSPORT_AIRCRAFT,
+		G.ENTITY_SUB_TYPE_GROUP_ATTACK_HELICOPTER,
+		G.ENTITY_SUB_TYPE_GROUP_MARINE_ATTACK_HELICOPTER,
+		G.ENTITY_SUB_TYPE_GROUP_ASSAULT_HELICOPTER,
+		G.ENTITY_SUB_TYPE_GROUP_RECON_HELICOPTER,
+		G.ENTITY_SUB_TYPE_GROUP_CARRIER_BORNE_INTERCEPTOR,
+		G.ENTITY_SUB_TYPE_GROUP_MULTI_ROLE_FIGHTER,
+		G.ENTITY_SUB_TYPE_GROUP_ASSAULT_SHIP,
+	];
+	// groups whose members are fixed wing (gp_dbase.c default_entity_type)
+	const jets = [
+		G.ENTITY_SUB_TYPE_GROUP_MULTI_ROLE_FIGHTER,
+		G.ENTITY_SUB_TYPE_GROUP_CARRIER_BORNE_ATTACK_AIRCRAFT,
+		G.ENTITY_SUB_TYPE_GROUP_CARRIER_BORNE_INTERCEPTOR,
+		G.ENTITY_SUB_TYPE_GROUP_CLOSE_AIR_SUPPORT_AIRCRAFT,
+		G.ENTITY_SUB_TYPE_GROUP_MEDIUM_LIFT_TRANSPORT_AIRCRAFT,
+		G.ENTITY_SUB_TYPE_GROUP_HEAVY_LIFT_TRANSPORT_AIRCRAFT,
+	];
+	const otherTasks = [T.ENTITY_SUB_TYPE_TASK_BAI, T.ENTITY_SUB_TYPE_TASK_RECON, T.ENTITY_SUB_TYPE_TASK_REPAIR, T.ENTITY_SUB_TYPE_TASK_TRANSFER_HELICOPTER, T.ENTITY_SUB_TYPE_TASK_BARCAP];
+
+	const specs: LifecycleSpec[] = [];
+
+	for (let n = 0; n < count; n++) {
+		const forces: EntitySide[] = chance(0.3) ? [BLUE, RED] : [BLUE];
+		const social = chance(0.25);
+
+		const keysites: KeysiteSpec[] = [];
+		const numKeysites = social ? 3 + int(3) : 1 + int(4);
+		for (let i = 0; i < numKeysites; i++) {
+			keysites.push({
+				side: chance(0.1) ? RED : BLUE,
+				subType: social && i < 3 ? [3, 2, 0][i] : chance(0.6) ? 0 : int(9),
+				inUse: true,
+				x: 2000 + int(28000),
+				z: 2000 + int(28000),
+				ammo: 100,
+				fuel: 100,
+			});
+		}
+
+		const ops: LifecycleOp[] = [];
+		for (let i = 0; i < numKeysites; i++) {
+			ops.push({ kind: "keysite-state", keysite: `keysite${i}`, alive: 1, y: 0 });
+		}
+
+		if (social) {
+			ops.push(
+				{ kind: "bounds", object: OBJECT_3D_SINGLE_CRATE, xmin: -1, xmax: 1, ymin: -0.5, ymax: 0.5, zmin: -1.5, zmax: 1.5 },
+				{ kind: "map", xSectors: 4, zSectors: 4, sideLength: 8192 },
+				{ kind: "game-status", status: GameStatusType.GAME_STATUS_INITIALISED },
+				{ kind: "game-type", type: 2 },
+			);
+			for (let i = 0; i < numKeysites; i++) {
+				ops.push({ kind: "keysite-landing", keysite: `keysite${i}`, landingTypes: pick([4, 6, 0]), usableState: 0 });
+			}
+		}
+
+		const client = chance(0.05);
+
+		const pilots: string[] = [];
+		if (chance(0.25)) {
+			ops.push({ kind: "pilot", label: "p0" });
+			pilots.push("p0");
+		}
+
+		// groups
+		const groups: string[] = [];
+		const numGroups = int(8);
+		for (let g = 0; g < numGroups; g++) {
+			const label = `g${g}`;
+			const subType = chance(0.92) ? pick(groupTypes) : int(EntitySubTypeGroup.NUM_ENTITY_SUB_TYPE_GROUPS);
+			const jet = jets.indexOf(subType) >= 0;
+			const keysite = chance(0.9) ? (chance(0.6) ? (social ? 2 : 0) : int(numKeysites)) : -1;
+			const home = keysite >= 0 ? keysites[keysite] : { x: 16000, z: 16000 };
+			const members = pick([0, 1, 1, 1, 2, 3]);
+			const offset = (): number => (chance(0.6) ? 0 : int(100000) - 50000 + pick([0, 0.5, 0.25]));
+			const aircraft = (): number => int(33);
+			const side = chance(0.9) ? home === keysites[keysite] ? keysites[keysite].side : BLUE : pick([BLUE, RED]);
+			const helicopterLeader = members > 0 && !jet;
+			ops.push(
+				{
+					kind: "restore-group",
+					label,
+					subType,
+					side,
+					ammo: 100,
+					fuel: 100,
+					parent: keysite >= 0 ? `keysite${keysite}` : "NULL",
+					busy: chance(0.1),
+					leader: helicopterLeader ? { kind: "at", x: home.x + offset(), z: home.z } : { kind: "none" },
+				},
+				{ kind: "group-alive", group: label, alive: chance(0.85) ? 1 : 0 },
+				{ kind: "member-count", group: label, count: members },
+			);
+			if (helicopterLeader) {
+				ops.push({ kind: "aircraft-type", member: `${label}.leader`, subType: aircraft() });
+			}
+			for (let m = helicopterLeader ? 1 : 0; m < members; m++) {
+				ops.push({
+					kind: "add-member",
+					label: `${label}.m${m}`,
+					group: label,
+					type: jet ? EntityType.ENTITY_TYPE_FIXED_WING : EntityType.ENTITY_TYPE_HELICOPTER,
+					subType: aircraft(),
+					x: home.x + offset(),
+					z: home.z,
+				});
+			}
+			if (forces.indexOf(side) >= 0 && chance(0.85)) {
+				ops.push({ kind: "air-register", group: label });
+			}
+			if (chance(0.05)) {
+				ops.push({ kind: "group-sleep", group: label, sleep: pick([5, 0.5]) });
+			}
+			if (pilots.length > 0 && chance(0.15)) {
+				ops.push({ kind: "pilot-lock", entity: label, pilot: "p0" });
+			}
+			groups.push(label);
+		}
+
+		// the social chain's supply task, constructed by the real Slice 4 - 5b path
+		if (social) {
+			ops.push(
+				{ kind: "update-cargo", keysite: "keysite1", level: 35, subType: 0, size: 10 },
+				{ kind: "update-cargo", keysite: "keysite0", level: pick([5, 0]), subType: 0, size: 10 },
+			);
+		}
+
+		// restored unassigned tasks
+		const numTasks = chance(0.9) ? 1 + int(5) : 0;
+		for (let t = 0; t < numTasks; t++) {
+			const r = rnd();
+			let subType: number;
+			let objective = "NULL";
+			if (r < 0.55) {
+				subType = T.ENTITY_SUB_TYPE_TASK_SUPPLY;
+			} else if (r < 0.7) {
+				subType = T.ENTITY_SUB_TYPE_TASK_ESCORT;
+				objective = groups.length > 0 && chance(0.85) ? pick(groups) : "NULL";
+			} else if (r < 0.8) {
+				subType = T.ENTITY_SUB_TYPE_TASK_TROOP_INSERTION;
+				objective = chance(0.85) ? `keysite${int(numKeysites)}` : "NULL";
+			} else if (r < 0.95) {
+				subType = pick(otherTasks);
+			} else {
+				subType = int(EntitySubTypeTask.NUM_ENTITY_SUB_TYPE_TASKS);
+			}
+			ops.push({
+				kind: "unassigned-task",
+				label: `t${t}`,
+				keysite: `keysite${chance(0.6) ? (social ? 2 : 0) : int(numKeysites)}`,
+				objective,
+				subType,
+				side: chance(0.9) ? BLUE : RED,
+				critical: chance(0.7) ? 1 : 0,
+				priority: pick([4, 4, 4, 1, 2.5, 8, 0]),
+				expire: pick([1200, 1200, 180, 180.5, 100, 600, 3000]),
+			});
+			if (pilots.length > 0 && chance(0.15)) {
+				ops.push({ kind: "pilot-lock", entity: `t${t}`, pilot: "p0" });
+			}
+		}
+
+		ops.push({ kind: "observe-tasks" });
+
+		if (client) {
+			ops.push({ kind: "comms-model", model: 1 });
+		}
+
+		const numAssigns = 1 + int(3);
+		for (let a = 0; a < numAssigns; a++) {
+			ops.push({ kind: "assign-tasks", keysite: `keysite${chance(0.6) ? (social ? 2 : 0) : int(numKeysites)}`, category: chance(0.7) ? 2 : int(4) });
+		}
+
+		specs.push({ heap: 200, forces, keysites, ops });
+	}
+
+	return specs;
+}

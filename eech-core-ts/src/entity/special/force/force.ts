@@ -61,6 +61,8 @@ export function overloadForceFunctions(): void {
 	// C provenance: fc_list.c :: LIST_TYPE_KEYSITE_FORCE_ROOT, LIST_TYPE_INDEPENDENT_GROUP_ROOT, LIST_TYPE_FORCE_LINK
 	overloadEntityListRoot(EntityType.ENTITY_TYPE_FORCE, "keysite_force_root", [ListType.LIST_TYPE_KEYSITE_FORCE]);
 	overloadEntityListRoot(EntityType.ENTITY_TYPE_FORCE, "independent_group_root", [ListType.LIST_TYPE_INDEPENDENT_GROUP]);
+	// C provenance: fc_list.c :: LIST_TYPE_AIR_REGISTRY_ROOT (slice 6a: assign_keysite_tasks counts idle registered groups)
+	overloadEntityListRoot(EntityType.ENTITY_TYPE_FORCE, "air_registry_root", [ListType.LIST_TYPE_AIR_REGISTRY]);
 	overloadEntityListLink(EntityType.ENTITY_TYPE_FORCE, "force_link", [ListType.LIST_TYPE_FORCE]);
 
 	// C provenance: fc_int.c :: overload_force_int_value_functions, get_local_int_value

@@ -287,13 +287,11 @@ void harness_assert (const char *expression)
 	longjmp (abort_operation, 1);
 }
 
-/* raw data of entity types whose files are not compiled yet (hand-written rows below) */
-
-typedef struct
-{
-	vec3d
-		position;		/* physical state: supplied by the scenario */
-} shim_mobile;
+/* raw data of group members (helicopters): the original `aircraft` struct (aircraft.h), zeroed as
+   the original memsets it. Since slice 6a ac_float.c reads it (FLOAT_TYPE_CRUISE_VELOCITY from
+   aircraft_database [raw->mob.sub_type]); the position row below is still hand-written, and the
+   position itself is physical state supplied by the scenario */
+typedef aircraft shim_mobile;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -884,7 +882,6 @@ float get_3d_terrain_point_data (float x, float z, terrain_3d_point_data *point_
 void free_group_callsign (entity *en) { NOT_REACHED ("free_group_callsign"); }
 int file_exist (const char *filename) { NOT_REACHED ("file_exist"); return 0; }
 entity *create_cap_task (entity_sides side, entity *this_keysite, entity *originator, int critical, float priority, float duration, entity *start_keysite, entity *end_keysite) { NOT_REACHED ("create_cap_task"); return NULL; }
-void assign_keysite_tasks (entity *keysite, task_category_types category) { NOT_REACHED ("assign_keysite_tasks"); }
 int assign_group_callsign (entity *en) { NOT_REACHED ("assign_group_callsign"); return 0; }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -939,8 +936,34 @@ static int record_mission_created (campaign_screen_messages message, entity *sen
 
 float get_sector_fog_of_war_value (entity *en, entity_sides side) { NOT_REACHED ("get_sector_fog_of_war_value"); return 0.0f; }
 
-aircraft_data
-	aircraft_database [NUM_ENTITY_SUB_TYPE_AIRCRAFT];
+/*
+ * slice 6a: assign.c :: assign_primary_task_to_group is the boundary. The
+ * assignment transaction (route, guide, the task becoming ASSIGNED, the
+ * members) is slice 6b / 6c. Reaching it ends the operation, as a failed
+ * ASSERT does, with the selected group and task: the TS core throws
+ * UnportedBoundaryError there, and its runners report the same line.
+ */
+int assign_primary_task_to_group (entity *group_en, entity *task_en)
+{
+	if (!in_operation)
+	{
+		harness_fail ("assign_primary_task_to_group outside an operation");
+	}
+
+	printf ("result boundary assign_primary_task_to_group %s %s\n", label_of (group_en), task_label_of (task_en));
+
+	longjmp (abort_operation, 1);
+
+	return FALSE;
+}
+
+/* slice 6a: aircraft_database is the original (ac_dbase.c, compiled whole); ac_float.c is compiled
+   whole for FLOAT_TYPE_CRUISE_VELOCITY, and its other float types name the terrain and the 3D object
+   information database, which nothing ported reads */
+float get_3d_terrain_point_data_elevation (terrain_3d_point_data *point_data) { NOT_REACHED ("get_3d_terrain_point_data_elevation"); return 0.0f; }
+
+object_3d_information
+	*object_3d_information_database = NULL;
 
 float get_local_sector_entity_enemy_surface_to_surface_defence_level (entity *sector_en, entity_sides side) { NOT_REACHED ("get_local_sector_entity_enemy_surface_to_surface_defence_level"); return 0.0f; }
 void play_mobile_under_attack_speech (entity *en, entity *aggressor) { NOT_REACHED ("play_mobile_under_attack_speech"); }
@@ -1021,7 +1044,7 @@ static void shim_link (entity_types entity_type, list_types list)
 /* ac_vec3d.c: physical position from the scenario (environment) */
 static vec3d *shim_mobile_position (entity *en, vec3d_types type)
 {
-	return &((shim_mobile *) get_local_entity_data (en))->position;
+	return &((shim_mobile *) get_local_entity_data (en))->mob.position;
 }
 
 /* the original fc_msgs.c :: response_to_force_low_on_supplies (static there) */
@@ -1161,6 +1184,9 @@ static void initialise_tables (void)
 	overload_task_float_value_functions ();
 	overload_task_list_functions ();
 
+	/* slice 6a: the pilot's LIST_TYPE_PILOT_LOCK root (pi_list.c); a locked task or group is skipped */
+	overload_pilot_list_functions ();
+
 	/* slice 5b: task creation, route pointers, the task's LINK_PARENT response,
 	   a group's LINK_CHILD response (a group can be a task's objective), and
 	   the group-to-task suitability table (highlevl.c builds it at start-up) */
@@ -1210,6 +1236,19 @@ static void initialise_tables (void)
 
 	shim_link (ENTITY_TYPE_HELICOPTER, LIST_TYPE_MEMBER);
 	fn_get_local_entity_vec3d_ptr[ENTITY_TYPE_HELICOPTER][VEC3D_TYPE_POSITION] = shim_mobile_position;
+
+	/* slice 6a: the original aircraft float values (ac_funcs.c :: overload_aircraft_functions ->
+	   overload_aircraft_float_value_functions); hc_float.c overloads neither CRUISE_VELOCITY nor SLEEP,
+	   and no aircraft file overloads FLOAT_TYPE_SLEEP, so en_float.c's default answers (0.0) */
+	overload_aircraft_float_value_functions (ENTITY_TYPE_HELICOPTER);
+	fn_get_local_entity_float_value[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_SLEEP] = harness_default_get_entity_float_value;
+
+	/* slice 6a: fixed wing members (fw_funcs.c :: overload_fixed_wing_functions -> overload_aircraft_functions):
+	   the same hand-written member link and position rows, and the same original float rows */
+	shim_link (ENTITY_TYPE_FIXED_WING, LIST_TYPE_MEMBER);
+	fn_get_local_entity_vec3d_ptr[ENTITY_TYPE_FIXED_WING][VEC3D_TYPE_POSITION] = shim_mobile_position;
+	overload_aircraft_float_value_functions (ENTITY_TYPE_FIXED_WING);
+	fn_get_local_entity_float_value[ENTITY_TYPE_FIXED_WING][FLOAT_TYPE_SLEEP] = harness_default_get_entity_float_value;
 
 }
 
@@ -1870,6 +1909,20 @@ int main (void)
 			return 0;
 		}
 
+		if (strcmp (word, "aircraft-cruise-velocity") == 0)
+		{
+			/* slice 6a: the compiled aircraft_database [].cruise_velocity (ac_dbase.c), the reference
+			   for src/generated/c-aircraft-database.ts */
+			int i;
+
+			for (i = 0; i < NUM_ENTITY_SUB_TYPE_AIRCRAFT; i++)
+			{
+				printf ("%d %08x\n", i, float_bits (aircraft_database[i].cruise_velocity));
+			}
+
+			return 0;
+		}
+
 		if (strcmp (word, "f32") == 0)
 		{
 			/*
@@ -2043,9 +2096,9 @@ int main (void)
 			busy = next_int (&cursor);
 			has_leader = next_int (&cursor);
 
-			leader_data.position.x = next_float (&cursor);
-			leader_data.position.y = 0.0;
-			leader_data.position.z = next_float (&cursor);
+			leader_data.mob.position.x = next_float (&cursor);
+			leader_data.mob.position.y = 0.0;
+			leader_data.mob.position.z = next_float (&cursor);
 
 			group_en = new_entity (ENTITY_TYPE_GROUP, raw, "group");
 
@@ -2230,6 +2283,135 @@ int main (void)
 			raw->landing_types = next_int (&cursor);
 			raw->keysite_usable_state = next_int (&cursor);
 		}
+		else if (strcmp (word, "member-count") == 0)
+		{
+			/* slice 6a: a group's member count as a saved game holds it (gp_pack.c ::
+			   unpack_local_data: raw->member_count = unpack_int_value (en, INT_TYPE_MEMBER_COUNT)) */
+			group *raw = (group *) get_local_entity_data (find_created (next_token (&cursor)));
+
+			raw->member_count = next_int (&cursor);
+		}
+		else if (strcmp (word, "group-sleep") == 0)
+		{
+			/* slice 6a: a restored group's raw sleep timer */
+			group *raw = (group *) get_local_entity_data (find_created (next_token (&cursor)));
+
+			raw->sleep = next_float (&cursor);
+		}
+		else if (strcmp (word, "air-register") == 0)
+		{
+			/* slice 6a: a group on its force's LIST_TYPE_AIR_REGISTRY list (appended), as a saved game holds it */
+			entity *en = find_created (next_token (&cursor));
+			entity *force_en = get_local_force_entity ((entity_sides) get_local_entity_int_value (en, INT_TYPE_SIDE));
+
+			link_entity_raw (en, LIST_TYPE_AIR_REGISTRY, force_en, last_child (force_en, LIST_TYPE_AIR_REGISTRY));
+		}
+		else if (strcmp (word, "aircraft-type") == 0)
+		{
+			/* slice 6a: a restored member's aircraft sub type (aircraft_database index) */
+			shim_mobile *raw = (shim_mobile *) get_local_entity_data (find_created (next_token (&cursor)));
+
+			raw->mob.sub_type = next_int (&cursor);
+		}
+		else if (strcmp (word, "unassigned-task") == 0)
+		{
+			/*
+			 * slice 6a: a task on a keysite's LIST_TYPE_UNASSIGNED_TASK list (appended),
+			 * and on its objective's LIST_TYPE_TASK_DEPENDENT list unless NULL, as a
+			 * saved game holds it:
+			 * unassigned-task <label> <keysite> <objective | NULL> <sub_type> <side> <critical> <priority> <expire>
+			 */
+			char label[32];
+			entity *en, *keysite_en, *objective;
+
+			task *raw = new_raw (sizeof (task));
+
+			snprintf (label, sizeof (label), "%s", next_token (&cursor));
+
+			keysite_en = find_created (next_token (&cursor));
+			objective = find_created (next_token (&cursor));
+
+			raw->sub_type = next_int (&cursor);
+			raw->side = next_int (&cursor);
+			raw->task_state = TASK_STATE_UNASSIGNED;
+			raw->critical_task = next_int (&cursor);
+			raw->task_priority = next_float (&cursor);
+			raw->expire_timer = next_float (&cursor);
+
+			en = new_entity (ENTITY_TYPE_TASK, raw, label);
+
+			link_entity_raw (en, LIST_TYPE_UNASSIGNED_TASK, keysite_en, last_child (keysite_en, LIST_TYPE_UNASSIGNED_TASK));
+
+			if (objective)
+			{
+				link_entity_raw (en, LIST_TYPE_TASK_DEPENDENT, objective, last_child (objective, LIST_TYPE_TASK_DEPENDENT));
+			}
+		}
+		else if (strcmp (word, "add-member") == 0)
+		{
+			/* slice 6a: an aircraft member (the original aircraft struct, zeroed) appended to a group's
+			   LIST_TYPE_MEMBER list, as a saved game holds it:
+			   add-member <label> <group> <entity type (HELICOPTER or FIXED_WING)> <sub_type> <x> <z> */
+			char label[32];
+			entity *group_en;
+			entity_types type;
+			shim_mobile *raw = new_raw (sizeof (shim_mobile));
+
+			snprintf (label, sizeof (label), "%s", next_token (&cursor));
+
+			group_en = find_created (next_token (&cursor));
+			type = (entity_types) next_int (&cursor);
+
+			if (type != ENTITY_TYPE_HELICOPTER && type != ENTITY_TYPE_FIXED_WING)
+			{
+				harness_fail ("add-member: not an aircraft entity type");
+			}
+
+			raw->mob.sub_type = next_int (&cursor);
+			raw->mob.position.x = next_float (&cursor);
+			raw->mob.position.y = 0.0;
+			raw->mob.position.z = next_float (&cursor);
+
+			link_entity_raw (new_entity (type, raw, label), LIST_TYPE_MEMBER, group_en, last_child (group_en, LIST_TYPE_MEMBER));
+		}
+		else if (strcmp (word, "pilot") == 0)
+		{
+			/* slice 6a: a pilot (the original pilot struct, zeroed) as a saved game holds it */
+			char label[32];
+
+			snprintf (label, sizeof (label), "%s", next_token (&cursor));
+
+			new_entity (ENTITY_TYPE_PILOT, new_raw (sizeof (pilot)), label);
+		}
+		else if (strcmp (word, "pilot-lock") == 0)
+		{
+			/* slice 6a: a task or group on a pilot's LIST_TYPE_PILOT_LOCK list (appended), as a saved game holds it */
+			entity *en = find_created (next_token (&cursor));
+			entity *pilot_en = find_created (next_token (&cursor));
+
+			link_entity_raw (en, LIST_TYPE_PILOT_LOCK, pilot_en, last_child (pilot_en, LIST_TYPE_PILOT_LOCK));
+		}
+		else if (strcmp (word, "assign-tasks") == 0)
+		{
+			/* slice 6a: assign.c :: assign_keysite_tasks (keysite, category) */
+			entity *target = find_created (next_token (&cursor));
+			task_category_types category = (task_category_types) next_int (&cursor);
+
+			lifecycle = TRUE;
+
+			if (setjmp (abort_operation) != 0)
+			{
+				print_lifecycle_state ();
+
+				return 0;
+			}
+
+			in_operation = TRUE;
+
+			assign_keysite_tasks (target, category);
+
+			in_operation = FALSE;
+		}
 		else if (strcmp (word, "task-counter") == 0)
 		{
 			/* slice 5b: a force's task generation counter, as a saved game holds it:
@@ -2290,9 +2472,9 @@ int main (void)
 			busy = next_int (&cursor);
 			has_leader = next_int (&cursor);
 
-			leader->position.x = next_float (&cursor);
-			leader->position.y = 0.0;
-			leader->position.z = next_float (&cursor);
+			leader->mob.position.x = next_float (&cursor);
+			leader->mob.position.y = 0.0;
+			leader->mob.position.z = next_float (&cursor);
 
 			en = new_entity (ENTITY_TYPE_GROUP, raw, label);
 

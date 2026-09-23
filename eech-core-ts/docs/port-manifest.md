@@ -38,7 +38,7 @@ where practical.
 | `aphavoc/source/entity/system/en_funcs/en_updt.c` | `src/entity/system/en_updt.ts` | ported (default handler deliberately not installed) |
 | `modules/system/time.c` | `src/core/time.ts`, `src/ports/clock.ts` (port) | partial (measurement is the `Clock` port; delta history not ported) |
 | `aphavoc/source/cmndline.c` (`command_line_entity_update_frame_rate`) | `src/core/cmndline.ts` | partial |
-| `aphavoc/source/entity/special/group/gp_dbase.c` | `src/generated/c-group-database.ts` (generated) | partial (resupply source; movement type, landing type, engage enemy and AI statistics, slice 5b) |
+| `aphavoc/source/entity/special/group/gp_dbase.c` | `src/generated/c-group-database.ts` (generated) | partial (resupply source; movement type, landing type, engage enemy and AI statistics, slice 5b; minimum idle count, registry list type, default entity type and default aircraft, slice 6a) |
 | `aphavoc/source/entity/special/keysite/ks_dbase.c` (`default_supply_usage` ammo and fuel; `air_force_capacity`, slice 5b) | `src/generated/c-keysite-database.ts` (generated) | partial (compiled defaults; `wutcfg.c` overrides not ported) |
 | `aphavoc/source/global.c`, `global.h` (`game_status`, `set_game_status`, `get_game_status`) | `src/core/game-status.ts` | partial (`game_status_string` not ported: no campaign reader) |
 | `aphavoc/source/ui_menu/gametype/gametype.c`, `gametype.h` (`game_type`, `get_game_type`) | `src/core/game-type.ts` | partial (the front end's assignments are `setGameType`) |
@@ -56,6 +56,11 @@ where practical.
 | `aphavoc/source/entity/special/task/ts_dbase.c` (`task_priority`, slice 5a; `primary_task`, `engage_enemy`, `movement_type`, `keysite_air_force_capacity`, `landing_types`, `ai_stats`, slice 5b) | `src/generated/c-task-database.ts` (generated) | partial |
 | `aphavoc/source/entity/special/waypoint/wp_int.c`, `wp_list.c` | `src/entity/special/waypoint/waypoint.ts` | partial (a restored waypoint's sub type and `task_dependent_link`, slice 5a) |
 | `aphavoc/source/ai/taskgen/taskgen.c` (`create_supply_task`, `create_task`, `get_task_start_keysite`, `validate_task_generation`, `terminator_point`) | `src/ai/taskgen/taskgen.ts` | partial (slice 5b; the other task generators are not ported) |
+| `aphavoc/source/ai/taskgen/assign.c` (`assign_keysite_tasks`, `suitable_group_task_specific_checks`, `get_suitable_registered_group`, `check_group_members_awake`; `assign_primary_task_to_group` as the boundary) | `src/ai/taskgen/assign.ts` | partial (slice 6a: the decision; the transaction is not ported) |
+| `aphavoc/source/entity/en_misc/en_misc.c` (`qs`, `quicksort_entity_list`) | `src/entity/en_misc/en_misc.ts` | partial (slice 6a) |
+| `aphavoc/source/entity/mobile/aircraft/ac_float.c` (`CRUISE_VELOCITY`; the default `SLEEP`) | `src/entity/mobile/aircraft/ac_float.ts` | partial (slice 6a) |
+| `aphavoc/source/entity/mobile/aircraft/ac_dbase.c` (`cruise_velocity`) | `src/generated/c-aircraft-database.ts` (generated) | partial (slice 6a) |
+| `aphavoc/source/entity/special/pilot/pi_list.c` (`pilot_lock_root`) | `src/entity/special/pilot/pilot.ts` | partial (slice 6a) |
 | `aphavoc/source/ai/highlevl/suitable.c` | `src/ai/highlevl/suitable.ts` | ported (`deinitialise_group_task_array` is the next initialisation's reset) |
 | `aphavoc/source/entity/special/session/session.h`, `ss_list.c` | `src/entity/special/session/session.ts`, `src/entity/system/entity.ts` | partial |
 | `aphavoc/source/entity/special/guide/gd_list.c` | `src/entity/special/guide/guide.ts` | partial |
@@ -184,6 +189,27 @@ materialisation, expiry, packing and destruction of tasks are later slices.
 | `en_world.c :: bound_position_to_adjusted_map_area`; `en_world.h :: point_inside_map_volume` | `en_world.ts` | ported, tested, 100%-covered, C-reference-verified (extracted) |
 | Windows SDK `min` | `min` in `miscmath.ts` | ported, tested, 100%-covered |
 
+### Slice 6a: supply-task assignment decision (issue #16)
+
+`assign_keysite_tasks` up to `assign_primary_task_to_group`, the boundary.
+`docs/slices/supply-task-assignment.md` maps every step.
+
+| C function | TS | Status |
+|---|---|---|
+| `assign.c :: assign_keysite_tasks` | `assignKeysiteTasks` | ported, tested, 100%-covered (two exclusions past the boundary, below), C-reference-verified (extracted verbatim) |
+| `assign.c :: get_suitable_registered_group` | `getSuitableRegisteredGroup` | ported, tested, 100%-covered (one exclusion, below), C-reference-verified (extracted; the `NULL` idle count of `msg_in.c` is unit-tested) |
+| `assign.c :: suitable_group_task_specific_checks` | `suitableGroupTaskSpecificChecks` | ported, tested, 100%-covered, C-reference-verified (extracted) |
+| `assign.c :: check_group_members_awake` | `checkGroupMembersAwake` | ported, tested, 100%-covered (one exclusion, below), C-reference-verified (extracted) |
+| `assign.c :: assign_primary_task_to_group` | `assignPrimaryTaskToGroup` | **the boundary**: unported. It always throws `UnportedBoundaryError` (an `UnportedBehaviourError`) carrying the group and task; the C harness traps the same call |
+| `en_misc.c :: qs`, `quicksort_entity_list` | `quicksortEntityList` | ported, tested, 100%-covered, C-reference-verified (extracted) |
+| `group.c :: assess_group_task_locality_factor` | `assessGroupTaskLocalityFactor` | ported, tested, 100%-covered (two exclusions, below), C-reference-verified (extracted) |
+| `ac_float.c :: get_local_float_value (CRUISE_VELOCITY)`; `en_float.c` default (`SLEEP`) | `overloadAircraftFloatValueFunctions` (helicopter and fixed wing) | ported, tested, 100%-covered, C-reference-verified (`ac_float.c` compiled whole) |
+| `ac_dbase.c :: aircraft_database [].cruise_velocity` | `AIRCRAFT_DATABASE_CRUISE_VELOCITY` | ported (generated from C, drift-checked), C-reference-verified bit for bit |
+| `ts_int.c` (`TASK_CATEGORY`, `MINIMUM_MEMBER_COUNT` from `ts_dbase.c`; `CRITICAL_TASK`); `ts_float.c` (`EXPIRE_TIMER`, `TASK_PRIORITY`) getters | `overloadTaskFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `gp_int.c` (`MEMBER_COUNT` getter); `gp_list.c` (`pilot_lock_link`, `registry_link`); `fc_list.c` (`air_registry_root`); `pi_list.c` (`pilot_lock_root`) | `overloadGroupFunctions`, `overloadForceFunctions`, `overloadPilotFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `gp_msgs.c :: response_to_link_child (LIST_TYPE_MEMBER)` (live `member_count` maintenance) | none | unported, fail-loud. Tests restore `member_count` raw, as `gp_pack.c :: unpack_local_data` does |
+| `ts_dbase.c` (`task_category`, `minimum_member_count`), `ks_dbase.c` (`assign_task_count`, `reserve_task_count`), `gp_dbase.c` (`minimum_idle_count`) | generated columns | ported (generated from C, drift-checked), C-reference-verified |
+
 ### Frozen slice: entity lifecycle, CARGO, sector membership (slice 3)
 
 | C function | TS | Status |
@@ -264,7 +290,18 @@ by the harness shim, and are verified by source reading only. The plan and the r
 
 ## Deviations and exclusions
 
-- **Coverage exclusions:** one. `suitable.c`'s movement stealth rejection
+- **Coverage exclusions (slice 6a):** these branches are excluded narrowly
+  (`/* istanbul ignore */`), each backed by a test. Each is listed in
+  `docs/slices/supply-task-assignment.md`.
+  - **Past the boundary**, in `assign.ts`: the `assign_count == 0` break and the result arms of `assign_primary_task_to_group`.
+  - **The sleep rejection** of `check_group_members_awake`, and its caller's else arm. An aircraft member's sleep is the default 0.0 (**6a-F2**).
+  - **Two arms of `assess_group_task_locality_factor`** (`group.ts`) that the only ported caller cannot reach: no member, and a task off a keysite's unassigned list.
+- **6a-F1 (finding).** Every nonzero group-to-task suitability is exactly
+  1.0, so "least suitable wins" is "the first qualifying group wins".
+  **6a-F2 (finding).** On the assignment path the ETA divisor is never 0: every
+  aircraft's cruise velocity is positive, and only aircraft groups join the
+  air registry. `test/unit/supply-task-assignment.test.ts` holds both invariants.
+- **Coverage exclusions (slice 5b):** one. `suitable.c`'s movement stealth rejection
   (`src/ai/highlevl/suitable.ts`, `/* istanbul ignore if */`) cannot fire with
   EECH's databases: only BDA and RECON need stealth, and every group that has
   passed the checks before it for them has it.
@@ -282,7 +319,9 @@ by the harness shim, and are verified by source reading only. The plan and the r
   a value.
 - **Unported behaviour always fails loudly.** There is no policy that turns
   unported campaign code into a no-op, and observation never alters control
-  flow. Slice 5a's boundary, `taskgen.c :: create_supply_task`, is ported in
+  flow. Slice 6a's boundary, `assign_primary_task_to_group`, throws
+  `UnportedBoundaryError`, which carries the selection; runners report it and
+  cannot suppress the call. Slice 5a's boundary, `taskgen.c :: create_supply_task`, is ported in
   slice 5b; its test seam is now an observer (`observeCreateSupplyTask`), which
   sees the arguments and cannot change what the function does or returns. Its
   interceptor (slice 5a) is gone. The `unportedMessagePolicy` option of slices 1 and 4 is
