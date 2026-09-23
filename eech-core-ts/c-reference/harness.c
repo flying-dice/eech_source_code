@@ -786,9 +786,6 @@ const char
 	*entity_side_names [NUM_ENTITY_SIDES],
 	*entity_side_short_names [NUM_ENTITY_SIDES];
 
-task_data
-	task_database [NUM_ENTITY_SUB_TYPE_TASKS];
-
 const char *(*fn_get_local_entity_string[NUM_ENTITY_TYPES][NUM_STRING_TYPES]) (entity *en, string_types type);
 
 void add_default_entity_to_regen_queue (entity_sides side, entity_sub_types group_type) { NOT_REACHED ("add_default_entity_to_regen_queue"); }
@@ -817,11 +814,54 @@ void get_digital_clock_values (float time_of_day, float *hours, float *minutes, 
 float get_3d_terrain_point_data (float x, float z, terrain_3d_point_data *point_data) { NOT_REACHED ("get_3d_terrain_point_data"); return 0.0f; }
 void free_group_callsign (entity *en) { NOT_REACHED ("free_group_callsign"); }
 int file_exist (const char *filename) { NOT_REACHED ("file_exist"); return 0; }
-int entity_is_object_of_task (entity *en, entity_sub_types task_type, entity_sides side) { NOT_REACHED ("entity_is_object_of_task"); return 0; }
 entity *create_cap_task (entity_sides side, entity *this_keysite, entity *originator, int critical, float priority, float duration, entity *start_keysite, entity *end_keysite) { NOT_REACHED ("create_cap_task"); return NULL; }
 void assign_keysite_tasks (entity *keysite, task_category_types category) { NOT_REACHED ("assign_keysite_tasks"); }
 int assign_group_callsign (entity *en) { NOT_REACHED ("assign_group_callsign"); return 0; }
 task_completed_types assess_task_completeness (entity *en, task_terminated_types task_terminated) { NOT_REACHED ("assess_task_completeness"); return 0; }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// fc_msgs.c (slice 5a) is compiled whole for response_to_force_low_on_supplies.
+// Its other responses are not part of the port: initialise_tables keeps them
+// out of the dispatch table, and what only they call is a fail-loud stub.
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*
+ * taskgen.c :: create_supply_task is Slice 5b (issue #12). Slice 5a's
+ * boundary: the call is recorded with its arguments. It returns NULL: the
+ * response uses the result only in its DEBUG_SUPPLY log, which is compiled out.
+ * The call has no other effect, so whether a scenario prints it changes
+ * nothing else in its output.
+ */
+/* scenarios written before Slice 5a do not observe the boundary: see the "observe-supply-tasks" line */
+static int
+	observe_supply_tasks = FALSE;
+
+entity *create_supply_task (entity *requester, entity *supplier, entity *cargo, movement_types movement_type, float priority, entity *start_keysite, entity *end_keysite)
+{
+	if (observe_supply_tasks) printf ("create-supply-task %s %s %s %d %08x %s %s\n", label_of (requester), label_of (supplier), label_of (cargo), (int) movement_type, float_bits (priority), label_of (start_keysite), label_of (end_keysite));
+
+	return NULL;
+}
+
+aircraft_data
+	aircraft_database [NUM_ENTITY_SUB_TYPE_AIRCRAFT];
+
+float get_local_sector_entity_enemy_surface_to_air_defence_level (entity *sector_en, entity_sides side) { NOT_REACHED ("get_local_sector_entity_enemy_surface_to_air_defence_level"); return 0.0f; }
+float get_local_sector_entity_enemy_surface_to_surface_defence_level (entity *sector_en, entity_sides side) { NOT_REACHED ("get_local_sector_entity_enemy_surface_to_surface_defence_level"); return 0.0f; }
+void play_mobile_under_attack_speech (entity *en, entity *aggressor) { NOT_REACHED ("play_mobile_under_attack_speech"); }
+void play_client_server_radio_message_response (entity *en, int speech_index, float priority, float expire_time) { NOT_REACHED ("play_client_server_radio_message_response"); }
+float get_sqr_2d_range (const vec3d *v1, const vec3d *v2) { NOT_REACHED ("get_sqr_2d_range"); return 0.0f; }
+int engage_targets_in_group (entity *group, entity *target_group, int expire) { NOT_REACHED ("engage_targets_in_group"); return 0; }
+void create_task_completed_reactionary_tasks (entity *task) { NOT_REACHED ("create_task_completed_reactionary_tasks"); }
+void create_task_assigned_reactionary_tasks (entity *task) { NOT_REACHED ("create_task_assigned_reactionary_tasks"); }
+int check_group_task_type (entity *group, entity_sub_types task_type) { NOT_REACHED ("check_group_task_type"); return 0; }
+void campaign_completed (entity_sides side, campaign_completed_types complete) { NOT_REACHED ("campaign_completed"); }
+
+/* wp_list.c and wp_int.c: reached only by the waypoint list maintenance the harness never runs */
+void update_local_entity_waypoint_list_tags (entity *parent) { NOT_REACHED ("update_local_entity_waypoint_list_tags"); }
+int get_formation_database_count (void) { NOT_REACHED ("get_formation_database_count"); return 0; }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -891,14 +931,31 @@ static vec3d *shim_mobile_position (entity *en, vec3d_types type)
 	return &((shim_mobile *) get_local_entity_data (en))->position;
 }
 
-static int record_force_low_on_supplies (entity_messages message, entity *receiver, entity *sender, va_list pargs)
+/* the original fc_msgs.c :: response_to_force_low_on_supplies (static there) */
+static int
+	(*original_force_low_on_supplies) (entity_messages message, entity *receiver, entity *sender, va_list pargs);
+
+/*
+ * Every delivery keeps the trace line Slices 1 and 4 recorded at this
+ * boundary before the response was ported, then runs the original response.
+ */
+static int trace_force_low_on_supplies (entity_messages message, entity *receiver, entity *sender, va_list pargs)
 {
+	va_list
+		args;
+
 	int
-		sub_type = va_arg (pargs, int);
+		sub_type;
+
+	va_copy (args, pargs);
+
+	sub_type = va_arg (args, int);
+
+	va_end (args);
 
 	printf ("message %s %s %d %d\n", label_of (receiver), label_of (sender), (int) message, sub_type);
 
-	return FALSE;
+	return original_force_low_on_supplies (message, receiver, sender, pargs);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -996,6 +1053,28 @@ static void initialise_tables (void)
 	overload_force_int_value_functions ();
 	overload_force_list_functions ();
 
+	/* fc_msgs.c: only FORCE_LOW_ON_SUPPLIES is adopted; every other force row
+	   keeps its fail-loud default */
+	overload_force_message_responses ();
+
+	original_force_low_on_supplies = message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_FORCE_LOW_ON_SUPPLIES];
+
+	for (j = 0; j < NUM_ENTITY_MESSAGES; j++) message_responses[ENTITY_TYPE_FORCE][j] = unsupplied_message_response;
+
+	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_FORCE_LOW_ON_SUPPLIES] = trace_force_low_on_supplies;
+
+	/* task accessors: the state a restored task holds (slice 5a) */
+	overload_task_int_value_functions ();
+	overload_task_float_value_functions ();
+	overload_task_list_functions ();
+
+	/* waypoint accessors: a route waypoint on a requester's LIST_TYPE_TASK_DEPENDENT
+	   list (slice 5a); wp_float.c does not overload FLOAT_TYPE_TASK_USER_DATA, so the
+	   en_float.c default answers for it */
+	overload_waypoint_int_value_functions ();
+	overload_waypoint_list_functions ();
+	fn_get_local_entity_float_value[ENTITY_TYPE_WAYPOINT][FLOAT_TYPE_TASK_USER_DATA] = harness_default_get_entity_float_value;
+
 	/* cg_funcs.c :: overload_cargo_functions, reduced to the compiled files */
 	overload_mobile_int_value_functions (ENTITY_TYPE_CARGO);
 	overload_mobile_list_functions (ENTITY_TYPE_CARGO);
@@ -1020,7 +1099,6 @@ static void initialise_tables (void)
 	shim_link (ENTITY_TYPE_HELICOPTER, LIST_TYPE_MEMBER);
 	fn_get_local_entity_vec3d_ptr[ENTITY_TYPE_HELICOPTER][VEC3D_TYPE_POSITION] = shim_mobile_position;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_FORCE_LOW_ON_SUPPLIES] = record_force_low_on_supplies;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1907,6 +1985,148 @@ int main (void)
 
 			raw->alive = next_int (&cursor);
 			raw->position.y = next_float (&cursor);
+		}
+		else if (strcmp (word, "observe-supply-tasks") == 0)
+		{
+			/* slice 5a: print the create_supply_task boundary from here on */
+			observe_supply_tasks = TRUE;
+		}
+		else if (strcmp (word, "comms-model") == 0)
+		{
+			/* comms.c :: set_comms_model, as the host's session set-up sets it */
+			system_comms_model = (comms_model_types) next_int (&cursor);
+		}
+		else if (strcmp (word, "restore-group") == 0)
+		{
+			/*
+			 * slice 5a: a group as a restored campaign holds it, by label:
+			 * restore-group <label> <sub_type> <side> <ammo> <fuel> <keysite label | NULL | independent> <busy> <has_leader> <x> <z>
+			 */
+			char label[32], parent_label[32], member_label[40];
+			int busy, has_leader;
+			entity *en;
+
+			group *raw = new_raw (sizeof (group));
+
+			shim_mobile *leader = new_raw (sizeof (shim_mobile));
+
+			snprintf (label, sizeof (label), "%s", next_token (&cursor));
+
+			raw->sub_type = next_int (&cursor);
+			raw->side = (entity_sides) next_int (&cursor);
+			raw->supplies.ammo_supply_level = next_float (&cursor);
+			raw->supplies.fuel_supply_level = next_float (&cursor);
+
+			snprintf (parent_label, sizeof (parent_label), "%s", next_token (&cursor));
+
+			busy = next_int (&cursor);
+			has_leader = next_int (&cursor);
+
+			leader->position.x = next_float (&cursor);
+			leader->position.y = 0.0;
+			leader->position.z = next_float (&cursor);
+
+			en = new_entity (ENTITY_TYPE_GROUP, raw, label);
+
+			if (strcmp (parent_label, "independent") == 0)
+			{
+				for (i = 0; i < num_forces; i++)
+				{
+					if (((force *) get_local_entity_data (forces[i]))->side == raw->side)
+					{
+						link_entity_raw (en, LIST_TYPE_INDEPENDENT_GROUP, forces[i], last_child (forces[i], LIST_TYPE_INDEPENDENT_GROUP));
+
+						break;
+					}
+				}
+			}
+			else if (strcmp (parent_label, "NULL") != 0)
+			{
+				entity *parent = find_created (parent_label);
+
+				link_entity_raw (en, LIST_TYPE_KEYSITE_GROUP, parent, last_child (parent, LIST_TYPE_KEYSITE_GROUP));
+			}
+
+			if (busy)
+			{
+				snprintf (member_label, sizeof (member_label), "%s.guide", label);
+
+				link_entity_raw (new_entity (ENTITY_TYPE_GUIDE, NULL, member_label), LIST_TYPE_GUIDE_STACK, en, NULL);
+			}
+
+			if (has_leader)
+			{
+				snprintf (member_label, sizeof (member_label), "%s.leader", label);
+
+				link_entity_raw (new_entity (ENTITY_TYPE_HELICOPTER, leader, member_label), LIST_TYPE_MEMBER, en, NULL);
+			}
+		}
+		else if (strcmp (word, "task") == 0)
+		{
+			/*
+			 * slice 5a: a task as a restored campaign holds it, on the
+			 * LIST_TYPE_TASK_DEPENDENT list of its objective (appended):
+			 * task <label> <objective label> <sub_type> <side> <task_state> <task_user_data>
+			 */
+			char label[32];
+			entity *en, *objective;
+
+			task *raw = new_raw (sizeof (task));
+
+			snprintf (label, sizeof (label), "%s", next_token (&cursor));
+
+			objective = find_created (next_token (&cursor));
+
+			raw->sub_type = next_int (&cursor);
+			raw->side = next_int (&cursor);
+			raw->task_state = (task_state_types) next_int (&cursor);
+			raw->task_user_data = next_float (&cursor);
+
+			en = new_entity (ENTITY_TYPE_TASK, raw, label);
+
+			link_entity_raw (en, LIST_TYPE_TASK_DEPENDENT, objective, last_child (objective, LIST_TYPE_TASK_DEPENDENT));
+		}
+		else if (strcmp (word, "waypoint") == 0)
+		{
+			/*
+			 * slice 5a: a route waypoint as a restored campaign holds it, on the
+			 * LIST_TYPE_TASK_DEPENDENT list of its route dependent (appended), as
+			 * croute.c links it: waypoint <label> <dependent label> <sub_type>
+			 */
+			char label[32];
+			entity *en, *dependent;
+
+			waypoint *raw = new_raw (sizeof (waypoint));
+
+			snprintf (label, sizeof (label), "%s", next_token (&cursor));
+
+			dependent = find_created (next_token (&cursor));
+
+			raw->sub_type = next_int (&cursor);
+
+			en = new_entity (ENTITY_TYPE_WAYPOINT, raw, label);
+
+			link_entity_raw (en, LIST_TYPE_TASK_DEPENDENT, dependent, last_child (dependent, LIST_TYPE_TASK_DEPENDENT));
+		}
+		else if (strcmp (word, "assess-group") == 0)
+		{
+			/* group.c :: assess_group_supplies (en), within a lifecycle scenario */
+			entity *target = find_created (next_token (&cursor));
+
+			lifecycle = TRUE;
+
+			if (setjmp (abort_operation) != 0)
+			{
+				print_lifecycle_state ();
+
+				return 0;
+			}
+
+			in_operation = TRUE;
+
+			assess_group_supplies (target);
+
+			in_operation = FALSE;
 		}
 		else if (strcmp (word, "update-cargo") == 0)
 		{

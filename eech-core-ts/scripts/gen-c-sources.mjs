@@ -37,6 +37,10 @@ const ENUMS = [
 	["COMMS_MODEL_TYPES", "aphavoc/source/comms/comms.h", "CommsModelType"],
 	["RESUPPLY_SOURCE_TYPE", "aphavoc/source/entity/system/en_types/en_suply.h", "ResupplySourceType"],
 	["GAME_STATUS_TYPES", "aphavoc/source/global.h", "GameStatusType"],
+	["ENTITY_SUB_TYPE_TASKS", "aphavoc/source/entity/system/en_types/en_sbtyp.h", "EntitySubTypeTask"],
+	["ENTITY_SUB_TYPE_WAYPOINTS", "aphavoc/source/entity/system/en_types/en_sbtyp.h", "EntitySubTypeWaypoint"],
+	["TASK_STATE_TYPES", "aphavoc/source/entity/system/en_types/en_task.h", "TaskStateType"],
+	["MOVEMENT_TYPES", "aphavoc/source/ai_extrn.h", "MovementType"],
 ];
 
 function stripComments(text) {
@@ -81,7 +85,7 @@ const HEADER = [
 
 //
 // Extracts one column of a C database initialiser whose entries are introduced
-// by a `// <ENUM_MEMBER>` banner comment and whose fields carry trailing
+// by a `// <ENUM_MEMBER>` banner comment (optionally followed by a comma) and whose fields carry trailing
 // `// <field>` comments (the layout of every EECH *_dbase.c file).
 //
 export function parseDatabaseColumn(source, enumPrefix, fieldComment) {
@@ -89,7 +93,7 @@ export function parseDatabaseColumn(source, enumPrefix, fieldComment) {
 	const rows = [];
 	let current;
 	for (const line of lines) {
-		const banner = new RegExp(`^\\s*//\\s*(${enumPrefix}[A-Z0-9_]+)\\s*$`).exec(line);
+		const banner = new RegExp(`^\\s*//\\s*(${enumPrefix}[A-Z0-9_]+)\\s*,?\\s*$`).exec(line);
 		if (banner) {
 			current = banner[1];
 			continue;
@@ -227,6 +231,40 @@ function generateKeysiteDatabase() {
 	return lines.join("\n");
 }
 
+//
+// ts_dbase.c :: task_database. Two banners name their entry without the
+// TASK_ infix (ENTITY_SUB_TYPE_TRANSFER_FIXED_WING, _HELICOPTER); entries are
+// matched to the enum by position, and a banner must equal its enum member
+// with or without that infix.
+//
+function generateTaskDatabase() {
+	const header = "aphavoc/source/entity/special/task/ts_dbase.c";
+	const source = readFileSync(join(repoRoot, header), "latin1");
+	const tasks = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/entity/system/en_types/en_sbtyp.h"), "latin1"), "ENTITY_SUB_TYPE_TASKS")
+		.filter(([name]) => !name.startsWith("NUM_"));
+	const rows = parseDatabaseColumn(source, "ENTITY_SUB_TYPE_", "task priority");
+	if (rows.length !== tasks.length) {
+		throw new Error(`task_database: ${rows.length} task priority rows for ${tasks.length} task sub types`);
+	}
+	const lines = [...HEADER];
+	lines.push(`// C provenance: ${header} :: task_database [NUM_ENTITY_SUB_TYPE_TASKS] .task_priority`);
+	lines.push("// (compiled defaults; the float field is initialised from an integer literal)");
+	lines.push("// Indexed by EntitySubTypeTask, as task_database [sub_type] is in C.");
+	lines.push("export const TASK_DATABASE_TASK_PRIORITY: readonly number[] = [");
+	rows.forEach(([name, value], i) => {
+		const member = tasks[i][0];
+		if (name !== member && name !== member.replace(/^ENTITY_SUB_TYPE_TASK_/, "ENTITY_SUB_TYPE_")) {
+			throw new Error(`task_database entry ${i} is ${name}, expected ${member}`);
+		}
+		if (!/^\d+$/.test(value)) {
+			throw new Error(`task_database ${member} task priority is not an integer literal: ${value}`);
+		}
+		lines.push(`\t${value}, // ${i} ${member}`);
+	});
+	lines.push("];", "");
+	return lines.join("\n");
+}
+
 function generateEnums() {
 	const lines = [...HEADER];
 	for (const [tag, header, tsName] of ENUMS) {
@@ -247,6 +285,7 @@ export function generate() {
 		"c-enums.ts": generateEnums(),
 		"c-group-database.ts": generateGroupDatabase(),
 		"c-keysite-database.ts": generateKeysiteDatabase(),
+		"c-task-database.ts": generateTaskDatabase(),
 	};
 }
 

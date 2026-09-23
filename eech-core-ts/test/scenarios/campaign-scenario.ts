@@ -25,12 +25,13 @@ import { getClosestKeysite, type KeysiteRaw } from "../../src/entity/special/key
 import type { ForceRaw } from "../../src/entity/special/force/force";
 import { insertLocalEntityIntoParentsChildListRaw } from "../../src/entity/system/en_list";
 import { createLocalEntityRaw } from "../../src/entity/system/en_heap";
-import { setSessionEntityRaw, takeUnportedMessageLog, type Entity } from "../../src/entity/system/entity";
+import { setSessionEntityRaw, type Entity } from "../../src/entity/system/entity";
 import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, ListType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
 import { ScriptedClock } from "../adapters/scripted-clock";
+import { takeSupplyTaskLines, traceForceLowOnSupplies } from "./supply-boundary";
 
 export interface KeysiteSpec {
 	side: EntitySide;
@@ -130,6 +131,21 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 	initialiseCampaignCore({ mobilePhysicalState: physical, entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata() }, { unportedMessagePolicy: "record" });
 
 	const labels: Record<number, string> = {};
+
+	// every FORCE_LOW_ON_SUPPLIES delivery, as the C harness traces it before
+	// the (since Slice 5a, ported) force response runs; see supply-boundary.ts
+	const messages: MessageEvent[] = [];
+
+	traceForceLowOnSupplies(
+		(d) => messages.push({ receiver: labelOf(labels, d.receiver), sender: labelOf(labels, d.sender), message: d.message, arg: d.subType }),
+		() => {
+			// Slice 1 scenarios never set the game status, so the response
+			// returns at its guard and never reaches create_supply_task
+			if (takeSupplyTaskLines((en) => labelOf(labels, en)).length !== 0) {
+				throw new Error("a Slice 1 scenario reached create_supply_task");
+			}
+		},
+	);
 
 	const session = createLocalEntityRaw(EntityType.ENTITY_TYPE_SESSION, {});
 
@@ -252,16 +268,6 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 		}
 	}
 
-	const messages: MessageEvent[] = [];
-
-	for (const delivery of takeUnportedMessageLog()) {
-		messages.push({
-			receiver: labelOf(labels, delivery.receiver),
-			sender: labelOf(labels, delivery.sender),
-			message: delivery.message,
-			arg: delivery.args[0] as number,
-		});
-	}
 
 	const transmissions: TransmitEvent[] = [];
 

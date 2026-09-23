@@ -51,6 +51,17 @@ export const REAL_TRANSLATION_UNITS = [
 	"aphavoc/source/entity/special/keysite/keysite.c",
 	"aphavoc/source/entity/special/force/fc_int.c",
 	"aphavoc/source/entity/special/force/fc_list.c",
+	// slice 5a: the force's FORCE_LOW_ON_SUPPLIES response, and the task
+	// database and accessors its duplicate-task decision reads
+	"aphavoc/source/entity/special/force/fc_msgs.c",
+	"aphavoc/source/entity/special/task/ts_dbase.c",
+	"aphavoc/source/entity/special/task/ts_float.c",
+	"aphavoc/source/entity/special/task/ts_int.c",
+	"aphavoc/source/entity/special/task/ts_list.c",
+	// slice 5a: route waypoints share a requester's LIST_TYPE_TASK_DEPENDENT list
+	"aphavoc/source/entity/special/waypoint/wp_dbase.c",
+	"aphavoc/source/entity/special/waypoint/wp_int.c",
+	"aphavoc/source/entity/special/waypoint/wp_list.c",
 	// slice 3: entity heap, attributes, creation and destruction
 	"aphavoc/source/entity/system/en_main/en_heap.c",
 	"aphavoc/source/entity/system/en_attrs/en_attrs.c",
@@ -176,6 +187,13 @@ export const PROJECT_H = [
 	{ kind: "include", name: "entity/special/regen/rg_updt.h" },
 	{ kind: "include", name: "entity/special/session/session.h" },
 	{ kind: "include", name: "entity/fixed/fixed.h" },
+	// slice 5a: fc_msgs.c, compiled whole. What its other responses name.
+	{ kind: "enum", name: "CAMPAIGN_COMPLETED_TYPES", file: "aphavoc/source/ui_menu/ingame/campaign/campaign.h" },
+	{ kind: "regex", pattern: "\\ntypedef enum CAMPAIGN_COMPLETED_TYPES campaign_completed_types;", file: "aphavoc/source/ui_menu/ingame/campaign/campaign.h" },
+	{ kind: "prototype", name: "campaign_completed", file: "aphavoc/source/ui_menu/ingame/campaign/campaign.h" },
+	{ kind: "prototype", name: "play_client_server_radio_message_response", file: "aphavoc/source/misc/msg_in.h" },
+	{ kind: "prototype", name: "get_sqr_2d_range", file: "modules/maths/range.h" },
+	{ kind: "include", name: "entity/special/waypoint/waypoint.h" },
 	// prototypes of functions the slice 3 translation units call; the harness
 	// supplies them as environment or fail-loud stubs (harness.c)
 	{ kind: "prototype", name: "convert_float_to_int", file: "modules/system/fpu.h" },
@@ -218,6 +236,9 @@ export const EXTRACTED_C = [
 	{ kind: "function", name: "get_2d_range", signature: "float get_2d_range (const vec3d *v1, const vec3d *v2)", file: "modules/maths/range.c" },
 	{ kind: "function", name: "get_approx_2d_range", signature: "float get_approx_2d_range (const vec3d *v1, const vec3d *v2)", file: "modules/maths/range.c" },
 
+	// slice 5a: the duplicate-task count response_to_force_low_on_supplies makes
+	{ kind: "function", name: "entity_is_object_of_task", signature: "int entity_is_object_of_task (entity *en, entity_sub_types task_type, entity_sides side)", file: "aphavoc/source/entity/special/task/task.c" },
+
 	// entity system defaults and runtime
 	{ kind: "function", name: "default_set_entity_int_value", signature: "static void default_set_entity_int_value (entity *en, int_types type, int value)", file: "aphavoc/source/entity/system/en_funcs/en_int.c" },
 	{ kind: "function", name: "default_set_entity_float_value", signature: "static void default_set_entity_float_value (entity *en, float_types type, float value)", file: "aphavoc/source/entity/system/en_funcs/en_float.c" },
@@ -227,6 +248,8 @@ export const EXTRACTED_C = [
 	{ kind: "function", name: "delete_local_entity_from_parents_child_list", signature: "void delete_local_entity_from_parents_child_list (entity *en, list_types type)", file: "aphavoc/source/entity/system/en_funcs/en_list.c" },
 	{ kind: "function", name: "unlink_local_entity_children", signature: "void unlink_local_entity_children (entity *en, list_types list)", file: "aphavoc/source/entity/system/en_funcs/en_list.c" },
 	{ kind: "function", name: "default_get_entity_int_value", signature: "static int default_get_entity_int_value (entity *en, int_types type)", file: "aphavoc/source/entity/system/en_funcs/en_int.c" },
+	// slice 5a: what a waypoint answers for FLOAT_TYPE_TASK_USER_DATA (wp_float.c does not overload it)
+	{ kind: "function", name: "default_get_entity_float_value", signature: "static float default_get_entity_float_value (entity *en, float_types type)", file: "aphavoc/source/entity/system/en_funcs/en_float.c" },
 
 	// slice 3: entity system debug checks and statistics counters
 	{ kind: "function", name: "assert_local_create_entity_index", signature: "int assert_local_create_entity_index (int index)", file: "aphavoc/source/entity/system/en_debug/en_valid.c" },
@@ -273,7 +296,7 @@ export const EXTRACTED_C = [
 	},
 	{
 		kind: "raw",
-		text: "/* C defaults for the update entity: its link responses are only overloaded under DEBUG_MODULE (up_msgs.c) */\nvoid harness_default_update_link_responses (void)\n{\n\tmessage_responses[ENTITY_TYPE_UPDATE][ENTITY_MESSAGE_LINK_CHILD] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_UPDATE][ENTITY_MESSAGE_LINK_PARENT] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_UPDATE][ENTITY_MESSAGE_UNLINK_PARENT] = default_message_response;\n}\n\nvoid (*harness_default_set_entity_int_value) (entity *en, int_types type, int value) = default_set_entity_int_value;\n\nvoid (*harness_default_set_entity_float_value) (entity *en, float_types type, float value) = default_set_entity_float_value;\n\nint (*harness_default_get_entity_int_value) (entity *en, int_types type) = default_get_entity_int_value;\n",
+		text: "/* C defaults for the update entity: its link responses are only overloaded under DEBUG_MODULE (up_msgs.c) */\nvoid harness_default_update_link_responses (void)\n{\n\tmessage_responses[ENTITY_TYPE_UPDATE][ENTITY_MESSAGE_LINK_CHILD] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_UPDATE][ENTITY_MESSAGE_LINK_PARENT] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_UPDATE][ENTITY_MESSAGE_UNLINK_PARENT] = default_message_response;\n}\n\nvoid (*harness_default_set_entity_int_value) (entity *en, int_types type, int value) = default_set_entity_int_value;\n\nvoid (*harness_default_set_entity_float_value) (entity *en, float_types type, float value) = default_set_entity_float_value;\n\nint (*harness_default_get_entity_int_value) (entity *en, int_types type) = default_get_entity_int_value;\n\nfloat (*harness_default_get_entity_float_value) (entity *en, float_types type) = default_get_entity_float_value;\n",
 	},
 ];
 

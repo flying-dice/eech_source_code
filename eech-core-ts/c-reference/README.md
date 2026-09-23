@@ -38,6 +38,14 @@ TypeScript port.
     them through its TX path. The scenario ends with the entity graph.
   - `ASSERT` and `debug_fatal` are EECH outcomes (`result assert ...`,
     `result fatal <format>`) and end the scenario.
+  - Slice 5a (`fc_msgs.c`): every `FORCE_LOW_ON_SUPPLIES` delivery prints its
+    `message` trace line and then runs the original response. Its boundary,
+    `create_supply_task`, is a recording stub; a scenario prints those calls
+    (`create-supply-task ...`) only after an `observe-supply-tasks` line, so
+    scenarios recorded before slice 5a keep their output. Groups (`restore-group`),
+    tasks (`task`) and route waypoints (`waypoint`) are restored raw by label;
+    `assess-group` and `comms-model` complete the lines
+    (`docs/slices/force-low-on-supplies.md`).
 - **Faults.** A `SIGSEGV` inside the NULL page is EECH's unguarded NULL
   dereference. The handler reports `result null-dereference` and the final
   state, then ends the process; it never resumes it. Any other fault kills the

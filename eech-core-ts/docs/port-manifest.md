@@ -46,7 +46,12 @@ where practical.
 | `aphavoc/source/entity/special/keysite/keysite.c` | `src/entity/special/keysite/keysite.ts` | partial |
 | `aphavoc/source/entity/special/keysite/ks_int.c`, `ks_float.c`, `ks_vec3d.c`, `ks_list.c`, `ks_msgs.c` | `src/entity/special/keysite/keysite.ts` | partial |
 | `aphavoc/source/entity/special/force/force.c` | `src/entity/special/force/force.ts` | partial |
-| `aphavoc/source/entity/special/force/fc_int.c`, `fc_list.c`, `fc_msgs.c` | `src/entity/special/force/force.ts` | partial |
+| `aphavoc/source/entity/special/force/fc_int.c`, `fc_list.c` | `src/entity/special/force/force.ts` | partial |
+| `aphavoc/source/entity/special/force/fc_msgs.c` | `src/entity/special/force/fc_msgs.ts` | partial (`response_to_force_low_on_supplies`, slice 5a) |
+| `aphavoc/source/entity/special/task/task.c` (`entity_is_object_of_task`), `ts_int.c`, `ts_float.c`, `ts_list.c` | `src/entity/special/task/task.ts` | partial (a restored task's sub type, side, state, user data and `task_dependent_link`, slice 5a; creation is slice 5b) |
+| `aphavoc/source/entity/special/task/ts_dbase.c` (`task_priority`) | `src/generated/c-task-database.ts` (generated) | partial |
+| `aphavoc/source/entity/special/waypoint/wp_int.c`, `wp_list.c` | `src/entity/special/waypoint/waypoint.ts` | partial (a restored waypoint's sub type and `task_dependent_link`, slice 5a) |
+| `aphavoc/source/ai/taskgen/taskgen.c` (`create_supply_task`) | `src/ai/taskgen/taskgen.ts` | boundary: the slice 5a call is recorded in tests and fails loudly in production; ported in slice 5b |
 | `aphavoc/source/entity/special/session/session.h`, `ss_list.c` | `src/entity/special/session/session.ts`, `src/entity/system/entity.ts` | partial |
 | `aphavoc/source/entity/special/guide/gd_list.c` | `src/entity/special/guide/guide.ts` | partial |
 | `aphavoc/source/entity/mobile/aircraft/ac_list.c`, `ac_vec3d.c`; `vehicle/vh_list.c`, `vh_vec3d.c` | `src/entity/mobile/mobile.ts` | partial (campaign surface only) |
@@ -73,8 +78,8 @@ where practical.
 | `aphavoc/source/entity/system/en_types/en_suply.h` (`FUEL_USAGE_ACCELERATOR`, `AMMO_USAGE_ACCELERATOR`, `KEYSITE_SUPPLY_REQUEST_THRESHOLD`); `cargo.h` (`CARGO_AMMO_SIZE`, `CARGO_FUEL_SIZE`) | `src/generated/c-constants.ts` (generated) | partial |
 | `modules/system/assert.h` | `src/core/assert.ts` | partial |
 | enum headers (`en_types.h`, `en_side.h`, `en_list.h`, `en_int.h`, `en_float.h`, `en_vec3d.h`, `en_ptr.h`, `en_msgs.h`, `en_sbtyp.h`, `ai_extrn.h`, `comms.h`, `en_suply.h`) | `src/generated/c-enums.ts` (generated) | ported (selected enums, generated verbatim) |
-| `ai/highlevl/*`, `ai/taskgen/*`, `ai/frontl/*`, `ai/faction/*`, `ai/ai_misc/*` | none | unported |
-| `entity/special/division`, `task`, `waypoint`, `landing`, `regen` | none | unported |
+| `ai/highlevl/*`, `ai/taskgen/*` (except the `create_supply_task` boundary), `ai/frontl/*`, `ai/faction/*`, `ai/ai_misc/*` | none | unported |
+| `entity/special/division`, `landing`, `regen`; the rest of `task` and `waypoint` | none | unported |
 | `wutcfg.c`, `gwutcfg.c` (runtime overrides of `group_database` and `keysite_database`) | none | unported |
 
 ## Functions
@@ -122,8 +127,23 @@ where practical.
 | `ks_int.c :: get_local_int_value` (`INT_TYPE_SIDE`) | `overloadKeysiteFunctions` | ported, tested, C-reference-verified |
 | `global.c :: set_game_status`, `global.h :: get_game_status` | `setGameStatus`, `getGameStatus` (core state, reset on `initialiseCampaignCore`) | ported, tested, 100%-covered, C-reference-verified |
 | `3dobjvis.c :: get_object_3d_bounding_box` | `Object3DMetadata.getBoundingBox` | port (blocked-engine-boundary); deterministic adapter in `test/adapters` |
-| `fc_msgs.c :: response_to_force_low_on_supplies` | recorded at the boundary (`unportedMessagePolicy`) | unported (Slice 5) |
+| `fc_msgs.c :: response_to_force_low_on_supplies` | recorded at the boundary when slice 4 froze; ported in slice 5a (below), behind the same trace line | see slice 5a |
 | RTZ double sum `(xmax - xmin) + 1.0` | `f64AddRTZ` (`src/core/float32.ts`) | ported, bit-exact against C (20,000 fresh sums, 1,000 recorded, replayed in JS and Lua 5.1) |
+
+### Slice 5a: the force's low-on-supplies response (issue #12)
+
+| C function | TS | Status |
+|---|---|---|
+| `fc_msgs.c :: response_to_force_low_on_supplies` | `responseToForceLowOnSupplies` (`fc_msgs.ts`) | ported, tested, 100%-covered, C-reference-verified (the original `fc_msgs.c` compiled whole; DEBUG logging compiled out in EECH, not ported; the switch without a case is `EechUndefinedBehaviourError`) |
+| `fc_msgs.c :: overload_force_message_responses` | `overloadForceMessageResponses` | partial: the `FORCE_LOW_ON_SUPPLIES` row only |
+| `task.c :: entity_is_object_of_task` | `entityIsObjectOfTask` | ported, tested, 100%-covered, C-reference-verified (extracted verbatim) |
+| `ts_int.c :: get_local_int_value` (`ENTITY_SUB_TYPE`, `SIDE`, `TASK_STATE`), `ts_float.c :: get_local_float_value` (`TASK_USER_DATA`), `ts_list.c :: task_dependent_link` | `overloadTaskFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `wp_int.c :: get_local_int_value` (`ENTITY_SUB_TYPE`), `wp_list.c :: task_dependent_link`, `en_float.c :: default_get_entity_float_value` (waypoint `TASK_USER_DATA`) | `overloadWaypointFunctions`, `defaultGetEntityFloatValue` | ported, tested, 100%-covered, C-reference-verified |
+| `ks_list.c`, `gp_list.c :: task_dependent_root` | `overloadKeysiteFunctions`, `overloadGroupFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `keysite.c :: get_keysite_supply_position` | `getKeysiteSupplyPosition` | ported, C-reference-verified |
+| `ts_dbase.c :: task_database [].task_priority` | `TASK_DATABASE_TASK_PRIORITY` | ported (generated from C, drift-checked), C-reference-verified (the harness compiles `ts_dbase.c`) |
+| `taskgen.c :: create_supply_task` | `createSupplyTask` | boundary (slice 5b): `callUnportedFunction` records it in tests and throws `UnportedBehaviourError` in production |
+| task and waypoint creation, `ts_creat.c`, `create_task`, `croute.c` | `createLocalEntityRaw` restores them in tests | unported (slice 5b) |
 
 ### Frozen slice: entity lifecycle, CARGO, sector membership (slice 3)
 
@@ -180,7 +200,7 @@ by the harness shim, and are verified by source reading only. The plan and the r
 | `ks_list.c`: `keysite_group_root`, `building_group_root`, `cargo_root`, `keysite_force_link` | `overloadKeysiteFunctions` | ported, tested, 100%-covered, C-reference-verified |
 | `fc_int.c :: get_local_int_value (INT_TYPE_SIDE)` | `overloadForceFunctions` | ported, tested, 100%-covered, C-reference-verified |
 | `fc_list.c`: `keysite_force_root`, `independent_group_root`, `force_link` | `overloadForceFunctions` | ported, tested, 100%-covered, C-reference-verified |
-| `fc_msgs.c :: response_to_force_low_on_supplies` | declared unported message response | unported (Slice 5; slice 1 stops at this message boundary) |
+| `fc_msgs.c :: response_to_force_low_on_supplies` | slice 1 stopped at this message boundary; ported in slice 5a (below) | see slice 5a |
 | `ss_list.c`: `force_root` | `overloadSessionListFunctions` | ported, tested, 100%-covered, source-read |
 | `gd_list.c`: `guide_stack_link` | `overloadGuideFunctions` | ported, tested, 100%-covered, source-read |
 | `ac_list.c` / `vh_list.c`: `member_link` | `overloadMobileFunctions` | ported, tested, 100%-covered, source-read |
@@ -198,7 +218,7 @@ by the harness shim, and are verified by source reading only. The plan and the r
 | `en_funcs.h :: get/set_local_entity_type`, `get/set_local_entity_data` | `entity.ts` | ported, tested, 100%-covered |
 | `en_pack.c` | `createLocalEntityRaw` (restore primitive: the next heap entry with its raw data) | unported |
 | `en_int.c`, `en_float.c`, `en_vec3d.c`, `en_ptr.c` dispatch macros | `en_values.ts` | ported, tested, 100%-covered |
-| `en_*.c :: default_*` handlers | the unported sentinel (throws) instead of EECH defaults | deliberate: see architecture question 2. Installed only where the C table is known to keep the default: `default_set_entity_int_value` (group `UPDATED`), `default_get_entity_int_value` (cargo `IDENTIFY_*`), `default_destroy_entity*` (`ENTITY_TYPE_UNKNOWN`) |
+| `en_*.c :: default_*` handlers | the unported sentinel (throws) instead of EECH defaults | deliberate: see architecture question 2. Installed only where the C table is known to keep the default: `default_set_entity_int_value` (group `UPDATED`), `default_get_entity_int_value` (cargo `IDENTIFY_*`), `default_get_entity_float_value` (waypoint `TASK_USER_DATA`, slice 5a), `default_destroy_entity*` (`ENTITY_TYPE_UNKNOWN`) |
 | `en_msgs.c :: default_message_response` | `defaultMessageResponse` | ported; installed only where the C table keeps the default (the update entity's link responses) |
 | `en_valid.h :: validate_client_server_local_fn / remote_fn` | none | excluded (debug-build dispatch validation) |
 | client comms model overloads (`set_client_float_value`) | none | unported (the core is the server authority) |
@@ -211,6 +231,15 @@ by the harness shim, and are verified by source reading only. The plan and the r
   `EechAssertionError` quoting the C expression. Where the C dereferences NULL
   without an assert (`get_closest_keysite` with no force for the side), the port
   throws `EechNullDereferenceError`. EECH itself would crash in both cases.
+- **Undefined behaviour the port refuses.** Where the original reads an
+  uninitialised value on a path no caller takes
+  (`response_to_force_low_on_supplies` for a cargo sub type its switch has no
+  case for), the port throws `EechUndefinedBehaviourError` instead of inventing
+  a value.
+- **Unported calls.** A C function a later slice ports is a named boundary
+  (`callUnportedFunction`): it throws in production and is recorded under the
+  `record` policy (`takeUnportedCallLog`). Since slice 5a this replaces the
+  unported message responses of slices 1 and 4, which no longer exist.
 - **`max`** is the Windows SDK macro, not `Math.max`: `max (NaN, 0.0f)` is `0.0f`.
 - **Findings about the original C** (recorded, not fixed): `time.c ::
   set_manual_delta_time` has an undefined-behaviour history index update, and

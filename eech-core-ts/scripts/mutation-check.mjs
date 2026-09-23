@@ -550,6 +550,167 @@ const MUTANTS = [
 		to: "if (false) {\n\t\treturn nextDoubleTowardZero(s);",
 		suite: "lua",
 	},
+	{
+		name: "Slice 5a: the response ignores the game status",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "if (getGameStatus() !== GameStatusType.GAME_STATUS_INITIALISED || getCommsModel() === CommsModelType.COMMS_MODEL_CLIENT) {",
+		to: "if (getCommsModel() === CommsModelType.COMMS_MODEL_CLIENT) {",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: the response runs on a comms client",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "if (getGameStatus() !== GameStatusType.GAME_STATUS_INITIALISED || getCommsModel() === CommsModelType.COMMS_MODEL_CLIENT) {",
+		to: "if (getGameStatus() !== GameStatusType.GAME_STATUS_INITIALISED) {",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: entity_is_object_of_task counts completed tasks",
+		file: "src/entity/special/task/task.ts",
+		from: "if (getLocalEntityIntValue(this_task, IntType.INT_TYPE_TASK_STATE) !== TaskStateType.TASK_STATE_COMPLETED) {",
+		to: "if (getLocalEntityIntValue(this_task, IntType.INT_TYPE_TASK_STATE) !== -1) {",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: entity_is_object_of_task counts tasks of any side",
+		file: "src/entity/special/task/task.ts",
+		from: "if (getLocalEntityIntValue(this_task, IntType.INT_TYPE_SIDE) === side) {",
+		to: "if (side === side) {",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: entity_is_object_of_task does not check the entity type",
+		file: "src/entity/special/task/task.ts",
+		from: "if (getLocalEntityType(this_task) === EntityType.ENTITY_TYPE_TASK) {",
+		to: "if (this_task !== undefined) {",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: the duplicate walk skips completed tasks (asymmetry 'fixed')",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "if (getLocalEntityFloatValue(task, FloatType.FLOAT_TYPE_TASK_USER_DATA) === sub_type) {",
+		to: "if (getLocalEntityFloatValue(task, FloatType.FLOAT_TYPE_TASK_USER_DATA) === sub_type && getLocalEntityIntValue(task, IntType.INT_TYPE_TASK_STATE) !== 2) {",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: the duplicate walk checks the side (asymmetry 'fixed')",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "if (getLocalEntityFloatValue(task, FloatType.FLOAT_TYPE_TASK_USER_DATA) === sub_type) {",
+		to: "if (getLocalEntityFloatValue(task, FloatType.FLOAT_TYPE_TASK_USER_DATA) === sub_type && getLocalEntityIntValue(task, IntType.INT_TYPE_SIDE) === getLocalEntityIntValue(en, IntType.INT_TYPE_SIDE)) {",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: the duplicate walk skips waypoints (RECON quirk 'fixed')",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "if (getLocalEntityIntValue(task, IntType.INT_TYPE_ENTITY_SUB_TYPE) === EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_SUPPLY) {",
+		to: "if (task.type === EntityType.ENTITY_TYPE_TASK && getLocalEntityIntValue(task, IntType.INT_TYPE_ENTITY_SUB_TYPE) === EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_SUPPLY) {",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: the duplicate walk does not check the task type",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "if (getLocalEntityIntValue(task, IntType.INT_TYPE_ENTITY_SUB_TYPE) === EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_SUPPLY) {",
+		to: "if (task !== undefined) {",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: the duplicate decision is skipped",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "\t\t\t\t\treturn 0;\n\t\t\t\t}\n\t\t\t}\n\n\t\t\ttask = getLocalEntityChildSucc(task, ListType.LIST_TYPE_TASK_DEPENDENT);",
+		to: "\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\n\t\t\ttask = getLocalEntityChildSucc(task, ListType.LIST_TYPE_TASK_DEPENDENT);",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: an airbase does not supply itself (F2 'fixed': the requester is excluded)",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "const airbase = getClosestKeysite(EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_AIRBASE, side, pos, SUPPLIER_EARLY_OUT_RANGE, airbase_actual_range, true, undefined);",
+		to: "const airbase = getClosestKeysite(EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_AIRBASE, side, pos, SUPPLIER_EARLY_OUT_RANGE, airbase_actual_range, true, en);",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: an equidistant airbase replaces the factory (< becomes <=)",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "if (airbase_actual_range.value < factory_actual_range.value) {",
+		to: "if (airbase_actual_range.value <= factory_actual_range.value) {",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: ammo prefers an oil refinery",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "factory = getClosestKeysite(EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_FACTORY, side, pos, SUPPLIER_EARLY_OUT_RANGE, factory_actual_range, true, undefined);\n\n\t\tif (!factory) {\n\t\t\tfactory = getClosestKeysite(EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_OIL_REFINERY,",
+		to: "factory = getClosestKeysite(EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_OIL_REFINERY, side, pos, SUPPLIER_EARLY_OUT_RANGE, factory_actual_range, true, undefined);\n\n\t\tif (!factory) {\n\t\t\tfactory = getClosestKeysite(EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_FACTORY,",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: fuel prefers a factory",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "factory = getClosestKeysite(EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_OIL_REFINERY, side, pos, SUPPLIER_EARLY_OUT_RANGE, factory_actual_range, true, undefined);\n\n\t\tif (!factory) {\n\t\t\tfactory = getClosestKeysite(EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_FACTORY,",
+		to: "factory = getClosestKeysite(EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_FACTORY, side, pos, SUPPLIER_EARLY_OUT_RANGE, factory_actual_range, true, undefined);\n\n\t\tif (!factory) {\n\t\t\tfactory = getClosestKeysite(EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_OIL_REFINERY,",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: no factory fallback for ammo",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "\t\tif (!factory) {\n\t\t\tfactory = getClosestKeysite(EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_OIL_REFINERY,",
+		to: "\t\tif (false) {\n\t\t\tfactory = getClosestKeysite(EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_OIL_REFINERY,",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: the supplier search early-exits at 1 km instead of 10 km",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "const SUPPLIER_EARLY_OUT_RANGE = toFloat32(10 * KILOMETRE);",
+		to: "const SUPPLIER_EARLY_OUT_RANGE = toFloat32(1 * KILOMETRE);",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: the cargo walk takes the head crate whatever its sub type",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "if (getLocalEntityIntValue(cargo, IntType.INT_TYPE_ENTITY_SUB_TYPE) === sub_type) {\n\t\t\t\tbreak;",
+		to: "if (cargo !== undefined) {\n\t\t\t\tbreak;",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: a supply task is asked for without cargo",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "\t\tif (cargo) {\n\t\t\t//\n\t\t\t// create task",
+		to: "\t\tif (true) {\n\t\t\t//\n\t\t\t// create task",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: the supply task's priority comes from another task_database row",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "TASK_DATABASE_TASK_PRIORITY[EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_SUPPLY]",
+		to: "TASK_DATABASE_TASK_PRIORITY[EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_REPAIR]",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: the supply task moves by any means (MOVEMENT_TYPE_AIR replaced)",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "const movement_type = MovementType.MOVEMENT_TYPE_AIR;",
+		to: "const movement_type = MovementType.MOVEMENT_TYPE_ALL;",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: a waypoint's task user data is 1 (the en_float.c default is 0.0)",
+		file: "src/entity/special/waypoint/waypoint.ts",
+		from: "fnGetLocalEntityFloatValue.overload(WAYPOINT, FloatType.FLOAT_TYPE_TASK_USER_DATA, defaultGetEntityFloatValue);",
+		to: "fnGetLocalEntityFloatValue.overload(WAYPOINT, FloatType.FLOAT_TYPE_TASK_USER_DATA, () => 1);",
+		suite: "js",
+	},
+	{
+		name: "Slice 5a: the F2 self-supply is 'fixed' (Lua)",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "const airbase = getClosestKeysite(EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_AIRBASE, side, pos, SUPPLIER_EARLY_OUT_RANGE, airbase_actual_range, true, undefined);",
+		to: "const airbase = getClosestKeysite(EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_AIRBASE, side, pos, SUPPLIER_EARLY_OUT_RANGE, airbase_actual_range, true, en);",
+		suite: "lua",
+	},
+	{
+		name: "Slice 5a: the duplicate walk skips completed tasks (Lua)",
+		file: "src/entity/special/force/fc_msgs.ts",
+		from: "if (getLocalEntityFloatValue(task, FloatType.FLOAT_TYPE_TASK_USER_DATA) === sub_type) {",
+		to: "if (getLocalEntityFloatValue(task, FloatType.FLOAT_TYPE_TASK_USER_DATA) === sub_type && getLocalEntityIntValue(task, IntType.INT_TYPE_TASK_STATE) !== 2) {",
+		suite: "lua",
+	},
 ];
 
 function run(cwd, command, args) {
@@ -602,7 +763,10 @@ try {
 	rmSync(baseline, { recursive: true, force: true });
 }
 
-for (const mutant of MUTANTS) {
+// MUTANT_FILTER=<text> runs only the mutants whose name contains it (while developing a slice)
+const selected = MUTANTS.filter((mutant) => !process.env.MUTANT_FILTER || mutant.name.includes(process.env.MUTANT_FILTER));
+
+for (const mutant of selected) {
 	const dir = copyProject();
 	try {
 		const path = join(dir, mutant.file);
@@ -625,8 +789,8 @@ for (const mutant of MUTANTS) {
 }
 
 if (survivors > 0) {
-	console.error(`${survivors} of ${MUTANTS.length} mutants survived`);
+	console.error(`${survivors} of ${selected.length} mutants survived`);
 	process.exit(1);
 }
 
-console.log(`all ${MUTANTS.length} mutants killed`);
+console.log(`all ${selected.length} mutants killed`);

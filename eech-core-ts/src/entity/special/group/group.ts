@@ -228,6 +228,7 @@ export function overloadGroupFunctions(): void {
 	//               en_list/get_prnt.h :: LIST_TYPE_GROUP_LINK serves BUILDING_GROUP, INDEPENDENT_GROUP and KEYSITE_GROUP
 	overloadEntityListRoot(GROUP, "member_root", [ListType.LIST_TYPE_MEMBER]);
 	overloadEntityListRoot(GROUP, "guide_stack_root", [ListType.LIST_TYPE_GUIDE_STACK]);
+	overloadEntityListRoot(GROUP, "task_dependent_root", [ListType.LIST_TYPE_TASK_DEPENDENT]);
 	overloadEntityListLink(GROUP, "group_link", [ListType.LIST_TYPE_BUILDING_GROUP, ListType.LIST_TYPE_INDEPENDENT_GROUP, ListType.LIST_TYPE_KEYSITE_GROUP]);
 	overloadEntityListLink(GROUP, "update_link", [ListType.LIST_TYPE_UPDATE]);
 

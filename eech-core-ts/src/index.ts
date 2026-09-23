@@ -14,6 +14,9 @@ import { overloadUpdateFunctions, resetUpdateEntity } from "./entity/special/upd
 import { initialiseEntityRuntime, type UnportedMessagePolicy } from "./entity/system/entity";
 import { overloadMobileFunctions } from "./entity/mobile/mobile";
 import { overloadForceFunctions } from "./entity/special/force/force";
+import { overloadForceMessageResponses } from "./entity/special/force/fc_msgs";
+import { overloadTaskFunctions } from "./entity/special/task/task";
+import { overloadWaypointFunctions } from "./entity/special/waypoint/waypoint";
 import { overloadGroupFunctions } from "./entity/special/group/group";
 import { overloadGuideFunctions } from "./entity/special/guide/guide";
 import { overloadKeysiteFunctions } from "./entity/special/keysite/keysite";
@@ -26,7 +29,8 @@ import { resetWorldMap } from "./entity/system/en_world";
 
 export interface CampaignCoreOptions {
 	// "throw" in production. Test harnesses may use "record" to observe
-	// deliveries to message responses that are not ported yet.
+	// calls into C functions that are not ported yet (the boundary of the
+	// latest slice, e.g. create_supply_task), see takeUnportedCallLog.
 	unportedMessagePolicy?: UnportedMessagePolicy;
 
 	// EECH.INI "entity update frame rate" (cmndline.c default 2)
@@ -49,6 +53,7 @@ export function initialiseCampaignCore(ports: CampaignPorts, options: CampaignCo
 
 	overloadSessionListFunctions();
 	overloadForceFunctions();
+	overloadForceMessageResponses();
 	overloadKeysiteFunctions();
 	overloadGroupFunctions();
 	overloadGuideFunctions();
@@ -56,6 +61,8 @@ export function initialiseCampaignCore(ports: CampaignPorts, options: CampaignCo
 	overloadUpdateFunctions();
 	overloadSectorFunctions();
 	overloadCargoFunctions();
+	overloadTaskFunctions();
+	overloadWaypointFunctions();
 	overloadUnknownEntityDestroyFunctions();
 }
 
@@ -92,5 +99,6 @@ export { createLocalSectorEntities } from "./entity/special/sector/sector";
 // is ported; until then hosts and tests build state with them.
 export { insertLocalEntityIntoParentsChildListRaw } from "./entity/system/en_list";
 export { createLocalEntityRaw } from "./entity/system/en_heap";
-export { setSessionEntityRaw, takeUnportedMessageLog } from "./entity/system/entity";
-export { EntitySide, EntitySubTypeCargo, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, FloatType, GameStatusType, IntType, ListType, Vec3dType } from "./generated/c-enums";
+export { setSessionEntityRaw, takeUnportedCallLog } from "./entity/system/entity";
+export { EntitySide, EntitySubTypeCargo, EntitySubTypeGroup, EntitySubTypeKeysite, EntitySubTypeTask, EntityType, FloatType, GameStatusType, IntType, ListType, MovementType, TaskStateType, Vec3dType } from "./generated/c-enums";
+export { EntitySubTypeWaypoint } from "./generated/c-enums";

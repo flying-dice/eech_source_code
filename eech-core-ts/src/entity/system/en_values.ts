@@ -77,6 +77,13 @@ export function defaultGetEntityIntValue(_en: Entity, _type: IntType): number {
 	return 0;
 }
 
+// C provenance: en_float.c :: default_get_entity_float_value, `default:` arm
+// (value = 0.0). Only installed for float types whose C default is that arm, on
+// entity types whose overload tables are known to keep the default.
+export function defaultGetEntityFloatValue(_en: Entity, _type: FloatType): number {
+	return 0.0;
+}
+
 // C provenance: en_int.c :: default_set_entity_int_value (does nothing). Only
 // installed where the C overload tables are known to keep this default.
 export function defaultSetEntityIntValue(_en: Entity, _type: IntType, _value: number): void {}

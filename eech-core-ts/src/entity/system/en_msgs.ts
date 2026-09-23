@@ -8,9 +8,9 @@
 // array in the same order.
 //
 
-import { ASSERT, UnportedBehaviourError } from "../../core/assert";
-import { EntityMessage, EntityType } from "../../generated/c-enums";
-import { getUnportedMessagePolicy, recordUnportedMessage, type Entity, type MessageArg } from "./entity";
+import { ASSERT } from "../../core/assert";
+import { EntityMessage } from "../../generated/c-enums";
+import type { Entity, MessageArg } from "./entity";
 import { EntityFunctionTable } from "./function-table";
 
 export type MessageResponseFn = (message: EntityMessage, receiver: Entity, sender: Entity | undefined, args: MessageArg[]) => number;
@@ -30,24 +30,4 @@ export function notifyLocalEntity(message: EntityMessage, receiver: Entity | und
 // C message table is known to keep this default.
 export function defaultMessageResponse(): number {
 	return 0;
-}
-
-//
-// Marks a message response that EECH overloads but the port has not ported
-// yet. With the "throw" policy (production) delivery fails loudly. With the
-// "record" policy (tests) the delivery is recorded and acknowledged with FALSE,
-// the value of default_message_response, so callers that ignore the
-// acknowledgement (as assess_group_supplies does) can be tested up to the
-// message boundary.
-//
-export function overloadUnportedMessageResponse(entityType: EntityType, message: EntityMessage, provenance: string): void {
-	messageResponses.overload(entityType, message, (msg, receiver, sender, args) => {
-		if (getUnportedMessagePolicy() === "throw") {
-			throw new UnportedBehaviourError(`message_responses [${EntityType[entityType]}] [${EntityMessage[msg]}] (${provenance})`);
-		}
-
-		recordUnportedMessage({ message: msg, receiver, sender, args, provenance });
-
-		return 0;
-	});
 }

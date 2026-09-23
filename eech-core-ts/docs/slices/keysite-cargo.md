@@ -172,6 +172,7 @@ interface Object3DMetadata {
 - In production it throws.
 - Test runners use the existing `unportedMessagePolicy: "record"`, and the C harness records it the same way (`record_force_low_on_supplies`).
 - Both print `message <force> <keysite> <message> <sub_type>`.
+- Since Slice 5a (issue #12) the response is ported. It runs behind the same trace line, so this slice's fixtures are unchanged; its own boundary is `create_supply_task` (`docs/slices/force-low-on-supplies.md`).
 
 **Not in this slice:**
 - the callers (`ks_creat.c`, `ks_updt.c`);

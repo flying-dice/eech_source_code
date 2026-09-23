@@ -19,9 +19,23 @@
 //   keysite-state  a keysite's raw alive bit and height, as a saved game holds them
 //   update-cargo   update_keysite_cargo (keysite, level, sub_type, size)
 //
-// Crates the original creates are labelled crate<index>; deliveries to the
-// unported force response are printed as message lines, as the C harness
-// records them.
+// and, since Slice 5a (fc_msgs.c :: response_to_force_low_on_supplies, issue #12):
+//
+//   observe-supply-tasks  print the create_supply_task boundary from here on
+//   comms-model           the host's set_comms_model
+//   restore-group         a group (sub type, side, supplies, parent, leader) as a saved game holds it
+//   task                  a task on its objective's LIST_TYPE_TASK_DEPENDENT list, as a saved game holds it
+//   waypoint              a route waypoint on its dependent's LIST_TYPE_TASK_DEPENDENT list, as a saved game holds it
+//   assess-group          assess_group_supplies (group)
+//
+// A NULL dereference (reachable through assess_group_supplies, Slice 1) ends
+// the output with "result null-dereference" and the keysites' final supply
+// levels, as the C harness's fault handler writes them.
+//
+// Crates the original creates are labelled crate<index>. Every
+// FORCE_LOW_ON_SUPPLIES delivery is printed as a message line, as the C
+// harness records it, before the (now ported) force response runs; see
+// supply-boundary.ts.
 //
 // The outcome is the same text the C harness prints: transmissions, created
 // indices, the result, and the entity graph (heap order, cargo values, keysite
@@ -30,13 +44,17 @@
 // TSTL-compatible: no Node APIs, no Map/Set, no JSON, no undefined properties.
 //
 
-import { EechAssertionError, EechFatalError } from "../../src/core/assert";
+import { EechAssertionError, EechFatalError, EechNullDereferenceError } from "../../src/core/assert";
 import { storeUnsignedBitfield } from "../../src/core/cint";
 import { toFloat32 } from "../../src/core/float32";
 import { setGameStatus } from "../../src/core/game-status";
 import { initialiseCampaignCore } from "../../src";
 import type { ForceRaw } from "../../src/entity/special/force/force";
 import { updateKeysiteCargo, type KeysiteRaw } from "../../src/entity/special/keysite/keysite";
+import { assessGroupSupplies, type GroupRaw } from "../../src/entity/special/group/group";
+import type { TaskRaw } from "../../src/entity/special/task/task";
+import type { WaypointRaw } from "../../src/entity/special/waypoint/waypoint";
+import { setCommsModel, type CommsModel } from "../../src/entity/system/comms";
 import { createLocalSectorEntities, getLocalRawSectorEntity } from "../../src/entity/special/sector/sector";
 import type { EntityAttribute } from "../../src/entity/system/en_attrs";
 import { createClientServerEntity } from "../../src/entity/system/en_creat";
@@ -45,14 +63,15 @@ import { createLocalEntityRaw, getFirstFreeEntity, getFreeEntity, getLocalEntity
 import { getLocalEntityChildSucc, getLocalEntityFirstChild, getLocalEntityParent, insertLocalEntityIntoParentsChildListRaw } from "../../src/entity/system/en_list";
 import { getLocalEntityIntValue, getLocalEntityVec3dPtr } from "../../src/entity/system/en_values";
 import { getWorldMap, setEntityWorldMapSize } from "../../src/entity/system/en_world";
-import { getLocalEntityData, setLocalEntityData, setLocalEntityType, setSessionEntityRaw, takeUnportedMessageLog, type Entity } from "../../src/entity/system/entity";
+import { getLocalEntityData, setLocalEntityData, setLocalEntityType, setSessionEntityRaw, type Entity } from "../../src/entity/system/entity";
 import { setUpdateEntity } from "../../src/entity/special/update/update";
 import { EntitySide, EntityType, IntType, ListType, Vec3dType, type EntityType as EntityTypeT } from "../../src/generated/c-enums";
 import type { EntityReplication, ReplicatedEntityAttribute } from "../../src/ports";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
 import { ScriptedClock } from "../adapters/scripted-clock";
-import type { KeysiteSpec } from "./campaign-scenario";
+import type { KeysiteSpec, PositionSpec } from "./campaign-scenario";
+import { takeSupplyTaskLines, traceForceLowOnSupplies } from "./supply-boundary";
 import { float32Hex } from "./float-bits";
 
 export type LifecycleAttribute =
@@ -72,7 +91,14 @@ export type LifecycleOp =
 	| { kind: "game-status"; status: number }
 	| { kind: "bounds"; object: number; xmin: number; xmax: number; ymin: number; ymax: number; zmin: number; zmax: number }
 	| { kind: "keysite-state"; keysite: string; alive: number; y: number }
-	| { kind: "update-cargo"; keysite: string; level: number; subType: number; size: number };
+	| { kind: "update-cargo"; keysite: string; level: number; subType: number; size: number }
+	| { kind: "observe-supply-tasks" }
+	| { kind: "comms-model"; model: number }
+	// parent: a keysite label, "independent" (the force of its side) or "NULL"
+	| { kind: "restore-group"; label: string; subType: number; side: number; ammo: number; fuel: number; parent: string; busy: boolean; leader: PositionSpec }
+	| { kind: "task"; label: string; objective: string; subType: number; side: number; state: number; userData: number }
+	| { kind: "waypoint"; label: string; dependent: string; subType: number }
+	| { kind: "assess-group"; group: string };
 
 export interface LifecycleSpec {
 	heap: number;
@@ -144,10 +170,27 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 
 	const objects = new InMemoryObject3DMetadata();
 
-	// "record": the C harness records deliveries to the unported force response
+	const physical = new InMemoryMobilePhysicalState();
+
+	// "record": the create_supply_task boundary (Slice 5b) is recorded, not thrown
 	initialiseCampaignCore(
-		{ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new LineReplication(lines, labelOfIndex), clock: new ScriptedClock(), object3DMetadata: objects },
+		{ mobilePhysicalState: physical, entityReplication: new LineReplication(lines, labelOfIndex), clock: new ScriptedClock(), object3DMetadata: objects },
 		{ unportedMessagePolicy: "record", numberOfEntities: spec.heap },
+	);
+
+	let observeSupplyTasks = false;
+
+	const takeBoundary = (): void => {
+		for (const line of takeSupplyTaskLines(labelOf)) {
+			if (observeSupplyTasks) {
+				lines.push(line);
+			}
+		}
+	};
+
+	traceForceLowOnSupplies(
+		(d) => lines.push(`message ${labelOf(d.receiver)} ${labelOf(d.sender)} ${d.message} ${d.subType}`),
+		takeBoundary,
 	);
 
 	const session = createLocalEntityRaw(EntityType.ENTITY_TYPE_SESSION, {});
@@ -224,14 +267,18 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 		throw new Error(`unknown entity label ${label}`);
 	};
 
+	const lastChild = (parent: Entity, type: ListType): Entity | undefined => {
+		let last: Entity | undefined = undefined;
+
+		for (let en = getLocalEntityFirstChild(parent, type); en !== undefined; en = getLocalEntityChildSucc(en, type)) {
+			last = en;
+		}
+
+		return last;
+	};
+
 	let mapComplete = false;
 
-	// deliveries to the unported force response, as the C harness prints them
-	const flushMessages = (): void => {
-		for (const delivery of takeUnportedMessageLog()) {
-			lines.push(`message ${labelOf(delivery.receiver)} ${labelOf(delivery.sender)} ${delivery.message} ${delivery.args[0] as number}`);
-		}
-	};
 
 	let result = "ok";
 
@@ -307,19 +354,89 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 						labels[en.index] = `crate${en.index}`;
 					}
 				}
+			} else if (op.kind === "observe-supply-tasks") {
+				observeSupplyTasks = true;
+			} else if (op.kind === "comms-model") {
+				setCommsModel(op.model as CommsModel);
+			} else if (op.kind === "restore-group") {
+				const raw: GroupRaw = {
+					sub_type: op.subType,
+					side: op.side,
+					supplies: { ammo_supply_level: toFloat32(op.ammo), fuel_supply_level: toFloat32(op.fuel) },
+					sleep: 0,
+					assist_timer: 0,
+				};
+				const group = createLocalEntityRaw(EntityType.ENTITY_TYPE_GROUP, raw);
+				labels[group.index] = op.label;
+
+				if (op.parent === "independent") {
+					for (const force of forces) {
+						if ((force.data as ForceRaw).side === op.side) {
+							insertLocalEntityIntoParentsChildListRaw(group, ListType.LIST_TYPE_INDEPENDENT_GROUP, force, lastChild(force, ListType.LIST_TYPE_INDEPENDENT_GROUP));
+							break;
+						}
+					}
+				} else if (op.parent !== "NULL") {
+					const parent = find(op.parent) as Entity;
+					insertLocalEntityIntoParentsChildListRaw(group, ListType.LIST_TYPE_KEYSITE_GROUP, parent, lastChild(parent, ListType.LIST_TYPE_KEYSITE_GROUP));
+				}
+
+				if (op.busy) {
+					const guide = createLocalEntityRaw(EntityType.ENTITY_TYPE_GUIDE, {});
+					labels[guide.index] = `${op.label}.guide`;
+					insertLocalEntityIntoParentsChildListRaw(guide, ListType.LIST_TYPE_GUIDE_STACK, group, undefined);
+				}
+
+				if (op.leader.kind === "at") {
+					const leader = createLocalEntityRaw(EntityType.ENTITY_TYPE_HELICOPTER, {});
+					labels[leader.index] = `${op.label}.leader`;
+					insertLocalEntityIntoParentsChildListRaw(leader, ListType.LIST_TYPE_MEMBER, group, undefined);
+					physical.setMobilePosition(leader.index, { x: toFloat32(op.leader.x), y: 0, z: toFloat32(op.leader.z) });
+				}
+			} else if (op.kind === "task") {
+				const raw: TaskRaw = {
+					sub_type: op.subType,
+					task_state: op.state,
+					task_user_data: toFloat32(op.userData),
+					side: storeUnsignedBitfield(op.side, 2),
+				};
+				const task = createLocalEntityRaw(EntityType.ENTITY_TYPE_TASK, raw);
+				labels[task.index] = op.label;
+				const objective = find(op.objective) as Entity;
+				insertLocalEntityIntoParentsChildListRaw(task, ListType.LIST_TYPE_TASK_DEPENDENT, objective, lastChild(objective, ListType.LIST_TYPE_TASK_DEPENDENT));
+			} else if (op.kind === "waypoint") {
+				const raw: WaypointRaw = { sub_type: op.subType };
+				const waypoint = createLocalEntityRaw(EntityType.ENTITY_TYPE_WAYPOINT, raw);
+				labels[waypoint.index] = op.label;
+				const dependent = find(op.dependent) as Entity;
+				insertLocalEntityIntoParentsChildListRaw(waypoint, ListType.LIST_TYPE_TASK_DEPENDENT, dependent, lastChild(dependent, ListType.LIST_TYPE_TASK_DEPENDENT));
+			} else if (op.kind === "assess-group") {
+				assessGroupSupplies(find(op.group) as Entity);
 			} else {
 				destroyClientServerEntityFamily(find(op.label) as Entity);
 			}
 
-			flushMessages();
+			takeBoundary();
 		}
 	} catch (e) {
-		flushMessages();
+		takeBoundary();
 
 		if (e instanceof EechAssertionError) {
 			result = `assert ${e.expression}`;
 		} else if (e instanceof EechFatalError) {
 			result = `fatal ${e.format}`;
+		} else if (e instanceof EechNullDereferenceError) {
+			// the C harness reports a NULL dereference from its fault handler,
+			// which can only write the keysites' supply levels, not the graph
+			lines.push("result null-dereference");
+
+			for (const keysite of keysites) {
+				const raw = keysite.data as KeysiteRaw;
+
+				lines.push(`final keysite ${float32Hex(raw.supplies.ammo_supply_level)} ${float32Hex(raw.supplies.fuel_supply_level)}`);
+			}
+
+			return lines;
 		} else {
 			throw e;
 		}
@@ -426,6 +543,19 @@ export function serialiseLifecycle(spec: LifecycleSpec, formatNumber: (n: number
 			lines.push(`keysite-state ${op.keysite} ${op.alive} ${formatNumber(op.y)}`);
 		} else if (op.kind === "update-cargo") {
 			lines.push(`update-cargo ${op.keysite} ${formatNumber(op.level)} ${op.subType} ${formatNumber(op.size)}`);
+		} else if (op.kind === "observe-supply-tasks") {
+			lines.push("observe-supply-tasks");
+		} else if (op.kind === "comms-model") {
+			lines.push(`comms-model ${op.model}`);
+		} else if (op.kind === "restore-group") {
+			const leader = op.leader.kind === "at" ? `1 ${formatNumber(op.leader.x)} ${formatNumber(op.leader.z)}` : "0 0 0";
+			lines.push(`restore-group ${op.label} ${op.subType} ${op.side} ${formatNumber(op.ammo)} ${formatNumber(op.fuel)} ${op.parent} ${op.busy ? 1 : 0} ${leader}`);
+		} else if (op.kind === "task") {
+			lines.push(`task ${op.label} ${op.objective} ${op.subType} ${op.side} ${op.state} ${formatNumber(op.userData)}`);
+		} else if (op.kind === "waypoint") {
+			lines.push(`waypoint ${op.label} ${op.dependent} ${op.subType}`);
+		} else if (op.kind === "assess-group") {
+			lines.push(`assess-group ${op.group}`);
 		} else {
 			lines.push(`destroy ${op.label}`);
 		}

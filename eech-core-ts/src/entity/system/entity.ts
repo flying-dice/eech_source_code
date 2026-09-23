@@ -22,8 +22,8 @@
 // without running creation-time behaviour. Creation proper is en_creat.ts.
 //
 
-import { ASSERT } from "../../core/assert";
-import { CommsModelType, EntityType, type EntityMessage } from "../../generated/c-enums";
+import { ASSERT, UnportedBehaviourError } from "../../core/assert";
+import { CommsModelType, EntityType } from "../../generated/c-enums";
 import type { CampaignPorts } from "../../ports";
 import { setCommsModel } from "./comms";
 
@@ -52,10 +52,10 @@ export type UnportedMessagePolicy = "throw" | "record";
 
 export type MessageArg = number | Entity | undefined;
 
-export interface UnportedMessageDelivery {
-	message: EntityMessage;
-	receiver: Entity;
-	sender: Entity | undefined;
+// A call into a C function that a later slice ports, reached under the
+// "record" policy (the function's boundary, e.g. taskgen.c :: create_supply_task).
+export interface UnportedCall {
+	name: string;
 	args: MessageArg[];
 	provenance: string;
 }
@@ -68,7 +68,7 @@ interface EntityRuntime {
 	firstFreeEntity: number;
 	firstUsedEntity: number;
 	unportedMessagePolicy: UnportedMessagePolicy;
-	unportedMessageLog: UnportedMessageDelivery[];
+	unportedCallLog: UnportedCall[];
 	sessionEntity: Entity | undefined;
 }
 
@@ -82,7 +82,7 @@ export function initialiseEntityRuntime(ports: CampaignPorts, unportedMessagePol
 		firstFreeEntity: -1,
 		firstUsedEntity: -1,
 		unportedMessagePolicy,
-		unportedMessageLog: [],
+		unportedCallLog: [],
 		sessionEntity: undefined,
 	};
 
@@ -102,16 +102,23 @@ export function getCampaignPorts(): CampaignPorts {
 	return getRuntime().ports;
 }
 
-export function getUnportedMessagePolicy(): UnportedMessagePolicy {
-	return getRuntime().unportedMessagePolicy;
+//
+// A call to a C function the port has not ported yet. With the "throw" policy
+// (production) it fails loudly; with "record" (tests) it is recorded, so the
+// ported caller can be tested up to that boundary.
+//
+export function callUnportedFunction(call: UnportedCall): void {
+	const rt = getRuntime();
+
+	if (rt.unportedMessagePolicy === "throw") {
+		throw new UnportedBehaviourError(`${call.name} (${call.provenance})`);
+	}
+
+	rt.unportedCallLog.push(call);
 }
 
-export function recordUnportedMessage(delivery: UnportedMessageDelivery): void {
-	getRuntime().unportedMessageLog.push(delivery);
-}
-
-export function takeUnportedMessageLog(): UnportedMessageDelivery[] {
-	const log = getRuntime().unportedMessageLog;
+export function takeUnportedCallLog(): UnportedCall[] {
+	const log = getRuntime().unportedCallLog;
 
 	return log.splice(0, log.length);
 }

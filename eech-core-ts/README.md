@@ -18,6 +18,12 @@ dimensions) reaches it only through narrow ports in `src/ports`.
   boundary and behaviour matrix.
 - `docs/slices/entity-lifecycle-cargo.md`: slice 3, frozen, with its
   investigation, findings, boundary and behaviour matrix.
+- `docs/slices/keysite-cargo.md`: slice 4, frozen, with its investigations,
+  boundary and behaviour matrix.
+- `docs/slices/supply-task-investigation.md`: the trace of the force's
+  low-on-supplies response to its terminus, and the 5a / 5b split.
+- `docs/slices/force-low-on-supplies.md`: slice 5a, the force's
+  low-on-supplies response up to the `create_supply_task` boundary.
 
 ## Requirements
 
@@ -57,7 +63,8 @@ src/
   core/            ASSERT, C float and integer semantics (float32: RTZ arithmetic, cint), maths, time (get_delta_time), configuration
   entity/system/   entity runtime: heap, lists (with shared links), value function tables, messages, comms model,
                    creation attributes, creation / destruction dispatch, the world map
-  entity/special/  session, force, keysite, group, guide, update, sector, effect: the ported overloads, campaign functions and the update loop
+  entity/special/  session, force, keysite, group, guide, update, sector, effect, task, waypoint: the ported overloads, campaign functions and the update loop
+  ai/taskgen/      task generation (so far only the create_supply_task boundary)
   entity/mobile/   campaign-visible surface of aircraft and vehicles (position comes from a port), and cargo
   generated/       enums, database columns and constants generated from the EECH C (never hand-edited)
   ports/           what the campaign needs from the environment

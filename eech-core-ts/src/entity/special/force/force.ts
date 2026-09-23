@@ -4,10 +4,9 @@
 // C provenance: entity/special/force/force.c, fc_int.c, fc_list.c, fc_msgs.c
 //
 
-import { EntityMessage, EntitySide, EntityType, IntType, ListType } from "../../../generated/c-enums";
+import { EntitySide, EntityType, IntType, ListType } from "../../../generated/c-enums";
 import { ASSERT } from "../../../core/assert";
 import { getLocalEntityChildSucc, getLocalEntityFirstChild, overloadEntityListLink, overloadEntityListRoot } from "../../system/en_list";
-import { overloadUnportedMessageResponse } from "../../system/en_msgs";
 import { fnGetLocalEntityIntValue, getLocalEntityIntValue } from "../../system/en_values";
 import { getLocalEntityData, getLocalEntityType, getSessionEntity, type Entity } from "../../system/entity";
 
@@ -49,10 +48,5 @@ export function overloadForceFunctions(): void {
 	// C provenance: fc_int.c :: overload_force_int_value_functions, get_local_int_value
 	fnGetLocalEntityIntValue.overload(EntityType.ENTITY_TYPE_FORCE, IntType.INT_TYPE_SIDE, (en) => getLocalEntityData<ForceRaw>(en).side);
 
-	// C provenance: fc_msgs.c :: overload_force_message_responses
-	overloadUnportedMessageResponse(
-		EntityType.ENTITY_TYPE_FORCE,
-		EntityMessage.ENTITY_MESSAGE_FORCE_LOW_ON_SUPPLIES,
-		"fc_msgs.c :: response_to_force_low_on_supplies",
-	);
+	// fc_msgs.c :: overload_force_message_responses: see fc_msgs.ts
 }

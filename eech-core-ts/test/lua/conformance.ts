@@ -26,6 +26,8 @@ import { KEYSITE_CARGO_CASES } from "../scenarios/keysite-cargo.cases";
 import { C_REFERENCE_CRATE_ROW_CASES } from "../scenarios/generated/c-reference-crate-row.cases";
 import { advanceCrateRow } from "../../src/entity/special/keysite/keysite";
 import { firstUnmatchedLine, runLifecycle } from "../scenarios/lifecycle-scenario";
+import { FORCE_LOW_ON_SUPPLIES_CASES } from "../scenarios/force-low-on-supplies.cases";
+import { C_REFERENCE_RANDOM_FORCE_LOW_ON_SUPPLIES } from "../scenarios/generated/c-reference-random-force-low-on-supplies.cases";
 import { runTimeline } from "../scenarios/update-timeline";
 
 declare const _VERSION: string;
@@ -146,6 +148,21 @@ for (const [x, xmin, xmax, expected] of C_REFERENCE_CRATE_ROW_CASES) {
 }
 
 for (const c of C_REFERENCE_RANDOM_KEYSITE_CARGO) {
+	check(c.id, runLifecycle(c.spec), c.expected);
+}
+
+// Slice 5a: fc_msgs.c :: response_to_force_low_on_supplies
+for (const c of FORCE_LOW_ON_SUPPLIES_CASES) {
+	const output = runLifecycle(c.spec);
+	check(c.id, firstUnmatchedLine(output, c.expected), "");
+	for (const prefix of c.absent) {
+		for (const line of output) {
+			check(`${c.id}: absent ${prefix}`, line.substring(0, prefix.length) === prefix, false);
+		}
+	}
+}
+
+for (const c of C_REFERENCE_RANDOM_FORCE_LOW_ON_SUPPLIES) {
 	check(c.id, runLifecycle(c.spec), c.expected);
 }
 

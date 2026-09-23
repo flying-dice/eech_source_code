@@ -1,6 +1,6 @@
 # Slice 5 investigation: `response_to_force_low_on_supplies` and the supply-task chain
 
-Status: **investigation only, nothing ported.** The trace was done against master at `e6a74dc`, where Slice 4 (PR #11) is frozen. Line numbers refer to that commit.
+Status: **investigation; the basis of Slice 5a (issue #12).** The trace was done against master at `e6a74dc`, where Slice 4 (PR #11) is frozen. Line numbers refer to that commit. The split below was agreed: 5a ports the response up to the `create_supply_task` boundary (`docs/slices/force-low-on-supplies.md`, which also records a finding made while porting: a RECON waypoint on the requester's task-dependent list reads as an ammo supply task); 5b is task construction, and F1 is decided there.
 
 The question: where does the C path that starts at `ENTITY_MESSAGE_FORCE_LOW_ON_SUPPLIES` actually end?
 
@@ -134,7 +134,7 @@ Requesters, from the generated keysite database, are those with negative usage:
 | `assess_task_difficulty` (sector SAM levels, sector side, Bresenham) | **new** |
 | sector `LIST_TYPE_SECTOR_TASK`, keysite `LIST_TYPE_UNASSIGNED_TASK`, `LIST_TYPE_TASK_DEPENDENT` | **new** list roots and links |
 | `ENTITY_COMMS_SET_TASK_POINTERS`, client-server parent switch for tasks | **new** replication |
-| harness: `fc_msgs.c`, `taskgen.c`, `task.c`, `ts_*.c`, `suitable.c` compiled whole | **new**; today the harness overrides the response with `record_force_low_on_supplies` |
+| harness: `fc_msgs.c`, `taskgen.c`, `task.c`, `ts_*.c`, `suitable.c` compiled whole | **new**; at `e6a74dc` the harness overrides the response with `record_force_low_on_supplies` |
 
 ## Consequence for the frozen fixtures
 

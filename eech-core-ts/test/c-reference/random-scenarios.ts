@@ -5,7 +5,7 @@
 //
 
 import { OBJECT_3D_SINGLE_CRATE } from "../../src/generated/c-constants";
-import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, FloatType, GameStatusType, IntType, ListType, Vec3dType } from "../../src/generated/c-enums";
+import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntitySubTypeTask, EntityType, FloatType, GameStatusType, IntType, ListType, Vec3dType } from "../../src/generated/c-enums";
 import type { GroupParentSpec, KeysiteSpec, PositionSpec, ScenarioSpec } from "../scenarios/campaign-scenario";
 import type { LifecycleAttribute, LifecycleOp, LifecycleSpec } from "../scenarios/lifecycle-scenario";
 import type { TimelineSpec, TimelineStep } from "../scenarios/update-timeline";
@@ -505,4 +505,157 @@ export function generateCrateRowOperands(seed: number, count: number): [number, 
 		}
 	}
 	return out;
+}
+
+//
+// Slice 5a (issue #12): fc_msgs.c :: response_to_force_low_on_supplies on the
+// real Slice 1-4 entity graph. Keysites of every sub type cluster around a
+// requester, some at offsets on either side of get_closest_keysite's 10 km
+// early exit and where the approximate and exact ranges disagree; real
+// update_keysite_cargo calls stock them; restored tasks sit on requesters'
+// LIST_TYPE_TASK_DEPENDENT lists; groups request through assess_group_supplies.
+// Every scenario observes the create_supply_task boundary from its start.
+//
+export function generateRandomForceLowOnSupplies(seed: number, count: number): LifecycleSpec[] {
+	const rnd = mulberry32(seed);
+	const int = (n: number) => Math.floor(rnd() * n);
+	const chance = (p: number) => rnd() < p;
+	const pick = <T>(values: T[]): T => values[int(values.length)];
+	const sides = [EntitySide.ENTITY_SIDE_BLUE_FORCE, EntitySide.ENTITY_SIDE_RED_FORCE];
+	const clamp = (v: number) => Math.min(32000, Math.max(0, v));
+
+	// supplier offsets: near, around the 10 km early exit, far, and pairs where
+	// get_approx_2d_range and get_2d_range fall on different sides of it
+	const offsets: [number, number][] = [
+		[0, 0],
+		[3000, 0],
+		[9500, 2000],
+		[9800, 1000],
+		[7900, 7900],
+		[10000, 0],
+		[10500, 0],
+		[12000, 0],
+		[-12000, 0],
+		[20000, 0],
+		[0, -15000],
+	];
+
+	const groupTypes = [
+		EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_ANTI_AIRCRAFT,
+		EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_PRIMARY_FRONTLINE,
+		EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_SECONDARY_FRONTLINE,
+		EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_SELF_PROPELLED_ARTILLERY,
+		EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_SELF_PROPELLED_MLRS,
+	];
+
+	const specs: LifecycleSpec[] = [];
+
+	for (let n = 0; n < count; n++) {
+		const forces: EntitySide[] = chance(0.03) ? [] : chance(0.5) ? [sides[0], sides[1]] : [sides[0]];
+
+		const cx = 1000 * (6 + int(20));
+		const cz = 1000 * (6 + int(20));
+
+		const keysites: KeysiteSpec[] = [];
+		const numKeysites = 1 + int(6);
+		for (let i = 0; i < numKeysites; i++) {
+			const [dx, dz] = i === 0 ? [0, 0] : chance(0.7) ? pick(offsets) : [int(30000) - 15000, int(30000) - 15000];
+			const flip = chance(0.5) ? -1 : 1;
+			keysites.push({
+				side: chance(0.8) ? sides[0] : sides[1],
+				subType: i === 0 ? pick([0, 3, 4, 6, int(9)]) : pick([0, 2, 7, int(9)]),
+				inUse: chance(0.92),
+				x: clamp(cx + flip * dx),
+				z: clamp(cz + dz),
+				ammo: 100,
+				fuel: 100,
+			});
+		}
+
+		const ops: LifecycleOp[] = [{ kind: "observe-supply-tasks" }];
+
+		for (let i = 0; i < numKeysites; i++) {
+			ops.push({ kind: "keysite-state", keysite: `keysite${i}`, alive: chance(0.95) ? 1 : 0, y: 0 });
+		}
+
+		ops.push(
+			{ kind: "bounds", object: OBJECT_3D_SINGLE_CRATE, xmin: -1, xmax: 1, ymin: -0.5, ymax: 0.5, zmin: -1.5, zmax: 1.5 },
+			{ kind: "map", xSectors: 4, zSectors: 4, sideLength: 8192 },
+			{ kind: "game-status", status: chance(0.95) ? GameStatusType.GAME_STATUS_INITIALISED : GameStatusType.GAME_STATUS_UNINITIALISED },
+		);
+
+		// a comms client (rarely) makes one last request, of keysite0 for ammo at
+		// level 5: keysite0 never holds ammo crates in such a scenario, so that
+		// request neither creates nor destroys (client-side creation and
+		// destruction are not ported)
+		const client = chance(0.05);
+
+		// stock suppliers (and requesters) through the real update_keysite_cargo
+		for (let i = 0; i < numKeysites; i++) {
+			for (const subType of [0, 1]) {
+				if (chance(0.6) && !(client && i === 0 && subType === 0)) {
+					ops.push({ kind: "update-cargo", keysite: `keysite${i}`, level: pick([0, 5, 15, 35, 55]), subType, size: 10 });
+				}
+			}
+		}
+
+		const groups: string[] = [];
+		const numGroups = chance(0.4) ? 1 + int(2) : 0;
+		for (let g = 0; g < numGroups; g++) {
+			const leader: PositionSpec = chance(0.9) ? { kind: "at", x: clamp(cx + int(4000) - 2000), z: clamp(cz + int(4000) - 2000) } : { kind: "none" };
+			ops.push({
+				kind: "restore-group",
+				label: `g${g}`,
+				subType: chance(0.9) ? pick(groupTypes) : int(EntitySubTypeGroup.NUM_ENTITY_SUB_TYPE_GROUPS),
+				side: forces.length > 0 && chance(0.9) ? forces[0] : sides[1],
+				ammo: pick([100, 99.5, 50, 0]),
+				fuel: pick([100, 99.5, 50, 0]),
+				parent: chance(0.7) ? "NULL" : chance(0.5) ? "independent" : `keysite${int(numKeysites)}`,
+				busy: chance(0.2),
+				leader,
+			});
+			groups.push(`g${g}`);
+		}
+
+		const objectives = [...keysites.map((_, i) => `keysite${i}`), ...groups];
+		const numTasks = chance(0.5) ? 1 + int(3) : 0;
+		for (let t = 0; t < numTasks; t++) {
+			ops.push({
+				kind: "task",
+				label: `t${t}`,
+				objective: chance(0.7) ? objectives[0] : pick(objectives),
+				subType: chance(0.8) ? EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_SUPPLY : int(EntitySubTypeTask.NUM_ENTITY_SUB_TYPE_TASKS),
+				side: chance(0.75) ? sides[0] : sides[1],
+				state: int(3),
+				userData: pick([0, 1, 2, 0.5]),
+			});
+		}
+
+		// the requests: keysites below and above one crate's worth, and groups
+		const numRequests = 1 + int(4);
+		for (let r = 0; r < numRequests; r++) {
+			if (groups.length > 0 && chance(0.4)) {
+				ops.push({ kind: "assess-group", group: pick(groups) });
+			} else {
+				const keysite = chance(0.7) ? 0 : int(numKeysites);
+				const subType = client && keysite === 0 ? 1 : int(2);
+				ops.push({ kind: "update-cargo", keysite: `keysite${keysite}`, level: pick([0, 5, 10, 35, 60, 75, 80]), subType, size: 10 });
+			}
+		}
+
+		// route waypoints on requesters' task-dependent lists, RECON (21, the
+		// value of ENTITY_SUB_TYPE_TASK_SUPPLY) among them
+		const numWaypoints = chance(0.3) ? 1 + int(2) : 0;
+		for (let w = 0; w < numWaypoints; w++) {
+			ops.push({ kind: "waypoint", label: `w${w}`, dependent: chance(0.8) ? objectives[0] : pick(objectives), subType: chance(0.5) ? 21 : int(40) });
+		}
+
+		if (client) {
+			ops.push({ kind: "comms-model", model: 1 }, { kind: "update-cargo", keysite: "keysite0", level: 5, subType: 0, size: 10 });
+		}
+
+		specs.push({ heap: 400, forces, keysites, ops });
+	}
+
+	return specs;
 }
