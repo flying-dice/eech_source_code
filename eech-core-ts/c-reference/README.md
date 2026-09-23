@@ -50,12 +50,23 @@ TypeScript port.
   walks the call graph in the compiled object with `objdump` and fails on
   anything else, including calls the compiler inserts.
 - **Platform.** The harness is built for 32-bit x86 (`-m32`), EECH's platform,
-  with SSE float arithmetic (`-msse2 -mfpmath=sse`, `FLT_EVAL_METHOD == 0`).
+  with SSE float arithmetic at declared type (`-msse2 -mfpmath=sse`,
+  `FLT_EVAL_METHOD == 0`).
   The original code depends on the 32-bit calling convention: `en_creat.c`
   converts a `va_list` into the `char *` attribute buffer
   (`pargs_buffer = (char *) pargs`), which only works where `va_list` points
   into the argument stack. On x86-64 that pointer is meaningless. A compiler
   with 32-bit support is required (`gcc-multilib` on Debian and Ubuntu).
+- **Floating-point environment.** EECH runs its campaign thread rounding
+  toward zero (issue #7, `docs/fidelity/fpu-semantics.md`), so the harness
+  installs round-toward-zero before any scenario line runs. It sets it in the
+  SSE MXCSR and in the x87 control word (for libm's `sqrt` and `fistp`), and
+  aborts on drift. Scenario input is parsed and narrowed to nearest.
+  `test/c-reference/fpu-environment.cref.test.ts` pins the environment through
+  the harness `fpu` command. The `f32` command evaluates single C float
+  operations for `test/c-reference/float32-rtz.cref.test.ts`.
+  The investigation-only variants (`fpu-variants.mjs`, `buildHarnessVariant`,
+  `HARNESS_FPU_VARIANT`, `fpu-probes/`) never affect the canonical build.
 - `build.mjs` compiles everything. Our own files build with `-Werror`. Original
   files keep their historical warnings, but mismatches with the environment are
   errors (implicit declarations, pointer and int conversions). Before Slice 3

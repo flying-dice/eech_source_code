@@ -200,13 +200,20 @@ by the harness shim, and are verified by source reading only. The plan and the r
   set_manual_delta_time` has an undefined-behaviour history index update, and
   `up_update.c` clears only a quarter of its entity bitsets. Neither affects
   ported behaviour; see `docs/slices/group-update-timing.md`.
-- **Float arithmetic** follows IEEE single precision at declared type
-  (`FLT_EVAL_METHOD == 0`), rounding to nearest. **Open finding (slice 3):**
-  EECH sets the x87 FPU to round toward zero at start-up (`startup.c ::
-  set_fpu_rounding_mode_zero`), which governs `convert_float_to_int` (ported as
-  truncation) and also the rounding of every x87 float operation in the
-  original executable. No slice has been checked against round-toward-zero
-  arithmetic yet; see `docs/slices/entity-lifecycle-cargo.md`.
+- **Float arithmetic: the EECH numerical contract** (issue #7,
+  `docs/fidelity/fpu-semantics.md`):
+
+  | Aspect | Rule | Status |
+  |---|---|---|
+  | Rounding direction | toward zero (`startup.c :: set_fpu_rounding_mode_zero`, re-asserted after every library initialisation) | established, canonical |
+  | Declared float operations | IEEE binary32, rounded toward zero (`toFloat32RTZ`, `f32Add/Sub/Mul/Div/Sqrt`) | canonical |
+  | float → int | truncation (`toCInt`; `convert_float_to_int` is `fistp` under RTZ) | established |
+  | Compile-time constants (e.g. `time.c`'s `0.1`) | round to nearest (`toFloat32`) | established |
+  | x87 intermediate evaluation precision (24, 53 or 64 bits) and when values are rounded back to declared type | not modelled (declared type) | **unresolved**: needs the Windows runtime control-word trace plus the shipped compiler's instruction behaviour |
+
+  The `get_2d_range` sqrt argument is the canary for the unresolved row. It is
+  the one ported operation whose results depend on intermediate precision in
+  the corpora (spike: 15/1500 Slice 1 scenarios, all closest-keysite ranges).
 - **`debug_fatal`** throws `EechFatalError`, carrying the C format string
   (compared with the C reference) and a formatted message.
 - **Undefined behaviour** that crashes EECH (integer division by zero, e.g. a

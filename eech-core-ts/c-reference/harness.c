@@ -61,6 +61,109 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+// Floating-point environment (docs/fidelity/fpu-semantics.md).
+//
+// EECH runs its campaign thread with the FPU rounding toward zero
+// (startup.c, start_application :: set_fpu_rounding_mode_zero, re-asserted
+// after every library initialisation). The canonical oracle evaluates C float
+// arithmetic at declared type (SSE, FLT_EVAL_METHOD 0) with SSE rounding
+// toward zero, and sets the x87 rounding control to chop as well, so libm's x87
+// paths (sqrt) and fistp agree. The x87 precision control is left at the
+// platform default: whether EECH's intermediates were evaluated beyond declared
+// type is unresolved (issue #7) and is not modelled.
+//
+// The environment is installed before any scenario line runs and checked
+// before every line and at exit; a drift aborts with status 4. The `fpu`
+// command reports it (test/c-reference/fpu-environment.cref.test.ts).
+//
+// Scenario input is parsed and narrowed under round to nearest (INPUT_FP_*):
+// it is the scenario's value, not a result of EECH arithmetic.
+//
+// INVESTIGATION ONLY (issue #7): a build with HARNESS_FPU_VARIANT may install
+// another x87 control word (HARNESS_X87_CW) or SSE rounding (HARNESS_MXCSR_RC),
+// and with HARNESS_FISTP converts floats to ints with fistp.
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifndef HARNESS_X87_CW
+#define HARNESS_X87_CW 0x0f7f		/* round toward zero; platform default precision (64), exceptions masked */
+#endif
+
+#ifndef HARNESS_MXCSR_RC
+#define HARNESS_MXCSR_RC 0x6000		/* round toward zero */
+#endif
+
+static unsigned short read_x87_control_word (void)
+{
+	unsigned short
+		cw;
+
+	__asm__ __volatile__ ("fnstcw %0" : "=m" (cw));
+
+	return cw;
+}
+
+static void write_x87_control_word (unsigned short cw)
+{
+	__asm__ __volatile__ ("fclex; fldcw %0" : : "m" (cw));
+}
+
+static unsigned int read_mxcsr (void)
+{
+	unsigned int
+		mxcsr;
+
+	__asm__ __volatile__ ("stmxcsr %0" : "=m" (mxcsr));
+
+	return mxcsr;
+}
+
+static void write_mxcsr (unsigned int mxcsr)
+{
+	__asm__ __volatile__ ("ldmxcsr %0" : : "m" (mxcsr));
+}
+
+#define X87_RC_MASK 0x0c00
+
+#define MXCSR_RC_MASK 0x6000
+
+/* MXCSR bits 0-5 are sticky exception flags, not control */
+#define MXCSR_FLAGS 0x003f
+
+static unsigned short
+	installed_x87_cw;
+
+static unsigned int
+	installed_mxcsr;
+
+static void install_fpu_environment (void)
+{
+	write_x87_control_word (HARNESS_X87_CW);
+
+	write_mxcsr ((read_mxcsr () & ~MXCSR_RC_MASK) | HARNESS_MXCSR_RC);
+
+	installed_x87_cw = read_x87_control_word ();
+
+	installed_mxcsr = read_mxcsr () & ~MXCSR_FLAGS;
+}
+
+static void check_fpu_environment (void)
+{
+	if ((read_x87_control_word () != installed_x87_cw) || ((read_mxcsr () & ~MXCSR_FLAGS) != installed_mxcsr))
+	{
+		fprintf (stderr, "floating-point environment drifted: cw %04x mxcsr %08x\n", read_x87_control_word (), read_mxcsr ());
+
+		_exit (4);
+	}
+}
+
+// input: round to nearest in both units
+#define INPUT_FP_BEGIN	{ unsigned short input_cw = read_x87_control_word (); unsigned int input_mxcsr = read_mxcsr (); \
+	write_x87_control_word (input_cw & ~X87_RC_MASK); write_mxcsr (input_mxcsr & ~MXCSR_RC_MASK);
+#define INPUT_FP_END	write_x87_control_word (input_cw); write_mxcsr (input_mxcsr); }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 // dispatch tables (C: en_int.c, en_float.c, en_vec3d.c, en_ptr.c, en_list.c, en_updt.c, en_msgs.c)
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -378,7 +481,14 @@ void free_mem (void *ptr)
  */
 void convert_float_to_int (float value, int *ptr)
 {
+#ifdef HARNESS_FISTP
+	/* modules/system/fpu.h (__WATCOMC__ / MSVC) :: asm_convert_float_to_int,
+	   fistp dword ptr. (The __GNUC__ branch there writes "fistp (%1)", which
+	   GNU as assembles as the 16-bit fistps; not modelled.) */
+	__asm__ __volatile__ ("fistpl (%1)" : : "t" (value), "r" (ptr) : "memory", "st");
+#else
 	*ptr = (int) value;
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -941,7 +1051,30 @@ static char *next_token (char **cursor)
 
 static int next_int (char **cursor) { return atoi (next_token (cursor)); }
 
-static double next_double (char **cursor) { return strtod (next_token (cursor), NULL); }
+static double next_double (char **cursor)
+{
+	volatile double
+		value;
+
+	INPUT_FP_BEGIN
+	value = strtod (next_token (cursor), NULL);
+	INPUT_FP_END
+
+	return value;
+}
+
+/* a scenario value stored in a float: narrowed as input, not by the code under test */
+static float next_float (char **cursor)
+{
+	volatile float
+		value;
+
+	INPUT_FP_BEGIN
+	value = (float) strtod (next_token (cursor), NULL);
+	INPUT_FP_END
+
+	return value;
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1302,6 +1435,7 @@ int main (void)
 
 	int
 		num_forces = 0,
+		f32_lines = 0,
 		timeline = FALSE,
 		step = 0,
 		i;
@@ -1319,11 +1453,72 @@ int main (void)
 
 	install_segmentation_fault_handler ();
 
+	install_fpu_environment ();
+
+	atexit (check_fpu_environment);
+
 	while (fgets (line, sizeof (line), stdin))
 	{
+		check_fpu_environment ();
+
 		cursor = line;
 
 		word = next_token (&cursor);
+
+		if (strcmp (word, "fpu") == 0)
+		{
+			/* the floating-point environment the original code runs under */
+			printf ("fpu cw %04x mxcsr-rc %x flt-eval-method %d\n", read_x87_control_word (), (read_mxcsr () & MXCSR_RC_MASK) >> 13, (int) FLT_EVAL_METHOD);
+
+			return 0;
+		}
+
+		if (strcmp (word, "f32") == 0)
+		{
+			/*
+			 * One C float operation under the canonical environment, the reference
+			 * for src/core/float32.ts (test/c-reference/float32-rtz.cref.test.ts).
+			 * Operands of mul, div and sqrt are floats; narrow and sum take doubles.
+			 */
+			const char *kind = next_token (&cursor);
+			volatile float result;
+
+			if (strcmp (kind, "narrow") == 0)
+			{
+				volatile double d = next_double (&cursor);
+				result = (float) d;
+			}
+			else if (strcmp (kind, "sum") == 0)
+			{
+				volatile double d1 = next_double (&cursor), d2 = next_double (&cursor);
+				result = (float) (d1 + d2);
+			}
+			else if (strcmp (kind, "mul") == 0)
+			{
+				volatile float a = next_float (&cursor), b = next_float (&cursor);
+				result = a * b;
+			}
+			else if (strcmp (kind, "div") == 0)
+			{
+				volatile float a = next_float (&cursor), b = next_float (&cursor);
+				result = a / b;
+			}
+			else if (strcmp (kind, "sqrt") == 0)
+			{
+				volatile float a = next_float (&cursor);
+				result = sqrt (a);
+			}
+			else
+			{
+				harness_fail ("unknown f32 operation");
+			}
+
+			printf ("f32 %08x\n", float_bits (result));
+
+			f32_lines++;
+
+			continue;
+		}
 
 		if (strcmp (word, "heap") == 0)
 		{
@@ -1369,11 +1564,11 @@ int main (void)
 			raw->side = (entity_sides) next_int (&cursor);
 			raw->sub_type = next_int (&cursor);
 			raw->in_use = next_int (&cursor);
-			raw->position.x = next_double (&cursor);
+			raw->position.x = next_float (&cursor);
 			raw->position.y = 0.0;
-			raw->position.z = next_double (&cursor);
-			raw->supplies.ammo_supply_level = next_double (&cursor);
-			raw->supplies.fuel_supply_level = next_double (&cursor);
+			raw->position.z = next_float (&cursor);
+			raw->supplies.ammo_supply_level = next_float (&cursor);
+			raw->supplies.fuel_supply_level = next_float (&cursor);
 
 			snprintf (label, sizeof (label), "keysite%d", num_keysites);
 
@@ -1408,17 +1603,17 @@ int main (void)
 
 			raw->sub_type = next_int (&cursor);
 			raw->side = (entity_sides) next_int (&cursor);
-			raw->supplies.ammo_supply_level = next_double (&cursor);
-			raw->supplies.fuel_supply_level = next_double (&cursor);
+			raw->supplies.ammo_supply_level = next_float (&cursor);
+			raw->supplies.fuel_supply_level = next_float (&cursor);
 
 			parent_kind = next_int (&cursor);
 			parent_index = next_int (&cursor);
 			busy = next_int (&cursor);
 			has_leader = next_int (&cursor);
 
-			leader_data.position.x = next_double (&cursor);
+			leader_data.position.x = next_float (&cursor);
 			leader_data.position.y = 0.0;
-			leader_data.position.z = next_double (&cursor);
+			leader_data.position.z = next_float (&cursor);
 
 			group_en = new_entity (ENTITY_TYPE_GROUP, raw, "group");
 
@@ -1470,8 +1665,8 @@ int main (void)
 
 			raw->sub_type = next_int (&cursor);
 			raw->side = (entity_sides) next_int (&cursor);
-			raw->sleep = next_double (&cursor);
-			raw->assist_timer = next_double (&cursor);
+			raw->sleep = next_float (&cursor);
+			raw->assist_timer = next_float (&cursor);
 
 			snprintf (label, sizeof (label), "group%d", num_groups);
 
@@ -1488,17 +1683,17 @@ int main (void)
 		{
 			int is_set = (strcmp (word, "set") == 0);
 			int group_index = 0, float_type = 0, locked = 0, count = 0, c;
-			double value, delta = 0.0;
+			float value, delta = 0.0f;
 
 			if (is_set)
 			{
 				group_index = next_int (&cursor);
 				float_type = next_int (&cursor);
-				value = next_double (&cursor);
+				value = next_float (&cursor);
 			}
 			else
 			{
-				delta = next_double (&cursor);
+				delta = next_float (&cursor);
 				locked = next_int (&cursor);
 				count = next_int (&cursor);
 			}
@@ -1672,10 +1867,10 @@ int main (void)
 					int exclude_index;
 					entity *closest;
 
-					pos.x = next_double (&cursor);
+					pos.x = next_float (&cursor);
 					pos.y = 0.0;
-					pos.z = next_double (&cursor);
-					min_range = next_double (&cursor);
+					pos.z = next_float (&cursor);
+					min_range = next_float (&cursor);
 					want_range = next_int (&cursor);
 					outside_of_range = next_int (&cursor);
 					exclude_index = next_int (&cursor);
@@ -1695,12 +1890,12 @@ int main (void)
 				{
 					vec3d v1, v2;
 
-					v1.x = next_double (&cursor);
+					v1.x = next_float (&cursor);
 					v1.y = 0.0;
-					v1.z = next_double (&cursor);
-					v2.x = next_double (&cursor);
+					v1.z = next_float (&cursor);
+					v2.x = next_float (&cursor);
 					v2.y = 0.0;
-					v2.z = next_double (&cursor);
+					v2.z = next_float (&cursor);
 
 					printf ("range %08x %08x\n", float_bits (get_2d_range (&v1, &v2)), float_bits (get_approx_2d_range (&v1, &v2)));
 				}
@@ -1739,6 +1934,11 @@ int main (void)
 		{
 			harness_fail ("unknown scenario line");
 		}
+	}
+
+	if (f32_lines > 0)
+	{
+		return 0;
 	}
 
 	harness_fail ("scenario has no op or end line");

@@ -15,7 +15,7 @@
 import { ASSERT } from "../../../core/assert";
 import { toCInt } from "../../../core/cint";
 import { getCommandLineEntityUpdateFrameRate } from "../../../core/cmndline";
-import { toFloat32 } from "../../../core/float32";
+import { f32Div, f32Mul } from "../../../core/float32";
 import { getDeltaTime, isFrameRateLocked, setManualDeltaTime } from "../../../core/time";
 import { EntityMessage, EntityType, IntType, ListType } from "../../../generated/c-enums";
 import { getLocalEntityChildSucc, getLocalEntityFirstChild, overloadEntityListRoot } from "../../system/en_list";
@@ -60,11 +60,14 @@ export function setUpdateSucc(en: Entity | undefined): void {
 export function setEntityUpdateFrameRate(frame_rate: number): number {
 	ASSERT(frame_rate >= 1 && frame_rate <= 100, "(frame_rate >= 1) && (frame_rate <= 100)");
 
-	// (int) (get_delta_time () * frame_rate + 1.0): float * int is float, + 1.0 is double
-	const entity_update_iterations = toCInt(toFloat32(getDeltaTime() * frame_rate) + 1.0);
+	// (int) (get_delta_time () * frame_rate + 1.0): float * int is float, + 1.0 is
+	// double. The double sum is left to round to nearest: truncating it toward
+	// zero first cannot change the (int), because a float f < 1 has f + 1.0 exact
+	// or below 2 - 2^-24, and a larger f makes the sum exact.
+	const entity_update_iterations = toCInt(f32Mul(getDeltaTime(), frame_rate) + 1.0);
 
 	// get_delta_time () / entity_update_iterations: float / int is float
-	const entity_update_delta_time = toFloat32(getDeltaTime() / entity_update_iterations);
+	const entity_update_delta_time = f32Div(getDeltaTime(), entity_update_iterations);
 
 	setManualDeltaTime(entity_update_delta_time);
 

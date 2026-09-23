@@ -8,6 +8,7 @@ import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, Float
 import type { GroupParentSpec, KeysiteSpec, PositionSpec, ScenarioSpec } from "../scenarios/campaign-scenario";
 import type { LifecycleAttribute, LifecycleOp, LifecycleSpec } from "../scenarios/lifecycle-scenario";
 import type { TimelineSpec, TimelineStep } from "../scenarios/update-timeline";
+import type { Float32RtzOp } from "../scenarios/float32-rtz";
 
 export function mulberry32(seed: number): () => number {
 	let a = seed >>> 0;
@@ -254,4 +255,64 @@ export function generateRandomLifecycles(seed: number, count: number): Lifecycle
 	}
 
 	return lifecycles;
+}
+
+//
+// Operands for the round-toward-zero float helpers (src/core/float32.ts),
+// aimed at their correction paths: results that are exactly a float in double
+// but not in exact arithmetic, power-of-two boundaries, cancellation, the
+// subnormal range and overflow. mul, div and sqrt take floats; narrow and sum
+// take doubles.
+//
+export function generateFloat32RtzOperands(seed: number, count: number): [Float32RtzOp, number, number][] {
+	const rnd = mulberry32(seed);
+	const int = (n: number) => Math.floor(rnd() * n);
+	const pick = <T>(values: T[]): T => values[int(values.length)];
+	const sign = () => (rnd() < 0.5 ? -1 : 1);
+
+	// a float: mostly campaign magnitudes, sometimes anywhere in the range
+	const float = (): number => {
+		const exponent = rnd() < 0.8 ? int(40) - 25 : int(276) - 149;
+		const mantissa = rnd() < 0.2 ? Math.pow(2, 23) : Math.pow(2, 23) + int(Math.pow(2, 23));
+		return Math.fround(sign() * mantissa * Math.pow(2, exponent - 23));
+	};
+
+	// a double that is rarely a float
+	const double = (): number => {
+		const kind = int(5);
+		if (kind === 0) return sign() * Math.round(rnd() * 1e7) / 1000;
+		if (kind === 1) return float();
+		if (kind === 2) return float() * (1 + sign() * Math.pow(2, -30 - int(23)));
+		if (kind === 3) return sign() * rnd() * Math.pow(2, int(300) - 150);
+		return pick([100, 0.1, 0.3, 1 / 3, 3.4028235677973366e38, 3.5e38, 1e-46, 7.006492321624085e-46, 1 / 0]) * sign();
+	};
+
+	const out: [Float32RtzOp, number, number][] = [];
+	while (out.length < count) {
+		const op = pick<Float32RtzOp>(["narrow", "sum", "sum", "mul", "div", "div", "sqrt"]);
+		if (op === "narrow") {
+			out.push([op, double(), 0]);
+		} else if (op === "sum") {
+			const a = double();
+			const kind = int(4);
+			// the exact sum is a float plus or minus a tiny amount; cancellation; unrelated
+			const b =
+				kind === 0 ? sign() * Math.abs(a) * Math.pow(2, -30 - int(40)) : kind === 1 ? -a * (1 + sign() * Math.pow(2, -int(30))) : kind === 2 ? -Math.fround(a) : double();
+			out.push([op, a, b]);
+		} else if (op === "mul") {
+			out.push([op, float(), rnd() < 0.3 ? int(101) : float()]);
+		} else if (op === "div") {
+			const b = rnd() < 0.4 ? 1 + int(100) : float();
+			// sometimes an exact quotient
+			const a = rnd() < 0.2 ? Math.fround(float() * b) : float();
+			out.push([op, a, b]);
+		} else {
+			const r = Math.abs(float());
+			const kind = int(3);
+			// a perfect square, its float neighbours, or anything
+			const a = kind === 0 ? Math.fround(Math.fround(r) * Math.fround(r)) : kind === 1 ? Math.fround(r * r * (1 + sign() * Math.pow(2, -23))) : Math.abs(float());
+			out.push([op, a, 0]);
+		}
+	}
+	return out;
 }

@@ -392,7 +392,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 6.0360002517700195
+							"assist": 6.035998821258545
 						}
 					]
 				},
@@ -404,7 +404,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 3.1170010566711426
+							"assist": 3.116997718811035
 						}
 					]
 				},
@@ -566,11 +566,11 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 4.690000057220459
+							"assist": 4.689999580383301
 						},
 						{
 							"sleep": 0,
-							"assist": 6.294000148773193
+							"assist": 6.293999671936035
 						}
 					]
 				},
@@ -583,11 +583,11 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 1.5980000495910645,
-							"assist": 4.690000057220459
+							"assist": 4.689999580383301
 						},
 						{
 							"sleep": 0,
-							"assist": 6.294000148773193
+							"assist": 6.293999671936035
 						}
 					]
 				},
@@ -600,11 +600,11 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0.8480000495910645,
-							"assist": 3.940000057220459
+							"assist": 3.939999580383301
 						},
 						{
 							"sleep": 0,
-							"assist": 5.544000148773193
+							"assist": 5.543999671936035
 						}
 					]
 				},
@@ -617,11 +617,11 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 6.27400016784668,
-							"assist": 3.940000057220459
+							"assist": 3.939999580383301
 						},
 						{
 							"sleep": 0,
-							"assist": 5.544000148773193
+							"assist": 5.543999671936035
 						}
 					]
 				},
@@ -633,12 +633,12 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 6.234000205993652,
-							"assist": 3.9000000953674316
+							"sleep": 6.233999729156494,
+							"assist": 3.8999993801116943
 						},
 						{
 							"sleep": 0,
-							"assist": 5.504000186920166
+							"assist": 5.50399923324585
 						}
 					]
 				},
@@ -650,12 +650,12 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 6.086999893188477,
-							"assist": 3.753000259399414
+							"sleep": 6.086999416351318,
+							"assist": 3.7529990673065186
 						},
 						{
 							"sleep": 0,
-							"assist": 5.35699987411499
+							"assist": 5.356998920440674
 						}
 					]
 				},
@@ -1254,10 +1254,10 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 3.309999704360962,
-							"assist": 0.12700000405311584
+							"assist": 0.12699994444847107
 						},
 						{
-							"sleep": 0.25200003385543823,
+							"sleep": 0.2519999146461487,
 							"assist": 2.2549996376037598
 						}
 					]
@@ -1554,7 +1554,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": -0.6650000214576721
 						},
 						{
-							"sleep": 5.924000263214111,
+							"sleep": 5.9239983558654785,
 							"assist": 0
 						}
 					]
@@ -1570,7 +1570,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": -0.6650000214576721
 						},
 						{
-							"sleep": 4.9840006828308105,
+							"sleep": 4.983997821807861,
 							"assist": 0
 						}
 					]
@@ -1586,7 +1586,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": -0.6650000214576721
 						},
 						{
-							"sleep": 1.6540007591247559,
+							"sleep": 1.6539974212646484,
 							"assist": 0
 						}
 					]
@@ -1706,7 +1706,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 0.3089999854564667
+							"assist": 0.3089996874332428
 						}
 					]
 				},
@@ -1718,7 +1718,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 1.6369999647140503,
-							"assist": 0.3089999854564667
+							"assist": 0.3089996874332428
 						}
 					]
 				},
@@ -1730,7 +1730,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0.7419999837875366,
-							"assist": 0.3089999854564667
+							"assist": 0.3089996874332428
 						}
 					]
 				},
@@ -2342,12 +2342,12 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 2.073000431060791,
+							"sleep": 2.0729990005493164,
 							"assist": 0
 						},
 						{
-							"sleep": 1.7790004014968872,
-							"assist": 1.788000464439392
+							"sleep": 1.7789992094039917,
+							"assist": 1.7879992723464966
 						}
 					]
 				},
@@ -2363,8 +2363,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 1.7790004014968872,
-							"assist": 1.788000464439392
+							"sleep": 1.7789992094039917,
+							"assist": 1.7879992723464966
 						}
 					]
 				},
@@ -2380,8 +2380,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 1.7790004014968872,
-							"assist": 1.788000464439392
+							"sleep": 1.7789992094039917,
+							"assist": 1.7879992723464966
 						}
 					]
 				},
@@ -2397,8 +2397,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 0.7790004014968872,
-							"assist": 0.7880004644393921
+							"sleep": 0.7789992094039917,
+							"assist": 0.7879992723464966
 						}
 					]
 				},
@@ -2844,7 +2844,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 0.831000030040741
+							"assist": 0.8309999108314514
 						},
 						{
 							"sleep": 0,
@@ -3098,14 +3098,14 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 0.8020001649856567
+							"assist": 0.8019990921020508
 						},
 						{
 							"sleep": 6.1809983253479,
-							"assist": 2.8839995861053467
+							"assist": 2.883997917175293
 						},
 						{
-							"sleep": 0.2649999260902405,
+							"sleep": 0.26499950885772705,
 							"assist": 0
 						}
 					]
@@ -3222,8 +3222,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 2.202000141143799,
-							"assist": 2.9620001316070557
+							"sleep": 2.2019994258880615,
+							"assist": 2.9619994163513184
 						},
 						{
 							"sleep": 0,
@@ -3248,8 +3248,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 1.7020001411437988,
-							"assist": 2.4620001316070557
+							"sleep": 1.7019994258880615,
+							"assist": 2.4619994163513184
 						},
 						{
 							"sleep": 0,
@@ -3274,8 +3274,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 1.7020001411437988,
-							"assist": 2.4620001316070557
+							"sleep": 1.7019994258880615,
+							"assist": 2.4619994163513184
 						},
 						{
 							"sleep": 0,
@@ -3301,8 +3301,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0.210999995470047
 						},
 						{
-							"sleep": 1.7020001411437988,
-							"assist": 2.4620001316070557
+							"sleep": 1.7019994258880615,
+							"assist": 2.4619994163513184
 						},
 						{
 							"sleep": 0,
@@ -3544,7 +3544,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 3.377000331878662,
+							"sleep": 3.3769993782043457,
 							"assist": 0
 						}
 					]
@@ -3732,7 +3732,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 1.0790002346038818
+							"assist": 1.0789997577667236
 						}
 					]
 				},
@@ -4856,7 +4856,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 1.7619993686676025,
+							"sleep": 1.7619991302490234,
 							"assist": -1.875
 						}
 					]
@@ -4868,7 +4868,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 1.7619993686676025,
+							"sleep": 1.7619991302490234,
 							"assist": 0.014999999664723873
 						}
 					]
@@ -4880,7 +4880,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 0.7619993686676025,
+							"sleep": 0.7619991302490234,
 							"assist": 0
 						}
 					]
@@ -5087,8 +5087,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": -0.3529999852180481
 						},
 						{
-							"sleep": 0.47100013494491577,
-							"assist": 6.318001747131348
+							"sleep": 0.47099965810775757,
+							"assist": 6.317997455596924
 						},
 						{
 							"sleep": 0,
@@ -5108,8 +5108,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": -0.3529999852180481
 						},
 						{
-							"sleep": 0.47100013494491577,
-							"assist": 6.318001747131348
+							"sleep": 0.47099965810775757,
+							"assist": 6.317997455596924
 						},
 						{
 							"sleep": 0,
@@ -5130,7 +5130,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 4.688999176025391
+							"assist": 4.688994884490967
 						},
 						{
 							"sleep": 0,
@@ -5253,11 +5253,11 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0.6859992742538452,
-							"assist": 1.429999589920044
+							"assist": 1.4299993515014648
 						},
 						{
 							"sleep": 0,
-							"assist": 1.1669995784759521
+							"assist": 1.166999340057373
 						},
 						{
 							"sleep": 0,
@@ -6057,7 +6057,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 2.48799991607666,
-							"assist": 5.329000473022461
+							"assist": 5.3289995193481445
 						}
 					]
 				},
@@ -6073,7 +6073,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 1.0430011749267578
+							"assist": 1.0429964065551758
 						}
 					]
 				},
@@ -7049,7 +7049,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 6.707000255584717
+							"assist": 6.706999778747559
 						},
 						{
 							"sleep": 4.999000072479248,
@@ -7073,7 +7073,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 5.873000621795654
+							"assist": 5.872998237609863
 						},
 						{
 							"sleep": 4.999000072479248,
@@ -7097,7 +7097,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 4.331000804901123
+							"assist": 4.330994129180908
 						},
 						{
 							"sleep": 4.999000072479248,
@@ -7121,7 +7121,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 4.331000804901123
+							"assist": 4.330994129180908
 						},
 						{
 							"sleep": 4.999000072479248,
@@ -7635,7 +7635,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 7.441999912261963
+							"assist": 7.441998481750488
 						},
 						{
 							"sleep": 0.5169999599456787,
@@ -7655,7 +7655,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 3.1539969444274902
+							"assist": 3.1539955139160156
 						},
 						{
 							"sleep": 0,
@@ -7784,7 +7784,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": -0.5149999856948853,
-							"assist": 0.3229992091655731
+							"assist": 0.3229992389678955
 						},
 						{
 							"sleep": -0.5440000295639038,
@@ -7809,7 +7809,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": -0.5149999856948853,
-							"assist": 0.040999218821525574
+							"assist": 0.04099924862384796
 						},
 						{
 							"sleep": -0.5440000295639038,
@@ -8585,7 +8585,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 0.2869998812675476,
+							"sleep": 0.28699976205825806,
 							"assist": 0.5129996538162231
 						},
 						{
@@ -8602,7 +8602,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 0.06599965691566467
+							"assist": 0.06599962711334229
 						},
 						{
 							"sleep": -1.1779999732971191,
@@ -8619,7 +8619,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 0.06599965691566467
+							"assist": 0.06599962711334229
 						},
 						{
 							"sleep": 2.812999963760376,
@@ -8636,10 +8636,10 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 0.05199965834617615
+							"assist": 0.05199962109327316
 						},
 						{
-							"sleep": 2.7990000247955322,
+							"sleep": 2.798999547958374,
 							"assist": -1.975000023841858
 						}
 					]
@@ -8653,7 +8653,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 0.05199965834617615
+							"assist": 0.05199962109327316
 						},
 						{
 							"sleep": 1.6360000371932983,
@@ -9381,7 +9381,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 1.9280000925064087,
+							"sleep": 1.9279999732971191,
 							"assist": 0
 						},
 						{
@@ -9652,7 +9652,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 1.3980000019073486
+							"assist": 1.397998571395874
 						},
 						{
 							"sleep": 0,
@@ -9660,7 +9660,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 0.1510002315044403
+							"assist": 0.15099892020225525
 						}
 					]
 				},
@@ -10175,7 +10175,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": -1.534000039100647,
-							"assist": 3.332000255584717
+							"assist": 3.331995964050293
 						},
 						{
 							"sleep": 0,
@@ -10200,7 +10200,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": -1.534000039100647,
-							"assist": 3.332000255584717
+							"assist": 3.331995964050293
 						},
 						{
 							"sleep": 0,
@@ -10225,7 +10225,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": -1.534000039100647,
-							"assist": 1.0580004453659058
+							"assist": 1.0579956769943237
 						},
 						{
 							"sleep": 0,
@@ -10392,7 +10392,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 0.15700280666351318
+							"assist": 0.15699493885040283
 						}
 					]
 				},
@@ -10404,7 +10404,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 1.49399995803833,
-							"assist": 0.15700280666351318
+							"assist": 0.15699493885040283
 						}
 					]
 				},
@@ -10884,7 +10884,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 3.082000255584717,
+							"sleep": 3.0819997787475586,
 							"assist": 0
 						},
 						{
@@ -11018,7 +11018,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 1.7080004215240479
+							"assist": 1.7079994678497314
 						},
 						{
 							"sleep": 1.0549999475479126,
@@ -11180,7 +11180,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 4.769000053405762,
+							"sleep": 4.768999099731445,
 							"assist": 0.9440000057220459
 						}
 					]
@@ -11192,7 +11192,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 3.76900053024292,
+							"sleep": 3.7689976692199707,
 							"assist": 0
 						}
 					]
@@ -11204,7 +11204,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 3.76900053024292,
+							"sleep": 3.7689976692199707,
 							"assist": 5.007999897003174
 						}
 					]
@@ -11241,7 +11241,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 1.7679998874664307
+							"assist": 1.7679975032806396
 						}
 					]
 				}
@@ -11403,7 +11403,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 4.478000164031982,
+							"sleep": 4.477999687194824,
 							"assist": 0
 						}
 					]
@@ -11415,7 +11415,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 0.896000325679779,
+							"sleep": 0.8959992527961731,
 							"assist": 0
 						}
 					]
@@ -11427,7 +11427,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 0.896000325679779,
+							"sleep": 0.8959992527961731,
 							"assist": 6.10099983215332
 						}
 					]
@@ -11621,15 +11621,15 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 2.0280001163482666
+							"assist": 2.027998685836792
 						},
 						{
 							"sleep": -2.8919999599456787,
 							"assist": 0
 						},
 						{
-							"sleep": 2.261000156402588,
-							"assist": 0.0710001289844513
+							"sleep": 2.2609987258911133,
+							"assist": 0.07099989056587219
 						}
 					]
 				},
@@ -11810,11 +11810,11 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 5.931000232696533,
+							"sleep": 5.930999279022217,
 							"assist": 0
 						},
 						{
-							"sleep": 3.4700002670288086,
+							"sleep": 3.4699997901916504,
 							"assist": 0
 						},
 						{
@@ -11831,11 +11831,11 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 5.931000232696533,
+							"sleep": 5.930999279022217,
 							"assist": 0
 						},
 						{
-							"sleep": 3.4700002670288086,
+							"sleep": 3.4699997901916504,
 							"assist": 0
 						},
 						{
@@ -11851,7 +11851,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 1.1089999675750732,
+							"sleep": 1.1089980602264404,
 							"assist": 0
 						},
 						{
@@ -12042,7 +12042,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 0.16200006008148193,
+							"sleep": 0.16199922561645508,
 							"assist": 0
 						}
 					]
@@ -12567,11 +12567,11 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 1.1069998741149902,
-							"assist": 3.9160003662109375
+							"assist": 3.915999174118042
 						},
 						{
 							"sleep": 0,
-							"assist": 3.7430005073547363
+							"assist": 3.742999792098999
 						}
 					]
 				},
@@ -12588,7 +12588,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 3.7430005073547363
+							"assist": 3.742999792098999
 						}
 					]
 				},
@@ -12605,7 +12605,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0.3100000023841858,
-							"assist": 3.7430005073547363
+							"assist": 3.742999792098999
 						}
 					]
 				},
@@ -13088,12 +13088,12 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 1.6640000343322754,
+							"sleep": 1.6639997959136963,
 							"assist": 0
 						},
 						{
 							"sleep": 4.245999336242676,
-							"assist": 1.6159999370574951
+							"assist": 1.615999698638916
 						}
 					]
 				},
@@ -13170,7 +13170,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 1.1150000095367432
+							"assist": 1.114999771118164
 						},
 						{
 							"sleep": 0,
@@ -13395,7 +13395,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 2.4870011806488037
+							"assist": 2.4869987964630127
 						},
 						{
 							"sleep": 0,
@@ -13419,7 +13419,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 2.4870011806488037
+							"assist": 2.4869987964630127
 						},
 						{
 							"sleep": 0,
@@ -13444,7 +13444,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 2.4870011806488037
+							"assist": 2.4869987964630127
 						},
 						{
 							"sleep": 0,
@@ -13589,7 +13589,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 2.759000778198242
+							"assist": 2.75899600982666
 						}
 					]
 				},
@@ -13632,7 +13632,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 5.301000118255615,
+							"sleep": 5.300995826721191,
 							"assist": 0
 						}
 					]
@@ -13907,7 +13907,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 2.6050002574920654
+							"assist": 2.6049976348876953
 						}
 					]
 				},
@@ -14078,7 +14078,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": -0.8349999785423279,
-							"assist": 2.6650002002716064
+							"assist": 2.664998769760132
 						},
 						{
 							"sleep": 1.8890000581741333,
@@ -14099,7 +14099,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": -0.8349999785423279,
-							"assist": 2.6650002002716064
+							"assist": 2.664998769760132
 						},
 						{
 							"sleep": 1.8890000581741333,
@@ -14374,12 +14374,12 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 6.35699987411499,
+							"sleep": 6.356999397277832,
 							"assist": 0
 						},
 						{
 							"sleep": 0,
-							"assist": 4.416999816894531
+							"assist": 4.416999340057373
 						}
 					]
 				},
@@ -14396,7 +14396,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 4.416999816894531
+							"assist": 4.416999340057373
 						}
 					]
 				}
@@ -14565,7 +14565,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 6.283998966217041,
-							"assist": 1.5770001411437988
+							"assist": 1.5769996643066406
 						}
 					]
 				}
@@ -14648,7 +14648,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 2.62399959564209,
-							"assist": 3.439000129699707
+							"assist": 3.4389991760253906
 						},
 						{
 							"sleep": 1.1319999694824219,
@@ -14672,7 +14672,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 1.2379992008209229,
-							"assist": 2.05299973487854
+							"assist": 2.0529987812042236
 						},
 						{
 							"sleep": 1.1319999694824219,
@@ -15120,7 +15120,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 5.246999740600586,
-							"assist": 2.072000026702881
+							"assist": 2.0719997882843018
 						},
 						{
 							"sleep": -0.8809999823570251,
@@ -15249,7 +15249,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0.9679999351501465,
-							"assist": 3.0430004596710205
+							"assist": 3.0429999828338623
 						}
 					]
 				},
@@ -15273,7 +15273,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 2.073000431060791
+							"assist": 2.0729997158050537
 						}
 					]
 				},
@@ -15297,7 +15297,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 1.260000467300415
+							"assist": 1.2599995136260986
 						}
 					]
 				},
@@ -15371,7 +15371,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 3.621999979019165
 						},
 						{
-							"sleep": 3.996000289916992,
+							"sleep": 3.995999574661255,
 							"assist": 0
 						}
 					]
@@ -16180,7 +16180,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 5.201000213623047
+							"assist": 5.200998783111572
 						},
 						{
 							"sleep": 0,
@@ -16197,7 +16197,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 5.201000213623047
+							"assist": 5.200998783111572
 						},
 						{
 							"sleep": 6.2820000648498535,
@@ -16953,7 +16953,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 1.9309998750686646,
-							"assist": 3.0240001678466797
+							"assist": 3.0239999294281006
 						}
 					]
 				},
@@ -16965,7 +16965,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0.17099978029727936,
-							"assist": 1.264000654220581
+							"assist": 1.2639992237091064
 						}
 					]
 				},
@@ -16977,7 +16977,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0.17099978029727936,
-							"assist": 1.264000654220581
+							"assist": 1.2639992237091064
 						}
 					]
 				},
@@ -16989,7 +16989,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 2.7360000610351562,
-							"assist": 1.264000654220581
+							"assist": 1.2639992237091064
 						}
 					]
 				}
@@ -17050,7 +17050,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 1.6770001649856567
+							"assist": 1.6769994497299194
 						}
 					]
 				},
@@ -17062,7 +17062,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 1.5570002794265747
+							"assist": 1.5569992065429688
 						}
 					]
 				},
@@ -17906,7 +17906,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 3.603996992111206
+							"assist": 3.6039962768554688
 						},
 						{
 							"sleep": -2.9630000591278076,
@@ -17927,7 +17927,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 1.0719975233078003
+							"assist": 1.0719949007034302
 						},
 						{
 							"sleep": -2.9630000591278076,
@@ -17948,7 +17948,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 1.0719975233078003
+							"assist": 1.0719949007034302
 						},
 						{
 							"sleep": 0,
@@ -18226,7 +18226,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 4.966000556945801
+							"assist": 4.965998649597168
 						}
 					]
 				}
@@ -18369,11 +18369,11 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 1.0510001182556152
+							"assist": 1.0509995222091675
 						},
 						{
-							"sleep": 0.31500011682510376,
-							"assist": 1.878000020980835
+							"sleep": 0.31499993801116943,
+							"assist": 1.877998948097229
 						}
 					]
 				},
@@ -18393,8 +18393,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 2.6559998989105225
 						},
 						{
-							"sleep": 0.31500011682510376,
-							"assist": 1.878000020980835
+							"sleep": 0.31499993801116943,
+							"assist": 1.877998948097229
 						}
 					]
 				},
@@ -18414,8 +18414,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 2.6559998989105225
 						},
 						{
-							"sleep": 0.31500011682510376,
-							"assist": 1.878000020980835
+							"sleep": 0.31499993801116943,
+							"assist": 1.877998948097229
 						}
 					]
 				},
@@ -18432,11 +18432,11 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 2.2160003185272217
+							"assist": 2.2159993648529053
 						},
 						{
 							"sleep": 0,
-							"assist": 1.437999963760376
+							"assist": 1.43799889087677
 						}
 					]
 				},
@@ -18454,11 +18454,11 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 2.2160003185272217
+							"assist": 2.2159993648529053
 						},
 						{
 							"sleep": 0,
-							"assist": 1.437999963760376
+							"assist": 1.43799889087677
 						}
 					]
 				},
@@ -18471,16 +18471,16 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 1.3920001983642578,
-							"assist": 0.6020001769065857
+							"sleep": 1.3919997215270996,
+							"assist": 0.601999819278717
 						},
 						{
 							"sleep": 0,
-							"assist": 1.2740005254745483
+							"assist": 1.2739989757537842
 						},
 						{
 							"sleep": 0,
-							"assist": 0.4960000514984131
+							"assist": 0.495998740196228
 						}
 					]
 				},
@@ -18492,12 +18492,12 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 0.6030001640319824,
+							"sleep": 0.6029996871948242,
 							"assist": 0
 						},
 						{
 							"sleep": 0,
-							"assist": 0.48500049114227295
+							"assist": 0.4849989414215088
 						},
 						{
 							"sleep": 0,
@@ -18597,8 +18597,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 4.361999988555908,
-							"assist": 4.730000019073486
+							"sleep": 4.361999034881592,
+							"assist": 4.72999906539917
 						}
 					]
 				},
@@ -18610,7 +18610,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 4.730000019073486
+							"assist": 4.72999906539917
 						}
 					]
 				},
@@ -18622,7 +18622,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 4.690000057220459
+							"assist": 4.689998626708984
 						}
 					]
 				},
@@ -18634,7 +18634,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 4.440000057220459
+							"assist": 4.439998626708984
 						}
 					]
 				},
@@ -18682,7 +18682,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 5.219000339508057
+							"assist": 5.218998908996582
 						}
 					]
 				}
@@ -19071,7 +19071,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": -0.6449999809265137
 						},
 						{
-							"sleep": 2.1679999828338623,
+							"sleep": 2.167999744415283,
 							"assist": 0
 						}
 					]
@@ -19088,7 +19088,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": -0.6449999809265137
 						},
 						{
-							"sleep": 1.2230000495910645,
+							"sleep": 1.2229995727539062,
 							"assist": 0
 						}
 					]
@@ -19105,7 +19105,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": -0.6449999809265137
 						},
 						{
-							"sleep": 0.17100000381469727,
+							"sleep": 0.17099952697753906,
 							"assist": 0
 						}
 					]
@@ -19347,8 +19347,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 4.728000164031982,
-							"assist": 1.3000001907348633
+							"sleep": 4.7279953956604,
+							"assist": 1.29999840259552
 						}
 					]
 				},
@@ -19367,8 +19367,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 3.9340004920959473,
-							"assist": 0.506000280380249
+							"sleep": 3.933993101119995,
+							"assist": 0.5059982538223267
 						}
 					]
 				},
@@ -19388,8 +19388,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 3.9340004920959473,
-							"assist": 0.506000280380249
+							"sleep": 3.933993101119995,
+							"assist": 0.5059982538223267
 						}
 					]
 				},
@@ -19410,8 +19410,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 3.9340004920959473,
-							"assist": 0.506000280380249
+							"sleep": 3.933993101119995,
+							"assist": 0.5059982538223267
 						}
 					]
 				},
@@ -19433,7 +19433,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 0.506000280380249
+							"assist": 0.5059982538223267
 						}
 					]
 				},
@@ -19448,7 +19448,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 0.7619985342025757,
+							"sleep": 0.7619978189468384,
 							"assist": 0
 						},
 						{
@@ -19622,7 +19622,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 0.5779983997344971
+							"assist": 0.577998161315918
 						},
 						{
 							"sleep": 1.5410000085830688,
@@ -19647,7 +19647,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 0.5779983997344971
+							"assist": 0.577998161315918
 						},
 						{
 							"sleep": 1.5410000085830688,
@@ -19773,7 +19773,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 1.8840011358261108
+							"assist": 1.8839975595474243
 						},
 						{
 							"sleep": 3.2790000438690186,
@@ -19928,7 +19928,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 3.4160001277923584
+							"assist": 3.4159998893737793
 						},
 						{
 							"sleep": 3.631999969482422,
@@ -19949,7 +19949,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 2.0599992275238037
+							"assist": 2.0599989891052246
 						},
 						{
 							"sleep": 3.631999969482422,
@@ -19977,7 +19977,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 1.0799983739852905
+							"assist": 1.0799975395202637
 						}
 					]
 				},
@@ -19997,7 +19997,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 0.8299983739852905
+							"assist": 0.8299975395202637
 						}
 					]
 				},
@@ -20017,7 +20017,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 0.8299983739852905
+							"assist": 0.8299975395202637
 						}
 					]
 				}
@@ -20145,7 +20145,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 3.6010000705718994
 						},
 						{
-							"sleep": 1.2860000133514404,
+							"sleep": 1.2859995365142822,
 							"assist": 0
 						},
 						{
@@ -20166,7 +20166,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 3.6010000705718994
 						},
 						{
-							"sleep": 1.2860000133514404,
+							"sleep": 1.2859995365142822,
 							"assist": 0
 						},
 						{
@@ -20188,7 +20188,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 3.6010000705718994
 						},
 						{
-							"sleep": 1.2860000133514404,
+							"sleep": 1.2859995365142822,
 							"assist": 0
 						},
 						{
@@ -20207,10 +20207,10 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 3.302999973297119,
-							"assist": 3.1620001792907715
+							"assist": 3.1619999408721924
 						},
 						{
-							"sleep": 0.847000002861023,
+							"sleep": 0.8469995260238647,
 							"assist": 0
 						},
 						{
@@ -20232,7 +20232,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0.027000000700354576
 						},
 						{
-							"sleep": 0.847000002861023,
+							"sleep": 0.8469995260238647,
 							"assist": 0
 						},
 						{
@@ -20367,7 +20367,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 2.0310001373291016,
+							"sleep": 2.0309994220733643,
 							"assist": 0
 						},
 						{
@@ -21227,11 +21227,11 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 1.7069997787475586,
-							"assist": 1.7319998741149902
+							"sleep": 1.7069998979568481,
+							"assist": 1.7319999933242798
 						},
 						{
-							"sleep": 0.09799963235855103,
+							"sleep": 0.09799981117248535,
 							"assist": 0
 						}
 					]
@@ -21244,11 +21244,11 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 1.7069997787475586,
-							"assist": 1.7319998741149902
+							"sleep": 1.7069998979568481,
+							"assist": 1.7319999933242798
 						},
 						{
-							"sleep": 0.09799963235855103,
+							"sleep": 0.09799981117248535,
 							"assist": 0
 						}
 					]
@@ -21404,7 +21404,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 4.235001564025879,
+							"sleep": 4.234997749328613,
 							"assist": 0
 						}
 					]
@@ -21428,7 +21428,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 3.935001850128174,
+							"sleep": 3.9349968433380127,
 							"assist": 0
 						}
 					]
@@ -21452,7 +21452,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 2.935001850128174,
+							"sleep": 2.9349968433380127,
 							"assist": 0
 						}
 					]
@@ -21477,7 +21477,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 2.935001850128174,
+							"sleep": 2.9349968433380127,
 							"assist": 0
 						}
 					]
@@ -21494,7 +21494,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 0.05600038170814514
+							"assist": 0.05599752068519592
 						},
 						{
 							"sleep": 0,
@@ -21827,7 +21827,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 2.6760003566741943,
+							"sleep": 2.675999641418457,
 							"assist": 0
 						},
 						{
@@ -21847,7 +21847,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 1.6860005855560303,
+							"sleep": 1.6859986782073975,
 							"assist": 0
 						},
 						{
@@ -21868,7 +21868,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 1.6860005855560303,
+							"sleep": 1.6859986782073975,
 							"assist": 0
 						},
 						{
@@ -21931,11 +21931,11 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 5.660000324249268
+							"assist": 5.659999370574951
 						},
 						{
 							"sleep": 0.53999924659729,
-							"assist": 1.0009992122650146
+							"assist": 1.0009989738464355
 						}
 					]
 				},
@@ -21953,11 +21953,11 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 5.660000324249268
+							"assist": 5.659999370574951
 						},
 						{
 							"sleep": 0.53999924659729,
-							"assist": 1.0009992122650146
+							"assist": 1.0009989738464355
 						}
 					]
 				}
@@ -22050,7 +22050,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 1.5810000896453857,
+							"sleep": 1.580999732017517,
 							"assist": 0
 						}
 					]
@@ -22067,7 +22067,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 1.5810000896453857,
+							"sleep": 1.580999732017517,
 							"assist": 0
 						}
 					]
@@ -22185,7 +22185,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 1.1490001678466797
+							"assist": 1.1489996910095215
 						}
 					]
 				},
@@ -22465,7 +22465,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 4.810999870300293
 						},
 						{
-							"sleep": 0.6790002584457397,
+							"sleep": 0.678999125957489,
 							"assist": 2.210998773574829
 						},
 						{
@@ -23015,7 +23015,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 2.836000680923462,
+							"sleep": 2.83599853515625,
 							"assist": 0
 						},
 						{
@@ -23032,12 +23032,12 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 0.3490011692047119,
+							"sleep": 0.3489973545074463,
 							"assist": 0
 						},
 						{
 							"sleep": 0,
-							"assist": 1.6480003595352173
+							"assist": 1.6479963064193726
 						}
 					]
 				},
@@ -23049,12 +23049,12 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 0.3490011692047119,
+							"sleep": 0.3489973545074463,
 							"assist": 0
 						},
 						{
 							"sleep": 0,
-							"assist": 1.6480003595352173
+							"assist": 1.6479963064193726
 						}
 					]
 				},
@@ -23066,12 +23066,12 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 0.3490011692047119,
+							"sleep": 0.3489973545074463,
 							"assist": 0
 						},
 						{
 							"sleep": 0,
-							"assist": 1.6480003595352173
+							"assist": 1.6479963064193726
 						}
 					]
 				},
@@ -23083,7 +23083,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 0.3490011692047119,
+							"sleep": 0.3489973545074463,
 							"assist": 0
 						},
 						{
@@ -23241,7 +23241,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": -1.2719999551773071,
-							"assist": 4.158000469207764
+							"assist": 4.157998561859131
 						}
 					]
 				},
@@ -23277,7 +23277,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": -1.2719999551773071,
-							"assist": 2.7039990425109863
+							"assist": 2.7039976119995117
 						}
 					]
 				},
@@ -23289,7 +23289,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": -1.2719999551773071,
-							"assist": 1.7039988040924072
+							"assist": 1.7039971351623535
 						}
 					]
 				}
@@ -23369,7 +23369,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 4.8979997634887695
 						},
 						{
-							"sleep": 4.071000576019287,
+							"sleep": 4.0709991455078125,
 							"assist": 2.244999885559082
 						}
 					]
@@ -23393,7 +23393,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 4.8979997634887695
 						},
 						{
-							"sleep": 3.821000576019287,
+							"sleep": 3.8209991455078125,
 							"assist": 1.994999885559082
 						}
 					]
@@ -23541,7 +23541,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 2.7820000648498535,
+							"sleep": 2.7819995880126953,
 							"assist": 0
 						},
 						{
@@ -23557,7 +23557,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 2.0989999771118164,
+							"sleep": 2.098999500274658,
 							"assist": 0
 						},
 						{
@@ -23902,7 +23902,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 2.0709996223449707,
-							"assist": 0.44200003147125244
+							"assist": 0.4419998228549957
 						}
 					]
 				},
@@ -24319,15 +24319,15 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0.3319999873638153
 						},
 						{
-							"sleep": 5.017000198364258,
-							"assist": 4.970000267028809
+							"sleep": 5.016998291015625,
+							"assist": 4.969998359680176
 						},
 						{
 							"sleep": 0.328000009059906,
 							"assist": 0
 						},
 						{
-							"sleep": 3.9159998893737793,
+							"sleep": 3.9159982204437256,
 							"assist": 0
 						}
 					]
@@ -24344,15 +24344,15 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0.3319999873638153
 						},
 						{
-							"sleep": 4.937000274658203,
-							"assist": 4.890000343322754
+							"sleep": 4.936997413635254,
+							"assist": 4.889997482299805
 						},
 						{
 							"sleep": 0.328000009059906,
 							"assist": 0
 						},
 						{
-							"sleep": 3.8359999656677246,
+							"sleep": 3.8359978199005127,
 							"assist": 0
 						}
 					]
@@ -24370,15 +24370,15 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 1.3639999628067017
 						},
 						{
-							"sleep": 4.937000274658203,
-							"assist": 4.890000343322754
+							"sleep": 4.936997413635254,
+							"assist": 4.889997482299805
 						},
 						{
 							"sleep": 0.328000009059906,
 							"assist": 0
 						},
 						{
-							"sleep": 3.8359999656677246,
+							"sleep": 3.8359978199005127,
 							"assist": 0
 						}
 					]
@@ -24482,12 +24482,12 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 0.533000111579895,
-							"assist": 1.6609998941421509
+							"sleep": 0.5329997539520264,
+							"assist": 1.6609996557235718
 						},
 						{
 							"sleep": 0,
-							"assist": 1.7560001611709595
+							"assist": 1.7559994459152222
 						}
 					]
 				},
@@ -24499,12 +24499,12 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					],
 					"groups": [
 						{
-							"sleep": 0.533000111579895,
+							"sleep": 0.5329997539520264,
 							"assist": 3.875
 						},
 						{
 							"sleep": 0,
-							"assist": 1.7560001611709595
+							"assist": 1.7559994459152222
 						}
 					]
 				},
@@ -24521,7 +24521,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 1.1069999933242798
+							"assist": 1.1069992780685425
 						}
 					]
 				},
@@ -24538,7 +24538,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 0.8019999265670776
+							"assist": 0.8019992113113403
 						}
 					]
 				}
@@ -24693,7 +24693,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 4.093000411987305,
+							"sleep": 4.092997074127197,
 							"assist": 0.5719998478889465
 						}
 					]
@@ -24930,7 +24930,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 0.6550001502037048
+							"assist": 0.6549994349479675
 						},
 						{
 							"sleep": 4.617999076843262,
@@ -24951,7 +24951,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 2.2950000762939453,
-							"assist": 0.6550001502037048
+							"assist": 0.6549994349479675
 						},
 						{
 							"sleep": 4.617999076843262,
@@ -24971,8 +24971,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 1.7870001792907715,
-							"assist": 0.14700013399124146
+							"sleep": 1.7869998216629028,
+							"assist": 0.14699941873550415
 						},
 						{
 							"sleep": 4.10999870300293,
@@ -24993,8 +24993,8 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 1.7870001792907715,
-							"assist": 0.14700013399124146
+							"sleep": 1.7869998216629028,
+							"assist": 0.14699941873550415
 						},
 						{
 							"sleep": 4.10999870300293,
@@ -25015,7 +25015,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 1.7870001792907715,
+							"sleep": 1.7869998216629028,
 							"assist": 2.1670000553131104
 						},
 						{
@@ -25037,7 +25037,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": -0.8429999947547913
 						},
 						{
-							"sleep": 1.7870001792907715,
+							"sleep": 1.7869998216629028,
 							"assist": 2.1670000553131104
 						},
 						{
@@ -25297,7 +25297,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": -1.090999960899353,
-							"assist": 4.1240010261535645
+							"assist": 4.123998165130615
 						}
 					]
 				}
@@ -25727,15 +25727,15 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 0.2600000202655792
+							"assist": 0.25999993085861206
 						},
 						{
-							"sleep": 5.807000160217285,
-							"assist": 1.568000078201294
+							"sleep": 5.8069987297058105,
+							"assist": 1.5679997205734253
 						},
 						{
-							"sleep": 4.772000312805176,
-							"assist": 1.7930001020431519
+							"sleep": 4.771998882293701,
+							"assist": 1.7929997444152832
 						}
 					]
 				},
@@ -25751,11 +25751,11 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 							"assist": 0
 						},
 						{
-							"sleep": 3.2490015029907227,
+							"sleep": 3.2489936351776123,
 							"assist": 0
 						},
 						{
-							"sleep": 2.2140016555786133,
+							"sleep": 2.2139954566955566,
 							"assist": 0
 						}
 					]
@@ -26107,7 +26107,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 1.6239995956420898
+							"assist": 1.623997449874878
 						},
 						{
 							"sleep": -0.4690000116825104,
@@ -26132,7 +26132,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 1.4469995498657227
+							"assist": 1.4469974040985107
 						},
 						{
 							"sleep": -0.4690000116825104,
@@ -26157,7 +26157,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 					"groups": [
 						{
 							"sleep": 0,
-							"assist": 0.44699954986572266
+							"assist": 0.44699719548225403
 						},
 						{
 							"sleep": -0.4690000116825104,
@@ -26662,7 +26662,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 1.4109998941421509
+							"assist": 1.4109965562820435
 						},
 						{
 							"sleep": 3.184000015258789,
@@ -26682,7 +26682,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 0.7279998064041138
+							"assist": 0.7279964685440063
 						},
 						{
 							"sleep": 3.184000015258789,
@@ -26703,7 +26703,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 0.7279998064041138
+							"assist": 0.7279964685440063
 						},
 						{
 							"sleep": 5.816999912261963,
@@ -26724,7 +26724,7 @@ export const C_REFERENCE_RANDOM_TIMELINES: TimelineCase[] = [
 						},
 						{
 							"sleep": 0,
-							"assist": 0.7279998064041138
+							"assist": 0.7279964685440063
 						},
 						{
 							"sleep": 3.818000078201294,

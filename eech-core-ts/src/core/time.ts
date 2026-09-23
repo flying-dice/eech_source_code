@@ -16,13 +16,14 @@
 // get_delta_time_average), which no ported code reads.
 //
 
-import { toFloat32 } from "./float32";
+import { toFloat32, toFloat32RTZ } from "./float32";
 
 export interface FrameTime {
 	getDeltaTime(): number;
 	isFrameRateLocked(): boolean;
 }
 
+// a C constant initialiser: converted at compile time, to nearest
 let system_delta_time = toFloat32(0.1);
 
 let locked_frame_rate = false;
@@ -46,7 +47,7 @@ export function isFrameRateLocked(): boolean {
 // C provenance: time.c :: set_manual_delta_time (the float parameter narrows)
 export function setManualDeltaTime(delta_time: number): void {
 	if (!locked_frame_rate) {
-		system_delta_time = toFloat32(delta_time);
+		system_delta_time = toFloat32RTZ(delta_time);
 	}
 
 	// else: debug_log ("TIME: cannot set locked delta time")
@@ -57,5 +58,5 @@ export function setManualDeltaTime(delta_time: number): void {
 export function setDeltaTimeFrom(clock: FrameTime): void {
 	locked_frame_rate = clock.isFrameRateLocked();
 
-	system_delta_time = toFloat32(clock.getDeltaTime());
+	system_delta_time = toFloat32RTZ(clock.getDeltaTime());
 }

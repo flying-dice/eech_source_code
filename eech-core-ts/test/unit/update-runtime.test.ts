@@ -38,6 +38,16 @@ afterEach(() => {
 	deinitialiseEntityRuntime();
 });
 
+describe("time.c :: static initialisers", () => {
+	it("starts from float system_delta_time = 0.1, converted at compile time to nearest", () => {
+		start();
+		// a C constant initialiser is converted when the program is compiled,
+		// not by the run-time FPU, so it is 0x3dcccccd even though EECH rounds
+		// its run-time arithmetic toward zero (docs/fidelity/fpu-semantics.md)
+		expect(getDeltaTime()).toBe(0.10000000149011612);
+	});
+});
+
 describe("time.c :: set_manual_delta_time", () => {
 	it("is refused while the frame rate is locked", () => {
 		start();

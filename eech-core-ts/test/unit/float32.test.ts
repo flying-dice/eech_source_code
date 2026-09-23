@@ -4,6 +4,11 @@
 // oracle: it does not exist in Lua 5.1, where toFloat32 must run unchanged
 // (test/lua/conformance.ts repeats a subset under Lua).
 //
+// toFloat32 is the round-to-nearest conversion for compile-time constants and
+// scenario input only. EECH's run-time float arithmetic rounds toward zero; its
+// helpers are verified against the C oracle in test/unit/float32-rtz.test.ts
+// and test/c-reference/float32-rtz.cref.test.ts (src/core/float32.ts header).
+//
 
 import { describe, expect, it } from "vitest";
 import { FLT_MAX, toFloat32 } from "../../src/core/float32";

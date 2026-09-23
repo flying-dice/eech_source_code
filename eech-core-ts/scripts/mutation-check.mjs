@@ -16,7 +16,8 @@ import { fileURLToPath } from "node:url";
 
 const projectRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-// suite "js": vitest (JavaScript semantics); suite "lua": TSTL + Lua 5.1 conformance runner
+// suite "js": vitest (JavaScript semantics); suite "lua": TSTL + Lua 5.1 conformance runner;
+// suite "cref": the C reference floating-point checks (rebuilds the harness)
 const MUTANTS = [
 	{
 		name: "group requests supplies at exactly 100 (< becomes <=)",
@@ -42,8 +43,8 @@ const MUTANTS = [
 	{
 		name: "rearming ignores keysite stock (bound upper limit 100)",
 		file: "src/entity/special/group/group.ts",
-		from: "required = toFloat32(bound(required, 0.0, level));\n\n\t\t\t\tlevel = toFloat32(level - required);\n\n\t\t\t\tsetClientServerEntityFloatValue(keysite, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL",
-		to: "required = toFloat32(bound(required, 0.0, 100.0));\n\n\t\t\t\tlevel = toFloat32(level - required);\n\n\t\t\t\tsetClientServerEntityFloatValue(keysite, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL",
+		from: "required = toFloat32RTZ(bound(required, 0.0, level));\n\n\t\t\t\tlevel = f32Sub(level, required);\n\n\t\t\t\tsetClientServerEntityFloatValue(keysite, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL",
+		to: "required = toFloat32RTZ(bound(required, 0.0, 100.0));\n\n\t\t\t\tlevel = f32Sub(level, required);\n\n\t\t\t\tsetClientServerEntityFloatValue(keysite, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL",
 		suite: "js",
 	},
 	{
@@ -91,7 +92,7 @@ const MUTANTS = [
 	{
 		name: "C float narrowing of set_client_server_entity_float_value is lost",
 		file: "src/entity/system/en_values.ts",
-		from: "fnSetClientServerEntityFloatValue[getCommsModel()].lookup(en.type, type, FloatType[type])(en, type, toFloat32(value));",
+		from: "fnSetClientServerEntityFloatValue[getCommsModel()].lookup(en.type, type, FloatType[type])(en, type, toFloat32RTZ(value));",
 		to: "fnSetClientServerEntityFloatValue[getCommsModel()].lookup(en.type, type, FloatType[type])(en, type, value);",
 		suite: "js",
 	},
@@ -127,8 +128,8 @@ const MUTANTS = [
 	{
 		name: "sub-step count rounds instead of truncating",
 		file: "src/entity/special/update/update.ts",
-		from: "const entity_update_iterations = toCInt(toFloat32(getDeltaTime() * frame_rate) + 1.0);",
-		to: "const entity_update_iterations = Math.round(toFloat32(getDeltaTime() * frame_rate) + 1.0);",
+		from: "const entity_update_iterations = toCInt(f32Mul(getDeltaTime(), frame_rate) + 1.0);",
+		to: "const entity_update_iterations = Math.round(f32Mul(getDeltaTime(), frame_rate) + 1.0);",
 		suite: "js",
 	},
 	{
@@ -180,6 +181,91 @@ const MUTANTS = [
 		// hidden from TypeScript so only the Lua semantics can catch it
 		to: "if ((value as unknown as boolean) && !getLocalEntityParent(en, ListType.LIST_TYPE_UPDATE)) {",
 		suite: "lua",
+	},
+	// ---- issue #7: round-toward-zero float arithmetic (docs/fidelity/fpu-semantics.md)
+	{
+		name: "float narrowing rounds to nearest instead of toward zero",
+		file: "src/core/float32.ts",
+		from: "return sign * Math.floor(magnitude / quantum) * quantum;\n}\n\n// the float next to f",
+		to: "return sign * Math.round(magnitude / quantum) * quantum;\n}\n\n// the float next to f",
+		suite: "js",
+	},
+	{
+		name: "float narrowing rounds to nearest instead of toward zero (Lua)",
+		file: "src/core/float32.ts",
+		from: "return sign * Math.floor(magnitude / quantum) * quantum;\n}\n\n// the float next to f",
+		to: "return sign * Math.round(magnitude / quantum) * quantum;\n}\n\n// the float next to f",
+		suite: "lua",
+	},
+	{
+		name: "a sum that rounds onto a float in double is not stepped toward zero",
+		file: "src/core/float32.ts",
+		from: "if (f === r && f !== 0 && ((error < 0 && f > 0) || (error > 0 && f < 0))) {",
+		to: "if (false) {",
+		suite: "js",
+	},
+	{
+		name: "a sum that rounds onto a float in double is not stepped toward zero (Lua)",
+		file: "src/core/float32.ts",
+		from: "if (f === r && f !== 0 && ((error < 0 && f > 0) || (error > 0 && f < 0))) {",
+		to: "if (false) {",
+		suite: "lua",
+	},
+	{
+		name: "the step below a power of two uses the full spacing",
+		file: "src/core/float32.ts",
+		from: "\t\tquantum = quantum / 2;\n",
+		to: "\n",
+		suite: "js",
+	},
+	{
+		name: "the sum error term has the wrong sign",
+		file: "src/core/float32.ts",
+		from: "return a - (s - bVirtual) + (b - bVirtual);",
+		to: "return -(a - (s - bVirtual) + (b - bVirtual));",
+		suite: "js",
+	},
+	{
+		name: "float multiplication rounds to nearest",
+		file: "src/core/float32.ts",
+		from: "return toFloat32RTZ(a * b);",
+		to: "return toFloat32(a * b);",
+		suite: "js",
+	},
+	{
+		name: "float division rounds to nearest",
+		file: "src/core/float32.ts",
+		from: "return toFloat32RTZ(a / b);",
+		to: "return toFloat32(a / b);",
+		suite: "js",
+	},
+	{
+		name: "square root rounds to nearest",
+		file: "src/core/float32.ts",
+		from: "return toFloat32RTZ(Math.sqrt(x));",
+		to: "return toFloat32(Math.sqrt(x));",
+		suite: "js",
+	},
+	{
+		name: "the compile-time delta initialiser is rounded toward zero",
+		file: "src/core/time.ts",
+		from: "export function resetDeltaTime(): void {\n\tsystem_delta_time = toFloat32(0.1);",
+		to: "export function resetDeltaTime(): void {\n\tsystem_delta_time = toFloat32RTZ(0.1);",
+		suite: "js",
+	},
+	{
+		name: "timer subtraction is not narrowed to float",
+		file: "src/entity/special/group/group.ts",
+		from: "raw.sleep = f32Sub(raw.sleep, getDeltaTime());",
+		to: "raw.sleep = raw.sleep - getDeltaTime();",
+		suite: "js",
+	},
+	{
+		name: "a C-reference environment that still rounds to nearest",
+		file: "c-reference/harness.c",
+		from: "#define HARNESS_MXCSR_RC 0x6000		/* round toward zero */",
+		to: "#define HARNESS_MXCSR_RC 0x0000		/* round toward zero */",
+		suite: "cref",
 	},
 	// ---- slice 3: entity lifecycle, cargo, sectors, heap
 	{
@@ -262,8 +348,8 @@ const MUTANTS = [
 	{
 		name: "MAX_MAP_X lacks EECH's - 1.0",
 		file: "src/entity/system/en_world.ts",
-		from: "world_map.max_map_x = toFloat32(toFloat32(num_map_x_sectors * sector_side_length) - 1.0);",
-		to: "world_map.max_map_x = toFloat32(num_map_x_sectors * sector_side_length);",
+		from: "world_map.max_map_x = f32Add(toFloat32RTZ(num_map_x_sectors * sector_side_length), -1.0);",
+		to: "world_map.max_map_x = toFloat32RTZ(num_map_x_sectors * sector_side_length);",
 		suite: "js",
 	},
 	{
@@ -311,6 +397,17 @@ function runSuite(cwd, suite) {
 	if (suite === "js") {
 		return run(cwd, join(cwd, "node_modules", ".bin", "vitest"), ["run", "--reporter=dot"]);
 	}
+	if (suite === "cref") {
+		// the canonical oracle's environment guard and the C float arithmetic checks
+		return run(cwd, join(cwd, "node_modules", ".bin", "vitest"), [
+			"run",
+			"--reporter=dot",
+			"--config",
+			"vitest.cref.config.ts",
+			"test/c-reference/fpu-environment.cref.test.ts",
+			"test/c-reference/float32-rtz.cref.test.ts",
+		]);
+	}
 	const build = run(cwd, join(cwd, "node_modules", ".bin", "tstl"), ["-p", "tsconfig.lua-test.json"]);
 	if (build.status !== 0) {
 		return build;
@@ -320,7 +417,7 @@ function runSuite(cwd, suite) {
 
 function copyProject() {
 	const dir = mkdtempSync(join(tmpdir(), "eech-core-ts-mutant-"));
-	for (const entry of ["src", "test", "scripts", "c-reference", "package.json", "tsconfig.json", "tsconfig.lua-test.json", "vitest.config.ts"]) {
+	for (const entry of ["src", "test", "scripts", "c-reference", "package.json", "tsconfig.json", "tsconfig.lua-test.json", "vitest.config.ts", "vitest.cref.config.ts"]) {
 		cpSync(join(projectRoot, entry), join(dir, entry), { recursive: true });
 	}
 	symlinkSync(join(projectRoot, "node_modules"), join(dir, "node_modules"), "dir");

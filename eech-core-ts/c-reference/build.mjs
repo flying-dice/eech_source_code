@@ -59,9 +59,9 @@ export const HARNESS_OBJECT_NAME = "harness.c.o";
 // ones that would hide a mismatch with the harness environment are errors.
 const ORIGINAL_FLAGS = ["-Werror=implicit-function-declaration", "-Werror=incompatible-pointer-types", "-Werror=int-conversion", "-Werror=return-type"];
 
-function compile(cc, source, flags, objectName = `${source.replace(/[\\/]/g, "_")}.o`) {
-	const object = join(outDir, objectName);
-	const args = [...COMMON, ...flags, "-c", source, "-o", object];
+function compile(cc, source, flags, objectName = `${source.replace(/[\\/]/g, "_")}.o`, dir = outDir, common = COMMON) {
+	const object = join(dir, objectName);
+	const args = [...common, ...flags, "-c", source, "-o", object];
 	const result = spawnSync(cc, args, { encoding: "utf8" });
 	if (result.error || result.status !== 0) {
 		throw new Error(`C reference harness build failed (${cc} ${args.join(" ")}):\n${result.error ?? ""}${result.stdout}${result.stderr}`);
@@ -70,21 +70,40 @@ function compile(cc, source, flags, objectName = `${source.replace(/[\\/]/g, "_"
 }
 
 export function buildHarness() {
-	writeGenerated(outDir);
+	return buildHarnessInto(outDir, COMMON);
+}
+
+function buildHarnessInto(dir, common) {
+	writeGenerated(dir);
 
 	const cc = process.env.CC || "cc";
 	const objects = [
-		compile(cc, join(here, "harness.c"), OWN_FLAGS, HARNESS_OBJECT_NAME),
+		compile(cc, join(here, "harness.c"), OWN_FLAGS, HARNESS_OBJECT_NAME, dir, common),
 		// verbatim original code: original-code flags
-		...Object.keys(EXTRACTED_UNITS).map((unit) => compile(cc, join(outDir, unit), ORIGINAL_FLAGS)),
-		...REAL_TRANSLATION_UNITS.map((unit) => compile(cc, join(repoRoot, unit), ORIGINAL_FLAGS)),
+		...Object.keys(EXTRACTED_UNITS).map((unit) => compile(cc, join(dir, unit), ORIGINAL_FLAGS, undefined, dir, common)),
+		...REAL_TRANSLATION_UNITS.map((unit) => compile(cc, join(repoRoot, unit), ORIGINAL_FLAGS, undefined, dir, common)),
 	];
 
-	const link = spawnSync(cc, ["-m32", ...objects, "-lm", "-o", HARNESS_BINARY], { encoding: "utf8" });
+	const binary = join(dir, "harness");
+	const link = spawnSync(cc, ["-m32", ...objects, "-lm", "-o", binary], { encoding: "utf8" });
 	if (link.error || link.status !== 0) {
 		throw new Error(`C reference harness link failed:\n${link.error ?? ""}${link.stdout}${link.stderr}`);
 	}
-	return HARNESS_BINARY;
+	return binary;
+}
+
+//
+// INVESTIGATION ONLY (issue #7): a floating-point variant of the harness, built
+// into its own directory. `variant.flags` replace the canonical code-generation
+// flags (-msse2 -mfpmath=sse ...) and `variant.defines` select the control word
+// harness.c installs (see HARNESS_FPU_VARIANT there). The canonical oracle
+// (buildHarness) is never affected.
+//
+export function buildHarnessVariant(variant) {
+	const dir = join(projectRoot, "build", "c-reference-fpu", variant.name);
+	const include = COMMON.slice(COMMON.indexOf("-I"));
+	const common = ["-std=gnu99", "-m32", ...variant.flags, "-DHARNESS_FPU_VARIANT", ...variant.defines, ...include.map((a) => (a === outDir ? dir : a))];
+	return buildHarnessInto(dir, common);
 }
 
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];

@@ -249,11 +249,11 @@ zero". `init.c` and `terrdata.c` repeat the call.
 sector lookup therefore truncates positions, which is what the port and the
 harness do.
 
-**Open, cross-cutting:** the x87 control word also governs the rounding of all
-x87 float arithmetic in the original executable. Slices 1 and 2 model IEEE
-single precision with round-to-nearest, and so does the harness (SSE, default
-rounding). No slice has yet been checked against round-toward-zero arithmetic.
-This is recorded for a decision and is not changed silently in this slice.
+**Resolved by issue #7:** the x87 control word also governs the rounding of
+all float arithmetic in the original executable. The canonical oracle and the
+port now round toward zero (`docs/fidelity/fpu-semantics.md`). The Slice 3
+fixtures were unaffected: the lifecycle fixture is byte-identical under the
+migration.
 Slice 3's own arithmetic is limited to:
 - the map extents (exact for power-of-two side lengths and realistic sector
   counts);

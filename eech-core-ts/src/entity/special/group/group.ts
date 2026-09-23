@@ -6,7 +6,7 @@
 //
 
 import { ASSERT } from "../../../core/assert";
-import { toFloat32 } from "../../../core/float32";
+import { f32Add, f32Sub, toFloat32RTZ } from "../../../core/float32";
 import { UnportedBehaviourError } from "../../../core/assert";
 import { bound, KILOMETRE, max } from "../../../core/maths/miscmath";
 import { getDeltaTime } from "../../../core/time";
@@ -119,15 +119,16 @@ export function assessGroupSupplies(en: Entity): void {
 
 				let level = getLocalEntityFloatValue(keysite, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL);
 
-				let required = toFloat32(100.0 - raw.supplies.ammo_supply_level * AMMO_USAGE_ACCELERATOR);
+				// 100.0 - (level * AMMO_USAGE_ACCELERATOR): double arithmetic stored as float
+				let required = f32Add(100.0, -(raw.supplies.ammo_supply_level * AMMO_USAGE_ACCELERATOR));
 
-				required = toFloat32(bound(required, 0.0, level));
+				required = toFloat32RTZ(bound(required, 0.0, level));
 
-				level = toFloat32(level - required);
+				level = f32Sub(level, required);
 
 				setClientServerEntityFloatValue(keysite, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL, level);
 
-				setClientServerEntityFloatValue(en, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL, raw.supplies.ammo_supply_level + required);
+				setClientServerEntityFloatValue(en, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL, f32Add(raw.supplies.ammo_supply_level, required));
 			}
 
 			if (raw.supplies.fuel_supply_level < 100.0) {
@@ -153,15 +154,16 @@ export function assessGroupSupplies(en: Entity): void {
 
 				let level = getLocalEntityFloatValue(keysite, FloatType.FLOAT_TYPE_FUEL_SUPPLY_LEVEL);
 
-				let required = toFloat32(100.0 - raw.supplies.fuel_supply_level * FUEL_USAGE_ACCELERATOR);
+				// 100.0 - (level * FUEL_USAGE_ACCELERATOR): double arithmetic stored as float
+				let required = f32Add(100.0, -(raw.supplies.fuel_supply_level * FUEL_USAGE_ACCELERATOR));
 
-				required = toFloat32(bound(required, 0.0, level));
+				required = toFloat32RTZ(bound(required, 0.0, level));
 
-				level = toFloat32(level - required);
+				level = f32Sub(level, required);
 
 				setClientServerEntityFloatValue(keysite, FloatType.FLOAT_TYPE_FUEL_SUPPLY_LEVEL, level);
 
-				setClientServerEntityFloatValue(en, FloatType.FLOAT_TYPE_FUEL_SUPPLY_LEVEL, raw.supplies.fuel_supply_level + required);
+				setClientServerEntityFloatValue(en, FloatType.FLOAT_TYPE_FUEL_SUPPLY_LEVEL, f32Add(raw.supplies.fuel_supply_level, required));
 			}
 		}
 	}
@@ -176,13 +178,13 @@ function updateServer(en: Entity): void {
 	//
 
 	if (raw.sleep > 0.0) {
-		raw.sleep = toFloat32(raw.sleep - getDeltaTime());
+		raw.sleep = f32Sub(raw.sleep, getDeltaTime());
 
 		raw.sleep = max(raw.sleep, 0.0);
 	}
 
 	if (raw.assist_timer > 0.0) {
-		raw.assist_timer = toFloat32(raw.assist_timer - getDeltaTime());
+		raw.assist_timer = f32Sub(raw.assist_timer, getDeltaTime());
 
 		raw.assist_timer = max(raw.assist_timer, 0.0);
 	}

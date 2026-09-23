@@ -12,7 +12,7 @@
 //
 
 import { storeUnsignedBitfield } from "../../core/cint";
-import { toFloat32 } from "../../core/float32";
+import { toFloat32RTZ } from "../../core/float32";
 import type { Vec3d } from "../../core/maths/vec3d";
 import { EntityType, IntType, ListType, Vec3dType } from "../../generated/c-enums";
 import { overloadEntityListLink, overloadEntityListRoot } from "../system/en_list";
@@ -112,9 +112,9 @@ export function overloadMobileFunctions(): void {
 			const position = getCampaignPorts().mobilePhysicalState.getMobilePosition(en.index);
 
 			return {
-				x: toFloat32(position.x),
-				y: toFloat32(position.y),
-				z: toFloat32(position.z),
+				x: toFloat32RTZ(position.x),
+				y: toFloat32RTZ(position.y),
+				z: toFloat32RTZ(position.z),
 			};
 		});
 	}
