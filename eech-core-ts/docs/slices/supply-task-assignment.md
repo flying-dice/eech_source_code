@@ -33,7 +33,7 @@ The primary social case runs Slices 1–5b unchanged, then this slice:
    - `suitable_group_task_specific_checks` passes (the ESCORT and TROOP_INSERTION arms);
    - `group.c :: assess_group_task_locality_factor` passes: the first member's approximate 2D range to the keysite, divided by its `CRUISE_VELOCITY`, gives an ETA that must not exceed the task's expiry.
 
-   The group with the lowest suitability wins. On a tie, the first group in the list wins.
+   The qualifying group with the lowest non-zero suitability wins (`result < best_result`). On a tie, the first group encountered in the list wins. Under the frozen EECH databases every qualifying score is 1.0, so the observable result today is that the first qualifying group wins (6a-F1).
 4. `assign_primary_task_to_group (group, task)` is **the boundary**.
 
 ## The boundary
@@ -61,7 +61,12 @@ These restore operations were added. Each sets state that EECH persists in saved
 
 ## Findings
 
-- **6a-F1: the least suitable group always ties at 1.0.** With the compiled databases, every nonzero `get_group_to_task_suitability` is exactly 1.0. `suitable.c` rejects a group with a lower attack strength than the task needs, so each `min (a / b, 1.0)` is 1.0. The C's "least suitable wins" (`result < best_result`) therefore always resolves to "the first qualifying group in `LIST_TYPE_KEYSITE_GROUP` order wins". A unit invariant recomputes this over every group and task pair. `wutcfg.c` database overrides, which are not ported, could change it.
+- **6a-F1: the algorithm, and what the frozen databases make of it.**
+  - **The algorithm.** `get_suitable_registered_group` keeps the qualifying group with the lowest non-zero suitability (`result < best_result`, starting from `FLT_MAX`).
+  - **Ties.** The comparison is strict, so the first group encountered in `LIST_TYPE_KEYSITE_GROUP` order wins.
+  - **The frozen EECH databases.** Every qualifying non-zero `get_group_to_task_suitability` is exactly 1.0. `suitable.c` rejects a group weaker than any of the task's strengths, so each `min (a / b, 1.0)` is 1.0.
+  - **The observable result today.** The first qualifying group wins.
+  - **The port.** It keeps the generic comparison. `wutcfg.c` / WUT database overrides are not ported yet and may expose different non-zero scores. A unit invariant proves the current database property over every group and task pair, so porting those overrides makes it a deliberate fidelity checkpoint rather than a hidden assumption.
 - **6a-F2: the ETA division never divides by zero, and aircraft never sleep.**
   - **Cruise velocity.** `CRUISE_VELOCITY` is `aircraft_database [mob.sub_type].cruise_velocity`, from `ac_float.c`. `src/generated/c-aircraft-database.ts` generates it from `ac_dbase.c`: `knots_to_metres_per_second (K)`, folded at float precision with round to nearest, as the compiler does. It matches the compiled C database bit for bit (`aircraft-database.cref.test.ts`). All 33 entries are positive (70–450 knots).
   - **Which groups get this far.** A group reaches locality only if at least one idle group of its sub type is on the air registry (`idle_count > minimum_idle_count >= 0`). Only aircraft group types join the air registry (`gp_dbase.c` `registry_list_type` and `default_entity_type`, generated and checked by an invariant). Every supply-compatible group's default aircraft has a positive cruise velocity.

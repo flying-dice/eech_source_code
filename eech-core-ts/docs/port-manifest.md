@@ -296,8 +296,12 @@ by the harness shim, and are verified by source reading only. The plan and the r
   - **Past the boundary**, in `assign.ts`: the `assign_count == 0` break and the result arms of `assign_primary_task_to_group`.
   - **The sleep rejection** of `check_group_members_awake`, and its caller's else arm. An aircraft member's sleep is the default 0.0 (**6a-F2**).
   - **Two arms of `assess_group_task_locality_factor`** (`group.ts`) that the only ported caller cannot reach: no member, and a task off a keysite's unassigned list.
-- **6a-F1 (finding).** Every nonzero group-to-task suitability is exactly
-  1.0, so "least suitable wins" is "the first qualifying group wins".
+- **6a-F1 (finding).** The algorithm: the lowest non-zero suitability wins,
+  and the first group encountered wins a tie. Under the frozen EECH databases
+  every qualifying score is 1.0, so the observable result today is that the
+  first qualifying group wins. The generic comparison remains ported, because
+  future WUT/database overrides may expose different non-zero scores; the
+  invariant test turns that into a deliberate fidelity checkpoint.
   **6a-F2 (finding).** On the assignment path the ETA divisor is never 0: every
   aircraft's cruise velocity is positive, and only aircraft groups join the
   air registry. `test/unit/supply-task-assignment.test.ts` holds both invariants.
