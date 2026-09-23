@@ -40,17 +40,28 @@ where practical.
 | `aphavoc/source/cmndline.c` (`command_line_entity_update_frame_rate`) | `src/core/cmndline.ts` | partial |
 | `aphavoc/source/entity/special/group/gp_dbase.c` | `src/generated/c-group-database.ts` (generated) | partial |
 | `aphavoc/source/entity/special/keysite/keysite.c` | `src/entity/special/keysite/keysite.ts` | partial |
-| `aphavoc/source/entity/special/keysite/ks_int.c`, `ks_float.c`, `ks_vec3d.c`, `ks_list.c` | `src/entity/special/keysite/keysite.ts` | partial |
+| `aphavoc/source/entity/special/keysite/ks_int.c`, `ks_float.c`, `ks_vec3d.c`, `ks_list.c`, `ks_msgs.c` | `src/entity/special/keysite/keysite.ts` | partial |
 | `aphavoc/source/entity/special/force/force.c` | `src/entity/special/force/force.ts` | partial |
 | `aphavoc/source/entity/special/force/fc_int.c`, `fc_list.c`, `fc_msgs.c` | `src/entity/special/force/force.ts` | partial |
 | `aphavoc/source/entity/special/session/session.h`, `ss_list.c` | `src/entity/special/session/session.ts`, `src/entity/system/entity.ts` | partial |
 | `aphavoc/source/entity/special/guide/gd_list.c` | `src/entity/special/guide/guide.ts` | partial |
 | `aphavoc/source/entity/mobile/aircraft/ac_list.c`, `ac_vec3d.c`; `vehicle/vh_list.c`, `vh_vec3d.c` | `src/entity/mobile/mobile.ts` | partial (campaign surface only) |
+| `aphavoc/source/entity/mobile/mb_int.c`, `mb_vec3d.c`, `mb_list.c` | `src/entity/mobile/mobile.ts` (`overloadMobileRawStateFunctions`) | partial (the rows cargo reaches) |
+| `aphavoc/source/entity/mobile/aircraft/ac_msgs.c` | `src/entity/mobile/aircraft/ac_msgs.ts` | partial (link / unlink parent responses) |
+| `aphavoc/source/entity/mobile/cargo/cg_creat.c`, `cg_dstry.c`, `cg_list.c`, `cg_funcs.c`, `cg_msgs.c` | `src/entity/mobile/cargo/cargo.ts` | partial (kill, movement, update, draw, pack and `cg_int.c` not ported) |
+| `aphavoc/source/entity/special/sector/sector.c`, `sc_seccreat.c`, `sc_int.c`, `sc_list.c`, `sc_msgs.c` | `src/entity/special/sector/sector.ts` | partial |
+| `aphavoc/source/entity/special/effect/soundeff/soundeff.c` | `src/entity/special/effect/soundeff.ts` | partial (`destroy_client_server_sound_effects`) |
 | `aphavoc/source/entity/mobile/**` (flight models, movement, weapons, damage, drawing) | none | excluded-physical-simulation |
 | `aphavoc/source/entity/system/en_funcs/en_list.c`, `en_list/*.h` | `src/entity/system/en_list.ts` | partial |
 | `aphavoc/source/entity/system/en_funcs/en_int.c`, `en_float.c`, `en_vec3d.c`, `en_ptr.c` | `src/entity/system/en_values.ts`, `function-table.ts` | partial |
 | `aphavoc/source/entity/system/en_msgs/en_msgs.c` | `src/entity/system/en_msgs.ts` | partial |
-| `aphavoc/source/entity/system/en_main/*` | `src/entity/system/entity.ts` | partial |
+| `aphavoc/source/entity/system/en_main/en_heap.c`, `en_heap.h` | `src/entity/system/en_heap.ts`, `entity.ts` | partial (specific-index allocation, downwash heap and packing not ported) |
+| `aphavoc/source/entity/system/en_main/en_world.c`, `en_world.h`; `misc/miscell.c :: int_bit_count` | `src/entity/system/en_world.ts` | partial |
+| `aphavoc/source/entity/system/en_main/*` (other files) | `src/entity/system/entity.ts` | partial |
+| `aphavoc/source/entity/system/en_attrs/en_attrs.c` | `src/entity/system/en_attrs.ts` | partial (`set_local_entity_attributes`; pack/unpack not ported) |
+| `aphavoc/source/entity/system/en_funcs/en_creat.c`; `en_debug/en_valid.c` (create index checks) | `src/entity/system/en_creat.ts` | partial |
+| `aphavoc/source/entity/system/en_funcs/en_dstry.c` | `src/entity/system/en_dstry.ts` | partial (kill and whole-heap destruction not ported) |
+| `modules/system/fpu.c :: convert_float_to_int` | `toCInt` (`src/core/cint.ts`) | ported (truncation: EECH's round-toward-zero FPU mode) |
 | `aphavoc/source/entity/system/en_comms/en_comms.c` | `src/ports/entity-replication.ts` (port) | blocked-engine-boundary |
 | `aphavoc/source/comms/comms.c` (`get_comms_model`) | `src/entity/system/comms.ts` | partial |
 | `modules/maths/range.c` | `src/core/maths/range.ts` | partial |
@@ -59,7 +70,7 @@ where practical.
 | `modules/system/assert.h` | `src/core/assert.ts` | partial |
 | enum headers (`en_types.h`, `en_side.h`, `en_list.h`, `en_int.h`, `en_float.h`, `en_vec3d.h`, `en_ptr.h`, `en_msgs.h`, `en_sbtyp.h`, `ai_extrn.h`, `comms.h`, `en_suply.h`) | `src/generated/c-enums.ts` (generated) | ported (selected enums, generated verbatim) |
 | `ai/highlevl/*`, `ai/taskgen/*`, `ai/frontl/*`, `ai/faction/*`, `ai/ai_misc/*` | none | unported |
-| `entity/special/division`, `task`, `waypoint`, `landing`, `sector`, `regen` | none | unported |
+| `entity/special/division`, `task`, `waypoint`, `landing`, `regen` | none | unported |
 | `wutcfg.c`, `gwutcfg.c` (runtime overrides of `group_database`) | none | unported |
 
 ## Functions
@@ -98,12 +109,42 @@ where practical.
 | `time.c :: set_delta_time`, `lock_frame_rate` | `Clock` port | blocked-engine-boundary (frame measurement) |
 | Windows SDK `max` | `max` in `miscmath.ts` | ported, tested, 100%-covered |
 
+### Frozen slice: entity lifecycle, CARGO, sector membership (slice 3)
+
+| C function | TS | Status |
+|---|---|---|
+| `en_heap.c :: initialise_entity_heap`, `reset_entity_heap` | `initialiseEntityHeap`, lazily materialised records (`getLocalEntityPtr`) | ported, tested, 100%-covered, C-reference-verified |
+| `en_heap.c :: get_free_entity` (`ENTITY_INDEX_DONT_CARE`) | `getFreeEntity` | ported, tested, 100%-covered, C-reference-verified; a specific index throws unported |
+| `en_heap.c :: set_free_entity` | `setFreeEntity` | ported, tested, 100%-covered, C-reference-verified |
+| `en_creat.c :: create_client_server_entity`, `create_local_entity` | `createClientServerEntity`, `createLocalEntity` | ported, tested, 100%-covered, C-reference-verified (TX stack attributes and RX buffer both become the attribute array) |
+| `en_valid.c :: assert_local_create_entity_index`, `assert_remote_create_entity_index` (server) | `validateLocalCreateEntityIndex`, `validateRemoteCreateEntityIndex` | ported, tested, 100%-covered, C-reference-verified |
+| `en_attrs.c :: set_local_entity_attributes` (`INT_VALUE`, `FLOAT_VALUE`, `VEC3D`, `PARENT`, `CHILD_PRED`) | `setLocalEntityAttributes` | ported, tested, 100%-covered, C-reference-verified (`FLOAT_VALUE`: unit test only, no ported raw float setter); the other attribute kinds are not representable |
+| `en_attrs.c :: pack_entity_attributes` (what `ENTITY_COMMS_CREATE` carries) | `replicatedEntityAttributes` → `EntityReplication.transmitEntityCreate` | ported, tested, 100%-covered, C-reference-verified |
+| `en_dstry.c :: destroy_local_entity`, `destroy_client_server_entity`, `destroy_client_server_entity_family`, `default_destroy_entity*` (`ENTITY_TYPE_UNKNOWN`) | `en_dstry.ts` | ported, tested, 100%-covered, C-reference-verified |
+| `en_list.c :: unlink_local_entity_children` | `unlinkLocalEntityChildren` | ported, tested, 100%-covered, C-reference-verified (with children: unit test only) |
+| `en_list/set_frst.h`, `set_prnt.h`, `set_succ.h`, `set_pred.h` :: `ASSERT (en != ...)` | the `en_list.ts` setters | ported, tested, 100%-covered, C-reference-verified (added in slice 3; the slice 2 setters lacked it) |
+| `en_world.c :: set_entity_world_map_size`; `en_world.h :: point_inside_map_area`, `get_x_sector`, `get_z_sector`; `miscell.c :: int_bit_count` | `en_world.ts` | ported, tested, 100%-covered, C-reference-verified |
+| `sc_seccreat.c :: create_local_sector_entities`, `create_local` | `createLocalSectorEntities`, `overloadSectorFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `sector.c :: get_local_sector_entity`, `get_local_raw_sector_entity` | `getLocalSectorEntity`, `getLocalRawSectorEntity` | ported, tested, 100%-covered, C-reference-verified |
+| `sector.c :: add_mobile_values_to_sector`, `remove_mobile_values_from_sector` | `addMobileValuesToSector`, `removeMobileValuesFromSector` | partial: the vehicle arm (imap defence levels) throws unported |
+| `sc_msgs.c :: response_to_link_child`, `response_to_unlink_child` | `overloadSectorFunctions` | partial: the fixed-entity arm (object dimensions, Slice 4) and the aircraft / vehicle arm (fog of war, `FORCE_ENTERED_SECTOR`) throw unported |
+| `sc_int.c` (`X_SECTOR`, `Z_SECTOR`, 8-bit fields), `sc_list.c` | `overloadSectorFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `mb_int.c` (`ALIVE` 1 bit, `SIDE` 2 bits, `ENTITY_SUB_TYPE`), `mb_vec3d.c` (`POSITION`), `mb_list.c`; `en_int.c` default 0 for `IDENTIFY_FIXED` / `AIRCRAFT` / `VEHICLE` | `overloadMobileRawStateFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `ac_msgs.c :: response_to_link_parent`, `response_to_unlink_parent` (for cargo) | `overloadAircraftLinkParentResponses` | partial: the target, gunship-target and update arms throw unported |
+| `cg_creat.c :: create_local`, `create_remote`, `create_server` | `cargo.ts` | ported, tested, 100%-covered, C-reference-verified |
+| `cg_dstry.c :: destroy_local`, `destroy_remote`, `destroy_server`, `destroy_server_family` | `cargo.ts` | ported, tested, 100%-covered, C-reference-verified |
+| `cg_list.c` | `overloadCargoFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `soundeff.c :: destroy_client_server_sound_effects` | `destroyClientServerSoundEffects` | ported, tested, 100%-covered (with special effects: unit test only; destroying a sound effect throws unported) |
+| `ks_msgs.c :: response_to_link_child`, `response_to_unlink_child`; `ks_list.c :: LIST_TYPE_CARGO_ROOT` | `overloadKeysiteFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `cg_dstry.c :: kill_local` and friends, `cg_move.c`, `cg_updt.c`, `cg_draw.c`, `cg_pack.c`, `cg_int.c` | none | unported |
+| `en_stats.c :: update_create_entity_statistics`, `update_destroy_entity_statistics` | none | excluded (debug display counters; executed in the harness) |
+
 ### Accessor overloads reached by the slices
 
-Since slice 2 the harness compiles the original group translation units, so
-group accessors are `C-reference-verified`. Keysite, force, session, guide and
-mobile accessors are still supplied by the harness shim, and are verified by
-source reading only. The plan and the rules for new slices are in
+Since slice 2 the harness compiles the original group translation units, and
+since slice 3 the keysite and force ones, so these accessors are
+`C-reference-verified`. Session, guide and aircraft accessors are still supplied
+by the harness shim, and are verified by source reading only. The plan and the rules for new slices are in
 `docs/architecture.md`, "Shrinking the C reference shim".
 
 | C | TS | Status |
@@ -117,13 +158,13 @@ source reading only. The plan and the rules for new slices are in
 | `gp_vec3d.c :: get_local_vec3d_ptr (VEC3D_TYPE_POSITION)` | `overloadGroupFunctions` | ported, tested, 100%-covered, C-reference-verified |
 | `gp_list.c` / `en_list/*.h`: `member_root`, `guide_stack_root`, `group_link` (BUILDING/INDEPENDENT/KEYSITE_GROUP), `update_link` | `overloadGroupFunctions` | ported, tested, 100%-covered, C-reference-verified |
 | `gp_dbase.c :: group_database[].resupply_source` | `GROUP_DATABASE_RESUPPLY_SOURCE` | ported (generated from C, drift-checked), C-reference-verified (the harness reads the compiled `group_database`) |
-| `ks_int.c :: get_local_int_value` (`ENTITY_SUB_TYPE`, `IN_USE`) | `overloadKeysiteFunctions` | ported, tested, 100%-covered, source-read |
-| `ks_float.c :: get_local_float_value`, `set_server_float_value` (`AMMO_SUPPLY_LEVEL`, `FUEL_SUPPLY_LEVEL`) | `overloadKeysiteFunctions` | ported, tested, 100%-covered, source-read |
-| `ks_vec3d.c :: get_local_vec3d_ptr (VEC3D_TYPE_POSITION)` | `overloadKeysiteFunctions` | ported, tested, 100%-covered, source-read |
-| `ks_list.c`: `keysite_group_root`, `building_group_root`, `keysite_force_link` | `overloadKeysiteFunctions` | ported, tested, 100%-covered, source-read |
-| `fc_int.c :: get_local_int_value (INT_TYPE_SIDE)` | `overloadForceFunctions` | ported, tested, 100%-covered, source-read |
-| `fc_list.c`: `keysite_force_root`, `independent_group_root`, `force_link` | `overloadForceFunctions` | ported, tested, 100%-covered, source-read |
-| `fc_msgs.c :: response_to_force_low_on_supplies` | declared unported message response | unported (next slice; the slice stops at this message boundary) |
+| `ks_int.c :: get_local_int_value` (`ENTITY_SUB_TYPE`, `IN_USE`) | `overloadKeysiteFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `ks_float.c :: get_local_float_value`, `set_server_float_value` (`AMMO_SUPPLY_LEVEL`, `FUEL_SUPPLY_LEVEL`) | `overloadKeysiteFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `ks_vec3d.c :: get_local_vec3d_ptr (VEC3D_TYPE_POSITION)` | `overloadKeysiteFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `ks_list.c`: `keysite_group_root`, `building_group_root`, `cargo_root`, `keysite_force_link` | `overloadKeysiteFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `fc_int.c :: get_local_int_value (INT_TYPE_SIDE)` | `overloadForceFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `fc_list.c`: `keysite_force_root`, `independent_group_root`, `force_link` | `overloadForceFunctions` | ported, tested, 100%-covered, C-reference-verified |
+| `fc_msgs.c :: response_to_force_low_on_supplies` | declared unported message response | unported (Slice 5; slice 1 stops at this message boundary) |
 | `ss_list.c`: `force_root` | `overloadSessionListFunctions` | ported, tested, 100%-covered, source-read |
 | `gd_list.c`: `guide_stack_link` | `overloadGuideFunctions` | ported, tested, 100%-covered, source-read |
 | `ac_list.c` / `vh_list.c`: `member_link` | `overloadMobileFunctions` | ported, tested, 100%-covered, source-read |
@@ -136,11 +177,12 @@ source reading only. The plan and the rules for new slices are in
 | `en_list.c :: get_local_entity_first_child`, `get_local_entity_parent`, `get_local_entity_child_succ` | `en_list.ts` | ported, tested, 100%-covered |
 | `en_list.c :: get_local_entity_child_pred` | `getLocalEntityChildPred` | ported, tested, 100%-covered |
 | `en_list.c :: insert_local_entity_into_parents_child_list` | `insertLocalEntityIntoParentsChildList` (slice 2), and `insertLocalEntityIntoParentsChildListRaw` for restoring state without notifications | ported |
+| `en_list.c :: set_local_entity_parent`, `set_local_entity_child_pred` (used by attributes) | `setLocalEntityParent`, `setLocalEntityChildPred` | ported, tested, 100%-covered, C-reference-verified |
 | the other `en_list.c` functions | none | unported |
-| `en_main.c :: get_local_entity_type`, `get_local_entity_data` | `entity.ts` | ported, tested, 100%-covered |
-| `en_creat.c`, `en_dstry.c`, `en_pack.c` | `createLocalEntityRaw` (restore primitive only) | unported |
+| `en_funcs.h :: get/set_local_entity_type`, `get/set_local_entity_data` | `entity.ts` | ported, tested, 100%-covered |
+| `en_pack.c` | `createLocalEntityRaw` (restore primitive: the next heap entry with its raw data) | unported |
 | `en_int.c`, `en_float.c`, `en_vec3d.c`, `en_ptr.c` dispatch macros | `en_values.ts` | ported, tested, 100%-covered |
-| `en_*.c :: default_*` handlers | the unported sentinel (throws) instead of EECH defaults | deliberate: see architecture question 2 |
+| `en_*.c :: default_*` handlers | the unported sentinel (throws) instead of EECH defaults | deliberate: see architecture question 2. Installed only where the C table is known to keep the default: `default_set_entity_int_value` (group `UPDATED`), `default_get_entity_int_value` (cargo `IDENTIFY_*`), `default_destroy_entity*` (`ENTITY_TYPE_UNKNOWN`) |
 | `en_msgs.c :: default_message_response` | `defaultMessageResponse` | ported; installed only where the C table keeps the default (the update entity's link responses) |
 | `en_valid.h :: validate_client_server_local_fn / remote_fn` | none | excluded (debug-build dispatch validation) |
 | client comms model overloads (`set_client_float_value`) | none | unported (the core is the server authority) |
@@ -159,6 +201,18 @@ source reading only. The plan and the rules for new slices are in
   `up_update.c` clears only a quarter of its entity bitsets. Neither affects
   ported behaviour; see `docs/slices/group-update-timing.md`.
 - **Float arithmetic** follows IEEE single precision at declared type
-  (`FLT_EVAL_METHOD == 0`). Historical x87 builds may differ in the last bit.
+  (`FLT_EVAL_METHOD == 0`), rounding to nearest. **Open finding (slice 3):**
+  EECH sets the x87 FPU to round toward zero at start-up (`startup.c ::
+  set_fpu_rounding_mode_zero`), which governs `convert_float_to_int` (ported as
+  truncation) and also the rounding of every x87 float operation in the
+  original executable. No slice has been checked against round-toward-zero
+  arithmetic yet; see `docs/slices/entity-lifecycle-cargo.md`.
+- **`debug_fatal`** throws `EechFatalError`, carrying the C format string
+  (compared with the C reference) and a formatted message.
+- **Undefined behaviour** that crashes EECH (integer division by zero, e.g. a
+  cargo created before any world map) throws `EechUndefinedBehaviourError`.
+- **Bit-fields.** Stores into `unsigned int` bit-fields keep the low bits
+  (`storeUnsignedBitfield`): mobile `alive` (1), `side` (2), sector
+  `x_sector` / `z_sector` (8).
 - **`debug_log`** under `DEBUG_MODULE` / `DEBUG_SUPPLY` is compiled out in EECH
   and not ported.

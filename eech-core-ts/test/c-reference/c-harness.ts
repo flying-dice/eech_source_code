@@ -8,6 +8,7 @@ import { existsSync } from "node:fs";
 // @ts-expect-error plain ESM build script without type declarations
 import { HARNESS_BINARY } from "../../c-reference/build.mjs";
 import { serialiseScenario, type ScenarioOutcome, type ScenarioSpec } from "../scenarios/campaign-scenario";
+import { serialiseLifecycle, type LifecycleSpec } from "../scenarios/lifecycle-scenario";
 import { serialiseTimeline, type TimelineOutcome, type TimelineSpec, type TimelineStepState } from "../scenarios/update-timeline";
 
 // Built once by test/c-reference/global-setup.ts; never rebuilt from a worker.
@@ -40,6 +41,25 @@ export function floatFromBits(hex: string): number {
 	const view = new DataView(new ArrayBuffer(4));
 	view.setUint32(0, Number.parseInt(hex, 16));
 	return view.getFloat32(0);
+}
+
+// A lifecycle scenario through the original C: the output lines, as runLifecycle () produces them.
+export function runCLifecycle(spec: LifecycleSpec): string[] {
+	const input = serialiseLifecycle(spec, formatNumberForC);
+
+	const run = spawnSync(harness(), [], { input, encoding: "utf8" });
+
+	if (run.status !== 0) {
+		throw new Error(`C harness failed (${describeFailure(run)})\ninput:\n${input}`);
+	}
+
+	const lines = run.stdout.split("\n");
+
+	if (lines[lines.length - 1] === "") {
+		lines.pop();
+	}
+
+	return lines;
 }
 
 export function runCScenario(spec: ScenarioSpec): ScenarioOutcome {

@@ -21,11 +21,18 @@ export type SetIntValueFn = (en: Entity, type: IntType, value: number) => void;
 export type GetFloatValueFn = (en: Entity, type: FloatType) => number;
 export type SetFloatValueFn = (en: Entity, type: FloatType, value: number) => void;
 export type GetVec3dPtrFn = (en: Entity, type: Vec3dType) => Vec3d | undefined;
+export type SetVec3dFn = (en: Entity, type: Vec3dType, v: Vec3d) => void;
 export type GetPtrValueFn = (en: Entity, type: PtrType) => Entity | undefined;
 
 export const fnGetLocalEntityIntValue = new EntityFunctionTable<GetIntValueFn>("fn_get_local_entity_int_value");
 
 export const fnSetLocalEntityIntValue = new EntityFunctionTable<SetIntValueFn>("fn_set_local_entity_int_value");
+
+export const fnSetLocalEntityRawIntValue = new EntityFunctionTable<SetIntValueFn>("fn_set_local_entity_raw_int_value");
+
+export const fnSetLocalEntityRawFloatValue = new EntityFunctionTable<SetFloatValueFn>("fn_set_local_entity_raw_float_value");
+
+export const fnSetLocalEntityRawVec3d = new EntityFunctionTable<SetVec3dFn>("fn_set_local_entity_raw_vec3d");
 
 export const fnGetLocalEntityFloatValue = new EntityFunctionTable<GetFloatValueFn>("fn_get_local_entity_float_value");
 
@@ -45,6 +52,28 @@ export function getLocalEntityIntValue(en: Entity, type: IntType): number {
 // The C prototype takes `int value`.
 export function setLocalEntityIntValue(en: Entity, type: IntType, value: number): void {
 	fnSetLocalEntityIntValue.lookup(en.type, type, IntType[type])(en, type, value);
+}
+
+// The C prototype takes `int value`.
+export function setLocalEntityRawIntValue(en: Entity, type: IntType, value: number): void {
+	fnSetLocalEntityRawIntValue.lookup(en.type, type, IntType[type])(en, type, value);
+}
+
+// The C prototype takes `float value`, so the argument is narrowed on entry.
+export function setLocalEntityRawFloatValue(en: Entity, type: FloatType, value: number): void {
+	fnSetLocalEntityRawFloatValue.lookup(en.type, type, FloatType[type])(en, type, toFloat32(value));
+}
+
+// The C prototype takes `vec3d *v`; vec3d members are floats.
+export function setLocalEntityRawVec3d(en: Entity, type: Vec3dType, v: Vec3d): void {
+	fnSetLocalEntityRawVec3d.lookup(en.type, type, Vec3dType[type])(en, type, v);
+}
+
+// C provenance: en_int.c :: default_get_entity_int_value, `default:` arm
+// (value = 0). Only installed for int types whose C default is that arm, on
+// entity types whose overload tables are known to keep the default.
+export function defaultGetEntityIntValue(_en: Entity, _type: IntType): number {
+	return 0;
 }
 
 // C provenance: en_int.c :: default_set_entity_int_value (does nothing). Only

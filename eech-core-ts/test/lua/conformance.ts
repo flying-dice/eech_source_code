@@ -15,6 +15,9 @@ import { FLOAT32_EDGE_CASES } from "../scenarios/float32.cases";
 import { C_REFERENCE_RANDOM_CASES } from "../scenarios/generated/c-reference-random.cases";
 import { C_REFERENCE_RANDOM_TIMELINES } from "../scenarios/generated/c-reference-random-timelines.cases";
 import { UPDATE_TIMELINE_CASES } from "../scenarios/update-timeline.cases";
+import { ENTITY_LIFECYCLE_CASES } from "../scenarios/entity-lifecycle.cases";
+import { C_REFERENCE_RANDOM_LIFECYCLES } from "../scenarios/generated/c-reference-random-lifecycles.cases";
+import { firstUnmatchedLine, runLifecycle } from "../scenarios/lifecycle-scenario";
 import { runTimeline } from "../scenarios/update-timeline";
 
 declare const _VERSION: string;
@@ -101,6 +104,14 @@ for (const c of UPDATE_TIMELINE_CASES) {
 
 for (const c of C_REFERENCE_RANDOM_TIMELINES) {
 	check(c.id, runTimeline(c.spec), c.expected);
+}
+
+for (const c of ENTITY_LIFECYCLE_CASES) {
+	check(c.id, firstUnmatchedLine(runLifecycle(c.spec), c.expected), "");
+}
+
+for (const c of C_REFERENCE_RANDOM_LIFECYCLES) {
+	check(c.id, runLifecycle(c.spec), c.expected);
 }
 
 print(`${_VERSION}: ${passes} passed, ${failures} failed`);

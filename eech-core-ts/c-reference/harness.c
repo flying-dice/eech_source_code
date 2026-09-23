@@ -993,6 +993,7 @@ static void print_timeline_state (int step)
 
 static int
 	lifecycle = FALSE,
+	map_complete = FALSE,
 	num_keysites,
 	num_created;
 
@@ -1011,6 +1012,9 @@ static struct
 
 static entity *find_created (const char *label)
 {
+	entity
+		*en;
+
 	int
 		i;
 
@@ -1032,6 +1036,15 @@ static entity *find_created (const char *label)
 		if (strcmp (labels[get_local_entity_index (keysites[i])], label) == 0)
 		{
 			return keysites[i];
+		}
+	}
+
+	/* any other live entity (e.g. a sector) */
+	for (en = first_used_entity; en; en = en->succ)
+	{
+		if (strcmp (labels[get_local_entity_index (en)], label) == 0)
+		{
+			return en;
 		}
 	}
 
@@ -1127,7 +1140,8 @@ static void print_lifecycle_state (void)
 		printf ("\n");
 	}
 
-	if (entity_sector_map)
+	/* a map line that ended early leaves unassigned cells */
+	if (map_complete)
 	{
 		for (z = MIN_MAP_Z_SECTOR; z <= MAX_MAP_Z_SECTOR; z++)
 		{
@@ -1561,11 +1575,15 @@ int main (void)
 			{
 				/* campaign script parser (parsgen.c) sets the map; en_creat.c ::
 				   create_local_only_entities creates the sectors under SERVER/TX */
+				map_complete = FALSE;
+
 				set_entity_world_map_size (x_sectors, z_sectors, side_length);
 
 				create_local_sector_entities ();
 
 				label_sectors ();
+
+				map_complete = TRUE;
 			}
 			else if (strcmp (op, "create") == 0)
 			{

@@ -24,7 +24,8 @@ import { assessGroupSupplies, type GroupRaw } from "../../src/entity/special/gro
 import { getClosestKeysite, type KeysiteRaw } from "../../src/entity/special/keysite/keysite";
 import type { ForceRaw } from "../../src/entity/special/force/force";
 import { insertLocalEntityIntoParentsChildListRaw } from "../../src/entity/system/en_list";
-import { createLocalEntityRaw, setSessionEntityRaw, takeUnportedMessageLog, type Entity } from "../../src/entity/system/entity";
+import { createLocalEntityRaw } from "../../src/entity/system/en_heap";
+import { setSessionEntityRaw, takeUnportedMessageLog, type Entity } from "../../src/entity/system/entity";
 import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, ListType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";

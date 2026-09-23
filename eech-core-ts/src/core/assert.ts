@@ -13,9 +13,13 @@ export class EechAssertionError extends Error {
 	}
 }
 
-// Raised where EECH calls debug_fatal (debug builds abort).
+// Raised where EECH calls debug_fatal (the game stops). `format` is the C
+// format string, which identifies the call site; the message is formatted.
 export class EechFatalError extends Error {
-	public constructor(message: string) {
+	public constructor(
+		public readonly format: string,
+		message: string = format,
+	) {
 		super(message);
 		this.name = "EechFatalError";
 	}
@@ -27,6 +31,15 @@ export class EechNullDereferenceError extends Error {
 	public constructor(what: string) {
 		super(`NULL dereference: ${what}`);
 		this.name = "EechNullDereferenceError";
+	}
+}
+
+// Raised where the original C has undefined behaviour that crashes EECH (e.g.
+// integer division by zero, SIGFPE on x86). The port refuses to continue.
+export class EechUndefinedBehaviourError extends Error {
+	public constructor(what: string) {
+		super(`undefined behaviour in the original C: ${what}`);
+		this.name = "EechUndefinedBehaviourError";
 	}
 }
 

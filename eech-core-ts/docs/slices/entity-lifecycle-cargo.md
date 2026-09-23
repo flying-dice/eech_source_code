@@ -1,7 +1,6 @@
 # Slice 3: campaign entity lifecycle and CARGO foundations (issue #5)
 
-**Status:** investigation and boundary fixed; implementation in progress. The
-behaviour matrix and evidence are added when the slice is frozen.
+**Status:** frozen. All conformance gates pass (see "Evidence" at the end).
 
 Issue #5 first proposed porting `keysite.c :: update_keysite_cargo`. The first
 investigation showed that it rests on machinery the port did not have: entity
@@ -322,13 +321,22 @@ crate-specific one. It lands in Slice 4 with `update_keysite_cargo`.
   - the aircraft link/unlink parent responses: the target, gunship-target and
     update arms stay unported.
 - **CARGO:** `cg_creat.c` (local and server create), `cg_dstry.c` (local,
-  server, server family), `cg_list.c`, `cg_int.c`.
+  server, server family), `cg_list.c`. `cg_int.c` has no reader in this slice
+  and stays unported.
   `destroy_client_server_sound_effects` walks the special-effect children;
   destroying a sound effect stays unported.
 - **Keysite:** `LIST_TYPE_CARGO_ROOT` and the link/unlink child responses.
 - **Port `EntityReplication`** gains `transmitEntityCreate (type, index, attributes)`
   and `transmitEntityDestroy (index)`: EECH's `ENTITY_COMMS_CREATE` and
-  `ENTITY_COMMS_DESTROY`.
+  `ENTITY_COMMS_DESTROY`. The attributes are what `pack_entity_attributes`
+  carries: floats narrowed, entities by index.
+- **List setters:** the `ASSERT (en != ...)` of `en_list/set_*.h`, which the
+  Slice 2 setters lacked (found by the random differential, see "Evidence").
+- **Options:** `numberOfEntities`, the heap size (`init.c`: 125000). Heap
+  records are materialised on first use, so the default costs nothing.
+- **World map data** is campaign data from the campaign script parser, not
+  measured environment, so the host sets it through the ported
+  `setEntityWorldMapSize`; there is no port.
 
 **Not in this slice:**
 - `update_keysite_cargo` and the object-dimensions port (Slice 4);
@@ -350,28 +358,64 @@ remains.
 
 ## Behaviour matrix
 
-The lifecycle scenarios run the original construction path in C. Each case runs
-under JavaScript, under Lua 5.1 and through the executed original C. Each
-observes:
-- the transmitted create and destroy messages;
-- the created entities' indices and raw values;
-- every keysite's cargo list and every occupied sector's list;
-- the heap's free and used order.
+Every row is a case in `test/scenarios/entity-lifecycle.cases.ts`. Each case
+runs three ways:
+- under JavaScript (`test/unit/entity-lifecycle.test.ts`);
+- under Lua 5.1 (`test/lua/conformance.ts`);
+- through the executed original C (`test/c-reference/entity-lifecycle.cref.test.ts`).
 
-The planned areas are:
-- creation with and without a parent keysite;
-- attribute order and repeated attributes;
-- bit-field truncation of `side`;
-- default values when an attribute is absent;
-- sector selection at cell boundaries and at the map edges;
-- an off-map position (`debug_fatal`);
-- a non-power-of-two side length (`ASSERT`);
-- heap exhaustion (fatal);
-- index reuse after destruction;
-- destruction order within a keysite's cargo list;
-- destroying the only, first, middle and last crate;
-- creating after destroying;
-- an unknown entity type (`ASSERT`).
+A case's hand-derived lines must appear in the output. The whole TypeScript
+output must also equal the C's, line for line. The output covers the
+transmitted create and destroy messages, the created indices, the result, and
+the entity graph: the heap's free and used order, the cargo values, each
+keysite's cargo list and each sector's list.
 
-The final table, with case names, replaces this paragraph when the slice is
-frozen.
+| Area | EECH behaviour | Cases |
+|---|---|---|
+| Creation | the real construction path: heap entry, working defaults, attributes, `LIST_TYPE_CARGO` insert when a parent is given, sector insert always, then `ENTITY_COMMS_CREATE` with the created index | `crate-created-through-the-real-construction-path`, `no-parent-attribute-means-no-cargo-list`, `a-null-parent-attribute-means-no-cargo-list` |
+| List order | inserts at the head of the keysite and sector lists | `crates-are-inserted-at-the-head-of-the-keysite-and-sector-lists` |
+| Defaults and attributes | `ENTITY_SUB_TYPE_UNINITIALISED`, `MID_MAP_*`, alive, `ENTITY_SIDE_UNINITIALISED`; later attributes win; a parent attribute only sets the link; a child-pred attribute is overwritten by the head insertion | `absent-attributes-keep-the-working-defaults`, `later-attributes-overwrite-earlier-ones`, `a-parent-attribute-for-the-sector-list-is-overwritten`, `a-child-pred-attribute-is-overwritten-by-the-head-insertion` |
+| Bit-fields | `side : 2`, `alive : 1`, full-int `sub_type`, sector `x_sector : 8` | `side-is-a-two-bit-field`, `alive-is-a-one-bit-field`, `sub-type-is-a-full-int`, `sector-coordinates-are-eight-bit-fields` |
+| Sector lookup | truncation to cells; the map edges are inside; past the edge or negative is `debug_fatal`, after the cargo list insert | `sector-cells-truncate-positions`, `the-map-edges-are-inside`, `a-position-past-the-map-edge-is-fatal`, `a-negative-position-is-off-the-map` |
+| Map setup | z-major sector creation; float extents; power-of-two and positive-size `ASSERT`s; recreating over live sectors is fatal; heap exhaustion during setup is fatal | `sector-entities-are-created-z-major`, `the-map-extents-are-floats`, `a-side-length-that-is-not-a-power-of-two-asserts`, `a-map-without-sectors-asserts`, `creating-the-map-twice-is-fatal`, `running-out-of-heap-while-creating-sectors-is-fatal` |
+| Validation | server creates need `ENTITY_INDEX_DONT_CARE`; the entity type range `ASSERT` | `a-server-create-with-an-index-asserts`, `an-entity-type-out-of-range-asserts`, `num-entity-types-is-out-of-range` |
+| Heap | exhaustion is fatal on the server; the most recently freed index is reused first | `running-out-of-heap-while-creating-cargo-is-fatal`, `the-most-recently-freed-index-is-reused-first` |
+| Destruction | `ENTITY_COMMS_DESTROY` first; unlinked from the keysite and sector lists (head, middle, tail); freed; destroying a freed entity does nothing | `destroying-the-only-crate-restores-the-graph`, `destroying-the-head-crate`, `destroying-a-middle-crate`, `destroying-the-tail-crate`, `destroying-a-freed-entity-does-nothing`, `crates-of-two-keysites-in-one-sector` |
+
+Some primitives cannot be reached by the cargo corpus by itself. They are
+covered by isolated unit tests with C-derived expectations
+(`test/unit/entity-lifecycle-runtime.test.ts`):
+- the fail-loud arms of the sector, aircraft and sound-effect code;
+- integer division by zero (a cargo created before any world map);
+- the unchecked read of a missing sector map;
+- the raw float setter reached through an attribute;
+- specific-index allocation;
+- freeing into an empty free list, and freeing the used list's tail;
+- recreating the map after its sectors were freed.
+
+## Evidence
+
+| Check | Result |
+|---|---|
+| 33 lifecycle cases, JavaScript (`npm test`) | pass |
+| the same 33 cases against the executed original C, plus TS output == C output line for line | pass: expectations were derived by hand and all matched on the first run |
+| 1,000 fresh random lifecycles, TS == C | pass. The generator must reach ok, destroy, two crates in one keysite, every fatal (off map, heap exhausted on create and on map, map recreated) and every assert (index, type, side length, sector count) |
+| 150 random lifecycles recorded from the C, replayed in JavaScript and Lua 5.1 | pass |
+| Slices 1 and 2: all cases and recorded fixtures, against the 32-bit, TX, less shimmed oracle | pass **unchanged**; re-recording their fixtures was byte-identical |
+| Lua 5.1 conformance (`npm run test:lua`) | 668 / 668 |
+| coverage (statements / branches / functions / lines) | 100 / 100 / 100 / 100, no exclusions |
+| mutation controls (`npm run mutation`) | 37 / 37 killed, including 14 new slice 3 mutants |
+
+The random differential found one gap in the port, not in this slice's new
+code. Every original list setter (`en_list/set_frst.h`, `set_prnt.h`,
+`set_succ.h`, `set_pred.h`) starts with `ASSERT (en != ...)`. The Slice 2 port
+of the setters had no such check. A random lifecycle reached it by naming a
+destroyed crate as the child predecessor of a new crate that reused its index.
+The setters now keep the assertion.
+
+Two harness defects were found and fixed on the way:
+- `-w` in the original-code flags had silently disabled the
+  `-Werror=implicit-function-declaration`, pointer and int-conversion checks.
+  The Slice 1 and 2 build turned out clean without it.
+- A lifecycle dump after a failed second `map` operation read the new map size
+  over the old sector map.
