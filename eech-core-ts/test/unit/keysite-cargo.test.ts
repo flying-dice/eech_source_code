@@ -12,6 +12,8 @@ import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metada
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
 import { ScriptedClock } from "../adapters/scripted-clock";
 import { C_REFERENCE_RANDOM_KEYSITE_CARGO } from "../scenarios/generated/c-reference-random-keysite-cargo.cases";
+import { C_REFERENCE_CRATE_ROW_CASES } from "../scenarios/generated/c-reference-crate-row.cases";
+import { advanceCrateRow } from "../../src/entity/special/keysite/keysite";
 import { KEYSITE_CARGO_CASES } from "../scenarios/keysite-cargo.cases";
 import { firstUnmatchedLine, runLifecycle } from "../scenarios/lifecycle-scenario";
 
@@ -52,5 +54,13 @@ describe("global.c :: game_status", () => {
 		expect(getGameStatus()).toBe(GameStatusType.GAME_STATUS_INITIALISING);
 		initialiseCampaignCore(ports());
 		expect(getGameStatus()).toBe(GameStatusType.GAME_STATUS_UNINITIALISED);
+	});
+});
+
+describe("keysite.c crate-row step (position.x += (xmax - xmin) + 1.0)", () => {
+	it("reproduces all 1000 results recorded from the original expression, bit for bit", () => {
+		for (const [x, xmin, xmax, expected] of C_REFERENCE_CRATE_ROW_CASES) {
+			expect(Object.is(advanceCrateRow(x, xmin, xmax), expected), `x ${x} xmin ${xmin} xmax ${xmax}`).toBe(true);
+		}
 	});
 });

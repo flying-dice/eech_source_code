@@ -23,6 +23,8 @@ import { ENTITY_LIFECYCLE_CASES } from "../scenarios/entity-lifecycle.cases";
 import { C_REFERENCE_RANDOM_LIFECYCLES } from "../scenarios/generated/c-reference-random-lifecycles.cases";
 import { C_REFERENCE_RANDOM_KEYSITE_CARGO } from "../scenarios/generated/c-reference-random-keysite-cargo.cases";
 import { KEYSITE_CARGO_CASES } from "../scenarios/keysite-cargo.cases";
+import { C_REFERENCE_CRATE_ROW_CASES } from "../scenarios/generated/c-reference-crate-row.cases";
+import { advanceCrateRow } from "../../src/entity/special/keysite/keysite";
 import { firstUnmatchedLine, runLifecycle } from "../scenarios/lifecycle-scenario";
 import { runTimeline } from "../scenarios/update-timeline";
 
@@ -137,6 +139,10 @@ for (const c of KEYSITE_CARGO_CASES) {
 			check(`${c.id}: absent ${prefix}`, line.substring(0, prefix.length) === prefix, false);
 		}
 	}
+}
+
+for (const [x, xmin, xmax, expected] of C_REFERENCE_CRATE_ROW_CASES) {
+	check(`crate-row(${string.format("%.17g", x)}, ${string.format("%.17g", xmin)}, ${string.format("%.17g", xmax)})`, advanceCrateRow(x, xmin, xmax), expected);
 }
 
 for (const c of C_REFERENCE_RANDOM_KEYSITE_CARGO) {

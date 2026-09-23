@@ -179,3 +179,20 @@ export function runCFloat32(ops: [string, number, number][]): string[] {
 
 	return lines.map((l) => l.split(" ")[1]);
 }
+
+// keysite.c's crate-row step through the harness `f32 crate-row` command
+// (canonical environment), one process for all: the stored x as float bits.
+export function runCCrateRow(operands: [number, number, number][]): string[] {
+	const fmt = (n: number): string => (Object.is(n, -0) ? "-0" : String(n));
+	const input = operands.map(([x, xmin, xmax]) => `f32 crate-row ${fmt(x)} ${fmt(xmin)} ${fmt(xmax)}`).join("\n") + "\n";
+	const run = spawnSync(harness(), [], { input, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+
+	if (run.status !== 0) {
+		throw new Error(`C harness failed (${describeFailure(run)})`);
+	}
+
+	return run.stdout
+		.split("\n")
+		.filter((l) => l !== "")
+		.map((l) => l.split(" ")[1]);
+}

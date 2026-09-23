@@ -130,6 +130,32 @@ export function getClosestKeysite(
 }
 
 //
+// C provenance: keysite.c :: update_keysite_cargo (lines 428 and 464)
+//
+//   position.x += (bounding_box->xmax - bounding_box->xmin) + 1.0;
+//
+// with float x, xmin and xmax. Transcribed under the frozen #7 numerical
+// contract (src/core/float32.ts): every C operation at its declared type,
+// rounded toward zero -
+//   xmax - xmin     float - float                    f32Sub
+//   ... + 1.0       float promoted to double, + 1.0   f64AddRTZ
+//   x += ...        float promoted to double, double
+//                   sum, stored to the float x        f32Add (a double rounded
+//                   toward zero, then narrowed toward zero, is one truncation)
+// Whether the historical executable instead kept x, the difference or the sum
+// in wider x87 registers across these points is unresolved (#9). This
+// statement is one of that question's canaries: the whole expression, from
+// float inputs to the stored x, is checked against the executed C by
+// test/c-reference/keysite-crate-row.cref.test.ts (harness `f32 crate-row`)
+// and probed under the x87 variants (c-reference/fpu-probes, `crate-row`).
+// If #9 establishes different rounding points, this function changes, and
+// only this function.
+//
+export function advanceCrateRow(x: number, xmin: number, xmax: number): number {
+	return f32Add(x, f64AddRTZ(f32Sub(xmax, xmin), 1.0));
+}
+
+//
 // C provenance: keysite.c :: update_keysite_cargo
 //
 // Keeps the keysite's crates of one supply (ammo or fuel) in step with its
@@ -182,9 +208,6 @@ export function updateKeysiteCargo(en: Entity, cargo_level: number, sub_type: En
 	// sub_type * ((zmax - zmin) + 1): float + int 1, then int * float
 	position.z = f32Add(position.z, f32Mul(sub_type, f32Add(f32Sub(zmax, zmin), 1)));
 
-	// (xmax - xmin) + 1.0: a double
-	const crate_spacing = f64AddRTZ(f32Sub(xmax, xmin), 1.0);
-
 	//
 	// check for existing cargo
 	//
@@ -212,8 +235,7 @@ export function updateKeysiteCargo(en: Entity, cargo_level: number, sub_type: En
 				continue;
 			}
 
-			// position.x += (xmax - xmin) + 1.0: a double sum stored as float
-			position.x = f32Add(position.x, crate_spacing);
+			position.x = advanceCrateRow(position.x, xmin, xmax);
 		}
 
 		cargo = getLocalEntityChildSucc(cargo, ListType.LIST_TYPE_CARGO);
@@ -232,7 +254,7 @@ export function updateKeysiteCargo(en: Entity, cargo_level: number, sub_type: En
 				{ kind: "vec3d", type: Vec3dType.VEC3D_TYPE_POSITION, x: position.x, y: position.y, z: position.z },
 			]);
 
-			position.x = f32Add(position.x, crate_spacing);
+			position.x = advanceCrateRow(position.x, xmin, xmax);
 
 			temp_cargo_level = f32Sub(temp_cargo_level, cargo_size);
 		}

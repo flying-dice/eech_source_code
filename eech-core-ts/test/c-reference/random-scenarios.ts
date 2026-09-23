@@ -459,3 +459,50 @@ export function generateRandomKeysiteCargo(seed: number, count: number): Lifecyc
 
 	return specs;
 }
+
+//
+// Slice 4 review (#11): operands for keysite.c's crate-row step,
+// position.x += (bounding_box->xmax - bounding_box->xmin) + 1.0, as
+// [x, xmin, xmax] floats. Aimed at each of its rounding points: the float
+// difference (cancellation, huge and tiny widths, overflow), the double
+// + 1.0 (widths below 2^-29 or at least 2^53, where it is inexact), and the
+// stored sum (x large or far from the width's scale); plus realistic crate
+// rows along a keysite.
+//
+export function generateCrateRowOperands(seed: number, count: number): [number, number, number][] {
+	const rnd = mulberry32(seed);
+	const int = (n: number) => Math.floor(rnd() * n);
+	const sign = () => (rnd() < 0.5 ? -1 : 1);
+	const f = Math.fround;
+	const float = (lo: number, hi: number) => f(sign() * rnd() * Math.pow(2, lo + int(hi - lo)));
+	const out: [number, number, number][] = [];
+	while (out.length < count) {
+		const kind = int(7);
+		if (kind === 0) {
+			// a realistic crate beside a keysite
+			const xmin = f(-rnd() * 3);
+			out.push([f(rnd() * 60000), xmin, f(xmin + rnd() * 3)]);
+		} else if (kind === 1) {
+			// a tiny width: + 1.0 is inexact in double
+			const xmin = float(-40, 10);
+			out.push([float(-10, 20), xmin, f(xmin + float(-150, -30))]);
+		} else if (kind === 2) {
+			// a huge width: the difference or + 1.0 loses bits, or overflows
+			out.push([float(-10, 30), f(-rnd() * Math.pow(2, 100 + int(28))), f(rnd() * Math.pow(2, 100 + int(28)))]);
+		} else if (kind === 3) {
+			// cancellation in the difference
+			const xmin = float(-20, 40);
+			out.push([float(-10, 30), xmin, f(xmin * (1 + sign() * Math.pow(2, -int(24))))]);
+		} else if (kind === 4) {
+			// x far larger than the spacing: the stored sum truncates
+			out.push([float(24, 60), float(-10, 3), float(-10, 3)]);
+		} else if (kind === 5) {
+			// a negative or zero width
+			const xmax = float(-10, 5);
+			out.push([float(-10, 20), f(xmax + Math.abs(float(-10, 5))), rnd() < 0.2 ? f(xmax + Math.abs(float(-10, 5))) : xmax]);
+		} else {
+			out.push([float(-149, 128), float(-149, 128), float(-149, 128)]);
+		}
+	}
+	return out;
+}

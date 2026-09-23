@@ -435,7 +435,7 @@ const MUTANTS = [
 		name: "a destroyed crate still advances the row",
 		file: "src/entity/special/keysite/keysite.ts",
 		from: "\t\t\t\tdestroyClientServerEntityFamily(destroy_cargo);\n\n\t\t\t\tcontinue;",
-		to: "\t\t\t\tdestroyClientServerEntityFamily(destroy_cargo);\n\n\t\t\t\tposition.x = f32Add(position.x, crate_spacing);\n\n\t\t\t\tcontinue;",
+		to: "\t\t\t\tdestroyClientServerEntityFamily(destroy_cargo);\n\n\t\t\t\tposition.x = advanceCrateRow(position.x, xmin, xmax);\n\n\t\t\t\tcontinue;",
 		suite: "js",
 	},
 	{
@@ -490,9 +490,37 @@ const MUTANTS = [
 	{
 		name: "crates are spaced without the 1 m gap",
 		file: "src/entity/special/keysite/keysite.ts",
-		from: "const crate_spacing = f64AddRTZ(f32Sub(xmax, xmin), 1.0);",
-		to: "const crate_spacing = f64AddRTZ(f32Sub(xmax, xmin), 0.0);",
+		from: "return f32Add(x, f64AddRTZ(f32Sub(xmax, xmin), 1.0));",
+		to: "return f32Add(x, f64AddRTZ(f32Sub(xmax, xmin), 0.0));",
 		suite: "js",
+	},
+	{
+		name: "the crate-row + 1.0 rounds to nearest in double",
+		file: "src/entity/special/keysite/keysite.ts",
+		from: "return f32Add(x, f64AddRTZ(f32Sub(xmax, xmin), 1.0));",
+		to: "return f32Add(x, f32Sub(xmax, xmin) + 1.0);",
+		suite: "js",
+	},
+	{
+		name: "the crate-row + 1.0 is a float sum instead of a double one",
+		file: "src/entity/special/keysite/keysite.ts",
+		from: "return f32Add(x, f64AddRTZ(f32Sub(xmax, xmin), 1.0));",
+		to: "return f32Add(x, f32Add(f32Sub(xmax, xmin), 1.0));",
+		suite: "js",
+	},
+	{
+		name: "the crate-row width is not rounded to float (evaluated in double)",
+		file: "src/entity/special/keysite/keysite.ts",
+		from: "return f32Add(x, f64AddRTZ(f32Sub(xmax, xmin), 1.0));",
+		to: "return f32Add(x, f64AddRTZ(xmax - xmin, 1.0));",
+		suite: "js",
+	},
+	{
+		name: "the crate-row + 1.0 rounds to nearest in double (Lua)",
+		file: "src/entity/special/keysite/keysite.ts",
+		from: "return f32Add(x, f64AddRTZ(f32Sub(xmax, xmin), 1.0));",
+		to: "return f32Add(x, f32Sub(xmax, xmin) + 1.0);",
+		suite: "lua",
 	},
 	{
 		name: "the keysite side is not replicated with the crate",

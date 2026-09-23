@@ -74,6 +74,21 @@ void update_keysite_cargo (entity *en, float cargo_level, entity_sub_types sub_t
 | `position.z += ...` | float + float | `f32Add` |
 | `(xmax - xmin) + 1.0` | float − float, then a **double** sum | the double sum is exact unless the width is below 2^-29 or at least 2^53, and those need round toward zero at 53 bits: `f64AddRTZ` |
 | `position.x += <double>` | double sum, stored as float | `f32Add (x, <double>)`: a double rounded toward zero and then narrowed toward zero equals one truncation |
+
+The whole crate-row statement is one production function, `advanceCrateRow (x, xmin, xmax)`, used at both C sites (`keysite.c:428` and `:464`). Its comment records that the transcription follows the frozen #7 declared-type contract pending #9.
+
+**Review (#11): the statement checked as a whole.**
+- The harness `f32 crate-row` command executes the original statement verbatim (`struct OBJECT_3D_BOUNDS *`, `vec3d`, float x, xmin and xmax, through the stored `position.x`).
+- `test/c-reference/keysite-crate-row.cref.test.ts` compares it with `advanceCrateRow`, bit for bit, on:
+  - 40,000 fresh operands aimed at each rounding point: realistic rows, widths below 2^-29 or at least 2^53, cancellation, zero and negative widths, float overflow, large x, subnormals;
+  - targeted cases;
+  - 1,000 recorded operands, replayed in JS and Lua 5.1.
+- The corpus is sensitive to the decomposition. Against the recorded C results:
+  - a double `+ 1.0` rounded to nearest disagrees in 10 cases;
+  - a float `+ 1.0` in 71;
+  - an unrounded double width in 117.
+  Mutation controls cover all three.
+- **#9 canary.** `c-reference/fpu-probes` runs the same statement under the x87 variants (`crate-row`). For `x 0.1, xmin -0.025, xmax 0.025`, 24-bit precision control (x87 RTZ PC24) stores `3f933332` where declared type and x87 RTZ PC53 store `3f933333`. The C evaluates `+ 1.0` in double, so this statement separates PC24 from PC53, which the Slice 1–3 corpora could not.
 | `temp_cargo_level -= cargo_size` | float − float | `f32Sub` |
 | `< 0.0`, `> cargo_size`, `<= 75.0` | exact comparisons | direct |
 
@@ -189,4 +204,5 @@ Every run exercises the Slice 3 lifecycle socially: a real keysite, sector grid 
   - 150 recorded (`c-reference-random-keysite-cargo.cases.ts`) and replayed under Lua 5.1.
 - **RTZ double sum:** 20,000 fresh sums plus boundary values against C, and 1,000 recorded and replayed in JS and Lua 5.1. The recording is separate, so the #7 float fixture stays frozen.
 - **Frozen fixtures:** Slices 1–3 and #7 are byte-identical. `npm run cref:record` rewrites the three scenario fixtures unchanged.
-- **Coverage:** 100%. **Mutation controls:** 19 for this slice; see `scripts/mutation-check.mjs`.
+- **Crate-row statement:** checked whole against the executed C expression; see Numerics.
+- **Coverage:** 100%. **Mutation controls:** 23 for this slice, including three alternative decompositions of the crate-row statement (JS) and one under Lua; see `scripts/mutation-check.mjs`.

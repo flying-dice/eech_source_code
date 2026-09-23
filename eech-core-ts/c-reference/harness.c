@@ -1583,7 +1583,8 @@ int main (void)
 			/*
 			 * One C float operation under the canonical environment, the reference
 			 * for src/core/float32.ts (test/c-reference/float32-rtz.cref.test.ts).
-			 * Operands of mul, div and sqrt are floats; narrow, sum and dsum take doubles.
+			 * Operands of mul, div and sqrt are floats; narrow, sum and dsum take doubles;
+			 * crate-row takes the floats x, xmin and xmax.
 			 */
 			const char *kind = next_token (&cursor);
 			volatile float result;
@@ -1612,6 +1613,25 @@ int main (void)
 			{
 				volatile float a = next_float (&cursor);
 				result = sqrt (a);
+			}
+			else if (strcmp (kind, "crate-row") == 0)
+			{
+				/* keysite.c :: update_keysite_cargo, lines 428 and 464, verbatim:
+				   the crate row's step from float x, xmin and xmax to the stored x */
+				struct OBJECT_3D_BOUNDS
+					box,
+					*bounding_box = &box;
+
+				vec3d
+					position;
+
+				position.x = next_float (&cursor);
+				box.xmin = next_float (&cursor);
+				box.xmax = next_float (&cursor);
+
+				position.x += (bounding_box->xmax - bounding_box->xmin) + 1.0;
+
+				result = position.x;
 			}
 			else if (strcmp (kind, "dsum") == 0)
 			{

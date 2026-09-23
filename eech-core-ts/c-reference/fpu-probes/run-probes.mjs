@@ -66,6 +66,13 @@ const PROBES = [
 	["sector", "511.75", "512"],
 	["sector", "1023.5", "512"],
 	["sector", "512.5", "512"],
+	// keysite.c crate-row step (Slice 4; #9 canary): realistic, a tiny width
+	// (+ 1.0 inexact in double), and a large x (the stored sum truncates)
+	["crate-row", "100", "-1", "1"],
+	["crate-row", "0.1", "-0.025", "0.025"],
+	["crate-row", "3.5", "1e-20", "2e-20"],
+	["crate-row", "16777217", "-1", "1"],
+	["crate-row", "60000.5", "-1.25", "1.3"],
 	["gnuc-fistp", "70000.7"],
 ];
 
@@ -84,7 +91,7 @@ console.log(rows.map((r, i) => `| ${r.join(" | ")} |${i === 0 ? `\n|${r.map(() =
 if (process.argv.includes("--asm")) {
 	for (const name of Object.keys(BUILDS)) {
 		const s = readFileSync(join(out, `probes-${name}.s`), "utf8");
-		for (const fn of ["probe_timer", "probe_subdivide", "probe_supply", "get_approx_2d_range", "probe_map"]) {
+		for (const fn of ["probe_timer", "probe_subdivide", "probe_supply", "get_approx_2d_range", "probe_map", "probe_crate_row"]) {
 			const start = s.indexOf(`${fn}:`);
 			const end = s.indexOf(".size", start);
 			console.log(`\n### ${name} ${fn}\n\`\`\`\n${s.slice(start, end).split("\n").filter((l) => !/^\s*\.(cfi|loc)/.test(l)).join("\n")}\`\`\``);
