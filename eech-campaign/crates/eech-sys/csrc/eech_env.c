@@ -542,7 +542,7 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 	{
 		va_end (pargs);
 
-		eech_abort (EECH_STATUS_UNPORTED, "entity comms message", "transmit_entity_comms_message: message %d is not part of the kernel", (int) message);
+		eech_abort (EECH_STATUS_UNPORTED, "entity comms message", "transmit_entity_comms_message: %s is not part of the kernel", eech_k_enum_name ("comms_message", (int) message) ? eech_k_enum_name ("comms_message", (int) message) : "?");
 	}
 
 	va_end (pargs);
@@ -604,11 +604,23 @@ static char
 
 int assign_primary_task_to_group (entity *group_en, entity *task_en)
 {
-	snprintf
-	(
-		boundary_message, sizeof (boundary_message), "assign_primary_task_to_group %s %s",
-		eech_legacy_label_of (group_en), eech_legacy_task_label_of (task_en)
-	);
+	if (eech_legacy_active)
+	{
+		/* the C reference's boundary line */
+		snprintf
+		(
+			boundary_message, sizeof (boundary_message), "assign_primary_task_to_group %s %s",
+			eech_legacy_label_of (group_en), eech_legacy_task_label_of (task_en)
+		);
+	}
+	else
+	{
+		snprintf (boundary_message, sizeof (boundary_message), "assign_primary_task_to_group");
+	}
+
+	eech_last_refs[0] = eech_ref_of (group_en);
+	eech_last_refs[1] = eech_ref_of (task_en);
+	eech_last_ref_count = 2;
 
 	eech_abort (EECH_STATUS_BOUNDARY, boundary_message, "assign_primary_task_to_group (group %d, task %d)", get_local_entity_index (group_en), get_local_entity_index (task_en));
 

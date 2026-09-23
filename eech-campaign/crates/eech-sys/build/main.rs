@@ -39,6 +39,13 @@ fn main() {
     println!("cargo:rerun-if-env-changed=EECH_SOURCE_ROOT");
     println!("cargo:rerun-if-env-changed=EECH_C_OPT");
     println!("cargo:rerun-if-env-changed=EECH_ORIGINAL_STACK_ATTRIBUTES");
+    println!("cargo:rerun-if-env-changed=EECH_FPU_ROUNDING");
+    // INVESTIGATION ONLY (docs/fpu.md): run the campaign under another rounding mode
+    let rounding = match env::var("EECH_FPU_ROUNDING").as_deref() {
+        Err(_) | Ok("toward-zero") => None,
+        Ok("nearest") => Some("FE_TONEAREST"),
+        Ok(other) => panic!("EECH_FPU_ROUNDING={other}: expected toward-zero or nearest"),
+    };
     println!("cargo:rerun-if-changed=build");
     println!("cargo:rerun-if-changed=csrc");
 
@@ -143,6 +150,9 @@ fn main() {
         if original_attrs {
             b.define("EECH_ORIGINAL_STACK_ATTRIBUTES", "1");
         }
+        if let Some(r) = rounding {
+            b.define("EECH_CAMPAIGN_ROUNDING", r);
+        }
         b
     };
 
@@ -200,6 +210,11 @@ fn main() {
     {
         let mut b = base();
         b.flag("-Wall").flag("-Werror").flag("-Wno-unused-function").flag("-Wno-unused-variable");
+        // our code switches rounding modes (input parsing, entries): no
+        // floating-point code may move across them. The original code is NOT
+        // built with it: its constants fold at compile time, to nearest, as
+        // EECH's compiler folded them (docs/fpu.md)
+        b.flag_if_supported("-frounding-math");
         b.file(&names_path);
         for entry in fs::read_dir(&csrc).unwrap() {
             let p = entry.unwrap().path();
@@ -261,6 +276,7 @@ fn main() {
     println!("cargo:rustc-env=EECH_C_OPT_LEVEL={opt}");
     println!("cargo:rustc-env=EECH_C_COMPILER={}", compiler.path().display());
     println!("cargo:rustc-env=EECH_ORIGINAL_STACK_ATTRIBUTES_BUILD={}", u8::from(original_attrs));
+    println!("cargo:rustc-env=EECH_FPU_ROUNDING_BUILD={}", rounding.unwrap_or("FE_TOWARDZERO"));
     println!("cargo:rustc-env=EECH_KERNEL_OBJECTS={}", objects.iter().map(|p| p.display().to_string()).collect::<Vec<_>>().join(if cfg!(windows) { ";" } else { ":" }));
 }
 
@@ -282,6 +298,12 @@ const NAME_TABLES: &[(&str, &str, &str)] = &[
     ("keysite_state", "KEYSITE_USABLE_STATES", "aphavoc/source/entity/system/en_types/en_state.h"),
     ("game_type", "GAME_TYPES", "aphavoc/source/global.h"),
     ("game_status", "GAME_STATUS_TYPES", "aphavoc/source/global.h"),
+    ("message", "ENTITY_MESSAGES", "aphavoc/source/entity/system/en_msgs/en_msgs.h"),
+    ("vec3d_type", "VEC3D_TYPES", "aphavoc/source/entity/system/en_funcs/en_vec3d.h"),
+    ("ptr_type", "PTR_TYPES", "aphavoc/source/entity/system/en_funcs/en_ptr.h"),
+    ("string_type", "STRING_TYPES", "aphavoc/source/entity/system/en_funcs/en_str.h"),
+    ("char_type", "CHAR_TYPES", "aphavoc/source/entity/system/en_funcs/en_char.h"),
+    ("comms_message", "ENTITY_COMMS_MESSAGES", "aphavoc/source/entity/system/en_comms/en_comms.h"),
 ];
 
 fn write_if_changed(path: &Path, text: &str) {

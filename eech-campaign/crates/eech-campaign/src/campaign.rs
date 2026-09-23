@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::time::Duration;
 
 use eech_sys::{HostError, Kernel, RawEvent, Ref};
@@ -11,12 +12,29 @@ use crate::world::World;
 // translation between the public model and the kernel's
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-pub(crate) fn id_of(r: Ref) -> Option<EntityId> {
-    (!r.is_null()).then_some(EntityId { slot: r.index as u32, generation: r.generation })
+/// The campaign instance ids currently belong to. Only one campaign (or
+/// replay) holds the kernel at a time, so the current instance is global;
+/// an id from an earlier campaign is foreign to a later one.
+static CURRENT_INSTANCE: AtomicU32 = AtomicU32::new(0);
+static NEXT_INSTANCE: AtomicU32 = AtomicU32::new(1);
+
+pub(crate) fn begin_instance() -> u32 {
+    let instance = NEXT_INSTANCE.fetch_add(1, Ordering::Relaxed);
+    CURRENT_INSTANCE.store(instance, Ordering::Relaxed);
+    instance
 }
 
+pub(crate) fn id_of(r: Ref) -> Option<EntityId> {
+    (!r.is_null()).then(|| EntityId { slot: r.index as u32, generation: r.generation, instance: CURRENT_INSTANCE.load(Ordering::Relaxed) })
+}
+
+/// the kernel reference of an id; a foreign id (another campaign's) names nothing
 pub(crate) fn ref_of(id: EntityId) -> Ref {
-    Ref { index: id.slot as i32, generation: id.generation }
+    if id.instance == CURRENT_INSTANCE.load(Ordering::Relaxed) {
+        Ref { index: id.slot as i32, generation: id.generation }
+    } else {
+        Ref::NULL
+    }
 }
 
 fn ordinal(table: &str, name: &str) -> Result<i32> {
@@ -136,6 +154,7 @@ impl Campaign {
     pub fn new(config: CampaignConfig) -> Result<Campaign> {
         let plan = Plan::validate(&config)?;
         let kernel = Kernel::open(plan.capacity, plan.update_rate).map_err(CampaignError::from_kernel)?;
+        begin_instance();
         let mut campaign = Campaign { kernel, names: HashMap::new(), names_by_id: HashMap::new(), pending: Vec::new(), poisoned: false, elapsed: 0.0 };
         campaign.restore(&config, &plan).inspect_err(|_| campaign.poisoned = true)?;
         Ok(campaign)
@@ -144,7 +163,9 @@ impl Campaign {
     fn restore(&mut self, config: &CampaignConfig, plan: &Plan) -> Result<()> {
         let k = &mut self.kernel;
         let e = CampaignError::from_kernel;
-        k.configure(config.session == Session::Server, config.session == Session::SinglePlayer, ordinal("game_type", "GAME_TYPE_CAMPAIGN")?, ordinal("game_status", "GAME_STATUS_INITIALISED")?)
+        // the campaign host is always EECH's server (COMMS_MODEL_SERVER); a single-player
+        // session transmits nothing (en_comms.c: direct play comms mode none)
+        k.configure(true, config.session == Session::SinglePlayer, ordinal("game_type", "GAME_TYPE_CAMPAIGN")?, ordinal("game_status", "GAME_STATUS_INITIALISED")?)
             .map_err(e)?;
         let mut events = Vec::new();
         {
@@ -213,12 +234,16 @@ impl Campaign {
             return Err(CampaignError::InvalidConfig(format!("a step needs a positive frame delta, not {delta:?}")));
         }
         let mut events = std::mem::take(&mut self.pending);
+        // poisoned until the kernel returns normally: a panic in the world
+        // unwinds through here after the C call was aborted
+        self.poisoned = true;
         let result = {
             let mut adapter = Adapter { world: &*world, events: &mut events };
             self.kernel.step(&mut adapter, seconds, false, 1)
         };
         match result {
             Ok(()) => {
+                self.poisoned = false;
                 self.elapsed += delta.as_secs_f64();
                 Ok(StepReport { events })
             }

@@ -28,7 +28,7 @@ pub enum CampaignError {
     Unported { dependency: String, detail: String },
     /// The campaign reached the boundary of the implemented slice
     /// (for example handing a mission to a group): the step cannot complete.
-    Boundary { name: String, detail: String },
+    Boundary { name: String, entities: Vec<EntityId>, detail: String },
     /// The world could not answer a question the campaign asked.
     World(String),
     /// An earlier call failed inside the campaign; see the type's documentation.
@@ -46,7 +46,13 @@ impl fmt::Display for CampaignError {
             CampaignError::Assertion { expression, detail } => write!(f, "campaign assertion failed: {expression} ({detail})"),
             CampaignError::Fatal { message } => write!(f, "campaign fatal error: {message}"),
             CampaignError::Unported { dependency, detail } => write!(f, "unported campaign behaviour reached: {dependency} ({detail})"),
-            CampaignError::Boundary { name, detail } => write!(f, "slice boundary reached: {name} ({detail})"),
+            CampaignError::Boundary { name, entities, detail } => {
+                write!(f, "slice boundary reached: {name}")?;
+                for e in entities {
+                    write!(f, " {e}")?;
+                }
+                write!(f, " ({detail})")
+            }
             CampaignError::World(m) => write!(f, "the world could not answer: {m}"),
             CampaignError::Poisoned => write!(f, "the campaign failed earlier and is poisoned"),
             CampaignError::Internal(m) => write!(f, "internal error: {m}"),
@@ -71,7 +77,7 @@ impl CampaignError {
             Assert => CampaignError::Assertion { expression: e.message, detail: e.detail },
             Fatal => CampaignError::Fatal { message: e.detail },
             Unported => CampaignError::Unported { dependency: e.message, detail: e.detail },
-            Boundary => CampaignError::Boundary { name: e.message, detail: e.detail },
+            Boundary => CampaignError::Boundary { name: e.message, entities: e.refs.iter().filter_map(|r| crate::campaign::id_of(*r)).collect(), detail: e.detail },
             HostError => CampaignError::World(e.detail),
             Invalid => CampaignError::InvalidConfig(format!("{}: {}", e.message, e.detail)),
             AlreadyOpen => CampaignError::AlreadyRunning,

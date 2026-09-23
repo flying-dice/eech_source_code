@@ -29,6 +29,10 @@
 
 #pragma STDC FENV_ACCESS ON
 
+#ifndef EECH_CAMPAIGN_ROUNDING
+#define EECH_CAMPAIGN_ROUNDING FE_TOWARDZERO
+#endif
+
 #define MAX_LEGACY_ENTITIES 1024
 
 extern void eech_link_entity_raw (entity *en, list_types type, entity *parent, entity *pred);
@@ -929,7 +933,7 @@ static void replay_body (void *argument)
 			if (*p == '\0') continue;
 		}
 
-		if (fegetround () != FE_TOWARDZERO)
+		if (fegetround () != EECH_CAMPAIGN_ROUNDING)
 		{
 			eech_abort (EECH_STATUS_FPU_DRIFT, "floating-point environment drifted", "rounding mode %d before a scenario line", fegetround ());
 		}
@@ -957,7 +961,7 @@ static void run_line (char *line)
 	if (strcmp (word, "fpu") == 0)
 	{
 		/* the environment differs by construction (no x87 control word here) */
-		eech_out ("fpu rounding %s flt-eval-method %d\n", fegetround () == FE_TOWARDZERO ? "toward-zero" : "other", (int) FLT_EVAL_METHOD);
+		eech_out ("fpu rounding %s flt-eval-method %d\n", fegetround () == FE_TOWARDZERO ? "toward-zero" : fegetround () == FE_TONEAREST ? "nearest" : "other", (int) FLT_EVAL_METHOD);
 
 		finished = TRUE;
 

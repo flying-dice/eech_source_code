@@ -104,6 +104,8 @@ pub struct KernelError {
     pub message: String,
     /// a formatted diagnostic
     pub detail: String,
+    /// the entities the failure names (e.g. the boundary's group and task)
+    pub refs: Vec<Ref>,
 }
 
 impl std::fmt::Display for KernelError {
@@ -311,7 +313,9 @@ fn last_error(status: Status) -> KernelError {
     // SAFETY: the C returns static NUL-terminated buffers
     let message = unsafe { CStr::from_ptr(ffi::eech_k_last_message()) }.to_string_lossy().into_owned();
     let detail = unsafe { CStr::from_ptr(ffi::eech_k_last_detail()) }.to_string_lossy().into_owned();
-    KernelError { status, message, detail }
+    let mut raw = [Ref::NULL.raw(); 4];
+    let n = unsafe { ffi::eech_k_last_refs(raw.as_mut_ptr()) }.clamp(0, 4) as usize;
+    KernelError { status, message, detail, refs: raw[..n].iter().map(|r| Ref::from_raw(*r)).collect() }
 }
 
 fn check(code: c_int) -> Result<(), KernelError> {
@@ -336,6 +340,7 @@ impl Token {
             .map(|_| Token)
             .map_err(|_| KernelError {
                 status: Status::AlreadyOpen,
+                refs: Vec::new(),
                 message: "the EECH kernel is in use".into(),
                 detail: "the legacy campaign keeps its state in process globals: one campaign per process at a time (docs/global-state.md)".into(),
             })
@@ -584,7 +589,7 @@ pub fn enum_name(table: &str, value: i32) -> Option<&'static str> {
 /// and closes the kernel itself). The harness output goes to `host.output`.
 pub fn legacy_replay(host: &mut dyn Host, scenario: &str) -> Result<(), KernelError> {
     let _token = Token::acquire()?;
-    let text = CString::new(scenario).map_err(|_| KernelError { status: Status::Invalid, message: "scenario contains NUL".into(), detail: String::new() })?;
+    let text = CString::new(scenario).map_err(|_| KernelError { status: Status::Invalid, message: "scenario contains NUL".into(), detail: String::new(), refs: Vec::new() })?;
     with_host(host, |h| unsafe { ffi::eech_k_legacy_replay(h, text.as_ptr()) }, || ())
 }
 
@@ -614,6 +619,12 @@ pub mod probe {
     }
 }
 
+/// A digest of the original databases compiled into the kernel (they must
+/// never change at run time; docs/global-state.md).
+pub fn database_digest() -> u32 {
+    unsafe { ffi::eech_k_database_digest() }
+}
+
 /// Build facts of the kernel (for reports and tests).
 pub mod build_info {
     pub const CLOSURE_REPORT: &str = env!("EECH_CLOSURE_REPORT");
@@ -621,4 +632,5 @@ pub mod build_info {
     pub const C_COMPILER: &str = env!("EECH_C_COMPILER");
     pub const ORIGINAL_STACK_ATTRIBUTES: bool = matches!(env!("EECH_ORIGINAL_STACK_ATTRIBUTES_BUILD").as_bytes(), b"1");
     pub const KERNEL_OBJECTS: &str = env!("EECH_KERNEL_OBJECTS");
+    pub const FPU_ROUNDING: &str = env!("EECH_FPU_ROUNDING_BUILD");
 }

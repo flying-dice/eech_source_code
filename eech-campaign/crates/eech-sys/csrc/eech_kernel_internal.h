@@ -40,6 +40,13 @@ extern int
    reference prints, detail the formatted diagnostic */
 EECH_NORETURN void eech_abort (int status, const char *message, const char *detail_format, ...) EECH_PRINTF (3, 4);
 
+/* entities the next abort names (set just before eech_abort) */
+extern eech_ref
+	eech_last_refs[4];
+
+extern int
+	eech_last_ref_count;
+
 /* runs `body (argument)` as an entry */
 typedef void (*eech_entry_body) (void *argument);
 

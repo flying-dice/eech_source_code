@@ -7,12 +7,15 @@ use std::fmt;
 ///
 /// An id stays valid for the lifetime of the entity it names and is never
 /// reused for another: an id of a destroyed entity is detected as stale
-/// ([`crate::CampaignError::InvalidEntity`]).
+/// ([`crate::CampaignError::InvalidEntity`]), and an id is never valid in
+/// another campaign.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct EntityId {
     pub(crate) slot: u32,
     pub(crate) generation: u32,
+    /// the campaign instance the id belongs to (ids are never valid in another campaign)
+    pub(crate) instance: u32,
 }
 
 impl fmt::Display for EntityId {

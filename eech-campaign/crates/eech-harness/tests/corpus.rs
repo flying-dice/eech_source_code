@@ -74,6 +74,7 @@ fn check(file: &str) {
         return;
     }
     let entries = load(&path);
+    let databases = eech_campaign::conformance::build::database_digest();
     let mut per_family: BTreeMap<String, (usize, usize, usize, usize)> = BTreeMap::new();
     let mut failures = Vec::new();
     for e in &entries {
@@ -93,6 +94,7 @@ fn check(file: &str) {
             Err(err) => failures.push(format!("{} {}: {err}", e.family, e.id)),
         }
     }
+    assert_eq!(eech_campaign::conformance::build::database_digest(), databases, "the corpus changed an original database (docs/global-state.md)");
     eprintln!("{file}: family / scenarios / native == C / TS == C / via subprocess");
     for (family, (n, native, ts, sub)) in &per_family {
         eprintln!("  {family:28} {n:5} {native:5} {ts:5} {sub:5}");

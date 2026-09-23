@@ -33,6 +33,7 @@ pub struct eech_host {
 extern "C" {
     pub fn eech_k_last_message() -> *const c_char;
     pub fn eech_k_last_detail() -> *const c_char;
+    pub fn eech_k_last_refs(out: *mut eech_ref) -> c_int;
 
     pub fn eech_k_open(heap_size: c_int, entity_update_frame_rate: c_int) -> c_int;
     pub fn eech_k_close();
@@ -87,6 +88,7 @@ extern "C" {
 
     pub fn eech_k_legacy_replay(host: *const eech_host, scenario: *const c_char) -> c_int;
     pub fn eech_k_legacy_install_fault_handler() -> c_int;
+    pub fn eech_k_database_digest() -> std::os::raw::c_uint;
 
     pub fn eech_k_probe_va_list_reinterpretation(read_back: *mut c_int, count: c_int, ...) -> c_int;
     pub fn eech_k_probe_marshalled(read_back: *mut c_int, count: c_int, ...) -> c_int;

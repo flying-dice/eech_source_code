@@ -21,7 +21,7 @@ use std::collections::HashMap;
 
 use eech_sys::{Declaration, HostError, RawEvent, Ref};
 
-use crate::campaign::{id_of, translate};
+use crate::campaign::{begin_instance, id_of, translate};
 use crate::{Bounds, CampaignError, CampaignEvent, EntityId, ObjectModel, Position, World};
 
 /// The physical world a legacy scenario declares.
@@ -109,6 +109,7 @@ fn kernel_error(e: eech_sys::KernelError) -> CampaignError {
 /// the C reference.
 pub fn replay(scenario: &str) -> Result<Replay, CampaignError> {
     let mut host = ReplayHost { world: ScenarioWorld::default(), events: Vec::new(), text: String::new(), sink: None };
+    begin_instance();
     eech_sys::legacy_replay(&mut host, scenario).map_err(kernel_error)?;
     let mut lines: Vec<String> = host.text.split('\n').map(str::to_string).collect();
     if lines.last().is_some_and(String::is_empty) {
@@ -121,6 +122,7 @@ pub fn replay(scenario: &str) -> Result<Replay, CampaignError> {
 /// dedicated replay process that must not lose output to a fault).
 pub fn replay_streaming(scenario: &str, sink: &mut dyn FnMut(&str)) -> Result<Vec<CampaignEvent>, CampaignError> {
     let mut host = ReplayHost { world: ScenarioWorld::default(), events: Vec::new(), text: String::new(), sink: Some(sink) };
+    begin_instance();
     eech_sys::legacy_replay(&mut host, scenario).map_err(kernel_error)?;
     Ok(host.events)
 }
@@ -143,6 +145,12 @@ pub mod build {
     pub const C_COMPILER: &str = eech_sys::build_info::C_COMPILER;
     pub const ORIGINAL_STACK_ATTRIBUTES: bool = eech_sys::build_info::ORIGINAL_STACK_ATTRIBUTES;
     pub const KERNEL_OBJECTS: &str = eech_sys::build_info::KERNEL_OBJECTS;
+    pub const FPU_ROUNDING: &str = eech_sys::build_info::FPU_ROUNDING;
+
+    /// a digest of the original databases compiled in (they must never change)
+    pub fn database_digest() -> u32 {
+        eech_sys::database_digest()
+    }
 
     /// probe of 64-bit blocker B1: the original `(char *) pargs` read back three int attributes
     pub fn probe_va_list_reinterpretation() -> (bool, [i32; 6]) {

@@ -85,23 +85,32 @@ const char
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define UNSUPPLIED(TABLE, ...) eech_abort (EECH_STATUS_UNPORTED, TABLE " not supplied", TABLE " [entity type %d] " __VA_ARGS__)
+/* names of ordinals for diagnostics (generated eech_names.c) */
+static const char *name (const char *table, int value)
+{
+	const char *n = eech_k_enum_name (table, value);
 
-static int unsupplied_get_int (entity *en, int_types type) { UNSUPPLIED ("fn_get_local_entity_int_value", "[int type %d]", en->type, (int) type); return 0; }
-static void unsupplied_set_int (entity *en, int_types type, int value) { UNSUPPLIED ("fn_set_client_server_entity_int_value", "[int type %d]", en->type, (int) type); }
-static float unsupplied_get_float (entity *en, float_types type) { UNSUPPLIED ("fn_get_local_entity_float_value", "[float type %d]", en->type, (int) type); return 0.0f; }
-static void unsupplied_set_float (entity *en, float_types type, float value) { UNSUPPLIED ("fn_set_client_server_entity_float_value", "[float type %d]", en->type, (int) type); }
-static vec3d *unsupplied_get_vec3d_ptr (entity *en, vec3d_types type) { UNSUPPLIED ("fn_get_local_entity_vec3d_ptr", "[vec3d type %d]", en->type, (int) type); return NULL; }
-static void *unsupplied_get_ptr (entity *en, ptr_types type) { UNSUPPLIED ("fn_get_local_entity_ptr_value", "[ptr type %d]", en->type, (int) type); return NULL; }
-static entity *unsupplied_get_list (entity *en, list_types type) { UNSUPPLIED ("list accessor", "[list type %d]", en->type, (int) type); return NULL; }
-static const char *unsupplied_get_string (entity *en, string_types type) { UNSUPPLIED ("fn_get_local_entity_string", "[string type %d]", en->type, (int) type); return NULL; }
-static void unsupplied_set_list (entity *en, list_types type, entity *other) { UNSUPPLIED ("list setter", "[list type %d]", en->type, (int) type); }
-static void unsupplied_update (entity *en) { UNSUPPLIED ("fn_update_client_server_entity", "", en->type); }
-static void unsupplied_set_vec3d (entity *en, vec3d_types type, vec3d *v) { UNSUPPLIED ("fn_set_local_entity_raw_vec3d", "[vec3d type %d]", en->type, (int) type); }
-static void unsupplied_set_char (entity *en, char_types type, char value) { UNSUPPLIED ("fn_set_local_entity_raw_char_value", "[char type %d]", en->type, (int) type); }
-static void unsupplied_set_string (entity *en, string_types type, const char *s) { UNSUPPLIED ("fn_set_local_entity_raw_string", "[string type %d]", en->type, (int) type); }
-static void unsupplied_set_attitude_angles (entity *en, float heading, float pitch, float roll) { UNSUPPLIED ("fn_set_local_entity_raw_attitude_angles", "", en->type); }
-static int unsupplied_message_response (entity_messages message, entity *receiver, entity *sender, va_list pargs) { UNSUPPLIED ("message_responses", "[message %d]", receiver->type, (int) message); return FALSE; }
+	return n ? n : "?";
+}
+
+#define UNSUPPLIED(TABLE, KIND, ...) \
+	eech_abort (EECH_STATUS_UNPORTED, TABLE " not supplied", TABLE " [%s] [%s]", name ("entity_type", en->type), name (KIND, __VA_ARGS__))
+
+static int unsupplied_get_int (entity *en, int_types type) { UNSUPPLIED ("fn_get_local_entity_int_value", "int_type", type); return 0; }
+static void unsupplied_set_int (entity *en, int_types type, int value) { UNSUPPLIED ("fn_set_client_server_entity_int_value", "int_type", type); }
+static float unsupplied_get_float (entity *en, float_types type) { UNSUPPLIED ("fn_get_local_entity_float_value", "float_type", type); return 0.0f; }
+static void unsupplied_set_float (entity *en, float_types type, float value) { UNSUPPLIED ("fn_set_client_server_entity_float_value", "float_type", type); }
+static vec3d *unsupplied_get_vec3d_ptr (entity *en, vec3d_types type) { UNSUPPLIED ("fn_get_local_entity_vec3d_ptr", "vec3d_type", type); return NULL; }
+static void *unsupplied_get_ptr (entity *en, ptr_types type) { UNSUPPLIED ("fn_get_local_entity_ptr_value", "ptr_type", type); return NULL; }
+static entity *unsupplied_get_list (entity *en, list_types type) { UNSUPPLIED ("list accessor", "list_type", type); return NULL; }
+static const char *unsupplied_get_string (entity *en, string_types type) { UNSUPPLIED ("fn_get_local_entity_string", "string_type", type); return NULL; }
+static void unsupplied_set_list (entity *en, list_types type, entity *other) { UNSUPPLIED ("list setter", "list_type", type); }
+static void unsupplied_update (entity *en) { eech_abort (EECH_STATUS_UNPORTED, "fn_update_client_server_entity not supplied", "fn_update_client_server_entity [%s]", name ("entity_type", en->type)); }
+static void unsupplied_set_vec3d (entity *en, vec3d_types type, vec3d *v) { UNSUPPLIED ("fn_set_local_entity_raw_vec3d", "vec3d_type", type); }
+static void unsupplied_set_char (entity *en, char_types type, char value) { UNSUPPLIED ("fn_set_local_entity_raw_char_value", "char_type", type); }
+static void unsupplied_set_string (entity *en, string_types type, const char *s) { UNSUPPLIED ("fn_set_local_entity_raw_string", "string_type", type); }
+static void unsupplied_set_attitude_angles (entity *en, float heading, float pitch, float roll) { eech_abort (EECH_STATUS_UNPORTED, "fn_set_local_entity_raw_attitude_angles not supplied", "fn_set_local_entity_raw_attitude_angles [%s]", name ("entity_type", en->type)); }
+static int unsupplied_message_response (entity_messages message, entity *receiver, entity *sender, va_list pargs) { entity *en = receiver; UNSUPPLIED ("message_responses", "message", message); return FALSE; }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //

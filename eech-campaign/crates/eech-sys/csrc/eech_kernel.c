@@ -11,6 +11,12 @@
 
 #pragma STDC FENV_ACCESS ON
 
+/* the campaign's rounding mode: EECH's, toward zero. INVESTIGATION ONLY:
+   EECH_FPU_ROUNDING=nearest at build time (docs/fpu.md) */
+#ifndef EECH_CAMPAIGN_ROUNDING
+#define EECH_CAMPAIGN_ROUNDING FE_TOWARDZERO
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // entries and aborts
@@ -43,6 +49,26 @@ const char *eech_k_last_message (void) { return last_message; }
 const char *eech_k_last_detail (void) { return last_detail; }
 
 int eech_in_entry (void) { return entry_depth > 0; }
+
+/* entities the last abort names (e.g. the boundary's group and task) */
+eech_ref
+	eech_last_refs[4];
+
+int
+	eech_last_ref_count = 0;
+
+int eech_k_last_refs (eech_ref *out)
+{
+	int
+		i;
+
+	for (i = 0; i < eech_last_ref_count; i++)
+	{
+		out[i] = eech_last_refs[i];
+	}
+
+	return eech_last_ref_count;
+}
 
 static void set_last (const char *message, const char *detail)
 {
@@ -116,13 +142,15 @@ int eech_enter (const eech_host *host, eech_entry_body body, void *argument)
 
 	set_last ("", "");
 
-	fesetround (FE_TOWARDZERO);
+	eech_last_ref_count = 0;
+
+	fesetround (EECH_CAMPAIGN_ROUNDING);
 
 	if (setjmp (point) == 0)
 	{
 		body (argument);
 
-		status = (fegetround () == FE_TOWARDZERO) ? EECH_STATUS_OK : EECH_STATUS_FPU_DRIFT;
+		status = (fegetround () == EECH_CAMPAIGN_ROUNDING) ? EECH_STATUS_OK : EECH_STATUS_FPU_DRIFT;
 
 		if (status == EECH_STATUS_FPU_DRIFT)
 		{
@@ -360,6 +388,64 @@ static void open_heap_body (open_arguments *a)
 	}
 }
 
+/*
+ * Initialised original globals the kernel must return to their load-time
+ * values for every campaign (docs/global-state.md): captured on first use,
+ * restored on every reset. No original initialiser is restated here.
+ */
+static int
+	load_time_captured = FALSE,
+	load_time_keysite_icon_timer_flag;
+
+static float
+	load_time_completed_task_expire_time;
+
+static void restore_load_time_state (void)
+{
+	if (!load_time_captured)
+	{
+		load_time_keysite_icon_timer_flag = keysite_icon_timer_flag;
+		load_time_completed_task_expire_time = get_completed_task_expire_time ();
+		load_time_captured = TRUE;
+	}
+
+	/* ks_int.c: the campaign map's keysite icon blink flag */
+	keysite_icon_timer_flag = load_time_keysite_icon_timer_flag;
+
+	/* task.c: static, with EECH's own setter */
+	set_completed_task_expire_time (load_time_completed_task_expire_time);
+}
+
+/*
+ * A digest of the original databases the kernel compiles in. They are
+ * writable data in C; the kernel must never change them (a later campaign
+ * would inherit the change). Tests compare the digest before and after runs.
+ */
+unsigned int eech_k_database_digest (void)
+{
+	unsigned int
+		hash = 2166136261u;
+
+	#define DIGEST(OBJECT) \
+	{ \
+		const unsigned char *p = (const unsigned char *) &(OBJECT); \
+		size_t i; \
+		for (i = 0; i < sizeof (OBJECT); i++) { hash = (hash ^ p[i]) * 16777619u; } \
+	}
+
+	DIGEST (aircraft_database);
+	DIGEST (group_database);
+	DIGEST (keysite_database);
+	DIGEST (task_database);
+	DIGEST (waypoint_database);
+	DIGEST (vec3d_type_database);
+	DIGEST (entity_attribute_database);
+
+	#undef DIGEST
+
+	return hash;
+}
+
 static void reset_all (void)
 {
 	if (tables_initialised)
@@ -391,6 +477,8 @@ static void reset_all (void)
 	update_data = NULL;
 
 	eech_reset_environment ();
+
+	restore_load_time_state ();
 
 	eech_legacy_reset ();
 

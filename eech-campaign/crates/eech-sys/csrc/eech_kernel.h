@@ -109,6 +109,9 @@ typedef struct eech_host
 const char *eech_k_last_message (void);
 const char *eech_k_last_detail (void);
 
+/* the entities the last non-OK status names (at most 4); returns their number */
+int eech_k_last_refs (eech_ref *out);
+
 /*
  * Lifecycle. open resets every piece of kernel state (docs/global-state.md),
  * initialises the dispatch tables and the entity heap, and creates the
@@ -166,6 +169,9 @@ int eech_k_legacy_replay (const eech_host *host, const char *scenario);
    harness's "result null-dereference" outcome (Linux only; never installed by
    the library itself) */
 int eech_k_legacy_install_fault_handler (void);
+
+/* a digest of the compiled-in original databases (tests: they never change) */
+unsigned int eech_k_database_digest (void);
 
 /* a probe of 64-bit blocker B1 (tests only) */
 int eech_k_probe_va_list_reinterpretation (int *read_back, int count, ...);
