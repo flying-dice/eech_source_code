@@ -9,7 +9,7 @@
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { AP_SOURCE, REAL_TRANSLATION_UNITS, writeGenerated } from "./extract.mjs";
+import { AP_SOURCE, EXTRACTED_UNITS, REAL_TRANSLATION_UNITS, writeGenerated } from "./extract.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(here, "..");
@@ -42,6 +42,9 @@ const COMMON = [
 	here,
 	"-I",
 	join(repoRoot, AP_SOURCE),
+	// engine module headers named by the original headers (e.g. misc/listitem.h, 3d/3dmodels.h)
+	"-I",
+	join(repoRoot, "modules"),
 ];
 
 // Our own sources: every warning is an error.
@@ -54,7 +57,7 @@ export const HARNESS_OBJECT_NAME = "harness.c.o";
 
 // Original EECH sources: their historical warnings are not ours to fix, but the
 // ones that would hide a mismatch with the harness environment are errors.
-const ORIGINAL_FLAGS = ["-Werror=implicit-function-declaration", "-Werror=incompatible-pointer-types", "-Werror=int-conversion", "-Werror=return-type", "-w"];
+const ORIGINAL_FLAGS = ["-Werror=implicit-function-declaration", "-Werror=incompatible-pointer-types", "-Werror=int-conversion", "-Werror=return-type"];
 
 function compile(cc, source, flags, objectName = `${source.replace(/[\\/]/g, "_")}.o`) {
 	const object = join(outDir, objectName);
@@ -73,7 +76,7 @@ export function buildHarness() {
 	const objects = [
 		compile(cc, join(here, "harness.c"), OWN_FLAGS, HARNESS_OBJECT_NAME),
 		// verbatim original code: original-code flags
-		compile(cc, join(outDir, "eech_extracted.c"), ORIGINAL_FLAGS),
+		...Object.keys(EXTRACTED_UNITS).map((unit) => compile(cc, join(outDir, unit), ORIGINAL_FLAGS)),
 		...REAL_TRANSLATION_UNITS.map((unit) => compile(cc, join(repoRoot, unit), ORIGINAL_FLAGS)),
 	];
 
