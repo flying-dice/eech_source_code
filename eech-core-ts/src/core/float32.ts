@@ -1,19 +1,44 @@
 //
-// C `float` storage semantics.
+// C `float` semantics: the EECH numerical contract (issue #7,
+// docs/fidelity/fpu-semantics.md). Ports must follow it.
 //
-// EECH stores campaign quantities (supply levels, positions, ranges) in 32-bit
-// `float` variables and struct fields. Every assignment to a float rounds to
-// the nearest representable single-precision value (IEEE 754 round to nearest,
-// ties to even). JavaScript and Lua 5.1 both compute in doubles, so the port
-// narrows explicitly with toFloat32 () wherever C assigns to a float.
+// EECH stores campaign quantities (supply levels, positions, ranges, timers)
+// in 32-bit `float` variables and struct fields. JavaScript and Lua 5.1 both
+// compute in doubles, so the port models every C float result explicitly.
 //
-// A single +, -, *, / or sqrt of float operands computed in double and then
-// narrowed equals the float result, so f32 (a op b) models C float arithmetic
-// exactly (no double-rounding hazard: 53 >= 2 * 24 + 2).
+//   Run-time EECH float arithmetic and assignment    ROUND TOWARD ZERO
+//     EECH sets the FPU to round toward zero on its campaign thread
+//     (startup.c :: set_fpu_rounding_mode_zero, re-asserted after every
+//     library initialisation). Every float result EECH computes while running
+//     - an operation on floats, a double expression stored as float, an
+//     argument passed to a `float` parameter, an int converted to float - is
+//     the exact result truncated to the float grid. Use toFloat32RTZ, f32Add,
+//     f32Sub, f32Mul, f32Div or f32Sqrt (below), the one that matches the C
+//     expression being ported. NEVER use toFloat32 for run-time arithmetic.
 //
-// Math.fround is not available in Lua 5.1, so this is pure arithmetic that
-// behaves identically after TSTL transpilation. It is verified against
-// Math.fround in test/unit/float32.test.ts.
+//   Values fixed at compile time, and scenario input  ROUND TO NEAREST
+//     A C constant initialiser (e.g. time.c's `float system_delta_time = 0.1`)
+//     is converted by the compiler, to nearest, not by the run-time FPU.
+//     Scenario and test input is narrowed to nearest, as the C harness parses
+//     it (next_float). Only these use toFloat32.
+//
+//   float -> int                                    TRUNCATION
+//     toCInt (core/cint.ts); convert_float_to_int is fistp under round toward
+//     zero, which truncates.
+//
+//   x87 intermediate evaluation precision           UNRESOLVED
+//     The contract evaluates every operation at declared type. Whether the
+//     original executable kept some intermediates at 53 or 64 bits, and where
+//     it rounded them back to float, is open (it needs the Windows runtime
+//     control-word trace and the shipped compiler's instructions). Do not
+//     model extended intermediates ad hoc; get_2d_range's sqrt argument is the
+//     documented canary.
+//
+// Math.fround is not available in Lua 5.1, so all of this is pure arithmetic
+// that behaves identically after TSTL transpilation. toFloat32 is verified
+// against Math.fround (test/unit/float32.test.ts); the round-toward-zero
+// helpers bit for bit against the C oracle (test/c-reference/float32-rtz.cref.test.ts)
+// and, from recorded results, in JavaScript and Lua 5.1.
 //
 
 const FLOAT32_OVERFLOW_THRESHOLD = 3.4028235677973366e38; // 2^128 - 2^103: halfway above FLT_MAX
@@ -24,6 +49,9 @@ const FLOAT32_MANTISSA_BITS = 23;
 
 export const FLT_MAX = 3.4028234663852886e38;
 
+// Round to nearest (ties to even): compile-time constants and scenario input
+// ONLY. Run-time EECH arithmetic rounds toward zero (toFloat32RTZ and the f32*
+// helpers below).
 export function toFloat32(value: number): number {
 	if (value !== value || value === 0) {
 		// NaN and signed zero are preserved
@@ -88,7 +116,7 @@ export function toFloat32(value: number): number {
 // narrowing toward zero gives the exact value truncated to float, so one
 // narrowing of the exact value models both steps.
 //
-// toFloat32 above (round to nearest) remains for values fixed at compile time
+// toFloat32 above (round to nearest) is only for values fixed at compile time
 // (C constant initialisers, e.g. time.c's 0.1) and for scenario input.
 //
 
