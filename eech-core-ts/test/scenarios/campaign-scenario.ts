@@ -29,6 +29,7 @@ import { setSessionEntityRaw, takeUnportedMessageLog, type Entity } from "../../
 import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, ListType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
+import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
 import { ScriptedClock } from "../adapters/scripted-clock";
 
 export interface KeysiteSpec {
@@ -126,7 +127,7 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 	const physical = new InMemoryMobilePhysicalState();
 	const replication = new RecordingEntityReplication();
 
-	initialiseCampaignCore({ mobilePhysicalState: physical, entityReplication: replication, clock: new ScriptedClock() }, { unportedMessagePolicy: "record" });
+	initialiseCampaignCore({ mobilePhysicalState: physical, entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata() }, { unportedMessagePolicy: "record" });
 
 	const labels: Record<number, string> = {};
 
@@ -166,6 +167,7 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 		const raw: KeysiteRaw = {
 			sub_type: k.subType,
 			side: k.side,
+			alive: 0,
 			in_use: k.inUse ? 1 : 0,
 			position: { x: toFloat32(k.x), y: 0, z: toFloat32(k.z) },
 			supplies: { ammo_supply_level: toFloat32(k.ammo), fuel_supply_level: toFloat32(k.fuel) },

@@ -6,15 +6,42 @@
 //
 
 import { describe, expect, it } from "vitest";
-import { f32Add, f32Div, f32Mul, f32Sqrt, f32Sub, FLT_MAX, toFloat32RTZ } from "../../src/core/float32";
+import { f32Add, f32Div, f32Mul, f32Sqrt, f32Sub, f64AddRTZ, FLT_MAX, toFloat32RTZ } from "../../src/core/float32";
 import { applyFloat32RtzOp } from "../scenarios/float32-rtz";
 import { C_REFERENCE_FLOAT32_RTZ_CASES } from "../scenarios/generated/c-reference-float32-rtz.cases";
+import { C_REFERENCE_DOUBLE_SUM_RTZ_CASES } from "../scenarios/generated/c-reference-double-sum-rtz.cases";
 
 describe("round-toward-zero float arithmetic", () => {
 	it("reproduces every recorded C result bit for bit", () => {
 		for (const [op, a, b, expected] of C_REFERENCE_FLOAT32_RTZ_CASES) {
 			expect(Object.is(applyFloat32RtzOp(op, a, b), expected), `${op} ${a} ${b}`).toBe(true);
 		}
+	});
+
+	it("reproduces every recorded C double sum bit for bit", () => {
+		for (const [op, a, b, expected] of C_REFERENCE_DOUBLE_SUM_RTZ_CASES) {
+			expect(Object.is(applyFloat32RtzOp(op, a, b), expected), `${op} ${a} ${b}`).toBe(true);
+		}
+	});
+
+	it("adds doubles toward zero", () => {
+		// 1 + (2^-53 + 2^-60) rounds up to 1 + 2^-52 to nearest; toward zero it stays 1
+		expect(f64AddRTZ(1, Math.pow(2, -53) + Math.pow(2, -60))).toBe(1);
+		expect(f64AddRTZ(-1, -(Math.pow(2, -53) + Math.pow(2, -60)))).toBe(-1);
+		// just below a power of two the spacing is half
+		expect(f64AddRTZ(2, -Math.pow(2, -60))).toBe(2 - Math.pow(2, -52));
+		// near the smallest normal, sums are exact (the 2^-1074 grid)
+		expect(f64AddRTZ(Math.pow(2, -1022), -Math.pow(2, -1074))).toBe(Math.pow(2, -1022) - Math.pow(2, -1074));
+		expect(f64AddRTZ(1.7976931348623157e308, 1.7976931348623157e308)).toBe(1.7976931348623157e308);
+		expect(f64AddRTZ(-1.7976931348623157e308, -1.7976931348623157e308)).toBe(-1.7976931348623157e308);
+		expect(f64AddRTZ(1 / 0, 1)).toBe(1 / 0);
+		expect(f64AddRTZ(1, -1 / 0)).toBe(-1 / 0);
+		expect(f64AddRTZ(2.5, 1)).toBe(3.5);
+		// Math.log (x) / Math.LN2 overestimates the exponent just below 2^20 and
+		// underestimates it at 2^-125: the correction loops
+		expect(f64AddRTZ(1048575.9999999999, -Math.pow(2, -60))).toBe(1048575.9999999998);
+		expect(f64AddRTZ(Math.pow(2, -125), -Math.pow(2, -200))).toBe(Math.pow(2, -125) - Math.pow(2, -178));
+		expect(Object.is(f64AddRTZ(1, -1), 0)).toBe(true);
 	});
 
 	it("truncates narrowing toward zero", () => {

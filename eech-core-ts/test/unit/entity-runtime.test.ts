@@ -16,10 +16,11 @@ import { deinitialiseEntityRuntime, getCampaignPorts } from "../../src/entity/sy
 import { CommsModelType, EntityMessage, EntitySide, EntitySubTypeCargo, EntityType, FloatType, IntType, ListType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
+import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
 import { ScriptedClock } from "../adapters/scripted-clock";
 
 function ports() {
-	return { mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new RecordingEntityReplication(), clock: new ScriptedClock() };
+	return { mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new RecordingEntityReplication(), clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata() };
 }
 
 afterEach(() => {
@@ -105,7 +106,7 @@ describe("entity runtime", () => {
 		initialiseCampaignCore(ports());
 		setCommsModel(CommsModelType.COMMS_MODEL_CLIENT);
 		const replication = new RecordingEntityReplication();
-		initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication, clock: new ScriptedClock() });
+		initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata() });
 		const keysite = createLocalEntityRaw(EntityType.ENTITY_TYPE_KEYSITE, { supplies: { ammo_supply_level: 0, fuel_supply_level: 0 } });
 		setClientServerEntityFloatValue(keysite, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL, 0.1);
 		// the C prototype's float parameter narrows the value, toward zero (0x3dcccccc)

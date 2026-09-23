@@ -811,3 +811,12 @@ export enum ResupplySourceType {
 	RESUPPLY_SOURCE_GROUP = 2,
 	NUM_RESUPPLY_SOURCE_TYPES = 3,
 }
+
+// C provenance: enum GAME_STATUS_TYPES (aphavoc/source/global.h)
+export enum GameStatusType {
+	GAME_STATUS_UNINITIALISED = 0,
+	GAME_STATUS_UNINITIALISING = 1,
+	GAME_STATUS_INITIALISING = 2,
+	GAME_STATUS_INITIALISED = 3,
+	NUM_GAME_STATUS_TYPES = 4,
+}

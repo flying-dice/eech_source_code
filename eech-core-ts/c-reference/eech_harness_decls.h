@@ -14,14 +14,14 @@ extern int
 	command_line_downwash;
 
 /*
- * Game and session state that the original expresses as macros over globals
- * (global.h :: get_game_status, ui_menu/session/session.h ::
- * get_valid_current_game_session, get_current_game_session_type). It is not
- * part of the port, and the adopted paths never read it: sc_msgs.c reaches it
- * only for aircraft and vehicles. Declared here as functions so that any use
- * fails loudly (harness.c) instead of reading an invented value.
+ * Session state that the original expresses as macros over globals
+ * (ui_menu/session/session.h :: get_valid_current_game_session,
+ * get_current_game_session_type). It is not part of the port, and the adopted
+ * paths never read it: sc_msgs.c reaches it only for aircraft and vehicles.
+ * Declared here as functions so that any use fails loudly (harness.c) instead
+ * of reading an invented value. (get_game_status is the original global.h
+ * macro over game_status since Slice 4, which reads it: see harness.c.)
  */
-extern game_status_types get_game_status (void);
 extern int get_valid_current_game_session (void);
 extern session_list_types get_current_game_session_type (void);
 

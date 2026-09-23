@@ -7,9 +7,9 @@
 // TSTL-compatible: no Node APIs.
 //
 
-import { f32Add, f32Div, f32Mul, f32Sqrt, toFloat32RTZ } from "../../src/core/float32";
+import { f32Add, f32Div, f32Mul, f32Sqrt, f64AddRTZ, toFloat32RTZ } from "../../src/core/float32";
 
-export type Float32RtzOp = "narrow" | "sum" | "mul" | "div" | "sqrt";
+export type Float32RtzOp = "narrow" | "sum" | "mul" | "div" | "sqrt" | "dsum";
 
 // [operation, a, b, expected]: narrow and sqrt ignore b
 export type Float32RtzCase = [Float32RtzOp, number, number, number];
@@ -30,6 +30,10 @@ export function applyFloat32RtzOp(op: Float32RtzOp, a: number, b: number): numbe
 	if (op === "div") {
 		// float / float
 		return f32Div(a, b);
+	}
+	if (op === "dsum") {
+		// d1 + d2, a double
+		return f64AddRTZ(a, b);
 	}
 	// (float) sqrt (float)
 	return f32Sqrt(a);

@@ -20,6 +20,13 @@ core.initialiseCampaignCore({
 		getDeltaTime = function(self) return 0.25 end,
 		isFrameRateLocked = function(self) return false end,
 	},
+	object3DMetadata = {
+		-- get_object_3d_bounding_box (object): a 2 x 1 x 3 crate for OBJECT_3D_SINGLE_CRATE
+		getBoundingBox = function(self, objectIndex)
+			assert(objectIndex == core.OBJECT_3D_SINGLE_CRATE, "unexpected object " .. tostring(objectIndex))
+			return { xmin = -1, xmax = 1, ymin = -0.5, ymax = 0.5, zmin = -1.5, zmax = 1.5 }
+		end,
+	},
 	entityReplication = {
 		transmitEntityFloatValue = function(self, entityIndex, floatType, value)
 			transmitted[#transmitted + 1] = { entityIndex = entityIndex, floatType = floatType, value = value }
@@ -44,6 +51,7 @@ core.insertLocalEntityIntoParentsChildListRaw(force, L.LIST_TYPE_FORCE, session,
 local keysite = core.createLocalEntityRaw(T.ENTITY_TYPE_KEYSITE, {
 	sub_type = core.EntitySubTypeKeysite.ENTITY_SUB_TYPE_KEYSITE_FARP,
 	side = core.EntitySide.ENTITY_SIDE_BLUE_FORCE,
+	alive = 1,
 	in_use = 1,
 	position = { x = 0, y = 0, z = 0 },
 	supplies = { ammo_supply_level = 50, fuel_supply_level = 50 },
@@ -97,6 +105,24 @@ core.destroyClientServerEntityFamily(crate)
 assert(keysite.roots.cargo_root.first_child == nil, "crate should have left the keysite")
 assert(crate.type == T.ENTITY_TYPE_UNKNOWN, "crate entry should be free")
 assert(transmitted[sent + 2].destroy == crate.index, "ENTITY_COMMS_DESTROY")
+
+-- keysite cargo: 35 units of ammo materialise three crates in a row beside the
+-- keysite (x 0, 3, 6; y 0.5; z 0), newest first in its cargo list; the game
+-- status is the zero-initialised UNINITIALISED, which does not hold it back
+assert(core.getGameStatus() == core.GameStatusType.GAME_STATUS_UNINITIALISED, "initial game status")
+core.setGameStatus(core.GameStatusType.GAME_STATUS_INITIALISED)
+sent = #transmitted
+core.updateKeysiteCargo(keysite, 35, core.EntitySubTypeCargo.ENTITY_SUB_TYPE_CARGO_AMMO, core.CARGO_AMMO_SIZE)
+assert(#transmitted == sent + 3, "three crates created")
+local newest = keysite.roots.cargo_root.first_child
+assert(newest.data.mob.position.x == 6 and newest.data.mob.position.y == 0.5, "newest crate at x 6, y 0.5")
+-- a lower level destroys the oldest crates; nothing is left to create, so the
+-- FARP (which consumes ammo) tells its force, which is not ported yet
+sent = #transmitted
+local ok, err = pcall(core.updateKeysiteCargo, keysite, 12, core.EntitySubTypeCargo.ENTITY_SUB_TYPE_CARGO_AMMO, core.CARGO_AMMO_SIZE)
+assert(#transmitted == sent + 2 and transmitted[sent + 1].destroy ~= nil, "two crates destroyed")
+assert(keysite.roots.cargo_root.first_child == newest, "the newest crate survives")
+assert(not ok and tostring(err.message or err):find("response_to_force_low_on_supplies", 1, true), "expected the unported force response")
 
 -- production policy: reaching an unported message response fails loudly
 group_raw.sub_type = core.EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_PRIMARY_FRONTLINE

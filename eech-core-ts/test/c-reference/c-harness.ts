@@ -37,6 +37,13 @@ export function formatNumberForC(n: number): string {
 	return String(n);
 }
 
+export function doubleFromBits(hex: string): number {
+	const view = new DataView(new ArrayBuffer(8));
+	view.setUint32(0, Number.parseInt(hex.substring(0, 8), 16));
+	view.setUint32(4, Number.parseInt(hex.substring(8), 16));
+	return view.getFloat64(0);
+}
+
 export function floatFromBits(hex: string): number {
 	const view = new DataView(new ArrayBuffer(4));
 	view.setUint32(0, Number.parseInt(hex, 16));
@@ -161,6 +168,7 @@ export function runCTimeline(spec: TimelineSpec, binary: string = harness()): Ti
 export function runCFloat32(ops: [string, number, number][]): string[] {
 	const fmt = (n: number): string => (Object.is(n, -0) ? "-0" : String(n));
 	const input = ops.map(([op, a, b]) => `f32 ${op} ${fmt(a)}${op === "narrow" || op === "sqrt" ? "" : ` ${fmt(b)}`}`).join("\n") + "\n";
+	// dsum results are double bit patterns (16 hex digits), the others float (8)
 	const run = spawnSync(harness(), [], { input, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
 
 	if (run.status !== 0) {
@@ -170,4 +178,21 @@ export function runCFloat32(ops: [string, number, number][]): string[] {
 	const lines = run.stdout.split("\n").filter((l) => l !== "");
 
 	return lines.map((l) => l.split(" ")[1]);
+}
+
+// keysite.c's crate-row step through the harness `f32 crate-row` command
+// (canonical environment), one process for all: the stored x as float bits.
+export function runCCrateRow(operands: [number, number, number][]): string[] {
+	const fmt = (n: number): string => (Object.is(n, -0) ? "-0" : String(n));
+	const input = operands.map(([x, xmin, xmax]) => `f32 crate-row ${fmt(x)} ${fmt(xmin)} ${fmt(xmax)}`).join("\n") + "\n";
+	const run = spawnSync(harness(), [], { input, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+
+	if (run.status !== 0) {
+		throw new Error(`C harness failed (${describeFailure(run)})`);
+	}
+
+	return run.stdout
+		.split("\n")
+		.filter((l) => l !== "")
+		.map((l) => l.split(" ")[1]);
 }

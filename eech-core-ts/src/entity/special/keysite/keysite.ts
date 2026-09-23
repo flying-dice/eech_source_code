@@ -5,11 +5,29 @@
 //
 
 import { ASSERT, assertNotNullDereference } from "../../../core/assert";
-import { FLT_MAX } from "../../../core/float32";
+import { f32Add, f32Mul, f32Sub, f64AddRTZ, FLT_MAX, toFloat32RTZ } from "../../../core/float32";
+import { getGameStatus } from "../../../core/game-status";
 import { get2dRange, getApprox2dRange } from "../../../core/maths/range";
 import type { Vec3d } from "../../../core/maths/vec3d";
-import { CommsModelType, EntityMessage, EntitySide, EntitySubTypeKeysite, EntityType, FloatType, IntType, ListType, Vec3dType } from "../../../generated/c-enums";
-import { messageResponses, type MessageResponseFn } from "../../system/en_msgs";
+import { KEYSITE_SUPPLY_REQUEST_THRESHOLD, OBJECT_3D_SINGLE_CRATE } from "../../../generated/c-constants";
+import {
+	CommsModelType,
+	EntityMessage,
+	EntitySide,
+	EntitySubTypeCargo,
+	EntitySubTypeKeysite,
+	EntityType,
+	FloatType,
+	GameStatusType,
+	IntType,
+	ListType,
+	Vec3dType,
+} from "../../../generated/c-enums";
+import { KEYSITE_DATABASE_AMMO_SUPPLY_USAGE, KEYSITE_DATABASE_FUEL_SUPPLY_USAGE } from "../../../generated/c-keysite-database";
+import { createClientServerEntity } from "../../system/en_creat";
+import { destroyClientServerEntityFamily } from "../../system/en_dstry";
+import { ENTITY_INDEX_DONT_CARE } from "../../system/en_heap";
+import { messageResponses, notifyLocalEntity, type MessageResponseFn } from "../../system/en_msgs";
 import { getLocalEntityChildSucc, getLocalEntityFirstChild, overloadEntityListLink, overloadEntityListRoot } from "../../system/en_list";
 import {
 	fnGetLocalEntityFloatValue,
@@ -20,7 +38,7 @@ import {
 	getLocalEntityVec3dPtr,
 	serverFloatValueSetter,
 } from "../../system/en_values";
-import { getLocalEntityData, type Entity } from "../../system/entity";
+import { getCampaignPorts, getLocalEntityData, type Entity } from "../../system/entity";
 import { getLocalForceEntity } from "../force/force";
 
 // C provenance: en_types/en_suply.h :: struct SUPPLY_TYPE (ported fields only)
@@ -33,6 +51,9 @@ export interface SupplyRaw {
 export interface KeysiteRaw {
 	sub_type: EntitySubTypeKeysite;
 	side: EntitySide;
+	// unsigned int alive : NUM_ALIVE_BITS (1)
+	alive: number;
+	// unsigned int in_use : NUM_IN_USE_BITS
 	in_use: number;
 	position: Vec3d;
 	supplies: SupplyRaw;
@@ -108,6 +129,158 @@ export function getClosestKeysite(
 	return closest_keysite;
 }
 
+//
+// C provenance: keysite.c :: update_keysite_cargo (lines 428 and 464)
+//
+//   position.x += (bounding_box->xmax - bounding_box->xmin) + 1.0;
+//
+// with float x, xmin and xmax. Transcribed under the frozen #7 numerical
+// contract (src/core/float32.ts): every C operation at its declared type,
+// rounded toward zero -
+//   xmax - xmin     float - float                    f32Sub
+//   ... + 1.0       float promoted to double, + 1.0   f64AddRTZ
+//   x += ...        float promoted to double, double
+//                   sum, stored to the float x        f32Add (a double rounded
+//                   toward zero, then narrowed toward zero, is one truncation)
+// Whether the historical executable instead kept x, the difference or the sum
+// in wider x87 registers across these points is unresolved (#9). This
+// statement is one of that question's canaries: the whole expression, from
+// float inputs to the stored x, is checked against the executed C by
+// test/c-reference/keysite-crate-row.cref.test.ts (harness `f32 crate-row`)
+// and probed under the x87 variants (c-reference/fpu-probes, `crate-row`).
+// If #9 establishes different rounding points, this function changes, and
+// only this function.
+//
+export function advanceCrateRow(x: number, xmin: number, xmax: number): number {
+	return f32Add(x, f64AddRTZ(f32Sub(xmax, xmin), 1.0));
+}
+
+//
+// C provenance: keysite.c :: update_keysite_cargo
+//
+// Keeps the keysite's crates of one supply (ammo or fuel) in step with its
+// supply level: surplus crates are destroyed, missing ones created in a row
+// beside the keysite, and when none is missing and the level is low, the
+// keysite's force is told (ENTITY_MESSAGE_FORCE_LOW_ON_SUPPLIES). Crate
+// geometry comes from the Object3DMetadata port. Floats follow the RTZ
+// contract (src/core/float32.ts); docs/slices/keysite-cargo.md maps every step.
+// DEBUG_MODULE / DEBUG_SUPPLY logging is compiled out in EECH and not ported.
+//
+export function updateKeysiteCargo(en: Entity, cargo_level: number, sub_type: EntitySubTypeCargo, cargo_size: number): void {
+	// float parameters
+	cargo_level = toFloat32RTZ(cargo_level);
+	cargo_size = toFloat32RTZ(cargo_size);
+
+	//
+	// Get cargo position
+	//
+
+	if (getGameStatus() === GameStatusType.GAME_STATUS_INITIALISING) {
+		return;
+	}
+
+	const raw = getLocalEntityData<KeysiteRaw>(en);
+
+	if (raw.alive === 0 || raw.in_use === 0) {
+		return;
+	}
+
+	// memcpy (&position, get_keysite_supply_position (en), sizeof (vec3d))
+	const supply_position = getLocalEntityVec3dPtr(en, Vec3dType.VEC3D_TYPE_POSITION) as Vec3d;
+
+	const position: Vec3d = { x: supply_position.x, y: supply_position.y, z: supply_position.z };
+
+	// get_object_3d_bounding_box (OBJECT_3D_SINGLE_CRATE): struct OBJECT_3D_BOUNDS holds floats
+	const box = getCampaignPorts().object3DMetadata.getBoundingBox(OBJECT_3D_SINGLE_CRATE);
+
+	const xmin = toFloat32RTZ(box.xmin);
+	const xmax = toFloat32RTZ(box.xmax);
+	const ymin = toFloat32RTZ(box.ymin);
+	const zmin = toFloat32RTZ(box.zmin);
+	const zmax = toFloat32RTZ(box.zmax);
+
+	//
+	// work out start position
+	//
+
+	position.y = f32Sub(position.y, ymin);
+
+	// sub_type * ((zmax - zmin) + 1): float + int 1, then int * float
+	position.z = f32Add(position.z, f32Mul(sub_type, f32Add(f32Sub(zmax, zmin), 1)));
+
+	//
+	// check for existing cargo
+	//
+
+	let temp_cargo_level = cargo_level;
+
+	// cargo = raw->cargo_root.first_child
+	let cargo = getLocalEntityFirstChild(en, ListType.LIST_TYPE_CARGO);
+
+	while (cargo) {
+		if (getLocalEntityIntValue(cargo, IntType.INT_TYPE_ENTITY_SUB_TYPE) === sub_type) {
+			temp_cargo_level = f32Sub(temp_cargo_level, cargo_size);
+
+			if (temp_cargo_level < 0.0) {
+				//
+				// destroy surplus cargo
+				//
+
+				const destroy_cargo = cargo;
+
+				cargo = getLocalEntityChildSucc(cargo, ListType.LIST_TYPE_CARGO);
+
+				destroyClientServerEntityFamily(destroy_cargo);
+
+				continue;
+			}
+
+			position.x = advanceCrateRow(position.x, xmin, xmax);
+		}
+
+		cargo = getLocalEntityChildSucc(cargo, ListType.LIST_TYPE_CARGO);
+	}
+
+	//
+	// Create new cargo as required
+	//
+
+	if (temp_cargo_level > cargo_size) {
+		while (temp_cargo_level > cargo_size) {
+			createClientServerEntity(EntityType.ENTITY_TYPE_CARGO, ENTITY_INDEX_DONT_CARE, [
+				{ kind: "parent", type: ListType.LIST_TYPE_CARGO, entity: en },
+				{ kind: "int_value", type: IntType.INT_TYPE_SIDE, value: getLocalEntityIntValue(en, IntType.INT_TYPE_SIDE) },
+				{ kind: "int_value", type: IntType.INT_TYPE_ENTITY_SUB_TYPE, value: sub_type },
+				{ kind: "vec3d", type: Vec3dType.VEC3D_TYPE_POSITION, x: position.x, y: position.y, z: position.z },
+			]);
+
+			position.x = advanceCrateRow(position.x, xmin, xmax);
+
+			temp_cargo_level = f32Sub(temp_cargo_level, cargo_size);
+		}
+	} else if (cargo_level <= KEYSITE_SUPPLY_REQUEST_THRESHOLD) {
+		//
+		// low on cargo supplies so request some more
+		//
+
+		if (sub_type === EntitySubTypeCargo.ENTITY_SUB_TYPE_CARGO_AMMO) {
+			if (KEYSITE_DATABASE_AMMO_SUPPLY_USAGE[raw.sub_type] < 0.0) {
+				const force = getLocalForceEntity(raw.side);
+
+				notifyLocalEntity(EntityMessage.ENTITY_MESSAGE_FORCE_LOW_ON_SUPPLIES, force, en, sub_type);
+			}
+		} else if (sub_type === EntitySubTypeCargo.ENTITY_SUB_TYPE_CARGO_FUEL) {
+			if (KEYSITE_DATABASE_FUEL_SUPPLY_USAGE[raw.sub_type] < 0.0) {
+				const force = getLocalForceEntity(raw.side);
+
+				notifyLocalEntity(EntityMessage.ENTITY_MESSAGE_FORCE_LOW_ON_SUPPLIES, force, en, sub_type);
+			}
+		}
+
+		// switch (sub_type) has no default: other cargo sub types do nothing
+	}
+}
+
 // C provenance: ks_msgs.c :: response_to_link_child, response_to_unlink_child
 // (their bodies only log under DEBUG_MODULE)
 const responseToLinkOrUnlinkChild: MessageResponseFn = () => 1;
@@ -124,6 +297,7 @@ export function overloadKeysiteFunctions(): void {
 	// C provenance: ks_int.c :: get_local_int_value
 	fnGetLocalEntityIntValue.overload(KEYSITE, IntType.INT_TYPE_ENTITY_SUB_TYPE, (en) => getLocalEntityData<KeysiteRaw>(en).sub_type);
 	fnGetLocalEntityIntValue.overload(KEYSITE, IntType.INT_TYPE_IN_USE, (en) => getLocalEntityData<KeysiteRaw>(en).in_use);
+	fnGetLocalEntityIntValue.overload(KEYSITE, IntType.INT_TYPE_SIDE, (en) => getLocalEntityData<KeysiteRaw>(en).side);
 
 	// C provenance: ks_float.c :: get_local_float_value
 	fnGetLocalEntityFloatValue.overload(KEYSITE, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL, (en) => getLocalEntityData<KeysiteRaw>(en).supplies.ammo_supply_level);

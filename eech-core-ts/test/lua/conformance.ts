@@ -15,11 +15,16 @@ import { runScenario } from "../scenarios/campaign-scenario";
 import { FLOAT32_EDGE_CASES } from "../scenarios/float32.cases";
 import { applyFloat32RtzOp } from "../scenarios/float32-rtz";
 import { C_REFERENCE_FLOAT32_RTZ_CASES } from "../scenarios/generated/c-reference-float32-rtz.cases";
+import { C_REFERENCE_DOUBLE_SUM_RTZ_CASES } from "../scenarios/generated/c-reference-double-sum-rtz.cases";
 import { C_REFERENCE_RANDOM_CASES } from "../scenarios/generated/c-reference-random.cases";
 import { C_REFERENCE_RANDOM_TIMELINES } from "../scenarios/generated/c-reference-random-timelines.cases";
 import { UPDATE_TIMELINE_CASES } from "../scenarios/update-timeline.cases";
 import { ENTITY_LIFECYCLE_CASES } from "../scenarios/entity-lifecycle.cases";
 import { C_REFERENCE_RANDOM_LIFECYCLES } from "../scenarios/generated/c-reference-random-lifecycles.cases";
+import { C_REFERENCE_RANDOM_KEYSITE_CARGO } from "../scenarios/generated/c-reference-random-keysite-cargo.cases";
+import { KEYSITE_CARGO_CASES } from "../scenarios/keysite-cargo.cases";
+import { C_REFERENCE_CRATE_ROW_CASES } from "../scenarios/generated/c-reference-crate-row.cases";
+import { advanceCrateRow } from "../../src/entity/special/keysite/keysite";
 import { firstUnmatchedLine, runLifecycle } from "../scenarios/lifecycle-scenario";
 import { runTimeline } from "../scenarios/update-timeline";
 
@@ -94,6 +99,10 @@ for (const [input, expected] of FLOAT32_EDGE_CASES) {
 }
 
 // round-toward-zero float arithmetic, recorded from the C oracle
+for (const [op, a, b, expected] of C_REFERENCE_DOUBLE_SUM_RTZ_CASES) {
+	check(`${op}(${string.format("%.17g", a)}, ${string.format("%.17g", b)})`, applyFloat32RtzOp(op, a, b), expected);
+}
+
 for (const [op, a, b, expected] of C_REFERENCE_FLOAT32_RTZ_CASES) {
 	check(`${op}(${string.format("%.17g", a)}, ${string.format("%.17g", b)})`, applyFloat32RtzOp(op, a, b), expected);
 }
@@ -119,6 +128,24 @@ for (const c of ENTITY_LIFECYCLE_CASES) {
 }
 
 for (const c of C_REFERENCE_RANDOM_LIFECYCLES) {
+	check(c.id, runLifecycle(c.spec), c.expected);
+}
+
+for (const c of KEYSITE_CARGO_CASES) {
+	const output = runLifecycle(c.spec);
+	check(c.id, firstUnmatchedLine(output, c.expected), "");
+	for (const prefix of c.absent) {
+		for (const line of output) {
+			check(`${c.id}: absent ${prefix}`, line.substring(0, prefix.length) === prefix, false);
+		}
+	}
+}
+
+for (const [x, xmin, xmax, expected] of C_REFERENCE_CRATE_ROW_CASES) {
+	check(`crate-row(${string.format("%.17g", x)}, ${string.format("%.17g", xmin)}, ${string.format("%.17g", xmax)})`, advanceCrateRow(x, xmin, xmax), expected);
+}
+
+for (const c of C_REFERENCE_RANDOM_KEYSITE_CARGO) {
 	check(c.id, runLifecycle(c.spec), c.expected);
 }
 

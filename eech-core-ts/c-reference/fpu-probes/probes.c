@@ -107,6 +107,20 @@ static __attribute__((noinline)) void probe_map (int n, int side, float *max_out
 	*mid_out = mid_map_x;
 }
 
+/* keysite.c :: update_keysite_cargo, lines 428 and 464 (the crate-row step; #9 canary) */
+struct OBJECT_3D_BOUNDS { float xmin, xmax, ymin, ymax, zmin, zmax; };
+
+static __attribute__((noinline)) float probe_crate_row (float x, float xmin, float xmax)
+{
+	struct OBJECT_3D_BOUNDS box, *bounding_box = &box;
+	vec3d position;
+	position.x = x;
+	box.xmin = xmin;
+	box.xmax = xmax;
+	position.x += (bounding_box->xmax - bounding_box->xmin) + 1.0;
+	return position.x;
+}
+
 /* en_world.h :: get_x_sector */
 #define get_x_sector(X_SEC,X) {convert_float_to_int ((X), &(X_SEC)); (X_SEC) /= SECTOR_SIDE_LENGTH;}
 
@@ -164,6 +178,12 @@ int main (int argc, char **argv)
 		float x = strtof (argv[4], NULL); int side = atoi (argv[5]);
 		set_env (cw, rc);
 		printf ("%d\n", probe_sector (x, side));
+	}
+	else if (strcmp (probe, "crate-row") == 0)
+	{
+		float x = strtof (argv[4], NULL), xmin = strtof (argv[5], NULL), xmax = strtof (argv[6], NULL);
+		set_env (cw, rc);
+		printf ("%08x\n", bits (probe_crate_row (x, xmin, xmax)));
 	}
 	else if (strcmp (probe, "gnuc-fistp") == 0)
 	{

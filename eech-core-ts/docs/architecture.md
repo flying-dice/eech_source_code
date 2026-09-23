@@ -101,6 +101,13 @@ The ports introduced so far, each derived from C call sites:
 | `MobilePhysicalState.getMobilePosition` | `ac_vec3d.c` / `vh_vec3d.c` `get_local_vec3d_ptr (VEC3D_TYPE_POSITION)` | `InMemoryMobilePhysicalState` (positions come only from the scenario, never invented) |
 | `EntityReplication.transmitEntityFloatValue` | `set_server_float_value` → `transmit_entity_comms_message (ENTITY_COMMS_FLOAT_VALUE, ..)` | `RecordingEntityReplication` (ordered log) |
 | `Clock.getDeltaTime`, `Clock.isFrameRateLocked` (slice 2) | `time.c :: set_delta_time` (frame measurement) and `locked_frame_rate` | `ScriptedClock` (the frame driver states each frame) |
+| `EntityReplication.transmitEntityCreate`, `transmitEntityDestroy` (slice 3) | `transmit_entity_comms_message (ENTITY_COMMS_CREATE / ENTITY_COMMS_DESTROY, ..)` | `RecordingEntityReplication` |
+| `Object3DMetadata.getBoundingBox` (slice 4) | `3dobjvis.c :: get_object_3d_bounding_box (object_3d_index_numbers)`, read by `keysite.c :: update_keysite_cargo` (and `sc_msgs.c` for fixed entities) | `InMemoryObject3DMetadata` (bounds only as the scenario declares them) |
+
+The game status (`global.c :: game_status`) is deliberately **not** a port: it is
+the campaign's own lifecycle phase, moved by the host's game flow like the comms
+model, so it is core state with a setter (`setGameStatus`; slice 4,
+`docs/slices/keysite-cargo.md`, Investigation 3).
 
 These are the next ports in order of need. None is created before a ported slice
 calls it.
@@ -283,14 +290,15 @@ check without adding a branch to the caller.
 2. ~~**The entity lifecycle, CARGO and sector membership**~~ Done in slice 3
    (`docs/slices/entity-lifecycle-cargo.md`). It was found underneath
    `update_keysite_cargo` when that was investigated as slice 3.
-3. **`keysite.c :: update_keysite_cargo`** (slice 4), ported intact on slice 3's
-   lifecycle, together with an object-dimensions port keyed by
-   `object_3d_index_numbers` (`get_object_3d_bounding_box`, also read by the
-   sector link response for fixed entities).
+3. ~~**`keysite.c :: update_keysite_cargo`**~~ Done in slice 4
+   (`docs/slices/keysite-cargo.md`): ported intact on slice 3's lifecycle, with
+   the `Object3DMetadata` port keyed by `object_3d_index_numbers`
+   (`get_object_3d_bounding_box`, also read by the sector link response for
+   fixed entities) and the game status as core state.
 4. **`fc_msgs.c :: response_to_force_low_on_supplies` and `create_supply_task`**
    (slice 5). They close the supply loop by finding a supplier and creating the
-   supply task around a crate. They require task creation and
-   `get_game_status`.
+   supply task around a crate. They require task creation; the game status
+   they read is core state since slice 4.
 5. **Pickup, transport and delivery** (the `mb_msgs.c` waypoint handlers, cargo
    movement), and the landing handlers that call `assess_group_supplies`. These
    introduce a `LandingObservation`-style port: the DCS adapter reports that a
@@ -382,12 +390,27 @@ behaviour. They fail the run if reached.
   - the creation and destruction of pylons, bridges, the camera and the update
     entity, plus `destroy_local_sector_entities`, `destroy_local_sound_effects`
     and `set_gunship_entity`;
-  - `get_object_3d_bounding_box` (the object-dimensions port, Slice 4);
   - `set_sector_fog_of_war_value` and `update_imap_surface_to_*_defence_level`;
-  - `get_game_status`, `get_valid_current_game_session` and
-    `get_current_game_session_type` (macros over game state in the original,
-    declared as functions here so any use fails);
+  - `get_valid_current_game_session` and `get_current_game_session_type`
+    (macros over session state in the original, declared as functions here so
+    any use fails);
   - `get_local_group_member_landing_entity_from_keysite`.
+- **Slice 4:** `keysite.c` is compiled whole (replacing the extract of
+  `get_closest_keysite`). Its functions outside the port (FARP enabling,
+  importance, attack notification, destruction, capture, repair, dumps,
+  landing sites, speech, MFD names) are never called by the harness and are in
+  no dispatch table; the 31 functions only they call are fail-loud stubs, and
+  the data only they read (`random_number_seed`,
+  `command_line_capture_aircraft`, `speech_sector_coordinates`, the side name
+  tables, `task_database`, the string accessor table with a fail-loud default)
+  is defined without meaning.
+
+**Environment entries driven by the scenario** (slice 4):
+- `get_object_3d_bounding_box`: the scenario's `bounds` lines (the 3D object
+  database), mirrored by `test/adapters/in-memory-object-3d-metadata.ts`; an
+  undeclared object fails loudly.
+- `game_status`: the original `global.h` macro over the host's global, set by
+  the scenario's `game-status` line (zero-initialised, as in C).
 
 ### Order of work
 
@@ -436,7 +459,9 @@ reference comparison where practical. Frozen so far (see the manifest):
 - slice 2: group update timing (`update_server`, the timer setters, the update
   loop);
 - slice 3: the campaign entity lifecycle (heap, attribute-driven creation,
-  family destruction), CARGO, and sector membership.
+  family destruction), CARGO, and sector membership;
+- slice 4: `update_keysite_cargo`, with the `Object3DMetadata` port and the
+  game status.
 
 After freezing:
 

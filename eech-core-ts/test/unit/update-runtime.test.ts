@@ -21,10 +21,11 @@ import { deinitialiseEntityRuntime, type Entity } from "../../src/entity/system/
 import { EntityMessage, EntityType, ListType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
+import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
 import { ScriptedClock } from "../adapters/scripted-clock";
 
 function start(): { update: Entity; groups: Entity[] } {
-	initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new RecordingEntityReplication(), clock: new ScriptedClock() });
+	initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new RecordingEntityReplication(), clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata() });
 	const update = createLocalEntityRaw(EntityType.ENTITY_TYPE_UPDATE, {});
 	setUpdateEntity(update);
 	const groups: Entity[] = [];

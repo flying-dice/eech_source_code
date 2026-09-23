@@ -39,6 +39,10 @@ where practical.
 | `modules/system/time.c` | `src/core/time.ts`, `src/ports/clock.ts` (port) | partial (measurement is the `Clock` port; delta history not ported) |
 | `aphavoc/source/cmndline.c` (`command_line_entity_update_frame_rate`) | `src/core/cmndline.ts` | partial |
 | `aphavoc/source/entity/special/group/gp_dbase.c` | `src/generated/c-group-database.ts` (generated) | partial |
+| `aphavoc/source/entity/special/keysite/ks_dbase.c` (`default_supply_usage` ammo and fuel) | `src/generated/c-keysite-database.ts` (generated) | partial (compiled defaults; `wutcfg.c` overrides not ported) |
+| `aphavoc/source/global.c`, `global.h` (`game_status`, `set_game_status`, `get_game_status`) | `src/core/game-status.ts` | partial (`game_status_string` not ported: no campaign reader) |
+| `modules/3d/3dobjvis.c :: get_object_3d_bounding_box`, `objects.h :: struct OBJECT_3D_BOUNDS` | `src/ports/object-3d-metadata.ts` (port) | blocked-engine-boundary (the 3D object database) |
+| `modules/3d/3dmodels.h` (`OBJECT_3D_SINGLE_CRATE`) | `src/generated/c-constants.ts` (generated) | partial (the indices the port names) |
 | `aphavoc/source/entity/special/keysite/keysite.c` | `src/entity/special/keysite/keysite.ts` | partial |
 | `aphavoc/source/entity/special/keysite/ks_int.c`, `ks_float.c`, `ks_vec3d.c`, `ks_list.c`, `ks_msgs.c` | `src/entity/special/keysite/keysite.ts` | partial |
 | `aphavoc/source/entity/special/force/force.c` | `src/entity/special/force/force.ts` | partial |
@@ -66,12 +70,12 @@ where practical.
 | `aphavoc/source/comms/comms.c` (`get_comms_model`) | `src/entity/system/comms.ts` | partial |
 | `modules/maths/range.c` | `src/core/maths/range.ts` | partial |
 | `modules/maths/miscmath.h`, `constant.h`, `vector.h` | `src/core/maths/miscmath.ts`, `vec3d.ts` | partial |
-| `aphavoc/source/entity/system/en_types/en_suply.h` (`FUEL_USAGE_ACCELERATOR`, `AMMO_USAGE_ACCELERATOR`) | `src/generated/c-constants.ts` (generated) | partial |
+| `aphavoc/source/entity/system/en_types/en_suply.h` (`FUEL_USAGE_ACCELERATOR`, `AMMO_USAGE_ACCELERATOR`, `KEYSITE_SUPPLY_REQUEST_THRESHOLD`); `cargo.h` (`CARGO_AMMO_SIZE`, `CARGO_FUEL_SIZE`) | `src/generated/c-constants.ts` (generated) | partial |
 | `modules/system/assert.h` | `src/core/assert.ts` | partial |
 | enum headers (`en_types.h`, `en_side.h`, `en_list.h`, `en_int.h`, `en_float.h`, `en_vec3d.h`, `en_ptr.h`, `en_msgs.h`, `en_sbtyp.h`, `ai_extrn.h`, `comms.h`, `en_suply.h`) | `src/generated/c-enums.ts` (generated) | ported (selected enums, generated verbatim) |
 | `ai/highlevl/*`, `ai/taskgen/*`, `ai/frontl/*`, `ai/faction/*`, `ai/ai_misc/*` | none | unported |
 | `entity/special/division`, `task`, `waypoint`, `landing`, `regen` | none | unported |
-| `wutcfg.c`, `gwutcfg.c` (runtime overrides of `group_database`) | none | unported |
+| `wutcfg.c`, `gwutcfg.c` (runtime overrides of `group_database` and `keysite_database`) | none | unported |
 
 ## Functions
 
@@ -108,6 +112,18 @@ where practical.
 | `time.c :: set_manual_delta_time`, `get_delta_time`, `locked_frame_rate` | `src/core/time.ts` | ported, tested, 100%-covered, C-reference-verified (history and `system_one_over_delta_time` not ported: no ported reader) |
 | `time.c :: set_delta_time`, `lock_frame_rate` | `Clock` port | blocked-engine-boundary (frame measurement) |
 | Windows SDK `max` | `max` in `miscmath.ts` | ported, tested, 100%-covered |
+
+### Frozen slice: keysite cargo (slice 4, issue #10)
+
+| C function | TS | Status |
+|---|---|---|
+| `keysite.c :: update_keysite_cargo` | `updateKeysiteCargo` | ported, tested, 100%-covered, C-reference-verified (the original `keysite.c` compiled whole; DEBUG logging compiled out in EECH, not ported) |
+| `keysite.c :: get_keysite_supply_position` | inlined in `updateKeysiteCargo` (`get_local_entity_vec3d_ptr (keysite, VEC3D_TYPE_POSITION)`) | ported, C-reference-verified |
+| `ks_int.c :: get_local_int_value` (`INT_TYPE_SIDE`) | `overloadKeysiteFunctions` | ported, tested, C-reference-verified |
+| `global.c :: set_game_status`, `global.h :: get_game_status` | `setGameStatus`, `getGameStatus` (core state, reset on `initialiseCampaignCore`) | ported, tested, 100%-covered, C-reference-verified |
+| `3dobjvis.c :: get_object_3d_bounding_box` | `Object3DMetadata.getBoundingBox` | port (blocked-engine-boundary); deterministic adapter in `test/adapters` |
+| `fc_msgs.c :: response_to_force_low_on_supplies` | recorded at the boundary (`unportedMessagePolicy`) | unported (Slice 5) |
+| RTZ double sum `(xmax - xmin) + 1.0` | `f64AddRTZ` (`src/core/float32.ts`) | ported, bit-exact against C (20,000 fresh sums, 1,000 recorded, replayed in JS and Lua 5.1) |
 
 ### Frozen slice: entity lifecycle, CARGO, sector membership (slice 3)
 

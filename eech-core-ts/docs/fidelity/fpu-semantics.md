@@ -349,5 +349,9 @@ The runtime trace settles only the first part. It needs `get_fpu_control_word_va
 Until both are established, the contract evaluates at declared type. The known sites where this matters are:
 - **`get_2d_range` (canary).** It is the only operation whose results depend on intermediate precision in the generator corpora: x87 does not round `dx*dx + dz*dz` to float before `sqrt`. Measured directly against the migrated canonical oracle, `x87-rtz-pc53` differs in 15/1500 Slice 1 scenarios, all in `closest` lines, and in none of the Slice 2 or 3 generator scenarios. Under round-to-nearest the figure was 2/1500 (§5). An earlier estimate of 7, obtained by subtracting two counts, is superseded. `c-reference/fpu-probes` keeps the probe (`range -7027.003 362.58 1414.948 -6811.288`, `range 12345.678 -9876.543 1.1 2.2`). If the evidence establishes extended intermediates, this operation changes deliberately and no other changes along with it.
 - **`set_entity_update_frame_rate`.** `dt * rate` is not rounded before `+ 1.0`. This is only observable at non-default entity update rates; the default rate is 2.
+- **`keysite.c :: update_keysite_cargo`'s crate-row step (Slice 4).** The statement `position.x += (bounding_box->xmax - bounding_box->xmin) + 1.0` is the port's `advanceCrateRow`.
+  - It is checked whole against the executed C (`test/c-reference/keysite-crate-row.cref.test.ts`) and probed under the x87 variants (`c-reference/fpu-probes`, `crate-row`).
+  - Its `+ 1.0` is a double operation, so precision control matters: at `x 0.1, xmin -0.025, xmax 0.025` it stores `3f933332` under x87 RTZ PC24 and `3f933333` under declared type and under x87 RTZ PC53.
+  - It is the first ported expression that separates PC24 from PC53. In the Slice 1–3 corpora, `x87-rtz-pc24` was output-identical to `sse-rtz`.
 
 **Slice 4 must not start until this migration is frozen.**
