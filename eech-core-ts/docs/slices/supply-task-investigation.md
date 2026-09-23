@@ -96,8 +96,8 @@ The same x87 caveat as #9 applies to how `ceil` receives the float.
 `get_closest_keysite (AIRBASE, side, pos, 10 km, …, exclude = NULL)` searches from the requester's own position. An in-use airbase requester is therefore always found by the early exit at range 0 (`keysite.c:127`), so `airbase_actual_range = 0`. It replaces any factory that is not also at range exactly 0, and the requester becomes its own supplier.
 
 What happens next:
-1. The cargo search takes the head of the requester's own cargo list for that type, which is its newest crate (Slice 4). A requester at or below one crate's worth (level ≤ 10) holds no crate of that type, so the search finds nothing.
-2. `create_supply_task` picks a start keysite near that crate. The requester itself scores best at range ≈ 0 if it has a suitable group, which gives `start_ks == requester` and returns NULL.
+1. The cargo search takes the head of the requester's own cargo list for that type, which is its newest crate (Slice 4). A requester below one crate's worth (level < 10) holds no crate of that type, so the search finds nothing.
+2. `create_supply_task` picks a start keysite near that crate. The requester's own range factor is the maximum (range 0), so when it has a suitable idle group it usually scores best (group count, unassigned-task count and usable state also weigh in), which gives `start_ks == requester` and returns NULL.
 3. Only when the requester has no suitable transport group does another keysite get a task that flies the requester's own crate back to it.
 4. With no crate of the type, nothing is created.
 
