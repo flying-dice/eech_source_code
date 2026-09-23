@@ -4,8 +4,9 @@
 // executing the original C.
 //
 
-import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, FloatType } from "../../src/generated/c-enums";
+import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, FloatType, IntType, ListType, Vec3dType } from "../../src/generated/c-enums";
 import type { GroupParentSpec, KeysiteSpec, PositionSpec, ScenarioSpec } from "../scenarios/campaign-scenario";
+import type { LifecycleAttribute, LifecycleOp, LifecycleSpec } from "../scenarios/lifecycle-scenario";
 import type { TimelineSpec, TimelineStep } from "../scenarios/update-timeline";
 
 export function mulberry32(seed: number): () => number {
@@ -137,4 +138,120 @@ export function generateRandomTimelines(seed: number, count: number): TimelineSp
 	}
 
 	return timelines;
+}
+
+//
+// Random entity lifecycles: a map (usually valid), then creates and destroys
+// of cargo with random attribute lists. Positions are multiples of 0.25, so
+// they are exact floats whatever the rounding mode (see
+// docs/slices/entity-lifecycle-cargo.md). Parents are keysites, NULL, or live
+// sectors for the sector list; destroys name created entities, destroyed or not.
+// Some operations allocate a specific heap index.
+//
+export function generateRandomLifecycles(seed: number, count: number): LifecycleSpec[] {
+	const rnd = mulberry32(seed);
+	const int = (n: number) => Math.floor(rnd() * n);
+	const chance = (p: number) => rnd() < p;
+	const sides = [EntitySide.ENTITY_SIDE_BLUE_FORCE, EntitySide.ENTITY_SIDE_RED_FORCE];
+	const quarter = (lo: number, hi: number) => Math.round((lo + rnd() * (hi - lo)) * 4) / 4;
+
+	const lifecycles: LifecycleSpec[] = [];
+
+	for (let n = 0; n < count; n++) {
+		const forces: EntitySide[] = chance(0.5) ? [sides[0], sides[1]] : [sides[int(2)]];
+
+		const keysites: KeysiteSpec[] = [];
+		const numKeysites = int(4);
+		for (let i = 0; i < numKeysites; i++) {
+			keysites.push({ side: sides[int(2)], subType: int(EntitySubTypeKeysite.NUM_ENTITY_SUB_TYPE_KEYSITES), inUse: chance(0.8), x: 0, z: 0, ammo: 100, fuel: 100 });
+		}
+
+		const xSectors = chance(0.03) ? 0 : 1 + int(4);
+		const zSectors = 1 + int(4);
+		const sideLength = chance(0.03) ? 1000 : [256, 512, 1024][int(3)];
+		const numSectors = xSectors * zSectors;
+		const maxX = xSectors * sideLength - 1;
+		const maxZ = zSectors * sideLength - 1;
+
+		const ops: LifecycleOp[] = [{ kind: "map", xSectors, zSectors, sideLength }];
+
+		// heap: session, update, forces, keysites, sectors, then a few free entries (sometimes too few)
+		const restored = 2 + forces.length + keysites.length;
+		const used = restored + numSectors;
+		const heap = chance(0.08) ? Math.max(restored, used - 1 - int(3)) : used + 1 + int(10);
+
+		const labels: string[] = [];
+		const destroyed: Record<string, boolean> = {};
+		let allocated = false;
+		const numOps = int(12);
+
+		for (let i = 0; i < numOps; i++) {
+			const roll = rnd();
+
+			// once an index may have been allocated, destroying a crate a second time
+			// could reach the allocated group through the stale pointer
+			const destroyable = allocated ? labels.filter((l) => !destroyed[l]) : labels;
+
+			if (roll < 0.25 && destroyable.length > 0) {
+				const label = destroyable[int(destroyable.length)];
+				destroyed[label] = true;
+				ops.push({ kind: "destroy", label });
+				continue;
+			}
+
+			if (roll >= 0.25 && roll < 0.26) {
+				ops.push({ kind: "map", xSectors: 1 + int(2), zSectors: 1, sideLength: 512 });
+				continue;
+			}
+
+			// get_free_entity with a specific index: usually a free entry, sometimes
+			// one in use, outside the heap, or ENTITY_INDEX_DONT_CARE. Allocated
+			// entries are never destroyed or referenced (their type is not ported).
+			if (roll >= 0.26 && roll < 0.36) {
+				allocated = true;
+				ops.push({ kind: "allocate", label: `g${i}`, index: chance(0.05) ? -1 : chance(0.05) ? heap + int(2) : int(heap) });
+				continue;
+			}
+
+			const attributes: LifecycleAttribute[] = [];
+			const numAttributes = int(6);
+
+			for (let a = 0; a < numAttributes; a++) {
+				const kind = int(10);
+
+				if (kind < 3) {
+					attributes.push({
+						kind: "vec3d",
+						type: Vec3dType.VEC3D_TYPE_POSITION,
+						x: chance(0.05) ? quarter(-64, 0) : chance(0.1) ? maxX + [0, 0.5, 1][int(3)] : quarter(0, maxX),
+						y: quarter(-100, 500),
+						z: chance(0.05) ? maxZ + 0.25 : quarter(0, maxZ),
+					});
+				} else if (kind < 5) {
+					attributes.push({ kind: "int", type: IntType.INT_TYPE_SIDE, value: int(7) - 1 });
+				} else if (kind < 6) {
+					attributes.push({ kind: "int", type: IntType.INT_TYPE_ENTITY_SUB_TYPE, value: int(40) - 1 });
+				} else if (kind < 7) {
+					attributes.push({ kind: "int", type: IntType.INT_TYPE_ALIVE, value: int(4) });
+				} else if (kind < 9) {
+					const target = keysites.length > 0 && chance(0.85) ? `keysite${int(keysites.length)}` : "NULL";
+					attributes.push({ kind: "parent", type: ListType.LIST_TYPE_CARGO, target });
+				} else if (chance(0.5) && labels.length > 0) {
+					attributes.push({ kind: "pred", type: ListType.LIST_TYPE_CARGO, target: labels[int(labels.length)] });
+				} else if (numSectors > 0 && sideLength !== 1000) {
+					attributes.push({ kind: "parent", type: ListType.LIST_TYPE_SECTOR, target: `sector${int(xSectors)}_${int(zSectors)}` });
+				}
+			}
+
+			const label = `c${labels.length}`;
+			const type = chance(0.03) ? [EntityType.ENTITY_TYPE_UNKNOWN, EntityType.NUM_ENTITY_TYPES][int(2)] : EntityType.ENTITY_TYPE_CARGO;
+
+			ops.push({ kind: "create", label, type, index: chance(0.03) ? int(heap) : -1, attributes });
+			labels.push(label);
+		}
+
+		lifecycles.push({ heap, forces, keysites, ops });
+	}
+
+	return lifecycles;
 }

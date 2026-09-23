@@ -111,19 +111,33 @@ export function getLocalEntityChildPred(en: Entity, type: ListType): Entity | un
 	return getLink(en, type).child_pred;
 }
 
+// The setters keep the ASSERT at the top of en_list/set_frst.h, set_prnt.h,
+// set_succ.h and set_pred.h (included by every xx_list.c): an entity never
+// links to itself.
+
 function setLocalEntityFirstChild(en: Entity, type: ListType, first_child: Entity | undefined): void {
+	ASSERT(en !== first_child, "en != first_child");
+
 	getRoot(en, type).first_child = first_child;
 }
 
-function setLocalEntityParent(en: Entity, type: ListType, parent: Entity | undefined): void {
+// C provenance: en_list.c :: set_local_entity_parent
+export function setLocalEntityParent(en: Entity, type: ListType, parent: Entity | undefined): void {
+	ASSERT(en !== parent, "en != parent");
+
 	getLink(en, type).parent = parent;
 }
 
 function setLocalEntityChildSucc(en: Entity, type: ListType, child_succ: Entity | undefined): void {
+	ASSERT(en !== child_succ, "en != child_succ");
+
 	getLink(en, type).child_succ = child_succ;
 }
 
-function setLocalEntityChildPred(en: Entity, type: ListType, child_pred: Entity | undefined): void {
+// C provenance: en_list.c :: set_local_entity_child_pred
+export function setLocalEntityChildPred(en: Entity, type: ListType, child_pred: Entity | undefined): void {
+	ASSERT(en !== child_pred, "en != child_pred");
+
 	getLink(en, type).child_pred = child_pred;
 }
 
@@ -145,7 +159,10 @@ export function insertLocalEntityIntoParentsChildList(en: Entity, type: ListType
 
 		while (item) {
 			if (item === en) {
-				throw new EechFatalError(`Entity already in list (entity type = ${EntityType[en.type]}, list type = ${ListType[type]})`);
+				throw new EechFatalError(
+					"Entity already in list (entity type = %s, list type = %s)",
+					`Entity already in list (entity type = ${EntityType[en.type]}, list type = ${ListType[type]})`,
+				);
 			}
 
 			item = getLocalEntityChildSucc(item, type);
@@ -203,6 +220,17 @@ export function deleteLocalEntityFromParentsChildList(en: Entity, type: ListType
 		setLocalEntityChildSucc(en, type, undefined);
 
 		setLocalEntityChildPred(en, type, undefined);
+	}
+}
+
+// C provenance: en_list.c :: unlink_local_entity_children
+export function unlinkLocalEntityChildren(en: Entity, list: ListType): void {
+	let child = getLocalEntityFirstChild(en, list);
+
+	while (child) {
+		deleteLocalEntityFromParentsChildList(child, list);
+
+		child = getLocalEntityFirstChild(en, list);
 	}
 }
 

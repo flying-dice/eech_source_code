@@ -132,6 +132,19 @@ The runaway guard is test-side (`validateTimeline`): it refuses frames that
 would need more than 10,000 update passes, and never changes a result. Tests
 never call private update functions directly.
 
+**Slice 3** extends `EntityReplication` with `transmitEntityCreate` and
+`transmitEntityDestroy` (EECH's `ENTITY_COMMS_CREATE` / `ENTITY_COMMS_DESTROY`).
+It adds no port for the world map: its size is campaign data that EECH's
+campaign script parser passes to `set_entity_world_map_size`, and the host does
+the same. The 3D object dimensions (`get_object_3d_bounding_box`) are
+environmental and become a port in slice 4.
+
+**Calling convention for Lua hosts.** Ports are objects. The transpiled core
+calls their functions as methods (`port:method (...)`), so a Lua host's port
+functions take the port table first, for example
+`transmitEntityDestroy = function (self, entityIndex) ... end`
+(`test/lua/smoke.lua`).
+
 ## 5. Which function is the first vertical slice, and why?
 
 **`group.c :: assess_group_supplies`**, with its callee
@@ -259,22 +272,29 @@ check without adding a branch to the caller.
 
 1. ~~**Group update and sleep timers**~~ Done in slice 2
    (`docs/slices/group-update-timing.md`).
-2. **`keysite.c :: update_keysite_cargo`** (the second
-   sender of `FORCE_LOW_ON_SUPPLIES`). It reuses this slice's runtime and extends
-   keysite accessors.
-3. **`fc_msgs.c :: response_to_force_low_on_supplies`**. It closes the supply
-   loop by finding a supplier and creating the supply task. It requires task
-   creation (`en_creat.c` for tasks, `entity_is_object_of_task`) and
+2. ~~**The entity lifecycle, CARGO and sector membership**~~ Done in slice 3
+   (`docs/slices/entity-lifecycle-cargo.md`). It was found underneath
+   `update_keysite_cargo` when that was investigated as slice 3.
+3. **`keysite.c :: update_keysite_cargo`** (slice 4), ported intact on slice 3's
+   lifecycle, together with an object-dimensions port keyed by
+   `object_3d_index_numbers` (`get_object_3d_bounding_box`, also read by the
+   sector link response for fixed entities).
+4. **`fc_msgs.c :: response_to_force_low_on_supplies` and `create_supply_task`**
+   (slice 5). They close the supply loop by finding a supplier and creating the
+   supply task around a crate. They require task creation and
    `get_game_status`.
-4. **The `mb_msgs.c` landing handlers that call `assess_group_supplies`**, which
-   introduce the `LandingObservation` port. The DCS adapter reports "member
-   landed at keysite", and the campaign does the accounting.
-5. **Harness depth.** The group files are done. Next, compile `ks_*.c` and
-   `fc_int.c`, ideally together with item 2, which touches the keysite. See
-   "Shrinking the C reference shim" below.
-6. **The readers of `sleep`**, e.g. task assignment and the `mb_msgs.c` landing
+5. **Pickup, transport and delivery** (the `mb_msgs.c` waypoint handlers, cargo
+   movement), and the landing handlers that call `assess_group_supplies`. These
+   introduce a `LandingObservation`-style port: the DCS adapter reports that a
+   member landed at a keysite, and the campaign does the accounting.
+6. **`ks_updt.c`**, composed from frozen parts once task assignment, repair and
+   supply drift are ported.
+7. **The readers of `sleep`**, e.g. task assignment and the `mb_msgs.c` landing
    handler that sets `sleep` after rearming. These give slice 2's timers their
    campaign meaning.
+8. **The FPU rounding mode.** Slice 3 found that EECH runs the x87 FPU in
+   round-toward-zero mode. Before more float-heavy slices, decide whether the
+   harness and the port should model that mode (see the manifest's deviations).
 
 ## Shrinking the C reference shim
 
@@ -303,54 +323,88 @@ goes through the original `fn_*` tables, filled by the original
 | Group position and leader | `gp_vec3d.c`, `gp_ptr.c` | 2 |
 | Group list roots and links, including the shared `group_link` | `gp_list.c` with `en_list/*.h` | 2 |
 | Hand-written NULL checks | the original unguarded code; a `SIGSEGV` is the reported outcome | 2 |
+| Keysite `INT_TYPE_ENTITY_SUB_TYPE`, `INT_TYPE_IN_USE` | `ks_int.c` | 3 |
+| Keysite supply level get and server set | `ks_float.c` | 3 |
+| Keysite `VEC3D_TYPE_POSITION` | `ks_vec3d.c` | 3 |
+| Keysite list roots and links | `ks_list.c` | 3 |
+| Force `INT_TYPE_SIDE` | `fc_int.c` | 3 |
+| Force list roots and links | `fc_list.c` | 3 |
+| The harness's own entity array | `en_heap.c`: scenario entities come from the original heap | 3 |
+| "Not supplied" default for int getters | `en_int.c :: default_get_entity_int_value`, extracted verbatim | 3 |
 
 **Remaining** (hand-written in `harness.c`):
 
 | Shim entry | Original source that should replace it |
 |---|---|
-| Keysite `INT_TYPE_ENTITY_SUB_TYPE`, `INT_TYPE_IN_USE` | `ks_int.c :: get_local_int_value` |
-| Keysite supply level get and server set | `ks_float.c` |
-| Keysite `VEC3D_TYPE_POSITION` | `ks_vec3d.c` |
-| Force `INT_TYPE_SIDE` | `fc_int.c :: get_local_int_value` |
-| List storage of session, force, keysite, guide and helicopter | `ss_list.c`, `fc_list.c`, `ks_list.c`, `gd_list.c`, `ac_list.c` |
-| Delivery of `FORCE_LOW_ON_SUPPLIES` (recorded, not handled) | `fc_msgs.c :: response_to_force_low_on_supplies`. This is the slice 1 message boundary, and is ported with that response. |
+| List storage of session, guide and helicopter | `ss_list.c`, `gd_list.c`, `ac_list.c` |
+| Delivery of `FORCE_LOW_ON_SUPPLIES` (recorded, not handled) | `fc_msgs.c :: response_to_force_low_on_supplies`. This is the slice 1 message boundary, and is ported with that response (Slice 5). |
 
 **Environment** (legitimately hand-written, driven by the same scenario data as
 the TS adapters):
 - the frame delta and locked flag (`set_delta_time`);
 - the host loop's time acceleration;
-- the comms model and data flow;
-- the transport (`transmit_entity_comms_message`);
+- the comms model and data flow (server, TX);
+- the transport (`transmit_entity_comms_message`: float values, CREATE,
+  DESTROY);
 - the mobile position (physical);
+- memory (`malloc_fast_mem`, `malloc_heap_mem`, `free_mem`);
+- `convert_float_to_int` (x87 `fistp` under EECH's round-toward-zero mode:
+  truncation);
+- the player's gunship (`gunship_entity`, always NULL: the campaign core has
+  none);
 - debug output;
 - tacview (never logging);
 - the Windows SDK `min`/`max`.
 
+The platform itself is part of the environment: the harness is built for 32-bit
+x86 (`-m32`, SSE float arithmetic), because the original creation path
+reinterprets a `va_list` as the argument stack (`c-reference/README.md`,
+"Platform").
+
 **Fail-loud stubs** for code that is reachable only outside the adopted
-behaviour: `add/remove_group_type_to/from_force_info`, `set_local_division_name`,
-and every dispatch-table default except the C default setters, which are
-extracted verbatim.
+behaviour. They fail the run if reached.
+- **Slice 1:** `add/remove_group_type_to/from_force_info`,
+  `set_local_division_name`, and every dispatch-table default except the C
+  default setters and the default int getter, which are extracted verbatim.
+- **Slice 3:**
+  - `pack_*` / `unpack_*` (saved games and network messages);
+  - `set_comms_model`, `set_comms_data_flow`,
+    `enable/disable_entity_comms_messages` (only
+    `create_local_only_entities` calls them);
+  - the creation and destruction of pylons, bridges, the camera and the update
+    entity, plus `destroy_local_sector_entities`, `destroy_local_sound_effects`
+    and `set_gunship_entity`;
+  - `get_object_3d_bounding_box` (the object-dimensions port, Slice 4);
+  - `set_sector_fog_of_war_value` and `update_imap_surface_to_*_defence_level`;
+  - `get_game_status`, `get_valid_current_game_session` and
+    `get_current_game_session_type` (macros over game state in the original,
+    declared as functions here so any use fails);
+  - `get_local_group_member_landing_entity_from_keysite`.
 
 ### Order of work
 
 1. ~~**Reduced `project.h`.**~~ Done in slice 2. It needed no reconstruction of
    `project.h`, only whole original headers plus a few fragments (see
    `docs/slices/group-update-timing.md`, investigation 3).
-2. **Value accessors.** Group done (slice 2). Next: compile `ks_int.c`,
-   `ks_float.c` and `fc_int.c`, which need `keysite.h` / `force.h` in the
-   reduced `project.h`.
+2. ~~**Value accessors.**~~ Group (slice 2), keysite and force (slice 3). The
+   CARGO, mobile and sector accessors are compiled whole too (slice 3).
 3. ~~**Database.**~~ `gp_dbase.c` is done (slice 2).
-4. **Lists.** Group done (slice 2). Next: `ks_list.c`, `fc_list.c`,
-   `ss_list.c`, `gd_list.c`.
-5. **Positions.** Group done (slice 2). Next: `ks_vec3d.c`. The mobile position
-   stays a scenario-supplied entry, because that value is physical.
+4. **Lists.** Group (slice 2), keysite, force, cargo, mobile and sector
+   (slice 3). Next: `ss_list.c`, `gd_list.c`, and the aircraft lists with the
+   first aircraft slice.
+5. **Positions.** Group (slice 2) and keysite (slice 3). The aircraft position
+   stays a scenario-supplied entry, because that value is physical. A cargo's
+   position is campaign state, set by its creation attributes, and comes from
+   `mb_vec3d.c`.
 
 Each step lands with the slice that first needs it, or as its own small PR.
 Every step must keep the existing C reference cases and the recorded random
 fixtures passing unchanged. If an expectation changes, that is a finding about
 the TS port, and must be investigated before anything is re-recorded. When
 slice 2 replaced the group shim, slice 1's 41 cases passed unchanged, and
-re-recording its 250-scenario fixture produced a byte-identical file.
+re-recording its 250-scenario fixture produced a byte-identical file. Slice 3
+did the same for the keysite, force and heap shims, the 32-bit build and the
+TX data flow: all Slice 1 and 2 fixtures re-recorded byte-identically.
 
 ### Rules for new slices
 
@@ -372,7 +426,9 @@ coverage, source-derived expectations, passing TSTL/Lua execution, and a C
 reference comparison where practical. Frozen so far (see the manifest):
 - slice 1: `assess_group_supplies` and `get_closest_keysite`;
 - slice 2: group update timing (`update_server`, the timer setters, the update
-  loop).
+  loop);
+- slice 3: the campaign entity lifecycle (heap, attribute-driven creation,
+  family destruction), CARGO, and sector membership.
 
 After freezing:
 

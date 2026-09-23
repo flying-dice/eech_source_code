@@ -8,7 +8,8 @@ import { ASSERT, assertNotNullDereference } from "../../../core/assert";
 import { FLT_MAX } from "../../../core/float32";
 import { get2dRange, getApprox2dRange } from "../../../core/maths/range";
 import type { Vec3d } from "../../../core/maths/vec3d";
-import { CommsModelType, EntitySide, EntitySubTypeKeysite, EntityType, FloatType, IntType, ListType, Vec3dType } from "../../../generated/c-enums";
+import { CommsModelType, EntityMessage, EntitySide, EntitySubTypeKeysite, EntityType, FloatType, IntType, ListType, Vec3dType } from "../../../generated/c-enums";
+import { messageResponses, type MessageResponseFn } from "../../system/en_msgs";
 import { getLocalEntityChildSucc, getLocalEntityFirstChild, overloadEntityListLink, overloadEntityListRoot } from "../../system/en_list";
 import {
 	fnGetLocalEntityFloatValue,
@@ -107,12 +108,17 @@ export function getClosestKeysite(
 	return closest_keysite;
 }
 
+// C provenance: ks_msgs.c :: response_to_link_child, response_to_unlink_child
+// (their bodies only log under DEBUG_MODULE)
+const responseToLinkOrUnlinkChild: MessageResponseFn = () => 1;
+
 export function overloadKeysiteFunctions(): void {
 	const KEYSITE = EntityType.ENTITY_TYPE_KEYSITE;
 
-	// C provenance: ks_list.c :: LIST_TYPE_KEYSITE_GROUP_ROOT, LIST_TYPE_BUILDING_GROUP_ROOT, LIST_TYPE_KEYSITE_FORCE_LINK
+	// C provenance: ks_list.c :: LIST_TYPE_KEYSITE_GROUP_ROOT, LIST_TYPE_BUILDING_GROUP_ROOT, LIST_TYPE_CARGO_ROOT, LIST_TYPE_KEYSITE_FORCE_LINK
 	overloadEntityListRoot(KEYSITE, "keysite_group_root", [ListType.LIST_TYPE_KEYSITE_GROUP]);
 	overloadEntityListRoot(KEYSITE, "building_group_root", [ListType.LIST_TYPE_BUILDING_GROUP]);
+	overloadEntityListRoot(KEYSITE, "cargo_root", [ListType.LIST_TYPE_CARGO]);
 	overloadEntityListLink(KEYSITE, "keysite_force_link", [ListType.LIST_TYPE_KEYSITE_FORCE]);
 
 	// C provenance: ks_int.c :: get_local_int_value
@@ -141,6 +147,10 @@ export function overloadKeysiteFunctions(): void {
 			getLocalEntityData<KeysiteRaw>(en).supplies.fuel_supply_level = value;
 		}),
 	);
+
+	// C provenance: ks_msgs.c :: overload_keysite_message_responses (LINK_CHILD, UNLINK_CHILD rows)
+	messageResponses.overload(KEYSITE, EntityMessage.ENTITY_MESSAGE_LINK_CHILD, responseToLinkOrUnlinkChild);
+	messageResponses.overload(KEYSITE, EntityMessage.ENTITY_MESSAGE_UNLINK_CHILD, responseToLinkOrUnlinkChild);
 
 	// C provenance: ks_vec3d.c :: get_local_vec3d_ptr (VEC3D_TYPE_POSITION) -> &raw->position
 	fnGetLocalEntityVec3dPtr.overload(KEYSITE, Vec3dType.VEC3D_TYPE_POSITION, (en) => getLocalEntityData<KeysiteRaw>(en).position);

@@ -5,21 +5,24 @@
  * operation through the ORIGINAL EECH code and prints the observable outcome.
  * Original code reaches the harness three ways:
  *
- *   - whole translation units compiled unchanged (gp_int.c, gp_float.c,
- *     gp_list.c, gp_vec3d.c, gp_ptr.c, gp_updt.c, gp_dbase.c, up_list.c,
- *     up_msgs.c; see REAL_TRANSLATION_UNITS in extract.mjs);
- *   - verbatim function extracts (build/c-reference/eech_extracted.c);
+ *   - whole translation units compiled unchanged (group, update, keysite and
+ *     force accessors, the entity heap, attributes, creation and destruction,
+ *     mobile, cargo and sector files; see REAL_TRANSLATION_UNITS in
+ *     extract.mjs);
+ *   - verbatim function extracts (build/c-reference/eech_extracted*.c);
  *   - whole original headers (build/c-reference/project.h).
  *
  * The harness supplies only:
  *   - the dispatch tables and their fail-loud defaults, filled by the
  *     ORIGINAL overload_*_functions () where those files are compiled;
  *   - hand-written rows for entity types whose files are not compiled yet
- *     (session, force, keysite, guide, helicopter); every such row is listed
- *     in docs/architecture.md, "Shrinking the C reference shim";
+ *     (session, guide, helicopter); every such row is listed in
+ *     docs/architecture.md, "Shrinking the C reference shim";
  *   - the environment: frame delta time (set_delta_time), comms model,
- *     transport (transmit_entity_comms_message), mobile positions, and debug
- *     output.
+ *     transport (transmit_entity_comms_message), mobile positions, memory,
+ *     float-to-int conversion, and debug output;
+ *   - fail-loud stubs for functions the compiled files reference but the
+ *     adopted paths never reach.
  *
  * Input: see test/scenarios/campaign-scenario.ts :: serialiseScenario and
  * test/scenarios/update-timeline.ts :: serialiseTimeline.
@@ -27,18 +30,25 @@
  * Output lines (floats as IEEE 754 single precision bit patterns, %08x):
  *
  *   transmit <entity> <float_type> <bits>        ENTITY_COMMS_FLOAT_VALUE sent by a server setter
+ *   transmit-create <type> <index> <attributes>  ENTITY_COMMS_CREATE (attributes as in the scenario line)
+ *   transmit-destroy <entity>                    ENTITY_COMMS_DESTROY
+ *   created <label> <index|NULL>                 result of a create line
+ *   allocated <label> <index>                    result of an allocate line
  *   message <receiver> <sender> <message> <arg>  delivery to FORCE/LOW_ON_SUPPLIES response
  *   closest <entity|NULL> <bits|->               result of op closest
  *   range <bits get_2d_range> <bits get_approx_2d_range>
  *   step <n> <delta bits> <update list labels, comma separated, or ->
  *   timer <sleep bits> <assist_timer bits>       one line per timeline group after each step
- *   result ok | result assert <expression> | result null-dereference
+ *   result ok | result assert <expression> | result fatal <format> | result null-dereference
  *
  * A NULL dereference (a fault inside the NULL page) is an EECH outcome and is
  * reported. Any other fatal signal is a harness or original-code defect: the
  * process dies by that signal and the caller treats the run as failed.
  *   final group <ammo bits> <fuel bits>
  *   final keysite <ammo bits> <fuel bits>        one line per keysite, scenario order
+ *
+ * Lifecycle scenarios (heap / map / create / destroy lines) end with the
+ * entity graph, see print_lifecycle_state.
  */
 
 #include <setjmp.h>
@@ -65,6 +75,10 @@ void (*fn_set_local_entity_float_value[NUM_ENTITY_TYPES][NUM_FLOAT_TYPES]) (enti
 void (*fn_set_client_server_entity_float_value[NUM_ENTITY_TYPES][NUM_FLOAT_TYPES][NUM_COMMS_MODEL_TYPES]) (entity *en, float_types type, float value);
 float (*fn_get_local_entity_float_value[NUM_ENTITY_TYPES][NUM_FLOAT_TYPES]) (entity *en, float_types type);
 
+void (*fn_set_local_entity_raw_char_value[NUM_ENTITY_TYPES][NUM_CHAR_TYPES]) (entity *en, char_types type, char value);
+void (*fn_set_local_entity_raw_string[NUM_ENTITY_TYPES][NUM_STRING_TYPES]) (entity *en, string_types type, const char *s);
+void (*fn_set_local_entity_raw_attitude_angles[NUM_ENTITY_TYPES]) (entity *en, float heading, float pitch, float roll);
+
 void (*fn_set_local_entity_raw_vec3d[NUM_ENTITY_TYPES][NUM_VEC3D_TYPES]) (entity *en, vec3d_types type, vec3d *v);
 void (*fn_set_local_entity_vec3d[NUM_ENTITY_TYPES][NUM_VEC3D_TYPES]) (entity *en, vec3d_types type, vec3d *v);
 void (*fn_set_client_server_entity_vec3d[NUM_ENTITY_TYPES][NUM_VEC3D_TYPES][NUM_COMMS_MODEL_TYPES]) (entity *en, vec3d_types type, vec3d *v);
@@ -87,12 +101,14 @@ void (*fn_update_client_server_entity[NUM_ENTITY_TYPES][NUM_COMMS_MODEL_TYPES]) 
 
 int (*message_responses[NUM_ENTITY_TYPES][NUM_ENTITY_MESSAGES]) (entity_messages message, entity *receiver, entity *sender, va_list pargs);
 
-/* name databases: only read on debug_fatal paths, which abort the harness */
+/* name databases: only read on debug_fatal paths, which end the operation */
 entity_type_data entity_type_database[NUM_ENTITY_TYPES];
 list_type_data list_type_database[NUM_LIST_TYPES];
 int_type_data int_type_database[NUM_INT_TYPES];
 float_type_data float_type_database[NUM_FLOAT_TYPES];
 vec3d_type_data vec3d_type_database[NUM_VEC3D_TYPES];
+static const char *harness_entity_type_names[NUM_ENTITY_TYPES];
+const char **entity_type_names = harness_entity_type_names;
 ptr_type_data ptr_type_database[NUM_PTR_TYPES];
 
 const char
@@ -113,29 +129,26 @@ const char
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define MAX_HARNESS_ENTITIES 256
-
-static entity
-	entity_storage[MAX_HARNESS_ENTITIES];
-
-/* en_heap.h: get_local_entity_index (EN) is ((EN) - entities) */
-entity
-	*entities = entity_storage;
-
-static int
-	num_entities;
+/* the largest entity heap a scenario may request (en_heap.c owns the heap) */
+#define MAX_HARNESS_ENTITIES 1024
 
 entity
 	*session_entity;
 
+/* helicop.h: the player's gunship. The campaign core has none. */
+entity
+	*gunship_entity = NULL;
+
 comms_model_types
 	system_comms_model = COMMS_MODEL_SERVER;
 
+/* the server simulation transmits (entity creation uses stack attributes) */
 comms_data_flow_types
-	system_comms_data_flow = COMMS_DATA_FLOW_RX;
+	system_comms_data_flow = COMMS_DATA_FLOW_TX;
 
 int
-	command_line_entity_update_frame_rate = 2;
+	command_line_entity_update_frame_rate = 2,
+	command_line_downwash = FALSE;
 
 FILE
 	*tacview_log_file = NULL;		/* tacview logging is excluded: never logging */
@@ -145,6 +158,10 @@ static jmp_buf
 
 static char
 	labels[MAX_HARNESS_ENTITIES][32];
+
+/* TRUE while original code runs under a setjmp (abort_operation) */
+static int
+	in_operation = FALSE;
 
 static void harness_fail (const char *what)
 {
@@ -156,36 +173,19 @@ static void harness_fail (const char *what)
 /* ASSERT runs in normal control flow (never in a signal handler) */
 void harness_assert (const char *expression)
 {
+	if (!in_operation)
+	{
+		fprintf (stderr, "harness: ASSERT outside an operation: %s\n", expression);
+
+		exit (2);
+	}
+
 	printf ("result assert %s\n", expression);
 
 	longjmp (abort_operation, 1);
 }
 
 /* raw data of entity types whose files are not compiled yet (hand-written rows below) */
-
-typedef struct
-{
-	entity_sub_types
-		sub_type;
-
-	entity_sides
-		side;
-
-	int
-		in_use;
-
-	vec3d
-		position;
-
-	supply_type
-		supplies;
-} shim_keysite;
-
-typedef struct
-{
-	entity_sides
-		side;
-} shim_force;
 
 typedef struct
 {
@@ -213,8 +213,8 @@ typedef struct
 static group
 	*final_group_raw;
 
-static shim_keysite
-	*final_keysites;
+static keysite
+	*final_keysites[MAX_HARNESS_ENTITIES];
 
 static int
 	final_keysite_count;
@@ -284,7 +284,7 @@ static void emit_final_state (void)
 
 	for (i = 0; i < final_keysite_count; i++)
 	{
-		write_final_pair (LITERAL ("final keysite "), final_keysites[i].supplies.ammo_supply_level, final_keysites[i].supplies.fuel_supply_level);
+		write_final_pair (LITERAL ("final keysite "), final_keysites[i]->supplies.ammo_supply_level, final_keysites[i]->supplies.fuel_supply_level);
 	}
 }
 
@@ -327,12 +327,128 @@ static void install_segmentation_fault_handler (void)
 	sigaction (SIGSEGV, &action, NULL);
 }
 
+/*
+ * debug_fatal is an EECH outcome (the game stops). It is reported with its
+ * format string, and the operation ends like a failed ASSERT. Outside an
+ * operation it is a scenario error.
+ */
 void debug_fatal (const char *string, ...)
 {
-	fprintf (stderr, "harness: debug_fatal: %s\n", string);
+	if (!in_operation)
+	{
+		fprintf (stderr, "harness: debug_fatal outside an operation: %s\n", string);
 
-	exit (2);
+		exit (2);
+	}
+
+	printf ("result fatal %s\n", string);
+
+	longjmp (abort_operation, 1);
 }
+
+void debug_colour_log (enum DEBUG_COLOURS colour, const char *string, ...)
+{
+}
+
+/* modules/system/memblock.h: the engine allocator; the platform one here */
+void *malloc_fast_mem (int size)
+{
+	void *ptr = malloc ((size_t) size);
+
+	if (!ptr) harness_fail ("out of memory");
+
+	return ptr;
+}
+
+void *malloc_heap_mem (int size)
+{
+	return malloc_fast_mem (size);
+}
+
+void free_mem (void *ptr)
+{
+	free (ptr);
+}
+
+/*
+ * modules/system/fpu.c :: convert_float_to_int is x87 fistp, which rounds
+ * with the FPU control word. EECH sets round-toward-zero at start-up
+ * (startup.c, set_fpu_rounding_mode_zero), so the conversion truncates: the C
+ * (int) cast. See docs/slices/entity-lifecycle-cargo.md.
+ */
+void convert_float_to_int (float value, int *ptr)
+{
+	*ptr = (int) value;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// fail-loud stubs: referenced by compiled original files, never reached by the
+// adopted paths (docs/architecture.md, "Shrinking the C reference shim")
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define NOT_REACHED(WHAT) harness_fail (WHAT " is not part of the port (reached unexpectedly)")
+
+/* en_pack.c / modules/multi: save games and network messages */
+void pack_signed_data (int unpacked_data, int number_of_bits_to_pack) { NOT_REACHED ("pack_signed_data"); }
+void pack_unsigned_data (unsigned int unpacked_data, int number_of_bits_to_pack) { NOT_REACHED ("pack_unsigned_data"); }
+int unpack_signed_data (int number_of_bits_to_unpack) { NOT_REACHED ("unpack_signed_data"); return 0; }
+unsigned int unpack_unsigned_data (int number_of_bits_to_unpack) { NOT_REACHED ("unpack_unsigned_data"); return 0; }
+void pack_attitude_angles (entity *en, float heading, float pitch, float roll) { NOT_REACHED ("pack_attitude_angles"); }
+void unpack_attitude_angles (entity *en, float *heading, float *pitch, float *roll) { NOT_REACHED ("unpack_attitude_angles"); }
+void pack_char_type (char_types type) { NOT_REACHED ("pack_char_type"); }
+char_types unpack_char_type (void) { NOT_REACHED ("unpack_char_type"); return 0; }
+void pack_char_value (entity *en, char_types type, char value) { NOT_REACHED ("pack_char_value"); }
+char unpack_char_value (entity *en, char_types type) { NOT_REACHED ("unpack_char_value"); return 0; }
+void pack_float_type (float_types type) { NOT_REACHED ("pack_float_type"); }
+float_types unpack_float_type (void) { NOT_REACHED ("unpack_float_type"); return 0; }
+void pack_float_value (entity *en, float_types type, float value) { NOT_REACHED ("pack_float_value"); }
+float unpack_float_value (entity *en, float_types type) { NOT_REACHED ("unpack_float_value"); return 0.0f; }
+void pack_int_type (int_types type) { NOT_REACHED ("pack_int_type"); }
+int_types unpack_int_type (void) { NOT_REACHED ("unpack_int_type"); return 0; }
+void pack_int_value (entity *en, int_types type, int value) { NOT_REACHED ("pack_int_value"); }
+int unpack_int_value (entity *en, int_types type) { NOT_REACHED ("unpack_int_value"); return 0; }
+void pack_list_type (list_types type) { NOT_REACHED ("pack_list_type"); }
+list_types unpack_list_type (void) { NOT_REACHED ("unpack_list_type"); return 0; }
+void pack_string_type (string_types type) { NOT_REACHED ("pack_string_type"); }
+string_types unpack_string_type (void) { NOT_REACHED ("unpack_string_type"); return 0; }
+void pack_string (entity *en, string_types type, const char *s) { NOT_REACHED ("pack_string"); }
+void unpack_string (entity *en, string_types type, char *s) { NOT_REACHED ("unpack_string"); }
+void pack_vec3d_type (vec3d_types type) { NOT_REACHED ("pack_vec3d_type"); }
+vec3d_types unpack_vec3d_type (void) { NOT_REACHED ("unpack_vec3d_type"); return 0; }
+void pack_vec3d (entity *en, vec3d_types type, vec3d *v) { NOT_REACHED ("pack_vec3d"); }
+void unpack_vec3d (entity *en, vec3d_types type, vec3d *v) { NOT_REACHED ("unpack_vec3d"); }
+
+/* comms.c / en_comms.c: only create_local_only_entities switches these */
+void set_comms_model (comms_model_types model) { NOT_REACHED ("set_comms_model"); }
+void set_comms_data_flow (comms_data_flow_types data_flow) { NOT_REACHED ("set_comms_data_flow"); }
+void enable_entity_comms_messages (void) { NOT_REACHED ("enable_entity_comms_messages"); }
+void disable_entity_comms_messages (void) { NOT_REACHED ("disable_entity_comms_messages"); }
+
+/* local-only entity types other than sectors (en_creat.c / en_dstry.c) */
+void create_local_pylon_entities (pack_modes pack_mode) { NOT_REACHED ("create_local_pylon_entities"); }
+void destroy_local_pylon_entities (void) { NOT_REACHED ("destroy_local_pylon_entities"); }
+void create_local_bridge_entities (pack_modes pack_mode) { NOT_REACHED ("create_local_bridge_entities"); }
+void create_local_update_entity (void) { NOT_REACHED ("create_local_update_entity"); }
+void destroy_local_update_entity (void) { NOT_REACHED ("destroy_local_update_entity"); }
+void create_local_camera_entity (void) { NOT_REACHED ("create_local_camera_entity"); }
+void destroy_local_camera_entity (void) { NOT_REACHED ("destroy_local_camera_entity"); }
+void destroy_local_sector_entities (void) { NOT_REACHED ("destroy_local_sector_entities"); }
+void destroy_local_sound_effects (entity *en) { NOT_REACHED ("destroy_local_sound_effects"); }
+void set_gunship_entity (entity *en) { NOT_REACHED ("set_gunship_entity"); }
+
+/* sector responses for fixed entities, aircraft and vehicles (sc_msgs.c, sector.c) */
+struct OBJECT_3D_BOUNDS *get_object_3d_bounding_box (object_3d_index_numbers object) { NOT_REACHED ("get_object_3d_bounding_box (Slice 4)"); return NULL; }
+void set_sector_fog_of_war_value (entity *en, entity *sector_en) { NOT_REACHED ("set_sector_fog_of_war_value"); }
+void update_imap_surface_to_air_defence_level (entity *en, entity *sector, int in_use) { NOT_REACHED ("update_imap_surface_to_air_defence_level"); }
+void update_imap_surface_to_surface_defence_level (entity *en, entity *sector, int in_use) { NOT_REACHED ("update_imap_surface_to_surface_defence_level"); }
+game_status_types get_game_status (void) { NOT_REACHED ("get_game_status"); return GAME_STATUS_UNINITIALISED; }
+int get_valid_current_game_session (void) { NOT_REACHED ("get_valid_current_game_session"); return FALSE; }
+session_list_types get_current_game_session_type (void) { NOT_REACHED ("get_current_game_session_type"); return SESSION_LIST_TYPE_INVALID; }
+
+/* ks_int.c: landing sites are not ported */
+entity *get_local_group_member_landing_entity_from_keysite (entity *en) { NOT_REACHED ("get_local_group_member_landing_entity_from_keysite"); return NULL; }
 
 void debug_log (const char *string, ...)
 {
@@ -386,32 +502,116 @@ static unsigned int float_bits (float value)
 	return bits;
 }
 
-/* transport: en_comms.c transmit_entity_comms_message; only float values occur */
+/*
+ * Prints an attribute buffer (en_attrs.c layout, read with get_list_item as
+ * pack_entity_attributes does) in the scenario's create-line syntax, with
+ * doubles narrowed to the floats the receiver stores.
+ */
+static void print_attributes (const char *buffer)
+{
+	entity_attributes
+		attr;
+
+	while (TRUE)
+	{
+		attr = get_list_item (buffer, entity_attributes);
+
+		switch (attr)
+		{
+			case entity_attr_end:
+			{
+				printf (" end");
+
+				return;
+			}
+			case entity_attr_int_value:
+			{
+				int type = get_list_item (buffer, int_types);
+				int value = get_list_item (buffer, int);
+
+				printf (" int %d %d", type, value);
+
+				break;
+			}
+			case entity_attr_float_value:
+			{
+				int type = get_list_item (buffer, float_types);
+				float value = get_list_item (buffer, double);
+
+				printf (" float %d %08x", type, float_bits (value));
+
+				break;
+			}
+			case entity_attr_parent:
+			case entity_attr_child_pred:
+			{
+				int type = get_list_item (buffer, list_types);
+				entity *other = get_list_item (buffer, entity *);
+
+				printf (" %s %d %s", attr == entity_attr_parent ? "parent" : "pred", type, label_of (other));
+
+				break;
+			}
+			case entity_attr_vec3d:
+			{
+				int type = get_list_item (buffer, vec3d_types);
+				float x = get_list_item (buffer, double);
+				float y = get_list_item (buffer, double);
+				float z = get_list_item (buffer, double);
+
+				printf (" vec3d %d %08x %08x %08x", type, float_bits (x), float_bits (y), float_bits (z));
+
+				break;
+			}
+			default:
+			{
+				harness_fail ("attribute kind not supported by the harness transport");
+			}
+		}
+	}
+}
+
+/* transport: en_comms.c transmit_entity_comms_message */
 void transmit_entity_comms_message (entity_comms_messages message, entity *en, ...)
 {
 	va_list
 		pargs;
 
-	float_types
-		type;
+	va_start (pargs, en);
 
-	float
-		value;
+	if (message == ENTITY_COMMS_FLOAT_VALUE)
+	{
+		float_types type = va_arg (pargs, float_types);
 
-	if (message != ENTITY_COMMS_FLOAT_VALUE)
+		float value = va_arg (pargs, double);
+
+		printf ("transmit %s %d %08x\n", label_of (en), (int) type, float_bits (value));
+	}
+	else if (message == ENTITY_COMMS_CREATE)
+	{
+		/* (entity_comms_messages message, entity *en, entity_types type, int index, char *pargs) */
+		entity_types type = va_arg (pargs, entity_types);
+
+		int index = va_arg (pargs, int);
+
+		const char *buffer = va_arg (pargs, const char *);
+
+		printf ("transmit-create %d %d", (int) type, index);
+
+		print_attributes (buffer);
+
+		printf ("\n");
+	}
+	else if (message == ENTITY_COMMS_DESTROY)
+	{
+		printf ("transmit-destroy %s\n", label_of (en));
+	}
+	else
 	{
 		harness_fail ("unexpected entity comms message");
 	}
 
-	va_start (pargs, en);
-
-	type = va_arg (pargs, float_types);
-
-	value = va_arg (pargs, double);
-
 	va_end (pargs);
-
-	printf ("transmit %s %d %08x\n", label_of (en), (int) type, float_bits (value));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -429,6 +629,10 @@ static void *unsupplied_get_ptr (entity *en, ptr_types type) { harness_fail ("pt
 static entity *unsupplied_get_list (entity *en, list_types type) { harness_fail ("list not supplied"); return NULL; }
 static void unsupplied_set_list (entity *en, list_types type, entity *other) { harness_fail ("list set not supplied"); }
 static void unsupplied_update (entity *en) { harness_fail ("update function not supplied"); }
+static void unsupplied_set_vec3d (entity *en, vec3d_types type, vec3d *v) { harness_fail ("vec3d set not supplied"); }
+static void unsupplied_set_char (entity *en, char_types type, char value) { harness_fail ("char set not supplied"); }
+static void unsupplied_set_string (entity *en, string_types type, const char *s) { harness_fail ("string set not supplied"); }
+static void unsupplied_set_attitude_angles (entity *en, float heading, float pitch, float roll) { harness_fail ("attitude set not supplied"); }
 static int unsupplied_message_response (entity_messages message, entity *receiver, entity *sender, va_list pargs) { harness_fail ("message response not supplied"); return FALSE; }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -471,47 +675,6 @@ static void shim_link (entity_types entity_type, list_types list)
 	fn_set_local_entity_child_pred[entity_type][list] = shim_set_child_pred;
 }
 
-/* ks_int.c, ks_float.c, ks_vec3d.c */
-static int shim_keysite_int (entity *en, int_types type)
-{
-	shim_keysite *raw = (shim_keysite *) get_local_entity_data (en);
-
-	if (type == INT_TYPE_ENTITY_SUB_TYPE) return raw->sub_type;
-	if (type == INT_TYPE_IN_USE) return raw->in_use;
-
-	harness_fail ("keysite int value not supplied");
-
-	return 0;
-}
-
-static float shim_keysite_float (entity *en, float_types type)
-{
-	shim_keysite *raw = (shim_keysite *) get_local_entity_data (en);
-
-	return (type == FLOAT_TYPE_AMMO_SUPPLY_LEVEL) ? raw->supplies.ammo_supply_level : raw->supplies.fuel_supply_level;
-}
-
-static void shim_keysite_set_server_float (entity *en, float_types type, float value)
-{
-	shim_keysite *raw = (shim_keysite *) get_local_entity_data (en);
-
-	if (type == FLOAT_TYPE_AMMO_SUPPLY_LEVEL) raw->supplies.ammo_supply_level = value;
-	else raw->supplies.fuel_supply_level = value;
-
-	transmit_entity_comms_message (ENTITY_COMMS_FLOAT_VALUE, en, type, value);
-}
-
-static vec3d *shim_keysite_position (entity *en, vec3d_types type)
-{
-	return &((shim_keysite *) get_local_entity_data (en))->position;
-}
-
-/* fc_int.c */
-static int shim_force_int (entity *en, int_types type)
-{
-	return ((shim_force *) get_local_entity_data (en))->side;
-}
-
 /* ac_vec3d.c: physical position from the scenario (environment) */
 static vec3d *shim_mobile_position (entity *en, vec3d_types type)
 {
@@ -545,11 +708,11 @@ static void initialise_tables (void)
 	{
 		for (j = 0; j < NUM_INT_TYPES; j++)
 		{
-			/* en_int.c defaults: sets do nothing; gets are not supplied */
+			/* en_int.c defaults: sets do nothing; gets return the type's default */
 			fn_set_local_entity_raw_int_value[i][j] = harness_default_set_entity_int_value;
 			fn_set_local_entity_int_value[i][j] = harness_default_set_entity_int_value;
 			for (k = 0; k < NUM_COMMS_MODEL_TYPES; k++) fn_set_client_server_entity_int_value[i][j][k] = unsupplied_set_int;
-			fn_get_local_entity_int_value[i][j] = unsupplied_get_int;
+			fn_get_local_entity_int_value[i][j] = harness_default_get_entity_int_value;
 		}
 
 		for (j = 0; j < NUM_FLOAT_TYPES; j++)
@@ -561,7 +724,17 @@ static void initialise_tables (void)
 			fn_get_local_entity_float_value[i][j] = unsupplied_get_float;
 		}
 
-		for (j = 0; j < NUM_VEC3D_TYPES; j++) fn_get_local_entity_vec3d_ptr[i][j] = unsupplied_get_vec3d_ptr;
+		for (j = 0; j < NUM_VEC3D_TYPES; j++)
+		{
+			fn_get_local_entity_vec3d_ptr[i][j] = unsupplied_get_vec3d_ptr;
+			fn_set_local_entity_raw_vec3d[i][j] = unsupplied_set_vec3d;
+		}
+
+		for (j = 0; j < NUM_CHAR_TYPES; j++) fn_set_local_entity_raw_char_value[i][j] = unsupplied_set_char;
+
+		for (j = 0; j < NUM_STRING_TYPES; j++) fn_set_local_entity_raw_string[i][j] = unsupplied_set_string;
+
+		fn_set_local_entity_raw_attitude_angles[i] = unsupplied_set_attitude_angles;
 
 		for (j = 0; j < NUM_PTR_TYPES; j++) fn_get_local_entity_ptr_value[i][j] = unsupplied_get_ptr;
 
@@ -595,24 +768,37 @@ static void initialise_tables (void)
 	overload_update_message_responses ();
 	harness_default_update_link_responses ();
 
+	/* en_creat.c, en_dstry.c: the original defaults */
+	initialise_entity_create_default_functions ();
+	initialise_entity_destroy_default_functions ();
+
+	overload_keysite_int_value_functions ();
+	overload_keysite_float_value_functions ();
+	overload_keysite_vec3d_functions ();
+	overload_keysite_list_functions ();
+	harness_overload_keysite_link_child_responses ();
+
+	overload_force_int_value_functions ();
+	overload_force_list_functions ();
+
+	/* cg_funcs.c :: overload_cargo_functions, reduced to the compiled files */
+	overload_mobile_int_value_functions (ENTITY_TYPE_CARGO);
+	overload_mobile_list_functions (ENTITY_TYPE_CARGO);
+	overload_mobile_vec3d_functions (ENTITY_TYPE_CARGO);
+	overload_cargo_create_functions ();
+	overload_cargo_destroy_functions ();
+	overload_cargo_int_value_functions ();
+	overload_cargo_list_functions ();
+	/* cg_msgs.c :: overload_cargo_message_responses -> overload_aircraft_message_responses, link parent rows */
+	harness_overload_aircraft_link_parent_responses (ENTITY_TYPE_CARGO);
+
+	overload_sector_create_functions ();
+	overload_sector_int_value_functions ();
+	overload_sector_list_functions ();
+	overload_sector_message_responses ();
+
 	/* hand-written rows */
 	shim_root (ENTITY_TYPE_SESSION, LIST_TYPE_FORCE);
-
-	shim_link (ENTITY_TYPE_FORCE, LIST_TYPE_FORCE);
-	shim_root (ENTITY_TYPE_FORCE, LIST_TYPE_KEYSITE_FORCE);
-	shim_root (ENTITY_TYPE_FORCE, LIST_TYPE_INDEPENDENT_GROUP);
-	fn_get_local_entity_int_value[ENTITY_TYPE_FORCE][INT_TYPE_SIDE] = shim_force_int;
-
-	shim_link (ENTITY_TYPE_KEYSITE, LIST_TYPE_KEYSITE_FORCE);
-	shim_root (ENTITY_TYPE_KEYSITE, LIST_TYPE_KEYSITE_GROUP);
-	shim_root (ENTITY_TYPE_KEYSITE, LIST_TYPE_BUILDING_GROUP);
-	fn_get_local_entity_int_value[ENTITY_TYPE_KEYSITE][INT_TYPE_ENTITY_SUB_TYPE] = shim_keysite_int;
-	fn_get_local_entity_int_value[ENTITY_TYPE_KEYSITE][INT_TYPE_IN_USE] = shim_keysite_int;
-	fn_get_local_entity_float_value[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_AMMO_SUPPLY_LEVEL] = shim_keysite_float;
-	fn_get_local_entity_float_value[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_FUEL_SUPPLY_LEVEL] = shim_keysite_float;
-	fn_set_client_server_entity_float_value[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_AMMO_SUPPLY_LEVEL][COMMS_MODEL_SERVER] = shim_keysite_set_server_float;
-	fn_set_client_server_entity_float_value[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_FUEL_SUPPLY_LEVEL][COMMS_MODEL_SERVER] = shim_keysite_set_server_float;
-	fn_get_local_entity_vec3d_ptr[ENTITY_TYPE_KEYSITE][VEC3D_TYPE_POSITION] = shim_keysite_position;
 
 	shim_link (ENTITY_TYPE_GUIDE, LIST_TYPE_GUIDE_STACK);
 
@@ -628,28 +814,72 @@ static void initialise_tables (void)
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/* i386: the variadic create call below lays attributes out as 32-bit stack words */
+typedef char harness_requires_ilp32[((sizeof (void *) == 4) && (sizeof (int) == 4) && (sizeof (double) == 8)) ? 1 : -1];
+
+static int
+	heap_ready = FALSE,
+	heap_size = MAX_HARNESS_ENTITIES;
+
+static entity
+	*session,
+	*update_root;
+
+static update
+	update_data;
+
 static entity *new_entity (entity_types type, void *data, const char *label)
 {
 	entity
 		*en;
 
-	if (num_entities >= MAX_HARNESS_ENTITIES)
+	/* en_heap.c, as a restored campaign allocates: the next free index */
+	en = get_free_entity (ENTITY_INDEX_DONT_CARE);
+
+	if (!en)
 	{
-		harness_fail ("too many entities");
+		harness_fail ("the scenario exhausted the entity heap");
 	}
-
-	en = &entities[num_entities];
-
-	memset (en, 0, sizeof (*en));
 
 	set_local_entity_type (en, type);
 	set_local_entity_data (en, data);
 
-	snprintf (labels[num_entities], sizeof (labels[num_entities]), "%s", label);
-
-	num_entities++;
+	snprintf (labels[get_local_entity_index (en)], sizeof (labels[0]), "%s", label);
 
 	return en;
+}
+
+static void *new_raw (size_t size)
+{
+	void *raw = malloc (size);
+
+	if (!raw) harness_fail ("out of memory");
+
+	memset (raw, 0, size);
+
+	return raw;
+}
+
+/* the heap, then the session and update entities, before any scenario entity */
+static void ensure_heap (void)
+{
+	if (heap_ready)
+	{
+		return;
+	}
+
+	heap_ready = TRUE;
+
+	in_operation = FALSE;
+
+	initialise_entity_heap (heap_size);
+
+	session = new_entity (ENTITY_TYPE_SESSION, NULL, "session");
+
+	update_root = new_entity (ENTITY_TYPE_UPDATE, &update_data, "update");
+
+	/* up_update.c :: set_update_entity (not compiled whole; it only assigns and logs) */
+	update_entity = update_root;
 }
 
 /*
@@ -724,7 +954,7 @@ static int
 static entity
 	*groups[MAX_HARNESS_ENTITIES];
 
-static void print_timeline_state (int step, entity *update_root)
+static void print_timeline_state (int step)
 {
 	entity
 		*en;
@@ -756,30 +986,328 @@ static void print_timeline_state (int step, entity *update_root)
 	}
 }
 
-int main (void)
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// lifecycle scenarios
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int
+	lifecycle = FALSE,
+	map_complete = FALSE,
+	num_keysites,
+	num_created;
+
+static entity
+	*keysites[MAX_HARNESS_ENTITIES];
+
+/* every entity a create line returned, by its scenario label (a destroyed entity keeps its pointer) */
+static struct
 {
-	static shim_force force_data[MAX_HARNESS_ENTITIES];
-	static shim_keysite keysite_data[MAX_HARNESS_ENTITIES];
-	static shim_mobile leader_data;
-	static update update_data;
+	char
+		label[32];
 
 	entity
-		*session,
-		*update_root,
+		*en;
+} created[MAX_HARNESS_ENTITIES];
+
+static entity *find_created (const char *label)
+{
+	entity
+		*en;
+
+	int
+		i;
+
+	if (strcmp (label, "NULL") == 0)
+	{
+		return NULL;
+	}
+
+	for (i = num_created - 1; i >= 0; i--)
+	{
+		if (strcmp (created[i].label, label) == 0)
+		{
+			return created[i].en;
+		}
+	}
+
+	for (i = 0; i < num_keysites; i++)
+	{
+		if (strcmp (labels[get_local_entity_index (keysites[i])], label) == 0)
+		{
+			return keysites[i];
+		}
+	}
+
+	/* any other live entity (e.g. a sector) */
+	for (en = first_used_entity; en; en = en->succ)
+	{
+		if (strcmp (labels[get_local_entity_index (en)], label) == 0)
+		{
+			return en;
+		}
+	}
+
+	harness_fail ("unknown entity label");
+
+	return NULL;
+}
+
+static void print_list (list_types type, entity *parent)
+{
+	entity
+		*en;
+
+	en = get_local_entity_first_child (parent, type);
+
+	if (!en)
+	{
+		printf (" -");
+	}
+
+	for (; en; en = get_local_entity_child_succ (en, type))
+	{
+		printf (" %s", label_of (en));
+	}
+}
+
+/*
+ * The entity graph after a lifecycle scenario:
+ *
+ *   heap free <index>...                     free list order (next allocation first)
+ *   heap used <label>...                     used list order (most recent first)
+ *   cargo <label> <index> <side> <sub_type> <alive> <x> <y> <z> <cargo parent> <sector parent>
+ *   keysite <label> <cargo list>...
+ *   sector <label> <index> <X_SECTOR> <Z_SECTOR> <sector list>...
+ *
+ * Values are read through the original accessors.
+ */
+static void print_lifecycle_state (void)
+{
+	entity
+		*en;
+
+	int
+		i,
+		x,
+		z;
+
+	printf ("heap free");
+
+	for (en = first_free_entity; en; en = en->succ)
+	{
+		printf (" %d", get_local_entity_index (en));
+	}
+
+	printf ("\nheap used");
+
+	for (en = first_used_entity; en; en = en->succ)
+	{
+		printf (" %s", label_of (en));
+	}
+
+	printf ("\n");
+
+	for (en = first_used_entity; en; en = en->succ)
+	{
+		if (get_local_entity_type (en) == ENTITY_TYPE_CARGO)
+		{
+			vec3d *position = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
+
+			printf
+			(
+				"cargo %s %d %d %d %d %08x %08x %08x %s %s\n",
+				label_of (en),
+				get_local_entity_index (en),
+				get_local_entity_int_value (en, INT_TYPE_SIDE),
+				get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE),
+				get_local_entity_int_value (en, INT_TYPE_ALIVE),
+				float_bits (position->x),
+				float_bits (position->y),
+				float_bits (position->z),
+				label_of (get_local_entity_parent (en, LIST_TYPE_CARGO)),
+				label_of (get_local_entity_parent (en, LIST_TYPE_SECTOR))
+			);
+		}
+	}
+
+	for (i = 0; i < num_keysites; i++)
+	{
+		printf ("keysite %s", label_of (keysites[i]));
+
+		print_list (LIST_TYPE_CARGO, keysites[i]);
+
+		printf ("\n");
+	}
+
+	/* a map line that ended early leaves unassigned cells */
+	if (map_complete)
+	{
+		for (z = MIN_MAP_Z_SECTOR; z <= MAX_MAP_Z_SECTOR; z++)
+		{
+			for (x = MIN_MAP_X_SECTOR; x <= MAX_MAP_X_SECTOR; x++)
+			{
+				en = entity_sector_map[x + (z * NUM_MAP_X_SECTORS)];
+
+				printf
+				(
+					"sector %s %d %d %d",
+					label_of (en),
+					get_local_entity_index (en),
+					get_local_entity_int_value (en, INT_TYPE_X_SECTOR),
+					get_local_entity_int_value (en, INT_TYPE_Z_SECTOR)
+				);
+
+				print_list (LIST_TYPE_SECTOR, en);
+
+				printf ("\n");
+			}
+		}
+	}
+}
+
+/*
+ * A create line's attributes as the i386 argument stack holds them after the
+ * index argument (4-byte ints, enums and pointers; 8-byte doubles, floats
+ * already promoted), so the original create_client_server_entity reads them
+ * through its TX path: pargs_buffer = (char *) pargs.
+ */
+#define MAX_ATTRIBUTE_WORDS 64
+
+static unsigned int
+	attribute_words[MAX_ATTRIBUTE_WORDS];
+
+static int
+	num_attribute_words;
+
+static void push_word (unsigned int word)
+{
+	if (num_attribute_words >= MAX_ATTRIBUTE_WORDS) harness_fail ("too many attributes");
+
+	attribute_words[num_attribute_words++] = word;
+}
+
+static void push_double (double value)
+{
+	unsigned int
+		words[2];
+
+	memcpy (words, &value, sizeof (words));
+
+	push_word (words[0]);
+	push_word (words[1]);
+}
+
+static void push_entity (entity *en)
+{
+	uintptr_t
+		address = (uintptr_t) en;
+
+	push_word ((unsigned int) address);
+}
+
+static void parse_attributes (char **cursor)
+{
+	char
+		*kind;
+
+	num_attribute_words = 0;
+
+	while (TRUE)
+	{
+		kind = next_token (cursor);
+
+		if (strcmp (kind, "end") == 0)
+		{
+			push_word (entity_attr_end);
+
+			return;
+		}
+		else if (strcmp (kind, "int") == 0)
+		{
+			push_word (entity_attr_int_value);
+			push_word ((unsigned int) next_int (cursor));
+			push_word ((unsigned int) next_int (cursor));
+		}
+		else if (strcmp (kind, "float") == 0)
+		{
+			push_word (entity_attr_float_value);
+			push_word ((unsigned int) next_int (cursor));
+			push_double (next_double (cursor));
+		}
+		else if ((strcmp (kind, "parent") == 0) || (strcmp (kind, "pred") == 0))
+		{
+			push_word ((strcmp (kind, "parent") == 0) ? entity_attr_parent : entity_attr_child_pred);
+			push_word ((unsigned int) next_int (cursor));
+			push_entity (find_created (next_token (cursor)));
+		}
+		else if (strcmp (kind, "vec3d") == 0)
+		{
+			push_word (entity_attr_vec3d);
+			push_word ((unsigned int) next_int (cursor));
+			push_double (next_double (cursor));
+			push_double (next_double (cursor));
+			push_double (next_double (cursor));
+		}
+		else
+		{
+			harness_fail ("unknown attribute kind");
+		}
+	}
+}
+
+#define W(N) attribute_words[(N)]
+
+static entity *create_from_words (entity_types type, int index)
+{
+	/* 64 stack words: the attributes, then unread padding */
+	return create_client_server_entity
+	(
+		type, index,
+		W(0), W(1), W(2), W(3), W(4), W(5), W(6), W(7), W(8), W(9), W(10), W(11), W(12), W(13), W(14), W(15),
+		W(16), W(17), W(18), W(19), W(20), W(21), W(22), W(23), W(24), W(25), W(26), W(27), W(28), W(29), W(30), W(31),
+		W(32), W(33), W(34), W(35), W(36), W(37), W(38), W(39), W(40), W(41), W(42), W(43), W(44), W(45), W(46), W(47),
+		W(48), W(49), W(50), W(51), W(52), W(53), W(54), W(55), W(56), W(57), W(58), W(59), W(60), W(61), W(62), W(63)
+	);
+}
+
+static void label_sectors (void)
+{
+	int
+		x,
+		z;
+
+	for (z = MIN_MAP_Z_SECTOR; z <= MAX_MAP_Z_SECTOR; z++)
+	{
+		for (x = MIN_MAP_X_SECTOR; x <= MAX_MAP_X_SECTOR; x++)
+		{
+			entity *en = entity_sector_map[x + (z * NUM_MAP_X_SECTORS)];
+
+			snprintf (labels[get_local_entity_index (en)], sizeof (labels[0]), "sector%d_%d", x, z);
+		}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int main (void)
+{
+	static shim_mobile leader_data;
+
+	entity
 		*forces[MAX_HARNESS_ENTITIES],
-		*keysites[MAX_HARNESS_ENTITIES],
 		*keysite_tail[NUM_ENTITY_SIDES] = { NULL },
 		*group_en = NULL;
 
 	int
 		num_forces = 0,
-		num_keysites = 0,
 		timeline = FALSE,
 		step = 0,
 		i;
 
 	char
-		line[512],
+		line[1024],
 		*cursor,
 		*word;
 
@@ -791,20 +1319,26 @@ int main (void)
 
 	install_segmentation_fault_handler ();
 
-	final_keysites = keysite_data;
-
-	session = new_entity (ENTITY_TYPE_SESSION, NULL, "session");
-
-	update_root = new_entity (ENTITY_TYPE_UPDATE, &update_data, "update");
-
-	/* up_update.c :: set_update_entity (not compiled whole; it only assigns and logs) */
-	update_entity = update_root;
-
 	while (fgets (line, sizeof (line), stdin))
 	{
 		cursor = line;
 
 		word = next_token (&cursor);
+
+		if (strcmp (word, "heap") == 0)
+		{
+			if (heap_ready) harness_fail ("heap line after the heap was initialised");
+
+			heap_size = next_int (&cursor);
+
+			if ((heap_size < 2) || (heap_size > MAX_HARNESS_ENTITIES)) harness_fail ("heap size out of the harness range");
+
+			lifecycle = TRUE;
+
+			continue;
+		}
+
+		ensure_heap ();
 
 		if (strcmp (word, "session") == 0)
 		{
@@ -814,11 +1348,13 @@ int main (void)
 		{
 			char label[32];
 
-			force_data[num_forces].side = (entity_sides) next_int (&cursor);
+			force *raw = new_raw (sizeof (force));
+
+			raw->side = (entity_sides) next_int (&cursor);
 
 			snprintf (label, sizeof (label), "force%d", num_forces);
 
-			forces[num_forces] = new_entity (ENTITY_TYPE_FORCE, &force_data[num_forces], label);
+			forces[num_forces] = new_entity (ENTITY_TYPE_FORCE, raw, label);
 
 			link_entity_raw (forces[num_forces], LIST_TYPE_FORCE, session, num_forces ? forces[num_forces - 1] : NULL);
 
@@ -828,7 +1364,7 @@ int main (void)
 		{
 			char label[32];
 
-			shim_keysite *raw = &keysite_data[num_keysites];
+			keysite *raw = new_raw (sizeof (keysite));
 
 			raw->side = (entity_sides) next_int (&cursor);
 			raw->sub_type = next_int (&cursor);
@@ -845,7 +1381,7 @@ int main (void)
 
 			for (i = 0; i < num_forces; i++)
 			{
-				if (force_data[i].side == raw->side)
+				if (((force *) get_local_entity_data (forces[i]))->side == raw->side)
 				{
 					link_entity_raw (keysites[num_keysites], LIST_TYPE_KEYSITE_FORCE, forces[i], keysite_tail[raw->side]);
 
@@ -854,6 +1390,8 @@ int main (void)
 					break;
 				}
 			}
+
+			final_keysites[num_keysites] = raw;
 
 			num_keysites++;
 
@@ -896,7 +1434,7 @@ int main (void)
 			{
 				for (i = 0; i < num_forces; i++)
 				{
-					if (force_data[i].side == raw->side)
+					if (((force *) get_local_entity_data (forces[i]))->side == raw->side)
 					{
 						link_entity_raw (group_en, LIST_TYPE_INDEPENDENT_GROUP, forces[i], NULL);
 
@@ -970,6 +1508,8 @@ int main (void)
 				return 0;
 			}
 
+			in_operation = TRUE;
+
 			if (is_set)
 			{
 				set_client_server_entity_float_value (groups[group_index], (float_types) float_type, value);
@@ -988,15 +1528,121 @@ int main (void)
 				}
 			}
 
-			print_timeline_state (step, update_root);
+			in_operation = FALSE;
+
+			print_timeline_state (step);
 
 			step++;
 		}
+		else if ((strcmp (word, "map") == 0) || (strcmp (word, "create") == 0) || (strcmp (word, "destroy") == 0) || (strcmp (word, "allocate") == 0))
+		{
+			/* lifecycle operations: each runs the original code; an ASSERT or debug_fatal ends the scenario */
+			char op[16], label[32];
+			int x_sectors = 0, z_sectors = 0, side_length = 0, type = 0, index = 0;
+			entity *target = NULL, *en;
+
+			snprintf (op, sizeof (op), "%s", word);
+
+			if (strcmp (op, "map") == 0)
+			{
+				x_sectors = next_int (&cursor);
+				z_sectors = next_int (&cursor);
+				side_length = next_int (&cursor);
+			}
+			else if (strcmp (op, "create") == 0)
+			{
+				snprintf (label, sizeof (label), "%s", next_token (&cursor));
+				type = next_int (&cursor);
+				index = next_int (&cursor);
+				parse_attributes (&cursor);
+			}
+			else if (strcmp (op, "allocate") == 0)
+			{
+				snprintf (label, sizeof (label), "%s", next_token (&cursor));
+				index = next_int (&cursor);
+			}
+			else
+			{
+				target = find_created (next_token (&cursor));
+			}
+
+			lifecycle = TRUE;
+
+			if (setjmp (abort_operation) != 0)
+			{
+				print_lifecycle_state ();
+
+				return 0;
+			}
+
+			in_operation = TRUE;
+
+			if (strcmp (op, "map") == 0)
+			{
+				/* campaign script parser (parsgen.c) sets the map; en_creat.c ::
+				   create_local_only_entities creates the sectors under SERVER/TX */
+				map_complete = FALSE;
+
+				set_entity_world_map_size (x_sectors, z_sectors, side_length);
+
+				create_local_sector_entities ();
+
+				label_sectors ();
+
+				map_complete = TRUE;
+			}
+			else if (strcmp (op, "create") == 0)
+			{
+				en = create_from_words ((entity_types) type, index);
+
+				if (en)
+				{
+					snprintf (labels[get_local_entity_index (en)], sizeof (labels[0]), "%s", label);
+
+					snprintf (created[num_created].label, sizeof (created[0].label), "%s", label);
+
+					created[num_created].en = en;
+
+					num_created++;
+
+					printf ("created %s %d\n", label, get_local_entity_index (en));
+				}
+				else
+				{
+					printf ("created %s NULL\n", label);
+				}
+			}
+			else if (strcmp (op, "allocate") == 0)
+			{
+				/* en_heap.c :: get_free_entity with a specific index, as restoring a
+				   saved group does (en_pack.c); the scenario gives it raw data */
+				en = get_free_entity (index);
+
+				set_local_entity_type (en, ENTITY_TYPE_GROUP);
+
+				set_local_entity_data (en, new_raw (sizeof (group)));
+
+				snprintf (labels[get_local_entity_index (en)], sizeof (labels[0]), "%s", label);
+
+				printf ("allocated %s %d\n", label, get_local_entity_index (en));
+			}
+			else
+			{
+				destroy_client_server_entity_family (target);
+			}
+
+			in_operation = FALSE;
+		}
 		else if (strcmp (word, "end") == 0)
 		{
-			if (timeline)
+			if (timeline || lifecycle)
 			{
 				printf ("result ok\n");
+
+				if (lifecycle)
+				{
+					print_lifecycle_state ();
+				}
 
 				return 0;
 			}
@@ -1007,6 +1653,8 @@ int main (void)
 
 			if (setjmp (abort_operation) == 0)
 			{
+				in_operation = TRUE;
+
 				if (strcmp (word, "assess") == 0)
 				{
 					assess_group_supplies (group_en);

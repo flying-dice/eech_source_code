@@ -39,8 +39,8 @@ function callGraph(objectFile: string): Map<string, Set<string>> {
 		if (direct) {
 			current.add(direct[1]);
 		}
-		// relocated calls (x86-64 PLT32, arm64 CALL26 / JUMP26)
-		const reloc = /R_(?:X86_64_PLT32|AARCH64_CALL26|AARCH64_JUMP26)\s+([^\s+-]+)/.exec(line);
+		// relocated calls (i386 PLT32 / PC32, x86-64 PLT32, arm64 CALL26 / JUMP26)
+		const reloc = /R_(?:386_PLT32|386_PC32|X86_64_PLT32|AARCH64_CALL26|AARCH64_JUMP26)\s+([^\s+-]+)/.exec(line);
 		if (reloc) {
 			current.add(reloc[1]);
 		}

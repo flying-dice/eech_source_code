@@ -5,7 +5,7 @@
 
 import { afterEach, describe, expect, it } from "vitest";
 import { initialiseCampaignCore } from "../../src";
-import { EechFatalError, UnportedBehaviourError } from "../../src/core/assert";
+import { UnportedBehaviourError } from "../../src/core/assert";
 import { getDeltaTime, setDeltaTimeFrom, setManualDeltaTime } from "../../src/core/time";
 import { getUpdateSucc, setEntityUpdateFrameRate, setUpdateEntity, setUpdateSucc } from "../../src/entity/special/update/update";
 import {
@@ -16,7 +16,8 @@ import {
 	insertLocalEntityIntoParentsChildListRaw,
 } from "../../src/entity/system/en_list";
 import { notifyLocalEntity } from "../../src/entity/system/en_msgs";
-import { createLocalEntityRaw, deinitialiseEntityRuntime, type Entity } from "../../src/entity/system/entity";
+import { createLocalEntityRaw } from "../../src/entity/system/en_heap";
+import { deinitialiseEntityRuntime, type Entity } from "../../src/entity/system/entity";
 import { EntityMessage, EntityType, ListType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
@@ -95,7 +96,11 @@ describe("en_list.c :: insert / delete with notifications", () => {
 		insertLocalEntityIntoParentsChildList(groups[0], ListType.LIST_TYPE_UPDATE, update, undefined);
 		insertLocalEntityIntoParentsChildList(groups[1], ListType.LIST_TYPE_UPDATE, update, undefined);
 		expect(() => insertLocalEntityIntoParentsChildList(groups[0], ListType.LIST_TYPE_UPDATE, update, undefined)).toThrow(
-			new EechFatalError("Entity already in list (entity type = ENTITY_TYPE_GROUP, list type = LIST_TYPE_UPDATE)"),
+			expect.objectContaining({
+				name: "EechFatalError",
+				format: "Entity already in list (entity type = %s, list type = %s)",
+				message: "Entity already in list (entity type = ENTITY_TYPE_GROUP, list type = LIST_TYPE_UPDATE)",
+			}),
 		);
 	});
 

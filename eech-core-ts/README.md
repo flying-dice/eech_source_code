@@ -6,8 +6,8 @@ TypeScript, compiled to **Lua 5.1** with
 
 The original C in `../aphavoc` and `../modules` is the behavioural authority. The
 campaign core runs without DCS World. The environment (physical positions,
-replication, the frame clock, and later randomness and terrain) reaches it only
-through narrow ports in `src/ports`.
+replication, the frame clock, and later randomness, terrain and 3D object
+dimensions) reaches it only through narrow ports in `src/ports`.
 
 - `docs/architecture.md`: the bootstrap report (kernel boundary, ports, harness,
   coverage, Lua semantics, next slices).
@@ -16,13 +16,16 @@ through narrow ports in `src/ports`.
   trace and behaviour matrix.
 - `docs/slices/group-update-timing.md`: slice 2, frozen, with its investigation,
   boundary and behaviour matrix.
+- `docs/slices/entity-lifecycle-cargo.md`: slice 3, frozen, with its
+  investigation, findings, boundary and behaviour matrix.
 
 ## Requirements
 
 - Node.js ≥ 20
 - a **Lua 5.1** interpreter (`lua5.1`, or set `LUA=/path/to/lua`). For example,
   `apt-get install lua5.1`.
-- a C compiler (`cc`, or set `CC`) for the C reference gate
+- a C compiler with 32-bit x86 support (`cc`, or set `CC`; for example
+  `apt-get install gcc gcc-multilib`) for the C reference gate
 
 ## Commands
 
@@ -51,10 +54,11 @@ from the executed C. `npm run gen:c` regenerates `src/generated` from the C sour
 
 ```
 src/
-  core/            ASSERT, C float semantics (toFloat32), maths, time (get_delta_time), configuration
-  entity/system/   entity runtime: lists (with shared links), value function tables, messages, comms model
-  entity/special/  session, force, keysite, group, guide, update: the ported overloads, campaign functions and the update loop
-  entity/mobile/   campaign-visible surface of aircraft and vehicles (position comes from a port)
+  core/            ASSERT, C float and integer semantics (toFloat32, cint), maths, time (get_delta_time), configuration
+  entity/system/   entity runtime: heap, lists (with shared links), value function tables, messages, comms model,
+                   creation attributes, creation / destruction dispatch, the world map
+  entity/special/  session, force, keysite, group, guide, update, sector, effect: the ported overloads, campaign functions and the update loop
+  entity/mobile/   campaign-visible surface of aircraft and vehicles (position comes from a port), and cargo
   generated/       enums, database columns and constants generated from the EECH C (never hand-edited)
   ports/           what the campaign needs from the environment
 test/

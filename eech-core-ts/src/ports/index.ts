@@ -1,5 +1,5 @@
 export type { Clock } from "./clock";
-export type { EntityReplication } from "./entity-replication";
+export type { EntityReplication, ReplicatedEntityAttribute } from "./entity-replication";
 export type { MobilePhysicalState } from "./mobile-physical-state";
 
 import type { Clock } from "./clock";

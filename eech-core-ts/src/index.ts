@@ -17,6 +17,11 @@ import { overloadGroupFunctions } from "./entity/special/group/group";
 import { overloadGuideFunctions } from "./entity/special/guide/guide";
 import { overloadKeysiteFunctions } from "./entity/special/keysite/keysite";
 import { overloadSessionListFunctions } from "./entity/special/session/session";
+import { overloadCargoFunctions } from "./entity/mobile/cargo/cargo";
+import { overloadSectorFunctions, resetSectorMap } from "./entity/special/sector/sector";
+import { DEFAULT_NUMBER_OF_ENTITIES, initialiseEntityHeap } from "./entity/system/en_heap";
+import { overloadUnknownEntityDestroyFunctions } from "./entity/system/en_dstry";
+import { resetWorldMap } from "./entity/system/en_world";
 
 export interface CampaignCoreOptions {
 	// "throw" in production. Test harnesses may use "record" to observe
@@ -25,10 +30,16 @@ export interface CampaignCoreOptions {
 
 	// EECH.INI "entity update frame rate" (cmndline.c default 2)
 	entityUpdateFrameRate?: number;
+
+	// size of the entity heap (init.c :: initialise_entity_system, 125000)
+	numberOfEntities?: number;
 }
 
 export function initialiseCampaignCore(ports: CampaignPorts, options: CampaignCoreOptions = {}): void {
 	initialiseEntityRuntime(ports, options.unportedMessagePolicy ?? "throw");
+	initialiseEntityHeap(options.numberOfEntities ?? DEFAULT_NUMBER_OF_ENTITIES);
+	resetWorldMap();
+	resetSectorMap();
 
 	resetDeltaTime();
 	resetUpdateEntity();
@@ -41,6 +52,9 @@ export function initialiseCampaignCore(ports: CampaignPorts, options: CampaignCo
 	overloadGuideFunctions();
 	overloadMobileFunctions();
 	overloadUpdateFunctions();
+	overloadSectorFunctions();
+	overloadCargoFunctions();
+	overloadUnknownEntityDestroyFunctions();
 }
 
 //
@@ -53,14 +67,23 @@ export function setDeltaTime(): void {
 	setDeltaTimeFrom(getCampaignPorts().clock);
 }
 
-export type { CampaignPorts, Clock, EntityReplication, MobilePhysicalState } from "./ports";
+export type { CampaignPorts, Clock, EntityReplication, MobilePhysicalState, ReplicatedEntityAttribute } from "./ports";
 export { assessGroupSupplies } from "./entity/special/group/group";
 export { setUpdateEntity, updateClientServerEntities } from "./entity/special/update/update";
 export { setClientServerEntityFloatValue } from "./entity/system/en_values";
+
+// Entity lifecycle and the world map
+export type { EntityAttribute } from "./entity/system/en_attrs";
+export { createClientServerEntity } from "./entity/system/en_creat";
+export { destroyClientServerEntityFamily } from "./entity/system/en_dstry";
+export { ENTITY_INDEX_DONT_CARE } from "./entity/system/en_heap";
+export { setEntityWorldMapSize } from "./entity/system/en_world";
+export { createLocalSectorEntities } from "./entity/special/sector/sector";
 
 // Campaign state restoration primitives (the state en_pack.c unpacking
 // establishes). A CampaignStore port will replace these once session loading
 // is ported; until then hosts and tests build state with them.
 export { insertLocalEntityIntoParentsChildListRaw } from "./entity/system/en_list";
-export { createLocalEntityRaw, setSessionEntityRaw, takeUnportedMessageLog } from "./entity/system/entity";
-export { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, FloatType, ListType } from "./generated/c-enums";
+export { createLocalEntityRaw } from "./entity/system/en_heap";
+export { setSessionEntityRaw, takeUnportedMessageLog } from "./entity/system/entity";
+export { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, FloatType, IntType, ListType, Vec3dType } from "./generated/c-enums";

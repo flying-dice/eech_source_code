@@ -49,6 +49,12 @@ void harness_assert (const char *expression);
 extern void debug_fatal (const char *string, ...);
 extern void debug_log (const char *string, ...);
 
+/* modules/system/memblock.h: the engine allocator (macros onto
+   malloc_fast_memory / malloc_heap_memory); the platform allocator here */
+extern void *malloc_fast_mem (int size);
+extern void *malloc_heap_mem (int size);
+extern void free_mem (void *ptr);
+
 /* engine types that included headers only name in prototypes */
 typedef float matrix3x3[3][3];
 typedef struct VIEWPOINT viewpoint;

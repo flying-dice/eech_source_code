@@ -11,11 +11,84 @@
 // rendering are excluded (physical simulation).
 //
 
+import { storeUnsignedBitfield } from "../../core/cint";
 import { toFloat32 } from "../../core/float32";
-import { EntityType, ListType, Vec3dType } from "../../generated/c-enums";
-import { overloadEntityListLink } from "../system/en_list";
-import { fnGetLocalEntityVec3dPtr } from "../system/en_values";
-import { getCampaignPorts } from "../system/entity";
+import type { Vec3d } from "../../core/maths/vec3d";
+import { EntityType, IntType, ListType, Vec3dType } from "../../generated/c-enums";
+import { overloadEntityListLink, overloadEntityListRoot } from "../system/en_list";
+import { defaultGetEntityIntValue, fnGetLocalEntityIntValue, fnGetLocalEntityVec3dPtr, fnSetLocalEntityRawIntValue, fnSetLocalEntityRawVec3d } from "../system/en_values";
+import { getCampaignPorts, getLocalEntityData, type Entity } from "../system/entity";
+
+// C provenance: en_int.h :: NUM_ALIVE_BITS, NUM_SIDE_BITS
+export const NUM_ALIVE_BITS = 1;
+
+export const NUM_SIDE_BITS = 2;
+
+// C provenance: en_sbtyp.h :: ENTITY_SUB_TYPE_UNINITIALISED; en_side.h :: ENTITY_SIDE_UNINITIALISED (NUM_ENTITY_SIDES)
+export const ENTITY_SUB_TYPE_UNINITIALISED = -1;
+
+export const ENTITY_SIDE_UNINITIALISED = 3;
+
+//
+// C provenance: mobile.h :: struct MOBILE (ported fields only)
+//
+// Every mobile entity's raw struct starts with `mobile mob`; the mobile
+// overloads (mb_*.c) cast the raw data to `mobile *`. Here they read `.mob`.
+// `alive` and `side` are `unsigned int` bit-fields. The attitude matrix is not
+// ported (no ported reader); creation sets it to the identity.
+//
+export interface MobileRaw {
+	sub_type: number;
+	position: Vec3d;
+	alive: number;
+	side: number;
+}
+
+function mob(en: Entity): MobileRaw {
+	return getLocalEntityData<{ mob: MobileRaw }>(en).mob;
+}
+
+//
+// The mobile overloads of mb_int.c, mb_vec3d.c and mb_list.c for an entity
+// type whose position is campaign state held in raw->mob.position (cargo),
+// not physical state produced by a simulation. Only the rows the adopted
+// slices reach are ported.
+//
+export function overloadMobileRawStateFunctions(type: EntityType): void {
+	// C provenance: mb_int.c :: set_local_int_value (raw), get_local_int_value
+	fnSetLocalEntityRawIntValue.overload(type, IntType.INT_TYPE_ALIVE, (en, _type, value) => {
+		mob(en).alive = storeUnsignedBitfield(value, NUM_ALIVE_BITS);
+	});
+	fnSetLocalEntityRawIntValue.overload(type, IntType.INT_TYPE_ENTITY_SUB_TYPE, (en, _type, value) => {
+		mob(en).sub_type = value;
+	});
+	fnSetLocalEntityRawIntValue.overload(type, IntType.INT_TYPE_SIDE, (en, _type, value) => {
+		mob(en).side = storeUnsignedBitfield(value, NUM_SIDE_BITS);
+	});
+	fnGetLocalEntityIntValue.overload(type, IntType.INT_TYPE_ALIVE, (en) => mob(en).alive);
+	fnGetLocalEntityIntValue.overload(type, IntType.INT_TYPE_ENTITY_SUB_TYPE, (en) => mob(en).sub_type);
+	fnGetLocalEntityIntValue.overload(type, IntType.INT_TYPE_SIDE, (en) => mob(en).side);
+
+	// C provenance: en_int.c :: default_get_entity_int_value (0): mb_int.c does not overload these
+	fnGetLocalEntityIntValue.overload(type, IntType.INT_TYPE_IDENTIFY_AIRCRAFT, defaultGetEntityIntValue);
+	fnGetLocalEntityIntValue.overload(type, IntType.INT_TYPE_IDENTIFY_FIXED, defaultGetEntityIntValue);
+	fnGetLocalEntityIntValue.overload(type, IntType.INT_TYPE_IDENTIFY_VEHICLE, defaultGetEntityIntValue);
+
+	// C provenance: mb_vec3d.c :: set_local_raw_vec3d, get_local_vec3d_ptr (VEC3D_TYPE_POSITION)
+	fnSetLocalEntityRawVec3d.overload(type, Vec3dType.VEC3D_TYPE_POSITION, (en, _type, v) => {
+		mob(en).position = { x: v.x, y: v.y, z: v.z };
+	});
+	fnGetLocalEntityVec3dPtr.overload(type, Vec3dType.VEC3D_TYPE_POSITION, (en) => mob(en).position);
+
+	// C provenance: mb_list.c :: LIST_TYPE_SPECIAL_EFFECT_ROOT, LIST_TYPE_TARGET_ROOT,
+	//               LIST_TYPE_PADLOCK_LINK, LIST_TYPE_SECTOR_LINK, LIST_TYPE_TARGET_LINK, LIST_TYPE_UPDATE_LINK
+	overloadEntityListRoot(type, "special_effect_root", [ListType.LIST_TYPE_SPECIAL_EFFECT]);
+	overloadEntityListRoot(type, "target_root", [ListType.LIST_TYPE_TARGET]);
+	overloadEntityListLink(type, "padlock_link", [ListType.LIST_TYPE_PADLOCK]);
+	overloadEntityListLink(type, "sector_link", [ListType.LIST_TYPE_SECTOR]);
+	overloadEntityListLink(type, "target_link", [ListType.LIST_TYPE_TARGET]);
+	overloadEntityListLink(type, "update_link", [ListType.LIST_TYPE_UPDATE]);
+}
 
 // C provenance: hc_funcs.c, fw_funcs.c (overload_aircraft_functions), rv_funcs.c, sh_funcs.c,
 //               aa_funcs.c, ps_funcs.c (overload_vehicle_functions)

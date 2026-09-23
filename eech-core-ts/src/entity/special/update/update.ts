@@ -13,6 +13,7 @@
 //
 
 import { ASSERT } from "../../../core/assert";
+import { toCInt } from "../../../core/cint";
 import { getCommandLineEntityUpdateFrameRate } from "../../../core/cmndline";
 import { toFloat32 } from "../../../core/float32";
 import { getDeltaTime, isFrameRateLocked, setManualDeltaTime } from "../../../core/time";
@@ -53,11 +54,6 @@ export function getUpdateSucc(): Entity | undefined {
 
 export function setUpdateSucc(en: Entity | undefined): void {
 	update_succ = en;
-}
-
-// C truncation of a positive or negative double to int
-function toCInt(value: number): number {
-	return value < 0 ? Math.ceil(value) : Math.floor(value);
 }
 
 // C provenance: up_update.c :: set_entity_update_frame_rate
