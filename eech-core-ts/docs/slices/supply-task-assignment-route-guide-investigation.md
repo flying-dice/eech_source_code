@@ -434,3 +434,16 @@ exist, so it adds little risk to keep it in 6b.
 **Decisions needed:** the scope above; D1 (floating-point contract for route
 search); D2, D3 and D5 (preserve as found); D4 (call or omit the dead terrain
 read).
+
+## Corrections from the implementation
+
+The implementation (`supply-task-assignment-route-guide.md`) executed this
+path in the C and found six statements above that were wrong or incomplete.
+The text above is left as it was investigated.
+
+- **Gate 1, step 2 and Gate 2, step 6: waypoints are not linked into a sector.** In release builds `wp_creat.c:196` does it only under `DEBUG_MODULE`. There is no sector `LIST_TYPE_SECTOR` insertion and no sector `LINK_CHILD` (6b-F2).
+- **Gate 2, quirks: the LAND waypoint is re-tagged.** The specified type is set through the local setter (`croute.c:716`), and its sub-type row re-tags the whole list. LAND ends with tag `W` (6b-F1).
+- **Gate 10: there is one more uninitialised read.** `second_past_route` keeps `best_point` across its walk. A first-iteration FALSE from `get_best_point` leaves it uninitialised. The port throws `EechUndefinedBehaviourError` there (6b-F3). The corpus does not reach it.
+- **Gate 10, D5: the arm is unreachable for every route.** NAVIGATION's minimum previous waypoint distance is 0 in every column, and "the last waypoint is NAVIGATION" does not reach it. D5 stays as decided, behind a mechanically backed exclusion (6b-F4).
+- **Gate 3: `initialise_guide_criteria` transmits RADIUS and LAST_TO_REACH twice.** It clears them in the guide database loop, then sets them from the waypoint database (6b-F5).
+- **Gate 10, D1: canaries now exist.** Three route-choice canaries separate the rounding and intermediate-precision variants (the slice doc).

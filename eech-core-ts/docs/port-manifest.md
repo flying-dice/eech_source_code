@@ -42,7 +42,7 @@ where practical.
 | `aphavoc/source/entity/special/keysite/ks_dbase.c` (`default_supply_usage` ammo and fuel; `air_force_capacity`, slice 5b) | `src/generated/c-keysite-database.ts` (generated) | partial (compiled defaults; `wutcfg.c` overrides not ported) |
 | `aphavoc/source/global.c`, `global.h` (`game_status`, `set_game_status`, `get_game_status`) | `src/core/game-status.ts` | partial (`game_status_string` not ported: no campaign reader) |
 | `aphavoc/source/ui_menu/gametype/gametype.c`, `gametype.h` (`game_type`, `get_game_type`) | `src/core/game-type.ts` | partial (the front end's assignments are `setGameType`) |
-| `aphavoc/source/ui_menu/ingame/campaign/ca_msgs.c` (`notify_campaign_screen`) | `src/ui_menu/campaign/ca_msgs.ts`, `src/ports/campaign-events.ts` (port) | partial (the guard is core; the screen's responses are the `CampaignEvents` port; `MISSION_CREATED` only) |
+| `aphavoc/source/ui_menu/ingame/campaign/ca_msgs.c` (`notify_campaign_screen`) | `src/ui_menu/campaign/ca_msgs.ts`, `src/ports/campaign-events.ts` (port) | partial (the guard is core; the screen's responses are the `CampaignEvents` port; `MISSION_CREATED`, and `MISSION_ASSIGNED` from slice 6b) |
 | `modules/3d/3dobjvis.c :: get_object_3d_bounding_box`, `objects.h :: struct OBJECT_3D_BOUNDS` | `src/ports/object-3d-metadata.ts` (port) | blocked-engine-boundary (the 3D object database) |
 | `modules/3d/3dmodels.h` (`OBJECT_3D_SINGLE_CRATE`) | `src/generated/c-constants.ts` (generated) | partial (the indices the port names) |
 | `aphavoc/source/entity/special/keysite/keysite.c` | `src/entity/special/keysite/keysite.ts` | partial |
@@ -52,18 +52,25 @@ where practical.
 | `aphavoc/source/entity/special/force/fc_msgs.c` | `src/entity/special/force/fc_msgs.ts` | partial (`response_to_force_low_on_supplies`, slice 5a) |
 | `aphavoc/source/entity/special/task/task.c` (`entity_is_object_of_task`, slice 5a; `get_local_task_list_type`, `find_most_suitable_keysite_for_task`, `assess_task_difficulty`, `assess_task_sector_difficulty`, slice 5b), `ts_int.c`, `ts_float.c`, `ts_ptr.c`, `ts_list.c` | `src/entity/special/task/task.ts` | partial (the values, pointers and lists task construction sets and reads) |
 | `aphavoc/source/entity/special/task/ts_creat.c` | `src/entity/special/task/ts_creat.ts` | partial (server model; the client model is not ported) |
-| `aphavoc/source/entity/special/task/ts_msgs.c` (`response_to_link_parent`) | `src/entity/special/task/task.ts` | partial (the unassigned arm; assigned and completed throw unported) |
+| `aphavoc/source/entity/special/task/ts_msgs.c` (`response_to_link_parent`) | `src/entity/special/task/task.ts` | partial (the unassigned arm; the assigned arm, slice 6b; completed throws unported) |
 | `aphavoc/source/entity/special/task/ts_dbase.c` (`task_priority`, slice 5a; `primary_task`, `engage_enemy`, `movement_type`, `keysite_air_force_capacity`, `landing_types`, `ai_stats`, slice 5b) | `src/generated/c-task-database.ts` (generated) | partial |
-| `aphavoc/source/entity/special/waypoint/wp_int.c`, `wp_list.c` | `src/entity/special/waypoint/waypoint.ts` | partial (a restored waypoint's sub type and `task_dependent_link`, slice 5a) |
+| `aphavoc/source/entity/special/waypoint/wp_int.c`, `wp_list.c`, `wp_float.c`, `wp_vec3d.c`, `wp_msgs.c`, `wp_ptr.c` | `src/entity/special/waypoint/waypoint.ts` | partial (a restored waypoint's sub type and `task_dependent_link`, slice 5a; the rows route construction sets and reads, the link responses, slice 6b; a VIRTUAL position is not ported) |
+| `aphavoc/source/entity/special/waypoint/wp_creat.c`, `wp_char.c`, `wp_dbase.c` | `wp_creat.ts`, `wp_char.ts`, `wp_dbase.ts`; `src/generated/c-waypoint-database.ts` (generated) | partial (slice 6b: local creation, tags, the database; remote creation is not ported) |
 | `aphavoc/source/ai/taskgen/taskgen.c` (`create_supply_task`, `create_task`, `get_task_start_keysite`, `validate_task_generation`, `terminator_point`) | `src/ai/taskgen/taskgen.ts` | partial (slice 5b; the other task generators are not ported) |
-| `aphavoc/source/ai/taskgen/assign.c` (`assign_keysite_tasks`, `suitable_group_task_specific_checks`, `get_suitable_registered_group`, `check_group_members_awake`; `assign_primary_task_to_group` as the boundary) | `src/ai/taskgen/assign.ts` | partial (slice 6a: the decision; the transaction is not ported) |
+| `aphavoc/source/ai/taskgen/assign.c` (`assign_keysite_tasks`, `suitable_group_task_specific_checks`, `get_suitable_registered_group`, `check_group_members_awake`, slice 6a; `assign_primary_task_to_group` to its `assign_task_to_group` call, `assign_task_to_group`, `push_task_onto_group_task_stack`, slice 6b; `assign_task_to_group_members` as the boundary) | `src/ai/taskgen/assign.ts` | partial (SUPPLY only: other task types stop at 6a's boundary) |
+| `aphavoc/source/ai/taskgen/croute.c` | `src/ai/taskgen/croute.ts` | partial (slice 6b: `create_generic_waypoint_route` and the route search; the client's rebuild is not ported) |
+| `aphavoc/source/ai/ai_misc/ai_misc.c` (`get_closest_road_node`), `ai_route.h` (the road node table) | `src/ai/ai_misc/ai_misc.ts`, `src/ports/road-network.ts` (port) | partial (slice 6b; the table is map data through the `RoadNetwork` port) |
+| `modules/3d/terrain/terrelev.h` (`get_3d_terrain_elevation`) | `src/ports/terrain-elevation.ts` (port) | blocked-engine-boundary (the theatre's terrain, slice 6b) |
+| `modules/maths/invsqrt.c`, `invsqrt.h` | `src/core/maths/invsqrt.ts` | ported (slice 6b) |
+| `aphavoc/source/ai/taskgen/croute.c` (`route_biasing_database`) | `src/generated/c-route-biasing-database.ts` (generated) | ported (slice 6b) |
 | `aphavoc/source/entity/en_misc/en_misc.c` (`qs`, `quicksort_entity_list`) | `src/entity/en_misc/en_misc.ts` | partial (slice 6a) |
 | `aphavoc/source/entity/mobile/aircraft/ac_float.c` (`CRUISE_VELOCITY`; the default `SLEEP`) | `src/entity/mobile/aircraft/ac_float.ts` | partial (slice 6a) |
 | `aphavoc/source/entity/mobile/aircraft/ac_dbase.c` (`cruise_velocity`) | `src/generated/c-aircraft-database.ts` (generated) | partial (slice 6a) |
 | `aphavoc/source/entity/special/pilot/pi_list.c` (`pilot_lock_root`) | `src/entity/special/pilot/pilot.ts` | partial (slice 6a) |
 | `aphavoc/source/ai/highlevl/suitable.c` | `src/ai/highlevl/suitable.ts` | ported (`deinitialise_group_task_array` is the next initialisation's reset) |
 | `aphavoc/source/entity/special/session/session.h`, `ss_list.c` | `src/entity/special/session/session.ts`, `src/entity/system/entity.ts` | partial |
-| `aphavoc/source/entity/special/guide/gd_list.c` | `src/entity/special/guide/guide.ts` | partial |
+| `aphavoc/source/entity/special/guide/guide.c` (`create_client_server_guide_entity`, `attach_group_to_guide_entity`, the criteria), `gd_creat.c`, `gd_int.c`, `gd_float.c`, `gd_vec3d.c`, `gd_list.c`, `gd_ptr.c`, `gd_msgs.c`, `gd_dbase.c` | `src/entity/special/guide/guide.ts`; `src/generated/c-guide-database.ts` (generated) | partial (slice 6b: creation and attachment; guide execution, `gd_updt.c` and `gd_nav.c`, is not ported) |
+| `aphavoc/source/entity/special/landing/landing.c` (`get_local_entity_landing_entity`) | `src/entity/special/landing/landing.ts` | partial (slice 6b: a keysite without landing entities; landing entities are not ported) |
 | `aphavoc/source/entity/mobile/aircraft/ac_list.c`, `ac_vec3d.c`; `vehicle/vh_list.c`, `vh_vec3d.c` | `src/entity/mobile/mobile.ts` | partial (campaign surface only) |
 | `aphavoc/source/entity/mobile/mb_int.c`, `mb_vec3d.c`, `mb_list.c` | `src/entity/mobile/mobile.ts` (`overloadMobileRawStateFunctions`) | partial (the rows cargo reaches) |
 | `aphavoc/source/entity/mobile/aircraft/ac_msgs.c` | `src/entity/mobile/aircraft/ac_msgs.ts` | partial (link / unlink parent responses) |
@@ -75,7 +82,7 @@ where practical.
 | `aphavoc/source/entity/system/en_funcs/en_int.c`, `en_float.c`, `en_vec3d.c`, `en_ptr.c` | `src/entity/system/en_values.ts`, `function-table.ts` | partial |
 | `aphavoc/source/entity/system/en_msgs/en_msgs.c` | `src/entity/system/en_msgs.ts` | partial |
 | `aphavoc/source/entity/system/en_main/en_heap.c`, `en_heap.h` | `src/entity/system/en_heap.ts`, `entity.ts` | partial (downwash heap and packing not ported) |
-| `aphavoc/source/entity/system/en_main/en_world.c`, `en_world.h`; `misc/miscell.c :: int_bit_count` | `src/entity/system/en_world.ts` | partial (slice 5b adds `point_inside_map_volume`, `MAP_PERIMETER_SIZE`, `bound_position_to_adjusted_map_area`) |
+| `aphavoc/source/entity/system/en_main/en_world.c`, `en_world.h`; `misc/miscell.c :: int_bit_count` | `src/entity/system/en_world.ts` | partial (slice 5b adds `point_inside_map_volume`, `MAP_PERIMETER_SIZE`; slice 6b `bound_position_to_adjusted_map_volume`, `point_inside_map_area`) |
 | `aphavoc/source/entity/system/en_main/*` (other files) | `src/entity/system/entity.ts` | partial |
 | `aphavoc/source/entity/system/en_attrs/en_attrs.c` | `src/entity/system/en_attrs.ts` | partial (`set_local_entity_attributes`; pack/unpack not ported) |
 | `aphavoc/source/entity/system/en_funcs/en_creat.c`; `en_debug/en_valid.c` (create index checks) | `src/entity/system/en_creat.ts` | partial |
@@ -90,7 +97,7 @@ where practical.
 | `modules/system/assert.h` | `src/core/assert.ts` | partial |
 | enum headers (`en_types.h`, `en_side.h`, `en_list.h`, `en_int.h`, `en_float.h`, `en_vec3d.h`, `en_ptr.h`, `en_msgs.h`, `en_sbtyp.h`, `ai_extrn.h`, `comms.h`, `en_suply.h`) | `src/generated/c-enums.ts` (generated) | ported (selected enums, generated verbatim) |
 | `ai/highlevl/*` (except `suitable.c`), `ai/taskgen/*` (except the functions above), `ai/frontl/*`, `ai/faction/*`, `ai/ai_misc/*` | none | unported |
-| `entity/special/division`, `landing`, `regen`; the rest of `task` and `waypoint` | none | unported |
+| `entity/special/division`, `regen`; the rest of `task`, `waypoint`, `guide` and `landing` | none | unported |
 | `wutcfg.c`, `gwutcfg.c` (runtime overrides of `group_database` and `keysite_database`) | none | unported |
 
 ## Functions
@@ -200,7 +207,7 @@ materialisation, expiry, packing and destruction of tasks are later slices.
 | `assign.c :: get_suitable_registered_group` | `getSuitableRegisteredGroup` | ported, tested, 100%-covered (one exclusion, below), C-reference-verified (extracted; the `NULL` idle count of `msg_in.c` is unit-tested) |
 | `assign.c :: suitable_group_task_specific_checks` | `suitableGroupTaskSpecificChecks` | ported, tested, 100%-covered, C-reference-verified (extracted) |
 | `assign.c :: check_group_members_awake` | `checkGroupMembersAwake` | ported, tested, 100%-covered (one exclusion, below), C-reference-verified (extracted) |
-| `assign.c :: assign_primary_task_to_group` | `assignPrimaryTaskToGroup` | **the boundary**: unported. It always throws `UnportedBoundaryError` (an `UnportedBehaviourError`) carrying the group and task; the C harness traps the same call |
+| `assign.c :: assign_primary_task_to_group` | `assignPrimaryTaskToGroup` | **the boundary** at 6a. From slice 6b it is ported for SUPPLY tasks (below); for every other task type it still throws `UnportedBoundaryError` (an `UnportedBehaviourError`) carrying the group and task, and the C harness wraps the same |
 | `en_misc.c :: qs`, `quicksort_entity_list` | `quicksortEntityList` | ported, tested, 100%-covered, C-reference-verified (extracted) |
 | `group.c :: assess_group_task_locality_factor` | `assessGroupTaskLocalityFactor` | ported, tested, 100%-covered (two exclusions, below), C-reference-verified (extracted) |
 | `ac_float.c :: get_local_float_value (CRUISE_VELOCITY)`; `en_float.c` default (`SLEEP`) | `overloadAircraftFloatValueFunctions` (helicopter and fixed wing) | ported, tested, 100%-covered, C-reference-verified (`ac_float.c` compiled whole) |
@@ -209,6 +216,29 @@ materialisation, expiry, packing and destruction of tasks are later slices.
 | `gp_int.c` (`MEMBER_COUNT` getter); `gp_list.c` (`pilot_lock_link`, `registry_link`); `fc_list.c` (`air_registry_root`); `pi_list.c` (`pilot_lock_root`) | `overloadGroupFunctions`, `overloadForceFunctions`, `overloadPilotFunctions` | ported, tested, 100%-covered, C-reference-verified |
 | `gp_msgs.c :: response_to_link_child (LIST_TYPE_MEMBER)` (live `member_count` maintenance) | none | unported, fail-loud. Tests restore `member_count` raw, as `gp_pack.c :: unpack_local_data` does |
 | `ts_dbase.c` (`task_category`, `minimum_member_count`), `ks_dbase.c` (`assign_task_count`, `reserve_task_count`), `gp_dbase.c` (`minimum_idle_count`) | generated columns | ported (generated from C, drift-checked), C-reference-verified |
+
+### Slice 6b: supply-task assignment, route and guide (issue #18)
+
+From 6a's boundary to `assign_task_to_group_members`, the new boundary, for
+SUPPLY tasks. `docs/slices/supply-task-assignment-route-guide.md` maps every
+step. The exclusions are listed there and under *Deviations and exclusions*.
+
+| C function | TS | Status |
+|---|---|---|
+| `assign.c :: assign_primary_task_to_group` (to its `assign_task_to_group` call) | `assignPrimaryTaskToGroup` | ported, tested, 100%-covered, C-reference-verified (extracted). The scope gate: a task other than SUPPLY throws 6a's `UnportedBoundaryError`, and the C harness wraps the same |
+| `assign.c :: assign_task_to_group` | `assignTaskToGroup` | ported, tested, 100%-covered (one exclusion), C-reference-verified (extracted). The landing-site count (`landing.c`) and `get_closest_keysite` fail loudly |
+| `assign.c :: push_task_onto_group_task_stack` | `pushTaskOntoGroupTaskStack` | ported, tested, 100%-covered, C-reference-verified (extracted) |
+| `assign.c :: assign_task_to_group_members` | `assignTaskToGroupMembers` | **the boundary**: unported. It always throws `UnportedBoundaryError` with the group, guide and valid members; the C harness traps the same call |
+| `croute.c :: create_generic_waypoint_route`, `generate_biased_vec3d_route`, `create_route`, `generate_best_mid_point`, `get_best_point`, `second_past_route`, `get_route_point_rating`, `optimise_route`, `generate_route_check_sum`, `parser_task_waypoint_route` | `croute.ts` | ported, tested, 100%-covered (six exclusions), C-reference-verified (compiled whole) |
+| `ai_misc.c :: get_closest_road_node` | `getClosestRoadNode` → `RoadNetwork` port | ported, tested, 100%-covered, C-reference-verified |
+| `terrelev.h :: get_3d_terrain_elevation` | `TerrainElevation` port | blocked-engine-boundary (called as the C calls it, including the discarded read, D4) |
+| `invsqrt.c :: initialise_inverse_square_root_table`, `get_inverse_square_root` | `invsqrt.ts` | ported, tested, 100%-covered, C-reference-verified (4096 arguments, bit for bit) |
+| `guide.c :: create_client_server_guide_entity`, `attach_group_to_guide_entity`, `initialise_guide_criteria`, `set_client_server_guide_criteria_valid`; `gd_creat.c`; the `gd_*.c` rows the transaction sets | `guide.ts` | ported, tested, 100%-covered, C-reference-verified (compiled whole) |
+| `wp_creat.c :: create_local`; `wp_char.c`; `wp_int.c`, `wp_float.c`, `wp_vec3d.c`, `wp_msgs.c`, `wp_ptr.c` rows; `wp_dbase.c` accessors | `wp_creat.ts`, `wp_char.ts`, `waypoint.ts`, `wp_dbase.ts` | ported, tested, 100%-covered, C-reference-verified (compiled whole) |
+| `landing.c :: get_local_entity_landing_entity` | `getLocalEntityLandingEntity` | ported for a keysite without landing entities; any LANDING_SITE child fails loudly |
+| `ts_msgs.c :: response_to_link_parent` (ASSIGNED arm); `ca_msgs.c` (`MISSION_ASSIGNED`); `ts_int.c` (`ROUTE_CHECK_SUM`, `ASSESS_LANDING`, `PRIMARY_TASK`, `ROUTE_LENGTH`); `task.c :: get_local_group_primary_task` | `task.ts`, `ca_msgs.ts` | ported, tested, 100%-covered, C-reference-verified |
+| `en_comms.c` (`CREATE_WAYPOINT_ROUTE`, `SWITCH_LIST`, `SET_GUIDE_CRITERIA`, `INT_VALUE`) | `en_comms.ts` → `EntityReplication` port | ported, tested, 100%-covered, C-reference-verified (the transmission order) |
+| `wp_dbase.c`, `gd_dbase.c`, `croute.c :: route_biasing_database`, `ac_dbase.c` (`cruise_altitude`), `ts_dbase.c` (the route flags) | generated columns | ported (generated from C, drift-checked), C-reference-verified bit for bit (`route-databases.cref.test.ts`) |
 
 ### Frozen slice: entity lifecycle, CARGO, sector membership (slice 3)
 
@@ -290,6 +320,20 @@ by the harness shim, and are verified by source reading only. The plan and the r
 
 ## Deviations and exclusions
 
+- **Coverage exclusions (slice 6b):** seven, each backed by a test in
+  `test/unit/supply-task-transaction.test.ts` and listed in
+  `docs/slices/supply-task-assignment-route-guide.md`.
+  - **The else arms that only a task type other than SUPPLY takes** (behind the scope gate), backed by the SUPPLY database facts: `ASSESS_LANDING` (`assign.ts`); and in `croute.ts` the start point, the return keysite and the route search.
+  - **The zero-cruise-velocity arm** (`croute.ts`), backed by every aircraft's cruise velocity being positive.
+  - **The parser's NAVIGATION arm**, D5's NULL dereference inside it. NAVIGATION's minimum previous waypoint distance is 0 in every column (6b-F4).
+  - **The side bias's `: 0`.** No sector is NEUTRAL, and the group's side is 0 (D2).
+- **The Slice 6a corpus migration (slice 6b) is a test-oracle correction, not a
+  campaign behaviour change.**
+  - The Slice 6a scenarios restored tasks without routes, and aircraft outside the map. Neither is a state EECH can hold. The boundary they tested never read those fields.
+  - Slice 6b reads them, so the scenarios are migrated to valid state: `persisted-task` requires the route and return keysite that `ts_pack.c` restores, and aircraft are constrained to the map.
+  - The migration is checked mechanically against the C output at `81ed32e` (`docs/slices/supply-task-assignment-fixture-migration.md`). No line before the former boundary changed, and every SUPPLY selection kept its group and task.
+  - No recursion guard was added for off-map aircraft. EECH has none, and the corpus invariant keeps aircraft on the map.
+- **The non-SUPPLY scope gate (slice 6b).** `assignPrimaryTaskToGroup` throws 6a's `UnportedBoundaryError` for any other task type, before any state is read. This is production code, not a policy: those types' routes are not ported.
 - **Coverage exclusions (slice 6a):** these branches are excluded narrowly
   (`/* istanbul ignore */`), each backed by a test. Each is listed in
   `docs/slices/supply-task-assignment.md`.
@@ -373,7 +417,10 @@ by the harness shim, and are verified by source reading only. The plan and the r
   Slice 5b adds three more cases. `create_task` reading past its last route
   argument is one, and `assess_task_difficulty` reading `route_nodes [-1]` is
   another. The third is `get_local_raw_sector_entity` indexing outside the
-  sector map.
+  sector map. Slice 6b adds two uninitialised reads: `specified_route` for a
+  task without route nodes, and `second_past_route`'s `best_point` after a
+  first-iteration failure (6b-F3). Its NULL dereferences are the checksum of a
+  single-point route and D5's parser arm.
 - **Bit-fields.** Stores into `unsigned int` bit-fields keep the low bits
   (`storeUnsignedBitfield`): mobile `alive` (1), `side` (2), sector
   `x_sector` / `z_sector` (8), and (slice 5b) task `task_id` (12),

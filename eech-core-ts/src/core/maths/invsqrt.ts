@@ -32,7 +32,8 @@ const TABLE_SIZE = 2 * Math.pow(2, LOOKUP_BITS);
 
 // the biased exponent and 23-bit mantissa field of a positive finite float
 function floatFields(f: number): { exponent: number; mantissa: number } {
-	let exponent = Math.floor(Math.log(f) / Math.LN2);
+	// floor (log2 (f)), found exactly: down for f < 1, up for f >= 2
+	let exponent = 0;
 	while (Math.pow(2, exponent) > f) {
 		exponent -= 1;
 	}

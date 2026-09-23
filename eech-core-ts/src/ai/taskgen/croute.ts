@@ -344,6 +344,8 @@ export function createGenericWaypointRoute(group: Entity | undefined, task_en: E
 
 			flight_time = 999999.0;
 
+			// every aircraft's cruise velocity is positive (ac_dbase.c; test/unit/supply-task-transaction.test.ts)
+			/* istanbul ignore else */
 			if (getLocalEntityFloatValue(member, FloatType.FLOAT_TYPE_CRUISE_VELOCITY) > 0.0) {
 				flight_time = f32Div(range, getLocalEntityFloatValue(member, FloatType.FLOAT_TYPE_CRUISE_VELOCITY));
 			}
@@ -501,53 +503,53 @@ export function parserTaskWaypointRoute(group: Entity, task: Entity): void {
 				}
 
 				setLocalEntityVec3d(this_wp, Vec3dType.VEC3D_TYPE_POSITION, new_pos);
-			} else if (
-				// Unreachable under the compiled databases: it needs range < the minimum previous
-				// waypoint distance of a NAVIGATION next_wp, which is 0 in every mobile column of
-				// wp_dbase.c (test/unit/supply-task-transaction.test.ts), and no range is below 0.
-				// Decision D5's NULL dereference is inside it.
-				/* istanbul ignore next */
-				getLocalEntityIntValue(next_wp, IntType.INT_TYPE_ENTITY_SUB_TYPE) === EntitySubTypeWaypoint.ENTITY_SUB_TYPE_WAYPOINT_NAVIGATION
-			) {
-				const next_next_wp = getLocalEntityChildSucc(next_wp, ListType.LIST_TYPE_WAYPOINT);
+			} else {
+				// else if (next_wp is NAVIGATION): unreachable under the compiled databases. It needs
+				// range < the minimum previous waypoint distance of a NAVIGATION next_wp, which is 0 in
+				// every mobile column of wp_dbase.c (test/unit/supply-task-transaction.test.ts), and no
+				// range is below 0. Decision D5's NULL dereference is inside it.
+				/* istanbul ignore if */
+				if (getLocalEntityIntValue(next_wp, IntType.INT_TYPE_ENTITY_SUB_TYPE) === EntitySubTypeWaypoint.ENTITY_SUB_TYPE_WAYPOINT_NAVIGATION) {
+					const next_next_wp = getLocalEntityChildSucc(next_wp, ListType.LIST_TYPE_WAYPOINT);
 
-				// next_next_pos = get_local_entity_vec3d_ptr (next_next_wp, ...) before the NULL check
-				// (decision D5): a route whose last waypoint is NAVIGATION dereferences NULL here
-				assertNotNullDereference(next_next_wp, "next_next_wp");
+					// next_next_pos = get_local_entity_vec3d_ptr (next_next_wp, ...) before the NULL check
+					// (decision D5): a route whose last waypoint is NAVIGATION dereferences NULL here
+					assertNotNullDereference(next_next_wp, "next_next_wp");
 
-				const next_next_pos = getLocalEntityVec3dPtr(next_next_wp, Vec3dType.VEC3D_TYPE_POSITION) as Vec3d;
+					const next_next_pos = getLocalEntityVec3dPtr(next_next_wp, Vec3dType.VEC3D_TYPE_POSITION) as Vec3d;
 
-				// if (next_next_wp): always true once its position has been read
+					// if (next_next_wp): always true once its position has been read
 
-				//
-				// move the next one towards the next_next
-				//
+					//
+					// move the next one towards the next_next
+					//
 
-				const delta_position: Vec3d = { x: f32Sub(next_next_pos.x, this_pos.x) / 2.0, y: 0.0, z: f32Sub(next_next_pos.z, this_pos.z) / 2.0 };
+					const delta_position: Vec3d = { x: f32Sub(next_next_pos.x, this_pos.x) / 2.0, y: 0.0, z: f32Sub(next_next_pos.z, this_pos.z) / 2.0 };
 
-				new_pos.x = Math.ceil(f32Add(this_pos.x, delta_position.x));
-				new_pos.y = Math.ceil(f32Add(next_pos.y, delta_position.y));
-				new_pos.z = Math.ceil(f32Add(this_pos.z, delta_position.z));
+					new_pos.x = Math.ceil(f32Add(this_pos.x, delta_position.x));
+					new_pos.y = Math.ceil(f32Add(next_pos.y, delta_position.y));
+					new_pos.z = Math.ceil(f32Add(this_pos.z, delta_position.z));
 
-				const inner_range = getApprox3dRange(next_next_pos, new_pos);
+					const inner_range = getApprox3dRange(next_next_pos, new_pos);
 
-				const inner_min_range = getWaypointDatabaseMinimumPreviousWaypointDistance(getLocalEntityIntValue(next_next_wp, IntType.INT_TYPE_ENTITY_SUB_TYPE), mobile_type);
+					const inner_min_range = getWaypointDatabaseMinimumPreviousWaypointDistance(getLocalEntityIntValue(next_next_wp, IntType.INT_TYPE_ENTITY_SUB_TYPE), mobile_type);
 
-				if (inner_range < inner_min_range) {
-					normalise3dVector(delta_position);
+					if (inner_range < inner_min_range) {
+						normalise3dVector(delta_position);
 
-					delta_position.x = f32Mul(delta_position.x, inner_min_range);
-					delta_position.y = f32Mul(delta_position.y, inner_min_range);
-					delta_position.z = f32Mul(delta_position.z, inner_min_range);
+						delta_position.x = f32Mul(delta_position.x, inner_min_range);
+						delta_position.y = f32Mul(delta_position.y, inner_min_range);
+						delta_position.z = f32Mul(delta_position.z, inner_min_range);
 
-					new_pos.x = Math.ceil(f32Sub(next_next_pos.x, delta_position.x));
-					new_pos.y = Math.ceil(f32Sub(next_next_pos.y, delta_position.y));
-					new_pos.z = Math.ceil(f32Sub(next_next_pos.z, delta_position.z));
+						new_pos.x = Math.ceil(f32Sub(next_next_pos.x, delta_position.x));
+						new_pos.y = Math.ceil(f32Sub(next_next_pos.y, delta_position.y));
+						new_pos.z = Math.ceil(f32Sub(next_next_pos.z, delta_position.z));
+					}
+
+					boundPositionToAdjustedMapVolume(new_pos);
+
+					setLocalEntityVec3d(next_wp, Vec3dType.VEC3D_TYPE_POSITION, new_pos);
 				}
-
-				boundPositionToAdjustedMapVolume(new_pos);
-
-				setLocalEntityVec3d(next_wp, Vec3dType.VEC3D_TYPE_POSITION, new_pos);
 			}
 		}
 
@@ -887,7 +889,9 @@ function getRoutePointRating(sample_number: number, test_point: Vec3d, side: num
 
 	const sector_side = getLocalEntityIntValue(sector_en, IntType.INT_TYPE_SECTOR_SIDE);
 
-	const side_bias = f32Mul(ROUTE_BIASING_SIDE_BIAS[movement_type], sector_side !== side ? 1 : 0);
+	// every sector is BLUE or RED (sc_int.c) and the group's side is always 0 (decision D2), so the
+	// sides always differ (test/unit/supply-task-transaction.test.ts)
+	const side_bias = f32Mul(ROUTE_BIASING_SIDE_BIAS[movement_type], sector_side !== side ? 1 : /* istanbul ignore next */ 0);
 
 	const scale = max(average_terrain_elevation, 1.0);
 
@@ -900,7 +904,7 @@ function getRoutePointRating(sample_number: number, test_point: Vec3d, side: num
 // Removes every interior node with a zero-length leg on either side, or whose
 // unit legs (get_inverse_square_root) have |dot product| > optimise_tolerance.
 //
-function optimiseRoute(first: RouteNode, movement_type: number): void {
+export function optimiseRoute(first: RouteNode, movement_type: number): void {
 	let node = first.next as RouteNode;
 
 	let prev_node = node.prev as RouteNode;

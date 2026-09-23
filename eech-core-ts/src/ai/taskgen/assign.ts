@@ -559,15 +559,13 @@ export function assignTaskToGroup(group: Entity | undefined, task_en: Entity | u
 				// if end keysite == start keysite then keysite MUST have enough sites because the aircraft are already there
 				//
 
-				const sites_required = getLocalGroupMemberCount(group);
+				// sites_required
+				getLocalGroupMemberCount(group);
 
-				if (getKeysiteLandingSitesAvailable(end_keysite, sub_type) < sites_required) {
-					//
-					// END keysite was specified - but no free landing sites for this group
-					//
-
-					return false;
-				}
+				// get_keysite_landing_sites_available (end_keysite, sub_type) < sites_required -> return FALSE
+				// (END keysite was specified - but no free landing sites for this group): landing sites are
+				// not ported. No unassigned supply task has a return keysite (create_supply_task leaves it NULL).
+				throw new UnportedBehaviourError(`landing.c :: get_keysite_landing_sites_available (landing type ${sub_type})`);
 			}
 		} else {
 			if (!start_keysite) {
@@ -613,14 +611,6 @@ export function assignTaskToGroup(group: Entity | undefined, task_en: Entity | u
 //
 export function assignTaskToGroupMembers(group: Entity, guide: Entity, valid_members: number): never {
 	throw new UnportedBoundaryError("assign.c :: assign_task_to_group_members", [group, guide, valid_members]);
-}
-
-//
-// C provenance: landing.c :: get_keysite_landing_sites_available: not ported. assign_task_to_group
-// asks it only for a return keysite other than the group's own, which no unassigned supply task has.
-//
-function getKeysiteLandingSitesAvailable(_keysite: Entity, _landing_type: number): number {
-	throw new UnportedBehaviourError("landing.c :: get_keysite_landing_sites_available");
 }
 
 //

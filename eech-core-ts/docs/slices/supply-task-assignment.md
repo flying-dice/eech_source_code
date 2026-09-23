@@ -44,7 +44,7 @@ The primary social case runs Slices 1–5b unchanged, then this slice:
 
 ## Restored state
 
-These restore operations were added. Each sets state that EECH persists in saved games:
+These restore operations were added. Each sets state that EECH persists in saved games. (Slice 6b replaces `unassigned-task` with `persisted-task`, which requires the task's route and return keysite. See `supply-task-assignment-route-guide.md` and the migration report `supply-task-assignment-fixture-migration.md`.)
 
 | Line | Meaning | EECH source of the state |
 |---|---|---|

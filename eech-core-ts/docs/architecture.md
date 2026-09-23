@@ -103,6 +103,9 @@ The ports introduced so far, each derived from C call sites:
 | `Clock.getDeltaTime`, `Clock.isFrameRateLocked` (slice 2) | `time.c :: set_delta_time` (frame measurement) and `locked_frame_rate` | `ScriptedClock` (the frame driver states each frame) |
 | `EntityReplication.transmitEntityCreate`, `transmitEntityDestroy` (slice 3) | `transmit_entity_comms_message (ENTITY_COMMS_CREATE / ENTITY_COMMS_DESTROY, ..)` | `RecordingEntityReplication` |
 | `Object3DMetadata.getBoundingBox` (slice 4) | `3dobjvis.c :: get_object_3d_bounding_box (object_3d_index_numbers)`, read by `keysite.c :: update_keysite_cargo` (and `sc_msgs.c` for fixed entities) | `InMemoryObject3DMetadata` (bounds only as the scenario declares them) |
+| `TerrainElevation.getTerrainElevation` (slice 6b) | `terrelev.h :: get_3d_terrain_elevation (x, z)`, called by `croute.c :: get_best_point` (the route search samples) and once per waypoint by `create_generic_waypoint_route` (value discarded, D4). The core narrows the result to float | `GridTerrainElevation` (a grid of cells and a default, as the scenario's `terrain` line gives them) |
+| `RoadNetwork.hasRoadNodeTable`, `getTotalNumberOfRoadNodes`, `getRoadNodePosition`, `getRoadNodeNumberOfLinks` (slice 6b) | `ai_route.h`: `road_node_positions`, `total_number_of_road_nodes`, `road_nodes [].number_of_links`, read by `ai_misc.c :: get_closest_road_node` (the search stays in the core) | `InMemoryRoadNetwork` (the nodes the scenario's `road-node` lines give; none means no table, which ASSERTs, D3) |
+| `EntityReplication.transmitEntityIntValue`, `transmitCreateWaypointRoute`, `transmitSwitchList`, `transmitSetGuideCriteria` (slice 6b) | `ENTITY_COMMS_INT_VALUE`, `CREATE_WAYPOINT_ROUTE`, `SWITCH_LIST`, `SET_GUIDE_CRITERIA` | `RecordingEntityReplication` |
 
 The game status (`global.c :: game_status`) is deliberately **not** a port: it is
 the campaign's own lifecycle phase, moved by the host's game flow like the comms
@@ -114,7 +117,7 @@ calls it.
 
 - `RandomSource`: `rand16`, `frand1`, `sfrand1`. The adapter must reproduce the
   EECH generator bit for bit, so the C harness can verify it.
-- `Terrain`: elevation and terrain type queries.
+- `Terrain`: terrain type queries (elevation at a point is `TerrainElevation`, slice 6b).
 - `WorldCommands`: create/destroy of physical members, and task/route hand-over
   to a physical group.
 - `CombatObservation`, `LandingObservation`: the events the `mb_msgs.c` handlers

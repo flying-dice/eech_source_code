@@ -50,7 +50,6 @@ import { defaultMessageResponse, messageResponses } from "../../system/en_msgs";
 import {
 	fnGetLocalEntityFloatValue,
 	fnGetLocalEntityIntValue,
-	fnGetLocalEntityVec3dPtr,
 	fnSetClientServerEntityFloatValue,
 	fnSetLocalEntityFloatValue,
 	fnSetLocalEntityIntValue,
@@ -355,7 +354,7 @@ export function overloadGuideFunctions(): void {
 	fnSetLocalEntityFloatValue.overload(GUIDE, FloatType.FLOAT_TYPE_VELOCITY, setLocalFloatValue);
 	fnSetClientServerEntityFloatValue[CommsModelType.COMMS_MODEL_SERVER].overload(GUIDE, FloatType.FLOAT_TYPE_VELOCITY, serverFloatValueSetter(setLocalFloatValue));
 
-	// C provenance: gd_vec3d.c :: set_local_vec3d (raw), get_local_vec3d_ptr (VEC3D_TYPE_POSITION)
+	// C provenance: gd_vec3d.c :: set_local_vec3d (the raw row: the creation attribute)
 	fnSetLocalEntityRawVec3d.overload(GUIDE, Vec3dType.VEC3D_TYPE_POSITION, (en, _type, v) => {
 		const position = getLocalEntityData<GuideRaw>(en).position;
 
@@ -363,7 +362,6 @@ export function overloadGuideFunctions(): void {
 		position.y = v.y;
 		position.z = v.z;
 	});
-	fnGetLocalEntityVec3dPtr.overload(GUIDE, Vec3dType.VEC3D_TYPE_POSITION, (en) => getLocalEntityData<GuideRaw>(en).position);
 
 	// C provenance: gd_msgs.c :: the link responses are overloaded only under DEBUG_MODULE: en_msgs.c's default
 	for (const message of [

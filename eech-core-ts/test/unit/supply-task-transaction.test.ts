@@ -12,17 +12,18 @@
 import { describe, expect, it } from "vitest";
 import { initialiseCampaignCore } from "../../src";
 import { assignKeysiteTasks, assignPrimaryTaskToGroup, assignTaskToGroup, pushTaskOntoGroupTaskStack } from "../../src/ai/taskgen/assign";
-import { createGenericWaypointRoute, generateRouteCheckSum, parserTaskWaypointRoute, secondPastRoute, type RouteNode } from "../../src/ai/taskgen/croute";
+import { createGenericWaypointRoute, generateRouteCheckSum, optimiseRoute, parserTaskWaypointRoute, secondPastRoute, type RouteNode } from "../../src/ai/taskgen/croute";
 import { getClosestRoadNode } from "../../src/ai/ai_misc/ai_misc";
 import { EechAssertionError, EechFatalError, EechNullDereferenceError, EechUndefinedBehaviourError, UnportedBehaviourError, UnportedBoundaryError } from "../../src/core/assert";
 import { getInverseSquareRoot } from "../../src/core/maths/invsqrt";
+import { getApprox3dRange } from "../../src/core/maths/range";
 import type { AircraftRaw } from "../../src/entity/mobile/aircraft/ac_float";
 import { clearedTaskGeneration, type ForceRaw } from "../../src/entity/special/force/force";
 import { clearedGuideRaw, createClientServerGuideEntity, getGuideCriteriaValid, initialiseGuideCriteria, setClientServerGuideCriteriaValid, type GuideRaw } from "../../src/entity/special/guide/guide";
 import type { GroupRaw } from "../../src/entity/special/group/group";
 import type { KeysiteRaw } from "../../src/entity/special/keysite/keysite";
 import { getLocalEntityLandingEntity } from "../../src/entity/special/landing/landing";
-import { createLocalSectorEntities } from "../../src/entity/special/sector/sector";
+import { createLocalSectorEntities, getLocalRawSectorEntity, type SectorRaw } from "../../src/entity/special/sector/sector";
 import { clearedTaskRaw, getLocalGroupPrimaryTask, type TaskRaw } from "../../src/entity/special/task/task";
 import { setUpdateEntity } from "../../src/entity/special/update/update";
 import { clearedWaypointRaw, type WaypointRaw } from "../../src/entity/special/waypoint/waypoint";
@@ -32,13 +33,25 @@ import { setCommsModel } from "../../src/entity/system/comms";
 import { createLocalEntity } from "../../src/entity/system/en_creat";
 import { createLocalEntityRaw, ENTITY_INDEX_DONT_CARE } from "../../src/entity/system/en_heap";
 import { deleteLocalEntityFromParentsChildList, getLocalEntityFirstChild, getLocalEntityParent, insertLocalEntityIntoParentsChildListRaw } from "../../src/entity/system/en_list";
-import { getLocalEntityCharValue, getLocalEntityFloatValue, getLocalEntityIntValue, setLocalEntityRawIntValue } from "../../src/entity/system/en_values";
-import { setEntityWorldMapSize } from "../../src/entity/system/en_world";
-import { getLocalEntityData, setSessionEntityRaw, type Entity } from "../../src/entity/system/entity";
+import { notifyLocalEntity } from "../../src/entity/system/en_msgs";
+import {
+	getLocalEntityCharValue,
+	getLocalEntityFloatValue,
+	getLocalEntityIntValue,
+	setLocalEntityFloatValue,
+	setLocalEntityIntValue,
+	setLocalEntityRawFloatValue,
+	setLocalEntityRawIntValue,
+} from "../../src/entity/system/en_values";
+import { boundPositionToAdjustedMapVolume, getWorldMap, MAP_PERIMETER_SIZE, setEntityWorldMapSize } from "../../src/entity/system/en_world";
+import { getEntityHeapState, getLocalEntityData, setSessionEntityRaw, type Entity } from "../../src/entity/system/entity";
+import { AIRCRAFT_DATABASE_CRUISE_VELOCITY } from "../../src/generated/c-aircraft-database";
+import { GROUP_DATABASE_DEFAULT_LANDING_TYPE } from "../../src/generated/c-group-database";
 import { TASK_ASSIGN_ALL_MEMBERS } from "../../src/generated/c-constants";
 import {
 	CharType,
 	CommsModelType,
+	EntityMessage,
 	EntitySide,
 	EntitySubTypeAircraft,
 	EntitySubTypeGroup,
@@ -51,6 +64,7 @@ import {
 	GuideCriteriaType,
 	IntType,
 	ListType,
+	MovementType,
 	PositionType,
 	TaskCategoryType,
 	TaskStateType,
@@ -138,6 +152,28 @@ describe("the database facts behind the slice's coverage exclusions", () => {
 		expect(TASK_DATABASE_ADD_START_WAYPOINT[SUPPLY]).toBe(1);
 		expect(TASK_DATABASE_ASSESS_LANDING[SUPPLY]).toBe(1);
 		expect(TASK_DATABASE_TASK_ROUTE_SEARCH[SUPPLY]).toBe(1);
+	});
+
+	it("every aircraft has a positive cruise velocity (a member's flight time is range / cruise velocity)", () => {
+		for (let i = 0; i < AIRCRAFT_DATABASE_CRUISE_VELOCITY.length; i++) {
+			expect(AIRCRAFT_DATABASE_CRUISE_VELOCITY[i], `aircraft ${i}`).toBeGreaterThan(0);
+		}
+	});
+
+	it("every sector is BLUE or RED, never the group's side 0 (decision D2): the route side bias always applies", () => {
+		world();
+		const sector = getLocalRawSectorEntity(0, 0) as Entity;
+		const raw = getLocalEntityData<SectorRaw>(sector);
+		for (const sides of [
+			[0, 0],
+			[1, 0],
+			[0, 1],
+			[1, 1],
+		]) {
+			raw.sector_side[BLUE] = sides[0];
+			raw.sector_side[EntitySide.ENTITY_SIDE_RED_FORCE] = sides[1];
+			expect(getLocalEntityIntValue(sector, IntType.INT_TYPE_SECTOR_SIDE)).not.toBe(EntitySide.ENTITY_SIDE_NEUTRAL);
+		}
 	});
 
 	it("NAVIGATION has no minimum previous waypoint distance in any column (the parser's second arm, decision D5)", () => {
@@ -323,7 +359,7 @@ describe("assign.c :: assign_task_to_group paths no valid supply selection takes
 	it("a return keysite other than the group's own asks for its free landing sites: not ported", () => {
 		const w = world();
 		getLocalEntityData<TaskRaw>(w.task).return_keysite = w.farp;
-		expect(() => assignTaskToGroup(w.group, w.task, TASK_ASSIGN_ALL_MEMBERS)).toThrow(new UnportedBehaviourError("landing.c :: get_keysite_landing_sites_available"));
+		expect(() => assignTaskToGroup(w.group, w.task, TASK_ASSIGN_ALL_MEMBERS)).toThrow(new UnportedBehaviourError(`landing.c :: get_keysite_landing_sites_available (landing type ${GROUP_DATABASE_DEFAULT_LANDING_TYPE[MLT]})`));
 	});
 
 	it("the group's own keysite as the return keysite needs no landing site check", () => {
@@ -648,4 +684,213 @@ describe("invsqrt.c :: get_inverse_square_root", () => {
 it("group side: every group's INT_TYPE_SECTOR_SIDE is en_int.c's default 0 (decision D2)", () => {
 	const w = world();
 	expect(getLocalEntityIntValue(w.group, IntType.INT_TYPE_SECTOR_SIDE)).toBe(0);
+});
+
+//
+// Paths of the ported functions that no valid supply transaction reaches,
+// hand-derived.
+//
+
+function fillHeap(): void {
+	while (getEntityHeapState().firstFreeEntity !== -1) {
+		createLocalEntityRaw(EntityType.ENTITY_TYPE_UPDATE, {});
+	}
+}
+
+describe("a full entity heap", () => {
+	it("gd_creat.c: create_local and create_server find no free entity; the client-server create is fatal", () => {
+		const w = world();
+		createGenericWaypointRoute(w.group, w.task, w.airbase);
+		fillHeap();
+		expect(() => createClientServerGuideEntity(w.task, undefined, 1)).toThrow(EechFatalError);
+	});
+
+	it("wp_creat.c: create_local finds no free entity; the local create is fatal", () => {
+		const w = world();
+		fillHeap();
+		expect(() => createLocalEntity(EntityType.ENTITY_TYPE_WAYPOINT, ENTITY_INDEX_DONT_CARE, [{ kind: "parent", type: ListType.LIST_TYPE_WAYPOINT, entity: w.task }])).toThrow(EechFatalError);
+	});
+});
+
+describe("the waypoint's values", () => {
+	it("wp_int.c, wp_float.c: every raw and local setter and getter; POSITION_TYPE and ROUTE_NODE are bitfields", () => {
+		const w = world();
+		createGenericWaypointRoute(w.group, w.task, w.airbase);
+		const wp = getLocalEntityFirstChild(w.task, ListType.LIST_TYPE_WAYPOINT) as Entity;
+		for (const set of [setLocalEntityRawIntValue, setLocalEntityIntValue]) {
+			set(wp, IntType.INT_TYPE_POSITION_TYPE, 1);
+			expect(getLocalEntityIntValue(wp, IntType.INT_TYPE_POSITION_TYPE)).toBe(1);
+			set(wp, IntType.INT_TYPE_ROUTE_NODE, 3);
+			expect(getLocalEntityIntValue(wp, IntType.INT_TYPE_ROUTE_NODE)).toBe(3);
+			set(wp, IntType.INT_TYPE_WAYPOINT_FORMATION, 2);
+			expect(getLocalEntityIntValue(wp, IntType.INT_TYPE_WAYPOINT_FORMATION)).toBe(2);
+		}
+		// the local setter has no formation ASSERT
+		setLocalEntityIntValue(wp, IntType.INT_TYPE_WAYPOINT_FORMATION, FormationType.NUM_FORMATION_TYPES + 1);
+		expect(getLocalEntityIntValue(wp, IntType.INT_TYPE_WAYPOINT_FORMATION)).toBe(FormationType.NUM_FORMATION_TYPES + 1);
+		for (const set of [setLocalEntityRawFloatValue, setLocalEntityFloatValue]) {
+			set(wp, FloatType.FLOAT_TYPE_ALTITUDE, 150);
+			set(wp, FloatType.FLOAT_TYPE_FLIGHT_TIME, 60);
+			set(wp, FloatType.FLOAT_TYPE_HEADING, 1.5);
+			expect([FloatType.FLOAT_TYPE_ALTITUDE, FloatType.FLOAT_TYPE_FLIGHT_TIME, FloatType.FLOAT_TYPE_HEADING].map((t) => getLocalEntityFloatValue(wp, t))).toEqual([150, 60, 1.5]);
+		}
+	});
+
+	it("wp_msgs.c: a LINK_PARENT or UNLINK_PARENT from no sender re-tags nothing", () => {
+		const w = world();
+		createGenericWaypointRoute(w.group, w.task, w.airbase);
+		const wp = getLocalEntityFirstChild(w.task, ListType.LIST_TYPE_WAYPOINT) as Entity;
+		const tag = getLocalEntityCharValue(wp, CharType.CHAR_TYPE_TAG);
+		resetWaypointTags();
+		getWaypointSubTypeTag(W.ENTITY_SUB_TYPE_WAYPOINT_NAVIGATION);
+		for (const message of [EntityMessage.ENTITY_MESSAGE_LINK_PARENT, EntityMessage.ENTITY_MESSAGE_UNLINK_PARENT]) {
+			expect(notifyLocalEntity(message, wp, undefined, ListType.LIST_TYPE_WAYPOINT)).toBe(1);
+		}
+		expect(getLocalEntityCharValue(wp, CharType.CHAR_TYPE_TAG)).toBe(tag);
+		expect(getWaypointSubTypeTag(W.ENTITY_SUB_TYPE_WAYPOINT_NAVIGATION)).toBe(66);
+	});
+
+	it("wp_char.c: every waypoint sub type is a navigation, target or landing tag", () => {
+		const navigation = [W.ENTITY_SUB_TYPE_WAYPOINT_CAP_START, W.ENTITY_SUB_TYPE_WAYPOINT_END, W.ENTITY_SUB_TYPE_WAYPOINT_NAVIGATION];
+		const landing = [
+			W.ENTITY_SUB_TYPE_WAYPOINT_APPROACH,
+			W.ENTITY_SUB_TYPE_WAYPOINT_CONVOY,
+			W.ENTITY_SUB_TYPE_WAYPOINT_HOLDING,
+			W.ENTITY_SUB_TYPE_WAYPOINT_HOLDING_LOOP,
+			W.ENTITY_SUB_TYPE_WAYPOINT_LAND,
+			W.ENTITY_SUB_TYPE_WAYPOINT_LANDED,
+			W.ENTITY_SUB_TYPE_WAYPOINT_LIFT_OFF,
+			W.ENTITY_SUB_TYPE_WAYPOINT_LOWER_UNDERCARRIAGE,
+			W.ENTITY_SUB_TYPE_WAYPOINT_REVERSE_CONVOY,
+			W.ENTITY_SUB_TYPE_WAYPOINT_RAISE_UNDERCARRIAGE,
+			W.ENTITY_SUB_TYPE_WAYPOINT_START_UP,
+			W.ENTITY_SUB_TYPE_WAYPOINT_SUB_ROUTE_NAVIGATION,
+			W.ENTITY_SUB_TYPE_WAYPOINT_TAXI,
+			W.ENTITY_SUB_TYPE_WAYPOINT_TOUCH_DOWN,
+			W.ENTITY_SUB_TYPE_WAYPOINT_TAKEN_OFF,
+		];
+		for (let type = 0; type < W.NUM_ENTITY_SUB_TYPE_WAYPOINTS; type++) {
+			resetWaypointTags();
+			const expected = navigation.indexOf(type) >= 0 ? 65 : landing.indexOf(type) >= 0 ? 87 : 88;
+			expect(getWaypointSubTypeTag(type), W[type]).toBe(expected);
+		}
+	});
+});
+
+describe("the task's route checksum and the group's primary task", () => {
+	it("ts_int.c: INT_TYPE_ROUTE_CHECK_SUM is an 8-bit unsigned bitfield", () => {
+		const w = world();
+		setLocalEntityIntValue(w.task, IntType.INT_TYPE_ROUTE_CHECK_SUM, 0x1a5);
+		expect(getLocalEntityIntValue(w.task, IntType.INT_TYPE_ROUTE_CHECK_SUM)).toBe(0xa5);
+	});
+
+	it("get_local_group_primary_task skips a guide whose task is not primary", () => {
+		const w = world();
+		const engage = clearedTaskRaw();
+		engage.sub_type = EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_ENGAGE;
+		expect(TASK_DATABASE_PRIMARY_TASK[engage.sub_type]).toBe(0);
+		const task = createLocalEntityRaw(EntityType.ENTITY_TYPE_TASK, engage);
+		const guide = createLocalEntityRaw(EntityType.ENTITY_TYPE_GUIDE, clearedGuideRaw());
+		insertLocalEntityIntoParentsChildListRaw(guide, ListType.LIST_TYPE_GUIDE, task, undefined);
+		insertLocalEntityIntoParentsChildListRaw(guide, ListType.LIST_TYPE_GUIDE_STACK, w.group, undefined);
+		expect(getLocalGroupPrimaryTask(w.group)).toBeUndefined();
+	});
+});
+
+describe("route geometry", () => {
+	const chain = (points: [number, number][]): RouteNode => {
+		const nodes: RouteNode[] = points.map(([x, z]) => ({ type: 0, formation: 0, dependent: undefined, position: point(x, z), next: undefined, prev: undefined }));
+		for (let i = 0; i < nodes.length; i++) {
+			nodes[i].next = nodes[i + 1];
+			nodes[i].prev = nodes[i - 1];
+		}
+		return nodes[0];
+	};
+
+	const positions = (first: RouteNode): number[][] => {
+		const out: number[][] = [];
+		for (let n: RouteNode | undefined = first; n; n = n.next) {
+			out.push([n.position.x, n.position.z]);
+		}
+		return out;
+	};
+
+	it("croute.c :: optimise_route removes a node on a zero-length leg on either side, and a straight-through node", () => {
+		world();
+		const first = chain([
+			[0, 0],
+			[0, 0],
+			[1000, 0],
+			[1000, 0],
+			[2000, 0],
+			[2000, 1000],
+		]);
+		optimiseRoute(first, MovementType.MOVEMENT_TYPE_AIR);
+		expect(positions(first)).toEqual([
+			[0, 0],
+			[2000, 0],
+			[2000, 1000],
+		]);
+	});
+
+	it("croute.c :: generate_route_check_sum: a single node has no interior; interior nodes sum (int) x + y + z modulo 256", () => {
+		expect(generateRouteCheckSum(chain([[5, 7]]))).toBe(0);
+		expect(generateRouteCheckSum(chain([[1, 1], [200.9, 100.5], [1, 1]]))).toBe((200 + 0 + 100) % 256);
+	});
+
+	it("maths: get_approx_3d_range orders the three deltas: max + (med + min) / 4", () => {
+		expect(getApprox3dRange(point(0, 0), { x: 1, y: 4, z: 2 })).toBe(4.75);
+		expect(getApprox3dRange(point(0, 0), { x: 1, y: 2, z: 4 })).toBe(4.75);
+		expect(getApprox3dRange(point(0, 0), { x: 4, y: 2, z: 1 })).toBe(4.75);
+	});
+
+	it("en_world.c :: bound_position_to_adjusted_map_volume: the perimeter in x and z, the volume in y", () => {
+		world();
+		const map = getWorldMap();
+		const inside = { x: 10000, y: 0, z: 10000 };
+		expect(boundPositionToAdjustedMapVolume(inside)).toBe(false);
+		expect(inside).toEqual({ x: 10000, y: 0, z: 10000 });
+		const low = { x: 0, y: -9000, z: 0 };
+		expect(boundPositionToAdjustedMapVolume(low)).toBe(true);
+		expect(low).toEqual({ x: map.min_map_x + MAP_PERIMETER_SIZE, y: map.min_map_y, z: map.min_map_z + MAP_PERIMETER_SIZE });
+		const high = { x: map.max_map_x, y: 70000, z: map.max_map_z };
+		expect(boundPositionToAdjustedMapVolume(high)).toBe(true);
+		expect(high).toEqual({ x: map.max_map_x - MAP_PERIMETER_SIZE, y: map.max_map_y, z: map.max_map_z - MAP_PERIMETER_SIZE });
+		for (const p of [
+			{ x: 0, y: 0, z: 10000 },
+			{ x: 10000, y: 70000, z: 10000 },
+			{ x: 10000, y: 0, z: map.max_map_z },
+		]) {
+			expect(boundPositionToAdjustedMapVolume(p)).toBe(true);
+		}
+	});
+});
+
+//
+// get_inverse_square_root against the original C (the harness's `invsqrt`
+// command, test/c-reference/route-databases.cref.test.ts): float bits in, float
+// bits out. Subnormal arguments, exact powers of two, and the largest float.
+//
+describe("invsqrt.c :: get_inverse_square_root at the float edges (bits from the original C)", () => {
+	const bits = (hex: string): number => {
+		const view = new DataView(new ArrayBuffer(4));
+		view.setUint32(0, Number.parseInt(hex, 16));
+		return view.getFloat32(0);
+	};
+	for (const [x, r] of [
+		["00000001", "5fcb9ffc"],
+		["00400000", "5f3465ad"],
+		["007fffff", "5f000000"],
+		["3f800000", "3f7fffff"],
+		["40800000", "3effffff"],
+		["41000000", "3eb504f3"],
+		["3e800000", "3fffffff"],
+		["7f7fffff", "1f800000"],
+		["3fc00000", "3f5105ec"],
+	]) {
+		it(`${x} -> ${r}`, () => {
+			world();
+			expect(getInverseSquareRoot(bits(x))).toBe(bits(r));
+		});
+	}
 });
