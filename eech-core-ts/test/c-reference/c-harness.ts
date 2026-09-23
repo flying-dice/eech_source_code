@@ -37,6 +37,13 @@ export function formatNumberForC(n: number): string {
 	return String(n);
 }
 
+export function doubleFromBits(hex: string): number {
+	const view = new DataView(new ArrayBuffer(8));
+	view.setUint32(0, Number.parseInt(hex.substring(0, 8), 16));
+	view.setUint32(4, Number.parseInt(hex.substring(8), 16));
+	return view.getFloat64(0);
+}
+
 export function floatFromBits(hex: string): number {
 	const view = new DataView(new ArrayBuffer(4));
 	view.setUint32(0, Number.parseInt(hex, 16));
@@ -161,6 +168,7 @@ export function runCTimeline(spec: TimelineSpec, binary: string = harness()): Ti
 export function runCFloat32(ops: [string, number, number][]): string[] {
 	const fmt = (n: number): string => (Object.is(n, -0) ? "-0" : String(n));
 	const input = ops.map(([op, a, b]) => `f32 ${op} ${fmt(a)}${op === "narrow" || op === "sqrt" ? "" : ` ${fmt(b)}`}`).join("\n") + "\n";
+	// dsum results are double bit patterns (16 hex digits), the others float (8)
 	const run = spawnSync(harness(), [], { input, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
 
 	if (run.status !== 0) {

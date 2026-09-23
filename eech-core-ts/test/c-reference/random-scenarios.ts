@@ -4,7 +4,8 @@
 // executing the original C.
 //
 
-import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, FloatType, IntType, ListType, Vec3dType } from "../../src/generated/c-enums";
+import { OBJECT_3D_SINGLE_CRATE } from "../../src/generated/c-constants";
+import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, FloatType, GameStatusType, IntType, ListType, Vec3dType } from "../../src/generated/c-enums";
 import type { GroupParentSpec, KeysiteSpec, PositionSpec, ScenarioSpec } from "../scenarios/campaign-scenario";
 import type { LifecycleAttribute, LifecycleOp, LifecycleSpec } from "../scenarios/lifecycle-scenario";
 import type { TimelineSpec, TimelineStep } from "../scenarios/update-timeline";
@@ -315,4 +316,146 @@ export function generateFloat32RtzOperands(seed: number, count: number): [Float3
 		}
 	}
 	return out;
+}
+
+//
+// Operands for f64AddRTZ (src/core/float32.ts), the double sum of
+// keysite.c :: update_keysite_cargo's (xmax - xmin) + 1.0: crate widths plus
+// 1.0, tiny and huge widths where the sum is inexact, and sums whose exact
+// value lies within a double ulp of a double.
+//
+export function generateDoubleSumOperands(seed: number, count: number): [Float32RtzOp, number, number][] {
+	const rnd = mulberry32(seed);
+	const int = (n: number) => Math.floor(rnd() * n);
+	const sign = () => (rnd() < 0.5 ? -1 : 1);
+	const out: [Float32RtzOp, number, number][] = [];
+	while (out.length < count) {
+		const kind = int(4);
+		const a =
+			kind === 0
+				? Math.fround(sign() * rnd() * Math.pow(2, int(24) - 8))
+				: kind === 1
+					? sign() * Math.pow(2, -int(60) - 20) * (1 + rnd())
+					: kind === 2
+						? sign() * Math.pow(2, 50 + int(10)) * (1 + rnd())
+						: sign() * rnd() * Math.pow(2, int(200) - 100);
+		const b = rnd() < 0.5 ? 1.0 : sign() * Math.abs(a) * Math.pow(2, -int(70));
+		out.push(["dsum", a, b]);
+	}
+	return out;
+}
+
+//
+// Slice 4: keysite.c :: update_keysite_cargo on the Slice 3 lifecycle.
+// Keysites (alive or not, in use or not, of every type), the crate's bounds
+// (realistic, fractional, degenerate), the game status, crates restored as a
+// saved game holds them, and runs of updates whose levels sit on and around
+// crate multiples and the request threshold. Heaps are sometimes too small
+// for the crates asked for (the original's debug_fatal).
+//
+export function generateRandomKeysiteCargo(seed: number, count: number): LifecycleSpec[] {
+	const rnd = mulberry32(seed);
+	const int = (n: number) => Math.floor(rnd() * n);
+	const chance = (p: number) => rnd() < p;
+	const pick = <T>(values: T[]): T => values[int(values.length)];
+	const sides = [EntitySide.ENTITY_SIDE_BLUE_FORCE, EntitySide.ENTITY_SIDE_RED_FORCE];
+	const real = (lo: number, hi: number) => Math.round((lo + rnd() * (hi - lo)) * 1000) / 1000;
+	const quarter = (lo: number, hi: number) => Math.round((lo + rnd() * (hi - lo)) * 4) / 4;
+
+	const specs: LifecycleSpec[] = [];
+
+	for (let n = 0; n < count; n++) {
+		const forces: EntitySide[] = chance(0.1) ? [] : chance(0.4) ? [sides[0], sides[1]] : [sides[int(2)]];
+
+		const xSectors = 1 + int(4);
+		const zSectors = 1 + int(4);
+		const sideLength = pick([256, 512, 1024]);
+		const maxX = xSectors * sideLength - 1;
+		const maxZ = zSectors * sideLength - 1;
+
+		const keysites: KeysiteSpec[] = [];
+		const numKeysites = 1 + int(3);
+		for (let i = 0; i < numKeysites; i++) {
+			keysites.push({
+				side: sides[int(2)],
+				subType: int(EntitySubTypeKeysite.NUM_ENTITY_SUB_TYPE_KEYSITES),
+				inUse: chance(0.9),
+				// crate rows extend in +x and +z; some start near the far edges
+				x: chance(0.5) ? quarter(0, maxX - 60) : real(0, maxX - 60),
+				z: chance(0.5) ? quarter(0, maxZ - 20) : real(0, maxZ - 20),
+				ammo: 100,
+				fuel: 100,
+			});
+		}
+
+		const ops: LifecycleOp[] = [];
+
+		for (let i = 0; i < numKeysites; i++) {
+			ops.push({ kind: "keysite-state", keysite: `keysite${i}`, alive: chance(0.92) ? 1 : chance(0.5) ? 0 : 2, y: chance(0.5) ? quarter(-10, 300) : real(-10, 300) });
+		}
+
+		const width = chance(0.1) ? 0 : chance(0.5) ? quarter(0.25, 3) : real(0.01, 3);
+		const depth = chance(0.1) ? 0 : chance(0.5) ? quarter(0.25, 3) : real(0.01, 3);
+		const height = chance(0.5) ? quarter(0, 2) : real(0, 2);
+		const xmin = chance(0.3) ? -width / 2 : -real(0, width);
+		const zmin = chance(0.3) ? -depth / 2 : -real(0, depth);
+		const ymin = chance(0.2) ? 0 : -real(0, height);
+		ops.push({ kind: "bounds", object: OBJECT_3D_SINGLE_CRATE, xmin, xmax: xmin + width, ymin, ymax: ymin + height, zmin, zmax: zmin + depth });
+
+		ops.push({ kind: "map", xSectors, zSectors, sideLength });
+
+		if (!chance(0.1)) {
+			ops.push({ kind: "game-status", status: chance(0.9) ? GameStatusType.GAME_STATUS_INITIALISED : pick([GameStatusType.GAME_STATUS_UNINITIALISED, GameStatusType.GAME_STATUS_INITIALISING]) });
+		}
+
+		// crates a saved game restores (anywhere near their keysite, any sub type)
+		const numRestored = chance(0.3) ? int(5) : 0;
+		for (let r = 0; r < numRestored; r++) {
+			const k = int(numKeysites);
+			ops.push({
+				kind: "create",
+				label: `r${r}`,
+				type: EntityType.ENTITY_TYPE_CARGO,
+				index: -1,
+				attributes: [
+					{ kind: "parent", type: ListType.LIST_TYPE_CARGO, target: `keysite${k}` },
+					{ kind: "int", type: IntType.INT_TYPE_SIDE, value: keysites[k].side },
+					{ kind: "int", type: IntType.INT_TYPE_ENTITY_SUB_TYPE, value: chance(0.9) ? int(2) : 2 },
+					{ kind: "vec3d", type: Vec3dType.VEC3D_TYPE_POSITION, x: keysites[k].x + quarter(0, 30), y: 0, z: keysites[k].z + quarter(0, 10) },
+				],
+			});
+		}
+
+		const numUpdates = 1 + int(10);
+		let crates = numRestored;
+		for (let u = 0; u < numUpdates; u++) {
+			if (chance(0.05)) {
+				ops.push({ kind: "game-status", status: pick([GameStatusType.GAME_STATUS_INITIALISED, GameStatusType.GAME_STATUS_INITIALISING]) });
+			}
+
+			const size = chance(0.8) ? 10 : chance(0.5) ? pick([0.1, 1.1, 2.5, 7.5, 12]) : real(0.5, 12);
+			const levelKind = int(6);
+			const level =
+				levelKind === 0
+					? size * int(11)
+					: levelKind === 1
+						? pick([75, 75.00001, 74.99999, 0, 100])
+						: levelKind === 2
+							? size * int(11) + pick([0.001, -0.001, 0.5])
+							: levelKind === 3
+								? real(-5, 5)
+								: real(0, 100);
+			ops.push({ kind: "update-cargo", keysite: `keysite${int(numKeysites)}`, level, subType: chance(0.95) ? int(2) : 2, size });
+			crates += Math.max(0, Math.ceil(level / size));
+		}
+
+		// session, update, forces, keysites, sectors, restored crates; then room
+		// for the crates asked for, or (rarely) too little
+		const used = 2 + forces.length + numKeysites + xSectors * zSectors + numRestored;
+		const heap = chance(0.05) ? used + int(4) : used + Math.min(crates, 400) + 8;
+
+		specs.push({ heap, forces, keysites, ops });
+	}
+
+	return specs;
 }

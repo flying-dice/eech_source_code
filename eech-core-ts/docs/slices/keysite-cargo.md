@@ -62,7 +62,7 @@ void update_keysite_cargo (entity *en, float cargo_level, entity_sub_types sub_t
   - The comparison is `cargo_level <= 75.0`, on the level passed in, not on the remainder.
   - Keysite types whose usage for that supply is `>= 0` never notify.
   - There is no latch: every qualifying call notifies again.
-- **Force lookup.** `get_local_force_entity (raw->side)` can return NULL (no force for the side, or no session). In that case `notify_local_entity` dereferences NULL. In the port this is `EechNullDereferenceError`, as Slice 1 did for the same lookup.
+- **Force lookup.** `get_local_force_entity (raw->side)` can return NULL (no force for the side, or no session). `notify_local_entity` then fails its `ASSERT (receiver)` (`en_msgs.c:197`), exactly as `assess_group_supplies` does in Slice 1.
 
 ### Numerics (the RTZ contract, `src/core/float32.ts`)
 
@@ -137,3 +137,56 @@ interface Object3DMetadata {
 - **`get_game_status`.** It is now the original macro over an extracted `extern game_status_types game_status`. The harness defines `game_status` (host state, zero-initialised as in C), and scenarios set it. The former fail-loud `get_game_status` function stub is gone.
 - **`get_object_3d_bounding_box`.** It returns the scenario's declared bounds for the requested index, and fails loudly for any other index. It used to fail loudly for every index.
 - **Frozen outputs.** The existing 127 C-reference tests and all recorded fixtures are unchanged with `keysite.c` compiled whole.
+
+## Selected boundary
+
+**Ported to TypeScript:**
+- `keysite.c :: update_keysite_cargo` as `updateKeysiteCargo` (`src/entity/special/keysite/keysite.ts`), statement for statement.
+- The keysite `alive` bit-field and the `INT_TYPE_SIDE` getter (`ks_int.c`).
+- The game status as core state (`src/core/game-status.ts`), reset to `GAME_STATUS_UNINITIALISED` by `initialiseCampaignCore`.
+- `f64AddRTZ`: the double sum `(xmax − xmin) + 1.0` under round toward zero.
+- Generated from the C:
+  - `KEYSITE_DATABASE_AMMO_SUPPLY_USAGE` and `_FUEL_` (`ks_dbase.c`);
+  - `KEYSITE_SUPPLY_REQUEST_THRESHOLD`, `CARGO_AMMO_SIZE` and `CARGO_FUEL_SIZE`;
+  - `OBJECT_3D_SINGLE_CRATE`, whose index is computed from the `3dmodels.h` X-macro list and cross-checked by the harness, which looks the scenario's bounds up under the C value;
+  - `GameStatusType`.
+
+**Port:** `Object3DMetadata.getBoundingBox (objectIndex)` (`src/ports/object-3d-metadata.ts`).
+
+**Boundary:** `ENTITY_MESSAGE_FORCE_LOW_ON_SUPPLIES` reaches the unported force response (`fc_msgs.c`, Slice 5).
+- In production it throws.
+- Test runners use the existing `unportedMessagePolicy: "record"`, and the C harness records it the same way (`record_force_low_on_supplies`).
+- Both print `message <force> <keysite> <message> <sub_type>`.
+
+**Not in this slice:**
+- the callers (`ks_creat.c`, `ks_updt.c`);
+- the rest of `keysite.c`;
+- WUT overrides of the keysite database (`wutcfg.c`), as for the group database;
+- the original crate geometry, which a deployment supplies through the port.
+
+## Conformance
+
+Every run exercises the Slice 3 lifecycle socially: a real keysite, sector grid and cargo list, with creation and destruction through the original cargo path. The observable output is the entity graph (heap order, cargo values, keysite cargo lists, sector lists), the replication operations, and the recorded `FORCE_LOW_ON_SUPPLIES` deliveries.
+
+- **Behaviour matrix** (`test/scenarios/keysite-cargo.cases.ts`, 32 cases), organised by crate-count transition:
+  - **creation:** none at exactly one crate; one; several, newest first; one fewer at an exact multiple;
+  - **retention:** all at an exact multiple; no change above the threshold; steady state notifying on every call;
+  - **destruction:** oldest first; several in list order; all; a later crate landing on a survivor, with index reuse; a negative size that refills the remainder after destroying (the only input under which a destroyed crate's x could matter);
+  - **notification:**
+    - a missing crate materialised instead of notifying;
+    - exactly at the threshold, and just above it;
+    - fuel's argument;
+    - keysite-type gating: factory, power station;
+    - no force for the side, which trips the receiver assert;
+  - **ammo and fuel independently**, and the third (supplies) row;
+  - **guards:** initialising, uninitialised, dead, not in use, the alive bit-field;
+  - **positions:** zero-size crate, fractional bounds under RTZ, a row crossing a sector boundary;
+  - **RTZ-sensitive counting:** 0.3/0.1 and 7.7/1.1, where rounding to nearest would create one crate more.
+
+  Each case has hand-derived expected lines and absent prefixes. It runs in JavaScript and Lua 5.1, and against the executed original C, where the TypeScript output must equal the C's line for line.
+- **Random differential** (`generateRandomKeysiteCargo`):
+  - 1,000 fresh scenarios, TypeScript against the C, line for line. The generator must keep reaching creation, destruction, notification, create-and-notify, the receiver assert and heap exhaustion.
+  - 150 recorded (`c-reference-random-keysite-cargo.cases.ts`) and replayed under Lua 5.1.
+- **RTZ double sum:** 20,000 fresh sums plus boundary values against C, and 1,000 recorded and replayed in JS and Lua 5.1. The recording is separate, so the #7 float fixture stays frozen.
+- **Frozen fixtures:** Slices 1–3 and #7 are byte-identical. `npm run cref:record` rewrites the three scenario fixtures unchanged.
+- **Coverage:** 100%. **Mutation controls:** 19 for this slice; see `scripts/mutation-check.mjs`.

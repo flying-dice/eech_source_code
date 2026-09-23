@@ -212,6 +212,59 @@ export function f32Sub(a: number, b: number): number {
 	return f32Add(a, -b);
 }
 
+const DBL_MAX = 1.7976931348623157e308;
+
+const DOUBLE_MANTISSA_BITS = 52;
+
+// the double next to d toward zero, for a normal d above the smallest normal
+// (2^-1022): an inexact double sum is never smaller, because sums in and just
+// above the subnormal range lie on its fixed 2^-1074 grid and are exact
+function nextDoubleTowardZero(d: number): number {
+	const sign = d < 0 ? -1 : 1;
+
+	const magnitude = d * sign;
+
+	let exponent = Math.floor(Math.log(magnitude) / Math.LN2);
+
+	while (Math.pow(2, exponent) > magnitude) {
+		exponent -= 1;
+	}
+
+	while (Math.pow(2, exponent + 1) <= magnitude) {
+		exponent += 1;
+	}
+
+	let quantum = Math.pow(2, exponent - DOUBLE_MANTISSA_BITS);
+
+	// at a power of two the spacing below is half
+	if (magnitude === Math.pow(2, exponent)) {
+		quantum = quantum / 2;
+	}
+
+	return sign * (magnitude - quantum);
+}
+
+// a + b for doubles, rounded toward zero: a C double sum under EECH's FPU
+// rounding (e.g. keysite.c's (xmax - xmin) + 1.0). Needed where the double
+// result is not stored straight into a float by one truncation of the exact
+// value; a sum that is is f32Add.
+export function f64AddRTZ(a: number, b: number): number {
+	const s = a + b;
+
+	if (s === 1 / 0 || s === -1 / 0) {
+		// a finite sum beyond DBL_MAX truncates to DBL_MAX
+		return a === s || b === s ? s : s > 0 ? DBL_MAX : -DBL_MAX;
+	}
+
+	const error = sumError(a, b, s);
+
+	if (s !== 0 && ((error < 0 && s > 0) || (error > 0 && s < 0))) {
+		return nextDoubleTowardZero(s);
+	}
+
+	return s;
+}
+
 // a * b for floats (or a float and an int of at most 24 bits): the double
 // product is exact, so truncating it is exact
 export function f32Mul(a: number, b: number): number {

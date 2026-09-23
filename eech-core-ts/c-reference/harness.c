@@ -549,7 +549,6 @@ void destroy_local_sound_effects (entity *en) { NOT_REACHED ("destroy_local_soun
 void set_gunship_entity (entity *en) { NOT_REACHED ("set_gunship_entity"); }
 
 /* sector responses for fixed entities, aircraft and vehicles (sc_msgs.c, sector.c) */
-struct OBJECT_3D_BOUNDS *get_object_3d_bounding_box (object_3d_index_numbers object) { NOT_REACHED ("get_object_3d_bounding_box (Slice 4)"); return NULL; }
 void set_sector_fog_of_war_value (entity *en, entity *sector_en) { NOT_REACHED ("set_sector_fog_of_war_value"); }
 void update_imap_surface_to_air_defence_level (entity *en, entity *sector, int in_use) { NOT_REACHED ("update_imap_surface_to_air_defence_level"); }
 void update_imap_surface_to_surface_defence_level (entity *en, entity *sector, int in_use) { NOT_REACHED ("update_imap_surface_to_surface_defence_level"); }
@@ -734,10 +733,48 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* global.c: the host's game status (gameflow.c / flight.c set it); the
-   scenario sets it (the "game-status" line), GAME_STATUS_INITIALISED by default */
+/*
+ * 3dobjvis.c :: get_object_3d_bounding_box: the 3D object database, loaded at
+ * run time from the game's object files. The scenario declares the bounds of
+ * each object it uses (the "bounds" line); any other object fails loudly.
+ */
+#define MAX_HARNESS_OBJECT_BOUNDS 8
+
+static struct
+{
+	object_3d_index_numbers
+		object;
+
+	struct OBJECT_3D_BOUNDS
+		bounds;
+}
+	harness_object_bounds [MAX_HARNESS_OBJECT_BOUNDS];
+
+static int
+	num_harness_object_bounds;
+
+struct OBJECT_3D_BOUNDS *get_object_3d_bounding_box (object_3d_index_numbers object)
+{
+	int
+		i;
+
+	for (i = 0; i < num_harness_object_bounds; i++)
+	{
+		if (harness_object_bounds[i].object == object)
+		{
+			return &harness_object_bounds[i].bounds;
+		}
+	}
+
+	harness_fail ("get_object_3d_bounding_box: the scenario declares no bounds for this object");
+
+	return NULL;
+}
+
+/* global.c: the host's game status (gameflow.c / flight.c set it), zero
+   (GAME_STATUS_UNINITIALISED) until the scenario's "game-status" line sets it */
 game_status_types
-	game_status = GAME_STATUS_INITIALISED;
+	game_status;
 
 /* read only by keysite.c functions the harness never calls */
 int
@@ -1546,7 +1583,7 @@ int main (void)
 			/*
 			 * One C float operation under the canonical environment, the reference
 			 * for src/core/float32.ts (test/c-reference/float32-rtz.cref.test.ts).
-			 * Operands of mul, div and sqrt are floats; narrow and sum take doubles.
+			 * Operands of mul, div and sqrt are floats; narrow, sum and dsum take doubles.
 			 */
 			const char *kind = next_token (&cursor);
 			volatile float result;
@@ -1575,6 +1612,21 @@ int main (void)
 			{
 				volatile float a = next_float (&cursor);
 				result = sqrt (a);
+			}
+			else if (strcmp (kind, "dsum") == 0)
+			{
+				/* a double sum (e.g. keysite.c's (xmax - xmin) + 1.0), printed as double bits */
+				volatile double d1 = next_double (&cursor), d2 = next_double (&cursor);
+				volatile double sum = d1 + d2;
+				unsigned long long bits;
+
+				memcpy (&bits, (const void *) &sum, sizeof (bits));
+
+				printf ("f32 %016llx\n", bits);
+
+				f32_lines++;
+
+				continue;
 			}
 			else
 			{
@@ -1796,6 +1848,78 @@ int main (void)
 			print_timeline_state (step);
 
 			step++;
+		}
+		else if (strcmp (word, "game-status") == 0)
+		{
+			/* the host's game flow (global.c :: set_game_status) */
+			game_status = (game_status_types) next_int (&cursor);
+		}
+		else if (strcmp (word, "bounds") == 0)
+		{
+			/* the 3D object database entry of one object (get_object_3d_bounding_box);
+			   a later line for the same object replaces its entry */
+			object_3d_index_numbers object = (object_3d_index_numbers) next_int (&cursor);
+			int entry;
+
+			for (entry = 0; (entry < num_harness_object_bounds) && (harness_object_bounds[entry].object != object); entry++)
+			{
+			}
+
+			if (entry == num_harness_object_bounds)
+			{
+				if (num_harness_object_bounds == MAX_HARNESS_OBJECT_BOUNDS) harness_fail ("too many bounds lines");
+
+				num_harness_object_bounds++;
+			}
+
+			harness_object_bounds[entry].object = object;
+			harness_object_bounds[entry].bounds.xmin = next_float (&cursor);
+			harness_object_bounds[entry].bounds.xmax = next_float (&cursor);
+			harness_object_bounds[entry].bounds.ymin = next_float (&cursor);
+			harness_object_bounds[entry].bounds.ymax = next_float (&cursor);
+			harness_object_bounds[entry].bounds.zmin = next_float (&cursor);
+			harness_object_bounds[entry].bounds.zmax = next_float (&cursor);
+		}
+		else if (strcmp (word, "keysite-state") == 0)
+		{
+			/* raw keysite state a saved game holds: the alive bit and the height */
+			keysite *raw = (keysite *) get_local_entity_data (find_created (next_token (&cursor)));
+
+			raw->alive = next_int (&cursor);
+			raw->position.y = next_float (&cursor);
+		}
+		else if (strcmp (word, "update-cargo") == 0)
+		{
+			/* keysite.c :: update_keysite_cargo (en, cargo_level, sub_type, cargo_size) */
+			entity *target = find_created (next_token (&cursor));
+			float level = next_float (&cursor);
+			entity_sub_types sub_type = (entity_sub_types) next_int (&cursor);
+			float size = next_float (&cursor);
+			entity *en;
+
+			lifecycle = TRUE;
+
+			if (setjmp (abort_operation) != 0)
+			{
+				print_lifecycle_state ();
+
+				return 0;
+			}
+
+			in_operation = TRUE;
+
+			update_keysite_cargo (target, level, sub_type, size);
+
+			in_operation = FALSE;
+
+			/* crates the original created are labelled by index */
+			for (en = first_used_entity; en; en = en->succ)
+			{
+				if ((get_local_entity_type (en) == ENTITY_TYPE_CARGO) && (labels[get_local_entity_index (en)][0] == '\0'))
+				{
+					snprintf (labels[get_local_entity_index (en)], sizeof (labels[0]), "crate%d", get_local_entity_index (en));
+				}
+			}
 		}
 		else if ((strcmp (word, "map") == 0) || (strcmp (word, "create") == 0) || (strcmp (word, "destroy") == 0) || (strcmp (word, "allocate") == 0))
 		{

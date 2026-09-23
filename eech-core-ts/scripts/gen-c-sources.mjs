@@ -36,6 +36,7 @@ const ENUMS = [
 	["GROUP_MODE_TYPES", "aphavoc/source/ai_extrn.h", "GroupModeType"],
 	["COMMS_MODEL_TYPES", "aphavoc/source/comms/comms.h", "CommsModelType"],
 	["RESUPPLY_SOURCE_TYPE", "aphavoc/source/entity/system/en_types/en_suply.h", "ResupplySourceType"],
+	["GAME_STATUS_TYPES", "aphavoc/source/global.h", "GameStatusType"],
 ];
 
 function stripComments(text) {
@@ -134,7 +135,39 @@ function generateGroupDatabase() {
 const NUMERIC_DEFINES = [
 	["FUEL_USAGE_ACCELERATOR", "aphavoc/source/entity/system/en_types/en_suply.h"],
 	["AMMO_USAGE_ACCELERATOR", "aphavoc/source/entity/system/en_types/en_suply.h"],
+	["KEYSITE_SUPPLY_REQUEST_THRESHOLD", "aphavoc/source/entity/system/en_types/en_suply.h"],
+	["CARGO_AMMO_SIZE", "aphavoc/source/entity/mobile/cargo/cargo.h"],
+	["CARGO_FUEL_SIZE", "aphavoc/source/entity/mobile/cargo/cargo.h"],
 ];
+
+// OBJECT_3D_INDEX_NUMBERS members the port names: [member, header]
+const OBJECT_3D_INDICES = [["OBJECT_3D_SINGLE_CRATE", "modules/3d/3dmodels.h"]];
+
+//
+// The object index enum of modules/3d/3dmodels.h is an X-macro list:
+// OBJECT_3D_INDEX (x) declares OBJECT_3D_x and OBJECT_3D_INDEX_ (x) declares x,
+// in order from 0, between OBJECT_3D_DECLARATION ({) and OBJECT_3D_DECLARATION (};).
+//
+export function parseObject3dIndex(source, member) {
+	const start = source.indexOf("OBJECT_3D_DECLARATION({)");
+	const end = source.indexOf("OBJECT_3D_DECLARATION(};)", start);
+	if (start < 0 || end < 0) {
+		throw new Error("object 3d index list not found");
+	}
+	const body = stripComments(source.slice(start, end));
+	if (/^\s*#/m.test(body)) {
+		throw new Error("object 3d index list contains preprocessor directives; extend the generator");
+	}
+	let index = 0;
+	for (const m of body.matchAll(/OBJECT_3D_INDEX(_?)\s*\(\s*([A-Za-z0-9_]+)\s*\)/g)) {
+		const name = m[1] === "_" ? m[2] : `OBJECT_3D_${m[2]}`;
+		if (name === member) {
+			return index;
+		}
+		index += 1;
+	}
+	throw new Error(`${member} not found in the object 3d index list`);
+}
 
 export function parseNumericDefine(source, name) {
 	const match = new RegExp(`^\\s*#define\\s+${name}\\s+([^\\s/]+)\\s*(?://.*|/\\*.*)?$`, "m").exec(source);
@@ -153,6 +186,43 @@ function generateConstants() {
 		const value = parseNumericDefine(readFileSync(join(repoRoot, header), "latin1"), name);
 		lines.push(`// C provenance: #define ${name} (${header})`);
 		lines.push(`export const ${name} = ${value};`, "");
+	}
+	for (const [member, header] of OBJECT_3D_INDICES) {
+		const index = parseObject3dIndex(readFileSync(join(repoRoot, header), "latin1"), member);
+		lines.push(`// C provenance: enum OBJECT_3D_INDEXS :: ${member} (${header}, OBJECT_3D_INDEX list position)`);
+		lines.push(`export const ${member} = ${index};`, "");
+	}
+	return lines.join("\n");
+}
+
+function generateKeysiteDatabase() {
+	const header = "aphavoc/source/entity/special/keysite/ks_dbase.c";
+	const source = readFileSync(join(repoRoot, header), "latin1");
+	const keysites = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/entity/system/en_types/en_sbtyp.h"), "latin1"), "ENTITY_SUB_TYPE_KEYSITES")
+		.filter(([name]) => !name.startsWith("NUM_"));
+	const lines = [...HEADER];
+	for (const [field, tsName] of [
+		["ammo", "KEYSITE_DATABASE_AMMO_SUPPLY_USAGE"],
+		["fuel", "KEYSITE_DATABASE_FUEL_SUPPLY_USAGE"],
+	]) {
+		const rows = parseDatabaseColumn(source, "ENTITY_SUB_TYPE_KEYSITE_", field);
+		if (rows.length !== keysites.length) {
+			throw new Error(`keysite_database: ${rows.length} ${field} rows for ${keysites.length} keysite sub types`);
+		}
+		lines.push(`// C provenance: ${header} :: keysite_database [NUM_ENTITY_SUB_TYPE_KEYSITES] .default_supply_usage.${field}_supply_level`);
+		lines.push("// (compiled defaults; wutcfg.c may override them at load time from the WUT file)");
+		lines.push("// Indexed by EntitySubTypeKeysite, as keysite_database [raw->sub_type] is in C.");
+		lines.push(`export const ${tsName}: readonly number[] = [`);
+		rows.forEach(([name, value], i) => {
+			if (name !== keysites[i][0]) {
+				throw new Error(`keysite_database entry ${i} is ${name}, expected ${keysites[i][0]}`);
+			}
+			if (!/^[-+]?(\d+\.?\d*|\.\d+)$/.test(value)) {
+				throw new Error(`keysite_database ${name} ${field} is not a numeric literal: ${value}`);
+			}
+			lines.push(`\t${value.replace(/^\+/, "")}, // ${i} ${name}`);
+		});
+		lines.push("];", "");
 	}
 	return lines.join("\n");
 }
@@ -176,6 +246,7 @@ export function generate() {
 		"c-constants.ts": generateConstants(),
 		"c-enums.ts": generateEnums(),
 		"c-group-database.ts": generateGroupDatabase(),
+		"c-keysite-database.ts": generateKeysiteDatabase(),
 	};
 }
 

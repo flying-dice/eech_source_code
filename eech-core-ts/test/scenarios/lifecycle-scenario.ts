@@ -12,6 +12,17 @@
 //   destroy  destroy_client_server_entity_family
 //   allocate get_free_entity with a specific index
 //
+// and, since Slice 4 (keysite.c :: update_keysite_cargo, issue #10):
+//
+//   game-status    the host's set_game_status
+//   bounds         an object's entry in the 3D object database (Object3DMetadata)
+//   keysite-state  a keysite's raw alive bit and height, as a saved game holds them
+//   update-cargo   update_keysite_cargo (keysite, level, sub_type, size)
+//
+// Crates the original creates are labelled crate<index>; deliveries to the
+// unported force response are printed as message lines, as the C harness
+// records them.
+//
 // The outcome is the same text the C harness prints: transmissions, created
 // indices, the result, and the entity graph (heap order, cargo values, keysite
 // cargo lists, sector lists). Floats are printed as bit patterns.
@@ -20,10 +31,12 @@
 //
 
 import { EechAssertionError, EechFatalError } from "../../src/core/assert";
+import { storeUnsignedBitfield } from "../../src/core/cint";
 import { toFloat32 } from "../../src/core/float32";
+import { setGameStatus } from "../../src/core/game-status";
 import { initialiseCampaignCore } from "../../src";
 import type { ForceRaw } from "../../src/entity/special/force/force";
-import type { KeysiteRaw } from "../../src/entity/special/keysite/keysite";
+import { updateKeysiteCargo, type KeysiteRaw } from "../../src/entity/special/keysite/keysite";
 import { createLocalSectorEntities, getLocalRawSectorEntity } from "../../src/entity/special/sector/sector";
 import type { EntityAttribute } from "../../src/entity/system/en_attrs";
 import { createClientServerEntity } from "../../src/entity/system/en_creat";
@@ -32,11 +45,12 @@ import { createLocalEntityRaw, getFirstFreeEntity, getFreeEntity, getLocalEntity
 import { getLocalEntityChildSucc, getLocalEntityFirstChild, getLocalEntityParent, insertLocalEntityIntoParentsChildListRaw } from "../../src/entity/system/en_list";
 import { getLocalEntityIntValue, getLocalEntityVec3dPtr } from "../../src/entity/system/en_values";
 import { getWorldMap, setEntityWorldMapSize } from "../../src/entity/system/en_world";
-import { setLocalEntityData, setLocalEntityType, setSessionEntityRaw, type Entity } from "../../src/entity/system/entity";
+import { getLocalEntityData, setLocalEntityData, setLocalEntityType, setSessionEntityRaw, takeUnportedMessageLog, type Entity } from "../../src/entity/system/entity";
 import { setUpdateEntity } from "../../src/entity/special/update/update";
 import { EntitySide, EntityType, IntType, ListType, Vec3dType, type EntityType as EntityTypeT } from "../../src/generated/c-enums";
 import type { EntityReplication, ReplicatedEntityAttribute } from "../../src/ports";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
+import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
 import { ScriptedClock } from "../adapters/scripted-clock";
 import type { KeysiteSpec } from "./campaign-scenario";
 import { float32Hex } from "./float-bits";
@@ -54,7 +68,11 @@ export type LifecycleOp =
 	| { kind: "destroy"; label: string }
 	// get_free_entity (index), as restoring a saved group does; the entry gets
 	// ENTITY_TYPE_GROUP and empty raw data
-	| { kind: "allocate"; label: string; index: number };
+	| { kind: "allocate"; label: string; index: number }
+	| { kind: "game-status"; status: number }
+	| { kind: "bounds"; object: number; xmin: number; xmax: number; ymin: number; ymax: number; zmin: number; zmax: number }
+	| { kind: "keysite-state"; keysite: string; alive: number; y: number }
+	| { kind: "update-cargo"; keysite: string; level: number; subType: number; size: number };
 
 export interface LifecycleSpec {
 	heap: number;
@@ -124,9 +142,12 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 
 	const labelOf = (en: Entity | undefined): string => (en === undefined ? "NULL" : labelOfIndex(en.index));
 
+	const objects = new InMemoryObject3DMetadata();
+
+	// "record": the C harness records deliveries to the unported force response
 	initialiseCampaignCore(
-		{ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new LineReplication(lines, labelOfIndex), clock: new ScriptedClock() },
-		{ unportedMessagePolicy: "throw", numberOfEntities: spec.heap },
+		{ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new LineReplication(lines, labelOfIndex), clock: new ScriptedClock(), object3DMetadata: objects },
+		{ unportedMessagePolicy: "record", numberOfEntities: spec.heap },
 	);
 
 	const session = createLocalEntityRaw(EntityType.ENTITY_TYPE_SESSION, {});
@@ -155,6 +176,7 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 		const raw: KeysiteRaw = {
 			sub_type: k.subType,
 			side: k.side,
+			alive: 0,
 			in_use: k.inUse ? 1 : 0,
 			position: { x: toFloat32(k.x), y: 0, z: toFloat32(k.z) },
 			supplies: { ammo_supply_level: toFloat32(k.ammo), fuel_supply_level: toFloat32(k.fuel) },
@@ -204,6 +226,13 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 
 	let mapComplete = false;
 
+	// deliveries to the unported force response, as the C harness prints them
+	const flushMessages = (): void => {
+		for (const delivery of takeUnportedMessageLog()) {
+			lines.push(`message ${labelOf(delivery.receiver)} ${labelOf(delivery.sender)} ${delivery.message} ${delivery.args[0] as number}`);
+		}
+	};
+
 	let result = "ok";
 
 	try {
@@ -252,11 +281,41 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 				setLocalEntityData(en, {});
 				labels[en.index] = op.label;
 				lines.push(`allocated ${op.label} ${en.index}`);
+			} else if (op.kind === "game-status") {
+				setGameStatus(op.status);
+			} else if (op.kind === "bounds") {
+				// scenario input: narrowed to nearest, as the C harness parses it
+				objects.setBoundingBox(op.object, {
+					xmin: toFloat32(op.xmin),
+					xmax: toFloat32(op.xmax),
+					ymin: toFloat32(op.ymin),
+					ymax: toFloat32(op.ymax),
+					zmin: toFloat32(op.zmin),
+					zmax: toFloat32(op.zmax),
+				});
+			} else if (op.kind === "keysite-state") {
+				const raw = getLocalEntityData<KeysiteRaw>(find(op.keysite) as Entity);
+
+				raw.alive = storeUnsignedBitfield(op.alive, 1);
+				raw.position.y = toFloat32(op.y);
+			} else if (op.kind === "update-cargo") {
+				updateKeysiteCargo(find(op.keysite) as Entity, toFloat32(op.level), op.subType, toFloat32(op.size));
+
+				// crates the original created are labelled by index
+				for (let en = getLocalEntityList(); en !== undefined; en = getLocalEntitySucc(en)) {
+					if (en.type === EntityType.ENTITY_TYPE_CARGO && labels[en.index] === undefined) {
+						labels[en.index] = `crate${en.index}`;
+					}
+				}
 			} else {
 				destroyClientServerEntityFamily(find(op.label) as Entity);
 			}
+
+			flushMessages();
 		}
 	} catch (e) {
+		flushMessages();
+
 		if (e instanceof EechAssertionError) {
 			result = `assert ${e.expression}`;
 		} else if (e instanceof EechFatalError) {
@@ -359,6 +418,14 @@ export function serialiseLifecycle(spec: LifecycleSpec, formatNumber: (n: number
 			lines.push(`${text} end`);
 		} else if (op.kind === "allocate") {
 			lines.push(`allocate ${op.label} ${op.index}`);
+		} else if (op.kind === "game-status") {
+			lines.push(`game-status ${op.status}`);
+		} else if (op.kind === "bounds") {
+			lines.push(`bounds ${op.object} ${[op.xmin, op.xmax, op.ymin, op.ymax, op.zmin, op.zmax].map((n) => formatNumber(n)).join(" ")}`);
+		} else if (op.kind === "keysite-state") {
+			lines.push(`keysite-state ${op.keysite} ${op.alive} ${formatNumber(op.y)}`);
+		} else if (op.kind === "update-cargo") {
+			lines.push(`update-cargo ${op.keysite} ${formatNumber(op.level)} ${op.subType} ${formatNumber(op.size)}`);
 		} else {
 			lines.push(`destroy ${op.label}`);
 		}

@@ -8,6 +8,7 @@
 import type { CampaignPorts } from "./ports";
 import { DEFAULT_ENTITY_UPDATE_FRAME_RATE, setCommandLineEntityUpdateFrameRate } from "./core/cmndline";
 import { resetDeltaTime, setDeltaTimeFrom } from "./core/time";
+import { resetGameStatus } from "./core/game-status";
 import { getCampaignPorts } from "./entity/system/entity";
 import { overloadUpdateFunctions, resetUpdateEntity } from "./entity/special/update/update";
 import { initialiseEntityRuntime, type UnportedMessagePolicy } from "./entity/system/entity";
@@ -42,6 +43,7 @@ export function initialiseCampaignCore(ports: CampaignPorts, options: CampaignCo
 	resetSectorMap();
 
 	resetDeltaTime();
+	resetGameStatus();
 	resetUpdateEntity();
 	setCommandLineEntityUpdateFrameRate(options.entityUpdateFrameRate ?? DEFAULT_ENTITY_UPDATE_FRAME_RATE);
 
@@ -67,10 +69,15 @@ export function setDeltaTime(): void {
 	setDeltaTimeFrom(getCampaignPorts().clock);
 }
 
-export type { CampaignPorts, Clock, EntityReplication, MobilePhysicalState, ReplicatedEntityAttribute } from "./ports";
+export type { CampaignPorts, Clock, EntityReplication, MobilePhysicalState, Object3DBounds, Object3DMetadata, ReplicatedEntityAttribute } from "./ports";
 export { assessGroupSupplies } from "./entity/special/group/group";
 export { setUpdateEntity, updateClientServerEntities } from "./entity/special/update/update";
 export { setClientServerEntityFloatValue } from "./entity/system/en_values";
+
+// Keysite cargo (slice 4) and the host's game status
+export { updateKeysiteCargo } from "./entity/special/keysite/keysite";
+export { getGameStatus, setGameStatus } from "./core/game-status";
+export { CARGO_AMMO_SIZE, CARGO_FUEL_SIZE, OBJECT_3D_SINGLE_CRATE } from "./generated/c-constants";
 
 // Entity lifecycle and the world map
 export type { EntityAttribute } from "./entity/system/en_attrs";
@@ -86,4 +93,4 @@ export { createLocalSectorEntities } from "./entity/special/sector/sector";
 export { insertLocalEntityIntoParentsChildListRaw } from "./entity/system/en_list";
 export { createLocalEntityRaw } from "./entity/system/en_heap";
 export { setSessionEntityRaw, takeUnportedMessageLog } from "./entity/system/entity";
-export { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, FloatType, IntType, ListType, Vec3dType } from "./generated/c-enums";
+export { EntitySide, EntitySubTypeCargo, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, FloatType, GameStatusType, IntType, ListType, Vec3dType } from "./generated/c-enums";
