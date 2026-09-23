@@ -158,7 +158,7 @@ and a matrix case pins it (`multiplayer-packing-asserts-on-a-drop-off-above-the-
 
 ## Original behaviour, preserved and pinned by C-derived cases
 
-`test/scenarios/supply-task-construction.cases.ts` has 38 cases. Each keeps
+`test/scenarios/supply-task-construction.cases.ts` has 39 cases. Each keeps
 what the source does, including:
 
 - **Replication order.** `ENTITY_COMMS_CREATE`, then
@@ -189,7 +189,10 @@ what the source does, including:
     every keysite with groups at 12 (unit test).
 - **Difficulty:**
   - the walk starts at the start keysite (the task link parent), because the
-    parent switch comes before the assessment;
+    parent switch comes before the assessment. A focused case puts the start
+    keysite two sectors from the first route node: difficulty 4, where a walk
+    from node 0 would give 2. It also asserts the order CREATE,
+    SET_TASK_POINTERS, MISSION_CREATED, SWITCH_PARENT;
   - it visits sectors with Bresenham's algorithm, both arms and diagonal
     steps, and counts the last node once more;
   - enemy surface-to-air levels exclude the task's side and neutral;
@@ -260,7 +263,7 @@ counted or transmitted.
 
 | Check | Where | Size |
 |---|---|---|
-| Hand-derived matrix | `test/scenarios/supply-task-construction.cases.ts` | 38 cases, run in JS, Lua 5.1 and against the C (TS == C on the whole output) |
+| Hand-derived matrix | `test/scenarios/supply-task-construction.cases.ts` | 39 cases, run in JS, Lua 5.1 and against the C (TS == C on the whole output) |
 | F1 acceptance: single player = multiplayer route | `f1CompatibilityPair` | JS, Lua 5.1, C (both outputs also equal the TS) |
 | Paths other task types take; loud failures; the observer | `test/unit/supply-task-construction.test.ts` | unit tests |
 | Fresh randomised scenarios | `differential.cref.test.ts` (`generateRandomSupplyTaskConstruction`, seed `0x5b14`) | 1000, C == TS line for line. It must reach tasks with and without difficulty, ids at the wrap, two unassigned tasks at a keysite, single player tasks, calls without a task, and the packing `ASSERT` |

@@ -336,6 +336,42 @@ function build(): SupplyTaskConstructionCase[] {
 	}
 
 	{
+		// the start keysite (sector 3, 1) is two sectors from the first route node (sector 1, 1)
+		const s = new Scenario([
+			{ subType: FARP, x: 8000, z: 16000 },
+			{ subType: FACTORY, x: 13000, z: 16000 },
+			{ subType: AIRBASE, x: 30000, z: 16000 },
+		]);
+		s.landing(2, HELICOPTERS);
+		s.basedGroup("g0", 2);
+		const crates = s.stock(1, AMMO);
+		const task = s.request(0, 5, AMMO);
+		s.created();
+		cases.push({
+			id: "difficulty-starts-at-the-start-keysite-the-parent-switch-attached",
+			c: [
+				"create_task: set_client_server_entity_parent (UNASSIGNED_TASK, start keysite) runs before assess_task_difficulty, which starts at raw->task_link.parent.",
+				"Order: ENTITY_COMMS_CREATE, ENTITY_COMMS_SET_TASK_POINTERS, then the switch: insert (LINK_PARENT: UNASSIGNED, MISSION_CREATED) before ENTITY_COMMS_SWITCH_PARENT is sent.",
+				"From keysite2 (3, 1): 3 -> 1 visits 3 sectors; node 0 -> 1: 1; 1 -> 2 (sector 0): 2; 2 -> 3: 1; last node: 1. 8 enemy sectors >> 1 = 4.",
+				"Started at node 0 instead it would be 5 >> 1 = 2.",
+			].join(" "),
+			spec: s.spec(),
+			expected: [
+				call("keysite0", "keysite1", crates[0]),
+				createTask(task.substring(4), "keysite0"),
+				pointers(task, baseNodes()),
+				`${MISSION} ${task}`,
+				`${SWITCH} ${task} ${UNASSIGNED_LIST} keysite2`,
+				"result ok",
+				`${taskLine(task, 1, 4)} user 00000000 objective keysite0 keysite keysite2 sector sector0_1 update update`,
+				`unassigned keysite2 ${task}`,
+			],
+			fragments: [],
+			absent: [],
+		});
+	}
+
+	{
 		const s = new Scenario([
 			{ subType: FARP, x: 8000, z: 16000 },
 			{ subType: FACTORY, x: 13000, z: 16000 },
