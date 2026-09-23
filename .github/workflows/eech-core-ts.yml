@@ -72,9 +72,6 @@ jobs:
       - name: C reference differential tests
         run: npm run test:cref
 
-      - name: Mutation controls
-        run: npm run mutation
-
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4

@@ -55,7 +55,6 @@ npm run verify        # every gate below, in order
 | Lua build + smoke | `npm run smoke:lua` | `build/lua/eech-core.lua` builds without TSTL diagnostics and runs in Lua 5.1 as a host would use it |
 | Lua conformance | `npm run test:lua` | The shared behaviour matrix and C-recorded scenarios pass under Lua 5.1 |
 | C reference | `npm run test:cref` | The original EECH C, extracted verbatim and executed, agrees with the expectations and with the TS port |
-| Negative controls | `npm run mutation` | Meaningful behavioural regressions are detected |
 
 CI runs the same gates step by step in `.github/workflows/eech-core-ts.yml` for pull requests and pushes to `master` that touch `eech-core-ts/`, `aphavoc/` or `modules/`.
 

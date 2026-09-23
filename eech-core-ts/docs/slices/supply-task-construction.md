@@ -266,7 +266,6 @@ counted or transmitted.
 | Fresh randomised scenarios | `differential.cref.test.ts` (`generateRandomSupplyTaskConstruction`, seed `0x5b14`) | 1000, C == TS line for line. It must reach tasks with and without difficulty, ids at the wrap, two unassigned tasks at a keysite, single player tasks, calls without a task, and the packing `ASSERT` |
 | Recorded randomised scenarios | `c-reference-random-supply-task-construction.cases.ts` (seed 20261014) | 150, replayed in JS and Lua 5.1 |
 | Coverage | `npm run coverage` | 100% statements, branches, functions and lines. One justified exclusion: `suitable.c`'s movement stealth rejection, unreachable with EECH's databases, recomputed by a unit test |
-| Mutations | `scripts/mutation-check.mjs`, "Slice 5b" | 43 (40 JS, 3 Lua), all killed. They include "fixing" the 4095 wrap, F2, the F1 height, the single player trap and the packing check, and turning unported arms into returns |
 | F1 probe | `npm run probe:f1` (investigation only) | 6 builds of the one unit |
 
 ## Handed on

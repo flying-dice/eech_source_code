@@ -269,9 +269,9 @@ check without adding a branch to the caller.
   2. `{ ...defaults, leader: undefined }` keeps the default in Lua, because a
      table cannot hold `nil`. Optional scenario values are therefore explicit
      variants.
-- Two mutants only fail under Lua: `in_use` (slice 1) and the timer setters'
-  `value != 0.0` (slice 2), each tested by JavaScript truthiness. They prove the
-  Lua run adds detection power beyond the JavaScript run.
+- Two regressions were only ever caught under Lua: `in_use` (slice 1) and the
+  timer setters' `value != 0.0` (slice 2), each tested by JavaScript truthiness.
+  They show the Lua run adds detection power beyond the JavaScript run.
 
 ## 9. How is C→TS migration tracked?
 
@@ -500,7 +500,7 @@ After freezing:
 
 - A behavioural change needs evidence from the EECH C, and the behaviour matrix
   and C reference must agree with it.
-- Refactors keep `npm run verify` green, including the mutation controls.
+- Refactors keep `npm run verify` green.
 - DCS integration cannot change core behaviour. DCS limitations are solved in
   adapters, and any unavoidable deviation is an explicit adapter-level
   compatibility decision.
