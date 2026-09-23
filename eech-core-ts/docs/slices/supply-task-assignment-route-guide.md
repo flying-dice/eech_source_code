@@ -89,6 +89,7 @@ tested.
   - The generators constrain aircraft positions to the world map, and every 6b scenario has a map, a terrain and a road node.
   - An off-map leader makes the route search recurse without end. EECH has no guard for that, and the port adds none.
   - `the Slice 6b corpus holds every aircraft inside the map` checks every hand case, every recorded fixture and fresh generated scenarios.
+- **The world exists before the comms model changes.** The migration adds a missing world map, terrain and road table before the first `assign-tasks`, and before any `comms-model` switch. EECH builds them at campaign load, as the server. A map created later, under the client model, is not a campaign state. The C ASSERTs `assert_local_create_entity_index` there, and the port now does the same (below).
 - **6b transaction scenarios select SUPPLY only.** `generateRandomSupplyTaskTransaction` restores or constructs only SUPPLY tasks.
 - **The Slice 6a corpus is migrated mechanically, not re-recorded by hand.** `test/c-reference/slice-6a-migration.cref.test.ts` checks every one of the 186 Slice 6a scenarios (36 hand, 150 random) against their output from the original C at `81ed32e`:
   - the lines before the former boundary are identical;
@@ -138,6 +139,12 @@ These are corrections to the investigation, found by executing the C:
   - No waypoint type of a SUPPLY route has one, so the parser never moves a supply waypoint.
 - **6b-F5: `initialise_guide_criteria` transmits RADIUS and LAST_TO_REACH twice.** The guide database loop clears every criterion the guide type lacks, these two included. The waypoint database then sets them. Both are sent: cleared, then set.
 - **6b-F6: normalisation under RTZ is not exact.** The parser's back-off from an ATTACK waypoint normalises the half leg with `1.0 / length`, truncated. A 1500 m leg gives 1 − 2⁻²⁴, so a 5000 m back-off from x 13000 lands at `ceil (8000.00049)` = 8001.
+
+- **6b-F7: a port gap in the entity runtime (Slice 3's `validateLocalCreateEntityIndex`).** It checked only the server case, so a local create under the client comms model passed where the C ASSERTs. It now follows `en_valid.c`:
+  - a client never accepts `ENTITY_INDEX_DONT_CARE`;
+  - a client's given index depends on the comms data flow, which is not ported and fails loudly.
+
+  No frozen fixture changed.
 
 ## Route-choice canaries (#9)
 

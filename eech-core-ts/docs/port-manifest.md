@@ -333,6 +333,7 @@ by the harness shim, and are verified by source reading only. The plan and the r
   - Slice 6b reads them, so the scenarios are migrated to valid state: `persisted-task` requires the route and return keysite that `ts_pack.c` restores, and aircraft are constrained to the map.
   - The migration is checked mechanically against the C output at `81ed32e` (`docs/slices/supply-task-assignment-fixture-migration.md`). No line before the former boundary changed, and every SUPPLY selection kept its group and task.
   - No recursion guard was added for off-map aircraft. EECH has none, and the corpus invariant keeps aircraft on the map.
+- **`assert_local_create_entity_index` (slice 6b fix).** It now includes the client case of `en_valid.c`. `ENTITY_INDEX_DONT_CARE` ASSERTs, as in the C, and a client's given index is unported (the comms data flow). Before, it checked the server case only.
 - **The non-SUPPLY scope gate (slice 6b).** `assignPrimaryTaskToGroup` throws 6a's `UnportedBoundaryError` for any other task type, before any state is read. This is production code, not a policy: those types' routes are not ported.
 - **Coverage exclusions (slice 6a):** these branches are excluded narrowly
   (`/* istanbul ignore */`), each backed by a test. Each is listed in

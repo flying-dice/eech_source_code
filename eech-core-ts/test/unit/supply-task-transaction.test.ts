@@ -894,3 +894,14 @@ describe("invsqrt.c :: get_inverse_square_root at the float edges (bits from the
 		});
 	}
 });
+
+describe("en_valid.c :: assert_local_create_entity_index under the client comms model", () => {
+	it("a client never creates at ENTITY_INDEX_DONT_CARE; a given index depends on the comms data flow (not ported)", () => {
+		const w = world();
+		setCommsModel(CommsModelType.COMMS_MODEL_CLIENT);
+		const create = (index: number) => () => createLocalEntity(EntityType.ENTITY_TYPE_WAYPOINT, index, [{ kind: "parent", type: ListType.LIST_TYPE_WAYPOINT, entity: w.task }]);
+		expect(create(ENTITY_INDEX_DONT_CARE)).toThrow(new EechAssertionError("assert_local_create_entity_index ((index))"));
+		expect(create(100)).toThrow(UnportedBehaviourError);
+		setCommsModel(CommsModelType.COMMS_MODEL_SERVER);
+	});
+});

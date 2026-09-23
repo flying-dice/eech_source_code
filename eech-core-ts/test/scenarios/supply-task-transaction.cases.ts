@@ -586,7 +586,7 @@ function build(): SupplyTaskTransactionCase[] {
 	for (const canary of ROUTE_CHOICE_CANARIES) {
 		add(
 			`route-choice-canary-${canary.id}`,
-			`croute.c :: get_best_point: the strictly lower rating (first of equals) of samples 1 and 8 in near-tie; variants choose ${JSON.stringify(canary.choices)}`,
+			`croute.c :: get_best_point: the strictly lower rating (first of equals) of samples 1 and 8 in near-tie; variants choose canonical ${canary.choices.canonical}, sse-rn ${canary.choices["sse-rn"]}, x87-rtz-pc53 ${canary.choices["x87-rtz-pc53"]}, x87-rn-pc53 ${canary.choices["x87-rn-pc53"]}`,
 			routeChoiceCanarySpec(canary.elevations),
 			[`${BOUNDARY} g0 guide31 ffffffff`, routeChoiceWaypoint(canary.choices.canonical)],
 		);

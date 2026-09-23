@@ -16,7 +16,7 @@
 // path), and create_local_only_entities (pylons, bridges, camera).
 //
 
-import { ASSERT, EechFatalError } from "../../core/assert";
+import { ASSERT, EechFatalError, UnportedBehaviourError } from "../../core/assert";
 import { CommsModelType, EntityType } from "../../generated/c-enums";
 import { getCommsModel, type CommsModel } from "./comms";
 import type { EntityAttribute } from "./en_attrs";
@@ -65,10 +65,18 @@ export function createClientServerEntity(type: EntityType, index: number, attrib
 }
 
 // C provenance: en_valid.h :: validate_local_create_entity_index, en_valid.c ::
-// assert_local_create_entity_index (debug-build ASSERT). The server case only:
-// the port is the server, and downwash is off.
+// assert_local_create_entity_index (debug-build ASSERT), downwash off. The
+// server needs ENTITY_INDEX_DONT_CARE. A client never accepts it (TX: FALSE;
+// RX: index != ENTITY_INDEX_DONT_CARE); a client's given index depends on the
+// comms data flow, which is not ported.
 export function validateLocalCreateEntityIndex(index: number): void {
-	ASSERT(index === ENTITY_INDEX_DONT_CARE, "assert_local_create_entity_index ((index))");
+	if (getCommsModel() === CommsModelType.COMMS_MODEL_SERVER) {
+		ASSERT(index === ENTITY_INDEX_DONT_CARE, "assert_local_create_entity_index ((index))");
+	} else {
+		ASSERT(index !== ENTITY_INDEX_DONT_CARE, "assert_local_create_entity_index ((index))");
+
+		throw new UnportedBehaviourError("en_valid.c :: assert_local_create_entity_index: a client's given index (get_comms_data_flow)");
+	}
 }
 
 // C provenance: en_valid.h :: validate_remote_create_entity_index, en_valid.c ::

@@ -172,7 +172,10 @@ export function migrateSlice6aSpec(legacy: LegacySpec, transaction: boolean): Mi
 	let clamped = 0;
 
 	for (const op of legacy.ops) {
-		if (op.kind === "assign-tasks" && transaction && !environmentAdded) {
+		// the world map and its environment exist from campaign load, while the
+		// comms model is still the server's: before any comms model switch, and
+		// before the first assignment
+		if ((op.kind === "assign-tasks" || op.kind === "comms-model") && transaction && !environmentAdded) {
 			if (addMap) {
 				ops.push({ kind: "map", xSectors: map.xSectors, zSectors: map.zSectors, sideLength: map.sideLength });
 			}
