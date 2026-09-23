@@ -47,6 +47,8 @@ export const REAL_TRANSLATION_UNITS = [
 	"aphavoc/source/entity/special/keysite/ks_int.c",
 	"aphavoc/source/entity/special/keysite/ks_list.c",
 	"aphavoc/source/entity/special/keysite/ks_vec3d.c",
+	// slice 4: update_keysite_cargo (and get_closest_keysite, previously extracted)
+	"aphavoc/source/entity/special/keysite/keysite.c",
 	"aphavoc/source/entity/special/force/fc_int.c",
 	"aphavoc/source/entity/special/force/fc_list.c",
 	// slice 3: entity heap, attributes, creation and destruction
@@ -124,6 +126,9 @@ export const PROJECT_H = [
 	{ kind: "regex", pattern: "\\ntypedef int sound_sample_indices;", file: "aphavoc/source/appsound/snd_data.h" },
 	{ kind: "enum", name: "GAME_STATUS_TYPES", file: "aphavoc/source/global.h" },
 	{ kind: "regex", pattern: "\\ntypedef enum GAME_STATUS_TYPES game_status_types;", file: "aphavoc/source/global.h" },
+	// slice 4: update_keysite_cargo reads the game status (a host-set global)
+	{ kind: "regex", pattern: "\\nextern game_status_types\\n\\tgame_status;", file: "aphavoc/source/global.h" },
+	{ kind: "define", name: "get_game_status", file: "aphavoc/source/global.h" },
 	{ kind: "enum", name: "GUNSHIP_TYPES", file: "aphavoc/source/global.h" },
 	{ kind: "regex", pattern: "\\ntypedef enum GUNSHIP_TYPES gunship_types;", file: "aphavoc/source/global.h" },
 	{ kind: "enum", name: "GAME_DIFFICULTY_SETTINGS", file: "aphavoc/source/global.h" },
@@ -142,6 +147,35 @@ export const PROJECT_H = [
 	{ kind: "include", name: "entity/mobile/mobile.h" },
 	{ kind: "include", name: "entity/special/sector/sector.h" },
 	{ kind: "include", name: "entity/system/en_debug/en_stats.h" },
+	// slice 4: keysite.c, compiled whole. Headers for what its other functions
+	// (capture, destruction, speech, landing, tasks) name; the functions
+	// themselves are fail-loud stubs in harness.c.
+	{ kind: "regex", pattern: "\\ntypedef enum WEATHERMODES weathermodes;", file: "modules/3d/3denv.h" },
+	{ kind: "regex", pattern: "\\nenum SESSION_TIME_OF_DAY_SETTINGS\\n\\{[^}]*\\};", file: "aphavoc/source/global.h" },
+	{ kind: "regex", pattern: "\\ntypedef enum SESSION_TIME_OF_DAY_SETTINGS session_time_of_day_settings;", file: "aphavoc/source/global.h" },
+	{ kind: "regex", pattern: "\\nenum SYS_COLOURS\\n\\{[^}]*\\};", file: "modules/graphics/colour.h" },
+	{ kind: "regex", pattern: "\\ntypedef enum SYS_COLOURS sys_colours;", file: "modules/graphics/colour.h" },
+	{ kind: "define", name: "SECONDS_IN_A_MINUTE", file: "modules/maths/constant.h" },
+	{ kind: "define", name: "ONE_MINUTE", file: "modules/maths/constant.h" },
+	{ kind: "regex", pattern: "\\nextern int\\n\\trandom_number_seed;", file: "modules/maths/random.h" },
+	{ kind: "define", name: "get_random_number", file: "modules/maths/random.h" },
+	{ kind: "define", name: "rand16", file: "modules/maths/random.h" },
+	{ kind: "define", name: "sfrand1", file: "modules/maths/random.h" },
+	{ kind: "regex", pattern: "\\nextern float get_3d_terrain_point_data \\( float x, float z, terrain_3d_point_data \\*point_data \\);", file: "modules/3d/terrain/terrelev.h" },
+	{ kind: "regex", pattern: "\\n#define get_3d_terrain_elevation\\(X,Z\\) \\(get_3d_terrain_point_data \\(\\(X\\), \\(Z\\), NULL\\)\\)", file: "modules/3d/terrain/terrelev.h" },
+	{ kind: "prototype", name: "file_exist", file: "modules/system/files.h" },
+	{ kind: "include", name: "cmndline.h" },
+	{ kind: "include", name: "misc/message.h" },
+	{ kind: "include", name: "misc/msg_out.h" },
+	{ kind: "include", name: "misc/tod.h" },
+	{ kind: "regex", pattern: "\\ntypedef enum SOUND_LOCALITY_TYPES\\n\\{[^}]*\\} sound_locality_types;", file: "aphavoc/source/entity/special/effect/soundeff/soundeff.h" },
+	{ kind: "define", name: "SOUND_LOCALITY_RADIO", file: "aphavoc/source/entity/special/effect/soundeff/soundeff.h" },
+	{ kind: "include", name: "entity/special/effect/soundeff/speech.h" },
+	{ kind: "include", name: "entity/special/task/task.h" },
+	{ kind: "include", name: "entity/special/landing/landing.h" },
+	{ kind: "include", name: "entity/special/regen/rg_updt.h" },
+	{ kind: "include", name: "entity/special/session/session.h" },
+	{ kind: "include", name: "entity/fixed/fixed.h" },
 	// prototypes of functions the slice 3 translation units call; the harness
 	// supplies them as environment or fail-loud stubs (harness.c)
 	{ kind: "prototype", name: "convert_float_to_int", file: "modules/system/fpu.h" },
@@ -223,12 +257,6 @@ export const EXTRACTED_C = [
 
 	// campaign functions (slice 1)
 	{ kind: "function", name: "get_local_force_entity", signature: "entity *get_local_force_entity (entity_sides side)", file: "aphavoc/source/entity/special/force/force.c" },
-	{
-		kind: "function",
-		name: "get_closest_keysite",
-		signature: "entity *get_closest_keysite (entity_sub_types type, entity_sides side, vec3d *pos, float min_range, float *actual_range, int outside_of_range, entity *exclude_keysite)",
-		file: "aphavoc/source/entity/special/keysite/keysite.c",
-	},
 	{ kind: "function", name: "assess_group_supplies", signature: "void assess_group_supplies (entity *en)", file: "aphavoc/source/entity/special/group/group.c" },
 
 	// group link/unlink parent responses (gp_msgs.c is otherwise not compiled)

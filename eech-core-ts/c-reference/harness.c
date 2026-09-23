@@ -553,7 +553,6 @@ struct OBJECT_3D_BOUNDS *get_object_3d_bounding_box (object_3d_index_numbers obj
 void set_sector_fog_of_war_value (entity *en, entity *sector_en) { NOT_REACHED ("set_sector_fog_of_war_value"); }
 void update_imap_surface_to_air_defence_level (entity *en, entity *sector, int in_use) { NOT_REACHED ("update_imap_surface_to_air_defence_level"); }
 void update_imap_surface_to_surface_defence_level (entity *en, entity *sector, int in_use) { NOT_REACHED ("update_imap_surface_to_surface_defence_level"); }
-game_status_types get_game_status (void) { NOT_REACHED ("get_game_status"); return GAME_STATUS_UNINITIALISED; }
 int get_valid_current_game_session (void) { NOT_REACHED ("get_valid_current_game_session"); return FALSE; }
 session_list_types get_current_game_session_type (void) { NOT_REACHED ("get_current_game_session_type"); return SESSION_LIST_TYPE_INVALID; }
 
@@ -726,6 +725,69 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+// keysite.c (slice 4) is compiled whole for update_keysite_cargo. Its other
+// functions (FARP enabling, importance, attack notification, destruction,
+// capture, repair, player suitability, dumps, landing-site checks, speech,
+// MFD names) are not part of the port and the harness never calls them;
+// nothing puts them in a dispatch table. What only they call is a fail-loud
+// stub, and what only they read is defined here without an invented meaning.
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* global.c: the host's game status (gameflow.c / flight.c set it); the
+   scenario sets it (the "game-status" line), GAME_STATUS_INITIALISED by default */
+game_status_types
+	game_status = GAME_STATUS_INITIALISED;
+
+/* read only by keysite.c functions the harness never calls */
+int
+	random_number_seed,
+	command_line_capture_aircraft,
+	speech_sector_coordinates [6];
+
+const char
+	*entity_side_names [NUM_ENTITY_SIDES],
+	*entity_side_short_names [NUM_ENTITY_SIDES];
+
+task_data
+	task_database [NUM_ENTITY_SUB_TYPE_TASKS];
+
+const char *(*fn_get_local_entity_string[NUM_ENTITY_TYPES][NUM_STRING_TYPES]) (entity *en, string_types type);
+
+void add_default_entity_to_regen_queue (entity_sides side, entity_sub_types group_type) { NOT_REACHED ("add_default_entity_to_regen_queue"); }
+int increment_regen_queue_size (entity_sides side, entity_types type, int shift) { NOT_REACHED ("increment_regen_queue_size"); return 0; }
+entity *get_local_group_primary_task (entity *en) { NOT_REACHED ("get_local_group_primary_task"); return NULL; }
+entity *get_local_group_member_landing_entity_from_task (entity *en) { NOT_REACHED ("get_local_group_member_landing_entity_from_task"); return NULL; }
+void update_imap_sector_side (entity *en, int in_use) { NOT_REACHED ("update_imap_sector_side"); }
+void update_imap_importance_level (entity *en, int in_use) { NOT_REACHED ("update_imap_importance_level"); }
+void update_keysite_distance_to_friendly_base (entity *en, entity_sides side) { NOT_REACHED ("update_keysite_distance_to_friendly_base"); }
+void restore_local_fixed_entity (entity *en) { NOT_REACHED ("restore_local_fixed_entity"); }
+void group_kill_all_members (entity *en) { NOT_REACHED ("group_kill_all_members"); }
+entity *get_local_landing_entity_route (entity *landing_en, entity_sub_types type) { NOT_REACHED ("get_local_landing_entity_route"); return NULL; }
+entity *get_local_entity_landing_entity (entity *en, entity_sub_types landing_type) { NOT_REACHED ("get_local_entity_landing_entity"); return NULL; }
+entity *get_local_entity_current_task (entity *member) { NOT_REACHED ("get_local_entity_current_task"); return NULL; }
+int create_group_emergency_transfer_task (entity *en) { NOT_REACHED ("create_group_emergency_transfer_task"); return 0; }
+void update_imap_distance_to_friendly_base (entity_sides side) { NOT_REACHED ("update_imap_distance_to_friendly_base"); }
+void set_client_server_entity_parent (entity *en, list_types type, entity *parent) { NOT_REACHED ("set_client_server_entity_parent"); }
+void send_text_message (entity *sender, entity *target, message_text_types type, const char *text) { NOT_REACHED ("send_text_message"); }
+int play_client_server_speech (entity *parent, entity *sender, entity_sides side, entity_sub_types sub_type, sound_locality_types locality, float delay, float priority, float expire_time, speech_originator_types originator, speech_category_types category, float category_silence_timer, ...) { NOT_REACHED ("play_client_server_speech"); return 0; }
+int *get_speech_sector_coordinates (vec3d *pos) { NOT_REACHED ("get_speech_sector_coordinates"); return NULL; }
+int get_object_3d_troop_landing_position_and_heading (int object_index, vec3d *position, float *heading) { NOT_REACHED ("get_object_3d_troop_landing_position_and_heading"); return 0; }
+entity *get_local_landing_entity_task (entity *landing_en, entity_sub_types type) { NOT_REACHED ("get_local_landing_entity_task"); return NULL; }
+int get_local_entity_suitable_for_player (entity *en, entity *pilot) { NOT_REACHED ("get_local_entity_suitable_for_player"); return 0; }
+int get_local_entity_list_size (entity *parent, list_types type) { NOT_REACHED ("get_local_entity_list_size"); return 0; }
+void get_digital_clock_values (float time_of_day, float *hours, float *minutes, float *seconds) { NOT_REACHED ("get_digital_clock_values"); }
+float get_3d_terrain_point_data (float x, float z, terrain_3d_point_data *point_data) { NOT_REACHED ("get_3d_terrain_point_data"); return 0.0f; }
+void free_group_callsign (entity *en) { NOT_REACHED ("free_group_callsign"); }
+int file_exist (const char *filename) { NOT_REACHED ("file_exist"); return 0; }
+int entity_is_object_of_task (entity *en, entity_sub_types task_type, entity_sides side) { NOT_REACHED ("entity_is_object_of_task"); return 0; }
+entity *create_cap_task (entity_sides side, entity *this_keysite, entity *originator, int critical, float priority, float duration, entity *start_keysite, entity *end_keysite) { NOT_REACHED ("create_cap_task"); return NULL; }
+void assign_keysite_tasks (entity *keysite, task_category_types category) { NOT_REACHED ("assign_keysite_tasks"); }
+int assign_group_callsign (entity *en) { NOT_REACHED ("assign_group_callsign"); return 0; }
+task_completed_types assess_task_completeness (entity *en, task_terminated_types task_terminated) { NOT_REACHED ("assess_task_completeness"); return 0; }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 // fail-loud table defaults
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -737,6 +799,7 @@ static void unsupplied_set_float (entity *en, float_types type, float value) { h
 static vec3d *unsupplied_get_vec3d_ptr (entity *en, vec3d_types type) { harness_fail ("vec3d not supplied"); return NULL; }
 static void *unsupplied_get_ptr (entity *en, ptr_types type) { harness_fail ("ptr value not supplied"); return NULL; }
 static entity *unsupplied_get_list (entity *en, list_types type) { harness_fail ("list not supplied"); return NULL; }
+static const char *unsupplied_get_string (entity *en, string_types type) { harness_fail ("string value not supplied"); return NULL; }
 static void unsupplied_set_list (entity *en, list_types type, entity *other) { harness_fail ("list set not supplied"); }
 static void unsupplied_update (entity *en) { harness_fail ("update function not supplied"); }
 static void unsupplied_set_vec3d (entity *en, vec3d_types type, vec3d *v) { harness_fail ("vec3d set not supplied"); }
@@ -816,6 +879,11 @@ static void initialise_tables (void)
 
 	for (i = 0; i < NUM_ENTITY_TYPES; i++)
 	{
+		for (j = 0; j < NUM_STRING_TYPES; j++)
+		{
+			fn_get_local_entity_string[i][j] = unsupplied_get_string;
+		}
+
 		for (j = 0; j < NUM_INT_TYPES; j++)
 		{
 			/* en_int.c defaults: sets do nothing; gets return the type's default */
@@ -932,7 +1000,7 @@ static int
 	heap_size = MAX_HARNESS_ENTITIES;
 
 static entity
-	*session,
+	*harness_session,
 	*update_root;
 
 static update
@@ -984,7 +1052,7 @@ static void ensure_heap (void)
 
 	initialise_entity_heap (heap_size);
 
-	session = new_entity (ENTITY_TYPE_SESSION, NULL, "session");
+	harness_session = new_entity (ENTITY_TYPE_SESSION, NULL, "session");
 
 	update_root = new_entity (ENTITY_TYPE_UPDATE, &update_data, "update");
 
@@ -1537,7 +1605,7 @@ int main (void)
 
 		if (strcmp (word, "session") == 0)
 		{
-			session_entity = next_int (&cursor) ? session : NULL;
+			session_entity = next_int (&cursor) ? harness_session : NULL;
 		}
 		else if (strcmp (word, "force") == 0)
 		{
@@ -1551,7 +1619,7 @@ int main (void)
 
 			forces[num_forces] = new_entity (ENTITY_TYPE_FORCE, raw, label);
 
-			link_entity_raw (forces[num_forces], LIST_TYPE_FORCE, session, num_forces ? forces[num_forces - 1] : NULL);
+			link_entity_raw (forces[num_forces], LIST_TYPE_FORCE, harness_session, num_forces ? forces[num_forces - 1] : NULL);
 
 			num_forces++;
 		}
