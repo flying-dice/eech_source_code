@@ -30,7 +30,11 @@ use std::process::Command;
 
 fn main() {
     let manifest = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
-    let root = env::var_os("EECH_SOURCE_ROOT").map(PathBuf::from).unwrap_or_else(|| manifest.join("../../..")).canonicalize().expect("EECH_SOURCE_ROOT does not exist");
+    let root = env::var_os("EECH_SOURCE_ROOT")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| manifest.join("../../.."))
+        .canonicalize()
+        .expect("EECH_SOURCE_ROOT does not exist");
     assert!(
         root.join("aphavoc/source/entity/system/en_types/en_types.h").exists(),
         "EECH source tree not found at {} (set EECH_SOURCE_ROOT)",
@@ -75,11 +79,11 @@ fn main() {
     let mut names = String::from(extract::BANNER);
     names.push_str("#include \"project.h\"\n#include \"eech_kernel_internal.h\"\n\n");
     let mut table_entries = String::new();
+    let member = regex::Regex::new(r"^\s*([A-Z_][A-Z0-9_]*)\s*(=[^,]*)?,?\s*(//.*)?$").unwrap();
     for (table, enum_name, file) in NAME_TABLES {
         let text = ex.read_source(file);
         let re = regex::Regex::new(&format!(r"\nenum {enum_name}\s*\n\{{([^}}]*)\}};")).unwrap();
         let body = re.captures(&text).unwrap_or_else(|| panic!("enum {enum_name} not found in {file}"))[1].to_string();
-        let member = regex::Regex::new(r"^\s*([A-Z_][A-Z0-9_]*)\s*(=[^,]*)?,?\s*(//.*)?$").unwrap();
         names.push_str(&format!("static const eech_name_entry names_{table}[] =\n{{\n"));
         for line in body.lines() {
             if let Some(c) = member.captures(line) {
@@ -92,7 +96,9 @@ fn main() {
         names.push_str("\t{ NULL, 0 }\n};\n\n");
         table_entries.push_str(&format!("\t{{ \"{table}\", names_{table} }},\n"));
     }
-    names.push_str(&format!("const eech_name_table eech_name_tables[] =\n{{\n{table_entries}\t{{ NULL, NULL }}\n}};\n"));
+    names.push_str(&format!(
+        "const eech_name_table eech_name_tables[] =\n{{\n{table_entries}\t{{ NULL, NULL }}\n}};\n"
+    ));
     let names_path = gen.join("eech_names.c");
     write_if_changed(&names_path, &names);
 
@@ -107,7 +113,9 @@ fn main() {
                 let m = ["A_INT", "A_FLOAT", "A_VEC3D", "A_LINK"][digit as usize];
                 args.push_str(&format!("{m} ({i}), "));
             }
-            inc.push_str(&format!("if ((n == {n}) && (shape == {shape})) return create_client_server_entity (type, index, {args}entity_attr_end);\n"));
+            inc.push_str(&format!(
+                "if ((n == {n}) && (shape == {shape})) return create_client_server_entity (type, index, {args}entity_attr_end);\n"
+            ));
         }
     }
     write_if_changed(&gen.join("eech_legacy_create.inc"), &inc);
@@ -123,12 +131,15 @@ fn main() {
 
     // 2. target and flags
     let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap();
     let pointer_width = env::var("CARGO_CFG_TARGET_POINTER_WIDTH").unwrap();
     let original_attrs = env::var("EECH_ORIGINAL_STACK_ATTRIBUTES").map(|v| v == "1").unwrap_or(false);
     if original_attrs && !(arch == "x86" && pointer_width == "32") {
         panic!("EECH_ORIGINAL_STACK_ATTRIBUTES=1 builds en_creat.c's i386-only va_list reinterpretation; refusing for {arch}/{pointer_width}-bit");
     }
     let opt = env::var("EECH_C_OPT").unwrap_or_else(|_| "0".into());
+    let diagnostics = env::var("EECH_C_DIAGNOSTICS").is_ok_and(|v| v == "1");
+    println!("cargo:rerun-if-env-changed=EECH_C_DIAGNOSTICS");
 
     let base = || {
         let mut b = cc::Build::new();
@@ -141,14 +152,24 @@ fn main() {
             .flag_if_supported("-std=gnu99")
             .flag_if_supported("-ffp-contract=off")
             .flag_if_supported("-fno-fast-math")
-            .warnings(false)
-            .cargo_warnings(false);
+            .warnings(true) // never `-w`: it would silence the -Werror= promotions below
+            .extra_warnings(false)
+            // EECH_C_DIAGNOSTICS=1 shows the compilers' output (the original
+            // code's historical warnings included)
+            .cargo_warnings(diagnostics);
         if arch == "x86" {
             // C float arithmetic at declared type (FLT_EVAL_METHOD 0), as the C reference
             b.flag("-msse2").flag("-mfpmath=sse");
         }
         if original_attrs {
             b.define("EECH_ORIGINAL_STACK_ATTRIBUTES", "1");
+        }
+        if target_os == "windows" && !b.get_compiler().is_like_msvc() {
+            // finding T1 (docs/64-bit.md): highlevl.h's release ai_log for WIN32 is
+            // `#define ai_log();`, called with arguments, which only MSVC's
+            // preprocessor accepts (warning C4002). GCC-family compilers on Windows
+            // take EECH's own non-WIN32 (GCC) definition instead.
+            b.flag("-UWIN32");
         }
         if let Some(r) = rounding {
             b.define("EECH_CAMPAIGN_ROUNDING", r);
@@ -233,7 +254,7 @@ fn main() {
     run(&mut ar, "archive the EECH kernel");
     println!("cargo:rustc-link-search=native={}", out.display());
     println!("cargo:rustc-link-lib=static=eech_kernel");
-    if env::var("CARGO_CFG_TARGET_OS").unwrap() != "windows" {
+    if target_os != "windows" {
         println!("cargo:rustc-link-lib=m");
     }
 
@@ -251,7 +272,12 @@ fn main() {
             let mut cmd = compiler.to_command();
             cmd.arg("-M").arg(input);
             let output = cmd.output().expect("run the C compiler for the dependency scan");
-            assert!(output.status.success(), "dependency scan failed for {}: {}", input.display(), String::from_utf8_lossy(&output.stderr));
+            assert!(
+                output.status.success(),
+                "dependency scan failed for {}: {}",
+                input.display(),
+                String::from_utf8_lossy(&output.stderr)
+            );
             let text = String::from_utf8_lossy(&output.stdout).replace("\\\n", " ");
             for dep in text.split_whitespace().skip(1) {
                 if let Ok(canon) = Path::new(dep).canonicalize() {
@@ -266,7 +292,10 @@ fn main() {
         println!("cargo:rerun-if-changed={}", root.join(file).display());
     }
     let mut report = String::from("# EECH source closure of the native kernel (generated by eech-sys/build)\n");
-    report.push_str(&format!("# target {arch} {pointer_width}-bit, C opt {opt}, compiler {}\n", compiler.path().display()));
+    report.push_str(&format!(
+        "# target {arch} {pointer_width}-bit, C opt {opt}, compiler {}\n",
+        compiler.path().display()
+    ));
     for f in &closure {
         report.push_str(f);
         report.push('\n');
@@ -277,7 +306,14 @@ fn main() {
     println!("cargo:rustc-env=EECH_C_COMPILER={}", compiler.path().display());
     println!("cargo:rustc-env=EECH_ORIGINAL_STACK_ATTRIBUTES_BUILD={}", u8::from(original_attrs));
     println!("cargo:rustc-env=EECH_FPU_ROUNDING_BUILD={}", rounding.unwrap_or("FE_TOWARDZERO"));
-    println!("cargo:rustc-env=EECH_KERNEL_OBJECTS={}", objects.iter().map(|p| p.display().to_string()).collect::<Vec<_>>().join(if cfg!(windows) { ";" } else { ":" }));
+    println!(
+        "cargo:rustc-env=EECH_KERNEL_OBJECTS={}",
+        objects
+            .iter()
+            .map(|p| p.display().to_string())
+            .collect::<Vec<_>>()
+            .join(if cfg!(windows) { ";" } else { ":" })
+    );
 }
 
 /// (table, enum, header) of the enumerations whose names cross the FFI boundary

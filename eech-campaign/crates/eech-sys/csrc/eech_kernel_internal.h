@@ -1,5 +1,5 @@
 /*
- * Internals shared by the native host layer (csrc/*.c). Included after
+ * Internals shared by the native host layer (the csrc C files). Included after
  * project.h. Not part of the FFI surface.
  */
 

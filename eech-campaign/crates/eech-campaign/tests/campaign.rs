@@ -54,8 +54,19 @@ fn keysite(name: &str, kind: KeysiteKind, x: f32, ammo: f32) -> KeysiteConfig {
 fn supply_chain() -> CampaignConfig {
     let mut airbase = keysite("airbase", KeysiteKind::AIRBASE, 22000.0, 100.0);
     airbase.landing = vec![LandingKind::HELICOPTER];
-    let mut c = CampaignConfig::new(MapConfig { sectors_x: 4, sectors_z: 4, sector_size: 8192 }, vec![Side::Blue]);
-    c.keysites = vec![keysite("farp", KeysiteKind::FARP, 8000.0, 5.0), keysite("factory", KeysiteKind::FACTORY, 13000.0, 35.0), airbase];
+    let mut c = CampaignConfig::new(
+        MapConfig {
+            sectors_x: 4,
+            sectors_z: 4,
+            sector_size: 8192,
+        },
+        vec![Side::Blue],
+    );
+    c.keysites = vec![
+        keysite("farp", KeysiteKind::FARP, 8000.0, 5.0),
+        keysite("factory", KeysiteKind::FACTORY, 13000.0, 35.0),
+        airbase,
+    ];
     c.groups = vec![GroupConfig {
         name: "lift".into(),
         kind: GroupKind::named("MEDIUM_LIFT_TRANSPORT_HELICOPTER"),
@@ -63,8 +74,16 @@ fn supply_chain() -> CampaignConfig {
         base: Some("airbase".into()),
         supplies: Supplies { ammo: 100.0, fuel: 100.0 },
         members: vec![
-            MemberConfig { name: "lift-1".into(), aircraft: AircraftKind::named("UH60_BLACK_HAWK"), fixed_wing: false },
-            MemberConfig { name: "lift-2".into(), aircraft: AircraftKind::named("UH60_BLACK_HAWK"), fixed_wing: false },
+            MemberConfig {
+                name: "lift-1".into(),
+                aircraft: AircraftKind::named("UH60_BLACK_HAWK"),
+                fixed_wing: false,
+            },
+            MemberConfig {
+                name: "lift-2".into(),
+                aircraft: AircraftKind::named("UH60_BLACK_HAWK"),
+                fixed_wing: false,
+            },
         ],
         registered: true,
     }];
@@ -72,7 +91,13 @@ fn supply_chain() -> CampaignConfig {
 }
 
 fn world_for(campaign: &Campaign) -> TestWorld {
-    let mut w = TestWorld { crate_bounds: Some(Bounds { min: Position::new(-1.0, -0.5, -1.5), max: Position::new(1.0, 0.5, 1.5) }), ..Default::default() };
+    let mut w = TestWorld {
+        crate_bounds: Some(Bounds {
+            min: Position::new(-1.0, -0.5, -1.5),
+            max: Position::new(1.0, 0.5, 1.5),
+        }),
+        ..Default::default()
+    };
     w.positions.insert(campaign.entity("lift-1").unwrap(), Position::new(22000.0, 0.0, 16000.0));
     w.positions.insert(campaign.entity("lift-2").unwrap(), Position::new(22010.0, 0.0, 16000.0));
     w
@@ -81,7 +106,10 @@ fn world_for(campaign: &Campaign) -> TestWorld {
 const HALF_SECOND: Duration = Duration::from_millis(500);
 
 /// frames of half a second until the campaign fails or `limit` frames ran
-fn run(campaign: &mut Campaign, world: &mut TestWorld, limit: u32) -> (Vec<(u32, CampaignEvent)>, Option<(u32, CampaignError)>) {
+/// (frame, event) pairs, and the failing frame with its error
+type Run = (Vec<(u32, CampaignEvent)>, Option<(u32, CampaignError)>);
+
+fn run(campaign: &mut Campaign, world: &mut TestWorld, limit: u32) -> Run {
     let mut events = Vec::new();
     for frame in 0..limit {
         match campaign.step(world, HALF_SECOND) {
@@ -109,15 +137,39 @@ fn the_supply_chain_runs_from_keysite_consumption_to_the_assignment_boundary() {
 
     // frame 0: every keysite's first update. The FARP (updated first) is low on
     // ammo, but the factory has no crates yet: no mission
-    assert_eq!(events[0], (0, CampaignEvent::LowOnSupplies { side: Side::Blue, requester: farp, supply: Supply::Ammo }));
+    assert_eq!(
+        events[0],
+        (
+            0,
+            CampaignEvent::LowOnSupplies {
+                side: Side::Blue,
+                requester: farp,
+                supply: Supply::Ammo
+            }
+        )
+    );
     assert!(!events.iter().any(|(f, e)| *f == 0 && matches!(e, CampaignEvent::SupplyMissionRequested { .. })));
 
     // one minute later (KEYSITE_UPDATE_SLEEP_TIMER): the factory's crate supplies a mission
-    let requested: Vec<_> = events.iter().filter(|(_, e)| matches!(e, CampaignEvent::SupplyMissionRequested { .. })).collect();
+    let requested: Vec<_> = events
+        .iter()
+        .filter(|(_, e)| matches!(e, CampaignEvent::SupplyMissionRequested { .. }))
+        .collect();
     assert_eq!(requested.len(), 1, "{events:?}");
-    let (frame, CampaignEvent::SupplyMissionRequested { requester, supplier, .. }) = requested[0] else { unreachable!() };
+    let (frame, CampaignEvent::SupplyMissionRequested { requester, supplier, .. }) = requested[0] else {
+        unreachable!()
+    };
     assert_eq!((*frame, *requester, *supplier), (120, farp, factory));
-    let created: Vec<_> = events.iter().filter_map(|(f, e)| if let CampaignEvent::MissionCreated { task } = e { Some((*f, *task)) } else { None }).collect();
+    let created: Vec<_> = events
+        .iter()
+        .filter_map(|(f, e)| {
+            if let CampaignEvent::MissionCreated { task } = e {
+                Some((*f, *task))
+            } else {
+                None
+            }
+        })
+        .collect();
     assert_eq!(created.len(), 1);
     let task = created[0].1;
 
@@ -218,7 +270,10 @@ fn an_unknown_position_fails_loudly_and_poisons_the_campaign() {
     let (_, failure) = run(&mut campaign, &mut world, 1000);
     let (frame, error) = failure.unwrap();
     assert_eq!(frame, 360, "the first position read is the assignment's locality check");
-    assert!(matches!(&error, CampaignError::World(m) if m.contains("World::position knows no position")), "{error:?}");
+    assert!(
+        matches!(&error, CampaignError::World(m) if m.contains("World::position knows no position")),
+        "{error:?}"
+    );
     assert!(campaign.is_poisoned());
 }
 
@@ -280,7 +335,10 @@ fn stale_and_foreign_ids_are_detected() {
         let mut campaign = Campaign::new(supply_chain()).unwrap();
         let mut world = world_for(&campaign);
         let (events, _) = run(&mut campaign, &mut world, 300);
-        let task = events.iter().find_map(|(_, e)| if let CampaignEvent::MissionCreated { task } = e { Some(*task) } else { None }).unwrap();
+        let task = events
+            .iter()
+            .find_map(|(_, e)| if let CampaignEvent::MissionCreated { task } = e { Some(*task) } else { None })
+            .unwrap();
         assert!(campaign.task(task).is_ok());
         (task, campaign.entity("lift").unwrap())
     };
@@ -302,7 +360,12 @@ fn a_server_replicates_what_changed() {
     let mut world = world_for(&campaign);
     let report = campaign.step(&mut world, HALF_SECOND).unwrap();
     let replicated: Vec<_> = report.events.iter().filter(|e| matches!(e, CampaignEvent::Replicated(_))).collect();
-    assert!(replicated.iter().any(|e| matches!(e, CampaignEvent::Replicated(Replication::EntityCreated { entity_type }) if entity_type == "CARGO")), "{replicated:?}");
+    assert!(
+        replicated
+            .iter()
+            .any(|e| matches!(e, CampaignEvent::Replicated(Replication::EntityCreated { entity_type }) if entity_type == "CARGO")),
+        "{replicated:?}"
+    );
     // single player replicates nothing
     drop(campaign);
     let mut campaign = Campaign::new(supply_chain()).unwrap();

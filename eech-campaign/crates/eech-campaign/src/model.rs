@@ -292,11 +292,25 @@ pub enum CampaignEvent {
 #[cfg_attr(feature = "serde", serde(tag = "kind", rename_all = "kebab-case"))]
 #[non_exhaustive]
 pub enum Replication {
-    ValueChanged { entity: EntityId, field: String, value: f32 },
-    EntityCreated { entity_type: String },
-    EntityDestroyed { entity: EntityId },
-    TaskRouteSet { task: EntityId },
-    ParentChanged { entity: EntityId, relation: String, parent: Option<EntityId> },
+    ValueChanged {
+        entity: EntityId,
+        field: String,
+        value: f32,
+    },
+    EntityCreated {
+        entity_type: String,
+    },
+    EntityDestroyed {
+        entity: EntityId,
+    },
+    TaskRouteSet {
+        task: EntityId,
+    },
+    ParentChanged {
+        entity: EntityId,
+        relation: String,
+        parent: Option<EntityId>,
+    },
 }
 
 /// The result of one [`crate::Campaign::step`].

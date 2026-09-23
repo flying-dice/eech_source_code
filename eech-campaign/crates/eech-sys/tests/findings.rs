@@ -29,7 +29,13 @@ fn writable_symbols() -> Option<BTreeMap<String, BTreeSet<String>>> {
     for object in eech_sys::build_info::KERNEL_OBJECTS.split(separator) {
         let out = Command::new("nm").arg("--defined-only").arg(object).output().ok()?;
         assert!(out.status.success(), "nm {object}");
-        let unit = std::path::Path::new(object).file_name().unwrap().to_string_lossy().split_once('-').map(|(_, u)| u.to_string()).unwrap_or_default();
+        let unit = std::path::Path::new(object)
+            .file_name()
+            .unwrap()
+            .to_string_lossy()
+            .split_once('-')
+            .map(|(_, u)| u.to_string())
+            .unwrap_or_default();
         for line in String::from_utf8_lossy(&out.stdout).lines() {
             let fields: Vec<&str> = line.split_whitespace().collect();
             if fields.len() != 3 || !matches!(fields[1], "B" | "b" | "D" | "d" | "C" | "G" | "g" | "S" | "s") {
@@ -56,9 +62,21 @@ fn every_writable_global_is_classified() {
         return;
     };
     let manifest = include_str!("../global-state.txt");
-    let classified: BTreeSet<String> = manifest.lines().filter(|l| !l.starts_with('#') && !l.trim().is_empty()).map(|l| l.split_whitespace().next().unwrap().to_string()).collect();
-    let unclassified: Vec<String> = found.iter().filter(|(s, _)| !classified.contains(*s)).map(|(s, u)| format!("{s} ({})", u.iter().cloned().collect::<Vec<_>>().join(", "))).collect();
+    let classified: BTreeSet<String> = manifest
+        .lines()
+        .filter(|l| !l.starts_with('#') && !l.trim().is_empty())
+        .map(|l| l.split_whitespace().next().unwrap().to_string())
+        .collect();
+    let unclassified: Vec<String> = found
+        .iter()
+        .filter(|(s, _)| !classified.contains(*s))
+        .map(|(s, u)| format!("{s} ({})", u.iter().cloned().collect::<Vec<_>>().join(", ")))
+        .collect();
     let gone: Vec<&String> = classified.iter().filter(|s| !found.contains_key(*s)).collect();
-    assert!(unclassified.is_empty(), "writable globals missing from global-state.txt:\n{}", unclassified.join("\n"));
+    assert!(
+        unclassified.is_empty(),
+        "writable globals missing from global-state.txt:\n{}",
+        unclassified.join("\n")
+    );
     assert!(gone.is_empty(), "global-state.txt lists symbols the kernel no longer has: {gone:?}");
 }

@@ -143,7 +143,9 @@ pub fn run(scenario: &Scenario) -> Result<(RunResult, HashMap<EntityId, String>)
     let mut campaign = Campaign::new(scenario.campaign.clone())?;
     let mut world = HeadlessWorld::new();
     for (name, position) in &scenario.world.positions {
-        let id = campaign.entity(name).ok_or_else(|| CampaignError::InvalidConfig(format!("world position for unknown entity {name:?}")))?;
+        let id = campaign
+            .entity(name)
+            .ok_or_else(|| CampaignError::InvalidConfig(format!("world position for unknown entity {name:?}")))?;
         world.set_position(id, *position);
     }
     for o in &scenario.world.objects {
@@ -159,12 +161,20 @@ pub fn run(scenario: &Scenario) -> Result<(RunResult, HashMap<EntityId, String>)
             match campaign.step(&mut world, Duration::from_secs_f32(f.delta)) {
                 Ok(report) => {
                     if !report.events.is_empty() {
-                        frames.push(FrameEvents { frame, time: campaign.snapshot().elapsed, events: report.events });
+                        frames.push(FrameEvents {
+                            frame,
+                            time: campaign.snapshot().elapsed,
+                            events: report.events,
+                        });
                     }
                 }
                 Err(e) => {
                     events_before_failure = campaign.drain_events();
-                    outcome = Outcome::Failed { frame, error: e.to_string(), kind: error_kind(&e).into() };
+                    outcome = Outcome::Failed {
+                        frame,
+                        error: e.to_string(),
+                        kind: error_kind(&e).into(),
+                    };
                     break 'run;
                 }
             }
@@ -186,11 +196,26 @@ pub fn run(scenario: &Scenario) -> Result<(RunResult, HashMap<EntityId, String>)
         .keysites
         .iter()
         .map(|k| k.name.clone())
-        .chain(scenario.campaign.groups.iter().flat_map(|g| std::iter::once(g.name.clone()).chain(g.members.iter().map(|m| m.name.clone()))))
+        .chain(
+            scenario
+                .campaign
+                .groups
+                .iter()
+                .flat_map(|g| std::iter::once(g.name.clone()).chain(g.members.iter().map(|m| m.name.clone()))),
+        )
         .filter_map(|n| campaign.entity(&n).map(|id| (id, n)))
         .collect();
 
-    Ok((RunResult { frames, outcome, events_before_failure, snapshot: campaign.snapshot(), world_queries }, names))
+    Ok((
+        RunResult {
+            frames,
+            outcome,
+            events_before_failure,
+            snapshot: campaign.snapshot(),
+            world_queries,
+        },
+        names,
+    ))
 }
 
 fn error_kind(e: &CampaignError) -> &'static str {

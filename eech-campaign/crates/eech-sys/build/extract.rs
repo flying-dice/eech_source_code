@@ -18,13 +18,36 @@ pub enum Spec {
     Include(&'static str),
     /// text written as is (ours)
     Raw(String),
-    Struct { name: &'static str, file: &'static str },
-    Enum { name: &'static str, file: &'static str },
-    Define { name: &'static str, file: &'static str },
-    Prototype { name: &'static str, file: &'static str },
-    Regex { pattern: &'static str, file: &'static str },
-    Function { name: &'static str, signature: &'static str, file: &'static str },
-    Wrap { prologue: &'static str, epilogue: &'static str, parts: Vec<Spec> },
+    Struct {
+        name: &'static str,
+        file: &'static str,
+    },
+    Enum {
+        name: &'static str,
+        file: &'static str,
+    },
+    Define {
+        name: &'static str,
+        file: &'static str,
+    },
+    Prototype {
+        name: &'static str,
+        file: &'static str,
+    },
+    Regex {
+        pattern: &'static str,
+        file: &'static str,
+    },
+    Function {
+        name: &'static str,
+        signature: &'static str,
+        file: &'static str,
+    },
+    Wrap {
+        prologue: &'static str,
+        epilogue: &'static str,
+        parts: Vec<Spec>,
+    },
 }
 
 pub struct Extractor<'a> {
@@ -35,7 +58,10 @@ pub struct Extractor<'a> {
 
 impl<'a> Extractor<'a> {
     pub fn new(root: &'a Path) -> Self {
-        Extractor { root, read: Default::default() }
+        Extractor {
+            root,
+            read: Default::default(),
+        }
     }
 
     pub fn read_source(&self, file: &str) -> String {
@@ -106,7 +132,10 @@ fn fragment(text: &str, start: usize, end: usize, file: &str) -> String {
 
 fn extract_braced(text: &str, start: usize, what: &str) -> usize {
     let bytes = text.as_bytes();
-    let open = text[start..].find('{').map(|o| o + start).unwrap_or_else(|| panic!("no body extracting {what}"));
+    let open = text[start..]
+        .find('{')
+        .map(|o| o + start)
+        .unwrap_or_else(|| panic!("no body extracting {what}"));
     let mut depth = 0i32;
     for (i, &b) in bytes.iter().enumerate().skip(open) {
         if b == b'{' {

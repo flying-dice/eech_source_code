@@ -281,7 +281,7 @@ void eech_host_mobile_position (entity *en, vec3d *position)
 
 	if (!eech_current_host || !eech_current_host->mobile_position)
 	{
-		eech_abort (EECH_STATUS_UNPORTED, "mobile position", "the host provides no mobile positions (entity %d)", get_local_entity_index (en));
+		eech_abort (EECH_STATUS_UNPORTED, "mobile position", "the host provides no mobile positions (entity %d)", (int) get_local_entity_index (en));
 	}
 
 	callback_ref = eech_ref_of (en);
@@ -622,7 +622,7 @@ int assign_primary_task_to_group (entity *group_en, entity *task_en)
 	eech_last_refs[1] = eech_ref_of (task_en);
 	eech_last_ref_count = 2;
 
-	eech_abort (EECH_STATUS_BOUNDARY, boundary_message, "assign_primary_task_to_group (group %d, task %d)", get_local_entity_index (group_en), get_local_entity_index (task_en));
+	eech_abort (EECH_STATUS_BOUNDARY, boundary_message, "assign_primary_task_to_group (group %d, task %d)", (int) get_local_entity_index (group_en), (int) get_local_entity_index (task_en));
 
 	return FALSE;
 }

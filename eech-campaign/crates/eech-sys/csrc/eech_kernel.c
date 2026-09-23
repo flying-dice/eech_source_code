@@ -9,7 +9,7 @@
 
 #include "eech_kernel_internal.h"
 
-#pragma STDC FENV_ACCESS ON
+/* FENV_ACCESS: GCC does not implement the pragma; this file is compiled with -frounding-math (build/main.rs) */
 
 /* the campaign's rounding mode: EECH's, toward zero. INVESTIGATION ONLY:
    EECH_FPU_ROUNDING=nearest at build time (docs/fpu.md) */

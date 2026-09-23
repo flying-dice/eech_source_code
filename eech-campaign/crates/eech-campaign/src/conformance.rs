@@ -60,12 +60,18 @@ struct ReplayHost<'a> {
 impl eech_sys::Host for ReplayHost<'_> {
     fn mobile_position(&mut self, mobile: Ref) -> Result<[f32; 3], HostError> {
         let id = id_of(mobile).ok_or_else(|| HostError("position of no entity".into()))?;
-        let p = self.world.position(id).ok_or_else(|| HostError(format!("the scenario declares no position for {id}")))?;
+        let p = self
+            .world
+            .position(id)
+            .ok_or_else(|| HostError(format!("the scenario declares no position for {id}")))?;
         Ok([p.x, p.y, p.z])
     }
 
     fn object_bounds(&mut self, object: i32) -> Result<[f32; 6], HostError> {
-        let b = self.world.object_bounds(ObjectModel(object as u32)).ok_or_else(|| HostError(format!("the scenario declares no bounds for object {object}")))?;
+        let b = self
+            .world
+            .object_bounds(ObjectModel(object as u32))
+            .ok_or_else(|| HostError(format!("the scenario declares no bounds for object {object}")))?;
         Ok([b.min.x, b.max.x, b.min.y, b.max.y, b.min.z, b.max.z])
     }
 
@@ -90,7 +96,13 @@ impl eech_sys::Host for ReplayHost<'_> {
             }
             Declaration::ObjectBounds { object, bounds: b } => {
                 // a later line for the same object replaces its entry (as the C reference)
-                self.world.bounds.insert(ObjectModel(object as u32), Bounds { min: Position::new(b[0], b[2], b[4]), max: Position::new(b[1], b[3], b[5]) });
+                self.world.bounds.insert(
+                    ObjectModel(object as u32),
+                    Bounds {
+                        min: Position::new(b[0], b[2], b[4]),
+                        max: Position::new(b[1], b[3], b[5]),
+                    },
+                );
             }
         }
         Ok(())
@@ -108,7 +120,12 @@ fn kernel_error(e: eech_sys::KernelError) -> CampaignError {
 /// the slice boundary) succeeds: the outcome is part of the output, as in
 /// the C reference.
 pub fn replay(scenario: &str) -> Result<Replay, CampaignError> {
-    let mut host = ReplayHost { world: ScenarioWorld::default(), events: Vec::new(), text: String::new(), sink: None };
+    let mut host = ReplayHost {
+        world: ScenarioWorld::default(),
+        events: Vec::new(),
+        text: String::new(),
+        sink: None,
+    };
     begin_instance();
     eech_sys::legacy_replay(&mut host, scenario).map_err(kernel_error)?;
     let mut lines: Vec<String> = host.text.split('\n').map(str::to_string).collect();
@@ -121,7 +138,12 @@ pub fn replay(scenario: &str) -> Result<Replay, CampaignError> {
 /// Replays one scenario, handing output to `sink` as it is produced (for a
 /// dedicated replay process that must not lose output to a fault).
 pub fn replay_streaming(scenario: &str, sink: &mut dyn FnMut(&str)) -> Result<Vec<CampaignEvent>, CampaignError> {
-    let mut host = ReplayHost { world: ScenarioWorld::default(), events: Vec::new(), text: String::new(), sink: Some(sink) };
+    let mut host = ReplayHost {
+        world: ScenarioWorld::default(),
+        events: Vec::new(),
+        text: String::new(),
+        sink: Some(sink),
+    };
     begin_instance();
     eech_sys::legacy_replay(&mut host, scenario).map_err(kernel_error)?;
     Ok(host.events)

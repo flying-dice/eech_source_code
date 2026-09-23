@@ -67,17 +67,32 @@ impl CampaignError {
     pub fn poisons(&self) -> bool {
         matches!(
             self,
-            CampaignError::Assertion { .. } | CampaignError::Fatal { .. } | CampaignError::Unported { .. } | CampaignError::Boundary { .. } | CampaignError::World(_) | CampaignError::Internal(_)
+            CampaignError::Assertion { .. }
+                | CampaignError::Fatal { .. }
+                | CampaignError::Unported { .. }
+                | CampaignError::Boundary { .. }
+                | CampaignError::World(_)
+                | CampaignError::Internal(_)
         )
     }
 
     pub(crate) fn from_kernel(e: eech_sys::KernelError) -> CampaignError {
         use eech_sys::Status::*;
         match e.status {
-            Assert => CampaignError::Assertion { expression: e.message, detail: e.detail },
+            Assert => CampaignError::Assertion {
+                expression: e.message,
+                detail: e.detail,
+            },
             Fatal => CampaignError::Fatal { message: e.detail },
-            Unported => CampaignError::Unported { dependency: e.message, detail: e.detail },
-            Boundary => CampaignError::Boundary { name: e.message, entities: e.refs.iter().filter_map(|r| crate::campaign::id_of(*r)).collect(), detail: e.detail },
+            Unported => CampaignError::Unported {
+                dependency: e.message,
+                detail: e.detail,
+            },
+            Boundary => CampaignError::Boundary {
+                name: e.message,
+                entities: e.refs.iter().filter_map(|r| crate::campaign::id_of(*r)).collect(),
+                detail: e.detail,
+            },
             HostError => CampaignError::World(e.detail),
             Invalid => CampaignError::InvalidConfig(format!("{}: {}", e.message, e.detail)),
             AlreadyOpen => CampaignError::AlreadyRunning,

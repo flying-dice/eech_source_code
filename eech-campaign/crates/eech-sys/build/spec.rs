@@ -72,10 +72,16 @@ pub const REAL_TRANSLATION_UNITS: &[&str] = &[
 pub const UNIT_DEFINES: &[(&str, &[&str])] = &[
     // fc_msgs.c calls create_supply_task through eech_observe_create_supply_task
     // (csrc/eech_env.c), which reports the call and runs the original
-    ("aphavoc/source/entity/special/force/fc_msgs.c", &["create_supply_task=eech_observe_create_supply_task"]),
+    (
+        "aphavoc/source/entity/special/force/fc_msgs.c",
+        &["create_supply_task=eech_observe_create_supply_task"],
+    ),
     // en_heap.c defines get_free_entity under another name; csrc/eech_kernel.c's
     // get_free_entity runs it and records the new incarnation (EntityId generation)
-    ("aphavoc/source/entity/system/en_main/en_heap.c", &["get_free_entity=eech_original_get_free_entity"]),
+    (
+        "aphavoc/source/entity/system/en_main/en_heap.c",
+        &["get_free_entity=eech_original_get_free_entity"],
+    ),
 ];
 
 /// Original units that are patched (see patches.rs), generated into OUT_DIR.
@@ -87,26 +93,86 @@ pub const PATCHED_UNITS: &[&str] = &[
 pub fn project_h() -> Vec<Spec> {
     vec![
         Local("eech_native_env.h"),
-        Struct { name: "VEC3D", file: "modules/maths/vector.h" },
-        Regex { pattern: r"\ntypedef struct VEC3D vec3d;", file: "modules/maths/vector.h" },
-        Define { name: "bound", file: "modules/maths/miscmath.h" },
-        Define { name: "METRE", file: "modules/maths/constant.h" },
-        Define { name: "KILOMETRE", file: "modules/maths/constant.h" },
-        Regex { pattern: r"\nextern float\n\tsystem_delta_time,\n\tsystem_one_over_delta_time;", file: "modules/system/time.h" },
-        Regex { pattern: r"\nextern int\n\tlocked_frame_rate;", file: "modules/system/time.h" },
-        Regex { pattern: r"\nextern void set_manual_delta_time \(float delta_time\);", file: "modules/system/time.h" },
-        Define { name: "get_delta_time", file: "modules/system/time.h" },
-        Enum { name: "COMMS_MODEL_TYPES", file: "aphavoc/source/comms/comms.h" },
-        Regex { pattern: r"\ntypedef enum COMMS_MODEL_TYPES comms_model_types;", file: "aphavoc/source/comms/comms.h" },
-        Enum { name: "COMMS_DATA_FLOW_TYPES", file: "aphavoc/source/comms/comms.h" },
-        Regex { pattern: r"\ntypedef enum COMMS_DATA_FLOW_TYPES comms_data_flow_types;", file: "aphavoc/source/comms/comms.h" },
-        Regex { pattern: r"\nextern comms_model_types\n\s*system_comms_model;", file: "aphavoc/source/comms/comms.h" },
-        Regex { pattern: r"\nextern comms_data_flow_types\n\s*system_comms_data_flow;", file: "aphavoc/source/comms/comms.h" },
-        Define { name: "get_comms_model", file: "aphavoc/source/comms/comms.h" },
-        Define { name: "get_comms_data_flow", file: "aphavoc/source/comms/comms.h" },
-        Enum { name: "MAP_LAYER_CONTROL_TYPES", file: "aphavoc/source/ui_menu/ingame/common/map.h" },
-        Define { name: "MAP_LAYER_CONTROL_NONE", file: "aphavoc/source/ui_menu/ingame/common/map.h" },
-        Enum { name: "MAP_ICON_TYPE", file: "aphavoc/source/ui_menu/ingame/common/map.h" },
+        Struct {
+            name: "VEC3D",
+            file: "modules/maths/vector.h",
+        },
+        Regex {
+            pattern: r"\ntypedef struct VEC3D vec3d;",
+            file: "modules/maths/vector.h",
+        },
+        Define {
+            name: "bound",
+            file: "modules/maths/miscmath.h",
+        },
+        Define {
+            name: "METRE",
+            file: "modules/maths/constant.h",
+        },
+        Define {
+            name: "KILOMETRE",
+            file: "modules/maths/constant.h",
+        },
+        Regex {
+            pattern: r"\nextern float\n\tsystem_delta_time,\n\tsystem_one_over_delta_time;",
+            file: "modules/system/time.h",
+        },
+        Regex {
+            pattern: r"\nextern int\n\tlocked_frame_rate;",
+            file: "modules/system/time.h",
+        },
+        Regex {
+            pattern: r"\nextern void set_manual_delta_time \(float delta_time\);",
+            file: "modules/system/time.h",
+        },
+        Define {
+            name: "get_delta_time",
+            file: "modules/system/time.h",
+        },
+        Enum {
+            name: "COMMS_MODEL_TYPES",
+            file: "aphavoc/source/comms/comms.h",
+        },
+        Regex {
+            pattern: r"\ntypedef enum COMMS_MODEL_TYPES comms_model_types;",
+            file: "aphavoc/source/comms/comms.h",
+        },
+        Enum {
+            name: "COMMS_DATA_FLOW_TYPES",
+            file: "aphavoc/source/comms/comms.h",
+        },
+        Regex {
+            pattern: r"\ntypedef enum COMMS_DATA_FLOW_TYPES comms_data_flow_types;",
+            file: "aphavoc/source/comms/comms.h",
+        },
+        Regex {
+            pattern: r"\nextern comms_model_types\n\s*system_comms_model;",
+            file: "aphavoc/source/comms/comms.h",
+        },
+        Regex {
+            pattern: r"\nextern comms_data_flow_types\n\s*system_comms_data_flow;",
+            file: "aphavoc/source/comms/comms.h",
+        },
+        Define {
+            name: "get_comms_model",
+            file: "aphavoc/source/comms/comms.h",
+        },
+        Define {
+            name: "get_comms_data_flow",
+            file: "aphavoc/source/comms/comms.h",
+        },
+        Enum {
+            name: "MAP_LAYER_CONTROL_TYPES",
+            file: "aphavoc/source/ui_menu/ingame/common/map.h",
+        },
+        Define {
+            name: "MAP_LAYER_CONTROL_NONE",
+            file: "aphavoc/source/ui_menu/ingame/common/map.h",
+        },
+        Enum {
+            name: "MAP_ICON_TYPE",
+            file: "aphavoc/source/ui_menu/ingame/common/map.h",
+        },
         Include("entity/system/en_types/en_types.h"),
         Include("entity/system/en_main/en_heap.h"),
         Include("entity/system/en_msgs/en_msgs.h"),
@@ -118,34 +184,118 @@ pub fn project_h() -> Vec<Spec> {
         Include("entity/special/division/division.h"),
         Include("entity/special/group/group.h"),
         Include("entity/tacview/tacview.h"),
-        Regex { pattern: r"\ntypedef struct OBJECT_3D_INSTANCE object_3d_instance;", file: "modules/3d/objects.h" },
-        Struct { name: "OBJECT_3D_BOUNDS", file: "modules/3d/objects.h" },
-        Regex { pattern: r"\ntypedef struct OBJECT_3D_BOUNDS object_3d_bounds;", file: "modules/3d/objects.h" },
-        Regex { pattern: r"\ntypedef int terrain_types;", file: "modules/3d/terrain/terrtype.h" },
-        Regex { pattern: r"\ntypedef struct TERRAIN_3D_POINT_WORD_REFERENCE terrain_3d_point_word_reference;", file: "modules/3d/terrain/terrdata.h" },
-        Regex { pattern: r"\ntypedef struct TERRAIN_3D_POINT_BYTE_REFERENCE terrain_3d_point_byte_reference;", file: "modules/3d/terrain/terrdata.h" },
-        Regex { pattern: r"\ntypedef struct TERRAIN_3D_FACE terrain_3d_face;", file: "modules/3d/terrain/terrdata.h" },
-        Regex { pattern: r"\ntypedef struct TERRAIN_3D_SECTOR terrain_3d_sector;", file: "modules/3d/terrain/terrdata.h" },
-        Struct { name: "TERRAIN_3D_POINT_DATA", file: "modules/3d/terrain/terrdata.h" },
-        Regex { pattern: r"\ntypedef struct TERRAIN_3D_POINT_DATA terrain_3d_point_data;", file: "modules/3d/terrain/terrdata.h" },
-        Struct { name: "DOUBLE_VEC3D", file: "modules/maths/vector.h" },
-        Regex { pattern: r"\ntypedef struct DOUBLE_VEC3D double_vec3d;", file: "modules/maths/vector.h" },
-        Regex { pattern: r"\ntypedef struct EVENT event;", file: "modules/system/event.h" },
-        Enum { name: "DEBUG_COLOURS", file: "modules/system/debug.h" },
-        Regex { pattern: r"\nextern void debug_colour_log \( enum DEBUG_COLOURS colour, const char \*string, \.\.\. \);", file: "modules/system/debug.h" },
-        Prototype { name: "get_identity_matrix3x3", file: "modules/maths/matrix.h" },
-        Regex { pattern: r"\ntypedef int sound_sample_indices;", file: "aphavoc/source/appsound/snd_data.h" },
-        Enum { name: "GAME_STATUS_TYPES", file: "aphavoc/source/global.h" },
-        Regex { pattern: r"\ntypedef enum GAME_STATUS_TYPES game_status_types;", file: "aphavoc/source/global.h" },
-        Regex { pattern: r"\nextern game_status_types\n\tgame_status;", file: "aphavoc/source/global.h" },
-        Define { name: "get_game_status", file: "aphavoc/source/global.h" },
-        Enum { name: "GUNSHIP_TYPES", file: "aphavoc/source/global.h" },
-        Regex { pattern: r"\ntypedef enum GUNSHIP_TYPES gunship_types;", file: "aphavoc/source/global.h" },
-        Enum { name: "GAME_DIFFICULTY_SETTINGS", file: "aphavoc/source/global.h" },
-        Enum { name: "WEATHERMODES", file: "modules/3d/3denv.h" },
-        Enum { name: "SESSION_LIST_TYPES", file: "aphavoc/source/ui_menu/session/session.h" },
-        Regex { pattern: r"\ntypedef enum SESSION_LIST_TYPES session_list_types;", file: "aphavoc/source/ui_menu/session/session.h" },
-        Prototype { name: "int_bit_count", file: "aphavoc/source/misc/miscell.h" },
+        Regex {
+            pattern: r"\ntypedef struct OBJECT_3D_INSTANCE object_3d_instance;",
+            file: "modules/3d/objects.h",
+        },
+        Struct {
+            name: "OBJECT_3D_BOUNDS",
+            file: "modules/3d/objects.h",
+        },
+        Regex {
+            pattern: r"\ntypedef struct OBJECT_3D_BOUNDS object_3d_bounds;",
+            file: "modules/3d/objects.h",
+        },
+        Regex {
+            pattern: r"\ntypedef int terrain_types;",
+            file: "modules/3d/terrain/terrtype.h",
+        },
+        Regex {
+            pattern: r"\ntypedef struct TERRAIN_3D_POINT_WORD_REFERENCE terrain_3d_point_word_reference;",
+            file: "modules/3d/terrain/terrdata.h",
+        },
+        Regex {
+            pattern: r"\ntypedef struct TERRAIN_3D_POINT_BYTE_REFERENCE terrain_3d_point_byte_reference;",
+            file: "modules/3d/terrain/terrdata.h",
+        },
+        Regex {
+            pattern: r"\ntypedef struct TERRAIN_3D_FACE terrain_3d_face;",
+            file: "modules/3d/terrain/terrdata.h",
+        },
+        Regex {
+            pattern: r"\ntypedef struct TERRAIN_3D_SECTOR terrain_3d_sector;",
+            file: "modules/3d/terrain/terrdata.h",
+        },
+        Struct {
+            name: "TERRAIN_3D_POINT_DATA",
+            file: "modules/3d/terrain/terrdata.h",
+        },
+        Regex {
+            pattern: r"\ntypedef struct TERRAIN_3D_POINT_DATA terrain_3d_point_data;",
+            file: "modules/3d/terrain/terrdata.h",
+        },
+        Struct {
+            name: "DOUBLE_VEC3D",
+            file: "modules/maths/vector.h",
+        },
+        Regex {
+            pattern: r"\ntypedef struct DOUBLE_VEC3D double_vec3d;",
+            file: "modules/maths/vector.h",
+        },
+        Regex {
+            pattern: r"\ntypedef struct EVENT event;",
+            file: "modules/system/event.h",
+        },
+        Enum {
+            name: "DEBUG_COLOURS",
+            file: "modules/system/debug.h",
+        },
+        Regex {
+            pattern: r"\nextern void debug_colour_log \( enum DEBUG_COLOURS colour, const char \*string, \.\.\. \);",
+            file: "modules/system/debug.h",
+        },
+        Prototype {
+            name: "get_identity_matrix3x3",
+            file: "modules/maths/matrix.h",
+        },
+        Regex {
+            pattern: r"\ntypedef int sound_sample_indices;",
+            file: "aphavoc/source/appsound/snd_data.h",
+        },
+        Enum {
+            name: "GAME_STATUS_TYPES",
+            file: "aphavoc/source/global.h",
+        },
+        Regex {
+            pattern: r"\ntypedef enum GAME_STATUS_TYPES game_status_types;",
+            file: "aphavoc/source/global.h",
+        },
+        Regex {
+            pattern: r"\nextern game_status_types\n\tgame_status;",
+            file: "aphavoc/source/global.h",
+        },
+        Define {
+            name: "get_game_status",
+            file: "aphavoc/source/global.h",
+        },
+        Enum {
+            name: "GUNSHIP_TYPES",
+            file: "aphavoc/source/global.h",
+        },
+        Regex {
+            pattern: r"\ntypedef enum GUNSHIP_TYPES gunship_types;",
+            file: "aphavoc/source/global.h",
+        },
+        Enum {
+            name: "GAME_DIFFICULTY_SETTINGS",
+            file: "aphavoc/source/global.h",
+        },
+        Enum {
+            name: "WEATHERMODES",
+            file: "modules/3d/3denv.h",
+        },
+        Enum {
+            name: "SESSION_LIST_TYPES",
+            file: "aphavoc/source/ui_menu/session/session.h",
+        },
+        Regex {
+            pattern: r"\ntypedef enum SESSION_LIST_TYPES session_list_types;",
+            file: "aphavoc/source/ui_menu/session/session.h",
+        },
+        Prototype {
+            name: "int_bit_count",
+            file: "aphavoc/source/misc/miscell.h",
+        },
         Include("misc/listitem.h"),
         Include("3d/3dmodels.h"),
         Include("3d/textanim.h"),
@@ -156,80 +306,257 @@ pub fn project_h() -> Vec<Spec> {
         Include("entity/mobile/mobile.h"),
         Include("entity/special/sector/sector.h"),
         Include("entity/system/en_debug/en_stats.h"),
-        Regex { pattern: r"\ntypedef enum WEATHERMODES weathermodes;", file: "modules/3d/3denv.h" },
-        Regex { pattern: r"\nenum SESSION_TIME_OF_DAY_SETTINGS\n\{[^}]*\};", file: "aphavoc/source/global.h" },
-        Regex { pattern: r"\ntypedef enum SESSION_TIME_OF_DAY_SETTINGS session_time_of_day_settings;", file: "aphavoc/source/global.h" },
-        Regex { pattern: r"\nenum SYS_COLOURS\n\{[^}]*\};", file: "modules/graphics/colour.h" },
-        Regex { pattern: r"\ntypedef enum SYS_COLOURS sys_colours;", file: "modules/graphics/colour.h" },
-        Define { name: "SECONDS_IN_A_MINUTE", file: "modules/maths/constant.h" },
-        Define { name: "ONE_MINUTE", file: "modules/maths/constant.h" },
-        Regex { pattern: r"\nextern int\n\trandom_number_seed;", file: "modules/maths/random.h" },
-        Define { name: "get_random_number", file: "modules/maths/random.h" },
-        Define { name: "rand16", file: "modules/maths/random.h" },
-        Define { name: "sfrand1", file: "modules/maths/random.h" },
-        Regex { pattern: r"\nextern float get_3d_terrain_point_data \( float x, float z, terrain_3d_point_data \*point_data \);", file: "modules/3d/terrain/terrelev.h" },
-        Regex { pattern: r"\n#define get_3d_terrain_elevation\(X,Z\) \(get_3d_terrain_point_data \(\(X\), \(Z\), NULL\)\)", file: "modules/3d/terrain/terrelev.h" },
-        Prototype { name: "file_exist", file: "modules/system/files.h" },
+        Regex {
+            pattern: r"\ntypedef enum WEATHERMODES weathermodes;",
+            file: "modules/3d/3denv.h",
+        },
+        Regex {
+            pattern: r"\nenum SESSION_TIME_OF_DAY_SETTINGS\n\{[^}]*\};",
+            file: "aphavoc/source/global.h",
+        },
+        Regex {
+            pattern: r"\ntypedef enum SESSION_TIME_OF_DAY_SETTINGS session_time_of_day_settings;",
+            file: "aphavoc/source/global.h",
+        },
+        Regex {
+            pattern: r"\nenum SYS_COLOURS\n\{[^}]*\};",
+            file: "modules/graphics/colour.h",
+        },
+        Regex {
+            pattern: r"\ntypedef enum SYS_COLOURS sys_colours;",
+            file: "modules/graphics/colour.h",
+        },
+        Define {
+            name: "SECONDS_IN_A_MINUTE",
+            file: "modules/maths/constant.h",
+        },
+        Define {
+            name: "ONE_MINUTE",
+            file: "modules/maths/constant.h",
+        },
+        Regex {
+            pattern: r"\nextern int\n\trandom_number_seed;",
+            file: "modules/maths/random.h",
+        },
+        Define {
+            name: "get_random_number",
+            file: "modules/maths/random.h",
+        },
+        Define {
+            name: "rand16",
+            file: "modules/maths/random.h",
+        },
+        Define {
+            name: "sfrand1",
+            file: "modules/maths/random.h",
+        },
+        Regex {
+            pattern: r"\nextern float get_3d_terrain_point_data \( float x, float z, terrain_3d_point_data \*point_data \);",
+            file: "modules/3d/terrain/terrelev.h",
+        },
+        Regex {
+            pattern: r"\n#define get_3d_terrain_elevation\(X,Z\) \(get_3d_terrain_point_data \(\(X\), \(Z\), NULL\)\)",
+            file: "modules/3d/terrain/terrelev.h",
+        },
+        Prototype {
+            name: "file_exist",
+            file: "modules/system/files.h",
+        },
         Include("cmndline.h"),
         Include("misc/message.h"),
         Include("misc/msg_out.h"),
         Include("misc/tod.h"),
-        Regex { pattern: r"\ntypedef enum SOUND_LOCALITY_TYPES\n\{[^}]*\} sound_locality_types;", file: "aphavoc/source/entity/special/effect/soundeff/soundeff.h" },
-        Define { name: "SOUND_LOCALITY_RADIO", file: "aphavoc/source/entity/special/effect/soundeff/soundeff.h" },
+        Regex {
+            pattern: r"\ntypedef enum SOUND_LOCALITY_TYPES\n\{[^}]*\} sound_locality_types;",
+            file: "aphavoc/source/entity/special/effect/soundeff/soundeff.h",
+        },
+        Define {
+            name: "SOUND_LOCALITY_RADIO",
+            file: "aphavoc/source/entity/special/effect/soundeff/soundeff.h",
+        },
         Include("entity/special/effect/soundeff/speech.h"),
         Include("entity/special/task/task.h"),
         Include("entity/special/landing/landing.h"),
         Include("entity/special/regen/rg_updt.h"),
         Include("entity/special/session/session.h"),
         Include("entity/fixed/fixed.h"),
-        Enum { name: "CAMPAIGN_COMPLETED_TYPES", file: "aphavoc/source/ui_menu/ingame/campaign/campaign.h" },
-        Regex { pattern: r"\ntypedef enum CAMPAIGN_COMPLETED_TYPES campaign_completed_types;", file: "aphavoc/source/ui_menu/ingame/campaign/campaign.h" },
-        Prototype { name: "campaign_completed", file: "aphavoc/source/ui_menu/ingame/campaign/campaign.h" },
-        Prototype { name: "play_client_server_radio_message_response", file: "aphavoc/source/misc/msg_in.h" },
-        Prototype { name: "get_sqr_2d_range", file: "modules/maths/range.h" },
-        Prototype { name: "normalise_any_3d_vector", file: "modules/maths/vector.h" },
-        Prototype { name: "get_3d_terrain_point_data_elevation", file: "modules/3d/terrain/terrelev.h" },
-        Regex { pattern: r"\nstruct OBJECT_3D_INFORMATION\n\{[\s\S]*?\n\};\n\ntypedef struct OBJECT_3D_INFORMATION object_3d_information;", file: "modules/3d/3dobjid.h" },
+        Enum {
+            name: "CAMPAIGN_COMPLETED_TYPES",
+            file: "aphavoc/source/ui_menu/ingame/campaign/campaign.h",
+        },
+        Regex {
+            pattern: r"\ntypedef enum CAMPAIGN_COMPLETED_TYPES campaign_completed_types;",
+            file: "aphavoc/source/ui_menu/ingame/campaign/campaign.h",
+        },
+        Prototype {
+            name: "campaign_completed",
+            file: "aphavoc/source/ui_menu/ingame/campaign/campaign.h",
+        },
+        Prototype {
+            name: "play_client_server_radio_message_response",
+            file: "aphavoc/source/misc/msg_in.h",
+        },
+        Prototype {
+            name: "get_sqr_2d_range",
+            file: "modules/maths/range.h",
+        },
+        Prototype {
+            name: "normalise_any_3d_vector",
+            file: "modules/maths/vector.h",
+        },
+        Prototype {
+            name: "get_3d_terrain_point_data_elevation",
+            file: "modules/3d/terrain/terrelev.h",
+        },
+        Regex {
+            pattern: r"\nstruct OBJECT_3D_INFORMATION\n\{[\s\S]*?\n\};\n\ntypedef struct OBJECT_3D_INFORMATION object_3d_information;",
+            file: "modules/3d/3dobjid.h",
+        },
         Raw("extern object_3d_information *object_3d_information_database;\n".into()),
         Include("maths/constant.h"),
         Include("maths/convert.h"),
-        Regex { pattern: r"\nenum //SOUND_SAMPLE_INDICES\n\{[\s\S]*?\n\};", file: "aphavoc/source/appsound/snd_data.h" },
-        Regex { pattern: r"\n#define EXPLOSIVE_QUALITY_NONE[\s\S]*?#define EXPLOSIVE_QUALITY_FLAMMABLE\t4", file: "aphavoc/source/entity/special/effect/explosn/explosn.h" },
-        Regex { pattern: r"\nenum\n\{\n\tEXPLOSIVE_POWER_NONE,[\s\S]*?\n\};", file: "aphavoc/source/entity/special/effect/explosn/explosn.h" },
-        Prototype { name: "initialise_group_task_array", file: "aphavoc/source/ai/highlevl/suitable.h" },
-        Enum { name: "CAMPAIGN_SCREEN_MESSAGES", file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.h" },
-        Regex { pattern: r"\ntypedef enum CAMPAIGN_SCREEN_MESSAGES campaign_screen_messages;", file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.h" },
-        Prototype { name: "notify_campaign_screen", file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.h" },
-        Enum { name: "CAMPAIGN_SCREEN_MESSAGE_TARGETS", file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.h" },
-        Regex { pattern: r"\nextern int \(\*campaign_screen_message_responses\[NUM_CAMPAIGN_SCREEN_MESSAGE_TARGETS\]\[NUM_CAMPAIGN_SCREEN_MESSAGES\]\) \(campaign_screen_messages message, entity \*sender\);", file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.h" },
-        Define { name: "DEMO_VERSION", file: "aphavoc/source/project.h" },
-        Enum { name: "GAME_TYPES", file: "aphavoc/source/global.h" },
-        Regex { pattern: r"\ntypedef enum GAME_TYPES game_types;", file: "aphavoc/source/global.h" },
-        Regex { pattern: r"\nextern game_types\n\tgame_type;", file: "aphavoc/source/ui_menu/gametype/gametype.h" },
-        Define { name: "get_game_type", file: "aphavoc/source/ui_menu/gametype/gametype.h" },
+        Regex {
+            pattern: r"\nenum //SOUND_SAMPLE_INDICES\n\{[\s\S]*?\n\};",
+            file: "aphavoc/source/appsound/snd_data.h",
+        },
+        Regex {
+            pattern: r"\n#define EXPLOSIVE_QUALITY_NONE[\s\S]*?#define EXPLOSIVE_QUALITY_FLAMMABLE\t4",
+            file: "aphavoc/source/entity/special/effect/explosn/explosn.h",
+        },
+        Regex {
+            pattern: r"\nenum\n\{\n\tEXPLOSIVE_POWER_NONE,[\s\S]*?\n\};",
+            file: "aphavoc/source/entity/special/effect/explosn/explosn.h",
+        },
+        Prototype {
+            name: "initialise_group_task_array",
+            file: "aphavoc/source/ai/highlevl/suitable.h",
+        },
+        Enum {
+            name: "CAMPAIGN_SCREEN_MESSAGES",
+            file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.h",
+        },
+        Regex {
+            pattern: r"\ntypedef enum CAMPAIGN_SCREEN_MESSAGES campaign_screen_messages;",
+            file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.h",
+        },
+        Prototype {
+            name: "notify_campaign_screen",
+            file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.h",
+        },
+        Enum {
+            name: "CAMPAIGN_SCREEN_MESSAGE_TARGETS",
+            file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.h",
+        },
+        Regex {
+            pattern: r"\nextern int \(\*campaign_screen_message_responses\[NUM_CAMPAIGN_SCREEN_MESSAGE_TARGETS\]\[NUM_CAMPAIGN_SCREEN_MESSAGES\]\) \(campaign_screen_messages message, entity \*sender\);",
+            file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.h",
+        },
+        Define {
+            name: "DEMO_VERSION",
+            file: "aphavoc/source/project.h",
+        },
+        Enum {
+            name: "GAME_TYPES",
+            file: "aphavoc/source/global.h",
+        },
+        Regex {
+            pattern: r"\ntypedef enum GAME_TYPES game_types;",
+            file: "aphavoc/source/global.h",
+        },
+        Regex {
+            pattern: r"\nextern game_types\n\tgame_type;",
+            file: "aphavoc/source/ui_menu/gametype/gametype.h",
+        },
+        Define {
+            name: "get_game_type",
+            file: "aphavoc/source/ui_menu/gametype/gametype.h",
+        },
         Include("entity/special/waypoint/waypoint.h"),
-        Regex { pattern: r"\ntypedef struct UI_OBJECT ui_object;", file: "modules/userint2/ui_sys/ui_types/ui_types.h" },
+        Regex {
+            pattern: r"\ntypedef struct UI_OBJECT ui_object;",
+            file: "modules/userint2/ui_sys/ui_types/ui_types.h",
+        },
         Include("entity/special/pilot/pilot.h"),
-        Prototype { name: "convert_float_to_int", file: "modules/system/fpu.h" },
-        Prototype { name: "set_comms_data_flow", file: "aphavoc/source/comms/comms.h" },
-        Prototype { name: "set_comms_model", file: "aphavoc/source/comms/comms.h" },
-        Prototype { name: "update_imap_surface_to_air_defence_level", file: "aphavoc/source/ai/highlevl/imaps.h" },
-        Prototype { name: "update_imap_surface_to_surface_defence_level", file: "aphavoc/source/ai/highlevl/imaps.h" },
-        Prototype { name: "get_local_group_member_landing_entity_from_keysite", file: "aphavoc/source/entity/special/landing/landing.h" },
-        Prototype { name: "destroy_local_sound_effects", file: "aphavoc/source/entity/special/effect/soundeff/soundeff.h" },
-        Prototype { name: "destroy_client_server_sound_effects", file: "aphavoc/source/entity/special/effect/soundeff/soundeff.h" },
-        Prototype { name: "create_local_camera_entity", file: "aphavoc/source/entity/special/camera/cm_creat.h" },
-        Prototype { name: "destroy_local_camera_entity", file: "aphavoc/source/entity/special/camera/cm_dstry.h" },
-        Prototype { name: "create_local_bridge_entities", file: "aphavoc/source/entity/special/bridge/bridge.h" },
-        Prototype { name: "create_local_pylon_entities", file: "aphavoc/source/entity/fixed/pylon/py_creat.h" },
-        Prototype { name: "destroy_local_pylon_entities", file: "aphavoc/source/entity/fixed/pylon/py_dstry.h" },
-        Prototype { name: "get_object_3d_bounding_box", file: "modules/3d/3dobjvis.h" },
-        Prototype { name: "assert_local_create_entity_index", file: "aphavoc/source/entity/system/en_debug/en_valid.h" },
-        Prototype { name: "assert_remote_create_entity_index", file: "aphavoc/source/entity/system/en_debug/en_valid.h" },
-        Define { name: "validate_local_create_entity_index", file: "aphavoc/source/entity/system/en_debug/en_valid.h" },
-        Define { name: "validate_remote_create_entity_index", file: "aphavoc/source/entity/system/en_debug/en_valid.h" },
-        Regex { pattern: r"\nextern entity\n\t\*session_entity;", file: "aphavoc/source/entity/special/session/session.h" },
-        Define { name: "get_session_entity", file: "aphavoc/source/entity/special/session/session.h" },
+        Prototype {
+            name: "convert_float_to_int",
+            file: "modules/system/fpu.h",
+        },
+        Prototype {
+            name: "set_comms_data_flow",
+            file: "aphavoc/source/comms/comms.h",
+        },
+        Prototype {
+            name: "set_comms_model",
+            file: "aphavoc/source/comms/comms.h",
+        },
+        Prototype {
+            name: "update_imap_surface_to_air_defence_level",
+            file: "aphavoc/source/ai/highlevl/imaps.h",
+        },
+        Prototype {
+            name: "update_imap_surface_to_surface_defence_level",
+            file: "aphavoc/source/ai/highlevl/imaps.h",
+        },
+        Prototype {
+            name: "get_local_group_member_landing_entity_from_keysite",
+            file: "aphavoc/source/entity/special/landing/landing.h",
+        },
+        Prototype {
+            name: "destroy_local_sound_effects",
+            file: "aphavoc/source/entity/special/effect/soundeff/soundeff.h",
+        },
+        Prototype {
+            name: "destroy_client_server_sound_effects",
+            file: "aphavoc/source/entity/special/effect/soundeff/soundeff.h",
+        },
+        Prototype {
+            name: "create_local_camera_entity",
+            file: "aphavoc/source/entity/special/camera/cm_creat.h",
+        },
+        Prototype {
+            name: "destroy_local_camera_entity",
+            file: "aphavoc/source/entity/special/camera/cm_dstry.h",
+        },
+        Prototype {
+            name: "create_local_bridge_entities",
+            file: "aphavoc/source/entity/special/bridge/bridge.h",
+        },
+        Prototype {
+            name: "create_local_pylon_entities",
+            file: "aphavoc/source/entity/fixed/pylon/py_creat.h",
+        },
+        Prototype {
+            name: "destroy_local_pylon_entities",
+            file: "aphavoc/source/entity/fixed/pylon/py_dstry.h",
+        },
+        Prototype {
+            name: "get_object_3d_bounding_box",
+            file: "modules/3d/3dobjvis.h",
+        },
+        Prototype {
+            name: "assert_local_create_entity_index",
+            file: "aphavoc/source/entity/system/en_debug/en_valid.h",
+        },
+        Prototype {
+            name: "assert_remote_create_entity_index",
+            file: "aphavoc/source/entity/system/en_debug/en_valid.h",
+        },
+        Define {
+            name: "validate_local_create_entity_index",
+            file: "aphavoc/source/entity/system/en_debug/en_valid.h",
+        },
+        Define {
+            name: "validate_remote_create_entity_index",
+            file: "aphavoc/source/entity/system/en_debug/en_valid.h",
+        },
+        Regex {
+            pattern: r"\nextern entity\n\t\*session_entity;",
+            file: "aphavoc/source/entity/special/session/session.h",
+        },
+        Define {
+            name: "get_session_entity",
+            file: "aphavoc/source/entity/special/session/session.h",
+        },
         Local("eech_native_decls.h"),
     ]
 }
@@ -237,66 +564,256 @@ pub fn project_h() -> Vec<Spec> {
 fn extracted_c() -> Vec<Spec> {
     vec![
         Raw("#include \"project.h\"\n\n#define DEBUG_MODULE 0\n\n#define LANDING_DEBUG 0\n".into()),
-        Define { name: "DELTA_TIME_HISTORY_SIZE", file: "modules/system/time.c" },
-        Regex { pattern: r"\nfloat\n\tsystem_delta_time_average = 0\.1,\n\tsystem_delta_time = 0\.1,\n\tsystem_one_over_delta_time = 10\.0;", file: "modules/system/time.c" },
-        Regex { pattern: r"\nint\n\tlocked_frame_rate = FALSE;", file: "modules/system/time.c" },
-        Regex { pattern: r"\nstatic float\n\tsystem_delta_time_history\[DELTA_TIME_HISTORY_SIZE\];", file: "modules/system/time.c" },
-        Regex { pattern: r"\nstatic int\n\tsystem_delta_time_history_position;", file: "modules/system/time.c" },
-        Function { name: "set_manual_delta_time", signature: "void set_manual_delta_time (float delta_time)", file: "modules/system/time.c" },
-        Function { name: "get_2d_range", signature: "float get_2d_range (const vec3d *v1, const vec3d *v2)", file: "modules/maths/range.c" },
-        Function { name: "get_approx_2d_range", signature: "float get_approx_2d_range (const vec3d *v1, const vec3d *v2)", file: "modules/maths/range.c" },
-        Function { name: "default_set_entity_int_value", signature: "static void default_set_entity_int_value (entity *en, int_types type, int value)", file: "aphavoc/source/entity/system/en_funcs/en_int.c" },
-        Function { name: "default_set_entity_float_value", signature: "static void default_set_entity_float_value (entity *en, float_types type, float value)", file: "aphavoc/source/entity/system/en_funcs/en_float.c" },
-        Function { name: "notify_local_entity", signature: "int notify_local_entity (entity_messages message, entity *receiver, entity *sender, ...)", file: "aphavoc/source/entity/system/en_msgs/en_msgs.c" },
-        Function { name: "default_message_response", signature: "static int default_message_response (entity_messages message, entity *receiver, entity *sender, va_list pargs)", file: "aphavoc/source/entity/system/en_msgs/en_msgs.c" },
-        Function { name: "insert_local_entity_into_parents_child_list", signature: "void insert_local_entity_into_parents_child_list (entity *en, list_types type, entity *parent, entity *pred)", file: "aphavoc/source/entity/system/en_funcs/en_list.c" },
-        Function { name: "delete_local_entity_from_parents_child_list", signature: "void delete_local_entity_from_parents_child_list (entity *en, list_types type)", file: "aphavoc/source/entity/system/en_funcs/en_list.c" },
-        Function { name: "unlink_local_entity_children", signature: "void unlink_local_entity_children (entity *en, list_types list)", file: "aphavoc/source/entity/system/en_funcs/en_list.c" },
-        Function { name: "default_get_entity_int_value", signature: "static int default_get_entity_int_value (entity *en, int_types type)", file: "aphavoc/source/entity/system/en_funcs/en_int.c" },
-        Function { name: "default_get_entity_float_value", signature: "static float default_get_entity_float_value (entity *en, float_types type)", file: "aphavoc/source/entity/system/en_funcs/en_float.c" },
-        Function { name: "assert_local_create_entity_index", signature: "int assert_local_create_entity_index (int index)", file: "aphavoc/source/entity/system/en_debug/en_valid.c" },
-        Function { name: "assert_remote_create_entity_index", signature: "int assert_remote_create_entity_index (int index)", file: "aphavoc/source/entity/system/en_debug/en_valid.c" },
-        Regex { pattern: r"\nstatic int\n\tentity_count,\n\tentity_peak_count;", file: "aphavoc/source/entity/system/en_debug/en_stats.c" },
-        Regex { pattern: r"\nstatic struct\n\{[^}]*\}\nentity_type_stats\[NUM_ENTITY_TYPES\];", file: "aphavoc/source/entity/system/en_debug/en_stats.c" },
-        Function { name: "update_create_entity_statistics", signature: "void update_create_entity_statistics (entity_types type)", file: "aphavoc/source/entity/system/en_debug/en_stats.c" },
-        Function { name: "update_destroy_entity_statistics", signature: "void update_destroy_entity_statistics (entity *en)", file: "aphavoc/source/entity/system/en_debug/en_stats.c" },
-        Regex { pattern: r"\nworld_map_data\n\tworld_map;", file: "aphavoc/source/entity/system/en_main/en_world.c" },
-        Function { name: "set_entity_world_map_size", signature: "void set_entity_world_map_size (int num_map_x_sectors, int num_map_z_sectors, int sector_side_length)", file: "aphavoc/source/entity/system/en_main/en_world.c" },
-        Function { name: "int_bit_count", signature: "int int_bit_count (unsigned int value)", file: "aphavoc/source/misc/miscell.c" },
-        Function { name: "get_identity_matrix3x3", signature: "void get_identity_matrix3x3 (matrix3x3 m)", file: "modules/maths/matrix.c" },
-        Regex { pattern: r"\nentity\n\t\*\*entity_sector_map = NULL;", file: "aphavoc/source/entity/special/sector/sector.c" },
-        Function { name: "get_local_sector_entity", signature: "entity *get_local_sector_entity (vec3d *pos)", file: "aphavoc/source/entity/special/sector/sector.c" },
-        Function { name: "add_mobile_values_to_sector", signature: "void add_mobile_values_to_sector (entity *sector_en, entity *mobile_en)", file: "aphavoc/source/entity/special/sector/sector.c" },
-        Function { name: "remove_mobile_values_from_sector", signature: "void remove_mobile_values_from_sector (entity *sector_en, entity *mobile_en)", file: "aphavoc/source/entity/special/sector/sector.c" },
-        Function { name: "destroy_client_server_sound_effects", signature: "void destroy_client_server_sound_effects (entity *en)", file: "aphavoc/source/entity/special/effect/soundeff/soundeff.c" },
-        Regex { pattern: r"\nentity\n\t\*update_entity = NULL,\n\t\*update_succ = NULL;", file: "aphavoc/source/entity/special/update/up_update.c" },
-        Regex { pattern: r"\nunsigned int\n\tmoved_entities[^;]*;", file: "aphavoc/source/entity/special/update/up_update.c" },
-        Function { name: "update_client_server_entities", signature: "void update_client_server_entities (void)", file: "aphavoc/source/entity/special/update/up_update.c" },
-        Function { name: "set_entity_update_frame_rate", signature: "int set_entity_update_frame_rate (int frame_rate)", file: "aphavoc/source/entity/special/update/up_update.c" },
-        Function { name: "normalise_any_3d_vector", signature: "float normalise_any_3d_vector ( vec3d *vector )", file: "modules/maths/vector.c" },
-        Function { name: "bound_position_to_adjusted_map_area", signature: "int bound_position_to_adjusted_map_area (vec3d *position)", file: "aphavoc/source/entity/system/en_main/en_world.c" },
-        Function { name: "get_local_sector_entity_enemy_defence_level", signature: "static float get_local_sector_entity_enemy_defence_level (float *array, entity_sides side)", file: "aphavoc/source/entity/special/sector/sector.c" },
-        Function { name: "get_local_sector_entity_enemy_surface_to_air_defence_level", signature: "float get_local_sector_entity_enemy_surface_to_air_defence_level (entity *sector_en, entity_sides side)", file: "aphavoc/source/entity/special/sector/sector.c" },
-        Function { name: "set_client_server_entity_parent", signature: "void set_client_server_entity_parent (entity *en, list_types type, entity *parent)", file: "aphavoc/source/entity/system/en_funcs/en_list.c" },
-        Function { name: "notify_campaign_screen", signature: "int notify_campaign_screen (campaign_screen_messages message, entity *sender)", file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.c" },
-        Function { name: "get_local_force_entity", signature: "entity *get_local_force_entity (entity_sides side)", file: "aphavoc/source/entity/special/force/force.c" },
-        Function { name: "assess_group_supplies", signature: "void assess_group_supplies (entity *en)", file: "aphavoc/source/entity/special/group/group.c" },
-        Function { name: "assess_group_task_locality_factor", signature: "int assess_group_task_locality_factor (entity *group_en, entity *task_en, float *return_distance)", file: "aphavoc/source/entity/special/group/group.c" },
-        Function { name: "response_to_link_parent", signature: "static int response_to_link_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)", file: "aphavoc/source/entity/special/group/gp_msgs.c" },
-        Function { name: "response_to_unlink_parent", signature: "static int response_to_unlink_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)", file: "aphavoc/source/entity/special/group/gp_msgs.c" },
+        Define {
+            name: "DELTA_TIME_HISTORY_SIZE",
+            file: "modules/system/time.c",
+        },
+        Regex {
+            pattern: r"\nfloat\n\tsystem_delta_time_average = 0\.1,\n\tsystem_delta_time = 0\.1,\n\tsystem_one_over_delta_time = 10\.0;",
+            file: "modules/system/time.c",
+        },
+        Regex {
+            pattern: r"\nint\n\tlocked_frame_rate = FALSE;",
+            file: "modules/system/time.c",
+        },
+        Regex {
+            pattern: r"\nstatic float\n\tsystem_delta_time_history\[DELTA_TIME_HISTORY_SIZE\];",
+            file: "modules/system/time.c",
+        },
+        Regex {
+            pattern: r"\nstatic int\n\tsystem_delta_time_history_position;",
+            file: "modules/system/time.c",
+        },
+        Function {
+            name: "set_manual_delta_time",
+            signature: "void set_manual_delta_time (float delta_time)",
+            file: "modules/system/time.c",
+        },
+        Function {
+            name: "get_2d_range",
+            signature: "float get_2d_range (const vec3d *v1, const vec3d *v2)",
+            file: "modules/maths/range.c",
+        },
+        Function {
+            name: "get_approx_2d_range",
+            signature: "float get_approx_2d_range (const vec3d *v1, const vec3d *v2)",
+            file: "modules/maths/range.c",
+        },
+        Function {
+            name: "default_set_entity_int_value",
+            signature: "static void default_set_entity_int_value (entity *en, int_types type, int value)",
+            file: "aphavoc/source/entity/system/en_funcs/en_int.c",
+        },
+        Function {
+            name: "default_set_entity_float_value",
+            signature: "static void default_set_entity_float_value (entity *en, float_types type, float value)",
+            file: "aphavoc/source/entity/system/en_funcs/en_float.c",
+        },
+        Function {
+            name: "notify_local_entity",
+            signature: "int notify_local_entity (entity_messages message, entity *receiver, entity *sender, ...)",
+            file: "aphavoc/source/entity/system/en_msgs/en_msgs.c",
+        },
+        Function {
+            name: "default_message_response",
+            signature: "static int default_message_response (entity_messages message, entity *receiver, entity *sender, va_list pargs)",
+            file: "aphavoc/source/entity/system/en_msgs/en_msgs.c",
+        },
+        Function {
+            name: "insert_local_entity_into_parents_child_list",
+            signature: "void insert_local_entity_into_parents_child_list (entity *en, list_types type, entity *parent, entity *pred)",
+            file: "aphavoc/source/entity/system/en_funcs/en_list.c",
+        },
+        Function {
+            name: "delete_local_entity_from_parents_child_list",
+            signature: "void delete_local_entity_from_parents_child_list (entity *en, list_types type)",
+            file: "aphavoc/source/entity/system/en_funcs/en_list.c",
+        },
+        Function {
+            name: "unlink_local_entity_children",
+            signature: "void unlink_local_entity_children (entity *en, list_types list)",
+            file: "aphavoc/source/entity/system/en_funcs/en_list.c",
+        },
+        Function {
+            name: "default_get_entity_int_value",
+            signature: "static int default_get_entity_int_value (entity *en, int_types type)",
+            file: "aphavoc/source/entity/system/en_funcs/en_int.c",
+        },
+        Function {
+            name: "default_get_entity_float_value",
+            signature: "static float default_get_entity_float_value (entity *en, float_types type)",
+            file: "aphavoc/source/entity/system/en_funcs/en_float.c",
+        },
+        Function {
+            name: "assert_local_create_entity_index",
+            signature: "int assert_local_create_entity_index (int index)",
+            file: "aphavoc/source/entity/system/en_debug/en_valid.c",
+        },
+        Function {
+            name: "assert_remote_create_entity_index",
+            signature: "int assert_remote_create_entity_index (int index)",
+            file: "aphavoc/source/entity/system/en_debug/en_valid.c",
+        },
+        Regex {
+            pattern: r"\nstatic int\n\tentity_count,\n\tentity_peak_count;",
+            file: "aphavoc/source/entity/system/en_debug/en_stats.c",
+        },
+        Regex {
+            pattern: r"\nstatic struct\n\{[^}]*\}\nentity_type_stats\[NUM_ENTITY_TYPES\];",
+            file: "aphavoc/source/entity/system/en_debug/en_stats.c",
+        },
+        Function {
+            name: "update_create_entity_statistics",
+            signature: "void update_create_entity_statistics (entity_types type)",
+            file: "aphavoc/source/entity/system/en_debug/en_stats.c",
+        },
+        Function {
+            name: "update_destroy_entity_statistics",
+            signature: "void update_destroy_entity_statistics (entity *en)",
+            file: "aphavoc/source/entity/system/en_debug/en_stats.c",
+        },
+        Regex {
+            pattern: r"\nworld_map_data\n\tworld_map;",
+            file: "aphavoc/source/entity/system/en_main/en_world.c",
+        },
+        Function {
+            name: "set_entity_world_map_size",
+            signature: "void set_entity_world_map_size (int num_map_x_sectors, int num_map_z_sectors, int sector_side_length)",
+            file: "aphavoc/source/entity/system/en_main/en_world.c",
+        },
+        Function {
+            name: "int_bit_count",
+            signature: "int int_bit_count (unsigned int value)",
+            file: "aphavoc/source/misc/miscell.c",
+        },
+        Function {
+            name: "get_identity_matrix3x3",
+            signature: "void get_identity_matrix3x3 (matrix3x3 m)",
+            file: "modules/maths/matrix.c",
+        },
+        Regex {
+            pattern: r"\nentity\n\t\*\*entity_sector_map = NULL;",
+            file: "aphavoc/source/entity/special/sector/sector.c",
+        },
+        Function {
+            name: "get_local_sector_entity",
+            signature: "entity *get_local_sector_entity (vec3d *pos)",
+            file: "aphavoc/source/entity/special/sector/sector.c",
+        },
+        Function {
+            name: "add_mobile_values_to_sector",
+            signature: "void add_mobile_values_to_sector (entity *sector_en, entity *mobile_en)",
+            file: "aphavoc/source/entity/special/sector/sector.c",
+        },
+        Function {
+            name: "remove_mobile_values_from_sector",
+            signature: "void remove_mobile_values_from_sector (entity *sector_en, entity *mobile_en)",
+            file: "aphavoc/source/entity/special/sector/sector.c",
+        },
+        Function {
+            name: "destroy_client_server_sound_effects",
+            signature: "void destroy_client_server_sound_effects (entity *en)",
+            file: "aphavoc/source/entity/special/effect/soundeff/soundeff.c",
+        },
+        Regex {
+            pattern: r"\nentity\n\t\*update_entity = NULL,\n\t\*update_succ = NULL;",
+            file: "aphavoc/source/entity/special/update/up_update.c",
+        },
+        Regex {
+            pattern: r"\nunsigned int\n\tmoved_entities[^;]*;",
+            file: "aphavoc/source/entity/special/update/up_update.c",
+        },
+        Function {
+            name: "update_client_server_entities",
+            signature: "void update_client_server_entities (void)",
+            file: "aphavoc/source/entity/special/update/up_update.c",
+        },
+        Function {
+            name: "set_entity_update_frame_rate",
+            signature: "int set_entity_update_frame_rate (int frame_rate)",
+            file: "aphavoc/source/entity/special/update/up_update.c",
+        },
+        Function {
+            name: "normalise_any_3d_vector",
+            signature: "float normalise_any_3d_vector ( vec3d *vector )",
+            file: "modules/maths/vector.c",
+        },
+        Function {
+            name: "bound_position_to_adjusted_map_area",
+            signature: "int bound_position_to_adjusted_map_area (vec3d *position)",
+            file: "aphavoc/source/entity/system/en_main/en_world.c",
+        },
+        Function {
+            name: "get_local_sector_entity_enemy_defence_level",
+            signature: "static float get_local_sector_entity_enemy_defence_level (float *array, entity_sides side)",
+            file: "aphavoc/source/entity/special/sector/sector.c",
+        },
+        Function {
+            name: "get_local_sector_entity_enemy_surface_to_air_defence_level",
+            signature: "float get_local_sector_entity_enemy_surface_to_air_defence_level (entity *sector_en, entity_sides side)",
+            file: "aphavoc/source/entity/special/sector/sector.c",
+        },
+        Function {
+            name: "set_client_server_entity_parent",
+            signature: "void set_client_server_entity_parent (entity *en, list_types type, entity *parent)",
+            file: "aphavoc/source/entity/system/en_funcs/en_list.c",
+        },
+        Function {
+            name: "notify_campaign_screen",
+            signature: "int notify_campaign_screen (campaign_screen_messages message, entity *sender)",
+            file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.c",
+        },
+        Function {
+            name: "get_local_force_entity",
+            signature: "entity *get_local_force_entity (entity_sides side)",
+            file: "aphavoc/source/entity/special/force/force.c",
+        },
+        Function {
+            name: "assess_group_supplies",
+            signature: "void assess_group_supplies (entity *en)",
+            file: "aphavoc/source/entity/special/group/group.c",
+        },
+        Function {
+            name: "assess_group_task_locality_factor",
+            signature: "int assess_group_task_locality_factor (entity *group_en, entity *task_en, float *return_distance)",
+            file: "aphavoc/source/entity/special/group/group.c",
+        },
+        Function {
+            name: "response_to_link_parent",
+            signature: "static int response_to_link_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)",
+            file: "aphavoc/source/entity/special/group/gp_msgs.c",
+        },
+        Function {
+            name: "response_to_unlink_parent",
+            signature: "static int response_to_unlink_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)",
+            file: "aphavoc/source/entity/special/group/gp_msgs.c",
+        },
         Wrap {
             prologue: "void harness_overload_group_link_parent_responses (void)\n{",
             epilogue: "}",
             parts: vec![
-                Regex { pattern: r"\n\tmessage_responses\[ENTITY_TYPE_GROUP\]\[ENTITY_MESSAGE_LINK_PARENT\][^;]*;", file: "aphavoc/source/entity/special/group/gp_msgs.c" },
-                Regex { pattern: r"\n\tmessage_responses\[ENTITY_TYPE_GROUP\]\[ENTITY_MESSAGE_UNLINK_PARENT\][^;]*;", file: "aphavoc/source/entity/special/group/gp_msgs.c" },
+                Regex {
+                    pattern: r"\n\tmessage_responses\[ENTITY_TYPE_GROUP\]\[ENTITY_MESSAGE_LINK_PARENT\][^;]*;",
+                    file: "aphavoc/source/entity/special/group/gp_msgs.c",
+                },
+                Regex {
+                    pattern: r"\n\tmessage_responses\[ENTITY_TYPE_GROUP\]\[ENTITY_MESSAGE_UNLINK_PARENT\][^;]*;",
+                    file: "aphavoc/source/entity/special/group/gp_msgs.c",
+                },
             ],
         },
-        Function { name: "response_to_link_child", signature: "static int response_to_link_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)", file: "aphavoc/source/entity/special/group/gp_msgs.c" },
+        Function {
+            name: "response_to_link_child",
+            signature: "static int response_to_link_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)",
+            file: "aphavoc/source/entity/special/group/gp_msgs.c",
+        },
         Wrap {
             prologue: "void harness_overload_group_link_child_response (void)\n{",
             epilogue: "}",
-            parts: vec![Regex { pattern: r"\n\tmessage_responses\[ENTITY_TYPE_GROUP\]\[ENTITY_MESSAGE_LINK_CHILD\][^;]*;", file: "aphavoc/source/entity/special/group/gp_msgs.c" }],
+            parts: vec![Regex {
+                pattern: r"\n\tmessage_responses\[ENTITY_TYPE_GROUP\]\[ENTITY_MESSAGE_LINK_CHILD\][^;]*;",
+                file: "aphavoc/source/entity/special/group/gp_msgs.c",
+            }],
         },
         Raw(concat!(
             "/* C defaults for the update entity: its link responses are only overloaded under DEBUG_MODULE (up_msgs.c) */\n",
@@ -317,7 +834,8 @@ fn extracted_c() -> Vec<Spec> {
             "\tentity_count = 0;\n",
             "\tentity_peak_count = 0;\n",
             "\tmemset (entity_type_stats, 0, sizeof (entity_type_stats));\n}\n",
-        ).into()),
+        )
+        .into()),
     ]
 }
 

@@ -43,11 +43,17 @@ impl Ref {
     }
 
     fn raw(self) -> ffi::eech_ref {
-        ffi::eech_ref { index: self.index, generation: self.generation }
+        ffi::eech_ref {
+            index: self.index,
+            generation: self.generation,
+        }
     }
 
     fn from_raw(r: ffi::eech_ref) -> Ref {
-        Ref { index: r.index, generation: r.generation }
+        Ref {
+            index: r.index,
+            generation: r.generation,
+        }
     }
 }
 
@@ -123,31 +129,87 @@ pub struct HostError(pub String);
 /// Something the kernel did that the outside world observes (eech_event).
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum RawEvent {
-    TransmitFloat { entity: Ref, float_type: i32, value: f32 },
-    TransmitCreate { entity_type: i32, index: i32 },
-    TransmitDestroy { entity: Ref },
-    TransmitDestroyFamily { entity: Ref },
-    TransmitTaskPointers { task: Ref },
-    TransmitSwitchParent { entity: Ref, parent: Ref, list_type: i32 },
-    MissionCreated { task: Ref },
-    ForceLowOnSupplies { force: Ref, sender: Ref, cargo_sub_type: i32, side: i32 },
-    SupplyTaskRequested { requester: Ref, supplier: Ref, cargo: Ref, start_keysite: Ref, movement: i32, priority: f32 },
-    Unknown { kind: i32 },
+    TransmitFloat {
+        entity: Ref,
+        float_type: i32,
+        value: f32,
+    },
+    TransmitCreate {
+        entity_type: i32,
+        index: i32,
+    },
+    TransmitDestroy {
+        entity: Ref,
+    },
+    TransmitDestroyFamily {
+        entity: Ref,
+    },
+    TransmitTaskPointers {
+        task: Ref,
+    },
+    TransmitSwitchParent {
+        entity: Ref,
+        parent: Ref,
+        list_type: i32,
+    },
+    MissionCreated {
+        task: Ref,
+    },
+    ForceLowOnSupplies {
+        force: Ref,
+        sender: Ref,
+        cargo_sub_type: i32,
+        side: i32,
+    },
+    SupplyTaskRequested {
+        requester: Ref,
+        supplier: Ref,
+        cargo: Ref,
+        start_keysite: Ref,
+        movement: i32,
+        priority: f32,
+    },
+    Unknown {
+        kind: i32,
+    },
 }
 
 impl RawEvent {
     fn from_raw(e: &ffi::eech_event) -> RawEvent {
         let r = |i: usize| Ref::from_raw(e.refs[i]);
         match e.kind {
-            1 => RawEvent::TransmitFloat { entity: r(0), float_type: e.ints[0], value: e.floats[0] },
-            2 => RawEvent::TransmitCreate { entity_type: e.ints[0], index: e.ints[1] },
+            1 => RawEvent::TransmitFloat {
+                entity: r(0),
+                float_type: e.ints[0],
+                value: e.floats[0],
+            },
+            2 => RawEvent::TransmitCreate {
+                entity_type: e.ints[0],
+                index: e.ints[1],
+            },
             3 => RawEvent::TransmitDestroy { entity: r(0) },
             4 => RawEvent::TransmitTaskPointers { task: r(0) },
-            5 => RawEvent::TransmitSwitchParent { entity: r(0), parent: r(1), list_type: e.ints[0] },
+            5 => RawEvent::TransmitSwitchParent {
+                entity: r(0),
+                parent: r(1),
+                list_type: e.ints[0],
+            },
             6 => RawEvent::TransmitDestroyFamily { entity: r(0) },
             10 => RawEvent::MissionCreated { task: r(0) },
-            11 => RawEvent::ForceLowOnSupplies { force: r(0), sender: r(1), cargo_sub_type: e.ints[0], side: e.ints[1] },
-            12 => RawEvent::SupplyTaskRequested { requester: r(0), supplier: r(1), cargo: r(2), start_keysite: r(3), movement: e.ints[0], priority: e.floats[0] },
+            11 => RawEvent::ForceLowOnSupplies {
+                force: r(0),
+                sender: r(1),
+                cargo_sub_type: e.ints[0],
+                side: e.ints[1],
+            },
+            12 => RawEvent::SupplyTaskRequested {
+                requester: r(0),
+                supplier: r(1),
+                cargo: r(2),
+                start_keysite: r(3),
+                movement: e.ints[0],
+                priority: e.floats[0],
+            },
             kind => RawEvent::Unknown { kind },
         }
     }
@@ -270,7 +332,10 @@ unsafe extern "C" fn tr_declare(context: *mut c_void, what: c_int, r: ffi::eech_
         1 => {
             let mut p = [0.0f32; 3];
             unsafe { std::ptr::copy_nonoverlapping(values, p.as_mut_ptr(), 3) };
-            Declaration::MobilePosition { mobile: Ref::from_raw(r), position: p }
+            Declaration::MobilePosition {
+                mobile: Ref::from_raw(r),
+                position: p,
+            }
         }
         2 => {
             let mut b = [0.0f32; 6];
@@ -284,7 +349,11 @@ unsafe extern "C" fn tr_declare(context: *mut c_void, what: c_int, r: ffi::eech_
 
 /// Runs one C entry with `host` installed; resumes a host panic afterwards.
 fn with_host<R>(host: &mut dyn Host, f: impl FnOnce(*const ffi::eech_host) -> c_int, ok: impl FnOnce() -> R) -> Result<R, KernelError> {
-    let mut t = Trampoline { host, panic: None, error: None };
+    let mut t = Trampoline {
+        host,
+        panic: None,
+        error: None,
+    };
     let raw = ffi::eech_host {
         context: &mut t as *mut Trampoline as *mut c_void,
         mobile_position: Some(tr_mobile_position),
@@ -315,7 +384,12 @@ fn last_error(status: Status) -> KernelError {
     let detail = unsafe { CStr::from_ptr(ffi::eech_k_last_detail()) }.to_string_lossy().into_owned();
     let mut raw = [Ref::NULL.raw(); 4];
     let n = unsafe { ffi::eech_k_last_refs(raw.as_mut_ptr()) }.clamp(0, 4) as usize;
-    KernelError { status, message, detail, refs: raw[..n].iter().map(|r| Ref::from_raw(*r)).collect() }
+    KernelError {
+        status,
+        message,
+        detail,
+        refs: raw[..n].iter().map(|r| Ref::from_raw(*r)).collect(),
+    }
 }
 
 fn check(code: c_int) -> Result<(), KernelError> {
@@ -406,7 +480,10 @@ impl Kernel {
         let token = Token::acquire()?;
         // SAFETY: the token makes this the only kernel user in the process
         check(unsafe { ffi::eech_k_open(heap_size, entity_update_frame_rate) })?;
-        Ok(Kernel { _token: token, _not_sync: PhantomData })
+        Ok(Kernel {
+            _token: token,
+            _not_sync: PhantomData,
+        })
     }
 
     pub fn configure(&mut self, server: bool, single_player: bool, game_type: i32, game_status: i32) -> Result<(), KernelError> {
@@ -418,7 +495,11 @@ impl Kernel {
     }
 
     pub fn set_world_map(&mut self, host: &mut dyn Host, x_sectors: i32, z_sectors: i32, sector_side_length: i32) -> Result<(), KernelError> {
-        with_host(host, |h| unsafe { ffi::eech_k_set_world_map(h, x_sectors, z_sectors, sector_side_length) }, || ())
+        with_host(
+            host,
+            |h| unsafe { ffi::eech_k_set_world_map(h, x_sectors, z_sectors, sector_side_length) },
+            || (),
+        )
     }
 
     pub fn restore_force(&mut self, side: i32) -> Result<Ref, KernelError> {
@@ -518,13 +599,24 @@ impl Kernel {
     pub fn keysite_view(&self, r: Ref) -> Option<KeysiteView> {
         let (mut ammo, mut fuel, mut ac, mut fc, mut ut) = (0.0, 0.0, 0, 0, 0);
         check(unsafe { ffi::eech_k_keysite_view(r.raw(), &mut ammo, &mut fuel, &mut ac, &mut fc, &mut ut) }).ok()?;
-        Some(KeysiteView { ammo, fuel, ammo_crates: ac, fuel_crates: fc, unassigned_tasks: ut })
+        Some(KeysiteView {
+            ammo,
+            fuel,
+            ammo_crates: ac,
+            fuel_crates: fc,
+            unassigned_tasks: ut,
+        })
     }
 
     pub fn group_view(&self, r: Ref) -> Option<GroupView> {
         let (mut ammo, mut fuel, mut sleep, mut members) = (0.0, 0.0, 0.0, 0);
         check(unsafe { ffi::eech_k_group_view(r.raw(), &mut ammo, &mut fuel, &mut sleep, &mut members) }).ok()?;
-        Some(GroupView { ammo, fuel, sleep, member_count: members })
+        Some(GroupView {
+            ammo,
+            fuel,
+            sleep,
+            member_count: members,
+        })
     }
 
     pub fn task_view(&self, r: Ref) -> Option<TaskView> {
@@ -545,13 +637,19 @@ impl Kernel {
     pub fn cargo_view(&self, r: Ref) -> Option<CargoView> {
         let (mut sub, mut ks) = (0, Ref::NULL.raw());
         check(unsafe { ffi::eech_k_cargo_view(r.raw(), &mut sub, &mut ks) }).ok()?;
-        Some(CargoView { sub_type: sub, keysite: Ref::from_raw(ks) })
+        Some(CargoView {
+            sub_type: sub,
+            keysite: Ref::from_raw(ks),
+        })
     }
 
     pub fn force_view(&self, r: Ref) -> Option<ForceView> {
         let (mut side, mut created) = (0, 0);
         check(unsafe { ffi::eech_k_force_view(r.raw(), &mut side, &mut created) }).ok()?;
-        Some(ForceView { side, supply_tasks_created: created })
+        Some(ForceView {
+            side,
+            supply_tasks_created: created,
+        })
     }
 }
 
@@ -589,7 +687,12 @@ pub fn enum_name(table: &str, value: i32) -> Option<&'static str> {
 /// and closes the kernel itself). The harness output goes to `host.output`.
 pub fn legacy_replay(host: &mut dyn Host, scenario: &str) -> Result<(), KernelError> {
     let _token = Token::acquire()?;
-    let text = CString::new(scenario).map_err(|_| KernelError { status: Status::Invalid, message: "scenario contains NUL".into(), detail: String::new(), refs: Vec::new() })?;
+    let text = CString::new(scenario).map_err(|_| KernelError {
+        status: Status::Invalid,
+        message: "scenario contains NUL".into(),
+        detail: String::new(),
+        refs: Vec::new(),
+    })?;
     with_host(host, |h| unsafe { ffi::eech_k_legacy_replay(h, text.as_ptr()) }, || ())
 }
 

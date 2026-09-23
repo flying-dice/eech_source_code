@@ -79,7 +79,11 @@ fn check(file: &str) {
     let mut failures = Vec::new();
     for e in &entries {
         let subprocess = e.c.iter().any(|l| l == "result null-dereference") || std::env::var_os("EECH_CORPUS_SUBPROCESS").is_some();
-        let native = if subprocess { replay_in_subprocess(&e.input) } else { replay_in_process(&e.input) };
+        let native = if subprocess {
+            replay_in_subprocess(&e.input)
+        } else {
+            replay_in_process(&e.input)
+        };
         let f = per_family.entry(e.family.clone()).or_default();
         f.0 += 1;
         if subprocess {
@@ -94,12 +98,22 @@ fn check(file: &str) {
             Err(err) => failures.push(format!("{} {}: {err}", e.family, e.id)),
         }
     }
-    assert_eq!(eech_campaign::conformance::build::database_digest(), databases, "the corpus changed an original database (docs/global-state.md)");
+    assert_eq!(
+        eech_campaign::conformance::build::database_digest(),
+        databases,
+        "the corpus changed an original database (docs/global-state.md)"
+    );
     eprintln!("{file}: family / scenarios / native == C / TS == C / via subprocess");
     for (family, (n, native, ts, sub)) in &per_family {
         eprintln!("  {family:28} {n:5} {native:5} {ts:5} {sub:5}");
     }
-    assert!(failures.is_empty(), "{} of {} scenarios differ from the C reference:\n{}", failures.len(), entries.len(), failures.iter().take(40).cloned().collect::<Vec<_>>().join("\n"));
+    assert!(
+        failures.is_empty(),
+        "{} of {} scenarios differ from the C reference:\n{}",
+        failures.len(),
+        entries.len(),
+        failures.iter().take(40).cloned().collect::<Vec<_>>().join("\n")
+    );
 }
 
 #[test]

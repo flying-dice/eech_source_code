@@ -34,7 +34,11 @@ impl Host for Replay {
 #[test]
 fn replay_slice1() {
     let mut h = Replay::default();
-    legacy_replay(&mut h, "session 1\nforce 1\nkeysite 1 0 1 1000 1000 50 50\ngroup 6 1 10 10 1 0 0 1 1000 1000\nop assess\n").unwrap();
+    legacy_replay(
+        &mut h,
+        "session 1\nforce 1\nkeysite 1 0 1 1000 1000 50 50\ngroup 6 1 10 10 1 0 0 1 1000 1000\nop assess\n",
+    )
+    .unwrap();
     println!("{}", h.out);
 }
 

@@ -53,7 +53,11 @@ pub fn apply(file: &str, text: &str) -> String {
     assert!(!patches.is_empty(), "no patch for {file}");
     for p in &patches {
         let found = text.matches(p.original).count();
-        assert_eq!(found, p.count, "patch {} expects {} occurrence(s) of its original text in {}, found {}", p.id, p.count, file, found);
+        assert_eq!(
+            found, p.count,
+            "patch {} expects {} occurrence(s) of its original text in {}, found {}",
+            p.id, p.count, file, found
+        );
         assert!(p.original.ends_with('\n'), "patch {} must replace whole lines", p.id);
     }
     loop {
