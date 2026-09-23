@@ -15,9 +15,10 @@ import { createLocalEntityRaw, deinitialiseEntityRuntime, getCampaignPorts } fro
 import { CommsModelType, EntityMessage, EntitySide, EntitySubTypeCargo, EntityType, FloatType, IntType, ListType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
+import { ScriptedClock } from "../adapters/scripted-clock";
 
 function ports() {
-	return { mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new RecordingEntityReplication() };
+	return { mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new RecordingEntityReplication(), clock: new ScriptedClock() };
 }
 
 afterEach(() => {
@@ -103,7 +104,7 @@ describe("entity runtime", () => {
 		initialiseCampaignCore(ports());
 		setCommsModel(CommsModelType.COMMS_MODEL_CLIENT);
 		const replication = new RecordingEntityReplication();
-		initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication });
+		initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication, clock: new ScriptedClock() });
 		const keysite = createLocalEntityRaw(EntityType.ENTITY_TYPE_KEYSITE, { supplies: { ammo_supply_level: 0, fuel_supply_level: 0 } });
 		setClientServerEntityFloatValue(keysite, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL, 0.1);
 		// the C prototype's float parameter narrows the value

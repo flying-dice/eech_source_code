@@ -110,6 +110,77 @@ const MUTANTS = [
 		to: "if ((getLocalEntityIntValue(current_keysite, IntType.INT_TYPE_IN_USE) as unknown as boolean)) {",
 		suite: "lua",
 	},
+	{
+		name: "update passes use the whole frame delta (sub-step never set)",
+		file: "src/entity/special/update/update.ts",
+		from: "\tsetManualDeltaTime(entity_update_delta_time);\n",
+		to: "\n",
+		suite: "js",
+	},
+	{
+		name: "frame delta is not restored after the update passes",
+		file: "src/entity/special/update/update.ts",
+		from: "\tif (!isFrameRateLocked()) {\n\t\tsetManualDeltaTime(delta_time);\n\t}",
+		to: "",
+		suite: "js",
+	},
+	{
+		name: "sub-step count rounds instead of truncating",
+		file: "src/entity/special/update/update.ts",
+		from: "return value < 0 ? Math.ceil(value) : Math.floor(value);",
+		to: "return Math.round(value);",
+		suite: "js",
+	},
+	{
+		name: "a locked frame rate is still subdivided",
+		file: "src/entity/special/update/update.ts",
+		from: "\tlet delta_time = 0;\n\n\tif (!isFrameRateLocked()) {",
+		to: "\tlet delta_time = 0;\n\n\tif (true) {",
+		suite: "js",
+	},
+	{
+		name: "the update walk reads the successor after the update (self-removal breaks the walk)",
+		file: "src/entity/special/update/update.ts",
+		from: "\t\t\tsetUpdateSucc(getLocalEntityChildSucc(en, ListType.LIST_TYPE_UPDATE));\n\n\t\t\tupdateClientServerEntity(en);",
+		to: "\t\t\tupdateClientServerEntity(en);\n\n\t\t\tsetUpdateSucc(getLocalEntityChildSucc(en, ListType.LIST_TYPE_UPDATE));",
+		suite: "js",
+	},
+	{
+		name: "a group leaves the update list when either timer expires",
+		file: "src/entity/special/group/group.ts",
+		from: "if (raw.sleep === 0.0 && raw.assist_timer === 0.0) {",
+		to: "if (raw.sleep === 0.0 || raw.assist_timer === 0.0) {",
+		suite: "js",
+	},
+	{
+		name: "an overshooting sleep timer is not clamped to zero",
+		file: "src/entity/special/group/group.ts",
+		from: "\t\traw.sleep = max(raw.sleep, 0.0);\n",
+		to: "\n",
+		suite: "js",
+	},
+	{
+		name: "timer setters only insert positive values into the update list",
+		file: "src/entity/special/group/group.ts",
+		from: "if (value !== 0.0 && !getLocalEntityParent(en, ListType.LIST_TYPE_UPDATE)) {",
+		to: "if (value > 0.0 && !getLocalEntityParent(en, ListType.LIST_TYPE_UPDATE)) {",
+		suite: "js",
+	},
+	{
+		name: "the sleep and assist timer accessors are swapped",
+		file: "src/entity/special/group/group.ts",
+		from: "fnGetLocalEntityFloatValue.overload(GROUP, FloatType.FLOAT_TYPE_SLEEP, (en) => getLocalEntityData<GroupRaw>(en).sleep);",
+		to: "fnGetLocalEntityFloatValue.overload(GROUP, FloatType.FLOAT_TYPE_SLEEP, (en) => getLocalEntityData<GroupRaw>(en).assist_timer);",
+		suite: "js",
+	},
+	{
+		name: "timer setters test the value by JavaScript truthiness (0 is true in Lua)",
+		file: "src/entity/special/group/group.ts",
+		from: "if (value !== 0.0 && !getLocalEntityParent(en, ListType.LIST_TYPE_UPDATE)) {",
+		// hidden from TypeScript so only the Lua semantics can catch it
+		to: "if ((value as unknown as boolean) && !getLocalEntityParent(en, ListType.LIST_TYPE_UPDATE)) {",
+		suite: "lua",
+	},
 ];
 
 function run(cwd, command, args) {

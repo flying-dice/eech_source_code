@@ -14,6 +14,10 @@ core.initialiseCampaignCore({
 	mobilePhysicalState = {
 		getMobilePosition = function(entityIndex) return { x = 0, y = 0, z = 0 } end,
 	},
+	clock = {
+		getDeltaTime = function() return 0.25 end,
+		isFrameRateLocked = function() return false end,
+	},
 	entityReplication = {
 		transmitEntityFloatValue = function(entityIndex, floatType, value)
 			transmitted[#transmitted + 1] = { entityIndex = entityIndex, floatType = floatType, value = value }
@@ -42,6 +46,8 @@ local group_raw = {
 	sub_type = core.EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_ATTACK_HELICOPTER,
 	side = core.EntitySide.ENTITY_SIDE_BLUE_FORCE,
 	supplies = { ammo_supply_level = 30, fuel_supply_level = 40 },
+	sleep = 0,
+	assist_timer = 0,
 }
 local group = core.createLocalEntityRaw(T.ENTITY_TYPE_GROUP, group_raw)
 core.insertLocalEntityIntoParentsChildListRaw(group, L.LIST_TYPE_KEYSITE_GROUP, keysite, nil)
@@ -52,6 +58,17 @@ core.assessGroupSupplies(group)
 assert(group_raw.supplies.ammo_supply_level == 80, "ammo " .. group_raw.supplies.ammo_supply_level)
 assert(group_raw.supplies.fuel_supply_level == 90, "fuel " .. group_raw.supplies.fuel_supply_level)
 assert(#transmitted == 4, "transmissions " .. #transmitted)
+
+-- update timing: a sleeping group counts down each frame and leaves the update list when both timers expire
+local update = core.createLocalEntityRaw(T.ENTITY_TYPE_UPDATE, {})
+core.setUpdateEntity(update)
+core.setClientServerEntityFloatValue(group, core.FloatType.FLOAT_TYPE_SLEEP, 0.5)
+core.setDeltaTime()
+core.updateClientServerEntities()
+assert(group_raw.sleep == 0.25, "sleep " .. group_raw.sleep)
+core.updateClientServerEntities()
+assert(group_raw.sleep == 0, "sleep " .. group_raw.sleep)
+assert(group.links.update_link.parent == nil, "group should have left the update list")
 
 -- production policy: reaching an unported message response fails loudly
 group_raw.sub_type = core.EntitySubTypeGroup.ENTITY_SUB_TYPE_GROUP_PRIMARY_FRONTLINE

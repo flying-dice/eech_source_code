@@ -13,6 +13,14 @@ export class EechAssertionError extends Error {
 	}
 }
 
+// Raised where EECH calls debug_fatal (debug builds abort).
+export class EechFatalError extends Error {
+	public constructor(message: string) {
+		super(message);
+		this.name = "EechFatalError";
+	}
+}
+
 // Raised where the original C dereferences a NULL pointer without an ASSERT.
 // EECH would crash; the port refuses to continue.
 export class EechNullDereferenceError extends Error {

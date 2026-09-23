@@ -25,10 +25,10 @@ import { getClosestKeysite, type KeysiteRaw } from "../../src/entity/special/key
 import type { ForceRaw } from "../../src/entity/special/force/force";
 import { insertLocalEntityIntoParentsChildListRaw } from "../../src/entity/system/en_list";
 import { createLocalEntityRaw, setSessionEntityRaw, takeUnportedMessageLog, type Entity } from "../../src/entity/system/entity";
-import { GROUP_DATABASE_RESUPPLY_SOURCE } from "../../src/generated/c-group-database";
 import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, ListType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
+import { ScriptedClock } from "../adapters/scripted-clock";
 
 export interface KeysiteSpec {
 	side: EntitySide;
@@ -125,7 +125,7 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 	const physical = new InMemoryMobilePhysicalState();
 	const replication = new RecordingEntityReplication();
 
-	initialiseCampaignCore({ mobilePhysicalState: physical, entityReplication: replication }, { unportedMessagePolicy: "record" });
+	initialiseCampaignCore({ mobilePhysicalState: physical, entityReplication: replication, clock: new ScriptedClock() }, { unportedMessagePolicy: "record" });
 
 	const labels: Record<number, string> = {};
 
@@ -188,6 +188,8 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 			sub_type: g.subType,
 			side: g.side,
 			supplies: { ammo_supply_level: toFloat32(g.ammo), fuel_supply_level: toFloat32(g.fuel) },
+			sleep: 0,
+			assist_timer: 0,
 		};
 		group = createLocalEntityRaw(EntityType.ENTITY_TYPE_GROUP, groupRaw);
 		labels[group.index] = "group";
@@ -312,7 +314,7 @@ export function serialiseScenario(spec: ScenarioSpec, formatNumber: (n: number) 
 		const leader = g.leader.kind === "none" ? "0 0 0" : `1 ${formatNumber(g.leader.x)} ${formatNumber(g.leader.z)}`;
 
 		lines.push(
-			`group ${g.subType} ${GROUP_DATABASE_RESUPPLY_SOURCE[g.subType]} ${g.side} ${formatNumber(g.ammo)} ${formatNumber(g.fuel)} ${parentKind} ${parentIndex} ${g.busy ? 1 : 0} ${leader}`,
+			`group ${g.subType} ${g.side} ${formatNumber(g.ammo)} ${formatNumber(g.fuel)} ${parentKind} ${parentIndex} ${g.busy ? 1 : 0} ${leader}`,
 		);
 	}
 

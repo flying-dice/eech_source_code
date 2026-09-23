@@ -6,14 +6,16 @@ TypeScript, compiled to **Lua 5.1** with
 
 The original C in `../aphavoc` and `../modules` is the behavioural authority. The
 campaign core runs without DCS World. The environment (physical positions,
-replication, and later time, randomness and terrain) reaches it only through
-narrow ports in `src/ports`.
+replication, the frame clock, and later randomness and terrain) reaches it only
+through narrow ports in `src/ports`.
 
 - `docs/architecture.md`: the bootstrap report (kernel boundary, ports, harness,
   coverage, Lua semantics, next slices).
 - `docs/port-manifest.md`: the authoritative C→TS mapping and status.
 - `docs/slices/assess-group-supplies.md`: slice 1, frozen, with its dependency
   trace and behaviour matrix.
+- `docs/slices/group-update-timing.md`: slice 2, frozen, with its investigation,
+  boundary and behaviour matrix.
 
 ## Requirements
 
@@ -42,16 +44,16 @@ npm run verify        # every gate below, in order
 
 CI runs the same gates step by step in `.github/workflows/eech-core-ts.yml` for pull requests and pushes to `master` that touch `eech-core-ts/`, `aphavoc/` or `modules/`.
 
-`npm run cref:record` re-records `test/scenarios/generated/c-reference-random.cases.ts`
+`npm run cref:record` re-records the fixtures in `test/scenarios/generated/`
 from the executed C. `npm run gen:c` regenerates `src/generated` from the C sources.
 
 ## Layout
 
 ```
 src/
-  core/            ASSERT, C float semantics (toFloat32), maths from modules/maths
+  core/            ASSERT, C float semantics (toFloat32), maths, time (get_delta_time), configuration
   entity/system/   entity runtime: lists (with shared links), value function tables, messages, comms model
-  entity/special/  session, force, keysite, group, guide: the ported overloads and campaign functions
+  entity/special/  session, force, keysite, group, guide, update: the ported overloads, campaign functions and the update loop
   entity/mobile/   campaign-visible surface of aircraft and vehicles (position comes from a port)
   generated/       enums, database columns and constants generated from the EECH C (never hand-edited)
   ports/           what the campaign needs from the environment
@@ -61,7 +63,7 @@ test/
   unit/            vitest suites (JavaScript semantics, coverage)
   lua/             Lua 5.1 conformance runner and bundle smoke test
   c-reference/     C-vs-TS differential tests
-c-reference/       extractor, shim and harness that execute the original C
+c-reference/       extractor, harness environment and harness that execute the original C
 ```
 
 ## Porting rules (short form)
