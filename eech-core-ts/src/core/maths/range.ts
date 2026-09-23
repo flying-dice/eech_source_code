@@ -43,3 +43,45 @@ export function getApprox2dRange(v1: Vec3d | undefined, v2: Vec3d | undefined): 
 
 	return range;
 }
+
+// C provenance: range.c :: get_sqr_2d_range (float throughout)
+export function getSqr2dRange(v1: Vec3d | undefined, v2: Vec3d | undefined): number {
+	ASSERT(v1 !== undefined, "v1");
+	ASSERT(v2 !== undefined, "v2");
+
+	const dx = f32Sub(v1.x, v2.x);
+	const dz = f32Sub(v1.z, v2.z);
+
+	return f32Add(f32Mul(dx, dx), f32Mul(dz, dz));
+}
+
+//
+// C provenance: range.c :: get_approx_3d_range
+//
+// max + ((med + min) / 4): the float sum (dy + dz) times the double 0.25 is
+// exact, so dx + it is one rounding of the exact sum.
+//
+export function getApprox3dRange(v1: Vec3d | undefined, v2: Vec3d | undefined): number {
+	ASSERT(v1 !== undefined, "v1");
+	ASSERT(v2 !== undefined, "v2");
+
+	let dx = Math.abs(f32Sub(v1.x, v2.x));
+	let dy = Math.abs(f32Sub(v1.y, v2.y));
+	let dz = Math.abs(f32Sub(v1.z, v2.z));
+
+	let tmp: number;
+
+	if (dx < dy) {
+		tmp = dx;
+		dx = dy;
+		dy = tmp;
+	}
+
+	if (dx < dz) {
+		tmp = dx;
+		dx = dz;
+		dz = tmp;
+	}
+
+	return f32Add(dx, f32Add(dy, dz) * (1.0 / 4.0));
+}

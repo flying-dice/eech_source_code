@@ -59,6 +59,9 @@
 
 #include "project.h"
 
+/* slice 6b: the road network tables (node_data) */
+#include "ai/ai_misc/ai_route.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Floating-point environment (docs/fidelity/fpu-semantics.md).
@@ -179,6 +182,12 @@ void (*fn_set_client_server_entity_float_value[NUM_ENTITY_TYPES][NUM_FLOAT_TYPES
 float (*fn_get_local_entity_float_value[NUM_ENTITY_TYPES][NUM_FLOAT_TYPES]) (entity *en, float_types type);
 
 void (*fn_set_local_entity_raw_char_value[NUM_ENTITY_TYPES][NUM_CHAR_TYPES]) (entity *en, char_types type, char value);
+/* slice 6b: en_char.c's other tables (wp_char.c: the waypoint tag) */
+void (*fn_set_local_entity_char_value[NUM_ENTITY_TYPES][NUM_CHAR_TYPES]) (entity *en, char_types type, char value);
+void (*fn_set_client_server_entity_char_value[NUM_ENTITY_TYPES][NUM_CHAR_TYPES][NUM_COMMS_MODEL_TYPES]) (entity *en, char_types type, char value);
+char (*fn_get_local_entity_char_value[NUM_ENTITY_TYPES][NUM_CHAR_TYPES]) (entity *en, char_types type);
+/* en_att.c (guide.c reads an attitude matrix only in guide execution) */
+void (*fn_get_local_entity_attitude_matrix[NUM_ENTITY_TYPES]) (entity *en, matrix3x3 attitude);
 void (*fn_set_local_entity_raw_string[NUM_ENTITY_TYPES][NUM_STRING_TYPES]) (entity *en, string_types type, const char *s);
 void (*fn_set_local_entity_raw_attitude_angles[NUM_ENTITY_TYPES]) (entity *en, float heading, float pitch, float roll);
 
@@ -212,6 +221,10 @@ float_type_data float_type_database[NUM_FLOAT_TYPES];
 static const char *harness_entity_type_names[NUM_ENTITY_TYPES];
 const char **entity_type_names = harness_entity_type_names;
 ptr_type_data ptr_type_database[NUM_PTR_TYPES];
+char_type_data char_type_database[NUM_CHAR_TYPES];
+/* en_forms.c, en_sbtyp.c: names read only by croute.c's client checksum report (not reached on the server) */
+const char *formation_names [NUM_FORMATION_TYPES];
+const char *entity_sub_type_waypoint_names [NUM_ENTITY_SUB_TYPE_WAYPOINTS];
 
 const char
 	*overload_invalid_int_type_message = "invalid int type",
@@ -223,7 +236,8 @@ const char
 	*overload_invalid_vec3d_type_message = "invalid vec3d type",
 	*debug_fatal_invalid_vec3d_type_message = "invalid vec3d type",
 	*overload_invalid_ptr_type_message = "invalid ptr type",
-	*debug_fatal_invalid_ptr_type_message = "invalid ptr type";
+	*debug_fatal_invalid_ptr_type_message = "invalid ptr type",
+	*debug_fatal_invalid_char_type_message = "invalid char type";
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -557,8 +571,6 @@ void update_imap_surface_to_surface_defence_level (entity *en, entity *sector, i
 int get_valid_current_game_session (void) { NOT_REACHED ("get_valid_current_game_session"); return FALSE; }
 session_list_types get_current_game_session_type (void) { NOT_REACHED ("get_current_game_session_type"); return SESSION_LIST_TYPE_INVALID; }
 
-/* ks_int.c: landing sites are not ported */
-entity *get_local_group_member_landing_entity_from_keysite (entity *en) { NOT_REACHED ("get_local_group_member_landing_entity_from_keysite"); return NULL; }
 
 void debug_log (const char *string, ...)
 {
@@ -599,6 +611,19 @@ int set_local_division_name (entity *en, char *s)
 
 static const char *label_of (entity *en)
 {
+	/* slice 6b: waypoints and guides the original creates are labelled wp<index> and guide<index> when first printed */
+	if (en && (labels[en - entities][0] == '\0'))
+	{
+		if (en->type == ENTITY_TYPE_WAYPOINT)
+		{
+			snprintf (labels[en - entities], sizeof (labels[0]), "wp%d", (int) (en - entities));
+		}
+		else if (en->type == ENTITY_TYPE_GUIDE)
+		{
+			snprintf (labels[en - entities], sizeof (labels[0]), "guide%d", (int) (en - entities));
+		}
+	}
+
 	return en ? labels[en - entities] : "NULL";
 }
 
@@ -621,6 +646,12 @@ static unsigned int float_bits (float value)
 	memcpy (&bits, &value, sizeof (bits));
 
 	return bits;
+}
+
+/* slice 6b: for the extracted route_biasing_database printer */
+void harness_print_float_bits (const char *label, float value)
+{
+	printf (" %s %08x", label, float_bits (value));
 }
 
 /*
@@ -775,6 +806,72 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 		printf (" return %s\n", label_of (raw->return_keysite));
 	}
+	else if (message == ENTITY_COMMS_INT_VALUE)
+	{
+		/* (entity_comms_messages message, entity *en, int_types type, int value); slice 6b: the task's route checksum */
+		int_types type = va_arg (pargs, int_types);
+
+		int value = va_arg (pargs, int);
+
+		printf ("transmit-int %s %d %d\n", task_label_of (en), (int) type, value);
+	}
+	else if (message == ENTITY_COMMS_CREATE_WAYPOINT_ROUTE)
+	{
+		/*
+		 * slice 6b: (entity_comms_messages message, entity *en, entity *group, entity *return_keysite,
+		 * vec3d *start, vec3d *stop, unsigned int check_sum, int count). en_comms.c packs start and
+		 * stop with pack_vec3d (VEC3D_TYPE_POSITION), which checks and bounds them in place, then the
+		 * checksum, the task's waypoint count and every waypoint's index
+		 */
+		entity *group = va_arg (pargs, entity *);
+		entity *return_keysite = va_arg (pargs, entity *);
+		vec3d *start = va_arg (pargs, vec3d *);
+		vec3d *stop = va_arg (pargs, vec3d *);
+		unsigned int check_sum = va_arg (pargs, unsigned int);
+		entity *wp;
+
+		packing_task_pointers = TRUE;
+
+		if (start) pack_vec3d (NULL, VEC3D_TYPE_POSITION, start);
+		if (stop) pack_vec3d (NULL, VEC3D_TYPE_POSITION, stop);
+
+		packing_task_pointers = FALSE;
+
+		printf ("transmit-waypoint-route %s %s %s start", task_label_of (en), label_of (group), label_of (return_keysite));
+
+		if (start) printf (" %08x %08x %08x", float_bits (start->x), float_bits (start->y), float_bits (start->z)); else printf (" -");
+
+		printf (" stop");
+
+		if (stop) printf (" %08x %08x %08x", float_bits (stop->x), float_bits (stop->y), float_bits (stop->z)); else printf (" -");
+
+		printf (" checksum %u waypoints", check_sum);
+
+		for (wp = get_local_entity_first_child (en, LIST_TYPE_WAYPOINT); wp; wp = get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT))
+		{
+			printf (" %s", label_of (wp));
+		}
+
+		printf ("\n");
+	}
+	else if (message == ENTITY_COMMS_SWITCH_LIST)
+	{
+		/* slice 6b: (entity_comms_messages message, entity *en, list_types type1, entity *parent, list_types type2) */
+		list_types type1 = va_arg (pargs, list_types);
+		entity *parent = va_arg (pargs, entity *);
+		list_types type2 = va_arg (pargs, list_types);
+
+		printf ("transmit-switch-list %s %d %s %d\n", en->type == ENTITY_TYPE_TASK ? task_label_of (en) : label_of (en), (int) type1, label_of (parent), (int) type2);
+	}
+	else if (message == ENTITY_COMMS_SET_GUIDE_CRITERIA)
+	{
+		/* slice 6b: (entity_comms_messages message, entity *en, guide_criteria_types type, int valid, float value) */
+		guide_criteria_types type = va_arg (pargs, guide_criteria_types);
+		int valid = va_arg (pargs, int);
+		float value = va_arg (pargs, double);
+
+		printf ("transmit-guide-criteria %s %d %d %08x\n", label_of (en), (int) type, valid, float_bits (value));
+	}
 	else if (message == ENTITY_COMMS_SWITCH_PARENT)
 	{
 		/* (entity_comms_messages message, entity *en, list_types type, entity *parent) */
@@ -860,25 +957,20 @@ const char *(*fn_get_local_entity_string[NUM_ENTITY_TYPES][NUM_STRING_TYPES]) (e
 
 void add_default_entity_to_regen_queue (entity_sides side, entity_sub_types group_type) { NOT_REACHED ("add_default_entity_to_regen_queue"); }
 int increment_regen_queue_size (entity_sides side, entity_types type, int shift) { NOT_REACHED ("increment_regen_queue_size"); return 0; }
-entity *get_local_group_member_landing_entity_from_task (entity *en) { NOT_REACHED ("get_local_group_member_landing_entity_from_task"); return NULL; }
 void update_imap_sector_side (entity *en, int in_use) { NOT_REACHED ("update_imap_sector_side"); }
 void update_imap_importance_level (entity *en, int in_use) { NOT_REACHED ("update_imap_importance_level"); }
 void update_keysite_distance_to_friendly_base (entity *en, entity_sides side) { NOT_REACHED ("update_keysite_distance_to_friendly_base"); }
 void restore_local_fixed_entity (entity *en) { NOT_REACHED ("restore_local_fixed_entity"); }
 void group_kill_all_members (entity *en) { NOT_REACHED ("group_kill_all_members"); }
-entity *get_local_landing_entity_route (entity *landing_en, entity_sub_types type) { NOT_REACHED ("get_local_landing_entity_route"); return NULL; }
-entity *get_local_entity_landing_entity (entity *en, entity_sub_types landing_type) { NOT_REACHED ("get_local_entity_landing_entity"); return NULL; }
 int create_group_emergency_transfer_task (entity *en) { NOT_REACHED ("create_group_emergency_transfer_task"); return 0; }
 void update_imap_distance_to_friendly_base (entity_sides side) { NOT_REACHED ("update_imap_distance_to_friendly_base"); }
 void send_text_message (entity *sender, entity *target, message_text_types type, const char *text) { NOT_REACHED ("send_text_message"); }
 int play_client_server_speech (entity *parent, entity *sender, entity_sides side, entity_sub_types sub_type, sound_locality_types locality, float delay, float priority, float expire_time, speech_originator_types originator, speech_category_types category, float category_silence_timer, ...) { NOT_REACHED ("play_client_server_speech"); return 0; }
 int *get_speech_sector_coordinates (vec3d *pos) { NOT_REACHED ("get_speech_sector_coordinates"); return NULL; }
 int get_object_3d_troop_landing_position_and_heading (int object_index, vec3d *position, float *heading) { NOT_REACHED ("get_object_3d_troop_landing_position_and_heading"); return 0; }
-entity *get_local_landing_entity_task (entity *landing_en, entity_sub_types type) { NOT_REACHED ("get_local_landing_entity_task"); return NULL; }
 int get_local_entity_suitable_for_player (entity *en, entity *pilot) { NOT_REACHED ("get_local_entity_suitable_for_player"); return 0; }
 int get_local_entity_list_size (entity *parent, list_types type) { NOT_REACHED ("get_local_entity_list_size"); return 0; }
 void get_digital_clock_values (float time_of_day, float *hours, float *minutes, float *seconds) { NOT_REACHED ("get_digital_clock_values"); }
-float get_3d_terrain_point_data (float x, float z, terrain_3d_point_data *point_data) { NOT_REACHED ("get_3d_terrain_point_data"); return 0.0f; }
 void free_group_callsign (entity *en) { NOT_REACHED ("free_group_callsign"); }
 int file_exist (const char *filename) { NOT_REACHED ("file_exist"); return 0; }
 entity *create_cap_task (entity_sides side, entity *this_keysite, entity *originator, int critical, float priority, float duration, entity *start_keysite, entity *end_keysite) { NOT_REACHED ("create_cap_task"); return NULL; }
@@ -904,6 +996,10 @@ static int
 /* slice 5b: print tasks and task lists in the graph (the "observe-tasks" line) */
 static int
 	observe_tasks = FALSE;
+
+/* slice 6b: print the assignment graph (the "observe-assignment" line) */
+static int
+	observe_assignment = FALSE;
 
 entity *__real_create_supply_task (entity *requester, entity *supplier, entity *cargo, movement_types movement_type, float priority, entity *start_keysite, entity *end_keysite);
 
@@ -934,28 +1030,142 @@ static int record_mission_created (campaign_screen_messages message, entity *sen
 	return TRUE;
 }
 
+/* slice 6b: MISSION_ASSIGNED (the TS CampaignEvents port's missionAssigned) */
+static int record_mission_assigned (campaign_screen_messages message, entity *sender)
+{
+	printf ("campaign mission-assigned %s\n", task_label_of (sender));
+
+	return TRUE;
+}
+
 float get_sector_fog_of_war_value (entity *en, entity_sides side) { NOT_REACHED ("get_sector_fog_of_war_value"); return 0.0f; }
 
 /*
- * slice 6a: assign.c :: assign_primary_task_to_group is the boundary. The
- * assignment transaction (route, guide, the task becoming ASSIGNED, the
- * members) is slice 6b / 6c. Reaching it ends the operation, as a failed
- * ASSERT does, with the selected group and task: the TS core throws
- * UnportedBoundaryError there, and its runners report the same line.
+ * slice 6b: assign.c :: assign_task_to_group_members is the boundary. The
+ * member loop (follower attachment, the members' TASK_ASSIGNED responses and
+ * their takeoff machinery, helicopter preparation) and everything
+ * assign_primary_task_to_group does after it are not ported. Reaching it ends
+ * the operation, as a failed ASSERT does, before it executes, with its
+ * arguments: the TS core throws UnportedBoundaryError there, and its runners
+ * report the same line.
  */
-int assign_primary_task_to_group (entity *group_en, entity *task_en)
+int assign_task_to_group_members (entity *group, entity *guide, unsigned int valid_members)
 {
 	if (!in_operation)
 	{
-		harness_fail ("assign_primary_task_to_group outside an operation");
+		harness_fail ("assign_task_to_group_members outside an operation");
 	}
 
-	printf ("result boundary assign_primary_task_to_group %s %s\n", label_of (group_en), task_label_of (task_en));
+	printf ("result boundary assign_task_to_group_members %s %s %08x\n", label_of (group), label_of (guide), valid_members);
 
 	longjmp (abort_operation, 1);
 
 	return FALSE;
 }
+
+/*
+ * slice 6b: environment data the route generator reads, supplied by the
+ * scenario. Nothing here is campaign behaviour: the terrain is a table looked
+ * up by cell, the road network the original's road tables.
+ *
+ * terrelev.h :: get_3d_terrain_elevation (x, z) is get_3d_terrain_point_data
+ * (x, z, NULL): the elevation of the terrain at (x, z). The scenario's
+ * "terrain" line gives a cell size and a grid of elevations; outside the grid,
+ * and without a terrain line, the elevation is the "terrain" line's default.
+ * With "observe-environment" every lookup is printed, in call order.
+ */
+#define MAX_HARNESS_TERRAIN_CELLS 1024
+
+static int
+	terrain_cells_x,
+	terrain_cells_z,
+	observe_environment = FALSE;
+
+static double
+	terrain_cell_size = 1.0;
+
+static float
+	terrain_default,
+	terrain_cells [MAX_HARNESS_TERRAIN_CELLS];
+
+float get_3d_terrain_point_data (float x, float z, terrain_3d_point_data *point_data)
+{
+	float
+		elevation;
+
+	int
+		cx,
+		cz;
+
+	if (point_data)
+	{
+		harness_fail ("get_3d_terrain_point_data with point data");
+	}
+
+	cx = (int) floor ((double) x / terrain_cell_size);
+	cz = (int) floor ((double) z / terrain_cell_size);
+
+	if ((cx >= 0) && (cx < terrain_cells_x) && (cz >= 0) && (cz < terrain_cells_z))
+	{
+		elevation = terrain_cells [(cz * terrain_cells_x) + cx];
+	}
+	else
+	{
+		elevation = terrain_default;
+	}
+
+	if (observe_environment) printf ("terrain %08x %08x %08x\n", float_bits (x), float_bits (z), float_bits (elevation));
+
+	return elevation;
+}
+
+/* ai_route.h: the road network (road_nodes [].number_of_links and road_node_positions), loaded
+   with the map in EECH; NULL until a scenario's "road-node" line gives the first node */
+#define MAX_HARNESS_ROAD_NODES 64
+
+node_data
+	*road_nodes = NULL;
+
+vec3d
+	*road_node_positions = NULL;
+
+int
+	total_number_of_road_nodes = 0;
+
+static node_data
+	harness_road_nodes [MAX_HARNESS_ROAD_NODES];
+
+static vec3d
+	harness_road_node_positions [MAX_HARNESS_ROAD_NODES];
+
+/*
+ * slice 6b: the other functions of the compiled guide, waypoint and landing
+ * files: guide execution (waypoint reached handlers of the navigation and
+ * attack guides), member reassignment, formations, speech and the group's
+ * verbose state. None is reached before the boundary; escort creation comes
+ * after it.
+ */
+void navigation_guide_waypoint_reached (entity *en) { NOT_REACHED ("navigation_guide_waypoint_reached"); }
+void attack_guide_approach_reached (entity *en) { NOT_REACHED ("attack_guide_approach_reached"); }
+void attack_guide_seek_cover_reached (entity *en) { NOT_REACHED ("attack_guide_seek_cover_reached"); }
+void attack_guide_fly_to_cover_reached (entity *en) { NOT_REACHED ("attack_guide_fly_to_cover_reached"); }
+void attack_guide_take_cover_reached (entity *en) { NOT_REACHED ("attack_guide_take_cover_reached"); }
+void attack_guide_climb_reached (entity *en) { NOT_REACHED ("attack_guide_climb_reached"); }
+void attack_guide_dive_reached (entity *en) { NOT_REACHED ("attack_guide_dive_reached"); }
+void attack_guide_fire_reached (entity *en) { NOT_REACHED ("attack_guide_fire_reached"); }
+void attack_guide_disengage_reached (entity *en) { NOT_REACHED ("attack_guide_disengage_reached"); }
+void attack_guide_egress_reached (entity *en) { NOT_REACHED ("attack_guide_egress_reached"); }
+void attack_guide_hasty_fire_reached (entity *en) { NOT_REACHED ("attack_guide_hasty_fire_reached"); }
+void attack_guide_hasty_take_cover_reached (entity *en) { NOT_REACHED ("attack_guide_hasty_take_cover_reached"); }
+void attack_guide_move_six_reached (entity *en) { NOT_REACHED ("attack_guide_move_six_reached"); }
+void attack_guide_move_circle_reached (entity *en) { NOT_REACHED ("attack_guide_move_circle_reached"); }
+void attack_guide_fire_intercept_reached (entity *en) { NOT_REACHED ("attack_guide_fire_intercept_reached"); }
+int reassign_group_members_to_valid_tasks (entity *group, entity *last_task, unsigned int members_to_reassign, int engage_enemy) { NOT_REACHED ("reassign_group_members_to_valid_tasks"); return 0; }
+void set_group_verbose_operational_state (entity *en, int state) { NOT_REACHED ("set_group_verbose_operational_state"); }
+formation_type *get_formation (formation_types formation) { NOT_REACHED ("get_formation"); return NULL; }
+speech_atc_message_types get_speech_atc_wind_speed (entity *en) { NOT_REACHED ("get_speech_atc_wind_speed"); return 0; }
+float get_3d_vector_dot_product ( const vec3d *a, const vec3d *b ) { NOT_REACHED ("get_3d_vector_dot_product"); return 0.0f; }
+entity *create_escort_task (entity *group, int critical, float priority, entity *start_keysite, entity *end_keysite) { NOT_REACHED ("create_escort_task"); return NULL; }
 
 /* slice 6a: aircraft_database is the original (ac_dbase.c, compiled whole); ac_float.c is compiled
    whole for FLOAT_TYPE_CRUISE_VELOCITY, and its other float types name the terrain and the 3D object
@@ -968,16 +1178,19 @@ object_3d_information
 float get_local_sector_entity_enemy_surface_to_surface_defence_level (entity *sector_en, entity_sides side) { NOT_REACHED ("get_local_sector_entity_enemy_surface_to_surface_defence_level"); return 0.0f; }
 void play_mobile_under_attack_speech (entity *en, entity *aggressor) { NOT_REACHED ("play_mobile_under_attack_speech"); }
 void play_client_server_radio_message_response (entity *en, int speech_index, float priority, float expire_time) { NOT_REACHED ("play_client_server_radio_message_response"); }
-float get_sqr_2d_range (const vec3d *v1, const vec3d *v2) { NOT_REACHED ("get_sqr_2d_range"); return 0.0f; }
 int engage_targets_in_group (entity *group, entity *target_group, int expire) { NOT_REACHED ("engage_targets_in_group"); return 0; }
 void create_task_completed_reactionary_tasks (entity *task) { NOT_REACHED ("create_task_completed_reactionary_tasks"); }
 void create_task_assigned_reactionary_tasks (entity *task) { NOT_REACHED ("create_task_assigned_reactionary_tasks"); }
 int check_group_task_type (entity *group, entity_sub_types task_type) { NOT_REACHED ("check_group_task_type"); return 0; }
 void campaign_completed (entity_sides side, campaign_completed_types complete) { NOT_REACHED ("campaign_completed"); }
 
-/* wp_list.c and wp_int.c: reached only by the waypoint list maintenance the harness never runs */
-void update_local_entity_waypoint_list_tags (entity *parent) { NOT_REACHED ("update_local_entity_waypoint_list_tags"); }
-int get_formation_database_count (void) { NOT_REACHED ("get_formation_database_count"); return 0; }
+/*
+ * slice 6b: en_forms.c :: get_formation_database_count, read by wp_int.c's
+ * WAYPOINT_FORMATION ASSERT. initialise_formation_database sets
+ * last_formation_index to NUM_FORMATION_TYPES before loading forms.dat
+ * (en_forms.c:246); only user formations (add_formation, not ported) raise it.
+ */
+int get_formation_database_count (void) { return NUM_FORMATION_TYPES; }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -996,7 +1209,10 @@ static const char *unsupplied_get_string (entity *en, string_types type) { harne
 static void unsupplied_set_list (entity *en, list_types type, entity *other) { harness_fail ("list set not supplied"); }
 static void unsupplied_update (entity *en) { harness_fail ("update function not supplied"); }
 static void unsupplied_set_vec3d (entity *en, vec3d_types type, vec3d *v) { harness_fail ("vec3d set not supplied"); }
+static void unsupplied_get_vec3d (entity *en, vec3d_types type, vec3d *v) { harness_fail ("vec3d value not supplied"); }
 static void unsupplied_set_char (entity *en, char_types type, char value) { harness_fail ("char set not supplied"); }
+static char unsupplied_get_char (entity *en, char_types type) { harness_fail ("char value not supplied"); return 0; }
+static void unsupplied_get_attitude_matrix (entity *en, matrix3x3 attitude) { harness_fail ("attitude matrix not supplied"); }
 static void unsupplied_set_string (entity *en, string_types type, const char *s) { harness_fail ("string set not supplied"); }
 static void unsupplied_set_attitude_angles (entity *en, float heading, float pitch, float roll) { harness_fail ("attitude set not supplied"); }
 static int unsupplied_message_response (entity_messages message, entity *receiver, entity *sender, va_list pargs) { harness_fail ("message response not supplied"); return FALSE; }
@@ -1045,6 +1261,12 @@ static void shim_link (entity_types entity_type, list_types list)
 static vec3d *shim_mobile_position (entity *en, vec3d_types type)
 {
 	return &((shim_mobile *) get_local_entity_data (en))->mob.position;
+}
+
+/* ac_vec3d.c :: get_local_vec3d (VEC3D_TYPE_POSITION): a copy of the same physical position (slice 6b: the route's start) */
+static void shim_mobile_position_copy (entity *en, vec3d_types type, vec3d *v)
+{
+	*v = ((shim_mobile *) get_local_entity_data (en))->mob.position;
 }
 
 /* the original fc_msgs.c :: response_to_force_low_on_supplies (static there) */
@@ -1116,6 +1338,10 @@ static void initialise_tables (void)
 		{
 			fn_get_local_entity_vec3d_ptr[i][j] = unsupplied_get_vec3d_ptr;
 			fn_set_local_entity_raw_vec3d[i][j] = unsupplied_set_vec3d;
+			/* slice 6b: the copying getter and the setters (waypoints, guides, members) */
+			fn_get_local_entity_vec3d[i][j] = unsupplied_get_vec3d;
+			fn_set_local_entity_vec3d[i][j] = unsupplied_set_vec3d;
+			for (k = 0; k < NUM_COMMS_MODEL_TYPES; k++) fn_set_client_server_entity_vec3d[i][j][k] = unsupplied_set_vec3d;
 		}
 
 		for (j = 0; j < NUM_CHAR_TYPES; j++) fn_set_local_entity_raw_char_value[i][j] = unsupplied_set_char;
@@ -1205,6 +1431,7 @@ static void initialise_tables (void)
 	}
 
 	campaign_screen_message_responses[CAMPAIGN_SCREEN_TARGET_MISSION_LIST][CAMPAIGN_SCREEN_MISSION_CREATED] = record_mission_created;
+	campaign_screen_message_responses[CAMPAIGN_SCREEN_TARGET_MISSION_LIST][CAMPAIGN_SCREEN_MISSION_ASSIGNED] = record_mission_assigned;
 
 	/* waypoint accessors: a route waypoint on a requester's LIST_TYPE_TASK_DEPENDENT
 	   list (slice 5a); wp_float.c does not overload FLOAT_TYPE_TASK_USER_DATA, so the
@@ -1229,13 +1456,46 @@ static void initialise_tables (void)
 	overload_sector_list_functions ();
 	overload_sector_message_responses ();
 
+	/* slice 6b: the route, waypoint and guide files (the rows they install; wp_funcs.c and
+	   gd_funcs.c install the same set), the task's stop position (ts_vec3d.c), the link
+	   responses those files leave at the C default, and the inverse square root table
+	   the route optimiser reads (initialise_inverse_square_root_table, run at start-up) */
+	overload_waypoint_create_functions ();
+	overload_waypoint_vec3d_functions ();
+	overload_waypoint_float_value_functions ();
+	overload_waypoint_char_value_functions ();
+	overload_waypoint_ptr_value_functions ();
+	overload_waypoint_message_responses ();
+	overload_guide_create_functions ();
+	overload_guide_int_value_functions ();
+	overload_guide_float_value_functions ();
+	overload_guide_vec3d_functions ();
+	overload_guide_list_functions ();
+	overload_guide_ptr_value_functions ();
+	overload_guide_message_responses ();
+	overload_task_vec3d_functions ();
+	harness_default_6b_link_responses ();
+	initialise_inverse_square_root_table ();
+
+	for (i = 0; i < NUM_ENTITY_TYPES; i++)
+	{
+		for (j = 0; j < NUM_CHAR_TYPES; j++)
+		{
+			if (!fn_set_local_entity_char_value[i][j]) fn_set_local_entity_char_value[i][j] = unsupplied_set_char;
+			if (!fn_get_local_entity_char_value[i][j]) fn_get_local_entity_char_value[i][j] = unsupplied_get_char;
+			for (k = 0; k < NUM_COMMS_MODEL_TYPES; k++) if (!fn_set_client_server_entity_char_value[i][j][k]) fn_set_client_server_entity_char_value[i][j][k] = unsupplied_set_char;
+		}
+
+		if (!fn_get_local_entity_attitude_matrix[i]) fn_get_local_entity_attitude_matrix[i] = unsupplied_get_attitude_matrix;
+	}
+
 	/* hand-written rows */
 	shim_root (ENTITY_TYPE_SESSION, LIST_TYPE_FORCE);
 
-	shim_link (ENTITY_TYPE_GUIDE, LIST_TYPE_GUIDE_STACK);
 
 	shim_link (ENTITY_TYPE_HELICOPTER, LIST_TYPE_MEMBER);
 	fn_get_local_entity_vec3d_ptr[ENTITY_TYPE_HELICOPTER][VEC3D_TYPE_POSITION] = shim_mobile_position;
+	fn_get_local_entity_vec3d[ENTITY_TYPE_HELICOPTER][VEC3D_TYPE_POSITION] = shim_mobile_position_copy;
 
 	/* slice 6a: the original aircraft float values (ac_funcs.c :: overload_aircraft_functions ->
 	   overload_aircraft_float_value_functions); hc_float.c overloads neither CRUISE_VELOCITY nor SLEEP,
@@ -1247,6 +1507,7 @@ static void initialise_tables (void)
 	   the same hand-written member link and position rows, and the same original float rows */
 	shim_link (ENTITY_TYPE_FIXED_WING, LIST_TYPE_MEMBER);
 	fn_get_local_entity_vec3d_ptr[ENTITY_TYPE_FIXED_WING][VEC3D_TYPE_POSITION] = shim_mobile_position;
+	fn_get_local_entity_vec3d[ENTITY_TYPE_FIXED_WING][VEC3D_TYPE_POSITION] = shim_mobile_position_copy;
 	overload_aircraft_float_value_functions (ENTITY_TYPE_FIXED_WING);
 	fn_get_local_entity_float_value[ENTITY_TYPE_FIXED_WING][FLOAT_TYPE_SLEEP] = harness_default_get_entity_float_value;
 
@@ -1710,6 +1971,97 @@ static void print_lifecycle_state (void)
 		}
 	}
 
+	/* slice 6b: the assignment graph */
+	if (observe_assignment)
+	{
+		for (i = 0; i < num_keysites; i++)
+		{
+			printf ("assigned %s", label_of (keysites[i]));
+
+			print_list (LIST_TYPE_ASSIGNED_TASK, keysites[i]);
+
+			printf ("\n");
+		}
+
+		for (en = first_used_entity; en; en = en->succ)
+		{
+			if (get_local_entity_type (en) == ENTITY_TYPE_TASK)
+			{
+				task *raw = (task *) get_local_entity_data (en);
+
+				printf ("task-assignment %s state %d checksum %d return %s waypoints", task_label_of (en), (int) raw->task_state, get_local_entity_int_value (en, INT_TYPE_ROUTE_CHECK_SUM), label_of (raw->return_keysite));
+
+				print_list (LIST_TYPE_WAYPOINT, en);
+
+				printf (" guides");
+
+				print_list (LIST_TYPE_GUIDE, en);
+
+				printf ("\n");
+			}
+			else if (get_local_entity_type (en) == ENTITY_TYPE_WAYPOINT)
+			{
+				waypoint *raw = (waypoint *) get_local_entity_data (en);
+
+				printf
+				(
+					"waypoint %s %d task %s sub %d formation %d position-type %d %08x %08x %08x route-node %d altitude %08x flight-time %08x tag %d dependent %s\n",
+					label_of (en),
+					get_local_entity_index (en),
+					label_of (raw->waypoint_link.parent),
+					(int) raw->sub_type,
+					(int) raw->waypoint_formation,
+					(int) raw->position_type,
+					float_bits (raw->position.x),
+					float_bits (raw->position.y),
+					float_bits (raw->position.z),
+					(int) raw->route_node,
+					float_bits (raw->altitude),
+					float_bits (raw->flight_time),
+					(int) raw->tag,
+					label_of (raw->task_dependent_link.parent)
+				);
+			}
+			else if (get_local_entity_type (en) == ENTITY_TYPE_GUIDE)
+			{
+				guide *raw = (guide *) get_local_entity_data (en);
+				int loop;
+
+				printf
+				(
+					"guide %s %d task %s current %s stack %s sub %d valid %08x position %08x %08x %08x velocity %08x update %s criteria",
+					label_of (en),
+					get_local_entity_index (en),
+					label_of (raw->guide_link.parent),
+					label_of (raw->current_waypoint_link.parent),
+					label_of (raw->guide_stack_link.parent),
+					(int) raw->sub_type,
+					raw->valid_guide_members,
+					float_bits (raw->position.x),
+					float_bits (raw->position.y),
+					float_bits (raw->position.z),
+					float_bits (raw->velocity),
+					label_of (raw->update_link.parent)
+				);
+
+				for (loop = 0; loop < NUM_GUIDE_CRITERIA_TYPES; loop++)
+				{
+					printf (" %d:%08x", raw->criteria [loop].valid, float_bits (raw->criteria [loop].value));
+				}
+
+				printf ("\n");
+			}
+			else if (get_local_entity_type (en) == ENTITY_TYPE_GROUP)
+			{
+				printf ("group %s mode %d guides", label_of (en), get_local_entity_int_value (en, INT_TYPE_GROUP_MODE));
+
+				print_list (LIST_TYPE_GUIDE_STACK, en);
+
+				printf ("\n");
+			}
+		}
+	}
+
 	/* a map line that ended early leaves unassigned cells */
 	if (map_complete)
 	{
@@ -1877,7 +2229,7 @@ int main (void)
 		i;
 
 	char
-		line[1024],
+		line[16384],
 		*cursor,
 		*word;
 
@@ -1919,6 +2271,45 @@ int main (void)
 			{
 				printf ("%d %08x\n", i, float_bits (aircraft_database[i].cruise_velocity));
 			}
+
+			return 0;
+		}
+
+		if (strcmp (word, "database-6b") == 0)
+		{
+			/* slice 6b: the compiled databases the route and guide read, the reference for
+			   src/generated/c-{waypoint,guide,route-biasing,aircraft,task}-database.ts */
+			int w, b, g, c;
+
+			for (w = 0; w < NUM_ENTITY_SUB_TYPE_WAYPOINTS; w++)
+			{
+				printf ("waypoint %d guide %d", w, (int) waypoint_database[w].guide_sub_type);
+				printf (" fw %08x %08x %08x %d %d %d", float_bits (waypoint_database[w].fw_minimum_previous_waypoint_distance), float_bits (waypoint_database[w].fw_reached_radius), float_bits (waypoint_database[w].fw_velocity), (int) waypoint_database[w].fw_criteria_last_to_reach, (int) waypoint_database[w].fw_criteria_transmit_recon, (int) waypoint_database[w].fw_position_type);
+				printf (" hc %08x %08x %08x %d %d %d", float_bits (waypoint_database[w].hc_minimum_previous_waypoint_distance), float_bits (waypoint_database[w].hc_reached_radius), float_bits (waypoint_database[w].hc_velocity), (int) waypoint_database[w].hc_criteria_last_to_reach, (int) waypoint_database[w].hc_criteria_transmit_recon, (int) waypoint_database[w].hc_position_type);
+				printf (" rv %08x %08x %08x %d %d %d", float_bits (waypoint_database[w].rv_minimum_previous_waypoint_distance), float_bits (waypoint_database[w].rv_reached_radius), float_bits (waypoint_database[w].rv_velocity), (int) waypoint_database[w].rv_criteria_last_to_reach, (int) waypoint_database[w].rv_criteria_transmit_recon, (int) waypoint_database[w].rv_position_type);
+				printf (" sh %08x %08x %08x %d %d %d\n", float_bits (waypoint_database[w].sh_minimum_previous_waypoint_distance), float_bits (waypoint_database[w].sh_reached_radius), float_bits (waypoint_database[w].sh_velocity), (int) waypoint_database[w].sh_criteria_last_to_reach, (int) waypoint_database[w].sh_criteria_transmit_recon, (int) waypoint_database[w].sh_position_type);
+			}
+
+			for (g = 0; g < NUM_ENTITY_SUB_TYPE_GUIDES; g++)
+			{
+				printf ("guide %d", g);
+
+				for (c = 0; c < NUM_GUIDE_CRITERIA_TYPES; c++) printf (" %d:%08x", guide_database[g].criteria[c].valid, float_bits (guide_database[g].criteria[c].value));
+
+				printf ("\n");
+			}
+
+			for (b = 0; b < NUM_ENTITY_SUB_TYPE_AIRCRAFT; b++)
+			{
+				printf ("aircraft %d altitude %08x\n", b, float_bits (aircraft_database[b].cruise_altitude));
+			}
+
+			for (b = 0; b < NUM_ENTITY_SUB_TYPE_TASKS; b++)
+			{
+				printf ("task %d start %d landing %d search %d\n", b, (int) task_database[b].add_start_waypoint, (int) task_database[b].assess_landing, (int) task_database[b].task_route_search);
+			}
+
+			harness_print_route_biasing_database ();
 
 			return 0;
 		}
@@ -2125,7 +2516,7 @@ int main (void)
 
 			if (busy)
 			{
-				link_entity_raw (new_entity (ENTITY_TYPE_GUIDE, NULL, "guide"), LIST_TYPE_GUIDE_STACK, group_en, NULL);
+				link_entity_raw (new_entity (ENTITY_TYPE_GUIDE, new_raw (sizeof (guide)), "guide"), LIST_TYPE_GUIDE_STACK, group_en, NULL);
 			}
 
 			if (has_leader)
@@ -2257,6 +2648,54 @@ int main (void)
 		{
 			/* slice 5a: print the create_supply_task boundary from here on */
 			observe_supply_tasks = TRUE;
+		}
+		else if (strcmp (word, "terrain") == 0)
+		{
+			/* slice 6b: terrain <default> <cell size> <cells x> <cells z> <elevation>... (row by row, z outer) */
+			int n;
+
+			terrain_default = next_float (&cursor);
+			terrain_cell_size = next_float (&cursor);
+			terrain_cells_x = next_int (&cursor);
+			terrain_cells_z = next_int (&cursor);
+
+			if ((terrain_cells_x < 0) || (terrain_cells_z < 0) || (terrain_cells_x * terrain_cells_z > MAX_HARNESS_TERRAIN_CELLS) || (terrain_cell_size <= 0.0))
+			{
+				harness_fail ("bad terrain line");
+			}
+
+			for (n = 0; n < terrain_cells_x * terrain_cells_z; n++)
+			{
+				terrain_cells [n] = next_float (&cursor);
+			}
+		}
+		else if (strcmp (word, "road-node") == 0)
+		{
+			/* slice 6b: road-node <x> <y> <z> <number of links>: the next road node (ai_route.h tables) */
+			if (total_number_of_road_nodes >= MAX_HARNESS_ROAD_NODES)
+			{
+				harness_fail ("too many road nodes");
+			}
+
+			road_nodes = harness_road_nodes;
+			road_node_positions = harness_road_node_positions;
+
+			road_node_positions [total_number_of_road_nodes].x = next_float (&cursor);
+			road_node_positions [total_number_of_road_nodes].y = next_float (&cursor);
+			road_node_positions [total_number_of_road_nodes].z = next_float (&cursor);
+			road_nodes [total_number_of_road_nodes].number_of_links = next_int (&cursor);
+
+			total_number_of_road_nodes ++;
+		}
+		else if (strcmp (word, "observe-environment") == 0)
+		{
+			/* slice 6b: print every terrain lookup */
+			observe_environment = TRUE;
+		}
+		else if (strcmp (word, "observe-assignment") == 0)
+		{
+			/* slice 6b: print the assignment graph (waypoints, guides, assigned lists, group guide stacks) */
+			observe_assignment = TRUE;
 		}
 		else if (strcmp (word, "observe-tasks") == 0)
 		{
@@ -2486,6 +2925,9 @@ int main (void)
 					{
 						link_entity_raw (en, LIST_TYPE_INDEPENDENT_GROUP, forces[i], last_child (forces[i], LIST_TYPE_INDEPENDENT_GROUP));
 
+						/* slice 6b: gp_creat.c stores the list a group joins (gp_pack.c restores it) */
+						raw->group_list_type = LIST_TYPE_INDEPENDENT_GROUP;
+
 						break;
 					}
 				}
@@ -2495,13 +2937,16 @@ int main (void)
 				entity *parent = find_created (parent_label);
 
 				link_entity_raw (en, LIST_TYPE_KEYSITE_GROUP, parent, last_child (parent, LIST_TYPE_KEYSITE_GROUP));
+
+				raw->group_list_type = LIST_TYPE_KEYSITE_GROUP;
 			}
 
 			if (busy)
 			{
 				snprintf (member_label, sizeof (member_label), "%s.guide", label);
 
-				link_entity_raw (new_entity (ENTITY_TYPE_GUIDE, NULL, member_label), LIST_TYPE_GUIDE_STACK, en, NULL);
+				/* slice 6b: a zeroed original guide struct (gd_list.c is compiled whole) */
+				link_entity_raw (new_entity (ENTITY_TYPE_GUIDE, new_raw (sizeof (guide)), member_label), LIST_TYPE_GUIDE_STACK, en, NULL);
 			}
 
 			if (has_leader)

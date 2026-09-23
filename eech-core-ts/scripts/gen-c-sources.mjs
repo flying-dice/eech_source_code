@@ -48,6 +48,10 @@ const ENUMS = [
 	["MOVEMENT_TYPES", "aphavoc/source/ai_extrn.h", "MovementType"],
 	["TASK_CATEGORY_TYPES", "aphavoc/source/entity/system/en_types/en_task.h", "TaskCategoryType"],
 	["ENTITY_SUB_TYPE_AIRCRAFT", "aphavoc/source/entity/system/en_types/en_sbtyp.h", "EntitySubTypeAircraft"],
+	// slice 6b
+	["ENTITY_SUB_TYPE_GUIDES", "aphavoc/source/entity/system/en_types/en_sbtyp.h", "EntitySubTypeGuide"],
+	["POSITION_TYPES", "aphavoc/source/entity/system/en_types/en_wp.h", "PositionType"],
+	["GUIDE_CRITERIA_TYPES", "aphavoc/source/entity/special/guide/guide.h", "GuideCriteriaType"],
 ];
 
 function stripComments(text) {
@@ -442,6 +446,10 @@ function generateTaskDatabase() {
 	emit("TASK_DATABASE_TASK_CATEGORY", "task_category (TaskCategoryType)", column("task category").map((v) => enumMemberValue(categories, v, "task category")));
 	emit("TASK_DATABASE_MINIMUM_MEMBER_COUNT", "minimum_member_count", column("Minimum Member Count").map((v) => integerLiteral(v, "Minimum Member Count")));
 	emit("TASK_DATABASE_PRIMARY_TASK", "primary_task (TRUE 1, FALSE 0)", column("primary task").map((v) => booleanLiteral(v, "primary task")));
+	// slice 6b: assign_task_to_group and create_generic_waypoint_route
+	emit("TASK_DATABASE_ADD_START_WAYPOINT", "add_start_waypoint (TRUE 1, FALSE 0)", column("add start waypoint").map((v) => booleanLiteral(v, "add start waypoint")));
+	emit("TASK_DATABASE_ASSESS_LANDING", "assess_landing (TRUE 1, FALSE 0)", column("Assess landing on completion").map((v) => booleanLiteral(v, "Assess landing on completion")));
+	emit("TASK_DATABASE_TASK_ROUTE_SEARCH", "task_route_search (TRUE 1, FALSE 0)", column("Task route search").map((v) => booleanLiteral(v, "Task route search")));
 	emit("TASK_DATABASE_ENGAGE_ENEMY", "engage_enemy (TRUE 1, FALSE 0)", column("Engage Enemy").map((v) => booleanLiteral(v, "Engage Enemy")));
 	emit("TASK_DATABASE_MOVEMENT_TYPE", "movement_type (MovementType)", column("Movement Type").map((v) => enumMemberValue(movements, v, "Movement Type")));
 	emit("TASK_DATABASE_KEYSITE_AIR_FORCE_CAPACITY", "keysite_air_force_capacity (KeysiteAirForceCapacityType)", column("keysite air force capacity").map((v) => enumMemberValue(capacities, v, "keysite air force capacity")));
@@ -518,7 +526,217 @@ function generateAircraftDatabase() {
 	lines.push("export const AIRCRAFT_DATABASE_CRUISE_VELOCITY: readonly number[] = [");
 	values.forEach(([knots, value], i) => lines.push(`\t${value}, // ${i} ${aircraft[i][0]} (${knots} knots)`));
 	lines.push("];", "");
+	// slice 6b: the route's waypoint altitude
+	const altitudes = databaseColumn(source, aircraft, "ENTITY_SUB_TYPE_AIRCRAFT_", "cruise_altitude", "aircraft_database").map((v) => floatLiteral(v, "cruise_altitude"));
+	lines.push(`// C provenance: ${header} :: aircraft_database [].cruise_altitude (a double literal stored as float: round to nearest)`);
+	lines.push("export const AIRCRAFT_DATABASE_CRUISE_ALTITUDE: readonly number[] = [");
+	altitudes.forEach((value, i) => lines.push(`\t${value}, // ${i} ${aircraft[i][0]}`));
+	lines.push("];", "");
 	return lines.join("\n");
+}
+
+// A floating literal of a float field: the compiler rounds it to nearest.
+function floatLiteral(value, what) {
+	if (!/^-?(\d+\.?\d*|\.\d+)f?$/.test(value)) {
+		throw new Error(`${what}: not a floating literal: ${value}`);
+	}
+	return String(Math.fround(Number(value.replace(/f$/, ""))));
+}
+
+//
+// A float field's initialiser in the waypoint database: a literal, or
+// `N * KILOMETRE` (constant.h: KILOMETRE (1000 * METRE), METRE (1.0f)): an int
+// or double literal times a float, folded to nearest (exact for the values used).
+//
+function waypointDistance(value, what) {
+	const m = /^(\d+\.?\d*) \* KILOMETRE$/.exec(value);
+	if (m) {
+		return String(Math.fround(Number(m[1]) * 1000));
+	}
+	if (/^\d+$/.test(value)) {
+		return String(Math.fround(Number(value)));
+	}
+	return floatLiteral(value, what);
+}
+
+//
+// wp_dbase.c :: waypoint_database [NUM_ENTITY_SUB_TYPE_WAYPOINTS]. Entries have
+// no banners: each opens with its name (`"..."`, // Name) and is matched to the
+// enum by position. Each holds the entity-wide fields, then four blocks of the
+// same fields for FIXED WING, HELICOPTER, GROUND and SEA, in that order.
+//
+function generateWaypointDatabase() {
+	const header = "aphavoc/source/entity/special/waypoint/wp_dbase.c";
+	const source = readFileSync(join(repoRoot, header), "latin1");
+	const waypoints = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/entity/system/en_types/en_sbtyp.h"), "latin1"), "ENTITY_SUB_TYPE_WAYPOINTS").filter(([name]) => !name.startsWith("NUM_"));
+	const guides = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/entity/system/en_types/en_sbtyp.h"), "latin1"), "ENTITY_SUB_TYPE_GUIDES");
+	const positions = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/entity/system/en_types/en_wp.h"), "latin1"), "POSITION_TYPES");
+	const lines = source.split(/\r?\n/);
+	const entries = [];
+	let entry;
+	let section;
+	const field = (line, comment) => new RegExp(`^\\s*([^/]+?)\\s*,\\s*//\\s*${comment}\\s*$`).exec(line);
+	for (const line of lines) {
+		const name = /^\s*"([^"]*)",\s*\/\/\s*Name\s*$/.exec(line);
+		if (name) {
+			entry = { name: name[1], sections: [] };
+			entries.push(entry);
+			section = undefined;
+			continue;
+		}
+		if (!entry) continue;
+		const marker = /^\s*\/\/\s*(FIXED WING|HELICOPTER|GROUND|SEA)\s*$/.exec(line);
+		if (marker) {
+			section = {};
+			entry.sections.push(section);
+			continue;
+		}
+		const guide = field(line, "guide sub type");
+		if (guide && !section) {
+			entry.guide = guide[1];
+			continue;
+		}
+		if (!section) continue;
+		for (const [key, comment] of [
+			["minimum_previous_waypoint_distance", "Minimum previous waypoint distance"],
+			["reached_radius", "Reached Radius"],
+			["velocity", "Velocity"],
+			["criteria_last_to_reach", "Criteria Last To Reach"],
+			["criteria_transmit_recon", "Criteria Transmit Recon"],
+			["position_type", "Position type"],
+		]) {
+			const m = field(line, comment);
+			if (m) {
+				if (section[key] !== undefined) throw new Error(`waypoint_database ${entry.name}: ${comment} twice in one block`);
+				section[key] = m[1];
+			}
+		}
+	}
+	if (entries.length !== waypoints.length) {
+		throw new Error(`waypoint_database: ${entries.length} entries for ${waypoints.length} waypoint sub types`);
+	}
+	const out = [...HEADER];
+	out.push(`// C provenance: ${header} :: waypoint_database [NUM_ENTITY_SUB_TYPE_WAYPOINTS] (compiled defaults; no WUT override of it is ported)`);
+	out.push("// Indexed by EntitySubTypeWaypoint. The per-mobile columns are indexed [waypoint][block]:");
+	out.push("// block 0 FIXED WING (fw_), 1 HELICOPTER (hc_), 2 GROUND (rv_), 3 SEA (sh_); wp_dbase.c's get_waypoint_database_*");
+	out.push("// accessors choose the block by the mobile's entity type.");
+	out.push("");
+	const perEntry = (tsName, field, values) => {
+		out.push(`// C provenance: ${header} :: waypoint_database [].${field}`);
+		out.push(`export const ${tsName}: readonly number[] = [`);
+		values.forEach((value, i) => out.push(`\t${value}, // ${i} ${waypoints[i][0]}`));
+		out.push("];", "");
+	};
+	const perBlock = (tsName, field, convert) => {
+		out.push(`// C provenance: ${header} :: waypoint_database [].{fw,hc,rv,sh}_${field}`);
+		out.push(`export const ${tsName}: readonly (readonly number[])[] = [`);
+		entries.forEach((e, i) => {
+			if (e.sections.length !== 4) throw new Error(`waypoint_database ${e.name}: ${e.sections.length} mobile blocks`);
+			out.push(`\t[${e.sections.map((sec) => { if (sec[field] === undefined) throw new Error(`waypoint_database ${e.name}: no ${field}`); return convert(sec[field]); }).join(", ")}], // ${i} ${waypoints[i][0]}`);
+		});
+		out.push("];", "");
+	};
+	perEntry("WAYPOINT_DATABASE_GUIDE_SUB_TYPE", "guide_sub_type (EntitySubTypeGuide)", entries.map((e) => enumMemberValue(guides, e.guide, "guide sub type")));
+	perBlock("WAYPOINT_DATABASE_MINIMUM_PREVIOUS_WAYPOINT_DISTANCE", "minimum_previous_waypoint_distance", (v) => waypointDistance(v, "Minimum previous waypoint distance"));
+	perBlock("WAYPOINT_DATABASE_REACHED_RADIUS", "reached_radius", (v) => waypointDistance(v, "Reached Radius"));
+	perBlock("WAYPOINT_DATABASE_VELOCITY", "velocity", (v) => waypointDistance(v, "Velocity"));
+	perBlock("WAYPOINT_DATABASE_CRITERIA_LAST_TO_REACH", "criteria_last_to_reach", (v) => booleanLiteral(v, "Criteria Last To Reach"));
+	perBlock("WAYPOINT_DATABASE_CRITERIA_TRANSMIT_RECON", "criteria_transmit_recon", (v) => booleanLiteral(v, "Criteria Transmit Recon"));
+	perBlock("WAYPOINT_DATABASE_POSITION_TYPE", "position_type", (v) => enumMemberValue(positions, v, "Position type"));
+	return out.join("\n");
+}
+
+//
+// A guide criterion value: a literal or rad (DEG) (convert.h: ((DEG) * (PI /
+// 180.0f)), PI (3.14159265359f)): a double literal times a float, stored as
+// float, folded to nearest by the compiler.
+//
+function guideCriterionValue(value, what) {
+	const m = /^rad \((\d+\.?\d*)\)$/.exec(value);
+	if (m) {
+		checkDefine("modules/maths/convert.h", "rad(DEG)", "((DEG) * (PI / 180.0f))");
+		const f = Math.fround;
+		return String(f(Number(m[1]) * f(f(Number(parseNumericDefineExpression("PI"))) / 180)));
+	}
+	return floatLiteral(value, what);
+}
+
+function checkDefine(file, name, body) {
+	const source = readFileSync(join(repoRoot, file), "latin1");
+	const match = new RegExp(`^\\s*#define\\s+${escapeRegExp(name)}\\s+(.*?)\\s*$`, "m").exec(source);
+	if (!match || match[1] !== body) {
+		throw new Error(`#define ${name} (${file}) changed; re-derive its evaluation`);
+	}
+}
+
+//
+// gd_dbase.c :: guide_database [NUM_ENTITY_SUB_TYPE_GUIDES]: each entry's
+// criteria [NUM_GUIDE_CRITERIA_TYPES], `{ VALID, VALUE },  // GUIDE_CRITERIA_*`.
+//
+function generateGuideDatabase() {
+	const header = "aphavoc/source/entity/special/guide/gd_dbase.c";
+	const source = readFileSync(join(repoRoot, header), "latin1");
+	const guides = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/entity/system/en_types/en_sbtyp.h"), "latin1"), "ENTITY_SUB_TYPE_GUIDES").filter(([name]) => !name.startsWith("NUM_"));
+	const criteria = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/entity/special/guide/guide.h"), "latin1"), "GUIDE_CRITERIA_TYPES").filter(([name]) => !name.startsWith("NUM_"));
+	const rows = [];
+	let current;
+	for (const line of source.split(/\r?\n/)) {
+		const banner = /^\s*\/\/\s*(ENTITY_SUB_TYPE_GUIDE_[A-Z0-9_]+)\s*,?\s*$/.exec(line);
+		if (banner) {
+			current = { name: banner[1], criteria: [] };
+			rows.push(current);
+			continue;
+		}
+		const c = /^\s*\{\s*(TRUE|FALSE)\s*,\s*([^}]+?)\s*\}\s*,\s*\/\/\s*(GUIDE_CRITERIA_[A-Z_]+)\s*$/.exec(line);
+		if (c) {
+			if (!current) throw new Error("guide_database: criterion before any banner");
+			current.criteria.push([c[3], booleanLiteral(c[1], c[3]), guideCriterionValue(c[2], c[3])]);
+		}
+	}
+	if (rows.length !== guides.length) {
+		throw new Error(`guide_database: ${rows.length} entries for ${guides.length} guide sub types`);
+	}
+	const out = [...HEADER];
+	out.push(`// C provenance: ${header} :: guide_database [NUM_ENTITY_SUB_TYPE_GUIDES] .criteria [NUM_GUIDE_CRITERIA_TYPES]`);
+	out.push("// (compiled defaults; no GWUT override is ported). [guide sub type][criterion] = [valid (TRUE 1), value (float)]");
+	out.push("export const GUIDE_DATABASE_CRITERIA: readonly (readonly (readonly [number, number])[])[] = [");
+	rows.forEach((r, i) => {
+		if (r.name !== guides[i][0]) throw new Error(`guide_database entry ${i} is ${r.name}, expected ${guides[i][0]}`);
+		if (r.criteria.length !== criteria.length) throw new Error(`guide_database ${r.name}: ${r.criteria.length} criteria`);
+		r.criteria.forEach(([name], k) => { if (name !== criteria[k][0]) throw new Error(`guide_database ${r.name}: criterion ${k} is ${name}`); });
+		out.push(`\t[${r.criteria.map(([, valid, value]) => `[${valid}, ${value}]`).join(", ")}], // ${i} ${r.name}`);
+	});
+	out.push("];", "");
+	return out.join("\n");
+}
+
+//
+// croute.c :: route_biasing_database [NUM_MOVEMENT_TYPES]: banners
+// `//MOVEMENT_TYPE_*,`; float fields from double literals (round to nearest).
+//
+function generateRouteBiasingDatabase() {
+	const header = "aphavoc/source/ai/taskgen/croute.c";
+	const source = readFileSync(join(repoRoot, header), "latin1");
+	const movements = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/ai_extrn.h"), "latin1"), "MOVEMENT_TYPES").filter(([name]) => !name.startsWith("NUM_"));
+	const fields = [
+		["elevation_bias", "elevation bias"],
+		["range_bias", "range bias"],
+		["side_bias", "side bias"],
+		["min_route_range", "min route range"],
+		["route_deviation_size", "route deviation size"],
+		["num_route_samples", "num route samples"],
+		["optimise_tolerance", "optimise tolerance"],
+	];
+	const out = [...HEADER];
+	out.push(`// C provenance: ${header} :: route_biasing_database [] (static; indexed by MovementType)`);
+	for (const [fieldName, comment] of fields) {
+		const values = databaseColumn(source, movements, "MOVEMENT_TYPE_", comment, "route_biasing_database").map((v) => floatLiteral(v, comment));
+		out.push(`// C provenance: ${header} :: route_biasing_database [].${fieldName} (float)`);
+		out.push(`export const ROUTE_BIASING_${fieldName.toUpperCase()}: readonly number[] = [`);
+		values.forEach((value, i) => out.push(`\t${value}, // ${i} ${movements[i][0]}`));
+		out.push("];", "");
+	}
+	return out.join("\n");
 }
 
 function generateEnums() {
@@ -539,6 +757,9 @@ export function generate() {
 	return {
 		"c-aircraft-database.ts": generateAircraftDatabase(),
 		"c-constants.ts": generateConstants(),
+		"c-guide-database.ts": generateGuideDatabase(),
+		"c-route-biasing-database.ts": generateRouteBiasingDatabase(),
+		"c-waypoint-database.ts": generateWaypointDatabase(),
 		"c-enums.ts": generateEnums(),
 		"c-group-database.ts": generateGroupDatabase(),
 		"c-keysite-database.ts": generateKeysiteDatabase(),

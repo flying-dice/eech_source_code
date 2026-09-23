@@ -15,4 +15,8 @@ export interface CampaignEvents {
 	// C: notify_campaign_screen (CAMPAIGN_SCREEN_MISSION_CREATED, task): a
 	// primary task joined its start keysite's unassigned task list
 	missionCreated(taskIndex: number): void;
+
+	// C: notify_campaign_screen (CAMPAIGN_SCREEN_MISSION_ASSIGNED, task): a
+	// primary task moved to its keysite's assigned task list (slice 6b)
+	missionAssigned(taskIndex: number): void;
 }

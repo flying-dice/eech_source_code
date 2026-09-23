@@ -14,7 +14,9 @@ import { notifyLocalEntity } from "../../src/entity/system/en_msgs";
 import { setSessionEntityRaw } from "../../src/entity/system/entity";
 import { EntityMessage, EntitySide, EntitySubTypeCargo, EntitySubTypeKeysite, EntityType, GameStatusType, ListType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
+import { GridTerrainElevation } from "../adapters/grid-terrain-elevation";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
+import { InMemoryRoadNetwork } from "../adapters/in-memory-road-network";
 import { RecordingCampaignEvents } from "../adapters/recording-campaign-events";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
 import { ScriptedClock } from "../adapters/scripted-clock";
@@ -36,7 +38,7 @@ describe("fc_msgs.c :: response_to_force_low_on_supplies", () => {
 
 	it("refuses a cargo sub type its switch has no case for (C reads factory uninitialised)", () => {
 		initialiseCampaignCore(
-			{ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new RecordingEntityReplication(), clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata(), campaignEvents: new RecordingCampaignEvents() },
+			{ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new RecordingEntityReplication(), clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata(), terrainElevation: new GridTerrainElevation(), roadNetwork: new InMemoryRoadNetwork(), campaignEvents: new RecordingCampaignEvents() },
 		);
 		const session = createLocalEntityRaw(EntityType.ENTITY_TYPE_SESSION, {});
 		setSessionEntityRaw(session);

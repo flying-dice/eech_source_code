@@ -73,6 +73,27 @@ export const REAL_TRANSLATION_UNITS = [
 	"aphavoc/source/entity/mobile/aircraft/ac_float.c",
 	"aphavoc/source/entity/mobile/aircraft/ac_dbase.c",
 	"aphavoc/source/entity/special/pilot/pi_list.c",
+	// slice 6b: the assignment transaction up to assign_task_to_group_members: the
+	// generic waypoint route (croute.c), waypoint entities, the guide entity and its
+	// attachment, and the landing lookups assign_task_to_group makes
+	"aphavoc/source/ai/taskgen/croute.c",
+	"aphavoc/source/entity/special/waypoint/wp_creat.c",
+	"aphavoc/source/entity/special/waypoint/wp_vec3d.c",
+	"aphavoc/source/entity/special/waypoint/wp_float.c",
+	"aphavoc/source/entity/special/waypoint/wp_char.c",
+	"aphavoc/source/entity/special/waypoint/wp_msgs.c",
+	"aphavoc/source/entity/special/waypoint/wp_ptr.c",
+	"aphavoc/source/entity/special/guide/guide.c",
+	"aphavoc/source/entity/special/guide/gd_creat.c",
+	"aphavoc/source/entity/special/guide/gd_int.c",
+	"aphavoc/source/entity/special/guide/gd_float.c",
+	"aphavoc/source/entity/special/guide/gd_vec3d.c",
+	"aphavoc/source/entity/special/guide/gd_list.c",
+	"aphavoc/source/entity/special/guide/gd_ptr.c",
+	"aphavoc/source/entity/special/guide/gd_dbase.c",
+	"aphavoc/source/entity/special/guide/gd_msgs.c",
+	"aphavoc/source/entity/special/landing/landing.c",
+	"aphavoc/source/entity/special/task/ts_vec3d.c",
 	// slice 3: entity heap, attributes, creation and destruction
 	"aphavoc/source/entity/system/en_main/en_heap.c",
 	"aphavoc/source/entity/system/en_attrs/en_attrs.c",
@@ -249,6 +270,17 @@ export const PROJECT_H = [
 	// (pilot.h's high score prototype names ui_object, an incomplete type here)
 	{ kind: "regex", pattern: "\\ntypedef struct UI_OBJECT ui_object;", file: "modules/userint2/ui_sys/ui_types/ui_types.h" },
 	{ kind: "include", name: "entity/special/pilot/pilot.h" },
+	// slice 6b: the guide struct (guide.h names terrain_3d_triangle, an incomplete type here)
+	{ kind: "regex", pattern: "\\ntypedef struct TERRAIN_3D_TRIANGLE terrain_3d_triangle;", file: "modules/3d/terrain/terrdata.h" },
+	{ kind: "include", name: "entity/special/guide/guide.h" },
+	{ kind: "include", name: "ai/taskgen/croute.h" },
+	// slice 6b: the maths the route generator and guides call (eech_extracted_route_maths.c)
+	{ kind: "include", name: "maths/invsqrt.h" },
+	{ kind: "prototype", name: "normalise_3d_vector", file: "modules/maths/vector.h" },
+	{ kind: "prototype", name: "get_3d_vector_magnitude", file: "modules/maths/vector.h" },
+	{ kind: "define", name: "check_zero_3d_vector", file: "modules/maths/vector.h" },
+	{ kind: "prototype", name: "get_approx_3d_range", file: "modules/maths/range.h" },
+	{ kind: "regex", pattern: "\\nextern float get_3d_vector_dot_product\\( const vec3d \\*a, const vec3d \\*b \\);", file: "modules/maths/vector.h" },
 	// prototypes of functions the slice 3 translation units call; the harness
 	// supplies them as environment or fail-loud stubs (harness.c)
 	{ kind: "prototype", name: "convert_float_to_int", file: "modules/system/fpu.h" },
@@ -346,6 +378,8 @@ export const EXTRACTED_C = [
 	{ kind: "function", name: "get_local_force_entity", signature: "entity *get_local_force_entity (entity_sides side)", file: "aphavoc/source/entity/special/force/force.c" },
 	{ kind: "function", name: "assess_group_supplies", signature: "void assess_group_supplies (entity *en)", file: "aphavoc/source/entity/special/group/group.c" },
 	// slice 6a: the locality test get_suitable_registered_group applies
+	// slice 6b: assign_task_to_group's landing-site paths read the member count
+	{ kind: "function", name: "get_local_group_member_count", signature: "int get_local_group_member_count (entity *group)", file: "aphavoc/source/entity/special/group/group.c" },
 	{ kind: "function", name: "assess_group_task_locality_factor", signature: "int assess_group_task_locality_factor (entity *group_en, entity *task_en, float *return_distance)", file: "aphavoc/source/entity/special/group/group.c" },
 
 	// group link/unlink parent responses (gp_msgs.c is otherwise not compiled)
@@ -370,7 +404,7 @@ export const EXTRACTED_C = [
 	},
 	{
 		kind: "raw",
-		text: "/* C defaults for the update entity: its link responses are only overloaded under DEBUG_MODULE (up_msgs.c) */\nvoid harness_default_update_link_responses (void)\n{\n\tmessage_responses[ENTITY_TYPE_UPDATE][ENTITY_MESSAGE_LINK_CHILD] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_UPDATE][ENTITY_MESSAGE_LINK_PARENT] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_UPDATE][ENTITY_MESSAGE_UNLINK_PARENT] = default_message_response;\n}\n\nvoid (*harness_default_set_entity_int_value) (entity *en, int_types type, int value) = default_set_entity_int_value;\n\nvoid (*harness_default_set_entity_float_value) (entity *en, float_types type, float value) = default_set_entity_float_value;\n\nint (*harness_default_get_entity_int_value) (entity *en, int_types type) = default_get_entity_int_value;\n\nfloat (*harness_default_get_entity_float_value) (entity *en, float_types type) = default_get_entity_float_value;\n",
+		text: "/* C defaults for the update entity: its link responses are only overloaded under DEBUG_MODULE (up_msgs.c) */\nvoid harness_default_update_link_responses (void)\n{\n\tmessage_responses[ENTITY_TYPE_UPDATE][ENTITY_MESSAGE_LINK_CHILD] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_UPDATE][ENTITY_MESSAGE_LINK_PARENT] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_UPDATE][ENTITY_MESSAGE_UNLINK_PARENT] = default_message_response;\n}\n\n/* slice 6b: C defaults for the link responses ts_msgs.c, gd_msgs.c and wp_msgs.c overload only under DEBUG_MODULE */\nvoid harness_default_6b_link_responses (void)\n{\n\tmessage_responses[ENTITY_TYPE_TASK][ENTITY_MESSAGE_LINK_CHILD] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_TASK][ENTITY_MESSAGE_UNLINK_CHILD] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_TASK][ENTITY_MESSAGE_UNLINK_PARENT] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_GUIDE][ENTITY_MESSAGE_LINK_CHILD] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_GUIDE][ENTITY_MESSAGE_UNLINK_CHILD] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_GUIDE][ENTITY_MESSAGE_LINK_PARENT] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_GUIDE][ENTITY_MESSAGE_UNLINK_PARENT] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_WAYPOINT][ENTITY_MESSAGE_LINK_CHILD] = default_message_response;\n\tmessage_responses[ENTITY_TYPE_WAYPOINT][ENTITY_MESSAGE_UNLINK_CHILD] = default_message_response;\n}\n\nvoid (*harness_default_set_entity_int_value) (entity *en, int_types type, int value) = default_set_entity_int_value;\n\nvoid (*harness_default_set_entity_float_value) (entity *en, float_types type, float value) = default_set_entity_float_value;\n\nint (*harness_default_get_entity_int_value) (entity *en, int_types type) = default_get_entity_int_value;\n\nfloat (*harness_default_get_entity_float_value) (entity *en, float_types type) = default_get_entity_float_value;\n",
 	},
 ];
 
@@ -385,7 +419,7 @@ export const EXTRACTED_UNITS = {
 	// assignment transaction (slice 6b / 6c) and the player's requests;
 	// assign_primary_task_to_group is the harness's boundary trap.
 	"eech_extracted_assign.c": [
-		{ kind: "raw", text: '#include <limits.h>\n\n#include "project.h"\n\n#include "ai/taskgen/assign.h"\n#include "ai/taskgen/taskgen.h"\n#include "ai/highlevl/suitable.h"\n' },
+		{ kind: "raw", text: '#include <limits.h>\n\n#include "project.h"\n\n#include "ai/taskgen/assign.h"\n#include "ai/taskgen/taskgen.h"\n#include "ai/taskgen/croute.h"\n#include "ai/highlevl/suitable.h"\n' },
 		{ kind: "prototype", name: "quicksort_entity_list", file: "aphavoc/source/entity/en_misc/en_misc.h" },
 		// the release (non-DEBUG, non-WIN32) ai_log of highlevl.h: compiled out
 		{ kind: "regex", pattern: "\\n#define ai_log\\(a, x\\.\\.\\.\\) do \\{ \\} while\\(0\\);", file: "aphavoc/source/ai/highlevl/highlevl.h" },
@@ -394,6 +428,33 @@ export const EXTRACTED_UNITS = {
 		{ kind: "function", name: "suitable_group_task_specific_checks", signature: "static int suitable_group_task_specific_checks (entity *task, entity *group)", file: "aphavoc/source/ai/taskgen/assign.c" },
 		{ kind: "function", name: "get_suitable_registered_group", signature: "entity *get_suitable_registered_group (entity *task, int *idle_group_count)", file: "aphavoc/source/ai/taskgen/assign.c" },
 		{ kind: "function", name: "check_group_members_awake", signature: "int check_group_members_awake (entity *group)", file: "aphavoc/source/ai/taskgen/assign.c" },
+		// slice 6b: the transaction up to assign_task_to_group_members, the harness's boundary trap
+		{ kind: "function", name: "assign_primary_task_to_group", signature: "int assign_primary_task_to_group (entity *group_en, entity *task_en)", file: "aphavoc/source/ai/taskgen/assign.c" },
+		{ kind: "function", name: "push_task_onto_group_task_stack", signature: "entity *push_task_onto_group_task_stack (entity *group, entity *task, unsigned int valid_members)", file: "aphavoc/source/ai/taskgen/assign.c" },
+		{ kind: "function", name: "assign_task_to_group", signature: "int assign_task_to_group (entity *group, entity *task_en, unsigned int valid_members)", file: "aphavoc/source/ai/taskgen/assign.c" },
+	],
+	// slice 6b: the route generator's maths and map helpers (their files pull in
+	// the rest of the maths library and the SDL system headers)
+	"eech_extracted_route_maths.c": [
+		{ kind: "raw", text: '#include <stdio.h>\n\n#include "project.h"\n\n#include "ai/ai_misc/ai_route.h"\n' },
+		{ kind: "regex", pattern: "\\nunsigned int inverse_sqrt_table\\[TABLE_SIZE\\];", file: "modules/maths/invsqrt.c" },
+		{ kind: "function", name: "initialise_inverse_square_root_table", signature: "void initialise_inverse_square_root_table ( void )", file: "modules/maths/invsqrt.c" },
+		{ kind: "function", name: "get_inverse_square_root", signature: "float get_inverse_square_root ( float x )", file: "modules/maths/invsqrt.c" },
+		{ kind: "function", name: "normalise_3d_vector", signature: "float normalise_3d_vector ( vec3d *vector )", file: "modules/maths/vector.c" },
+		{ kind: "function", name: "get_3d_vector_magnitude", signature: "float get_3d_vector_magnitude ( const vec3d *vector )", file: "modules/maths/vector.c" },
+		{ kind: "function", name: "get_approx_3d_range", signature: "float get_approx_3d_range (const vec3d *v1, const vec3d *v2)", file: "modules/maths/range.c" },
+		{ kind: "function", name: "get_sqr_2d_range", signature: "float get_sqr_2d_range (const vec3d *v1, const vec3d *v2)", file: "modules/maths/range.c" },
+		{ kind: "function", name: "bound_position_to_map_area", signature: "int bound_position_to_map_area (vec3d *position)", file: "aphavoc/source/entity/system/en_main/en_world.c" },
+		{ kind: "function", name: "bound_position_to_adjusted_map_volume", signature: "int bound_position_to_adjusted_map_volume (vec3d *position)", file: "aphavoc/source/entity/system/en_main/en_world.c" },
+		// croute.c's route_biasing_database, printed by the harness's database-6b command
+		{ kind: "regex", pattern: "\\nstruct ROUTE_BIASING_DATABASE_TYPE\\n\\{[^}]*\\};", file: "aphavoc/source/ai/taskgen/croute.c" },
+		{ kind: "regex", pattern: "\\ntypedef struct ROUTE_BIASING_DATABASE_TYPE route_biasing_database_type;", file: "aphavoc/source/ai/taskgen/croute.c" },
+		{
+			kind: "raw",
+			text: "\nextern route_biasing_database_type route_biasing_database [];\n\nextern void harness_print_float_bits (const char *label, float value);\n\nvoid harness_print_route_biasing_database (void)\n{\n\tint m;\n\n\tfor (m = 0; m < NUM_MOVEMENT_TYPES; m++)\n\t{\n\t\tprintf (\"route-biasing %d\", m);\n\t\tharness_print_float_bits (\"elevation\", route_biasing_database[m].elevation_bias);\n\t\tharness_print_float_bits (\"range\", route_biasing_database[m].range_bias);\n\t\tharness_print_float_bits (\"side\", route_biasing_database[m].side_bias);\n\t\tharness_print_float_bits (\"min-range\", route_biasing_database[m].min_route_range);\n\t\tharness_print_float_bits (\"deviation\", route_biasing_database[m].route_deviation_size);\n\t\tharness_print_float_bits (\"samples\", route_biasing_database[m].num_route_samples);\n\t\tharness_print_float_bits (\"tolerance\", route_biasing_database[m].optimise_tolerance);\n\t\tprintf (\"\\n\");\n\t}\n}\n",
+		},
+		// ai_misc.c :: get_closest_road_node; the road tables are environment data the harness supplies
+		{ kind: "function", name: "get_closest_road_node", signature: "int get_closest_road_node (vec3d *pos, float error)", file: "aphavoc/source/ai/ai_misc/ai_misc.c" },
 	],
 	// slice 6a: en_misc.c's quicksort (qs is static)
 	"eech_extracted_en_misc.c": [

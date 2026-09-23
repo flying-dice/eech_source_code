@@ -39,3 +39,24 @@ export function normaliseAny3dVector(vector: Vec3d): number {
 
 	return length;
 }
+
+// C provenance: vector.c :: normalise_3d_vector (its own code is commented out; it calls normalise_any_3d_vector)
+export function normalise3dVector(vector: Vec3d): number {
+	return normaliseAny3dVector(vector);
+}
+
+// C provenance: vector.c :: get_3d_vector_magnitude: float squares and sum, sqrt in double stored to float
+export function get3dVectorMagnitude(vector: Vec3d): number {
+	ASSERT(vector !== undefined, "vector");
+
+	const x = f32Mul(vector.x, vector.x);
+	const y = f32Mul(vector.y, vector.y);
+	const z = f32Mul(vector.z, vector.z);
+
+	return f32Sqrt(f32Add(f32Add(x, y), z));
+}
+
+// C provenance: vector.h :: #define check_zero_3d_vector(VECTOR) (get_3d_vector_magnitude (VECTOR) == 0.0)
+export function checkZero3dVector(vector: Vec3d): boolean {
+	return get3dVectorMagnitude(vector) === 0.0;
+}

@@ -31,7 +31,9 @@ import type { Entity } from "../../src/entity/system/entity";
 import { EntitySide, EntitySubTypeGroup, EntityType, FloatType, ListType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
+import { GridTerrainElevation } from "../adapters/grid-terrain-elevation";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
+import { InMemoryRoadNetwork } from "../adapters/in-memory-road-network";
 import { RecordingCampaignEvents } from "../adapters/recording-campaign-events";
 import { ScriptedClock } from "../adapters/scripted-clock";
 
@@ -103,7 +105,7 @@ export function runTimeline(spec: TimelineSpec): TimelineOutcome {
 	const clock = new ScriptedClock();
 
 	initialiseCampaignCore(
-		{ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication, clock, object3DMetadata: new InMemoryObject3DMetadata(), campaignEvents: new RecordingCampaignEvents() },
+		{ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication, clock, object3DMetadata: new InMemoryObject3DMetadata(), terrainElevation: new GridTerrainElevation(), roadNetwork: new InMemoryRoadNetwork(), campaignEvents: new RecordingCampaignEvents() },
 		{ entityUpdateFrameRate: spec.entityUpdateFrameRate },
 	);
 

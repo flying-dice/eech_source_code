@@ -183,6 +183,60 @@ export function boundPositionToAdjustedMapArea(position: Vec3d): boolean {
 	return result;
 }
 
+// C provenance: en_world.c :: bound_position_to_map_area (float members, float bounds)
+export function boundPositionToMapArea(position: Vec3d): boolean {
+	let result = false;
+
+	if (position.x < world_map.min_map_x) {
+		position.x = world_map.min_map_x;
+		result = true;
+	} else if (position.x > world_map.max_map_x) {
+		position.x = world_map.max_map_x;
+		result = true;
+	}
+
+	if (position.z < world_map.min_map_z) {
+		position.z = world_map.min_map_z;
+		result = true;
+	} else if (position.z > world_map.max_map_z) {
+		position.z = world_map.max_map_z;
+		result = true;
+	}
+
+	return result;
+}
+
+// C provenance: en_world.c :: bound_position_to_adjusted_map_volume (as the adjusted area, plus y to the map volume)
+export function boundPositionToAdjustedMapVolume(position: Vec3d): boolean {
+	let result = false;
+
+	if (position.x < world_map.min_map_x + MAP_PERIMETER_SIZE) {
+		position.x = f32Add(world_map.min_map_x, MAP_PERIMETER_SIZE);
+		result = true;
+	} else if (position.x > world_map.max_map_x - MAP_PERIMETER_SIZE) {
+		position.x = f32Add(world_map.max_map_x, -MAP_PERIMETER_SIZE);
+		result = true;
+	}
+
+	if (position.y < world_map.min_map_y) {
+		position.y = world_map.min_map_y;
+		result = true;
+	} else if (position.y > world_map.max_map_y) {
+		position.y = world_map.max_map_y;
+		result = true;
+	}
+
+	if (position.z < world_map.min_map_z + MAP_PERIMETER_SIZE) {
+		position.z = f32Add(world_map.min_map_z, MAP_PERIMETER_SIZE);
+		result = true;
+	} else if (position.z > world_map.max_map_z - MAP_PERIMETER_SIZE) {
+		position.z = f32Add(world_map.max_map_z, -MAP_PERIMETER_SIZE);
+		result = true;
+	}
+
+	return result;
+}
+
 // C provenance: en_world.h :: #define get_x_sector(X_SEC,X)
 //   {convert_float_to_int ((X), &(X_SEC)); (X_SEC) /= SECTOR_SIDE_LENGTH;}
 export function getXSector(x: number): number {

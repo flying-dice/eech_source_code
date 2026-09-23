@@ -40,6 +40,29 @@ export interface EntityReplication {
 
 	// C: transmit_entity_comms_message (ENTITY_COMMS_SWITCH_PARENT, en, type, parent)
 	transmitSwitchParent(entityIndex: number, type: ListType, parentIndex: number): void;
+
+	// slice 6b
+	// C: transmit_entity_comms_message (ENTITY_COMMS_INT_VALUE, en, type, value)
+	transmitEntityIntValue(entityIndex: number, type: IntType, value: number): void;
+	// C: transmit_entity_comms_message (ENTITY_COMMS_CREATE_WAYPOINT_ROUTE, task, group, return_keysite,
+	// start, stop, check_sum, node_count): clients rebuild the route from it and compare checksums
+	transmitCreateWaypointRoute(taskIndex: number, route: ReplicatedWaypointRoute): void;
+	// C: transmit_entity_comms_message (ENTITY_COMMS_SWITCH_LIST, en, from_type, parent, to_type)
+	transmitSwitchList(entityIndex: number, fromType: ListType, parentIndex: number, toType: ListType): void;
+	// C: transmit_entity_comms_message (ENTITY_COMMS_SET_GUIDE_CRITERIA, guide, type, valid, value)
+	transmitSetGuideCriteria(guideIndex: number, type: number, valid: number, value: number): void;
+}
+
+// What ENTITY_COMMS_CREATE_WAYPOINT_ROUTE packs (en_comms.c), in its order:
+// group and return keysite by index (-1: NULL), the start and stop positions
+// when given, the checksum, and every waypoint of the task's route by index.
+export interface ReplicatedWaypointRoute {
+	groupIndex: number;
+	returnKeysiteIndex: number;
+	start: { x: number; y: number; z: number } | undefined;
+	stop: { x: number; y: number; z: number } | undefined;
+	checkSum: number;
+	waypointIndices: number[];
 }
 
 // What ENTITY_COMMS_SET_TASK_POINTERS packs (en_comms.c), in its order.

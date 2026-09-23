@@ -29,7 +29,9 @@ import { setSessionEntityRaw, type Entity } from "../../src/entity/system/entity
 import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntityType, ListType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
+import { GridTerrainElevation } from "../adapters/grid-terrain-elevation";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
+import { InMemoryRoadNetwork } from "../adapters/in-memory-road-network";
 import { RecordingCampaignEvents } from "../adapters/recording-campaign-events";
 import { ScriptedClock } from "../adapters/scripted-clock";
 import { traceForceLowOnSupplies } from "./supply-boundary";
@@ -129,7 +131,7 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 	const physical = new InMemoryMobilePhysicalState();
 	const replication = new RecordingEntityReplication();
 
-	initialiseCampaignCore({ mobilePhysicalState: physical, entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata(), campaignEvents: new RecordingCampaignEvents() });
+	initialiseCampaignCore({ mobilePhysicalState: physical, entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata(), terrainElevation: new GridTerrainElevation(), roadNetwork: new InMemoryRoadNetwork(), campaignEvents: new RecordingCampaignEvents() });
 
 	const labels: Record<number, string> = {};
 

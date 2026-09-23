@@ -30,7 +30,9 @@ import { setUpdateEntity } from "../../src/entity/special/update/update";
 import { CommsModelType, EntityMessage, EntityType, FloatType, IntType, ListType, Vec3dType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
+import { GridTerrainElevation } from "../adapters/grid-terrain-elevation";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
+import { InMemoryRoadNetwork } from "../adapters/in-memory-road-network";
 import { RecordingCampaignEvents } from "../adapters/recording-campaign-events";
 import { ScriptedClock } from "../adapters/scripted-clock";
 
@@ -42,7 +44,7 @@ let replication: RecordingEntityReplication;
 
 function start(withMap = true): { sector: Entity; cargo: Entity } {
 	replication = new RecordingEntityReplication();
-	initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata(), campaignEvents: new RecordingCampaignEvents() }, { numberOfEntities: 32 });
+	initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata(), terrainElevation: new GridTerrainElevation(), roadNetwork: new InMemoryRoadNetwork(), campaignEvents: new RecordingCampaignEvents() }, { numberOfEntities: 32 });
 	setUpdateEntity(createLocalEntityRaw(EntityType.ENTITY_TYPE_UPDATE, {}));
 	if (withMap) {
 		setEntityWorldMapSize(1, 1, 1024);
@@ -276,7 +278,7 @@ describe("attributes and the heap outside the cargo corpus", () => {
 	});
 
 	it("allocating by index into an empty used list (the first allocation of a restore)", () => {
-		initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new RecordingEntityReplication(), clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata(), campaignEvents: new RecordingCampaignEvents() }, { numberOfEntities: 4 });
+		initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: new RecordingEntityReplication(), clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata(), terrainElevation: new GridTerrainElevation(), roadNetwork: new InMemoryRoadNetwork(), campaignEvents: new RecordingCampaignEvents() }, { numberOfEntities: 4 });
 		const en = getFreeEntity(2) as Entity;
 		// free list 0 1 3; used list 2
 		expect(getLocalEntityList()).toBe(en);

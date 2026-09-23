@@ -50,7 +50,9 @@ import {
 } from "../../src/generated/c-group-database";
 import { TASK_DATABASE_MINIMUM_MEMBER_COUNT } from "../../src/generated/c-task-database";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
+import { GridTerrainElevation } from "../adapters/grid-terrain-elevation";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
+import { InMemoryRoadNetwork } from "../adapters/in-memory-road-network";
 import { RecordingCampaignEvents } from "../adapters/recording-campaign-events";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
 import { ScriptedClock } from "../adapters/scripted-clock";
@@ -95,7 +97,7 @@ interface World {
 function world(register = true): World {
 	const physical = new InMemoryMobilePhysicalState();
 	initialiseCampaignCore(
-		{ mobilePhysicalState: physical, entityReplication: new RecordingEntityReplication(), clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata(), campaignEvents: new RecordingCampaignEvents() },
+		{ mobilePhysicalState: physical, entityReplication: new RecordingEntityReplication(), clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata(), terrainElevation: new GridTerrainElevation(), roadNetwork: new InMemoryRoadNetwork(), campaignEvents: new RecordingCampaignEvents() },
 		{ numberOfEntities: 64 },
 	);
 	const session = createLocalEntityRaw(EntityType.ENTITY_TYPE_SESSION, {});

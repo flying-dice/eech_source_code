@@ -29,6 +29,8 @@ extern session_list_types get_current_game_session_type (void);
 extern void harness_overload_group_link_parent_responses (void);
 
 extern void harness_default_update_link_responses (void);
+extern void harness_default_6b_link_responses (void);
+extern void harness_print_route_biasing_database (void);
 
 extern void harness_overload_aircraft_link_parent_responses (entity_types type);
 

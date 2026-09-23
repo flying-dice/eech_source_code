@@ -58,7 +58,9 @@ import {
 } from "../../src/generated/c-group-database";
 import { TASK_DATABASE_AI_STATS_MOVEMENT_SPEED, TASK_DATABASE_AI_STATS_MOVEMENT_STEALTH, TASK_DATABASE_LANDING_TYPES, TASK_DATABASE_MOVEMENT_TYPE } from "../../src/generated/c-task-database";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
+import { GridTerrainElevation } from "../adapters/grid-terrain-elevation";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
+import { InMemoryRoadNetwork } from "../adapters/in-memory-road-network";
 import { RecordingCampaignEvents } from "../adapters/recording-campaign-events";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
 import { ScriptedClock } from "../adapters/scripted-clock";
@@ -144,7 +146,7 @@ function world(numberOfEntities = 64): World {
 	const replication = new RecordingEntityReplication();
 	const events = new RecordingCampaignEvents();
 	initialiseCampaignCore(
-		{ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata(), campaignEvents: events },
+		{ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication, clock: new ScriptedClock(), object3DMetadata: new InMemoryObject3DMetadata(), terrainElevation: new GridTerrainElevation(), roadNetwork: new InMemoryRoadNetwork(), campaignEvents: events },
 		{ numberOfEntities },
 	);
 	const session = createLocalEntityRaw(EntityType.ENTITY_TYPE_SESSION, {});

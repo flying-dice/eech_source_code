@@ -8,7 +8,9 @@ import { describe, expect, it } from "vitest";
 import { getGameStatus, initialiseCampaignCore, setGameStatus } from "../../src";
 import { GameStatusType } from "../../src/generated/c-enums";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
+import { GridTerrainElevation } from "../adapters/grid-terrain-elevation";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
+import { InMemoryRoadNetwork } from "../adapters/in-memory-road-network";
 import { RecordingCampaignEvents } from "../adapters/recording-campaign-events";
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
 import { ScriptedClock } from "../adapters/scripted-clock";
@@ -48,6 +50,8 @@ describe("global.c :: game_status", () => {
 			entityReplication: new RecordingEntityReplication(),
 			clock: new ScriptedClock(),
 			object3DMetadata: new InMemoryObject3DMetadata(),
+			terrainElevation: new GridTerrainElevation(),
+			roadNetwork: new InMemoryRoadNetwork(),
 			campaignEvents: new RecordingCampaignEvents(),
 		});
 		initialiseCampaignCore(ports());
