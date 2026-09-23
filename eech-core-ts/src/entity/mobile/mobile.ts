@@ -18,6 +18,7 @@ import { EntityType, IntType, ListType, Vec3dType } from "../../generated/c-enum
 import { overloadEntityListLink, overloadEntityListRoot } from "../system/en_list";
 import { defaultGetEntityIntValue, fnGetLocalEntityIntValue, fnGetLocalEntityVec3dPtr, fnSetLocalEntityRawIntValue, fnSetLocalEntityRawVec3d } from "../system/en_values";
 import { getCampaignPorts, getLocalEntityData, type Entity } from "../system/entity";
+import { overloadAircraftFloatValueFunctions } from "./aircraft/ac_float";
 
 // C provenance: en_int.h :: NUM_ALIVE_BITS, NUM_SIDE_BITS
 export const NUM_ALIVE_BITS = 1;
@@ -118,4 +119,9 @@ export function overloadMobileFunctions(): void {
 			};
 		});
 	}
+
+	// C provenance: hc_funcs.c, fw_funcs.c -> ac_funcs.c :: overload_aircraft_functions
+	//               -> overload_aircraft_float_value_functions (the rows task assignment reads; slice 6a)
+	overloadAircraftFloatValueFunctions(EntityType.ENTITY_TYPE_HELICOPTER);
+	overloadAircraftFloatValueFunctions(EntityType.ENTITY_TYPE_FIXED_WING);
 }

@@ -64,3 +64,20 @@ export function assertNotNullDereference<T>(value: T | undefined, what: string):
 		throw new EechNullDereferenceError(what);
 	}
 }
+
+//
+// Raised where campaign code reaches the boundary of the ported slice: a C
+// function the adopted slices select arguments for but do not port. It is
+// unported behaviour (production fails loudly there) that carries the
+// selection, so conformance runners can report what the ported decision chose
+// and the C reference harness can end at the same call with the same payload.
+//
+export class UnportedBoundaryError extends UnportedBehaviourError {
+	public constructor(
+		public readonly boundary: string,
+		public readonly args: readonly unknown[],
+	) {
+		super(boundary);
+		this.name = "UnportedBoundaryError";
+	}
+}

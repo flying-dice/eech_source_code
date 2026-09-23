@@ -46,6 +46,9 @@ extern void (*harness_default_set_entity_float_value) (entity *en, float_types t
 
 extern float (*harness_default_get_entity_float_value) (entity *en, float_types type);
 
+/* slice 6a: assign.c (eech_extracted_assign.c) */
+extern void assign_keysite_tasks (entity *keysite, task_category_types category);
+
 extern void update_client_server_entities (void);
 
 extern float get_2d_range (const vec3d *v1, const vec3d *v2);

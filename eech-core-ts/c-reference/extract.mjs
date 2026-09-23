@@ -68,6 +68,11 @@ export const REAL_TRANSLATION_UNITS = [
 	"aphavoc/source/entity/special/task/ts_creat.c",
 	"aphavoc/source/entity/special/task/ts_ptr.c",
 	"aphavoc/source/ai/highlevl/suitable.c",
+	// slice 6a: assign_keysite_tasks reads a member's cruise velocity (ac_float.c,
+	// aircraft_database) and the pilot lock of tasks and groups (pi_list.c)
+	"aphavoc/source/entity/mobile/aircraft/ac_float.c",
+	"aphavoc/source/entity/mobile/aircraft/ac_dbase.c",
+	"aphavoc/source/entity/special/pilot/pi_list.c",
 	// slice 3: entity heap, attributes, creation and destruction
 	"aphavoc/source/entity/system/en_main/en_heap.c",
 	"aphavoc/source/entity/system/en_attrs/en_attrs.c",
@@ -217,6 +222,16 @@ export const PROJECT_H = [
 	{ kind: "prototype", name: "get_sqr_2d_range", file: "modules/maths/range.h" },
 	// slice 5b: create_supply_task
 	{ kind: "prototype", name: "normalise_any_3d_vector", file: "modules/maths/vector.h" },
+	// slice 6a: ac_float.c (compiled whole for FLOAT_TYPE_CRUISE_VELOCITY) names these in float types nothing ported reads
+	{ kind: "prototype", name: "get_3d_terrain_point_data_elevation", file: "modules/3d/terrain/terrelev.h" },
+	{ kind: "regex", pattern: "\\nstruct OBJECT_3D_INFORMATION\\n\\{[\\s\\S]*?\\n\\};\\n\\ntypedef struct OBJECT_3D_INFORMATION object_3d_information;", file: "modules/3d/3dobjid.h" },
+	{ kind: "raw", text: "extern object_3d_information *object_3d_information_database;\n" },
+	// slice 6a: ac_dbase.c (compiled whole: aircraft_database [].cruise_velocity) initialises with these
+	{ kind: "include", name: "maths/constant.h" },
+	{ kind: "include", name: "maths/convert.h" },
+	{ kind: "regex", pattern: "\\nenum //SOUND_SAMPLE_INDICES\\n\\{[\\s\\S]*?\\n\\};", file: "aphavoc/source/appsound/snd_data.h" },
+	{ kind: "regex", pattern: "\\n#define EXPLOSIVE_QUALITY_NONE[\\s\\S]*?#define EXPLOSIVE_QUALITY_FLAMMABLE\\t4", file: "aphavoc/source/entity/special/effect/explosn/explosn.h" },
+	{ kind: "regex", pattern: "\\nenum\\n\\{\\n\\tEXPLOSIVE_POWER_NONE,[\\s\\S]*?\\n\\};", file: "aphavoc/source/entity/special/effect/explosn/explosn.h" },
 	{ kind: "prototype", name: "initialise_group_task_array", file: "aphavoc/source/ai/highlevl/suitable.h" },
 	// slice 5b: the campaign screen notification (a port in the TS core)
 	{ kind: "enum", name: "CAMPAIGN_SCREEN_MESSAGES", file: "aphavoc/source/ui_menu/ingame/campaign/ca_msgs.h" },
@@ -230,6 +245,10 @@ export const PROJECT_H = [
 	{ kind: "regex", pattern: "\\nextern game_types\\n\\tgame_type;", file: "aphavoc/source/ui_menu/gametype/gametype.h" },
 	{ kind: "define", name: "get_game_type", file: "aphavoc/source/ui_menu/gametype/gametype.h" },
 	{ kind: "include", name: "entity/special/waypoint/waypoint.h" },
+	// slice 6a: the pilot struct and its list functions (pi_list.c: LIST_TYPE_PILOT_LOCK)
+	// (pilot.h's high score prototype names ui_object, an incomplete type here)
+	{ kind: "regex", pattern: "\\ntypedef struct UI_OBJECT ui_object;", file: "modules/userint2/ui_sys/ui_types/ui_types.h" },
+	{ kind: "include", name: "entity/special/pilot/pilot.h" },
 	// prototypes of functions the slice 3 translation units call; the harness
 	// supplies them as environment or fail-loud stubs (harness.c)
 	{ kind: "prototype", name: "convert_float_to_int", file: "modules/system/fpu.h" },
@@ -326,6 +345,8 @@ export const EXTRACTED_C = [
 	// campaign functions (slice 1)
 	{ kind: "function", name: "get_local_force_entity", signature: "entity *get_local_force_entity (entity_sides side)", file: "aphavoc/source/entity/special/force/force.c" },
 	{ kind: "function", name: "assess_group_supplies", signature: "void assess_group_supplies (entity *en)", file: "aphavoc/source/entity/special/group/group.c" },
+	// slice 6a: the locality test get_suitable_registered_group applies
+	{ kind: "function", name: "assess_group_task_locality_factor", signature: "int assess_group_task_locality_factor (entity *group_en, entity *task_en, float *return_distance)", file: "aphavoc/source/entity/special/group/group.c" },
 
 	// group link/unlink parent responses (gp_msgs.c is otherwise not compiled)
 	{ kind: "function", name: "response_to_link_parent", signature: "static int response_to_link_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)", file: "aphavoc/source/entity/special/group/gp_msgs.c" },
@@ -360,6 +381,26 @@ export const EXTRACTED_UNITS = {
 	// slice 5b: taskgen.c's supply task construction. The rest of taskgen.c
 	// (the other task generators) reaches the 3D engine and is not part of the
 	// port. Compiled with UNIT_FLAGS below.
+	// slice 6a: assign.c's assignment decision. The rest of assign.c is the
+	// assignment transaction (slice 6b / 6c) and the player's requests;
+	// assign_primary_task_to_group is the harness's boundary trap.
+	"eech_extracted_assign.c": [
+		{ kind: "raw", text: '#include <limits.h>\n\n#include "project.h"\n\n#include "ai/taskgen/assign.h"\n#include "ai/taskgen/taskgen.h"\n#include "ai/highlevl/suitable.h"\n' },
+		{ kind: "prototype", name: "quicksort_entity_list", file: "aphavoc/source/entity/en_misc/en_misc.h" },
+		// the release (non-DEBUG, non-WIN32) ai_log of highlevl.h: compiled out
+		{ kind: "regex", pattern: "\\n#define ai_log\\(a, x\\.\\.\\.\\) do \\{ \\} while\\(0\\);", file: "aphavoc/source/ai/highlevl/highlevl.h" },
+		{ kind: "define", name: "DEBUG_MODULE", file: "aphavoc/source/ai/taskgen/assign.c" },
+		{ kind: "function", name: "assign_keysite_tasks", signature: "void assign_keysite_tasks (entity *keysite, task_category_types category)", file: "aphavoc/source/ai/taskgen/assign.c" },
+		{ kind: "function", name: "suitable_group_task_specific_checks", signature: "static int suitable_group_task_specific_checks (entity *task, entity *group)", file: "aphavoc/source/ai/taskgen/assign.c" },
+		{ kind: "function", name: "get_suitable_registered_group", signature: "entity *get_suitable_registered_group (entity *task, int *idle_group_count)", file: "aphavoc/source/ai/taskgen/assign.c" },
+		{ kind: "function", name: "check_group_members_awake", signature: "int check_group_members_awake (entity *group)", file: "aphavoc/source/ai/taskgen/assign.c" },
+	],
+	// slice 6a: en_misc.c's quicksort (qs is static)
+	"eech_extracted_en_misc.c": [
+		{ kind: "raw", text: '#include "project.h"\n' },
+		{ kind: "function", name: "qs", signature: "static void qs (entity **en_list, float *sort_order, int left, int right)", file: "aphavoc/source/entity/en_misc/en_misc.c" },
+		{ kind: "function", name: "quicksort_entity_list", signature: "void quicksort_entity_list (entity **en_list, int count, float *sort_order)", file: "aphavoc/source/entity/en_misc/en_misc.c" },
+	],
 	"eech_extracted_taskgen.c": [
 		{ kind: "raw", text: '#include "project.h"\n\n#include "ai/taskgen/taskgen.h"\n' },
 		{ kind: "define", name: "DEBUG_MODULE", file: "aphavoc/source/ai/taskgen/taskgen.c" },

@@ -38,6 +38,24 @@
 //   task-counter     a force's raw task generation counter (task_generation [sub_type].created)
 //   sector-state     a sector's raw side presence and surface-to-air defence levels
 //
+// and, since Slice 6a (assign.c :: assign_keysite_tasks, issue #16):
+//
+//   member-count     a group's raw member count, as a saved game holds it (gp_pack.c ::
+//                    unpack_local_data; its live maintenance is not ported)
+//   group-sleep      a restored group's raw sleep timer
+//   air-register     a group on its force's LIST_TYPE_AIR_REGISTRY list (appended)
+//   aircraft-type    a restored member's aircraft sub type
+//   add-member       an aircraft member (helicopter or fixed wing) appended to a group's member list
+//   unassigned-task  a task on a keysite's LIST_TYPE_UNASSIGNED_TASK list (and its objective's
+//                    LIST_TYPE_TASK_DEPENDENT list unless NULL), as a saved game holds it
+//   pilot            a pilot entity (pilot lock holder)
+//   pilot-lock       a task or group on a pilot's LIST_TYPE_PILOT_LOCK list (appended)
+//   assign-tasks     assign_keysite_tasks (keysite, category)
+//
+// Reaching assign_primary_task_to_group (the slice 6a boundary) ends the
+// scenario with "result boundary assign_primary_task_to_group <group> <task>",
+// as the C harness's boundary trap does.
+//
 // Tasks the original creates are labelled task<index> when first printed.
 //
 // A NULL dereference (reachable through assess_group_supplies, Slice 1) ends
@@ -56,7 +74,9 @@
 // TSTL-compatible: no Node APIs, no Map/Set, no JSON, no undefined properties.
 //
 
-import { EechAssertionError, EechFatalError, EechNullDereferenceError } from "../../src/core/assert";
+import { EechAssertionError, EechFatalError, EechNullDereferenceError, UnportedBoundaryError } from "../../src/core/assert";
+import { assignKeysiteTasks } from "../../src/ai/taskgen/assign";
+import type { AircraftRaw } from "../../src/entity/mobile/aircraft/ac_float";
 import { storeUnsignedBitfield } from "../../src/core/cint";
 import { toFloat32 } from "../../src/core/float32";
 import { setGameStatus } from "../../src/core/game-status";
@@ -79,7 +99,7 @@ import { getLocalEntityIntValue, getLocalEntityVec3dPtr } from "../../src/entity
 import { getWorldMap, setEntityWorldMapSize } from "../../src/entity/system/en_world";
 import { getLocalEntityData, setLocalEntityData, setLocalEntityType, setSessionEntityRaw, type Entity } from "../../src/entity/system/entity";
 import { setUpdateEntity } from "../../src/entity/special/update/update";
-import { EntitySide, EntitySubTypeTask, EntityType, IntType, ListType, Vec3dType, type EntityType as EntityTypeT } from "../../src/generated/c-enums";
+import { EntitySide, EntitySubTypeTask, EntityType, IntType, ListType, TaskStateType, Vec3dType, type EntityType as EntityTypeT } from "../../src/generated/c-enums";
 import type { CampaignEvents, EntityReplication, ReplicatedEntityAttribute, ReplicatedTaskRoute } from "../../src/ports";
 import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physical-state";
 import { InMemoryObject3DMetadata } from "../adapters/in-memory-object-3d-metadata";
@@ -120,7 +140,17 @@ export type LifecycleOp =
 	| { kind: "group-alive"; group: string; alive: number }
 	| { kind: "task-counter"; force: string; subType: number; created: number }
 	// sector_side [BLUE], [RED]; surface_to_air_defence_level [NEUTRAL], [BLUE], [RED]
-	| { kind: "sector-state"; sector: string; blue: number; red: number; samNeutral: number; samBlue: number; samRed: number };
+	| { kind: "sector-state"; sector: string; blue: number; red: number; samNeutral: number; samBlue: number; samRed: number }
+	| { kind: "member-count"; group: string; count: number }
+	| { kind: "group-sleep"; group: string; sleep: number }
+	| { kind: "air-register"; group: string }
+	| { kind: "aircraft-type"; member: string; subType: number }
+	// objective: an entity label or "NULL"
+	| { kind: "unassigned-task"; label: string; keysite: string; objective: string; subType: number; side: number; critical: number; priority: number; expire: number }
+	| { kind: "add-member"; label: string; group: string; type: number; subType: number; x: number; z: number }
+	| { kind: "pilot"; label: string }
+	| { kind: "pilot-lock"; entity: string; pilot: string }
+	| { kind: "assign-tasks"; keysite: string; category: number };
 
 export interface LifecycleSpec {
 	heap: number;
@@ -457,6 +487,7 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 					supplies: { ammo_supply_level: toFloat32(op.ammo), fuel_supply_level: toFloat32(op.fuel) },
 					sleep: 0,
 					assist_timer: 0,
+					member_count: 0,
 				};
 				const group = createLocalEntityRaw(EntityType.ENTITY_TYPE_GROUP, raw);
 				labels[group.index] = op.label;
@@ -480,7 +511,8 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 				}
 
 				if (op.leader.kind === "at") {
-					const leader = createLocalEntityRaw(EntityType.ENTITY_TYPE_HELICOPTER, {});
+					const leaderRaw: AircraftRaw = { mob: { sub_type: 0 } };
+					const leader = createLocalEntityRaw(EntityType.ENTITY_TYPE_HELICOPTER, leaderRaw);
 					labels[leader.index] = `${op.label}.leader`;
 					insertLocalEntityIntoParentsChildListRaw(leader, ListType.LIST_TYPE_MEMBER, group, undefined);
 					physical.setMobilePosition(leader.index, { x: toFloat32(op.leader.x), y: 0, z: toFloat32(op.leader.z) });
@@ -529,6 +561,59 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 				raw.surface_to_air_defence_level[EntitySide.ENTITY_SIDE_NEUTRAL] = toFloat32(op.samNeutral);
 				raw.surface_to_air_defence_level[EntitySide.ENTITY_SIDE_BLUE_FORCE] = toFloat32(op.samBlue);
 				raw.surface_to_air_defence_level[EntitySide.ENTITY_SIDE_RED_FORCE] = toFloat32(op.samRed);
+			} else if (op.kind === "member-count") {
+				// gp_pack.c :: unpack_local_data: raw->member_count (unsigned int : NUM_MEMBER_COUNT_BITS)
+				getLocalEntityData<GroupRaw>(find(op.group) as Entity).member_count = storeUnsignedBitfield(op.count, 6);
+			} else if (op.kind === "group-sleep") {
+				getLocalEntityData<GroupRaw>(find(op.group) as Entity).sleep = toFloat32(op.sleep);
+			} else if (op.kind === "air-register") {
+				const group = find(op.group) as Entity;
+				const side = getLocalEntityIntValue(group, IntType.INT_TYPE_SIDE);
+
+				for (const force of forces) {
+					if ((force.data as ForceRaw).side === side) {
+						insertLocalEntityIntoParentsChildListRaw(group, ListType.LIST_TYPE_AIR_REGISTRY, force, lastChild(force, ListType.LIST_TYPE_AIR_REGISTRY));
+						break;
+					}
+				}
+			} else if (op.kind === "aircraft-type") {
+				getLocalEntityData<AircraftRaw>(find(op.member) as Entity).mob.sub_type = op.subType;
+			} else if (op.kind === "unassigned-task") {
+				const raw: TaskRaw = clearedTaskRaw();
+				raw.sub_type = op.subType;
+				raw.side = storeUnsignedBitfield(op.side, 2);
+				raw.task_state = TaskStateType.TASK_STATE_UNASSIGNED;
+				raw.critical_task = storeUnsignedBitfield(op.critical, 1);
+				raw.task_priority = toFloat32(op.priority);
+				raw.expire_timer = toFloat32(op.expire);
+				const task = createLocalEntityRaw(EntityType.ENTITY_TYPE_TASK, raw);
+				labels[task.index] = op.label;
+				const keysite = find(op.keysite) as Entity;
+				insertLocalEntityIntoParentsChildListRaw(task, ListType.LIST_TYPE_UNASSIGNED_TASK, keysite, lastChild(keysite, ListType.LIST_TYPE_UNASSIGNED_TASK));
+				const objective = find(op.objective);
+
+				if (objective !== undefined) {
+					insertLocalEntityIntoParentsChildListRaw(task, ListType.LIST_TYPE_TASK_DEPENDENT, objective, lastChild(objective, ListType.LIST_TYPE_TASK_DEPENDENT));
+				}
+			} else if (op.kind === "add-member") {
+				if (op.type !== EntityType.ENTITY_TYPE_HELICOPTER && op.type !== EntityType.ENTITY_TYPE_FIXED_WING) {
+					throw new Error("add-member: not an aircraft entity type");
+				}
+
+				const raw: AircraftRaw = { mob: { sub_type: op.subType } };
+				const member = createLocalEntityRaw(op.type, raw);
+				labels[member.index] = op.label;
+				const group = find(op.group) as Entity;
+				insertLocalEntityIntoParentsChildListRaw(member, ListType.LIST_TYPE_MEMBER, group, lastChild(group, ListType.LIST_TYPE_MEMBER));
+				physical.setMobilePosition(member.index, { x: toFloat32(op.x), y: 0, z: toFloat32(op.z) });
+			} else if (op.kind === "pilot") {
+				const pilot = createLocalEntityRaw(EntityType.ENTITY_TYPE_PILOT, {});
+				labels[pilot.index] = op.label;
+			} else if (op.kind === "pilot-lock") {
+				const pilot = find(op.pilot) as Entity;
+				insertLocalEntityIntoParentsChildListRaw(find(op.entity) as Entity, ListType.LIST_TYPE_PILOT_LOCK, pilot, lastChild(pilot, ListType.LIST_TYPE_PILOT_LOCK));
+			} else if (op.kind === "assign-tasks") {
+				assignKeysiteTasks(find(op.keysite), op.category);
 			} else {
 				destroyClientServerEntityFamily(find(op.label) as Entity);
 			}
@@ -536,7 +621,10 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 		}
 	} catch (e) {
 
-		if (e instanceof EechAssertionError) {
+		if (e instanceof UnportedBoundaryError) {
+			// the slice 6a boundary: assign_primary_task_to_group (group_en, task_en)
+			result = `boundary assign_primary_task_to_group ${labelOf(e.args[0] as Entity)} ${taskLabelOfIndex((e.args[1] as Entity).index)}`;
+		} else if (e instanceof EechAssertionError) {
 			result = `assert ${e.expression}`;
 		} else if (e instanceof EechFatalError) {
 			result = `fatal ${e.format}`;
@@ -739,6 +827,24 @@ export function serialiseLifecycle(spec: LifecycleSpec, formatNumber: (n: number
 			lines.push(`group-alive ${op.group} ${op.alive}`);
 		} else if (op.kind === "sector-state") {
 			lines.push(`sector-state ${op.sector} ${[op.blue, op.red, op.samNeutral, op.samBlue, op.samRed].map((n) => formatNumber(n)).join(" ")}`);
+		} else if (op.kind === "member-count") {
+			lines.push(`member-count ${op.group} ${op.count}`);
+		} else if (op.kind === "group-sleep") {
+			lines.push(`group-sleep ${op.group} ${formatNumber(op.sleep)}`);
+		} else if (op.kind === "air-register") {
+			lines.push(`air-register ${op.group}`);
+		} else if (op.kind === "aircraft-type") {
+			lines.push(`aircraft-type ${op.member} ${op.subType}`);
+		} else if (op.kind === "unassigned-task") {
+			lines.push(`unassigned-task ${op.label} ${op.keysite} ${op.objective} ${op.subType} ${op.side} ${op.critical} ${formatNumber(op.priority)} ${formatNumber(op.expire)}`);
+		} else if (op.kind === "add-member") {
+			lines.push(`add-member ${op.label} ${op.group} ${op.type} ${op.subType} ${formatNumber(op.x)} ${formatNumber(op.z)}`);
+		} else if (op.kind === "pilot") {
+			lines.push(`pilot ${op.label}`);
+		} else if (op.kind === "pilot-lock") {
+			lines.push(`pilot-lock ${op.entity} ${op.pilot}`);
+		} else if (op.kind === "assign-tasks") {
+			lines.push(`assign-tasks ${op.keysite} ${op.category}`);
 		} else {
 			lines.push(`destroy ${op.label}`);
 		}

@@ -127,7 +127,7 @@ function keysite(world: { session: Entity }, force: Entity | undefined, subType:
 }
 
 function basedGroup(at: Entity, subType: EntitySubTypeGroup): Entity {
-	const raw: GroupRaw = { sub_type: subType, side: BLUE, alive: 1, supplies: { ammo_supply_level: 100, fuel_supply_level: 100 }, sleep: 0, assist_timer: 0 };
+	const raw: GroupRaw = { sub_type: subType, side: BLUE, alive: 1, supplies: { ammo_supply_level: 100, fuel_supply_level: 100 }, sleep: 0, assist_timer: 0, member_count: 0 };
 	const group = createLocalEntityRaw(EntityType.ENTITY_TYPE_GROUP, raw);
 	insertLocalEntityIntoParentsChildListRaw(group, ListType.LIST_TYPE_KEYSITE_GROUP, at, undefined);
 	return group;

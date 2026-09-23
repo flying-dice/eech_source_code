@@ -126,6 +126,7 @@ export function runTimeline(spec: TimelineSpec): TimelineOutcome {
 			supplies: { ammo_supply_level: 0, fuel_supply_level: 0 },
 			sleep: toFloat32(g.sleep),
 			assist_timer: toFloat32(g.assist),
+			member_count: 0,
 		};
 		const group = createLocalEntityRaw(EntityType.ENTITY_TYPE_GROUP, raw);
 		labels[group.index] = `group${i}`;

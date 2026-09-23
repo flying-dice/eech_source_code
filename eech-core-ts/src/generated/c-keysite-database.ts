@@ -34,6 +34,32 @@ export const KEYSITE_DATABASE_FUEL_SUPPLY_USAGE: readonly number[] = [
 	0.0, // 8 ENTITY_SUB_TYPE_KEYSITE_RADIO_TRANSMITTER
 ];
 
+// C provenance: aphavoc/source/entity/special/keysite/ks_dbase.c :: keysite_database [].assign_task_count (unsigned int : 2)
+export const KEYSITE_DATABASE_ASSIGN_TASK_COUNT: readonly number[] = [
+	3, // 0 ENTITY_SUB_TYPE_KEYSITE_AIRBASE
+	1, // 1 ENTITY_SUB_TYPE_KEYSITE_ANCHORAGE
+	0, // 2 ENTITY_SUB_TYPE_KEYSITE_FACTORY
+	1, // 3 ENTITY_SUB_TYPE_KEYSITE_FARP
+	0, // 4 ENTITY_SUB_TYPE_KEYSITE_MILITARY_BASE
+	0, // 5 ENTITY_SUB_TYPE_KEYSITE_PORT
+	0, // 6 ENTITY_SUB_TYPE_KEYSITE_POWER_STATION
+	0, // 7 ENTITY_SUB_TYPE_KEYSITE_OIL_REFINERY
+	0, // 8 ENTITY_SUB_TYPE_KEYSITE_RADIO_TRANSMITTER
+];
+
+// C provenance: aphavoc/source/entity/special/keysite/ks_dbase.c :: keysite_database [].reserve_task_count (unsigned int : 2)
+export const KEYSITE_DATABASE_RESERVE_TASK_COUNT: readonly number[] = [
+	2, // 0 ENTITY_SUB_TYPE_KEYSITE_AIRBASE
+	1, // 1 ENTITY_SUB_TYPE_KEYSITE_ANCHORAGE
+	0, // 2 ENTITY_SUB_TYPE_KEYSITE_FACTORY
+	1, // 3 ENTITY_SUB_TYPE_KEYSITE_FARP
+	0, // 4 ENTITY_SUB_TYPE_KEYSITE_MILITARY_BASE
+	0, // 5 ENTITY_SUB_TYPE_KEYSITE_PORT
+	0, // 6 ENTITY_SUB_TYPE_KEYSITE_POWER_STATION
+	0, // 7 ENTITY_SUB_TYPE_KEYSITE_OIL_REFINERY
+	0, // 8 ENTITY_SUB_TYPE_KEYSITE_RADIO_TRANSMITTER
+];
+
 // C provenance: aphavoc/source/entity/special/keysite/ks_dbase.c :: keysite_database [].air_force_capacity (KeysiteAirForceCapacityType)
 export const KEYSITE_DATABASE_AIR_FORCE_CAPACITY: readonly number[] = [
 	2, // 0 ENTITY_SUB_TYPE_KEYSITE_AIRBASE

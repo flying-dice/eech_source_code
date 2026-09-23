@@ -46,6 +46,8 @@ const ENUMS = [
 	["FORMATION_TYPES", "aphavoc/source/entity/system/en_types/en_forms.h", "FormationType"],
 	["TASK_STATE_TYPES", "aphavoc/source/entity/system/en_types/en_task.h", "TaskStateType"],
 	["MOVEMENT_TYPES", "aphavoc/source/ai_extrn.h", "MovementType"],
+	["TASK_CATEGORY_TYPES", "aphavoc/source/entity/system/en_types/en_task.h", "TaskCategoryType"],
+	["ENTITY_SUB_TYPE_AIRCRAFT", "aphavoc/source/entity/system/en_types/en_sbtyp.h", "EntitySubTypeAircraft"],
 ];
 
 function stripComments(text) {
@@ -150,6 +152,28 @@ function generateGroupDatabase() {
 	emit("GROUP_DATABASE_MOVEMENT_TYPE", "movement_type (MovementType)", column("\\.movement type").map((v) => enumMemberValue(movements, v, ".movement type")));
 	emit("GROUP_DATABASE_DEFAULT_LANDING_TYPE", "default_landing_type (EntitySubTypeLanding)", column("landing type").map((v) => enumMemberValue(landings, v, "landing type")));
 	emit("GROUP_DATABASE_DEFAULT_ENGAGE_ENEMY", "default_engage_enemy (TRUE 1, FALSE 0)", column("default_engage_enemy").map((v) => booleanLiteral(v, "default_engage_enemy")));
+	emit("GROUP_DATABASE_MINIMUM_IDLE_COUNT", "minimum_idle_count", column("minimum_idle_count").map((v) => integerLiteral(v, "minimum_idle_count")));
+	// slice 6a: which force registry a group type joins, and the aircraft its members default to
+	// (the cruise-velocity invariant of test/unit/supply-task-assignment.test.ts)
+	const listTypes = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/entity/system/en_funcs/en_list.h"), "latin1"), "LIST_TYPES");
+	const entityTypes = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/entity/system/en_types/en_types.h"), "latin1"), "ENTITY_TYPES");
+	const aircraft = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/entity/system/en_types/en_sbtyp.h"), "latin1"), "ENTITY_SUB_TYPE_AIRCRAFT");
+	emit("GROUP_DATABASE_REGISTRY_LIST_TYPE", "registry_list_type (ListType)", column("registery list").map((v) => enumMemberValue(listTypes, v, "registery list")));
+	const entityTypeNames = column("default_entity_type(?: ;.*)?");
+	emit("GROUP_DATABASE_DEFAULT_ENTITY_TYPE", "default_entity_type (EntityType)", entityTypeNames.map((v) => enumMemberValue(entityTypes, v, "default_entity_type")));
+	for (const [comment, tsName] of [
+		["default_blue_force_sub_type", "GROUP_DATABASE_DEFAULT_BLUE_FORCE_AIRCRAFT_SUB_TYPE"],
+		["default_red_force_sub_type", "GROUP_DATABASE_DEFAULT_RED_FORCE_AIRCRAFT_SUB_TYPE"],
+	]) {
+		const values = column(comment).map((v, i) => {
+			const isAircraftGroup = entityTypeNames[i] === "ENTITY_TYPE_HELICOPTER" || entityTypeNames[i] === "ENTITY_TYPE_FIXED_WING";
+			if (isAircraftGroup !== v.startsWith("ENTITY_SUB_TYPE_AIRCRAFT_")) {
+				throw new Error(`group_database entry ${i}: ${comment} ${v} does not match default_entity_type ${entityTypeNames[i]}`);
+			}
+			return isAircraftGroup ? enumMemberValue(aircraft, v, comment) : "-1";
+		});
+		emit(tsName, `${comment} (EntitySubTypeAircraft of an aircraft group; -1: not an aircraft group)`, values);
+	}
 	for (const [field, , groupComment] of AI_STAT_FIELDS) {
 		emit(`GROUP_DATABASE_AI_STATS_${field.toUpperCase()}`, `ai_stats.${field}`, column(escapeRegExp(groupComment)).map((v) => integerLiteral(v, groupComment)));
 	}
@@ -265,6 +289,16 @@ function generateKeysiteDatabase() {
 	}
 	const capacities = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/entity/special/keysite/keysite.h"), "latin1"), "KEYSITE_AIR_FORCE_CAPACITY_TYPES");
 	const capacity = databaseColumn(source, keysites, "ENTITY_SUB_TYPE_KEYSITE_", "air force capacity", "keysite_database");
+	for (const [comment, tsName, field] of [
+		["task assign count", "KEYSITE_DATABASE_ASSIGN_TASK_COUNT", "assign_task_count (unsigned int : 2)"],
+		["task reserve count", "KEYSITE_DATABASE_RESERVE_TASK_COUNT", "reserve_task_count (unsigned int : 2)"],
+	]) {
+		const values = databaseColumn(source, keysites, "ENTITY_SUB_TYPE_KEYSITE_", comment, "keysite_database").map((v) => integerLiteral(v, comment));
+		lines.push(`// C provenance: ${header} :: keysite_database [].${field}`);
+		lines.push(`export const ${tsName}: readonly number[] = [`);
+		values.forEach((value, i) => lines.push(`\t${value}, // ${i} ${keysites[i][0]}`));
+		lines.push("];", "");
+	}
 	lines.push(`// C provenance: ${header} :: keysite_database [].air_force_capacity (KeysiteAirForceCapacityType)`);
 	lines.push("export const KEYSITE_DATABASE_AIR_FORCE_CAPACITY: readonly number[] = [");
 	capacity.forEach((value, i) => lines.push(`\t${enumMemberValue(capacities, value, "air force capacity")}, // ${i} ${keysites[i][0]}`));
@@ -404,6 +438,9 @@ function generateTaskDatabase() {
 		values.forEach((value, i) => lines.push(`\t${value}, // ${i} ${tasks[i][0]}`));
 		lines.push("];", "");
 	};
+	const categories = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/entity/system/en_types/en_task.h"), "latin1"), "TASK_CATEGORY_TYPES");
+	emit("TASK_DATABASE_TASK_CATEGORY", "task_category (TaskCategoryType)", column("task category").map((v) => enumMemberValue(categories, v, "task category")));
+	emit("TASK_DATABASE_MINIMUM_MEMBER_COUNT", "minimum_member_count", column("Minimum Member Count").map((v) => integerLiteral(v, "Minimum Member Count")));
 	emit("TASK_DATABASE_PRIMARY_TASK", "primary_task (TRUE 1, FALSE 0)", column("primary task").map((v) => booleanLiteral(v, "primary task")));
 	emit("TASK_DATABASE_ENGAGE_ENEMY", "engage_enemy (TRUE 1, FALSE 0)", column("Engage Enemy").map((v) => booleanLiteral(v, "Engage Enemy")));
 	emit("TASK_DATABASE_MOVEMENT_TYPE", "movement_type (MovementType)", column("Movement Type").map((v) => enumMemberValue(movements, v, "Movement Type")));
@@ -416,6 +453,71 @@ function generateTaskDatabase() {
 	for (const [field, taskComment] of AI_STAT_FIELDS) {
 		emit(`TASK_DATABASE_AI_STATS_${field.toUpperCase()}`, `ai_stats.${field}`, column(escapeRegExp(taskComment)).map((v) => integerLiteral(v, taskComment)));
 	}
+	return lines.join("\n");
+}
+
+//
+// ac_dbase.c :: aircraft_database [].cruise_velocity. Every entry is
+// knots_to_metres_per_second (<double literal>) (convert.h), a compile-time
+// constant: KNOTS * (ONE_NAUTICAL_MILE / (60.0f * 60.0f)) with
+// ONE_NAUTICAL_MILE = EQUATORIAL_EARTH_CIRCUM / (360.0f * 60.0f) and
+// EQUATORIAL_EARTH_CIRCUM = 2.0f * PI * EQUATORIAL_EARTH_RADIUS (constant.h).
+// The float sub-expressions round to nearest float; KNOTS is a double literal,
+// so the product is a double rounded to nearest float by the initialiser. The
+// generated values are checked bit for bit against the compiled C database
+// (test/c-reference/aircraft-database.cref.test.ts).
+//
+function knotsToMetresPerSecond(knots) {
+	const f = Math.fround;
+	const pi = f(Number(parseNumericDefineExpression("PI")));
+	const radius = f(Number(parseNumericDefineExpression("EQUATORIAL_EARTH_RADIUS")));
+	const circumference = f(f(2 * pi) * radius);
+	const nauticalMile = f(circumference / f(360 * 60));
+	return f(knots * f(nauticalMile / f(60 * 60)));
+}
+
+function parseNumericDefineExpression(name) {
+	return parseNumericDefine(readFileSync(join(repoRoot, "modules/maths/constant.h"), "latin1"), name);
+}
+
+function checkConversionMacros() {
+	const expected = [
+		["modules/maths/constant.h", "PI", "(3.14159265359f)"],
+		["modules/maths/constant.h", "EQUATORIAL_EARTH_RADIUS", "(6378160.0f)"],
+		["modules/maths/constant.h", "EQUATORIAL_EARTH_CIRCUM", "(2.0f * PI * EQUATORIAL_EARTH_RADIUS)"],
+		["modules/maths/constant.h", "ONE_NAUTICAL_MILE", "(EQUATORIAL_EARTH_CIRCUM / (360.0f * 60.0f))"],
+		["modules/maths/convert.h", "knots_to_metres_per_second(KNOTS)", "((KNOTS) * (ONE_NAUTICAL_MILE / (60.0f * 60.0f)))"],
+	];
+	for (const [file, name, body] of expected) {
+		const source = readFileSync(join(repoRoot, file), "latin1");
+		const match = new RegExp(`^\\s*#define\\s+${escapeRegExp(name)}\\s+(.*?)\\s*$`, "m").exec(source);
+		if (!match || match[1] !== body) {
+			throw new Error(`#define ${name} (${file}) changed; re-derive knotsToMetresPerSecond`);
+		}
+	}
+}
+
+function generateAircraftDatabase() {
+	const header = "aphavoc/source/entity/mobile/aircraft/ac_dbase.c";
+	const source = readFileSync(join(repoRoot, header), "latin1");
+	const aircraft = parseEnum(readFileSync(join(repoRoot, "aphavoc/source/entity/system/en_types/en_sbtyp.h"), "latin1"), "ENTITY_SUB_TYPE_AIRCRAFT")
+		.filter(([name]) => !name.startsWith("NUM_"));
+	checkConversionMacros();
+	const values = databaseColumn(source, aircraft, "ENTITY_SUB_TYPE_AIRCRAFT_", "cruise_velocity", "aircraft_database").map((v) => {
+		const m = /^knots_to_metres_per_second \((\d+\.\d*)\)$/.exec(v);
+		if (!m) {
+			throw new Error(`aircraft_database cruise_velocity: not knots_to_metres_per_second (<double literal>): ${v}`);
+		}
+		return [m[1], knotsToMetresPerSecond(Number(m[1]))];
+	});
+	const lines = [...HEADER];
+	lines.push(`// C provenance: ${header} :: aircraft_database [NUM_ENTITY_SUB_TYPE_AIRCRAFT] .cruise_velocity`);
+	lines.push("// (compiled defaults: knots_to_metres_per_second (KNOTS), convert.h, evaluated at float");
+	lines.push("// precision with round to nearest, as the compiler folds it; values are float32)");
+	lines.push("// Indexed by EntitySubTypeAircraft, as aircraft_database [raw->mob.sub_type] is in C.");
+	lines.push("export const AIRCRAFT_DATABASE_CRUISE_VELOCITY: readonly number[] = [");
+	values.forEach(([knots, value], i) => lines.push(`\t${value}, // ${i} ${aircraft[i][0]} (${knots} knots)`));
+	lines.push("];", "");
 	return lines.join("\n");
 }
 
@@ -435,6 +537,7 @@ function generateEnums() {
 
 export function generate() {
 	return {
+		"c-aircraft-database.ts": generateAircraftDatabase(),
 		"c-constants.ts": generateConstants(),
 		"c-enums.ts": generateEnums(),
 		"c-group-database.ts": generateGroupDatabase(),
