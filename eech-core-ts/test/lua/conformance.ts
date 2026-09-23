@@ -3,7 +3,8 @@
 //
 // Transpiled by TSTL together with src/ and executed by a real Lua 5.1
 // interpreter (scripts/run-lua.mjs). It replays the shared behaviour matrix
-// (expectations verified against the original C) and the float32 edge cases,
+// (expectations verified against the original C), the float32 edge cases and
+// the round-toward-zero float arithmetic recorded from the C oracle,
 // so the port is checked under Lua semantics - integer/float formatting, 0 is
 // truthy, 1-based tables, pcall-based exceptions - not only JavaScript.
 //
@@ -12,6 +13,8 @@ import { toFloat32 } from "../../src/core/float32";
 import { ASSESS_GROUP_SUPPLIES_CASES } from "../scenarios/assess-group-supplies.cases";
 import { runScenario } from "../scenarios/campaign-scenario";
 import { FLOAT32_EDGE_CASES } from "../scenarios/float32.cases";
+import { applyFloat32RtzOp } from "../scenarios/float32-rtz";
+import { C_REFERENCE_FLOAT32_RTZ_CASES } from "../scenarios/generated/c-reference-float32-rtz.cases";
 import { C_REFERENCE_RANDOM_CASES } from "../scenarios/generated/c-reference-random.cases";
 import { C_REFERENCE_RANDOM_TIMELINES } from "../scenarios/generated/c-reference-random-timelines.cases";
 import { UPDATE_TIMELINE_CASES } from "../scenarios/update-timeline.cases";
@@ -88,6 +91,11 @@ if (_VERSION !== "Lua 5.1") {
 
 for (const [input, expected] of FLOAT32_EDGE_CASES) {
 	check(`toFloat32(${string.format("%.17g", input)})`, toFloat32(input), expected);
+}
+
+// round-toward-zero float arithmetic, recorded from the C oracle
+for (const [op, a, b, expected] of C_REFERENCE_FLOAT32_RTZ_CASES) {
+	check(`${op}(${string.format("%.17g", a)}, ${string.format("%.17g", b)})`, applyFloat32RtzOp(op, a, b), expected);
 }
 
 for (const c of ASSESS_GROUP_SUPPLIES_CASES) {

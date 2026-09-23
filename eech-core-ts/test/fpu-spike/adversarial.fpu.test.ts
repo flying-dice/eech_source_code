@@ -193,7 +193,7 @@ describe("FPU spike: adversarial inputs", () => {
 		for (const r of results) {
 			const summary = Object.entries(r.byVariant).map(([name, v]) => `${name}: ${v.differing}/${r.count} ${JSON.stringify(v.kinds)}`);
 			console.log(`${r.corpus}\n  ${summary.join("\n  ")}`);
-			expect(r.byVariant["sse-rn"].differing).toBe(0);
+			expect(r.byVariant.canonical.differing).toBe(0);
 		}
 	});
 });

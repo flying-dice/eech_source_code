@@ -9,7 +9,7 @@
 //     (fn_set_client_server_entity_float_value[get_local_entity_type ((EN))][...][get_comms_model ()] (...))
 //
 
-import { toFloat32 } from "../../core/float32";
+import { toFloat32RTZ } from "../../core/float32";
 import type { Vec3d } from "../../core/maths/vec3d";
 import { CommsModelType, FloatType, IntType, PtrType, Vec3dType } from "../../generated/c-enums";
 import { getCommsModel, type CommsModel } from "./comms";
@@ -59,9 +59,10 @@ export function setLocalEntityRawIntValue(en: Entity, type: IntType, value: numb
 	fnSetLocalEntityRawIntValue.lookup(en.type, type, IntType[type])(en, type, value);
 }
 
-// The C prototype takes `float value`, so the argument is narrowed on entry.
+// The C prototype takes `float value`, so the argument is narrowed on entry
+// (toward zero: EECH's FPU rounding, docs/fidelity/fpu-semantics.md).
 export function setLocalEntityRawFloatValue(en: Entity, type: FloatType, value: number): void {
-	fnSetLocalEntityRawFloatValue.lookup(en.type, type, FloatType[type])(en, type, toFloat32(value));
+	fnSetLocalEntityRawFloatValue.lookup(en.type, type, FloatType[type])(en, type, toFloat32RTZ(value));
 }
 
 // The C prototype takes `vec3d *v`; vec3d members are floats.
@@ -84,9 +85,9 @@ export function getLocalEntityFloatValue(en: Entity, type: FloatType): number {
 	return fnGetLocalEntityFloatValue.lookup(en.type, type, FloatType[type])(en, type);
 }
 
-// The C prototype takes `float value`, so the argument is narrowed on entry.
+// The C prototype takes `float value`, so the argument is narrowed on entry (toward zero).
 export function setClientServerEntityFloatValue(en: Entity, type: FloatType, value: number): void {
-	fnSetClientServerEntityFloatValue[getCommsModel()].lookup(en.type, type, FloatType[type])(en, type, toFloat32(value));
+	fnSetClientServerEntityFloatValue[getCommsModel()].lookup(en.type, type, FloatType[type])(en, type, toFloat32RTZ(value));
 }
 
 export function getLocalEntityVec3dPtr(en: Entity, type: Vec3dType): Vec3d | undefined {

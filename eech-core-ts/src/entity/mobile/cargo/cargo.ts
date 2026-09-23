@@ -14,7 +14,7 @@
 // values of cg_int.c (no ported reader).
 //
 
-import { toFloat32 } from "../../../core/float32";
+import { toFloat32RTZ } from "../../../core/float32";
 import { CommsModelType, EntityType, ListType } from "../../../generated/c-enums";
 import { overloadAircraftLinkParentResponses } from "../aircraft/ac_msgs";
 import { ENTITY_SIDE_UNINITIALISED, ENTITY_SUB_TYPE_UNINITIALISED, overloadMobileRawStateFunctions, type MobileRaw } from "../mobile";
@@ -55,7 +55,7 @@ function createLocal(type: EntityType, index: number, attributes: EntityAttribut
 		const raw: CargoRaw = {
 			mob: {
 				sub_type: ENTITY_SUB_TYPE_UNINITIALISED,
-				position: { x: toFloat32(world_map.mid_map_x), y: toFloat32(world_map.mid_map_y), z: toFloat32(world_map.mid_map_z) },
+				position: { x: toFloat32RTZ(world_map.mid_map_x), y: toFloat32RTZ(world_map.mid_map_y), z: toFloat32RTZ(world_map.mid_map_z) },
 				alive: 1,
 				side: ENTITY_SIDE_UNINITIALISED,
 			},

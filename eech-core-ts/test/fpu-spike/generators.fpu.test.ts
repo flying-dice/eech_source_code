@@ -5,6 +5,8 @@
 //
 // TypeScript equals the canonical oracle on these corpora (the frozen
 // differential tests), so a variant difference is a TS-vs-variant difference.
+// Since the RTZ migration the canonical oracle rounds toward zero; `sse-rn` is
+// the former canonical oracle.
 //
 // Writes build/fpu-spike/generators.json; asserts only that the control
 // variant (canonical flags through the variant path) equals canonical.
@@ -33,7 +35,7 @@ describe("FPU spike: generator corpora", () => {
 		for (const r of results) {
 			const summary = Object.entries(r.byVariant).map(([name, v]) => `${name}: ${v.differing}/${r.count} ${JSON.stringify(v.kinds)}`);
 			console.log(`${r.corpus}\n  ${summary.join("\n  ")}`);
-			expect(r.byVariant["sse-rn"].differing).toBe(0);
+			expect(r.byVariant.canonical.differing).toBe(0);
 		}
 	});
 });

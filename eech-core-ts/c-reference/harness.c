@@ -61,21 +61,37 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Floating-point environment.
+// Floating-point environment (docs/fidelity/fpu-semantics.md).
 //
-// The canonical oracle runs EECH arithmetic with SSE at declared type and the
-// platform default rounding (round to nearest). The `fpu` command reports the
-// environment, so tests can guard the canonical configuration against drift.
+// EECH runs its campaign thread with the FPU rounding toward zero
+// (startup.c, start_application :: set_fpu_rounding_mode_zero, re-asserted
+// after every library initialisation). The canonical oracle evaluates C float
+// arithmetic at declared type (SSE, FLT_EVAL_METHOD 0) with SSE rounding
+// toward zero, and sets the x87 rounding control to chop as well, so libm's x87
+// paths (sqrt) and fistp agree. The x87 precision control is left at the
+// platform default: whether EECH's intermediates were evaluated beyond declared
+// type is unresolved (issue #7) and is not modelled.
 //
-// INVESTIGATION ONLY (issue #7, docs/fidelity/fpu-semantics.md): a build with
-// HARNESS_FPU_VARIANT installs another x87 control word (HARNESS_X87_CW) and/or
-// SSE rounding (HARNESS_MXCSR_RC) before any scenario line runs, and with
-// HARNESS_FISTP converts floats to ints the way modules/system/fpu.h does
-// (fistp, which rounds by the control word). Scenario input is always parsed
-// and narrowed under round to nearest, so every variant starts from the same
-// values and only the original code runs under the variant environment.
+// The environment is installed before any scenario line runs and checked
+// before every line and at exit; a drift aborts with status 4. The `fpu`
+// command reports it (test/c-reference/fpu-environment.cref.test.ts).
+//
+// Scenario input is parsed and narrowed under round to nearest (INPUT_FP_*):
+// it is the scenario's value, not a result of EECH arithmetic.
+//
+// INVESTIGATION ONLY (issue #7): a build with HARNESS_FPU_VARIANT may install
+// another x87 control word (HARNESS_X87_CW) or SSE rounding (HARNESS_MXCSR_RC),
+// and with HARNESS_FISTP converts floats to ints with fistp.
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifndef HARNESS_X87_CW
+#define HARNESS_X87_CW 0x0f7f		/* round toward zero; platform default precision (64), exceptions masked */
+#endif
+
+#ifndef HARNESS_MXCSR_RC
+#define HARNESS_MXCSR_RC 0x6000		/* round toward zero */
+#endif
 
 static unsigned short read_x87_control_word (void)
 {
@@ -114,32 +130,26 @@ static void write_mxcsr (unsigned int mxcsr)
 /* MXCSR bits 0-5 are sticky exception flags, not control */
 #define MXCSR_FLAGS 0x003f
 
-#ifdef HARNESS_FPU_VARIANT
-
 static unsigned short
-	variant_x87_cw;
+	installed_x87_cw;
 
 static unsigned int
-	variant_mxcsr;
+	installed_mxcsr;
 
-static void install_fpu_variant (void)
+static void install_fpu_environment (void)
 {
-#ifdef HARNESS_X87_CW
 	write_x87_control_word (HARNESS_X87_CW);
-#endif
 
-#ifdef HARNESS_MXCSR_RC
 	write_mxcsr ((read_mxcsr () & ~MXCSR_RC_MASK) | HARNESS_MXCSR_RC);
-#endif
 
-	variant_x87_cw = read_x87_control_word ();
+	installed_x87_cw = read_x87_control_word ();
 
-	variant_mxcsr = read_mxcsr () & ~MXCSR_FLAGS;
+	installed_mxcsr = read_mxcsr () & ~MXCSR_FLAGS;
 }
 
-static void check_fpu_variant (void)
+static void check_fpu_environment (void)
 {
-	if ((read_x87_control_word () != variant_x87_cw) || ((read_mxcsr () & ~MXCSR_FLAGS) != variant_mxcsr))
+	if ((read_x87_control_word () != installed_x87_cw) || ((read_mxcsr () & ~MXCSR_FLAGS) != installed_mxcsr))
 	{
 		fprintf (stderr, "floating-point environment drifted: cw %04x mxcsr %08x\n", read_x87_control_word (), read_mxcsr ());
 
@@ -147,19 +157,10 @@ static void check_fpu_variant (void)
 	}
 }
 
-// input: round to nearest in both units, whatever the variant
+// input: round to nearest in both units
 #define INPUT_FP_BEGIN	{ unsigned short input_cw = read_x87_control_word (); unsigned int input_mxcsr = read_mxcsr (); \
 	write_x87_control_word (input_cw & ~X87_RC_MASK); write_mxcsr (input_mxcsr & ~MXCSR_RC_MASK);
 #define INPUT_FP_END	write_x87_control_word (input_cw); write_mxcsr (input_mxcsr); }
-
-#else
-
-#define install_fpu_variant()
-#define check_fpu_variant()
-#define INPUT_FP_BEGIN {
-#define INPUT_FP_END }
-
-#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1434,6 +1435,7 @@ int main (void)
 
 	int
 		num_forces = 0,
+		f32_lines = 0,
 		timeline = FALSE,
 		step = 0,
 		i;
@@ -1451,15 +1453,13 @@ int main (void)
 
 	install_segmentation_fault_handler ();
 
-	install_fpu_variant ();
+	install_fpu_environment ();
 
-#ifdef HARNESS_FPU_VARIANT
-	atexit (check_fpu_variant);
-#endif
+	atexit (check_fpu_environment);
 
 	while (fgets (line, sizeof (line), stdin))
 	{
-		check_fpu_variant ();
+		check_fpu_environment ();
 
 		cursor = line;
 
@@ -1471,6 +1471,53 @@ int main (void)
 			printf ("fpu cw %04x mxcsr-rc %x flt-eval-method %d\n", read_x87_control_word (), (read_mxcsr () & MXCSR_RC_MASK) >> 13, (int) FLT_EVAL_METHOD);
 
 			return 0;
+		}
+
+		if (strcmp (word, "f32") == 0)
+		{
+			/*
+			 * One C float operation under the canonical environment, the reference
+			 * for src/core/float32.ts (test/c-reference/float32-rtz.cref.test.ts).
+			 * Operands of mul, div and sqrt are floats; narrow and sum take doubles.
+			 */
+			const char *kind = next_token (&cursor);
+			volatile float result;
+
+			if (strcmp (kind, "narrow") == 0)
+			{
+				volatile double d = next_double (&cursor);
+				result = (float) d;
+			}
+			else if (strcmp (kind, "sum") == 0)
+			{
+				volatile double d1 = next_double (&cursor), d2 = next_double (&cursor);
+				result = (float) (d1 + d2);
+			}
+			else if (strcmp (kind, "mul") == 0)
+			{
+				volatile float a = next_float (&cursor), b = next_float (&cursor);
+				result = a * b;
+			}
+			else if (strcmp (kind, "div") == 0)
+			{
+				volatile float a = next_float (&cursor), b = next_float (&cursor);
+				result = a / b;
+			}
+			else if (strcmp (kind, "sqrt") == 0)
+			{
+				volatile float a = next_float (&cursor);
+				result = sqrt (a);
+			}
+			else
+			{
+				harness_fail ("unknown f32 operation");
+			}
+
+			printf ("f32 %08x\n", float_bits (result));
+
+			f32_lines++;
+
+			continue;
 		}
 
 		if (strcmp (word, "heap") == 0)
@@ -1887,6 +1934,11 @@ int main (void)
 		{
 			harness_fail ("unknown scenario line");
 		}
+	}
+
+	if (f32_lines > 0)
+	{
+		return 0;
 	}
 
 	harness_fail ("scenario has no op or end line");

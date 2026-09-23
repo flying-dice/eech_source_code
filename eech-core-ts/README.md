@@ -54,7 +54,7 @@ from the executed C. `npm run gen:c` regenerates `src/generated` from the C sour
 
 ```
 src/
-  core/            ASSERT, C float and integer semantics (toFloat32, cint), maths, time (get_delta_time), configuration
+  core/            ASSERT, C float and integer semantics (float32: RTZ arithmetic, cint), maths, time (get_delta_time), configuration
   entity/system/   entity runtime: heap, lists (with shared links), value function tables, messages, comms model,
                    creation attributes, creation / destruction dispatch, the world map
   entity/special/  session, force, keysite, group, guide, update, sector, effect: the ported overloads, campaign functions and the update loop
@@ -74,7 +74,10 @@ c-reference/       extractor, harness environment and harness that execute the o
 
 - Preserve EECH behaviour. Every ported function names its C provenance.
   Expectations come from the C, never from the TypeScript or from `ee-dcs`.
-- Model C `float` storage with `toFloat32` wherever C assigns to a float.
+- Model C `float` results with the round-toward-zero helpers of
+  `src/core/float32.ts` (`toFloat32RTZ`, `f32Add`, ...), because EECH runs its
+  FPU rounding toward zero. `toFloat32` (to nearest) is only for compile-time
+  constants. See `docs/fidelity/fpu-semantics.md`.
 - Do not use truthiness on numbers or strings. Compare explicitly.
 - Do not use `undefined` properties as data in code that must run under Lua. A
   table cannot hold `nil`.

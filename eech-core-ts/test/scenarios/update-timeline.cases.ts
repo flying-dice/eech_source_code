@@ -167,10 +167,13 @@ export const UPDATE_TIMELINE_CASES: TimelineCase[] = [
 	//
 	kase(
 		"frame-is-subdivided-into-equal-float-sub-steps",
-		"iterations = (int) (1.0f * 2 + 1.0) = 3; each pass subtracts 1.0f / 3 = 0.33333334f",
+		"iterations = (int) (1.0f * 2 + 1.0) = 3; each pass subtracts 1.0f / 3 = 0.3333333f (toward zero)",
 		timeline(2, [group(1, 0, true)], [frame(1)]),
-		// 1 - 0.33333334 = 0.6666666; - 0.33333334 = 0.33333328; - 0.33333334 < 0 -> clamped to 0 and removed
-		{ steps: [state(1, [], [[0, 0]])] },
+		// Rounding toward zero (docs/fidelity/fpu-semantics.md, class "timer"):
+		// 1.0f / 3 truncates to 0.3333333f, and three passes leave
+		// 1 - 3 * 0.3333333f = 2^-24 > 0, so the group stays on the update list
+		// (to nearest, 0.33333334f overshoots, clamps to 0 and removes it).
+		{ steps: [state(1, ["group0"], [[5.960464477539063e-8, 0]])] },
 	),
 	kase(
 		"sub-step-float-rounding",

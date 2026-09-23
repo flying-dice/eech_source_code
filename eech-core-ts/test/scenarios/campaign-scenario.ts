@@ -213,7 +213,7 @@ export function runScenario(spec: ScenarioSpec): ScenarioOutcome {
 		if (g.leader.kind === "at") {
 			const leader = createLocalEntityRaw(EntityType.ENTITY_TYPE_HELICOPTER, {});
 			insertLocalEntityIntoParentsChildListRaw(leader, ListType.LIST_TYPE_MEMBER, group, undefined);
-			physical.setMobilePosition(leader.index, { x: g.leader.x, y: 0, z: g.leader.z });
+			physical.setMobilePosition(leader.index, { x: toFloat32(g.leader.x), y: 0, z: toFloat32(g.leader.z) });
 		}
 	}
 

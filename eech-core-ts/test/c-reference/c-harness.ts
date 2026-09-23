@@ -66,8 +66,9 @@ export function runCScenario(spec: ScenarioSpec): ScenarioOutcome {
 	return runCInput(serialiseScenario(spec, formatNumberForC));
 }
 
-export function runCInput(input: string): ScenarioOutcome {
-	const run = spawnSync(harness(), [], { input, encoding: "utf8" });
+// `binary`: an investigation variant of the harness (test/fpu-spike); the canonical oracle by default
+export function runCInput(input: string, binary: string = harness()): ScenarioOutcome {
+	const run = spawnSync(binary, [], { input, encoding: "utf8" });
 
 	if (run.status !== 0) {
 		throw new Error(`C harness failed (${describeFailure(run)})\ninput:\n${input}`);
@@ -124,9 +125,9 @@ export function runCRange(x1: number, z1: number, x2: number, z2: number): { ran
 	return { range: floatFromBits(w[1]), approx: floatFromBits(w[2]) };
 }
 
-export function runCTimeline(spec: TimelineSpec): TimelineOutcome {
+export function runCTimeline(spec: TimelineSpec, binary: string = harness()): TimelineOutcome {
 	const input = serialiseTimeline(spec, formatNumberForC);
-	const run = spawnSync(harness(), [], { input, encoding: "utf8" });
+	const run = spawnSync(binary, [], { input, encoding: "utf8" });
 
 	if (run.status !== 0) {
 		throw new Error(`C harness failed (${describeFailure(run)})\ninput:\n${input}`);
@@ -153,4 +154,20 @@ export function runCTimeline(spec: TimelineSpec): TimelineOutcome {
 	}
 
 	return outcome;
+}
+
+// Float operations through the harness `f32` command (canonical environment),
+// one process for all of them: the result bit patterns, in order.
+export function runCFloat32(ops: [string, number, number][]): string[] {
+	const fmt = (n: number): string => (Object.is(n, -0) ? "-0" : String(n));
+	const input = ops.map(([op, a, b]) => `f32 ${op} ${fmt(a)}${op === "narrow" || op === "sqrt" ? "" : ` ${fmt(b)}`}`).join("\n") + "\n";
+	const run = spawnSync(harness(), [], { input, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+
+	if (run.status !== 0) {
+		throw new Error(`C harness failed (${describeFailure(run)})`);
+	}
+
+	const lines = run.stdout.split("\n").filter((l) => l !== "");
+
+	return lines.map((l) => l.split(" ")[1]);
 }

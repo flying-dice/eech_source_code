@@ -146,9 +146,10 @@ export function runTimeline(spec: TimelineSpec): TimelineOutcome {
 
 		try {
 			if (step.kind === "set") {
-				setClientServerEntityFloatValue(groups[step.group], step.floatType, step.value);
+				// scenario input: narrowed to nearest, as the C harness parses it (next_float)
+				setClientServerEntityFloatValue(groups[step.group], step.floatType, toFloat32(step.value));
 			} else {
-				clock.setFrame(step.delta, step.locked);
+				clock.setFrame(toFloat32(step.delta), step.locked);
 
 				setDeltaTime();
 

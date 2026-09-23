@@ -255,18 +255,21 @@ export const ASSESS_GROUP_SUPPLIES_CASES: ConformanceCase[] = [
 	),
 	kase(
 		"keysite-float-arithmetic",
-		"float storage: 100.0 - 33.3f in double, narrowed to float; float - float; float + float",
+		"float storage: 100.0 - 33.3f in double, narrowed to float; float - float; float + float (all toward zero)",
 		// Last-ulp values confirmed by executing the original C (c-reference harness);
 		// the first hand estimate was wrong, which is why these are C-checked.
+		// Rounding toward zero (docs/fidelity/fpu-semantics.md, class "supply"):
+		// 33.3f + (100.0 - 33.3f) truncates to 99.99999f, not 100.0f, so the
+		// group's ammo is still below 100 after the refill.
 		assess([keysite(0, 0, 1000.1, 12.7)], group(33.3, 87.4)),
 		{
 			transmissions: [
 				tx("keysite0", AMMO, 933.3999633789062),
-				tx("group", AMMO, 100),
+				tx("group", AMMO, 99.99999237060547),
 				tx("keysite0", FUEL, 0.10000133514404297),
 				tx("group", FUEL, 100),
 			],
-			groupAmmo: 100,
+			groupAmmo: 99.99999237060547,
 			groupFuel: 100,
 			keysiteAmmo: [933.3999633789062],
 			keysiteFuel: [0.10000133514404297],

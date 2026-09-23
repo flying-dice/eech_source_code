@@ -17,7 +17,7 @@
 // representable yet.
 //
 
-import { toFloat32 } from "../../core/float32";
+import { toFloat32RTZ } from "../../core/float32";
 import type { FloatType, IntType, ListType, Vec3dType } from "../../generated/c-enums";
 import type { ReplicatedEntityAttribute } from "../../ports";
 import { setLocalEntityChildPred, setLocalEntityParent } from "./en_list";
@@ -47,13 +47,13 @@ export function setLocalEntityAttributes(en: Entity, attributes: EntityAttribute
 			}
 			case "float_value": {
 				// float value = get_list_item (pargs, double)
-				setLocalEntityRawFloatValue(en, attr.type, toFloat32(attr.value));
+				setLocalEntityRawFloatValue(en, attr.type, toFloat32RTZ(attr.value));
 
 				break;
 			}
 			case "vec3d": {
 				// vec3d v; v.x = get_list_item (pargs, double); ...
-				setLocalEntityRawVec3d(en, attr.type, { x: toFloat32(attr.x), y: toFloat32(attr.y), z: toFloat32(attr.z) });
+				setLocalEntityRawVec3d(en, attr.type, { x: toFloat32RTZ(attr.x), y: toFloat32RTZ(attr.y), z: toFloat32RTZ(attr.z) });
 
 				break;
 			}
@@ -83,12 +83,12 @@ export function replicatedEntityAttributes(attributes: EntityAttribute[]): Repli
 				break;
 			}
 			case "float_value": {
-				replicated.push({ kind: "float_value", type: attr.type, value: toFloat32(attr.value) });
+				replicated.push({ kind: "float_value", type: attr.type, value: toFloat32RTZ(attr.value) });
 
 				break;
 			}
 			case "vec3d": {
-				replicated.push({ kind: "vec3d", type: attr.type, x: toFloat32(attr.x), y: toFloat32(attr.y), z: toFloat32(attr.z) });
+				replicated.push({ kind: "vec3d", type: attr.type, x: toFloat32RTZ(attr.x), y: toFloat32RTZ(attr.y), z: toFloat32RTZ(attr.z) });
 
 				break;
 			}

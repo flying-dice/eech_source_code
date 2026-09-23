@@ -1,13 +1,16 @@
 //
 // Guards the canonical oracle's floating-point environment against drift.
 //
-// The frozen fixtures were recorded with EECH arithmetic evaluated by SSE at
-// declared type (FLT_EVAL_METHOD 0) under round to nearest. A compiler, flag
-// or platform change that altered this would silently change what "the
-// original C" means for every numerical port. Whether this is the right
-// environment is the subject of issue #7 (docs/fidelity/fpu-semantics.md); a
-// change must be made here deliberately, with the fixtures re-recorded and
-// reviewed.
+// EECH numerical contract (docs/fidelity/fpu-semantics.md):
+//   rounding direction          toward zero (EECH's set_fpu_rounding_mode_zero)
+//   declared float operations   IEEE binary32, rounded toward zero
+//   float -> int                truncation
+//   x87 intermediate precision  unresolved: not modelled (declared type)
+//
+// The frozen fixtures were recorded under exactly this environment. A
+// compiler, flag or platform change that altered it would silently change
+// what "the original C" means for every numerical port; a deliberate change
+// must update this test and re-record and review the fixtures.
 //
 
 import { spawnSync } from "node:child_process";
@@ -16,12 +19,20 @@ import { describe, expect, it } from "vitest";
 import { HARNESS_BINARY } from "../../c-reference/build.mjs";
 
 describe("C reference: floating-point environment", () => {
-	it("runs the original code with SSE at declared type, round to nearest", () => {
+	it("runs the original code with SSE at declared type, rounding toward zero", () => {
 		const run = spawnSync(HARNESS_BINARY as string, [], { input: "fpu\n", encoding: "utf8" });
 
 		expect(run.status).toBe(0);
-		// x87 control word: the Linux default (unused by SSE code, but fistp and
-		// libm x87 paths would read it); MXCSR rounding 0 = nearest
-		expect(run.stdout).toBe("fpu cw 037f mxcsr-rc 0 flt-eval-method 0\n");
+		// x87 control word 0x0f7f: round toward zero (chop), platform default
+		// precision, exceptions masked (x87 serves libm's sqrt and fistp);
+		// MXCSR rounding 3 = toward zero; floats evaluated at declared type
+		expect(run.stdout).toBe("fpu cw 0f7f mxcsr-rc 3 flt-eval-method 0\n");
+	});
+
+	it("parses scenario input to nearest, whatever the arithmetic rounding", () => {
+		// 0.1 is 0x3dcccccd to nearest and 0x3dcccccc toward zero
+		const run = spawnSync(HARNESS_BINARY as string, [], { input: "f32 mul 0.1 1\nf32 narrow 0.1\n", encoding: "utf8" });
+
+		expect(run.stdout).toBe("f32 3dcccccd\nf32 3dcccccc\n");
 	});
 });

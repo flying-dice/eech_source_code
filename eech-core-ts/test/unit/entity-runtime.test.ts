@@ -108,8 +108,8 @@ describe("entity runtime", () => {
 		initialiseCampaignCore({ mobilePhysicalState: new InMemoryMobilePhysicalState(), entityReplication: replication, clock: new ScriptedClock() });
 		const keysite = createLocalEntityRaw(EntityType.ENTITY_TYPE_KEYSITE, { supplies: { ammo_supply_level: 0, fuel_supply_level: 0 } });
 		setClientServerEntityFloatValue(keysite, FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL, 0.1);
-		// the C prototype's float parameter narrows the value
-		expect(replication.transmissions).toEqual([{ entityIndex: keysite.index, type: FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL, value: 0.10000000149011612 }]);
+		// the C prototype's float parameter narrows the value, toward zero (0x3dcccccc)
+		expect(replication.transmissions).toEqual([{ entityIndex: keysite.index, type: FloatType.FLOAT_TYPE_AMMO_SUPPLY_LEVEL, value: 0.09999999403953552 }]);
 	});
 });
 

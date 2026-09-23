@@ -17,7 +17,7 @@
 
 import { ASSERT } from "../../core/assert";
 import { cIntDivide, toCInt, toCUnsignedInt } from "../../core/cint";
-import { toFloat32 } from "../../core/float32";
+import { f32Add, f32Sub, toFloat32RTZ } from "../../core/float32";
 import type { Vec3d } from "../../core/maths/vec3d";
 
 // C provenance: en_world.h :: struct WORLD_MAP_DATA
@@ -120,15 +120,17 @@ export function setEntityWorldMapSize(num_map_x_sectors: number, num_map_z_secto
 	world_map.min_map_y = -8000.0;
 	world_map.min_map_z = 0.0;
 
-	// (float) (num_map_x_sectors * sector_side_length) - 1.0: a double, stored as float
-	world_map.max_map_x = toFloat32(toFloat32(num_map_x_sectors * sector_side_length) - 1.0);
+	// (float) (num_map_x_sectors * sector_side_length) - 1.0: the int converted
+	// to float, then a double subtraction stored as float (toward zero)
+	world_map.max_map_x = f32Add(toFloat32RTZ(num_map_x_sectors * sector_side_length), -1.0);
 	world_map.max_map_y = 65535.0;
-	world_map.max_map_z = toFloat32(toFloat32(num_map_z_sectors * sector_side_length) - 1.0);
+	world_map.max_map_z = f32Add(toFloat32RTZ(num_map_z_sectors * sector_side_length), -1.0);
 
-	// min + ((max - min) * 0.5): float subtraction, then double arithmetic, stored as float
-	world_map.mid_map_x = toFloat32(world_map.min_map_x + toFloat32(world_map.max_map_x - world_map.min_map_x) * 0.5);
-	world_map.mid_map_y = toFloat32(world_map.min_map_y + toFloat32(world_map.max_map_y - world_map.min_map_y) * 0.5);
-	world_map.mid_map_z = toFloat32(world_map.min_map_z + toFloat32(world_map.max_map_z - world_map.min_map_z) * 0.5);
+	// min + ((max - min) * 0.5): float subtraction, then a double sum (the
+	// halving is exact) stored as float
+	world_map.mid_map_x = f32Add(world_map.min_map_x, f32Sub(world_map.max_map_x, world_map.min_map_x) * 0.5);
+	world_map.mid_map_y = f32Add(world_map.min_map_y, f32Sub(world_map.max_map_y, world_map.min_map_y) * 0.5);
+	world_map.mid_map_z = f32Add(world_map.min_map_z, f32Sub(world_map.max_map_z, world_map.min_map_z) * 0.5);
 }
 
 // C provenance: en_world.h :: #define point_inside_map_area(POS)

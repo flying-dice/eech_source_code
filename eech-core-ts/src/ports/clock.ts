@@ -11,7 +11,9 @@
 // changes how the entity update loop subdivides the frame
 // (up_update.c, set_manual_delta_time).
 //
-// Values are narrowed to C `float` by the core, not by the adapter.
+// Values are narrowed to C `float` by the core, not by the adapter. The core
+// narrows toward zero (EECH's FPU rounding); an adapter that measures in
+// double and wants EECH's own measurement arithmetic must reproduce it.
 //
 
 export interface Clock {

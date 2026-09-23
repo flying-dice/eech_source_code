@@ -149,7 +149,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "keysite2",
 					"floatType": 8,
-					"value": 550.1730346679688
+					"value": 550.1729736328125
 				},
 				{
 					"entity": "group",
@@ -162,7 +162,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 			"keysiteAmmo": [
 				325.9289855957031,
 				206.49099731445312,
-				550.1730346679688
+				550.1729736328125
 			],
 			"keysiteFuel": [
 				229.03199768066406,
@@ -744,11 +744,11 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "group",
 					"floatType": 48,
-					"value": 100
+					"value": 99.99999237060547
 				}
 			],
 			"groupAmmo": 100,
-			"groupFuel": 100,
+			"groupFuel": 99.99999237060547,
 			"keysiteAmmo": [
 				78.86599731445312,
 				372.7950134277344,
@@ -3346,7 +3346,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "group",
 					"floatType": 8,
-					"value": 100
+					"value": 99.99999237060547
 				},
 				{
 					"entity": "keysite0",
@@ -3359,7 +3359,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 					"value": 100
 				}
 			],
-			"groupAmmo": 100,
+			"groupAmmo": 99.99999237060547,
 			"groupFuel": 100,
 			"keysiteAmmo": [
 				277.52801513671875,
@@ -4094,7 +4094,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 		"expected": {
 			"result": "ok",
 			"closest": "keysite0",
-			"closestRange": 20720.578125,
+			"closestRange": 20720.57421875,
 			"messages": [],
 			"transmissions": [],
 			"groupAmmo": -11.388999938964844,
@@ -4247,7 +4247,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "keysite0",
 					"floatType": 8,
-					"value": 361.76300048828125
+					"value": 361.7629699707031
 				},
 				{
 					"entity": "group",
@@ -4258,7 +4258,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 			"groupAmmo": 100,
 			"groupFuel": 100,
 			"keysiteAmmo": [
-				361.76300048828125
+				361.7629699707031
 			],
 			"keysiteFuel": [
 				705.8660278320312
@@ -7497,7 +7497,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "keysite3",
 					"floatType": 8,
-					"value": 509.4730224609375
+					"value": 509.4729919433594
 				},
 				{
 					"entity": "group",
@@ -7521,7 +7521,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				778.739013671875,
 				653.8619995117188,
 				608.2020263671875,
-				509.4730224609375,
+				509.4729919433594,
 				755.3939819335938
 			],
 			"keysiteFuel": [
@@ -8427,7 +8427,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 		"expected": {
 			"result": "ok",
 			"closest": "keysite2",
-			"closestRange": 1563.231689453125,
+			"closestRange": 1563.2315673828125,
 			"messages": [],
 			"transmissions": [],
 			"groupAmmo": 74.37999725341797,
@@ -10495,10 +10495,10 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "group",
 					"floatType": 8,
-					"value": 100
+					"value": 99.99999237060547
 				}
 			],
-			"groupAmmo": 100,
+			"groupAmmo": 99.99999237060547,
 			"groupFuel": 104.16400146484375,
 			"keysiteAmmo": [
 				0,
@@ -10573,11 +10573,11 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "group",
 					"floatType": 48,
-					"value": 100
+					"value": 99.99999237060547
 				}
 			],
 			"groupAmmo": 100,
-			"groupFuel": 100,
+			"groupFuel": 99.99999237060547,
 			"keysiteAmmo": [
 				822.9739990234375
 			],
@@ -10894,7 +10894,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "keysite0",
 					"floatType": 8,
-					"value": 344.01702880859375
+					"value": 344.0169982910156
 				},
 				{
 					"entity": "group",
@@ -10904,7 +10904,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "keysite0",
 					"floatType": 48,
-					"value": 290.8900146484375
+					"value": 290.8899841308594
 				},
 				{
 					"entity": "group",
@@ -10915,11 +10915,11 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 			"groupAmmo": 100,
 			"groupFuel": 100,
 			"keysiteAmmo": [
-				344.01702880859375,
+				344.0169982910156,
 				-7.318999767303467
 			],
 			"keysiteFuel": [
-				290.8900146484375,
+				290.8899841308594,
 				88.02400207519531
 			]
 		}
@@ -12072,7 +12072,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "keysite1",
 					"floatType": 8,
-					"value": 677.6439819335938
+					"value": 677.6439208984375
 				},
 				{
 					"entity": "group",
@@ -12082,23 +12082,23 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "keysite1",
 					"floatType": 48,
-					"value": 19.011001586914062
+					"value": 19.011009216308594
 				},
 				{
 					"entity": "group",
 					"floatType": 48,
-					"value": 100
+					"value": 99.99999237060547
 				}
 			],
 			"groupAmmo": 100,
-			"groupFuel": 100,
+			"groupFuel": 99.99999237060547,
 			"keysiteAmmo": [
 				211.0229949951172,
-				677.6439819335938
+				677.6439208984375
 			],
 			"keysiteFuel": [
 				559.2030029296875,
-				19.011001586914062
+				19.011009216308594
 			]
 		}
 	},
@@ -13513,10 +13513,10 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "group",
 					"floatType": 8,
-					"value": 100
+					"value": 99.99999237060547
 				}
 			],
-			"groupAmmo": 100,
+			"groupAmmo": 99.99999237060547,
 			"groupFuel": 100,
 			"keysiteAmmo": [
 				918.1630249023438,
@@ -13682,11 +13682,11 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "group",
 					"floatType": 48,
-					"value": 100
+					"value": 99.99999237060547
 				}
 			],
 			"groupAmmo": 100,
-			"groupFuel": 100,
+			"groupFuel": 99.99999237060547,
 			"keysiteAmmo": [
 				86.80500030517578
 			],
@@ -13963,7 +13963,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "keysite1",
 					"floatType": 8,
-					"value": 422.57403564453125
+					"value": 422.5740051269531
 				},
 				{
 					"entity": "group",
@@ -13973,7 +13973,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "keysite1",
 					"floatType": 48,
-					"value": 358.4850158691406
+					"value": 358.4849853515625
 				},
 				{
 					"entity": "group",
@@ -13985,11 +13985,11 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 			"groupFuel": 100,
 			"keysiteAmmo": [
 				225.3249969482422,
-				422.57403564453125
+				422.5740051269531
 			],
 			"keysiteFuel": [
 				213.7169952392578,
-				358.4850158691406
+				358.4849853515625
 			]
 		}
 	},
@@ -14576,20 +14576,20 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "keysite2",
 					"floatType": 8,
-					"value": 588.2919921875
+					"value": 588.2919311523438
 				},
 				{
 					"entity": "group",
 					"floatType": 8,
-					"value": 100
+					"value": 99.99999237060547
 				}
 			],
-			"groupAmmo": 100,
+			"groupAmmo": 99.99999237060547,
 			"groupFuel": 100,
 			"keysiteAmmo": [
 				942.0570068359375,
 				322.614990234375,
-				588.2919921875,
+				588.2919311523438,
 				437.2969970703125
 			],
 			"keysiteFuel": [
@@ -15091,16 +15091,16 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "keysite3",
 					"floatType": 48,
-					"value": 483.4010009765625
+					"value": 483.4009704589844
 				},
 				{
 					"entity": "group",
 					"floatType": 48,
-					"value": 100
+					"value": 99.99999237060547
 				}
 			],
 			"groupAmmo": 100,
-			"groupFuel": 100,
+			"groupFuel": 99.99999237060547,
 			"keysiteAmmo": [
 				988.2360229492188,
 				528.8140258789062,
@@ -15111,7 +15111,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				126.85099792480469,
 				326.09100341796875,
 				281.6940002441406,
-				483.4010009765625
+				483.4009704589844
 			]
 		}
 	},
@@ -15437,11 +15437,11 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "group",
 					"floatType": 48,
-					"value": 100
+					"value": 99.99999237060547
 				}
 			],
 			"groupAmmo": 100,
-			"groupFuel": 100,
+			"groupFuel": 99.99999237060547,
 			"keysiteAmmo": [
 				797.3090209960938
 			],
@@ -15957,16 +15957,16 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "keysite3",
 					"floatType": 48,
-					"value": 770.7250366210938
+					"value": 770.7249755859375
 				},
 				{
 					"entity": "group",
 					"floatType": 48,
-					"value": 100
+					"value": 99.99999237060547
 				}
 			],
 			"groupAmmo": 100,
-			"groupFuel": 100,
+			"groupFuel": 99.99999237060547,
 			"keysiteAmmo": [
 				605.8060302734375,
 				455.0790100097656,
@@ -15977,7 +15977,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				342.99798583984375,
 				409.40899658203125,
 				201.67999267578125,
-				770.7250366210938
+				770.7249755859375
 			]
 		}
 	},
@@ -16111,12 +16111,12 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "keysite1",
 					"floatType": 8,
-					"value": 474.19403076171875
+					"value": 474.1940002441406
 				},
 				{
 					"entity": "group",
 					"floatType": 8,
-					"value": 100
+					"value": 99.99999237060547
 				},
 				{
 					"entity": "keysite1",
@@ -16129,11 +16129,11 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 					"value": 100
 				}
 			],
-			"groupAmmo": 100,
+			"groupAmmo": 99.99999237060547,
 			"groupFuel": 100,
 			"keysiteAmmo": [
 				822.5549926757812,
-				474.19403076171875,
+				474.1940002441406,
 				18.183000564575195
 			],
 			"keysiteFuel": [
@@ -16208,7 +16208,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "keysite2",
 					"floatType": 48,
-					"value": 241.36001586914062
+					"value": 241.36000061035156
 				},
 				{
 					"entity": "group",
@@ -16226,7 +16226,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 			"keysiteFuel": [
 				622.9819946289062,
 				740.551025390625,
-				241.36001586914062
+				241.36000061035156
 			]
 		}
 	},
@@ -17170,7 +17170,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "keysite1",
 					"floatType": 48,
-					"value": 246.27099609375
+					"value": 246.27098083496094
 				},
 				{
 					"entity": "group",
@@ -17187,7 +17187,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 			],
 			"keysiteFuel": [
 				241.55099487304688,
-				246.27099609375,
+				246.27098083496094,
 				136.8470001220703
 			]
 		}
@@ -17553,12 +17553,12 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "keysite1",
 					"floatType": 8,
-					"value": 467.1130065917969
+					"value": 467.11297607421875
 				},
 				{
 					"entity": "group",
 					"floatType": 8,
-					"value": 100
+					"value": 99.99999237060547
 				},
 				{
 					"entity": "keysite1",
@@ -17568,14 +17568,14 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "group",
 					"floatType": 48,
-					"value": 100
+					"value": 99.99999237060547
 				}
 			],
-			"groupAmmo": 100,
-			"groupFuel": 100,
+			"groupAmmo": 99.99999237060547,
+			"groupFuel": 99.99999237060547,
 			"keysiteAmmo": [
 				263.1919860839844,
-				467.1130065917969,
+				467.11297607421875,
 				717.114013671875,
 				361.7409973144531
 			],
@@ -17671,7 +17671,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 				{
 					"entity": "keysite1",
 					"floatType": 48,
-					"value": 205.03700256347656
+					"value": 205.0369873046875
 				},
 				{
 					"entity": "group",
@@ -17690,7 +17690,7 @@ export const C_REFERENCE_RANDOM_CASES: ConformanceCase[] = [
 			],
 			"keysiteFuel": [
 				225.83599853515625,
-				205.03700256347656,
+				205.0369873046875,
 				424.4389953613281,
 				988.5399780273438,
 				290.06201171875

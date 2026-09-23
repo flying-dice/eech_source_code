@@ -19,8 +19,9 @@ const X87_O2 = ["-mfpmath=387", "-fexcess-precision=standard", "-O2", "-ffp-cont
 const cw = (value) => `-DHARNESS_X87_CW=0x${value.toString(16).padStart(4, "0")}`;
 
 export const FPU_VARIANTS = [
-	{ name: "sse-rn", model: "canonical flags rebuilt through the variant path (control: must equal canonical)", flags: SSE, defines: [] },
-	{ name: "sse-rtz", model: "SSE at declared type, round toward zero (rounding mode alone)", flags: SSE, defines: ["-DHARNESS_MXCSR_RC=0x6000", cw(0x0f7f), "-DHARNESS_FISTP"] },
+	{ name: "canonical", model: "canonical flags and environment rebuilt through the variant path (control: must equal canonical)", flags: SSE, defines: [] },
+	{ name: "sse-rn", model: "SSE at declared type, round to nearest (the canonical oracle before the RTZ migration)", flags: SSE, defines: ["-DHARNESS_MXCSR_RC=0x0000", cw(0x037f)] },
+	{ name: "sse-rtz", model: "SSE at declared type, round toward zero, fistp conversion (canonical with EECH's conversion instruction)", flags: SSE, defines: ["-DHARNESS_MXCSR_RC=0x6000", cw(0x0f7f), "-DHARNESS_FISTP"] },
 	{ name: "x87-rn-pc64", model: "x87, nearest, 64-bit precision (Linux default control word)", flags: X87, defines: [cw(0x037f)] },
 	{ name: "x87-rn-pc53", model: "x87, nearest, 53-bit precision (Windows/MSVC CRT default; EECH without its RTZ calls)", flags: X87, defines: [cw(0x027f)] },
 	{ name: "x87-rn-pc53-fistp", model: "as x87-rn-pc53 with convert_float_to_int by fistp", flags: X87, defines: [cw(0x027f), "-DHARNESS_FISTP"] },

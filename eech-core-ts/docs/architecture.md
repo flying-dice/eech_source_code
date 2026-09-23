@@ -200,10 +200,13 @@ What limits it or blocks it next:
   `ks_*.c`, `fc_*.c` and `ss_*.c` needs their headers in the reduced
   `project.h`, and fail-loud stubs for their other dependencies. This is the
   next shim-reduction step.
-- **Floating point.** The harness requires `FLT_EVAL_METHOD == 0`, i.e. IEEE
-  single precision evaluated at the declared type (x86-64 SSE, arm64). The
-  historical 32-bit MSVC x87 builds could differ in the last bit where
-  intermediates stayed in extended precision. The port follows the IEEE model.
+- **Floating point.** The harness evaluates C float arithmetic at declared
+  type (`FLT_EVAL_METHOD == 0`, SSE) with the rounding EECH sets on its
+  campaign thread: toward zero (issue #7). `test/c-reference/fpu-environment.cref.test.ts`
+  pins this. The historical x87 builds may have evaluated some intermediates
+  beyond declared type; that question is unresolved and needs a Windows
+  runtime trace. See "EECH numerical contract" in
+  `docs/fidelity/fpu-semantics.md`.
 - **Varargs messages.** They work unchanged. The shim installs the response for
   the one message it observes, and any other message aborts the harness.
 - **Global state** (`session_entity`, the dispatch tables, `entities`) is
@@ -241,10 +244,15 @@ check without adding a branch to the caller.
 - TSTL diagnostics fail the build (`scripts/lua.mjs build`). ESLint's
   `strict-boolean-expressions` forbids numeric and string truthiness, because
   `0` and `""` are true in Lua.
-- C `float` semantics use `toFloat32`, pure arithmetic that exists in both
-  runtimes. It is verified against `Math.fround` on 400,000 inputs in JavaScript,
-  and on the edge cases under Lua. `Math.fround` and `Math.log2` are lint-banned
-  in `src`.
+- C `float` semantics use pure arithmetic that exists in both runtimes
+  (`src/core/float32.ts`). EECH's run-time float results round toward zero:
+  `toFloat32RTZ`, `f32Add`, `f32Sub`, `f32Mul`, `f32Div` and `f32Sqrt`. They
+  are verified bit for bit against the C oracle's float arithmetic on 40,000
+  fresh operations. A recorded set of 3,000 is also replayed in JavaScript and
+  in Lua 5.1. `toFloat32` (round to nearest) remains for compile-time constants
+  and scenario input. It is verified against `Math.fround` on 400,000 inputs in
+  JavaScript, and on the edge cases under Lua. `Math.fround` and `Math.log2`
+  are lint-banned in `src`.
 - The Lua runner has already found two real divergences during bootstrap. Both
   are now documented in the test data:
   1. Lua 5.1 merges the literal `-0` into `0` in the constant table.

@@ -32,6 +32,10 @@ import { InMemoryMobilePhysicalState } from "../adapters/in-memory-mobile-physic
 import { RecordingEntityReplication } from "../adapters/recording-entity-replication";
 import { ScriptedClock } from "../adapters/scripted-clock";
 
+// EECH narrows toward zero (docs/fidelity/fpu-semantics.md): 1.1 -> 0x3f8ccccc, 0.1 -> 0x3dcccccc
+const F_1_1_RTZ = 1.0999999046325684;
+const F_0_1_RTZ = 0.09999999403953552;
+
 let replication: RecordingEntityReplication;
 
 function start(withMap = true): { sector: Entity; cargo: Entity } {
@@ -217,10 +221,10 @@ describe("attributes and the heap outside the cargo corpus", () => {
 				{ kind: "vec3d", type: Vec3dType.VEC3D_TYPE_POSITION, x: 0.1, y: 0, z: 0 },
 			]),
 		).toEqual([
-			{ kind: "float_value", type: FloatType.FLOAT_TYPE_VELOCITY, value: Math.fround(1.1) },
+			{ kind: "float_value", type: FloatType.FLOAT_TYPE_VELOCITY, value: F_1_1_RTZ },
 			{ kind: "child_pred", type: ListType.LIST_TYPE_CARGO, entityIndex: -1 },
 			{ kind: "child_pred", type: ListType.LIST_TYPE_CARGO, entityIndex: cargo.index },
-			{ kind: "vec3d", type: Vec3dType.VEC3D_TYPE_POSITION, x: Math.fround(0.1), y: 0, z: 0 },
+			{ kind: "vec3d", type: Vec3dType.VEC3D_TYPE_POSITION, x: F_0_1_RTZ, y: 0, z: 0 },
 		]);
 	});
 
@@ -231,7 +235,7 @@ describe("attributes and the heap outside the cargo corpus", () => {
 			seen.push(value);
 		});
 		setLocalEntityAttributes(cargo, [{ kind: "float_value", type: FloatType.FLOAT_TYPE_VELOCITY, value: 1.1 }]);
-		expect(seen).toEqual([Math.fround(1.1)]);
+		expect(seen).toEqual([F_1_1_RTZ]);
 	});
 
 	it("set_free_entity into an empty free list, and of the used list's tail", () => {

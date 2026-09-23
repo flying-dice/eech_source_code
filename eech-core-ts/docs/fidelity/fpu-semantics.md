@@ -1,9 +1,6 @@
 # Fidelity spike: EECH x87 rounding and precision semantics (issue #7)
 
-Status: **evidence recorded; decision proposed, not applied.** The canonical oracle, the TypeScript arithmetic model and the frozen fixtures are unchanged by this spike. The only changes to them are:
-
-- a CI guard on the canonical floating-point environment;
-- a refactor of the harness input parsing that provably changes no output. All 121 C-reference tests and the recorded fixtures still pass.
+Status: **decision C accepted; round-toward-zero migrated (§9).** Sections 1–8 are the spike's evidence as recorded before the migration. In them, "canonical" means the round-to-nearest oracle of the time, which is now the `sse-rn` variant. Since the migration, the canonical oracle and the port round toward zero at declared float type. The x87 intermediate-precision question is open and gated on a runtime trace (§9.3).
 
 Everything else is investigation-only:
 
@@ -119,7 +116,7 @@ Every floating-point operation in the frozen slices, from the original C. The TS
 | 3 | `level -= required` (keysite) | `toFloat32(level - required)` | stored bits | Rounding direction. |
 | 4 | `set_..._float_value (en, ..., level + required)` (argument rounding) | `toFloat32` in `en_values` | stored bits, then **branch** on the next assess (`< 100.0`) | RTZ gives `99.99999` where RN gives `100.0`, so the group is refuelled again. Probe `supply 0.00001 100`; generator corpus 168/1500. |
 | 5 | `get_approx_2d_range`: `((d*4.0) + e) * (1.0/4.0)` evaluated in `double` and narrowed (`range.c`) | `toFloat32((d*4 + e) * 0.25)` | stored bits, **branch** (`range <= min_range`, `range < best_range`) | Rounding direction of the `double` add and of the narrowing. |
-| 6 | `get_2d_range`: `dx = ...; range = sqrt ((dx*dx) + (dz*dz))` | float ops, then `Math.sqrt`, then `toFloat32` | stored bits, branch (reported `actual_range`) | Rounding direction, **and precision**: x87 does not round `dx*dx + dz*dz` to `float` before `sqrt`. The only precision-sensitive site in the corpora (2/1500 under RN; 7 of 188 under RTZ). |
+| 6 | `get_2d_range`: `dx = ...; range = sqrt ((dx*dx) + (dz*dz))` | float ops, then `Math.sqrt`, then `toFloat32` | stored bits, branch (reported `actual_range`) | Rounding direction, **and precision**: x87 does not round `dx*dx + dz*dz` to `float` before `sqrt`. The only precision-sensitive site in the corpora (2/1500 under RN; 15/1500 between `x87-rtz-pc53` and RTZ at declared type, measured directly after the migration). |
 | 7 | `raw->sleep -= get_delta_time ()`; `max (sleep, 0.0f)`; `sleep == 0.0` (`gp_updt.c:92-104`), same for `assist_timer` | `toFloat32(t - dt)` | stored bits, **accumulation**, **branch** (removal from the update list) | Subtraction rounding direction. The sign is never affected (an x−y that is zero is exact), but the expiry *frame* shifts: probe `timer 1.0 0.01` expires in 101 frames under RN and 100 under RTZ. Timeline corpus 430/1000. |
 | 8 | `iterations = (int) (get_delta_time () * frame_rate + 1.0)` (`up_update.c:219`) | `toCInt(toFloat32(dt * rate) + 1.0)` | conversion, **branch** (the loop count) | **Precision**: SSE rounds `dt*rate` to `float` first, x87 does not (see §6 assembly). `0.7 × 10` gives 8 iterations on SSE and 7 on x87 (either rounding). The `(int)` truncates in every build. At the default rate of 2 (`cmndline.c:110`) the product is exact, so this is environment-independent there. |
 | 9 | `entity_update_delta_time = get_delta_time () / iterations` | `toFloat32(dt / it)` | stored bits, accumulation (it is the delta every timer uses) | Rounding direction when `iterations` is not a power of two. |
@@ -221,7 +218,7 @@ What each probe isolates:
 
 ## 7. Decision gate
 
-**Proposed outcome: C (mixed rule), with the precision component at D (insufficient evidence).**
+**Outcome: C (mixed rule), with the precision component at D (insufficient evidence).** Accepted; implemented in §9.
 
 - **Rounding direction: established, toward zero.**
   - EECH sets RTZ on the campaign thread at start-up and after every library initialisation (§1.1). This is proven for both toolchains.
@@ -230,7 +227,7 @@ What each probe isolates:
   - Handling at integer-conversion boundaries alone (outcome A) is **rejected**. The conversion boundary (`fistp` for the sector index) is the one place where the current port is *already* right, because RTZ fistp truncates. The divergence is in ordinary float arithmetic.
 - **Precision: not established.**
   - The source supports PC_53 on the campaign thread (§1.4).
-  - The two candidate environments, `x87-rtz-pc53` and `x87-rtz-pc24` (the latter equal to "RTZ at declared type"), differ only in two expressions: the `sqrt` argument of `get_2d_range` (7/1500 scenarios), and `dt * rate` at non-default entity update rates (0 in the default configuration).
+  - The two candidate environments, `x87-rtz-pc53` and `x87-rtz-pc24` (the latter equal to "RTZ at declared type"), differ only in two expressions: the `sqrt` argument of `get_2d_range` (15/1500 scenarios, all `closest` lines; measured directly after the migration, §9.4), and `dt * rate` at non-default entity update rates (0 in the default configuration).
   - Deciding between them needs a runtime trace of the shipped binary. For example, log `get_fpu_control_word_value ()` (`fpu.c:188`, already present) inside `update_client_server_entities` on Windows with Direct3D active. Section 2.2 on the toolchain has the same dependency.
 - **Float-to-int:** keep truncation (`toCInt`). It is correct under RTZ.
 
@@ -245,7 +242,7 @@ The proposal deliberately does **not**:
 ### Oracle
 
 - **Canonical configuration.** Keep SSE at declared type and set MXCSR rounding to toward zero. That is the `sse-rtz` variant, which equals `x87-rtz-pc24`, a historical hypothesis. Set x87 RC to chop as well, so libm and `fistp` agree.
-- **Precision.** Adopting `x87-rtz-pc53` instead is the alternative if the runtime trace shows PC_53. It changes a further 7/1500 range results and the non-default-rate subdivisions.
+- **Precision.** Adopting `x87-rtz-pc53` instead is the alternative if the runtime trace shows PC_53. It changes a further 15/1500 range results and the non-default-rate subdivisions.
 - **Flags.** The GCC flags stay the same; the harness installs the rounding control word at start-up (the variant mechanism, promoted).
 - **Fixtures.** `c-reference-random.cases.ts` (Slice 1), `c-reference-random-timelines.cases.ts` (Slice 2) and the hand-written matrices with inexact supply and timer values would need re-recording. Each change is an **oracle-fidelity correction**, to be reviewed explicitly, with its reduced class from §5.1 attached. Slice 3 lifecycle fixtures are unaffected (0/1000 under RTZ; quarter-metre positions and power-of-two sectors are exact).
 - **CI guard.** `test/c-reference/fpu-environment.cref.test.ts` (added now) pins the canonical environment (`fpu cw 037f mxcsr-rc 0 flt-eval-method 0`). A change must update it deliberately. The variant builds already abort on control-word drift.
@@ -269,3 +266,88 @@ npm run spike:fpu      # builds the canonical oracle and all variants, runs
                        # (build/fpu-spike/*.json) and the probes table
 node c-reference/fpu-probes/run-probes.mjs --asm   # plus assembly excerpts
 ```
+
+## 9. RTZ migration (implemented)
+
+### 9.1 EECH numerical contract
+
+```
+Rounding direction
+    RTZ                           established, canonical
+Declared float operations
+    IEEE binary32 + RTZ           canonical
+float -> int
+    truncation / EECH semantics   established (toCInt; fistp under RTZ)
+Compile-time constants
+    round to nearest              established (C constant folding; time.c's 0.1)
+x87 intermediate precision
+    24 / 53 / extended            unresolved: requires the runtime trace (§9.3)
+```
+
+### 9.2 What changed
+
+- **Canonical oracle** (`c-reference/harness.c`):
+  - installs MXCSR rounding toward zero, and x87 control word `0x0f7f` (chop) so libm's x87 `sqrt` and `fistp` agree, before any scenario line;
+  - checks the environment before every line and at exit, and aborts with status 4 on drift;
+  - still evaluates at declared float type (SSE, `FLT_EVAL_METHOD 0`);
+  - parses and narrows scenario input to nearest (`next_double` / `next_float`), because input is the scenario's value, not EECH arithmetic.
+
+  The `fpu` command reports `fpu cw 0f7f mxcsr-rc 3 flt-eval-method 0`, and `test/c-reference/fpu-environment.cref.test.ts` pins that.
+- **Helpers** (`src/core/float32.ts`), one per operation shape the frozen code performs:
+  - `toFloat32RTZ`: narrowing;
+  - `f32Add` / `f32Sub`: a float or double sum stored as float, using an exact TwoSum error term;
+  - `f32Mul`: the double product of floats is exact;
+  - `f32Div` / `f32Sqrt`: the double result of float operands is never within half an ulp of a float unless exact, since 53 ≥ 2·24+2.
+
+  There is no FPU abstraction: each site calls the helper for the C expression it ports. `toFloat32` (round to nearest) remains for C constant initialisers and scenario input.
+- **Verification** (`test/c-reference/float32-rtz.cref.test.ts`):
+  - 40,000 fresh generated operations and the special values (signed zeros, infinities, overflow to `FLT_MAX`, subnormals) are compared bit for bit against the harness `f32` command.
+  - 3,000 C-recorded operations (`test/scenarios/generated/c-reference-float32-rtz.cases.ts`) are replayed in JavaScript (`test/unit/float32-rtz.test.ts`) and in Lua 5.1 (`test/lua/conformance.ts`).
+  - Mutation controls cover: narrowing to nearest (JS and Lua); the missing step below (JS and Lua); a wrong error sign; the power-of-two spacing; `mul`/`div`/`sqrt` to nearest; the constant initialiser toward zero; unnarrowed timer arithmetic; and an oracle that still rounds to nearest.
+- **Port call sites** (inventory §3):
+
+  | Code | Inventory items |
+  |---|---|
+  | `group.ts` supply | #1–#4 |
+  | `group.ts` timers | #7 |
+  | `update.ts` | #8, #9 |
+  | `range.ts` | #5, #6 |
+  | `en_world.ts` | #11, #12 |
+  | `en_values.ts`, `en_attrs.ts`, `mobile.ts`, `cargo.ts` | #14, #16 |
+  | `time.ts` | set and measured deltas |
+
+- **Test runners** narrow scenario input to nearest, as the harness does (a timeline's `set` value and frame delta, and the group leader's position).
+
+### 9.3 Fixture changes, each explained
+
+`test/fpu-spike/fixture-deltas.fpu.test.ts` (run by `npm run spike:fpu`) checks the recorded fixtures against the last round-to-nearest commit. For every case whose expectation changed, it requires three things:
+- the former oracle (`sse-rn`) reproduces the old expectation exactly;
+- the canonical oracle reproduces the new one;
+- every changed field belongs to a documented class.
+
+| Fixture | Cases | Changed | Class (fields) |
+|---|---|---|---|
+| Slice 1 `c-reference-random.cases.ts` | 250 | 21 | **supply**: transmitted values (31), group and keysite ammo/fuel (31) |
+| | | 2 | **range**: `closestRange` (2) |
+| Slice 2 `c-reference-random-timelines.cases.ts` | 150 | 75 | **timer**: sleep (103) and assist (163) timer bits |
+| Slice 3 `c-reference-random-lifecycles.cases.ts` | 150 | 0 | byte-identical (asserted) |
+
+No change fell outside the documented classes. No update-list membership, message or result changed in the recorded fixtures. The fresh-corpus differentials of `differential.cref.test.ts` (1,500 / 1,000 / 1,000 scenarios) pass against the RTZ oracle.
+
+The two hand-written matrix cases whose C outcome changed were updated with the C-confirmed values. Each now documents its class.
+- `keysite-float-arithmetic` (supply): `33.3f + (100.0 − 33.3f)` truncates to `99.99999f`, so the group stays below 100 after the refill.
+- `frame-is-subdivided-into-equal-float-sub-steps` (timer): `1.0f / 3` truncates to `0.3333333f`, so three passes leave `2^-24`, and the group stays on the update list for another frame.
+
+Three unit tests asserted round-to-nearest narrowing literals (`0.1`, `1.1`). They now assert the toward-zero bits `0x3dcccccc` and `0x3f8ccccc`.
+
+### 9.4 Unresolved: intermediate evaluation precision
+
+The open question is not only "is the precision control 24 or 53 bits". It is **at what precision the original executable evaluated intermediates, and at which points it rounded them back to declared type**. The control word decides the first part at run time. The compiler's generated instructions decide the second: which values stay in x87 registers, and which are stored to `float` memory. That is MSVC `/fp:precise` rounding points, or Watcom register allocation.
+
+The runtime trace settles only the first part. It needs `get_fpu_control_word_value ()` (`fpu.c:188`) logged inside `update_client_server_entities`, on Windows with Direct3D active. The second part needs the shipped binary's instructions for the affected functions.
+
+Until both are established, the contract evaluates at declared type. The known sites where this matters are:
+- **`get_2d_range` (canary).** It is the only operation whose results depend on intermediate precision in the generator corpora: x87 does not round `dx*dx + dz*dz` to float before `sqrt`. Measured directly against the migrated canonical oracle, `x87-rtz-pc53` differs in 15/1500 Slice 1 scenarios, all in `closest` lines, and in none of the Slice 2 or 3 generator scenarios. Under round-to-nearest the figure was 2/1500 (§5). An earlier estimate of 7, obtained by subtracting two counts, is superseded. `c-reference/fpu-probes` keeps the probe (`range -7027.003 362.58 1414.948 -6811.288`, `range 12345.678 -9876.543 1.1 2.2`). If the evidence establishes extended intermediates, this operation changes deliberately and no other changes along with it.
+- **`set_entity_update_frame_rate`.** `dt * rate` is not rounded before `+ 1.0`. This is only observable at non-default entity update rates; the default rate is 2.
+
+**Slice 4 must not start until this migration is frozen.**
