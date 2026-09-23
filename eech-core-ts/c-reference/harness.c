@@ -2308,6 +2308,25 @@ int main (void)
 			return 0;
 		}
 
+		if (strcmp (word, "invsqrt") == 0)
+		{
+			/* slice 6b: invsqrt.c :: get_inverse_square_root of each argument on the line (float bits,
+			   hexadecimal), the reference for src/core/maths/invsqrt.ts; the table was built at start-up */
+			char *token;
+
+			while ((token = strtok (NULL, " \t\r\n")) != NULL)
+			{
+				unsigned int bits = (unsigned int) strtoul (token, NULL, 16);
+				float x;
+
+				memcpy (&x, &bits, sizeof (x));
+
+				printf ("invsqrt %08x\n", float_bits (get_inverse_square_root (x)));
+			}
+
+			return 0;
+		}
+
 		if (strcmp (word, "database-6b") == 0)
 		{
 			/* slice 6b: the compiled databases the route and guide read, the reference for

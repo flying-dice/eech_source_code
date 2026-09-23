@@ -79,7 +79,7 @@ import { getCampaignPorts, type Entity } from "../../entity/system/entity";
 import { getClosestRoadNode } from "../ai_misc/ai_misc";
 
 // C provenance: croute.h :: struct ROUTE_NODE
-interface RouteNode {
+export interface RouteNode {
 	type: number;
 	formation: number;
 	dependent: Entity | undefined;
@@ -285,7 +285,7 @@ export function createGenericWaypointRoute(group: Entity | undefined, task_en: E
 
 	// SUPPLY searches its route (task_route_search)
 	/* istanbul ignore else */
-	if (generate_route) {
+	if (generate_route !== 0) {
 		new_route = generateBiasedVec3dRoute(specified_route, side, movement_type);
 	} else {
 		new_route = specified_route;
@@ -425,6 +425,11 @@ export function createGenericWaypointRoute(group: Entity | undefined, task_en: E
 // leg); otherwise a NAVIGATION next waypoint moves towards the one after it.
 // Moves write the raw position only.
 //
+// Only ATTACK and RECON waypoints have a nonzero minimum distance (wp_dbase.c),
+// so a supply route (NAVIGATION, PICK_UP, PREPARE_FOR_DROP_OFF, DROP_OFF,
+// FINISH_DROP_OFF, LAND) is never moved, and the second arm (a NAVIGATION
+// next waypoint, minimum distance 0) is never taken by any route.
+//
 export function parserTaskWaypointRoute(group: Entity, task: Entity): void {
 	ASSERT(task.type === EntityType.ENTITY_TYPE_TASK, "task->type == ENTITY_TYPE_TASK");
 
@@ -496,7 +501,14 @@ export function parserTaskWaypointRoute(group: Entity, task: Entity): void {
 				}
 
 				setLocalEntityVec3d(this_wp, Vec3dType.VEC3D_TYPE_POSITION, new_pos);
-			} else if (getLocalEntityIntValue(next_wp, IntType.INT_TYPE_ENTITY_SUB_TYPE) === EntitySubTypeWaypoint.ENTITY_SUB_TYPE_WAYPOINT_NAVIGATION) {
+			} else if (
+				// Unreachable under the compiled databases: it needs range < the minimum previous
+				// waypoint distance of a NAVIGATION next_wp, which is 0 in every mobile column of
+				// wp_dbase.c (test/unit/supply-task-transaction.test.ts), and no range is below 0.
+				// Decision D5's NULL dereference is inside it.
+				/* istanbul ignore next */
+				getLocalEntityIntValue(next_wp, IntType.INT_TYPE_ENTITY_SUB_TYPE) === EntitySubTypeWaypoint.ENTITY_SUB_TYPE_WAYPOINT_NAVIGATION
+			) {
 				const next_next_wp = getLocalEntityChildSucc(next_wp, ListType.LIST_TYPE_WAYPOINT);
 
 				// next_next_pos = get_local_entity_vec3d_ptr (next_next_wp, ...) before the NULL check
@@ -553,10 +565,13 @@ export function parserTaskWaypointRoute(group: Entity, task: Entity): void {
 // An unsigned char sum of (int) x + (int) y + (int) z over every node but the
 // first and the last (wrapping modulo 256).
 //
-export function generateRouteCheckSum(first: RouteNode): number {
+export function generateRouteCheckSum(first: RouteNode | undefined): number {
 	let check_sum = 0;
 
 	// dont checksum start and end points because entities may be in slightly different positions due to pack/unpack
+
+	// route = route->next: a NULL route (a single specified point) is dereferenced
+	assertNotNullDereference(first, "route");
 
 	let route = first.next;
 
@@ -583,7 +598,7 @@ export function generateRouteCheckSum(first: RouteNode): number {
 // takes the type and formation of the point it ends at (the first node, the
 // first point's). Always returns TRUE in the C; the port returns the route.
 //
-function generateBiasedVec3dRoute(points: RouteNode, side: number, movement_type: number): RouteNode {
+function generateBiasedVec3dRoute(points: RouteNode, side: number, movement_type: number): RouteNode | undefined {
 	let route_start: RouteNode | undefined = undefined;
 
 	let node_count = 0;
@@ -654,9 +669,7 @@ function generateBiasedVec3dRoute(points: RouteNode, side: number, movement_type
 		next_node = next_node.next;
 	}
 
-	// a single point: *route = route_start = NULL
-	ASSERT(route_start !== undefined, "route_start");
-
+	// a single point: *route = route_start = NULL (generate_route_check_sum then dereferences it)
 	return route_start;
 }
 
@@ -806,9 +819,12 @@ function getBestPoint(start: Vec3d, end: Vec3d, best_point: Vec3d, side: number,
 // Re-places every interior node between its (already moved) predecessor and
 // its successor. best_point is one local for the whole walk: a FALSE from
 // get_best_point leaves the previous iteration's point, and on the first
-// iteration leaves it uninitialised.
+// iteration leaves it uninitialised. Exported (as generate_route_check_sum and
+// the parser are) so that a hand-built route can pin that undefined behaviour:
+// the search itself reaches it only where map bounds break the perpendicular
+// bisector's symmetry.
 //
-function secondPastRoute(route: RouteNode, side: number, movement_type: number): void {
+export function secondPastRoute(route: RouteNode, side: number, movement_type: number): void {
 	const best_point: Vec3d = { x: 0.0, y: 0.0, z: 0.0 };
 
 	let best_point_initialised = false;

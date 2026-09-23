@@ -30,7 +30,7 @@ import { createClientServerEntity } from "../../src/entity/system/en_creat";
 import { createLocalEntityRaw, ENTITY_INDEX_DONT_CARE } from "../../src/entity/system/en_heap";
 import { getLocalEntityFirstChild, getLocalEntityParent, insertLocalEntityIntoParentsChildListRaw, setClientServerEntityParent } from "../../src/entity/system/en_list";
 import { notifyLocalEntity } from "../../src/entity/system/en_msgs";
-import { setClientServerEntityFloatValue } from "../../src/entity/system/en_values";
+import { getLocalEntityIntValue, setClientServerEntityFloatValue } from "../../src/entity/system/en_values";
 import { setEntityWorldMapSize } from "../../src/entity/system/en_world";
 import { getLocalEntityData, setSessionEntityRaw, type Entity } from "../../src/entity/system/entity";
 import { notifyCampaignScreenMissionCreated } from "../../src/ui_menu/campaign/ca_msgs";
@@ -265,16 +265,16 @@ describe("ts_creat.c and the task's lists", () => {
 		expect(w.events.missionsCreated).toEqual([]);
 	});
 
-	it("the assigned and completed lists (assignment, completion) are not ported", () => {
+	it("the assigned list is ported (slice 6b); the completed list (completion) is not", () => {
 		const w = world();
-		// a keysite's assigned and completed task list roots are not ported
-		expect(() => create(w, SUPPLY, TaskStateType.TASK_STATE_ASSIGNED)).toThrow(UnportedBehaviourError);
+		// joining a keysite's assigned list makes a task ASSIGNED (ts_msgs.c)
+		const assigned = create(w, SUPPLY, TaskStateType.TASK_STATE_ASSIGNED) as Entity;
+		expect(getLocalEntityFirstChild(w.airbase, ListType.LIST_TYPE_ASSIGNED_TASK)).toBe(assigned);
+		expect(getLocalEntityIntValue(assigned, IntType.INT_TYPE_TASK_STATE)).toBe(TaskStateType.TASK_STATE_ASSIGNED);
+		// a keysite's completed task list root is not ported
 		expect(() => create(w, SUPPLY, TaskStateType.TASK_STATE_COMPLETED)).toThrow(UnportedBehaviourError);
-		// nor are the task's LINK_PARENT arms for them
+		// nor is the task's LINK_PARENT arm for it
 		const task = create(w, EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_LANDING, TaskStateType.TASK_STATE_UNASSIGNED) as Entity;
-		expect(() => notifyLocalEntity(EntityMessage.ENTITY_MESSAGE_LINK_PARENT, task, w.airbase, ListType.LIST_TYPE_ASSIGNED_TASK)).toThrow(
-			new UnportedBehaviourError("ts_msgs.c :: response_to_link_parent (LIST_TYPE_ASSIGNED_TASK)"),
-		);
 		expect(() => notifyLocalEntity(EntityMessage.ENTITY_MESSAGE_LINK_PARENT, task, w.airbase, ListType.LIST_TYPE_COMPLETED_TASK)).toThrow(
 			new UnportedBehaviourError("ts_msgs.c :: response_to_link_parent (LIST_TYPE_COMPLETED_TASK)"),
 		);

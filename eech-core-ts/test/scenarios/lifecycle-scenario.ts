@@ -102,7 +102,7 @@ import { clearedTaskGeneration, type ForceRaw } from "../../src/entity/special/f
 import { updateKeysiteCargo, type KeysiteRaw } from "../../src/entity/special/keysite/keysite";
 import { assessGroupSupplies, type GroupRaw } from "../../src/entity/special/group/group";
 import { clearedTaskRaw, type TaskRaw } from "../../src/entity/special/task/task";
-import type { GuideRaw } from "../../src/entity/special/guide/guide";
+import { clearedGuideRaw, type GuideRaw } from "../../src/entity/special/guide/guide";
 import { clearedWaypointRaw, type WaypointRaw } from "../../src/entity/special/waypoint/waypoint";
 import { setCommsModel, type CommsModel } from "../../src/entity/system/comms";
 import { createLocalSectorEntities, getLocalRawSectorEntity, type SectorRaw } from "../../src/entity/special/sector/sector";
@@ -630,7 +630,8 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 				}
 
 				if (op.busy) {
-					const guide = createLocalEntityRaw(EntityType.ENTITY_TYPE_GUIDE, {});
+					// a zeroed guide, as the C harness restores it (slice 6b prints guides)
+					const guide = createLocalEntityRaw(EntityType.ENTITY_TYPE_GUIDE, clearedGuideRaw());
 					labels[guide.index] = `${op.label}.guide`;
 					insertLocalEntityIntoParentsChildListRaw(guide, ListType.LIST_TYPE_GUIDE_STACK, group, undefined);
 				}
@@ -796,6 +797,26 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 
 	lines.push(`result ${result}`);
 
+	// the entity graph (its own function: Lua 5.1 allows a function 60 upvalues)
+	printLifecycleGraph({ lines, labelOf, taskLabelOfIndex, keysites, observeTasks, observeAssignment, mapComplete });
+
+	return lines;
+}
+
+interface LifecycleGraphContext {
+	lines: string[];
+	labelOf: (this: void, en: Entity | undefined) => string;
+	taskLabelOfIndex: (this: void, index: number) => string;
+	keysites: Entity[];
+	observeTasks: boolean;
+	observeAssignment: boolean;
+	mapComplete: boolean;
+}
+
+// The entity graph after a lifecycle scenario, as the C harness prints it
+function printLifecycleGraph(context: LifecycleGraphContext): void {
+	const { lines, labelOf, taskLabelOfIndex, keysites, observeTasks, observeAssignment, mapComplete } = context;
+
 	// the entity graph
 	let text = "heap free";
 
@@ -950,7 +971,6 @@ export function runLifecycle(spec: LifecycleSpec): string[] {
 		}
 	}
 
-	return lines;
 }
 
 // Line format read by c-reference/harness.c.

@@ -12,7 +12,7 @@
 
 import { ASSERT, UnportedBehaviourError } from "../../../core/assert";
 import { EntityType, ListType } from "../../../generated/c-enums";
-import { getLocalEntityFirstChild } from "../../system/en_list";
+import { getLocalEntityFirstChild, overloadEntityListLink } from "../../system/en_list";
 import { getLocalEntityType, type Entity } from "../../system/entity";
 
 // C provenance: landing.c :: get_local_entity_landing_entity (en, landing_type)
@@ -26,4 +26,9 @@ export function getLocalEntityLandingEntity(en: Entity, _landing_type: number): 
 	}
 
 	return undefined;
+}
+
+// C provenance: ld_list.c :: LIST_TYPE_LANDING_SITE_LINK (the landing entity's place on its keysite's list)
+export function overloadLandingFunctions(): void {
+	overloadEntityListLink(EntityType.ENTITY_TYPE_LANDING, "landing_site_link", [ListType.LIST_TYPE_LANDING_SITE]);
 }

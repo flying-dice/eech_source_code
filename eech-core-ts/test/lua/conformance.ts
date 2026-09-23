@@ -30,6 +30,9 @@ import { FORCE_LOW_ON_SUPPLIES_CASES } from "../scenarios/force-low-on-supplies.
 import { C_REFERENCE_RANDOM_FORCE_LOW_ON_SUPPLIES } from "../scenarios/generated/c-reference-random-force-low-on-supplies.cases";
 import { C_REFERENCE_RANDOM_SUPPLY_TASK_CONSTRUCTION } from "../scenarios/generated/c-reference-random-supply-task-construction.cases";
 import { C_REFERENCE_RANDOM_SUPPLY_TASK_ASSIGNMENT } from "../scenarios/generated/c-reference-random-supply-task-assignment.cases";
+import { C_REFERENCE_MIGRATED_SUPPLY_TASK_TRANSACTION } from "../scenarios/generated/c-reference-migrated-supply-task-transaction.cases";
+import { C_REFERENCE_RANDOM_SUPPLY_TASK_TRANSACTION } from "../scenarios/generated/c-reference-random-supply-task-transaction.cases";
+import { SUPPLY_TASK_TRANSACTION_CASES, supplyTaskTransactionExpectationFailure } from "../scenarios/supply-task-transaction.cases";
 import { SUPPLY_TASK_ASSIGNMENT_CASES, supplyTaskAssignmentExpectationFailure } from "../scenarios/supply-task-assignment.cases";
 import { SUPPLY_TASK_CONSTRUCTION_CASES, f1CompatibilityPair, f1SemanticRouteFailure, supplyTaskExpectationFailure } from "../scenarios/supply-task-construction.cases";
 import { runTimeline } from "../scenarios/update-timeline";
@@ -190,6 +193,15 @@ for (const c of SUPPLY_TASK_ASSIGNMENT_CASES) {
 }
 
 for (const c of C_REFERENCE_RANDOM_SUPPLY_TASK_ASSIGNMENT) {
+	check(c.id, runLifecycle(c.spec), c.expected);
+}
+
+// Slice 6b: assign.c's transaction for a SUPPLY task, to assign_task_to_group_members
+for (const c of SUPPLY_TASK_TRANSACTION_CASES) {
+	check(c.id, supplyTaskTransactionExpectationFailure(c, runLifecycle(c.spec), firstUnmatchedLine), "");
+}
+
+for (const c of [...C_REFERENCE_RANDOM_SUPPLY_TASK_TRANSACTION, ...C_REFERENCE_MIGRATED_SUPPLY_TASK_TRANSACTION]) {
 	check(c.id, runLifecycle(c.spec), c.expected);
 }
 

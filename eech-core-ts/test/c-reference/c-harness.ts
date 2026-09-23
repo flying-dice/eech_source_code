@@ -132,6 +132,27 @@ export function runCRange(x1: number, z1: number, x2: number, z2: number): { ran
 	return { range: floatFromBits(w[1]), approx: floatFromBits(w[2]) };
 }
 
+// invsqrt.c :: get_inverse_square_root for each argument (float bit patterns), 1000 to a run
+export function runCInverseSquareRoot(argumentBits: string[]): string[] {
+	const results: string[] = [];
+
+	for (let i = 0; i < argumentBits.length; i += 1000) {
+		const run = spawnSync(harness(), [], { input: `invsqrt ${argumentBits.slice(i, i + 1000).join(" ")}\n`, encoding: "utf8" });
+
+		if (run.status !== 0) {
+			throw new Error(`C harness failed (${describeFailure(run)})`);
+		}
+
+		for (const line of run.stdout.split("\n")) {
+			if (line.startsWith("invsqrt ")) {
+				results.push(line.split(" ")[1]);
+			}
+		}
+	}
+
+	return results;
+}
+
 export function runCTimeline(spec: TimelineSpec, binary: string = harness()): TimelineOutcome {
 	const input = serialiseTimeline(spec, formatNumberForC);
 	const run = spawnSync(binary, [], { input, encoding: "utf8" });

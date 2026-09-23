@@ -45,9 +45,35 @@ core.initialiseCampaignCore({
 		transmitSwitchParent = function(self, entityIndex, listType, parentIndex)
 			transmitted[#transmitted + 1] = { switchParent = entityIndex, listType = listType, parentIndex = parentIndex }
 		end,
+		-- slice 6b: the assignment transaction's messages
+		transmitEntityIntValue = function(self, entityIndex, intType, value)
+			transmitted[#transmitted + 1] = { entityIndex = entityIndex, intType = intType, value = value }
+		end,
+		transmitCreateWaypointRoute = function(self, taskIndex, route)
+			transmitted[#transmitted + 1] = { waypointRoute = taskIndex, route = route }
+		end,
+		transmitSwitchList = function(self, entityIndex, fromType, parentIndex, toType)
+			transmitted[#transmitted + 1] = { switchList = entityIndex, fromType = fromType, parentIndex = parentIndex, toType = toType }
+		end,
+		transmitSetGuideCriteria = function(self, guideIndex, criteriaType, valid, value)
+			transmitted[#transmitted + 1] = { guideCriteria = guideIndex, criteriaType = criteriaType, valid = valid, value = value }
+		end,
+	},
+	-- slice 6b: the map's terrain (flat) and road network (none here)
+	terrainElevation = {
+		getTerrainElevation = function(self, x, z) return 0 end,
+	},
+	roadNetwork = {
+		hasRoadNodeTable = function(self) return false end,
+		getTotalNumberOfRoadNodes = function(self) return 0 end,
+		getRoadNodePosition = function(self, node) error("no road nodes") end,
+		getRoadNodeNumberOfLinks = function(self, node) error("no road nodes") end,
 	},
 	campaignEvents = {
 		missionCreated = function(self, taskIndex)
+			missions[#missions + 1] = taskIndex
+		end,
+		missionAssigned = function(self, taskIndex)
 			missions[#missions + 1] = taskIndex
 		end,
 	},

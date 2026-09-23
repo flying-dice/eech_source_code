@@ -5,9 +5,9 @@
 //
 
 import { OBJECT_3D_SINGLE_CRATE } from "../../src/generated/c-constants";
-import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntitySubTypeTask, EntityType, FloatType, GameStatusType, IntType, ListType, Vec3dType } from "../../src/generated/c-enums";
+import { EntitySide, EntitySubTypeGroup, EntitySubTypeKeysite, EntitySubTypeTask, EntitySubTypeWaypoint, EntityType, FloatType, GameStatusType, IntType, ListType, Vec3dType } from "../../src/generated/c-enums";
 import type { GroupParentSpec, KeysiteSpec, PositionSpec, ScenarioSpec } from "../scenarios/campaign-scenario";
-import type { LifecycleAttribute, LifecycleOp, LifecycleSpec } from "../scenarios/lifecycle-scenario";
+import type { LifecycleAttribute, LifecycleOp, LifecycleSpec, PersistedRouteNode } from "../scenarios/lifecycle-scenario";
 import type { TimelineSpec, TimelineStep } from "../scenarios/update-timeline";
 import type { Float32RtzOp } from "../scenarios/float32-rtz";
 import { migrateSlice6aSpec, type LegacyOp, type LegacySpec } from "../scenarios/slice-6a-migration";
@@ -1054,4 +1054,231 @@ export function generateRandomSupplyTaskAssignment(seed: number, count: number):
 // correction applied): valid campaign state whichever task is selected.
 export function generateValidRandomSupplyTaskAssignment(seed: number, count: number): LifecycleSpec[] {
 	return generateRandomSupplyTaskAssignment(seed, count).map((legacy) => migrateSlice6aSpec(legacy, true).spec);
+}
+
+//
+// Slice 6b (issue #18): random SUPPLY assignment transactions. Valid campaign
+// state only: a world map, a terrain grid and a road table (occasionally none,
+// decision D3), sector sides, supply-capable groups whose every aircraft lies
+// inside the map, and SUPPLY tasks either restored with create_supply_task's
+// route shape (persisted-task) or constructed by the real Slice 4 - 5b path.
+// Every task is a SUPPLY task: the slice closes the supply chain.
+//
+export function generateRandomSupplyTaskTransaction(seed: number, count: number): LifecycleSpec[] {
+	const rnd = mulberry32(seed);
+	const int = (n: number) => Math.floor(rnd() * n);
+	const chance = (p: number) => rnd() < p;
+	const pick = <T>(values: T[]): T => values[int(values.length)];
+	const BLUE = EntitySide.ENTITY_SIDE_BLUE_FORCE;
+	const RED = EntitySide.ENTITY_SIDE_RED_FORCE;
+	const G = EntitySubTypeGroup;
+	const K = EntitySubTypeKeysite;
+	const WP = EntitySubTypeWaypoint;
+
+	// supply-capable groups: [group type, fixed wing, aircraft sub types]
+	const groupTypes: [number, boolean, number[]][] = [
+		[G.ENTITY_SUB_TYPE_GROUP_MEDIUM_LIFT_TRANSPORT_HELICOPTER, false, [4, 8, 6, 9]],
+		[G.ENTITY_SUB_TYPE_GROUP_MEDIUM_LIFT_TRANSPORT_HELICOPTER, false, [4, 8]],
+		[G.ENTITY_SUB_TYPE_GROUP_HEAVY_LIFT_TRANSPORT_HELICOPTER, false, [10, 27]],
+		[G.ENTITY_SUB_TYPE_GROUP_MEDIUM_LIFT_TRANSPORT_AIRCRAFT, true, [30, 31]],
+	];
+
+	const specs: LifecycleSpec[] = [];
+
+	for (let n = 0; n < count; n++) {
+		const social = chance(0.25);
+		const sectorsX = social ? 4 : 2 + int(5);
+		const sectorsZ = social ? 4 : 2 + int(5);
+		const side = 8192;
+		const maxX = sectorsX * side - 1;
+		const maxZ = sectorsZ * side - 1;
+		const inX = (): number => 500 + int(maxX - 1000) + pick([0, 0, 0.5, 0.25]);
+		const inZ = (): number => 500 + int(maxZ - 1000) + pick([0, 0, 0.5, 0.25]);
+		const clampX = (x: number): number => (x < 0 ? 0 : x > maxX ? maxX : x);
+		const clampZ = (z: number): number => (z < 0 ? 0 : z > maxZ ? maxZ : z);
+
+		const keysites: KeysiteSpec[] = [];
+		const numKeysites = social ? 3 + int(2) : 2 + int(3);
+		for (let i = 0; i < numKeysites; i++) {
+			keysites.push({
+				side: chance(0.9) ? BLUE : RED,
+				subType: social && i < 3 ? [K.ENTITY_SUB_TYPE_KEYSITE_FARP, K.ENTITY_SUB_TYPE_KEYSITE_FACTORY, K.ENTITY_SUB_TYPE_KEYSITE_AIRBASE][i] : pick([K.ENTITY_SUB_TYPE_KEYSITE_AIRBASE, K.ENTITY_SUB_TYPE_KEYSITE_FARP]),
+				inUse: true,
+				x: social && i < 3 ? [8000, 13000, 22000][i] : inX(),
+				z: social && i < 3 ? 16000 : inZ(),
+				ammo: 100,
+				fuel: 100,
+			});
+		}
+		if (social) {
+			for (let i = 0; i < 3; i++) {
+				keysites[i].side = BLUE;
+			}
+		}
+		// the assigning keysite (the airbase in the social chain)
+		const home = social ? 2 : 0;
+		keysites[home].side = BLUE;
+
+		const ops: LifecycleOp[] = [];
+		for (let i = 0; i < numKeysites; i++) {
+			ops.push({ kind: "keysite-state", keysite: `keysite${i}`, alive: 1, y: 0 });
+		}
+		if (social) {
+			ops.push({ kind: "bounds", object: OBJECT_3D_SINGLE_CRATE, xmin: -1, xmax: 1, ymin: -0.5, ymax: 0.5, zmin: -1.5, zmax: 1.5 });
+		}
+		ops.push({ kind: "map", xSectors: sectorsX, zSectors: sectorsZ, sideLength: side });
+
+		if (chance(0.85)) {
+			ops.push({ kind: "game-status", status: GameStatusType.GAME_STATUS_INITIALISED }, { kind: "game-type", type: pick([2, 2, 3, 1]) });
+		}
+		for (let i = 0; i < numKeysites; i++) {
+			ops.push({ kind: "keysite-landing", keysite: `keysite${i}`, landingTypes: pick([4, 6, 4, 0]), usableState: 0 });
+		}
+
+		// terrain: a grid of cells (the harness holds at most 1024), elevations in whole metres or halves
+		const cellSize = pick([512, 1024, 2048, 4096, 8192, 3000]);
+		const cellsX = Math.min(32, Math.ceil((maxX + 1) / cellSize) - int(3));
+		const cellsZ = Math.min(32, Math.ceil((maxZ + 1) / cellSize) - int(3));
+		const cells: number[] = [];
+		const relief = pick([0, 50, 400, 1500]);
+		for (let i = 0; i < Math.max(cellsX, 0) * Math.max(cellsZ, 0); i++) {
+			cells.push(chance(0.1) ? 0 - int(20) + 0 : int(relief + 1) + pick([0, 0, 0.5]));
+		}
+		ops.push({ kind: "terrain", defaultElevation: pick([0, 0, 100, 750.5]), cellSize, cellsX: Math.max(cellsX, 0), cellsZ: Math.max(cellsZ, 0), cells });
+
+		// the road table (none: decision D3)
+		if (chance(0.97)) {
+			const numNodes = 1 + int(12);
+			for (let i = 0; i < numNodes; i++) {
+				ops.push({ kind: "road-node", x: inX(), y: 0, z: inZ(), links: chance(0.8) ? 1 + int(4) : 0 });
+			}
+		}
+
+		// sector sides (sc_int.c: RED unless blue's presence is greater)
+		for (let i = 0; i < int(6); i++) {
+			ops.push({ kind: "sector-state", sector: `sector${int(sectorsX)}_${int(sectorsZ)}`, blue: pick([0, 1, 2.5]), red: pick([0, 1, 2]), samNeutral: 0, samBlue: 0, samRed: 0 });
+		}
+
+		// supply groups at the assigning keysite (and elsewhere), every aircraft inside the map
+		const numGroups = 1 + int(3);
+		for (let g = 0; g < numGroups; g++) {
+			const label = `g${g}`;
+			const [subType, fixedWing, aircraft] = pick(groupTypes);
+			const keysite = g === 0 || chance(0.6) ? home : int(numKeysites);
+			const base = keysites[keysite];
+			const members = 1 + int(3);
+			const near = (v: number, clamp: (x: number) => number): number => clamp(chance(0.5) ? v : v + int(30000) - 15000 + pick([0, 0.5]));
+			ops.push(
+				{
+					kind: "restore-group",
+					label,
+					subType,
+					side: base.side,
+					ammo: 100,
+					fuel: 100,
+					parent: `keysite${keysite}`,
+					busy: chance(0.08),
+					leader: fixedWing ? { kind: "none" } : { kind: "at", x: near(base.x, clampX), z: near(base.z, clampZ) },
+				},
+				{ kind: "group-alive", group: label, alive: 1 },
+				{ kind: "member-count", group: label, count: members },
+			);
+			if (!fixedWing) {
+				ops.push({ kind: "aircraft-type", member: `${label}.leader`, subType: pick(aircraft) });
+			}
+			for (let m = fixedWing ? 0 : 1; m < members; m++) {
+				ops.push({
+					kind: "add-member",
+					label: `${label}.m${m}`,
+					group: label,
+					type: fixedWing ? EntityType.ENTITY_TYPE_FIXED_WING : EntityType.ENTITY_TYPE_HELICOPTER,
+					subType: pick(aircraft),
+					x: near(base.x, clampX),
+					z: near(base.z, clampZ),
+				});
+			}
+			if (chance(0.95)) {
+				ops.push({ kind: "air-register", group: label });
+			}
+		}
+
+		// the social chain's supply task, constructed by the real Slice 4 - 5b path
+		if (social) {
+			ops.push(
+				{ kind: "update-cargo", keysite: "keysite1", level: 35, subType: 0, size: 10 },
+				{ kind: "update-cargo", keysite: "keysite0", level: pick([5, 0]), subType: 0, size: 10 },
+			);
+		}
+
+		// restored SUPPLY tasks with create_supply_task's route shape (supplier -> requester)
+		const numTasks = social ? int(2) : 1 + int(3);
+		for (let t = 0; t < numTasks; t++) {
+			const supplier = chance(0.8) ? home : int(numKeysites);
+			let requester = int(numKeysites);
+			if (requester === supplier) {
+				requester = (requester + 1) % numKeysites;
+			}
+			const start = keysites[supplier];
+			const stop = keysites[requester];
+			const dx = stop.x - start.x;
+			const dz = stop.z - start.z;
+			const length = Math.sqrt(dx * dx + dz * dz);
+			const ux = length > 0 ? dx / length : 0;
+			const uz = length > 0 ? dz / length : 0;
+			const adjusted = (v: number, max: number): number => Math.round(v < 5000 ? 5000 : v > max - 5000 ? max - 5000 : v);
+			const route: PersistedRouteNode[] = [
+				{ x: start.x, y: 0, z: start.z, waypointType: WP.ENTITY_SUB_TYPE_WAYPOINT_PICK_UP, formation: 2, dependent: `keysite${supplier}` },
+				{ x: adjusted(stop.x - ux * 4000, maxX), y: 0, z: adjusted(stop.z - uz * 4000, maxZ), waypointType: WP.ENTITY_SUB_TYPE_WAYPOINT_PREPARE_FOR_DROP_OFF, formation: 2, dependent: "NULL" },
+				{ x: stop.x, y: 0, z: stop.z, waypointType: WP.ENTITY_SUB_TYPE_WAYPOINT_DROP_OFF, formation: 2, dependent: `keysite${requester}` },
+				{ x: adjusted(stop.x + ux * 2000, maxX), y: 0, z: adjusted(stop.z + uz * 2000, maxZ), waypointType: WP.ENTITY_SUB_TYPE_WAYPOINT_FINISH_DROP_OFF, formation: 2, dependent: "NULL" },
+			];
+			ops.push({
+				kind: "persisted-task",
+				label: `t${t}`,
+				keysite: `keysite${supplier}`,
+				objective: `keysite${requester}`,
+				subType: EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_SUPPLY,
+				side: start.side,
+				critical: chance(0.8) ? 1 : 0,
+				priority: pick([4, 4, 1, 8]),
+				expire: pick([1200, 1200, 3000, 100]),
+				route,
+				returnKeysite: "NULL",
+			});
+		}
+
+		ops.push({ kind: "observe-tasks" }, { kind: "observe-assignment" });
+
+		if (chance(0.5)) {
+			ops.push({ kind: "observe-environment" });
+		}
+
+		if (chance(0.1)) {
+			ops.push({ kind: "single-player" });
+		}
+
+		ops.push({ kind: "assign-tasks", keysite: `keysite${home}`, category: 2 });
+
+		specs.push({ heap: 400, forces: [BLUE, RED], keysites, ops });
+	}
+
+	return specs;
+}
+
+// the aircraft positions a lifecycle scenario restores, and its world map (for the in-map invariant)
+export function scenarioAircraftPositions(spec: LifecycleSpec): { maxX: number; maxZ: number; positions: { x: number; z: number }[] } {
+	let maxX = -1;
+	let maxZ = -1;
+	const positions: { x: number; z: number }[] = [];
+	for (const op of spec.ops) {
+		if (op.kind === "map") {
+			maxX = op.xSectors * op.sideLength - 1;
+			maxZ = op.zSectors * op.sideLength - 1;
+		} else if (op.kind === "restore-group" && op.leader.kind === "at") {
+			positions.push({ x: op.leader.x, z: op.leader.z });
+		} else if (op.kind === "add-member") {
+			positions.push({ x: op.x, z: op.z });
+		}
+	}
+	return { maxX, maxZ, positions };
 }

@@ -25,9 +25,9 @@ import { clearedTaskRaw, type TaskRaw } from "../../src/entity/special/task/task
 import { setUpdateEntity } from "../../src/entity/special/update/update";
 import { setCommsModel } from "../../src/entity/system/comms";
 import { createLocalEntityRaw } from "../../src/entity/system/en_heap";
-import { insertLocalEntityIntoParentsChildListRaw } from "../../src/entity/system/en_list";
+import { getLocalEntityFirstChild, getLocalEntityParent, insertLocalEntityIntoParentsChildListRaw } from "../../src/entity/system/en_list";
 import { getLocalEntityFloatValue } from "../../src/entity/system/en_values";
-import { setSessionEntityRaw, type Entity } from "../../src/entity/system/entity";
+import { getLocalEntityData, setSessionEntityRaw, type Entity } from "../../src/entity/system/entity";
 import { AIRCRAFT_DATABASE_CRUISE_VELOCITY } from "../../src/generated/c-aircraft-database";
 import {
 	CommsModelType,
@@ -140,13 +140,14 @@ function world(register = true): World {
 	return { physical, force, airbase, group, leader, task };
 }
 
-describe("the slice 6a boundary: assign_primary_task_to_group always fails loudly", () => {
-	it("production throws UnportedBoundaryError (an UnportedBehaviourError) carrying the selected group and task", () => {
+describe("the slice 6a decision boundary: assign_primary_task_to_group for a task other than SUPPLY", () => {
+	it("fails loudly with UnportedBoundaryError (an UnportedBehaviourError) carrying the selected group and task, before any of the transaction", () => {
 		const w = world();
+		getLocalEntityData<TaskRaw>(w.task).sub_type = EntitySubTypeTask.ENTITY_SUB_TYPE_TASK_ESCORT;
 
 		let error: unknown = undefined;
 		try {
-			assignKeysiteTasks(w.airbase, TaskCategoryType.TASK_CATEGORY_SUPPORT);
+			assignPrimaryTaskToGroup(w.group, w.task);
 		} catch (e) {
 			error = e;
 		}
@@ -155,12 +156,10 @@ describe("the slice 6a boundary: assign_primary_task_to_group always fails loudl
 		expect(error).toBeInstanceOf(UnportedBehaviourError);
 		expect((error as UnportedBoundaryError).boundary).toBe("assign.c :: assign_primary_task_to_group");
 		expect((error as UnportedBoundaryError).args).toEqual([w.group, w.task]);
-	});
-
-	it("the boundary function itself never returns", () => {
-		const w = world();
-
-		expect(() => assignPrimaryTaskToGroup(w.group, w.task)).toThrow(UnportedBoundaryError);
+		// nothing of the transaction ran
+		expect(getLocalEntityFirstChild(w.task, ListType.LIST_TYPE_WAYPOINT)).toBe(undefined);
+		expect(getLocalEntityFirstChild(w.group, ListType.LIST_TYPE_GUIDE_STACK)).toBe(undefined);
+		expect(getLocalEntityParent(w.task, ListType.LIST_TYPE_UNASSIGNED_TASK)).toBe(w.airbase);
 	});
 });
 

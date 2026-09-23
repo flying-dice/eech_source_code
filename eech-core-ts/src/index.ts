@@ -26,6 +26,7 @@ import { overloadWaypointCreateFunctions } from "./entity/special/waypoint/wp_cr
 import { initialiseInverseSquareRootTable } from "./core/maths/invsqrt";
 import { overloadGroupFunctions } from "./entity/special/group/group";
 import { overloadGuideFunctions } from "./entity/special/guide/guide";
+import { overloadLandingFunctions } from "./entity/special/landing/landing";
 import { overloadPilotFunctions } from "./entity/special/pilot/pilot";
 import { overloadKeysiteFunctions } from "./entity/special/keysite/keysite";
 import { overloadSessionListFunctions } from "./entity/special/session/session";
@@ -63,6 +64,7 @@ export function initialiseCampaignCore(ports: CampaignPorts, options: CampaignCo
 	overloadKeysiteFunctions();
 	overloadGroupFunctions();
 	overloadGuideFunctions();
+	overloadLandingFunctions();
 	overloadMobileFunctions();
 	overloadUpdateFunctions();
 	overloadSectorFunctions();
