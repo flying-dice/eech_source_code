@@ -302,9 +302,9 @@ int eech_engine_prepare_installation (const char *root)
 	char path[4096];
 	int ok;
 	snprintf (path, sizeof (path), "%s/cohokum", root);
-	mkdir (path, 0755);
+	eech_mkdir (path);
 	snprintf (path, sizeof (path), "%s/cohokum/3ddata", root);
-	mkdir (path, 0755);
+	eech_mkdir (path);
 	{
 		/* a retail 3D database (its texture palette is retail only) is kept as it is */
 		char retail[4200];
@@ -313,9 +313,9 @@ int eech_engine_prepare_installation (const char *root)
 		ok = stat (retail, &st) == 0 ? 1 : eech_synth3d_write (path);
 	}
 	snprintf (path, sizeof (path), "%s/common", root);
-	mkdir (path, 0755);
+	eech_mkdir (path);
 	snprintf (path, sizeof (path), "%s/common/data", root);
-	mkdir (path, 0755);
+	eech_mkdir (path);
 	ok = ok && eech_synth_write_briefings (path);
 	LEAVE (ok ? EECH_ENGINE_OK : EECH_ENGINE_BAD_ARGUMENT);
 }

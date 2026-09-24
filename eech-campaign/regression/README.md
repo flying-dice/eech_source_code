@@ -17,6 +17,15 @@ tools/retail-cvh.sh <cvh install> map5 /tmp/lebanon
 tools/regress.sh /tmp/georgia /tmp/lebanon
 ```
 
+Natively on Windows, with `eech-world.exe` and `eech_dc.dll`
+(`tools/build-windows.sh`, a MinGW-w64 cross-build in Docker). Windows keeps
+its own baselines in `regression/windows/`, because its C runtime's `rand ()`
+and maths aren't glibc's (`docs/engine.md`, "Windows"):
+
+```powershell
+tools\regress-windows.ps1 -Georgia <georgia root> -Lebanon <lebanon root> [-Build] [-Exact] [-Update]
+```
+
 Options:
 
 - `--exact` fails unless the runs reproduce the baselines exactly.

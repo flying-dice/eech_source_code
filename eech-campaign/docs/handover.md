@@ -103,7 +103,11 @@ scenario has been removed entirely.
    `regression/*.json` (`regression/README.md`). Run it between
    refactorings. The toolchain is `tools/Dockerfile`, and the retail roots
    come from `tools/retail-map3-installs.sh` and `tools/retail-cvh.sh`.
-3. Next is the foundation work before the DCS side:
+3. **Windows:** `tools/build-windows.sh` builds `target/windows/` (`eech-world.exe`,
+   `eech_dc.dll`, `lua.dll`, `lua/`), and `tools/regress-windows.ps1` runs the
+   regression test natively against `regression/windows/`
+   (`docs/engine.md`, "Windows").
+4. Next is the foundation work before the DCS side:
    - a pull request with CI green;
    - an engine API for input (kills from DCS, save and restore).
 
@@ -116,4 +120,4 @@ scenario has been removed entirely.
 - **Supply:** EECH airbases drain supply and are resupplied only from
   producers (S1 fixed a self-supplier bug). The retail map3 population file is
   version 1, so it has no producer keysites.
-- **Linux only.** There is no player: the engine runs as a dedicated server.
+- **Linux, and Windows via MinGW-w64** (`tools/build-windows.sh`: `eech_dc.dll`, `eech-world.exe`, `lua.dll`). There is no player: the engine runs as a dedicated server.

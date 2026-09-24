@@ -11,6 +11,11 @@
 // The original tree is staged into OUT_DIR, where patches.rs is applied; the
 // source tree itself is never modified.
 //
+// Targets: x86_64 Linux, and x86_64 Windows with MinGW-w64 (windows-gnu).
+// On Windows the Win32 names csrc/ implements are renamed eech_w32_*
+// (csrc/eech_win32_names.h, force-included), so that EECH keeps its Linux
+// emulation and the rest of the process keeps the system DLLs.
+//
 // Inputs:
 //   EECH_SOURCE_ROOT   the EECH source tree (default: the repository root)
 //   EECH_ENGINE_OPT    C optimisation level (default 1)
@@ -50,7 +55,12 @@ fn main() {
     println!("cargo:rerun-if-changed=sources.txt");
 
     let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap();
-    assert!(target_os == "linux", "eech-engine-sys: the headless platform layer (csrc/) is POSIX; target {target_os} is not supported yet");
+    let target_env = env::var("CARGO_CFG_TARGET_ENV").unwrap_or_default();
+    let windows = target_os == "windows";
+    assert!(
+        target_os == "linux" || (windows && target_env == "gnu"),
+        "eech-engine-sys: builds for Linux, and for Windows with MinGW-w64 (x86_64-pc-windows-gnu); not {target_os}/{target_env}"
+    );
 
     let sources: Vec<String> = fs::read_to_string(manifest.join("sources.txt"))
         .unwrap()
@@ -113,6 +123,9 @@ fn main() {
         .flag("-Werror=implicit-function-declaration")
         .flag("-Werror=implicit-int")
         .flag("-Werror=int-conversion");
+    if windows {
+        build.flag("-include").flag(manifest.join("csrc/eech_win32_names.h").to_str().unwrap());
+    }
     for s in &sources {
         build.file(tree.join(s));
     }
@@ -124,8 +137,18 @@ fn main() {
     }
     build.file(gen.join("eech_texture_names.c"));
     build.compile("eech_engine");
-    println!("cargo:rustc-link-lib=m");
-    println!("cargo:rustc-link-lib=pthread");
+    if windows {
+        // winpthreads, linked statically: the DLL needs no MinGW runtime beside it
+        let compiler = cc::Build::new().get_compiler();
+        let out = std::process::Command::new(compiler.path()).arg("-print-file-name=libwinpthread.a").output().expect("the MinGW-w64 C compiler");
+        let lib = PathBuf::from(String::from_utf8_lossy(&out.stdout).trim());
+        assert!(lib.is_absolute(), "libwinpthread.a not found by {}", compiler.path().display());
+        println!("cargo:rustc-link-search=native={}", lib.parent().unwrap().display());
+        println!("cargo:rustc-link-lib=static=winpthread");
+    } else {
+        println!("cargo:rustc-link-lib=m");
+        println!("cargo:rustc-link-lib=pthread");
+    }
     println!("cargo:root={}", tree.display());
 }
 

@@ -13,15 +13,22 @@
 #define _GNU_SOURCE
 #include <ctype.h>
 #include <dirent.h>
-#include <dlfcn.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <fnmatch.h>
 #include <pthread.h>
-#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <time.h>
+#ifdef _WIN32
+/* MinGW-w64: no mmap or fnmatch (see map_private, map_anonymous, match_name) */
+#define O_EECH_BINARY O_BINARY
+#define PROT_READ 1
+#define PROT_WRITE 2
+#else
+#include <fnmatch.h>
+#include <sys/mman.h>
+#define O_EECH_BINARY 0
+#endif
 
 #include "windows.h"
 #include "io.h"
@@ -37,6 +44,12 @@ static __thread DWORD last_error;
 static void resolve_component (char *dir_end, char *path)
 {
 	/* path is NUL-terminated at the end of the component that starts after dir_end */
+#ifdef _WIN32
+	/* Windows file systems resolve names case-insensitively themselves */
+	(void) dir_end;
+	(void) path;
+	return;
+#endif
 	struct stat st;
 	if (stat (path, &st) == 0)
 	{
@@ -164,6 +177,41 @@ char *itoa (int value, char *buffer, int radix)
 	return buffer;
 }
 
+/* a name matches a find pattern, case-insensitively */
+#ifdef _WIN32
+static int match_name (const char *pattern, const char *name)
+{
+	/* '*' and '?', which is all a Windows find pattern has */
+	for (; *pattern; pattern++, name++)
+	{
+		if (*pattern == '*')
+		{
+			for (;; name++)
+			{
+				if (match_name (pattern + 1, name))
+				{
+					return 1;
+				}
+				if (!*name)
+				{
+					return 0;
+				}
+			}
+		}
+		if (!*name || (*pattern != '?' && tolower ((unsigned char) *pattern) != tolower ((unsigned char) *name)))
+		{
+			return 0;
+		}
+	}
+	return !*name;
+}
+#else
+static int match_name (const char *pattern, const char *name)
+{
+	return fnmatch (pattern, name, FNM_CASEFOLD) == 0;
+}
+#endif
+
 /* _findfirst: pattern "dir\\*.ext" (only the last component may contain wildcards) */
 
 struct find_state
@@ -178,7 +226,7 @@ static int find_next_entry (struct find_state *s, char *name, size_t name_size, 
 	struct dirent *e;
 	while ((e = readdir (s->dir)) != NULL)
 	{
-		if (fnmatch (s->pattern, e->d_name, FNM_CASEFOLD) == 0)
+		if (match_name (s->pattern, e->d_name))
 		{
 			char full[PATH_MAX * 2];
 			struct stat st;
@@ -241,6 +289,41 @@ static void find_close (struct find_state *s)
 	}
 }
 
+/*
+ * _findfirst handles are small indices, not pointers: EECH keeps them in a
+ * long (3dobjdb.c, 3dobjid.c, eechini.c), which on 64-bit Windows (LLP64) is
+ * 32 bits and would cut a pointer in half.
+ */
+static struct find_state **find_handles;
+static intptr_t number_of_find_handles;
+
+static intptr_t find_handle_new (struct find_state *s)
+{
+	for (intptr_t i = 0; i < number_of_find_handles; i++)
+	{
+		if (!find_handles[i])
+		{
+			find_handles[i] = s;
+			return i + 1;
+		}
+	}
+	struct find_state **grown = realloc (find_handles, (size_t) (number_of_find_handles + 16) * sizeof (*grown));
+	if (!grown)
+	{
+		return -1;
+	}
+	memset (grown + number_of_find_handles, 0, 16 * sizeof (*grown));
+	find_handles = grown;
+	find_handles[number_of_find_handles] = s;
+	number_of_find_handles += 16;
+	return number_of_find_handles - 16 + 1;
+}
+
+static struct find_state *find_handle_state (intptr_t handle)
+{
+	return handle >= 1 && handle <= number_of_find_handles ? find_handles[handle - 1] : NULL;
+}
+
 intptr_t _findfirst (const char *filespec, struct _finddata_t *fileinfo)
 {
 	struct find_state *s = find_open (filespec);
@@ -257,13 +340,20 @@ intptr_t _findfirst (const char *filespec, struct _finddata_t *fileinfo)
 		return -1;
 	}
 	fileinfo->time_write = fileinfo->time_access = fileinfo->time_create = t;
-	return (intptr_t) s;
+	intptr_t handle = find_handle_new (s);
+	if (handle == -1)
+	{
+		find_close (s);
+		errno = ENOMEM;
+	}
+	return handle;
 }
 
 int _findnext (intptr_t handle, struct _finddata_t *fileinfo)
 {
 	time_t t;
-	if (handle == -1 || !find_next_entry ((struct find_state *) handle, fileinfo->name, sizeof (fileinfo->name), &fileinfo->attrib, &fileinfo->size, &t))
+	struct find_state *s = find_handle_state (handle);
+	if (!s || !find_next_entry (s, fileinfo->name, sizeof (fileinfo->name), &fileinfo->attrib, &fileinfo->size, &t))
 	{
 		return -1;
 	}
@@ -273,9 +363,11 @@ int _findnext (intptr_t handle, struct _finddata_t *fileinfo)
 
 int _findclose (intptr_t handle)
 {
-	if (handle != -1)
+	struct find_state *s = find_handle_state (handle);
+	if (s)
 	{
-		find_close ((struct find_state *) handle);
+		find_close (s);
+		find_handles[handle - 1] = NULL;
 	}
 	return 0;
 }
@@ -383,7 +475,7 @@ HANDLE CreateFile (LPCSTR name, DWORD access, DWORD share, LPSECURITY_ATTRIBUTES
 		default: break;
 	}
 	eech_native_path (name, native, sizeof (native));
-	int fd = open (native, mode, 0644);
+	int fd = open (native, mode | O_EECH_BINARY, 0644);
 	trace_open (native, "map", fd < 0 ? NULL : native);
 	if (fd < 0)
 	{
@@ -455,6 +547,59 @@ HANDLE CreateFileMapping (HANDLE file, LPSECURITY_ATTRIBUTES security, DWORD pro
 	return o;
 }
 
+/* private, writable views of files and anonymous memory */
+#ifdef _WIN32
+/* a private view is a copy: it reads the file into zeroed memory, as a
+   MAP_PRIVATE view is zero past the end of the file */
+static void *map_private (int fd, int64_t offset, size_t length)
+{
+	char *p = calloc (1, length);
+	if (!p || _lseeki64 (fd, offset, SEEK_SET) < 0)
+	{
+		free (p);
+		return NULL;
+	}
+	for (size_t got = 0; got < length; )
+	{
+		int n = read (fd, p + got, (unsigned) (length - got < (1u << 30) ? length - got : (1u << 30)));
+		if (n <= 0)
+		{
+			break;
+		}
+		got += (size_t) n;
+	}
+	return p;
+}
+
+static void *map_anonymous (size_t size)
+{
+	return calloc (1, size);
+}
+
+static void unmap (void *base, size_t size)
+{
+	(void) size;
+	free (base);
+}
+#else
+static void *map_private (int fd, int64_t offset, size_t length)
+{
+	void *p = mmap (NULL, length, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, (off_t) offset);
+	return p == MAP_FAILED ? NULL : p;
+}
+
+static void *map_anonymous (size_t size)
+{
+	void *p = mmap (NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+	return p == MAP_FAILED ? NULL : p;
+}
+
+static void unmap (void *base, size_t size)
+{
+	munmap (base, size);
+}
+#endif
+
 /* mapping base -> length, for UnmapViewOfFile */
 #define MAX_VIEWS 4096
 static struct { void *base; size_t size; } views[MAX_VIEWS];
@@ -463,7 +608,7 @@ static pthread_mutex_t views_lock = PTHREAD_MUTEX_INITIALIZER;
 LPVOID MapViewOfFile (HANDLE mapping, DWORD access, DWORD offset_high, DWORD offset_low, SIZE_T size)
 {
 	struct object *o = mapping;
-	off_t offset = (off_t) (((uint64_t) offset_high << 32) | offset_low);
+	int64_t offset = (int64_t) (((uint64_t) offset_high << 32) | offset_low);
 	size_t length = size ? size : o->size - (size_t) offset;
 	if (length == 0)
 	{
@@ -471,9 +616,9 @@ LPVOID MapViewOfFile (HANDLE mapping, DWORD access, DWORD offset_high, DWORD off
 	}
 	int prot = PROT_READ | ((access & FILE_MAP_WRITE) ? PROT_WRITE : 0);
 	/* EECH writes into read-only views in places: map privately, copy-on-write */
-	void *p = mmap (NULL, length, PROT_READ | PROT_WRITE, MAP_PRIVATE, o->fd, offset);
+	void *p = map_private (o->fd, offset, length);
 	(void) prot;
-	if (p == MAP_FAILED)
+	if (!p)
 	{
 		last_error = 8;
 		return NULL;
@@ -499,7 +644,7 @@ BOOL UnmapViewOfFile (LPCVOID base)
 	{
 		if (views[i].base == base)
 		{
-			munmap (views[i].base, views[i].size);
+			unmap (views[i].base, views[i].size);
 			views[i].base = NULL;
 			pthread_mutex_unlock (&views_lock);
 			return TRUE;
@@ -534,8 +679,8 @@ LPVOID VirtualAlloc (LPVOID address, SIZE_T size, DWORD type, DWORD protect)
 	{
 		return address;
 	}
-	void *p = mmap (NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
-	if (p == MAP_FAILED)
+	void *p = map_anonymous (size);
+	if (!p)
 	{
 		return NULL;
 	}
@@ -694,6 +839,17 @@ BOOL SetCurrentDirectory (LPCSTR path)
 DWORD GetModuleFileName (HMODULE module, LPSTR filename, DWORD size)
 {
 	(void) module;
+#ifdef _WIN32
+	/* the host executable, as /proc/self/exe is on Linux */
+	/* msvcrt.dll has _pgmptr (its _get_pgmptr is MSVC 8 on) */
+	const char *exe = _pgmptr;
+	if (!exe || !size)
+	{
+		return 0;
+	}
+	snprintf (filename, size, "%s", exe);
+	return (DWORD) strlen (filename);
+#else
 	ssize_t n = readlink ("/proc/self/exe", filename, size ? size - 1 : 0);
 	if (n < 0)
 	{
@@ -701,6 +857,7 @@ DWORD GetModuleFileName (HMODULE module, LPSTR filename, DWORD size)
 	}
 	filename[n] = 0;
 	return (DWORD) n;
+#endif
 }
 
 void GetSystemTime (LPSYSTEMTIME st)
@@ -708,7 +865,12 @@ void GetSystemTime (LPSYSTEMTIME st)
 	struct timeval tv;
 	struct tm tm;
 	gettimeofday (&tv, NULL);
+#ifdef _WIN32
+	time_t seconds = (time_t) tv.tv_sec;
+	tm = *gmtime (&seconds);
+#else
 	gmtime_r (&tv.tv_sec, &tm);
+#endif
 	st->wYear = (WORD) (tm.tm_year + 1900);
 	st->wMonth = (WORD) (tm.tm_mon + 1);
 	st->wDayOfWeek = (WORD) tm.tm_wday;
@@ -908,6 +1070,67 @@ int WSAGetLastError (void)
 	return errno;
 }
 
+#ifdef _WIN32
+/* the master-server heartbeat's sockets (compat/winsock.h): no network headless */
+SOCKET socket (int family, int type, int protocol)
+{
+	(void) family;
+	(void) type;
+	(void) protocol;
+	errno = EAFNOSUPPORT;
+	return INVALID_SOCKET;
+}
+
+int sendto (SOCKET s, const char *data, int length, int flags, const struct sockaddr *to, int to_length)
+{
+	(void) s, (void) data, (void) length, (void) flags, (void) to, (void) to_length;
+	return SOCKET_ERROR;
+}
+
+int recvfrom (SOCKET s, char *data, int length, int flags, struct sockaddr *from, int *from_length)
+{
+	(void) s, (void) data, (void) length, (void) flags, (void) from, (void) from_length;
+	return SOCKET_ERROR;
+}
+
+int select (int n, fd_set *read, fd_set *write, fd_set *except, const struct timeval *timeout)
+{
+	(void) n, (void) read, (void) write, (void) except, (void) timeout;
+	return 0;
+}
+
+struct hostent *gethostbyname (const char *name)
+{
+	(void) name;
+	return NULL;
+}
+
+unsigned long inet_addr (const char *address)
+{
+	(void) address;
+	return INADDR_NONE;
+}
+
+char *inet_ntoa (struct in_addr address)
+{
+	static char text[16];
+	const uint8_t *b = (const uint8_t *) &address.s_addr;
+	snprintf (text, sizeof (text), "%u.%u.%u.%u", b[0], b[1], b[2], b[3]);
+	return text;
+}
+
+uint16_t htons (uint16_t value)
+{
+	return (uint16_t) ((value >> 8) | (value << 8));
+}
+
+int closesocket (SOCKET s)
+{
+	(void) s;
+	return 0;
+}
+#endif
+
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 /* C file API */
 
@@ -957,6 +1180,32 @@ static int text_close (void *cookie)
 	return 0;
 }
 
+#ifdef _WIN32
+/*
+ * A read stream over bytes, without fmemopen or fopencookie: a binary
+ * temporary file the CRT deletes when it is closed ("D"). Binary, so seeks
+ * are exact (the CRT's text-mode ftell and fseek miscount on LF-only files).
+ */
+static FILE *memory_stream (const void *data, size_t size)
+{
+	static unsigned serial;
+	const char *dir = getenv ("TEMP");
+	char path[PATH_MAX];
+	snprintf (path, sizeof (path), "%s/eech_%d_%u.tmp", dir ? dir : ".", (int) getpid (), serial++);
+	FILE *f = fopen (path, "w+bD");
+	if (f)
+	{
+		if (size && fwrite (data, 1, size, f) != size)
+		{
+			fclose (f);
+			return NULL;
+		}
+		rewind (f);
+	}
+	return f;
+}
+#endif
+
 /*
  * Windows text-mode read: CR LF becomes LF and Ctrl-Z ends the file. EECH's
  * tag parser depends on it (a CR after a float is not a terminator).
@@ -993,6 +1242,11 @@ static FILE *open_text_for_reading (const char *native)
 	}
 	t->data = data;
 	t->size = n;
+#ifdef _WIN32
+	FILE *s = memory_stream (t->data, t->size);
+	text_close (t);
+	return s;
+#else
 	cookie_io_functions_t io = { text_read, NULL, text_seek, text_close };
 	FILE *s = fopencookie (t, "r", io);
 	if (!s)
@@ -1000,6 +1254,7 @@ static FILE *open_text_for_reading (const char *native)
 		text_close (t);
 	}
 	return s;
+#endif
 }
 
 /*
@@ -1061,7 +1316,11 @@ static FILE *placeholder_artwork (const char *name, const char *native)
 		return NULL;
 	}
 	eech_log (1, "artwork not installed, substituting a 1x1 image: %s", name);
+#ifdef _WIN32
+	return memory_stream (data, size);
+#else
 	return fmemopen ((void *) data, size, "rb");
+#endif
 }
 
 /* EECH_TRACE_FILES=1: log every file the engine opens (and every miss) */
@@ -1115,6 +1374,13 @@ FILE *eech_fopen_untraced (const char *name, const char *mode)
 			m[j++] = mode[i];
 		}
 	}
+#ifdef _WIN32
+	/* binary, as every mode is on Linux: the CRT's text mode would write CR LF */
+	if (!strchr (m, 'b') && j + 1 < sizeof (m))
+	{
+		m[j++] = 'b';
+	}
+#endif
 	m[j] = 0;
 	return fopen (native, m);
 }

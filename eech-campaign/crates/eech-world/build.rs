@@ -6,5 +6,8 @@ fn main() {
         // a link argument (at the end of every link line of this package: the
         // binary and the tests), after mlua-sys, which references lua_*
         println!("cargo::rustc-link-arg=-llua5.1");
+    } else if std::env::var("CARGO_CFG_TARGET_ENV").as_deref() == Ok("gnu") {
+        // EECH runs on the main thread: Linux gives it 8 MB of stack, Windows 1 MB
+        println!("cargo::rustc-link-arg-bins=-Wl,--stack,16777216");
     }
 }

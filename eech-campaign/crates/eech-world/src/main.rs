@@ -179,12 +179,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // a host that allows C modules, as a simulator host does (mlua's safe mode refuses them)
     let lua = unsafe { Lua::unsafe_new() };
-    lua.load(format!(
-        "package.cpath = '{}/lib?.so;{}/?.so;' .. package.cpath",
-        exe_dir.display(),
-        exe_dir.display()
-    ))
-    .exec()?;
+    // '/' separators: a Windows path's '\' would be escapes in the Lua string
+    let dir = exe_dir.to_string_lossy().replace('\\', "/");
+    lua.load(format!("package.cpath = '{dir}/?.dll;{dir}/lib?.so;{dir}/?.so;' .. package.cpath")).exec()?;
 
     let host = lua.create_table()?;
     let args = lua.create_table()?;

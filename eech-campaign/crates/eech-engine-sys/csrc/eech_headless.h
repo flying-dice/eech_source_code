@@ -12,6 +12,14 @@
 /* Windows path -> native path, '/' separated, resolved case-insensitively */
 void eech_native_path (const char *in, char *out, size_t size);
 
+/* mkdir: POSIX takes a mode, the Windows CRT does not (sys/stat.h or io.h declares it) */
+#ifdef _WIN32
+int mkdir (const char *path);
+#define eech_mkdir(path) mkdir (path)
+#else
+#define eech_mkdir(path) mkdir ((path), 0755)
+#endif
+
 /* simulated milliseconds: timeGetTime and every EECH clock read this; the host advances it */
 uint32_t eech_headless_time_ms (void);
 void eech_headless_advance_time_ms (uint32_t ms);

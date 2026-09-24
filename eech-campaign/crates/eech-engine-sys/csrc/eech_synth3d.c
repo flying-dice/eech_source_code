@@ -450,7 +450,7 @@ static int write_render_tables (const char *dir)
 	struct out o;
 	char horizon[4096];
 	snprintf (horizon, sizeof (horizon), "%s/horizon", dir);
-	mkdir (horizon, 0755);
+	eech_mkdir (horizon);
 	if (!open_out (&o, dir, "displace.bin"))
 	{
 		return 0;

@@ -252,6 +252,39 @@ simulated ten minutes:
 - the keysites each side holds;
 - the tasks groups are on.
 
+## Windows (MinGW-w64)
+
+`tools/build-windows.sh` cross-compiles `eech_dc.dll` and `eech-world.exe` for
+`x86_64-pc-windows-gnu`, in the Docker toolchain (GCC 12, the same flags as
+Linux). They load `lua.dll`, Lua 5.1.5 built under the name DCS World gives
+its own Lua 5.1. They need no MinGW runtime DLL: winpthreads and libgcc are
+linked statically.
+
+EECH is still compiled against compat/, and csrc/ is still its platform layer.
+The differences:
+
+- **Renamed emulation.** The Win32 and CRT functions csrc/ emulates (`CloseHandle`, `WaitForSingleObject`, `Sleep`, `GetLastError`, `_findfirst`, ...) are renamed `eech_w32_*` (`csrc/eech_win32_names.h`, force-included). Under their real names they would take over the system DLLs' functions, which the Rust runtime and the CRT call.
+- **POSIX-only pieces are replaced:**
+  - `mmap`: file views are private copies, and `VirtualAlloc` becomes zeroed heap.
+  - `fnmatch`: a `*`/`?` matcher.
+  - `fopencookie` and `fmemopen`: delete-on-close binary temporary files.
+  - `readlink /proc/self/exe`: `_pgmptr`.
+  - `gmtime_r`: `gmtime`.
+  - `mkdir (path, mode)`.
+- **Winsock.** Only the master-server heartbeat uses it, so compat/winsock.h declares failing socket stubs.
+- **Text files.** Text reads use the same CRLF-to-LF, Ctrl-Z-ends conversion as on Linux, not the CRT's text mode. MSVCRT's text-mode `ftell` and `fseek` miscount on LF-only files, which broke the briefing parser. Every other mode is binary, as on Linux.
+- **Two 64-bit Windows (LLP64) bugs, where `long` is 32-bit:**
+  - EECH keeps `_findfirst` handles in a `long` (3dobjdb.c, 3dobjid.c, eechini.c), so the emulation's handles are now small indices, not pointers.
+  - compat's `HRESULT` was `long`. The null COM stubs return `E_FAIL`, which is positive in a 64-bit `long`, and EECH's Direct3D set-up relies on `FAILED ()` being false for it headless. `HRESULT` is now `int64_t` on both platforms, which keeps the Linux behaviour.
+- **Stack.** EECH runs on the host's main thread, so `eech-world.exe` links a 16 MB stack (the Windows default is 1 MB).
+
+A Windows war is deterministic, but it isn't bit-identical to a Linux one. 23
+EECH call sites use the C runtime's `rand ()` (clouds, explosion sounds,
+texture frames), and MSVCRT's differs from glibc's; so, possibly, do the
+maths libraries. After six simulated minutes every sortie count matches, and
+a few weapons and losses differ. The regression test therefore keeps
+Windows baselines (`regression/windows/`).
+
 ## Findings
 
 1. **All of the maintained EECH builds and runs headless on x86-64.** It needs 3 source patches and 2 64-bit fixes. B2 is new: the whole tree has one more `va_arg` pointer truncation, in the UI.
@@ -267,7 +300,7 @@ simulated ten minutes:
 
 ## Limits
 
-- **Linux only.** csrc/ is POSIX. A Windows build would compile EECH against the real SDK and replace only csrc/'s platform half.
+- **Windows is MinGW-w64 only.** An MSVC build would need the GCC flags translated, and EECH's inline assembly doesn't compile on MSVC x64 (below).
 - **No geometry in the synthetic objects:** only their bounding boxes and routes. Line of sight and weapon hits use bounding boxes and terrain; object meshes do not take part.
 - **No player.** The engine is a dedicated server. The player's gunship and cockpit code is compiled but not driven.
 - **Performance:** about four minutes of wall time per simulated hour for a generated map of roughly 2,300 units, in a release build.

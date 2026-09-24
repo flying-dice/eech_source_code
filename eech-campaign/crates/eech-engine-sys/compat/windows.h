@@ -39,7 +39,11 @@ typedef LPCSTR LPCTSTR;
 typedef uint16_t WCHAR;
 typedef WCHAR *LPWSTR;
 typedef const WCHAR *LPCWSTR;
-typedef int64_t LONGLONG, __int64;
+typedef int64_t LONGLONG;
+#ifndef __MINGW32__
+/* MinGW-w64 predefines __int64 (long long) */
+typedef int64_t __int64;
+#endif
 typedef uint64_t ULONGLONG, DWORDLONG;
 typedef uintptr_t WPARAM, UINT_PTR, ULONG_PTR, DWORD_PTR, SIZE_T;
 typedef intptr_t LPARAM, LRESULT, INT_PTR, LONG_PTR;
@@ -48,7 +52,13 @@ typedef LONG *LPLONG;
 typedef BYTE *LPBYTE;
 typedef WORD *LPWORD;
 typedef BOOL *LPBOOL;
-typedef long HRESULT;
+/*
+ * 64-bit, as long is on Linux (LP64), where the platform layer was developed:
+ * there E_FAIL (0x80004005) is positive, so FAILED () is false for the null
+ * COM stubs' E_FAIL, and EECH's Direct3D set-up takes its success path, which
+ * a headless run needs. A 32-bit HRESULT (Windows' long) would make it fatal.
+ */
+typedef int64_t HRESULT;
 typedef WORD ATOM;
 typedef DWORD COLORREF;
 

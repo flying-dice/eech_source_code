@@ -8,7 +8,13 @@
 
 #include <stdint.h>
 
-typedef long HRESULT;
+/*
+ * 64-bit, as long is on Linux (LP64), where the platform layer was developed:
+ * there E_FAIL (0x80004005) is positive, so FAILED () is false for the null
+ * COM stubs' E_FAIL, and EECH's Direct3D set-up takes its success path, which
+ * a headless run needs. A 32-bit HRESULT (Windows' long) would make it fatal.
+ */
+typedef int64_t HRESULT;
 #define E_FAIL ((HRESULT) 0x80004005L)
 
 #define NULL_COM(name) HRESULT name () { return E_FAIL; }

@@ -1,7 +1,22 @@
-/* EECH headless build: the MSVC <io.h> directory search the EECH sources use (implemented in csrc/eech_posix.c) */
+/* EECH headless build: the MSVC <io.h> directory search the EECH sources use (implemented in csrc/eech_win32.c) */
 #ifndef EECH_COMPAT_IO_H
 #define EECH_COMPAT_IO_H
 #include "windows.h"
+
+#ifdef _WIN32
+/*
+ * MinGW-w64: the CRT's own <io.h> first (its dirent.h, fcntl.h and unistd.h
+ * need it), then EECH's _findfirst family over it: the CRT's are macros for
+ * its 32/64-bit time variants, and EECH's are renamed eech_w32_*
+ * (eech_win32_names.h).
+ */
+#include_next <io.h>
+#undef _finddata_t
+#undef _findfirst
+#define _findfirst eech_w32__findfirst
+#undef _findnext
+#define _findnext eech_w32__findnext
+#endif
 
 #define _A_NORMAL 0x00
 #define _A_RDONLY 0x01
