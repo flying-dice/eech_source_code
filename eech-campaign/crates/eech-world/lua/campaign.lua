@@ -2,7 +2,7 @@
 -- eech_dc module, runs it frame by frame, reports progress and hands the
 -- observed world to the host for its Tacview recording.
 --
--- host.args: root (installation root), map, campaign, hours, frame_ms,
+-- host.args: root (installation root), scenario (luxembourg, georgia), map, campaign, hours, frame_ms,
 --            record_every (frames), acmi (output path), seed
 
 local args = host.args
@@ -13,6 +13,13 @@ local record_every = tonumber (args.record_every or "10")
 -- simulated seconds between force-state diagnostics (0: none)
 local diagnostics_every = tonumber (args.diagnostics_every or "0")
 
+-- the maps eech-map builds: game path, campaign file, map origin, title
+local scenarios = {
+	luxembourg = { map = "..\\common\\maps\\map15", campaign = "luxembourg.chc", latitude = 49.40, longitude = 5.70, title = "EECH dynamic campaign: Luxembourg" },
+	georgia = { map = "..\\common\\maps\\map16", campaign = "georgia.chc", latitude = 41.0, longitude = 40.4, title = "EECH dynamic campaign: Georgia" },
+}
+local scenario = assert (scenarios[args.scenario or "luxembourg"], "scenario=luxembourg|georgia")
+
 local dc = require ("eech_dc")
 host.log (dc.name .. " loaded")
 
@@ -20,9 +27,9 @@ dc.prepare_installation (root)
 
 local engine = dc.boot {
 	install_root = root,
-	map = args.map or "..\\common\\maps\\map15",
+	map = args.map or scenario.map,
 	campaign_directory = "camp01",
-	campaign = args.campaign or "luxembourg.chc",
+	campaign = args.campaign or scenario.campaign,
 	gunship = "apache",
 	seed = tonumber (args.seed or "1"),
 }
@@ -30,10 +37,10 @@ host.log ("campaign booted")
 
 host.open_recording {
 	path = args.acmi or "campaign.acmi",
-	title = args.title or "EECH dynamic campaign: Luxembourg",
+	title = args.title or scenario.title,
 	reference_time = args.reference_time or "2026-09-24T06:00:00Z",
-	latitude = tonumber (args.latitude or "49.40"),
-	longitude = tonumber (args.longitude or "5.70"),
+	latitude = tonumber (args.latitude) or scenario.latitude,
+	longitude = tonumber (args.longitude) or scenario.longitude,
 }
 
 -- campaign state summary: live units per side and kind, and keysites held

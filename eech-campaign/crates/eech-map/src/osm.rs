@@ -178,7 +178,7 @@ pub fn read(path: &Path) -> Result<Extract> {
         }
         if closed {
             if let Some(kind) = site_of(&tags) {
-                let name = tags.get("name").map(|s| s.to_string()).unwrap_or_default();
+                let name = display_name(&tags);
                 ways.push((WayUse::Site(kind, name), refs.clone()));
             }
             if let Some(cover) = cover_of(&tags) {
@@ -209,7 +209,7 @@ pub fn read(path: &Path) -> Result<Extract> {
         if tags.is_empty() {
             return;
         }
-        let name = tags.get("name").map(|s| s.to_string()).unwrap_or_default();
+        let name = display_name(&tags);
         if let Some(kind) = match tags.get("place").copied() {
             Some("city") => Some(PlaceKind::City),
             Some("town") => Some(PlaceKind::Town),
@@ -275,4 +275,15 @@ pub fn centroid(ring: &[LatLon]) -> LatLon {
     let n = ring.len().max(1) as f64;
     let (lat, lon) = ring.iter().fold((0.0, 0.0), |(a, b), p| (a + p.0, b + p.1));
     (lat / n, lon / n)
+}
+
+/// the name EECH shows: the local name when it is in Latin script, else the
+/// English or international one (EECH's names are ASCII; other scripts would
+/// come out as underscores)
+fn display_name(tags: &HashMap<&str, &str>) -> String {
+    let local = tags.get("name").copied().unwrap_or_default();
+    if local.chars().all(|c| (c as u32) < 0x250) {
+        return local.to_string();
+    }
+    tags.get("name:en").or_else(|| tags.get("int_name")).copied().unwrap_or(local).to_string()
 }

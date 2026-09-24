@@ -29,6 +29,9 @@ cargo build --release -p eech-map -p eech-dc -p eech-world
 target/release/eech-map luxembourg-latest.osm.pbf srtm/ /tmp/lux
 # run the dynamic campaign for 6 simulated hours, recording Tacview
 target/release/eech-world crates/eech-world/lua/campaign.lua root=/tmp/lux hours=6 acmi=lux.acmi
+# Georgia: georgia-latest.osm.pbf and SRTM N41-N43 x E040-E046
+target/release/eech-map georgia-latest.osm.pbf srtm-georgia/ /tmp/georgia
+target/release/eech-world crates/eech-world/lua/campaign.lua root=/tmp/georgia scenario=georgia hours=6 acmi=georgia.acmi
 ```
 
 A six-hour Luxembourg campaign recorded this way is in

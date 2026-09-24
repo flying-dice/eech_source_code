@@ -18,6 +18,7 @@ pub const CELL: f64 = SECTOR / CELLS as f64;
 /// terrain types (modules/3d/terrain/terrtype.h)
 pub mod types {
     pub const RESERVOIR: u8 = 2;
+    pub const SEA: u8 = 7;
     pub const LAND: u8 = 9;
     pub const FIELD1: u8 = 10;
     pub const ALTERED_LAND1: u8 = 21;

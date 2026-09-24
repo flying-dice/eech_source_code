@@ -30,6 +30,10 @@ struct Spec {
     ai_sector_size: u32,
     /// the front line: blue west of this longitude, red east
     front_longitude: f64,
+    /// FARPs: one per side at each of these latitudes, 0.085 degrees behind the front
+    farp_latitudes: &'static [f64],
+    /// the smallest road class wanted (a larger one is used if EECH's road graph can't hold it)
+    roads: osm::RoadClass,
 }
 
 const LUXEMBOURG: Spec = Spec {
@@ -41,15 +45,49 @@ const LUXEMBOURG: Spec = Spec {
     height_sectors: 44,
     ai_sector_size: 4096,
     front_longitude: 6.07,
+    farp_latitudes: &[49.62, 49.90],
+    roads: osm::RoadClass::Secondary,
 };
+
+/// Georgia (40.4-46.7 E, 41.0-43.6 N): blue holds the west (Kutaisi, Senaki),
+/// red the east (Vaziani, Marneuli); the front runs at 44.0 E through the
+/// Shida Kartli plain by Gori and Tskhinvali, where the roads that frontline
+/// forces are placed on cross it. EECH's campaign map holds at most 128 sectors a side (map.c
+/// MAP_OVERLAY_TEXTURE_SIZE), 524 km at 4 km: the country's 560 km lose
+/// Abkhazia's north-west corner (Gagra) and a sliver of Lagodekhi.
+const GEORGIA: Spec = Spec {
+    name: "georgia",
+    title: "Georgia",
+    map_number: 16,
+    origin: (41.0, 40.4),
+    width_sectors: 256,
+    height_sectors: 142,
+    ai_sector_size: 4096,
+    front_longitude: 44.0,
+    farp_latitudes: &[41.95, 42.25],
+    roads: osm::RoadClass::Tertiary,
+};
+
+const SPECS: [&Spec; 2] = [&LUXEMBOURG, &GEORGIA];
 
 fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
-    if args.len() != 4 {
-        anyhow::bail!("usage: eech-map <extract.osm.pbf> <srtm dir> <installation root (contains common/)>");
+    if args.len() != 4 && args.len() != 5 {
+        anyhow::bail!("usage: eech-map <extract.osm.pbf> <srtm dir> <installation root (contains common/)> [luxembourg|georgia]");
     }
     let (pbf, srtm_dir, root) = (PathBuf::from(&args[1]), PathBuf::from(&args[2]), PathBuf::from(&args[3]));
-    let spec = &LUXEMBOURG;
+    // the map: named, or the one the extract's file name names
+    let wanted = args.get(4).cloned().unwrap_or_else(|| pbf.file_name().map(|n| n.to_string_lossy().to_lowercase()).unwrap_or_default());
+    let Some(spec) = SPECS.iter().copied().find(|s| wanted.contains(s.name)) else {
+        anyhow::bail!("no map spec for {wanted:?} (known: luxembourg, georgia)");
+    };
+    eprintln!("map: {} (map{})", spec.title, spec.map_number);
+    // map.c: the campaign map overlay is 128 x 128 campaign sectors
+    for n in [spec.width_sectors, spec.height_sectors] {
+        if n as f64 * SECTOR / spec.ai_sector_size as f64 > 128.0 {
+            anyhow::bail!("{} campaign sectors a side; EECH's campaign map holds 128", n as f64 * SECTOR / spec.ai_sector_size as f64);
+        }
+    }
     let geo = geo::Geo::new(spec.origin.0, spec.origin.1);
     let extent = (spec.width_sectors as f64 * SECTOR, spec.height_sectors as f64 * SECTOR);
     let map_dir = root.join("common").join("maps").join(format!("map{}", spec.map_number));
@@ -102,10 +140,22 @@ fn main() -> Result<()> {
             }
         });
     }
+    // the sea: OSM draws no sea polygons (only coastlines), and SRTM holds the
+    // sea at 0 m; a cell nothing covers whose corners are all at or below 0 m
+    // is sea
+    for j in 0..cz {
+        for i in 0..cx {
+            let corners = [heights[j * px + i], heights[j * px + i + 1], heights[(j + 1) * px + i], heights[(j + 1) * px + i + 1]];
+            if cover[j * cx + i] == 0 && corners.iter().all(|h| *h <= 0.0) {
+                cover[j * cx + i] = 7;
+            }
+        }
+    }
     let cells: Vec<u8> = cover
         .iter()
         .enumerate()
         .map(|(k, r)| match r {
+            7 => types::SEA,
             1 => types::FIELD1 + (((k * 2654435761) >> 7) % 11) as u8,
             2 => types::FOREST_FLOOR,
             3 => types::ALTERED_LAND1,
@@ -125,7 +175,19 @@ fn main() -> Result<()> {
     eprintln!("terrain: {} x {} sectors", spec.width_sectors, spec.height_sectors);
 
     // roads
-    let net = roads::Network::build(&osm.roads, osm::RoadClass::Secondary, &geo, extent)?;
+    // as many road classes as EECH's road graph holds (16,383 nodes)
+    let mut built = None;
+    for class in [osm::RoadClass::Tertiary, osm::RoadClass::Secondary, osm::RoadClass::Primary, osm::RoadClass::Trunk].into_iter().filter(|c| *c <= spec.roads) {
+        match roads::Network::build(&osm.roads, class, &geo, extent) {
+            Ok(net) => {
+                eprintln!("roads: {class:?} and above");
+                built = Some(net);
+                break;
+            }
+            Err(e) => eprintln!("roads: {class:?} and above: {e}"),
+        }
+    }
+    let net = built.context("no road class fits EECH's road graph")?;
     net.write(&map_dir.join("route"), &terrain)?;
     eprintln!("roads: {} nodes, {} links", net.nodes.len(), net.links.len());
 
@@ -209,14 +271,14 @@ fn main() -> Result<()> {
                 .filter(|c| c.3 > 10_000.0)
                 .max_by(|a, b| a.3.total_cmp(&b.3));
             let Some((place, tx, tz, _)) = best else { break };
-            // off water: EECH makes a keysite on water terrain an anchorage (popread.c)
+            // off water and sea: EECH makes a keysite on water terrain an anchorage (popread.c)
             let dry = |x: f64, z: f64| {
                 let r = (800.0 / CELL) as i64;
                 let (i0, j0) = ((x / CELL) as i64, (z / CELL) as i64);
                 (-r..=r).all(|dj| {
                     (-r..=r).all(|di| {
                         let (i, j) = (i0 + di, j0 + dj);
-                        i < 0 || j < 0 || i >= cx as i64 || j >= cz as i64 || cover[j as usize * cx + i as usize] != 6
+                        i < 0 || j < 0 || i >= cx as i64 || j >= cz as i64 || cover[j as usize * cx + i as usize] < 6
                     })
                 })
             };
@@ -269,7 +331,7 @@ fn main() -> Result<()> {
     // FARPs: two per side, 6 km behind the front, north and south
     let mut farps: Vec<(Side, Airfield)> = Vec::new();
     for (side, scene, dlon) in [(Side::Blue, "AMERICAN_FARP01", -0.085), (Side::Red, "RUSSIAN_FARP01", 0.085)] {
-        for lat in [49.62, 49.90] {
+        for &lat in spec.farp_latitudes {
             let (x, z) = geo.to_map(lat, spec.front_longitude + dlon);
             farps.push((
                 side,

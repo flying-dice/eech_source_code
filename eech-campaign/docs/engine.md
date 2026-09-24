@@ -58,6 +58,7 @@ tree is never modified.
 | E3 | `entity/special/effect/explosn/xp_dbase.h` | Two anonymous structs of one union both declare `frequency` and `smoke_lifetime`, at the same offsets. MSVC's C++ front end accepts the repeated names; C does not. The second pair is renamed; the layout and every access are unchanged. |
 | P1 | `entity/system/en_funcs/en_creat.c` | 64-bit blocker B1 (the spike's P1): the entity attribute `va_list` is read as the i386 argument stack. `csrc/eech_attrs.c` marshals it. |
 | **B2** | `userint2/ui_sys/ui_attrs/ui_attrs.c` | **New 64-bit blocker.** Five UI attributes pass a `ui_object *` and read it back as `va_arg (pargs, int)`. Four graphic attributes read a pointer into an `int`. On x86-64 the pointer is truncated, and the first UI screen built crashes. The fix reads the arguments as pointers. |
+| **X1** | `system/fpu.h` | **New 64-bit blocker.** The GNU `convert_float_to_int` / `convert_double_to_int` are `fistp (%1)`. In AT&T syntax an unsuffixed `fistp` is the 16-bit store, so only the low 16 bits of the int are written and values from 32,768 up saturate. Every world coordinate past 32.7 km then fell into the wrong sector (`get_x_sector`). On Luxembourg, the eastern half of the map shared one sector column; on Georgia, every keysite came out blue. The asm also popped the x87 stack without declaring it. The fix converts in C: `cvttss2si` truncates, which is the rounding EECH sets. |
 | W1 | `entity/mobile/weapon/wn_move.c` | `get_ballistic_pitch_deflection` takes `asin (height / range)`, and the aiming loop jitters the range by up to 5 m. At point blank the height can exceed the range: the pitch is NaN, its table index `INT_MIN`, and the ballistics table read faults. The patch returns "no solution". |
 
 `-ftrivial-auto-var-init=zero` keeps the spike's F1 decision (`taskgen.c`
@@ -158,8 +159,21 @@ initialises 3. The first small explosion then reads uninitialised heap.
 
 ### The map and campaign (`eech-map`)
 
-`eech-map <extract.osm.pbf> <srtm dir> <installation root>` writes
-`common/maps/map15`.
+`eech-map <extract.osm.pbf> <srtm dir> <installation root> [luxembourg|georgia]`
+writes `common/maps/map15` (Luxembourg) or `common/maps/map16` (Georgia). The
+map is chosen by name or by the extract's file name.
+
+**Georgia** (`georgia-latest.osm.pbf`, SRTM N41–N43 × E040–E046) covers
+40.4–46.7° E and 41.0–43.6° N: 256 × 142 terrain sectors, 524 × 291 km. EECH's
+campaign map holds at most 128 campaign sectors a side (`map.c`
+`MAP_OVERLAY_TEXTURE_SIZE`), which at 4 km is 524 km. The country's 560 km
+therefore lose Abkhazia's north-west corner and a sliver of Lagodekhi.
+
+- The front runs at 44.0° E, through the Shida Kartli plain by Gori and Tskhinvali, where the roads that frontline forces are placed on cross it.
+- Airbases: blue has Kutaisi and Senaki; red has Vaziani and Marneuli.
+- Roads include tertiary: 8,723 nodes.
+- Names use OSM's `name:en` where the local name is not in Latin script.
+- The Black Sea (SRTM 0 m, with no OSM polygon) is sea terrain.
 
 | File | From |
 |---|---|
