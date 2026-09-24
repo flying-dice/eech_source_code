@@ -71,6 +71,7 @@ struct eech_object
 	const char *type_name;	/* EECH database name ("AH-64D Apache Longbow", "KEYSITE_FARP") */
 	const char *name;	/* group callsign or keysite name, or NULL */
 	const char *task;	/* the group's primary task (TASK_*), or NULL */
+	const char *state;	/* the group's verbose operational state ("En route", "Engaging", ...), or NULL */
 	float x, y, z;		/* EECH world metres: x east, y up, z north */
 	float heading, pitch, roll;	/* radians */
 	float efficiency;	/* keysites */

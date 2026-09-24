@@ -33,6 +33,7 @@ pub struct eech_object {
     pub type_name: *const c_char,
     pub name: *const c_char,
     pub task: *const c_char,
+    pub state: *const c_char,
     pub x: f32,
     pub y: f32,
     pub z: f32,

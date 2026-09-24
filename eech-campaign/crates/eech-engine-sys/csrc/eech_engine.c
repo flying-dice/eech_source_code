@@ -351,3 +351,86 @@ int eech_engine_clock (struct eech_clock *clock)
 	int result = eech_observe_clock (clock);
 	LEAVE (result);
 }
+
+/* diagnostics: air groups, their tasks and states */
+void eech_engine_debug_air_groups (void)
+{
+	entity *force = get_session_entity () ? get_local_entity_first_child (get_session_entity (), LIST_TYPE_FORCE) : NULL;
+	for (; force; force = get_local_entity_child_succ (force, LIST_TYPE_FORCE))
+	{
+		entity *group = get_local_entity_first_child (force, LIST_TYPE_AIR_REGISTRY);
+		for (; group; group = get_local_entity_child_succ (group, LIST_TYPE_AIR_REGISTRY))
+		{
+			entity *task = get_local_group_primary_task (group);
+			entity *member = get_local_entity_first_child (group, LIST_TYPE_MEMBER);
+			eech_log (1, "group %s side=%d %s state=%s task=%s members=%d first=%s op=%s",
+				get_local_entity_string (group, STRING_TYPE_GROUP_CALLSIGN), get_local_entity_int_value (group, INT_TYPE_SIDE),
+				entity_sub_type_group_names[get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE)],
+				verbose_operational_state_names[get_local_entity_int_value (group, INT_TYPE_VERBOSE_OPERATIONAL_STATE)],
+				task ? entity_sub_type_task_names[get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE)] : "-",
+				get_local_entity_int_value (group, INT_TYPE_MEMBER_COUNT),
+				member ? aircraft_database[get_local_entity_int_value (member, INT_TYPE_ENTITY_SUB_TYPE)].full_name : "-",
+				member ? operational_state_names[get_local_entity_int_value (member, INT_TYPE_OPERATIONAL_STATE)] : "-");
+		}
+	}
+}
+
+/*
+ * diagnostics: for every airborne tasked aircraft, the nearest enemy ground
+ * unit, and EECH's weapon choice for it with and without range and LOS checks
+ */
+void eech_engine_debug_engagements (void)
+{
+	entity *en, *other;
+	for (en = get_local_entity_first_child (get_update_entity (), LIST_TYPE_UPDATE); en; en = get_local_entity_child_succ (en, LIST_TYPE_UPDATE))
+	{
+		int type = get_local_entity_type (en), side;
+		entity *group, *task, *best = NULL;
+		float best_d = 1e9f;
+		vec3d *p;
+		if (type != ENTITY_TYPE_HELICOPTER && type != ENTITY_TYPE_FIXED_WING)
+		{
+			continue;
+		}
+		if (get_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE) == OPERATIONAL_STATE_LANDED)
+		{
+			continue;
+		}
+		group = get_local_entity_parent (en, LIST_TYPE_MEMBER);
+		task = group ? get_local_group_primary_task (group) : NULL;
+		side = get_local_entity_int_value (en, INT_TYPE_SIDE);
+		p = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
+		for (other = get_local_entity_first_child (get_update_entity (), LIST_TYPE_UPDATE); other; other = get_local_entity_child_succ (other, LIST_TYPE_UPDATE))
+		{
+			int ot = get_local_entity_type (other);
+			if ((ot == ENTITY_TYPE_ROUTED_VEHICLE || ot == ENTITY_TYPE_ANTI_AIRCRAFT) && get_local_entity_int_value (other, INT_TYPE_SIDE) != side
+				&& get_local_entity_int_value (other, INT_TYPE_ALIVE))
+			{
+				float d = get_2d_range (p, get_local_entity_vec3d_ptr (other, VEC3D_TYPE_POSITION));
+				if (d < best_d)
+				{
+					best_d = d;
+					best = other;
+				}
+			}
+		}
+		if (!best)
+		{
+			continue;
+		}
+		{
+			entity_sub_types w0 = get_best_weapon_for_target (en, best, BEST_WEAPON_CRITERIA_MINIMAL);
+			entity_sub_types w1 = get_best_weapon_for_target (en, best, BEST_WEAPON_RANGE_CHECK);
+			entity_sub_types w2 = get_best_weapon_for_target (en, best, BEST_WEAPON_RANGE_CHECK | BEST_WEAPON_LOS_CHECK);
+			int los = check_entity_line_of_sight (en, best, MOBILE_LOS_CHECK_ALL);
+			eech_log (1, "%s side=%d task=%s state=%s alt=%.0f nearest enemy %s at %.0f m: best weapon minimal=%s range=%s range+los=%s los=%d target=%s",
+				aircraft_database[get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE)].full_name, side,
+				task ? entity_sub_type_task_names[get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE)] : "-",
+				group ? verbose_operational_state_names[get_local_entity_int_value (group, INT_TYPE_VERBOSE_OPERATIONAL_STATE)] : "-",
+				p->y - get_3d_terrain_elevation (p->x, p->z),
+				vehicle_database[get_local_entity_int_value (best, INT_TYPE_ENTITY_SUB_TYPE)].full_name, best_d,
+				weapon_database[w0].full_name, weapon_database[w1].full_name, weapon_database[w2].full_name, los,
+				get_local_entity_parent (en, LIST_TYPE_TARGET) ? "yes" : "none");
+		}
+	}
+}

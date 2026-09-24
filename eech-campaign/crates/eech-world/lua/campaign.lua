@@ -38,12 +38,17 @@ host.open_recording {
 local function summary (objects)
 	local count = {}
 	local keysites = { blue = 0, red = 0 }
+	local weapons, destroyed = 0, { blue = 0, red = 0 }
 	for _, o in ipairs (objects) do
 		if o.kind == "keysite" then
 			keysites[o.side] = (keysites[o.side] or 0) + 1
-		elseif o.alive and o.kind ~= "weapon" then
+		elseif o.kind == "weapon" then
+			weapons = weapons + 1
+		elseif o.alive then
 			local key = o.side .. " " .. o.kind
 			count[key] = (count[key] or 0) + 1
+		else
+			destroyed[o.side] = (destroyed[o.side] or 0) + 1
 		end
 	end
 	local parts = {}
@@ -52,16 +57,17 @@ local function summary (objects)
 	-- the tasks groups are on, per side (each group counted once)
 	local tasks, seen = {}, {}
 	for _, o in ipairs (objects) do
-		if o.task and o.group_id and not seen[o.group_id] and o.task ~= "TASK_NOTHING" then
+		if o.task and o.group_id and not seen[o.group_id] and o.task ~= "TASK_NOTHING" and (o.kind == "helicopter" or o.kind == "fixed_wing") then
 			seen[o.group_id] = true
-			local key = o.side .. " " .. o.task:gsub ("^TASK_", "")
+			local key = o.side .. " " .. o.task:gsub ("^TASK_", "") .. "/" .. (o.state or "?"):gsub (" ", "_")
 			tasks[key] = (tasks[key] or 0) + 1
 		end
 	end
 	local task_parts = {}
 	for k, v in pairs (tasks) do task_parts[#task_parts + 1] = k .. "=" .. v end
 	table.sort (task_parts)
-	return string.format ("keysites blue=%d red=%d; %s; tasks: %s", keysites.blue, keysites.red, table.concat (parts, " "), table.concat (task_parts, " "))
+	return string.format ("keysites blue=%d red=%d; wrecks blue=%d red=%d; weapons in flight %d; %s; tasks: %s",
+		keysites.blue, keysites.red, destroyed.blue, destroyed.red, weapons, table.concat (parts, " "), table.concat (task_parts, " "))
 end
 
 local frames = math.floor (hours * 3600 * 1000 / frame_ms)

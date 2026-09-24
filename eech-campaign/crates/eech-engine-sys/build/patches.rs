@@ -81,6 +81,14 @@ pub const PATCHES: &[Patch] = &[
         replacement: "\t\t\t\tvoid\n\t\t\t\t\t*graphic; /* EECH headless (B2) */\n\n\t\t\t\tgraphic = va_arg (pargs, void *);\n",
         count: 4,
     },
+    Patch {
+        file: "aphavoc/source/entity/mobile/weapon/wn_move.c",
+        id: "W1-ballistic-point-blank",
+        why: "get_ballistic_pitch_deflection takes asin (height / range). The aiming loop jitters the range by up to 5 m (weapon.c), so at point blank the height can exceed the range: the pitch is NaN, its table index is INT_MIN and the ballistics table read faults. No ballistic solution exists there; say so.",
+        original: "\tif (!fixed_pitch)\n\t{\n\t\tstraight_pitch = - asin(height_diff_or_pitch / range);\n",
+        replacement: "\tif (!fixed_pitch)\n\t{\n\t\tif (!(fabs (height_diff_or_pitch) < range)) return FALSE; /* EECH headless (W1) */\n\t\tstraight_pitch = - asin(height_diff_or_pitch / range);\n",
+        count: 1,
+    },
 ];
 
 pub fn apply(file: &str, text: &str) -> String {

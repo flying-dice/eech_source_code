@@ -35,6 +35,9 @@ struct synth_sub_object
 	int named_index;	/* OBJECT_3D_SUB_OBJECT_* or 0 */
 	vec3d position;
 	float heading;
+	/* relative rotation limits (weapon system devices) */
+	int limits;
+	float heading_minimum, heading_maximum, pitch_minimum, pitch_maximum;
 	int number_of_children;
 	struct synth_sub_object *children;
 };
@@ -61,5 +64,8 @@ int eech_synth3d_box_object (float x, float y, float z);
 
 /* airports and FARPs: routes and buildings (eech_synth3d_keysites.c) */
 void eech_synth3d_keysites (struct synth_scene *scenes);
+
+/* aircraft and vehicles: weapon-system devices (eech_synth3d_weapons.c) */
+void eech_synth3d_weapon_systems (struct synth_scene *scenes);
 
 #endif

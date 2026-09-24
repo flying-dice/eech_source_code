@@ -361,7 +361,16 @@ static void put_sub_objects (struct out *o, int n, const struct synth_sub_object
 		put_int (o, 0);		/* contributes to collisions */
 		put_int (o, 0);		/* approximation in level */
 		put_int (o, 0);		/* approximation out level */
-		put_int (o, 0);		/* no relative limits */
+		put_int (o, s[i].limits);	/* relative limits */
+		if (s[i].limits)
+		{
+			put_float (o, s[i].heading_maximum);
+			put_float (o, s[i].heading_minimum);
+			put_float (o, s[i].pitch_maximum);
+			put_float (o, s[i].pitch_minimum);
+			put_float (o, 0.0f);	/* roll maximum */
+			put_float (o, 0.0f);	/* roll minimum */
+		}
 		put_identity_keyframes (o, s[i].position, s[i].heading);
 		put_float (o, 0);	/* dissolve */
 		put_int (o, 0);		/* dissolve keyframes */
@@ -530,6 +539,7 @@ int eech_synth3d_write (const char *directory)
 		scenes[i].object = eech_synth3d_box_object (x, y, z);
 	}
 	eech_synth3d_keysites (scenes);
+	eech_synth3d_weapon_systems (scenes);
 
 	ok = write_bininfo (directory) && write_objects (directory) && write_scenes (directory, scenes) && write_render_tables (directory)
 		&& write_textures (directory);

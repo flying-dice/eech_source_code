@@ -228,10 +228,21 @@ pub fn write_force(chc: &mut String, side: Side, airbases: &[(Side, String)], fa
         let _ = writeln!(chc, ":KEYSITE KEYSITE_AIRBASE\n:NAME {name}");
         let _ = writeln!(chc, ":TYPE LANDING_FIXED_WING\n:TYPE LANDING_HELICOPTER\n:TYPE LANDING_GROUND");
         let _ = writeln!(chc, ":AMMO_SUPPLIES 100.0\n:FUEL_SUPPLIES 100.0");
+        // EECH holds back a minimum of idle groups of each type per force (gp_dbase.c:
+        // attack helicopters 2, recon-attack 3, fighters and CAS 1) and assigns
+        // tasks only above it (assign.c): each side gets more than that minimum
         for (group, formation) in [
             ("GROUP_CLOSE_AIR_SUPPORT_AIRCRAFT", "FIXED_WING_CLOSE_AIR_SUPPORT_GROUP"),
+            ("GROUP_CLOSE_AIR_SUPPORT_AIRCRAFT", "FIXED_WING_CLOSE_AIR_SUPPORT_GROUP"),
+            ("GROUP_MULTI_ROLE_FIGHTER", "FIXED_WING_MULTI_ROLE_GROUP"),
             ("GROUP_MULTI_ROLE_FIGHTER", "FIXED_WING_MULTI_ROLE_GROUP"),
             ("GROUP_ATTACK_HELICOPTER", "HELICOPTER_LIGHT_ATTACK_GROUP_A"),
+            ("GROUP_ATTACK_HELICOPTER", "HELICOPTER_LIGHT_ATTACK_GROUP_A"),
+            ("GROUP_ATTACK_HELICOPTER", "HELICOPTER_LIGHT_ATTACK_GROUP_B"),
+            ("GROUP_RECON_ATTACK_HELICOPTER", "HELICOPTER_LIGHT_RECON_ATTACK_GROUP"),
+            ("GROUP_RECON_ATTACK_HELICOPTER", "HELICOPTER_LIGHT_RECON_ATTACK_GROUP"),
+            ("GROUP_RECON_ATTACK_HELICOPTER", "HELICOPTER_LIGHT_RECON_ATTACK_GROUP"),
+            ("GROUP_ASSAULT_HELICOPTER", "HELICOPTER_LIGHT_ASSAULT_GROUP"),
             ("GROUP_ASSAULT_HELICOPTER", "HELICOPTER_LIGHT_ASSAULT_GROUP"),
             ("GROUP_MEDIUM_LIFT_TRANSPORT_HELICOPTER", "HELICOPTER_MEDIUM_LIFT_GROUP"),
         ] {

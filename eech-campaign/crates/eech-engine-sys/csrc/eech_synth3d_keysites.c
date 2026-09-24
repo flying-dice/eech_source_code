@@ -90,11 +90,11 @@ static vec3d v (float x, float y, float z)
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 /* airport: runway along z (x = 0) from z = -1200 to 1200, apron east of it */
 
-#define AIRPORT_PARKING 16
+#define AIRPORT_PARKING 20
 
 static vec3d airport_parking (int slot)
 {
-	return v (300.0f + 80.0f * (float) (slot / 8), 0.0f, 500.0f - 70.0f * (float) (slot % 8));
+	return v (300.0f + 80.0f * (float) (slot / 10), 0.0f, 600.0f - 70.0f * (float) (slot % 10));
 }
 
 static vec3d fixed_wing_landing (int depth, int slot)
@@ -126,11 +126,11 @@ static vec3d fixed_wing_takeoff (int depth, int slot)
 }
 
 /* helicopter pads west of the runway */
-#define HELI_PADS 12
+#define HELI_PADS 24
 
 static vec3d airport_heli_pad (int slot)
 {
-	return v (-300.0f - 40.0f * (float) (slot / 6), 0.0f, 300.0f - 40.0f * (float) (slot % 6));
+	return v (-300.0f - 40.0f * (float) (slot / 8), 0.0f, 300.0f - 40.0f * (float) (slot % 8));
 }
 
 static vec3d airport_heli_landing (int depth, int slot)

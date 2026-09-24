@@ -283,6 +283,12 @@ fn install_repository_data(root: &std::path::Path) -> Result<()> {
             }
         }
     }
+    // the weapon and unit tuning table (eechini.c DEFAULT_GWUT_FILE), read
+    // from the game directory: weapon weights, drag and motor power come
+    // only from it (the compiled weapon database leaves them zero, and a
+    // missile launched without it flies with a NaN velocity)
+    let gwut = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../setup/cohokum/GWUT1162.CSV");
+    std::fs::copy(&gwut, root.join("cohokum").join("GWUT1162.CSV")).with_context(|| format!("copying {}", gwut.display()))?;
     Ok(())
 }
 

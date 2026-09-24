@@ -114,6 +114,8 @@ pub struct Object {
     pub type_name: String,
     pub name: Option<String>,
     pub task: Option<String>,
+    /// the group's verbose operational state ("En route", "Engaging", ...)
+    pub state: Option<String>,
     /// EECH world metres: x east, y up, z north
     pub position: [f32; 3],
     /// radians
@@ -209,6 +211,7 @@ impl Engine {
                 type_name: text(o.type_name).unwrap_or_default(),
                 name: text(o.name),
                 task: text(o.task),
+                state: text(o.state),
                 position: [o.x, o.y, o.z],
                 heading: o.heading,
                 pitch: o.pitch,

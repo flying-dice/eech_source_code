@@ -30,6 +30,7 @@ static void fill_group (entity *en, struct eech_object *o)
 		entity *task;
 		o->group_id = get_local_entity_index (group);
 		o->name = get_local_entity_string (group, STRING_TYPE_GROUP_CALLSIGN);
+		o->state = verbose_operational_state_names[get_local_entity_int_value (group, INT_TYPE_VERBOSE_OPERATIONAL_STATE)];
 		task = get_local_group_primary_task (group);
 		if (task)
 		{
