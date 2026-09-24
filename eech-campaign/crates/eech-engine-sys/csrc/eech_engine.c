@@ -236,6 +236,14 @@ int eech_engine_boot (const struct eech_engine_config *config)
 		eech_log (0, "install root %s has no cohokum directory", config->install_root);
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
+	/*
+	 * EECH seeds its random numbers from the system clock when the session
+	 * starts (session.c :: get_session_random_start_time_of_day), after any
+	 * seed set here. The simulated clock's epoch is the seed's (seed 1: 0),
+	 * so a run's randomness follows the seed as a real run's follows the
+	 * wall clock.
+	 */
+	eech_headless_set_time_ms (((config->random_seed - 1u) % 1000000u) * 1000u);
 	boot (config);
 	state = ENGINE_RUNNING;
 	LEAVE (EECH_ENGINE_OK);

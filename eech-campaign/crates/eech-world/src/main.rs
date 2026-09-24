@@ -157,7 +157,9 @@ impl Recording {
             }
         }
         // objects no longer reported: weapons that hit or expired, entities removed
-        let gone: Vec<i64> = self.tracked.iter().filter(|(_, t)| t.seen != pass).map(|(id, _)| *id).collect();
+        // (sorted: the map's iteration order differs between processes)
+        let mut gone: Vec<i64> = self.tracked.iter().filter(|(_, t)| t.seen != pass).map(|(id, _)| *id).collect();
+        gone.sort_unstable();
         for id in gone {
             if let Some(t) = self.tracked.remove(&id) {
                 self.out.remove(t.acmi).map_err(LuaError::external)?;

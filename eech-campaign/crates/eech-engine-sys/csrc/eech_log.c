@@ -20,6 +20,11 @@ void eech_headless_advance_time_ms (uint32_t ms)
 	simulated_ms += ms;
 }
 
+void eech_headless_set_time_ms (uint32_t ms)
+{
+	simulated_ms = ms;
+}
+
 jmp_buf *eech_fatal_target;
 char eech_fatal_message[1024];
 int eech_engine_poisoned;

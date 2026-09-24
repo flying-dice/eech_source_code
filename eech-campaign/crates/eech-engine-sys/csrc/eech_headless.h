@@ -15,6 +15,7 @@ void eech_native_path (const char *in, char *out, size_t size);
 /* simulated milliseconds: timeGetTime and every EECH clock read this; the host advances it */
 uint32_t eech_headless_time_ms (void);
 void eech_headless_advance_time_ms (uint32_t ms);
+void eech_headless_set_time_ms (uint32_t ms);
 
 /*
  * debug_fatal unwinds to the innermost engine entry point instead of ending
