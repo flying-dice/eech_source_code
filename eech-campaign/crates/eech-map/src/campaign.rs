@@ -61,6 +61,47 @@ pub struct Airfield {
     pub scene: String,
 }
 
+/// a supply producer (ks_dbase.c): factories make ammo, oil refineries fuel
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Producer {
+    Factory,
+    Refinery,
+}
+
+pub struct ProducerSite {
+    pub kind: Producer,
+    pub side: Side,
+    pub x: f64,
+    pub z: f64,
+}
+
+/// popread.c enum TEMPLATE_TYPE
+const TEMPLATE_TYPE_KEY_INDUSTRY: i32 = 17;
+const TEMPLATE_TYPE_KEY_OIL: i32 = 20;
+
+/// the producer templates: (kind, side, template type, buildings (x, y, heading degrees, 3D object))
+fn producer_templates() -> Vec<(Producer, Side, i32, Vec<(f32, f32, f32, &'static str)>)> {
+    let factory = |n: &'static str| -> Vec<(f32, f32, f32, &'static str)> {
+        vec![(-60.0, -40.0, 0.0, n), (60.0, -40.0, 0.0, n), (-60.0, 60.0, 90.0, n), (60.0, 60.0, 90.0, n)]
+    };
+    let refinery = |f: &'static str, t: &'static str| -> Vec<(f32, f32, f32, &'static str)> {
+        vec![(0.0, -80.0, 0.0, f), (-50.0, 20.0, 0.0, t), (0.0, 20.0, 0.0, t), (50.0, 20.0, 0.0, t), (-50.0, 70.0, 0.0, t), (0.0, 70.0, 0.0, t), (50.0, 70.0, 0.0, t)]
+    };
+    vec![
+        (Producer::Factory, Side::Blue, TEMPLATE_TYPE_KEY_INDUSTRY, factory("AMERICAN_FACTORY01")),
+        (Producer::Factory, Side::Red, TEMPLATE_TYPE_KEY_INDUSTRY, factory("RUSSIAN_FACTORY01")),
+        (Producer::Refinery, Side::Blue, TEMPLATE_TYPE_KEY_OIL, refinery("AMERICAN_FACTORY02", "AMERICAN_OIL_TANK01")),
+        (Producer::Refinery, Side::Red, TEMPLATE_TYPE_KEY_OIL, refinery("RUSSIAN_FACTORY02", "AMERICAN_OIL_TANK02")),
+    ]
+}
+
+fn put_name(o: &mut Vec<u8>, name: &str) {
+    let mut bytes = name.as_bytes().to_vec();
+    bytes.push(0);
+    o.extend_from_slice(&(bytes.len() as i32).to_le_bytes());
+    o.extend_from_slice(&bytes);
+}
+
 pub struct Sam {
     pub x: f64,
     pub z: f64,
@@ -68,11 +109,36 @@ pub struct Sam {
 
 /// the binary population placement file (popread.c). z is stored flipped
 /// against the map's maximum z rounded down to 100 m.
-pub fn write_population(path: &Path, max_map_z: f64, airfields: &[Airfield], sams: &[Sam]) -> Result<()> {
+/// Producers are city placements of key templates (read_population_templates,
+/// read_population_city_placements): the keysite takes its side from the
+/// side map and its buildings from the template.
+pub fn write_population(path: &Path, max_map_z: f64, airfields: &[Airfield], sams: &[Sam], producers: &[ProducerSite]) -> Result<()> {
     let flip = ((max_map_z / 100.0).floor() * 100.0) as f32;
     let mut o = Vec::new();
-    o.extend_from_slice(&0i32.to_le_bytes()); // templates
-    o.extend_from_slice(&0i32.to_le_bytes()); // city placements
+    let templates = producer_templates();
+    // version 2 (a negative count): popread.c makes key templates keysites
+    // only in version 2 files, which add a routes object to each template
+    o.extend_from_slice(&(-(templates.len() as i32)).to_le_bytes());
+    for (_, _, kind, buildings) in &templates {
+        o.extend_from_slice(&(buildings.len() as i32).to_le_bytes());
+        o.extend_from_slice(&kind.to_le_bytes());
+        o.extend_from_slice(&0i32.to_le_bytes()); // no approximation object
+        o.extend_from_slice(&0i32.to_le_bytes()); // no base object
+        o.extend_from_slice(&0i32.to_le_bytes()); // no routes object
+        for (x, y, heading, object) in buildings {
+            o.extend_from_slice(&x.to_le_bytes());
+            o.extend_from_slice(&y.to_le_bytes());
+            o.extend_from_slice(&heading.to_le_bytes());
+            put_name(&mut o, object);
+        }
+    }
+    o.extend_from_slice(&(producers.len() as i32).to_le_bytes());
+    for p in producers {
+        let index = templates.iter().position(|t| t.0 == p.kind && t.1 == p.side).expect("a template per kind and side") as i32;
+        o.extend_from_slice(&index.to_le_bytes());
+        o.extend_from_slice(&(p.x as f32).to_le_bytes());
+        o.extend_from_slice(&(flip - p.z as f32).to_le_bytes());
+    }
     o.extend_from_slice(&(airfields.len() as i32).to_le_bytes());
     for a in airfields {
         o.extend_from_slice(&(a.x as f32).to_le_bytes());

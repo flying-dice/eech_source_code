@@ -343,6 +343,42 @@ fn main() -> Result<()> {
             ));
         }
     }
+    // supply producers: airbases and FARPs only consume ammo and fuel
+    // (ks_dbase.c); factories make ammo and oil refineries fuel, and SUPPLY
+    // missions fly it to the keysites that run low. Without them every war
+    // runs dry. Each side gets a factory on its largest industrial area behind
+    // the front and a refinery on the next one at least 15 km from it.
+    let mut industry: Vec<(f64, f64, f64)> = osm
+        .areas
+        .iter()
+        .filter(|a| a.cover == osm::Cover::Industrial && a.ring.len() > 2)
+        .map(|a| {
+            let n = a.ring.len() as f64;
+            let (lat, lon) = a.ring.iter().fold((0.0, 0.0), |(la, lo), p| (la + p.0 / n, lo + p.1 / n));
+            let (x, z) = geo.to_map(lat, lon);
+            (x, z, osm::ring_area(&a.ring).abs())
+        })
+        .collect();
+    industry.sort_by(|a, b| b.2.total_cmp(&a.2));
+    let mut producers: Vec<campaign::ProducerSite> = Vec::new();
+    for side in [Side::Blue, Side::Red] {
+        for kind in [campaign::Producer::Factory, campaign::Producer::Refinery] {
+            let site = industry.iter().find(|&&(x, z, _)| {
+                let (_, lon) = geo.to_geo(x, z);
+                let inside = x > 4000.0 && z > 4000.0 && x < extent.0 - 4000.0 && z < extent.1 - 4000.0;
+                let far = |px: f64, pz: f64, d: f64| ((px - x).powi(2) + (pz - z).powi(2)).sqrt() > d;
+                inside
+                    && (lon - spec.front_longitude).abs() > 0.11
+                    && side_at(x, z) == side
+                    && airfields.iter().all(|(_, a)| far(a.x, a.z, 5_000.0))
+                    && producers.iter().all(|p| far(p.x, p.z, 15_000.0))
+            });
+            if let Some(&(x, z, _)) = site {
+                eprintln!("producer: {kind:?} ({side:?}) at {:.4}, {:.4}", geo.to_geo(x, z).0, geo.to_geo(x, z).1);
+                producers.push(campaign::ProducerSite { kind, side, x, z });
+            }
+        }
+    }
     // SAM/AAA sites: two per side, around each airbase
     let mut sams = Vec::new();
     for (_, a) in &airfields {
@@ -368,7 +404,7 @@ fn main() -> Result<()> {
     let farp_names: Vec<(Side, String)> = farps.iter().enumerate().map(|(i, (side, _))| (*side, format!("FARP {}", i + 1))).collect();
     let mut placements: Vec<Airfield> = airfields.into_iter().map(|(_, a)| a).collect();
     placements.extend(farps.into_iter().map(|(_, a)| a));
-    campaign::write_population(&camp.join(format!("{}.pop", spec.name)), extent.1 - 1.0, &placements, &sams)?;
+    campaign::write_population(&camp.join(format!("{}.pop", spec.name)), extent.1 - 1.0, &placements, &sams, &producers)?;
 
     // the campaign script
     let game_path = format!("..\\common\\maps\\map{}\\camp01", spec.map_number);
