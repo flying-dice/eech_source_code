@@ -258,9 +258,11 @@ void set_ddraw_use_full_screen (int flag)
 	(void) flag;
 }
 
+static int graphics_initialised;
+
 int get_graphics_system_initialised (void)
 {
-	return FALSE;
+	return graphics_initialised;
 }
 
 void get_ddraw_device_guid (GUID *guid)
@@ -268,17 +270,25 @@ void get_ddraw_device_guid (GUID *guid)
 	memset (guid, 0, sizeof (*guid));
 }
 
+/* dirdraw.c :: initialise_graphics_system, without the DirectDraw device */
 BOOL initialise_graphics_system (GUID *device_guid)
 {
 	(void) device_guid;
-	return FALSE;
+	initialise_graphics_colours ();
+	initialise_system_graphics_screens ();
+	initialise_psd_layers ();
+	graphics_initialised = TRUE;
+	return TRUE;
 }
 
+/* dirdraw.c :: ddraw_set_display_resolution: the video screen is a memory surface */
 BOOL ddraw_set_display_resolution (int width, int height)
 {
-	(void) width;
-	(void) height;
-	return FALSE;
+	application_video_height = height;
+	application_video_width = width;
+	set_viewport (0, 0, width, height);
+	create_video_screen (width, height);
+	return TRUE;
 }
 
 BOOL ddraw_change_display_resolution (int width, int height)
@@ -334,15 +344,93 @@ void f3d_clear_zbuffer (void) { }
 void f3d_clear_screen (unsigned color) { (void) color; }
 int f3d_set_3d_render_target (struct SCREEN *this_screen) { (void) this_screen; return FALSE; }
 void f3d_stop_3d_render_target (struct SCREEN *this_screen) { (void) this_screen; }
+/*
+ * Surfaces are system memory: a texture or the video screen can be locked and
+ * written (EECH's UI and texture loaders do) and nothing is displayed. The
+ * opaque texture pointer holds the pixel levels.
+ */
+
+struct memory_texture
+{
+	unsigned int *levels[16];
+	unsigned int width, height;
+};
+
+static unsigned int *memory_level (struct SCREEN *texture, int level)
+{
+	struct memory_texture *m = (struct memory_texture *) texture->texture;
+	if (!m)
+	{
+		m = calloc (1, sizeof (*m));
+		texture->texture = (LPDIRECT3DTEXTURE9) m;
+	}
+	if (level < 0 || level >= 16)
+	{
+		return NULL;
+	}
+	unsigned int w = texture->width >> level, h = texture->height >> level;
+	w = w ? w : 1;
+	h = h ? h : 1;
+	if (!m->levels[level])
+	{
+		m->levels[level] = calloc ((size_t) w * h, sizeof (unsigned int));
+	}
+	return m->levels[level];
+}
+
 void f3d_texture_create (struct SCREEN *texture, int width, int height, int number_of_mipmaps, enum TEXTURE_ROLE role)
 {
-	(void) texture; (void) width; (void) height; (void) number_of_mipmaps; (void) role;
+	(void) number_of_mipmaps;
+	(void) role;
+	texture->width = (unsigned int) width;
+	texture->height = (unsigned int) height;
+	texture->texture = NULL;
+	memory_level (texture, 0);
 }
-void f3d_texture_release (struct SCREEN *texture) { (void) texture; }
+
+void f3d_texture_release (struct SCREEN *texture)
+{
+	struct memory_texture *m = (struct memory_texture *) texture->texture;
+	if (m)
+	{
+		for (int i = 0; i < 16; i++)
+		{
+			free (m->levels[i]);
+		}
+		free (m);
+	}
+	texture->texture = NULL;
+	texture->data = NULL;
+}
+
 void f3d_texture_pre (struct SCREEN *texture) { (void) texture; }
 void f3d_texture_post (struct SCREEN *texture) { (void) texture; }
-int f3d_texture_lock (struct SCREEN *texture, int mipmap_level) { (void) texture; (void) mipmap_level; return FALSE; }
-int f3d_texture_unlock (struct SCREEN *texture) { (void) texture; return FALSE; }
+
+int f3d_texture_lock (struct SCREEN *texture, int mipmap_level)
+{
+	unsigned int *pixels = memory_level (texture, mipmap_level);
+	if (!pixels)
+	{
+		return FALSE;
+	}
+	unsigned int w = texture->width >> mipmap_level;
+	texture->mipmap = (unsigned int) mipmap_level;
+	texture->data = pixels;
+	texture->pitch = w ? w : 1;
+	return TRUE;
+}
+
+int f3d_texture_unlock (struct SCREEN *texture)
+{
+	texture->data = NULL;
+	if (texture == video_screen)
+	{
+		/* the video screen keeps no texture between locks in EECH (f3d.c) */
+		struct memory_texture *m = (struct memory_texture *) texture->texture;
+		(void) m;
+	}
+	return TRUE;
+}
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 /* directp.c: no DirectPlay. The connection is never initialised, so EECH's comms run as a local server. */

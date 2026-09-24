@@ -997,10 +997,82 @@ static FILE *open_text_for_reading (const char *native)
 	return s;
 }
 
+/*
+ * Artwork substitution: the retail UI artwork (.psd screens and buttons) is
+ * not part of the EECH source repository and nothing headless displays it.
+ * A read of a missing .psd yields a valid 1x1 RGB Photoshop file, and each
+ * substitution is logged.
+ */
+static const unsigned char placeholder_psd[] =
+{
+	'8', 'B', 'P', 'S', 0, 1, 0, 0, 0, 0, 0, 0,	/* signature, version 1, reserved */
+	0, 3,						/* channels */
+	0, 0, 0, 1, 0, 0, 0, 1,				/* height, width */
+	0, 8, 0, 3,					/* depth 8, RGB */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,		/* colour mode data, resources, layers: empty */
+	0, 0,						/* raw image data */
+	0x80, 0x80, 0x80				/* one grey pixel, planar R G B */
+};
+
+/* 1x1 24-bit Windows bitmap */
+static const unsigned char placeholder_bmp[] =
+{
+	'B', 'M', 58, 0, 0, 0, 0, 0, 0, 0, 54, 0, 0, 0,			/* file header */
+	40, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 24, 0,		/* info header: 1x1, 1 plane, 24 bits */
+	0, 0, 0, 0, 4, 0, 0, 0, 0x13, 0x0b, 0, 0, 0x13, 0x0b, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0x80, 0x80, 0x80, 0						/* one grey pixel, row padded to 4 bytes */
+};
+
+/* 1x1 uncompressed 24-bit Targa */
+static const unsigned char placeholder_tga[] =
+{
+	0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 24, 0,	/* header: true colour, 1x1, 24 bits */
+	0x80, 0x80, 0x80					/* one grey pixel, BGR */
+};
+
+static FILE *placeholder_artwork (const char *name, const char *native)
+{
+	size_t n = strlen (native);
+	const void *data = NULL;
+	size_t size = 0;
+	if (n >= 4 && strcasecmp (native + n - 4, ".psd") == 0)
+	{
+		data = placeholder_psd;
+		size = sizeof (placeholder_psd);
+	}
+	else if (n >= 4 && strcasecmp (native + n - 4, ".bmp") == 0)
+	{
+		data = placeholder_bmp;
+		size = sizeof (placeholder_bmp);
+	}
+	else if (n >= 4 && strcasecmp (native + n - 4, ".tga") == 0)
+	{
+		data = placeholder_tga;
+		size = sizeof (placeholder_tga);
+	}
+	else
+	{
+		return NULL;
+	}
+	eech_log (1, "artwork not installed, substituting a 1x1 image: %s", name);
+	return fmemopen ((void *) data, size, "rb");
+}
+
 FILE *eech_fopen (const char *name, const char *mode)
 {
 	char native[PATH_MAX];
 	eech_native_path (name, native, sizeof (native));
+	if (mode[0] == 'r' && access (native, R_OK) != 0)
+	{
+		/* safe_fopen retries under cohokum\ and common\: substitute only on the last attempt */
+		const char *tail = strstr (name, "\\common\\");
+		if (tail)
+		{
+			return placeholder_artwork (name, native);
+		}
+		return NULL;
+	}
 	if (mode[0] == 'r' && !strchr (mode, 'b') && !strchr (mode, '+'))
 	{
 		return open_text_for_reading (native);

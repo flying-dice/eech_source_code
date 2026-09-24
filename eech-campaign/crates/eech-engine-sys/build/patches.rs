@@ -65,6 +65,22 @@ pub const PATCHES: &[Patch] = &[
         replacement: "\t\t/* EECH headless (P1) */\n\t\tpargs_buffer = eech_marshal_stack_attributes (eech_stack_attributes, sizeof (eech_stack_attributes), pargs);\n",
         count: 2,
     },
+    Patch {
+        file: "modules/userint2/ui_sys/ui_attrs/ui_attrs.c",
+        id: "B2-ui-pointer-attributes",
+        why: "64-bit blocker B2 (docs/engine.md): UI_ATTR_ASSOCIATION/CHILD/NEXT/PARENT/PREV pass a ui_object pointer, and set_ui_object_attributes reads it back as `(ui_object *) va_arg (pargs, int)`. On i386 both are 4 bytes; on x86-64 the pointer is truncated to 32 bits and the first UI screen built crashes (initialise_init_screen). Read the argument as the pointer it was passed as.",
+        original: "= (ui_object *) va_arg (pargs, int);",
+        replacement: "= (ui_object *) va_arg (pargs, void *); /* EECH headless (B2) */",
+        count: 5,
+    },
+    Patch {
+        file: "modules/userint2/ui_sys/ui_attrs/ui_attrs.c",
+        id: "B2-ui-graphic-attributes",
+        why: "64-bit blocker B2: UI_ATTR_TEXTURE_GRAPHIC / HIGHLIGHTED_ / SELECTED_TEXTURE_GRAPHIC / ZOOMABLE_PALETTE_GRAPHIC pass a graphic pointer, read back into an `int` and cast to the pointer type. On x86-64 the pointer is truncated (the first screen with a texture graphic crashes). Read it as a pointer.",
+        original: "\t\t\t\tint\n\t\t\t\t\tgraphic;\n\n\t\t\t\tgraphic = va_arg (pargs, int);\n",
+        replacement: "\t\t\t\tvoid\n\t\t\t\t\t*graphic; /* EECH headless (B2) */\n\n\t\t\t\tgraphic = va_arg (pargs, void *);\n",
+        count: 4,
+    },
 ];
 
 pub fn apply(file: &str, text: &str) -> String {
