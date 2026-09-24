@@ -372,4 +372,33 @@ void eech_synth3d_keysites (struct synth_scene *scenes)
 	{
 		set_routes (&scenes[farps[i]], farp_routes, ARRAY_LENGTH (farp_routes));
 	}
+
+	/*
+	 * regeneration: a keysite scene's linked building with a REGEN_* sub-object
+	 * becomes a regen site (popread.c, regen.c :: get_object_3d_regeneration_type)
+	 * that rebuilds lost aircraft and vehicles from the force's hardware
+	 * reserves. Hangar 1 regenerates fixed wing, hangar 2 helicopters, hangar 3
+	 * ground vehicles.
+	 */
+	{
+		static const int regen_buildings[][2] =
+		{
+			{ OBJECT_3D_AMERICAN_HANGAR01, OBJECT_3D_SUB_OBJECT_REGEN_FIXED_WING },
+			{ OBJECT_3D_AMERICAN_HANGAR02, OBJECT_3D_SUB_OBJECT_REGEN_HELICOPTER },
+			{ OBJECT_3D_AMERICAN_HANGAR03, OBJECT_3D_SUB_OBJECT_REGEN_ROUTED_VEHICLE },
+			{ OBJECT_3D_RUSSIAN_HANGAR01, OBJECT_3D_SUB_OBJECT_REGEN_FIXED_WING },
+			{ OBJECT_3D_RUSSIAN_HANGAR02, OBJECT_3D_SUB_OBJECT_REGEN_HELICOPTER },
+			{ OBJECT_3D_RUSSIAN_HANGAR03, OBJECT_3D_SUB_OBJECT_REGEN_ROUTED_VEHICLE },
+		};
+		int marker = eech_synth3d_box_object (0.5f, 0.5f, 0.5f);
+		for (i = 0; i < ARRAY_LENGTH (regen_buildings); i++)
+		{
+			struct synth_scene *sc = &scenes[regen_buildings[i][0]];
+			sc->sub_objects = realloc (sc->sub_objects, sizeof (struct synth_sub_object) * (size_t) (sc->number_of_sub_objects + 1));
+			memset (&sc->sub_objects[sc->number_of_sub_objects], 0, sizeof (struct synth_sub_object));
+			sc->sub_objects[sc->number_of_sub_objects].object = marker;
+			sc->sub_objects[sc->number_of_sub_objects].named_index = regen_buildings[i][1];
+			sc->number_of_sub_objects++;
+		}
+	}
 }

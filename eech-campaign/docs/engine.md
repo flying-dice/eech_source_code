@@ -58,6 +58,7 @@ tree is never modified.
 | E3 | `entity/special/effect/explosn/xp_dbase.h` | Two anonymous structs of one union both declare `frequency` and `smoke_lifetime`, at the same offsets. MSVC's C++ front end accepts the repeated names; C does not. The second pair is renamed; the layout and every access are unchanged. |
 | P1 | `entity/system/en_funcs/en_creat.c` | 64-bit blocker B1 (the spike's P1): the entity attribute `va_list` is read as the i386 argument stack. `csrc/eech_attrs.c` marshals it. |
 | **B2** | `userint2/ui_sys/ui_attrs/ui_attrs.c` | **New 64-bit blocker.** Five UI attributes pass a `ui_object *` and read it back as `va_arg (pargs, int)`. Four graphic attributes read a pointer into an `int`. On x86-64 the pointer is truncated, and the first UI screen built crashes. The fix reads the arguments as pointers. |
+| W1 | `entity/mobile/weapon/wn_move.c` | `get_ballistic_pitch_deflection` takes `asin (height / range)`, and the aiming loop jitters the range by up to 5 m. At point blank the height can exceed the range: the pitch is NaN, its table index `INT_MIN`, and the ballistics table read faults. The patch returns "no solution". |
 
 `-ftrivial-auto-var-init=zero` keeps the spike's F1 decision (`taskgen.c`
 reads uninitialised locals).
@@ -128,7 +129,8 @@ The retail data EECH cannot start without is not in the repository.
 - Content:
   - Every scene has an object with no polygons and a bounding box sized from its name (aircraft, vehicle, building, and so on).
   - Airport and FARP scenes carry route sub-objects built as `routegen.c` reads them: line meshes; black start edges; the green primary route; one tree per slot; depth 0 the far end, the deepest level the slots on the ground. The routes are landing, takeoff and holding routes for fixed wing, helicopters and vehicles.
-  - Airport scenes link hangars and a control tower, which `fx_objdb.c` rates as important.
+  - Airport scenes link hangars and a control tower, which `fx_objdb.c` rates as important. The hangars carry `REGEN_FIXED_WING`, `REGEN_HELICOPTER` and `REGEN_ROUTED_VEHICLE` sub-objects, so they become regen sites (`popread.c`, `regen.c`). Regen sites rebuild lost aircraft and vehicles from the force's hardware reserves.
+  - Every aircraft and vehicle scene carries a weapon-system tree: `WEAPON_SYSTEM_HEADING`, then `PITCH`, then `MUZZLE` and `WEAPON`. The tree is as deep as the deepest `heading_depth`, `pitch_depth` and `muzzle_depth`, and as wide as the largest package count, over the `weapon_config_database` packages the type can carry (`csrc/eech_synth3d_weapons.c`). EECH aims through these devices. Without them, `WEAPON_AND_TARGET_VECTORS_VALID` is never set and no AI unit ever fires: `aircraft_fire_weapon` returns `WEAPON_SYSTEM_NOT_READY`.
 - What the engine demanded, in order:
   1. landing and takeoff routes, or no landing sites;
   2. at least three route depths, so a primary node exists;
@@ -143,6 +145,11 @@ slot. The names are generated at build time from `modules/3d/textname.h`.
 ### From the repository (`setup/common/data`)
 
 Formation databases, the language database and the suspension tables.
+`eech-map` also copies `setup/cohokum/GWUT1162.CSV`, the weapon and unit
+tuning table (`eechini.c` `DEFAULT_GWUT_FILE`), into `cohokum/`. Weapon
+weights, drag and motor power come only from it: the compiled weapon database
+leaves them at zero, and a missile launched without the table flies with a
+NaN velocity.
 
 ### The map and campaign (`eech-map`)
 
@@ -191,7 +198,9 @@ simulated ten minutes:
 1. **All of the maintained EECH builds and runs headless on x86-64.** It needs 3 source patches and 2 64-bit fixes. B2 is new: the whole tree has one more `va_arg` pointer truncation, in the UI.
 2. **The dedicated-server path is the headless route.** It needed no new game logic. The one ordering constraint is that the dedicated-server flag must be set after the init screen, whose function would otherwise enter `flight ()` itself.
 3. **Retail data is the real dependency.** The 3D database drives keysites (routes, landing sites, buildings), so it cannot be skipped. It can be synthesised from EECH's own formats and name tables.
-4. **The campaign runs.** Luxembourg boots, generates and assigns tasks from the first minutes (BAI, advance, patrols, supply, troop insertion, transfers), and runs for simulated hours without a fault. Runs are deterministic.
+4. **The campaign runs.** Luxembourg boots, generates and assigns tasks from the first minutes (BAI, CAS, recon, CAP, SEAD, ground and OCA strikes, OCA sweeps, advance and retreat, patrols, supply, troop insertion, transfers), and runs for simulated hours without a fault. Runs are deterministic.
+5. **Combat runs.** Aircraft and ground units choose weapons, aim, launch, guide, hit and kill, and wrecks and weapons appear in the recording. Three pieces of data gate combat, and each fails silently: the weapon-system sub-objects (no fire at all), the GWUT table (NaN missiles), and regen sites plus reserves (air tasking stops once losses bring each group type down to EECH's minimum idle count).
+6. **The campaign keeps reserves.** `assign.c` tasks a group only while more than `group_database[type].minimum_idle_count` idle groups of its type remain at the keysite: attack helicopters 2, recon-attack 3, fighters and CAS 1. A campaign therefore needs more groups than that per type, and it needs regen sites to replace losses.
 
 ## Limits
 
