@@ -293,3 +293,49 @@ int eech_engine_write_3d_database (const char *directory)
 	int ok = eech_synth3d_write (directory);
 	LEAVE (ok ? EECH_ENGINE_OK : EECH_ENGINE_BAD_ARGUMENT);
 }
+
+/* diagnostics: every keysite, with its side, type, name and landing types */
+void eech_engine_debug_keysites (void)
+{
+	entity *force = get_session_entity () ? get_local_entity_first_child (get_session_entity (), LIST_TYPE_FORCE) : NULL;
+	while (force)
+	{
+		entity *ks = get_local_entity_first_child (force, LIST_TYPE_KEYSITE_FORCE);
+		while (ks)
+		{
+			vec3d *p = get_local_entity_vec3d_ptr (ks, VEC3D_TYPE_POSITION);
+			eech_log (1, "keysite %s side=%d type=%s landing_types=%x in_use=%d at %.0f,%.0f,%.0f",
+				get_local_entity_string (ks, STRING_TYPE_KEYSITE_NAME), get_local_entity_int_value (ks, INT_TYPE_SIDE),
+				entity_sub_type_keysite_names[get_local_entity_int_value (ks, INT_TYPE_ENTITY_SUB_TYPE)],
+				get_local_entity_int_value (ks, INT_TYPE_LANDING_TYPES), get_local_entity_int_value (ks, INT_TYPE_IN_USE), p->x, p->y, p->z);
+			ks = get_local_entity_child_succ (ks, LIST_TYPE_KEYSITE_FORCE);
+		}
+		force = get_local_entity_child_succ (force, LIST_TYPE_FORCE);
+	}
+}
+
+/* eech_observe.c, behind the entry discipline */
+extern int eech_observe_objects (eech_object_callback callback, void *user);
+extern int eech_observe_clock (struct eech_clock *clock);
+
+int eech_engine_objects (eech_object_callback callback, void *user, int *count)
+{
+	ENTER (0);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	*count = eech_observe_objects (callback, user);
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_clock (struct eech_clock *clock)
+{
+	ENTER (0);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	int result = eech_observe_clock (clock);
+	LEAVE (result);
+}

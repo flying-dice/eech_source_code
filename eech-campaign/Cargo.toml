@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/eech-sys", "crates/eech-engine-sys", "crates/eech-campaign", "crates/eech-harness", "crates/eech-dc", "crates/eech-world", "crates/eech-map"]
+members = ["crates/eech-sys", "crates/eech-engine-sys", "crates/eech-engine", "crates/eech-campaign", "crates/eech-harness", "crates/eech-dc", "crates/eech-world", "crates/eech-map"]
 
 [workspace.package]
 edition = "2021"

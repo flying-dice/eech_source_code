@@ -9,6 +9,6 @@ fn require_loads_the_dc_dll() {
     lua.load(format!("package.cpath = '{}/lib?.so;' .. package.cpath", dir.display()))
         .exec()
         .unwrap();
-    let name: String = lua.load("local dc = require('eech_dc'); return dc.name .. ' ' .. dc.version").eval().unwrap();
+    let name: String = lua.load("local dc = require('eech_dc'); return dc.name").eval().unwrap();
     assert_eq!(name, "eech-dc 0.1.0");
 }

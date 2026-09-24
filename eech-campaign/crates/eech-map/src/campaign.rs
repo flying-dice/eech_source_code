@@ -148,3 +148,66 @@ pub fn ascii(s: &str) -> String {
         })
         .collect()
 }
+
+/// a force block of the campaign script (parsgen.c): faction, reserves,
+/// task generation, division numbers, frontline forces and the groups at
+/// each of its keysites
+pub fn write_force(chc: &mut String, side: Side, airbases: &[(Side, String)], farps: &[(Side, String)]) {
+    let (side_name, colour) = match side {
+        Side::Blue => ("SIDE_BLUE_FORCE", "COL_BLUE"),
+        Side::Red => ("SIDE_RED_FORCE", "COL_RED"),
+    };
+    let _ = writeln!(chc, ":FACTION\n:SIDE {side_name}\n:COLOUR {colour}\n:ATTITUDE FORCE_ATTITUDE_NORMAL");
+    let _ = writeln!(chc, ":REGEN_FREQUENCY 1.0");
+    let _ = writeln!(chc, ":HARDWARE_RESERVES");
+    for (t, n) in [
+        ("ARMED_FIXED_WING", 24),
+        ("UNARMED_FIXED_WING", 8),
+        ("ARMED_HELICOPTER", 40),
+        ("UNARMED_HELICOPTER", 16),
+        ("ARMED_ROUTED_VEHICLE", 120),
+        ("UNARMED_ROUTED_VEHICLE", 40),
+        ("ARMED_SHIP_VEHICLE", 0),
+        ("UNARMED_SHIP_VEHICLE", 0),
+    ] {
+        let _ = writeln!(chc, ":TYPE {t}\n:COUNT {n}");
+    }
+    let _ = writeln!(chc, ":TASK_GENERATION");
+    for t in [
+        "TASK_ADVANCE", "TASK_BAI", "TASK_BARCAP", "TASK_BDA", "TASK_CLOSE_AIR_SUPPORT", "TASK_COMBAT_AIR_PATROL", "TASK_ENGAGE", "TASK_ESCORT",
+        "TASK_GROUND_STRIKE", "TASK_OCA_STRIKE", "TASK_OCA_SWEEP", "TASK_RECON", "TASK_REPAIR", "TASK_RETREAT", "TASK_SEAD", "TASK_SUPPLY",
+        "TASK_TRANSFER_FIXED_WING", "TASK_TRANSFER_HELICOPTER", "TASK_TROOP_INSERTION", "TASK_TROOP_MOVEMENT_INSERT_CAPTURE",
+        "TASK_TROOP_MOVEMENT_INSERT_DEFEND", "TASK_TROOP_MOVEMENT_PATROL",
+    ] {
+        let _ = writeln!(chc, ":TYPE {t} 1");
+    }
+    let _ = writeln!(chc, ":DIVISION_ID_LIST {side_name}");
+    for d in [
+        "DIVISION_AIRBORNE_HELICOPTER_DIVISION", "DIVISION_AIRBORNE_FIXED_WING_DIVISION", "DIVISION_AIRBORNE_TRANSPORT_DIVISION", "DIVISION_ARMOURED_DIVISION",
+        "DIVISION_CARRIER_DIVISION", "DIVISION_INFANTRY_DIVISION", "DIVISION_HC_ATTACK_COMPANY", "DIVISION_HC_TRANSPORT_COMPANY", "DIVISION_FW_ATTACK_COMPANY",
+        "DIVISION_FW_FIGHTER_COMPANY", "DIVISION_FW_TRANSPORT_COMPANY", "DIVISION_ADA_COMPANY", "DIVISION_ARMOURED_COMPANY", "DIVISION_ARTILLERY_COMPANY",
+        "DIVISION_CARRIER_COMPANY", "DIVISION_INFANTRY_COMPANY", "DIVISION_SPECIAL_FORCES_COMPANY",
+    ] {
+        let list: Vec<String> = (1..=40).map(|n| n.to_string()).collect();
+        let _ = writeln!(chc, ":TYPE {d}\n:LIST {} -1", list.join(" "));
+    }
+    let _ = writeln!(chc, ":FRONTLINE_FORCES 6");
+    for (s, name) in airbases.iter().filter(|(s, _)| *s == side) {
+        let _ = s;
+        let _ = writeln!(chc, ":KEYSITE KEYSITE_AIRBASE\n:NAME {name}");
+        let _ = writeln!(chc, ":TYPE LANDING_FIXED_WING\n:TYPE LANDING_HELICOPTER\n:TYPE LANDING_GROUND");
+        let _ = writeln!(chc, ":AMMO_SUPPLIES 100.0\n:FUEL_SUPPLIES 100.0");
+        for (group, formation) in [
+            ("GROUP_CLOSE_AIR_SUPPORT_AIRCRAFT", "FIXED_WING_CLOSE_AIR_SUPPORT_GROUP"),
+            ("GROUP_MULTI_ROLE_FIGHTER", "FIXED_WING_MULTI_ROLE_GROUP"),
+            ("GROUP_ATTACK_HELICOPTER", "HELICOPTER_LIGHT_ATTACK_GROUP_A"),
+            ("GROUP_ASSAULT_HELICOPTER", "HELICOPTER_LIGHT_ASSAULT_GROUP"),
+            ("GROUP_MEDIUM_LIFT_TRANSPORT_HELICOPTER", "HELICOPTER_MEDIUM_LIFT_GROUP"),
+        ] {
+            let _ = writeln!(chc, ":CREATE_GROUP\n:GROUP {group}\n:TYPE {formation}");
+        }
+    }
+    // FARPs: FRONTLINE_FORCES (place_frontline_forces) populates them, which marks them in use; the
+    // script's keysite lookup (parsgen.c) only matches keysites not yet in use
+    let _ = farps;
+}

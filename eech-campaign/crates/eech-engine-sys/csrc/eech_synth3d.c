@@ -74,31 +74,10 @@ static int close_out (struct out *o)
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 /* objects */
 
-struct line
-{
-	int a, b;
-};
-
-struct synth_object
-{
-	object_3d_bounds box;
-	float radius;
-	/* route objects: points and coloured line surfaces */
-	int number_of_points;
-	vec3d *points;
-	int number_of_surfaces;
-	struct
-	{
-		unsigned char red, green, blue;
-		int number_of_lines;
-		struct line *lines;
-	} surfaces[4];
-};
-
 static struct synth_object *objects;
 static int number_of_objects, objects_allocated;
 
-static int add_object (const struct synth_object *o)
+int eech_synth3d_add_object (const struct synth_object *o)
 {
 	if (number_of_objects + 1 >= objects_allocated)
 	{
@@ -110,7 +89,7 @@ static int add_object (const struct synth_object *o)
 	return number_of_objects;
 }
 
-static int box_object (float x, float y, float z)
+int eech_synth3d_box_object (float x, float y, float z)
 {
 	struct synth_object o;
 	memset (&o, 0, sizeof (o));
@@ -121,37 +100,11 @@ static int box_object (float x, float y, float z)
 	o.box.zmin = -z / 2;
 	o.box.zmax = z / 2;
 	o.radius = sqrtf (x * x + y * y + z * z) / 2;
-	return add_object (&o);
+	return eech_synth3d_add_object (&o);
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 /* scene content */
-
-struct synth_sub_object
-{
-	int object;
-	int named_index;	/* OBJECT_3D_SUB_OBJECT_* or 0 */
-	vec3d position;
-	float heading;
-	int number_of_children;
-	struct synth_sub_object *children;
-};
-
-struct synth_link
-{
-	int scene;
-	vec3d position;
-	float heading;
-};
-
-struct synth_scene
-{
-	int object;
-	int number_of_sub_objects;
-	struct synth_sub_object *sub_objects;
-	int number_of_links;
-	struct synth_link *links;
-};
 
 static int contains (const char *name, const char *word)
 {
@@ -525,7 +478,7 @@ int eech_synth3d_write (const char *directory)
 		float x, y, z;
 		const char *name = object_3d_scene_names[i] ? object_3d_scene_names[i] : "";
 		size_for_scene (name, &x, &y, &z);
-		scenes[i].object = box_object (x, y, z);
+		scenes[i].object = eech_synth3d_box_object (x, y, z);
 	}
 	eech_synth3d_keysites (scenes);
 

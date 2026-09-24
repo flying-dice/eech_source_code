@@ -196,6 +196,20 @@ fn main() -> Result<()> {
             });
         }
     }
+    // FARPs: two per side, 6 km behind the front, north and south
+    let mut farps: Vec<(Side, Airfield)> = Vec::new();
+    for (side, scene, dlon) in [(Side::Blue, "AMERICAN_FARP01", -0.085), (Side::Red, "RUSSIAN_FARP01", 0.085)] {
+        for lat in [49.62, 49.90] {
+            let (x, z) = geo.to_map(lat, spec.front_longitude + dlon);
+            farps.push((side, Airfield { x, z, scene: scene.to_string() }));
+        }
+    }
+    // SAM/AAA sites: two per side, around each airbase
+    let mut sams = Vec::new();
+    for (_, a) in &airfields {
+        sams.push(campaign::Sam { x: a.x + 1500.0, z: a.z + 1500.0 });
+        sams.push(campaign::Sam { x: a.x - 1500.0, z: a.z - 1500.0 });
+    }
     let route = map_dir.join("route");
     campaign::write_popnames(&route.join("popname.dat"), &popnames)?;
     campaign::write_bridge_types(&route.join("bridge.pop"))?;
@@ -204,8 +218,12 @@ fn main() -> Result<()> {
     let camp = map_dir.join("camp01");
     std::fs::create_dir_all(&camp)?;
     sides.write_psd(&camp.join(format!("{}.sid", spec.name)))?;
-    let airfield_list: Vec<Airfield> = airfields.into_iter().map(|(_, a)| a).collect();
-    campaign::write_population(&camp.join(format!("{}.pop", spec.name)), extent.1 - 1.0, &airfield_list, &[])?;
+    // placement order names the keysites: airbases by popname.dat, FARPs "FARP n" in order
+    let airbase_names: Vec<(Side, String)> = airfields.iter().map(|(side, a)| (*side, keysite_name(&popnames, a.x, a.z))).collect();
+    let farp_names: Vec<(Side, String)> = farps.iter().enumerate().map(|(i, (side, _))| (*side, format!("FARP {}", i + 1))).collect();
+    let mut placements: Vec<Airfield> = airfields.into_iter().map(|(_, a)| a).collect();
+    placements.extend(farps.into_iter().map(|(_, a)| a));
+    campaign::write_population(&camp.join(format!("{}.pop", spec.name)), extent.1 - 1.0, &placements, &sams)?;
 
     // the campaign script
     let game_path = format!("..\\common\\maps\\map{}\\camp01", spec.map_number);
@@ -221,10 +239,23 @@ fn main() -> Result<()> {
     let _ = writeln!(chc, ":FACTION\n:SIDE SIDE_BLUE_FORCE\n:COLOUR COL_BLUE");
     let _ = writeln!(chc, ":FACTION\n:SIDE SIDE_RED_FORCE\n:COLOUR COL_RED");
     let _ = writeln!(chc, ":END");
+    for side in [Side::Blue, Side::Red] {
+        campaign::write_force(&mut chc, side, &airbase_names, &farp_names);
+    }
     let _ = writeln!(chc, ":END");
     std::fs::write(camp.join(format!("{}.chc", spec.name)), chc)?;
-    eprintln!("campaign: {} airfields, {} names -> {}", airfield_list.len(), popnames.len(), map_dir.display());
+    eprintln!("campaign: {} keysites, {} names -> {}", placements.len(), popnames.len(), map_dir.display());
     Ok(())
+}
+
+/// get_keysite_name (popread.c): the KEYSITE name in popname.dat within 5 km
+fn keysite_name(names: &[PopName], x: f64, z: f64) -> String {
+    names
+        .iter()
+        .filter(|n| n.keysite && ((n.x - x).powi(2) + (n.z - z).powi(2)).sqrt() < 5000.0)
+        .map(|n| campaign::ascii(&n.name))
+        .next()
+        .unwrap_or_default()
 }
 
 /// scanline fill of a polygon (cell units) over the cells whose centres are inside

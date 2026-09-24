@@ -115,10 +115,18 @@ dependencies = [
 name = "eech-dc"
 version = "0.1.0"
 dependencies = [
- "eech-campaign",
+ "eech-engine",
  "mlua",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "eech-engine"
+version = "0.1.0"
+dependencies = [
+ "eech-engine-sys",
+ "serde",
 ]
 
 [[package]]
