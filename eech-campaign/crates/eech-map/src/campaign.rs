@@ -161,12 +161,13 @@ pub fn write_force(chc: &mut String, side: Side, airbases: &[(Side, String)], fa
     let _ = writeln!(chc, ":REGEN_FREQUENCY 1.0");
     let _ = writeln!(chc, ":HARDWARE_RESERVES");
     for (t, n) in [
-        ("ARMED_FIXED_WING", 24),
-        ("UNARMED_FIXED_WING", 8),
-        ("ARMED_HELICOPTER", 40),
-        ("UNARMED_HELICOPTER", 16),
-        ("ARMED_ROUTED_VEHICLE", 120),
-        ("UNARMED_ROUTED_VEHICLE", 40),
+        // what the regen sites rebuild losses from (rg_updt.c): enough for days of war
+        ("ARMED_FIXED_WING", 80),
+        ("UNARMED_FIXED_WING", 16),
+        ("ARMED_HELICOPTER", 160),
+        ("UNARMED_HELICOPTER", 40),
+        ("ARMED_ROUTED_VEHICLE", 400),
+        ("UNARMED_ROUTED_VEHICLE", 120),
         ("ARMED_SHIP_VEHICLE", 0),
         ("UNARMED_SHIP_VEHICLE", 0),
     ] {

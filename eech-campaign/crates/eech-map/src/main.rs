@@ -148,7 +148,10 @@ fn main() -> Result<()> {
     let side_at =
         |x: f64, z: f64| sides.side[((z / spec.ai_sector_size as f64) as usize).min(az - 1) * ax + ((x / spec.ai_sector_size as f64) as usize).min(ax - 1)];
 
-    // airfields: the named aerodromes, largest first; each side's largest gets its side's airport scene
+    // airfields: the named aerodromes, largest first; each side's two largest
+    // (at least 10 km apart) get its side's airport scenes. A side needs a second
+    // airbase: a REPAIR or SUPPLY task never starts from the keysite it serves
+    // (taskgen.c), so a lone airbase put out of action stays out of action.
     let mut aerodromes: Vec<&osm::Site> = osm.sites.iter().filter(|s| s.kind == osm::SiteKind::Aerodrome && !s.name.is_empty()).collect();
     aerodromes.sort_by(|a, b| b.size.total_cmp(&a.size));
     let mut airfields = Vec::new();
@@ -159,12 +162,16 @@ fn main() -> Result<()> {
             continue;
         }
         let side = side_at(x, z);
-        if airfields.iter().any(|f: &(Side, Airfield)| f.0 == side) {
+        let same_side = airfields.iter().filter(|f: &&(Side, Airfield)| f.0 == side).count();
+        if same_side >= 2 || airfields.iter().any(|(_, f)| ((f.x - x).powi(2) + (f.z - z).powi(2)).sqrt() < 10_000.0) {
             continue;
         }
-        let scene = match side {
-            Side::Blue => "AMERICAN_AIRPORT01",
-            Side::Red => "RUSSIAN_AIRPORT01",
+        eprintln!("airbase: {} ({side:?})", a.name);
+        let scene = match (side, same_side) {
+            (Side::Blue, 0) => "AMERICAN_AIRPORT01",
+            (Side::Blue, _) => "AMERICAN_AIRPORT02",
+            (Side::Red, 0) => "RUSSIAN_AIRPORT01",
+            (Side::Red, _) => "RUSSIAN_AIRPORT02",
         };
         popnames.push(PopName {
             name: a.name.clone(),
@@ -181,6 +188,68 @@ fn main() -> Result<()> {
                 scene: scene.to_string(),
             },
         ));
+    }
+    // a side short of aerodromes gets an airbase at its town farthest from its
+    // other airbases, at least 8 km behind the front and inside the map
+    for side in [Side::Blue, Side::Red] {
+        while airfields.iter().filter(|f| f.0 == side).count() < 2 {
+            let best = osm
+                .places
+                .iter()
+                .filter(|p| p.kind != osm::PlaceKind::Village)
+                .filter_map(|p| {
+                    let (x, z) = geo.to_map(p.position.0, p.position.1);
+                    let inside = x > 4000.0 && z > 4000.0 && x < extent.0 - 4000.0 && z < extent.1 - 4000.0;
+                    let behind = (p.position.1 - spec.front_longitude).abs() > 0.11;
+                    (inside && behind && side_at(x, z) == side).then(|| {
+                        let d = airfields.iter().map(|(_, f)| ((f.x - x).powi(2) + (f.z - z).powi(2)).sqrt()).fold(f64::MAX, f64::min);
+                        (p, x, z, d)
+                    })
+                })
+                .filter(|c| c.3 > 10_000.0)
+                .max_by(|a, b| a.3.total_cmp(&b.3));
+            let Some((place, tx, tz, _)) = best else { break };
+            // off water: EECH makes a keysite on water terrain an anchorage (popread.c)
+            let dry = |x: f64, z: f64| {
+                let r = (800.0 / CELL) as i64;
+                let (i0, j0) = ((x / CELL) as i64, (z / CELL) as i64);
+                (-r..=r).all(|dj| {
+                    (-r..=r).all(|di| {
+                        let (i, j) = (i0 + di, j0 + dj);
+                        i < 0 || j < 0 || i >= cx as i64 || j >= cz as i64 || cover[j as usize * cx + i as usize] != 6
+                    })
+                })
+            };
+            let spot = (0..=8)
+                .flat_map(|ring| (0..16).map(move |k| (ring as f64 * 500.0, k as f64 * std::f64::consts::PI / 8.0)))
+                .map(|(d, a)| (tx + d * a.cos(), tz + d * a.sin()))
+                .find(|&(x, z)| dry(x, z) && side_at(x, z) == side);
+            let Some((x, z)) = spot else { break };
+            let name = format!("{} Airbase", campaign::ascii(&place.name));
+            eprintln!("airbase: {name} ({side:?}, synthesised)");
+            let n = airfields.iter().filter(|f| f.0 == side).count();
+            let scene = match (side, n) {
+                (Side::Blue, 0) => "AMERICAN_AIRPORT01",
+                (Side::Blue, _) => "AMERICAN_AIRPORT02",
+                (Side::Red, 0) => "RUSSIAN_AIRPORT01",
+                (Side::Red, _) => "RUSSIAN_AIRPORT02",
+            };
+            popnames.push(PopName {
+                name,
+                keysite: true,
+                x,
+                z,
+                zoom_km: 5.0,
+            });
+            airfields.push((
+                side,
+                Airfield {
+                    x,
+                    z,
+                    scene: scene.to_string(),
+                },
+            ));
+        }
     }
     for p in &osm.places {
         if p.kind == osm::PlaceKind::Village {

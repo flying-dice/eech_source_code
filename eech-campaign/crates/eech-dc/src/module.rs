@@ -26,6 +26,7 @@ impl LuaUserData for LuaEngine {
             let clock = this.0.clock().map_err(lua_error)?;
             lua.to_value_with(&clock, options())
         });
+        methods.add_method("diagnostics", |_, this, ()| this.0.diagnostics().map_err(lua_error));
     }
 }
 

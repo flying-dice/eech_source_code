@@ -31,6 +31,9 @@ target/release/eech-map luxembourg-latest.osm.pbf srtm/ /tmp/lux
 target/release/eech-world crates/eech-world/lua/campaign.lua root=/tmp/lux hours=6 acmi=lux.acmi
 ```
 
+A six-hour Luxembourg campaign recorded this way is in
+[`recordings/luxembourg-6h.zip.acmi`](recordings/) (Tacview opens it directly).
+
 Details, findings and limits: [`docs/engine.md`](docs/engine.md).
 
 ## The campaign kernel spike

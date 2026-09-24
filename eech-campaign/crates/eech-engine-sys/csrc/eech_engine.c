@@ -307,6 +307,57 @@ int eech_engine_prepare_installation (const char *root)
 }
 
 /* diagnostics: every keysite, with its side, type, name and landing types */
+static void force_data_dump (entity *force_en)
+{
+	force *raw = (force *) get_local_entity_data (force_en);
+	int side = get_local_entity_int_value (force_en, INT_TYPE_SIDE);
+	char line[1024];
+	int n = 0;
+	for (int c = 0; c < NUM_FORCE_INFO_CATAGORIES; c++)
+	{
+		n += snprintf (line + n, sizeof (line) - (size_t) n, " %s=%d/%d", force_info_catagory_names[c], raw->force_info_current_hardware[c], raw->force_info_reserve_hardware[c]);
+	}
+	eech_log (1, "force side=%d current/reserve:%s", side, line);
+	n = 0;
+	for (int r = 0; r < NUM_ENTITY_SUB_TYPE_REGENS; r++)
+	{
+		n += snprintf (line + n, sizeof (line) - (size_t) n, " %s=%d", entity_sub_type_regen_names[r], regen_manager[side][r].count);
+	}
+	eech_log (1, "  regen queues:%s", line);
+	for (entity *ks = get_local_entity_first_child (force_en, LIST_TYPE_KEYSITE_FORCE); ks; ks = get_local_entity_child_succ (ks, LIST_TYPE_KEYSITE_FORCE))
+	{
+		int regens = 0, regens_alive = 0;
+		for (entity *rg = get_local_entity_first_child (ks, LIST_TYPE_REGEN); rg; rg = get_local_entity_child_succ (rg, LIST_TYPE_REGEN))
+		{
+			entity *building = get_local_entity_first_child (rg, LIST_TYPE_MEMBER);
+			regens++;
+			regens_alive += building && get_local_entity_int_value (building, INT_TYPE_ALIVE);
+		}
+		eech_log (1, "  keysite %s %s usable=%s efficiency=%.2f ammo=%.1f fuel=%.1f regen sites %d (%d alive)",
+			get_local_entity_string (ks, STRING_TYPE_KEYSITE_NAME), entity_sub_type_keysite_names[get_local_entity_int_value (ks, INT_TYPE_ENTITY_SUB_TYPE)],
+			keysite_usable_state_names[get_local_entity_int_value (ks, INT_TYPE_KEYSITE_USABLE_STATE)], get_local_entity_float_value (ks, FLOAT_TYPE_EFFICIENCY),
+			get_local_entity_float_value (ks, FLOAT_TYPE_AMMO_SUPPLY_LEVEL), get_local_entity_float_value (ks, FLOAT_TYPE_FUEL_SUPPLY_LEVEL), regens, regens_alive);
+		for (entity *grp = get_local_entity_first_child (ks, LIST_TYPE_KEYSITE_GROUP); grp; grp = get_local_entity_child_succ (grp, LIST_TYPE_KEYSITE_GROUP))
+		{
+			int type = get_local_entity_int_value (grp, INT_TYPE_ENTITY_SUB_TYPE);
+			entity *task = get_local_group_primary_task (grp);
+			entity *member = get_local_entity_first_child (grp, LIST_TYPE_MEMBER);
+			if (!group_database[type].default_entity_type || (group_database[type].default_entity_type != ENTITY_TYPE_HELICOPTER && group_database[type].default_entity_type != ENTITY_TYPE_FIXED_WING))
+			{
+				continue;
+			}
+			eech_log (1, "    group %s %s mode=%d sleep=%.0f members=%d state=%s task=%s ammo=%.0f fuel=%.0f first=%s",
+				get_local_entity_string (grp, STRING_TYPE_GROUP_CALLSIGN), entity_sub_type_group_names[type],
+				get_local_entity_int_value (grp, INT_TYPE_GROUP_MODE), ((group *) get_local_entity_data (grp))->sleep,
+				get_local_entity_int_value (grp, INT_TYPE_MEMBER_COUNT),
+				verbose_operational_state_names[get_local_entity_int_value (grp, INT_TYPE_VERBOSE_OPERATIONAL_STATE)],
+				task ? entity_sub_type_task_names[get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE)] : "-",
+				get_local_entity_float_value (grp, FLOAT_TYPE_AMMO_SUPPLY_LEVEL), get_local_entity_float_value (grp, FLOAT_TYPE_FUEL_SUPPLY_LEVEL),
+				member ? get_local_entity_string (member, STRING_TYPE_FULL_NAME) : "-");
+		}
+	}
+}
+
 void eech_engine_debug_keysites (void)
 {
 	entity *force = get_session_entity () ? get_local_entity_first_child (get_session_entity (), LIST_TYPE_FORCE) : NULL;
@@ -324,6 +375,20 @@ void eech_engine_debug_keysites (void)
 		}
 		force = get_local_entity_child_succ (force, LIST_TYPE_FORCE);
 	}
+}
+
+int eech_engine_diagnostics (void)
+{
+	ENTER (0);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	for (entity *force = get_local_entity_first_child (get_session_entity (), LIST_TYPE_FORCE); force; force = get_local_entity_child_succ (force, LIST_TYPE_FORCE))
+	{
+		force_data_dump (force);
+	}
+	LEAVE (EECH_ENGINE_OK);
 }
 
 /* eech_observe.c, behind the entry discipline */

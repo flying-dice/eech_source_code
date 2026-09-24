@@ -236,4 +236,11 @@ impl Engine {
             day: c.day,
         })
     }
+
+    /// Writes the campaign's force state (reserves, regen queues, keysites,
+    /// air groups) to the log.
+    pub fn diagnostics(&self) -> Result<(), EngineError> {
+        // SAFETY: no arguments; the engine checks its own state
+        check(unsafe { sys::eech_engine_diagnostics() })
+    }
 }

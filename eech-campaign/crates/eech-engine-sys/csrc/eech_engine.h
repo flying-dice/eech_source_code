@@ -90,4 +90,11 @@ struct eech_clock
 
 int eech_engine_clock (struct eech_clock *clock);
 
+/*
+ * Writes the campaign's force state to the log sink (stderr): per force its
+ * hardware reserves and regen queues, per keysite its state, supplies and
+ * regen sites, and per air group its mode, task and members.
+ */
+int eech_engine_diagnostics (void);
+
 #endif

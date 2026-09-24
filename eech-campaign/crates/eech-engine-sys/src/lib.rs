@@ -61,5 +61,6 @@ extern "C" {
     pub fn eech_engine_prepare_installation(root: *const c_char) -> c_int;
     pub fn eech_engine_objects(callback: eech_object_callback, user: *mut c_void, count: *mut c_int) -> c_int;
     pub fn eech_engine_clock(clock: *mut eech_clock) -> c_int;
+    pub fn eech_engine_diagnostics() -> c_int;
     pub fn eech_set_log_sink(sink: Option<eech_log_sink>, user: *mut c_void);
 }

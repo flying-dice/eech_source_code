@@ -10,6 +10,8 @@ local root = assert (args.root, "root=<installation root>")
 local hours = tonumber (args.hours or "1")
 local frame_ms = tonumber (args.frame_ms or "100")
 local record_every = tonumber (args.record_every or "10")
+-- simulated seconds between force-state diagnostics (0: none)
+local diagnostics_every = tonumber (args.diagnostics_every or "0")
 
 local dc = require ("eech_dc")
 host.log (dc.name .. " loaded")
@@ -87,6 +89,9 @@ for frame = 1, frames do
 				end
 				last_owner[o.name] = o.side
 			end
+		end
+		if diagnostics_every > 0 and frame % math.floor (diagnostics_every * 1000 / frame_ms) == 0 then
+			engine:diagnostics ()
 		end
 		if frame % (record_every * 600) == 0 then
 			host.log (string.format ("%.0f s (day %d, %.0f s of day): %s", clock.elapsed_seconds, clock.day, clock.time_of_day_seconds, summary (objects)))

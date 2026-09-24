@@ -166,7 +166,7 @@ initialises 3. The first small explosion then reads uninitialised heap.
 | `route/ROADS.dat/.nde/.wp` | OSM motorway to secondary roads. Graph nodes are junctions, degree-2 chains are contracted, and only the largest component is kept: 3,946 nodes and 5,864 links, within EECH's 14-bit and 7-bit limits. |
 | `route/popname.dat`, `bridge.pop` | OSM towns; aerodrome names |
 | `camp01/luxembourg.sid` | the AI-sector side map (a Photoshop file): blue west of 6.07° E, red east |
-| `camp01/luxembourg.pop` | Airfields: the largest named aerodrome on each side (Useldange for blue, Luxembourg Findel for red). Two FARPs per side, 6 km behind the front. Two air-defence sites per airbase. |
+| `camp01/luxembourg.pop` | Airbases: the two largest named aerodromes per side, at least 10 km apart (blue: Useldange and Wiltz-Noertrange; red: Luxembourg Findel). A side with fewer gets one synthesised at its town farthest from its other airbase, off water (red: Echternach). Two FARPs per side, 6 km behind the front. Two air-defence sites per airbase. |
 | `camp01/luxembourg.chc` | Campaign data and, for each force, its reserves, task generation, division numbers, frontline forces and the groups at its airbase |
 | `mapinfo.txt` | the origin, `coordinate=49.4,5.7`: the same geodesy as EECH's Tacview writer, so map and recording agree |
 
@@ -204,7 +204,8 @@ simulated ten minutes:
 3. **Retail data is the real dependency.** The 3D database drives keysites (routes, landing sites, buildings), so it cannot be skipped. It can be synthesised from EECH's own formats and name tables.
 4. **The campaign runs.** Luxembourg boots, generates and assigns tasks from the first minutes (BAI, CAS, recon, CAP, SEAD, ground and OCA strikes, OCA sweeps, advance and retreat, patrols, supply, troop insertion, transfers), and runs for simulated hours without a fault. Runs are deterministic.
 5. **Combat runs.** Aircraft and ground units choose weapons, aim, launch, guide, hit and kill, and wrecks and weapons appear in the recording. Three pieces of data gate combat, and each fails silently: the weapon-system sub-objects (no fire at all), the GWUT table (NaN missiles), and regen sites plus reserves (air tasking stops once losses bring each group type down to EECH's minimum idle count).
-6. **The campaign keeps reserves.** `assign.c` tasks a group only while more than `group_database[type].minimum_idle_count` idle groups of its type remain at the keysite: attack helicopters 2, recon-attack 3, fighters and CAS 1. A campaign therefore needs more groups than that per type, and it needs regen sites to replace losses.
+6. **The campaign keeps reserves.** `assign.c` tasks a group only while more than `group_database[type].minimum_idle_count` idle groups of its type remain in the force's air registry, across the whole map: attack helicopters 2, recon-attack 3, fighters and CAS 1. Landed groups of one type merge into groups of up to four, which lowers the group count further. A campaign therefore needs more groups than the minimum per type, and it needs regen sites to replace losses.
+7. **A side needs two airbases.** A REPAIR or SUPPLY task never starts from the keysite it serves (`taskgen.c`). A side whose only airbase is struck out of action can therefore never repair or resupply it, and its air groups stay "Repairing" for the rest of the campaign. The same happens when there are too few idle groups elsewhere to fly the task.
 
 ## Limits
 
