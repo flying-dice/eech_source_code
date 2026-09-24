@@ -65,6 +65,9 @@ int eech_synth3d_box_object (float x, float y, float z);
 /* airports and FARPs: routes and buildings (eech_synth3d_keysites.c) */
 void eech_synth3d_keysites (struct synth_scene *scenes);
 
+/* aircraft: troop takeoff and landing routes (eech_synth3d_keysites.c) */
+void eech_synth3d_troop_routes (struct synth_scene *scenes);
+
 /* aircraft and vehicles: weapon-system devices (eech_synth3d_weapons.c) */
 void eech_synth3d_weapon_systems (struct synth_scene *scenes);
 

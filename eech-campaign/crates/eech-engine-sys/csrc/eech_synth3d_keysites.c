@@ -274,6 +274,53 @@ static vec3d farp_vehicle_holding (int depth, int slot) { (void) slot; return ci
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 
+/*
+ * troop routes, relative to a helicopter (taskgen.c scales them by 1.5 and
+ * turns them to the cabin door): depth 0 is where the troops end up, the
+ * deepest node is the door
+ */
+static vec3d troop_route (int depth, int slot)
+{
+	(void) slot;
+	return (vec3d) { 16.0f - 4.5f * (float) depth, 0.0f, 0.0f };
+}
+
+/*
+ * every aircraft scene gets a WAYPOINT_ROUTES sub-object carrying troop
+ * takeoff and landing routes (popread.c :: get_object_3d_troop_takeoff_route),
+ * which troop insertion needs to put infantry down and pick it up
+ */
+void eech_synth3d_troop_routes (struct synth_scene *scenes)
+{
+	int marker = eech_synth3d_box_object (0.1f, 0.1f, 0.1f);
+	int route = route_object (1, 4, troop_route);
+	char *done = calloc (OBJECT_3D_LAST, 1);
+	for (int t = 0; t < NUM_ENTITY_SUB_TYPE_AIRCRAFT; t++)
+	{
+		int shape = aircraft_database[t].default_3d_shape;
+		struct synth_scene *sc;
+		struct synth_sub_object *routes;
+		if (shape <= OBJECT_3D_INVALID_OBJECT_INDEX || shape >= OBJECT_3D_LAST || done[shape])
+		{
+			continue;
+		}
+		done[shape] = 1;
+		sc = &scenes[shape];
+		sc->sub_objects = realloc (sc->sub_objects, sizeof (struct synth_sub_object) * (size_t) (sc->number_of_sub_objects + 1));
+		routes = &sc->sub_objects[sc->number_of_sub_objects++];
+		memset (routes, 0, sizeof (*routes));
+		routes->object = marker;
+		routes->named_index = OBJECT_3D_SUB_OBJECT_WAYPOINT_ROUTES;
+		routes->number_of_children = 2;
+		routes->children = calloc (2, sizeof (struct synth_sub_object));
+		routes->children[0].object = route;
+		routes->children[0].named_index = OBJECT_3D_SUB_OBJECT_TROOP_TAKEOFF_ROUTE;
+		routes->children[1].object = route;
+		routes->children[1].named_index = OBJECT_3D_SUB_OBJECT_TROOP_LANDING_ROUTE;
+	}
+	free (done);
+}
+
 struct route_spec
 {
 	int named_index, slots, depths;

@@ -540,6 +540,7 @@ int eech_synth3d_write (const char *directory)
 	}
 	eech_synth3d_keysites (scenes);
 	eech_synth3d_weapon_systems (scenes);
+	eech_synth3d_troop_routes (scenes);
 
 	ok = write_bininfo (directory) && write_objects (directory) && write_scenes (directory, scenes) && write_render_tables (directory)
 		&& write_textures (directory);
