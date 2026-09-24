@@ -103,7 +103,16 @@ static int observe (entity *en, eech_object_callback callback, void *user)
 		default:
 			return 0;
 	}
-	o.side = get_local_entity_int_value (en, INT_TYPE_SIDE);
+	if (o.kind == EECH_OBJECT_WEAPON)
+	{
+		/* weapons carry no side of their own: their launcher's */
+		entity *launcher = get_local_entity_parent (en, LIST_TYPE_LAUNCHED_WEAPON);
+		o.side = launcher ? get_local_entity_int_value (launcher, INT_TYPE_SIDE) : ENTITY_SIDE_NEUTRAL;
+	}
+	else
+	{
+		o.side = get_local_entity_int_value (en, INT_TYPE_SIDE);
+	}
 	p = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
 	o.x = p->x;
 	o.y = p->y;

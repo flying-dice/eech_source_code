@@ -149,7 +149,11 @@ Formation databases, the language database and the suspension tables.
 tuning table (`eechini.c` `DEFAULT_GWUT_FILE`), into `cohokum/`. Weapon
 weights, drag and motor power come only from it: the compiled weapon database
 leaves them at zero, and a missile launched without the table flies with a
-NaN velocity.
+NaN velocity. It copies the explosion and smoke tables (`EXPLOS.CSV`,
+`METASMOK.CSV`, `SMOKES.CSV`) too. Without `EXPLOS.CSV`, EECH exports its
+compiled explosion database and runs on it, and that database declares
+components it never sets: `XSMALL_HE_META_EXPLOSION` declares 5 and
+initialises 3. The first small explosion then reads uninitialised heap.
 
 ### The map and campaign (`eech-map`)
 
