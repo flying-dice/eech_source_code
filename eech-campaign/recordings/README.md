@@ -43,6 +43,12 @@ transfers and SUPPLY missions that carry factory and refinery output to the
 airbases. By nightfall blue's frontline armour is nearly destroyed. No keysite
 changes hands in these twelve hours.
 
+A 48-hour continuation (not committed: 167 MB) also runs without a fault:
+1,396 destroyed and 4,560 weapons launched. By day 3 both sides have used
+all 160 of their reserve helicopters, and the front is static with 16 blue
+and 68 red vehicles left. Still no keysite changes hands. Red never mounts a
+troop insertion or an OCA strike across Georgia's distances.
+
 ## `luxembourg-6h.zip.acmi`
 
 Six simulated hours of Luxembourg (front at 6.07° E).
