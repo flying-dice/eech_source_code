@@ -4,6 +4,11 @@ use eech_engine::{Engine, EngineConfig, EngineError, Gunship};
 use mlua::prelude::*;
 use std::path::PathBuf;
 
+/// Rust None becomes Lua nil (not mlua's null sentinel), so scripts can test fields with `if o.task then`
+fn options() -> LuaSerializeOptions {
+    LuaSerializeOptions::new().serialize_none_to_null(false)
+}
+
 fn lua_error(e: EngineError) -> LuaError {
     LuaError::runtime(format!("eech: {e}"))
 }
@@ -15,11 +20,11 @@ impl LuaUserData for LuaEngine {
         methods.add_method_mut("frame", |_, this, milliseconds: u32| this.0.frame(milliseconds).map_err(lua_error));
         methods.add_method("objects", |lua, this, ()| {
             let objects = this.0.objects().map_err(lua_error)?;
-            lua.to_value(&objects)
+            lua.to_value_with(&objects, options())
         });
         methods.add_method("clock", |lua, this, ()| {
             let clock = this.0.clock().map_err(lua_error)?;
-            lua.to_value(&clock)
+            lua.to_value_with(&clock, options())
         });
     }
 }

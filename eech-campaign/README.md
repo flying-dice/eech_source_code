@@ -1,5 +1,40 @@
 # eech-campaign
 
+Enemy Engaged: Comanche vs Hokum's dynamic campaign, and the whole engine
+behind it, as an embeddable native module.
+
+## The full engine: EECH headless, as a Lua module
+
+All of EECH (the maintained Windows build's 1,225 C files: dynamic campaign,
+AI, pathfinding, flight, weapons, damage, comms, entities) compiles headless
+for x86-64 Linux into a Lua 5.1 module. A Rust host process embeds Lua,
+loads the module with `require ("eech_dc")` and records Tacview.
+
+```
+   eech-world (host binary)     Rust; embeds Lua 5.1; Tacview ACMI 2.2
+        │  require ("eech_dc") → boot { ... } · engine:frame (ms) · engine:objects ()
+        ▼
+   eech-dc (libeech_dc.so)      the Lua module (mlua, lua51 + module)
+        ▼
+   eech-engine / -sys           safe API · native build, headless platform layer, synthetic data
+        ▼
+   original EECH C              ../aphavoc/source, ../modules (1,217 files as written)
+
+   eech-map                     OpenStreetMap + SRTM → an EECH map and dynamic campaign
+```
+
+```sh
+cargo build --release -p eech-map -p eech-dc -p eech-world
+# a map and campaign from OSM and SRTM (Luxembourg), into an installation root
+target/release/eech-map luxembourg-latest.osm.pbf srtm/ /tmp/lux
+# run the dynamic campaign for 6 simulated hours, recording Tacview
+target/release/eech-world crates/eech-world/lua/campaign.lua root=/tmp/lux hours=6 acmi=lux.acmi
+```
+
+Details, findings and limits: [`docs/engine.md`](docs/engine.md).
+
+## The campaign kernel spike
+
 The Enemy Engaged: Comanche vs Hokum dynamic campaign as an **embeddable native
 module**: the original EECH campaign C, compiled for the host target, behind a
 Rust API that owns the architecture.
