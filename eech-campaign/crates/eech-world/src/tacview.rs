@@ -21,7 +21,6 @@ const P2: f64 = -93.5;
 pub struct Recorder<W: Write> {
     out: W,
     latitude: f64,
-    longitude: f64,
     latitude_scale: f64,
     last_frame: Option<f64>,
     text: String,
@@ -53,7 +52,6 @@ impl<W: Write> Recorder<W> {
         Ok(Recorder {
             out,
             latitude,
-            longitude,
             latitude_scale,
             last_frame: None,
             text: String::new(),
