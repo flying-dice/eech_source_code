@@ -97,10 +97,14 @@ scenario has been removed entirely.
 ## Next steps
 
 1. The retail campaign now runs to a conclusion: red wins in 61.8 h
-   (`recordings/README.md`). Next is the foundation work before the DCS side:
+   (`recordings/README.md`).
+2. **Regression test:** `tools/regress-docker.sh <cvh> <avh>` runs Lebanon and
+   Georgia for 3 simulated hours each and compares the campaign metrics with
+   `regression/*.json` (`regression/README.md`). Run it between
+   refactorings. The toolchain is `tools/Dockerfile`, and the retail roots
+   come from `tools/retail-map3-installs.sh` and `tools/retail-cvh.sh`.
+3. Next is the foundation work before the DCS side:
    - a pull request with CI green;
-   - a committed Docker toolchain;
-   - `tools/retail-map3.sh` taking the GOG and Steam folders directly;
    - an engine API for input (kills from DCS, save and restore).
 
 ## Known limits

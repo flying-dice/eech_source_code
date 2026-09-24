@@ -41,6 +41,9 @@ pub struct eech_object {
     pub pitch: f32,
     pub roll: f32,
     pub efficiency: f32,
+    pub ammo: f32,
+    pub fuel: f32,
+    pub usable: c_int,
 }
 
 #[repr(C)]

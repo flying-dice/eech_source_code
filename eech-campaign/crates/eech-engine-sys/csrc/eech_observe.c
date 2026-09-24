@@ -121,6 +121,9 @@ static int observe (entity *en, eech_object_callback callback, void *user)
 	{
 		o.alive = TRUE;
 		o.efficiency = get_local_entity_float_value (en, FLOAT_TYPE_EFFICIENCY);
+		o.ammo = get_local_entity_float_value (en, FLOAT_TYPE_AMMO_SUPPLY_LEVEL);
+		o.fuel = get_local_entity_float_value (en, FLOAT_TYPE_FUEL_SUPPLY_LEVEL);
+		o.usable = get_local_entity_int_value (en, INT_TYPE_KEYSITE_USABLE_STATE);
 	}
 	else
 	{

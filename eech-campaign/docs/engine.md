@@ -117,7 +117,13 @@ Tacview logger (`entity/tacview/tacview.c`) classifies it:
 - keysites.
 
 Each object carries its EECH database name, side, position, attitude, alive
-flag, group callsign, and the group's primary task.
+flag, group callsign, and the group's primary task. Keysites also carry
+their efficiency, their ammo and fuel supply levels, and their usable state
+(usable, out of action, repairing).
+
+`lua/metrics.lua` abstracts a run from these: sorties, weapons, losses, regen,
+captures, keysites and supply. The regression test (`regression/`) compares
+them against baselines.
 
 ## Data
 

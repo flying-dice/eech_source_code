@@ -123,6 +123,11 @@ pub struct Object {
     pub pitch: f32,
     pub roll: f32,
     pub efficiency: f32,
+    /// keysites: ammo and fuel supply levels (percent)
+    pub ammo: f32,
+    pub fuel: f32,
+    /// keysites: EECH's usable state ("usable", "repairing", "out_of_action", ...)
+    pub usable: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, Default, Serialize)]
@@ -135,6 +140,17 @@ pub struct Clock {
 /// the booted engine (one per process)
 pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
+}
+
+/// EECH's keysite usable states (en_state.h KEYSITE_USABLE_STATES)
+fn usable_name(state: c_int) -> String {
+    match state {
+        0 => "usable",
+        1 => "out_of_action",
+        2 => "repairing",
+        _ => "unknown",
+    }
+    .to_string()
 }
 
 /// writes the generated part of an installation under `root`: the 3D object
@@ -217,6 +233,9 @@ impl Engine {
                 pitch: o.pitch,
                 roll: o.roll,
                 efficiency: o.efficiency,
+                ammo: o.ammo,
+                fuel: o.fuel,
+                usable: (kind == Kind::Keysite).then(|| usable_name(o.usable)),
             });
         }
         let mut out: Vec<Object> = Vec::new();

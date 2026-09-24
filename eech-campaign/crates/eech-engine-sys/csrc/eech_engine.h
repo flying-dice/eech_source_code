@@ -77,6 +77,8 @@ struct eech_object
 	float x, y, z;		/* EECH world metres: x east, y up, z north */
 	float heading, pitch, roll;	/* radians */
 	float efficiency;	/* keysites */
+	float ammo, fuel;	/* keysites: supply levels, percent */
+	int usable;		/* keysites: KEYSITE_STATE_* (0 usable, 1 out of action, 2 repairing) */
 };
 
 typedef void (*eech_object_callback) (const struct eech_object *object, void *user);
