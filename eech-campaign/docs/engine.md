@@ -60,6 +60,8 @@ tree is never modified.
 | **B2** | `userint2/ui_sys/ui_attrs/ui_attrs.c` | **New 64-bit blocker.** Five UI attributes pass a `ui_object *` and read it back as `va_arg (pargs, int)`. Four graphic attributes read a pointer into an `int`. On x86-64 the pointer is truncated, and the first UI screen built crashes. The fix reads the arguments as pointers. |
 | **X1** | `system/fpu.h` | **New 64-bit blocker.** The GNU `convert_float_to_int` / `convert_double_to_int` are `fistp (%1)`. In AT&T syntax an unsuffixed `fistp` is the 16-bit store, so only the low 16 bits of the int are written and values from 32,768 up saturate. Every world coordinate past 32.7 km then fell into the wrong sector (`get_x_sector`). On Luxembourg, the eastern half of the map shared one sector column; on Georgia, every keysite came out blue. The asm also popped the x87 stack without declaring it. The fix converts in C: `cvttss2si` truncates, which is the rounding EECH sets. |
 | S1 | `entity/special/force/fc_msgs.c` | A keysite low on ammo or fuel is resupplied from the closest factory or refinery, or from the closest airbase if that is nearer. The airbase lookup excludes no keysite, so an airbase asking finds itself at 0 km and becomes its own supplier. It has no cargo of what it lacks, so no SUPPLY task is created and no airbase is ever resupplied. The patch passes the requester as `get_closest_keysite`'s exclude argument. |
+| C1 | `3d/3dobjdb.c` | A scene's collision object 0 is the null object, meaning none. The `.EES` path maps 0 to −1, but the `3dobjdb.bin` path keeps it, and the retail database stores 0 (`RS_MANPAD`, for one). The first weapon tested against such a scene read the null object's NULL surface list. |
+| T1, T2 | `graphics/textuser.c`, `3d/3dobjid.c` | Headless only. The community objects over a retail texture set disagree on which textures are camouflaged, and name texture animations the retail set lacks. Nothing is drawn headless, so both are logged instead of fatal. |
 | W1 | `entity/mobile/weapon/wn_move.c` | `get_ballistic_pitch_deflection` takes `asin (height / range)`, and the aiming loop jitters the range by up to 5 m. At point blank the height can exceed the range: the pitch is NaN, its table index `INT_MIN`, and the ballistics table read faults. The patch returns "no solution". |
 
 `-ftrivial-auto-var-init=zero` keeps the spike's F1 decision (`taskgen.c`
@@ -187,6 +189,35 @@ therefore lose Abkhazia's north-west corner and a sliver of Lagodekhi.
 | `camp01/luxembourg.pop` | Airbases: the two largest named aerodromes per side, at least 10 km apart (blue: Useldange and Wiltz-Noertrange; red: Luxembourg Findel). A side with fewer gets one synthesised at its town farthest from its other airbase, off water (red: Echternach). Two FARPs per side, 6 km behind the front. Two air-defence sites per airbase. |
 | `camp01/luxembourg.chc` | Campaign data and, for each force, its reserves, task generation, division numbers, frontline forces and the groups at its airbase |
 | `mapinfo.txt` | the origin, `coordinate=49.4,5.7`: the same geodesy as EECH's Tacview writer, so map and recording agree |
+
+### Retail data: the Georgia campaign (map3, "Caspian Black Gold")
+
+`tools/retail-map3.sh <data> <root>` assembles an installation from retail
+data kept outside the repository:
+
+- a retail `cohokum/3ddata`, plus the community objects from
+  `setup/cohokum/3ddata/objects`. The Steam Apache vs Havoc `3dobjdb.bin` holds
+  2,761 of the 3,026 scenes this source defines, and a modern install adds the
+  rest as `.EES` scenes;
+- map3's campaign files, population, roads (`ROADDATA.*`, which EECH reads when
+  `ROADS.*` is absent) and terrain (`terrain.ffp`, `default.sec`,
+  `default.rgb`);
+- the repository's formation, language and GWUT/explosion tables.
+
+The retail `GEORGIA.SCR` ends the campaign as a FAIL after 30 minutes (a
+`TIME_DURATION` trigger), and the installed copy drops that trigger.
+`prepare_installation` keeps a retail 3D database (one that has
+`textures.pal`).
+
+Map3 is not metric. Correlating its terrain heights with SRTM (r = 0.978)
+gives x = 1.217 e − 0.023 n + 258,100 and z = −0.0036 e + 0.991 n + 94,261,
+where e and n are metres east and north of 42° N 43° E. The map is stretched
+22% east–west. EECH's own Tacview origin for map3 (`textuser.c`: 41.16, 40.185,
+treated as metric) is off by up to 50 km. The recorder takes the fitted
+projection instead (`affine` in `campaign.lua`'s `georgia_retail`).
+
+`tools/offsite.sh` keeps large install data and run outputs in one Google
+Drive folder through rclone, configured from environment variables.
 
 ## The DLL and the host
 
