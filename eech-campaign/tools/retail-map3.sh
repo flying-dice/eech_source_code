@@ -8,7 +8,8 @@
 #   <data>/map3/terrain/               terrain.ffp, default.sec, default.rgb
 #   <data>/map3/campaign/, graphics/   optional, copied as they are
 #
-# plus the repository's own data (setup/common/data, setup/cohokum tables).
+# plus the repository's own data (setup/common/data, setup/cohokum tables and
+# its 3ddata/objects).
 #
 # The retail GEORGIA.SCR ends the campaign as a FAIL after 30 minutes
 # (a TIME_DURATION trigger); the installed copy drops that trigger, and the
@@ -22,6 +23,10 @@ repo=$(cd "$(dirname "$0")/../.." && pwd)
 map=$root/common/maps/map3
 mkdir -p "$root/cohokum" "$root/common/data" "$map"
 cp -r "$data/3ddata" "$root/cohokum/"
+# the community objects a modern install adds over the retail database: the
+# scenes EECH defines beyond the retail 3dobjdb.bin (2,761 of its 3,026), as
+# .EES scenes and LightWave objects (3dobjdb.c reads them by scene name)
+cp -r "$repo/setup/cohokum/3ddata/objects" "$root/cohokum/3ddata/"
 for t in GWUT1162.CSV EXPLOS.CSV METASMOK.CSV SMOKES.CSV; do cp "$repo/setup/cohokum/$t" "$root/cohokum/"; done
 cp -r "$repo/setup/common/data/." "$root/common/data/"
 for d in camp01 route terrain campaign graphics; do

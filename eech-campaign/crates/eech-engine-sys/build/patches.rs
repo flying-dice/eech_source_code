@@ -105,6 +105,30 @@ pub const PATCHES: &[Patch] = &[
         replacement: "\t\t\tairbase = get_closest_keysite (ENTITY_SUB_TYPE_KEYSITE_AIRBASE, side, pos, 10 * KILOMETRE, &airbase_actual_range, TRUE, sender); /* EECH headless (S1) */\n",
         count: 2,
     },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "C1-null-collision-object",
+        why: "A scene's collision object index 0 means none: object 0 is the null object, with no points or surfaces. Scenes read from .EES files map 0 to -1, but scenes read from 3dobjdb.bin keep it, and the retail database stores 0 (RS_MANPAD, for one). The first weapon tested against such a scene reads the null object's NULL surface list (get_object_3d_collision_object_geometry_triangle). Map 0 to -1 on this path too.",
+        original: "\t\tfread ( &objects_3d_scene_database[scene_index].collision_object_index, sizeof ( int ), 1, fp );\n",
+        replacement: "\t{\n\t\tfread ( &objects_3d_scene_database[scene_index].collision_object_index, sizeof ( int ), 1, fp );\n\t\tif ( !objects_3d_scene_database[scene_index].collision_object_index ) objects_3d_scene_database[scene_index].collision_object_index = -1; /* EECH headless (C1) */\n\t}\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/graphics/textuser.c",
+        id: "T1-texture-camo-mismatch",
+        why: "Headless: the community objects (setup/cohokum/3ddata/objects) over a retail Apache vs Havoc database disagree with its texture set on which textures are camouflaged, and texture registration treats that as fatal. Nothing is drawn headless, so it is logged instead.",
+        original: "\t\t\tdebug_fatal ( \"Texture '%s': %s defined it as",
+        replacement: "\t\t\tdebug_log ( /* EECH headless (T1) */ \"Texture '%s': %s defined it as",
+        count: 2,
+    },
+    Patch {
+        file: "modules/3d/3dobjid.c",
+        id: "T2-missing-texture-animation",
+        why: "Headless: a community object (setup/cohokum/3ddata/objects) can name a texture animation the retail texture set lacks (the community installer adds them as TGA files). Nothing is drawn headless: use animation 0 and log it, so the object's geometry, collision mesh and weapon mounts still load.",
+        original: "\t\tdebug_fatal ( \"FAILED to find texture animation '%s'\", animation_name );\n",
+        replacement: "\t\tdebug_log ( \"FAILED to find texture animation '%s'\", animation_name ); /* EECH headless (T2) */\n\t\ttexture_animation = 0;\n",
+        count: 1,
+    },
 ];
 
 pub fn apply(file: &str, text: &str) -> String {
