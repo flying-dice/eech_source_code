@@ -1,0 +1,1026 @@
+/*
+ * EECH headless build: the Win32 and MSVC CRT surface EECH calls, over POSIX.
+ *
+ * Paths: EECH writes Windows paths ("..\\common\\maps\\map6\\terrain"). Every
+ * path taken here is converted to '/' and resolved case-insensitively, one
+ * component at a time, because the data files are named in mixed case.
+ *
+ * There is no window, no registry and no multimedia device: those calls
+ * succeed as no-ops or report "not present", which is what EECH's own code
+ * handles (a missing registry key, no CD, no timer device).
+ */
+
+#define _GNU_SOURCE
+#include <ctype.h>
+#include <dirent.h>
+#include <dlfcn.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <fnmatch.h>
+#include <pthread.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <time.h>
+
+#include "windows.h"
+#include "io.h"
+#include "winsock.h"
+
+#include "eech_headless.h"
+
+static __thread DWORD last_error;
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* paths */
+
+static void resolve_component (char *dir_end, char *path)
+{
+	/* path is NUL-terminated at the end of the component that starts after dir_end */
+	struct stat st;
+	if (stat (path, &st) == 0)
+	{
+		return;
+	}
+	char *name = dir_end ? dir_end + 1 : path;
+	char dir[PATH_MAX];
+	if (dir_end)
+	{
+		size_t n = (size_t) (dir_end - path);
+		if (n == 0)
+		{
+			strcpy (dir, "/");
+		}
+		else
+		{
+			memcpy (dir, path, n);
+			dir[n] = 0;
+		}
+	}
+	else
+	{
+		strcpy (dir, ".");
+	}
+	DIR *d = opendir (dir);
+	if (!d)
+	{
+		return;
+	}
+	struct dirent *e;
+	while ((e = readdir (d)) != NULL)
+	{
+		if (strcasecmp (e->d_name, name) == 0)
+		{
+			memcpy (name, e->d_name, strlen (name));
+			break;
+		}
+	}
+	closedir (d);
+}
+
+void eech_native_path (const char *in, char *out, size_t size)
+{
+	size_t i;
+	for (i = 0; in[i] && i + 1 < size; i++)
+	{
+		out[i] = (in[i] == '\\') ? '/' : in[i];
+	}
+	out[i] = 0;
+	/* collapse doubled separators */
+	char *w = out;
+	for (char *r = out; *r; r++)
+	{
+		if (!(r[0] == '/' && r[1] == '/'))
+		{
+			*w++ = *r;
+		}
+	}
+	*w = 0;
+	/* resolve each component case-insensitively */
+	char *prev = NULL;
+	for (char *p = out; ; p++)
+	{
+		if (*p == '/' || *p == 0)
+		{
+			char c = *p;
+			if (p != out)
+			{
+				*p = 0;
+				resolve_component (prev, out);
+				*p = c;
+			}
+			if (c == 0)
+			{
+				break;
+			}
+			prev = p;
+		}
+	}
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* MSVC CRT */
+
+char *strupr (char *s)
+{
+	for (char *p = s; *p; p++)
+	{
+		*p = (char) toupper ((unsigned char) *p);
+	}
+	return s;
+}
+
+char *strlwr (char *s)
+{
+	for (char *p = s; *p; p++)
+	{
+		*p = (char) tolower ((unsigned char) *p);
+	}
+	return s;
+}
+
+char *itoa (int value, char *buffer, int radix)
+{
+	char tmp[40];
+	int i = 0, negative = (radix == 10 && value < 0);
+	unsigned int v = negative ? (unsigned int) -value : (unsigned int) value;
+	do
+	{
+		int d = (int) (v % (unsigned int) radix);
+		tmp[i++] = (char) (d < 10 ? '0' + d : 'a' + d - 10);
+		v /= (unsigned int) radix;
+	}
+	while (v);
+	char *o = buffer;
+	if (negative)
+	{
+		*o++ = '-';
+	}
+	while (i)
+	{
+		*o++ = tmp[--i];
+	}
+	*o = 0;
+	return buffer;
+}
+
+/* _findfirst: pattern "dir\\*.ext" (only the last component may contain wildcards) */
+
+struct find_state
+{
+	DIR *dir;
+	char directory[PATH_MAX];
+	char pattern[256];
+};
+
+static int find_next_entry (struct find_state *s, char *name, size_t name_size, unsigned *attrib, uint32_t *size, time_t *mtime)
+{
+	struct dirent *e;
+	while ((e = readdir (s->dir)) != NULL)
+	{
+		if (fnmatch (s->pattern, e->d_name, FNM_CASEFOLD) == 0)
+		{
+			char full[PATH_MAX * 2];
+			struct stat st;
+			snprintf (full, sizeof (full), "%s/%s", s->directory, e->d_name);
+			if (stat (full, &st) != 0)
+			{
+				continue;
+			}
+			snprintf (name, name_size, "%s", e->d_name);
+			*attrib = S_ISDIR (st.st_mode) ? _A_SUBDIR : _A_NORMAL;
+			*size = (uint32_t) st.st_size;
+			*mtime = st.st_mtime;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static struct find_state *find_open (const char *filespec)
+{
+	char native[PATH_MAX];
+	eech_native_path (filespec, native, sizeof (native));
+	struct find_state *s = calloc (1, sizeof (*s));
+	if (!s)
+	{
+		return NULL;
+	}
+	char *slash = strrchr (native, '/');
+	if (slash)
+	{
+		*slash = 0;
+		snprintf (s->directory, sizeof (s->directory), "%s", slash == native ? "/" : native);
+		snprintf (s->pattern, sizeof (s->pattern), "%s", slash + 1);
+	}
+	else
+	{
+		strcpy (s->directory, ".");
+		snprintf (s->pattern, sizeof (s->pattern), "%s", native);
+	}
+	/* "*.*" matches every name on Windows */
+	if (strcmp (s->pattern, "*.*") == 0)
+	{
+		strcpy (s->pattern, "*");
+	}
+	s->dir = opendir (s->directory);
+	if (!s->dir)
+	{
+		free (s);
+		return NULL;
+	}
+	return s;
+}
+
+static void find_close (struct find_state *s)
+{
+	if (s)
+	{
+		closedir (s->dir);
+		free (s);
+	}
+}
+
+intptr_t _findfirst (const char *filespec, struct _finddata_t *fileinfo)
+{
+	struct find_state *s = find_open (filespec);
+	time_t t;
+	if (!s)
+	{
+		errno = ENOENT;
+		return -1;
+	}
+	if (!find_next_entry (s, fileinfo->name, sizeof (fileinfo->name), &fileinfo->attrib, &fileinfo->size, &t))
+	{
+		find_close (s);
+		errno = ENOENT;
+		return -1;
+	}
+	fileinfo->time_write = fileinfo->time_access = fileinfo->time_create = t;
+	return (intptr_t) s;
+}
+
+int _findnext (intptr_t handle, struct _finddata_t *fileinfo)
+{
+	time_t t;
+	if (handle == -1 || !find_next_entry ((struct find_state *) handle, fileinfo->name, sizeof (fileinfo->name), &fileinfo->attrib, &fileinfo->size, &t))
+	{
+		return -1;
+	}
+	fileinfo->time_write = fileinfo->time_access = fileinfo->time_create = t;
+	return 0;
+}
+
+int _findclose (intptr_t handle)
+{
+	if (handle != -1)
+	{
+		find_close ((struct find_state *) handle);
+	}
+	return 0;
+}
+
+static void unix_to_filetime (time_t t, FILETIME *ft)
+{
+	uint64_t v = ((uint64_t) t + 11644473600ull) * 10000000ull;
+	ft->dwLowDateTime = (DWORD) v;
+	ft->dwHighDateTime = (DWORD) (v >> 32);
+}
+
+HANDLE FindFirstFile (LPCSTR pattern, WIN32_FIND_DATA *data)
+{
+	struct find_state *s = find_open (pattern);
+	time_t t;
+	uint32_t size;
+	unsigned attrib;
+	if (!s)
+	{
+		last_error = 2;
+		return INVALID_HANDLE_VALUE;
+	}
+	memset (data, 0, sizeof (*data));
+	if (!find_next_entry (s, data->cFileName, sizeof (data->cFileName), &attrib, &size, &t))
+	{
+		find_close (s);
+		last_error = 2;
+		return INVALID_HANDLE_VALUE;
+	}
+	data->dwFileAttributes = (attrib & _A_SUBDIR) ? FILE_ATTRIBUTE_DIRECTORY : FILE_ATTRIBUTE_NORMAL;
+	data->nFileSizeLow = size;
+	unix_to_filetime (t, &data->ftLastWriteTime);
+	return s;
+}
+
+BOOL FindNextFile (HANDLE find, WIN32_FIND_DATA *data)
+{
+	time_t t;
+	uint32_t size;
+	unsigned attrib;
+	memset (data, 0, sizeof (*data));
+	if (find == INVALID_HANDLE_VALUE || !find_next_entry ((struct find_state *) find, data->cFileName, sizeof (data->cFileName), &attrib, &size, &t))
+	{
+		last_error = 18;
+		return FALSE;
+	}
+	data->dwFileAttributes = (attrib & _A_SUBDIR) ? FILE_ATTRIBUTE_DIRECTORY : FILE_ATTRIBUTE_NORMAL;
+	data->nFileSizeLow = size;
+	unix_to_filetime (t, &data->ftLastWriteTime);
+	return TRUE;
+}
+
+BOOL FindClose (HANDLE find)
+{
+	if (find != INVALID_HANDLE_VALUE)
+	{
+		find_close ((struct find_state *) find);
+	}
+	return TRUE;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* kernel objects: files, mappings, mutexes, events */
+
+enum object_kind { OBJECT_FILE = 0x46494c45, OBJECT_MAPPING, OBJECT_MUTEX, OBJECT_EVENT };
+
+struct object
+{
+	enum object_kind kind;
+	int fd;
+	size_t size;
+	pthread_mutex_t mutex;
+	pthread_cond_t cond;
+	int signalled, manual;
+};
+
+static struct object *new_object (enum object_kind kind)
+{
+	struct object *o = calloc (1, sizeof (*o));
+	if (o)
+	{
+		o->kind = kind;
+		o->fd = -1;
+		pthread_mutex_init (&o->mutex, NULL);
+		pthread_cond_init (&o->cond, NULL);
+	}
+	return o;
+}
+
+HANDLE CreateFile (LPCSTR name, DWORD access, DWORD share, LPSECURITY_ATTRIBUTES security, DWORD disposition, DWORD flags, HANDLE template_file)
+{
+	char native[PATH_MAX];
+	int mode = (access & GENERIC_WRITE) ? ((access & GENERIC_READ) ? O_RDWR : O_WRONLY) : O_RDONLY;
+	(void) share;
+	(void) security;
+	(void) flags;
+	(void) template_file;
+	switch (disposition)
+	{
+		case CREATE_NEW: mode |= O_CREAT | O_EXCL; break;
+		case CREATE_ALWAYS: mode |= O_CREAT | O_TRUNC; break;
+		case OPEN_ALWAYS: mode |= O_CREAT; break;
+		default: break;
+	}
+	eech_native_path (name, native, sizeof (native));
+	int fd = open (native, mode, 0644);
+	if (fd < 0)
+	{
+		last_error = 2;
+		return INVALID_HANDLE_VALUE;
+	}
+	struct object *o = new_object (OBJECT_FILE);
+	if (!o)
+	{
+		close (fd);
+		return INVALID_HANDLE_VALUE;
+	}
+	o->fd = fd;
+	return o;
+}
+
+BOOL ReadFile (HANDLE file, LPVOID buffer, DWORD size, LPDWORD read_count, LPOVERLAPPED overlapped)
+{
+	struct object *o = file;
+	(void) overlapped;
+	ssize_t n = read (o->fd, buffer, size);
+	if (read_count)
+	{
+		*read_count = n > 0 ? (DWORD) n : 0;
+	}
+	return n >= 0;
+}
+
+DWORD GetFileSize (HANDLE file, LPDWORD high)
+{
+	struct object *o = file;
+	struct stat st;
+	if (fstat (o->fd, &st) != 0)
+	{
+		return 0xFFFFFFFFu;
+	}
+	if (high)
+	{
+		*high = (DWORD) ((uint64_t) st.st_size >> 32);
+	}
+	return (DWORD) st.st_size;
+}
+
+HANDLE CreateFileMapping (HANDLE file, LPSECURITY_ATTRIBUTES security, DWORD protect, DWORD size_high, DWORD size_low, LPCSTR name)
+{
+	struct object *f = file;
+	(void) security;
+	(void) protect;
+	(void) name;
+	if (file == INVALID_HANDLE_VALUE || !f || f->kind != OBJECT_FILE)
+	{
+		/* named shared memory (sharedmem.c): not provided headless */
+		last_error = 5;
+		return NULL;
+	}
+	struct object *o = new_object (OBJECT_MAPPING);
+	if (!o)
+	{
+		return NULL;
+	}
+	o->fd = dup (f->fd);
+	o->size = ((uint64_t) size_high << 32) | size_low;
+	if (o->size == 0)
+	{
+		struct stat st;
+		fstat (o->fd, &st);
+		o->size = (size_t) st.st_size;
+	}
+	return o;
+}
+
+/* mapping base -> length, for UnmapViewOfFile */
+#define MAX_VIEWS 4096
+static struct { void *base; size_t size; } views[MAX_VIEWS];
+static pthread_mutex_t views_lock = PTHREAD_MUTEX_INITIALIZER;
+
+LPVOID MapViewOfFile (HANDLE mapping, DWORD access, DWORD offset_high, DWORD offset_low, SIZE_T size)
+{
+	struct object *o = mapping;
+	off_t offset = (off_t) (((uint64_t) offset_high << 32) | offset_low);
+	size_t length = size ? size : o->size - (size_t) offset;
+	if (length == 0)
+	{
+		length = 1;
+	}
+	int prot = PROT_READ | ((access & FILE_MAP_WRITE) ? PROT_WRITE : 0);
+	/* EECH writes into read-only views in places: map privately, copy-on-write */
+	void *p = mmap (NULL, length, PROT_READ | PROT_WRITE, MAP_PRIVATE, o->fd, offset);
+	(void) prot;
+	if (p == MAP_FAILED)
+	{
+		last_error = 8;
+		return NULL;
+	}
+	pthread_mutex_lock (&views_lock);
+	for (int i = 0; i < MAX_VIEWS; i++)
+	{
+		if (!views[i].base)
+		{
+			views[i].base = p;
+			views[i].size = length;
+			break;
+		}
+	}
+	pthread_mutex_unlock (&views_lock);
+	return p;
+}
+
+BOOL UnmapViewOfFile (LPCVOID base)
+{
+	pthread_mutex_lock (&views_lock);
+	for (int i = 0; i < MAX_VIEWS; i++)
+	{
+		if (views[i].base == base)
+		{
+			munmap (views[i].base, views[i].size);
+			views[i].base = NULL;
+			pthread_mutex_unlock (&views_lock);
+			return TRUE;
+		}
+	}
+	pthread_mutex_unlock (&views_lock);
+	return FALSE;
+}
+
+BOOL CloseHandle (HANDLE object)
+{
+	struct object *o = object;
+	if (!o || object == INVALID_HANDLE_VALUE)
+	{
+		return FALSE;
+	}
+	if (o->fd >= 0)
+	{
+		close (o->fd);
+	}
+	pthread_mutex_destroy (&o->mutex);
+	pthread_cond_destroy (&o->cond);
+	free (o);
+	return TRUE;
+}
+
+/* VirtualAlloc: reserve and commit in one step (EECH's heap reserves then commits the same range) */
+LPVOID VirtualAlloc (LPVOID address, SIZE_T size, DWORD type, DWORD protect)
+{
+	(void) protect;
+	if (address && (type & MEM_COMMIT) && !(type & MEM_RESERVE))
+	{
+		return address;
+	}
+	void *p = mmap (NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+	if (p == MAP_FAILED)
+	{
+		return NULL;
+	}
+	pthread_mutex_lock (&views_lock);
+	for (int i = 0; i < MAX_VIEWS; i++)
+	{
+		if (!views[i].base)
+		{
+			views[i].base = p;
+			views[i].size = size;
+			break;
+		}
+	}
+	pthread_mutex_unlock (&views_lock);
+	return p;
+}
+
+BOOL VirtualFree (LPVOID address, SIZE_T size, DWORD type)
+{
+	(void) size;
+	if (type & MEM_RELEASE)
+	{
+		return UnmapViewOfFile (address);
+	}
+	return TRUE;
+}
+
+HANDLE CreateMutex (LPSECURITY_ATTRIBUTES security, BOOL owner, LPCSTR name)
+{
+	(void) security;
+	(void) name;
+	struct object *o = new_object (OBJECT_MUTEX);
+	if (o && owner)
+	{
+		pthread_mutex_lock (&o->mutex);
+	}
+	return o;
+}
+
+BOOL ReleaseMutex (HANDLE mutex)
+{
+	struct object *o = mutex;
+	return o && pthread_mutex_unlock (&o->mutex) == 0;
+}
+
+HANDLE CreateEvent (LPSECURITY_ATTRIBUTES security, BOOL manual, BOOL initial, LPCSTR name)
+{
+	(void) security;
+	(void) name;
+	struct object *o = new_object (OBJECT_EVENT);
+	if (o)
+	{
+		o->manual = manual;
+		o->signalled = initial;
+	}
+	return o;
+}
+
+DWORD WaitForSingleObject (HANDLE object, DWORD milliseconds)
+{
+	struct object *o = object;
+	if (!o)
+	{
+		return WAIT_FAILED;
+	}
+	if (o->kind == OBJECT_MUTEX)
+	{
+		if (milliseconds == INFINITE)
+		{
+			return pthread_mutex_lock (&o->mutex) == 0 ? WAIT_OBJECT_0 : WAIT_FAILED;
+		}
+		struct timespec ts;
+		clock_gettime (CLOCK_REALTIME, &ts);
+		ts.tv_sec += milliseconds / 1000;
+		ts.tv_nsec += (long) (milliseconds % 1000) * 1000000L;
+		if (ts.tv_nsec >= 1000000000L)
+		{
+			ts.tv_sec++;
+			ts.tv_nsec -= 1000000000L;
+		}
+		return pthread_mutex_timedlock (&o->mutex, &ts) == 0 ? WAIT_OBJECT_0 : WAIT_TIMEOUT;
+	}
+	if (o->kind == OBJECT_EVENT)
+	{
+		DWORD result = WAIT_OBJECT_0;
+		pthread_mutex_lock (&o->mutex);
+		if (!o->signalled)
+		{
+			if (milliseconds == 0)
+			{
+				result = WAIT_TIMEOUT;
+			}
+			else
+			{
+				struct timespec ts;
+				clock_gettime (CLOCK_REALTIME, &ts);
+				ts.tv_sec += milliseconds == INFINITE ? 1000000 : milliseconds / 1000;
+				ts.tv_nsec += milliseconds == INFINITE ? 0 : (long) (milliseconds % 1000) * 1000000L;
+				if (ts.tv_nsec >= 1000000000L)
+				{
+					ts.tv_sec++;
+					ts.tv_nsec -= 1000000000L;
+				}
+				while (!o->signalled)
+				{
+					if (pthread_cond_timedwait (&o->cond, &o->mutex, &ts) != 0)
+					{
+						result = WAIT_TIMEOUT;
+						break;
+					}
+				}
+			}
+		}
+		if (result == WAIT_OBJECT_0 && !o->manual)
+		{
+			o->signalled = 0;
+		}
+		pthread_mutex_unlock (&o->mutex);
+		return result;
+	}
+	return WAIT_FAILED;
+}
+
+void Sleep (DWORD milliseconds)
+{
+	struct timespec ts = { (time_t) (milliseconds / 1000), (long) (milliseconds % 1000) * 1000000L };
+	nanosleep (&ts, NULL);
+}
+
+DWORD GetLastError (void)
+{
+	return last_error;
+}
+
+DWORD GetCurrentThreadId (void)
+{
+	return (DWORD) (uintptr_t) pthread_self ();
+}
+
+DWORD GetCurrentDirectory (DWORD size, LPSTR buffer)
+{
+	if (!getcwd (buffer, size))
+	{
+		return 0;
+	}
+	return (DWORD) strlen (buffer);
+}
+
+BOOL SetCurrentDirectory (LPCSTR path)
+{
+	char native[PATH_MAX];
+	eech_native_path (path, native, sizeof (native));
+	return chdir (native) == 0;
+}
+
+DWORD GetModuleFileName (HMODULE module, LPSTR filename, DWORD size)
+{
+	(void) module;
+	ssize_t n = readlink ("/proc/self/exe", filename, size ? size - 1 : 0);
+	if (n < 0)
+	{
+		return 0;
+	}
+	filename[n] = 0;
+	return (DWORD) n;
+}
+
+void GetSystemTime (LPSYSTEMTIME st)
+{
+	struct timeval tv;
+	struct tm tm;
+	gettimeofday (&tv, NULL);
+	gmtime_r (&tv.tv_sec, &tm);
+	st->wYear = (WORD) (tm.tm_year + 1900);
+	st->wMonth = (WORD) (tm.tm_mon + 1);
+	st->wDayOfWeek = (WORD) tm.tm_wday;
+	st->wDay = (WORD) tm.tm_mday;
+	st->wHour = (WORD) tm.tm_hour;
+	st->wMinute = (WORD) tm.tm_min;
+	st->wSecond = (WORD) tm.tm_sec;
+	st->wMilliseconds = (WORD) (tv.tv_usec / 1000);
+}
+
+HMODULE LoadLibrary (LPCSTR name)
+{
+	/* the only library EECH loads is the TrackIR client */
+	(void) name;
+	return NULL;
+}
+
+void *GetProcAddress (HMODULE module, LPCSTR name)
+{
+	(void) module;
+	(void) name;
+	return NULL;
+}
+
+BOOL FreeLibrary (HMODULE module)
+{
+	(void) module;
+	return TRUE;
+}
+
+/* registry: no keys (EECH falls back to its defaults) */
+LONG RegOpenKey (HKEY key, LPCSTR sub_key, HKEY *result)
+{
+	(void) key;
+	(void) sub_key;
+	*result = NULL;
+	return 2;
+}
+
+LONG RegQueryValueEx (HKEY key, LPCSTR name, LPDWORD reserved, LPDWORD type, LPBYTE data, LPDWORD size)
+{
+	(void) key;
+	(void) name;
+	(void) reserved;
+	(void) type;
+	(void) data;
+	(void) size;
+	return 2;
+}
+
+LONG RegCloseKey (HKEY key)
+{
+	(void) key;
+	return 0;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* winmm */
+
+DWORD timeGetTime (void)
+{
+	return eech_headless_time_ms ();
+}
+
+MMRESULT timeGetDevCaps (LPTIMECAPS caps, UINT size)
+{
+	(void) size;
+	caps->wPeriodMin = 1;
+	caps->wPeriodMax = 1000000;
+	return TIMERR_NOERROR;
+}
+
+MMRESULT timeBeginPeriod (UINT period)
+{
+	(void) period;
+	return TIMERR_NOERROR;
+}
+
+MMRESULT timeEndPeriod (UINT period)
+{
+	(void) period;
+	return TIMERR_NOERROR;
+}
+
+/* periodic multimedia timers are driven by the host's frame pump: none are started headless */
+MMRESULT timeSetEvent (UINT delay, UINT resolution, LPTIMECALLBACK callback, DWORD_PTR user, UINT flags)
+{
+	(void) delay;
+	(void) resolution;
+	(void) callback;
+	(void) user;
+	(void) flags;
+	return 0;
+}
+
+MMRESULT timeKillEvent (UINT id)
+{
+	(void) id;
+	return TIMERR_NOERROR;
+}
+
+MCIERROR mciSendCommand (MCIDEVICEID device, UINT message, DWORD_PTR flags, DWORD_PTR parameters)
+{
+	(void) device;
+	(void) message;
+	(void) flags;
+	(void) parameters;
+	return 275; /* MCIERR_DEVICE_NOT_INSTALLED */
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* user32: no window */
+
+UINT_PTR SetTimer (HWND window, UINT_PTR id, UINT elapse, TIMERPROC callback)
+{
+	(void) window;
+	(void) elapse;
+	(void) callback;
+	return id;
+}
+
+BOOL KillTimer (HWND window, UINT_PTR id)
+{
+	(void) window;
+	(void) id;
+	return TRUE;
+}
+
+LRESULT SendMessage (HWND window, UINT message, WPARAM wparam, LPARAM lparam)
+{
+	(void) window;
+	(void) message;
+	(void) wparam;
+	(void) lparam;
+	return 0;
+}
+
+HWND SetFocus (HWND window)
+{
+	return window;
+}
+
+LONG SetWindowLong (HWND window, int index, LONG value)
+{
+	(void) window;
+	(void) index;
+	(void) value;
+	return 0;
+}
+
+LONG GetWindowLong (HWND window, int index)
+{
+	(void) window;
+	(void) index;
+	return 0;
+}
+
+BOOL GetClientRect (HWND window, LPRECT rect)
+{
+	(void) window;
+	rect->left = rect->top = 0;
+	rect->right = 640;
+	rect->bottom = 480;
+	return TRUE;
+}
+
+BOOL GetCursorPos (LPPOINT point)
+{
+	point->x = point->y = 0;
+	return TRUE;
+}
+
+BOOL ClientToScreen (HWND window, LPPOINT point)
+{
+	(void) window;
+	(void) point;
+	return TRUE;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* winsock */
+
+int WSAStartup (WORD version, LPWSADATA data)
+{
+	memset (data, 0, sizeof (*data));
+	data->wVersion = data->wHighVersion = version;
+	return 0;
+}
+
+int WSACleanup (void)
+{
+	return 0;
+}
+
+int WSAGetLastError (void)
+{
+	return errno;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* C file API */
+
+#undef fopen
+#undef unlink
+
+struct text_file
+{
+	char *data;
+	size_t size, position;
+};
+
+static ssize_t text_read (void *cookie, char *buffer, size_t size)
+{
+	struct text_file *t = cookie;
+	size_t n = t->size - t->position;
+	if (n > size)
+	{
+		n = size;
+	}
+	memcpy (buffer, t->data + t->position, n);
+	t->position += n;
+	return (ssize_t) n;
+}
+
+static int text_seek (void *cookie, off64_t *offset, int whence)
+{
+	struct text_file *t = cookie;
+	off64_t base = whence == SEEK_SET ? 0 : whence == SEEK_CUR ? (off64_t) t->position : (off64_t) t->size;
+	off64_t p = base + *offset;
+	if (p < 0 || p > (off64_t) t->size)
+	{
+		return -1;
+	}
+	t->position = (size_t) p;
+	*offset = p;
+	return 0;
+}
+
+static int text_close (void *cookie)
+{
+	struct text_file *t = cookie;
+	free (t->data);
+	free (t);
+	return 0;
+}
+
+/*
+ * Windows text-mode read: CR LF becomes LF and Ctrl-Z ends the file. EECH's
+ * tag parser depends on it (a CR after a float is not a terminator).
+ */
+static FILE *open_text_for_reading (const char *native)
+{
+	FILE *f = fopen (native, "rb");
+	if (!f)
+	{
+		return NULL;
+	}
+	struct text_file *t = calloc (1, sizeof (*t));
+	struct stat st;
+	char *data = NULL;
+	if (!t || fstat (fileno (f), &st) != 0 || !(data = malloc ((size_t) st.st_size + 1)))
+	{
+		free (t);
+		fclose (f);
+		return NULL;
+	}
+	size_t size = fread (data, 1, (size_t) st.st_size, f), n = 0;
+	fclose (f);
+	for (size_t i = 0; i < size; i++)
+	{
+		if (data[i] == 0x1a)
+		{
+			break;
+		}
+		if (data[i] == '\r' && i + 1 < size && data[i + 1] == '\n')
+		{
+			continue;
+		}
+		data[n++] = data[i];
+	}
+	t->data = data;
+	t->size = n;
+	cookie_io_functions_t io = { text_read, NULL, text_seek, text_close };
+	FILE *s = fopencookie (t, "r", io);
+	if (!s)
+	{
+		text_close (t);
+	}
+	return s;
+}
+
+FILE *eech_fopen (const char *name, const char *mode)
+{
+	char native[PATH_MAX];
+	eech_native_path (name, native, sizeof (native));
+	if (mode[0] == 'r' && !strchr (mode, 'b') && !strchr (mode, '+'))
+	{
+		return open_text_for_reading (native);
+	}
+	char m[8];
+	size_t j = 0;
+	for (size_t i = 0; mode[i] && j + 1 < sizeof (m); i++)
+	{
+		if (mode[i] != 't')
+		{
+			m[j++] = mode[i];
+		}
+	}
+	m[j] = 0;
+	return fopen (native, m);
+}
+
+int eech_unlink (const char *name)
+{
+	char native[PATH_MAX];
+	eech_native_path (name, native, sizeof (native));
+	return unlink (native);
+}
