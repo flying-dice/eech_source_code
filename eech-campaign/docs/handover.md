@@ -96,7 +96,12 @@ scenario has been removed entirely.
 
 ## Next steps
 
-1. Longer retail runs (12 h and more), to see whether the captures continue.
+1. The retail campaign now runs to a conclusion: red wins in 61.8 h
+   (`recordings/README.md`). Next is the foundation work before the DCS side:
+   - a pull request with CI green;
+   - a committed Docker toolchain;
+   - `tools/retail-map3.sh` taking the GOG and Steam folders directly;
+   - an engine API for input (kills from DCS, save and restore).
 
 ## Known limits
 

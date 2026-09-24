@@ -3,7 +3,9 @@
 -- observed world to the host for its Tacview recording.
 --
 -- host.args: root (installation root), scenario (georgia, georgia_retail), map, campaign, hours, frame_ms,
---            record_every (frames), acmi (output path), seed
+--            record_every (frames), acmi (output path), seed, diagnostics_every and log_every (simulated
+--            seconds), stop (hours: run all of them; conclusion: also stop when the war is decided or
+--            stalls), stalemate_hours
 
 local args = host.args
 local root = assert (args.root, "root=<installation root>")
@@ -12,6 +14,14 @@ local frame_ms = tonumber (args.frame_ms or "100")
 local record_every = tonumber (args.record_every or "10")
 -- simulated seconds between force-state diagnostics (0: none)
 local diagnostics_every = tonumber (args.diagnostics_every or "0")
+-- simulated seconds between progress lines
+local log_every = tonumber (args.log_every or "600")
+-- stop=conclusion ends the run early (hours stays the cap) when a side holds no
+-- airbase or FARP left, or when nothing is captured or destroyed for
+-- stalemate_hours (longer than the slowest regen interval, so reinforcements
+-- still get their turn)
+local stop_at_conclusion = args.stop == "conclusion"
+local stalemate_seconds = tonumber (args.stalemate_hours or "48") * 3600
 
 -- the maps eech-map builds: game path, campaign file, map origin, title
 local scenarios = {
@@ -87,6 +97,8 @@ end
 
 local frames = math.floor (hours * 3600 * 1000 / frame_ms)
 local last_owner = {}
+local last_alive, last_activity = nil, 0
+local conclusion
 for frame = 1, frames do
 	engine:frame (frame_ms)
 	if frame % record_every == 0 then
@@ -100,14 +112,39 @@ for frame = 1, frames do
 					host.event (clock.elapsed_seconds, "Message", o.name .. " captured by " .. o.side)
 					host.log (string.format ("%.0f s: %s captured by %s", clock.elapsed_seconds, o.name, o.side))
 				end
+				if last_owner[o.name] ~= o.side then last_activity = clock.elapsed_seconds end
 				last_owner[o.name] = o.side
+			end
+		end
+		if stop_at_conclusion then
+			-- air bases (airbases and FARPs) held, and units alive, per side
+			local bases, alive = { blue = 0, red = 0 }, { blue = 0, red = 0 }
+			for _, o in ipairs (objects) do
+				if o.kind == "keysite" then
+					if o.type_name == "KEYSITE_AIRBASE" or o.type_name == "KEYSITE_FARP" then bases[o.side] = (bases[o.side] or 0) + 1 end
+				elseif o.kind ~= "weapon" and o.alive then
+					alive[o.side] = (alive[o.side] or 0) + 1
+				end
+			end
+			if last_alive and (alive.blue < last_alive.blue or alive.red < last_alive.red) then last_activity = clock.elapsed_seconds end
+			last_alive = alive
+			if bases.blue == 0 or bases.red == 0 then
+				conclusion = string.format ("%s holds no airbase or FARP: %s wins", bases.blue == 0 and "blue" or "red", bases.blue == 0 and "red" or "blue")
+			elseif clock.elapsed_seconds - last_activity >= stalemate_seconds then
+				conclusion = string.format ("stalemate: nothing captured or destroyed for %g hours (airbases and FARPs: blue %d, red %d)",
+					stalemate_seconds / 3600, bases.blue, bases.red)
 			end
 		end
 		if diagnostics_every > 0 and frame % math.floor (diagnostics_every * 1000 / frame_ms) == 0 then
 			engine:diagnostics ()
 		end
-		if frame % (record_every * 600) == 0 then
+		if frame % math.floor (log_every * 1000 / frame_ms) < record_every or conclusion then
 			host.log (string.format ("%.0f s (day %d, %.0f s of day): %s", clock.elapsed_seconds, clock.day, clock.time_of_day_seconds, summary (objects)))
+		end
+		if conclusion then
+			host.event (clock.elapsed_seconds, "Message", "Campaign over: " .. conclusion)
+			host.log (string.format ("%.0f s: campaign over: %s", clock.elapsed_seconds, conclusion))
+			break
 		end
 	end
 end

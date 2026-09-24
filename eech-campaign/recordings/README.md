@@ -57,6 +57,49 @@ Red, with its ten airbases and two carriers, runs the supply, repair and
 troop-insertion missions that the generated maps never see. The run took
 about six minutes of wall time.
 
+## Retail Georgia to a conclusion (not committed: 98 MB zipped)
+
+The same campaign run until it was decided, with `stop=conclusion`: the run
+ends when a side holds no airbase or FARP, or after 48 hours with nothing
+captured or destroyed. Positions are sampled every 10 s (`record_every=100`),
+so short-lived weapons are under-counted.
+
+```sh
+target/release/eech-world crates/eech-world/lua/campaign.lua root=/tmp/geo_retail scenario=georgia_retail \
+    hours=336 stop=conclusion stalemate_hours=48 record_every=100 log_every=1800 diagnostics_every=21600 \
+    acmi=georgia-retail-long.acmi
+```
+
+**Red wins after 61.8 simulated hours** (day 3, 22:36), when it takes blue's
+last FARP. The run took 47 minutes of wall time.
+
+| | Blue (US) | Red (Russia) |
+|---|---|---|
+| Keysites, start → end | 16 → 0 | 54 → 70 |
+| Destroyed | 961: 610 infantry, 227 vehicles, 70 helicopters, 38 air defence, 16 fixed wing | 267: 93 vehicles, 91 infantry, 59 helicopters, 18 air defence, 5 fixed wing, 1 ship |
+| Aircraft rebuilt from reserves | 0 | 33 (jets 27 → 36, helicopters 185 → 209) |
+
+How the campaign unfolds:
+
+- **The first 12 hours:** these repeat the 12-hour run below. Red's OCA strike puts Batumi out of action, and blue's air arm is destroyed.
+- **Hours 12–18:** blue's last ground vehicles die. Only blue infantry is left.
+- **Day 2:** almost nothing happens, with no captures between 12 h and 46.7 h. Red's airbases have drained to the 10% ammo and fuel floor, so there is little to task.
+- **About 17 h and 47 h:** red's reserves arrive at the retail campaign's 16.7-hour regen interval (below).
+- **46.7 h:** red takes Batumi.
+- **48.6–61.8 h:** red captures blue's nine remaining FARPs, one every hour or two, with troop insertions.
+
+Nothing in the run is a malfunction. Three settings in the retail data decide
+it:
+
+1. **Reinforcement is almost off.** `GEORGIA.CHC` sets `:REGEN_FREQUENCY 60000` for both sides. Each regen site tries once every 16.7 simulated hours; Thailand, Cuba, Taiwan, Lebanon and Yemen use 180–600 s. No aircraft is rebuilt in the first 12 hours. Regen also needs a usable keysite, so once Batumi is out of action blue can never rebuild at all.
+2. **Blue has one airbase.** A REPAIR task never starts from the keysite it serves (`docs/engine.md`, finding 8), so Batumi is never repaired.
+3. **There are no producers.** The map3 population file is version 1 and has no factories or refineries. Red's airbases drain to the 10% floor, which is why it fights so slowly after the first day.
+
+The retail scripts define no victory condition. Comanche vs Hokum's map1–3
+scripts (`THAILAND.SCR`, `CUBA.SCR`, `GEORGIA.SCR`) only end the campaign as a
+FAIL after 30 minutes, and `GEORGIA.CHC` has no `CAMPAIGN_CRITERIA`. The
+conclusion is the runner's own rule.
+
 ## Retail Georgia, 12 hours (not committed: 157 MB zipped)
 
 The same setup run for 12 simulated hours, from 08:50 to 20:44. The first two
@@ -71,7 +114,7 @@ hours repeat `georgia-retail-2h` exactly. Then red takes over:
 | Ground vehicles, 10 min → end | 227 → 52 | 226 → 133 |
 
 - **FARP captures:** there are 14. Blue briefly holds FARPs 18, 17 and 19. Red then takes FARPs 17, 18, 11, 13, 8, 15 and 16, one every hour or two after the fifth hour.
-- **Blue's air force:** its jets are gone by the fourth hour, including 11 in one 10-minute span around 3 h. Its air defence is gone by 6 h, and it is down to one helicopter by 10 h.
+- **Blue's air force:** its jets are gone by the fourth hour. 11 of them are lost around 2:55, parked at Batumi, to a red OCA strike with Kh-25MT missiles and S-8 rockets. Its air defence is gone by 6 h, and it is down to one helicopter by 10 h.
 - **Red's losses:** red stops losing units after about 6 h. Its jets, helicopters and vehicles hold steady from then on, and troop insertions push its infantry from 208 to 355.
 - **Tasks:** both sides fly OCA strikes and sweeps, SEAD and repair, besides the 2-hour mix.
 
