@@ -4,7 +4,7 @@
 #include "windows.h"
 #include <sys/types.h>
 
-#ifdef _WIN32
+#ifdef __MINGW32__
 /*
  * MinGW-w64: the real Winsock headers need the real <windows.h>, which the
  * compat headers stand in for. EECH's only socket use is the master-server

@@ -3,7 +3,7 @@
 #define EECH_COMPAT_IO_H
 #include "windows.h"
 
-#ifdef _WIN32
+#ifdef __MINGW32__
 /*
  * MinGW-w64: the CRT's own <io.h> first (its dirent.h, fcntl.h and unistd.h
  * need it), then EECH's _findfirst family over it: the CRT's are macros for

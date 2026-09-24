@@ -11,10 +11,11 @@
  * process keeps the real API.
  */
 
+/* __MINGW32__, not _WIN32: EECH's system.h defines _WIN32 on every platform */
 #ifndef EECH_WIN32_NAMES_H
 #define EECH_WIN32_NAMES_H
 
-#ifdef _WIN32
+#ifdef __MINGW32__
 
 /* kernel32 */
 #define CloseHandle eech_w32_CloseHandle

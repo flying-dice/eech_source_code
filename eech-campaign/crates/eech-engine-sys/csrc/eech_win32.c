@@ -19,7 +19,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <time.h>
-#ifdef _WIN32
+#ifdef __MINGW32__
 /* MinGW-w64: no mmap or fnmatch (see map_private, map_anonymous, match_name) */
 #define O_EECH_BINARY O_BINARY
 #define PROT_READ 1
@@ -44,7 +44,7 @@ static __thread DWORD last_error;
 static void resolve_component (char *dir_end, char *path)
 {
 	/* path is NUL-terminated at the end of the component that starts after dir_end */
-#ifdef _WIN32
+#ifdef __MINGW32__
 	/* Windows file systems resolve names case-insensitively themselves */
 	(void) dir_end;
 	(void) path;
@@ -178,7 +178,7 @@ char *itoa (int value, char *buffer, int radix)
 }
 
 /* a name matches a find pattern, case-insensitively */
-#ifdef _WIN32
+#ifdef __MINGW32__
 static int match_name (const char *pattern, const char *name)
 {
 	/* '*' and '?', which is all a Windows find pattern has */
@@ -548,7 +548,7 @@ HANDLE CreateFileMapping (HANDLE file, LPSECURITY_ATTRIBUTES security, DWORD pro
 }
 
 /* private, writable views of files and anonymous memory */
-#ifdef _WIN32
+#ifdef __MINGW32__
 /* a private view is a copy: it reads the file into zeroed memory, as a
    MAP_PRIVATE view is zero past the end of the file */
 static void *map_private (int fd, int64_t offset, size_t length)
@@ -839,7 +839,7 @@ BOOL SetCurrentDirectory (LPCSTR path)
 DWORD GetModuleFileName (HMODULE module, LPSTR filename, DWORD size)
 {
 	(void) module;
-#ifdef _WIN32
+#ifdef __MINGW32__
 	/* the host executable, as /proc/self/exe is on Linux */
 	/* msvcrt.dll has _pgmptr (its _get_pgmptr is MSVC 8 on) */
 	const char *exe = _pgmptr;
@@ -865,7 +865,7 @@ void GetSystemTime (LPSYSTEMTIME st)
 	struct timeval tv;
 	struct tm tm;
 	gettimeofday (&tv, NULL);
-#ifdef _WIN32
+#ifdef __MINGW32__
 	time_t seconds = (time_t) tv.tv_sec;
 	tm = *gmtime (&seconds);
 #else
@@ -1070,7 +1070,7 @@ int WSAGetLastError (void)
 	return errno;
 }
 
-#ifdef _WIN32
+#ifdef __MINGW32__
 /* the master-server heartbeat's sockets (compat/winsock.h): no network headless */
 SOCKET socket (int family, int type, int protocol)
 {
@@ -1180,7 +1180,7 @@ static int text_close (void *cookie)
 	return 0;
 }
 
-#ifdef _WIN32
+#ifdef __MINGW32__
 /*
  * A read stream over bytes, without fmemopen or fopencookie: a binary
  * temporary file the CRT deletes when it is closed ("D"). Binary, so seeks
@@ -1242,7 +1242,7 @@ static FILE *open_text_for_reading (const char *native)
 	}
 	t->data = data;
 	t->size = n;
-#ifdef _WIN32
+#ifdef __MINGW32__
 	FILE *s = memory_stream (t->data, t->size);
 	text_close (t);
 	return s;
@@ -1316,7 +1316,7 @@ static FILE *placeholder_artwork (const char *name, const char *native)
 		return NULL;
 	}
 	eech_log (1, "artwork not installed, substituting a 1x1 image: %s", name);
-#ifdef _WIN32
+#ifdef __MINGW32__
 	return memory_stream (data, size);
 #else
 	return fmemopen ((void *) data, size, "rb");
@@ -1374,7 +1374,7 @@ FILE *eech_fopen_untraced (const char *name, const char *mode)
 			m[j++] = mode[i];
 		}
 	}
-#ifdef _WIN32
+#ifdef __MINGW32__
 	/* binary, as every mode is on Linux: the CRT's text mode would write CR LF */
 	if (!strchr (m, 'b') && j + 1 < sizeof (m))
 	{

@@ -30,7 +30,8 @@ run () {
 		-w /src/eech-campaign eech-build sh -c "$1"
 }
 echo "building ..."
-run 'cargo build --release -p eech-dc -p eech-world 2>&1 | tail -3'
+# a failed build must stop the test, not leave it running an older binary
+run 'cargo build --release -p eech-dc -p eech-world > /target/build.log 2>&1 || { grep -E "error" /target/build.log | tail -20; exit 1; }; tail -1 /target/build.log'
 run "if [ $rebuild -eq 1 ] || [ ! -d /work/georgia ]; then rm -rf /work/georgia && sh tools/retail-map3-installs.sh /cvh /avh /work/georgia; fi
 	if [ $rebuild -eq 1 ] || [ ! -d /work/lebanon ]; then rm -rf /work/lebanon && sh tools/retail-cvh.sh /cvh map5 /work/lebanon; fi"
 run "sh tools/regress.sh /work/georgia /work/lebanon $opts; s=\$?; mkdir -p /src/eech-campaign/target/regress && cp /work/out/*.json /work/out/*.log /src/eech-campaign/target/regress/ 2>/dev/null || true; exit \$s"

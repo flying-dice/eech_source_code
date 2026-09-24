@@ -13,7 +13,7 @@
 void eech_native_path (const char *in, char *out, size_t size);
 
 /* mkdir: POSIX takes a mode, the Windows CRT does not (sys/stat.h or io.h declares it) */
-#ifdef _WIN32
+#ifdef __MINGW32__
 int mkdir (const char *path);
 #define eech_mkdir(path) mkdir (path)
 #else

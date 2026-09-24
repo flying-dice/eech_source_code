@@ -17,11 +17,13 @@ param(
 	[switch] $Update,
 	[switch] $Exact,
 	[switch] $Build,
-	[double] $Hours = 3
+	[double] $Hours = 3,
+	# the binaries' directory (tools/build-windows.sh [dir]); default target\windows
+	[string] $Bin
 )
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $PSScriptRoot
-$bin = Join-Path $here 'target\windows'
+$bin = if ($Bin) { $Bin } else { Join-Path $here 'target\windows' }
 $out = Join-Path $here 'target\regress-windows'
 $baselines = Join-Path $here 'regression\windows'
 New-Item -ItemType Directory -Force $out, $baselines | Out-Null
@@ -45,6 +47,8 @@ foreach ($s in @(@{ Name = 'georgia_retail'; Root = $Georgia }, @{ Name = 'leban
 	$runs[$s.Name] = Start-Process -FilePath $world -NoNewWindow -PassThru -RedirectStandardError $log -RedirectStandardOutput "$log.out" -ArgumentList @(
 		(Join-Path $bin 'lua\campaign.lua'), "root=$($s.Root -replace '\\', '/')", "scenario=$($s.Name)", "hours=$Hours",
 		'record=0', 'checkpoint_every=3600', "metrics=$($metrics -replace '\\', '/')")
+	# read the handle now: Start-Process -PassThru reports no ExitCode otherwise
+	$null = $runs[$s.Name].Handle
 }
 $failed = $false
 foreach ($name in $runs.Keys) {
