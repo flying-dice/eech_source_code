@@ -1,0 +1,41 @@
+# The dynamic campaign (DC) as a Lua 5.1 native module (cdylib): a world host
+# (the EECH headless harness, or DCS World) loads it with require ("eech_dc")
+# and talks to it through the port (docs/port.md). Modelled on the reference
+# Lua module crate, flying-dice/dcs-studio bridge (mlua 0.10, lua51 + module).
+[package]
+name = "eech-dc"
+version = "0.1.0"
+description = "The EECH dynamic campaign as a Lua 5.1 native module: require (\"eech_dc\") in a world host's Lua state."
+edition.workspace = true
+publish.workspace = true
+
+# mlua derives `luaopen_eech_dc` from the lib name, and require ("eech_dc")
+# resolves the DLL basename: the two must match.
+[lib]
+name = "eech_dc"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+eech-campaign = { path = "../eech-campaign", features = ["serde"] }
+# No `macros`: `#[mlua::lua_module]` comes from `module` (as in the reference crate)
+mlua = { version = "0.10", features = ["lua51", "module", "serialize"] }
+serde.workspace = true
+serde_json.workspace = true
+
+# Code that runs inside DCS: a panic in this DLL takes the simulator down.
+# The reference crate's restriction lints, denied here; tests opt out per file.
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+unreachable = "deny"
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+print_stdout = "deny"
+print_stderr = "deny"
+exit = "deny"
+indexing_slicing = "deny"
+
+[lints.rust]
+unsafe_code = "forbid"

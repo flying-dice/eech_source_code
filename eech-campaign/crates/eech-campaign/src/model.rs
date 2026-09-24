@@ -167,6 +167,7 @@ pub enum Session {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CampaignConfig {
     pub map: MapConfig,
+    #[cfg_attr(feature = "serde", serde(default))]
     pub session: Session,
     /// entity capacity of the campaign (EECH's entity heap)
     #[cfg_attr(feature = "serde", serde(default = "default_capacity"))]
