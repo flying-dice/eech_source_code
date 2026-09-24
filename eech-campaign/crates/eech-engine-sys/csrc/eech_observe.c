@@ -139,7 +139,11 @@ int eech_observe_objects (eech_object_callback callback, void *user)
 	}
 	for (en = get_local_entity_first_child (get_update_entity (), LIST_TYPE_UPDATE); en; en = get_local_entity_child_succ (en, LIST_TYPE_UPDATE))
 	{
-		count += observe (en, callback, user);
+		/* keysites are updated too: they are reported once, from their forces below */
+		if (get_local_entity_type (en) != ENTITY_TYPE_KEYSITE)
+		{
+			count += observe (en, callback, user);
+		}
 	}
 	for (force = get_local_entity_first_child (get_session_entity (), LIST_TYPE_FORCE); force; force = get_local_entity_child_succ (force, LIST_TYPE_FORCE))
 	{

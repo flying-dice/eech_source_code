@@ -465,6 +465,55 @@ static int write_render_tables (const char *dir)
 	return close_out (&o);
 }
 
+/*
+ * textures.bin (textuser.c :: load_texturemap_data): no palettes, then every
+ * system texture as a reserved slot with its name. Reserved textures carry
+ * no pixels; nothing headless draws them, and their names resolve.
+ */
+extern const char *const eech_texture_names[];
+extern const int eech_number_of_texture_names;
+
+static int write_textures (const char *dir)
+{
+	struct out o;
+	if (!open_out (&o, dir, "textures.bin"))
+	{
+		return 0;
+	}
+	put_int (&o, 0);
+	put_int (&o, eech_number_of_texture_names);
+	for (int i = 0; i < eech_number_of_texture_names; i++)
+	{
+		int n = (int) strlen (eech_texture_names[i]);
+		put_uint (&o, 1);	/* flags: reserved_texture */
+		put_int (&o, n);
+		put (&o, eech_texture_names[i], (size_t) n);
+	}
+	return close_out (&o);
+}
+
+/*
+ * brief_en.dat (briefing.c): a briefing and debriefing text for every task
+ * type. The retail texts are not in the repository.
+ */
+int eech_synth_write_briefings (const char *common_data_dir)
+{
+	struct out o;
+	if (!open_out (&o, common_data_dir, "brief_en.dat"))
+	{
+		return 0;
+	}
+	fprintf (o.fp, ":START\n");
+	for (int t = 0; t < NUM_ENTITY_SUB_TYPE_TASKS; t++)
+	{
+		fprintf (o.fp, ":TYPE %s\n", entity_sub_type_task_names[t]);
+		fprintf (o.fp, ":TEXT1\nOrders received.\n:TEXT2\nProceed as tasked.\n:TEXT3\nReport on completion.\n:END\n");
+		fprintf (o.fp, ":SUCCESS\nObjective achieved.\n:PARTIAL\nObjective partially achieved.\n:FAILURE\nObjective not achieved.\n:END\n");
+	}
+	fprintf (o.fp, ":END\n");
+	return close_out (&o);
+}
+
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 
 int eech_synth3d_write (const char *directory)
@@ -482,7 +531,8 @@ int eech_synth3d_write (const char *directory)
 	}
 	eech_synth3d_keysites (scenes);
 
-	ok = write_bininfo (directory) && write_objects (directory) && write_scenes (directory, scenes) && write_render_tables (directory);
+	ok = write_bininfo (directory) && write_objects (directory) && write_scenes (directory, scenes) && write_render_tables (directory)
+		&& write_textures (directory);
 	free (scenes);
 	return ok;
 }

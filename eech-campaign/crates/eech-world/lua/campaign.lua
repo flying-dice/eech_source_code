@@ -14,7 +14,7 @@ local record_every = tonumber (args.record_every or "10")
 local dc = require ("eech_dc")
 host.log (dc.name .. " loaded")
 
-dc.write_3d_database (root .. "/cohokum/3ddata")
+dc.prepare_installation (root)
 
 local engine = dc.boot {
 	install_root = root,
@@ -49,7 +49,19 @@ local function summary (objects)
 	local parts = {}
 	for k, v in pairs (count) do parts[#parts + 1] = k .. "=" .. v end
 	table.sort (parts)
-	return string.format ("keysites blue=%d red=%d; %s", keysites.blue, keysites.red, table.concat (parts, " "))
+	-- the tasks groups are on, per side (each group counted once)
+	local tasks, seen = {}, {}
+	for _, o in ipairs (objects) do
+		if o.task and o.group_id and not seen[o.group_id] and o.task ~= "TASK_NOTHING" then
+			seen[o.group_id] = true
+			local key = o.side .. " " .. o.task:gsub ("^TASK_", "")
+			tasks[key] = (tasks[key] or 0) + 1
+		end
+	end
+	local task_parts = {}
+	for k, v in pairs (tasks) do task_parts[#task_parts + 1] = k .. "=" .. v end
+	table.sort (task_parts)
+	return string.format ("keysites blue=%d red=%d; %s; tasks: %s", keysites.blue, keysites.red, table.concat (parts, " "), table.concat (task_parts, " "))
 end
 
 local frames = math.floor (hours * 3600 * 1000 / frame_ms)

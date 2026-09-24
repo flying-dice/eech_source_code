@@ -7,7 +7,7 @@
 //!
 //! ```lua
 //! local dc = require ("eech_dc")
-//! dc.write_3d_database (root .. "/cohokum/3ddata")
+//! dc.prepare_installation (root)
 //! local engine = dc.boot { install_root = root, map = "..\\common\\maps\\map15",
 //!                          campaign_directory = "camp01", campaign = "luxembourg.chc",
 //!                          gunship = "apache", seed = 1 }

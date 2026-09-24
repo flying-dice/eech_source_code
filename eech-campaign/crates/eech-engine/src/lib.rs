@@ -135,12 +135,14 @@ pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
 }
 
-/// writes the synthetic 3D object database into `directory` (an installation's cohokum/3ddata)
-pub fn write_3d_database(directory: &Path) -> Result<(), EngineError> {
-    std::fs::create_dir_all(directory).map_err(|e| EngineError::BadArgument(format!("{}: {e}", directory.display())))?;
-    let dir = cstring(&directory.to_string_lossy())?;
+/// writes the generated part of an installation under `root`: the 3D object
+/// database and texture names (cohokum/3ddata) and the briefing texts
+/// (common/data/brief_en.dat); the retail versions are not in the repository
+pub fn prepare_installation(root: &Path) -> Result<(), EngineError> {
+    std::fs::create_dir_all(root).map_err(|e| EngineError::BadArgument(format!("{}: {e}", root.display())))?;
+    let dir = cstring(&root.to_string_lossy())?;
     // SAFETY: a valid C string for the call
-    check(unsafe { sys::eech_engine_write_3d_database(dir.as_ptr()) })
+    check(unsafe { sys::eech_engine_prepare_installation(dir.as_ptr()) })
 }
 
 impl Engine {

@@ -41,10 +41,12 @@ int eech_engine_frame (uint32_t milliseconds);
 const char *eech_engine_fatal_message (void);
 
 /*
- * Writes the synthetic 3D object database (eech_synth3d.c) into directory
- * (an installation's cohokum/3ddata). Needs no booted engine.
+ * Writes the generated part of an installation under root: the 3D object
+ * database and texture names (cohokum/3ddata, eech_synth3d.c) and the
+ * briefing texts (common/data/brief_en.dat). The retail versions of these
+ * files are not in the repository. Needs no booted engine.
  */
-int eech_engine_write_3d_database (const char *directory);
+int eech_engine_prepare_installation (const char *root);
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 /* observation (eech_observe.c) */

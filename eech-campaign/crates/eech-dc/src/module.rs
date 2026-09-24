@@ -54,8 +54,8 @@ pub fn eech_dc(lua: &Lua) -> LuaResult<LuaTable> {
     exports.set("name", concat!("eech-dc ", env!("CARGO_PKG_VERSION")))?;
     exports.set("boot", lua.create_function(boot)?)?;
     exports.set(
-        "write_3d_database",
-        lua.create_function(|_, directory: String| eech_engine::write_3d_database(std::path::Path::new(&directory)).map_err(lua_error))?,
+        "prepare_installation",
+        lua.create_function(|_, root: String| eech_engine::prepare_installation(std::path::Path::new(&root)).map_err(lua_error))?,
     )?;
     Ok(exports)
 }

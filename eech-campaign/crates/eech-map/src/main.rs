@@ -53,6 +53,7 @@ fn main() -> Result<()> {
     let geo = geo::Geo::new(spec.origin.0, spec.origin.1);
     let extent = (spec.width_sectors as f64 * SECTOR, spec.height_sectors as f64 * SECTOR);
     let map_dir = root.join("common").join("maps").join(format!("map{}", spec.map_number));
+    install_repository_data(&root)?;
 
     let t = std::time::Instant::now();
     let osm = osm::read(&pbf).context("reading the OSM extract")?;
@@ -201,14 +202,27 @@ fn main() -> Result<()> {
     for (side, scene, dlon) in [(Side::Blue, "AMERICAN_FARP01", -0.085), (Side::Red, "RUSSIAN_FARP01", 0.085)] {
         for lat in [49.62, 49.90] {
             let (x, z) = geo.to_map(lat, spec.front_longitude + dlon);
-            farps.push((side, Airfield { x, z, scene: scene.to_string() }));
+            farps.push((
+                side,
+                Airfield {
+                    x,
+                    z,
+                    scene: scene.to_string(),
+                },
+            ));
         }
     }
     // SAM/AAA sites: two per side, around each airbase
     let mut sams = Vec::new();
     for (_, a) in &airfields {
-        sams.push(campaign::Sam { x: a.x + 1500.0, z: a.z + 1500.0 });
-        sams.push(campaign::Sam { x: a.x - 1500.0, z: a.z - 1500.0 });
+        sams.push(campaign::Sam {
+            x: a.x + 1500.0,
+            z: a.z + 1500.0,
+        });
+        sams.push(campaign::Sam {
+            x: a.x - 1500.0,
+            z: a.z - 1500.0,
+        });
     }
     let route = map_dir.join("route");
     campaign::write_popnames(&route.join("popname.dat"), &popnames)?;
@@ -245,6 +259,30 @@ fn main() -> Result<()> {
     let _ = writeln!(chc, ":END");
     std::fs::write(camp.join(format!("{}.chc", spec.name)), chc)?;
     eprintln!("campaign: {} keysites, {} names -> {}", placements.len(), popnames.len(), map_dir.display());
+    Ok(())
+}
+
+/// the EECH data files the repository carries (setup/common/data): formation
+/// databases, the language database and the suspension tables. The
+/// generated rest of an installation (3D database, texture names, briefing
+/// texts) comes from the engine (eech_dc.prepare_installation).
+fn install_repository_data(root: &std::path::Path) -> Result<()> {
+    let setup = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../setup/common/data");
+    let data = root.join("common").join("data");
+    std::fs::create_dir_all(root.join("cohokum"))?;
+    for sub in ["", "language", "suspension"] {
+        let from = setup.join(sub);
+        let to = data.join(sub);
+        std::fs::create_dir_all(&to)?;
+        for entry in std::fs::read_dir(&from).with_context(|| format!("reading {}", from.display()))? {
+            let path = entry?.path();
+            if path.is_file() {
+                if let Some(name) = path.file_name() {
+                    std::fs::copy(&path, to.join(name))?;
+                }
+            }
+        }
+    }
     Ok(())
 }
 

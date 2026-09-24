@@ -5,6 +5,9 @@
 /* writes bininfo.bin, 3dobjs.bin (.pts .sp .spn .spt), 3dobjdb.bin, displace.bin, stars.bin into directory; 1 on success */
 int eech_synth3d_write (const char *directory);
 
+/* writes brief_en.dat into an installation's common/data; 1 on success */
+int eech_synth_write_briefings (const char *common_data_dir);
+
 struct line
 {
 	int a, b;

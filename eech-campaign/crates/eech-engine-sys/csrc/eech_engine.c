@@ -17,6 +17,7 @@
 #define _GNU_SOURCE
 #include <fenv.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include "project.h"
 
@@ -287,10 +288,21 @@ int eech_engine_frame (uint32_t milliseconds)
 	LEAVE (EECH_ENGINE_OK);
 }
 
-int eech_engine_write_3d_database (const char *directory)
+int eech_engine_prepare_installation (const char *root)
 {
 	ENTER (0);
-	int ok = eech_synth3d_write (directory);
+	char path[4096];
+	int ok;
+	snprintf (path, sizeof (path), "%s/cohokum", root);
+	mkdir (path, 0755);
+	snprintf (path, sizeof (path), "%s/cohokum/3ddata", root);
+	mkdir (path, 0755);
+	ok = eech_synth3d_write (path);
+	snprintf (path, sizeof (path), "%s/common", root);
+	mkdir (path, 0755);
+	snprintf (path, sizeof (path), "%s/common/data", root);
+	mkdir (path, 0755);
+	ok = ok && eech_synth_write_briefings (path);
 	LEAVE (ok ? EECH_ENGINE_OK : EECH_ENGINE_BAD_ARGUMENT);
 }
 

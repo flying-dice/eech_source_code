@@ -365,6 +365,8 @@ static struct object *new_object (enum object_kind kind)
 	return o;
 }
 
+static void trace_open (const char *native, const char *mode, const void *result);
+
 HANDLE CreateFile (LPCSTR name, DWORD access, DWORD share, LPSECURITY_ATTRIBUTES security, DWORD disposition, DWORD flags, HANDLE template_file)
 {
 	char native[PATH_MAX];
@@ -382,6 +384,7 @@ HANDLE CreateFile (LPCSTR name, DWORD access, DWORD share, LPSECURITY_ATTRIBUTES
 	}
 	eech_native_path (name, native, sizeof (native));
 	int fd = open (native, mode, 0644);
+	trace_open (native, "map", fd < 0 ? NULL : native);
 	if (fd < 0)
 	{
 		last_error = 2;
@@ -908,6 +911,8 @@ int WSAGetLastError (void)
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 /* C file API */
 
+FILE *eech_fopen_untraced (const char *name, const char *mode);
+
 #undef fopen
 #undef unlink
 
@@ -1059,7 +1064,31 @@ static FILE *placeholder_artwork (const char *name, const char *native)
 	return fmemopen ((void *) data, size, "rb");
 }
 
+/* EECH_TRACE_FILES=1: log every file the engine opens (and every miss) */
+static int trace_files = -1;
+
+static void trace_open (const char *native, const char *mode, const void *result)
+{
+	if (trace_files < 0)
+	{
+		trace_files = getenv ("EECH_TRACE_FILES") != NULL;
+	}
+	if (trace_files)
+	{
+		eech_log (2, "open %s %s: %s", mode, native, result ? "ok" : "missing");
+	}
+}
+
 FILE *eech_fopen (const char *name, const char *mode)
+{
+	FILE *f = eech_fopen_untraced (name, mode);
+	char native[PATH_MAX];
+	eech_native_path (name, native, sizeof (native));
+	trace_open (native, mode, f);
+	return f;
+}
+
+FILE *eech_fopen_untraced (const char *name, const char *mode)
 {
 	char native[PATH_MAX];
 	eech_native_path (name, native, sizeof (native));
