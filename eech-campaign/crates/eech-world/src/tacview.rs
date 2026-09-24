@@ -18,8 +18,34 @@ const M3: f64 = 1.175;
 const P1: f64 = 111_412.84;
 const P2: f64 = -93.5;
 
+/// A map that is not metric about its origin (the retail maps were stretched):
+/// map (x, z) = M (e, n) + t, where (e, n) are local east/north metres about
+/// (latitude, longitude): e = dlon * 111320 cos(lat), n = dlat * 110574.
+#[derive(Clone, Copy, Debug)]
+pub struct Affine {
+    pub m: [[f64; 2]; 2],
+    pub t: [f64; 2],
+    pub latitude: f64,
+    pub longitude: f64,
+}
+
+impl Affine {
+    /// (latitude, longitude) of a map position
+    pub fn geo(&self, x: f64, z: f64) -> (f64, f64) {
+        let [[a, b], [c, d]] = self.m;
+        let det = a * d - b * c;
+        let (dx, dz) = (x - self.t[0], z - self.t[1]);
+        let e = (d * dx - b * dz) / det;
+        let n = (-c * dx + a * dz) / det;
+        let lat = self.latitude + n / 110_574.0;
+        (lat, self.longitude + e / (111_320.0 * lat.to_radians().cos()))
+    }
+}
+
 pub struct Recorder<W: Write> {
     out: W,
+    affine: Option<Affine>,
+    reference: (f64, f64),
     latitude: f64,
     latitude_scale: f64,
     last_frame: Option<f64>,
@@ -51,6 +77,8 @@ impl<W: Write> Recorder<W> {
         writeln!(out, "0,DataRecorder=eech-world")?;
         Ok(Recorder {
             out,
+            affine: None,
+            reference: (latitude, longitude),
             latitude,
             latitude_scale,
             last_frame: None,
@@ -58,8 +86,21 @@ impl<W: Write> Recorder<W> {
         })
     }
 
+    /// a recording whose positions go through a fitted map projection; the
+    /// reference point is the map origin
+    pub fn with_affine(out: W, title: &str, reference_time: &str, affine: Affine) -> std::io::Result<Self> {
+        let (lat, lon) = affine.geo(0.0, 0.0);
+        let mut r = Self::new(out, title, reference_time, lat, lon)?;
+        r.affine = Some(affine);
+        Ok(r)
+    }
+
     /// degrees of (longitude, latitude) offsets from the reference for an EECH position
     fn offsets(&self, x: f64, z: f64) -> (f64, f64) {
+        if let Some(a) = &self.affine {
+            let (lat, lon) = a.geo(x, z);
+            return (lon - self.reference.1, lat - self.reference.0);
+        }
         let dlat = z * self.latitude_scale;
         let lat = (self.latitude + dlat).to_radians().abs();
         let longitude_length = P1 * lat.cos() + P2 * (3.0 * lat).cos();

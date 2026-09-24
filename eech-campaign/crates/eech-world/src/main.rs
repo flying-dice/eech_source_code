@@ -210,13 +210,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             lua.create_function(move |_, spec: LuaTable| {
                 let path: String = spec.get("path")?;
                 let file = std::fs::File::create(&path).map_err(LuaError::external)?;
-                let out = Recorder::new(
-                    BufWriter::new(file),
-                    &spec.get::<String>("title")?,
-                    &spec.get::<String>("reference_time")?,
-                    spec.get("latitude")?,
-                    spec.get("longitude")?,
-                )
+                let (title, time) = (spec.get::<String>("title")?, spec.get::<String>("reference_time")?);
+                // affine = { m = {a, b, c, d}, t = {tx, tz}, latitude, longitude }: a fitted map projection
+                let out = match spec.get::<Option<LuaTable>>("affine")? {
+                    Some(a) => {
+                        let m: Vec<f64> = a.get("m")?;
+                        let t: Vec<f64> = a.get("t")?;
+                        if m.len() != 4 || t.len() != 2 {
+                            return Err(LuaError::runtime("affine: m has 4 numbers, t 2"));
+                        }
+                        let affine = eech_world::tacview::Affine { m: [[m[0], m[1]], [m[2], m[3]]], t: [t[0], t[1]], latitude: a.get("latitude")?, longitude: a.get("longitude")? };
+                        Recorder::with_affine(BufWriter::new(file), &title, &time, affine)
+                    }
+                    None => Recorder::new(BufWriter::new(file), &title, &time, spec.get("latitude")?, spec.get("longitude")?),
+                }
                 .map_err(LuaError::external)?;
                 *recording.borrow_mut() = Some(Recording {
                     out,

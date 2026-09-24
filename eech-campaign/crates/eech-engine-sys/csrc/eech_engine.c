@@ -305,7 +305,13 @@ int eech_engine_prepare_installation (const char *root)
 	mkdir (path, 0755);
 	snprintf (path, sizeof (path), "%s/cohokum/3ddata", root);
 	mkdir (path, 0755);
-	ok = eech_synth3d_write (path);
+	{
+		/* a retail 3D database (its texture palette is retail only) is kept as it is */
+		char retail[4200];
+		struct stat st;
+		snprintf (retail, sizeof (retail), "%s/textures.pal", path);
+		ok = stat (retail, &st) == 0 ? 1 : eech_synth3d_write (path);
+	}
 	snprintf (path, sizeof (path), "%s/common", root);
 	mkdir (path, 0755);
 	snprintf (path, sizeof (path), "%s/common/data", root);

@@ -44,7 +44,9 @@ const char *eech_engine_fatal_message (void);
  * Writes the generated part of an installation under root: the 3D object
  * database and texture names (cohokum/3ddata, eech_synth3d.c) and the
  * briefing texts (common/data/brief_en.dat). The retail versions of these
- * files are not in the repository. Needs no booted engine.
+ * files are not in the repository. An installation that already holds the
+ * retail 3D database (cohokum/3ddata/textures.pal) keeps it. Needs no booted
+ * engine.
  */
 int eech_engine_prepare_installation (const char *root);
 
