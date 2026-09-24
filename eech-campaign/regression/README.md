@@ -1,99 +1,102 @@
 # Campaign regression test
 
-A test that the campaign still behaves the same after a refactoring. It runs
-the retail Lebanon and Georgia campaigns for three simulated hours each, in
-parallel, and compares what the war did with the baselines here. It takes
-about 20 minutes of wall time.
-
-```sh
-# Windows (Git Bash) or any Docker host: builds the toolchain image, the engine
-# and the retail roots (once, in Docker volumes), then runs the test
-tools/regress-docker.sh "D:/Program Files (x86)/GOG Galaxy/Games/Comanche vs Hokum" \
-    "D:/SteamLibrary/steamapps/common/Enemy Engaged Apache vs Havoc"
-
-# Linux, with the engine built and the roots assembled
-tools/retail-map3-installs.sh <cvh install> <avh install> /tmp/georgia
-tools/retail-cvh.sh <cvh install> map5 /tmp/lebanon
-tools/regress.sh /tmp/georgia /tmp/lebanon
-```
-
-Natively on Windows, with `eech-world.exe` and `eech_dc.dll`
-(`tools/build-windows.sh`, a MinGW-w64 cross-build in Docker). Windows keeps
-its own baselines in `regression/windows/`, because its C runtime's `rand ()`
-and maths aren't glibc's (`docs/engine.md`, "Windows"):
+A test, run on Windows, that the original EECH dynamic campaign still plays
+out correctly after a change. It runs the retail Lebanon and Georgia campaigns
+natively (`eech-world.exe` and `eech_dc.dll`) for three simulated hours each,
+in parallel. It takes about 20 minutes of wall time.
 
 ```powershell
+# the binaries: target\windows\ (a MinGW-w64 cross-build in Docker, tools/build-windows.sh)
 tools\regress-windows.ps1 -Georgia <georgia root> -Lebanon <lebanon root> [-Build] [-Exact] [-Update]
 ```
 
+The retail roots are assembled from the installs, which aren't in the repository:
+
+- `tools/retail-map3-installs.sh <cvh> <avh> <root>`: Georgia, from GOG Comanche vs Hokum plus the Steam Apache vs Havoc map3 roads and terrain.
+- `tools/retail-cvh.sh <cvh> map5 <root>`: Lebanon.
+
+`tools/regress-docker.sh` builds both into its `eech-regress` Docker volume.
+
 Options:
 
-- `--exact` fails unless the runs reproduce the baselines exactly.
-- `--update` makes the runs the new baselines.
-- `--rebuild-roots` (Docker only) re-assembles the retail roots.
+- `-Build` runs `tools/build-windows.sh` first.
+- `-Exact` fails unless the runs reproduce the baselines exactly.
+- `-Update` makes the runs the new baselines, in `regression/windows/`.
 
-The runs' metrics and logs are left in `target/regress/`.
+The runs' metrics and logs are left in `target/regress-windows/`.
 
-## What is compared
+## What each run must show
 
-The runs don't record Tacview. `campaign.lua metrics=<file>` (`lua/metrics.lua`)
-samples the world every simulated second. It keeps cumulative counts and takes
-a snapshot of the state at the start and every simulated hour.
+### 1. The campaign plays out as EECH's should
 
-The first minute is the campaign building its starting world, so units created
-then don't count as spawned.
+`tools/campaign-expectations.py` checks each run on its own, with no
+reference, for the mechanics every correct run of the scenario shows.
 
-| Metric | Per | Mechanics covered |
+| Mechanic | Lebanon (map5) | Georgia (map3) |
 |---|---|---|
-| sorties | side, kind, task | task generation and assignment, air and ground (ADVANCE, RETREAT, troop movement) |
-| aircraft sorties | side, airframe | which aircraft fly |
-| weapons launched | side, weapon | combat: air-to-air, air-to-ground, SAMs, artillery, ships |
-| lost | side, kind | attrition |
-| spawned | side, kind | regen from reserves, reinforcement, troop insertion |
-| captures | side, keysite type | the front: FARPs, airbases, factories |
-| keysites held and their states | side, type, state | damage, repair, "out of action" |
-| supply | side, keysite type: mean ammo and fuel | production (factories, refineries), consumption, SUPPLY deliveries |
-| alive | side, kind | the forces |
+| Air tasks flown | CAP, CAS, BAI, SEAD, OCA strike and sweep, ground strike, escort, recon, BDA, repair, supply, transfers | the same without OCA strike, plus troop insertion |
+| Ground tasks | advance, retreat, patrol | the same, plus insert-and-capture |
+| Combat | both sides launch weapons and lose helicopters and vehicles | the same |
+| Supply | both sides fly SUPPLY, and airbases consume ammo and fuel | red flies SUPPLY, and airbases consume |
+| Regen from reserves | both sides rebuild jets and helicopters (every 600 s) | none: the retail regen interval is 16.7 h |
+| Production | factories and refineries producing on both sides | none: map3 has no producers |
+| Captures | not required in 3 h | keysites change hands |
 
-The two campaigns cover different mechanics:
+Lebanon has the complete retail economy: 25 factories, 11 refineries and 15
+ports, three blue airbases and three carriers. Georgia has blue's only
+airbase and FARPs changing hands within two hours.
 
-- **Lebanon (map5)** has the complete retail economy: 25 factories, 11 refineries and 15 ports. It covers production and supply, regen every 600 s, the air war, and naval combat.
-- **Georgia (map3)** has blue's only airbase, Batumi, struck out of action at 2:55 and FARPs changing hands from 1:11. It covers captures and the OCA strike.
+### 2. The run matches its baseline
 
-## Pass and fail
+`campaign.lua metrics=<file>` (`lua/metrics.lua`) samples the world every
+simulated second. It keeps cumulative counts and takes a snapshot at the
+start and every simulated hour.
 
-The runs are deterministic: the same build, data and seed reproduce every
-number. An unchanged engine therefore reports **IDENTICAL**.
+The first minute is the campaign building its starting world, so units
+created then don't count as spawned.
 
-When a change moves individual events, the test compares aggregates at every
-checkpoint instead, with tolerances (`tools/regress-compare.py`):
+| Metric | Per |
+|---|---|
+| sorties | side, kind, task |
+| aircraft sorties | side, airframe |
+| weapons launched | side, weapon |
+| lost, spawned | side, kind |
+| captures | side, keysite type |
+| keysites held and their states | side, type, state |
+| supply | side, keysite type: mean ammo and fuel |
+| alive | side, kind |
+
+Runs are deterministic: the same build, data and seed reproduce every
+number, so an unchanged engine reports **IDENTICAL**. Otherwise
+`tools/regress-compare.py` compares aggregates at every checkpoint, with
+tolerances:
 
 - **Counts:** within 20%, or 3, whichever is larger.
 - **Supply:** within 15 percentage points.
 
-Out-of-tolerance metrics are listed as `FAIL` with the baseline and current
-values, and in-tolerance differences as `ok`.
+Anything that changes the random stream fights a different war (see the
+seed check below), and the tolerances don't absorb that.
 
-A pure refactoring should be IDENTICAL; run with `--exact` to enforce that.
-Anything that changes the random stream makes a different war, which the
-tolerances don't absorb (below). A deliberate behaviour change should
-therefore come with a deliberately updated baseline (`--update`), committed
-with the change and with the comparison in its description.
+A pure refactoring must be IDENTICAL; `-Exact` enforces it. A deliberate
+behaviour change must keep every campaign expectation. It comes with a
+deliberately updated baseline (`-Update`), committed with the change and with
+the comparison in its description.
 
-### How the test was checked
+## How the test was checked
 
-- **Reproducible:** a second full run reproduced both baselines exactly: IDENTICAL, IDENTICAL.
-- **Detects a broken mechanic:** Lebanon with regen disabled (`REGEN_FREQUENCY 60000`) fails.
-  - Every regenerated type drops to 0: blue jets 10 → 0, helicopters 29 → 0 and vehicles 20 → 0; red jets 17 → 0, helicopters 40 → 0 and vehicles 51 → 0.
-  - The forces alive fall: blue jets 39 → 14, red helicopters 96 → 66.
-- **A different seed is a different war:** Lebanon with `seed=2` has 42 of 244 changed metrics outside tolerance. For example, jets lost go from 11 to 22 for blue and from 17 to 28 for red.
-- **Time:** a full run took 19 m 56 s of wall time, including the Docker build and the root setup. The two campaigns ran in 1,110–1,304 s, in parallel, on a machine that was busy with other runs.
+- **Expectations hold:** the Windows baselines meet every campaign expectation, 30 of 30 for Georgia and 37 of 37 for Lebanon.
+- **A broken mechanic fails:** with Lebanon's regen disabled (`REGEN_FREQUENCY 60000`), both checks fail.
+  - The expectations fail on all four regen items (blue and red jets and helicopters rebuilt: 0).
+  - The baseline comparison fails on every spawned count and on the forces alive: blue jets 39 → 14, red helicopters 96 → 66.
+- **A different seed is a different war:** `seed=2` has 42 of 244 changed metrics outside tolerance, while every campaign expectation still holds.
 
-## What would change the numbers without a bug
+## The Docker/Linux runner
 
-- **The compiler or its flags:** the toolchain is pinned by `tools/Dockerfile`, Debian bookworm's GCC 12 at the build's own flags.
-- **The retail data:** the GOG Comanche vs Hokum and Steam Apache vs Havoc installs.
-- **The seed or frame length:** `seed=1` and `frame_ms=100` are recorded in each baseline's `run`.
-- **The sampling:** `record_every=10` frames, one sample per simulated second.
+`tools/regress-docker.sh <cvh> <avh>` and `tools/regress.sh` run the same
+test in the Linux container, against the Linux baselines in
+`regression/*.json`. That is where the engine was first ported.
 
-The observation itself (`engine:objects ()`) only reads state.
+The C runtime's `rand ()` and maths library differ between Linux and
+Windows, so the two platforms fight different wars from the same seed. Each
+platform is deterministic against its own baselines. The Windows baselines
+are the ones that matter.

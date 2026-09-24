@@ -1,12 +1,11 @@
-# The campaign regression test on Windows, natively: eech-world.exe and
+# The campaign regression test, natively on Windows: eech-world.exe and
 # eech_dc.dll (tools/build-windows.sh) run the retail Lebanon and Georgia
-# campaigns for 3 simulated hours each, in parallel, and their campaign
-# metrics are compared with the Windows baselines in regression/windows/
-# (tools/regress-compare.py; regression/README.md).
-#
-# Windows has its own baselines: the C runtime's rand() and maths library are
-# not glibc's, so a Windows war is not bit-identical to a Linux one (it is to
-# another Windows run).
+# campaigns for 3 simulated hours each, in parallel. Each run must:
+#   1. play out as an EECH campaign should (tools/campaign-expectations.py:
+#      tasking, combat, attrition, regen, supply, production, captures);
+#   2. match its baseline in regression/windows/ (tools/regress-compare.py):
+#      identical, as runs are deterministic, or within tolerance.
+# See regression/README.md.
 #
 # Usage (PowerShell):
 #   tools\regress-windows.ps1 -Georgia <root> -Lebanon <root> [-Update] [-Exact] [-Build]
@@ -61,6 +60,9 @@ foreach ($name in 'georgia_retail', 'lebanon_retail') {
 	$current = Join-Path $out "$name.json"
 	$base = Join-Path $baselines "$name.json"
 	Write-Host ''
+	# the campaign played out as EECH's should: every mechanic present (no reference needed)
+	& $python (Join-Path $here 'tools\campaign-expectations.py') $current
+	if ($LASTEXITCODE -ne 0) { Write-Host "${name}: FAIL (campaign expectations)"; $status = 1 }
 	if ($Update -or -not (Test-Path $base)) {
 		Copy-Item $current $base -Force
 		& $python (Join-Path $here 'tools\regress-compare.py') $base

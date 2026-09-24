@@ -18,7 +18,7 @@ local diagnostics_every = tonumber (args.diagnostics_every or "0")
 -- simulated seconds between progress lines
 local log_every = tonumber (args.log_every or "600")
 -- stop=conclusion ends the run early (hours stays the cap) when a side holds no
--- airbase or FARP left, or when nothing is captured or destroyed for
+-- airbase, FARP or carrier left, or when nothing is captured or destroyed for
 -- stalemate_hours (longer than the slowest regen interval, so reinforcements
 -- still get their turn)
 local stop_at_conclusion = args.stop == "conclusion"
@@ -133,11 +133,11 @@ for frame = 1, frames do
 			end
 		end
 		if stop_at_conclusion then
-			-- air bases (airbases and FARPs) held, and units alive, per side
+			-- air bases (airbases, FARPs and carriers) held, and units alive, per side
 			local bases, alive = { blue = 0, red = 0 }, { blue = 0, red = 0 }
 			for _, o in ipairs (objects) do
 				if o.kind == "keysite" then
-					if o.type_name == "KEYSITE_AIRBASE" or o.type_name == "KEYSITE_FARP" then bases[o.side] = (bases[o.side] or 0) + 1 end
+					if o.type_name == "KEYSITE_AIRBASE" or o.type_name == "KEYSITE_FARP" or o.type_name == "KEYSITE_ANCHORAGE" then bases[o.side] = (bases[o.side] or 0) + 1 end
 				elseif o.kind ~= "weapon" and o.alive then
 					alive[o.side] = (alive[o.side] or 0) + 1
 				end
@@ -145,9 +145,9 @@ for frame = 1, frames do
 			if last_alive and (alive.blue < last_alive.blue or alive.red < last_alive.red) then last_activity = clock.elapsed_seconds end
 			last_alive = alive
 			if bases.blue == 0 or bases.red == 0 then
-				conclusion = string.format ("%s holds no airbase or FARP: %s wins", bases.blue == 0 and "blue" or "red", bases.blue == 0 and "red" or "blue")
+				conclusion = string.format ("%s holds no airbase, FARP or carrier: %s wins", bases.blue == 0 and "blue" or "red", bases.blue == 0 and "red" or "blue")
 			elseif clock.elapsed_seconds - last_activity >= stalemate_seconds then
-				conclusion = string.format ("stalemate: nothing captured or destroyed for %g hours (airbases and FARPs: blue %d, red %d)",
+				conclusion = string.format ("stalemate: nothing captured or destroyed for %g hours (airbases, FARPs and carriers: blue %d, red %d)",
 					stalemate_seconds / 3600, bases.blue, bases.red)
 			end
 		end
