@@ -57,6 +57,24 @@ Red, with its ten airbases and two carriers, runs the supply, repair and
 troop-insertion missions that the generated maps never see. The run took
 about six minutes of wall time.
 
+## Retail Georgia, 12 hours (not committed: 157 MB zipped)
+
+The same setup run for 12 simulated hours, from 08:50 to 20:44. The first two
+hours repeat `georgia-retail-2h` exactly. Then red takes over:
+
+| | Blue (US) | Red (Russia) |
+|---|---|---|
+| Keysites, start → end | 16 → 10 | 54 → 60 |
+| Destroyed | 485: 187 infantry, 175 vehicles, 69 helicopters, 38 air defence, 16 fixed wing | 257: 93 vehicles, 81 infantry, 59 helicopters, 18 air defence, 5 fixed wing, 1 ship |
+| Weapons launched (recorded) | 1,548 | 1,406 |
+| Helicopters, 10 min → end | 70 → 1 | 242 → 185 |
+| Ground vehicles, 10 min → end | 227 → 52 | 226 → 133 |
+
+- **FARP captures:** there are 14. Blue briefly holds FARPs 18, 17 and 19. Red then takes FARPs 17, 18, 11, 13, 8, 15 and 16, one every hour or two after the fifth hour.
+- **Blue's air force:** its jets are gone by the fourth hour, including 11 in one 10-minute span around 3 h. Its air defence is gone by 6 h, and it is down to one helicopter by 10 h.
+- **Red's losses:** red stops losing units after about 6 h. Its jets, helicopters and vehicles hold steady from then on, and troop insertions push its infantry from 208 to 355.
+- **Tasks:** both sides fly OCA strikes and sweeps, SEAD and repair, besides the 2-hour mix.
+
 ## `georgia-12h.zip.acmi`
 
 Twelve simulated hours of Georgia, from 08:50 into the night. The map spans
