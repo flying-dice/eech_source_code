@@ -171,6 +171,8 @@ campaign map holds at most 128 campaign sectors a side (`map.c`
 therefore lose Abkhazia's north-west corner and a sliver of Lagodekhi.
 
 - The front runs at 44.0° E, through the Shida Kartli plain by Gori and Tskhinvali, where the roads that frontline forces are placed on cross it.
+- There are four FARPs a side along the front (41.45–42.25° N). The airbases are 70–160 km back, beyond most helicopter tasking, so the front's helicopters fly from the FARPs. The population load marks FARPs in use (`initialise_keysite_farp_enable`), which the script's keysite lookup skips, so only `FRONTLINE_FORCES` can populate them, with two groups each.
+- Each side has a factory and a refinery on OSM industrial areas: blue near Kutaisi and Zestafoni, red at Rustavi and Tbilisi.
 - Airbases: blue has Kutaisi and Senaki; red has Vaziani and Marneuli.
 - Roads include tertiary: 8,723 nodes.
 - Names use OSM's `name:en` where the local name is not in Latin script.

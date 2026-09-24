@@ -316,7 +316,8 @@ pub fn write_force(chc: &mut String, side: Side, airbases: &[(Side, String)], fa
             let _ = writeln!(chc, ":CREATE_GROUP\n:GROUP {group}\n:TYPE {formation}");
         }
     }
-    // FARPs: FRONTLINE_FORCES (place_frontline_forces) populates them, which marks them in use; the
-    // script's keysite lookup (parsgen.c) only matches keysites not yet in use
+    // FARPs: the population load marks them in use (keysite.c ::
+    // initialise_keysite_farp_enable), which the script's keysite lookup
+    // skips, so FRONTLINE_FORCES populates them (two helicopter groups each)
     let _ = farps;
 }

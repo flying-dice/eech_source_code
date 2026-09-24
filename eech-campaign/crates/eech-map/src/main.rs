@@ -64,7 +64,7 @@ const GEORGIA: Spec = Spec {
     height_sectors: 142,
     ai_sector_size: 4096,
     front_longitude: 44.0,
-    farp_latitudes: &[41.95, 42.25],
+    farp_latitudes: &[41.45, 41.75, 41.95, 42.25],
     roads: osm::RoadClass::Tertiary,
 };
 
