@@ -32,7 +32,7 @@ Twelve simulated hours of Georgia, from 08:50 into the night. The map spans
 | FARPs | 4, west of 44.0° E | 4, east of 44.0° E |
 | Destroyed | 519: 224 vehicles, 167 infantry, 128 helicopters | 330: 143 vehicles, 62 infantry, 123 helicopters, 2 air defence |
 | Weapons launched (recorded) | 1,281 | 2,675 |
-| Ground vehicles, start → end | 127 → 22 | 223 → 123 |
+| Ground vehicles, 10 min → end | 127 → 22 | 223 → 123 |
 
 The war is fought over the Kartli plain by artillery (red's BM-21s fire 2,019
 rockets) and by FARP-based attack helicopters: Hellfire, Vikhr, Ataka and
