@@ -2,7 +2,7 @@
 -- eech_dc module, runs it frame by frame, reports progress and hands the
 -- observed world to the host for its Tacview recording.
 --
--- host.args: root (installation root), scenario (luxembourg, georgia), map, campaign, hours, frame_ms,
+-- host.args: root (installation root), scenario (georgia, georgia_retail), map, campaign, hours, frame_ms,
 --            record_every (frames), acmi (output path), seed
 
 local args = host.args
@@ -15,7 +15,6 @@ local diagnostics_every = tonumber (args.diagnostics_every or "0")
 
 -- the maps eech-map builds: game path, campaign file, map origin, title
 local scenarios = {
-	luxembourg = { map = "..\\common\\maps\\map15", campaign = "luxembourg.chc", latitude = 49.40, longitude = 5.70, title = "EECH dynamic campaign: Luxembourg" },
 	-- the retail Georgia campaign ("Caspian Black Gold") on retail map3 data
 	-- map3 is not metric: EECH's own Tacview origin (textuser.c: 41.16, 40.185) is
 	-- off by up to 50 km. The projection is fitted by correlating the retail
@@ -24,7 +23,7 @@ local scenarios = {
 		affine = { m = { 1.2167375, -0.02315, -0.0035625, 0.9910375 }, t = { 258100.5, 94261.0 }, latitude = 42.0, longitude = 43.0 } },
 	georgia = { map = "..\\common\\maps\\map16", campaign = "georgia.chc", latitude = 41.0, longitude = 40.4, title = "EECH dynamic campaign: Georgia" },
 }
-local scenario = assert (scenarios[args.scenario or "luxembourg"], "scenario=luxembourg|georgia|georgia_retail")
+local scenario = assert (scenarios[args.scenario or "georgia"], "scenario=georgia|georgia_retail")
 
 local dc = require ("eech_dc")
 host.log (dc.name .. " loaded")

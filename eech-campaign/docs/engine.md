@@ -20,7 +20,7 @@ a Lua module (a DLL), and runs it from a Rust host process.
 ```
 
 Data comes from `eech-map`, which builds a map and a dynamic campaign from an
-OpenStreetMap extract and SRTM elevation. Luxembourg is the one built so far.
+OpenStreetMap extract and SRTM elevation. Georgia (map16) is the one built so far. The retail Georgia campaign (map3) runs on retail data instead.
 
 ## What is compiled
 
@@ -58,7 +58,7 @@ tree is never modified.
 | E3 | `entity/special/effect/explosn/xp_dbase.h` | Two anonymous structs of one union both declare `frequency` and `smoke_lifetime`, at the same offsets. MSVC's C++ front end accepts the repeated names; C does not. The second pair is renamed; the layout and every access are unchanged. |
 | P1 | `entity/system/en_funcs/en_creat.c` | 64-bit blocker B1 (the spike's P1): the entity attribute `va_list` is read as the i386 argument stack. `csrc/eech_attrs.c` marshals it. |
 | **B2** | `userint2/ui_sys/ui_attrs/ui_attrs.c` | **New 64-bit blocker.** Five UI attributes pass a `ui_object *` and read it back as `va_arg (pargs, int)`. Four graphic attributes read a pointer into an `int`. On x86-64 the pointer is truncated, and the first UI screen built crashes. The fix reads the arguments as pointers. |
-| **X1** | `system/fpu.h` | **New 64-bit blocker.** The GNU `convert_float_to_int` / `convert_double_to_int` are `fistp (%1)`. In AT&T syntax an unsuffixed `fistp` is the 16-bit store, so only the low 16 bits of the int are written and values from 32,768 up saturate. Every world coordinate past 32.7 km then fell into the wrong sector (`get_x_sector`). On Luxembourg, the eastern half of the map shared one sector column; on Georgia, every keysite came out blue. The asm also popped the x87 stack without declaring it. The fix converts in C: `cvttss2si` truncates, which is the rounding EECH sets. |
+| **X1** | `system/fpu.h` | **New 64-bit blocker.** The GNU `convert_float_to_int` / `convert_double_to_int` are `fistp (%1)`. In AT&T syntax an unsuffixed `fistp` is the 16-bit store, so only the low 16 bits of the int are written and values from 32,768 up saturate. Every world coordinate past 32.7 km then fell into the wrong sector (`get_x_sector`). On the Luxembourg map (since removed), the eastern half of the map shared one sector column; on Georgia, every keysite came out blue. The asm also popped the x87 stack without declaring it. The fix converts in C: `cvttss2si` truncates, which is the rounding EECH sets. |
 | S1 | `entity/special/force/fc_msgs.c` | A keysite low on ammo or fuel is resupplied from the closest factory or refinery, or from the closest airbase if that is nearer. The airbase lookup excludes no keysite, so an airbase asking finds itself at 0 km and becomes its own supplier. It has no cargo of what it lacks, so no SUPPLY task is created and no airbase is ever resupplied. The patch passes the requester as `get_closest_keysite`'s exclude argument. |
 | C1 | `3d/3dobjdb.c` | A scene's collision object 0 is the null object, meaning none. The `.EES` path maps 0 to −1, but the `3dobjdb.bin` path keeps it, and the retail database stores 0 (`RS_MANPAD`, for one). The first weapon tested against such a scene read the null object's NULL surface list. |
 | T1, T2 | `graphics/textuser.c`, `3d/3dobjid.c` | Headless only. The community objects over a retail texture set disagree on which textures are camouflaged, and name texture animations the retail set lacks. Nothing is drawn headless, so both are logged instead of fatal. |
@@ -79,7 +79,7 @@ reads uninitialised locals).
 ## The platform layer (csrc/)
 
 - **Files.**
-  - EECH names files with Windows paths (`..\common\maps\map15\terrain`). `eech_native_path` converts `\` to `/` and resolves every component case-insensitively.
+  - EECH names files with Windows paths (`..\common\maps\map16\terrain`). `eech_native_path` converts `\` to `/` and resolves every component case-insensitively.
   - `fopen` in `"r"` mode reads as Windows text mode does: CR LF becomes LF, and Ctrl-Z ends the file. EECH's tag parser depends on it.
   - `CreateFileMapping` and `MapViewOfFile` are `mmap`, copy-on-write.
   - `EECH_TRACE_FILES=1` logs every file opened or missed.
@@ -162,9 +162,9 @@ initialises 3. The first small explosion then reads uninitialised heap.
 
 ### The map and campaign (`eech-map`)
 
-`eech-map <extract.osm.pbf> <srtm dir> <installation root> [luxembourg|georgia]`
-writes `common/maps/map15` (Luxembourg) or `common/maps/map16` (Georgia). The
-map is chosen by name or by the extract's file name.
+`eech-map <extract.osm.pbf> <srtm dir> <installation root> [georgia]`
+writes `common/maps/map16` (Georgia). The map is chosen by name or by the
+extract's file name.
 
 **Georgia** (`georgia-latest.osm.pbf`, SRTM N41–N43 × E040–E046) covers
 40.4–46.7° E and 41.0–43.6° N: 256 × 142 terrain sectors, 524 × 291 km. EECH's
@@ -182,13 +182,13 @@ therefore lose Abkhazia's north-west corner and a sliver of Lagodekhi.
 
 | File | From |
 |---|---|
-| `terrain/terrain.ffp`, `default.sec`, `default.rgb` | 30 × 44 sectors of 2,048 m. SRTM heights on a 256 m grid; one fan face per cell (SW, NW, NE, SE, clockwise as the elevation lookup's inside test requires). Faces are typed from OSM land cover (fields, forest, built-up, industrial, military, water). Per-point normals index EECH's 254-normal table. |
-| `route/ROADS.dat/.nde/.wp` | OSM motorway to secondary roads. Graph nodes are junctions, degree-2 chains are contracted, and only the largest component is kept: 3,946 nodes and 5,864 links, within EECH's 14-bit and 7-bit limits. |
+| `terrain/terrain.ffp`, `default.sec`, `default.rgb` | 256 × 142 sectors of 2,048 m. SRTM heights on a 256 m grid; one fan face per cell (SW, NW, NE, SE, clockwise as the elevation lookup's inside test requires). Faces are typed from OSM land cover (fields, forest, built-up, industrial, military, water). Per-point normals index EECH's 254-normal table. |
+| `route/ROADS.dat/.nde/.wp` | OSM roads down to the spec's smallest class (Georgia: tertiary). Graph nodes are junctions, degree-2 chains are contracted, and only the largest component is kept (Georgia: 8,723 nodes), within EECH's 14-bit and 7-bit limits. |
 | `route/popname.dat`, `bridge.pop` | OSM towns; aerodrome names |
-| `camp01/luxembourg.sid` | the AI-sector side map (a Photoshop file): blue west of 6.07° E, red east |
-| `camp01/luxembourg.pop` | Airbases: the two largest named aerodromes per side, at least 10 km apart (blue: Useldange and Wiltz-Noertrange; red: Luxembourg Findel). A side with fewer gets one synthesised at its town farthest from its other airbase, off water (red: Echternach). Two FARPs per side, 6 km behind the front. Two air-defence sites per airbase. |
-| `camp01/luxembourg.chc` | Campaign data and, for each force, its reserves, task generation, division numbers, frontline forces and the groups at its airbase |
-| `mapinfo.txt` | the origin, `coordinate=49.4,5.7`: the same geodesy as EECH's Tacview writer, so map and recording agree |
+| `camp01/georgia.sid` | the AI-sector side map (a Photoshop file): blue west of 44.0° E, red east |
+| `camp01/georgia.pop` | Airbases: the two largest named aerodromes per side, at least 10 km apart (blue: Kutaisi and Senaki; red: Vaziani and Marneuli). A side with fewer gets one synthesised at its town farthest from its other airbase, off water. FARPs at the spec's latitudes, 0.085° behind the front. A factory and a refinery per side. Two air-defence sites per airbase. |
+| `camp01/georgia.chc` | Campaign data and, for each force, its reserves, task generation, division numbers, frontline forces and the groups at its airbase |
+| `mapinfo.txt` | the origin, `coordinate=41.0,40.4`: the same geodesy as EECH's Tacview writer, so map and recording agree |
 
 ### Retail data: the Georgia campaign (map3, "Caspian Black Gold")
 
@@ -224,8 +224,8 @@ Drive folder through rclone, configured from environment variables.
 ```lua
 local dc = require ("eech_dc")           -- the host must allow C modules
 dc.prepare_installation (root)
-local engine = dc.boot { install_root = root, map = "..\\common\\maps\\map15",
-                         campaign = "luxembourg.chc", gunship = "apache", seed = 1 }
+local engine = dc.boot { install_root = root, map = "..\\common\\maps\\map16",
+                         campaign = "georgia.chc", gunship = "apache", seed = 1 }
 engine:frame (100)                        -- milliseconds of simulated time
 for _, o in ipairs (engine:objects ()) do ... end
 local clock = engine:clock ()
@@ -251,16 +251,16 @@ simulated ten minutes:
 1. **All of the maintained EECH builds and runs headless on x86-64.** It needs 3 source patches and 2 64-bit fixes. B2 is new: the whole tree has one more `va_arg` pointer truncation, in the UI.
 2. **The dedicated-server path is the headless route.** It needed no new game logic. The one ordering constraint is that the dedicated-server flag must be set after the init screen, whose function would otherwise enter `flight ()` itself.
 3. **Retail data is the real dependency.** The 3D database drives keysites (routes, landing sites, buildings), so it cannot be skipped. It can be synthesised from EECH's own formats and name tables.
-4. **The campaign runs.** Luxembourg boots, generates and assigns tasks from the first minutes (BAI, CAS, recon, CAP, SEAD, ground and OCA strikes, OCA sweeps, advance and retreat, patrols, supply, troop insertion, transfers), and runs for simulated hours without a fault. Runs are deterministic. EECH seeds its random numbers from the system clock when the session starts. The simulated clock's epoch is set from the boot seed, so the seed selects the run.
+4. **The campaign runs.** A generated campaign boots, generates and assigns tasks from the first minutes (BAI, CAS, recon, CAP, SEAD, ground and OCA strikes, OCA sweeps, advance and retreat, patrols, supply, troop insertion, transfers), and runs for simulated hours without a fault. Runs are deterministic. EECH seeds its random numbers from the system clock when the session starts. The simulated clock's epoch is set from the boot seed, so the seed selects the run.
 5. **Combat runs.** Aircraft and ground units choose weapons, aim, launch, guide, hit and kill, and wrecks and weapons appear in the recording. Three pieces of data gate combat, and each fails silently: the weapon-system sub-objects (no fire at all), the GWUT table (NaN missiles), and regen sites plus reserves (air tasking stops once losses bring each group type down to EECH's minimum idle count).
 6. **The campaign keeps reserves.** `assign.c` tasks a group only while more than `group_database[type].minimum_idle_count` idle groups of its type remain in the force's air registry, across the whole map: attack helicopters 2, recon-attack 3, fighters and CAS 1. Landed groups of one type merge into groups of up to four, which lowers the group count further. A campaign therefore needs more groups than the minimum per type, and it needs regen sites to replace losses.
 7. **A campaign needs supply producers.** Airbases and FARPs only consume ammo and fuel (`ks_dbase.c`: an airbase uses 0.2 ammo and 0.4 fuel per keysite tick). Supply comes from factories (ammo), oil refineries (fuel) and ports, and SUPPLY missions fly it as cargo to the keysites that run low. Without producers every airbase drains to the 10% floor, and the air war stalls on rearming. `eech-map` puts a factory and a refinery on each side's largest OSM industrial areas behind the front. They are key templates in the population file, which `popread.c` turns into keysites only in version 2 files (negative template count, a routes object per template): the version 1 branch is commented out, but its `if` still guards the version 2 code.
 8. **A side needs two airbases.** A REPAIR or SUPPLY task never starts from the keysite it serves (`taskgen.c`). A side whose only airbase is struck out of action can therefore never repair or resupply it, and its air groups stay "Repairing" for the rest of the campaign. The same happens when there are too few idle groups elsewhere to fly the task.
-9. **Campaigns run for hours without a fault.** The recordings (`recordings/`) cover 12 simulated hours of Georgia and 6 of Luxembourg: task generation and assignment, combat and attrition, regeneration from reserves, production, supply, repair and troop insertion. Before X1, a Luxembourg run showed red capturing both blue airbases, but its sector lookups beyond 32.7 km were wrong. With correct maths, neither war has changed a keysite's hands within those hours.
+9. **Campaigns run for hours without a fault.** The recordings (`recordings/`) cover 12 simulated hours of Georgia: task generation and assignment, combat and attrition, regeneration from reserves, production, supply, repair and troop insertion. Before X1, a run on a generated map showed red capturing both blue airbases, but its sector lookups beyond 32.7 km were wrong. With correct maths, no generated war has changed a keysite's hands within those hours; the retail campaign does capture.
 
 ## Limits
 
 - **Linux only.** csrc/ is POSIX. A Windows build would compile EECH against the real SDK and replace only csrc/'s platform half.
 - **No geometry in the synthetic objects:** only their bounding boxes and routes. Line of sight and weapon hits use bounding boxes and terrain; object meshes do not take part.
 - **No player.** The engine is a dedicated server. The player's gunship and cockpit code is compiled but not driven.
-- **Performance:** about four minutes of wall time per simulated hour for Luxembourg's roughly 2,300 units, in a release build.
+- **Performance:** about four minutes of wall time per simulated hour for a generated map of roughly 2,300 units, in a release build.

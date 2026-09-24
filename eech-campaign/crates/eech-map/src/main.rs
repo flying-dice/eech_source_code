@@ -36,19 +36,6 @@ struct Spec {
     roads: osm::RoadClass,
 }
 
-const LUXEMBOURG: Spec = Spec {
-    name: "luxembourg",
-    title: "Luxembourg",
-    map_number: 15,
-    origin: (49.40, 5.70),
-    width_sectors: 30,
-    height_sectors: 44,
-    ai_sector_size: 4096,
-    front_longitude: 6.07,
-    farp_latitudes: &[49.62, 49.90],
-    roads: osm::RoadClass::Secondary,
-};
-
 /// Georgia (40.4-46.7 E, 41.0-43.6 N): blue holds the west (Kutaisi, Senaki),
 /// red the east (Vaziani, Marneuli); the front runs at 44.0 E through the
 /// Shida Kartli plain by Gori and Tskhinvali, where the roads that frontline
@@ -68,18 +55,18 @@ const GEORGIA: Spec = Spec {
     roads: osm::RoadClass::Tertiary,
 };
 
-const SPECS: [&Spec; 2] = [&LUXEMBOURG, &GEORGIA];
+const SPECS: [&Spec; 1] = [&GEORGIA];
 
 fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 4 && args.len() != 5 {
-        anyhow::bail!("usage: eech-map <extract.osm.pbf> <srtm dir> <installation root (contains common/)> [luxembourg|georgia]");
+        anyhow::bail!("usage: eech-map <extract.osm.pbf> <srtm dir> <installation root (contains common/)> [georgia]");
     }
     let (pbf, srtm_dir, root) = (PathBuf::from(&args[1]), PathBuf::from(&args[2]), PathBuf::from(&args[3]));
     // the map: named, or the one the extract's file name names
     let wanted = args.get(4).cloned().unwrap_or_else(|| pbf.file_name().map(|n| n.to_string_lossy().to_lowercase()).unwrap_or_default());
     let Some(spec) = SPECS.iter().copied().find(|s| wanted.contains(s.name)) else {
-        anyhow::bail!("no map spec for {wanted:?} (known: luxembourg, georgia)");
+        anyhow::bail!("no map spec for {wanted:?} (known: georgia)");
     };
     eprintln!("map: {} (map{})", spec.title, spec.map_number);
     // map.c: the campaign map overlay is 128 x 128 campaign sectors

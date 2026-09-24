@@ -25,17 +25,14 @@ loads the module with `require ("eech_dc")` and records Tacview.
 
 ```sh
 cargo build --release -p eech-map -p eech-dc -p eech-world
-# a map and campaign from OSM and SRTM (Luxembourg), into an installation root
-target/release/eech-map luxembourg-latest.osm.pbf srtm/ /tmp/lux
-# run the dynamic campaign for 6 simulated hours, recording Tacview
-target/release/eech-world crates/eech-world/lua/campaign.lua root=/tmp/lux hours=6 acmi=lux.acmi
-# Georgia: georgia-latest.osm.pbf and SRTM N41-N43 x E040-E046
+# a map and campaign from OSM and SRTM (Georgia: SRTM N41-N43 x E040-E046), into an installation root
 target/release/eech-map georgia-latest.osm.pbf srtm-georgia/ /tmp/georgia
+# run the dynamic campaign for 6 simulated hours, recording Tacview
 target/release/eech-world crates/eech-world/lua/campaign.lua root=/tmp/georgia scenario=georgia hours=6 acmi=georgia.acmi
 ```
 
-A six-hour Luxembourg campaign recorded this way is in
-[`recordings/luxembourg-6h.zip.acmi`](recordings/) (Tacview opens it directly).
+A twelve-hour Georgia campaign recorded this way is in
+[`recordings/georgia-12h.zip.acmi`](recordings/) (Tacview opens it directly).
 
 Details, findings and limits: [`docs/engine.md`](docs/engine.md).
 

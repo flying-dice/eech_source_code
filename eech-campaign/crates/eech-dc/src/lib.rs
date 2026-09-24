@@ -8,8 +8,8 @@
 //! ```lua
 //! local dc = require ("eech_dc")
 //! dc.prepare_installation (root)
-//! local engine = dc.boot { install_root = root, map = "..\\common\\maps\\map15",
-//!                          campaign_directory = "camp01", campaign = "luxembourg.chc",
+//! local engine = dc.boot { install_root = root, map = "..\\common\\maps\\map16",
+//!                          campaign_directory = "camp01", campaign = "georgia.chc",
 //!                          gunship = "apache", seed = 1 }
 //! while true do
 //!     engine:frame (100)                -- milliseconds of simulated time

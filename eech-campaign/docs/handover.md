@@ -14,8 +14,8 @@ the recordings, see [`../recordings/README.md`](../recordings/README.md).
   `lua/campaign.lua`, and records Tacview ACMI 2.2. Positions can go through a
   fitted map projection (`affine`).
 - **Maps:**
-  - `eech-map` generates maps and campaigns from OSM and SRTM: `luxembourg`
-    (map15) and `georgia` (map16);
+  - `eech-map` generates maps and campaigns from OSM and SRTM: `georgia`
+    (map16). The Luxembourg scenario (map15) has been removed;
   - `tools/retail-map3.sh` assembles the **retail Georgia campaign** (map3,
     "Caspian Black Gold") from retail data. This is the current focus.
 - **Storage:** `tools/offsite.sh` uses rclone against one Google Drive folder
@@ -70,30 +70,39 @@ The map3 projection (x stretched 1.217 east–west) comes from correlating the
 retail terrain with SRTM (r = 0.978). The heightmap used was
 `map3/graphics/height.tga`: grey = 255 − palette index, about 18.8 m per level.
 
-## Next steps (what the user asked for)
+## Running locally (Windows)
 
-1. **Record a 2-hour retail Georgia session and share it through Google
-   Drive.** This needs an rclone credential in the environment:
-   - `RCLONE_CONFIG_EECHDRIVE_TOKEN`: the JSON from `rclone authorize "drive"`,
-     run on the user's machine;
-   - `RCLONE_CONFIG_EECHDRIVE_ROOT_FOLDER_ID` = `10wI06di8fwtefZbp_xgiv5cPhB4lwtPy`.
+The build is POSIX. WSL's Ubuntu 22.04 GCC 11 lacks `-ftrivial-auto-var-init`,
+and GCC 14 (`rust:latest`) rejects an incompatible pointer in `timer.c`. What
+works is Docker with `rust:bookworm` (GCC 12) plus `liblua5.1-0-dev`, with
+the target dir in a Docker volume:
 
-   Then run `tools/offsite.sh check`, pull the retail data, run, and
-   `tools/offsite.sh push-output georgia-retail-2h <file>`. The Drive
-   connector (MCP) cannot move large files: content goes inline as base64.
-   Attachments in the chat are limited to 30 MB.
-2. **"Delete Luxembourg"**: the user asked for this, but never confirmed the
-   scope. Either remove only `recordings/luxembourg-6h.zip.acmi` and its README
-   section, or remove the whole scenario (the `eech-map` spec, the
-   `campaign.lua` entry, and the README and `engine.md` sections). Ask.
-3. **Pack the retail install root** to Drive (`tools/offsite.sh push-install
-   georgia-retail <root>`), so future sessions can pull it.
+```sh
+printf 'FROM rust:bookworm\nRUN apt-get update && apt-get install -y --no-install-recommends liblua5.1-0-dev zip gdb python3\n' | docker build -t eech-build -
+docker run --rm -v E:/eech_source_code:/src -v eech-target12:/target -e CARGO_TARGET_DIR=/target \
+    -w /src/eech-campaign eech-build cargo build --release -p eech-dc -p eech-world -p eech-map
+```
+
+The retail data comes from two local installs:
+
+- **GOG Comanche vs Hokum** (`D:\Program Files (x86)\GOG Galaxy\Games\Comanche vs Hokum`)
+  has `cohokum/3ddata`, `map3/camp01` and `route/POPNAME.DAT` and `BRIDGE.POP`,
+  but no roads or terrain.
+- **Steam Apache vs Havoc** (`D:\SteamLibrary\steamapps\common\Enemy Engaged Apache vs Havoc`)
+  supplies `map3/route` (`ROADDATA.*`) and `map3/terrain`.
+
+The 2-hour run is `recordings/georgia-retail-2h.zip.acmi`. The Luxembourg
+scenario has been removed entirely.
+
+## Next steps
+
+1. Longer retail runs (12 h and more), to see whether the captures continue.
 
 ## Known limits
 
 - **Recordings from before X1** (the 16-bit float-to-int fix) were wrong past
   32.7 km. All recordings now in `recordings/` postdate it.
-- **Generated maps** (Luxembourg, Georgia map16) run wars of attrition, and no
+- **Generated maps** (Georgia map16) run wars of attrition, and no
   keysite changes hands. The retail campaign does capture.
 - **Supply:** EECH airbases drain supply and are resupplied only from
   producers (S1 fixed a self-supplier bug). The retail map3 population file is

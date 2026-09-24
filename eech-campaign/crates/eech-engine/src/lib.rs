@@ -69,7 +69,7 @@ pub enum Gunship {
 pub struct EngineConfig {
     /// an installation root: contains cohokum/ (the working directory) and common/
     pub install_root: PathBuf,
-    /// EECH paths relative to cohokum/, e.g. `..\common\maps\map15`, `camp01`, `luxembourg.chc`
+    /// EECH paths relative to cohokum/, e.g. `..\common\maps\map16`, `camp01`, `georgia.chc`
     pub map_path: String,
     pub campaign_directory: String,
     pub campaign_filename: String,

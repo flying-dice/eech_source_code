@@ -5,20 +5,57 @@ Dynamic campaigns recorded by the harness. `eech-world` runs
 Tacview opens the `.zip.acmi` files directly. Each is the ACMI 2.2 text file,
 zipped, sampled once per simulated second.
 
-Both were recorded with patches X1 (float-to-int conversion) and S1 (airbase
-resupply) and with supply producers on the map (`docs/engine.md`). An earlier
-Luxembourg recording from before X1 had wrong sector lookups for everything
-past 32.7 km. It has been replaced.
+They were recorded with patches X1 (float-to-int conversion) and S1 (airbase
+resupply) (`docs/engine.md`). The generated map also has supply producers.
 
 ```sh
 cargo build --release -p eech-map -p eech-dc -p eech-world
 target/release/eech-map georgia-latest.osm.pbf srtm-georgia/ /tmp/georgia      # SRTM N41-N43 x E040-E046
 target/release/eech-world crates/eech-world/lua/campaign.lua root=/tmp/georgia scenario=georgia \
     hours=12 seed=1 record_every=10 diagnostics_every=7200 acmi=georgia-12h.acmi
-target/release/eech-map luxembourg-latest.osm.pbf srtm-luxembourg/ /tmp/lux    # SRTM N49-N50 x E005-E006
-target/release/eech-world crates/eech-world/lua/campaign.lua root=/tmp/lux scenario=luxembourg \
-    hours=6 seed=1 record_every=10 diagnostics_every=3600 acmi=luxembourg-6h.acmi
 ```
+
+The retail campaign needs retail data outside the repository (see
+`tools/retail-map3.sh`), and `tools/acmi-summary.py` gives the numbers below:
+
+```sh
+tools/retail-map3.sh <data> /tmp/geo_retail
+target/release/eech-world crates/eech-world/lua/campaign.lua root=/tmp/geo_retail scenario=georgia_retail \
+    hours=2 record_every=10 diagnostics_every=3600 acmi=georgia-retail-2h.acmi
+tools/acmi-summary.py georgia-retail-2h.acmi run.log
+```
+
+## `georgia-retail-2h.zip.acmi`
+
+Two simulated hours of the retail Georgia campaign ("Caspian Black Gold",
+map3), from 08:50. The data is the GOG Comanche vs Hokum `cohokum/3ddata`,
+`camp01`, `POPNAME.DAT` and `BRIDGE.POP`, with the Steam Apache vs Havoc
+map3 roads (`ROADDATA.*`) and terrain.
+
+| | Blue (US) | Red (Russia) |
+|---|---|---|
+| Keysites, start → end | 16 → 15 | 54 → 55 |
+| Destroyed | 133: 68 vehicles, 29 helicopters, 25 infantry, 9 air defence, 2 fixed wing | 135: 58 vehicles, 33 helicopters, 26 infantry, 15 air defence, 3 fixed wing |
+| Weapons launched (recorded) | 553 | 357 |
+| Ground vehicles, 10 min → end | 227 → 159 | 226 → 168 |
+| Helicopters, 10 min → end | 70 → 41 | 242 → 211 |
+
+Keysites change hands:
+
+- FARP 18 goes to blue at 1:11, back to red at 1:19, and to blue again 31 s later.
+- Red takes FARP 7 at 1:52 and FARP 3 at 1:58.
+
+The losses are even, but they hurt blue far more. Blue loses 29 of its 70
+helicopters, while red has more than three times as many to start with.
+
+Tasks (peak concurrent, from the hourly diagnostics):
+
+- **Blue:** recon 7, helicopter transfers 6, CAS 2, CAP 2, ground strike 2, escort, BAI, BDA and troop insertion.
+- **Red:** helicopter transfers 9, supply 7, BAI 4, CAP 3, recon 3, fixed-wing transfers 3, repair 3, ground strike 3, troop insertion 3, escort 2, BDA 2, CAS and SEAD.
+
+Red, with its ten airbases and two carriers, runs the supply, repair and
+troop-insertion missions that the generated maps never see. The run took
+about six minutes of wall time.
 
 ## `georgia-12h.zip.acmi`
 
@@ -49,19 +86,5 @@ all 160 of their reserve helicopters, and the front is static with 16 blue
 and 68 red vehicles left. Still no keysite changes hands. Red never mounts a
 troop insertion or an OCA strike across Georgia's distances.
 
-## `luxembourg-6h.zip.acmi`
-
-Six simulated hours of Luxembourg (front at 6.07° E).
-
-| | Blue (US) | Red (Russia) |
-|---|---|---|
-| Airbases | Useldange, Wiltz-Noertrange | Luxembourg Findel, Echternach (synthesised) |
-| Destroyed | 1,314: 1,099 vehicles, 156 helicopters, 41 fixed wing | 1,180: 988 vehicles, 142 helicopters, 23 fixed wing |
-| Weapons launched (recorded) | 6,830 | 6,596 |
-
-A closely matched war along the whole front. BAI, CAS, CAP, recon, SEAD,
-OCA strike and sweep, ground strike, escort, BDA, repair, supply and troop
-insertion are all flown. No keysite changes hands in six hours.
-
-Both runs are deterministic: the same extract, SRTM tiles and seed reproduce
-them line for line.
+The generated-map runs are deterministic: the same extract, SRTM tiles and
+seed reproduce them line for line.

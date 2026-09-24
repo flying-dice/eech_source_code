@@ -22,7 +22,7 @@ struct eech_engine_config
 {
 	/* the installation root: contains cohokum/ (the working directory) and common/ */
 	const char *install_root;
-	/* EECH paths, relative to cohokum/: e.g. "..\\common\\maps\\map17", "camp01", "luxembourg.chc" */
+	/* EECH paths, relative to cohokum/: e.g. "..\\common\\maps\\map16", "camp01", "georgia.chc" */
 	const char *map_path;
 	const char *campaign_directory;
 	const char *campaign_filename;
