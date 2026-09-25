@@ -165,15 +165,30 @@ This evidence belongs to the smaller campaign kernel: `crates/eech-campaign`, `e
 - **Linux.** The Linux baselines (`regression/*.json`) predate S2–U1 and weren't run.
 - **CI.** The repository workflow currently fails before any test runs: `eech-world` can't link `lua5.1` on the runner. It gives no evidence for this candidate. Campaign runs stay local (retail data, and cost).
 
-## Remaining M1 gaps
+## Remaining M1 work and known limitations
 
-1. Classify and review the corrections to original EECH behaviour (defect correction or intentional semantic change).
-2. Decide the contract for bad installation input. The missing-map crash would take down a host such as DCS. A failed boot using up the process's one boot may or may not be intended.
-3. Give errors from the Lua binding the same classification as the engine's (`eech:` messages), and return the engine's rejection reason to Lua, not only to stderr.
-4. Exercise a fatal error during `frame` (poisoning), or record it as untestable through the public path.
-5. Reconcile the capability claims in the older documents (`feasibility.md`, `engine.md`, `handover.md`) against this candidate.
-6. Rerun the kernel on Windows, and fix CI.
-7. The M1 acceptance review on #19.
+This work is classified against #19's exit question: *can we use this candidate to develop a host while knowing exactly what it does and does not establish?* M1 can keep unsupported or unverified behaviour, as long as it is explicit.
+
+**M1 blocker:**
+
+1. Review and classify the behavioural corrections already in the candidate. These are S2, S3, N1–N3, H1 and U1, and the earlier X1, S1, C1, T1, T2, B2, W1 and E1–E3. Each is either a defect correction or an intentional semantic change. #19 requires them to be visible and reviewed rather than silently inherited.
+
+**A blocker only where an older claim contradicts this baseline:**
+
+2. Correct claims in the older documents (`feasibility.md`, `engine.md`, `handover.md`, `recordings/README.md`) only where they materially conflict with this record. Wholesale documentation cleanup is not M1 work.
+
+**M1 acceptance step:**
+
+3. The explicit milestone acceptance review on #19.
+
+**Known limitations and follow-up candidates** (recorded above, and not required for M1 to exit unless the acceptance review finds that one stops a host from safely respecting the candidate):
+
+- **Bad installation input:** a missing map directory crashes the host, and a failed boot uses up the process's one boot.
+- **Error messages:** Lua-binding errors aren't classified as `eech:` messages, and the engine's rejection reason reaches only stderr.
+- **Poisoning:** after a fatal error during `frame`, it stays unverified. No such fatal was manufactured just to test it.
+- **Kernel on Windows:** the supporting kernel tests weren't run on Windows.
+- **CI:** the repository workflow fails before any test runs.
+- **Bit-reproducibility:** a rebuild reproduces the code and data but not the file hashes (see "Rebuild check").
 
 ## Reproduce
 
