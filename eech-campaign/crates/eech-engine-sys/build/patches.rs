@@ -3,7 +3,8 @@
 // engine compiles something other than the original EECH text. Each patch
 // replaces text that must occur exactly `count` times in the original file;
 // the build fails if it does not. Every patch is listed, with its evidence,
-// in eech-campaign/docs/engine.md.
+// in eech-campaign/docs/engine.md, and reviewed (defect correction or
+// intentional semantic change) in eech-campaign/docs/corrections.md.
 //
 
 pub struct Patch {
@@ -132,7 +133,7 @@ pub const PATCHES: &[Patch] = &[
     Patch {
         file: "aphavoc/source/ui_menu/ingame/campaign/ca_hist.c",
         id: "H1-empty-campaign-history",
-        why: "maintain_campaign_history runs whenever a task completes. With an empty history it reads campaign_history[-1] (AddressSanitizer: global-buffer-overflow), and can call remove_campaign_history (-1), which sets num_campaign_history_items to -1; the next addition then writes campaign_history[-1], corrupting the global before the array (the Windows Lebanon crashes: garbage terrain data 11-12 simulated hours in). Nothing to maintain in an empty history.",
+        why: "maintain_campaign_history runs whenever a campaign item is destroyed (response_to_campaign_item_destroyed); headless, the UI history is always empty. With an empty history it reads campaign_history[-1] (AddressSanitizer: global-buffer-overflow), and can call remove_campaign_history (-1), which sets num_campaign_history_items to -1; the next addition then writes campaign_history[-1], corrupting the global before the array. Nothing to maintain in an empty history. (The Windows Lebanon crash 11-12 simulated hours in was N3, not this; docs/corrections.md.)",
         original: "\t//\n\t// Consider currently displayed page\n\t//\n\n\tlast = num_campaign_history_items - 1;\n",
         replacement: "\t//\n\t// Consider currently displayed page\n\t//\n\n\tif (num_campaign_history_items <= 0) /* EECH headless (H1) */\n\t{\n\t\treturn;\n\t}\n\n\tlast = num_campaign_history_items - 1;\n",
         count: 1,
@@ -164,7 +165,7 @@ pub const PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/terrain/terrelev.c",
         id: "N3-degenerate-terrain-face",
-        why: "get_3d_terrain_point_data takes a face's normal from a cross product of its edges; a degenerate retail terrain triangle (collinear or coincident points) gives a zero vector, which normalises to NaN, and the elevation (dy = ... / face_normal.y) is NaN. Wind drift multiplies smoke motion by it, and the next lookup indexes the terrain with a NaN position: the Windows Lebanon crash 11-12 simulated hours in (N1, N2). The original code has this very fallback commented out below: use the up vector.",
+        why: "get_3d_terrain_point_data takes a face's normal from a cross product of its edges; a degenerate retail terrain triangle (collinear or coincident points) gives a zero cross product, which normalise_any_3d_vector leaves as a zero vector, so the elevation (dy = ... / face_normal.y) is 0/0, NaN. Wind drift multiplies smoke motion by it, and the next lookup indexes the terrain with a NaN position: the Windows Lebanon crash 11-12 simulated hours in (N1, N2). Use the up vector, as the original's commented-out fallback below does; that fallback also set the elevation to the sector maximum, where this keeps the vertex height (docs/corrections.md).",
         original: "\t\t\t\tnormalise_3d_vector (&normal);\n\n\t\t\t\tpoint_data->face_normal = normal;\n",
         replacement: "\t\t\t\tnormalise_3d_vector (&normal);\n\n\t\t\t\t/* EECH headless (N3): a degenerate face has no normal; take the up vector, as the commented-out debug code below does */\n\t\t\t\tif ( !( normal.y > 0.00001f ) )\n\t\t\t\t{\n\t\t\t\t\tnormal.x = 0.0;\n\t\t\t\t\tnormal.y = 1.0;\n\t\t\t\t\tnormal.z = 0.0;\n\t\t\t\t}\n\n\t\t\t\tpoint_data->face_normal = normal;\n",
         count: 1,
@@ -180,7 +181,7 @@ pub const PATCHES: &[Patch] = &[
     Patch {
         file: "modules/graphics/textuser.c",
         id: "T1-texture-camo-mismatch",
-        why: "Headless: the community objects (setup/cohokum/3ddata/objects) over a retail Apache vs Havoc database disagree with its texture set on which textures are camouflaged, and texture registration treats that as fatal. Nothing is drawn headless, so it is logged instead.",
+        why: "Headless: the community objects (setup/cohokum/3ddata/objects) over a retail Apache vs Havoc database disagree with its texture set on which textures are camouflaged, and texture registration treats that as fatal. Nothing is drawn headless, so it is ignored (debug_log compiles to nothing: DEBUG is not defined).",
         original: "\t\t\tdebug_fatal ( \"Texture '%s': %s defined it as",
         replacement: "\t\t\tdebug_log ( /* EECH headless (T1) */ \"Texture '%s': %s defined it as",
         count: 2,
@@ -188,7 +189,7 @@ pub const PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dobjid.c",
         id: "T2-missing-texture-animation",
-        why: "Headless: a community object (setup/cohokum/3ddata/objects) can name a texture animation the retail texture set lacks (the community installer adds them as TGA files). Nothing is drawn headless: use animation 0 and log it, so the object's geometry, collision mesh and weapon mounts still load.",
+        why: "Headless: a community object (setup/cohokum/3ddata/objects) can name a texture animation the retail texture set lacks (the community installer adds them as TGA files). Nothing is drawn headless: use animation 0 (the debug_log compiles to nothing: DEBUG is not defined), so the object's geometry, collision mesh and weapon mounts still load.",
         original: "\t\tdebug_fatal ( \"FAILED to find texture animation '%s'\", animation_name );\n",
         replacement: "\t\tdebug_log ( \"FAILED to find texture animation '%s'\", animation_name ); /* EECH headless (T2) */\n\t\ttexture_animation = 0;\n",
         count: 1,
