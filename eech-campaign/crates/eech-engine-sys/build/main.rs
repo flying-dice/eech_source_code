@@ -126,6 +126,13 @@ fn main() {
     if windows {
         build.flag("-include").flag(manifest.join("csrc/eech_win32_names.h").to_str().unwrap());
     }
+    // EECH_ENGINE_SANITIZE=address: an AddressSanitizer build (Linux; run with the
+    // runtime preloaded: LD_PRELOAD=$(cc -print-file-name=libasan.so))
+    println!("cargo:rerun-if-env-changed=EECH_ENGINE_SANITIZE");
+    if let Ok(sanitizer) = env::var("EECH_ENGINE_SANITIZE") {
+        build.flag(&format!("-fsanitize={sanitizer}")).flag(&format!("-fsanitize-recover={sanitizer}"));
+        println!("cargo:rustc-link-lib=dylib=asan");
+    }
     for s in &sources {
         build.file(tree.join(s));
     }

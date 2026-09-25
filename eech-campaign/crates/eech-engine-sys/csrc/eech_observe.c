@@ -180,3 +180,28 @@ int eech_observe_clock (struct eech_clock *clock)
 	clock->day = get_local_entity_int_value (session, INT_TYPE_DAY);
 	return EECH_ENGINE_OK;
 }
+
+/*
+ * A smoke point with a NaN position (patches N1, N2): which smoke list, its
+ * type and its parent entity, so the NaN's source can be found. The first
+ * reports in full, then every 1000th.
+ */
+void eech_report_nan_smoke (const char *where, entity *smoke, int smoke_type, const vec3d *pos, const vec3d *motion)
+{
+	static unsigned reports;
+	entity *parent;
+	reports++;
+	if (reports > 10 && reports % 1000 != 0)
+	{
+		return;
+	}
+	parent = get_local_entity_parent (smoke, LIST_TYPE_SPECIAL_EFFECT);
+	eech_log (1, "NaN smoke point (%s, report %u): smoke list %d type %d at (%g, %g, %g) motion (%g, %g, %g)", where, reports,
+		get_local_entity_index (smoke), smoke_type, pos->x, pos->y, pos->z, motion->x, motion->y, motion->z);
+	if (parent)
+	{
+		/* only what every entity type has: its type, index and sub-type */
+		eech_log (1, "  parent %s %d sub-type %d", get_local_entity_type_name (parent), get_local_entity_index (parent),
+			get_local_entity_int_value (parent, INT_TYPE_ENTITY_SUB_TYPE));
+	}
+}
