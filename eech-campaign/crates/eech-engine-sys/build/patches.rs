@@ -115,14 +115,6 @@ pub const PATCHES: &[Patch] = &[
         count: 1,
     },
     Patch {
-        file: "aphavoc/source/entity/special/force/fc_msgs.c",
-        id: "S2-supplier-with-cargo",
-        why: "A keysite low on ammo or fuel is supplied from the nearest other airbase whenever that is nearer than a factory or refinery. With several airbases (Lebanon) that airbase is as drained as the requester and holds no cargo of the type asked for, so no SUPPLY task is created ('cannot locate cargo'); the few created point at airbase cargo that is destroyed as its level drops, and are never picked up. In a 2-hour run 367 ammo requests produced no ammo delivery at all. Fall back to the nearest producer (factory for ammo, refinery for fuel, then the other) that holds cargo of the type.",
-        original: "\t\t\tcargo = get_local_entity_child_succ (cargo, LIST_TYPE_CARGO);\n\t\t}\n\n\t\tif (cargo)\n\t\t{\n\t\n\t\t\t//\n\t\t\t// create task\n",
-        replacement: "\t\t\tcargo = get_local_entity_child_succ (cargo, LIST_TYPE_CARGO);\n\t\t}\n\n\t\t/* EECH headless (S2): the supplier holds no cargo of this type: the nearest producer that does */\n\t\tif (!cargo)\n\t\t{\n\t\t\tentity_sub_types producer_types[2];\n\t\t\tint p;\n\t\t\tproducer_types[0] = (sub_type == ENTITY_SUB_TYPE_CARGO_AMMO) ? ENTITY_SUB_TYPE_KEYSITE_FACTORY : ENTITY_SUB_TYPE_KEYSITE_OIL_REFINERY;\n\t\t\tproducer_types[1] = (sub_type == ENTITY_SUB_TYPE_CARGO_AMMO) ? ENTITY_SUB_TYPE_KEYSITE_OIL_REFINERY : ENTITY_SUB_TYPE_KEYSITE_FACTORY;\n\t\t\tfor (p = 0; p < 2 && !cargo; p++)\n\t\t\t{\n\t\t\t\tentity *producer = get_closest_keysite (producer_types[p], side, pos, 10 * KILOMETRE, &factory_actual_range, TRUE, sender);\n\t\t\t\tif (producer)\n\t\t\t\t{\n\t\t\t\t\tfor (cargo = get_local_entity_first_child (producer, LIST_TYPE_CARGO); cargo; cargo = get_local_entity_child_succ (cargo, LIST_TYPE_CARGO))\n\t\t\t\t\t{\n\t\t\t\t\t\tif (get_local_entity_int_value (cargo, INT_TYPE_ENTITY_SUB_TYPE) == sub_type)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tfactory = producer;\n\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\n\t\tif (cargo)\n\t\t{\n\t\n\t\t\t//\n\t\t\t// create task\n",
-        count: 1,
-    },
-    Patch {
         file: "aphavoc/source/entity/mobile/mb_msgs.c",
         id: "S3-pick-up-the-tasks-cargo",
         why: "At a SUPPLY task's pick-up waypoint the transport takes the keysite's first cargo crate, whatever its type. Factories and airbases hold both ammo and fuel crates, so an ammo task often loads fuel (and the task still ends in success at the drop-off): in 3 simulated hours of Lebanon no ammo crate was ever picked up at a factory, and airbases never got ammo back. Take a crate of the task's cargo type (its user data, set by create_supply_task), and only failing that the first crate, as before.",
