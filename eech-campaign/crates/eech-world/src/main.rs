@@ -6,6 +6,8 @@
 //! usage: eech-world <script.lua> [key=value ...]
 //!   the key=value pairs are passed to the script as the table `host.args`
 
+mod crash;
+
 use eech_world::tacview::{ObjectInfo, Recorder};
 use mlua::prelude::*;
 use std::cell::RefCell;
@@ -171,6 +173,7 @@ impl Recording {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let argv: Vec<String> = std::env::args().collect();
+    crash::install();
     let Some(script) = argv.get(1) else {
         return Err("usage: eech-world <script.lua> [key=value ...]".into());
     };

@@ -9,6 +9,8 @@
 --   lost        units going from alive to dead, per side and kind
 --   launched    weapons launched, per side and weapon
 --   captures    keysites changing hands, per new owner and keysite type
+--   resupplied  a keysite's ammo or fuel rising by 20 points or more between
+--               samples (a SUPPLY delivery), per side, keysite type and resource
 -- and, at each checkpoint, a snapshot of the state: keysites held and their
 -- usable states per side and type, mean keysite ammo and fuel per side and
 -- type, and units alive per side and kind.
@@ -27,7 +29,8 @@ function metrics.new ()
 		weapons = {},		-- weapon ids in flight at the last sample
 		group_task = {},	-- group id -> task at the last sample
 		owner = {},		-- keysite name .. type -> side
-		counts = { sorties = {}, sortie_members = {}, airframes = {}, spawned = {}, lost = {}, launched = {}, captures = {} },
+		stock = {},		-- keysite name .. type -> { ammo, fuel } at the last sample
+		counts = { sorties = {}, sortie_members = {}, airframes = {}, spawned = {}, lost = {}, launched = {}, captures = {}, resupplied = {} },
 		checkpoints = {},
 	}, metrics)
 end
@@ -50,6 +53,12 @@ function metrics:sample (seconds, objects)
 			local was = self.owner[key]
 			if was and was ~= o.side then add (c.captures, o.side .. " " .. o.type_name) end
 			self.owner[key] = o.side
+			local last = self.stock[key]
+			if last and was == o.side then
+				if o.ammo >= last.ammo + 20 then add (c.resupplied, o.side .. " " .. o.type_name .. " ammo") end
+				if o.fuel >= last.fuel + 20 then add (c.resupplied, o.side .. " " .. o.type_name .. " fuel") end
+			end
+			self.stock[key] = { ammo = o.ammo, fuel = o.fuel }
 		else
 			present[o.id] = true
 			local u = self.units[o.id]

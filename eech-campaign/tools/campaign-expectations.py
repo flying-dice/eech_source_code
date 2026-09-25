@@ -22,13 +22,13 @@ EXPECTED = {
     'lebanon_retail': {
         'air tasks': COMMON_AIR | {'OCA_STRIKE'},
         'ground tasks': {'ADVANCE', 'RETREAT', 'TROOP_MOVEMENT_PATROL'},
-        'regen': True, 'production': True, 'captures': False,
+        'regen': True, 'production': True, 'captures': False, 'resupply': True,
     },
     # the retail map3 campaign: regen every 16.7 h (none in 3 h), no producers, FARPs change hands
     'georgia_retail': {
         'air tasks': COMMON_AIR | {'TROOP_INSERTION'},
         'ground tasks': {'ADVANCE', 'RETREAT', 'TROOP_MOVEMENT_INSERT_CAPTURE', 'TROOP_MOVEMENT_PATROL'},
-        'regen': False, 'production': False, 'captures': True,
+        'regen': False, 'production': False, 'captures': True, 'resupply': False,
     },
 }
 
@@ -72,6 +72,11 @@ def check(metrics, scenario):
             for kind in ('KEYSITE_FACTORY', 'KEYSITE_OIL_REFINERY'):
                 n = last['keysite_states'].get(f'{side} {kind} usable', 0)
                 expect(f'{side} {kind[8:].lower()} producing', n > 0, n)
+    if e['resupply']:
+        # SUPPLY deliveries reach airbases: ammo from factories, fuel from refineries and airbases
+        for res in ('ammo', 'fuel'):
+            n = sum(v for k, v in c.get('resupplied', {}).items() if k.endswith(f' KEYSITE_AIRBASE {res}'))
+            expect(f'airbases resupplied with {res}', n > 0, n)
     if e['captures']:
         n = sum(c['captures'].values())
         expect('keysites change hands', n > 0, n)

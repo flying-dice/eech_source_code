@@ -12,6 +12,7 @@ moves individual events but not the war's effects still passes:
   launched       weapons per side             combat
   lost, spawned  per side and kind            attrition, regen and reinforcement
   captures       per side and keysite type    the front
+  resupplied     side, keysite type, resource SUPPLY deliveries arriving
   keysites       held, per side and type      the front
   states         per side, type and state     damage and repair
   supply         mean ammo/fuel, side, type   production and supply
@@ -43,6 +44,7 @@ def aggregates(cp):
     out['lost'] = dict(c['lost'])
     out['spawned'] = dict(c['spawned'])
     out['captures'] = dict(c['captures'])
+    out['resupplied'] = dict(c.get('resupplied', {}))
     out['keysites'] = dict(cp['keysites'])
     out['states'] = dict(cp['keysite_states'])
     out['supply'] = dict(cp['supply'])

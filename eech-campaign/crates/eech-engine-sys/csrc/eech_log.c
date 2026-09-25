@@ -54,3 +54,27 @@ void eech_log (int level, const char *format, ...)
 		fprintf (stderr, "eech: %s\n", message);
 	}
 }
+
+/*
+ * A NaN position that reached a lookup which cannot take one (patch N1): the
+ * callers, as offsets in this module, so they map to source (addr2line); the
+ * first reports in full, then every 1000th.
+ */
+#ifdef __MINGW32__
+extern char __ImageBase;
+#define MODULE_BASE ((uintptr_t) &__ImageBase)
+#else
+#define MODULE_BASE ((uintptr_t) 0)
+#endif
+
+void eech_report_nan_position (const char *what, void *caller0, void *caller1, void *caller2)
+{
+	static unsigned reports;
+	reports++;
+	if (reports <= 10 || reports % 1000 == 0)
+	{
+		eech_log (1, "NaN position in %s (report %u): callers +0x%lx +0x%lx +0x%lx", what, reports,
+			(unsigned long) ((uintptr_t) caller0 - MODULE_BASE), (unsigned long) ((uintptr_t) caller1 - MODULE_BASE),
+			(unsigned long) ((uintptr_t) caller2 - MODULE_BASE));
+	}
+}

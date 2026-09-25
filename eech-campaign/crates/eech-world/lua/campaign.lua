@@ -5,7 +5,7 @@
 -- host.args: root (installation root), scenario (georgia, georgia_retail, lebanon_retail), map, campaign, hours, frame_ms,
 --            record_every (frames), acmi (output path), seed, diagnostics_every and log_every (simulated
 --            seconds), stop (hours: run all of them; conclusion: also stop when the war is decided or
---            stalls), stalemate_hours, metrics (a JSON file of campaign metrics, metrics.lua),
+--            stalls), stalemate_hours, defeated_hours, metrics (a JSON file of campaign metrics, metrics.lua),
 --            checkpoint_every (simulated seconds between metrics snapshots), record (0: no recording)
 
 local args = host.args
@@ -18,11 +18,15 @@ local diagnostics_every = tonumber (args.diagnostics_every or "0")
 -- simulated seconds between progress lines
 local log_every = tonumber (args.log_every or "600")
 -- stop=conclusion ends the run early (hours stays the cap) when a side holds no
--- airbase, FARP or carrier left, or when nothing is captured or destroyed for
+-- airbase, FARP or carrier left, or has had no jets, helicopters or ground
+-- vehicles for defeated_hours (it cannot fight or take ground: its carriers
+-- and infantry alone would keep a won war running forever), or when nothing is captured or destroyed for
 -- stalemate_hours (longer than the slowest regen interval, so reinforcements
 -- still get their turn)
 local stop_at_conclusion = args.stop == "conclusion"
 local stalemate_seconds = tonumber (args.stalemate_hours or "48") * 3600
+local defeated_seconds = tonumber (args.defeated_hours or "6") * 3600
+local forces_gone = {}
 local checkpoint_every = tonumber (args.checkpoint_every or "3600")
 local recording = args.record ~= "0"
 
@@ -133,19 +137,27 @@ for frame = 1, frames do
 			end
 		end
 		if stop_at_conclusion then
-			-- air bases (airbases, FARPs and carriers) held, and units alive, per side
-			local bases, alive = { blue = 0, red = 0 }, { blue = 0, red = 0 }
+			-- air bases (airbases, FARPs and carriers) held, units alive, and fighting forces (jets, helicopters, ground vehicles), per side
+			local bases, alive, forces = { blue = 0, red = 0 }, { blue = 0, red = 0 }, { blue = 0, red = 0 }
 			for _, o in ipairs (objects) do
 				if o.kind == "keysite" then
 					if o.type_name == "KEYSITE_AIRBASE" or o.type_name == "KEYSITE_FARP" or o.type_name == "KEYSITE_ANCHORAGE" then bases[o.side] = (bases[o.side] or 0) + 1 end
 				elseif o.kind ~= "weapon" and o.alive then
 					alive[o.side] = (alive[o.side] or 0) + 1
+					if o.kind == "fixed_wing" or o.kind == "helicopter" or o.kind == "ground_vehicle" then forces[o.side] = (forces[o.side] or 0) + 1 end
 				end
+			end
+			for _, side in ipairs ({ "blue", "red" }) do
+				if forces[side] > 0 then forces_gone[side] = nil elseif not forces_gone[side] then forces_gone[side] = clock.elapsed_seconds end
 			end
 			if last_alive and (alive.blue < last_alive.blue or alive.red < last_alive.red) then last_activity = clock.elapsed_seconds end
 			last_alive = alive
 			if bases.blue == 0 or bases.red == 0 then
 				conclusion = string.format ("%s holds no airbase, FARP or carrier: %s wins", bases.blue == 0 and "blue" or "red", bases.blue == 0 and "red" or "blue")
+			elseif forces_gone.blue and clock.elapsed_seconds - forces_gone.blue >= defeated_seconds then
+				conclusion = string.format ("blue has had no jets, helicopters or ground vehicles for %g hours: red wins", defeated_seconds / 3600)
+			elseif forces_gone.red and clock.elapsed_seconds - forces_gone.red >= defeated_seconds then
+				conclusion = string.format ("red has had no jets, helicopters or ground vehicles for %g hours: blue wins", defeated_seconds / 3600)
 			elseif clock.elapsed_seconds - last_activity >= stalemate_seconds then
 				conclusion = string.format ("stalemate: nothing captured or destroyed for %g hours (airbases, FARPs and carriers: blue %d, red %d)",
 					stalemate_seconds / 3600, bases.blue, bases.red)
