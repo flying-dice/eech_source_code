@@ -43,12 +43,24 @@ Evidence is marked as follows:
 | **F1** | compiler flag `-ftrivial-auto-var-init=zero` | **Intentional semantic change** (compatibility decision) | traced (one known site) |
 | — | `-fwrapv`, `-fno-strict-aliasing`, `-fcommon` | No intended change: they keep the original compiler's treatment | not independently verified |
 
-Three changes need explicit acceptance as compatibility decisions:
-- **S2**, which changes campaign logistics. This review did not reproduce its stated need, and removing it is the conservative option (see S2);
-- **T1 and T2**, which let an inconsistent data set load;
-- **F1**, which defines what uninitialised locals read.
+Three changes needed explicit decisions as compatibility decisions (see "M1 review decision" below):
+- **S2**, which changes campaign logistics. This review did not reproduce its stated need. It is rejected.
+- **T1 and T2**, which let an inconsistent data set load. They are accepted.
+- **F1**, which defines what uninitialised locals read. It is accepted.
 
 E1–E3 change nothing. All the others are defect corrections.
+
+## M1 review decision
+
+Recorded by the technical lead, @fd-starscream-bot, in the review of #62 (2026-09-25) for the M1 candidate:
+
+| Change | Decision | Scope and limits |
+|---|---|---|
+| **S2** | **Rejected** | Its stated need is not reproduced once S3 is present, and S3 explains the original diagnostic. S2 replaces a defined EECH supplier rule, so the conservative M1 position is to restore the original rule. The removal, with its new Windows baseline, is a separate follow-up PR; #62 changes no engine behaviour. Until that PR merges, the candidate still contains S2. |
+| **T1, T2** | **Accepted** | Explicit headless/data compatibility decisions. They cover the mixed retail/community data profile only. They do not establish a general rendering or data policy. |
+| **F1** | **Accepted** | An explicit determinism/compatibility decision. It gives a defined value to every read the original leaves indeterminate, across the whole engine, and only one concrete site has been traced. It is not a claim of historical EECH fidelity. |
+| **N3's fallback value** | **Accepted** | The chosen recovery value within an otherwise valid defect correction. The local vertex height is a project compatibility choice, distinct from the sector maximum used by the original's commented-out fallback. |
+| All other classifications | **Accepted as documented** | The defect corrections (P1, B2, X1, W1, S1, S3, N1, N2, N3, H1, U1, C1) and the unchanged E1–E3. |
 
 ## The patches
 
@@ -127,6 +139,8 @@ So both names sit at offsets 4 and 8 in each struct. The patch renames the secon
 - **Accept S2** as a compatibility decision (a supplier fallback the original does not have).
 
 Only 3 hours were compared. Without S2, blue airbases got no ammo in that time, against once with it; a longer run would show whether that matters.
+
+**Decision:** rejected for the M1 candidate ("M1 review decision" above). It is to be removed in a separate PR.
 
 ### S3: pick up the crate the task was created for (defect correction)
 
