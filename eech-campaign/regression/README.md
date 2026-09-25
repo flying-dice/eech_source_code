@@ -84,11 +84,21 @@ the comparison in its description.
 
 ## How the test was checked
 
-- **Expectations hold:** the Windows baselines meet every campaign expectation, 30 of 30 for Georgia and 37 of 37 for Lebanon.
+- **Expectations hold:** the Windows baselines meet every campaign expectation, 30 of 30 for Georgia and 39 of 39 for Lebanon. Lebanon had 37 checks before `12e8f692` added its airbase resupply checks.
 - **A broken mechanic fails:** with Lebanon's regen disabled (`REGEN_FREQUENCY 60000`), both checks fail.
   - The expectations fail on all four regen items (blue and red jets and helicopters rebuilt: 0).
   - The baseline comparison fails on every spawned count and on the forces alive: blue jets 39 → 14, red helicopters 96 → 66.
 - **A different seed is a different war:** `seed=2` has 42 of 244 changed metrics outside tolerance, while every campaign expectation still holds.
+
+## Lifecycle and failure checks
+
+`tools\lifecycle-windows.ps1 -Root <Lebanon root> [-Bin <dir>]` takes a few seconds and runs no campaign. It boots the module through the same public path, one process per case, and checks:
+
+- one boot per process;
+- argument errors and installation errors;
+- that the engine can't be reused.
+
+The expected results are the behaviour characterised in [`docs/m1-baseline.md`](../docs/m1-baseline.md). The missing-map crash is checked as a known defect, so the check reports it if that behaviour changes.
 
 ## The Docker/Linux runner
 

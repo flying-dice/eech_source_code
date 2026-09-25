@@ -34,7 +34,9 @@ target/release/eech-world crates/eech-world/lua/campaign.lua root=/tmp/georgia s
 A twelve-hour Georgia campaign recorded this way is in
 [`recordings/georgia-12h.zip.acmi`](recordings/) (Tacview opens it directly).
 
-Details, findings and limits: [`docs/engine.md`](docs/engine.md).
+Details, findings and limits: [`docs/engine.md`](docs/engine.md). The M1
+candidate (Windows), what its evidence establishes and what it does not:
+[`docs/m1-baseline.md`](docs/m1-baseline.md).
 
 ## The campaign kernel spike
 
