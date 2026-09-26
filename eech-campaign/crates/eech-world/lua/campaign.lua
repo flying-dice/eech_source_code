@@ -6,7 +6,9 @@
 --            record_every (frames), acmi (output path), seed, diagnostics_every and log_every (simulated
 --            seconds), stop (hours: run all of them; conclusion: also stop when the war is decided or
 --            stalls), stalemate_hours, defeated_hours, metrics (a JSON file of campaign metrics, metrics.lua),
---            checkpoint_every (simulated seconds between metrics snapshots), record (0: no recording)
+--            checkpoint_every (simulated seconds between metrics snapshots), record (0: no recording),
+--            observe (a JSON Lines file of structured observations from the same samples, observations.lua),
+--            observe_every (simulated seconds between their full snapshots, default 60)
 
 local args = host.args
 local root = assert (args.root, "root=<installation root>")
@@ -77,6 +79,20 @@ if recording then host.open_recording {
 	longitude = tonumber (args.longitude) or scenario.longitude,
 } end
 
+local observe
+if args.observe then
+	local a = scenario.affine
+	local sample_every_s = record_every * frame_ms / 1000
+	local snapshot_every = math.max (1, math.floor (tonumber (args.observe_every or "60") / sample_every_s + 0.5))
+	observe = dofile (here .. "observations.lua").open (args.observe, snapshot_every, {
+		scenario = args.scenario or "georgia", seed = tonumber (args.seed or "1"), frame_ms = frame_ms,
+		sample_every_s = sample_every_s, snapshot_every_samples = snapshot_every,
+		snapshots = "the first sample, every snapshot_every_samples samples, and each metrics checkpoint",
+		coordinates = "EECH world metres: x east, y up, z north; angles in radians",
+		affine = a and string.format ("%.10g %.10g %.10g %.10g %.10g %.10g %.10g %.10g", a.m[1], a.m[2], a.m[3], a.m[4], a.t[1], a.t[2], a.latitude, a.longitude) or "none",
+	})
+end
+
 -- campaign state summary: live units per side and kind, and keysites held
 local function summary (objects)
 	local count = {}
@@ -122,9 +138,11 @@ for frame = 1, frames do
 	if frame % record_every == 0 then
 		local clock = engine:clock ()
 		local objects = engine:objects ()
+		local checkpoint = metrics.samples == 0 or frame % math.floor (checkpoint_every * 1000 / frame_ms) < record_every
 		if recording then host.record (clock.elapsed_seconds, objects) end
+		if observe then observe:sample (clock.elapsed_seconds, objects, checkpoint) end
 		metrics:sample (clock.elapsed_seconds, objects)
-		if metrics.samples == 1 or frame % math.floor (checkpoint_every * 1000 / frame_ms) < record_every then metrics:checkpoint (clock.elapsed_seconds, objects) end
+		if checkpoint then metrics:checkpoint (clock.elapsed_seconds, objects) end
 		-- keysites changing hands
 		for _, o in ipairs (objects) do
 			if o.kind == "keysite" then
@@ -186,4 +204,5 @@ if args.metrics then
 		frame_ms = frame_ms, sample_every = record_every, conclusion = conclusion or "none" })
 	host.log ("metrics written to " .. args.metrics)
 end
+if observe then observe:close () end
 host.log ("campaign run complete")
