@@ -35,7 +35,8 @@ trap cleanup EXIT
 trap 'exit 1' INT TERM
 mkdir -p "$here/target/mutants"
 (cd "$here" && git worktree add --detach --no-checkout "$wtw" "$commit" >/dev/null 2>&1)
-(cd "$wt" && git sparse-checkout set --no-cone /eech-campaign/ /aphavoc/ /modules/ >/dev/null && git checkout -q --detach "$commit")
+(cd "$wt" && git sparse-checkout set --cone eech-campaign aphavoc modules >/dev/null && git checkout -q --detach "$commit")
+if [ ! -f "$wt/eech-campaign/$patches" ]; then echo "the worktree checkout is incomplete" >&2; exit 1; fi
 
 if [ "$id" != control ]; then
 	python - "$wt/eech-campaign/$patches" "$id" <<'EOF'
