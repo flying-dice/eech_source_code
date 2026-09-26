@@ -8,7 +8,8 @@
 --            stalls), stalemate_hours, defeated_hours, metrics (a JSON file of campaign metrics, metrics.lua),
 --            checkpoint_every (simulated seconds between metrics snapshots), record (0: no recording),
 --            observe (a JSON Lines file of structured observations from the same samples, observations.lua),
---            observe_every (simulated seconds between their full snapshots, default 60)
+--            observe_every (simulated seconds between their full snapshots, default 60),
+--            observe_supply (1: also task, keysite supply and SUPPLY-task track events, observations.lua)
 
 local args = host.args
 local root = assert (args.root, "root=<installation root>")
@@ -35,6 +36,8 @@ local recording = args.record ~= "0"
 -- metrics.lua, beside this script
 local here = debug.getinfo (1, "S").source:match ("^@?(.*[/\\])") or ""
 local metrics = dofile (here .. "metrics.lua").new ()
+-- loaded now: the engine's boot changes the process's working directory (to <root>/cohokum)
+local observations = dofile (here .. "observations.lua")
 
 -- the maps eech-map builds: game path, campaign file, map origin, title
 local scenarios = {
@@ -84,13 +87,16 @@ if args.observe then
 	local a = scenario.affine
 	local sample_every_s = record_every * frame_ms / 1000
 	local snapshot_every = math.max (1, math.floor (tonumber (args.observe_every or "60") / sample_every_s + 0.5))
-	observe = dofile (here .. "observations.lua").open (args.observe, snapshot_every, {
+	local header = {
 		scenario = args.scenario or "georgia", seed = tonumber (args.seed or "1"), frame_ms = frame_ms,
 		sample_every_s = sample_every_s, snapshot_every_samples = snapshot_every,
 		snapshots = "the first sample, every snapshot_every_samples samples, and each metrics checkpoint",
 		coordinates = "EECH world metres: x east, y up, z north; angles in radians",
 		affine = a and string.format ("%.10g %.10g %.10g %.10g %.10g %.10g %.10g %.10g", a.m[1], a.m[2], a.m[3], a.m[4], a.t[1], a.t[2], a.latitude, a.longitude) or "none",
-	})
+	}
+	local track_task = args.observe_supply == "1" and "TASK_SUPPLY" or nil
+	if track_task then header.supply_detail = "task, supply and track (" .. track_task .. ") events" end
+	observe = observations.open (args.observe, snapshot_every, header, track_task)
 end
 
 -- campaign state summary: live units per side and kind, and keysites held
