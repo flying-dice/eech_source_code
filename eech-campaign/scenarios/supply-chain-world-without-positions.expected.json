@@ -1,0 +1,145 @@
+{
+  "events_before_failure": [
+    {
+      "event": "low-on-supplies",
+      "requester": "farp",
+      "side": "blue",
+      "supply": "ammo"
+    }
+  ],
+  "frames": [
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 0,
+      "time": 0.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        },
+        {
+          "cargo": "#36.1",
+          "event": "supply-mission-requested",
+          "requester": "farp",
+          "supplier": "factory"
+        },
+        {
+          "event": "mission-created",
+          "task": "#64.1"
+        }
+      ],
+      "frame": 120,
+      "time": 60.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 240,
+      "time": 120.5
+    }
+  ],
+  "outcome": {
+    "error": "the world could not answer: host callback World::position failed (1): World::position knows no position for #23.1",
+    "frame": 360,
+    "kind": "world",
+    "result": "failed"
+  },
+  "snapshot": {
+    "elapsed": 180.0,
+    "forces": [
+      {
+        "id": "#18.1",
+        "side": "blue",
+        "supply_missions_created": 1
+      }
+    ],
+    "groups": [
+      {
+        "id": "lift",
+        "kind": "MEDIUM_LIFT_TRANSPORT_HELICOPTER",
+        "members": 2,
+        "name": "lift",
+        "side": "blue",
+        "supplies": {
+          "ammo": 100.0,
+          "fuel": 100.0
+        }
+      }
+    ],
+    "keysites": [
+      {
+        "ammo_crates": 0,
+        "fuel_crates": 9,
+        "id": "farp",
+        "kind": "FARP",
+        "name": "farp",
+        "side": "blue",
+        "supplies": {
+          "ammo": 10.0,
+          "fuel": 99.87997436523438
+        },
+        "unassigned_missions": 0
+      },
+      {
+        "ammo_crates": 3,
+        "fuel_crates": 9,
+        "id": "factory",
+        "kind": "FACTORY",
+        "name": "factory",
+        "side": "blue",
+        "supplies": {
+          "ammo": 39.0,
+          "fuel": 100.0
+        },
+        "unassigned_missions": 0
+      },
+      {
+        "ammo_crates": 9,
+        "fuel_crates": 9,
+        "id": "airbase",
+        "kind": "AIRBASE",
+        "name": "airbase",
+        "side": "blue",
+        "supplies": {
+          "ammo": 99.39998626708984,
+          "fuel": 98.79999542236328
+        },
+        "unassigned_missions": 1
+      }
+    ],
+    "tasks": [
+      {
+        "expires_in": 1080.0,
+        "id": "#64.1",
+        "keysite": "airbase",
+        "kind": "SUPPLY",
+        "objective": "farp",
+        "priority": 4.0,
+        "route_length": 4,
+        "side": "blue",
+        "status": "unassigned"
+      }
+    ]
+  },
+  "world_queries": {
+    "object-bounds answered": 22,
+    "position unanswered": 1
+  }
+}
