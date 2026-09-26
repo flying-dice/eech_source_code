@@ -33,9 +33,9 @@ if ($rel -notlike 'target/mutants/*') { throw 'the output must be under target/m
 $out = Join-Path $here ($rel -replace '/', '\')
 New-Item -ItemType Directory -Force $out | Out-Null
 $python = (Get-Command python3, python -ErrorAction SilentlyContinue | Select-Object -First 1).Source
-# Git's sh, for the build scripts (Git Bash may not be on PowerShell's PATH)
-$sh = (Get-Command sh, bash -ErrorAction SilentlyContinue | Select-Object -First 1).Source
-if (-not $sh) { $sh = @("$env:ProgramFiles\Git\bin\sh.exe", "$env:ProgramFiles\Git\usr\bin\sh.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1 }
+# Git for Windows' sh, for the build scripts: not PATH's bash, which can be WSL's
+$sh = @("$env:ProgramFiles\Git\bin\sh.exe", "$env:ProgramFiles\Git\usr\bin\sh.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+if (-not $sh) { $sh = (Get-Command sh -ErrorAction SilentlyContinue | Where-Object { $_.Source -notlike '*\System32\*' -and $_.Source -notlike '*\WindowsApps\*' } | Select-Object -First 1).Source }
 if (-not $sh) { throw 'Git for Windows sh is needed for tools/build-mutant-windows.sh' }
 $summary = Join-Path $out 'summary.txt'
 Set-Content $summary "Mutation check: $Patch ($(Get-Date -Format s))"
