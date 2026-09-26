@@ -17,6 +17,15 @@
 --            samples, and whenever the caller asks (campaign.lua: at each
 --            metrics checkpoint)
 --
+-- With the supply detail on (campaign.lua observe_supply=1), also:
+--
+--   task     a unit's group, primary task or operational state changed (or
+--            the unit is new): id, group, task, state, position
+--   supply   a keysite's ammo or fuel moved by 0.5 points or more since the
+--            last sample: id, ammo, fuel, from_ammo, from_fuel
+--   track    every sample, the position and state of each live unit whose
+--            group's primary task is the tracked task (TASK_SUPPLY)
+--
 -- Every sample is compared with the one before, so an event's time is the
 -- first sample that shows the change. `t` is EECH's session elapsed time (a
 -- 32-bit float the engine accumulates frame by frame), printed with two
@@ -48,8 +57,9 @@ local function full (o)
 end
 
 -- path: the JSON Lines file; every: samples between full snapshots; header: a
--- table of strings and numbers describing the run
-function observations.open (path, every, header)
+-- table of strings and numbers describing the run; track_task: the supply
+-- detail's tracked task (nil: no supply detail)
+function observations.open (path, every, header, track_task)
 	local f = assert (io.open (path, "wb"))
 	local keys, parts = {}, {}
 	for k in pairs (header) do keys[#keys + 1] = k end
@@ -59,7 +69,31 @@ function observations.open (path, every, header)
 		parts[#parts + 1] = str (k) .. ":" .. (type (v) == "number" and string.format ("%.10g", v) or str (tostring (v)))
 	end
 	f:write ('{"ev":"header",', table.concat (parts, ","), "}\n")
-	return setmetatable ({ f = f, every = every, samples = 0, last = {} }, observations)
+	return setmetatable ({ f = f, every = every, samples = 0, last = {}, track_task = track_task }, observations)
+end
+
+local function opt (s)
+	return s and str (s) or "null"
+end
+
+-- the supply detail's events for one object (was: its record at the last sample, or nil)
+function observations:supply_detail (t, o, was)
+	local f = self.f
+	if o.kind == "keysite" then
+		if was and was.kind == "keysite" and (math.abs (o.ammo - was.ammo) >= 0.5 or math.abs (o.fuel - was.fuel) >= 0.5) then
+			f:write (string.format ('{"t":%s,"ev":"supply","id":%d,"ammo":%.3f,"fuel":%.3f,"from_ammo":%.3f,"from_fuel":%.3f}\n', t, o.id, o.ammo, o.fuel,
+				was.ammo, was.fuel))
+		end
+	elseif o.kind ~= "weapon" then
+		if not was or was.kind ~= o.kind or was.task ~= o.task or was.state ~= o.state or was.group ~= o.group_id then
+			f:write (string.format ('{"t":%s,"ev":"task","id":%d,"group":%s,"task":%s,"state":%s,"x":%.2f,"y":%.2f,"z":%.2f}\n', t, o.id,
+				o.group_id and string.format ("%d", o.group_id) or "null", opt (o.task), opt (o.state), o.position[1], o.position[2], o.position[3]))
+		end
+		if o.alive and o.task == self.track_task then
+			f:write (string.format ('{"t":%s,"ev":"track","id":%d,"group":%s,"state":%s,"x":%.2f,"y":%.2f,"z":%.2f,"h":%.5f}\n', t, o.id,
+				o.group_id and string.format ("%d", o.group_id) or "null", opt (o.state), o.position[1], o.position[2], o.position[3], o.heading))
+		end
+	end
 end
 
 -- snapshot: also write a full snapshot at this sample
@@ -85,7 +119,9 @@ function observations:sample (seconds, objects, snapshot)
 					str (was.usable or "unknown")))
 			end
 		end
-		now[o.id] = { kind = o.kind, sub_type = o.sub_type, side = o.side, alive = o.alive, usable = o.usable, position = o.position }
+		if self.track_task then self:supply_detail (t, o, was) end
+		now[o.id] = { kind = o.kind, sub_type = o.sub_type, side = o.side, alive = o.alive, usable = o.usable, position = o.position,
+			ammo = o.ammo, fuel = o.fuel, task = o.task, state = o.state, group = o.group_id }
 	end
 	local gone = {}
 	for id in pairs (self.last) do if not now[id] then gone[#gone + 1] = id end end

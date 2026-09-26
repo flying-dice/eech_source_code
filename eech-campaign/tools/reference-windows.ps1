@@ -14,15 +14,21 @@
 #                  (which was recorded with no recording and no observations)
 #                  and keep every campaign expectation
 #
+#   -ObserveSupply  the observations also carry task, keysite supply and
+#                  SUPPLY-task track events (observe_supply=1), and each run's
+#                  resupply chains are checked (tools/supply-chain-check.py,
+#                  docs/m3-resupply-loop.md)
+#
 # Usage (PowerShell):
-#   tools\reference-windows.ps1 -Root <Lebanon root> [-RepeatRoot <second Lebanon root>] [-Bin <dir>] [-Out <dir>] [-Hours 3]
+#   tools\reference-windows.ps1 -Root <Lebanon root> [-RepeatRoot <second Lebanon root>] [-Bin <dir>] [-Out <dir>] [-Hours 3] [-ObserveSupply]
 #   roots: tools/retail-cvh.sh <Comanche vs Hokum install> map5 <root>
 param(
 	[Parameter(Mandatory = $true)] [string] $Root,
 	[string] $RepeatRoot,
 	[string] $Bin,
 	[string] $Out,
-	[double] $Hours = 3
+	[double] $Hours = 3,
+	[switch] $ObserveSupply
 )
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $PSScriptRoot
@@ -35,7 +41,7 @@ New-Item -ItemType Directory -Force $out | Out-Null
 $out = (Resolve-Path $out).Path
 $status = 0
 function Say ($text) { Write-Host $text; Add-Content -Path (Join-Path $out 'summary.txt') -Value $text }
-Set-Content -Path (Join-Path $out 'summary.txt') -Value "M2 reference scenario: retail Lebanon, $Hours simulated hours ($(Get-Date -Format s))"
+Set-Content -Path (Join-Path $out 'summary.txt') -Value "Reference scenario: retail Lebanon, $Hours simulated hours ($(Get-Date -Format s))"
 if (Test-Path (Join-Path $bin 'BUILD-INFO.txt')) { Copy-Item (Join-Path $bin 'BUILD-INFO.txt') $out -Force; Say ((Get-Content (Join-Path $bin 'BUILD-INFO.txt') -TotalCount 1)) }
 
 # 1. inputs
@@ -58,7 +64,7 @@ function Start-Run ($n, $root) {
 		((Join-Path $bin 'lua\campaign.lua') -replace '\\', '/'), "root=$($root -replace '\\', '/')", 'scenario=lebanon_retail', "hours=$Hours",
 		'record_every=10', 'checkpoint_every=3600', 'observe_every=60',
 		"acmi=$((Join-Path $dir 'recording.acmi') -replace '\\', '/')", "observe=$((Join-Path $dir 'observations.jsonl') -replace '\\', '/')",
-		"metrics=$((Join-Path $dir 'metrics.json') -replace '\\', '/')")
+		"metrics=$((Join-Path $dir 'metrics.json') -replace '\\', '/')", $(if ($ObserveSupply) { 'observe_supply=1' } else { 'observe_supply=0' }))
 	# read the handle now: Start-Process -PassThru reports no ExitCode otherwise
 	$null = $p.Handle
 	return $p
@@ -79,6 +85,16 @@ foreach ($n in 1, 2) {
 	$dir = Join-Path $out "run$n"
 	& $python (Join-Path $here 'tools\observation-check.py') (Join-Path $dir 'recording.acmi') (Join-Path $dir 'observations.jsonl') (Join-Path $dir 'metrics.json') --report (Join-Path $dir 'check.json') > (Join-Path $dir 'check.txt')
 	if ($LASTEXITCODE -ne 0) { Say "run ${n}: observation check FAIL (run$n\check.json)"; $status = 1 } else { Say "run ${n}: observation check PASS" }
+}
+
+# 3b. the resupply chains
+if ($ObserveSupply) {
+	foreach ($n in 1, 2) {
+		$dir = Join-Path $out "run$n"
+		& $python (Join-Path $here 'tools\supply-chain-check.py') (Join-Path $dir 'observations.jsonl') (Join-Path $dir 'metrics.json') --report (Join-Path $dir 'chains.json') > (Join-Path $dir 'chains.txt') 2> (Join-Path $dir 'chains.log')
+		$line = Get-Content (Join-Path $dir 'chains.log') -Tail 1
+		if ($LASTEXITCODE -ne 0) { Say "run ${n}: $line"; $status = 1 } else { Say "run ${n}: $line" }
+	}
 }
 
 # 4. repeatability
