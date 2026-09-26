@@ -37,6 +37,8 @@ A twelve-hour Georgia campaign recorded this way is in
 Details, findings and limits: [`docs/engine.md`](docs/engine.md). The M1
 candidate (Windows), what its evidence establishes and what it does not:
 [`docs/m1-baseline.md`](docs/m1-baseline.md).
+The M2 reference scenario (retail Lebanon, observed as Tacview and
+structured observations, and checked): [`docs/m2-reference.md`](docs/m2-reference.md).
 
 ## The campaign kernel spike
 
