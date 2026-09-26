@@ -22,9 +22,16 @@
 #
 # The supply task's own record (its supplier and receiver) is not among the
 # public observations: the chain is attributed from where the group is when
-# the supply levels change, at the same 1-second sample. Every delivery in the
-# run is listed; the check passes when at least one chain is complete and the
-# delivery count agrees with the metrics' resupplied counts.
+# the supply levels change, at the same 1-second sample, within --radius
+# (500 m; the waypoints are overflown within about 100 m). A group can fly one
+# SUPPLY task after another without its task changing, so a chain's pick-up is
+# searched after the group's previous delivery; it is the first one-crate drop
+# at another keysite with the group over it. A pick-up at a supplier with no
+# crate takes nothing and leaves no step (mb_msgs.c), and a crate dropped off
+# to a group stays aboard and can be delivered on a later task, so a delivery
+# of such a carried-over crate is reported incomplete. Every delivery in the run is listed;
+# the check passes when at least one chain is complete and the deliveries
+# agree with the metrics' resupplied counts.
 #
 # Usage: tools/supply-chain-check.py <observations.jsonl[.gz]> <metrics.json> [--report <file.json>] [--radius <m>]
 import argparse, collections, gzip, json, math, sys
@@ -45,7 +52,7 @@ def main():
     p.add_argument('observations')
     p.add_argument('metrics')
     p.add_argument('--report')
-    p.add_argument('--radius', type=float, default=1500.0, help='horizontal metres: an aircraft "over" a keysite')
+    p.add_argument('--radius', type=float, default=500.0, help='horizontal metres: an aircraft "over" a keysite')
     a = p.parse_args()
 
     header, keysites, units = {}, {}, {}
@@ -81,11 +88,13 @@ def main():
         k = keysites[i]
         return {'id': i, 'name': k.get('name'), 'type': k['type'], 'side': k['side']}
 
-    # deliveries: a level going up to 100
+    # deliveries: a level going up to 100 (less what the keysite consumed in the rest of that sample)
+    def delivered(q, res):
+        return q[res] - q['from_' + res] >= 5 and q[res] >= 99.0
     deliveries = []
     for s in supply:
         for res in ('ammo', 'fuel'):
-            if s[res] - s['from_' + res] >= 5 and s[res] >= 99.9:
+            if delivered(s, res):
                 deliveries.append((s, res))
 
     chains, unattributed = [], []
@@ -108,13 +117,18 @@ def main():
             elif e.get('task') != 'TASK_SUPPLY':
                 assigned = {'task_before': e.get('task')}
         assigned = assigned if assigned and 't' in assigned else None
-        # the pick-up: the latest one-crate drop of this resource, with the group over the keysite, after the assignment
+        # the task's own record is not observed: a group can fly one SUPPLY task after another without its
+        # task changing, so this chain starts after the assignment and after the group's previous delivery
+        previous = max((c['delivery']['t'] for c in chains if c['group'] == g and c['delivery']['t'] < t), default=None)
+        start = max(x for x in (assigned and assigned['t'], previous) if x is not None) if (assigned or previous) else None
+        # the pick-up: the first one-crate drop of this resource, at another keysite, with the group over it
         pickup = None
         for q in supply:
-            if assigned and assigned['t'] <= q['t'] < t and abs((q['from_' + res] - q[res]) - CRATE) < 0.05:
+            if start is not None and start <= q['t'] < t and q['id'] != receiver and abs((q['from_' + res] - q[res]) - CRATE) < 0.05:
                 over_it = [x for x in over(q['t'], q['id']) if x[1]['group'] == g]
                 if over_it:
                     pickup = (q, over_it[0])
+                    break
         # the end of the task
         ended = next((e for e in sorted(tasks[g], key=lambda e: e['t']) if e['t'] > t and e.get('task') != 'TASK_SUPPLY'), None)
         # the flight between pick-up and drop-off, from the aircraft's 1-second track
@@ -134,7 +148,7 @@ def main():
                       'continuous': bool(pts) and gap <= 1.01 and flown >= 0.9 * direct and vmax <= MAX_SPEED.get(kind, 900)}
         # what the campaign does with the delivered stock, up to the next delivery of it
         later = sorted((q for q in supply if q['id'] == receiver and q['t'] > t), key=lambda q: q['t'])
-        nxt = next((q for q in later if q[res] - q['from_' + res] >= 5 and q[res] >= 99.9), None)
+        nxt = next((q for q in later if delivered(q, res)), None)
         draws, pickups_from, below = [], [], None
         for q in later:
             if nxt and q['t'] >= nxt['t']:
@@ -153,6 +167,7 @@ def main():
             'group': g, 'callsign': member_unit.get('name'), 'side': member_unit.get('side'), 'aircraft_type': member_unit.get('type'),
             'resource': res,
             'assigned': assigned and {'t': assigned['t'], 'state': assigned['state']},
+            'previous_delivery_by_group': previous,
             'pickup': pickup and {'t': pickup[0]['t'], 'supplier': ks(pickup[0]['id']), 'level': [round(pickup[0]['from_' + res], 1), round(pickup[0][res], 1)],
                                   'aircraft': pickup[1][1]['id'], 'horizontal_m': round(pickup[1][0]), 'altitude_m': round(pickup[1][1]['y'])},
             'delivery': {'t': t, 'receiver': ks(receiver), 'level': [round(s['from_' + res], 1), round(s[res], 1)],
@@ -162,21 +177,25 @@ def main():
             'afterwards': {'other_decreases': draws, 'pickups_by_other_supply_tasks': pickups_from,
                            'at_or_below_request_threshold_s': below, 'next_delivery_s': nxt and nxt['t']},
         }
-        chain['complete'] = bool(assigned and pickup and flight and flight['continuous'] and assigned['t'] < pickup[0]['t'] < t)
+        chain['complete'] = bool(assigned and pickup and flight and flight['continuous'] and start < pickup[0]['t'] < t)
         chains.append(chain)
 
-    # the metrics' resupplied counts against the deliveries observed
+    # the metrics count a level rising by 20 or more in a sample (metrics.lua): they must equal the
+    # deliveries of 20 or more observed here
     metrics = json.load(open(a.metrics))
     resupplied = {k: v for k, v in metrics['checkpoints'][-1]['counts'].get('resupplied', {}).items() if v}
     observed = collections.Counter(f"{keysites[s['id']]['side']} {keysites[s['id']]['type']} {res}" for s, res in deliveries)
-    metrics_ok = all(resupplied.get(k, 0) >= n for k, n in observed.items())
+    observed_20 = collections.Counter(f"{keysites[s['id']]['side']} {keysites[s['id']]['type']} {res}" for s, res in deliveries
+                                      if s[res] - s['from_' + res] >= 20)
+    metrics_ok = observed_20 == collections.Counter(resupplied)
 
     complete = [c for c in chains if c['complete']]
     report = {
         'observations': a.observations, 'metrics': a.metrics, 'radius_m': a.radius,
         'deliveries': len(deliveries), 'attributed': len(chains), 'complete_chains': len(complete),
         'unattributed_deliveries': unattributed,
-        'deliveries_by_keysite_type': dict(sorted(observed.items())), 'metrics_resupplied': dict(sorted(resupplied.items())),
+        'deliveries_by_keysite_type': dict(sorted(observed.items())),
+        'deliveries_of_20_or_more': dict(sorted(observed_20.items())), 'metrics_resupplied': dict(sorted(resupplied.items())),
         'metrics_agree': metrics_ok,
         'featured_chain': complete[0] if complete else None,
         'chains': chains,

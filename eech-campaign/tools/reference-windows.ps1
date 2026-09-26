@@ -41,7 +41,7 @@ New-Item -ItemType Directory -Force $out | Out-Null
 $out = (Resolve-Path $out).Path
 $status = 0
 function Say ($text) { Write-Host $text; Add-Content -Path (Join-Path $out 'summary.txt') -Value $text }
-Set-Content -Path (Join-Path $out 'summary.txt') -Value "M2 reference scenario: retail Lebanon, $Hours simulated hours ($(Get-Date -Format s))"
+Set-Content -Path (Join-Path $out 'summary.txt') -Value "Reference scenario: retail Lebanon, $Hours simulated hours ($(Get-Date -Format s))"
 if (Test-Path (Join-Path $bin 'BUILD-INFO.txt')) { Copy-Item (Join-Path $bin 'BUILD-INFO.txt') $out -Force; Say ((Get-Content (Join-Path $bin 'BUILD-INFO.txt') -TotalCount 1)) }
 
 # 1. inputs

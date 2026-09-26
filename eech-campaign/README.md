@@ -39,6 +39,8 @@ candidate (Windows), what its evidence establishes and what it does not:
 [`docs/m1-baseline.md`](docs/m1-baseline.md).
 The M2 reference scenario (retail Lebanon, observed as Tacview and
 structured observations, and checked): [`docs/m2-reference.md`](docs/m2-reference.md).
+M3's first slice, one campaign → world → campaign resupply loop observed
+through the public path: [`docs/m3-resupply-loop.md`](docs/m3-resupply-loop.md).
 
 ## The campaign kernel spike
 
