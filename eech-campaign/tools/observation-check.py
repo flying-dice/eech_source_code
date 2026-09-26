@@ -210,14 +210,14 @@ def main():
             group = o.get('name') if o['kind'] != 'keysite' else None
             expected.append(('declare', next_acmi, tacview_type(o['kind'], o['type']), name, COALITION.get(o['side'], 'Neutral'), group))
             tracked[eech] = {'acmi': next_acmi, 'kind': o['kind'], 'side': o['side'], 'alive': True}
-            by_acmi[next_acmi] = {'kind': o['kind'], 'side': o['side'], 'eech': eech}
+            by_acmi[next_acmi] = {'kind': o['kind'], 'side': o['side'], 'eech': eech, 'type': o['type']}
             counts['declared ' + o['kind']] += 1
             next_acmi += 1
 
         for r in records:
             ev, eech = r['ev'], r.get('id')
             if ev in ('appear', 'retype'):
-                info[eech] = {k: r.get(k) for k in ('kind', 'sub', 'side', 'type', 'name')}
+                info[eech] = {k: r.get(k) for k in ('kind', 'sub', 'side', 'type', 'name', 'group')}
                 info[eech]['alive'] = r['alive']
                 if eech in tracked:
                     expected.append(('remove', tracked.pop(eech)['acmi']))
@@ -284,7 +284,7 @@ def main():
                 if now > t0 and kind in MAX_SPEED:
                     speed = math.dist((x, y, z), (x0, y0, z0)) / (now - t0)
                     if speed > MAX_SPEED[kind]:
-                        speed_flags[kind] += 1
+                        speed_flags[f"{kind} {by_acmi[oid]['type']}"] += 1
                         ex = speed_examples[kind]
                         ex.append((round(speed), t, by_acmi[oid]['eech'], round(math.dist((x, z), (x0, z0)))))
                         ex.sort(reverse=True)
@@ -299,6 +299,10 @@ def main():
                 home = keysite_home.setdefault(eech, (r['x'], r['z']))
                 if math.dist(home, (r['x'], r['z'])) > 1.0:
                     moved_keysites += 1
+            if r['kind'] == 'weapon' and eech in info and r.get('group') != info[eech].get('group'):
+                # another launcher's weapon under the same index: EECH reused it between two samples
+                counts['weapon index held by a different launcher at a snapshot'] += 1
+                info[eech]['group'] = r.get('group')
             tr = tracked.get(eech)
             if not tr:
                 counts['snapshot objects not recorded (appeared dead)'] += 1

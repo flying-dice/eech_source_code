@@ -91,8 +91,9 @@ foreach ($f in 'recording.acmi', 'observations.jsonl', 'metrics.json') {
 # 5. observation does not perturb the campaign: the metrics equal the regression baseline
 $baseline = Join-Path $here 'regression\windows\lebanon_retail.json'
 if ($Hours -eq 3) {
-	& $python (Join-Path $here 'tools\regress-compare.py') $baseline (Join-Path $out 'run1\metrics.json') --exact | Select-Object -First 1 | ForEach-Object { Say "metrics against the regression baseline: $_" }
+	$verdict = & $python (Join-Path $here 'tools\regress-compare.py') $baseline (Join-Path $out 'run1\metrics.json') --exact
 	if ($LASTEXITCODE -ne 0) { $status = 1 }
+	$verdict | Select-String 'IDENTICAL|OUTSIDE' | ForEach-Object { Say "metrics against the regression baseline: $($_.Line)" }
 }
 & $python (Join-Path $here 'tools\campaign-expectations.py') (Join-Path $out 'run1\metrics.json') | Select-String 'campaign expectations' | ForEach-Object { Say $_.Line }
 if ($LASTEXITCODE -ne 0) { $status = 1 }
