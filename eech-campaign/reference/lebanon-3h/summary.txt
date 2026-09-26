@@ -1,0 +1,14 @@
+M2 reference scenario: retail Lebanon, 3 simulated hours (2026-09-26T03:06:11)
+binaries: the accepted M1 candidate, commit 0288ece2 (tools/build-windows.sh; target/m1-no-s2/BUILD-INFO.txt)
+inputs, run 1: E:\eech-runs\m2\lebanon-root: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09
+inputs, run 2: E:\eech-runs\m2\lebanon-m1-copy: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09
+the two roots hold identical inputs
+runs took 1,070 s
+run 1: observation check PASS
+run 2: observation check PASS
+recording.acmi: byte-identical in both runs (117,690,861 bytes, SHA-256 3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b)
+observations.jsonl: byte-identical in both runs (69,586,021 bytes, SHA-256 3136027595a8241e79343e0e6f2badbd86eaa032988ed4cff01b753c3fc2293e)
+metrics.json: byte-identical in both runs (35,942 bytes, SHA-256 fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587)
+metrics against the regression baseline: IDENTICAL to the baseline
+lebanon_retail: 39 of 39 campaign expectations hold
+REFERENCE: PASS

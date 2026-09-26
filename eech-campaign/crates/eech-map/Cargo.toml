@@ -1,0 +1,15 @@
+[package]
+name = "eech-map"
+version = "0.1.0"
+description = "Builds an EECH map and dynamic campaign (terrain, routes, population, campaign script) from an OpenStreetMap extract and SRTM elevation."
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+osmpbf = "0.3"
+flate2 = "1"
+anyhow = "1"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"

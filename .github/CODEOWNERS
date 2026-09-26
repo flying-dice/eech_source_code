@@ -1,0 +1,8 @@
+# Native programme technical lead; policy is repository-wide so source, data,
+# fixtures, workflow, instruction and ownership changes cannot fall through a gap.
+# This file proposes ownership, not active branch protection. See:
+# docs/governance/REVIEW.md and issue #52.
+# GitHub uses CODEOWNERS from the PR base branch. This proposed file does not
+# protect its own bootstrap PR until present there. Do not add alternative owners
+# or overriding patterns that let another approval satisfy the lead requirement.
+* @fd-starscream-bot
