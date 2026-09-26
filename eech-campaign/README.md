@@ -41,6 +41,8 @@ The M2 reference scenario (retail Lebanon, observed as Tacview and
 structured observations, and checked): [`docs/m2-reference.md`](docs/m2-reference.md).
 M3's first slice, one campaign → world → campaign resupply loop observed
 through the public path: [`docs/m3-resupply-loop.md`](docs/m3-resupply-loop.md).
+A SUPPLY aircraft destroyed in flight, and what the campaign did next:
+[`docs/m3-supply-loss.md`](docs/m3-supply-loss.md).
 
 ## The campaign kernel spike
 
