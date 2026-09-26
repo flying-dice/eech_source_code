@@ -30,7 +30,7 @@ volume=eech-win-target-mutants-$(echo "$id" | tr 'A-Z' 'a-z' | tr -c 'a-z0-9\n' 
 
 wt=$here/target/mutants/worktree-$id-$$
 wtw=$(cygpath -m "$wt" 2>/dev/null || echo "$wt")
-cleanup() { cd "$here" && git worktree remove --force "$wtw" >/dev/null 2>&1; rm -rf "$wt"; git worktree prune; }
+cleanup() { cd "$here" && git worktree remove --force "$wtw" >/dev/null 2>&1; rm -rf "$wt"; }
 trap cleanup EXIT
 trap 'exit 1' INT TERM
 mkdir -p "$here/target/mutants"
