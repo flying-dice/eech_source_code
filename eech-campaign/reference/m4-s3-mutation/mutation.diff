@@ -1,0 +1,19 @@
+diff --git a/eech-campaign/crates/eech-engine-sys/build/patches.rs b/eech-campaign/crates/eech-engine-sys/build/patches.rs
+index dfcfdd09..3bc627ba 100644
+--- a/eech-campaign/crates/eech-engine-sys/build/patches.rs
++++ b/eech-campaign/crates/eech-engine-sys/build/patches.rs
+@@ -114,14 +114,6 @@ pub const PATCHES: &[Patch] = &[
+         replacement: "\tif ( ( x != x ) || ( z != z ) )\n\t{\n\t\t/* EECH headless (N1): a NaN passes every range test below */\n\t\textern void eech_report_nan_position (const char *what, void *caller0, void *caller1, void *caller2);\n\t\teech_report_nan_position (\"terrain elevation\", __builtin_return_address (0), NULL, NULL);\n\t\tx = terrain_3d_min_map_x + 0.0001f;\n\t\tz = terrain_3d_min_map_z + 0.0001f;\n\t}\n\n\tif ( ( x < terrain_3d_min_map_x ) || ( x > terrain_3d_max_map_x ) || ( z < terrain_3d_min_map_z ) || ( z > terrain_3d_max_map_z ) )\n\t{\n\t\tASSERT (!\"Terrain elevation off map\");",
+         count: 1,
+     },
+-    Patch {
+-        file: "aphavoc/source/entity/mobile/mb_msgs.c",
+-        id: "S3-pick-up-the-tasks-cargo",
+-        why: "At a SUPPLY task's pick-up waypoint the transport takes the keysite's first cargo crate, whatever its type. Factories and airbases hold both ammo and fuel crates, so an ammo task often loads fuel (and the task still ends in success at the drop-off): in 3 simulated hours of Lebanon no ammo crate was ever picked up at a factory, and airbases never got ammo back. Take a crate of the task's cargo type (its user data, set by create_supply_task), and only failing that the first crate, as before.",
+-        original: "\tkeysite = get_local_entity_parent (sender, LIST_TYPE_TASK_DEPENDENT);\n\n\tcargo = get_local_entity_first_child (keysite, LIST_TYPE_CARGO);\n\n\twhile ((cargo) && (get_local_entity_type (cargo) != ENTITY_TYPE_CARGO))\n\t{\n\n\t\tcargo = get_local_entity_child_succ (cargo, LIST_TYPE_CARGO);\n\t}\n",
+-        replacement: "\tkeysite = get_local_entity_parent (sender, LIST_TYPE_TASK_DEPENDENT);\n\n\t/* EECH headless (S3): the crate of the task's cargo type */\n\t{\n\t\tentity *task = get_local_entity_parent (sender, LIST_TYPE_WAYPOINT);\n\t\tint wanted = task && (get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) == ENTITY_SUB_TYPE_TASK_SUPPLY) ? (int) get_local_entity_float_value (task, FLOAT_TYPE_TASK_USER_DATA) : -1;\n\n\t\tfor (cargo = get_local_entity_first_child (keysite, LIST_TYPE_CARGO); cargo; cargo = get_local_entity_child_succ (cargo, LIST_TYPE_CARGO))\n\t\t{\n\t\t\tif ((get_local_entity_type (cargo) == ENTITY_TYPE_CARGO) && (get_local_entity_int_value (cargo, INT_TYPE_ENTITY_SUB_TYPE) == wanted))\n\t\t\t{\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}\n\n\tif (!cargo)\n\t{\n\tcargo = get_local_entity_first_child (keysite, LIST_TYPE_CARGO);\n\n\twhile ((cargo) && (get_local_entity_type (cargo) != ENTITY_TYPE_CARGO))\n\t{\n\n\t\tcargo = get_local_entity_child_succ (cargo, LIST_TYPE_CARGO);\n\t}\n\t}\n",
+-        count: 1,
+-    },
+     Patch {
+         file: "aphavoc/source/ui_menu/ingame/campaign/ca_hist.c",
+         id: "H1-empty-campaign-history",
