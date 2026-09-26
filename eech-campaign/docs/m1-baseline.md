@@ -45,6 +45,21 @@ The code, data, read-only data and relocations are byte-identical. So the hashes
 image later can therefore change the toolchain. The image ID above identifies
 the one used here.
 
+### Candidate update: S2 removed (`0288ece2`)
+
+The M1 review of the corrections ([`corrections.md`](corrections.md), #62) rejected S2, and `0288ece2` removes it. The same build (`tools/build-windows.sh target/m1-no-s2`, same image and toolchain, no uncommitted changes) now gives:
+
+| File | SHA-256 |
+|---|---|
+| `eech_dc.dll` | `da72f128376e52a160e780365b235720d3b12a390e62d576e11c7d646889a975` |
+| `eech-world.exe`, `lua.dll`, `lua/*.lua` | unchanged (the hashes above) |
+
+Rerun at `0288ece2`:
+- **Lifecycle checks:** unchanged, 5 PASS and 1 KNOWN DEFECT.
+- **Campaign regression:** Georgia is IDENTICAL to its baseline. Lebanon's baseline is re-recorded, and 39/39 expectations hold. The before/after is in `corrections.md` under "S2 removal".
+
+Everything else in this record was produced at `a8661eaa`, with S2 still in: the regression figures below, the rebuild check and the kernel.
+
 ## The public path
 
 ```
@@ -73,7 +88,7 @@ Lebanon and `tools/retail-map3-installs.sh` builds Georgia.
 
 ### The campaign regression
 
-Retail Georgia and Lebanon ran for 3 simulated hours each (seed 1, 100 ms frames, no recording), in parallel, on 2026-09-25. The table shows the figures the runner reported. The full metrics equal `regression/windows/*.json`.
+Retail Georgia and Lebanon ran for 3 simulated hours each (seed 1, 100 ms frames, no recording), in parallel, on 2026-09-25, at `a8661eaa` (with S2). The table shows the figures the runner reported, which matched `regression/windows/*.json` at the time. Lebanon's figures without S2, and its new baseline, are in `corrections.md` under "S2 removal".
 
 | After 3 h | Georgia blue | Georgia red | Lebanon blue | Lebanon red |
 |---|---|---|---|---|
@@ -160,7 +175,7 @@ This evidence belongs to the smaller campaign kernel: `crates/eech-campaign`, `e
   - retail Lebanon to a conclusion;
   - 195- and 14-hour Lebanon runs;
   - 24-hour AddressSanitizer runs.
-- **Review of the corrections.** The corrections to original EECH behaviour are part of the candidate: S2, S3, N1–N3, H1 and U1, and earlier X1, S1, C1, T1, T2, B2, W1 and E1–E3 (`docs/engine.md`). They are not classified or reviewed here.
+- **Review of the corrections.** The corrections to original EECH behaviour are part of the candidate: S2 (since removed, `0288ece2`), S3, N1–N3, H1 and U1, and earlier X1, S1, C1, T1, T2, B2, W1 and E1–E3 (`docs/engine.md`). They are not classified or reviewed here.
 - **Tacview.** No recording was made at this candidate. The recordings in `recordings/` come from earlier commits.
 - **Linux.** The Linux baselines (`regression/*.json`) predate S2–U1 and weren't run.
 - **CI.** The repository workflow currently fails before any test runs: `eech-world` can't link `lua5.1` on the runner. It gives no evidence for this candidate. Campaign runs stay local (retail data, and cost).
@@ -171,7 +186,7 @@ This work is classified against #19's exit question: *can we use this candidate 
 
 **M1 blocker:**
 
-1. Review and classify the behavioural corrections already in the candidate. These are S2, S3, N1–N3, H1 and U1, and the earlier X1, S1, C1, T1, T2, B2, W1 and E1–E3. Each is either a defect correction or an intentional semantic change. #19 requires them to be visible and reviewed rather than silently inherited.
+1. Review and classify the behavioural corrections already in the candidate. These are S2 (since removed, `0288ece2`), S3, N1–N3, H1 and U1, and the earlier X1, S1, C1, T1, T2, B2, W1 and E1–E3. Each is either a defect correction or an intentional semantic change. #19 requires them to be visible and reviewed rather than silently inherited.
 
 **A blocker only where an older claim contradicts this baseline:**
 

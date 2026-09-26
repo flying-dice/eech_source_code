@@ -63,7 +63,6 @@ tree is never modified.
 | C1 | `3d/3dobjdb.c` | A scene's collision object 0 is the null object, meaning none. The `.EES` path maps 0 to −1, but the `3dobjdb.bin` path keeps it, and the retail database stores 0 (`RS_MANPAD`, for one). The first weapon tested against such a scene read the null object's NULL surface list. |
 | T1, T2 | `graphics/textuser.c`, `3d/3dobjid.c` | Headless only. The community objects over a retail texture set disagree on which textures are camouflaged, and name texture animations the retail set lacks. Nothing is drawn headless, so both are ignored instead of fatal (`debug_log` compiles to nothing: `DEBUG` is not defined). |
 | W1 | `entity/mobile/weapon/wn_move.c` | `get_ballistic_pitch_deflection` takes `asin (height / range)`, and the aiming loop jitters the range by up to 5 m. At point blank the height can exceed the range: the pitch is NaN, its table index `INT_MIN`, and the ballistics table read faults. The patch returns "no solution". |
-| S2 | `entity/special/force/fc_msgs.c` | When the chosen supplier (often a drained airbase) holds no crate of the type asked for, the original creates no task. The patch falls back to the nearest factory or refinery that holds one. This is an intentional semantic change. |
 | S3 | `entity/mobile/mb_msgs.c` | At the pick-up waypoint the transport took the keysite's first crate, whatever its type, although the task records the type it was created for. An ammo task could therefore deliver fuel. The patch takes a crate of the task's type, and the first crate only if none is found. |
 | N1, N2 | `3d/terrain/terrelev.c`, `effect/smokelst/sl_move.c`, `sl_updt.c` | Guards. A NaN position passes the terrain lookup's range tests and indexes outside the terrain; N1 reports it and uses the map corner. A NaN smoke point is reported, and dropped if it is moving. |
 | N3 | `3d/terrain/terrelev.c` | A degenerate retail terrain face has a zero normal, so its elevation is 0/0, NaN. The patch uses the up vector, keeping the vertex height. |
@@ -71,7 +70,8 @@ tree is never modified.
 | U1 | `ui_menu/options/op_real.c` | The original reads two pointers past a two-entry text array; the patch uses the right count. |
 
 Each patch's review, as a defect correction or an intentional semantic change,
-is in [`corrections.md`](corrections.md).
+is in [`corrections.md`](corrections.md). S2, a supplier fallback to a producer
+that holds the cargo, was removed after that review rejected it (`0288ece2`).
 
 `-ftrivial-auto-var-init=zero` keeps the spike's F1 decision (`taskgen.c`
 reads uninitialised locals).

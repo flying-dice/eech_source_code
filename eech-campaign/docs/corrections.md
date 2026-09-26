@@ -3,7 +3,7 @@
 This review covers the M1 blocker in [#19](https://github.com/flying-dice/eech_source_code/issues/19): the behavioural corrections and compatibility decisions in the candidate must be "visible and reviewed rather than silently inherited".
 
 - **The candidate** is the one described in [`m1-baseline.md`](m1-baseline.md). This review works on the integration branch at `4653982c`, where the engine code is the same as `5f07697b`.
-- **Scope:** every source patch in `crates/eech-engine-sys/build/patches.rs` (18 ids, 22 entries), plus the compiler flags that give the original code a defined behaviour. P1 is not in the list the review was asked for, but it is in the candidate, so it is reviewed too.
+- **Scope:** every source patch in `crates/eech-engine-sys/build/patches.rs` at `4653982c` (18 ids, 22 entries; S2 has since been removed), plus the compiler flags that give the original code a defined behaviour. P1 is not in the list the review was asked for, but it is in the candidate, so it is reviewed too.
 - **Not reviewed here:** the platform layer's substitutions and the data (listed at the end).
 
 No engine behaviour is changed by this review. It corrects documentation only.
@@ -32,7 +32,7 @@ Evidence is marked as follows:
 | X1 | `system/fpu.h` | Defect correction (portability) | traced; wrong sectors reported |
 | W1 | `weapon/wn_move.c` | Defect correction | traced; fault reported |
 | S1 | `force/fc_msgs.c` | Defect correction | traced; reported |
-| **S2** | `force/fc_msgs.c` | **Intentional semantic change** | traced; necessity **not** reproduced (without S2, all 39 Lebanon expectations hold) |
+| **S2** | `force/fc_msgs.c` | **Intentional semantic change**: rejected, removed in `0288ece2` | traced; necessity **not** reproduced (without S2, all 39 Lebanon expectations hold) |
 | S3 | `mobile/mb_msgs.c` | Defect correction | traced; reproduced (without S3, no airbase gets ammo) |
 | N1, N2 | `terrain/terrelev.c`, `smokelst/sl_move.c`, `sl_updt.c` | Defect correction (guards) | traced; reported |
 | N3 | `terrain/terrelev.c` | Defect correction, with a chosen substitute value | traced; crash reported; no effect in 3 h reproduced |
@@ -56,7 +56,7 @@ Recorded by the technical lead, @fd-starscream-bot, in the review of #62 (2026-0
 
 | Change | Decision | Scope and limits |
 |---|---|---|
-| **S2** | **Rejected** | Its stated need is not reproduced once S3 is present, and S3 explains the original diagnostic. S2 replaces a defined EECH supplier rule, so the conservative M1 position is to restore the original rule. The removal, with its new Windows baseline, is a separate follow-up PR; #62 changes no engine behaviour. Until that PR merges, the candidate still contains S2. |
+| **S2** | **Rejected** | Its stated need is not reproduced once S3 is present, and S3 explains the original diagnostic. S2 replaces a defined EECH supplier rule, so the conservative M1 position is to restore the original rule. It was removed in a separate follow-up (`0288ece2`), with the Lebanon Windows baseline re-recorded; see "S2 removal" below. #62 itself changed no engine behaviour. |
 | **T1, T2** | **Accepted** | Explicit headless/data compatibility decisions. They cover the mixed retail/community data profile only. They do not establish a general rendering or data policy. |
 | **F1** | **Accepted** | An explicit determinism/compatibility decision. It gives a defined value to every read the original leaves indeterminate, across the whole engine, and only one concrete site has been traced. It is not a claim of historical EECH fidelity. |
 | **N3's fallback value** | **Accepted** | The chosen recovery value within an otherwise valid defect correction. The local vertex height is a project compatibility choice, distinct from the sector maximum used by the original's commented-out fallback. |
@@ -140,7 +140,7 @@ So both names sit at offsets 4 and 8 in each struct. The patch renames the secon
 
 Only 3 hours were compared. Without S2, blue airbases got no ammo in that time, against once with it; a longer run would show whether that matters.
 
-**Decision:** rejected for the M1 candidate ("M1 review decision" above). It is to be removed in a separate PR.
+**Decision:** rejected for the M1 candidate ("M1 review decision" above). Removed in `0288ece2` (see "S2 removal").
 
 ### S3: pick up the crate the task was created for (defect correction)
 
@@ -238,6 +238,45 @@ Lebanon after 3 simulated hours (Windows, 2026-09-26):
 | Metrics outside the baseline's tolerance | 0 (IDENTICAL) | 23 | 9 |
 
 The candidate's column is `regression/windows/lebanon_retail.json`, which the M1 candidate reproduces exactly (#60). One run per variant: a different war can move these counts by chance.
+
+## S2 removal
+
+Following the M1 review decision, `0288ece2` removes S2 from `build/patches.rs`. `response_to_force_low_on_supplies` now compiles as the original EECH text: when the chosen supplier holds no crate of the type asked for, no SUPPLY task is created, and the keysite asks again later. No other patch changed.
+
+**Commands** (Windows, 2026-09-26):
+
+```sh
+tools/build-windows.sh target/m1-no-s2      # commit 0288ece2, 0 uncommitted changes; eech_dc.dll da72f128…
+```
+```powershell
+tools\lifecycle-windows.ps1 -Root <Lebanon root> -Bin target\m1-no-s2
+tools\regress-windows.ps1 -Georgia <root> -Lebanon <root> -Bin target\m1-no-s2 -Exact
+```
+
+**Results:**
+- The staged `fc_msgs.c` contains S1 and no S2; `mb_msgs.c` contains S3.
+- Lifecycle: 5 PASS, 1 KNOWN DEFECT, unchanged.
+- **Georgia: IDENTICAL** to its baseline. That is expected: retail Georgia has no factories or refineries, so S2's fallback never found a producer there.
+- **Lebanon:** all 39 campaign expectations hold, but 23 metrics are outside the old baseline's tolerance.
+- The new Lebanon metrics are **byte-identical** to the "without S2" run of this review (built separately from `4653982c`, whose engine code is the same). The new baseline has therefore been produced twice.
+- `regression/windows/lebanon_retail.json` is re-recorded from this run. The old baseline stays in the history at `12e8f692`.
+
+**Lebanon after 3 simulated hours, before and after:**
+
+| | With S2 (`12e8f692` baseline) | Without S2 (new baseline) |
+|---|---|---|
+| Task sorties, blue / red | 163 / 227 | 150 / 223 |
+| SUPPLY sorties, blue / red | 11 / 52 | 10 / 49 |
+| Airbase ammo resupplies, blue / red | 1 / 2 | 0 / 3 |
+| Airbase fuel resupplies, blue / red | 1 / 9 | 0 / 8 |
+| Airbase ammo level, blue / red | 49.9 / 45.5 | 54 / 43.3 |
+| Airbase fuel level, blue / red | 31.1 / 38.3 | 21 / 32.3 |
+| Units lost, blue / red | 293 / 254 | 285 / 245 |
+| Units regenerated or spawned, blue / red | 108 / 148 | 65 / 132 |
+| Keysites captured, blue / red | 1 FARP / none | none / none |
+| Campaign expectations | 39 / 39 | 39 / 39 |
+
+**Why the difference is expected.** S2 only acts when the chosen supplier has no cargo of the type. Removing it means fewer SUPPLY tasks, from a different set of suppliers (blue 11 → 10, red 52 → 49), and so different deliveries. From there the war diverges, as it does after any behaviour change (a different seed moves 42 metrics; `regression/README.md`). The combat differences (losses, regen, the FARP capture) come from that divergence, not directly from S2. Every mechanic the expectations check still occurs, including airbase ammo and fuel resupply.
 
 ## Outside this review
 
