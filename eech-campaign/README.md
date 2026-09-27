@@ -43,6 +43,8 @@ M3's first slice, one campaign → world → campaign resupply loop observed
 through the public path: [`docs/m3-resupply-loop.md`](docs/m3-resupply-loop.md).
 A SUPPLY aircraft destroyed in flight, and what the campaign did next:
 [`docs/m3-supply-loss.md`](docs/m3-supply-loss.md).
+M4: the regression detects a reintroduced campaign defect (S3 removed in a test-only
+mutant): [`docs/m4-s3-mutation.md`](docs/m4-s3-mutation.md).
 
 ## The campaign kernel spike
 

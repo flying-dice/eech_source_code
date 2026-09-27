@@ -100,6 +100,14 @@ the comparison in its description.
 
 The expected results are the behaviour characterised in [`docs/m1-baseline.md`](../docs/m1-baseline.md). The missing-map crash is checked as a known defect, so the check reports it if that behaviour changes.
 
+## Does it detect a real regression?
+
+`tools\mutation-windows.ps1 -Georgia <root> -Lebanon <root> -Patch <id> [-RepeatMutant]` builds a
+test-only mutant with one source patch removed, and a control. Both come from the same clean commit, each in a
+temporary worktree under `target/mutants/`, and the normal build is never touched. It runs this regression on
+both and reports whether the mutant is detected, and which metrics changed. With S3 removed, both campaigns go
+red while the control passes ([`docs/m4-s3-mutation.md`](../docs/m4-s3-mutation.md)).
+
 ## The Docker/Linux runner
 
 `tools/regress-docker.sh <cvh> <avh>` and `tools/regress.sh` run the same

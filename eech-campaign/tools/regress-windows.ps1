@@ -19,12 +19,14 @@ param(
 	[switch] $Build,
 	[double] $Hours = 3,
 	# the binaries' directory (tools/build-windows.sh [dir]); default target\windows
-	[string] $Bin
+	[string] $Bin,
+	# where the runs' metrics and logs go; default target\regress-windows
+	[string] $Out
 )
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $PSScriptRoot
 $bin = if ($Bin) { $Bin } else { Join-Path $here 'target\windows' }
-$out = Join-Path $here 'target\regress-windows'
+$out = if ($Out) { $Out } else { Join-Path $here 'target\regress-windows' }
 $baselines = Join-Path $here 'regression\windows'
 New-Item -ItemType Directory -Force $out, $baselines | Out-Null
 
