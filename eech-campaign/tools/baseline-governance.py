@@ -81,13 +81,14 @@ class GitHubApprover:
     reviewer = LEAD
 
     def review(self, pr, review_id):
-        r = subprocess.run(['gh', 'api', '--paginate', f'repos/{REPOSITORY}/pulls/{pr}/reviews'], capture_output=True, text=True)
+        # one JSON line per review, over every page; review bodies are UTF-8 whatever the console's code page
+        r = subprocess.run(['gh', 'api', '--paginate', f'repos/{REPOSITORY}/pulls/{pr}/reviews',
+                            '--jq', '.[] | {id, reviewer: .user.login, state, commit: .commit_id, submitted_at} | @json'],
+                           capture_output=True, text=True, encoding='utf-8')
         if r.returncode:
             raise LookupError(f'cannot read the reviews of PR #{pr}: {r.stderr.strip()[:200]}')
-        reviews = []
-        for chunk in r.stdout.replace('][', ']\n[').splitlines():
-            reviews += json.loads(chunk) if chunk.strip() else []
-        return pick(reviews, review_id, lambda v: (v['user']['login'], v['state'], v['commit_id'], v.get('submitted_at') or ''))
+        reviews = [json.loads(line) for line in r.stdout.splitlines() if line.strip()]
+        return pick(reviews, review_id, lambda v: (v['reviewer'], v['state'], v['commit'], v.get('submitted_at') or ''))
 
 
 class FixtureApprover:

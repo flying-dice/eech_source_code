@@ -59,3 +59,8 @@ from cross-platform or cross-host equivalence.
 Record the accepted result, residual risk, supported breadth, formal lead-review
 link and approved merge when available. Before approval these are proposals, not
 accepted baselines. Finish with the next bounded question and reproduction/rollback.
+
+For the campaign regression baselines, this section takes a checked form: a change
+record in `eech-campaign/regression/changes/`, using the classes `regression`,
+`approved-defect-correction`, `intentional-semantic-change` and
+`expected-input-world-variation`. See [REVIEW.md](REVIEW.md), "Baseline changes".

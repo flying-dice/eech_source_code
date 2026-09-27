@@ -108,7 +108,7 @@
   "tools/reference-windows.ps1": {"sha256": "2813814bf2bb3d20bd7f5a6f5d40d71b3672db1a43e48922df918cfc19b4b0f6", "revision": "416d1dec"},
   "tools/lifecycle-windows.ps1": {"sha256": "afe05ea67001d16729c42a67b8fd4a5f63fcd5753de95b3c4777ce66d098fe1a", "revision": "this PR (adds -Out; the cases are a8661eaa's)"},
   "tools/regression-pack.py": {"sha256": "4dc08480b72722a7dfdae5dea319f61acc6414c4bdb29351982e1579393d66db", "revision": "this PR (governance: lineage checks, fixture self-test, dispositions)"},
-  "tools/baseline-governance.py": {"sha256": "8fd9869e7df9b6aa07855cc76b09ba8a8e0e99a572170c264c45779173d367b5", "revision": "this PR (baseline lineages and change records)"},
+  "tools/baseline-governance.py": {"sha256": "3bf096d28ab354afd30405083863af6f50e5e1b4ad2eca6c5bd8831270b4e9e9", "revision": "this PR (baseline lineages and change records)"},
   "tools/baseline-governance-selftest.py": {"sha256": "08e1260e3eff3fbac414070f5495ffed8a449dac7aa674a7c2cd4caa13027e2f", "revision": "this PR (the governance fixture)"}
  },
  "claims": [
