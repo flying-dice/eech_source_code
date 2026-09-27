@@ -21,3 +21,10 @@ RETAINED EVIDENCE INCONSISTENT: the pack cannot judge a build against it
 FAIL: evidence.checkers: tools/regress-compare.py differs from its recorded version (12e8f692)
 REGRESSION PACK: FAIL (report: target\regression-pack\negative-3\report.md)
 exit 1
+
+== 4. the pack's own runner edited: echo '# x' >> tools/regression-pack.py (at 23016c4f, 2026-09-27T22:44:09+01:00)
+retained tier: artifacts, checkers, reproduction and sensitivity (no retail data) ...
+RETAINED EVIDENCE INCONSISTENT: the pack cannot judge a build against it
+FAIL: evidence.checkers: tools/regression-pack.py differs from its recorded version (90acbacd (classifies the claims and gives the verdict; the retained runs used this version))
+REGRESSION PACK: FAIL (report: target\regression-pack\negative-4\report.md)
+exit 1

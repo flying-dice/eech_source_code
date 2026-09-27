@@ -85,6 +85,7 @@ One judgement moved:
 | One retained report altered by a byte | `evidence.artifacts: reference/m3-supply-loss/loss-chain.json has SHA-256 cbb48698…, recorded ed02be8b…` |
 | A retained report missing | `reference/lebanon-3h/check.json is missing` |
 | A checker edited | `tools/regress-compare.py differs from its recorded version (12e8f692)` |
+| The pack's own runner edited | `tools/regression-pack.py differs from its recorded version (90acbacd …)` |
 
 Each time it printed `RETAINED EVIDENCE INCONSISTENT: the pack cannot judge a build against it`, then `REGRESSION PACK: FAIL`, and exited with 1.
 
