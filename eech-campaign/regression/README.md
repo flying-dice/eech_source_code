@@ -108,6 +108,14 @@ temporary worktree under `target/mutants/`, and the normal build is never touche
 both and reports whether the mutant is detected, and which metrics changed. With S3 removed, both campaigns go
 red while the control passes ([`docs/m4-s3-mutation.md`](../docs/m4-s3-mutation.md)).
 
+## The accepted regression pack
+
+`python toolsegression-pack.py --georgia <root> --lebanon <root> --lebanon-repeat <second root> --bin <build>` runs
+this regression, the lifecycle checks and the M2/M3 reference checks together. It reports every accepted M1–M3
+behaviour listed in [`pack.json`](pack.json) as directly protected, baseline-sensitive, evidence only or not covered,
+with the blind spots. `--retained-only` checks the retained evidence and the checkers without retail data. See
+[`docs/m4-regression-pack.md`](../docs/m4-regression-pack.md).
+
 ## The Docker/Linux runner
 
 `tools/regress-docker.sh <cvh> <avh>` and `tools/regress.sh` run the same
