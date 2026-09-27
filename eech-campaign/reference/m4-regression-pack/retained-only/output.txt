@@ -1,0 +1,48 @@
+retained tier: artifacts, checkers, reproduction and sensitivity (no retail data) ...
+NOT RUN                                       M1.georgia.mechanics
+NOT RUN                                       M1.georgia.war
+NOT RUN                                       M1.lebanon.mechanics
+NOT RUN                                       M1.lebanon.resupply
+NOT RUN                                       M1.lebanon.war
+NOT RUN                                       M1.lifecycle.one_boot
+NOT RUN                                       M1.lifecycle.bad_arguments
+NOT RUN                                       M1.lifecycle.rejected_root
+NOT RUN                                       M1.lifecycle.fatal_error
+NOT RUN                                       M1.lifecycle.no_reuse
+NOT RUN                                       M1.lifecycle.missing_map_crash
+NOT COVERED                                   M1.lifecycle.unverified
+NOT RUN                                       M1.corrections.S3
+NOT RUN                                       M1.corrections.S2_removed
+NOT RUN                                       M1.corrections.S1
+NOT RUN                                       M1.corrections.portability
+NOT RUN                                       M1.corrections.load_time_data
+EVIDENCE ONLY - not automatically checked     M1.corrections.W1
+NOT COVERED                                   M1.corrections.N3
+NOT COVERED                                   M1.corrections.N1_N2
+EVIDENCE ONLY - not automatically checked     M1.corrections.H1
+NOT COVERED                                   M1.corrections.U1
+EVIDENCE ONLY - not automatically checked     M1.corrections.F1
+EVIDENCE ONLY - not automatically checked     M1.corrections.compile_only
+EVIDENCE ONLY - not automatically checked     M1.rebuild
+EVIDENCE ONLY - not automatically checked     M1.kernel
+NOT COVERED                                   M1.longer_runs
+NOT RUN                                       M2.inputs
+NOT RUN                                       M2.repeatable
+NOT RUN                                       M2.tacview_observations
+NOT RUN                                       M2.unperturbed
+NOT RUN                                       M2.reference_reproduced
+NOT RUN                                       M2.fidelity_characterised
+EVIDENCE ONLY - not automatically checked     M2.plain_observations
+NOT COVERED                                   M2.captures
+NOT COVERED                                   M2.tacview_visual
+NOT RUN                                       M3.resupply_loop
+NOT RUN                                       M3.resupply_reproduced
+NOT RUN                                       M3.feedback
+NOT RUN                                       M3.duplicate_crate
+NOT RUN                                       M3.supply_loss
+NOT RUN                                       M3.supply_loss_reproduced
+NOT COVERED                                   M3.adaptive_compensation
+EVIDENCE ONLY - not automatically checked     M3.chdir
+PASS - directly protected                     M4.s3_detected
+EVIDENCE ONLY - not automatically checked: 8; NOT COVERED: 8; NOT RUN: 28; PASS - directly protected: 1
+REGRESSION PACK: INCOMPLETE (retained tier only) (report: target\regression-pack\retained-self-check\report.md)

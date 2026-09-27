@@ -1,0 +1,943 @@
+{
+ "head": {
+  "pack_revision": "90acbacdc206e2d45ca04bc79cc17dafa0d50e4c (with uncommitted changes)",
+  "when": "2026-09-27T19:14:23",
+  "command": "tools\\regression-pack.py --georgia E:\\eech-runs\\m4\\georgia-copy --lebanon E:\\eech-runs\\m3\\lebanon-root3 --lebanon-repeat E:\\eech-runs\\roots\\lebanon --bin target\\mutants\\s3\\mutant-bin --out target\\regression-pack\\s3-mutant",
+  "build": {
+   "path": "E:\\eech_source_code\\eech-campaign\\target\\mutants\\s3\\mutant-bin",
+   "files": {
+    "eech_dc.dll": "fb113a3768c8ea05ee24943f0c5de59c3263a9c36f83f9ca981049426d79789a",
+    "eech-world.exe": "5bf4522cdaa4f23b68ee18b8e203e192733e061d5407101820e80115b6bdc7bc",
+    "lua.dll": "d0c799fe4e1e615d335d18504d28a7b0d7c78d7f97d1754bb885b1097ac60350",
+    "lua/campaign.lua": "4b1fa47d8426e9b9a1806c2bffb746c9843c9cf70ab46bc205f76ddc803ecbe2",
+    "lua/lifecycle.lua": "dbce9000c176e8563c0443d4b82942b4aef332393fb95da4c1fab738f3c3f30c",
+    "lua/metrics.lua": "dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053",
+    "lua/observations.lua": "68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701"
+   },
+   "differs_from_accepted": [
+    "eech_dc.dll",
+    "eech-world.exe"
+   ],
+   "build_info": [
+    "MUTANT (test only, not a product build): commit 56b164d733d96bdf484e61cea5c134ab32cf8680 with patch S3-pick-up-the-tasks-cargo removed",
+    "commit: 56b164d733d96bdf484e61cea5c134ab32cf8680",
+    "uncommitted changes in the build inputs: 1 files"
+   ]
+  },
+  "roots": {
+   "georgia": "E:\\eech-runs\\m4\\georgia-copy",
+   "lebanon": "E:\\eech-runs\\m3\\lebanon-root3",
+   "lebanon_repeat": "E:\\eech-runs\\roots\\lebanon"
+  },
+  "tiers_run": [
+   "retained",
+   "runtime"
+  ],
+  "verdict": "FAIL"
+ },
+ "checks": {
+  "evidence.artifacts": {
+   "status": "PASS",
+   "detail": "17 artifacts as recorded",
+   "what": "every retained artifact exists with its recorded hash (and decompressed content hash)"
+  },
+  "evidence.checkers": {
+   "status": "PASS",
+   "detail": "12 checkers and runners as recorded",
+   "what": "every checker and runner has its recorded hash"
+  },
+  "evidence.manifests": {
+   "status": "PASS",
+   "detail": "lebanon 1179 files 121a789003b6, georgia 1174 files d373bc426246",
+   "what": "each input manifest has its recorded file count and combined hash"
+  },
+  "evidence.reproduce.m2_check": {
+   "status": "PASS",
+   "detail": "equal to reference/lebanon-3h/check.json",
+   "what": "observation-check.py on the retained M2 evidence reproduces reference/lebanon-3h/check.json"
+  },
+  "evidence.reproduce.m3_check": {
+   "status": "PASS",
+   "detail": "equal to reference/m3-resupply-loop/check.json",
+   "what": "observation-check.py on the retained M3 observations reproduces reference/m3-resupply-loop/check.json"
+  },
+  "evidence.reproduce.chains": {
+   "status": "PASS",
+   "detail": "equal to reference/m3-resupply-loop/chains.json",
+   "what": "supply-chain-check.py on the retained M3 observations reproduces reference/m3-resupply-loop/chains.json"
+  },
+  "evidence.reproduce.loss": {
+   "status": "PASS",
+   "detail": "equal to reference/m3-supply-loss/loss-chain.json",
+   "what": "loss-chain-check.py on the retained M3 observations reproduces reference/m3-supply-loss/loss-chain.json"
+  },
+  "sensitivity.observation_check": {
+   "status": "PASS",
+   "detail": "6 cases: unmodified   passes: as expected; moved        fails: as expected; undeclared   fails: as expected; no-death     fails: as expected; coalition    fails: as expected; not-gone     fails: as expected",
+   "what": "observation-check-selftest.py on the retained M2 evidence: five injected discrepancies all fail"
+  },
+  "sensitivity.supply_chain_check": {
+   "status": "PASS",
+   "detail": "5 cases: unmodified     group 88235: assigned 1160.77, pick-up 1555.67, delivery 1904.58: complete; no-assignment  no longer complete: as expected; no-pickup      no longer complete: as expected; broken-flight  no longer complete: as expected; no-aircraft    no longer complete: as expected",
+   "what": "supply-chain-check-selftest.py on the retained M3 observations: four removed links all break the chain"
+  },
+  "sensitivity.loss_chain_check": {
+   "status": "PASS",
+   "detail": "4 cases: unmodified     loss of 87568 at 1584.66: passes; no-loss        fails: as expected; no-response    fails: as expected; no-subsequent  fails: as expected",
+   "what": "loss-chain-check-selftest.py on the retained M3 observations: three removed links all fail"
+  },
+  "sensitivity.s3_lebanon_expectation": {
+   "status": "PASS",
+   "detail": "'airbases resupplied with ammo' fails on the mutant's metrics, as in #68",
+   "what": "campaign-expectations.py rejects the S3 mutant's retained Lebanon metrics: 'airbases resupplied with ammo' fails"
+  },
+  "sensitivity.s3_exact": {
+   "status": "PASS",
+   "detail": "georgia_retail: OUTSIDE tolerance of the baseline (--exact: not identical) (11 metrics outside tolerance); lebanon_retail: OUTSIDE tolerance of the baseline (--exact: not identical) (13 metrics outside tolerance)",
+   "what": "regress-compare.py --exact rejects the S3 mutant's retained metrics for both scenarios"
+  },
+  "blindspot.georgia_resupply": {
+   "status": "PASS",
+   "detail": "confirmed: 30 of 30 hold on the S3 mutant",
+   "what": "Georgia's expectations still all hold on the S3 mutant's retained metrics (the blind spot is as documented)"
+  },
+  "inputs.georgia": {
+   "status": "PASS",
+   "detail": "E:\\eech-runs\\m4\\georgia-copy: E:\\eech-runs\\m4\\georgia-copy: 1174 input files, 142,522,166 bytes, combined SHA-256 d373bc4262464da87532b8128d396358f0003bc2e9e51e8fa92cf0a6e2b50de2 / inputs IDENTICAL to E:\\eech_source_code\\eech-campaign\\reference/m4-s3-mutation/inputs-georgia.json",
+   "what": "the Georgia root matches reference/m4-s3-mutation/inputs-georgia.json"
+  },
+  "inputs.lebanon": {
+   "status": "PASS",
+   "detail": "E:\\eech-runs\\m3\\lebanon-root3: E:\\eech-runs\\m3\\lebanon-root3: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09 / inputs IDENTICAL to E:\\eech_source_code\\eech-campaign\\reference/lebanon-3h/inputs.json",
+   "what": "the Lebanon root matches reference/lebanon-3h/inputs.json"
+  },
+  "inputs.lebanon_repeat": {
+   "status": "PASS",
+   "detail": "E:\\eech-runs\\roots\\lebanon: E:\\eech-runs\\roots\\lebanon: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09 / inputs IDENTICAL to E:\\eech_source_code\\eech-campaign\\reference/lebanon-3h/inputs.json",
+   "what": "the second, separately assembled Lebanon root matches it too"
+  },
+  "lifecycle.boot_twice": {
+   "status": "PASS",
+   "detail": "boot_twice: PASS",
+   "what": "tools/lifecycle-windows.ps1 case boot_twice"
+  },
+  "lifecycle.bad_arguments": {
+   "status": "PASS",
+   "detail": "bad_arguments: PASS",
+   "what": "tools/lifecycle-windows.ps1 case bad_arguments"
+  },
+  "lifecycle.missing_root": {
+   "status": "PASS",
+   "detail": "missing_root: PASS",
+   "what": "tools/lifecycle-windows.ps1 case missing_root"
+  },
+  "lifecycle.missing_campaign": {
+   "status": "PASS",
+   "detail": "missing_campaign: PASS",
+   "what": "tools/lifecycle-windows.ps1 case missing_campaign"
+  },
+  "lifecycle.no_reuse": {
+   "status": "PASS",
+   "detail": "no_reuse: PASS",
+   "what": "tools/lifecycle-windows.ps1 case no_reuse"
+  },
+  "lifecycle.missing_map": {
+   "status": "PASS",
+   "detail": "missing_map: KNOWN DEFECT (unchanged)",
+   "what": "tools/lifecycle-windows.ps1 case missing_map (known defect, unchanged)"
+  },
+  "regress.georgia.expectations": {
+   "status": "PASS",
+   "detail": "30 of 30 hold",
+   "what": "every Georgia campaign expectation holds (campaign-expectations.py)"
+  },
+  "regress.georgia.exact": {
+   "status": "FAIL",
+   "detail": "not identical; tolerance mode: OUTSIDE tolerance of the baseline (11 metrics outside tolerance)",
+   "what": "Georgia metrics IDENTICAL to regression/windows/georgia_retail.json (regress-compare.py --exact)"
+  },
+  "regress.lebanon.expectations.mechanics": {
+   "status": "PASS",
+   "detail": "37 of 37 hold",
+   "what": "every Lebanon campaign expectation other than airbase resupply holds"
+  },
+  "regress.lebanon.expectations.resupply": {
+   "status": "FAIL",
+   "detail": "failed: airbases resupplied with ammo (0)",
+   "what": "Lebanon's 'airbases resupplied with ammo' and '... with fuel' hold"
+  },
+  "regress.lebanon.exact": {
+   "status": "FAIL",
+   "detail": "not identical; tolerance mode: OUTSIDE tolerance of the baseline (13 metrics outside tolerance)",
+   "what": "Lebanon metrics IDENTICAL to regression/windows/lebanon_retail.json"
+  },
+  "reference.observation_check": {
+   "status": "PASS",
+   "detail": "run 1: observation check PASS; run 2: observation check PASS",
+   "what": "observation-check.py passes on both reference runs"
+  },
+  "reference.repeatable": {
+   "status": "PASS",
+   "detail": "recording.acmi: byte-identical in both runs; observations.jsonl: byte-identical in both runs; metrics.json: byte-identical in both runs",
+   "what": "the two reference runs give byte-identical recording, observations and metrics"
+  },
+  "reference.baseline": {
+   "status": "FAIL",
+   "detail": "metrics against the regression baseline: OUTSIDE tolerance of the baseline (--exact: not identical); lebanon_retail: 38 of 39 campaign expectations hold",
+   "what": "the observed run's metrics are IDENTICAL to the Lebanon baseline and every expectation holds (the runner's own check)"
+  },
+  "reference.observed_equals_unobserved": {
+   "status": "PASS",
+   "detail": "IDENTICAL to the baseline",
+   "what": "the observed run's metrics are IDENTICAL to the same build's unobserved Lebanon regression run"
+  },
+  "reference.supply_chains": {
+   "status": "PASS",
+   "detail": "run 1: supply chains: 27 complete of 30 deliveries (0 unattributed); metrics agree: PASS; run 2: supply chains: 27 complete of 30 deliveries (0 unattributed); metrics agree: PASS",
+   "what": "supply-chain-check.py passes on both reference runs (a complete chain; deliveries agree with the metrics)"
+  },
+  "reference.loss_chain": {
+   "status": "PASS",
+   "detail": "Mi-17 Hip 87568 of 'Wolfpack' at 1584.66 s; loss chain of aircraft 87568 (group 87567) at 1584.66: PASS",
+   "what": "loss-chain-check.py passes on the reference run's first SUPPLY aircraft destroyed in flight"
+  },
+  "retained.recording": {
+   "status": "FAIL",
+   "detail": "recording.acmi differs from reference/lebanon-3h/recording.zip.acmi (d65f0ee7e847 vs 3bd17b647665)",
+   "what": "the reference run's recording is byte-identical to reference/lebanon-3h/recording.zip.acmi"
+  },
+  "retained.observations": {
+   "status": "FAIL",
+   "detail": "observations.jsonl differs from reference/m3-resupply-loop/observations.jsonl.gz (e203844585bd vs da26bab01163)",
+   "what": "the reference run's observations are byte-identical to reference/m3-resupply-loop/observations.jsonl.gz"
+  },
+  "retained.check_report": {
+   "status": "FAIL",
+   "detail": "differs from reference/m3-resupply-loop/check.json in: counts, keysite_usable_changes, losses, max_deviation, max_pitch_roll_difference_deg, speed_flag_examples, speed_flags",
+   "what": "the reference run's observation-check report equals reference/m3-resupply-loop/check.json"
+  },
+  "retained.chains_report": {
+   "status": "FAIL",
+   "detail": "differs from reference/m3-resupply-loop/chains.json in: attributed, chains, complete_chains, deliveries, deliveries_by_keysite_type, deliveries_of_20_or_more, metrics_resupplied (deliveries 32 -> 30; complete_chains 31 -> 27)",
+   "what": "the reference run's chain report equals reference/m3-resupply-loop/chains.json"
+  },
+  "retained.loss_report": {
+   "status": "FAIL",
+   "detail": "differs from reference/m3-supply-loss/loss-chain.json in: other_supply_losses_in_run",
+   "what": "the reference run's loss-chain report equals reference/m3-supply-loss/loss-chain.json"
+  }
+ },
+ "claims": [
+  {
+   "id": "M1.georgia.mechanics",
+   "claim": "Retail Georgia plays out as an EECH campaign for 3 h: the expected air and ground task types, combat and helicopter and vehicle losses on both sides, red SUPPLY flown, airbases consuming ammo and fuel, keysites changing hands",
+   "accepted": "#19 (docs/m1-baseline.md)",
+   "path": "public",
+   "class": "direct",
+   "checks": [
+    "regress.georgia.expectations"
+   ],
+   "sensitivity": "none demonstrated for Georgia's expectations: without S3 all 30 still hold (#68)",
+   "blind_spots": [
+    "georgia-resupply",
+    "three-hours"
+   ],
+   "status": "PASS - directly protected"
+  },
+  {
+   "id": "M1.georgia.war",
+   "claim": "Georgia's 3 h war reproduces its accepted baseline exactly: every metric at every checkpoint",
+   "accepted": "#19 (docs/m1-baseline.md)",
+   "path": "public",
+   "class": "baseline-sensitive",
+   "checks": [
+    "regress.georgia.exact"
+   ],
+   "sensitivity": "demonstrated: S3 removal breaks the exact comparison, and 11 metrics leave tolerance (#68; re-checked offline by sensitivity.s3_exact)",
+   "blind_spots": [
+    "one-war",
+    "georgia-resupply"
+   ],
+   "status": "FAIL - differs from the baseline"
+  },
+  {
+   "id": "M1.lebanon.mechanics",
+   "claim": "Retail Lebanon plays out as an EECH campaign for 3 h: task types, combat and losses, both sides flying SUPPLY, airbases consuming, jets and helicopters regenerated from reserves, factories and refineries producing",
+   "accepted": "#19 (docs/m1-baseline.md)",
+   "path": "public",
+   "class": "direct",
+   "checks": [
+    "regress.lebanon.expectations.mechanics"
+   ],
+   "sensitivity": "reported: with regen disabled the four regen expectations fail (regression/README.md; no retained artifact)",
+   "blind_spots": [
+    "three-hours",
+    "reported-only"
+   ],
+   "status": "PASS - directly protected"
+  },
+  {
+   "id": "M1.lebanon.resupply",
+   "claim": "Lebanon airbases are resupplied with ammo and with fuel within 3 h",
+   "accepted": "#19 (docs/m1-baseline.md, docs/corrections.md)",
+   "path": "public",
+   "class": "direct",
+   "checks": [
+    "regress.lebanon.expectations.resupply"
+   ],
+   "sensitivity": "demonstrated: without S3, 'airbases resupplied with ammo' fails (#68; re-checked offline by sensitivity.s3_lebanon_expectation)",
+   "blind_spots": [
+    "unobservable-supply"
+   ],
+   "status": "FAIL - directly protected"
+  },
+  {
+   "id": "M1.lebanon.war",
+   "claim": "Lebanon's 3 h war reproduces its accepted (post-S2) baseline exactly",
+   "accepted": "#19 (docs/m1-baseline.md; baseline from #63)",
+   "path": "public",
+   "class": "baseline-sensitive",
+   "checks": [
+    "regress.lebanon.exact"
+   ],
+   "sensitivity": "demonstrated: S3 removal (#68: 13 metrics outside tolerance) and S2 (#63: 23 outside tolerance, all 39 expectations held)",
+   "blind_spots": [
+    "one-war"
+   ],
+   "status": "FAIL - differs from the baseline"
+  },
+  {
+   "id": "M1.lifecycle.one_boot",
+   "claim": "One boot per process: a second boot raises 'not valid in the engine's state' and the first engine keeps running",
+   "accepted": "#19 (docs/m1-baseline.md)",
+   "path": "public",
+   "class": "direct",
+   "checks": [
+    "lifecycle.boot_twice"
+   ],
+   "sensitivity": "reported: a root without the Lebanon map made 4 cases fail (docs/m1-baseline.md, at a8661eaa; no retained artifact)",
+   "blind_spots": [
+    "lifecycle-unverified"
+   ],
+   "status": "PASS - directly protected"
+  },
+  {
+   "id": "M1.lifecycle.bad_arguments",
+   "claim": "Argument errors (unknown gunship, missing fields, a non-table config, a negative or non-numeric frame step) are Lua errors raised before the engine is touched; a valid boot and frame (0) still work afterwards",
+   "accepted": "#19 (docs/m1-baseline.md)",
+   "path": "public",
+   "class": "direct",
+   "checks": [
+    "lifecycle.bad_arguments"
+   ],
+   "sensitivity": "reported (as above)",
+   "status": "PASS - directly protected"
+  },
+  {
+   "id": "M1.lifecycle.rejected_root",
+   "claim": "An install root the engine rejects is a Lua error ('rejected by the engine'), and uses up the process's boot",
+   "accepted": "#19 (docs/m1-baseline.md)",
+   "path": "public",
+   "class": "direct",
+   "checks": [
+    "lifecycle.missing_root"
+   ],
+   "sensitivity": "reported (as above)",
+   "status": "PASS - directly protected"
+  },
+  {
+   "id": "M1.lifecycle.fatal_error",
+   "claim": "An EECH fatal error at boot (a missing campaign file) is a Lua error, not a crash, and uses up the process's boot",
+   "accepted": "#19 (docs/m1-baseline.md)",
+   "path": "public",
+   "class": "direct",
+   "checks": [
+    "lifecycle.missing_campaign"
+   ],
+   "sensitivity": "reported (as above)",
+   "status": "PASS - directly protected"
+  },
+  {
+   "id": "M1.lifecycle.no_reuse",
+   "claim": "No shutdown, reset or reuse: collecting the engine or requiring the module again does not allow another boot",
+   "accepted": "#19 (docs/m1-baseline.md)",
+   "path": "public",
+   "class": "direct",
+   "checks": [
+    "lifecycle.no_reuse"
+   ],
+   "sensitivity": "reported (as above)",
+   "status": "PASS - directly protected"
+  },
+  {
+   "id": "M1.lifecycle.missing_map_crash",
+   "claim": "Known defect, characterised: a missing map directory crashes the host process during boot (0xC0000005); the check reports any change",
+   "accepted": "#19 (docs/m1-baseline.md): an accepted limitation, not desired behaviour",
+   "path": "public",
+   "class": "direct",
+   "checks": [
+    "lifecycle.missing_map"
+   ],
+   "sensitivity": "reported (as above)",
+   "status": "PASS - directly protected"
+  },
+  {
+   "id": "M1.lifecycle.unverified",
+   "claim": "A fatal error during frame poisons the engine; threading and reentrancy; host callbacks",
+   "accepted": "#19: accepted as unverified or unsupported",
+   "path": "public",
+   "class": "not-covered",
+   "checks": [],
+   "blind_spots": [
+    "lifecycle-unverified"
+   ],
+   "status": "NOT COVERED"
+  },
+  {
+   "id": "M1.corrections.S3",
+   "claim": "S3: a SUPPLY transport picks up a crate of its task's cargo type",
+   "accepted": "#62 (defect correction; docs/corrections.md)",
+   "path": "public",
+   "class": "direct",
+   "checks": [
+    "regress.lebanon.expectations.resupply"
+   ],
+   "sensitivity": "demonstrated (#68): Lebanon's ammo-resupply expectation fails, and both exact baselines differ",
+   "blind_spots": [
+    "georgia-resupply",
+    "unobservable-supply"
+   ],
+   "status": "FAIL - directly protected"
+  },
+  {
+   "id": "M1.corrections.S2_removed",
+   "claim": "S2 rejected and removed: the original EECH supplier rule (no task when the chosen supplier holds no crate of the type)",
+   "accepted": "#62 (rejected), #63 (removed)",
+   "path": "public",
+   "class": "baseline-sensitive",
+   "checks": [
+    "regress.lebanon.exact"
+   ],
+   "sensitivity": "demonstrated (#62/#63): with S2, Lebanon differs in 23 metrics beyond tolerance while all 39 expectations hold: only the baseline would notice",
+   "blind_spots": [
+    "one-war"
+   ],
+   "status": "FAIL - differs from the baseline"
+  },
+  {
+   "id": "M1.corrections.S1",
+   "claim": "S1: an airbase low on supplies is not chosen as its own supplier",
+   "accepted": "#62 (defect correction)",
+   "path": "public",
+   "class": "baseline-sensitive",
+   "checks": [
+    "regress.lebanon.exact",
+    "regress.lebanon.expectations.resupply"
+   ],
+   "sensitivity": "not demonstrated: reported before S3 existed (1b47fa02: no airbase was ever resupplied)",
+   "blind_spots": [
+    "reported-only"
+   ],
+   "status": "FAIL - differs from the baseline"
+  },
+  {
+   "id": "M1.corrections.portability",
+   "claim": "P1, B2, X1: entity attribute lists, UI attribute pointers and float-to-int conversion behave on x86-64 as the original does on 32-bit MSVC",
+   "accepted": "#62 (defect corrections, portability)",
+   "path": "public",
+   "class": "baseline-sensitive",
+   "checks": [
+    "regress.georgia.exact",
+    "regress.lebanon.exact",
+    "lifecycle.boot_twice"
+   ],
+   "sensitivity": "not demonstrated at this candidate: reported that without them boots crash (B2), keysites land in the wrong sectors (X1) and every entity creation reads garbage (P1)",
+   "blind_spots": [
+    "reported-only"
+   ],
+   "status": "FAIL - differs from the baseline"
+  },
+  {
+   "id": "M1.corrections.load_time_data",
+   "claim": "T1, T2 (accepted compatibility decisions) and C1: the mixed retail/community data set loads",
+   "accepted": "#62 (T1/T2 accepted for this data profile only; C1 defect correction)",
+   "path": "public",
+   "class": "baseline-sensitive",
+   "checks": [
+    "regress.georgia.exact",
+    "regress.lebanon.exact",
+    "lifecycle.boot_twice"
+   ],
+   "sensitivity": "not demonstrated at this candidate: reported that without them loading stops (T1/T2 fatal) or faults (C1)",
+   "blind_spots": [
+    "reported-only"
+   ],
+   "status": "FAIL - differs from the baseline"
+  },
+  {
+   "id": "M1.corrections.W1",
+   "claim": "W1: no ballistic solution when the target's height exceeds its range (no NaN table index)",
+   "accepted": "#62 (defect correction)",
+   "path": "public",
+   "class": "evidence-only",
+   "checks": [],
+   "sensitivity": "fault reported (231bc98c); whether it triggers within 3 h is unknown",
+   "blind_spots": [
+    "reported-only",
+    "three-hours"
+   ],
+   "status": "EVIDENCE ONLY - not automatically checked"
+  },
+  {
+   "id": "M1.corrections.N3",
+   "claim": "N3 and its accepted fallback value: degenerate terrain faces take the local vertex height instead of NaN",
+   "accepted": "#62 (defect correction; fallback value accepted)",
+   "path": "public",
+   "class": "not-covered",
+   "checks": [],
+   "sensitivity": "demonstrated NOT exercised in 3 h: the baselines predate N3 and still reproduce exactly; the fault it prevents was reported at 39,327 s",
+   "blind_spots": [
+    "three-hours"
+   ],
+   "status": "NOT COVERED"
+  },
+  {
+   "id": "M1.corrections.N1_N2",
+   "claim": "N1, N2: NaN positions are reported and guarded in terrain queries and smoke",
+   "accepted": "#62 (defect corrections)",
+   "path": "public",
+   "class": "not-covered",
+   "checks": [],
+   "sensitivity": "nothing reported since N3; no 3 h run is known to reach them",
+   "blind_spots": [
+    "three-hours",
+    "reported-only"
+   ],
+   "status": "NOT COVERED"
+  },
+  {
+   "id": "M1.corrections.H1",
+   "claim": "H1: an empty campaign history is not read at index -1",
+   "accepted": "#62 (defect correction)",
+   "path": "public",
+   "class": "evidence-only",
+   "checks": [],
+   "sensitivity": "exercised whenever a campaign item is destroyed headless, but a reversion is an out-of-bounds read whose effect on the metrics is unknown; AddressSanitizer reported (5f07697b)",
+   "blind_spots": [
+    "reported-only"
+   ],
+   "status": "EVIDENCE ONLY - not automatically checked"
+  },
+  {
+   "id": "M1.corrections.U1",
+   "claim": "U1: the co-pilot report button is sized from its 2-entry array",
+   "accepted": "#62 (defect correction)",
+   "path": "public",
+   "class": "not-covered",
+   "checks": [],
+   "sensitivity": "UI sizing only: nothing headless observes it",
+   "blind_spots": [
+    "reported-only"
+   ],
+   "status": "NOT COVERED"
+  },
+  {
+   "id": "M1.corrections.F1",
+   "claim": "F1 (accepted compatibility decision): uninitialised locals read as zero across the engine",
+   "accepted": "#62",
+   "path": "public",
+   "class": "evidence-only",
+   "checks": [],
+   "sensitivity": "one site traced (create_supply_task); what a reversion would change is unknown",
+   "blind_spots": [
+    "reported-only"
+   ],
+   "status": "EVIDENCE ONLY - not automatically checked"
+  },
+  {
+   "id": "M1.corrections.compile_only",
+   "claim": "E1-E3 (compile-only) and -fwrapv, -fno-strict-aliasing, -fcommon (keep the original compiler's treatment)",
+   "accepted": "#62 (no behavioural change intended)",
+   "path": "public",
+   "class": "evidence-only",
+   "checks": [],
+   "sensitivity": "traced; E1-E3 reversions fail to compile; the flags' equivalence is not independently verified",
+   "blind_spots": [
+    "reported-only"
+   ],
+   "status": "EVIDENCE ONLY - not automatically checked"
+  },
+  {
+   "id": "M1.rebuild",
+   "claim": "A clean rebuild reproduces the candidate's code and data byte for byte (not its file hashes)",
+   "accepted": "#60, #19",
+   "path": "build",
+   "class": "evidence-only",
+   "checks": [],
+   "sensitivity": "checked once at a8661eaa; no retained artifact",
+   "blind_spots": [
+    "build-identity"
+   ],
+   "status": "EVIDENCE ONLY - not automatically checked"
+  },
+  {
+   "id": "M1.kernel",
+   "claim": "Supporting kernel conformance: 1,401 corpus scenarios and the float fixtures match the C reference (Linux x86-64)",
+   "accepted": "#19, as supporting evidence only (not the public path)",
+   "path": "kernel Rust API",
+   "class": "evidence-only",
+   "checks": [],
+   "sensitivity": "cargo test in the eech-build image; not part of this Windows pack",
+   "blind_spots": [
+    "reported-only"
+   ],
+   "status": "EVIDENCE ONLY - not automatically checked"
+  },
+  {
+   "id": "M1.longer_runs",
+   "claim": "Lebanon to a conclusion, 14 h and 195 h Lebanon runs, 24 h AddressSanitizer runs",
+   "accepted": "#19: reported, not reproduced; no retained artifact",
+   "path": "public",
+   "class": "not-covered",
+   "checks": [],
+   "blind_spots": [
+    "three-hours",
+    "reported-only"
+   ],
+   "status": "NOT COVERED"
+  },
+  {
+   "id": "M2.inputs",
+   "claim": "The reference scenario's inputs are identified: two separately assembled roots match the manifest (1,179 files)",
+   "accepted": "#23 (docs/m2-reference.md)",
+   "path": "inputs",
+   "class": "direct",
+   "checks": [
+    "inputs.lebanon",
+    "inputs.lebanon_repeat"
+   ],
+   "blind_spots": [
+    "retail-data"
+   ],
+   "status": "PASS - directly protected"
+  },
+  {
+   "id": "M2.repeatable",
+   "claim": "Two runs from the two roots give byte-identical recording, observations and metrics",
+   "accepted": "#23",
+   "path": "public",
+   "class": "direct",
+   "checks": [
+    "reference.repeatable"
+   ],
+   "sensitivity": "not demonstrated: a nondeterministic build was never run",
+   "blind_spots": [
+    "one-war"
+   ],
+   "status": "PASS - directly protected"
+  },
+  {
+   "id": "M2.tacview_observations",
+   "claim": "Tacview and the structured observations agree: identity and lifecycle frame by frame, positions within the recorder's threshold, losses three ways, keysite state equal to the metrics",
+   "accepted": "#23",
+   "path": "public",
+   "class": "direct",
+   "checks": [
+    "reference.observation_check"
+   ],
+   "sensitivity": "demonstrated: the checker fails each of five injected discrepancies (re-run offline by sensitivity.observation_check)",
+   "blind_spots": [
+    "index-reuse",
+    "tacview-limits",
+    "clock-projection-sampling",
+    "coupled-engine"
+   ],
+   "status": "PASS - directly protected"
+  },
+  {
+   "id": "M2.unperturbed",
+   "claim": "Observing does not change the campaign: the observed run's metrics equal the same build's unobserved run",
+   "accepted": "#23 (there, against the unobserved baseline)",
+   "path": "public",
+   "class": "direct",
+   "checks": [
+    "reference.observed_equals_unobserved"
+   ],
+   "sensitivity": "not demonstrated: no perturbing observation was ever made",
+   "status": "PASS - directly protected"
+  },
+  {
+   "id": "M2.reference_reproduced",
+   "claim": "The reference run reproduces M2's retained Tacview recording byte for byte, and its metrics equal the Lebanon baseline with 39/39 expectations",
+   "accepted": "#23 (reference/lebanon-3h/)",
+   "path": "public",
+   "class": "baseline-sensitive",
+   "checks": [
+    "retained.recording",
+    "reference.baseline"
+   ],
+   "blind_spots": [
+    "tacview-visual",
+    "one-war"
+   ],
+   "status": "FAIL - differs from the baseline"
+  },
+  {
+   "id": "M2.fidelity_characterised",
+   "claim": "The characterised fidelity numbers are unchanged: session-clock drift (-29.63 s), deviations within threshold, attitude staleness, index-reuse replacements, losses and keysite changes (the observation checker's report)",
+   "accepted": "#23 (accepted limits)",
+   "path": "public",
+   "class": "baseline-sensitive",
+   "checks": [
+    "retained.check_report"
+   ],
+   "blind_spots": [
+    "index-reuse",
+    "tacview-limits",
+    "clock-projection-sampling"
+   ],
+   "status": "FAIL - differs from the baseline"
+  },
+  {
+   "id": "M2.plain_observations",
+   "claim": "With observe_supply off, the observations are byte-identical to M2's retained file",
+   "accepted": "#23; reproduced in #66",
+   "path": "public",
+   "class": "evidence-only",
+   "checks": [],
+   "sensitivity": "the pack runs only the enriched settings",
+   "blind_spots": [
+    "plain-observations"
+   ],
+   "status": "EVIDENCE ONLY - not automatically checked"
+  },
+  {
+   "id": "M2.captures",
+   "claim": "Keysite captures in Tacview and the observations",
+   "accepted": "#23: not exercised (no capture in 3 h of Lebanon)",
+   "path": "public",
+   "class": "not-covered",
+   "checks": [],
+   "blind_spots": [
+    "captures"
+   ],
+   "status": "NOT COVERED"
+  },
+  {
+   "id": "M2.tacview_visual",
+   "claim": "A visual review of the recording in Tacview",
+   "accepted": "#23: generated and structurally checked, never visually reviewed",
+   "path": "public",
+   "class": "not-covered",
+   "checks": [],
+   "blind_spots": [
+    "tacview-visual"
+   ],
+   "status": "NOT COVERED"
+  },
+  {
+   "id": "M3.resupply_loop",
+   "claim": "A campaign SUPPLY assignment produces a continuous flight from supplier to receiver, with the pick-up and the drop-off in the same samples as the supply levels change; deliveries equal the metrics' resupplied counts",
+   "accepted": "#27 (docs/m3-resupply-loop.md, #66)",
+   "path": "public",
+   "class": "direct",
+   "checks": [
+    "reference.supply_chains"
+   ],
+   "sensitivity": "demonstrated: removing any of four links breaks the chain (re-run offline by sensitivity.supply_chain_check)",
+   "blind_spots": [
+    "unobservable-supply",
+    "coupled-engine"
+   ],
+   "status": "PASS - directly protected"
+  },
+  {
+   "id": "M3.resupply_reproduced",
+   "claim": "The retained loop is reproduced: 32 deliveries, all attributed, 31 complete chains, including Jester's (Il-76, Halat to Beirut)",
+   "accepted": "#27 (reference/m3-resupply-loop/)",
+   "path": "public",
+   "class": "baseline-sensitive",
+   "checks": [
+    "retained.chains_report",
+    "retained.observations"
+   ],
+   "blind_spots": [
+    "one-war"
+   ],
+   "status": "FAIL - differs from the baseline"
+  },
+  {
+   "id": "M3.feedback",
+   "claim": "The campaign then uses the delivered stock: draws on it, other SUPPLY tasks pick up from it, it falls below the request threshold and is resupplied again",
+   "accepted": "#27 (docs/m3-resupply-loop.md)",
+   "path": "public",
+   "class": "baseline-sensitive",
+   "checks": [
+    "retained.chains_report"
+   ],
+   "sensitivity": "the chain checker reports this ('afterwards') but does not assert it",
+   "blind_spots": [
+    "unobservable-supply"
+   ],
+   "status": "FAIL - differs from the baseline"
+  },
+  {
+   "id": "M3.duplicate_crate",
+   "claim": "Apparent original EECH defect, characterised: a drop-off to a group leaves the crate aboard, and a later task delivers it again (An-12 'Python')",
+   "accepted": "#27: recorded, not accepted as desired behaviour",
+   "path": "public",
+   "class": "baseline-sensitive",
+   "checks": [
+    "retained.chains_report"
+   ],
+   "blind_spots": [
+    "unobservable-supply"
+   ],
+   "status": "FAIL - differs from the baseline"
+  },
+  {
+   "id": "M3.supply_loss",
+   "claim": "When a SUPPLY aircraft is destroyed in flight, the loss, the survivors' response (or the group's end) and the group's next assignment are all observed",
+   "accepted": "#27 (docs/m3-supply-loss.md, #67)",
+   "path": "public",
+   "class": "direct",
+   "checks": [
+    "reference.loss_chain"
+   ],
+   "sensitivity": "demonstrated: removing the death, the response or the next assignment fails the checker (re-run offline by sensitivity.loss_chain_check)",
+   "blind_spots": [
+    "adaptive-compensation",
+    "unobservable-supply"
+   ],
+   "status": "PASS - directly protected"
+  },
+  {
+   "id": "M3.supply_loss_reproduced",
+   "claim": "The retained loss is reproduced: Mi-17 87568 of 'Wolfpack' destroyed at 1,584.66 s, the group reduced to one aircraft, re-tasked at 3,619.24 s, delivering at 4,013.67 s",
+   "accepted": "#27 (reference/m3-supply-loss/)",
+   "path": "public",
+   "class": "baseline-sensitive",
+   "checks": [
+    "retained.loss_report"
+   ],
+   "blind_spots": [
+    "one-war",
+    "adaptive-compensation"
+   ],
+   "status": "FAIL - differs from the baseline"
+  },
+  {
+   "id": "M3.adaptive_compensation",
+   "claim": "A campaign response aimed at the lost supply; a keysite-bound delivery loss, supplier or receiver loss, or a capture-driven failure",
+   "accepted": "#27: explicitly not established",
+   "path": "public",
+   "class": "not-covered",
+   "checks": [],
+   "blind_spots": [
+    "adaptive-compensation"
+   ],
+   "status": "NOT COVERED"
+  },
+  {
+   "id": "M3.chdir",
+   "claim": "The engine's boot changes the process's working directory (a recorded host-integration hazard)",
+   "accepted": "#27: recorded, not changed",
+   "path": "public",
+   "class": "evidence-only",
+   "checks": [],
+   "sensitivity": "campaign.lua works around it; nothing asserts it",
+   "status": "EVIDENCE ONLY - not automatically checked"
+  },
+  {
+   "id": "M4.s3_detected",
+   "claim": "The accepted checks reject the S3 mutant's retained output: Lebanon's ammo-resupply expectation and both exact baselines",
+   "accepted": "#68 (docs/m4-s3-mutation.md)",
+   "path": "retained artifacts (the mutant's metrics)",
+   "class": "direct",
+   "checks": [
+    "sensitivity.s3_lebanon_expectation",
+    "sensitivity.s3_exact"
+   ],
+   "sensitivity": "rebuilding and rerunning the mutant is tools/mutation-windows.ps1, not part of the pack",
+   "status": "PASS - directly protected"
+  }
+ ],
+ "counts": {
+  "PASS - directly protected": 15,
+  "FAIL - differs from the baseline": 12,
+  "FAIL - directly protected": 2,
+  "NOT COVERED": 8,
+  "EVIDENCE ONLY - not automatically checked": 8
+ },
+ "blind_spots": [
+  {
+   "id": "georgia-resupply",
+   "what": "Georgia's expectations do not assert resupply. Without S3 all 30 still hold; only Georgia's exact baseline caught it (#68).",
+   "check": "blindspot.georgia_resupply"
+  },
+  {
+   "id": "three-hours",
+   "what": "Every run is 3 simulated hours. Behaviour that emerges later (the N3 fault at 39,327 s, a campaign's conclusion, long-run supply balance) cannot be protected; the longer runs are reported only."
+  },
+  {
+   "id": "unobservable-supply",
+   "what": "Crates, the task's record (its supplier, receiver and requested resource), request messages and group supply levels are not observable. Chains are attributed from position and supply changes; a drop-off to a group is invisible. The chain checker pairs pick-up and delivery by resource, so it cannot tell an ammo task that delivered fuel from a fuel task."
+  },
+  {
+   "id": "adaptive-compensation",
+   "what": "M3's adverse evidence shows state damage and continued operation, not a response aimed at the lost supply. No keysite-bound loss, supplier or receiver loss, or capture-driven failure has been observed."
+  },
+  {
+   "id": "index-reuse",
+   "what": "EECH reuses entity indices: same-type weapons can merge into one track (23 jumps and 12 launcher changes are lower bounds), and the metrics' launched counts undercount by the same mechanism."
+  },
+  {
+   "id": "tacview-limits",
+   "what": "Tacview attitude is written only with a position or heading change (pitch up to 5.1 degrees and roll up to 79.5 degrees stale); a keysite's coalition is fixed at declaration, and its state and supply are not in Tacview."
+  },
+  {
+   "id": "clock-projection-sampling",
+   "what": "Session time drifts -29.63 s over 3 h (about -4.6 s explained); Tacview's ReferenceTime is a fixed label; the map projection is an affine fit (1.1 km median residual, not re-verified); 1 s sampling misses shorter events and their order."
+  },
+  {
+   "id": "reported-only",
+   "what": "Some accepted behaviour rests on code review or on reported historical evidence without a retained artifact: most corrections, the longer runs, the M1 regen-disabled and lifecycle sensitivity checks, the rebuild check and the kernel's i686/Windows runs."
+  },
+  {
+   "id": "retail-data",
+   "what": "The runtime tier needs local retail data (GOG Comanche vs Hokum, Steam Apache vs Havoc map3), which is not in the repository, so the complete pack is not self-contained and is not hosted-CI evidence. The retained tier runs without it."
+  },
+  {
+   "id": "one-war",
+   "what": "One seed per scenario. An exact comparison detects any change, including a harmless one: anything that changes the random stream fights a different war (seed 2 moves 42 metrics beyond tolerance). A baseline difference alone does not say whether the change is a regression, a correction or expected variation."
+  },
+  {
+   "id": "coupled-engine",
+   "what": "The campaign and the physical world both run inside eech_dc.dll. The pack cannot attribute a change to campaign policy or to the world, and says nothing about another host's world (M5)."
+  },
+  {
+   "id": "captures",
+   "what": "No capture occurs in 3 h of Lebanon, so capture representation in Tacview and the observations is unchecked; Georgia's captures are seen only in its metrics."
+  },
+  {
+   "id": "plain-observations",
+   "what": "The pack runs the observations with observe_supply=1 only; the plain M2 settings' output is not re-run."
+  },
+  {
+   "id": "tacview-visual",
+   "what": "No recording has been visually reviewed in Tacview; the pack compares bytes and structure."
+  },
+  {
+   "id": "linux",
+   "what": "The Linux baselines are stale (before S3, N1-N3, H1, U1 and S2's removal) and not run; the repository CI is not evidence for the candidate."
+  },
+  {
+   "id": "lifecycle-unverified",
+   "what": "Frame-time poisoning, threading and reentrancy, and host callbacks are unverified or unsupported."
+  },
+  {
+   "id": "build-identity",
+   "what": "A rebuild reproduces code and data but not file hashes (timestamps, symbol table). The pack identifies a build by its file hashes, so a rebuild of the accepted source is reported as a different build."
+  }
+ ]
+}

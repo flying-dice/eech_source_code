@@ -45,6 +45,8 @@ A SUPPLY aircraft destroyed in flight, and what the campaign did next:
 [`docs/m3-supply-loss.md`](docs/m3-supply-loss.md).
 M4: the regression detects a reintroduced campaign defect (S3 removed in a test-only
 mutant): [`docs/m4-s3-mutation.md`](docs/m4-s3-mutation.md).
+M4: the accepted M1–M3 regression pack, with its coverage, provenance and blind spots:
+[`docs/m4-regression-pack.md`](docs/m4-regression-pack.md).
 
 ## The campaign kernel spike
 

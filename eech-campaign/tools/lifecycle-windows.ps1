@@ -6,18 +6,20 @@
 # that way; if it starts behaving differently, the check says so, so a fix or
 # a regression is noticed and its expectation is reviewed.
 #
-# Usage (PowerShell): tools\lifecycle-windows.ps1 -Root <prepared retail Lebanon root> [-Bin <dir>]
+# Usage (PowerShell): tools\lifecycle-windows.ps1 -Root <prepared retail Lebanon root> [-Bin <dir>] [-Out <dir>]
 #   binaries: tools/build-windows.sh [dir] (default target\windows)
 #   the root: tools/retail-cvh.sh; boots take a few seconds, no campaign is run
 param(
 	[Parameter(Mandatory = $true)] [string] $Root,
 	[string] $Bin,
+	# where each case's output goes; default target\lifecycle-windows
+	[string] $Out,
 	[int] $TimeoutSeconds = 300
 )
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $PSScriptRoot
 $bin = if ($Bin) { $Bin } else { Join-Path $here 'target\windows' }
-$out = Join-Path $here 'target\lifecycle-windows'
+$out = if ($Out) { $Out } else { Join-Path $here 'target\lifecycle-windows' }
 New-Item -ItemType Directory -Force $out | Out-Null
 $world = Join-Path $bin 'eech-world.exe'
 if (-not (Test-Path $world)) { throw "$world not found: run tools/build-windows.sh" }
