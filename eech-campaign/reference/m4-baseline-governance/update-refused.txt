@@ -1,0 +1,6 @@
+# at 61b53bde, 2026-09-27T23:14:32
+$ tools\regress-windows.ps1 -Georgia <root> -Lebanon <root> -Update
+refused: regress-windows.ps1 no longer writes baselines: propose a change record from the regression pack (tools/baseline-governance.py propose), classify it, and adopt it once fd-starscream-bot has approved it (docs/governance/REVIEW.md, "Baseline changes")
+regression/windows/*.json before: 7427660511CF60C5 FC93A1EE491BB233
+after:  7427660511CF60C5 FC93A1EE491BB233
+unchanged

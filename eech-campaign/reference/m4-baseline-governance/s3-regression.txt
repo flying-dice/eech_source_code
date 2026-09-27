@@ -1,0 +1,64 @@
+# at 61b53bde, 2026-09-27T23:14:22+01:00
+# 1. the red S3 report, proposed: every failure UNCLASSIFIED (in a scratch copy of regression/, so the committed record is untouched)
+$ python tools/baseline-governance.py --root <scratch> propose --report reference/m4-regression-pack/s3-mutant/report.json --id 2026-09-27-s3-mutant
+regression/changes/2026-09-27-s3-mutant.json: 14 deltas, all UNCLASSIFIED: classify each with its evidence
+$ python tools/baseline-governance.py --root <scratch> status --report reference/m4-regression-pack/s3-mutant/report.json
+M1.georgia.war: UNCLASSIFIED
+regress.georgia.exact: UNCLASSIFIED
+M1.lebanon.resupply: UNCLASSIFIED
+regress.lebanon.expectations.resupply: UNCLASSIFIED
+M1.lebanon.war: UNCLASSIFIED
+regress.lebanon.exact: UNCLASSIFIED
+M1.corrections.S3: UNCLASSIFIED
+M1.corrections.S2_removed: UNCLASSIFIED
+M1.corrections.S1: UNCLASSIFIED
+M1.corrections.portability: UNCLASSIFIED
+M1.corrections.load_time_data: UNCLASSIFIED
+M2.reference_reproduced: UNCLASSIFIED
+retained.recording: UNCLASSIFIED
+reference.baseline: UNCLASSIFIED
+M2.fidelity_characterised: UNCLASSIFIED
+retained.check_report: UNCLASSIFIED
+M3.resupply_reproduced: UNCLASSIFIED
+retained.chains_report: UNCLASSIFIED
+retained.observations: UNCLASSIFIED
+M3.feedback: UNCLASSIFIED
+M3.duplicate_crate: UNCLASSIFIED
+M3.supply_loss_reproduced: UNCLASSIFIED
+retained.loss_report: UNCLASSIFIED
+disposition: UNCLASSIFIED (change record regression/changes/2026-09-27-s3-mutant.json)
+
+# 2. classified with evidence (regression/changes/2026-09-27-s3-mutant.json)
+$ python tools/baseline-governance.py status --report reference/m4-regression-pack/s3-mutant/report.json
+M1.georgia.war: CLASSIFIED AS REGRESSION - REJECTED
+regress.georgia.exact: CLASSIFIED AS REGRESSION - REJECTED
+M1.lebanon.resupply: CLASSIFIED AS REGRESSION - REJECTED
+regress.lebanon.expectations.resupply: CLASSIFIED AS REGRESSION - REJECTED
+M1.lebanon.war: CLASSIFIED AS REGRESSION - REJECTED
+regress.lebanon.exact: CLASSIFIED AS REGRESSION - REJECTED
+M1.corrections.S3: CLASSIFIED AS REGRESSION - REJECTED
+M1.corrections.S2_removed: CLASSIFIED AS REGRESSION - REJECTED
+M1.corrections.S1: CLASSIFIED AS REGRESSION - REJECTED
+M1.corrections.portability: CLASSIFIED AS REGRESSION - REJECTED
+M1.corrections.load_time_data: CLASSIFIED AS REGRESSION - REJECTED
+M2.reference_reproduced: CLASSIFIED AS REGRESSION - REJECTED
+retained.recording: CLASSIFIED AS REGRESSION - REJECTED
+reference.baseline: CLASSIFIED AS REGRESSION - REJECTED
+M2.fidelity_characterised: CLASSIFIED AS REGRESSION - REJECTED
+retained.check_report: CLASSIFIED AS REGRESSION - REJECTED
+M3.resupply_reproduced: CLASSIFIED AS REGRESSION - REJECTED
+retained.chains_report: CLASSIFIED AS REGRESSION - REJECTED
+retained.observations: CLASSIFIED AS REGRESSION - REJECTED
+M3.feedback: CLASSIFIED AS REGRESSION - REJECTED
+M3.duplicate_crate: CLASSIFIED AS REGRESSION - REJECTED
+M3.supply_loss_reproduced: CLASSIFIED AS REGRESSION - REJECTED
+retained.loss_report: CLASSIFIED AS REGRESSION - REJECTED
+disposition: CLASSIFIED AS REGRESSION - REJECTED (change record regression/changes/2026-09-27-s3-mutant.json)
+
+# 3. adoption refused; the accepted baseline unchanged
+$ python tools/baseline-governance.py adopt --change 2026-09-27-s3-mutant
+refused: 2026-09-27-s3-mutant is classified as a regression, which never advances a baseline; the candidate stays failing
+exit 1
+lineages.json and regression/windows/*.json before: 9364d0f168473b2e 7427660511cf60c5 fc93a1ee491bb233 
+after:  9364d0f168473b2e 7427660511cf60c5 fc93a1ee491bb233 
+unchanged
