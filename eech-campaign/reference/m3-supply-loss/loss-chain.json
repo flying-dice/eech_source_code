@@ -1,0 +1,256 @@
+{
+ "observations": "../m3-resupply-loop/observations.jsonl.gz",
+ "loss": {
+  "t": 1584.66,
+  "aircraft": 87568,
+  "type": "Mi-17 Hip",
+  "side": "red",
+  "group": 87567,
+  "callsign": "Wolfpack",
+  "task": "TASK_SUPPLY",
+  "state": "Performing Task",
+  "task_state_since_t": 1044.79,
+  "position": [
+   30110.2,
+   61.5,
+   81769.4
+  ],
+  "at_death_sample": {
+   "group": null,
+   "task": null,
+   "state": null
+  },
+  "weapons_vanished_at_it": [
+   {
+    "weapon": 83584,
+    "type": "MIM-72G Chaparral",
+    "side": "blue",
+    "launched_t": 1576.66,
+    "launcher": {
+     "id": 82114,
+     "kind": "air_defence",
+     "type": "M48A1 Chaparral",
+     "callsign": "Banshee"
+    },
+    "last_seen_m_from_aircraft": 354
+   },
+   {
+    "weapon": 98390,
+    "type": "MIM-72G Chaparral",
+    "side": "blue",
+    "launched_t": 1577.66,
+    "launcher": {
+     "id": 84435,
+     "kind": "ground_vehicle",
+     "type": "M48A1 Chaparral",
+     "callsign": "Apollo"
+    },
+    "last_seen_m_from_aircraft": 351
+   }
+  ]
+ },
+ "group": {
+  "members_before": [
+   87568,
+   87581
+  ],
+  "members_before_snapshot_t": 1559.67,
+  "members_after": [
+   87581
+  ],
+  "members_after_snapshot_t": 1619.65,
+  "replacements_later_in_run": [],
+  "supply_period_started": 921.82
+ },
+ "cargo": {
+  "pickups_this_period": [
+   {
+    "t": 1043.79,
+    "supplier": {
+     "id": 80752,
+     "name": "Beirut International",
+     "type": "KEYSITE_AIRBASE"
+    },
+    "resource": "fuel",
+    "level": [
+     63.2,
+     53.2
+    ],
+    "aircraft_over_supplier": [
+     {
+      "aircraft": 87568,
+      "horizontal_m": 423
+     },
+     {
+      "aircraft": 87581,
+      "horizontal_m": 54
+     }
+    ]
+   },
+   {
+    "t": 1044.79,
+    "supplier": {
+     "id": 80752,
+     "name": "Beirut International",
+     "type": "KEYSITE_AIRBASE"
+    },
+    "resource": "fuel",
+    "level": [
+     53.2,
+     43.2
+    ],
+    "aircraft_over_supplier": [
+     {
+      "aircraft": 87568,
+      "horizontal_m": 363
+     },
+     {
+      "aircraft": 87581,
+      "horizontal_m": 19
+     }
+    ]
+   }
+  ],
+  "lost_aircraft_wreck_removed_t": 2187.34
+ },
+ "response": {
+  "survivors": [
+   {
+    "aircraft": 87581,
+    "states_after_loss": [
+     "Performing Task"
+    ],
+    "farthest_from_supplier": {
+     "t": 1584.66,
+     "m": 31915,
+     "seconds_after_loss": 0.0
+    },
+    "task_ended": {
+     "t": 2116.45,
+     "task": null,
+     "state": "Landing",
+     "nearest_keysite": {
+      "name": "Beirut International",
+      "type": "KEYSITE_AIRBASE",
+      "m": 455
+     }
+    }
+   }
+  ],
+  "deliveries_by_group_before_task_end": []
+ },
+ "receiver": {
+  "resource": "fuel",
+  "keysites_requesting_at_assignment": [],
+  "snapshot_t": 899.83,
+  "status": "inferred: a group",
+  "why": "no red keysite other than the supplier had fuel at or below 75 when the task was assigned (keysites request only then, keysite.c); the other requesters are groups (group.c assess_group_supplies), whose supply levels are not reported"
+ },
+ "subsequent": {
+  "group_next_supply_assignment": {
+   "t": 3619.24,
+   "aircraft": 87581,
+   "state": "Repairing"
+  },
+  "its_first_delivery": {
+   "delivery_t": 4013.67,
+   "receiver": "Power Station 3",
+   "receiver_type": "KEYSITE_POWER_STATION",
+   "resource": "fuel",
+   "level": [
+    66.5,
+    100.0
+   ]
+  },
+  "other_supply_groups_within_5km_in_next_30min": [
+   {
+    "group": 87621,
+    "closest_m": 3004,
+    "t": 1585.66
+   },
+   {
+    "group": 87686,
+    "closest_m": 2042,
+    "t": 1630.65
+   },
+   {
+    "group": 87714,
+    "closest_m": 4108,
+    "t": 1749.62
+   },
+   {
+    "group": 87742,
+    "closest_m": 1355,
+    "t": 1799.61
+   }
+  ]
+ },
+ "other_supply_losses_in_run": [
+  {
+   "t": 1584.66,
+   "aircraft": 87568,
+   "type": "Mi-17 Hip",
+   "side": "red",
+   "group": 87567,
+   "state": "Performing Task"
+  },
+  {
+   "t": 1790.61,
+   "aircraft": 87622,
+   "type": "Mi-6 Hook",
+   "side": "red",
+   "group": 87621,
+   "state": "En route"
+  },
+  {
+   "t": 10011.35,
+   "aircraft": 84284,
+   "type": "C-130J Hercules II",
+   "side": "blue",
+   "group": 84283,
+   "state": "Waiting"
+  },
+  {
+   "t": 10198.61,
+   "aircraft": 84312,
+   "type": "C-17 Globemaster III",
+   "side": "blue",
+   "group": 84311,
+   "state": "Waiting"
+  },
+  {
+   "t": 10234.47,
+   "aircraft": 84316,
+   "type": "C-130J Hercules II",
+   "side": "blue",
+   "group": 84315,
+   "state": "Waiting"
+  }
+ ],
+ "classification": {
+  "observed": [
+   "the aircraft, its group, TASK_SUPPLY and its state, its position and death, and the sample of its death",
+   "the weapons that vanished at that sample within 1 km of it, their types, launch times and launchers",
+   "the one-crate drops at the supplier with the group over it, and the distance of each aircraft",
+   "the group's membership before and after, and the absence of replacements",
+   "the survivors' task and state, their farthest point from the supplier, the end of their task and any delivery",
+   "the keysite levels of the resource at the snapshot before the assignment",
+   "the group's next SUPPLY assignment and its first delivery"
+  ],
+  "inferred": [
+   "that the weapons hit the aircraft (they vanished at it in the sample it died)",
+   "the receiver, from the keysite levels and the code (see receiver.why)"
+  ],
+  "not_observable": [
+   "crates, and so whether the lost aircraft carried one (crates are not reported)",
+   "the task's own supplier and receiver",
+   "a group requester's identity and supply level, and whether a crate reached it (a drop-off to a group changes nothing reported)",
+   "the request message itself, and why the survivors turned back"
+  ],
+  "code": [
+   "a crate goes aboard the aircraft that reaches the pick-up (mb_msgs.c response_to_waypoint_pick_up_reached)",
+   "a crate aboard a destroyed helicopter is destroyed with its wreck (hc_dstry.c destroy_local_family)"
+  ]
+ },
+ "pass": true
+}

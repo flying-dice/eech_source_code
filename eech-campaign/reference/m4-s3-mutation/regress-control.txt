@@ -1,0 +1,44 @@
+running georgia_retail and lebanon_retail for 3 simulated hours each ...
+runs took 1,280 s
+
+georgia_retail: 30 of 30 campaign expectations hold
+georgia_retail: 3.0 h, conclusion: none
+  blue sorties 120: TROOP_MOVEMENT_PATROL 27, ADVANCE 22, TRANSFER_HELICOPTER 14, RECON 13, GROUND_STRIKE 12, ESCORT 7, COMBAT_AIR_PATROL 6, CLOSE_AIR_SUPPORT 4, TROOP_INSERTION 4, BAI 3, TROOP_MOVEMENT_INSERT_CAPTURE 3, BDA 2, RETREAT 1, REPAIR 1, SEAD 1
+  blue aircraft sorties 147, weapons launched 1179
+  blue lost: air_defence 13, ground_vehicle 102, helicopter 41, infantry 40
+  blue spawned: infantry 46
+  blue captured: {'KEYSITE_FARP': 1}
+  blue airbase      held 1 -> 1, ammo 100 -> 64, fuel 100 -> 28
+  blue farp         held 15 -> 15, ammo 100 -> 89.7, fuel 100 -> 92.3
+  red sorties 227: TROOP_MOVEMENT_PATROL 70, ADVANCE 21, SUPPLY 19, TRANSFER_HELICOPTER 18, TRANSFER_FIXED_WING 15, RECON 13, COMBAT_AIR_PATROL 11, BAI 10, TROOP_MOVEMENT_INSERT_CAPTURE 10, ESCORT 8, GROUND_STRIKE 7, REPAIR 7, TROOP_INSERTION 5, RETREAT 4, CLOSE_AIR_SUPPORT 3, SEAD 3, OCA_SWEEP 2, BDA 1
+  red aircraft sorties 271, weapons launched 526
+  red lost: air_defence 14, fixed_wing 6, ground_vehicle 64, helicopter 49, infantry 65
+  red spawned: infantry 96
+  red captured: {'KEYSITE_FARP': 1}
+  red airbase      held 11 -> 11, ammo 100 -> 55.3, fuel 100 -> 28.2
+  red farp         held 41 -> 41, ammo 100 -> 91.2, fuel 100 -> 92.6
+IDENTICAL to the baseline
+georgia_retail: PASS
+
+lebanon_retail: 39 of 39 campaign expectations hold
+lebanon_retail: 3.0 h, conclusion: none
+  blue sorties 150: ADVANCE 34, TRANSFER_HELICOPTER 21, TROOP_MOVEMENT_PATROL 17, RECON 12, SUPPLY 10, COMBAT_AIR_PATROL 8, REPAIR 8, ESCORT 6, GROUND_STRIKE 6, OCA_SWEEP 6, SEAD 6, BAI 4, CLOSE_AIR_SUPPORT 4, OCA_STRIKE 4, TRANSFER_FIXED_WING 3, TROOP_INSERTION 1
+  blue aircraft sorties 225, weapons launched 3837
+  blue lost: air_defence 64, fixed_wing 25, ground_vehicle 105, helicopter 65, infantry 14, ship 12
+  blue spawned: fixed_wing 11, ground_vehicle 20, helicopter 26, infantry 8
+  blue captured: nothing
+  blue airbase      held 4 -> 4, ammo 100 -> 54, fuel 100 -> 21
+  blue farp         held 5 -> 5, ammo 100 -> 71, fuel 100 -> 73.7
+  blue factory      held 3 -> 3, ammo 100 -> 100, fuel 100 -> 100
+  blue oil_refinery held 3 -> 3, ammo 100 -> 100, fuel 100 -> 100
+  red sorties 223: SUPPLY 49, TROOP_MOVEMENT_PATROL 25, RECON 23, TRANSFER_HELICOPTER 23, ADVANCE 18, TRANSFER_FIXED_WING 17, BAI 14, RETREAT 10, GROUND_STRIKE 9, OCA_SWEEP 9, REPAIR 7, CLOSE_AIR_SUPPORT 5, OCA_STRIKE 4, COMBAT_AIR_PATROL 3, ESCORT 2, BDA 2, SEAD 2, TROOP_INSERTION 1
+  red aircraft sorties 297, weapons launched 1659
+  red lost: air_defence 51, fixed_wing 27, ground_vehicle 88, helicopter 73, infantry 6
+  red spawned: fixed_wing 25, ground_vehicle 50, helicopter 53, infantry 4
+  red captured: nothing
+  red airbase      held 8 -> 8, ammo 100 -> 43.3, fuel 100 -> 32.3
+  red farp         held 6 -> 6, ammo 100 -> 87.7, fuel 100 -> 95.5
+  red factory      held 22 -> 22, ammo 100 -> 99.7, fuel 100 -> 100
+  red oil_refinery held 8 -> 8, ammo 100 -> 100, fuel 100 -> 100
+IDENTICAL to the baseline
+lebanon_retail: PASS

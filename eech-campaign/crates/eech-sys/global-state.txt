@@ -1,0 +1,224 @@
+# Every writable global of the native kernel (data and bss symbols of the
+# compiled objects, function-local statics included), with its class.
+# tests/global_state.rs compares this list with `nm` on the built kernel: a
+# symbol that appears or disappears fails the test until it is classified.
+# See docs/global-state.md for the classes and the evidence.
+#
+# symbol                                   class        where / how it is handled
+#
+# ---- original campaign state (reset on every open) -------------------------
+entities                                   campaign     en_heap.c; reset_all ()
+first_free_entity                          campaign     en_heap.c; reset_all ()
+first_used_entity                          campaign     en_heap.c; reset_all ()
+first_free_local_entity                    campaign     en_heap.c (downwash heap, unused); reset_all ()
+first_used_local_entity                    campaign     en_heap.c (downwash heap, unused); reset_all ()
+number_of_entities                         campaign     en_heap.c; reset_all ()
+start_of_local_entity_heap                 campaign     en_heap.c (downwash heap, unused); reset_all ()
+entity_sector_map                          campaign     sector.c; eech_reset_environment ()
+world_map                                  campaign     en_world.c; eech_reset_environment ()
+update_entity                              campaign     up_update.c; eech_reset_environment ()
+update_succ                                campaign     up_update.c (the update walk's cursor); eech_reset_environment ()
+session_entity                             campaign     session.c; eech_reset_environment ()
+eech_ks_updt_task_timer                    campaign     ks_updt.c function-local static, patch P2; eech_reset_environment ()
+group_task_array                           campaign     suitable.c (static): built by initialise_group_task_array, freed by EECH's deinitialise_group_task_array on reset
+keysite_icon_timer_flag                    campaign     ks_int.c; restored to its load-time value on reset
+completed_task_expire_time                 campaign     task.c (static); restored to its load-time value with EECH's setter on reset
+system_delta_time                          campaign     time.c (frame clock); eech_reset_environment ()
+system_delta_time_average                  campaign     time.c; never read by the kernel; initial value kept (not written)
+system_one_over_delta_time                 campaign     time.c; eech_reset_environment ()
+system_delta_time_history                  campaign     time.c (static); eech_reset_extracted_statics ()
+system_delta_time_history_position         campaign     time.c (static); eech_reset_extracted_statics ()
+locked_frame_rate                          campaign     time.c; eech_reset_environment ()
+entity_count                               campaign     en_stats.c (static); eech_reset_extracted_statics ()
+entity_peak_count                          campaign     en_stats.c (static); eech_reset_extracted_statics ()
+entity_type_stats                          campaign     en_stats.c (static); eech_reset_extracted_statics ()
+moved_entities                             campaign     up_update.c tacview bitset; tacview never logs (never written)
+rotated_entities                           campaign     up_update.c tacview bitset; tacview never logs (never written)
+updated_entities                           campaign     up_update.c; cleared (a quarter of it, finding H3) at every update pass before use
+force_local_entity_create_stack_attributes campaign     en_creat.c; reset to FALSE by initialise_entity_create_default_functions on every open
+#
+# ---- host configuration of the session (reset on every open) ---------------
+system_comms_model                         host-config  comms.c; eech_reset_environment (), then configure
+system_comms_data_flow                     host-config  comms.c; eech_reset_environment ()
+command_line_entity_update_frame_rate      host-config  cmndline.c; eech_reset_environment (), then open
+command_line_downwash                      host-config  cmndline.c; eech_reset_environment ()
+command_line_capture_aircraft              host-config  cmndline.c; read only by keysite.c code the kernel never runs
+game_status                                host-config  global.c; eech_reset_environment (), then configure
+game_type                                  host-config  gametype.c; eech_reset_environment (), then configure
+gunship_entity                             host-config  helicop.c (the player's gunship: none); eech_reset_environment ()
+random_number_seed                         host-config  random.c; read only by keysite.c code the kernel never runs; reset
+speech_sector_coordinates                  host-config  speech; read only by code the kernel never runs; reset
+tacview_log_file                           host-config  tacview (excluded: never logging); reset
+entity_side_names                          host-config  side name table, read only by code the kernel never runs (NULL)
+entity_side_short_names                    host-config  side name table, read only by code the kernel never runs (NULL)
+object_3d_information_database             host-config  3D object information: NULL, read by nothing the kernel runs
+#
+# ---- dispatch tables (rebuilt on every open by eech_initialise_tables) -----
+campaign_screen_message_responses          tables       ca_msgs.c response table (the UI)
+fn_create_client_server_entity             tables       en_creat.c
+fn_create_local_entity                     tables       en_creat.c
+fn_destroy_client_server_entity            tables       en_dstry.c
+fn_destroy_client_server_entity_family     tables       en_dstry.c
+fn_destroy_local_entity                    tables       en_dstry.c
+fn_destroy_local_entity_family             tables       en_dstry.c
+fn_kill_client_server_entity               tables       en_dstry.c
+fn_kill_local_entity                       tables       en_dstry.c
+fn_get_local_entity_child_pred             tables       en_list.c
+fn_get_local_entity_child_succ             tables       en_list.c
+fn_get_local_entity_first_child            tables       en_list.c
+fn_get_local_entity_float_value            tables       en_float.c
+fn_get_local_entity_int_value              tables       en_int.c
+fn_get_local_entity_parent                 tables       en_list.c
+fn_get_local_entity_ptr_value              tables       en_ptr.c
+fn_get_local_entity_string                 tables       en_str.c
+fn_get_local_entity_vec3d                  tables       en_vec3d.c
+fn_get_local_entity_vec3d_ptr              tables       en_vec3d.c
+fn_set_client_server_entity_float_value    tables       en_float.c
+fn_set_client_server_entity_int_value      tables       en_int.c
+fn_set_client_server_entity_vec3d          tables       en_vec3d.c
+fn_set_local_entity_child_pred             tables       en_list.c
+fn_set_local_entity_child_succ             tables       en_list.c
+fn_set_local_entity_first_child            tables       en_list.c
+fn_set_local_entity_float_value            tables       en_float.c
+fn_set_local_entity_int_value              tables       en_int.c
+fn_set_local_entity_parent                 tables       en_list.c
+fn_set_local_entity_ptr_value              tables       en_ptr.c
+fn_set_local_entity_raw_attitude_angles    tables       en_attitd.c
+fn_set_local_entity_raw_char_value         tables       en_char.c
+fn_set_local_entity_raw_float_value        tables       en_float.c
+fn_set_local_entity_raw_int_value          tables       en_int.c
+fn_set_local_entity_raw_string             tables       en_str.c
+fn_set_local_entity_raw_vec3d              tables       en_vec3d.c
+fn_set_local_entity_vec3d                  tables       en_vec3d.c
+fn_update_client_server_entity             tables       en_updt.c
+message_responses                          tables       en_msgs.c
+original_force_low_on_supplies             tables       the saved fc_msgs.c row the trace wraps
+harness_default_get_entity_float_value     constant     pointer to en_float.c's default (initialised, never written)
+harness_default_get_entity_int_value       constant     pointer to en_int.c's default
+harness_default_set_entity_float_value     constant     pointer to en_float.c's default
+harness_default_set_entity_int_value       constant     pointer to en_int.c's default
+#
+# ---- original databases: initialised data, never written (digest test) ----
+aircraft_database                          constant     ac_dbase.c
+group_database                             constant     gp_dbase.c
+keysite_database                           constant     ks_dbase.c
+task_database                              constant     ts_dbase.c
+waypoint_database                          constant     wp_dbase.c
+vec3d_type_database                        constant     en_vec3d.c
+entity_attribute_database                  constant     en_attrs.c
+terminator_point                           constant     taskgen.c route terminator {-1, -1, -1}
+#
+# ---- name tables: never read by the kernel (debug_fatal names only) --------
+entity_type_database                       constant     zero, never written
+list_type_database                         constant     zero, never written
+int_type_database                          constant     zero, never written
+float_type_database                        constant     zero, never written
+ptr_type_database                          constant     zero, never written
+entity_type_names                          constant     pointer to an empty table
+native_entity_type_names                   constant     the empty table
+overload_invalid_int_type_message          constant     message text
+debug_fatal_invalid_int_type_message       constant     message text
+overload_invalid_float_type_message        constant     message text
+debug_fatal_invalid_float_type_message     constant     message text
+overload_invalid_list_type_message         constant     message text
+debug_fatal_invalid_list_type_message      constant     message text
+overload_invalid_vec3d_type_message        constant     message text
+debug_fatal_invalid_vec3d_type_message     constant     message text
+overload_invalid_ptr_type_message          constant     message text
+debug_fatal_invalid_ptr_type_message       constant     message text
+eech_name_tables                           constant     generated name tables
+names_aircraft                             constant     generated
+names_cargo                                constant     generated
+names_char_type                            constant     generated
+names_comms_message                        constant     generated
+names_entity_type                          constant     generated
+names_float_type                           constant     generated
+names_game_status                          constant     generated
+names_game_type                            constant     generated
+names_group                                constant     generated
+names_int_type                             constant     generated
+names_keysite                              constant     generated
+names_keysite_state                        constant     generated
+names_landing                              constant     generated
+names_list_type                            constant     generated
+names_message                              constant     generated
+names_ptr_type                             constant     generated
+names_side                                 constant     generated
+names_string_type                          constant     generated
+names_task                                 constant     generated
+names_task_category                        constant     generated
+names_task_state                           constant     generated
+names_vec3d_type                           constant     generated
+#
+# ---- scratch: written before every read, within one call --------------------
+idle_group_count                           scratch      assign.c function-local static array, cleared on every call of assign_keysite_tasks
+string_buffer                              scratch      en_attrs.c string unpacking buffer (unpack path, never run)
+old_min_map_x_sector                       stale-unread sc_seccreat.c function-local static: read only while entity_sector_map is set, which a new campaign clears
+old_max_map_x_sector                       stale-unread sc_seccreat.c (as above)
+old_num_map_x_sectors                      stale-unread sc_seccreat.c (as above)
+old_min_map_z_sector                       stale-unread sc_seccreat.c (as above)
+old_max_map_z_sector                       stale-unread sc_seccreat.c (as above)
+old_num_map_z_sectors                      stale-unread sc_seccreat.c (as above)
+#
+# ---- the native host layer (ours) --------------------------------------------
+arena_first                                host-layer   the kernel arena (freed on reset)
+boundary_message                           host-layer   message of the last boundary
+callback_event                             host-layer   callback argument, per call
+callback_object                            host-layer   callback argument, per call
+callback_ref                               host-layer   callback argument, per call
+callback_values                            host-layer   callback argument, per call
+callback_what                              host-layer   callback argument, per call
+eech_abort_point                           host-layer   entry abort point
+eech_abort_status                          host-layer   entry status
+eech_current_host                          host-layer   the entry's host (NULL outside entries)
+eech_kernel_open                           host-layer   lifecycle
+eech_last_ref_count                        host-layer   diagnostics of the last status
+eech_last_refs                             host-layer   diagnostics of the last status
+eech_session                               host-layer   the session entity (reset)
+eech_shim_list_entities                    host-layer   hand-written list rows' storage (reset)
+eech_shim_lists                            host-layer   hand-written list rows' storage (reset)
+eech_single_player                         host-layer   session configuration (reset)
+eech_update_root                           host-layer   the update entity (reset)
+entry_depth                                host-layer   reentrancy guard
+generations                                host-layer   entity identity (reset)
+host_fenv                                  host-layer   the caller's floating-point environment during an entry
+last_detail                                host-layer   diagnostics of the last status
+last_message                               host-layer   diagnostics of the last status
+load_time_captured                         host-layer   load-time values of restored originals
+load_time_completed_task_expire_time       host-layer   load-time values of restored originals
+load_time_keysite_icon_timer_flag          host-layer   load-time values of restored originals
+object_bounds_cache                        host-layer   World::object_bounds answers (per lookup)
+object_bounds_next                         host-layer   World::object_bounds answers (per lookup)
+packing_task_pointers                      host-layer   transport state within one message
+tables_initialised                         host-layer   lifecycle
+update_data                                host-layer   the update entity's data (reset)
+#
+# ---- the legacy replay (reset by eech_legacy_reset on every open) ----------
+attributes                                 replay       create line attributes
+created                                    replay       labels of created entities
+eech_legacy_active                         replay       replay mode
+eech_legacy_observe_supply_tasks           replay       replay switch
+f32_lines                                  replay
+final_group_raw                            replay
+final_keysite_count                        replay
+final_keysites                             replay
+finished                                   replay
+forces                                     replay
+group_en                                   replay
+group_raws                                 replay
+groups                                     replay
+heap_ready                                 replay
+heap_size                                  replay
+keysite_tail                               replay
+keysites                                   replay
+labels                                     replay
+lifecycle                                  replay
+map_complete                               replay
+num_attributes                             replay
+num_created                                replay
+num_forces                                 replay
+num_groups                                 replay
+num_keysites                               replay
+observe_tasks                              replay
+step                                       replay
+timeline                                   replay

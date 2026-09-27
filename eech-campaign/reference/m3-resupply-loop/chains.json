@@ -1,0 +1,5660 @@
+{
+ "observations": "observations.jsonl.gz",
+ "metrics": "../lebanon-3h/metrics.json",
+ "radius_m": 500.0,
+ "deliveries": 32,
+ "attributed": 32,
+ "complete_chains": 31,
+ "unattributed_deliveries": [],
+ "deliveries_by_keysite_type": {
+  "blue KEYSITE_MILITARY_BASE ammo": 1,
+  "red KEYSITE_AIRBASE ammo": 3,
+  "red KEYSITE_AIRBASE fuel": 8,
+  "red KEYSITE_FARP fuel": 1,
+  "red KEYSITE_MILITARY_BASE ammo": 6,
+  "red KEYSITE_MILITARY_BASE fuel": 1,
+  "red KEYSITE_POWER_STATION fuel": 12
+ },
+ "deliveries_of_20_or_more": {
+  "blue KEYSITE_MILITARY_BASE ammo": 1,
+  "red KEYSITE_AIRBASE ammo": 3,
+  "red KEYSITE_AIRBASE fuel": 8,
+  "red KEYSITE_FARP fuel": 1,
+  "red KEYSITE_MILITARY_BASE ammo": 6,
+  "red KEYSITE_MILITARY_BASE fuel": 1,
+  "red KEYSITE_POWER_STATION fuel": 12
+ },
+ "metrics_resupplied": {
+  "blue KEYSITE_MILITARY_BASE ammo": 1,
+  "red KEYSITE_AIRBASE ammo": 3,
+  "red KEYSITE_AIRBASE fuel": 8,
+  "red KEYSITE_FARP fuel": 1,
+  "red KEYSITE_MILITARY_BASE ammo": 6,
+  "red KEYSITE_MILITARY_BASE fuel": 1,
+  "red KEYSITE_POWER_STATION fuel": 12
+ },
+ "metrics_agree": true,
+ "featured_chain": {
+  "group": 88235,
+  "callsign": "Jester",
+  "side": "red",
+  "aircraft_type": "Il-76MD Candid-B",
+  "resource": "fuel",
+  "assigned": {
+   "t": 1160.77,
+   "state": "Taxiing"
+  },
+  "previous_delivery_by_group": null,
+  "pickup": {
+   "t": 1555.67,
+   "supplier": {
+    "id": 81129,
+    "name": "Halat",
+    "type": "KEYSITE_AIRBASE",
+    "side": "red"
+   },
+   "level": [
+    89.6,
+    79.6
+   ],
+   "aircraft": 88236,
+   "horizontal_m": 85,
+   "altitude_m": 1487
+  },
+  "delivery": {
+   "t": 1904.58,
+   "receiver": {
+    "id": 80752,
+    "name": "Beirut International",
+    "type": "KEYSITE_AIRBASE",
+    "side": "red"
+   },
+   "level": [
+    10.0,
+    100.0
+   ],
+   "aircraft": 88236,
+   "horizontal_m": 43,
+   "altitude_m": 1507
+  },
+  "flight": {
+   "aircraft": 88236,
+   "kind": "fixed_wing",
+   "samples": 350,
+   "largest_gap_s": 1.0,
+   "flown_m": 30228,
+   "direct_m": 29476,
+   "max_speed_m_s": 87.5,
+   "altitude_m": [
+    1478,
+    1508
+   ],
+   "continuous": true
+  },
+  "task_ended": {
+   "t": 2323.15,
+   "task": null,
+   "state": "Landing"
+  },
+  "afterwards": {
+   "other_decreases": [
+    {
+     "t": 2356.1,
+     "drawn": 41.4
+    },
+    {
+     "t": 2570.78,
+     "drawn": 10.0
+    },
+    {
+     "t": 2629.7,
+     "drawn": 10.8
+    },
+    {
+     "t": 3143.94,
+     "drawn": 10.0
+    }
+   ],
+   "pickups_by_other_supply_tasks": [
+    {
+     "t": 2455.95,
+     "drawn": 10.0,
+     "groups": [
+      87746
+     ]
+    }
+   ],
+   "at_or_below_request_threshold_s": 2356.1,
+   "next_delivery_s": 3324.68
+  },
+  "complete": true
+ },
+ "chains": [
+  {
+   "group": 88235,
+   "callsign": "Jester",
+   "side": "red",
+   "aircraft_type": "Il-76MD Candid-B",
+   "resource": "fuel",
+   "assigned": {
+    "t": 1160.77,
+    "state": "Taxiing"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 1555.67,
+    "supplier": {
+     "id": 81129,
+     "name": "Halat",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     89.6,
+     79.6
+    ],
+    "aircraft": 88236,
+    "horizontal_m": 85,
+    "altitude_m": 1487
+   },
+   "delivery": {
+    "t": 1904.58,
+    "receiver": {
+     "id": 80752,
+     "name": "Beirut International",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     10.0,
+     100.0
+    ],
+    "aircraft": 88236,
+    "horizontal_m": 43,
+    "altitude_m": 1507
+   },
+   "flight": {
+    "aircraft": 88236,
+    "kind": "fixed_wing",
+    "samples": 350,
+    "largest_gap_s": 1.0,
+    "flown_m": 30228,
+    "direct_m": 29476,
+    "max_speed_m_s": 87.5,
+    "altitude_m": [
+     1478,
+     1508
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 2323.15,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [
+     {
+      "t": 2356.1,
+      "drawn": 41.4
+     },
+     {
+      "t": 2570.78,
+      "drawn": 10.0
+     },
+     {
+      "t": 2629.7,
+      "drawn": 10.8
+     },
+     {
+      "t": 3143.94,
+      "drawn": 10.0
+     }
+    ],
+    "pickups_by_other_supply_tasks": [
+     {
+      "t": 2455.95,
+      "drawn": 10.0,
+      "groups": [
+       87746
+      ]
+     }
+    ],
+    "at_or_below_request_threshold_s": 2356.1,
+    "next_delivery_s": 3324.68
+   },
+   "complete": true
+  },
+  {
+   "group": 88231,
+   "callsign": "Hellcat",
+   "side": "red",
+   "aircraft_type": "Il-76MD Candid-B",
+   "resource": "fuel",
+   "assigned": {
+    "t": 2420.0,
+    "state": "Taxiing"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 2677.63,
+    "supplier": {
+     "id": 81297,
+     "name": "Wujah Al Hajar",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     40.6,
+     30.6
+    ],
+    "aircraft": 88232,
+    "horizontal_m": 79,
+    "altitude_m": 1496
+   },
+   "delivery": {
+    "t": 2854.37,
+    "receiver": {
+     "id": 81129,
+     "name": "Halat",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     71.2,
+     100.0
+    ],
+    "aircraft": 88232,
+    "horizontal_m": 14,
+    "altitude_m": 1506
+   },
+   "flight": {
+    "aircraft": 88232,
+    "kind": "fixed_wing",
+    "samples": 178,
+    "largest_gap_s": 1.0,
+    "flown_m": 16852,
+    "direct_m": 13833,
+    "max_speed_m_s": 122.6,
+    "altitude_m": [
+     1457,
+     1778
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 3040.09,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [],
+    "pickups_by_other_supply_tasks": [
+     {
+      "t": 2970.2,
+      "drawn": 10.0,
+      "groups": [
+       88227
+      ]
+     },
+     {
+      "t": 6302.89,
+      "drawn": 10.0,
+      "groups": [
+       87742
+      ]
+     },
+     {
+      "t": 7827.91,
+      "drawn": 10.0,
+      "groups": [
+       88231
+      ]
+     }
+    ],
+    "at_or_below_request_threshold_s": 6302.89,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 88227,
+   "callsign": "Hawkeye",
+   "side": "red",
+   "aircraft_type": "Il-76MD Candid-B",
+   "resource": "fuel",
+   "assigned": {
+    "t": 2420.0,
+    "state": "Waiting"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 2970.2,
+    "supplier": {
+     "id": 81129,
+     "name": "Halat",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     99.2,
+     89.2
+    ],
+    "aircraft": 88228,
+    "horizontal_m": 85,
+    "altitude_m": 1511
+   },
+   "delivery": {
+    "t": 3324.68,
+    "receiver": {
+     "id": 80752,
+     "name": "Beirut International",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     10.0,
+     100.0
+    ],
+    "aircraft": 88228,
+    "horizontal_m": 7,
+    "altitude_m": 1507
+   },
+   "flight": {
+    "aircraft": 88228,
+    "kind": "fixed_wing",
+    "samples": 356,
+    "largest_gap_s": 1.0,
+    "flown_m": 30749,
+    "direct_m": 29476,
+    "max_speed_m_s": 87.5,
+    "altitude_m": [
+     994,
+     1551
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 3743.06,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [
+     {
+      "t": 3325.67,
+      "drawn": 41.4
+     },
+     {
+      "t": 3925.79,
+      "drawn": 34.6
+     },
+     {
+      "t": 4108.5,
+      "drawn": 10.0
+     },
+     {
+      "t": 4603.55,
+      "drawn": 10.0
+     },
+     {
+      "t": 4658.34,
+      "drawn": 10.0
+     },
+     {
+      "t": 5120.53,
+      "drawn": 10.0
+     },
+     {
+      "t": 6580.8,
+      "drawn": 10.0
+     },
+     {
+      "t": 7330.86,
+      "drawn": 10.0
+     },
+     {
+      "t": 7848.83,
+      "drawn": 10.0
+     },
+     {
+      "t": 8146.66,
+      "drawn": 10.0
+     }
+    ],
+    "pickups_by_other_supply_tasks": [
+     {
+      "t": 3367.61,
+      "drawn": 10.0,
+      "groups": [
+       87621
+      ]
+     },
+     {
+      "t": 3739.07,
+      "drawn": 10.0,
+      "groups": [
+       87567
+      ]
+     },
+     {
+      "t": 7574.9,
+      "drawn": 10.0,
+      "groups": [
+       87686
+      ]
+     }
+    ],
+    "at_or_below_request_threshold_s": 3325.67,
+    "next_delivery_s": 8171.56
+   },
+   "complete": true
+  },
+  {
+   "group": 87621,
+   "callsign": "Phantom",
+   "side": "red",
+   "aircraft_type": "Mi-6 Hook",
+   "resource": "fuel",
+   "assigned": {
+    "t": 3259.77,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 3367.61,
+    "supplier": {
+     "id": 80752,
+     "name": "Beirut International",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     58.2,
+     48.2
+    ],
+    "aircraft": 87635,
+    "horizontal_m": 16,
+    "altitude_m": 43
+   },
+   "delivery": {
+    "t": 3892.84,
+    "receiver": {
+     "id": 40996,
+     "name": "Power Station 2",
+     "type": "KEYSITE_POWER_STATION",
+     "side": "red"
+    },
+    "level": [
+     67.5,
+     100.0
+    ],
+    "aircraft": 87635,
+    "horizontal_m": 37,
+    "altitude_m": 670
+   },
+   "flight": {
+    "aircraft": 87635,
+    "kind": "helicopter",
+    "samples": 527,
+    "largest_gap_s": 1.0,
+    "flown_m": 23532,
+    "direct_m": 22615,
+    "max_speed_m_s": 70.5,
+    "altitude_m": [
+     41,
+     761
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 4365.49,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [
+     {
+      "t": 3932.78,
+      "drawn": 0.5
+     },
+     {
+      "t": 3992.7,
+      "drawn": 0.5
+     },
+     {
+      "t": 4052.61,
+      "drawn": 0.5
+     },
+     {
+      "t": 4112.48,
+      "drawn": 0.5
+     },
+     {
+      "t": 4172.25,
+      "drawn": 0.5
+     },
+     {
+      "t": 4232.01,
+      "drawn": 0.5
+     },
+     {
+      "t": 4291.78,
+      "drawn": 0.5
+     },
+     {
+      "t": 4351.54,
+      "drawn": 0.5
+     },
+     {
+      "t": 4411.31,
+      "drawn": 0.5
+     },
+     {
+      "t": 4471.07,
+      "drawn": 0.5
+     },
+     {
+      "t": 4530.84,
+      "drawn": 0.5
+     },
+     {
+      "t": 4590.6,
+      "drawn": 0.5
+     },
+     {
+      "t": 4650.37,
+      "drawn": 0.5
+     },
+     {
+      "t": 4710.14,
+      "drawn": 0.5
+     },
+     {
+      "t": 4769.9,
+      "drawn": 0.5
+     },
+     {
+      "t": 4829.67,
+      "drawn": 0.5
+     },
+     {
+      "t": 4889.43,
+      "drawn": 0.5
+     },
+     {
+      "t": 4949.2,
+      "drawn": 0.5
+     },
+     {
+      "t": 5008.96,
+      "drawn": 0.5
+     },
+     {
+      "t": 5068.73,
+      "drawn": 0.5
+     },
+     {
+      "t": 5128.5,
+      "drawn": 0.5
+     },
+     {
+      "t": 5188.26,
+      "drawn": 0.5
+     },
+     {
+      "t": 5248.03,
+      "drawn": 0.5
+     },
+     {
+      "t": 5307.79,
+      "drawn": 0.5
+     },
+     {
+      "t": 5367.56,
+      "drawn": 0.5
+     },
+     {
+      "t": 5427.32,
+      "drawn": 0.5
+     },
+     {
+      "t": 5487.09,
+      "drawn": 0.5
+     },
+     {
+      "t": 5546.85,
+      "drawn": 0.5
+     },
+     {
+      "t": 5606.62,
+      "drawn": 0.5
+     },
+     {
+      "t": 5666.39,
+      "drawn": 0.5
+     },
+     {
+      "t": 5726.15,
+      "drawn": 0.5
+     },
+     {
+      "t": 5785.92,
+      "drawn": 0.5
+     },
+     {
+      "t": 5845.68,
+      "drawn": 0.5
+     },
+     {
+      "t": 5905.45,
+      "drawn": 0.5
+     },
+     {
+      "t": 5965.21,
+      "drawn": 0.5
+     },
+     {
+      "t": 6024.98,
+      "drawn": 0.5
+     },
+     {
+      "t": 6084.75,
+      "drawn": 0.5
+     },
+     {
+      "t": 6144.51,
+      "drawn": 0.5
+     },
+     {
+      "t": 6204.28,
+      "drawn": 0.5
+     },
+     {
+      "t": 6264.04,
+      "drawn": 0.5
+     },
+     {
+      "t": 6323.81,
+      "drawn": 0.5
+     },
+     {
+      "t": 6383.57,
+      "drawn": 0.5
+     },
+     {
+      "t": 6443.34,
+      "drawn": 0.5
+     },
+     {
+      "t": 6503.1,
+      "drawn": 0.5
+     },
+     {
+      "t": 6562.87,
+      "drawn": 0.5
+     },
+     {
+      "t": 6622.64,
+      "drawn": 0.5
+     },
+     {
+      "t": 6682.4,
+      "drawn": 0.5
+     },
+     {
+      "t": 6742.17,
+      "drawn": 0.5
+     },
+     {
+      "t": 6801.93,
+      "drawn": 0.5
+     },
+     {
+      "t": 6861.7,
+      "drawn": 0.5
+     },
+     {
+      "t": 6921.46,
+      "drawn": 0.5
+     },
+     {
+      "t": 6981.23,
+      "drawn": 0.5
+     },
+     {
+      "t": 7041.0,
+      "drawn": 0.5
+     },
+     {
+      "t": 7100.76,
+      "drawn": 0.5
+     },
+     {
+      "t": 7160.53,
+      "drawn": 0.5
+     },
+     {
+      "t": 7220.29,
+      "drawn": 0.5
+     },
+     {
+      "t": 7280.06,
+      "drawn": 0.5
+     },
+     {
+      "t": 7339.82,
+      "drawn": 0.5
+     },
+     {
+      "t": 7399.59,
+      "drawn": 0.5
+     },
+     {
+      "t": 7459.35,
+      "drawn": 0.5
+     },
+     {
+      "t": 7519.12,
+      "drawn": 0.5
+     },
+     {
+      "t": 7578.89,
+      "drawn": 0.5
+     },
+     {
+      "t": 7638.65,
+      "drawn": 0.5
+     },
+     {
+      "t": 7698.42,
+      "drawn": 0.5
+     },
+     {
+      "t": 7758.18,
+      "drawn": 0.5
+     },
+     {
+      "t": 7817.95,
+      "drawn": 0.5
+     },
+     {
+      "t": 7877.71,
+      "drawn": 0.5
+     },
+     {
+      "t": 7937.48,
+      "drawn": 0.5
+     },
+     {
+      "t": 7997.25,
+      "drawn": 0.5
+     },
+     {
+      "t": 8057.01,
+      "drawn": 0.5
+     },
+     {
+      "t": 8116.78,
+      "drawn": 0.5
+     },
+     {
+      "t": 8176.54,
+      "drawn": 0.5
+     },
+     {
+      "t": 8236.31,
+      "drawn": 0.5
+     },
+     {
+      "t": 8296.07,
+      "drawn": 0.5
+     },
+     {
+      "t": 8355.84,
+      "drawn": 0.5
+     },
+     {
+      "t": 8415.6,
+      "drawn": 0.5
+     },
+     {
+      "t": 8475.37,
+      "drawn": 0.5
+     },
+     {
+      "t": 8535.14,
+      "drawn": 0.5
+     },
+     {
+      "t": 8594.9,
+      "drawn": 0.5
+     },
+     {
+      "t": 8654.67,
+      "drawn": 0.5
+     },
+     {
+      "t": 8714.43,
+      "drawn": 0.5
+     },
+     {
+      "t": 8774.2,
+      "drawn": 0.5
+     },
+     {
+      "t": 8833.96,
+      "drawn": 0.5
+     },
+     {
+      "t": 8893.73,
+      "drawn": 0.5
+     },
+     {
+      "t": 8953.5,
+      "drawn": 0.5
+     }
+    ],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": 6861.7,
+    "next_delivery_s": 8976.41
+   },
+   "complete": true
+  },
+  {
+   "group": 87567,
+   "callsign": "Wolfpack",
+   "side": "red",
+   "aircraft_type": "Mi-17 Hip",
+   "resource": "fuel",
+   "assigned": {
+    "t": 3619.24,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 3739.07,
+    "supplier": {
+     "id": 80752,
+     "name": "Beirut International",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     45.8,
+     35.8
+    ],
+    "aircraft": 87581,
+    "horizontal_m": 24,
+    "altitude_m": 43
+   },
+   "delivery": {
+    "t": 4013.67,
+    "receiver": {
+     "id": 47478,
+     "name": "Power Station 3",
+     "type": "KEYSITE_POWER_STATION",
+     "side": "red"
+    },
+    "level": [
+     66.5,
+     100.0
+    ],
+    "aircraft": 87581,
+    "horizontal_m": 39,
+    "altitude_m": 557
+   },
+   "flight": {
+    "aircraft": 87581,
+    "kind": "helicopter",
+    "samples": 276,
+    "largest_gap_s": 1.0,
+    "flown_m": 11251,
+    "direct_m": 10737,
+    "max_speed_m_s": 67.2,
+    "altitude_m": [
+     41,
+     557
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 4282.81,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [
+     {
+      "t": 4052.61,
+      "drawn": 0.5
+     },
+     {
+      "t": 4112.48,
+      "drawn": 0.5
+     },
+     {
+      "t": 4172.25,
+      "drawn": 0.5
+     },
+     {
+      "t": 4232.01,
+      "drawn": 0.5
+     },
+     {
+      "t": 4291.78,
+      "drawn": 0.5
+     },
+     {
+      "t": 4351.54,
+      "drawn": 0.5
+     },
+     {
+      "t": 4411.31,
+      "drawn": 0.5
+     },
+     {
+      "t": 4471.07,
+      "drawn": 0.5
+     },
+     {
+      "t": 4530.84,
+      "drawn": 0.5
+     },
+     {
+      "t": 4590.6,
+      "drawn": 0.5
+     },
+     {
+      "t": 4650.37,
+      "drawn": 0.5
+     },
+     {
+      "t": 4710.14,
+      "drawn": 0.5
+     },
+     {
+      "t": 4769.9,
+      "drawn": 0.5
+     },
+     {
+      "t": 4829.67,
+      "drawn": 0.5
+     },
+     {
+      "t": 4889.43,
+      "drawn": 0.5
+     },
+     {
+      "t": 4949.2,
+      "drawn": 0.5
+     },
+     {
+      "t": 5008.96,
+      "drawn": 0.5
+     },
+     {
+      "t": 5068.73,
+      "drawn": 0.5
+     },
+     {
+      "t": 5128.5,
+      "drawn": 0.5
+     },
+     {
+      "t": 5188.26,
+      "drawn": 0.5
+     },
+     {
+      "t": 5248.03,
+      "drawn": 0.5
+     },
+     {
+      "t": 5307.79,
+      "drawn": 0.5
+     },
+     {
+      "t": 5367.56,
+      "drawn": 0.5
+     },
+     {
+      "t": 5427.32,
+      "drawn": 0.5
+     },
+     {
+      "t": 5487.09,
+      "drawn": 0.5
+     },
+     {
+      "t": 5546.85,
+      "drawn": 0.5
+     },
+     {
+      "t": 5606.62,
+      "drawn": 0.5
+     },
+     {
+      "t": 5666.39,
+      "drawn": 0.5
+     },
+     {
+      "t": 5726.15,
+      "drawn": 0.5
+     },
+     {
+      "t": 5785.92,
+      "drawn": 0.5
+     },
+     {
+      "t": 5845.68,
+      "drawn": 0.5
+     },
+     {
+      "t": 5905.45,
+      "drawn": 0.5
+     },
+     {
+      "t": 5965.21,
+      "drawn": 0.5
+     },
+     {
+      "t": 6024.98,
+      "drawn": 0.5
+     },
+     {
+      "t": 6084.75,
+      "drawn": 0.5
+     },
+     {
+      "t": 6144.51,
+      "drawn": 0.5
+     },
+     {
+      "t": 6204.28,
+      "drawn": 0.5
+     },
+     {
+      "t": 6264.04,
+      "drawn": 0.5
+     },
+     {
+      "t": 6323.81,
+      "drawn": 0.5
+     },
+     {
+      "t": 6383.57,
+      "drawn": 0.5
+     },
+     {
+      "t": 6443.34,
+      "drawn": 0.5
+     },
+     {
+      "t": 6503.1,
+      "drawn": 0.5
+     },
+     {
+      "t": 6562.87,
+      "drawn": 0.5
+     },
+     {
+      "t": 6622.64,
+      "drawn": 0.5
+     },
+     {
+      "t": 6682.4,
+      "drawn": 0.5
+     },
+     {
+      "t": 6742.17,
+      "drawn": 0.5
+     },
+     {
+      "t": 6801.93,
+      "drawn": 0.5
+     },
+     {
+      "t": 6861.7,
+      "drawn": 0.5
+     },
+     {
+      "t": 6921.46,
+      "drawn": 0.5
+     },
+     {
+      "t": 6981.23,
+      "drawn": 0.5
+     },
+     {
+      "t": 7041.0,
+      "drawn": 0.5
+     },
+     {
+      "t": 7100.76,
+      "drawn": 0.5
+     },
+     {
+      "t": 7160.53,
+      "drawn": 0.5
+     },
+     {
+      "t": 7220.29,
+      "drawn": 0.5
+     },
+     {
+      "t": 7280.06,
+      "drawn": 0.5
+     },
+     {
+      "t": 7339.82,
+      "drawn": 0.5
+     },
+     {
+      "t": 7399.59,
+      "drawn": 0.5
+     },
+     {
+      "t": 7459.35,
+      "drawn": 0.5
+     },
+     {
+      "t": 7519.12,
+      "drawn": 0.5
+     },
+     {
+      "t": 7578.89,
+      "drawn": 0.5
+     },
+     {
+      "t": 7638.65,
+      "drawn": 0.5
+     },
+     {
+      "t": 7698.42,
+      "drawn": 0.5
+     },
+     {
+      "t": 7758.18,
+      "drawn": 0.5
+     },
+     {
+      "t": 7817.95,
+      "drawn": 0.5
+     },
+     {
+      "t": 7877.71,
+      "drawn": 0.5
+     },
+     {
+      "t": 7937.48,
+      "drawn": 0.5
+     },
+     {
+      "t": 7997.25,
+      "drawn": 0.5
+     },
+     {
+      "t": 8057.01,
+      "drawn": 0.5
+     },
+     {
+      "t": 8116.78,
+      "drawn": 0.5
+     },
+     {
+      "t": 8176.54,
+      "drawn": 0.5
+     },
+     {
+      "t": 8236.31,
+      "drawn": 0.5
+     },
+     {
+      "t": 8296.07,
+      "drawn": 0.5
+     },
+     {
+      "t": 8355.84,
+      "drawn": 0.5
+     },
+     {
+      "t": 8415.6,
+      "drawn": 0.5
+     },
+     {
+      "t": 8475.37,
+      "drawn": 0.5
+     },
+     {
+      "t": 8535.14,
+      "drawn": 0.5
+     },
+     {
+      "t": 8594.9,
+      "drawn": 0.5
+     },
+     {
+      "t": 8654.67,
+      "drawn": 0.5
+     },
+     {
+      "t": 8714.43,
+      "drawn": 0.5
+     },
+     {
+      "t": 8774.2,
+      "drawn": 0.5
+     },
+     {
+      "t": 8833.96,
+      "drawn": 0.5
+     },
+     {
+      "t": 8893.73,
+      "drawn": 0.5
+     },
+     {
+      "t": 8953.5,
+      "drawn": 0.5
+     },
+     {
+      "t": 9013.26,
+      "drawn": 0.5
+     },
+     {
+      "t": 9073.03,
+      "drawn": 0.5
+     },
+     {
+      "t": 9132.79,
+      "drawn": 0.5
+     },
+     {
+      "t": 9192.56,
+      "drawn": 0.5
+     },
+     {
+      "t": 9252.32,
+      "drawn": 0.5
+     },
+     {
+      "t": 9312.09,
+      "drawn": 0.5
+     },
+     {
+      "t": 9371.85,
+      "drawn": 0.5
+     },
+     {
+      "t": 9431.62,
+      "drawn": 0.5
+     },
+     {
+      "t": 9491.39,
+      "drawn": 0.5
+     },
+     {
+      "t": 9551.15,
+      "drawn": 0.5
+     },
+     {
+      "t": 9610.92,
+      "drawn": 0.5
+     },
+     {
+      "t": 9670.68,
+      "drawn": 0.5
+     },
+     {
+      "t": 9730.45,
+      "drawn": 0.5
+     },
+     {
+      "t": 9790.21,
+      "drawn": 0.5
+     },
+     {
+      "t": 9849.98,
+      "drawn": 0.5
+     },
+     {
+      "t": 9909.75,
+      "drawn": 0.5
+     },
+     {
+      "t": 9969.51,
+      "drawn": 0.5
+     },
+     {
+      "t": 10029.28,
+      "drawn": 0.5
+     },
+     {
+      "t": 10089.04,
+      "drawn": 0.5
+     },
+     {
+      "t": 10148.81,
+      "drawn": 0.5
+     },
+     {
+      "t": 10208.57,
+      "drawn": 0.5
+     },
+     {
+      "t": 10268.34,
+      "drawn": 0.5
+     },
+     {
+      "t": 10328.1,
+      "drawn": 0.5
+     },
+     {
+      "t": 10387.87,
+      "drawn": 0.5
+     },
+     {
+      "t": 10447.64,
+      "drawn": 0.5
+     },
+     {
+      "t": 10507.4,
+      "drawn": 0.5
+     },
+     {
+      "t": 10567.17,
+      "drawn": 0.5
+     },
+     {
+      "t": 10626.93,
+      "drawn": 0.5
+     },
+     {
+      "t": 10686.7,
+      "drawn": 0.5
+     },
+     {
+      "t": 10746.46,
+      "drawn": 0.5
+     }
+    ],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": 6981.23,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 99701,
+   "callsign": "Striker",
+   "side": "red",
+   "aircraft_type": "Mi-6 Hook",
+   "resource": "fuel",
+   "assigned": {
+    "t": 3678.16,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 4030.64,
+    "supplier": {
+     "id": 71048,
+     "name": "Refinery 8",
+     "type": "KEYSITE_OIL_REFINERY",
+     "side": "red"
+    },
+    "level": [
+     100.0,
+     90.0
+    ],
+    "aircraft": 82676,
+    "horizontal_m": 10,
+    "altitude_m": 65
+   },
+   "delivery": {
+    "t": 4262.89,
+    "receiver": {
+     "id": 70762,
+     "name": "Power Station 7",
+     "type": "KEYSITE_POWER_STATION",
+     "side": "red"
+    },
+    "level": [
+     64.5,
+     100.0
+    ],
+    "aircraft": 82676,
+    "horizontal_m": 34,
+    "altitude_m": 536
+   },
+   "flight": {
+    "aircraft": 82676,
+    "kind": "helicopter",
+    "samples": 234,
+    "largest_gap_s": 1.0,
+    "flown_m": 9687,
+    "direct_m": 9618,
+    "max_speed_m_s": 70.0,
+    "altitude_m": [
+     41,
+     536
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 4612.52,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [
+     {
+      "t": 4277.83,
+      "drawn": 0.5
+     },
+     {
+      "t": 4337.6,
+      "drawn": 0.5
+     },
+     {
+      "t": 4397.36,
+      "drawn": 0.5
+     },
+     {
+      "t": 4457.13,
+      "drawn": 0.5
+     },
+     {
+      "t": 4516.89,
+      "drawn": 0.5
+     },
+     {
+      "t": 4576.66,
+      "drawn": 0.5
+     },
+     {
+      "t": 4636.43,
+      "drawn": 0.5
+     },
+     {
+      "t": 4696.19,
+      "drawn": 0.5
+     },
+     {
+      "t": 4755.96,
+      "drawn": 0.5
+     },
+     {
+      "t": 4815.72,
+      "drawn": 0.5
+     },
+     {
+      "t": 4875.49,
+      "drawn": 0.5
+     },
+     {
+      "t": 4935.25,
+      "drawn": 0.5
+     },
+     {
+      "t": 4995.02,
+      "drawn": 0.5
+     },
+     {
+      "t": 5054.78,
+      "drawn": 0.5
+     },
+     {
+      "t": 5114.55,
+      "drawn": 0.5
+     },
+     {
+      "t": 5174.32,
+      "drawn": 0.5
+     },
+     {
+      "t": 5234.08,
+      "drawn": 0.5
+     },
+     {
+      "t": 5293.85,
+      "drawn": 0.5
+     },
+     {
+      "t": 5353.61,
+      "drawn": 0.5
+     },
+     {
+      "t": 5413.38,
+      "drawn": 0.5
+     },
+     {
+      "t": 5473.14,
+      "drawn": 0.5
+     },
+     {
+      "t": 5532.91,
+      "drawn": 0.5
+     },
+     {
+      "t": 5592.68,
+      "drawn": 0.5
+     },
+     {
+      "t": 5652.44,
+      "drawn": 0.5
+     },
+     {
+      "t": 5712.21,
+      "drawn": 0.5
+     },
+     {
+      "t": 5771.97,
+      "drawn": 0.5
+     },
+     {
+      "t": 5831.74,
+      "drawn": 0.5
+     },
+     {
+      "t": 5891.5,
+      "drawn": 0.5
+     },
+     {
+      "t": 5951.27,
+      "drawn": 0.5
+     },
+     {
+      "t": 6011.03,
+      "drawn": 0.5
+     },
+     {
+      "t": 6070.8,
+      "drawn": 0.5
+     },
+     {
+      "t": 6130.57,
+      "drawn": 0.5
+     },
+     {
+      "t": 6190.33,
+      "drawn": 0.5
+     },
+     {
+      "t": 6250.1,
+      "drawn": 0.5
+     },
+     {
+      "t": 6309.86,
+      "drawn": 0.5
+     },
+     {
+      "t": 6369.63,
+      "drawn": 0.5
+     },
+     {
+      "t": 6429.39,
+      "drawn": 0.5
+     },
+     {
+      "t": 6489.16,
+      "drawn": 0.5
+     },
+     {
+      "t": 6548.93,
+      "drawn": 0.5
+     },
+     {
+      "t": 6608.69,
+      "drawn": 0.5
+     },
+     {
+      "t": 6668.46,
+      "drawn": 0.5
+     },
+     {
+      "t": 6728.22,
+      "drawn": 0.5
+     },
+     {
+      "t": 6787.99,
+      "drawn": 0.5
+     },
+     {
+      "t": 6847.75,
+      "drawn": 0.5
+     },
+     {
+      "t": 6907.52,
+      "drawn": 0.5
+     },
+     {
+      "t": 6967.28,
+      "drawn": 0.5
+     },
+     {
+      "t": 7027.05,
+      "drawn": 0.5
+     },
+     {
+      "t": 7086.82,
+      "drawn": 0.5
+     },
+     {
+      "t": 7146.58,
+      "drawn": 0.5
+     },
+     {
+      "t": 7206.35,
+      "drawn": 0.5
+     },
+     {
+      "t": 7266.11,
+      "drawn": 0.5
+     },
+     {
+      "t": 7325.88,
+      "drawn": 0.5
+     },
+     {
+      "t": 7385.64,
+      "drawn": 0.5
+     },
+     {
+      "t": 7445.41,
+      "drawn": 0.5
+     },
+     {
+      "t": 7505.18,
+      "drawn": 0.5
+     },
+     {
+      "t": 7564.94,
+      "drawn": 0.5
+     },
+     {
+      "t": 7624.71,
+      "drawn": 0.5
+     },
+     {
+      "t": 7684.47,
+      "drawn": 0.5
+     },
+     {
+      "t": 7744.24,
+      "drawn": 0.5
+     },
+     {
+      "t": 7804.0,
+      "drawn": 0.5
+     },
+     {
+      "t": 7863.77,
+      "drawn": 0.5
+     },
+     {
+      "t": 7923.53,
+      "drawn": 0.5
+     },
+     {
+      "t": 7983.3,
+      "drawn": 0.5
+     },
+     {
+      "t": 8043.07,
+      "drawn": 0.5
+     },
+     {
+      "t": 8102.83,
+      "drawn": 0.5
+     },
+     {
+      "t": 8162.6,
+      "drawn": 0.5
+     },
+     {
+      "t": 8222.36,
+      "drawn": 0.5
+     },
+     {
+      "t": 8282.13,
+      "drawn": 0.5
+     },
+     {
+      "t": 8341.89,
+      "drawn": 0.5
+     },
+     {
+      "t": 8401.66,
+      "drawn": 0.5
+     },
+     {
+      "t": 8461.42,
+      "drawn": 0.5
+     },
+     {
+      "t": 8521.19,
+      "drawn": 0.5
+     },
+     {
+      "t": 8580.96,
+      "drawn": 0.5
+     },
+     {
+      "t": 8640.72,
+      "drawn": 0.5
+     },
+     {
+      "t": 8700.49,
+      "drawn": 0.5
+     },
+     {
+      "t": 8760.25,
+      "drawn": 0.5
+     },
+     {
+      "t": 8820.02,
+      "drawn": 0.5
+     },
+     {
+      "t": 8879.78,
+      "drawn": 0.5
+     },
+     {
+      "t": 8939.55,
+      "drawn": 0.5
+     },
+     {
+      "t": 8999.32,
+      "drawn": 0.5
+     },
+     {
+      "t": 9059.08,
+      "drawn": 0.5
+     },
+     {
+      "t": 9118.85,
+      "drawn": 0.5
+     },
+     {
+      "t": 9178.61,
+      "drawn": 0.5
+     },
+     {
+      "t": 9238.38,
+      "drawn": 0.5
+     },
+     {
+      "t": 9298.14,
+      "drawn": 0.5
+     },
+     {
+      "t": 9357.91,
+      "drawn": 0.5
+     },
+     {
+      "t": 9417.67,
+      "drawn": 0.5
+     },
+     {
+      "t": 9477.44,
+      "drawn": 0.5
+     },
+     {
+      "t": 9537.21,
+      "drawn": 0.5
+     },
+     {
+      "t": 9596.97,
+      "drawn": 0.5
+     },
+     {
+      "t": 9656.74,
+      "drawn": 0.5
+     },
+     {
+      "t": 9716.5,
+      "drawn": 0.5
+     },
+     {
+      "t": 9776.27,
+      "drawn": 0.5
+     },
+     {
+      "t": 9836.03,
+      "drawn": 0.5
+     }
+    ],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": 7206.35,
+    "next_delivery_s": 9837.03
+   },
+   "complete": true
+  },
+  {
+   "group": 86896,
+   "callsign": "Milkman",
+   "side": "red",
+   "aircraft_type": "Mi-17 Hip",
+   "resource": "fuel",
+   "assigned": {
+    "t": 3749.05,
+    "state": "Waiting"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 3866.88,
+    "supplier": {
+     "id": 79844,
+     "name": "Mezzeh",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     32.6,
+     22.6
+    ],
+    "aircraft": 86910,
+    "horizontal_m": 33,
+    "altitude_m": 798
+   },
+   "delivery": {
+    "t": 4456.13,
+    "receiver": {
+     "id": 79605,
+     "name": "Damascus International",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     70.0,
+     100.0
+    ],
+    "aircraft": 86910,
+    "horizontal_m": 29,
+    "altitude_m": 634
+   },
+   "flight": {
+    "aircraft": 86910,
+    "kind": "helicopter",
+    "samples": 592,
+    "largest_gap_s": 1.0,
+    "flown_m": 33408,
+    "direct_m": 33311,
+    "max_speed_m_s": 67.6,
+    "altitude_m": [
+     630,
+     881
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 5119.53,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [],
+    "pickups_by_other_supply_tasks": [
+     {
+      "t": 9415.68,
+      "drawn": 10.0,
+      "groups": [
+       95880
+      ]
+     }
+    ],
+    "at_or_below_request_threshold_s": 8241.29,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 86961,
+   "callsign": "Firebird",
+   "side": "red",
+   "aircraft_type": "An-12B Cub",
+   "resource": "fuel",
+   "assigned": {
+    "t": 3569.32,
+    "state": "Waiting"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 4306.72,
+    "supplier": {
+     "id": 81080,
+     "name": "Yaate",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     71.2,
+     61.2
+    ],
+    "aircraft": 86962,
+    "horizontal_m": 56,
+    "altitude_m": 2551
+   },
+   "delivery": {
+    "t": 4583.63,
+    "receiver": {
+     "id": 80473,
+     "name": "Riyaq",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     39.6,
+     100.0
+    ],
+    "aircraft": 86962,
+    "horizontal_m": 16,
+    "altitude_m": 2464
+   },
+   "flight": {
+    "aircraft": 86962,
+    "kind": "fixed_wing",
+    "samples": 279,
+    "largest_gap_s": 1.0,
+    "flown_m": 25866,
+    "direct_m": 25736,
+    "max_speed_m_s": 94.8,
+    "altitude_m": [
+     2446,
+     2551
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 4855.57,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [
+     {
+      "t": 5681.33,
+      "drawn": 10.0
+     },
+     {
+      "t": 6280.98,
+      "drawn": 10.0
+     },
+     {
+      "t": 8176.54,
+      "drawn": 10.0
+     },
+     {
+      "t": 8654.67,
+      "drawn": 10.0
+     },
+     {
+      "t": 9659.73,
+      "drawn": 10.0
+     }
+    ],
+    "pickups_by_other_supply_tasks": [
+     {
+      "t": 5426.33,
+      "drawn": 10.0,
+      "groups": [
+       97473
+      ]
+     },
+     {
+      "t": 6170.41,
+      "drawn": 10.0,
+      "groups": [
+       87021
+      ]
+     },
+     {
+      "t": 6862.69,
+      "drawn": 10.0,
+      "groups": [
+       101677
+      ]
+     },
+     {
+      "t": 7432.46,
+      "drawn": 10.0,
+      "groups": [
+       96220
+      ]
+     },
+     {
+      "t": 7576.89,
+      "drawn": 10.0,
+      "groups": [
+       96220
+      ]
+     }
+    ],
+    "at_or_below_request_threshold_s": 5681.33,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 87686,
+   "callsign": "Python",
+   "side": "red",
+   "aircraft_type": "An-12B Cub",
+   "resource": "fuel",
+   "assigned": {
+    "t": 4158.3,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": null,
+   "delivery": {
+    "t": 4971.11,
+    "receiver": {
+     "id": 32191,
+     "name": "Power Station 1",
+     "type": "KEYSITE_POWER_STATION",
+     "side": "red"
+    },
+    "level": [
+     58.5,
+     100.0
+    ],
+    "aircraft": 87715,
+    "horizontal_m": 46,
+    "altitude_m": 2339
+   },
+   "flight": null,
+   "task_ended": {
+    "t": 5339.67,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [
+     {
+      "t": 5009.96,
+      "drawn": 0.5
+     },
+     {
+      "t": 5069.73,
+      "drawn": 0.5
+     },
+     {
+      "t": 5129.49,
+      "drawn": 0.5
+     },
+     {
+      "t": 5189.26,
+      "drawn": 0.5
+     },
+     {
+      "t": 5249.02,
+      "drawn": 0.5
+     },
+     {
+      "t": 5308.79,
+      "drawn": 0.5
+     },
+     {
+      "t": 5368.55,
+      "drawn": 0.5
+     },
+     {
+      "t": 5428.32,
+      "drawn": 0.5
+     },
+     {
+      "t": 5488.09,
+      "drawn": 0.5
+     },
+     {
+      "t": 5547.85,
+      "drawn": 0.5
+     },
+     {
+      "t": 5607.62,
+      "drawn": 0.5
+     },
+     {
+      "t": 5667.38,
+      "drawn": 0.5
+     },
+     {
+      "t": 5727.15,
+      "drawn": 0.5
+     },
+     {
+      "t": 5786.91,
+      "drawn": 0.5
+     },
+     {
+      "t": 5846.68,
+      "drawn": 0.5
+     },
+     {
+      "t": 5906.44,
+      "drawn": 0.5
+     },
+     {
+      "t": 5966.21,
+      "drawn": 0.5
+     },
+     {
+      "t": 6025.98,
+      "drawn": 0.5
+     },
+     {
+      "t": 6085.74,
+      "drawn": 0.5
+     },
+     {
+      "t": 6145.51,
+      "drawn": 0.5
+     },
+     {
+      "t": 6205.27,
+      "drawn": 0.5
+     },
+     {
+      "t": 6265.04,
+      "drawn": 0.5
+     },
+     {
+      "t": 6324.8,
+      "drawn": 0.5
+     },
+     {
+      "t": 6384.57,
+      "drawn": 0.5
+     },
+     {
+      "t": 6444.34,
+      "drawn": 0.5
+     },
+     {
+      "t": 6504.1,
+      "drawn": 0.5
+     },
+     {
+      "t": 6563.87,
+      "drawn": 0.5
+     },
+     {
+      "t": 6623.63,
+      "drawn": 0.5
+     },
+     {
+      "t": 6683.4,
+      "drawn": 0.5
+     },
+     {
+      "t": 6743.16,
+      "drawn": 0.5
+     },
+     {
+      "t": 6802.93,
+      "drawn": 0.5
+     },
+     {
+      "t": 6862.69,
+      "drawn": 0.5
+     },
+     {
+      "t": 6922.46,
+      "drawn": 0.5
+     },
+     {
+      "t": 6982.23,
+      "drawn": 0.5
+     },
+     {
+      "t": 7041.99,
+      "drawn": 0.5
+     },
+     {
+      "t": 7101.76,
+      "drawn": 0.5
+     },
+     {
+      "t": 7161.52,
+      "drawn": 0.5
+     },
+     {
+      "t": 7221.29,
+      "drawn": 0.5
+     },
+     {
+      "t": 7281.05,
+      "drawn": 0.5
+     },
+     {
+      "t": 7340.82,
+      "drawn": 0.5
+     },
+     {
+      "t": 7400.59,
+      "drawn": 0.5
+     },
+     {
+      "t": 7460.35,
+      "drawn": 0.5
+     },
+     {
+      "t": 7520.12,
+      "drawn": 0.5
+     },
+     {
+      "t": 7579.88,
+      "drawn": 0.5
+     },
+     {
+      "t": 7639.65,
+      "drawn": 0.5
+     },
+     {
+      "t": 7699.41,
+      "drawn": 0.5
+     },
+     {
+      "t": 7759.18,
+      "drawn": 0.5
+     },
+     {
+      "t": 7818.94,
+      "drawn": 0.5
+     },
+     {
+      "t": 7878.71,
+      "drawn": 0.5
+     },
+     {
+      "t": 7938.48,
+      "drawn": 0.5
+     },
+     {
+      "t": 7998.24,
+      "drawn": 0.5
+     },
+     {
+      "t": 8058.01,
+      "drawn": 0.5
+     },
+     {
+      "t": 8117.77,
+      "drawn": 0.5
+     },
+     {
+      "t": 8177.54,
+      "drawn": 0.5
+     },
+     {
+      "t": 8237.3,
+      "drawn": 0.5
+     },
+     {
+      "t": 8297.07,
+      "drawn": 0.5
+     },
+     {
+      "t": 8356.83,
+      "drawn": 0.5
+     },
+     {
+      "t": 8416.6,
+      "drawn": 0.5
+     },
+     {
+      "t": 8476.37,
+      "drawn": 0.5
+     },
+     {
+      "t": 8536.13,
+      "drawn": 0.5
+     },
+     {
+      "t": 8595.9,
+      "drawn": 0.5
+     },
+     {
+      "t": 8655.66,
+      "drawn": 0.5
+     },
+     {
+      "t": 8715.43,
+      "drawn": 0.5
+     },
+     {
+      "t": 8775.19,
+      "drawn": 0.5
+     },
+     {
+      "t": 8834.96,
+      "drawn": 0.5
+     },
+     {
+      "t": 8894.73,
+      "drawn": 0.5
+     },
+     {
+      "t": 8954.49,
+      "drawn": 0.5
+     },
+     {
+      "t": 9014.26,
+      "drawn": 0.5
+     },
+     {
+      "t": 9074.02,
+      "drawn": 0.5
+     },
+     {
+      "t": 9133.79,
+      "drawn": 0.5
+     },
+     {
+      "t": 9193.55,
+      "drawn": 0.5
+     },
+     {
+      "t": 9253.32,
+      "drawn": 0.5
+     },
+     {
+      "t": 9313.08,
+      "drawn": 0.5
+     },
+     {
+      "t": 9372.85,
+      "drawn": 0.5
+     },
+     {
+      "t": 9432.62,
+      "drawn": 0.5
+     },
+     {
+      "t": 9492.38,
+      "drawn": 0.5
+     },
+     {
+      "t": 9552.15,
+      "drawn": 0.5
+     },
+     {
+      "t": 9611.91,
+      "drawn": 0.5
+     },
+     {
+      "t": 9671.68,
+      "drawn": 0.5
+     },
+     {
+      "t": 9731.44,
+      "drawn": 0.5
+     },
+     {
+      "t": 9791.21,
+      "drawn": 0.5
+     },
+     {
+      "t": 9850.98,
+      "drawn": 0.5
+     },
+     {
+      "t": 9910.74,
+      "drawn": 0.5
+     }
+    ],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": 7938.48,
+    "next_delivery_s": 9911.74
+   },
+   "complete": false
+  },
+  {
+   "group": 88231,
+   "callsign": "Jester",
+   "side": "red",
+   "aircraft_type": "Il-76MD Candid-B",
+   "resource": "fuel",
+   "assigned": {
+    "t": 4575.66,
+    "state": "Taxiing"
+   },
+   "previous_delivery_by_group": 2854.37,
+   "pickup": {
+    "t": 5056.78,
+    "supplier": {
+     "id": 71212,
+     "name": "Refinery 9",
+     "type": "KEYSITE_OIL_REFINERY",
+     "side": "red"
+    },
+    "level": [
+     100.0,
+     90.0
+    ],
+    "aircraft": 88236,
+    "horizontal_m": 49,
+    "altitude_m": 1488
+   },
+   "delivery": {
+    "t": 5145.43,
+    "receiver": {
+     "id": 71305,
+     "name": "Power Station 8",
+     "type": "KEYSITE_POWER_STATION",
+     "side": "red"
+    },
+    "level": [
+     57.0,
+     100.0
+    ],
+    "aircraft": 88236,
+    "horizontal_m": 58,
+    "altitude_m": 1841
+   },
+   "flight": {
+    "aircraft": 88236,
+    "kind": "fixed_wing",
+    "samples": 90,
+    "largest_gap_s": 1.0,
+    "flown_m": 7374,
+    "direct_m": 6600,
+    "max_speed_m_s": 87.5,
+    "altitude_m": [
+     1464,
+     1846
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 5302.81,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [
+     {
+      "t": 5173.32,
+      "drawn": 0.5
+     },
+     {
+      "t": 5233.09,
+      "drawn": 0.5
+     },
+     {
+      "t": 5292.85,
+      "drawn": 0.5
+     },
+     {
+      "t": 5352.62,
+      "drawn": 0.5
+     },
+     {
+      "t": 5412.38,
+      "drawn": 0.5
+     },
+     {
+      "t": 5472.15,
+      "drawn": 0.5
+     },
+     {
+      "t": 5531.91,
+      "drawn": 0.5
+     },
+     {
+      "t": 5591.68,
+      "drawn": 0.5
+     },
+     {
+      "t": 5651.44,
+      "drawn": 0.5
+     },
+     {
+      "t": 5711.21,
+      "drawn": 0.5
+     },
+     {
+      "t": 5770.98,
+      "drawn": 0.5
+     },
+     {
+      "t": 5830.74,
+      "drawn": 0.5
+     },
+     {
+      "t": 5890.51,
+      "drawn": 0.5
+     },
+     {
+      "t": 5950.27,
+      "drawn": 0.5
+     },
+     {
+      "t": 6010.04,
+      "drawn": 0.5
+     },
+     {
+      "t": 6069.8,
+      "drawn": 0.5
+     },
+     {
+      "t": 6129.57,
+      "drawn": 0.5
+     },
+     {
+      "t": 6189.34,
+      "drawn": 0.5
+     },
+     {
+      "t": 6249.1,
+      "drawn": 0.5
+     },
+     {
+      "t": 6308.87,
+      "drawn": 0.5
+     },
+     {
+      "t": 6368.63,
+      "drawn": 0.5
+     },
+     {
+      "t": 6428.4,
+      "drawn": 0.5
+     },
+     {
+      "t": 6488.16,
+      "drawn": 0.5
+     },
+     {
+      "t": 6547.93,
+      "drawn": 0.5
+     },
+     {
+      "t": 6607.69,
+      "drawn": 0.5
+     },
+     {
+      "t": 6667.46,
+      "drawn": 0.5
+     },
+     {
+      "t": 6727.23,
+      "drawn": 0.5
+     },
+     {
+      "t": 6786.99,
+      "drawn": 0.5
+     },
+     {
+      "t": 6846.76,
+      "drawn": 0.5
+     },
+     {
+      "t": 6906.52,
+      "drawn": 0.5
+     },
+     {
+      "t": 6966.29,
+      "drawn": 0.5
+     },
+     {
+      "t": 7026.05,
+      "drawn": 0.5
+     },
+     {
+      "t": 7085.82,
+      "drawn": 0.5
+     },
+     {
+      "t": 7145.59,
+      "drawn": 0.5
+     },
+     {
+      "t": 7205.35,
+      "drawn": 0.5
+     },
+     {
+      "t": 7265.12,
+      "drawn": 0.5
+     },
+     {
+      "t": 7324.88,
+      "drawn": 0.5
+     },
+     {
+      "t": 7384.65,
+      "drawn": 0.5
+     },
+     {
+      "t": 7444.41,
+      "drawn": 0.5
+     },
+     {
+      "t": 7504.18,
+      "drawn": 0.5
+     },
+     {
+      "t": 7563.94,
+      "drawn": 0.5
+     },
+     {
+      "t": 7623.71,
+      "drawn": 0.5
+     },
+     {
+      "t": 7683.48,
+      "drawn": 0.5
+     },
+     {
+      "t": 7743.24,
+      "drawn": 0.5
+     },
+     {
+      "t": 7803.01,
+      "drawn": 0.5
+     },
+     {
+      "t": 7862.77,
+      "drawn": 0.5
+     },
+     {
+      "t": 7922.54,
+      "drawn": 0.5
+     },
+     {
+      "t": 7982.3,
+      "drawn": 0.5
+     },
+     {
+      "t": 8042.07,
+      "drawn": 0.5
+     },
+     {
+      "t": 8101.84,
+      "drawn": 0.5
+     },
+     {
+      "t": 8161.6,
+      "drawn": 0.5
+     },
+     {
+      "t": 8221.37,
+      "drawn": 0.5
+     },
+     {
+      "t": 8281.13,
+      "drawn": 0.5
+     },
+     {
+      "t": 8340.9,
+      "drawn": 0.5
+     },
+     {
+      "t": 8400.66,
+      "drawn": 0.5
+     },
+     {
+      "t": 8460.43,
+      "drawn": 0.5
+     },
+     {
+      "t": 8520.19,
+      "drawn": 0.5
+     },
+     {
+      "t": 8579.96,
+      "drawn": 0.5
+     },
+     {
+      "t": 8639.73,
+      "drawn": 0.5
+     },
+     {
+      "t": 8699.49,
+      "drawn": 0.5
+     },
+     {
+      "t": 8759.26,
+      "drawn": 0.5
+     },
+     {
+      "t": 8819.02,
+      "drawn": 0.5
+     },
+     {
+      "t": 8878.79,
+      "drawn": 0.5
+     },
+     {
+      "t": 8938.55,
+      "drawn": 0.5
+     },
+     {
+      "t": 8998.32,
+      "drawn": 0.5
+     },
+     {
+      "t": 9058.08,
+      "drawn": 0.5
+     },
+     {
+      "t": 9117.85,
+      "drawn": 0.5
+     },
+     {
+      "t": 9177.62,
+      "drawn": 0.5
+     },
+     {
+      "t": 9237.38,
+      "drawn": 0.5
+     },
+     {
+      "t": 9297.15,
+      "drawn": 0.5
+     },
+     {
+      "t": 9356.91,
+      "drawn": 0.5
+     },
+     {
+      "t": 9416.68,
+      "drawn": 0.5
+     },
+     {
+      "t": 9476.44,
+      "drawn": 0.5
+     },
+     {
+      "t": 9536.21,
+      "drawn": 0.5
+     },
+     {
+      "t": 9595.98,
+      "drawn": 0.5
+     },
+     {
+      "t": 9655.74,
+      "drawn": 0.5
+     },
+     {
+      "t": 9715.51,
+      "drawn": 0.5
+     },
+     {
+      "t": 9775.27,
+      "drawn": 0.5
+     },
+     {
+      "t": 9835.04,
+      "drawn": 0.5
+     },
+     {
+      "t": 9894.8,
+      "drawn": 0.5
+     },
+     {
+      "t": 9954.57,
+      "drawn": 0.5
+     },
+     {
+      "t": 10014.33,
+      "drawn": 0.5
+     },
+     {
+      "t": 10074.1,
+      "drawn": 0.5
+     },
+     {
+      "t": 10133.87,
+      "drawn": 0.5
+     },
+     {
+      "t": 10193.63,
+      "drawn": 0.5
+     },
+     {
+      "t": 10253.4,
+      "drawn": 0.5
+     },
+     {
+      "t": 10313.16,
+      "drawn": 0.5
+     },
+     {
+      "t": 10372.93,
+      "drawn": 0.5
+     },
+     {
+      "t": 10432.69,
+      "drawn": 0.5
+     },
+     {
+      "t": 10492.46,
+      "drawn": 0.5
+     },
+     {
+      "t": 10552.23,
+      "drawn": 0.5
+     },
+     {
+      "t": 10611.99,
+      "drawn": 0.5
+     },
+     {
+      "t": 10671.76,
+      "drawn": 0.5
+     },
+     {
+      "t": 10731.52,
+      "drawn": 0.5
+     }
+    ],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": 8101.84,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 97473,
+   "callsign": "Maniac",
+   "side": "red",
+   "aircraft_type": "Mi-6 Hook",
+   "resource": "fuel",
+   "assigned": {
+    "t": 4646.39,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 5426.33,
+    "supplier": {
+     "id": 80473,
+     "name": "Riyaq",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     94.4,
+     84.4
+    ],
+    "aircraft": 83670,
+    "horizontal_m": 14,
+    "altitude_m": 999
+   },
+   "delivery": {
+    "t": 5868.59,
+    "receiver": {
+     "id": 81080,
+     "name": "Yaate",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     50.8,
+     100.0
+    ],
+    "aircraft": 83670,
+    "horizontal_m": 5,
+    "altitude_m": 1087
+   },
+   "flight": {
+    "aircraft": 83670,
+    "kind": "helicopter",
+    "samples": 445,
+    "largest_gap_s": 1.0,
+    "flown_m": 25956,
+    "direct_m": 25736,
+    "max_speed_m_s": 70.1,
+    "altitude_m": [
+     986,
+     1106
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 6915.49,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": null,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 88227,
+   "callsign": "Hawkeye",
+   "side": "red",
+   "aircraft_type": "Il-76MD Candid-B",
+   "resource": "fuel",
+   "assigned": {
+    "t": 5292.85,
+    "state": "Taxiing"
+   },
+   "previous_delivery_by_group": 3324.68,
+   "pickup": {
+    "t": 5912.42,
+    "supplier": {
+     "id": 75853,
+     "name": "Refinery 11",
+     "type": "KEYSITE_OIL_REFINERY",
+     "side": "red"
+    },
+    "level": [
+     100.0,
+     90.0
+    ],
+    "aircraft": 88228,
+    "horizontal_m": 104,
+    "altitude_m": 1503
+   },
+   "delivery": {
+    "t": 6062.83,
+    "receiver": {
+     "id": 76261,
+     "name": "Power Station 9",
+     "type": "KEYSITE_POWER_STATION",
+     "side": "red"
+    },
+    "level": [
+     49.5,
+     100.0
+    ],
+    "aircraft": 88228,
+    "horizontal_m": 65,
+    "altitude_m": 1484
+   },
+   "flight": {
+    "aircraft": 88228,
+    "kind": "fixed_wing",
+    "samples": 152,
+    "largest_gap_s": 1.0,
+    "flown_m": 13268,
+    "direct_m": 10463,
+    "max_speed_m_s": 116.7,
+    "altitude_m": [
+     1468,
+     1745
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 6416.44,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [
+     {
+      "t": 6096.7,
+      "drawn": 0.5
+     },
+     {
+      "t": 6156.46,
+      "drawn": 0.5
+     },
+     {
+      "t": 6216.23,
+      "drawn": 0.5
+     },
+     {
+      "t": 6276.0,
+      "drawn": 0.5
+     },
+     {
+      "t": 6335.76,
+      "drawn": 0.5
+     },
+     {
+      "t": 6395.53,
+      "drawn": 0.5
+     },
+     {
+      "t": 6455.29,
+      "drawn": 0.5
+     },
+     {
+      "t": 6515.06,
+      "drawn": 0.5
+     },
+     {
+      "t": 6574.82,
+      "drawn": 0.5
+     },
+     {
+      "t": 6634.59,
+      "drawn": 0.5
+     },
+     {
+      "t": 6694.35,
+      "drawn": 0.5
+     },
+     {
+      "t": 6754.12,
+      "drawn": 0.5
+     },
+     {
+      "t": 6813.89,
+      "drawn": 0.5
+     },
+     {
+      "t": 6873.65,
+      "drawn": 0.5
+     },
+     {
+      "t": 6933.42,
+      "drawn": 0.5
+     },
+     {
+      "t": 6993.18,
+      "drawn": 0.5
+     },
+     {
+      "t": 7052.95,
+      "drawn": 0.5
+     },
+     {
+      "t": 7112.71,
+      "drawn": 0.5
+     },
+     {
+      "t": 7172.48,
+      "drawn": 0.5
+     },
+     {
+      "t": 7232.25,
+      "drawn": 0.5
+     },
+     {
+      "t": 7292.01,
+      "drawn": 0.5
+     },
+     {
+      "t": 7351.78,
+      "drawn": 0.5
+     },
+     {
+      "t": 7411.54,
+      "drawn": 0.5
+     },
+     {
+      "t": 7471.31,
+      "drawn": 0.5
+     },
+     {
+      "t": 7531.07,
+      "drawn": 0.5
+     },
+     {
+      "t": 7590.84,
+      "drawn": 0.5
+     },
+     {
+      "t": 7650.6,
+      "drawn": 0.5
+     },
+     {
+      "t": 7710.37,
+      "drawn": 0.5
+     },
+     {
+      "t": 7770.14,
+      "drawn": 0.5
+     },
+     {
+      "t": 7829.9,
+      "drawn": 0.5
+     },
+     {
+      "t": 7889.67,
+      "drawn": 0.5
+     },
+     {
+      "t": 7949.43,
+      "drawn": 0.5
+     },
+     {
+      "t": 8009.2,
+      "drawn": 0.5
+     },
+     {
+      "t": 8068.96,
+      "drawn": 0.5
+     },
+     {
+      "t": 8128.73,
+      "drawn": 0.5
+     },
+     {
+      "t": 8188.5,
+      "drawn": 0.5
+     },
+     {
+      "t": 8248.26,
+      "drawn": 0.5
+     },
+     {
+      "t": 8308.03,
+      "drawn": 0.5
+     },
+     {
+      "t": 8367.79,
+      "drawn": 0.5
+     },
+     {
+      "t": 8427.56,
+      "drawn": 0.5
+     },
+     {
+      "t": 8487.32,
+      "drawn": 0.5
+     },
+     {
+      "t": 8547.09,
+      "drawn": 0.5
+     },
+     {
+      "t": 8606.85,
+      "drawn": 0.5
+     },
+     {
+      "t": 8666.62,
+      "drawn": 0.5
+     },
+     {
+      "t": 8726.39,
+      "drawn": 0.5
+     },
+     {
+      "t": 8786.15,
+      "drawn": 0.5
+     },
+     {
+      "t": 8845.92,
+      "drawn": 0.5
+     },
+     {
+      "t": 8905.68,
+      "drawn": 0.5
+     },
+     {
+      "t": 8965.45,
+      "drawn": 0.5
+     },
+     {
+      "t": 9025.21,
+      "drawn": 0.5
+     },
+     {
+      "t": 9084.98,
+      "drawn": 0.5
+     },
+     {
+      "t": 9144.75,
+      "drawn": 0.5
+     },
+     {
+      "t": 9204.51,
+      "drawn": 0.5
+     },
+     {
+      "t": 9264.28,
+      "drawn": 0.5
+     },
+     {
+      "t": 9324.04,
+      "drawn": 0.5
+     },
+     {
+      "t": 9383.81,
+      "drawn": 0.5
+     },
+     {
+      "t": 9443.57,
+      "drawn": 0.5
+     },
+     {
+      "t": 9503.34,
+      "drawn": 0.5
+     },
+     {
+      "t": 9563.1,
+      "drawn": 0.5
+     },
+     {
+      "t": 9622.87,
+      "drawn": 0.5
+     },
+     {
+      "t": 9682.64,
+      "drawn": 0.5
+     },
+     {
+      "t": 9742.4,
+      "drawn": 0.5
+     },
+     {
+      "t": 9802.17,
+      "drawn": 0.5
+     },
+     {
+      "t": 9861.93,
+      "drawn": 0.5
+     },
+     {
+      "t": 9921.7,
+      "drawn": 0.5
+     },
+     {
+      "t": 9981.46,
+      "drawn": 0.5
+     },
+     {
+      "t": 10041.23,
+      "drawn": 0.5
+     },
+     {
+      "t": 10101.0,
+      "drawn": 0.5
+     },
+     {
+      "t": 10160.76,
+      "drawn": 0.5
+     },
+     {
+      "t": 10220.53,
+      "drawn": 0.5
+     },
+     {
+      "t": 10280.29,
+      "drawn": 0.5
+     },
+     {
+      "t": 10340.06,
+      "drawn": 0.5
+     },
+     {
+      "t": 10399.82,
+      "drawn": 0.5
+     },
+     {
+      "t": 10459.59,
+      "drawn": 0.5
+     },
+     {
+      "t": 10519.35,
+      "drawn": 0.5
+     },
+     {
+      "t": 10579.12,
+      "drawn": 0.5
+     },
+     {
+      "t": 10638.89,
+      "drawn": 0.5
+     },
+     {
+      "t": 10698.65,
+      "drawn": 0.5
+     },
+     {
+      "t": 10758.42,
+      "drawn": 0.5
+     }
+    ],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": 9025.21,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 87742,
+   "callsign": "Angel",
+   "side": "red",
+   "aircraft_type": "Il-76MD Candid-B",
+   "resource": "fuel",
+   "assigned": {
+    "t": 5592.68,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 6302.89,
+    "supplier": {
+     "id": 81129,
+     "name": "Halat",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     66.8,
+     56.8
+    ],
+    "aircraft": 87747,
+    "horizontal_m": 80,
+    "altitude_m": 1507
+   },
+   "delivery": {
+    "t": 6419.43,
+    "receiver": {
+     "id": 65077,
+     "name": "Power Station 5",
+     "type": "KEYSITE_POWER_STATION",
+     "side": "red"
+    },
+    "level": [
+     46.5,
+     100.0
+    ],
+    "aircraft": 87747,
+    "horizontal_m": 72,
+    "altitude_m": 2360
+   },
+   "flight": {
+    "aircraft": 87747,
+    "kind": "fixed_wing",
+    "samples": 118,
+    "largest_gap_s": 1.0,
+    "flown_m": 10009,
+    "direct_m": 8640,
+    "max_speed_m_s": 87.5,
+    "altitude_m": [
+     1504,
+     2418
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 6698.34,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [
+     {
+      "t": 6448.32,
+      "drawn": 0.5
+     },
+     {
+      "t": 6508.09,
+      "drawn": 0.5
+     },
+     {
+      "t": 6567.85,
+      "drawn": 0.5
+     },
+     {
+      "t": 6627.62,
+      "drawn": 0.5
+     },
+     {
+      "t": 6687.38,
+      "drawn": 0.5
+     },
+     {
+      "t": 6747.15,
+      "drawn": 0.5
+     },
+     {
+      "t": 6806.91,
+      "drawn": 0.5
+     },
+     {
+      "t": 6866.68,
+      "drawn": 0.5
+     },
+     {
+      "t": 6926.44,
+      "drawn": 0.5
+     },
+     {
+      "t": 6986.21,
+      "drawn": 0.5
+     },
+     {
+      "t": 7045.98,
+      "drawn": 0.5
+     },
+     {
+      "t": 7105.74,
+      "drawn": 0.5
+     },
+     {
+      "t": 7165.51,
+      "drawn": 0.5
+     },
+     {
+      "t": 7225.27,
+      "drawn": 0.5
+     },
+     {
+      "t": 7285.04,
+      "drawn": 0.5
+     },
+     {
+      "t": 7344.8,
+      "drawn": 0.5
+     },
+     {
+      "t": 7404.57,
+      "drawn": 0.5
+     },
+     {
+      "t": 7464.34,
+      "drawn": 0.5
+     },
+     {
+      "t": 7524.1,
+      "drawn": 0.5
+     },
+     {
+      "t": 7583.87,
+      "drawn": 0.5
+     },
+     {
+      "t": 7643.63,
+      "drawn": 0.5
+     },
+     {
+      "t": 7703.4,
+      "drawn": 0.5
+     },
+     {
+      "t": 7763.16,
+      "drawn": 0.5
+     },
+     {
+      "t": 7822.93,
+      "drawn": 0.5
+     },
+     {
+      "t": 7882.69,
+      "drawn": 0.5
+     },
+     {
+      "t": 7942.46,
+      "drawn": 0.5
+     },
+     {
+      "t": 8002.23,
+      "drawn": 0.5
+     },
+     {
+      "t": 8061.99,
+      "drawn": 0.5
+     },
+     {
+      "t": 8121.76,
+      "drawn": 0.5
+     },
+     {
+      "t": 8181.52,
+      "drawn": 0.5
+     },
+     {
+      "t": 8241.29,
+      "drawn": 0.5
+     },
+     {
+      "t": 8301.05,
+      "drawn": 0.5
+     },
+     {
+      "t": 8360.82,
+      "drawn": 0.5
+     },
+     {
+      "t": 8420.58,
+      "drawn": 0.5
+     },
+     {
+      "t": 8480.35,
+      "drawn": 0.5
+     },
+     {
+      "t": 8540.12,
+      "drawn": 0.5
+     },
+     {
+      "t": 8599.88,
+      "drawn": 0.5
+     },
+     {
+      "t": 8659.65,
+      "drawn": 0.5
+     },
+     {
+      "t": 8719.41,
+      "drawn": 0.5
+     },
+     {
+      "t": 8779.18,
+      "drawn": 0.5
+     },
+     {
+      "t": 8838.94,
+      "drawn": 0.5
+     },
+     {
+      "t": 8898.71,
+      "drawn": 0.5
+     },
+     {
+      "t": 8958.48,
+      "drawn": 0.5
+     },
+     {
+      "t": 9018.24,
+      "drawn": 0.5
+     },
+     {
+      "t": 9078.01,
+      "drawn": 0.5
+     },
+     {
+      "t": 9137.77,
+      "drawn": 0.5
+     },
+     {
+      "t": 9197.54,
+      "drawn": 0.5
+     },
+     {
+      "t": 9257.3,
+      "drawn": 0.5
+     },
+     {
+      "t": 9317.07,
+      "drawn": 0.5
+     },
+     {
+      "t": 9376.83,
+      "drawn": 0.5
+     },
+     {
+      "t": 9436.6,
+      "drawn": 0.5
+     },
+     {
+      "t": 9496.37,
+      "drawn": 0.5
+     },
+     {
+      "t": 9556.13,
+      "drawn": 0.5
+     },
+     {
+      "t": 9615.9,
+      "drawn": 0.5
+     },
+     {
+      "t": 9675.66,
+      "drawn": 0.5
+     },
+     {
+      "t": 9735.43,
+      "drawn": 0.5
+     },
+     {
+      "t": 9795.19,
+      "drawn": 0.5
+     },
+     {
+      "t": 9854.96,
+      "drawn": 0.5
+     },
+     {
+      "t": 9914.73,
+      "drawn": 0.5
+     },
+     {
+      "t": 9974.49,
+      "drawn": 0.5
+     },
+     {
+      "t": 10034.26,
+      "drawn": 0.5
+     },
+     {
+      "t": 10094.02,
+      "drawn": 0.5
+     },
+     {
+      "t": 10153.79,
+      "drawn": 0.5
+     },
+     {
+      "t": 10213.55,
+      "drawn": 0.5
+     },
+     {
+      "t": 10273.32,
+      "drawn": 0.5
+     },
+     {
+      "t": 10333.08,
+      "drawn": 0.5
+     },
+     {
+      "t": 10392.85,
+      "drawn": 0.5
+     },
+     {
+      "t": 10452.62,
+      "drawn": 0.5
+     },
+     {
+      "t": 10512.38,
+      "drawn": 0.5
+     },
+     {
+      "t": 10572.15,
+      "drawn": 0.5
+     },
+     {
+      "t": 10631.91,
+      "drawn": 0.5
+     },
+     {
+      "t": 10691.68,
+      "drawn": 0.5
+     },
+     {
+      "t": 10751.44,
+      "drawn": 0.5
+     }
+    ],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": 9376.83,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 99701,
+   "callsign": "Python",
+   "side": "red",
+   "aircraft_type": "Mi-6 Hook",
+   "resource": "fuel",
+   "assigned": {
+    "t": 6189.34,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": 4262.89,
+   "pickup": {
+    "t": 6850.74,
+    "supplier": {
+     "id": 75853,
+     "name": "Refinery 11",
+     "type": "KEYSITE_OIL_REFINERY",
+     "side": "red"
+    },
+    "level": [
+     100.0,
+     90.0
+    ],
+    "aircraft": 83378,
+    "horizontal_m": 15,
+    "altitude_m": 57
+   },
+   "delivery": {
+    "t": 7002.15,
+    "receiver": {
+     "id": 77042,
+     "name": "Power Station 10",
+     "type": "KEYSITE_POWER_STATION",
+     "side": "red"
+    },
+    "level": [
+     41.5,
+     100.0
+    ],
+    "aircraft": 83378,
+    "horizontal_m": 36,
+    "altitude_m": 222
+   },
+   "flight": {
+    "aircraft": 83378,
+    "kind": "helicopter",
+    "samples": 153,
+    "largest_gap_s": 1.0,
+    "flown_m": 7325,
+    "direct_m": 7233,
+    "max_speed_m_s": 70.1,
+    "altitude_m": [
+     40,
+     222
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 7682.48,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [
+     {
+      "t": 7051.95,
+      "drawn": 0.5
+     },
+     {
+      "t": 7111.72,
+      "drawn": 0.5
+     },
+     {
+      "t": 7171.48,
+      "drawn": 0.5
+     },
+     {
+      "t": 7231.25,
+      "drawn": 0.5
+     },
+     {
+      "t": 7291.02,
+      "drawn": 0.5
+     },
+     {
+      "t": 7350.78,
+      "drawn": 0.5
+     },
+     {
+      "t": 7410.55,
+      "drawn": 0.5
+     },
+     {
+      "t": 7470.31,
+      "drawn": 0.5
+     },
+     {
+      "t": 7530.08,
+      "drawn": 0.5
+     },
+     {
+      "t": 7589.84,
+      "drawn": 0.5
+     },
+     {
+      "t": 7649.61,
+      "drawn": 0.5
+     },
+     {
+      "t": 7709.37,
+      "drawn": 0.5
+     },
+     {
+      "t": 7769.14,
+      "drawn": 0.5
+     },
+     {
+      "t": 7828.91,
+      "drawn": 0.5
+     },
+     {
+      "t": 7888.67,
+      "drawn": 0.5
+     },
+     {
+      "t": 7948.44,
+      "drawn": 0.5
+     },
+     {
+      "t": 8008.2,
+      "drawn": 0.5
+     },
+     {
+      "t": 8067.97,
+      "drawn": 0.5
+     },
+     {
+      "t": 8127.73,
+      "drawn": 0.5
+     },
+     {
+      "t": 8187.5,
+      "drawn": 0.5
+     },
+     {
+      "t": 8247.26,
+      "drawn": 0.5
+     },
+     {
+      "t": 8307.03,
+      "drawn": 0.5
+     },
+     {
+      "t": 8366.8,
+      "drawn": 0.5
+     },
+     {
+      "t": 8426.56,
+      "drawn": 0.5
+     },
+     {
+      "t": 8486.33,
+      "drawn": 0.5
+     },
+     {
+      "t": 8546.09,
+      "drawn": 0.5
+     },
+     {
+      "t": 8605.86,
+      "drawn": 0.5
+     },
+     {
+      "t": 8665.62,
+      "drawn": 0.5
+     },
+     {
+      "t": 8725.39,
+      "drawn": 0.5
+     },
+     {
+      "t": 8785.16,
+      "drawn": 0.5
+     },
+     {
+      "t": 8844.92,
+      "drawn": 0.5
+     },
+     {
+      "t": 8904.69,
+      "drawn": 0.5
+     },
+     {
+      "t": 8964.45,
+      "drawn": 0.5
+     },
+     {
+      "t": 9024.22,
+      "drawn": 0.5
+     },
+     {
+      "t": 9083.98,
+      "drawn": 0.5
+     },
+     {
+      "t": 9143.75,
+      "drawn": 0.5
+     },
+     {
+      "t": 9203.51,
+      "drawn": 0.5
+     },
+     {
+      "t": 9263.28,
+      "drawn": 0.5
+     },
+     {
+      "t": 9323.05,
+      "drawn": 0.5
+     },
+     {
+      "t": 9382.81,
+      "drawn": 0.5
+     },
+     {
+      "t": 9442.58,
+      "drawn": 0.5
+     },
+     {
+      "t": 9502.34,
+      "drawn": 0.5
+     },
+     {
+      "t": 9562.11,
+      "drawn": 0.5
+     },
+     {
+      "t": 9621.87,
+      "drawn": 0.5
+     },
+     {
+      "t": 9681.64,
+      "drawn": 0.5
+     },
+     {
+      "t": 9741.41,
+      "drawn": 0.5
+     },
+     {
+      "t": 9801.17,
+      "drawn": 0.5
+     },
+     {
+      "t": 9860.94,
+      "drawn": 0.5
+     },
+     {
+      "t": 9920.7,
+      "drawn": 0.5
+     },
+     {
+      "t": 9980.47,
+      "drawn": 0.5
+     },
+     {
+      "t": 10040.23,
+      "drawn": 0.5
+     },
+     {
+      "t": 10100.0,
+      "drawn": 0.5
+     },
+     {
+      "t": 10159.76,
+      "drawn": 0.5
+     },
+     {
+      "t": 10219.53,
+      "drawn": 0.5
+     },
+     {
+      "t": 10279.3,
+      "drawn": 0.5
+     },
+     {
+      "t": 10339.06,
+      "drawn": 0.5
+     },
+     {
+      "t": 10398.83,
+      "drawn": 0.5
+     },
+     {
+      "t": 10458.59,
+      "drawn": 0.5
+     },
+     {
+      "t": 10518.36,
+      "drawn": 0.5
+     },
+     {
+      "t": 10578.12,
+      "drawn": 0.5
+     },
+     {
+      "t": 10637.89,
+      "drawn": 0.5
+     },
+     {
+      "t": 10697.66,
+      "drawn": 0.5
+     },
+     {
+      "t": 10757.42,
+      "drawn": 0.5
+     }
+    ],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": 9980.47,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 83625,
+   "callsign": "Phantom",
+   "side": "red",
+   "aircraft_type": "Mi-6 Hook",
+   "resource": "ammo",
+   "assigned": {
+    "t": 6309.86,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 7035.02,
+    "supplier": {
+     "id": 68267,
+     "name": "Factory 22",
+     "type": "KEYSITE_FACTORY",
+     "side": "red"
+    },
+    "level": [
+     100.0,
+     90.0
+    ],
+    "aircraft": 87635,
+    "horizontal_m": 22,
+    "altitude_m": 111
+   },
+   "delivery": {
+    "t": 7154.55,
+    "receiver": {
+     "id": 81297,
+     "name": "Wujah Al Hajar",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     10.0,
+     99.8
+    ],
+    "aircraft": 87635,
+    "horizontal_m": 23,
+    "altitude_m": 57
+   },
+   "flight": {
+    "aircraft": 87635,
+    "kind": "helicopter",
+    "samples": 121,
+    "largest_gap_s": 1.0,
+    "flown_m": 5703,
+    "direct_m": 2250,
+    "max_speed_m_s": 69.9,
+    "altitude_m": [
+     48,
+     154
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 7891.66,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [
+     {
+      "t": 8189.49,
+      "drawn": 10.0
+     },
+     {
+      "t": 8199.45,
+      "drawn": 20.0
+     },
+     {
+      "t": 9639.8,
+      "drawn": 30.0
+     },
+     {
+      "t": 10191.64,
+      "drawn": 10.0
+     },
+     {
+      "t": 10697.66,
+      "drawn": 18.0
+     }
+    ],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": 8199.45,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 87686,
+   "callsign": "Python",
+   "side": "red",
+   "aircraft_type": "An-12B Cub",
+   "resource": "ammo",
+   "assigned": {
+    "t": 7564.94,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": 4971.11,
+   "pickup": {
+    "t": 7574.9,
+    "supplier": {
+     "id": 80752,
+     "name": "Beirut International",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     10.0,
+     0.0
+    ],
+    "aircraft": 87715,
+    "horizontal_m": 336,
+    "altitude_m": 9
+   },
+   "delivery": {
+    "t": 8168.57,
+    "receiver": {
+     "id": 56622,
+     "name": "Military Base 9",
+     "type": "KEYSITE_MILITARY_BASE",
+     "side": "red"
+    },
+    "level": [
+     72.6,
+     100.0
+    ],
+    "aircraft": 87715,
+    "horizontal_m": 32,
+    "altitude_m": 1493
+   },
+   "flight": {
+    "aircraft": 87715,
+    "kind": "fixed_wing",
+    "samples": 597,
+    "largest_gap_s": 1.0,
+    "flown_m": 41185,
+    "direct_m": 5933,
+    "max_speed_m_s": 135.9,
+    "altitude_m": [
+     9,
+     2001
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 8239.3,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": null,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 88231,
+   "callsign": "Jester",
+   "side": "red",
+   "aircraft_type": "Il-76MD Candid-B",
+   "resource": "fuel",
+   "assigned": {
+    "t": 7265.12,
+    "state": "Taxiing"
+   },
+   "previous_delivery_by_group": 5145.43,
+   "pickup": {
+    "t": 7827.91,
+    "supplier": {
+     "id": 81129,
+     "name": "Halat",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     46.4,
+     36.4
+    ],
+    "aircraft": 88236,
+    "horizontal_m": 74,
+    "altitude_m": 1500
+   },
+   "delivery": {
+    "t": 8171.56,
+    "receiver": {
+     "id": 80752,
+     "name": "Beirut International",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     0.0,
+     100.0
+    ],
+    "aircraft": 88236,
+    "horizontal_m": 16,
+    "altitude_m": 1507
+   },
+   "flight": {
+    "aircraft": 88236,
+    "kind": "fixed_wing",
+    "samples": 346,
+    "largest_gap_s": 1.0,
+    "flown_m": 29764,
+    "direct_m": 29476,
+    "max_speed_m_s": 87.5,
+    "altitude_m": [
+     1410,
+     1543
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 8588.92,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [
+     {
+      "t": 9645.78,
+      "drawn": 30.0
+     },
+     {
+      "t": 10202.6,
+      "drawn": 16.4
+     }
+    ],
+    "pickups_by_other_supply_tasks": [
+     {
+      "t": 8447.48,
+      "drawn": 10.0,
+      "groups": [
+       96469
+      ]
+     },
+     {
+      "t": 8943.53,
+      "drawn": 10.0,
+      "groups": [
+       87567
+      ]
+     },
+     {
+      "t": 9107.89,
+      "drawn": 10.0,
+      "groups": [
+       87742
+      ]
+     },
+     {
+      "t": 9296.15,
+      "drawn": 10.0,
+      "groups": [
+       83625
+      ]
+     }
+    ],
+    "at_or_below_request_threshold_s": 8943.53,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 86961,
+   "callsign": "Panther",
+   "side": "red",
+   "aircraft_type": "An-12B Cub",
+   "resource": "ammo",
+   "assigned": {
+    "t": 7515.14,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": 4583.63,
+   "pickup": {
+    "t": 8095.86,
+    "supplier": {
+     "id": 29117,
+     "name": "Factory 5",
+     "type": "KEYSITE_FACTORY",
+     "side": "red"
+    },
+    "level": [
+     100.0,
+     90.0
+    ],
+    "aircraft": 86990,
+    "horizontal_m": 27,
+    "altitude_m": 2141
+   },
+   "delivery": {
+    "t": 8241.29,
+    "receiver": {
+     "id": 79605,
+     "name": "Damascus International",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     72.4,
+     100.0
+    ],
+    "aircraft": 86990,
+    "horizontal_m": 66,
+    "altitude_m": 2098
+   },
+   "flight": {
+    "aircraft": 86990,
+    "kind": "fixed_wing",
+    "samples": 147,
+    "largest_gap_s": 1.0,
+    "flown_m": 13687,
+    "direct_m": 13439,
+    "max_speed_m_s": 94.8,
+    "altitude_m": [
+     2089,
+     2190
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 8529.16,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": null,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 97473,
+   "callsign": "Maniac",
+   "side": "red",
+   "aircraft_type": "Mi-6 Hook",
+   "resource": "ammo",
+   "assigned": {
+    "t": 8232.32,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": 5868.59,
+   "pickup": {
+    "t": 8602.87,
+    "supplier": {
+     "id": 36603,
+     "name": "Factory 8",
+     "type": "KEYSITE_FACTORY",
+     "side": "red"
+    },
+    "level": [
+     100.0,
+     90.0
+    ],
+    "aircraft": 83670,
+    "horizontal_m": 14,
+    "altitude_m": 858
+   },
+   "delivery": {
+    "t": 8755.27,
+    "receiver": {
+     "id": 28934,
+     "name": "Military Base 4",
+     "type": "KEYSITE_MILITARY_BASE",
+     "side": "red"
+    },
+    "level": [
+     70.6,
+     100.0
+    ],
+    "aircraft": 83670,
+    "horizontal_m": 35,
+    "altitude_m": 678
+   },
+   "flight": {
+    "aircraft": 83670,
+    "kind": "helicopter",
+    "samples": 154,
+    "largest_gap_s": 1.0,
+    "flown_m": 8570,
+    "direct_m": 8545,
+    "max_speed_m_s": 70.3,
+    "altitude_m": [
+     678,
+     884
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 9189.57,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": null,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 88227,
+   "callsign": "Hawkeye",
+   "side": "red",
+   "aircraft_type": "Il-76MD Candid-B",
+   "resource": "fuel",
+   "assigned": {
+    "t": 7982.3,
+    "state": "Taxiing"
+   },
+   "previous_delivery_by_group": 6062.83,
+   "pickup": {
+    "t": 8571.0,
+    "supplier": {
+     "id": 75853,
+     "name": "Refinery 11",
+     "type": "KEYSITE_OIL_REFINERY",
+     "side": "red"
+    },
+    "level": [
+     100.0,
+     90.0
+    ],
+    "aircraft": 88228,
+    "horizontal_m": 82,
+    "altitude_m": 1503
+   },
+   "delivery": {
+    "t": 8787.15,
+    "receiver": {
+     "id": 81799,
+     "name": "Kleiat",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     41.2,
+     100.0
+    ],
+    "aircraft": 88228,
+    "horizontal_m": 76,
+    "altitude_m": 1506
+   },
+   "flight": {
+    "aircraft": 88228,
+    "kind": "fixed_wing",
+    "samples": 218,
+    "largest_gap_s": 1.0,
+    "flown_m": 18560,
+    "direct_m": 18460,
+    "max_speed_m_s": 87.4,
+    "altitude_m": [
+     1493,
+     1514
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 9196.54,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": null,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 96469,
+   "callsign": "Renegade",
+   "side": "red",
+   "aircraft_type": "Mi-6 Hook",
+   "resource": "fuel",
+   "assigned": {
+    "t": 8282.13,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 8447.48,
+    "supplier": {
+     "id": 80752,
+     "name": "Beirut International",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     98.0,
+     88.0
+    ],
+    "aircraft": 98872,
+    "horizontal_m": 113,
+    "altitude_m": 43
+   },
+   "delivery": {
+    "t": 8976.41,
+    "receiver": {
+     "id": 40996,
+     "name": "Power Station 2",
+     "type": "KEYSITE_POWER_STATION",
+     "side": "red"
+    },
+    "level": [
+     57.5,
+     100.0
+    ],
+    "aircraft": 98872,
+    "horizontal_m": 25,
+    "altitude_m": 670
+   },
+   "flight": {
+    "aircraft": 98872,
+    "kind": "helicopter",
+    "samples": 532,
+    "largest_gap_s": 1.0,
+    "flown_m": 23636,
+    "direct_m": 22615,
+    "max_speed_m_s": 70.5,
+    "altitude_m": [
+     41,
+     760
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 9447.56,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [
+     {
+      "t": 9013.26,
+      "drawn": 0.5
+     },
+     {
+      "t": 9073.03,
+      "drawn": 0.5
+     },
+     {
+      "t": 9132.79,
+      "drawn": 0.5
+     },
+     {
+      "t": 9192.56,
+      "drawn": 0.5
+     },
+     {
+      "t": 9252.32,
+      "drawn": 0.5
+     },
+     {
+      "t": 9312.09,
+      "drawn": 0.5
+     },
+     {
+      "t": 9371.85,
+      "drawn": 0.5
+     },
+     {
+      "t": 9431.62,
+      "drawn": 0.5
+     },
+     {
+      "t": 9491.39,
+      "drawn": 0.5
+     },
+     {
+      "t": 9551.15,
+      "drawn": 0.5
+     },
+     {
+      "t": 9610.92,
+      "drawn": 0.5
+     },
+     {
+      "t": 9670.68,
+      "drawn": 0.5
+     },
+     {
+      "t": 9730.45,
+      "drawn": 0.5
+     },
+     {
+      "t": 9790.21,
+      "drawn": 0.5
+     },
+     {
+      "t": 9849.98,
+      "drawn": 0.5
+     },
+     {
+      "t": 9909.75,
+      "drawn": 0.5
+     },
+     {
+      "t": 9969.51,
+      "drawn": 0.5
+     },
+     {
+      "t": 10029.28,
+      "drawn": 0.5
+     },
+     {
+      "t": 10089.04,
+      "drawn": 0.5
+     },
+     {
+      "t": 10148.81,
+      "drawn": 0.5
+     },
+     {
+      "t": 10208.57,
+      "drawn": 0.5
+     },
+     {
+      "t": 10268.34,
+      "drawn": 0.5
+     },
+     {
+      "t": 10328.1,
+      "drawn": 0.5
+     },
+     {
+      "t": 10387.87,
+      "drawn": 0.5
+     },
+     {
+      "t": 10447.64,
+      "drawn": 0.5
+     },
+     {
+      "t": 10507.4,
+      "drawn": 0.5
+     },
+     {
+      "t": 10567.17,
+      "drawn": 0.5
+     },
+     {
+      "t": 10626.93,
+      "drawn": 0.5
+     },
+     {
+      "t": 10686.7,
+      "drawn": 0.5
+     },
+     {
+      "t": 10746.46,
+      "drawn": 0.5
+     }
+    ],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": null,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 101677,
+   "callsign": "Spectrum",
+   "side": "red",
+   "aircraft_type": "An-12B Cub",
+   "resource": "ammo",
+   "assigned": {
+    "t": 8416.6,
+    "state": "Taxiing"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 8858.87,
+    "supplier": {
+     "id": 81080,
+     "name": "Yaate",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     70.4,
+     60.4
+    ],
+    "aircraft": 83141,
+    "horizontal_m": 52,
+    "altitude_m": 2550
+   },
+   "delivery": {
+    "t": 8998.32,
+    "receiver": {
+     "id": 63449,
+     "name": "Military Base 10",
+     "type": "KEYSITE_MILITARY_BASE",
+     "side": "red"
+    },
+    "level": [
+     70.0,
+     100.0
+    ],
+    "aircraft": 83141,
+    "horizontal_m": 78,
+    "altitude_m": 2651
+   },
+   "flight": {
+    "aircraft": 83141,
+    "kind": "fixed_wing",
+    "samples": 141,
+    "largest_gap_s": 1.0,
+    "flown_m": 12878,
+    "direct_m": 6270,
+    "max_speed_m_s": 94.8,
+    "altitude_m": [
+     2550,
+     2717
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 9215.47,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": null,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 87742,
+   "callsign": "Angel",
+   "side": "red",
+   "aircraft_type": "Il-76MD Candid-B",
+   "resource": "fuel",
+   "assigned": {
+    "t": 8640.72,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": 6419.43,
+   "pickup": {
+    "t": 9107.89,
+    "supplier": {
+     "id": 80752,
+     "name": "Beirut International",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     73.6,
+     63.6
+    ],
+    "aircraft": 87747,
+    "horizontal_m": 64,
+    "altitude_m": 1525
+   },
+   "delivery": {
+    "t": 9199.53,
+    "receiver": {
+     "id": 50531,
+     "name": "Power Station 4",
+     "type": "KEYSITE_POWER_STATION",
+     "side": "red"
+    },
+    "level": [
+     23.0,
+     100.0
+    ],
+    "aircraft": 87747,
+    "horizontal_m": 65,
+    "altitude_m": 1771
+   },
+   "flight": {
+    "aircraft": 87747,
+    "kind": "fixed_wing",
+    "samples": 93,
+    "largest_gap_s": 1.0,
+    "flown_m": 7964,
+    "direct_m": 7905,
+    "max_speed_m_s": 87.5,
+    "altitude_m": [
+     1254,
+     1923
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 9315.08,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [
+     {
+      "t": 9253.32,
+      "drawn": 0.5
+     },
+     {
+      "t": 9313.08,
+      "drawn": 0.5
+     },
+     {
+      "t": 9372.85,
+      "drawn": 0.5
+     },
+     {
+      "t": 9432.62,
+      "drawn": 0.5
+     },
+     {
+      "t": 9492.38,
+      "drawn": 0.5
+     },
+     {
+      "t": 9552.15,
+      "drawn": 0.5
+     },
+     {
+      "t": 9611.91,
+      "drawn": 0.5
+     },
+     {
+      "t": 9671.68,
+      "drawn": 0.5
+     },
+     {
+      "t": 9731.44,
+      "drawn": 0.5
+     },
+     {
+      "t": 9791.21,
+      "drawn": 0.5
+     },
+     {
+      "t": 9850.98,
+      "drawn": 0.5
+     },
+     {
+      "t": 9910.74,
+      "drawn": 0.5
+     },
+     {
+      "t": 9970.51,
+      "drawn": 0.5
+     },
+     {
+      "t": 10030.27,
+      "drawn": 0.5
+     },
+     {
+      "t": 10090.04,
+      "drawn": 0.5
+     },
+     {
+      "t": 10149.8,
+      "drawn": 0.5
+     },
+     {
+      "t": 10209.57,
+      "drawn": 0.5
+     },
+     {
+      "t": 10269.33,
+      "drawn": 0.5
+     },
+     {
+      "t": 10329.1,
+      "drawn": 0.5
+     },
+     {
+      "t": 10388.87,
+      "drawn": 0.5
+     },
+     {
+      "t": 10448.63,
+      "drawn": 0.5
+     },
+     {
+      "t": 10508.4,
+      "drawn": 0.5
+     },
+     {
+      "t": 10568.16,
+      "drawn": 0.5
+     },
+     {
+      "t": 10627.93,
+      "drawn": 0.5
+     },
+     {
+      "t": 10687.69,
+      "drawn": 0.5
+     },
+     {
+      "t": 10747.46,
+      "drawn": 0.5
+     }
+    ],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": null,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 95880,
+   "callsign": "Jester",
+   "side": "red",
+   "aircraft_type": "Mi-17 Hip",
+   "resource": "fuel",
+   "assigned": {
+    "t": 8770.21,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 9415.68,
+    "supplier": {
+     "id": 79605,
+     "name": "Damascus International",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     66.8,
+     56.8
+    ],
+    "aircraft": 99159,
+    "horizontal_m": 12,
+    "altitude_m": 634
+   },
+   "delivery": {
+    "t": 9639.8,
+    "receiver": {
+     "id": 28934,
+     "name": "Military Base 4",
+     "type": "KEYSITE_MILITARY_BASE",
+     "side": "red"
+    },
+    "level": [
+     67.8,
+     100.0
+    ],
+    "aircraft": 99159,
+    "horizontal_m": 16,
+    "altitude_m": 678
+   },
+   "flight": {
+    "aircraft": 99159,
+    "kind": "helicopter",
+    "samples": 226,
+    "largest_gap_s": 1.0,
+    "flown_m": 12727,
+    "direct_m": 12731,
+    "max_speed_m_s": 67.3,
+    "altitude_m": [
+     630,
+     711
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 10015.33,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": null,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 82988,
+   "callsign": "Chieftain",
+   "side": "blue",
+   "aircraft_type": "C-130J Hercules II",
+   "resource": "ammo",
+   "assigned": {
+    "t": 9415.68,
+    "state": "Taxiing"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 9660.72,
+    "supplier": {
+     "id": 78307,
+     "name": "Rosh Pina",
+     "type": "KEYSITE_AIRBASE",
+     "side": "blue"
+    },
+    "level": [
+     47.6,
+     37.6
+    ],
+    "aircraft": 82989,
+    "horizontal_m": 95,
+    "altitude_m": 1808
+   },
+   "delivery": {
+    "t": 9787.23,
+    "receiver": {
+     "id": 13010,
+     "name": "Military Base 2",
+     "type": "KEYSITE_MILITARY_BASE",
+     "side": "blue"
+    },
+    "level": [
+     67.4,
+     100.0
+    ],
+    "aircraft": 82989,
+    "horizontal_m": 76,
+    "altitude_m": 2243
+   },
+   "flight": {
+    "aircraft": 82989,
+    "kind": "fixed_wing",
+    "samples": 128,
+    "largest_gap_s": 1.0,
+    "flown_m": 12271,
+    "direct_m": 11248,
+    "max_speed_m_s": 129.1,
+    "altitude_m": [
+     1808,
+     2465
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 9956.56,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": null,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 96394,
+   "callsign": "Charger",
+   "side": "red",
+   "aircraft_type": "An-12B Cub",
+   "resource": "ammo",
+   "assigned": {
+    "t": 9237.38,
+    "state": "Taxiing"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 9614.9,
+    "supplier": {
+     "id": 72890,
+     "name": "Factory 24",
+     "type": "KEYSITE_FACTORY",
+     "side": "red"
+    },
+    "level": [
+     100.0,
+     90.0
+    ],
+    "aircraft": 92794,
+    "horizontal_m": 9,
+    "altitude_m": 1516
+   },
+   "delivery": {
+    "t": 9830.06,
+    "receiver": {
+     "id": 81799,
+     "name": "Kleiat",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     67.2,
+     100.0
+    ],
+    "aircraft": 92794,
+    "horizontal_m": 21,
+    "altitude_m": 1505
+   },
+   "flight": {
+    "aircraft": 92794,
+    "kind": "fixed_wing",
+    "samples": 217,
+    "largest_gap_s": 1.0,
+    "flown_m": 21348,
+    "direct_m": 20700,
+    "max_speed_m_s": 133.9,
+    "altitude_m": [
+     1485,
+     1530
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 10205.58,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": null,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 99701,
+   "callsign": "Python",
+   "side": "red",
+   "aircraft_type": "Mi-6 Hook",
+   "resource": "fuel",
+   "assigned": {
+    "t": 9237.38,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": 7002.15,
+   "pickup": {
+    "t": 9602.95,
+    "supplier": {
+     "id": 71048,
+     "name": "Refinery 8",
+     "type": "KEYSITE_OIL_REFINERY",
+     "side": "red"
+    },
+    "level": [
+     100.0,
+     90.0
+    ],
+    "aircraft": 83378,
+    "horizontal_m": 25,
+    "altitude_m": 65
+   },
+   "delivery": {
+    "t": 9837.03,
+    "receiver": {
+     "id": 70762,
+     "name": "Power Station 7",
+     "type": "KEYSITE_POWER_STATION",
+     "side": "red"
+    },
+    "level": [
+     53.0,
+     100.0
+    ],
+    "aircraft": 83378,
+    "horizontal_m": 36,
+    "altitude_m": 536
+   },
+   "flight": {
+    "aircraft": 83378,
+    "kind": "helicopter",
+    "samples": 236,
+    "largest_gap_s": 1.0,
+    "flown_m": 9707,
+    "direct_m": 9618,
+    "max_speed_m_s": 70.0,
+    "altitude_m": [
+     41,
+     536
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 10186.66,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [
+     {
+      "t": 9895.8,
+      "drawn": 0.5
+     },
+     {
+      "t": 9955.57,
+      "drawn": 0.5
+     },
+     {
+      "t": 10015.33,
+      "drawn": 0.5
+     },
+     {
+      "t": 10075.1,
+      "drawn": 0.5
+     },
+     {
+      "t": 10134.86,
+      "drawn": 0.5
+     },
+     {
+      "t": 10194.63,
+      "drawn": 0.5
+     },
+     {
+      "t": 10254.39,
+      "drawn": 0.5
+     },
+     {
+      "t": 10314.16,
+      "drawn": 0.5
+     },
+     {
+      "t": 10373.92,
+      "drawn": 0.5
+     },
+     {
+      "t": 10433.69,
+      "drawn": 0.5
+     },
+     {
+      "t": 10493.46,
+      "drawn": 0.5
+     },
+     {
+      "t": 10553.22,
+      "drawn": 0.5
+     },
+     {
+      "t": 10612.99,
+      "drawn": 0.5
+     },
+     {
+      "t": 10672.75,
+      "drawn": 0.5
+     },
+     {
+      "t": 10732.52,
+      "drawn": 0.5
+     }
+    ],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": null,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 87021,
+   "callsign": "Viper",
+   "side": "red",
+   "aircraft_type": "Il-76MD Candid-B",
+   "resource": "ammo",
+   "assigned": {
+    "t": 9308.1,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 9796.19,
+    "supplier": {
+     "id": 36603,
+     "name": "Factory 8",
+     "type": "KEYSITE_FACTORY",
+     "side": "red"
+    },
+    "level": [
+     100.0,
+     90.0
+    ],
+    "aircraft": 87022,
+    "horizontal_m": 48,
+    "altitude_m": 2256
+   },
+   "delivery": {
+    "t": 9862.93,
+    "receiver": {
+     "id": 30726,
+     "name": "Military Base 5",
+     "type": "KEYSITE_MILITARY_BASE",
+     "side": "red"
+    },
+    "level": [
+     67.2,
+     100.0
+    ],
+    "aircraft": 87022,
+    "horizontal_m": 69,
+    "altitude_m": 2272
+   },
+   "flight": {
+    "aircraft": 87022,
+    "kind": "fixed_wing",
+    "samples": 68,
+    "largest_gap_s": 1.0,
+    "flown_m": 5600,
+    "direct_m": 5564,
+    "max_speed_m_s": 87.5,
+    "altitude_m": [
+     2256,
+     2272
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 9988.44,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": null,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 87567,
+   "callsign": "Wolfpack",
+   "side": "red",
+   "aircraft_type": "Mi-17 Hip",
+   "resource": "fuel",
+   "assigned": {
+    "t": 8820.02,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": 4013.67,
+   "pickup": {
+    "t": 8943.53,
+    "supplier": {
+     "id": 80752,
+     "name": "Beirut International",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     84.8,
+     74.8
+    ],
+    "aircraft": 87581,
+    "horizontal_m": 19,
+    "altitude_m": 43
+   },
+   "delivery": {
+    "t": 9911.74,
+    "receiver": {
+     "id": 32191,
+     "name": "Power Station 1",
+     "type": "KEYSITE_POWER_STATION",
+     "side": "red"
+    },
+    "level": [
+     58.5,
+     100.0
+    ],
+    "aircraft": 87581,
+    "horizontal_m": 34,
+    "altitude_m": 1007
+   },
+   "flight": {
+    "aircraft": 87581,
+    "kind": "helicopter",
+    "samples": 973,
+    "largest_gap_s": 1.0,
+    "flown_m": 37310,
+    "direct_m": 34863,
+    "max_speed_m_s": 67.7,
+    "altitude_m": [
+     41,
+     1564
+    ],
+    "continuous": true
+   },
+   "task_ended": null,
+   "afterwards": {
+    "other_decreases": [
+     {
+      "t": 9970.51,
+      "drawn": 0.5
+     },
+     {
+      "t": 10030.27,
+      "drawn": 0.5
+     },
+     {
+      "t": 10090.04,
+      "drawn": 0.5
+     },
+     {
+      "t": 10149.8,
+      "drawn": 0.5
+     },
+     {
+      "t": 10209.57,
+      "drawn": 0.5
+     },
+     {
+      "t": 10269.33,
+      "drawn": 0.5
+     },
+     {
+      "t": 10329.1,
+      "drawn": 0.5
+     },
+     {
+      "t": 10388.87,
+      "drawn": 0.5
+     },
+     {
+      "t": 10448.63,
+      "drawn": 0.5
+     },
+     {
+      "t": 10508.4,
+      "drawn": 0.5
+     },
+     {
+      "t": 10568.16,
+      "drawn": 0.5
+     },
+     {
+      "t": 10627.93,
+      "drawn": 0.5
+     },
+     {
+      "t": 10687.69,
+      "drawn": 0.5
+     },
+     {
+      "t": 10747.46,
+      "drawn": 0.5
+     }
+    ],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": null,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 86896,
+   "callsign": "Milkman",
+   "side": "red",
+   "aircraft_type": "Mi-17 Hip",
+   "resource": "ammo",
+   "assigned": {
+    "t": 9666.7,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": 4456.13,
+   "pickup": {
+    "t": 10056.17,
+    "supplier": {
+     "id": 36603,
+     "name": "Factory 8",
+     "type": "KEYSITE_FACTORY",
+     "side": "red"
+    },
+    "level": [
+     94.0,
+     84.0
+    ],
+    "aircraft": 86910,
+    "horizontal_m": 26,
+    "altitude_m": 860
+   },
+   "delivery": {
+    "t": 10163.75,
+    "receiver": {
+     "id": 33364,
+     "name": "Military Base 6",
+     "type": "KEYSITE_MILITARY_BASE",
+     "side": "red"
+    },
+    "level": [
+     66.2,
+     100.0
+    ],
+    "aircraft": 86910,
+    "horizontal_m": 38,
+    "altitude_m": 885
+   },
+   "flight": {
+    "aircraft": 86910,
+    "kind": "helicopter",
+    "samples": 109,
+    "largest_gap_s": 1.0,
+    "flown_m": 4967,
+    "direct_m": 4982,
+    "max_speed_m_s": 67.4,
+    "altitude_m": [
+     798,
+     885
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 10360.98,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": null,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 83625,
+   "callsign": "Phantom",
+   "side": "red",
+   "aircraft_type": "Mi-6 Hook",
+   "resource": "fuel",
+   "assigned": {
+    "t": 9178.61,
+    "state": "Repairing"
+   },
+   "previous_delivery_by_group": 7154.55,
+   "pickup": {
+    "t": 9296.15,
+    "supplier": {
+     "id": 80752,
+     "name": "Beirut International",
+     "type": "KEYSITE_AIRBASE",
+     "side": "red"
+    },
+    "level": [
+     62.4,
+     52.4
+    ],
+    "aircraft": 87635,
+    "horizontal_m": 14,
+    "altitude_m": 43
+   },
+   "delivery": {
+    "t": 10243.44,
+    "receiver": {
+     "id": 79457,
+     "name": "FARP 6",
+     "type": "KEYSITE_FARP",
+     "side": "red"
+    },
+    "level": [
+     10.0,
+     100.0
+    ],
+    "aircraft": 87635,
+    "horizontal_m": 29,
+    "altitude_m": 316
+   },
+   "flight": {
+    "aircraft": 87635,
+    "kind": "helicopter",
+    "samples": 952,
+    "largest_gap_s": 1.0,
+    "flown_m": 55474,
+    "direct_m": 52737,
+    "max_speed_m_s": 70.4,
+    "altitude_m": [
+     40,
+     349
+    ],
+    "continuous": true
+   },
+   "task_ended": null,
+   "afterwards": {
+    "other_decreases": [],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": null,
+    "next_delivery_s": null
+   },
+   "complete": true
+  },
+  {
+   "group": 96645,
+   "callsign": "Comet",
+   "side": "red",
+   "aircraft_type": "Il-76MD Candid-B",
+   "resource": "ammo",
+   "assigned": {
+    "t": 9671.68,
+    "state": "Taxiing"
+   },
+   "previous_delivery_by_group": null,
+   "pickup": {
+    "t": 10388.87,
+    "supplier": {
+     "id": 64895,
+     "name": "Factory 20",
+     "type": "KEYSITE_FACTORY",
+     "side": "red"
+    },
+    "level": [
+     100.0,
+     90.0
+    ],
+    "aircraft": 100172,
+    "horizontal_m": 44,
+    "altitude_m": 2488
+   },
+   "delivery": {
+    "t": 10479.51,
+    "receiver": {
+     "id": 64780,
+     "name": "Military Base 11",
+     "type": "KEYSITE_MILITARY_BASE",
+     "side": "red"
+    },
+    "level": [
+     65.0,
+     100.0
+    ],
+    "aircraft": 100172,
+    "horizontal_m": 15,
+    "altitude_m": 2492
+   },
+   "flight": {
+    "aircraft": 100172,
+    "kind": "fixed_wing",
+    "samples": 92,
+    "largest_gap_s": 1.0,
+    "flown_m": 7643,
+    "direct_m": 552,
+    "max_speed_m_s": 87.6,
+    "altitude_m": [
+     2479,
+     2552
+    ],
+    "continuous": true
+   },
+   "task_ended": {
+    "t": 10663.79,
+    "task": null,
+    "state": "Landing"
+   },
+   "afterwards": {
+    "other_decreases": [],
+    "pickups_by_other_supply_tasks": [],
+    "at_or_below_request_threshold_s": null,
+    "next_delivery_s": null
+   },
+   "complete": true
+  }
+ ]
+}

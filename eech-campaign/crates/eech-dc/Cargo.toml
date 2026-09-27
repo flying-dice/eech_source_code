@@ -1,0 +1,41 @@
+# The EECH dynamic campaign, the whole headless engine, as a Lua 5.1 native
+# module (cdylib): a host loads it with require ("eech_dc") in its Lua state
+# and drives the campaign from Lua. Modelled on the reference Lua module
+# crate, flying-dice/dcs-studio bridge (mlua 0.10, lua51 + module).
+[package]
+name = "eech-dc"
+version = "0.1.0"
+description = "The EECH dynamic campaign (the full headless engine) as a Lua 5.1 native module: require (\"eech_dc\")."
+edition.workspace = true
+publish.workspace = true
+
+# mlua derives `luaopen_eech_dc` from the lib name, and require ("eech_dc")
+# resolves the DLL basename: the two must match.
+[lib]
+name = "eech_dc"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+eech-engine = { path = "../eech-engine" }
+# No `macros`: `#[mlua::lua_module]` comes from `module` (as in the reference crate)
+mlua = { version = "0.10", features = ["lua51", "module", "serialize"] }
+serde.workspace = true
+serde_json.workspace = true
+
+# Code that runs inside a host's process: a panic in this DLL takes the host
+# down. The reference crate's restriction lints, denied here.
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+unreachable = "deny"
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+print_stdout = "deny"
+print_stderr = "deny"
+exit = "deny"
+indexing_slicing = "deny"
+
+[lints.rust]
+unsafe_code = "forbid"

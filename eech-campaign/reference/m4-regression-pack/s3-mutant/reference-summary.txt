@@ -1,0 +1,16 @@
+Reference scenario: retail Lebanon, 3 simulated hours (2026-09-27T18:46:34)
+MUTANT (test only, not a product build): commit 56b164d733d96bdf484e61cea5c134ab32cf8680 with patch S3-pick-up-the-tasks-cargo removed
+inputs, run 1: E:\eech-runs\m3\lebanon-root3: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09
+inputs, run 2: E:\eech-runs\roots\lebanon: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09
+the two roots hold identical inputs
+runs took 1,644 s
+run 1: observation check PASS
+run 2: observation check PASS
+run 1: supply chains: 27 complete of 30 deliveries (0 unattributed); metrics agree: PASS
+run 2: supply chains: 27 complete of 30 deliveries (0 unattributed); metrics agree: PASS
+recording.acmi: byte-identical in both runs (120,187,038 bytes, SHA-256 d65f0ee7e847d7a8a41dca08cfaa6ffe14a8220333dfb76aabb94b16c20d3e66)
+observations.jsonl: byte-identical in both runs (85,960,035 bytes, SHA-256 e203844585bd02c4322ea4c884d55d00f3f3fc5d717160ca889496a1bd376905)
+metrics.json: byte-identical in both runs (35,414 bytes, SHA-256 4bf3a92248fef261df1404658040afdefc58a012ac6f1fa6c72dbac8c8ccdd93)
+metrics against the regression baseline: OUTSIDE tolerance of the baseline (--exact: not identical)
+lebanon_retail: 38 of 39 campaign expectations hold
+REFERENCE: FAIL

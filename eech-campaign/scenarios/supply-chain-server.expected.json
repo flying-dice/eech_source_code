@@ -1,0 +1,283 @@
+{
+  "events_before_failure": [],
+  "frames": [
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        },
+        {
+          "entity_type": "CARGO",
+          "event": "replicated",
+          "kind": "entity-created"
+        }
+      ],
+      "frame": 0,
+      "time": 0.5
+    }
+  ],
+  "outcome": {
+    "result": "ok"
+  },
+  "snapshot": {
+    "elapsed": 1.0,
+    "forces": [
+      {
+        "id": "#18.1",
+        "side": "blue",
+        "supply_missions_created": 0
+      }
+    ],
+    "groups": [
+      {
+        "id": "lift",
+        "kind": "MEDIUM_LIFT_TRANSPORT_HELICOPTER",
+        "members": 2,
+        "name": "lift",
+        "side": "blue",
+        "supplies": {
+          "ammo": 100.0,
+          "fuel": 100.0
+        }
+      }
+    ],
+    "keysites": [
+      {
+        "ammo_crates": 0,
+        "fuel_crates": 9,
+        "id": "farp",
+        "kind": "FARP",
+        "name": "farp",
+        "side": "blue",
+        "supplies": {
+          "ammo": 10.0,
+          "fuel": 99.9699935913086
+        },
+        "unassigned_missions": 0
+      },
+      {
+        "ammo_crates": 3,
+        "fuel_crates": 9,
+        "id": "factory",
+        "kind": "FACTORY",
+        "name": "factory",
+        "side": "blue",
+        "supplies": {
+          "ammo": 36.0,
+          "fuel": 100.0
+        },
+        "unassigned_missions": 0
+      },
+      {
+        "ammo_crates": 9,
+        "fuel_crates": 9,
+        "id": "airbase",
+        "kind": "AIRBASE",
+        "name": "airbase",
+        "side": "blue",
+        "supplies": {
+          "ammo": 99.79999542236328,
+          "fuel": 99.5999984741211
+        },
+        "unassigned_missions": 0
+      }
+    ],
+    "tasks": []
+  },
+  "world_queries": {
+    "object-bounds answered": 6
+  }
+}
