@@ -76,7 +76,8 @@ CHECKS = {
     'regress.lebanon.exact': 'Lebanon metrics IDENTICAL to regression/windows/lebanon_retail.json',
     'reference.observation_check': 'observation-check.py passes on both reference runs',
     'reference.repeatable': 'the two reference runs give byte-identical recording, observations and metrics',
-    'reference.unperturbed': "the observed run's metrics are IDENTICAL to the Lebanon baseline and every expectation holds",
+    'reference.baseline': "the observed run's metrics are IDENTICAL to the Lebanon baseline and every expectation holds (the runner's own check)",
+    'reference.observed_equals_unobserved': "the observed run's metrics are IDENTICAL to the same build's unobserved Lebanon regression run",
     'reference.supply_chains': 'supply-chain-check.py passes on both reference runs (a complete chain; deliveries agree with the metrics)',
     'reference.loss_chain': "loss-chain-check.py passes on the reference run's first SUPPLY aircraft destroyed in flight",
     'retained.recording': "the reference run's recording is byte-identical to reference/lebanon-3h/recording.zip.acmi",
@@ -365,8 +366,15 @@ def runtime_tier(pack, a, out, results, identity):
     results['reference.observation_check'] = ('PASS' if len(obs) == 2 and all(l.endswith('PASS') for l in obs) else 'FAIL', '; '.join(obs) or 'no result')
     same = [l for l in summary if 'byte-identical in both runs' in l or 'the runs DIFFER' in l]
     results['reference.repeatable'] = ('PASS' if len(same) == 3 and all('byte-identical' in l for l in same) else 'FAIL', '; '.join(l.split(' (')[0] for l in same) or 'no result')
-    unperturbed = has('metrics against the regression baseline: IDENTICAL') and has('lebanon_retail: 39 of 39 campaign expectations hold')
-    results['reference.unperturbed'] = ('PASS' if unperturbed else 'FAIL', '; '.join(l for l in summary if 'regression baseline' in l or 'campaign expectations' in l))
+    baseline = has('metrics against the regression baseline: IDENTICAL') and has('lebanon_retail: 39 of 39 campaign expectations hold')
+    results['reference.baseline'] = ('PASS' if baseline else 'FAIL', '; '.join(l for l in summary if 'regression baseline' in l or 'campaign expectations' in l))
+    # observing does not perturb: judged against this build's own unobserved run, so a changed build is not mistaken for perturbation
+    unobserved = os.path.join(regress, 'lebanon_retail.json')
+    if os.path.exists(unobserved):
+        code, verdict = compare(unobserved, os.path.join(reference, 'run1', 'metrics.json'), os.path.join(logs, 'observed-vs-unobserved.txt'))
+        results['reference.observed_equals_unobserved'] = ('PASS' if code == 0 else 'FAIL', verdict)
+    else:
+        results['reference.observed_equals_unobserved'] = ('FAIL', 'the regression wrote no Lebanon metrics to compare with')
     chains = [l for l in summary if 'supply chains:' in l]
     results['reference.supply_chains'] = ('PASS' if len(chains) == 2 and all(l.endswith('PASS') for l in chains) else 'FAIL', '; '.join(chains) or 'no result')
 
