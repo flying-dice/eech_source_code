@@ -104,10 +104,12 @@
   "tools/supply-chain-check-selftest.py": {"sha256": "16eb89e5a59a7974b1c4350c2822f29b0f9ba1aaeb9fcffd6bc133855bbde4e0", "revision": "0ea49a4a"},
   "tools/loss-chain-check.py": {"sha256": "981efec3626f4d227a542b077fcf2ca83f85faa67f81e0f1b48898208838b196", "revision": "e2bd16eb"},
   "tools/loss-chain-check-selftest.py": {"sha256": "729b4b0e2965b4a6779409a52eee0e17207ac8326d6f5cb99792c12932164f86", "revision": "e2bd16eb"},
-  "tools/regress-windows.ps1": {"sha256": "d21924958bd338e2555698734d503543c40ea27cbf6d0578a306222475702395", "revision": "a79cfc3d"},
+  "tools/regress-windows.ps1": {"sha256": "3cdb8463a175b9fce74b28314686f8146bf10a5539b9adebe35ceef88150519a", "revision": "this PR (refuses -Update and never writes a missing baseline)"},
   "tools/reference-windows.ps1": {"sha256": "2813814bf2bb3d20bd7f5a6f5d40d71b3672db1a43e48922df918cfc19b4b0f6", "revision": "416d1dec"},
   "tools/lifecycle-windows.ps1": {"sha256": "afe05ea67001d16729c42a67b8fd4a5f63fcd5753de95b3c4777ce66d098fe1a", "revision": "this PR (adds -Out; the cases are a8661eaa's)"},
-  "tools/regression-pack.py": {"sha256": "952a0dea24d117acd215fd5b8f749c7d8c9b5ce428c54560e56ec5946d70cc0d", "revision": "90acbacd (classifies the claims and gives the verdict; the retained runs used this version)"}
+  "tools/regression-pack.py": {"sha256": "4dc08480b72722a7dfdae5dea319f61acc6414c4bdb29351982e1579393d66db", "revision": "this PR (governance: lineage checks, fixture self-test, dispositions)"},
+  "tools/baseline-governance.py": {"sha256": "3bf096d28ab354afd30405083863af6f50e5e1b4ad2eca6c5bd8831270b4e9e9", "revision": "this PR (baseline lineages and change records)"},
+  "tools/baseline-governance-selftest.py": {"sha256": "08e1260e3eff3fbac414070f5495ffed8a449dac7aa674a7c2cd4caa13027e2f", "revision": "this PR (the governance fixture)"}
  },
  "claims": [
   {"id": "M1.georgia.mechanics", "claim": "Retail Georgia plays out as an EECH campaign for 3 h: the expected air and ground task types, combat and helicopter and vehicle losses on both sides, red SUPPLY flown, airbases consuming ammo and fuel, keysites changing hands", "accepted": "#19 (docs/m1-baseline.md)", "path": "public", "class": "direct", "checks": ["regress.georgia.expectations"], "sensitivity": "none demonstrated for Georgia's expectations: without S3 all 30 still hold (#68)", "blind_spots": ["georgia-resupply", "three-hours"]},

@@ -47,6 +47,8 @@ M4: the regression detects a reintroduced campaign defect (S3 removed in a test-
 mutant): [`docs/m4-s3-mutation.md`](docs/m4-s3-mutation.md).
 M4: the accepted M1–M3 regression pack, with its coverage, provenance and blind spots:
 [`docs/m4-regression-pack.md`](docs/m4-regression-pack.md).
+M4: accepted baselines change only by a classified, approved and non-destructive change record:
+[`docs/m4-baseline-governance.md`](docs/m4-baseline-governance.md).
 
 ## The campaign kernel spike
 

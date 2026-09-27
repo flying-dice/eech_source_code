@@ -12,14 +12,21 @@
 #   NOT RUN                            its check needs the runtime tier
 #
 # EVIDENCE ONLY and NOT COVERED never become PASS: they come from the
-# inventory, not from a run. Two tiers:
+# inventory, not from a run. When a run fails, each failure also gets its
+# disposition from the change records (tools/baseline-governance.py):
+# UNCLASSIFIED, CLASSIFIED - APPROVAL REQUIRED, CLASSIFIED AND APPROVED, or
+# REGRESSION - REJECTED. A disposition explains a difference; it never turns a
+# failure into a pass. Two tiers:
 #
 #   retained  no retail data, about a minute: every retained artifact and
 #             checker has its recorded hash, and each input manifest its
 #             recorded identity; the checkers reproduce the retained reports
 #             from the retained evidence; their self-tests still detect their
 #             injected discrepancies; the accepted checks still reject the S3
-#             mutant's retained metrics (#68). Any failure here stops the pack:
+#             mutant's retained metrics (#68); the baseline lineages and change
+#             records are consistent, the working baselines are the current
+#             accepted version, and the governance fixture's self-test passes.
+#             Any failure here stops the pack:
 #             it cannot judge a build against inconsistent evidence.
 #   runtime   the build and the retail roots, about 20 minutes: the roots
 #             against their manifests; tools/lifecycle-windows.ps1; then, in
@@ -60,6 +67,8 @@ CHECKS = {
     'sensitivity.s3_lebanon_expectation': "campaign-expectations.py rejects the S3 mutant's retained Lebanon metrics: 'airbases resupplied with ammo' fails",
     'sensitivity.s3_exact': "regress-compare.py --exact rejects the S3 mutant's retained metrics for both scenarios",
     'blindspot.georgia_resupply': "Georgia's expectations still all hold on the S3 mutant's retained metrics (the blind spot is as documented)",
+    'governance.lineage': 'the baseline lineages and change records are consistent (baseline-governance.py check), and pack.json names the current version',
+    'governance.fixture': 'baseline-governance-selftest.py: the approved transition works and each broken variant is refused or detected',
     'inputs.georgia': 'the Georgia root matches reference/m4-s3-mutation/inputs-georgia.json',
     'inputs.lebanon': 'the Lebanon root matches reference/lebanon-3h/inputs.json',
     'inputs.lebanon_repeat': 'the second, separately assembled Lebanon root matches it too',
@@ -153,6 +162,13 @@ def summarise(a, b):
     return ' (' + '; '.join(out) + ')' if out else ''
 
 
+def governance(root=HERE):
+    spec = importlib.util.spec_from_file_location('baseline_governance', os.path.join(HERE, 'tools', 'baseline-governance.py'))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.Governance(root)
+
+
 def expectations_module():
     spec = importlib.util.spec_from_file_location('campaign_expectations', os.path.join(HERE, 'tools', 'campaign-expectations.py'))
     module = importlib.util.module_from_spec(spec)
@@ -239,6 +255,7 @@ def retained_tier(pack, out, results):
         'sensitivity.observation_check': ([PY, tool('observation-check-selftest.py'), content['m2.recording'], content['m2.observations'], art['m2.metrics']], None),
         'sensitivity.supply_chain_check': ([PY, tool('supply-chain-check-selftest.py'), content['m3.observations'], art['m2.metrics']], None),
         'sensitivity.loss_chain_check': ([PY, tool('loss-chain-check-selftest.py'), art['m3.observations'], '--unit', '87568'], None),
+        'governance.fixture': ([PY, tool('baseline-governance-selftest.py')], None),
     }
     with ThreadPoolExecutor(len(jobs)) as pool:
         codes = dict(zip(jobs, pool.map(lambda k: run(jobs[k][0], os.path.join(tmp, k + '.txt')), jobs)))
@@ -249,7 +266,7 @@ def retained_tier(pack, out, results):
             results[key] = (status if codes[key] == 0 else 'FAIL', (f'exit {codes[key]}; ' if codes[key] else '') + detail)
         else:
             lines = [l.strip() for l in open(log, encoding='utf-8', errors='replace') if l.strip()]
-            results[key] = ('PASS' if codes[key] == 0 else 'FAIL', f"{len(lines)} cases: " + '; '.join(lines))
+            results[key] = ('PASS' if codes[key] == 0 else 'FAIL', tail(log) if key == 'governance.fixture' else f"{len(lines)} cases: " + '; '.join(lines))
 
     lebanon = expectations(art['m4.mutant_lebanon'], 'lebanon_retail')
     ammo = [ok for ok, name, _ in lebanon if name == 'airbases resupplied with ammo']
@@ -260,6 +277,15 @@ def retained_tier(pack, out, results):
         code, verdict = compare(art['baseline.' + scenario.split('_')[0]], art[key], os.path.join(tmp, f's3-exact-{scenario}.txt'))
         verdicts.append((scenario, code, verdict))
     results['sensitivity.s3_exact'] = ('PASS' if all(c != 0 for _, c, _ in verdicts) else 'FAIL', '; '.join(f'{s}: {v}' for s, _, v in verdicts))
+    g = governance()
+    problems = g.check()
+    current = g.lineages['windows-retail']
+    files = next(v for v in current['versions'] if v['id'] == current['current'])['files']
+    for scenario in ('georgia', 'lebanon'):
+        if pack['artifacts']['baseline.' + scenario]['sha256'] != files[f'{scenario}_retail.json']:
+            problems.append(f"regression/pack.json's baseline.{scenario} is not windows-retail {current['current']}")
+    results['governance.lineage'] = (('FAIL', '; '.join(problems)) if problems else
+                                     ('PASS', f"{g.describe('windows-retail')}; {len(g.records())} change records consistent"))
     georgia = expectations(art['m4.mutant_georgia'], 'georgia_retail')
     status, detail = verdict_of(georgia)
     results['blindspot.georgia_resupply'] = (('PASS', f'confirmed: {detail} on the S3 mutant') if status == 'PASS'
@@ -443,16 +469,32 @@ def write_report(pack, a, out, results, identity, tiers):
     failed = [k for k, (s, _) in results.items() if s == 'FAIL']
     complete = tiers['runtime'] and not failed
     verdict = 'PASS' if complete else 'FAIL' if failed else 'INCOMPLETE (retained tier only)' if tiers['retained'] else 'FAIL'
-    dirty = git('status', '--porcelain', '--', '.')
+    dirty = git('status', '--porcelain', '--untracked-files=no', '--', '.')
+    lineage = baseline = None
+    if tiers['retained']:
+        g = governance()
+        lin = g.lineages['windows-retail']
+        lineage = g.describe('windows-retail')
+        baseline = {'lineage': 'windows-retail', 'version': lin['current'],
+                    'files': next(v for v in lin['versions'] if v['id'] == lin['current'])['files']}
     head = {
         'pack_revision': git('rev-parse', 'HEAD') + (' (with uncommitted changes)' if dirty else ''),
         'when': datetime.datetime.now().isoformat(timespec='seconds'),
         'command': ' '.join(sys.argv),
         'build': identity, 'roots': {'georgia': a.georgia, 'lebanon': a.lebanon, 'lebanon_repeat': a.lebanon_repeat},
-        'tiers_run': [t for t, ran in tiers.items() if ran], 'verdict': verdict,
+        'baseline': baseline, 'tiers_run': [t for t, ran in tiers.items() if ran], 'verdict': verdict,
     }
-    json.dump({'head': head, 'checks': {k: {'status': s, 'detail': d, 'what': CHECKS[k]} for k, (s, d) in results.items()},
-               'claims': claims, 'counts': counts, 'blind_spots': pack['blind_spots']},
+    # a candidate's differences: their disposition from the change records (never a pass)
+    disposition = None
+    if tiers['runtime'] and failed:
+        disposition = governance().disposition({'head': head, 'claims': claims, 'checks': {k: {'status': s} for k, (s, _) in results.items()}})
+        for c in claims:
+            if c['status'].startswith('FAIL'):
+                c['disposition'] = disposition['items'].get(c['id'], 'UNCLASSIFIED')
+        verdict = head['verdict'] = f"FAIL - {disposition['text']}"
+    json.dump({'head': head, 'checks': {k: dict({'status': s, 'detail': d, 'what': CHECKS[k]}, **({'disposition': disposition['items'][k]} if disposition and k in disposition['items'] else {}))
+                                        for k, (s, d) in results.items()},
+               'claims': claims, 'counts': counts, 'disposition': disposition, 'blind_spots': pack['blind_spots']},
               open(os.path.join(out, 'report.json'), 'w', encoding='utf-8', newline='\n'), indent=1)
 
     md = [f'# Regression pack: {verdict}', '',
@@ -463,12 +505,17 @@ def write_report(pack, a, out, results, identity, tiers):
         md += [f"- build under test: `{identity['path']}`: " + ('the accepted candidate binaries (0288ece2) and M3 scripts (0ea49a4a), byte for byte' if same
                else 'a different build from the accepted one in ' + ', '.join(f'`{n}`' for n in identity['differs_from_accepted'])),
                '  - ' + ' / '.join(identity['build_info'])]
+    if lineage:
+        md.append(f'- accepted baseline: {lineage} (`regression/baselines/lineages.json`)')
+    if disposition:
+        md.append(f"- disposition of the differences: {disposition['text']}")
     md += [f"- roots: Georgia `{a.georgia}`, Lebanon `{a.lebanon}` and `{a.lebanon_repeat}`" if a.georgia else '- roots: none (the runtime tier did not run)',
            '- seed 1, 3 simulated hours, 100 ms frames; the scenarios, inputs, artifacts and checkers are listed in `regression/pack.json`', '',
            '## Claims', '', '| Status | Claim | Checks | Accepted | Sensitivity |', '|---|---|---|---|---|']
     for c in claims:
         checks = '<br>'.join(f"`{k}`: {results.get(k, ('NOT RUN', ''))[0]}" for k in c['checks']) or '-'
-        md.append(f"| **{c['status']}** | `{c['id']}`: {c['claim']} | {checks} | {c['accepted']} | {c.get('sensitivity', '')} |")
+        shown = f"**{c['status']}**" + (f"; {c['disposition']}" if c.get('disposition') else '')
+        md.append(f"| {shown} | `{c['id']}`: {c['claim']} | {checks} | {c['accepted']} | {c.get('sensitivity', '')} |")
     md += ['', '## Checks', '', '| Check | Result | Detail |', '|---|---|---|']
     for k in CHECKS:
         s, d = results.get(k, ('NOT RUN', ''))
@@ -482,7 +529,7 @@ def write_report(pack, a, out, results, identity, tiers):
     open(os.path.join(out, 'report.md'), 'w', encoding='utf-8', newline='\n').write('\n'.join(md))
 
     for c in claims:
-        print(f"{c['status']:45} {c['id']}")
+        print(f"{c['status']:45} {c['id']}" + (f"  [{c['disposition']}]" if c.get('disposition') else ''))
     for k, (s, d) in results.items():
         if s != 'PASS':
             print(f'{s}: {k}: {d}')

@@ -7,7 +7,7 @@ in parallel. It takes about 20 minutes of wall time.
 
 ```powershell
 # the binaries: target\windows\ (a MinGW-w64 cross-build in Docker, tools/build-windows.sh)
-tools\regress-windows.ps1 -Georgia <georgia root> -Lebanon <lebanon root> [-Build] [-Exact] [-Update]
+tools\regress-windows.ps1 -Georgia <georgia root> -Lebanon <lebanon root> [-Build] [-Exact]
 ```
 
 The retail roots are assembled from the installs, which aren't in the repository:
@@ -21,7 +21,7 @@ Options:
 
 - `-Build` runs `tools/build-windows.sh` first.
 - `-Exact` fails unless the runs reproduce the baselines exactly.
-- `-Update` makes the runs the new baselines, in `regression/windows/`.
+- `-Update` is refused: the runner never writes a baseline (see "Changing a baseline").
 
 The runs' metrics and logs are left in `target/regress-windows/`.
 
@@ -78,9 +78,27 @@ Anything that changes the random stream fights a different war (see the
 seed check below), and the tolerances don't absorb that.
 
 A pure refactoring must be IDENTICAL; `-Exact` enforces it. A deliberate
-behaviour change must keep every campaign expectation. It comes with a
-deliberately updated baseline (`-Update`), committed with the change and with
-the comparison in its description.
+behaviour change must keep every campaign expectation, and changes the baseline
+only through the governed path below.
+
+## Changing a baseline
+
+The baselines in `regression/windows/` are the working copy of the current
+version of the accepted lineage `windows-retail`
+([`baselines/lineages.json`](baselines/lineages.json); v1 is stored in
+`baselines/windows-retail/v1/`). Versions are never overwritten or removed.
+
+A red regression pack becomes a change record in [`changes/`](changes/)
+(`tools/baseline-governance.py propose`). Every failure in it is classified,
+with evidence, as a regression, an approved defect correction, an intentional
+semantic change or an expected input/world variation:
+- a regression is rejected and never advances a baseline;
+- the other classes need a formal approval by fd-starscream-bot, verified on
+  GitHub, before `adopt` adds a new version.
+
+The procedure is in [`docs/governance/REVIEW.md`](../../docs/governance/REVIEW.md),
+"Baseline changes"; the demonstrations are in
+[`docs/m4-baseline-governance.md`](../docs/m4-baseline-governance.md).
 
 ## How the test was checked
 
@@ -110,7 +128,8 @@ red while the control passes ([`docs/m4-s3-mutation.md`](../docs/m4-s3-mutation.
 
 ## The accepted regression pack
 
-`python toolsegression-pack.py --georgia <root> --lebanon <root> --lebanon-repeat <second root> --bin <build>` runs
+`python tools
+egression-pack.py --georgia <root> --lebanon <root> --lebanon-repeat <second root> --bin <build>` runs
 this regression, the lifecycle checks and the M2/M3 reference checks together. It reports every accepted M1–M3
 behaviour listed in [`pack.json`](pack.json) as directly protected, baseline-sensitive, evidence only or not covered,
 with the blind spots. `--retained-only` checks the retained evidence and the checkers without retail data. See

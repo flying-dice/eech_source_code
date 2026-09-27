@@ -5,15 +5,20 @@
 #      tasking, combat, attrition, regen, supply, production, captures);
 #   2. match its baseline in regression/windows/ (tools/regress-compare.py):
 #      identical, as runs are deterministic, or within tolerance.
+# The baselines are the current version of the accepted lineage
+# (regression/baselines/lineages.json). This runner never writes them: a
+# baseline changes only through a classified, approved change record
+# (tools/baseline-governance.py; docs/governance/REVIEW.md, "Baseline changes").
 # See regression/README.md.
 #
 # Usage (PowerShell):
-#   tools\regress-windows.ps1 -Georgia <root> -Lebanon <root> [-Update] [-Exact] [-Build]
+#   tools\regress-windows.ps1 -Georgia <root> -Lebanon <root> [-Exact] [-Build]
 #   roots: tools/retail-map3-installs.sh and tools/retail-cvh.sh (or tools/regress-docker.sh's, copied out)
 #   -Build  runs tools/build-windows.sh (Docker) first
 param(
 	[Parameter(Mandatory = $true)] [string] $Georgia,
 	[Parameter(Mandatory = $true)] [string] $Lebanon,
+	# refused: kept only to say how a baseline changes now
 	[switch] $Update,
 	[switch] $Exact,
 	[switch] $Build,
@@ -24,6 +29,7 @@ param(
 	[string] $Out
 )
 $ErrorActionPreference = 'Stop'
+if ($Update) { throw 'regress-windows.ps1 no longer writes baselines: propose a change record from the regression pack (tools/baseline-governance.py propose), classify it, and adopt it once fd-starscream-bot has approved it (docs/governance/REVIEW.md, "Baseline changes")' }
 $here = Split-Path -Parent $PSScriptRoot
 $bin = if ($Bin) { $Bin } else { Join-Path $here 'target\windows' }
 $out = if ($Out) { $Out } else { Join-Path $here 'target\regress-windows' }
@@ -69,10 +75,10 @@ foreach ($name in 'georgia_retail', 'lebanon_retail') {
 	# the campaign played out as EECH's should: every mechanic present (no reference needed)
 	& $python (Join-Path $here 'tools\campaign-expectations.py') $current
 	if ($LASTEXITCODE -ne 0) { Write-Host "${name}: FAIL (campaign expectations)"; $status = 1 }
-	if ($Update -or -not (Test-Path $base)) {
-		Copy-Item $current $base -Force
-		& $python (Join-Path $here 'tools\regress-compare.py') $base
-		Write-Host "baseline written: regression/windows/$name.json"
+	if (-not (Test-Path $base)) {
+		# never write a missing baseline: that would accept whatever this run did
+		Write-Host "${name}: FAIL (no accepted baseline regression/windows/$name.json; see regression/baselines/lineages.json)"
+		$status = 1
 	} else {
 		$arguments = @((Join-Path $here 'tools\regress-compare.py'), $base, $current)
 		if ($Exact) { $arguments += '--exact' }

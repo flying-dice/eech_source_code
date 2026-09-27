@@ -37,6 +37,45 @@ Tacview supports physical interpretation; assertions and structured observations
 support behavioural claims. Use [BASELINE_RECORD.md](BASELINE_RECORD.md) as an aid,
 not a requirement to create a large document for a small change.
 
+## Baseline changes
+
+Accepted campaign baselines are versioned lineages in `eech-campaign/regression/baselines/lineages.json`. Each lineage is one configuration: platform, inputs, seed and duration. Its current version is the one the runners read.
+- **Never re-recorded in place.** No runner writes a baseline (`regress-windows.ps1 -Update` is refused).
+- **Never overwritten or removed.** A version, once accepted, stays.
+- **Changed only by an approved change record.** A baseline changes only through a change record in `eech-campaign/regression/changes/`, handled by `eech-campaign/tools/baseline-governance.py`.
+
+A red regression pack (`tools/regression-pack.py`) produces a proposal, not a new baseline. The procedure:
+
+1. **Propose.** `baseline-governance.py propose --report <pack report.json> --id <id> [--candidate <dir>]` turns the red report into a change record that lists every failed claim and check as `UNCLASSIFIED`.
+   - The record keeps the pack report from before the change.
+   - It carries the identities of the baseline version under test, the candidate build, the scenarios and inputs, and the previous baseline for rollback.
+   - With `--candidate`, it also carries the proposed baseline.
+2. **Classify every meaningful delta, with evidence,** as exactly one of the classes in [AGENT.md](../../AGENT.md). A difference never classifies itself: the evidence must show its cause.
+   - **`regression`:** rejected. It never advances a baseline, and the candidate stays failing until the behaviour is corrected or a different decision is explicitly made.
+   - **`approved-defect-correction`:** name the corrected defect and the behaviour it retires (`defect`).
+   - **`intentional-semantic-change`:** state the changed rule or contract (`semantic_change`) and the accepted claims it changes (`claim_changes`), and update them deliberately.
+   - **`expected-input-world-variation`:** name what input, world or configuration changed (`variation`). It never replaces the equivalent-input baseline. When approved, it founds a separate lineage (or records comparison evidence).
+3. **Review.** The PR carries:
+   - the pack report before the change;
+   - the change record, with every delta classified and its evidence;
+   - the old and proposed baseline identities;
+   - any claim or protection-class changes in `regression/pack.json`.
+
+   Only a current formal **APPROVED** review by fd-starscream-bot of a commit holding that exact record approves it.
+4. **Adopt.** After the approval, a follow-up commit does two things:
+   - it adds the approval reference, `approval: {pr, review_id, commit}`, to the record;
+   - it runs `baseline-governance.py adopt --change <id>`.
+
+   The tool checks the review on GitHub: reviewer, state, reviewed commit, and that no later request for changes withdrew it. It then checks that the record's content at the reviewed commit is unchanged. Only then does it add the new version, keep the superseded one, and make the new version current. The PR then shows the pack result against the new baseline and links the superseded version. These new commits need fresh approval, as any change does.
+
+Approval is never a field anyone can set: the record references a GitHub review, and the tool verifies it. `tools/regression-pack.py` then:
+- verifies the lineages, versions, working copies and records, and fails loudly on broken provenance;
+- reports each failure with its disposition: `UNCLASSIFIED`, `CLASSIFIED - APPROVAL REQUIRED`, `CLASSIFIED AND APPROVED`, or `REGRESSION - REJECTED`.
+
+A disposition explains a difference; it never makes a failing check pass.
+
+The Linux baselines (`regression/*.json`) are stale and are not accepted evidence, so they are outside these lineages.
+
 ## Independent technical-lead review
 
 The required reviewer is **fd-starscream-bot**. Verify the actual GitHub login,
