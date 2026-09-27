@@ -75,7 +75,7 @@ One judgement moved:
 | **Scenarios** | Retail Georgia (map3) and Lebanon (map5), seed 1, 3 simulated hours, 100 ms frames, a checkpoint every hour. The reference adds 1 s sampling, Tacview and `observe_supply=1`. |
 | **Inputs** | Lebanon: `reference/lebanon-3h/inputs.json` (1,179 files, `121a7890…`, M2). Georgia: `reference/m4-s3-mutation/inputs-georgia.json` (1,174 files, `d373bc42…`, #68). Georgia's inputs were first manifested in #68; that they are its baseline's inputs is inferred from the exact reproduction. |
 | **Retained artifacts** | 17, each with its hash and the revisions that generated and committed it. Text is hashed as committed (LF), so the result does not depend on a checkout's line endings. The compressed recording and observations are also checked by their decompressed content. |
-| **Checkers and runners** | 12, each with its hash and last revision. Editing one without updating `pack.json` in the same reviewed change fails the pack. |
+| **Checkers and runners** | 13, each with its hash and last revision, including `tools/regression-pack.py` itself, which classifies the claims and gives the verdict. Editing one without updating `pack.json` in the same reviewed change fails the pack. |
 | **External data** | Retail Comanche vs Hokum (GOG) and Apache vs Havoc map3 (Steam), assembled by `tools/retail-cvh.sh` and `tools/retail-map3-installs.sh`. None of it is in the repository. |
 
 **The pack fails loudly** (`reference/m4-regression-pack/fail-loudly.txt`), before any run, in each of these cases:
@@ -92,7 +92,7 @@ Each time it printed `RETAINED EVIDENCE INCONSISTENT: the pack cannot judge a bu
 
 Both runs are retained in [`reference/m4-regression-pack/`](../reference/m4-regression-pack/). They ran in parallel on separate roots, all with the accepted manifests.
 
-**Revision note.** The reports say "with uncommitted changes". The only uncommitted file at the time was the draft of this record. The retained tier verified the pack's tools and artifacts by hash, and `tools/regression-pack.py` itself is unchanged since `90acbacd`.
+**Revision note.** The reports say "with uncommitted changes". The only uncommitted file at the time was the draft of this record. The retained tier verified the pack's tools and artifacts by hash. `tools/regression-pack.py` itself is now recorded in `pack.json` at `90acbacd`, the version both runs used; the retained tier checks it too ([`retained-only/`](../reference/m4-regression-pack/retained-only/)).
 
 ### The accepted state: `PASS`
 
