@@ -1,0 +1,2 @@
+# Hook scripts run under bash; a CRLF checkout breaks the shebang.
+.claude/hooks/*.sh text eol=lf
