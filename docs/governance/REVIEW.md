@@ -1,8 +1,10 @@
 # Technical-lead review and merge process
 
 Policy: [AGENT.md](../../AGENT.md). Charter: [PROJECT.md](../../PROJECT.md).
-Bootstrap administration: [#51](https://github.com/flying-dice/eech_source_code/issues/51).
-Protection prerequisite: [#52](https://github.com/flying-dice/eech_source_code/issues/52).
+Work tracking: Jira project [EEDCS](https://flying-dice.atlassian.net/browse/EEDCS).
+Retired bootstrap Tasks [#51](https://github.com/flying-dice/eech_source_code/issues/51)
+and [#52](https://github.com/flying-dice/eech_source_code/issues/52) are historical
+records, not gates; AGENT.md states the current entry conditions.
 
 ## One Task, one active delivery PR
 
@@ -150,9 +152,9 @@ merging unsafe changes. Establish that:
 - routine implementation credentials cannot bypass the intended gate.
 
 Do not claim enforcement from a configuration file alone. If settings access or
-reviewer eligibility is unavailable, leave #52 and the governance acceptance gate
-blocked. Record the limitation and maintain the no-merge policy. Never create a
-workflow that grants approval on behalf of the technical lead.
+reviewer eligibility is unavailable, record protection as unverified, with the
+limitation; the formal review gate and the no-self-merge policy still apply.
+Never create a workflow that grants approval on behalf of the technical lead.
 
 ## Fresh Claude instruction-discovery check
 
@@ -160,9 +162,10 @@ Start fresh sessions from the repository root and `eech-campaign/` after checkin
 out the candidate. Record Claude version/settings and working directory. Inspect
 its loaded memory/context files and ask, without supplying the answers:
 
-> Which campaign product and hosts are intended? Which GitHub Task is active?
-> What must happen before moving existing behaviour? What does a pure refactor
-> need to prove? Who must formally approve a PR, and what blocks this bootstrap?
+> Which campaign product and hosts are intended? Which Task and Epic are active?
+> What authorises M5 structural work, and what must happen before moving existing
+> behaviour? What does a pure refactor need to prove? Who must formally approve a
+> PR, and what happens when the M4 regression pack differs?
 
 Verify it derives the answers from the checked-in instructions and live Task, not
 prior chat context. The root CLAUDE.md imports AGENT.md outside a code block;
