@@ -42,9 +42,18 @@ jobs:
         run: |
           cmd=$(jq -r '.hooks.SessionStart[0].hooks[0].command' .claude/settings.json)
           for run in cold warm; do
-            out=$(sh -c "$cmd")
+            out=$(sh -c "$cmd" 2>"/tmp/$run.err")
+            cat "/tmp/$run.err"
             test -z "$out" || { echo "$run run wrote to stdout: $out"; exit 1; }
+            if [ "$run" = cold ]; then
+              # the cold run records which lockfile node_modules was installed from
+              test "$(cat eech-core-ts/node_modules/.lock-sha)" = "$(sha256sum eech-core-ts/package-lock.json | cut -d' ' -f1)"
+            fi
           done
+          # with an unchanged lockfile and packages present, the warm run installs nothing
+          if grep -Eq 'added [0-9]+ packages|Setting up' /tmp/warm.err; then
+            echo "warm run reinstalled"; exit 1
+          fi
 
       - name: Toolchain is usable
         run: |
