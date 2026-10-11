@@ -41,19 +41,20 @@ jobs:
           CLAUDE_PROJECT_DIR: ${{ github.workspace }}
         run: |
           cmd=$(jq -r '.hooks.SessionStart[0].hooks[0].command' .claude/settings.json)
-          for run in cold warm; do
-            out=$(sh -c "$cmd" 2>"/tmp/$run.err")
-            cat "/tmp/$run.err"
-            test -z "$out" || { echo "$run run wrote to stdout: $out"; exit 1; }
-            if [ "$run" = cold ]; then
-              # the cold run records which lockfile node_modules was installed from
-              test "$(cat eech-core-ts/node_modules/.lock-sha)" = "$(sha256sum eech-core-ts/package-lock.json | cut -d' ' -f1)"
-            fi
+
+          # cold: installs everything and records which lockfile node_modules came from
+          out=$(sh -c "$cmd")
+          test -z "$out" || { echo "cold run wrote to stdout: $out"; exit 1; }
+          test "$(cat eech-core-ts/node_modules/.lock-sha)" = "$(sha256sum eech-core-ts/package-lock.json | cut -d' ' -f1)"
+
+          # warm: nothing to install, so any sudo, apt-get or npm call is a regression
+          shims=$(mktemp -d)
+          for tool in sudo apt-get npm; do
+            printf '#!/bin/sh\necho "warm run called %s" >&2\nexit 1\n' "$tool" > "$shims/$tool"
+            chmod +x "$shims/$tool"
           done
-          # with an unchanged lockfile and packages present, the warm run installs nothing
-          if grep -Eq 'added [0-9]+ packages|Setting up' /tmp/warm.err; then
-            echo "warm run reinstalled"; exit 1
-          fi
+          out=$(PATH="$shims:$PATH" sh -c "$cmd")
+          test -z "$out" || { echo "warm run wrote to stdout: $out"; exit 1; }
 
       - name: Toolchain is usable
         run: |
