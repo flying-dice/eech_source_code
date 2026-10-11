@@ -1,9 +1,10 @@
 # EECH Dynamic Campaign — One Engine, Interchangeable Worlds
 
-[Project 8](https://github.com/orgs/flying-dice/projects/8) · [Repository milestones](https://github.com/flying-dice/eech_source_code/milestones) · [Governance Task #51](https://github.com/flying-dice/eech_source_code/issues/51)
+[Project 8](https://github.com/orgs/flying-dice/projects/8) · [Repository milestones](https://github.com/flying-dice/eech_source_code/milestones) · [Jira EEDCS](https://flying-dice.atlassian.net/browse/EEDCS)
 
 This is the enduring multi-session charter, not a session plan or a live status
-report. GitHub Issues/Projects hold work status and acceptance discussions.
+report. Jira project EEDCS holds work status and acceptance discussions; the
+GitHub Issues linked below are the historical record of M1 to M4.
 [AGENT.md](AGENT.md) is the canonical operating policy;
 [REVIEW.md](docs/governance/REVIEW.md) defines review and merge discipline.
 [BOOTSTRAP.md](docs/governance/BOOTSTRAP.md) records the initial evidence and gaps.
@@ -120,7 +121,7 @@ protected by later work.
 
 | Milestone | Epic | Outcome Tasks |
 |---|---|---|
-| [M1 — Prepare the campaign module](https://github.com/flying-dice/eech_source_code/milestone/1) | [#19](https://github.com/flying-dice/eech_source_code/issues/19) | [#51 governance](https://github.com/flying-dice/eech_source_code/issues/51), [#52 protection](https://github.com/flying-dice/eech_source_code/issues/52); then [#20](https://github.com/flying-dice/eech_source_code/issues/20), [#21](https://github.com/flying-dice/eech_source_code/issues/21), [#22](https://github.com/flying-dice/eech_source_code/issues/22) |
+| [M1 — Prepare the campaign module](https://github.com/flying-dice/eech_source_code/milestone/1) | [#19](https://github.com/flying-dice/eech_source_code/issues/19) | [#51 governance](https://github.com/flying-dice/eech_source_code/issues/51), [#52 protection](https://github.com/flying-dice/eech_source_code/issues/52) (both retired); then [#20](https://github.com/flying-dice/eech_source_code/issues/20), [#21](https://github.com/flying-dice/eech_source_code/issues/21), [#22](https://github.com/flying-dice/eech_source_code/issues/22) |
 | [M2 — Establish EECH World](https://github.com/flying-dice/eech_source_code/milestone/2) | [#23](https://github.com/flying-dice/eech_source_code/issues/23) | [#24](https://github.com/flying-dice/eech_source_code/issues/24), [#25](https://github.com/flying-dice/eech_source_code/issues/25), [#26](https://github.com/flying-dice/eech_source_code/issues/26) |
 | [M3 — Operate the campaign within EECH World](https://github.com/flying-dice/eech_source_code/milestone/3) | [#27](https://github.com/flying-dice/eech_source_code/issues/27) | [#28](https://github.com/flying-dice/eech_source_code/issues/28), [#29](https://github.com/flying-dice/eech_source_code/issues/29), [#30](https://github.com/flying-dice/eech_source_code/issues/30) |
 | [M4 — Establish regression confidence](https://github.com/flying-dice/eech_source_code/milestone/4) | [#31](https://github.com/flying-dice/eech_source_code/issues/31) | [#32](https://github.com/flying-dice/eech_source_code/issues/32), [#33](https://github.com/flying-dice/eech_source_code/issues/33), [#34](https://github.com/flying-dice/eech_source_code/issues/34) |
@@ -131,7 +132,9 @@ protected by later work.
 
 These links are navigation, not a copied live status board. Native sub-issue and
 Project membership must be verified in GitHub, not inferred from Markdown links.
-The original eight Epics/24 outcome Tasks are supplemented by #51 and #52.
+The original eight Epics/24 outcome Tasks were supplemented by #51 and #52, which
+were later retired (closed `not_planned`). The milestones continue as Jira Epics
+EEDCS-1 to EEDCS-8.
 
 ### M1 — Prepare the campaign module
 
@@ -299,15 +302,14 @@ New reviewable changes require fresh approval; material base changes require
 renewed validation/review. No self-merge, self-approval, bypass or automatic
 rubber-stamping is permitted. Files and review requests do not activate protection.
 
-GitHub holds live statuses and dependency/acceptance discussions; this charter
+Jira holds live statuses and dependency/acceptance discussions; this charter
 holds intent and navigation. Use existing Project statuses without silently
 reconfiguring workflow. Ready has a clear outcome and next question; Review has
 evidence ready; Done means approved merge plus accepted Task evidence. Epic and
 milestone acceptance require separate explicit review, not merely all children closed.
 
-Begin with #51 and its #52 protection prerequisite. After governance is approved,
-merged and accepted, #20 reassesses the native spike rather than assuming it is
-new or complete. At each session boundary, record branch/commit, evidence gained,
+M1 to M4 are accepted; AGENT.md states what authorises M5 structural work.
+At each session boundary, record branch/commit, evidence gained,
 checks actually run, discovered boundaries, baseline differences, retained artifacts,
 limits/blockers, review status and next bounded action in the Task/PR.
 
