@@ -1,0 +1,54 @@
+name: claude-hooks
+
+on:
+  pull_request:
+    paths:
+      - ".claude/**"
+      - ".gitattributes"
+      - ".github/workflows/claude-hooks.yml"
+  push:
+    branches: [master]
+    paths:
+      - ".claude/**"
+      - ".gitattributes"
+      - ".github/workflows/claude-hooks.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  session-start:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Shellcheck
+        run: shellcheck .claude/hooks/*.sh
+
+      - name: Settings are valid JSON
+        run: jq empty .claude/settings.json
+
+      # Runs the registered command the way Claude Code does (shell form)
+      - name: Run the SessionStart hook (cold, then warm)
+        env:
+          CLAUDE_CODE_REMOTE: "true"
+          CLAUDE_PROJECT_DIR: ${{ github.workspace }}
+        run: |
+          cmd=$(jq -r '.hooks.SessionStart[0].hooks[0].command' .claude/settings.json)
+          for run in cold warm; do
+            out=$(sh -c "$cmd")
+            test -z "$out" || { echo "$run run wrote to stdout: $out"; exit 1; }
+          done
+
+      - name: Toolchain is usable
+        run: |
+          lua5.1 -v
+          echo 'int main(void){return 0;}' | cc -m32 -x c -o /tmp/t32 -
+          test -d eech-core-ts/node_modules
+          git diff --exit-code
