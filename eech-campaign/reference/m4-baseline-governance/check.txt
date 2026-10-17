@@ -1,0 +1,6 @@
+# at 61b53bde, 2026-09-27T23:14:22+01:00
+$ python tools/baseline-governance.py check
+lineage windows-retail v1 (established e0801614 (the integration branch after #69); unchanged): versions v1
+change 2026-09-27-s3-mutant: regression: REGRESSION - REJECTED
+baseline governance: consistent
+exit 0

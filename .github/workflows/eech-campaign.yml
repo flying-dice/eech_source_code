@@ -1,0 +1,83 @@
+name: eech-campaign
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "eech-campaign/**"
+      - "aphavoc/**"
+      - "modules/**"
+      - ".github/workflows/eech-campaign.yml"
+  pull_request:
+    paths:
+      - "eech-campaign/**"
+      # the native module compiles the original C sources
+      - "aphavoc/**"
+      - "modules/**"
+      - ".github/workflows/eech-campaign.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: eech-campaign-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: eech-campaign
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # the intended native target
+          - target: x86_64-unknown-linux-gnu
+            env: ""
+          # EECH's historical platform: platform parity of the same module
+          - target: i686-unknown-linux-gnu
+            env: ""
+          # i686 with en_creat.c's original va_list reinterpretation: patch P1 is behaviour-neutral
+          - target: i686-unknown-linux-gnu
+            env: EECH_ORIGINAL_STACK_ATTRIBUTES=1
+          # an optimised kernel reproduces the C reference too (docs/fpu.md)
+          - target: x86_64-unknown-linux-gnu
+            env: EECH_C_OPT=2
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gcc gcc-multilib
+          rustup target add ${{ matrix.target }}
+      - name: Test
+        run: env ${{ matrix.env }} cargo test --locked --target ${{ matrix.target }}
+      - name: Lints
+        if: matrix.target == 'x86_64-unknown-linux-gnu' && matrix.env == ''
+        run: |
+          cargo fmt --check
+          cargo clippy --locked --all-targets -- -D warnings
+
+  windows-cross:
+    # LLP64 (the DCS platform): MinGW cross build, run under Wine
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: eech-campaign
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gcc-mingw-w64-x86-64 wine64
+          rustup target add x86_64-pc-windows-gnu
+      - name: Test under Wine
+        env:
+          WINEDEBUG: -all
+          CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUNNER: wine
+        run: cargo test --locked --target x86_64-pc-windows-gnu

@@ -1,0 +1,541 @@
+{
+ "id": "2026-09-27-s3-mutant",
+ "title": "The S3 mutant (#68): a reintroduced, accepted defect correction removed",
+ "baseline_under_test": {
+  "lineage": "windows-retail",
+  "version": "v1",
+  "integration": "90acbacd: the regression-pack revision that produced the report (merged in e0801614); its baselines are v1's files"
+ },
+ "candidate": {
+  "revision": "MUTANT (test only, not a product build): commit 56b164d733d96bdf484e61cea5c134ab32cf8680 with patch S3-pick-up-the-tasks-cargo removed / commit: 56b164d733d96bdf484e61cea5c134ab32cf8680 / uncommitted changes in the build inputs: 1 files",
+  "path": "E:\\eech_source_code\\eech-campaign\\target\\mutants\\s3\\mutant-bin",
+  "build": {
+   "eech_dc.dll": "fb113a3768c8ea05ee24943f0c5de59c3263a9c36f83f9ca981049426d79789a",
+   "eech-world.exe": "5bf4522cdaa4f23b68ee18b8e203e192733e061d5407101820e80115b6bdc7bc",
+   "lua.dll": "d0c799fe4e1e615d335d18504d28a7b0d7c78d7f97d1754bb885b1097ac60350",
+   "lua/campaign.lua": "4b1fa47d8426e9b9a1806c2bffb746c9843c9cf70ab46bc205f76ddc803ecbe2",
+   "lua/lifecycle.lua": "dbce9000c176e8563c0443d4b82942b4aef332393fb95da4c1fab738f3c3f30c",
+   "lua/metrics.lua": "dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053",
+   "lua/observations.lua": "68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701"
+  }
+ },
+ "scenarios": [
+  "georgia_retail",
+  "lebanon_reference",
+  "lebanon_retail",
+  "lifecycle"
+ ],
+ "inputs": {
+  "inputs.georgia": "E:\\eech-runs\\m4\\georgia-copy: E:\\eech-runs\\m4\\georgia-copy: 1174 input files, 142,522,166 bytes, combined SHA-256 d373bc4262464da87532b8128d396358f0003bc2e9e51e8fa92cf0a6e2b50de2 / inputs IDENTICAL to E:\\eech_source_code\\eech-campaign\\reference/m4-s3-mutation/inputs-georgia.json",
+  "inputs.lebanon": "E:\\eech-runs\\m3\\lebanon-root3: E:\\eech-runs\\m3\\lebanon-root3: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09 / inputs IDENTICAL to E:\\eech_source_code\\eech-campaign\\reference/lebanon-3h/inputs.json",
+  "inputs.lebanon_repeat": "E:\\eech-runs\\roots\\lebanon: E:\\eech-runs\\roots\\lebanon: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09 / inputs IDENTICAL to E:\\eech_source_code\\eech-campaign\\reference/lebanon-3h/inputs.json"
+ },
+ "report_before": {
+  "path": "reference/m4-regression-pack/s3-mutant/report.json",
+  "sha256": "51136a3c080ab55e427a8e16253c833ec00d8e30abeb025a6f180e9b39e34df2",
+  "verdict": "FAIL"
+ },
+ "deltas": [
+  {
+   "claims": [
+    "M1.georgia.war"
+   ],
+   "checks": [
+    "regress.georgia.exact"
+   ],
+   "result": "FAIL - differs from the baseline",
+   "interpretation": "Georgia's war diverges from v1: red airbase ammo deliveries 6 -> 1 and fuel 5 -> 11; the rest of the war follows from that change.",
+   "evidence": [
+    {
+     "path": "reference/m4-s3-mutation/mutation.diff",
+     "sha256": "2dca95d971e4e96d2b032fb28b8fbc2dde16ab4fca3bbc558dd9e021da0be8f7",
+     "shows": "the mutant's only source difference: the S3 patch entry removed from patches.rs, nothing added"
+    },
+    {
+     "path": "reference/m4-s3-mutation/mutant-patch-markers.txt",
+     "sha256": "4b08864358373550e23abd746b88712fc920d09f9b6a8b7e17a45711d53ddd0a",
+     "shows": "the mutant's compiled sources: every patch marker of the control except 'EECH headless (S3)'"
+    },
+    {
+     "path": "reference/m4-s3-mutation/summary.txt",
+     "sha256": "f89640454f4a2c045537c4e745a1eb82b24f5e365744df949e6df8249f4393e3",
+     "shows": "control and mutant: same commit, image, toolchain, lua.dll, scripts and inputs; the control passes, the mutant fails, and its repeat is byte-identical"
+    },
+    {
+     "ref": "#68 (accepted): the attribution of the difference to S3 alone; #62 (accepted): S3 is a defect correction (docs/corrections.md, S3)"
+    },
+    {
+     "path": "reference/m4-s3-mutation/difference.txt",
+     "sha256": "ef49f9bcd06efb5b77daddedb08f7128f5c5a20a7eceec9bc32dab87552202b1",
+     "shows": "control -> mutant: ammo deliveries to airbases and military bases fall to 0 or near it, fuel deliveries rise"
+    }
+   ],
+   "classification": "regression"
+  },
+  {
+   "claims": [
+    "M1.lebanon.resupply"
+   ],
+   "checks": [
+    "regress.lebanon.expectations.resupply"
+   ],
+   "result": "FAIL - directly protected",
+   "interpretation": "Lebanon's airbases get no ammo in 3 h. Without S3 a SUPPLY transport picks up the supplier's first crate whatever its type, so ammo tasks deliver fuel: the original EECH defect S3 corrects (docs/corrections.md, S3). The mutant reintroduces an accepted, corrected defect.",
+   "evidence": [
+    {
+     "path": "reference/m4-s3-mutation/mutation.diff",
+     "sha256": "2dca95d971e4e96d2b032fb28b8fbc2dde16ab4fca3bbc558dd9e021da0be8f7",
+     "shows": "the mutant's only source difference: the S3 patch entry removed from patches.rs, nothing added"
+    },
+    {
+     "path": "reference/m4-s3-mutation/mutant-patch-markers.txt",
+     "sha256": "4b08864358373550e23abd746b88712fc920d09f9b6a8b7e17a45711d53ddd0a",
+     "shows": "the mutant's compiled sources: every patch marker of the control except 'EECH headless (S3)'"
+    },
+    {
+     "path": "reference/m4-s3-mutation/summary.txt",
+     "sha256": "f89640454f4a2c045537c4e745a1eb82b24f5e365744df949e6df8249f4393e3",
+     "shows": "control and mutant: same commit, image, toolchain, lua.dll, scripts and inputs; the control passes, the mutant fails, and its repeat is byte-identical"
+    },
+    {
+     "ref": "#68 (accepted): the attribution of the difference to S3 alone; #62 (accepted): S3 is a defect correction (docs/corrections.md, S3)"
+    },
+    {
+     "path": "reference/m4-s3-mutation/difference.txt",
+     "sha256": "ef49f9bcd06efb5b77daddedb08f7128f5c5a20a7eceec9bc32dab87552202b1",
+     "shows": "control -> mutant: ammo deliveries to airbases and military bases fall to 0 or near it, fuel deliveries rise"
+    }
+   ],
+   "classification": "regression"
+  },
+  {
+   "claims": [
+    "M1.lebanon.war"
+   ],
+   "checks": [
+    "regress.lebanon.exact"
+   ],
+   "result": "FAIL - differs from the baseline",
+   "interpretation": "Lebanon's war diverges from v1: ammo deliveries vanish and fuel deliveries rise; the rest of the war follows from that change.",
+   "evidence": [
+    {
+     "path": "reference/m4-s3-mutation/mutation.diff",
+     "sha256": "2dca95d971e4e96d2b032fb28b8fbc2dde16ab4fca3bbc558dd9e021da0be8f7",
+     "shows": "the mutant's only source difference: the S3 patch entry removed from patches.rs, nothing added"
+    },
+    {
+     "path": "reference/m4-s3-mutation/mutant-patch-markers.txt",
+     "sha256": "4b08864358373550e23abd746b88712fc920d09f9b6a8b7e17a45711d53ddd0a",
+     "shows": "the mutant's compiled sources: every patch marker of the control except 'EECH headless (S3)'"
+    },
+    {
+     "path": "reference/m4-s3-mutation/summary.txt",
+     "sha256": "f89640454f4a2c045537c4e745a1eb82b24f5e365744df949e6df8249f4393e3",
+     "shows": "control and mutant: same commit, image, toolchain, lua.dll, scripts and inputs; the control passes, the mutant fails, and its repeat is byte-identical"
+    },
+    {
+     "ref": "#68 (accepted): the attribution of the difference to S3 alone; #62 (accepted): S3 is a defect correction (docs/corrections.md, S3)"
+    },
+    {
+     "path": "reference/m4-s3-mutation/difference.txt",
+     "sha256": "ef49f9bcd06efb5b77daddedb08f7128f5c5a20a7eceec9bc32dab87552202b1",
+     "shows": "control -> mutant: ammo deliveries to airbases and military bases fall to 0 or near it, fuel deliveries rise"
+    }
+   ],
+   "classification": "regression"
+  },
+  {
+   "claims": [
+    "M1.corrections.S3"
+   ],
+   "checks": [
+    "regress.lebanon.expectations.resupply"
+   ],
+   "result": "FAIL - directly protected",
+   "interpretation": "S3 is absent from the mutant (only its marker is missing), and the behaviour it corrects returns: the ammo-resupply expectation fails as in #62's review.",
+   "evidence": [
+    {
+     "path": "reference/m4-s3-mutation/mutation.diff",
+     "sha256": "2dca95d971e4e96d2b032fb28b8fbc2dde16ab4fca3bbc558dd9e021da0be8f7",
+     "shows": "the mutant's only source difference: the S3 patch entry removed from patches.rs, nothing added"
+    },
+    {
+     "path": "reference/m4-s3-mutation/mutant-patch-markers.txt",
+     "sha256": "4b08864358373550e23abd746b88712fc920d09f9b6a8b7e17a45711d53ddd0a",
+     "shows": "the mutant's compiled sources: every patch marker of the control except 'EECH headless (S3)'"
+    },
+    {
+     "path": "reference/m4-s3-mutation/summary.txt",
+     "sha256": "f89640454f4a2c045537c4e745a1eb82b24f5e365744df949e6df8249f4393e3",
+     "shows": "control and mutant: same commit, image, toolchain, lua.dll, scripts and inputs; the control passes, the mutant fails, and its repeat is byte-identical"
+    },
+    {
+     "ref": "#68 (accepted): the attribution of the difference to S3 alone; #62 (accepted): S3 is a defect correction (docs/corrections.md, S3)"
+    },
+    {
+     "path": "reference/m4-s3-mutation/difference.txt",
+     "sha256": "ef49f9bcd06efb5b77daddedb08f7128f5c5a20a7eceec9bc32dab87552202b1",
+     "shows": "control -> mutant: ammo deliveries to airbases and military bases fall to 0 or near it, fuel deliveries rise"
+    }
+   ],
+   "classification": "regression"
+  },
+  {
+   "claims": [
+    "M1.corrections.S2_removed"
+   ],
+   "checks": [
+    "regress.lebanon.exact"
+   ],
+   "result": "FAIL - differs from the baseline",
+   "interpretation": "S2 stays removed: the mutant's source differs only in S3. This claim fails because the Lebanon war diverged after S3's removal, not because the supplier rule changed.",
+   "evidence": [
+    {
+     "path": "reference/m4-s3-mutation/mutation.diff",
+     "sha256": "2dca95d971e4e96d2b032fb28b8fbc2dde16ab4fca3bbc558dd9e021da0be8f7",
+     "shows": "the mutant's only source difference: the S3 patch entry removed from patches.rs, nothing added"
+    },
+    {
+     "path": "reference/m4-s3-mutation/mutant-patch-markers.txt",
+     "sha256": "4b08864358373550e23abd746b88712fc920d09f9b6a8b7e17a45711d53ddd0a",
+     "shows": "the mutant's compiled sources: every patch marker of the control except 'EECH headless (S3)'"
+    },
+    {
+     "path": "reference/m4-s3-mutation/summary.txt",
+     "sha256": "f89640454f4a2c045537c4e745a1eb82b24f5e365744df949e6df8249f4393e3",
+     "shows": "control and mutant: same commit, image, toolchain, lua.dll, scripts and inputs; the control passes, the mutant fails, and its repeat is byte-identical"
+    },
+    {
+     "ref": "#68 (accepted): the attribution of the difference to S3 alone; #62 (accepted): S3 is a defect correction (docs/corrections.md, S3)"
+    }
+   ],
+   "classification": "regression"
+  },
+  {
+   "claims": [
+    "M1.corrections.S1"
+   ],
+   "checks": [
+    "regress.lebanon.exact",
+    "regress.lebanon.expectations.resupply"
+   ],
+   "result": "FAIL - differs from the baseline",
+   "interpretation": "S1 is unchanged (the diff removes only S3). Its checks fail because the Lebanon war diverged and the ammo-resupply expectation fails, both from S3's removal.",
+   "evidence": [
+    {
+     "path": "reference/m4-s3-mutation/mutation.diff",
+     "sha256": "2dca95d971e4e96d2b032fb28b8fbc2dde16ab4fca3bbc558dd9e021da0be8f7",
+     "shows": "the mutant's only source difference: the S3 patch entry removed from patches.rs, nothing added"
+    },
+    {
+     "path": "reference/m4-s3-mutation/mutant-patch-markers.txt",
+     "sha256": "4b08864358373550e23abd746b88712fc920d09f9b6a8b7e17a45711d53ddd0a",
+     "shows": "the mutant's compiled sources: every patch marker of the control except 'EECH headless (S3)'"
+    },
+    {
+     "path": "reference/m4-s3-mutation/summary.txt",
+     "sha256": "f89640454f4a2c045537c4e745a1eb82b24f5e365744df949e6df8249f4393e3",
+     "shows": "control and mutant: same commit, image, toolchain, lua.dll, scripts and inputs; the control passes, the mutant fails, and its repeat is byte-identical"
+    },
+    {
+     "ref": "#68 (accepted): the attribution of the difference to S3 alone; #62 (accepted): S3 is a defect correction (docs/corrections.md, S3)"
+    },
+    {
+     "path": "reference/m4-s3-mutation/difference.txt",
+     "sha256": "ef49f9bcd06efb5b77daddedb08f7128f5c5a20a7eceec9bc32dab87552202b1",
+     "shows": "control -> mutant: ammo deliveries to airbases and military bases fall to 0 or near it, fuel deliveries rise"
+    }
+   ],
+   "classification": "regression"
+  },
+  {
+   "claims": [
+    "M1.corrections.portability"
+   ],
+   "checks": [
+    "regress.georgia.exact",
+    "regress.lebanon.exact"
+   ],
+   "result": "FAIL - differs from the baseline",
+   "interpretation": "P1, B2 and X1 are unchanged (the diff removes only S3). Their baseline checks fail because both wars diverged after S3's removal.",
+   "evidence": [
+    {
+     "path": "reference/m4-s3-mutation/mutation.diff",
+     "sha256": "2dca95d971e4e96d2b032fb28b8fbc2dde16ab4fca3bbc558dd9e021da0be8f7",
+     "shows": "the mutant's only source difference: the S3 patch entry removed from patches.rs, nothing added"
+    },
+    {
+     "path": "reference/m4-s3-mutation/mutant-patch-markers.txt",
+     "sha256": "4b08864358373550e23abd746b88712fc920d09f9b6a8b7e17a45711d53ddd0a",
+     "shows": "the mutant's compiled sources: every patch marker of the control except 'EECH headless (S3)'"
+    },
+    {
+     "path": "reference/m4-s3-mutation/summary.txt",
+     "sha256": "f89640454f4a2c045537c4e745a1eb82b24f5e365744df949e6df8249f4393e3",
+     "shows": "control and mutant: same commit, image, toolchain, lua.dll, scripts and inputs; the control passes, the mutant fails, and its repeat is byte-identical"
+    },
+    {
+     "ref": "#68 (accepted): the attribution of the difference to S3 alone; #62 (accepted): S3 is a defect correction (docs/corrections.md, S3)"
+    }
+   ],
+   "classification": "regression"
+  },
+  {
+   "claims": [
+    "M1.corrections.load_time_data"
+   ],
+   "checks": [
+    "regress.georgia.exact",
+    "regress.lebanon.exact"
+   ],
+   "result": "FAIL - differs from the baseline",
+   "interpretation": "T1, T2 and C1 are unchanged, and the data set loads (the lifecycle and every run pass their boots). Their baseline checks fail because both wars diverged after S3's removal.",
+   "evidence": [
+    {
+     "path": "reference/m4-s3-mutation/mutation.diff",
+     "sha256": "2dca95d971e4e96d2b032fb28b8fbc2dde16ab4fca3bbc558dd9e021da0be8f7",
+     "shows": "the mutant's only source difference: the S3 patch entry removed from patches.rs, nothing added"
+    },
+    {
+     "path": "reference/m4-s3-mutation/mutant-patch-markers.txt",
+     "sha256": "4b08864358373550e23abd746b88712fc920d09f9b6a8b7e17a45711d53ddd0a",
+     "shows": "the mutant's compiled sources: every patch marker of the control except 'EECH headless (S3)'"
+    },
+    {
+     "path": "reference/m4-s3-mutation/summary.txt",
+     "sha256": "f89640454f4a2c045537c4e745a1eb82b24f5e365744df949e6df8249f4393e3",
+     "shows": "control and mutant: same commit, image, toolchain, lua.dll, scripts and inputs; the control passes, the mutant fails, and its repeat is byte-identical"
+    },
+    {
+     "ref": "#68 (accepted): the attribution of the difference to S3 alone; #62 (accepted): S3 is a defect correction (docs/corrections.md, S3)"
+    }
+   ],
+   "classification": "regression"
+  },
+  {
+   "claims": [
+    "M2.reference_reproduced"
+   ],
+   "checks": [
+    "retained.recording",
+    "reference.baseline"
+   ],
+   "result": "FAIL - differs from the baseline",
+   "interpretation": "The observed Lebanon run follows the mutant's different war, so its recording and metrics differ from the retained ones. Observation itself is unaffected: M2.tacview_observations and M2.unperturbed pass.",
+   "evidence": [
+    {
+     "path": "reference/m4-s3-mutation/mutation.diff",
+     "sha256": "2dca95d971e4e96d2b032fb28b8fbc2dde16ab4fca3bbc558dd9e021da0be8f7",
+     "shows": "the mutant's only source difference: the S3 patch entry removed from patches.rs, nothing added"
+    },
+    {
+     "path": "reference/m4-s3-mutation/mutant-patch-markers.txt",
+     "sha256": "4b08864358373550e23abd746b88712fc920d09f9b6a8b7e17a45711d53ddd0a",
+     "shows": "the mutant's compiled sources: every patch marker of the control except 'EECH headless (S3)'"
+    },
+    {
+     "path": "reference/m4-s3-mutation/summary.txt",
+     "sha256": "f89640454f4a2c045537c4e745a1eb82b24f5e365744df949e6df8249f4393e3",
+     "shows": "control and mutant: same commit, image, toolchain, lua.dll, scripts and inputs; the control passes, the mutant fails, and its repeat is byte-identical"
+    },
+    {
+     "ref": "#68 (accepted): the attribution of the difference to S3 alone; #62 (accepted): S3 is a defect correction (docs/corrections.md, S3)"
+    }
+   ],
+   "classification": "regression"
+  },
+  {
+   "claims": [
+    "M2.fidelity_characterised"
+   ],
+   "checks": [
+    "retained.check_report"
+   ],
+   "result": "FAIL - differs from the baseline",
+   "interpretation": "The observation checker's report differs in war-dependent counts (losses, deviations, speed flags). It found 0 failures and the same session-clock drift (-29.63 s): the war changed, not the observation fidelity.",
+   "evidence": [
+    {
+     "path": "reference/m4-s3-mutation/mutation.diff",
+     "sha256": "2dca95d971e4e96d2b032fb28b8fbc2dde16ab4fca3bbc558dd9e021da0be8f7",
+     "shows": "the mutant's only source difference: the S3 patch entry removed from patches.rs, nothing added"
+    },
+    {
+     "path": "reference/m4-s3-mutation/mutant-patch-markers.txt",
+     "sha256": "4b08864358373550e23abd746b88712fc920d09f9b6a8b7e17a45711d53ddd0a",
+     "shows": "the mutant's compiled sources: every patch marker of the control except 'EECH headless (S3)'"
+    },
+    {
+     "path": "reference/m4-s3-mutation/summary.txt",
+     "sha256": "f89640454f4a2c045537c4e745a1eb82b24f5e365744df949e6df8249f4393e3",
+     "shows": "control and mutant: same commit, image, toolchain, lua.dll, scripts and inputs; the control passes, the mutant fails, and its repeat is byte-identical"
+    },
+    {
+     "ref": "#68 (accepted): the attribution of the difference to S3 alone; #62 (accepted): S3 is a defect correction (docs/corrections.md, S3)"
+    }
+   ],
+   "classification": "regression"
+  },
+  {
+   "claims": [
+    "M3.resupply_reproduced"
+   ],
+   "checks": [
+    "retained.chains_report",
+    "retained.observations"
+   ],
+   "result": "FAIL - differs from the baseline",
+   "interpretation": "The loop still operates (27 complete chains) but carries the wrong resource: every delivery is fuel. That is the S3 defect.",
+   "evidence": [
+    {
+     "path": "reference/m4-s3-mutation/mutation.diff",
+     "sha256": "2dca95d971e4e96d2b032fb28b8fbc2dde16ab4fca3bbc558dd9e021da0be8f7",
+     "shows": "the mutant's only source difference: the S3 patch entry removed from patches.rs, nothing added"
+    },
+    {
+     "path": "reference/m4-s3-mutation/mutant-patch-markers.txt",
+     "sha256": "4b08864358373550e23abd746b88712fc920d09f9b6a8b7e17a45711d53ddd0a",
+     "shows": "the mutant's compiled sources: every patch marker of the control except 'EECH headless (S3)'"
+    },
+    {
+     "path": "reference/m4-s3-mutation/summary.txt",
+     "sha256": "f89640454f4a2c045537c4e745a1eb82b24f5e365744df949e6df8249f4393e3",
+     "shows": "control and mutant: same commit, image, toolchain, lua.dll, scripts and inputs; the control passes, the mutant fails, and its repeat is byte-identical"
+    },
+    {
+     "ref": "#68 (accepted): the attribution of the difference to S3 alone; #62 (accepted): S3 is a defect correction (docs/corrections.md, S3)"
+    },
+    {
+     "path": "reference/m4-regression-pack/s3-mutant/chains.json",
+     "sha256": "6e1c5e6a6f9a95f843085bad77e9fbea993648c4075453059b70fe3d4bf1abe0",
+     "shows": "the mutant's reference run: 30 deliveries, all fuel (accepted: 10 of 32 ammo)"
+    }
+   ],
+   "classification": "regression"
+  },
+  {
+   "claims": [
+    "M3.feedback"
+   ],
+   "checks": [
+    "retained.chains_report"
+   ],
+   "result": "FAIL - differs from the baseline",
+   "interpretation": "The delivered stock differs because the deliveries differ (fuel instead of ammo); what the campaign does with it follows.",
+   "evidence": [
+    {
+     "path": "reference/m4-s3-mutation/mutation.diff",
+     "sha256": "2dca95d971e4e96d2b032fb28b8fbc2dde16ab4fca3bbc558dd9e021da0be8f7",
+     "shows": "the mutant's only source difference: the S3 patch entry removed from patches.rs, nothing added"
+    },
+    {
+     "path": "reference/m4-s3-mutation/mutant-patch-markers.txt",
+     "sha256": "4b08864358373550e23abd746b88712fc920d09f9b6a8b7e17a45711d53ddd0a",
+     "shows": "the mutant's compiled sources: every patch marker of the control except 'EECH headless (S3)'"
+    },
+    {
+     "path": "reference/m4-s3-mutation/summary.txt",
+     "sha256": "f89640454f4a2c045537c4e745a1eb82b24f5e365744df949e6df8249f4393e3",
+     "shows": "control and mutant: same commit, image, toolchain, lua.dll, scripts and inputs; the control passes, the mutant fails, and its repeat is byte-identical"
+    },
+    {
+     "ref": "#68 (accepted): the attribution of the difference to S3 alone; #62 (accepted): S3 is a defect correction (docs/corrections.md, S3)"
+    },
+    {
+     "path": "reference/m4-regression-pack/s3-mutant/chains.json",
+     "sha256": "6e1c5e6a6f9a95f843085bad77e9fbea993648c4075453059b70fe3d4bf1abe0",
+     "shows": "the mutant's reference run: 30 deliveries, all fuel (accepted: 10 of 32 ammo)"
+    }
+   ],
+   "classification": "regression"
+  },
+  {
+   "claims": [
+    "M3.duplicate_crate"
+   ],
+   "checks": [
+    "retained.chains_report"
+   ],
+   "result": "FAIL - differs from the baseline",
+   "interpretation": "The retained chain report, including the carried-over crate, is not reproduced because the war diverged after S3's removal.",
+   "evidence": [
+    {
+     "path": "reference/m4-s3-mutation/mutation.diff",
+     "sha256": "2dca95d971e4e96d2b032fb28b8fbc2dde16ab4fca3bbc558dd9e021da0be8f7",
+     "shows": "the mutant's only source difference: the S3 patch entry removed from patches.rs, nothing added"
+    },
+    {
+     "path": "reference/m4-s3-mutation/mutant-patch-markers.txt",
+     "sha256": "4b08864358373550e23abd746b88712fc920d09f9b6a8b7e17a45711d53ddd0a",
+     "shows": "the mutant's compiled sources: every patch marker of the control except 'EECH headless (S3)'"
+    },
+    {
+     "path": "reference/m4-s3-mutation/summary.txt",
+     "sha256": "f89640454f4a2c045537c4e745a1eb82b24f5e365744df949e6df8249f4393e3",
+     "shows": "control and mutant: same commit, image, toolchain, lua.dll, scripts and inputs; the control passes, the mutant fails, and its repeat is byte-identical"
+    },
+    {
+     "ref": "#68 (accepted): the attribution of the difference to S3 alone; #62 (accepted): S3 is a defect correction (docs/corrections.md, S3)"
+    },
+    {
+     "path": "reference/m4-regression-pack/s3-mutant/chains.json",
+     "sha256": "6e1c5e6a6f9a95f843085bad77e9fbea993648c4075453059b70fe3d4bf1abe0",
+     "shows": "the mutant's reference run: 30 deliveries, all fuel (accepted: 10 of 32 ammo)"
+    }
+   ],
+   "classification": "regression"
+  },
+  {
+   "claims": [
+    "M3.supply_loss_reproduced"
+   ],
+   "checks": [
+    "retained.loss_report"
+   ],
+   "result": "FAIL - differs from the baseline",
+   "interpretation": "The same loss chain occurs (Mi-17 87568 at 1,584.66 s, same response and next task). Only the report's list of other SUPPLY losses differs: the three blue ground losses after 10,000 s do not occur in the diverged war.",
+   "evidence": [
+    {
+     "path": "reference/m4-s3-mutation/mutation.diff",
+     "sha256": "2dca95d971e4e96d2b032fb28b8fbc2dde16ab4fca3bbc558dd9e021da0be8f7",
+     "shows": "the mutant's only source difference: the S3 patch entry removed from patches.rs, nothing added"
+    },
+    {
+     "path": "reference/m4-s3-mutation/mutant-patch-markers.txt",
+     "sha256": "4b08864358373550e23abd746b88712fc920d09f9b6a8b7e17a45711d53ddd0a",
+     "shows": "the mutant's compiled sources: every patch marker of the control except 'EECH headless (S3)'"
+    },
+    {
+     "path": "reference/m4-s3-mutation/summary.txt",
+     "sha256": "f89640454f4a2c045537c4e745a1eb82b24f5e365744df949e6df8249f4393e3",
+     "shows": "control and mutant: same commit, image, toolchain, lua.dll, scripts and inputs; the control passes, the mutant fails, and its repeat is byte-identical"
+    },
+    {
+     "ref": "#68 (accepted): the attribution of the difference to S3 alone; #62 (accepted): S3 is a defect correction (docs/corrections.md, S3)"
+    },
+    {
+     "path": "reference/m4-regression-pack/s3-mutant/loss-chain.json",
+     "sha256": "99dfb2155c563da49069e152599fe1f1e1cc630dfa0bbb903157a5a0be91aebf",
+     "shows": "the mutant's loss chain: 87568 at 1,584.66 s, PASS"
+    }
+   ],
+   "classification": "regression"
+  }
+ ],
+ "classification": "regression",
+ "proposed": null,
+ "previous_baseline": {
+  "lineage": "windows-retail",
+  "version": "v1",
+  "path": "regression/baselines/windows-retail/v1"
+ },
+ "claim_changes": [],
+ "residual_risks": [
+  "Georgia's expectations do not detect S3: only its exact baseline does (blind spot georgia-resupply).",
+  "The resupply-chain check stays green on the mutant although every delivery is fuel (blind spot unobservable-supply).",
+  "Nothing to roll back: windows-retail v1 stays current and unchanged."
+ ],
+ "approval": null,
+ "resulting_baselines": [],
+ "decision": "Rejected. The candidate reintroduces the defect S3 corrects; it stays failing and never advances the baseline. It is a test-only mutant (tools/build-mutant-windows.sh), never a product candidate; the accepted build keeps S3. Accepting it would need an explicitly different future decision.",
+ "review": "This record is reviewed in the PR that adds it. A regression is rejected without an approval: it changes no baseline."
+}

@@ -1,0 +1,17 @@
+[package]
+name = "eech-engine"
+version = "0.1.0"
+description = "Safe Rust API over the headless EECH engine: boot a dynamic campaign, run frames, observe the world."
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+eech-engine-sys = { path = "../eech-engine-sys" }
+serde = { workspace = true }
+
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"

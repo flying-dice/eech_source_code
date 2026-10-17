@@ -1,0 +1,18 @@
+# The host process: a Rust program that embeds a Lua 5.1 state, which loads the
+# EECH dynamic campaign DLL (require ("eech_dc")) and runs a campaign script;
+# the host records the world it observes to Tacview.
+[package]
+name = "eech-world"
+version = "0.1.0"
+description = "Host process for the eech_dc Lua module: a Lua 5.1 state that runs a campaign script, with Tacview recording."
+edition.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "eech-world"
+path = "src/main.rs"
+
+[dependencies]
+mlua = { version = "0.10", features = ["lua51", "module", "serialize"] }
+serde.workspace = true
+serde_json.workspace = true
