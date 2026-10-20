@@ -217,3 +217,88 @@ python3 docs/governance/evidence/govcheck.py <checkout>
 |---|---|
 | Integration head `d2d4792a` | exit 1, 8 failures: 4 stale phrases, 4 entry conditions missing |
 | Candidate `86356fb` | exit 0, 0 failures; no broken links; import active |
+
+## Round 2: live records reached (2026-10-20)
+
+The refresh above did not read the live Task or Epic, which the lead's review
+requires. This round gives the sessions read access to Jira and GitHub, asks
+REVIEW.md's revised questions (read-only work before authorisation, and what
+blocks a merge), and keeps the sessions from reading this evidence directory.
+The earlier rounds are kept as history; this section supersedes them.
+
+### Setup
+
+- Candidate: `9fa83a46`, which adds REVIEW.md's revised questions and this
+  round's question file to `23c1a28d`. `23c1a28d` already merges integration
+  head `d2d4792a`. The PR's intended merge tree with `d2d4792a` equals the
+  candidate tree (`git merge-tree --write-tree`).
+- Each session ran in a fresh local clone of the candidate, outside the main
+  checkout, so no parent-directory `CLAUDE.md` was loaded. The clone had no
+  repository-local git config.
+- Claude Code 2.1.304 on Windows 11, `claude -p`, no prior conversation, auto
+  memory off. Settings: [eedcs-9-fresh-r2-settings.json](eedcs-9-fresh-r2-settings.json).
+  They allow Read, Grep and Glob, read-only `git` calls, `gh issue view` and
+  `gh pr view`, and read-only Jira tools. They deny Edit, Write, web access and
+  reads of `docs/governance/evidence/`. The user-level default permission mode
+  was `auto`, so these settings did not strictly confine the sessions: both also
+  made read-only GitHub API calls for branch protection. The clone was unmodified
+  afterwards.
+- `gh` used the `fd-shockwave-bot` token. The Jira connector was the user's.
+- Command, run once from the clone root and once from `eech-campaign/`, in PowerShell:
+
+  ```powershell
+  $q = Get-Content docs/governance/evidence/eedcs-9-fresh-r2-question.txt -Raw
+  claude -p --settings eedcs-9-fresh-r2-settings.json --output-format text $q
+  ```
+
+- The question, verbatim: [eedcs-9-fresh-r2-question.txt](eedcs-9-fresh-r2-question.txt).
+  It is REVIEW.md's question set plus a request to say what the session would do
+  if asked to restructure campaign code or merge an approved PR, and which records
+  it could not reach. It supplies none of the answers.
+- Full transcripts: [root](eedcs-9-fresh-r2-root.txt),
+  [eech-campaign](eedcs-9-fresh-r2-eech-campaign.txt).
+
+### Results
+
+| Check | Root | `eech-campaign/` |
+|---|---|---|
+| Loaded `CLAUDE.md` and the `AGENT.md` import | yes | yes |
+| Read REVIEW.md | yes | yes |
+| Read the live Epic (EEDCS-5) and Task (EEDCS-9) in Jira | yes | yes |
+| Read the lead's review on #73 | yes | yes |
+| Kept structural work gated on #73's approved delivery, not on the candidate text | yes | yes |
+| Named the read-only work allowed before authorisation (discovery, characterisation, running the pack) | yes | yes |
+| Named unverified protection as a blocker for every merge, by anyone | yes | yes |
+| Kept lead approval, characterise-first and baseline rules | yes | yes |
+| Did not read the retained evidence of earlier checks | yes (denied) | yes, and said so |
+
+Limits:
+- Neither session opened GitHub #31 or #35, or EEDCS-4. Both list them as not read.
+- Both flagged that the clone would commit as `starscream-bot`. That comes from
+  the user-level git config, which a clone with no repository-local config
+  inherits. It is a property of the test environment, not of the instructions.
+- Both reported that the EEDCS-5 description now frames M5 as a reviewed plan for
+  moving EECH_DC into DCS World, which is narrower than PROJECT.md's M5 wording.
+  This PR does not change either; that is for the lead.
+
+### Static and link checks
+
+| Check | Command | Result |
+|---|---|---|
+| Static check, integration head `d2d4792a` | `python docs/governance/evidence/govcheck.py <d2d4792a checkout>` | exit 1, 8 failures: 4 stale phrases, 4 entry conditions missing |
+| Static check, candidate | `python docs/governance/evidence/govcheck.py .` | exit 0, 0 failures; import active |
+| Relative links and heading anchors in the 8 governance files and this record | `python docs/governance/evidence/anchorcheck.py . AGENT.md AGENTS.md CLAUDE.md PROJECT.md docs/governance/REVIEW.md docs/governance/BOOTSTRAP.md docs/governance/BASELINE_RECORD.md .github/PULL_REQUEST_TEMPLATE.md docs/governance/evidence/eedcs-9-instruction-discovery.md` ([anchorcheck.py](anchorcheck.py)) | exit 0, 0 failures |
+| `#31` and `#35` comment anchors | `gh api repos/flying-dice/eech_source_code/issues/comments/<id>` | both exist, by fd-starscream-bot, on #31 and #35 |
+
+The M4 governance tools do not read the edited files; they were run as a sanity
+check on the candidate, from `eech-campaign/`:
+
+| Command | Result |
+|---|---|
+| `python tools/baseline-governance.py check` | exit 0, "baseline governance: consistent" |
+| `python tools/baseline-governance-selftest.py` | exit 0, 11 of 11 as expected |
+| `python tools/regression-pack.py --retained-only --out target/pack-check` | exit 0, INCOMPLETE (retained tier only): 1 directly protected PASS, 8 evidence-only, 8 not covered, 28 not run; same summary as the retained reference |
+
+This is not a campaign runtime run; none was needed for a prose change. With
+`--out` on a different drive from the working directory, the pack tool fails
+after its checks while printing the report path (`os.path.relpath` across drives).
