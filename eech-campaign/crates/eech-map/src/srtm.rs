@@ -43,7 +43,7 @@ impl Srtm {
             if size * size != n {
                 bail!("{}: not a square SRTM tile", path.display());
             }
-            let samples = bytes.as_chunks::<2>().0.iter().map(|&b| i16::from_be_bytes(b)).collect();
+            let samples = (0..bytes.len() / 2).map(|i| i16::from_be_bytes([bytes[2 * i], bytes[2 * i + 1]])).collect();
             tiles.insert((lat, lon), Tile { size, samples });
         }
         if tiles.is_empty() {
