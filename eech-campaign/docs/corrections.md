@@ -278,6 +278,23 @@ tools\regress-windows.ps1 -Georgia <root> -Lebanon <root> -Bin target\m1-no-s2 -
 
 **Why the difference is expected.** S2 only acts when the chosen supplier has no cargo of the type. Removing it means fewer SUPPLY tasks, from a different set of suppliers (blue 11 → 10, red 52 → 49), and so different deliveries. From there the war diverges, as it does after any behaviour change (a different seed moves 42 metrics; `regression/README.md`). The combat differences (losses, regen, the FARP capture) come from that divergence, not directly from S2. Every mechanic the expectations check still occurs, including airbase ammo and fuel resupply.
 
+## E4: the multimedia timer callback (after the M1 review; no behavioural change)
+
+E4 was added after the M1 review, in #76 (Task #75), and is not part of the M1 decision above.
+- **Original:** `modules/system/timer.c` has two problems:
+  - `create_timer_event` calls `timeSetEvent (delay, resolution, windows_timer_interrupt, (DWORD) function, TIME_PERIODIC)`.
+  - The callback is declared with `DWORD dwUser, DWORD dwReserved1, DWORD dwReserved2`, and it casts `dwUser` back to `void (*) (void)`.
+- **On x86-64:**
+  - `timeSetEvent`'s `LPTIMECALLBACK` takes `DWORD_PTR` (64-bit). This is so in the Win64 SDK and in `compat/eech_dx.h`.
+  - The function types therefore differ. GCC 14 and later reject the call (`-Wincompatible-pointer-types` is an error).
+  - `(DWORD) function` truncates the pointer to 32 bits.
+- **Patch:** the callback's three trailing parameters and the user data become `DWORD_PTR`.
+- **Class: no behavioural change (traced).**
+  - On i686, `DWORD` and `DWORD_PTR` are both 32-bit `unsigned int`, so the same types are compiled.
+  - On every target, the headless `timeSetEvent` (`crates/eech-engine-sys/csrc/eech_win32.c`) ignores its callback, starts no timer and returns 0, so `windows_timer_interrupt` is never called.
+  - On a real Windows x64 timer, the patch would also restore the original's 32-bit meaning, an untruncated function pointer.
+- **Why:** before E4, a Linux x86-64 build needed GCC 13 or earlier. CI pinned GCC 12, the toolchain tools/Dockerfile documents.
+
 ## Outside this review
 
 These are compatibility decisions of the host layer and the data, not patches to EECH's text. They are described in `docs/engine.md` ("The platform layer", "Data") and are not classified here:
