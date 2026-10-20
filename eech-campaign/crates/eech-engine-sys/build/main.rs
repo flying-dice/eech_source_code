@@ -46,7 +46,11 @@ fn main() {
         .unwrap_or_else(|| manifest.join("../../.."))
         .canonicalize()
         .expect("EECH_SOURCE_ROOT does not exist");
-    assert!(root.join("aphavoc/source/project.h").exists(), "EECH source tree not found at {} (set EECH_SOURCE_ROOT)", root.display());
+    assert!(
+        root.join("aphavoc/source/project.h").exists(),
+        "EECH source tree not found at {} (set EECH_SOURCE_ROOT)",
+        root.display()
+    );
     println!("cargo:rerun-if-env-changed=EECH_SOURCE_ROOT");
     println!("cargo:rerun-if-env-changed=EECH_ENGINE_OPT");
     println!("cargo:rerun-if-changed=build");
@@ -130,7 +134,7 @@ fn main() {
     // runtime preloaded: LD_PRELOAD=$(cc -print-file-name=libasan.so))
     println!("cargo:rerun-if-env-changed=EECH_ENGINE_SANITIZE");
     if let Ok(sanitizer) = env::var("EECH_ENGINE_SANITIZE") {
-        build.flag(&format!("-fsanitize={sanitizer}")).flag(&format!("-fsanitize-recover={sanitizer}"));
+        build.flag(format!("-fsanitize={sanitizer}")).flag(format!("-fsanitize-recover={sanitizer}"));
         println!("cargo:rustc-link-lib=dylib=asan");
     }
     for s in &sources {
@@ -147,7 +151,10 @@ fn main() {
     if windows {
         // winpthreads, linked statically: the DLL needs no MinGW runtime beside it
         let compiler = cc::Build::new().get_compiler();
-        let out = std::process::Command::new(compiler.path()).arg("-print-file-name=libwinpthread.a").output().expect("the MinGW-w64 C compiler");
+        let out = std::process::Command::new(compiler.path())
+            .arg("-print-file-name=libwinpthread.a")
+            .output()
+            .expect("the MinGW-w64 C compiler");
         let lib = PathBuf::from(String::from_utf8_lossy(&out.stdout).trim());
         assert!(lib.is_absolute(), "libwinpthread.a not found by {}", compiler.path().display());
         println!("cargo:rustc-link-search=native={}", lib.parent().unwrap().display());
@@ -204,7 +211,11 @@ fn stage(from: &Path, to: &Path) {
         let target = to.join(entry.file_name());
         if entry.file_type().unwrap().is_dir() {
             stage(&path, &target);
-        } else if path.extension().and_then(|e| e.to_str()).is_some_and(|e| matches!(e.to_ascii_lowercase().as_str(), "c" | "h" | "inl")) {
+        } else if path
+            .extension()
+            .and_then(|e| e.to_str())
+            .is_some_and(|e| matches!(e.to_ascii_lowercase().as_str(), "c" | "h" | "inl"))
+        {
             write_if_changed(&target, &fs::read(&path).unwrap());
         }
     }

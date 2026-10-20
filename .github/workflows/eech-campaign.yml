@@ -52,7 +52,15 @@ jobs:
       - name: Toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends gcc gcc-multilib
+          # the host links PUC Lua 5.1 (crates/eech-world/build.rs), for the target's arch
+          if [ "${{ matrix.target }}" = i686-unknown-linux-gnu ]; then
+            sudo dpkg --add-architecture i386
+            sudo apt-get update
+            lua=liblua5.1-0-dev:i386
+          else
+            lua=liblua5.1-0-dev
+          fi
+          sudo apt-get install -y --no-install-recommends gcc gcc-multilib $lua
           rustup target add ${{ matrix.target }}
       - name: Test
         run: env ${{ matrix.env }} cargo test --locked --target ${{ matrix.target }}
@@ -75,9 +83,23 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends gcc-mingw-w64-x86-64 wine64
+          sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
           rustup target add x86_64-pc-windows-gnu
+      - name: Lua 5.1.5 as lua.dll
+        # the vendored DCS import lib (crates/eech-dc/lua5.1/lua.lib) is not in
+        # the repository, so build the same lua.dll as tools/Dockerfile does
+        working-directory: ${{ runner.temp }}
+        run: |
+          curl -fsSL -o lua.tar.gz https://www.lua.org/ftp/lua-5.1.5.tar.gz
+          echo "2640fc56a795f29d28ef15e13c34a47e223960b0240e8cb0a82d9b0738695333  lua.tar.gz" | sha256sum -c -
+          mkdir -p lua-mingw/include && tar xzf lua.tar.gz && cd lua-5.1.5/src
+          x86_64-w64-mingw32-gcc -O2 -DLUA_BUILD_AS_DLL -c $(ls *.c | grep -v -E '^(lua|luac|print)\.c$')
+          x86_64-w64-mingw32-gcc -shared -o ../../lua-mingw/lua.dll *.o -Wl,--out-implib,../../lua-mingw/liblua.dll.a
+          cp lua.h luaconf.h lualib.h lauxlib.h ../../lua-mingw/include/
       - name: Test under Wine
         env:
           WINEDEBUG: -all
           CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUNNER: wine
+          LUA_LIB: ${{ runner.temp }}/lua-mingw
+          WINEPATH: ${{ runner.temp }}/lua-mingw
         run: cargo test --locked --target x86_64-pc-windows-gnu

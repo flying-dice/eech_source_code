@@ -34,14 +34,14 @@ impl Geo {
     }
 
     /// (x, z) metres from the origin
-    pub fn to_map(&self, latitude: f64, longitude: f64) -> (f64, f64) {
+    pub fn to_map(self, latitude: f64, longitude: f64) -> (f64, f64) {
         let z = (latitude - self.latitude) * self.metres_per_degree_latitude;
         let x = (longitude - self.longitude) * Self::metres_per_degree_longitude(latitude);
         (x, z)
     }
 
     /// (latitude, longitude)
-    pub fn to_geo(&self, x: f64, z: f64) -> (f64, f64) {
+    pub fn to_geo(self, x: f64, z: f64) -> (f64, f64) {
         let latitude = self.latitude + z / self.metres_per_degree_latitude;
         (latitude, self.longitude + x / Self::metres_per_degree_longitude(latitude))
     }

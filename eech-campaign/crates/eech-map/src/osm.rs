@@ -56,7 +56,6 @@ pub struct Area {
 pub struct Road {
     pub class: RoadClass,
     pub nodes: Vec<(i64, LatLon)>,
-    pub bridge: bool,
 }
 
 #[derive(Debug)]
@@ -135,7 +134,7 @@ fn site_of(tags: &HashMap<&str, &str>) -> Option<SiteKind> {
 
 enum WayUse {
     Area(Cover),
-    Road(RoadClass, bool),
+    Road(RoadClass),
     River,
     Site(SiteKind, String),
     RelationMember,
@@ -169,7 +168,7 @@ pub fn read(path: &Path) -> Result<Extract> {
         };
         let closed = refs.len() > 3 && refs.first() == refs.last();
         if let Some(class) = road_of(&tags) {
-            ways.push((WayUse::Road(class, tags.contains_key("bridge")), refs));
+            ways.push((WayUse::Road(class), refs));
             return;
         }
         if tags.get("waterway").copied() == Some("river") {
@@ -189,7 +188,9 @@ pub fn read(path: &Path) -> Result<Extract> {
         if relation_ways.contains_key(&id) {
             ways.push((WayUse::RelationMember, refs));
             // remember which cover it carries
-            ways.last_mut().map(|w| w.0 = WayUse::Area(relation_ways[&id]));
+            if let Some(w) = ways.last_mut() {
+                w.0 = WayUse::Area(relation_ways[&id]);
+            }
         }
     })?;
 
@@ -245,7 +246,7 @@ pub fn read(path: &Path) -> Result<Extract> {
                 cover,
                 ring: nodes.into_iter().map(|n| n.1).collect(),
             }),
-            WayUse::Road(class, bridge) => out.roads.push(Road { class, nodes, bridge }),
+            WayUse::Road(class) => out.roads.push(Road { class, nodes }),
             WayUse::River => out.rivers.push(nodes.into_iter().map(|n| n.1).collect()),
             WayUse::Site(kind, name) => {
                 let ring: Vec<LatLon> = nodes.iter().map(|n| n.1).collect();
