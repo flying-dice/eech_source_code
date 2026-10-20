@@ -1,0 +1,12 @@
+PASS path.single_route (122 checked)
+PASS criteria.leader_only (61 checked)
+PASS members.leader_only_consumed (61 checked)
+PASS leader.state_at_verdict (61 checked)
+PASS order.guide_advances_first (61 checked)
+PASS pickup.accounting (19 checked)
+PASS dropoff.accounting (14 checked)
+PASS finish.completes_success (14 checked)
+PASS identity.generations (660 checked)
+PASS trace.complete (1 checked)
+facts: 43 SUPPLY tasks; 61 arrivals at the four types; 61 with another valid member, 0 where the all-members rule would have failed
+PASS

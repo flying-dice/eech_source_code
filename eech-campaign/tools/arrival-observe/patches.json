@@ -1,0 +1,111 @@
+{
+ "about": "EEDCS-11, TEST ONLY: the observation hooks tools/build-observed-windows.sh adds to a temporary copy of crates/eech-engine-sys/build/patches.rs, after the product patches. Each keeps its original text and adds one call into tools/arrival-observe/eech_arrival_observe.c. Never part of a product build.",
+ "patches": [
+  {
+   "file": "aphavoc/source/entity/special/guide/gd_updt.c",
+   "id": "A1-arrival-verdict-and-span",
+   "why": "The verdict of check_guide_reached_waypoint for every server guide update, passed through unchanged; for a SUPPLY task's waypoint or one of the four SUPPLY types it is reported, and the WAYPOINT_REACHED notification is bracketed as one span of consequences.",
+   "original": "\tif (check_guide_reached_waypoint (en))\n\t{\n\t\tnotify_local_entity (ENTITY_MESSAGE_WAYPOINT_REACHED, en, NULL);\n\t}\n",
+   "replacement": "\t/* EECH observe (A1), test only: the verdict is returned unchanged */\n\textern int eech_observe_arrival_checked (entity *guide, int verdict);\n\textern void eech_observe_arrival_end (void);\n\n\tif (eech_observe_arrival_checked (en, check_guide_reached_waypoint (en)))\n\t{\n\t\tnotify_local_entity (ENTITY_MESSAGE_WAYPOINT_REACHED, en, NULL);\n\n\t\teech_observe_arrival_end ();\n\t}\n",
+   "count": 1,
+   "keeps": [
+    "check_guide_reached_waypoint (en)",
+    "notify_local_entity (ENTITY_MESSAGE_WAYPOINT_REACHED, en, NULL);"
+   ]
+  },
+  {
+   "file": "aphavoc/source/entity/system/en_main/en_heap.c",
+   "id": "A2-entity-generation",
+   "why": "Counts each entity index's generation (how often it has been freed), so that an observed entity is named by [index, generation] across EECH's index reuse; reports the freeing of an entity an earlier event named.",
+   "original": "void set_free_entity (entity *en)\n{\n\tASSERT (en);\n",
+   "replacement": "void set_free_entity (entity *en)\n{\n\tASSERT (en);\n\n\t{ extern void eech_observe_entity_freed (entity *en); eech_observe_entity_freed (en); } /* EECH observe (A2), test only */\n",
+   "count": 1
+  },
+  {
+   "file": "aphavoc/source/ai/taskgen/taskgen.c",
+   "id": "A3-supply-task-created",
+   "why": "Reports each SUPPLY task when create_supply_task has built it: its cargo type, supplier, requester and waypoints.",
+   "original": "\tset_local_entity_float_value (new_task, FLOAT_TYPE_TASK_USER_DATA, get_local_entity_int_value (cargo, INT_TYPE_ENTITY_SUB_TYPE));\n",
+   "replacement": "\tset_local_entity_float_value (new_task, FLOAT_TYPE_TASK_USER_DATA, get_local_entity_int_value (cargo, INT_TYPE_ENTITY_SUB_TYPE));\n\n\t{ extern void eech_observe_supply_task_created (entity *task, entity *requester, entity *supplier, entity *cargo); eech_observe_supply_task_created (new_task, requester, supplier, cargo); } /* EECH observe (A3), test only */\n",
+   "count": 1
+  },
+  {
+   "file": "aphavoc/source/entity/special/task/ts_msgs.c",
+   "id": "A4-task-completion-request",
+   "why": "Reports a SUPPLY task receiving TASK_COMPLETED, with the termination reason it was sent.",
+   "original": "\ttask_terminated = (task_terminated_types) va_arg (pargs, int);\n",
+   "replacement": "\ttask_terminated = (task_terminated_types) va_arg (pargs, int);\n\n\t{ extern void eech_observe_task_completion_request (entity *task, int terminated); eech_observe_task_completion_request (receiver, (int) task_terminated); } /* EECH observe (A4), test only */\n",
+   "count": 1
+  },
+  {
+   "file": "aphavoc/source/entity/special/task/ts_int.c",
+   "id": "A5-task-completed-set",
+   "why": "Reports a SUPPLY task's completion state being set (to failure, partial or success), whatever path sets it.",
+   "original": "         raw->task_completed = value;\n",
+   "replacement": "         raw->task_completed = value;\n\n         { extern void eech_observe_task_completed_set (entity *task, int sub_type, int value); eech_observe_task_completed_set (en, raw->sub_type, value); } /* EECH observe (A5), test only */\n",
+   "count": 1
+  },
+  {
+   "file": "aphavoc/source/entity/mobile/mb_msgs.c",
+   "id": "A6-pick-up-response",
+   "why": "Reports the mobile's PICK_UP waypoint response being entered: which aircraft received it, for which waypoint, and whether inside an observed arrival span.",
+   "original": "static int response_to_waypoint_pick_up_reached (entity_messages message, entity *receiver, entity *sender, va_list pargs)\n{\n",
+   "replacement": "static int response_to_waypoint_pick_up_reached (entity_messages message, entity *receiver, entity *sender, va_list pargs)\n{\n\t{ extern void eech_observe_supply_handler (int which, entity *receiver, entity *sender); eech_observe_supply_handler (0, receiver, sender); } /* EECH observe (A6), test only */\n",
+   "count": 1
+  },
+  {
+   "file": "aphavoc/source/entity/mobile/mb_msgs.c",
+   "id": "A7-prepare-for-drop-off-response",
+   "why": "Reports the mobile's PREPARE_FOR_DROP_OFF waypoint response being entered: which aircraft received it, for which waypoint, and whether inside an observed arrival span.",
+   "original": "static int response_to_waypoint_prepare_for_drop_off_reached (entity_messages message, entity *receiver, entity *sender, va_list pargs)\n{\n",
+   "replacement": "static int response_to_waypoint_prepare_for_drop_off_reached (entity_messages message, entity *receiver, entity *sender, va_list pargs)\n{\n\t{ extern void eech_observe_supply_handler (int which, entity *receiver, entity *sender); eech_observe_supply_handler (1, receiver, sender); } /* EECH observe (A7), test only */\n",
+   "count": 1
+  },
+  {
+   "file": "aphavoc/source/entity/mobile/mb_msgs.c",
+   "id": "A8-drop-off-response",
+   "why": "Reports the mobile's DROP_OFF waypoint response being entered: which aircraft received it, for which waypoint, and whether inside an observed arrival span.",
+   "original": "static int response_to_waypoint_drop_off_reached (entity_messages message, entity *receiver, entity *sender, va_list pargs)\n{\n",
+   "replacement": "static int response_to_waypoint_drop_off_reached (entity_messages message, entity *receiver, entity *sender, va_list pargs)\n{\n\t{ extern void eech_observe_supply_handler (int which, entity *receiver, entity *sender); eech_observe_supply_handler (2, receiver, sender); } /* EECH observe (A8), test only */\n",
+   "count": 1
+  },
+  {
+   "file": "aphavoc/source/entity/mobile/mb_msgs.c",
+   "id": "A9-finish-drop-off-response",
+   "why": "Reports the mobile's FINISH_DROP_OFF waypoint response being entered: which aircraft received it, for which waypoint, and whether inside an observed arrival span.",
+   "original": "static int response_to_waypoint_finish_drop_off_reached (entity_messages message, entity *receiver, entity *sender, va_list pargs)\n{\n",
+   "replacement": "static int response_to_waypoint_finish_drop_off_reached (entity_messages message, entity *receiver, entity *sender, va_list pargs)\n{\n\t{ extern void eech_observe_supply_handler (int which, entity *receiver, entity *sender); eech_observe_supply_handler (3, receiver, sender); } /* EECH observe (A9), test only */\n",
+   "count": 1
+  },
+  {
+   "file": "aphavoc/source/entity/special/guide/guide.c",
+   "id": "A10-member-query-declaration",
+   "why": "Declares the per-member query observer for A11 and A12.",
+   "original": "#include \"project.h\"\n",
+   "replacement": "#include \"project.h\"\n\n/* EECH observe (A10), test only */\nextern int eech_observe_member_query (entity *guide, entity *member, int reached);\n",
+   "count": 1
+  },
+  {
+   "file": "aphavoc/source/entity/special/guide/guide.c",
+   "id": "A11-member-reach-query",
+   "why": "Records which group member check_guide_reached_waypoint asks for its per-member reach test (the all-valid-members branch), and the answer, passed through unchanged: which members' physical observations the campaign consumes.",
+   "original": "if (!notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, member, en))",
+   "replacement": "if (!eech_observe_member_query (en, member, notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, member, en))) /* EECH observe (A11), test only */",
+   "count": 1,
+   "keeps": [
+    "notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, member, en)"
+   ]
+  },
+  {
+   "file": "aphavoc/source/entity/special/guide/guide.c",
+   "id": "A12-leader-reach-query",
+   "why": "Records which group member check_guide_reached_waypoint asks for its per-member reach test (the task-leader branch), and the answer, passed through unchanged: which members' physical observations the campaign consumes.",
+   "original": "if (!notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, leader, en))",
+   "replacement": "if (!eech_observe_member_query (en, leader, notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, leader, en))) /* EECH observe (A12), test only */",
+   "count": 1,
+   "keeps": [
+    "notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, leader, en)"
+   ]
+  }
+ ]
+}
