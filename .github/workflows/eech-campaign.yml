@@ -26,11 +26,15 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     defaults:
       run:
         working-directory: eech-campaign
+    env:
+      # tools/Dockerfile's GCC 12: GCC 14 makes the original sources'
+      # incompatible-pointer warnings errors
+      CC: gcc-12
     strategy:
       fail-fast: false
       matrix:
@@ -60,7 +64,7 @@ jobs:
           else
             lua=liblua5.1-0-dev
           fi
-          sudo apt-get install -y --no-install-recommends gcc gcc-multilib $lua
+          sudo apt-get install -y --no-install-recommends gcc gcc-multilib gcc-12 gcc-12-multilib $lua
           rustup target add ${{ matrix.target }}
       - name: Test
         run: env ${{ matrix.env }} cargo test --locked --target ${{ matrix.target }}
@@ -72,7 +76,7 @@ jobs:
 
   windows-cross:
     # LLP64 (the DCS platform): MinGW cross build, run under Wine
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     defaults:
       run:
@@ -82,7 +86,7 @@ jobs:
       - name: Toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends gcc-mingw-w64-x86-64 wine64
+          sudo apt-get install -y --no-install-recommends gcc-mingw-w64-x86-64 wine wine64
           sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
           rustup target add x86_64-pc-windows-gnu
       - name: Lua 5.1.5 as lua.dll
