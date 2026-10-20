@@ -184,7 +184,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let lua = unsafe { Lua::unsafe_new() };
     // '/' separators: a Windows path's '\' would be escapes in the Lua string
     let dir = exe_dir.to_string_lossy().replace('\\', "/");
-    lua.load(format!("package.cpath = '{dir}/?.dll;{dir}/lib?.so;{dir}/?.so;' .. package.cpath")).exec()?;
+    lua.load(format!("package.cpath = '{dir}/?.dll;{dir}/lib?.so;{dir}/?.so;' .. package.cpath"))
+        .exec()?;
 
     let host = lua.create_table()?;
     let args = lua.create_table()?;
@@ -219,7 +220,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         if m.len() != 4 || t.len() != 2 {
                             return Err(LuaError::runtime("affine: m has 4 numbers, t 2"));
                         }
-                        let affine = eech_world::tacview::Affine { m: [[m[0], m[1]], [m[2], m[3]]], t: [t[0], t[1]], latitude: a.get("latitude")?, longitude: a.get("longitude")? };
+                        let affine = eech_world::tacview::Affine {
+                            m: [[m[0], m[1]], [m[2], m[3]]],
+                            t: [t[0], t[1]],
+                            latitude: a.get("latitude")?,
+                            longitude: a.get("longitude")?,
+                        };
                         Recorder::with_affine(BufWriter::new(file), &title, &time, affine)
                     }
                     None => Recorder::new(BufWriter::new(file), &title, &time, spec.get("latitude")?, spec.get("longitude")?),

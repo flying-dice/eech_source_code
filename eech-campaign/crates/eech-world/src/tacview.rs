@@ -145,6 +145,7 @@ impl<W: Write> Recorder<W> {
 
     /// position (EECH metres) and attitude (degrees: roll right positive,
     /// pitch up positive, heading 0 north clockwise)
+    #[allow(clippy::too_many_arguments)] // one Tacview record: id, position and attitude
     pub fn update_attitude(&mut self, id: u64, x: f64, y: f64, z: f64, roll: f64, pitch: f64, heading: f64) -> std::io::Result<()> {
         let (dlon, dlat) = self.offsets(x, z);
         writeln!(self.out, "{id:x},T={dlon:.7}|{dlat:.7}|{y:.1}|{roll:.1}|{pitch:.1}|{heading:.1}")

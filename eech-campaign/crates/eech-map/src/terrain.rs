@@ -55,12 +55,6 @@ impl Terrain {
         (h(x0, z0) * (1.0 - tx) + h(x0 + 1, z0) * tx) * (1.0 - tz) + (h(x0, z0 + 1) * (1.0 - tx) + h(x0 + 1, z0 + 1) * tx) * tz
     }
 
-    pub fn cell_type(&self, x: f64, z: f64) -> u8 {
-        let cx = ((x / CELL) as usize).min(self.width * CELLS - 1);
-        let cz = ((z / CELL) as usize).min(self.height * CELLS - 1);
-        self.cells[cz * self.width * CELLS + cx]
-    }
-
     fn normal_index(&self, px: usize, pz: usize) -> u8 {
         let max_x = self.width * CELLS;
         let max_z = self.height * CELLS;
@@ -172,7 +166,7 @@ impl Terrain {
                 }
 
                 let align = |v: &mut Vec<u8>| {
-                    while v.len() % 4 != 0 {
+                    while !v.len().is_multiple_of(4) {
                         v.push(0)
                     }
                 };

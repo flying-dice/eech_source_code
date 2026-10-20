@@ -78,5 +78,12 @@ fn every_writable_global_is_classified() {
         "writable globals missing from global-state.txt:\n{}",
         unclassified.join("\n")
     );
-    assert!(gone.is_empty(), "global-state.txt lists symbols the kernel no longer has: {gone:?}");
+    // the list is of the default unoptimised kernel: an optimised one may drop
+    // a global nothing reads (old_num_map_z_sectors, update_data at -O2), but
+    // must not add one
+    if eech_sys::build_info::C_OPT_LEVEL == "0" {
+        assert!(gone.is_empty(), "global-state.txt lists symbols the kernel no longer has: {gone:?}");
+    } else if !gone.is_empty() {
+        eprintln!("optimised out at -O{}: {gone:?}", eech_sys::build_info::C_OPT_LEVEL);
+    }
 }

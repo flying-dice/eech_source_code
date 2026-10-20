@@ -192,7 +192,11 @@ pub fn apply(file: &str, text: &str) -> String {
     let mut out = text.to_string();
     for p in PATCHES.iter().filter(|p| p.file == file) {
         let found = out.matches(p.original).count();
-        assert_eq!(found, p.count, "patch {} expects {} occurrence(s) of its original text in {}, found {}", p.id, p.count, file, found);
+        assert_eq!(
+            found, p.count,
+            "patch {} expects {} occurrence(s) of its original text in {}, found {}",
+            p.id, p.count, file, found
+        );
         out = out.replace(p.original, p.replacement);
     }
     out

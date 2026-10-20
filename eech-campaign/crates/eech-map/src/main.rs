@@ -64,7 +64,10 @@ fn main() -> Result<()> {
     }
     let (pbf, srtm_dir, root) = (PathBuf::from(&args[1]), PathBuf::from(&args[2]), PathBuf::from(&args[3]));
     // the map: named, or the one the extract's file name names
-    let wanted = args.get(4).cloned().unwrap_or_else(|| pbf.file_name().map(|n| n.to_string_lossy().to_lowercase()).unwrap_or_default());
+    let wanted = args
+        .get(4)
+        .cloned()
+        .unwrap_or_else(|| pbf.file_name().map(|n| n.to_string_lossy().to_lowercase()).unwrap_or_default());
     let Some(spec) = SPECS.iter().copied().find(|s| wanted.contains(s.name)) else {
         anyhow::bail!("no map spec for {wanted:?} (known: georgia)");
     };
@@ -72,7 +75,10 @@ fn main() -> Result<()> {
     // map.c: the campaign map overlay is 128 x 128 campaign sectors
     for n in [spec.width_sectors, spec.height_sectors] {
         if n as f64 * SECTOR / spec.ai_sector_size as f64 > 128.0 {
-            anyhow::bail!("{} campaign sectors a side; EECH's campaign map holds 128", n as f64 * SECTOR / spec.ai_sector_size as f64);
+            anyhow::bail!(
+                "{} campaign sectors a side; EECH's campaign map holds 128",
+                n as f64 * SECTOR / spec.ai_sector_size as f64
+            );
         }
     }
     let geo = geo::Geo::new(spec.origin.0, spec.origin.1);
@@ -132,7 +138,12 @@ fn main() -> Result<()> {
     // is sea
     for j in 0..cz {
         for i in 0..cx {
-            let corners = [heights[j * px + i], heights[j * px + i + 1], heights[(j + 1) * px + i], heights[(j + 1) * px + i + 1]];
+            let corners = [
+                heights[j * px + i],
+                heights[j * px + i + 1],
+                heights[(j + 1) * px + i],
+                heights[(j + 1) * px + i + 1],
+            ];
             if cover[j * cx + i] == 0 && corners.iter().all(|h| *h <= 0.0) {
                 cover[j * cx + i] = 7;
             }
@@ -164,7 +175,15 @@ fn main() -> Result<()> {
     // roads
     // as many road classes as EECH's road graph holds (16,383 nodes)
     let mut built = None;
-    for class in [osm::RoadClass::Tertiary, osm::RoadClass::Secondary, osm::RoadClass::Primary, osm::RoadClass::Trunk].into_iter().filter(|c| *c <= spec.roads) {
+    for class in [
+        osm::RoadClass::Tertiary,
+        osm::RoadClass::Secondary,
+        osm::RoadClass::Primary,
+        osm::RoadClass::Trunk,
+    ]
+    .into_iter()
+    .filter(|c| *c <= spec.roads)
+    {
         match roads::Network::build(&osm.roads, class, &geo, extent) {
             Ok(net) => {
                 eprintln!("roads: {class:?} and above");
@@ -251,7 +270,10 @@ fn main() -> Result<()> {
                     let inside = x > 4000.0 && z > 4000.0 && x < extent.0 - 4000.0 && z < extent.1 - 4000.0;
                     let behind = (p.position.1 - spec.front_longitude).abs() > 0.11;
                     (inside && behind && side_at(x, z) == side).then(|| {
-                        let d = airfields.iter().map(|(_, f)| ((f.x - x).powi(2) + (f.z - z).powi(2)).sqrt()).fold(f64::MAX, f64::min);
+                        let d = airfields
+                            .iter()
+                            .map(|(_, f)| ((f.x - x).powi(2) + (f.z - z).powi(2)).sqrt())
+                            .fold(f64::MAX, f64::min);
                         (p, x, z, d)
                     })
                 })
@@ -485,7 +507,8 @@ fn fill(ring: &[(f64, f64)], width: usize, height: usize, mut f: impl FnMut(usiz
             }
         }
         xs.sort_by(f64::total_cmp);
-        for pair in xs.chunks_exact(2) {
+        for k in 0..xs.len() / 2 {
+            let pair = [xs[2 * k], xs[2 * k + 1]];
             let i0 = (pair[0] - 0.5).ceil().max(0.0) as usize;
             let i1 = ((pair[1] - 0.5).floor() as i64).min(width as i64 - 1);
             if i1 >= 0 {

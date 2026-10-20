@@ -79,19 +79,38 @@ pub struct ProducerSite {
 const TEMPLATE_TYPE_KEY_INDUSTRY: i32 = 17;
 const TEMPLATE_TYPE_KEY_OIL: i32 = 20;
 
-/// the producer templates: (kind, side, template type, buildings (x, y, heading degrees, 3D object))
-fn producer_templates() -> Vec<(Producer, Side, i32, Vec<(f32, f32, f32, &'static str)>)> {
-    let factory = |n: &'static str| -> Vec<(f32, f32, f32, &'static str)> {
-        vec![(-60.0, -40.0, 0.0, n), (60.0, -40.0, 0.0, n), (-60.0, 60.0, 90.0, n), (60.0, 60.0, 90.0, n)]
-    };
-    let refinery = |f: &'static str, t: &'static str| -> Vec<(f32, f32, f32, &'static str)> {
-        vec![(0.0, -80.0, 0.0, f), (-50.0, 20.0, 0.0, t), (0.0, 20.0, 0.0, t), (50.0, 20.0, 0.0, t), (-50.0, 70.0, 0.0, t), (0.0, 70.0, 0.0, t), (50.0, 70.0, 0.0, t)]
+/// a template building: (x, y, heading degrees, 3D object)
+type Building = (f32, f32, f32, &'static str);
+
+/// the producer templates: (kind, side, template type, buildings)
+fn producer_templates() -> Vec<(Producer, Side, i32, Vec<Building>)> {
+    let factory = |n: &'static str| -> Vec<Building> { vec![(-60.0, -40.0, 0.0, n), (60.0, -40.0, 0.0, n), (-60.0, 60.0, 90.0, n), (60.0, 60.0, 90.0, n)] };
+    let refinery = |f: &'static str, t: &'static str| -> Vec<Building> {
+        vec![
+            (0.0, -80.0, 0.0, f),
+            (-50.0, 20.0, 0.0, t),
+            (0.0, 20.0, 0.0, t),
+            (50.0, 20.0, 0.0, t),
+            (-50.0, 70.0, 0.0, t),
+            (0.0, 70.0, 0.0, t),
+            (50.0, 70.0, 0.0, t),
+        ]
     };
     vec![
         (Producer::Factory, Side::Blue, TEMPLATE_TYPE_KEY_INDUSTRY, factory("AMERICAN_FACTORY01")),
         (Producer::Factory, Side::Red, TEMPLATE_TYPE_KEY_INDUSTRY, factory("RUSSIAN_FACTORY01")),
-        (Producer::Refinery, Side::Blue, TEMPLATE_TYPE_KEY_OIL, refinery("AMERICAN_FACTORY02", "AMERICAN_OIL_TANK01")),
-        (Producer::Refinery, Side::Red, TEMPLATE_TYPE_KEY_OIL, refinery("RUSSIAN_FACTORY02", "AMERICAN_OIL_TANK02")),
+        (
+            Producer::Refinery,
+            Side::Blue,
+            TEMPLATE_TYPE_KEY_OIL,
+            refinery("AMERICAN_FACTORY02", "AMERICAN_OIL_TANK01"),
+        ),
+        (
+            Producer::Refinery,
+            Side::Red,
+            TEMPLATE_TYPE_KEY_OIL,
+            refinery("RUSSIAN_FACTORY02", "AMERICAN_OIL_TANK02"),
+        ),
     ]
 }
 
@@ -134,7 +153,10 @@ pub fn write_population(path: &Path, max_map_z: f64, airfields: &[Airfield], sam
     }
     o.extend_from_slice(&(producers.len() as i32).to_le_bytes());
     for p in producers {
-        let index = templates.iter().position(|t| t.0 == p.kind && t.1 == p.side).expect("a template per kind and side") as i32;
+        let index = templates
+            .iter()
+            .position(|t| t.0 == p.kind && t.1 == p.side)
+            .ok_or_else(|| anyhow::anyhow!("no producer template for {:?} {:?}", p.kind, p.side))? as i32;
         o.extend_from_slice(&index.to_le_bytes());
         o.extend_from_slice(&(p.x as f32).to_le_bytes());
         o.extend_from_slice(&(flip - p.z as f32).to_le_bytes());

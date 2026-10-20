@@ -49,7 +49,12 @@ mod imp {
             let mut module: *mut c_void = std::ptr::null_mut();
             let mut name = [0u8; 260];
             let (base, file) = unsafe {
-                if GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, record.address, &mut module) != 0 {
+                if GetModuleHandleExA(
+                    GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                    record.address,
+                    &mut module,
+                ) != 0
+                {
                     let n = GetModuleFileNameA(module, name.as_mut_ptr(), name.len() as u32) as usize;
                     (module as usize, String::from_utf8_lossy(&name[..n]).into_owned())
                 } else {

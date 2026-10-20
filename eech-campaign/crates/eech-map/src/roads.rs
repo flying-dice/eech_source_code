@@ -19,10 +19,12 @@ const MAX_LINKS: usize = 127;
 /// terrtype.h
 const TERRAIN_TYPE_ROAD: i32 = 41;
 
+/// (a, b, intermediate points), a < b
+pub type Link = (usize, usize, Vec<(f64, f64)>);
+
 pub struct Network {
     pub nodes: Vec<(f64, f64)>,
-    /// (a, b, intermediate points), a < b
-    pub links: Vec<(usize, usize, Vec<(f64, f64)>)>,
+    pub links: Vec<Link>,
 }
 
 impl Network {
