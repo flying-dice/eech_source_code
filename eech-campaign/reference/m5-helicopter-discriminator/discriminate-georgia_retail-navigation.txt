@@ -1,0 +1,4 @@
+106 trials
+  WAYPOINT_NAVIGATION | last_to_reach=1: 105 all-members, 1 inconclusive
+  paired WAYPOINT_NAVIGATION: 2 matched, verdict delay 110.873..230.343 s (0 with no delay)
+  paired: 104 trials without a matching ordinary verdict

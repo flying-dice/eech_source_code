@@ -54,6 +54,9 @@ M5: who owns what in the SUPPLY loop, and the first dependency to hand to a host
 M5: arrival at the four SUPPLY waypoint types characterised at runtime (a test-only
 observed build that reproduces the accepted baseline exactly):
 [`docs/m5-arrival-characterisation.md`](docs/m5-arrival-characterisation.md).
+M5: the helicopter arrival rule discriminated by a test-only controlled wingman input (leader-only at
+the four SUPPLY types, all-members on last-to-reach legs):
+[`docs/m5-helicopter-discriminator.md`](docs/m5-helicopter-discriminator.md).
 
 ## The campaign kernel spike
 

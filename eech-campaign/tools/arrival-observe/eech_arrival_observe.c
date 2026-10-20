@@ -467,6 +467,105 @@ static void obs_members (entity *guide, entity *group, entity *leader)
 }
 
 /*
+ * For the test-only control (eech_arrival_control.c), when it is built in:
+ * it registers eech_observe_trial_query, and reports its trials through
+ * eech_observe_trial_event. The observer never depends on it.
+ */
+int (*eech_observe_trial_query) (entity *guide);
+
+unsigned eech_observe_generation (entity *en)
+{
+	return obs_enabled () ? obs_gen_of (en) : 0;
+}
+
+void eech_observe_trial_event (const char *what, int trial, entity *guide, entity *wingman, const vec3d *from, const vec3d *to, double held_for)
+{
+	if (!obs_enabled ())
+	{
+		return;
+	}
+	obs_header ();
+	obs_begin (what);
+	fprintf (out, ",\"trial\":%d", trial);
+	obs_ref ("guide", guide);
+	obs_waypoint ("wp", get_local_entity_type (guide) == ENTITY_TYPE_GUIDE ? get_local_entity_parent (guide, LIST_TYPE_CURRENT_WAYPOINT) : NULL);
+	if (get_local_entity_type (guide) == ENTITY_TYPE_GUIDE)
+	{
+		obs_ref ("task_leader", (entity *) get_local_entity_ptr_value (guide, PTR_TYPE_TASK_LEADER));
+	}
+	if (wingman)
+	{
+		obs_ref ("wingman", wingman);
+	}
+	if (from && to)
+	{
+		fputs (",\"from\":[", out);
+		obs_number (from->x);
+		fputc (',', out);
+		obs_number (from->y);
+		fputc (',', out);
+		obs_number (from->z);
+		fputs ("],\"to\":[", out);
+		obs_number (to->x);
+		fputc (',', out);
+		obs_number (to->y);
+		fputc (',', out);
+		obs_number (to->z);
+		fputc (']', out);
+	}
+	fputs (",\"held_for\":", out);
+	obs_number (held_for);
+	obs_end_line ();
+}
+
+/* one arrival check of a guide under trial: the leader's state, every other member's, who was asked, the verdict */
+static void obs_trial_check (int trial, entity *guide, entity *wp, entity *leader, int verdict, int nq, entity **qm, int *qr)
+{
+	entity *group = get_local_entity_parent (guide, LIST_TYPE_GUIDE_STACK), *member;
+	vec3d *lp = leader ? get_local_entity_vec3d_ptr (leader, VEC3D_TYPE_POSITION) : NULL;
+	int valid = get_local_entity_int_value (guide, INT_TYPE_VALID_GUIDE_MEMBERS), i, first = 1;
+	obs_header ();
+	obs_begin ("trial_check");
+	fprintf (out, ",\"trial\":%d,\"verdict\":%d", trial, verdict ? 1 : 0);
+	obs_ref ("guide", guide);
+	obs_waypoint ("wp", wp);
+	fprintf (out, ",\"last_to_reach\":%d,\"radius\":", get_guide_criteria_valid (guide, GUIDE_CRITERIA_LAST_TO_REACH));
+	obs_number (get_guide_criteria_valid (guide, GUIDE_CRITERIA_RADIUS) ? get_guide_criteria_value (guide, GUIDE_CRITERIA_RADIUS) : -1.0);
+	obs_ref ("task_leader", leader);
+	if (leader && get_local_entity_type (leader) == ENTITY_TYPE_HELICOPTER)
+	{
+		fprintf (out, ",\"leader_landed\":%d,\"leader_distance\":", get_local_entity_int_value (leader, INT_TYPE_LANDED));
+		obs_number (get_local_entity_float_value (leader, FLOAT_TYPE_DISTANCE));
+		fputs (",\"leader_rotor_spin_up\":", out);
+		obs_number (get_local_entity_float_value (leader, FLOAT_TYPE_MAIN_ROTOR_SPIN_UP_TIMER));
+	}
+	fputs (",\"others\":[", out);
+	for (member = group ? get_local_entity_first_child (group, LIST_TYPE_MEMBER) : NULL; member; member = get_local_entity_child_succ (member, LIST_TYPE_MEMBER))
+	{
+		if (member == leader || get_local_entity_type (member) != ENTITY_TYPE_HELICOPTER)
+		{
+			continue;
+		}
+		obs_track (member);
+		fprintf (out, "%s{\"id\":[%d,%u],\"valid\":%d,\"landed\":%d,\"to_leader_2d\":", first ? "" : ",", (int) get_local_entity_index (member),
+			obs_gen_of (member), (valid >> get_local_entity_int_value (member, INT_TYPE_GROUP_MEMBER_NUMBER)) & 1, get_local_entity_int_value (member, INT_TYPE_LANDED));
+		obs_number (lp ? sqrt (get_sqr_2d_range (get_local_entity_vec3d_ptr (member, VEC3D_TYPE_POSITION), lp)) : -1.0);
+		fputs (",\"rotor_spin_up\":", out);
+		obs_number (get_local_entity_float_value (member, FLOAT_TYPE_MAIN_ROTOR_SPIN_UP_TIMER));
+		fputc ('}', out);
+		first = 0;
+	}
+	fputs ("],\"queried\":[", out);
+	for (i = 0; i < nq; i++)
+	{
+		fprintf (out, "%s{\"id\":[%d,%u],\"is_task_leader\":%d,\"reached\":%d}", i ? "," : "", (int) get_local_entity_index (qm[i]), obs_gen_of (qm[i]),
+			qm[i] == leader, qr[i] ? 1 : 0);
+	}
+	fputc (']', out);
+	obs_end_line ();
+}
+
+/*
  * A1: gd_updt.c, every server guide update: the verdict of
  * check_guide_reached_waypoint, returned unchanged. A TRUE verdict for a
  * SUPPLY task's waypoint, or for one of the four types, is reported in full
@@ -567,6 +666,11 @@ int eech_observe_arrival_checked (entity *guide, int verdict)
 		{
 			queries.other++;
 		}
+	}
+	/* a guide under a test-only control trial (eech_arrival_control.c): every check is recorded */
+	if (eech_observe_trial_query && (i = eech_observe_trial_query (guide)) != 0)
+	{
+		obs_trial_check (i, guide, wp, leader, verdict, nq, qm, qr);
 	}
 	if (!verdict)
 	{

@@ -1,0 +1,3 @@
+ok   the unchanged trace classifies as before (60 trials)
+ok   60 x leader-only rewritten as the other rule -> withheld
+PASS

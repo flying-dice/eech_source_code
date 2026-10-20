@@ -1,0 +1,5 @@
+scenario=georgia_retail
+root=E:\eech_source_code\.claude\worktrees\agent-a20573899785375f2\eech-campaign\target\observed\roots\georgia-c1
+EECH_ARRIVAL_CONTROL=hold:four:1500:1000:120
+hours=3
+bin=E:\eech_source_code\.claude\worktrees\agent-a20573899785375f2\eech-campaign\target\observed\controlled-bin

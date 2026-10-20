@@ -1,0 +1,17 @@
+2e39551b663bb23404784c0919199ebfdf5950a75cea3552bce2e6bd09cfe4c2    119310320  lebanon_retail-four/recording.acmi
+aaf87624f25fca092d7148562e559b49122b26b44b5175e99ddca0e893e86604     88272667  lebanon_retail-four/observations.jsonl
+86b73e742ed31f6692af4af0988f837e608d888c8a6c1016435bddcbf374e0fb        36360  lebanon_retail-four/metrics.json
+69002d8f23e5e71c2286895056a85cc92249520e42fb2d7794013f4f40bce027      4572355  lebanon_retail-four/trace/arrivals-45692.jsonl
+a49bb90841b95548ffe6b77e75b2c6028127c21b96115f08cb7a48c40dbcf61e    119104930  lebanon_retail-navigation/recording.acmi
+2fd9b065bfeaaedb8bb06c1e4dc4e60e11d5c8348fe501bafe58f4019b367bf4     84945394  lebanon_retail-navigation/observations.jsonl
+f56f7421cba1406cbb58c2ce0916fb3b7e5165873196b9c60bd5131c4fd52dcc        36584  lebanon_retail-navigation/metrics.json
+81c12a414893d1266c2f0fecb97aa8af289e0671c7a93a9ff0906f1ee31a3500     22037676  lebanon_retail-navigation/trace/arrivals-15332.jsonl
+51f8cdab3e21eb3e05179574eceb0a1fd410812e0ab1531b9bd5c43b4a393964    184567609  georgia_retail-four/recording.acmi
+a5ebebcbdcd7ac348c3e44e62b2068a5331453826d25774d44aee217f7617898     66966553  georgia_retail-four/observations.jsonl
+7a3bd015660981619bdfde9c194b9359e2b48b29a9eb93d681944bca93907e04        22255  georgia_retail-four/metrics.json
+cb029fc28806ccf4874d38732a53d1663c308710b9da652ddca177ec1e400e49      4864636  georgia_retail-four/trace/arrivals-34824.jsonl
+0bf4f0d90f2d48d72836ef9b301c16e27bc677118892d7ffd63e1c7fb88b9735    183461086  georgia_retail-navigation/recording.acmi
+8109537b109645620924565bffa3e116144800fb632327982a88fe3aedaeffaa     68183672  georgia_retail-navigation/observations.jsonl
+9d7218794ae6f29881010c6ab55a22c4f82808a5ff259686a8cabcc267a3e421        22367  georgia_retail-navigation/metrics.json
+0773cd6755975205ec77575ea7a687ad1cf1addeb83e3b6ab647b11c54878035     67989398  georgia_retail-navigation/trace/arrivals-23268.jsonl
+note: the hashes above are of the files as the runs wrote them; the retained metrics-*.json copies are stored by git with LF line endings, so their bytes may differ
