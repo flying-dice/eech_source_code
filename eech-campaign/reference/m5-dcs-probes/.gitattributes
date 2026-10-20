@@ -1,0 +1,5 @@
+# Retained logs and the lead's control files are kept verbatim (only %USERPROFILE% and line
+# endings are normalised, see ORIGINALS.sha256): whitespace checks do not apply to them.
+runs/** -whitespace
+lead-controls/** -whitespace
+microprobe/** -whitespace

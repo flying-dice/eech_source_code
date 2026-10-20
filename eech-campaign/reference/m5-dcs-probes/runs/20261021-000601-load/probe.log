@@ -1,0 +1,4 @@
+EECH_DCS_PROBE event=env DCS=nil Sim=nil abs_time=43200 clock=function cpath=.\lua-?.dll;.\?.dll;D:\Program_Files\Eagle_Dynamics\DCS_World_OpenBeta\bin-mt\lua-?.dll;D:\Program_Files\Eagle_Dynamics\DCS_World_OpenBeta\bin-mt\?.dll; cwd=D:\Program_Files\Eagle_Dynamics\DCS_World_OpenBeta\ get_persistence=function io=table lfs=table loaded_before=nil loadlib=function lua=Lua_5.1 model_time=0 my_player_id=0 net=table os=table package=table relative_scripts=visible require=function server_id=0 set_persistence=function stage=load writedir=%USERPROFILE%\Saved_Games\DCS.M5Probe\
+EECH_DCS_PROBE event=persistence_restore ok=true type=nil value=nil
+EECH_DCS_PROBE event=persistence_handler ok=true
+EECH_DCS_PROBE event=load cwd=D:\Program_Files\Eagle_Dynamics\DCS_World_OpenBeta\ ms=1.0 name=eech-dc_0.1.0 ok=true
