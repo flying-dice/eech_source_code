@@ -101,63 +101,39 @@ old approval on different behaviour as permission to merge.
 
 An authorised maintainer may merge only after the lead approval, applicable
 required checks and blocking discussions are satisfied, and the Task outcome is
-accepted. Implementing agents do not self-merge. Do not enable auto-merge while
-the approval/protection contract is unresolved, bypass rules, dismiss the lead's
-requests for changes or weaken checks to unblock a candidate.
+accepted. Implementing agents do not self-merge. Do not enable auto-merge: with
+no server-side protection it would not wait for the lead's approval. Do not bypass
+rules, dismiss the lead's requests for changes or weaken checks to unblock a
+candidate.
 
 Close a Task only after its approved delivery PR has merged and acceptance evidence
 is linked. A closing keyword may not close an issue on a non-default integration
 branch; verify the state explicitly. Child completion does not automatically
 accept an Epic or milestone. Record the milestone acceptance and protected baseline.
 
-## Repository enforcement: administrator action required
+## Repository enforcement: by process, not server-side
 
-The proposed [CODEOWNERS](../../.github/CODEOWNERS) has one repository-wide owner,
-fd-starscream-bot, including these governance files and the ownership file itself.
-This avoids uncovered source, scenario or workflow paths. Adding another owner or
-a later overriding pattern can weaken the named-approver rule and requires review.
+By the repository owner's decision of 2026-10-20 ("remove the rules then"), this
+repository has no server-side branch protection or rulesets, and none is planned.
+The review and merge rules in this file and in AGENT.md are enforced by process
+and recorded evidence only. Absent or unverified server-side protection is not a
+merge blocker, and no Task or merge requires activating or verifying it.
 
-**CODEOWNERS and this policy do not activate server-side merge protection.** An
-administrator must apply and verify suitable rules for the current native
-integration branch and for `master` when it receives the programme. Preserve
-unrelated repository controls; do not issue a blanket settings replacement.
+The decision removes no other rule. The merge conditions above still apply in
+full: a current formal APPROVED review from fd-starscream-bot on the head commit,
+passing applicable checks, resolved blocking feedback, an accepted Task outcome,
+and different author and reviewer identities, with no self-approval, self-merge,
+bypass or automatic approval. If the connection authors the PR as the lead,
+resolve the identity conflict before merge. GitHub will not stop a merge that
+breaks these conditions, so whoever merges checks them against the exact head
+first and records that in the PR. A skipped job is not proof of executed tests.
+Do not claim server enforcement from a configuration file. Never create a
+workflow that grants approval on behalf of the technical lead.
 
-The effective controls must require PRs and the named lead's review (for example,
-required code-owner review with that account as sole applicable owner), stale-review
-dismissal for new reviewable changes, resolution of blocking review conversations
-and the appropriate observed status checks. Restrict direct/force pushes and
-routine bypasses, including administrator/automation bypass where supported.
-
-Choose actual check contexts from observed runs, not guessed names. Existing
-workflows have path filters: requiring a check that never runs for a governance PR
-can deadlock it. A skipped job is not proof of executed tests. Any required-check
-layout change is separate, reviewable work justified by the effective configuration.
-
-GitHub uses ownership from the PR's base branch. A new CODEOWNERS on the candidate
-does not protect its own bootstrap. The bootstrap therefore still needs explicit
-lead approval and administrator-supervised protection activation; no silent
-exception or automatic approval is authorised. If the connection authors the PR
-as the lead, resolve the identity conflict before merge.
-
-## Safe enforcement verification
-
-Retain the inspected refs, rule identifiers/settings, eligible reviewer permission
-and results. Use API/UI mergeability checks or disposable review probes without
-merging unsafe changes. Establish that:
-
-- no lead approval blocks merge, and another reviewer's approval alone does not pass;
-- new reviewable commits require renewed lead approval;
-- failing applicable required checks and unresolved blocking feedback block merge;
-- the documented refs and changed paths actually receive these controls;
-- routine implementation credentials cannot bypass the intended gate.
-
-Do not claim enforcement from a configuration file alone. If settings access or
-reviewer eligibility is unavailable, record protection as unverified, with the
-limitation, and maintain the no-merge policy: no PR merges, by anyone, until an
-administrator activates and verifies effective protection. Unverified protection
-is a merge blocker; the formal review gate and the no-self-merge policy apply in
-addition, not instead.
-Never create a workflow that grants approval on behalf of the technical lead.
+[CODEOWNERS](../../.github/CODEOWNERS) names fd-starscream-bot as the single
+repository-wide owner. Without protection it requests the lead's review but
+enforces nothing. Adding another owner or an overriding pattern still requires
+review.
 
 ## Fresh Claude instruction-discovery check
 

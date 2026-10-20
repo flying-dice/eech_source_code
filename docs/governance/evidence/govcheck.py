@@ -27,12 +27,19 @@ for f in files:
 a=(root/'AGENT.md').read_text()
 for need in ['fd-starscream-bot','APPROVED','never by the presence of these files','windows-retail v1','regression pack','Never silently re-record']:
     if need not in a: print('MISSING in AGENT.md:',need); fails+=1
-# unverified protection must stay an explicit merge blocker
+# Owner's decision, 2026-10-20: no server-side protection; rules are enforced by
+# process. (Supersedes the earlier check that unverified protection blocks merge.)
 r=(root/'docs/governance/REVIEW.md').read_text()
-for f,txt,need in [('AGENT.md',a,'unverified protection is a merge blocker'),('docs/governance/REVIEW.md',r,'maintain the no-merge policy')]:
+for f,txt,need in [('AGENT.md',a,'enforced by process and recorded evidence only'),
+                   ('AGENT.md',a,'Absent server-side protection is not a merge blocker'),
+                   ('AGENT.md',a,'self-merge'),
+                   ('docs/governance/REVIEW.md',r,'enforced by process and recorded evidence only'),
+                   ('docs/governance/REVIEW.md',r,'current formal APPROVED review from fd-starscream-bot on the head commit')]:
     if need not in ' '.join(txt.split()): print('MISSING in',f+':',need); fails+=1
 for f in files:
-    if re.search(r'enforced by process', ' '.join((root/f).read_text().split())): print('WEAKENED',f,'enforced by process'); fails+=1
+    s=' '.join((root/f).read_text().split())
+    for pat in [r'unverified protection is a merge blocker', r'maintain the no-merge policy', r'verify effective protection', r'administrator activates and verifies']:
+        if re.search(pat,s,re.I): print('STALE',f,pat); fails+=1
 # file sizes
 for f in ['AGENT.md','CLAUDE.md','AGENTS.md']: print(f, len((root/f).read_text().splitlines()),'lines')
 print('FAILURES',fails); sys.exit(1 if fails else 0)
