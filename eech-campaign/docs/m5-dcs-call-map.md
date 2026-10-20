@@ -7,10 +7,26 @@ This record answers M5 done-when criterion 1 (Confluence page 11534337, "EECH M5
 It is a source-grounded proposal for review, not an acceptance. It changes no code, build, baseline or DCS configuration, and no DCS or EECH runtime was launched for it. DCS-only runtime risks (native module load, frame budget and threading, save and restore, multiplayer) are criterion 5, owned by `docs/m5-dcs-risks.md` (`eech-campaign/docs/`, in another session's worktree and not yet merged); this record cross-references them and does not probe them.
 
 **In brief.**
-- The campaign side of the whole-engine `eech_dc` was inventoried by a reproducible script over the 1,217 compiled C files at `65892de1`. It measured 64 campaign→world functions (161 call sites), 66 world→campaign functions (265 sites), the entity messages each side sends and 10 categories of world-service tokens read by campaign code (method and coverage below).
-- 42 interactions in 12 categories are mapped to DCS. 8 fit directly (campaign-only work that needs no DCS call), 19 are adapted and 15 are gaps. Every gap, and every adapted row that needs one, has a named workaround (G1–G21).
-- The largest gaps: there is **no verified "waypoint reached" signal** in DCS (G7); **movement is pulled from the campaign's guide every frame** in EECH, but DCS AI flies a route it is given (G4); EECH's **loss, damage, target-detection and capture bookkeeping runs inside world code** (G8, G9); **no save of physical state** in the mission environment (G19); **one engine per process** against DCS mission restarts (G20); and **this PC has no Syria terrain**, so Lebanon cannot be placed in DCS here (G21).
-- Of the 27 DCS evidence items (D1–D27), 13 are confirmed by this install's shipped files ([R-dcs]), 13 rest on tslua-dcs only ([R-ref]) and 1 is unknown ([U]); five items carry a named partial unknown. No shipped file gives a mission-API signature; every signature below is tslua-dcs's.
+- **Two passes over the 1,217 compiled C files plus the 11 headless host files, at `65892de1`.**
+  - The first pass (`inventory.py`) measured direct calls between path classes and named world-service tokens.
+  - The second pass closes the first pass's coverage holes:
+    - **a reachability walk** from the seven public engine entry points, with translation-unit-local name resolution, macro expansion, and address-taken functions and file-scope data counted as references (`reach.py`);
+    - **the dispatch tables:** message handlers, entity function tables and attribute accessors (`dispatch.py`);
+    - **the shared global data** the campaign touches (`globals.py`).
+- **The coverage ledger** (`ledger.py`, section 1) accounts for 940 items: 607 are mapped to an interaction row, 333 are excluded with a reason grounded in the headless product path, and **0 are outstanding**.
+  - The items are campaign crossings to or from host, framework, presentation, world and environment code; message types and waypoint message ids; function tables; attribute tokens; global data; and names that resolved to no definition.
+  - No needed interaction found by these methods lacks a DCS mechanism or a named workaround.
+  - The method's residual limits are in section 10. Accepting criterion 1 remains the technical lead's review decision.
+- **50 interactions in 13 categories** are mapped to DCS: 8 fit directly (campaign-only work that needs no DCS call), 25 are adapted and 17 are gaps. Every gap, and every adapted row that needs one, has a named workaround (G1–G27).
+- **The largest gaps:**
+  - there is **no verified "waypoint reached" signal** in DCS (G7);
+  - **movement is pulled from the campaign's guide every frame** in EECH, but DCS AI flies a route it is given (G4);
+  - EECH's **loss, damage, target-detection and capture bookkeeping runs inside world code** (G8, G9);
+  - **player commands and player aircraft** reach the campaign through EECH's own UI, cockpit and radio code (G24, G27);
+  - **no save of physical state** in the mission environment (G19);
+  - **one engine per process** against DCS mission restarts (G20);
+  - **the retail maps are not metric, and this PC has no Syria terrain** (G21).
+- **DCS evidence:** of the 29 DCS evidence items (D1–D29), 14 are confirmed by this install's shipped files ([R-dcs]), 14 rest on tslua-dcs only ([R-ref]) and 1 is unknown ([U]); five items carry a named partial unknown. No shipped file gives a mission-API signature; every signature below is tslua-dcs's.
 
 ## Evidence labels
 
@@ -44,7 +60,7 @@ Every file in `eech-campaign/crates/eech-engine-sys/sources.txt` (the compiled C
 
 Choices a reviewer may contest: `guide/` is campaign, although it also steers the flight model (#74, "The guide straddles the line"). `landing/` (landing sites, takeoff routes) is campaign, although #74 leaves its ownership open. `cargo/` is campaign (crates are a derived campaign record, #74 stage 1). `gunships/` (the player's cockpit, avionics and flight model) is excluded as player presentation.
 
-### Measures
+### First pass: measures (`inventory.py`)
 
 `inventory.py` (in full below) strips comments, keeps line numbers and indexes top-level function definitions per class. It counts:
 1. **Direct cross-class calls** to functions defined in exactly one class.
@@ -86,19 +102,79 @@ grep -E "$C" $S | xargs grep -wn get_3d_terrain_elevation | wc -l  # 27 raw (26)
 grep -E "$C" $S | xargs grep -wnE 'frand1|sfrand1|rand16' | wc -l  # 34 raw (30)
 ```
 
-### Coverage: measured against sampled
+### What the first pass did not measure
 
-- **Measured exhaustively** for the stated rules: the class of every compiled file; every direct call between uniquely defined C and W/E functions; every static message name; every named service token in campaign files.
-- **Not measured:**
-  - **Macro-expanded calls** other than the named tokens. For example `get_3d_terrain_elevation` and `frand1` are macros (`modules/3d/terrain/terrelev.h:108`, `modules/maths/random.h:153`). They are covered because they are named.
-  - **Function-pointer dispatch** through the entity type tables (for example `kill_client_server_entity`, `aphavoc/source/entity/system/en_funcs/en_dstry.h:107`). This is covered only where a message or attribute names the interaction.
-  - **Dynamic message ids:** the waypoint-reached messages come from `waypoint_database` (`wp_dbase.c:846`), not a literal.
-  - **Calls from F and X**, and the 76 ambiguous names.
-  - **The headless host layer** (`eech-campaign/crates/eech-engine-sys/csrc/`), which is not in `sources.txt`.
-- **Classified, not exhaustively read:** 21 physical-state attribute tokens were named and counted (section 1 table). The rest of the 208 attribute tokens found in campaign accessor calls (task, group, list and keysite links, names, sides) were read by name only and judged campaign or framework state [I]. The rows below cite representative sites; the full site lists are in the script's `--detail` output.
-- **Reused:** the SUPPLY rows lean on #74's map, which is supporting evidence only. The #74 citations reused here were spot-checked at `65892de1` (`assign.c:983`, `keysite.c:377`, `mb_msgs.c:1822`).
+The first pass (revision `18ab088e`) was measured exhaustively only for its own rules: file classes, direct calls between uniquely defined C and W/E functions, static message names and the named service tokens. It left six holes, and the lead's review found a concrete omission through one of them. `create_campaign` calls `read_map_info_data` (`faction.c:156`), which is in a presentation file, `modules/graphics/textuser.c:3255`, and was therefore excluded. The holes were:
+1. **Calls to and from F and X files, and the host layer.** `eech-campaign/crates/eech-engine-sys/csrc/` is not in `sources.txt`.
+2. **Function-pointer dispatch.** The message handler tables, the entity function tables (for example `kill_client_server_entity`, `aphavoc/source/entity/system/en_funcs/en_dstry.h:107`) and registered callbacks.
+3. **Dynamic message ids.** For example the waypoint messages that come from `waypoint_database` (`wp_dbase.c:846`), not from a literal.
+4. **The 76 names defined in more than one class**, dropped from the edges.
+5. **Attribute tokens** other than the 21 named physical-state ones.
+6. **Human-player and multiplayer interactions.**
 
-So this record claims a complete map **for the measured categories**. It does not claim that no other interaction exists.
+### Second pass: reachability, dispatch and globals
+
+The scripts are in full at the end; run them side by side from one directory. `reach.py` and `dispatch.py` take the repository root. `ledger.py` takes their JSON output.
+
+| Script | What it does | Result at `65892de1` [R-src] |
+|---|---|---|
+| `reach.py` | **Indexes** every function defined in the 1,217 `sources.txt` files and the 11 `csrc/*.c` files (class H, the headless host layer), including the bodies that follow `#if` arms and nested function-pointer parameters. **Resolves** each identifier in a body to the definition in the same file, else to the unique non-static global; same-file `#ifdef` twins count as one definition. **Expands** macros from every header and C file under `aphavoc/source`, `modules`, `csrc` and `compat`, recursively. **Walks** from the seven entry points in `eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h:36-102` (boot, frame, objects, clock, prepare_installation, diagnostics, fatal_message). It counts every reference, call or address taken, and the file-scope data of any file whose globals are referenced. This is an over-approximation by design: it reaches registered handlers, callbacks and data-table initialisers without modelling them. | **Functions reachable/defined:** C 997/1,139, W 1,603/1,813, E 799/889, F 914/1,086, H 266/294, X 5,677/6,114. **Ambiguous names left:** 0. The first pass's 76 (for example `kill_local`, defined in many entity files) all resolve once a reference is resolved within its own file first. **Campaign call sites examined:** 14,599. **Call-shaped names in campaign code with no definition:** 3, all accounted for in the ledger. **Distinct non-campaign functions** the campaign calls or references: C→F 122, C→W 38, C→E 25, C→X 10, C→H 6. Distinct non-campaign functions that call or reference the campaign: W 121, X 118, F 42, E 3, H 3 |
+| `dispatch.py` | **Reads** every table registration `fn_*[TYPE]… = f` and `message_responses[TYPE][MSG] = f`, including the per-type `[type]` registrations of the shared mobile files. **Classifies** each entity type by the files that register it. **Finds** every static message sent per class with its handler classes, and every non-literal `notify_*_entity` site. For every attribute token in campaign files, it records which classes implement it and in which context the campaign uses it (accessor, creation argument, pack tag, `case` label, registration). | **2,879 registrations; 40 entity types:** W 23, C 11, F 3, X 2, E 1. **30 static message types cross the campaign boundary;** 3 dynamic sends. **22 function tables.** **330 attribute tokens appear in campaign code:** the first pass's 208 from accessor calls, plus 122 in other contexts (creation argument lists, pack tags, `case` labels) |
+| `globals.py` | Finds every `extern` variable declared in a header, defined at file scope outside the campaign, and referenced in a campaign function. | 716 externs; 31 non-campaign globals used by the campaign: F 13, W 7, X 7, E 4 |
+
+### The coverage ledger
+
+`ledger.py` gives every item from the three scripts one disposition: **mapped** to an interaction row, **excluded** with a reason grounded in the headless product path, or **outstanding**. Rules are ordered regular expressions over `path::function` or token names; an item that no rule matches is outstanding. Result at `65892de1` [R-src]:
+
+| Ledger | Items | Mapped | Excluded | Outstanding |
+|---|---|---|---|---|
+| Campaign → host layer (H) | 6 | 0 | 6 | 0 |
+| Host layer → campaign | 3 | 3 | 0 | 0 |
+| Campaign → framework (F) | 122 | 33 | 89 | 0 |
+| Framework → campaign | 42 | 22 | 20 | 0 |
+| Campaign → presentation files (X) | 10 | 3 | 7 | 0 |
+| Presentation files → campaign | 118 | 97 | 21 | 0 |
+| Campaign → world (W) | 38 | 35 | 3 | 0 |
+| World → campaign | 121 | 113 | 8 | 0 |
+| Campaign → environment (E) | 25 | 24 | 1 | 0 |
+| Environment → campaign | 3 | 3 | 0 | 0 |
+| Static message types crossing the boundary | 30 | 25 | 5 | 0 |
+| Entity function tables | 22 | 11 | 11 | 0 |
+| Dynamic message sends | 3 | 3 | 0 | 0 |
+| `waypoint_database` message ids | 33 | 31 | 2 | 0 |
+| Attribute tokens in campaign code | 330 | 194 | 136 | 0 |
+| Non-campaign global data | 31 | 10 | 21 | 0 |
+| Call-shaped names with no definition | 3 | 0 | 3 | 0 |
+| **Total** | **940** | **607** | **333** | **0** |
+
+**Exclusion reasons, with counts:**
+- **Attributes:**
+  - 86 are implemented only by campaign entity types.
+  - 44 are the campaign entity's own implementation of an attribute (a `case` label, a table registration or a pack tag) and read no world value.
+  - 4 are type constants that matched the accessor pattern.
+  - 2 are array-size constants.
+- **Calls:**
+  - 31 entity-store functions used for campaign records. Crossings through the store are the message, table and attribute ledgers.
+  - 27 debug or test functions.
+  - 27 presentation and debug-output functions. The headless frame draws nothing (`eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c:253-286`), and the host layer has no display or DirectPlay connection (`eech-campaign/crates/eech-engine-sys/csrc/eech_headless_devices.c:5-10`).
+  - 25 arithmetic functions.
+  - 23 readers of campaign data files. They are read natively by the DLL with C stdio, so no DCS API is involved; the files ship with the module (I39).
+  - 8 visual and audio effects.
+  - 6 multiplayer replication and client-join functions. The headless engine is `COMMS_MODEL_SERVER` (`eech_engine.c:144`), with DirectPlay replaced (`eech-campaign/crates/eech-engine-sys/build/main.rs:38-39`), and DCS replicates units itself.
+  - 6 platform services (memory, strings, fatal unwinding).
+  - 2 observers of the campaign: EECH's own Tacview writer and its shared-memory export.
+- **Globals:** 16 string tables, 2 PSD image buffers for campaign data, 2 debug-drawing globals, 1 entity-store flag.
+- **Messages:** 4 entity-store list messages, and 1 message sent only from debug keys.
+- **Tables:** 11 draw, sound and UI tables.
+- **Waypoint ids:** 2 with no registered handler, so no-ops (`END`, `WAIT`).
+- **Names with no definition:**
+  - `#endif` followed by a parenthesised expression (`ld_msgs.c:512`);
+  - a call through a function-pointer field (`briefing.c:880`), whose targets are walked as address-taken references;
+  - `ogre_scene_get_object`, which is in the `#else` arm of `#ifndef OGRE_EE` (`popread.c:2795`). The headless build does not define `OGRE_EE`.
+
+`python -I ledger.py reach.json dispatch.json globals.json --items items.json` writes every item with its disposition and row. The mapped items cite their rows (I1–I50 below), so every row is backed by a measured site list, not by a sample.
+
+**The SUPPLY rows** lean on #74's map, which is supporting evidence only. The #74 citations reused here were spot-checked at `65892de1` (`assign.c:983`, `keysite.c:377`, `mb_msgs.c:1822`).
 
 ## 2. DCS sources
 
@@ -139,8 +215,10 @@ So this record claims a complete map **for the measured categories**. It does no
 | D25 | Weapons, search, removal | `Weapon:getLauncher` `MT/Weapon.ts:137`; `getTarget` `:146`; `world.searchObjects` `MT/world.ts:285`; `world.getAirbases` `:338`; `Object:destroy` `MT/Object.ts:16` | [R-ref] |
 | D26 | Player messages | `trigger.action.outText (text, displayTime, clearView?)` `MT/trigger.ts:402`; `markToAll` `:495` | [R-ref] |
 | D27 | A per-waypoint "reached" callback or script action on an AI route | Not found in the shipped files or the tslua files read. A probe would settle it: a route with a script command at one waypoint, and a check of whether it fires | [U] |
+| D28 | Explosion at a point | `trigger.action.explosion (point, power)` `MT/trigger.ts:281` | [R-ref] |
+| D29 | Player menu commands | `missionCommands.addCommand (name, nil, callback)` and `removeItem`, used by the shipped wrappers at `DCS:Scripts/ScriptingSystem.lua:38`, `:42`; per-coalition and per-group variants at `:46`, `:54` | [R-dcs] |
 
-Totals: [R-dcs] 13 (D1–D5, D7–D14; D11 and D14 by their verified part); [R-ref] 13 (D6, D15–D26); [U] 1 (D27). Partial unknowns inside rows with another label: D6's numeric ids, D11's trigger, D14's behaviour, D15's `groupData` schema and D18's route-task table.
+Totals: [R-dcs] 14 (D1–D5, D7–D14, D29; D11 and D14 by their verified part); [R-ref] 14 (D6, D15–D26, D28); [U] 1 (D27). Partial unknowns inside rows with another label: D6's numeric ids, D11's trigger, D14's behaviour, D15's `groupData` schema and D18's route-task table.
 
 ## 3. Interactions by category
 
@@ -153,6 +231,8 @@ Columns: **Dir** is C→W (the campaign asks the world) or W→C (the world repo
 | I1 | Create a mobile member in a group | `create_mobile_member`, `faction.c:1678` (the one switch; creators at `faction.c:1757-1803`). Callers: campaign load `parsgen.c:1854`, regen `rg_updt.c:399`, frontline `faction.c:1550` | C→W | entity index, member sub-type, group entity, `vec3d` position; landed members get a landing site | `coalition.addGroup` D15, per group, not per member; parking start D18 | adapted (G1) |
 | I2 | Population: cities, sites, scenery as entities with 3D objects | `popread.c:1575` `construct_3d_object`, `:1588` `insert_3d_object_into_terrain` | C→E | 3D object index, position | Map scenery is fixed; `addStaticObject` D15 | gap (G2) |
 | I3 | Remove an entity | `destroy_client_server_entity` (`aphavoc/source/entity/system/en_funcs/en_dstry.h:75`) | C→W | entity | `Group:destroy` D8, `Object:destroy` D25 | direct |
+| I43 | Campaign kills world units: all members of a group when its keysite falls or is captured | `group_kill_all_members` `group.c:1021`, called at `keysite.c:1097`, `keysite.c:1222`; a keysite below minimum strength `keysite.c:822`; kill and destroy tables (ledger) | C→W | entity | `Group:destroy` D8 (removal); `trigger.action.explosion` D28 (a physical kill). Whether either raises DEAD is [U] | adapted (G26) |
+| I48 | Type properties read from world type databases | `aircraft_database` (`faction.c:999`), `vehicle_database`, `weapon_database`, `fixed_3d_object_database` (globals ledger); 28 type-property attribute tokens (cruise speed and altitude, fuel economy, threat values, identify flags, display names) | C reads W | per-sub-type records | `Unit:getDesc` exists (D9); its fields are not verified [U] | adapted (G22) |
 
 ### Identity
 
@@ -171,6 +251,7 @@ Columns: **Dir** is C→W (the campaign asks the world) or W→C (the world repo
 | I9 | Line of sight for attack and cover positions | `gd_cover.c:762` → `check_position_line_of_sight` `mb_tgt.c:138` | C→W | two positions → bool | `land.isVisible` D20 | adapted |
 | I10 | Cargo doors and undercarriage | `mb_msgs.c:1822-1843` (#74); `ld_msgs.c:839` | C→W | articulation timers | none needed | direct (dropped; no accounting effect, #74) |
 | I11 | Return to base when damaged | `aircraft.c:332`, inside world damage code | W→C | damage threshold → group order | HIT event D6, `getLife`/`getLife0` D16, D9; the campaign applies the rule | adapted (G8) |
+| I49 | Troop transport: troops on board, insertion, pick-up and capture by troops | `INT_TYPE_TROOPS_ONBOARD` set at `assign.c:1321`; troop waypoint handlers such as `mb_msgs.c:2370` (7 troop waypoint ids, ledger) | both | troop count; waypoint messages | No embark or disembark API verified [U] | gap (G23) |
 
 ### Arrival and waypoints
 
@@ -178,6 +259,7 @@ Columns: **Dir** is C→W (the campaign asks the world) or W→C (the world repo
 |---|---|---|---|---|---|---|
 | I12 | Has the required member reached the waypoint? | `check_guide_reached_waypoint` `guide.c:260` asks each member (`guide.c:302`) → `hc_msgs.c:529`, `fw_msgs.c:390`; verdict `gd_updt.c:108` → `gd_nav.c:79` → `wp_msgs.c:285` | C→W→C | member, guide target, radius → bool | No reached event verified (D27 [U]); `Unit:getPoint`, `inAir` D16 | gap (G7) |
 | I13 | Typed arrivals that carry events: landed, lift-off, taken-off, touch-down | `wp_dbase.c:846`, `:900`, `:1494`, `:1656`; handlers `mb_msgs.c:1308` (landed), `mb_msgs.c:2099` (taken off) | W→C | waypoint-reached message per type | LAND, TAKEOFF, RUNWAY_TAKEOFF D5; RUNWAY_TOUCH D6 | adapted (G10) |
+| I50 | The waypoint's own message, chosen at runtime from `waypoint_database` and handled in world files | Dynamic sends `wp_msgs.c:271` (action message) and `wp_msgs.c:440` (reached message, to the task leader); 33 ids in `wp_dbase.c`, 31 with handlers registered by the mobile types | C→W | message id per waypoint type | Per id (ledger): aircraft sequence ids → G10; navigation, convoy, defend and supply ids → G7; troop ids → G23; recon → G7 with I35; attack action → G6 | adapted |
 
 ### Events (loss, damage, fire)
 
@@ -208,6 +290,7 @@ Section 5 maps the event sources named in the brief (loss, waypoint, landed, tak
 | I24 | Road graph, route search and broken links | `read_road_route_data` `ai_route.c:293`; `get_road_sub_route` `ai_route.c:898`; `get_closest_road_node` `ai_misc.c:480`; bridge loss `br_msgs.c:131-135` | campaign data from map files; W→C on bridge loss | node and link graph | `land.findPathOnRoads`, `getClosestPointOnRoads` D21; ON_ROAD formation D18 | gap (G13) |
 | I25 | Map grid, sectors and map bounds | `aphavoc/source/entity/special/sector/sector.h:105`; `aphavoc/source/entity/system/en_main/en_world.h:141`; `en_world.c:166`; 199 sites | campaign-only | sector indices from (x, z) | none needed, given map extents in DCS coordinates | direct |
 | I26 | 3D object data: crate bounds, cover bounds, object index | `keysite.c:377`; `gd_cover.c:544`; `popread.c:807` | C→E | bounding box, radius | none | gap (G14) |
+| I46 | Map info and the map's geographic origin, read when the campaign is created | `create_campaign` → `read_map_info_data` (`faction.c:156` → `textuser.c:3255`) → `initialize_known_coordinates` (`textuser.c:3291`). Per-map source defaults, e.g. Lebanon map5 at 32.86, 35.01 (`textuser.c:3187-3189`), overridden by a `coordinate` line in `mapinfo.txt` (`textuser.c:3370-3376`). The only reader of the origin is EECH's Tacview writer (`get_current_map_latitude_offset`, `textuser.c:3153-3161` → `tacview.c:171-172`) | C→X (map data) | map number, latitude and longitude of map (0, 0) | none for campaign decisions; the adapter converts positions (section 7) | adapted (G21) |
 
 ### Environment and weather
 
@@ -249,8 +332,20 @@ Section 5 maps the event sources named in the brief (loss, waypoint, landed, tak
 | I40 | Step the campaign | `eech_engine_frame`, `eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c:288` | host→C | ms | D19 or D12 | adapted |
 | I41 | Messages and speech to players; gunship mission results | `fc_msgs.c:431` (speech); `gp_msgs.c:1034` | C→W | speech and message ids | `trigger.action.outText` D26 | adapted (multiplayer: `docs/m5-dcs-risks.md`) |
 | I42 | Map placement for the reference scenario | Lebanon, map5 (`m2-reference.md`) | host | EECH map | No Syria terrain on this PC | gap (G21) |
+| I47 | Campaign end: winner, session complete, player log | `campaign_completed`, `campaign.c:1096`, called from `fc_msgs.c:307` | C→X | side, completion type | `outText` D26; no mission-end call verified [U] | gap (G25) |
 
-Totals: 42 rows. Direct 8 (I3, I5, I10, I17, I25, I29, I35, I37). Adapted 19. Gap 15 (I2, I6, I8, I12, I20, I23, I24, I26, I27, I30, I31, I36, I38, I39, I42). The gap table (section 8) names a workaround for each gap and for the adapted rows that need one.
+### Players and multiplayer
+
+The headless product boots as a server, with no DirectPlay connection and no joystick or display devices (`eech_engine.c:144`; `eech-campaign/crates/eech-engine-sys/csrc/eech_headless_devices.c:5-10`). These paths are therefore not exercised there. They are still interactions that the campaign consumes, and the supported DCS destination is server-authoritative with human players.
+
+| # | Interaction | EECH site(s) | Dir | EECH shape | DCS | Fit |
+|---|---|---|---|---|---|---|
+| I44 | Player commands and tasking: radio commands to wingmen and support (attack my target, hold, rejoin, return to base, airstrike, artillery, assistance); picking a task in the campaign screen or free flight; skipping a waypoint; key-bound campaign triggers; a client's task request | `process_radio_message` `msg_in.c:965`; `ca_selct.c:1083`; `fflight.c:504`; `co_wp.c:105`; `ev_fns.c:203`; `en_comms.c:5352` (43 ledger items) | player→C | message type and value; task; group | `missionCommands.addCommand` with a callback D29 | adapted (G24) |
+| I45 | The player's aircraft as a campaign member: pilot entity, player control of a group member, its landing and takeoff against landing locks, mission results | `create_new_pilot_entity` `pilot.c:271`; `helicopter_assume_player_control` `helicop.c:1972`; `dynamics.c:2017-2021`; `gp_msgs.c:1034` (18 ledger items) | both | player flag, aircrew lists, landing entity | PLAYER_ENTER_UNIT and PLAYER_LEAVE_UNIT D6; `getPlayerName` D16; LAND and TAKEOFF D5 | adapted (G27) |
+| — | Multiplayer replication of campaign state to clients, and client join | `transmit_entity_comms_message` (82 campaign functions, 93 raw `grep` call sites); `comm_man.c` client join (ledger) | C→clients | packed entity updates | none needed: DCS replicates units; campaign state stays on the server | excluded: server-authoritative destination; the headless engine has no clients (`eech-campaign/crates/eech-engine-sys/build/main.rs:38-39`) |
+| — | Player displays of campaign state: HUD and MFD waypoints, task objective text, briefings | 64 cockpit, avionics and view functions under `aphavoc/source/gunships/` (ledger, I41) | C→player | strings, waypoint positions | `outText`, `markToAll` D26 | adapted (with I41) |
+
+Totals: 50 rows. Direct 8 (I3, I5, I10, I17, I25, I29, I35, I37). Adapted 25. Gap 17 (I2, I6, I8, I12, I20, I23, I24, I26, I27, I30, I31, I36, I38, I39, I42, I47, I49). The gap table (section 8) names a workaround for each gap and for the adapted rows that need one. The two un-numbered player rows record ledger groups and are not counted.
 
 ## 4. Identity and lifecycle
 
@@ -286,7 +381,22 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
 
 ## 7. Terrain and geography
 
-- **Coordinates.** EECH uses metres with x east, y up, z north (`eech-campaign/crates/eech-engine/src/lib.rs:119`) from a map origin. EECH converts to latitude and longitude with its Tacview series about the origin in `mapinfo.txt` (`tacview.c:171-177`; the same code is in `eech-campaign/crates/eech-map/src/geo.rs`). DCS uses x north, y up, z east (D16, D22) and converts with `coord.LLtoLO` (D22 [R-ref]). The proposed chain is EECH (x, z) → latitude/longitude (EECH geodesy) → `coord.LLtoLO` → DCS. **The retail maps are not metric.** The reference host already fits an affine projection per retail map: Lebanon map5 to eight real airbases, with a median residual of 1.1 km and z compressed to 0.84; Georgia map3 by correlating terrain heights with SRTM, with x stretched 1.22 (`eech-campaign/crates/eech-world/lua/campaign.lua:43-55`). So the chain for a retail map is EECH (x, z) → that affine → latitude/longitude → `coord.LLtoLO` → DCS. Kilometre residuals mean an EECH keysite position and a DCS airbase position will not coincide, and campaign ranges and ETAs are in EECH's own map geometry, not DCS's [I]. Its error against DCS's projection is [U]; G21 measures it at airbases.
+- **Coordinates: what the source does.**
+  - EECH uses metres with x east, y up, z north (`eech-campaign/crates/eech-engine/src/lib.rs:119`) from a map origin.
+  - The origin is set on the campaign-creation path (I46). `read_map_info_data` takes the map number from the data path and calls `initialize_known_coordinates` (`textuser.c:3291`), which sets per-map **source defaults**: map5, Lebanon, 32.86 N 35.01 E (`textuser.c:3187-3189`). A `coordinate=lat,lon` line in the map's `mapinfo.txt` overrides them (`textuser.c:3370-3376`).
+  - In the compiled code, the origin's only reader is EECH's Tacview writer (`tacview.c:171-177`), which converts with its own series about the origin. The same code is in `eech-campaign/crates/eech-map/src/geo.rs`.
+  - `grep` finds no campaign file that reads `current_map_info` or the origin getters, so no campaign decision depends on the origin. [R-src]
+- **Coordinates: how accurate the conversion is.** These are separate facts from the source defaults.
+  - DCS uses x north, y up, z east (D16, D22) and converts with `coord.LLtoLO` (D22 [R-ref]).
+  - The naive chain is EECH (x, z) → latitude/longitude (EECH geodesy about the default origin) → `coord.LLtoLO` → DCS. **The retail maps are not metric**, so the naive chain is wrong by kilometres.
+  - The comments in the reference host's scenario table say that EECH's own Tacview origin puts map5 airbases up to 17 km out, and map3's up to 50 km. They say the host therefore fits an affine projection per retail map instead (`eech-campaign/crates/eech-world/lua/campaign.lua:43-55`):
+    - Lebanon map5 is fitted to eight real airbases, with a median residual of 1.1 km and z compressed to 0.84.
+    - Georgia map3 is fitted by correlating terrain heights with SRTM, with x stretched 1.22.
+
+    These figures are reported in those source comments. They were not reproduced here.
+  - So the chain for a retail map is EECH (x, z) → that affine → latitude/longitude → `coord.LLtoLO` → DCS.
+  - Kilometre residuals mean an EECH keysite position and a DCS airbase position will not coincide. Campaign ranges and ETAs stay in EECH's own map geometry, not DCS's [I].
+  - The chain's error against DCS's terrain is [U]; G21 measures it at airbases.
 - **Elevation and surface:** `land.getHeight` and `land.getSurfaceType` (D20). EECH's many terrain types collapse to DCS's five classes; nothing on the measured campaign paths needs more than land or water except cover search (G12) [I].
 - **Roads:** EECH's campaign owns a road graph read from map files (`ai_route.c:293`), with nodes, links and break counts. DCS exposes only path and nearest-point queries (D21), not a graph [R-ref]. See G13.
 - **Unknown:** how well the fitted retail affines match DCS's own terrain (they were fitted to real-world data, not to DCS); DCS's road-network coverage of the same area; and the vertical datum difference between EECH's and DCS's elevation.
@@ -315,35 +425,55 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
 | G18 Shared random stream | I37 | **Campaign-owned stream:** world draws no longer consume it, so sequences diverge from EECH_WORLD. Classify that as `expected-input-world-variation` | — |
 | G19 Save and restore | I38 | **Campaign-state save:** the campaign serialises its own records and G3 table (through D11 if its trigger is confirmed, else a file through D2), and respawns units from them on load. In-flight physical state is approximated (respawn at base or last position). Probe: `docs/m5-dcs-risks.md` | D11 [R-dcs], D2 [R-dcs, desanitised] |
 | G20 Load and restart | I39 | **Desanitised `require` for M5 probes, and one boot per DCS process;** a mission restart needs a process restart, or a future reset entry. Probe: `docs/m5-dcs-risks.md` | D1 [R-dcs, desanitised] |
-| G21 No Syria terrain here | I42 | **Georgia on Caucasus first:** retail Georgia (map3, with its fitted affine) or the `eech-map` Georgia map (an OSM georeference). Then Lebanon on Syria once that terrain is available. Snap each airbase keysite to its DCS `Airbase` by name (G3) and record the residuals, rather than trusting the affine alone | `DCS:Mods/terrains/` [R-dcs] |
+| G21 Map placement and coordinates | I42, I46 | **Georgia on Caucasus first:** retail Georgia (map3, with its fitted affine) or the `eech-map` Georgia map (an OSM georeference). Then Lebanon on Syria once that terrain is available. Snap each airbase keysite to its DCS `Airbase` by name (G3) and record the residuals, rather than trusting the affine alone. Never use the source-default origin (`textuser.c:3187-3189`) for placement | `DCS:Mods/terrains/` [R-dcs]; D22 [R-ref] |
+| G22 Type database | I48 | **Adapter type table:** each EECH sub-type maps to a DCS type name and the properties the campaign reads (cruise speed and altitude, fuel, threat, points), kept as data next to G14. Where `Unit:getDesc` fields are verified, they cross-check the table | D9 [R-dcs]; fields [U] |
+| G23 Troop transport | I49 | **Abstract troops:** troops stay a campaign count on the carrier. Insertion spawns an infantry group at the drop point (`coalition.addGroup`), and pick-up removes one (`Group:destroy`). No DCS embark is relied on | D15 [R-ref], D8 [R-dcs] |
+| G24 Player commands | I44 | **F10 command menu:** each EECH radio command, task request and waypoint skip becomes a `missionCommands` entry whose callback calls the campaign's existing handler (for example `process_radio_message`) with the player's group, resolved through G3 | D29 [R-dcs] |
+| G25 Campaign end | I47 | **Host-owned end:** the campaign reports the winner through `outText` and an observable state. The host ends or keeps the mission; no mission-end API is relied on | D26 [R-ref] |
+| G26 Kill or remove | I43 | **Campaign-recorded kills:** when the campaign itself kills a group, it records the losses directly, as EECH's own consequence, and removes the units with `Group:destroy`. It does not wait for a DEAD event that may not come | D8 [R-dcs]; DEAD on destroy [U] |
+| G27 Player aircraft binding | I45 | **Player-unit binding:** a player's DCS unit is bound to an EECH group member through G3 names on PLAYER_ENTER_UNIT. Its landings and takeoffs arrive as LAND and TAKEOFF events, applied with the campaign's landing-lock rules | D6 [R-ref], D5 [R-dcs], D16 [R-ref] |
 
 ## 9. Six-criterion acceptance matrix
 
 | Criterion | This map contributes | Remains | Proposed acceptance check (where) |
 |---|---|---|---|
-| 1 DCS call map | The inventory, 42 rows, 27 evidence items, G1–G21 | Lead review; settle D27 and the D6 ids | Review of this record, then a DCS run listing every D item used, as present or absent (DCS) |
-| 2 No world inside the campaign | Names the world code that holds campaign rules (I6, I11, I12, I36) and the services to move behind host identities | A mechanical check and a loud failure with no host | Static check: this script's C→W/E edge count, today 64 functions, falls to the calls behind declared host ports; and a boot with no host fails by name (EECH_WORLD) |
+| 1 DCS call map | Two-pass inventory and a 940-item coverage ledger (0 outstanding); 50 rows; 29 evidence items; G1–G27 | Lead review of the ledger rules and the method's residual limits (section 10: macro-heavy or `#if` code the regex index might misread; registrations or sends written in forms the scripts do not match). DCS-side unknowns that do not block the mapping but need probes: D6 ids, D11 trigger, D15 and D18 schemas, D27 | Review of this record; then a DCS run listing every D item used, as present or absent (DCS) |
+| 2 No world inside the campaign | Names the world code that holds campaign rules (I6, I11, I12, I36) and the services to move behind host identities | A mechanical check and a loud failure with no host | Static check: `reach.py`'s campaign→world and campaign→environment callee count (today 38 and 25 functions) falls to the calls behind declared host ports, with the ledger re-run; and a boot with no host fails by name (EECH_WORLD) |
 | 3 Host events drive the campaign | Event table (section 5); G7, G8 | The causal seam (#74, arrival first) | Withhold or delay one arrival or loss and show campaign state change (EECH_WORLD, then DCS) |
 | 4 No regression | Lists which rows change semantics under DCS (G6, G9, G12, G18) | Running the M4 pack after each move | Lebanon under EECH_WORLD, M4 pack holds, differences classified (EECH_WORLD) |
 | 5 DCS-only risks | G19, G20, D1, D12, section 6 | Owned by `docs/m5-dcs-risks.md` | Module load, frame budget and threading, save and restore, multiplayer (DCS) |
-| 6 Plan ready to build | The gap order and workarounds give the M6 steps | Writing and accepting the plan | Each M6 step has one in-DCS check, reviewed and accepted (DCS) |
+| 6 Plan ready to build | Interaction rows and workarounds for the steps of the existing working draft, [EECH M5 migration plan and acceptance evidence](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/12484650) (Confluence 12484650, version 1, not reviewed). Steps 2 and 3 use I1–I13 and G1–G7; step 4 uses section 5 and G7, G8; step 5 uses section 6; step 6 uses G19; step 7 uses I44, I45 and the excluded replication group | Attaching this map to the draft, mapping each step to its rows, and the lead's review and acceptance of the plan | That draft's in-DCS checks (DCS-load, DCS-bind, DCS-task, DCS-causal, DCS-clock-budget, DCS-restore, DCS-multiplayer, DCS-campaign) (DCS) |
 
 ## 10. Unknowns and limitations
 
-- **Coverage** is as stated in section 1. Function-pointer dispatch, dynamic messages, calls from framework code and the attribute tokens judged by name are not exhaustively read.
+- **Coverage.** The ledger has no outstanding item, but it rests on a regex index, not a compiler. These are the residual limits a reviewer should test:
+  - **No preprocessor.** Both arms of `#ifdef` count, and only `#if 0` is removed. This over-approximates; it does not drop code.
+  - **Function definitions** are found by pattern. The check that 14,599 call sites in reachable campaign functions resolve, with 3 explained exceptions, bounds the risk on the campaign side only.
+  - **Registrations and message sends** written in forms other than `fn_*[...] = f`, `message_responses[...][...] = f` and `notify_*_entity (...)` would be missed.
+  - **The attribute disposition** uses the implementing entity classes and the usage context. Of the world-implemented tokens used in accessors, each was assigned to a row by name in `ledger.py`; that assignment is a judgement the reviewer can check line by line.
+  - **Over-approximation:** reachability makes almost all code reachable, because the headless boot initialises the in-game UI (`start_ingame_ui_system`, `eech_engine.c:212`). Exclusions therefore rest on the stated product-path reasons, not on unreachability.
 - **The classification is a choice.** Moving `guide/` or `landing/` to W would move their interactions between rows, not remove them.
 - **DCS signatures are tslua-dcs's.** No shipped file gives one, the DLL is packed, and no DCS runtime check was made. Unknowns that a DCS probe would settle: D6 numeric ids and event duplication; the `groupData` and route-task schemas; D27; when D11 runs; whether names and ids are unique or reused; D14 behaviour.
 - **The coordinate chain is unmeasured against DCS.** The retail maps are distorted (section 7), and there is no Syria terrain on this PC.
-- **Human players** (the player-skip and cohesion rules, #74 stage 4) and **multiplayer** are not mapped beyond I41.
+- **Human players and multiplayer** are now mapped (I44, I45, the replication group). The player-skip and cohesion rules inside the helicopter arrival test (#74 stage 4) still sit in world code and move with G7. No player path runs in the headless product, so none of this is runtime-characterised.
 - **Prior research:** `eech-campaign/docs/dcs.md` maps the earlier kernel-spike API, not the whole-engine product. Where they differ, this record is source-grounded at `65892de1`.
 
 ## Validation
 
-- Scope: documentation only; one new file.
-- Inventory: `inventory.py` (below) at `65892de1`, output as in section 1; grep cross-checks run as listed.
-- DCS: read-only `grep`, `sed -n` and `diff` over `DCS:Scripts/`, `DCS:API/Sim_ControlAPI.md`, `DCS:autoupdate.cfg` and `DCS:Mods/terrains/`, plus `grep -a` over `DCS:bin/Scripting.dll`. tslua-dcs files were fetched at `1179554f` with `gh api`.
-- Citations: a checker kept outside the repository resolves every `file:line` outside code blocks (repository, `DCS:`, `MT/`, `MTX/`; a bare `:N` refers to the last file on the same line) to one file and checks the line is in range; it also checks every relative link and backticked repository path at the commit.
-- Not run: no DCS or EECH runtime, no build, no regression pack. Nothing here changes behaviour.
+- **Scope:** documentation only. This revision edits only this file.
+- **First pass:** `inventory.py` at `65892de1`; the output is as in section 1, and the grep cross-checks were run as listed.
+- **Second pass:** from one directory holding the four scripts below, run:
+  ```
+  python -I reach.py <repo> --detail reach.json
+  python -I dispatch.py <repo> --detail dispatch.json
+  python -I globals.py <repo> --detail globals.json
+  python -I ledger.py reach.json dispatch.json globals.json --items items.json
+  ```
+  These were run at `65892de1` with Python 3.13 on Windows and give the figures in section 1, including a ledger of 940 items with 0 outstanding.
+- **DCS:** read-only `grep`, `sed -n` and `diff` over `DCS:Scripts/`, `DCS:API/Sim_ControlAPI.md`, `DCS:autoupdate.cfg` and `DCS:Mods/terrains/`, plus `grep -a` over `DCS:bin/Scripting.dll`. tslua-dcs files were fetched at `1179554f` with `gh api`.
+- **Confluence:** the plan draft 12484650 (version 1) was read; it was not edited.
+- **Citations:** a checker kept outside the repository resolves every `file:line` outside code blocks (repository, `DCS:`, `MT/`, `MTX/`; a bare `:N` refers to the last file on the same line) to one file and checks the line is in range. It also checks every relative link and backticked repository path at the commit.
+- **Not run:** no DCS or EECH runtime, no build and no regression pack. Nothing here changes behaviour.
 
 <details>
 <summary><code>inventory.py</code></summary>
@@ -461,6 +591,691 @@ if detail:
            "attrs": dict(sorted(attrs.items())), "msgs": {k: dict(sorted(v.items())) for k, v in msgs.items()},
            "creates": dict(creates), "ambiguous": ambiguous, "tokens": tokens}
     Path(sys.argv[sys.argv.index("--detail") + 1]).write_text(json.dumps(out, indent=1))
+```
+
+</details>
+
+<details>
+<summary><code>reach.py</code></summary>
+
+```python
+"""Reachability walk over the headless eech_dc C, for the M5 DCS call map.
+
+python -I reach.py <repo-root> [--detail out.json]
+
+Nodes: every function defined in a compiled C file (sources.txt + csrc/*.c),
+keyed by (file, name); plus one data node per file (its file-scope text).
+Edges: any identifier reference in a body (call or address taken), resolved
+same-file first, then to the unique non-static global definition; a
+function-like or object macro is expanded (identifiers in its body,
+recursively). #if 0 blocks and comments are removed. Over-approximate by
+design: an address taken counts as a call, both arms of #ifdef count.
+"""
+import collections, json, re, sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+SYS = "eech-campaign/crates/eech-engine-sys/"
+sources = [l.strip() for l in (root / SYS / "sources.txt").read_text().splitlines() if l.strip()]
+csrc = sorted(p.relative_to(root).as_posix() for p in (root / SYS / "csrc").glob("*.c"))
+units = sources + csrc
+
+S = "aphavoc/source/"
+RULES = [
+    ("H", [SYS + "csrc/"]),
+    ("C", [S + "ai/", S + "ai_extrn.c", S + "entity/mobile/cargo/"] + [S + "entity/special/" + d + "/" for d in
+          ("force", "group", "task", "guide", "keysite", "waypoint", "division", "regen", "landing", "sector")]),
+    ("W", [S + "entity/mobile/", S + "entity/fixed/", S + "entity/special/bridge/", S + "entity/special/effect/"]),
+    ("E", ["modules/3d/", S + "misc/terr_db", S + "misc/tod", S + "misc/timeaccl", S + "entity/special/session/",
+           "modules/maths/random.c", "modules/system/time.c", "modules/system/timer.c"]),
+    ("X", [S + "ui_menu/", "modules/userint2/", "modules/graphics/", "modules/2d/", "modules/sound/", S + "appsound/",
+           S + "app3d/", S + "gunships/", S + "entity/special/camera/", S + "cdmusic.c"]),
+    ("F", [""]),
+]
+def klass(p):
+    return next(k for k, ps in RULES if any(p.startswith(x) for x in ps))
+
+COMMENT = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
+STRING = re.compile(r'"(?:\\.|[^"\\\n])*"|\'(?:\\.|[^\'\\\n])*\'')
+IDENT = re.compile(r"\b[A-Za-z_]\w*\b")
+DEF = re.compile(r"^(?:static\s+|extern\s+|inline\s+|__inline\s+)*[A-Za-z_][\w \t\*]*?\b([A-Za-z_]\w*)\s*\(([^;{}()]|\((?:[^()]|\([^()]*\))*\))*\)\s*(?:#[^\n]*\n\s*)*\{", re.M)
+KEYWORDS = set("if for while switch return sizeof else do case break continue goto default typedef struct union enum static extern const volatile register unsigned signed int char float double long short void".split())
+
+def blank(m):
+    return re.sub(r"[^\n]", " ", m.group(0))
+
+def if0(text):
+    out, depth, skipping = [], 0, 0
+    for line in text.split("\n"):
+        s = line.strip()
+        if skipping:
+            if re.match(r"#\s*if", s): depth += 1
+            elif re.match(r"#\s*endif", s):
+                depth -= 1
+                if depth == 0: skipping = 0
+            elif re.match(r"#\s*(else|elif)", s) and depth == 1: skipping = 0
+            out.append("")
+            continue
+        if re.match(r"#\s*if\s+0\b", s):
+            skipping, depth = 1, 1
+            out.append("")
+            continue
+        out.append(line)
+    return "\n".join(out)
+
+def clean(text):
+    text = COMMENT.sub(blank, text)
+    text = STRING.sub(blank, text)
+    return if0(text)
+
+# macros from every header and C file under the trees the build includes
+macros = collections.defaultdict(set)
+MACRO = re.compile(r"^[ \t]*#[ \t]*define[ \t]+([A-Za-z_]\w*)(\([^)]*\))?((?:[^\n\\]|\\\n|\\.)*)", re.M)
+for top in ("aphavoc/source", "modules", SYS + "csrc", SYS + "compat"):
+    for p in (root / top).rglob("*"):
+        if p.suffix.lower() in (".h", ".c"):
+            t = COMMENT.sub(blank, p.read_text(encoding="latin-1"))
+            for m in MACRO.finditer(t):
+                params = set(IDENT.findall(m.group(2) or ""))
+                macros[m.group(1)] |= set(IDENT.findall(m.group(3))) - params - KEYWORDS
+_mx = {}
+def expand(name, seen=()):
+    if name in _mx: return _mx[name]
+    out = set()
+    for n in macros.get(name, ()):
+        if n in macros and n not in seen and n != name:
+            sub = expand(n, seen + (name,))
+            out |= sub
+            if not any(x in by_name for x in sub):
+                out.add(n)  # the macro hides a same-named function whose variant is not defined
+        else:
+            out.add(n)
+    _mx[name] = out
+    return out
+
+text, cls = {}, {}
+for f in units:
+    text[f] = clean((root / f).read_text(encoding="latin-1"))
+    cls[f] = klass(f)
+
+def body_end(t, i):
+    depth = 0
+    for j in range(i, len(t)):
+        if t[j] == "{": depth += 1
+        elif t[j] == "}":
+            depth -= 1
+            if depth == 0: return j
+    return len(t)
+
+funcs = {}          # (file, name) -> (start, end, line, static)
+by_name = collections.defaultdict(list)
+filescope = {}
+for f, t in text.items():
+    spans = []
+    for m in DEF.finditer(t):
+        name = m.group(1)
+        if name in KEYWORDS: continue
+        if spans and m.start() < spans[-1][1]: continue  # nested match inside a body
+        b = t.index("{", m.end() - 1)
+        e = body_end(t, b)
+        static = bool(re.match(r"(?:inline\s+|__inline\s+)*static\b|static\b", t[m.start():m.start(1)].strip()))
+        funcs[(f, name)] = (b, e, t.count("\n", 0, m.start(1)) + 1, static)
+        by_name[name].append((f, static))
+        spans.append((m.start(), e))
+    fs, last = [], 0
+    for s0, e0 in spans:
+        fs.append(t[last:s0]); last = e0 + 1
+    fs.append(t[last:])
+    filescope[f] = "".join(fs)
+
+def resolve(f, n):
+    if (f, n) in funcs: return [(f, n)]
+    g = list({x[0]: x for x in by_name.get(n, ()) if not x[1]}.values())  # #ifdef'd twins in one file are one definition
+    if len(g) == 1: return [(g[0][0], n)]
+    if len(g) > 1: return [("?ambiguous", n)]
+    return []
+
+def refs(f, t, lo, hi):
+    out = []
+    for m in IDENT.finditer(t, lo, hi):
+        n = m.group(0)
+        if n in KEYWORDS: continue
+        line = t.count("\n", 0, m.start()) + 1
+        names = expand(n) if n in macros and (f, n) not in funcs else {n}
+        got = [(r, line, n) for x in names for r in resolve(f, x)]
+        if n in macros and not any(r[0] != "?ambiguous" for r, _, _ in got):
+            got += [(r, line, n) for r in resolve(f, n)]  # a macro hiding a same-named function (e.g. #ifdef'd _ex variants)
+        out += got
+    return out
+
+data_decl = {f: set(IDENT.findall(fs)) for f, fs in filescope.items()}
+def data_node(f): return (f, "<file-scope data>")
+
+ENTRIES = ["eech_engine_boot", "eech_engine_frame", "eech_engine_objects", "eech_engine_clock",
+           "eech_engine_prepare_installation", "eech_engine_diagnostics", "eech_engine_fatal_message"]
+start = [(SYS + "csrc/eech_engine.c", e) for e in ENTRIES]
+parent = {s: None for s in start}
+queue = collections.deque(start)
+edges = collections.defaultdict(list)   # (from, to) -> sites
+ambiguous = collections.Counter()
+globals_by_file = collections.defaultdict(set)
+for f, fs in filescope.items():
+    for m in re.finditer(r"\b([A-Za-z_]\w*)\s*(?:\[[^\]]*\]\s*)*(?:=|;|,)", fs):
+        globals_by_file[m.group(1)].add(f)
+while queue:
+    node = queue.popleft()
+    f, n = node
+    t = text[f]
+    if n == "<file-scope data>":
+        rs = refs(f, filescope[f], 0, len(filescope[f]))
+        rs = [(r, 0, x) for r, _, x in rs]
+    else:
+        b, e, _, _ = funcs[node]
+        rs = refs(f, t, b, e)
+        # data referenced: the file-scope data node of the file that declares it
+        for m in IDENT.finditer(t, b, e):
+            for g in globals_by_file.get(m.group(0), ()):
+                d = data_node(g)
+                if d not in parent:
+                    parent[d] = node; queue.append(d)
+    for r, line, via in rs:
+        if r[0] == "?ambiguous":
+            ambiguous[r[1]] += 1; continue
+        edges[(node, r)].append((line, via))
+        if r not in parent:
+            parent[r] = node; queue.append(r)
+
+reach = {k for k in parent if k[1] != "<file-scope data>"}
+# call-shaped names in reachable campaign functions that resolve to no function and no macro
+LIBC = set("""abs acos asin atan atan2 atof atoi atol ceil cos exp fabs fclose feof fflush fgetc fgets floor fmod fopen fprintf fputc fputs fread free fscanf fseek ftell fwrite getc isalpha isdigit isspace log log10 malloc memcmp memcpy memmove memset pow printf qsort rand realloc sin sprintf sqrt srand sscanf strcat strchr strcmp strcpy strcspn strlen strncat strncmp strncpy strrchr strstr strtok tan tolower toupper va_arg va_end va_start vsprintf snprintf vsnprintf time exit strdup stricmp strnicmp _stricmp _strnicmp sqrtf fabsf floorf ceilf powf atan2f sinf cosf""".split())
+unresolved = collections.Counter()
+examined = 0
+for f, n in reach:
+    if cls[f] != "C": continue
+    b, e, _, _ = funcs[(f, n)]
+    for m in re.finditer(r"\b([A-Za-z_]\w*)\s*\(", text[f][b:e]):
+        x = m.group(1)
+        examined += 1
+        if x in KEYWORDS or x in macros or x in LIBC or resolve(f, x): continue
+        if re.search(r"\(\s*\*?\s*" + x + r"\s*\)", text[f][b:e]): continue
+        unresolved[x] += 1
+def cnt(keys): return collections.Counter(cls[f] for f, _ in keys)
+cross = collections.defaultdict(list)
+for (a, b), sites in edges.items():
+    if a[1] == "<file-scope data>" or b[1] == "<file-scope data>": pass
+    ka, kb = cls[a[0]], cls[b[0]]
+    if ka != kb and "C" in (ka, kb):
+        cross[(ka, kb)].append((a, b, sites[0][0], sites[0][1]))
+summary = {
+    "units": dict(sorted(collections.Counter(cls.values()).items())),
+    "functions": dict(sorted(cnt(funcs).items())),
+    "reachable_functions": dict(sorted(cnt(reach).items())),
+    "reachable_files": dict(sorted(collections.Counter(cls[f] for f in {f for f, _ in reach}).items())),
+    "unresolved_ambiguous_names": len(ambiguous),
+    "call_sites_examined_in_campaign": examined,
+    "unresolved_call_names_in_campaign": sorted(unresolved),
+    "campaign_cross_edges": {f"{a}->{b}": [len({(x[0], x[1]) for x in v}), len({x[1] for x in v})] for (a, b), v in sorted(cross.items())},
+}
+print(json.dumps(summary, indent=1))
+if "--detail" in sys.argv:
+    def path(n):
+        p = []
+        while n is not None:
+            p.append(f"{n[0]}::{n[1]}"); n = parent.get(n)
+        return p[::-1]
+    out = {
+        "cross": {f"{a}->{b}": sorted({(x[0][0] + "::" + x[0][1], x[1][0] + "::" + x[1][1], x[2], x[3]) for x in v}) for (a, b), v in cross.items()},
+        "ambiguous": dict(ambiguous),
+        "unresolved_names": sorted(unresolved),
+        "reachable": sorted(f"{f}::{n}" for f, n in reach),
+        "unreachable": sorted(f"{f}::{n}" for f, n in funcs if (f, n) not in reach),
+        "paths": {f"{f}::{n}": path((f, n)) for f, n in reach if cls[f] in "XH" or n in ("read_map_info_data", "initialize_known_coordinates")},
+        "funcs": {f"{f}::{n}": v[2] for (f, n), v in funcs.items()},
+    }
+    Path(sys.argv[sys.argv.index("--detail") + 1]).write_text(json.dumps(out, indent=1))
+```
+
+</details>
+
+<details>
+<summary><code>dispatch.py</code></summary>
+
+```python
+"""Dispatch tables of the headless eech_dc: message handlers, entity function
+tables and attribute accessors, and which classes register them.
+
+python -I dispatch.py <repo-root> [--detail out.json]
+Reuses reach.py's classification and comment stripping (imported by path).
+"""
+import collections, json, re, sys, importlib.util
+from pathlib import Path
+
+root = Path(sys.argv[1])
+SYS = "eech-campaign/crates/eech-engine-sys/"
+spec_src = (Path(__file__).parent / "reach.py").read_text()
+klass_src = spec_src[spec_src.index("S = \"aphavoc/source/\""):spec_src.index("COMMENT = ")]
+ns = {"SYS": SYS}
+exec(klass_src, ns)
+klass = ns["klass"]
+COMMENT = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
+
+sources = [l.strip() for l in (root / SYS / "sources.txt").read_text().splitlines() if l.strip()]
+units = sources + sorted(p.relative_to(root).as_posix() for p in (root / SYS / "csrc").glob("*.c"))
+text = {f: COMMENT.sub(lambda m: re.sub(r"[^\n]", " ", m.group(0)), (root / f).read_text(encoding="latin-1")) for f in units}
+cls = {f: klass(f) for f in units}
+def ln(t, i): return t.count("\n", 0, i) + 1
+
+REG = re.compile(r"\b(fn_\w+|message_responses)\s*\[\s*(ENTITY_TYPE_\w+|[a-z_]\w*)\s*\](?:\s*\[\s*(\w+)\s*\])?\s*=\s*(\w+)\s*;")
+regs = []          # table, entity type, key, handler, file, line
+for f, t in text.items():
+    for m in REG.finditer(t):
+        et = m.group(2) if m.group(2).startswith("ENTITY_TYPE_") else "var:" + cls[f]  # overload_*(type) in a shared file
+        regs.append((m.group(1), et, m.group(3), m.group(4), f, ln(t, m.start())))
+
+# entity type -> class: the class of the files that register its message handlers and functions
+type_cls = collections.defaultdict(collections.Counter)
+for table, et, key, h, f, l in regs:
+    type_cls[et][cls[f]] += 1
+etype = {et: (et[4:] if et.startswith("var:") else c.most_common(1)[0][0]) for et, c in type_cls.items()}
+
+# message handlers per message
+handlers = collections.defaultdict(set)
+for table, et, key, h, f, l in regs:
+    if table == "message_responses":
+        handlers[key].add(et)
+
+# static senders per message and class, dynamic sends
+SEND = re.compile(r"\bnotify_(?:local|client_server)_entity\s*\(\s*((?:\([^()]*\)\s*)?[^,()]+(?:\([^()]*\))?)\s*,")
+static = collections.defaultdict(lambda: collections.defaultdict(list))
+dynamic = []
+for f, t in text.items():
+    for m in SEND.finditer(t):
+        arg = m.group(1).strip()
+        site = f"{f}:{ln(t, m.start())}"
+        arg = re.sub(r"^\(\s*entity_messages\s*\)\s*", "", arg)
+        if re.fullmatch(r"ENTITY_MESSAGE_\w+", arg):
+            static[arg][cls[f]].append(site)
+        elif not t[max(0, m.start() - 40):m.start()].rstrip().endswith(("define", "int", "void")):
+            dynamic.append((site, cls[f], arg))
+
+crossing = {}
+for msg, by in static.items():
+    hcls = sorted({etype.get(et, "?") for et in handlers.get(msg, ())})
+    for sc, sites in by.items():
+        if (sc == "C" and set(hcls) - {"C"}) or (sc != "C" and "C" in hcls):
+            crossing.setdefault(msg, {})[sc] = {"sites": len(sites), "first": sites[0], "handler_classes": hcls}
+
+# attribute accessors: which entity classes implement get/set per attribute
+attr_impl = collections.defaultdict(lambda: collections.defaultdict(set))
+for table, et, key, h, f, l in regs:
+    m = re.fullmatch(r"fn_(get|set)_(?:local|client_server)_entity_(\w+?)(?:_value)?", table)
+    if m and key and re.fullmatch(r"[A-Z0-9_]+_TYPE_[A-Z0-9_]+", key):
+        attr_impl[key][m.group(1)].add(etype.get(et, "?"))
+
+ACCESS = re.compile(r"\b(get|set)_(local|client_server)_entity_(\w+?)\s*\(\s*[^,()]+(?:\([^()]*\))?\s*,\s*([A-Z0-9_]+_TYPE_[A-Z0-9_]+)")
+used = collections.defaultdict(list)
+TOKEN = re.compile(r"[A-Z0-9_]+_TYPE_[A-Z0-9_]+")
+ANY = re.compile(r"(?<![A-Za-z0-9_])((?:INT|FLOAT|VEC3D|STRING|PTR|LIST|CHAR|MATRIX3X3)_TYPE_[A-Z0-9_]+)(?![A-Za-z0-9_])")
+accessor = set()
+contexts = collections.defaultdict(collections.Counter)
+for f, t in text.items():
+    if cls[f] == "C":
+        for m in ACCESS.finditer(t):
+            used[m.group(4)].append(f"{f}:{ln(t, m.start())}")
+            accessor.add(m.group(4))
+        lines = t.split(chr(10))
+        for m in ANY.finditer(t):  # every attribute token anywhere in campaign code, not only in matched accessor calls
+            i = ln(t, m.start())
+            used.setdefault(m.group(1), []).append(f"{f}:{i}")
+            line = lines[i - 1]
+            ctx = ("case" if re.search(r"\bcase\s+" + m.group(1), line) else
+                   "registration" if re.search(r"\bfn_\w+\s*\[", line) else
+                   "pack" if re.search(r"\b(un)?pack_\w+\s*\(", line) else
+                   "create" if "ENTITY_ATTR_" in line else
+                   "access" if re.search(r"\b(get|set)_\w*entity\w*\s*\(|_entity_\w+\s*\(", line) else "other")
+            contexts[m.group(1)][ctx] += 1
+attr_rows = {}
+for a, sites in used.items():
+    impl = attr_impl.get(a, {})
+    classes = sorted(set().union(*impl.values())) if impl else []
+    attr_rows[a] = {"sites": len(sites), "first": sites[0], "implemented_by": classes, "in_accessor_call": a in accessor, "contexts": dict(contexts.get(a, {}))}
+bucket = collections.Counter("world-implemented" if "W" in r["implemented_by"] else
+                             ("campaign-only" if r["implemented_by"] and set(r["implemented_by"]) <= {"C"} else
+                              ("environment/framework" if r["implemented_by"] else "no registration found"))
+                             for r in attr_rows.values())
+
+# entity function tables (non-attribute, non-message) that campaign entity types and world types both register
+tables = collections.defaultdict(lambda: collections.defaultdict(set))
+for table, et, key, h, f, l in regs:
+    if table != "message_responses" and not re.fullmatch(r"fn_(get|set)_.*", table):
+        tables[table][etype.get(et, "?")].add(et)
+
+summary = {
+    "registrations": len(regs),
+    "entity_types": dict(collections.Counter(etype.values())),
+    "messages_with_handlers": len(handlers),
+    "static_message_types_sent": len(static),
+    "crossing_static_messages": len(crossing),
+    "dynamic_send_sites": len(dynamic),
+    "attribute_tokens_in_campaign_accessors": len(attr_rows),
+    "attribute_buckets": dict(bucket),
+    "function_tables": len(tables),
+}
+print(json.dumps(summary, indent=1))
+if "--detail" in sys.argv:
+    Path(sys.argv[sys.argv.index("--detail") + 1]).write_text(json.dumps({
+        "etype": etype, "crossing": crossing, "dynamic": dynamic, "attrs": attr_rows,
+        "tables": {k: {c: sorted(v) for c, v in d.items()} for k, d in tables.items()},
+        "handlers": {k: sorted(v) for k, v in handlers.items()},
+    }, indent=1))
+```
+
+</details>
+
+<details>
+<summary><code>globals.py</code></summary>
+
+```python
+"""Shared global data the campaign reads or writes: every `extern` variable
+declared in a header, defined (file scope) in a non-campaign compiled file,
+and referenced in a campaign function body.
+
+python -I globals.py <repo-root> [--detail out.json]
+"""
+import collections, json, re, sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+src = (Path(__file__).parent / "reach.py").read_text()
+ns = {"SYS": "eech-campaign/crates/eech-engine-sys/"}
+exec(src[src.index('S = "aphavoc/source/"'):src.index("COMMENT = ")], ns)
+klass, SYS = ns["klass"], ns["SYS"]
+COMMENT = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
+def clean(t): return COMMENT.sub(lambda m: re.sub(r"[^\n]", " ", m.group(0)), t)
+
+sources = [l.strip() for l in (root / SYS / "sources.txt").read_text().splitlines() if l.strip()]
+units = sources + sorted(p.relative_to(root).as_posix() for p in (root / SYS / "csrc").glob("*.c"))
+text = {f: clean((root / f).read_text(encoding="latin-1")) for f in units}
+
+EXTERN = re.compile(r"^\s*extern\s+(?!\"C\")[^;(]*?\b([A-Za-z_]\w*)\s*(?:\[[^\]]*\]\s*)*;", re.M)
+externs = set()
+for top in ("aphavoc/source", "modules", SYS + "csrc"):
+    for p in (root / top).rglob("*.h"):
+        externs |= set(EXTERN.findall(clean(p.read_text(encoding="latin-1"))))
+
+# definition site: a file-scope line starting with a type and naming the variable, not extern, not a prototype
+defined = collections.defaultdict(set)
+for f, t in text.items():
+    depth = 0
+    for i, line in enumerate(t.split("\n"), 1):
+        if depth == 0 and not line.lstrip().startswith(("extern", "#", "typedef")):
+            for n in re.findall(r"\b([A-Za-z_]\w*)\s*(?:\[[^\]]*\]\s*)*(?:=|;)", line):
+                if n in externs:
+                    defined[n].add(f)
+        depth += line.count("{") - line.count("}")
+        depth = max(depth, 0)
+
+refs = collections.defaultdict(list)
+for f, t in text.items():
+    if klass(f) != "C":
+        continue
+    for i, line in enumerate(t.split("\n"), 1):
+        for n in set(re.findall(r"\b[A-Za-z_]\w*\b", line)):
+            if n in defined and not any(klass(d) == "C" for d in defined[n]):
+                refs[n].append(f"{f}:{i}")
+rows = {n: {"defined_in": sorted(defined[n]), "classes": sorted({klass(d) for d in defined[n]}), "sites": len(s), "first": s[0]}
+        for n, s in sorted(refs.items())}
+print(json.dumps({"externs": len(externs), "non_campaign_globals_used_by_campaign": len(rows),
+                  "by_class": dict(collections.Counter("/".join(r["classes"]) for r in rows.values()))}, indent=1))
+if "--detail" in sys.argv:
+    Path(sys.argv[sys.argv.index("--detail") + 1]).write_text(json.dumps(rows, indent=1))
+```
+
+</details>
+
+<details>
+<summary><code>ledger.py</code></summary>
+
+```python
+"""Coverage ledger for the M5 DCS call map: every campaign crossing found by
+reach.py, dispatch.py and globals.py gets a category and a disposition
+(mapped to a row / excluded with a reason / outstanding).
+
+python -I ledger.py <reach.json> <dispatch.json> <globals.json> [--items out.json]
+"""
+import collections, json, re, sys
+
+reach, disp, glob = (json.load(open(p)) for p in sys.argv[1:4])
+M, X, O = "mapped", "excluded", "outstanding"
+
+# ---- 1. direct calls and references across the campaign boundary --------------------------
+# unit: each distinct non-campaign function the campaign calls or references (C->k),
+# and each distinct non-campaign function that calls or references the campaign (k->C)
+RULES = [  # (regex on "path::function", category, disposition, row or reason)
+    # headless host layer
+    (r"csrc/eech_engine\.c::", "host", M, "I39, I40 (boot, frame, diagnostics)"),
+    (r"csrc/eech_observe\.c::", "host", M, "I4 (host observation surface)"),
+    (r"csrc/eech_(headless_\w+|win32)\.c::", "host", X, "platform services (memory, strings, fatal unwinding); no world"),
+    # player and multiplayer (before the generic framework and presentation rules)
+    (r"misc/msg_in\.c::|events/ev_fns\.c::|ui_menu/.*/(ca_selct|fflight|map)\.c::|common/co_wp\.c::", "player", M, "I44 (player commands and tasking)"),
+    (r"misc/msg_out\.c::", "player", M, "I41 (messages to players)"),
+    (r"en_comms/en_comms\.c::(?!transmit|enable|disable)", "player", M, "I44 (client requests); replica updates excluded: server-authoritative"),
+    (r"en_comms/en_comms\.c::|comms/(comms|comm_man)\.c::", "player", X, "multiplayer replication and client join: headless is COMMS_MODEL_SERVER (eech_engine.c:144) with DirectPlay replaced (build/main.rs:38-39); DCS replicates units"),
+    (r"special/pilot/|gunships/dynamics/|common/co_undercarriage\.c::|helicop\.c::(get_local_entity_suitable_for_player|notify_gunship)", "player", M, "I45 (player aircraft, landing, takeoff, results)"),
+    (r"gunships/(avionics|cockpits|views)/|common/co_force\.c::", "player", M, "I41 (player displays of campaign state)"),
+    # lifecycle, persistence
+    (r"aphavoc/source/update\.c::", "framework", M, "I18, I40 (campaign callbacks run by the frame's update list)"),
+    (r"gameflow/|aphavoc/source/(flight|init|deinit|game)\.c::|ui_menu/.*/mission\.c::", "framework", M, "I39, I40 (lifecycle)"),
+    (r"campaign/campaign\.c::campaign_completed", "presentation", M, "I47 (campaign end)"),
+    (r"::(pack|unpack)_|en_sessn\.c::|session/ss_pack\.c::", "persistence", M, "I38 (save, restore)"),
+    # framework, not a world interaction
+    (r"en_main/en_world\.c::", "framework", M, "I25 (map bounds)"),
+    (r"en_anim/en_anim\.c::", "framework", M, "I10 (doors)"),
+    (r"en_(funcs|main|types|msgs|misc|attrs)/", "framework", X, "entity store used for campaign records; crossings through it are the dispatch rows below"),
+    (r"en_debug/|system/assert\.c::|events/ev_debug\.c::|aphavoc/source/test\.c::|hc_move\.c::debug_visuals|fw_draw\.c::", "framework", X, "debug and test code; no world effect"),
+    (r"modules/maths/(?!random)|system/fpu\.c::|misc/miscell\.c::", "framework", X, "pure arithmetic"),
+    (r"misc/(file_tag|language)\.c::|system/files\.c::|graphics/psdread\.c::", "framework", X, "campaign data files read natively by the DLL; no DCS API (C stdio)"),
+    (r"system/event\.c::", "player", M, "I44 (key-bound campaign triggers)"),
+    (r"entity/tacview/|aphavoc/source/sharedmem\.c::", "framework", X, "EECH's own recorder and shared-memory export; observers of the campaign"),
+    # presentation files
+    (r"graphics/textuser\.c::read_map_info_data", "presentation", M, "I46 (map info, coordinate origin)"),
+    (r"graphics/psdwrite\.c::|special/camera/|ui_menu/|gunships/guns_sc\.c::", "presentation", X, "presentation and debug output (screens, camera, influence-map images); the headless frame draws nothing (eech_engine.c:253-286)"),
+    # world and environment
+    (r"session/ss_updt\.c::", "environment", M, "I27 (weather update looks up sectors)"),
+    (r"_msgs\.c::response_to_collision$", "world", M, "I14, I15 (collision damage)"),
+    (r"helicop\.c::(helicopter_assume_player_control|helicopter_release_player_control|assign_entity_to_user|set_gunship_entity_to_external_view_entity|transmit_player_recon_data)$", "player", M, "I45 (player aircraft)"),
+    (r"mobile\.c::draw_mobile_entity_debug_info$|damage\.c::display_debug_kill_info$", "framework", X, "debug and test code; no world effect"),
+    (r"mobile\.c::credit_client_server_mobile_kill$", "world", M, "I14 (kill credit)"),
+    (r"mobile\.c::mobile_check_all_members_taken_off$", "world", M, "I13 (takeoff)"),
+    (r"fixwing\.c::update_fixed_wing_crate_dropping$", "world", M, "I29 (crate drop)"),
+    (r"hc_updt\.c::update_fuel_weight$|wn_misc\.c::get_local_entity_weapon_load_weight$", "world", M, "I7 (fuel and load)"),
+    (r"helicop\.c::helicopter_within_keysite_area$", "world", M, "I30, I32 (keysite area)"),
+    (r"_creat\.c::create_(client_server|local)_entity_(anti_aircraft|fixed_wing|helicopter|person|routed_vehicle|ship)", "world", M, "I1 (spawn)"),
+    (r"special/effect/soundeff/speech\.c::|mobile\.c::play_mobile_under_attack_speech", "world", M, "I41 (speech to players)"),
+    (r"mobile/.*_creat\.c::create_local$", "world", M, "I1 (a spawned mobile registers with its force and sector)"),
+    (r"(fixed|effect|bridge|cbuild|city|crater|object|pylon|scenic|segment|site|siteupdt)/\w+_creat\.c::|(cr|xp|pa|sl|sp|wn|br)_pack\.c::", "world", M, "I1, I25 (world objects register in sectors and forces)"),
+    (r"special/effect/(?!soundeff/speech)|session\.c::attach_session_sound", "world", X, "visual and audio effects; DCS renders its own"),
+    (r"(site|siteupdt|cbuild)/|fixed/fixed\.c::", "world", M, "I31 (keysite structures)"),
+    (r"bridge/", "world", M, "I24 (bridges break road links)"),
+    (r"_dstry\.c::", "world", M, "I14 (losses)"),
+    (r"(ac|vh|wn)_tgt\.c::|vh_wpn\.c::|ac_wpn\.c::|weapon/weapon\.c::|wn_tgt\.c::", "world", M, "I8, I36 (attack, detection)"),
+    (r"weapon/(wn_\w+|damage)\.c::|aircraft/aircraft\.c::", "world", M, "I11, I15, I16 (damage, fire)"),
+    (r"mb_tgt\.c::", "world", M, "I9 (line of sight)"),
+    (r"_msgs\.c::overload|mb_funcs\.c::overload", "world", M, "I29, I31 (campaign types reuse world handlers; campaign-only in DCS)"),
+    (r"_(move|updt)\.c::|mobile\.c::|fixwing\.c::|routed\.c::|_vec3d\.c::|_int\.c::|helicop\.c::", "world", M, "I6, I12, I30 (movement reads the guide; arrival; takeoff routes)"),
+    (r"_msgs\.c::", "world", M, "I12, I13, I30, I32 (arrival tests, typed handlers, landing locks, capture)"),
+    (r"modules/3d/terrain/(terrelev|terrdata)\.c::|misc/terr_db\.c::", "environment", M, "I21-I23 (terrain)"),
+    (r"modules/3d/terrain/terrobjs\.c::|modules/3d/3d(objdb|subobj|objvis|objid)\.c::", "environment", M, "I2, I26 (3D objects)"),
+    (r"misc/tod\.c::", "environment", M, "I19 (time of day)"),
+    (r"session/session\.c::(set_session_\w+_weather_mode)|session/ss_updt\.c::", "environment", M, "I27 (weather)"),
+    (r"session/session\.c::check_point_inside_population_area", "environment", M, "I25 (map population area)"),
+]
+
+def classify(key):
+    for rx, cat, disp_, ref in RULES:
+        if re.search(rx, key):
+            return cat, disp_, ref
+    return "unclassified", O, "no rule"
+
+items = []
+for direction, edges in reach["cross"].items():
+    side = 1 if direction.startswith("C->") else 0
+    for key in sorted({e[side] for e in edges}):
+        cat, d, ref = classify(key)
+        items.append({"ledger": "calls", "direction": direction, "item": key, "category": cat, "disposition": d, "ref": ref})
+
+# ---- 2. message dispatch: static message types that cross the boundary ---------------------
+MSG = {
+    "CHECK_CAMPAIGN_OBJECTIVES": "I17", "CHECK_MOBILE_REACHED_GUIDE": "I12", "COLLISION": "I15",
+    "ENTITY_FIRED_AT": "I16", "ENTITY_TARGETED": "I36", "FORCE_DESTROYED": "I14, I15",
+    "GUIDE_COVER_POSITION_REACHED": "I23", "LANDING_SITE_REQUEST": "I30", "LOCK_LANDING_ROUTE": "I30, I38",
+    "LOCK_LANDING_SITE": "I30, I38", "LOCK_TAKEOFF_ROUTE": "I30", "MOBILE_KILLED": "I14", "REQUEST_ASSISTANCE": "I44",
+    "RESERVE_LANDING_SITE": "I30", "SET_ENTITY_POSITION": "I34", "TASK_ASSIGNED": "I6", "TASK_COMPLETED": "I14, I31",
+    "TASK_TERMINATED": "I6, I8, I45", "UNLOCK_LANDING_ROUTE": "I30", "UNLOCK_LANDING_SITE": "I30",
+    "UNLOCK_TAKEOFF_ROUTE": "I30", "UNRESERVE_LANDING_SITE": "I30", "WAYPOINT_DROP_OFF_REACHED": "I13, I29",
+    "WAYPOINT_PICK_UP_REACHED": "I13, I29", "WAYPOINT_TAKEN_OFF_REACHED": "I13",
+}
+MSG_X = {"GROUND_FORCE_ADVANCE": "sent only from debug keys (ev_debug.c)",
+         "LINK_CHILD": "entity-store list maintenance", "LINK_PARENT": "entity-store list maintenance",
+         "UNLINK_CHILD": "entity-store list maintenance", "UNLINK_PARENT": "entity-store list maintenance"}
+for m, by in sorted(disp["crossing"].items()):
+    name = m[len("ENTITY_MESSAGE_"):]
+    if name in MSG:
+        d, ref = M, MSG[name]
+    elif name in MSG_X:
+        d, ref = X, MSG_X[name]
+    else:
+        d, ref = O, "no rule"
+    items.append({"ledger": "messages", "item": name, "category": "dispatch", "disposition": d, "ref": ref,
+                  "senders": {k: v["first"] for k, v in by.items()}})
+
+# ---- 3. entity function tables -------------------------------------------------------------
+TABLE = {"create": (M, "I1"), "destroy": (M, "I3, I43"), "kill": (M, "I43"), "update": (M, "I40"),
+         "pack": (M, "I38"), "unpack": (M, "I38")}
+for t, by in sorted(disp["tables"].items()):
+    verb = t.split("_")[1] if t.startswith("fn_") else t
+    if "ui_object" in t or verb in ("draw", "play", "tool"):
+        d, ref = X, "presentation: the headless frame draws nothing and plays no sound (eech_engine.c:253-286)"
+    elif verb in TABLE:
+        d, ref = TABLE[verb]
+    else:
+        d, ref = O, "no rule"
+    items.append({"ledger": "tables", "item": t, "category": "dispatch", "disposition": d, "ref": ref, "classes": sorted(by)})
+
+# ---- 4. dynamic message ids ------------------------------------------------------------------
+for site, c, arg in disp["dynamic"]:
+    ref = {"message": "I6: TASK_TERMINATED forwarded to members (gp_msgs.c:1185 handler)",
+           "msg": "I50: waypoint_database messages (wp_dbase.c), each resolved below"}[arg]
+    items.append({"ledger": "dynamic", "item": site, "category": "dispatch", "disposition": M, "ref": ref})
+WP = {  # waypoint_database message -> row
+    "START_UP|TAXI|LIFT_OFF|TAKEN_OFF|RAISE_UNDERCARRIAGE|LOWER_UNDERCARRIAGE_ACTION|APPROACH|TOUCH_DOWN|LAND|LANDED": "I13 (G10)",
+    "NAVIGATION|SUB_ROUTE_NAVIGATION|CONVOY|REVERSE_CONVOY|LOOP|DEFEND|REPAIR": "I12 (G7)",
+    "PICK_UP|PREPARE_FOR_DROP_OFF|DROP_OFF|FINISH_DROP_OFF": "I12, I29 (G7)",
+    "TROOP_CAPTURE|TROOP_DEFEND|TROOP_INSERT|TROOP_PICKUP_POINT_END|TROOP_PICKUP_POINT_START|TROOP_PUTDOWN_POINT|PREPARE_FOR_INSERTION": "I49 (G23)",
+    "RECON|RECON_ACTION": "I35 (G7)", "ATTACK_ACTION": "I8 (G6)",
+}
+for m in sorted(k for k in disp["handlers"] if k.startswith("ENTITY_MESSAGE_WAYPOINT_")) + ["ENTITY_MESSAGE_WAYPOINT_END_REACHED", "ENTITY_MESSAGE_WAYPOINT_WAIT_REACHED"]:
+    name = m[len("ENTITY_MESSAGE_WAYPOINT_"):]
+    if name in ("REACHED", "ACTION"):
+        continue  # the guide's generic WAYPOINT_REACHED / WAYPOINT_ACTION: static campaign-to-campaign messages, not waypoint_database ids
+    base = re.sub(r"_REACHED$", "", name)
+    if not disp["handlers"].get(m):
+        d, ref = X, "no handler registered: the message is a no-op"
+    else:
+        ref = next((r for k, r in WP.items() if re.fullmatch(k, base)), None)
+        d = M if ref else O
+    items.append({"ledger": "waypoint ids", "item": name, "category": "dispatch", "disposition": d, "ref": ref or "no rule"})
+seen = set()
+items = [i for i in items if not (i["ledger"] == "waypoint ids" and (i["item"] in seen or seen.add(i["item"])))]
+
+# ---- 5. attribute tokens in campaign accessor calls ----------------------------------------
+A = {
+    M: {
+        "I4, I6 (position, motion)": "VEC3D_TYPE_POSITION VEC3D_TYPE_MOTION_VECTOR FLOAT_TYPE_VELOCITY FLOAT_TYPE_HEADING FLOAT_TYPE_PITCH VEC3D_TYPE_XV VEC3D_TYPE_ZV VEC3D_TYPE_RELATIVE_POSITION",
+        "I12 (arrival)": "FLOAT_TYPE_DISTANCE INT_TYPE_LANDED INT_TYPE_AIRBORNE_AIRCRAFT INT_TYPE_OPERATIONAL_STATE INT_TYPE_MEMBERS_PURSUING INT_TYPE_MEMBERS_REACHED INT_TYPE_MEMBERS_WAITING",
+        "I14, I15 (alive, damage)": "INT_TYPE_ALIVE INT_TYPE_DAMAGE_LEVEL",
+        "I1 (spawn state)": "FLOAT_TYPE_MAIN_ROTOR_RPM INT_TYPE_INSIDE_HANGAR FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE INT_TYPE_ALIGN_WITH_TERRAIN FLOAT_TYPE_FUSELAGE_ANGLE",
+        "I10 (doors, undercarriage)": "FLOAT_TYPE_LOADING_DOOR_TIMER FLOAT_TYPE_UNDERCARRIAGE_STATE",
+        "I8 (attack internals, G6)": "FLOAT_TYPE_WEAPON_BURST_TIMER FLOAT_TYPE_WEAPON_LAUNCH_DELAY FLOAT_TYPE_WEAPON_TO_INTERCEPT_POINT_RANGE VEC3D_TYPE_WEAPON_TO_INTERCEPT_POINT_VECTOR VEC3D_TYPE_WEAPON_VECTOR INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID INT_TYPE_SELECTED_WEAPON INT_TYPE_WEAPONS_HOLD FLOAT_TYPE_ATTACK_ALTITUDE",
+        "I36 (sensing, ROE, G9)": "FLOAT_TYPE_AIR_SCAN_RANGE FLOAT_TYPE_SURFACE_SCAN_RANGE INT_TYPE_ENGAGE_ENEMY INT_TYPE_RADAR_ON LIST_TYPE_TARGET",
+        "I48 (type properties, G22)": "FLOAT_TYPE_CRUISE_ALTITUDE FLOAT_TYPE_CRUISE_VELOCITY FLOAT_TYPE_FUEL_DEFAULT_WEIGHT FLOAT_TYPE_FUEL_ECONOMY FLOAT_TYPE_POTENTIAL_SURFACE_TO_AIR_THREAT FLOAT_TYPE_POTENTIAL_SURFACE_TO_SURFACE_THREAT FLOAT_TYPE_TARGET_PRIORITY_AIR_ATTACK FLOAT_TYPE_TARGET_PRIORITY_GROUND_ATTACK INT_TYPE_FORCE_INFO_CATAGORY INT_TYPE_IDENTIFY_AIRCRAFT INT_TYPE_IDENTIFY_FIXED INT_TYPE_IDENTIFY_MOBILE INT_TYPE_IDENTIFY_VEHICLE INT_TYPE_IDENTIFY_WEAPON INT_TYPE_MOVEMENT_TYPE INT_TYPE_POINTS_VALUE INT_TYPE_TARGET_TYPE INT_TYPE_TASK_TARGET_TYPE INT_TYPE_ENTITY_SUB_TYPE STRING_TYPE_FULL_NAME STRING_TYPE_LONG_DISPLAY_NAME STRING_TYPE_SHORT_DISPLAY_NAME",
+        "I26 (3D shape, G14)": "INT_TYPE_OBJECT_3D_SHAPE INT_TYPE_APPROXIMATION_OBJECT_3D_SHAPE",
+        "I23 (cover, G12)": "VEC3D_TYPE_COVER_POSITION",
+        "I31 (structure importance)": "FLOAT_TYPE_FIXED_OBJECT_IMPORTANCE LIST_TYPE_BUILDING_GROUP",
+        "I35 (recon)": "FLOAT_TYPE_RECON_RADIUS",
+        "I3, I4 (identity: side, group membership; G3)": "INT_TYPE_SIDE INT_TYPE_FORMATION_POSITION INT_TYPE_GROUP_MEMBER_ID INT_TYPE_GROUP_MEMBER_NUMBER LIST_TYPE_MEMBER",
+        "I45 (player)": "INT_TYPE_PLAYER LIST_TYPE_AIRCREW LIST_TYPE_PILOT_LOCK",
+        "I49 (troops, G23)": "INT_TYPE_TROOPS_ONBOARD",
+        "I30 (landing sites, takeoff queue)": "LIST_TYPE_LANDING_SITE LIST_TYPE_TAKEOFF_QUEUE",
+        "I29 (cargo records)": "LIST_TYPE_CARGO LIST_TYPE_MOVEMENT_DEPENDENT FLOAT_TYPE_FUEL_SUPPLY_LEVEL",
+        "I18 (group sleep timer)": "FLOAT_TYPE_SLEEP",
+        "I5 (waypoint altitude at creation; route-point altitude in G4)": "FLOAT_TYPE_ALTITUDE",
+    },
+    X: {"not an attribute: a type or sub-type constant matched the accessor pattern": "ENTITY_SUB_TYPE_LANDING_FIXED_WING ENTITY_SUB_TYPE_LANDING_FIXED_WING_TRANSPORT ENTITY_SUB_TYPE_LANDING_HELICOPTER ENTITY_TYPE_FORCE"},
+}
+amap = {}
+for d, groups in A.items():
+    for ref, names in groups.items():
+        for n in names.split():
+            amap[n] = (d, ref)
+for a, r in sorted(disp["attrs"].items()):
+    impl = set(r["implemented_by"])
+    ctx = set(r.get("contexts", {}))
+    if a in amap:
+        d, ref = amap[a]
+    elif ctx and ctx <= {"pack"}:
+        d, ref = M, "I38: a pack/unpack field tag (save, restore, replication)"
+    elif ctx and ctx <= {"case", "registration", "pack"}:
+        d, ref = X, "the campaign entity's own implementation of the attribute (case label, table registration, pack tag); reads no world value"
+    elif ctx == {"other"} and a.endswith("_MAX_LENGTH"):
+        d, ref = X, "an array-size constant, not an attribute"
+    elif a.startswith("LIST_TYPE_"):
+        d, ref = M, "I5 and G3: campaign link list (generic en_list.c storage); links to world members go through G3"
+    elif impl and impl <= {"C"}:
+        d, ref = X, "campaign-only: implemented only by campaign entity types"
+    elif impl and "W" not in impl:
+        d, ref = M, "I18, I19, I27 (session: time, weather, flags) or framework default"
+    else:
+        d, ref = O, "no rule"
+    items.append({"ledger": "attributes", "item": a, "category": "attributes", "disposition": d, "ref": ref,
+                  "implemented_by": sorted(impl), "first": r["first"]})
+
+# ---- 6. shared global data -----------------------------------------------------------------
+G = [
+    (r"_names$|^application_tag_strings$|^dik_names$", X, "string tables for parsing and logging"),
+    (r"^(aircraft|vehicle|weapon|effect)_database$|^fixed_3d_object_database$|^target_point_offsets$", M, "I48 (type database, G22)"),
+    (r"^speech_sector_coordinates$", M, "I41 (speech)"),
+    (r"^objects_3d_\w+$|^object_3d_enumeration_names$", M, "I2, I26 (3D object data, G14)"),
+    (r"^terrain_3d_max_map_z$", M, "I25 (map extents)"),
+    (r"^(number_of_)?psd_layers$", X, "campaign data image read natively (popread.c:362)"),
+    (r"^active_2d_environment$|^sys_colour_table$", X, "debug drawing (wp_draw.c)"),
+    (r"^force_local_entity_create_stack_attributes$", X, "entity-store flag"),
+]
+for n, r in glob.items():
+    d, ref = next(((d, ref) for rx, d, ref in G if re.search(rx, n)), (O, "no rule"))
+    items.append({"ledger": "globals", "item": n, "category": "globals", "disposition": d, "ref": ref, "first": r["first"]})
+
+# ---- 7. call-shaped names in campaign code that resolve to no definition -------------------
+U = {"endif": "not a call: a #endif line followed by a parenthesised expression (ld_msgs.c:512)",
+     "function": "a call through a function-pointer field (briefing.c:880); its targets are address-taken functions, walked as references",
+     "ogre_scene_get_object": "in the #else arm of #ifndef OGRE_EE (popread.c:2795); the headless build does not define OGRE_EE"}
+for n in reach.get("unresolved_names", []):
+    items.append({"ledger": "unresolved names", "item": n, "category": "index", "disposition": X if n in U else O, "ref": U.get(n, "no rule")})
+
+# ---- totals -------------------------------------------------------------------------------
+tot = collections.defaultdict(collections.Counter)
+for i in items:
+    key = i["ledger"] if i["ledger"] != "calls" else f"calls {i['direction']} [{i['category']}]"
+    tot[key][i["disposition"]] += 1
+out = {k: dict(v) for k, v in sorted(tot.items())}
+out["ALL"] = dict(collections.Counter(i["disposition"] for i in items))
+out["ambiguous names left"] = len(reach["ambiguous"])
+print(json.dumps(out, indent=1))
+for i in items:
+    if i["disposition"] == O:
+        print("OUTSTANDING", i["ledger"], i["item"])
+if "--items" in sys.argv:
+    json.dump(items, open(sys.argv[sys.argv.index("--items") + 1], "w"), indent=1)
 ```
 
 </details>
