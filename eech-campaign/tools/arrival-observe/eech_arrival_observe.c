@@ -51,7 +51,7 @@
 
 #define MAX_INDEX (1 << 20) /* NUM_ENTITY_INDEX_PACK_BITS */
 
-static int state; /* 0 not yet initialised, 1 enabled, -1 disabled */
+static int obs_state; /* 0 not yet initialised, 1 enabled, -1 disabled */
 static FILE *out;
 static unsigned generation[MAX_INDEX];
 static unsigned tracked[MAX_INDEX]; /* generation + 1 of an entity named in an event */
@@ -73,9 +73,9 @@ static struct
 } span;
 static int spans;
 
-static void finish (void)
+static void obs_finish (void)
 {
-	if (state != 1 || !out)
+	if (obs_state != 1 || !out)
 	{
 		return;
 	}
@@ -91,12 +91,12 @@ static void finish (void)
 	out = NULL;
 }
 
-static int enabled (void)
+static int obs_enabled (void)
 {
-	if (state == 0)
+	if (obs_state == 0)
 	{
 		const char *dir = getenv ("EECH_ARRIVAL_TRACE");
-		state = -1;
+		obs_state = -1;
 		if (dir && *dir)
 		{
 			char path[1024];
@@ -104,8 +104,8 @@ static int enabled (void)
 			out = fopen (path, "w");
 			if (out)
 			{
-				state = 1;
-				atexit (finish);
+				obs_state = 1;
+				atexit (obs_finish);
 			}
 			else
 			{
@@ -113,24 +113,24 @@ static int enabled (void)
 			}
 		}
 	}
-	return state == 1;
+	return obs_state == 1;
 }
 
-static int index_of (entity *en)
+static int obs_index_of (entity *en)
 {
 	int i = get_local_entity_index (en);
 	return (i >= 0 && i < MAX_INDEX) ? i : -1;
 }
 
-static unsigned gen_of (entity *en)
+static unsigned obs_gen_of (entity *en)
 {
-	int i = index_of (en);
+	int i = obs_index_of (en);
 	return i >= 0 ? generation[i] : 0;
 }
 
-static void track (entity *en)
+static void obs_track (entity *en)
 {
-	int i = index_of (en);
+	int i = obs_index_of (en);
 	if (i >= 0)
 	{
 		tracked[i] = generation[i] + 1;
@@ -138,18 +138,18 @@ static void track (entity *en)
 }
 
 /* still the same entity: not freed since it was seen (its index not reused) */
-static int same (entity *en, unsigned gen)
+static int obs_same (entity *en, unsigned gen)
 {
-	return en && get_local_entity_type (en) != ENTITY_TYPE_UNKNOWN && gen_of (en) == gen;
+	return en && get_local_entity_type (en) != ENTITY_TYPE_UNKNOWN && obs_gen_of (en) == gen;
 }
 
-static double now (void)
+static double obs_now (void)
 {
 	entity *session = get_session_entity ();
 	return session ? get_local_entity_float_value (session, FLOAT_TYPE_ELAPSED_TIME) : -1.0;
 }
 
-static void text (const char *s)
+static void obs_text (const char *s)
 {
 	fputc ('"', out);
 	for (; s && *s; s++)
@@ -171,7 +171,7 @@ static void text (const char *s)
 	fputc ('"', out);
 }
 
-static void number (double v)
+static void obs_number (double v)
 {
 	if (v != v)
 	{
@@ -183,22 +183,22 @@ static void number (double v)
 	}
 }
 
-static void begin (const char *event)
+static void obs_begin (const char *event)
 {
 	count.events++;
 	fprintf (out, "{\"e\":\"%s\",\"t\":", event);
-	number (now ());
+	obs_number (obs_now ());
 	fprintf (out, ",\"ms\":%u", eech_headless_time_ms ());
 }
 
-static void end_line (void)
+static void obs_end_line (void)
 {
 	fputs ("}\n", out);
 	fflush (out);
 }
 
 /* [index, generation] */
-static void ref (const char *key, entity *en)
+static void obs_ref (const char *key, entity *en)
 {
 	fprintf (out, ",\"%s\":", key);
 	if (!en)
@@ -206,34 +206,34 @@ static void ref (const char *key, entity *en)
 		fputs ("null", out);
 		return;
 	}
-	track (en);
-	fprintf (out, "[%d,%u]", get_local_entity_index (en), gen_of (en));
+	obs_track (en);
+	fprintf (out, "[%d,%u]", (int) get_local_entity_index (en), obs_gen_of (en));
 }
 
-static int is_four (int waypoint_type)
+static int obs_is_four (int waypoint_type)
 {
 	return waypoint_type == ENTITY_SUB_TYPE_WAYPOINT_PICK_UP || waypoint_type == ENTITY_SUB_TYPE_WAYPOINT_PREPARE_FOR_DROP_OFF
 		|| waypoint_type == ENTITY_SUB_TYPE_WAYPOINT_DROP_OFF || waypoint_type == ENTITY_SUB_TYPE_WAYPOINT_FINISH_DROP_OFF;
 }
 
-static int is_supply_task (entity *task)
+static int obs_is_supply_task (entity *task)
 {
 	return task && get_local_entity_type (task) == ENTITY_TYPE_TASK && get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) == ENTITY_SUB_TYPE_TASK_SUPPLY;
 }
 
-static void waypoint (const char *key, entity *wp)
+static void obs_waypoint (const char *key, entity *wp)
 {
-	ref (key, wp);
+	obs_ref (key, wp);
 	if (wp)
 	{
 		int type = get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE);
 		fprintf (out, ",\"%s_type\":", key);
-		text (entity_sub_type_waypoint_names[type]);
+		obs_text (entity_sub_type_waypoint_names[type]);
 	}
 }
 
 /* a keysite or group's supply, and a keysite's crates */
-static void holder (const char *key, entity *en)
+static void obs_holder (const char *key, entity *en)
 {
 	entity *cargo;
 	int first = 1, type;
@@ -243,18 +243,18 @@ static void holder (const char *key, entity *en)
 		fputs ("null", out);
 		return;
 	}
-	track (en);
+	obs_track (en);
 	type = get_local_entity_type (en);
-	fprintf (out, "{\"id\":[%d,%u],\"type\":", get_local_entity_index (en), gen_of (en));
-	text (entity_type_names[type]);
+	fprintf (out, "{\"id\":[%d,%u],\"type\":", (int) get_local_entity_index (en), obs_gen_of (en));
+	obs_text (entity_type_names[type]);
 	if (type == ENTITY_TYPE_KEYSITE || type == ENTITY_TYPE_GROUP)
 	{
 		fputs (",\"name\":", out);
-		text (get_local_entity_string (en, type == ENTITY_TYPE_KEYSITE ? STRING_TYPE_KEYSITE_NAME : STRING_TYPE_GROUP_CALLSIGN));
+		obs_text (get_local_entity_string (en, type == ENTITY_TYPE_KEYSITE ? STRING_TYPE_KEYSITE_NAME : STRING_TYPE_GROUP_CALLSIGN));
 		fputs (",\"ammo\":", out);
-		number (get_local_entity_float_value (en, FLOAT_TYPE_AMMO_SUPPLY_LEVEL));
+		obs_number (get_local_entity_float_value (en, FLOAT_TYPE_AMMO_SUPPLY_LEVEL));
 		fputs (",\"fuel\":", out);
-		number (get_local_entity_float_value (en, FLOAT_TYPE_FUEL_SUPPLY_LEVEL));
+		obs_number (get_local_entity_float_value (en, FLOAT_TYPE_FUEL_SUPPLY_LEVEL));
 	}
 	if (type == ENTITY_TYPE_KEYSITE)
 	{
@@ -263,9 +263,9 @@ static void holder (const char *key, entity *en)
 		{
 			if (get_local_entity_type (cargo) == ENTITY_TYPE_CARGO)
 			{
-				track (cargo);
-				fprintf (out, "%s[%d,%u,", first ? "" : ",", get_local_entity_index (cargo), gen_of (cargo));
-				text (entity_sub_type_cargo_names[get_local_entity_int_value (cargo, INT_TYPE_ENTITY_SUB_TYPE)]);
+				obs_track (cargo);
+				fprintf (out, "%s[%d,%u,", first ? "" : ",", (int) get_local_entity_index (cargo), obs_gen_of (cargo));
+				obs_text (entity_sub_type_cargo_names[get_local_entity_int_value (cargo, INT_TYPE_ENTITY_SUB_TYPE)]);
 				fputc (']', out);
 				first = 0;
 			}
@@ -276,7 +276,7 @@ static void holder (const char *key, entity *en)
 }
 
 /* what a mobile carries: its MOVEMENT_DEPENDENT list, as the drop-off reads it */
-static void aboard (const char *key, entity *mobile)
+static void obs_aboard (const char *key, entity *mobile)
 {
 	entity *child;
 	int first = 1;
@@ -290,14 +290,14 @@ static void aboard (const char *key, entity *mobile)
 	for (child = get_local_entity_first_child (mobile, LIST_TYPE_MOVEMENT_DEPENDENT); child; child = get_local_entity_child_succ (child, LIST_TYPE_MOVEMENT_DEPENDENT))
 	{
 		int type = get_local_entity_type (child);
-		track (child);
-		fprintf (out, "%s{\"id\":[%d,%u],\"type\":", first ? "" : ",", get_local_entity_index (child), gen_of (child));
-		text (entity_type_names[type]);
+		obs_track (child);
+		fprintf (out, "%s{\"id\":[%d,%u],\"type\":", first ? "" : ",", (int) get_local_entity_index (child), obs_gen_of (child));
+		obs_text (entity_type_names[type]);
 		fprintf (out, ",\"identify_cargo\":%d", get_local_entity_int_value (child, INT_TYPE_IDENTIFY_CARGO));
 		if (type == ENTITY_TYPE_CARGO)
 		{
 			fputs (",\"cargo\":", out);
-			text (entity_sub_type_cargo_names[get_local_entity_int_value (child, INT_TYPE_ENTITY_SUB_TYPE)]);
+			obs_text (entity_sub_type_cargo_names[get_local_entity_int_value (child, INT_TYPE_ENTITY_SUB_TYPE)]);
 		}
 		fputc ('}', out);
 		first = 0;
@@ -305,7 +305,7 @@ static void aboard (const char *key, entity *mobile)
 	fputc (']', out);
 }
 
-static void task_state (entity *task)
+static void obs_task_state (entity *task)
 {
 	if (task && get_local_entity_type (task) == ENTITY_TYPE_TASK)
 	{
@@ -314,14 +314,14 @@ static void task_state (entity *task)
 	}
 }
 
-static void header (void)
+static void obs_header (void)
 {
 	static int written;
 	if (!written)
 	{
 		written = 1;
 		fprintf (out, "{\"e\":\"header\",\"version\":1,\"pid\":%d,\"root\":", eech_observe_pid ());
-		text (comanche_hokum_installation_path);
+		obs_text (comanche_hokum_installation_path);
 		fputs (",\"note\":\"EEDCS-11 test-only arrival observation; tools/arrival-observe\"}\n", out);
 	}
 }
@@ -333,23 +333,23 @@ static void header (void)
 void eech_observe_entity_freed (entity *en)
 {
 	int i;
-	if (!enabled ())
+	if (!obs_enabled ())
 	{
 		return;
 	}
-	i = index_of (en);
+	i = obs_index_of (en);
 	if (i < 0)
 	{
 		return;
 	}
 	if (tracked[i] == generation[i] + 1)
 	{
-		header ();
-		begin ("freed");
+		obs_header ();
+		obs_begin ("freed");
 		fprintf (out, ",\"id\":[%d,%u],\"type\":", i, generation[i]);
-		text (entity_type_names[get_local_entity_type (en)]);
+		obs_text (entity_type_names[get_local_entity_type (en)]);
 		fprintf (out, ",\"span\":%d", span.open ? span.id : 0);
-		end_line ();
+		obs_end_line ();
 		tracked[i] = 0;
 	}
 	generation[i]++;
@@ -360,38 +360,38 @@ void eech_observe_supply_task_created (entity *task, entity *requester, entity *
 {
 	entity *wp;
 	int first = 1;
-	if (!enabled () || !task)
+	if (!obs_enabled () || !task)
 	{
 		return;
 	}
-	header ();
-	begin ("task");
-	ref ("task", task);
+	obs_header ();
+	obs_begin ("task");
+	obs_ref ("task", task);
 	fputs (",\"cargo_type\":", out);
-	text (cargo ? entity_sub_type_cargo_names[get_local_entity_int_value (cargo, INT_TYPE_ENTITY_SUB_TYPE)] : "");
-	ref ("cargo", cargo);
-	holder ("supplier", supplier);
-	holder ("requester", requester);
+	obs_text (cargo ? entity_sub_type_cargo_names[get_local_entity_int_value (cargo, INT_TYPE_ENTITY_SUB_TYPE)] : "");
+	obs_ref ("cargo", cargo);
+	obs_holder ("supplier", supplier);
+	obs_holder ("requester", requester);
 	fprintf (out, ",\"side\":%d,\"waypoints\":[", get_local_entity_int_value (task, INT_TYPE_SIDE));
 	for (wp = get_local_entity_first_child (task, LIST_TYPE_WAYPOINT); wp; wp = get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT))
 	{
 		entity *dependent = get_local_entity_parent (wp, LIST_TYPE_TASK_DEPENDENT);
-		track (wp);
-		fprintf (out, "%s{\"id\":[%d,%u],\"type\":", first ? "" : ",", get_local_entity_index (wp), gen_of (wp));
-		text (entity_sub_type_waypoint_names[get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE)]);
+		obs_track (wp);
+		fprintf (out, "%s{\"id\":[%d,%u],\"type\":", first ? "" : ",", (int) get_local_entity_index (wp), obs_gen_of (wp));
+		obs_text (entity_sub_type_waypoint_names[get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE)]);
 		if (dependent)
 		{
-			track (dependent);
-			fprintf (out, ",\"dependent\":[%d,%u]", get_local_entity_index (dependent), gen_of (dependent));
+			obs_track (dependent);
+			fprintf (out, ",\"dependent\":[%d,%u]", (int) get_local_entity_index (dependent), obs_gen_of (dependent));
 		}
 		fputc ('}', out);
 		first = 0;
 	}
 	fputc (']', out);
-	end_line ();
+	obs_end_line ();
 }
 
-static void members (entity *guide, entity *group, entity *leader)
+static void obs_members (entity *guide, entity *group, entity *leader)
 {
 	entity *member;
 	int first = 1;
@@ -401,9 +401,9 @@ static void members (entity *guide, entity *group, entity *leader)
 	{
 		int type = get_local_entity_type (member);
 		int aircraft = type == ENTITY_TYPE_HELICOPTER || type == ENTITY_TYPE_FIXED_WING;
-		track (member);
-		fprintf (out, "%s{\"id\":[%d,%u],\"type\":", first ? "" : ",", get_local_entity_index (member), gen_of (member));
-		text (entity_type_names[type]);
+		obs_track (member);
+		fprintf (out, "%s{\"id\":[%d,%u],\"type\":", first ? "" : ",", (int) get_local_entity_index (member), obs_gen_of (member));
+		obs_text (entity_type_names[type]);
 		fprintf (out, ",\"number\":%d,\"follows_guide\":%d,\"is_task_leader\":%d", get_local_entity_int_value (member, INT_TYPE_GROUP_MEMBER_NUMBER),
 			get_local_entity_parent (member, LIST_TYPE_FOLLOWER) == guide, member == leader);
 		if (aircraft)
@@ -413,25 +413,25 @@ static void members (entity *guide, entity *group, entity *leader)
 				get_local_entity_int_value (member, INT_TYPE_PLAYER), get_local_entity_int_value (member, INT_TYPE_LANDED),
 				get_local_entity_int_value (member, INT_TYPE_TASK_LEADER));
 			fputs (",\"distance\":", out);
-			number (get_local_entity_float_value (member, FLOAT_TYPE_DISTANCE));
+			obs_number (get_local_entity_float_value (member, FLOAT_TYPE_DISTANCE));
 			if (type == ENTITY_TYPE_FIXED_WING)
 			{
 				fputs (",\"velocity\":", out);
-				number (get_local_entity_float_value (member, FLOAT_TYPE_VELOCITY));
+				obs_number (get_local_entity_float_value (member, FLOAT_TYPE_VELOCITY));
 			}
 			else
 			{
 				fputs (",\"rotor_spin_up\":", out);
-				number (get_local_entity_float_value (member, FLOAT_TYPE_MAIN_ROTOR_SPIN_UP_TIMER));
+				obs_number (get_local_entity_float_value (member, FLOAT_TYPE_MAIN_ROTOR_SPIN_UP_TIMER));
 			}
 			fputs (",\"to_leader_2d\":", out);
-			number (leader_pos ? sqrt (get_sqr_2d_range (pos, leader_pos)) : -1.0);
+			obs_number (leader_pos ? sqrt (get_sqr_2d_range (pos, leader_pos)) : -1.0);
 			fputs (",\"pos\":[", out);
-			number (pos->x);
+			obs_number (pos->x);
 			fputc (',', out);
-			number (pos->y);
+			obs_number (pos->y);
 			fputc (',', out);
-			number (pos->z);
+			obs_number (pos->z);
 			fputc (']', out);
 		}
 		fputc ('}', out);
@@ -451,7 +451,7 @@ int eech_observe_arrival_checked (entity *guide, int verdict)
 {
 	entity *wp, *task, *leader = NULL, *group, *dependent;
 	int wp_type, supply, four, gi, wi;
-	if (!enabled ())
+	if (!obs_enabled ())
 	{
 		return verdict;
 	}
@@ -467,18 +467,18 @@ int eech_observe_arrival_checked (entity *guide, int verdict)
 	}
 	wp_type = get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE);
 	task = get_local_entity_parent (wp, LIST_TYPE_WAYPOINT);
-	supply = is_supply_task (task);
-	four = is_four (wp_type);
+	supply = obs_is_supply_task (task);
+	four = obs_is_four (wp_type);
 
 	/* checks since this waypoint became the guide's current one */
-	gi = index_of (guide);
-	wi = index_of (wp);
+	gi = obs_index_of (guide);
+	wi = obs_index_of (wp);
 	if (gi >= 0)
 	{
-		if (check_wp[gi] != wi + 1 || check_wp_gen[gi] != (int) gen_of (wp))
+		if (check_wp[gi] != wi + 1 || check_wp_gen[gi] != (int) obs_gen_of (wp))
 		{
 			check_wp[gi] = wi + 1;
-			check_wp_gen[gi] = (int) gen_of (wp);
+			check_wp_gen[gi] = (int) obs_gen_of (wp);
 			checks[gi] = 0;
 		}
 		checks[gi]++;
@@ -536,7 +536,7 @@ int eech_observe_arrival_checked (entity *guide, int verdict)
 	group = get_local_entity_parent (guide, LIST_TYPE_GUIDE_STACK);
 	dependent = get_local_entity_parent (wp, LIST_TYPE_TASK_DEPENDENT);
 
-	header ();
+	obs_header ();
 	span.open = 1;
 	span.id = ++spans;
 	span.guide = guide;
@@ -545,44 +545,44 @@ int eech_observe_arrival_checked (entity *guide, int verdict)
 	span.group = group;
 	span.leader = leader;
 	span.dependent = dependent;
-	span.guide_gen = gen_of (guide);
-	span.wp_gen = gen_of (wp);
-	span.task_gen = task ? gen_of (task) : 0;
-	span.group_gen = group ? gen_of (group) : 0;
-	span.leader_gen = leader ? gen_of (leader) : 0;
-	span.dependent_gen = dependent ? gen_of (dependent) : 0;
+	span.guide_gen = obs_gen_of (guide);
+	span.wp_gen = obs_gen_of (wp);
+	span.task_gen = task ? obs_gen_of (task) : 0;
+	span.group_gen = group ? obs_gen_of (group) : 0;
+	span.leader_gen = leader ? obs_gen_of (leader) : 0;
+	span.dependent_gen = dependent ? obs_gen_of (dependent) : 0;
 
-	begin ("verdict");
+	obs_begin ("verdict");
 	fprintf (out, ",\"span\":%d,\"supply_task\":%d,\"four\":%d", span.id, supply, four);
-	ref ("guide", guide);
+	obs_ref ("guide", guide);
 	fputs (",\"guide_type\":", out);
-	text (entity_sub_type_guide_names[get_local_entity_int_value (guide, INT_TYPE_ENTITY_SUB_TYPE)]);
-	waypoint ("wp", wp);
-	ref ("task", task);
+	obs_text (entity_sub_type_guide_names[get_local_entity_int_value (guide, INT_TYPE_ENTITY_SUB_TYPE)]);
+	obs_waypoint ("wp", wp);
+	obs_ref ("task", task);
 	if (task && get_local_entity_type (task) == ENTITY_TYPE_TASK)
 	{
 		fputs (",\"task_type\":", out);
-		text (entity_sub_type_task_names[get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE)]);
+		obs_text (entity_sub_type_task_names[get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE)]);
 	}
-	ref ("guide_task", get_local_entity_parent (guide, LIST_TYPE_GUIDE));
-	task_state (task);
-	ref ("group", group);
+	obs_ref ("guide_task", get_local_entity_parent (guide, LIST_TYPE_GUIDE));
+	obs_task_state (task);
+	obs_ref ("group", group);
 	if (group)
 	{
 		fputs (",\"callsign\":", out);
-		text (get_local_entity_string (group, STRING_TYPE_GROUP_CALLSIGN));
-		ref ("group_leader", (entity *) get_local_entity_ptr_value (group, PTR_TYPE_GROUP_LEADER));
+		obs_text (get_local_entity_string (group, STRING_TYPE_GROUP_CALLSIGN));
+		obs_ref ("group_leader", (entity *) get_local_entity_ptr_value (group, PTR_TYPE_GROUP_LEADER));
 	}
-	ref ("task_leader", leader);
+	obs_ref ("task_leader", leader);
 	fprintf (out, ",\"last_to_reach\":%d,\"radius_valid\":%d,\"radius\":", get_guide_criteria_valid (guide, GUIDE_CRITERIA_LAST_TO_REACH),
 		get_guide_criteria_valid (guide, GUIDE_CRITERIA_RADIUS));
-	number (get_guide_criteria_valid (guide, GUIDE_CRITERIA_RADIUS) ? get_guide_criteria_value (guide, GUIDE_CRITERIA_RADIUS) : -1.0);
+	obs_number (get_guide_criteria_valid (guide, GUIDE_CRITERIA_RADIUS) ? get_guide_criteria_value (guide, GUIDE_CRITERIA_RADIUS) : -1.0);
 	fprintf (out, ",\"check_action\":%d,\"valid_members\":%d,\"checks\":%d", get_local_entity_int_value (guide, INT_TYPE_CHECK_WAYPOINT_ACTION),
 		get_local_entity_int_value (guide, INT_TYPE_VALID_GUIDE_MEMBERS), gi >= 0 ? checks[gi] : -1);
-	members (guide, group, leader);
-	holder ("dependent", dependent);
-	aboard ("leader_aboard", leader);
-	end_line ();
+	obs_members (guide, group, leader);
+	obs_holder ("dependent", dependent);
+	obs_aboard ("leader_aboard", leader);
+	obs_end_line ();
 	return verdict;
 }
 
@@ -590,28 +590,28 @@ int eech_observe_arrival_checked (entity *guide, int verdict)
 void eech_observe_arrival_end (void)
 {
 	int guide_alive, task_alive, leader_alive;
-	if (!enabled () || !span.open)
+	if (!obs_enabled () || !span.open)
 	{
 		return;
 	}
-	guide_alive = same (span.guide, span.guide_gen);
-	task_alive = span.task && same (span.task, span.task_gen);
-	leader_alive = span.leader && same (span.leader, span.leader_gen);
-	begin ("effect");
+	guide_alive = obs_same (span.guide, span.guide_gen);
+	task_alive = span.task && obs_same (span.task, span.task_gen);
+	leader_alive = span.leader && obs_same (span.leader, span.leader_gen);
+	obs_begin ("effect");
 	fprintf (out, ",\"span\":%d,\"guide_alive\":%d,\"wp_alive\":%d,\"task_alive\":%d,\"group_alive\":%d,\"leader_alive\":%d", span.id, guide_alive,
-		same (span.wp, span.wp_gen), task_alive, span.group && same (span.group, span.group_gen), leader_alive);
+		obs_same (span.wp, span.wp_gen), task_alive, span.group && obs_same (span.group, span.group_gen), leader_alive);
 	if (guide_alive)
 	{
-		waypoint ("guide_wp", get_local_entity_parent (span.guide, LIST_TYPE_CURRENT_WAYPOINT));
-		ref ("task_leader_now", (entity *) get_local_entity_ptr_value (span.guide, PTR_TYPE_TASK_LEADER));
+		obs_waypoint ("guide_wp", get_local_entity_parent (span.guide, LIST_TYPE_CURRENT_WAYPOINT));
+		obs_ref ("task_leader_now", (entity *) get_local_entity_ptr_value (span.guide, PTR_TYPE_TASK_LEADER));
 	}
 	if (task_alive)
 	{
-		task_state (span.task);
+		obs_task_state (span.task);
 	}
-	holder ("dependent", span.dependent && same (span.dependent, span.dependent_gen) ? span.dependent : NULL);
-	aboard ("leader_aboard", leader_alive ? span.leader : NULL);
-	end_line ();
+	obs_holder ("dependent", span.dependent && obs_same (span.dependent, span.dependent_gen) ? span.dependent : NULL);
+	obs_aboard ("leader_aboard", leader_alive ? span.leader : NULL);
+	obs_end_line ();
 	span.open = 0;
 }
 
@@ -619,7 +619,7 @@ void eech_observe_arrival_end (void)
 void eech_observe_supply_handler (int which, entity *receiver, entity *sender)
 {
 	static const char *names[] = {"PICK_UP", "PREPARE_FOR_DROP_OFF", "DROP_OFF", "FINISH_DROP_OFF"};
-	if (!enabled ())
+	if (!obs_enabled ())
 	{
 		return;
 	}
@@ -631,52 +631,52 @@ void eech_observe_supply_handler (int which, entity *receiver, entity *sender)
 	{
 		count.handlers_outside_span++;
 	}
-	header ();
-	begin ("handler");
+	obs_header ();
+	obs_begin ("handler");
 	fputs (",\"handler\":", out);
-	text (names[which & 3]);
+	obs_text (names[which & 3]);
 	fprintf (out, ",\"span\":%d", span.open ? span.id : 0);
-	ref ("receiver", receiver);
-	waypoint ("wp", sender);
+	obs_ref ("receiver", receiver);
+	obs_waypoint ("wp", sender);
 	if (span.open)
 	{
 		fprintf (out, ",\"receiver_is_span_leader\":%d,\"wp_is_span_wp\":%d", receiver == span.leader, sender == span.wp);
-		if (same (span.guide, span.guide_gen))
+		if (obs_same (span.guide, span.guide_gen))
 		{
-			waypoint ("guide_wp_now", get_local_entity_parent (span.guide, LIST_TYPE_CURRENT_WAYPOINT));
+			obs_waypoint ("guide_wp_now", get_local_entity_parent (span.guide, LIST_TYPE_CURRENT_WAYPOINT));
 		}
 	}
-	end_line ();
+	obs_end_line ();
 }
 
 /* A4: TASK_COMPLETED received by a task (ts_msgs.c), on entry */
 void eech_observe_task_completion_request (entity *task, int terminated)
 {
-	if (!enabled () || !is_supply_task (task))
+	if (!obs_enabled () || !obs_is_supply_task (task))
 	{
 		return;
 	}
-	header ();
-	begin ("completion");
+	obs_header ();
+	obs_begin ("completion");
 	fprintf (out, ",\"span\":%d", span.open ? span.id : 0);
-	ref ("task", task);
+	obs_ref ("task", task);
 	fputs (",\"reason\":", out);
-	text (terminated >= 0 && terminated < NUM_TASK_TERMINATED_TYPES ? task_terminated_names[terminated] : "?");
-	task_state (task);
-	end_line ();
+	obs_text (terminated >= 0 && terminated < NUM_TASK_TERMINATED_TYPES ? task_terminated_names[terminated] : "?");
+	obs_task_state (task);
+	obs_end_line ();
 }
 
 /* A5: a task's completion state set (ts_int.c), for SUPPLY tasks, when not INCOMPLETE */
 void eech_observe_task_completed_set (entity *task, int sub_type, int value)
 {
-	if (!enabled () || sub_type != ENTITY_SUB_TYPE_TASK_SUPPLY || value == TASK_INCOMPLETE)
+	if (!obs_enabled () || sub_type != ENTITY_SUB_TYPE_TASK_SUPPLY || value == TASK_INCOMPLETE)
 	{
 		return;
 	}
-	header ();
-	begin ("completed");
+	obs_header ();
+	obs_begin ("completed");
 	fprintf (out, ",\"span\":%d", span.open ? span.id : 0);
-	ref ("task", task);
+	obs_ref ("task", task);
 	fprintf (out, ",\"value\":%d", value);
-	end_line ();
+	obs_end_line ();
 }

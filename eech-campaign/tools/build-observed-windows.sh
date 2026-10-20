@@ -46,26 +46,16 @@ mkdir -p "$here/target/observed"
 if [ ! -f "$wt/eech-campaign/$patches" ]; then echo "the worktree checkout is incomplete" >&2; exit 1; fi
 
 if [ "$mode" = observed ]; then
-	python - "$wt/eech-campaign/$patches" "$here/tools/arrival-observe/patches.json" <<'EOF'
-import json, sys
-path, hooks = sys.argv[1], json.load(open(sys.argv[2]))['patches']
-rust = lambda s: '"' + s.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\t', '\\t') + '"'
-text = open(path, newline='').read()
-end = text.index('\n];\n', text.index('pub const PATCHES'))
-entries = ''.join(
-    '\n    // EEDCS-11, TEST ONLY (tools/arrival-observe/patches.json)\n    Patch {\n'
-    f"        file: {rust(h['file'])},\n        id: {rust(h['id'])},\n        why: {rust(h['why'])},\n"
-    f"        original: {rust(h['original'])},\n        replacement: {rust(h['replacement'])},\n        count: {h['count']},\n    }},"
-    for h in hooks)
-open(path, 'w', newline='').write(text[:end] + entries + text[end:])
-EOF
+	python "$here/tools/arrival-observe/insert-hooks.py" "$wt/eech-campaign/$patches" "$here/tools/arrival-observe/patches.json"
 	cp "$here/tools/arrival-observe/eech_arrival_observe.c" "$wt/eech-campaign/$csrc/"
 	changed=$(cd "$wt" && git status --porcelain | sort | tr '\n' ' ')
 	if [ "$changed" != " M eech-campaign/$patches ?? eech-campaign/$csrc/eech_arrival_observe.c " ]; then echo "the observation changed more than $patches and the observer: $changed" >&2; exit 1; fi
 	if (cd "$wt" && git diff -U0 | grep '^-[^-]' >/dev/null); then echo "the observation removed lines from $patches" >&2; exit 1; fi
 fi
 
-(cd "$wt/eech-campaign" && EECH_WIN_TARGET=$volume sh tools/build-windows.sh target/observed-out) >/dev/null
+# build-windows.sh prints compiler errors on stdout: keep them, drop the rest
+(cd "$wt/eech-campaign" && EECH_WIN_TARGET=$volume sh tools/build-windows.sh target/observed-out) > "$here/target/observed/build-$mode.log" 2>&1 \
+	|| { tail -30 "$here/target/observed/build-$mode.log" >&2; exit 1; }
 rm -rf "$here/$out"
 mkdir -p "$here/$out"
 cp -r "$wt/eech-campaign/target/observed-out/." "$here/$out/"
