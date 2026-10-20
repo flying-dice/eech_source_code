@@ -27,6 +27,20 @@ reads the symbols with `nm` from the actual objects and fails if a symbol is
 unclassified, or if a classified one has disappeared. A slice that compiles a
 new original unit therefore cannot add campaign state silently.
 
+An entry marked `[elidable]` is a symbol whose stored value the kernel never
+reads back: `old_num_map_z_sectors` is only ever stored, and `update_data` is
+read only right after it is stored. GCC 12 at `EECH_C_OPT=2` removes both. With
+an optimised kernel (`EECH_C_OPT` other than `0`), the test therefore accepts
+the absence of an `[elidable]` symbol, and only of one. At the default `-O0`,
+every classified symbol, `[elidable]` ones included, must still be present.
+In both builds, every symbol that is present must be classified.
+
+The two `[elidable]` entries were accepted by the lead in the review of #76
+(2026-10-20); the evidence is GCC 12, 14 and 15 at `-O2`. **Adding another
+`[elidable]` entry changes a test expectation. It needs explicit review with
+its evidence, like any other change to an accepted expectation.** There is no
+blanket exemption for optimised builds.
+
 | Class | Meaning | Reset |
 |---|---|---|
 | `campaign` | original campaign state | by `eech_k_open` (`reset_all`, `eech_reset_environment`, `eech_reset_extracted_statics`, EECH's own `deinitialise_group_task_array`, load-time values) |

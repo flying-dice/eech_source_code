@@ -1,0 +1,292 @@
+
+Disassembly of section .text.windows_timer_interrupt:
+
+00000000 <windows_timer_interrupt>:
+   0:	call   1 <windows_timer_interrupt+0x1>
+   5:	add    $0x1,%eax
+   a:	mov    0x0(%eax),%edx
+  10:	cmpl   $0x0,(%edx)
+  13:	jne    33 <windows_timer_interrupt+0x33>
+  15:	push   %ebp
+  16:	mov    %esp,%ebp
+  18:	sub    $0x8,%esp
+  1b:	mov    0x10(%ebp),%edx
+  1e:	mov    0x0(%eax),%eax
+  24:	cmpl   $0x0,(%eax)
+  27:	je     2f <windows_timer_interrupt+0x2f>
+  29:	test   %edx,%edx
+  2b:	je     2f <windows_timer_interrupt+0x2f>
+  2d:	call   *%edx
+  2f:	mov    %ebp,%esp
+  31:	pop    %ebp
+  32:	ret
+  33:	ret
+
+Disassembly of section .text.windows_timer_routine:
+
+00000000 <windows_timer_routine>:
+   0:	call   1 <windows_timer_routine+0x1>
+   5:	add    $0x1,%eax
+   a:	mov    0x0(%eax),%edx
+  10:	cmpl   $0x0,(%edx)
+  13:	jne    2d <windows_timer_routine+0x2d>
+  15:	mov    0x0(%eax),%edx
+  1b:	cmpl   $0x0,(%edx)
+  1e:	je     2d <windows_timer_routine+0x2d>
+  20:	mov    0x0(%eax),%edx
+  26:	mov    (%edx),%eax
+  28:	add    $0xa,%eax
+  2b:	mov    %eax,(%edx)
+  2d:	mov    $0x0,%eax
+  32:	ret
+
+Disassembly of section .text.deinitialise_timers_system:
+
+00000000 <deinitialise_timers_system>:
+   0:	push   %ebp
+   1:	mov    %esp,%ebp
+   3:	push   %edi
+   4:	push   %esi
+   5:	push   %ebx
+   6:	sub    $0x1c,%esp
+   9:	call   a <deinitialise_timers_system+0xa>
+   e:	add    $0x2,%ebx
+  14:	cmpl   $0x0,0x0(%ebx)
+  1b:	jle    55 <deinitialise_timers_system+0x55>
+  1d:	lea    0x0(%ebx),%esi
+  23:	mov    $0x0,%edi
+  28:	jmp    36 <deinitialise_timers_system+0x36>
+  2a:	inc    %edi
+  2b:	add    $0x8,%esi
+  2e:	cmp    %edi,0x0(%ebx)
+  34:	jle    55 <deinitialise_timers_system+0x55>
+  36:	cmpl   $0x0,(%esi)
+  39:	je     2a <deinitialise_timers_system+0x2a>
+  3b:	mov    0x4(%esi),%eax
+  3e:	mov    %eax,(%esp)
+  41:	call   42 <deinitialise_timers_system+0x42>
+  46:	movl   $0x0,(%esi)
+  4c:	movl   $0x0,0x4(%esi)
+  53:	jmp    2a <deinitialise_timers_system+0x2a>
+  55:	movl   $0xa,(%esp)
+  5c:	call   5d <deinitialise_timers_system+0x5d>
+  61:	mov    0x0(%ebx),%eax
+  67:	mov    (%eax),%eax
+  69:	test   %eax,%eax
+  6b:	jne    75 <deinitialise_timers_system+0x75>
+  6d:	add    $0x1c,%esp
+  70:	pop    %ebx
+  71:	pop    %esi
+  72:	pop    %edi
+  73:	pop    %ebp
+  74:	ret
+  75:	mov    %eax,0x4(%esp)
+  79:	mov    0x0(%ebx),%eax
+  7f:	mov    (%eax),%eax
+  81:	mov    %eax,(%esp)
+  84:	call   85 <deinitialise_timers_system+0x85>
+  89:	mov    0x0(%ebx),%eax
+  8f:	movl   $0x0,(%eax)
+  95:	jmp    6d <deinitialise_timers_system+0x6d>
+
+Disassembly of section .text.initialise_timers_system:
+
+00000000 <initialise_timers_system>:
+   0:	push   %ebp
+   1:	mov    %esp,%ebp
+   3:	sub    $0x28,%esp
+   6:	mov    %ebx,-0x4(%ebp)
+   9:	call   a <initialise_timers_system+0xa>
+   e:	add    $0x2,%ebx
+  14:	movl   $0x0,-0x10(%ebp)
+  1b:	movl   $0x0,-0xc(%ebp)
+  22:	mov    0x0(%ebx),%eax
+  28:	movl   $0x0,(%eax)
+  2e:	movl   $0x0,0x0(%ebx)
+  38:	lea    0x0(%ebx),%eax
+  3e:	lea    0x80(%eax),%edx
+  44:	movl   $0x0,(%eax)
+  4a:	movl   $0x0,0x4(%eax)
+  51:	add    $0x8,%eax
+  54:	cmp    %edx,%eax
+  56:	jne    44 <initialise_timers_system+0x44>
+  58:	lea    0x0(%ebx),%eax
+  5e:	mov    %eax,(%esp)
+  61:	call   62 <initialise_timers_system+0x62>
+  66:	lea    0x0(%ebx),%eax
+  6c:	mov    %eax,0x4(%esp)
+  70:	movl   $0x113,(%esp)
+  77:	call   78 <initialise_timers_system+0x78>
+  7c:	movl   $0x8,0x4(%esp)
+  84:	lea    -0x10(%ebp),%eax
+  87:	mov    %eax,(%esp)
+  8a:	call   8b <initialise_timers_system+0x8b>
+  8f:	movl   $0xa,(%esp)
+  96:	call   97 <initialise_timers_system+0x97>
+  9b:	mov    %eax,%edx
+  9d:	mov    $0x0,%eax
+  a2:	cmp    $0x61,%edx
+  a5:	jne    ae <initialise_timers_system+0xae>
+  a7:	mov    -0x4(%ebp),%ebx
+  aa:	mov    %ebp,%esp
+  ac:	pop    %ebp
+  ad:	ret
+  ae:	mov    0x0(%ebx),%eax
+  b4:	movl   $0x1,(%eax)
+  ba:	movl   $0x0,0xc(%esp)
+  c2:	movl   $0x64,0x8(%esp)
+  ca:	movl   $0x1,0x4(%esp)
+  d2:	mov    0x0(%ebx),%eax
+  d8:	mov    (%eax),%eax
+  da:	mov    %eax,(%esp)
+  dd:	call   de <initialise_timers_system+0xde>
+  e2:	mov    $0x1,%eax
+  e7:	jmp    a7 <initialise_timers_system+0xa7>
+
+Disassembly of section .text.create_timer_event:
+
+00000000 <create_timer_event>:
+   0:	push   %ebp
+   1:	mov    %esp,%ebp
+   3:	push   %edi
+   4:	push   %esi
+   5:	push   %ebx
+   6:	sub    $0x2c,%esp
+   9:	call   a <create_timer_event+0xa>
+   e:	add    $0x2,%ebx
+  14:	mov    $0x0,%esi
+  19:	jmp    21 <create_timer_event+0x21>
+  1b:	inc    %esi
+  1c:	cmp    $0x10,%esi
+  1f:	je     6d <create_timer_event+0x6d>
+  21:	mov    0x0(%ebx,%esi,8),%edi
+  28:	test   %edi,%edi
+  2a:	jne    1b <create_timer_event+0x1b>
+  2c:	inc    %esi
+  2d:	movl   $0x1,0x10(%esp)
+  35:	mov    0x10(%ebp),%eax
+  38:	mov    %eax,0xc(%esp)
+  3c:	lea    0x0(%ebx),%eax
+  42:	mov    %eax,0x8(%esp)
+  46:	mov    0xc(%ebp),%eax
+  49:	mov    %eax,0x4(%esp)
+  4d:	mov    0x8(%ebp),%eax
+  50:	mov    %eax,(%esp)
+  53:	call   54 <create_timer_event+0x54>
+  58:	mov    %eax,0x4(%ebx,%esi,8)
+  5f:	test   %eax,%eax
+  61:	jne    74 <create_timer_event+0x74>
+  63:	mov    %edi,%eax
+  65:	add    $0x2c,%esp
+  68:	pop    %ebx
+  69:	pop    %esi
+  6a:	pop    %edi
+  6b:	pop    %ebp
+  6c:	ret
+  6d:	mov    $0x0,%edi
+  72:	jmp    63 <create_timer_event+0x63>
+  74:	movl   $0x1,0x0(%ebx,%esi,8)
+  7f:	incl   0x0(%ebx)
+  85:	mov    %eax,%edi
+  87:	jmp    63 <create_timer_event+0x63>
+
+Disassembly of section .text.destroy_timer_event:
+
+00000000 <destroy_timer_event>:
+   0:	push   %ebp
+   1:	mov    %esp,%ebp
+   3:	push   %esi
+   4:	push   %ebx
+   5:	sub    $0x10,%esp
+   8:	call   9 <destroy_timer_event+0x9>
+   d:	add    $0x2,%ebx
+  13:	mov    0x0(%ebx),%edx
+  19:	test   %edx,%edx
+  1b:	jle    6d <destroy_timer_event+0x6d>
+  1d:	mov    $0x0,%eax
+  22:	jmp    29 <destroy_timer_event+0x29>
+  24:	inc    %eax
+  25:	cmp    %edx,%eax
+  27:	je     66 <destroy_timer_event+0x66>
+  29:	cmpl   $0x0,0x0(%ebx,%eax,8)
+  31:	je     24 <destroy_timer_event+0x24>
+  33:	cmpl   $0x0,0x4(%ebx,%eax,8)
+  3b:	je     24 <destroy_timer_event+0x24>
+  3d:	lea    0x1(%eax),%esi
+  40:	mov    0xc(%ebx,%eax,8),%eax
+  47:	mov    %eax,(%esp)
+  4a:	call   4b <destroy_timer_event+0x4b>
+  4f:	movl   $0x0,0x0(%ebx,%esi,8)
+  5a:	mov    $0x1,%eax
+  5f:	add    $0x10,%esp
+  62:	pop    %ebx
+  63:	pop    %esi
+  64:	pop    %ebp
+  65:	ret
+  66:	mov    $0x0,%eax
+  6b:	jmp    5f <destroy_timer_event+0x5f>
+  6d:	mov    $0x0,%eax
+  72:	jmp    5f <destroy_timer_event+0x5f>
+
+Disassembly of section .text.windows_system_timer:
+
+00000000 <windows_system_timer>:
+   0:	call   1 <windows_system_timer+0x1>
+   5:	add    $0x1,%eax
+   a:	mov    0x0(%eax),%edx
+  10:	cmpl   $0x0,(%edx)
+  13:	jne    2d <windows_system_timer+0x2d>
+  15:	mov    0x0(%eax),%edx
+  1b:	cmpl   $0x0,(%edx)
+  1e:	je     2d <windows_system_timer+0x2d>
+  20:	mov    0x0(%eax),%edx
+  26:	mov    (%edx),%eax
+  28:	add    $0xa,%eax
+  2b:	mov    %eax,(%edx)
+  2d:	ret
+
+Disassembly of section .text.windows_system_timer_interrupt:
+
+00000000 <windows_system_timer_interrupt>:
+   0:	call   1 <windows_system_timer_interrupt+0x1>
+   5:	add    $0x1,%eax
+   a:	mov    0x0(%eax),%edx
+  10:	cmpl   $0x0,(%edx)
+  13:	jne    2b <windows_system_timer_interrupt+0x2b>
+  15:	mov    0x0(%eax),%edx
+  1b:	cmpl   $0x0,(%edx)
+  1e:	je     2b <windows_system_timer_interrupt+0x2b>
+  20:	mov    0x0(%eax),%edx
+  26:	mov    (%edx),%eax
+  28:	inc    %eax
+  29:	mov    %eax,(%edx)
+  2b:	ret
+
+Disassembly of section .text.system_sleep:
+
+00000000 <system_sleep>:
+   0:	push   %ebp
+   1:	mov    %esp,%ebp
+   3:	sub    $0x18,%esp
+   6:	mov    %ebx,-0x4(%ebp)
+   9:	call   a <system_sleep+0xa>
+   e:	add    $0x2,%ebx
+  14:	mov    0x8(%ebp),%eax
+  17:	mov    %eax,(%esp)
+  1a:	call   1b <system_sleep+0x1b>
+  1f:	mov    -0x4(%ebp),%ebx
+  22:	mov    %ebp,%esp
+  24:	pop    %ebp
+  25:	ret
+
+Disassembly of section .text.__x86.get_pc_thunk.ax:
+
+00000000 <__x86.get_pc_thunk.ax>:
+   0:	mov    (%esp),%eax
+   3:	ret
+
+Disassembly of section .text.__x86.get_pc_thunk.bx:
+
+00000000 <__x86.get_pc_thunk.bx>:
+   0:	mov    (%esp),%ebx
+   3:	ret

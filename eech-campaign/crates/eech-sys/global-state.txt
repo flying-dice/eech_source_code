@@ -158,7 +158,7 @@ old_max_map_x_sector                       stale-unread sc_seccreat.c (as above)
 old_num_map_x_sectors                      stale-unread sc_seccreat.c (as above)
 old_min_map_z_sector                       stale-unread sc_seccreat.c (as above)
 old_max_map_z_sector                       stale-unread sc_seccreat.c (as above)
-old_num_map_z_sectors                      stale-unread sc_seccreat.c (as above)
+old_num_map_z_sectors                      stale-unread sc_seccreat.c (as above); [elidable] only ever stored
 #
 # ---- the native host layer (ours) --------------------------------------------
 arena_first                                host-layer   the kernel arena (freed on reset)
@@ -191,7 +191,7 @@ object_bounds_cache                        host-layer   World::object_bounds ans
 object_bounds_next                         host-layer   World::object_bounds answers (per lookup)
 packing_task_pointers                      host-layer   transport state within one message
 tables_initialised                         host-layer   lifecycle
-update_data                                host-layer   the update entity's data (reset)
+update_data                                host-layer   the update entity's data (reset); [elidable] read only right after it is stored
 #
 # ---- the legacy replay (reset by eech_legacy_reset on every open) ----------
 attributes                                 replay       create line attributes

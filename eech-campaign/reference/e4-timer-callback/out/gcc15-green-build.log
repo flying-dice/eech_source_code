@@ -1,0 +1,19 @@
+## 2026-10-20T16:04:06Z
+## gcc (GCC) 15.3.0
+## rustc 1.99.1 (58cf8f9c3 2026-10-13) / cargo 1.99.1 (5f94df478 2026-08-27)
+## revision: 303103d26e7107b7cf28339c7f65311b7e05b2b4
+## command: cargo build --locked -p eech-engine-sys (CARGO_TARGET_DIR=/tmp/green, cwd /green/eech-campaign)
+   Compiling libc v0.2.189
+   Compiling find-msvc-tools v0.1.13
+   Compiling shlex v2.0.1
+   Compiling jobserver v0.1.35
+   Compiling cc v1.4.7
+   Compiling eech-engine-sys v0.1.0 (/green/eech-campaign/crates/eech-engine-sys)
+warning: eech-engine-sys@0.1.0: cc: error: unrecognized command-line option '-?'
+warning: eech-engine-sys@0.1.0: cc: fatal error: no input files
+warning: eech-engine-sys@0.1.0: compilation terminated.
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 38.37s
+## exit status: 0
+## staged timer.c: 3 E4 site(s)
+## timer.c compiler command (from the build script's output):
+running: LC_ALL="C" "cc" "-O1" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-gdwarf-4" "-fno-omit-frame-pointer" "-mno-omit-leaf-frame-pointer" "-m64" "-I" "/green/eech-campaign/crates/eech-engine-sys/compat" "-I" "/green/eech-campaign/crates/eech-engine-sys/csrc" "-I" "/tmp/green/debug/build/eech-engine-sys-6e653dbfc8eed629/out/tree/modules" "-I" "/tmp/green/debug/build/eech-engine-sys-6e653dbfc8eed629/out/tree/aphavoc/source" "-w" "-std=gnu99" "-w" "-fcommon" "-fno-strict-aliasing" "-fwrapv" "-ftrivial-auto-var-init=zero" "-Werror=implicit-function-declaration" "-Werror=implicit-int" "-Werror=int-conversion" "-DWIN32" "-o" "/tmp/green/debug/build/eech-engine-sys-6e653dbfc8eed629/out/aeb287880bb93557-timer.o" "-c" "/tmp/green/debug/build/eech-engine-sys-6e653dbfc8eed629/out/tree/modules/system/timer.c"

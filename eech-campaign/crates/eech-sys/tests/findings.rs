@@ -72,18 +72,23 @@ fn every_writable_global_is_classified() {
         .filter(|(s, _)| !classified.contains(*s))
         .map(|(s, u)| format!("{s} ({})", u.iter().cloned().collect::<Vec<_>>().join(", ")))
         .collect();
-    let gone: Vec<&String> = classified.iter().filter(|s| !found.contains_key(*s)).collect();
+    // `[elidable]`: the kernel never reads the stored value back from the
+    // symbol, so an optimising compiler may remove it (docs/global-state.md).
+    // Unoptimised, every classified symbol must still exist.
+    let elidable: BTreeSet<String> = manifest
+        .lines()
+        .filter(|l| !l.starts_with('#') && l.split_whitespace().any(|w| w == "[elidable]"))
+        .map(|l| l.split_whitespace().next().unwrap().to_string())
+        .collect();
+    let optimised = eech_sys::build_info::C_OPT_LEVEL != "0";
+    let gone: Vec<&String> = classified
+        .iter()
+        .filter(|s| !found.contains_key(*s) && !(optimised && elidable.contains(*s)))
+        .collect();
     assert!(
         unclassified.is_empty(),
         "writable globals missing from global-state.txt:\n{}",
         unclassified.join("\n")
     );
-    // the list is of the default unoptimised kernel: an optimised one may drop
-    // a global nothing reads (old_num_map_z_sectors, update_data at -O2), but
-    // must not add one
-    if eech_sys::build_info::C_OPT_LEVEL == "0" {
-        assert!(gone.is_empty(), "global-state.txt lists symbols the kernel no longer has: {gone:?}");
-    } else if !gone.is_empty() {
-        eprintln!("optimised out at -O{}: {gone:?}", eech_sys::build_info::C_OPT_LEVEL);
-    }
+    assert!(gone.is_empty(), "global-state.txt lists symbols the kernel no longer has: {gone:?}");
 }
