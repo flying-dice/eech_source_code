@@ -81,7 +81,8 @@ def reject_overlap(sections, extent, where):
 
 
 def check_layout(sections, headers_end):
-    """Raises NotPE unless each byte of the file, and of memory, belongs to the headers or one section."""
+    """Raises NotPE when a section's raw data starts inside the headers, or two sections overlap in the file
+    or in memory."""
     in_file = [s for s in sections if s.rsize]
     for s in in_file:
         if s.rptr < headers_end:

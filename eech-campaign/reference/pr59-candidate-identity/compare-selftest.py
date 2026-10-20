@@ -91,7 +91,7 @@ def put(fmt, off, value):
     return lambda b: struct.pack_into(fmt, b, off, value)
 
 
-def both(*changes):
+def chain(*changes):
     def change(b):
         for c in changes:
             c(b)
@@ -99,7 +99,9 @@ def both(*changes):
 
 
 def truncate(at):
-    return lambda b: b.__delitem__(slice(at, None))
+    def change(b):
+        del b[at:]
+    return change
 
 
 def run(tool, *args, flags=()):
@@ -113,11 +115,13 @@ def check(name, result, status, shown=(), hidden=(), stderr=''):
     """('ok' or 'FAIL', name, detail): the status, every `shown` text in stdout and no `hidden` one,
     and stderr empty or, when `stderr` is given, holding it and no traceback."""
     got, out, err = result
-    shown, hidden = (shown,) if isinstance(shown, str) else shown, (hidden,) if isinstance(hidden, str) else hidden
+    shown = (shown,) if isinstance(shown, str) else shown
+    hidden = (hidden,) if isinstance(hidden, str) else hidden
     problems = [f'exit {got}, expected {status}'] if got != status else []
     problems += [f'output lacks {s!r}' for s in shown if s not in out]
     problems += [f'output has {h!r}' for h in hidden if h in out]
-    if 'Traceback' in err or (stderr not in err if stderr else err):
+    stderr_as_expected = stderr in err if stderr else not err
+    if 'Traceback' in err or not stderr_as_expected:
         problems.append(f'stderr {err.strip()[-300:]!r}')
     return ('FAIL' if problems else 'ok', name, '; '.join(problems) or f'exit {got}')
 
@@ -156,10 +160,10 @@ def pe_cases(d):
         ('symbol table empty in both (0 symbols), trailing byte', plus, put('<I', COFF + 12, 0), flip(STRTAB + 7), 1,
          trailing),
         ('0 symbols in both, size field running to EOF, trailing byte', plus,
-         lambda b: both(put('<I', COFF + 12, 0), put('<I', RAW_END, len(b) - RAW_END))(b), flip(STRTAB + 7), 1,
+         lambda b: chain(put('<I', COFF + 12, 0), put('<I', RAW_END, len(b) - RAW_END))(b), flip(STRTAB + 7), 1,
          trailing),
         ('symbol table not at the end of the sections in both, symbol byte', plus,
-         both(put('<I', COFF + 8, RAW_END + SYMBOL_SIZE), put('<I', COFF + 12, SYMBOLS - 1)), flip(RAW_END + 20), 1,
+         chain(put('<I', COFF + 8, RAW_END + SYMBOL_SIZE), put('<I', COFF + 12, SYMBOLS - 1)), flip(RAW_END + 20), 1,
          trailing),
         ('string-table size wrong in both, symbol byte', plus, put('<I', STRTAB, 99), flip(RAW_END), 1, trailing),
         ('string-table size under 4 in both, symbol byte', plus, put('<I', STRTAB, 2), flip(RAW_END), 1, trailing),
@@ -169,13 +173,13 @@ def pe_cases(d):
          'LAYOUTS DIFFER'),
         ('four bytes appended', plus, None, lambda b: b.extend(b'XXXX'), 1, 'SIZES DIFFER'),
         ('0 symbols in both, four bytes appended to b (sizes differ, layouts equal)', plus, put('<I', COFF + 12, 0),
-         lambda b: b.extend(b'XXXX'), 1, 'SIZES DIFFER: 1580 vs 1584'),
+         lambda b: b.extend(b'XXXX'), 1, f'SIZES DIFFER: {len(plus.build())} vs {len(plus.build()) + 4}'),
         ('export directory in .text, .text byte', plus, put('<I', plus.export_dir, TEXT_RVA), flip(TEXT_RAW + 4), 2,
          in_code),
         ('export directory in a CNT_CODE-only section', plus,
-         both(put('<I', plus.section_header(0) + 36, 0x20), put('<I', plus.export_dir, TEXT_RVA)), None, 2, in_code),
+         chain(put('<I', plus.section_header(0) + 36, 0x20), put('<I', plus.export_dir, TEXT_RVA)), None, 2, in_code),
         ('export directory in a MEM_EXECUTE-only section', plus,
-         both(put('<I', plus.section_header(0) + 36, 0x20000000), put('<I', plus.export_dir, TEXT_RVA)), None, 2,
+         chain(put('<I', plus.section_header(0) + 36, 0x20000000), put('<I', plus.export_dir, TEXT_RVA)), None, 2,
          in_code),
         ('export directory running past its section\'s raw data', plus, put('<I', plus.export_dir, EDATA_RVA + 0x1F0),
          None, 2, 'export directory RVA 0x21f0 ' + no_section),
@@ -313,8 +317,8 @@ def link_cases(d):
                 continue
             try:
                 trees = linked_trees(d, f'{kind[0]}{int(same)}', make_link, same)
-            except OSError as e:
-                results.append(('unavailable', name, f'cannot make the link: {e}'))
+            except (OSError, ImportError, AttributeError) as e:  # _winapi is private to CPython on Windows
+                results.append(('unavailable', name, f'cannot make the link: {e!r}'))
                 continue
             results.append(check(name, run('compare-logs.py', *trees), 1,
                                  ('== sub: LINK, not followed or compared', '0 file(s) compared; 1 differ'),

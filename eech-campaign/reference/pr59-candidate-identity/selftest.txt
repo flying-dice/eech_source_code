@@ -108,8 +108,8 @@ ok           compare-logs invalid UTF-8 bytes equal: exit 0
 ok           compare-logs non-ASCII line differs: exit 1
 ok           compare-logs a empty, b has a file: exit 1
 ok           compare-logs both empty: exit 2
-unavailable  compare-logs symbolic link to differing directories: cannot make the link: [WinError 1314] A required privilege is not held by the client: 'C:\\Users\\jonat\\AppData\\Local\\Temp\\tmplmxf0rih\\s0-target-a' -> 'C:\\Users\\jonat\\AppData\\Local\\Temp\\tmplmxf0rih\\s0-a\\sub'
-unavailable  compare-logs symbolic link to the same directory: cannot make the link: [WinError 1314] A required privilege is not held by the client: 'C:\\Users\\jonat\\AppData\\Local\\Temp\\tmplmxf0rih\\s1-target-a' -> 'C:\\Users\\jonat\\AppData\\Local\\Temp\\tmplmxf0rih\\s1-a\\sub'
+unavailable  compare-logs symbolic link to differing directories: cannot make the link: OSError(22, 'A required privilege is not held by the client')
+unavailable  compare-logs symbolic link to the same directory: cannot make the link: OSError(22, 'A required privilege is not held by the client')
 ok           compare-logs junction to differing directories: exit 1
 ok           compare-logs junction to the same directory: exit 1
 skip         compare-logs unreadable subdirectory: chmod cannot remove read access on Windows
