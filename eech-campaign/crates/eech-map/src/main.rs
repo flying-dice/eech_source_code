@@ -507,7 +507,7 @@ fn fill(ring: &[(f64, f64)], width: usize, height: usize, mut f: impl FnMut(usiz
             }
         }
         xs.sort_by(f64::total_cmp);
-        for pair in xs.chunks_exact(2) {
+        for pair in xs.as_chunks::<2>().0 {
             let i0 = (pair[0] - 0.5).ceil().max(0.0) as usize;
             let i1 = ((pair[1] - 0.5).floor() as i64).min(width as i64 - 1);
             if i1 >= 0 {
