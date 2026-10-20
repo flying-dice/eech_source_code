@@ -338,6 +338,22 @@ def main():
     for tk, t in tasks.items():
         chains[' > '.join(by_task.get(tk, [])) or '(no arrival at the four types)'] += 1
     completions_outside = Counter((c['reason']) for c in events if c['e'] == 'completion' and not c.get('span'))
+    # every SUPPLY task set to SUCCESS: where, and whether anything was delivered at its DROP_OFF
+    freed_t = {key(e['id']): e['t'] for e in events if e['e'] == 'freed'}
+    success, success_examples = Counter(), []
+    for c in [e for e in events if e['e'] == 'completed' and e['value'] == SUCCESS]:
+        tk = key(c['task'])
+        where = spans[c['span']]['verdict']['wp_type'].replace('WAYPOINT_', 'in a ') + ' span' if c.get('span') in spans else 'outside any arrival span'
+        reason = next((x['reason'] for x in events if x['e'] == 'completion' and key(x['task']) == tk and x['t'] == c['t']), '?')
+        how = 'delivered at its DROP_OFF' if delivered.get(tk) else 'nothing delivered at its DROP_OFF' if tk in delivered else 'no DROP_OFF arrival'
+        task = tasks.get(tk)
+        req = task['requester'] if task else None
+        req_freed = req is not None and freed_t.get(key(req['id'])) == c['t']
+        label = f"{where}, {reason}, {how}" + (f", requester {req['type'].replace('ENTITY_TYPE_', '').lower()} freed in the same frame" if req_freed else '')
+        success[label] += 1
+        if how != 'delivered at its DROP_OFF' and len(success_examples) < 10:
+            success_examples.append({'task': c['task'], 't': c['t'], 'label': label, 'requester': req and {k: req[k] for k in ('id', 'type', 'name')},
+                                     'supplier': task and task['supplier'].get('name')})
 
     # correlation with the public path's observations
     correlation = None
@@ -356,7 +372,7 @@ def main():
                 site[o['id']] = (o['x'], o['z'])
         times = sorted({round(o['t'], 2) for o in obs if 't' in o})
         import bisect
-        matched, unmatched, examples = 0, [], []
+        matched, unmatched, examples, inexact = 0, [], [], []
         for s in supply_four:
             v, e = s['verdict'], s['effect']
             if v['wp_type'] not in ('WAYPOINT_PICK_UP', 'WAYPOINT_DROP_OFF') or not e or not v.get('dependent') or not e.get('dependent') \
@@ -371,27 +387,40 @@ def main():
             i = bisect.bisect_right(times, round(v['t'], 2) + 1e-6)
             sample = times[i] if i < len(times) else None
             ev = next((o for o in supply[kid] if sample is not None and abs(o['t'] - sample) < 0.006), None)
-            ok = ev is not None and (abs((ev['ammo'] - ev['from_ammo']) - (after['ammo'] - before['ammo'])) < 0.01
-                                     and abs((ev['fuel'] - ev['from_fuel']) - (after['fuel'] - before['fuel'])) < 0.01)
+            # asserted: the change is there, in the same direction, at the next sample; measured: how far the sample's
+            # change differs (another campaign change, e.g. a keysite usage tick, can fall in the same 1 s sample)
+            residual = None
+            ok = ev is not None
+            if ev is not None:
+                d_obs = {'ammo': ev['ammo'] - ev['from_ammo'], 'fuel': ev['fuel'] - ev['from_fuel']}
+                d_trace = {'ammo': after['ammo'] - before['ammo'], 'fuel': after['fuel'] - before['fuel']}
+                for r in ('ammo', 'fuel'):
+                    if abs(d_trace[r]) > EPS and (d_obs[r] > 0) != (d_trace[r] > 0):
+                        ok = False
+                residual = round(max(abs(d_obs[r] - d_trace[r]) for r in ('ammo', 'fuel')), 3)
             leader = v['task_leader'][0]
             tr = track.get((leader, sample))
             row = {'span': v['span'], 'wp': v['wp_type'], 't': v['t'], 'sample': sample, 'keysite': before['name'],
                    'trace_change': {'ammo': round(after['ammo'] - before['ammo'], 3), 'fuel': round(after['fuel'] - before['fuel'], 3)},
-                   'observed_supply_event': ev, 'leader': leader, 'leader_tracked_at_sample': tr is not None,
+                   'observed_supply_event': ev, 'residual': residual, 'leader': leader, 'leader_tracked_at_sample': tr is not None,
                    'leader_group_matches': tr is not None and tr.get('group') == v['group'][0],
                    'leader_to_keysite_2d_m': round(math.hypot(tr['x'] - site[kid][0], tr['z'] - site[kid][1]), 1) if tr and kid in site else None}
             if ok and tr is not None and row['leader_group_matches']:
                 matched += 1
-                if len(examples) < 6:
+                if residual is not None and residual >= 0.01:
+                    inexact.append(row)
+                elif len(examples) < 6:
                     examples.append(row)
             else:
                 unmatched.append(row)
         correlation = {'observations': a.observations, 'level_changing_spans': matched + len(unmatched), 'matched': matched,
+                       'matched_exactly': matched - len(inexact), 'matched_with_other_change_in_sample': inexact,
                        'unmatched': unmatched[:30], 'unmatched_count': len(unmatched), 'examples': examples,
-                       'rule': 'the first 1 s observation sample strictly after the verdict has a supply event for the same keysite with the same '
-                               'change, and a track event for the task leader in the verdict\'s group'}
+                       'rule': 'the first 1 s observation sample strictly after the verdict has a supply event for the same keysite, changing '
+                               'the same resource in the same direction, and a track event for the task leader in the verdict\'s group; '
+                               'how much the sample\'s change differs from the span\'s is reported, not asserted'}
         claims.check('correlation.public_path', 'Every keysite level change inside a PICK_UP or DROP_OFF span appears in the public path\'s '
-                     'observations at the next 1 s sample, with the task leader tracked there in the same group', unmatched,
+                     'observations at the next 1 s sample, in the same direction, with the task leader tracked there in the same group', unmatched,
                      matched + len(unmatched))
 
     report = {
@@ -407,6 +436,8 @@ def main():
             'dropoff_outcomes': dropoff_outcomes,
             'completion_versus_delivery': dict(completion_vs_delivery),
             'supply_completions_outside_arrival_spans_by_reason': dict(completions_outside),
+            'supply_success_by_where_and_delivery': dict(success),
+            'supply_success_without_delivery': success_examples,
             'lifetimes_at_finish': dict(lifetimes),
             'freed_named_entities_by_type': dict(freed_types),
             'last_to_reach_verdicts_on_supply_routes': dict(all_members_path),
