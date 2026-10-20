@@ -289,10 +289,12 @@ E4 was added after the M1 review, in #76 (Task #75), and is not part of the M1 d
   - The function types therefore differ. GCC 14 and later reject the call (`-Wincompatible-pointer-types` is an error).
   - `(DWORD) function` truncates the pointer to 32 bits.
 - **Patch:** the callback's three trailing parameters and the user data become `DWORD_PTR`.
-- **Class: no behavioural change (traced).**
-  - On i686, `DWORD` and `DWORD_PTR` are both 32-bit `unsigned int`, so the same types are compiled.
-  - On every target, the headless `timeSetEvent` (`crates/eech-engine-sys/csrc/eech_win32.c`) ignores its callback, starts no timer and returns 0, so `windows_timer_interrupt` is never called.
-  - On a real Windows x64 timer, the patch would also restore the original's 32-bit meaning, an untruncated function pointer.
+- **Class: no behavioural change, for the current headless product only (traced and reproduced).**
+  - On i686, `DWORD` and `DWORD_PTR` are both 32-bit `unsigned int`: GCC 12 compiles `timer.c` to identical code.
+  - On every target, the headless `timeSetEvent` ignores its callback, starts no timer and returns 0, so `windows_timer_interrupt` is never called. This holds on Linux (`crates/eech-engine-sys/csrc/eech_win32.c`) and on Windows, where `build/main.rs` force-includes `csrc/eech_win32_names.h` and so renames the call to `eech_w32_timeSetEvent`.
+  - On x86-64 the only code difference is that the function pointer is no longer truncated to 32 bits.
+  - **This neutrality does not generalise.** Against a real Windows multimedia timer, which does invoke the callback, keeping the full pointer would be a **defect correction (portability)**, not a neutral change.
+- **Evidence:** [`reference/e4-timer-callback/`](../reference/e4-timer-callback/). It holds GCC 14.2 and 15.3 red/green logs and the GCC 12 `timer.o` disassembly for i686 and x86-64, before and after, with the commands, images and flags. Accepted by the lead in the review of #76 (2026-10-20) for the headless product, with the evidence requested there.
 - **Why:** before E4, a Linux x86-64 build needed GCC 13 or earlier. CI pinned GCC 12, the toolchain tools/Dockerfile documents.
 
 ## Outside this review

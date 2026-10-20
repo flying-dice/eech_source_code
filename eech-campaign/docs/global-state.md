@@ -35,6 +35,12 @@ the absence of an `[elidable]` symbol, and only of one. At the default `-O0`,
 every classified symbol, `[elidable]` ones included, must still be present.
 In both builds, every symbol that is present must be classified.
 
+The two `[elidable]` entries were accepted by the lead in the review of #76
+(2026-10-20); the evidence is GCC 12, 14 and 15 at `-O2`. **Adding another
+`[elidable]` entry changes a test expectation. It needs explicit review with
+its evidence, like any other change to an accepted expectation.** There is no
+blanket exemption for optimised builds.
+
 | Class | Meaning | Reset |
 |---|---|---|
 | `campaign` | original campaign state | by `eech_k_open` (`reset_all`, `eech_reset_environment`, `eech_reset_extracted_statics`, EECH's own `deinitialise_group_task_array`, load-time values) |
