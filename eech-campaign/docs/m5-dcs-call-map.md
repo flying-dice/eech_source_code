@@ -11,22 +11,39 @@ It is a source-grounded proposal for review, not an acceptance. It changes no co
   - The first pass (`inventory.py`) measured direct calls between path classes and named world-service tokens.
   - The second pass closes the first pass's coverage holes:
     - **a reachability walk** from the seven public engine entry points, with translation-unit-local name resolution, macro expansion, and address-taken functions and file-scope data counted as references (`reach.py`);
-    - **the dispatch tables:** message handlers, entity function tables and attribute accessors (`dispatch.py`);
-    - **the shared global data** the campaign touches (`globals.py`).
-- **The coverage ledger** (`ledger.py`, section 1) accounts for 940 items: 607 are mapped to an interaction row, 333 are excluded with a reason grounded in the headless product path, and **0 are outstanding**.
-  - The items are campaign crossings to or from host, framework, presentation, world and environment code; message types and waypoint message ids; function tables; attribute tokens; global data; and names that resolved to no definition.
+    - **the dispatch tables:** message handlers, entity function tables, other function-pointer table forms, attribute accessors, and every campaign write to an attribute that a world entity type implements (`dispatch.py`);
+    - **the shared global data** the campaign touches, directly or through a macro (`globals.py`).
+  - The four scripts share one source model, `eechmap.py`.
+- **The coverage ledger** (`ledger.py`, section 1) accounts for 1,126 items: 671 are mapped to an interaction row, 455 are excluded with a reason grounded in the headless product path, and **0 are outstanding**.
+  - The items are:
+    - campaign crossings to or from host, framework, presentation, world and environment code;
+    - message types and waypoint message ids;
+    - function tables;
+    - attribute tokens;
+    - campaign writes to world-implemented attributes;
+    - global data;
+    - names that resolved to no definition.
+  - **Rules:** 523 items are decided by rules that name them exactly. 603 are decided by 29 pattern or fallback rules, each named and counted in section 10.
   - No needed interaction found by these methods lacks a DCS mechanism or a named workaround.
   - The method's residual limits are in section 10. Accepting criterion 1 remains the technical lead's review decision.
-- **50 interactions in 13 categories** are mapped to DCS: 8 fit directly (campaign-only work that needs no DCS call), 25 are adapted and 17 are gaps. Every gap, and every adapted row that needs one, has a named workaround (G1–G27).
+- **The independent review of `a4cd7eea`** raised six findings, F1–F6, all resolved here:
+  - F1: the side transfer on capture is now row I51, with workaround G28 and five named DCS probes.
+  - F2: the globals pass grew from 31 to 95 items, and the season is now row I52.
+  - F3: the catch-all rules were replaced, and the remaining pattern rules are counted.
+  - F4: the UI table form is documented.
+  - F5: the UI-caller scope is explained.
+  - F6: the shared module replaces the `exec`.
+- **53 interactions in 13 categories** are mapped to DCS: 8 fit directly (campaign-only work that needs no DCS call), 27 are adapted and 18 are gaps. Every gap, and every adapted row that needs one, has a named workaround (G1–G30).
 - **The largest gaps:**
   - there is **no verified "waypoint reached" signal** in DCS (G7);
   - **movement is pulled from the campaign's guide every frame** in EECH, but DCS AI flies a route it is given (G4);
   - EECH's **loss, damage, target-detection and capture bookkeeping runs inside world code** (G8, G9);
+  - **capture moves landed aircraft and keysite structures to the captor's side**, and no coalition setter for units, groups or statics was found (G28);
   - **player commands and player aircraft** reach the campaign through EECH's own UI, cockpit and radio code (G24, G27);
   - **no save of physical state** in the mission environment (G19);
   - **one engine per process** against DCS mission restarts (G20);
   - **the retail maps are not metric, and this PC has no Syria terrain** (G21).
-- **DCS evidence:** of the 29 DCS evidence items (D1–D29), 14 are confirmed by this install's shipped files ([R-dcs]), 14 rest on tslua-dcs only ([R-ref]) and 1 is unknown ([U]); five items carry a named partial unknown. No shipped file gives a mission-API signature; every signature below is tslua-dcs's.
+- **DCS evidence:** of the 30 DCS evidence items (D1–D30), 14 are confirmed by this install's shipped files ([R-dcs]), 14 rest on tslua-dcs only ([R-ref]) and 2 are unknown ([U]); five items carry a named partial unknown. No shipped file gives a mission-API signature; every signature below is tslua-dcs's.
 
 ## Evidence labels
 
@@ -81,7 +98,7 @@ Results at `65892de1`, with Python 3.13, Windows. Run time is about 7 s. [R-src]
 | Attribute tokens in C accessor calls | 208 distinct, 2,698 sites |
 | World-service tokens in C (sites, files) | time 41/11; random 30/12; terrain 58/13; map grid 199/27; roads 21/8; 3D objects 75/8; weather 4/3; sensing 27/9; physical state 511/66; range maths 48/20 |
 
-Reproduce:
+Reproduce (with `eechmap.py` beside `inventory.py`):
 
 ```sh
 git rev-parse HEAD                      # 65892de17bf5c4bb9ab6e9f8af70779e35b0106b
@@ -112,19 +129,46 @@ The first pass (revision `18ab088e`) was measured exhaustively only for its own 
 5. **Attribute tokens** other than the 21 named physical-state ones.
 6. **Human-player and multiplayer interactions.**
 
-### Second pass: reachability, dispatch and globals
+### Second pass: reachability, dispatch, writes and globals
 
-The scripts are in full at the end; run them side by side from one directory. `reach.py` and `dispatch.py` take the repository root. `ledger.py` takes their JSON output.
+The scripts are in full at the end of this record. Save them side by side in one directory: `eechmap.py` is the shared source model, and the other four import it. `reach.py`, `dispatch.py` and `globals.py` take the repository root; `ledger.py` takes their JSON output.
 
-| Script | What it does | Result at `65892de1` [R-src] |
-|---|---|---|
-| `reach.py` | **Indexes** every function defined in the 1,217 `sources.txt` files and the 11 `csrc/*.c` files (class H, the headless host layer), including the bodies that follow `#if` arms and nested function-pointer parameters. **Resolves** each identifier in a body to the definition in the same file, else to the unique non-static global; same-file `#ifdef` twins count as one definition. **Expands** macros from every header and C file under `aphavoc/source`, `modules`, `csrc` and `compat`, recursively. **Walks** from the seven entry points in `eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h:36-102` (boot, frame, objects, clock, prepare_installation, diagnostics, fatal_message). It counts every reference, call or address taken, and the file-scope data of any file whose globals are referenced. This is an over-approximation by design: it reaches registered handlers, callbacks and data-table initialisers without modelling them. | **Functions reachable/defined:** C 997/1,139, W 1,603/1,813, E 799/889, F 914/1,086, H 266/294, X 5,677/6,114. **Ambiguous names left:** 0. The first pass's 76 (for example `kill_local`, defined in many entity files) all resolve once a reference is resolved within its own file first. **Campaign call sites examined:** 14,599. **Call-shaped names in campaign code with no definition:** 3, all accounted for in the ledger. **Distinct non-campaign functions** the campaign calls or references: C→F 122, C→W 38, C→E 25, C→X 10, C→H 6. Distinct non-campaign functions that call or reference the campaign: W 121, X 118, F 42, E 3, H 3 |
-| `dispatch.py` | **Reads** every table registration `fn_*[TYPE]… = f` and `message_responses[TYPE][MSG] = f`, including the per-type `[type]` registrations of the shared mobile files. **Classifies** each entity type by the files that register it. **Finds** every static message sent per class with its handler classes, and every non-literal `notify_*_entity` site. For every attribute token in campaign files, it records which classes implement it and in which context the campaign uses it (accessor, creation argument, pack tag, `case` label, registration). | **2,879 registrations; 40 entity types:** W 23, C 11, F 3, X 2, E 1. **30 static message types cross the campaign boundary;** 3 dynamic sends. **22 function tables.** **330 attribute tokens appear in campaign code:** the first pass's 208 from accessor calls, plus 122 in other contexts (creation argument lists, pack tags, `case` labels) |
-| `globals.py` | Finds every `extern` variable declared in a header, defined at file scope outside the campaign, and referenced in a campaign function. | 716 externs; 31 non-campaign globals used by the campaign: F 13, W 7, X 7, E 4 |
+**`reach.py`** [R-src]
+- **Indexes** every function defined in the 1,217 `sources.txt` files and the 11 `csrc/*.c` files (class H, the headless host layer). This includes bodies that follow `#if` arms, and nested function-pointer parameters.
+- **Resolves** each identifier in a body to the definition in the same file, else to the unique non-static global. Same-file `#ifdef` twins count as one definition.
+- **Expands** macros from every header and C file under `aphavoc/source`, `modules`, `csrc` and `compat`, recursively.
+- **Walks** from the seven entry points in `eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h:36-102`: boot, frame, objects, clock, prepare_installation, diagnostics and fatal_message. It counts every reference, whether a call or an address taken, and the file-scope data of any file whose globals are referenced. This is an over-approximation by design: it reaches registered handlers, callbacks and data-table initialisers without modelling them.
+- **Results at `65892de1`:**
+  - Reachable/defined functions: C 997/1,139, W 1,603/1,813, E 799/889, F 914/1,086, H 266/294, X 5,677/6,114.
+  - Ambiguous names left: 0. The first pass's 76 (for example `kill_local`, defined in many entity files) all resolve once a reference is resolved within its own file first.
+  - Campaign call sites examined: 14,599. Call-shaped names with no definition: 3, all accounted for in the ledger.
+  - Distinct non-campaign functions the campaign calls or references: C→F 122, C→W 38, C→E 25, C→X 10, C→H 6. Distinct non-campaign functions that call or reference the campaign: W 121, X 118, F 42, E 3, H 3.
+
+**`dispatch.py`** [R-src]
+- **Reads** every table registration `fn_*[TYPE]… = f` and `message_responses[TYPE][MSG] = f`. This includes the per-type `[type]` registrations of the shared mobile files.
+- **Scans** every other array assignment whose right-hand side names a defined function, for table forms the registration pattern does not match (F4).
+- **Classifies** each entity type by the files that register it.
+- **Finds** every static message sent per class, with its handler classes, and every non-literal `notify_*_entity` site.
+- For every attribute token in campaign files, it records which classes implement the token and in which context the campaign uses it: accessor, creation argument, pack tag, `case` label or registration.
+- It lists every campaign `set_*` call on a token that a world entity type implements, with the receiver expression.
+- **Results:** 2,879 registrations. 40 entity types: W 23, C 11, F 3, X 2, E 1. 30 static message types cross the boundary, and there are 3 dynamic sends. 22 entity function tables and 6 other table forms. 330 attribute tokens in campaign code. 116 campaign writes to world-implemented tokens.
+
+**`globals.py`** [R-src]
+- Finds every name declared `extern` in a header under the include trees, counting every declarator of a comma list. Prototypes and function-pointer declarations are left out; the latter are the dispatch tables.
+- Keeps the names defined at file scope in a compiled non-campaign file and referenced in a campaign file, either by name or through the recursive expansion of a macro used there (F2).
+- **Results:** 1,659 externs. 95 non-campaign globals used by the campaign: F 61, X 18, W 8, E 8. 36 are reached only through a macro: for example `system_delta_time` through `get_delta_time`, `random_number_seed` through `frand1`, and `current_map_info` through `set_global_season`.
+
+**Cross-checks with the independent reviewer's scripts** (`g2.py`, `writes.py`, run on the same worktree):
+- `g2.py` lists 64 globals beyond the first revision's 31. `globals.py` finds the same 64 names, with no difference either way; 31 + 64 = 95. The review text says 65, but its own script prints 64 names.
+- `writes.py` lists 116 campaign writes to world-implemented tokens, in 24 tokens. `dispatch.py` finds the same 116.
 
 ### The coverage ledger
 
-`ledger.py` gives every item from the three scripts one disposition: **mapped** to an interaction row, **excluded** with a reason grounded in the headless product path, or **outstanding**. Rules are ordered regular expressions over `path::function` or token names; an item that no rule matches is outstanding. Result at `65892de1` [R-src]:
+`ledger.py` gives every item from the three scripts one disposition: **mapped** to an interaction row, **excluded** with a reason grounded in the headless product path, or **outstanding**.
+- Rules are ordered regular expressions over `path::function`, token names, global names or `file:line|token|receiver`.
+- Each rule is **exact**, naming what it decides, or a **pattern** or usage-context **fallback**, deciding several items. An item that no rule matches is outstanding.
+
+Result at `65892de1` [R-src]:
 
 | Ledger | Items | Mapped | Excluded | Outstanding |
 |---|---|---|---|---|
@@ -140,39 +184,63 @@ The scripts are in full at the end; run them side by side from one directory. `r
 | Environment → campaign | 3 | 3 | 0 | 0 |
 | Static message types crossing the boundary | 30 | 25 | 5 | 0 |
 | Entity function tables | 22 | 11 | 11 | 0 |
+| Other function-pointer table forms | 6 | 0 | 6 | 0 |
 | Dynamic message sends | 3 | 3 | 0 | 0 |
 | `waypoint_database` message ids | 33 | 31 | 2 | 0 |
-| Attribute tokens in campaign code | 330 | 194 | 136 | 0 |
-| Non-campaign global data | 31 | 10 | 21 | 0 |
+| Attribute tokens in campaign code | 330 | 188 | 142 | 0 |
+| Campaign writes to world-implemented attributes | 116 | 52 | 64 | 0 |
+| Non-campaign global data | 95 | 28 | 67 | 0 |
 | Call-shaped names with no definition | 3 | 0 | 3 | 0 |
-| **Total** | **940** | **607** | **333** | **0** |
+| **Total** | **1,126** | **671** | **455** | **0** |
 
 **Exclusion reasons, with counts:**
 - **Attributes:**
   - 86 are implemented only by campaign entity types.
-  - 44 are the campaign entity's own implementation of an attribute (a `case` label, a table registration or a pack tag) and read no world value.
+  - 44 are the campaign entity's own implementation of an attribute (a `case` label, table registration or pack tag) and read no world value.
   - 4 are type constants that matched the accessor pattern.
+  - 3 are list-table constants.
   - 2 are array-size constants.
+  - 2 are visual-effect lists unlinked on destroy.
+  - 1 is the player's view padlock list.
 - **Calls:**
-  - 31 entity-store functions used for campaign records. Crossings through the store are the message, table and attribute ledgers.
+  - 31 entity-store functions.
   - 27 debug or test functions.
-  - 27 presentation and debug-output functions. The headless frame draws nothing (`eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c:253-286`), and the host layer has no display or DirectPlay connection (`eech-campaign/crates/eech-engine-sys/csrc/eech_headless_devices.c:5-10`).
+  - 27 campaign-screen, camera and influence-map image functions. The headless frame draws nothing (`eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c:253-286`), and the host layer has no display or DirectPlay connection (`eech-campaign/crates/eech-engine-sys/csrc/eech_headless_devices.c:5-10`).
   - 25 arithmetic functions.
-  - 23 readers of campaign data files. They are read natively by the DLL with C stdio, so no DCS API is involved; the files ship with the module (I39).
+  - 23 readers of campaign data files. They are read natively with C stdio, so no DCS API is involved; the files ship with the module (I39).
   - 8 visual and audio effects.
-  - 6 multiplayer replication and client-join functions. The headless engine is `COMMS_MODEL_SERVER` (`eech_engine.c:144`), with DirectPlay replaced (`eech-campaign/crates/eech-engine-sys/build/main.rs:38-39`), and DCS replicates units itself.
-  - 6 platform services (memory, strings, fatal unwinding).
+  - 6 multiplayer replication and client-join functions. The headless engine is `COMMS_MODEL_SERVER` (`eech_engine.c:144`) with DirectPlay replaced (`eech-campaign/crates/eech-engine-sys/build/main.rs:38-39`), and DCS replicates units itself.
+  - 6 platform services.
   - 2 observers of the campaign: EECH's own Tacview writer and its shared-memory export.
-- **Globals:** 16 string tables, 2 PSD image buffers for campaign data, 2 debug-drawing globals, 1 entity-store flag.
+- **Writes:**
+  - 56 have a campaign entity as the receiver: a sector, waypoint, guide, keysite, group, cargo or landing entity. The token is also world-implemented, but these writes are campaign state. Examples: the attack guide's own sub-type and velocity (`aa_attck.c:347`), sector sides (`popread.c:446`).
+  - 7 propagate `SET_ENTITY_POSITION` to campaign entities.
+  - 1 sets a keysite's supply on drop-off.
+- **Globals:**
+  - 31 string tables.
+  - 21 entity-store attribute type tables and their diagnostics, reached through the accessor macros.
+  - 10 debug-drawing colours and 2D state.
+  - 3 entity-store globals.
+  - 2 PSD buffers for campaign data.
 - **Messages:** 4 entity-store list messages, and 1 message sent only from debug keys.
-- **Tables:** 11 draw, sound and UI tables.
+- **Tables:**
+  - 11 draw, sound and UI tables.
+  - `campaign_screen_message_responses` (`ca_group.c:1584-1588`, 37 registrations, F4). It is the campaign-screen UI's own handler table, fed only through `notify_campaign_screen`, which is itself excluded as presentation.
+  - 5 data arrays that the scan flagged only because a variable shares a function's name, for example `polygon_3d_vertices[0].v = v;` (`3dscon.c:993`).
 - **Waypoint ids:** 2 with no registered handler, so no-ops (`END`, `WAIT`).
 - **Names with no definition:**
   - `#endif` followed by a parenthesised expression (`ld_msgs.c:512`);
   - a call through a function-pointer field (`briefing.c:880`), whose targets are walked as address-taken references;
   - `ogre_scene_get_object`, which is in the `#else` arm of `#ifndef OGRE_EE` (`popread.c:2795`). The headless build does not define `OGRE_EE`.
 
-`python -I ledger.py reach.json dispatch.json globals.json --items items.json` writes every item with its disposition and row. The mapped items cite their rows (I1–I50 below), so every row is backed by a measured site list, not by a sample.
+**The 21 excluded presentation callers and the display scope (F5).**
+- All 21 are campaign-screen functions: briefing, debriefing, group and task lists, statistics and the info bar. Their exclusion rests on the headless product path: the frame draws nothing, and there is no display.
+- Two of them touch campaign state:
+  - `notify_base_destroy_button` calls `capture_keysite` (`ca_base.c:521`), but it is registered only in a debug build (`ca_base.c:990-1008`).
+  - `notify_member_accept_button` (`ca_group.c:594`) is the player picking a group member. That choice reaches the campaign through `ca_selct.c`, which is mapped (I44).
+- Cockpit displays of campaign state are mapped instead (I41, 65 functions under `aphavoc/source/gunships/`). In DCS a flying player has no EECH campaign screen, so the campaign must push what the cockpit showed (waypoints, task text) through messages and markers. The campaign screens are EECH's planning UI, outside the DCS host; their player decisions reach the campaign through the mapped I44 paths.
+
+`python -I ledger.py reach.json dispatch.json globals.json --items items.json` writes every item with its disposition, row and deciding rule.
 
 **The SUPPLY rows** lean on #74's map, which is supporting evidence only. The #74 citations reused here were spot-checked at `65892de1` (`assign.c:983`, `keysite.c:377`, `mb_msgs.c:1822`).
 
@@ -218,7 +286,9 @@ The scripts are in full at the end; run them side by side from one directory. `r
 | D28 | Explosion at a point | `trigger.action.explosion (point, power)` `MT/trigger.ts:281` | [R-ref] |
 | D29 | Player menu commands | `missionCommands.addCommand (name, nil, callback)` and `removeItem`, used by the shipped wrappers at `DCS:Scripts/ScriptingSystem.lua:38`, `:42`; per-coalition and per-group variants at `:46`, `:54` | [R-dcs] |
 
-Totals: [R-dcs] 14 (D1–D5, D7–D14, D29; D11 and D14 by their verified part); [R-ref] 14 (D6, D15–D26, D28); [U] 1 (D27). Partial unknowns inside rows with another label: D6's numeric ids, D11's trigger, D14's behaviour, D15's `groupData` schema and D18's route-task table.
+| D30 | Change the coalition or country of an existing unit, group or static object | Not found. tslua-dcs declares only getters (`MT/Unit.ts:362`, `:425`; `MT/Group.ts:98`; `MT/StaticObject.ts:240`, `:286`). Its runtime-reflected method lists name `setCoalition` only for `Airbase` (`MTX/Airbase.export.ts:116`), not for Unit, Group or StaticObject (`MTX/Unit.export.ts:46`, `MTX/Group.export.ts:20`, `MTX/StaticObject.export.ts:10`). Probe P-CAP-1 settles it | [U] |
+
+Totals: [R-dcs] 14 (D1–D5, D7–D14, D29; D11 and D14 by their verified part); [R-ref] 14 (D6, D15–D26, D28); [U] 2 (D27, D30). Partial unknowns inside rows with another label: D6's numeric ids, D11's trigger, D14's behaviour, D15's `groupData` schema and D18's route-task table.
 
 ## 3. Interactions by category
 
@@ -231,7 +301,7 @@ Columns: **Dir** is C→W (the campaign asks the world) or W→C (the world repo
 | I1 | Create a mobile member in a group | `create_mobile_member`, `faction.c:1678` (the one switch; creators at `faction.c:1757-1803`). Callers: campaign load `parsgen.c:1854`, regen `rg_updt.c:399`, frontline `faction.c:1550` | C→W | entity index, member sub-type, group entity, `vec3d` position; landed members get a landing site | `coalition.addGroup` D15, per group, not per member; parking start D18 | adapted (G1) |
 | I2 | Population: cities, sites, scenery as entities with 3D objects | `popread.c:1575` `construct_3d_object`, `:1588` `insert_3d_object_into_terrain` | C→E | 3D object index, position | Map scenery is fixed; `addStaticObject` D15 | gap (G2) |
 | I3 | Remove an entity | `destroy_client_server_entity` (`aphavoc/source/entity/system/en_funcs/en_dstry.h:75`) | C→W | entity | `Group:destroy` D8, `Object:destroy` D25 | direct |
-| I43 | Campaign kills world units: all members of a group when its keysite falls or is captured | `group_kill_all_members` `group.c:1021`, called at `keysite.c:1097`, `keysite.c:1222`; a keysite below minimum strength `keysite.c:822`; kill and destroy tables (ledger) | C→W | entity | `Group:destroy` D8 (removal); `trigger.action.explosion` D28 (a physical kill). Whether either raises DEAD is [U] | adapted (G26) |
+| I43 | Campaign kills world units: all members of a group when its keysite falls or is captured | `group_kill_all_members` `group.c:1021`, called at `keysite.c:1097`, `keysite.c:1222`; `destroy_keysite` kills the losing side's landed aircraft under the capture-aircraft setting (`keysite.c:972-1003`); a keysite below minimum strength `keysite.c:822`; kill and destroy tables (ledger) | C→W | entity | `Group:destroy` D8 (removal); `trigger.action.explosion` D28 (a physical kill). Whether either raises DEAD is [U] | adapted (G26) |
 | I48 | Type properties read from world type databases | `aircraft_database` (`faction.c:999`), `vehicle_database`, `weapon_database`, `fixed_3d_object_database` (globals ledger); 28 type-property attribute tokens (cruise speed and altitude, fuel economy, threat values, identify flags, display names) | C reads W | per-sub-type records | `Unit:getDesc` exists (D9); its fields are not verified [U] | adapted (G22) |
 
 ### Identity
@@ -298,6 +368,7 @@ Section 5 maps the event sources named in the brief (loss, waypoint, landed, tak
 |---|---|---|---|---|---|---|
 | I27 | Set the weather mode at campaign start | `parsgen.c:1205` → `session.c:538` | C→E | weather mode | Mission weather `env.mission.weather` D19; runtime change not verified [U] | gap (G15) |
 | I28 | Wind for ATC speech | `landing.c:1080` | C→E | wind speed | `atmosphere.getWind` D23 | adapted |
+| I52 | Season: the campaign file sets it (`parsgen.c:2196`, `set_global_season`, a macro writing `current_map_info.season`, `aphavoc/source/global.h:985`); the session's weather model reads it to choose snow or rain (`session.c:404`), and terrain and 3D object textures read it (`terrdata.c:219`, `3dobjid.c:930`) | as cited | C→E | season number | DCS season follows the mission date and terrain: `env.mission.date` D19; no runtime season setter verified | adapted (G29) |
 
 ### Airbases, keysites and supply
 
@@ -306,7 +377,8 @@ Section 5 maps the event sources named in the brief (loss, waypoint, landed, tak
 | I29 | Keysite supply levels, crates and requests | `ks_updt.c:126`; `update_keysite_cargo` `keysite.c:337` (#74 stage 1) | campaign-only | ammo and fuel percentages | Optional mirror to `Warehouse` D24 | direct |
 | I30 | Landing sites, takeoff routes and locks | `response_to_lock_landing_site` `ld_msgs.c:599`; `insert_mobile_into_takeoff_route` `mobile.c:573`; reserve `mb_msgs.c:350` | both | site counts and locks | `Airbase:getParking (true)` D24; DCS ATC sequences | gap (G16) |
 | I31 | Keysite structures destroyed or repaired | `st_dstry.c:293` → `keysite.c:739`; repair `keysite.c:1618` → `fixed.c:147` | W→C, C→W | importance and efficiency | DEAD event for a static or scenery initiator D4, D6 | gap (G17) |
-| I32 | Capture | `mb_msgs.c:2307` → `capture_keysite` `keysite.c:1289` | W→C | keysite, side | `Airbase:setCoalition`, `autoCapture` D24; BASE_CAPTURED D6 | adapted |
+| I32 | Capture of the keysite itself | `mb_msgs.c:2307` → `capture_keysite` `keysite.c:1289`; the keysite's own side `keysite.c:1340` | W→C | keysite, side | `Airbase:setCoalition`, `autoCapture` D24; BASE_CAPTURED D6 | adapted |
+| I51 | Capture converts forces: idle landed aircraft groups at the keysite change to the captor's side, with new callsigns (`keysite.c:1375-1390`, under `command_line_capture_aircraft`, on by default, `cmndline.c:151`), and the keysite's building and regen structures change side (`change_local_keysite_building_sides`, `keysite.c:1429` → `:1524-1568`; replayed on restore, `ks_pack.c:359`) | as cited; 6 side writes in the write ledger | C→W | entity side, group callsign | No coalition setter for units, groups or statics (D30 [U]); destroy D8 and respawn D15 under the captor's country | gap (G28) |
 | I33 | Keysite identity | keysite name attribute (89 campaign sites) | both | name string | `Airbase.getByName` D24 | adapted (G3) |
 | I34 | Moving keysites (ships) carry their landing sites | `ks_msgs.c:337` | W→C | position, heading, velocity | ship `Unit:getPoint` D16 | adapted |
 
@@ -315,7 +387,7 @@ Section 5 maps the event sources named in the brief (loss, waypoint, landed, tak
 | # | Interaction | EECH site(s) | Dir | EECH shape | DCS | Fit |
 |---|---|---|---|---|---|---|
 | I35 | Fog of war per sector | `sector.c:510`, `sector.c:533`; recon arrival `mb_msgs.c:1951` | campaign-only, fed by arrivals | sector value | depends on I12 | direct |
-| I36 | Target detection triggers a campaign engagement | `ac_tgt.c:275` → `engage_targets_in_group` `engage.c:515` | W→C | group, target group | `Controller:getDetectedTargets` D17; DCS AI engages by ROE | gap (G9) |
+| I36 | Target detection triggers a campaign engagement; the session's suppress-AI-fire setting stops campaign engagements (`engage.c:129`) | `ac_tgt.c:275` → `engage_targets_in_group` `engage.c:515` | W→C | group, target group; session flag | `Controller:getDetectedTargets` D17; DCS AI engages by ROE, so suppress-AI-fire also needs ROE weapon hold through `setOption` D17 | gap (G9) |
 
 ### Random
 
@@ -332,6 +404,7 @@ Section 5 maps the event sources named in the brief (loss, waypoint, landed, tak
 | I40 | Step the campaign | `eech_engine_frame`, `eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c:288` | host→C | ms | D19 or D12 | adapted |
 | I41 | Messages and speech to players; gunship mission results | `fc_msgs.c:431` (speech); `gp_msgs.c:1034` | C→W | speech and message ids | `trigger.action.outText` D26 | adapted (multiplayer: `docs/m5-dcs-risks.md`) |
 | I42 | Map placement for the reference scenario | Lebanon, map5 (`m2-reference.md`) | host | EECH map | No Syria terrain on this PC | gap (G21) |
+| I53 | Campaign settings that steer decisions: the player pilot's difficulty (`engage.c:991`), campaign-commander mode (`session_camcom`, `reaction.c:859`), run mode (`faction.c:1696`), language and gunship side (`global_options`), and the campaign's aircraft requirement (`parsgen.c:970`) | as cited | host→C | integers from the command line and the campaign file | none: boot configuration (`eech-campaign/crates/eech-dc/src/module.rs:43-54`) | adapted (G30) |
 | I47 | Campaign end: winner, session complete, player log | `campaign_completed`, `campaign.c:1096`, called from `fc_msgs.c:307` | C→X | side, completion type | `outText` D26; no mission-end call verified [U] | gap (G25) |
 
 ### Players and multiplayer
@@ -345,7 +418,7 @@ The headless product boots as a server, with no DirectPlay connection and no joy
 | — | Multiplayer replication of campaign state to clients, and client join | `transmit_entity_comms_message` (82 campaign functions, 93 raw `grep` call sites); `comm_man.c` client join (ledger) | C→clients | packed entity updates | none needed: DCS replicates units; campaign state stays on the server | excluded: server-authoritative destination; the headless engine has no clients (`eech-campaign/crates/eech-engine-sys/build/main.rs:38-39`) |
 | — | Player displays of campaign state: HUD and MFD waypoints, task objective text, briefings | 64 cockpit, avionics and view functions under `aphavoc/source/gunships/` (ledger, I41) | C→player | strings, waypoint positions | `outText`, `markToAll` D26 | adapted (with I41) |
 
-Totals: 50 rows. Direct 8 (I3, I5, I10, I17, I25, I29, I35, I37). Adapted 25. Gap 17 (I2, I6, I8, I12, I20, I23, I24, I26, I27, I30, I31, I36, I38, I39, I42, I47, I49). The gap table (section 8) names a workaround for each gap and for the adapted rows that need one. The two un-numbered player rows record ledger groups and are not counted.
+Totals: 53 rows. Direct 8 (I3, I5, I10, I17, I25, I29, I35, I37). Adapted 27. Gap 18 (I2, I6, I8, I12, I20, I23, I24, I26, I27, I30, I31, I36, I38, I39, I42, I47, I49, I51). The gap table (section 8) names a workaround for each gap and for the adapted rows that need one. The two un-numbered player rows record ledger groups and are not counted.
 
 ## 4. Identity and lifecycle
 
@@ -385,7 +458,7 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
   - EECH uses metres with x east, y up, z north (`eech-campaign/crates/eech-engine/src/lib.rs:119`) from a map origin.
   - The origin is set on the campaign-creation path (I46). `read_map_info_data` takes the map number from the data path and calls `initialize_known_coordinates` (`textuser.c:3291`), which sets per-map **source defaults**: map5, Lebanon, 32.86 N 35.01 E (`textuser.c:3187-3189`). A `coordinate=lat,lon` line in the map's `mapinfo.txt` overrides them (`textuser.c:3370-3376`).
   - In the compiled code, the origin's only reader is EECH's Tacview writer (`tacview.c:171-177`), which converts with its own series about the origin. The same code is in `eech-campaign/crates/eech-map/src/geo.rs`.
-  - `grep` finds no campaign file that reads `current_map_info` or the origin getters, so no campaign decision depends on the origin. [R-src]
+  - No campaign file reads the origin: `globals.py` finds the campaign's only use of `current_map_info` to be the season write (`parsgen.c:2196`, I52), so no campaign decision depends on the origin. [R-src]
 - **Coordinates: how accurate the conversion is.** These are separate facts from the source defaults.
   - DCS uses x north, y up, z east (D16, D22) and converts with `coord.LLtoLO` (D22 [R-ref]).
   - The naive chain is EECH (x, z) → latitude/longitude (EECH geodesy about the default origin) → `coord.LLtoLO` → DCS. **The retail maps are not metric**, so the naive chain is wrong by kilometres.
@@ -430,14 +503,17 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
 | G23 Troop transport | I49 | **Abstract troops:** troops stay a campaign count on the carrier. Insertion spawns an infantry group at the drop point (`coalition.addGroup`), and pick-up removes one (`Group:destroy`). No DCS embark is relied on | D15 [R-ref], D8 [R-dcs] |
 | G24 Player commands | I44 | **F10 command menu:** each EECH radio command, task request and waypoint skip becomes a `missionCommands` entry whose callback calls the campaign's existing handler (for example `process_radio_message`) with the player's group, resolved through G3 | D29 [R-dcs] |
 | G25 Campaign end | I47 | **Host-owned end:** the campaign reports the winner through `outText` and an observable state. The host ends or keeps the mission; no mission-end API is relied on | D26 [R-ref] |
-| G26 Kill or remove | I43 | **Campaign-recorded kills:** when the campaign itself kills a group, it records the losses directly, as EECH's own consequence, and removes the units with `Group:destroy`. It does not wait for a DEAD event that may not come | D8 [R-dcs]; DEAD on destroy [U] |
+| G26 Kill or remove | I43 | **Campaign-recorded kills:** when the campaign itself kills a group, it records the losses directly, as EECH's own consequence, and removes the units with `Group:destroy`. It does not wait for a DEAD event that may not come, and any DEAD, CRASH or UNIT_LOST that does arrive for those names is matched to the recorded kill and not counted again (G8 deduplication) | D8 [R-dcs]; DEAD on destroy [U], probe P-CAP-2 |
+| G28 Respawn on capture | I51 | **Respawn under the captor, keeping EECH's capture policy.** The capture rules stay the campaign's: idle landed aircraft groups and the keysite's structures change side, under the capture-aircraft setting, which stays on by default. The workaround only carries out the result in DCS. On each conversion: **(1) Rebind identity:** in the G3 table, mark the old DCS names of the converted group or static as *converted at generation g*. Allocate generation g+1 names for the same EECH entity index, whose side and callsign EECH has already changed in place. **(2) Remove without loss:** remove the old objects with `Group:destroy` or `Object:destroy`. Any DEAD, CRASH, UNIT_LOST or KILL event later arriving for a name marked *converted* is dropped before G8's loss entry point, so a conversion is never reported as a combat loss. The campaign runs no loss bookkeeping: EECH's capture path does not call `kill_local`. **(3) Respawn:** with `coalition.addGroup` (cold, at the same parking spots, `Airbase:getParking`) or `addStaticObject`, under a country of the captor's coalition, with the generation g+1 names. **(4) Order:** set the airbase's coalition (`Airbase:setCoalition`, with `autoCapture` off) before respawning aircraft there. **Probes,** finite and named, settle the unknowns: **P-CAP-1** does any coalition or country setter exist for units, groups or statics (D30)? If one does, it replaces steps 2–3. **P-CAP-2** which events, if any, do `Group:destroy` and `Object:destroy` raise? **P-CAP-3** does a destroy followed by `addGroup` in the same scheduled call succeed on the same parking spots, and do the new units get fresh ids while `Group.getByName (old)` returns nil? **P-CAP-4** can a group of the captor's country spawn at an airbase just switched with `setCoalition`? **P-CAP-5** does a static respawned at the same position under the new country become a valid DEAD initiator for G17? | D8 [R-dcs], D15, D24 [R-ref]; D30 [U] |
+| G29 Season as a host input | I52 | **Read, do not set:** the host's mission date and terrain give the season. The campaign file's season is checked against it at boot, and a difference is classified as an expected input or world variation, not a regression. The weather model's snow-or-rain choice uses the host's season | D19 [R-ref] |
+| G30 Boot-configuration settings | I53 | **Settings at boot:** difficulty, campaign-commander mode, run mode, language and gunship side come from the module's boot configuration, as they come from the command line in EECH. No DCS API is involved | `eech-campaign/crates/eech-dc/src/module.rs:43-54` [R-src] |
 | G27 Player aircraft binding | I45 | **Player-unit binding:** a player's DCS unit is bound to an EECH group member through G3 names on PLAYER_ENTER_UNIT. Its landings and takeoffs arrive as LAND and TAKEOFF events, applied with the campaign's landing-lock rules | D6 [R-ref], D5 [R-dcs], D16 [R-ref] |
 
 ## 9. Six-criterion acceptance matrix
 
 | Criterion | This map contributes | Remains | Proposed acceptance check (where) |
 |---|---|---|---|
-| 1 DCS call map | Two-pass inventory and a 940-item coverage ledger (0 outstanding); 50 rows; 29 evidence items; G1–G27 | Lead review of the ledger rules and the method's residual limits (section 10: macro-heavy or `#if` code the regex index might misread; registrations or sends written in forms the scripts do not match). DCS-side unknowns that do not block the mapping but need probes: D6 ids, D11 trigger, D15 and D18 schemas, D27 | Review of this record; then a DCS run listing every D item used, as present or absent (DCS) |
+| 1 DCS call map | Two-pass inventory and a 1,126-item coverage ledger (0 outstanding); 53 rows; 30 evidence items; G1–G30; review findings F1–F6 resolved | Lead review of the ledger rules: the 29 pattern and fallback rules (603 items) in section 10, and the method's residual limits there. DCS-side unknowns that do not block the mapping but need probes: D6 ids, D11 trigger, D15 and D18 schemas, D27, and P-CAP-1 to P-CAP-5 (D30) | Review of this record; then a DCS run listing every D item used, as present or absent (DCS) |
 | 2 No world inside the campaign | Names the world code that holds campaign rules (I6, I11, I12, I36) and the services to move behind host identities | A mechanical check and a loud failure with no host | Static check: `reach.py`'s campaign→world and campaign→environment callee count (today 38 and 25 functions) falls to the calls behind declared host ports, with the ledger re-run; and a boot with no host fails by name (EECH_WORLD) |
 | 3 Host events drive the campaign | Event table (section 5); G7, G8 | The causal seam (#74, arrival first) | Withhold or delay one arrival or loss and show campaign state change (EECH_WORLD, then DCS) |
 | 4 No regression | Lists which rows change semantics under DCS (G6, G9, G12, G18) | Running the M4 pack after each move | Lebanon under EECH_WORLD, M4 pack holds, differences classified (EECH_WORLD) |
@@ -449,110 +525,280 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
 - **Coverage.** The ledger has no outstanding item, but it rests on a regex index, not a compiler. These are the residual limits a reviewer should test:
   - **No preprocessor.** Both arms of `#ifdef` count, and only `#if 0` is removed. This over-approximates; it does not drop code.
   - **Function definitions** are found by pattern. The check that 14,599 call sites in reachable campaign functions resolve, with 3 explained exceptions, bounds the risk on the campaign side only.
-  - **Registrations and message sends** written in forms other than `fn_*[...] = f`, `message_responses[...][...] = f` and `notify_*_entity (...)` would be missed.
-  - **The attribute disposition** uses the implementing entity classes and the usage context. Of the world-implemented tokens used in accessors, each was assigned to a row by name in `ledger.py`; that assignment is a judgement the reviewer can check line by line.
+  - **Registrations.** `dispatch.py` matches `fn_*[...] = f` and `message_responses[...][...] = f`. It also scans every other array assignment of a defined function's name. That scan found one real table form outside the pattern, `campaign_screen_message_responses` (UI, excluded, F4), and 5 data-array false positives. A function pointer stored through a struct field (for example `briefing_substitutions [loop].function`) is not a table: `reach.py` walks its targets as address-taken references.
+  - **Message sends** are matched only as `notify_local_entity` and `notify_client_server_entity` calls; 3 sends with a non-literal message id are resolved in the ledger.
+  - **The attribute disposition** uses the implementing entity classes and the usage context. Every world- or session-implemented token that the campaign uses in an accessor, a creation argument or another expression is named in `ledger.py` with its row, including suppress-AI-fire (I36) and difficulty (I53). Three world-implemented tokens appear in campaign code only as the campaign entity's own `case` labels and registrations, and fall to the own-implementation fallback: `PTR_TYPE_TERRAIN_FACE_NORMAL`, `FLOAT_TYPE_RECON_DISTANCE` and `INT_TYPE_MAP_ICON`. That assignment is a judgement the reviewer can check line by line.
+  - **Globals** are found from `extern` declarations in headers only. A global declared only in a `.c` file, or used through a function rather than a macro, is not in this ledger; its accessor function is in the call ledger instead.
+  - **Pattern and fallback rules.** These decide 603 of the 1,126 items, through 29 rules. Each rule's reason applies to every item it matches, and the per-item list (`items.json`) lets a reviewer check them. Since F3, no rule assigns a default list of rows. Where a rule names two rows, both apply to every item it matches. The former catch-alls ("I6, I12, I30", "I12, I13, I30, I32", "I5 and G3" for all lists, "I18, I19, I27 … or framework default") were replaced by exact rules. The remaining rules:
+
+| Ledger | Disposition | Reason or row | Items |
+|---|---|---|---|
+| attributes | excluded | an array-size constant, not an attribute | 2 |
+| attributes | excluded | campaign-only: implemented only by campaign entity types | 86 |
+| attributes | excluded | the campaign entity's own implementation of the attribute (case label, table registration, pack tag); reads no world value | 44 |
+| attributes | mapped | I38: a pack/unpack field tag (save, restore, replication) | 12 |
+| calls | excluded | campaign data files read natively by the DLL with C stdio; no DCS API (the files ship with the module, I39) | 23 |
+| calls | excluded | campaign screens, camera and influence-map images: presentation: the headless frame draws nothing and plays no sound (eech_engine.c:253-286) | 27 |
+| calls | excluded | debug and test code; no world effect | 27 |
+| calls | excluded | entity store used for campaign records; crossings through it are the message, table, attribute and write ledgers | 31 |
+| calls | excluded | multiplayer replication and client join: headless is COMMS_MODEL_SERVER (eech_engine.c:144) with DirectPlay replaced (eech-campaign/crates/eech-engine-sys/build/main.rs:38-39); DCS replicates units | 6 |
+| calls | excluded | platform services (memory, strings, files, fatal unwinding); no world | 6 |
+| calls | excluded | pure arithmetic | 25 |
+| calls | excluded | visual and audio effects; DCS renders its own | 8 |
+| calls | mapped | I1 (a spawned mobile registers with its force and sector) | 7 |
+| calls | mapped | I14 (losses) | 11 |
+| calls | mapped | I2, I25 (a world object registers in its sector) | 9 |
+| calls | mapped | I24 (bridges break road links) | 2 |
+| calls | mapped | I31 (keysite structures) | 5 |
+| calls | mapped | I38 (save, restore) | 39 |
+| calls | mapped | I41 (messages to players) | 3 |
+| calls | mapped | I41 (player displays of campaign state) | 65 |
+| calls | mapped | I41 (speech to players) | 9 |
+| calls | mapped | I44 (player commands, key-bound triggers) | 14 |
+| calls | mapped | I6 (movement reads the guide) | 12 |
+| globals | excluded | debug drawing colours and 2D state (gd_draw.c, imaps.c, gd_cover.c) | 10 |
+| globals | excluded | entity-store attribute type tables and their diagnostics, reached through the accessor macros | 21 |
+| globals | excluded | string tables for parsing and logging | 31 |
+| other tables | excluded | not a function table: a data array assigned from a variable that shares a function's name (for example `.v = v;`) | 5 |
+| writes | excluded | SET_ENTITY_POSITION propagation to a campaign entity (landing site, regen, task, waypoint, cargo); I34 covers the moving keysite | 7 |
+| writes | excluded | the receiver is a campaign entity (sector, waypoint, guide, keysite, group, cargo, landing); the token is also world-implemented, but this write is campaign state | 56 |
   - **Over-approximation:** reachability makes almost all code reachable, because the headless boot initialises the in-game UI (`start_ingame_ui_system`, `eech_engine.c:212`). Exclusions therefore rest on the stated product-path reasons, not on unreachability.
 - **The classification is a choice.** Moving `guide/` or `landing/` to W would move their interactions between rows, not remove them.
 - **DCS signatures are tslua-dcs's.** No shipped file gives one, the DLL is packed, and no DCS runtime check was made. Unknowns that a DCS probe would settle: D6 numeric ids and event duplication; the `groupData` and route-task schemas; D27; when D11 runs; whether names and ids are unique or reused; D14 behaviour.
 - **The coordinate chain is unmeasured against DCS.** The retail maps are distorted (section 7), and there is no Syria terrain on this PC.
 - **Human players and multiplayer** are now mapped (I44, I45, the replication group). The player-skip and cohesion rules inside the helicopter arrival test (#74 stage 4) still sit in world code and move with G7. No player path runs in the headless product, so none of this is runtime-characterised.
+- **Capture conversion in DCS** depends on P-CAP-1 to P-CAP-5 (G28). Until they run, G28 is the named workaround, not a verified mechanism.
 - **Prior research:** `eech-campaign/docs/dcs.md` maps the earlier kernel-spike API, not the whole-engine product. Where they differ, this record is source-grounded at `65892de1`.
 
 ## Validation
 
 - **Scope:** documentation only. This revision edits only this file.
 - **First pass:** `inventory.py` at `65892de1`; the output is as in section 1, and the grep cross-checks were run as listed.
-- **Second pass:** from one directory holding the four scripts below, run:
+- **Second pass:** from one directory holding `eechmap.py` and the four scripts below, run:
   ```
   python -I reach.py <repo> --detail reach.json
   python -I dispatch.py <repo> --detail dispatch.json
   python -I globals.py <repo> --detail globals.json
   python -I ledger.py reach.json dispatch.json globals.json --items items.json
   ```
-  These were run at `65892de1` with Python 3.13 on Windows and give the figures in section 1, including a ledger of 940 items with 0 outstanding.
+  These were run at `65892de1` with Python 3.13 on Windows and give the figures in section 1, including a ledger of 1,126 items with 0 outstanding. The reviewer's `g2.py` and `writes.py` were run on the same tree, and the differences are explained in section 1. The scripts were audited against the eight clean-code principles (SRP, DRY, NAMING, COUPLING, DEAD, KISS, BOUNDARY, PANIC); no finding above 0.5 remains.
 - **DCS:** read-only `grep`, `sed -n` and `diff` over `DCS:Scripts/`, `DCS:API/Sim_ControlAPI.md`, `DCS:autoupdate.cfg` and `DCS:Mods/terrains/`, plus `grep -a` over `DCS:bin/Scripting.dll`. tslua-dcs files were fetched at `1179554f` with `gh api`.
 - **Confluence:** the plan draft 12484650 (version 1) was read; it was not edited.
 - **Citations:** a checker kept outside the repository resolves every `file:line` outside code blocks (repository, `DCS:`, `MT/`, `MTX/`; a bare `:N` refers to the last file on the same line) to one file and checks the line is in range. It also checks every relative link and backticked repository path at the commit.
 - **Not run:** no DCS or EECH runtime, no build and no regression pack. Nothing here changes behaviour.
 
 <details>
-<summary><code>inventory.py</code></summary>
+<summary><code>eechmap.py</code></summary>
 
 ```python
-"""Campaign <-> world call inventory for the M5 DCS call map.
-Run from the repository root: python -I inventory.py . [--detail out.json]"""
-import collections, json, re, sys
+"""Shared source model for the M5 DCS call-map scripts.
+
+The compiled file list, the path classes, comment and string stripping, line
+numbers and the macro index. The scripts import it from their own directory.
+"""
+import collections
+import re
 from pathlib import Path
 
-root = Path(sys.argv[1])
-detail = "--detail" in sys.argv
-sources = [l.strip() for l in (root / "eech-campaign/crates/eech-engine-sys/sources.txt").read_text().splitlines() if l.strip()]
+SYS = "eech-campaign/crates/eech-engine-sys/"
+APHAVOC = "aphavoc/source/"
+CAMPAIGN_DIRS = ("force", "group", "task", "guide", "keysite", "waypoint", "division", "regen", "landing", "sector")
 
-S = "aphavoc/source/"
-RULES = [  # first match wins
-    ("C", [S + "ai/", S + "ai_extrn.c", S + "entity/mobile/cargo/"] + [S + "entity/special/" + d + "/" for d in
-          ("force", "group", "task", "guide", "keysite", "waypoint", "division", "regen", "landing", "sector")]),
-    ("W", [S + "entity/mobile/", S + "entity/fixed/", S + "entity/special/bridge/", S + "entity/special/effect/"]),
-    ("E", ["modules/3d/", S + "misc/terr_db", S + "misc/tod", S + "misc/timeaccl", S + "entity/special/session/",
-           "modules/maths/random.c", "modules/system/time.c", "modules/system/timer.c"]),
-    ("X", [S + "ui_menu/", "modules/userint2/", "modules/graphics/", "modules/2d/", "modules/sound/", S + "appsound/",
-           S + "app3d/", S + "gunships/", S + "entity/special/camera/", S + "cdmusic.c"]),
+# first match wins; "" matches everything
+CLASS_RULES = [
+    ("H", [SYS + "csrc/"]),
+    ("C", [APHAVOC + "ai/", APHAVOC + "ai_extrn.c", APHAVOC + "entity/mobile/cargo/"]
+          + [APHAVOC + "entity/special/" + d + "/" for d in CAMPAIGN_DIRS]),
+    ("W", [APHAVOC + "entity/mobile/", APHAVOC + "entity/fixed/", APHAVOC + "entity/special/bridge/",
+           APHAVOC + "entity/special/effect/"]),
+    ("E", ["modules/3d/", APHAVOC + "misc/terr_db", APHAVOC + "misc/tod", APHAVOC + "misc/timeaccl",
+           APHAVOC + "entity/special/session/", "modules/maths/random.c", "modules/system/time.c",
+           "modules/system/timer.c"]),
+    ("X", [APHAVOC + "ui_menu/", "modules/userint2/", "modules/graphics/", "modules/2d/", "modules/sound/",
+           APHAVOC + "appsound/", APHAVOC + "app3d/", APHAVOC + "gunships/", APHAVOC + "entity/special/camera/",
+           APHAVOC + "cdmusic.c"]),
     ("F", [""]),
 ]
 
-def klass(path):
-    for k, prefixes in RULES:
-        if any(path.startswith(p) for p in prefixes):
-            return k
+# the source trees whose headers and C files the build includes
+INCLUDE_TREES = ("aphavoc/source", "modules", SYS + "csrc", SYS + "compat")
 
-COMMENT = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
-DEF = re.compile(r"^(?:static\s+|extern\s+|inline\s+)*[A-Za-z_][\w \t\*]*?\b([A-Za-z_]\w*)\s*\(([^;{}()]|\([^()]*\))*\)\s*\{", re.M)
+IDENT = re.compile(r"\b[A-Za-z_]\w*\b")
+KEYWORDS = frozenset("if for while switch return sizeof else do case break continue goto default typedef struct "
+                     "union enum static extern const volatile register unsigned signed int char float double long "
+                     "short void".split())
+_COMMENT = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
+_STRING = re.compile(r'"(?:\\.|[^"\\\n])*"|\'(?:\\.|[^\'\\\n])*\'')
+FUNCTION_DEFINITION = re.compile(
+    r"^(?:static\s+|extern\s+|inline\s+|__inline\s+)*[A-Za-z_][\w \t\*]*?\b([A-Za-z_]\w*)\s*"
+    r"\(([^;{}()]|\((?:[^()]|\([^()]*\))*\))*\)\s*(?:#[^\n]*\n\s*)*\{", re.M)
+FILE_SCOPE_NAME = re.compile(r"\b([A-Za-z_]\w*)\s*(?:\[[^\]]*\]\s*)*(?:=|;|,)")
+ACCESS = re.compile(r"\b(get|set)_(local|client_server)_entity_(\w+?)\s*\(\s*[^,()]+(?:\([^()]*\))?\s*,\s*"
+                    r"([A-Z0-9_]+_TYPE_[A-Z0-9_]+)")
+_MACRO = re.compile(r"^[ \t]*#[ \t]*define[ \t]+([A-Za-z_]\w*)(\([^)]*\))?((?:[^\n\\]|\\\n|\\.)*)", re.M)
+
+
+def path_class(path):
+    """the class of a repository path; the last rule's "" prefix matches every path, so next() always finds one"""
+    return next(k for k, prefixes in CLASS_RULES if any(path.startswith(p) for p in prefixes))
+
+
+def compiled_units(root, host=True):
+    """sources.txt, plus the headless host layer csrc/*.c when host is true"""
+    root = Path(root)
+    units = [l.strip() for l in (root / SYS / "sources.txt").read_text().splitlines() if l.strip()]
+    if host:
+        units += sorted(p.relative_to(root).as_posix() for p in (root / SYS / "csrc").glob("*.c"))
+    return units
+
+
+def read_source(root, rel):
+    return (Path(root) / rel).read_text(encoding="latin-1")
+
+
+def _blank(match):
+    return re.sub(r"[^\n]", " ", match.group(0))
+
+
+def strip_comments(text):
+    """comments become spaces; line numbers survive"""
+    return _COMMENT.sub(_blank, text)
+
+
+def _drop_if0(text):
+    out, depth, skipping = [], 0, False
+    for line in text.split("\n"):
+        s = line.strip()
+        if skipping:
+            if re.match(r"#\s*if", s):
+                depth += 1
+            elif re.match(r"#\s*endif", s):
+                depth -= 1
+                skipping = depth > 0
+            elif re.match(r"#\s*(else|elif)", s) and depth == 1:
+                skipping = False
+            out.append("")
+        elif re.match(r"#\s*if\s+0\b", s):
+            skipping, depth = True, 1
+            out.append("")
+        else:
+            out.append(line)
+    return "\n".join(out)
+
+
+def strip_code(text):
+    """comments, string and character literals become spaces; #if 0 blocks are emptied"""
+    return _drop_if0(_STRING.sub(_blank, strip_comments(text)))
+
+
+def line_of(text, pos):
+    return text.count("\n", 0, pos) + 1
+
+
+class Macros:
+    """#define bodies from INCLUDE_TREES: macro name -> identifiers in its body (all definitions united)"""
+
+    def __init__(self, root, is_defined=lambda name: False):
+        """is_defined(name) says whether a function of that name exists; it decides the hidden-function case"""
+        self.is_defined = is_defined
+        self.bodies = collections.defaultdict(set)
+        for tree in INCLUDE_TREES:
+            for p in (Path(root) / tree).rglob("*"):
+                if p.suffix.lower() in (".h", ".c"):
+                    for m in _MACRO.finditer(strip_comments(p.read_text(encoding="latin-1"))):
+                        params = set(IDENT.findall(m.group(2) or ""))
+                        self.bodies[m.group(1)] |= set(IDENT.findall(m.group(3))) - params - KEYWORDS
+        self._expanded = {}
+
+    def __contains__(self, name):
+        return name in self.bodies
+
+    def expand(self, name, seen=()):
+        """identifiers a macro use reaches, recursively; a nested macro whose expansion defines nothing is kept by
+        name, because it hides a same-named function (e.g. an #ifdef'd _ex variant)"""
+        if name in self._expanded:
+            return self._expanded[name]
+        out = set()
+        for n in self.bodies.get(name, ()):
+            if n in self.bodies and n not in seen and n != name:
+                sub = self.expand(n, seen + (name,))
+                out |= sub
+                if not any(self.is_defined(x) for x in sub):
+                    out.add(n)
+            else:
+                out.add(n)
+        self._expanded[name] = out
+        return out
+
+
+def body_end(text, brace):
+    """index of the brace closing the one at text[brace]"""
+    depth = 0
+    for j in range(brace, len(text)):
+        if text[j] == "{":
+            depth += 1
+        elif text[j] == "}":
+            depth -= 1
+            if depth == 0:
+                return j
+    return len(text)
+
+
+def index_functions(text):
+    """(file, name) -> (body start, body end, is_static); name -> [(file, is_static)]; file -> file-scope text"""
+    funcs, by_name, filescope = {}, collections.defaultdict(list), {}
+    for f, t in text.items():
+        spans = []
+        for m in FUNCTION_DEFINITION.finditer(t):
+            name = m.group(1)
+            if name in KEYWORDS or (spans and m.start() < spans[-1][1]):  # a keyword, or a match inside a body
+                continue
+            brace = t.index("{", m.end() - 1)
+            end = body_end(t, brace)
+            static = bool(re.match(r"(?:inline\s+|__inline\s+)*static\b|static\b", t[m.start():m.start(1)].strip()))
+            funcs[(f, name)] = (brace, end, static)
+            by_name[name].append((f, static))
+            spans.append((m.start(), end))
+        pieces, last = [], 0
+        for s0, e0 in spans:
+            pieces.append(t[last:s0])
+            last = e0 + 1
+        pieces.append(t[last:])
+        filescope[f] = "".join(pieces)
+    return funcs, by_name, filescope
+```
+
+</details>
+
+<details>
+<summary><code>inventory.py</code></summary>
+
+```python
+"""First pass of the M5 DCS call map: direct calls between path classes, static
+messages, attribute tokens and named world-service tokens in campaign files.
+
+python -I inventory.py <repo-root> [--detail out.json]
+
+Kept as the first pass's record; reach.py, dispatch.py and globals.py close
+its coverage holes. Function definitions are found with the first pass's own
+pattern on purpose, so that its published figures reproduce.
+"""
+import collections
+import json
+import re
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # eechmap.py sits beside this script
+from eechmap import ACCESS, compiled_units, line_of, path_class, read_source, strip_comments
+
+FIRST_PASS_DEF = re.compile(r"^(?:static\s+|extern\s+|inline\s+)*[A-Za-z_][\w \t\*]*?\b([A-Za-z_]\w*)\s*"
+                            r"\(([^;{}()]|\([^()]*\))*\)\s*\{", re.M)
 CALL = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
-ACCESS = re.compile(r"\b(get|set)_(local|client_server)_entity_(\w+?)\s*\(\s*[^,()]+(?:\([^()]*\))?\s*,\s*([A-Z0-9_]+_TYPE_[A-Z0-9_]+)")
 MSG = re.compile(r"\bnotify_(?:local|client_server)_entity\s*\(\s*(ENTITY_MESSAGE_[A-Z0-9_]+)")
 CREATE = re.compile(r"\bcreate_(?:local|client_server)_entity\s*\(\s*(ENTITY_TYPE_[A-Z0-9_]+)")
-KEYWORDS = {"if", "for", "while", "switch", "return", "sizeof", "else", "do", "case"}
-
-def strip(text):  # keep line structure so line numbers survive
-    return COMMENT.sub(lambda m: "\n" * m.group(0).count("\n"), text)
-
-text, classes = {}, {}
-for f in sources:
-    text[f] = strip((root / f).read_text(encoding="latin-1"))
-    classes[f] = klass(f)
-
-defs = collections.defaultdict(set)  # name -> classes
-for f, t in text.items():
-    for m in DEF.finditer(t):
-        if m.group(1) not in KEYWORDS:
-            defs[m.group(1)].add(classes[f])
-ambiguous = sorted(n for n, k in defs.items() if len(k) > 1)
-
-def line(t, pos):
-    return t.count("\n", 0, pos) + 1
-
-edges = collections.defaultdict(list)
-attrs = collections.defaultdict(list)
-msgs = collections.defaultdict(lambda: collections.defaultdict(list))
-creates = collections.defaultdict(list)
-for f, t in text.items():
-    k = classes[f]
-    defined_here = {m.start(1) for m in DEF.finditer(t)}
-    for m in CALL.finditer(t):
-        n = m.group(1)
-        if m.start(1) in defined_here or n in KEYWORDS or n not in defs or len(defs[n]) != 1:
-            continue
-        target = next(iter(defs[n]))
-        if (k, target) in {("C", "W"), ("C", "E"), ("W", "C"), ("E", "C")}:
-            edges[(k, target, n)].append(f"{f}:{line(t, m.start())}")
-    for m in MSG.finditer(t):
-        msgs[k][m.group(1)].append(f"{f}:{line(t, m.start())}")
-    if k == "C":
-        for m in ACCESS.finditer(t):
-            attrs[m.group(4)].append(f"{f}:{line(t, m.start())}")
-        for m in CREATE.finditer(t):
-            creates[m.group(1)].append(f"{f}:{line(t, m.start())}")
-
+CONTROL_WORDS = {"if", "for", "while", "switch", "return", "sizeof", "else", "do", "case"}
+CROSSINGS = (("C", "W"), ("C", "E"), ("W", "C"), ("E", "C"))
 TOKENS = {  # world-service tokens (functions, macros, attributes) read in campaign files
     "time": "get_delta_time get_entity_movement_delta_time get_system_time get_time_acceleration FLOAT_TYPE_ELAPSED_TIME FLOAT_TYPE_TIME_OF_DAY get_digital_clock_values get_digital_clock_int_values INT_TYPE_DAY",
     "random": "frand1 sfrand1 rand16 rand8 rand32 get_random_number",
@@ -565,32 +811,66 @@ TOKENS = {  # world-service tokens (functions, macros, attributes) read in campa
     "physical_state": "VEC3D_TYPE_POSITION FLOAT_TYPE_VELOCITY VEC3D_TYPE_MOTION_VECTOR FLOAT_TYPE_HEADING FLOAT_TYPE_PITCH VEC3D_TYPE_XV VEC3D_TYPE_ZV FLOAT_TYPE_DISTANCE INT_TYPE_LANDED INT_TYPE_AIRBORNE_AIRCRAFT FLOAT_TYPE_MAIN_ROTOR_RPM FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE FLOAT_TYPE_UNDERCARRIAGE_STATE FLOAT_TYPE_LOADING_DOOR_TIMER FLOAT_TYPE_FUSELAGE_ANGLE INT_TYPE_ALIVE INT_TYPE_DAMAGE_LEVEL FLOAT_TYPE_FUEL_DEFAULT_WEIGHT FLOAT_TYPE_FUEL_ECONOMY INT_TYPE_INSIDE_HANGAR INT_TYPE_RADAR_ON",
     "range_math": "get_2d_range get_3d_range get_approx_2d_range get_approx_3d_range get_sqr_2d_range get_sqr_3d_range",
 }
-tokens = {}
-for cat, names in TOKENS.items():
-    for name in names.split():
-        rx = re.compile(r"\b" + name + r"\b")
-        sites = [f"{f}:{line(t, m.start())}" for f, t in text.items() if classes[f] == "C" for m in rx.finditer(t)]
-        tokens.setdefault(cat, {})[name] = sites
 
-count = collections.Counter(classes.values())
-summary = {
-    "files_by_class": dict(sorted(count.items())),
-    "functions_defined_once_per_class": dict(collections.Counter(next(iter(v)) for v in defs.values() if len(v) == 1)),
-    "names_defined_in_several_classes_excluded": len(ambiguous),
-    **{f"{a}->{b}": {"functions": sum(1 for e in edges if e[:2] == (a, b)),
-                     "sites": sum(len(v) for e, v in edges.items() if e[:2] == (a, b))}
-       for a, b in (("C", "W"), ("C", "E"), ("W", "C"), ("E", "C"))},
-    "C attribute tokens": {"distinct": len(attrs), "sites": sum(map(len, attrs.values()))},
-    "messages sent": {k: {"distinct": len(v), "sites": sum(map(len, v.values()))} for k, v in sorted(msgs.items())},
-    "C create_*_entity types": {k: len(v) for k, v in sorted(creates.items())},
-    "C service tokens per category [sites, files]": {c: [sum(len(s) for s in v.values()), len({x.rsplit(':', 1)[0] for s in v.values() for x in s})] for c, v in tokens.items()},
-}
-print(json.dumps(summary, indent=1))
-if detail:
-    out = {"edges": {f"{a}->{b} {n}": v for (a, b, n), v in sorted(edges.items())},
-           "attrs": dict(sorted(attrs.items())), "msgs": {k: dict(sorted(v.items())) for k, v in msgs.items()},
-           "creates": dict(creates), "ambiguous": ambiguous, "tokens": tokens}
-    Path(sys.argv[sys.argv.index("--detail") + 1]).write_text(json.dumps(out, indent=1))
+
+def site(f, t, pos):
+    return f"{f}:{line_of(t, pos)}"
+
+
+def main(root, detail):
+    units = compiled_units(root, host=False)
+    text = {f: strip_comments(read_source(root, f)) for f in units}
+    classes = {f: path_class(f) for f in units}
+    defs = collections.defaultdict(set)  # name -> classes defining it
+    for f, t in text.items():
+        for m in FIRST_PASS_DEF.finditer(t):
+            if m.group(1) not in CONTROL_WORDS:
+                defs[m.group(1)].add(classes[f])
+    ambiguous = sorted(n for n, k in defs.items() if len(k) > 1)
+    edges, attrs = collections.defaultdict(list), collections.defaultdict(list)
+    msgs, creates = collections.defaultdict(lambda: collections.defaultdict(list)), collections.defaultdict(list)
+    for f, t in text.items():
+        k = classes[f]
+        defined_here = {m.start(1) for m in FIRST_PASS_DEF.finditer(t)}
+        for m in CALL.finditer(t):
+            n = m.group(1)
+            if m.start(1) in defined_here or n in CONTROL_WORDS or len(defs.get(n, ())) != 1:
+                continue
+            target = next(iter(defs[n]))
+            if (k, target) in CROSSINGS:
+                edges[(k, target, n)].append(site(f, t, m.start()))
+        for m in MSG.finditer(t):
+            msgs[k][m.group(1)].append(site(f, t, m.start()))
+        if k == "C":
+            for m in ACCESS.finditer(t):
+                attrs[m.group(4)].append(site(f, t, m.start()))
+            for m in CREATE.finditer(t):
+                creates[m.group(1)].append(site(f, t, m.start()))
+    tokens = {cat: {name: [site(f, t, m.start()) for f, t in text.items() if classes[f] == "C"
+                           for m in re.finditer(r"\b" + name + r"\b", t)] for name in names.split()}
+              for cat, names in TOKENS.items()}
+    print(json.dumps({
+        "files_by_class": dict(sorted(collections.Counter(classes.values()).items())),
+        "functions_defined_once_per_class": dict(collections.Counter(next(iter(v)) for v in defs.values() if len(v) == 1)),
+        "names_defined_in_several_classes_excluded": len(ambiguous),
+        **{f"{a}->{b}": {"functions": sum(1 for e in edges if e[:2] == (a, b)),
+                         "sites": sum(len(v) for e, v in edges.items() if e[:2] == (a, b))} for a, b in CROSSINGS},
+        "C attribute tokens": {"distinct": len(attrs), "sites": sum(map(len, attrs.values()))},
+        "messages sent": {k: {"distinct": len(v), "sites": sum(map(len, v.values()))} for k, v in sorted(msgs.items())},
+        "C create_*_entity types": {k: len(v) for k, v in sorted(creates.items())},
+        "C service tokens per category [sites, files]": {
+            c: [sum(len(s) for s in v.values()), len({x.rsplit(":", 1)[0] for s in v.values() for x in s})]
+            for c, v in tokens.items()},
+    }, indent=1))
+    if detail:
+        Path(detail).write_text(json.dumps({
+            "edges": {f"{a}->{b} {n}": v for (a, b, n), v in sorted(edges.items())},
+            "attrs": dict(sorted(attrs.items())), "msgs": {k: dict(sorted(v.items())) for k, v in msgs.items()},
+            "creates": dict(creates), "ambiguous": ambiguous, "tokens": tokens}, indent=1))
+
+
+if __name__ == "__main__":
+    main(Path(sys.argv[1]), sys.argv[sys.argv.index("--detail") + 1] if "--detail" in sys.argv else None)
 ```
 
 </details>
@@ -603,236 +883,154 @@ if detail:
 
 python -I reach.py <repo-root> [--detail out.json]
 
-Nodes: every function defined in a compiled C file (sources.txt + csrc/*.c),
-keyed by (file, name); plus one data node per file (its file-scope text).
-Edges: any identifier reference in a body (call or address taken), resolved
-same-file first, then to the unique non-static global definition; a
-function-like or object macro is expanded (identifiers in its body,
-recursively). #if 0 blocks and comments are removed. Over-approximate by
-design: an address taken counts as a call, both arms of #ifdef count.
+Nodes: every function defined in a compiled C file (sources.txt and csrc/*.c),
+keyed by (file, name), plus one data node per file (its file-scope text).
+Edges: every identifier in a body (a call or an address taken), resolved in
+the same file first, then to the unique non-static global definition; macros
+are expanded recursively. Comments, literals and #if 0 blocks are removed.
+Over-approximate by design: an address taken counts as a call, and both arms
+of #ifdef count.
 """
-import collections, json, re, sys
+import collections
+import json
+import re
+import sys
 from pathlib import Path
 
-root = Path(sys.argv[1])
-SYS = "eech-campaign/crates/eech-engine-sys/"
-sources = [l.strip() for l in (root / SYS / "sources.txt").read_text().splitlines() if l.strip()]
-csrc = sorted(p.relative_to(root).as_posix() for p in (root / SYS / "csrc").glob("*.c"))
-units = sources + csrc
-
-S = "aphavoc/source/"
-RULES = [
-    ("H", [SYS + "csrc/"]),
-    ("C", [S + "ai/", S + "ai_extrn.c", S + "entity/mobile/cargo/"] + [S + "entity/special/" + d + "/" for d in
-          ("force", "group", "task", "guide", "keysite", "waypoint", "division", "regen", "landing", "sector")]),
-    ("W", [S + "entity/mobile/", S + "entity/fixed/", S + "entity/special/bridge/", S + "entity/special/effect/"]),
-    ("E", ["modules/3d/", S + "misc/terr_db", S + "misc/tod", S + "misc/timeaccl", S + "entity/special/session/",
-           "modules/maths/random.c", "modules/system/time.c", "modules/system/timer.c"]),
-    ("X", [S + "ui_menu/", "modules/userint2/", "modules/graphics/", "modules/2d/", "modules/sound/", S + "appsound/",
-           S + "app3d/", S + "gunships/", S + "entity/special/camera/", S + "cdmusic.c"]),
-    ("F", [""]),
-]
-def klass(p):
-    return next(k for k, ps in RULES if any(p.startswith(x) for x in ps))
-
-COMMENT = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
-STRING = re.compile(r'"(?:\\.|[^"\\\n])*"|\'(?:\\.|[^\'\\\n])*\'')
-IDENT = re.compile(r"\b[A-Za-z_]\w*\b")
-DEF = re.compile(r"^(?:static\s+|extern\s+|inline\s+|__inline\s+)*[A-Za-z_][\w \t\*]*?\b([A-Za-z_]\w*)\s*\(([^;{}()]|\((?:[^()]|\([^()]*\))*\))*\)\s*(?:#[^\n]*\n\s*)*\{", re.M)
-KEYWORDS = set("if for while switch return sizeof else do case break continue goto default typedef struct union enum static extern const volatile register unsigned signed int char float double long short void".split())
-
-def blank(m):
-    return re.sub(r"[^\n]", " ", m.group(0))
-
-def if0(text):
-    out, depth, skipping = [], 0, 0
-    for line in text.split("\n"):
-        s = line.strip()
-        if skipping:
-            if re.match(r"#\s*if", s): depth += 1
-            elif re.match(r"#\s*endif", s):
-                depth -= 1
-                if depth == 0: skipping = 0
-            elif re.match(r"#\s*(else|elif)", s) and depth == 1: skipping = 0
-            out.append("")
-            continue
-        if re.match(r"#\s*if\s+0\b", s):
-            skipping, depth = 1, 1
-            out.append("")
-            continue
-        out.append(line)
-    return "\n".join(out)
-
-def clean(text):
-    text = COMMENT.sub(blank, text)
-    text = STRING.sub(blank, text)
-    return if0(text)
-
-# macros from every header and C file under the trees the build includes
-macros = collections.defaultdict(set)
-MACRO = re.compile(r"^[ \t]*#[ \t]*define[ \t]+([A-Za-z_]\w*)(\([^)]*\))?((?:[^\n\\]|\\\n|\\.)*)", re.M)
-for top in ("aphavoc/source", "modules", SYS + "csrc", SYS + "compat"):
-    for p in (root / top).rglob("*"):
-        if p.suffix.lower() in (".h", ".c"):
-            t = COMMENT.sub(blank, p.read_text(encoding="latin-1"))
-            for m in MACRO.finditer(t):
-                params = set(IDENT.findall(m.group(2) or ""))
-                macros[m.group(1)] |= set(IDENT.findall(m.group(3))) - params - KEYWORDS
-_mx = {}
-def expand(name, seen=()):
-    if name in _mx: return _mx[name]
-    out = set()
-    for n in macros.get(name, ()):
-        if n in macros and n not in seen and n != name:
-            sub = expand(n, seen + (name,))
-            out |= sub
-            if not any(x in by_name for x in sub):
-                out.add(n)  # the macro hides a same-named function whose variant is not defined
-        else:
-            out.add(n)
-    _mx[name] = out
-    return out
-
-text, cls = {}, {}
-for f in units:
-    text[f] = clean((root / f).read_text(encoding="latin-1"))
-    cls[f] = klass(f)
-
-def body_end(t, i):
-    depth = 0
-    for j in range(i, len(t)):
-        if t[j] == "{": depth += 1
-        elif t[j] == "}":
-            depth -= 1
-            if depth == 0: return j
-    return len(t)
-
-funcs = {}          # (file, name) -> (start, end, line, static)
-by_name = collections.defaultdict(list)
-filescope = {}
-for f, t in text.items():
-    spans = []
-    for m in DEF.finditer(t):
-        name = m.group(1)
-        if name in KEYWORDS: continue
-        if spans and m.start() < spans[-1][1]: continue  # nested match inside a body
-        b = t.index("{", m.end() - 1)
-        e = body_end(t, b)
-        static = bool(re.match(r"(?:inline\s+|__inline\s+)*static\b|static\b", t[m.start():m.start(1)].strip()))
-        funcs[(f, name)] = (b, e, t.count("\n", 0, m.start(1)) + 1, static)
-        by_name[name].append((f, static))
-        spans.append((m.start(), e))
-    fs, last = [], 0
-    for s0, e0 in spans:
-        fs.append(t[last:s0]); last = e0 + 1
-    fs.append(t[last:])
-    filescope[f] = "".join(fs)
-
-def resolve(f, n):
-    if (f, n) in funcs: return [(f, n)]
-    g = list({x[0]: x for x in by_name.get(n, ()) if not x[1]}.values())  # #ifdef'd twins in one file are one definition
-    if len(g) == 1: return [(g[0][0], n)]
-    if len(g) > 1: return [("?ambiguous", n)]
-    return []
-
-def refs(f, t, lo, hi):
-    out = []
-    for m in IDENT.finditer(t, lo, hi):
-        n = m.group(0)
-        if n in KEYWORDS: continue
-        line = t.count("\n", 0, m.start()) + 1
-        names = expand(n) if n in macros and (f, n) not in funcs else {n}
-        got = [(r, line, n) for x in names for r in resolve(f, x)]
-        if n in macros and not any(r[0] != "?ambiguous" for r, _, _ in got):
-            got += [(r, line, n) for r in resolve(f, n)]  # a macro hiding a same-named function (e.g. #ifdef'd _ex variants)
-        out += got
-    return out
-
-data_decl = {f: set(IDENT.findall(fs)) for f, fs in filescope.items()}
-def data_node(f): return (f, "<file-scope data>")
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # eechmap.py sits beside this script
+from eechmap import (FILE_SCOPE_NAME, IDENT, KEYWORDS, SYS, Macros, compiled_units, index_functions, line_of,
+                     path_class, read_source, strip_code)
 
 ENTRIES = ["eech_engine_boot", "eech_engine_frame", "eech_engine_objects", "eech_engine_clock",
            "eech_engine_prepare_installation", "eech_engine_diagnostics", "eech_engine_fatal_message"]
-start = [(SYS + "csrc/eech_engine.c", e) for e in ENTRIES]
-parent = {s: None for s in start}
-queue = collections.deque(start)
-edges = collections.defaultdict(list)   # (from, to) -> sites
-ambiguous = collections.Counter()
-globals_by_file = collections.defaultdict(set)
-for f, fs in filescope.items():
-    for m in re.finditer(r"\b([A-Za-z_]\w*)\s*(?:\[[^\]]*\]\s*)*(?:=|;|,)", fs):
-        globals_by_file[m.group(1)].add(f)
-while queue:
-    node = queue.popleft()
-    f, n = node
-    t = text[f]
-    if n == "<file-scope data>":
-        rs = refs(f, filescope[f], 0, len(filescope[f]))
-        rs = [(r, 0, x) for r, _, x in rs]
-    else:
-        b, e, _, _ = funcs[node]
-        rs = refs(f, t, b, e)
-        # data referenced: the file-scope data node of the file that declares it
-        for m in IDENT.finditer(t, b, e):
-            for g in globals_by_file.get(m.group(0), ()):
-                d = data_node(g)
-                if d not in parent:
-                    parent[d] = node; queue.append(d)
-    for r, line, via in rs:
-        if r[0] == "?ambiguous":
-            ambiguous[r[1]] += 1; continue
-        edges[(node, r)].append((line, via))
-        if r not in parent:
-            parent[r] = node; queue.append(r)
+DATA = "<file-scope data>"
+LIBC = frozenset("""abs acos asin atan atan2 atof atoi atol ceil cos exp fabs fclose feof fflush fgetc fgets floor fmod
+fopen fprintf fputc fputs fread free fscanf fseek ftell fwrite getc isalpha isdigit isspace log log10 malloc memcmp
+memcpy memmove memset pow printf qsort rand realloc sin sprintf sqrt srand sscanf strcat strchr strcmp strcpy strcspn
+strlen strncat strncmp strncpy strrchr strstr strtok tan tolower toupper va_arg va_end va_start vsprintf snprintf
+vsnprintf time exit strdup stricmp strnicmp _stricmp _strnicmp sqrtf fabsf floorf ceilf powf atan2f sinf cosf""".split())
 
-reach = {k for k in parent if k[1] != "<file-scope data>"}
-# call-shaped names in reachable campaign functions that resolve to no function and no macro
-LIBC = set("""abs acos asin atan atan2 atof atoi atol ceil cos exp fabs fclose feof fflush fgetc fgets floor fmod fopen fprintf fputc fputs fread free fscanf fseek ftell fwrite getc isalpha isdigit isspace log log10 malloc memcmp memcpy memmove memset pow printf qsort rand realloc sin sprintf sqrt srand sscanf strcat strchr strcmp strcpy strcspn strlen strncat strncmp strncpy strrchr strstr strtok tan tolower toupper va_arg va_end va_start vsprintf snprintf vsnprintf time exit strdup stricmp strnicmp _stricmp _strnicmp sqrtf fabsf floorf ceilf powf atan2f sinf cosf""".split())
-unresolved = collections.Counter()
-examined = 0
-for f, n in reach:
-    if cls[f] != "C": continue
-    b, e, _, _ = funcs[(f, n)]
-    for m in re.finditer(r"\b([A-Za-z_]\w*)\s*\(", text[f][b:e]):
-        x = m.group(1)
-        examined += 1
-        if x in KEYWORDS or x in macros or x in LIBC or resolve(f, x): continue
-        if re.search(r"\(\s*\*?\s*" + x + r"\s*\)", text[f][b:e]): continue
-        unresolved[x] += 1
-def cnt(keys): return collections.Counter(cls[f] for f, _ in keys)
-cross = collections.defaultdict(list)
-for (a, b), sites in edges.items():
-    if a[1] == "<file-scope data>" or b[1] == "<file-scope data>": pass
-    ka, kb = cls[a[0]], cls[b[0]]
-    if ka != kb and "C" in (ka, kb):
-        cross[(ka, kb)].append((a, b, sites[0][0], sites[0][1]))
-summary = {
-    "units": dict(sorted(collections.Counter(cls.values()).items())),
-    "functions": dict(sorted(cnt(funcs).items())),
-    "reachable_functions": dict(sorted(cnt(reach).items())),
-    "reachable_files": dict(sorted(collections.Counter(cls[f] for f in {f for f, _ in reach}).items())),
-    "unresolved_ambiguous_names": len(ambiguous),
-    "call_sites_examined_in_campaign": examined,
-    "unresolved_call_names_in_campaign": sorted(unresolved),
-    "campaign_cross_edges": {f"{a}->{b}": [len({(x[0], x[1]) for x in v}), len({x[1] for x in v})] for (a, b), v in sorted(cross.items())},
-}
-print(json.dumps(summary, indent=1))
-if "--detail" in sys.argv:
-    def path(n):
-        p = []
-        while n is not None:
-            p.append(f"{n[0]}::{n[1]}"); n = parent.get(n)
-        return p[::-1]
-    out = {
-        "cross": {f"{a}->{b}": sorted({(x[0][0] + "::" + x[0][1], x[1][0] + "::" + x[1][1], x[2], x[3]) for x in v}) for (a, b), v in cross.items()},
-        "ambiguous": dict(ambiguous),
-        "unresolved_names": sorted(unresolved),
-        "reachable": sorted(f"{f}::{n}" for f, n in reach),
-        "unreachable": sorted(f"{f}::{n}" for f, n in funcs if (f, n) not in reach),
-        "paths": {f"{f}::{n}": path((f, n)) for f, n in reach if cls[f] in "XH" or n in ("read_map_info_data", "initialize_known_coordinates")},
-        "funcs": {f"{f}::{n}": v[2] for (f, n), v in funcs.items()},
-    }
-    Path(sys.argv[sys.argv.index("--detail") + 1]).write_text(json.dumps(out, indent=1))
+
+class Resolver:
+    def __init__(self, funcs, by_name, macros):
+        self.funcs, self.by_name, self.macros = funcs, by_name, macros
+
+    def resolve(self, f, name):
+        """the definition a name in file f binds to: [] none, [("?ambiguous", name)] several"""
+        if (f, name) in self.funcs:
+            return [(f, name)]
+        hits = list({x[0]: x for x in self.by_name.get(name, ()) if not x[1]})  # #ifdef'd twins in one file count once
+        if len(hits) == 1:
+            return [(hits[0], name)]
+        return [("?ambiguous", name)] if hits else []
+
+    def references(self, f, t, lo, hi):
+        """(definition, line, identifier used) for every identifier in t[lo:hi]"""
+        out = []
+        for m in IDENT.finditer(t, lo, hi):
+            n = m.group(0)
+            if n in KEYWORDS:
+                continue
+            line = line_of(t, m.start())
+            names = self.macros.expand(n) if n in self.macros and (f, n) not in self.funcs else {n}
+            got = [(r, line, n) for x in names for r in self.resolve(f, x)]
+            if n in self.macros and not any(r[0] != "?ambiguous" for r, _, _ in got):
+                got += [(r, line, n) for r in self.resolve(f, n)]  # a macro hiding a same-named function
+            out += got
+        return out
+
+
+def walk(text, funcs, filescope, resolver):
+    """breadth-first from ENTRIES; returns reached nodes, edges and ambiguous-name counts"""
+    declared_in = collections.defaultdict(set)
+    for f, fs in filescope.items():
+        for m in FILE_SCOPE_NAME.finditer(fs):
+            declared_in[m.group(1)].add(f)
+    start = [(SYS + "csrc/eech_engine.c", e) for e in ENTRIES]
+    reached, queue = set(start), collections.deque(start)
+    edges, ambiguous = collections.defaultdict(list), collections.Counter()
+    while queue:
+        node = queue.popleft()
+        f, n = node
+        if n == DATA:
+            refs = [(r, 0, via) for r, _, via in resolver.references(f, filescope[f], 0, len(filescope[f]))]
+        else:
+            lo, hi, _ = funcs[node]
+            refs = resolver.references(f, text[f], lo, hi)
+            for m in IDENT.finditer(text[f], lo, hi):  # global data used: walk the declaring file's file scope
+                for g in declared_in.get(m.group(0), ()):
+                    if (g, DATA) not in reached:
+                        reached.add((g, DATA))
+                        queue.append((g, DATA))
+        for r, line, via in refs:
+            if r[0] == "?ambiguous":
+                ambiguous[r[1]] += 1
+                continue
+            edges[(node, r)].append((line, via))
+            if r not in reached:
+                reached.add(r)
+                queue.append(r)
+    return {k for k in reached if k[1] != DATA}, edges, ambiguous
+
+
+def unresolved_campaign_calls(text, funcs, reach, resolver, cls):
+    """call-shaped names in reachable campaign functions that resolve to no function, macro or C library name"""
+    examined, unresolved = 0, collections.Counter()
+    for f, n in reach:
+        if cls[f] != "C":
+            continue
+        lo, hi, _ = funcs[(f, n)]
+        body = text[f][lo:hi]
+        for m in re.finditer(r"\b([A-Za-z_]\w*)\s*\(", body):
+            x = m.group(1)
+            examined += 1
+            if x in KEYWORDS or x in resolver.macros or x in LIBC or resolver.resolve(f, x):
+                continue
+            if re.search(r"\(\s*\*?\s*" + x + r"\s*\)", body):  # a function-pointer parameter called by name
+                continue
+            unresolved[x] += 1
+    return examined, unresolved
+
+
+def main(root, detail):
+    units = compiled_units(root)
+    text = {f: strip_code(read_source(root, f)) for f in units}
+    cls = {f: path_class(f) for f in units}
+    funcs, by_name, filescope = index_functions(text)
+    resolver = Resolver(funcs, by_name, Macros(root, is_defined=lambda name: name in by_name))
+    reach, edges, ambiguous = walk(text, funcs, filescope, resolver)
+    examined, unresolved = unresolved_campaign_calls(text, funcs, reach, resolver, cls)
+    cross = collections.defaultdict(list)
+    for (a, b), sites in edges.items():
+        ka, kb = cls[a[0]], cls[b[0]]
+        if ka != kb and "C" in (ka, kb):
+            cross[(ka, kb)].append((a, b, sites[0][0], sites[0][1]))
+
+    def by_class(keys):
+        return dict(sorted(collections.Counter(cls[f] for f, _ in keys).items()))
+
+    print(json.dumps({
+        "units": dict(sorted(collections.Counter(cls.values()).items())),
+        "functions": by_class(funcs),
+        "reachable_functions": by_class(reach),
+        "reachable_files": dict(sorted(collections.Counter(cls[f] for f in {f for f, _ in reach}).items())),
+        "unresolved_ambiguous_names": len(ambiguous),
+        "call_sites_examined_in_campaign": examined,
+        "unresolved_call_names_in_campaign": sorted(unresolved),
+        "campaign_cross_edges": {f"{a}->{b}": [len({(x[0], x[1]) for x in v}), len({x[1] for x in v})]
+                                 for (a, b), v in sorted(cross.items())},
+    }, indent=1))
+    if detail:
+        Path(detail).write_text(json.dumps({
+            "cross": {f"{a}->{b}": sorted({(x[0][0] + "::" + x[0][1], x[1][0] + "::" + x[1][1], x[2], x[3]) for x in v})
+                      for (a, b), v in cross.items()},
+            "ambiguous": dict(ambiguous),
+            "unresolved_names": sorted(unresolved),
+        }, indent=1))
+
+
+if __name__ == "__main__":
+    main(Path(sys.argv[1]), sys.argv[sys.argv.index("--detail") + 1] if "--detail" in sys.argv else None)
 ```
 
 </details>
@@ -842,132 +1040,171 @@ if "--detail" in sys.argv:
 
 ```python
 """Dispatch tables of the headless eech_dc: message handlers, entity function
-tables and attribute accessors, and which classes register them.
+tables, attribute accessors and campaign writes to world-implemented
+attributes, with the classes that register or receive them.
 
 python -I dispatch.py <repo-root> [--detail out.json]
-Reuses reach.py's classification and comment stripping (imported by path).
 """
-import collections, json, re, sys, importlib.util
+import collections
+import json
+import re
+import sys
 from pathlib import Path
 
-root = Path(sys.argv[1])
-SYS = "eech-campaign/crates/eech-engine-sys/"
-spec_src = (Path(__file__).parent / "reach.py").read_text()
-klass_src = spec_src[spec_src.index("S = \"aphavoc/source/\""):spec_src.index("COMMENT = ")]
-ns = {"SYS": SYS}
-exec(klass_src, ns)
-klass = ns["klass"]
-COMMENT = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # eechmap.py sits beside this script
+from eechmap import ACCESS, compiled_units, index_functions, line_of, path_class, read_source, strip_code, strip_comments
 
-sources = [l.strip() for l in (root / SYS / "sources.txt").read_text().splitlines() if l.strip()]
-units = sources + sorted(p.relative_to(root).as_posix() for p in (root / SYS / "csrc").glob("*.c"))
-text = {f: COMMENT.sub(lambda m: re.sub(r"[^\n]", " ", m.group(0)), (root / f).read_text(encoding="latin-1")) for f in units}
-cls = {f: klass(f) for f in units}
-def ln(t, i): return t.count("\n", 0, i) + 1
-
-REG = re.compile(r"\b(fn_\w+|message_responses)\s*\[\s*(ENTITY_TYPE_\w+|[a-z_]\w*)\s*\](?:\s*\[\s*(\w+)\s*\])?\s*=\s*(\w+)\s*;")
-regs = []          # table, entity type, key, handler, file, line
-for f, t in text.items():
-    for m in REG.finditer(t):
-        et = m.group(2) if m.group(2).startswith("ENTITY_TYPE_") else "var:" + cls[f]  # overload_*(type) in a shared file
-        regs.append((m.group(1), et, m.group(3), m.group(4), f, ln(t, m.start())))
-
-# entity type -> class: the class of the files that register its message handlers and functions
-type_cls = collections.defaultdict(collections.Counter)
-for table, et, key, h, f, l in regs:
-    type_cls[et][cls[f]] += 1
-etype = {et: (et[4:] if et.startswith("var:") else c.most_common(1)[0][0]) for et, c in type_cls.items()}
-
-# message handlers per message
-handlers = collections.defaultdict(set)
-for table, et, key, h, f, l in regs:
-    if table == "message_responses":
-        handlers[key].add(et)
-
-# static senders per message and class, dynamic sends
+REGISTRATION = re.compile(r"\b(fn_\w+|message_responses)\s*\[\s*(ENTITY_TYPE_\w+|[a-z_]\w*)\s*\]"
+                          r"(?:\s*\[\s*(\w+)\s*\])?\s*=\s*(\w+)\s*;")
+TABLE_ASSIGNMENT = re.compile(r"\b([A-Za-z_]\w*)\s*((?:\[[^\]]+\]\s*)+)(?:\.\s*\w+\s*)?=\s*&?\s*([A-Za-z_]\w*)\s*;")
 SEND = re.compile(r"\bnotify_(?:local|client_server)_entity\s*\(\s*((?:\([^()]*\)\s*)?[^,()]+(?:\([^()]*\))?)\s*,")
-static = collections.defaultdict(lambda: collections.defaultdict(list))
-dynamic = []
-for f, t in text.items():
-    for m in SEND.finditer(t):
-        arg = m.group(1).strip()
-        site = f"{f}:{ln(t, m.start())}"
-        arg = re.sub(r"^\(\s*entity_messages\s*\)\s*", "", arg)
-        if re.fullmatch(r"ENTITY_MESSAGE_\w+", arg):
-            static[arg][cls[f]].append(site)
-        elif not t[max(0, m.start() - 40):m.start()].rstrip().endswith(("define", "int", "void")):
-            dynamic.append((site, cls[f], arg))
+WRITE = re.compile(r"\bset_(?:local|client_server)_entity_\w+?\s*\(\s*([^,]+?)\s*,\s*([A-Z0-9_]+_TYPE_[A-Z0-9_]+)")
+ATTRIBUTE = re.compile(r"(?<![A-Za-z0-9_])((?:INT|FLOAT|VEC3D|STRING|PTR|LIST|CHAR|MATRIX3X3)_TYPE_[A-Z0-9_]+)"
+                       r"(?![A-Za-z0-9_])")
+KNOWN_TABLES = ("fn_", "message_responses")
 
-crossing = {}
-for msg, by in static.items():
-    hcls = sorted({etype.get(et, "?") for et in handlers.get(msg, ())})
-    for sc, sites in by.items():
-        if (sc == "C" and set(hcls) - {"C"}) or (sc != "C" and "C" in hcls):
-            crossing.setdefault(msg, {})[sc] = {"sites": len(sites), "first": sites[0], "handler_classes": hcls}
 
-# attribute accessors: which entity classes implement get/set per attribute
-attr_impl = collections.defaultdict(lambda: collections.defaultdict(set))
-for table, et, key, h, f, l in regs:
-    m = re.fullmatch(r"fn_(get|set)_(?:local|client_server)_entity_(\w+?)(?:_value)?", table)
-    if m and key and re.fullmatch(r"[A-Z0-9_]+_TYPE_[A-Z0-9_]+", key):
-        attr_impl[key][m.group(1)].add(etype.get(et, "?"))
+def registrations(text, cls):
+    """(table, entity type, key, handler, file, line); a variable type index is "var:<class of the file>" """
+    regs = []
+    for f, t in text.items():
+        for m in REGISTRATION.finditer(t):
+            et = m.group(2) if m.group(2).startswith("ENTITY_TYPE_") else "var:" + cls[f]  # overload_*(type)
+            regs.append((m.group(1), et, m.group(3), m.group(4), f, line_of(t, m.start())))
+    return regs
 
-ACCESS = re.compile(r"\b(get|set)_(local|client_server)_entity_(\w+?)\s*\(\s*[^,()]+(?:\([^()]*\))?\s*,\s*([A-Z0-9_]+_TYPE_[A-Z0-9_]+)")
-used = collections.defaultdict(list)
-TOKEN = re.compile(r"[A-Z0-9_]+_TYPE_[A-Z0-9_]+")
-ANY = re.compile(r"(?<![A-Za-z0-9_])((?:INT|FLOAT|VEC3D|STRING|PTR|LIST|CHAR|MATRIX3X3)_TYPE_[A-Z0-9_]+)(?![A-Za-z0-9_])")
-accessor = set()
-contexts = collections.defaultdict(collections.Counter)
-for f, t in text.items():
-    if cls[f] == "C":
+
+def entity_type_classes(regs, cls):
+    """entity type -> the class of the files that register its handlers"""
+    votes = collections.defaultdict(collections.Counter)
+    for _, et, _, _, f, _ in regs:
+        votes[et][cls[f]] += 1
+    return {et: (et[4:] if et.startswith("var:") else c.most_common(1)[0][0]) for et, c in votes.items()}
+
+
+def other_function_tables(root, units):
+    """array assignments whose right-hand side names a defined function, in tables REGISTRATION does not match"""
+    code = {f: strip_code(read_source(root, f)) for f in units}
+    _, by_name, _ = index_functions(code)
+    found = collections.defaultdict(list)
+    for f, t in code.items():
+        for m in TABLE_ASSIGNMENT.finditer(t):
+            if m.group(3) in by_name and not m.group(1).startswith(KNOWN_TABLES):
+                found[m.group(1)].append(f"{f}:{line_of(t, m.start())}")
+    return {k: {"assignments": len(v), "first": v[0], "class": path_class(v[0].rsplit(":", 1)[0])}
+            for k, v in sorted(found.items())}
+
+
+def messages(text, cls, handlers, etype):
+    """static message types crossing the campaign boundary, and non-literal sends"""
+    static = collections.defaultdict(lambda: collections.defaultdict(list))
+    dynamic = []
+    for f, t in text.items():
+        for m in SEND.finditer(t):
+            arg = re.sub(r"^\(\s*entity_messages\s*\)\s*", "", m.group(1).strip())
+            site = f"{f}:{line_of(t, m.start())}"
+            if re.fullmatch(r"ENTITY_MESSAGE_\w+", arg):
+                static[arg][cls[f]].append(site)
+            elif not t[max(0, m.start() - 40):m.start()].rstrip().endswith(("define", "int", "void")):
+                dynamic.append((site, cls[f], arg))
+    crossing = {}
+    for msg, by in static.items():
+        hcls = sorted({etype.get(et, "?") for et in handlers.get(msg, ())})
+        for sc, sites in by.items():
+            if (sc == "C" and set(hcls) - {"C"}) or (sc != "C" and "C" in hcls):
+                crossing.setdefault(msg, {})[sc] = {"sites": len(sites), "first": sites[0], "handler_classes": hcls}
+    return static, crossing, dynamic
+
+
+def usage_context(token, line):
+    if re.search(r"\bcase\s+" + token, line):
+        return "case"
+    if re.search(r"\bfn_\w+\s*\[", line):
+        return "registration"
+    if re.search(r"\b(un)?pack_\w+\s*\(", line):
+        return "pack"
+    if "ENTITY_ATTR_" in line:
+        return "create"
+    if re.search(r"\b(get|set)_\w*entity\w*\s*\(|_entity_\w+\s*\(", line):
+        return "access"
+    return "other"
+
+
+def implementing_classes(regs, etype):
+    """attribute token -> classes of the entity types that register a get or set accessor for it"""
+    impl = collections.defaultdict(set)
+    for table, et, key, _, _, _ in regs:
+        if re.fullmatch(r"fn_(get|set)_(?:local|client_server)_entity_\w+", table) and key \
+                and re.fullmatch(r"[A-Z0-9_]+_TYPE_[A-Z0-9_]+", key):
+            impl[key].add(etype.get(et, "?"))
+    return impl
+
+
+def attribute_rows(text, cls, impl):
+    """every attribute token in campaign code: sites, implementing classes and usage contexts"""
+    sites, contexts, in_accessor = collections.defaultdict(list), collections.defaultdict(collections.Counter), set()
+    for f, t in text.items():
+        if cls[f] != "C":
+            continue
+        lines = t.split("\n")
         for m in ACCESS.finditer(t):
-            used[m.group(4)].append(f"{f}:{ln(t, m.start())}")
-            accessor.add(m.group(4))
-        lines = t.split(chr(10))
-        for m in ANY.finditer(t):  # every attribute token anywhere in campaign code, not only in matched accessor calls
-            i = ln(t, m.start())
-            used.setdefault(m.group(1), []).append(f"{f}:{i}")
-            line = lines[i - 1]
-            ctx = ("case" if re.search(r"\bcase\s+" + m.group(1), line) else
-                   "registration" if re.search(r"\bfn_\w+\s*\[", line) else
-                   "pack" if re.search(r"\b(un)?pack_\w+\s*\(", line) else
-                   "create" if "ENTITY_ATTR_" in line else
-                   "access" if re.search(r"\b(get|set)_\w*entity\w*\s*\(|_entity_\w+\s*\(", line) else "other")
-            contexts[m.group(1)][ctx] += 1
-attr_rows = {}
-for a, sites in used.items():
-    impl = attr_impl.get(a, {})
-    classes = sorted(set().union(*impl.values())) if impl else []
-    attr_rows[a] = {"sites": len(sites), "first": sites[0], "implemented_by": classes, "in_accessor_call": a in accessor, "contexts": dict(contexts.get(a, {}))}
-bucket = collections.Counter("world-implemented" if "W" in r["implemented_by"] else
-                             ("campaign-only" if r["implemented_by"] and set(r["implemented_by"]) <= {"C"} else
-                              ("environment/framework" if r["implemented_by"] else "no registration found"))
-                             for r in attr_rows.values())
+            sites[m.group(4)].append(f"{f}:{line_of(t, m.start())}")
+            in_accessor.add(m.group(4))
+        for m in ATTRIBUTE.finditer(t):
+            i = line_of(t, m.start())
+            sites[m.group(1)].append(f"{f}:{i}")
+            contexts[m.group(1)][usage_context(m.group(1), lines[i - 1])] += 1
+    return {a: {"sites": len(s), "first": s[0], "implemented_by": sorted(impl.get(a, ())),
+                "in_accessor_call": a in in_accessor, "contexts": dict(contexts.get(a, {}))} for a, s in sites.items()}
 
-# entity function tables (non-attribute, non-message) that campaign entity types and world types both register
-tables = collections.defaultdict(lambda: collections.defaultdict(set))
-for table, et, key, h, f, l in regs:
-    if table != "message_responses" and not re.fullmatch(r"fn_(get|set)_.*", table):
-        tables[table][etype.get(et, "?")].add(et)
 
-summary = {
-    "registrations": len(regs),
-    "entity_types": dict(collections.Counter(etype.values())),
-    "messages_with_handlers": len(handlers),
-    "static_message_types_sent": len(static),
-    "crossing_static_messages": len(crossing),
-    "dynamic_send_sites": len(dynamic),
-    "attribute_tokens_in_campaign_accessors": len(attr_rows),
-    "attribute_buckets": dict(bucket),
-    "function_tables": len(tables),
-}
-print(json.dumps(summary, indent=1))
-if "--detail" in sys.argv:
-    Path(sys.argv[sys.argv.index("--detail") + 1]).write_text(json.dumps({
-        "etype": etype, "crossing": crossing, "dynamic": dynamic, "attrs": attr_rows,
-        "tables": {k: {c: sorted(v) for c, v in d.items()} for k, d in tables.items()},
-        "handlers": {k: sorted(v) for k, v in handlers.items()},
+def world_writes(text, cls, impl):
+    """campaign set_* calls on attribute tokens that a world entity type implements, with the receiver expression"""
+    return [{"site": f"{f}:{line_of(t, m.start())}", "token": m.group(2), "receiver": m.group(1)}
+            for f, t in text.items() if cls[f] == "C"
+            for m in WRITE.finditer(t) if "W" in impl.get(m.group(2), ())]
+
+
+def main(root, detail):
+    units = compiled_units(root)
+    text = {f: strip_comments(read_source(root, f)) for f in units}
+    cls = {f: path_class(f) for f in units}
+    regs = registrations(text, cls)
+    etype = entity_type_classes(regs, cls)
+    handlers = collections.defaultdict(set)
+    for table, et, key, _, _, _ in regs:
+        if table == "message_responses":
+            handlers[key].add(et)
+    static, crossing, dynamic = messages(text, cls, handlers, etype)
+    impl = implementing_classes(regs, etype)
+    attrs, writes = attribute_rows(text, cls, impl), world_writes(text, cls, impl)
+    tables = collections.defaultdict(lambda: collections.defaultdict(set))
+    for table, et, _, _, _, _ in regs:
+        if table != "message_responses" and not re.fullmatch(r"fn_(get|set)_.*", table):
+            tables[table][etype.get(et, "?")].add(et)
+    others = other_function_tables(root, units)
+    print(json.dumps({
+        "registrations": len(regs),
+        "entity_types": dict(collections.Counter(etype.values())),
+        "messages_with_handlers": len(handlers),
+        "static_message_types_sent": len(static),
+        "crossing_static_messages": len(crossing),
+        "dynamic_send_sites": len(dynamic),
+        "attribute_tokens_in_campaign_code": len(attrs),
+        "campaign_writes_to_world_implemented_attributes": len(writes),
+        "function_tables": len(tables),
+        "other_function_table_forms": len(others),
     }, indent=1))
+    if detail:
+        Path(detail).write_text(json.dumps({
+            "etype": etype, "crossing": crossing, "dynamic": dynamic, "attrs": attrs, "writes": writes,
+            "tables": {k: {c: sorted(v) for c, v in d.items()} for k, d in tables.items()},
+            "handlers": {k: sorted(v) for k, v in handlers.items()}, "other_tables": others,
+        }, indent=1))
+
+
+if __name__ == "__main__":
+    main(Path(sys.argv[1]), sys.argv[sys.argv.index("--detail") + 1] if "--detail" in sys.argv else None)
 ```
 
 </details>
@@ -976,59 +1213,87 @@ if "--detail" in sys.argv:
 <summary><code>globals.py</code></summary>
 
 ```python
-"""Shared global data the campaign reads or writes: every `extern` variable
-declared in a header, defined (file scope) in a non-campaign compiled file,
-and referenced in a campaign function body.
+"""Shared global data the campaign reads or writes, directly or through a macro.
 
 python -I globals.py <repo-root> [--detail out.json]
+
+A global is a name declared `extern` in a header under the include trees
+(every declarator of a comma list; function prototypes and function-pointer
+declarations excluded, the latter being the dispatch tables of dispatch.py),
+defined at file scope in a compiled non-campaign file, and referenced in a
+campaign file either by name or through the recursive expansion of a macro
+used there.
 """
-import collections, json, re, sys
+import collections
+import json
+import re
+import sys
 from pathlib import Path
 
-root = Path(sys.argv[1])
-src = (Path(__file__).parent / "reach.py").read_text()
-ns = {"SYS": "eech-campaign/crates/eech-engine-sys/"}
-exec(src[src.index('S = "aphavoc/source/"'):src.index("COMMENT = ")], ns)
-klass, SYS = ns["klass"], ns["SYS"]
-COMMENT = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
-def clean(t): return COMMENT.sub(lambda m: re.sub(r"[^\n]", " ", m.group(0)), t)
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # eechmap.py sits beside this script
+from eechmap import FILE_SCOPE_NAME, IDENT, INCLUDE_TREES, Macros, compiled_units, path_class, read_source, strip_comments
 
-sources = [l.strip() for l in (root / SYS / "sources.txt").read_text().splitlines() if l.strip()]
-units = sources + sorted(p.relative_to(root).as_posix() for p in (root / SYS / "csrc").glob("*.c"))
-text = {f: clean((root / f).read_text(encoding="latin-1")) for f in units}
+EXTERN = re.compile(r"^\s*extern\s+(?!\"C\")([^;]*);", re.M)
 
-EXTERN = re.compile(r"^\s*extern\s+(?!\"C\")[^;(]*?\b([A-Za-z_]\w*)\s*(?:\[[^\]]*\]\s*)*;", re.M)
-externs = set()
-for top in ("aphavoc/source", "modules", SYS + "csrc"):
-    for p in (root / top).rglob("*.h"):
-        externs |= set(EXTERN.findall(clean(p.read_text(encoding="latin-1"))))
 
-# definition site: a file-scope line starting with a type and naming the variable, not extern, not a prototype
-defined = collections.defaultdict(set)
-for f, t in text.items():
-    depth = 0
-    for i, line in enumerate(t.split("\n"), 1):
-        if depth == 0 and not line.lstrip().startswith(("extern", "#", "typedef")):
-            for n in re.findall(r"\b([A-Za-z_]\w*)\s*(?:\[[^\]]*\]\s*)*(?:=|;)", line):
-                if n in externs:
-                    defined[n].add(f)
-        depth += line.count("{") - line.count("}")
-        depth = max(depth, 0)
+def extern_names(root):
+    names = set()
+    for tree in INCLUDE_TREES:
+        for p in (Path(root) / tree).rglob("*.h"):
+            for m in EXTERN.finditer(strip_comments(p.read_text(encoding="latin-1"))):
+                decl = m.group(1)
+                if "(" in decl:  # a prototype or a function-pointer table
+                    continue
+                decl = re.sub(r"\[[^\]]*\]|=[^,]*", "", decl)  # array bounds and initialisers
+                for part in decl.split(","):
+                    ids = IDENT.findall(part)
+                    if ids:
+                        names.add(ids[-1])
+    return names
 
-refs = collections.defaultdict(list)
-for f, t in text.items():
-    if klass(f) != "C":
-        continue
-    for i, line in enumerate(t.split("\n"), 1):
-        for n in set(re.findall(r"\b[A-Za-z_]\w*\b", line)):
-            if n in defined and not any(klass(d) == "C" for d in defined[n]):
-                refs[n].append(f"{f}:{i}")
-rows = {n: {"defined_in": sorted(defined[n]), "classes": sorted({klass(d) for d in defined[n]}), "sites": len(s), "first": s[0]}
-        for n, s in sorted(refs.items())}
-print(json.dumps({"externs": len(externs), "non_campaign_globals_used_by_campaign": len(rows),
-                  "by_class": dict(collections.Counter("/".join(r["classes"]) for r in rows.values()))}, indent=1))
-if "--detail" in sys.argv:
-    Path(sys.argv[sys.argv.index("--detail") + 1]).write_text(json.dumps(rows, indent=1))
+
+def definitions(text, externs):
+    """extern name -> files defining it at file scope"""
+    defined = collections.defaultdict(set)
+    for f, t in text.items():
+        depth = 0
+        for line in t.split("\n"):
+            if depth == 0 and not line.lstrip().startswith(("extern", "#", "typedef")):
+                for n in FILE_SCOPE_NAME.findall(line):
+                    if n in externs:
+                        defined[n].add(f)
+            depth = max(depth + line.count("{") - line.count("}"), 0)
+    return defined
+
+
+def main(root, detail):
+    units = compiled_units(root)
+    text = {f: strip_comments(read_source(root, f)) for f in units}
+    externs = extern_names(root)
+    defined = definitions(text, externs)
+    foreign = {n for n, files in defined.items() if not any(path_class(d) == "C" for d in files)}
+    macros = Macros(root)
+    refs = collections.defaultdict(list)  # global -> [(site, identifier written in the campaign file)]
+    for f, t in text.items():
+        if path_class(f) != "C":
+            continue
+        for i, line in enumerate(t.split("\n"), 1):
+            for n in set(IDENT.findall(line)):
+                for g in ({n} | (macros.expand(n) if n in macros else set())) & foreign:
+                    refs[g].append((f"{f}:{i}", n))
+    rows = {g: {"defined_in": sorted(defined[g]), "classes": sorted({path_class(d) for d in defined[g]}),
+                "sites": len(s), "direct_sites": sum(1 for _, via in s if via == g), "first": s[0][0],
+                "via": sorted({via for _, via in s if via != g})}
+            for g, s in sorted(refs.items())}
+    print(json.dumps({"externs": len(externs), "non_campaign_globals_used_by_campaign": len(rows),
+                      "only_through_macros": sum(1 for r in rows.values() if r["direct_sites"] == 0),
+                      "by_class": dict(collections.Counter("/".join(r["classes"]) for r in rows.values()))}, indent=1))
+    if detail:
+        Path(detail).write_text(json.dumps(rows, indent=1))
+
+
+if __name__ == "__main__":
+    main(Path(sys.argv[1]), sys.argv[sys.argv.index("--detail") + 1] if "--detail" in sys.argv else None)
 ```
 
 </details>
@@ -1038,244 +1303,365 @@ if "--detail" in sys.argv:
 
 ```python
 """Coverage ledger for the M5 DCS call map: every campaign crossing found by
-reach.py, dispatch.py and globals.py gets a category and a disposition
-(mapped to a row / excluded with a reason / outstanding).
+reach.py, dispatch.py and globals.py gets one disposition: mapped to an
+interaction row, excluded with a reason, or outstanding (no rule).
 
 python -I ledger.py <reach.json> <dispatch.json> <globals.json> [--items out.json]
+
+Each rule is "exact" (it names the functions, tokens or sites it decides) or
+"pattern" (a file or name pattern that decides several items). The totals
+report how many items each pattern rule decides, so a reviewer can audit them.
 """
-import collections, json, re, sys
+import collections
+import json
+import re
+import sys
 
-reach, disp, glob = (json.load(open(p)) for p in sys.argv[1:4])
-M, X, O = "mapped", "excluded", "outstanding"
+MAPPED, EXCLUDED, OUTSTANDING = "mapped", "excluded", "outstanding"
+NO_RULE = ("unclassified", OUTSTANDING, "no rule", "none")
 
-# ---- 1. direct calls and references across the campaign boundary --------------------------
-# unit: each distinct non-campaign function the campaign calls or references (C->k),
-# and each distinct non-campaign function that calls or references the campaign (k->C)
-RULES = [  # (regex on "path::function", category, disposition, row or reason)
+
+def rule(kind, rx, category, disposition, ref):
+    return {"kind": kind, "rx": re.compile(rx), "category": category, "disposition": disposition, "ref": ref}
+
+
+def decide(rules, key):
+    """(category, disposition, ref, rule id) of the first rule matching key"""
+    for i, r in enumerate(rules):
+        if r["rx"].search(key):
+            return r["category"], r["disposition"], r["ref"], f"{r['kind']}#{i}"
+    return NO_RULE
+
+
+SERVER_ONLY = ("multiplayer replication and client join: headless is COMMS_MODEL_SERVER (eech_engine.c:144) with "
+               "DirectPlay replaced (eech-campaign/crates/eech-engine-sys/build/main.rs:38-39); DCS replicates units")
+NO_DRAW = "presentation: the headless frame draws nothing and plays no sound (eech_engine.c:253-286)"
+
+# ---- 1. calls and references across the campaign boundary, keyed "path::function" -----------------------
+CALL_RULES = [
     # headless host layer
-    (r"csrc/eech_engine\.c::", "host", M, "I39, I40 (boot, frame, diagnostics)"),
-    (r"csrc/eech_observe\.c::", "host", M, "I4 (host observation surface)"),
-    (r"csrc/eech_(headless_\w+|win32)\.c::", "host", X, "platform services (memory, strings, fatal unwinding); no world"),
-    # player and multiplayer (before the generic framework and presentation rules)
-    (r"misc/msg_in\.c::|events/ev_fns\.c::|ui_menu/.*/(ca_selct|fflight|map)\.c::|common/co_wp\.c::", "player", M, "I44 (player commands and tasking)"),
-    (r"misc/msg_out\.c::", "player", M, "I41 (messages to players)"),
-    (r"en_comms/en_comms\.c::(?!transmit|enable|disable)", "player", M, "I44 (client requests); replica updates excluded: server-authoritative"),
-    (r"en_comms/en_comms\.c::|comms/(comms|comm_man)\.c::", "player", X, "multiplayer replication and client join: headless is COMMS_MODEL_SERVER (eech_engine.c:144) with DirectPlay replaced (build/main.rs:38-39); DCS replicates units"),
-    (r"special/pilot/|gunships/dynamics/|common/co_undercarriage\.c::|helicop\.c::(get_local_entity_suitable_for_player|notify_gunship)", "player", M, "I45 (player aircraft, landing, takeoff, results)"),
-    (r"gunships/(avionics|cockpits|views)/|common/co_force\.c::", "player", M, "I41 (player displays of campaign state)"),
-    # lifecycle, persistence
-    (r"aphavoc/source/update\.c::", "framework", M, "I18, I40 (campaign callbacks run by the frame's update list)"),
-    (r"gameflow/|aphavoc/source/(flight|init|deinit|game)\.c::|ui_menu/.*/mission\.c::", "framework", M, "I39, I40 (lifecycle)"),
-    (r"campaign/campaign\.c::campaign_completed", "presentation", M, "I47 (campaign end)"),
-    (r"::(pack|unpack)_|en_sessn\.c::|session/ss_pack\.c::", "persistence", M, "I38 (save, restore)"),
-    # framework, not a world interaction
-    (r"en_main/en_world\.c::", "framework", M, "I25 (map bounds)"),
-    (r"en_anim/en_anim\.c::", "framework", M, "I10 (doors)"),
-    (r"en_(funcs|main|types|msgs|misc|attrs)/", "framework", X, "entity store used for campaign records; crossings through it are the dispatch rows below"),
-    (r"en_debug/|system/assert\.c::|events/ev_debug\.c::|aphavoc/source/test\.c::|hc_move\.c::debug_visuals|fw_draw\.c::", "framework", X, "debug and test code; no world effect"),
-    (r"modules/maths/(?!random)|system/fpu\.c::|misc/miscell\.c::", "framework", X, "pure arithmetic"),
-    (r"misc/(file_tag|language)\.c::|system/files\.c::|graphics/psdread\.c::", "framework", X, "campaign data files read natively by the DLL; no DCS API (C stdio)"),
-    (r"system/event\.c::", "player", M, "I44 (key-bound campaign triggers)"),
-    (r"entity/tacview/|aphavoc/source/sharedmem\.c::", "framework", X, "EECH's own recorder and shared-memory export; observers of the campaign"),
-    # presentation files
-    (r"graphics/textuser\.c::read_map_info_data", "presentation", M, "I46 (map info, coordinate origin)"),
-    (r"graphics/psdwrite\.c::|special/camera/|ui_menu/|gunships/guns_sc\.c::", "presentation", X, "presentation and debug output (screens, camera, influence-map images); the headless frame draws nothing (eech_engine.c:253-286)"),
-    # world and environment
-    (r"session/ss_updt\.c::", "environment", M, "I27 (weather update looks up sectors)"),
-    (r"_msgs\.c::response_to_collision$", "world", M, "I14, I15 (collision damage)"),
-    (r"helicop\.c::(helicopter_assume_player_control|helicopter_release_player_control|assign_entity_to_user|set_gunship_entity_to_external_view_entity|transmit_player_recon_data)$", "player", M, "I45 (player aircraft)"),
-    (r"mobile\.c::draw_mobile_entity_debug_info$|damage\.c::display_debug_kill_info$", "framework", X, "debug and test code; no world effect"),
-    (r"mobile\.c::credit_client_server_mobile_kill$", "world", M, "I14 (kill credit)"),
-    (r"mobile\.c::mobile_check_all_members_taken_off$", "world", M, "I13 (takeoff)"),
-    (r"fixwing\.c::update_fixed_wing_crate_dropping$", "world", M, "I29 (crate drop)"),
-    (r"hc_updt\.c::update_fuel_weight$|wn_misc\.c::get_local_entity_weapon_load_weight$", "world", M, "I7 (fuel and load)"),
-    (r"helicop\.c::helicopter_within_keysite_area$", "world", M, "I30, I32 (keysite area)"),
-    (r"_creat\.c::create_(client_server|local)_entity_(anti_aircraft|fixed_wing|helicopter|person|routed_vehicle|ship)", "world", M, "I1 (spawn)"),
-    (r"special/effect/soundeff/speech\.c::|mobile\.c::play_mobile_under_attack_speech", "world", M, "I41 (speech to players)"),
-    (r"mobile/.*_creat\.c::create_local$", "world", M, "I1 (a spawned mobile registers with its force and sector)"),
-    (r"(fixed|effect|bridge|cbuild|city|crater|object|pylon|scenic|segment|site|siteupdt)/\w+_creat\.c::|(cr|xp|pa|sl|sp|wn|br)_pack\.c::", "world", M, "I1, I25 (world objects register in sectors and forces)"),
-    (r"special/effect/(?!soundeff/speech)|session\.c::attach_session_sound", "world", X, "visual and audio effects; DCS renders its own"),
-    (r"(site|siteupdt|cbuild)/|fixed/fixed\.c::", "world", M, "I31 (keysite structures)"),
-    (r"bridge/", "world", M, "I24 (bridges break road links)"),
-    (r"_dstry\.c::", "world", M, "I14 (losses)"),
-    (r"(ac|vh|wn)_tgt\.c::|vh_wpn\.c::|ac_wpn\.c::|weapon/weapon\.c::|wn_tgt\.c::", "world", M, "I8, I36 (attack, detection)"),
-    (r"weapon/(wn_\w+|damage)\.c::|aircraft/aircraft\.c::", "world", M, "I11, I15, I16 (damage, fire)"),
-    (r"mb_tgt\.c::", "world", M, "I9 (line of sight)"),
-    (r"_msgs\.c::overload|mb_funcs\.c::overload", "world", M, "I29, I31 (campaign types reuse world handlers; campaign-only in DCS)"),
-    (r"_(move|updt)\.c::|mobile\.c::|fixwing\.c::|routed\.c::|_vec3d\.c::|_int\.c::|helicop\.c::", "world", M, "I6, I12, I30 (movement reads the guide; arrival; takeoff routes)"),
-    (r"_msgs\.c::", "world", M, "I12, I13, I30, I32 (arrival tests, typed handlers, landing locks, capture)"),
-    (r"modules/3d/terrain/(terrelev|terrdata)\.c::|misc/terr_db\.c::", "environment", M, "I21-I23 (terrain)"),
-    (r"modules/3d/terrain/terrobjs\.c::|modules/3d/3d(objdb|subobj|objvis|objid)\.c::", "environment", M, "I2, I26 (3D objects)"),
-    (r"misc/tod\.c::", "environment", M, "I19 (time of day)"),
-    (r"session/session\.c::(set_session_\w+_weather_mode)|session/ss_updt\.c::", "environment", M, "I27 (weather)"),
-    (r"session/session\.c::check_point_inside_population_area", "environment", M, "I25 (map population area)"),
+    rule("exact", r"csrc/eech_engine\.c::(boot|force_data_dump)$", "host", MAPPED, "I39 (boot, diagnostics)"),
+    rule("exact", r"csrc/eech_observe\.c::fill_group$", "host", MAPPED, "I4 (host observation surface)"),
+    rule("pattern", r"csrc/eech_(headless_\w+|win32)\.c::", "host", EXCLUDED, "platform services (memory, strings, files, fatal unwinding); no world"),
+    # players and multiplayer
+    rule("pattern", r"misc/msg_in\.c::|events/ev_fns\.c::|system/event\.c::", "player", MAPPED, "I44 (player commands, key-bound triggers)"),
+    rule("exact", r"ui_menu/.*/(ca_selct|fflight|map)\.c::|common/co_wp\.c::", "player", MAPPED, "I44 (player task choice, route planning, waypoint skip)"),
+    rule("pattern", r"misc/msg_out\.c::", "player", MAPPED, "I41 (messages to players)"),
+    rule("exact", r"en_comms/en_comms\.c::process_received_entity_comms_messages$", "player", MAPPED, "I44 (client task requests)"),
+    rule("pattern", r"en_comms/en_comms\.c::|comms/(comms|comm_man)\.c::", "player", EXCLUDED, SERVER_ONLY),
+    rule("exact", r"special/pilot/|gunships/dynamics/|common/co_undercarriage\.c::|helicop\.c::(get_local_entity_suitable_for_player|notify_gunship\w*|helicopter_assume_player_control|helicopter_release_player_control|assign_entity_to_user|set_gunship_entity_to_external_view_entity|transmit_player_recon_data)$", "player", MAPPED, "I45 (player aircraft)"),
+    rule("pattern", r"gunships/(avionics|cockpits|views)/|common/co_force\.c::|hc_move\.c::get_waypoint_display_position$", "player", MAPPED, "I41 (player displays of campaign state)"),
+    # lifecycle, time, persistence
+    rule("exact", r"aphavoc/source/update\.c::", "framework", MAPPED, "I18, I40 (campaign callbacks on the frame's update list)"),
+    rule("exact", r"gameflow/gameflow\.c::|aphavoc/source/(flight|init)\.c::|ui_menu/.*/mission\.c::", "framework", MAPPED, "I39 (lifecycle)"),
+    rule("exact", r"campaign/campaign\.c::campaign_completed$", "presentation", MAPPED, "I47 (campaign end)"),
+    rule("pattern", r"::(pack|unpack)_|en_sessn\.c::|session/ss_pack\.c::", "persistence", MAPPED, "I38 (save, restore)"),
+    # framework
+    rule("exact", r"en_main/en_world\.c::", "framework", MAPPED, "I25 (map bounds)"),
+    rule("exact", r"en_anim/en_anim\.c::", "framework", MAPPED, "I10 (doors)"),
+    rule("pattern", r"en_(funcs|main|types|msgs|misc|attrs)/", "framework", EXCLUDED, "entity store used for campaign records; crossings through it are the message, table, attribute and write ledgers"),
+    rule("pattern", r"en_debug/|system/assert\.c::|events/ev_debug\.c::|aphavoc/source/test\.c::|::debug_visuals$|fw_draw\.c::|::draw_mobile_entity_debug_info$|::display_debug_kill_info$", "framework", EXCLUDED, "debug and test code; no world effect"),
+    rule("pattern", r"modules/maths/(?!random)|system/fpu\.c::|misc/miscell\.c::", "framework", EXCLUDED, "pure arithmetic"),
+    rule("pattern", r"misc/(file_tag|language)\.c::|system/files\.c::|graphics/psdread\.c::", "framework", EXCLUDED, "campaign data files read natively by the DLL with C stdio; no DCS API (the files ship with the module, I39)"),
+    rule("exact", r"entity/tacview/|aphavoc/source/sharedmem\.c::", "framework", EXCLUDED, "EECH's own Tacview writer and shared-memory export; observers of the campaign"),
+    # presentation
+    rule("exact", r"graphics/textuser\.c::read_map_info_data$", "presentation", MAPPED, "I46, I52 (map info, origin, season)"),
+    rule("pattern", r"graphics/psdwrite\.c::|special/camera/|ui_menu/|gunships/guns_sc\.c::", "presentation", EXCLUDED, "campaign screens, camera and influence-map images: " + NO_DRAW),
+    # world and environment, by function first
+    rule("exact", r"_msgs\.c::response_to_check_mobile_reached_guide$", "world", MAPPED, "I12 (per-member arrival test)"),
+    rule("exact", r"_msgs\.c::response_to_guide_cover_position_reached$", "world", MAPPED, "I23 (cover)"),
+    rule("exact", r"mb_msgs\.c::response_to_waypoint_(landed|land|taken_off)_reached$", "world", MAPPED, "I13 (typed arrivals)"),
+    rule("exact", r"mb_msgs\.c::response_to_waypoint_troop_\w+_reached$", "world", MAPPED, "I49 (troops)"),
+    rule("exact", r"mb_msgs\.c::response_to_waypoint_attack_action$", "world", MAPPED, "I8 (attack)"),
+    rule("exact", r"mb_msgs\.c::response_to_waypoint_(defend|loop|sub_route_navigation)_reached$", "world", MAPPED, "I12, I50 (navigation arrivals)"),
+    rule("exact", r"mb_msgs\.c::response_to_task_assigned$", "world", MAPPED, "I6 (task assigned to a member)"),
+    rule("exact", r"mb_msgs\.c::(attach_divison_to_keysite|get_destination_keysite)$", "world", MAPPED, "I32 (capture by troops)"),
+    rule("exact", r"_msgs\.c::response_to_collision$", "world", MAPPED, "I15 (collision damage)"),
+    rule("exact", r"mobile\.c::credit_client_server_mobile_kill$", "world", MAPPED, "I14 (kill credit)"),
+    rule("exact", r"mobile\.c::mobile_check_all_members_taken_off$", "world", MAPPED, "I13 (takeoff)"),
+    rule("exact", r"mobile\.c::insert_mobile_into_takeoff_route$", "world", MAPPED, "I30 (takeoff route)"),
+    rule("exact", r"routed\.c::stop_vehicles_on_route$", "world", MAPPED, "I24 (broken road link stops vehicles)"),
+    rule("exact", r"fixwing\.c::update_fixed_wing_crate_dropping$", "world", MAPPED, "I29 (crate drop)"),
+    rule("exact", r"hc_updt\.c::update_fuel_weight$|wn_misc\.c::get_local_entity_weapon_load_weight$", "world", MAPPED, "I7 (fuel and load)"),
+    rule("exact", r"helicop\.c::helicopter_within_keysite_area$", "world", MAPPED, "I30 (keysite area)"),
+    rule("exact", r"helicop\.c::reassign_group_members_to_valid_tasks$|hc_updt\.c::update_server$|aircraft\.c::group_return_to_base", "world", MAPPED, "I6 (task reassignment, return to base)"),
+    rule("exact", r"_vec3d\.c::set_local_vec3d$|(hc|rv)_updt\.c::update_server$", "world", MAPPED, "I25 (moving objects update their sector registration)"),
+    rule("exact", r"_int\.c::get_local_int_value$", "world", MAPPED, "I6 (a world attribute derived from the campaign task)"),
+    rule("exact", r"_creat\.c::create_(client_server|local)_entity_(anti_aircraft|fixed_wing|helicopter|person|routed_vehicle|ship)$", "world", MAPPED, "I1 (spawn)"),
+    rule("pattern", r"special/effect/soundeff/speech\.c::|::play_mobile_under_attack_speech$", "world", MAPPED, "I41 (speech to players)"),
+    rule("pattern", r"mobile/.*_creat\.c::create_local$", "world", MAPPED, "I1 (a spawned mobile registers with its force and sector)"),
+    rule("pattern", r"special/effect/|session\.c::attach_session_sound", "world", EXCLUDED, "visual and audio effects; DCS renders its own"),
+    rule("pattern", r"fixed/\w+/\w+_creat\.c::create_local$", "world", MAPPED, "I2, I25 (a world object registers in its sector)"),
+    rule("pattern", r"(site|siteupdt|cbuild)/|fixed/fixed\.c::", "world", MAPPED, "I31 (keysite structures)"),
+    rule("pattern", r"bridge/", "world", MAPPED, "I24 (bridges break road links)"),
+    rule("pattern", r"_dstry\.c::", "world", MAPPED, "I14 (losses)"),
+    rule("exact", r"(ac|vh)_tgt\.c::\w+_target_scan$|vh_wpn\.c::update_vehicle_missile_defence$", "world", MAPPED, "I36 (target detection triggers engagement)"),
+    rule("exact", r"ac_wpn\.c::|weapon/weapon\.c::|wn_tgt\.c::", "world", MAPPED, "I8 (weapon choice and release)"),
+    rule("exact", r"wn_creat\.c::", "world", MAPPED, "I16 (weapon fired at a target)"),
+    rule("exact", r"aircraft\.c::assess_aircraft_damage_level$", "world", MAPPED, "I11, I15 (damage, return to base)"),
+    rule("exact", r"mb_tgt\.c::", "world", MAPPED, "I9 (line of sight)"),
+    rule("exact", r"_msgs\.c::overload_\w+|mb_funcs\.c::overload_mobile_functions$", "world", MAPPED, "I29, I31 (campaign entity types reuse world handlers; campaign-only in DCS)"),
+    rule("pattern", r"_move\.c::", "world", MAPPED, "I6 (movement reads the guide)"),
+    rule("exact", r"modules/3d/terrain/terrelev\.c::|misc/terr_db\.c::", "environment", MAPPED, "I21, I22 (elevation, surface)"),
+    rule("exact", r"modules/3d/terrain/terrdata\.c::get_terrain_3d_\w+_in_sector$", "environment", MAPPED, "I23 (forest triangles)"),
+    rule("exact", r"modules/3d/terrain/terrobjs\.c::|modules/3d/3dobjdb\.c::(construct|destruct)_3d_object$", "environment", MAPPED, "I2 (population objects)"),
+    rule("exact", r"modules/3d/3d(objdb|subobj|objvis|objid)\.c::", "environment", MAPPED, "I26 (3D object data)"),
+    rule("exact", r"misc/tod\.c::", "environment", MAPPED, "I19 (time of day)"),
+    rule("exact", r"session/session\.c::set_session_\w+_weather_mode$|session/ss_updt\.c::", "environment", MAPPED, "I27 (weather)"),
+    rule("exact", r"session/session\.c::check_point_inside_population_area$", "environment", MAPPED, "I25 (map population area)"),
 ]
 
-def classify(key):
-    for rx, cat, disp_, ref in RULES:
-        if re.search(rx, key):
-            return cat, disp_, ref
-    return "unclassified", O, "no rule"
-
-items = []
-for direction, edges in reach["cross"].items():
-    side = 1 if direction.startswith("C->") else 0
-    for key in sorted({e[side] for e in edges}):
-        cat, d, ref = classify(key)
-        items.append({"ledger": "calls", "direction": direction, "item": key, "category": cat, "disposition": d, "ref": ref})
-
-# ---- 2. message dispatch: static message types that cross the boundary ---------------------
-MSG = {
-    "CHECK_CAMPAIGN_OBJECTIVES": "I17", "CHECK_MOBILE_REACHED_GUIDE": "I12", "COLLISION": "I15",
-    "ENTITY_FIRED_AT": "I16", "ENTITY_TARGETED": "I36", "FORCE_DESTROYED": "I14, I15",
-    "GUIDE_COVER_POSITION_REACHED": "I23", "LANDING_SITE_REQUEST": "I30", "LOCK_LANDING_ROUTE": "I30, I38",
-    "LOCK_LANDING_SITE": "I30, I38", "LOCK_TAKEOFF_ROUTE": "I30", "MOBILE_KILLED": "I14", "REQUEST_ASSISTANCE": "I44",
-    "RESERVE_LANDING_SITE": "I30", "SET_ENTITY_POSITION": "I34", "TASK_ASSIGNED": "I6", "TASK_COMPLETED": "I14, I31",
-    "TASK_TERMINATED": "I6, I8, I45", "UNLOCK_LANDING_ROUTE": "I30", "UNLOCK_LANDING_SITE": "I30",
-    "UNLOCK_TAKEOFF_ROUTE": "I30", "UNRESERVE_LANDING_SITE": "I30", "WAYPOINT_DROP_OFF_REACHED": "I13, I29",
-    "WAYPOINT_PICK_UP_REACHED": "I13, I29", "WAYPOINT_TAKEN_OFF_REACHED": "I13",
+# ---- 2. static message types that cross the boundary --------------------------------------------------
+MESSAGES = {
+    "CHECK_CAMPAIGN_OBJECTIVES": (MAPPED, "I17"), "CHECK_MOBILE_REACHED_GUIDE": (MAPPED, "I12"),
+    "COLLISION": (MAPPED, "I15"), "ENTITY_FIRED_AT": (MAPPED, "I16"), "ENTITY_TARGETED": (MAPPED, "I36"),
+    "FORCE_DESTROYED": (MAPPED, "I14, I15"), "GUIDE_COVER_POSITION_REACHED": (MAPPED, "I23"),
+    "LANDING_SITE_REQUEST": (MAPPED, "I30"), "LOCK_LANDING_ROUTE": (MAPPED, "I30, I38"),
+    "LOCK_LANDING_SITE": (MAPPED, "I30, I38"), "LOCK_TAKEOFF_ROUTE": (MAPPED, "I30"), "MOBILE_KILLED": (MAPPED, "I14"),
+    "REQUEST_ASSISTANCE": (MAPPED, "I44"), "RESERVE_LANDING_SITE": (MAPPED, "I30"), "SET_ENTITY_POSITION": (MAPPED, "I34"),
+    "TASK_ASSIGNED": (MAPPED, "I6"), "TASK_COMPLETED": (MAPPED, "I14, I31"), "TASK_TERMINATED": (MAPPED, "I6, I8, I45"),
+    "UNLOCK_LANDING_ROUTE": (MAPPED, "I30"), "UNLOCK_LANDING_SITE": (MAPPED, "I30"), "UNLOCK_TAKEOFF_ROUTE": (MAPPED, "I30"),
+    "UNRESERVE_LANDING_SITE": (MAPPED, "I30"), "WAYPOINT_DROP_OFF_REACHED": (MAPPED, "I13, I29"),
+    "WAYPOINT_PICK_UP_REACHED": (MAPPED, "I13, I29"), "WAYPOINT_TAKEN_OFF_REACHED": (MAPPED, "I13"),
+    "GROUND_FORCE_ADVANCE": (EXCLUDED, "sent only from debug keys (ev_debug.c)"),
+    "LINK_CHILD": (EXCLUDED, "entity-store list maintenance"), "LINK_PARENT": (EXCLUDED, "entity-store list maintenance"),
+    "UNLINK_CHILD": (EXCLUDED, "entity-store list maintenance"), "UNLINK_PARENT": (EXCLUDED, "entity-store list maintenance"),
 }
-MSG_X = {"GROUND_FORCE_ADVANCE": "sent only from debug keys (ev_debug.c)",
-         "LINK_CHILD": "entity-store list maintenance", "LINK_PARENT": "entity-store list maintenance",
-         "UNLINK_CHILD": "entity-store list maintenance", "UNLINK_PARENT": "entity-store list maintenance"}
-for m, by in sorted(disp["crossing"].items()):
-    name = m[len("ENTITY_MESSAGE_"):]
-    if name in MSG:
-        d, ref = M, MSG[name]
-    elif name in MSG_X:
-        d, ref = X, MSG_X[name]
-    else:
-        d, ref = O, "no rule"
-    items.append({"ledger": "messages", "item": name, "category": "dispatch", "disposition": d, "ref": ref,
-                  "senders": {k: v["first"] for k, v in by.items()}})
 
-# ---- 3. entity function tables -------------------------------------------------------------
-TABLE = {"create": (M, "I1"), "destroy": (M, "I3, I43"), "kill": (M, "I43"), "update": (M, "I40"),
-         "pack": (M, "I38"), "unpack": (M, "I38")}
-for t, by in sorted(disp["tables"].items()):
-    verb = t.split("_")[1] if t.startswith("fn_") else t
-    if "ui_object" in t or verb in ("draw", "play", "tool"):
-        d, ref = X, "presentation: the headless frame draws nothing and plays no sound (eech_engine.c:253-286)"
-    elif verb in TABLE:
-        d, ref = TABLE[verb]
-    else:
-        d, ref = O, "no rule"
-    items.append({"ledger": "tables", "item": t, "category": "dispatch", "disposition": d, "ref": ref, "classes": sorted(by)})
-
-# ---- 4. dynamic message ids ------------------------------------------------------------------
-for site, c, arg in disp["dynamic"]:
-    ref = {"message": "I6: TASK_TERMINATED forwarded to members (gp_msgs.c:1185 handler)",
-           "msg": "I50: waypoint_database messages (wp_dbase.c), each resolved below"}[arg]
-    items.append({"ledger": "dynamic", "item": site, "category": "dispatch", "disposition": M, "ref": ref})
-WP = {  # waypoint_database message -> row
-    "START_UP|TAXI|LIFT_OFF|TAKEN_OFF|RAISE_UNDERCARRIAGE|LOWER_UNDERCARRIAGE_ACTION|APPROACH|TOUCH_DOWN|LAND|LANDED": "I13 (G10)",
-    "NAVIGATION|SUB_ROUTE_NAVIGATION|CONVOY|REVERSE_CONVOY|LOOP|DEFEND|REPAIR": "I12 (G7)",
-    "PICK_UP|PREPARE_FOR_DROP_OFF|DROP_OFF|FINISH_DROP_OFF": "I12, I29 (G7)",
-    "TROOP_CAPTURE|TROOP_DEFEND|TROOP_INSERT|TROOP_PICKUP_POINT_END|TROOP_PICKUP_POINT_START|TROOP_PUTDOWN_POINT|PREPARE_FOR_INSERTION": "I49 (G23)",
-    "RECON|RECON_ACTION": "I35 (G7)", "ATTACK_ACTION": "I8 (G6)",
+# ---- 3. entity function tables, by verb; 3b. other function-pointer tables -----------------------------
+TABLE_VERBS = {"create": (MAPPED, "I1"), "destroy": (MAPPED, "I3, I43"), "kill": (MAPPED, "I43"),
+               "update": (MAPPED, "I40"), "pack": (MAPPED, "I38"), "unpack": (MAPPED, "I38"),
+               "draw": (EXCLUDED, NO_DRAW), "play": (EXCLUDED, NO_DRAW), "tool": (EXCLUDED, NO_DRAW)}
+OTHER_TABLES = {
+    "campaign_screen_message_responses": (EXCLUDED, "campaign-screen UI handlers (ca_group.c:1584-1588); fed only by notify_campaign_screen, itself excluded: " + NO_DRAW),
 }
-for m in sorted(k for k in disp["handlers"] if k.startswith("ENTITY_MESSAGE_WAYPOINT_")) + ["ENTITY_MESSAGE_WAYPOINT_END_REACHED", "ENTITY_MESSAGE_WAYPOINT_WAIT_REACHED"]:
-    name = m[len("ENTITY_MESSAGE_WAYPOINT_"):]
-    if name in ("REACHED", "ACTION"):
-        continue  # the guide's generic WAYPOINT_REACHED / WAYPOINT_ACTION: static campaign-to-campaign messages, not waypoint_database ids
-    base = re.sub(r"_REACHED$", "", name)
-    if not disp["handlers"].get(m):
-        d, ref = X, "no handler registered: the message is a no-op"
-    else:
-        ref = next((r for k, r in WP.items() if re.fullmatch(k, base)), None)
-        d = M if ref else O
-    items.append({"ledger": "waypoint ids", "item": name, "category": "dispatch", "disposition": d, "ref": ref or "no rule"})
-seen = set()
-items = [i for i in items if not (i["ledger"] == "waypoint ids" and (i["item"] in seen or seen.add(i["item"])))]
+NOT_A_TABLE = "not a function table: a data array assigned from a variable that shares a function's name (for example `.v = v;`)"
 
-# ---- 5. attribute tokens in campaign accessor calls ----------------------------------------
-A = {
-    M: {
-        "I4, I6 (position, motion)": "VEC3D_TYPE_POSITION VEC3D_TYPE_MOTION_VECTOR FLOAT_TYPE_VELOCITY FLOAT_TYPE_HEADING FLOAT_TYPE_PITCH VEC3D_TYPE_XV VEC3D_TYPE_ZV VEC3D_TYPE_RELATIVE_POSITION",
-        "I12 (arrival)": "FLOAT_TYPE_DISTANCE INT_TYPE_LANDED INT_TYPE_AIRBORNE_AIRCRAFT INT_TYPE_OPERATIONAL_STATE INT_TYPE_MEMBERS_PURSUING INT_TYPE_MEMBERS_REACHED INT_TYPE_MEMBERS_WAITING",
+# ---- 4. waypoint_database message ids -------------------------------------------------------------------
+WAYPOINT_IDS = [
+    (r"START_UP|TAXI|LIFT_OFF|TAKEN_OFF|RAISE_UNDERCARRIAGE|LOWER_UNDERCARRIAGE_ACTION|APPROACH|TOUCH_DOWN|LAND|LANDED", "I13 (G10)"),
+    (r"NAVIGATION|SUB_ROUTE_NAVIGATION|CONVOY|REVERSE_CONVOY|LOOP|DEFEND|REPAIR", "I12 (G7)"),
+    (r"PICK_UP|PREPARE_FOR_DROP_OFF|DROP_OFF|FINISH_DROP_OFF", "I12, I29 (G7)"),
+    (r"TROOP_\w+|PREPARE_FOR_INSERTION", "I49 (G23)"),
+    (r"RECON|RECON_ACTION", "I35 (G7)"),
+    (r"ATTACK_ACTION", "I8 (G6)"),
+]
+DYNAMIC = {"message": "I6: TASK_TERMINATED forwarded to members (gp_msgs.c:1185 handler)",
+           "msg": "I50: waypoint_database messages (wp_dbase.c), each resolved in the waypoint-id ledger"}
+
+# ---- 5. attribute tokens: every token named once -----------------------------------------------------------
+ATTRIBUTES = {
+    MAPPED: {
+        "I4, I6 (position, motion; read with getPoint, getPosition, getVelocity)": "VEC3D_TYPE_POSITION VEC3D_TYPE_MOTION_VECTOR FLOAT_TYPE_VELOCITY FLOAT_TYPE_HEADING FLOAT_TYPE_PITCH VEC3D_TYPE_XV VEC3D_TYPE_ZV VEC3D_TYPE_RELATIVE_POSITION",
+        "I12 (arrival state)": "FLOAT_TYPE_DISTANCE INT_TYPE_LANDED INT_TYPE_AIRBORNE_AIRCRAFT INT_TYPE_OPERATIONAL_STATE INT_TYPE_MEMBERS_PURSUING INT_TYPE_MEMBERS_REACHED INT_TYPE_MEMBERS_WAITING",
         "I14, I15 (alive, damage)": "INT_TYPE_ALIVE INT_TYPE_DAMAGE_LEVEL",
+        "I14 (kill counts)": "INT_TYPE_KILLS",
         "I1 (spawn state)": "FLOAT_TYPE_MAIN_ROTOR_RPM INT_TYPE_INSIDE_HANGAR FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE INT_TYPE_ALIGN_WITH_TERRAIN FLOAT_TYPE_FUSELAGE_ANGLE",
         "I10 (doors, undercarriage)": "FLOAT_TYPE_LOADING_DOOR_TIMER FLOAT_TYPE_UNDERCARRIAGE_STATE",
         "I8 (attack internals, G6)": "FLOAT_TYPE_WEAPON_BURST_TIMER FLOAT_TYPE_WEAPON_LAUNCH_DELAY FLOAT_TYPE_WEAPON_TO_INTERCEPT_POINT_RANGE VEC3D_TYPE_WEAPON_TO_INTERCEPT_POINT_VECTOR VEC3D_TYPE_WEAPON_VECTOR INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID INT_TYPE_SELECTED_WEAPON INT_TYPE_WEAPONS_HOLD FLOAT_TYPE_ATTACK_ALTITUDE",
         "I36 (sensing, ROE, G9)": "FLOAT_TYPE_AIR_SCAN_RANGE FLOAT_TYPE_SURFACE_SCAN_RANGE INT_TYPE_ENGAGE_ENEMY INT_TYPE_RADAR_ON LIST_TYPE_TARGET",
+        "I36 (suppress AI fire: no campaign engagements, and ROE weapon hold for DCS AI, G9)": "INT_TYPE_SUPPRESS_AI_FIRE",
+        "I53 (difficulty: a boot setting the campaign reads; DCS unit skill at spawn, G30)": "INT_TYPE_DIFFICULTY_LEVEL",
+        "I53 (campaign session flags from the campaign file)": "INT_TYPE_CAMPAIGN_REQUIRES_APACHE_HAVOC INT_TYPE_AUTO_ASSIGN_GUNSHIP",
+        "I47 (campaign end, medal)": "INT_TYPE_SESSION_COMPLETE INT_TYPE_CAMPAIGN_MEDAL",
+        "I18, I19 (elapsed time, time of day, day, start time)": "FLOAT_TYPE_ELAPSED_TIME FLOAT_TYPE_TIME_OF_DAY INT_TYPE_DAY FLOAT_TYPE_START_TIME",
+        "I35 (fog of war maximum, a campaign parameter held by the session)": "FLOAT_TYPE_FOG_OF_WAR_MAXIMUM_VALUE",
+        "I25 (population area bounds)": "FLOAT_TYPE_POPULATION_X_MAX FLOAT_TYPE_POPULATION_X_MIN FLOAT_TYPE_POPULATION_Z_MAX FLOAT_TYPE_POPULATION_Z_MIN",
         "I48 (type properties, G22)": "FLOAT_TYPE_CRUISE_ALTITUDE FLOAT_TYPE_CRUISE_VELOCITY FLOAT_TYPE_FUEL_DEFAULT_WEIGHT FLOAT_TYPE_FUEL_ECONOMY FLOAT_TYPE_POTENTIAL_SURFACE_TO_AIR_THREAT FLOAT_TYPE_POTENTIAL_SURFACE_TO_SURFACE_THREAT FLOAT_TYPE_TARGET_PRIORITY_AIR_ATTACK FLOAT_TYPE_TARGET_PRIORITY_GROUND_ATTACK INT_TYPE_FORCE_INFO_CATAGORY INT_TYPE_IDENTIFY_AIRCRAFT INT_TYPE_IDENTIFY_FIXED INT_TYPE_IDENTIFY_MOBILE INT_TYPE_IDENTIFY_VEHICLE INT_TYPE_IDENTIFY_WEAPON INT_TYPE_MOVEMENT_TYPE INT_TYPE_POINTS_VALUE INT_TYPE_TARGET_TYPE INT_TYPE_TASK_TARGET_TYPE INT_TYPE_ENTITY_SUB_TYPE STRING_TYPE_FULL_NAME STRING_TYPE_LONG_DISPLAY_NAME STRING_TYPE_SHORT_DISPLAY_NAME",
         "I26 (3D shape, G14)": "INT_TYPE_OBJECT_3D_SHAPE INT_TYPE_APPROXIMATION_OBJECT_3D_SHAPE",
         "I23 (cover, G12)": "VEC3D_TYPE_COVER_POSITION",
-        "I31 (structure importance)": "FLOAT_TYPE_FIXED_OBJECT_IMPORTANCE LIST_TYPE_BUILDING_GROUP",
+        "I31 (structure importance and groups)": "FLOAT_TYPE_FIXED_OBJECT_IMPORTANCE LIST_TYPE_BUILDING_GROUP LIST_TYPE_BUILDING_GROUP_ROOT",
+        "I2 (city buildings)": "LIST_TYPE_CITY_BUILDING",
         "I35 (recon)": "FLOAT_TYPE_RECON_RADIUS",
-        "I3, I4 (identity: side, group membership; G3)": "INT_TYPE_SIDE INT_TYPE_FORMATION_POSITION INT_TYPE_GROUP_MEMBER_ID INT_TYPE_GROUP_MEMBER_NUMBER LIST_TYPE_MEMBER",
-        "I45 (player)": "INT_TYPE_PLAYER LIST_TYPE_AIRCREW LIST_TYPE_PILOT_LOCK",
+        "I4 (side read: getCoalition; side writes are the write ledger and I51)": "INT_TYPE_SIDE",
+        "I4 (group membership, G3)": "INT_TYPE_FORMATION_POSITION INT_TYPE_GROUP_MEMBER_ID INT_TYPE_GROUP_MEMBER_NUMBER LIST_TYPE_MEMBER LIST_TYPE_MEMBER_ROOT",
+        "I45 (player: pilots, aircrew, player tasks)": "INT_TYPE_PLAYER LIST_TYPE_AIRCREW LIST_TYPE_PILOT LIST_TYPE_PILOT_ROOT LIST_TYPE_PILOT_LOCK LIST_TYPE_PILOT_LOCK_LINK LIST_TYPE_PLAYER_TASK LIST_TYPE_PLAYER_TASK_ROOT",
         "I49 (troops, G23)": "INT_TYPE_TROOPS_ONBOARD",
-        "I30 (landing sites, takeoff queue)": "LIST_TYPE_LANDING_SITE LIST_TYPE_TAKEOFF_QUEUE",
-        "I29 (cargo records)": "LIST_TYPE_CARGO LIST_TYPE_MOVEMENT_DEPENDENT FLOAT_TYPE_FUEL_SUPPLY_LEVEL",
+        "I30 (landing sites, takeoff queue)": "LIST_TYPE_LANDING_SITE LIST_TYPE_LANDING_SITE_LINK LIST_TYPE_LANDING_SITE_ROOT LIST_TYPE_TAKEOFF_QUEUE LIST_TYPE_TAKEOFF_QUEUE_ROOT",
+        "I29 (cargo and supply records)": "LIST_TYPE_CARGO LIST_TYPE_CARGO_LINK LIST_TYPE_CARGO_ROOT LIST_TYPE_MOVEMENT_DEPENDENT LIST_TYPE_MOVEMENT_DEPENDENT_LINK FLOAT_TYPE_FUEL_SUPPLY_LEVEL",
         "I18 (group sleep timer)": "FLOAT_TYPE_SLEEP",
+        "I40 (frame update list)": "LIST_TYPE_UPDATE LIST_TYPE_UPDATE_LINK",
         "I5 (waypoint altitude at creation; route-point altitude in G4)": "FLOAT_TYPE_ALTITUDE",
+        "I5, G3 (campaign links among tasks, waypoints, guides, groups, keysites, forces, divisions, sectors, regen)": "LIST_TYPE_AIR_REGISTRY LIST_TYPE_AIR_REGISTRY_ROOT LIST_TYPE_AIR_TASK LIST_TYPE_ASSIGNED_TASK LIST_TYPE_ASSIGNED_TASK_LINK LIST_TYPE_ASSIGNED_TASK_ROOT LIST_TYPE_CAMPAIGN_OBJECTIVE LIST_TYPE_CAMPAIGN_OBJECTIVE_LINK LIST_TYPE_CAMPAIGN_OBJECTIVE_ROOT LIST_TYPE_COMPLETED_TASK LIST_TYPE_COMPLETED_TASK_LINK LIST_TYPE_COMPLETED_TASK_ROOT LIST_TYPE_CURRENT_WAYPOINT LIST_TYPE_CURRENT_WAYPOINT_LINK LIST_TYPE_CURRENT_WAYPOINT_ROOT LIST_TYPE_DIVISION LIST_TYPE_DIVISION_HEADQUARTERS LIST_TYPE_DIVISION_HEADQUARTERS_LINK LIST_TYPE_DIVISION_HEADQUARTERS_ROOT LIST_TYPE_DIVISION_LINK LIST_TYPE_DIVISION_ROOT LIST_TYPE_FOLLOWER LIST_TYPE_FOLLOWER_ROOT LIST_TYPE_FORCE LIST_TYPE_FORCE_LINK LIST_TYPE_GROUND_REGISTRY LIST_TYPE_GROUND_REGISTRY_ROOT LIST_TYPE_GROUP_LINK LIST_TYPE_GUIDE LIST_TYPE_GUIDE_LINK LIST_TYPE_GUIDE_ROOT LIST_TYPE_GUIDE_STACK LIST_TYPE_GUIDE_STACK_LINK LIST_TYPE_GUIDE_STACK_ROOT LIST_TYPE_INDEPENDENT_GROUP LIST_TYPE_INDEPENDENT_GROUP_ROOT LIST_TYPE_KEYSITE_FORCE LIST_TYPE_KEYSITE_FORCE_LINK LIST_TYPE_KEYSITE_FORCE_ROOT LIST_TYPE_KEYSITE_GROUP LIST_TYPE_KEYSITE_GROUP_ROOT LIST_TYPE_REGEN LIST_TYPE_REGEN_LINK LIST_TYPE_REGEN_ROOT LIST_TYPE_REGISTRY_LINK LIST_TYPE_SEA_REGISTRY LIST_TYPE_SEA_REGISTRY_ROOT LIST_TYPE_SECTOR LIST_TYPE_SECTOR_LINK LIST_TYPE_SECTOR_ROOT LIST_TYPE_SECTOR_TASK LIST_TYPE_SECTOR_TASK_LINK LIST_TYPE_SECTOR_TASK_ROOT LIST_TYPE_TASK_DEPENDENT LIST_TYPE_TASK_DEPENDENT_LINK LIST_TYPE_TASK_DEPENDENT_ROOT LIST_TYPE_UNASSIGNED_TASK LIST_TYPE_UNASSIGNED_TASK_LINK LIST_TYPE_UNASSIGNED_TASK_ROOT LIST_TYPE_WAYPOINT LIST_TYPE_WAYPOINT_LINK LIST_TYPE_WAYPOINT_ROOT",
     },
-    X: {"not an attribute: a type or sub-type constant matched the accessor pattern": "ENTITY_SUB_TYPE_LANDING_FIXED_WING ENTITY_SUB_TYPE_LANDING_FIXED_WING_TRANSPORT ENTITY_SUB_TYPE_LANDING_HELICOPTER ENTITY_TYPE_FORCE"},
+    EXCLUDED: {
+        "not an attribute: a type or sub-type constant matched the accessor pattern": "ENTITY_SUB_TYPE_LANDING_FIXED_WING ENTITY_SUB_TYPE_LANDING_FIXED_WING_TRANSPORT ENTITY_SUB_TYPE_LANDING_HELICOPTER ENTITY_TYPE_FORCE",
+        "list-table constants, not links": "LIST_TYPE_INVALID LIST_TYPE_LINK_FUNCTIONS_REQUIRED LIST_TYPE_ROOT_FUNCTIONS_REQUIRED",
+        "visual effects unlinked when a campaign entity is destroyed (cg_dstry.c:133); DCS renders its own": "LIST_TYPE_SPECIAL_EFFECT LIST_TYPE_SPECIAL_EFFECT_ROOT",
+        "the player's view padlock, unlinked on destroy (cg_dstry.c:137); cockpit view state": "LIST_TYPE_PADLOCK",
+    },
 }
-amap = {}
-for d, groups in A.items():
-    for ref, names in groups.items():
-        for n in names.split():
-            amap[n] = (d, ref)
-for a, r in sorted(disp["attrs"].items()):
-    impl = set(r["implemented_by"])
-    ctx = set(r.get("contexts", {}))
-    if a in amap:
-        d, ref = amap[a]
-    elif ctx and ctx <= {"pack"}:
-        d, ref = M, "I38: a pack/unpack field tag (save, restore, replication)"
-    elif ctx and ctx <= {"case", "registration", "pack"}:
-        d, ref = X, "the campaign entity's own implementation of the attribute (case label, table registration, pack tag); reads no world value"
-    elif ctx == {"other"} and a.endswith("_MAX_LENGTH"):
-        d, ref = X, "an array-size constant, not an attribute"
-    elif a.startswith("LIST_TYPE_"):
-        d, ref = M, "I5 and G3: campaign link list (generic en_list.c storage); links to world members go through G3"
-    elif impl and impl <= {"C"}:
-        d, ref = X, "campaign-only: implemented only by campaign entity types"
-    elif impl and "W" not in impl:
-        d, ref = M, "I18, I19, I27 (session: time, weather, flags) or framework default"
-    else:
-        d, ref = O, "no rule"
-    items.append({"ledger": "attributes", "item": a, "category": "attributes", "disposition": d, "ref": ref,
-                  "implemented_by": sorted(impl), "first": r["first"]})
-
-# ---- 6. shared global data -----------------------------------------------------------------
-G = [
-    (r"_names$|^application_tag_strings$|^dik_names$", X, "string tables for parsing and logging"),
-    (r"^(aircraft|vehicle|weapon|effect)_database$|^fixed_3d_object_database$|^target_point_offsets$", M, "I48 (type database, G22)"),
-    (r"^speech_sector_coordinates$", M, "I41 (speech)"),
-    (r"^objects_3d_\w+$|^object_3d_enumeration_names$", M, "I2, I26 (3D object data, G14)"),
-    (r"^terrain_3d_max_map_z$", M, "I25 (map extents)"),
-    (r"^(number_of_)?psd_layers$", X, "campaign data image read natively (popread.c:362)"),
-    (r"^active_2d_environment$|^sys_colour_table$", X, "debug drawing (wp_draw.c)"),
-    (r"^force_local_entity_create_stack_attributes$", X, "entity-store flag"),
+# fallback by usage context, for tokens not named above (counted in the output)
+CONTEXT_FALLBACKS = [
+    ("pack-only", lambda impl, ctx, a: ctx and ctx <= {"pack"}, MAPPED, "I38: a pack/unpack field tag (save, restore, replication)"),
+    ("own-implementation", lambda impl, ctx, a: ctx and ctx <= {"case", "registration", "pack"}, EXCLUDED, "the campaign entity's own implementation of the attribute (case label, table registration, pack tag); reads no world value"),
+    ("size-constant", lambda impl, ctx, a: ctx == {"other"} and a.endswith("_MAX_LENGTH"), EXCLUDED, "an array-size constant, not an attribute"),
+    ("campaign-only", lambda impl, ctx, a: impl and impl <= {"C"}, EXCLUDED, "campaign-only: implemented only by campaign entity types"),
 ]
-for n, r in glob.items():
-    d, ref = next(((d, ref) for rx, d, ref in G if re.search(rx, n)), (O, "no rule"))
-    items.append({"ledger": "globals", "item": n, "category": "globals", "disposition": d, "ref": ref, "first": r["first"]})
 
-# ---- 7. call-shaped names in campaign code that resolve to no definition -------------------
-U = {"endif": "not a call: a #endif line followed by a parenthesised expression (ld_msgs.c:512)",
-     "function": "a call through a function-pointer field (briefing.c:880); its targets are address-taken functions, walked as references",
-     "ogre_scene_get_object": "in the #else arm of #ifndef OGRE_EE (popread.c:2795); the headless build does not define OGRE_EE"}
-for n in reach.get("unresolved_names", []):
-    items.append({"ledger": "unresolved names", "item": n, "category": "index", "disposition": X if n in U else O, "ref": U.get(n, "no rule")})
+# ---- 6. campaign writes to world-implemented attributes, keyed "file:line|TOKEN|receiver" -------------------
+WRITE_RULES = [
+    rule("exact", r"keysite\.c:(1383|1390)\|INT_TYPE_SIDE\|", "world", MAPPED, "I51 (capture converts landed aircraft groups, G28)"),
+    rule("exact", r"keysite\.c:(1540|1546|1562|1568)\|INT_TYPE_SIDE\|", "world", MAPPED, "I51 (capture converts keysite building and regen structures, G28)"),
+    rule("exact", r"faction\.c:\d+\|(VEC3D_TYPE_POSITION|INT_TYPE_OPERATIONAL_STATE|FLOAT_TYPE_MAIN_ROTOR_RPM|FLOAT_TYPE_UNDERCARRIAGE_STATE|INT_TYPE_FORMATION_POSITION)\|member$|popread\.c:1454\|FLOAT_TYPE_HEADING\|member$", "world", MAPPED, "I1 (spawn placement and state)"),
+    rule("exact", r"ld_msgs\.c:\d+\|INT_TYPE_OPERATIONAL_STATE\|", "world", MAPPED, "I30 (landing and takeoff sequencing, G16)"),
+    rule("exact", r"(group|ld_msgs)\.c:\d+\|(INT_TYPE_FORMATION_POSITION|INT_TYPE_GROUP_MEMBER_NUMBER)\|member$", "world", MAPPED, "I4 (group membership, G3)"),
+    rule("exact", r"(ld_msgs|rg_updt)\.c:\d+\|FLOAT_TYPE_LOADING_DOOR_TIMER\|", "world", MAPPED, "I10 (hangar and building doors)"),
+    rule("exact", r"assign\.c:1350\|FLOAT_TYPE_FUEL_SUPPLY_LEVEL\|en$", "world", MAPPED, "I7 (helicopter fuel load)"),
+    rule("exact", r"assign\.c:1321\|INT_TYPE_TROOPS_ONBOARD\|", "world", MAPPED, "I49 (troops, G23)"),
+    rule("exact", r"guide\.c:(509|801)\|FLOAT_TYPE_DISTANCE\|", "world", MAPPED, "I12 (the guide writes the member's range, G7)"),
+    rule("exact", r"_attck\.c:\d+\|(FLOAT_TYPE_WEAPON_LAUNCH_DELAY|INT_TYPE_SELECTED_WEAPON)\|aggressor$", "world", MAPPED, "I8 (attack internals, G6)"),
+    rule("exact", r"(_attck|gd_cover)\.c:\d+\|VEC3D_TYPE_COVER_POSITION\|aggressor$", "world", MAPPED, "I23 (cover, G12)"),
+    rule("exact", r"popread\.c:\d+\|INT_TYPE_(APPROXIMATION_)?OBJECT_3D_SHAPE\|city$", "world", MAPPED, "I2 (population objects)"),
+    rule("pattern", r"\|(sector|wp|this_wp|next_wp|keysite|get_parser_keysite \(\)|incoming_group|landing|guide)$|(_attck|guide)\.c:\d+\|\w+\|en$|(cg_\w+|gp_dstry|ks_dstry|group|wp_creat)\.c:\d+\|\w+\|en$|keysite\.c:(543|1340)\|", "campaign", EXCLUDED, "the receiver is a campaign entity (sector, waypoint, guide, keysite, group, cargo, landing); the token is also world-implemented, but this write is campaign state"),
+    rule("exact", r"ks_msgs\.c:238\|FLOAT_TYPE_FUEL_SUPPLY_LEVEL\|receiver$", "campaign", EXCLUDED, "a keysite's supply level set on drop-off: campaign state (I29)"),
+    rule("pattern", r"(ks|ld|rg|ts|wp|cg)_msgs\.c:\d+\|(VEC3D_TYPE_POSITION|FLOAT_TYPE_HEADING)\|receiver$", "campaign", EXCLUDED, "SET_ENTITY_POSITION propagation to a campaign entity (landing site, regen, task, waypoint, cargo); I34 covers the moving keysite"),
+]
 
-# ---- totals -------------------------------------------------------------------------------
-tot = collections.defaultdict(collections.Counter)
-for i in items:
-    key = i["ledger"] if i["ledger"] != "calls" else f"calls {i['direction']} [{i['category']}]"
-    tot[key][i["disposition"]] += 1
-out = {k: dict(v) for k, v in sorted(tot.items())}
-out["ALL"] = dict(collections.Counter(i["disposition"] for i in items))
-out["ambiguous names left"] = len(reach["ambiguous"])
-print(json.dumps(out, indent=1))
-for i in items:
-    if i["disposition"] == O:
-        print("OUTSTANDING", i["ledger"], i["item"])
-if "--items" in sys.argv:
-    json.dump(items, open(sys.argv[sys.argv.index("--items") + 1], "w"), indent=1)
+# ---- 7. shared global data ---------------------------------------------------------------------------------
+GLOBAL_RULES = [
+    rule("pattern", r"_names$|^application_tag_strings$|^dik_names$", "globals", EXCLUDED, "string tables for parsing and logging"),
+    rule("pattern", r"^(debug_fatal_invalid|overload_invalid)_\w+_message$|^null_entity_pointer_message$|^\w+_type_database$", "globals", EXCLUDED, "entity-store attribute type tables and their diagnostics, reached through the accessor macros"),
+    rule("exact", r"^(entities|first_used_entity|entity_type_database|force_local_entity_create_stack_attributes)$", "globals", EXCLUDED, "the entity store itself"),
+    rule("pattern", r"^sys_col(_\w+|our_table)$|^active_2d_environment$", "globals", EXCLUDED, "debug drawing colours and 2D state (gd_draw.c, imaps.c, gd_cover.c)"),
+    rule("exact", r"^(number_of_)?psd_layers$", "globals", EXCLUDED, "campaign data image read natively (popread.c:362)"),
+    rule("exact", r"^(aircraft|vehicle|weapon|effect)_database$|^fixed_3d_object_database$|^target_point_offsets$", "globals", MAPPED, "I48 (type database, G22)"),
+    rule("exact", r"^speech_sector_coordinates$", "globals", MAPPED, "I41 (speech)"),
+    rule("exact", r"^objects_3d_\w+$|^object_3d_enumeration_names$", "globals", MAPPED, "I2, I26 (3D object data, G14)"),
+    rule("exact", r"^(terrain_3d_max_map_z|terrain_3d_map_minimum_height|world_map)$", "globals", MAPPED, "I21, I25 (map extents and minimum height)"),
+    rule("exact", r"^system_delta_time$", "globals", MAPPED, "I18 (frame delta, through get_delta_time)"),
+    rule("exact", r"^random_number_seed$", "globals", MAPPED, "I37 (the shared random stream, through frand1, sfrand1, rand16)"),
+    rule("exact", r"^session_entity$", "globals", MAPPED, "I18, I19, I27 (session: time and weather)"),
+    rule("exact", r"^update_entity$", "globals", MAPPED, "I40 (frame update list)"),
+    rule("exact", r"^current_map_info$", "globals", MAPPED, "I52 (season written from the campaign file), I46 (map info)"),
+    rule("exact", r"^(gunship_entity|pilot_entity)$", "globals", MAPPED, "I45 (player aircraft and pilot)"),
+    rule("exact", r"^command_line_capture_aircraft$", "globals", MAPPED, "I51 (the capture-aircraft setting, on by default, cmndline.c:151)"),
+    rule("exact", r"^(command_line_run_mode|session_camcom|global_options)$", "globals", MAPPED, "I53 (settings: run mode, campaign-commander mode, language, gunship side)"),
+    rule("exact", r"^(current_game_session|game_type|game_status|system_comms_model|system_comms_data_flow)$", "globals", MAPPED, "I39 (session, game type and status, server comms model)"),
+]
+
+# ---- 8. call-shaped names with no definition -----------------------------------------------------------------
+UNRESOLVED = {"endif": "not a call: a #endif line followed by a parenthesised expression (ld_msgs.c:512)",
+              "function": "a call through a function-pointer field (briefing.c:880); its targets are address-taken functions, walked as references",
+              "ogre_scene_get_object": "in the #else arm of #ifndef OGRE_EE (popread.c:2795); the headless build does not define OGRE_EE"}
+
+
+def ledger_entry(ledger, key, category, disposition, ref, rule_id, **extra):
+    return {"ledger": ledger, "item": key, "category": category, "disposition": disposition, "ref": ref,
+            "rule": rule_id, **extra}
+
+
+def call_items(reach):
+    out = []
+    for direction, edges in reach["cross"].items():
+        side = 1 if direction.startswith("C->") else 0
+        for key in sorted({e[side] for e in edges}):
+            out.append(ledger_entry("calls", key, *decide(CALL_RULES, key), direction=direction))
+    return out
+
+
+def message_items(dispatch):
+    out = []
+    for m, by in sorted(dispatch["crossing"].items()):
+        name = m[len("ENTITY_MESSAGE_"):]
+        d, ref = MESSAGES.get(name, (OUTSTANDING, "no rule"))
+        out.append(ledger_entry("messages", name, "dispatch", d, ref, "exact", senders={k: v["first"] for k, v in by.items()}))
+    return out
+
+
+def table_items(dispatch):
+    out = []
+    for t in sorted(dispatch["tables"]):
+        verb = "ui" if "ui_object" in t else t.split("_")[1]
+        d, ref = (EXCLUDED, NO_DRAW) if verb == "ui" else TABLE_VERBS.get(verb, (OUTSTANDING, "no rule"))
+        out.append(ledger_entry("tables", t, "dispatch", d, ref, "exact"))
+    for t, r in sorted(dispatch["other_tables"].items()):
+        d, ref = OTHER_TABLES.get(t, (EXCLUDED, NOT_A_TABLE))
+        out.append(ledger_entry("other tables", t, "dispatch", d, ref, "exact" if t in OTHER_TABLES else "pattern", first=r["first"]))
+    return out
+
+
+def dynamic_items(dispatch):
+    return [ledger_entry("dynamic", site, "dispatch",
+                         *((MAPPED, DYNAMIC[arg]) if arg in DYNAMIC else (OUTSTANDING, "no rule")), "exact")
+            for site, _, arg in dispatch["dynamic"]]
+
+
+def waypoint_id_items(dispatch):
+    out = []
+    names = {k[len("ENTITY_MESSAGE_WAYPOINT_"):] for k in dispatch["handlers"] if k.startswith("ENTITY_MESSAGE_WAYPOINT_")}
+    names |= {"END_REACHED", "WAIT_REACHED"}  # in waypoint_database, with no registered handler
+    names -= {"REACHED", "ACTION"}  # the guide's generic messages: static, campaign to campaign
+    for name in sorted(names):
+        if not dispatch["handlers"].get("ENTITY_MESSAGE_WAYPOINT_" + name):
+            out.append(ledger_entry("waypoint ids", name, "dispatch", EXCLUDED, "no handler registered: the message is a no-op", "exact"))
+            continue
+        base = re.sub(r"_REACHED$", "", name)
+        ref = next((r for k, r in WAYPOINT_IDS if re.fullmatch(k, base)), None)
+        out.append(ledger_entry("waypoint ids", name, "dispatch", MAPPED if ref else OUTSTANDING, ref or "no rule", "exact"))
+    return out
+
+
+def attribute_items(dispatch):
+    named = {n: (d, ref) for d, groups in ATTRIBUTES.items() for ref, names in groups.items() for n in names.split()}
+    out = []
+    for a, r in sorted(dispatch["attrs"].items()):
+        impl, ctx = set(r["implemented_by"]), set(r["contexts"])
+        if a in named:
+            d, ref = named[a]
+            out.append(ledger_entry("attributes", a, "attributes", d, ref, "exact", first=r["first"]))
+            continue
+        fallback = next((f for f in CONTEXT_FALLBACKS if f[1](impl, ctx, a)), None)
+        if fallback:
+            out.append(ledger_entry("attributes", a, "attributes", fallback[2], fallback[3], "fallback:" + fallback[0], first=r["first"]))
+        else:
+            out.append(ledger_entry("attributes", a, "attributes", OUTSTANDING, "no rule", "none", first=r["first"]))
+    return out
+
+
+def write_items(dispatch):
+    out = []
+    for w in dispatch["writes"]:
+        key = f"{w['site'].rsplit('/', 1)[-1]}|{w['token']}|{w['receiver']}"
+        out.append(ledger_entry("writes", key, *decide(WRITE_RULES, key)))
+    return out
+
+
+def global_items(global_data):
+    return [ledger_entry("globals", n, *decide(GLOBAL_RULES, n), first=r["first"]) for n, r in sorted(global_data.items())]
+
+
+def unresolved_items(reach):
+    return [ledger_entry("unresolved names", n, "index", EXCLUDED if n in UNRESOLVED else OUTSTANDING,
+                 UNRESOLVED.get(n, "no rule"), "exact") for n in reach["unresolved_names"]]
+
+
+def main(reach_path, dispatch_path, globals_path, items_path):
+    with open(reach_path) as a, open(dispatch_path) as b, open(globals_path) as c:
+        reach, dispatch, global_data = json.load(a), json.load(b), json.load(c)
+    items = (call_items(reach) + message_items(dispatch) + table_items(dispatch) + dynamic_items(dispatch)
+             + waypoint_id_items(dispatch)
+             + attribute_items(dispatch) + write_items(dispatch) + global_items(global_data) + unresolved_items(reach))
+    totals = collections.defaultdict(collections.Counter)
+    for i in items:
+        key = f"calls {i['direction']}" if i["ledger"] == "calls" else i["ledger"]
+        totals[key][i["disposition"]] += 1
+    report = {k: dict(v) for k, v in sorted(totals.items())}
+    report["ALL"] = dict(collections.Counter(i["disposition"] for i in items))
+    report["decided by pattern or fallback rules"] = dict(sorted(collections.Counter(
+        f"{i['ledger']} | {i['ref']}" for i in items if i["rule"].startswith(("pattern", "fallback"))).items()))
+    report["ambiguous names left"] = len(reach["ambiguous"])
+    print(json.dumps(report, indent=1))
+    for i in items:
+        if i["disposition"] == OUTSTANDING:
+            print("OUTSTANDING", i["ledger"], i["item"])
+    if items_path:
+        with open(items_path, "w") as f:
+            json.dump(items, f, indent=1)
+
+
+if __name__ == "__main__":
+    main(*sys.argv[1:4], sys.argv[sys.argv.index("--items") + 1] if "--items" in sys.argv else None)
 ```
 
 </details>
