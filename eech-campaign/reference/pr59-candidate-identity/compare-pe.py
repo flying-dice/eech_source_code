@@ -14,14 +14,20 @@ number of differing bytes in each region:
 The export timestamp lies inside a mapped section (.edata in these builds), so that section's
 hash differs; the section line then names the explained bytes.
 
-The layout must agree between the two files, and each expected region is validated in each
-file before it is accepted: the export directory must lie in the raw data of a section that
-holds neither code nor executable memory, and the symbol and string table must hold at least one
-symbol, start where the last section ends and, with its size field, run exactly to the end of
-the file. Anything else is reported as not expected.
+Before any byte is excused, each file must be a PE file with an unambiguous layout, or it is
+rejected as unreadable (exit 2): the optional header must hold its fixed fields (so the checksum
+lies inside it) and every data directory it declares; the section table must lie inside the
+file, and each section's raw data too; no section's raw data may overlap the headers or another
+section's, and no two sections may overlap in memory; an export directory must lie in the raw
+data of a section that holds neither code nor executable memory. Then the two files must have
+the same size and the same layout (section names as raw bytes, addresses, sizes, flags, field
+offsets, symbol table), or the result is a difference (exit 1). The symbol and string table is
+excused only if it holds at least one symbol, starts where the last section ends and, with its
+size field, runs exactly to the end of the file; otherwise its bytes count as data after the
+last section. Every other differing byte is a difference.
 
 Exit 0 when every differing byte is in an expected region (or none differs), 1 when any is
-not, 2 when a file cannot be read or is not a PE file this tool can read.
+not, 2 when a file cannot be read or is not a PE file this tool can read, or on bad arguments.
 
 Usage: python -I compare-pe.py <a.dll> <b.dll>
 """
@@ -51,6 +57,39 @@ def unpack(fmt, data, off):
     return struct.unpack_from(fmt, data, off)
 
 
+def label(section):
+    return section.name.rstrip(b'\0').decode('ascii', 'backslashreplace')
+
+
+def read_section(data, o):
+    name = data[o:o + 8]
+    vsize, va, rsize, rptr = unpack('<IIII', data, o + 8)
+    characteristics, = unpack('<I', data, o + 36)
+    s = Section(name, va, vsize, rptr, rsize, characteristics)
+    if rptr + rsize > len(data):
+        raise NotPE(f'section {label(s)} runs past the end of the file')
+    return s
+
+
+def reject_overlap(sections, extent, where):
+    """Raises NotPE when any two of the sections' (start, size) extents overlap."""
+    ordered = sorted(sections, key=lambda s: extent(s)[0])
+    for x, y in zip(ordered, ordered[1:]):
+        start, size = extent(x)
+        if extent(y)[0] < start + size:
+            raise NotPE(f'sections {label(x)} and {label(y)} overlap {where}')
+
+
+def check_layout(sections, headers_end):
+    """Raises NotPE unless each byte of the file, and of memory, belongs to the headers or one section."""
+    in_file = [s for s in sections if s.rsize]
+    for s in in_file:
+        if s.rptr < headers_end:
+            raise NotPE(f'section {label(s)} overlaps the headers')
+    reject_overlap(in_file, lambda s: (s.rptr, s.rsize), 'in the file')
+    reject_overlap(sections, lambda s: (s.va, max(s.vsize, s.rsize)), 'in memory')
+
+
 def export_timestamp_offset(sections, exp_rva, exp_size):
     """File offset of the export directory's TimeDateStamp, or None without an export directory."""
     if not exp_rva:
@@ -58,7 +97,7 @@ def export_timestamp_offset(sections, exp_rva, exp_size):
     for s in sections:
         if s.rsize and s.va <= exp_rva and exp_rva + max(exp_size, 8) <= s.va + s.rsize:
             if s.characteristics & CODE_OR_EXECUTABLE:
-                raise NotPE(f'export directory RVA {exp_rva:#x} is in code section {s.name}')
+                raise NotPE(f'export directory RVA {exp_rva:#x} is in code section {label(s)}')
             return s.rptr + exp_rva - s.va + 4
     raise NotPE(f'export directory RVA {exp_rva:#x} is not inside any section\'s raw data')
 
@@ -88,21 +127,20 @@ def parse(data):
     magic, = unpack('<H', data, opt)
     if magic not in (0x10B, 0x20B):
         raise NotPE(f'unknown optional-header magic {magic:#x}')
-    directories = opt + (112 if magic == 0x20B else 96)
-    rva_count, = unpack('<I', data, directories - 4)
-    has_export = rva_count >= 1 and opt_size >= directories + 8 - opt
-    exp_rva, exp_size = unpack('<II', data, directories) if has_export else (0, 0)
+    fixed = 112 if magic == 0x20B else 96  # the optional header before its data directories
+    if opt_size < fixed:
+        raise NotPE(f'optional header of {opt_size} bytes is shorter than its {fixed} bytes of fixed fields')
+    rva_count, = unpack('<I', data, opt + fixed - 4)
+    if fixed + 8 * rva_count > opt_size:
+        raise NotPE(f'optional header of {opt_size} bytes cannot hold {rva_count} data directories')
+    exp_rva, exp_size = unpack('<II', data, opt + fixed) if rva_count else (0, 0)
     table = opt + opt_size
-    sections = []
-    for i in range(nsec):
-        o = table + 40 * i
-        name = data[o:o + 8].rstrip(b'\0').decode('ascii', 'replace')
-        vsize, va, rsize, rptr = unpack('<IIII', data, o + 8)
-        characteristics, = unpack('<I', data, o + 36)
-        if rptr + rsize > len(data):
-            raise NotPE(f'section {name} runs past the end of the file')
-        sections.append(Section(name, va, vsize, rptr, rsize, characteristics))
-    end = max((s.rptr + s.rsize for s in sections), default=table + 40 * nsec)
+    headers_end = table + 40 * nsec
+    if headers_end > len(data):
+        raise NotPE('section table runs past the end of the file')
+    sections = [read_section(data, table + 40 * i) for i in range(nsec)]
+    check_layout(sections, headers_end)
+    end = max((s.rptr + s.rsize for s in sections), default=headers_end)
     fields = {'coff.TimeDateStamp': (coff + 4, 4), 'optional.CheckSum': (opt + 64, 4)}
     export = export_timestamp_offset(sections, exp_rva, exp_size)
     if export is not None:
@@ -117,7 +155,7 @@ def region(p, off):
             return name
     for s in p['sections']:
         if s.rptr <= off < s.rptr + s.rsize:
-            return f'section {s.name}'
+            return f'section {label(s)}'
     if p['symbols'] and p['symbols'][0] <= off < p['symbols'][1]:
         return SYMBOL_TABLE
     return 'data after last section' if off >= p['end'] else 'headers or padding'
@@ -138,7 +176,8 @@ def compare(a, b):
             r = region(pa, off)
             counts[r] = counts.get(r, 0) + 1
     print('sections (name, raw size, raw-data SHA-256 a / b):')
-    for name, _, _, rptr, rsize, _ in pa['sections']:
+    for s in pa['sections']:
+        name, rptr, rsize = label(s), s.rptr, s.rsize
         ha = hashlib.sha256(a[rptr:rptr + rsize]).hexdigest()
         hb = hashlib.sha256(b[rptr:rptr + rsize]).hexdigest()
         if ha == hb:
@@ -156,13 +195,18 @@ def compare(a, b):
     return all(r in EXPECTED for r in counts)
 
 
+def read(path):
+    with open(path, 'rb') as f:
+        return f.read()
+
+
 def main(argv):
     sys.stdout.reconfigure(encoding='utf-8', errors='backslashreplace')
     if len(argv) != 3:
         print(USAGE, file=sys.stderr)
         return 2
     try:
-        a, b = (open(p, 'rb').read() for p in argv[1:3])
+        a, b = read(argv[1]), read(argv[2])
     except OSError as e:
         print(f'UNREADABLE: {e}')
         return 2

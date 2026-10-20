@@ -1,179 +1,249 @@
 $ python -I reference/pr59-candidate-identity/compare-selftest.py   # Windows, Python 3.13.6
-skip  compare-logs unreadable subdirectory: permissions cannot remove read access here
-ok    compare-pe identical: expected 0, got 0
-ok    compare-pe identical (-O): expected 0, got 0
-ok    compare-pe rebuild: timestamps, checksum, symbols: expected 0, got 0
-ok    compare-pe rebuild: timestamps, checksum, symbols (-O): expected 0, got 0
-ok    compare-pe PE32 rebuild: timestamps, checksum, symbols: expected 0, got 0
-ok    compare-pe PE32 rebuild: timestamps, checksum, symbols (-O): expected 0, got 0
-ok    compare-pe one .text byte: expected 1, got 1
-ok    compare-pe one .text byte (-O): expected 1, got 1
-ok    compare-pe one .edata byte beside the export timestamp: expected 1, got 1
-ok    compare-pe one .edata byte beside the export timestamp (-O): expected 1, got 1
-ok    compare-pe section-table byte: expected 1, got 1
-ok    compare-pe section-table byte (-O): expected 1, got 1
-ok    compare-pe headers padding byte: expected 1, got 1
-ok    compare-pe headers padding byte (-O): expected 1, got 1
-ok    compare-pe symbol table absent in both (no pointer), trailing byte: expected 1, got 1
-ok    compare-pe symbol table absent in both (no pointer), trailing byte (-O): expected 1, got 1
-ok    compare-pe symbol table empty in both (0 symbols), trailing byte: expected 1, got 1
-ok    compare-pe symbol table empty in both (0 symbols), trailing byte (-O): expected 1, got 1
-ok    compare-pe 0 symbols in both, size field running to EOF, trailing byte: expected 1, got 1
-ok    compare-pe 0 symbols in both, size field running to EOF, trailing byte (-O): expected 1, got 1
-ok    compare-pe symbol table not at the end of the sections in both, symbol byte: expected 1, got 1
-ok    compare-pe symbol table not at the end of the sections in both, symbol byte (-O): expected 1, got 1
-ok    compare-pe string-table size wrong in both, symbol byte: expected 1, got 1
-ok    compare-pe string-table size wrong in both, symbol byte (-O): expected 1, got 1
-ok    compare-pe string-table size under 4 in both, symbol byte: expected 1, got 1
-ok    compare-pe string-table size under 4 in both, symbol byte (-O): expected 1, got 1
-ok    compare-pe four bytes appended: expected 1, got 1
-ok    compare-pe four bytes appended (-O): expected 1, got 1
-ok    compare-pe export directory in .text, .text byte: expected 2, got 2
-ok    compare-pe export directory in .text, .text byte (-O): expected 2, got 2
-ok    compare-pe export directory in a CNT_CODE-only section: expected 2, got 2
-ok    compare-pe export directory in a CNT_CODE-only section (-O): expected 2, got 2
-ok    compare-pe export directory in a MEM_EXECUTE-only section: expected 2, got 2
-ok    compare-pe export directory in a MEM_EXECUTE-only section (-O): expected 2, got 2
-ok    compare-pe no data directories in both, export timestamp byte: expected 1, got 1
-ok    compare-pe no data directories in both, export timestamp byte (-O): expected 1, got 1
-ok    compare-pe export directory in .bss (no raw data): expected 2, got 2
-ok    compare-pe export directory in .bss (no raw data) (-O): expected 2, got 2
-ok    compare-pe no MZ header: expected 2, got 2
-ok    compare-pe no MZ header (-O): expected 2, got 2
-ok    compare-pe no PE signature: expected 2, got 2
-ok    compare-pe no PE signature (-O): expected 2, got 2
-ok    compare-pe unknown optional-header magic: expected 2, got 2
-ok    compare-pe unknown optional-header magic (-O): expected 2, got 2
-ok    compare-pe section runs past the end of the file: expected 2, got 2
-ok    compare-pe section runs past the end of the file (-O): expected 2, got 2
-ok    compare-pe truncated inside the section table: expected 2, got 2
-ok    compare-pe truncated inside the section table (-O): expected 2, got 2
-ok    compare-pe missing file: expected 2, got 2
-ok    compare-report equal: expected 0, got 0
-ok    compare-report PASS becomes FAIL: expected 1, got 1
-ok    compare-report null against absent: expected 1, got 1
-ok    compare-report empty list against absent: expected 1, got 1
-ok    compare-report empty list against empty object: expected 1, got 1
-ok    compare-report dotted key against nesting: expected 1, got 1
-ok    compare-report key "0" against index 0: expected 1, got 1
-ok    compare-report 1 against true: expected 1, got 1
-ok    compare-report 1 against 1.0: expected 1, got 1
-ok    compare-report NaN against NaN: expected 0, got 0
-ok    compare-report non-ASCII value changes: expected 1, got 1
-ok    compare-report 1e400 against 2e400: expected 1, got 1
-ok    compare-report 0.1 against 0.10000000000000000001: expected 1, got 1
-ok    compare-report duplicated key: expected 2, got 2
-ok    compare-report malformed JSON: expected 2, got 2
-ok    compare-report nested 5000 deep: expected 2, got 2
-ok    compare-report missing file: expected 2, got 2
-ok    compare-report difference after 200 characters printed in full: expected (1, True), got (1, True)
-ok    compare-logs identical (CRLF against LF): expected 0, got 0
-ok    compare-logs line differs: expected 1, got 1
-ok    compare-logs file only in b: expected 1, got 1
-ok    compare-logs file only in a: expected 1, got 1
-ok    compare-logs empty directory only in b: expected 1, got 1
-ok    compare-logs subdirectory file differs: expected 1, got 1
-ok    compare-logs lone CR against LF: expected 1, got 1
-ok    compare-logs missing final newline: expected 1, got 1
-ok    compare-logs candidate names, masked: expected 0, got 0
-ok    compare-logs candidate names, unmasked: expected 1, got 1
-ok    compare-logs invalid UTF-8 bytes differ: expected 1, got 1
-ok    compare-logs non-ASCII line differs: expected 1, got 1
-ok    compare-logs a empty, b has a file: expected 1, got 1
-ok    compare-logs both empty: expected 2, got 2
-ok    compare-logs linked subdirectories that differ: expected 1, got 1
-ok    compare-logs long diff printed in full (80 lines): expected (1, 80), got (1, 80)
-ok    compare-logs missing directory: expected 2, got 2
-ok    compare-logs bad mask: expected 2, got 2
-85 of 85 cases as expected
+ok           compare-pe identical: exit 0
+ok           compare-pe identical (-O): exit 0
+ok           compare-pe rebuild: timestamps, checksum, symbols: exit 0
+ok           compare-pe rebuild: timestamps, checksum, symbols (-O): exit 0
+ok           compare-pe PE32 rebuild: timestamps, checksum, symbols: exit 0
+ok           compare-pe PE32 rebuild: timestamps, checksum, symbols (-O): exit 0
+ok           compare-pe one .text byte: exit 1
+ok           compare-pe one .text byte (-O): exit 1
+ok           compare-pe one .edata byte beside the export timestamp: exit 1
+ok           compare-pe one .edata byte beside the export timestamp (-O): exit 1
+ok           compare-pe section-table byte: exit 1
+ok           compare-pe section-table byte (-O): exit 1
+ok           compare-pe section name differs only in a non-ASCII byte: exit 1
+ok           compare-pe section name differs only in a non-ASCII byte (-O): exit 1
+ok           compare-pe headers padding byte: exit 1
+ok           compare-pe headers padding byte (-O): exit 1
+ok           compare-pe symbol table absent in both (no pointer), trailing byte: exit 1
+ok           compare-pe symbol table absent in both (no pointer), trailing byte (-O): exit 1
+ok           compare-pe symbol table empty in both (0 symbols), trailing byte: exit 1
+ok           compare-pe symbol table empty in both (0 symbols), trailing byte (-O): exit 1
+ok           compare-pe 0 symbols in both, size field running to EOF, trailing byte: exit 1
+ok           compare-pe 0 symbols in both, size field running to EOF, trailing byte (-O): exit 1
+ok           compare-pe symbol table not at the end of the sections in both, symbol byte: exit 1
+ok           compare-pe symbol table not at the end of the sections in both, symbol byte (-O): exit 1
+ok           compare-pe string-table size wrong in both, symbol byte: exit 1
+ok           compare-pe string-table size wrong in both, symbol byte (-O): exit 1
+ok           compare-pe string-table size under 4 in both, symbol byte: exit 1
+ok           compare-pe string-table size under 4 in both, symbol byte (-O): exit 1
+ok           compare-pe string-table size field cut short in both, symbol byte: exit 1
+ok           compare-pe string-table size field cut short in both, symbol byte (-O): exit 1
+ok           compare-pe string-table size changed in b only (layout differs, sizes equal): exit 1
+ok           compare-pe string-table size changed in b only (layout differs, sizes equal) (-O): exit 1
+ok           compare-pe four bytes appended: exit 1
+ok           compare-pe four bytes appended (-O): exit 1
+ok           compare-pe 0 symbols in both, four bytes appended to b (sizes differ, layouts equal): exit 1
+ok           compare-pe 0 symbols in both, four bytes appended to b (sizes differ, layouts equal) (-O): exit 1
+ok           compare-pe export directory in .text, .text byte: exit 2
+ok           compare-pe export directory in .text, .text byte (-O): exit 2
+ok           compare-pe export directory in a CNT_CODE-only section: exit 2
+ok           compare-pe export directory in a CNT_CODE-only section (-O): exit 2
+ok           compare-pe export directory in a MEM_EXECUTE-only section: exit 2
+ok           compare-pe export directory in a MEM_EXECUTE-only section (-O): exit 2
+ok           compare-pe export directory running past its section's raw data: exit 2
+ok           compare-pe export directory running past its section's raw data (-O): exit 2
+ok           compare-pe no data directories in both, export timestamp byte: exit 1
+ok           compare-pe no data directories in both, export timestamp byte (-O): exit 1
+ok           compare-pe export directory in .bss (no raw data): exit 2
+ok           compare-pe export directory in .bss (no raw data) (-O): exit 2
+ok           compare-pe optional header too short for the checksum (section name over it): exit 2
+ok           compare-pe optional header too short for the checksum (section name over it) (-O): exit 2
+ok           compare-pe optional header too short for its 17 data directories, rebuild: exit 2
+ok           compare-pe optional header too short for its 17 data directories, rebuild (-O): exit 2
+ok           compare-pe sections overlap in the file, .text byte under the export timestamp: exit 2
+ok           compare-pe sections overlap in the file, .text byte under the export timestamp (-O): exit 2
+ok           compare-pe section raw data inside the headers: exit 2
+ok           compare-pe section raw data inside the headers (-O): exit 2
+ok           compare-pe sections overlap in memory: exit 2
+ok           compare-pe sections overlap in memory (-O): exit 2
+ok           compare-pe no MZ header: exit 2
+ok           compare-pe no MZ header (-O): exit 2
+ok           compare-pe shorter than the DOS header: exit 2
+ok           compare-pe shorter than the DOS header (-O): exit 2
+ok           compare-pe no PE signature: exit 2
+ok           compare-pe no PE signature (-O): exit 2
+ok           compare-pe unknown optional-header magic: exit 2
+ok           compare-pe unknown optional-header magic (-O): exit 2
+ok           compare-pe section runs past the end of the file: exit 2
+ok           compare-pe section runs past the end of the file (-O): exit 2
+ok           compare-pe truncated inside the section table: exit 2
+ok           compare-pe truncated inside the section table (-O): exit 2
+ok           compare-pe missing file: exit 2
+ok           compare-pe one argument: exit 2
+ok           compare-report equal: exit 0
+ok           compare-report PASS becomes FAIL: exit 1
+ok           compare-report null against absent: exit 1
+ok           compare-report empty list against absent: exit 1
+ok           compare-report empty list against empty object: exit 1
+ok           compare-report dotted key against nesting: exit 1
+ok           compare-report key "0" against index 0: exit 1
+ok           compare-report 1 against true: exit 1
+ok           compare-report 1 against 1.0: exit 1
+ok           compare-report NaN against NaN: exit 0
+ok           compare-report non-ASCII value changes: exit 1
+ok           compare-report 1e400 against 2e400: exit 1
+ok           compare-report 0.1 against 0.10000000000000000001: exit 1
+ok           compare-report duplicated key: exit 2
+ok           compare-report two duplicated keys, named in order: exit 2
+ok           compare-report malformed JSON: exit 2
+ok           compare-report nested 5000 deep: exit 2
+ok           compare-report missing file: exit 2
+ok           compare-report one argument: exit 2
+ok           compare-report difference after 200 characters printed in full: exit 1
+ok           compare-report 100,000 distinct keys within 10 s: exit 0
+ok           compare-logs identical (CRLF against LF): exit 0
+ok           compare-logs line differs: exit 1
+ok           compare-logs file only in b: exit 1
+ok           compare-logs file only in a: exit 1
+ok           compare-logs empty directory only in b: exit 1
+ok           compare-logs file in a, directory in b: exit 1
+ok           compare-logs subdirectory file differs: exit 1
+ok           compare-logs lone CR against LF: exit 1
+ok           compare-logs missing final newline: exit 1
+ok           compare-logs candidate names, masked: exit 0
+ok           compare-logs candidate names, unmasked: exit 1
+ok           compare-logs invalid UTF-8 bytes differ: exit 1
+ok           compare-logs invalid UTF-8 bytes equal: exit 0
+ok           compare-logs non-ASCII line differs: exit 1
+ok           compare-logs a empty, b has a file: exit 1
+ok           compare-logs both empty: exit 2
+unavailable  compare-logs symbolic link to differing directories: cannot make the link: [WinError 1314] A required privilege is not held by the client: 'C:\\Users\\jonat\\AppData\\Local\\Temp\\tmplmxf0rih\\s0-target-a' -> 'C:\\Users\\jonat\\AppData\\Local\\Temp\\tmplmxf0rih\\s0-a\\sub'
+unavailable  compare-logs symbolic link to the same directory: cannot make the link: [WinError 1314] A required privilege is not held by the client: 'C:\\Users\\jonat\\AppData\\Local\\Temp\\tmplmxf0rih\\s1-target-a' -> 'C:\\Users\\jonat\\AppData\\Local\\Temp\\tmplmxf0rih\\s1-a\\sub'
+ok           compare-logs junction to differing directories: exit 1
+ok           compare-logs junction to the same directory: exit 1
+skip         compare-logs unreadable subdirectory: chmod cannot remove read access on Windows
+skip         compare-logs unreadable file: chmod cannot remove read access on Windows
+ok           compare-logs long diff printed in full (80 lines): exit 1
+ok           compare-logs missing directory: exit 2
+ok           compare-logs bad mask: exit 2
+ok           compare-logs one argument: exit 2
+115 attempted: 115 as expected, 0 not; 2 skipped by design, 2 unavailable
 exit 0
 
-$ python3 -I compare-selftest.py   # WSL Ubuntu, Python 3.10.6, on a copy of the four scripts in a Linux temporary directory
-ok    compare-pe identical: expected 0, got 0
-ok    compare-pe identical (-O): expected 0, got 0
-ok    compare-pe rebuild: timestamps, checksum, symbols: expected 0, got 0
-ok    compare-pe rebuild: timestamps, checksum, symbols (-O): expected 0, got 0
-ok    compare-pe PE32 rebuild: timestamps, checksum, symbols: expected 0, got 0
-ok    compare-pe PE32 rebuild: timestamps, checksum, symbols (-O): expected 0, got 0
-ok    compare-pe one .text byte: expected 1, got 1
-ok    compare-pe one .text byte (-O): expected 1, got 1
-ok    compare-pe one .edata byte beside the export timestamp: expected 1, got 1
-ok    compare-pe one .edata byte beside the export timestamp (-O): expected 1, got 1
-ok    compare-pe section-table byte: expected 1, got 1
-ok    compare-pe section-table byte (-O): expected 1, got 1
-ok    compare-pe headers padding byte: expected 1, got 1
-ok    compare-pe headers padding byte (-O): expected 1, got 1
-ok    compare-pe symbol table absent in both (no pointer), trailing byte: expected 1, got 1
-ok    compare-pe symbol table absent in both (no pointer), trailing byte (-O): expected 1, got 1
-ok    compare-pe symbol table empty in both (0 symbols), trailing byte: expected 1, got 1
-ok    compare-pe symbol table empty in both (0 symbols), trailing byte (-O): expected 1, got 1
-ok    compare-pe 0 symbols in both, size field running to EOF, trailing byte: expected 1, got 1
-ok    compare-pe 0 symbols in both, size field running to EOF, trailing byte (-O): expected 1, got 1
-ok    compare-pe symbol table not at the end of the sections in both, symbol byte: expected 1, got 1
-ok    compare-pe symbol table not at the end of the sections in both, symbol byte (-O): expected 1, got 1
-ok    compare-pe string-table size wrong in both, symbol byte: expected 1, got 1
-ok    compare-pe string-table size wrong in both, symbol byte (-O): expected 1, got 1
-ok    compare-pe string-table size under 4 in both, symbol byte: expected 1, got 1
-ok    compare-pe string-table size under 4 in both, symbol byte (-O): expected 1, got 1
-ok    compare-pe four bytes appended: expected 1, got 1
-ok    compare-pe four bytes appended (-O): expected 1, got 1
-ok    compare-pe export directory in .text, .text byte: expected 2, got 2
-ok    compare-pe export directory in .text, .text byte (-O): expected 2, got 2
-ok    compare-pe export directory in a CNT_CODE-only section: expected 2, got 2
-ok    compare-pe export directory in a CNT_CODE-only section (-O): expected 2, got 2
-ok    compare-pe export directory in a MEM_EXECUTE-only section: expected 2, got 2
-ok    compare-pe export directory in a MEM_EXECUTE-only section (-O): expected 2, got 2
-ok    compare-pe no data directories in both, export timestamp byte: expected 1, got 1
-ok    compare-pe no data directories in both, export timestamp byte (-O): expected 1, got 1
-ok    compare-pe export directory in .bss (no raw data): expected 2, got 2
-ok    compare-pe export directory in .bss (no raw data) (-O): expected 2, got 2
-ok    compare-pe no MZ header: expected 2, got 2
-ok    compare-pe no MZ header (-O): expected 2, got 2
-ok    compare-pe no PE signature: expected 2, got 2
-ok    compare-pe no PE signature (-O): expected 2, got 2
-ok    compare-pe unknown optional-header magic: expected 2, got 2
-ok    compare-pe unknown optional-header magic (-O): expected 2, got 2
-ok    compare-pe section runs past the end of the file: expected 2, got 2
-ok    compare-pe section runs past the end of the file (-O): expected 2, got 2
-ok    compare-pe truncated inside the section table: expected 2, got 2
-ok    compare-pe truncated inside the section table (-O): expected 2, got 2
-ok    compare-pe missing file: expected 2, got 2
-ok    compare-report equal: expected 0, got 0
-ok    compare-report PASS becomes FAIL: expected 1, got 1
-ok    compare-report null against absent: expected 1, got 1
-ok    compare-report empty list against absent: expected 1, got 1
-ok    compare-report empty list against empty object: expected 1, got 1
-ok    compare-report dotted key against nesting: expected 1, got 1
-ok    compare-report key "0" against index 0: expected 1, got 1
-ok    compare-report 1 against true: expected 1, got 1
-ok    compare-report 1 against 1.0: expected 1, got 1
-ok    compare-report NaN against NaN: expected 0, got 0
-ok    compare-report non-ASCII value changes: expected 1, got 1
-ok    compare-report 1e400 against 2e400: expected 1, got 1
-ok    compare-report 0.1 against 0.10000000000000000001: expected 1, got 1
-ok    compare-report duplicated key: expected 2, got 2
-ok    compare-report malformed JSON: expected 2, got 2
-ok    compare-report nested 5000 deep: expected 2, got 2
-ok    compare-report missing file: expected 2, got 2
-ok    compare-report difference after 200 characters printed in full: expected (1, True), got (1, True)
-ok    compare-logs identical (CRLF against LF): expected 0, got 0
-ok    compare-logs line differs: expected 1, got 1
-ok    compare-logs file only in b: expected 1, got 1
-ok    compare-logs file only in a: expected 1, got 1
-ok    compare-logs empty directory only in b: expected 1, got 1
-ok    compare-logs subdirectory file differs: expected 1, got 1
-ok    compare-logs lone CR against LF: expected 1, got 1
-ok    compare-logs missing final newline: expected 1, got 1
-ok    compare-logs candidate names, masked: expected 0, got 0
-ok    compare-logs candidate names, unmasked: expected 1, got 1
-ok    compare-logs invalid UTF-8 bytes differ: expected 1, got 1
-ok    compare-logs non-ASCII line differs: expected 1, got 1
-ok    compare-logs a empty, b has a file: expected 1, got 1
-ok    compare-logs both empty: expected 2, got 2
-ok    compare-logs linked subdirectories that differ: expected 1, got 1
-ok    compare-logs unreadable subdirectory: expected 2, got 2
-ok    compare-logs long diff printed in full (80 lines): expected (1, 80), got (1, 80)
-ok    compare-logs missing directory: expected 2, got 2
-ok    compare-logs bad mask: expected 2, got 2
-86 of 86 cases as expected
+$ python -I reference/pr59-candidate-identity/compare-selftest.py --strict   # Windows: the two symbolic-link cases are unavailable without the privilege, so --strict fails (last line shown)
+115 attempted: 115 as expected, 0 not; 2 skipped by design, 2 unavailable (--strict: these fail the run)
+exit 1
+
+$ python3 -I reference/pr59-candidate-identity/compare-selftest.py --strict   # WSL Ubuntu, Python 3.10.6, uid 1000, on this worktree (/mnt/e/...)
+ok           compare-pe identical: exit 0
+ok           compare-pe identical (-O): exit 0
+ok           compare-pe rebuild: timestamps, checksum, symbols: exit 0
+ok           compare-pe rebuild: timestamps, checksum, symbols (-O): exit 0
+ok           compare-pe PE32 rebuild: timestamps, checksum, symbols: exit 0
+ok           compare-pe PE32 rebuild: timestamps, checksum, symbols (-O): exit 0
+ok           compare-pe one .text byte: exit 1
+ok           compare-pe one .text byte (-O): exit 1
+ok           compare-pe one .edata byte beside the export timestamp: exit 1
+ok           compare-pe one .edata byte beside the export timestamp (-O): exit 1
+ok           compare-pe section-table byte: exit 1
+ok           compare-pe section-table byte (-O): exit 1
+ok           compare-pe section name differs only in a non-ASCII byte: exit 1
+ok           compare-pe section name differs only in a non-ASCII byte (-O): exit 1
+ok           compare-pe headers padding byte: exit 1
+ok           compare-pe headers padding byte (-O): exit 1
+ok           compare-pe symbol table absent in both (no pointer), trailing byte: exit 1
+ok           compare-pe symbol table absent in both (no pointer), trailing byte (-O): exit 1
+ok           compare-pe symbol table empty in both (0 symbols), trailing byte: exit 1
+ok           compare-pe symbol table empty in both (0 symbols), trailing byte (-O): exit 1
+ok           compare-pe 0 symbols in both, size field running to EOF, trailing byte: exit 1
+ok           compare-pe 0 symbols in both, size field running to EOF, trailing byte (-O): exit 1
+ok           compare-pe symbol table not at the end of the sections in both, symbol byte: exit 1
+ok           compare-pe symbol table not at the end of the sections in both, symbol byte (-O): exit 1
+ok           compare-pe string-table size wrong in both, symbol byte: exit 1
+ok           compare-pe string-table size wrong in both, symbol byte (-O): exit 1
+ok           compare-pe string-table size under 4 in both, symbol byte: exit 1
+ok           compare-pe string-table size under 4 in both, symbol byte (-O): exit 1
+ok           compare-pe string-table size field cut short in both, symbol byte: exit 1
+ok           compare-pe string-table size field cut short in both, symbol byte (-O): exit 1
+ok           compare-pe string-table size changed in b only (layout differs, sizes equal): exit 1
+ok           compare-pe string-table size changed in b only (layout differs, sizes equal) (-O): exit 1
+ok           compare-pe four bytes appended: exit 1
+ok           compare-pe four bytes appended (-O): exit 1
+ok           compare-pe 0 symbols in both, four bytes appended to b (sizes differ, layouts equal): exit 1
+ok           compare-pe 0 symbols in both, four bytes appended to b (sizes differ, layouts equal) (-O): exit 1
+ok           compare-pe export directory in .text, .text byte: exit 2
+ok           compare-pe export directory in .text, .text byte (-O): exit 2
+ok           compare-pe export directory in a CNT_CODE-only section: exit 2
+ok           compare-pe export directory in a CNT_CODE-only section (-O): exit 2
+ok           compare-pe export directory in a MEM_EXECUTE-only section: exit 2
+ok           compare-pe export directory in a MEM_EXECUTE-only section (-O): exit 2
+ok           compare-pe export directory running past its section's raw data: exit 2
+ok           compare-pe export directory running past its section's raw data (-O): exit 2
+ok           compare-pe no data directories in both, export timestamp byte: exit 1
+ok           compare-pe no data directories in both, export timestamp byte (-O): exit 1
+ok           compare-pe export directory in .bss (no raw data): exit 2
+ok           compare-pe export directory in .bss (no raw data) (-O): exit 2
+ok           compare-pe optional header too short for the checksum (section name over it): exit 2
+ok           compare-pe optional header too short for the checksum (section name over it) (-O): exit 2
+ok           compare-pe optional header too short for its 17 data directories, rebuild: exit 2
+ok           compare-pe optional header too short for its 17 data directories, rebuild (-O): exit 2
+ok           compare-pe sections overlap in the file, .text byte under the export timestamp: exit 2
+ok           compare-pe sections overlap in the file, .text byte under the export timestamp (-O): exit 2
+ok           compare-pe section raw data inside the headers: exit 2
+ok           compare-pe section raw data inside the headers (-O): exit 2
+ok           compare-pe sections overlap in memory: exit 2
+ok           compare-pe sections overlap in memory (-O): exit 2
+ok           compare-pe no MZ header: exit 2
+ok           compare-pe no MZ header (-O): exit 2
+ok           compare-pe shorter than the DOS header: exit 2
+ok           compare-pe shorter than the DOS header (-O): exit 2
+ok           compare-pe no PE signature: exit 2
+ok           compare-pe no PE signature (-O): exit 2
+ok           compare-pe unknown optional-header magic: exit 2
+ok           compare-pe unknown optional-header magic (-O): exit 2
+ok           compare-pe section runs past the end of the file: exit 2
+ok           compare-pe section runs past the end of the file (-O): exit 2
+ok           compare-pe truncated inside the section table: exit 2
+ok           compare-pe truncated inside the section table (-O): exit 2
+ok           compare-pe missing file: exit 2
+ok           compare-pe one argument: exit 2
+ok           compare-report equal: exit 0
+ok           compare-report PASS becomes FAIL: exit 1
+ok           compare-report null against absent: exit 1
+ok           compare-report empty list against absent: exit 1
+ok           compare-report empty list against empty object: exit 1
+ok           compare-report dotted key against nesting: exit 1
+ok           compare-report key "0" against index 0: exit 1
+ok           compare-report 1 against true: exit 1
+ok           compare-report 1 against 1.0: exit 1
+ok           compare-report NaN against NaN: exit 0
+ok           compare-report non-ASCII value changes: exit 1
+ok           compare-report 1e400 against 2e400: exit 1
+ok           compare-report 0.1 against 0.10000000000000000001: exit 1
+ok           compare-report duplicated key: exit 2
+ok           compare-report two duplicated keys, named in order: exit 2
+ok           compare-report malformed JSON: exit 2
+ok           compare-report nested 5000 deep: exit 2
+ok           compare-report missing file: exit 2
+ok           compare-report one argument: exit 2
+ok           compare-report difference after 200 characters printed in full: exit 1
+ok           compare-report 100,000 distinct keys within 10 s: exit 0
+ok           compare-logs identical (CRLF against LF): exit 0
+ok           compare-logs line differs: exit 1
+ok           compare-logs file only in b: exit 1
+ok           compare-logs file only in a: exit 1
+ok           compare-logs empty directory only in b: exit 1
+ok           compare-logs file in a, directory in b: exit 1
+ok           compare-logs subdirectory file differs: exit 1
+ok           compare-logs lone CR against LF: exit 1
+ok           compare-logs missing final newline: exit 1
+ok           compare-logs candidate names, masked: exit 0
+ok           compare-logs candidate names, unmasked: exit 1
+ok           compare-logs invalid UTF-8 bytes differ: exit 1
+ok           compare-logs invalid UTF-8 bytes equal: exit 0
+ok           compare-logs non-ASCII line differs: exit 1
+ok           compare-logs a empty, b has a file: exit 1
+ok           compare-logs both empty: exit 2
+ok           compare-logs symbolic link to differing directories: exit 1
+ok           compare-logs symbolic link to the same directory: exit 1
+skip         compare-logs junction to differing directories: junctions exist only on Windows
+skip         compare-logs junction to the same directory: junctions exist only on Windows
+ok           compare-logs unreadable subdirectory: exit 2
+ok           compare-logs unreadable file: exit 2
+ok           compare-logs long diff printed in full (80 lines): exit 1
+ok           compare-logs missing directory: exit 2
+ok           compare-logs bad mask: exit 2
+ok           compare-logs one argument: exit 2
+117 attempted: 117 as expected, 0 not; 2 skipped by design, 0 unavailable
 exit 0

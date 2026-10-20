@@ -23,10 +23,11 @@ class Literal(str):
 
 
 def unique_keys(pairs):
-    keys = [k for k, _ in pairs]
-    duplicates = sorted({k for k in keys if keys.count(k) > 1})
+    seen, duplicates = set(), set()
+    for k, _ in pairs:
+        (duplicates if k in seen else seen).add(k)
     if duplicates:
-        raise ValueError(f'duplicated key(s) {duplicates}')
+        raise ValueError(f'duplicated key(s) {sorted(duplicates)}')
     return dict(pairs)
 
 

@@ -2,14 +2,17 @@
 """Compares two regression-pack logs/ directories file by file and line by line.
 
 Both trees are walked, so a file or directory present on one side only is reported. A symbolic
-link or a Windows junction is reported and not followed; an unreadable directory is an error. Before comparing, CRLF becomes LF and each --mask regular
-expression is replaced by MASKED, so that the two runs' own worktree and candidate names do not
-count as differences; the masks used are printed. No other normalisation is done: a lone CR, a
-form feed or a missing final newline is a difference. A file that is not valid UTF-8 is compared
-byte for byte, unmasked, and only reported as differing. Text diffs are printed in full.
+link or a Windows junction is reported and never entered or compared; an unreadable directory
+or file is an error. Before comparing, CRLF becomes LF and each --mask regular expression is
+replaced by MASKED, so that the two runs' own worktree and candidate names do not count as
+differences; the masks used are printed. No other normalisation is done: a lone CR, a form feed
+or a missing final newline is a difference. A file that is not valid UTF-8 is compared byte for
+byte, unmasked, and reported as the same bytes or as differing, without a diff. Text diffs are
+printed in full.
 
 Exit 0 when every file is the same after masking, 1 when any differs, is one-sided or is a link,
-2 on bad arguments, an unreadable file, or two trees with no file to compare.
+2 on bad arguments, an unreadable file or directory, or two trees with no file to compare.
+A junction is recognised by os.lstat's st_reparse_tag (Python 3.8 and later).
 
 Usage: python -I compare-logs.py <a logs dir> <b logs dir> [--mask REGEX ...]
 """
@@ -19,30 +22,37 @@ import os
 import re
 import sys
 
+MOUNT_POINT = 0xA0000003  # IO_REPARSE_TAG_MOUNT_POINT, the reparse tag of a Windows junction
+
 
 def raise_error(e):
     raise e
 
 
 def is_link(path):
-    """A symbolic link, or a Windows junction (Python 3.12 and later can tell)."""
-    return os.path.islink(path) or getattr(os.path, 'isjunction', lambda p: False)(path)
+    """A symbolic link, or a Windows junction (a mount-point reparse point)."""
+    reparse_tag = getattr(os.lstat(path), 'st_reparse_tag', 0)  # Windows only
+    return os.path.islink(path) or reparse_tag == MOUNT_POINT
 
 
 def entries(root):
-    """Every file, directory and link under root, relative and '/'-separated, mapped to its kind."""
+    """Every file, directory and link under root, relative and '/'-separated, mapped to its kind.
+
+    A linked directory is removed from the walk before it is entered."""
     found = {}
     for d, dirs, names in os.walk(root, onerror=raise_error):
+        linked = {n for n in dirs + names if is_link(os.path.join(d, n))}
         for n in dirs + names:
-            path = os.path.join(d, n)
-            kind = 'link' if is_link(path) else 'dir' if n in dirs else 'file'
-            found[os.path.relpath(path, root).replace(os.sep, '/')] = kind
+            kind = 'link' if n in linked else 'dir' if n in dirs else 'file'
+            found[os.path.relpath(os.path.join(d, n), root).replace(os.sep, '/')] = kind
+        dirs[:] = [n for n in dirs if n not in linked]
     return found
 
 
 def read_masked(path, masks):
     """(lines after CRLF→LF and masking, raw bytes), or (None, raw bytes) when not UTF-8."""
-    raw = open(path, 'rb').read()
+    with open(path, 'rb') as f:
+        raw = f.read()
     try:
         text = raw.decode('utf-8')
     except UnicodeDecodeError:
