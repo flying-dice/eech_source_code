@@ -1,0 +1,12 @@
+ok   the unchanged trace passes every claim
+ok   a response outside any span: path.single_route FAIL
+ok   last-to-reach set at a SUPPLY waypoint: criteria.leader_only FAIL
+ok   a wingman also asked at a SUPPLY waypoint: members.leader_only_consumed FAIL
+ok   the leader far outside the radius at its verdict: leader.state_at_verdict FAIL
+ok   the guide not advanced when the leader is told: order.guide_advances_first FAIL
+ok   a pick-up without the supplier's drop: pickup.accounting FAIL
+ok   a keysite drop-off not set to 100: dropoff.accounting FAIL
+ok   FINISH_DROP_OFF without SUCCESS: finish.completes_success FAIL
+ok   an entity named after its generation was freed: identity.generations FAIL
+ok   a truncated trace (no counters): trace.complete FAIL
+PASS

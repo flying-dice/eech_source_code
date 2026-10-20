@@ -51,6 +51,9 @@ M4: accepted baselines change only by a classified, approved and non-destructive
 [`docs/m4-baseline-governance.md`](docs/m4-baseline-governance.md).
 M5: who owns what in the SUPPLY loop, and the first dependency to hand to a host:
 [`docs/m5-supply-ownership.md`](docs/m5-supply-ownership.md).
+M5: arrival at the four SUPPLY waypoint types characterised at runtime (a test-only
+observed build that reproduces the accepted baseline exactly):
+[`docs/m5-arrival-characterisation.md`](docs/m5-arrival-characterisation.md).
 
 ## The campaign kernel spike
 

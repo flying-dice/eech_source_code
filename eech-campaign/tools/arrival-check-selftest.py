@@ -44,6 +44,12 @@ def case_last_to_reach(ev):
     first(ev, lambda e: e['e'] == 'verdict' and e['supply_task'] and e['four'])['last_to_reach'] = 1
 
 
+def case_wingman_asked(ev):
+    v = first(ev, lambda e: e['e'] == 'verdict' and e['supply_task'] and e['four'] and len(e['members']) > 1)
+    other = next(m for m in v['members'] if m['id'] != v['task_leader'])
+    v['queried'].append({'id': other['id'], 'is_task_leader': 0, 'reached': 1})
+
+
 def case_leader_far(ev):
     v, _ = span_of(ev, 'WAYPOINT_DROP_OFF')
     leader(v)['distance'] = 5000.0
@@ -92,6 +98,7 @@ def case_no_counters(ev):
 CASES = [
     ('a response outside any span', case_handler_outside, 'path.single_route'),
     ('last-to-reach set at a SUPPLY waypoint', case_last_to_reach, 'criteria.leader_only'),
+    ('a wingman also asked at a SUPPLY waypoint', case_wingman_asked, 'members.leader_only_consumed'),
     ('the leader far outside the radius at its verdict', case_leader_far, 'leader.state_at_verdict'),
     ('the guide not advanced when the leader is told', case_guide_not_advanced, 'order.guide_advances_first'),
     ('a pick-up without the supplier\'s drop', case_pickup_no_drop, 'pickup.accounting'),
@@ -128,7 +135,9 @@ def correlation_case(events, observations, tmp):
 
 
 def main():
-    events = [json.loads(l) for l in open(sys.argv[1], encoding='utf-8') if l.strip()]
+    opener = __import__('gzip').open if sys.argv[1].endswith('.gz') else open
+    with opener(sys.argv[1], 'rt', encoding='utf-8') as f:
+        events = [json.loads(l) for l in f if l.strip()]
     bad = 0
     with tempfile.TemporaryDirectory() as tmp:
         code, claims = run(events, tmp, 'unchanged')
