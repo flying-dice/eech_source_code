@@ -136,6 +136,21 @@ def main():
     claims.check('criteria.leader_only', 'At the four SUPPLY types the guide\'s criteria are: last-to-reach off (task leader only), '
                  'no waypoint action, reached radius 100 m (fixed-wing leader) or 40 m (helicopter leader)', bad, len(supply_four))
 
+    # 2b. whose physical observation the campaign consumed: at the four types, the task leader's alone, in every check
+    bad = []
+    for s in supply_four:
+        v = s['verdict']
+        q = v.get('queried')
+        if q is None:
+            bad.append({'span': v['span'], 'why': 'the trace does not record the members queried (observer without A11/A12)'})
+        elif [key(x['id']) for x in q] != [key(v['task_leader'])] or not q[0]['reached']:
+            bad.append({'span': v['span'], 't': v['t'], 'callsign': v.get('callsign'), 'members': len(v['members']), 'queried': q})
+    if counters and 'member_queries' in counters and counters['member_queries']['supply_four_other_member']:
+        bad.append({'why': f"{counters['member_queries']['supply_four_other_member']} queries of a member other than the task leader "
+                           'in checks at the four types (exit counters, all checks)'})
+    claims.check('members.leader_only_consumed', 'At the four SUPPLY types every arrival check asks the task leader, and only the task leader, '
+                 'for its per-member reach test; each verdict follows the leader\'s own answer, whatever the other members\' state', bad, len(supply_four))
+
     # 3. the task leader's own state at the verdict is consistent with its per-member test
     bad = []
     for s in supply_four:
@@ -299,8 +314,17 @@ def main():
             multi.append({'span': v['span'], 't': v['t'], 'callsign': v.get('callsign'), 'group': v['group'], 'wp': v['wp_type'],
                           'task_leader': v['task_leader'], 'group_leader': v.get('group_leader'),
                           'leader_kind': kind_of(next(m for m in v['members'] if key(m['id']) == key(v['task_leader']))),
-                          'members': len(v['members']), 'others': cf,
+                          'members': len(v['members']), 'queried': v.get('queried'), 'others': cf,
                           'all_members_would_fail': any(c['definitely_fails'] for c in cf)})
+    # the other path on the same routes: last-to-reach waypoints with more than one valid member
+    all_members_path = Counter()
+    for s in spans.values():
+        v = s['verdict']
+        if not v['supply_task'] or not v['last_to_reach'] or v.get('queried') is None:
+            continue
+        valid = {key(m['id']) for m in v['members'] if (v['valid_members'] >> m['number']) & 1}
+        asked = {key(x['id']) for x in v['queried']}
+        all_members_path[f"{v['wp_type']} | {len(valid)} valid | asked {'all valid members' if asked == valid else str(len(asked))}"] += 1
     lifetimes = Counter()
     for s in [s for s in supply_four if s['verdict']['wp_type'] == 'WAYPOINT_FINISH_DROP_OFF' and s['effect']]:
         e = s['effect']
@@ -385,6 +409,7 @@ def main():
             'supply_completions_outside_arrival_spans_by_reason': dict(completions_outside),
             'lifetimes_at_finish': dict(lifetimes),
             'freed_named_entities_by_type': dict(freed_types),
+            'last_to_reach_verdicts_on_supply_routes': dict(all_members_path),
             'multi_member_verdicts_at_the_four_types': {
                 'count': len(multi),
                 'by_leader_kind': dict(Counter(m['leader_kind'] for m in multi)),

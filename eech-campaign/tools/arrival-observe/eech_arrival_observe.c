@@ -32,7 +32,11 @@
  *   completed   a SUPPLY task's completion state was set (ts_int.c)
  *   effect      the span closed: the same entities after the consequences
  *   freed       an entity named in an earlier event was freed
- *   counters    at process exit: every arrival check and verdict, by kind
+ *   counters    at process exit: every arrival check, verdict and member query, by kind
+ *
+ * A verdict also lists the members its check asked for their per-member reach
+ * test (hooks A11, A12 in guide.c), and each answer: which members' physical
+ * observations the campaign consumed for that verdict.
  */
 
 #include "project.h"
@@ -65,6 +69,24 @@ static struct
 	unsigned long handlers_in_span, handlers_outside_span, events;
 } count;
 
+/* A11/A12: the members asked for their reach test in the guide check under way */
+#define MAX_QUERIES 32
+static struct
+{
+	entity *guide;
+	int n, overflow;
+	struct
+	{
+		entity *member;
+		int reached;
+	} q[MAX_QUERIES];
+} query;
+
+static struct
+{
+	unsigned long supply_four_leader, supply_four_other, supply_other_leader, supply_other_other, other_four, other, overflow;
+} queries;
+
 static struct
 {
 	int open, id;
@@ -82,11 +104,15 @@ static void obs_finish (void)
 	fprintf (out, "{\"e\":\"counters\",\"checks\":{\"supply_four\":%lu,\"supply_other\":%lu,\"other_four\":%lu,\"other\":%lu},"
 		"\"leaderless_checks\":{\"supply_four\":%lu,\"supply_other\":%lu},"
 		"\"verdicts\":{\"supply_four\":%lu,\"supply_other\":%lu,\"other_four\":%lu,\"other\":%lu},"
-		"\"handlers\":{\"in_span\":%lu,\"outside_span\":%lu},\"spans\":%d,\"events\":%lu}\n",
+		"\"handlers\":{\"in_span\":%lu,\"outside_span\":%lu},"
+		"\"member_queries\":{\"supply_four_task_leader\":%lu,\"supply_four_other_member\":%lu,\"supply_other_task_leader\":%lu,"
+		"\"supply_other_other_member\":%lu,\"other_four\":%lu,\"other\":%lu,\"unrecorded\":%lu},\"spans\":%d,\"events\":%lu}\n",
 		count.checks_supply_four, count.checks_supply_other, count.checks_other_four, count.checks_other,
 		count.leaderless_supply_four, count.leaderless_supply_other,
 		count.verdicts_supply_four, count.verdicts_supply_other, count.verdicts_other_four, count.verdicts_other,
-		count.handlers_in_span, count.handlers_outside_span, spans, count.events);
+		count.handlers_in_span, count.handlers_outside_span,
+		queries.supply_four_leader, queries.supply_four_other, queries.supply_other_leader, queries.supply_other_other, queries.other_four, queries.other,
+		queries.overflow, spans, count.events);
 	fclose (out);
 	out = NULL;
 }
@@ -450,14 +476,26 @@ static void obs_members (entity *guide, entity *group, entity *leader)
 int eech_observe_arrival_checked (entity *guide, int verdict)
 {
 	entity *wp, *task, *leader = NULL, *group, *dependent;
-	int wp_type, supply, four, gi, wi;
+	entity *qm[MAX_QUERIES];
+	int wp_type, supply, four, gi, wi, nq, i, qr[MAX_QUERIES];
 	if (!obs_enabled ())
 	{
 		return verdict;
 	}
+	/* the members this check asked (A11/A12), then ready for the next check */
+	nq = query.guide == guide ? query.n : 0;
+	for (i = 0; i < nq; i++)
+	{
+		qm[i] = query.q[i].member;
+		qr[i] = query.q[i].reached;
+	}
+	query.guide = NULL;
+	query.n = 0;
+
 	wp = get_local_entity_parent (guide, LIST_TYPE_CURRENT_WAYPOINT);
 	if (!wp)
 	{
+		queries.other += nq;
 		count.checks_other++;
 		if (verdict)
 		{
@@ -507,6 +545,28 @@ int eech_observe_arrival_checked (entity *guide, int verdict)
 	else
 	{
 		count.checks_other++;
+	}
+	for (i = 0; i < nq; i++)
+	{
+		if (supply)
+		{
+			if (four)
+			{
+				*(qm[i] == leader ? &queries.supply_four_leader : &queries.supply_four_other) += 1;
+			}
+			else
+			{
+				*(qm[i] == leader ? &queries.supply_other_leader : &queries.supply_other_other) += 1;
+			}
+		}
+		else if (four)
+		{
+			queries.other_four++;
+		}
+		else
+		{
+			queries.other++;
+		}
 	}
 	if (!verdict)
 	{
@@ -580,10 +640,48 @@ int eech_observe_arrival_checked (entity *guide, int verdict)
 	fprintf (out, ",\"check_action\":%d,\"valid_members\":%d,\"checks\":%d", get_local_entity_int_value (guide, INT_TYPE_CHECK_WAYPOINT_ACTION),
 		get_local_entity_int_value (guide, INT_TYPE_VALID_GUIDE_MEMBERS), gi >= 0 ? checks[gi] : -1);
 	obs_members (guide, group, leader);
+	/* who this verdict's check asked, in order, and each answer */
+	fputs (",\"queried\":[", out);
+	for (i = 0; i < nq; i++)
+	{
+		obs_track (qm[i]);
+		fprintf (out, "%s{\"id\":[%d,%u],\"is_task_leader\":%d,\"reached\":%d}", i ? "," : "", (int) get_local_entity_index (qm[i]), obs_gen_of (qm[i]),
+			qm[i] == leader, qr[i] ? 1 : 0);
+	}
+	fputc (']', out);
 	obs_holder ("dependent", dependent);
 	obs_aboard ("leader_aboard", leader);
 	obs_end_line ();
 	return verdict;
+}
+
+/*
+ * A11/A12: guide.c asks one group member for its per-member reach test; the
+ * answer is returned unchanged. Recorded for the check under way, which A1
+ * then attributes.
+ */
+int eech_observe_member_query (entity *guide, entity *member, int reached)
+{
+	if (!obs_enabled ())
+	{
+		return reached;
+	}
+	if (query.guide != guide)
+	{
+		query.guide = guide;
+		query.n = 0;
+	}
+	if (query.n < MAX_QUERIES)
+	{
+		query.q[query.n].member = member;
+		query.q[query.n].reached = reached;
+		query.n++;
+	}
+	else
+	{
+		queries.overflow++;
+	}
+	return reached;
 }
 
 /* A1: after the WAYPOINT_REACHED notification has returned */

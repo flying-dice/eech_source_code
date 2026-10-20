@@ -76,6 +76,36 @@
    "original": "static int response_to_waypoint_finish_drop_off_reached (entity_messages message, entity *receiver, entity *sender, va_list pargs)\n{\n",
    "replacement": "static int response_to_waypoint_finish_drop_off_reached (entity_messages message, entity *receiver, entity *sender, va_list pargs)\n{\n\t{ extern void eech_observe_supply_handler (int which, entity *receiver, entity *sender); eech_observe_supply_handler (3, receiver, sender); } /* EECH observe (A9), test only */\n",
    "count": 1
+  },
+  {
+   "file": "aphavoc/source/entity/special/guide/guide.c",
+   "id": "A10-member-query-declaration",
+   "why": "Declares the per-member query observer for A11 and A12.",
+   "original": "#include \"project.h\"\n",
+   "replacement": "#include \"project.h\"\n\n/* EECH observe (A10), test only */\nextern int eech_observe_member_query (entity *guide, entity *member, int reached);\n",
+   "count": 1
+  },
+  {
+   "file": "aphavoc/source/entity/special/guide/guide.c",
+   "id": "A11-member-reach-query",
+   "why": "Records which group member check_guide_reached_waypoint asks for its per-member reach test (the all-valid-members branch), and the answer, passed through unchanged: which members' physical observations the campaign consumes.",
+   "original": "if (!notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, member, en))",
+   "replacement": "if (!eech_observe_member_query (en, member, notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, member, en))) /* EECH observe (A11), test only */",
+   "count": 1,
+   "keeps": [
+    "notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, member, en)"
+   ]
+  },
+  {
+   "file": "aphavoc/source/entity/special/guide/guide.c",
+   "id": "A12-leader-reach-query",
+   "why": "Records which group member check_guide_reached_waypoint asks for its per-member reach test (the task-leader branch), and the answer, passed through unchanged: which members' physical observations the campaign consumes.",
+   "original": "if (!notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, leader, en))",
+   "replacement": "if (!eech_observe_member_query (en, leader, notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, leader, en))) /* EECH observe (A12), test only */",
+   "count": 1,
+   "keeps": [
+    "notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, leader, en)"
+   ]
   }
  ]
 }
