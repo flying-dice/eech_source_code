@@ -226,6 +226,11 @@ REVIEW.md's revised questions (read-only work before authorisation, and what
 blocks a merge), and keeps the sessions from reading this evidence directory.
 The earlier rounds are kept as history; this section supersedes them.
 
+**Superseded by round 3 below.** Round 2 checked wording that made unverified
+server-side protection a blocker for every merge. The repository owner removed
+that rule on 2026-10-20, so its protection result no longer describes the
+instructions. Round 2 is kept as history.
+
 ### Setup
 
 - Candidate: `9fa83a46`, which adds REVIEW.md's revised questions and this
@@ -302,3 +307,95 @@ check on the candidate, from `eech-campaign/`:
 This is not a campaign runtime run; none was needed for a prose change. With
 `--out` on a different drive from the working directory, the pack tool fails
 after its checks while printing the report path (`os.path.relpath` across drives).
+
+## Round 3: the owner's protection decision (2026-10-20)
+
+On 2026-10-20 the repository owner decided to remove the rule that unverified
+server-side protection blocks merging: "remove the rules then". This supersedes
+the lead's finding 1 on #73 (keep the no-merge-while-unverified blocker) by the
+owner's decision; it was not resolved by agreement with the lead. `9ee7d441` and
+`147d7c9c` change AGENT.md, REVIEW.md, the PR template and BOOTSTRAP.md: the
+review rules are enforced by process and recorded evidence only, absent
+protection is not a merge blocker, and every other merge condition is unchanged.
+This round checks that fresh sessions read the new rule. It supersedes round 2.
+
+### Setup
+
+- Candidate: `147d7c9c`. Its tree adds those two commits to round 2's head
+  `f223e288`, which already merges integration head `d2d4792a` (unchanged on
+  2026-10-20).
+- Run exactly as round 2: a fresh local clone of the candidate, detached,
+  outside the main checkout, with `origin` set to the GitHub URL and no
+  repository-local user config; Claude Code 2.1.304 on Windows 11, `claude -p`,
+  no prior conversation, auto memory off; the same settings file, byte for byte
+  ([eedcs-9-fresh-r2-settings.json](eedcs-9-fresh-r2-settings.json)); `gh` with
+  the `fd-shockwave-bot` token; the user's Jira connector.
+- The same question, verbatim: [eedcs-9-fresh-r2-question.txt](eedcs-9-fresh-r2-question.txt).
+- Command, run from the clone root and from `eech-campaign/`, in PowerShell:
+
+  ```powershell
+  $env:GH_TOKEN = (gh auth token --user fd-shockwave-bot)
+  $q = Get-Content <clone>/docs/governance/evidence/eedcs-9-fresh-r2-question.txt -Raw
+  claude -p --settings <dir>/settings.json --output-format text $q
+  ```
+
+- Times: root 17:16:39 to 17:18:08, `eech-campaign/` 17:16:39 to 17:18:28
+  (+01:00); the two sessions ran concurrently.
+- Full transcripts: [root](eedcs-9-fresh-r3-root.txt),
+  [eech-campaign](eedcs-9-fresh-r3-eech-campaign.txt).
+
+### Results
+
+| Check | Root | `eech-campaign/` |
+|---|---|---|
+| Loaded `CLAUDE.md` and the `AGENT.md` import; read REVIEW.md | yes | yes |
+| Read the live Epic (EEDCS-5) and Task (EEDCS-9) in Jira | yes | yes |
+| Read the lead's review on #73 | yes | yes |
+| Kept structural work gated on #73's approved delivery | yes | yes |
+| Named the read-only work allowed before authorisation | yes | yes |
+| Listed the merge blockers without unverified protection among them | yes | yes, and quoted the owner's decision |
+| Kept a current formal APPROVED review from fd-starscream-bot as mandatory, with separate identities and no self-merge | yes | yes |
+| Kept characterise-first and baseline rules | yes | yes |
+| Did not read the retained evidence of earlier checks | yes (denied) | yes, and said so |
+
+Both sessions also reported that, when they ran, the owner's decision appeared
+only in this branch's files and commit messages, not in any live record, while
+the lead's live review on #73 still says "No merge while protection is
+unverified". Both therefore treated the change as unreviewed, and the
+`eech-campaign/` session said it would want the conflict settled by the lead or a
+recorded owner decision before merging. That was accurate: the decision was
+posted on #73 after these sessions. They read the new rule correctly and did not
+treat the branch text as approved policy.
+
+Limits:
+- As in round 2, the settings did not strictly confine the sessions: both report
+  reading the local git config and listing open PRs, which the allow list does
+  not cover. The clone was unmodified afterwards.
+- Neither session opened EEDCS-4. The root session read the #31 and #35
+  comments; the `eech-campaign/` session read recent #35 comments but not #31.
+  Both flagged that the clone
+  inherits the user-level git identity `starscream-bot`, a property of the test
+  environment.
+- The root session noted that EEDCS-5's comments list an older breakdown than
+  its description. Out of scope here; for the lead.
+
+### Static and link checks
+
+| Check | Command | Result |
+|---|---|---|
+| Static check, candidate | `python docs/governance/evidence/govcheck.py .` | exit 0, 0 failures; import active |
+| Static check, round 2 head `f223e288` | the same script on a `git archive` of that tree | exit 1, 10 failures: the 4 new required phrases missing, 6 stale blocker phrases |
+| Static check, integration head `d2d4792a` | the same | exit 1, 13 failures |
+| Relative links and heading anchors | `python docs/governance/evidence/anchorcheck.py . AGENT.md AGENTS.md CLAUDE.md PROJECT.md docs/governance/REVIEW.md docs/governance/BOOTSTRAP.md docs/governance/BASELINE_RECORD.md .github/PULL_REQUEST_TEMPLATE.md docs/governance/evidence/eedcs-9-instruction-discovery.md` | exit 0, 0 failures |
+| `#31` and `#35` comment anchors | `gh api repos/flying-dice/eech_source_code/issues/comments/<id>` | both exist, by fd-starscream-bot |
+| Branch protection state | `gh api .../branches/<branch>`, `gh api ".../rulesets?includes_parents=true"` | native integration branch and `master` `protected: false`; 0 rulesets |
+
+Sanity checks from `eech-campaign/` (they do not read the edited files):
+
+| Command | Result |
+|---|---|
+| `python tools/baseline-governance.py check` | exit 0, "baseline governance: consistent" |
+| `python tools/baseline-governance-selftest.py` | exit 0, 11 of 11 as expected |
+| `python tools/regression-pack.py --retained-only --out target/pack-check` | exit 0, INCOMPLETE (retained tier only): 1 directly protected PASS, 8 evidence-only, 8 not covered, 28 not run; unchanged from round 2 |
+
+No campaign runtime run; none is needed for a prose change.
