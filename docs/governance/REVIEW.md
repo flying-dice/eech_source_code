@@ -113,11 +113,13 @@ accept an Epic or milestone. Record the milestone acceptance and protected basel
 
 ## Repository enforcement: by process, not server-side
 
-By the repository owner's decision of 2026-10-20 ("remove the rules then"), this
-repository has no server-side branch protection or rulesets, and none is planned.
-The review and merge rules in this file and in AGENT.md are enforced by process
-and recorded evidence only. Absent or unverified server-side protection is not a
-merge blocker, and no Task or merge requires activating or verifying it.
+By the repository owner's decision of 2026-10-20 ("remove the rules then"), the
+review and merge rules do not depend on server-side branch protection or rulesets.
+None was configured then: GitHub reported the native integration branch and
+`master` unprotected, with no rulesets. The rules in this file and in AGENT.md
+are enforced by process and recorded evidence only. Absent or unverified
+server-side protection is not a merge blocker, and no Task or merge requires
+activating or verifying it.
 
 The decision removes no other rule. The merge conditions above still apply in
 full: a current formal APPROVED review from fd-starscream-bot on the head commit,

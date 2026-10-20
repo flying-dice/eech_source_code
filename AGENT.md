@@ -128,10 +128,11 @@ Implementing agents must use a different PR-author identity from the technical
 lead. Never self-approve, self-merge, bypass rules, dismiss blocking lead feedback,
 impersonate reviewers or use another account's credentials. An identity conflict
 is a blocker, not an exemption. Rules and templates are not server enforcement.
-By the repository owner's decision (2026-10-20), this repository has no
-server-side branch protection or rulesets, so these review rules are enforced by
-process and recorded evidence only. Absent server-side protection is not a merge
-blocker, and no step requires verifying it; it never relaxes the rules above.
+By the repository owner's decision (2026-10-20), these review rules do not
+depend on server-side branch protection or rulesets, which this repository does
+not have; they are enforced by process and recorded evidence only. Absent
+server-side protection is not a merge blocker, and no step requires verifying
+it; its absence never relaxes the rules above.
 Governance itself is reviewable work.
 
 Do not close a Task when code is merely pushed or approved. Link the approved
