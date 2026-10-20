@@ -3,6 +3,10 @@
 This is a dated setup record, not live project status. Consult
 [#51](https://github.com/flying-dice/eech_source_code/issues/51),
 [#52](https://github.com/flying-dice/eech_source_code/issues/52) and their PRs.
+Both Tasks were later retired (closed `not_planned`); they are not gates. AGENT.md
+states the current entry conditions. On 2026-10-20 the repository owner decided
+that the rules do not depend on server-side protection, so its absence no longer
+blocks merging; REVIEW.md states how the rules are enforced.
 
 ## Starting point inspected on 2026-09-24
 
