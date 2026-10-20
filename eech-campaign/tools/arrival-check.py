@@ -15,8 +15,8 @@
 import argparse, gzip, json, math, sys
 from collections import Counter, defaultdict
 
-FOUR = ('PICK_UP', 'PREPARE_FOR_DROP_OFF', 'DROP_OFF', 'FINISH_DROP_OFF')
-RADIUS = {'Helicopter': 40.0, 'Fixed Wing': 100.0}   # wp_dbase.c, for the four types
+FOUR = ('WAYPOINT_PICK_UP', 'WAYPOINT_PREPARE_FOR_DROP_OFF', 'WAYPOINT_DROP_OFF', 'WAYPOINT_FINISH_DROP_OFF')
+RADIUS = {'ENTITY_TYPE_HELICOPTER': 40.0, 'ENTITY_TYPE_FIXED_WING': 100.0}   # wp_dbase.c, for the four types
 CRATE = 10.0                                          # CARGO_AMMO_SIZE, CARGO_FUEL_SIZE
 HELI_COHESION = 750.0                                 # hc_msgs.c HELICOPTER_LAST_TO_REACH_DISTANCE
 SUCCESS = 3                                           # TASK_COMPLETED_SUCCESS
@@ -64,12 +64,12 @@ def counterfactual_all_members(v):
         why = None
         if m.get('player', 0) == 0 and m.get('landed'):
             why = 'landed'
-        elif kind_of(m) == 'Helicopter':
+        elif kind_of(m) == 'ENTITY_TYPE_HELICOPTER':
             if m.get('player', 0) == 0 and (m.get('rotor_spin_up') or 0) > 0:
                 why = 'rotor not spun up'
             elif lead and lead.get('player', 0) == 0 and m.get('to_leader_2d', 0) > HELI_COHESION:
                 why = f"{m['to_leader_2d']:.0f} m from the leader (> {HELI_COHESION:.0f} m)"
-        elif kind_of(m) == 'Fixed Wing':
+        elif kind_of(m) == 'ENTITY_TYPE_FIXED_WING':
             r = v['radius']
             if m.get('distance') is not None and m.get('velocity') is not None and m['distance'] - m['velocity'] > r:
                 why = f"{m['distance']:.0f} m from its guide position (> radius {r:.0f} m + one second's travel)"
@@ -115,7 +115,7 @@ def main():
             bad.append({'t': h['t'], 'handler': h['handler'], 'why': 'outside any arrival span'})
         elif not (h.get('receiver_is_span_leader') and h.get('wp_is_span_wp')):
             bad.append({'t': h['t'], 'span': h['span'], 'why': 'not the span leader or not the span waypoint'})
-        elif h['handler'] != s['verdict']['wp_type']:
+        elif 'WAYPOINT_' + h['handler'] != s['verdict']['wp_type']:
             bad.append({'t': h['t'], 'span': h['span'], 'why': f"{h['handler']} for a {s['verdict']['wp_type']} waypoint"})
     for s in supply_four:
         if len(s['handlers']) != 1:
@@ -146,9 +146,9 @@ def main():
             why = 'the task leader is not a member of the guide\'s group'
         elif lead.get('landed'):
             why = 'leader landed'
-        elif kind_of(lead) == 'Helicopter' and ((lead.get('rotor_spin_up') or 0) > 0 or lead['distance'] > v['radius'] + EPS):
+        elif kind_of(lead) == 'ENTITY_TYPE_HELICOPTER' and ((lead.get('rotor_spin_up') or 0) > 0 or lead['distance'] > v['radius'] + EPS):
             why = f"helicopter leader at {lead['distance']} m, spin-up {lead.get('rotor_spin_up')}"
-        elif kind_of(lead) == 'Fixed Wing' and lead['distance'] - lead['velocity'] > v['radius'] + EPS:
+        elif kind_of(lead) == 'ENTITY_TYPE_FIXED_WING' and lead['distance'] - lead['velocity'] > v['radius'] + EPS:
             why = f"fixed-wing leader at {lead['distance']} m, {lead['velocity']} m/s"
         if why:
             bad.append({'span': v['span'], 't': v['t'], 'why': why})
@@ -167,14 +167,14 @@ def main():
 
     # 5. pick-up accounting
     bad, outcome = [], Counter()
-    for s in [s for s in supply_four if s['verdict']['wp_type'] == 'PICK_UP']:
+    for s in [s for s in supply_four if s['verdict']['wp_type'] == 'WAYPOINT_PICK_UP']:
         v, e = s['verdict'], s['effect']
         task = tasks.get(key(v['task']))
         want = task['cargo_type'] if task else None
         before_dep, after_dep = v.get('dependent'), e.get('dependent') if e else None
         before_ids = {key(c['id']) for c in v.get('leader_aboard') or []}
         after = e.get('leader_aboard') if e else None
-        if not before_dep or before_dep.get('type') != 'Keysite' or after is None or not after_dep:
+        if not before_dep or before_dep.get('type') != 'ENTITY_TYPE_KEYSITE' or after is None or not after_dep:
             outcome['not judged (no keysite supplier, or the leader or supplier gone)'] += 1
             continue
         crates = before_dep.get('crates', [])
@@ -200,7 +200,7 @@ def main():
 
     # 6. drop-off accounting
     bad, outcome, delivered = [], Counter(), {}
-    for s in [s for s in supply_four if s['verdict']['wp_type'] == 'DROP_OFF']:
+    for s in [s for s in supply_four if s['verdict']['wp_type'] == 'WAYPOINT_DROP_OFF']:
         v, e = s['verdict'], s['effect']
         dep, after_dep = v.get('dependent'), e.get('dependent') if e else None
         load_before = v.get('leader_aboard') or []
@@ -222,7 +222,7 @@ def main():
             continue
         delivered[tk] = True
         first = ident[0]
-        if dep['type'] == 'Keysite':
+        if dep['type'] == 'ENTITY_TYPE_KEYSITE':
             outcome['keysite requester: first crate delivered' + ('' if len(ident) == 1 else f' ({len(ident) - 1} more stay aboard)')] += 1
             crates_after = {(c[0], c[1]) for c in after_dep.get('crates', [])}
             stayed = [c for c in ident[1:] if key(c['id']) in after_ids]
@@ -240,7 +240,7 @@ def main():
 
     # 7. completion: FINISH_DROP_OFF completes the task as SUCCESS inside its own span, whatever was delivered
     bad, completion_vs_delivery = [], Counter()
-    for s in [s for s in supply_four if s['verdict']['wp_type'] == 'FINISH_DROP_OFF']:
+    for s in [s for s in supply_four if s['verdict']['wp_type'] == 'WAYPOINT_FINISH_DROP_OFF']:
         v = s['verdict']
         reasons = [c['reason'] for c in s['completion']]
         values = [c['value'] for c in s['completed']]
@@ -250,7 +250,7 @@ def main():
         completion_vs_delivery['SUCCESS, delivered at DROP_OFF' if delivered.get(tk) else
                                'SUCCESS, nothing delivered at DROP_OFF' if tk in delivered else 'SUCCESS, no DROP_OFF arrival observed'] += 1
     claims.check('finish.completes_success', 'FINISH_DROP_OFF: inside its span the task receives TASK_COMPLETED (objective message) and '
-                 'is set to SUCCESS (when still incomplete)', bad, len([s for s in supply_four if s['verdict']['wp_type'] == 'FINISH_DROP_OFF']))
+                 'is set to SUCCESS (when still incomplete)', bad, len([s for s in supply_four if s['verdict']['wp_type'] == 'WAYPOINT_FINISH_DROP_OFF']))
 
     # 8. identity: no event names an entity generation after it was freed
     bad, freed_at = [], {}
@@ -281,7 +281,12 @@ def main():
     claims.check('trace.complete', 'The trace\'s exit counters agree with its events, and no response ran outside a span', bad, 1)
 
     # facts, counted
-    route_types = Counter(' '.join(w['type'] for w in t['waypoints']) for t in tasks.values())
+    route_types = Counter(' '.join(w['type'] for w in t['waypoints']) or '(none yet)' for t in tasks.values())
+    # every waypoint a SUPPLY task's guide was judged to reach, in order: the route as flown
+    flown = defaultdict(list)
+    for s in sorted((s for s in spans.values() if s['verdict']['supply_task']), key=lambda s: s['verdict']['span']):
+        flown[key(s['verdict']['task'])].append(s['verdict']['wp_type'].replace('WAYPOINT_', ''))
+    route_flown = Counter(' > '.join(seq) for seq in flown.values())
     verdict_types = Counter((s['verdict']['wp_type'], s['verdict']['last_to_reach'],
                              kind_of(next((m for m in s['verdict']['members'] if key(m['id']) == key(s['verdict'].get('task_leader'))), {})))
                             for s in spans.values() if s['verdict']['supply_task'])
@@ -297,7 +302,7 @@ def main():
                           'members': len(v['members']), 'others': cf,
                           'all_members_would_fail': any(c['definitely_fails'] for c in cf)})
     lifetimes = Counter()
-    for s in [s for s in supply_four if s['verdict']['wp_type'] == 'FINISH_DROP_OFF' and s['effect']]:
+    for s in [s for s in supply_four if s['verdict']['wp_type'] == 'WAYPOINT_FINISH_DROP_OFF' and s['effect']]:
         e = s['effect']
         lifetimes[f"after FINISH_DROP_OFF: guide {'alive' if e['guide_alive'] else 'freed'}, task {'alive' if e['task_alive'] else 'freed'}, "
                   f"waypoint {'alive' if e['wp_alive'] else 'freed'}"] += 1
@@ -330,14 +335,16 @@ def main():
         matched, unmatched, examples = 0, [], []
         for s in supply_four:
             v, e = s['verdict'], s['effect']
-            if v['wp_type'] not in ('PICK_UP', 'DROP_OFF') or not e or not v.get('dependent') or not e.get('dependent') \
-                    or v['dependent']['type'] != 'Keysite':
+            if v['wp_type'] not in ('WAYPOINT_PICK_UP', 'WAYPOINT_DROP_OFF') or not e or not v.get('dependent') or not e.get('dependent') \
+                    or v['dependent']['type'] != 'ENTITY_TYPE_KEYSITE':
                 continue
             before, after = v['dependent'], e['dependent']
             if abs(before['ammo'] - after['ammo']) <= EPS and abs(before['fuel'] - after['fuel']) <= EPS:
                 continue
             kid = before['id'][0]
-            i = bisect.bisect_left(times, v['t'] - 1e-6)
+            # a sample printed with the verdict's own (rounded) time was taken before that frame's update:
+            # the consequence is first visible at the next sample strictly after the verdict
+            i = bisect.bisect_right(times, round(v['t'], 2) + 1e-6)
             sample = times[i] if i < len(times) else None
             ev = next((o for o in supply[kid] if sample is not None and abs(o['t'] - sample) < 0.006), None)
             ok = ev is not None and (abs((ev['ammo'] - ev['from_ammo']) - (after['ammo'] - before['ammo'])) < 0.01
@@ -357,7 +364,7 @@ def main():
                 unmatched.append(row)
         correlation = {'observations': a.observations, 'level_changing_spans': matched + len(unmatched), 'matched': matched,
                        'unmatched': unmatched[:30], 'unmatched_count': len(unmatched), 'examples': examples,
-                       'rule': 'the first 1 s observation sample at or after the verdict has a supply event for the same keysite with the same '
+                       'rule': 'the first 1 s observation sample strictly after the verdict has a supply event for the same keysite with the same '
                                'change, and a track event for the task leader in the verdict\'s group'}
         claims.check('correlation.public_path', 'Every keysite level change inside a PICK_UP or DROP_OFF span appears in the public path\'s '
                      'observations at the next 1 s sample, with the task leader tracked there in the same group', unmatched,
@@ -368,7 +375,8 @@ def main():
         'claims': claims.result,
         'facts': {
             'supply_tasks_created': len(tasks),
-            'route_at_creation': dict(route_types),
+            'waypoints_at_creation': dict(route_types),
+            'arrivals_per_task_in_order': dict(route_flown.most_common()),
             'arrival_chains_per_task': dict(chains),
             'verdicts_on_supply_tasks_by_type_last_to_reach_leader_kind': {f'{t} | last_to_reach={l} | {k}': n for (t, l, k), n in sorted(verdict_types.items(), key=str)},
             'pickup_outcomes': pickup_outcomes,
