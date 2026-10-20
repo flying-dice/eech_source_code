@@ -1,0 +1,2592 @@
+{
+ "trace": "target/observed/disc-3h/run4-georgia_retail-navigation/trace/arrivals-23268.jsonl",
+ "header": {
+  "e": "header",
+  "version": 1,
+  "pid": 23268,
+  "root": "E:/eech_source_code/.claude/worktrees/agent-a20573899785375f2/eech-campaign/target/observed/roots/georgia-c2",
+  "note": "EEDCS-11 test-only arrival observation; tools/arrival-observe"
+ },
+ "counters": {
+  "e": "counters",
+  "checks": {
+   "supply_four": 33467,
+   "supply_other": 294099,
+   "other_four": 0,
+   "other": 13532000
+  },
+  "leaderless_checks": {
+   "supply_four": 0,
+   "supply_other": 0
+  },
+  "verdicts": {
+   "supply_four": 51,
+   "supply_other": 118,
+   "other_four": 0,
+   "other": 68027
+  },
+  "handlers": {
+   "in_span": 51,
+   "outside_span": 0
+  },
+  "member_queries": {
+   "supply_four_task_leader": 33467,
+   "supply_four_other_member": 0,
+   "supply_other_task_leader": 294099,
+   "supply_other_other_member": 128736,
+   "other_four": 0,
+   "other": 13887007,
+   "unrecorded": 0
+  },
+  "spans": 169,
+  "events": 147211
+ },
+ "claims": {
+  "path.single_route": {
+   "claim": "Every PICK_UP/PREPARE_FOR_DROP_OFF/DROP_OFF/FINISH_DROP_OFF response of a mobile runs inside a guide arrival verdict (gd_updt.c -> navigation_guide_waypoint_reached -> response_to_waypoint_reached), exactly once per verdict, sent to that verdict's task leader for that waypoint",
+   "checked": 102,
+   "verdict": "PASS",
+   "failures": [],
+   "failure_count": 0
+  },
+  "criteria.leader_only": {
+   "claim": "At the four SUPPLY types the guide's criteria are: last-to-reach off (task leader only), no waypoint action, reached radius 100 m (fixed-wing leader) or 40 m (helicopter leader)",
+   "checked": 51,
+   "verdict": "PASS",
+   "failures": [],
+   "failure_count": 0
+  },
+  "members.leader_only_consumed": {
+   "claim": "At the four SUPPLY types every arrival check asks the task leader, and only the task leader, for its per-member reach test; each verdict follows the leader's own answer, whatever the other members' state",
+   "checked": 51,
+   "verdict": "PASS",
+   "failures": [],
+   "failure_count": 0
+  },
+  "leader.state_at_verdict": {
+   "claim": "At each verdict the task leader is in the guide's group, not landed, and within the radius (helicopter: rotors spun up and range <= radius; fixed wing: range - speed <= radius, the pass-through early out)",
+   "checked": 51,
+   "verdict": "PASS",
+   "failures": [],
+   "failure_count": 0
+  },
+  "order.guide_advances_first": {
+   "claim": "When the leader's response runs, its guide already has the next waypoint",
+   "checked": 51,
+   "verdict": "PASS",
+   "failures": [],
+   "failure_count": 0
+  },
+  "pickup.accounting": {
+   "claim": "PICK_UP, at the task's own supplier: with a crate there, exactly one crate (of the task's cargo type when the supplier has one, S3; else the first) moves from the supplier's stock onto the task leader, the supplier's level of that resource drops by exactly 10 and its other resource is unchanged; with none, nothing changes",
+   "checked": 15,
+   "verdict": "PASS",
+   "failures": [],
+   "failure_count": 0
+  },
+  "dropoff.accounting": {
+   "claim": "DROP_OFF, at the task's own requester, reading only the task leader's load: the requester's ammo and fuel equal the source's result exactly. A keysite takes the first identified crate into its stock and sets that resource to 100; further crates stay aboard. A group gets, for every identified crate aboard, that resource raised by KEYSITE_MINIMUM_*_SUPPLY_LEVEL x *_RESTOCK_ACCELERATOR (10 x 100) and clamped to [0, 100], and every crate stays aboard. The other resource, and everything when nothing is aboard, is unchanged",
+   "checked": 12,
+   "verdict": "PASS",
+   "failures": [],
+   "failure_count": 0
+  },
+  "finish.completes_success": {
+   "claim": "FINISH_DROP_OFF: inside its span the task receives TASK_COMPLETED (objective message) and is set to SUCCESS (when still incomplete)",
+   "checked": 12,
+   "verdict": "PASS",
+   "failures": [],
+   "failure_count": 0
+  },
+  "identity.generations": {
+   "claim": "No event names an entity [index, generation] after that generation was freed",
+   "checked": 146958,
+   "verdict": "PASS",
+   "failures": [],
+   "failure_count": 0
+  },
+  "trace.complete": {
+   "claim": "The trace's exit counters agree with its events, and no response ran outside a span",
+   "checked": 1,
+   "verdict": "PASS",
+   "failures": [],
+   "failure_count": 0
+  },
+  "correlation.public_path": {
+   "claim": "Every keysite level change inside a PICK_UP or DROP_OFF span appears in the public path's observations at the next 1 s sample, in the same direction, with the task leader tracked there in the same group",
+   "checked": 25,
+   "verdict": "PASS",
+   "failures": [],
+   "failure_count": 0
+  }
+ },
+ "facts": {
+  "supply_tasks_created": 39,
+  "waypoints_at_creation": {
+   "(none yet)": 39
+  },
+  "arrivals_per_task_in_order": {
+   "NAVIGATION > PICK_UP > NAVIGATION > NAVIGATION > NAVIGATION > PREPARE_FOR_DROP_OFF > DROP_OFF > FINISH_DROP_OFF > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > LAND": 3,
+   "NAVIGATION > PICK_UP > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > PREPARE_FOR_DROP_OFF > DROP_OFF > FINISH_DROP_OFF > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > LAND": 2,
+   "NAVIGATION > PICK_UP > NAVIGATION > PREPARE_FOR_DROP_OFF > DROP_OFF > FINISH_DROP_OFF > LAND": 2,
+   "NAVIGATION > NAVIGATION > PICK_UP > LAND": 1,
+   "NAVIGATION > PICK_UP > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > LAND": 1,
+   "NAVIGATION > PICK_UP > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > PREPARE_FOR_DROP_OFF > DROP_OFF > FINISH_DROP_OFF > NAVIGATION > NAVIGATION > LAND": 1,
+   "NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > PICK_UP > PREPARE_FOR_DROP_OFF > DROP_OFF > FINISH_DROP_OFF > NAVIGATION > NAVIGATION > LAND": 1,
+   "NAVIGATION > PICK_UP > PREPARE_FOR_DROP_OFF > DROP_OFF > FINISH_DROP_OFF > LAND": 1,
+   "NAVIGATION > NAVIGATION > PICK_UP > PREPARE_FOR_DROP_OFF > DROP_OFF > FINISH_DROP_OFF > NAVIGATION > LAND": 1,
+   "NAVIGATION > PICK_UP > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION": 1,
+   "NAVIGATION > NAVIGATION > PICK_UP > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > PREPARE_FOR_DROP_OFF > DROP_OFF > FINISH_DROP_OFF > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION > NAVIGATION": 1
+  },
+  "arrival_chains_per_task": {
+   "WAYPOINT_PICK_UP": 3,
+   "(no arrival at the four types)": 24,
+   "WAYPOINT_PICK_UP > WAYPOINT_PREPARE_FOR_DROP_OFF > WAYPOINT_DROP_OFF > WAYPOINT_FINISH_DROP_OFF": 12
+  },
+  "verdicts_on_supply_tasks_by_type_last_to_reach_leader_kind": {
+   "WAYPOINT_DROP_OFF | last_to_reach=0 | ENTITY_TYPE_HELICOPTER": 12,
+   "WAYPOINT_FINISH_DROP_OFF | last_to_reach=0 | ENTITY_TYPE_HELICOPTER": 12,
+   "WAYPOINT_LAND | last_to_reach=0 | ENTITY_TYPE_HELICOPTER": 13,
+   "WAYPOINT_NAVIGATION | last_to_reach=1 | ENTITY_TYPE_HELICOPTER": 105,
+   "WAYPOINT_PICK_UP | last_to_reach=0 | ENTITY_TYPE_HELICOPTER": 15,
+   "WAYPOINT_PREPARE_FOR_DROP_OFF | last_to_reach=0 | ENTITY_TYPE_HELICOPTER": 12
+  },
+  "pickup_outcomes": {
+   "crate of the task's type taken": 13,
+   "no crate of the task's type: the first crate taken": 2
+  },
+  "dropoff_outcomes": {
+   "keysite requester: first crate moved into its stock, its level set to 100": 9,
+   "group requester, 1 fuel crate aboard: each raises its resource by 1000, clamped to 100; every crate stays aboard": 1,
+   "keysite requester: first crate moved into its stock, its level set to 100 (1 more stay aboard)": 1,
+   "group requester, 2 fuel crates aboard: each raises its resource by 1000, clamped to 100; every crate stays aboard": 1
+  },
+  "completion_versus_delivery": {
+   "SUCCESS, requester stock raised at its DROP_OFF (crate moved into a keysite)": 10,
+   "SUCCESS, requester stock raised at its DROP_OFF": 2
+  },
+  "supply_completions_outside_arrival_spans_by_reason": {
+   "TASK_TERMINATED_OBJECTIVE_MESSAGE": 2,
+   "TASK_TERMINATED_EXPIRE_TIME_REACHED": 21
+  },
+  "supply_success_by_where_and_delivery": {
+   "outside any arrival span, TASK_TERMINATED_OBJECTIVE_MESSAGE, no DROP_OFF arrival, requester group freed in the same frame": 2,
+   "in a FINISH_DROP_OFF span, TASK_TERMINATED_OBJECTIVE_MESSAGE, requester stock raised at its DROP_OFF (crate moved into a keysite)": 10,
+   "in a FINISH_DROP_OFF span, TASK_TERMINATED_OBJECTIVE_MESSAGE, requester stock raised at its DROP_OFF": 2
+  },
+  "supply_success_without_delivery": [
+   {
+    "task": [
+     65497,
+     1
+    ],
+    "t": 1467.391,
+    "label": "outside any arrival span, TASK_TERMINATED_OBJECTIVE_MESSAGE, no DROP_OFF arrival, requester group freed in the same frame",
+    "requester": {
+     "id": [
+      55734,
+      0
+     ],
+     "type": "ENTITY_TYPE_GROUP",
+     "name": "Banshee"
+    },
+    "supplier": "KUTAISI WEST"
+   },
+   {
+    "task": [
+     65469,
+     1
+    ],
+    "t": 2852.768,
+    "label": "outside any arrival span, TASK_TERMINATED_OBJECTIVE_MESSAGE, no DROP_OFF arrival, requester group freed in the same frame",
+    "requester": {
+     "id": [
+      55101,
+      0
+     ],
+     "type": "ENTITY_TYPE_GROUP",
+     "name": "Apollo"
+    },
+    "supplier": "T'BILISI-MARNEULI"
+   }
+  ],
+  "lifetimes_at_finish": {
+   "after FINISH_DROP_OFF: guide alive, task alive, waypoint alive": 12
+  },
+  "freed_named_entities_by_type": {
+   "ENTITY_TYPE_CARGO": 115,
+   "ENTITY_TYPE_GROUP": 4,
+   "ENTITY_TYPE_GUIDE": 13,
+   "ENTITY_TYPE_WAYPOINT": 91,
+   "ENTITY_TYPE_TASK": 30,
+   "ENTITY_TYPE_HELICOPTER": 2
+  },
+  "last_to_reach_verdicts_on_supply_routes": {
+   "WAYPOINT_NAVIGATION | 2 valid | asked all valid members": 105
+  },
+  "multi_member_verdicts_at_the_four_types": {
+   "count": 51,
+   "by_leader_kind": {
+    "ENTITY_TYPE_HELICOPTER": 51
+   },
+   "where_all_members_would_have_failed": 0,
+   "verdicts": [
+    {
+     "span": 3,
+     "t": 1454.994,
+     "callsign": "Cobra",
+     "group": [
+      61839,
+      0
+     ],
+     "wp": "WAYPOINT_PICK_UP",
+     "task_leader": [
+      61853,
+      0
+     ],
+     "group_leader": [
+      61853,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61853,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61840,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 275.264,
+       "to_leader_2d": 366.964
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 6,
+     "t": 2126.334,
+     "callsign": "Eight-Ball",
+     "group": [
+      63199,
+      0
+     ],
+     "wp": "WAYPOINT_PICK_UP",
+     "task_leader": [
+      63213,
+      0
+     ],
+     "group_leader": [
+      63213,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        63213,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        63200,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 215.425,
+       "to_leader_2d": 285.657
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 9,
+     "t": 2624.603,
+     "callsign": "Lancer",
+     "group": [
+      62769,
+      0
+     ],
+     "wp": "WAYPOINT_PICK_UP",
+     "task_leader": [
+      62783,
+      0
+     ],
+     "group_leader": [
+      62783,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        62783,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        62770,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 324.144,
+       "to_leader_2d": 390.271
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 19,
+     "t": 3558.233,
+     "callsign": "Lancer",
+     "group": [
+      62769,
+      0
+     ],
+     "wp": "WAYPOINT_PREPARE_FOR_DROP_OFF",
+     "task_leader": [
+      62783,
+      0
+     ],
+     "group_leader": [
+      62783,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        62783,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        62770,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 268.271,
+       "to_leader_2d": 361.41
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 20,
+     "t": 3621.041,
+     "callsign": "Lancer",
+     "group": [
+      62769,
+      0
+     ],
+     "wp": "WAYPOINT_DROP_OFF",
+     "task_leader": [
+      62783,
+      0
+     ],
+     "group_leader": [
+      62783,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        62783,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        62770,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 269.868,
+       "to_leader_2d": 362.605
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 22,
+     "t": 3654.093,
+     "callsign": "Lancer",
+     "group": [
+      62769,
+      0
+     ],
+     "wp": "WAYPOINT_FINISH_DROP_OFF",
+     "task_leader": [
+      62783,
+      0
+     ],
+     "group_leader": [
+      62783,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        62783,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        62770,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 255.876,
+       "to_leader_2d": 349.028
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 23,
+     "t": 3665.276,
+     "callsign": "Dragon",
+     "group": [
+      61020,
+      0
+     ],
+     "wp": "WAYPOINT_PICK_UP",
+     "task_leader": [
+      61034,
+      0
+     ],
+     "group_leader": [
+      61034,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61034,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61021,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 193.443,
+       "to_leader_2d": 295.223
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 29,
+     "t": 4086.059,
+     "callsign": "Tiger-Shark",
+     "group": [
+      62715,
+      0
+     ],
+     "wp": "WAYPOINT_PICK_UP",
+     "task_leader": [
+      62729,
+      0
+     ],
+     "group_leader": [
+      62729,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        62729,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        62716,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 194.671,
+       "to_leader_2d": 297.142
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 31,
+     "t": 4216.173,
+     "callsign": "Tiger-Shark",
+     "group": [
+      62715,
+      0
+     ],
+     "wp": "WAYPOINT_PREPARE_FOR_DROP_OFF",
+     "task_leader": [
+      62729,
+      0
+     ],
+     "group_leader": [
+      62729,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        62729,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        62716,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 260.428,
+       "to_leader_2d": 353.498
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 33,
+     "t": 4281.816,
+     "callsign": "Tiger-Shark",
+     "group": [
+      62715,
+      0
+     ],
+     "wp": "WAYPOINT_DROP_OFF",
+     "task_leader": [
+      62729,
+      0
+     ],
+     "group_leader": [
+      62729,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        62729,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        62716,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 179.668,
+       "to_leader_2d": 276.767
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 35,
+     "t": 4317.277,
+     "callsign": "Tiger-Shark",
+     "group": [
+      62715,
+      0
+     ],
+     "wp": "WAYPOINT_FINISH_DROP_OFF",
+     "task_leader": [
+      62729,
+      0
+     ],
+     "group_leader": [
+      62729,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        62729,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        62716,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 246.011,
+       "to_leader_2d": 339.564
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 40,
+     "t": 4587.517,
+     "callsign": "Phoenix",
+     "group": [
+      61047,
+      0
+     ],
+     "wp": "WAYPOINT_PICK_UP",
+     "task_leader": [
+      61061,
+      0
+     ],
+     "group_leader": [
+      61061,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61061,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61048,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 271.516,
+       "to_leader_2d": 363.377
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 41,
+     "t": 4689.916,
+     "callsign": "Dragon",
+     "group": [
+      61020,
+      0
+     ],
+     "wp": "WAYPOINT_PREPARE_FOR_DROP_OFF",
+     "task_leader": [
+      61034,
+      0
+     ],
+     "group_leader": [
+      61034,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61034,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61021,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 209.913,
+       "to_leader_2d": 305.27
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 43,
+     "t": 4752.769,
+     "callsign": "Dragon",
+     "group": [
+      61020,
+      0
+     ],
+     "wp": "WAYPOINT_DROP_OFF",
+     "task_leader": [
+      61034,
+      0
+     ],
+     "group_leader": [
+      61034,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61034,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61021,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 270.63,
+       "to_leader_2d": 362.755
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 44,
+     "t": 4755.16,
+     "callsign": "Lima",
+     "group": [
+      61420,
+      0
+     ],
+     "wp": "WAYPOINT_PICK_UP",
+     "task_leader": [
+      61434,
+      0
+     ],
+     "group_leader": [
+      61434,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61434,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61421,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 221.133,
+       "to_leader_2d": 279.282
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 45,
+     "t": 4757.251,
+     "callsign": "Phoenix",
+     "group": [
+      61047,
+      0
+     ],
+     "wp": "WAYPOINT_PREPARE_FOR_DROP_OFF",
+     "task_leader": [
+      61061,
+      0
+     ],
+     "group_leader": [
+      61061,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61061,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61048,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 267.828,
+       "to_leader_2d": 359.893
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 46,
+     "t": 4787.234,
+     "callsign": "Dragon",
+     "group": [
+      61020,
+      0
+     ],
+     "wp": "WAYPOINT_FINISH_DROP_OFF",
+     "task_leader": [
+      61034,
+      0
+     ],
+     "group_leader": [
+      61034,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61034,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61021,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 268.24,
+       "to_leader_2d": 360.607
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 47,
+     "t": 4819.806,
+     "callsign": "Phoenix",
+     "group": [
+      61047,
+      0
+     ],
+     "wp": "WAYPOINT_DROP_OFF",
+     "task_leader": [
+      61061,
+      0
+     ],
+     "group_leader": [
+      61061,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61061,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61048,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 271.375,
+       "to_leader_2d": 363.239
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 48,
+     "t": 4853.375,
+     "callsign": "Phoenix",
+     "group": [
+      61047,
+      0
+     ],
+     "wp": "WAYPOINT_FINISH_DROP_OFF",
+     "task_leader": [
+      61061,
+      0
+     ],
+     "group_leader": [
+      61061,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61061,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61048,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 258.585,
+       "to_leader_2d": 351.184
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 56,
+     "t": 5402.023,
+     "callsign": "Sundown",
+     "group": [
+      61812,
+      0
+     ],
+     "wp": "WAYPOINT_PICK_UP",
+     "task_leader": [
+      61826,
+      0
+     ],
+     "group_leader": [
+      61826,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61826,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61813,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 274.081,
+       "to_leader_2d": 365.809
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 57,
+     "t": 5455.414,
+     "callsign": "Sundown",
+     "group": [
+      61812,
+      0
+     ],
+     "wp": "WAYPOINT_PREPARE_FOR_DROP_OFF",
+     "task_leader": [
+      61826,
+      0
+     ],
+     "group_leader": [
+      61826,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61826,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61813,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 271.944,
+       "to_leader_2d": 363.792
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 58,
+     "t": 5515.578,
+     "callsign": "Sundown",
+     "group": [
+      61812,
+      0
+     ],
+     "wp": "WAYPOINT_DROP_OFF",
+     "task_leader": [
+      61826,
+      0
+     ],
+     "group_leader": [
+      61826,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61826,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61813,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 275.459,
+       "to_leader_2d": 367.09
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 59,
+     "t": 5556.318,
+     "callsign": "Sundown",
+     "group": [
+      61812,
+      0
+     ],
+     "wp": "WAYPOINT_FINISH_DROP_OFF",
+     "task_leader": [
+      61826,
+      0
+     ],
+     "group_leader": [
+      61826,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61826,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61813,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 98.216,
+       "to_leader_2d": 202.28
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 68,
+     "t": 5977.566,
+     "callsign": "Lima",
+     "group": [
+      61420,
+      0
+     ],
+     "wp": "WAYPOINT_PREPARE_FOR_DROP_OFF",
+     "task_leader": [
+      61434,
+      0
+     ],
+     "group_leader": [
+      61434,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61434,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61421,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 266.208,
+       "to_leader_2d": 358.045
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 70,
+     "t": 6038.128,
+     "callsign": "Lima",
+     "group": [
+      61420,
+      0
+     ],
+     "wp": "WAYPOINT_DROP_OFF",
+     "task_leader": [
+      61434,
+      0
+     ],
+     "group_leader": [
+      61434,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61434,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61421,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 274.716,
+       "to_leader_2d": 365.781
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 72,
+     "t": 6069.605,
+     "callsign": "Lima",
+     "group": [
+      61420,
+      0
+     ],
+     "wp": "WAYPOINT_FINISH_DROP_OFF",
+     "task_leader": [
+      61434,
+      0
+     ],
+     "group_leader": [
+      61434,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61434,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61421,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 272.784,
+       "to_leader_2d": 363.985
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 74,
+     "t": 6231.57,
+     "callsign": "Tiger-Shark",
+     "group": [
+      62715,
+      0
+     ],
+     "wp": "WAYPOINT_PICK_UP",
+     "task_leader": [
+      62729,
+      0
+     ],
+     "group_leader": [
+      62729,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        62729,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        62716,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 197.819,
+       "to_leader_2d": 262.973
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 84,
+     "t": 7193.697,
+     "callsign": "Cobra",
+     "group": [
+      61839,
+      0
+     ],
+     "wp": "WAYPOINT_PICK_UP",
+     "task_leader": [
+      61853,
+      0
+     ],
+     "group_leader": [
+      61853,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61853,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61840,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 273.028,
+       "to_leader_2d": 364.728
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 89,
+     "t": 7441.425,
+     "callsign": "Phoenix",
+     "group": [
+      61047,
+      0
+     ],
+     "wp": "WAYPOINT_PICK_UP",
+     "task_leader": [
+      61061,
+      0
+     ],
+     "group_leader": [
+      61061,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61061,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61048,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 245.982,
+       "to_leader_2d": 341.524
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 90,
+     "t": 7447.402,
+     "callsign": "Cowboy",
+     "group": [
+      61393,
+      0
+     ],
+     "wp": "WAYPOINT_PICK_UP",
+     "task_leader": [
+      61407,
+      0
+     ],
+     "group_leader": [
+      61407,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61407,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61394,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 261.188,
+       "to_leader_2d": 297.846
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 95,
+     "t": 7597.214,
+     "callsign": "Sundown",
+     "group": [
+      61812,
+      0
+     ],
+     "wp": "WAYPOINT_PICK_UP",
+     "task_leader": [
+      61826,
+      0
+     ],
+     "group_leader": [
+      61826,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61826,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61813,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 250.081,
+       "to_leader_2d": 340.179
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 96,
+     "t": 7623.312,
+     "callsign": "Dragon",
+     "group": [
+      61020,
+      0
+     ],
+     "wp": "WAYPOINT_PICK_UP",
+     "task_leader": [
+      61034,
+      0
+     ],
+     "group_leader": [
+      61034,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61034,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61021,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 244.712,
+       "to_leader_2d": 338.617
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 103,
+     "t": 7909.888,
+     "callsign": "Sundown",
+     "group": [
+      61812,
+      0
+     ],
+     "wp": "WAYPOINT_PREPARE_FOR_DROP_OFF",
+     "task_leader": [
+      61826,
+      0
+     ],
+     "group_leader": [
+      61826,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61826,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61813,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 184.384,
+       "to_leader_2d": 280.984
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 104,
+     "t": 7970.351,
+     "callsign": "Sundown",
+     "group": [
+      61812,
+      0
+     ],
+     "wp": "WAYPOINT_DROP_OFF",
+     "task_leader": [
+      61826,
+      0
+     ],
+     "group_leader": [
+      61826,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61826,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61813,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 274.425,
+       "to_leader_2d": 365.886
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 106,
+     "t": 8002.625,
+     "callsign": "Sundown",
+     "group": [
+      61812,
+      0
+     ],
+     "wp": "WAYPOINT_FINISH_DROP_OFF",
+     "task_leader": [
+      61826,
+      0
+     ],
+     "group_leader": [
+      61826,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61826,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61813,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 272.117,
+       "to_leader_2d": 363.56
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 118,
+     "t": 8465.509,
+     "callsign": "Phoenix",
+     "group": [
+      61047,
+      0
+     ],
+     "wp": "WAYPOINT_PREPARE_FOR_DROP_OFF",
+     "task_leader": [
+      61061,
+      0
+     ],
+     "group_leader": [
+      61061,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61061,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61048,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 208.935,
+       "to_leader_2d": 304.327
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 119,
+     "t": 8528.362,
+     "callsign": "Phoenix",
+     "group": [
+      61047,
+      0
+     ],
+     "wp": "WAYPOINT_DROP_OFF",
+     "task_leader": [
+      61061,
+      0
+     ],
+     "group_leader": [
+      61061,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61061,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61048,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 270.565,
+       "to_leader_2d": 362.703
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 122,
+     "t": 8562.827,
+     "callsign": "Phoenix",
+     "group": [
+      61047,
+      0
+     ],
+     "wp": "WAYPOINT_FINISH_DROP_OFF",
+     "task_leader": [
+      61061,
+      0
+     ],
+     "group_leader": [
+      61061,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61061,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61048,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 268.219,
+       "to_leader_2d": 360.589
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 124,
+     "t": 8648.591,
+     "callsign": "Dragon",
+     "group": [
+      61020,
+      0
+     ],
+     "wp": "WAYPOINT_PREPARE_FOR_DROP_OFF",
+     "task_leader": [
+      61034,
+      0
+     ],
+     "group_leader": [
+      61034,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61034,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61021,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 209.96,
+       "to_leader_2d": 305.283
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 125,
+     "t": 8666.321,
+     "callsign": "Cobra",
+     "group": [
+      61839,
+      0
+     ],
+     "wp": "WAYPOINT_PREPARE_FOR_DROP_OFF",
+     "task_leader": [
+      61853,
+      0
+     ],
+     "group_leader": [
+      61853,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61853,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61840,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 103.367,
+       "to_leader_2d": 207.718
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 127,
+     "t": 8699.69,
+     "callsign": "Lima",
+     "group": [
+      61420,
+      0
+     ],
+     "wp": "WAYPOINT_PICK_UP",
+     "task_leader": [
+      61434,
+      0
+     ],
+     "group_leader": [
+      61434,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61434,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61421,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 221.854,
+       "to_leader_2d": 281.658
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 128,
+     "t": 8711.444,
+     "callsign": "Dragon",
+     "group": [
+      61020,
+      0
+     ],
+     "wp": "WAYPOINT_DROP_OFF",
+     "task_leader": [
+      61034,
+      0
+     ],
+     "group_leader": [
+      61034,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61034,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61021,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 270.63,
+       "to_leader_2d": 362.755
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 129,
+     "t": 8714.831,
+     "callsign": "Cowboy",
+     "group": [
+      61393,
+      0
+     ],
+     "wp": "WAYPOINT_PREPARE_FOR_DROP_OFF",
+     "task_leader": [
+      61407,
+      0
+     ],
+     "group_leader": [
+      61407,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61407,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61394,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 260.138,
+       "to_leader_2d": 352.43
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 130,
+     "t": 8745.909,
+     "callsign": "Dragon",
+     "group": [
+      61020,
+      0
+     ],
+     "wp": "WAYPOINT_FINISH_DROP_OFF",
+     "task_leader": [
+      61034,
+      0
+     ],
+     "group_leader": [
+      61034,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61034,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61021,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 268.24,
+       "to_leader_2d": 360.607
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 131,
+     "t": 8747.802,
+     "callsign": "Cobra",
+     "group": [
+      61839,
+      0
+     ],
+     "wp": "WAYPOINT_DROP_OFF",
+     "task_leader": [
+      61853,
+      0
+     ],
+     "group_leader": [
+      61853,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61853,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61840,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 265.571,
+       "to_leader_2d": 358.304
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 132,
+     "t": 8777.983,
+     "callsign": "Cowboy",
+     "group": [
+      61393,
+      0
+     ],
+     "wp": "WAYPOINT_DROP_OFF",
+     "task_leader": [
+      61407,
+      0
+     ],
+     "group_leader": [
+      61407,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61407,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61394,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 269.99,
+       "to_leader_2d": 361.406
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 133,
+     "t": 8782.067,
+     "callsign": "Cobra",
+     "group": [
+      61839,
+      0
+     ],
+     "wp": "WAYPOINT_FINISH_DROP_OFF",
+     "task_leader": [
+      61853,
+      0
+     ],
+     "group_leader": [
+      61853,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61853,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61840,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 209.887,
+       "to_leader_2d": 305.4
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 134,
+     "t": 8810.854,
+     "callsign": "Cowboy",
+     "group": [
+      61393,
+      0
+     ],
+     "wp": "WAYPOINT_FINISH_DROP_OFF",
+     "task_leader": [
+      61407,
+      0
+     ],
+     "group_leader": [
+      61407,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61407,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61394,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 268.099,
+       "to_leader_2d": 359.712
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 142,
+     "t": 9139.665,
+     "callsign": "Lima",
+     "group": [
+      61420,
+      0
+     ],
+     "wp": "WAYPOINT_PREPARE_FOR_DROP_OFF",
+     "task_leader": [
+      61434,
+      0
+     ],
+     "group_leader": [
+      61434,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61434,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61421,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 130.333,
+       "to_leader_2d": 231.876
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 143,
+     "t": 9229.214,
+     "callsign": "Lima",
+     "group": [
+      61420,
+      0
+     ],
+     "wp": "WAYPOINT_DROP_OFF",
+     "task_leader": [
+      61434,
+      0
+     ],
+     "group_leader": [
+      61434,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61434,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61421,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 269.265,
+       "to_leader_2d": 361.576
+      }
+     ],
+     "all_members_would_fail": false
+    },
+    {
+     "span": 147,
+     "t": 9305.515,
+     "callsign": "Lima",
+     "group": [
+      61420,
+      0
+     ],
+     "wp": "WAYPOINT_FINISH_DROP_OFF",
+     "task_leader": [
+      61434,
+      0
+     ],
+     "group_leader": [
+      61434,
+      0
+     ],
+     "leader_kind": "ENTITY_TYPE_HELICOPTER",
+     "members": 2,
+     "queried": [
+      {
+       "id": [
+        61434,
+        0
+       ],
+       "is_task_leader": 1,
+       "reached": 1
+      }
+     ],
+     "others": [
+      {
+       "member": [
+        61421,
+        0
+       ],
+       "definitely_fails": false,
+       "why": null,
+       "distance": 154.397,
+       "to_leader_2d": 254.18
+      }
+     ],
+     "all_members_would_fail": false
+    }
+   ]
+  }
+ },
+ "correlation": {
+  "observations": "target/observed/disc-3h/run4-georgia_retail-navigation/observations.jsonl",
+  "level_changing_spans": 25,
+  "matched": 25,
+  "matched_exactly": 25,
+  "matched_with_other_change_in_sample": [],
+  "unmatched": [],
+  "unmatched_count": 0,
+  "examples": [
+   {
+    "span": 3,
+    "wp": "WAYPOINT_PICK_UP",
+    "t": 1454.994,
+    "sample": 1455.69,
+    "keysite": "KUTAISI WEST",
+    "trace_change": {
+     "ammo": 0.0,
+     "fuel": -10.0
+    },
+    "observed_supply_event": {
+     "t": 1455.69,
+     "ev": "supply",
+     "id": 48234,
+     "ammo": 95.0,
+     "fuel": 80.0,
+     "from_ammo": 95.0,
+     "from_fuel": 90.0
+    },
+    "residual": 0.0,
+    "leader": 61853,
+    "leader_tracked_at_sample": true,
+    "leader_group_matches": true,
+    "leader_to_keysite_2d_m": 4.7
+   },
+   {
+    "span": 6,
+    "wp": "WAYPOINT_PICK_UP",
+    "t": 2126.334,
+    "sample": 2126.43,
+    "keysite": "T'BILISI-MARNEULI",
+    "trace_change": {
+     "ammo": 0.0,
+     "fuel": -10.0
+    },
+    "observed_supply_event": {
+     "t": 2126.43,
+     "ev": "supply",
+     "id": 43321,
+     "ammo": 93.0,
+     "fuel": 76.0,
+     "from_ammo": 93.0,
+     "from_fuel": 86.0
+    },
+    "residual": 0.0,
+    "leader": 63213,
+    "leader_tracked_at_sample": true,
+    "leader_group_matches": true,
+    "leader_to_keysite_2d_m": 37.5
+   },
+   {
+    "span": 9,
+    "wp": "WAYPOINT_PICK_UP",
+    "t": 2624.603,
+    "sample": 2624.7,
+    "keysite": "T'BILISI-SOGANLUG",
+    "trace_change": {
+     "ammo": 0.0,
+     "fuel": -10.0
+    },
+    "observed_supply_event": {
+     "t": 2624.7,
+     "ev": "supply",
+     "id": 44693,
+     "ammo": 91.4,
+     "fuel": 72.8,
+     "from_ammo": 91.4,
+     "from_fuel": 82.8
+    },
+    "residual": 0.0,
+    "leader": 62783,
+    "leader_tracked_at_sample": true,
+    "leader_group_matches": true,
+    "leader_to_keysite_2d_m": 19.7
+   },
+   {
+    "span": 20,
+    "wp": "WAYPOINT_DROP_OFF",
+    "t": 3621.041,
+    "sample": 3621.24,
+    "keysite": "T'BILISI-MARNEULI",
+    "trace_change": {
+     "ammo": 0.0,
+     "fuel": 34.0
+    },
+    "observed_supply_event": {
+     "t": 3621.24,
+     "ev": "supply",
+     "id": 43321,
+     "ammo": 88.0,
+     "fuel": 100.0,
+     "from_ammo": 88.0,
+     "from_fuel": 66.0
+    },
+    "residual": 0.0,
+    "leader": 62783,
+    "leader_tracked_at_sample": true,
+    "leader_group_matches": true,
+    "leader_to_keysite_2d_m": 28.3
+   },
+   {
+    "span": 23,
+    "wp": "WAYPOINT_PICK_UP",
+    "t": 3665.276,
+    "sample": 3666.18,
+    "keysite": "MIKHA-TSKHAKAYA",
+    "trace_change": {
+     "ammo": -10.0,
+     "fuel": 0.0
+    },
+    "observed_supply_event": {
+     "t": 3666.18,
+     "ev": "supply",
+     "id": 48005,
+     "ammo": 77.8,
+     "fuel": 75.6,
+     "from_ammo": 87.8,
+     "from_fuel": 75.6
+    },
+    "residual": 0.0,
+    "leader": 61034,
+    "leader_tracked_at_sample": true,
+    "leader_group_matches": true,
+    "leader_to_keysite_2d_m": 19.5
+   },
+   {
+    "span": 29,
+    "wp": "WAYPOINT_PICK_UP",
+    "t": 4086.059,
+    "sample": 4086.56,
+    "keysite": "T'BILISI-SOGANLUG",
+    "trace_change": {
+     "ammo": 0.0,
+     "fuel": -10.0
+    },
+    "observed_supply_event": {
+     "t": 4086.56,
+     "ev": "supply",
+     "id": 44693,
+     "ammo": 86.4,
+     "fuel": 52.8,
+     "from_ammo": 86.4,
+     "from_fuel": 62.8
+    },
+    "residual": 0.0,
+    "leader": 62729,
+    "leader_tracked_at_sample": true,
+    "leader_group_matches": true,
+    "leader_to_keysite_2d_m": 15.5
+   }
+  ],
+  "rule": "the first 1 s observation sample strictly after the verdict has a supply event for the same keysite, changing the same resource in the same direction, and a track event for the task leader in the verdict's group; how much the sample's change differs from the span's is reported, not asserted"
+ }
+}

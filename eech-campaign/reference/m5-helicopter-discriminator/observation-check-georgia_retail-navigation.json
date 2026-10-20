@@ -1,0 +1,235 @@
+{
+ "recording": "target/observed/disc-3h/run4-georgia_retail-navigation/recording.acmi",
+ "observations": "target/observed/disc-3h/run4-georgia_retail-navigation/observations.jsonl",
+ "metrics": "target/observed/disc-3h/run4-georgia_retail-navigation/metrics.json",
+ "frames": 10800,
+ "failures": 0,
+ "first_failures": [],
+ "time": {
+  "first_s": 1.0,
+  "last_s": 10770.37,
+  "sample_interval_s": {
+   "min": 0.99,
+   "max": 1.0
+  },
+  "nominal_last_s": 10800.0,
+  "session_clock_drift_s": -29.63
+ },
+ "counts": {
+  "declared air_defence": 314,
+  "declared fixed_wing": 48,
+  "declared ground_vehicle": 453,
+  "declared helicopter": 314,
+  "declared infantry": 384,
+  "declared keysite": 70,
+  "declared ship": 12,
+  "declared weapon": 1691,
+  "gone fixed_wing": 3,
+  "gone ground_vehicle": 22,
+  "gone helicopter": 66,
+  "gone infantry": 82,
+  "gone weapon": 1687,
+  "position comparisons": 262381,
+  "weapon index held by a different launcher at a snapshot": 1
+ },
+ "max_deviation": {
+  "air_defence": {
+   "x": 0.01,
+   "y": 0.05,
+   "z": 0.008,
+   "heading_deg": 0.0
+  },
+  "fixed_wing": {
+   "x": 0.127,
+   "y": 0.05,
+   "z": 0.035,
+   "heading_deg": 0.05
+  },
+  "ground_vehicle": {
+   "x": 0.01,
+   "y": 0.45,
+   "z": 0.468,
+   "heading_deg": 0.05
+  },
+  "helicopter": {
+   "x": 0.502,
+   "y": 0.53,
+   "z": 0.497,
+   "heading_deg": 0.975
+  },
+  "infantry": {
+   "x": 0.506,
+   "y": 0.1,
+   "z": 0.501,
+   "heading_deg": 1.043
+  },
+  "keysite": {
+   "x": 0.007,
+   "y": 0.05,
+   "z": 0.005,
+   "heading_deg": 0.0
+  },
+  "ship": {
+   "x": 0.007,
+   "y": 0.01,
+   "z": 0.006,
+   "heading_deg": 0.0
+  },
+  "weapon": {
+   "x": 0.01,
+   "y": 0.05,
+   "z": 0.01,
+   "heading_deg": 0.05
+  }
+ },
+ "max_pitch_roll_difference_deg": {
+  "pitch": 5.5,
+  "roll": 138.76
+ },
+ "losses": {
+  "observations": {
+   "blue air_defence": 16,
+   "blue ground_vehicle": 90,
+   "blue helicopter": 49,
+   "blue infantry": 39,
+   "red air_defence": 12,
+   "red fixed_wing": 7,
+   "red ground_vehicle": 64,
+   "red helicopter": 44,
+   "red infantry": 44
+  },
+  "recording": {
+   "blue air_defence": 16,
+   "blue ground_vehicle": 90,
+   "blue helicopter": 49,
+   "blue infantry": 39,
+   "red air_defence": 12,
+   "red fixed_wing": 7,
+   "red ground_vehicle": 64,
+   "red helicopter": 44,
+   "red infantry": 44
+  },
+  "metrics": {
+   "blue air_defence": 16,
+   "blue ground_vehicle": 90,
+   "blue helicopter": 49,
+   "blue infantry": 39,
+   "red air_defence": 12,
+   "red fixed_wing": 7,
+   "red ground_vehicle": 64,
+   "red helicopter": 44,
+   "red infantry": 44
+  }
+ },
+ "captures": {
+  "observations": {
+   "blue KEYSITE_FARP": 1
+  },
+  "recording": {
+   "blue KEYSITE_FARP": 1
+  },
+  "metrics": {
+   "blue KEYSITE_FARP": 1
+  }
+ },
+ "keysite_usable_changes": {
+  "out_of_action -> repairing": 1,
+  "repairing -> out_of_action": 1,
+  "repairing -> usable": 5,
+  "usable -> out_of_action": 4,
+  "usable -> repairing": 6
+ },
+ "keysite_state_vs_metrics": "identical at 10770 s: 70 keysites, their usable states and mean supply",
+ "keysites_moved": 0,
+ "speed_flags": {
+  "helicopter Mi-17 Hip": 66,
+  "helicopter Mi-6 Hook": 40,
+  "infantry Infantry": 7,
+  "infantry MANPAD": 3,
+  "infantry Machinegunner": 5,
+  "weapon MIM-72G Chaparral": 1
+ },
+ "speed_flag_examples": {
+  "helicopter": [
+   {
+    "speed_m_s": 1708,
+    "t": "2853.37",
+    "eech_id": 63200,
+    "jump_m": 1653
+   },
+   {
+    "speed_m_s": 1525,
+    "t": "6710.29",
+    "eech_id": 61840,
+    "jump_m": 1510
+   },
+   {
+    "speed_m_s": 1525,
+    "t": "4917.32",
+    "eech_id": 61813,
+    "jump_m": 1510
+   },
+   {
+    "speed_m_s": 1480,
+    "t": "3511.40",
+    "eech_id": 61021,
+    "jump_m": 1480
+   },
+   {
+    "speed_m_s": 1480,
+    "t": "10531.31",
+    "eech_id": 62716,
+    "jump_m": 1449
+   }
+  ],
+  "infantry": [
+   {
+    "speed_m_s": 23,
+    "t": "7212.32",
+    "eech_id": 64390,
+    "jump_m": 1
+   },
+   {
+    "speed_m_s": 23,
+    "t": "3202.85",
+    "eech_id": 64388,
+    "jump_m": 1
+   },
+   {
+    "speed_m_s": 22,
+    "t": "7238.22",
+    "eech_id": 64388,
+    "jump_m": 1
+   },
+   {
+    "speed_m_s": 22,
+    "t": "3196.86",
+    "eech_id": 64390,
+    "jump_m": 1
+   },
+   {
+    "speed_m_s": 21,
+    "t": "7190.41",
+    "eech_id": 64389,
+    "jump_m": 1
+   }
+  ],
+  "weapon": [
+   {
+    "speed_m_s": 5868,
+    "t": "7828.91",
+    "eech_id": 63545,
+    "jump_m": 5810
+   }
+  ]
+ },
+ "speed_limits_m_s": {
+  "infantry": 20,
+  "ground_vehicle": 50,
+  "air_defence": 50,
+  "ship": 30,
+  "helicopter": 150,
+  "fixed_wing": 900,
+  "weapon": 1800
+ }
+}

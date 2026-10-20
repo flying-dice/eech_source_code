@@ -1,0 +1,10 @@
+39 trials
+  WAYPOINT_DROP_OFF | last_to_reach=0: 9 leader-only
+  WAYPOINT_FINISH_DROP_OFF | last_to_reach=0: 9 leader-only
+  WAYPOINT_PICK_UP | last_to_reach=0: 12 leader-only
+  WAYPOINT_PREPARE_FOR_DROP_OFF | last_to_reach=0: 9 leader-only
+  paired WAYPOINT_DROP_OFF: 1 matched, verdict delay 0.0..0.0 s (1 with no delay)
+  paired WAYPOINT_FINISH_DROP_OFF: 1 matched, verdict delay 0.0..0.0 s (1 with no delay)
+  paired WAYPOINT_PICK_UP: 3 matched, verdict delay 0.0..0.0 s (3 with no delay)
+  paired WAYPOINT_PREPARE_FOR_DROP_OFF: 1 matched, verdict delay 0.0..0.0 s (1 with no delay)
+  paired: 33 trials without a matching ordinary verdict

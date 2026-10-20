@@ -1,0 +1,4 @@
+ok   the unchanged trace classifies as before (34 trials)
+ok   32 x all-members rewritten as the other rule -> leader-only
+ok   2 x withheld rewritten as the other rule -> leader-only
+PASS

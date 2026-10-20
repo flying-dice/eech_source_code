@@ -1,0 +1,3629 @@
+{
+ "trace": "trace-georgia_retail-navigation.jsonl.gz",
+ "header": {
+  "e": "header",
+  "version": 1,
+  "pid": 23268,
+  "root": "E:/eech_source_code/.claude/worktrees/agent-a20573899785375f2/eech-campaign/target/observed/roots/georgia-c2",
+  "note": "EEDCS-11 test-only arrival observation; tools/arrival-observe"
+ },
+ "trials": 106,
+ "by_waypoint_and_rule": {
+  "WAYPOINT_NAVIGATION | last_to_reach=1": {
+   "all-members": 105,
+   "inconclusive": 1
+  }
+ },
+ "paired_with_ordinary": {
+  "ordinary": "../m5-arrival-characterisation/arrivals-georgia.jsonl.gz",
+  "unmatched_trials": 104,
+  "delay_s_by_waypoint": {
+   "WAYPOINT_NAVIGATION": {
+    "n": 2,
+    "zero": 0,
+    "min": 110.873,
+    "max": 230.343
+   }
+  },
+  "note": "the same waypoint ([index, generation]) in the ordinary run; the controlled scenario diverges after its first hold, so later waypoints may not exist in the ordinary run or may be reached by a changed flight"
+ },
+ "per_trial": [
+  {
+   "trial": 1,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65571,
+    4
+   ],
+   "task_leader": [
+    61853,
+    0
+   ],
+   "t_start": 969.512,
+   "checks": 1311,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1109 decisive frames; fired at the first frame (1310) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 1100.48,
+   "wingman_to_leader_at_verdict_m": 745.4,
+   "asked_at_verdict": [
+    [
+     61853,
+     0
+    ],
+    [
+     61840,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": 989.607,
+   "ordinary_wingman_to_leader_m": 155.5,
+   "delay_s": 110.873
+  },
+  {
+   "trial": 2,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65571,
+    4
+   ],
+   "task_leader": [
+    61853,
+    0
+   ],
+   "t_start": 1259.042,
+   "checks": 1317,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1191 decisive frames; fired at the first frame (1316) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 1390.609,
+   "wingman_to_leader_at_verdict_m": 744.6,
+   "asked_at_verdict": [
+    [
+     61853,
+     0
+    ],
+    [
+     61840,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": 1160.266,
+   "ordinary_wingman_to_leader_m": 118.9,
+   "delay_s": 230.343
+  },
+  {
+   "trial": 3,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    68131,
+    10
+   ],
+   "task_leader": [
+    63213,
+    0
+   ],
+   "t_start": 1977.166,
+   "checks": 1313,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1189 decisive frames; fired at the first frame (1312) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 2108.26,
+   "wingman_to_leader_at_verdict_m": 744.0,
+   "asked_at_verdict": [
+    [
+     63213,
+     0
+    ],
+    [
+     63200,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 4,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    68131,
+    10
+   ],
+   "task_leader": [
+    63213,
+    0
+   ],
+   "t_start": 2332.432,
+   "checks": 1332,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1166 decisive frames; fired at the first frame (1331) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 2465.337,
+   "wingman_to_leader_at_verdict_m": 749.4,
+   "asked_at_verdict": [
+    [
+     63213,
+     0
+    ],
+    [
+     63200,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 5,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65588,
+    31
+   ],
+   "task_leader": [
+    62783,
+    0
+   ],
+   "t_start": 2478.917,
+   "checks": 1329,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1191 decisive frames; fired at the first frame (1328) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 2611.522,
+   "wingman_to_leader_at_verdict_m": 749.5,
+   "asked_at_verdict": [
+    [
+     62783,
+     0
+    ],
+    [
+     62770,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 6,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65588,
+    31
+   ],
+   "task_leader": [
+    62783,
+    0
+   ],
+   "t_start": 2665.543,
+   "checks": 1334,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1203 decisive frames; fired at the first frame (1333) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 2798.648,
+   "wingman_to_leader_at_verdict_m": 748.7,
+   "asked_at_verdict": [
+    [
+     62783,
+     0
+    ],
+    [
+     62770,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 7,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65588,
+    31
+   ],
+   "task_leader": [
+    62783,
+    0
+   ],
+   "t_start": 2841.685,
+   "checks": 1343,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1195 decisive frames; fired at the first frame (1342) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 2975.688,
+   "wingman_to_leader_at_verdict_m": 748.6,
+   "asked_at_verdict": [
+    [
+     62783,
+     0
+    ],
+    [
+     62770,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 8,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    68131,
+    10
+   ],
+   "task_leader": [
+    63213,
+    0
+   ],
+   "t_start": 2852.768,
+   "checks": 1703,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1558 decisive frames; fired at the first frame (1702) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 3022.719,
+   "wingman_to_leader_at_verdict_m": 749.9,
+   "asked_at_verdict": [
+    [
+     63213,
+     0
+    ],
+    [
+     63200,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 9,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65588,
+    31
+   ],
+   "task_leader": [
+    62783,
+    0
+   ],
+   "t_start": 3025.715,
+   "checks": 1401,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1234 decisive frames; fired at the first frame (1400) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 3165.51,
+   "wingman_to_leader_at_verdict_m": 748.9,
+   "asked_at_verdict": [
+    [
+     62783,
+     0
+    ],
+    [
+     62770,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 10,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    68131,
+    10
+   ],
+   "task_leader": [
+    63213,
+    0
+   ],
+   "t_start": 3156.023,
+   "checks": 1416,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1273 decisive frames; fired at the first frame (1415) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 3297.316,
+   "wingman_to_leader_at_verdict_m": 747.9,
+   "asked_at_verdict": [
+    [
+     63213,
+     0
+    ],
+    [
+     63200,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 11,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70169,
+    23
+   ],
+   "task_leader": [
+    61061,
+    0
+   ],
+   "t_start": 3157.421,
+   "checks": 1323,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1192 decisive frames; fired at the first frame (1322) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 3289.428,
+   "wingman_to_leader_at_verdict_m": 746.1,
+   "asked_at_verdict": [
+    [
+     61061,
+     0
+    ],
+    [
+     61048,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 12,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65588,
+    31
+   ],
+   "task_leader": [
+    62783,
+    0
+   ],
+   "t_start": 3260.87,
+   "checks": 1351,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1200 decisive frames; fired at the first frame (1350) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 3395.672,
+   "wingman_to_leader_at_verdict_m": 749.9,
+   "asked_at_verdict": [
+    [
+     62783,
+     0
+    ],
+    [
+     62770,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 13,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70169,
+    23
+   ],
+   "task_leader": [
+    61061,
+    0
+   ],
+   "t_start": 3391.977,
+   "checks": 1350,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1215 decisive frames; fired at the first frame (1349) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 3526.68,
+   "wingman_to_leader_at_verdict_m": 746.4,
+   "asked_at_verdict": [
+    [
+     61061,
+     0
+    ],
+    [
+     61048,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 14,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    68131,
+    10
+   ],
+   "task_leader": [
+    63213,
+    0
+   ],
+   "t_start": 3408.753,
+   "checks": 1314,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1161 decisive frames; fired at the first frame (1313) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 3539.86,
+   "wingman_to_leader_at_verdict_m": 743.8,
+   "asked_at_verdict": [
+    [
+     63213,
+     0
+    ],
+    [
+     63200,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 15,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    52627,
+    31
+   ],
+   "task_leader": [
+    61034,
+    0
+   ],
+   "t_start": 3510.703,
+   "checks": 1325,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1190 decisive frames; fired at the first frame (1324) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 3642.909,
+   "wingman_to_leader_at_verdict_m": 747.0,
+   "asked_at_verdict": [
+    [
+     61034,
+     0
+    ],
+    [
+     61021,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 16,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70169,
+    23
+   ],
+   "task_leader": [
+    61061,
+    0
+   ],
+   "t_start": 3571.015,
+   "checks": 1329,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1200 decisive frames; fired at the first frame (1328) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 3703.62,
+   "wingman_to_leader_at_verdict_m": 746.1,
+   "asked_at_verdict": [
+    [
+     61061,
+     0
+    ],
+    [
+     61048,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 17,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    68131,
+    10
+   ],
+   "task_leader": [
+    63213,
+    0
+   ],
+   "t_start": 3591.884,
+   "checks": 1322,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1196 decisive frames; fired at the first frame (1321) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 3723.791,
+   "wingman_to_leader_at_verdict_m": 746.0,
+   "asked_at_verdict": [
+    [
+     63213,
+     0
+    ],
+    [
+     63200,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 18,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    52627,
+    31
+   ],
+   "task_leader": [
+    61034,
+    0
+   ],
+   "t_start": 3798.98,
+   "checks": 1485,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1353 decisive frames; fired at the first frame (1484) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 3947.163,
+   "wingman_to_leader_at_verdict_m": 749.0,
+   "asked_at_verdict": [
+    [
+     61034,
+     0
+    ],
+    [
+     61021,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 19,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    68758,
+    154
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 3927.192,
+   "checks": 1387,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1252 decisive frames; fired at the first frame (1386) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 4065.589,
+   "wingman_to_leader_at_verdict_m": 749.1,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 20,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65588,
+    31
+   ],
+   "task_leader": [
+    62783,
+    0
+   ],
+   "t_start": 4062.594,
+   "checks": 1391,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1260 decisive frames; fired at the first frame (1390) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 4201.132,
+   "wingman_to_leader_at_verdict_m": 749.8,
+   "asked_at_verdict": [
+    [
+     62783,
+     0
+    ],
+    [
+     62770,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 21,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70169,
+    23
+   ],
+   "task_leader": [
+    61061,
+    0
+   ],
+   "t_start": 4097.937,
+   "checks": 1348,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1217 decisive frames; fired at the first frame (1347) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 4232.111,
+   "wingman_to_leader_at_verdict_m": 746.9,
+   "asked_at_verdict": [
+    [
+     61061,
+     0
+    ],
+    [
+     61048,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 22,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    52627,
+    31
+   ],
+   "task_leader": [
+    61034,
+    0
+   ],
+   "t_start": 4145.65,
+   "checks": 1505,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1374 decisive frames; fired at the first frame (1504) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 4295.462,
+   "wingman_to_leader_at_verdict_m": 745.0,
+   "asked_at_verdict": [
+    [
+     61034,
+     0
+    ],
+    [
+     61021,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 23,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65588,
+    31
+   ],
+   "task_leader": [
+    62783,
+    0
+   ],
+   "t_start": 4256.117,
+   "checks": 1400,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1266 decisive frames; fired at the first frame (1399) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 4395.47,
+   "wingman_to_leader_at_verdict_m": 747.2,
+   "asked_at_verdict": [
+    [
+     62783,
+     0
+    ],
+    [
+     62770,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 24,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    52627,
+    31
+   ],
+   "task_leader": [
+    61034,
+    0
+   ],
+   "t_start": 4450.953,
+   "checks": 1321,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1192 decisive frames; fired at the first frame (1320) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 4582.437,
+   "wingman_to_leader_at_verdict_m": 748.7,
+   "asked_at_verdict": [
+    [
+     61034,
+     0
+    ],
+    [
+     61021,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 25,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    69168,
+    145
+   ],
+   "task_leader": [
+    61434,
+    0
+   ],
+   "t_start": 4607.339,
+   "checks": 1317,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1164 decisive frames; fired at the first frame (1316) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 4738.425,
+   "wingman_to_leader_at_verdict_m": 747.7,
+   "asked_at_verdict": [
+    [
+     61434,
+     0
+    ],
+    [
+     61421,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 26,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    69168,
+    145
+   ],
+   "task_leader": [
+    61434,
+    0
+   ],
+   "t_start": 4831.759,
+   "checks": 1445,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1301 decisive frames; fired at the first frame (1444) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 4975.595,
+   "wingman_to_leader_at_verdict_m": 745.4,
+   "asked_at_verdict": [
+    [
+     61434,
+     0
+    ],
+    [
+     61421,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 27,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    61175,
+    125
+   ],
+   "task_leader": [
+    61826,
+    0
+   ],
+   "t_start": 4917.224,
+   "checks": 1314,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1120 decisive frames; fired at the first frame (1313) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 5048.011,
+   "wingman_to_leader_at_verdict_m": 748.3,
+   "asked_at_verdict": [
+    [
+     61826,
+     0
+    ],
+    [
+     61813,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 28,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    52627,
+    31
+   ],
+   "task_leader": [
+    61034,
+    0
+   ],
+   "t_start": 4965.734,
+   "checks": 1339,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1210 decisive frames; fired at the first frame (1338) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 5099.011,
+   "wingman_to_leader_at_verdict_m": 749.0,
+   "asked_at_verdict": [
+    [
+     61034,
+     0
+    ],
+    [
+     61021,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 29,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    69168,
+    145
+   ],
+   "task_leader": [
+    61434,
+    0
+   ],
+   "t_start": 5038.05,
+   "checks": 1329,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1185 decisive frames; fired at the first frame (1328) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 5170.332,
+   "wingman_to_leader_at_verdict_m": 743.6,
+   "asked_at_verdict": [
+    [
+     61434,
+     0
+    ],
+    [
+     61421,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 30,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    52627,
+    31
+   ],
+   "task_leader": [
+    61034,
+    0
+   ],
+   "t_start": 5194.138,
+   "checks": 1344,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1215 decisive frames; fired at the first frame (1343) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 5327.914,
+   "wingman_to_leader_at_verdict_m": 747.0,
+   "asked_at_verdict": [
+    [
+     61034,
+     0
+    ],
+    [
+     61021,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 31,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    61175,
+    125
+   ],
+   "task_leader": [
+    61826,
+    0
+   ],
+   "t_start": 5205.394,
+   "checks": 1324,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1196 decisive frames; fired at the first frame (1323) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 5337.177,
+   "wingman_to_leader_at_verdict_m": 748.5,
+   "asked_at_verdict": [
+    [
+     61826,
+     0
+    ],
+    [
+     61813,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 32,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    69168,
+    145
+   ],
+   "task_leader": [
+    61434,
+    0
+   ],
+   "t_start": 5250.218,
+   "checks": 1322,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1197 decisive frames; fired at the first frame (1321) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 5381.802,
+   "wingman_to_leader_at_verdict_m": 744.1,
+   "asked_at_verdict": [
+    [
+     61434,
+     0
+    ],
+    [
+     61421,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 33,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70169,
+    23
+   ],
+   "task_leader": [
+    61061,
+    0
+   ],
+   "t_start": 5433.4,
+   "checks": 1355,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1226 decisive frames; fired at the first frame (1354) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 5568.271,
+   "wingman_to_leader_at_verdict_m": 747.9,
+   "asked_at_verdict": [
+    [
+     61061,
+     0
+    ],
+    [
+     61048,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 34,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    69168,
+    145
+   ],
+   "task_leader": [
+    61434,
+    0
+   ],
+   "t_start": 5446.15,
+   "checks": 1316,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1192 decisive frames; fired at the first frame (1315) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 5577.136,
+   "wingman_to_leader_at_verdict_m": 745.5,
+   "asked_at_verdict": [
+    [
+     61434,
+     0
+    ],
+    [
+     61421,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 35,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70169,
+    23
+   ],
+   "task_leader": [
+    61061,
+    0
+   ],
+   "t_start": 5603.433,
+   "checks": 1349,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1195 decisive frames; fired at the first frame (1348) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 5737.707,
+   "wingman_to_leader_at_verdict_m": 746.1,
+   "asked_at_verdict": [
+    [
+     61061,
+     0
+    ],
+    [
+     61048,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 36,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    52627,
+    31
+   ],
+   "task_leader": [
+    61034,
+    0
+   ],
+   "t_start": 5623.455,
+   "checks": 1338,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1210 decisive frames; fired at the first frame (1337) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 5756.632,
+   "wingman_to_leader_at_verdict_m": 747.5,
+   "asked_at_verdict": [
+    [
+     61034,
+     0
+    ],
+    [
+     61021,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 37,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    61175,
+    125
+   ],
+   "task_leader": [
+    61826,
+    0
+   ],
+   "t_start": 5745.277,
+   "checks": 1314,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1189 decisive frames; fired at the first frame (1313) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 5876.064,
+   "wingman_to_leader_at_verdict_m": 742.8,
+   "asked_at_verdict": [
+    [
+     61826,
+     0
+    ],
+    [
+     61813,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 38,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    69168,
+    145
+   ],
+   "task_leader": [
+    61434,
+    0
+   ],
+   "t_start": 5767.789,
+   "checks": 1328,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1195 decisive frames; fired at the first frame (1327) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 5899.97,
+   "wingman_to_leader_at_verdict_m": 745.8,
+   "asked_at_verdict": [
+    [
+     61434,
+     0
+    ],
+    [
+     61421,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 39,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    52627,
+    31
+   ],
+   "task_leader": [
+    61034,
+    0
+   ],
+   "t_start": 5795.181,
+   "checks": 1414,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1278 decisive frames; fired at the first frame (1413) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 5935.929,
+   "wingman_to_leader_at_verdict_m": 748.1,
+   "asked_at_verdict": [
+    [
+     61034,
+     0
+    ],
+    [
+     61021,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 40,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 6080.363,
+   "checks": 1339,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1205 decisive frames; fired at the first frame (1338) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 6213.64,
+   "wingman_to_leader_at_verdict_m": 745.6,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 41,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 6307.273,
+   "checks": 1362,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1227 decisive frames; fired at the first frame (1361) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 6442.841,
+   "wingman_to_leader_at_verdict_m": 749.6,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 42,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    69168,
+    145
+   ],
+   "task_leader": [
+    61434,
+    0
+   ],
+   "t_start": 6409.771,
+   "checks": 1372,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1199 decisive frames; fired at the first frame (1371) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 6546.335,
+   "wingman_to_leader_at_verdict_m": 747.9,
+   "asked_at_verdict": [
+    [
+     61434,
+     0
+    ],
+    [
+     61421,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 43,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 6487.765,
+   "checks": 1394,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1264 decisive frames; fired at the first frame (1393) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 6626.521,
+   "wingman_to_leader_at_verdict_m": 747.5,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 44,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    69168,
+    145
+   ],
+   "task_leader": [
+    61434,
+    0
+   ],
+   "t_start": 6675.927,
+   "checks": 1316,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1192 decisive frames; fired at the first frame (1315) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 6806.914,
+   "wingman_to_leader_at_verdict_m": 748.1,
+   "asked_at_verdict": [
+    [
+     61434,
+     0
+    ],
+    [
+     61421,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 45,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70335,
+    101
+   ],
+   "task_leader": [
+    61853,
+    0
+   ],
+   "t_start": 6710.193,
+   "checks": 1314,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1120 decisive frames; fired at the first frame (1313) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 6840.98,
+   "wingman_to_leader_at_verdict_m": 748.3,
+   "asked_at_verdict": [
+    [
+     61853,
+     0
+    ],
+    [
+     61840,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 46,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 6760.097,
+   "checks": 1350,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1222 decisive frames; fired at the first frame (1349) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 6894.47,
+   "wingman_to_leader_at_verdict_m": 744.6,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 47,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    69168,
+    145
+   ],
+   "task_leader": [
+    61434,
+    0
+   ],
+   "t_start": 6839.386,
+   "checks": 1359,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1234 decisive frames; fired at the first frame (1358) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 6974.656,
+   "wingman_to_leader_at_verdict_m": 749.1,
+   "asked_at_verdict": [
+    [
+     61434,
+     0
+    ],
+    [
+     61421,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 48,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70335,
+    101
+   ],
+   "task_leader": [
+    61853,
+    0
+   ],
+   "t_start": 6998.363,
+   "checks": 1324,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1196 decisive frames; fired at the first frame (1323) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 7130.146,
+   "wingman_to_leader_at_verdict_m": 749.4,
+   "asked_at_verdict": [
+    [
+     61853,
+     0
+    ],
+    [
+     61840,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 49,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    69168,
+    145
+   ],
+   "task_leader": [
+    61434,
+    0
+   ],
+   "t_start": 7012.507,
+   "checks": 1393,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1231 decisive frames; fired at the first frame (1392) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 7151.164,
+   "wingman_to_leader_at_verdict_m": 745.1,
+   "asked_at_verdict": [
+    [
+     61434,
+     0
+    ],
+    [
+     61421,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 50,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 7117.695,
+   "checks": 1353,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1217 decisive frames; fired at the first frame (1352) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 7252.367,
+   "wingman_to_leader_at_verdict_m": 746.2,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 51,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65586,
+    330
+   ],
+   "task_leader": [
+    61061,
+    0
+   ],
+   "t_start": 7282.349,
+   "checks": 1331,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1201 decisive frames; fired at the first frame (1330) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 7414.83,
+   "wingman_to_leader_at_verdict_m": 746.5,
+   "asked_at_verdict": [
+    [
+     61061,
+     0
+    ],
+    [
+     61048,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 52,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    55120,
+    234
+   ],
+   "task_leader": [
+    61407,
+    0
+   ],
+   "t_start": 7297.39,
+   "checks": 1327,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1173 decisive frames; fired at the first frame (1326) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 7429.472,
+   "wingman_to_leader_at_verdict_m": 745.7,
+   "asked_at_verdict": [
+    [
+     61407,
+     0
+    ],
+    [
+     61394,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 53,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70335,
+    101
+   ],
+   "task_leader": [
+    61853,
+    0
+   ],
+   "t_start": 7333.349,
+   "checks": 1313,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1180 decisive frames; fired at the first frame (1312) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 7464.037,
+   "wingman_to_leader_at_verdict_m": 750.0,
+   "asked_at_verdict": [
+    [
+     61853,
+     0
+    ],
+    [
+     61840,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 54,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 7361.638,
+   "checks": 1403,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1268 decisive frames; fired at the first frame (1402) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 7501.291,
+   "wingman_to_leader_at_verdict_m": 746.9,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 55,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67109,
+    105
+   ],
+   "task_leader": [
+    61826,
+    0
+   ],
+   "t_start": 7439.931,
+   "checks": 1330,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1188 decisive frames; fired at the first frame (1329) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 7572.312,
+   "wingman_to_leader_at_verdict_m": 748.8,
+   "asked_at_verdict": [
+    [
+     61826,
+     0
+    ],
+    [
+     61813,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 56,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65572,
+    424
+   ],
+   "task_leader": [
+    61034,
+    0
+   ],
+   "t_start": 7464.136,
+   "checks": 1327,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1197 decisive frames; fired at the first frame (1326) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 7596.218,
+   "wingman_to_leader_at_verdict_m": 746.3,
+   "asked_at_verdict": [
+    [
+     61034,
+     0
+    ],
+    [
+     61021,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 57,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    55120,
+    234
+   ],
+   "task_leader": [
+    61407,
+    0
+   ],
+   "t_start": 7526.89,
+   "checks": 1462,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1311 decisive frames; fired at the first frame (1461) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 7672.419,
+   "wingman_to_leader_at_verdict_m": 747.4,
+   "asked_at_verdict": [
+    [
+     61407,
+     0
+    ],
+    [
+     61394,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 58,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65586,
+    330
+   ],
+   "task_leader": [
+    61061,
+    0
+   ],
+   "t_start": 7574.005,
+   "checks": 1491,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1359 decisive frames; fired at the first frame (1490) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 7722.423,
+   "wingman_to_leader_at_verdict_m": 748.2,
+   "asked_at_verdict": [
+    [
+     61061,
+     0
+    ],
+    [
+     61048,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 59,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 7655.984,
+   "checks": 1413,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1239 decisive frames; fired at the first frame (1412) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 7796.632,
+   "wingman_to_leader_at_verdict_m": 749.5,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 60,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67109,
+    105
+   ],
+   "task_leader": [
+    61826,
+    0
+   ],
+   "t_start": 7675.607,
+   "checks": 1380,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1251 decisive frames; fired at the first frame (1379) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 7812.968,
+   "wingman_to_leader_at_verdict_m": 746.6,
+   "asked_at_verdict": [
+    [
+     61826,
+     0
+    ],
+    [
+     61813,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 61,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    55120,
+    234
+   ],
+   "task_leader": [
+    61407,
+    0
+   ],
+   "t_start": 7738.66,
+   "checks": 1394,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1242 decisive frames; fired at the first frame (1393) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 7877.416,
+   "wingman_to_leader_at_verdict_m": 749.2,
+   "asked_at_verdict": [
+    [
+     61407,
+     0
+    ],
+    [
+     61394,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 62,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65572,
+    424
+   ],
+   "task_leader": [
+    61034,
+    0
+   ],
+   "t_start": 7756.091,
+   "checks": 1489,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1357 decisive frames; fired at the first frame (1488) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 7904.31,
+   "wingman_to_leader_at_verdict_m": 748.1,
+   "asked_at_verdict": [
+    [
+     61034,
+     0
+    ],
+    [
+     61021,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 63,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70335,
+    101
+   ],
+   "task_leader": [
+    61853,
+    0
+   ],
+   "t_start": 7867.753,
+   "checks": 1328,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1202 decisive frames; fired at the first frame (1327) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 7999.935,
+   "wingman_to_leader_at_verdict_m": 747.7,
+   "asked_at_verdict": [
+    [
+     61853,
+     0
+    ],
+    [
+     61840,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 64,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 7914.47,
+   "checks": 1423,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1287 decisive frames; fired at the first frame (1422) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 8056.115,
+   "wingman_to_leader_at_verdict_m": 747.6,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 65,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65586,
+    330
+   ],
+   "task_leader": [
+    61061,
+    0
+   ],
+   "t_start": 7920.646,
+   "checks": 1504,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1373 decisive frames; fired at the first frame (1503) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 8070.359,
+   "wingman_to_leader_at_verdict_m": 748.9,
+   "asked_at_verdict": [
+    [
+     61061,
+     0
+    ],
+    [
+     61048,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 66,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    55120,
+    234
+   ],
+   "task_leader": [
+    61407,
+    0
+   ],
+   "t_start": 7961.884,
+   "checks": 1327,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1196 decisive frames; fired at the first frame (1326) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 8093.966,
+   "wingman_to_leader_at_verdict_m": 747.5,
+   "asked_at_verdict": [
+    [
+     61407,
+     0
+    ],
+    [
+     61394,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 67,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70335,
+    101
+   ],
+   "task_leader": [
+    61853,
+    0
+   ],
+   "t_start": 8052.828,
+   "checks": 1327,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1200 decisive frames; fired at the first frame (1326) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 8184.91,
+   "wingman_to_leader_at_verdict_m": 746.2,
+   "asked_at_verdict": [
+    [
+     61853,
+     0
+    ],
+    [
+     61840,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 68,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65572,
+    424
+   ],
+   "task_leader": [
+    61034,
+    0
+   ],
+   "t_start": 8102.433,
+   "checks": 1505,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1375 decisive frames; fired at the first frame (1504) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 8252.245,
+   "wingman_to_leader_at_verdict_m": 745.3,
+   "asked_at_verdict": [
+    [
+     61034,
+     0
+    ],
+    [
+     61021,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 69,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 8152.935,
+   "checks": 1336,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1193 decisive frames; fired at the first frame (1335) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 8285.913,
+   "wingman_to_leader_at_verdict_m": 746.5,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 70,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    55120,
+    234
+   ],
+   "task_leader": [
+    61407,
+    0
+   ],
+   "t_start": 8165.287,
+   "checks": 1340,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1211 decisive frames; fired at the first frame (1339) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 8298.663,
+   "wingman_to_leader_at_verdict_m": 748.4,
+   "asked_at_verdict": [
+    [
+     61407,
+     0
+    ],
+    [
+     61394,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 71,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70335,
+    101
+   ],
+   "task_leader": [
+    61853,
+    0
+   ],
+   "t_start": 8222.462,
+   "checks": 1315,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1191 decisive frames; fired at the first frame (1314) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 8353.349,
+   "wingman_to_leader_at_verdict_m": 747.0,
+   "asked_at_verdict": [
+    [
+     61853,
+     0
+    ],
+    [
+     61840,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 72,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65586,
+    330
+   ],
+   "task_leader": [
+    61061,
+    0
+   ],
+   "t_start": 8225.749,
+   "checks": 1320,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1191 decisive frames; fired at the first frame (1319) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 8357.134,
+   "wingman_to_leader_at_verdict_m": 743.2,
+   "asked_at_verdict": [
+    [
+     61061,
+     0
+    ],
+    [
+     61048,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 73,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 8329.542,
+   "checks": 1361,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1209 decisive frames; fired at the first frame (1360) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 8465.011,
+   "wingman_to_leader_at_verdict_m": 749.3,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 74,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70335,
+    101
+   ],
+   "task_leader": [
+    61853,
+    0
+   ],
+   "t_start": 8404.349,
+   "checks": 1373,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1235 decisive frames; fired at the first frame (1372) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 8541.013,
+   "wingman_to_leader_at_verdict_m": 748.3,
+   "asked_at_verdict": [
+    [
+     61853,
+     0
+    ],
+    [
+     61840,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 75,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65572,
+    424
+   ],
+   "task_leader": [
+    61034,
+    0
+   ],
+   "t_start": 8407.735,
+   "checks": 1320,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1191 decisive frames; fired at the first frame (1319) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 8539.12,
+   "wingman_to_leader_at_verdict_m": 746.1,
+   "asked_at_verdict": [
+    [
+     61034,
+     0
+    ],
+    [
+     61021,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 76,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    55120,
+    234
+   ],
+   "task_leader": [
+    61407,
+    0
+   ],
+   "t_start": 8498.579,
+   "checks": 1348,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1209 decisive frames; fired at the first frame (1347) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 8632.753,
+   "wingman_to_leader_at_verdict_m": 748.1,
+   "asked_at_verdict": [
+    [
+     61407,
+     0
+    ],
+    [
+     61394,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 77,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    63561,
+    231
+   ],
+   "task_leader": [
+    61434,
+    0
+   ],
+   "t_start": 8551.87,
+   "checks": 1317,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1164 decisive frames; fired at the first frame (1316) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 8682.956,
+   "wingman_to_leader_at_verdict_m": 745.5,
+   "asked_at_verdict": [
+    [
+     61434,
+     0
+    ],
+    [
+     61421,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 78,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 8704.87,
+   "checks": 1494,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1326 decisive frames; fired at the first frame (1493) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 8853.587,
+   "wingman_to_leader_at_verdict_m": 748.4,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 79,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65586,
+    330
+   ],
+   "task_leader": [
+    61061,
+    0
+   ],
+   "t_start": 8741.327,
+   "checks": 1339,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1210 decisive frames; fired at the first frame (1338) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 8874.604,
+   "wingman_to_leader_at_verdict_m": 749.0,
+   "asked_at_verdict": [
+    [
+     61061,
+     0
+    ],
+    [
+     61048,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 80,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    63561,
+    231
+   ],
+   "task_leader": [
+    61434,
+    0
+   ],
+   "t_start": 8915.345,
+   "checks": 1317,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1193 decisive frames; fired at the first frame (1316) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9046.431,
+   "wingman_to_leader_at_verdict_m": 743.5,
+   "asked_at_verdict": [
+    [
+     61434,
+     0
+    ],
+    [
+     61421,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 81,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65572,
+    424
+   ],
+   "task_leader": [
+    61034,
+    0
+   ],
+   "t_start": 8924.409,
+   "checks": 1339,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1210 decisive frames; fired at the first frame (1338) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9057.687,
+   "wingman_to_leader_at_verdict_m": 749.0,
+   "asked_at_verdict": [
+    [
+     61034,
+     0
+    ],
+    [
+     61021,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 82,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70335,
+    101
+   ],
+   "task_leader": [
+    61853,
+    0
+   ],
+   "t_start": 8933.474,
+   "checks": 1340,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1216 decisive frames; fired at the first frame (1339) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9066.851,
+   "wingman_to_leader_at_verdict_m": 749.7,
+   "asked_at_verdict": [
+    [
+     61853,
+     0
+    ],
+    [
+     61840,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 83,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 8933.972,
+   "checks": 1638,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1379 decisive frames; fired at the first frame (1637) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9097.032,
+   "wingman_to_leader_at_verdict_m": 747.9,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 84,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65586,
+    330
+   ],
+   "task_leader": [
+    61061,
+    0
+   ],
+   "t_start": 8969.731,
+   "checks": 1344,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1215 decisive frames; fired at the first frame (1343) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9103.507,
+   "wingman_to_leader_at_verdict_m": 747.1,
+   "asked_at_verdict": [
+    [
+     61061,
+     0
+    ],
+    [
+     61048,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 85,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70335,
+    101
+   ],
+   "task_leader": [
+    61853,
+    0
+   ],
+   "t_start": 9125.819,
+   "checks": 1326,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1175 decisive frames; fired at the first frame (1325) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9257.802,
+   "wingman_to_leader_at_verdict_m": 747.0,
+   "asked_at_verdict": [
+    [
+     61853,
+     0
+    ],
+    [
+     61840,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 86,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65572,
+    424
+   ],
+   "task_leader": [
+    61034,
+    0
+   ],
+   "t_start": 9152.813,
+   "checks": 1344,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1215 decisive frames; fired at the first frame (1343) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9286.589,
+   "wingman_to_leader_at_verdict_m": 747.0,
+   "asked_at_verdict": [
+    [
+     61034,
+     0
+    ],
+    [
+     61021,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 87,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    55120,
+    234
+   ],
+   "task_leader": [
+    61407,
+    0
+   ],
+   "t_start": 9163.97,
+   "checks": 1367,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1188 decisive frames; fired at the first frame (1366) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9300.036,
+   "wingman_to_leader_at_verdict_m": 748.3,
+   "asked_at_verdict": [
+    [
+     61407,
+     0
+    ],
+    [
+     61394,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 88,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 9260.989,
+   "checks": 1320,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1183 decisive frames; fired at the first frame (1319) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9392.374,
+   "wingman_to_leader_at_verdict_m": 745.1,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 89,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70335,
+    101
+   ],
+   "task_leader": [
+    61853,
+    0
+   ],
+   "t_start": 9318.165,
+   "checks": 1313,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1190 decisive frames; fired at the first frame (1312) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9448.853,
+   "wingman_to_leader_at_verdict_m": 747.8,
+   "asked_at_verdict": [
+    [
+     61853,
+     0
+    ],
+    [
+     61840,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 90,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65586,
+    330
+   ],
+   "task_leader": [
+    61061,
+    0
+   ],
+   "t_start": 9399.048,
+   "checks": 1338,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1210 decisive frames; fired at the first frame (1337) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9532.226,
+   "wingman_to_leader_at_verdict_m": 747.4,
+   "asked_at_verdict": [
+    [
+     61061,
+     0
+    ],
+    [
+     61048,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 91,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    55120,
+    234
+   ],
+   "task_leader": [
+    61407,
+    0
+   ],
+   "t_start": 9434.608,
+   "checks": 1319,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1191 decisive frames; fired at the first frame (1318) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9565.894,
+   "wingman_to_leader_at_verdict_m": 745.0,
+   "asked_at_verdict": [
+    [
+     61407,
+     0
+    ],
+    [
+     61394,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 92,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70335,
+    101
+   ],
+   "task_leader": [
+    61853,
+    0
+   ],
+   "t_start": 9505.032,
+   "checks": 1320,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1194 decisive frames; fired at the first frame (1319) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9636.417,
+   "wingman_to_leader_at_verdict_m": 748.6,
+   "asked_at_verdict": [
+    [
+     61853,
+     0
+    ],
+    [
+     61840,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 93,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65586,
+    330
+   ],
+   "task_leader": [
+    61061,
+    0
+   ],
+   "t_start": 9570.774,
+   "checks": 1410,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1274 decisive frames; fired at the first frame (1409) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9711.124,
+   "wingman_to_leader_at_verdict_m": 749.3,
+   "asked_at_verdict": [
+    [
+     61061,
+     0
+    ],
+    [
+     61048,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 94,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65572,
+    424
+   ],
+   "task_leader": [
+    61034,
+    0
+   ],
+   "t_start": 9582.13,
+   "checks": 1338,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1210 decisive frames; fired at the first frame (1337) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9715.308,
+   "wingman_to_leader_at_verdict_m": 747.5,
+   "asked_at_verdict": [
+    [
+     61034,
+     0
+    ],
+    [
+     61021,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 95,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    55120,
+    234
+   ],
+   "task_leader": [
+    61407,
+    0
+   ],
+   "t_start": 9600.259,
+   "checks": 1394,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1265 decisive frames; fired at the first frame (1393) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9739.015,
+   "wingman_to_leader_at_verdict_m": 749.7,
+   "asked_at_verdict": [
+    [
+     61407,
+     0
+    ],
+    [
+     61394,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 96,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 9636.118,
+   "checks": 1319,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1182 decisive frames; fired at the first frame (1318) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9767.403,
+   "wingman_to_leader_at_verdict_m": 747.6,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 97,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70335,
+    101
+   ],
+   "task_leader": [
+    61853,
+    0
+   ],
+   "t_start": 9702.558,
+   "checks": 1314,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1190 decisive frames; fired at the first frame (1313) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9833.345,
+   "wingman_to_leader_at_verdict_m": 747.6,
+   "asked_at_verdict": [
+    [
+     61853,
+     0
+    ],
+    [
+     61840,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 98,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    65572,
+    424
+   ],
+   "task_leader": [
+    61034,
+    0
+   ],
+   "t_start": 9753.856,
+   "checks": 1414,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1278 decisive frames; fired at the first frame (1413) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9894.604,
+   "wingman_to_leader_at_verdict_m": 748.1,
+   "asked_at_verdict": [
+    [
+     61034,
+     0
+    ],
+    [
+     61021,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 99,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    55120,
+    234
+   ],
+   "task_leader": [
+    61407,
+    0
+   ],
+   "t_start": 9778.36,
+   "checks": 1446,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1274 decisive frames; fired at the first frame (1445) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 9922.296,
+   "wingman_to_leader_at_verdict_m": 746.6,
+   "asked_at_verdict": [
+    [
+     61407,
+     0
+    ],
+    [
+     61394,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 100,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 9865.519,
+   "checks": 1508,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1314 decisive frames; fired at the first frame (1507) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 10015.63,
+   "wingman_to_leader_at_verdict_m": 747.3,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 101,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70335,
+    101
+   ],
+   "task_leader": [
+    61853,
+    0
+   ],
+   "t_start": 9950.983,
+   "checks": 1314,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1190 decisive frames; fired at the first frame (1313) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 10081.771,
+   "wingman_to_leader_at_verdict_m": 743.8,
+   "asked_at_verdict": [
+    [
+     61853,
+     0
+    ],
+    [
+     61840,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 102,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 10112.151,
+   "checks": 1429,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1238 decisive frames; fired at the first frame (1428) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 10254.394,
+   "wingman_to_leader_at_verdict_m": 747.8,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 103,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70335,
+    101
+   ],
+   "task_leader": [
+    61853,
+    0
+   ],
+   "t_start": 10204.788,
+   "checks": 1320,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1185 decisive frames; fired at the first frame (1319) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 10336.173,
+   "wingman_to_leader_at_verdict_m": 745.3,
+   "asked_at_verdict": [
+    [
+     61853,
+     0
+    ],
+    [
+     61840,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 104,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    70335,
+    101
+   ],
+   "task_leader": [
+    61853,
+    0
+   ],
+   "t_start": 10470.944,
+   "checks": 1316,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1190 decisive frames; fired at the first frame (1315) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 10601.931,
+   "wingman_to_leader_at_verdict_m": 747.2,
+   "asked_at_verdict": [
+    [
+     61853,
+     0
+    ],
+    [
+     61840,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 105,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 10531.009,
+   "checks": 1370,
+   "released": true,
+   "rule": "all-members",
+   "detail": "withheld at all 1196 decisive frames; fired at the first frame (1369) where the leader met its criteria and every valid wingman passed",
+   "verdict_t": 10667.374,
+   "wingman_to_leader_at_verdict_m": 749.8,
+   "asked_at_verdict": [
+    [
+     62729,
+     0
+    ],
+    [
+     62716,
+     0
+    ]
+   ],
+   "asked_wingman_in_trial": true,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  },
+  {
+   "trial": 106,
+   "wp_type": "WAYPOINT_NAVIGATION",
+   "last_to_reach": 1,
+   "radius": 150.0,
+   "guide": [
+    67008,
+    165
+   ],
+   "task_leader": [
+    62729,
+    0
+   ],
+   "t_start": 10761.704,
+   "checks": 87,
+   "released": false,
+   "rule": "inconclusive",
+   "detail": "the leader never met its criteria while a wingman was held away",
+   "verdict_t": null,
+   "wingman_to_leader_at_verdict_m": null,
+   "asked_at_verdict": null,
+   "asked_wingman_in_trial": false,
+   "ordinary_verdict_t": null,
+   "ordinary_wingman_to_leader_m": null
+  }
+ ]
+}

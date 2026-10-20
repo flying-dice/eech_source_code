@@ -1,0 +1,4 @@
+ok   the unchanged trace classifies as before (106 trials)
+ok   105 x all-members rewritten as the other rule -> leader-only
+ok   1 x inconclusive (not rewritten)
+PASS
