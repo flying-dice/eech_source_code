@@ -77,6 +77,70 @@ def case_dropoff_not_full(ev):
     eff['dependent']['ammo' if cargo == 'CARGO_AMMO' else 'fuel'] = 50.0
 
 
+def group_dropoffs(ev, need=None):
+    """every SUPPLY DROP_OFF span to a group with identified cargo aboard the leader: (verdict, effect)"""
+    eff = {e['span']: e for e in ev if e['e'] == 'effect'}
+    out = [(v, eff[v['span']]) for v in ev if v['e'] == 'verdict' and v['supply_task'] and v['wp_type'] == 'WAYPOINT_DROP_OFF'
+           and v.get('dependent') and v['dependent']['type'] == 'ENTITY_TYPE_GROUP' and v['span'] in eff and eff[v['span']].get('dependent')
+           and any(c.get('identify_cargo') for c in v.get('leader_aboard') or []) and (need is None or need(v))]
+    if not out:
+        raise LookupError('no group drop-off with cargo aboard for this case')
+    return out
+
+
+def aboard_types(v):
+    return {c.get('cargo') for c in v['leader_aboard'] if c.get('identify_cargo')}
+
+
+def case_group_no_replenishment(ev):
+    # the lead's reproduction (#77 review): every group drop-off leaves the group's levels as they were
+    for v, e in group_dropoffs(ev):
+        e['dependent']['ammo'], e['dependent']['fuel'] = v['dependent']['ammo'], v['dependent']['fuel']
+
+
+def case_group_partial(ev):
+    v, e = group_dropoffs(ev, lambda v: v['dependent']['fuel'] <= 60 and 'CARGO_FUEL' in aboard_types(v))[0]
+    e['dependent']['fuel'] = v['dependent']['fuel'] + (100.0 - v['dependent']['fuel']) / 2
+
+
+def case_group_mixed_one_dropped(ev):
+    # a drop-off carrying both resources: the ammo increment removed, the fuel one kept
+    v, e = group_dropoffs(ev, lambda v: aboard_types(v) >= {'CARGO_AMMO', 'CARGO_FUEL'} and v['dependent']['ammo'] < 100)[0]
+    e['dependent']['ammo'] = v['dependent']['ammo']
+
+
+def case_group_unaffected_changed(ev):
+    # a fuel-only drop-off that also moves the group's ammo
+    v, e = group_dropoffs(ev, lambda v: aboard_types(v) == {'CARGO_FUEL'})[0]
+    e['dependent']['ammo'] = v['dependent']['ammo'] - 10.0
+
+
+def case_group_wrong_destination(ev):
+    # the replenishment lands on a group other than the task's requester
+    groups = [t['requester']['id'] for t in ev if t['e'] == 'task' and t['requester']['type'] == 'ENTITY_TYPE_GROUP']
+    v, e = group_dropoffs(ev)[0]
+    other = next(g for g in groups if g != v['dependent']['id'])
+    v['dependent']['id'] = list(other)
+    e['dependent']['id'] = list(other)
+
+
+def case_keysite_unaffected_changed(ev):
+    v, evs = span_of(ev, 'WAYPOINT_DROP_OFF', lambda v, evs: v.get('dependent') and v['dependent']['type'] == 'ENTITY_TYPE_KEYSITE'
+                     and any(c.get('identify_cargo') for c in v.get('leader_aboard') or []))
+    eff = first(evs, lambda e: e['e'] == 'effect')
+    cargo = next(c for c in v['leader_aboard'] if c.get('identify_cargo'))['cargo']
+    other = 'fuel' if cargo == 'CARGO_AMMO' else 'ammo'
+    eff['dependent'][other] = v['dependent'][other] + 5.0
+
+
+def case_pickup_unaffected_changed(ev):
+    v, evs = span_of(ev, 'WAYPOINT_PICK_UP', lambda v, evs: v.get('dependent') and v['dependent'].get('crates'))
+    eff = first(evs, lambda e: e['e'] == 'effect')
+    taken = next(c for c in eff['leader_aboard'] if c['id'] not in [x['id'] for x in v.get('leader_aboard') or []])['cargo']
+    other = 'fuel' if taken == 'CARGO_AMMO' else 'ammo'
+    eff['dependent'][other] = v['dependent'][other] - 10.0
+
+
 def case_finish_not_success(ev):
     v, evs = span_of(ev, 'WAYPOINT_FINISH_DROP_OFF', lambda v, evs: any(e['e'] == 'completed' for e in evs))
     ev.remove(first(evs, lambda e: e['e'] == 'completed'))
@@ -103,10 +167,21 @@ CASES = [
     ('the guide not advanced when the leader is told', case_guide_not_advanced, 'order.guide_advances_first'),
     ('a pick-up without the supplier\'s drop', case_pickup_no_drop, 'pickup.accounting'),
     ('a keysite drop-off not set to 100', case_dropoff_not_full, 'dropoff.accounting'),
+    ('no group drop-off replenishes its group (the #77 review\'s reproduction)', case_group_no_replenishment, 'dropoff.accounting'),
+    ('a group drop-off replenishes only half way', case_group_partial, 'dropoff.accounting'),
+    ('a mixed ammo and fuel group drop-off loses its ammo increment', case_group_mixed_one_dropped, 'dropoff.accounting'),
+    ('a fuel-only group drop-off also moves the group\'s ammo', case_group_unaffected_changed, 'dropoff.accounting'),
+    ('a group drop-off replenishes a group other than the task\'s requester', case_group_wrong_destination, 'dropoff.accounting'),
+    ('a keysite drop-off also moves the other resource', case_keysite_unaffected_changed, 'dropoff.accounting'),
+    ('a pick-up also moves the supplier\'s other resource', case_pickup_unaffected_changed, 'pickup.accounting'),
     ('FINISH_DROP_OFF without SUCCESS', case_finish_not_success, 'finish.completes_success'),
     ('an entity named after its generation was freed', case_reuse_after_free, 'identity.generations'),
     ('a truncated trace (no counters)', case_no_counters, 'trace.complete'),
 ]
+
+
+# cases that need an event only some runs contain (Georgia has no mixed ammo and fuel group drop-off)
+OPTIONAL = {case_group_mixed_one_dropped}
 
 
 def run(events, tmp, name, observations=None):
@@ -149,6 +224,9 @@ def main():
             try:
                 inject(mutated)
             except (LookupError, StopIteration) as e:
+                if inject in OPTIONAL:
+                    print(f"n/a  {what}: this trace has no such event ({e})")
+                    continue
                 print(f"FAIL {what}: the trace has no event to inject into ({e})")
                 bad += 1
                 continue
