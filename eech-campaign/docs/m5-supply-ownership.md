@@ -5,8 +5,8 @@ This record is part of M5 ([EEDCS-5](https://flying-dice.atlassian.net/browse/EE
 **Answer, from the source and the retained M3 evidence:**
 - **The campaign owns the loop's state and rules.** That covers keysite and group supply levels, the request threshold, supplier choice, the task and its route plan, group selection, the pick-up and drop-off accounting, task success, and the loss bookkeeping.
 - **The physical world decides when things happen.** It decides when an aircraft has *reached* a waypoint, where every aircraft is, whether one is destroyed, and the terrain and 3D data that routes and crate layouts use.
-- **The two meet in one place for arrival.** Every "this waypoint has been reached" verdict enters campaign accounting through one call, `navigation_guide_waypoint_reached` (`gd_nav.c:79`). Everything upstream of it is a physical test; everything downstream is campaign rule.
-- **Recommended first seam: the arrival verdict.** A host-supplied arrival, the campaign applying its own pick-up, drop-off and completion rules unchanged. A causal test for EEDCS-11 is proposed below.
+- **The two meet in one place for arrival.** Every "this waypoint has been reached" verdict enters campaign accounting through one call, `navigation_guide_waypoint_reached` (`gd_nav.c:79`). Upstream of it is not all physics. `check_guide_reached_waypoint` (`guide.c:260-330`) first applies campaign criteria: it selects the task leader, applies `GUIDE_CRITERIA_LAST_TO_REACH`, and filters by `INT_TYPE_VALID_GUIDE_MEMBERS`. Only then does it ask each selected member the physical question, `CHECK_MOBILE_REACHED_GUIDE`. Who must arrive is campaign-owned; whether that member has arrived is physical. Everything downstream is campaign rule.
+- **Recommended first seam: the arrival verdict for SUPPLY PICK_UP and DROP_OFF only.** The campaign names the member that must arrive, and for these two waypoint types that is the task leader alone. The host says whether that member has arrived. The campaign applies its own pick-up, drop-off and completion rules unchanged. Other waypoint and action paths stay embedded and are named as coupled below. A causal test for EEDCS-11 is proposed below.
 
 Nothing here is a contract or an ABI. This is a map from which EEDCS-11 can be refined. No code, script, baseline or campaign rule changed.
 
@@ -53,7 +53,9 @@ No new run was made, and no tracing was added. Where the source is ambiguous, it
 | | |
 |---|---|
 | Physical | Each aircraft flies toward its guide's position and writes its own 2D range to the guide into `FLOAT_TYPE_DISTANCE` (helicopter: `hc_move.c`; fixed wing: `fw_move.c`). [S] |
-| The arrival test | Every frame, on the server, the guide asks whether it has been reached (`gd_updt.c:105-108` → `check_guide_reached_waypoint`, `guide.c:260`). That asks the task leader (or every member, for last-to-reach waypoints) through `CHECK_MOBILE_REACHED_GUIDE`. Fixed wing: range against the waypoint's reached radius, with a pass-through test over the last frame's motion (`fw_msgs.c:389-470`). Helicopters add altitude and heading tests (`hc_msgs.c:529-700`). The reached radius is 100 m for fixed wing and 40 m for helicopters at both PICK_UP and DROP_OFF (`wp_dbase.c:1112-1140`, `410-440`). [S] |
+| Who must arrive (campaign) | Every frame, on the server, the guide asks whether it has been reached (`gd_updt.c:105-108` → `check_guide_reached_waypoint`, `guide.c:260`). That function makes task and group decisions before any physical query. It takes the task leader (`PTR_TYPE_TASK_LEADER`) and returns "not reached" if there is none (`guide.c:275-280`). If the guide has `GUIDE_CRITERIA_LAST_TO_REACH` set, it requires every member whose bit is in `INT_TYPE_VALID_GUIDE_MEMBERS` (`guide.c:282-316`). Otherwise it requires the leader alone (`guide.c:317-334`). The criterion comes from the waypoint database (`guide.c:1528`), and the valid-member mask from the guide's assignment (`guide.c:923`). These are campaign rules and must stay campaign-owned, or be supplied explicitly by the campaign. They must not become host policy because they run before `gd_nav.c`. [S] |
+| Last-to-reach for SUPPLY | `PICK_UP` and `DROP_OFF` have last-to-reach off for fixed wing, helicopter, ground and sea (`wp_dbase.c:1130-1160`, `428-458`), so the SUPPLY arrival is **leader-only**. Last-to-reach is on only for ground vehicles at the troop pick-up start and end points (`wp_dbase.c:1906`, `1960`). Neither waypoint has a separate waypoint-action check (`wp_dbase.c:419`, `1123`). That check, `check_guide_waypoint_action_reached` (`gd_updt.c:98-103`, `guide.c:342`), is on only for Attack, Lift Off and Recon (`wp_dbase.c:149`, `959`, `1229`). [S] |
+| The physical test | For each member the campaign selected, `CHECK_MOBILE_REACHED_GUIDE`. Fixed wing: range against the waypoint's reached radius, with a pass-through test over the last frame's motion (`fw_msgs.c:389-470`). Helicopters add altitude and heading tests (`hc_msgs.c:529-700`). The reached radius is 100 m for fixed wing and 40 m for helicopters at both PICK_UP and DROP_OFF (`wp_dbase.c:1112-1140`, `410-440`). [S] |
 | Where the verdict enters the campaign | `navigation_guide_waypoint_reached` (`gd_nav.c:79-93`) sends `WAYPOINT_REACHED` to the current waypoint. `response_to_waypoint_reached` (`wp_msgs.c:285`) then: looks up the waypoint's reached message (`:327`), advances the guide (`:413`), notifies the force (`:432`), and **notifies only the task leader** with `PICK_UP_REACHED`, `DROP_OFF_REACHED` and so on (`:440`). [S] |
 | Identity | The task leader is not stored; it is recomputed on every read (`gd_ptr.c:144-175`). The guide advances before the leader's response runs, and the source warns that this can destroy the task (`wp_msgs.c:396-398`). [S] |
 | Time | The test runs once per frame against whatever range the aircraft last wrote, so the order of entity updates matters. The fixed-wing pass-through test uses the frame delta. [I] |
@@ -119,27 +121,39 @@ These remain unobservable through the public path. None of them blocks choosing 
 
 | Candidate | What the host would supply | Causal test available? | Breadth of change | Verdict |
 |---|---|---|---|---|
-| **A. Arrival verdict** (`gd_nav.c:79` / `wp_msgs.c:285`) | "Guide G's leader has reached its current waypoint" | Yes: withhold, delay or alter a host verdict and predict the supply levels | One call site; the physical test stays as the reference provider | **Recommended** |
+| **A. Arrival verdict, SUPPLY PICK_UP and DROP_OFF** (`guide.c:317-334` → `gd_nav.c:79` / `wp_msgs.c:285`) | "Member M, named by the campaign as guide G's task leader, has reached G's current PICK_UP or DROP_OFF waypoint" | Yes: withhold, delay or alter a host verdict and predict the supply levels | One physical query for two waypoint types. Member selection stays in the campaign, and the physical test stays as the reference provider | **Recommended** |
 | B. Position query (ETA, supplier search) | Member and keysite positions | Weak: a different position changes an ETA gate or a nearest-keysite choice, rarely observable | Many readers of `VEC3D_TYPE_POSITION` | Later |
 | C. Loss report (`MOBILE_KILLED`) | "Member M of group G was destroyed" | Yes, but the bookkeeping is interleaved with teardown inside `kill_local` | Needs `kill_local` split and a cargo rule EECH lacks | Second slice |
 | D. Route geometry | Terrain, roads, flight time | Indirect | Wide (route search) | Later |
 
 **Why A.**
-- **It is the narrowest point where a physical outcome becomes campaign state.** Upstream (range, radius, altitude, pass-through) is physics. Downstream (pick-up, drop-off, completion, guide advance) is campaign rule and stays in EECH_DC unchanged.
+- **It is the narrowest point where a physical outcome becomes campaign state.** The per-member test (range, radius, altitude, pass-through) is physics. Choosing which members must pass it is campaign rule and stays in EECH_DC. Downstream (pick-up, drop-off, completion, guide advance) is campaign rule and stays in EECH_DC unchanged.
 - **It is causally testable through the public path** with evidence M3 already uses: the supplier's −10 and the receiver's 100 are observed keysite levels.
 - **The reference host can supply it faithfully.** EECH's own arrival test becomes the EECH World reference provider's answer, so `windows-retail v1` can be preserved.
 
 **Constraints the boundary must respect** (for EEDCS-11, not decided here):
-- **Synchronous.** EECH consumes the verdict inside the frame, before the guide advances. A verdict delivered one frame later changes ordering and, at 100 ms frames, timing. That would be a baseline difference to classify, not a refactor. A query-shaped provider, asked during the frame, is the faithful shape, as `docs/ports.md` found for positions. Callbacks and reentrancy are currently unverified (`M1.lifecycle.unverified` in the pack).
-- **Identity.** The verdict names a guide or waypoint and its task leader. Both are recomputed or recreated in EECH, so the boundary needs stable references with generations (as `eech_kernel.h` already does) and a lifetime rule for a task destroyed mid-notification.
+- **Synchronous.** EECH consumes the verdict inside the frame, before the guide advances. A verdict delivered one frame later changes ordering and, at 100 ms frames, timing. That would be a baseline difference to classify, not a refactor. The requirement is synchronous-equivalent behaviour. A query asked during the frame is one hypothesis, as `docs/ports.md` found for positions. It is to be tested, not decided here. Callbacks and reentrancy are currently unverified (`M1.lifecycle.unverified` in the pack).
+- **Identity.** The verdict names a guide or waypoint and the member the campaign selected (here, the task leader). Both are recomputed or recreated in EECH, so the boundary needs stable references with generations (as `eech_kernel.h` already does) and a lifetime rule for a task destroyed mid-notification.
 - **Failure contract.** If no provider is registered, or the provider fails, the result must be a named error or a stated "not reached". The embedded test must never answer silently.
-- **Scope.** Arrival is used by every waypoint type, not only SUPPLY. EEDCS-11 must either take all types through the provider (preferred: one rule) or state which types stay embedded.
+- **Scope.** The first slice covers only SUPPLY's PICK_UP and DROP_OFF arrival, with leader-only semantics. These paths stay embedded and are coupled to the same guide code:
+  - every other waypoint type's arrival;
+  - last-to-reach arrivals, which need all valid members and so a different observation;
+  - the waypoint-action path (`gd_updt.c:98-103`) for Attack, Lift Off and Recon.
+
+  Widening the provider to them is later work, and would need its own characterisation.
+- **Completion is not delivery.** The source can mark a SUPPLY task successful with no cargo (pick-up with no crate, `mb_msgs.c:1885-1889`; a leader lost with the crate). The structural slice keeps that behaviour as it is, and does not fix it.
 
 ## Proposed causal test for EEDCS-11
 
+The lead's review of this map (#74) sets these gates for the first slice. The map records them and does not decide them:
+- **Baseline first.** Characterise the named current baseline before restructuring. Keep the M4 pack and rebuilt `windows-retail v1` Georgia and Lebanon `-Exact` runs, and classify every meaningful difference under REVIEW.md.
+- **The public path.** Run host-owned Lua → public EECH_DC → host observations. The controlled observations must determine campaign consequences, with no hidden embedded answer.
+- **Correlation.** Correlate the selected task, waypoint generation, required member, arrival and supply effect. `engine:objects` and the current chain checker do not expose all of those identities or the cargo and task links. Add bounded observational evidence where needed; proximity or a keysite level is not task-specific proof.
+- **Ordering and lifetimes.** Preserve ordering and task and guide lifetimes, and count the supported arrival path at runtime.
+
 The test, not yet built:
 1. **Reference provider.** The host answers each arrival query with EECH's own test. Prediction: the M4 pack is unchanged, and `windows-retail v1` holds exactly.
-2. **Withheld verdict.** For one chosen SUPPLY task's PICK_UP, the host answers "not reached". Prediction: the supplier's level does not drop at the overflight, and no delivery reaches the receiver on that task. The task stays assigned, and the receiver's re-request is refused while it does (`fc_msgs.c:722-745`). Whatever ends the task comes from the campaign's own timers.
+2. **Withheld verdict.** For one chosen SUPPLY task's PICK_UP, asked about its task leader, the host answers "not reached". Prediction: the supplier's level does not drop at the overflight, and no delivery reaches the receiver on that task. The task stays assigned, and the receiver's re-request is refused while it does (`fc_msgs.c:722-745`). Whatever ends the task comes from the campaign's own timers.
 3. **Moved verdict.** For a chosen DROP_OFF, the host answers "reached" at a chosen later time. Prediction: the receiver's 10 → 100 moves to that time, and the task completes later.
 4. **No provider.** Prediction: the declared failure, not EECH's embedded answer.
 
