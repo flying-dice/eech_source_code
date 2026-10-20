@@ -1,0 +1,59 @@
+## Answers
+
+**Product and hosts.** The product is one native campaign Lua DLL, **EECH_DC** (`eech_dc.dll`). It starts as the original EECH C code behind a Rust public boundary; it is not a rewrite. It runs under two alternative hosts: **EECH World**, a Rust reference host with its own Lua environment and physical world, and **DCS World**. Each host owns its own Lua environment and physics. The campaign owns state, decisions and policy. Product acceptance must go through host-owned Lua → public module → world.
+
+**Active Task and Epic** (live in Jira):
+- **Epic EEDCS-5** is To Do. Its description was rewritten on 2026-10-20 as "a reviewed plan for moving EECH_DC into DCS World". Its blocks are EEDCS-10 to 13, with EEDCS-9 as preparation.
+- **EEDCS-9**, resolving the obsolete restructuring prerequisite, is In Progress. Its PR is #73, which has CHANGES_REQUESTED.
+- **EEDCS-10**, the DCS call map, is In Progress but blocked by EEDCS-9. Its PR is #74, also CHANGES_REQUESTED.
+- The Epic's 2026-10-11 comment still lists an older breakdown (EEDCS-11 to 14) that no longer matches its own description. EEDCS-14 is not among the open issues. That inconsistency needs tidying.
+
+**What authorises M5 structural work.** The candidate AGENT.md names the M4 acceptance review (#31 / EEDCS-4) and the M5 kickoff (#35), from `a02d489c` with `windows-retail v1` as the baseline. **But that text has not merged.** The integration branch's AGENT.md (head `d2d4792a`) still requires retired #51. EEDCS-9 says the corrected governance PR must be reviewed and merged first. The lead's 2026-10-20 review says plainly: "M5 structural work remains gated on its corrected, approved delivery." In practice structural work is **not yet authorised**. EEDCS-11 is also blocked by EEDCS-10's reviewed map.
+
+**Before moving existing behaviour:**
+- Characterise it on the named baseline.
+- Protect it with sociable tests of the real collaborating components.
+- Have the evidenced dependency map (EEDCS-10) reviewed.
+- Run the M4 pack's runtime tier against `windows-retail v1`. That needs Windows and the retail data.
+
+**Read-only work allowed now:** discovery and test design that overlap where the Task descriptions permit. That covers tracing the SUPPLY loop, mapping C dependencies to DCS scripting APIs, and running the existing pack. It does not cover structural edits.
+
+**What a pure refactor must prove.** It needs no artificial red test. Characterisation tests can pass before the move and must stay green across it. Afterwards it must show both that behaviour is preserved and that the new ownership contract holds: host observations actually change campaign state, and host actions are actually used. Interface declarations, renamed crates and unchanged recordings are not proof.
+
+**Approval and merge:**
+- A current formal GitHub **APPROVED** review from **@fd-starscream-bot** on the exact head is required. The PR author must be a different identity.
+- Any of these blocks a merge: no such approval, new commits after approval, failing applicable checks, unresolved blocking lead feedback, a Task outcome not yet accepted, or an identity conflict. Self-approval, self-merge, auto-merge and dismissing the lead's feedback are never allowed.
+
+**When the M4 pack differs.** Nothing is re-recorded:
+1. `baseline-governance.py propose` turns the red report into a change record with every delta marked `UNCLASSIFIED`.
+2. Each delta is classified with evidence as a regression (rejected), an approved defect correction, an intentional semantic change, or an expected input/world variation (which starts a separate lineage).
+3. The lead approves the exact record.
+4. `adopt` verifies that GitHub review, then adds a new baseline version and keeps the old one.
+
+## What I'd do now
+
+- **Restructure campaign code: no.** The gate isn't met. EEDCS-9 and PR #73 are unapproved and unmerged, EEDCS-10 is under review, and the lead explicitly said structural work stays gated. I'd offer read-only EEDCS-10 discovery, or work on the outstanding #73/#74 feedback.
+- **Merge an approved PR: no, not as the implementing agent.** Implementing agents don't merge; an authorised maintainer does, after checking the conditions against the exact head. I'd confirm the approval is current on that head and that no later changes were requested. For #73 specifically there is no approval at all, and the lead's last review still says "No merge while protection is unverified."
+
+## Problems you should know about
+
+- **This checkout is ahead of the PR.** It is at `147d7c9c`, two unpushed commits past PR #73's head `f223e288`. Those two commits drop the "unverified protection blocks merge" rule, citing an owner decision of 2026-10-20 ("remove the rules then").
+  - The pushed head `f223e288` still keeps that blocker.
+  - I found no live record of the owner's decision: not in the comments on #35, #71 or #73 since 2026-10-19, nor in Jira.
+  - It contradicts the lead's outstanding blocking feedback, and the lead hasn't reviewed it.
+  - I'd treat it as an unapproved proposal, not settled policy.
+- **Identity.** Local `git config user.name` is `starscream-bot`, which resembles the lead's identity. `gh` is signed in as `fd-shockwave-bot`, which is fine. Commits written from this checkout would carry a lead-like author name, so I'd fix that before committing.
+
+## Sources
+
+**Read:**
+- Files: CLAUDE.md, AGENT.md, PROJECT.md, docs/governance/REVIEW.md, and the integration branch's AGENT.md via GitHub.
+- Jira: EEDCS-5 (with comments), EEDCS-9 (with comments), EEDCS-10, and a search of open EEDCS issues.
+- GitHub: the M4 acceptance comment on #31, the M5 kickoff on #35, the open PRs, PR #73's reviews and comments, and recent comments on #35, #71 and #73.
+
+**Not read (gaps):**
+- The Confluence page "M5 Goal: EECH_DC into DCS World", which EEDCS-5 calls authoritative.
+- The comments on EEDCS-10, and the full body of the lead's 2026-10-20 summary on #35 (I only saw the first 300 characters).
+- PR #74's review.
+- The PR template, BASELINE_RECORD.md and BOOTSTRAP.md.
+- The `eech-campaign/` regression files themselves; I didn't run the pack.

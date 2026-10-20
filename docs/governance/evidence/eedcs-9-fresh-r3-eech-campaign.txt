@@ -1,0 +1,83 @@
+The project-level answers are clear, but the live records disagree with this checkout on one point: whether unverified branch protection blocks merges. Until that's settled, I wouldn't start structural work and wouldn't merge anything.
+
+**What this checkout is:** detached `147d7c9c`, which is on `origin/pr73-fix`. It is two commits ahead of PR #73's head (`f223e288`). Those two commits haven't been pushed to the PR or reviewed. The local git user is `starscream-bot`, which looks like the lead's identity. I'd fix that before making any commit, because author and reviewer must be different identities.
+
+## Answers
+
+**Product and hosts.** One native campaign Lua DLL, EECH_DC [1]: the original EECH C code behind a Rust public boundary, not a rewrite. It runs in-process under two alternative hosts:
+- **EECH World [2]:** the Rust reference host.
+- **DCS World [3]:** the real DCS host.
+
+Each host owns its own Lua environment and physical world. The campaign owns state and decisions; hosts carry out physical attempts and report what they observe.
+
+**Active Task and Epic.**
+- **Task:** EEDCS-9, "Resolve the obsolete restructuring prerequisite". It is In Progress and delivered by PR #73, which is open with CHANGES_REQUESTED from fd-starscream-bot at `6622694`.
+- **Epic:** EEDCS-5 (M5), status To Do.
+- EEDCS-9 blocks EEDCS-10, whose PR #74 is also CHANGES_REQUESTED.
+
+**What authorises M5 structural work.**
+- **Checked-in AGENT.md:** the accepted live records do: the M4 acceptance (#31 / EEDCS-4) and the M5 kickoff (#35), under EEDCS-5, starting from `a02d489c` with `windows-retail v1` as the baseline. The files existing proves nothing.
+- **Live records go further:**
+  - EEDCS-9 says it "authorises subsequent structural work".
+  - The lead's review says structural work "remains gated on its corrected, approved delivery".
+  - EEDCS-5 says implementation waits for EEDCS-10's dependency map to be reviewed.
+- So structural work is **not authorised yet**.
+
+**Before moving existing behaviour:**
+- Characterise it on a named baseline revision, using sociable tests of the real campaign components working together.
+- Record what passes, known defects, unsupported cases and missing prerequisites.
+- Run the M4 regression pack against each candidate.
+- Keep structural moves separate from rule changes and bug fixes.
+- Each PR needs the lead's formal approval.
+
+**Read-only work allowed now:**
+- Reading the records and source.
+- Tracing the SUPPLY loop's campaign/world dependencies.
+- Designing tests and characterisation.
+- Running existing tests or the pack on the baseline.
+
+EEDCS-5 says investigation and test design may overlap with other work. Editing campaign code or baselines is not allowed.
+
+**What a pure refactor must prove.** No manufactured red step is needed.
+- Characterisation passes before the move and stays green across it.
+- The same behavioural scenarios run on the old and new paths, with any change to the test entry point explained.
+- Assertions are on externally meaningful state, invariants and transitions, not on private structure.
+- After the move, it shows the new ownership is real: changing or withholding host observations changes the campaign's state, through the public Lua path.
+- The M4 pack holds against `windows-retail v1`.
+
+**Approval and merge blockers.**
+- Merging requires a current formal **APPROVED** review from **@fd-starscream-bot** on the head commit, from a different identity than the PR author.
+- Merging is blocked by:
+  - no current approval, or new commits added after it;
+  - a material base change without renewed validation;
+  - failing checks or unresolved blocking feedback from the lead;
+  - a Task outcome that hasn't been accepted;
+  - an identity conflict, self-approval, self-merge, auto-merge or bypassing the rules.
+- **The conflict:** this checkout says that, by the owner's decision of 2026-10-20 ("remove the rules then"), missing server-side protection is not a blocker. But the lead's live review on #73 and comment on #35, both from 2026-10-20, say "No merge while protection is unverified". The lead also lists verified protection as a condition for #59. The owner's decision appears only in this branch's files and commit messages; I couldn't find it in any live record I read.
+
+**When the M4 regression pack differs.** A red pack produces a proposal, never a new baseline:
+1. `baseline-governance.py propose` creates a change record listing every delta as `UNCLASSIFIED`.
+2. Each delta is classified with evidence as exactly one of:
+   - **regression:** rejected, and the candidate stays failing;
+   - **approved defect correction;**
+   - **intentional semantic change;**
+   - **expected input/world variation:** this starts a separate lineage.
+3. The PR carries the pack report from before the change, the change record, and the old and proposed baseline identities.
+4. The lead approves the commit holding that exact record.
+5. A follow-up commit runs `adopt`, which checks the approval on GitHub. It adds the new version and keeps the old one. That commit needs fresh approval.
+
+Baselines are never re-recorded in place, and tolerances are never widened to make a candidate pass.
+
+## What I'd do if you asked now
+
+- **Restructure campaign code:** I'd decline and offer read-only work instead. EEDCS-9 isn't delivered, the EEDCS-10 map isn't approved, and the work would need its own Task, branch and PR. Useful options are characterising the arrival seam or addressing the lead's findings on #74.
+- **Merge an approved PR:** I wouldn't merge. Implementing agents don't self-merge; an authorised maintainer does, after checking the conditions against the exact head. In any case, no open PR is currently approved: #73, #74, #76 and #59 are CHANGES_REQUESTED, and #65 has no review. I'd also want the protection conflict settled by the lead or a recorded owner decision first.
+
+## Sources
+
+- **Files read:** `CLAUDE.md`, `AGENT.md`, `AGENTS.md`, `PROJECT.md`, `docs/governance/REVIEW.md`, plus git status, branches and log.
+- **Not read:** `BASELINE_RECORD.md`, `BOOTSTRAP.md`, the PR template, `CODEOWNERS`, the `eech-campaign/` docs. I deliberately skipped `docs/governance/evidence/`, because REVIEW.md says not to use earlier checks' evidence.
+- **Live records read:**
+  - Jira: EEDCS-9 and EEDCS-5, with their comments.
+  - GitHub: PR #73 (body, reviews and comments), the open PR list, and the latest comments on #35.
+- **Not reached:** EEDCS-4, EEDCS-10's details, #31, the Confluence M5 goal page, PR #74's details, and the live branch-protection state. All were reachable; I didn't open them. A search for the owner's "remove the rules then" decision found nothing.

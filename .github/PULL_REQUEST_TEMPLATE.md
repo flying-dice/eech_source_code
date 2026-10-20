@@ -46,7 +46,8 @@ visually inspected. A recording alone is not campaign-correctness evidence. -->
 <!-- These boxes are an evidence aid, not GitHub approval or merge authority.
 Do not merge without a current formal APPROVED review from fd-starscream-bot,
 passing applicable required checks and resolved blocking feedback. New reviewable
-changes require fresh lead approval. Do not self-merge or bypass protection.
+changes require fresh lead approval. Do not self-merge or bypass these rules;
+they are enforced by process, not server-side protection (owner's decision, 2026-10-20).
 If this PR author IS fd-starscream-bot, keep it unmerged and resolve the identity
 conflict; no other approval or author-string change substitutes for the rule.
 See docs/governance/REVIEW.md. Non-default branch merges may not auto-close Tasks. -->

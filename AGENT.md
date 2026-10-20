@@ -10,14 +10,26 @@ The review procedure is in [REVIEW.md](docs/governance/REVIEW.md).
 Read PROJECT.md, the active Task and parent Epic, the latest accepted baseline,
 and outstanding PR review feedback. Inspect the actual branch, base SHA and
 working tree; do not overwrite another session's work. The native integration
-branch selected for this bootstrap is `claude/eech-campaign-native-spike-tjkj6g`;
+branch is `claude/eech-campaign-native-spike-tjkj6g`;
 verify the current agreed target rather than assuming `master` contains it.
 
 Work on a dedicated Task branch and PR. Continue that PR across sessions. Resolve
 the earliest unmet acceptance gate; justify any later-stage probe by the risk it
-resolves. Governance Task [#51](https://github.com/flying-dice/eech_source_code/issues/51)
-must be accepted before campaign/world restructuring. Read its live blockers;
-the presence of these files alone does not mean the gate is accepted.
+resolves. Work is tracked in Jira project [EEDCS](https://flying-dice.atlassian.net/browse/EEDCS);
+the GitHub Issues linked from these files are retained historical evidence.
+
+Campaign/world restructuring is authorised only by accepted, live milestone
+records, never by the presence of these files. M1 to M4 are accepted. The M4
+acceptance review ([#31](https://github.com/flying-dice/eech_source_code/issues/31#issuecomment-5860569409),
+[EEDCS-4](https://flying-dice.atlassian.net/browse/EEDCS-4)) and the M5 kickoff
+([#35](https://github.com/flying-dice/eech_source_code/issues/35#issuecomment-5860740386))
+open M5 structural work under Epic [EEDCS-5](https://flying-dice.atlassian.net/browse/EEDCS-5),
+from integration state `a02d489c` with `windows-retail v1` as the authoritative
+baseline. That work still requires the behaviour-first rules below, the M4
+regression pack run against each candidate with any difference handled by
+REVIEW.md's baseline governance, and the technical lead's formal approval of
+each PR. Retired Tasks #51 and #52 (closed `not_planned`) are not gates and are
+not revived; read the live state of the active Task and Epic instead.
 
 ## Architecture to protect
 
@@ -115,15 +127,17 @@ validation and review. Use the [PR template](.github/PULL_REQUEST_TEMPLATE.md).
 Implementing agents must use a different PR-author identity from the technical
 lead. Never self-approve, self-merge, bypass rules, dismiss blocking lead feedback,
 impersonate reviewers or use another account's credentials. An identity conflict
-is a blocker, not an exemption. Rules and templates are not server enforcement;
-verify effective protection as described in REVIEW.md. Missing permissions or
-unverified protections remain blockers. Governance itself is reviewable work.
+is a blocker, not an exemption. Rules and templates are not server enforcement.
+By the repository owner's decision (2026-10-20), these review rules do not
+depend on server-side branch protection or rulesets, which this repository does
+not have; they are enforced by process and recorded evidence only. Absent
+server-side protection is not a merge blocker, and no step requires verifying
+it; its absence never relaxes the rules above.
+Governance itself is reviewable work.
 
 Do not close a Task when code is merely pushed or approved. Link the approved
 merge and acceptance evidence first; non-default-branch merges may require an
 explicit issue-state update. Epic and milestone acceptance requires its own review.
-Do not merge this bootstrap or mark #51 complete while its approval, protection
-or instruction-discovery requirements remain unmet.
 
 ## Handover at every session boundary
 

@@ -1,0 +1,26 @@
+{
+  "autoMemoryEnabled": false,
+  "permissions": {
+    "allow": [
+      "Read",
+      "Grep",
+      "Glob",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git branch:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh pr view:*)",
+      "mcp__claude_ai_Atlassian_MCP__getAccessibleAtlassianResources",
+      "mcp__claude_ai_Atlassian_MCP__getJiraIssue",
+      "mcp__claude_ai_Atlassian_MCP__searchJiraIssuesUsingJql"
+    ],
+    "deny": [
+      "Edit",
+      "Write",
+      "WebFetch",
+      "WebSearch",
+      "Read(**/docs/governance/evidence/**)"
+    ]
+  }
+}
