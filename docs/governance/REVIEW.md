@@ -167,11 +167,13 @@ its loaded memory/context files and ask, without supplying the answers:
 
 > Which campaign product and hosts are intended? Which Task and Epic are active?
 > What authorises M5 structural work, and what must happen before moving existing
-> behaviour? What does a pure refactor need to prove? Who must formally approve a
-> PR, and what happens when the M4 regression pack differs?
+> behaviour? What may you do read-only before that authorisation? What does a pure
+> refactor need to prove? Who must formally approve a PR, what blocks a merge, and
+> what happens when the M4 regression pack differs?
 
-Verify it derives the answers from the checked-in instructions and live Task, not
-prior chat context. The root CLAUDE.md imports AGENT.md outside a code block;
+Verify it reads REVIEW.md and the live Task and Epic, and derives the answers from
+them and the checked-in instructions, not prior chat context or retained evidence
+of earlier checks. Record any live record it could not reach as a gap. The root CLAUDE.md imports AGENT.md outside a code block;
 AGENTS.md points other agents to the same canonical file. Check any subagents'
 instruction scope separately if used. Static path checking is useful but is not a
 fresh-session test. Record exclusions or ignored-import settings as gaps.
