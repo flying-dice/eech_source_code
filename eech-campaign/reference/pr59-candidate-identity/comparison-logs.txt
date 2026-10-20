@@ -1,0 +1,24 @@
+== inputs.georgia.txt: same after normalising
+== inputs.lebanon-copy.txt: same after normalising
+== inputs.lebanon.txt: same after normalising
+== inputs.lebanon_repeat.txt: same after normalising
+== lifecycle.txt: same after normalising
+== loss-chain.txt: same after normalising
+== observed-vs-unobserved.txt: same after normalising
+== reference.txt: DIFFERS
+   --- 
+   +++ 
+   @@ -1 +1 @@
+   -commit: d38b9b2d30a25e063e8b48230120020b7184327b
+   +commit: 65892de17bf5c4bb9ab6e9f8af70779e35b0106b
+   @@ -5 +5 @@
+   -runs took 1,025 s
+   +runs took 1,286 s
+== regress.txt: DIFFERS
+   --- 
+   +++ 
+   @@ -2 +2 @@
+   -runs took 971 s
+   +runs took 1,232 s
+== tolerance-georgia_retail.txt: same after normalising
+== tolerance-lebanon_retail.txt: same after normalising
