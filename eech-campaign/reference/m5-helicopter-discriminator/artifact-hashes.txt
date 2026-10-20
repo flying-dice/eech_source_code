@@ -14,3 +14,4 @@ cb029fc28806ccf4874d38732a53d1663c308710b9da652ddca177ec1e400e49      4864636  g
 8109537b109645620924565bffa3e116144800fb632327982a88fe3aedaeffaa     68183672  georgia_retail-navigation/observations.jsonl
 9d7218794ae6f29881010c6ab55a22c4f82808a5ff259686a8cabcc267a3e421        22367  georgia_retail-navigation/metrics.json
 0773cd6755975205ec77575ea7a687ad1cf1addeb83e3b6ab647b11c54878035     67989398  georgia_retail-navigation/trace/arrivals-23268.jsonl
+note: the hashes above are of the files as the runs wrote them; the retained metrics-*.json copies are stored by git with LF line endings, so their bytes may differ
