@@ -5,7 +5,8 @@
 # own assertion (patches::apply) will require; and that each replacement keeps
 # its original text (or each statement it lists in "keeps"), so a hook only adds.
 #
-# Usage: python tools/arrival-observe/verify-patches.py   (from eech-campaign/)
+# Usage: python tools/arrival-observe/verify-patches.py [--controlled]   (from eech-campaign/)
+#   --controlled: also the control hook of patches-control.json, after the observation hooks
 import json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -31,6 +32,9 @@ def product_patches():
 
 def main():
     hooks = json.load(open(os.path.join(HERE, 'patches.json')))['patches']
+    if '--controlled' in sys.argv:
+        # the helicopter discriminator's control hook, applied after the observation hooks
+        hooks += json.load(open(os.path.join(HERE, 'patches-control.json')))['patches']
     product = product_patches()
     bad = 0
     for file in sorted({h['file'] for h in hooks}):

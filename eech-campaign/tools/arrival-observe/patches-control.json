@@ -1,0 +1,13 @@
+{
+ "about": "EEDCS-11 helicopter discriminator, TEST ONLY: the control hook tools/build-observed-windows.sh controlled adds after the observation hooks of patches.json. It calls tools/arrival-observe/eech_arrival_control.c just before each server guide arrival check; that module is dormant unless EECH_ARRIVAL_CONTROL is set. Never part of a product build.",
+ "patches": [
+  {
+   "file": "aphavoc/source/entity/special/guide/gd_updt.c",
+   "id": "A13-control-before-arrival-check",
+   "why": "Lets the test-only control hold an AI helicopter wingman's position, the one physical input under control, before the guide's arrival check runs. The check, its verdict and its notification are left exactly as A1 has them.",
+   "original": "\tif (eech_observe_arrival_checked (en, check_guide_reached_waypoint (en)))\n",
+   "replacement": "\t{ extern void eech_control_before_check (entity *guide); eech_control_before_check (en); } /* EECH control (A13), test only */\n\n\tif (eech_observe_arrival_checked (en, check_guide_reached_waypoint (en)))\n",
+   "count": 1
+  }
+ ]
+}
