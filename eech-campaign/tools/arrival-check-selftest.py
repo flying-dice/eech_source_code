@@ -235,6 +235,19 @@ def main():
             ok = code == 1 and claims[claim]['verdict'] == 'FAIL'
             print(f"{'ok  ' if ok else 'FAIL'} {what}: {claim} {claims[claim]['verdict']}" + (f" (also failing: {', '.join(others)})" if others else ''))
             bad += not ok
+        # every real group replenishment, removed on its own: each must fail dropoff.accounting
+        spans = [v['span'] for v, _ in group_dropoffs(copy.deepcopy(events))]
+        missed = []
+        for sid in spans:
+            mutated = copy.deepcopy(events)
+            v, e = next((v, e) for v, e in group_dropoffs(mutated) if v['span'] == sid)
+            e['dependent']['ammo'], e['dependent']['fuel'] = v['dependent']['ammo'], v['dependent']['fuel']
+            code, claims = run(mutated, tmp, f'group-{sid}')
+            if not (code == 1 and claims['dropoff.accounting']['verdict'] == 'FAIL'):
+                missed.append(sid)
+        print(f"{'ok  ' if not missed else 'FAIL'} each of the {len(spans)} group drop-offs with its replenishment removed alone: "
+              f"dropoff.accounting FAIL for {len(spans) - len(missed)}" + (f"; missed spans {missed}" if missed else ''))
+        bad += bool(missed)
         if len(sys.argv) > 2:
             bad += correlation_case(events, sys.argv[2], tmp)
     print('PASS' if not bad else f'FAIL ({bad})')

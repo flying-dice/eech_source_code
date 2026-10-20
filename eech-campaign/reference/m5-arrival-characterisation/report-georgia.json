@@ -78,14 +78,14 @@
    "failure_count": 0
   },
   "pickup.accounting": {
-   "claim": "PICK_UP: with a crate at the supplier, exactly one crate (of the task's cargo type when the supplier has one, S3; else the first) moves from the supplier onto the task leader and the supplier's level of that type drops by 10; with none, nothing changes",
+   "claim": "PICK_UP, at the task's own supplier: with a crate there, exactly one crate (of the task's cargo type when the supplier has one, S3; else the first) moves from the supplier's stock onto the task leader, the supplier's level of that resource drops by exactly 10 and its other resource is unchanged; with none, nothing changes",
    "checked": 19,
    "verdict": "PASS",
    "failures": [],
    "failure_count": 0
   },
   "dropoff.accounting": {
-   "claim": "DROP_OFF: only the task leader's load is read; a keysite requester receives the first identified crate aboard and its level of that type is set to 100 (any further crates stay aboard); a group requester's level rises and the crate stays aboard; with nothing aboard nothing changes",
+   "claim": "DROP_OFF, at the task's own requester, reading only the task leader's load: the requester's ammo and fuel equal the source's result exactly. A keysite takes the first identified crate into its stock and sets that resource to 100; further crates stay aboard. A group gets, for every identified crate aboard, that resource raised by KEYSITE_MINIMUM_*_SUPPLY_LEVEL x *_RESTOCK_ACCELERATOR (10 x 100) and clamped to [0, 100], and every crate stays aboard. The other resource, and everything when nothing is aboard, is unchanged",
    "checked": 14,
    "verdict": "PASS",
    "failures": [],
@@ -153,14 +153,15 @@
    "no crate of the task's type: the first crate taken": 1
   },
   "dropoff_outcomes": {
-   "keysite requester: first crate delivered": 11,
-   "group requester: level raised, crate stays aboard": 1,
-   "keysite requester: first crate delivered (1 more stay aboard)": 1,
-   "nothing aboard the leader (ENTITY_TYPE_KEYSITE requester)": 1
+   "keysite requester: first crate moved into its stock, its level set to 100": 11,
+   "group requester, 1 fuel crate aboard: each raises its resource by 1000, clamped to 100; every crate stays aboard": 1,
+   "keysite requester: first crate moved into its stock, its level set to 100 (1 more stay aboard)": 1,
+   "keysite requester: nothing aboard the leader, nothing changes": 1
   },
   "completion_versus_delivery": {
-   "SUCCESS, delivered at DROP_OFF": 13,
-   "SUCCESS, nothing delivered at DROP_OFF": 1
+   "SUCCESS, requester stock raised at its DROP_OFF (crate moved into a keysite)": 12,
+   "SUCCESS, requester stock raised at its DROP_OFF": 1,
+   "SUCCESS, nothing aboard at its DROP_OFF, requester stock unchanged": 1
   },
   "supply_completions_outside_arrival_spans_by_reason": {
    "TASK_TERMINATED_OBJECTIVE_MESSAGE": 2,
@@ -168,8 +169,9 @@
   },
   "supply_success_by_where_and_delivery": {
    "outside any arrival span, TASK_TERMINATED_OBJECTIVE_MESSAGE, no DROP_OFF arrival, requester group freed in the same frame": 2,
-   "in a FINISH_DROP_OFF span, TASK_TERMINATED_OBJECTIVE_MESSAGE, delivered at its DROP_OFF": 13,
-   "in a FINISH_DROP_OFF span, TASK_TERMINATED_OBJECTIVE_MESSAGE, nothing delivered at its DROP_OFF": 1
+   "in a FINISH_DROP_OFF span, TASK_TERMINATED_OBJECTIVE_MESSAGE, requester stock raised at its DROP_OFF (crate moved into a keysite)": 12,
+   "in a FINISH_DROP_OFF span, TASK_TERMINATED_OBJECTIVE_MESSAGE, requester stock raised at its DROP_OFF": 1,
+   "in a FINISH_DROP_OFF span, TASK_TERMINATED_OBJECTIVE_MESSAGE, nothing aboard at its DROP_OFF, requester stock unchanged": 1
   },
   "supply_success_without_delivery": [
    {
@@ -212,7 +214,7 @@
      306
     ],
     "t": 9529.437,
-    "label": "in a FINISH_DROP_OFF span, TASK_TERMINATED_OBJECTIVE_MESSAGE, nothing delivered at its DROP_OFF",
+    "label": "in a FINISH_DROP_OFF span, TASK_TERMINATED_OBJECTIVE_MESSAGE, nothing aboard at its DROP_OFF, requester stock unchanged",
     "requester": {
      "id": [
       48005,

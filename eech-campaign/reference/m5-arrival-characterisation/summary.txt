@@ -36,6 +36,8 @@ Checks on the retained files (no retail data needed):
   cd reference/m5-arrival-characterisation
   python ../../tools/arrival-check.py arrivals-lebanon.jsonl.gz --observations ../m3-resupply-loop/observations.jsonl.gz --report report-lebanon.json   -> check-lebanon.txt: PASS (11 claims)
   python ../../tools/arrival-check.py arrivals-georgia.jsonl.gz --report report-georgia.json   -> check-georgia.txt: PASS (10 claims; no observations retained for Georgia)
-  python ../../tools/arrival-check-selftest.py arrivals-lebanon.jsonl.gz ../m3-resupply-loop/observations.jsonl.gz   -> selftest-lebanon.txt: PASS (13 cases)
-  python ../../tools/arrival-check-selftest.py arrivals-georgia.jsonl.gz   -> selftest-georgia.txt: PASS (11 cases)
+  python ../../tools/arrival-check-selftest.py arrivals-lebanon.jsonl.gz ../m3-resupply-loop/observations.jsonl.gz   -> selftest-lebanon.txt: PASS (17 injected cases, each of 16 group replenishments removed alone, 2 correlation checks)
+  python ../../tools/arrival-check-selftest.py arrivals-georgia.jsonl.gz   -> selftest-georgia.txt: PASS (16 applicable cases, the mixed-resource case n/a, 1 group replenishment removed alone)
+  red-selftest-*.txt: the accounting cases against the checker before the #77 review fix (commit f327d40f): 7 (Lebanon) and 6 (Georgia) undetected.
+  The reports and check/selftest outputs were regenerated from the same, unchanged traces after the fix.
   The Lebanon run's observations are byte-identical to reference/m3-resupply-loop/observations.jsonl.gz (pack: retained.observations PASS), so that file is the correlation input.

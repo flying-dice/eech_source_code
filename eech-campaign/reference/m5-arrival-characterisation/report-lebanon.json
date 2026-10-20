@@ -78,14 +78,14 @@
    "failure_count": 0
   },
   "pickup.accounting": {
-   "claim": "PICK_UP: with a crate at the supplier, exactly one crate (of the task's cargo type when the supplier has one, S3; else the first) moves from the supplier onto the task leader and the supplier's level of that type drops by 10; with none, nothing changes",
+   "claim": "PICK_UP, at the task's own supplier: with a crate there, exactly one crate (of the task's cargo type when the supplier has one, S3; else the first) moves from the supplier's stock onto the task leader, the supplier's level of that resource drops by exactly 10 and its other resource is unchanged; with none, nothing changes",
    "checked": 50,
    "verdict": "PASS",
    "failures": [],
    "failure_count": 0
   },
   "dropoff.accounting": {
-   "claim": "DROP_OFF: only the task leader's load is read; a keysite requester receives the first identified crate aboard and its level of that type is set to 100 (any further crates stay aboard); a group requester's level rises and the crate stays aboard; with nothing aboard nothing changes",
+   "claim": "DROP_OFF, at the task's own requester, reading only the task leader's load: the requester's ammo and fuel equal the source's result exactly. A keysite takes the first identified crate into its stock and sets that resource to 100; further crates stay aboard. A group gets, for every identified crate aboard, that resource raised by KEYSITE_MINIMUM_*_SUPPLY_LEVEL x *_RESTOCK_ACCELERATOR (10 x 100) and clamped to [0, 100], and every crate stays aboard. The other resource, and everything when nothing is aboard, is unchanged",
    "checked": 48,
    "verdict": "PASS",
    "failures": [],
@@ -178,13 +178,16 @@
    "no crate at the supplier: nothing taken": 1
   },
   "dropoff_outcomes": {
-   "group requester: level raised, crate stays aboard": 16,
-   "keysite requester: first crate delivered": 20,
-   "keysite requester: first crate delivered (1 more stay aboard)": 8,
-   "keysite requester: first crate delivered (2 more stay aboard)": 4
+   "group requester, 1 fuel crate aboard: each raises its resource by 1000, clamped to 100; every crate stays aboard": 12,
+   "keysite requester: first crate moved into its stock, its level set to 100": 20,
+   "group requester, 2 fuel crates aboard: each raises its resource by 1000, clamped to 100; every crate stays aboard": 3,
+   "keysite requester: first crate moved into its stock, its level set to 100 (1 more stay aboard)": 8,
+   "group requester, 1 ammo crate + 1 fuel crate aboard: each raises its resource by 1000, clamped to 100; every crate stays aboard": 1,
+   "keysite requester: first crate moved into its stock, its level set to 100 (2 more stay aboard)": 4
   },
   "completion_versus_delivery": {
-   "SUCCESS, delivered at DROP_OFF": 48
+   "SUCCESS, requester stock raised at its DROP_OFF": 16,
+   "SUCCESS, requester stock raised at its DROP_OFF (crate moved into a keysite)": 32
   },
   "supply_completions_outside_arrival_spans_by_reason": {
    "TASK_TERMINATED_EXPIRE_TIME_REACHED": 107,
@@ -192,7 +195,8 @@
    "TASK_TERMINATED_OBJECTIVE_MESSAGE": 1
   },
   "supply_success_by_where_and_delivery": {
-   "in a FINISH_DROP_OFF span, TASK_TERMINATED_OBJECTIVE_MESSAGE, delivered at its DROP_OFF": 48,
+   "in a FINISH_DROP_OFF span, TASK_TERMINATED_OBJECTIVE_MESSAGE, requester stock raised at its DROP_OFF": 16,
+   "in a FINISH_DROP_OFF span, TASK_TERMINATED_OBJECTIVE_MESSAGE, requester stock raised at its DROP_OFF (crate moved into a keysite)": 32,
    "outside any arrival span, TASK_TERMINATED_OBJECTIVE_MESSAGE, no DROP_OFF arrival, requester group freed in the same frame": 1
   },
   "supply_success_without_delivery": [

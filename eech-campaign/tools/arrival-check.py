@@ -17,7 +17,9 @@ from collections import Counter, defaultdict
 
 FOUR = ('WAYPOINT_PICK_UP', 'WAYPOINT_PREPARE_FOR_DROP_OFF', 'WAYPOINT_DROP_OFF', 'WAYPOINT_FINISH_DROP_OFF')
 RADIUS = {'ENTITY_TYPE_HELICOPTER': 40.0, 'ENTITY_TYPE_FIXED_WING': 100.0}   # wp_dbase.c, for the four types
-CRATE = 10.0                                          # CARGO_AMMO_SIZE, CARGO_FUEL_SIZE
+CRATE = 10.0                                          # CARGO_AMMO_SIZE, CARGO_FUEL_SIZE (cargo.h)
+GROUP_INCREMENT = 10.0 * 100.0                        # KEYSITE_MINIMUM_*_SUPPLY_LEVEL x *_RESTOCK_ACCELERATOR (en_suply.h)
+RESOURCE = {'CARGO_AMMO': 'ammo', 'CARGO_FUEL': 'fuel'}
 HELI_COHESION = 750.0                                 # hc_msgs.c HELICOPTER_LAST_TO_REACH_DISTANCE
 SUCCESS = 3                                           # TASK_COMPLETED_SUCCESS
 EPS = 0.002                                           # the trace prints 3 decimals
@@ -29,6 +31,47 @@ def key(ref):
 
 def level_of(holder, cargo):
     return holder.get('ammo' if cargo == 'CARGO_AMMO' else 'fuel') if holder else None
+
+
+def dropoff_expected(dep, load_before):
+    """The source's result of a DROP_OFF response (mb_msgs.c response_to_waypoint_drop_off_reached, ks_msgs.c), from the
+    state before it: (levels {ammo, fuel}, the leader's load after as [ids] in order, the keysite's crates after as sorted
+    [ids] or None, the id of the crate moved or None). It walks the task leader's MOVEMENT_DEPENDENT list in order and acts on
+    each identified crate. A keysite requester takes the crate into its stock and that resource is set to 100; moving the
+    crate clears its successor, so the walk ends there (the first-crate-only defect). A group requester gets that resource
+    raised by 10 x 100 and clamped to [0, 100], and the crate stays aboard, so every crate is applied."""
+    keysite = dep['type'] == 'ENTITY_TYPE_KEYSITE'
+    levels = {'ammo': dep['ammo'], 'fuel': dep['fuel']}
+    load = [key(c['id']) for c in load_before]
+    crates = sorted((c[0], c[1]) for c in dep.get('crates', [])) if keysite else None
+    moved = None
+    for c in load_before:
+        if not c.get('identify_cargo'):
+            continue
+        r = RESOURCE.get(c.get('cargo'))
+        if keysite:
+            load.remove(key(c['id']))
+            crates = sorted(crates + [key(c['id'])])
+            if r:
+                levels[r] = 100.0
+            moved = key(c['id'])
+            break
+        if r:
+            levels[r] = min(100.0, max(0.0, levels[r] + GROUP_INCREMENT))
+    return levels, load, crates, moved
+
+
+def delivery_label(status):
+    """what a task's DROP_OFF did: the requester's stock accounting, kept apart from cargo merely being aboard"""
+    if status is None:
+        return 'no DROP_OFF arrival'
+    if status['stock_raised']:
+        return 'requester stock raised at its DROP_OFF' + (' (crate moved into a keysite)' if status['crate_transferred'] else '')
+    if status['crate_transferred']:
+        return 'crate moved into the keysite at its DROP_OFF, level already 100'
+    if status['cargo_aboard']:
+        return 'cargo aboard at its DROP_OFF, requester stock unchanged (already 100)'
+    return 'nothing aboard at its DROP_OFF, requester stock unchanged'
 
 
 def kind_of(member):
@@ -203,54 +246,71 @@ def main():
         expect = typed[0] if typed else crates[0]
         outcome['crate of the task\'s type taken' if typed else 'no crate of the task\'s type: the first crate taken'] += 1
         moved = [c for c in gained if key(c['id']) == (expect[0], expect[1])]
-        left = {(c[0], c[1]) for c in after_dep.get('crates', [])}
-        drop = level_of(before_dep, expect[2]) - level_of(after_dep, expect[2])
-        if len(gained) != 1 or not moved or (expect[0], expect[1]) in left or abs(drop - CRATE) > EPS:
-            bad.append({'span': v['span'], 't': v['t'], 'why': f"expected crate {expect} onto the leader and -{CRATE} {expect[2]}; "
-                        f"gained {[c['id'] for c in gained]}, level change {-drop:.3f}"})
-    claims.check('pickup.accounting', 'PICK_UP: with a crate at the supplier, exactly one crate (of the task\'s cargo type when the supplier '
-                 'has one, S3; else the first) moves from the supplier onto the task leader and the supplier\'s level of that type drops by 10; '
-                 'with none, nothing changes', bad, sum(outcome.values()))
+        left = [(c[0], c[1]) for c in after_dep.get('crates', [])]
+        # the source's result for both resources: ks_msgs.c subtracts CARGO_*_SIZE from the crate's resource only
+        want_levels = {'ammo': before_dep['ammo'], 'fuel': before_dep['fuel']}
+        if expect[2] in RESOURCE:
+            want_levels[RESOURCE[expect[2]]] -= CRATE
+        wrong = [r for r in ('ammo', 'fuel') if abs(after_dep[r] - want_levels[r]) > EPS]
+        if task and key(before_dep['id']) != key(task['supplier']['id']):
+            wrong.append('supplier is not the task\'s supplier')
+        if key(after_dep['id']) != key(before_dep['id']):
+            wrong.append('the effect names another supplier')
+        if len(gained) != 1 or not moved or sorted(left) != sorted((c[0], c[1]) for c in crates if (c[0], c[1]) != (expect[0], expect[1])) or wrong:
+            bad.append({'span': v['span'], 't': v['t'], 'why': f"expected crate {expect} onto the leader and the supplier at {want_levels}; "
+                        f"gained {[c['id'] for c in gained]}, supplier at ammo {after_dep['ammo']} fuel {after_dep['fuel']}; {wrong}"})
+    claims.check('pickup.accounting', 'PICK_UP, at the task\'s own supplier: with a crate there, exactly one crate (of the task\'s cargo type '
+                 'when the supplier has one, S3; else the first) moves from the supplier\'s stock onto the task leader, the supplier\'s level of '
+                 'that resource drops by exactly 10 and its other resource is unchanged; with none, nothing changes', bad, sum(outcome.values()))
     pickup_outcomes = dict(outcome)
 
-    # 6. drop-off accounting
-    bad, outcome, delivered = [], Counter(), {}
+    # 6. drop-off accounting: the source's exact result at the task's own requester, for both resources and every crate aboard
+    bad, outcome, delivered, drop_status = [], Counter(), {}, {}
     for s in [s for s in supply_four if s['verdict']['wp_type'] == 'WAYPOINT_DROP_OFF']:
         v, e = s['verdict'], s['effect']
         dep, after_dep = v.get('dependent'), e.get('dependent') if e else None
         load_before = v.get('leader_aboard') or []
         load_after = e.get('leader_aboard') if e else None
-        ident = [c for c in load_before if c.get('identify_cargo')]
         tk = key(v['task'])
+        task = tasks.get(tk)
         if not dep:
             outcome['no requester'] += 1
             continue
         if load_after is None or not after_dep:
             outcome['not judged (the leader or requester gone)'] += 1
             continue
-        after_ids = {key(c['id']) for c in load_after}
+        want_levels, want_load, want_crates, moved = dropoff_expected(dep, load_before)
+        got_load = [key(c['id']) for c in load_after]
+        got_crates = sorted((c[0], c[1]) for c in after_dep.get('crates', [])) if dep['type'] == 'ENTITY_TYPE_KEYSITE' else None
+        wrong = [f"{r} {after_dep[r]} (source: {want_levels[r]})" for r in ('ammo', 'fuel') if abs(after_dep[r] - want_levels[r]) > EPS]
+        if got_load != want_load:
+            wrong.append(f'leader load {got_load} (source: {want_load})')
+        if got_crates is not None and got_crates != want_crates:
+            wrong.append('keysite stock is not its stock plus the first crate')
+        if task and key(dep['id']) != key(task['requester']['id']):
+            wrong.append(f"destination {dep['id']} is not the task's requester {task['requester']['id']}")
+        if key(after_dep['id']) != key(dep['id']):
+            wrong.append('the effect names another destination')
+        if wrong:
+            bad.append({'span': v['span'], 't': v['t'], 'task': v['task'], 'leader': v['task_leader'], 'destination': dep['id'], 'why': wrong})
+        ident = [c for c in load_before if c.get('identify_cargo')]
+        raised = [r for r in ('ammo', 'fuel') if after_dep[r] > dep[r] + EPS]
+        drop_status[tk] = {'cargo_aboard': bool(ident), 'stock_raised': bool(raised), 'crate_transferred': moved is not None}
+        delivered[tk] = bool(raised) or moved is not None
+        kind = 'keysite' if dep['type'] == 'ENTITY_TYPE_KEYSITE' else 'group'
         if not ident:
-            outcome[f"nothing aboard the leader ({dep['type']} requester)"] += 1
-            delivered[tk] = False
-            if after_ids != {key(c['id']) for c in load_before} or abs(after_dep['ammo'] - dep['ammo']) > EPS or abs(after_dep['fuel'] - dep['fuel']) > EPS:
-                bad.append({'span': v['span'], 'why': 'nothing aboard, yet the load or the level changed'})
-            continue
-        delivered[tk] = True
-        first = ident[0]
-        if dep['type'] == 'ENTITY_TYPE_KEYSITE':
-            outcome['keysite requester: first crate delivered' + ('' if len(ident) == 1 else f' ({len(ident) - 1} more stay aboard)')] += 1
-            crates_after = {(c[0], c[1]) for c in after_dep.get('crates', [])}
-            stayed = [c for c in ident[1:] if key(c['id']) in after_ids]
-            if key(first['id']) in after_ids or key(first['id']) not in crates_after or abs(level_of(after_dep, first.get('cargo')) - 100.0) > EPS \
-                    or len(stayed) != len(ident) - 1:
-                bad.append({'span': v['span'], 't': v['t'], 'why': 'keysite drop-off did not move exactly the first crate and set its level to 100'})
+            outcome[f'{kind} requester: nothing aboard the leader, nothing changes'] += 1
+        elif kind == 'keysite':
+            outcome['keysite requester: first crate moved into its stock, its level set to 100' + ('' if len(ident) == 1 else f' ({len(ident) - 1} more stay aboard)')] += 1
         else:
-            outcome['group requester: level raised, crate stays aboard'] += 1
-            if after_ids != {key(c['id']) for c in load_before} or level_of(after_dep, first.get('cargo')) < level_of(dep, first.get('cargo')) - EPS:
-                bad.append({'span': v['span'], 't': v['t'], 'why': 'group drop-off changed the load or lowered the level'})
-    claims.check('dropoff.accounting', 'DROP_OFF: only the task leader\'s load is read; a keysite requester receives the first identified crate '
-                 'aboard and its level of that type is set to 100 (any further crates stay aboard); a group requester\'s level rises and the '
-                 'crate stays aboard; with nothing aboard nothing changes', bad, sum(outcome.values()))
+            crates_by = Counter(RESOURCE[c['cargo']] for c in ident if c.get('cargo') in RESOURCE)
+            outcome[f"group requester, {' + '.join(f'{n} {r} crate' + ('s' if n > 1 else '') for r, n in sorted(crates_by.items()))} aboard: "
+                    f"each raises its resource by 1000, clamped to 100{' (already 100: no change)' if not raised else ''}; every crate stays aboard"] += 1
+    claims.check('dropoff.accounting', 'DROP_OFF, at the task\'s own requester, reading only the task leader\'s load: the requester\'s ammo and '
+                 'fuel equal the source\'s result exactly. A keysite takes the first identified crate into its stock and sets that resource '
+                 'to 100; further crates stay aboard. A group gets, for every identified crate aboard, that resource raised by '
+                 'KEYSITE_MINIMUM_*_SUPPLY_LEVEL x *_RESTOCK_ACCELERATOR (10 x 100) and clamped to [0, 100], and every crate stays aboard. '
+                 'The other resource, and everything when nothing is aboard, is unchanged', bad, sum(outcome.values()))
     dropoff_outcomes = dict(outcome)
 
     # 7. completion: FINISH_DROP_OFF completes the task as SUCCESS inside its own span, whatever was delivered
@@ -262,8 +322,7 @@ def main():
         if v.get('task_completed', 0) == 0 and (reasons != ['TASK_TERMINATED_OBJECTIVE_MESSAGE'] or values != [SUCCESS]):
             bad.append({'span': v['span'], 't': v['t'], 'reasons': reasons, 'values': values})
         tk = key(v['task'])
-        completion_vs_delivery['SUCCESS, delivered at DROP_OFF' if delivered.get(tk) else
-                               'SUCCESS, nothing delivered at DROP_OFF' if tk in delivered else 'SUCCESS, no DROP_OFF arrival observed'] += 1
+        completion_vs_delivery['SUCCESS, ' + delivery_label(drop_status.get(tk))] += 1
     claims.check('finish.completes_success', 'FINISH_DROP_OFF: inside its span the task receives TASK_COMPLETED (objective message) and '
                  'is set to SUCCESS (when still incomplete)', bad, len([s for s in supply_four if s['verdict']['wp_type'] == 'WAYPOINT_FINISH_DROP_OFF']))
 
@@ -345,13 +404,13 @@ def main():
         tk = key(c['task'])
         where = spans[c['span']]['verdict']['wp_type'].replace('WAYPOINT_', 'in a ') + ' span' if c.get('span') in spans else 'outside any arrival span'
         reason = next((x['reason'] for x in events if x['e'] == 'completion' and key(x['task']) == tk and x['t'] == c['t']), '?')
-        how = 'delivered at its DROP_OFF' if delivered.get(tk) else 'nothing delivered at its DROP_OFF' if tk in delivered else 'no DROP_OFF arrival'
+        how = delivery_label(drop_status.get(tk))
         task = tasks.get(tk)
         req = task['requester'] if task else None
         req_freed = req is not None and freed_t.get(key(req['id'])) == c['t']
         label = f"{where}, {reason}, {how}" + (f", requester {req['type'].replace('ENTITY_TYPE_', '').lower()} freed in the same frame" if req_freed else '')
         success[label] += 1
-        if how != 'delivered at its DROP_OFF' and len(success_examples) < 10:
+        if not delivered.get(tk) and len(success_examples) < 10:
             success_examples.append({'task': c['task'], 't': c['t'], 'label': label, 'requester': req and {k: req[k] for k in ('id', 'type', 'name')},
                                      'supplier': task and task['supplier'].get('name')})
 
