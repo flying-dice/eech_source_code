@@ -1,0 +1,25 @@
+# The comparison commands at the top of each retained output, rerun with this commit's helpers under python -X dev
+# (so an unclosed file or other warning would reach stderr), from eech-campaign/ on the same Windows PC and inputs
+# (Git Bash, Python 3.13.6). Each rerun's stdout, followed by 'exit N', has its CRLF (Windows stdout) turned into LF,
+# as the retained files are stored, and is compared byte for byte with the retained file; stderr's size is shown.
+
+## section-comparison.txt
+$ python -X dev -I reference/pr59-candidate-identity/compare-pe.py E:/eech_source_code/.claude/worktrees/agent-a8d9022fc00a3cad2/eech-campaign/target/pr76-candidate/eech_dc.dll target/pr59-candidate/eech_dc.dll
+  stderr: 0 bytes
+$ python -X dev -I reference/pr59-candidate-identity/compare-pe.py E:/eech_source_code/.claude/worktrees/agent-a8d9022fc00a3cad2/eech-campaign/target/pr76-candidate/eech-world.exe target/pr59-candidate/eech-world.exe
+  stderr: 0 bytes
+rerun output (with each command line and exit status) = section-comparison.txt, byte for byte
+
+## comparison-report.txt
+$ python -X dev -I reference/pr59-candidate-identity/compare-report.py reference/pr76-candidate-validation/report.json reference/pr59-candidate-identity/report.json
+  stderr: 0 bytes
+$ python -X dev -I reference/pr59-candidate-identity/compare-report.py reference/pr76-candidate-validation/chains.json reference/pr59-candidate-identity/chains.json
+  stderr: 0 bytes
+$ python -X dev -I reference/pr59-candidate-identity/compare-report.py reference/pr76-candidate-validation/loss-chain.json reference/pr59-candidate-identity/loss-chain.json
+  stderr: 0 bytes
+rerun output (with each command line and exit status) = comparison-report.txt, byte for byte
+
+## comparison-logs.txt
+$ python -X dev -I reference/pr59-candidate-identity/compare-logs.py reference/pr76-candidate-validation/logs reference/pr59-candidate-identity/logs --mask 'agent-a[0-9a-f]+' --mask 'pr(59|76)-candidate'
+  stderr: 0 bytes
+rerun output (with each command line and exit status) = comparison-logs.txt, byte for byte

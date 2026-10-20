@@ -74,6 +74,19 @@ jobs:
           cargo fmt --check
           cargo clippy --locked --all-targets -- -D warnings
 
+  evidence-selftest:
+    # the helpers that compare retained evidence must fail closed; --strict fails the job if a
+    # symbolic-link or permission case cannot run here (junction cases are Windows-only by design)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: eech-campaign
+    steps:
+      - uses: actions/checkout@v4
+      - name: Evidence comparison selftest
+        run: python3 -I reference/pr59-candidate-identity/compare-selftest.py --strict
+
   windows-cross:
     # LLP64 (the DCS platform): MinGW cross build, run under Wine
     runs-on: ubuntu-24.04
