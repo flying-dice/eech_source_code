@@ -1,13 +1,16 @@
-== inputs.georgia.txt: same after normalising
-== inputs.lebanon-copy.txt: same after normalising
-== inputs.lebanon.txt: same after normalising
-== inputs.lebanon_repeat.txt: same after normalising
-== lifecycle.txt: same after normalising
-== loss-chain.txt: same after normalising
-== observed-vs-unobserved.txt: same after normalising
+$ python -I reference/pr59-candidate-identity/compare-logs.py reference/pr76-candidate-validation/logs reference/pr59-candidate-identity/logs --mask 'agent-a[0-9a-f]+' --mask 'pr(59|76)-candidate'
+masks: ['agent-a[0-9a-f]+', 'pr(59|76)-candidate']
+== inputs-before-run.txt: file ONLY IN b
+== inputs.georgia.txt: same after masking
+== inputs.lebanon-copy.txt: same after masking
+== inputs.lebanon.txt: same after masking
+== inputs.lebanon_repeat.txt: same after masking
+== lifecycle.txt: same after masking
+== loss-chain.txt: same after masking
+== observed-vs-unobserved.txt: same after masking
 == reference.txt: DIFFERS
-   --- 
-   +++ 
+   --- a/reference.txt
+   +++ b/reference.txt
    @@ -1 +1 @@
    -commit: d38b9b2d30a25e063e8b48230120020b7184327b
    +commit: 65892de17bf5c4bb9ab6e9f8af70779e35b0106b
@@ -15,10 +18,12 @@
    -runs took 1,025 s
    +runs took 1,286 s
 == regress.txt: DIFFERS
-   --- 
-   +++ 
+   --- a/regress.txt
+   +++ b/regress.txt
    @@ -2 +2 @@
    -runs took 971 s
    +runs took 1,232 s
-== tolerance-georgia_retail.txt: same after normalising
-== tolerance-lebanon_retail.txt: same after normalising
+== tolerance-georgia_retail.txt: same after masking
+== tolerance-lebanon_retail.txt: same after masking
+11 file(s) compared; 3 differ, are one-sided or are links
+exit 1

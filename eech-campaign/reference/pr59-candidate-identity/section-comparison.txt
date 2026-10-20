@@ -1,40 +1,64 @@
+$ python -I reference/pr59-candidate-identity/compare-pe.py E:/eech_source_code/.claude/worktrees/agent-a8d9022fc00a3cad2/eech-campaign/target/pr76-candidate/eech_dc.dll target/pr59-candidate/eech_dc.dll
 E:/eech_source_code/.claude/worktrees/agent-a8d9022fc00a3cad2/eech-campaign/target/pr76-candidate/eech_dc.dll: 16657810 bytes, SHA-256 186857dfaf280c653d0a537cdc44ad74c41c2c254ad17b83175f7d2a743a8763
 target/pr59-candidate/eech_dc.dll: 16657810 bytes, SHA-256 a99d7a1118008f73a995fd7e4701a04bddb5fa51d1bf3b5a487297d78c383f41
 sections (name, raw size, raw-data SHA-256 a / b):
-  .text         5323264  e2220fb96c60b109 / e2220fb96c60b109  same
-  .data         6192128  2cebdec37c1891b6 / 2cebdec37c1891b6  same
-  .rdata        1240576  2e813a83d6a6bbab / 2e813a83d6a6bbab  same
-  .pdata         149504  b837730e20c6b6b2 / b837730e20c6b6b2  same
-  .xdata         230912  abbdde23b36137e0 / abbdde23b36137e0  same
-  .bss                0  e3b0c44298fc1c14 / e3b0c44298fc1c14  same
-  .edata            512  3de2cf7eb6169ae5 / e99bf4a3178462a7  DIFFERENT
-  .idata          14336  3617d6c4551bee5a / 3617d6c4551bee5a  same
-  .CRT              512  f2a5fa783dcd065d / f2a5fa783dcd065d  same
-  .tls              512  076a27c79e5ace2a / 076a27c79e5ace2a  same
-  .reloc          35328  b313d02ec6913e4e / b313d02ec6913e4e  same
+  .text       5323264  e2220fb96c60b109bbd69d405b9395da2f485c816fda7db457c725687622356a
+                       e2220fb96c60b109bbd69d405b9395da2f485c816fda7db457c725687622356a  same
+  .data       6192128  2cebdec37c1891b67012d22889dcc11fae98e3850bd09e816cdacf075b5b3e14
+                       2cebdec37c1891b67012d22889dcc11fae98e3850bd09e816cdacf075b5b3e14  same
+  .rdata      1240576  2e813a83d6a6bbab5fc6f04bd60cdf348815cc1506770982bf6c8722b76d34e7
+                       2e813a83d6a6bbab5fc6f04bd60cdf348815cc1506770982bf6c8722b76d34e7  same
+  .pdata       149504  b837730e20c6b6b20b97b5dda5f0b37b189d2916de624548495c977317c7afb8
+                       b837730e20c6b6b20b97b5dda5f0b37b189d2916de624548495c977317c7afb8  same
+  .xdata       230912  abbdde23b36137e049493404385ffffce8044dec8669c264364478939fc7cbe0
+                       abbdde23b36137e049493404385ffffce8044dec8669c264364478939fc7cbe0  same
+  .bss              0  e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                       e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  same
+  .edata          512  3de2cf7eb6169ae513858fd28c9c70f665ba1e7cac10c79d0ae215f6a80d5aba
+                       e99bf4a3178462a7f77b69968d2c5a544d8c8df0bbf63b18b4e9bb818622a27c  DIFFERENT, only in export.TimeDateStamp
+  .idata        14336  3617d6c4551bee5a090dad69aa10e123338df353f73686a66f152a8acfd5234b
+                       3617d6c4551bee5a090dad69aa10e123338df353f73686a66f152a8acfd5234b  same
+  .CRT            512  f2a5fa783dcd065de5a0bb25b77daf1006df28547458220a172b122a8f31a3a0
+                       f2a5fa783dcd065de5a0bb25b77daf1006df28547458220a172b122a8f31a3a0  same
+  .tls            512  076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560
+                       076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560  same
+  .reloc        35328  b313d02ec6913e4eeae16808497687dbbb95bfa265d4d81fd802f472dad9e296
+                       b313d02ec6913e4eeae16808497687dbbb95bfa265d4d81fd802f472dad9e296  same
 differing bytes by region:
-  after last section (COFF symbol/string table): 115428 bytes
+  COFF symbol/string table: 115428 bytes
   coff.TimeDateStamp: 2 bytes
   export.TimeDateStamp: 2 bytes
   optional.CheckSum: 2 bytes
-RESULT: same code and data; only link metadata and the unmapped symbol table differ
+RESULT: same code and data, apart from link metadata (COFF and export timestamps, checksum) and the unmapped COFF symbol table
 exit 0
+
+$ python -I reference/pr59-candidate-identity/compare-pe.py E:/eech_source_code/.claude/worktrees/agent-a8d9022fc00a3cad2/eech-campaign/target/pr76-candidate/eech-world.exe target/pr59-candidate/eech-world.exe
 E:/eech_source_code/.claude/worktrees/agent-a8d9022fc00a3cad2/eech-campaign/target/pr76-candidate/eech-world.exe: 1902960 bytes, SHA-256 56f08086f5c371bf626902eba8147cc471b46b07af064c4194755541ceb69471
 target/pr59-candidate/eech-world.exe: 1902960 bytes, SHA-256 13cc2a6f00ec570a907c701bf2f8711429934b7f833c01bd847a1f492988a228
 sections (name, raw size, raw-data SHA-256 a / b):
-  .text         1046016  26ebd1f3b0c183ac / 26ebd1f3b0c183ac  same
-  .data            3584  97618411a54867d7 / 97618411a54867d7  same
-  .rdata         181760  db2e9199f24d79b0 / db2e9199f24d79b0  same
-  .pdata          30720  8c64b5144aa0f343 / 8c64b5144aa0f343  same
-  .xdata          76800  8b97bc8d6adcac51 / 8b97bc8d6adcac51  same
-  .bss                0  e3b0c44298fc1c14 / e3b0c44298fc1c14  same
-  .idata          10752  2e03231bb1a964fe / 2e03231bb1a964fe  same
-  .CRT              512  977c21828e1f75ae / 977c21828e1f75ae  same
-  .tls              512  076a27c79e5ace2a / 076a27c79e5ace2a  same
-  .reloc           5120  3920331a95f75437 / 3920331a95f75437  same
+  .text       1046016  26ebd1f3b0c183acf8cdfa11fad1b0d0cebc277fa4ab98b53bad8a21297c3203
+                       26ebd1f3b0c183acf8cdfa11fad1b0d0cebc277fa4ab98b53bad8a21297c3203  same
+  .data          3584  97618411a54867d771035bb4513e60358a5c9b39c55febb550b95b3309493aba
+                       97618411a54867d771035bb4513e60358a5c9b39c55febb550b95b3309493aba  same
+  .rdata       181760  db2e9199f24d79b077711ba778e1e49df95eb234338ad6c73a6a348f2bb16e69
+                       db2e9199f24d79b077711ba778e1e49df95eb234338ad6c73a6a348f2bb16e69  same
+  .pdata        30720  8c64b5144aa0f34352991cf3585cfce307f8dbd975be18ff7b36d5785866fe0c
+                       8c64b5144aa0f34352991cf3585cfce307f8dbd975be18ff7b36d5785866fe0c  same
+  .xdata        76800  8b97bc8d6adcac51a0ecc5982326162479ab329d7e54422aaeb69332edb0c049
+                       8b97bc8d6adcac51a0ecc5982326162479ab329d7e54422aaeb69332edb0c049  same
+  .bss              0  e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                       e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  same
+  .idata        10752  2e03231bb1a964fe5674015d145852af8b774c98c39d00e031f4b8d296230e1c
+                       2e03231bb1a964fe5674015d145852af8b774c98c39d00e031f4b8d296230e1c  same
+  .CRT            512  977c21828e1f75aed88b7f0b0c43f6ac4ea3cd705af3f8cfa15003e474b4d95d
+                       977c21828e1f75aed88b7f0b0c43f6ac4ea3cd705af3f8cfa15003e474b4d95d  same
+  .tls            512  076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560
+                       076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560  same
+  .reloc         5120  3920331a95f75437078f834b956a1863e343d2ab3baac3b5ff64ed5e1fc78e1c
+                       3920331a95f75437078f834b956a1863e343d2ab3baac3b5ff64ed5e1fc78e1c  same
 differing bytes by region:
-  after last section (COFF symbol/string table): 22472 bytes
+  COFF symbol/string table: 22472 bytes
   coff.TimeDateStamp: 2 bytes
   optional.CheckSum: 2 bytes
-RESULT: same code and data; only link metadata and the unmapped symbol table differ
+RESULT: same code and data, apart from link metadata (COFF and export timestamps, checksum) and the unmapped COFF symbol table
 exit 0

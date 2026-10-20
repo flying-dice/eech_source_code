@@ -1,19 +1,50 @@
-top-level keys: ['blind_spots', 'checks', 'claims', 'counts', 'disposition', 'head']
-10 differing leaves
-  .checks.inputs.georgia.detail: 'E:/eech-runs/roots/georgia: E:/eech-runs/roots/georgia: 1174 input files, 142,522,166 bytes, combined SHA-256 ' -> 'E:/eech-runs/roots/georgia: E:/eech-runs/roots/georgia: 1174 input files, 142,522,166 bytes, combined SHA-256 '
-  .checks.inputs.lebanon.detail: 'E:/eech-runs/m2/lebanon-root: E:/eech-runs/m2/lebanon-root: 1179 input files, 102,239,559 bytes, combined SHA-' -> 'E:/eech-runs/m2/lebanon-root: E:/eech-runs/m2/lebanon-root: 1179 input files, 102,239,559 bytes, combined SHA-'
-  .checks.inputs.lebanon_repeat.detail: 'E:/eech-runs/m2/lebanon-m1-copy: E:/eech-runs/m2/lebanon-m1-copy: 1179 input files, 102,239,559 bytes, combine' -> 'E:/eech-runs/m2/lebanon-m1-copy: E:/eech-runs/m2/lebanon-m1-copy: 1179 input files, 102,239,559 bytes, combine'
-  .head.build.build_info[0]: 'commit: d38b9b2d30a25e063e8b48230120020b7184327b' -> 'commit: 65892de17bf5c4bb9ab6e9f8af70779e35b0106b'
-  .head.build.files.eech-world.exe: '56f08086f5c371bf626902eba8147cc471b46b07af064c4194755541ceb69471' -> '13cc2a6f00ec570a907c701bf2f8711429934b7f833c01bd847a1f492988a228'
-  .head.build.files.eech_dc.dll: '186857dfaf280c653d0a537cdc44ad74c41c2c254ad17b83175f7d2a743a8763' -> 'a99d7a1118008f73a995fd7e4701a04bddb5fa51d1bf3b5a487297d78c383f41'
-  .head.build.path: 'E:\\eech_source_code\\.claude\\worktrees\\agent-a8d9022fc00a3cad2\\eech-campaign\\target\\pr76-candidate' -> 'E:\\eech_source_code\\.claude\\worktrees\\agent-a9904988ee5ea2a0f\\eech-campaign\\target\\pr59-candidate'
-  .head.command: 'tools\\regression-pack.py --georgia E:/eech-runs/roots/georgia --lebanon E:/eech-runs/m2/lebanon-root --lebanon' -> 'tools\\regression-pack.py --georgia E:/eech-runs/roots/georgia --lebanon E:/eech-runs/m2/lebanon-root --lebanon'
-  .head.pack_revision: 'd38b9b2d30a25e063e8b48230120020b7184327b' -> '65892de17bf5c4bb9ab6e9f8af70779e35b0106b'
-  .head.when: '2026-10-20T17:49:08' -> '2026-10-20T21:33:32'
-top-level keys: ['attributed', 'chains', 'complete_chains', 'deliveries', 'deliveries_by_keysite_type', 'deliveries_of_20_or_more', 'featured_chain', 'metrics', 'metrics_agree', 'metrics_resupplied', 'observations', 'radius_m', 'unattributed_deliveries']
-2 differing leaves
-  .metrics: 'E:\\eech_source_code\\.claude\\worktrees\\agent-a8d9022fc00a3cad2\\eech-campaign\\target\\regression-pack\\pr76-candid' -> 'E:\\eech_source_code\\.claude\\worktrees\\agent-a9904988ee5ea2a0f\\eech-campaign\\target\\regression-pack\\pr59-candid'
-  .observations: 'E:\\eech_source_code\\.claude\\worktrees\\agent-a8d9022fc00a3cad2\\eech-campaign\\target\\regression-pack\\pr76-candid' -> 'E:\\eech_source_code\\.claude\\worktrees\\agent-a9904988ee5ea2a0f\\eech-campaign\\target\\regression-pack\\pr59-candid'
-top-level keys: ['cargo', 'classification', 'group', 'loss', 'observations', 'other_supply_losses_in_run', 'pass', 'receiver', 'response', 'subsequent']
-1 differing leaves
-  .observations: 'E:\\eech_source_code\\.claude\\worktrees\\agent-a8d9022fc00a3cad2\\eech-campaign\\target\\regression-pack\\pr76-candid' -> 'E:\\eech_source_code\\.claude\\worktrees\\agent-a9904988ee5ea2a0f\\eech-campaign\\target\\regression-pack\\pr59-candid'
+$ python -I reference/pr59-candidate-identity/compare-report.py reference/pr76-candidate-validation/report.json reference/pr59-candidate-identity/report.json
+10 differing values
+  ["checks", "inputs.georgia", "detail"]
+    a: str "E:/eech-runs/roots/georgia: E:/eech-runs/roots/georgia: 1174 input files, 142,522,166 bytes, combined SHA-256 d373bc4262464da87532b8128d396358f0003bc2e9e51e8fa92cf0a6e2b50de2 / inputs IDENTICAL to E:\\eech_source_code\\.claude\\worktrees\\agent-a8d9022fc00a3cad2\\eech-campaign\\reference/m4-s3-mutation/inputs-georgia.json"
+    b: str "E:/eech-runs/roots/georgia: E:/eech-runs/roots/georgia: 1174 input files, 142,522,166 bytes, combined SHA-256 d373bc4262464da87532b8128d396358f0003bc2e9e51e8fa92cf0a6e2b50de2 / inputs IDENTICAL to E:\\eech_source_code\\.claude\\worktrees\\agent-a9904988ee5ea2a0f\\eech-campaign\\reference/m4-s3-mutation/inputs-georgia.json"
+  ["checks", "inputs.lebanon", "detail"]
+    a: str "E:/eech-runs/m2/lebanon-root: E:/eech-runs/m2/lebanon-root: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09 / inputs IDENTICAL to E:\\eech_source_code\\.claude\\worktrees\\agent-a8d9022fc00a3cad2\\eech-campaign\\reference/lebanon-3h/inputs.json"
+    b: str "E:/eech-runs/m2/lebanon-root: E:/eech-runs/m2/lebanon-root: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09 / inputs IDENTICAL to E:\\eech_source_code\\.claude\\worktrees\\agent-a9904988ee5ea2a0f\\eech-campaign\\reference/lebanon-3h/inputs.json"
+  ["checks", "inputs.lebanon_repeat", "detail"]
+    a: str "E:/eech-runs/m2/lebanon-m1-copy: E:/eech-runs/m2/lebanon-m1-copy: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09 / inputs IDENTICAL to E:\\eech_source_code\\.claude\\worktrees\\agent-a8d9022fc00a3cad2\\eech-campaign\\reference/lebanon-3h/inputs.json"
+    b: str "E:/eech-runs/m2/lebanon-m1-copy: E:/eech-runs/m2/lebanon-m1-copy: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09 / inputs IDENTICAL to E:\\eech_source_code\\.claude\\worktrees\\agent-a9904988ee5ea2a0f\\eech-campaign\\reference/lebanon-3h/inputs.json"
+  ["head", "build", "build_info", 0]
+    a: str "commit: d38b9b2d30a25e063e8b48230120020b7184327b"
+    b: str "commit: 65892de17bf5c4bb9ab6e9f8af70779e35b0106b"
+  ["head", "build", "files", "eech-world.exe"]
+    a: str "56f08086f5c371bf626902eba8147cc471b46b07af064c4194755541ceb69471"
+    b: str "13cc2a6f00ec570a907c701bf2f8711429934b7f833c01bd847a1f492988a228"
+  ["head", "build", "files", "eech_dc.dll"]
+    a: str "186857dfaf280c653d0a537cdc44ad74c41c2c254ad17b83175f7d2a743a8763"
+    b: str "a99d7a1118008f73a995fd7e4701a04bddb5fa51d1bf3b5a487297d78c383f41"
+  ["head", "build", "path"]
+    a: str "E:\\eech_source_code\\.claude\\worktrees\\agent-a8d9022fc00a3cad2\\eech-campaign\\target\\pr76-candidate"
+    b: str "E:\\eech_source_code\\.claude\\worktrees\\agent-a9904988ee5ea2a0f\\eech-campaign\\target\\pr59-candidate"
+  ["head", "command"]
+    a: str "tools\\regression-pack.py --georgia E:/eech-runs/roots/georgia --lebanon E:/eech-runs/m2/lebanon-root --lebanon-repeat E:/eech-runs/m2/lebanon-m1-copy --bin target\\pr76-candidate --out target\\regression-pack\\pr76-candidate"
+    b: str "tools\\regression-pack.py --georgia E:/eech-runs/roots/georgia --lebanon E:/eech-runs/m2/lebanon-root --lebanon-repeat E:/eech-runs/m2/lebanon-m1-copy --bin target\\pr59-candidate --out target\\regression-pack\\pr59-candidate"
+  ["head", "pack_revision"]
+    a: str "d38b9b2d30a25e063e8b48230120020b7184327b"
+    b: str "65892de17bf5c4bb9ab6e9f8af70779e35b0106b"
+  ["head", "when"]
+    a: str "2026-10-20T17:49:08"
+    b: str "2026-10-20T21:33:32"
+exit 1
+
+$ python -I reference/pr59-candidate-identity/compare-report.py reference/pr76-candidate-validation/chains.json reference/pr59-candidate-identity/chains.json
+2 differing values
+  ["metrics"]
+    a: str "E:\\eech_source_code\\.claude\\worktrees\\agent-a8d9022fc00a3cad2\\eech-campaign\\target\\regression-pack\\pr76-candidate\\reference\\run1\\metrics.json"
+    b: str "E:\\eech_source_code\\.claude\\worktrees\\agent-a9904988ee5ea2a0f\\eech-campaign\\target\\regression-pack\\pr59-candidate\\reference\\run1\\metrics.json"
+  ["observations"]
+    a: str "E:\\eech_source_code\\.claude\\worktrees\\agent-a8d9022fc00a3cad2\\eech-campaign\\target\\regression-pack\\pr76-candidate\\reference\\run1\\observations.jsonl"
+    b: str "E:\\eech_source_code\\.claude\\worktrees\\agent-a9904988ee5ea2a0f\\eech-campaign\\target\\regression-pack\\pr59-candidate\\reference\\run1\\observations.jsonl"
+exit 1
+
+$ python -I reference/pr59-candidate-identity/compare-report.py reference/pr76-candidate-validation/loss-chain.json reference/pr59-candidate-identity/loss-chain.json
+1 differing values
+  ["observations"]
+    a: str "E:\\eech_source_code\\.claude\\worktrees\\agent-a8d9022fc00a3cad2\\eech-campaign\\target\\regression-pack\\pr76-candidate\\reference\\run1\\observations.jsonl"
+    b: str "E:\\eech_source_code\\.claude\\worktrees\\agent-a9904988ee5ea2a0f\\eech-campaign\\target\\regression-pack\\pr59-candidate\\reference\\run1\\observations.jsonl"
+exit 1
