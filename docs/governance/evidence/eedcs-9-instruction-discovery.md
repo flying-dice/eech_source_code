@@ -150,7 +150,70 @@ They open the work under EEDCS-5 from integration state `a02d489c`, with `window
 Server-side merge protection is unverified, so the review gate is enforced by process only.
 ```
 
+(Superseded: that last line reflects candidate wording the lead rejected. See the
+refresh below.)
+
 Both candidate sessions loaded `CLAUDE.md` and its `AGENT.md` import, reported the
 same entry conditions, and kept the lead approval, characterise-first and baseline
 rules. Neither read the live Jira Task; that is a limit of the test environment,
 not of the instructions, which tell a session to read it.
+
+## Refresh after the lead's review (2026-10-20)
+
+The lead's review on #73 asked that unverified protection stay an explicit merge
+blocker, that the fresh sessions read REVIEW.md and the active Task/Epic, and that
+the commands, revision, settings and static check be retained. The sessions above
+are kept as history; this section supersedes them.
+
+### Setup
+
+- Candidate: `86356fb` (this PR's governance wording, merged with integration
+  head `d2d4792a`). Each session ran in a detached worktree of that commit.
+- Claude Code 2.1.304, cloud container, default settings, no project memory,
+  no MCP servers, no prior conversation.
+- Command, run once from the repository root and once from `eech-campaign/`:
+
+  ```sh
+  claude -p --allowedTools "Read,Grep,Glob" \
+    --disallowedTools "Bash,Edit,Write,WebFetch,WebSearch" \
+    --output-format text "$(cat eedcs-9-fresh-question.txt)"
+  ```
+
+- The question, verbatim: [eedcs-9-fresh-question.txt](eedcs-9-fresh-question.txt).
+  It adds to REVIEW.md's questions a request to say what the session would do if
+  asked to restructure campaign code or merge an approved PR, and which records it
+  could not reach. It supplies none of the answers.
+- Full transcripts: [root](eedcs-9-fresh-root.txt),
+  [eech-campaign](eedcs-9-fresh-eech-campaign.txt).
+
+### Results
+
+| Check | Root | `eech-campaign/` |
+|---|---|---|
+| Loaded `CLAUDE.md` and the `AGENT.md` import | yes | yes |
+| Read REVIEW.md | yes | yes |
+| Named the active Epic (EEDCS-5) | yes | yes |
+| Read the live Task/Epic | no: no Jira or GitHub access; said so and called the Task unknown | same |
+| Would not start structural work before reading the live Task, checking the branch and base, and characterising behaviour | yes | yes |
+| Refused to merge, citing unverified protection as a blocker whatever the reviews or checks | yes | yes |
+| Kept lead approval, characterise-first and baseline rules | yes | yes |
+
+Limitation: neither session could reach Jira or GitHub, so neither read the live
+Task. Both said so instead of inventing one, and both treated reading it as a
+precondition for structural work. This is a limit of the test environment.
+
+### Static check
+
+[govcheck.py](govcheck.py) is the retained script. It checks the governance files
+for broken relative links, the active `@AGENT.md` import, the retired #51/#52 gate
+phrases, the rules that must survive, and that unverified protection is still an
+explicit merge blocker.
+
+```sh
+python3 docs/governance/evidence/govcheck.py <checkout>
+```
+
+| Tree | Result |
+|---|---|
+| Integration head `d2d4792a` | exit 1, 8 failures: 4 stale phrases, 4 entry conditions missing |
+| Candidate `86356fb` | exit 0, 0 failures; no broken links; import active |

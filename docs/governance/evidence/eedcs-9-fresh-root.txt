@@ -1,0 +1,82 @@
+I read the files below. I couldn't check the live Jira or GitHub records, so the answers on active work and PR state come from the checked-in files only.
+
+## What I read, and what I couldn't reach
+
+**Read:**
+- `CLAUDE.md` and `AGENT.md`, both already in my context.
+- `PROJECT.md`.
+- `docs/governance/REVIEW.md`.
+
+**Not reached:**
+- **Jira:** I didn't open EEDCS, EEDCS-4 or EEDCS-5.
+- **GitHub:** I didn't open issues #31 or #35, or any PR or review state.
+- **Branch state:** Bash is disabled in this session, so I couldn't check the branch, base SHA, working tree or `a02d489c`.
+- **Other files:** I didn't read `BASELINE_RECORD.md`, the PR template, `lineages.json` or `pack.json`.
+- **Server-side branch protection:** I couldn't check it.
+
+## Answers
+
+**Product and hosts.** The product is one native campaign Lua module, EECH_DC [1]. It is original C for now, behind a Rust public boundary, and is not a rewrite into Rust or TSTL. The two intended hosts are EECH World [2] and DCS World [3]. They are alternatives, not layers. Each owns its own Lua environment and physical world. The campaign owns state, decisions and policy, and the hosts execute physical attempts and supply observations.
+
+**Active Task and Epic.** The files name Epic EEDCS-5 (M5, host interchangeability). They don't name a specific active Task. The docs say to read the live state in Jira, which I couldn't reach, so I can't tell you which Task is active. Retired Tasks #51 and #52 are not gates.
+
+**What authorises M5 structural work.** The files that are present don't authorise it. Authority comes from the accepted live milestone records:
+- the M4 acceptance review (#31 / EEDCS-4);
+- the M5 kickoff (#35), under EEDCS-5.
+
+These start from integration state `a02d489c`, with `windows-retail v1` as the authoritative baseline. Each PR also needs:
+- the behaviour-first rules;
+- the M4 regression pack run against each candidate;
+- any difference handled under REVIEW.md;
+- the technical lead's formal approval.
+
+I haven't verified those records myself.
+
+**Before moving existing behaviour:**
+1. Reproduce the behaviour on a named baseline revision.
+2. Protect it with sociable tests of real collaborating components. Control environmental inputs, not the campaign decisions being asserted.
+3. Record what passes, known defects, unsupported cases and unavailable prerequisites.
+4. Work on a dedicated Task branch and PR.
+5. Keep structural moves separate from rule changes, fixes and balancing.
+
+**What a pure refactor must prove.**
+- Characterisation tests that passed before the move still pass after it. No artificial red step is needed.
+- The newly established ownership contract holds. Host observations demonstrably influence the campaign, and host actions are demonstrably used. Interface declarations or recordings don't prove this.
+- Integrated host-Lua → public native module → world evidence is preserved, since private Rust or C tests can't substitute for it.
+- There is no hidden shared world authority.
+
+**Who approves a PR.** A current formal GitHub **APPROVED** review from `@fd-starscream-bot` is required. The reviewer's actual login must be verified. Comments, review requests, other approvals, green CI and agent self-reviews don't count. New commits after approval need fresh approval. The PR author must be a different identity from the lead.
+
+**When the M4 regression pack differs.**
+- A red pack produces a proposal, not a new baseline. Nothing re-records baselines in place, and `-Update` is refused.
+- Run `baseline-governance.py propose`. Every failure starts as `UNCLASSIFIED`.
+- Classify each delta with evidence as exactly one of four classes:
+  - `regression`: rejected, and the candidate stays failing.
+  - `approved-defect-correction`.
+  - `intentional-semantic-change`.
+  - `expected-input-world-variation`: this founds a separate lineage and never replaces the equivalent-input baseline.
+- The PR carries the before-change report, the change record and the old and proposed baseline identities. The lead approves the commit that holds that exact record.
+- A follow-up commit adds the `approval: {pr, review_id, commit}` reference and runs `adopt`. The tool checks the review on GitHub, and the new commits need fresh approval.
+- A disposition explains a difference and never makes a failing check pass.
+
+## If you asked me now
+
+**Restructure campaign code: I would not start yet.** I would first do these things:
+1. **Establish the starting state.** Inspect the branch, base SHA and working tree. I couldn't do that this session.
+2. **Read the live records.** That means the active Jira Task, EEDCS-5, #31/EEDCS-4, #35 and outstanding PR feedback. I'd ask you to paste them or restore access.
+3. **Characterise the behaviour.** I'd run the M4 regression pack on the baseline for the specific behaviour to be moved.
+4. **Make the change.** I'd work on a dedicated Task branch and PR, with the structural move kept separate from any rule change.
+5. **Hand over.** I'd record the handover on the Task/PR.
+
+If you've given me a bounded Task and the records confirm it falls within the M5 authorisation, I'd continue from step 3.
+
+**Merge an approved PR: I would refuse.** There are two independent blockers:
+- **Merge protection is unverified.** REVIEW.md says no PR merges, by anyone, until an administrator activates and verifies server-side protection. This applies whatever the reviews or checks say.
+- **Approval is unconfirmed.** I couldn't verify that `fd-starscream-bot` has a current formal APPROVED review on the current head, that checks pass, or that no blocking feedback remains.
+
+Implementing agents also never self-merge. If you want to move it forward, I can:
+- check the PR's review and mergeability state, if you give me access;
+- prepare the evidence summary for the lead.
+
+The merge itself has to come from an authorised maintainer once protection is verified.
+exit 0
