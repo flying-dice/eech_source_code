@@ -134,9 +134,9 @@ unverified protections remain blockers. Governance itself is reviewable work.
 Do not close a Task when code is merely pushed or approved. Link the approved
 merge and acceptance evidence first; non-default-branch merges may require an
 explicit issue-state update. Epic and milestone acceptance requires its own review.
-Server-side merge protection is not verified (see REVIEW.md). Until it is, these
-rules are enforced by process and the formal review gate; missing enforcement is
-never permission to merge.
+Server-side merge protection is not verified (see REVIEW.md). Until an
+administrator activates and verifies it, no PR merges, whatever its reviews or
+checks: unverified protection is a merge blocker, not a process exemption.
 
 ## Handover at every session boundary
 

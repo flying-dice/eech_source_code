@@ -153,7 +153,10 @@ merging unsafe changes. Establish that:
 
 Do not claim enforcement from a configuration file alone. If settings access or
 reviewer eligibility is unavailable, record protection as unverified, with the
-limitation; the formal review gate and the no-self-merge policy still apply.
+limitation, and maintain the no-merge policy: no PR merges, by anyone, until an
+administrator activates and verifies effective protection. Unverified protection
+is a merge blocker; the formal review gate and the no-self-merge policy apply in
+addition, not instead.
 Never create a workflow that grants approval on behalf of the technical lead.
 
 ## Fresh Claude instruction-discovery check
