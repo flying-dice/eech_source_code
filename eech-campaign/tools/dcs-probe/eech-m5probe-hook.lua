@@ -10,13 +10,19 @@
 -- (reference/m5-dcs-probes/README.md). The runner's process timeout is the outer
 -- bound; this hook's bound applies only once the simulation has started.
 --
--- Environment (set by run-dcs-probe.ps1): EECH_M5PROBE_RUN_SECONDS (real seconds
--- after simulation start, default 20).
+-- Environment: EECH_M5PROBE_RUN_SECONDS (real seconds after simulation start), set
+-- only by run-dcs-probe.ps1. Without it the hook does nothing, so a manual launch of
+-- the profile is never unpaused or exited by it.
 
-local run_seconds = tonumber (os.getenv ("EECH_M5PROBE_RUN_SECONDS") or "20")
+local run_seconds = tonumber (os.getenv ("EECH_M5PROBE_RUN_SECONDS") or "")
 
 local function say (fmt, ...)
 	log.write ("EECH_M5PROBE_HOOK", log.INFO, string.format (fmt, ...))
+end
+
+if not run_seconds then
+	say ("inactive: EECH_M5PROBE_RUN_SECONDS not set")
+	return
 end
 
 local started_real, exiting

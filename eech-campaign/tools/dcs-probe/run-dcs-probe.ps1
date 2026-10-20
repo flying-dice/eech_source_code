@@ -2,7 +2,7 @@
 # collects its evidence. It starts its own DCS process (hidden), never touches
 # a pre-existing one, and stops only the process tree it started.
 #
-#   pwsh -File run-dcs-probe.ps1 -Stage load -Candidate <dir with eech_dc.dll> [-Root <EECH root copy>] [-CancelLogin]
+#   pwsh -File run-dcs-probe.ps1 -Stage load -Candidate <dir with eech_dc.dll> [-Root <EECH root copy>] [-Scenario lebanon_retail] [-CancelLogin]
 #
 # DCS is started as bin-mt\DCS.exe -w <profile> --no-launcher --mission <probe miz>;
 # --mission is the route observed to load the mission (the GUI hook cannot start it).
@@ -12,9 +12,13 @@
 param(
 	[Parameter(Mandatory)] [ValidateSet('env', 'load', 'boot', 'frames')] [string] $Stage,
 	[Parameter(Mandatory)] [string] $Candidate,
+	# the EECH installation root the campaign boots from (a copy: boot chdirs into it, prepare writes to it)
 	[string] $Root = 'E:\eech-runs\dcs-probe\lebanon-root',
+	[ValidateSet('lebanon_retail', 'georgia_retail')] [string] $Scenario = 'lebanon_retail',
 	[string] $Dcs = 'D:\Program Files\Eagle Dynamics\DCS World OpenBeta',
 	[string] $WriteDirName = 'DCS.M5Probe',
+	# the installation's default profile, which must stay untouched; its dcs.log is watched
+	[string] $DefaultWriteDirName = 'DCS.openbeta',
 	[string] $Work = 'E:\eech-runs\dcs-probe',
 	[string] $Template = 'CoreMods\WWII Units\FW-190D-9\Missions\fw190.miz',
 	[int] $RunSeconds = 20,
@@ -37,12 +41,37 @@ $out = Join-Path $Work "runs\$runId"
 New-Item -ItemType Directory -Force $out, "$Work\bin", "$Work\missions" | Out-Null
 $saved = Join-Path $env:USERPROFILE 'Saved Games'
 $writeDir = Join-Path $saved $WriteDirName
-$defaultLog = Join-Path $saved 'DCS.openbeta\Logs\dcs.log'
+$defaultLog = Join-Path $saved "$DefaultWriteDirName\Logs\dcs.log"
+$dcsBin = Join-Path $Dcs 'bin-mt'
+$dcsExe = Join-Path $dcsBin 'DCS.exe'
 $manifest = [ordered]@{ run = $runId; stage = $Stage; started = (Get-Date).ToString('o') }
 
 function Hash($p) { (Get-FileHash -Algorithm SHA256 $p).Hash.ToLower() }
+function DefaultLogTicks { (Get-Item $defaultLog).LastWriteTimeUtc.Ticks }
 
-# top-level dialogs of one process: title and static texts (edit-box contents are never read)
+# Stops a started process and its descendants, and returns the stopped PIDs. A child
+# counts only if it started after its parent: Windows keeps a dead parent's PID in
+# ParentProcessId, so a reused PID must not adopt an unrelated process.
+function Stop-OwnedTree($process) {
+	$ids = @($process.Id)
+	try {
+		$all = @(Get-CimInstance Win32_Process)
+		$tree = @(@{ id = $process.Id; started = $process.StartTime })
+		for ($i = 0; $i -lt $tree.Count; $i++) {
+			$parent = $tree[$i]
+			$tree += @($all | Where-Object { $_.ParentProcessId -eq $parent.id -and $_.CreationDate -ge $parent.started } |
+				ForEach-Object { @{ id = $_.ProcessId; started = $_.CreationDate } })
+		}
+		$ids = @($tree | ForEach-Object { $_.id })
+	} catch {}   # no process list: the owned root alone is stopped
+	$stopped = @()
+	foreach ($id in $ids) { try { Stop-Process -Id $id -Force -ErrorAction Stop; $stopped += $id } catch {} }
+	return , $stopped
+}
+
+# ScanDialogs lists one process's top-level dialogs (title, static and button texts; edit-box
+# contents are never read). With dismissLogin it also clicks Cancel on 'DCS Login' and OK on
+# 'Authorization cancelled', and marks the clicks in the returned text.
 Add-Type @'
 using System; using System.Text; using System.Runtime.InteropServices; using System.Collections.Generic;
 public static class ProbeWindows {
@@ -56,15 +85,15 @@ public static class ProbeWindows {
 	[DllImport ("user32.dll")] static extern IntPtr SendMessage (IntPtr h, uint m, IntPtr w, IntPtr l);
 	static string Text (IntPtr h) { var s = new StringBuilder (512); GetWindowText (h, s, 512); return s.ToString (); }
 	static string Class (IntPtr h) { var s = new StringBuilder (256); GetClassName (h, s, 256); return s.ToString (); }
-	public static List<string> Dialogs (uint pid, bool cancelLogin) {
+	public static List<string> ScanDialogs (uint pid, bool dismissLogin) {
 		var found = new List<string> ();
 		EnumWindows ((h, l) => {
 			uint owner; GetWindowThreadProcessId (h, out owner);
 			if (owner != pid || Class (h) != "#32770") return true;
 			var parts = new List<string> { Text (h) };
 			EnumChildWindows (h, (c, l2) => { var k = Class (c); if (k == "Static" || k == "Button") { var t = Text (c); if (t != "") parts.Add (t); } return true; }, IntPtr.Zero);
-			if (cancelLogin && Text (h) == "DCS Login") { SendMessage (GetDlgItem (h, 2), 0x00F5, IntPtr.Zero, IntPtr.Zero); parts.Add ("[Cancel clicked]"); }
-			else if (cancelLogin && Text (h) == "Authorization cancelled") { SendMessage (GetDlgItem (h, 1), 0x00F5, IntPtr.Zero, IntPtr.Zero); parts.Add ("[OK clicked]"); }
+			if (dismissLogin && Text (h) == "DCS Login") { SendMessage (GetDlgItem (h, 2), 0x00F5, IntPtr.Zero, IntPtr.Zero); parts.Add ("[Cancel clicked]"); }
+			else if (dismissLogin && Text (h) == "Authorization cancelled") { SendMessage (GetDlgItem (h, 1), 0x00F5, IntPtr.Zero, IntPtr.Zero); parts.Add ("[OK clicked]"); }
 			found.Add (string.Join (" | ", parts));
 			return true;
 		}, IntPtr.Zero);
@@ -74,13 +103,17 @@ public static class ProbeWindows {
 '@
 
 if (Get-Process -Name DCS -ErrorAction SilentlyContinue) { throw 'a DCS process is already running: not starting another' }
+# the probe profile is written to (hook installed, dcs.log replaced): never the default one
+if ($WriteDirName -eq $DefaultWriteDirName) { throw "-WriteDirName must not be the default profile $DefaultWriteDirName" }
+# without the default profile's log the -w check below would watch nothing
+if (-not (Test-Path $defaultLog)) { throw "no $defaultLog to watch: pass the installation's -DefaultWriteDirName" }
 
 # inputs: the DLL only (never the candidate's own lua.dll), the probe, the hook, the mission
 Copy-Item (Join-Path $Candidate 'eech_dc.dll') "$Work\bin\eech_dc.dll" -Force
 Copy-Item "$here\eech-dcs-probe.lua" "$Work\eech-dcs-probe.lua" -Force
 $miz = "$Work\missions\probe-$Stage.miz"
-$template = Join-Path $Dcs $Template
-& python -I "$here\build-probe-miz.py" $template $miz $Stage "$Work\eech-dcs-probe.lua" "$Work\bin" $Root "$out\probe.log"
+$templatePath = Join-Path $Dcs $Template
+& python -I "$here\build-probe-miz.py" $templatePath $miz $Stage $Scenario "$Work\eech-dcs-probe.lua" "$Work\bin" $Root "$out\probe.log"
 if ($LASTEXITCODE -ne 0) { throw 'mission build failed' }
 New-Item -ItemType Directory -Force "$writeDir\Scripts\Hooks" | Out-Null
 Copy-Item "$here\eech-m5probe-hook.lua" "$writeDir\Scripts\Hooks\eech-m5probe-hook.lua" -Force
@@ -88,46 +121,48 @@ $manifest.inputs = [ordered]@{
 	candidate_eech_dc = @{ path = (Join-Path $Candidate 'eech_dc.dll'); sha256 = Hash "$Work\bin\eech_dc.dll" }
 	probe = @{ sha256 = Hash "$Work\eech-dcs-probe.lua" }
 	hook = @{ sha256 = Hash "$writeDir\Scripts\Hooks\eech-m5probe-hook.lua" }
-	template = @{ path = $Template; sha256 = Hash $template }
+	template = @{ path = $Template; sha256 = Hash $templatePath }
 	mission = @{ path = $miz; sha256 = Hash $miz }
-	dcs_exe = @{ path = "$Dcs\bin-mt\DCS.exe"; sha256 = Hash "$Dcs\bin-mt\DCS.exe" }
-	dcs_lua = @{ sha256 = Hash "$Dcs\bin-mt\lua.dll" }
+	dcs_exe = @{ path = $dcsExe; sha256 = Hash $dcsExe }
+	dcs_lua = @{ sha256 = Hash (Join-Path $dcsBin 'lua.dll') }
 	mission_scripting = @{ sha256 = Hash "$Dcs\Scripts\MissionScripting.lua" }
 	autoupdate_version = (Get-Content "$Dcs\autoupdate.cfg" -Raw | ConvertFrom-Json).version
 }
-$defaultBefore = if (Test-Path $defaultLog) { (Get-Item $defaultLog).LastWriteTimeUtc.Ticks } else { 0 }
+$manifest.scenario = $Scenario
+$defaultLogTicksBefore = DefaultLogTicks
 if (Test-Path "$writeDir\Logs\dcs.log") { Remove-Item "$writeDir\Logs\dcs.log" }
 
 $env:EECH_M5PROBE_RUN_SECONDS = "$RunSeconds"
 $arguments = @('-w', $WriteDirName, '--no-launcher', '--mission', "`"$miz`"")
 $manifest.cancel_login = [bool]$CancelLogin
 if ($ErrorControlsEvidence) { $manifest.error_controls_evidence = @{ path = $ErrorControlsEvidence; sha256 = Hash $ErrorControlsEvidence } }
-$manifest.command = "Start-Process `"$Dcs\bin-mt\DCS.exe`" -ArgumentList $($arguments -join ' ') -WindowStyle Hidden -PassThru"
-$p = Start-Process -FilePath "$Dcs\bin-mt\DCS.exe" -ArgumentList $arguments -WorkingDirectory "$Dcs\bin-mt" -WindowStyle Hidden -PassThru
+$manifest.command = "Start-Process `"$dcsExe`" -ArgumentList $($arguments -join ' ') -WorkingDirectory `"$dcsBin`" -WindowStyle Hidden -PassThru"
+$p = Start-Process -FilePath $dcsExe -ArgumentList $arguments -WorkingDirectory $dcsBin -WindowStyle Hidden -PassThru
 $manifest.pid = $p.Id
 $t0 = Get-Date
 $verdict = 'timeout'
 $dialogs = [ordered]@{}
-while ($true) {
-	Start-Sleep -Seconds 2
-	$elapsed = ((Get-Date) - $t0).TotalSeconds
-	if (-not $p.HasExited) {
-		foreach ($d in [ProbeWindows]::Dialogs([uint32]$p.Id, [bool]$CancelLogin)) { if (-not $dialogs.Contains($d)) { $dialogs[$d] = [Math]::Round($elapsed) } }
+$stopped = @()
+try {
+	while ($true) {
+		Start-Sleep -Seconds 2
+		$elapsed = ((Get-Date) - $t0).TotalSeconds
+		if (-not $p.HasExited) {
+			foreach ($d in [ProbeWindows]::ScanDialogs([uint32]$p.Id, [bool]$CancelLogin)) { if (-not $dialogs.Contains($d)) { $dialogs[$d] = [Math]::Round($elapsed) } }
+		}
+		if ((DefaultLogTicks) -ne $defaultLogTicksBefore) { $verdict = 'aborted: the default profile log changed'; break }
+		if ($p.HasExited) { $verdict = 'exited with code {0} (0x{0:X8})' -f $p.ExitCode; break }
+		if ($elapsed -gt $TimeoutSeconds) { break }
 	}
-	$defaultNow = if (Test-Path $defaultLog) { (Get-Item $defaultLog).LastWriteTimeUtc.Ticks } else { 0 }
-	if ($defaultNow -ne $defaultBefore) { $verdict = 'aborted: the default profile log changed'; break }
-	if ($p.HasExited) { $verdict = 'exited with code {0} (0x{0:X8})' -f $p.ExitCode; break }
-	if ($elapsed -gt $TimeoutSeconds) { break }
+} catch {
+	$verdict = "runner error: $($_.Exception.Message)"
+} finally {
+	# whatever happened above, the owned DCS does not outlive the runner
+	if (-not $p.HasExited) { $stopped = Stop-OwnedTree $p }
+	# the hook's run bound must not leak to a later manual launch from this shell
+	Remove-Item Env:EECH_M5PROBE_RUN_SECONDS -ErrorAction SilentlyContinue
 }
 $manifest.elapsed_seconds = [Math]::Round(((Get-Date) - $t0).TotalSeconds, 1)
-$stopped = @()
-if (-not $p.HasExited) {
-	# the owned process tree only: DCS.exe started above and its descendants
-	$tree = @($p.Id)
-	$all = Get-CimInstance Win32_Process
-	for ($i = 0; $i -lt $tree.Count; $i++) { $tree += @($all | Where-Object { $_.ParentProcessId -eq $tree[$i] } | ForEach-Object { $_.ProcessId }) }
-	foreach ($id in ($tree | Select-Object -Unique)) { try { Stop-Process -Id $id -Force -ErrorAction Stop; $stopped += $id } catch {} }
-}
 $manifest.verdict = $verdict
 $manifest.dialogs = @($dialogs.Keys | ForEach-Object { @{ seconds = $dialogs[$_]; text = $_ } })
 $manifest.stopped_pids = $stopped
@@ -136,7 +171,7 @@ if (Test-Path "$writeDir\Logs") {
 	Get-ChildItem "$writeDir\Logs" -File | Where-Object { $_.LastWriteTime -ge $t0.AddSeconds(-5) } | Copy-Item -Destination $out
 }
 $manifest.outputs = @(Get-ChildItem $out -File | ForEach-Object { @{ name = $_.Name; bytes = $_.Length; sha256 = Hash $_.FullName } })
-$manifest.default_profile_log_unchanged = ($defaultBefore -eq $(if (Test-Path $defaultLog) { (Get-Item $defaultLog).LastWriteTimeUtc.Ticks } else { 0 }))
+$manifest.default_profile_log_unchanged = (Test-Path $defaultLog) -and ($defaultLogTicksBefore -eq (DefaultLogTicks))
 $manifest.finished = (Get-Date).ToString('o')
 $manifest | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 "$out\manifest.json"
 Write-Output "run $runId -> $out ($verdict)"

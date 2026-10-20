@@ -12,7 +12,7 @@
 --
 -- stage:   env     the environment only (no require)
 --          load    + require ("eech_dc") and one native error path (begin marker flushed first)
---          boot    + prepare_installation and boot (campaign.lua's Lebanon configuration)
+--          boot    + prepare_installation and boot (the configured scenario, as campaign.lua boots it)
 --          frames  + engine:frame from timer.scheduleFunction, with cost statistics
 -- Other fields (defaults): scenario "lebanon_retail", seed 1, frame_ms 100,
 --          interval 0.05 (model s between callbacks), max_substeps 10,
@@ -20,8 +20,8 @@
 --          needs io), persistence_value "string" | "table".
 --
 -- Output: dcs.log lines "EECH_DCS_PROBE event=<name> key=value ...", values with
--- whitespace %q-quoted. Costs are os.clock differences (milliseconds).
--- (Probe 7e699355, used by the runs retained in reference/m5-dcs-probes, wrote "_" instead.)
+-- whitespace %q-quoted. Costs are os.clock differences (milliseconds). "frames" is
+-- always the cumulative count; summaries add "frames_window" for their own window.
 
 local config = EECH_DCS_PROBE or {}
 local stages = { env = 1, load = 2, boot = 3, frames = 4 }
@@ -145,8 +145,8 @@ if not loaded then return end
 -- The argument is rejected before Engine::boot, so the one boot per process is not used.
 -- the begin marker is flushed first, so a process crash inside the call is attributable to it
 record ("error_path_begin", { call = "dc.boot('not a table')" })
-local raised, message = pcall (dc.boot, "not a table")
-record ("error_path", { raised = not raised, message = first_line (message) })
+local returned, message = pcall (dc.boot, "not a table")
+record ("error_path", { raised = not returned, message = first_line (message) })
 
 if stage < stages.boot then return end
 
@@ -204,14 +204,10 @@ local function histogram ()
 end
 
 -- a digest of the campaign's observable state, for comparing a live run with its track replay
-local function checkpoint (now)
+local function record_checkpoint (now)
 	local t = clock and clock ()
-	local ok, objects = pcall (engine.objects, engine)
+	local objects = engine:objects ()
 	local objects_ms = ms_since (t)
-	if not ok then
-		record ("checkpoint_error", { model_time = now, message = first_line (objects) })
-		return
-	end
 	local alive, kinds, sx, sz = 0, {}, 0, 0
 	for _, o in ipairs (objects) do
 		if o.alive then
@@ -223,24 +219,32 @@ local function checkpoint (now)
 	local names = {}
 	for k, n in pairs (kinds) do names[#names + 1] = k .. ":" .. n end
 	table.sort (names)
-	local clocked, c = pcall (engine.clock, engine)
-	if not clocked then c = {} end
+	local c = engine:clock ()
 	record ("checkpoint", { model_time = string.format ("%.3f", now), frames = frames_done,
-		campaign_elapsed = c.elapsed_seconds and string.format ("%.1f", c.elapsed_seconds) or "error", day = c.day,
+		campaign_elapsed = string.format ("%.1f", c.elapsed_seconds), day = c.day,
 		objects = #objects, alive = alive, kinds = table.concat (names, ","),
 		position_digest = string.format ("%.0f/%.0f", sx, sz), objects_ms = objects_ms })
 end
 
+-- an engine error or an unexpected object shape is recorded, never raised: a raise here
+-- would abort the DO SCRIPT or silently stop the scheduled frames
+local function checkpoint (now)
+	local ok, err = pcall (record_checkpoint, now)
+	if not ok then
+		record ("checkpoint_error", { model_time = now, message = first_line (err) })
+	end
+end
+
 local function summary (event, now)
-	record (event, { model_time = string.format ("%.3f", now), callbacks = stats.callbacks, frames = stats.frames,
-		frames_total = frames_done, frame_mean_ms = stats.frames > 0 and string.format ("%.3f", stats.frame_total / stats.frames) or "-",
+	record (event, { model_time = string.format ("%.3f", now), callbacks = stats.callbacks, frames = frames_done,
+		frames_window = stats.frames, frame_mean_ms = stats.frames > 0 and string.format ("%.3f", stats.frame_total / stats.frames) or "-",
 		frame_max_ms = string.format ("%.1f", stats.frame_max), callback_max_ms = string.format ("%.1f", stats.callback_max),
 		gap_mean_ms = stats.callbacks > 1 and string.format ("%.1f", stats.gap_total / (stats.callbacks - 1)) or "-",
 		gap_max_ms = string.format ("%.1f", stats.gap_max), lag_max_ms = string.format ("%.0f", stats.lag_max),
 		histogram = histogram () })
 end
 
-local function step (_, _)
+local function step ()
 	if stopped then return nil end
 	local now = timer.getTime ()
 	local wall = clock and clock ()

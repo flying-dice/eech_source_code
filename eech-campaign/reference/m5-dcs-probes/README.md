@@ -20,8 +20,8 @@ complete criterion 5:**
 | Candidate | `eech_dc.dll` sha256 `a99d7a1118008f73a995fd7e4701a04bddb5fa51d1bf3b5a487297d78c383f41`. Built from `65892de1` (`pr59-candidate` BUILD-INFO), unchanged by the evidence-only merge `163e9158`. |
 | DCS | openbeta `2.9.29.27468` MT. `bin-mt/DCS.exe` sha256 `6bb5832c…1c41` (identical to `bin/DCS.exe`). `bin-mt/lua.dll` = `bin/lua.dll` sha256 `8a228b54…b755`. `Scripts/MissionScripting.lua` sha256 `f212df7f…0f6d`, sanitisation commented out before this work. |
 | Profile | `-w DCS.M5Probe` (`%USERPROFILE%\Saved Games\DCS.M5Probe`), new and isolated. The default `DCS.openbeta` profile: `dcs.log` sha256 `baac13d5…244e` is unchanged before and after all runs. Its `Config/network.vault` and `authdata.bin` timestamps are unchanged. |
-| Mission | Built by `tools/dcs-probe/build-probe-miz.py` from the installed `CoreMods/WWII Units/FW-190D-9/Missions/fw190.miz` (sha256 `346cb7f7…45ba`). All units and module requirements are removed. It has one MISSION START `DO SCRIPT`. The `.miz` is vendor-derived and not committed. The current builder reproduces the run-9 entries byte for byte: `mission` `28a24a6c…6271`, `options` `6ee219b7…db47`, `warehouses` `ce2a83f6…f0c`. |
-| As-run scripts | `as-run/eech-dcs-probe.7e699355.lua` (all runs). `as-run/eech-m5probe-hook.14cdf01e.lua` (runs 1–7). `as-run/eech-m5probe-hook.ba5e2626.lua` (runs 8–9). Each is byte-identical to the hash its manifests record. The runner's as-run versions were not retained byte-exact; each manifest records the exact launch command. |
+| Mission | Built by `tools/dcs-probe/build-probe-miz.py` from the installed `CoreMods/WWII Units/FW-190D-9/Missions/fw190.miz` (sha256 `346cb7f7…45ba`). All units and module requirements are removed. It has one MISSION START `DO SCRIPT`. The `.miz` is vendor-derived and not committed. The as-run builder (`as-run/build-probe-miz.54eb324f.py`) reproduces the run-9 entries byte for byte: `mission` `28a24a6c…6271`, `options` `6ee219b7…db47`, `warehouses` `ce2a83f6…f0c`. |
+| As-run scripts | `as-run/eech-dcs-probe.7e699355.lua` (all runs). `as-run/eech-m5probe-hook.14cdf01e.lua` (runs 1–7). `as-run/eech-m5probe-hook.ba5e2626.lua` (runs 8–9). Each is byte-identical to the hash its manifests record. `as-run/build-probe-miz.54eb324f.py` is the builder as committed at `54eb324f`. The current builder also writes `scenario` into the `DO SCRIPT`, so its `mission` entry differs. The runner's as-run versions were not retained byte-exact; each manifest records the exact launch command. |
 
 ## DCS runs (all on 2026-10-20/21, all hidden, all ended with no owned process left)
 
@@ -70,7 +70,7 @@ From `runs/20261021-000601-load/probe.log`. That probe version wrote whitespace 
 - MISSION START ran at `model_time=0`, `abs_time=43200`, about 10.5 s after `loadMission`.
 - **`require ("eech_dc")` with `dll_dir` prepended to `package.cpath`: `ok=true`, `name=eech-dc 0.1.0`,
   1.0 ms.** The module loads into the mission state and binds to DCS's `lua.dll`. Its 83 imports
-  resolve: `tools/dcs-probe/pe-lua-abi.py` reports PASS at link level.
+  resolve: `tools/dcs-probe/pe-lua-link-check.py` reports PASS at link level.
 - The next statement is `pcall (dc.boot, "not a table")`, the first native error path. No
   `error_path` record follows. The process exits `0xC0000005` (exit code `-1073741819`).
   `dcs.log` ends with the probe's `load` record, and the profile's `Logs` holds no crash file.
@@ -134,7 +134,7 @@ since. Summary by attribution:
 ## Reproduce
 
 - Mission:
-  `python -I eech-campaign/tools/dcs-probe/build-probe-miz.py <DCS>/CoreMods/WWII Units/FW-190D-9/Missions/fw190.miz <out.miz> load <probe.lua> <dll_dir> <root> <log_file>`
+  `python -I eech-campaign/tools/dcs-probe/build-probe-miz.py <DCS>/CoreMods/WWII Units/FW-190D-9/Missions/fw190.miz <out.miz> load lebanon_retail <probe.lua> <dll_dir> <root> <log_file>` (run 9's entries: the as-run builder, without `lebanon_retail`)
 - Run 9's launch (the runner now always does this):
   `pwsh -File eech-campaign/tools/dcs-probe/run-dcs-probe.ps1 -Stage load -Candidate <dir> -CancelLogin -TimeoutSeconds 240`
   This starts `bin-mt\DCS.exe -w DCS.M5Probe --no-launcher --mission "<miz>"` hidden, and stops

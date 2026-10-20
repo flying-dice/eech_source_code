@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-# Static Lua ABI check for hosting eech_dc.dll in DCS World: compares the
+# Static Lua link check for hosting eech_dc.dll in DCS World: compares the
 # module's PE import table with a host lua.dll's PE export table, and lists
 # both images' DLL dependencies and the host Lua's error-unwinding imports.
 # Reads files only; it loads and runs nothing.
 #
-#   python -I pe-lua-abi.py <eech_dc.dll> <host lua.dll>
+#   python -I pe-lua-link-check.py <eech_dc.dll> <host lua.dll>
 #
 # Exit status 0 only when every printed check passes: an x86-64 PE32+ module
 # that exports luaopen_eech_dc, has no delay imports (they are not read) and no
@@ -92,7 +92,7 @@ def imports(path):
 
 def main(argv):
     if len(argv) != 3:
-        print("usage: pe-lua-abi.py <eech_dc.dll> <host lua.dll>", file=sys.stderr)
+        print("usage: pe-lua-link-check.py <eech_dc.dll> <host lua.dll>", file=sys.stderr)
         return 2
     module, host = argv[1], argv[2]
     try:

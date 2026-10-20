@@ -5,10 +5,12 @@
 # file is a Lua table; this parses the subset DCS writes and serialises it
 # back with sorted keys, so the output is deterministic for a given template.
 #
-#   python -I build-probe-miz.py <template.miz> <out.miz> <stage> <probe.lua> <dll_dir> <root> <log_file>
+#   python -I build-probe-miz.py <template.miz> <out.miz> <stage> <scenario> <probe.lua> <dll_dir> <root> <log_file>
 import re
 import sys
 import zipfile
+
+USAGE = "usage: build-probe-miz.py <template.miz> <out.miz> <stage> <scenario> <probe.lua> <dll_dir> <root> <log_file>"
 
 
 class Parser:
@@ -29,13 +31,14 @@ class Parser:
             return self.table()
         if c == '"':
             return self.string()
-        m = re.compile(r"-?\d+(\.\d+)?([eE][-+]?\d+)?|true|false|nil").match(self.s, self.i)
+        # DCS's serialiser writes no nil values; anything else is unexpected and raises
+        m = re.compile(r"-?\d+(\.\d+)?([eE][-+]?\d+)?|true|false").match(self.s, self.i)
         if not m:
             raise ValueError(f"unexpected {self.s[self.i:self.i + 40]!r}")
         self.i = m.end()
         t = m.group()
-        if t in ("true", "false", "nil"):
-            return {"true": True, "false": False, "nil": None}[t]
+        if t in ("true", "false"):
+            return t == "true"
         return float(t) if any(x in t for x in ".eE") else int(t)
 
     def string(self):
@@ -73,10 +76,12 @@ class Parser:
             self.i += 1
             key = self.value()
             self.skip()
-            assert self.s[self.i] == "]", self.s[self.i:self.i + 20]
+            if self.s[self.i] != "]":
+                raise ValueError(f"expected ] at {self.s[self.i:self.i + 20]!r}")
             self.i += 1
             self.skip()
-            assert self.s[self.i] == "=", self.s[self.i:self.i + 20]
+            if self.s[self.i] != "=":
+                raise ValueError(f"expected = at {self.s[self.i:self.i + 20]!r}")
             self.i += 1
             t[key] = self.value()
             self.skip()
@@ -122,17 +127,22 @@ def lua_value(v, depth=1):
 
 
 def main(argv):
-    if len(argv) != 8:
-        print("usage: build-probe-miz.py <template.miz> <out.miz> <stage> <probe.lua> <dll_dir> <root> <log_file>", file=sys.stderr)
+    if len(argv) != 9:
+        print(USAGE, file=sys.stderr)
         return 2
-    template, out, stage, probe, dll_dir, root, log_file = argv[1:]
-    with zipfile.ZipFile(template) as z:
-        mission = parse_chunk(z.read("mission").decode("utf-8"), "mission")
-        others = {n: z.read(n) for n in z.namelist() if n != "mission"}
+    template, out, stage, scenario, probe, dll_dir, root, log_file = argv[1:]
+    try:
+        with zipfile.ZipFile(template) as z:
+            mission = parse_chunk(z.read("mission").decode("utf-8"), "mission")
+            others = {n: z.read(n) for n in z.namelist() if n != "mission"}
+    except (OSError, KeyError, IndexError, ValueError, zipfile.BadZipFile) as e:
+        print(f"error: template {template}: {e!r}", file=sys.stderr)
+        return 2
     for name in (probe, dll_dir, root, log_file):
         if "]]" in name:
-            raise ValueError(f"path contains ]]: {name}")
-    script = (f'EECH_DCS_PROBE = {{ stage = "{stage}", dll_dir = [[{dll_dir}]], root = [[{root}]], log_file = [[{log_file}]] }}\n'
+            print(f"error: path contains ]]: {name}", file=sys.stderr)
+            return 2
+    script = (f'EECH_DCS_PROBE = {{ stage = {lua_string(stage)}, scenario = {lua_string(scenario)}, dll_dir = [[{dll_dir}]], root = [[{root}]], log_file = [[{log_file}]] }}\n'
               f"dofile ([[{probe}]])")
     mission["needModules"] = {}
     mission["usedModules"] = {}
