@@ -24,7 +24,7 @@
 # The rule is judged from the outcome against recorded state; the members the
 # check asked are reported beside it, not used to classify.
 #
-# Usage: tools/helicopter-discriminate.py <arrivals-<pid>.jsonl[.gz]> [--report <report.json>]
+# Usage: tools/helicopter-discriminate.py <arrivals-<pid>.jsonl[.gz]> [--paired <ordinary trace>] [--report <report.json>]
 # Exit 0 when the trace holds at least one trial, 2 when it holds none. The
 # report states each trial's classification; it asserts no expected rule.
 import argparse, gzip, json, sys
@@ -110,10 +110,36 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('trace')
     ap.add_argument('--report')
+    ap.add_argument('--paired', help='the ordinary (control off) trace of the same scenario: each trial\'s waypoint is matched by '
+                                     '[index, generation] and the verdict times compared')
     a = ap.parse_args()
     events = load(a.trace)
     rows, summary = analyse(events)
-    report = {'trace': a.trace, 'header': events[0] if events else None, 'trials': len(rows), 'by_waypoint_and_rule': summary, 'per_trial': rows}
+    paired = None
+    if a.paired:
+        ordinary = {tuple(e['wp']): e for e in load(a.paired) if e['e'] == 'verdict'}
+        deltas = defaultdict(list)
+        unmatched = 0
+        for r in rows:
+            first = next(c for c in events if c['e'] == 'trial_check' and c['trial'] == r['trial'])
+            o = ordinary.get(tuple(first['wp']))
+            r['ordinary_verdict_t'] = o['t'] if o else None
+            r['ordinary_wingman_to_leader_m'] = None
+            if o:
+                others = [m['to_leader_2d'] for m in o['members'] if m['id'] != o['task_leader']]
+                r['ordinary_wingman_to_leader_m'] = round(max(others), 1) if others else None
+            if o and r['verdict_t'] is not None:
+                r['delay_s'] = round(r['verdict_t'] - o['t'], 3)
+                deltas[r['wp_type']].append(r['delay_s'])
+            else:
+                unmatched += 1
+        paired = {'ordinary': a.paired, 'unmatched_trials': unmatched,
+                  'delay_s_by_waypoint': {k: {'n': len(v), 'zero': sum(1 for x in v if abs(x) < 1e-6), 'min': min(v), 'max': max(v)}
+                                          for k, v in deltas.items()},
+                  'note': 'the same waypoint ([index, generation]) in the ordinary run; the controlled scenario diverges after its first hold, '
+                          'so later waypoints may not exist in the ordinary run or may be reached by a changed flight'}
+    report = {'trace': a.trace, 'header': events[0] if events else None, 'trials': len(rows), 'by_waypoint_and_rule': summary,
+              'paired_with_ordinary': paired, 'per_trial': rows}
     if a.report:
         with open(a.report, 'w', encoding='utf-8', newline='\n') as f:
             json.dump(report, f, indent=1)
@@ -121,6 +147,10 @@ def main():
     print(f'{len(rows)} trials')
     for k, v in sorted(summary.items()):
         print(f'  {k}: ' + ', '.join(f'{n} {r}' for r, n in sorted(v.items())))
+    if paired:
+        for k, v in sorted(paired['delay_s_by_waypoint'].items()):
+            print(f"  paired {k}: {v['n']} matched, verdict delay {v['min']}..{v['max']} s ({v['zero']} with no delay)")
+        print(f"  paired: {paired['unmatched_trials']} trials without a matching ordinary verdict")
     return 0 if rows else 2
 
 
