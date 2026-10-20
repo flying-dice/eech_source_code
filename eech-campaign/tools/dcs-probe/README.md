@@ -12,6 +12,7 @@ engine state. It never feeds DCS state into the campaign and never commands unit
 | `eech-dcs-probe.lua` | The mission-state probe, in cumulative stages: `env`, `load` (`require` plus one native error with a flushed begin marker), `boot`, `frames`. It writes `EECH_DCS_PROBE event=…` records to `dcs.log` and `log_file`. |
 | `build-probe-miz.py` | Builds a byte-reproducible probe mission from an installed DCS mission: units and module requirements stripped, and one MISSION START `DO SCRIPT` that sets `EECH_DCS_PROBE` and `dofile`s the probe. |
 | `eech-m5probe-hook.lua` | A GUI hook for the isolated profile only. It does nothing unless the runner set `EECH_M5PROBE_RUN_SECONDS`. It logs simulation callbacks, releases the briefing pause, and calls `exitProcess` a bounded time after the simulation starts. It does not start missions: that did not work from a hook. |
+| `dcs-probe-selftest.py` | Tests without DCS: the builder on a synthetic mission (stripping, DO SCRIPT, round trip, byte-identical output, error exits), and, given a Lua 5.1 interpreter, the probe and hook under fake DCS globals (error path, malformed engine objects, inert hook). The runner and the link check need Windows binaries and are not covered. |
 | `run-dcs-probe.ps1` | Runs one bounded stage. It starts `bin-mt\DCS.exe -w DCS.M5Probe --no-launcher --mission <miz>` hidden, and stops only its own process tree, even on a runner error (children must have started after their parent). It records inputs, hashes, dialogs, the verdict and logs in `<Work>\runs\<id>`. It refuses to run if any DCS is already running, if the probe profile is the default one (`-DefaultWriteDirName`, default `DCS.openbeta`) or if that profile's `dcs.log` is missing, and aborts if that log changes. |
 
 ## Preconditions
@@ -30,6 +31,7 @@ engine state. It never feeds DCS state into the campaign and never commands unit
 ## Commands
 
 ```text
+python -I tools/dcs-probe/dcs-probe-selftest.py [<lua5.1 interpreter>]
 python -I tools/dcs-probe/pe-lua-link-check.py <candidate>/eech_dc.dll "<DCS>/bin-mt/lua.dll"
 pwsh -File tools/dcs-probe/run-dcs-probe.ps1 -Stage load -Candidate <dir> -CancelLogin -TimeoutSeconds 240
 pwsh -File tools/dcs-probe/run-dcs-probe.ps1 -Stage boot -Candidate <dir> -CancelLogin -ErrorControlsEvidence <record> [-Root <EECH root copy>] [-Scenario lebanon_retail]
