@@ -176,3 +176,50 @@ and `pack-loss-logical/` (not committed).
   and Lebanon, seed 1): PASS, no FAIL; both `regress.*.exact` PASS, so no baseline
   difference. SHA-256 `report.md` `ddd965db…38cdc`.
 - Not shown: a changed assignment or completeness decision (see above).
+
+### Provenance of the tested binaries after the `5917c7eb` merge
+
+The evidence above was produced by the candidate binaries (not committed).
+Commit `feaafaa5` committed those ten inputs; merge `d6c56c81` then added only
+PR86 tool, CI, doc and Lua-script changes (no `aphavoc`, `csrc` or `.rs` file).
+A clean-source build of `d6c56c81` (`BUILD-INFO.txt`: 0 uncommitted files, the
+same image `bb10e44a…`, rustc 1.98.1, a new target volume) was compared with the
+tested build (`tools/build-windows.sh`, reproduced locally 2026-10-21):
+
+| File | Tested | Clean `d6c56c81` | Result |
+|---|---|---|---|
+| `eech_dc.dll` | `3ff6c7bb…9b02a` | `7432b839…bc829` | differs, metadata only (below) |
+| `eech-world.exe` | `15bc66bb…c6f081` | `0994c768…6b146d` | differs, metadata only (below) |
+| `lua.dll`, `lua/campaign.lua` and the other `lua/*` | equal | equal | identical bytes |
+| `lua/supply-arrivals-lifecycle.lua` | `c9f1e082…` | `2bf7ecad…` | the PR86 repair (unknown case fails before setup) |
+
+For both PEs the file size is equal and every loaded section (`.text`, `.data`,
+`.rdata`, `.pdata`, `.xdata`, `.idata`, `.CRT`, `.tls`, `.reloc`) is byte-identical.
+The differing bytes are the PE header timestamp and checksum, the export-table
+timestamp (`.edata`, `eech_dc.dll` only), and the non-loaded COFF symbol/string
+tables: the same symbols reordered, with exactly one pair of linker-generated
+names differing by rustc's temporary directory (`..._rustcoDth8m_kernel32_dll_imports_lib`
+versus `..._rustcruq1wZ_...`). No instruction, data or import differs. The tested
+artifact identity above remains the one the evidence applies to. The pack was
+therefore not rerun. Not rerun and not claimed: the arrival and host-identity
+lifecycle scripts against the PR86-modified Lua driver (only the unknown-case
+guard and argument quoting changed; PR86 carries its own self-test,
+`tools/supply-arrivals-tools-selftest.py <lua> <pwsh>`).
+
+Tacview (reproduced in the pack run, `pack-loss-logical/out`): `recording.acmi`
+SHA-256 `3bd17b64…d19b` is byte-identical in both runs and to the retained
+recording (committed in compressed form as `reference/lebanon-3h/recording.zip.acmi`,
+`3b6d81d8…47`); `regress.georgia.exact` and `regress.lebanon.exact` report
+IDENTICAL to windows-retail v1. `report.json` `ad407cec…caf69`. The recording was
+generated and compared structurally and by bytes; it was not visually reviewed in
+Tacview.
+
+Real public loss receipt (Lebanon seed 1, 2300 s, WITHHOLD; raw JSON from
+`receipt-v4.jsonl`, SHA-256 `577d1198…5d5e`):
+`{"elapsed":2187.3444824219,"event":"report_loss","group_logical_members_after":1,"group_logical_members_before":2,"group_losses_after":1,"group_losses_before":0,"group_physical_members_before":1,"host_id":"eech-world:3069","landing_reserved_after":5,"landing_reserved_before":6,"primary_task_losses_after":1,"primary_task_losses_before":0,"result":"success","tasks_completed_on_report":0,"tasks_retired_expire":4}`
+followed by `receipt_assertions` `passed:true`; the duplicate report was rejected.
+
+Commands: `tools/build-windows.sh <out>` (fresh `EECH_WIN_TARGET` volume),
+`tools/supply-arrivals-lifecycle-windows.ps1`, `tools/host-identities-lifecycle-windows.ps1`,
+`tools/regression-pack.py`. Remaining coupling: campaign and the reference world
+still share one `eech_dc.dll`; the physical readers listed above stay physical.
