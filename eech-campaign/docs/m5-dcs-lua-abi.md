@@ -90,6 +90,14 @@ in CI.
 Evidence, including the original experiment's red and green and this candidate's runs:
 [reference/m5-dcs-lua-abi](../reference/m5-dcs-lua-abi/README.md).
 
+## Combined structural-source candidate
+
+The first exact source combining this ABI correction with the reviewed M5 structural correction is commit `de4ab5d7f2a8e8a616cb64a38409d6dfff213543`: ABI history through `6bcfdce2`, including the executable product change `59a97bca`, merged with reviewed structural integration `0ba0384c`. A clean read-only archive of `de4ab5d7` was built with the same pinned image and a fresh Cargo target volume. Its DLL is `2d6a5490…4bf0`; its host is `a37c1a31…276f`.
+
+The new combined binaries pass all 36 standalone native-error controls across the measured DCS and PUC Lua DLLs. The unchanged full M4 pack passes all 40 checks against `windows-retail v1`: 17 directly protected, 12 baseline-sensitive, 8 evidence-only, and 8 not covered. Both Lebanon reference runs have byte-identical recording, observations and metrics; the supply-chain and first in-flight SUPPLY loss-chain checks pass. The report and build record identify exact source `de4ab5d7`, the source archive hash, compiler, pinned image, fresh target volume and binary hashes. See [the combined retained record](../reference/m5-dcs-lua-abi-combined/README.md).
+
+This is combined-source support, not host-separation or DCS-mission proof. The risk-probe branch is not included. No corrected DLL has run in a DCS mission, and criterion 5 and M5 remain unaccepted.
+
 ## Limits
 
 - **Hooks (borrowed PUC `lua_Debug`): unsupported.** Under the PUC host, a hook record is
