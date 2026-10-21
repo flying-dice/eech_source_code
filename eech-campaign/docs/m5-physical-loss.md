@@ -156,6 +156,14 @@ demonstrates the bounded causal cut only.
 An empty-root start crash in the lifecycle harness predates this change (it
 reproduces on `e15830f8`) and is recorded as an existing defect, not fixed here.
 
+## CI coverage and the slice 1a check
+
+The slice 1a token-equivalence check (`eech-loss-structural`) is pinned to the
+extraction commit `78dc796b`; this change deliberately differs from it (see
+[`m5-loss-structural.md`](m5-loss-structural.md), "Revision boundary"). Hosted
+CI has no automated forward, withhold, duplicate-report or lifetime test of the
+current head. Those are covered only by the local Windows retail-host runs below.
+
 ## Evidence for logical membership (local, 2026-10-21)
 
 Candidate: commit `b7e63267` plus the ten uncommitted build-input files of this

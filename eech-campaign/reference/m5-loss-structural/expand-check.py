@@ -1,6 +1,10 @@
 """Slice 1a equivalence check. Run from the repository root:
 
-    python -I eech-campaign/reference/m5-loss-structural/expand-check.py <base revision>
+    python -I eech-campaign/reference/m5-loss-structural/expand-check.py <base revision> [<candidate revision>]
+
+The candidate is the working tree, or the named revision's files when one is given. The claim
+is made for slice 1a's extraction commit only (docs/m5-loss-structural.md, "Revision boundary");
+later reviewed semantic cuts change these files on purpose and are not token-equivalent.
 
 1. gp_loss.c defines exactly the helpers in EXPANSIONS, and each helper's body,
    with its parameters renamed to the arguments of its call, is token for token
@@ -94,9 +98,15 @@ def without_leading_declarations(tokens):
     return re.sub(r'^(?:(?!return )\w+ (?:\* )?\w+(?: , (?:\* )?\w+)* ; )+', '', body)
 
 
-def helpers_match_expansions():
+def read_candidate(path, candidate):
+    if candidate is None:
+        return open(path, encoding='latin-1').read()
+    return subprocess.run(['git', 'show', f'{candidate}:{path}'], capture_output=True, check=True).stdout.decode('latin-1')
+
+
+def helpers_match_expansions(candidate=None):
     m = re.compile(r'void (\w+) \(([^)]*)\)')
-    source = open(HELPERS, encoding='latin-1').read()
+    source = read_candidate(HELPERS, candidate)
     if re.search(r'^\s*#\s*if', source, re.M):
         print('FAIL gp_loss.c has conditional compilation, which the comparison would not see')
         return 1
@@ -119,8 +129,8 @@ def helpers_match_expansions():
     return failures
 
 
-def file_matches_base(path, base):
-    current = open(path, encoding='latin-1').read()
+def file_matches_base(path, base, candidate=None):
+    current = read_candidate(path, candidate)
     if not re.search(r'^#define DEBUG_MODULE 0$', current, re.M):
         print(f'FAIL {path}: DEBUG_MODULE is not 0, so removing its blocks is not equivalent')
         return 1
@@ -144,7 +154,8 @@ def file_matches_base(path, base):
 
 def main():
     base = sys.argv[1]
-    failures = helpers_match_expansions() + sum(file_matches_base(path, base) for path in FILES)
+    candidate = sys.argv[2] if len(sys.argv) > 2 else None
+    failures = helpers_match_expansions(candidate) + sum(file_matches_base(path, base, candidate) for path in FILES)
     print('PASS' if failures == 0 else f'FAIL: {failures}')
     return 1 if failures else 0
 
