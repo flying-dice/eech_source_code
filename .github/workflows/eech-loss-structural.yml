@@ -47,6 +47,7 @@ permissions:
 
 jobs:
   equivalence:
+    name: Slice 1a historical equivalence
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -63,6 +64,7 @@ jobs:
           git fetch --no-tags --depth=1 origin 78dc796b2481dcd77ca87b24b9de33dbf72b59cf
       - name: Check structural equivalence at the slice 1a extraction
         run: |
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
           git cat-file -e '163e9158ffc5d979617e66d6c5af4def780c8227^{commit}'
           git cat-file -e '78dc796b2481dcd77ca87b24b9de33dbf72b59cf^{commit}'
           python3 -I eech-campaign/reference/m5-loss-structural/expand-check.py 163e9158ffc5d979617e66d6c5af4def780c8227 78dc796b2481dcd77ca87b24b9de33dbf72b59cf
