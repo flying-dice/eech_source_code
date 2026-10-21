@@ -1,0 +1,43 @@
+{
+  "kind": "exact-head public Lua lifecycle run",
+  "source": "a352c126793e3d1a375af06473c6ae656a95ab00",
+  "eech_dc_sha256": "6cce3616e0d6f4539cb541388f1715d49a31f854ee09c8f6edbcb7d22970a7e0",
+  "eech_world_sha256": "bcf7e8a6d6e269adccc8c6f806df2e166a12520de4fadedec1b9d1ff3f48538b",
+  "script_sha256": "3b0cb3f76604d85f710bf9748ff56edfca8703324b6214b29b0c252463f7c1ed",
+  "timeout_seconds": 1800,
+  "retention": "Full stdout/stderr omitted; exact original hashes retained here.",
+  "cases": [
+    {
+      "case": "missing",
+      "exit": "0x00000000",
+      "timedOut": false,
+      "pass": true,
+      "output_sha256": "517a254fcf0b0d614a8b4765ac225aad847ddfc44aba0d8d106d6dd09990fd7a",
+      "host_log_sha256": "6d7fa78e711389f4b8dad5f62224e01e7bb67a80824ed7a0ce46ea9b38811b01"
+    },
+    {
+      "case": "malformed",
+      "exit": "0x00000000",
+      "timedOut": false,
+      "pass": true,
+      "output_sha256": "97023d5be8524a5109faf0e3d15ca003d938b5c37f6a25f808a163e3cc6d1905",
+      "host_log_sha256": "651abce1d3ec3f6cc6027323b8da8b105783bc8e4857b1a7140ab9ff9a8fb7e5"
+    },
+    {
+      "case": "error",
+      "exit": "0x00000000",
+      "timedOut": false,
+      "pass": true,
+      "output_sha256": "7f179b6bd2e9b75e3bd7688ba67f97632cdfcae78296c453fca9233bfb9602ce",
+      "host_log_sha256": "946fc893e7780e6e3f23695c6414f20194d4ad2190be56dd37e694b4d6ee7786"
+    },
+    {
+      "case": "reentry",
+      "exit": "0x00000000",
+      "timedOut": false,
+      "pass": true,
+      "output_sha256": "9e4654495ac4db1243a4ae7187a6b1d16b473559747ed1ec5c87315d03f23934",
+      "host_log_sha256": "6d7fa78e711389f4b8dad5f62224e01e7bb67a80824ed7a0ce46ea9b38811b01"
+    }
+  ]
+}

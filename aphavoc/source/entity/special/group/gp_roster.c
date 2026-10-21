@@ -294,6 +294,33 @@ void campaign_roster_release_entity (entity *en)
 	current_group_by_entity[index] = 0;
 }
 
+static campaign_member_record *current_member_record (entity *member)
+{
+	int index = entity_index (member);
+	int record_index = current_member_by_entity[index] - 1;
+	if (record_index < 0)
+	{
+		return NULL;
+	}
+	if (!records[record_index].physical_present || (records[record_index].current_entity_index != index))
+	{
+		debug_fatal ("campaign roster: stale current member mapping for entity %d", index);
+	}
+	return &records[record_index];
+}
+
+uint64_t campaign_roster_member_key (entity *member)
+{
+	campaign_member_record *record = current_member_record (member);
+	return record ? record->member_key : 0;
+}
+
+const char *campaign_roster_host_id (entity *member)
+{
+	campaign_member_record *record = current_member_record (member);
+	return record ? record->host_id : NULL;
+}
+
 int campaign_roster_members (campaign_member_snapshot_fn callback, void *user)
 {
 	size_t i;

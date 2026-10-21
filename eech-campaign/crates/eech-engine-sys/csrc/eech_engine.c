@@ -52,6 +52,7 @@ static enum engine_operation operation;
 	jmp_buf *saved_target = eech_fatal_target; \
 	const struct eech_engine_host *entry_host = (HOST); \
 	campaign_roster_host roster_host; \
+	campaign_supply_arrival_host arrival_host; \
 	if (eech_engine_poisoned) \
 	{ \
 		return EECH_ENGINE_POISONED; \
@@ -63,13 +64,17 @@ static enum engine_operation operation;
 	operation = (OPERATION); \
 	roster_host.bind_member = entry_host ? entry_host->bind_mobile : NULL; \
 	roster_host.user = entry_host ? entry_host->user : NULL; \
+	arrival_host.observe_reach = entry_host ? entry_host->supply_reached : NULL; \
+	arrival_host.user = entry_host ? entry_host->user : NULL; \
 	campaign_roster_set_host (entry_host ? &roster_host : NULL); \
+	campaign_supply_arrival_set_host (entry_host ? &arrival_host : NULL); \
 	fegetenv (&caller_fenv); \
 	fesetround (FE_TOWARDZERO); \
 	eech_fatal_target = &fatal_jmp; \
 	if (setjmp (fatal_jmp)) \
 	{ \
 		campaign_roster_set_host (NULL); \
+		campaign_supply_arrival_set_host (NULL); \
 		operation = OPERATION_NONE; \
 		eech_fatal_target = saved_target; \
 		fesetenv (&caller_fenv); \
@@ -78,6 +83,7 @@ static enum engine_operation operation;
 
 #define LEAVE(RESULT) \
 	campaign_roster_set_host (NULL); \
+	campaign_supply_arrival_set_host (NULL); \
 	operation = OPERATION_NONE; \
 	eech_fatal_target = saved_target; \
 	fesetenv (&caller_fenv); \
@@ -210,6 +216,7 @@ static void boot (const struct eech_engine_config *config)
 	initialise_population_name_database ();
 	reinitialise_entity_system ();
 	campaign_roster_reset ();
+	campaign_supply_arrival_reset ();
 
 	/* GUNSHIP_TYPE (host) */
 	create_campaign (get_current_game_session ());
@@ -242,7 +249,7 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile)
+	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->supply_reached)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -308,6 +315,10 @@ int eech_engine_frame (uint32_t milliseconds, const struct eech_engine_host *hos
 	if (state != ENGINE_RUNNING)
 	{
 		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!host || !host->bind_mobile || !host->supply_reached)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
 	frame (milliseconds);
 	LEAVE (EECH_ENGINE_OK);
@@ -494,6 +505,21 @@ int eech_engine_roster_stats (struct eech_roster_stats *stats)
 	campaign_roster_get_stats (&source);
 	stats->duplicate_comparisons = source.duplicate_comparisons;
 	stats->duplicate_scan_seconds = source.duplicate_scan_seconds;
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_supply_tasks (eech_supply_task_callback callback, void *user, int *count)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!callback || !count)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	*count = campaign_supply_task_snapshots ((campaign_supply_task_snapshot_fn) callback, user);
 	LEAVE (EECH_ENGINE_OK);
 }
 

@@ -1,6 +1,6 @@
 //! The Lua surface of the module.
 
-use eech_engine::{Engine, EngineConfig, EngineError, Gunship, MemberDescriptor, Side};
+use eech_engine::{Engine, EngineConfig, EngineError, Gunship, MemberDescriptor, Side, SupplyReachDescriptor};
 use mlua::prelude::*;
 use std::path::PathBuf;
 
@@ -16,6 +16,7 @@ fn lua_error(e: EngineError) -> LuaError {
 struct LuaEngine {
     engine: Engine,
     bind_mobile: LuaFunction,
+    supply_reached: LuaFunction,
 }
 
 fn call_bind_mobile(lua: &Lua, function: &LuaFunction, descriptor: MemberDescriptor) -> Result<String, String> {
@@ -45,12 +46,23 @@ fn call_bind_mobile(lua: &Lua, function: &LuaFunction, descriptor: MemberDescrip
     }
 }
 
+fn call_supply_reached(lua: &Lua, function: &LuaFunction, descriptor: SupplyReachDescriptor) -> Result<bool, String> {
+    let value = lua.to_value_with(&descriptor, options()).map_err(|e| e.to_string())?;
+    let answer: LuaValue = function.call(value).map_err(|e| e.to_string())?;
+    match answer {
+        LuaValue::Boolean(reached) => Ok(reached),
+        other => Err(format!("supply_reached must return a boolean, got {}", other.type_name())),
+    }
+}
+
 impl LuaUserData for LuaEngine {
     fn add_methods<M: LuaUserDataMethods<Self>>(methods: &mut M) {
         methods.add_method("frame", |lua, this, milliseconds: u32| {
-            let function = this.bind_mobile.clone();
-            let mut binder = |descriptor| call_bind_mobile(lua, &function, descriptor);
-            this.engine.frame(milliseconds, &mut binder).map_err(lua_error)
+            let bind_mobile = this.bind_mobile.clone();
+            let supply_reached = this.supply_reached.clone();
+            let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+            let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+            this.engine.frame(milliseconds, &mut binder, &mut reach).map_err(lua_error)
         });
         methods.add_method("objects", |lua, this, ()| {
             let objects = this.engine.objects().map_err(lua_error)?;
@@ -59,6 +71,10 @@ impl LuaUserData for LuaEngine {
         methods.add_method("members", |lua, this, ()| {
             let members = this.engine.members().map_err(lua_error)?;
             lua.to_value_with(&members, options())
+        });
+        methods.add_method("supply_tasks", |lua, this, ()| {
+            let tasks = this.engine.supply_tasks().map_err(lua_error)?;
+            lua.to_value_with(&tasks, options())
         });
         methods.add_method("roster_stats", |lua, this, ()| {
             let stats = this.engine.roster_stats().map_err(lua_error)?;
@@ -88,6 +104,11 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
         LuaValue::Nil => return Err(LuaError::runtime("eech: missing host bind_mobile callback")),
         value => return Err(LuaError::runtime(format!("eech: bind_mobile must be a function, got {}", value.type_name()))),
     };
+    let supply_reached = match config.get::<LuaValue>("supply_reached")? {
+        LuaValue::Function(function) => function,
+        LuaValue::Nil => return Err(LuaError::runtime("eech: missing host supply_reached callback")),
+        value => return Err(LuaError::runtime(format!("eech: supply_reached must be a function, got {}", value.type_name()))),
+    };
     let arguments: Vec<String> = config.get::<Option<Vec<String>>>("arguments")?.unwrap_or_default();
     let config = EngineConfig {
         install_root: PathBuf::from(config.get::<String>("install_root")?),
@@ -99,8 +120,13 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
         arguments,
     };
     let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
-    let engine = Engine::boot(&config, &mut binder).map_err(lua_error)?;
-    Ok(LuaEngine { engine, bind_mobile })
+    let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+    let engine = Engine::boot(&config, &mut binder, &mut reach).map_err(lua_error)?;
+    Ok(LuaEngine {
+        engine,
+        bind_mobile,
+        supply_reached,
+    })
 }
 
 #[mlua::lua_module]

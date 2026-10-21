@@ -466,6 +466,7 @@ aphavoc/source/entity/special/guide/gd_msgs.c
 aphavoc/source/entity/special/guide/gd_nav.c
 aphavoc/source/entity/special/guide/gd_pack.c
 aphavoc/source/entity/special/guide/gd_ptr.c
+aphavoc/source/entity/special/guide/gd_supply_arrival.c
 aphavoc/source/entity/special/guide/gd_updt.c
 aphavoc/source/entity/special/guide/gd_vec3d.c
 aphavoc/source/entity/special/guide/guide.c
