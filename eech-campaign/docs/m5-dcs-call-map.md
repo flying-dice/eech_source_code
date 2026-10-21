@@ -7,7 +7,7 @@ This record answers M5 done-when criterion 1 (Confluence page 11534337, "EECH M5
 It is a source-grounded proposal for review, not an acceptance. It changes no code, build, baseline or DCS configuration, and no DCS or EECH runtime was launched for it. DCS-only runtime risks (native module load, frame budget and threading, save and restore, multiplayer) are criterion 5, owned by `docs/m5-dcs-risks.md` (`eech-campaign/docs/`, in another session's worktree and not yet merged); this record cross-references them and does not probe them.
 
 **In brief.**
-- **Two passes over the 1,217 compiled C files plus the 11 headless host files, at `65892de1`.**
+- **Two passes over the 1,218 compiled C files plus the 11 headless host files, at `faac79024335db1772191dee2aac6284584c4a5d`.**
   - The first pass (`inventory.py`) measured direct calls between path classes and named world-service tokens.
   - The second pass closes the first pass's coverage holes:
     - **a reachability walk** from the seven public engine entry points, with translation-unit-local name resolution, macro expansion, and address-taken functions and file-scope data counted as references (`reach.py`);
@@ -26,6 +26,7 @@ It is a source-grounded proposal for review, not an acceptance. It changes no co
   - **Rules:** a rule's kind is derived from its regex, not set by hand. How many items each kind decides, and every pattern and fallback rule, are stated once, in section 10 ("Pattern and fallback rules").
   - No needed interaction found by these methods lacks a DCS mechanism or a named workaround.
   - The method's residual limits are in section 10. Accepting criterion 1 remains the technical lead's review decision.
+- **Current-source refresh.** The original reviewed inventory at `65892de1` remains historical evidence. This revision reruns the same embedded scripts on current reviewed integration `faac7902` and updates the item-level ledger and citations for the loss-helper extraction merged by PR #82 at `0ba0384c`. Section 1 records the exact delta. PR #84's ABI merge leaves every source path read by the map unchanged. The separate host-identity work is not merged; merging it is a mandatory refresh trigger rather than evidence covered here.
 - **The independent review of `a4cd7eea`** raised six findings, F1–F6, all resolved here:
   - F1: the side transfer on capture is now row I51, with workaround G28 and five named DCS probes.
   - F2: the globals pass grew from 31 to 95 items, and the season is now row I52.
@@ -56,7 +57,7 @@ It is a source-grounded proposal for review, not an acceptance. It changes no co
 
 | Label | Meaning |
 |---|---|
-| **[R-src]** | Reproduced from EECH source at `65892de1` in this session (`grep -n`, `sed -n`, or the inventory script below). A statement about code, not a runtime observation. |
+| **[R-src]** | Reproduced from EECH source at `faac79024335db1772191dee2aac6284584c4a5d` in this session (`git grep`, `git show`, or the inventory scripts below). A statement about code, not a runtime observation. |
 | **[R-dcs]** | Verified in this DCS install's shipped files: Lua under `Scripts/`, `DCS:API/Sim_ControlAPI.md`, or export strings in `DCS:bin/Scripting.dll`. Read-only. |
 | **[R-ref]** | From tslua-dcs only, at commit `1179554fcafcef92d71313336cc09500febf8245`. Its `src/exports/*.export.ts` files say they were reflected from a live DCS 2.9.29.27468 (reported by tslua-dcs, not reproduced here). The hand-written `src/*.ts` files give the signatures. |
 | **[I]** | Inferred. |
@@ -68,15 +69,15 @@ Citation prefixes: a bare `file.c:N` is under `aphavoc/source/` or `modules/` (u
 
 ### What the product is
 
-At `65892de1` the product is the whole-engine module: `eech-world` → `require ("eech_dc")` → `crates/eech-engine` → the original C (`eech-campaign/README.md`). The campaign and the reference world are compiled into one DLL and share one entity system (see the SUPPLY map, `m5-supply-ownership.md`, on PR #74 at `31204591`, "Coupling inside `eech_dc.dll`"). So "the world interactions the campaign needs" are found inside the C, not at the public Lua surface. That surface takes only boot configuration and elapsed time (`eech-campaign/crates/eech-dc/src/module.rs:20-29`, `:43-54`).
+At `faac7902` the product is the whole-engine module: `eech-world` → `require ("eech_dc")` → `crates/eech-engine` → the original C (`eech-campaign/README.md`). The campaign and the reference world are compiled into one DLL and share one entity system (see the SUPPLY map, `m5-supply-ownership.md`, on PR #74 at `31204591`, "Coupling inside `eech_dc.dll`"). So "the world interactions the campaign needs" are found inside the C, not at the public Lua surface. That surface takes only boot configuration and elapsed time (`eech-campaign/crates/eech-dc/src/module.rs:20-29`, `:43-54`).
 
 ### Classification
 
-Every file in `eech-campaign/crates/eech-engine-sys/sources.txt` (the compiled C list, 1,217 files) gets one class by path. The first matching rule wins:
+Every file in `eech-campaign/crates/eech-engine-sys/sources.txt` (the compiled C list, 1,218 files) gets one class by path. The first matching rule wins:
 
 | Class | Paths | Files |
 |---|---|---|
-| **C** campaign | `aphavoc/source/ai/`, `ai_extrn.c`, `entity/mobile/cargo/`, `entity/special/{force,group,task,guide,keysite,waypoint,division,regen,landing,sector}/` | 159 |
+| **C** campaign | `aphavoc/source/ai/`, `ai_extrn.c`, `entity/mobile/cargo/`, `entity/special/{force,group,task,guide,keysite,waypoint,division,regen,landing,sector}/` | 160 |
 | **W** world entities | `entity/mobile/` (except cargo), `entity/fixed/`, `entity/special/{bridge,effect}/` | 332 |
 | **E** environment services | `modules/3d/` (terrain, 3D objects, clouds), `misc/{terr_db,tod,timeaccl}`, `entity/special/session/` (time of day, weather), `modules/maths/random.c`, `modules/system/{time,timer}.c` | 73 |
 | **X** presentation files (disposition per item) | `ui_menu/`, `appsound/`, `app3d/`, `gunships/`, `entity/special/camera/`, `cdmusic.c`, `modules/{userint2,graphics,2d,sound}/` | 517 |
@@ -92,23 +93,23 @@ Choices a reviewer may contest: `guide/` is campaign, although it also steers th
 3. **Entity attribute tokens** in campaign files (`get_/set_*_entity_*(en, X_TYPE_Y)`).
 4. **World-service tokens** in campaign files: a named list of functions, macros and attributes in 10 categories.
 
-Results at `65892de1`, with Python 3.13, Windows. Run time is about 7 s. [R-src]
+Results at `faac7902`, with Python 3.13, Windows. Run time is about 7 s. [R-src]
 
 | Measure | Result |
 |---|---|
-| Functions defined once per class | C 644, W 858, E 853, F 1,059, X 4,429; 76 names defined in several classes are excluded from edges |
+| Functions defined once per class | C 653, W 858, E 853, F 1,059, X 4,429; 76 names defined in several classes are excluded from edges |
 | C → W calls | 39 functions, 86 sites |
 | C → E calls | 25 functions, 75 sites |
-| W → C calls | 64 functions, 261 sites |
+| W → C calls | 73 functions, 330 sites |
 | E → C calls | 2 functions, 4 sites |
-| Static messages sent | C 29 types, 81 sites; W 24 types, 89 sites; F 15, 29; X 4, 31 |
-| Attribute tokens in C accessor calls | 208 distinct, 2,698 sites |
+| Static messages sent | C 30 types, 84 sites; W 22 types, 76 sites; F 15, 29; X 4, 31 |
+| Attribute tokens in C accessor calls | 208 distinct, 2,706 sites |
 | World-service tokens in C (sites, files) | time 41/11; random 30/12; terrain 58/13; map grid 199/27; roads 21/8; 3D objects 75/8; weather 4/3; sensing 27/9; physical state 511/66; range maths 48/20 |
 
 Reproduce (with `eechmap.py` beside `inventory.py`):
 
 ```sh
-git rev-parse HEAD                      # 65892de17bf5c4bb9ab6e9f8af70779e35b0106b
+git rev-parse HEAD                      # faac79024335db1772191dee2aac6284584c4a5d
 python -I inventory.py . --detail detail.json      # from the repository root; prints the table above
 # grep cross-checks (raw grep counts include comments, so they can exceed the script's)
 S=eech-campaign/crates/eech-engine-sys/sources.txt
@@ -116,8 +117,8 @@ C='^aphavoc/source/(ai/|ai_extrn\.c|entity/mobile/cargo/|entity/special/(force|g
 W='^aphavoc/source/entity/(mobile/|fixed/|special/(bridge|effect)/)'
 E='^(modules/3d/|aphavoc/source/misc/(terr_db|tod|timeaccl)|aphavoc/source/entity/special/session/|modules/maths/random\.c|modules/system/timer?\.c)'
 X='^(aphavoc/source/(ui_menu/|appsound/|app3d/|gunships/|entity/special/camera/|cdmusic\.c)|modules/(userint2|graphics|2d|sound)/)'
-wc -l < $S                                             # 1217
-grep -cE "$C" $S                                       # 159
+wc -l < $S                                             # 1218
+grep -cE "$C" $S                                       # 160
 grep -E "$W" $S | grep -cvE "$C"                       # 332
 grep -cE "$E" $S; grep -cE "$X" $S                     # 73, 517
 grep -vE "$C|$W|$E|$X" $S | wc -l                      # 136
@@ -141,15 +142,15 @@ The first pass (revision `18ab088e`) was measured exhaustively only for its own 
 The scripts are in full at the end of this record. Save them side by side in one directory: `eechmap.py` is the shared source model, and the other four import it. `reach.py`, `dispatch.py` and `globals.py` take the repository root; `ledger.py` takes their JSON output.
 
 **`reach.py`** [R-src]
-- **Indexes** every function defined in the 1,217 `sources.txt` files and the 11 `csrc/*.c` files (class H, the headless host layer). This includes bodies that follow `#if` arms, and nested function-pointer parameters.
+- **Indexes** every function defined in the 1,218 `sources.txt` files and the 11 `csrc/*.c` files (class H, the headless host layer). This includes bodies that follow `#if` arms, and nested function-pointer parameters.
 - **Resolves** each identifier in a body to the definition in the same file, else to the unique non-static global. Same-file `#ifdef` twins count as one definition.
 - **Expands** macros from every header and C file under `aphavoc/source`, `modules`, `csrc` and `compat`, recursively.
 - **Walks** from the seven entry points in `eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h:36-102`: boot, frame, objects, clock, prepare_installation, diagnostics and fatal_message. It counts every reference, whether a call or an address taken, and the file-scope data of any file whose globals are referenced. This is an over-approximation by design: it reaches registered handlers, callbacks and data-table initialisers without modelling them.
-- **Results at `65892de1`:**
-  - Reachable/defined functions: C 997/1,139, W 1,603/1,813, E 799/889, F 914/1,086, H 266/294, X 5,677/6,114.
+- **Results at `faac7902`:**
+  - Reachable/defined functions: C 1,006/1,148, W 1,603/1,813, E 799/889, F 914/1,086, H 266/294, X 5,677/6,114.
   - Ambiguous names left: 0. The first pass's 76 (for example `kill_local`, defined in many entity files) all resolve once a reference is resolved within its own file first.
-  - Campaign call sites examined: 14,599. Call-shaped names with no definition: 3, all accounted for in the ledger.
-  - Distinct non-campaign functions the campaign calls or references: C→F 122, C→W 38, C→E 25, C→X 10, C→H 6. Distinct non-campaign functions that call or reference the campaign: W 121, X 118, F 42, E 3, H 3.
+  - Campaign call sites examined: 14,621. Call-shaped names with no definition: 3, all accounted for in the ledger.
+  - Distinct non-campaign functions the campaign calls or references: C→F 122, C→W 38, C→E 25, C→X 10, C→H 6. Distinct non-campaign functions that call or reference the campaign: W 123, X 118, F 42, E 3, H 3.
 
 **`dispatch.py`** [R-src]
 - **Reads** every table registration `fn_*[TYPE]… = f` and `message_responses[TYPE][MSG] = f`. This includes the per-type `[type]` registrations of the shared mobile files.
@@ -158,7 +159,7 @@ The scripts are in full at the end of this record. Save them side by side in one
 - **Finds** every static message sent per class, with its handler classes, and every non-literal `notify_*_entity` site.
 - For every attribute token in campaign files, it records which classes implement the token and in which context the campaign uses it: accessor, creation argument, pack tag, `case` label or registration.
 - It lists every campaign `set_*` call on a token that a world entity type implements, with the receiver expression.
-- **Results:** 2,879 registrations. 40 entity types: W 23, C 11, F 3, X 2, E 1. 30 static message types cross the boundary, and there are 3 dynamic sends. 22 entity function tables and 6 other table forms. 330 attribute tokens in campaign code. 116 campaign writes to world-implemented tokens.
+- **Results:** 2,879 registrations. 40 entity types: W 23, C 11, F 3, X 2, E 1. 28 static message types cross the boundary, and there are 3 dynamic sends. 22 entity function tables and 6 other table forms. 330 attribute tokens in campaign code. 116 campaign writes to world-implemented tokens.
 
 **`globals.py`** [R-src]
 - Finds every name declared `extern` in a header under the include trees, counting every declarator of a comma list. Prototypes and function-pointer declarations are left out; the latter are the dispatch tables.
@@ -183,7 +184,7 @@ The scripts are in full at the end of this record. Save them side by side in one
   - An item that no rule or entry matches is outstanding.
   - The dynamic-send entries are keyed on the reviewed site and argument (`gp_msgs.c:1244`, `wp_msgs.c:271`, `wp_msgs.c:440`). A new or moved non-literal send is therefore outstanding until reviewed (C6).
 
-Result at `65892de1` [R-src]:
+Result at `faac7902` [R-src]:
 
 | Ledger | Items | Mapped | Excluded | Outstanding |
 |---|---|---|---|---|
@@ -194,10 +195,10 @@ Result at `65892de1` [R-src]:
 | Campaign → presentation files (X) | 10 | 3 | 7 | 0 |
 | Presentation files → campaign | 118 | 97 | 21 | 0 |
 | Campaign → world (W) | 38 | 35 | 3 | 0 |
-| World → campaign | 121 | 113 | 8 | 0 |
+| World → campaign | 123 | 115 | 8 | 0 |
 | Campaign → environment (E) | 25 | 24 | 1 | 0 |
 | Environment → campaign | 3 | 3 | 0 | 0 |
-| Static message types crossing the boundary | 30 | 25 | 5 | 0 |
+| Static message types crossing the boundary | 28 | 23 | 5 | 0 |
 | Entity function tables | 22 | 11 | 11 | 0 |
 | Other function-pointer table forms | 6 | 0 | 6 | 0 |
 | Dynamic message sends | 3 | 3 | 0 | 0 |
@@ -207,6 +208,25 @@ Result at `65892de1` [R-src]:
 | Non-campaign global data | 95 | 28 | 67 | 0 |
 | Call-shaped names with no definition | 3 | 0 | 3 | 0 |
 | **Total** | **1,126** | **671** | **455** | **0** |
+
+### Refresh from the historical `65892de1` snapshot
+
+The original reviewed figures remain attributable to `65892de17bf5c4bb9ab6e9f8af70779e35b0106b`. PR #82 extracted common loss operations from six world destroy files into campaign file `gp_loss.c`; it did not create a host observation boundary. The same scripts, rules and classifications produce this exact old-to-current delta:
+
+| Measure | Historical `65892de1` | Current `faac7902` |
+|---|---:|---:|
+| Compiled C files / class C files | 1,217 / 159 | 1,218 / 160 |
+| First-pass W→C functions / sites | 64 / 261 | 73 / 330 |
+| C attribute-token sites (208 distinct) | 2,698 | 2,706 |
+| Reachable / defined C functions | 997 / 1,139 | 1,006 / 1,148 |
+| Campaign call sites examined | 14,599 | 14,621 |
+| Crossing static message types | 30 | 28 |
+| W→C ledger items (mapped / excluded) | 121 (113 / 8) | 123 (115 / 8) |
+| Crossing-message ledger items (mapped / excluded) | 30 (25 / 5) | 28 (23 / 5) |
+| Exact / pattern / fallback item dispositions | 381 / 601 / 144 | 379 / 603 / 144 |
+| Items decided by pattern or fallback | 745 | 747 |
+
+At item level, `aa_dstry.c::destroy_local` and `ps_dstry.c::destroy_local` are new W→C caller items, both mapped by `pattern:calls#49` to I14. `LIST_TYPE_TAKEOFF_QUEUE` remains mapped to I30; only its first cited occurrence moves from `ks_pack.c:262` to the new helper at `gp_loss.c:195`. `MOBILE_KILLED` and `CHECK_CAMPAIGN_OBJECTIVES` cease to be crossing-message items because their sends moved from W files into `gp_loss.c:140` and `:156`. Their obligations remain visible: the world `kill_local` caller is counted as W→C under I14, while I17 separately names and cites the objective-check operation now inside that campaign helper. The complete ledger stays at 1,126 items, 671 mapped, 455 excluded and zero outstanding.
 
 **Exclusion reasons, with counts:**
 - **Attributes:**
@@ -257,7 +277,7 @@ Result at `65892de1` [R-src]:
 
 `python -I ledger.py reach.json dispatch.json globals.json --items items.json` writes every item with its disposition, row and deciding rule.
 
-**The SUPPLY rows** lean on #74's map, which is supporting evidence only. The #74 citations reused here were spot-checked at `65892de1` (`assign.c:983`, `keysite.c:377`, `mb_msgs.c:1822`).
+**The SUPPLY rows** lean on #74's map, which is supporting evidence only. The #74 citations reused here were spot-checked at `faac7902` (`assign.c:983`, `keysite.c:377`, `mb_msgs.c:1822`).
 
 ## 2. DCS sources
 
@@ -352,10 +372,10 @@ Section 5 maps the event sources named in the brief (loss, waypoint, landed, tak
 
 | # | Interaction | EECH site(s) | Dir | EECH shape | DCS | Fit |
 |---|---|---|---|---|---|---|
-| I14 | Member destroyed: force, regen, task losses, group notice | `kill_local` `hc_dstry.c:316` (`:358`, `:410`, `:623`); `mobile.c:427`, `:440` | W→C | entity, aggressor | DEAD, CRASH, UNIT_LOST, KILL D4 | adapted (G8) |
+| I14 | Member destroyed: force, regen, task losses, group notice | World entry `kill_local` `hc_dstry.c:316`; extracted campaign helpers `gp_loss.c:73`, `:98`, `:114`, `:138`, `:166-195`; direct force/regen and aggressor accounting remains in the destroy paths and `mobile.c:427`, `:440` | W→C | entity, aggressor | DEAD, CRASH, UNIT_LOST, KILL D4 | adapted (G8) |
 | I15 | Damage | `damage_client_server_entity` `damage.c:97`; `FORCE_DESTROYED` `hc_msgs.c:334` | W→C | damage level, aggressor | HIT D6; `Unit:getLife` D16 | adapted (G8) |
 | I16 | Fired at | `wn_creat.c:617` → `fc_msgs.c:317` | W→C | launcher, target | SHOT D6; `Weapon:getTarget` D25 | adapted |
-| I17 | Campaign objectives re-checked after a loss | `hc_dstry.c:639` | campaign-only once I14 is observed | force | none needed | direct |
+| I17 | Campaign objectives re-checked after a loss | `notify_forces_check_campaign_objectives` `gp_loss.c:147-160`, called from world loss path `hc_dstry.c:595` | W→C today; campaign-only once I14 is observed | force | none needed | direct after G8 boundary |
 
 ### Time
 
@@ -448,7 +468,7 @@ Lifetimes that DCS lacks, all **campaign-only** [I]: tasks, waypoints, guides, k
 
 | EECH source | Where | DCS replacement | Fit |
 |---|---|---|---|
-| `kill_local`: forces, regen, task losses, `MOBILE_KILLED`, `CHECK_CAMPAIGN_OBJECTIVES` | `hc_dstry.c:316`, `:358`, `:410`, `:623`, `:639`; `fw_dstry.c:306`; `mobile.c:427`, `:440` | DEAD, CRASH, UNIT_LOST, KILL D4 | adapted: G8 |
+| `kill_local`: forces, regen, task losses, `MOBILE_KILLED`, `CHECK_CAMPAIGN_OBJECTIVES` | World entries `hc_dstry.c:316`, `fw_dstry.c:306`; common campaign operations `gp_loss.c:73-195`; representative calls `hc_dstry.c:418`, `:566`, `:572`, `:586`, `:595`; direct accounting `mobile.c:427`, `:440` | DEAD, CRASH, UNIT_LOST, KILL D4 | adapted: G8 |
 | Destroyed by damage: `FORCE_DESTROYED` to both forces | `hc_msgs.c:307-336` → `fc_msgs.c:510` | KILL (target and initiator) D4 | adapted: G8 |
 | Damage | `damage_client_server_entity`, `damage.c:97`; collision `hc_msgs.c:169` | HIT D6; `Unit:getLife` D16 | adapted |
 | Weapon fired at a target | `ENTITY_FIRED_AT` `wn_creat.c:617`, `:999` → `fc_msgs.c:317`, `gp_msgs.c:295` | SHOT D6; `Weapon:getTarget`, `getLauncher` D25 | adapted |
@@ -501,7 +521,7 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
 | G5 Fuel load | I7 | **Spawn-time fuel:** fuel set in the spawn data; no in-flight change | D15 [U] |
 | G6 Attack micro-control | I8 | **Target-level tasks:** the campaign chooses the target and issues AttackGroup; DCS AI chooses weapons and releases | D7 [R-dcs], D17 [R-ref] |
 | G7 No reached signal | I12, I35 | **Host polling of arrival geometry:** a scheduled tick tests the campaign-named member's `getPoint` and `inAir` against the campaign's target and radius. The campaign keeps waypoint, member and combination rules (#74 seam A) | D16, D19 [R-ref]; D27 [U] |
-| G8 Loss and damage inside world code | I11, I14, I15 | **One loss entry point:** separate EECH's campaign bookkeeping from `kill_local` behind a "member destroyed" observation (the #74 second slice), fed from DEAD/CRASH/UNIT_LOST/KILL deduplicated by name, plus an `isExist` sweep as reconciliation | D4 [R-dcs], D16 [R-ref] |
+| G8 Loss and damage inside world code | I11, I14, I15 | **One loss entry point:** PR #82 extracted the reusable campaign operations into `gp_loss.c`, but world `kill_local` functions still invoke them synchronously and still perform some force/regen/aggressor accounting. Route the complete bookkeeping sequence behind a "member destroyed" observation, fed from DEAD/CRASH/UNIT_LOST/KILL deduplicated by name, plus an `isExist` sweep as reconciliation. The helper extraction is a structural precursor, not host separation | D4 [R-dcs], D16 [R-ref] |
 | G9 Detection | I36 | **Detection observations, campaign targeting:** poll `getDetectedTargets` per campaign group into the campaign's engage decision. Target choice and priority stay in EECH_DC (as in G22). ROE is set so that DCS AI does not pick targets itself, and weapon hold covers suppress-AI-fire. DCS AI performs only the physical weapon release, after the campaign has assigned the target (I8, G6). SHOT, HIT and DEAD come back as observations (section 5) | D17, D6 [R-ref] |
 | G10 Typed arrivals | I13 | **Event-backed arrivals:** LAND and TAKEOFF events, matched to the unit's current campaign waypoint type | D5 [R-dcs] |
 | G11 Acceleration | I20 | **Host-owned time rate:** the campaign sees only larger dt values, quantised as in section 6 | D19 [R-ref] |
@@ -540,13 +560,13 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
 
 - **Coverage.** The ledger has no outstanding item, but it rests on a regex index, not a compiler. These are the residual limits a reviewer should test:
   - **No preprocessor.** Both arms of `#ifdef` count, and only `#if 0` is removed. This over-approximates; it does not drop code.
-  - **Function definitions** are found by pattern. The check that 14,599 call sites in reachable campaign functions resolve, with 3 explained exceptions, bounds the risk on the campaign side only.
+  - **Function definitions** are found by pattern. The check that 14,621 call sites in reachable campaign functions resolve, with 3 explained exceptions, bounds the risk on the campaign side only.
   - **Registrations.** `dispatch.py` matches `fn_*[...] = f` and `message_responses[...][...] = f`. It also scans every other array assignment of a defined function's name. That scan found one real table form outside the pattern, `campaign_screen_message_responses` (UI, excluded, F4), and 5 data-array false positives. A function pointer stored through a struct field (for example `briefing_substitutions [loop].function`) is not a table: `reach.py` walks its targets as address-taken references.
   - **Message sends** are matched only as `notify_local_entity` and `notify_client_server_entity` calls; 3 sends with a non-literal message id are resolved in the ledger.
   - **The attribute disposition** uses the implementing entity classes and the usage context. Every world- or session-implemented token that the campaign uses in an accessor, a creation argument or another expression is named in `ledger.py` with its row, including suppress-AI-fire (I36) and difficulty (I53). Three world-implemented tokens appear in campaign code only as the campaign entity's own `case` labels and registrations, and fall to the own-implementation fallback: `PTR_TYPE_TERRAIN_FACE_NORMAL`, `FLOAT_TYPE_RECON_DISTANCE` and `INT_TYPE_MAP_ICON`. That assignment is a judgement the reviewer can check line by line.
   - **Globals** are found from `extern` declarations in headers only. A global declared only in a `.c` file, or used through a function rather than a macro, is not in this ledger; its accessor function is in the call ledger instead.
   - **Pattern and fallback rules.** This is the one place the rule totals are stated; they are reproduced by `ledger.py` ("items by rule kind", "decided by pattern or fallback rules") on the embedded scripts.
-    - Of the 1,126 items, exact rules and fixed tables decide 381, 52 pattern rules decide 601, and 4 fallbacks decide 144, all by attribute usage context. So 56 pattern and fallback rules decide 745 items, each listed below. The 381 exact items include the six other-table forms: one campaign-screen UI table and five data arrays, each named in `ledger.py` with the site where it was reviewed. No fallback excludes an unlisted form: it is reported as outstanding, as is a listed name found at a site other than the reviewed one.
+    - Of the 1,126 items, exact rules and fixed tables decide 379, 52 pattern rules decide 603, and 4 fallbacks decide 144, all by attribute usage context. So 56 pattern and fallback rules decide 747 items, each listed below. The 379 exact items include the six other-table forms: one campaign-screen UI table and five data arrays, each named in `ledger.py` with the site where it was reviewed. No fallback excludes an unlisted form: it is reported as outstanding, as is a listed name found at a site other than the reviewed one.
     - Each rule's reason applies to every item it matches. The per-item list (`items.json`, with the deciding rule id) lets a reviewer check them.
     - Since F3, no rule assigns a default list of rows. Where a rule names two rows, both apply to every item it matches. The former catch-alls ("I6, I12, I30", "I12, I13, I30, I32", "I5 and G3" for all lists, "I18, I19, I27 … or framework default") are gone.
     - Since C2, every rule that was hand-labelled exact at `ab830a04` but matches whole files or wildcards is counted as a pattern: 28 rules over 145 items (calls, writes and globals). These include the reviewer's 15 call rules over 88 items.
@@ -587,7 +607,7 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
 | calls | `pattern:calls#46` | mapped | I2, I25 (a world object registers in its sector) | 9 |
 | calls | `pattern:calls#47` | mapped | I31 (keysite structures) | 5 |
 | calls | `pattern:calls#48` | mapped | I24 (bridges break road links) | 2 |
-| calls | `pattern:calls#49` | mapped | I14 (losses) | 11 |
+| calls | `pattern:calls#49` | mapped | I14 (losses) | 13 |
 | calls | `pattern:calls#50` | mapped | I36 (target detection triggers engagement) | 3 |
 | calls | `pattern:calls#51` | mapped | I8 (weapon choice and release) | 4 |
 | calls | `pattern:calls#52` | mapped | I16 (weapon fired at a target) | 2 |
@@ -620,12 +640,12 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
 - **The coordinate chain is unmeasured against DCS.** The retail maps are distorted (section 7), and there is no Syria terrain on this PC.
 - **Human players and multiplayer** are now mapped (I44, I45, the replication group). The player-skip and cohesion rules inside the helicopter arrival test (#74 stage 4) still sit in world code and move with G7. No player path runs in the headless product, so none of this is runtime-characterised.
 - **Capture conversion in DCS** depends on P-CAP-1 to P-CAP-5 (G28). Until they run, G28 is the named workaround, not a verified mechanism.
-- **Prior research:** `eech-campaign/docs/dcs.md` maps the earlier kernel-spike API, not the whole-engine product. Where they differ, this record is source-grounded at `65892de1`.
+- **Prior research:** `eech-campaign/docs/dcs.md` maps the earlier kernel-spike API, not the whole-engine product. Where they differ, this record is source-grounded at `faac7902`. The original `65892de1` figures are retained only in the historical refresh table in section 1.
 
 ## Validation
 
 - **Scope:** this map, its reproducibility checker and self-test, and a CI job. No runtime source or configuration changes.
-- **First pass:** `inventory.py` at `65892de1`; the output is as in section 1, and the grep cross-checks were run as listed.
+- **First pass:** `inventory.py` at `faac7902`; the output is as in section 1, and the grep cross-checks were run as listed.
 - **Second pass:** from one directory holding `eechmap.py` and the four scripts below, run:
   ```
   python -I reach.py <repo> --detail reach.json
@@ -633,8 +653,9 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
   python -I globals.py <repo> --detail globals.json
   python -I ledger.py reach.json dispatch.json globals.json --items items.json
   ```
-  These were run at `65892de1` with Python 3.13 on Windows and give the figures in section 1, including a ledger of 1,126 items with 0 outstanding. The reviewer's `g2.py` and `writes.py` were run on the same tree, and the differences are explained in section 1. The scripts were audited against the eight clean-code principles (SRP, DRY, NAMING, COUPLING, DEAD, KISS, BOUNDARY, PANIC); no finding above 0.5 remains.
+  These were run at `faac7902` with Python 3.13 on Windows and give the current figures in section 1, including a ledger of 1,126 items with 0 outstanding. The historical `65892de1` run and its reviewer cross-checks remain described separately in section 1. The scripts were audited against the eight clean-code principles (SRP, DRY, NAMING, COUPLING, DEAD, KISS, BOUNDARY, PANIC); no finding above 0.5 remains.
 - **Reproduction gate:** `python tools/m5-call-map-check.py` extracts the six embedded scripts and reruns them on the pinned Git snapshot; `python tools/m5-call-map-check-selftest.py` exercises missing and changed evidence. The CI job runs both commands on pull requests. The checker separately reports whether the pinned snapshot still matches the merge target's runtime source; a future source change requires a map refresh and review.
+- **Current-source compatibility:** `git diff --quiet 0ba0384c..faac7902 -- aphavoc modules eech-campaign/crates/eech-engine-sys` exits 0, so PR #84's ABI merge changes no input read by the map. Its ABI patch, tests and records do not create campaign/world interactions. The unmerged host-identity source is outside this claim and must trigger a fresh inventory when it enters the target.
 - **DCS:** read-only `grep`, `sed -n` and `diff` over `DCS:Scripts/`, `DCS:API/Sim_ControlAPI.md`, `DCS:autoupdate.cfg` and `DCS:Mods/terrains/`, plus `grep -a` over `DCS:bin/Scripting.dll`. tslua-dcs files were fetched at `1179554f` with `gh api`.
 - **Confluence:** the plan draft 12484650 (the current unaccepted working draft) was read; it was not edited.
 - **Citations:** a checker kept outside the repository resolves every `file:line` outside code blocks (repository, `DCS:`, `MT/`, `MTX/`; a bare `:N` refers to the last file on the same line) to one file and checks the line is in range. It also checks every relative link and backticked repository path at the commit.

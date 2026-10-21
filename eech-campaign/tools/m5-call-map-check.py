@@ -34,7 +34,7 @@ import tarfile
 import tempfile
 from pathlib import Path
 
-SNAPSHOT = "65892de17bf5c4bb9ab6e9f8af70779e35b0106b"
+SNAPSHOT = "faac79024335db1772191dee2aac6284584c4a5d"
 SCRIPTS = ["eechmap.py", "inventory.py", "reach.py", "dispatch.py", "globals.py", "ledger.py"]
 SOURCE_PATHS = ["aphavoc", "modules", "eech-campaign/crates/eech-engine-sys"]  # everything the scripts read
 MERGE_PATHS = ["aphavoc", "modules", "eech-campaign/crates"]  # source a merge target must leave unchanged
@@ -65,21 +65,21 @@ def git(*args, binary=False, check=True):
 # figures the document's prose states as script output: (script, key in its JSON summary, value).
 # The headline figures are parsed from the document instead (see PROSE).
 EXPECTED = [
-    ("inventory", "files_by_class", {"C": 159, "E": 73, "F": 136, "W": 332, "X": 517}),
+    ("inventory", "files_by_class", {"C": 160, "E": 73, "F": 136, "W": 332, "X": 517}),
     ("inventory", "names_defined_in_several_classes_excluded", 76),
     ("inventory", "C->W", {"functions": 39, "sites": 86}),
     ("inventory", "C->E", {"functions": 25, "sites": 75}),
-    ("inventory", "W->C", {"functions": 64, "sites": 261}),
+    ("inventory", "W->C", {"functions": 73, "sites": 330}),
     ("inventory", "E->C", {"functions": 2, "sites": 4}),
-    ("inventory", "C attribute tokens", {"distinct": 208, "sites": 2698}),
-    ("reach", "functions", {"C": 1139, "E": 889, "F": 1086, "H": 294, "W": 1813, "X": 6114}),
-    ("reach", "reachable_functions", {"C": 997, "E": 799, "F": 914, "H": 266, "W": 1603, "X": 5677}),
+    ("inventory", "C attribute tokens", {"distinct": 208, "sites": 2706}),
+    ("reach", "functions", {"C": 1148, "E": 889, "F": 1086, "H": 294, "W": 1813, "X": 6114}),
+    ("reach", "reachable_functions", {"C": 1006, "E": 799, "F": 914, "H": 266, "W": 1603, "X": 5677}),
     ("reach", "unresolved_ambiguous_names", 0),
-    ("reach", "call_sites_examined_in_campaign", 14599),
+    ("reach", "call_sites_examined_in_campaign", 14621),
     ("reach", "unresolved_call_names_in_campaign", ["endif", "function", "ogre_scene_get_object"]),
     ("dispatch", "registrations", 2879),
     ("dispatch", "entity_types", {"W": 23, "C": 11, "X": 2, "F": 3, "E": 1}),
-    ("dispatch", "crossing_static_messages", 30),
+    ("dispatch", "crossing_static_messages", 28),
     ("dispatch", "dynamic_send_sites", 3),
     ("dispatch", "attribute_tokens_in_campaign_code", 330),
     ("dispatch", "function_tables", 22),
