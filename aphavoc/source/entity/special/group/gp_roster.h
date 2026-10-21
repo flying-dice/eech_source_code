@@ -71,6 +71,8 @@ void campaign_roster_set_host (const campaign_roster_host *host);
 void campaign_roster_link_member (struct ENTITY *group, struct ENTITY *member);
 void campaign_roster_unlink_member (struct ENTITY *group, struct ENTITY *member);
 void campaign_roster_release_entity (struct ENTITY *entity);
+uint64_t campaign_roster_member_key (struct ENTITY *member);
+const char *campaign_roster_host_id (struct ENTITY *member);
 int campaign_roster_members (campaign_member_snapshot_fn callback, void *user);
 void campaign_roster_get_stats (campaign_roster_stats *stats);
 

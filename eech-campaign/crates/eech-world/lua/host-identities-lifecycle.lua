@@ -18,7 +18,7 @@ local scenarios = {
 local scenario = assert (scenarios[args.scenario or "lebanon_retail"], "scenario=lebanon_retail|georgia_retail")
 
 local function config (overrides)
-	local c = { install_root = root, map = scenario.map, campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache", seed = 1, bind_mobile = host.bind_mobile }
+	local c = { install_root = root, map = scenario.map, campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache", seed = 1, bind_mobile = host.bind_mobile, supply_reached = host.supply_reached }
 	for k, v in pairs (overrides or {}) do
 		if v == false then c[k] = nil else c[k] = v end
 	end
@@ -56,6 +56,7 @@ function cases.boot_twice ()
 				assert (not ok and tostring (message):find ("not valid in the engine's state", 1, true))
 			end
 			rejected (function () engine:members () end)
+			rejected (function () engine:supply_tasks () end)
 			rejected (function () engine:roster_stats () end)
 			rejected (function () engine:objects () end)
 			rejected (function () engine:frame (100) end)

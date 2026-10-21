@@ -56,6 +56,109 @@ fn tacview_type(kind: &str, type_name: &str) -> &'static str {
     }
 }
 
+fn vector3(table: &LuaTable, name: &str) -> LuaResult<[f32; 3]> {
+    let values: Vec<f32> = table.get(name)?;
+    values
+        .try_into()
+        .map_err(|values: Vec<f32>| LuaError::runtime(format!("host.supply_reached: {name} has {} components", values.len())))
+}
+
+fn segment_perpendicular_distance(a: [f32; 3], b: [f32; 3], c: [f32; 3]) -> f32 {
+    let mut ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+    // The legacy helper calls the C double-precision maths functions and
+    // stores each result back into a float. Preserve those conversion points.
+    let mag_ab = f64::from(ab[0] * ab[0] + ab[1] * ab[1] + ab[2] * ab[2]).sqrt() as f32;
+    if mag_ab == 0.0 {
+        return f32::MAX;
+    }
+    let inverse_ab = 1.0 / mag_ab;
+    for value in &mut ab {
+        *value *= inverse_ab;
+    }
+    let mut ac = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+    let mag_ac = f64::from(ac[0] * ac[0] + ac[1] * ac[1] + ac[2] * ac[2]).sqrt() as f32;
+    if mag_ac == 0.0 {
+        return f32::MAX;
+    }
+    let inverse_ac = 1.0 / mag_ac;
+    for value in &mut ac {
+        *value *= inverse_ac;
+    }
+    let cosine = ab[0] * ac[0] + ab[1] * ac[1] + ab[2] * ac[2];
+    if cosine < 0.0 || mag_ac * cosine > mag_ab {
+        return f32::MAX;
+    }
+    let theta = f64::from(cosine).acos() as f32;
+    (f64::from(mag_ac) * f64::from(theta).sin()) as f32
+}
+
+/// Reference-host implementation of EECH's original fixed-wing/helicopter
+/// physical predicate for the four SUPPLY waypoints. The DLL supplies raw
+/// facts; this host computes the verdict.
+fn supply_reached(descriptor: LuaTable) -> LuaResult<bool> {
+    let _: u64 = descriptor.get("member_key")?;
+    let _: u64 = descriptor.get("task_key")?;
+    let _: u64 = descriptor.get("waypoint_key")?;
+    let _: String = descriptor.get("host_id")?;
+    let waypoint: String = descriptor.get("waypoint")?;
+    if !matches!(waypoint.as_str(), "pick_up" | "prepare_for_drop_off" | "drop_off" | "finish_drop_off") {
+        return Err(LuaError::runtime(format!("host.supply_reached: unsupported waypoint {waypoint:?}")));
+    }
+    let mobile: String = descriptor.get("mobile")?;
+    let is_ai: bool = descriptor.get("is_ai")?;
+    let landed: bool = descriptor.get("landed")?;
+    let radius: f32 = descriptor.get("radius")?;
+    let distance: f32 = descriptor.get("distance")?;
+
+    match mobile.as_str() {
+        "fixed_wing" => {
+            if landed {
+                return Ok(false);
+            }
+            let velocity: f32 = descriptor.get("velocity")?;
+            if distance - velocity > radius {
+                return Ok(false);
+            }
+            if distance <= radius {
+                return Ok(true);
+            }
+            let position = vector3(&descriptor, "position")?;
+            let motion = vector3(&descriptor, "motion")?;
+            let guide = vector3(&descriptor, "guide_position")?;
+            let delta: f32 = descriptor.get("delta_seconds")?;
+            let direction = if descriptor.get::<bool>("updated")? { -1.0 } else { 1.0 };
+            let other = [
+                position[0] + direction * motion[0] * delta,
+                position[1] + direction * motion[1] * delta,
+                position[2] + direction * motion[2] * delta,
+            ];
+            // The original accepts an unordered (NaN) distance because its
+            // only rejecting comparison is `range > radius`.
+            Ok(!(segment_perpendicular_distance(position, other, guide) > radius))
+        }
+        "helicopter" => {
+            if is_ai && landed {
+                return Ok(false);
+            }
+            if is_ai && descriptor.get::<f32>("rotor_spin_up_seconds")? > 0.0 {
+                return Ok(false);
+            }
+            if descriptor.get::<bool>("is_task_leader")? {
+                return Ok(distance <= radius);
+            }
+            if descriptor.get::<bool>("leader_is_ai")? {
+                let position = vector3(&descriptor, "position")?;
+                let leader = vector3(&descriptor, "leader_position")?;
+                let dx = position[0] - leader[0];
+                let dz = position[2] - leader[2];
+                return Ok(dx * dx + dz * dz <= 750.0 * 750.0);
+            }
+            Ok(true)
+        }
+        _ => Err(LuaError::runtime(format!("host.supply_reached: unsupported mobile {mobile:?}"))),
+    }
+}
+
 impl Recording {
     fn record(&mut self, time: f64, objects: LuaTable) -> LuaResult<()> {
         self.pass += 1;
@@ -229,6 +332,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             })?,
         )?;
     }
+    host.set("supply_reached", lua.create_function(|_, descriptor: LuaTable| supply_reached(descriptor))?)?;
 
     let recording: Rc<RefCell<Option<Recording>>> = Rc::new(RefCell::new(None));
     {

@@ -1,0 +1,143 @@
+-- Public causal checks for the four SUPPLY arrival predicates.
+-- The host wraps its reference physical predicate; campaign state is read only
+-- through engine:supply_tasks().
+
+local args = host.args
+local root = assert (args.root, "root=<installation root>")
+local mode = assert (args.mode, "mode=reference|withhold_pick_up|delay_drop_off")
+local frame_ms = tonumber (args.frame_ms or "100")
+local frames = math.floor (tonumber (args.hours or "1") * 3600000 / frame_ms + 0.5)
+local delay_seconds = tonumber (args.delay_seconds or "10")
+local dc = require ("eech_dc")
+dc.prepare_installation (root)
+
+local elapsed = 0
+local counts = {}
+local selected, selected_before, selected_at
+local withheld_calls, positions, allowed = 0, {}, false
+local reference = host.supply_reached
+
+local function close (a, b)
+	return math.abs (a - b) < 0.001
+end
+
+local function snapshot_by_task (engine)
+	local by_task = {}
+	for _, task in ipairs (engine:supply_tasks ()) do by_task[task.task_key] = task end
+	return by_task
+end
+
+local function record_position (descriptor)
+	local p = descriptor.position
+	positions[#positions + 1] = { p[1], p[2], p[3] }
+end
+
+local function moved ()
+	if #positions < 2 then return false end
+	local first = positions[1]
+	for index = 2, #positions do
+		local p = positions[index]
+		if math.abs (p[1] - first[1]) + math.abs (p[2] - first[2]) + math.abs (p[3] - first[3]) > 0.01 then return true end
+	end
+	return false
+end
+
+local function supply_reached (descriptor)
+	local reached = reference (descriptor)
+	counts[descriptor.waypoint] = (counts[descriptor.waypoint] or 0) + 1
+	if mode == "withhold_pick_up" and descriptor.waypoint == "pick_up" then
+		if not selected then
+			if reached then
+				selected = descriptor.task_key
+				selected_at = elapsed
+			end
+		end
+		if descriptor.task_key == selected then
+			withheld_calls = withheld_calls + 1
+			record_position (descriptor)
+			return false
+		end
+	elseif mode == "delay_drop_off" and descriptor.waypoint == "drop_off" then
+		if not selected then
+			if reached then
+				selected = descriptor.task_key
+				selected_at = elapsed
+			end
+		end
+		if descriptor.task_key == selected then
+			record_position (descriptor)
+			if elapsed - selected_at < delay_seconds then
+				withheld_calls = withheld_calls + 1
+				return false
+			end
+			allowed = true
+		end
+	end
+	return reached
+end
+
+local engine = dc.boot {
+	install_root = root,
+	map = "..\\common\\maps\\map5",
+	campaign_directory = "camp01",
+	campaign = "LEBANON.CHC",
+	gunship = "apache",
+	seed = 1,
+	bind_mobile = host.bind_mobile,
+	supply_reached = supply_reached,
+}
+
+local finished
+for _ = 1, frames do
+	engine:frame (frame_ms)
+	elapsed = elapsed + frame_ms / 1000
+	if selected then
+		local after_by_task = snapshot_by_task (engine)
+		local after = assert (after_by_task[selected], "selected SUPPLY task disappeared before the asserted transition")
+		if not selected_before then
+			selected_before = after
+		elseif mode == "withhold_pick_up" and elapsed - selected_at >= delay_seconds then
+			assert (after.waypoint == "pick_up" and after.waypoint_key == selected_before.waypoint_key, "withheld PICK_UP advanced the task")
+			assert (after.cargo_on_leader == selected_before.cargo_on_leader, "withheld PICK_UP moved cargo")
+			assert (close (after.supplier_ammo, selected_before.supplier_ammo) and close (after.supplier_fuel, selected_before.supplier_fuel),
+				"withheld PICK_UP debited the supplier")
+			assert (close (after.receiver_ammo, selected_before.receiver_ammo) and close (after.receiver_fuel, selected_before.receiver_fuel),
+				"withheld PICK_UP changed the receiver")
+			assert (withheld_calls > 1 and moved (), "physical member did not continue reporting movement while PICK_UP was withheld")
+			finished = after
+			break
+		elseif mode == "delay_drop_off" then
+			if elapsed - selected_at < delay_seconds then
+				assert (after.waypoint == "drop_off" and after.waypoint_key == selected_before.waypoint_key, "delayed DROP_OFF advanced early")
+				assert (after.cargo_on_leader == selected_before.cargo_on_leader, "delayed DROP_OFF moved cargo early")
+				assert (close (after.receiver_ammo, selected_before.receiver_ammo) and close (after.receiver_fuel, selected_before.receiver_fuel),
+					"delayed DROP_OFF credited the receiver early")
+			elseif allowed and after.waypoint_key ~= selected_before.waypoint_key then
+				assert (after.cargo_on_leader < selected_before.cargo_on_leader, "allowed DROP_OFF did not move cargo from the leader")
+				assert (after.receiver_ammo > selected_before.receiver_ammo or after.receiver_fuel > selected_before.receiver_fuel,
+					"allowed DROP_OFF did not credit the receiver")
+				assert (withheld_calls > 0, "DROP_OFF was not delayed")
+				finished = after
+				break
+			end
+		end
+	end
+end
+
+if mode == "reference" then
+	for _, waypoint in ipairs ({ "pick_up", "prepare_for_drop_off", "drop_off", "finish_drop_off" }) do
+		assert ((counts[waypoint] or 0) > 0, "reference host did not receive " .. waypoint)
+		print (string.format ("%s\t%d", waypoint, counts[waypoint]))
+	end
+else
+	assert (selected and finished, mode .. " did not reach its causal assertion")
+	print (string.format ("task_key\t%.0f", selected))
+	print (string.format ("withheld_seconds\t%.1f", elapsed - selected_at))
+	print (string.format ("withheld_calls\t%d", withheld_calls))
+	print (string.format ("cargo_before_after\t%d\t%d", selected_before.cargo_on_leader, finished.cargo_on_leader))
+	print (string.format ("supplier_before_after\t%.3f\t%.3f\t%.3f\t%.3f", selected_before.supplier_ammo,
+		selected_before.supplier_fuel, finished.supplier_ammo, finished.supplier_fuel))
+	print (string.format ("receiver_before_after\t%.3f\t%.3f\t%.3f\t%.3f", selected_before.receiver_ammo,
+		selected_before.receiver_fuel, finished.receiver_ammo, finished.receiver_fuel))
+end
+print ("result\tok")
