@@ -6,14 +6,16 @@ blocks. This tool extracts them from the document, runs them against the
 source snapshot the map describes (read from git, never the working tree),
 and checks the figures the document states as their output:
   - the headline figures, parsed from the document's own prose (ledger items,
-    mapped, excluded, outstanding; rule kinds; the 57 rules deciding 750 items;
-    globals; world writes), so a change to either side shows as a difference;
+    mapped, excluded, outstanding; rule kinds; the pattern and fallback rules and
+    the items they decide; globals; world writes), so a change to either side
+    shows as a difference; a sentence stated twice must state the same figures;
   - the coverage-ledger table in section 1 and the rule table in section 10,
     parsed from the document;
   - the remaining prose figures listed in EXPECTED (a copy of the document's
     numbers, kept only where the document states them in running text).
 It also prints whether the snapshot still applies to the merge target:
-`git diff --quiet SNAPSHOT TARGET -- aphavoc eech-campaign/crates` holds.
+`git diff --quiet SNAPSHOT TARGET -- aphavoc modules eech-campaign/crates` holds
+(the MERGE_PATHS below).
 
 Usage (from anywhere in the repository):
   m5-call-map-check.py [TARGET] [--doc PATH] [--snapshot REV]
@@ -37,6 +39,7 @@ SCRIPTS = ["eechmap.py", "inventory.py", "reach.py", "dispatch.py", "globals.py"
 SOURCE_PATHS = ["aphavoc", "modules", "eech-campaign/crates/eech-engine-sys"]  # everything the scripts read
 MERGE_PATHS = ["aphavoc", "modules", "eech-campaign/crates"]  # source a merge target must leave unchanged
 BLOCK = re.compile(r"<summary><code>([\w.]+\.py)</code></summary>\n\n```python\n(.*?)\n```", re.S)
+LABELLED = re.compile(r"<summary>([^\n]*)</summary>\n\n```python\n", re.S)  # any python block under a summary
 REPO = Path(__file__).resolve().parent  # replaced by the repository root in main()
 
 
@@ -101,22 +104,21 @@ LEDGER_ROWS = {
 }
 # the sentences of the document that carry the headline figures
 PROSE = {
-    "ledger": r"accounts for ([\d,]+) items: ([\d,]+) are mapped[^,]*, ([\d,]+) are excluded[^*]*\*\*([\d,]+) are outstanding\*\*",
-    "rules": r"exact rules and fixed tables decide ([\d,]+), ([\d,]+) pattern rules decide ([\d,]+), "
-             r"and ([\d,]+) fallbacks decide ([\d,]+)",
-    "rule total": r"So ([\d,]+) pattern and fallback rules decide ([\d,]+) items",
-    "globals": r"([\d,]+) non-campaign globals used by the campaign",
-    "writes": r"([\d,]+) campaign writes to world-implemented tokens\.",
+    "ledger": r"accounts for (\d+(?:,\d{3})*) items: (\d+(?:,\d{3})*) are mapped[^,]*, (\d+(?:,\d{3})*) are excluded[^*]*\*\*(\d+(?:,\d{3})*) are outstanding\*\*",
+    "rules": r"exact rules and fixed tables decide (\d+(?:,\d{3})*), (\d+(?:,\d{3})*) pattern rules decide (\d+(?:,\d{3})*), "
+             r"and (\d+(?:,\d{3})*) fallbacks decide (\d+(?:,\d{3})*)",
+    "rule total": r"So (\d+(?:,\d{3})*) pattern and fallback rules decide (\d+(?:,\d{3})*) items",
+    "globals": r"(\d+(?:,\d{3})*) non-campaign globals used by the campaign",
+    "writes": r"(\d+(?:,\d{3})*) campaign writes to world-implemented tokens\.",
 }
 
 
 def extract_scripts(doc_text, directory):
-    blocks = BLOCK.findall(doc_text)
-    names = [name for name, _ in blocks]
-    repeated = sorted({n for n in names if names.count(n) > 1})
-    if repeated:
+    labels = [s for summary in LABELLED.findall(doc_text) for s in SCRIPTS if re.search(rf"(?<![\w.]){re.escape(s)}(?!\w)", summary)]
+    repeated = sorted({s for s in labels if labels.count(s) > 1})
+    if repeated:  # whatever the summary text around the name
         raise Failure(f"the document embeds more than one block for {', '.join(repeated)}")
-    found = dict(blocks)
+    found = dict(BLOCK.findall(doc_text))
     missing = [s for s in SCRIPTS if s not in found]
     if missing:
         raise Failure(f"the document embeds no block for {', '.join(missing)}")
@@ -146,8 +148,7 @@ def run(script_dir, script, *args, cwd):
     if out.returncode:
         raise Failure(f"{script} exited {out.returncode}:\n{out.stderr.strip()}")
     try:
-        end = out.stdout.rindex("}") + 1
-        report = json.loads(out.stdout[:end])
+        report = json.JSONDecoder().raw_decode(out.stdout.lstrip())[0]  # the report leads; later lines are notes
         if not isinstance(report, dict):
             raise ValueError("top-level report is not an object")
         return report, out.stdout
@@ -156,27 +157,41 @@ def run(script_dir, script, *args, cwd):
 
 
 def number(text):
-    return int(text.strip().strip("*").replace(",", ""))
+    """a count written as digits, optionally in bold and with comma thousands; anything else is a ValueError"""
+    digits = text.strip().strip("*")
+    if not re.fullmatch(r"\d{1,3}(,\d{3})+|\d+", digits):
+        raise ValueError(f"{text.strip()!r} is not a count")
+    return int(digits.replace(",", ""))
 
 
 def prose_figures(doc_text):
     """the headline figures the document's sentences state: {name: tuple of ints}"""
     figures = {}
     for name, pattern in PROSE.items():
-        m = re.search(pattern, doc_text)
-        if not m:
+        stated = set()
+        for m in re.finditer(pattern, doc_text):
+            try:
+                stated.add(tuple(number(g) for g in m.groups()))
+            except ValueError as e:
+                raise Failure(f"the document's {name} sentence has a figure that is not a count: {e}") from e
+        if not stated:
             raise Failure(f"the document no longer states its {name} figures (pattern: {pattern})")
-        figures[name] = tuple(number(g) for g in m.groups())
+        if len(stated) > 1:
+            raise Failure(f"the document states its {name} figures more than once, differently: {sorted(stated)}")
+        figures[name] = stated.pop()
     return figures
 
 
 def ledger_table(doc_text):
-    """section 1's coverage-ledger table: report key -> {items, mapped, excluded, outstanding}"""
+    """section 1's coverage-ledger table: report key -> {mapped, excluded, outstanding}; each row's Items
+    is checked here to be their sum, so the scripts' three figures per row decide the fourth"""
     rows = {}
     for line in doc_text.splitlines():
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
-        if len(cells) == 5 and cells[0] in LEDGER_ROWS:
+        if cells[0] in LEDGER_ROWS:
             label = cells[0]
+            if len(cells) != 5:
+                raise Failure(f"the section 1 ledger row {label} has {len(cells)} cells, not 5")
             if LEDGER_ROWS[label] in rows:
                 raise Failure(f"the section 1 ledger table has more than one row labelled {label}")
             try:
@@ -187,8 +202,7 @@ def ledger_table(doc_text):
                 raise Failure(f"the section 1 ledger row {label} states {items} items, but "
                               f"{mapped} mapped + {excluded} excluded + {outstanding} outstanding is "
                               f"{mapped + excluded + outstanding}")
-            rows[LEDGER_ROWS[label]] = {"items": items, "mapped": mapped, "excluded": excluded,
-                                        "outstanding": outstanding}
+            rows[LEDGER_ROWS[label]] = {"mapped": mapped, "excluded": excluded, "outstanding": outstanding}
     return rows
 
 
@@ -224,6 +238,9 @@ def check_figures(doc_text, scripts, tree, report):
         items = json.loads(Path(scripts, "items.json").read_text(encoding="utf-8"))
     except (OSError, ValueError) as e:
         raise Failure(f"ledger.py exited successfully but wrote no valid items.json: {e}") from e
+    if not (isinstance(items, list) and all(isinstance(i, dict) and isinstance(i.get("rule"), str)
+                                            and isinstance(i.get("disposition"), str) for i in items)):
+        raise Failure("ledger.py wrote an items.json that is not a list of items, each with a rule and a disposition")
     ledger, kinds = out["ledger"], out["ledger"]["items by rule kind"]
     outstanding = len([l for l in ledger_text.splitlines() if l.startswith("OUTSTANDING")])
 
@@ -248,7 +265,6 @@ def check_figures(doc_text, scripts, tree, report):
     report.compare("section 1 ledger table: rows", sorted(documented), sorted(LEDGER_ROWS.values()))
     for key, want in sorted(documented.items()):
         got = {d: ledger.get(key, {}).get(d, 0) for d in ("mapped", "excluded", "outstanding")}
-        got["items"] = sum(got.values())
         report.compare(f"section 1 ledger table: {key}", got, want)
     counts = {}
     for i in deciding:
@@ -285,7 +301,7 @@ def main():
             print(f"scripts from {args.doc}; source snapshot {args.snapshot} (git archive)")
             try:
                 check_figures(doc_text, scripts, tree, report)
-            except (KeyError, TypeError) as e:
+            except (KeyError, TypeError, AttributeError) as e:
                 raise Failure(f"an embedded script report has a missing or invalid field: {e}") from e
         command = f"git diff --quiet {args.snapshot[:8]} {args.target} -- {' '.join(MERGE_PATHS)}"
         target_diff = git("diff", "--quiet", args.snapshot, args.target, "--", *MERGE_PATHS, check=False)

@@ -9,14 +9,19 @@
 #   missing-snapshot  an absent snapshot commit is a setup error (exit 2), not a mismatch
 #   malformed-report  a successful script with no JSON is a mismatch, not a traceback
 #   blocked-extract   an unwritable extraction path is a setup error, not a traceback
-#   unknown-table     an unreviewed other-table form is OUTSTANDING; the reviewed data arrays stay excluded
-#   duplicate-ledger  a repeated ledger row, or a repeated embedded block, is rejected
+#   unknown-table     an unreviewed other-table form, or a reviewed name at another site, is OUTSTANDING;
+#                     the reviewed data arrays stay excluded
+#   duplicate-ledger  a repeated ledger row, or a repeated embedded block (whatever its summary), is rejected
+#   malformed-table   a ledger row with a sixth cell, or an Items cell written 1_126, is rejected
+#   repeated-prose    a headline sentence stated twice with different figures is rejected
+#   malformed-items   an items.json that is not a list of items with a rule, or a report row that is a list,
+#                     is a named failure, not a traceback
 #   wrong-items       a ledger row whose Items is not mapped + excluded + outstanding is rejected
 #   invalid-utf8      an undecodable document is a setup error (exit 2), not a traceback
 #   missing-items     a ledger.py run that writes no items.json is a named failure, not a traceback
 #   missing-block     a document without one embedded script is a mismatch naming the script
 #   script-exit       a script's nonzero exit is a mismatch carrying its stderr
-#   non-object-json   a script report that is a JSON list, not an object, is a mismatch
+#   non-object-json   a script report that parses as JSON but is a list, not an object, is a mismatch
 #   missing-field     a script report without a field the check reads is a mismatch naming it
 #   unknown-target    an unknown merge target is a setup error (exit 2)
 #   divergent-target  a merge target that changes aphavoc/ or modules/ prints DOES NOT HOLD (exit 0)
@@ -101,6 +106,16 @@ with tempfile.TemporaryDirectory() as scripts, tempfile.TemporaryDirectory() as 
     expect('unknown-table: the six reviewed other-table forms stay excluded',
            len(tables) == 6 and set(tables.values()) == {'excluded'}, json.dumps(tables))
 
+    # a reviewed name found at another site than the one it was reviewed at is outstanding too
+    dispatch['other_tables'].pop('synthetic_unreviewed_table')
+    dispatch['other_tables']['texture_animations']['first'] = 'modules/3d/3danim.c:1'
+    mutated = os.path.join(scripts, 'dispatch-moved-table.json')
+    json.dump(dispatch, open(mutated, 'w', encoding='utf-8'))
+    r = script('ledger.py', detail('reach'), mutated, detail('globals'))
+    outstanding = [l for l in r.stdout.splitlines() if l.startswith('OUTSTANDING')]
+    expect('unknown-table: a reviewed name at another site is outstanding, and only it',
+           len(outstanding) == 1 and outstanding[0].endswith('texture_animations'), r.stdout[-300:] + r.stderr)
+
     # comment-line: globals.py must read the same files with a comment line added to sources.txt
     sources = os.path.join(tree, 'eech-campaign', 'crates', 'eech-engine-sys', 'sources.txt')
     original = open(sources, encoding='utf-8', newline='').read()
@@ -182,6 +197,21 @@ expect('duplicate-ledger: the check rejects a repeated Total row and names it',
 r = run_check(doc_text=doc + '\n\n<summary><code>ledger.py</code></summary>\n\n```python\nprint(1)\n```\n')
 expect('duplicate-ledger: the check rejects a repeated embedded block and names it',
        r.returncode == 1 and 'more than one block for ledger.py' in r.stderr and no_traceback(r), why(r))
+variant = '\n\n<details><summary><code>ledger.py</code> (earlier draft)</summary>\n\n```python\nprint(1)\n```\n</details>\n'
+r = run_check(doc_text=doc + variant)
+expect('duplicate-ledger: the check rejects a second block whose summary text differs, and names it',
+       r.returncode == 1 and 'more than one block for ledger.py' in r.stderr and no_traceback(r), why(r))
+r = run_check(doc_text=doc.replace(total, total + '\n' + total.rstrip(' |') + ' | stale |', 1))
+expect('malformed-table: the check rejects a ledger row with a sixth cell',
+       r.returncode == 1 and 'has 6 cells, not 5' in r.stderr and no_traceback(r), why(r))
+r = run_check(doc_text=doc.replace(total, total.replace('**1,126**', '**1_126**'), 1))
+expect('malformed-table: the check rejects an Items cell that is not a plain or comma-grouped count',
+       r.returncode == 1 and 'is not a count' in r.stderr and no_traceback(r), why(r))
+sentence = 'accounts for 1,126 items: 671 are mapped'
+assert sentence in doc
+r = run_check(doc_text=doc + '\n' + sentence.replace('1,126', '1,000') + ', 1 are excluded; **0 are outstanding**\n')
+expect('repeated-prose: the check rejects a headline sentence stated twice with different figures',
+       r.returncode == 1 and 'more than once, differently' in r.stderr and no_traceback(r), why(r))
 r = run_check(doc_text=doc.replace(total, total.replace('**1,126**', '**1,127**'), 1))
 expect('wrong-items: the check rejects an Items cell that is not mapped + excluded + outstanding',
        r.returncode == 1 and 'states 1127 items' in r.stderr and 'is 1126' in r.stderr and no_traceback(r), why(r))
@@ -208,6 +238,20 @@ expect('missing-field: the check exits 1 naming the missing report field, withou
        r.returncode == 1 and 'missing or invalid field' in r.stderr and 'items by rule kind' in r.stderr
        and no_traceback(r), why(r))
 
+# malformed-items: ledger.py stubs whose items.json, or report rows, have the wrong shape
+report = ('{"ALL": {"mapped": 1, "excluded": 1}, "items by rule kind": {"exact": 1, "pattern": 1, "fallback": 1},'
+          ' "pattern and fallback rules that decide items": 1')
+writes = 'import sys; open(sys.argv[sys.argv.index("--items") + 1], "w").write(%r); print(%r)'
+with_fields = with_scripts(doc, {'inventory.py': 'print("{}")', 'reach.py': 'print("{}")',
+                                 'dispatch.py': 'print(\'{"campaign_writes_to_world_implemented_attributes": 1}\')',
+                                 'globals.py': 'print(\'{"non_campaign_globals_used_by_campaign": 1}\')'})
+r = run_check(doc_text=with_scripts(with_fields, {'ledger.py': writes % ('[{"rule": null}]', report + '}')}))
+expect('malformed-items: an item whose rule is null is a named failure, without a traceback',
+       r.returncode == 1 and 'not a list of items' in r.stderr and no_traceback(r), why(r))
+r = run_check(doc_text=with_scripts(with_fields, {'ledger.py': writes % ('[]', report + ', "tables": []}')}))
+expect('malformed-items: a report row that is a list is a named failure, without a traceback',
+       r.returncode == 1 and 'missing or invalid field' in r.stderr and no_traceback(r), why(r))
+
 # script-exit / non-object-json: run() is the checker's boundary to every script
 with tempfile.TemporaryDirectory() as d:
     for name, code in (('exits.py', 'import sys; sys.stderr.write("boom"); sys.exit(3)'), ('list.py', "print('[{\"a\": 1}]')")):
@@ -222,7 +266,7 @@ with tempfile.TemporaryDirectory() as d:
                    'exits.py exited 3' in message and 'boom' in message, message)
         else:
             expect('non-object-json: a JSON list is a mismatch, not an accepted report',
-                   'list.py' in message and 'no valid JSON report' in message, message)
+                   'list.py' in message and 'not an object' in message, message)
 
 
 # divergent-target: commits made in a throw-away object directory that reads the clone's objects, so the
