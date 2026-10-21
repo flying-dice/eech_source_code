@@ -15,6 +15,12 @@ pub const EECH_LOSS_EVENT_CREDIT: c_int = 1;
 pub const EECH_LOSS_EVENT_PHYSICAL: c_int = 2;
 pub const EECH_LOSS_FORWARD: c_int = 1;
 pub const EECH_LOSS_WITHHOLD: c_int = 2;
+pub const EECH_LOSS_TASK_DEPENDENT_MAX: usize = 32;
+pub const EECH_LOSS_LANDING_ACTION_MAX: usize = 3;
+pub const EECH_LOSS_LANDING_UNRESERVE_SITE: c_int = 1;
+pub const EECH_LOSS_LANDING_UNLOCK_ROUTE: c_int = 2;
+pub const EECH_LOSS_LANDING_UNLOCK_TAKEOFF_ROUTE: c_int = 3;
+pub const EECH_LOSS_LANDING_UNLOCK_SITE: c_int = 4;
 
 #[repr(C)]
 pub struct eech_engine_config {
@@ -47,6 +53,32 @@ pub type eech_bind_mobile_callback = unsafe extern "C" fn(
 ) -> c_int;
 
 #[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_loss_task_dependent {
+    pub task_key: u64,
+    pub entity_type: c_int,
+    pub sub_type: c_int,
+    pub task_state: c_int,
+    pub task_completed: c_int,
+    pub primary_task: c_int,
+    pub persistent_task: c_int,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_loss_landing_action {
+    pub landing_key: u64,
+    pub action_kind: c_int,
+    pub count: c_int,
+    pub landing_sub_type: c_int,
+    pub reserved_landing_sites: c_int,
+    pub free_landing_sites: c_int,
+    pub landing_lock: c_int,
+    pub landed_lock: c_int,
+    pub takeoff_lock: c_int,
+}
+
+#[repr(C)]
 pub struct eech_loss_descriptor {
     pub host_id: *const c_char,
     pub member_key: u64,
@@ -61,10 +93,14 @@ pub struct eech_loss_descriptor {
     pub campaign_member_count: c_int,
     pub player: c_int,
     pub landed: c_int,
-    pub member_task_dependents: c_int,
+    pub member_task_dependent_count: c_int,
+    pub member_task_dependent_copied: c_int,
+    pub member_task_dependents: [eech_loss_task_dependent; EECH_LOSS_TASK_DEPENDENT_MAX],
     pub group_task_dependents: c_int,
     pub restricted_guides: c_int,
-    pub landing_effect: c_int,
+    pub landing_action_count: c_int,
+    pub landing_action_copied: c_int,
+    pub landing_actions: [eech_loss_landing_action; EECH_LOSS_LANDING_ACTION_MAX],
     pub movement_parent: c_int,
     pub movement_dependents: c_int,
     pub takeoff_queue: c_int,

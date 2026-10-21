@@ -14,6 +14,8 @@
 
 #define CAMPAIGN_HOST_ID_MAX 128
 #define CAMPAIGN_HOST_ERROR_MAX 256
+#define CAMPAIGN_LOSS_TASK_DEPENDENT_MAX 32
+#define CAMPAIGN_LOSS_LANDING_ACTION_MAX 3
 
 typedef enum campaign_loss_event_kind
 {
@@ -26,6 +28,38 @@ typedef enum campaign_loss_decision
 	CAMPAIGN_LOSS_FORWARD = 1,
 	CAMPAIGN_LOSS_WITHHOLD = 2
 } campaign_loss_decision;
+
+typedef enum campaign_loss_landing_action_kind
+{
+	CAMPAIGN_LOSS_LANDING_UNRESERVE_SITE = 1,
+	CAMPAIGN_LOSS_LANDING_UNLOCK_ROUTE = 2,
+	CAMPAIGN_LOSS_LANDING_UNLOCK_TAKEOFF_ROUTE = 3,
+	CAMPAIGN_LOSS_LANDING_UNLOCK_SITE = 4
+} campaign_loss_landing_action_kind;
+
+typedef struct campaign_loss_task_dependent
+{
+	uint64_t task_key;
+	int entity_type;
+	int sub_type;
+	int task_state;
+	int task_completed;
+	int primary_task;
+	int persistent_task;
+} campaign_loss_task_dependent;
+
+typedef struct campaign_loss_landing_action
+{
+	uint64_t landing_key;
+	int action_kind;
+	int count;
+	int landing_sub_type;
+	int reserved_landing_sites;
+	int free_landing_sites;
+	int landing_lock;
+	int landed_lock;
+	int takeoff_lock;
+} campaign_loss_landing_action;
 
 typedef struct campaign_member_descriptor
 {
@@ -62,10 +96,14 @@ typedef struct campaign_loss_descriptor
 	int campaign_member_count;
 	int player;
 	int landed;
-	int member_task_dependents;
+	int member_task_dependent_count;
+	int member_task_dependent_copied;
+	campaign_loss_task_dependent member_task_dependents[CAMPAIGN_LOSS_TASK_DEPENDENT_MAX];
 	int group_task_dependents;
 	int restricted_guides;
-	int landing_effect;
+	int landing_action_count;
+	int landing_action_copied;
+	campaign_loss_landing_action landing_actions[CAMPAIGN_LOSS_LANDING_ACTION_MAX];
 	int movement_parent;
 	int movement_dependents;
 	int takeoff_queue;

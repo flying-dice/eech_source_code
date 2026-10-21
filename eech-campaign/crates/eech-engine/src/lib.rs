@@ -157,6 +157,39 @@ pub enum LossDecision {
     Withhold,
 }
 
+#[derive(Clone, Copy, Debug, Serialize)]
+pub struct LossTaskDependent {
+    pub task_key: u64,
+    pub entity_type: i32,
+    pub sub_type: i32,
+    pub task_state: Option<i32>,
+    pub task_completed: Option<bool>,
+    pub primary_task: bool,
+    pub persistent_task: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum LossLandingActionKind {
+    UnreserveSite,
+    UnlockRoute,
+    UnlockTakeoffRoute,
+    UnlockSite,
+}
+
+#[derive(Clone, Copy, Debug, Serialize)]
+pub struct LossLandingAction {
+    pub landing_key: u64,
+    pub action: LossLandingActionKind,
+    pub count: i32,
+    pub landing_sub_type: i32,
+    pub reserved_landing_sites: i32,
+    pub free_landing_sites: i32,
+    pub landing_lock: bool,
+    pub landed_lock: bool,
+    pub takeoff_lock: bool,
+}
+
 /// Copied campaign and physical facts supplied synchronously at an existing
 /// credit or physical-loss site. The opaque `host_id` identifies the physical
 /// incarnation; entity indices are deliberately absent.
@@ -175,10 +208,12 @@ pub struct LossDescriptor {
     pub campaign_member_count: i32,
     pub player: i32,
     pub landed: bool,
-    pub member_task_dependents: i32,
+    pub member_task_dependent_count: i32,
+    pub member_task_dependents: Vec<LossTaskDependent>,
     pub group_task_dependents: i32,
     pub restricted_guides: i32,
-    pub landing_effect: bool,
+    pub landing_action_count: i32,
+    pub landing_actions: Vec<LossLandingAction>,
     pub movement_parent: bool,
     pub movement_dependents: i32,
     pub takeoff_queue: bool,
@@ -335,6 +370,58 @@ where
             sys::EECH_LOSS_EVENT_PHYSICAL => LossEventKind::Physical,
             value => return Err(format!("observe_loss received unknown event kind {value}")),
         };
+        let dependent_count =
+            usize::try_from(descriptor.member_task_dependent_copied).map_err(|_| "observe_loss received a negative copied task-dependent count")?;
+        if dependent_count > sys::EECH_LOSS_TASK_DEPENDENT_MAX {
+            return Err(format!(
+                "observe_loss received {} copied task dependents; maximum is {}",
+                dependent_count,
+                sys::EECH_LOSS_TASK_DEPENDENT_MAX
+            ));
+        }
+        let member_task_dependents = descriptor.member_task_dependents[..dependent_count]
+            .iter()
+            .map(|dependent| LossTaskDependent {
+                task_key: dependent.task_key,
+                entity_type: dependent.entity_type,
+                sub_type: dependent.sub_type,
+                task_state: (dependent.task_state >= 0).then_some(dependent.task_state),
+                task_completed: (dependent.task_completed >= 0).then_some(dependent.task_completed != 0),
+                primary_task: dependent.primary_task != 0,
+                persistent_task: dependent.persistent_task != 0,
+            })
+            .collect();
+        let landing_count = usize::try_from(descriptor.landing_action_copied).map_err(|_| "observe_loss received a negative copied landing-action count")?;
+        if landing_count > sys::EECH_LOSS_LANDING_ACTION_MAX {
+            return Err(format!(
+                "observe_loss received {} copied landing actions; maximum is {}",
+                landing_count,
+                sys::EECH_LOSS_LANDING_ACTION_MAX
+            ));
+        }
+        let landing_actions = descriptor.landing_actions[..landing_count]
+            .iter()
+            .map(|action| {
+                let action_kind = match action.action_kind {
+                    sys::EECH_LOSS_LANDING_UNRESERVE_SITE => LossLandingActionKind::UnreserveSite,
+                    sys::EECH_LOSS_LANDING_UNLOCK_ROUTE => LossLandingActionKind::UnlockRoute,
+                    sys::EECH_LOSS_LANDING_UNLOCK_TAKEOFF_ROUTE => LossLandingActionKind::UnlockTakeoffRoute,
+                    sys::EECH_LOSS_LANDING_UNLOCK_SITE => LossLandingActionKind::UnlockSite,
+                    value => return Err(format!("observe_loss received unknown landing action kind {value}")),
+                };
+                Ok(LossLandingAction {
+                    landing_key: action.landing_key,
+                    action: action_kind,
+                    count: action.count,
+                    landing_sub_type: action.landing_sub_type,
+                    reserved_landing_sites: action.reserved_landing_sites,
+                    free_landing_sites: action.free_landing_sites,
+                    landing_lock: action.landing_lock != 0,
+                    landed_lock: action.landed_lock != 0,
+                    takeoff_lock: action.takeoff_lock != 0,
+                })
+            })
+            .collect::<Result<Vec<_>, String>>()?;
         let descriptor = LossDescriptor {
             host_id,
             member_key: descriptor.member_key,
@@ -349,10 +436,12 @@ where
             campaign_member_count: descriptor.campaign_member_count,
             player: descriptor.player,
             landed: descriptor.landed != 0,
-            member_task_dependents: descriptor.member_task_dependents,
+            member_task_dependent_count: descriptor.member_task_dependent_count,
+            member_task_dependents,
             group_task_dependents: descriptor.group_task_dependents,
             restricted_guides: descriptor.restricted_guides,
-            landing_effect: descriptor.landing_effect != 0,
+            landing_action_count: descriptor.landing_action_count,
+            landing_actions,
             movement_parent: descriptor.movement_parent != 0,
             movement_dependents: descriptor.movement_dependents,
             takeoff_queue: descriptor.takeoff_queue != 0,

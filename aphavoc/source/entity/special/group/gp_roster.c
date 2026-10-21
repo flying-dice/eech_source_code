@@ -22,19 +22,78 @@ typedef struct campaign_member_record
 	int in_group;
 } campaign_member_record;
 
+typedef struct campaign_entity_reference_record
+{
+	uint64_t key;
+	int entity_index;
+	int entity_type;
+	int active;
+} campaign_entity_reference_record;
+
 static campaign_member_record *records;
 static size_t record_count;
 static size_t record_capacity;
 static int *current_member_by_entity;
 static uint64_t *current_group_by_entity;
+static int *current_reference_by_entity;
 static int map_size;
 static uint64_t next_member_key = 1;
 static uint64_t next_group_key = 1;
+static campaign_entity_reference_record *reference_records;
+static size_t reference_record_count;
+static size_t reference_record_capacity;
+static uint64_t next_reference_key = 1;
 static uint64_t duplicate_comparisons;
 static clock_t duplicate_scan_ticks;
 static campaign_roster_host current_host;
 
 static int entity_index (entity *en);
+
+static void ensure_reference_capacity (void)
+{
+	if (reference_record_count == reference_record_capacity)
+	{
+		size_t capacity = reference_record_capacity ? reference_record_capacity * 2 : 1024;
+		campaign_entity_reference_record *grown = (campaign_entity_reference_record *) realloc (reference_records, capacity * sizeof (*reference_records));
+		if (!grown)
+		{
+			debug_fatal ("campaign roster: cannot allocate %u entity references", (unsigned int) capacity);
+		}
+		reference_records = grown;
+		reference_record_capacity = capacity;
+	}
+}
+
+static uint64_t campaign_reference_key (entity *en)
+{
+	int index = entity_index (en);
+	int record_index = current_reference_by_entity[index] - 1;
+	if (record_index >= 0)
+	{
+		campaign_entity_reference_record *record = &reference_records[record_index];
+		if (!record->active || (record->entity_index != index) || (record->entity_type != get_local_entity_type (en)))
+		{
+			debug_fatal ("campaign roster: stale entity reference for slot %d", index);
+		}
+		return record->key;
+	}
+
+	ensure_reference_capacity ();
+	{
+		campaign_entity_reference_record *record = &reference_records[reference_record_count];
+		record->key = next_reference_key++;
+		if (!next_reference_key)
+		{
+			debug_fatal ("campaign roster: entity reference key overflow");
+		}
+		record->entity_index = index;
+		record->entity_type = get_local_entity_type (en);
+		record->active = TRUE;
+		current_reference_by_entity[index] = (int) reference_record_count + 1;
+		reference_record_count++;
+		return record->key;
+	}
+}
 
 static campaign_member_record *record_for_member (entity *member)
 {
@@ -74,30 +133,113 @@ static int restricted_guide_count (entity *group)
 	return count;
 }
 
-static int landing_release_can_change_state (entity *member, entity *group)
+static void capture_task_dependents (entity *member, campaign_loss_descriptor *descriptor)
+{
+	entity *child = get_local_entity_first_child (member, LIST_TYPE_TASK_DEPENDENT);
+	while (child)
+	{
+		int copied = descriptor->member_task_dependent_copied;
+		descriptor->member_task_dependent_count++;
+		if (copied < CAMPAIGN_LOSS_TASK_DEPENDENT_MAX)
+		{
+			campaign_loss_task_dependent *dependent = &descriptor->member_task_dependents[copied];
+			dependent->task_key = campaign_reference_key (child);
+			dependent->entity_type = get_local_entity_type (child);
+			dependent->sub_type = get_local_entity_int_value (child, INT_TYPE_ENTITY_SUB_TYPE);
+			dependent->task_state = -1;
+			dependent->task_completed = -1;
+			if (dependent->entity_type == ENTITY_TYPE_TASK)
+			{
+				dependent->task_state = get_local_entity_int_value (child, INT_TYPE_TASK_STATE);
+				dependent->task_completed = get_local_entity_int_value (child, INT_TYPE_TASK_COMPLETED);
+				dependent->primary_task = task_database[dependent->sub_type].primary_task;
+				dependent->persistent_task = task_database[dependent->sub_type].persistent_task;
+			}
+			descriptor->member_task_dependent_copied++;
+		}
+		child = get_local_entity_child_succ (child, LIST_TYPE_TASK_DEPENDENT);
+	}
+}
+
+static void append_landing_action (campaign_loss_descriptor *descriptor, entity *landing_en, int action_kind, int count)
+{
+	int copied = descriptor->landing_action_copied;
+	descriptor->landing_action_count++;
+	if (copied < CAMPAIGN_LOSS_LANDING_ACTION_MAX)
+	{
+		campaign_loss_landing_action *action = &descriptor->landing_actions[copied];
+		action->landing_key = campaign_reference_key (landing_en);
+		action->action_kind = action_kind;
+		action->count = count;
+		action->landing_sub_type = get_local_entity_int_value (landing_en, INT_TYPE_ENTITY_SUB_TYPE);
+		action->reserved_landing_sites = get_local_entity_int_value (landing_en, INT_TYPE_RESERVED_LANDING_SITES);
+		action->free_landing_sites = get_local_entity_int_value (landing_en, INT_TYPE_FREE_LANDING_SITES);
+		action->landing_lock = get_local_entity_int_value (landing_en, INT_TYPE_LANDING_LOCK);
+		action->landed_lock = get_local_entity_int_value (landing_en, INT_TYPE_LANDED_LOCK);
+		action->takeoff_lock = get_local_entity_int_value (landing_en, INT_TYPE_TAKEOFF_LOCK);
+		descriptor->landing_action_copied++;
+	}
+}
+
+static void capture_landing_actions (entity *member, entity *group, campaign_loss_descriptor *descriptor)
 {
 	entity *guide = get_local_entity_parent (member, LIST_TYPE_FOLLOWER);
 	entity *task = guide ? get_local_entity_parent (guide, LIST_TYPE_GUIDE) : NULL;
-	if (get_local_entity_int_value (member, INT_TYPE_LANDED))
-	{
-		return TRUE;
-	}
+	entity *keysite;
+	entity *landing_en;
+	int landing_flag = FALSE;
+
 	if (task)
 	{
 		int sub_type = get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE);
-		if ((sub_type == ENTITY_SUB_TYPE_TASK_LANDING) ||
-			(sub_type == ENTITY_SUB_TYPE_TASK_LANDING_HOLDING) ||
-			(sub_type == ENTITY_SUB_TYPE_TASK_TAKEOFF))
+		switch (sub_type)
 		{
-			return TRUE;
-		}
-		if (get_local_entity_parent (group, LIST_TYPE_KEYSITE_GROUP))
-		{
-			entity *primary_task = get_local_group_primary_task (group);
-			return primary_task && get_local_entity_int_value (primary_task, INT_TYPE_ASSESS_LANDING);
+			case ENTITY_SUB_TYPE_TASK_LANDING:
+				landing_en = get_local_entity_parent (task, LIST_TYPE_ASSIGNED_TASK);
+				if (landing_en)
+				{
+					append_landing_action (descriptor, landing_en, CAMPAIGN_LOSS_LANDING_UNLOCK_ROUTE, 0);
+				}
+				landing_flag = TRUE;
+				break;
+			case ENTITY_SUB_TYPE_TASK_LANDING_HOLDING:
+				landing_flag = TRUE;
+				break;
+			case ENTITY_SUB_TYPE_TASK_TAKEOFF:
+				landing_en = get_local_entity_parent (task, LIST_TYPE_ASSIGNED_TASK);
+				if (landing_en)
+				{
+					append_landing_action (descriptor, landing_en, CAMPAIGN_LOSS_LANDING_UNLOCK_TAKEOFF_ROUTE, 0);
+				}
+				/* The original switch deliberately falls through to reservation release. */
+			default:
+				keysite = get_local_entity_parent (group, LIST_TYPE_KEYSITE_GROUP);
+				if (keysite && (get_local_entity_type (keysite) == ENTITY_TYPE_KEYSITE))
+				{
+					entity *primary_task;
+					landing_en = get_local_entity_landing_entity (keysite, group_database[get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE)].default_landing_type);
+					primary_task = get_local_group_primary_task (group);
+					if (landing_en && primary_task && get_local_entity_int_value (primary_task, INT_TYPE_ASSESS_LANDING))
+					{
+						append_landing_action (descriptor, landing_en, CAMPAIGN_LOSS_LANDING_UNRESERVE_SITE, 1);
+					}
+				}
+				break;
 		}
 	}
-	return FALSE;
+
+	if (get_local_entity_int_value (member, INT_TYPE_LANDED) || landing_flag)
+	{
+		keysite = get_local_entity_parent (group, LIST_TYPE_KEYSITE_GROUP);
+		if (keysite && (get_local_entity_type (keysite) == ENTITY_TYPE_KEYSITE))
+		{
+			landing_en = get_local_entity_landing_entity (keysite, group_database[get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE)].default_landing_type);
+			if (landing_en)
+			{
+				append_landing_action (descriptor, landing_en, CAMPAIGN_LOSS_LANDING_UNLOCK_SITE, 0);
+			}
+		}
+	}
 }
 
 static int observe_loss_event (entity *member, entity *group, campaign_loss_event_kind event_kind)
@@ -129,10 +271,10 @@ static int observe_loss_event (entity *member, entity *group, campaign_loss_even
 	descriptor.campaign_member_count = get_local_entity_int_value (group, INT_TYPE_MEMBER_COUNT);
 	descriptor.player = get_local_entity_int_value (member, INT_TYPE_PLAYER);
 	descriptor.landed = get_local_entity_int_value (member, INT_TYPE_LANDED);
-	descriptor.member_task_dependents = child_count (member, LIST_TYPE_TASK_DEPENDENT);
+	capture_task_dependents (member, &descriptor);
 	descriptor.group_task_dependents = child_count (group, LIST_TYPE_TASK_DEPENDENT);
 	descriptor.restricted_guides = restricted_guide_count (group);
-	descriptor.landing_effect = landing_release_can_change_state (member, group);
+	capture_landing_actions (member, group, &descriptor);
 	descriptor.movement_parent = get_local_entity_parent (member, LIST_TYPE_MOVEMENT_DEPENDENT) != NULL;
 	descriptor.movement_dependents = child_count (member, LIST_TYPE_MOVEMENT_DEPENDENT);
 	descriptor.takeoff_queue = get_local_entity_parent (member, LIST_TYPE_TAKEOFF_QUEUE) != NULL;
@@ -264,17 +406,24 @@ void campaign_roster_reset (void)
 	free (records);
 	free (current_member_by_entity);
 	free (current_group_by_entity);
+	free (current_reference_by_entity);
+	free (reference_records);
 	records = NULL;
 	record_count = 0;
 	record_capacity = 0;
 	map_size = number_of_entities;
 	current_member_by_entity = (int *) calloc ((size_t) map_size, sizeof (*current_member_by_entity));
 	current_group_by_entity = (uint64_t *) calloc ((size_t) map_size, sizeof (*current_group_by_entity));
+	current_reference_by_entity = (int *) calloc ((size_t) map_size, sizeof (*current_reference_by_entity));
+	reference_records = NULL;
+	reference_record_count = 0;
+	reference_record_capacity = 0;
+	next_reference_key = 1;
 	next_member_key = 1;
 	next_group_key = 1;
 	duplicate_comparisons = 0;
 	duplicate_scan_ticks = 0;
-	if (!current_member_by_entity || !current_group_by_entity)
+	if (!current_member_by_entity || !current_group_by_entity || !current_reference_by_entity)
 	{
 		debug_fatal ("campaign roster: cannot allocate maps for %d entities", map_size);
 	}
@@ -388,7 +537,7 @@ void campaign_roster_release_entity (entity *en)
 {
 	int index;
 	int record_index;
-	if (!current_member_by_entity || !current_group_by_entity || !entities)
+	if (!current_member_by_entity || !current_group_by_entity || !current_reference_by_entity || !entities)
 	{
 		return;
 	}
@@ -407,6 +556,12 @@ void campaign_roster_release_entity (entity *en)
 		current_member_by_entity[index] = 0;
 	}
 	current_group_by_entity[index] = 0;
+	if (current_reference_by_entity[index])
+	{
+		campaign_entity_reference_record *reference = &reference_records[current_reference_by_entity[index] - 1];
+		reference->active = FALSE;
+		current_reference_by_entity[index] = 0;
+	}
 }
 
 int campaign_roster_observe_credit (entity *member)
