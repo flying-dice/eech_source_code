@@ -1,0 +1,9 @@
+binds	3769
+members	3769
+transfers	118
+reused_indices	4
+durable_removed	338
+duplicate_comparisons	7100796
+duplicate_scan_seconds	0.031000
+target	eech-world:3069	physical_present=false	in_group=false
+result	ok

@@ -1,0 +1,14 @@
+boot_twice: PASS
+bad_arguments: PASS
+missing_root: PASS
+missing_campaign: PASS
+no_reuse: PASS
+missing_host: PASS
+host_identity: PASS
+bind_nil: PASS
+bind_invalid: PASS
+bind_nul: PASS
+bind_non_utf8: PASS
+bind_duplicate: PASS
+bind_error: PASS
+missing_map: KNOWN DEFECT (unchanged)

@@ -1,0 +1,2 @@
+controls-*.results.jsonl -text -diff
+controls-*.summary.txt -text -diff
