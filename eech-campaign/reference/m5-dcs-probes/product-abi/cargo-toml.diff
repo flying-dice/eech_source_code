@@ -1,0 +1,11 @@
+--- stock/eech-campaign/Cargo.toml	2026-10-20 20:30:02.000000000 +0100
++++ patched/eech-campaign/Cargo.toml	2026-10-20 23:52:23.991237800 +0100
+@@ -11,3 +11,8 @@
+ [workspace.dependencies]
+ serde = { version = "1", features = ["derive"] }
+ serde_json = "1"
++
++# abi-microprobe disposable build only: mlua-sys 0.6.8 with LUA_IDSIZE 60 -> 256 (DCS lua.dll's
++# lua_Debug is 320 bytes); no other change.
++[patch.crates-io]
++mlua-sys = { path = "patches/mlua-sys-0.6.8-idsize256" }

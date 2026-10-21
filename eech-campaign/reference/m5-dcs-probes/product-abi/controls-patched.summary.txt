@@ -1,0 +1,17 @@
+
+cell                        exits                            end last
+----                        -----                            --- ----
+patched, dcs, empty         0x00000000,0x00000000,0x00000000 111 COMPAT_EMPTY_LUA=Lua 5.1
+patched, dcs, first-error   0x00000000,0x00000000,0x00000000 111 AFTER_GC
+patched, dcs, host-log      0x00000000,0x00000000,0x00000000 111 AFTER_GC
+patched, dcs, load-only     0x00000000,0x00000000,0x00000000 111 AFTER_GC
+patched, dcs, lua-compat    0x00000000,0x00000000,0x00000000 111 COMPAT_100_ERROR_CALLBACKS=PASS
+patched, dcs, plain-error   0x00000000,0x00000000,0x00000000 111 PLAIN_100_ERRORS=PASS
+patched, mingw, empty       0x00000000,0x00000000,0x00000000 111 COMPAT_EMPTY_LUA=Lua 5.1
+patched, mingw, first-error 0x00000000,0x00000000,0x00000000 111 AFTER_GC
+patched, mingw, host-log    0x00000000,0x00000000,0x00000000 111 AFTER_GC
+patched, mingw, load-only   0x00000000,0x00000000,0x00000000 111 AFTER_GC
+patched, mingw, lua-compat  0x00000000,0x00000000,0x00000000 111 COMPAT_100_ERROR_CALLBACKS=PASS
+patched, mingw, plain-error 0x00000000,0x00000000,0x00000000 111 PLAIN_100_ERRORS=PASS
+
+
