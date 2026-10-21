@@ -3,7 +3,9 @@
 [Project 8](https://github.com/orgs/flying-dice/projects/8) · [Repository milestones](https://github.com/flying-dice/eech_source_code/milestones) · [Jira EEDCS](https://flying-dice.atlassian.net/browse/EEDCS)
 
 This is the enduring multi-session charter, not a session plan or a live status
-report. Jira project EEDCS holds work status and acceptance discussions; the
+report. The current scope is the Confluence page
+[EECH M5 Goal: EECH_DC into DCS World](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337); where the roadmap below
+differs, that page governs and the older passages are historical proposals. Jira project EEDCS holds work status and acceptance discussions; the
 GitHub Issues linked below are the historical record of M1 to M4.
 [AGENT.md](AGENT.md) is the canonical operating policy;
 [REVIEW.md](docs/governance/REVIEW.md) defines review and merge discipline.
@@ -125,9 +127,9 @@ protected by later work.
 | [M2 — Establish EECH World](https://github.com/flying-dice/eech_source_code/milestone/2) | [#23](https://github.com/flying-dice/eech_source_code/issues/23) | [#24](https://github.com/flying-dice/eech_source_code/issues/24), [#25](https://github.com/flying-dice/eech_source_code/issues/25), [#26](https://github.com/flying-dice/eech_source_code/issues/26) |
 | [M3 — Operate the campaign within EECH World](https://github.com/flying-dice/eech_source_code/milestone/3) | [#27](https://github.com/flying-dice/eech_source_code/issues/27) | [#28](https://github.com/flying-dice/eech_source_code/issues/28), [#29](https://github.com/flying-dice/eech_source_code/issues/29), [#30](https://github.com/flying-dice/eech_source_code/issues/30) |
 | [M4 — Establish regression confidence](https://github.com/flying-dice/eech_source_code/milestone/4) | [#31](https://github.com/flying-dice/eech_source_code/issues/31) | [#32](https://github.com/flying-dice/eech_source_code/issues/32), [#33](https://github.com/flying-dice/eech_source_code/issues/33), [#34](https://github.com/flying-dice/eech_source_code/issues/34) |
-| [M5 — Establish host interchangeability](https://github.com/flying-dice/eech_source_code/milestone/5) | [#35](https://github.com/flying-dice/eech_source_code/issues/35) | [#36](https://github.com/flying-dice/eech_source_code/issues/36), [#37](https://github.com/flying-dice/eech_source_code/issues/37), [#38](https://github.com/flying-dice/eech_source_code/issues/38) |
-| [M6 — Establish the DCS integration](https://github.com/flying-dice/eech_source_code/milestone/6) | [#39](https://github.com/flying-dice/eech_source_code/issues/39) | [#40](https://github.com/flying-dice/eech_source_code/issues/40), [#41](https://github.com/flying-dice/eech_source_code/issues/41), [#42](https://github.com/flying-dice/eech_source_code/issues/42) |
-| [M7 — Operate the campaign in DCS](https://github.com/flying-dice/eech_source_code/milestone/7) | [#43](https://github.com/flying-dice/eech_source_code/issues/43) | [#44](https://github.com/flying-dice/eech_source_code/issues/44), [#45](https://github.com/flying-dice/eech_source_code/issues/45), [#46](https://github.com/flying-dice/eech_source_code/issues/46) |
+| [M5 — Plan EECH_DC into DCS World](https://github.com/flying-dice/eech_source_code/milestone/5) | [#35](https://github.com/flying-dice/eech_source_code/issues/35) | [#36](https://github.com/flying-dice/eech_source_code/issues/36), [#37](https://github.com/flying-dice/eech_source_code/issues/37), [#38](https://github.com/flying-dice/eech_source_code/issues/38) |
+| [M6 — Operate the campaign in DCS](https://github.com/flying-dice/eech_source_code/milestone/6) | [#39](https://github.com/flying-dice/eech_source_code/issues/39) | [#40](https://github.com/flying-dice/eech_source_code/issues/40), [#41](https://github.com/flying-dice/eech_source_code/issues/41), [#42](https://github.com/flying-dice/eech_source_code/issues/42) |
+| [M7 — Operate the campaign in DCS (historical, superseded by M6)](https://github.com/flying-dice/eech_source_code/milestone/7) | [#43](https://github.com/flying-dice/eech_source_code/issues/43) | [#44](https://github.com/flying-dice/eech_source_code/issues/44), [#45](https://github.com/flying-dice/eech_source_code/issues/45), [#46](https://github.com/flying-dice/eech_source_code/issues/46) |
 | [M8 — Calibrate comparable campaign outcomes](https://github.com/flying-dice/eech_source_code/milestone/8) | [#47](https://github.com/flying-dice/eech_source_code/issues/47) | [#48](https://github.com/flying-dice/eech_source_code/issues/48), [#49](https://github.com/flying-dice/eech_source_code/issues/49), [#50](https://github.com/flying-dice/eech_source_code/issues/50) |
 
 These links are navigation, not a copied live status board. Native sub-issue and
@@ -180,9 +182,15 @@ and establish reproducible evidence and explicit baseline-change review.
 **Not sufficient:** A coverage percentage, final count, crash-free soak or regenerated
 expected output alone. No arbitrary percentage, run duration or tool is mandated.
 
-### M5 — Establish host interchangeability
+### M5 — Plan EECH_DC into DCS World
 
-**Intent:** Resolve whole-engine wrapping into replaceable physical-world authority.
+**Current goal:** a reviewed, implementation-ready plan for loading `eech_dc.dll`
+into DCS World, with the six done-when outcomes defined on the
+[Confluence page](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337). That page is the only specification; this section
+does not restate it. The text below is the earlier host-interchangeability
+proposal, kept as history and as input where it serves that goal.
+
+**Historical intent:** Resolve whole-engine wrapping into replaceable physical-world authority.
 **Gate:** Establish an evidenced semantic host contract; demonstrate that host
 observations and action results actually drive the campaign without hidden shared
 world authority. Preserve the M4 baseline across necessary refactoring, explain
@@ -191,9 +199,14 @@ all deltas and verify material DCS assumptions with targeted probes.
 **Not sufficient:** Renamed crates, interfaces, dependency graphs or unchanged
 recordings over a still-coupled physical world.
 
-### M6 — Establish the DCS integration
+### M6 — Operate the campaign in DCS
 
-**Intent:** Build our DCS adapter, not DCS itself or a second campaign.
+**Current goal:** live DCS campaign operation, as assigned to M6 by the
+[Confluence page](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337). The adapter-only text below is the earlier proposal
+and is kept as history; the M7 text that follows is likewise historical and is
+not an additional gate.
+
+**Historical intent:** Build our DCS adapter, not DCS itself or a second campaign.
 **Gate:** Evidence supported mappings and non-equivalent capabilities; provide
 working request/observation/lifecycle translation and visible failures; verify
 contract semantics and preserve the reference baseline. Separate controlled or
@@ -201,7 +214,7 @@ captured-data checks from actual DCS evidence; expose remaining prerequisites.
 **Protected baseline:** The shared contract and accepted adapter scope.
 **Not sufficient:** Plausible mapping documentation or mocks presented as live-host proof.
 
-### M7 — Operate the campaign in DCS
+### M7 — Operate the campaign in DCS (historical proposal)
 
 **Intent:** Demonstrate real operation in the intended host.
 **Gate:** Load the intended campaign artifact into DCS's Lua environment, sustain
@@ -267,7 +280,7 @@ EECH World should match the required host-integration semantics, not imitate all
 DCS implementation details. Discover the shared meanings of lifecycle, capabilities,
 identity, units/coordinates, time, ordering, observations and action outcomes.
 Successful reference-host operation does not establish DCS compatibility: validate
-material assumptions early where necessary and require actual DCS evidence at M7.
+material assumptions early where necessary and require actual DCS evidence (live operation, M6).
 
 | Observed difference | Classification |
 |---|---|
@@ -308,7 +321,7 @@ reconfiguring workflow. Ready has a clear outcome and next question; Review has
 evidence ready; Done means approved merge plus accepted Task evidence. Epic and
 milestone acceptance require separate explicit review, not merely all children closed.
 
-M1 to M4 are accepted; AGENT.md states what authorises M5 structural work.
+M1 to M4 are accepted; M5 scope is the Confluence goal page, and AGENT.md holds the operating rules.
 At each session boundary, record branch/commit, evidence gained,
 checks actually run, discovered boundaries, baseline differences, retained artifacts,
 limits/blockers, review status and next bounded action in the Task/PR.
