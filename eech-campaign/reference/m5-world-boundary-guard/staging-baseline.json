@@ -1,0 +1,1101 @@
+{
+ "build_commit": "5a3b0139ba6d66e4be6b778290025a3bff3dd6e8",
+ "files": {
+  "aphavoc/source/ai/ai.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "deinitialise_speech_buffers": 2,
+    "initialise_speech_buffers": 2
+   },
+   "physical_references": 4
+  },
+  "aphavoc/source/ai/ai_misc/ai_dbase.c": {
+   "entity_attribute_calls": 1,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/ai/ai_misc/ai_misc.c": {
+   "entity_attribute_calls": 101,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/ai/ai_misc/ai_route.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/ai/faction/briefing.c": {
+   "entity_attribute_calls": 29,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/ai/faction/faction.c": {
+   "entity_attribute_calls": 88,
+   "entity_attribute_calls_nonliteral": 7,
+   "physical_names": {
+    "attach_session_sound_effects": 1,
+    "check_point_inside_population_area": 3,
+    "create_client_server_entity_anti_aircraft": 1,
+    "create_client_server_entity_fixed_wing": 1,
+    "create_client_server_entity_helicopter": 1,
+    "create_client_server_entity_person": 1,
+    "create_client_server_entity_routed_vehicle": 1,
+    "create_client_server_entity_ship": 1,
+    "create_local_entity_anti_aircraft": 1,
+    "create_local_entity_person": 1,
+    "create_local_entity_routed_vehicle": 1,
+    "create_local_entity_ship": 1,
+    "get_3d_terrain_elevation_and_face_normal": 1,
+    "get_3d_terrain_face_normal": 2,
+    "get_3d_terrain_point_data": 2,
+    "get_3d_terrain_point_data_normal": 1,
+    "get_3d_terrain_point_data_type": 1,
+    "get_terrain_type_class": 1
+   },
+   "physical_references": 22
+  },
+  "aphavoc/source/ai/faction/popread.c": {
+   "entity_attribute_calls": 34,
+   "entity_attribute_calls_nonliteral": 1,
+   "physical_names": {
+    "construct_3d_object": 6,
+    "destruct_3d_object": 7,
+    "find_object_3d_sub_object": 5,
+    "get_3d_terrain_point_data": 11,
+    "get_3d_terrain_point_data_type": 1,
+    "get_object_3d_index_from_name": 5,
+    "get_terrain_type_class": 1,
+    "initialise_terrain_objects": 1,
+    "insert_3d_object_into_terrain": 2,
+    "set_number_of_terrain_objects": 1
+   },
+   "physical_references": 40
+  },
+  "aphavoc/source/ai/faction/routegen.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/ai/highlevl/highlevl.c": {
+   "entity_attribute_calls": 241,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "get_digital_clock_int_values": 1,
+    "get_local_group_max_weapon_range": 1
+   },
+   "physical_references": 2
+  },
+  "aphavoc/source/ai/highlevl/imaps.c": {
+   "entity_attribute_calls": 31,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/ai/highlevl/order.c": {
+   "entity_attribute_calls": 58,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/ai/highlevl/reaction.c": {
+   "entity_attribute_calls": 76,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/ai/highlevl/setup.c": {
+   "entity_attribute_calls": 19,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/ai/highlevl/suitable.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/ai/parser/parsgen.c": {
+   "entity_attribute_calls": 43,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "get_digital_clock_int_values": 1,
+    "set_session_fixed_weather_mode": 1,
+    "set_session_random_weather_mode": 1
+   },
+   "physical_references": 3
+  },
+  "aphavoc/source/ai/taskgen/assign.c": {
+   "entity_attribute_calls": 135,
+   "entity_attribute_calls_nonliteral": 2,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/ai/taskgen/croute.c": {
+   "entity_attribute_calls": 89,
+   "entity_attribute_calls_nonliteral": 1,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/ai/taskgen/engage.c": {
+   "entity_attribute_calls": 122,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "get_best_weapon_for_target": 1
+   },
+   "physical_references": 1
+  },
+  "aphavoc/source/ai/taskgen/taskgen.c": {
+   "entity_attribute_calls": 81,
+   "entity_attribute_calls_nonliteral": 3,
+   "physical_names": {
+    "construct_3d_object": 1,
+    "destruct_3d_object": 1,
+    "find_object_3d_sub_object": 1,
+    "find_object_3d_sub_object_from_sub_object": 1,
+    "get_3d_sub_object_viewpoint": 1
+   },
+   "physical_references": 5
+  },
+  "aphavoc/source/ai_extrn.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/mobile/cargo/cg_creat.c": {
+   "entity_attribute_calls": 3,
+   "entity_attribute_calls_nonliteral": 3,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/mobile/cargo/cg_draw.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/mobile/cargo/cg_dstry.c": {
+   "entity_attribute_calls": 4,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "destroy_client_server_sound_effects": 1,
+    "destroy_local_sound_effects": 1
+   },
+   "physical_references": 2
+  },
+  "aphavoc/source/entity/mobile/cargo/cg_funcs.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "overload_mobile_functions": 1
+   },
+   "physical_references": 1
+  },
+  "aphavoc/source/entity/mobile/cargo/cg_int.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/mobile/cargo/cg_list.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/mobile/cargo/cg_move.c": {
+   "entity_attribute_calls": 2,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/mobile/cargo/cg_msgs.c": {
+   "entity_attribute_calls": 1,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "overload_aircraft_message_responses": 1
+   },
+   "physical_references": 1
+  },
+  "aphavoc/source/entity/mobile/cargo/cg_pack.c": {
+   "entity_attribute_calls": 2,
+   "entity_attribute_calls_nonliteral": 2,
+   "physical_names": {
+    "pack_mobile_data": 1,
+    "unpack_mobile_data": 1
+   },
+   "physical_references": 2
+  },
+  "aphavoc/source/entity/mobile/cargo/cg_ptr.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "get_3d_terrain_point_data_normal": 1
+   },
+   "physical_references": 1
+  },
+  "aphavoc/source/entity/mobile/cargo/cg_updt.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "get_3d_terrain_point_data": 2
+   },
+   "physical_references": 2
+  },
+  "aphavoc/source/entity/special/division/division.c": {
+   "entity_attribute_calls": 29,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/division/dv_creat.c": {
+   "entity_attribute_calls": 3,
+   "entity_attribute_calls_nonliteral": 3,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/division/dv_dbase.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/division/dv_dstry.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/division/dv_funcs.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/division/dv_int.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/division/dv_list.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/division/dv_msgs.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/division/dv_pack.c": {
+   "entity_attribute_calls": 2,
+   "entity_attribute_calls_nonliteral": 2,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/division/dv_str.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/force/fc_creat.c": {
+   "entity_attribute_calls": 3,
+   "entity_attribute_calls_nonliteral": 3,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/force/fc_dstry.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/force/fc_float.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/force/fc_funcs.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/force/fc_int.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/force/fc_list.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/force/fc_msgs.c": {
+   "entity_attribute_calls": 82,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "get_speech_sector_coordinates": 1,
+    "play_client_server_speech": 1,
+    "play_mobile_under_attack_speech": 1
+   },
+   "physical_references": 3
+  },
+  "aphavoc/source/entity/special/force/fc_pack.c": {
+   "entity_attribute_calls": 4,
+   "entity_attribute_calls_nonliteral": 2,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/force/fc_str.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/force/fc_updt.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/force/force.c": {
+   "entity_attribute_calls": 10,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/group/gp_creat.c": {
+   "entity_attribute_calls": 7,
+   "entity_attribute_calls_nonliteral": 3,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/group/gp_dbase.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/group/gp_dstry.c": {
+   "entity_attribute_calls": 8,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/group/gp_float.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/group/gp_funcs.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/group/gp_int.c": {
+   "entity_attribute_calls": 2,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/group/gp_list.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/group/gp_loss.c": {
+   "entity_attribute_calls": 8,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/group/gp_msgs.c": {
+   "entity_attribute_calls": 70,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "get_speech_sector_coordinates": 2,
+    "notify_gunship_entity_mission_completed": 1,
+    "notify_gunship_entity_mission_terminated": 1,
+    "play_client_server_cpg_message": 1,
+    "play_client_server_speech": 3,
+    "play_client_server_wingman_message": 1
+   },
+   "physical_references": 9
+  },
+  "aphavoc/source/entity/special/group/gp_pack.c": {
+   "entity_attribute_calls": 14,
+   "entity_attribute_calls_nonliteral": 4,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/group/gp_ptr.c": {
+   "entity_attribute_calls": 2,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/group/gp_roster.c": {
+   "entity_attribute_calls": 3,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/group/gp_str.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/group/gp_updt.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/group/gp_vec3d.c": {
+   "entity_attribute_calls": 2,
+   "entity_attribute_calls_nonliteral": 1,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/group/group.c": {
+   "entity_attribute_calls": 159,
+   "entity_attribute_calls_nonliteral": 1,
+   "physical_names": {
+    "get_local_entity_suitable_for_player": 1
+   },
+   "physical_references": 1
+  },
+  "aphavoc/source/entity/special/guide/aa_attck.c": {
+   "entity_attribute_calls": 54,
+   "entity_attribute_calls_nonliteral": 1,
+   "physical_names": {
+    "aircraft_fire_weapon": 1,
+    "check_guided_missile_type_alive": 1
+   },
+   "physical_references": 2
+  },
+  "aphavoc/source/entity/special/guide/ag_attck.c": {
+   "entity_attribute_calls": 187,
+   "entity_attribute_calls_nonliteral": 1,
+   "physical_names": {
+    "aircraft_fire_weapon": 3,
+    "check_entity_line_of_sight": 1,
+    "check_guided_missile_type_alive": 3,
+    "check_position_line_of_sight": 1,
+    "debug_visuals": 11,
+    "get_best_weapon_for_target": 7,
+    "play_client_server_wingman_message": 2
+   },
+   "physical_references": 28
+  },
+  "aphavoc/source/entity/special/guide/gd_attck.c": {
+   "entity_attribute_calls": 18,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "get_ballistic_pitch_deflection": 1,
+    "get_best_weapon_for_target": 3
+   },
+   "physical_references": 4
+  },
+  "aphavoc/source/entity/special/guide/gd_cover.c": {
+   "entity_attribute_calls": 60,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "check_position_line_of_sight": 2,
+    "get_3d_terrain_point_data": 2,
+    "get_3d_terrain_point_data_type": 1,
+    "get_object_3d_bounding_box_without_lines": 4,
+    "get_object_3d_radius": 2,
+    "get_terrain_3d_number_of_type_triangles_in_sector": 2,
+    "get_terrain_3d_type_triangles_in_sector": 2,
+    "get_terrain_type_class": 1
+   },
+   "physical_references": 16
+  },
+  "aphavoc/source/entity/special/guide/gd_creat.c": {
+   "entity_attribute_calls": 3,
+   "entity_attribute_calls_nonliteral": 3,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/guide/gd_dbase.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/guide/gd_draw.c": {
+   "entity_attribute_calls": 7,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/guide/gd_dstry.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/guide/gd_float.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/guide/gd_funcs.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/guide/gd_int.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/guide/gd_list.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/guide/gd_msgs.c": {
+   "entity_attribute_calls": 11,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/guide/gd_nav.c": {
+   "entity_attribute_calls": 1,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/guide/gd_pack.c": {
+   "entity_attribute_calls": 2,
+   "entity_attribute_calls_nonliteral": 2,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/guide/gd_ptr.c": {
+   "entity_attribute_calls": 4,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/guide/gd_updt.c": {
+   "entity_attribute_calls": 3,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/guide/gd_vec3d.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/guide/guide.c": {
+   "entity_attribute_calls": 117,
+   "entity_attribute_calls_nonliteral": 2,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/keysite/keysite.c": {
+   "entity_attribute_calls": 200,
+   "entity_attribute_calls_nonliteral": 3,
+   "physical_names": {
+    "get_digital_clock_values": 1,
+    "get_local_entity_suitable_for_player": 1,
+    "get_object_3d_bounding_box": 1,
+    "get_speech_sector_coordinates": 1,
+    "play_client_server_speech": 1,
+    "restore_local_fixed_entity": 2
+   },
+   "physical_references": 7
+  },
+  "aphavoc/source/entity/special/keysite/ks_creat.c": {
+   "entity_attribute_calls": 6,
+   "entity_attribute_calls_nonliteral": 3,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/keysite/ks_dbase.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/keysite/ks_dstry.c": {
+   "entity_attribute_calls": 10,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/keysite/ks_float.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/keysite/ks_funcs.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/keysite/ks_int.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/keysite/ks_list.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/keysite/ks_msgs.c": {
+   "entity_attribute_calls": 21,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "overload_fixed_message_responses": 1
+   },
+   "physical_references": 1
+  },
+  "aphavoc/source/entity/special/keysite/ks_pack.c": {
+   "entity_attribute_calls": 4,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/keysite/ks_str.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/keysite/ks_updt.c": {
+   "entity_attribute_calls": 4,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/keysite/ks_vec3d.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/landing/landing.c": {
+   "entity_attribute_calls": 108,
+   "entity_attribute_calls_nonliteral": 4,
+   "physical_names": {
+    "get_speech_atc_wind_speed": 1,
+    "play_client_server_speech": 1
+   },
+   "physical_references": 2
+  },
+  "aphavoc/source/entity/special/landing/ld_creat.c": {
+   "entity_attribute_calls": 4,
+   "entity_attribute_calls_nonliteral": 3,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/landing/ld_dstry.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/landing/ld_float.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/landing/ld_funcs.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/landing/ld_int.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/landing/ld_list.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/landing/ld_msgs.c": {
+   "entity_attribute_calls": 118,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "get_speech_atc_wind_speed": 1,
+    "insert_mobile_into_takeoff_route": 1,
+    "overload_mobile_message_responses": 1,
+    "play_client_server_speech": 3
+   },
+   "physical_references": 6
+  },
+  "aphavoc/source/entity/special/landing/ld_pack.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/landing/ld_str.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/landing/ld_updt.c": {
+   "entity_attribute_calls": 2,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/landing/ld_vec3d.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/regen/regen.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "construct_3d_object": 2,
+    "destruct_3d_object": 2,
+    "find_object_3d_sub_object": 7
+   },
+   "physical_references": 11
+  },
+  "aphavoc/source/entity/special/regen/rg_creat.c": {
+   "entity_attribute_calls": 7,
+   "entity_attribute_calls_nonliteral": 3,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/regen/rg_dstry.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/regen/rg_float.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/regen/rg_funcs.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/regen/rg_int.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/regen/rg_list.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/regen/rg_msgs.c": {
+   "entity_attribute_calls": 3,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "overload_fixed_message_responses": 1
+   },
+   "physical_references": 1
+  },
+  "aphavoc/source/entity/special/regen/rg_pack.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/regen/rg_updt.c": {
+   "entity_attribute_calls": 39,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/regen/rg_vec3d.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/sector/sc_dstry.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/sector/sc_float.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/sector/sc_int.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/sector/sc_list.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/sector/sc_msgs.c": {
+   "entity_attribute_calls": 6,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {
+    "get_object_3d_bounding_box": 1
+   },
+   "physical_references": 1
+  },
+  "aphavoc/source/entity/special/sector/sc_pack.c": {
+   "entity_attribute_calls": 1,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/sector/sc_seccreat.c": {
+   "entity_attribute_calls": 3,
+   "entity_attribute_calls_nonliteral": 3,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/sector/sc_secfuncs.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/sector/sector.c": {
+   "entity_attribute_calls": 27,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/task/task.c": {
+   "entity_attribute_calls": 94,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/task/ts_creat.c": {
+   "entity_attribute_calls": 3,
+   "entity_attribute_calls_nonliteral": 3,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/task/ts_dbase.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/task/ts_dstry.c": {
+   "entity_attribute_calls": 1,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/task/ts_float.c": {
+   "entity_attribute_calls": 1,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/task/ts_funcs.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/task/ts_int.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/task/ts_list.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/task/ts_msgs.c": {
+   "entity_attribute_calls": 21,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/task/ts_pack.c": {
+   "entity_attribute_calls": 4,
+   "entity_attribute_calls_nonliteral": 4,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/task/ts_ptr.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/task/ts_str.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/task/ts_updt.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/task/ts_vec3d.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/waypoint/waypoint.c": {
+   "entity_attribute_calls": 25,
+   "entity_attribute_calls_nonliteral": 3,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/waypoint/wp_char.c": {
+   "entity_attribute_calls": 8,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/waypoint/wp_creat.c": {
+   "entity_attribute_calls": 8,
+   "entity_attribute_calls_nonliteral": 3,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/waypoint/wp_dbase.c": {
+   "entity_attribute_calls": 4,
+   "entity_attribute_calls_nonliteral": 2,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/waypoint/wp_draw.c": {
+   "entity_attribute_calls": 4,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/waypoint/wp_dstry.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/waypoint/wp_float.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/waypoint/wp_funcs.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/waypoint/wp_int.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/waypoint/wp_list.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/waypoint/wp_msgs.c": {
+   "entity_attribute_calls": 13,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/waypoint/wp_pack.c": {
+   "entity_attribute_calls": 6,
+   "entity_attribute_calls_nonliteral": 4,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/waypoint/wp_ptr.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/waypoint/wp_str.c": {
+   "entity_attribute_calls": 0,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  },
+  "aphavoc/source/entity/special/waypoint/wp_vec3d.c": {
+   "entity_attribute_calls": 4,
+   "entity_attribute_calls_nonliteral": 0,
+   "physical_names": {},
+   "physical_references": 0
+  }
+ },
+ "level": "A staging report, NOT acceptance",
+ "unresolved": [
+  "entity attribute and list dispatch: the entity type behind an `en` argument is not known statically, so calls counted here may reach physical state",
+  "file-scope data and function-pointer tables",
+  "calls hidden behind macros",
+  "static functions of physical files"
+ ]
+}
