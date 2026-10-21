@@ -61,6 +61,7 @@ local function supply_reached (descriptor)
 		if not selected then
 			local before = preframe_by_task[descriptor.task_key]
 			if reached and before and before.waypoint == "pick_up" and before.waypoint_key == descriptor.waypoint_key
+				and before.leader_host_id == descriptor.host_id
 				and before.cargo_on_leader == 0 then
 				selected = descriptor.task_key
 				selected_before = before
@@ -76,6 +77,7 @@ local function supply_reached (descriptor)
 		if not selected then
 			local before = preframe_by_task[descriptor.task_key]
 			if reached and before and before.waypoint == "drop_off" and before.waypoint_key == descriptor.waypoint_key
+				and before.leader_host_id == descriptor.host_id
 				and before.cargo_on_leader > 0 then
 				selected = descriptor.task_key
 				selected_before = before
@@ -143,6 +145,8 @@ if mode == "reference" then
 else
 	assert (selected and finished, mode .. " did not reach its causal assertion")
 	print (string.format ("task_key\t%.0f", selected))
+	print (string.format ("waypoint_key\t%.0f", selected_before.waypoint_key))
+	print ("leader_host_id\t" .. selected_before.leader_host_id)
 	print (string.format ("withheld_seconds\t%.1f", elapsed - selected_at))
 	print (string.format ("withheld_calls\t%d", withheld_calls))
 	print (string.format ("cargo_before_after\t%d\t%d", selected_before.cargo_on_leader, finished.cargo_on_leader))
