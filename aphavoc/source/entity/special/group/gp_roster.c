@@ -209,6 +209,29 @@ static campaign_pending_loss *find_pending_loss (const char *host_id)
 	return NULL;
 }
 
+static campaign_pending_loss *require_pending_loss (const char *host_id)
+{
+	campaign_pending_loss *pending = find_pending_loss (host_id);
+	if (!pending)
+	{
+		debug_fatal ("campaign loss: no loss is pending for %s", host_id);
+	}
+	return pending;
+}
+
+static campaign_member_record *find_member_record (uint64_t member_key)
+{
+	size_t i;
+	for (i = 0; i < record_count; ++i)
+	{
+		if (records[i].member_key == member_key)
+		{
+			return &records[i];
+		}
+	}
+	return NULL;
+}
+
 static campaign_member_record *record_for_member (entity *member)
 {
 	int index = entity_index (member);
@@ -898,17 +921,28 @@ int campaign_roster_has_pending_loss (void)
 
 int campaign_roster_report_loss (const char *host_id)
 {
+	/*
+	 * Lifetime rule: the campaign actions below can free entities (the group
+	 * itself when this was its last physical member, tasks through their guide
+	 * cascades) and can grow the roster registries. Nothing that points into
+	 * an entity or a registry is held across an action. The plan is a value
+	 * copy of the pending record; entities are re-resolved from their private
+	 * generation keys immediately before each use, and a stale key is fatal.
+	 */
+	campaign_pending_loss plan;
 	campaign_pending_loss *pending;
-	campaign_member_record *member_record = NULL;
+	campaign_member_record *member_record;
 	entity *group;
 	entity *primary_task;
 	entity *landing;
-	entity *tasks[CAMPAIGN_LOSS_TASK_DEPENDENT_MAX];
-	entity *force;
+	entity *task;
 	int i;
 	int landing_reserved_before;
+	int landing_reserved_after;
 	int group_losses_before;
+	int group_losses_after;
 	int task_losses_before;
+	int task_losses_after;
 	int retired_expire_count = 0;
 	int completed_on_report_count = 0;
 
@@ -916,11 +950,7 @@ int campaign_roster_report_loss (const char *host_id)
 	{
 		debug_fatal ("campaign loss: report_loss requires an opaque host identity");
 	}
-	pending = find_pending_loss (host_id);
-	if (!pending)
-	{
-		debug_fatal ("campaign loss: no loss is pending for %s", host_id);
-	}
+	pending = require_pending_loss (host_id);
 	if (pending->state == CAMPAIGN_PENDING_LOSS_REPORTED)
 	{
 		debug_fatal ("campaign loss: loss for %s was already reported", host_id);
@@ -929,11 +959,13 @@ int campaign_roster_report_loss (const char *host_id)
 	{
 		debug_fatal ("campaign loss: invalid pending state for %s", host_id);
 	}
+	plan = *pending;
+	pending = NULL;
 
-	group = campaign_reference_resolve (pending->group_reference_key, ENTITY_TYPE_GROUP);
-	primary_task = campaign_reference_resolve (pending->primary_task_key, ENTITY_TYPE_TASK);
-	landing = campaign_reference_resolve (pending->landing_key, ENTITY_TYPE_LANDING);
-	if (get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE) != pending->group_sub_type)
+	group = campaign_reference_resolve (plan.group_reference_key, ENTITY_TYPE_GROUP);
+	primary_task = campaign_reference_resolve (plan.primary_task_key, ENTITY_TYPE_TASK);
+	landing = campaign_reference_resolve (plan.landing_key, ENTITY_TYPE_LANDING);
+	if (get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE) != plan.group_sub_type)
 	{
 		debug_fatal ("campaign loss: group changed before report for %s", host_id);
 	}
@@ -941,19 +973,18 @@ int campaign_roster_report_loss (const char *host_id)
 	{
 		debug_fatal ("campaign loss: primary SUPPLY task changed before report for %s", host_id);
 	}
-	if (get_local_entity_int_value (landing, INT_TYPE_RESERVED_LANDING_SITES) < pending->landing_count)
+	if (get_local_entity_int_value (landing, INT_TYPE_RESERVED_LANDING_SITES) < plan.landing_count)
 	{
 		debug_fatal ("campaign loss: landing reservation changed before report for %s", host_id);
 	}
-	if ((pending->group_member_number < 0) ||
-		(pending->group_member_number >= (int) (sizeof (unsigned int) * 8)))
+	if ((plan.group_member_number < 0) ||
+		(plan.group_member_number >= (int) (sizeof (unsigned int) * 8)))
 	{
-		debug_fatal ("campaign loss: invalid group member number %d for %s", pending->group_member_number, host_id);
+		debug_fatal ("campaign loss: invalid group member number %d for %s", plan.group_member_number, host_id);
 	}
-	for (i = 0; i < pending->task_count; ++i)
+	for (i = 0; i < plan.task_count; ++i)
 	{
-		campaign_pending_task_action *action = &pending->tasks[i];
-		tasks[i] = NULL;
+		campaign_pending_task_action *action = &plan.tasks[i];
 		if (action->state == CAMPAIGN_PENDING_TASK_RETIRED_EXPIRE)
 		{
 			if (action->termination_reason != TASK_TERMINATED_EXPIRE_TIME_REACHED)
@@ -968,13 +999,13 @@ int campaign_roster_report_loss (const char *host_id)
 		{
 			debug_fatal ("campaign loss: ENGAGE task has an invalid pending state for %s", host_id);
 		}
-		tasks[i] = campaign_reference_resolve (action->task_key, ENTITY_TYPE_TASK);
-		if ((get_local_entity_int_value (tasks[i], INT_TYPE_ENTITY_SUB_TYPE) != action->sub_type) ||
-			(get_local_entity_int_value (tasks[i], INT_TYPE_TASK_STATE) != TASK_STATE_UNASSIGNED) ||
-			(get_local_entity_int_value (tasks[i], INT_TYPE_TASK_COMPLETED) != TASK_INCOMPLETE) ||
-			(get_local_entity_int_value (tasks[i], INT_TYPE_TASK_TERMINATED) != TASK_TERMINATED_IN_PROGRESS) ||
-			get_local_entity_parent (tasks[i], LIST_TYPE_TASK_DEPENDENT) ||
-			get_local_entity_first_child (tasks[i], LIST_TYPE_TASK_DEPENDENT))
+		task = campaign_reference_resolve (action->task_key, ENTITY_TYPE_TASK);
+		if ((get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) != action->sub_type) ||
+			(get_local_entity_int_value (task, INT_TYPE_TASK_STATE) != TASK_STATE_UNASSIGNED) ||
+			(get_local_entity_int_value (task, INT_TYPE_TASK_COMPLETED) != TASK_INCOMPLETE) ||
+			(get_local_entity_int_value (task, INT_TYPE_TASK_TERMINATED) != TASK_TERMINATED_IN_PROGRESS) ||
+			get_local_entity_parent (task, LIST_TYPE_TASK_DEPENDENT) ||
+			get_local_entity_first_child (task, LIST_TYPE_TASK_DEPENDENT))
 		{
 			debug_fatal ("campaign loss: ENGAGE task changed before report for %s", host_id);
 		}
@@ -982,63 +1013,87 @@ int campaign_roster_report_loss (const char *host_id)
 	landing_reserved_before = get_local_entity_int_value (landing, INT_TYPE_RESERVED_LANDING_SITES);
 	group_losses_before = get_local_entity_int_value (group, INT_TYPE_LOSSES);
 	task_losses_before = get_local_entity_int_value (primary_task, INT_TYPE_LOSSES);
-	for (i = 0; i < (int) record_count; ++i)
-	{
-		if (records[i].member_key == pending->member_key)
-		{
-			member_record = &records[i];
-			break;
-		}
-	}
+	member_record = find_member_record (plan.member_key);
 	if (!member_record || member_record->physical_present || member_record->in_group || !member_record->loss_pending)
 	{
 		debug_fatal ("campaign loss: physical member is not durably released for %s", host_id);
 	}
+	group = NULL;
+	primary_task = NULL;
+	landing = NULL;
+	task = NULL;
+	member_record = NULL;
 
-	force = get_local_force_entity ((entity_sides) pending->side);
-	remove_from_force_info_values (force, (entity_sub_types) pending->group_sub_type, pending->force_info_category);
+	remove_from_force_info_values
+	(
+		get_local_force_entity ((entity_sides) plan.side),
+		(entity_sub_types) plan.group_sub_type,
+		plan.force_info_category
+	);
 	add_entity_to_regen_queue
 	(
-		(entity_sides) pending->side,
-		(entity_types) pending->entity_type,
-		(entity_sub_types) pending->sub_type,
-		(entity_sub_types) pending->group_sub_type
+		(entity_sides) plan.side,
+		(entity_types) plan.entity_type,
+		(entity_sub_types) plan.sub_type,
+		(entity_sub_types) plan.group_sub_type
 	);
-	for (i = 0; i < pending->task_count; ++i)
+	for (i = 0; i < plan.task_count; ++i)
 	{
-		campaign_pending_task_action *action = &pending->tasks[i];
-		if (action->state == CAMPAIGN_PENDING_TASK_RETIRED_EXPIRE)
+		if (plan.tasks[i].state == CAMPAIGN_PENDING_TASK_RETIRED_EXPIRE)
 		{
 			continue;
 		}
-		action->state = CAMPAIGN_PENDING_TASK_REPORTING;
-		if (!complete_non_primary_task_for_lost_objective (tasks[i]))
+		require_pending_loss (host_id)->tasks[i].state = CAMPAIGN_PENDING_TASK_REPORTING;
+		task = campaign_reference_resolve (plan.tasks[i].task_key, ENTITY_TYPE_TASK);
+		if (!complete_non_primary_task_for_lost_objective (task))
 		{
 			debug_fatal ("campaign loss: ENGAGE task could not be completed for %s", host_id);
 		}
-		action->state = CAMPAIGN_PENDING_TASK_REPORTED;
+		require_pending_loss (host_id)->tasks[i].state = CAMPAIGN_PENDING_TASK_REPORTED;
 		completed_on_report_count++;
 	}
-	unreserve_local_landing_sites (landing, pending->landing_count);
+	task = NULL;
+
+	landing = campaign_reference_resolve (plan.landing_key, ENTITY_TYPE_LANDING);
+	unreserve_local_landing_sites (landing, plan.landing_count);
+	landing_reserved_after = get_local_entity_int_value (landing, INT_TYPE_RESERVED_LANDING_SITES);
+
+	group = campaign_reference_resolve (plan.group_reference_key, ENTITY_TYPE_GROUP);
 	increment_group_losses (group);
+	group_losses_after = get_local_entity_int_value (group, INT_TYPE_LOSSES);
+
+	primary_task = campaign_reference_resolve (plan.primary_task_key, ENTITY_TYPE_TASK);
 	increment_task_losses (primary_task);
-	apply_group_member_killed (group, 1U << pending->group_member_number);
+	task_losses_after = get_local_entity_int_value (primary_task, INT_TYPE_LOSSES);
+
+	/* Frees the group when this was its last physical member; group is dead afterwards. */
+	group = campaign_reference_resolve (plan.group_reference_key, ENTITY_TYPE_GROUP);
+	apply_group_member_killed (group, 1U << plan.group_member_number);
+	group = NULL;
+	primary_task = NULL;
+	landing = NULL;
+
 	check_all_force_campaign_objectives ();
 	debug_log
 	(
 		"campaign loss: reported %s landing_reserved=%d->%d group_losses=%d->%d primary_task_losses=%d->%d tasks_retired_expire=%d tasks_completed_on_report=%d",
 		host_id,
 		landing_reserved_before,
-		get_local_entity_int_value (landing, INT_TYPE_RESERVED_LANDING_SITES),
+		landing_reserved_after,
 		group_losses_before,
-		get_local_entity_int_value (group, INT_TYPE_LOSSES),
+		group_losses_after,
 		task_losses_before,
-		get_local_entity_int_value (primary_task, INT_TYPE_LOSSES),
+		task_losses_after,
 		retired_expire_count,
 		completed_on_report_count
 	);
 
-	pending->state = CAMPAIGN_PENDING_LOSS_REPORTED;
+	require_pending_loss (host_id)->state = CAMPAIGN_PENDING_LOSS_REPORTED;
+	member_record = find_member_record (plan.member_key);
+	if (!member_record)
+	{
+		debug_fatal ("campaign loss: member record vanished during report for %s", host_id);
+	}
 	member_record->loss_pending = FALSE;
 	return TRUE;
 }

@@ -35,6 +35,15 @@ The later report preserves the original campaign-action order:
 6. group member-killed policy;
 7. force objective checks.
 
+The report holds only keys and values across campaign actions. Task completion
+can cascade through guides and groups, and `apply_group_member_killed` frees the
+group when its physical `MEMBER_COUNT` is already zero at report time (the
+observe-time preflight guaranteed two physical members only at observe time).
+So each group, landing and primary-task entity is re-resolved from its
+generation key immediately before its use, the pending ledger is re-looked-up
+before each state write, and the audit values are read before the one call that
+can free the group. A stale or freed key is a loud failure, never a skip.
+
 The four observed ENGAGE timers expire before the reference wreck is freed.
 Those timers and their guide/group cascades continue normally while loss is
 withheld. Immediately before an affected task's existing termination mutates or
