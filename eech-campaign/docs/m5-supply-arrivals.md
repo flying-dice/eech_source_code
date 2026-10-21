@@ -56,9 +56,9 @@ arrival state or make a campaign decision.
 `tools/supply-arrivals-windows.ps1` drives three public Lua cases on retail
 Lebanon: the reference host sees all four waypoint kinds; a withheld PICK_UP
 leaves the task at that waypoint without debiting the supplier or attaching
-cargo while physical position reports continue; and a delayed DROP_OFF leaves
-cargo and receiver stock unchanged until a later true physical observation,
-then advances the task, transfers cargo and credits the receiver.
+cargo while physical position reports continue; and a delayed loaded DROP_OFF
+leaves cargo and receiver stock unchanged until a later true physical
+observation, then advances the task, transfers cargo and credits the receiver.
 
 `tools/supply-arrivals-lifecycle-windows.ps1` checks a missing callable before
 boot, nil and thrown callback failures at a natural SUPPLY arrival, poison

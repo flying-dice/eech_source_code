@@ -15,6 +15,7 @@ local elapsed = 0
 local counts = {}
 local selected, selected_before, selected_at
 local withheld_calls, positions, allowed = 0, {}, false
+local ignored, skipped_unloaded = {}, 0
 local reference = host.supply_reached
 
 local function close (a, b)
@@ -58,7 +59,7 @@ local function supply_reached (descriptor)
 			return false
 		end
 	elseif mode == "delay_drop_off" and descriptor.waypoint == "drop_off" then
-		if not selected then
+		if not selected and not ignored[descriptor.task_key] then
 			if reached then
 				selected = descriptor.task_key
 				selected_at = elapsed
@@ -95,7 +96,16 @@ for _ = 1, frames do
 		local after_by_task = snapshot_by_task (engine)
 		local after = assert (after_by_task[selected], "selected SUPPLY task disappeared before the asserted transition")
 		if not selected_before then
-			selected_before = after
+			if mode == "delay_drop_off" and after.cargo_on_leader <= 0 then
+				-- Some legacy SUPPLY tasks reach DROP_OFF without carrying cargo.
+				-- Let those continue and select a delivery whose transfer is observable.
+				ignored[selected] = true
+				skipped_unloaded = skipped_unloaded + 1
+				selected, selected_at = nil, nil
+				withheld_calls, positions, allowed = 0, {}, false
+			else
+				selected_before = after
+			end
 		elseif mode == "withhold_pick_up" and elapsed - selected_at >= delay_seconds then
 			assert (after.waypoint == "pick_up" and after.waypoint_key == selected_before.waypoint_key, "withheld PICK_UP advanced the task")
 			assert (after.cargo_on_leader == selected_before.cargo_on_leader, "withheld PICK_UP moved cargo")
@@ -134,6 +144,7 @@ else
 	print (string.format ("task_key\t%.0f", selected))
 	print (string.format ("withheld_seconds\t%.1f", elapsed - selected_at))
 	print (string.format ("withheld_calls\t%d", withheld_calls))
+	print (string.format ("skipped_unloaded\t%d", skipped_unloaded))
 	print (string.format ("cargo_before_after\t%d\t%d", selected_before.cargo_on_leader, finished.cargo_on_leader))
 	print (string.format ("supplier_before_after\t%.3f\t%.3f\t%.3f\t%.3f", selected_before.supplier_ammo,
 		selected_before.supplier_fuel, finished.supplier_ammo, finished.supplier_fuel))
