@@ -3,6 +3,10 @@
 Enemy Engaged: Comanche vs Hokum's dynamic campaign, and the whole engine
 behind it, as an embeddable native module.
 
+M5 DCS host readiness is tracked in the [risk register](docs/m5-dcs-risks.md),
+with [probe tooling](tools/dcs-probe/README.md) and
+[retained evidence](reference/m5-dcs-probes/README.md). Criterion 5 remains open.
+
 ## The full engine: EECH headless, as a Lua module
 
 All of EECH (the maintained Windows build's 1,226 C files: dynamic campaign,
@@ -12,8 +16,8 @@ loads the module with `require ("eech_dc")` and records Tacview.
 
 ```
    eech-world (host binary)     Rust; embeds Lua 5.1; Tacview ACMI 2.2
-        │  require ("eech_dc") → boot { bind_mobile=..., observe_loss=... }
-        │                         frame · report_loss · objects · members
+        │  require ("eech_dc") → boot { bind_mobile=..., supply_reached=..., observe_loss=... }
+        │                         frame · report_loss · objects · members · supply_tasks
         ▼
    eech-dc (libeech_dc.so)      the Lua module (mlua, lua51 + module)
         ▼

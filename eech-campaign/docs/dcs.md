@@ -1,14 +1,19 @@
 # DCS integration: constraints (research, not implemented)
 
 The spike's first objective was a headless native module, and that exists. This
-note checks that the architecture does not rule out DCS. It does not implement
-an adapter.
+note checks that the architecture does not rule out DCS. The later
+[M5 DCS risk register](m5-dcs-risks.md) and its
+[retained probe evidence](../reference/m5-dcs-probes/README.md) supersede the
+loading and ABI assumptions here. This note does not implement an adapter.
 
 ## How native code runs in DCS today
 
 - DCS World is a 64-bit Windows program that embeds **Lua 5.1**. The module
   builds and passes its tests for `x86_64-pc-windows-gnu` (`docs/64-bit.md`).
-  An MSVC build is the remaining step.
+  The retained M5 controls show that an MSVC build does not remedy the DCS
+  `lua_Debug` layout mismatch. PR #84 merged the reviewed size correction; its clean
+  combined-source build passes the standalone native-error controls and M4 pack, but no
+  corrected build has yet run in a DCS mission.
 - Rust native Lua modules are established practice. DCS-gRPC
   (github.com/DCS-gRPC/rust-server) is a Rust `cdylib` that uses **mlua** with
   `default-features = false, features = ["lua51", "module", ...]`. It is loaded

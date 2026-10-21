@@ -21,6 +21,12 @@ pub const EECH_LOSS_LANDING_UNRESERVE_SITE: c_int = 1;
 pub const EECH_LOSS_LANDING_UNLOCK_ROUTE: c_int = 2;
 pub const EECH_LOSS_LANDING_UNLOCK_TAKEOFF_ROUTE: c_int = 3;
 pub const EECH_LOSS_LANDING_UNLOCK_SITE: c_int = 4;
+pub const CAMPAIGN_SUPPLY_WAYPOINT_PICK_UP: c_int = 1;
+pub const CAMPAIGN_SUPPLY_WAYPOINT_PREPARE_FOR_DROP_OFF: c_int = 2;
+pub const CAMPAIGN_SUPPLY_WAYPOINT_DROP_OFF: c_int = 3;
+pub const CAMPAIGN_SUPPLY_WAYPOINT_FINISH_DROP_OFF: c_int = 4;
+pub const CAMPAIGN_SUPPLY_MOBILE_FIXED_WING: c_int = 1;
+pub const CAMPAIGN_SUPPLY_MOBILE_HELICOPTER: c_int = 2;
 
 #[repr(C)]
 pub struct eech_engine_config {
@@ -117,9 +123,42 @@ pub type eech_observe_loss_callback =
     unsafe extern "C" fn(descriptor: *const eech_loss_descriptor, decision: *mut c_int, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
 
 #[repr(C)]
+pub struct eech_supply_reach_descriptor {
+    pub member_key: u64,
+    pub task_key: u64,
+    pub waypoint_key: u64,
+    pub host_id: [c_char; EECH_HOST_ID_MAX + 1],
+    pub waypoint_kind: c_int,
+    pub mobile_kind: c_int,
+    pub is_task_leader: c_int,
+    pub is_ai: c_int,
+    pub leader_is_ai: c_int,
+    pub landed: c_int,
+    pub updated: c_int,
+    pub rotor_spin_up_seconds: f32,
+    pub distance: f32,
+    pub velocity: f32,
+    pub delta_seconds: f32,
+    pub radius: f32,
+    pub position: [f32; 3],
+    pub motion: [f32; 3],
+    pub guide_position: [f32; 3],
+    pub leader_position: [f32; 3],
+}
+
+pub type eech_supply_reached_callback = unsafe extern "C" fn(
+    descriptor: *const eech_supply_reach_descriptor,
+    reached: *mut c_int,
+    error: *mut c_char,
+    error_size: usize,
+    user: *mut c_void,
+) -> c_int;
+
+#[repr(C)]
 pub struct eech_engine_host {
     pub bind_mobile: Option<eech_bind_mobile_callback>,
     pub observe_loss: Option<eech_observe_loss_callback>,
+    pub supply_reached: Option<eech_supply_reached_callback>,
     pub user: *mut c_void,
 }
 
@@ -163,6 +202,25 @@ pub struct eech_member {
 }
 
 #[repr(C)]
+pub struct eech_supply_task {
+    pub task_key: u64,
+    pub waypoint_key: u64,
+    pub leader_host_id: [c_char; EECH_HOST_ID_MAX + 1],
+    pub task_entity_index: c_int,
+    pub waypoint_entity_index: c_int,
+    pub waypoint_kind: c_int,
+    pub task_completed: c_int,
+    pub supplier_entity_index: c_int,
+    pub receiver_entity_index: c_int,
+    pub cargo_type: c_int,
+    pub cargo_on_leader: c_int,
+    pub supplier_ammo: f32,
+    pub supplier_fuel: f32,
+    pub receiver_ammo: f32,
+    pub receiver_fuel: f32,
+}
+
+#[repr(C)]
 #[derive(Default)]
 pub struct eech_roster_stats {
     pub duplicate_comparisons: u64,
@@ -192,6 +250,7 @@ pub struct eech_clock {
 
 pub type eech_object_callback = unsafe extern "C" fn(object: *const eech_object, user: *mut c_void);
 pub type eech_member_callback = unsafe extern "C" fn(member: *const eech_member, user: *mut c_void);
+pub type eech_supply_task_callback = unsafe extern "C" fn(task: *const eech_supply_task, user: *mut c_void);
 pub type eech_log_sink = unsafe extern "C" fn(level: c_int, message: *const c_char, user: *mut c_void);
 
 extern "C" {
@@ -203,6 +262,7 @@ extern "C" {
     pub fn eech_engine_objects(callback: eech_object_callback, user: *mut c_void, count: *mut c_int) -> c_int;
     pub fn eech_engine_members(callback: eech_member_callback, user: *mut c_void, count: *mut c_int) -> c_int;
     pub fn eech_engine_roster_stats(stats: *mut eech_roster_stats) -> c_int;
+    pub fn eech_engine_supply_tasks(callback: eech_supply_task_callback, user: *mut c_void, count: *mut c_int) -> c_int;
     pub fn eech_engine_clock(clock: *mut eech_clock) -> c_int;
     pub fn eech_engine_diagnostics() -> c_int;
     pub fn eech_set_log_sink(sink: Option<eech_log_sink>, user: *mut c_void);

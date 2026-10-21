@@ -72,6 +72,7 @@ local engine = dc.boot {
 	seed = tonumber (args.seed or "1"),
 	bind_mobile = host.bind_mobile,
 	observe_loss = host.observe_loss,
+	supply_reached = host.supply_reached,
 }
 host.log ("campaign booted")
 

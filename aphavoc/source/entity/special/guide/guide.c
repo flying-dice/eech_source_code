@@ -257,6 +257,15 @@ int validate_local_guide_entity (entity *en)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static int check_mobile_reached_waypoint (entity *member, entity *guide)
+{
+	if (campaign_supply_arrival_is_target (guide))
+	{
+		return campaign_supply_arrival_check (member, guide);
+	}
+	return notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, member, guide);
+}
+
 int check_guide_reached_waypoint (entity *en)
 {
 	entity
@@ -299,7 +308,7 @@ int check_guide_reached_waypoint (entity *en)
 
 			if (valid_members & member_number)
 			{
-				if (!notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, member, en))
+				if (!check_mobile_reached_waypoint (member, en))
 				{
 #if DEBUG_MODULE
 					if (member == get_external_view_entity ())
@@ -320,7 +329,7 @@ int check_guide_reached_waypoint (entity *en)
 		// check task leader reached
 		//
 
-		if (!notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, leader, en))
+		if (!check_mobile_reached_waypoint (leader, en))
 		{
 #if DEBUG_MODULE
 			if (leader == get_external_view_entity ())
@@ -377,6 +386,12 @@ int check_guide_waypoint_action_reached (entity *en)
 	wp = get_local_entity_parent (en, LIST_TYPE_CURRENT_WAYPOINT);
 
 	ASSERT (wp);
+
+	/* SUPPLY state transfer is permitted only by the host-observed reached path. */
+	if (campaign_supply_arrival_is_target (en))
+	{
+		return FALSE;
+	}
 
 	range = get_local_entity_float_value (leader, FLOAT_TYPE_DISTANCE);
 	

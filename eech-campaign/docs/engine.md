@@ -8,8 +8,8 @@ a Lua module (a DLL), and runs it from a Rust host process.
 
 ```
    eech-world (host binary)       Rust; embeds a Lua 5.1 state; records Tacview
-        │  lua: require ("eech_dc") → boot { bind_mobile=..., observe_loss=... }
-        │                               frame, report_loss, objects, members
+        │  lua: require ("eech_dc") → boot { bind_mobile=..., supply_reached=..., observe_loss=... }
+        │                               frame, report_loss, objects, members, supply_tasks
         ▼
    eech-dc (cdylib: libeech_dc.so)     the Lua module; mlua 0.10 (lua51, module)
         │  eech-engine: Engine::boot / frame / objects / clock      (safe Rust)
@@ -17,7 +17,7 @@ a Lua module (a DLL), and runs it from a Rust host process.
    eech-engine-sys                     native build + raw FFI
         │  csrc/: headless platform layer, boot and frame, observation, synthetic data
         ▼
-   original EECH C                     ../aphavoc/source, ../modules: 1,218 legacy files + the host roster
+   original EECH C                     ../aphavoc/source, ../modules: 1,218 legacy files + two host-boundary files
 ```
 
 Data comes from `eech-map`, which builds a map and a dynamic campaign from an
@@ -245,14 +245,15 @@ dc.prepare_installation (root)
 local next_id = 0
 local engine = dc.boot { install_root = root, map = "..\\common\\maps\\map16",
                          campaign = "georgia.chc", gunship = "apache", seed = 1,
-                         bind_mobile = function () next_id = next_id + 1; return "host:" .. next_id end }
+                         bind_mobile = function () next_id = next_id + 1; return "host:" .. next_id end,
+                         supply_reached = host.supply_reached }
 engine:frame (100)                        -- milliseconds of simulated time
 for _, o in ipairs (engine:objects ()) do ... end
 local clock = engine:clock ()
 ```
 
 `eech-world <script.lua> key=value ...` embeds Lua 5.1 and lets the script
-`require` the DLL. It exposes `host.args`, `host.log`, `host.bind_mobile`, `host.open_recording`,
+`require` the DLL. It exposes `host.args`, `host.log`, `host.bind_mobile`, `host.supply_reached`, `host.open_recording`,
 `host.record (time, objects)` and `host.event`, and writes Tacview ACMI 2.2:
 
 - positions are written only when they change;

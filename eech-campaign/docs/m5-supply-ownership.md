@@ -183,6 +183,11 @@ Recorded here so EEDCS-11 starts from them. None is met by this record.
 
 Steps 2 and 3 control a genuine physical observation, not a campaign decision. The required member stays the campaign's choice in all four.
 
+The authorised implementation and its current evidence are recorded in
+[`m5-supply-arrivals.md`](m5-supply-arrivals.md). This ownership record remains
+the source analysis; the implementation does not broaden the four-waypoint
+scope or claim the remaining host boundary complete.
+
 ## Wider dependencies beyond this loop
 
 Before the campaign is claimed hostable, these must move behind the boundary or be named as remaining coupling:

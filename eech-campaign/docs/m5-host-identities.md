@@ -59,8 +59,10 @@ their existing index-reuse handling and ACMI identifiers.
 
 ## Callback and entry safety
 
-The C entry layer serialises boot, frame, observation and installation
-operations. Re-entry returns `EECH_ENGINE_STATE` before changing the active host
+The C entry layer rejects same-thread re-entry across boot, frame, observation
+and installation operations. This non-atomic guard does not synchronise
+concurrent C calls; the Rust `Engine` is `!Send`. Re-entry returns
+`EECH_ENGINE_STATE` before changing the active host
 or fatal-jump target. Public Lua lifecycle checks exercise nested boot and,
 during a real frame-time bind, nested `members`, `objects`, `frame` and
 `prepare_installation` calls. Rust catches callback panics; Lua errors become a
@@ -91,4 +93,3 @@ campaign/world link split. The existing loss structural proof remains the
 starting campaign-consequence implementation. Identity alone neither moves
 loss authority nor proves the required causal difference when a host report is
 withheld.
-

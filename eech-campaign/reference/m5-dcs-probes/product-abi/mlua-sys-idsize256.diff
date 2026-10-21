@@ -1,0 +1,13 @@
+Only in vendor/mlua-sys-0.6.8: .cargo-checksum.json
+diff -ru vendor/mlua-sys-0.6.8/src/lua51/lua.rs patched/eech-campaign/patches/mlua-sys-0.6.8-idsize256/src/lua51/lua.rs
+--- vendor/mlua-sys-0.6.8/src/lua51/lua.rs	2006-07-24 02:21:28.000000000 +0100
++++ patched/eech-campaign/patches/mlua-sys-0.6.8-idsize256/src/lua51/lua.rs	2026-10-20 23:52:23.957950800 +0100
+@@ -352,7 +352,7 @@
+ //
+ 
+ // Maximum size for the description of the source of a function in debug information.
+-const LUA_IDSIZE: usize = 60;
++const LUA_IDSIZE: usize = 256; // DCS World lua.dll: lua_getstack writes lua_Debug.i_ci at 0x138
+ 
+ // Event codes
+ pub const LUA_HOOKCALL: c_int = 0;

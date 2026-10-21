@@ -9,10 +9,13 @@
 //! local dc = require ("eech_dc")
 //! dc.prepare_installation (root)
 //! local next_id = 0
+//! -- supplied by the simulator host: evaluates the copied physical facts
+//! local observe_supply_reach = host.supply_reached
 //! local engine = dc.boot { install_root = root, map = "..\\common\\maps\\map16",
 //!                          campaign_directory = "camp01", campaign = "georgia.chc",
 //!                          gunship = "apache", seed = 1,
 //!                          bind_mobile = function () next_id = next_id + 1; return "host:" .. next_id end,
+//!                          supply_reached = observe_supply_reach,
 //!                          observe_loss = function () return "forward" end }
 //! while true do
 //!     engine:frame (100)                -- milliseconds of simulated time
