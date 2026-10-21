@@ -82,6 +82,16 @@ def check(name, condition, detail=""):
         failures.append(name)
 
 
+def rejected_profile_name(result, label, name):
+    # PowerShell wraps error text to the host width on some platforms. Collapse only
+    # whitespace, then require the named guard and one of its specific rejection reasons.
+    diagnostic = " ".join(result.stderr.split())
+    reason = ("not allowed in a profile name" in diagnostic
+              or "ending in a dot or space" in diagnostic
+              or "reserved device name" in diagnostic)
+    return result.returncode != 0 and f"{label} '{name}'" in diagnostic and reason
+
+
 def build(tmp, out, *args):
     return subprocess.run([sys.executable, "-I", os.path.join(HERE, "build-probe-miz.py"), *args[:1], out, *args[1:]],
                           capture_output=True, text=True, cwd=tmp)
@@ -371,11 +381,11 @@ def runner_guard_tests(tmp):
                  "NUL", "con", "Aux.txt", "COM1", "lpt9", "COM9.log", "Sub/PRN"):
         result = run(write_dir=name)
         check(f"runner rejects the profile name {name!r}",
-              result.returncode != 0 and ("not allowed in a profile name" in result.stderr or "ending in a dot or space" in result.stderr
-                                          or "reserved device name" in result.stderr)
+              rejected_profile_name(result, "-WriteDirName", name)
               and "prelaunch guards passed" not in result.stdout, result.stdout + result.stderr)
     result = run(default_name="DCS.[o]penbeta")
-    check("runner rejects a wildcard in -DefaultWriteDirName", result.returncode != 0 and "not allowed in a profile name" in result.stderr,
+    check("runner rejects a wildcard in -DefaultWriteDirName",
+          rejected_profile_name(result, "-DefaultWriteDirName", "DCS.[o]penbeta"),
           result.stdout + result.stderr)
     arbitrary = os.path.join(tmp, "arbitrary.txt")
     with open(arbitrary, "w") as stream:
