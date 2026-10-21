@@ -84,15 +84,9 @@ This is narrow evidence for one compiler, flag set and target. It does not guara
 
 Results (Python 3.13):
 - [`expand-check.txt`](../reference/m5-loss-structural/expand-check.txt): 9 helpers SAME and 67 functions SAME, PASS.
-- [`selftest.txt`](../reference/m5-loss-structural/selftest.txt): seven mutations, each applied alone, checked and restored, and each reported: a reordered unlink, an added per-type consequence, a changed helper body, swapped helper parameters, a file-scope redefinition, `DEBUG_MODULE 1`, and an unlisted helper. The restored tree passes, and the mutated files hash back to their originals.
+- [`selftest.txt`](../reference/m5-loss-structural/selftest.txt): seven mutations, each applied alone, checked and restored, and each reported: a reordered unlink, an added per-type consequence, a changed helper body, swapped helper parameters, a file-scope redefinition, `DEBUG_MODULE 1`, and an unlisted helper. The restored tree passes.
 
-The portable [`eech-loss-structural` workflow](../../.github/workflows/eech-loss-structural.yml)
-checks the PR head against base `163e9158` and runs
-[`expand-check-selftest.py`](../reference/m5-loss-structural/expand-check-selftest.py).
-The selftest applies those seven mutations to isolated copies and requires the checker
-to reject each one. This guards the equivalence claim for slice 1a; a later reviewed
-semantic cut can revise or retire the check. The full Windows M4 pack still uses
-private retail roots and is retained as the local run below.
+The portable [`eech-loss-structural` workflow](../../.github/workflows/eech-loss-structural.yml) checks the PR head against base `163e9158` on its `pull_request` trigger and runs [`expand-check-selftest.py`](../reference/m5-loss-structural/expand-check-selftest.py). The current selftest applies twelve mutations, each alone, to an isolated temporary Git tree and requires the checker to reject each one: the seven above, plus a `DEBUG_MODULE` block with an `#else`, conditional compilation in `gp_loss.c`, a missing helper, a helper with an extra parameter, and an added world function. It matches each expected diagnostic as a whole output line, not a substring, requires exit status 1 and no `PASS`, reads the `DEBUG_MODULE` alternative-branch rejection, which exits through `SystemExit`, from stderr, and requires that line to be all of stderr (every other case requires empty stderr), compares each restored file with the candidate's source bytes recorded before any mutation, and finally requires the restored candidate to pass again. Adding a function also adds its signature to the file-scope text, so that case reaches the shared function-list/file-scope rejection line without separating the two conditions. This guards the equivalence claim for slice 1a; a later reviewed semantic cut can revise or retire the check. The full Windows M4 pack still uses private retail roots and is retained as the local run below.
 
 The script does not compare the types of local declarations. The build's own type checks cover those.
 

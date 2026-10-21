@@ -5,7 +5,7 @@ behind it, as an embeddable native module.
 
 ## The full engine: EECH headless, as a Lua module
 
-All of EECH (the maintained Windows build's 1,225 C files: dynamic campaign,
+All of EECH (the maintained Windows build's 1,226 C files: dynamic campaign,
 AI, pathfinding, flight, weapons, damage, comms, entities) compiles headless
 for x86-64 Linux into a Lua 5.1 module. A Rust host process embeds Lua,
 loads the module with `require ("eech_dc")` and records Tacview.
