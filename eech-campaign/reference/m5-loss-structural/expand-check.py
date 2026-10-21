@@ -12,7 +12,8 @@
 
 Before comparing, both sides are normalised the same way:
 - comments and blank space are removed;
-- `#if DEBUG_MODULE ... #endif` blocks are removed (each file must define DEBUG_MODULE 0);
+- `#if DEBUG_MODULE ... #endif` blocks, including `#if DEBUG_MODULE >= 2`, are removed (each file must
+  define DEBUG_MODULE 0, and no such block may hold an `#else` or `#elif`);
 - `x->type` is read as `get_local_entity_type (x)` (the same expression for a non-null x);
 - the local declarations at the top of each function are removed (the move deletes the ones
   its helpers absorbed; their types are not compared, which the build's own checks cover).
@@ -66,6 +67,9 @@ FUNCTION = r'(?:static )?void (\w+) \(entity \*en\)'
 def normalise_source(text):
     text = re.sub(r'/\*.*?\*/', ' ', text, flags=re.S)
     text = re.sub(r'//[^\n]*', ' ', text)
+    for block in re.findall(r'#if DEBUG_MODULE[^\n]*\n.*?#endif', text, flags=re.S):
+        if re.search(r'#el(?:se|if)', block):
+            raise SystemExit(f'a DEBUG_MODULE block has an alternative branch: {block[:60]!r}')
     text = re.sub(r'#if DEBUG_MODULE[^\n]*\n.*?#endif', ' ', text, flags=re.S)
     return re.sub(r'(\w+)->type\b', r'get_local_entity_type (\1)', text)
 
@@ -92,8 +96,12 @@ def without_leading_declarations(tokens):
 
 def helpers_match_expansions():
     m = re.compile(r'void (\w+) \(([^)]*)\)')
-    text = normalise_source(open(HELPERS, encoding='latin-1').read())
-    bodies, _ = split_definitions(text, r'void (\w+) \([^)]*\)')
+    source = open(HELPERS, encoding='latin-1').read()
+    if re.search(r'^\s*#\s*if', source, re.M):
+        print('FAIL gp_loss.c has conditional compilation, which the comparison would not see')
+        return 1
+    text = normalise_source(source)
+    bodies, _ = split_definitions(text, r'(?:static )?\w+ (\w+) \([^)]*\)')
     parameters = {name: [p.split('*')[-1].strip() for p in params.split(',')] for name, params in m.findall(text)}
     calls = {call.split(' ')[0]: call for call in EXPANSIONS}
     failures = 0

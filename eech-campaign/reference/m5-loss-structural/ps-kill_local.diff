@@ -1,0 +1,43 @@
+107d106
+< mov    $0x27,%edx
+110c109
+< IMAGE_REL_AMD64_REL32	unlink_local_entity_children
+---
+> IMAGE_REL_AMD64_REL32	unlink_member_task_dependents
+115d113
+< mov    $0x19,%edx
+118,119c116
+< IMAGE_REL_AMD64_REL32	delete_local_entity_from_parents_child_list
+< mov    $0xd,%edx
+---
+> IMAGE_REL_AMD64_REL32	unlink_member_from_group
+122,123c119
+< IMAGE_REL_AMD64_REL32	delete_local_entity_from_parents_child_list
+< mov    $0x25,%edx
+---
+> IMAGE_REL_AMD64_REL32	unlink_member_from_guide
+126c122
+< IMAGE_REL_AMD64_REL32	delete_local_entity_from_parents_child_list
+---
+> IMAGE_REL_AMD64_REL32	unlink_member_from_takeoff_queue
+179,181c175,176
+< mov    %rbx,%r8
+< mov    %rdi,%rdx
+< mov    $0x28,%ecx
+---
+> mov    %rbx,%rdx
+> mov    %rdi,%rcx
+183c178
+< IMAGE_REL_AMD64_REL32	notify_local_entity
+---
+> IMAGE_REL_AMD64_REL32	notify_group_member_killed
+188a184,192
+> nop
+> nop
+> nop
+> nop
+> nop
+> nop
+> nop
+> nop
+> nop

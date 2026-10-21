@@ -1,4 +1,4 @@
-## sensitivity: each mutation is applied alone to the working tree, checked, then restored
+## sensitivity at 78dc796b: each mutation is applied alone to the working tree, checked, then restored
 ### M1 ordering: rv_dstry.c kill_local unlinks from its guide before its group
 DIFF rv_dstry.c kill_local
 FAIL: 1
@@ -16,6 +16,9 @@ DIFF ps_dstry.c outside its functions, or its function list
 FAIL: 1
 ### M6 DEBUG_MODULE 1 in ps_dstry.c
 FAIL aphavoc/source/entity/mobile/vehicle/person/ps_dstry.c: DEBUG_MODULE is not 0, so removing its blocks is not equivalent
+FAIL: 1
+### M7 an extra static helper in gp_loss.c
+FAIL gp_loss.c helpers ['unlisted_helper']
 FAIL: 1
 ### restored
 PASS

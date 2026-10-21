@@ -66,7 +66,12 @@ Correcting any of these would be an intentional rule change, to classify separat
 - In C this is undefined behaviour. On this Windows x86-64 build, the value is whatever the fourth-argument register holds at the call.
 - This slice leaves the notification loop inline, and also the group-loss chunk before it (with a comment). So the code leading up to the call is unchanged. The defect is not fixed here; a fix would be a separately characterised change.
 
-**Observed codegen evidence:** the evidence commit records it, from the same comparison as before: `objdump -d -r` of `kill_local` in `ps_dstry.o`, base against candidate, addresses normalised. This is narrow evidence for one compiler, flag set and target. It does not guarantee that undefined behaviour is preserved, and it is not provenance for the final binary. The Linux targets that CI builds have no such comparison.
+**Observed codegen evidence.**
+- `x86_64-w64-mingw32-objdump -d --no-show-raw-insn -r` was run on `kill_local` from `ps_dstry.o`, in two cargo target volumes: the #59 build's `eech-win-target-pr59` (source `65892de1`) and this candidate's `eech-win-target-m5hb-c2` (`78dc796b`).
+- With addresses normalised ([`ps-kill_local-base.s`](../reference/m5-loss-structural/ps-kill_local-base.s), [`ps-kill_local-candidate.s`](../reference/m5-loss-structural/ps-kill_local-candidate.s)), the first 106 lines are identical. That includes the `TASK_COMPLETED` call at line 94 and its argument setup.
+- The first difference is at line 107, after it ([`ps-kill_local.diff`](../reference/m5-loss-structural/ps-kill_local.diff)): the unlink helpers and `MOBILE_KILLED`.
+
+This is narrow evidence for one compiler, flag set and target. It does not guarantee that undefined behaviour is preserved, and it is not provenance for the final binary. The Linux targets that CI builds have no such comparison.
 
 ## Evidence
 
@@ -77,15 +82,40 @@ Correcting any of these would be an intentional rule change, to classify separat
 - that each helper, with its parameters mapped to its call's arguments, is the statements it replaced;
 - that, with every call expanded, each of the 67 destroy and kill functions in the six files, and the rest of each file, equals the base token for token.
 
-Results are recorded in the evidence commit:
-- [`expand-check.txt`](../reference/m5-loss-structural/expand-check.txt), the full output;
-- [`selftest.txt`](../reference/m5-loss-structural/selftest.txt), six mutations, each applied alone, checked and restored: a reordered unlink, an added per-type consequence, a changed helper body, swapped helper parameters, a file-scope redefinition and `DEBUG_MODULE 1`.
+Results (Python 3.13):
+- [`expand-check.txt`](../reference/m5-loss-structural/expand-check.txt): 9 helpers SAME and 67 functions SAME, PASS.
+- [`selftest.txt`](../reference/m5-loss-structural/selftest.txt): seven mutations, each applied alone, checked and restored, and each reported: a reordered unlink, an added per-type consequence, a changed helper body, swapped helper parameters, a file-scope redefinition, `DEBUG_MODULE 1`, and an unlisted helper. The restored tree passes, and the mutated files hash back to their originals.
 
 The script does not compare the types of local declarations. The build's own type checks cover those.
 
 ### Candidate build, public-path checks and regression pack
 
-The evidence commit records the candidate's build identity (built from the candidate commit with a clean tree, in a new cargo target volume), the probe and the M4 pack.
+**Build.** The candidate is commit `78dc796b`, with a clean tree.
+- **How it was built:** `tools/build-windows.sh`'s own build step, run in the pinned image `sha256:0c60c75d…` (rustc 1.98.1, MinGW GCC 12.2.0), with the new cargo target volume `eech-win-target-m5hb-c2`.
+- **Why not the script as is:** after this machine restarted, its `docker build` step rebuilt `eech-build` as another image (`bb10e44a…`, with a different `lua.dll`). That build was discarded. The script was run from a copy that skips `docker build` and names the pinned image; no other line changed.
+- **Identity** ([`BUILD-INFO.txt`](../reference/m5-loss-structural/BUILD-INFO.txt)): `commit: 78dc796b…`, `uncommitted changes in the build inputs: 0 files`. `eech_dc.dll` is `de1a52f9…`, and `lua.dll` and the Lua scripts are identical to the #59 build's.
+
+**Probe.** The [proposal's](../reference/m5-host-boundary/README.md) `probe.lua` was run through `eech-world.exe` → `require ("eech_dc")`.
+- **Inputs:** retail Lebanon, seed 1, 100 ms frames, 1,800 s, on a private root copy. The copy was IDENTICAL to `reference/lebanon-3h/inputs.json` before and after.
+- **Result:** Mi-17 87568 dies at **1,584.66 s** and Wolfpack drops to 87581 ([`probe-A.jsonl`](../reference/m5-loss-structural/probe-A.jsonl)).
+- **Diagnostics:** the campaign diagnostics at 1,580, 1,590 and 1,795 s equal the retained diag-A hashes of the `65892de1` candidate ([`probe-diag-sha256.txt`](../reference/m5-loss-structural/probe-diag-sha256.txt)).
+
+**M4 regression pack.** Unchanged, run on the candidate's binaries; finished 2026-10-21 08:51 London.
+- **Command:** `python -I tools/regression-pack.py --georgia E:/eech-runs/roots/georgia --lebanon E:/eech-runs/m2/lebanon-root --lebanon-repeat E:/eech-runs/m2/lebanon-m1-copy --bin E:/eech-runs/m5-host-boundary/c1/bin --out E:/eech-runs/m5-host-boundary/pack-1a-c1`
+- **Result: PASS, 40 of 40 checks** ([`report.md`](../reference/m5-loss-structural/report.md), [`report.json`](../reference/m5-loss-structural/report.json)):
+  - Georgia and Lebanon are **IDENTICAL** to `windows-retail v1`;
+  - the three roots match their manifests;
+  - the M2 recording is reproduced byte for byte, the two reference runs are byte-identical, and observed equals unobserved;
+  - the M3 resupply chains and the loss chain hold, including `M3.supply_loss_reproduced`.
+- **About the label:** the report says "with uncommitted changes" because this record and its script were being edited during the run. None of those files is a pack input or a build input.
+- **Baseline:** unchanged, with no difference to classify.
+
+**Tacview.** The pack generated and structurally checked its recordings, and reproduced M2's byte for byte. They were not visually inspected.
+
+**Red/green.** None is claimed. This is a pure structural move, and the characterisation was in place before it: the proposal's A/B probe on the `65892de1` candidate and the accepted M4 pack. No red was manufactured.
+
+**CI-equivalent checks** ([`linux-test.txt`](../reference/m5-loss-structural/linux-test.txt)): `cargo test --locked --target x86_64-unknown-linux-gnu` with gcc-12, in the pinned image, on a read-only mount of the candidate tree. Exit 0, 23 tests passed, none failed.
+- **Not run locally:** `cargo fmt` and `cargo clippy` (not installed in the pinned image; no Rust file changed), the i686 and C-optimisation-level matrix entries, and the Wine job. CI runs them on publication.
 
 **Why a new volume.** `eech-engine-sys/build/main.rs` declares no rerun trigger for `aphavoc/` or `modules/`, so an existing volume silently reuses stale C objects. This was observed in this session: a rebuild in a used volume finished in 0.37 s with the previous DLL.
 
@@ -106,7 +136,8 @@ So its results are kept as history only: [`wip2/`](../reference/m5-loss-structur
 - **Ships:** the carrier keysite search, and killing that keysite.
 - **The anti-aircraft restore path:** its client branch reads the group's member count and kills an empty group.
 - **Inline in the person file:** the group-loss count and the task notification.
-- **Movement dependents:** destroying them with their carrier (`destroy_local_family`) and unlinking them (above).
+
+**Movement dependents.** They are physical carriage, not campaign work, but campaign keysites and crates ride on them. The world destroys them with their carrier (`destroy_local_family`) and unlinks them inline (above).
 
 **Outside these six files:** world files that edit campaign lists or send loss-related messages are not in this slice.
 
