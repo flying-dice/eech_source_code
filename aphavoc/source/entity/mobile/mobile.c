@@ -384,6 +384,11 @@ void credit_client_server_mobile_kill (entity *victim, entity *aggressor)
 	// Victim should still be "alive" at this point
 	ASSERT (get_local_entity_int_value (victim, INT_TYPE_ALIVE));
 
+	if (campaign_roster_observe_credit (victim) != CAMPAIGN_LOSS_FORWARD)
+	{
+		debug_fatal ("campaign loss: credit withholding is unsupported");
+	}
+
 	//
 	// Group kills
 	//

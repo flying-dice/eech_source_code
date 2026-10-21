@@ -40,11 +40,20 @@ struct eech_engine_config
 
 typedef campaign_member_descriptor eech_member_descriptor;
 typedef campaign_bind_member_fn eech_bind_mobile_callback;
+typedef campaign_loss_descriptor eech_loss_descriptor;
+typedef campaign_observe_loss_fn eech_observe_loss_callback;
+
+#define EECH_LOSS_EVENT_CREDIT CAMPAIGN_LOSS_EVENT_CREDIT
+#define EECH_LOSS_EVENT_PHYSICAL CAMPAIGN_LOSS_EVENT_PHYSICAL
+#define EECH_LOSS_FORWARD CAMPAIGN_LOSS_FORWARD
+#define EECH_LOSS_WITHHOLD CAMPAIGN_LOSS_WITHHOLD
 
 struct eech_engine_host
 {
 	/* Called synchronously while the physical entity exists. */
 	eech_bind_mobile_callback bind_mobile;
+	/* Called synchronously at the original credit and physical-loss sites. */
+	eech_observe_loss_callback observe_loss;
 	void *user;
 };
 
@@ -52,6 +61,9 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 
 /* advance simulated time by milliseconds and run one iteration of EECH's flight loop */
 int eech_engine_frame (uint32_t milliseconds, const struct eech_engine_host *host);
+
+/* Applies one previously withheld campaign loss, exactly once, by opaque host identity. */
+int eech_engine_report_loss (const char *host_id);
 
 const char *eech_engine_fatal_message (void);
 

@@ -144,6 +144,46 @@ pub struct MemberDescriptor {
     pub side: Side,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum LossEventKind {
+    Credit,
+    Physical,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LossDecision {
+    Forward,
+    Withhold,
+}
+
+/// Copied campaign and physical facts supplied synchronously at an existing
+/// credit or physical-loss site. The opaque `host_id` identifies the physical
+/// incarnation; entity indices are deliberately absent.
+#[derive(Clone, Debug, Serialize)]
+pub struct LossDescriptor {
+    pub host_id: String,
+    pub member_key: u64,
+    pub group_key: u64,
+    pub event: LossEventKind,
+    pub entity_type: i32,
+    pub sub_type: i32,
+    pub side: Side,
+    pub group_sub_type: i32,
+    pub primary_task_sub_type: Option<i32>,
+    pub group_member_number: i32,
+    pub campaign_member_count: i32,
+    pub player: i32,
+    pub landed: bool,
+    pub member_task_dependents: i32,
+    pub group_task_dependents: i32,
+    pub restricted_guides: i32,
+    pub landing_effect: bool,
+    pub movement_parent: bool,
+    pub movement_dependents: i32,
+    pub takeoff_queue: bool,
+}
+
 /// One durable campaign roster entry. Membership can change while the same
 /// physical incarnation and host identity continue.
 #[derive(Clone, Debug, Serialize)]
@@ -179,8 +219,9 @@ pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
 }
 
-struct HostContext<'a, F> {
+struct HostContext<'a, F, G> {
     bind_mobile: &'a mut F,
+    observe_loss: &'a mut G,
 }
 
 fn side(value: c_int) -> Side {
@@ -205,7 +246,7 @@ unsafe fn write_callback_text(target: *mut c_char, capacity: usize, value: &str)
     out[length] = 0;
 }
 
-unsafe extern "C" fn bind_mobile<F>(
+unsafe extern "C" fn bind_mobile<F, G>(
     descriptor: *const sys::eech_member_descriptor,
     host_id: *mut c_char,
     host_id_size: usize,
@@ -215,13 +256,14 @@ unsafe extern "C" fn bind_mobile<F>(
 ) -> c_int
 where
     F: FnMut(MemberDescriptor) -> Result<String, String>,
+    G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if descriptor.is_null() || user.is_null() {
             return Err("invalid native bind_mobile callback context".into());
         }
         // SAFETY: C supplies both pointers for the duration of this callback.
-        let (descriptor, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F>)) };
+        let (descriptor, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G>)) };
         let descriptor = MemberDescriptor {
             member_key: descriptor.member_key,
             group_key: descriptor.group_key,
@@ -263,14 +305,92 @@ where
     }
 }
 
-fn with_host<F>(bind_mobile_fn: &mut F, call: impl FnOnce(*const sys::eech_engine_host) -> c_int) -> Result<(), EngineError>
+unsafe extern "C" fn observe_loss<F, G>(
+    descriptor: *const sys::eech_loss_descriptor,
+    decision: *mut c_int,
+    error: *mut c_char,
+    error_size: usize,
+    user: *mut c_void,
+) -> c_int
 where
     F: FnMut(MemberDescriptor) -> Result<String, String>,
+    G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
 {
-    let mut context = HostContext { bind_mobile: bind_mobile_fn };
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
+        if descriptor.is_null() || decision.is_null() || user.is_null() {
+            return Err("invalid native observe_loss callback context".into());
+        }
+        // SAFETY: C supplies these pointers for the duration of the callback.
+        let (descriptor, decision, context) = unsafe { (&*descriptor, &mut *decision, &mut *(user as *mut HostContext<'_, F, G>)) };
+        if descriptor.host_id.is_null() {
+            return Err("observe_loss received an empty host identity".into());
+        }
+        // SAFETY: roster identities are NUL-terminated and live for the engine session.
+        let host_id = unsafe { CStr::from_ptr(descriptor.host_id) }
+            .to_str()
+            .map_err(|_| "observe_loss received a non-UTF-8 host identity")?
+            .to_owned();
+        let event = match descriptor.event_kind {
+            sys::EECH_LOSS_EVENT_CREDIT => LossEventKind::Credit,
+            sys::EECH_LOSS_EVENT_PHYSICAL => LossEventKind::Physical,
+            value => return Err(format!("observe_loss received unknown event kind {value}")),
+        };
+        let descriptor = LossDescriptor {
+            host_id,
+            member_key: descriptor.member_key,
+            group_key: descriptor.group_key,
+            event,
+            entity_type: descriptor.entity_type,
+            sub_type: descriptor.sub_type,
+            side: side(descriptor.side),
+            group_sub_type: descriptor.group_sub_type,
+            primary_task_sub_type: (descriptor.primary_task_sub_type >= 0).then_some(descriptor.primary_task_sub_type),
+            group_member_number: descriptor.group_member_number,
+            campaign_member_count: descriptor.campaign_member_count,
+            player: descriptor.player,
+            landed: descriptor.landed != 0,
+            member_task_dependents: descriptor.member_task_dependents,
+            group_task_dependents: descriptor.group_task_dependents,
+            restricted_guides: descriptor.restricted_guides,
+            landing_effect: descriptor.landing_effect != 0,
+            movement_parent: descriptor.movement_parent != 0,
+            movement_dependents: descriptor.movement_dependents,
+            takeoff_queue: descriptor.takeoff_queue != 0,
+        };
+        *decision = match (context.observe_loss)(descriptor)? {
+            LossDecision::Forward => sys::EECH_LOSS_FORWARD,
+            LossDecision::Withhold => sys::EECH_LOSS_WITHHOLD,
+        };
+        Ok(())
+    }));
+    match result {
+        Ok(Ok(())) => 0,
+        Ok(Err(message)) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, &message) };
+            1
+        }
+        Err(_) => {
+            // No Rust panic may unwind through C.
+            unsafe { write_callback_text(error, error_size, "observe_loss panicked") };
+            1
+        }
+    }
+}
+
+fn with_host<F, G>(bind_mobile_fn: &mut F, observe_loss_fn: &mut G, call: impl FnOnce(*const sys::eech_engine_host) -> c_int) -> Result<(), EngineError>
+where
+    F: FnMut(MemberDescriptor) -> Result<String, String>,
+    G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+{
+    let mut context = HostContext {
+        bind_mobile: bind_mobile_fn,
+        observe_loss: observe_loss_fn,
+    };
     let host = sys::eech_engine_host {
-        bind_mobile: Some(bind_mobile::<F>),
-        user: (&mut context as *mut HostContext<'_, F>).cast::<c_void>(),
+        bind_mobile: Some(bind_mobile::<F, G>),
+        observe_loss: Some(observe_loss::<F, G>),
+        user: (&mut context as *mut HostContext<'_, F, G>).cast::<c_void>(),
     };
     check(call(&host))
 }
@@ -298,9 +418,10 @@ pub fn prepare_installation(root: &Path) -> Result<(), EngineError> {
 
 impl Engine {
     /// boots EECH's dedicated-server path into the campaign (once per process)
-    pub fn boot<F>(config: &EngineConfig, bind_mobile_fn: &mut F) -> Result<Engine, EngineError>
+    pub fn boot<F, G>(config: &EngineConfig, bind_mobile_fn: &mut F, observe_loss_fn: &mut G) -> Result<Engine, EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
     {
         if BOOTED.swap(true, Ordering::SeqCst) {
             return Err(EngineError::State);
@@ -322,19 +443,26 @@ impl Engine {
             arguments: argv.as_ptr(),
         };
         // SAFETY: every config pointer and the temporary host callback are valid for the call.
-        with_host(bind_mobile_fn, |host| unsafe { sys::eech_engine_boot(&c, host) })?;
+        with_host(bind_mobile_fn, observe_loss_fn, |host| unsafe { sys::eech_engine_boot(&c, host) })?;
         Ok(Engine {
             _not_send: std::marker::PhantomData,
         })
     }
 
     /// advances simulated time and runs one iteration of EECH's flight loop
-    pub fn frame<F>(&self, milliseconds: u32, bind_mobile_fn: &mut F) -> Result<(), EngineError>
+    pub fn frame<F, G>(&self, milliseconds: u32, bind_mobile_fn: &mut F, observe_loss_fn: &mut G) -> Result<(), EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
     {
         // SAFETY: the temporary host callback is valid for the call.
-        with_host(bind_mobile_fn, |host| unsafe { sys::eech_engine_frame(milliseconds, host) })
+        with_host(bind_mobile_fn, observe_loss_fn, |host| unsafe { sys::eech_engine_frame(milliseconds, host) })
+    }
+
+    pub fn report_loss(&self, host_id: &str) -> Result<(), EngineError> {
+        let host_id = cstring(host_id)?;
+        // SAFETY: a valid NUL-terminated identity for the duration of the call.
+        check(unsafe { sys::eech_engine_report_loss(host_id.as_ptr()) })
     }
 
     pub fn objects(&self) -> Result<Vec<Object>, EngineError> {

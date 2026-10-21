@@ -15,6 +15,18 @@
 #define CAMPAIGN_HOST_ID_MAX 128
 #define CAMPAIGN_HOST_ERROR_MAX 256
 
+typedef enum campaign_loss_event_kind
+{
+	CAMPAIGN_LOSS_EVENT_CREDIT = 1,
+	CAMPAIGN_LOSS_EVENT_PHYSICAL = 2
+} campaign_loss_event_kind;
+
+typedef enum campaign_loss_decision
+{
+	CAMPAIGN_LOSS_FORWARD = 1,
+	CAMPAIGN_LOSS_WITHHOLD = 2
+} campaign_loss_decision;
+
 typedef struct campaign_member_descriptor
 {
 	uint64_t member_key;
@@ -35,9 +47,43 @@ typedef int (*campaign_bind_member_fn)
 	void *user
 );
 
+typedef struct campaign_loss_descriptor
+{
+	const char *host_id;
+	uint64_t member_key;
+	uint64_t group_key;
+	int event_kind;
+	int entity_type;
+	int sub_type;
+	int side;
+	int group_sub_type;
+	int primary_task_sub_type;
+	int group_member_number;
+	int campaign_member_count;
+	int player;
+	int landed;
+	int member_task_dependents;
+	int group_task_dependents;
+	int restricted_guides;
+	int landing_effect;
+	int movement_parent;
+	int movement_dependents;
+	int takeoff_queue;
+} campaign_loss_descriptor;
+
+typedef int (*campaign_observe_loss_fn)
+(
+	const campaign_loss_descriptor *descriptor,
+	int *decision,
+	char *error,
+	size_t error_size,
+	void *user
+);
+
 typedef struct campaign_roster_host
 {
 	campaign_bind_member_fn bind_member;
+	campaign_observe_loss_fn observe_loss;
 	void *user;
 } campaign_roster_host;
 
@@ -71,6 +117,10 @@ void campaign_roster_set_host (const campaign_roster_host *host);
 void campaign_roster_link_member (struct ENTITY *group, struct ENTITY *member);
 void campaign_roster_unlink_member (struct ENTITY *group, struct ENTITY *member);
 void campaign_roster_release_entity (struct ENTITY *entity);
+int campaign_roster_observe_credit (struct ENTITY *member);
+int campaign_roster_observe_physical_loss (struct ENTITY *member, struct ENTITY *group);
+int campaign_roster_has_pending_loss (void);
+int campaign_roster_report_loss (const char *host_id);
 int campaign_roster_members (campaign_member_snapshot_fn callback, void *user);
 void campaign_roster_get_stats (campaign_roster_stats *stats);
 

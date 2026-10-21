@@ -12,7 +12,8 @@
 //! local engine = dc.boot { install_root = root, map = "..\\common\\maps\\map16",
 //!                          campaign_directory = "camp01", campaign = "georgia.chc",
 //!                          gunship = "apache", seed = 1,
-//!                          bind_mobile = function () next_id = next_id + 1; return "host:" .. next_id end }
+//!                          bind_mobile = function () next_id = next_id + 1; return "host:" .. next_id end,
+//!                          observe_loss = function () return "forward" end }
 //! while true do
 //!     engine:frame (100)                -- milliseconds of simulated time
 //!     for _, o in ipairs (engine:objects ()) do ... end

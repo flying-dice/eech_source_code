@@ -229,6 +229,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             })?,
         )?;
     }
+    host.set(
+        "observe_loss",
+        lua.create_function(|_, descriptor: LuaTable| {
+            // Read the stable identity and event so the reference host rejects a mismatched contract.
+            let _: String = descriptor.get("host_id")?;
+            let _: String = descriptor.get("event")?;
+            Ok("forward")
+        })?,
+    )?;
 
     let recording: Rc<RefCell<Option<Recording>>> = Rc::new(RefCell::new(None));
     {

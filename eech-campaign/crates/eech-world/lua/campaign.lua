@@ -71,6 +71,7 @@ local engine = dc.boot {
 	gunship = "apache",
 	seed = tonumber (args.seed or "1"),
 	bind_mobile = host.bind_mobile,
+	observe_loss = host.observe_loss,
 }
 host.log ("campaign booted")
 

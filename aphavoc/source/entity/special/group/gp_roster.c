@@ -4,6 +4,7 @@
 #include <string.h>
 #include <time.h>
 
+#include "ai/taskgen/taskgen.h"
 #include "gp_roster.h"
 
 typedef struct campaign_member_record
@@ -32,6 +33,120 @@ static uint64_t next_group_key = 1;
 static uint64_t duplicate_comparisons;
 static clock_t duplicate_scan_ticks;
 static campaign_roster_host current_host;
+
+static int entity_index (entity *en);
+
+static campaign_member_record *record_for_member (entity *member)
+{
+	int index = entity_index (member);
+	int record_index = current_member_by_entity[index] - 1;
+	if (record_index < 0)
+	{
+		debug_fatal ("campaign roster: member %d has no host identity", index);
+	}
+	return &records[record_index];
+}
+
+static int child_count (entity *parent, list_types list_type)
+{
+	int count = 0;
+	entity *child = get_local_entity_first_child (parent, list_type);
+	while (child)
+	{
+		count++;
+		child = get_local_entity_child_succ (child, list_type);
+	}
+	return count;
+}
+
+static int restricted_guide_count (entity *group)
+{
+	int count = 0;
+	entity *guide = get_local_entity_first_child (group, LIST_TYPE_GUIDE_STACK);
+	while (guide)
+	{
+		if (get_local_entity_int_value (guide, INT_TYPE_VALID_GUIDE_MEMBERS) != TASK_ASSIGN_ALL_MEMBERS)
+		{
+			count++;
+		}
+		guide = get_local_entity_child_succ (guide, LIST_TYPE_GUIDE_STACK);
+	}
+	return count;
+}
+
+static int landing_release_can_change_state (entity *member, entity *group)
+{
+	entity *guide = get_local_entity_parent (member, LIST_TYPE_FOLLOWER);
+	entity *task = guide ? get_local_entity_parent (guide, LIST_TYPE_GUIDE) : NULL;
+	if (get_local_entity_int_value (member, INT_TYPE_LANDED))
+	{
+		return TRUE;
+	}
+	if (task)
+	{
+		int sub_type = get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE);
+		if ((sub_type == ENTITY_SUB_TYPE_TASK_LANDING) ||
+			(sub_type == ENTITY_SUB_TYPE_TASK_LANDING_HOLDING) ||
+			(sub_type == ENTITY_SUB_TYPE_TASK_TAKEOFF))
+		{
+			return TRUE;
+		}
+		if (get_local_entity_parent (group, LIST_TYPE_KEYSITE_GROUP))
+		{
+			entity *primary_task = get_local_group_primary_task (group);
+			return primary_task && get_local_entity_int_value (primary_task, INT_TYPE_ASSESS_LANDING);
+		}
+	}
+	return FALSE;
+}
+
+static int observe_loss_event (entity *member, entity *group, campaign_loss_event_kind event_kind)
+{
+	campaign_loss_descriptor descriptor;
+	campaign_member_record *record;
+	entity *task;
+	char error[CAMPAIGN_HOST_ERROR_MAX + 1];
+	int decision = CAMPAIGN_LOSS_FORWARD;
+
+	if (!current_host.observe_loss)
+	{
+		debug_fatal ("campaign roster: host observe_loss callback is unavailable");
+	}
+	record = record_for_member (member);
+	task = get_local_group_primary_task (group);
+	memset (&descriptor, 0, sizeof (descriptor));
+	memset (error, 0, sizeof (error));
+	descriptor.host_id = record->host_id;
+	descriptor.member_key = record->member_key;
+	descriptor.group_key = record->group_key;
+	descriptor.event_kind = event_kind;
+	descriptor.entity_type = record->entity_type;
+	descriptor.sub_type = record->sub_type;
+	descriptor.side = record->side;
+	descriptor.group_sub_type = get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE);
+	descriptor.primary_task_sub_type = task ? get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) : -1;
+	descriptor.group_member_number = get_local_entity_int_value (member, INT_TYPE_GROUP_MEMBER_NUMBER);
+	descriptor.campaign_member_count = get_local_entity_int_value (group, INT_TYPE_MEMBER_COUNT);
+	descriptor.player = get_local_entity_int_value (member, INT_TYPE_PLAYER);
+	descriptor.landed = get_local_entity_int_value (member, INT_TYPE_LANDED);
+	descriptor.member_task_dependents = child_count (member, LIST_TYPE_TASK_DEPENDENT);
+	descriptor.group_task_dependents = child_count (group, LIST_TYPE_TASK_DEPENDENT);
+	descriptor.restricted_guides = restricted_guide_count (group);
+	descriptor.landing_effect = landing_release_can_change_state (member, group);
+	descriptor.movement_parent = get_local_entity_parent (member, LIST_TYPE_MOVEMENT_DEPENDENT) != NULL;
+	descriptor.movement_dependents = child_count (member, LIST_TYPE_MOVEMENT_DEPENDENT);
+	descriptor.takeoff_queue = get_local_entity_parent (member, LIST_TYPE_TAKEOFF_QUEUE) != NULL;
+
+	if (current_host.observe_loss (&descriptor, &decision, error, CAMPAIGN_HOST_ERROR_MAX, current_host.user) != 0)
+	{
+		debug_fatal ("campaign roster: host observe_loss failed: %s", error[0] ? error : "unspecified error");
+	}
+	if ((decision != CAMPAIGN_LOSS_FORWARD) && (decision != CAMPAIGN_LOSS_WITHHOLD))
+	{
+		debug_fatal ("campaign roster: host observe_loss returned invalid decision %d", decision);
+	}
+	return decision;
+}
 
 static int entity_index (entity *en)
 {
@@ -292,6 +407,33 @@ void campaign_roster_release_entity (entity *en)
 		current_member_by_entity[index] = 0;
 	}
 	current_group_by_entity[index] = 0;
+}
+
+int campaign_roster_observe_credit (entity *member)
+{
+	entity *group = get_local_entity_parent (member, LIST_TYPE_MEMBER);
+	if (!group)
+	{
+		debug_fatal ("campaign roster: credited member %d has no group", get_local_entity_index (member));
+	}
+	return observe_loss_event (member, group, CAMPAIGN_LOSS_EVENT_CREDIT);
+}
+
+int campaign_roster_observe_physical_loss (entity *member, entity *group)
+{
+	return observe_loss_event (member, group, CAMPAIGN_LOSS_EVENT_PHYSICAL);
+}
+
+int campaign_roster_has_pending_loss (void)
+{
+	return FALSE;
+}
+
+int campaign_roster_report_loss (const char *host_id)
+{
+	(void) host_id;
+	debug_fatal ("campaign roster: no loss is pending");
+	return FALSE;
 }
 
 int campaign_roster_members (campaign_member_snapshot_fn callback, void *user)

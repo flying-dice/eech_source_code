@@ -11,6 +11,10 @@ pub const EECH_ENGINE_POISONED: c_int = 2;
 pub const EECH_ENGINE_STATE: c_int = 3;
 pub const EECH_ENGINE_BAD_ARGUMENT: c_int = 4;
 pub const EECH_HOST_ID_MAX: usize = 128;
+pub const EECH_LOSS_EVENT_CREDIT: c_int = 1;
+pub const EECH_LOSS_EVENT_PHYSICAL: c_int = 2;
+pub const EECH_LOSS_FORWARD: c_int = 1;
+pub const EECH_LOSS_WITHHOLD: c_int = 2;
 
 #[repr(C)]
 pub struct eech_engine_config {
@@ -43,8 +47,36 @@ pub type eech_bind_mobile_callback = unsafe extern "C" fn(
 ) -> c_int;
 
 #[repr(C)]
+pub struct eech_loss_descriptor {
+    pub host_id: *const c_char,
+    pub member_key: u64,
+    pub group_key: u64,
+    pub event_kind: c_int,
+    pub entity_type: c_int,
+    pub sub_type: c_int,
+    pub side: c_int,
+    pub group_sub_type: c_int,
+    pub primary_task_sub_type: c_int,
+    pub group_member_number: c_int,
+    pub campaign_member_count: c_int,
+    pub player: c_int,
+    pub landed: c_int,
+    pub member_task_dependents: c_int,
+    pub group_task_dependents: c_int,
+    pub restricted_guides: c_int,
+    pub landing_effect: c_int,
+    pub movement_parent: c_int,
+    pub movement_dependents: c_int,
+    pub takeoff_queue: c_int,
+}
+
+pub type eech_observe_loss_callback =
+    unsafe extern "C" fn(descriptor: *const eech_loss_descriptor, decision: *mut c_int, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
+
+#[repr(C)]
 pub struct eech_engine_host {
     pub bind_mobile: Option<eech_bind_mobile_callback>,
+    pub observe_loss: Option<eech_observe_loss_callback>,
     pub user: *mut c_void,
 }
 
@@ -109,6 +141,7 @@ pub type eech_log_sink = unsafe extern "C" fn(level: c_int, message: *const c_ch
 extern "C" {
     pub fn eech_engine_boot(config: *const eech_engine_config, host: *const eech_engine_host) -> c_int;
     pub fn eech_engine_frame(milliseconds: u32, host: *const eech_engine_host) -> c_int;
+    pub fn eech_engine_report_loss(host_id: *const c_char) -> c_int;
     pub fn eech_engine_fatal_message() -> *const c_char;
     pub fn eech_engine_prepare_installation(root: *const c_char) -> c_int;
     pub fn eech_engine_objects(callback: eech_object_callback, user: *mut c_void, count: *mut c_int) -> c_int;

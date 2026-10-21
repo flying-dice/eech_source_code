@@ -62,6 +62,7 @@ static enum engine_operation operation;
 	} \
 	operation = (OPERATION); \
 	roster_host.bind_member = entry_host ? entry_host->bind_mobile : NULL; \
+	roster_host.observe_loss = entry_host ? entry_host->observe_loss : NULL; \
 	roster_host.user = entry_host ? entry_host->user : NULL; \
 	campaign_roster_set_host (entry_host ? &roster_host : NULL); \
 	fegetenv (&caller_fenv); \
@@ -242,7 +243,7 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile)
+	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -310,6 +311,17 @@ int eech_engine_frame (uint32_t milliseconds, const struct eech_engine_host *hos
 		LEAVE (EECH_ENGINE_STATE);
 	}
 	frame (milliseconds);
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_report_loss (const char *host_id)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if ((state != ENGINE_RUNNING) || !host_id || !host_id[0])
+	{
+		LEAVE (host_id && host_id[0] ? EECH_ENGINE_STATE : EECH_ENGINE_BAD_ARGUMENT);
+	}
+	campaign_roster_report_loss (host_id);
 	LEAVE (EECH_ENGINE_OK);
 }
 

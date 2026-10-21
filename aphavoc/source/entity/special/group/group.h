@@ -283,9 +283,12 @@ typedef struct GROUP group;
 #ifdef EECH_CAMPAIGN_HOST_IDENTITIES
 #include "gp_roster.h"
 #else
+#define CAMPAIGN_LOSS_FORWARD 1
 #define campaign_roster_link_member(GROUP,MEMBER) ((void) 0)
 #define campaign_roster_unlink_member(GROUP,MEMBER) ((void) 0)
 #define campaign_roster_release_entity(ENTITY) ((void) 0)
+#define campaign_roster_observe_credit(MEMBER) (1)
+#define campaign_roster_observe_physical_loss(MEMBER,GROUP) (1)
 #endif
 
 #include "gp_msgs.h"
