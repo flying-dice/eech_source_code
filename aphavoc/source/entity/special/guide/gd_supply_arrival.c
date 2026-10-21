@@ -212,30 +212,58 @@ static campaign_arrival_result ask_host (const campaign_supply_reach_descriptor 
 	result.gates_passed = -1;
 	result.angle_present = -1;
 	result.launch_angle_error = 0.0f;
+	result.heading_target_missing = FALSE;
 	if (current_host.observe_reach (descriptor, &result, error, CAMPAIGN_SUPPLY_ERROR_MAX, current_host.user) != 0)
 	{
 		debug_fatal ("supply arrival: host supply_reached failed: %s", error[0] ? error : "unspecified error");
 	}
 	if (((result.gates_passed != FALSE) && (result.gates_passed != TRUE)) ||
-		((result.angle_present != FALSE) && (result.angle_present != TRUE)))
+		((result.angle_present != FALSE) && (result.angle_present != TRUE)) ||
+		((result.heading_target_missing != FALSE) && (result.heading_target_missing != TRUE)))
 	{
 		debug_fatal ("supply arrival: host supply_reached returned an invalid result");
 	}
 	return result;
 }
 
-/* Reads the required heading only when get_guide_required_heading cannot assert on its inputs. */
-static int gather_required_heading (entity *guide, entity *member, entity *waypoint, float *heading)
+/*
+ * Copies the facts the legacy get_guide_required_heading reads; the host derives the heading.
+ * Only pointer lookups are made: a TARGET waypoint without a task or target is reported, and
+ * the original assertion runs only once the host's earlier gates have passed.
+ */
+static void gather_heading_facts (campaign_supply_reach_descriptor *descriptor, entity *guide, entity *waypoint)
 {
-	if (get_local_entity_int_value (waypoint, INT_TYPE_ENTITY_SUB_TYPE) == ENTITY_SUB_TYPE_WAYPOINT_TARGET)
+	int sub_type = get_local_entity_int_value (waypoint, INT_TYPE_ENTITY_SUB_TYPE);
+
+	if ((sub_type == ENTITY_SUB_TYPE_WAYPOINT_PREPARE_FOR_INSERTION) || (sub_type == ENTITY_SUB_TYPE_WAYPOINT_TROOP_INSERT))
+	{
+		descriptor->heading_source = CAMPAIGN_HEADING_SOURCE_ZERO;
+		return;
+	}
+	descriptor->waypoint_heading = get_local_entity_float_value (waypoint, FLOAT_TYPE_HEADING);
+	if (sub_type != ENTITY_SUB_TYPE_WAYPOINT_TARGET)
+	{
+		descriptor->heading_source = CAMPAIGN_HEADING_SOURCE_WAYPOINT;
+		return;
+	}
+	descriptor->heading_source = CAMPAIGN_HEADING_SOURCE_TARGET;
 	{
 		entity *task = get_local_entity_parent (guide, LIST_TYPE_GUIDE);
-		if (!task || !get_local_entity_parent (task, LIST_TYPE_TASK_DEPENDENT))
+		entity *target = task ? get_local_entity_parent (task, LIST_TYPE_TASK_DEPENDENT) : NULL;
+
+		descriptor->heading_target_present = target ? TRUE : FALSE;
+		if (target)
 		{
-			return FALSE;
+			const vec3d *target_position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
+
+			/* the original falls back to the waypoint heading when either position is missing */
+			if (target_position)
+			{
+				descriptor->heading_target_position_present = TRUE;
+				copy_vec3d (descriptor->heading_target_position, target_position);
+			}
 		}
 	}
-	return get_guide_required_heading (guide, member, heading);
 }
 
 /*
@@ -298,7 +326,7 @@ static int observe_reach (entity *member, entity *guide, entity *task, entity *w
 		{
 			descriptor.heading_criterion = get_guide_criteria_value (guide, GUIDE_CRITERIA_HEADING);
 			descriptor.heading = get_local_entity_float_value (member, FLOAT_TYPE_HEADING);
-			descriptor.required_heading_present = gather_required_heading (guide, member, waypoint, &descriptor.required_heading);
+			gather_heading_facts (&descriptor, guide, waypoint);
 		}
 	}
 
@@ -349,6 +377,16 @@ static int observe_reach (entity *member, entity *guide, entity *task, entity *w
 	}
 
 	result = ask_host (&descriptor);
+	if (result.heading_target_missing)
+	{
+		if ((descriptor.heading_source != CAMPAIGN_HEADING_SOURCE_TARGET) || descriptor.heading_target_present)
+		{
+			debug_fatal ("supply arrival: host supply_reached reported a heading target the guide does have");
+		}
+		/* the legacy required-heading getter asserts on the task-dependent target */
+		ASSERT (descriptor.heading_target_present);
+		return FALSE;
+	}
 	if (!result.gates_passed)
 	{
 		return FALSE;

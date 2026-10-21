@@ -35,6 +35,10 @@ pub const CAMPAIGN_SUPPLY_MOBILE_PERSON: c_int = 6;
 pub const CAMPAIGN_ARRIVAL_QUERY_REACHED: c_int = 1;
 pub const CAMPAIGN_ARRIVAL_QUERY_ACTION: c_int = 2;
 pub const CAMPAIGN_ARRIVAL_QUERY_RECON: c_int = 3;
+pub const CAMPAIGN_HEADING_SOURCE_NONE: c_int = 0;
+pub const CAMPAIGN_HEADING_SOURCE_WAYPOINT: c_int = 1;
+pub const CAMPAIGN_HEADING_SOURCE_ZERO: c_int = 2;
+pub const CAMPAIGN_HEADING_SOURCE_TARGET: c_int = 3;
 
 #[repr(C)]
 pub struct eech_engine_config {
@@ -170,8 +174,11 @@ pub struct eech_supply_reach_descriptor {
     pub heading: f32,
     pub centre_of_gravity_to_ground: f32,
     pub guide_altitude: f32,
-    pub required_heading_present: c_int,
-    pub required_heading: f32,
+    pub heading_source: c_int,
+    pub waypoint_heading: f32,
+    pub heading_target_present: c_int,
+    pub heading_target_position_present: c_int,
+    pub heading_target_position: [f32; 3],
     pub weapon_vector: [f32; 3],
     pub intercept_vector: [f32; 3],
     pub action_radius: f32,
@@ -183,6 +190,7 @@ pub struct eech_arrival_result {
     pub gates_passed: c_int,
     pub angle_present: c_int,
     pub launch_angle_error: f32,
+    pub heading_target_missing: c_int,
 }
 
 pub type eech_supply_reached_callback = unsafe extern "C" fn(

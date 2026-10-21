@@ -99,15 +99,45 @@ fn segment_perpendicular_distance(a: [f32; 3], b: [f32; 3], c: [f32; 3]) -> f32 
 struct Answer {
     gates_passed: bool,
     launch_angle_error: Option<f32>,
+    /// The HEADING gate was reached on a TARGET waypoint whose task or target is absent.
+    heading_target_missing: bool,
 }
 
 impl Answer {
     fn denied() -> Self {
-        Self { gates_passed: false, launch_angle_error: None }
+        Self { gates_passed: false, launch_angle_error: None, heading_target_missing: false }
     }
 
     fn passed(launch_angle_error: Option<f32>) -> Self {
-        Self { gates_passed: true, launch_angle_error }
+        Self { gates_passed: true, launch_angle_error, heading_target_missing: false }
+    }
+
+    fn target_missing() -> Self {
+        Self { gates_passed: false, launch_angle_error: None, heading_target_missing: true }
+    }
+}
+
+/// The heading the guide requires, derived from the copied facts as the original
+/// get_guide_required_heading did. None: a TARGET waypoint has no task-dependent target.
+fn required_heading(descriptor: &LuaTable) -> LuaResult<Option<f32>> {
+    let source: String = descriptor.get::<Option<String>>("heading_source")?.ok_or_else(|| LuaError::runtime("host.supply_reached: the heading source is unavailable"))?;
+    let waypoint: f32 = descriptor.get("waypoint_heading")?;
+    match source.as_str() {
+        "zero" => Ok(Some(0.0)),
+        "waypoint" => Ok(Some(waypoint)),
+        "target" => {
+            if !descriptor.get::<bool>("heading_target_present")? {
+                return Ok(None);
+            }
+            // Without both positions the original falls back to the waypoint heading.
+            let Some(target) = descriptor.get::<Option<LuaTable>>("heading_target_position")? else {
+                return Ok(Some(waypoint));
+            };
+            let position = vector3(descriptor, "position")?;
+            let (x, z): (f32, f32) = (target.get(1)?, target.get(3)?);
+            Ok(Some(f64::atan2(f64::from(x - position[0]), f64::from(z - position[2])) as f32))
+        }
+        other => Err(LuaError::runtime(format!("host.supply_reached: unknown heading source {other}"))),
     }
 }
 
@@ -231,8 +261,9 @@ fn helicopter_reached(descriptor: &LuaTable) -> LuaResult<Answer> {
         }
     }
     if is_ai && descriptor.get::<bool>("heading_valid")? {
-        let required: Option<f32> = descriptor.get("required_heading")?;
-        let required = required.ok_or_else(|| LuaError::runtime("host.supply_reached: the required heading is unavailable"))?;
+        let Some(required) = required_heading(descriptor)? else {
+            return Ok(Answer::target_missing());
+        };
         let mut delta = required - descriptor.get::<f32>("heading")?;
         let pi = 3.141_592_7_f32;
         if delta < -pi {
@@ -496,6 +527,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let result = lua.create_table()?;
             result.set("gates_passed", answer.gates_passed)?;
             result.set("launch_angle_error", answer.launch_angle_error)?;
+            if answer.heading_target_missing {
+                result.set("heading_target_missing", true)?;
+            }
             Ok(result)
         })?,
     )?;
@@ -829,8 +863,8 @@ mod supply_reached_tests {
             let value = descriptor(lua, "helicopter")?;
             value.set("heading_valid", true)?;
             value.set("heading_criterion", 0.5_f32)?;
-            value.set("required_heading_present", true)?;
-            value.set("required_heading", required)?;
+            value.set("heading_source", "waypoint")?;
+            value.set("waypoint_heading", required)?;
             value.set("heading", current)?;
             Ok(value)
         };
@@ -844,10 +878,95 @@ mod supply_reached_tests {
         let human = heading(&lua, 1.0, 3.0)?;
         human.set("is_ai", false)?;
         assert!(passes(human)?);
-        // required heading unavailable is a boundary failure, not a pass
+        // a heading gate with no heading source is a boundary failure, not a pass
         let missing = heading(&lua, 1.0, 1.0)?;
-        missing.set("required_heading", mlua::Value::Nil)?;
+        missing.set("heading_source", mlua::Value::Nil)?;
         assert!(supply_reached(missing).is_err());
+        let unknown = heading(&lua, 1.0, 1.0)?;
+        unknown.set("heading_source", "sideways")?;
+        assert!(supply_reached(unknown).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn helicopter_required_heading_follows_the_original_source_rules() -> LuaResult<()> {
+        let lua = Lua::new();
+        let heading = |lua: &Lua, source: &str, current: f32| -> LuaResult<LuaTable> {
+            let value = descriptor(lua, "helicopter")?;
+            value.set("heading_valid", true)?;
+            value.set("heading_criterion", 0.1_f32)?;
+            value.set("heading_source", source)?;
+            value.set("waypoint_heading", 2.0_f32)?;
+            value.set("heading", current)?;
+            Ok(value)
+        };
+        // prepare-for-insertion and troop-insert hold a zero heading, whatever the waypoint says
+        assert!(passes(heading(&lua, "zero", 0.05)?)?);
+        assert!(!passes(heading(&lua, "zero", 2.0)?)?);
+
+        // a TARGET waypoint points from the member to the task-dependent target: x east, z north
+        let toward = |lua: &Lua, target: [f32; 3], current: f32| -> LuaResult<LuaTable> {
+            let value = heading(lua, "target", current)?;
+            value.set("position", vec![100.0_f32, 0.0, 200.0])?;
+            value.set("heading_target_present", true)?;
+            value.set("heading_target_position", target.to_vec())?;
+            Ok(value)
+        };
+        // due east of the member is pi/2, due north is 0, due south is pi
+        assert!(passes(toward(&lua, [300.0, 0.0, 200.0], std::f32::consts::FRAC_PI_2)?)?);
+        assert!(!passes(toward(&lua, [300.0, 0.0, 200.0], 0.0)?)?);
+        assert!(passes(toward(&lua, [100.0, 0.0, 900.0], 0.0)?)?);
+        assert!(passes(toward(&lua, [100.0, 0.0, -900.0], 3.1)?)?);
+        // the waypoint heading (2.0) is ignored once the target direction is known
+        assert!(!passes(toward(&lua, [100.0, 0.0, 900.0], 2.0)?)?);
+
+        // a target without a readable position falls back to the waypoint heading
+        let fallback = heading(&lua, "target", 2.0)?;
+        fallback.set("heading_target_present", true)?;
+        assert!(passes(fallback)?);
+        let fallback_off = heading(&lua, "target", 0.0)?;
+        fallback_off.set("heading_target_present", true)?;
+        assert!(!passes(fallback_off)?);
+        Ok(())
+    }
+
+    #[test]
+    fn helicopter_missing_target_is_reported_only_where_the_original_asserts() -> LuaResult<()> {
+        let lua = Lua::new();
+        let target_without_task = |lua: &Lua| -> LuaResult<LuaTable> {
+            let value = descriptor(lua, "helicopter")?;
+            value.set("heading_valid", true)?;
+            value.set("heading_criterion", 0.1_f32)?;
+            value.set("heading_source", "target")?;
+            value.set("waypoint_heading", 0.0_f32)?;
+            value.set("heading_target_present", false)?;
+            Ok(value)
+        };
+        // the heading gate is reached with no task or target: the original asserted here
+        assert_eq!(supply_reached(target_without_task(&lua)?)?, Answer::target_missing());
+
+        // every earlier gate keeps its own early-out and never reports the missing target
+        let outside = target_without_task(&lua)?;
+        outside.set("distance", 5_000.0_f32)?;
+        assert_eq!(supply_reached(outside)?, Answer::denied());
+        let landed = target_without_task(&lua)?;
+        landed.set("landed", true)?;
+        assert_eq!(supply_reached(landed)?, Answer::denied());
+        let spinning = target_without_task(&lua)?;
+        spinning.set("rotor_spin_up_seconds", 3.0_f32)?;
+        assert_eq!(supply_reached(spinning)?, Answer::denied());
+        let off_altitude = target_without_task(&lua)?;
+        off_altitude.set("altitude_valid", true)?;
+        off_altitude.set("altitude_criterion", 10.0_f32)?;
+        off_altitude.set("altitude", 500.0_f32)?;
+        assert_eq!(supply_reached(off_altitude)?, Answer::denied());
+        // a follower never evaluates the heading, and neither does a human member
+        let follower = target_without_task(&lua)?;
+        follower.set("is_task_leader", false)?;
+        assert_eq!(supply_reached(follower)?, Answer::passed(None));
+        let human = target_without_task(&lua)?;
+        human.set("is_ai", false)?;
+        assert_eq!(supply_reached(human)?, Answer::passed(None));
         Ok(())
     }
 

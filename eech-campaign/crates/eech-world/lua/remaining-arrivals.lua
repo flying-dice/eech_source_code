@@ -37,10 +37,10 @@ local selectors = {
 	altitude = function (d, answer)
 		return d.query == "reached" and d.mobile == "helicopter" and d.is_task_leader and d.altitude_valid and answer.gates_passed
 	end,
-	-- helicopter leader with the HEADING criterion and a required heading
+	-- AI helicopter leader with the HEADING criterion: the descriptor carries a heading source
 	heading = function (d, answer)
-		return d.query == "reached" and d.mobile == "helicopter" and d.is_task_leader and d.heading_valid
-			and d.required_heading_present and answer.gates_passed
+		return d.query == "reached" and d.mobile == "helicopter" and d.is_task_leader and d.is_ai and d.heading_valid
+			and d.heading_source ~= nil and answer.gates_passed
 	end,
 	-- a member the weapon-vector rule applies to, with both vectors present
 	weapon = function (d, answer)
@@ -87,7 +87,11 @@ local function supply_reached (descriptor)
 		if descriptor.query == "reached" then
 			if descriptor.altitude_valid then count (features, "altitude_valid\t" .. descriptor.mobile) end
 			if descriptor.heading_valid then count (features, "heading_valid\t" .. descriptor.mobile) end
-			if descriptor.heading_valid and descriptor.required_heading_present then count (features, "required_heading\t" .. descriptor.mobile) end
+			if descriptor.heading_source ~= nil then
+				count (features, "heading_source_" .. descriptor.heading_source .. "\t" .. descriptor.mobile)
+				if descriptor.heading_target_position ~= nil then count (features, "heading_target_position\t" .. descriptor.mobile) end
+			end
+			if answer.heading_target_missing then count (features, "heading_target_missing\t" .. descriptor.mobile) end
 			if descriptor.weapon_gate then count (features, "weapon_gate\t" .. descriptor.mobile) end
 			if descriptor.vectors_valid then count (features, "vectors_valid\t" .. descriptor.mobile) end
 			if answer.launch_angle_error ~= nil then count (features, "angle_reported\t" .. descriptor.mobile) end

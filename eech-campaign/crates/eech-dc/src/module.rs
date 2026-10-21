@@ -63,7 +63,7 @@ fn call_supply_reached(lua: &Lua, function: &LuaFunction, descriptor: SupplyReac
     let value = lua.to_value_with(&descriptor, options()).map_err(|e| e.to_string())?;
     let answer: LuaValue = function.call(value).map_err(|e| e.to_string())?;
     match answer {
-        LuaValue::Boolean(gates_passed) => Ok(ArrivalAnswer { gates_passed, launch_angle_error: None }),
+        LuaValue::Boolean(gates_passed) => Ok(ArrivalAnswer { gates_passed, launch_angle_error: None, heading_target_missing: false }),
         LuaValue::Table(table) => {
             let gates_passed = match table.get::<LuaValue>("gates_passed").map_err(|e| e.to_string())? {
                 LuaValue::Boolean(passed) => passed,
@@ -75,7 +75,12 @@ fn call_supply_reached(lua: &Lua, function: &LuaFunction, descriptor: SupplyReac
                 LuaValue::Integer(angle) => Some(angle as f32),
                 other => return Err(format!("supply_reached launch_angle_error must be a number, got {}", other.type_name())),
             };
-            Ok(ArrivalAnswer { gates_passed, launch_angle_error })
+            let heading_target_missing = match table.get::<LuaValue>("heading_target_missing").map_err(|e| e.to_string())? {
+                LuaValue::Nil => false,
+                LuaValue::Boolean(missing) => missing,
+                other => return Err(format!("supply_reached heading_target_missing must be a boolean, got {}", other.type_name())),
+            };
+            Ok(ArrivalAnswer { gates_passed, launch_angle_error, heading_target_missing })
         }
         other => Err(format!("supply_reached must return a boolean or a result table, got {}", other.type_name())),
     }

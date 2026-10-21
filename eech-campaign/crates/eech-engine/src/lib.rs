@@ -263,6 +263,18 @@ pub enum ArrivalQuery {
     Recon,
 }
 
+/// How the guide derives a helicopter's required heading.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum HeadingSource {
+    /// The waypoint's own heading.
+    Waypoint,
+    /// Prepare-for-insertion and troop-insert waypoints hold a zero heading.
+    Zero,
+    /// Point from the member to the task-dependent target.
+    Target,
+}
+
 /// Copied physical facts for one campaign-selected member at a waypoint.
 /// Task and waypoint keys are session-local correlation keys; only `host_id`
 /// is the host-issued mobile identity. Only the facts the queried mobile
@@ -312,7 +324,15 @@ pub struct SupplyReachDescriptor {
     pub heading: f32,
     pub centre_of_gravity_to_ground: f32,
     pub guide_altitude: f32,
-    pub required_heading: Option<f32>,
+    /// Helicopter HEADING gate: how the guide derives the required heading. Absent when the gate
+    /// does not apply to this member; the host derives the heading from the facts below.
+    pub heading_source: Option<HeadingSource>,
+    /// The waypoint's own heading; also the fallback when a TARGET waypoint has no target position.
+    pub waypoint_heading: f32,
+    /// TARGET waypoint: the guide's task has a task-dependent target.
+    pub heading_target_present: bool,
+    /// The task-dependent target's position, when it has one.
+    pub heading_target_position: Option<[f32; 3]>,
     pub weapon_vector: [f32; 3],
     pub intercept_vector: [f32; 3],
     pub action_radius: f32,
@@ -323,11 +343,14 @@ pub struct SupplyReachDescriptor {
 /// campaign's weapon-vector tolerance. `launch_angle_error` is the angle
 /// between the weapon and intercept vectors, required when the descriptor has
 /// `weapon_gate` and `vectors_valid` and the gates passed; the campaign keeps
-/// the random tolerance and the weapon limit.
+/// the random tolerance and the weapon limit. `heading_target_missing` reports
+/// that the host reached the HEADING gate of a TARGET waypoint whose task or
+/// target is absent; the campaign then raises the legacy assertion.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ArrivalAnswer {
     pub gates_passed: bool,
     pub launch_angle_error: Option<f32>,
+    pub heading_target_missing: bool,
 }
 
 /// One durable campaign roster entry. Membership can change while the same
@@ -695,6 +718,13 @@ where
             sys::CAMPAIGN_ARRIVAL_QUERY_RECON => ArrivalQuery::Recon,
             other => return Err(format!("unknown arrival query {other}")),
         };
+        let heading_source = match source.heading_source {
+            sys::CAMPAIGN_HEADING_SOURCE_NONE => None,
+            sys::CAMPAIGN_HEADING_SOURCE_WAYPOINT => Some(HeadingSource::Waypoint),
+            sys::CAMPAIGN_HEADING_SOURCE_ZERO => Some(HeadingSource::Zero),
+            sys::CAMPAIGN_HEADING_SOURCE_TARGET => Some(HeadingSource::Target),
+            other => return Err(format!("unknown arrival heading source {other}")),
+        };
         checked_floats(&[
             ("rotor_spin_up_seconds", source.rotor_spin_up_seconds),
             ("distance", source.distance),
@@ -707,7 +737,7 @@ where
             ("heading", source.heading),
             ("centre_of_gravity_to_ground", source.centre_of_gravity_to_ground),
             ("guide_altitude", source.guide_altitude),
-            ("required_heading", source.required_heading),
+            ("waypoint_heading", source.waypoint_heading),
             ("action_radius", source.action_radius),
         ])?;
         for (name, vector) in [
@@ -716,6 +746,7 @@ where
             ("guide_position", source.guide_position),
             ("leader_position", source.leader_position),
             ("waypoint_position", source.waypoint_position),
+            ("heading_target_position", source.heading_target_position),
         ] {
             for value in vector {
                 if !value.is_finite() {
@@ -765,7 +796,11 @@ where
             heading: source.heading,
             centre_of_gravity_to_ground: source.centre_of_gravity_to_ground,
             guide_altitude: source.guide_altitude,
-            required_heading: checked_bool("required_heading_present", source.required_heading_present)?.then_some(source.required_heading),
+            heading_source,
+            waypoint_heading: source.waypoint_heading,
+            heading_target_present: checked_bool("heading_target_present", source.heading_target_present)?,
+            heading_target_position: checked_bool("heading_target_position_present", source.heading_target_position_present)?
+                .then_some(source.heading_target_position),
             weapon_vector: source.weapon_vector,
             intercept_vector: source.intercept_vector,
             action_radius: source.action_radius,
@@ -778,6 +813,7 @@ where
                 gates_passed: c_int::from(answer.gates_passed),
                 angle_present: c_int::from(answer.launch_angle_error.is_some()),
                 launch_angle_error: answer.launch_angle_error.unwrap_or(0.0),
+                heading_target_missing: c_int::from(answer.heading_target_missing),
             };
         }
         Ok(())

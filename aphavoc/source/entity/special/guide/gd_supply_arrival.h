@@ -46,6 +46,14 @@ enum campaign_supply_mobile_kind
 	CAMPAIGN_SUPPLY_MOBILE_PERSON = 6
 };
 
+typedef enum campaign_heading_source
+{
+	CAMPAIGN_HEADING_SOURCE_NONE = 0,
+	CAMPAIGN_HEADING_SOURCE_WAYPOINT = 1,	/* the waypoint's own heading */
+	CAMPAIGN_HEADING_SOURCE_ZERO = 2,	/* prepare-for-insertion and troop-insert hold a zero heading */
+	CAMPAIGN_HEADING_SOURCE_TARGET = 3	/* point from the member to the task-dependent target */
+} campaign_heading_source;
+
 typedef struct campaign_supply_reach_descriptor
 {
 	uint64_t member_key;
@@ -87,8 +95,12 @@ typedef struct campaign_supply_reach_descriptor
 	float heading;			/* member FLOAT_TYPE_HEADING */
 	float centre_of_gravity_to_ground;
 	float guide_altitude;		/* guide entity position y */
-	int required_heading_present;
-	float required_heading;
+	/* helicopter HEADING gate: how the guide derives the required heading (campaign_heading_source) */
+	int heading_source;
+	float waypoint_heading;		/* the waypoint's own heading; also the target-direction fallback */
+	int heading_target_present;	/* TARGET waypoint: the guide's task has a task-dependent target */
+	int heading_target_position_present;
+	float heading_target_position[3];
 	float weapon_vector[3];
 	float intercept_vector[3];
 	/* QUERY_ACTION / QUERY_RECON */
@@ -100,13 +112,16 @@ typedef struct campaign_supply_reach_descriptor
  * gates_passed: every physical gate that precedes the weapon-vector tolerance
  * held.  angle_present/launch_angle_error: the angle between the weapon and
  * intercept vectors, required when the descriptor has weapon_gate and
- * vectors_valid and gates_passed.
+ * vectors_valid and gates_passed.  heading_target_missing: the host reached the
+ * HEADING gate of a TARGET waypoint whose task or target is absent, which the
+ * legacy required-heading getter asserts on.
  */
 typedef struct campaign_arrival_result
 {
 	int gates_passed;
 	int angle_present;
 	float launch_angle_error;
+	int heading_target_missing;
 } campaign_arrival_result;
 
 typedef int (*campaign_observe_supply_reach_fn)
