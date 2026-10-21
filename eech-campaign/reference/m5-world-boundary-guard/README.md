@@ -19,5 +19,5 @@ object manifest exists for it, so object provenance is unavailable and unverifie
 | `checkpoint-cdffc799/retained-dll-check-report.json` | Old checkpoint, unchanged: the report of the tool at `cdffc799`. Same verdict and counts; older reason wording and key names | `70545dceb367ad51c5b193264f0ac2b127df28e53032aab22d8dc2941d950134` |
 | `checkpoint-cdffc799/selftest-output.txt` | Old checkpoint, unchanged: 37/37 as expected at `cdffc799` | `5c89634b5b9e5ac3d1c5a35be3516a74b76f8ff9e1f571fe0b472d8219cf321d` |
 
-Hashes are of the committed (LF) bytes. The retained report and the staging baseline (`885025eb…26b8`) are unchanged by the sha256-header change; the real DLL verdict is still FAIL (1378 W/E-class functions; E 707, W 671).
+Hashes are of the committed (LF) bytes. The retained report and the staging baseline (`885025ebâ€¦26b8`) are unchanged by the sha256-header change; the real DLL verdict is still FAIL (1378 W/E-class functions; E 707, W 671).
 The retained report is Level B on known source definitions and objects only; it is not criterion 2 acceptance.

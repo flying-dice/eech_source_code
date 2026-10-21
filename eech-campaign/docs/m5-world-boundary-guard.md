@@ -68,7 +68,7 @@ Inputs: `--dll`, `--build-info` (the `BUILD-INFO.txt` beside it), optionally
    and other lines are free. Any line that opens with a `sha256` token other
    than that one exact `sha256:` header (truncated, bare, uppercase, indented
    or followed by a value) is INCOMPLETE wherever it sits; text inside a line,
-   such as `image: …@sha256:…`, and hash-first file rows are not such records. The object manifest has a closed vocabulary
+   such as `image: â€¦@sha256:â€¦`, and hash-first file rows are not such records. The object manifest has a closed vocabulary
    (`dll-sha256`, `source-commit`, `object`); a repeated header (wrong then
    right, right then wrong, identical or truncated), an unknown, bare or
    malformed record, or a repeated object (also after `\` to `/`
