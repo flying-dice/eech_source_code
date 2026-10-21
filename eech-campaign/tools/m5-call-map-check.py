@@ -35,7 +35,7 @@ from pathlib import Path
 SNAPSHOT = "65892de17bf5c4bb9ab6e9f8af70779e35b0106b"
 SCRIPTS = ["eechmap.py", "inventory.py", "reach.py", "dispatch.py", "globals.py", "ledger.py"]
 SOURCE_PATHS = ["aphavoc", "modules", "eech-campaign/crates/eech-engine-sys"]  # everything the scripts read
-MERGE_PATHS = ["aphavoc", "eech-campaign/crates"]  # the runtime source a merge target must leave unchanged
+MERGE_PATHS = ["aphavoc", "modules", "eech-campaign/crates"]  # source a merge target must leave unchanged
 BLOCK = re.compile(r"<summary><code>([\w.]+\.py)</code></summary>\n\n```python\n(.*?)\n```", re.S)
 REPO = Path(__file__).resolve().parent  # replaced by the repository root in main()
 
