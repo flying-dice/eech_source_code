@@ -323,6 +323,9 @@ pub struct LossReceipt {
     pub group_losses_after: i32,
     pub primary_task_losses_before: i32,
     pub primary_task_losses_after: i32,
+    pub group_logical_members_before: i32,
+    pub group_logical_members_after: i32,
+    pub group_physical_members_before: i32,
     pub tasks_retired_expire: i32,
     pub tasks_completed_on_report: i32,
 }
@@ -785,6 +788,9 @@ impl Engine {
             group_losses_after: r.group_losses_after,
             primary_task_losses_before: r.primary_task_losses_before,
             primary_task_losses_after: r.primary_task_losses_after,
+            group_logical_members_before: r.group_logical_members_before,
+            group_logical_members_after: r.group_logical_members_after,
+            group_physical_members_before: r.group_physical_members_before,
             tasks_retired_expire: r.tasks_retired_expire,
             tasks_completed_on_report: r.tasks_completed_on_report,
         })

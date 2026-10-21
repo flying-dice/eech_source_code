@@ -158,6 +158,9 @@ typedef struct campaign_loss_report_receipt
 	int group_losses_after;
 	int primary_task_losses_before;
 	int primary_task_losses_after;
+	int group_logical_members_before;
+	int group_logical_members_after;
+	int group_physical_members_before;
 	int tasks_retired_expire;
 	int tasks_completed_on_report;
 } campaign_loss_report_receipt;
@@ -180,6 +183,7 @@ int campaign_roster_observe_physical_loss (struct ENTITY *member, struct ENTITY 
 void campaign_roster_record_task_termination (struct ENTITY *task, int termination_reason);
 int campaign_roster_has_pending_loss (void);
 int campaign_roster_report_loss (const char *host_id, campaign_loss_report_receipt *receipt);
+int campaign_roster_group_member_count (struct ENTITY *group);
 uint64_t campaign_roster_member_key (struct ENTITY *member);
 const char *campaign_roster_host_id (struct ENTITY *member);
 int campaign_roster_members (campaign_member_snapshot_fn callback, void *user);

@@ -289,6 +289,7 @@ typedef struct GROUP group;
 #define campaign_roster_release_entity(ENTITY) ((void) 0)
 #define campaign_roster_observe_credit(MEMBER) (1)
 #define campaign_roster_observe_physical_loss(MEMBER,GROUP) (1)
+#define campaign_roster_group_member_count(GROUP) get_local_entity_int_value ((GROUP), INT_TYPE_MEMBER_COUNT)
 #endif
 
 #include "gp_msgs.h"

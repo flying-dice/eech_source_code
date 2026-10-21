@@ -340,6 +340,9 @@ int eech_engine_report_loss (const char *host_id, struct eech_loss_report_receip
 	receipt->group_losses_after = source.group_losses_after;
 	receipt->primary_task_losses_before = source.primary_task_losses_before;
 	receipt->primary_task_losses_after = source.primary_task_losses_after;
+	receipt->group_logical_members_before = source.group_logical_members_before;
+	receipt->group_logical_members_after = source.group_logical_members_after;
+	receipt->group_physical_members_before = source.group_physical_members_before;
 	receipt->tasks_retired_expire = source.tasks_retired_expire;
 	receipt->tasks_completed_on_report = source.tasks_completed_on_report;
 	LEAVE (EECH_ENGINE_OK);

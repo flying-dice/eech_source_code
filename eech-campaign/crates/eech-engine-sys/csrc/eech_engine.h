@@ -81,6 +81,7 @@ struct eech_loss_report_receipt
 	int landing_reserved_before, landing_reserved_after;
 	int group_losses_before, group_losses_after;
 	int primary_task_losses_before, primary_task_losses_after;
+	int group_logical_members_before, group_logical_members_after, group_physical_members_before;
 	int tasks_retired_expire, tasks_completed_on_report;
 };
 

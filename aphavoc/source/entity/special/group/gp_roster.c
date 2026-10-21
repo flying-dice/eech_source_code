@@ -22,6 +22,10 @@ typedef struct campaign_member_record
 	int in_group;
 	int credit_observed;
 	int loss_pending;
+	/* Campaign-owned logical membership; physical_present and in_group stay physical. */
+	int active;
+	int counted;
+	int loss_forwarded;
 } campaign_member_record;
 
 typedef struct campaign_entity_reference_record
@@ -82,6 +86,8 @@ static int *current_reference_by_entity;
 static int map_size;
 static uint64_t next_member_key = 1;
 static uint64_t next_group_key = 1;
+static int *group_logical_counts;
+static size_t group_logical_capacity;
 static campaign_entity_reference_record *reference_records;
 static size_t reference_record_count;
 static size_t reference_record_capacity;
@@ -230,6 +236,50 @@ static campaign_member_record *find_member_record (uint64_t member_key)
 		}
 	}
 	return NULL;
+}
+
+static int *group_logical_count_slot (uint64_t key)
+{
+	if (key > group_logical_capacity)
+	{
+		size_t capacity = group_logical_capacity ? group_logical_capacity : 64;
+		int *grown;
+		while (capacity < key)
+		{
+			capacity *= 2;
+		}
+		grown = (int *) realloc (group_logical_counts, capacity * sizeof (*grown));
+		if (!grown)
+		{
+			debug_fatal ("campaign roster: cannot grow logical group counts");
+		}
+		memset (grown + group_logical_capacity, 0, (capacity - group_logical_capacity) * sizeof (*grown));
+		group_logical_counts = grown;
+		group_logical_capacity = capacity;
+	}
+	return &group_logical_counts[key - 1];
+}
+
+/*
+ * A member counts toward its group's logical membership while the campaign has
+ * not retired it and it is either physically linked or awaiting a host loss
+ * report. A live transfer is unlinked then relinked with the same member key,
+ * so it is not retired and never reported as a loss.
+ */
+static void update_logical_membership (campaign_member_record *record, uint64_t new_group_key)
+{
+	int counted = record->active && (record->in_group || record->loss_pending);
+
+	if (record->counted)
+	{
+		(*group_logical_count_slot (record->group_key))--;
+	}
+	record->group_key = new_group_key;
+	record->counted = counted;
+	if (counted)
+	{
+		(*group_logical_count_slot (record->group_key))++;
+	}
 }
 
 static campaign_member_record *record_for_member (entity *member)
@@ -452,6 +502,10 @@ static void begin_pending_loss (entity *group, campaign_member_record *member_re
 	{
 		debug_fatal ("campaign loss: WITHHOLD does not support a member with credited aggression");
 	}
+	if (get_local_entity_int_value (group, INT_TYPE_MEMBER_COUNT) <= 1)
+	{
+		debug_fatal ("campaign loss: WITHHOLD does not support the final physical member of a group");
+	}
 
 	ensure_pending_loss_capacity ();
 	pending = &pending_losses[pending_loss_count++];
@@ -511,7 +565,7 @@ static int observe_loss_event (entity *member, entity *group, campaign_loss_even
 	descriptor.primary_task_sub_type = task ? get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) : -1;
 	descriptor.primary_task_key = task ? campaign_reference_key (task) : 0;
 	descriptor.group_member_number = get_local_entity_int_value (member, INT_TYPE_GROUP_MEMBER_NUMBER);
-	descriptor.campaign_member_count = get_local_entity_int_value (group, INT_TYPE_MEMBER_COUNT);
+	descriptor.campaign_member_count = campaign_roster_group_member_count (group);
 	descriptor.player = get_local_entity_int_value (member, INT_TYPE_PLAYER);
 	descriptor.landed = get_local_entity_int_value (member, INT_TYPE_LANDED);
 	capture_task_dependents (member, &descriptor);
@@ -541,6 +595,10 @@ static int observe_loss_event (entity *member, entity *group, campaign_loss_even
 	if (event_kind == CAMPAIGN_LOSS_EVENT_CREDIT)
 	{
 		record->credit_observed = TRUE;
+	}
+	else if (decision == CAMPAIGN_LOSS_FORWARD)
+	{
+		record->loss_forwarded = TRUE;
 	}
 	return decision;
 }
@@ -664,6 +722,9 @@ void campaign_roster_reset (void)
 	free (current_reference_by_entity);
 	free (reference_records);
 	free (pending_losses);
+	free (group_logical_counts);
+	group_logical_counts = NULL;
+	group_logical_capacity = 0;
 	records = NULL;
 	record_count = 0;
 	record_capacity = 0;
@@ -713,8 +774,8 @@ void campaign_roster_link_member (entity *group, entity *member)
 		{
 			debug_fatal ("campaign roster: stale current member mapping for entity %d", member_index);
 		}
-		record->group_key = key;
 		record->in_group = TRUE;
+		update_logical_membership (record, key);
 		return;
 	}
 
@@ -766,7 +827,6 @@ void campaign_roster_link_member (entity *group, entity *member)
 		{
 			debug_fatal ("campaign roster: member key overflow");
 		}
-		record->group_key = key;
 		memcpy (record->host_id, host_id, length + 1);
 		record->origin_entity_index = member_index;
 		record->current_entity_index = member_index;
@@ -776,6 +836,8 @@ void campaign_roster_link_member (entity *group, entity *member)
 		record->initial_alive = get_local_entity_int_value (member, INT_TYPE_ALIVE) ? TRUE : FALSE;
 		record->physical_present = TRUE;
 		record->in_group = TRUE;
+		record->active = TRUE;
+		update_logical_membership (record, key);
 		current_member_by_entity[member_index] = (int) record_count + 1;
 		record_count++;
 	}
@@ -788,7 +850,14 @@ void campaign_roster_unlink_member (entity *group, entity *member)
 	(void) group;
 	if (record_index >= 0)
 	{
-		records[record_index].in_group = FALSE;
+		campaign_member_record *record = &records[record_index];
+		record->in_group = FALSE;
+		/* A forwarded physical loss retires the member at the original unlink phase. */
+		if (record->loss_forwarded)
+		{
+			record->active = FALSE;
+		}
+		update_logical_membership (record, record->group_key);
 	}
 }
 
@@ -811,6 +880,12 @@ void campaign_roster_release_entity (entity *en)
 		campaign_member_record *record = &records[record_index];
 		record->physical_present = FALSE;
 		record->in_group = FALSE;
+		/* A freed incarnation with no host report owed has left the campaign. */
+		if (!record->loss_pending)
+		{
+			record->active = FALSE;
+		}
+		update_logical_membership (record, record->group_key);
 		record->current_entity_index = ENTITY_INDEX_DONT_CARE;
 		current_member_by_entity[index] = 0;
 	}
@@ -943,6 +1018,9 @@ int campaign_roster_report_loss (const char *host_id, campaign_loss_report_recei
 	int group_losses_after;
 	int task_losses_before;
 	int task_losses_after;
+	int logical_members_before;
+	int logical_members_after;
+	int physical_members_before;
 	int retired_expire_count = 0;
 	int completed_on_report_count = 0;
 
@@ -1062,7 +1140,21 @@ int campaign_roster_report_loss (const char *host_id, campaign_loss_report_recei
 	unreserve_local_landing_sites (landing, plan.landing_count);
 	landing_reserved_after = get_local_entity_int_value (landing, INT_TYPE_RESERVED_LANDING_SITES);
 
+	/* The logical-unlink phase: after the member-bound consequences, before the group loss. */
 	group = campaign_reference_resolve (plan.group_reference_key, ENTITY_TYPE_GROUP);
+	logical_members_before = campaign_roster_group_member_count (group);
+	physical_members_before = get_local_entity_int_value (group, INT_TYPE_MEMBER_COUNT);
+	member_record = find_member_record (plan.member_key);
+	if (!member_record)
+	{
+		debug_fatal ("campaign loss: member record vanished during report for %s", host_id);
+	}
+	member_record->loss_pending = FALSE;
+	member_record->active = FALSE;
+	update_logical_membership (member_record, member_record->group_key);
+	member_record = NULL;
+	logical_members_after = campaign_roster_group_member_count (group);
+
 	increment_group_losses (group);
 	group_losses_after = get_local_entity_int_value (group, INT_TYPE_LOSSES);
 
@@ -1093,12 +1185,6 @@ int campaign_roster_report_loss (const char *host_id, campaign_loss_report_recei
 	);
 
 	require_pending_loss (host_id)->state = CAMPAIGN_PENDING_LOSS_REPORTED;
-	member_record = find_member_record (plan.member_key);
-	if (!member_record)
-	{
-		debug_fatal ("campaign loss: member record vanished during report for %s", host_id);
-	}
-	member_record->loss_pending = FALSE;
 
 	/* Filled only now, after every fatal check: a failed report leaves the caller's receipt untouched. */
 	receipt->landing_reserved_before = landing_reserved_before;
@@ -1107,6 +1193,9 @@ int campaign_roster_report_loss (const char *host_id, campaign_loss_report_recei
 	receipt->group_losses_after = group_losses_after;
 	receipt->primary_task_losses_before = task_losses_before;
 	receipt->primary_task_losses_after = task_losses_after;
+	receipt->group_logical_members_before = logical_members_before;
+	receipt->group_logical_members_after = logical_members_after;
+	receipt->group_physical_members_before = physical_members_before;
 	receipt->tasks_retired_expire = retired_expire_count;
 	receipt->tasks_completed_on_report = completed_on_report_count;
 	return TRUE;
@@ -1137,6 +1226,47 @@ const char *campaign_roster_host_id (entity *member)
 {
 	campaign_member_record *record = current_member_record (member);
 	return record ? record->host_id : NULL;
+}
+
+/*
+ * Logical membership as the campaign sees it: a member whose loss is withheld
+ * pending the host report still counts. The only legitimate gap from the
+ * physical list is such a member, so any other divergence fails closed.
+ */
+int campaign_roster_group_member_count (entity *group)
+{
+	int index = entity_index (group);
+	uint64_t key;
+	int logical;
+	int physical = get_local_entity_int_value (group, INT_TYPE_MEMBER_COUNT);
+	int withheld = 0;
+	size_t i;
+
+	/* Only groups carry campaign membership; other entities keep the physical count. */
+	if (get_local_entity_type (group) != ENTITY_TYPE_GROUP)
+	{
+		return physical;
+	}
+	key = current_group_by_entity[index];
+	if (!key)
+	{
+		return physical;
+	}
+	logical = *group_logical_count_slot (key);
+
+	for (i = 0; i < record_count; ++i)
+	{
+		const campaign_member_record *record = &records[i];
+		if ((record->group_key == key) && record->loss_pending && !record->in_group)
+		{
+			withheld++;
+		}
+	}
+	if (logical != physical + withheld)
+	{
+		debug_fatal ("campaign roster: logical member count %d diverges from physical %d with %d withheld for group entity %d", logical, physical, withheld, index);
+	}
+	return logical;
 }
 
 int campaign_roster_members (campaign_member_snapshot_fn callback, void *user)

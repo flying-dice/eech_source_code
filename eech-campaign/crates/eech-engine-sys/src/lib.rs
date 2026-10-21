@@ -236,6 +236,9 @@ pub struct eech_loss_report_receipt {
     pub group_losses_after: c_int,
     pub primary_task_losses_before: c_int,
     pub primary_task_losses_after: c_int,
+    pub group_logical_members_before: c_int,
+    pub group_logical_members_after: c_int,
+    pub group_physical_members_before: c_int,
     pub tasks_retired_expire: c_int,
     pub tasks_completed_on_report: c_int,
 }
