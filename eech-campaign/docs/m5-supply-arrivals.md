@@ -98,8 +98,10 @@ both `bind_mobile` and `supply_reached`. Legacy Tacview IDs,
 non-SUPPLY arrival handlers remain unchanged. The reference predicate is
 synchronous in the same frame, preserving the existing consequence ordering.
 
-The physical aircraft and movement model still live inside the DLL. All
-non-SUPPLY arrivals remain coupled. A DCS adapter must supply the callback from
+The physical aircraft and movement model still live inside the DLL. Non-SUPPLY
+radius-only fixed-wing and helicopter arrival now uses this seam
+([`m5-aircraft-arrivals.md`](m5-aircraft-arrivals.md)); all other non-SUPPLY
+arrivals remain coupled. A DCS adapter must supply the callback from
 real DCS object facts; this repository does not claim that adapter exists. The
 next loss slice must let physical destruction occur independently while host
 loss reporting controls only campaign consequences through the durable roster.
