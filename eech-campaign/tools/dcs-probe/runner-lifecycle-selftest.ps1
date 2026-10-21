@@ -40,8 +40,29 @@ try {
 $started = [datetime]'2026-10-21T08:00:00Z'
 $script:inventory = @()
 $script:stopped = @()
-function Get-CimInstance { param($ClassName) return $script:inventory }
-function Stop-Process { param($Id, [switch]$Force, $ErrorAction) $script:stopped += $Id }
+$script:stoppedInstances = @()
+$script:beforeOpen = $null
+$script:afterLookup = $null
+function Get-CimInstance { param($ClassName, $Filter) return $script:inventory }
+function Open-StableProcess($id) {
+	if ($null -ne $script:beforeOpen) { & $script:beforeOpen $id; $script:beforeOpen = $null }
+	$row = @($script:inventory | Where-Object { $_.ProcessId -eq $id -and $null -ne $_.CreationDate } | Select-Object -First 1)
+	if ($row.Count -eq 0) { throw "fake process $id is not live" }
+	return [pscustomobject]@{ Id = [int]$id; SafeHandle = "fake-$id"; PinnedStarted = $row[0].CreationDate }
+}
+function Get-LiveProcessInstance($id) {
+	$row = @($script:inventory | Where-Object { $_.ProcessId -eq $id -and $null -ne $_.CreationDate } | Select-Object -First 1)
+	if ($row.Count -eq 0) { return $null }
+	$current = @{ id = [int]$row[0].ProcessId; started = $row[0].CreationDate }
+	if ($null -ne $script:afterLookup) { & $script:afterLookup $id; $script:afterLookup = $null }
+	return $current
+}
+function Stop-StableProcess($opened) {
+	$script:stopped += [int]$opened.Id
+	$startedAt = if ($null -ne $opened.PinnedStarted) { $opened.PinnedStarted } else { $started }
+	$script:stoppedInstances += "$(($opened.Id))@$($startedAt.ToString('O'))"
+}
+function Close-StableProcess($opened) { $opened | Add-Member -NotePropertyName Closed -NotePropertyValue $true -Force }
 function Row($id, $parent, $seconds) {
 	[pscustomobject]@{ ProcessId = $id; ParentProcessId = $parent; CreationDate = $started.AddSeconds($seconds) }
 }
@@ -54,6 +75,9 @@ function Expect($name, [int[]] $expected) {
 }
 function Cleanup($process, $recorded = @()) {
 	$script:stopped = @()
+	$script:stoppedInstances = @()
+	$script:beforeOpen = $null
+	$script:afterLookup = $null
 	$null = Stop-OwnedTree $process $started $recorded
 }
 function RowMs($id, $parent, $milliseconds) {
@@ -119,6 +143,37 @@ Expect 'recorded child gone, PID reused and its child orphaned: not adopted' 100
 $script:inventory = @((Row 101 100 1), (Row 301 101 21))
 Cleanup $runningRoot @(@{ id = 101; started = $started.AddSeconds(1) })
 Expect 'recorded child still alive: its new child is adopted' 100, 101, 301
+
+# Reuse after discovery but before the handle is opened is rejected by the exact final CIM
+# identity check. A tolerance would incorrectly accept the 1 ms replacement.
+$script:inventory = @((Row 101 100 1))
+$script:beforeOpen = {
+	param($id)
+	if ($id -eq 101) { $script:inventory = @((RowMs 101 999 1001)) }
+}
+$script:stopped = @()
+$script:stoppedInstances = @()
+$null = Stop-OwnedTree $runningRoot $started
+Expect 'reuse before handle open: 1 ms replacement is ignored' 100
+
+# Once opened, final validation may still race with exit and reuse. The lookup sees the owned
+# instance, then the fake inventory changes to a replacement before actuation. The stopped
+# instance must be the one pinned by the earlier open, never the process now carrying its PID.
+$script:inventory = @((Row 101 100 1))
+$script:afterLookup = {
+	param($id)
+	if ($id -eq 101) { $script:inventory = @((Row 101 999 20)) }
+}
+$script:stopped = @()
+$script:stoppedInstances = @()
+$null = Stop-OwnedTree $runningRoot $started
+Expect 'reuse after handle open: the pinned owned instance is stopped' 100, 101
+$ownedIdentity = "101@$($started.AddSeconds(1).ToString('O'))"
+$replacementIdentity = "101@$($started.AddSeconds(20).ToString('O'))"
+if ($script:stoppedInstances -notcontains $ownedIdentity -or $script:stoppedInstances -contains $replacementIdentity) {
+	throw "stable-handle actuation did not preserve the opened identity: $($script:stoppedInstances -join ',')"
+}
+Write-Output 'ok   stable handle: exit/reuse after validation cannot redirect termination to the replacement'
 
 # an orphaned grandchild: the intermediate 101 is gone. Unrecorded, nothing proves 102 descends from
 # the root, so it is not adopted; recorded while 101 was alive, it is.

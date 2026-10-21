@@ -63,14 +63,60 @@ function Get-OwnedInstances($process, $started, $recorded = @(), $exited = $null
 	return @(Find-OwnedInstances $process.Id $started $exited $ended @(Get-CimInstance Win32_Process) $recorded)
 }
 
+# Opens a process and forces .NET to acquire its native handle before returning it. The handle
+# pins that process instance even if it exits and Windows reuses the PID before Kill is called.
+function Open-StableProcess($id) {
+	$opened = [Diagnostics.Process]::GetProcessById([int]$id)
+	try {
+		$null = $opened.SafeHandle
+		return $opened
+	} catch {
+		$opened.Dispose()
+		throw
+	}
+}
+
+# Reads the current CIM identity for a PID. Descendant discovery and this final validation use
+# the same CreationDate source, so equality is exact; no time tolerance can accept a replacement.
+function Get-LiveProcessInstance($id) {
+	$row = @(Get-CimInstance Win32_Process -Filter "ProcessId = $([int]$id)" |
+		Where-Object { $null -ne $_ -and $null -ne $_.CreationDate } | Select-Object -First 1)
+	if ($row.Count -eq 0) { return $null }
+	return @{ id = [int]$row[0].ProcessId; started = $row[0].CreationDate }
+}
+
+function Stop-StableProcess($opened) { $opened.Kill() }
+function Close-StableProcess($opened) { $opened.Dispose() }
+
 # Stops the started process (if still running) and its owned descendants, and returns the
-# stopped PIDs. Without a process list the live root alone is stopped.
+# stopped PIDs. The root's Start-Process object already identifies its original instance. Each
+# descendant is opened first, then checked against a fresh exact CIM identity, and that same
+# pinned process is stopped. Without a process list the live root alone is stopped.
 function Stop-OwnedTree($process, $started, $recorded = @()) {
 	if ($null -eq $process) { return , @() }   # nothing was started
 	$exited = [bool]$process.HasExited   # read once: the root and its descendants are judged on the same state
-	$ids = @(if (-not $exited) { [int]$process.Id })
-	try { $ids += @(Get-OwnedInstances $process $started $recorded $exited | ForEach-Object { $_.id }) } catch {}
+	$owned = @()
+	try { $owned = @(Get-OwnedInstances $process $started $recorded $exited) } catch {}
 	$stopped = @()
-	foreach ($id in $ids) { try { Stop-Process -Id $id -Force -ErrorAction Stop; $stopped += $id } catch {} }
+	if (-not $exited) {
+		try {
+			$null = $process.SafeHandle   # pin the original Start-Process instance, not a later PID lookup
+			Stop-StableProcess $process
+			$stopped += [int]$process.Id
+		} catch {}
+	}
+	foreach ($instance in $owned) {
+		$opened = $null
+		try {
+			$opened = Open-StableProcess $instance.id
+			$current = Get-LiveProcessInstance $instance.id
+			if ($null -eq $current -or $current.id -ne $instance.id -or $current.started -ne $instance.started) { continue }
+			Stop-StableProcess $opened
+			$stopped += [int]$instance.id
+		} catch {
+		} finally {
+			if ($null -ne $opened) { try { Close-StableProcess $opened } catch {} }
+		}
+	}
 	return , $stopped
 }
