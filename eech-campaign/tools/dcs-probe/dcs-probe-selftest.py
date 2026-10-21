@@ -14,6 +14,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import struct
 import subprocess
 import sys
@@ -83,13 +84,41 @@ def check(name, condition, detail=""):
 
 
 def rejected_profile_name(result, label, name):
-    # PowerShell wraps error text to the host width on some platforms. Collapse only
-    # whitespace, then require the named guard and one of its specific rejection reasons.
-    diagnostic = " ".join(result.stderr.split())
+    # PowerShell's Unix renderer prefixes wrapped continuation lines with a gutter.
+    # Remove only a line-leading gutter, preserving values such as "Probe|x".
+    without_gutters = "\n".join(re.sub(r"^\s+\|\s?", "", line) for line in result.stderr.splitlines())
+    diagnostic = " ".join(without_gutters.split())
     reason = ("not allowed in a profile name" in diagnostic
               or "ending in a dot or space" in diagnostic
               or "reserved device name" in diagnostic)
     return result.returncode != 0 and f"{label} '{name}'" in diagnostic and reason
+
+
+def profile_name_diagnostic_tests():
+    # Exact stderr shape retained from Ubuntu job 119307353095: PowerShell wraps
+    # the value and reason behind a literal gutter, including a pipe in the value.
+    stderr = """Exception: /home/runner/work/eech_source_code/eech_source_code/eech-campaign/tools/dcs-probe/run-dcs-probe.ps1:50
+Line |
+  50 |  … *?<>|\"]') { throw \"$Label '$Name' has a character that is not allowed …
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | -WriteDirName 'Probe|x' has a character that is not allowed in a profile
+     | name (: [ ] * ? < > | \" or a control character)
+"""
+
+    def result(returncode=1, diagnostic=stderr):
+        return subprocess.CompletedProcess([], returncode, "", diagnostic)
+
+    check("profile guard matcher accepts the actual Ubuntu pwsh gutter wrapping",
+          rejected_profile_name(result(), "-WriteDirName", "Probe|x"))
+    check("profile guard matcher still requires a nonzero exit",
+          not rejected_profile_name(result(returncode=0), "-WriteDirName", "Probe|x"))
+    check("profile guard matcher still requires the exact parameter",
+          not rejected_profile_name(result(), "-DefaultWriteDirName", "Probe|x"))
+    check("profile guard matcher still requires the exact rejected value",
+          not rejected_profile_name(result(), "-WriteDirName", "Probe<x"))
+    check("profile guard matcher still requires a profile-name reason",
+          not rejected_profile_name(result(diagnostic="-WriteDirName 'Probe|x': unrelated failure"),
+                                    "-WriteDirName", "Probe|x"))
 
 
 def build(tmp, out, *args):
@@ -740,6 +769,7 @@ def main(argv):
         print("usage: dcs-probe-selftest.py <lua 5.1 interpreter> | --skip-lua", file=sys.stderr)
         return 2
     skip_lua = argv[1] == "--skip-lua"
+    profile_name_diagnostic_tests()
     with tempfile.TemporaryDirectory() as tmp:
         builder_tests(tmp, None if skip_lua else argv[1])
         pe_tests(tmp)
