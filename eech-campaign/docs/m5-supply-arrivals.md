@@ -34,10 +34,11 @@ host identities and are never presented as DCS identities.
 raw facts outside `eech_dc.dll`. It preserves the fixed-wing landed, early
 range, direct-radius and pass-through-segment checks, and the helicopter AI
 landed/rotor, leader-radius and nonleader-cohesion checks. The last nonleader
-case is implemented at the callback call site. The four maintained waypoint
-rows currently set LAST_TO_REACH false for both aircraft types, so boot also
-validates that exact scoped invariant rather than claiming a natural runtime
-case that cannot occur.
+case is implemented at the callback call site. As in the original C, radius
+and cohesion checks accept unordered floating-point comparisons. The four
+maintained waypoint rows currently set LAST_TO_REACH false for both aircraft
+types, so boot also validates that exact scoped invariant rather than claiming
+a natural runtime case that cannot occur.
 
 Those four rows also have no action message and disable action checking. Boot
 validates both facts, and the guide action predicate explicitly refuses the

@@ -143,15 +143,17 @@ fn supply_reached(descriptor: LuaTable) -> LuaResult<bool> {
             if is_ai && descriptor.get::<f32>("rotor_spin_up_seconds")? > 0.0 {
                 return Ok(false);
             }
+            // Both legacy branches accept an unordered range because they
+            // reject only `range > bound`.
             if descriptor.get::<bool>("is_task_leader")? {
-                return Ok(distance <= radius);
+                return Ok(!(distance > radius));
             }
             if descriptor.get::<bool>("leader_is_ai")? {
                 let position = vector3(&descriptor, "position")?;
                 let leader = vector3(&descriptor, "leader_position")?;
                 let dx = position[0] - leader[0];
                 let dz = position[2] - leader[2];
-                return Ok(dx * dx + dz * dz <= 750.0 * 750.0);
+                return Ok(!(dx * dx + dz * dz > 750.0 * 750.0));
             }
             Ok(true)
         }
@@ -253,6 +255,10 @@ mod supply_reached_tests {
         leader_outside_radius.set("distance", 50.1_f32)?;
         assert!(!supply_reached(leader_outside_radius)?);
 
+        let leader_unordered_radius = descriptor(&lua, "helicopter")?;
+        leader_unordered_radius.set("distance", f32::NAN)?;
+        assert!(supply_reached(leader_unordered_radius)?);
+
         let wingman_at_cohesion_boundary = descriptor(&lua, "helicopter")?;
         wingman_at_cohesion_boundary.set("is_task_leader", false)?;
         wingman_at_cohesion_boundary.set("leader_position", vec![750.0_f32, 100.0, 0.0])?;
@@ -262,6 +268,11 @@ mod supply_reached_tests {
         wingman_outside_cohesion.set("is_task_leader", false)?;
         wingman_outside_cohesion.set("leader_position", vec![750.1_f32, 0.0, 0.0])?;
         assert!(!supply_reached(wingman_outside_cohesion)?);
+
+        let wingman_unordered_cohesion = descriptor(&lua, "helicopter")?;
+        wingman_unordered_cohesion.set("is_task_leader", false)?;
+        wingman_unordered_cohesion.set("position", vec![f32::NAN, 0.0, 0.0])?;
+        assert!(supply_reached(wingman_unordered_cohesion)?);
 
         let human_led_wingman = descriptor(&lua, "helicopter")?;
         human_led_wingman.set("is_task_leader", false)?;
