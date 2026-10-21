@@ -19,6 +19,7 @@ param(
 	[string] $WriteDirName = 'DCS.M5Probe',
 	# the installation's default profile, which must stay untouched; its dcs.log is watched
 	[string] $DefaultWriteDirName = 'DCS.openbeta',
+	[string] $SavedGames = (Join-Path $env:USERPROFILE 'Saved Games'),
 	[string] $Work = 'E:\eech-runs\dcs-probe',
 	[string] $Template = 'CoreMods\WWII Units\FW-190D-9\Missions\fw190.miz',
 	[int] $RunSeconds = 20,
@@ -27,21 +28,18 @@ param(
 	# Cancel on it, then OK on 'Authorization cancelled', in the owned process only; DCS then
 	# runs unauthorised (paid modules are skipped, free content loads)
 	[switch] $CancelLogin,
-	# boot/frames run the campaign in DCS; refused unless the candidate's native error path
-	# has passed the DCS-Lua controls (README: "Before boot or frames")
-	[string] $ErrorControlsEvidence
+	# boot/frames require a passing DCS-Lua error-control record for this exact DLL and host Lua.
+	[string] $ErrorControlsEvidence,
+	# Portable guard test: validates inputs without modifying profiles or launching DCS.
+	[switch] $ValidatePrelaunchOnly
 )
 $ErrorActionPreference = 'Stop'
-if ($Stage -in 'boot', 'frames' -and -not ($ErrorControlsEvidence -and (Test-Path $ErrorControlsEvidence))) {
-	throw "stage $Stage needs -ErrorControlsEvidence <passing DCS-Lua error-control record for this candidate>"
-}
 $here = $PSScriptRoot
 $runId = "{0}-{1}" -f (Get-Date -Format 'yyyyMMdd-HHmmss'), $Stage
 $out = Join-Path $Work "runs\$runId"
-New-Item -ItemType Directory -Force $out, "$Work\bin", "$Work\missions" | Out-Null
-$saved = Join-Path $env:USERPROFILE 'Saved Games'
-$writeDir = Join-Path $saved $WriteDirName
-$defaultLog = Join-Path $saved "$DefaultWriteDirName\Logs\dcs.log"
+$writeDir = Join-Path $SavedGames ($WriteDirName.Replace('\', '/'))
+$defaultDir = Join-Path $SavedGames ($DefaultWriteDirName.Replace('\', '/'))
+$defaultLog = Join-Path $defaultDir 'Logs/dcs.log'
 $dcsBin = Join-Path $Dcs 'bin-mt'
 $dcsExe = Join-Path $dcsBin 'DCS.exe'
 $manifest = [ordered]@{ run = $runId; stage = $Stage; started = (Get-Date).ToString('o') }
@@ -49,20 +47,42 @@ $manifest = [ordered]@{ run = $runId; stage = $Stage; started = (Get-Date).ToStr
 function Hash($p) { (Get-FileHash -Algorithm SHA256 $p).Hash.ToLower() }
 function DefaultLogTicks { (Get-Item $defaultLog).LastWriteTimeUtc.Ticks }
 
+if ([IO.Path]::GetFullPath($writeDir).TrimEnd('\', '/') -eq [IO.Path]::GetFullPath($defaultDir).TrimEnd('\', '/')) {
+	throw "-WriteDirName must not resolve to the default profile $DefaultWriteDirName"
+}
+if (-not (Test-Path -LiteralPath $defaultLog -PathType Leaf)) {
+	throw "no $defaultLog to watch: pass the installation's -DefaultWriteDirName"
+}
+if ($Stage -in 'boot', 'frames') {
+	if (-not $ErrorControlsEvidence -or -not (Test-Path -LiteralPath $ErrorControlsEvidence -PathType Leaf)) {
+		throw "stage $Stage needs -ErrorControlsEvidence <passing DCS-Lua error-control JSON record>"
+	}
+	try { $controls = Get-Content -LiteralPath $ErrorControlsEvidence -Raw | ConvertFrom-Json -AsHashtable }
+	catch { throw "invalid error-control JSON: $($_.Exception.Message)" }
+	$candidateHash = Hash (Join-Path $Candidate 'eech_dc.dll')
+	$hostLuaHash = Hash (Join-Path $dcsBin 'lua.dll')
+	if ($controls.candidate_eech_dc_sha256 -ne $candidateHash -or $controls.dcs_lua_sha256 -ne $hostLuaHash -or
+		$controls.controls.first_error.completed -ne $true -or $controls.controls.first_error.exit_code -ne 0 -or
+		$controls.controls.repeated_errors.completed -ne $true -or $controls.controls.repeated_errors.exit_code -ne 0) {
+		throw 'error-control record does not show passing first and repeated errors for this candidate and DCS Lua'
+	}
+}
+if ($ValidatePrelaunchOnly) { Write-Output 'prelaunch guards passed'; return }
+
 # Stops a started process and its descendants, and returns the stopped PIDs. A child
 # counts only if it started after its parent: Windows keeps a dead parent's PID in
 # ParentProcessId, so a reused PID must not adopt an unrelated process.
-function Stop-OwnedTree($process) {
-	$ids = @($process.Id)
+function Stop-OwnedTree($process, $started) {
+	$ids = if ($process.HasExited) { @() } else { @($process.Id) }
 	try {
 		$all = @(Get-CimInstance Win32_Process)
-		$tree = @(@{ id = $process.Id; started = $process.StartTime })
+		$tree = @(@{ id = $process.Id; started = $started })
 		for ($i = 0; $i -lt $tree.Count; $i++) {
 			$parent = $tree[$i]
 			$tree += @($all | Where-Object { $_.ParentProcessId -eq $parent.id -and $_.CreationDate -ge $parent.started } |
 				ForEach-Object { @{ id = $_.ProcessId; started = $_.CreationDate } })
 		}
-		$ids = @($tree | ForEach-Object { $_.id })
+		$ids = @($tree | Where-Object { $_.id -ne $process.Id -or -not $process.HasExited } | ForEach-Object { $_.id })
 	} catch {}   # no process list: the owned root alone is stopped
 	$stopped = @()
 	foreach ($id in $ids) { try { Stop-Process -Id $id -Force -ErrorAction Stop; $stopped += $id } catch {} }
@@ -103,10 +123,7 @@ public static class ProbeWindows {
 '@
 
 if (Get-Process -Name DCS -ErrorAction SilentlyContinue) { throw 'a DCS process is already running: not starting another' }
-# the probe profile is written to (hook installed, dcs.log replaced): never the default one
-if ($WriteDirName -eq $DefaultWriteDirName) { throw "-WriteDirName must not be the default profile $DefaultWriteDirName" }
-# without the default profile's log the -w check below would watch nothing
-if (-not (Test-Path $defaultLog)) { throw "no $defaultLog to watch: pass the installation's -DefaultWriteDirName" }
+New-Item -ItemType Directory -Force $out, "$Work\bin", "$Work\missions" | Out-Null
 
 # inputs: the DLL only (never the candidate's own lua.dll), the probe, the hook, the mission
 Copy-Item (Join-Path $Candidate 'eech_dc.dll') "$Work\bin\eech_dc.dll" -Force
@@ -138,6 +155,7 @@ $manifest.cancel_login = [bool]$CancelLogin
 if ($ErrorControlsEvidence) { $manifest.error_controls_evidence = @{ path = $ErrorControlsEvidence; sha256 = Hash $ErrorControlsEvidence } }
 $manifest.command = "Start-Process `"$dcsExe`" -ArgumentList $($arguments -join ' ') -WorkingDirectory `"$dcsBin`" -WindowStyle Hidden -PassThru"
 $p = Start-Process -FilePath $dcsExe -ArgumentList $arguments -WorkingDirectory $dcsBin -WindowStyle Hidden -PassThru
+$processStarted = $p.StartTime
 $manifest.pid = $p.Id
 $t0 = Get-Date
 $verdict = 'timeout'
@@ -158,7 +176,7 @@ try {
 	$verdict = "runner error: $($_.Exception.Message)"
 } finally {
 	# whatever happened above, the owned DCS does not outlive the runner
-	if (-not $p.HasExited) { $stopped = Stop-OwnedTree $p }
+	$stopped = Stop-OwnedTree $p $processStarted
 	# the hook's run bound must not leak to a later manual launch from this shell
 	Remove-Item Env:EECH_M5PROBE_RUN_SECONDS -ErrorAction SilentlyContinue
 }

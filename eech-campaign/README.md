@@ -49,6 +49,12 @@ M4: the accepted M1–M3 regression pack, with its coverage, provenance and blin
 [`docs/m4-regression-pack.md`](docs/m4-regression-pack.md).
 M4: accepted baselines change only by a classified, approved and non-destructive change record:
 [`docs/m4-baseline-governance.md`](docs/m4-baseline-governance.md).
+M5: who owns what in the SUPPLY loop, and the first dependency to hand to a host:
+[`docs/m5-supply-ownership.md`](docs/m5-supply-ownership.md).
+M5: DCS host loading, runtime, persistence and multiplayer risks, with open gates:
+[`docs/m5-dcs-risks.md`](docs/m5-dcs-risks.md).
+The probe [tooling](tools/dcs-probe/README.md) and [retained evidence](reference/m5-dcs-probes/README.md)
+support that register; criterion 5 remains open.
 
 ## The campaign kernel spike
 

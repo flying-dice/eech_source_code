@@ -32,7 +32,14 @@ local scenarios = {
 	georgia_retail = { map = "..\\common\\maps\\map3", campaign = "GEORGIA.CHC" },
 }
 
-local log_file = config.log_file and io and io.open (config.log_file, "a")
+local log_file, log_error
+if config.log_file then
+	if io and type (io.open) == "function" then
+		log_file, log_error = io.open (config.log_file, "a")
+	else
+		log_error = "io_unavailable"
+	end
+end
 local clock = os and os.clock
 
 local function record (event, fields)
@@ -51,9 +58,18 @@ local function record (event, fields)
 	local line = table.concat (parts, " ")
 	env.info (line)
 	if log_file then
-		log_file:write (line, "\n")
-		log_file:flush ()
+		local ok, err = log_file:write (line, "\n")
+		if ok then ok, err = log_file:flush () end
+		if not ok then
+			env.info ("EECH_DCS_PROBE event=log_error message=" .. string.format ("%q", tostring (err)))
+			pcall (log_file.close, log_file)
+			log_file = nil
+		end
 	end
+end
+
+if config.log_file then
+	record ("log_status", { requested = true, opened = log_file ~= nil, error = log_error })
 end
 
 local function ms_since (t0)
@@ -137,9 +153,10 @@ if config.dll_dir then
 end
 local t0 = clock and clock ()
 local loaded, dc = pcall (require, "eech_dc")
-record ("load", { ok = loaded, ms = ms_since (t0), name = loaded and dc.name or nil,
-	error = not loaded and first_line (dc) or nil, cwd = cwd () })
-if not loaded then return end
+local module_ok = loaded and type (dc) == "table"
+record ("load", { ok = module_ok, ms = ms_since (t0), name = module_ok and dc.name or nil,
+	error = not loaded and first_line (dc) or (not module_ok and "expected_table_got_" .. type (dc) or nil), cwd = cwd () })
+if not module_ok then return end
 
 -- a Lua error raised from inside the module: mlua -> lua_error -> the host Lua's unwinding.
 -- The argument is rejected before Engine::boot, so the one boot per process is not used.
@@ -162,6 +179,7 @@ if config.prepare ~= false then
 	t0 = clock and clock ()
 	local ok, err = pcall (dc.prepare_installation, config.root)
 	record ("prepare", { ok = ok, ms = ms_since (t0), error = not ok and first_line (err) or nil })
+	if not ok then return end
 end
 t0 = clock and clock ()
 local booted, engine = pcall (dc.boot, {
@@ -240,22 +258,25 @@ end
 --   frame_*, histogram   each engine:frame call
 --   step_max_ms          campaign stepping of one callback: its sub-steps and bookkeeping,
 --                        without the summary, checkpoint and their log writes
---   callback_max_ms      the complete callback, summary, checkpoint and log writes included,
+--   callback_max_ms      the callback cost through the last measured operation,
 --                        over the callbacks_completed in the window. A callback that writes a
---                        summary finishes after it, so its complete cost counts in the next window.
+--                        summary finishes after it, so its cost counts in the next window.
+--                        Terminal callbacks also write a callback_final record after frames_final.
+--                        That record's own write cost cannot be included in its value.
 --                        (Probe 7e699355, used by the retained runs, wrote the stepping-only
 --                        value under the name callback_max_ms.)
---   "-"                  no sample in the window
+--   "-"                  no sample for a measured field in the window
 --   gap_*                wall time between consecutive callback starts, over the gaps sampled
 --                        in the window (a window's first gap reaches back into the previous one)
 local function summary (event, now)
 	record (event, { model_time = string.format ("%.3f", now), callbacks = stats.callbacks, frames = frames_done,
 		frames_window = stats.frames, frame_mean_ms = stats.frames > 0 and string.format ("%.3f", stats.frame_total / stats.frames) or "-",
-		frame_max_ms = string.format ("%.1f", stats.frame_max), step_max_ms = stats.callbacks > 0 and string.format ("%.1f", stats.step_max) or "-",
+		frame_max_ms = stats.frames > 0 and string.format ("%.1f", stats.frame_max) or "-", step_max_ms = stats.callbacks > 0 and string.format ("%.1f", stats.step_max) or "-",
 		callbacks_completed = stats.callbacks_completed,
 		callback_max_ms = stats.callbacks_completed > 0 and string.format ("%.1f", stats.callback_max) or "-",
 		gaps = stats.gaps, gap_mean_ms = stats.gaps > 0 and string.format ("%.1f", stats.gap_total / stats.gaps) or "-",
-		gap_max_ms = string.format ("%.1f", stats.gap_max), lag_max_ms = string.format ("%.0f", stats.lag_max),
+		gap_max_ms = stats.gaps > 0 and string.format ("%.1f", stats.gap_max) or "-",
+		lag_max_ms = stats.callbacks > 0 and string.format ("%.0f", stats.lag_max) or "-",
 		histogram = histogram () })
 end
 
@@ -280,7 +301,16 @@ local function step ()
 		if not ok then
 			stopped = true
 			record ("frame_error", { model_time = now, frames = frames_done, message = first_line (err) })
+			stats.callbacks = stats.callbacks + 1
+			stats.lag_max = math.max (stats.lag_max, pending_ms)
+			if wall then
+				local cost = (clock () - wall) * 1000
+				stats.step_max = math.max (stats.step_max, cost)
+				stats.callbacks_completed = stats.callbacks_completed + 1
+				stats.callback_max = math.max (stats.callback_max, cost)
+			end
 			summary ("frames_final", now)
+			if wall then record ("callback_final", { reason = "frame_error", cost_ms = ms_since (wall) }) end
 			return nil
 		end
 		if f0 then
@@ -314,10 +344,12 @@ end
 
 world.addEventHandler ({ onEvent = function (_, event)
 	if world.event and event.id == world.event.S_EVENT_MISSION_END and not stopped then
+		local event_wall = clock and clock ()
 		stopped = true
 		local now = timer.getTime ()
 		summary ("frames_final", now)
 		checkpoint (now)
+		if event_wall then record ("event_handler_cost", { event = "mission_end", cost_ms = ms_since (event_wall) }) end
 	end
 end })
 

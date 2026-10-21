@@ -138,12 +138,9 @@ def main(argv):
     except (OSError, KeyError, IndexError, ValueError, zipfile.BadZipFile) as e:
         print(f"error: template {template}: {e!r}", file=sys.stderr)
         return 2
-    for name in (probe, dll_dir, root, log_file):
-        if "]]" in name:
-            print(f"error: path contains ]]: {name}", file=sys.stderr)
-            return 2
-    script = (f'EECH_DCS_PROBE = {{ stage = {lua_string(stage)}, scenario = {lua_string(scenario)}, dll_dir = [[{dll_dir}]], root = [[{root}]], log_file = [[{log_file}]] }}\n'
-              f"dofile ([[{probe}]])")
+    script = (f'EECH_DCS_PROBE = {{ stage = {lua_string(stage)}, scenario = {lua_string(scenario)}, '
+              f'dll_dir = {lua_string(dll_dir)}, root = {lua_string(root)}, log_file = {lua_string(log_file)} }}\n'
+              f"dofile ({lua_string(probe)})")
     mission["needModules"] = {}
     mission["usedModules"] = {}
     for side in mission.get("coalition", {}).values():

@@ -18,10 +18,10 @@ complete criterion 5:**
 | Item | Identity |
 |---|---|
 | Candidate | `eech_dc.dll` sha256 `a99d7a1118008f73a995fd7e4701a04bddb5fa51d1bf3b5a487297d78c383f41`. Built from `65892de1` (`pr59-candidate` BUILD-INFO), unchanged by the evidence-only merge `163e9158`. |
-| DCS | openbeta `2.9.29.27468` MT. `bin-mt/DCS.exe` sha256 `6bb5832c…1c41` (identical to `bin/DCS.exe`). `bin-mt/lua.dll` = `bin/lua.dll` sha256 `8a228b54…b755`. `Scripts/MissionScripting.lua` sha256 `f212df7f…0f6d`, sanitisation commented out before this work. |
-| Profile | `-w DCS.M5Probe` (`%USERPROFILE%\Saved Games\DCS.M5Probe`), new and isolated. The default `DCS.openbeta` profile: `dcs.log` sha256 `baac13d5…244e` is unchanged before and after all runs. Its `Config/network.vault` and `authdata.bin` timestamps are unchanged. |
-| Mission | Built by `tools/dcs-probe/build-probe-miz.py` from the installed `CoreMods/WWII Units/FW-190D-9/Missions/fw190.miz` (sha256 `346cb7f7…45ba`). All units and module requirements are removed. It has one MISSION START `DO SCRIPT`. The `.miz` is vendor-derived and not committed. The as-run builder (`as-run/build-probe-miz.54eb324f.py`) reproduces the run-9 entries byte for byte: `mission` `28a24a6c…6271`, `options` `6ee219b7…db47`, `warehouses` `ce2a83f6…f0c`. |
-| As-run scripts | `as-run/eech-dcs-probe.7e699355.lua` (all runs). `as-run/eech-m5probe-hook.14cdf01e.lua` (runs 1–7). `as-run/eech-m5probe-hook.ba5e2626.lua` (runs 8–9). Each is byte-identical to the hash its manifests record. `as-run/build-probe-miz.54eb324f.py` is the builder as committed at `54eb324f`. The current builder also writes `scenario` into the `DO SCRIPT`, so its `mission` entry differs. The runner's as-run versions were not retained byte-exact; each manifest records the exact launch command. |
+| DCS | openbeta `2.9.29.27468` MT. Run manifests retain `bin-mt/DCS.exe` sha256 `6bb5832c…1c41` and `bin-mt/lua.dll` sha256 `8a228b54…b755`; no `bin/` comparison hashes are retained here. `Scripts/MissionScripting.lua` sha256 `f212df7f…0f6d`, sanitisation commented out before this work. |
+| Profile | `-w DCS.M5Probe` (`%USERPROFILE%\Saved Games\DCS.M5Probe`), new and isolated. The manifests record `default_profile_log_unchanged=true` based on file modification ticks; they do not record before/after log hashes. The default profile's credential-file timestamps were checked locally but are not retained. |
+| Mission | Built by `tools/dcs-probe/build-probe-miz.py` from the installed `CoreMods/WWII Units/FW-190D-9/Missions/fw190.miz` (sha256 `346cb7f7…45ba`). All units and module requirements are removed. It has one MISSION START `DO SCRIPT`. The `.miz` is vendor-derived and not committed. Its whole-file hash is in each manifest; individual entry hashes are not retained. |
+| As-run scripts | `as-run/eech-dcs-probe.7e699355.lua` (all runs). `as-run/eech-m5probe-hook.14cdf01e.lua` (runs 1–7). `as-run/eech-m5probe-hook.ba5e2626.lua` (runs 8–9). Each is byte-identical to the hash its manifests record. `as-run/build-probe-miz.54eb324f.py` is the builder as committed at `54eb324f`. The current builder also writes `scenario` into the `DO SCRIPT`, so its `mission` entry differs. The runner's as-run versions were not retained byte-exact. The manifest command omits the as-run `-WorkingDirectory` argument; B1's cwd observation comes from run 9's probe log, not reconstruction of that string. |
 
 ## DCS runs (all on 2026-10-20/21, all hidden, all ended with no owned process left)
 
@@ -35,7 +35,16 @@ Every run used stage `load`, the candidate above and the isolated profile.
 - whether the default log was unchanged.
 
 `dcs.log` and `probe.log` are copies with the user path replaced by `%USERPROFILE%`.
-`ORIGINALS.sha256` lists the hashes of the original bytes.
+`ORIGINALS.sha256` lists the hashes of the uncommitted original bytes. The retained copies have
+their own `RETAINED.sha256`; `python -I verify_retained.py` checks all 57 from this repository.
+To compare the originals too, supply `--original-runs`, `--original-controls`,
+`--original-microprobe` pointing to their source directories, and
+`--original-user-profile` with the original Windows profile path. The verifier strips a UTF-8 BOM,
+replaces five spellings of that path (JSON-escaped backslashes, literal backslashes, forward
+slashes, lowercase forward slashes, lowercase backslashes) with `%USERPROFILE%`, then
+normalises CRLF to LF. Isolated CR bytes remain. This sequence also covers JSON-escaped paths
+and the lowercase path spellings in `dcs.log`. Original hashes cannot be reconstructed from
+the retained copies alone.
 
 | # | Run | Setup | What happened | End |
 |---|---|---|---|---|
@@ -47,7 +56,7 @@ Every run used stage `load`, the candidate above and the isolated profile.
 | 6 | `20261020-235038-load` | Copied files deleted. Runner `-CancelLogin` (Cancel only) | Dialogs recorded: `DCS Login`, then `Authorization cancelled \| OK \| Cancel` | Killed, 302 s |
 | 7 | `20261020-235602-load` | `-CancelLogin` (Cancel, then OK) | Hook loaded (log line 504), `END OF INIT`, dispatcher state 3. The hook's `UpdateManager` updater never ran, so no mission was requested. | Killed, 302 s |
 | 8 | `20261021-000137-load` | Run 7, plus an `onShowMainInterface` handler in the hook | Same: neither callback was called | Killed, 241 s |
-| 9 | `20261021-000601-load` | Run 7, plus `--mission <miz>` on DCS's command line | `Dispatcher: loadMission` at `END OF INIT` (log 473–475). Mission state reached; `probe.log` records below. | **Process exited by itself `0xC0000005`** at 42 s, 11 ms after the last probe record |
+| 9 | `20261021-000601-load` | Run 7, plus `--mission <miz>` on DCS's command line | `Dispatcher: loadMission` at `END OF INIT` (log 473–475). Mission state reached; `probe.log` records below. | **Process exited by itself `0xC0000005`**; the 2-second runner poll does not establish a precise interval from the last record |
 
 The copied credential files were in the isolated profile for runs 2–5 only. They were
 deleted before run 6 and were never retained or committed.
@@ -70,7 +79,7 @@ From `runs/20261021-000601-load/probe.log`. That probe version wrote whitespace 
 - MISSION START ran at `model_time=0`, `abs_time=43200`, about 10.5 s after `loadMission`.
 - **`require ("eech_dc")` with `dll_dir` prepended to `package.cpath`: `ok=true`, `name=eech-dc 0.1.0`,
   1.0 ms.** The module loads into the mission state and binds to DCS's `lua.dll`. Its 83 imports
-  resolve: `tools/dcs-probe/pe-lua-link-check.py` reports PASS at link level.
+  resolve: `link-check.stdout.txt` retains the link-level PASS with both input hashes.
 - The next statement is `pcall (dc.boot, "not a table")`, the first native error path. No
   `error_path` record follows. The process exits `0xC0000005` (exit code `-1073741819`).
   `dcs.log` ends with the probe's `load` record, and the profile's `Logs` holds no crash file.
@@ -147,9 +156,9 @@ Built from an archive of `65892de1` with only `LUA_IDSIZE` 60→256 in mlua-sys 
 ## Reproduce
 
 - Mission:
-  `python -I eech-campaign/tools/dcs-probe/build-probe-miz.py <DCS>/CoreMods/WWII Units/FW-190D-9/Missions/fw190.miz <out.miz> load lebanon_retail <probe.lua> <dll_dir> <root> <log_file>` (run 9's entries: the as-run builder, without `lebanon_retail`)
+  `python -I tools/dcs-probe/build-probe-miz.py "<DCS>/CoreMods/WWII Units/FW-190D-9/Missions/fw190.miz" <out.miz> load lebanon_retail <probe.lua> <dll_dir> <root> <log_file>` (run 9's entries: the as-run builder, without `lebanon_retail`; command shown from `eech-campaign/`)
 - Run 9's launch (the runner now always does this):
-  `pwsh -File eech-campaign/tools/dcs-probe/run-dcs-probe.ps1 -Stage load -Candidate <dir> -CancelLogin -TimeoutSeconds 240`
+  `pwsh -File tools/dcs-probe/run-dcs-probe.ps1 -Stage load -Candidate <dir> -CancelLogin -TimeoutSeconds 240`
   This starts `bin-mt\DCS.exe -w DCS.M5Probe --no-launcher --mission "<miz>"` hidden, and stops
   only its own process tree.
 - `-CancelLogin` automates Cancel/OK on the owned process's login dialogs. DCS then runs
