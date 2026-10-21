@@ -14,6 +14,7 @@
 #include <stddef.h>
 
 #include "entity/special/group/gp_roster.h"
+#include "entity/special/guide/gd_supply_arrival.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -40,11 +41,15 @@ struct eech_engine_config
 
 typedef campaign_member_descriptor eech_member_descriptor;
 typedef campaign_bind_member_fn eech_bind_mobile_callback;
+typedef campaign_supply_reach_descriptor eech_supply_reach_descriptor;
+typedef campaign_observe_supply_reach_fn eech_supply_reached_callback;
 
 struct eech_engine_host
 {
 	/* Called synchronously while the physical entity exists. */
 	eech_bind_mobile_callback bind_mobile;
+	/* Called synchronously for the physical predicate at four SUPPLY waypoints. */
+	eech_supply_reached_callback supply_reached;
 	void *user;
 };
 
@@ -128,6 +133,12 @@ struct eech_roster_stats
 };
 
 int eech_engine_roster_stats (struct eech_roster_stats *stats);
+
+typedef campaign_supply_task_snapshot eech_supply_task;
+typedef void (*eech_supply_task_callback) (const eech_supply_task *task, void *user);
+
+/* Actual current SUPPLY task, cargo and endpoint state, copied during the call. */
+int eech_engine_supply_tasks (eech_supply_task_callback callback, void *user, int *count);
 
 struct eech_clock
 {

@@ -16,7 +16,7 @@ loads the module with `require ("eech_dc")` and records Tacview.
 
 ```
    eech-world (host binary)     Rust; embeds Lua 5.1; Tacview ACMI 2.2
-        │  require ("eech_dc") → boot { bind_mobile=... } · frame · objects · members
+        │  require ("eech_dc") → boot { bind_mobile=..., supply_reached=... } · frame · objects · members · supply_tasks
         ▼
    eech-dc (libeech_dc.so)      the Lua module (mlua, lua51 + module)
         ▼

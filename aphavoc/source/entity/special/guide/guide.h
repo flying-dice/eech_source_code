@@ -238,6 +238,14 @@ typedef enum GUIDE_TERRAIN_FOLLOW_MODES guide_terrain_follow_modes;
 
 #include	"gd_nav.h"
 
+#ifdef EECH_CAMPAIGN_HOST_ARRIVALS
+#include	"gd_supply_arrival.h"
+#else
+#define campaign_supply_arrival_release_entity(ENTITY) ((void) 0)
+#define campaign_supply_arrival_is_target(GUIDE) (FALSE)
+#define campaign_supply_arrival_check(MEMBER,GUIDE) (FALSE)
+#endif
+
 #include	"gd_pack.h"
 
 #include	"gd_ptr.h"
