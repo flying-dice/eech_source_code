@@ -323,6 +323,18 @@ def synthetic(tmp):
     info_case("info-sha-row-right-then-wrong", "lists eech_dc.dll twice", lambda t: t + sha_row("0" * 64, "eech_dc.dll"))
     info_case("info-sha-row-truncated", "malformed sha256 row", lambda t: t + "  abcd  lua.dll\n")
     info_case("info-sha-block-repeated", "2 'sha256:' blocks", lambda t: t + "sha256:\n")
+    # a malformed or repeated sha256 header before, after or beside the real block is not free metadata
+    info_case("info-sha-header-truncated-before-block", "malformed sha256 header",
+              lambda t: "sha256: truncated\n" + t)
+    info_case("info-sha-header-truncated-after-block", "malformed sha256 header", lambda t: t + "sha256: truncated\n")
+    info_case("info-sha-header-bare-before-block", "malformed sha256 header", lambda t: "sha256\n" + t)
+    info_case("info-sha-header-hash-value-before-block", "malformed sha256 header",
+              lambda t: "sha256: " + "a" * 64 + "\n" + t)
+    info_case("info-sha-header-uppercase-before-block", "malformed sha256 header", lambda t: "SHA256:\n" + t)
+    info_case("info-sha-header-indented-before-block", "malformed sha256 header", lambda t: "  sha256: x\n" + t)
+    info_case("info-sha-header-identical-before-block", "2 'sha256:' blocks", lambda t: "sha256:\n" + t)
+    info_case("info-sha-header-only-truncated", "malformed sha256 header",
+              lambda t: t.replace("sha256:\n", "sha256: truncated\n"))
     info_case("info-no-sha-block", "0 'sha256:' blocks", lambda t: t.replace("sha256:\n", ""))
     f = fixture("info-not-text")
     f[3].write_bytes(b"\x81\x8d\x8f\x90\x9d")

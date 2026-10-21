@@ -208,7 +208,8 @@ def sha256(path):
 
 
 def build_info(path):
-    """the identity records of BUILD-INFO.txt, each exactly once and well formed; toolchain and other lines are free"""
+    """the identity records of BUILD-INFO.txt (commit, uncommitted count, sha256 block header and rows), each exactly
+    once and well formed; toolchain and other metadata lines are free, not a closed vocabulary"""
     try:
         lines = Path(path).read_text().splitlines()
     except (OSError, UnicodeDecodeError) as e:
@@ -226,10 +227,18 @@ def build_info(path):
     commit = once("commit:", r"commit:\s*([0-9a-f]{40})\s*", "commit")
     dirty = once("uncommitted changes", r"uncommitted changes in the build inputs:\s*(\d+) files?\s*",
                  "uncommitted count")
-    if lines.count("sha256:") != 1:
-        raise Incomplete("BUILD-INFO has %d 'sha256:' blocks, need exactly one" % lines.count("sha256:"))
+    # a line that opens with a sha256 token is a hash-block record, wherever it sits: the one block header must be
+    # exactly "sha256:" and anything else (a truncated or malformed header) is not free metadata. Mid-line text such
+    # as "image: ...@sha256:..." and the file rows (which open with a hash) are not records of this kind.
+    stray = [l for l in lines if l.split(None, 1)[:1] and l.split(None, 1)[0].lower().startswith("sha256")
+             and l.rstrip() != "sha256:"]
+    if stray:
+        raise Incomplete("BUILD-INFO has a malformed sha256 header record: %r" % stray[0][:80])
+    blocks = [l for l in lines if l.rstrip() == "sha256:"]
+    if len(blocks) != 1:
+        raise Incomplete("BUILD-INFO has %d 'sha256:' blocks, need exactly one" % len(blocks))
     shas = {}
-    for l in lines[lines.index("sha256:") + 1:]:
+    for l in lines[lines.index(blocks[0]) + 1:]:
         if not l.strip():
             continue
         m = re.fullmatch(r"\s+([0-9a-f]{64})\s+(\S+)\s*", l)

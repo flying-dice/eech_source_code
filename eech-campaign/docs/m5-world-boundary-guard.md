@@ -13,7 +13,7 @@ reproducibly. It changes no production C, Rust or build file.
 | --- | --- | --- |
 | `tools/world-boundary-check.py check` | B, acceptance | Zero known W/E-class definitions in the built DLL |
 | `tools/world-boundary-check.py staging` | A, ratchet | Per campaign file references to physical code; may only shrink |
-| `tools/world-boundary-check-selftest.py` | | 66 synthetic cases and 6 cases against a real DLL |
+| `tools/world-boundary-check-selftest.py` | | 74 synthetic cases and 6 cases against a real DLL |
 
 Level A progress never satisfies Level B. They share source classification
 only.
@@ -65,7 +65,10 @@ Inputs: `--dll`, `--build-info` (the `BUILD-INFO.txt` beside it), optionally
    40-hex `commit:`, exactly one `uncommitted changes in the build inputs: N
    files` (N above zero is INCOMPLETE), and exactly one `sha256:` block of
    well-formed rows without a repeated name and with `eech_dc.dll`; toolchain
-   and other lines are free. The object manifest has a closed vocabulary
+   and other lines are free. Any line that opens with a `sha256` token other
+   than that one exact `sha256:` header (truncated, bare, uppercase, indented
+   or followed by a value) is INCOMPLETE wherever it sits; text inside a line,
+   such as `image: …@sha256:…`, and hash-first file rows are not such records. The object manifest has a closed vocabulary
    (`dll-sha256`, `source-commit`, `object`); a repeated header (wrong then
    right, right then wrong, identical or truncated), an unknown, bare or
    malformed record, or a repeated object (also after `\` to `/`
@@ -176,8 +179,10 @@ not make it contract-only.
 `reference/m5-world-boundary-guard/` retains `retained-dll-check-report.json`,
 `selftest-output.txt` and `staging-baseline.json`, with hashes in its README.
 `checkpoint-cdffc799/` keeps the earlier measurement (before the strict
-records) unchanged; only the wording of the reason and the added report keys
-differ, and the verdict and counts are the same.
+records) unchanged, and `checkpoint-69110bcc/` keeps the previous selftest
+output (72 cases, before malformed sha256 headers were rejected). The
+real-DLL verdict and counts are the same in all three; only the reason wording
+and added report keys differ in the first.
 
 ```
 python tools/world-boundary-check-selftest.py <eech_dc.dll> <BUILD-INFO.txt>
