@@ -16,7 +16,7 @@ a Lua module (a DLL), and runs it from a Rust host process.
    eech-engine-sys                     native build + raw FFI
         │  csrc/: headless platform layer, boot and frame, observation, synthetic data
         ▼
-   original EECH C                     ../aphavoc/source, ../modules: 1,217 files as written
+   original EECH C                     ../aphavoc/source, ../modules: 1,218 files as written
 ```
 
 Data comes from `eech-map`, which builds a map and a dynamic campaign from an
@@ -25,9 +25,9 @@ OpenStreetMap extract and SRTM elevation. Georgia (map16) is the one built so fa
 ## What is compiled
 
 The source list (`crates/eech-engine-sys/sources.txt`) is the maintained
-Windows build's: every `.c` file of the `aphavoc` and `modules` Visual Studio
-projects, 1,225 files. 1,217 compile as they are. csrc/ replaces the other
-eight, which need a real Windows machine:
+Windows build's: of the 1,226 `.c` files in the `aphavoc` and `modules` Visual
+Studio projects, it lists the 1,218 that compile as they are. csrc/ replaces
+the other eight, which need a real Windows machine:
 
 | Replaced | Headless replacement (csrc/) |
 |---|---|

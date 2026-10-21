@@ -6,7 +6,7 @@ the recordings, see [`../recordings/README.md`](../recordings/README.md).
 
 ## What exists
 
-- **The full EECH engine, headless, as a Lua module.** The 1,217 C files of the
+- **The full EECH engine, headless, as a Lua module.** The 1,218 C files of the
   maintained Windows build compile for x86-64 Linux
   (`crates/eech-engine-sys`) behind a safe Rust API (`crates/eech-engine`) and
   an mlua `cdylib` (`crates/eech-dc`, `require ("eech_dc")`).

@@ -278,6 +278,8 @@ typedef struct GROUP group;
 
 #include "gp_list.h"
 
+#include "gp_loss.h"
+
 #include "gp_msgs.h"
 
 #include "gp_pack.h"

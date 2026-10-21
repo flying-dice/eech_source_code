@@ -1,7 +1,7 @@
 [package]
 name = "eech-engine-sys"
 version = "0.1.0"
-description = "Private native layer: ALL of EECH (the maintained Windows build's 1,225 C files) compiled headless for the host, with its raw FFI."
+description = "Private native layer: ALL of EECH (the maintained Windows build's 1,226 C files) compiled headless for the host, with its raw FFI."
 edition.workspace = true
 publish.workspace = true
 links = "eech_engine"
