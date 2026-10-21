@@ -23,10 +23,7 @@ It is a source-grounded proposal for review, not an acceptance. It changes no co
     - campaign writes to world-implemented attributes;
     - global data;
     - names that resolved to no definition.
-  - **Rules:** a rule's kind is derived from its regex, not set by hand.
-    - 376 items are decided by exact rules, which name their keys literally.
-    - 606 are decided by pattern rules, and 144 by usage-context fallbacks.
-    - The 57 pattern and fallback rules that decide items are listed and counted in section 10.
+  - **Rules:** a rule's kind is derived from its regex, not set by hand. How many items each kind decides, and every pattern and fallback rule, are stated once, in section 10 ("Pattern and fallback rules").
   - No needed interaction found by these methods lacks a DCS mechanism or a named workaround.
   - The method's residual limits are in section 10. Accepting criterion 1 remains the technical lead's review decision.
 - **The independent review of `a4cd7eea`** raised six findings, F1–F6, all resolved here:
@@ -319,7 +316,7 @@ Columns: **Dir** is C→W (the campaign asks the world) or W→C (the world repo
 | I1 | Create a mobile member in a group | `create_mobile_member`, `faction.c:1678` (the one switch; creators at `faction.c:1757-1803`). Callers: campaign load `parsgen.c:1854`, regen `rg_updt.c:399`, frontline `faction.c:1550` | C→W | entity index, member sub-type, group entity, `vec3d` position; landed members get a landing site | `coalition.addGroup` D15, per group, not per member; parking start D18 | adapted (G1) |
 | I2 | Population: cities, sites, scenery as entities with 3D objects | `popread.c:1575` `construct_3d_object`, `:1588` `insert_3d_object_into_terrain` | C→E | 3D object index, position | Map scenery is fixed; `addStaticObject` D15 | gap (G2) |
 | I3 | Remove an entity | `destroy_client_server_entity` (`aphavoc/source/entity/system/en_funcs/en_dstry.h:75`) | C→W | entity | `Group:destroy` D8, `Object:destroy` D25 | direct |
-| I43 | Campaign kills world units: all members of a group when its keysite falls or is captured | `group_kill_all_members` `group.c:1021`, called at `keysite.c:1097`, `keysite.c:1222`; `destroy_keysite` kills the losing side's landed aircraft under the capture-aircraft setting (`keysite.c:972-1003`); a keysite below minimum strength `keysite.c:822`; kill and destroy tables (ledger) | C→W | entity | `Group:destroy` D8 (removal); `trigger.action.explosion` D28 (a physical kill). Whether either raises DEAD is [U] | adapted (G26) |
+| I43 | Campaign kills world units when a keysite is destroyed or captured | `destroy_keysite` (`keysite.c:945`). With the capture-aircraft setting on (the default, `keysite.c:972-1102`), it kills the losing side's untasked, landed, non-airborne aircraft (`keysite.c:1003`), and kills, through `group_kill_all_members` (`group.c:1021`), every non-aircraft group still linked to the keysite (`keysite.c:1097`; the `else` at `:1091` pairs with `if` aircraft group at `:1025`). With the setting off (`keysite.c:1103-1227`), it kills landed aircraft (`:1132`) and linked non-aircraft groups (`:1222`). It is reached when a keysite falls below minimum strength (`keysite.c:822` → `ks_dstry.c:346`) and on capture (`keysite.c:1423`). On capture, the ground groups listed as keysite groups are first moved to the losing force (`keysite.c:1397-1409`), so `:1097` then reaches only a non-aircraft group linked under another list type (the case logged at `:1411-1414`), and converted aircraft groups (I51) already carry the captor's side, so `:1003` spares them. Kill and destroy tables are in the ledger | C→W | entity | `Group:destroy` D8 (removal); `trigger.action.explosion` D28 (a physical kill). Whether either raises DEAD is [U] | adapted (G26) |
 | I48 | Type properties read from world type databases | `aircraft_database` (`faction.c:999`), `vehicle_database`, `weapon_database`, `fixed_3d_object_database` (globals ledger); 28 type-property attribute tokens (cruise speed and altitude, fuel economy, threat values, identify flags, display names) | C reads W | per-sub-type records | Balance properties stay in EECH_DC. The host maps the sub-type to a DCS type; `Unit:getDesc` exists (D9), but its fields are not verified [U] | adapted (G22) |
 
 ### Identity
@@ -395,7 +392,7 @@ Section 5 maps the event sources named in the brief (loss, waypoint, landed, tak
 | I29 | Keysite supply levels, crates and requests | `ks_updt.c:126`; `update_keysite_cargo` `keysite.c:337` (#74 stage 1) | campaign-only | ammo and fuel percentages | Optional mirror to `Warehouse` D24 | direct |
 | I30 | Landing sites, takeoff routes and locks | `response_to_lock_landing_site` `ld_msgs.c:599`; `insert_mobile_into_takeoff_route` `mobile.c:573`; reserve `mb_msgs.c:350` | both | site counts and locks | `Airbase:getParking (true)` D24; DCS ATC sequences | gap (G16) |
 | I31 | Keysite structures destroyed or repaired | `st_dstry.c:293` → `keysite.c:739`; repair `keysite.c:1618` → `fixed.c:147` | W→C, C→W | importance and efficiency | DEAD event for a static or scenery initiator D4, D6 | gap (G17) |
-| I32 | Capture of the keysite itself | `mb_msgs.c:2307` → `capture_keysite` `keysite.c:1289`; the keysite's own side `keysite.c:1340` | W→C | keysite, side | `Airbase:setCoalition`, `autoCapture` D24; BASE_CAPTURED D6 | adapted |
+| I32 | Capture of the keysite itself | `mb_msgs.c:2307` → `capture_keysite` `keysite.c:1289`; the keysite's own side `keysite.c:1340` | W→C | keysite, side | EECH's rule decides capture (`mb_msgs.c:2307`). The adapter then applies it with `Airbase:setCoalition`, with `autoCapture` off (D24). BASE_CAPTURED (D6) is only reconciled against EECH's decision, never used as the trigger | adapted |
 | I51 | Capture converts forces: idle landed aircraft groups at the keysite change to the captor's side, with new callsigns (`keysite.c:1375-1390`, under `command_line_capture_aircraft`, on by default, `cmndline.c:151`), and the keysite's building and regen structures change side (`change_local_keysite_building_sides`, `keysite.c:1429` → `:1524-1568`; replayed on restore, `ks_pack.c:359`) | as cited; 6 side writes in the write ledger | C→W | entity side, group callsign | No coalition setter for units, groups or statics (D30 [U]); destroy D8 and respawn D15 under the captor's country | gap (G28) |
 | I33 | Keysite identity | keysite name attribute (89 campaign sites) | both | name string | `Airbase.getByName` D24 | adapted (G3) |
 | I34 | Moving keysites (ships) carry their landing sites | `ks_msgs.c:337` | W→C | position, heading, velocity | ship `Unit:getPoint` D16 | adapted |
@@ -405,7 +402,7 @@ Section 5 maps the event sources named in the brief (loss, waypoint, landed, tak
 | # | Interaction | EECH site(s) | Dir | EECH shape | DCS | Fit |
 |---|---|---|---|---|---|---|
 | I35 | Fog of war per sector | `sector.c:510`, `sector.c:533`; recon arrival `mb_msgs.c:1951` | campaign-only, fed by arrivals | sector value | depends on I12 | direct |
-| I36 | Target detection triggers a campaign engagement; the session's suppress-AI-fire setting stops campaign engagements (`engage.c:129`) | `ac_tgt.c:275` → `engage_targets_in_group` `engage.c:515` | W→C | group, target group; session flag | `Controller:getDetectedTargets` D17; DCS AI engages by ROE, so suppress-AI-fire also needs ROE weapon hold through `setOption` D17 | gap (G9) |
+| I36 | Target detection triggers a campaign engagement; the session's suppress-AI-fire setting stops campaign engagements (`engage.c:129`) | `ac_tgt.c:275` → `engage_targets_in_group` `engage.c:515` | W→C | group, target group; session flag | `Controller:getDetectedTargets` D17; ROE options through `setOption` D17, so that DCS AI does not choose targets itself, with weapon hold for suppress-AI-fire | gap (G9) |
 
 ### Random
 
@@ -442,6 +439,7 @@ Totals: 53 rows. Direct 8 (I3, I5, I10, I17, I25, I29, I35, I37). Adapted 27. Ga
 
 - **EECH:** an entity is a pointer into one heap. Its identity outside the C is its index (`en_heap.h:115`), and that index is **reused after destruction** (`eech-campaign/crates/eech-engine/src/lib.rs:106`). The SUPPLY map notes that guides and tasks can be destroyed mid-notification (#74 stage 4). [R-src]
 - **DCS:** groups and units have names (`Group.getByName` D7, `Unit.getByName` D16) and ids (`Unit:getID (): number | string` D16). Events carry object references (`event.initiator`, `event.target`, D4). Whether names are unique per mission, and whether ids are reused, is [U]: a spawn/destroy/respawn probe would settle it.
+- **The removal rule (R).** When the campaign removes DCS units without a combat outcome, it first marks their G3 names *removed*, then calls `Group:destroy` or `Object:destroy`. This covers troop pick-up (G23), units whose kill the campaign has already recorded (G26) and capture conversion (G28). G8 drops any DEAD, CRASH, UNIT_LOST or KILL event for a removed name before the loss accounting, so a removal never reaches it twice or as a new loss. Which events DCS raises on removal is probe P-CAP-2.
 - **G3, the workaround:** the campaign names every DCS group and unit it spawns as `EECH_<kind>_<index>_<generation>`, keeps a two-way table, and resolves events by name, never by a reused index. Unknown names (players, mission-editor units) are reported as foreign, not guessed.
 
 Lifetimes that DCS lacks, all **campaign-only** [I]: tasks, waypoints, guides, keysites as supply and capacity records, divisions, regen queues, sectors, landing sites and crates. DCS sees only the groups, units and statics they act through. A guide's physical half (the position the flight model steers to) is replaced by the route given to DCS (G4). An airbase keysite maps onto a DCS `Airbase` by name (I33). Other keysites (factories, refineries, SAM sites, cities) have no DCS object and stay campaign records, with statics only where destruction must be observed (G17).
@@ -504,7 +502,7 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
 | G6 Attack micro-control | I8 | **Target-level tasks:** the campaign chooses the target and issues AttackGroup; DCS AI chooses weapons and releases | D7 [R-dcs], D17 [R-ref] |
 | G7 No reached signal | I12, I35 | **Host polling of arrival geometry:** a scheduled tick tests the campaign-named member's `getPoint` and `inAir` against the campaign's target and radius. The campaign keeps waypoint, member and combination rules (#74 seam A) | D16, D19 [R-ref]; D27 [U] |
 | G8 Loss and damage inside world code | I11, I14, I15 | **One loss entry point:** separate EECH's campaign bookkeeping from `kill_local` behind a "member destroyed" observation (the #74 second slice), fed from DEAD/CRASH/UNIT_LOST/KILL deduplicated by name, plus an `isExist` sweep as reconciliation | D4 [R-dcs], D16 [R-ref] |
-| G9 Detection | I36 | **Detection observations:** poll `getDetectedTargets` per campaign group into the campaign's engage decision; set ROE so DCS AI does not pre-empt campaign tasking. Or accept DCS AI engagement as host behaviour and observe SHOT, HIT and DEAD | D17, D6 [R-ref] |
+| G9 Detection | I36 | **Detection observations, campaign targeting:** poll `getDetectedTargets` per campaign group into the campaign's engage decision. Target choice and priority stay in EECH_DC (as in G22). ROE is set so that DCS AI does not pick targets itself, and weapon hold covers suppress-AI-fire. DCS AI performs only the physical weapon release, after the campaign has assigned the target (I8, G6). SHOT, HIT and DEAD come back as observations (section 5) | D17, D6 [R-ref] |
 | G10 Typed arrivals | I13 | **Event-backed arrivals:** LAND and TAKEOFF events, matched to the unit's current campaign waypoint type | D5 [R-dcs] |
 | G11 Acceleration | I20 | **Host-owned time rate:** the campaign sees only larger dt values, quantised as in section 6 | D19 [R-ref] |
 | G12 Forest cover | I23 | **Drop or precompute:** ground units seek cover from a precomputed per-map table, or the cover search is disabled for DCS. The change is classified as a world variation | — |
@@ -517,12 +515,12 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
 | G19 Save and restore | I38 | **Campaign-state save:** the campaign serialises its own records and G3 table (through D11 if its trigger is confirmed, else a file through D2), and respawns units from them on load. In-flight physical state is approximated (respawn at base or last position). Probe: `docs/m5-dcs-risks.md` | D11 [R-dcs], D2 [R-dcs, desanitised] |
 | G20 Load and restart | I39 | **Desanitised `require` for M5 probes, and one boot per DCS process;** a mission restart needs a process restart, or a future reset entry. Probe: `docs/m5-dcs-risks.md` | D1 [R-dcs, desanitised] |
 | G21 Map placement and coordinates | I42, I46 | **Georgia on Caucasus first:** retail Georgia (map3, with its fitted affine) or the `eech-map` Georgia map (an OSM georeference). Then Lebanon on Syria once that terrain is available. Snap each airbase keysite to its DCS `Airbase` by name (G3) and record the residuals, rather than trusting the affine alone. Never use the source-default origin (`textuser.c:3187-3189`) for placement | `DCS:Mods/terrains/` [R-dcs]; D22 [R-ref] |
-| G22 Type database | I48 | **Campaign-side type properties, host-side type mapping.** The properties the campaign reads stay in EECH_DC, keyed by EECH sub-type, as EECH's own databases hold them today (`aircraft_database`, `vehicle_database`, `weapon_database`): cruise speed and altitude, fuel economy, threat values, target priorities and points. Threat, priority and points are campaign balance and policy, and are never given to the DCS adapter. The adapter translates only physical type and capability: EECH sub-type → DCS type name, and whether that DCS type exists and can carry the role, checked with `Unit:getDesc` where its fields are verified | D9 [R-dcs]; fields [U] |
-| G23 Troop transport | I49 | **Abstract troops:** troops stay a campaign count on the carrier. Insertion spawns an infantry group at the drop point (`coalition.addGroup`), and pick-up removes one (`Group:destroy`). No DCS embark is relied on | D15 [R-ref], D8 [R-dcs] |
-| G24 Player commands | I44 | **F10 command menu:** each EECH radio command, task request and waypoint skip becomes a `missionCommands` entry whose callback calls the campaign's existing handler (for example `process_radio_message`) with the player's group, resolved through G3 | D29 [R-dcs] |
+| G22 Type database | I48 | **Campaign-side type properties, host-side type mapping.** The properties the campaign reads stay in EECH_DC, keyed by EECH sub-type, as EECH's own databases hold them today (`aircraft_database`, `vehicle_database`, `weapon_database`): cruise speed and altitude, fuel economy, threat values, target priorities and points. Threat, priority and points are campaign balance and policy, and are never given to the DCS adapter. The adapter translates only physical type: EECH sub-type → DCS type name. It reports capability facts from `Unit:getDesc` (whether the type exists, its category and its weapons) where those fields are verified. EECH_DC decides task eligibility from those facts. DCS flies its own type's performance; EECH keeps its planning figures (cruise speed and altitude, fuel economy) campaign-side, so a plan's ETA or fuel can differ from the DCS flight. That difference is classified as a world variation, not a regression | D9 [R-dcs]; fields [U] |
+| G23 Troop transport | I49 | **Abstract troops:** troops stay a campaign count on the carrier. Insertion spawns an infantry group at the drop point (`coalition.addGroup`), and pick-up removes one (`Group:destroy`) under the removal rule R (section 4), so a pick-up is never a loss. No DCS embark is relied on | D15 [R-ref], D8 [R-dcs] |
+| G24 Player commands | I44 | **F10 command menu:** each EECH radio command, task request and waypoint skip becomes a `missionCommands` entry. Its callback sends a player-command message to the campaign through the module's public interface: the player's group (resolved through G3), the command and its value. The campaign then routes the message to its own handling (today `process_radio_message`, `msg_in.c:965`); the adapter never calls an internal EECH function | D29 [R-dcs] |
 | G25 Campaign end | I47 | **Host-owned end:** the campaign reports the winner through `outText` and an observable state. The host ends or keeps the mission; no mission-end API is relied on | D26 [R-ref] |
-| G26 Kill or remove | I43 | **Campaign-recorded kills:** when the campaign itself kills a group, it records the losses directly, as EECH's own consequence, and removes the units with `Group:destroy`. It does not wait for a DEAD event that may not come, and any DEAD, CRASH or UNIT_LOST that does arrive for those names is matched to the recorded kill and not counted again (G8 deduplication) | D8 [R-dcs]; DEAD on destroy [U], probe P-CAP-2 |
-| G28 Respawn on capture | I51 | **Respawn under the captor, keeping EECH's capture policy.** The capture rules stay the campaign's: idle landed aircraft groups and the keysite's structures change side, under the capture-aircraft setting, which stays on by default. The workaround only carries out the result in DCS. On each conversion: **(1) Rebind identity:** in the G3 table, mark the old DCS names of the converted group or static as *converted at generation g*. Allocate generation g+1 names for the same EECH entity index, whose side and callsign EECH has already changed in place. **(2) Remove without loss:** remove the old objects with `Group:destroy` or `Object:destroy`. Any DEAD, CRASH, UNIT_LOST or KILL event later arriving for a name marked *converted* is dropped before G8's loss entry point, so a conversion is never reported as a combat loss. The conversion itself calls no kill and runs no loss bookkeeping (`keysite.c:1375-1390`, `:1524-1568`). The same capture does kill, however: `capture_keysite` then calls `destroy_keysite` (`keysite.c:1423`), which kills the losing side's untasked landed aircraft (`keysite.c:1003`) and the members of other linked groups (`keysite.c:1097`). Those kills are I43 losses under G26: recorded by the campaign and never marked *converted*. **(3) Respawn:** with `coalition.addGroup` (cold, at the same parking spots, `Airbase:getParking`) or `addStaticObject`, under a country of the captor's coalition, with the generation g+1 names. **(4) Order:** set the airbase's coalition (`Airbase:setCoalition`, with `autoCapture` off) before respawning aircraft there. **Probes,** finite and named, settle the unknowns: **P-CAP-1** does any coalition or country setter exist for units, groups or statics (D30)? If one does, it replaces steps 2–3. **P-CAP-2** which events, if any, do `Group:destroy` and `Object:destroy` raise? **P-CAP-3** does a destroy followed by `addGroup` in the same scheduled call succeed on the same parking spots, and do the new units get fresh ids while `Group.getByName (old)` returns nil? **P-CAP-4** can a group of the captor's country spawn at an airbase just switched with `setCoalition`? **P-CAP-5** does a static respawned at the same position under the new country become a valid DEAD initiator for G17? | D8 [R-dcs], D15, D24 [R-ref]; D30 [U] |
+| G26 Kill or remove | I43 | **Campaign-recorded kills:** when the campaign itself kills a group, it records the losses directly, as EECH's own consequence, and removes the units with `Group:destroy`. It does not wait for a DEAD event that may not come. The units are removed under the removal rule R (section 4), so any DEAD, CRASH, UNIT_LOST or KILL that does arrive for those names is dropped at G8 and the kill is not counted twice | D8 [R-dcs]; DEAD on destroy [U], probe P-CAP-2 |
+| G28 Respawn on capture | I51 | **Respawn under the captor, keeping EECH's capture policy.** The capture rules stay the campaign's: idle landed aircraft groups and the keysite's structures change side, under the capture-aircraft setting, which stays on by default. The workaround only carries out the result in DCS. On each conversion: **(1) Rebind identity:** in the G3 table, mark the old DCS names of the converted group or static as *converted at generation g*. Allocate generation g+1 names for the same EECH entity index, whose side and callsign EECH has already changed in place. **(2) Remove without loss:** remove the old objects with `Group:destroy` or `Object:destroy` under the removal rule R (section 4). The old names are marked *converted*, which counts as *removed*, so their DEAD, CRASH, UNIT_LOST or KILL events are dropped at G8 and a conversion is never reported as a combat loss. The conversion itself calls no kill and runs no loss bookkeeping (`keysite.c:1375-1390`, `:1524-1568`). The same capture can still kill: `capture_keysite` then calls `destroy_keysite` (`keysite.c:1423`). That kills the losing side's untasked, landed, non-airborne aircraft that were not converted (`keysite.c:1003`); converted groups already carry the captor's side and are skipped. `:1097` kills only a non-aircraft group still linked under a list type other than keysite group (the case logged at `keysite.c:1411-1414`). Standard ground groups were moved to the losing force first (`keysite.c:1397-1409`) and survive. The adapter executes only those kills, as I43 losses under G26, recorded by the campaign and never marked *converted*. **(3) Respawn:** with `coalition.addGroup` (cold, at the same parking spots, `Airbase:getParking`) or `addStaticObject`, under a country of the captor's coalition, with the generation g+1 names. **(4) Order:** set the airbase's coalition (`Airbase:setCoalition`, with `autoCapture` off) before respawning aircraft there. **Probes,** finite and named, settle the unknowns: **P-CAP-1** does any coalition or country setter exist for units, groups or statics (D30)? If one does, it replaces steps 2–3. **P-CAP-2** which events, if any, do `Group:destroy` and `Object:destroy` raise? **P-CAP-3** does a destroy followed by `addGroup` in the same scheduled call succeed on the same parking spots, and do the new units get fresh ids while `Group.getByName (old)` returns nil? **P-CAP-4** can a group of the captor's country spawn at an airbase just switched with `setCoalition`? **P-CAP-5** does a static respawned at the same position under the new country become a valid DEAD initiator for G17? | D8 [R-dcs], D15, D24 [R-ref]; D30 [U] |
 | G29 Season as a host input | I52 | **Read, do not set:** the host's mission date and terrain give the season. The campaign file's season is checked against it at boot, and a difference is classified as an expected input or world variation, not a regression. The weather model's snow-or-rain choice uses the host's season | D19 [R-ref] |
 | G30 Boot-configuration settings | I53 | **Settings at boot:** difficulty, campaign-commander mode, run mode, language and gunship side come from the module's boot configuration, as they come from the command line in EECH. No DCS API is involved | `eech-campaign/crates/eech-dc/src/module.rs:43-54` [R-src] |
 | G27 Player aircraft binding | I45 | **Player-unit binding:** a player's DCS unit is bound to an EECH group member through G3 names on PLAYER_ENTER_UNIT. Its landings and takeoffs arrive as LAND and TAKEOFF events, applied with the campaign's landing-lock rules | D6 [R-ref], D5 [R-dcs], D16 [R-ref] |
@@ -531,7 +529,7 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
 
 | Criterion | This map contributes | Remains | Proposed acceptance check (where) |
 |---|---|---|---|
-| 1 DCS call map | Two-pass inventory and a 1,126-item coverage ledger (0 outstanding); 53 rows; 30 evidence items; G1–G30; review findings F1–F6 resolved | Lead review of the ledger rules: the 57 pattern and fallback rules (750 items) in section 10, and the method's residual limits there. DCS-side unknowns that do not block the mapping but need probes: D6 ids, D11 trigger, D15 and D18 schemas, D27, and P-CAP-1 to P-CAP-5 (D30) | Review of this record; then a DCS run listing every D item used, as present or absent (DCS) |
+| 1 DCS call map | Two-pass inventory and a 1,126-item coverage ledger (0 outstanding); 53 rows; 30 evidence items; G1–G30; review findings F1–F6 resolved | Lead review of the ledger rules: the pattern and fallback rules listed and counted in section 10, and the method's residual limits there. DCS-side unknowns that do not block the mapping but need probes: D6 ids, D11 trigger, D15 and D18 schemas, D27, and P-CAP-1 to P-CAP-5 (D30) | Review of this record; then a DCS run listing every D item used, as present or absent (DCS) |
 | 2 No world inside the campaign | Names the world code that holds campaign rules (I6, I11, I12, I36) and the services to move behind host identities | A mechanical check and a loud failure with no host | Static check: `reach.py`'s campaign→world and campaign→environment callee count (today 38 and 25 functions) falls to the calls behind declared host ports, with the ledger re-run; and a boot with no host fails by name (EECH_WORLD) |
 | 3 Host events drive the campaign | Event table (section 5); G7, G8 | The causal seam (#74, arrival first) | Withhold or delay one arrival or loss and show campaign state change (EECH_WORLD, then DCS) |
 | 4 No regression | Lists which rows change semantics under DCS (G6, G9, G12, G18) | Running the M4 pack after each move | Lebanon under EECH_WORLD, M4 pack holds, differences classified (EECH_WORLD) |
@@ -547,12 +545,16 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
   - **Message sends** are matched only as `notify_local_entity` and `notify_client_server_entity` calls; 3 sends with a non-literal message id are resolved in the ledger.
   - **The attribute disposition** uses the implementing entity classes and the usage context. Every world- or session-implemented token that the campaign uses in an accessor, a creation argument or another expression is named in `ledger.py` with its row, including suppress-AI-fire (I36) and difficulty (I53). Three world-implemented tokens appear in campaign code only as the campaign entity's own `case` labels and registrations, and fall to the own-implementation fallback: `PTR_TYPE_TERRAIN_FACE_NORMAL`, `FLOAT_TYPE_RECON_DISTANCE` and `INT_TYPE_MAP_ICON`. That assignment is a judgement the reviewer can check line by line.
   - **Globals** are found from `extern` declarations in headers only. A global declared only in a `.c` file, or used through a function rather than a macro, is not in this ledger; its accessor function is in the call ledger instead.
-  - **Pattern and fallback rules.** These decide 750 of the 1,126 items: 606 through 53 pattern rules, and 144 through 4 usage-context fallbacks. Every rule is listed below with the items it decides.
+  - **Pattern and fallback rules.** This is the one place the rule totals are stated; they are reproduced by `ledger.py` ("items by rule kind", "decided by pattern or fallback rules") on the embedded scripts.
+    - Of the 1,126 items, exact rules and fixed tables decide 376, 52 pattern rules decide 601, and 5 fallbacks decide 149: four by attribute usage context, and one for the other-table forms, where no regex is involved. So 57 pattern and fallback rules decide 750 items, each listed below.
     - Each rule's reason applies to every item it matches. The per-item list (`items.json`, with the deciding rule id) lets a reviewer check them.
     - Since F3, no rule assigns a default list of rows. Where a rule names two rows, both apply to every item it matches. The former catch-alls ("I6, I12, I30", "I12, I13, I30, I32", "I5 and G3" for all lists, "I18, I19, I27 … or framework default") are gone.
-    - Since C2, every rule that was hand-labelled exact at `ab830a04` but matches whole files or wildcards is counted as a pattern: 28 rules over 145 items (calls, writes and globals). These include the reviewer's 15 call rules over 88 items. All of them are in this table.
-    - Since C4 and C5, two call alternatives that named campaign callees (never caller keys) and two shadowed global alternatives are gone. `hc_updt.c::update_server` and `rv_updt.c::update_server` each get one row from their measured callee: the sector lookup (I25) and the current task (I6).
-    - The table is reproduced by `ledger.py` ("decided by pattern or fallback rules") on the embedded scripts.
+    - Since C2, every rule that was hand-labelled exact at `ab830a04` but matches whole files or wildcards is counted as a pattern: 28 rules over 145 items (calls, writes and globals). These include the reviewer's 15 call rules over 88 items.
+    - **Removed alternatives:**
+      - Since C4 and C5, two call alternatives that named campaign callees (never caller keys) are gone, and so are two global alternatives: `^object_3d_enumeration_names$`, shadowed by `_names$`, and `^dik_names$`, redundant with it.
+      - Since the audit of `96650e9e`, three more redundant alternatives are gone: `common/co_force\.c::` (shadowed by `gunships/dynamics/`; `co_force.c::update_collision_dynamics` handles the player aircraft's crash, so it is I45), `common/co_undercarriage\.c::` (inside `gunships/dynamics/`), and `gunships/guns_sc\.c::` (the file is under `ui_menu/`). The unreachable "tool" table verb is gone too.
+      - None of these removals changed a disposition.
+    - `hc_updt.c::update_server` and `rv_updt.c::update_server` each get one row from their measured callee: the sector lookup (I25) and the current task (I6).
 
 | Ledger | Rule id | Disposition | Reason or row | Items |
 |---|---|---|---|---|
@@ -565,7 +567,7 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
 | calls | `pattern:calls#4` | mapped | I44 (player task choice, route planning, waypoint skip) | 27 |
 | calls | `pattern:calls#5` | mapped | I41 (messages to players) | 3 |
 | calls | `pattern:calls#7` | excluded | multiplayer replication and client join: headless is COMMS_MODEL_SERVER (eech_engine.c:144) with DirectPlay replaced (eech-campaign/crates/eech-engine-sys/build/main.rs:38-39); DCS replicates units | 6 |
-| calls | `pattern:calls#8` | mapped | I45 (player aircraft) | 15 |
+| calls | `pattern:calls#8` | mapped | I45 (player aircraft: control, flight dynamics, landing, crash) | 15 |
 | calls | `pattern:calls#9` | mapped | I41 (player displays of campaign state) | 65 |
 | calls | `pattern:calls#10` | mapped | I18, I40 (campaign callbacks on the frame's update list) | 2 |
 | calls | `pattern:calls#11` | mapped | I39 (lifecycle) | 4 |
@@ -603,7 +605,7 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
 | globals | `pattern:globals#3` | excluded | debug drawing colours and 2D state (gd_draw.c, imaps.c, gd_cover.c) | 10 |
 | globals | `pattern:globals#4` | excluded | campaign data image read natively (popread.c:362) | 2 |
 | globals | `pattern:globals#7` | mapped | I2, I26 (3D object data, G14) | 2 |
-| other tables | `pattern:other-tables#default` | excluded | not a function table: a data array assigned from a variable that shares a function's name (for example `.v = v;`) | 5 |
+| other tables | `fallback:other-tables` | excluded | not a function table: a data array assigned from a variable that shares a function's name (for example `.v = v;`) | 5 |
 | writes | `pattern:writes#2` | mapped | I1 (spawn placement and state) | 12 |
 | writes | `pattern:writes#3` | mapped | I30 (landing and takeoff sequencing, G16) | 4 |
 | writes | `pattern:writes#4` | mapped | I4 (group membership, G3) | 3 |
@@ -697,7 +699,8 @@ def path_class(path):
 def compiled_units(root, host=True):
     """sources.txt, plus the headless host layer csrc/*.c when host is true"""
     root = Path(root)
-    units = [l.strip() for l in (root / SYS / "sources.txt").read_text().splitlines() if l.strip()]
+    lines = (l.strip() for l in (root / SYS / "sources.txt").read_text().splitlines())
+    units = [l for l in lines if l and not l.startswith("#")]  # as build/main.rs reads it
     if host:
         units += sorted(p.relative_to(root).as_posix() for p in (root / SYS / "csrc").glob("*.c"))
     return units
@@ -759,15 +762,16 @@ class Macros:
                     for m in _MACRO.finditer(strip_comments(p.read_text(encoding="latin-1"))):
                         params = set(IDENT.findall(m.group(2) or ""))
                         self.bodies[m.group(1)] |= set(IDENT.findall(m.group(3))) - params - KEYWORDS
-        self._expanded = {}
+        self._expanded = {}  # complete top-level expansions only
 
     def __contains__(self, name):
         return name in self.bodies
 
     def expand(self, name, seen=()):
         """identifiers a macro use reaches, recursively; a nested macro whose expansion defines nothing is kept by
-        name, because it hides a same-named function (e.g. an #ifdef'd _ex variant)"""
-        if name in self._expanded:
+        name, because it hides a same-named function (e.g. an #ifdef'd _ex variant). Only top-level results are
+        cached: a nested result is cut by its caller's cycle guard and would make the output depend on call order."""
+        if not seen and name in self._expanded:
             return self._expanded[name]
         out = set()
         for n in self.bodies.get(name, ()):
@@ -778,7 +782,8 @@ class Macros:
                     out.add(n)
             else:
                 out.add(n)
-        self._expanded[name] = out
+        if not seen:
+            self._expanded[name] = out
         return out
 
 
@@ -1048,6 +1053,9 @@ def main(root, detail):
     text = {f: strip_code(read_source(root, f)) for f in units}
     cls = {f: path_class(f) for f in units}
     funcs, by_name, filescope = index_functions(text)
+    missing = [e for e in ENTRIES if (SYS + "csrc/eech_engine.c", e) not in funcs]
+    if missing:
+        sys.exit(f"reach.py: entry points not found in {SYS}csrc/eech_engine.c: {', '.join(missing)}")
     resolver = Resolver(funcs, by_name, Macros(root, is_defined=lambda name: name in by_name))
     reach, edges, ambiguous = walk(text, funcs, filescope, resolver)
     examined, unresolved = unresolved_campaign_calls(text, funcs, reach, resolver, cls)
@@ -1375,10 +1383,10 @@ NO_RULE = ("unclassified", OUTSTANDING, "no rule", "none")
 
 WILDCARD = re.compile(r"\\[wdsS]|(?<!\\)[.\[*+?]")
 LITERAL_NAMES = r"[A-Za-z0-9_|()]+"
-EXACT_FORMS = {
-    "call": re.compile(r"::" + LITERAL_NAMES + r"\$$"),
-    "global": re.compile(r"\^" + LITERAL_NAMES + r"\$$"),
-    "write": re.compile(r":[0-9|()]+\\\|[A-Z0-9_]+\\\|" + LITERAL_NAMES + r"\$$"),
+EXACT_FORMS = {  # per rule list: the shape of an alternative that names its keys literally
+    "calls": re.compile(r"::" + LITERAL_NAMES + r"\$$"),
+    "globals": re.compile(r"\^" + LITERAL_NAMES + r"\$$"),
+    "writes": re.compile(r":[0-9|()]+\\\|[A-Z0-9_]+\\\|" + LITERAL_NAMES + r"\$$"),
 }
 
 
@@ -1398,25 +1406,31 @@ def alternatives(rx):
     return out + [rx[start:]]
 
 
-def rule_kind(rx, key):
-    """exact when every alternative names its keys literally in the key form's exact shape"""
-    form = EXACT_FORMS[key]
+def rule_kind(rx, ledger):
+    """exact when every alternative names its keys literally in the ledger's exact shape"""
+    form = EXACT_FORMS[ledger]
     for alt in alternatives(rx):
         if WILDCARD.search(alt.replace("\\.", "")) or not form.search(alt):
             return "pattern"
     return "exact"
 
 
-def rule(rx, category, disposition, ref, key="call"):
-    return {"kind": rule_kind(rx, key), "rx": re.compile(rx), "category": category, "disposition": disposition,
-            "ref": ref}
+def rule_list(ledger, specs):
+    """(regex, category, disposition, ref) specs -> rules carrying their ledger name, derived kind and rule id"""
+    return [{"rx": re.compile(rx), "category": category, "disposition": disposition, "ref": ref,
+             "id": f"{rule_kind(rx, ledger)}:{ledger}#{i}"} for i, (rx, category, disposition, ref) in enumerate(specs)]
 
 
-def decide(rules, key, ledger):
-    """(category, disposition, ref, rule id) of the first rule matching key; ids are "<kind>:<ledger>#<index>" """
-    for i, r in enumerate(rules):
-        if r["rx"].search(key):
-            return r["category"], r["disposition"], r["ref"], f"{r['kind']}:{ledger}#{i}"
+def kind_of(rule_id):
+    """"exact", "pattern", "fallback" or "none" from a rule id such as "pattern:calls#3" """
+    return rule_id.split(":")[0]
+
+
+def decide(rules, item_key):
+    """(category, disposition, ref, rule id) of the first rule matching item_key"""
+    for r in rules:
+        if r["rx"].search(item_key):
+            return r["category"], r["disposition"], r["ref"], r["id"]
     return NO_RULE
 
 
@@ -1425,78 +1439,78 @@ SERVER_ONLY = ("multiplayer replication and client join: headless is COMMS_MODEL
 NO_DRAW = "presentation: the headless frame draws nothing and plays no sound (eech_engine.c:253-286)"
 
 # ---- 1. calls and references across the campaign boundary, keyed "path::function" -----------------------
-CALL_RULES = [
+CALL_RULES = rule_list("calls", [
     # headless host layer
-    rule(r"csrc/eech_engine\.c::(boot|force_data_dump)$", "host", MAPPED, "I39 (boot, diagnostics)"),
-    rule(r"csrc/eech_observe\.c::fill_group$", "host", MAPPED, "I4 (host observation surface)"),
-    rule(r"csrc/eech_(headless_\w+|win32)\.c::", "host", EXCLUDED, "platform services (memory, strings, files, fatal unwinding); no world"),
+    (r"csrc/eech_engine\.c::(boot|force_data_dump)$", "host", MAPPED, "I39 (boot, diagnostics)"),
+    (r"csrc/eech_observe\.c::fill_group$", "host", MAPPED, "I4 (host observation surface)"),
+    (r"csrc/eech_(headless_\w+|win32)\.c::", "host", EXCLUDED, "platform services (memory, strings, files, fatal unwinding); no world"),
     # players and multiplayer
-    rule(r"misc/msg_in\.c::|events/ev_fns\.c::|system/event\.c::", "player", MAPPED, "I44 (player commands, key-bound triggers)"),
-    rule(r"ui_menu/.*/(ca_selct|fflight|map)\.c::|common/co_wp\.c::", "player", MAPPED, "I44 (player task choice, route planning, waypoint skip)"),
-    rule(r"misc/msg_out\.c::", "player", MAPPED, "I41 (messages to players)"),
-    rule(r"en_comms/en_comms\.c::process_received_entity_comms_messages$", "player", MAPPED, "I44 (client task requests)"),
-    rule(r"en_comms/en_comms\.c::|comms/(comms|comm_man)\.c::", "player", EXCLUDED, SERVER_ONLY),
-    rule(r"special/pilot/|gunships/dynamics/|common/co_undercarriage\.c::|helicop\.c::(get_local_entity_suitable_for_player|notify_gunship\w*|helicopter_assume_player_control|helicopter_release_player_control|assign_entity_to_user|set_gunship_entity_to_external_view_entity|transmit_player_recon_data)$", "player", MAPPED, "I45 (player aircraft)"),
-    rule(r"gunships/(avionics|cockpits|views)/|common/co_force\.c::|hc_move\.c::get_waypoint_display_position$", "player", MAPPED, "I41 (player displays of campaign state)"),
+    (r"misc/msg_in\.c::|events/ev_fns\.c::|system/event\.c::", "player", MAPPED, "I44 (player commands, key-bound triggers)"),
+    (r"ui_menu/.*/(ca_selct|fflight|map)\.c::|common/co_wp\.c::", "player", MAPPED, "I44 (player task choice, route planning, waypoint skip)"),
+    (r"misc/msg_out\.c::", "player", MAPPED, "I41 (messages to players)"),
+    (r"en_comms/en_comms\.c::process_received_entity_comms_messages$", "player", MAPPED, "I44 (client task requests)"),
+    (r"en_comms/en_comms\.c::|comms/(comms|comm_man)\.c::", "player", EXCLUDED, SERVER_ONLY),
+    (r"special/pilot/|gunships/dynamics/|helicop\.c::(get_local_entity_suitable_for_player|notify_gunship\w*|helicopter_assume_player_control|helicopter_release_player_control|assign_entity_to_user|set_gunship_entity_to_external_view_entity|transmit_player_recon_data)$", "player", MAPPED, "I45 (player aircraft: control, flight dynamics, landing, crash)"),
+    (r"gunships/(avionics|cockpits|views)/|hc_move\.c::get_waypoint_display_position$", "player", MAPPED, "I41 (player displays of campaign state)"),
     # lifecycle, time, persistence
-    rule(r"aphavoc/source/update\.c::", "framework", MAPPED, "I18, I40 (campaign callbacks on the frame's update list)"),
-    rule(r"gameflow/gameflow\.c::|aphavoc/source/(flight|init)\.c::|ui_menu/.*/mission\.c::", "framework", MAPPED, "I39 (lifecycle)"),
-    rule(r"campaign/campaign\.c::campaign_completed$", "presentation", MAPPED, "I47 (campaign end)"),
-    rule(r"::(pack|unpack)_|en_sessn\.c::|session/ss_pack\.c::", "persistence", MAPPED, "I38 (save, restore)"),
+    (r"aphavoc/source/update\.c::", "framework", MAPPED, "I18, I40 (campaign callbacks on the frame's update list)"),
+    (r"gameflow/gameflow\.c::|aphavoc/source/(flight|init)\.c::|ui_menu/.*/mission\.c::", "framework", MAPPED, "I39 (lifecycle)"),
+    (r"campaign/campaign\.c::campaign_completed$", "presentation", MAPPED, "I47 (campaign end)"),
+    (r"::(pack|unpack)_|en_sessn\.c::|session/ss_pack\.c::", "persistence", MAPPED, "I38 (save, restore)"),
     # framework
-    rule(r"en_main/en_world\.c::", "framework", MAPPED, "I25 (map bounds)"),
-    rule(r"en_anim/en_anim\.c::", "framework", MAPPED, "I10 (doors)"),
-    rule(r"en_(funcs|main|types|msgs|misc|attrs)/", "framework", EXCLUDED, "entity store used for campaign records; crossings through it are the message, table, attribute and write ledgers"),
-    rule(r"en_debug/|system/assert\.c::|events/ev_debug\.c::|aphavoc/source/test\.c::|::debug_visuals$|fw_draw\.c::|::draw_mobile_entity_debug_info$|::display_debug_kill_info$", "framework", EXCLUDED, "debug and test code; no world effect"),
-    rule(r"modules/maths/(?!random)|system/fpu\.c::|misc/miscell\.c::", "framework", EXCLUDED, "pure arithmetic"),
-    rule(r"misc/(file_tag|language)\.c::|system/files\.c::|graphics/psdread\.c::", "framework", EXCLUDED, "campaign data files read natively by the DLL with C stdio; no DCS API (the files ship with the module, I39)"),
-    rule(r"entity/tacview/|aphavoc/source/sharedmem\.c::", "framework", EXCLUDED, "EECH's own Tacview writer and shared-memory export; observers of the campaign"),
+    (r"en_main/en_world\.c::", "framework", MAPPED, "I25 (map bounds)"),
+    (r"en_anim/en_anim\.c::", "framework", MAPPED, "I10 (doors)"),
+    (r"en_(funcs|main|types|msgs|misc|attrs)/", "framework", EXCLUDED, "entity store used for campaign records; crossings through it are the message, table, attribute and write ledgers"),
+    (r"en_debug/|system/assert\.c::|events/ev_debug\.c::|aphavoc/source/test\.c::|::debug_visuals$|fw_draw\.c::|::draw_mobile_entity_debug_info$|::display_debug_kill_info$", "framework", EXCLUDED, "debug and test code; no world effect"),
+    (r"modules/maths/(?!random)|system/fpu\.c::|misc/miscell\.c::", "framework", EXCLUDED, "pure arithmetic"),
+    (r"misc/(file_tag|language)\.c::|system/files\.c::|graphics/psdread\.c::", "framework", EXCLUDED, "campaign data files read natively by the DLL with C stdio; no DCS API (the files ship with the module, I39)"),
+    (r"entity/tacview/|aphavoc/source/sharedmem\.c::", "framework", EXCLUDED, "EECH's own Tacview writer and shared-memory export; observers of the campaign"),
     # presentation
-    rule(r"graphics/textuser\.c::read_map_info_data$", "presentation", MAPPED, "I46, I52 (map info, origin, season)"),
-    rule(r"graphics/psdwrite\.c::|special/camera/|ui_menu/|gunships/guns_sc\.c::", "presentation", EXCLUDED, "campaign screens, camera and influence-map images: " + NO_DRAW),
+    (r"graphics/textuser\.c::read_map_info_data$", "presentation", MAPPED, "I46, I52 (map info, origin, season)"),
+    (r"graphics/psdwrite\.c::|special/camera/|ui_menu/", "presentation", EXCLUDED, "campaign screens, camera and influence-map images: " + NO_DRAW),
     # world and environment, by function first
-    rule(r"_msgs\.c::response_to_check_mobile_reached_guide$", "world", MAPPED, "I12 (per-member arrival test)"),
-    rule(r"_msgs\.c::response_to_guide_cover_position_reached$", "world", MAPPED, "I23 (cover)"),
-    rule(r"mb_msgs\.c::response_to_waypoint_(landed|land|taken_off)_reached$", "world", MAPPED, "I13 (typed arrivals)"),
-    rule(r"mb_msgs\.c::response_to_waypoint_troop_\w+_reached$", "world", MAPPED, "I49 (troops)"),
-    rule(r"mb_msgs\.c::response_to_waypoint_attack_action$", "world", MAPPED, "I8 (attack)"),
-    rule(r"mb_msgs\.c::response_to_waypoint_(defend|loop|sub_route_navigation)_reached$", "world", MAPPED, "I12, I50 (navigation arrivals)"),
-    rule(r"mb_msgs\.c::response_to_task_assigned$", "world", MAPPED, "I6 (task assigned to a member)"),
-    rule(r"mb_msgs\.c::(attach_divison_to_keysite|get_destination_keysite)$", "world", MAPPED, "I32 (capture by troops)"),
-    rule(r"_msgs\.c::response_to_collision$", "world", MAPPED, "I15 (collision damage)"),
-    rule(r"mobile\.c::credit_client_server_mobile_kill$", "world", MAPPED, "I14 (kill credit)"),
-    rule(r"mobile\.c::mobile_check_all_members_taken_off$", "world", MAPPED, "I13 (takeoff)"),
-    rule(r"mobile\.c::insert_mobile_into_takeoff_route$", "world", MAPPED, "I30 (takeoff route)"),
-    rule(r"routed\.c::stop_vehicles_on_route$", "world", MAPPED, "I24 (broken road link stops vehicles)"),
-    rule(r"fixwing\.c::update_fixed_wing_crate_dropping$", "world", MAPPED, "I29 (crate drop)"),
-    rule(r"hc_updt\.c::update_fuel_weight$|wn_misc\.c::get_local_entity_weapon_load_weight$", "world", MAPPED, "I7 (fuel and load)"),
-    rule(r"helicop\.c::helicopter_within_keysite_area$", "world", MAPPED, "I30 (keysite area)"),
-    rule(r"rv_updt\.c::update_server$", "world", MAPPED, "I6 (the routed vehicle's update reads its current task)"),
-    rule(r"_vec3d\.c::set_local_vec3d$|hc_updt\.c::update_server$", "world", MAPPED, "I25 (moving objects update their sector registration)"),
-    rule(r"_int\.c::get_local_int_value$", "world", MAPPED, "I6 (a world attribute derived from the campaign task)"),
-    rule(r"_creat\.c::create_(client_server|local)_entity_(anti_aircraft|fixed_wing|helicopter|person|routed_vehicle|ship)$", "world", MAPPED, "I1 (spawn)"),
-    rule(r"special/effect/soundeff/speech\.c::|::play_mobile_under_attack_speech$", "world", MAPPED, "I41 (speech to players)"),
-    rule(r"mobile/.*_creat\.c::create_local$", "world", MAPPED, "I1 (a spawned mobile registers with its force and sector)"),
-    rule(r"special/effect/|session\.c::attach_session_sound", "world", EXCLUDED, "visual and audio effects; DCS renders its own"),
-    rule(r"fixed/\w+/\w+_creat\.c::create_local$", "world", MAPPED, "I2, I25 (a world object registers in its sector)"),
-    rule(r"(site|siteupdt|cbuild)/|fixed/fixed\.c::", "world", MAPPED, "I31 (keysite structures)"),
-    rule(r"bridge/", "world", MAPPED, "I24 (bridges break road links)"),
-    rule(r"_dstry\.c::", "world", MAPPED, "I14 (losses)"),
-    rule(r"(ac|vh)_tgt\.c::\w+_target_scan$|vh_wpn\.c::update_vehicle_missile_defence$", "world", MAPPED, "I36 (target detection triggers engagement)"),
-    rule(r"ac_wpn\.c::|weapon/weapon\.c::|wn_tgt\.c::", "world", MAPPED, "I8 (weapon choice and release)"),
-    rule(r"wn_creat\.c::", "world", MAPPED, "I16 (weapon fired at a target)"),
-    rule(r"aircraft\.c::assess_aircraft_damage_level$", "world", MAPPED, "I11, I15 (damage, return to base)"),
-    rule(r"mb_tgt\.c::", "world", MAPPED, "I9 (line of sight)"),
-    rule(r"_msgs\.c::overload_\w+|mb_funcs\.c::overload_mobile_functions$", "world", MAPPED, "I29, I31 (campaign entity types reuse world handlers; campaign-only in DCS)"),
-    rule(r"_move\.c::", "world", MAPPED, "I6 (movement reads the guide)"),
-    rule(r"modules/3d/terrain/terrelev\.c::|misc/terr_db\.c::", "environment", MAPPED, "I21, I22 (elevation, surface)"),
-    rule(r"modules/3d/terrain/terrdata\.c::get_terrain_3d_\w+_in_sector$", "environment", MAPPED, "I23 (forest triangles)"),
-    rule(r"modules/3d/terrain/terrobjs\.c::|modules/3d/3dobjdb\.c::(construct|destruct)_3d_object$", "environment", MAPPED, "I2 (population objects)"),
-    rule(r"modules/3d/3d(objdb|subobj|objvis|objid)\.c::", "environment", MAPPED, "I26 (3D object data)"),
-    rule(r"misc/tod\.c::", "environment", MAPPED, "I19 (time of day)"),
-    rule(r"session/session\.c::set_session_\w+_weather_mode$|session/ss_updt\.c::", "environment", MAPPED, "I27 (weather)"),
-    rule(r"session/session\.c::check_point_inside_population_area$", "environment", MAPPED, "I25 (map population area)"),
-]
+    (r"_msgs\.c::response_to_check_mobile_reached_guide$", "world", MAPPED, "I12 (per-member arrival test)"),
+    (r"_msgs\.c::response_to_guide_cover_position_reached$", "world", MAPPED, "I23 (cover)"),
+    (r"mb_msgs\.c::response_to_waypoint_(landed|land|taken_off)_reached$", "world", MAPPED, "I13 (typed arrivals)"),
+    (r"mb_msgs\.c::response_to_waypoint_troop_\w+_reached$", "world", MAPPED, "I49 (troops)"),
+    (r"mb_msgs\.c::response_to_waypoint_attack_action$", "world", MAPPED, "I8 (attack)"),
+    (r"mb_msgs\.c::response_to_waypoint_(defend|loop|sub_route_navigation)_reached$", "world", MAPPED, "I12, I50 (navigation arrivals)"),
+    (r"mb_msgs\.c::response_to_task_assigned$", "world", MAPPED, "I6 (task assigned to a member)"),
+    (r"mb_msgs\.c::(attach_divison_to_keysite|get_destination_keysite)$", "world", MAPPED, "I32 (capture by troops)"),
+    (r"_msgs\.c::response_to_collision$", "world", MAPPED, "I15 (collision damage)"),
+    (r"mobile\.c::credit_client_server_mobile_kill$", "world", MAPPED, "I14 (kill credit)"),
+    (r"mobile\.c::mobile_check_all_members_taken_off$", "world", MAPPED, "I13 (takeoff)"),
+    (r"mobile\.c::insert_mobile_into_takeoff_route$", "world", MAPPED, "I30 (takeoff route)"),
+    (r"routed\.c::stop_vehicles_on_route$", "world", MAPPED, "I24 (broken road link stops vehicles)"),
+    (r"fixwing\.c::update_fixed_wing_crate_dropping$", "world", MAPPED, "I29 (crate drop)"),
+    (r"hc_updt\.c::update_fuel_weight$|wn_misc\.c::get_local_entity_weapon_load_weight$", "world", MAPPED, "I7 (fuel and load)"),
+    (r"helicop\.c::helicopter_within_keysite_area$", "world", MAPPED, "I30 (keysite area)"),
+    (r"rv_updt\.c::update_server$", "world", MAPPED, "I6 (the routed vehicle's update reads its current task)"),
+    (r"_vec3d\.c::set_local_vec3d$|hc_updt\.c::update_server$", "world", MAPPED, "I25 (moving objects update their sector registration)"),
+    (r"_int\.c::get_local_int_value$", "world", MAPPED, "I6 (a world attribute derived from the campaign task)"),
+    (r"_creat\.c::create_(client_server|local)_entity_(anti_aircraft|fixed_wing|helicopter|person|routed_vehicle|ship)$", "world", MAPPED, "I1 (spawn)"),
+    (r"special/effect/soundeff/speech\.c::|::play_mobile_under_attack_speech$", "world", MAPPED, "I41 (speech to players)"),
+    (r"mobile/.*_creat\.c::create_local$", "world", MAPPED, "I1 (a spawned mobile registers with its force and sector)"),
+    (r"special/effect/|session\.c::attach_session_sound", "world", EXCLUDED, "visual and audio effects; DCS renders its own"),
+    (r"fixed/\w+/\w+_creat\.c::create_local$", "world", MAPPED, "I2, I25 (a world object registers in its sector)"),
+    (r"(site|siteupdt|cbuild)/|fixed/fixed\.c::", "world", MAPPED, "I31 (keysite structures)"),
+    (r"bridge/", "world", MAPPED, "I24 (bridges break road links)"),
+    (r"_dstry\.c::", "world", MAPPED, "I14 (losses)"),
+    (r"(ac|vh)_tgt\.c::\w+_target_scan$|vh_wpn\.c::update_vehicle_missile_defence$", "world", MAPPED, "I36 (target detection triggers engagement)"),
+    (r"ac_wpn\.c::|weapon/weapon\.c::|wn_tgt\.c::", "world", MAPPED, "I8 (weapon choice and release)"),
+    (r"wn_creat\.c::", "world", MAPPED, "I16 (weapon fired at a target)"),
+    (r"aircraft\.c::assess_aircraft_damage_level$", "world", MAPPED, "I11, I15 (damage, return to base)"),
+    (r"mb_tgt\.c::", "world", MAPPED, "I9 (line of sight)"),
+    (r"_msgs\.c::overload_\w+|mb_funcs\.c::overload_mobile_functions$", "world", MAPPED, "I29, I31 (campaign entity types reuse world handlers; campaign-only in DCS)"),
+    (r"_move\.c::", "world", MAPPED, "I6 (movement reads the guide)"),
+    (r"modules/3d/terrain/terrelev\.c::|misc/terr_db\.c::", "environment", MAPPED, "I21, I22 (elevation, surface)"),
+    (r"modules/3d/terrain/terrdata\.c::get_terrain_3d_\w+_in_sector$", "environment", MAPPED, "I23 (forest triangles)"),
+    (r"modules/3d/terrain/terrobjs\.c::|modules/3d/3dobjdb\.c::(construct|destruct)_3d_object$", "environment", MAPPED, "I2 (population objects)"),
+    (r"modules/3d/3d(objdb|subobj|objvis|objid)\.c::", "environment", MAPPED, "I26 (3D object data)"),
+    (r"misc/tod\.c::", "environment", MAPPED, "I19 (time of day)"),
+    (r"session/session\.c::set_session_\w+_weather_mode$|session/ss_updt\.c::", "environment", MAPPED, "I27 (weather)"),
+    (r"session/session\.c::check_point_inside_population_area$", "environment", MAPPED, "I25 (map population area)"),
+])
 
 # ---- 2. static message types that cross the boundary --------------------------------------------------
 MESSAGES = {
@@ -1518,7 +1532,7 @@ MESSAGES = {
 # ---- 3. entity function tables, by verb; 3b. other function-pointer tables -----------------------------
 TABLE_VERBS = {"create": (MAPPED, "I1"), "destroy": (MAPPED, "I3, I43"), "kill": (MAPPED, "I43"),
                "update": (MAPPED, "I40"), "pack": (MAPPED, "I38"), "unpack": (MAPPED, "I38"),
-               "draw": (EXCLUDED, NO_DRAW), "play": (EXCLUDED, NO_DRAW), "tool": (EXCLUDED, NO_DRAW)}
+               "draw": (EXCLUDED, NO_DRAW), "play": (EXCLUDED, NO_DRAW)}
 OTHER_TABLES = {
     "campaign_screen_message_responses": (EXCLUDED, "campaign-screen UI handlers (ca_group.c:1584-1588); fed only by notify_campaign_screen, itself excluded: " + NO_DRAW),
 }
@@ -1593,45 +1607,45 @@ CONTEXT_FALLBACKS = [
 ]
 
 # ---- 6. campaign writes to world-implemented attributes, keyed "file:line|TOKEN|receiver" -------------------
-WRITE_RULES = [  # key "write"
-    rule(r"keysite\.c:(1383|1390)\|INT_TYPE_SIDE\|(member|current_group)$", "world", MAPPED, "I51 (capture converts landed aircraft groups, G28)", key="write"),
-    rule(r"keysite\.c:(1540|1546|1562|1568)\|INT_TYPE_SIDE\|(group|member)$", "world", MAPPED, "I51 (capture converts keysite building and regen structures, G28)", key="write"),
-    rule(r"faction\.c:\d+\|(VEC3D_TYPE_POSITION|INT_TYPE_OPERATIONAL_STATE|FLOAT_TYPE_MAIN_ROTOR_RPM|FLOAT_TYPE_UNDERCARRIAGE_STATE|INT_TYPE_FORMATION_POSITION)\|member$|popread\.c:1454\|FLOAT_TYPE_HEADING\|member$", "world", MAPPED, "I1 (spawn placement and state)", key="write"),
-    rule(r"ld_msgs\.c:\d+\|INT_TYPE_OPERATIONAL_STATE\|", "world", MAPPED, "I30 (landing and takeoff sequencing, G16)", key="write"),
-    rule(r"(group|ld_msgs)\.c:\d+\|(INT_TYPE_FORMATION_POSITION|INT_TYPE_GROUP_MEMBER_NUMBER)\|member$", "world", MAPPED, "I4 (group membership, G3)", key="write"),
-    rule(r"(ld_msgs|rg_updt)\.c:\d+\|FLOAT_TYPE_LOADING_DOOR_TIMER\|", "world", MAPPED, "I10 (hangar and building doors)", key="write"),
-    rule(r"assign\.c:1350\|FLOAT_TYPE_FUEL_SUPPLY_LEVEL\|en$", "world", MAPPED, "I7 (helicopter fuel load)", key="write"),
-    rule(r"assign\.c:1321\|INT_TYPE_TROOPS_ONBOARD\|en$", "world", MAPPED, "I49 (troops, G23)", key="write"),
-    rule(r"guide\.c:(509|801)\|FLOAT_TYPE_DISTANCE\|(leader|member)$", "world", MAPPED, "I12 (the guide writes the member's range, G7)", key="write"),
-    rule(r"_attck\.c:\d+\|(FLOAT_TYPE_WEAPON_LAUNCH_DELAY|INT_TYPE_SELECTED_WEAPON)\|aggressor$", "world", MAPPED, "I8 (attack internals, G6)", key="write"),
-    rule(r"(_attck|gd_cover)\.c:\d+\|VEC3D_TYPE_COVER_POSITION\|aggressor$", "world", MAPPED, "I23 (cover, G12)", key="write"),
-    rule(r"popread\.c:\d+\|INT_TYPE_(APPROXIMATION_)?OBJECT_3D_SHAPE\|city$", "world", MAPPED, "I2 (population objects)", key="write"),
-    rule(r"\|(sector|wp|this_wp|next_wp|keysite|get_parser_keysite \(\)|incoming_group|landing|guide)$|(_attck|guide)\.c:\d+\|\w+\|en$|(cg_\w+|gp_dstry|ks_dstry|group|wp_creat)\.c:\d+\|\w+\|en$|keysite\.c:(543|1340)\|", "campaign", EXCLUDED, "the receiver is a campaign entity (sector, waypoint, guide, keysite, group, cargo, landing); the token is also world-implemented, but this write is campaign state", key="write"),
-    rule(r"ks_msgs\.c:238\|FLOAT_TYPE_FUEL_SUPPLY_LEVEL\|receiver$", "campaign", EXCLUDED, "a keysite's supply level set on drop-off: campaign state (I29)", key="write"),
-    rule(r"(ks|ld|rg|ts|wp|cg)_msgs\.c:\d+\|(VEC3D_TYPE_POSITION|FLOAT_TYPE_HEADING)\|receiver$", "campaign", EXCLUDED, "SET_ENTITY_POSITION propagation to a campaign entity (landing site, regen, task, waypoint, cargo); I34 covers the moving keysite", key="write"),
-]
+WRITE_RULES = rule_list("writes", [
+    (r"keysite\.c:(1383|1390)\|INT_TYPE_SIDE\|(member|current_group)$", "world", MAPPED, "I51 (capture converts landed aircraft groups, G28)"),
+    (r"keysite\.c:(1540|1546|1562|1568)\|INT_TYPE_SIDE\|(group|member)$", "world", MAPPED, "I51 (capture converts keysite building and regen structures, G28)"),
+    (r"faction\.c:\d+\|(VEC3D_TYPE_POSITION|INT_TYPE_OPERATIONAL_STATE|FLOAT_TYPE_MAIN_ROTOR_RPM|FLOAT_TYPE_UNDERCARRIAGE_STATE|INT_TYPE_FORMATION_POSITION)\|member$|popread\.c:1454\|FLOAT_TYPE_HEADING\|member$", "world", MAPPED, "I1 (spawn placement and state)"),
+    (r"ld_msgs\.c:\d+\|INT_TYPE_OPERATIONAL_STATE\|", "world", MAPPED, "I30 (landing and takeoff sequencing, G16)"),
+    (r"(group|ld_msgs)\.c:\d+\|(INT_TYPE_FORMATION_POSITION|INT_TYPE_GROUP_MEMBER_NUMBER)\|member$", "world", MAPPED, "I4 (group membership, G3)"),
+    (r"(ld_msgs|rg_updt)\.c:\d+\|FLOAT_TYPE_LOADING_DOOR_TIMER\|", "world", MAPPED, "I10 (hangar and building doors)"),
+    (r"assign\.c:1350\|FLOAT_TYPE_FUEL_SUPPLY_LEVEL\|en$", "world", MAPPED, "I7 (helicopter fuel load)"),
+    (r"assign\.c:1321\|INT_TYPE_TROOPS_ONBOARD\|en$", "world", MAPPED, "I49 (troops, G23)"),
+    (r"guide\.c:(509|801)\|FLOAT_TYPE_DISTANCE\|(leader|member)$", "world", MAPPED, "I12 (the guide writes the member's range, G7)"),
+    (r"_attck\.c:\d+\|(FLOAT_TYPE_WEAPON_LAUNCH_DELAY|INT_TYPE_SELECTED_WEAPON)\|aggressor$", "world", MAPPED, "I8 (attack internals, G6)"),
+    (r"(_attck|gd_cover)\.c:\d+\|VEC3D_TYPE_COVER_POSITION\|aggressor$", "world", MAPPED, "I23 (cover, G12)"),
+    (r"popread\.c:\d+\|INT_TYPE_(APPROXIMATION_)?OBJECT_3D_SHAPE\|city$", "world", MAPPED, "I2 (population objects)"),
+    (r"\|(sector|wp|this_wp|next_wp|keysite|get_parser_keysite \(\)|incoming_group|landing|guide)$|(_attck|guide)\.c:\d+\|\w+\|en$|(cg_\w+|gp_dstry|ks_dstry|group|wp_creat)\.c:\d+\|\w+\|en$|keysite\.c:(543|1340)\|", "campaign", EXCLUDED, "the receiver is a campaign entity (sector, waypoint, guide, keysite, group, cargo, landing); the token is also world-implemented, but this write is campaign state"),
+    (r"ks_msgs\.c:238\|FLOAT_TYPE_FUEL_SUPPLY_LEVEL\|receiver$", "campaign", EXCLUDED, "a keysite's supply level set on drop-off: campaign state (I29)"),
+    (r"(ks|ld|rg|ts|wp|cg)_msgs\.c:\d+\|(VEC3D_TYPE_POSITION|FLOAT_TYPE_HEADING)\|receiver$", "campaign", EXCLUDED, "SET_ENTITY_POSITION propagation to a campaign entity (landing site, regen, task, waypoint, cargo); I34 covers the moving keysite"),
+])
 
 # ---- 7. shared global data ---------------------------------------------------------------------------------
-GLOBAL_RULES = [
-    rule(r"_names$|^application_tag_strings$", "globals", EXCLUDED, "string tables for parsing and logging", key="global"),
-    rule(r"^(debug_fatal_invalid|overload_invalid)_\w+_message$|^null_entity_pointer_message$|^\w+_type_database$", "globals", EXCLUDED, "entity-store attribute type tables and their diagnostics, reached through the accessor macros", key="global"),
-    rule(r"^(entities|first_used_entity|entity_type_database|force_local_entity_create_stack_attributes)$", "globals", EXCLUDED, "the entity store itself", key="global"),
-    rule(r"^sys_col(_\w+|our_table)$|^active_2d_environment$", "globals", EXCLUDED, "debug drawing colours and 2D state (gd_draw.c, imaps.c, gd_cover.c)", key="global"),
-    rule(r"^(number_of_)?psd_layers$", "globals", EXCLUDED, "campaign data image read natively (popread.c:362)", key="global"),
-    rule(r"^(aircraft|vehicle|weapon|effect)_database$|^fixed_3d_object_database$|^target_point_offsets$", "globals", MAPPED, "I48 (type database, G22)", key="global"),
-    rule(r"^speech_sector_coordinates$", "globals", MAPPED, "I41 (speech)", key="global"),
-    rule(r"^objects_3d_\w+$", "globals", MAPPED, "I2, I26 (3D object data, G14)", key="global"),
-    rule(r"^(terrain_3d_max_map_z|terrain_3d_map_minimum_height|world_map)$", "globals", MAPPED, "I21, I25 (map extents and minimum height)", key="global"),
-    rule(r"^system_delta_time$", "globals", MAPPED, "I18 (frame delta, through get_delta_time)", key="global"),
-    rule(r"^random_number_seed$", "globals", MAPPED, "I37 (the shared random stream, through frand1, sfrand1, rand16)", key="global"),
-    rule(r"^session_entity$", "globals", MAPPED, "I18, I19, I27 (session: time and weather)", key="global"),
-    rule(r"^update_entity$", "globals", MAPPED, "I40 (frame update list)", key="global"),
-    rule(r"^current_map_info$", "globals", MAPPED, "I52 (season written from the campaign file), I46 (map info)", key="global"),
-    rule(r"^(gunship_entity|pilot_entity)$", "globals", MAPPED, "I45 (player aircraft and pilot)", key="global"),
-    rule(r"^command_line_capture_aircraft$", "globals", MAPPED, "I51 (the capture-aircraft setting, on by default, cmndline.c:151)", key="global"),
-    rule(r"^(command_line_run_mode|session_camcom|global_options)$", "globals", MAPPED, "I53 (settings: run mode, campaign-commander mode, language, gunship side)", key="global"),
-    rule(r"^(current_game_session|game_type|game_status|system_comms_model|system_comms_data_flow)$", "globals", MAPPED, "I39 (session, game type and status, server comms model)", key="global"),
-]
+GLOBAL_RULES = rule_list("globals", [
+    (r"_names$|^application_tag_strings$", "globals", EXCLUDED, "string tables for parsing and logging"),
+    (r"^(debug_fatal_invalid|overload_invalid)_\w+_message$|^null_entity_pointer_message$|^\w+_type_database$", "globals", EXCLUDED, "entity-store attribute type tables and their diagnostics, reached through the accessor macros"),
+    (r"^(entities|first_used_entity|entity_type_database|force_local_entity_create_stack_attributes)$", "globals", EXCLUDED, "the entity store itself"),
+    (r"^sys_col(_\w+|our_table)$|^active_2d_environment$", "globals", EXCLUDED, "debug drawing colours and 2D state (gd_draw.c, imaps.c, gd_cover.c)"),
+    (r"^(number_of_)?psd_layers$", "globals", EXCLUDED, "campaign data image read natively (popread.c:362)"),
+    (r"^(aircraft|vehicle|weapon|effect)_database$|^fixed_3d_object_database$|^target_point_offsets$", "globals", MAPPED, "I48 (type database, G22)"),
+    (r"^speech_sector_coordinates$", "globals", MAPPED, "I41 (speech)"),
+    (r"^objects_3d_\w+$", "globals", MAPPED, "I2, I26 (3D object data, G14)"),
+    (r"^(terrain_3d_max_map_z|terrain_3d_map_minimum_height|world_map)$", "globals", MAPPED, "I21, I25 (map extents and minimum height)"),
+    (r"^system_delta_time$", "globals", MAPPED, "I18 (frame delta, through get_delta_time)"),
+    (r"^random_number_seed$", "globals", MAPPED, "I37 (the shared random stream, through frand1, sfrand1, rand16)"),
+    (r"^session_entity$", "globals", MAPPED, "I18, I19, I27 (session: time and weather)"),
+    (r"^update_entity$", "globals", MAPPED, "I40 (frame update list)"),
+    (r"^current_map_info$", "globals", MAPPED, "I52 (season written from the campaign file), I46 (map info)"),
+    (r"^(gunship_entity|pilot_entity)$", "globals", MAPPED, "I45 (player aircraft and pilot)"),
+    (r"^command_line_capture_aircraft$", "globals", MAPPED, "I51 (the capture-aircraft setting, on by default, cmndline.c:151)"),
+    (r"^(command_line_run_mode|session_camcom|global_options)$", "globals", MAPPED, "I53 (settings: run mode, campaign-commander mode, language, gunship side)"),
+    (r"^(current_game_session|game_type|game_status|system_comms_model|system_comms_data_flow)$", "globals", MAPPED, "I39 (session, game type and status, server comms model)"),
+])
 
 # ---- 8. call-shaped names with no definition -----------------------------------------------------------------
 UNRESOLVED = {"endif": "not a call: a #endif line followed by a parenthesised expression (ld_msgs.c:512)",
@@ -1649,7 +1663,7 @@ def call_items(reach):
     for direction, edges in reach["cross"].items():
         side = 1 if direction.startswith("C->") else 0
         for key in sorted({e[side] for e in edges}):
-            out.append(ledger_entry("calls", key, *decide(CALL_RULES, key, "calls"), direction=direction))
+            out.append(ledger_entry("calls", key, *decide(CALL_RULES, key), direction=direction))
     return out
 
 
@@ -1670,7 +1684,7 @@ def table_items(dispatch):
         out.append(ledger_entry("tables", t, "dispatch", d, ref, "exact"))
     for t, r in sorted(dispatch["other_tables"].items()):
         d, ref = OTHER_TABLES.get(t, (EXCLUDED, NOT_A_TABLE))
-        out.append(ledger_entry("other tables", t, "dispatch", d, ref, "exact" if t in OTHER_TABLES else "pattern:other-tables#default", first=r["first"]))
+        out.append(ledger_entry("other tables", t, "dispatch", d, ref, "exact" if t in OTHER_TABLES else "fallback:other-tables", first=r["first"]))
     return out
 
 
@@ -1717,12 +1731,12 @@ def write_items(dispatch):
     out = []
     for w in dispatch["writes"]:
         key = f"{w['site'].rsplit('/', 1)[-1]}|{w['token']}|{w['receiver']}"
-        out.append(ledger_entry("writes", key, *decide(WRITE_RULES, key, "writes")))
+        out.append(ledger_entry("writes", key, *decide(WRITE_RULES, key)))
     return out
 
 
 def global_items(global_data):
-    return [ledger_entry("globals", n, *decide(GLOBAL_RULES, n, "globals"), first=r["first"]) for n, r in sorted(global_data.items())]
+    return [ledger_entry("globals", n, *decide(GLOBAL_RULES, n), first=r["first"]) for n, r in sorted(global_data.items())]
 
 
 def unresolved_items(reach):
@@ -1744,9 +1758,8 @@ def main(reach_path, dispatch_path, globals_path, items_path):
     report["ALL"] = dict(collections.Counter(i["disposition"] for i in items))
     kinds = collections.defaultdict(set)
     for i in items:
-        kinds[i["rule"].split(":")[0].split("#")[0]].add(i["rule"])
-    report["items by rule kind"] = dict(sorted(collections.Counter(
-        i["rule"].split(":")[0].split("#")[0] for i in items).items()))
+        kinds[kind_of(i["rule"])].add(i["rule"])
+    report["items by rule kind"] = dict(sorted(collections.Counter(kind_of(i["rule"]) for i in items).items()))
     report["pattern and fallback rules that decide items"] = len(kinds["pattern"] | kinds["fallback"])
     report["decided by pattern or fallback rules"] = dict(sorted(collections.Counter(
         f"{i['rule']} | {i['ref']}" for i in items if i["rule"].startswith(("pattern", "fallback"))).items()))
