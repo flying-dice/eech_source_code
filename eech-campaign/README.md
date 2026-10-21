@@ -51,6 +51,10 @@ M4: accepted baselines change only by a classified, approved and non-destructive
 [`docs/m4-baseline-governance.md`](docs/m4-baseline-governance.md).
 M5: who owns what in the SUPPLY loop, and the first dependency to hand to a host:
 [`docs/m5-supply-ownership.md`](docs/m5-supply-ownership.md).
+M5: a proposal for the first host-boundary cut (loss first), with public-path characterisation:
+[`docs/m5-host-boundary.md`](docs/m5-host-boundary.md).
+M5 slice 1a: the campaign's loss consequences moved out of world destroy code, behaviour unchanged:
+[`docs/m5-loss-structural.md`](docs/m5-loss-structural.md).
 
 ## The campaign kernel spike
 

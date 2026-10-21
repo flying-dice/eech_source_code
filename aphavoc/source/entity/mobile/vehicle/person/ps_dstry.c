@@ -136,21 +136,21 @@ static void destroy_local (entity *en)
 	// vehicle
 	//
 
-	unlink_local_entity_children (en, LIST_TYPE_TASK_DEPENDENT);
+	unlink_member_task_dependents (en);
 
 	unlink_local_entity_children (en, LIST_TYPE_LAUNCHED_WEAPON);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_FOLLOWER);
+	unlink_member_from_guide (en);
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_DESIGNATED_TARGET); // Jabberwock 031107 Designated targets
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_GUNSHIP_TARGET);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_MEMBER);
+	unlink_member_from_group (en);
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_VIEW);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_TAKEOFF_QUEUE);
+	unlink_member_from_takeoff_queue (en);
 
 	//
 	// mobile
@@ -351,6 +351,11 @@ static void kill_local (entity *en)
 	// group losses
 	//
 
+	// kept inline, as is the task notification below: that notification passes
+	// no task_terminated argument, which the TASK_COMPLETED response reads with
+	// va_arg (ts_msgs.c), so it reads whatever the argument register holds at
+	// the call. The code leading up to the call is kept unchanged.
+
 	losses = get_local_entity_int_value (group, INT_TYPE_LOSSES);
 
 	losses ++;
@@ -418,13 +423,13 @@ static void kill_local (entity *en)
 	// vehicle
 	//
 
-	unlink_local_entity_children (en, LIST_TYPE_TASK_DEPENDENT);
+	unlink_member_task_dependents (en);
 
 	unlink_local_entity_children (en, LIST_TYPE_LAUNCHED_WEAPON);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_MEMBER);
+	unlink_member_from_group (en);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_FOLLOWER);
+	unlink_member_from_guide (en);
 
 	// gunship_target_link
 
@@ -432,7 +437,7 @@ static void kill_local (entity *en)
 
 	// view_link
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_TAKEOFF_QUEUE);
+	unlink_member_from_takeoff_queue (en);
 
 	//
 	// mobile
@@ -468,7 +473,7 @@ static void kill_local (entity *en)
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
-		notify_local_entity (ENTITY_MESSAGE_MOBILE_KILLED, group, en);
+		notify_group_member_killed (group, en);
 	}
 
 	////////////////////////////////////////

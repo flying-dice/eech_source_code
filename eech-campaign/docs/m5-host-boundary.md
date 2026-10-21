@@ -1,15 +1,30 @@
 # M5: the first host-boundary cut (proposal for the lead's decision)
 
-**Status: proposal and characterisation only. No product code, build input, baseline or expectation is changed.** The sole authority for scope is the Confluence goal [EECH M5 Goal: EECH_DC into DCS World](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337) (read live on 2026-10-21, version 1). The working plan, [Confluence 12484650 v3](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/12484650), is explicitly incomplete. Jira EEDCS-11 owns the boundary, the host-driven events and Lebanon preservation.
+**Status: proposal and characterisation (commit `f7a3b756`).** That commit changed no product code, build input, baseline or expectation. The lead then authorised structural slice 1a only (§0), which is recorded separately in [`m5-loss-structural.md`](m5-loss-structural.md); this proposal remains a proposal. The sole authority for scope is the Confluence goal [EECH M5 Goal: EECH_DC into DCS World](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337) (read live on 2026-10-21, version 1). The working plan, [Confluence 12484650](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/12484650) (v3 when this proposal was written, v6 when slice 1a was recorded), is explicitly incomplete. Jira EEDCS-11 owns the boundary, the host-driven events and Lebanon preservation.
 
 - **Branch:** `codex/m5-host-boundary`, worktree `.claude/worktrees/m5-host-boundary`, based on the remote integration head `163e9158`, the merge of PR #79.
-- **Product tree:** #79 changes only `eech-campaign/reference/pr59-candidate-identity/` (`git diff --name-only 65892de1 163e9158`). So every source citation below is at the unchanged product tree `65892de1`, and so is the characterised candidate build (`eech_dc.dll` `a99d7a11…`, #79's `BUILD-INFO.txt`).
+- **Product tree:** #79 changes `eech-campaign/reference/pr59-candidate-identity/` and the CI workflow `.github/workflows/eech-campaign.yml` (`git diff --name-only 65892de1 163e9158`). Neither is a product build input (`aphavoc/`, `modules/`, `eech-campaign/crates/`, `Cargo.lock`, `tools/Dockerfile`, `tools/build-windows.sh`). So every source citation below is at the unchanged product tree `65892de1`, and so is the characterised candidate build (`eech_dc.dll` `a99d7a11…`, #79's `BUILD-INFO.txt`).
 - **Inputs used:**
-  - the call map at `a4cd7eea` (`codex/m5-dcs-call-map`, under independent review);
-  - #74 at `31204591` (partial SUPPLY ownership);
+  - the call map at `a4cd7eea` (`codex/m5-dcs-call-map`, under independent review). Its local revision `ab830a04` resolves review findings F1–F6: 53 interactions, and a corrected globals inventory of 95 items;
+  - #74 at `31204591` (partial SUPPLY ownership), read when this proposal was written. #74 has since merged (head `f153ffe8`, merge `6f222b1b`), with documentation changes only;
   - #77 at `ab279d44` and #78 at `cf11eb82` (arrival characterisation, not merged).
 
 This record is criteria 2–4 progress planning. **It completes no criterion.**
+
+## 0. Lead decisions on this proposal (Starscream, recorded 2026-10-21)
+
+The source is the lead's scope decision, recorded on Jira [EEDCS-11, comment 10445](https://flying-dice.atlassian.net/browse/EEDCS-11?focusedCommentId=10445).
+
+- **Accepted as sequencing:** loss first. The reasons are the natural Lebanon loss and the verified shape of DCS's loss events.
+- **Authorised now:** slice 1a only, the structural move. Its record is [`m5-loss-structural.md`](m5-loss-structural.md).
+- **Not approved:**
+  - the 1b step-boundary timing shift, the internal queue and its draining;
+  - deferring wreck removal;
+  - any baseline replacement;
+  - any presumed eventual M4 divergence.
+- **Identity:** host identities must eventually be issued or confirmed by the actual host, and must be opaque to the campaign. Private pointers stay private.
+- **Guards:** the proposed runtime guard and symbol checks (§4) are hypotheses for the later host-routing cut. They are not evidence at 1a.
+- **No criterion is accepted by the first cut.**
 
 ## 1. Answer: can host physics be linked only into EECH_WORLD?
 
@@ -22,7 +37,7 @@ This record is criteria 2–4 progress planning. **It completes no criterion.**
 | **World code applies campaign policy and bookkeeping.** | Loss: §3 below. Arrival criteria inside the world's message handlers: `hc_msgs.c:529-700` (leader radius, altitude, heading, landed, rotor spin-up, player skip); `fw_msgs.c:390`; `vh_msgs.c:339`. Call map: W→C 121 functions, 25 static message types. | Each piece of policy moves into campaign C behind a host observation. |
 | **World code is steered by campaign objects every frame.** | The guide's formation offset and criteria are read by the flight model (`hc_move.c:1145`; `get_guide_criteria_valid`, 14 W sites); call map I6 and G4 | The host receives routes and tasks through the contract (G4), and the world follows them itself. |
 | **The campaign calls world and environment code directly.** | Call map `reach.py`: C→W 38 functions, C→E 25 (for example `get_3d_terrain_elevation`, 26 sites), C→X 10 | Each call becomes a host query (terrain, line of sight) or campaign-owned data (type tables G22, object bounds G14). |
-| **Shared runtime state.** | One random LCG for both halves (`random.h:96`, call map I37); 31 non-campaign globals; one `system_delta_time` (`eech_engine.c:283-284`) | Separate streams (G18) and globals per binary, with time given to the campaign explicitly |
+| **Shared runtime state.** | One random LCG for both halves (`random.h:96`, call map I37); 95 non-campaign globals used by the campaign (call map `ab830a04`, local and unreviewed; corrected from the 31 first counted at `a4cd7eea`, which missed comma-list and macro-mediated externs); one `system_delta_time` (`eech_engine.c:283-284`) | Separate streams (G18) and globals per binary, with time given to the campaign explicitly |
 | **The entity system's defaults are silent.** | A missing attribute handler returns 0.0, or a default vector (`en_float.c:1572-1611`, `en_vec3d.c:229-240`); an unhandled message returns FALSE (`en_msgs.c:218-221`). | If world types were simply left out of the campaign build, the campaign would read zeros and stall with no error. A split must make every handler the contract does not supply **fatal** (§4). |
 
 **With pointers kept private:** once the rows above are done, two binaries in one process work on Windows. Each PE module has its own copy of the framework's globals and its own heap. ELF needs `-Bsymbolic` or hidden visibility (inferred, not tested). No `entity *` may cross the boundary. Only identities, observations and requests cross. EECH_WORLD then links the W and E classes (332 + 73 files) plus a framework copy, and `eech_dc.dll` links C plus F. Until then, a link split would leave dangling or duplicate entity pointers.
@@ -82,8 +97,8 @@ The uneven coverage is behaviour to preserve, not to tidy up: regen only for hel
 
 | Slice | Change | Expected M4 result | Proves |
 |---|---|---|---|
-| **1a. Structural** | Move the campaign consequences out of the six `kill_local` bodies (and the campaign unlinks out of wreck removal) into campaign C, with one function per phase. **Pre:** force info, regen, task dependents, landing locks. **Post:** campaign unlinks, group and task losses, `MOBILE_KILLED`, objectives. Each takes the member's kind, and the world calls them at exactly the current points, so the per-type differences and the ordering are kept. | **IDENTICAL** to `windows-retail v1` (pack runtime tier, both maps). §2's A/B diagnostics equal the retained hashes. | Pure move: a characterisation test, with no red manufactured |
-| **1b. Semantic: the step boundary** | The world records "member died" (identity, model time) instead of calling the campaign. The campaign applies the 1a consequences at the start of its next step, in report order. For now the queue is drained inside the DLL, so this slice isolates the timing change from the host routing. Campaign lists stay linked until then; **wreck removal waits while a campaign record still binds the entity.** | Differences expected after the first loss of each run (consequences up to one frame later, which also shifts the random stream). Classified as `intentional-semantic-change` through the M4 change record, with lead approval. Claims `M3.supply_loss`, `M1.*.mechanics` and `M2.tacview_observations` must still hold. **No baseline is re-recorded without approval.** | The one semantic change, measured on its own |
+| **1a. Structural** | Move the campaign consequences out of the six `kill_local` bodies (and the campaign unlinks out of wreck removal) into campaign C, with one function per phase. **Pre:** force info, regen, task dependents, landing locks. **Post:** campaign unlinks, group and task losses, `MOBILE_KILLED`, objectives. Each takes the member's kind, and the world calls them at exactly the current points, so the per-type differences and the ordering are kept. **As authorised and built:** a two-phase wrapper is not used. Instead there is one helper per contiguous campaign chunk, called at that chunk's original position, with no kind argument; the per-type differences stay at the call sites. See [`m5-loss-structural.md`](m5-loss-structural.md). | **IDENTICAL** to `windows-retail v1` (pack runtime tier, both maps). §2's A/B diagnostics equal the retained hashes. | Pure move: a characterisation test, with no red manufactured |
+| **1b. Semantic: the step boundary** | The world records "member died" (identity, model time) instead of calling the campaign. The campaign applies the 1a consequences at the start of its next step, in report order. For now the queue is drained inside the DLL, so this slice isolates the timing change from the host routing. Campaign lists stay linked until then; **wreck removal waits while a campaign record still binds the entity.** | Unmeasured. Any difference (consequences up to one frame later could also shift the random stream) is to be measured and classified through the M4 change record. **Not approved:** see §0. Claims `M3.supply_loss`, `M1.*.mechanics` and `M2.tacview_observations` must still hold. **No baseline is re-recorded without approval.** | The one semantic change, measured on its own |
 | **1c. Host authority** | Remove the internal drain. The world's death record leaves only through the public module, and the host's Lua forwards it back into the campaign's inbound entry. That entry is the only caller of the 1a consequences (guard, §4). EECH_WORLD's `campaign.lua` forwards every event. Boot fails without a declared host. | Equal to the 1b candidate when the host forwards everything. The DCS-shaped scenarios in the table below differ as specified. | Criterion 3 for loss; the criterion 2 contract and no-host failure for this interaction |
 
 The names of the outbound and inbound calls are left to review. The shape is DCS's: an event table `{id = DEAD, initiator = <host identity>, time = <model time>}`, delivered between campaign steps, as `world.addEventHandler` plus a timer-stepped campaign would deliver it (D3, D19).
@@ -139,15 +154,17 @@ Each later cut has the same pattern: characterise, structural move, separate sem
 | 8 | **Players** | I44, I45 | F10 menu, PLAYER_ENTER_UNIT (G24, G27) |
 | 9 | **The link split:** world W and E into EECH_WORLD, C and F into `eech_dc.dll`, with fatal defaults (§4.3) | §1 | — |
 
-Criterion 2 is complete only at step 9, when the guard and symbol checks hold with no campaign→world symbol left. Criterion 3 is complete when arrival and loss are both host-driven. Criterion 4 needs the M4 pack on the separated candidate, with every difference classified. After step 9 the war's trajectory will differ from `windows-retail v1` everywhere, so the acceptance standard (claim level against exact identity) must be decided first.
+Criterion 2 is complete only at step 9, when the guard and symbol checks hold with no campaign→world symbol left. Criterion 3 is complete when arrival and loss are both host-driven. Criterion 4 needs the M4 pack on the separated candidate, with every difference classified. Whether the separated candidate can still match `windows-retail v1` exactly, with equivalent inputs and semantics, is unproven either way. Moving the physics does not by itself show that identity is impossible. The requirement is to preserve exact accepted behaviour wherever inputs and semantics are equivalent, and to classify only measured differences, under the existing governance.
 
 ## 6. Decisions needed from the lead
 
-1. **Is loss first acceptable** (§3), or must arrival come first as the earlier "#74, arrival first" note had it?
-2. **The step-boundary semantic change (1b).** Consequences can no longer run in the middle of an update. Approve classifying the resulting M4 differences as `intentional-semantic-change`, or say what standard applies.
+Items 1, 2, 4 and 5 are decided in §0; 3 and 6 remain open.
+
+1. **Decided (§0): loss first, accepted as sequencing.** Is loss first acceptable (§3), or must arrival come first as the earlier "#74, arrival first" note had it?
+2. **Decided (§0): not approved.** The step-boundary semantic change (1b). Consequences can no longer run in the middle of an update. Approve classifying the resulting M4 differences as `intentional-semantic-change`, or say what standard applies.
 3. **Identity issuance:** host-issued `index.serial` in EECH_WORLD; in DCS, campaign-supplied names that the host owns (§3).
-4. **Wreck removal is deferred while the campaign still binds the entity** (1b). This is a world lifecycle change made for safety in the shared heap.
-5. **The criterion 4 standard after the link split:** claim-level M4 with classified differences, since exact `windows-retail v1` identity cannot survive a physics relocation.
+4. **Decided (§0): not approved.** Wreck removal is deferred while the campaign still binds the entity** (1b). This is a world lifecycle change made for safety in the shared heap.
+5. **Decided (§0).** The criterion 4 standard after the link split: preserve exact accepted behaviour wherever inputs and semantics are equivalent, and classify only measured differences. No divergence is presumed.
 6. **The enforcement set** (§4): the runtime guard plus partition symbol closure now, and fatal defaults at the split.
 
 ## 7. Limitations

@@ -1,8 +1,10 @@
 # M5 host boundary: retained characterisation evidence and report
 
-Proposal: [`docs/m5-host-boundary.md`](../../docs/m5-host-boundary.md). Branch `codex/m5-host-boundary` from `163e9158` (the PR #79 merge). The product tree is `65892de1`, unchanged by #79.
+Proposal: [`docs/m5-host-boundary.md`](../../docs/m5-host-boundary.md). Branch `codex/m5-host-boundary` from `163e9158` (the PR #79 merge). The product tree is `65892de1`. #79 changed only retained evidence and the CI workflow, neither of which is a product build input.
 
-## Report
+## Report of the proposal pass (`f7a3b756`)
+
+This is the report of the proposal pass. Slice 1a, authorised later, is in [`docs/m5-loss-structural.md`](../../docs/m5-loss-structural.md).
 
 - **STATUS:** proposal and characterisation are complete for the lead's decision. No product, build, baseline or expectation change, and nothing pushed.
 - **DID:**
