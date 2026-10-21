@@ -144,36 +144,25 @@ static void copy_vec3d (float target[3], const vec3d *source)
 	target[2] = source->z;
 }
 
-int campaign_supply_arrival_check (entity *member, entity *guide)
+static int mobile_type_supported (int type)
+{
+	return (type == ENTITY_TYPE_FIXED_WING) || (type == ENTITY_TYPE_HELICOPTER);
+}
+
+/* Copies the primitive facts of one member's arrival at the guide's current waypoint and asks the host. */
+static int observe_reach (entity *member, entity *guide, entity *task, entity *waypoint, entity *leader, int kind, int is_task_leader)
 {
 	campaign_supply_reach_descriptor descriptor;
 	char error[CAMPAIGN_SUPPLY_ERROR_MAX + 1];
-	entity *waypoint = current_waypoint (guide);
-	entity *task = get_local_entity_parent (waypoint, LIST_TYPE_WAYPOINT);
-	entity *leader = (entity *) get_local_entity_ptr_value (guide, PTR_TYPE_TASK_LEADER);
 	const char *host_id;
 	vec3d guide_position;
 	int result = -1;
 	int type = get_local_entity_type (member);
+	int sub_type = get_local_entity_int_value (waypoint, INT_TYPE_ENTITY_SUB_TYPE);
 
-	if (!campaign_supply_arrival_is_target (guide) || !task || !leader)
-	{
-		debug_fatal ("supply arrival: invalid campaign selection");
-	}
 	if (!current_host.observe_reach)
 	{
 		debug_fatal ("supply arrival: host supply_reached callback is unavailable");
-	}
-	if (!get_guide_criteria_valid (guide, GUIDE_CRITERIA_RADIUS) ||
-		get_guide_criteria_valid (guide, GUIDE_CRITERIA_ALTITUDE) ||
-		get_guide_criteria_valid (guide, GUIDE_CRITERIA_HEADING) ||
-		get_guide_criteria_valid (guide, GUIDE_CRITERIA_WEAPON_VECTOR))
-	{
-		debug_fatal ("supply arrival: unsupported guide criteria for waypoint kind %d", waypoint_kind (waypoint));
-	}
-	if ((type != ENTITY_TYPE_FIXED_WING) && (type != ENTITY_TYPE_HELICOPTER))
-	{
-		debug_fatal ("supply arrival: unsupported mobile entity type %d", type);
 	}
 
 	memset (&descriptor, 0, sizeof (descriptor));
@@ -191,9 +180,11 @@ int campaign_supply_arrival_check (entity *member, entity *guide)
 		debug_fatal ("supply arrival: member host identity is too long");
 	}
 	memcpy (descriptor.host_id, host_id, strlen (host_id) + 1);
-	descriptor.waypoint_kind = waypoint_kind (waypoint);
+	descriptor.waypoint_kind = kind;
+	descriptor.waypoint_sub_type = sub_type;
+	descriptor.player_skip_waypoint = waypoint_database[sub_type].player_skip_waypoint ? TRUE : FALSE;
 	descriptor.mobile_kind = type == ENTITY_TYPE_FIXED_WING ? CAMPAIGN_SUPPLY_MOBILE_FIXED_WING : CAMPAIGN_SUPPLY_MOBILE_HELICOPTER;
-	descriptor.is_task_leader = member == leader;
+	descriptor.is_task_leader = is_task_leader;
 	descriptor.is_ai = get_local_entity_int_value (member, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI;
 	descriptor.leader_is_ai = get_local_entity_int_value (leader, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI;
 	descriptor.landed = get_local_entity_int_value (member, INT_TYPE_LANDED);
@@ -219,6 +210,64 @@ int campaign_supply_arrival_check (entity *member, entity *guide)
 		debug_fatal ("supply arrival: host supply_reached returned an invalid result");
 	}
 	return result;
+}
+
+int campaign_supply_arrival_check (entity *member, entity *guide)
+{
+	entity *waypoint = current_waypoint (guide);
+	entity *task = get_local_entity_parent (waypoint, LIST_TYPE_WAYPOINT);
+	entity *leader = (entity *) get_local_entity_ptr_value (guide, PTR_TYPE_TASK_LEADER);
+
+	if (!campaign_supply_arrival_is_target (guide) || !task || !leader)
+	{
+		debug_fatal ("supply arrival: invalid campaign selection");
+	}
+	if (!get_guide_criteria_valid (guide, GUIDE_CRITERIA_RADIUS) ||
+		get_guide_criteria_valid (guide, GUIDE_CRITERIA_ALTITUDE) ||
+		get_guide_criteria_valid (guide, GUIDE_CRITERIA_HEADING) ||
+		get_guide_criteria_valid (guide, GUIDE_CRITERIA_WEAPON_VECTOR))
+	{
+		debug_fatal ("supply arrival: unsupported guide criteria for waypoint kind %d", waypoint_kind (waypoint));
+	}
+	if (!mobile_type_supported (get_local_entity_type (member)))
+	{
+		debug_fatal ("supply arrival: unsupported mobile entity type %d", get_local_entity_type (member));
+	}
+	return observe_reach (member, guide, task, waypoint, leader, waypoint_kind (waypoint), member == leader);
+}
+
+/*
+ * Any other waypoint of a fixed-wing or helicopter member whose only physical
+ * criterion is RADIUS.  Other shapes (ALTITUDE, HEADING, WEAPON_VECTOR, ground
+ * vehicles, members the host never bound) keep their legacy answer; the
+ * weapon-vector path consumes frand1 and must not be reordered.
+ */
+int campaign_radius_arrival_is_target (entity *member, entity *guide)
+{
+	entity *waypoint = get_local_entity_parent (guide, LIST_TYPE_CURRENT_WAYPOINT);
+	entity *task = waypoint ? get_local_entity_parent (waypoint, LIST_TYPE_WAYPOINT) : NULL;
+	return task &&
+		mobile_type_supported (get_local_entity_type (member)) &&
+		get_local_entity_ptr_value (guide, PTR_TYPE_TASK_LEADER) &&
+		get_guide_criteria_valid (guide, GUIDE_CRITERIA_RADIUS) &&
+		!get_guide_criteria_valid (guide, GUIDE_CRITERIA_ALTITUDE) &&
+		!get_guide_criteria_valid (guide, GUIDE_CRITERIA_HEADING) &&
+		!get_guide_criteria_valid (guide, GUIDE_CRITERIA_WEAPON_VECTOR) &&
+		(campaign_roster_host_id (member) != NULL);
+}
+
+int campaign_radius_arrival_check (entity *member, entity *guide)
+{
+	entity *waypoint = current_waypoint (guide);
+	entity *task = get_local_entity_parent (waypoint, LIST_TYPE_WAYPOINT);
+	entity *leader = (entity *) get_local_entity_ptr_value (guide, PTR_TYPE_TASK_LEADER);
+
+	if (!campaign_radius_arrival_is_target (member, guide))
+	{
+		debug_fatal ("radius arrival: invalid campaign selection");
+	}
+	return observe_reach (member, guide, task, waypoint, leader, CAMPAIGN_RADIUS_ARRIVAL_WAYPOINT,
+		get_local_entity_int_value (member, INT_TYPE_TASK_LEADER));
 }
 
 static entity *find_waypoint_dependent (entity *task, int wanted_kind)

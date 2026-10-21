@@ -244,6 +244,8 @@ typedef enum GUIDE_TERRAIN_FOLLOW_MODES guide_terrain_follow_modes;
 #define campaign_supply_arrival_release_entity(ENTITY) ((void) 0)
 #define campaign_supply_arrival_is_target(GUIDE) (FALSE)
 #define campaign_supply_arrival_check(MEMBER,GUIDE) (FALSE)
+#define campaign_radius_arrival_is_target(MEMBER,GUIDE) (FALSE)
+#define campaign_radius_arrival_check(MEMBER,GUIDE) (FALSE)
 #endif
 
 #include	"gd_pack.h"

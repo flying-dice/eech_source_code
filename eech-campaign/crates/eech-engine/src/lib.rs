@@ -180,6 +180,8 @@ pub enum SupplyWaypoint {
     PrepareForDropOff,
     DropOff,
     FinishDropOff,
+    /// Not a SUPPLY waypoint: any other radius-only fixed-wing or helicopter waypoint.
+    RadiusArrival,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
@@ -254,6 +256,10 @@ pub struct SupplyReachDescriptor {
     pub waypoint_key: u64,
     pub host_id: String,
     pub waypoint: SupplyWaypoint,
+    /// The campaign waypoint sub-type, so a host can tell non-SUPPLY waypoints apart.
+    pub waypoint_sub_type: i32,
+    /// Waypoint database fact: a human member's arrival is waived.
+    pub player_skip_waypoint: bool,
     pub mobile: SupplyMobile,
     pub is_task_leader: bool,
     pub is_ai: bool,
@@ -571,6 +577,7 @@ fn supply_waypoint(value: c_int) -> Result<SupplyWaypoint, String> {
         sys::CAMPAIGN_SUPPLY_WAYPOINT_PREPARE_FOR_DROP_OFF => Ok(SupplyWaypoint::PrepareForDropOff),
         sys::CAMPAIGN_SUPPLY_WAYPOINT_DROP_OFF => Ok(SupplyWaypoint::DropOff),
         sys::CAMPAIGN_SUPPLY_WAYPOINT_FINISH_DROP_OFF => Ok(SupplyWaypoint::FinishDropOff),
+        sys::CAMPAIGN_RADIUS_ARRIVAL_WAYPOINT => Ok(SupplyWaypoint::RadiusArrival),
         other => Err(format!("unknown SUPPLY waypoint kind {other}")),
     }
 }
@@ -653,6 +660,8 @@ where
             waypoint_key: source.waypoint_key,
             host_id,
             waypoint: supply_waypoint(source.waypoint_kind)?,
+            waypoint_sub_type: source.waypoint_sub_type,
+            player_skip_waypoint: checked_bool("player_skip_waypoint", source.player_skip_waypoint)?,
             mobile,
             is_task_leader: checked_bool("is_task_leader", source.is_task_leader)?,
             is_ai: checked_bool("is_ai", source.is_ai)?,

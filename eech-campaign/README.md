@@ -65,6 +65,8 @@ M5 prerequisite: externally issued physical-incarnation identities and the durab
 M5 experiment: an identity-keyed helicopter SUPPLY loss can withhold campaign
 consequences while physical wreck/free continues:
 [`docs/m5-physical-loss.md`](docs/m5-physical-loss.md).
+M5 slice: non-SUPPLY fixed-wing and helicopter radius-only waypoint arrival answered by the host:
+[`docs/m5-aircraft-arrivals.md`](docs/m5-aircraft-arrivals.md).
 
 ## The campaign kernel spike
 
