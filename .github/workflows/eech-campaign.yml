@@ -107,3 +107,22 @@ jobs:
           LUA_LIB: ${{ runner.temp }}/lua-mingw
           WINEPATH: ${{ runner.temp }}/lua-mingw
         run: cargo test --locked --target x86_64-pc-windows-gnu
+
+  m5-call-map-check:
+    # reproduces docs/m5-dcs-call-map.md's script figures from the document's own embedded scripts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: eech-campaign
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # the check reads the documented snapshot commit from git
+          fetch-depth: 0
+      - name: Documented snapshot is present
+        run: git cat-file -e 65892de17bf5c4bb9ab6e9f8af70779e35b0106b^{commit} || git fetch --no-tags origin 65892de17bf5c4bb9ab6e9f8af70779e35b0106b
+      - name: Check the call map's figures
+        run: python3 tools/m5-call-map-check.py
+      - name: Check the check
+        run: python3 tools/m5-call-map-check-selftest.py

@@ -534,7 +534,7 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
 | 3 Host events drive the campaign | Event table (section 5); G7, G8 | The causal seam (#74, arrival first) | Withhold or delay one arrival or loss and show campaign state change (EECH_WORLD, then DCS) |
 | 4 No regression | Lists which rows change semantics under DCS (G6, G9, G12, G18) | Running the M4 pack after each move | Lebanon under EECH_WORLD, M4 pack holds, differences classified (EECH_WORLD) |
 | 5 DCS-only risks | G19, G20, D1, D12, section 6 | Owned by `docs/m5-dcs-risks.md` | Module load, frame budget and threading, save and restore, multiplayer (DCS) |
-| 6 Plan ready to build | Interaction rows and workarounds for the steps of the existing working draft, [EECH M5 migration plan and acceptance evidence](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/12484650) (Confluence 12484650, version 1, not reviewed). Steps 2 and 3 use I1–I13 and G1–G7; step 4 uses section 5 and G7, G8; step 5 uses section 6; step 6 uses G19; step 7 uses I44, I45 and the excluded replication group | Attaching this map to the draft, mapping each step to its rows, and the lead's review and acceptance of the plan | That draft's in-DCS checks (DCS-load, DCS-bind, DCS-task, DCS-causal, DCS-clock-budget, DCS-restore, DCS-multiplayer, DCS-campaign) (DCS) |
+| 6 Plan ready to build | Interaction rows and workarounds for the steps of the existing working draft, [EECH M5 migration plan and acceptance evidence](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/12484650) (Confluence 12484650, the current unaccepted working draft, not reviewed). Steps 2 and 3 use I1–I13 and G1–G7; step 4 uses section 5 and G7, G8; step 5 uses section 6; step 6 uses G19; step 7 uses I44, I45 and the excluded replication group | Attaching this map to the draft, mapping each step to its rows, and the lead's review and acceptance of the plan | That draft's in-DCS checks (DCS-load, DCS-bind, DCS-task, DCS-causal, DCS-clock-budget, DCS-restore, DCS-multiplayer, DCS-campaign) (DCS) |
 
 ## 10. Unknowns and limitations
 
@@ -636,7 +636,7 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
   ```
   These were run at `65892de1` with Python 3.13 on Windows and give the figures in section 1, including a ledger of 1,126 items with 0 outstanding. The reviewer's `g2.py` and `writes.py` were run on the same tree, and the differences are explained in section 1. The scripts were audited against the eight clean-code principles (SRP, DRY, NAMING, COUPLING, DEAD, KISS, BOUNDARY, PANIC); no finding above 0.5 remains.
 - **DCS:** read-only `grep`, `sed -n` and `diff` over `DCS:Scripts/`, `DCS:API/Sim_ControlAPI.md`, `DCS:autoupdate.cfg` and `DCS:Mods/terrains/`, plus `grep -a` over `DCS:bin/Scripting.dll`. tslua-dcs files were fetched at `1179554f` with `gh api`.
-- **Confluence:** the plan draft 12484650 (version 1) was read; it was not edited.
+- **Confluence:** the plan draft 12484650 (the current unaccepted working draft) was read; it was not edited.
 - **Citations:** a checker kept outside the repository resolves every `file:line` outside code blocks (repository, `DCS:`, `MT/`, `MTX/`; a bare `:N` refers to the last file on the same line) to one file and checks the line is in range. It also checks every relative link and backticked repository path at the commit.
 - **Not run:** no DCS or EECH runtime, no build and no regression pack. Nothing here changes behaviour.
 
