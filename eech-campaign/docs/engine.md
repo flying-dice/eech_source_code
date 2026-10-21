@@ -8,7 +8,7 @@ a Lua module (a DLL), and runs it from a Rust host process.
 
 ```
    eech-world (host binary)       Rust; embeds a Lua 5.1 state; records Tacview
-        │  lua: require ("eech_dc") → boot { ... }, engine:frame (ms), engine:objects ()
+        │  lua: require ("eech_dc") → boot { bind_mobile=... }, frame, objects, members
         ▼
    eech-dc (cdylib: libeech_dc.so)     the Lua module; mlua 0.10 (lua51, module)
         │  eech-engine: Engine::boot / frame / objects / clock      (safe Rust)
@@ -16,7 +16,7 @@ a Lua module (a DLL), and runs it from a Rust host process.
    eech-engine-sys                     native build + raw FFI
         │  csrc/: headless platform layer, boot and frame, observation, synthetic data
         ▼
-   original EECH C                     ../aphavoc/source, ../modules: 1,218 files as written
+   original EECH C                     ../aphavoc/source, ../modules: 1,218 legacy files + the host roster
 ```
 
 Data comes from `eech-map`, which builds a map and a dynamic campaign from an
@@ -26,8 +26,9 @@ OpenStreetMap extract and SRTM elevation. Georgia (map16) is the one built so fa
 
 The source list (`crates/eech-engine-sys/sources.txt`) is the maintained
 Windows build's: of the 1,226 `.c` files in the `aphavoc` and `modules` Visual
-Studio projects, it lists the 1,218 that compile as they are. csrc/ replaces
-the other eight, which need a real Windows machine:
+Studio projects, it lists the 1,218 that compile as they are, plus the
+host-capable module's `gp_roster.c`. csrc/ replaces the other eight, which need
+a real Windows machine:
 
 | Replaced | Headless replacement (csrc/) |
 |---|---|
@@ -240,15 +241,17 @@ Drive folder through rclone, configured from environment variables.
 ```lua
 local dc = require ("eech_dc")           -- the host must allow C modules
 dc.prepare_installation (root)
+local next_id = 0
 local engine = dc.boot { install_root = root, map = "..\\common\\maps\\map16",
-                         campaign = "georgia.chc", gunship = "apache", seed = 1 }
+                         campaign = "georgia.chc", gunship = "apache", seed = 1,
+                         bind_mobile = function () next_id = next_id + 1; return "host:" .. next_id end }
 engine:frame (100)                        -- milliseconds of simulated time
 for _, o in ipairs (engine:objects ()) do ... end
 local clock = engine:clock ()
 ```
 
 `eech-world <script.lua> key=value ...` embeds Lua 5.1 and lets the script
-`require` the DLL. It exposes `host.args`, `host.log`, `host.open_recording`,
+`require` the DLL. It exposes `host.args`, `host.log`, `host.bind_mobile`, `host.open_recording`,
 `host.record (time, objects)` and `host.event`, and writes Tacview ACMI 2.2:
 
 - positions are written only when they change;

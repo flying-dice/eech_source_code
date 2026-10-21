@@ -111,6 +111,7 @@ fn main() {
         .include(tree.join("modules"))
         .include(tree.join("aphavoc/source"))
         .define("WIN32", None)
+        .define("EECH_CAMPAIGN_HOST_IDENTITIES", None)
         .opt_level_str(&opt)
         .debug(true)
         .pic(true)

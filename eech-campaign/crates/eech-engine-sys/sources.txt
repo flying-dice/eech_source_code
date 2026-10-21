@@ -442,6 +442,7 @@ aphavoc/source/entity/special/group/gp_funcs.c
 aphavoc/source/entity/special/group/gp_int.c
 aphavoc/source/entity/special/group/gp_list.c
 aphavoc/source/entity/special/group/gp_loss.c
+aphavoc/source/entity/special/group/gp_roster.c
 aphavoc/source/entity/special/group/gp_msgs.c
 aphavoc/source/entity/special/group/gp_pack.c
 aphavoc/source/entity/special/group/gp_ptr.c

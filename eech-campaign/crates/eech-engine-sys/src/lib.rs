@@ -10,6 +10,7 @@ pub const EECH_ENGINE_FATAL: c_int = 1;
 pub const EECH_ENGINE_POISONED: c_int = 2;
 pub const EECH_ENGINE_STATE: c_int = 3;
 pub const EECH_ENGINE_BAD_ARGUMENT: c_int = 4;
+pub const EECH_HOST_ID_MAX: usize = 128;
 
 #[repr(C)]
 pub struct eech_engine_config {
@@ -20,6 +21,31 @@ pub struct eech_engine_config {
     pub gunship_type: c_int,
     pub random_seed: u32,
     pub arguments: *const *const c_char,
+}
+
+#[repr(C)]
+pub struct eech_member_descriptor {
+    pub member_key: u64,
+    pub group_key: u64,
+    pub entity_index: c_int,
+    pub entity_type: c_int,
+    pub sub_type: c_int,
+    pub side: c_int,
+}
+
+pub type eech_bind_mobile_callback = unsafe extern "C" fn(
+    descriptor: *const eech_member_descriptor,
+    host_id: *mut c_char,
+    host_id_size: usize,
+    error: *mut c_char,
+    error_size: usize,
+    user: *mut c_void,
+) -> c_int;
+
+#[repr(C)]
+pub struct eech_engine_host {
+    pub bind_mobile: Option<eech_bind_mobile_callback>,
+    pub user: *mut c_void,
 }
 
 #[repr(C)]
@@ -47,6 +73,28 @@ pub struct eech_object {
 }
 
 #[repr(C)]
+pub struct eech_member {
+    pub member_key: u64,
+    pub group_key: u64,
+    pub host_id: *const c_char,
+    pub origin_entity_id: c_int,
+    pub current_entity_id: c_int,
+    pub entity_type: c_int,
+    pub sub_type: c_int,
+    pub side: c_int,
+    pub initial_alive: c_int,
+    pub physical_present: c_int,
+    pub in_group: c_int,
+}
+
+#[repr(C)]
+#[derive(Default)]
+pub struct eech_roster_stats {
+    pub duplicate_comparisons: u64,
+    pub duplicate_scan_seconds: f64,
+}
+
+#[repr(C)]
 #[derive(Default)]
 pub struct eech_clock {
     pub elapsed_seconds: f32,
@@ -55,14 +103,17 @@ pub struct eech_clock {
 }
 
 pub type eech_object_callback = unsafe extern "C" fn(object: *const eech_object, user: *mut c_void);
+pub type eech_member_callback = unsafe extern "C" fn(member: *const eech_member, user: *mut c_void);
 pub type eech_log_sink = unsafe extern "C" fn(level: c_int, message: *const c_char, user: *mut c_void);
 
 extern "C" {
-    pub fn eech_engine_boot(config: *const eech_engine_config) -> c_int;
-    pub fn eech_engine_frame(milliseconds: u32) -> c_int;
+    pub fn eech_engine_boot(config: *const eech_engine_config, host: *const eech_engine_host) -> c_int;
+    pub fn eech_engine_frame(milliseconds: u32, host: *const eech_engine_host) -> c_int;
     pub fn eech_engine_fatal_message() -> *const c_char;
     pub fn eech_engine_prepare_installation(root: *const c_char) -> c_int;
     pub fn eech_engine_objects(callback: eech_object_callback, user: *mut c_void, count: *mut c_int) -> c_int;
+    pub fn eech_engine_members(callback: eech_member_callback, user: *mut c_void, count: *mut c_int) -> c_int;
+    pub fn eech_engine_roster_stats(stats: *mut eech_roster_stats) -> c_int;
     pub fn eech_engine_clock(clock: *mut eech_clock) -> c_int;
     pub fn eech_engine_diagnostics() -> c_int;
     pub fn eech_set_log_sink(sink: Option<eech_log_sink>, user: *mut c_void);

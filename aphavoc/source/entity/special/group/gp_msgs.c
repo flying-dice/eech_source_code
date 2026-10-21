@@ -160,6 +160,8 @@ static int response_to_link_child (entity_messages message, entity *receiver, en
 				notify_campaign_screen (CAMPAIGN_SCREEN_GROUP_ADD_MEMBER, sender);
 			}
 
+			campaign_roster_link_member (receiver, sender);
+
 			break;
 		}
 	}
@@ -230,6 +232,8 @@ static int response_to_unlink_child (entity_messages message, entity *receiver, 
 			{
 				subtract_local_entity_importance_from_keysite (sender);
 			}
+
+			campaign_roster_unlink_member (receiver, sender);
 
 			break;
 		}

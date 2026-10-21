@@ -70,6 +70,7 @@ local engine = dc.boot {
 	campaign = args.campaign or scenario.campaign,
 	gunship = "apache",
 	seed = tonumber (args.seed or "1"),
+	bind_mobile = host.bind_mobile,
 }
 host.log ("campaign booted")
 

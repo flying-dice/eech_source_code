@@ -1,6 +1,6 @@
 # M5: the first host-boundary cut (proposal for the lead's decision)
 
-**Status: proposal and characterisation (commit `f7a3b756`).** That commit changed no product code, build input, baseline or expectation. The lead then authorised structural slice 1a only (§0), which is recorded separately in [`m5-loss-structural.md`](m5-loss-structural.md); this proposal remains a proposal. The sole authority for scope is the Confluence goal [EECH M5 Goal: EECH_DC into DCS World](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337) (read live on 2026-10-21, version 1). The working plan, [Confluence 12484650](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/12484650) (v3 when this proposal was written, v6 when slice 1a was recorded), is explicitly incomplete. Jira EEDCS-11 owns the boundary, the host-driven events and Lebanon preservation.
+**Status: proposal and characterisation (commit `f7a3b756`).** That commit changed no product code, build input, baseline or expectation. The lead later authorised structural slice 1a (§0), recorded in [`m5-loss-structural.md`](m5-loss-structural.md), and a separate host-identity/durable-roster prerequisite, recorded in [`m5-host-identities.md`](m5-host-identities.md). This proposal remains a proposal; neither implemented prerequisite completes a goal criterion. The sole authority for scope is the Confluence goal [EECH M5 Goal: EECH_DC into DCS World](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337) (read live on 2026-10-21, version 1). The working plan, [Confluence 12484650](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/12484650) (v3 when this proposal was written, v6 when slice 1a was recorded), is explicitly incomplete. Jira EEDCS-11 owns the boundary, the host-driven events and Lebanon preservation.
 
 - **Branch:** `codex/m5-host-boundary`, worktree `.claude/worktrees/m5-host-boundary`, based on the remote integration head `163e9158`, the merge of PR #79.
 - **Product tree:** #79 changes `eech-campaign/reference/pr59-candidate-identity/` and the CI workflow `.github/workflows/eech-campaign.yml` (`git diff --name-only 65892de1 163e9158`). Neither is a product build input (`aphavoc/`, `modules/`, `eech-campaign/crates/`, `Cargo.lock`, `tools/Dockerfile`, `tools/build-windows.sh`). So every source citation below is at the unchanged product tree `65892de1`, and so is the characterised candidate build (`eech_dc.dll` `a99d7a11…`, #79's `BUILD-INFO.txt`).
@@ -25,6 +25,14 @@ The source is the lead's scope decision, recorded on Jira [EEDCS-11, comment 104
 - **Identity:** host identities must eventually be issued or confirmed by the actual host, and must be opaque to the campaign. Private pointers stay private.
 - **Guards:** the proposed runtime guard and symbol checks (§4) are hypotheses for the later host-routing cut. They are not evidence at 1a.
 - **No criterion is accepted by the first cut.**
+
+The lead subsequently approved the host-issued identity and durable-roster
+prerequisite with the constraints recorded in
+[`m5-host-identities.md`](m5-host-identities.md): identity belongs to a physical
+incarnation and survives membership transfer, the issuer is an invoked callable
+outside the DLL, legacy observation and ACMI identities remain unchanged, and
+the work must not be described as host-owned physical authority or loss
+causality.
 
 ## 1. Answer: can host physics be linked only into EECH_WORLD?
 
