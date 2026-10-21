@@ -280,6 +280,20 @@ local function summary (event, now)
 		histogram = histogram () })
 end
 
+-- the two statistics every callback ends with, shared by the normal and the failing path:
+-- stepping cost (sub-steps and bookkeeping), then the completed callback's cost
+local function count_step (wall)
+	stats.lag_max = math.max (stats.lag_max, pending_ms)
+	stats.callbacks = stats.callbacks + 1
+	if wall then stats.step_max = math.max (stats.step_max, (clock () - wall) * 1000) end
+end
+
+local function count_completed (wall)
+	if not wall then return end
+	stats.callbacks_completed = stats.callbacks_completed + 1
+	stats.callback_max = math.max (stats.callback_max, (clock () - wall) * 1000)
+end
+
 local function step ()
 	if stopped then return nil end
 	local now = timer.getTime ()
@@ -301,14 +315,8 @@ local function step ()
 		if not ok then
 			stopped = true
 			record ("frame_error", { model_time = now, frames = frames_done, message = first_line (err) })
-			stats.callbacks = stats.callbacks + 1
-			stats.lag_max = math.max (stats.lag_max, pending_ms)
-			if wall then
-				local cost = (clock () - wall) * 1000
-				stats.step_max = math.max (stats.step_max, cost)
-				stats.callbacks_completed = stats.callbacks_completed + 1
-				stats.callback_max = math.max (stats.callback_max, cost)
-			end
+			count_step (wall)
+			count_completed (wall)
 			summary ("frames_final", now)
 			if wall then record ("callback_final", { reason = "frame_error", cost_ms = ms_since (wall) }) end
 			return nil
@@ -326,19 +334,14 @@ local function step ()
 		stats.frames = stats.frames + 1
 		n = n + 1
 	end
-	stats.lag_max = math.max (stats.lag_max, pending_ms)
-	stats.callbacks = stats.callbacks + 1
-	if wall then stats.step_max = math.max (stats.step_max, (clock () - wall) * 1000) end
+	count_step (wall)
 	if now >= next_summary then
 		summary ("frames_summary", now)
 		checkpoint (now)
 		reset ()
 		next_summary = now + summary_every
 	end
-	if wall then
-		stats.callbacks_completed = stats.callbacks_completed + 1
-		stats.callback_max = math.max (stats.callback_max, (clock () - wall) * 1000)
-	end
+	count_completed (wall)
 	return now + interval
 end
 

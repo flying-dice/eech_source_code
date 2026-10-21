@@ -35,6 +35,23 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $here = $PSScriptRoot
+. (Join-Path $here 'owned-process-tree.ps1')
+$comparison = if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
+$separator = [string][IO.Path]::DirectorySeparatorChar
+
+# A profile name is a relative path of plain names. Characters that Windows reads as a stream
+# (':'), a wildcard or a device or reserved character are refused: they can alias another
+# directory ("DCS.openbeta::$INDEX_ALLOCATION") or be globbed by a later command. A trailing dot
+# or space is dropped by Windows, so it is an alias too.
+function Test-ProfileName([string] $Label, [string] $Name) {
+	if (-not $Name.Trim()) { throw "$Label is empty" }
+	foreach ($component in $Name.Split([char[]]@('\', '/'), [StringSplitOptions]::RemoveEmptyEntries)) {
+		if ($component -match '[\x00-\x1f:\[\]*?<>|"]') { throw "$Label '$Name' has a character that is not allowed in a profile name (: [ ] * ? < > | `" or a control character)" }
+		if ($component -notin '.', '..' -and $component -match '[. ]$') { throw "$Label '$Name' has a component ending in a dot or space" }
+	}
+}
+Test-ProfileName '-WriteDirName' $WriteDirName
+Test-ProfileName '-DefaultWriteDirName' $DefaultWriteDirName
 $runId = "{0}-{1}" -f (Get-Date -Format 'yyyyMMdd-HHmmss'), $Stage
 $out = Join-Path $Work "runs\$runId"
 $writeDir = Join-Path $SavedGames ($WriteDirName.Replace('\', '/'))
@@ -44,8 +61,8 @@ $dcsBin = Join-Path $Dcs 'bin-mt'
 $dcsExe = Join-Path $dcsBin 'DCS.exe'
 $manifest = [ordered]@{ run = $runId; stage = $Stage; started = (Get-Date).ToString('o') }
 
-function Hash($p) { (Get-FileHash -Algorithm SHA256 $p).Hash.ToLower() }
-function DefaultLogTicks { (Get-Item $defaultLog).LastWriteTimeUtc.Ticks }
+function Hash($p) { (Get-FileHash -Algorithm SHA256 -LiteralPath $p).Hash.ToLower() }
+function DefaultLogTicks { (Get-Item -LiteralPath $defaultLog).LastWriteTimeUtc.Ticks }
 
 # Physical identity of a path, for the protected-profile guard. Spelling is not identity:
 # a junction or symlink anywhere in a path lets another name reach the same directory.
@@ -53,8 +70,6 @@ function DefaultLogTicks { (Get-Item $defaultLog).LastWriteTimeUtc.Ticks }
 # on-disk spelling; components that do not exist yet are kept as written. A link that
 # cannot be resolved throws, so the guard fails closed.
 function Resolve-PhysicalPath([string] $Path) {
-	$comparison = if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
-	$separator = [string][IO.Path]::DirectorySeparatorChar
 	$current = [IO.Path]::GetFullPath($Path)
 	for ($hop = 0; $hop -le 32; $hop++) {
 		$root = [IO.Path]::GetPathRoot($current)
@@ -94,8 +109,6 @@ try {
 	$protected = @((Resolve-PhysicalPath $defaultDir), (Resolve-PhysicalPath $defaultLog))
 	$written = @($writeDir) + @('Logs', 'Logs/dcs.log', 'Scripts', 'Scripts/Hooks', 'Scripts/Hooks/eech-m5probe-hook.lua' |
 		ForEach-Object { Join-Path $writeDir $_ })
-	$comparison = if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
-	$separator = [string][IO.Path]::DirectorySeparatorChar
 	foreach ($path in $written) {
 		$physical = (Resolve-PhysicalPath $path).TrimEnd('\', '/')
 		foreach ($guarded in $protected) {
@@ -113,6 +126,22 @@ try {
 if (-not (Test-Path -LiteralPath $defaultLog -PathType Leaf)) {
 	throw "no $defaultLog to watch: pass the installation's -DefaultWriteDirName"
 }
+# The record is untrusted JSON, so every value is checked for its type as well as its value:
+# -eq and -ne coerce ("true", 1, "0") and filter arrays. Hashes are 64 hex digits, compared
+# after lower-casing; completed must be the JSON boolean true; exit_code must be the integer 0.
+function Test-ErrorControls($Record, [string] $CandidateHash, [string] $HostLuaHash) {
+	function Test-Hash($Value, [string] $Expected) {
+		$Value -is [string] -and $Value.Trim().ToLowerInvariant() -match '^[0-9a-f]{64}$' -and $Value.Trim().ToLowerInvariant() -ceq $Expected
+	}
+	function Test-Control($Control) {
+		$Control -is [System.Collections.IDictionary] -and
+			$Control['completed'] -is [bool] -and $Control['completed'] -eq $true -and
+			($Control['exit_code'] -is [int] -or $Control['exit_code'] -is [long]) -and $Control['exit_code'] -eq 0
+	}
+	if ($Record -isnot [System.Collections.IDictionary] -or $Record['controls'] -isnot [System.Collections.IDictionary]) { return $false }
+	(Test-Hash $Record['candidate_eech_dc_sha256'] $CandidateHash) -and (Test-Hash $Record['dcs_lua_sha256'] $HostLuaHash) -and
+		(Test-Control $Record['controls']['first_error']) -and (Test-Control $Record['controls']['repeated_errors'])
+}
 if ($Stage -in 'boot', 'frames') {
 	if (-not $ErrorControlsEvidence -or -not (Test-Path -LiteralPath $ErrorControlsEvidence -PathType Leaf)) {
 		throw "stage $Stage needs -ErrorControlsEvidence <passing DCS-Lua error-control JSON record>"
@@ -121,65 +150,11 @@ if ($Stage -in 'boot', 'frames') {
 	catch { throw "invalid error-control JSON: $($_.Exception.Message)" }
 	$candidateHash = Hash (Join-Path $Candidate 'eech_dc.dll')
 	$hostLuaHash = Hash (Join-Path $dcsBin 'lua.dll')
-	if ($controls.candidate_eech_dc_sha256 -ne $candidateHash -or $controls.dcs_lua_sha256 -ne $hostLuaHash -or
-		$controls.controls.first_error.completed -ne $true -or $controls.controls.first_error.exit_code -ne 0 -or
-		$controls.controls.repeated_errors.completed -ne $true -or $controls.controls.repeated_errors.exit_code -ne 0) {
+	if (-not (Test-ErrorControls $controls $candidateHash $hostLuaHash)) {
 		throw 'error-control record does not show passing first and repeated errors for this candidate and DCS Lua'
 	}
 }
 if ($ValidatePrelaunchOnly) { Write-Output 'prelaunch guards passed'; return }
-
-# Stops a started process and its descendants, and returns the stopped PIDs. A process
-# instance is its PID together with its creation time, because Windows reuses PIDs and keeps
-# a dead parent's PID in ParentProcessId. A child belongs to a parent instance only if it was
-# created within that instance's lifetime: not before it started, and not after it ended. The
-# end is the root's exit time, or the creation of a different process that now holds the
-# same PID. So an unrelated process that reuses a PID, and that process's children, are
-# never selected, while real survivors of an exited root or intermediate parent still are.
-# $seen holds descendant instances recorded earlier (-ObserveOnly returns them): a
-# descendant that survives its exited parent stays reachable. A process is stopped only
-# if the live process list still shows that PID with that creation time.
-function Stop-OwnedTree($process, $started, $seen = @(), [switch] $ObserveOnly) {
-	$tolerance = [TimeSpan]::FromMilliseconds(500)   # Process.StartTime and WMI CreationDate round differently
-	$rootEnded = $null
-	if ($process.HasExited) { try { $rootEnded = $process.ExitTime } catch {} }
-	$ids = @(if (-not $process.HasExited) { [int]$process.Id })   # no process list: the live root alone
-	$descendants = @($seen)
-	try {
-		$all = @(Get-CimInstance Win32_Process)
-		$tree = [System.Collections.Generic.List[object]]::new()
-		$tree.Add(@{ id = [int]$process.Id; started = $started; ended = $rootEnded })
-		foreach ($old in @($seen)) {
-			if (-not ($old.id -eq $process.Id -and [Math]::Abs(($old.started - $started).TotalMilliseconds) -le $tolerance.TotalMilliseconds)) {
-				$tree.Add(@{ id = [int]$old.id; started = $old.started; ended = $null })
-			}
-		}
-		for ($i = 0; $i -lt $tree.Count; $i++) {
-			$parent = $tree[$i]
-			$end = $parent.ended
-			foreach ($row in $all) {
-				if ($row.ProcessId -eq $parent.id -and $row.CreationDate -gt ($parent.started + $tolerance) -and
-					($null -eq $end -or $row.CreationDate -lt $end)) { $end = $row.CreationDate }
-			}
-			foreach ($row in $all) {
-				if ($row.ParentProcessId -ne $parent.id -or $row.CreationDate -lt $parent.started -or
-					($null -ne $end -and $row.CreationDate -gt $end)) { continue }
-				$known = $false
-				foreach ($instance in $tree) { if ($instance.id -eq $row.ProcessId -and $instance.started -eq $row.CreationDate) { $known = $true } }
-				if (-not $known) { $tree.Add(@{ id = [int]$row.ProcessId; started = $row.CreationDate; ended = $null }) }
-			}
-		}
-		$descendants = @($tree | Select-Object -Skip 1)
-		$ids = @(if (-not $process.HasExited) { [int]$process.Id })
-		foreach ($instance in $descendants) {
-			if (@($all | Where-Object { $_.ProcessId -eq $instance.id -and $_.CreationDate -eq $instance.started }).Count -gt 0) { $ids += $instance.id }
-		}
-	} catch {}
-	if ($ObserveOnly) { return , $descendants }
-	$stopped = @()
-	foreach ($id in $ids) { try { Stop-Process -Id $id -Force -ErrorAction Stop; $stopped += $id } catch {} }
-	return , $stopped
-}
 
 # ScanDialogs lists one process's top-level dialogs (title, static and button texts; edit-box
 # contents are never read). With dismissLogin it also clicks Cancel on 'DCS Login' and OK on
@@ -215,31 +190,34 @@ public static class ProbeWindows {
 '@
 
 if (Get-Process -Name DCS -ErrorAction SilentlyContinue) { throw 'a DCS process is already running: not starting another' }
-New-Item -ItemType Directory -Force $out, "$Work\bin", "$Work\missions" | Out-Null
+foreach ($directory in $out, "$Work\bin", "$Work\missions") { $null = [IO.Directory]::CreateDirectory($directory) }
 
 # inputs: the DLL only (never the candidate's own lua.dll), the probe, the hook, the mission
-Copy-Item (Join-Path $Candidate 'eech_dc.dll') "$Work\bin\eech_dc.dll" -Force
-Copy-Item "$here\eech-dcs-probe.lua" "$Work\eech-dcs-probe.lua" -Force
+Copy-Item -LiteralPath (Join-Path $Candidate 'eech_dc.dll') -Destination "$Work\bin\eech_dc.dll" -Force
+Copy-Item -LiteralPath "$here\eech-dcs-probe.lua" -Destination "$Work\eech-dcs-probe.lua" -Force
 $miz = "$Work\missions\probe-$Stage.miz"
 $templatePath = Join-Path $Dcs $Template
 & python -I "$here\build-probe-miz.py" $templatePath $miz $Stage $Scenario "$Work\eech-dcs-probe.lua" "$Work\bin" $Root "$out\probe.log"
 if ($LASTEXITCODE -ne 0) { throw 'mission build failed' }
-New-Item -ItemType Directory -Force "$writeDir\Scripts\Hooks" | Out-Null
-Copy-Item "$here\eech-m5probe-hook.lua" "$writeDir\Scripts\Hooks\eech-m5probe-hook.lua" -Force
+$hook = "$writeDir\Scripts\Hooks\eech-m5probe-hook.lua"
+$null = [IO.Directory]::CreateDirectory("$writeDir\Scripts\Hooks")
+# unlink first: a hard link at the destination would otherwise be written through to another file
+[IO.File]::Delete($hook)
+[IO.File]::Copy("$here\eech-m5probe-hook.lua", $hook)
 $manifest.inputs = [ordered]@{
 	candidate_eech_dc = @{ path = (Join-Path $Candidate 'eech_dc.dll'); sha256 = Hash "$Work\bin\eech_dc.dll" }
 	probe = @{ sha256 = Hash "$Work\eech-dcs-probe.lua" }
-	hook = @{ sha256 = Hash "$writeDir\Scripts\Hooks\eech-m5probe-hook.lua" }
+	hook = @{ sha256 = Hash $hook }
 	template = @{ path = $Template; sha256 = Hash $templatePath }
 	mission = @{ path = $miz; sha256 = Hash $miz }
 	dcs_exe = @{ path = $dcsExe; sha256 = Hash $dcsExe }
 	dcs_lua = @{ sha256 = Hash (Join-Path $dcsBin 'lua.dll') }
 	mission_scripting = @{ sha256 = Hash "$Dcs\Scripts\MissionScripting.lua" }
-	autoupdate_version = (Get-Content "$Dcs\autoupdate.cfg" -Raw | ConvertFrom-Json).version
+	autoupdate_version = (Get-Content -LiteralPath "$Dcs\autoupdate.cfg" -Raw | ConvertFrom-Json).version
 }
 $manifest.scenario = $Scenario
 $defaultLogTicksBefore = DefaultLogTicks
-if (Test-Path "$writeDir\Logs\dcs.log") { Remove-Item "$writeDir\Logs\dcs.log" }
+[IO.File]::Delete("$writeDir\Logs\dcs.log")   # the file or link itself, if present
 
 $env:EECH_M5PROBE_RUN_SECONDS = "$RunSeconds"
 $arguments = @('-w', $WriteDirName, '--no-launcher', '--mission', "`"$miz`"")
@@ -253,7 +231,7 @@ $t0 = Get-Date
 $verdict = 'timeout'
 $dialogs = [ordered]@{}
 $stopped = @()
-$seen = @()   # descendants observed while the run is live (PID plus creation time)
+$seen = @()   # owned descendants recorded while the run is live (PID plus creation time)
 try {
 	while ($true) {
 		Start-Sleep -Seconds 2
@@ -264,7 +242,7 @@ try {
 		if ((DefaultLogTicks) -ne $defaultLogTicksBefore) { $verdict = 'aborted: the default profile log changed'; break }
 		if ($p.HasExited) { $verdict = 'exited with code {0} (0x{0:X8})' -f $p.ExitCode; break }
 		if ($elapsed -gt $TimeoutSeconds) { break }
-		try { $seen = Stop-OwnedTree $p $processStarted $seen -ObserveOnly } catch {}
+		try { $seen = @(Get-OwnedInstances $p $processStarted $seen) } catch {}
 	}
 } catch {
 	$verdict = "runner error: $($_.Exception.Message)"
@@ -279,11 +257,13 @@ $manifest.verdict = $verdict
 $manifest.dialogs = @($dialogs.Keys | ForEach-Object { @{ seconds = $dialogs[$_]; text = $_ } })
 $manifest.stopped_pids = $stopped
 Start-Sleep -Seconds 3
-if (Test-Path "$writeDir\Logs") {
-	Get-ChildItem "$writeDir\Logs" -File | Where-Object { $_.LastWriteTime -ge $t0.AddSeconds(-5) } | Copy-Item -Destination $out
+if ([IO.Directory]::Exists("$writeDir\Logs")) {
+	foreach ($log in Get-ChildItem -LiteralPath "$writeDir\Logs" -File | Where-Object { $_.LastWriteTime -ge $t0.AddSeconds(-5) }) {
+		[IO.File]::Copy($log.FullName, (Join-Path $out $log.Name), $true)
+	}
 }
-$manifest.outputs = @(Get-ChildItem $out -File | ForEach-Object { @{ name = $_.Name; bytes = $_.Length; sha256 = Hash $_.FullName } })
-$manifest.default_profile_log_unchanged = (Test-Path $defaultLog) -and ($defaultLogTicksBefore -eq (DefaultLogTicks))
+$manifest.outputs = @(Get-ChildItem -LiteralPath $out -File | ForEach-Object { @{ name = $_.Name; bytes = $_.Length; sha256 = Hash $_.FullName } })
+$manifest.default_profile_log_unchanged = (Test-Path -LiteralPath $defaultLog) -and ($defaultLogTicksBefore -eq (DefaultLogTicks))
 $manifest.finished = (Get-Date).ToString('o')
-$manifest | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 "$out\manifest.json"
+$manifest | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 -LiteralPath "$out\manifest.json"
 Write-Output "run $runId -> $out ($verdict)"

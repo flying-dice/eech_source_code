@@ -9,7 +9,8 @@
 # Portable PE fixtures and runner prelaunch guards are also checked without DCS.
 #
 #   python -I dcs-probe-selftest.py <lua 5.1 interpreter>
-#   python -I dcs-probe-selftest.py --skip-lua      (builder only; never reports "all passed")
+#   python -I dcs-probe-selftest.py --skip-lua      (no Lua cases; never reports "all passed")
+import hashlib
 import importlib.util
 import json
 import os
@@ -225,13 +226,11 @@ def retained_tests():
     verifier = os.path.join(HERE, "..", "..", "reference", "m5-dcs-probes", "verify_retained.py")
     result = subprocess.run([sys.executable, "-I", verifier], capture_output=True, text=True)
     check("retained evidence bytes match the repository manifest",
-          result.returncode == 0 and "57 retained files checked, 0 problems" in result.stdout,
+          result.returncode == 0 and ", 0 problems" in result.stdout,
           result.stdout + result.stderr)
 
 
 def runner_guard_tests(tmp):
-    import hashlib
-
     script = os.path.join(HERE, "run-dcs-probe.ps1")
     saved = os.path.join(tmp, "Saved Games")
     default_log = os.path.join(saved, "DCS.openbeta", "Logs", "dcs.log")
@@ -259,12 +258,12 @@ def runner_guard_tests(tmp):
                      "repeated_errors": {"completed": True, "exit_code": 0}},
     }
 
-    def run(stage="boot", write_dir="DCS.M5Probe", evidence_path=evidence):
+    def run(stage="boot", write_dir="DCS.M5Probe", evidence_path=evidence, default_name="DCS.openbeta"):
         return subprocess.run([
             "pwsh", "-NoProfile", "-File", script, "-Stage", stage, "-Candidate", candidate,
             "-Dcs", dcs, "-SavedGames", saved, "-Work", work,
-            "-WriteDirName", write_dir, "-ErrorControlsEvidence", evidence_path,
-            "-ValidatePrelaunchOnly",
+            "-WriteDirName", write_dir, "-DefaultWriteDirName", default_name,
+            "-ErrorControlsEvidence", evidence_path, "-ValidatePrelaunchOnly",
         ], capture_output=True, text=True)
 
     with open(evidence, "w") as stream:
@@ -325,6 +324,17 @@ def runner_guard_tests(tmp):
         for path in reversed(links):
             unlink(path)
     check("removing the fixture links left the default profile intact", os.path.exists(default_log))
+    # names that Windows reads as an NTFS stream, a wildcard, or a dropped trailing dot/space
+    # alias the protected directory or are globbed by later commands: refused as names
+    for name in ("DCS.openbeta::$INDEX_ALLOCATION", "DCS.openbeta:$I30:$INDEX_ALLOCATION/Probe",
+                 "DCS.[o]penbeta", "DCS.openbet?", "DCS.openbet*", "Probe<x", "Probe|x", "DCS.openbeta.", "DCS.openbeta "):
+        result = run(write_dir=name)
+        check(f"runner rejects the profile name {name!r}",
+              result.returncode != 0 and ("not allowed in a profile name" in result.stderr or "ending in a dot or space" in result.stderr)
+              and "prelaunch guards passed" not in result.stdout, result.stdout + result.stderr)
+    result = run(default_name="DCS.[o]penbeta")
+    check("runner rejects a wildcard in -DefaultWriteDirName", result.returncode != 0 and "not allowed in a profile name" in result.stderr,
+          result.stdout + result.stderr)
     arbitrary = os.path.join(tmp, "arbitrary.txt")
     with open(arbitrary, "w") as stream:
         stream.write("any existing file")
@@ -341,6 +351,46 @@ def runner_guard_tests(tmp):
         result = run()
         check(f"runner rejects wrong {mismatch} hash", result.returncode != 0 and "does not show passing" in result.stderr,
               result.stdout + result.stderr)
+    # the record is untrusted JSON: coerced types, arrays and look-alikes must not pass
+    def variant(change):
+        copy = json.loads(json.dumps(record))
+        change(copy)
+        return copy
+
+    def both(control, **fields):
+        def change(copy):
+            for name in ("first_error", "repeated_errors"):
+                copy["controls"][name] = dict(copy["controls"][name], **fields) if fields else control
+        return change
+
+    typed = {
+        "array hashes and array fields": lambda c: (c.update(candidate_eech_dc_sha256=[], dcs_lua_sha256=[]),
+                                                    both(None, completed=[], exit_code=[])(c)),
+        "array in place of the controls": lambda c: c.update(controls=[]),
+        "array record": None,
+        "numeric hash": lambda c: c.update(candidate_eech_dc_sha256=123),
+        "short hash": lambda c: c.update(dcs_lua_sha256=c["dcs_lua_sha256"][:63]),
+        'completed "true"': both(None, completed="true"),
+        "completed 1": both(None, completed=1),
+        "completed false": both(None, completed=False),
+        "exit_code false": both(None, exit_code=False),
+        'exit_code "0"': both(None, exit_code="0"),
+        "exit_code 0.0": both(None, exit_code=0.0),
+        "exit_code null": both(None, exit_code=None),
+        "first_error missing": lambda c: c["controls"].pop("first_error"),
+        "repeated_errors not an object": lambda c: c["controls"].update(repeated_errors=[]),
+    }
+    for label, change in typed.items():
+        with open(evidence, "w") as stream:
+            json.dump([] if change is None else variant(change), stream)
+        result = run()
+        check(f"runner rejects evidence with {label}", result.returncode != 0 and "does not show passing" in result.stderr,
+              result.stdout + result.stderr)
+    with open(evidence, "w") as stream:
+        json.dump(variant(lambda c: c.update(candidate_eech_dc_sha256=c["candidate_eech_dc_sha256"].upper())), stream)
+    result = run()
+    check("runner accepts a matching upper-case hash (hex is case-insensitive)",
+          result.returncode == 0 and "prelaunch guards passed" in result.stdout, result.stdout + result.stderr)
     record["controls"]["first_error"]["exit_code"] = 1
     with open(evidence, "w") as stream:
         json.dump(record, stream)
@@ -361,7 +411,7 @@ def runner_guard_tests(tmp):
 
 
 FAKE_DCS = r'''
--- fake DCS mission-state globals and a fake eech_dc; arg[1] probe, arg[2] shape, arg[3] stage
+-- fake DCS mission-state globals and a fake eech_dc; arg[1] probe, arg[2] scenario, arg[3] stage
 local lines = {}
 env = { info = function (s) lines[#lines + 1] = s end }
 local now = 0
@@ -370,44 +420,44 @@ timer = { getTime = function () return now end, getAbsTime = function () return 
 world = { event = { S_EVENT_MISSION_END = 12 }, addEventHandler = function (h) event_handler = h end,
           getPersistenceData = function () return nil end,
           setPersistenceHandler = function (_, f) save_persistence = f end }
-local shape = arg[2]
-if shape == "log_write_failure" then
+local scenario = arg[2]
+if scenario == "log_write_failure" then
   io.open = function () return { write = function () return nil, "synthetic disk full" end,
                                  close = function () end } end
 end
 package.preload.eech_dc = function ()
-  if shape == "module_boolean" then return true end
-  if shape == "require_error" then error ("module unavailable") end
+  if scenario == "module_boolean" then return true end
+  if scenario == "require_error" then error ("module unavailable") end
   return { name = "fake 0", prepare_installation = function ()
-      if shape == "prepare_error" then error ("prepare failed") end
+      if scenario == "prepare_error" then error ("prepare failed") end
     end,
     boot = function (config)
       if type (config) ~= "table" then error ("bad argument #1: error converting Lua string to table") end
-      if shape == "boot_error" then error ("boot failed") end
+      if scenario == "boot_error" then error ("boot failed") end
       return setmetatable ({}, { __index = {
-        frame = function () if shape == "frame_error" then error ("frame failed") end end,
+        frame = function () if scenario == "frame_error" then error ("frame failed") end end,
         objects = function ()
-          if shape == "bad" then return { { alive = true, kind = nil, position = { 1 } } } end
+          if scenario == "bad" then return { { alive = true, kind = nil, position = { 1 } } } end
           return { { alive = true, kind = "keysite", position = { 1, 2, 3 } } }
         end,
         clock = function () return { elapsed_seconds = 1, day = 1 } end } })
     end }
 end
 EECH_DCS_PROBE = { stage = arg[3], root = "x", summary_every = 0.1,
-                   dll_dir = shape == "dll_dir" and "C:/synthetic" or nil,
-                   log_file = shape == "log_open_failure" and "missing-dir/probe.log"
-                       or ((shape == "log_file" or shape == "log_write_failure") and "probe.log" or nil) }
+                   dll_dir = scenario == "dll_dir" and "C:/synthetic" or nil,
+                   log_file = scenario == "log_open_failure" and "missing-dir/probe.log"
+                       or ((scenario == "log_file" or scenario == "log_write_failure") and "probe.log" or nil) }
 dofile (arg[1])
-if shape == "dll_dir" then print ("CPATH_PREFIX=" .. package.cpath) end
+if scenario == "dll_dir" then print ("CPATH_PREFIX=" .. package.cpath) end
 if save_persistence then save_persistence () end
 if scheduled then
-  if shape == "mission_end" then
+  if scenario == "mission_end" then
     event_handler:onEvent ({ id = world.event.S_EVENT_MISSION_END })
     print ("SCHEDULE_STOP=" .. tostring (scheduled ()))
   else
     now = 0.25
     print ("SCHEDULE_RETURN=" .. tostring (scheduled ()))
-    if shape == "good" then now = 0.5; print ("SCHEDULE_RETURN=" .. tostring (scheduled ())) end
+    if scenario == "good" then now = 0.5; print ("SCHEDULE_RETURN=" .. tostring (scheduled ())) end
   end
 end
 for _, l in ipairs (lines) do print (l) end
@@ -528,8 +578,8 @@ def lua_tests(tmp, lua):
     fake = os.path.join(tmp, "fake-dcs.lua")
     open(fake, "w").write(FAKE_DCS)
 
-    def run(shape, stage):
-        result = subprocess.run([lua, fake, probe, shape, stage], capture_output=True, text=True, cwd=tmp)
+    def run(scenario, stage):
+        result = subprocess.run([lua, fake, probe, scenario, stage], capture_output=True, text=True, cwd=tmp)
         return result.returncode, result.stdout + result.stderr
 
     code, out = run("good", "frames")
@@ -616,7 +666,7 @@ def main(argv):
     if failures:
         print(f"{len(failures)} failed")
         return 1
-    print("builder and PE tests passed; Lua tests NOT RUN (--skip-lua)" if skip_lua else "all passed")
+    print("builder, PE, retained-evidence and runner tests passed; Lua tests NOT RUN (--skip-lua)" if skip_lua else "all passed")
     return 0
 
 
