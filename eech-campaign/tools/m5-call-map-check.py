@@ -115,8 +115,15 @@ def extract_scripts(doc_text, directory):
     missing = [s for s in SCRIPTS if s not in found]
     if missing:
         raise Failure(f"the document embeds no block for {', '.join(missing)}")
+    try:
+        Path(directory).mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        raise SetupError(f"cannot create script directory {directory}: {e}") from e
     for name in SCRIPTS:
-        (Path(directory) / name).write_text(found[name] + "\n", encoding="utf-8", newline="\n")
+        try:
+            (Path(directory) / name).write_text(found[name] + "\n", encoding="utf-8", newline="\n")
+        except OSError as e:
+            raise SetupError(f"cannot write {name} in {directory}: {e}") from e
 
 
 def materialise_snapshot(rev, directory):
@@ -133,7 +140,14 @@ def run(script_dir, script, *args, cwd):
                          capture_output=True, text=True, encoding="utf-8")
     if out.returncode:
         raise Failure(f"{script} exited {out.returncode}:\n{out.stderr.strip()}")
-    return json.loads(out.stdout[:out.stdout.rindex("}") + 1]), out.stdout
+    try:
+        end = out.stdout.rindex("}") + 1
+        report = json.loads(out.stdout[:end])
+        if not isinstance(report, dict):
+            raise ValueError("top-level report is not an object")
+        return report, out.stdout
+    except ValueError as e:
+        raise Failure(f"{script} exited successfully but produced no valid JSON report: {e}") from e
 
 
 def number(text):
@@ -249,14 +263,21 @@ def main():
             extract_scripts(doc_text, scripts)
             materialise_snapshot(args.snapshot, tree)
             print(f"scripts from {args.doc}; source snapshot {args.snapshot} (git archive)")
-            check_figures(doc_text, scripts, tree, report)
+            try:
+                check_figures(doc_text, scripts, tree, report)
+            except (KeyError, TypeError) as e:
+                raise Failure(f"an embedded script report has a missing or invalid field: {e}") from e
         command = f"git diff --quiet {args.snapshot[:8]} {args.target} -- {' '.join(MERGE_PATHS)}"
-        if git("diff", "--quiet", args.snapshot, args.target, "--", *MERGE_PATHS, check=False).returncode == 0:
+        target_diff = git("diff", "--quiet", args.snapshot, args.target, "--", *MERGE_PATHS, check=False)
+        if target_diff.returncode == 0:
             print(f"merge target: HOLDS ({command}): the snapshot applies to {args.target}")
-        else:
+        elif target_diff.returncode == 1:
             names = git("diff", "--name-only", args.snapshot, args.target, "--", *MERGE_PATHS).split()
             print(f"merge target: DOES NOT HOLD ({command}): {len(names)} files differ, first {names[0]}; "
                   f"the map's figures describe {args.snapshot[:8]}, not {args.target}")
+        else:
+            raise SetupError(f"cannot compare the merge target with the snapshot: "
+                             f"{target_diff.stderr.decode(errors='replace').strip()}")
         print(f"{'PASS' if not report.failures else 'FAIL'}: {len(report.failures)} figures differ from the document")
         return 1 if report.failures else 0
     except Failure as e:

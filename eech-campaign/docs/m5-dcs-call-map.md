@@ -625,7 +625,7 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
 
 ## Validation
 
-- **Scope:** documentation only. This revision edits only this file.
+- **Scope:** this map, its reproducibility checker and self-test, and a CI job. No runtime source or configuration changes.
 - **First pass:** `inventory.py` at `65892de1`; the output is as in section 1, and the grep cross-checks were run as listed.
 - **Second pass:** from one directory holding `eechmap.py` and the four scripts below, run:
   ```
@@ -635,6 +635,7 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
   python -I ledger.py reach.json dispatch.json globals.json --items items.json
   ```
   These were run at `65892de1` with Python 3.13 on Windows and give the figures in section 1, including a ledger of 1,126 items with 0 outstanding. The reviewer's `g2.py` and `writes.py` were run on the same tree, and the differences are explained in section 1. The scripts were audited against the eight clean-code principles (SRP, DRY, NAMING, COUPLING, DEAD, KISS, BOUNDARY, PANIC); no finding above 0.5 remains.
+- **Reproduction gate:** `python tools/m5-call-map-check.py` extracts the six embedded scripts and reruns them on the pinned Git snapshot; `python tools/m5-call-map-check-selftest.py` exercises missing and changed evidence. The CI job runs both commands on pull requests. The checker separately reports whether the pinned snapshot still matches the merge target's runtime source; a future source change requires a map refresh and review.
 - **DCS:** read-only `grep`, `sed -n` and `diff` over `DCS:Scripts/`, `DCS:API/Sim_ControlAPI.md`, `DCS:autoupdate.cfg` and `DCS:Mods/terrains/`, plus `grep -a` over `DCS:bin/Scripting.dll`. tslua-dcs files were fetched at `1179554f` with `gh api`.
 - **Confluence:** the plan draft 12484650 (the current unaccepted working draft) was read; it was not edited.
 - **Citations:** a checker kept outside the repository resolves every `file:line` outside code blocks (repository, `DCS:`, `MT/`, `MTX/`; a bare `:N` refers to the last file on the same line) to one file and checks the line is in range. It also checks every relative link and backticked repository path at the commit.

@@ -7,6 +7,8 @@
 #   missing-entry     reach.py names a missing entry point instead of raising a traceback
 #   tampered-figure   a changed figure in a copy of the document makes the check exit 1
 #   missing-snapshot  an absent snapshot commit is a setup error (exit 2), not a mismatch
+#   malformed-report  a successful script with no JSON is a mismatch, not a traceback
+#   blocked-extract   an unwritable extraction path is a setup error, not a traceback
 #
 # Usage: tools/m5-call-map-check-selftest.py        (takes a few minutes: it runs the scripts)
 import importlib.util, json, os, subprocess, sys, tempfile
@@ -32,6 +34,14 @@ def expect(case, ok, detail=''):
 with tempfile.TemporaryDirectory() as scripts, tempfile.TemporaryDirectory() as tree:
     check.extract_scripts(doc, scripts)
     check.materialise_snapshot(check.SNAPSHOT, tree)
+
+    check.Path(scripts, 'malformed.py').write_text("print('not JSON')\n", encoding='utf-8')
+    try:
+        check.run(scripts, 'malformed.py', cwd=tree)
+        malformed_failure = False
+    except check.Failure as e:
+        malformed_failure = 'malformed.py' in str(e) and 'no valid JSON' in str(e)
+    expect('malformed-report: the check names the script and invalid report', malformed_failure)
 
     def script(name, *args):
         return subprocess.run([sys.executable, '-I', os.path.join(scripts, name), *args], cwd=tree,
@@ -96,5 +106,14 @@ r = subprocess.run([sys.executable, '-I', os.path.join(here, 'm5-call-map-check.
 expect('missing-snapshot: the check exits 2 and says to fetch the commit',
        r.returncode == 2 and 'git fetch' in r.stderr, f'exit {r.returncode}\n{r.stderr[-300:]}')
 
-print(f"{'PASS' if not failures else 'FAIL'}: {len(failures)} of 6 cases failed" if failures else 'PASS: all 6 cases hold')
+with tempfile.TemporaryDirectory() as d:
+    blocked = os.path.join(d, 'file-not-directory')
+    open(blocked, 'w', encoding='utf-8').close()
+    r = subprocess.run([sys.executable, '-I', os.path.join(here, 'm5-call-map-check.py'), '--extract', blocked],
+                       capture_output=True, text=True, encoding='utf-8', cwd=check.REPO)
+    expect('blocked-extract: the check exits 2 and names the path without a traceback',
+           r.returncode == 2 and blocked in r.stderr and 'Traceback' not in r.stderr,
+           f'exit {r.returncode}\n{r.stderr[-300:]}')
+
+print(f"FAIL: {len(failures)} of 8 cases failed" if failures else 'PASS: all 8 cases hold')
 sys.exit(1 if failures else 0)
