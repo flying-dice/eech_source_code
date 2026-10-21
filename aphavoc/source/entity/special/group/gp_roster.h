@@ -46,6 +46,11 @@ typedef struct campaign_loss_task_dependent
 	int task_completed;
 	int primary_task;
 	int persistent_task;
+	int objective_is_member;
+	int task_dependent_children;
+	int guide_children;
+	float expire_timer;
+	float stop_timer;
 } campaign_loss_task_dependent;
 
 typedef struct campaign_loss_landing_action
@@ -92,6 +97,7 @@ typedef struct campaign_loss_descriptor
 	int side;
 	int group_sub_type;
 	int primary_task_sub_type;
+	uint64_t primary_task_key;
 	int group_member_number;
 	int campaign_member_count;
 	int player;

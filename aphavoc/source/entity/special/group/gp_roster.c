@@ -143,6 +143,7 @@ static void capture_task_dependents (entity *member, campaign_loss_descriptor *d
 		if (copied < CAMPAIGN_LOSS_TASK_DEPENDENT_MAX)
 		{
 			campaign_loss_task_dependent *dependent = &descriptor->member_task_dependents[copied];
+			entity *objective;
 			dependent->task_key = campaign_reference_key (child);
 			dependent->entity_type = get_local_entity_type (child);
 			dependent->sub_type = get_local_entity_int_value (child, INT_TYPE_ENTITY_SUB_TYPE);
@@ -150,10 +151,16 @@ static void capture_task_dependents (entity *member, campaign_loss_descriptor *d
 			dependent->task_completed = -1;
 			if (dependent->entity_type == ENTITY_TYPE_TASK)
 			{
+				objective = get_local_entity_parent (child, LIST_TYPE_TASK_DEPENDENT);
 				dependent->task_state = get_local_entity_int_value (child, INT_TYPE_TASK_STATE);
 				dependent->task_completed = get_local_entity_int_value (child, INT_TYPE_TASK_COMPLETED);
 				dependent->primary_task = task_database[dependent->sub_type].primary_task;
 				dependent->persistent_task = task_database[dependent->sub_type].persistent_task;
+				dependent->objective_is_member = objective == member;
+				dependent->task_dependent_children = child_count (child, LIST_TYPE_TASK_DEPENDENT);
+				dependent->guide_children = child_count (child, LIST_TYPE_GUIDE);
+				dependent->expire_timer = get_local_entity_float_value (child, FLOAT_TYPE_EXPIRE_TIMER);
+				dependent->stop_timer = get_local_entity_float_value (child, FLOAT_TYPE_STOP_TIMER);
 			}
 			descriptor->member_task_dependent_copied++;
 		}
@@ -267,6 +274,7 @@ static int observe_loss_event (entity *member, entity *group, campaign_loss_even
 	descriptor.side = record->side;
 	descriptor.group_sub_type = get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE);
 	descriptor.primary_task_sub_type = task ? get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) : -1;
+	descriptor.primary_task_key = task ? campaign_reference_key (task) : 0;
 	descriptor.group_member_number = get_local_entity_int_value (member, INT_TYPE_GROUP_MEMBER_NUMBER);
 	descriptor.campaign_member_count = get_local_entity_int_value (group, INT_TYPE_MEMBER_COUNT);
 	descriptor.player = get_local_entity_int_value (member, INT_TYPE_PLAYER);

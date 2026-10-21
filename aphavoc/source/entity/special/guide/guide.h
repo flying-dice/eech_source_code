@@ -276,6 +276,8 @@ extern void attach_group_to_guide_entity (entity *group, entity *guide);
 
 extern void delete_group_member_from_guide_entity (entity *member, entity *guide);
 
+extern void delete_group_member_number_from_guide_entity (unsigned int member_number, entity *guide);
+
 extern void delete_group_member_from_engage_guide (entity *member, entity *guide, int engage_enemy);
 
 extern void set_client_server_guide_entity_new_position (entity *en, vec3d *position, entity *position_entity);

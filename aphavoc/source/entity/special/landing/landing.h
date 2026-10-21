@@ -165,6 +165,8 @@ extern int check_landing_site_lock_clear (entity *landing_en, entity *en);
 
 extern void release_mobile_entity_landing_locks (entity *en);
 
+extern void unreserve_local_landing_sites (entity *landing_en, int count);
+
 extern void play_landing_clear_for_takeoff_speech (entity *en);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

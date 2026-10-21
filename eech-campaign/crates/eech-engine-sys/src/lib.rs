@@ -62,6 +62,11 @@ pub struct eech_loss_task_dependent {
     pub task_completed: c_int,
     pub primary_task: c_int,
     pub persistent_task: c_int,
+    pub objective_is_member: c_int,
+    pub task_dependent_children: c_int,
+    pub guide_children: c_int,
+    pub expire_timer: f32,
+    pub stop_timer: f32,
 }
 
 #[repr(C)]
@@ -89,6 +94,7 @@ pub struct eech_loss_descriptor {
     pub side: c_int,
     pub group_sub_type: c_int,
     pub primary_task_sub_type: c_int,
+    pub primary_task_key: u64,
     pub group_member_number: c_int,
     pub campaign_member_count: c_int,
     pub player: c_int,

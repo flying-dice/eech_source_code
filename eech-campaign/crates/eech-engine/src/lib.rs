@@ -166,6 +166,11 @@ pub struct LossTaskDependent {
     pub task_completed: Option<bool>,
     pub primary_task: bool,
     pub persistent_task: bool,
+    pub objective_is_member: bool,
+    pub task_dependent_children: i32,
+    pub guide_children: i32,
+    pub expire_timer: f32,
+    pub stop_timer: f32,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
@@ -204,6 +209,7 @@ pub struct LossDescriptor {
     pub side: Side,
     pub group_sub_type: i32,
     pub primary_task_sub_type: Option<i32>,
+    pub primary_task_key: Option<u64>,
     pub group_member_number: i32,
     pub campaign_member_count: i32,
     pub player: i32,
@@ -389,6 +395,11 @@ where
                 task_completed: (dependent.task_completed >= 0).then_some(dependent.task_completed != 0),
                 primary_task: dependent.primary_task != 0,
                 persistent_task: dependent.persistent_task != 0,
+                objective_is_member: dependent.objective_is_member != 0,
+                task_dependent_children: dependent.task_dependent_children,
+                guide_children: dependent.guide_children,
+                expire_timer: dependent.expire_timer,
+                stop_timer: dependent.stop_timer,
             })
             .collect();
         let landing_count = usize::try_from(descriptor.landing_action_copied).map_err(|_| "observe_loss received a negative copied landing-action count")?;
@@ -432,6 +443,7 @@ where
             side: side(descriptor.side),
             group_sub_type: descriptor.group_sub_type,
             primary_task_sub_type: (descriptor.primary_task_sub_type >= 0).then_some(descriptor.primary_task_sub_type),
+            primary_task_key: (descriptor.primary_task_key != 0).then_some(descriptor.primary_task_key),
             group_member_number: descriptor.group_member_number,
             campaign_member_count: descriptor.campaign_member_count,
             player: descriptor.player,

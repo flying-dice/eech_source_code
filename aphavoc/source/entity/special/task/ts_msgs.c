@@ -393,7 +393,7 @@ static int response_to_task_completed (entity_messages message, entity *receiver
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int response_to_task_terminated (entity_messages message, entity *receiver, entity *sender, va_list pargs)
+static int apply_task_terminated (entity *receiver, int has_excluded_dependent, entity *excluded_dependent, task_terminated_types task_terminated)
 {
 	task
 		*raw;
@@ -402,15 +402,6 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 		*guide,
 		*next,
 		*en;
-
-	task_terminated_types
-		task_terminated;
-
-	#if DEBUG_MODULE >= 2
-
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	#endif
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
@@ -439,8 +430,6 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 		return FALSE;
 	}
 
-	task_terminated = va_arg (pargs, task_terminated_types);
-
 	#if DEBUG_MODULE
 
 	debug_log ("TS_MSGS: task terminated %s (%d) %s",
@@ -458,7 +447,7 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 
 	if (raw->task_completed == TASK_INCOMPLETE)
 	{
-		notify_local_entity (ENTITY_MESSAGE_TASK_COMPLETED, receiver, sender, task_terminated);
+		notify_local_entity (ENTITY_MESSAGE_TASK_COMPLETED, receiver, has_excluded_dependent ? excluded_dependent : receiver, task_terminated);
 	}
 
 	//
@@ -471,7 +460,7 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 	{
 		next = get_local_entity_child_succ (en, LIST_TYPE_TASK_DEPENDENT);
 
-		if (en != sender)
+		if ((!has_excluded_dependent) || (en != excluded_dependent))
 		{
 			notify_local_entity (ENTITY_MESSAGE_TASK_COMPLETED, en, receiver, task_terminated);
 		}
@@ -518,6 +507,52 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 	}
 
 	return (TRUE);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int response_to_task_terminated (entity_messages message, entity *receiver, entity *sender, va_list pargs)
+{
+	task_terminated_types
+		task_terminated;
+
+	#if DEBUG_MODULE >= 2
+
+	debug_log_entity_message (message, receiver, sender, pargs);
+
+	#endif
+
+	task_terminated = va_arg (pargs, task_terminated_types);
+	return apply_task_terminated (receiver, TRUE, sender, task_terminated);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int complete_non_primary_task_for_lost_objective (entity *task_en)
+{
+	task
+		*raw;
+
+	ASSERT (task_en);
+	ASSERT (get_local_entity_type (task_en) == ENTITY_TYPE_TASK);
+	raw = (task *) get_local_entity_data (task_en);
+	ASSERT (!task_database [raw->sub_type].primary_task);
+	ASSERT (!task_database [raw->sub_type].persistent_task);
+	ASSERT (!get_local_entity_parent (task_en, LIST_TYPE_TASK_DEPENDENT));
+
+	if ((raw->task_state != TASK_STATE_UNASSIGNED) || (raw->task_completed != TASK_INCOMPLETE))
+	{
+		return FALSE;
+	}
+
+	set_client_server_entity_int_value (task_en, INT_TYPE_TASK_COMPLETED, TASK_COMPLETED_FAILURE);
+	/* Mobiles own a TASK_DEPENDENT root but no link, so the lost objective could
+	 * not have been a child excluded by response_to_task_terminated. */
+	return apply_task_terminated (task_en, FALSE, NULL, TASK_TERMINATED_OBJECTIVE_MESSAGE);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -86,6 +86,8 @@ extern void increment_group_primary_task_losses (entity *group);
 
 extern void notify_group_member_killed (entity *group, entity *member);
 
+extern int apply_group_member_killed (entity *group, unsigned int member_number);
+
 extern void notify_forces_check_campaign_objectives (entity *member);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
