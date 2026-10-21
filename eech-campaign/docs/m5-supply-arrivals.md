@@ -5,7 +5,7 @@
 3 of the [M5 goal](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337),
 version 1. It is partial engineering, not completion of either criterion.
 
-Lua `dc.boot` now requires both `bind_mobile` and `supply_reached`. During a
+Lua `dc.boot` now requires `bind_mobile`, `observe_loss` and `supply_reached`. During a
 frame, the campaign calls `supply_reached` only for PICK_UP,
 PREPARE_FOR_DROP_OFF, DROP_OFF and FINISH_DROP_OFF on a SUPPLY task. Missing
 callables, callback errors and non-boolean results fail loudly. The C operation
@@ -90,12 +90,15 @@ backslashes and an empty argument); neither changes campaign behaviour.
 ## Compatibility and remaining work
 
 This is a breaking host API change. Every maintained EECH World runtime and
-lifecycle caller passes the second callable; there is no hostless or
-embedded-answer fallback. The staged DCS probe still boots without either
-mandatory host callback and therefore fails until a real DCS adapter supplies
-both `bind_mobile` and `supply_reached`. Legacy Tacview IDs,
-`engine:objects()`, recordings, metrics, random stream, frame timing and all
-non-SUPPLY arrival handlers remain unchanged. The reference predicate is
+lifecycle caller passes the `supply_reached` callable; there is no hostless or
+embedded-answer fallback. The staged DCS probe still boots without the
+mandatory host callbacks and therefore fails until a real DCS adapter supplies
+`bind_mobile`, `observe_loss` and `supply_reached`. Legacy Tacview IDs,
+`engine:objects()`, recordings, metrics, random stream and frame timing remain
+unchanged, as do the arrival handlers for every non-SUPPLY case this slice did not
+route: ALTITUDE, HEADING and WEAPON_VECTOR criteria, ground vehicles and members
+without a host identity. The one later routing change, for non-SUPPLY
+radius-only fixed-wing and helicopter arrival, is described below. The reference predicate is
 synchronous in the same frame, preserving the existing consequence ordering.
 
 The physical aircraft and movement model still live inside the DLL. Non-SUPPLY
@@ -103,6 +106,7 @@ radius-only fixed-wing and helicopter arrival now uses this seam
 ([`m5-aircraft-arrivals.md`](m5-aircraft-arrivals.md)); all other non-SUPPLY
 arrivals remain coupled. A DCS adapter must supply the callback from
 real DCS object facts; this repository does not claim that adapter exists. The
-next loss slice must let physical destruction occur independently while host
-loss reporting controls only campaign consequences through the durable roster.
-It must not gate all of `kill_local`.
+bounded loss slice (PR #88, [`m5-physical-loss.md`](m5-physical-loss.md)) is
+delivered: physical destruction occurs independently while host loss reporting
+controls campaign consequences through the durable roster, without gating all of
+`kill_local`.

@@ -103,7 +103,10 @@ fn supply_reached(descriptor: LuaTable) -> LuaResult<bool> {
     let _: u64 = descriptor.get("waypoint_key")?;
     let _: String = descriptor.get("host_id")?;
     let waypoint: String = descriptor.get("waypoint")?;
-    if !matches!(waypoint.as_str(), "pick_up" | "prepare_for_drop_off" | "drop_off" | "finish_drop_off" | "radius_arrival") {
+    if !matches!(
+        waypoint.as_str(),
+        "pick_up" | "prepare_for_drop_off" | "drop_off" | "finish_drop_off" | "radius_arrival"
+    ) {
         return Err(LuaError::runtime(format!("host.supply_reached: unsupported waypoint {waypoint:?}")));
     }
     let mobile: String = descriptor.get("mobile")?;
