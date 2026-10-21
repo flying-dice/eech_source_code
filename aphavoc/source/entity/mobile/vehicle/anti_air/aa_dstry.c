@@ -138,21 +138,21 @@ static void destroy_local (entity *en)
 	// vehicle
 	//
 
-	unlink_local_entity_children (en, LIST_TYPE_TASK_DEPENDENT);
+	unlink_member_task_dependents (en);
 
 	unlink_local_entity_children (en, LIST_TYPE_LAUNCHED_WEAPON);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_FOLLOWER);
+	unlink_member_from_guide (en);
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_DESIGNATED_TARGET); // Jabberwock 031107 Designated targets
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_GUNSHIP_TARGET);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_MEMBER);
+	unlink_member_from_group (en);
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_VIEW);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_TAKEOFF_QUEUE);
+	unlink_member_from_takeoff_queue (en);
 
 	//
 	// mobile
@@ -298,12 +298,7 @@ static void kill_local (entity *en)
 	anti_aircraft
 		*raw;
 
-	int
-		losses;
-
 	entity
-		*task,
-		*destroy_task,
 		*group;
 
 	////////////////////////////////////////
@@ -362,27 +357,7 @@ static void kill_local (entity *en)
 		//
 		//
 
-		task = get_local_entity_first_child (en, LIST_TYPE_TASK_DEPENDENT);
-
-		while (task)
-		{
-
-			destroy_task = task;
-
-			task = get_local_entity_child_succ (task, LIST_TYPE_TASK_DEPENDENT);
-
-			if (get_local_entity_type (destroy_task) == ENTITY_TYPE_TASK)
-			{
-
-				#if DEBUG_MODULE
-
-				debug_log ("AA_DSTRY: killing routed vehicle, notifying task %s complete", entity_sub_type_task_names [get_local_entity_int_value (destroy_task, INT_TYPE_ENTITY_SUB_TYPE)]);
-
-				#endif
-
-				notify_local_entity (ENTITY_MESSAGE_TASK_COMPLETED, destroy_task, en, TASK_TERMINATED_OBJECTIVE_MESSAGE);
-			}
-		}
+		notify_member_task_dependents_completed (en);
 
 		//
 		// Release landing lock (if any)
@@ -405,13 +380,13 @@ static void kill_local (entity *en)
 	// vehicle
 	//
 
-	unlink_local_entity_children (en, LIST_TYPE_TASK_DEPENDENT);
+	unlink_member_task_dependents (en);
 
 	// unlink_local_entity_children (en, LIST_TYPE_LAUNCHED_WEAPON);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_MEMBER);
+	unlink_member_from_group (en);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_FOLLOWER);
+	unlink_member_from_guide (en);
 
 	// gunship_target_link
 
@@ -419,7 +394,7 @@ static void kill_local (entity *en)
 
 	// view_link
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_TAKEOFF_QUEUE);
+	unlink_member_from_takeoff_queue (en);
 
 	//
 	// mobile
@@ -463,11 +438,7 @@ static void kill_local (entity *en)
 	// group losses
 	//
 
-	losses = get_local_entity_int_value (group, INT_TYPE_LOSSES);
-
-	losses ++;
-
-	set_local_entity_int_value (group, INT_TYPE_LOSSES, losses);
+	increment_group_losses (group);
 
 	//
 	// Notify Campaign Screen
@@ -481,7 +452,7 @@ static void kill_local (entity *en)
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
-		notify_local_entity (ENTITY_MESSAGE_MOBILE_KILLED, group, en);
+		notify_group_member_killed (group, en);
 	}
 
 	////////////////////////////////////////
@@ -617,13 +588,13 @@ void kill_local_restored_anti_aircraft_entity (entity *en)
 	//
 	////////////////////////////////////////
 
-	unlink_local_entity_children (en, LIST_TYPE_TASK_DEPENDENT);
+	unlink_member_task_dependents (en);
 
 	unlink_local_entity_children (en, LIST_TYPE_LAUNCHED_WEAPON);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_MEMBER);
+	unlink_member_from_group (en);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_FOLLOWER);
+	unlink_member_from_guide (en);
 
 	// gunship_target_link
 
@@ -654,7 +625,7 @@ void kill_local_restored_anti_aircraft_entity (entity *en)
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
-		notify_local_entity (ENTITY_MESSAGE_MOBILE_KILLED, group, en);
+		notify_group_member_killed (group, en);
 	}
 	else
 	{

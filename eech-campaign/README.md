@@ -9,7 +9,7 @@ with [probe tooling](tools/dcs-probe/README.md) and
 
 ## The full engine: EECH headless, as a Lua module
 
-All of EECH (the maintained Windows build's 1,225 C files: dynamic campaign,
+All of EECH (the maintained Windows build's 1,226 C files: dynamic campaign,
 AI, pathfinding, flight, weapons, damage, comms, entities) compiles headless
 for x86-64 Linux into a Lua 5.1 module. A Rust host process embeds Lua,
 loads the module with `require ("eech_dc")` and records Tacview.
@@ -22,7 +22,7 @@ loads the module with `require ("eech_dc")` and records Tacview.
         ▼
    eech-engine / -sys           safe API · native build, headless platform layer, synthetic data
         ▼
-   original EECH C              ../aphavoc/source, ../modules (1,217 files as written)
+   original EECH C              ../aphavoc/source, ../modules (1,218 files as written)
 
    eech-map                     OpenStreetMap + SRTM → an EECH map and dynamic campaign
 ```
@@ -53,6 +53,12 @@ M4: the accepted M1–M3 regression pack, with its coverage, provenance and blin
 [`docs/m4-regression-pack.md`](docs/m4-regression-pack.md).
 M4: accepted baselines change only by a classified, approved and non-destructive change record:
 [`docs/m4-baseline-governance.md`](docs/m4-baseline-governance.md).
+M5: who owns what in the SUPPLY loop, and the first dependency to hand to a host:
+[`docs/m5-supply-ownership.md`](docs/m5-supply-ownership.md).
+M5: a proposal for the first host-boundary cut (loss first), with public-path characterisation:
+[`docs/m5-host-boundary.md`](docs/m5-host-boundary.md).
+M5 slice 1a: the campaign's loss consequences moved out of world destroy code, behaviour unchanged:
+[`docs/m5-loss-structural.md`](docs/m5-loss-structural.md).
 
 ## The campaign kernel spike
 
