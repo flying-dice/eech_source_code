@@ -1,0 +1,255 @@
+eech: force side=2 current/reserve: ARMED_FIXED_WING=33/294 UNARMED_FIXED_WING=15/300 ARMED_HELICOPTER=91/391 UNARMED_HELICOPTER=8/400 ARMED_ROUTED_VEHICLE=714/987 UNARMED_ROUTED_VEHICLE=44/1000 ARMED_SHIP_VEHICLE=9/100 UNARMED_SHIP_VEHICLE=9/100
+eech:   regen queues: REGEN_FIXED_WING=1 REGEN_HELICOPTER=4 REGEN_GROUND=4 REGEN_PEOPLE=0 REGEN_SEA=0 REGEN_NONE=0
+eech:   keysite Kleiat KEYSITE_AIRBASE usable=Fully Operational efficiency=1.00 ammo=94.6 fuel=89.2 regen sites 0 (0 alive)
+eech:   keysite FARP 11 KEYSITE_FARP usable=Fully Operational efficiency=1.00 ammo=98.7 fuel=99.2 regen sites 0 (0 alive)
+eech:     group Bloodhound GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Ka-52 Alligator
+eech:   keysite LADNY KEYSITE_ANCHORAGE usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:     group Demon GROUP_MARINE_ATTACK_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Ka-52 Alligator
+eech:     group Merlin GROUP_MARINE_ATTACK_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Mi-28N Havoc B
+eech:   keysite FARP 10 KEYSITE_FARP usable=Fully Operational efficiency=1.00 ammo=98.6 fuel=99.2 regen sites 0 (0 alive)
+eech:     group Bulldog GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Ka-52 Alligator
+eech:     group Hunter GROUP_ATTACK_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Mi-28N Havoc B
+eech:   keysite ZHARKY KEYSITE_ANCHORAGE usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:     group Patriot GROUP_MARINE_ATTACK_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Ka-29 Helix B
+eech:     group Banshee GROUP_MARINE_ASSAULT_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Ka-29 Helix B
+eech:     group Dragon GROUP_MARINE_ATTACK_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Ka-50 Black Shark
+eech:   keysite Wujah Al Hajar KEYSITE_AIRBASE usable=Fully Operational efficiency=1.00 ammo=94.6 fuel=89.2 regen sites 4 (4 alive)
+eech:     group Reaper GROUP_RECON_HELICOPTER mode=0 sleep=696 members=3 state=Repairing task=- ammo=100 fuel=100 first=Ka-52 Alligator
+eech:     group Razorback GROUP_MULTI_ROLE_FIGHTER mode=0 sleep=683 members=1 state=Repairing task=- ammo=100 fuel=100 first=MiG-29 Fulcrum
+eech:     group Jester GROUP_HEAVY_LIFT_TRANSPORT_AIRCRAFT mode=1 sleep=0 members=1 state=Performing Task task=TASK_SUPPLY ammo=100 fuel=100 first=Il-76MD Candid-B
+eech:     group Dodger GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=82 members=1 state=Repairing task=- ammo=100 fuel=100 first=Mi-28N Havoc B
+eech:     group Hellcat GROUP_HEAVY_LIFT_TRANSPORT_AIRCRAFT mode=0 sleep=0 members=1 state=Waiting task=- ammo=100 fuel=100 first=Il-76MD Candid-B
+eech:     group Hawkeye GROUP_HEAVY_LIFT_TRANSPORT_AIRCRAFT mode=0 sleep=0 members=1 state=Waiting task=- ammo=100 fuel=100 first=Il-76MD Candid-B
+eech:     group Viking GROUP_CLOSE_AIR_SUPPORT_AIRCRAFT mode=0 sleep=0 members=4 state=Waiting task=- ammo=100 fuel=100 first=Su-25 Frogfoot
+eech:     group Mercury GROUP_CLOSE_AIR_SUPPORT_AIRCRAFT mode=0 sleep=0 members=4 state=Waiting task=- ammo=100 fuel=100 first=Su-25 Frogfoot
+eech:     group Stalker GROUP_RECON_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Ka-52 Alligator
+eech:     group Kestrel GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=0 members=4 state=Waiting task=- ammo=100 fuel=100 first=Ka-52 Alligator
+eech:   keysite FARP 9 KEYSITE_FARP usable=Fully Operational efficiency=1.00 ammo=98.6 fuel=99.2 regen sites 0 (0 alive)
+eech:     group Jupiter GROUP_ASSAULT_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Mi-24V Hind
+eech:     group Shadow GROUP_ATTACK_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Mi-28N Havoc B
+eech:   keysite Halat KEYSITE_AIRBASE usable=Fully Operational efficiency=1.00 ammo=94.8 fuel=79.6 regen sites 0 (0 alive)
+eech:     group Mustang GROUP_CARRIER_BORNE_ATTACK_AIRCRAFT mode=1 sleep=0 members=2 state=En route task=TASK_TRANSFER_FIXED_WING ammo=100 fuel=100 first=Yak-41 Freestyle
+eech:     group Eight-Ball GROUP_MULTI_ROLE_FIGHTER mode=0 sleep=841 members=4 state=Repairing task=- ammo=100 fuel=100 first=MiG-29 Fulcrum
+eech:   keysite Yaate KEYSITE_AIRBASE usable=Fully Operational efficiency=1.00 ammo=94.6 fuel=89.2 regen sites 0 (0 alive)
+eech:     group Apollo GROUP_CARRIER_BORNE_INTERCEPTOR mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Su-33 Flanker
+eech:   keysite BODRY KEYSITE_ANCHORAGE usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:     group Firefox GROUP_MARINE_ATTACK_HELICOPTER mode=0 sleep=835 members=4 state=Repairing task=- ammo=100 fuel=100 first=Ka-52 Alligator
+eech:     group Phoenix GROUP_MARINE_ASSAULT_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Ka-29 Helix B
+eech:   keysite Beirut International KEYSITE_AIRBASE usable=Fully Operational efficiency=1.00 ammo=84.8 fuel=10.0 regen sites 4 (4 alive)
+eech:     group Lima GROUP_RECON_HELICOPTER mode=1 sleep=0 members=2 state=Taxiing task=TASK_TRANSFER_HELICOPTER ammo=100 fuel=100 first=Ka-52 Alligator
+eech:     group Vigilante GROUP_CLOSE_AIR_SUPPORT_AIRCRAFT mode=0 sleep=816 members=1 state=Repairing task=- ammo=100 fuel=100 first=Su-25 Frogfoot
+eech:     group Ghostrider GROUP_ASSAULT_HELICOPTER mode=0 sleep=805 members=2 state=Repairing task=- ammo=100 fuel=100 first=Mi-24V Hind
+eech:     group Wolfpack GROUP_MEDIUM_LIFT_TRANSPORT_HELICOPTER mode=1 sleep=0 members=1 state=Performing Task task=TASK_SUPPLY ammo=100 fuel=100 first=Mi-17 Hip
+eech:     group Freelancer GROUP_HEAVY_LIFT_TRANSPORT_HELICOPTER mode=1 sleep=0 members=2 state=Taxiing task=- ammo=100 fuel=100 first=Mi-6 Hook
+eech:     group Phantom GROUP_HEAVY_LIFT_TRANSPORT_HELICOPTER mode=1 sleep=0 members=2 state=En route task=TASK_SUPPLY ammo=100 fuel=100 first=Mi-6 Hook
+eech:     group Warrior GROUP_RECON_ATTACK_HELICOPTER mode=1 sleep=0 members=4 state=En route task=TASK_RECON ammo=100 fuel=100 first=Ka-52 Alligator
+eech:     group Cowboy GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=222 members=1 state=Repairing task=- ammo=100 fuel=100 first=Ka-52 Alligator
+eech:     group Goliath GROUP_MEDIUM_LIFT_TRANSPORT_AIRCRAFT mode=1 sleep=0 members=1 state=En route task=TASK_SUPPLY ammo=100 fuel=100 first=An-12B Cub
+eech:     group Python GROUP_MEDIUM_LIFT_TRANSPORT_AIRCRAFT mode=1 sleep=0 members=1 state=Performing Task task=TASK_SUPPLY ammo=100 fuel=100 first=An-12B Cub
+eech:     group Voodoo GROUP_HEAVY_LIFT_TRANSPORT_AIRCRAFT mode=1 sleep=0 members=1 state=Performing Task task=TASK_SUPPLY ammo=100 fuel=100 first=Il-76MD Candid-B
+eech:     group Angel GROUP_HEAVY_LIFT_TRANSPORT_AIRCRAFT mode=0 sleep=590 members=1 state=Repairing task=- ammo=100 fuel=100 first=Il-76MD Candid-B
+eech:     group Cheetah GROUP_CARRIER_BORNE_INTERCEPTOR mode=0 sleep=499 members=2 state=Repairing task=- ammo=100 fuel=100 first=Su-33 Flanker
+eech:   keysite Riyaq KEYSITE_AIRBASE usable=Fully Operational efficiency=1.00 ammo=94.8 fuel=89.6 regen sites 4 (4 alive)
+eech:     group Archer GROUP_ASSAULT_HELICOPTER mode=0 sleep=724 members=3 state=Repairing task=- ammo=100 fuel=100 first=Mi-24V Hind
+eech:     group Warlord GROUP_CARRIER_BORNE_INTERCEPTOR mode=0 sleep=588 members=1 state=Repairing task=- ammo=100 fuel=100 first=Su-33 Flanker
+eech:     group Mantis GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=138 members=1 state=Repairing task=- ammo=100 fuel=100 first=Ka-52 Alligator
+eech:     group Gladiator GROUP_MULTI_ROLE_FIGHTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Su-34 Fullback
+eech:     group Gauntlet GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=0 members=4 state=Waiting task=- ammo=100 fuel=100 first=Ka-52 Alligator
+eech:     group Warlock GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=0 members=4 state=Waiting task=- ammo=100 fuel=100 first=Ka-52 Alligator
+eech:   keysite FARP 8 KEYSITE_FARP usable=Fully Operational efficiency=1.00 ammo=98.6 fuel=99.2 regen sites 0 (0 alive)
+eech:     group Sundown GROUP_ASSAULT_HELICOPTER mode=1 sleep=0 members=2 state=En route task=TASK_TRANSFER_HELICOPTER ammo=100 fuel=100 first=Mi-24V Hind
+eech:     group Chieftain GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Ka-52 Alligator
+eech:   keysite FARP 7 KEYSITE_FARP usable=Fully Operational efficiency=1.00 ammo=98.7 fuel=99.2 regen sites 0 (0 alive)
+eech:     group Rattlesnake GROUP_ASSAULT_HELICOPTER mode=1 sleep=0 members=2 state=En route task=TASK_TRANSFER_HELICOPTER ammo=100 fuel=100 first=Mi-24V Hind
+eech:     group Juggernaut GROUP_ASSAULT_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Mi-24V Hind
+eech:     group Sheriff GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Ka-52 Alligator
+eech:   keysite Mezzeh KEYSITE_AIRBASE usable=Fully Operational efficiency=1.00 ammo=94.6 fuel=89.2 regen sites 4 (4 alive)
+eech:     group Condor GROUP_CLOSE_AIR_SUPPORT_AIRCRAFT mode=0 sleep=828 members=1 state=Repairing task=- ammo=100 fuel=100 first=Su-25 Frogfoot
+eech:     group Tempest GROUP_RECON_HELICOPTER mode=0 sleep=580 members=1 state=Repairing task=- ammo=100 fuel=100 first=Ka-52 Alligator
+eech:     group Raptor GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=0 members=1 state=Repairing task=- ammo=100 fuel=100 first=Ka-52 Alligator
+eech:     group Spartakus GROUP_CARRIER_BORNE_ATTACK_AIRCRAFT mode=0 sleep=465 members=4 state=Repairing task=- ammo=100 fuel=100 first=Yak-41 Freestyle
+eech:     group Viper GROUP_HEAVY_LIFT_TRANSPORT_AIRCRAFT mode=0 sleep=0 members=1 state=Waiting task=- ammo=100 fuel=100 first=Il-76MD Candid-B
+eech:     group Vertigo GROUP_HEAVY_LIFT_TRANSPORT_AIRCRAFT mode=0 sleep=0 members=1 state=Waiting task=- ammo=100 fuel=100 first=Il-76MD Candid-B
+eech:     group Panther GROUP_MEDIUM_LIFT_TRANSPORT_AIRCRAFT mode=0 sleep=0 members=1 state=Waiting task=- ammo=100 fuel=100 first=An-12B Cub
+eech:     group Firebird GROUP_MEDIUM_LIFT_TRANSPORT_AIRCRAFT mode=0 sleep=0 members=1 state=Waiting task=- ammo=100 fuel=100 first=An-12B Cub
+eech:     group Swamp-Fox GROUP_MULTI_ROLE_FIGHTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Su-34 Fullback
+eech:     group Milkman GROUP_MEDIUM_LIFT_TRANSPORT_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Mi-17 Hip
+eech:     group Tiger-Shark GROUP_ASSAULT_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Mi-24V Hind
+eech:     group Cougar GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=0 members=4 state=Waiting task=- ammo=100 fuel=100 first=Ka-52 Alligator
+eech:     group Maniac GROUP_ATTACK_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Ka-50 Black Shark
+eech:     group Stingray GROUP_ATTACK_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Mi-28N Havoc B
+eech:   keysite Damascus International KEYSITE_AIRBASE usable=Fully Operational efficiency=0.90 ammo=94.6 fuel=89.2 regen sites 4 (3 alive)
+eech:     group Sabre GROUP_MULTI_ROLE_FIGHTER mode=0 sleep=841 members=1 state=Repairing task=- ammo=100 fuel=100 first=Su-34 Fullback
+eech:     group Eagle GROUP_ASSAULT_HELICOPTER mode=0 sleep=792 members=2 state=Repairing task=- ammo=100 fuel=100 first=Mi-24V Hind
+eech:     group Shogun GROUP_CLOSE_AIR_SUPPORT_AIRCRAFT mode=0 sleep=333 members=1 state=Repairing task=- ammo=100 fuel=100 first=Su-25 Frogfoot
+eech:     group Comet GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=137 members=1 state=Repairing task=- ammo=100 fuel=100 first=Mi-28N Havoc B
+eech:     group Vampire GROUP_CARRIER_BORNE_INTERCEPTOR mode=1 sleep=0 members=1 state=En route task=TASK_COMBAT_AIR_PATROL ammo=100 fuel=100 first=Su-33 Flanker
+eech:     group Snowball GROUP_HEAVY_LIFT_TRANSPORT_AIRCRAFT mode=0 sleep=0 members=1 state=Waiting task=- ammo=100 fuel=100 first=Il-76MD Candid-B
+eech:     group Savage GROUP_HEAVY_LIFT_TRANSPORT_AIRCRAFT mode=0 sleep=0 members=1 state=Waiting task=- ammo=100 fuel=100 first=Il-76MD Candid-B
+eech:     group Jaguar GROUP_MEDIUM_LIFT_TRANSPORT_AIRCRAFT mode=0 sleep=0 members=1 state=Waiting task=- ammo=100 fuel=100 first=An-12B Cub
+eech:     group Charger GROUP_MEDIUM_LIFT_TRANSPORT_AIRCRAFT mode=0 sleep=0 members=1 state=Waiting task=- ammo=100 fuel=100 first=An-12B Cub
+eech:     group Vulture GROUP_HEAVY_LIFT_TRANSPORT_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Mi-6 Hook
+eech:     group Razorworks GROUP_HEAVY_LIFT_TRANSPORT_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Mi-6 Hook
+eech:     group Goose GROUP_MEDIUM_LIFT_TRANSPORT_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=Mi-17 Hip
+eech:   keysite FARP 6 KEYSITE_FARP usable=Fully Operational efficiency=1.00 ammo=98.7 fuel=99.2 regen sites 0 (0 alive)
+eech:     group Cobra GROUP_ATTACK_HELICOPTER mode=1 sleep=0 members=2 state=En route task=TASK_RECON ammo=100 fuel=100 first=Mi-28N Havoc B
+eech:     group Touchdown GROUP_MARINE_ATTACK_HELICOPTER mode=1 sleep=0 members=2 state=En route task=TASK_TRANSFER_HELICOPTER ammo=100 fuel=100 first=Ka-50 Black Shark
+eech:   keysite Power Station 10 KEYSITE_POWER_STATION usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=87.0 regen sites 0 (0 alive)
+eech:   keysite Factory 25 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Power Station 9 KEYSITE_POWER_STATION usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=87.0 regen sites 0 (0 alive)
+eech:   keysite Port 15 KEYSITE_PORT usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Port 14 KEYSITE_PORT usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Port 13 KEYSITE_PORT usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Refinery 11 KEYSITE_OIL_REFINERY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Refinery 10 KEYSITE_OIL_REFINERY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Port 12 KEYSITE_PORT usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 31 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 30 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 24 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Military Base 12 KEYSITE_MILITARY_BASE usable=Fully Operational efficiency=1.00 ammo=94.8 fuel=94.8 regen sites 0 (0 alive)
+eech:   keysite Factory 23 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Power Station 8 KEYSITE_POWER_STATION usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=86.5 regen sites 0 (0 alive)
+eech:   keysite Refinery 9 KEYSITE_OIL_REFINERY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Refinery 8 KEYSITE_OIL_REFINERY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Power Station 7 KEYSITE_POWER_STATION usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=86.5 regen sites 0 (0 alive)
+eech:   keysite Refinery 7 KEYSITE_OIL_REFINERY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Refinery 6 KEYSITE_OIL_REFINERY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Power Station 6 KEYSITE_POWER_STATION usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=86.5 regen sites 0 (0 alive)
+eech:   keysite Port 11 KEYSITE_PORT usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 29 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 22 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 21 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 28 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 27 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 26 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Power Station 5 KEYSITE_POWER_STATION usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=87.0 regen sites 0 (0 alive)
+eech:   keysite Factory 20 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Military Base 11 KEYSITE_MILITARY_BASE usable=Fully Operational efficiency=1.00 ammo=94.8 fuel=94.8 regen sites 0 (0 alive)
+eech:   keysite Transmitter 25 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 24 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Military Base 10 KEYSITE_MILITARY_BASE usable=Fully Operational efficiency=1.00 ammo=94.6 fuel=94.6 regen sites 0 (0 alive)
+eech:   keysite Transmitter 23 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 22 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 19 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Port 10 KEYSITE_PORT usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Port 9 KEYSITE_PORT usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Port 8 KEYSITE_PORT usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 21 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Military Base 9 KEYSITE_MILITARY_BASE usable=Fully Operational efficiency=1.00 ammo=94.6 fuel=94.6 regen sites 0 (0 alive)
+eech:   keysite Transmitter 20 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 19 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 18 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Military Base 8 KEYSITE_MILITARY_BASE usable=Fully Operational efficiency=1.00 ammo=94.6 fuel=94.6 regen sites 0 (0 alive)
+eech:   keysite Transmitter 18 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 17 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 17 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 16 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 16 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 15 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 14 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Power Station 4 KEYSITE_POWER_STATION usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=87.0 regen sites 0 (0 alive)
+eech:   keysite Port 7 KEYSITE_PORT usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Port 6 KEYSITE_PORT usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Port 5 KEYSITE_PORT usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Port 4 KEYSITE_PORT usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Military Base 7 KEYSITE_MILITARY_BASE usable=Fully Operational efficiency=1.00 ammo=94.6 fuel=94.6 regen sites 0 (0 alive)
+eech:   keysite Port 3 KEYSITE_PORT usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Port 2 KEYSITE_PORT usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 15 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Power Station 3 KEYSITE_POWER_STATION usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=87.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 14 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 13 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 12 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Power Station 2 KEYSITE_POWER_STATION usable=Fully Operational efficiency=0.80 ammo=100.0 fuel=87.0 regen sites 0 (0 alive)
+eech:   keysite Factory 11 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 10 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Refinery 5 KEYSITE_OIL_REFINERY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Refinery 4 KEYSITE_OIL_REFINERY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 9 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 8 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 13 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 12 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 7 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 11 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Military Base 6 KEYSITE_MILITARY_BASE usable=Fully Operational efficiency=1.00 ammo=94.8 fuel=94.8 regen sites 0 (0 alive)
+eech:   keysite Transmitter 10 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Power Station 1 KEYSITE_POWER_STATION usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=87.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 9 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Military Base 5 KEYSITE_MILITARY_BASE usable=Fully Operational efficiency=1.00 ammo=94.8 fuel=94.8 regen sites 0 (0 alive)
+eech:   keysite Factory 6 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 5 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Military Base 4 KEYSITE_MILITARY_BASE usable=Fully Operational efficiency=1.00 ammo=94.6 fuel=94.6 regen sites 0 (0 alive)
+eech:   keysite Transmitter 8 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 7 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 6 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 3 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech: force side=1 current/reserve: ARMED_FIXED_WING=33/297 UNARMED_FIXED_WING=6/300 ARMED_HELICOPTER=34/396 UNARMED_HELICOPTER=8/400 ARMED_ROUTED_VEHICLE=249/995 UNARMED_ROUTED_VEHICLE=36/1000 ARMED_SHIP_VEHICLE=5/100 UNARMED_SHIP_VEHICLE=6/100
+eech:   regen queues: REGEN_FIXED_WING=1 REGEN_HELICOPTER=5 REGEN_GROUND=5 REGEN_PEOPLE=0 REGEN_SEA=0 REGEN_NONE=0
+eech:   keysite USS PELELIU KEYSITE_ANCHORAGE usable=Out Of Action efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:     group Vertigo GROUP_ASSAULT_HELICOPTER mode=1 sleep=0 members=1 state=En route task=TASK_TRANSFER_HELICOPTER ammo=100 fuel=100 first=UH-60L Blackhawk
+eech:     group Bulldog GROUP_MARINE_ATTACK_HELICOPTER mode=1 sleep=0 members=1 state=En route task=TASK_RECON ammo=100 fuel=100 first=AH-1Z Viper
+eech:   keysite USS SAIPAN KEYSITE_ANCHORAGE usable=Out Of Action efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite USS TARAWA KEYSITE_ANCHORAGE usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:     group Maniac GROUP_HEAVY_LIFT_TRANSPORT_HELICOPTER mode=1 sleep=0 members=2 state=En route task=TASK_TRANSFER_HELICOPTER ammo=100 fuel=100 first=CH-53E Super Stallion
+eech:     group Python GROUP_MARINE_ASSAULT_HELICOPTER mode=0 sleep=47 members=2 state=Repairing task=- ammo=100 fuel=100 first=MV-22 Osprey
+eech:   keysite Metulla KEYSITE_AIRBASE usable=Fully Operational efficiency=1.00 ammo=94.8 fuel=89.6 regen sites 0 (0 alive)
+eech:     group Charger GROUP_CLOSE_AIR_SUPPORT_AIRCRAFT mode=1 sleep=0 members=4 state=Take off task=TASK_SEAD ammo=100 fuel=100 first=A-10A Thunderbolt
+eech:     group Mauler GROUP_MULTI_ROLE_FIGHTER mode=0 sleep=434 members=2 state=Repairing task=- ammo=100 fuel=100 first=F-16C Fighting Falcon
+eech:   keysite Marj Ruhayyil KEYSITE_AIRBASE usable=Fully Operational efficiency=1.00 ammo=94.8 fuel=89.6 regen sites 4 (4 alive)
+eech:     group Touchdown GROUP_MARINE_ATTACK_HELICOPTER mode=0 sleep=635 members=1 state=Repairing task=- ammo=100 fuel=100 first=AH-1Z Viper
+eech:     group Comet GROUP_MULTI_ROLE_FIGHTER mode=0 sleep=605 members=2 state=Repairing task=- ammo=100 fuel=100 first=F-16C Fighting Falcon
+eech:     group Mantis GROUP_CLOSE_AIR_SUPPORT_AIRCRAFT mode=1 sleep=0 members=4 state=En route task=TASK_GROUND_STRIKE ammo=100 fuel=100 first=A-10A Thunderbolt
+eech:     group Kestrel GROUP_CARRIER_BORNE_INTERCEPTOR mode=0 sleep=0 members=1 state=Repairing task=- ammo=100 fuel=100 first=F/A-18C Hornet
+eech:     group Voodoo GROUP_MULTI_ROLE_FIGHTER mode=1 sleep=0 members=1 state=Taxiing task=- ammo=100 fuel=100 first=F-16C Fighting Falcon
+eech:     group Cobra GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=462 members=4 state=Repairing task=- ammo=100 fuel=100 first=AH-64D Apache Longbow
+eech:     group Cowboy GROUP_HEAVY_LIFT_TRANSPORT_AIRCRAFT mode=0 sleep=0 members=1 state=Waiting task=- ammo=100 fuel=100 first=C-17 Globemaster III
+eech:     group Tiger-Shark GROUP_MEDIUM_LIFT_TRANSPORT_AIRCRAFT mode=0 sleep=0 members=1 state=Waiting task=- ammo=100 fuel=100 first=C-130J Hercules II
+eech:     group Sundown GROUP_HEAVY_LIFT_TRANSPORT_AIRCRAFT mode=0 sleep=0 members=1 state=Waiting task=- ammo=100 fuel=100 first=C-17 Globemaster III
+eech:     group Merlin GROUP_MEDIUM_LIFT_TRANSPORT_AIRCRAFT mode=0 sleep=0 members=1 state=Waiting task=- ammo=100 fuel=100 first=C-130J Hercules II
+eech:     group Snowball GROUP_ATTACK_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=AH-64A Apache
+eech:   keysite FARP 5 KEYSITE_FARP usable=Fully Operational efficiency=0.96 ammo=78.7 fuel=64.4 regen sites 0 (0 alive)
+eech:     group Panther GROUP_HEAVY_LIFT_TRANSPORT_HELICOPTER mode=0 sleep=684 members=2 state=Repairing task=- ammo=100 fuel=100 first=CH-53E Super Stallion
+eech:     group Dodger GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=88 members=2 state=Repairing task=- ammo=100 fuel=100 first=RAH-66 Comanche
+eech:   keysite FARP 4 KEYSITE_FARP usable=Fully Operational efficiency=1.00 ammo=98.7 fuel=99.2 regen sites 0 (0 alive)
+eech:     group Eight-Ball GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=RAH-66 Comanche
+eech:     group Nightmare GROUP_ATTACK_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=AH-64D Apache Longbow
+eech:   keysite FARP 3 KEYSITE_FARP usable=Fully Operational efficiency=1.00 ammo=98.7 fuel=99.2 regen sites 0 (0 alive)
+eech:     group Phantom GROUP_ASSAULT_HELICOPTER mode=1 sleep=0 members=2 state=En route task=TASK_GROUND_STRIKE ammo=100 fuel=100 first=UH-60L Blackhawk
+eech:     group Stingray GROUP_ASSAULT_HELICOPTER mode=1 sleep=0 members=2 state=En route task=TASK_TRANSFER_HELICOPTER ammo=100 fuel=100 first=UH-60L Blackhawk
+eech:     group Warlock GROUP_ATTACK_HELICOPTER mode=1 sleep=0 members=2 state=En route task=TASK_RECON ammo=100 fuel=100 first=AH-64D Apache Longbow
+eech:   keysite FARP 2 KEYSITE_FARP usable=Fully Operational efficiency=1.00 ammo=98.7 fuel=99.2 regen sites 0 (0 alive)
+eech:     group Firebird GROUP_RECON_ATTACK_HELICOPTER mode=1 sleep=0 members=2 state=En route task=TASK_COMBAT_AIR_PATROL ammo=100 fuel=100 first=RAH-66 Comanche
+eech:     group Spectrum GROUP_MEDIUM_LIFT_TRANSPORT_HELICOPTER mode=1 sleep=0 members=2 state=En route task=TASK_TRANSFER_HELICOPTER ammo=100 fuel=100 first=CH-3 Jolly Green Giant
+eech:   keysite Khalkhalah KEYSITE_AIRBASE usable=Fully Operational efficiency=1.00 ammo=94.8 fuel=89.6 regen sites 0 (0 alive)
+eech:     group Viking GROUP_CARRIER_BORNE_INTERCEPTOR mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=F/A-18C Hornet
+eech:     group Lima GROUP_CLOSE_AIR_SUPPORT_AIRCRAFT mode=0 sleep=0 members=4 state=Waiting task=- ammo=100 fuel=100 first=A-10A Thunderbolt
+eech:   keysite FARP 1 KEYSITE_FARP usable=Fully Operational efficiency=1.00 ammo=98.7 fuel=99.2 regen sites 0 (0 alive)
+eech:     group Raptor GROUP_ASSAULT_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=UH-60L Blackhawk
+eech:     group Warlord GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=RAH-66 Comanche
+eech:   keysite Rosh Pina KEYSITE_AIRBASE usable=Fully Operational efficiency=1.00 ammo=94.6 fuel=89.2 regen sites 4 (4 alive)
+eech:     group Milkman GROUP_RECON_ATTACK_HELICOPTER mode=0 sleep=571 members=4 state=Repairing task=- ammo=100 fuel=100 first=AH-64D Apache Longbow
+eech:     group Vampire GROUP_CLOSE_AIR_SUPPORT_AIRCRAFT mode=1 sleep=0 members=4 state=Take off task=TASK_CLOSE_AIR_SUPPORT ammo=100 fuel=100 first=A-10A Thunderbolt
+eech:     group Spartakus GROUP_CARRIER_BORNE_INTERCEPTOR mode=0 sleep=24 members=1 state=Repairing task=- ammo=100 fuel=100 first=F/A-18C Hornet
+eech:     group Mustang GROUP_RECON_ATTACK_HELICOPTER mode=1 sleep=0 members=1 state=En route task=TASK_RECON ammo=100 fuel=100 first=AH-64D Apache Longbow
+eech:     group Firefox GROUP_CLOSE_AIR_SUPPORT_AIRCRAFT mode=1 sleep=0 members=4 state=Taxiing task=- ammo=100 fuel=100 first=A-10A Thunderbolt
+eech:     group Jupiter GROUP_HEAVY_LIFT_TRANSPORT_AIRCRAFT mode=0 sleep=0 members=1 state=Waiting task=- ammo=100 fuel=100 first=C-17 Globemaster III
+eech:     group Chieftain GROUP_MEDIUM_LIFT_TRANSPORT_AIRCRAFT mode=0 sleep=0 members=1 state=Waiting task=- ammo=100 fuel=100 first=C-130J Hercules II
+eech:     group Vigilante GROUP_CARRIER_BORNE_ATTACK_AIRCRAFT mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=AV-8B Harrier
+eech:     group Renegade GROUP_MULTI_ROLE_FIGHTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=F-16C Fighting Falcon
+eech:     group Demon GROUP_RECON_HELICOPTER mode=0 sleep=0 members=2 state=Waiting task=- ammo=100 fuel=100 first=OH-58D Kiowa Warrior
+eech:   keysite Refinery 3 KEYSITE_OIL_REFINERY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Refinery 2 KEYSITE_OIL_REFINERY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Refinery 1 KEYSITE_OIL_REFINERY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Port 1 KEYSITE_PORT usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 5 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 4 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 4 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Military Base 3 KEYSITE_MILITARY_BASE usable=Fully Operational efficiency=1.00 ammo=94.8 fuel=94.8 regen sites 0 (0 alive)
+eech:   keysite Transmitter 3 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Factory 2 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 2 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Military Base 2 KEYSITE_MILITARY_BASE usable=Fully Operational efficiency=1.00 ammo=94.8 fuel=94.8 regen sites 0 (0 alive)
+eech:   keysite Factory 1 KEYSITE_FACTORY usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Transmitter 1 KEYSITE_RADIO_TRANSMITTER usable=Fully Operational efficiency=1.00 ammo=100.0 fuel=100.0 regen sites 0 (0 alive)
+eech:   keysite Military Base 1 KEYSITE_MILITARY_BASE usable=Fully Operational efficiency=1.00 ammo=94.8 fuel=94.8 regen sites 0 (0 alive)
+=== END DIAGNOSTICS ===
