@@ -479,7 +479,7 @@ Lifetimes that DCS lacks, all **campaign-only** [I]: tasks, waypoints, guides, k
 | Structure destroyed | `st_dstry.c:293` | DEAD with a static initiator D4 | gap: G17 |
 | Capture | `mb_msgs.c:2307` | BASE_CAPTURED D6 (as an observation only) | adapted |
 
-How DCS events are ordered and duplicated (for example, whether one loss yields both DEAD and UNIT_LOST) is [U]. G8 handles that by deduplicating per unit name.
+How DCS events are ordered and duplicated (for example, whether one loss yields both DEAD and UNIT_LOST) is [U]. G8 handles that with an exactly-once loss transition keyed by the opaque host identity for one physical incarnation. A unit name is lookup/reference data only because a later incarnation can reuse it.
 
 ## 6. Time and frame
 
@@ -521,7 +521,7 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
 | G5 Fuel load | I7 | **Spawn-time fuel:** fuel set in the spawn data; no in-flight change | D15 [U] |
 | G6 Attack micro-control | I8 | **Target-level tasks:** the campaign chooses the target and issues AttackGroup; DCS AI chooses weapons and releases | D7 [R-dcs], D17 [R-ref] |
 | G7 No reached signal | I12, I35 | **Host polling of arrival geometry:** a scheduled tick tests the campaign-named member's `getPoint` and `inAir` against the campaign's target and radius. The campaign keeps waypoint, member and combination rules (#74 seam A) | D16, D19 [R-ref]; D27 [U] |
-| G8 Loss and damage inside world code | I11, I14, I15 | **One loss entry point:** PR #82 extracted the reusable campaign operations into `gp_loss.c`, but world `kill_local` functions still invoke them synchronously and still perform some force/regen/aggressor accounting. Route the complete bookkeeping sequence behind a "member destroyed" observation, fed from DEAD/CRASH/UNIT_LOST/KILL deduplicated by name, plus an `isExist` sweep as reconciliation. The helper extraction is a structural precursor, not host separation | D4 [R-dcs], D16 [R-ref] |
+| G8 Loss and damage inside world code | I11, I14, I15 | **One loss entry point:** PR #82 extracted the reusable campaign operations into `gp_loss.c`, but world `kill_local` functions still invoke them synchronously and still perform some force/regen/aggressor accounting. Route the complete bookkeeping sequence behind a "member destroyed" observation. Correlate DEAD/CRASH/UNIT_LOST/KILL and the `isExist` reconciliation sweep to the opaque host identity for one physical incarnation, then accept its loss transition exactly once; a unit name is lookup/reference data only. The helper extraction is a structural precursor, not host separation | D4 [R-dcs], D16 [R-ref] |
 | G9 Detection | I36 | **Detection observations, campaign targeting:** poll `getDetectedTargets` per campaign group into the campaign's engage decision. Target choice and priority stay in EECH_DC (as in G22). ROE is set so that DCS AI does not pick targets itself, and weapon hold covers suppress-AI-fire. DCS AI performs only the physical weapon release, after the campaign has assigned the target (I8, G6). SHOT, HIT and DEAD come back as observations (section 5) | D17, D6 [R-ref] |
 | G10 Typed arrivals | I13 | **Event-backed arrivals:** LAND and TAKEOFF events, matched to the unit's current campaign waypoint type | D5 [R-dcs] |
 | G11 Acceleration | I20 | **Host-owned time rate:** the campaign sees only larger dt values, quantised as in section 6 | D19 [R-ref] |
