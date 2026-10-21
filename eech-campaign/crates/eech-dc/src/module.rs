@@ -67,7 +67,10 @@ impl LuaUserData for LuaEngine {
             let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
             this.engine.frame(milliseconds, &mut binder, &mut observer).map_err(lua_error)
         });
-        methods.add_method("report_loss", |_, this, host_id: String| this.engine.report_loss(&host_id).map_err(lua_error));
+        methods.add_method("report_loss", |lua, this, host_id: String| {
+            let receipt = this.engine.report_loss(&host_id).map_err(lua_error)?;
+            lua.to_value_with(&receipt, options())
+        });
         methods.add_method("objects", |lua, this, ()| {
             let objects = this.engine.objects().map_err(lua_error)?;
             lua.to_value_with(&objects, options())

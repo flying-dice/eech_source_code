@@ -919,7 +919,7 @@ int campaign_roster_has_pending_loss (void)
 	return FALSE;
 }
 
-int campaign_roster_report_loss (const char *host_id)
+int campaign_roster_report_loss (const char *host_id, campaign_loss_report_receipt *receipt)
 {
 	/*
 	 * Lifetime rule: the campaign actions below can free entities (the group
@@ -949,6 +949,10 @@ int campaign_roster_report_loss (const char *host_id)
 	if (!host_id || !host_id[0])
 	{
 		debug_fatal ("campaign loss: report_loss requires an opaque host identity");
+	}
+	if (!receipt)
+	{
+		debug_fatal ("campaign loss: report_loss requires a receipt");
 	}
 	pending = require_pending_loss (host_id);
 	if (pending->state == CAMPAIGN_PENDING_LOSS_REPORTED)
@@ -1095,6 +1099,16 @@ int campaign_roster_report_loss (const char *host_id)
 		debug_fatal ("campaign loss: member record vanished during report for %s", host_id);
 	}
 	member_record->loss_pending = FALSE;
+
+	/* Filled only now, after every fatal check: a failed report leaves the caller's receipt untouched. */
+	receipt->landing_reserved_before = landing_reserved_before;
+	receipt->landing_reserved_after = landing_reserved_after;
+	receipt->group_losses_before = group_losses_before;
+	receipt->group_losses_after = group_losses_after;
+	receipt->primary_task_losses_before = task_losses_before;
+	receipt->primary_task_losses_after = task_losses_after;
+	receipt->tasks_retired_expire = retired_expire_count;
+	receipt->tasks_completed_on_report = completed_on_report_count;
 	return TRUE;
 }
 

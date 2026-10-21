@@ -314,14 +314,23 @@ int eech_engine_frame (uint32_t milliseconds, const struct eech_engine_host *hos
 	LEAVE (EECH_ENGINE_OK);
 }
 
-int eech_engine_report_loss (const char *host_id)
+int eech_engine_report_loss (const char *host_id, struct eech_loss_report_receipt *receipt)
 {
+	campaign_loss_report_receipt source;
 	ENTER (OPERATION_OBSERVE, NULL);
-	if ((state != ENGINE_RUNNING) || !host_id || !host_id[0])
+	if ((state != ENGINE_RUNNING) || !host_id || !host_id[0] || !receipt)
 	{
-		LEAVE (host_id && host_id[0] ? EECH_ENGINE_STATE : EECH_ENGINE_BAD_ARGUMENT);
+		LEAVE (host_id && host_id[0] && receipt ? EECH_ENGINE_STATE : EECH_ENGINE_BAD_ARGUMENT);
 	}
-	campaign_roster_report_loss (host_id);
+	campaign_roster_report_loss (host_id, &source);
+	receipt->landing_reserved_before = source.landing_reserved_before;
+	receipt->landing_reserved_after = source.landing_reserved_after;
+	receipt->group_losses_before = source.group_losses_before;
+	receipt->group_losses_after = source.group_losses_after;
+	receipt->primary_task_losses_before = source.primary_task_losses_before;
+	receipt->primary_task_losses_after = source.primary_task_losses_after;
+	receipt->tasks_retired_expire = source.tasks_retired_expire;
+	receipt->tasks_completed_on_report = source.tasks_completed_on_report;
 	LEAVE (EECH_ENGINE_OK);
 }
 

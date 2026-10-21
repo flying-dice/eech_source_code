@@ -251,6 +251,19 @@ pub struct RosterStats {
     pub duplicate_scan_seconds: f64,
 }
 
+/// What one `report_loss` applied, copied from the performed campaign actions; an observation, never an input.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize)]
+pub struct LossReceipt {
+    pub landing_reserved_before: i32,
+    pub landing_reserved_after: i32,
+    pub group_losses_before: i32,
+    pub group_losses_after: i32,
+    pub primary_task_losses_before: i32,
+    pub primary_task_losses_after: i32,
+    pub tasks_retired_expire: i32,
+    pub tasks_completed_on_report: i32,
+}
+
 #[derive(Clone, Copy, Debug, Default, Serialize)]
 pub struct Clock {
     pub elapsed_seconds: f32,
@@ -565,11 +578,22 @@ impl Engine {
     }
 
     /// Applies one previously withheld loss by opaque physical-incarnation ID.
-    /// Duplicate, unknown, stale and unsupported reports fail visibly.
-    pub fn report_loss(&self, host_id: &str) -> Result<(), EngineError> {
+    /// Duplicate, unknown, stale and unsupported reports fail visibly and return no receipt.
+    pub fn report_loss(&self, host_id: &str) -> Result<LossReceipt, EngineError> {
         let host_id = cstring(host_id)?;
-        // SAFETY: a valid NUL-terminated identity for the duration of the call.
-        check(unsafe { sys::eech_engine_report_loss(host_id.as_ptr()) })
+        let mut r = sys::eech_loss_report_receipt::default();
+        // SAFETY: a valid NUL-terminated identity and out pointer for the call; the receipt is read only on success.
+        check(unsafe { sys::eech_engine_report_loss(host_id.as_ptr(), &mut r) })?;
+        Ok(LossReceipt {
+            landing_reserved_before: r.landing_reserved_before,
+            landing_reserved_after: r.landing_reserved_after,
+            group_losses_before: r.group_losses_before,
+            group_losses_after: r.group_losses_after,
+            primary_task_losses_before: r.primary_task_losses_before,
+            primary_task_losses_after: r.primary_task_losses_after,
+            tasks_retired_expire: r.tasks_retired_expire,
+            tasks_completed_on_report: r.tasks_completed_on_report,
+        })
     }
 
     pub fn objects(&self) -> Result<Vec<Object>, EngineError> {

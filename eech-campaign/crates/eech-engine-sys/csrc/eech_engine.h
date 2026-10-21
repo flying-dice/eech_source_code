@@ -70,8 +70,20 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 /* advance simulated time by milliseconds and run one iteration of EECH's flight loop */
 int eech_engine_frame (uint32_t milliseconds, const struct eech_engine_host *host);
 
-/* Applies one previously withheld campaign loss, exactly once, by opaque host identity. */
-int eech_engine_report_loss (const char *host_id);
+/* Copy of what one report applied; an observation of performed actions, not engine state. */
+struct eech_loss_report_receipt
+{
+	int landing_reserved_before, landing_reserved_after;
+	int group_losses_before, group_losses_after;
+	int primary_task_losses_before, primary_task_losses_after;
+	int tasks_retired_expire, tasks_completed_on_report;
+};
+
+/*
+ * Applies one previously withheld campaign loss, exactly once, by opaque host identity.
+ * The receipt is written only when the report succeeds; on any other result it is untouched.
+ */
+int eech_engine_report_loss (const char *host_id, struct eech_loss_report_receipt *receipt);
 
 const char *eech_engine_fatal_message (void);
 

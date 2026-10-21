@@ -53,6 +53,16 @@ an already-retired action. A generic missing task, a reused entity slot, or a
 different termination reason is an error. This avoids a ghost task, paused timer,
 or silent skip.
 
+`engine:report_loss(host_id)` returns a table copied from the actions that
+report performed: `landing_reserved`, `group_losses` and primary-task loss counts
+before and after (`*_before`, `*_after`), `tasks_retired_expire` (tombstones
+verified by generation) and `tasks_completed_on_report`. It exists because the
+original `debug_log` audit is compiled out of release builds. It is an
+observation only: nothing reads it back, it is not stored, and callers may
+ignore it. It is produced only for a successful exactly-once report; duplicate,
+stale and unsupported reports raise and leave the C output untouched. It does not
+cover other loss families, physical count/list/alive consumers or save/restore.
+
 Campaign-screen physical member removal remains at physical death. Critical-hit
 credit remains at its original site and cannot be withheld by this experiment.
 FORWARD adds no simulation-time advance, queue, random draw, or changed physical

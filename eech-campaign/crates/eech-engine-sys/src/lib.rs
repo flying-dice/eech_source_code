@@ -171,6 +171,19 @@ pub struct eech_roster_stats {
 
 #[repr(C)]
 #[derive(Default)]
+pub struct eech_loss_report_receipt {
+    pub landing_reserved_before: c_int,
+    pub landing_reserved_after: c_int,
+    pub group_losses_before: c_int,
+    pub group_losses_after: c_int,
+    pub primary_task_losses_before: c_int,
+    pub primary_task_losses_after: c_int,
+    pub tasks_retired_expire: c_int,
+    pub tasks_completed_on_report: c_int,
+}
+
+#[repr(C)]
+#[derive(Default)]
 pub struct eech_clock {
     pub elapsed_seconds: f32,
     pub time_of_day_seconds: f32,
@@ -184,7 +197,7 @@ pub type eech_log_sink = unsafe extern "C" fn(level: c_int, message: *const c_ch
 extern "C" {
     pub fn eech_engine_boot(config: *const eech_engine_config, host: *const eech_engine_host) -> c_int;
     pub fn eech_engine_frame(milliseconds: u32, host: *const eech_engine_host) -> c_int;
-    pub fn eech_engine_report_loss(host_id: *const c_char) -> c_int;
+    pub fn eech_engine_report_loss(host_id: *const c_char, receipt: *mut eech_loss_report_receipt) -> c_int;
     pub fn eech_engine_fatal_message() -> *const c_char;
     pub fn eech_engine_prepare_installation(root: *const c_char) -> c_int;
     pub fn eech_engine_objects(callback: eech_object_callback, user: *mut c_void, count: *mut c_int) -> c_int;

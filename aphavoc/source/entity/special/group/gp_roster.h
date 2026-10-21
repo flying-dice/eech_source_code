@@ -149,6 +149,19 @@ typedef struct campaign_member_snapshot
 
 typedef void (*campaign_member_snapshot_fn) (const campaign_member_snapshot *member, void *user);
 
+/* Observation of what one report applied, copied from the actions performed; never an input to the campaign. */
+typedef struct campaign_loss_report_receipt
+{
+	int landing_reserved_before;
+	int landing_reserved_after;
+	int group_losses_before;
+	int group_losses_after;
+	int primary_task_losses_before;
+	int primary_task_losses_after;
+	int tasks_retired_expire;
+	int tasks_completed_on_report;
+} campaign_loss_report_receipt;
+
 typedef struct campaign_roster_stats
 {
 	uint64_t duplicate_comparisons;
@@ -166,7 +179,7 @@ int campaign_roster_observe_credit (struct ENTITY *member);
 int campaign_roster_observe_physical_loss (struct ENTITY *member, struct ENTITY *group);
 void campaign_roster_record_task_termination (struct ENTITY *task, int termination_reason);
 int campaign_roster_has_pending_loss (void);
-int campaign_roster_report_loss (const char *host_id);
+int campaign_roster_report_loss (const char *host_id, campaign_loss_report_receipt *receipt);
 int campaign_roster_members (campaign_member_snapshot_fn callback, void *user);
 void campaign_roster_get_stats (campaign_roster_stats *stats);
 
