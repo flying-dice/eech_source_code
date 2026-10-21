@@ -15,7 +15,7 @@ local elapsed = 0
 local counts = {}
 local selected, selected_before, selected_at
 local withheld_calls, positions, allowed = 0, {}, false
-local ignored, skipped_unloaded = {}, 0
+local preframe_by_task
 local reference = host.supply_reached
 
 local function close (a, b)
@@ -33,6 +33,17 @@ local function record_position (descriptor)
 	positions[#positions + 1] = { p[1], p[2], p[3] }
 end
 
+local function unchanged (after, before, context)
+	assert (after.waypoint == before.waypoint and after.waypoint_key == before.waypoint_key,
+		context .. " advanced the task")
+	assert (after.task_completed == before.task_completed, context .. " changed task completion")
+	assert (after.cargo_on_leader == before.cargo_on_leader, context .. " moved cargo")
+	assert (close (after.supplier_ammo, before.supplier_ammo) and close (after.supplier_fuel, before.supplier_fuel),
+		context .. " changed the supplier")
+	assert (close (after.receiver_ammo, before.receiver_ammo) and close (after.receiver_fuel, before.receiver_fuel),
+		context .. " changed the receiver")
+end
+
 local function moved ()
 	if #positions < 2 then return false end
 	local first = positions[1]
@@ -48,8 +59,11 @@ local function supply_reached (descriptor)
 	counts[descriptor.waypoint] = (counts[descriptor.waypoint] or 0) + 1
 	if mode == "withhold_pick_up" and descriptor.waypoint == "pick_up" then
 		if not selected then
-			if reached then
+			local before = preframe_by_task[descriptor.task_key]
+			if reached and before and before.waypoint == "pick_up" and before.waypoint_key == descriptor.waypoint_key
+				and before.cargo_on_leader == 0 then
 				selected = descriptor.task_key
+				selected_before = before
 				selected_at = elapsed
 			end
 		end
@@ -59,9 +73,12 @@ local function supply_reached (descriptor)
 			return false
 		end
 	elseif mode == "delay_drop_off" and descriptor.waypoint == "drop_off" then
-		if not selected and not ignored[descriptor.task_key] then
-			if reached then
+		if not selected then
+			local before = preframe_by_task[descriptor.task_key]
+			if reached and before and before.waypoint == "drop_off" and before.waypoint_key == descriptor.waypoint_key
+				and before.cargo_on_leader > 0 then
 				selected = descriptor.task_key
+				selected_before = before
 				selected_at = elapsed
 			end
 		end
@@ -90,38 +107,22 @@ local engine = dc.boot {
 
 local finished
 for _ = 1, frames do
+	preframe_by_task = snapshot_by_task (engine)
 	engine:frame (frame_ms)
 	elapsed = elapsed + frame_ms / 1000
 	if selected then
 		local after_by_task = snapshot_by_task (engine)
 		local after = assert (after_by_task[selected], "selected SUPPLY task disappeared before the asserted transition")
-		if not selected_before then
-			if mode == "delay_drop_off" and after.cargo_on_leader <= 0 then
-				-- Some legacy SUPPLY tasks reach DROP_OFF without carrying cargo.
-				-- Let those continue and select a delivery whose transfer is observable.
-				ignored[selected] = true
-				skipped_unloaded = skipped_unloaded + 1
-				selected, selected_at = nil, nil
-				withheld_calls, positions, allowed = 0, {}, false
-			else
-				selected_before = after
+		if mode == "withhold_pick_up" then
+			unchanged (after, selected_before, "withheld PICK_UP")
+			if elapsed - selected_at >= delay_seconds then
+				assert (withheld_calls > 1 and moved (), "physical member did not continue reporting movement while PICK_UP was withheld")
+				finished = after
+				break
 			end
-		elseif mode == "withhold_pick_up" and elapsed - selected_at >= delay_seconds then
-			assert (after.waypoint == "pick_up" and after.waypoint_key == selected_before.waypoint_key, "withheld PICK_UP advanced the task")
-			assert (after.cargo_on_leader == selected_before.cargo_on_leader, "withheld PICK_UP moved cargo")
-			assert (close (after.supplier_ammo, selected_before.supplier_ammo) and close (after.supplier_fuel, selected_before.supplier_fuel),
-				"withheld PICK_UP debited the supplier")
-			assert (close (after.receiver_ammo, selected_before.receiver_ammo) and close (after.receiver_fuel, selected_before.receiver_fuel),
-				"withheld PICK_UP changed the receiver")
-			assert (withheld_calls > 1 and moved (), "physical member did not continue reporting movement while PICK_UP was withheld")
-			finished = after
-			break
 		elseif mode == "delay_drop_off" then
-			if elapsed - selected_at < delay_seconds then
-				assert (after.waypoint == "drop_off" and after.waypoint_key == selected_before.waypoint_key, "delayed DROP_OFF advanced early")
-				assert (after.cargo_on_leader == selected_before.cargo_on_leader, "delayed DROP_OFF moved cargo early")
-				assert (close (after.receiver_ammo, selected_before.receiver_ammo) and close (after.receiver_fuel, selected_before.receiver_fuel),
-					"delayed DROP_OFF credited the receiver early")
+			if not allowed then
+				unchanged (after, selected_before, "delayed DROP_OFF")
 			elseif allowed and after.waypoint_key ~= selected_before.waypoint_key then
 				assert (after.cargo_on_leader < selected_before.cargo_on_leader, "allowed DROP_OFF did not move cargo from the leader")
 				assert (after.receiver_ammo > selected_before.receiver_ammo or after.receiver_fuel > selected_before.receiver_fuel,
@@ -144,7 +145,6 @@ else
 	print (string.format ("task_key\t%.0f", selected))
 	print (string.format ("withheld_seconds\t%.1f", elapsed - selected_at))
 	print (string.format ("withheld_calls\t%d", withheld_calls))
-	print (string.format ("skipped_unloaded\t%d", skipped_unloaded))
 	print (string.format ("cargo_before_after\t%d\t%d", selected_before.cargo_on_leader, finished.cargo_on_leader))
 	print (string.format ("supplier_before_after\t%.3f\t%.3f\t%.3f\t%.3f", selected_before.supplier_ammo,
 		selected_before.supplier_fuel, finished.supplier_ammo, finished.supplier_fuel))

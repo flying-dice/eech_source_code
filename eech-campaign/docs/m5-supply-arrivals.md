@@ -63,6 +63,10 @@ observation, then advances the task, transfers cargo and credits the receiver.
 `tools/supply-arrivals-lifecycle-windows.ps1` checks a missing callable before
 boot, nil and thrown callback failures at a natural SUPPLY arrival, poison
 behaviour after failure, and nested public operations from inside the callback.
+Portable unit tests call the actual reference-host predicate with Lua
+descriptors at the fixed-wing landed, early, radius, forward/reverse segment
+and degenerate-segment boundaries, and at the helicopter AI landed, rotor,
+leader-radius, AI-leader cohesion and human-leader boundaries.
 Hosted CI cannot run these cases because the retail campaign and map data are
 not distributable; the build, lint and source-level tests remain mandatory CI.
 
