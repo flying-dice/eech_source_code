@@ -69,9 +69,12 @@ local function supply_reached (descriptor)
 			end
 		end
 		if descriptor.task_key == selected then
-			withheld_calls = withheld_calls + 1
 			record_position (descriptor)
-			return false
+			if elapsed - selected_at < delay_seconds then
+				withheld_calls = withheld_calls + 1
+				return false
+			end
+			allowed = true
 		end
 	elseif mode == "delay_drop_off" and descriptor.waypoint == "drop_off" then
 		if not selected then
@@ -116,8 +119,14 @@ for _ = 1, frames do
 		local after_by_task = snapshot_by_task (engine)
 		local after = assert (after_by_task[selected], "selected SUPPLY task disappeared before the asserted transition")
 		if mode == "withhold_pick_up" then
-			unchanged (after, selected_before, "withheld PICK_UP")
-			if elapsed - selected_at >= delay_seconds then
+			if not allowed then
+				unchanged (after, selected_before, "withheld PICK_UP")
+			elseif after.waypoint_key ~= selected_before.waypoint_key then
+				assert (after.leader_host_id == selected_before.leader_host_id, "allowed PICK_UP changed the observed leader")
+				assert (after.cargo_on_leader > selected_before.cargo_on_leader, "allowed PICK_UP did not attach cargo to the leader")
+				assert (after.supplier_ammo < selected_before.supplier_ammo or after.supplier_fuel < selected_before.supplier_fuel,
+					"allowed PICK_UP did not debit the supplier")
+				assert (after.task_completed == selected_before.task_completed, "allowed PICK_UP changed task completion")
 				assert (withheld_calls > 1 and moved (), "physical member did not continue reporting movement while PICK_UP was withheld")
 				finished = after
 				break
@@ -126,9 +135,10 @@ for _ = 1, frames do
 			if not allowed then
 				unchanged (after, selected_before, "delayed DROP_OFF")
 			elseif allowed and after.waypoint_key ~= selected_before.waypoint_key then
-				assert (after.cargo_on_leader < selected_before.cargo_on_leader, "allowed DROP_OFF did not move cargo from the leader")
+				assert (after.leader_host_id == selected_before.leader_host_id, "allowed DROP_OFF changed the observed leader")
 				assert (after.receiver_ammo > selected_before.receiver_ammo or after.receiver_fuel > selected_before.receiver_fuel,
 					"allowed DROP_OFF did not credit the receiver")
+				assert (after.task_completed == selected_before.task_completed, "allowed DROP_OFF changed task completion before FINISH_DROP_OFF")
 				assert (withheld_calls > 0, "DROP_OFF was not delayed")
 				finished = after
 				break
@@ -149,6 +159,8 @@ else
 	print ("leader_host_id\t" .. selected_before.leader_host_id)
 	print (string.format ("withheld_seconds\t%.1f", elapsed - selected_at))
 	print (string.format ("withheld_calls\t%d", withheld_calls))
+	print (string.format ("waypoint_before_after\t%s\t%s", selected_before.waypoint, finished.waypoint))
+	print (string.format ("completed_before_after\t%d\t%d", selected_before.task_completed, finished.task_completed))
 	print (string.format ("cargo_before_after\t%d\t%d", selected_before.cargo_on_leader, finished.cargo_on_leader))
 	print (string.format ("supplier_before_after\t%.3f\t%.3f\t%.3f\t%.3f", selected_before.supplier_ammo,
 		selected_before.supplier_fuel, finished.supplier_ammo, finished.supplier_fuel))
