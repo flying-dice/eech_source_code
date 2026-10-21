@@ -2,7 +2,8 @@
 
 **Scope.** One physical extraction toward criteria 2 and 3 of the
 [M5 goal](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337),
-version 2 (read live 2026-10-21 20:47 UTC; all six criteria remain unaccepted),
+(all six criteria remain unaccepted; the goal page is live and versioned, so read
+its current text),
 on integration `5469adf7`: a fixed-wing or helicopter member's arrival at a
 non-SUPPLY waypoint whose only physical criterion is RADIUS (alone or with
 LAST_TO_REACH) is now answered by the host through the seam the SUPPLY slice added
@@ -150,15 +151,16 @@ review.
   fail loudly (SUPPLY slice).
 - **Panic safety:** the host answer is read as a boolean through the existing
   checked seam; callback and Lua errors are returned across the boundary rather
-  than ignored. No native guards were added in this change.
+  than ignored.
 
 **Intentional diagnostic difference.** The original helicopter nonleader branch
 (`hc_msgs.c`, `ASSERT (get_guide_criteria_valid (sender, GUIDE_CRITERIA_LAST_TO_REACH))`)
 is not reproduced on the host path. In this native build `ASSERT` is not compiled
 out: `eech_native_env.h` maps it to `eech_native_assert`, which aborts the current
-entry with `EECH_STATUS_ASSERT`. So the legacy path would fail the entry on a
-nonleader whose waypoint lacks LAST_TO_REACH, while the host path answers with the
-reference predicate. The technical lead accepts this as an intentional change to a
+entry with `EECH_STATUS_ASSERT`. The legacy ASSERT is reached only after the human
+`player_skip_waypoint` return and the AI landed and rotor spin-up early-outs, and
+only in the nonleader branch. On that path a waypoint lacking LAST_TO_REACH fails
+the entry, while the host path answers with the reference predicate. The technical lead accepts this as an intentional change to a
 private-handler invariant diagnostic. No valid-state physical-output difference was
 observed in the pack or the reference run. Classification: intentional semantic
 change confined to an invalid-state diagnostic, not a regression.
