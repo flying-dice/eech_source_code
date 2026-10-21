@@ -2,6 +2,10 @@
 local args = host.args
 local root = assert (args.root, "root=<installation root>")
 local case = assert (args.case, "case=missing|malformed|error|reentry")
+-- reject an unknown case before the module loads or the installation is touched, so a
+-- mistyped case cannot run no branch and still report success
+local cases = { missing = true, malformed = true, error = true, reentry = true }
+assert (cases[case], "unknown case '" .. tostring (case) .. "': case=missing|malformed|error|reentry")
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
 
