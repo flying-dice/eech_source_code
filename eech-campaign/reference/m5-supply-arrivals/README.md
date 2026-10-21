@@ -39,6 +39,17 @@ native-error controls each passed 18 of 18 isolated CLI attempts with exit zero
 and no timeout. The M4 report records 40 of 40 passing checks across Georgia and
 Lebanon, including the repeatable Lebanon case.
 
+Post-review qualification (fix round after `daf233bd`): the lifecycle script
+hashed above (`3b0cb3f7`) and the retained runs are the `a352c126`-era artifacts and
+are unchanged. The tracked `supply-arrivals-lifecycle.lua` and the two Windows
+runners now differ from them in tooling only. The script rejects an unknown `case=`
+before `eech_dc` is required or the installation is prepared, instead of running no
+branch and printing `result ok`; the four supported cases are unchanged. The runners
+pass `eech-world.exe` one correctly quoted argument string, so a `root=` containing
+spaces is no longer split. The retained runs used space-free roots, and no retained
+result is relabelled or re-recorded. The checks for both are
+`tools/supply-arrivals-tools-selftest.py`, which needs no retail assets.
+
 No PE binaries, retail campaign assets, host logs, or large observations are
 retained here. Where an original observation was omitted, its SHA-256, exit code,
 timeout result, and associated executable identity are retained in the bounded

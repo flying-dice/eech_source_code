@@ -80,6 +80,12 @@ and degenerate-segment boundaries, and at the helicopter AI landed, rotor,
 leader-radius, AI-leader cohesion and human-leader boundaries.
 Hosted CI cannot run these cases because the retail campaign and map data are
 not distributable; the build, lint and source-level tests remain mandatory CI.
+The lifecycle script rejects an unknown `case=` before loading `eech_dc` or touching
+the installation, and both Windows runners build the child command line with
+`tools/native-arguments.ps1` so a root containing spaces reaches the host intact.
+Both are checked in hosted CI by `tools/supply-arrivals-tools-selftest.py` (a Lua 5.1
+driver with a stub module, and a real child process receiving spaces, quotes,
+backslashes and an empty argument); neither changes campaign behaviour.
 
 ## Compatibility and remaining work
 

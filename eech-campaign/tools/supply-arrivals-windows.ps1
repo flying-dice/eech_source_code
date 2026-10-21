@@ -6,6 +6,7 @@ param(
 	[int] $TimeoutSeconds = 1800
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'native-arguments.ps1')
 $here = Split-Path -Parent $PSScriptRoot
 $bin = if ($Bin) { $Bin } else { Join-Path $here 'target\windows' }
 $out = if ($Out) { $Out } else { Join-Path $here 'target\supply-arrivals' }
@@ -20,7 +21,7 @@ foreach ($mode in @('reference', 'withhold_pick_up', 'delay_drop_off')) {
 		(Join-Path $bin 'lua\supply-arrivals.lua'),
 		"root=$($Root -replace '\\', '/')", "mode=$mode", 'hours=1', 'delay_seconds=10'
 	)
-	$process = Start-Process -FilePath $world -ArgumentList $arguments -NoNewWindow -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+	$process = Start-Process -FilePath $world -ArgumentList (ConvertTo-NativeArgumentString $arguments) -NoNewWindow -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
 	$null = $process.Handle
 	if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
 		$process.Kill()
