@@ -2,13 +2,15 @@
 # Self-test of the DCS probe tooling without DCS. It checks:
 # - build-probe-miz.py on a synthetic mission: what it strips and adds, the
 #   parser/serialiser round trip, byte-identical output, and its error exits;
-# - given a Lua 5.1 interpreter, eech-dcs-probe.lua and eech-m5probe-hook.lua
-#   under fake DCS globals and a fake eech_dc, including the error path and a
-#   malformed engine object shape.
+# - with a Lua 5.1 interpreter, eech-dcs-probe.lua and eech-m5probe-hook.lua
+#   under fake DCS globals and a fake eech_dc: the error path, a malformed engine
+#   object shape, and, with a controlled os.clock, the callback cost and gap
+#   statistics the frame-budget measurement reports.
 # The runner (run-dcs-probe.ps1) and the PE link check need Windows binaries
 # and are not covered here.
 #
-#   python -I dcs-probe-selftest.py [<lua 5.1 interpreter>]
+#   python -I dcs-probe-selftest.py <lua 5.1 interpreter>
+#   python -I dcs-probe-selftest.py --skip-lua      (builder only; never reports "all passed")
 import importlib.util
 import os
 import subprocess
@@ -17,6 +19,7 @@ import tempfile
 import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.dont_write_bytecode = True  # importing the builder must not leave __pycache__ in the tool directory
 spec = importlib.util.spec_from_file_location("builder", os.path.join(HERE, "build-probe-miz.py"))
 builder = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(builder)
@@ -170,6 +173,83 @@ dofile (arg[1])
 '''
 
 
+TIMING = r'''
+-- a controlled os.clock (seconds): the driver sets it per callback, and the fake engine adds its
+-- costs; arg[1] probe, arg[2] mode
+local probe, mode = arg[1], arg[2]
+local now, wall, scheduled = 0, 0, nil
+os.clock = function () return wall end
+env = { info = function (line) print (line) end }
+timer = { getTime = function () return now end, getAbsTime = function () return 0 end,
+          scheduleFunction = function (f) scheduled = f end }
+world = { event = {}, addEventHandler = function () end }
+package.preload.eech_dc = function () return {
+  name = "timing fake", prepare_installation = function () end,
+  boot = function (config)
+    if type (config) ~= "table" then error ("bad argument") end
+    return {
+      frame = function () if mode == "cost" then wall = wall + 0.001 end end,       -- 1 ms per frame
+      objects = function () if mode == "cost" then wall = wall + 0.050 end return {} end,  -- 50 ms
+      clock = function () return { elapsed_seconds = now, day = 1 } end }
+  end } end
+-- the expected values below depend on these settings, so none is left to a probe default
+EECH_DCS_PROBE = { stage = "frames", root = "synthetic", frame_ms = 100, interval = 0.05, max_substeps = 10,
+                   summary_every = mode == "cost" and 0.1 or 0.5 }
+dofile (probe)
+if mode == "cost" then
+  -- callback 1 (0.25 s): two frames (2 ms), then a summary and a 50 ms checkpoint: 52 ms in all
+  now, wall = 0.25, 1; scheduled ()
+  -- callbacks 2 and 3: one frame each; callback 3 writes the next summary
+  now = 0.30; scheduled ()
+  now = 0.40; scheduled ()
+else
+  -- four callbacks exactly 1 s of wall time apart, two per summary window
+  for i = 1, 4 do now, wall = i * 0.25, i; scheduled () end
+end
+'''
+
+
+def summaries(out):
+    rows = []
+    for line in out.splitlines():
+        if "event=frames_summary" in line:
+            rows.append(dict(part.split("=", 1) for part in line.split()[2:] if "=" in part))
+    return rows
+
+
+def timing_tests(tmp, lua):
+    script = os.path.join(tmp, "timing.lua")
+    open(script, "w").write(TIMING)
+    probe = os.path.join(HERE, "eech-dcs-probe.lua")
+
+    def run(mode):
+        result = subprocess.run([lua, script, probe, mode], capture_output=True, text=True)
+        check(f"{mode}: the timing run exits 0", result.returncode == 0, result.stderr)
+        return result.stdout + result.stderr
+
+    out = run("cost")
+    rows = summaries(out)
+    check("cost: two summaries", len(rows) == 2, out)
+    if len(rows) == 2:
+        first, second = rows
+        check("cost: the stepping part of the summary-writing callback is 2 ms",
+              first.get("step_max_ms") == "2.0", str(first))
+        check("cost: no callback has completed before the first summary is written",
+              first.get("callbacks_completed") == "0" and first.get("callback_max_ms") == "-", str(first))
+        check("cost: the complete 52 ms callback (frames + summary + checkpoint) is reported, in the next window",
+              second.get("callback_max_ms") == "52.0" and second.get("callbacks_completed") == "2", str(second))
+
+    out = run("gap")
+    rows = summaries(out)
+    check("gap: two summaries", len(rows) == 2, out)
+    if len(rows) == 2:
+        first, second = rows
+        check("gap: constant 1000 ms spacing gives a 1000 ms mean in every window",
+              first.get("gap_mean_ms") == "1000.0" and second.get("gap_mean_ms") == "1000.0", f"{first} {second}")
+        check("gap: the mean is over the gaps actually sampled (1, then 2 reaching back across the reset)",
+              first.get("gaps") == "1" and second.get("gaps") == "2", f"{first} {second}")
+
+
 def lua_tests(tmp, lua):
     probe = os.path.join(HERE, "eech-dcs-probe.lua")
     fake = os.path.join(tmp, "fake-dcs.lua")
@@ -206,14 +286,20 @@ def lua_tests(tmp, lua):
 
 
 def main(argv):
+    if len(argv) != 2 or (argv[1].startswith("-") and argv[1] != "--skip-lua"):
+        print("usage: dcs-probe-selftest.py <lua 5.1 interpreter> | --skip-lua", file=sys.stderr)
+        return 2
+    skip_lua = argv[1] == "--skip-lua"
     with tempfile.TemporaryDirectory() as tmp:
         builder_tests(tmp)
-        if len(argv) > 1:
+        if not skip_lua:
             lua_tests(tmp, argv[1])
-        else:
-            print("skip Lua tests: no Lua 5.1 interpreter given")
-    print(f"{len(failures)} failed" if failures else "all passed")
-    return 1 if failures else 0
+            timing_tests(tmp, argv[1])
+    if failures:
+        print(f"{len(failures)} failed")
+        return 1
+    print("builder tests passed; Lua tests NOT RUN (--skip-lua)" if skip_lua else "all passed")
+    return 0
 
 
 if __name__ == "__main__":

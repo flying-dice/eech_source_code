@@ -184,8 +184,8 @@ local bounds = { 1, 2, 4, 8, 16, 33, 66 }
 
 local stats
 local function reset ()
-	stats = { callbacks = 0, frames = 0, frame_total = 0, frame_max = 0, callback_max = 0,
-		gap_total = 0, gap_max = 0, lag_max = 0, buckets = {} }
+	stats = { callbacks = 0, frames = 0, frame_total = 0, frame_max = 0, step_max = 0,
+		callbacks_completed = 0, callback_max = 0, gaps = 0, gap_total = 0, gap_max = 0, lag_max = 0, buckets = {} }
 	for i = 1, #bounds + 1 do stats.buckets[i] = 0 end
 end
 reset ()
@@ -235,11 +235,26 @@ local function checkpoint (now)
 	end
 end
 
+-- Window statistics (reset after each summary):
+--   callbacks            callbacks started in the window
+--   frame_*, histogram   each engine:frame call
+--   step_max_ms          campaign stepping of one callback: its sub-steps and bookkeeping,
+--                        without the summary, checkpoint and their log writes
+--   callback_max_ms      the complete callback, summary, checkpoint and log writes included,
+--                        over the callbacks_completed in the window. A callback that writes a
+--                        summary finishes after it, so its complete cost counts in the next window.
+--                        (Probe 7e699355, used by the retained runs, wrote the stepping-only
+--                        value under the name callback_max_ms.)
+--   "-"                  no sample in the window
+--   gap_*                wall time between consecutive callback starts, over the gaps sampled
+--                        in the window (a window's first gap reaches back into the previous one)
 local function summary (event, now)
 	record (event, { model_time = string.format ("%.3f", now), callbacks = stats.callbacks, frames = frames_done,
 		frames_window = stats.frames, frame_mean_ms = stats.frames > 0 and string.format ("%.3f", stats.frame_total / stats.frames) or "-",
-		frame_max_ms = string.format ("%.1f", stats.frame_max), callback_max_ms = string.format ("%.1f", stats.callback_max),
-		gap_mean_ms = stats.callbacks > 1 and string.format ("%.1f", stats.gap_total / (stats.callbacks - 1)) or "-",
+		frame_max_ms = string.format ("%.1f", stats.frame_max), step_max_ms = stats.callbacks > 0 and string.format ("%.1f", stats.step_max) or "-",
+		callbacks_completed = stats.callbacks_completed,
+		callback_max_ms = stats.callbacks_completed > 0 and string.format ("%.1f", stats.callback_max) or "-",
+		gaps = stats.gaps, gap_mean_ms = stats.gaps > 0 and string.format ("%.1f", stats.gap_total / stats.gaps) or "-",
 		gap_max_ms = string.format ("%.1f", stats.gap_max), lag_max_ms = string.format ("%.0f", stats.lag_max),
 		histogram = histogram () })
 end
@@ -250,6 +265,7 @@ local function step ()
 	local wall = clock and clock ()
 	if wall and last_wall then
 		local gap = (wall - last_wall) * 1000
+		stats.gaps = stats.gaps + 1
 		stats.gap_total = stats.gap_total + gap
 		stats.gap_max = math.max (stats.gap_max, gap)
 	end
@@ -282,12 +298,16 @@ local function step ()
 	end
 	stats.lag_max = math.max (stats.lag_max, pending_ms)
 	stats.callbacks = stats.callbacks + 1
-	if wall then stats.callback_max = math.max (stats.callback_max, (clock () - wall) * 1000) end
+	if wall then stats.step_max = math.max (stats.step_max, (clock () - wall) * 1000) end
 	if now >= next_summary then
 		summary ("frames_summary", now)
 		checkpoint (now)
 		reset ()
 		next_summary = now + summary_every
+	end
+	if wall then
+		stats.callbacks_completed = stats.callbacks_completed + 1
+		stats.callback_max = math.max (stats.callback_max, (clock () - wall) * 1000)
 	end
 	return now + interval
 end
