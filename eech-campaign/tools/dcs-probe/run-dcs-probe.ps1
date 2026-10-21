@@ -43,15 +43,30 @@ $separator = [string][IO.Path]::DirectorySeparatorChar
 # (':'), a wildcard or a device or reserved character are refused: they can alias another
 # directory ("DCS.openbeta::$INDEX_ALLOCATION") or be globbed by a later command. A trailing dot
 # or space is dropped by Windows, so it is an alias too.
-function Test-ProfileName([string] $Label, [string] $Name) {
+function Assert-ProfileName([string] $Label, [string] $Name) {
 	if (-not $Name.Trim()) { throw "$Label is empty" }
 	foreach ($component in $Name.Split([char[]]@('\', '/'), [StringSplitOptions]::RemoveEmptyEntries)) {
 		if ($component -match '[\x00-\x1f:\[\]*?<>|"]') { throw "$Label '$Name' has a character that is not allowed in a profile name (: [ ] * ? < > | `" or a control character)" }
 		if ($component -notin '.', '..' -and $component -match '[. ]$') { throw "$Label '$Name' has a component ending in a dot or space" }
+		# a DOS device name, with or without an extension, is not a directory
+		if ($component -match '^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\..*)?$') { throw "$Label '$Name' uses the reserved device name '$component'" }
 	}
 }
-Test-ProfileName '-WriteDirName' $WriteDirName
-Test-ProfileName '-DefaultWriteDirName' $DefaultWriteDirName
+Assert-ProfileName '-WriteDirName' $WriteDirName
+Assert-ProfileName '-DefaultWriteDirName' $DefaultWriteDirName
+
+# Every [IO.*] call resolves a relative path against the process directory, not against $PWD, so
+# a relative input is made absolute against $PWD first.
+function Resolve-AgainstPwd([string] $Path) {
+	if ([IO.Path]::IsPathRooted($Path)) { return [IO.Path]::GetFullPath($Path) }
+	[IO.Path]::GetFullPath((Join-Path $PWD.ProviderPath $Path))
+}
+$SavedGames = Resolve-AgainstPwd $SavedGames
+$Work = Resolve-AgainstPwd $Work
+$Candidate = Resolve-AgainstPwd $Candidate
+$Dcs = Resolve-AgainstPwd $Dcs
+$Root = Resolve-AgainstPwd $Root
+if ($ErrorControlsEvidence) { $ErrorControlsEvidence = Resolve-AgainstPwd $ErrorControlsEvidence }
 $runId = "{0}-{1}" -f (Get-Date -Format 'yyyyMMdd-HHmmss'), $Stage
 $out = Join-Path $Work "runs\$runId"
 $writeDir = Join-Path $SavedGames ($WriteDirName.Replace('\', '/'))
@@ -68,9 +83,16 @@ function DefaultLogTicks { (Get-Item -LiteralPath $defaultLog).LastWriteTimeUtc.
 # a junction or symlink anywhere in a path lets another name reach the same directory.
 # Each existing component is resolved through links to its final target and takes its
 # on-disk spelling; components that do not exist yet are kept as written. A link that
-# cannot be resolved throws, so the guard fails closed.
+# cannot be resolved, or whose target is not a plain drive-letter path (a volume GUID, a
+# verbatim or UNC spelling of the same directory), throws: those spellings cannot be compared
+# with a plain path, so the guard fails closed instead of guessing.
+function Assert-PlainPath([string] $Path, [string] $What) {
+	$plain = if ($IsWindows) { $Path -match '^[A-Za-z]:[\\/]' } else { $Path.StartsWith('/') }
+	if (-not $plain) { throw "$What is not a plain absolute path ($Path)" }
+}
 function Resolve-PhysicalPath([string] $Path) {
 	$current = [IO.Path]::GetFullPath($Path)
+	Assert-PlainPath $current "path $Path"
 	for ($hop = 0; $hop -le 32; $hop++) {
 		$root = [IO.Path]::GetPathRoot($current)
 		$parts = @($current.Substring($root.Length).Split([char[]]@('\', '/'), [StringSplitOptions]::RemoveEmptyEntries))
@@ -90,6 +112,7 @@ function Resolve-PhysicalPath([string] $Path) {
 			if ($entry.Attributes -band [IO.FileAttributes]::ReparsePoint) {
 				$target = $entry.ResolveLinkTarget($true)
 				if (-not $target) { throw "cannot resolve the reparse point $($entry.FullName)" }
+				Assert-PlainPath $target.FullName "the target of the link $($entry.FullName)"
 				$rest = if ($i + 1 -lt $parts.Count) { $parts[($i + 1)..($parts.Count - 1)] } else { @() }
 				$current = [IO.Path]::GetFullPath([IO.Path]::Combine($target.FullName, ($rest -join $separator)))
 				$redirected = $true
@@ -126,31 +149,59 @@ try {
 if (-not (Test-Path -LiteralPath $defaultLog -PathType Leaf)) {
 	throw "no $defaultLog to watch: pass the installation's -DefaultWriteDirName"
 }
-# The record is untrusted JSON, so every value is checked for its type as well as its value:
-# -eq and -ne coerce ("true", 1, "0") and filter arrays. Hashes are 64 hex digits, compared
-# after lower-casing; completed must be the JSON boolean true; exit_code must be the integer 0.
-function Test-ErrorControls($Record, [string] $CandidateHash, [string] $HostLuaHash) {
-	function Test-Hash($Value, [string] $Expected) {
-		$Value -is [string] -and $Value.Trim().ToLowerInvariant() -match '^[0-9a-f]{64}$' -and $Value.Trim().ToLowerInvariant() -ceq $Expected
+# The record is untrusted JSON. It is read with System.Text.Json so that nothing is coerced or
+# merged: the top level must be an object (an array is refused, even a one-element one that
+# ConvertFrom-Json would unroll), no object repeats a key (case-variant keys count as repeats),
+# key names match exactly, a hash is a string of exactly 64 hex digits with no surrounding
+# whitespace (hex digits match case-insensitively), completed is the JSON boolean true and
+# exit_code is the integer 0.
+function Test-UniqueKeys($Element) {
+	if ($Element.ValueKind -eq 'Object') {
+		$names = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+		foreach ($property in $Element.EnumerateObject()) {
+			if (-not $names.Add($property.Name) -or -not (Test-UniqueKeys $property.Value)) { return $false }
+		}
+	} elseif ($Element.ValueKind -eq 'Array') {
+		foreach ($item in $Element.EnumerateArray()) { if (-not (Test-UniqueKeys $item)) { return $false } }
 	}
-	function Test-Control($Control) {
-		$Control -is [System.Collections.IDictionary] -and
-			$Control['completed'] -is [bool] -and $Control['completed'] -eq $true -and
-			($Control['exit_code'] -is [int] -or $Control['exit_code'] -is [long]) -and $Control['exit_code'] -eq 0
+	return $true
+}
+function Test-ErrorControls([string] $Raw, [string] $CandidateHash, [string] $HostLuaHash) {
+	function Get-Member($Element, [string] $Name) {
+		$value = [System.Text.Json.JsonElement]::new()   # Undefined unless found
+		if ($Element.ValueKind -eq 'Object') { $null = $Element.TryGetProperty($Name, [ref] $value) }
+		return $value
 	}
-	if ($Record -isnot [System.Collections.IDictionary] -or $Record['controls'] -isnot [System.Collections.IDictionary]) { return $false }
-	(Test-Hash $Record['candidate_eech_dc_sha256'] $CandidateHash) -and (Test-Hash $Record['dcs_lua_sha256'] $HostLuaHash) -and
-		(Test-Control $Record['controls']['first_error']) -and (Test-Control $Record['controls']['repeated_errors'])
+	function Test-Hash($Element, [string] $Expected) {
+		if ($Element.ValueKind -ne 'String') { return $false }
+		$text = $Element.GetString()
+		return ($text -cmatch '\A[0-9A-Fa-f]{64}\z') -and ($text.ToLowerInvariant() -ceq $Expected)
+	}
+	function Test-Control($Element) {
+		$completed = Get-Member $Element 'completed'
+		$exit = Get-Member $Element 'exit_code'
+		return $Element.ValueKind -eq 'Object' -and $completed.ValueKind -eq 'True' -and
+			$exit.ValueKind -eq 'Number' -and $exit.GetRawText() -ceq '0'
+	}
+	$document = [System.Text.Json.JsonDocument]::Parse($Raw)
+	try {
+		$record = $document.RootElement
+		$controls = Get-Member $record 'controls'
+		return $record.ValueKind -eq 'Object' -and (Test-UniqueKeys $record) -and
+			(Test-Hash (Get-Member $record 'candidate_eech_dc_sha256') $CandidateHash) -and
+			(Test-Hash (Get-Member $record 'dcs_lua_sha256') $HostLuaHash) -and
+			(Test-Control (Get-Member $controls 'first_error')) -and (Test-Control (Get-Member $controls 'repeated_errors'))
+	} finally { $document.Dispose() }
 }
 if ($Stage -in 'boot', 'frames') {
 	if (-not $ErrorControlsEvidence -or -not (Test-Path -LiteralPath $ErrorControlsEvidence -PathType Leaf)) {
 		throw "stage $Stage needs -ErrorControlsEvidence <passing DCS-Lua error-control JSON record>"
 	}
-	try { $controls = Get-Content -LiteralPath $ErrorControlsEvidence -Raw | ConvertFrom-Json -AsHashtable }
-	catch { throw "invalid error-control JSON: $($_.Exception.Message)" }
 	$candidateHash = Hash (Join-Path $Candidate 'eech_dc.dll')
 	$hostLuaHash = Hash (Join-Path $dcsBin 'lua.dll')
-	if (-not (Test-ErrorControls $controls $candidateHash $hostLuaHash)) {
+	try { $passing = Test-ErrorControls (Get-Content -LiteralPath $ErrorControlsEvidence -Raw) $candidateHash $hostLuaHash }
+	catch { throw "invalid error-control JSON: $($_.Exception.Message)" }
+	if (-not $passing) {
 		throw 'error-control record does not show passing first and repeated errors for this candidate and DCS Lua'
 	}
 }
@@ -219,20 +270,25 @@ $manifest.scenario = $Scenario
 $defaultLogTicksBefore = DefaultLogTicks
 [IO.File]::Delete("$writeDir\Logs\dcs.log")   # the file or link itself, if present
 
-$env:EECH_M5PROBE_RUN_SECONDS = "$RunSeconds"
 $arguments = @('-w', $WriteDirName, '--no-launcher', '--mission', "`"$miz`"")
 $manifest.cancel_login = [bool]$CancelLogin
 if ($ErrorControlsEvidence) { $manifest.error_controls_evidence = @{ path = $ErrorControlsEvidence; sha256 = Hash $ErrorControlsEvidence } }
 $manifest.command = "Start-Process `"$dcsExe`" -ArgumentList $($arguments -join ' ') -WorkingDirectory `"$dcsBin`" -WindowStyle Hidden -PassThru"
-$p = Start-Process -FilePath $dcsExe -ArgumentList $arguments -WorkingDirectory $dcsBin -WindowStyle Hidden -PassThru
-$processStarted = $p.StartTime
-$manifest.pid = $p.Id
 $t0 = Get-Date
 $verdict = 'timeout'
 $dialogs = [ordered]@{}
 $stopped = @()
 $seen = @()   # owned descendants recorded while the run is live (PID plus creation time)
+$p = $null
+$processStarted = $null
+# Everything from the environment bound onward is inside the try, so that whatever fails after
+# DCS has started (reading its start time included) the finally still stops the owned tree and
+# drops the bound.
 try {
+	$env:EECH_M5PROBE_RUN_SECONDS = "$RunSeconds"
+	$p = Start-Process -FilePath $dcsExe -ArgumentList $arguments -WorkingDirectory $dcsBin -WindowStyle Hidden -PassThru
+	$manifest.pid = $p.Id
+	$processStarted = $p.StartTime
 	while ($true) {
 		Start-Sleep -Seconds 2
 		$elapsed = ((Get-Date) - $t0).TotalSeconds

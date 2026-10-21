@@ -18,7 +18,7 @@
 # @{ id; started } instances (the root itself is not included).
 function Find-OwnedInstances($rootId, $rootStarted, $rootExited, $rootEnded, $inventory, $recorded = @()) {
 	$tolerance = [TimeSpan]::FromMilliseconds(500)   # Process.StartTime and WMI CreationDate round differently
-	$rows = @($inventory)
+	$rows = @($inventory | Where-Object { $null -ne $_ -and $null -ne $_.CreationDate })   # a row without a creation time proves nothing
 	$owned = [System.Collections.Generic.List[object]]::new()
 	$parents = [System.Collections.Generic.List[object]]::new()
 	if (-not $rootExited) {
@@ -56,8 +56,8 @@ function Find-OwnedInstances($rootId, $rootStarted, $rootExited, $rootEnded, $in
 
 # Reads the process list and returns the owned descendants now alive (see above). The caller
 # keeps the result as $recorded for the next call.
-function Get-OwnedInstances($process, $started, $recorded = @()) {
-	$exited = [bool]$process.HasExited
+function Get-OwnedInstances($process, $started, $recorded = @(), $exited = $null) {
+	if ($null -eq $exited) { $exited = [bool]$process.HasExited }
 	$ended = $null
 	if ($exited) { try { $ended = $process.ExitTime } catch {} }
 	return @(Find-OwnedInstances $process.Id $started $exited $ended @(Get-CimInstance Win32_Process) $recorded)
@@ -66,8 +66,10 @@ function Get-OwnedInstances($process, $started, $recorded = @()) {
 # Stops the started process (if still running) and its owned descendants, and returns the
 # stopped PIDs. Without a process list the live root alone is stopped.
 function Stop-OwnedTree($process, $started, $recorded = @()) {
-	$ids = @(if (-not $process.HasExited) { [int]$process.Id })
-	try { $ids += @(Get-OwnedInstances $process $started $recorded | ForEach-Object { $_.id }) } catch {}
+	if ($null -eq $process) { return , @() }   # nothing was started
+	$exited = [bool]$process.HasExited   # read once: the root and its descendants are judged on the same state
+	$ids = @(if (-not $exited) { [int]$process.Id })
+	try { $ids += @(Get-OwnedInstances $process $started $recorded $exited | ForEach-Object { $_.id }) } catch {}
 	$stopped = @()
 	foreach ($id in $ids) { try { Stop-Process -Id $id -Force -ErrorAction Stop; $stopped += $id } catch {} }
 	return , $stopped

@@ -318,6 +318,46 @@ def runner_guard_tests(tmp):
         result = run(write_dir="DCS.HarmlessAlias")
         check("runner accepts a link that reaches nowhere near the default profile",
               result.returncode == 0 and "prelaunch guards passed" in result.stdout, result.stdout + result.stderr)
+        # links whose target is not a plain drive-letter path (a volume GUID or a verbatim spelling of the
+        # same directory) cannot be compared with the default profile's path, so they are refused
+        if os.name == "nt":
+            import _winapi
+            backslash = chr(92)
+            drive = os.path.splitdrive(os.path.abspath(tmp))[0]
+            device = subprocess.run(
+                ["pwsh", "-NoProfile", "-Command",
+                 "(Get-CimInstance Win32_Volume | Where-Object { $_.DriveLetter -eq $env:SELFTEST_DRIVE }).DeviceID"],
+                capture_output=True, text=True, env={**os.environ, "SELFTEST_DRIVE": drive}).stdout.strip()
+            below_drive = os.path.abspath(default_dir)[len(drive):].lstrip(backslash)
+            forms = {
+                "volume GUID": device + below_drive,
+                "verbatim drive": backslash * 2 + "?" + backslash + os.path.abspath(default_dir),
+            }
+            for label, target in forms.items():
+                name = "DCS.Raw " + label.replace(" ", "")
+                made = None
+                try:
+                    _winapi.CreateJunction(target, os.path.join(saved, name))
+                    links.append(os.path.join(saved, name))
+                    made = name
+                except OSError as error:
+                    print(f"skip  junction to a {label} target could not be created here: {error}")
+                if made:
+                    result = run(write_dir=made)
+                    check(f"runner rejects a junction whose target is a {label} path",
+                          result.returncode != 0 and "not a plain absolute path" in result.stderr
+                          and "prelaunch guards passed" not in result.stdout, result.stdout + result.stderr)
+                    os.makedirs(os.path.join(saved, "DCS.RawLogs"), exist_ok=True)
+                    logs_link = os.path.join(saved, "DCS.RawLogs", "Logs")
+                    if not os.path.exists(logs_link):
+                        _winapi.CreateJunction(target.rstrip(backslash) + backslash + "Logs", logs_link)
+                        links.append(logs_link)
+                    result = run(write_dir="DCS.RawLogs")
+                    check(f"runner rejects a Logs junction whose target is a {label} path",
+                          result.returncode != 0 and "not a plain absolute path" in result.stderr, result.stdout + result.stderr)
+                    unlink(logs_link)
+                    links.remove(logs_link)
+                    os.rmdir(os.path.join(saved, "DCS.RawLogs"))
         check("the default profile log is untouched by the guard tests",
               os.stat(default_log).st_mtime_ns == before and open(default_log, "rb").read() == b"do not change")
     finally:
@@ -327,10 +367,12 @@ def runner_guard_tests(tmp):
     # names that Windows reads as an NTFS stream, a wildcard, or a dropped trailing dot/space
     # alias the protected directory or are globbed by later commands: refused as names
     for name in ("DCS.openbeta::$INDEX_ALLOCATION", "DCS.openbeta:$I30:$INDEX_ALLOCATION/Probe",
-                 "DCS.[o]penbeta", "DCS.openbet?", "DCS.openbet*", "Probe<x", "Probe|x", "DCS.openbeta.", "DCS.openbeta "):
+                 "DCS.[o]penbeta", "DCS.openbet?", "DCS.openbet*", "Probe<x", "Probe|x", "DCS.openbeta.", "DCS.openbeta ",
+                 "NUL", "con", "Aux.txt", "COM1", "lpt9", "COM9.log", "Sub/PRN"):
         result = run(write_dir=name)
         check(f"runner rejects the profile name {name!r}",
-              result.returncode != 0 and ("not allowed in a profile name" in result.stderr or "ending in a dot or space" in result.stderr)
+              result.returncode != 0 and ("not allowed in a profile name" in result.stderr or "ending in a dot or space" in result.stderr
+                                          or "reserved device name" in result.stderr)
               and "prelaunch guards passed" not in result.stdout, result.stdout + result.stderr)
     result = run(default_name="DCS.[o]penbeta")
     check("runner rejects a wildcard in -DefaultWriteDirName", result.returncode != 0 and "not allowed in a profile name" in result.stderr,
@@ -386,6 +428,24 @@ def runner_guard_tests(tmp):
         result = run()
         check(f"runner rejects evidence with {label}", result.returncode != 0 and "does not show passing" in result.stderr,
               result.stdout + result.stderr)
+    good = json.dumps(record)
+    one_element = "[" + good + "]"
+    duplicate = good.replace('"completed": true', '"completed": false, "completed": true', 1)
+    case_variant = good.replace('"completed": true', '"completed": false, "Completed": true', 1)
+    padded = good.replace(record["dcs_lua_sha256"], " " + record["dcs_lua_sha256"], 1)
+    newline = good.replace(record["dcs_lua_sha256"] + '"', record["dcs_lua_sha256"] + chr(92) + 'n"', 1)
+    wrong_case_key = good.replace('"controls"', '"Controls"', 1)
+    for label, text in (("a one-element array", one_element), ("a duplicated key", duplicate),
+                        ("a case-variant duplicate key", case_variant), ("a whitespace-padded hash", padded),
+                        ("a hash with a trailing newline", newline), ("a case-variant key name", wrong_case_key),
+                        ("trailing text", good + " x")):
+        check(f"evidence fixture for {label} differs from the good record", text != good)
+        with open(evidence, "w") as stream:
+            stream.write(text)
+        result = run()
+        check(f"runner rejects evidence with {label}", result.returncode != 0 and
+              ("does not show passing" in result.stderr or "invalid error-control JSON" in result.stderr),
+              result.stdout + result.stderr)
     with open(evidence, "w") as stream:
         json.dump(variant(lambda c: c.update(candidate_eech_dc_sha256=c["candidate_eech_dc_sha256"].upper())), stream)
     result = run()
@@ -397,6 +457,20 @@ def runner_guard_tests(tmp):
     result = run()
     check("runner rejects failing native error control", result.returncode != 0 and "does not show passing" in result.stderr,
           result.stdout + result.stderr)
+    # a relative -SavedGames/-Work/-Candidate is resolved against the caller's directory (not the
+    # process directory that [IO.*] would use), so the same guards hold
+    relative = subprocess.run([
+        "pwsh", "-NoProfile", "-File", script, "-Stage", "load", "-Candidate", "candidate", "-Dcs", "DCS",
+        "-SavedGames", "Saved Games", "-Work", "work", "-WriteDirName", "DCS.openbeta", "-ValidatePrelaunchOnly",
+    ], capture_output=True, text=True, cwd=tmp)
+    check("a relative -SavedGames still reaches the default profile guard",
+          relative.returncode != 0 and "default profile" in relative.stderr, relative.stdout + relative.stderr)
+    relative = subprocess.run([
+        "pwsh", "-NoProfile", "-File", script, "-Stage", "load", "-Candidate", "candidate", "-Dcs", "DCS",
+        "-SavedGames", "Saved Games", "-Work", "work", "-WriteDirName", "DCS.M5Probe", "-ValidatePrelaunchOnly",
+    ], capture_output=True, text=True, cwd=tmp)
+    check("relative paths resolve against the caller's directory",
+          relative.returncode == 0 and "prelaunch guards passed" in relative.stdout, relative.stdout + relative.stderr)
     check("prelaunch tests never create a run directory", not os.path.exists(work))
     os.remove(default_log)
     result = run(stage="load")
