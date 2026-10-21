@@ -13,7 +13,9 @@
 #include "lua.h"
 #include "lualib.h"
 
-/* far larger than any Lua 5.1 lua_Debug; static, so a large record cannot overrun the C stack */
+/* Finite 64 KiB measurement buffer. A write that reaches its last byte is reported as unmeasured;
+ * a host that writes beyond it is outside the tool's safe range. Static storage keeps it off the
+ * C stack. */
 #define RECORD_LIMIT 65536
 
 static unsigned char record[RECORD_LIMIT];

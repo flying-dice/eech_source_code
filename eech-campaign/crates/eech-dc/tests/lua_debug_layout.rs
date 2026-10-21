@@ -1,10 +1,12 @@
 //! The lua_Debug that mlua allocates in this DLL must hold the record DCS World's Lua 5.1 writes into it.
 //!
-//! lua_getstack and lua_getinfo write the host Lua's whole lua_Debug, and mlua allocates the
-//! record itself (luaL_traceback on every failing native callback). DCS World's lua.dll is built
-//! with LUA_IDSIZE 256: on x86_64 its short_src starts at 0x38 and i_ci, its last field, is at
-//! 0x138 (320 bytes), where stock Lua 5.1 writes 120. A record smaller than the host's is a
-//! stack overrun on the first callback error (docs/m5-dcs-lua-abi.md).
+//! lua_getstack and lua_getinfo write into the lua_Debug the caller supplies, and mlua allocates
+//! that record itself on callback error paths that request a traceback. DCS World's lua.dll is
+//! built with LUA_IDSIZE 256: on x86_64 its short_src starts at 0x38 and i_ci, its last field, is
+//! at 0x138. One DCS lua.dll was measured writing 316 bytes through the end of i_ci; the allocated
+//! record is 320 bytes because of trailing alignment padding. The measured PUC Lua 5.1 DLL writes
+//! 120 bytes. A record smaller than the host writes is a stack overrun
+//! (docs/m5-dcs-lua-abi.md).
 use mlua::ffi::lua_Debug;
 use std::ffi::c_int;
 use std::mem::{offset_of, size_of};

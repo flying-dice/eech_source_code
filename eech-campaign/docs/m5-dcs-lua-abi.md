@@ -16,15 +16,21 @@ Stock Lua 5.1 uses 60. `lua_Debug` ends with `char short_src[LUA_IDSIZE]` and th
 | x86_64 | `short_src` | `i_ci` | record |
 |---|---|---|---|
 | stock Lua 5.1 (and mlua-sys 0.6.8) | 0x38, 60 bytes | 0x74 | 120 bytes |
-| DCS World `lua.dll` | 0x38, 256 bytes | 0x138 | 320 bytes |
+| DCS World `lua.dll` | 0x38, 256 bytes | 0x138 | 320 bytes (316 written, see below) |
 
-`lua_getstack` and `lua_getinfo` write the host's whole record into a buffer the caller supplies.
+The two numbers for DCS are different things. **316 bytes** is what `lua_getstack` and
+`lua_getinfo` were measured to write on one DCS `lua.dll`: through the end of `i_ci` (0x138 + 4).
+**320 bytes** is the size of the `lua_Debug` the corrected product allocates: 0x138 + 4 = 316,
+rounded up to the struct's 8-byte alignment. The stock record is 0x74 + 4 = 120, already aligned,
+so it is 120 both allocated and written.
+
+`lua_getstack` and `lua_getinfo` write into a buffer the caller supplies.
 mlua supplies it, sized from mlua-sys's `lua_Debug`. mlua-sys 0.6.8 hard-codes `LUA_IDSIZE` 60
-(`src/lua51/lua.rs`). On every failing Rust callback, mlua builds a traceback with mlua-sys's
-compat `luaL_traceback`, because Lua 5.1 has none. That traceback walks the stack with a
-120-byte record on the Rust stack. DCS World's Lua then writes up to 316 bytes into it: a 196-byte
-stack overrun. With the GNU build the overrun corrupts a return address, and the process faults
-at address 0 (`0xc0000005`).
+(`src/lua51/lua.rs`). For the callback failures exercised here, mlua builds a traceback with
+mlua-sys's compat `luaL_traceback` when Lua has enough stack space, because Lua 5.1 has none.
+That traceback walks the stack with a 120-byte record on the Rust stack. DCS World's Lua then
+writes up to 316 bytes into it: a 196-byte stack overrun. With the GNU build the overrun corrupts
+a return address, and the process faults at address 0 (`0xc0000005`).
 
 ## The correction
 
@@ -41,14 +47,17 @@ those versions):
 
 | Use | Record | Reached by this product | With the 320-byte record |
 |---|---|---|---|
-| compat `luaL_traceback` and its `compat53_countlevels` (mlua-sys `lua51/compat.rs`) | allocated by mlua-sys, zeroed | yes: every failing native callback, in the DLL and in the host (mlua `state/util.rs`, `util/error.rs`), and the error handler mlua runs Lua errors through | no overrun under either host |
+| compat `luaL_traceback` and its `compat53_countlevels` (mlua-sys `lua51/compat.rs`) | allocated by mlua-sys, zeroed | yes: the exercised failing native callbacks, in the DLL and in the host (mlua `state/util.rs`, `util/error.rs`), and error-handler paths that request a traceback | no overrun under either host |
 | `Lua::inspect_stack` (`state.rs`) | allocated by mlua, zeroed, moved into `Debug` | no call in `crates/` | no overrun. The move copies all 320 bytes, so the host's `i_ci` survives at the host's own offset for later `lua_getinfo` calls |
 | `Function::info` (`function.rs`) | allocated by mlua, zeroed | no call in `crates/` | no overrun |
 | hook callbacks: `Debug::new` from `hook_proc` (`state/raw.rs`, `hook.rs`) | allocated **by the host Lua**, at the host's size | no: nothing in `crates/` calls `set_hook`, so `hook_proc` is never installed | **not covered** (see Limits) |
 
-Two properties make an allocated record that is larger than the host's sufficient:
-- **The host writes no more than its own size.** The tool below measures this: 316 bytes for
-  DCS, 120 for PUC.
+Two properties make the 320-byte allocation sufficient for the two measured hosts on the
+mlua-owned paths above:
+- **Each measured host wrote within 320 bytes.** The tool below measured 316 bytes written for
+  DCS and 120 for PUC. Its only bound is its finite 64 KiB buffer: a write reaching the last byte
+  is reported as unmeasured, while a host writing beyond the buffer is outside the tool's safe
+  measurement range. It does not show that every Lua 5.1 record fits in 320 bytes.
 - **The fields mlua reads (`event` through `lastlinedefined`, and `short_src`) are at the same
   offsets in both layouts.** Only the length of `short_src` differs, and it comes after them.
   - `short_src` is read as a C string. The host NUL-terminates it within its own `LUA_IDSIZE`,
@@ -83,10 +92,13 @@ Evidence, including the original experiment's red and green and this candidate's
 
 ## Limits
 
-- **Hooks.** Under the PUC host, a hook record is the host's 120 bytes, and mlua takes
-  `&short_src` as a 256-byte array. That reference outruns the allocation: undefined behaviour in
-  Rust, though the string read stops at the NUL. Nothing installs a hook today. A future
-  `set_hook` (or `Debug` from a hook) needs its own decision.
+- **Hooks (borrowed PUC `lua_Debug`): unsupported.** Under the PUC host, a hook record is
+  allocated by the host at 120 bytes, and mlua borrows it as a `lua_Debug` whose `short_src` is a
+  256-byte array. That reference outruns the host's allocation: undefined behaviour in Rust,
+  though the string read stops at the NUL. This record does **not** claim it safe. The product
+  never calls `set_hook` (no call in `crates/` or `tools/`), so `hook_proc` is never installed and
+  no check here exercises it. A future `set_hook`, or any `Debug` built from a host hook record,
+  needs its own decision before it is used.
 - **Standalone only.** No DCS mission has run the corrected build (the next DCS probe, EEDCS-12).
   That is a separate claim.
 - **Other layouts.** Checked beyond `lua_Debug`: `luaL_Buffer` (`LUAL_BUFFERSIZE` 512), `lua_Integer`
