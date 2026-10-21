@@ -128,8 +128,21 @@ since. Summary by attribution:
   during mlua's traceback on a callback error.
 - Stock GNU and MSVC tiny modules both fail on DCS Lua. Changing only IDSIZE to 256 passes 60/60
   per compiler, per Lua runtime and in two hosts.
-- **A compiler port is not a remedy.** The remedy is unproven for the actual `eech_dc`. Another
-  worker is now rebuilding the product with the change; its outcome is not inferred here.
+- **A compiler port is not a remedy.** The actual product was then rebuilt
+  with the change: see "Product ABI experiment" below.
+
+## Product ABI experiment (lead-verified; Jira EEDCS-12 comment 10446; `product-abi/`)
+
+These files are byte-for-byte copies of the text artefacts in
+`E:/eech-runs/dcs-probe/abi-microprobe/product/`. Their hashes are in `product-abi/SHA256SUMS.txt`.
+Built from an archive of `65892de1` with only `LUA_IDSIZE` 60→256 in mlua-sys 0.6.8
+(`mlua-sys-idsize256.diff`, `cargo-toml.diff`, `cargo-lock.diff`; no compiler change):
+- **Controls** (`controls-{stock,patched}.summary.txt`): patched, all 36 runs exit 0 on DCS and PUC
+  Lua. Stock exits `0xc0000005` in `first-error`, `host-log` and `lua-compat` on DCS Lua only.
+- **M4 pack** (`pack-patched.report.{json,md}`): unchanged pack, all 40 checks PASS. Georgia and
+  Lebanon metrics are IDENTICAL to their baselines.
+- **Not shown:** `pack_revision` is blank (a disposable archive plus patch, not a product commit),
+  and the corrected build has not run in a DCS mission.
 
 ## Reproduce
 
