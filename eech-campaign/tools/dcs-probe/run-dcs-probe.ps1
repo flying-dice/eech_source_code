@@ -36,6 +36,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $here = $PSScriptRoot
 . (Join-Path $here 'owned-process-tree.ps1')
+. (Join-Path $here 'runner-guards.ps1')
 $comparison = if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
 $separator = [string][IO.Path]::DirectorySeparatorChar
 
@@ -77,7 +78,6 @@ $dcsExe = Join-Path $dcsBin 'DCS.exe'
 $manifest = [ordered]@{ run = $runId; stage = $Stage; started = (Get-Date).ToString('o') }
 
 function Hash($p) { (Get-FileHash -Algorithm SHA256 -LiteralPath $p).Hash.ToLower() }
-function DefaultLogTicks { (Get-Item -LiteralPath $defaultLog).LastWriteTimeUtc.Ticks }
 
 # Physical identity of a path, for the protected-profile guard. Spelling is not identity:
 # a junction or symlink anywhere in a path lets another name reach the same directory.
@@ -240,7 +240,7 @@ public static class ProbeWindows {
 }
 '@
 
-if (Get-Process -Name DCS -ErrorAction SilentlyContinue) { throw 'a DCS process is already running: not starting another' }
+Assert-NoRunningDcs @(Get-Process -Name DCS -ErrorAction SilentlyContinue)
 foreach ($directory in $out, "$Work\bin", "$Work\missions") { $null = [IO.Directory]::CreateDirectory($directory) }
 
 # inputs: the DLL only (never the candidate's own lua.dll), the probe, the hook, the mission
@@ -267,7 +267,7 @@ $manifest.inputs = [ordered]@{
 	autoupdate_version = (Get-Content -LiteralPath "$Dcs\autoupdate.cfg" -Raw | ConvertFrom-Json).version
 }
 $manifest.scenario = $Scenario
-$defaultLogTicksBefore = DefaultLogTicks
+$defaultLogTicksBefore = Get-LogTimestampTicks $defaultLog
 [IO.File]::Delete("$writeDir\Logs\dcs.log")   # the file or link itself, if present
 
 $arguments = @('-w', $WriteDirName, '--no-launcher', '--mission', "`"$miz`"")
@@ -295,7 +295,8 @@ try {
 		if (-not $p.HasExited) {
 			foreach ($d in [ProbeWindows]::ScanDialogs([uint32]$p.Id, [bool]$CancelLogin)) { if (-not $dialogs.Contains($d)) { $dialogs[$d] = [Math]::Round($elapsed) } }
 		}
-		if ((DefaultLogTicks) -ne $defaultLogTicksBefore) { $verdict = 'aborted: the default profile log changed'; break }
+		$guardVerdict = Get-DefaultLogGuardVerdict $defaultLog $defaultLogTicksBefore
+		if ($guardVerdict) { $verdict = $guardVerdict; break }
 		if ($p.HasExited) { $verdict = 'exited with code {0} (0x{0:X8})' -f $p.ExitCode; break }
 		if ($elapsed -gt $TimeoutSeconds) { break }
 		try { $seen = @(Get-OwnedInstances $p $processStarted $seen) } catch {}
@@ -319,7 +320,8 @@ if ([IO.Directory]::Exists("$writeDir\Logs")) {
 	}
 }
 $manifest.outputs = @(Get-ChildItem -LiteralPath $out -File | ForEach-Object { @{ name = $_.Name; bytes = $_.Length; sha256 = Hash $_.FullName } })
-$manifest.default_profile_log_unchanged = (Test-Path -LiteralPath $defaultLog) -and ($defaultLogTicksBefore -eq (DefaultLogTicks))
+$manifest.default_profile_log_unchanged = (Test-Path -LiteralPath $defaultLog) -and
+	(Test-LogTimestampUnchanged $defaultLog $defaultLogTicksBefore)
 $manifest.finished = (Get-Date).ToString('o')
 $manifest | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 -LiteralPath "$out\manifest.json"
 Write-Output "run $runId -> $out ($verdict)"

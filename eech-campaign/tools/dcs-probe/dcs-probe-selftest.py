@@ -563,7 +563,7 @@ TIMING = r'''
 local probe, mode = arg[1], arg[2]
 local now, wall, scheduled = 0, 0, nil
 os.clock = function () return wall end
-env = { info = function (line) if mode == "error" then wall = wall + 0.002 end; print (line) end }
+env = { info = function (line) if mode == "cost" or mode == "error" then wall = wall + 0.002 end; print (line) end }
 timer = { getTime = function () return now end, getAbsTime = function () return 0 end,
           scheduleFunction = function (f) scheduled = f end }
 world = { event = {}, addEventHandler = function () end }
@@ -584,7 +584,8 @@ EECH_DCS_PROBE = { stage = "frames", root = "synthetic", frame_ms = 100, interva
                    summary_every = mode == "cost" and 0.1 or 0.5 }
 dofile (probe)
 if mode == "cost" then
-  -- callback 1 (0.25 s): two frames (2 ms), then a summary and a 50 ms checkpoint: 52 ms in all
+  -- callback 1 (0.25 s): two frames (2 ms), a summary write (2 ms), then a 50 ms
+  -- checkpoint and its write (2 ms): 56 ms in all
   now, wall = 0.25, 1; scheduled ()
   -- callbacks 2 and 3: one frame each; callback 3 writes the next summary
   now = 0.30; scheduled ()
@@ -626,8 +627,8 @@ def timing_tests(tmp, lua):
               first.get("step_max_ms") == "2.0", str(first))
         check("cost: no callback has completed before the first summary is written",
               first.get("callbacks_completed") == "0" and first.get("callback_max_ms") == "-", str(first))
-        check("cost: the complete 52 ms callback (frames + summary + checkpoint) is reported, in the next window",
-              second.get("callback_max_ms") == "52.0" and second.get("callbacks_completed") == "2", str(second))
+        check("cost: the complete 56 ms callback including summary/checkpoint logging is reported in the next window",
+              second.get("callback_max_ms") == "56.0" and second.get("callbacks_completed") == "2", str(second))
 
     out = run("gap")
     rows = summaries(out)

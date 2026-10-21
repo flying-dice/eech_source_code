@@ -1,10 +1,41 @@
-# Exercise the runner's process-tree cleanup (owned-process-tree.ps1, shared with the runner)
-# with a fake process inventory and a fake Stop-Process. Nothing here enumerates, starts or
-# stops a real process, loads Win32 APIs or starts DCS. Process identity is a PID together
-# with its creation time, so the cases include PID reuse by unrelated processes next to real
-# survivors.
+# Exercise the runner's process and log guards plus process-tree cleanup using the same helpers
+# as the runner. Nothing here enumerates, starts or stops a real process, loads Win32 APIs,
+# touches Saved Games or starts DCS. Process identity is a PID together with its creation time,
+# so the cleanup cases include PID reuse by unrelated processes next to real survivors.
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'owned-process-tree.ps1')
+. (Join-Path $PSScriptRoot 'runner-guards.ps1')
+
+Assert-NoRunningDcs @()
+Write-Output 'ok   launch guard: an empty process snapshot permits launch'
+$guardMessage = $null
+try { Assert-NoRunningDcs @([pscustomobject]@{ Id = 4242; ProcessName = 'DCS' }) }
+catch { $guardMessage = $_.Exception.Message }
+if ($guardMessage -ne 'a DCS process is already running: not starting another') {
+	throw "launch guard accepted a fake running DCS process or returned the wrong error: $guardMessage"
+}
+Write-Output 'ok   launch guard: a fake DCS process snapshot blocks launch'
+
+$scratch = Join-Path ([IO.Path]::GetTempPath()) ("eech-dcs-runner-guards-{0}" -f [guid]::NewGuid())
+$scratchLog = Join-Path $scratch 'dcs.log'
+try {
+	$null = [IO.Directory]::CreateDirectory($scratch)
+	[IO.File]::WriteAllText($scratchLog, 'scratch only')
+	$initialTime = [datetime]'2026-10-21T08:00:00Z'
+	[IO.File]::SetLastWriteTimeUtc($scratchLog, $initialTime)
+	$ticks = Get-LogTimestampTicks $scratchLog
+	if ($null -ne (Get-DefaultLogGuardVerdict $scratchLog $ticks)) { throw 'unchanged scratch log requested abort' }
+	Write-Output 'ok   default-log guard: an unchanged scratch timestamp permits the run to continue'
+	[IO.File]::SetLastWriteTimeUtc($scratchLog, $initialTime.AddSeconds(1))
+	$logVerdict = Get-DefaultLogGuardVerdict $scratchLog $ticks
+	if ($logVerdict -ne 'aborted: the default profile log changed') {
+		throw "changed scratch log returned the wrong verdict: $logVerdict"
+	}
+	Write-Output 'ok   default-log guard: a changed scratch timestamp requests abort'
+} finally {
+	if ([IO.File]::Exists($scratchLog)) { [IO.File]::Delete($scratchLog) }
+	if ([IO.Directory]::Exists($scratch)) { [IO.Directory]::Delete($scratch) }
+}
 
 $started = [datetime]'2026-10-21T08:00:00Z'
 $script:inventory = @()
