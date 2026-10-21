@@ -197,7 +197,9 @@ pub struct LossLandingAction {
 
 /// Copied campaign and physical facts supplied synchronously at an existing
 /// credit or physical-loss site. The opaque `host_id` identifies the physical
-/// incarnation; entity indices are deliberately absent.
+/// incarnation; entity indices are deliberately absent. `Withhold` defers only
+/// a supported campaign consequence set; reference-world physical death always
+/// continues.
 #[derive(Clone, Debug, Serialize)]
 pub struct LossDescriptor {
     pub host_id: String,
@@ -207,6 +209,7 @@ pub struct LossDescriptor {
     pub entity_type: i32,
     pub sub_type: i32,
     pub side: Side,
+    pub force_info_category: i32,
     pub group_sub_type: i32,
     pub primary_task_sub_type: Option<i32>,
     pub primary_task_key: Option<u64>,
@@ -441,6 +444,7 @@ where
             entity_type: descriptor.entity_type,
             sub_type: descriptor.sub_type,
             side: side(descriptor.side),
+            force_info_category: descriptor.force_info_category,
             group_sub_type: descriptor.group_sub_type,
             primary_task_sub_type: (descriptor.primary_task_sub_type >= 0).then_some(descriptor.primary_task_sub_type),
             primary_task_key: (descriptor.primary_task_key != 0).then_some(descriptor.primary_task_key),
@@ -560,6 +564,8 @@ impl Engine {
         with_host(bind_mobile_fn, observe_loss_fn, |host| unsafe { sys::eech_engine_frame(milliseconds, host) })
     }
 
+    /// Applies one previously withheld loss by opaque physical-incarnation ID.
+    /// Duplicate, unknown, stale and unsupported reports fail visibly.
     pub fn report_loss(&self, host_id: &str) -> Result<(), EngineError> {
         let host_id = cstring(host_id)?;
         // SAFETY: a valid NUL-terminated identity for the duration of the call.

@@ -12,7 +12,8 @@ loads the module with `require ("eech_dc")` and records Tacview.
 
 ```
    eech-world (host binary)     Rust; embeds Lua 5.1; Tacview ACMI 2.2
-        │  require ("eech_dc") → boot { bind_mobile=... } · frame · objects · members
+        │  require ("eech_dc") → boot { bind_mobile=..., observe_loss=... }
+        │                         frame · report_loss · objects · members
         ▼
    eech-dc (libeech_dc.so)      the Lua module (mlua, lua51 + module)
         ▼
@@ -57,6 +58,9 @@ M5 slice 1a: the campaign's loss consequences moved out of world destroy code, b
 [`docs/m5-loss-structural.md`](docs/m5-loss-structural.md).
 M5 prerequisite: externally issued physical-incarnation identities and the durable roster:
 [`docs/m5-host-identities.md`](docs/m5-host-identities.md).
+M5 experiment: an identity-keyed helicopter SUPPLY loss can withhold campaign
+consequences while physical wreck/free continues:
+[`docs/m5-physical-loss.md`](docs/m5-physical-loss.md).
 
 ## The campaign kernel spike
 

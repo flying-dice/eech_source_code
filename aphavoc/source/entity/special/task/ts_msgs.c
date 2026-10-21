@@ -430,6 +430,8 @@ static int apply_task_terminated (entity *receiver, int has_excluded_dependent, 
 		return FALSE;
 	}
 
+	campaign_roster_record_task_termination (receiver, task_terminated);
+
 	#if DEBUG_MODULE
 
 	debug_log ("TS_MSGS: task terminated %s (%d) %s",

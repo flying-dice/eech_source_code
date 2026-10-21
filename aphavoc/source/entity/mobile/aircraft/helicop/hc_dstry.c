@@ -324,6 +324,9 @@ static void kill_local (entity *en)
 		*group,
 		*member;
 
+	int
+		loss_decision;
+
 	////////////////////////////////////////
 	//
 	// PRE-AMBLE
@@ -347,16 +350,21 @@ static void kill_local (entity *en)
 
 	ASSERT (group);
 
-	if (campaign_roster_observe_physical_loss (en, group) != CAMPAIGN_LOSS_FORWARD)
+	loss_decision = campaign_roster_observe_physical_loss (en, group);
+
+	if ((loss_decision != CAMPAIGN_LOSS_FORWARD) && (loss_decision != CAMPAIGN_LOSS_WITHHOLD))
 	{
-		debug_fatal ("campaign loss: helicopter withholding is not enabled");
+		debug_fatal ("campaign loss: invalid helicopter loss decision %d", loss_decision);
 	}
 
 	//
 	// update force info
 	//
 
-	remove_from_force_info (get_local_force_entity ((entity_sides) raw->ac.mob.side), en);
+	if (loss_decision == CAMPAIGN_LOSS_FORWARD)
+	{
+		remove_from_force_info (get_local_force_entity ((entity_sides) raw->ac.mob.side), en);
+	}
 
 	if (tacview_is_logging())
 		write_tacview_unit_event(en, TACVIEW_UNIT_DESTROYED, NULL);
@@ -406,27 +414,30 @@ static void kill_local (entity *en)
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
-		// notify regen of kill
+		if (loss_decision == CAMPAIGN_LOSS_FORWARD)
+		{
+			// notify regen of kill
 
-		add_entity_to_regen_queue
-		(
-			(entity_sides) get_local_entity_int_value(en, INT_TYPE_SIDE),
-			get_local_entity_type(en),
-			get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE),
-			get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE)
-		);
+			add_entity_to_regen_queue
+			(
+				(entity_sides) get_local_entity_int_value(en, INT_TYPE_SIDE),
+				get_local_entity_type(en),
+				get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE),
+				get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE)
+			);
 
-		//
-		// notify task dependents
-		//
+			//
+			// notify task dependents
+			//
 
-		notify_member_task_dependents_completed (en);
+			notify_member_task_dependents_completed (en);
 
-		//
-		// Release landing lock (if any)
-		//
+			//
+			// Release landing lock (if any)
+			//
 
-		release_mobile_entity_landing_locks (en);
+			release_mobile_entity_landing_locks (en);
+		}
 
 		//
 		// if group contains player, set all helicopters in group to "weapons free", and clear "hold position" flag
@@ -568,13 +579,19 @@ static void kill_local (entity *en)
 	// group losses
 	//
 
-	increment_group_losses (group);
+	if (loss_decision == CAMPAIGN_LOSS_FORWARD)
+	{
+		increment_group_losses (group);
+	}
 
 	//
 	// task losses
 	//
 
-	increment_group_primary_task_losses (group);
+	if (loss_decision == CAMPAIGN_LOSS_FORWARD)
+	{
+		increment_group_primary_task_losses (group);
+	}
 
 	//
 	// Notify Campaign Screen
@@ -586,7 +603,7 @@ static void kill_local (entity *en)
 	// Notify the GROUP that the mobile has been killed  (N.B. must be done AFTER mobile is unlinked from member list)
 	//
 
-	if (get_comms_model () == COMMS_MODEL_SERVER)
+	if ((get_comms_model () == COMMS_MODEL_SERVER) && (loss_decision == CAMPAIGN_LOSS_FORWARD))
 	{
 		notify_group_member_killed (group, en);
 	}
@@ -595,7 +612,7 @@ static void kill_local (entity *en)
 	// Notify force to check campaign criteria
 	//
 
-	if (get_comms_model () == COMMS_MODEL_SERVER)
+	if ((get_comms_model () == COMMS_MODEL_SERVER) && (loss_decision == CAMPAIGN_LOSS_FORWARD))
 	{
 		notify_forces_check_campaign_objectives (en);
 	}

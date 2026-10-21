@@ -20,6 +20,8 @@ typedef struct campaign_member_record
 	int initial_alive;
 	int physical_present;
 	int in_group;
+	int credit_observed;
+	int loss_pending;
 } campaign_member_record;
 
 typedef struct campaign_entity_reference_record
@@ -29,6 +31,47 @@ typedef struct campaign_entity_reference_record
 	int entity_type;
 	int active;
 } campaign_entity_reference_record;
+
+typedef struct campaign_pending_task_action
+{
+	uint64_t task_key;
+	int sub_type;
+	int state;
+	int termination_reason;
+} campaign_pending_task_action;
+
+typedef struct campaign_pending_loss
+{
+	char host_id[CAMPAIGN_HOST_ID_MAX + 1];
+	uint64_t member_key;
+	uint64_t group_reference_key;
+	uint64_t primary_task_key;
+	int side;
+	int entity_type;
+	int sub_type;
+	int group_sub_type;
+	int group_member_number;
+	int force_info_category;
+	int task_count;
+	campaign_pending_task_action tasks[CAMPAIGN_LOSS_TASK_DEPENDENT_MAX];
+	uint64_t landing_key;
+	int landing_count;
+	int state;
+} campaign_pending_loss;
+
+enum
+{
+	CAMPAIGN_PENDING_LOSS_ACTIVE = 1,
+	CAMPAIGN_PENDING_LOSS_REPORTED = 2
+};
+
+enum
+{
+	CAMPAIGN_PENDING_TASK_ACTIVE = 1,
+	CAMPAIGN_PENDING_TASK_RETIRED_EXPIRE = 2,
+	CAMPAIGN_PENDING_TASK_REPORTING = 3,
+	CAMPAIGN_PENDING_TASK_REPORTED = 4
+};
 
 static campaign_member_record *records;
 static size_t record_count;
@@ -43,6 +86,9 @@ static campaign_entity_reference_record *reference_records;
 static size_t reference_record_count;
 static size_t reference_record_capacity;
 static uint64_t next_reference_key = 1;
+static campaign_pending_loss *pending_losses;
+static size_t pending_loss_count;
+static size_t pending_loss_capacity;
 static uint64_t duplicate_comparisons;
 static clock_t duplicate_scan_ticks;
 static campaign_roster_host current_host;
@@ -93,6 +139,74 @@ static uint64_t campaign_reference_key (entity *en)
 		reference_record_count++;
 		return record->key;
 	}
+}
+
+static entity *campaign_reference_resolve (uint64_t key, entity_types expected_type)
+{
+	campaign_entity_reference_record *record;
+	entity *en;
+	int record_index;
+
+	if (!key || (key > reference_record_count))
+	{
+		debug_fatal ("campaign roster: unknown entity reference %llu", (unsigned long long) key);
+	}
+	record_index = (int) key - 1;
+	record = &reference_records[record_index];
+	if ((record->key != key) || !record->active || (record->entity_type != expected_type) ||
+		(current_reference_by_entity[record->entity_index] != record_index + 1))
+	{
+		debug_fatal ("campaign roster: stale entity reference %llu", (unsigned long long) key);
+	}
+	en = get_local_entity_ptr (record->entity_index);
+	if (get_local_entity_type (en) != expected_type)
+	{
+		debug_fatal ("campaign roster: entity reference %llu changed type", (unsigned long long) key);
+	}
+	return en;
+}
+
+static void campaign_reference_require_retired (uint64_t key, entity_types expected_type)
+{
+	campaign_entity_reference_record *record;
+
+	if (!key || (key > reference_record_count))
+	{
+		debug_fatal ("campaign roster: unknown retired entity reference %llu", (unsigned long long) key);
+	}
+	record = &reference_records[(int) key - 1];
+	if ((record->key != key) || record->active || (record->entity_type != expected_type))
+	{
+		debug_fatal ("campaign roster: entity reference %llu was not explicitly retired", (unsigned long long) key);
+	}
+}
+
+static void ensure_pending_loss_capacity (void)
+{
+	if (pending_loss_count == pending_loss_capacity)
+	{
+		size_t capacity = pending_loss_capacity ? pending_loss_capacity * 2 : 16;
+		campaign_pending_loss *grown = (campaign_pending_loss *) realloc (pending_losses, capacity * sizeof (*pending_losses));
+		if (!grown)
+		{
+			debug_fatal ("campaign roster: cannot allocate %u pending losses", (unsigned int) capacity);
+		}
+		pending_losses = grown;
+		pending_loss_capacity = capacity;
+	}
+}
+
+static campaign_pending_loss *find_pending_loss (const char *host_id)
+{
+	size_t i;
+	for (i = 0; i < pending_loss_count; ++i)
+	{
+		if (!strcmp (pending_losses[i].host_id, host_id))
+		{
+			return &pending_losses[i];
+		}
+	}
+	return NULL;
 }
 
 static campaign_member_record *record_for_member (entity *member)
@@ -249,6 +363,103 @@ static void capture_landing_actions (entity *member, entity *group, campaign_los
 	}
 }
 
+static void begin_pending_loss (entity *group, campaign_member_record *member_record, const campaign_loss_descriptor *descriptor)
+{
+	campaign_pending_loss *pending;
+	int task_count = 0;
+	int waypoint_count = 0;
+	int i;
+
+	if ((descriptor->entity_type != ENTITY_TYPE_HELICOPTER) ||
+		(descriptor->primary_task_sub_type != ENTITY_SUB_TYPE_TASK_SUPPLY) ||
+		(descriptor->player != ENTITY_PLAYER_AI) || descriptor->landed ||
+		(descriptor->campaign_member_count <= 1) || descriptor->group_task_dependents ||
+		descriptor->restricted_guides || descriptor->movement_parent || descriptor->movement_dependents ||
+		descriptor->takeoff_queue)
+	{
+		debug_fatal ("campaign loss: WITHHOLD supports only a non-final AI helicopter on a bounded SUPPLY loss");
+	}
+	if ((descriptor->force_info_category < 0) || (descriptor->force_info_category >= NUM_FORCE_INFO_CATAGORIES))
+	{
+		debug_fatal ("campaign loss: invalid force information category %d", descriptor->force_info_category);
+	}
+	if ((descriptor->member_task_dependent_count != descriptor->member_task_dependent_copied) ||
+		(descriptor->member_task_dependent_count != 8))
+	{
+		debug_fatal ("campaign loss: supported SUPPLY loss requires eight copied task-dependent entries");
+	}
+	for (i = 0; i < descriptor->member_task_dependent_copied; ++i)
+	{
+		const campaign_loss_task_dependent *dependent = &descriptor->member_task_dependents[i];
+		if ((dependent->entity_type == ENTITY_TYPE_WAYPOINT) &&
+			(dependent->sub_type == ENTITY_SUB_TYPE_WAYPOINT_TARGET))
+		{
+			waypoint_count++;
+			continue;
+		}
+		if ((dependent->entity_type != ENTITY_TYPE_TASK) ||
+			(dependent->sub_type != ENTITY_SUB_TYPE_TASK_ENGAGE) ||
+			(dependent->task_state != TASK_STATE_UNASSIGNED) ||
+			(dependent->task_completed != TASK_INCOMPLETE) ||
+			dependent->primary_task || dependent->persistent_task || !dependent->objective_is_member ||
+			dependent->task_dependent_children || (dependent->expire_timer <= 0.0) ||
+			(dependent->stop_timer != 0.0) || (dependent->guide_children <= 0))
+		{
+			debug_fatal ("campaign loss: unsupported SUPPLY task-dependent entry %d", i);
+		}
+		task_count++;
+	}
+	if ((task_count != 4) || (waypoint_count != 4))
+	{
+		debug_fatal ("campaign loss: supported SUPPLY loss requires four ENGAGE tasks and four target waypoints");
+	}
+	if ((descriptor->landing_action_count != 1) || (descriptor->landing_action_copied != 1) ||
+		(descriptor->landing_actions[0].action_kind != CAMPAIGN_LOSS_LANDING_UNRESERVE_SITE) ||
+		(descriptor->landing_actions[0].count != 1) ||
+		(descriptor->landing_actions[0].landing_sub_type != ENTITY_SUB_TYPE_LANDING_HELICOPTER) ||
+		!descriptor->landing_actions[0].landing_key)
+	{
+		debug_fatal ("campaign loss: supported SUPPLY loss requires one landing-site unreserve action");
+	}
+	if (!descriptor->primary_task_key || find_pending_loss (descriptor->host_id) || member_record->loss_pending)
+	{
+		debug_fatal ("campaign loss: duplicate or incomplete pending loss for %s", descriptor->host_id);
+	}
+	if (member_record->credit_observed)
+	{
+		debug_fatal ("campaign loss: WITHHOLD does not support a member with credited aggression");
+	}
+
+	ensure_pending_loss_capacity ();
+	pending = &pending_losses[pending_loss_count++];
+	memset (pending, 0, sizeof (*pending));
+	strcpy (pending->host_id, descriptor->host_id);
+	pending->member_key = descriptor->member_key;
+	pending->group_reference_key = campaign_reference_key (group);
+	pending->primary_task_key = descriptor->primary_task_key;
+	pending->side = descriptor->side;
+	pending->entity_type = descriptor->entity_type;
+	pending->sub_type = descriptor->sub_type;
+	pending->group_sub_type = descriptor->group_sub_type;
+	pending->group_member_number = descriptor->group_member_number;
+	pending->force_info_category = descriptor->force_info_category;
+	pending->landing_key = descriptor->landing_actions[0].landing_key;
+	pending->landing_count = descriptor->landing_actions[0].count;
+	pending->state = CAMPAIGN_PENDING_LOSS_ACTIVE;
+	for (i = 0; i < descriptor->member_task_dependent_copied; ++i)
+	{
+		const campaign_loss_task_dependent *dependent = &descriptor->member_task_dependents[i];
+		if (dependent->entity_type == ENTITY_TYPE_TASK)
+		{
+			pending->tasks[pending->task_count].task_key = dependent->task_key;
+			pending->tasks[pending->task_count].sub_type = dependent->sub_type;
+			pending->tasks[pending->task_count].state = CAMPAIGN_PENDING_TASK_ACTIVE;
+			pending->task_count++;
+		}
+	}
+	member_record->loss_pending = TRUE;
+}
+
 static int observe_loss_event (entity *member, entity *group, campaign_loss_event_kind event_kind)
 {
 	campaign_loss_descriptor descriptor;
@@ -272,6 +483,7 @@ static int observe_loss_event (entity *member, entity *group, campaign_loss_even
 	descriptor.entity_type = record->entity_type;
 	descriptor.sub_type = record->sub_type;
 	descriptor.side = record->side;
+	descriptor.force_info_category = get_local_entity_int_value (member, INT_TYPE_FORCE_INFO_CATAGORY);
 	descriptor.group_sub_type = get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE);
 	descriptor.primary_task_sub_type = task ? get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) : -1;
 	descriptor.primary_task_key = task ? campaign_reference_key (task) : 0;
@@ -294,6 +506,18 @@ static int observe_loss_event (entity *member, entity *group, campaign_loss_even
 	if ((decision != CAMPAIGN_LOSS_FORWARD) && (decision != CAMPAIGN_LOSS_WITHHOLD))
 	{
 		debug_fatal ("campaign roster: host observe_loss returned invalid decision %d", decision);
+	}
+	if (decision == CAMPAIGN_LOSS_WITHHOLD)
+	{
+		if (event_kind != CAMPAIGN_LOSS_EVENT_PHYSICAL)
+		{
+			debug_fatal ("campaign loss: CREDIT withholding is unsupported");
+		}
+		begin_pending_loss (group, record, &descriptor);
+	}
+	if (event_kind == CAMPAIGN_LOSS_EVENT_CREDIT)
+	{
+		record->credit_observed = TRUE;
 	}
 	return decision;
 }
@@ -416,6 +640,7 @@ void campaign_roster_reset (void)
 	free (current_group_by_entity);
 	free (current_reference_by_entity);
 	free (reference_records);
+	free (pending_losses);
 	records = NULL;
 	record_count = 0;
 	record_capacity = 0;
@@ -426,6 +651,9 @@ void campaign_roster_reset (void)
 	reference_records = NULL;
 	reference_record_count = 0;
 	reference_record_capacity = 0;
+	pending_losses = NULL;
+	pending_loss_count = 0;
+	pending_loss_capacity = 0;
 	next_reference_key = 1;
 	next_member_key = 1;
 	next_group_key = 1;
@@ -587,16 +815,232 @@ int campaign_roster_observe_physical_loss (entity *member, entity *group)
 	return observe_loss_event (member, group, CAMPAIGN_LOSS_EVENT_PHYSICAL);
 }
 
+void campaign_roster_record_task_termination (entity *task, int termination_reason)
+{
+	campaign_entity_reference_record *reference;
+	campaign_pending_task_action *action = NULL;
+	int index;
+	int reference_index;
+	size_t i;
+	int j;
+
+	index = entity_index (task);
+	reference_index = current_reference_by_entity[index] - 1;
+	if (reference_index < 0)
+	{
+		return;
+	}
+	reference = &reference_records[reference_index];
+	if (!reference->active || (reference->entity_type != ENTITY_TYPE_TASK) ||
+		(reference->entity_index != index) || (reference->key == 0))
+	{
+		debug_fatal ("campaign loss: invalid task reference during termination");
+	}
+	for (i = 0; i < pending_loss_count; ++i)
+	{
+		campaign_pending_loss *pending = &pending_losses[i];
+		if (pending->state != CAMPAIGN_PENDING_LOSS_ACTIVE)
+		{
+			continue;
+		}
+		for (j = 0; j < pending->task_count; ++j)
+		{
+			if (pending->tasks[j].task_key == reference->key)
+			{
+				if (action)
+				{
+					debug_fatal ("campaign loss: task reference belongs to multiple pending losses");
+				}
+				action = &pending->tasks[j];
+			}
+		}
+	}
+	if (!action)
+	{
+		return;
+	}
+	if (action->state == CAMPAIGN_PENDING_TASK_REPORTING)
+	{
+		if (termination_reason != TASK_TERMINATED_OBJECTIVE_MESSAGE)
+		{
+			debug_fatal ("campaign loss: report terminated ENGAGE task for an unexpected reason %d", termination_reason);
+		}
+		return;
+	}
+	if (action->state != CAMPAIGN_PENDING_TASK_ACTIVE)
+	{
+		debug_fatal ("campaign loss: ENGAGE task terminated more than once");
+	}
+	if ((termination_reason != TASK_TERMINATED_EXPIRE_TIME_REACHED) ||
+		(get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) != action->sub_type) ||
+		(get_local_entity_int_value (task, INT_TYPE_TASK_STATE) != TASK_STATE_UNASSIGNED) ||
+		(get_local_entity_int_value (task, INT_TYPE_TASK_COMPLETED) != TASK_INCOMPLETE) ||
+		get_local_entity_parent (task, LIST_TYPE_TASK_DEPENDENT))
+	{
+		debug_fatal ("campaign loss: pending ENGAGE task changed before natural expiry");
+	}
+	action->termination_reason = termination_reason;
+	action->state = CAMPAIGN_PENDING_TASK_RETIRED_EXPIRE;
+}
+
 int campaign_roster_has_pending_loss (void)
 {
+	size_t i;
+	for (i = 0; i < pending_loss_count; ++i)
+	{
+		if (pending_losses[i].state == CAMPAIGN_PENDING_LOSS_ACTIVE)
+		{
+			return TRUE;
+		}
+	}
 	return FALSE;
 }
 
 int campaign_roster_report_loss (const char *host_id)
 {
-	(void) host_id;
-	debug_fatal ("campaign roster: no loss is pending");
-	return FALSE;
+	campaign_pending_loss *pending;
+	campaign_member_record *member_record = NULL;
+	entity *group;
+	entity *primary_task;
+	entity *landing;
+	entity *tasks[CAMPAIGN_LOSS_TASK_DEPENDENT_MAX];
+	entity *force;
+	int i;
+	int landing_reserved_before;
+	int group_losses_before;
+	int task_losses_before;
+	int retired_expire_count = 0;
+	int completed_on_report_count = 0;
+
+	if (!host_id || !host_id[0])
+	{
+		debug_fatal ("campaign loss: report_loss requires an opaque host identity");
+	}
+	pending = find_pending_loss (host_id);
+	if (!pending)
+	{
+		debug_fatal ("campaign loss: no loss is pending for %s", host_id);
+	}
+	if (pending->state == CAMPAIGN_PENDING_LOSS_REPORTED)
+	{
+		debug_fatal ("campaign loss: loss for %s was already reported", host_id);
+	}
+	if (pending->state != CAMPAIGN_PENDING_LOSS_ACTIVE)
+	{
+		debug_fatal ("campaign loss: invalid pending state for %s", host_id);
+	}
+
+	group = campaign_reference_resolve (pending->group_reference_key, ENTITY_TYPE_GROUP);
+	primary_task = campaign_reference_resolve (pending->primary_task_key, ENTITY_TYPE_TASK);
+	landing = campaign_reference_resolve (pending->landing_key, ENTITY_TYPE_LANDING);
+	if (get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE) != pending->group_sub_type)
+	{
+		debug_fatal ("campaign loss: group changed before report for %s", host_id);
+	}
+	if (get_local_entity_int_value (primary_task, INT_TYPE_ENTITY_SUB_TYPE) != ENTITY_SUB_TYPE_TASK_SUPPLY)
+	{
+		debug_fatal ("campaign loss: primary SUPPLY task changed before report for %s", host_id);
+	}
+	if (get_local_entity_int_value (landing, INT_TYPE_RESERVED_LANDING_SITES) < pending->landing_count)
+	{
+		debug_fatal ("campaign loss: landing reservation changed before report for %s", host_id);
+	}
+	if ((pending->group_member_number < 0) ||
+		(pending->group_member_number >= (int) (sizeof (unsigned int) * 8)))
+	{
+		debug_fatal ("campaign loss: invalid group member number %d for %s", pending->group_member_number, host_id);
+	}
+	for (i = 0; i < pending->task_count; ++i)
+	{
+		campaign_pending_task_action *action = &pending->tasks[i];
+		tasks[i] = NULL;
+		if (action->state == CAMPAIGN_PENDING_TASK_RETIRED_EXPIRE)
+		{
+			if (action->termination_reason != TASK_TERMINATED_EXPIRE_TIME_REACHED)
+			{
+				debug_fatal ("campaign loss: ENGAGE task has an invalid retirement reason for %s", host_id);
+			}
+			campaign_reference_require_retired (action->task_key, ENTITY_TYPE_TASK);
+			retired_expire_count++;
+			continue;
+		}
+		if (action->state != CAMPAIGN_PENDING_TASK_ACTIVE)
+		{
+			debug_fatal ("campaign loss: ENGAGE task has an invalid pending state for %s", host_id);
+		}
+		tasks[i] = campaign_reference_resolve (action->task_key, ENTITY_TYPE_TASK);
+		if ((get_local_entity_int_value (tasks[i], INT_TYPE_ENTITY_SUB_TYPE) != action->sub_type) ||
+			(get_local_entity_int_value (tasks[i], INT_TYPE_TASK_STATE) != TASK_STATE_UNASSIGNED) ||
+			(get_local_entity_int_value (tasks[i], INT_TYPE_TASK_COMPLETED) != TASK_INCOMPLETE) ||
+			(get_local_entity_int_value (tasks[i], INT_TYPE_TASK_TERMINATED) != TASK_TERMINATED_IN_PROGRESS) ||
+			get_local_entity_parent (tasks[i], LIST_TYPE_TASK_DEPENDENT) ||
+			get_local_entity_first_child (tasks[i], LIST_TYPE_TASK_DEPENDENT))
+		{
+			debug_fatal ("campaign loss: ENGAGE task changed before report for %s", host_id);
+		}
+	}
+	landing_reserved_before = get_local_entity_int_value (landing, INT_TYPE_RESERVED_LANDING_SITES);
+	group_losses_before = get_local_entity_int_value (group, INT_TYPE_LOSSES);
+	task_losses_before = get_local_entity_int_value (primary_task, INT_TYPE_LOSSES);
+	for (i = 0; i < (int) record_count; ++i)
+	{
+		if (records[i].member_key == pending->member_key)
+		{
+			member_record = &records[i];
+			break;
+		}
+	}
+	if (!member_record || member_record->physical_present || member_record->in_group || !member_record->loss_pending)
+	{
+		debug_fatal ("campaign loss: physical member is not durably released for %s", host_id);
+	}
+
+	force = get_local_force_entity ((entity_sides) pending->side);
+	remove_from_force_info_values (force, (entity_sub_types) pending->group_sub_type, pending->force_info_category);
+	add_entity_to_regen_queue
+	(
+		(entity_sides) pending->side,
+		(entity_types) pending->entity_type,
+		(entity_sub_types) pending->sub_type,
+		(entity_sub_types) pending->group_sub_type
+	);
+	for (i = 0; i < pending->task_count; ++i)
+	{
+		campaign_pending_task_action *action = &pending->tasks[i];
+		if (action->state == CAMPAIGN_PENDING_TASK_RETIRED_EXPIRE)
+		{
+			continue;
+		}
+		action->state = CAMPAIGN_PENDING_TASK_REPORTING;
+		if (!complete_non_primary_task_for_lost_objective (tasks[i]))
+		{
+			debug_fatal ("campaign loss: ENGAGE task could not be completed for %s", host_id);
+		}
+		action->state = CAMPAIGN_PENDING_TASK_REPORTED;
+		completed_on_report_count++;
+	}
+	unreserve_local_landing_sites (landing, pending->landing_count);
+	increment_group_losses (group);
+	increment_task_losses (primary_task);
+	apply_group_member_killed (group, 1U << pending->group_member_number);
+	check_all_force_campaign_objectives ();
+	debug_log
+	(
+		"campaign loss: reported %s landing_reserved=%d->%d group_losses=%d->%d primary_task_losses=%d->%d tasks_retired_expire=%d tasks_completed_on_report=%d",
+		host_id,
+		landing_reserved_before,
+		get_local_entity_int_value (landing, INT_TYPE_RESERVED_LANDING_SITES),
+		group_losses_before,
+		get_local_entity_int_value (group, INT_TYPE_LOSSES),
+		task_losses_before,
+		get_local_entity_int_value (primary_task, INT_TYPE_LOSSES),
+		retired_expire_count,
+		completed_on_report_count
+	);
+
+	pending->state = CAMPAIGN_PENDING_LOSS_REPORTED;
+	member_record->loss_pending = FALSE;
+	return TRUE;
 }
 
 int campaign_roster_members (campaign_member_snapshot_fn callback, void *user)

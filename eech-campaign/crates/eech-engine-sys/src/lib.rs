@@ -92,6 +92,7 @@ pub struct eech_loss_descriptor {
     pub entity_type: c_int,
     pub sub_type: c_int,
     pub side: c_int,
+    pub force_info_category: c_int,
     pub group_sub_type: c_int,
     pub primary_task_sub_type: c_int,
     pub primary_task_key: u64,

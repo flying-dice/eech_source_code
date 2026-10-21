@@ -95,6 +95,7 @@ typedef struct campaign_loss_descriptor
 	int entity_type;
 	int sub_type;
 	int side;
+	int force_info_category;
 	int group_sub_type;
 	int primary_task_sub_type;
 	uint64_t primary_task_key;
@@ -163,6 +164,7 @@ void campaign_roster_unlink_member (struct ENTITY *group, struct ENTITY *member)
 void campaign_roster_release_entity (struct ENTITY *entity);
 int campaign_roster_observe_credit (struct ENTITY *member);
 int campaign_roster_observe_physical_loss (struct ENTITY *member, struct ENTITY *group);
+void campaign_roster_record_task_termination (struct ENTITY *task, int termination_reason);
 int campaign_roster_has_pending_loss (void);
 int campaign_roster_report_loss (const char *host_id);
 int campaign_roster_members (campaign_member_snapshot_fn callback, void *user);
