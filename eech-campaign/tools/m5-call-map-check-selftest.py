@@ -98,11 +98,16 @@ with tempfile.TemporaryDirectory() as scripts, tempfile.TemporaryDirectory() as 
     json.dump(dispatch, open(mutated, 'w', encoding='utf-8'))
     items_path = os.path.join(scripts, 'items-extra-table.json')
     r = script('ledger.py', detail('reach'), mutated, detail('globals'), '--items', items_path)
-    tables = {i['item']: i['disposition'] for i in json.load(open(items_path, encoding='utf-8')) if i['ledger'] == 'other tables'}
+    listed = [i for i in json.load(open(items_path, encoding='utf-8')) if i['ledger'] == 'other tables']
+    tables = {i['item']: i['disposition'] for i in listed}
+    synthetic = next(i for i in listed if i['item'] == 'synthetic_unreviewed_table')
     outstanding = [l for l in r.stdout.splitlines() if l.startswith('OUTSTANDING')]
     expect('unknown-table: the unreviewed table is outstanding, and only it',
            len(outstanding) == 1 and outstanding[0].endswith('synthetic_unreviewed_table')
            and tables.pop('synthetic_unreviewed_table') == 'outstanding', r.stdout[-300:] + r.stderr)
+    expect('unknown-table: the unreviewed table carries the canonical rule id "none", not a fifth rule kind',
+           synthetic['rule'] == 'none' and set(json.JSONDecoder().raw_decode(r.stdout)[0]['items by rule kind'])
+           <= {'exact', 'pattern', 'fallback', 'none'}, json.dumps(synthetic))
     expect('unknown-table: the six reviewed other-table forms stay excluded',
            len(tables) == 6 and set(tables.values()) == {'excluded'}, json.dumps(tables))
 

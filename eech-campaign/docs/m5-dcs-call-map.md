@@ -1421,9 +1421,15 @@ def rule_list(ledger, specs):
              "id": f"{rule_kind(rx, ledger)}:{ledger}#{i}"} for i, (rx, category, disposition, ref) in enumerate(specs)]
 
 
+RULE_KINDS = ("exact", "pattern", "fallback", "none")
+
+
 def kind_of(rule_id):
-    """"exact", "pattern", "fallback" or "none" from a rule id such as "pattern:calls#3" """
-    return rule_id.split(":")[0]
+    """"exact", "pattern", "fallback" or "none" from a rule id such as "pattern:calls#3"; any other id is a defect"""
+    kind = rule_id.split(":")[0]
+    if kind not in RULE_KINDS:
+        raise ValueError(f"{rule_id!r} is not a rule id: its kind must be one of {RULE_KINDS}")
+    return kind
 
 
 def decide(rules, item_key):
@@ -1661,6 +1667,9 @@ UNRESOLVED = {"endif": "not a call: a #endif line followed by a parenthesised ex
 
 
 def ledger_entry(ledger, key, category, disposition, ref, rule_id, **extra):
+    """an item no rule decided (OUTSTANDING) has the rule id "none"; the reason it is open goes in ref"""
+    rule_id = "none" if disposition == OUTSTANDING else rule_id
+    kind_of(rule_id)  # rejects an id that is not in the documented vocabulary
     return {"ledger": ledger, "item": key, "category": category, "disposition": disposition, "ref": ref,
             "rule": rule_id, **extra}
 
@@ -1696,7 +1705,7 @@ def table_items(dispatch):
             site, what = REVIEWED_DATA_ARRAYS[t]
             d, ref, rule = EXCLUDED, f"{DATA_ARRAY_REASON}{site} ({what})", "exact"
         else:
-            d, ref, rule = OUTSTANDING, "unreviewed function-pointer table form, or a reviewed name at another site", "no rule"
+            d, ref, rule = OUTSTANDING, "unreviewed function-pointer table form, or a reviewed name at another site", "none"
         out.append(ledger_entry("other tables", t, "dispatch", d, ref, rule, first=r["first"]))
     return out
 
