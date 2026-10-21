@@ -299,6 +299,11 @@ def runner_guard_tests(tmp):
     check("runner rejects failing native error control", result.returncode != 0 and "does not show passing" in result.stderr,
           result.stdout + result.stderr)
     check("prelaunch tests never create a run directory", not os.path.exists(work))
+    os.remove(default_log)
+    result = run(stage="load")
+    check("runner rejects a missing default-profile log before writes",
+          result.returncode != 0 and "to watch" in result.stderr and not os.path.exists(work),
+          result.stdout + result.stderr)
     lifecycle = subprocess.run(["pwsh", "-NoProfile", "-File", os.path.join(HERE, "runner-lifecycle-selftest.ps1")],
                                capture_output=True, text=True)
     check("runner cleans owned descendants when the root is running or exited",
