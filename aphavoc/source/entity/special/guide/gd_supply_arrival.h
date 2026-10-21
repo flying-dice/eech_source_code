@@ -1,5 +1,7 @@
 /*
- * Host-observed physical arrival for the four SUPPLY waypoints.
+ * Host-observed physical arrival for the four SUPPLY waypoints and for any
+ * other fixed-wing or helicopter waypoint whose only physical criterion is
+ * RADIUS (alone or with LAST_TO_REACH).
  *
  * Campaign code still selects the waypoint, criteria and required members.
  * The host receives copied primitive facts and returns only the physical
@@ -20,7 +22,8 @@ enum campaign_supply_waypoint_kind
 	CAMPAIGN_SUPPLY_WAYPOINT_PICK_UP,
 	CAMPAIGN_SUPPLY_WAYPOINT_PREPARE_FOR_DROP_OFF,
 	CAMPAIGN_SUPPLY_WAYPOINT_DROP_OFF,
-	CAMPAIGN_SUPPLY_WAYPOINT_FINISH_DROP_OFF
+	CAMPAIGN_SUPPLY_WAYPOINT_FINISH_DROP_OFF,
+	CAMPAIGN_RADIUS_ARRIVAL_WAYPOINT	/* not a SUPPLY waypoint: any other radius-only waypoint */
 };
 
 enum campaign_supply_mobile_kind
@@ -36,6 +39,8 @@ typedef struct campaign_supply_reach_descriptor
 	uint64_t waypoint_key;
 	char host_id[CAMPAIGN_SUPPLY_HOST_ID_MAX + 1];
 	int waypoint_kind;
+	int waypoint_sub_type;		/* the campaign waypoint's entity sub-type */
+	int player_skip_waypoint;	/* waypoint_database fact: a human member's arrival is waived */
 	int mobile_kind;
 	int is_task_leader;
 	int is_ai;
@@ -96,6 +101,8 @@ void campaign_supply_arrival_set_host (const campaign_supply_arrival_host *host)
 void campaign_supply_arrival_release_entity (struct ENTITY *entity);
 int campaign_supply_arrival_is_target (struct ENTITY *guide);
 int campaign_supply_arrival_check (struct ENTITY *member, struct ENTITY *guide);
+int campaign_radius_arrival_is_target (struct ENTITY *member, struct ENTITY *guide);
+int campaign_radius_arrival_check (struct ENTITY *member, struct ENTITY *guide);
 int campaign_supply_task_snapshots (campaign_supply_task_snapshot_fn callback, void *user);
 
 #endif

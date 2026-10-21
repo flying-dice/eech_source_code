@@ -263,6 +263,10 @@ static int check_mobile_reached_waypoint (entity *member, entity *guide)
 	{
 		return campaign_supply_arrival_check (member, guide);
 	}
+	if (campaign_radius_arrival_is_target (member, guide))
+	{
+		return campaign_radius_arrival_check (member, guide);
+	}
 	return notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, member, guide);
 }
 

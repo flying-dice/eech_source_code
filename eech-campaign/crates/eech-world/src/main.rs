@@ -93,8 +93,9 @@ fn segment_perpendicular_distance(a: [f32; 3], b: [f32; 3], c: [f32; 3]) -> f32 
 }
 
 /// Reference-host implementation of EECH's original fixed-wing/helicopter
-/// physical predicate for the four SUPPLY waypoints. The DLL supplies raw
-/// facts; this host computes the verdict.
+/// physical predicate for the four SUPPLY waypoints and for other radius-only
+/// waypoints (`radius_arrival`). The DLL supplies raw facts; this host computes
+/// the verdict.
 #[allow(clippy::neg_cmp_op_on_partial_ord)] // Legacy predicates reject only greater values, so unordered values pass.
 fn supply_reached(descriptor: LuaTable) -> LuaResult<bool> {
     let _: u64 = descriptor.get("member_key")?;
@@ -102,7 +103,7 @@ fn supply_reached(descriptor: LuaTable) -> LuaResult<bool> {
     let _: u64 = descriptor.get("waypoint_key")?;
     let _: String = descriptor.get("host_id")?;
     let waypoint: String = descriptor.get("waypoint")?;
-    if !matches!(waypoint.as_str(), "pick_up" | "prepare_for_drop_off" | "drop_off" | "finish_drop_off") {
+    if !matches!(waypoint.as_str(), "pick_up" | "prepare_for_drop_off" | "drop_off" | "finish_drop_off" | "radius_arrival") {
         return Err(LuaError::runtime(format!("host.supply_reached: unsupported waypoint {waypoint:?}")));
     }
     let mobile: String = descriptor.get("mobile")?;
@@ -138,6 +139,9 @@ fn supply_reached(descriptor: LuaTable) -> LuaResult<bool> {
             Ok(!(segment_perpendicular_distance(position, other, guide) > radius))
         }
         "helicopter" => {
+            if !is_ai && descriptor.get::<bool>("player_skip_waypoint")? {
+                return Ok(true);
+            }
             if is_ai && landed {
                 return Ok(false);
             }
@@ -433,6 +437,8 @@ mod supply_reached_tests {
         value.set("waypoint_key", 3_u64)?;
         value.set("host_id", "member-1")?;
         value.set("waypoint", "pick_up")?;
+        value.set("waypoint_sub_type", 7_i32)?;
+        value.set("player_skip_waypoint", false)?;
         value.set("mobile", mobile)?;
         value.set("is_ai", true)?;
         value.set("landed", false)?;
@@ -455,7 +461,7 @@ mod supply_reached_tests {
     fn fixed_wing_physical_boundaries() -> LuaResult<()> {
         let lua = Lua::new();
 
-        for waypoint in ["pick_up", "prepare_for_drop_off", "drop_off", "finish_drop_off"] {
+        for waypoint in ["pick_up", "prepare_for_drop_off", "drop_off", "finish_drop_off", "radius_arrival"] {
             let value = descriptor(&lua, "fixed_wing")?;
             value.set("waypoint", waypoint)?;
             assert!(supply_reached(value)?);
@@ -493,6 +499,49 @@ mod supply_reached_tests {
         degenerate_segment.set("velocity", 3.0_f32)?;
         degenerate_segment.set("motion", vec![0.0_f32, 0.0, 0.0])?;
         assert!(!supply_reached(degenerate_segment)?);
+        Ok(())
+    }
+
+    #[test]
+    fn radius_arrival_keeps_the_same_physical_boundaries() -> LuaResult<()> {
+        let lua = Lua::new();
+
+        let fixed_wing_outside = descriptor(&lua, "fixed_wing")?;
+        fixed_wing_outside.set("waypoint", "radius_arrival")?;
+        fixed_wing_outside.set("distance", 61.0_f32)?;
+        assert!(!supply_reached(fixed_wing_outside)?);
+
+        // a human helicopter member skips a waypoint whose database entry says so, even landed
+        let skipped = descriptor(&lua, "helicopter")?;
+        skipped.set("waypoint", "radius_arrival")?;
+        skipped.set("is_ai", false)?;
+        skipped.set("landed", true)?;
+        skipped.set("distance", 5_000.0_f32)?;
+        skipped.set("player_skip_waypoint", true)?;
+        assert!(supply_reached(skipped)?);
+
+        // ... but an AI member never does, and a human member only where the database says so
+        let ai_not_skipped = descriptor(&lua, "helicopter")?;
+        ai_not_skipped.set("waypoint", "radius_arrival")?;
+        ai_not_skipped.set("distance", 5_000.0_f32)?;
+        ai_not_skipped.set("player_skip_waypoint", true)?;
+        assert!(!supply_reached(ai_not_skipped)?);
+
+        let human_not_skipped = descriptor(&lua, "helicopter")?;
+        human_not_skipped.set("waypoint", "radius_arrival")?;
+        human_not_skipped.set("is_ai", false)?;
+        human_not_skipped.set("distance", 5_000.0_f32)?;
+        assert!(!supply_reached(human_not_skipped)?);
+
+        let wingman_outside_cohesion = descriptor(&lua, "helicopter")?;
+        wingman_outside_cohesion.set("waypoint", "radius_arrival")?;
+        wingman_outside_cohesion.set("is_task_leader", false)?;
+        wingman_outside_cohesion.set("leader_position", vec![750.1_f32, 0.0, 0.0])?;
+        assert!(!supply_reached(wingman_outside_cohesion)?);
+
+        let unknown = descriptor(&lua, "helicopter")?;
+        unknown.set("waypoint", "something_else")?;
+        assert!(supply_reached(unknown).is_err());
         Ok(())
     }
 

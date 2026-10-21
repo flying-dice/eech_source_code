@@ -25,6 +25,7 @@ pub const CAMPAIGN_SUPPLY_WAYPOINT_PICK_UP: c_int = 1;
 pub const CAMPAIGN_SUPPLY_WAYPOINT_PREPARE_FOR_DROP_OFF: c_int = 2;
 pub const CAMPAIGN_SUPPLY_WAYPOINT_DROP_OFF: c_int = 3;
 pub const CAMPAIGN_SUPPLY_WAYPOINT_FINISH_DROP_OFF: c_int = 4;
+pub const CAMPAIGN_RADIUS_ARRIVAL_WAYPOINT: c_int = 5;
 pub const CAMPAIGN_SUPPLY_MOBILE_FIXED_WING: c_int = 1;
 pub const CAMPAIGN_SUPPLY_MOBILE_HELICOPTER: c_int = 2;
 
@@ -129,6 +130,8 @@ pub struct eech_supply_reach_descriptor {
     pub waypoint_key: u64,
     pub host_id: [c_char; EECH_HOST_ID_MAX + 1],
     pub waypoint_kind: c_int,
+    pub waypoint_sub_type: c_int,
+    pub player_skip_waypoint: c_int,
     pub mobile_kind: c_int,
     pub is_task_leader: c_int,
     pub is_ai: c_int,
