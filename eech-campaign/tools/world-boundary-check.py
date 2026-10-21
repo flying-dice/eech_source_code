@@ -21,8 +21,12 @@ from pathlib import Path
 SYS = "eech-campaign/crates/eech-engine-sys/"
 APHAVOC = "aphavoc/source/"
 CAMPAIGN_DIRS = ["force", "group", "task", "guide", "keysite", "waypoint", "division", "regen", "landing", "sector"]
-# first match wins; the classes and prefixes are those of the M5 call map (branch codex/m5-dcs-call-map, not in this tree) (C campaign, W world, E environment,
-# X presentation, H headless host layer, F shared infrastructure)
+# The path classes are this tool's own, versioned, conservative classification (C campaign, W world, E environment,
+# X presentation, H headless host layer, F shared infrastructure); first match wins. They are not a review of each
+# function's semantics (E includes pure RNG, time and timer helpers) and decide nothing about who should own them.
+# They were drafted from the M5 call map, which is under review and is not their authority; change them only with
+# a bump of CLASS_RULES_VERSION, recorded in the report.
+CLASS_RULES_VERSION = 1
 CLASS_RULES = [
     ("H", [SYS + "csrc/"]),
     ("C", [APHAVOC + "ai/", APHAVOC + "ai_extrn.c", APHAVOC + "entity/mobile/cargo/"]
@@ -39,6 +43,9 @@ CLASS_RULES = [
 ]
 PHYSICAL = ("W", "E")
 LUA_ENTRY = "luaopen_eech_dc"
+SCOPE = ("known-source-definition and object check only; static symbols, data definitions, indirect dispatch, "
+         "semantic map/type/state and public host checks remain; a PASS alone is not criterion 2 acceptance")
+HEX40, HEX64 = re.compile(r"[0-9a-f]{40}"), re.compile(r"[0-9a-f]{64}")
 MIN_BODY = 60  # shorter normalised bodies are too generic to call a copy
 
 _COMMENT = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
@@ -107,9 +114,9 @@ def compiled_units(src):
         raise Incomplete("no %ssources.txt at the build revision" % SYS)
     units = [l.strip() for l in src.read(SYS + "sources.txt").splitlines()]
     units = [l for l in units if l and not l.startswith("#")]
-    units += sorted(p for p in src.paths if p.startswith(SYS + "csrc/") and p.endswith(".c"))
     if not units:
         raise Incomplete("sources.txt lists no compiled units")
+    units += sorted(p for p in src.paths if p.startswith(SYS + "csrc/") and p.endswith(".c"))
     missing = [u for u in units if u not in src.pathset]
     if missing:
         raise Incomplete("%d compiled units are not in the source tree, e.g. %s" % (len(missing), missing[0]))
@@ -170,19 +177,24 @@ class Derived:
             k = self.cls.get(f) or path_class(f)
             for name, static, body in functions(src.read(f)):
                 self.defs[k].append((f, name, static, body))
-        if not any(self.cls[u] in PHYSICAL for u in self.units):
-            raise Incomplete("the path classes match no compiled world/environment file; the rules are stale")
         self.physical = {}  # non-static name -> defining file
         for k in PHYSICAL:
             for f, name, static, body in self.defs[k]:
                 if not static:
                     self.physical.setdefault(name, f)
+        # a build with no compiled world file is a legitimate target, but only against a reference tree that still
+        # holds the world sources: an empty classification is stale rules, not proof, and fails closed
+        if not self.physical:
+            raise Incomplete("the path classes find no world/environment definition in the compiled units or the "
+                             "reference tree; the rules are stale or the reference is unavailable")
         self.physical_bodies = {}
         for k in PHYSICAL:
             for f, name, static, body in self.defs[k]:
                 if len(body) >= MIN_BODY and not static:
                     self.physical_bodies.setdefault(body, (f, name))
         self.campaign = {n for f, n, s, b in self.defs["C"] if not s}
+        if not self.campaign:
+            raise Incomplete("no campaign function is defined in the compiled units; the rules are stale")
 
 
 # ---- the built DLL
@@ -196,18 +208,41 @@ def sha256(path):
 
 
 def build_info(path):
+    """the identity records of BUILD-INFO.txt, each exactly once and well formed; toolchain and other lines are free"""
     try:
-        text = Path(path).read_text()
-    except OSError as e:
+        lines = Path(path).read_text().splitlines()
+    except (OSError, UnicodeDecodeError) as e:
         raise Incomplete("cannot read BUILD-INFO: %s" % e)
-    commit = re.search(r"^commit:\s*([0-9a-f]{40})\s*$", text, re.M)
-    dirty = re.search(r"^uncommitted changes in the build inputs:\s*(\d+) files?\s*$", text, re.M)
-    shas = dict((n, h) for h, n in re.findall(r"^\s+([0-9a-f]{64})\s+(\S+)\s*$", text, re.M))
-    if not commit or not dirty or "eech_dc.dll" not in shas:
-        raise Incomplete("BUILD-INFO lacks a full commit, the uncommitted-change count or the eech_dc.dll sha256")
-    if int(dirty.group(1)):
-        raise Incomplete("the DLL was built with %s uncommitted input files; its source is not a revision" % dirty.group(1))
-    return {"commit": commit.group(1), "dll_sha256": shas["eech_dc.dll"]}
+
+    def once(prefix, pattern, what):
+        found = [l for l in lines if l.startswith(prefix)]
+        if len(found) != 1:
+            raise Incomplete("BUILD-INFO has %d '%s' records, need exactly one" % (len(found), prefix))
+        m = re.fullmatch(pattern, found[0])
+        if not m:
+            raise Incomplete("BUILD-INFO %s is malformed: %r" % (what, found[0][:80]))
+        return m.group(1)
+
+    commit = once("commit:", r"commit:\s*([0-9a-f]{40})\s*", "commit")
+    dirty = once("uncommitted changes", r"uncommitted changes in the build inputs:\s*(\d+) files?\s*",
+                 "uncommitted count")
+    if lines.count("sha256:") != 1:
+        raise Incomplete("BUILD-INFO has %d 'sha256:' blocks, need exactly one" % lines.count("sha256:"))
+    shas = {}
+    for l in lines[lines.index("sha256:") + 1:]:
+        if not l.strip():
+            continue
+        m = re.fullmatch(r"\s+([0-9a-f]{64})\s+(\S+)\s*", l)
+        if not m:
+            raise Incomplete("BUILD-INFO has a malformed sha256 row: %r" % l[:80])
+        if m.group(2) in shas:
+            raise Incomplete("BUILD-INFO lists %s twice" % m.group(2))
+        shas[m.group(2)] = m.group(1)
+    if "eech_dc.dll" not in shas:
+        raise Incomplete("BUILD-INFO lacks the eech_dc.dll sha256")
+    if int(dirty):
+        raise Incomplete("the DLL was built with %s uncommitted input files; its source is not a revision" % dirty)
+    return {"commit": commit, "dll_sha256": shas["eech_dc.dll"]}
 
 
 def read_pe(path):
@@ -270,19 +305,40 @@ def read_pe(path):
 
 
 def read_objects(path, dll_sha, commit):
-    """the object manifest from the link map: 'dll-sha256: h', 'source-commit: c', then 'object: <path>' lines"""
+    """the object manifest from the link map: 'dll-sha256: h', 'source-commit: c', then 'object: <path>' lines.
+    A small closed vocabulary: any other record, a repeated header or a repeated object is INCOMPLETE."""
     try:
         lines = Path(path).read_text().splitlines()
-    except OSError as e:
+    except (OSError, UnicodeDecodeError) as e:
         raise Incomplete("cannot read the object manifest: %s" % e)
-    head = dict(l.split(": ", 1) for l in lines if l.startswith(("dll-sha256: ", "source-commit: ")))
-    if head.get("dll-sha256") != dll_sha:
-        raise Incomplete("the object manifest is for another DLL (stale): dll-sha256 %s" % head.get("dll-sha256"))
-    if head.get("source-commit") != commit:
-        raise Incomplete("the object manifest is for another source commit: %s" % head.get("source-commit"))
-    objs = [l.split(": ", 1)[1] for l in lines if l.startswith("object: ")]
+    head, objs = {}, []
+    for n, l in enumerate(lines, 1):
+        if not l.strip():
+            continue
+        key, sep, value = l.partition(": ")
+        value = value.strip()
+        if not sep or key not in ("dll-sha256", "source-commit", "object") or not value:
+            raise Incomplete("the object manifest has an unknown or malformed record at line %d: %r" % (n, l[:80]))
+        if key == "object":
+            objs.append(value.replace("\\", "/"))
+        elif key in head:
+            raise Incomplete("the object manifest repeats %s at line %d" % (key, n))
+        else:
+            head[key] = value
+    for key, pattern in (("dll-sha256", HEX64), ("source-commit", HEX40)):
+        if key not in head:
+            raise Incomplete("the object manifest has no %s record" % key)
+        if not pattern.fullmatch(head[key]):
+            raise Incomplete("the object manifest %s is malformed: %r" % (key, head[key][:80]))
+    if head["dll-sha256"] != dll_sha:
+        raise Incomplete("the object manifest is for another DLL (stale): dll-sha256 %s" % head["dll-sha256"])
+    if head["source-commit"] != commit:
+        raise Incomplete("the object manifest is for another source commit: %s" % head["source-commit"])
     if not objs:
         raise Incomplete("the object manifest lists no objects")
+    dup = sorted(o for o, c in collections.Counter(objs).items() if c > 1)
+    if dup:
+        raise Incomplete("the object manifest lists %d objects more than once, e.g. %s" % (len(dup), dup[0]))
     return objs
 
 
@@ -294,6 +350,8 @@ def map_objects(objs, derived):
         o = o.replace("\\", "/")
         m = next((t for t in by_tail if o.endswith("/" + t) or o == t), None)
         if m:
+            if by_tail[m] in hit.values():
+                raise Incomplete("the object manifest lists compiled unit %s more than once" % by_tail[m])
             hit[o] = by_tail[m]
         else:
             unmapped.append(o)
@@ -323,8 +381,8 @@ def check(a):
         raise Incomplete("the DLL does not define %s; it is not the EECH_DC module" % LUA_ENTRY)
     covered = len(derived.campaign & set(defined))
     if derived.campaign and covered * 2 < len(derived.campaign):
-        raise Incomplete("only %d of %d campaign functions from source are defined in the DLL; the symbols do not "
-                         "correspond to this source" % (covered, len(derived.campaign)))
+        raise Incomplete("only %d of %d campaign functions from source are defined in the DLL; the symbol table does "
+                         "not look like this source (a sanity heuristic, not provenance)" % (covered, len(derived.campaign)))
 
     hits = {n: derived.physical[n] for n in defined if n in derived.physical}
     compiled = set(derived.units)
@@ -360,7 +418,7 @@ def check(a):
 
     failures = []
     if hits:
-        failures.append("%d physical functions are defined in the DLL (%s)" % (
+        failures.append("%d world/environment-class (W/E) functions are defined in the DLL (%s)" % (
             len(hits), ", ".join("%s %d" % kv for kv in sorted(by_class.items()))))
     if copies:
         failures.append("%d non-world functions are copies of a physical function body" % len(copies))
@@ -380,7 +438,12 @@ def check(a):
         "tree_only_world_files": len(derived.tree_world),
         "physical_functions_in_source": len(derived.physical),
         "dll_defined_external_symbols": len(defined), "dll_undefined_external_symbols": undefined,
-        "campaign_functions_corroborated": "%d/%d" % (covered, len(derived.campaign)),
+        "campaign_symbol_sanity_check": "%d/%d campaign functions defined; at least half is required. An arbitrary "
+                                        "sanity heuristic, not provenance or completeness" % (covered, len(derived.campaign)),
+        "classification": "CLASS_RULES v%d: conservative path classes, not a semantic review (E includes pure RNG "
+                          "and time helpers); decides nothing about ownership" % CLASS_RULES_VERSION,
+        "compiled_world_units": sum(1 for u in derived.units if derived.cls[u] in PHYSICAL),
+        "scope": SCOPE,
         "physical_defined": len(hits), "physical_defined_by_class": dict(by_class),
         "physical_defined_by_dir": dict(by_dir.most_common()),
         "physical_defined_sha256": hashlib.sha256("\n".join(sorted(hits)).encode()).hexdigest(),
@@ -475,9 +538,10 @@ def main():
                                                  report["build_commit"][:8]))
             for r in report["reasons"]:
                 print("  - " + r)
-            print("  physical definitions in the DLL: %d of %d in source (%s)" % (
+            print("  W/E-class definitions in the DLL: %d of %d in source (%s)" % (
                 report["physical_defined"], report["physical_functions_in_source"],
                 ", ".join("%s %d" % kv for kv in sorted(report["physical_defined_by_class"].items())) or "none"))
+            print("  scope: " + SCOPE)
             print("  platform imports (recorded, not enforced): " + ", ".join(
                 "%s %d" % kv for kv in report["platform_imports"].items()))
             return {"PASS": 0, "SYNTHETIC-GREEN": 0, "FAIL": 1}.get(report["verdict"], 2)

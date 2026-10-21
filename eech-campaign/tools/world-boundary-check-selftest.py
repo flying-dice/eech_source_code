@@ -6,12 +6,14 @@
 # itself and cannot be produced for a revision: a green here says the parser can say yes, not that any DLL is clean.
 #
 # RETAINED cases run the real retained eech_dc.dll with its BUILD-INFO (and the repository, which must contain the
-# BUILD-INFO commit). They are skipped, loudly, when the two paths are not given.
+# BUILD-INFO commit). They are skipped, loudly, when the two paths are not given: skipped is not passed, and the
+# portable run alone says nothing about the real DLL.
 #
 # Usage: tools/world-boundary-check-selftest.py [<eech_dc.dll> <BUILD-INFO.txt>]
-import hashlib, importlib.util, os, shutil, struct, subprocess, sys, tempfile
+import hashlib, importlib.util, json, os, shutil, struct, subprocess, sys, tempfile
 from pathlib import Path
 
+sys.dont_write_bytecode = True  # loading the tool must leave no __pycache__ in the tree
 here = Path(__file__).resolve().parent
 tool = here / "world-boundary-check.py"
 SYS = "eech-campaign/crates/eech-engine-sys/"
@@ -148,6 +150,15 @@ def case(label, name, want_rc, want_text, rc_out):
         print("          want text %r; output:\n%s" % (want_text, out))
 
 
+def expect(label, name, ok, detail):
+    results.append(ok)
+    print("%-9s %-34s %s | %s" % (label, name, "ok" if ok else "NOT AS EXPECTED", detail))
+
+
+def retext(path, fn):
+    path.write_text(fn(path.read_text()))
+
+
 def synthetic(tmp):
     base = Path(tmp)
 
@@ -174,7 +185,9 @@ def synthetic(tmp):
 
     # the only green: parser logic, labelled by the tool as a fixture
     f = fixture("green")
-    case("SYNTHETIC", "green-fixture-only", 0, "SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: SYNTHETIC-GREEN", go(*f))
+    out = go(*f)
+    case("SYNTHETIC", "green-fixture-only", 0, "SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: SYNTHETIC-GREEN", out)
+    case("SYNTHETIC", "green-states-its-scope", 0, "a PASS alone is not criterion 2 acceptance", out)
     # a clean DLL with no object manifest is never green
     f = fixture("no-manifest", objects=None)
     case("SYNTHETIC", "clean-dll-no-object-manifest", 2, "INCOMPLETE", go(*f))
@@ -204,7 +217,58 @@ def synthetic(tmp):
     f = fixture("world-objs", objects=OBJ_NO_WORLD + OBJ_WORLD)
     case("SYNTHETIC", "world-objects-in-link-map", 1, "world/environment objects are linked", go(*f))
     f = fixture("world-objs-doubled", objects=(OBJ_NO_WORLD + OBJ_WORLD) * 2)
-    case("SYNTHETIC", "doubled-object-manifest", 1, "FAIL", go(*f))
+    case("SYNTHETIC", "doubled-world-object-manifest", 2, "more than once", go(*f))
+
+    # a legitimate separated build: no world file is compiled, the reference tree still holds the known world files
+    def zero_world(files, units):
+        units.remove("aphavoc/source/entity/mobile/mobile.c"); units.remove("modules/3d/terrain.c")
+    f = fixture("zero-world", edit=zero_world)
+    out = go(*f)
+    case("SYNTHETIC", "zero-world-fixture-green", 0, "SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: SYNTHETIC-GREEN", out)
+    rep = json.loads((f[0] / "report.json").read_text())
+    expect("SYNTHETIC", "zero-world-judged-vs-reference", rep["compiled_world_units"] == 0
+           and rep["physical_functions_in_source"] == 2 and rep["tree_only_world_files"] == 2,
+           "compiled world units %s, reference physical functions %s" % (rep["compiled_world_units"],
+                                                                         rep["physical_functions_in_source"]))
+    f = fixture("zero-world-stub", syms(BASE + ["mobile_step"]), edit=zero_world)
+    case("SYNTHETIC", "zero-world-known-physical-stub", 1, "W/E-class", go(*f))
+    f = fixture("zero-world-stub2", syms(BASE + ["terrain_height"]), edit=zero_world)
+    case("SYNTHETIC", "zero-world-known-environment-stub", 1, "W/E-class", go(*f))
+
+    def zero_world_renamed(files, units):
+        renamed(files, units); zero_world(files, units)
+    f = fixture("zero-world-copy", syms(BASE + ["camp_pseudo_step"]), edit=zero_world_renamed)
+    case("SYNTHETIC", "zero-world-renamed-stub", 1, "copies of a physical function body", go(*f))
+
+    # strict manifest records: a small closed vocabulary, each header once, each object once
+    wrong = "b" * 40
+
+    def manifest_case(name, want_text, fn):
+        f = fixture(name)
+        retext(f[4], fn)
+        case("SYNTHETIC", name, 2, want_text, go(*f))
+    manifest_case("man-header-wrong-then-right", "repeats source-commit", lambda t: "source-commit: %s\n" % wrong + t)
+    manifest_case("man-header-right-then-wrong", "repeats source-commit",
+                  lambda t: t.replace("object:", "source-commit: %s\nobject:" % wrong, 1))
+    manifest_case("man-header-identical-repeat", "repeats source-commit", lambda t: "source-commit: %s\n" % COMMIT + t)
+    manifest_case("man-header-malformed-repeat", "repeats source-commit", lambda t: t.replace(
+        "object:", "source-commit: abc\nobject:", 1))
+    manifest_case("man-header-truncated-repeat", "malformed record", lambda t: "source-commit: \n" + t)
+    manifest_case("man-sha-repeat", "repeats dll-sha256", lambda t: "dll-sha256: %s\n" % ("1" * 64) + t)
+    manifest_case("man-unknown-record", "unknown or malformed record", lambda t: t + "extra: x\n")
+    manifest_case("man-bare-line", "unknown or malformed record", lambda t: t + "campaign.o\n")
+    manifest_case("man-empty-object", "unknown or malformed record", lambda t: t + "object: \n")
+    f = fixture("man-commit-malformed", manifest_edit={"commit": "zz"})
+    case("SYNTHETIC", "man-commit-malformed", 2, "malformed", go(*f))
+    f = fixture("man-no-headers", objects=None)
+    f[0].joinpath("objects.txt").write_text("object: build/aphavoc/source/ai/campaign.o\n")
+    case("SYNTHETIC", "man-no-headers", 2, "no dll-sha256 record", go(*f[:4], f[0] / "objects.txt"))
+    f = fixture("dup-clean-object", objects=OBJ_NO_WORLD + OBJ_NO_WORLD[:1])
+    case("SYNTHETIC", "duplicate-clean-object", 2, "more than once", go(*f))
+    f = fixture("dup-clean-object-slashes", objects=OBJ_NO_WORLD + [OBJ_NO_WORLD[0].replace("/", "\\")])
+    case("SYNTHETIC", "duplicate-clean-object-backslashes", 2, "more than once", go(*f))
+    f = fixture("dup-clean-object-dirs", objects=OBJ_NO_WORLD + ["other/" + OBJ_NO_WORLD[0]])
+    case("SYNTHETIC", "duplicate-unit-other-directory", 2, "more than once", go(*f))
 
     # fail closed on the DLL
     f = fixture("blank", pe_args={"drop_symbols": True})
@@ -225,7 +289,7 @@ def synthetic(tmp):
     f = fixture("nolua", syms(CAMPAIGN + ["util_f"]))
     case("SYNTHETIC", "no-lua-entry-point", 2, "luaopen_eech_dc", go(*f))
     f = fixture("foreign", syms(["foo", "bar", "luaopen_eech_dc"]))
-    case("SYNTHETIC", "symbols-not-of-this-source", 2, "do not correspond", go(*f))
+    case("SYNTHETIC", "symbols-fail-sanity-heuristic", 2, "a sanity heuristic, not provenance", go(*f))
     f = fixture("imports", pe_args={"imports": {"kernel32.dll": ["Sleep", "GetTickCount"], "lua.dll": ["lua_pushnumber"]}})
     case("SYNTHETIC", "platform-imports-recorded", 0, "kernel32.dll 2, lua.dll 1", go(*f))
 
@@ -237,6 +301,37 @@ def synthetic(tmp):
     f = fixture("noinfo")
     f[3].write_text("commit: nothing\n")
     case("SYNTHETIC", "malformed-build-info", 2, "BUILD-INFO", go(*f))
+
+    # strict identity records, free metadata: each identity record exactly once and well formed
+    def info_case(name, want_text, fn):
+        f = fixture(name)
+        retext(f[3], fn)
+        case("SYNTHETIC", name, 2, want_text, go(*f))
+    sha_row = lambda h, n: "  %s  %s\n" % (h, n)
+    info_case("info-commit-correct-then-wrong", "2 'commit:' records",
+              lambda t: t.replace("sha256:", "commit: %s\nsha256:" % wrong))
+    info_case("info-commit-wrong-then-right", "2 'commit:' records", lambda t: "commit: %s\n" % wrong + t)
+    info_case("info-commit-identical-repeat", "2 'commit:' records",
+              lambda t: t.replace("sha256:", "commit: %s\nsha256:" % COMMIT))
+    info_case("info-commit-truncated-repeat", "2 'commit:' records", lambda t: "commit: abc\n" + t)
+    info_case("info-commit-truncated", "malformed", lambda t: t.replace(COMMIT, COMMIT[:20]))
+    info_case("info-dirty-count-repeated", "2 'uncommitted changes' records", lambda t: t.replace(
+        "sha256:", "uncommitted changes in the build inputs: 3 files\nsha256:"))
+    info_case("info-dirty-count-malformed", "malformed", lambda t: t.replace("0 files", "no files"))
+    info_case("info-sha-row-wrong-then-right", "lists eech_dc.dll twice",
+              lambda t: t.replace("sha256:\n", "sha256:\n" + sha_row("0" * 64, "eech_dc.dll")))
+    info_case("info-sha-row-right-then-wrong", "lists eech_dc.dll twice", lambda t: t + sha_row("0" * 64, "eech_dc.dll"))
+    info_case("info-sha-row-truncated", "malformed sha256 row", lambda t: t + "  abcd  lua.dll\n")
+    info_case("info-sha-block-repeated", "2 'sha256:' blocks", lambda t: t + "sha256:\n")
+    info_case("info-no-sha-block", "0 'sha256:' blocks", lambda t: t.replace("sha256:\n", ""))
+    f = fixture("info-not-text")
+    f[3].write_bytes(b"\x81\x8d\x8f\x90\x9d")
+    case("SYNTHETIC", "info-not-text", 2, "INCOMPLETE", go(*f))
+    # the legitimate layout survives: toolchain metadata and other files' hashes are free
+    f = fixture("info-real-layout")
+    retext(f[3], lambda t: "image: example/builder@sha256:" + "e" * 64 + "\nrustc: 1.90.0\nmingw: gcc 14\ntarget: x86_64-pc-windows-gnu\n"
+           + t + sha_row("c" * 64, "lua.dll") + sha_row("d" * 64, "lua/base.lua"))
+    case("SYNTHETIC", "info-real-layout-still-reads", 0, "SYNTHETIC-GREEN", go(*f))
     f = fixture("wrongcommit")
     case("SYNTHETIC", "wrong-expected-commit", 2, "not the expected", go(*f, "--expect-commit", "b" * 40))
     d, tree, dll, info, man = fixture("unresolvable", info_edit={"commit": "f" * 40})
@@ -261,11 +356,18 @@ def synthetic(tmp):
     def empty_sources(files, units):
         units.clear()
     f = fixture("nounits", edit=empty_sources)
-    case("SYNTHETIC", "empty-sources-txt", 2, "match no compiled", go(*f))
-    def stale_rules(files, units):
-        units.remove("aphavoc/source/entity/mobile/mobile.c"); units.remove("modules/3d/terrain.c")
-    f = fixture("stale-rules", edit=stale_rules)
-    case("SYNTHETIC", "path-classes-match-no-world-file", 2, "rules are stale", go(*f))
+    case("SYNTHETIC", "empty-sources-txt", 2, "lists no compiled units", go(*f))
+    # zero compiled world is legitimate (above) only against a reference that holds the world sources
+    def no_reference_world(files, units):
+        for u in ("aphavoc/source/entity/mobile/mobile.c", "modules/3d/terrain.c"):
+            units.remove(u); del files[u]
+    f = fixture("no-reference-world", edit=no_reference_world)
+    case("SYNTHETIC", "no-world-in-build-or-reference", 2, "reference is unavailable", go(*f))
+
+    def no_campaign(files, units):
+        units.remove("aphavoc/source/ai/campaign.c"); del files["aphavoc/source/ai/campaign.c"]
+    f = fixture("no-campaign", syms(["util_f", "luaopen_eech_dc"]), edit=no_campaign, objects=["modules/misc/util.o"])
+    case("SYNTHETIC", "no-campaign-function-in-build", 2, "no campaign function", go(*f))
     def missing_unit(files, units):
         units.append("modules/misc/missing.c")
     f = fixture("missing-unit", edit=missing_unit)
@@ -295,7 +397,7 @@ def retained(tmp, dll, info):
         src.close()
     man = base / "objects.txt"
     manifest(man, dll, [u[:-2] + ".o" for u in derived.units if derived.cls[u] not in m.PHYSICAL], commit=commit, sha=sha)
-    case("RETAINED", "retained-dll-clean-looking-manifest", 1, "physical functions are defined", run(*args, "--objects", man))
+    case("RETAINED", "retained-dll-clean-looking-manifest", 1, "functions are defined in the DLL", run(*args, "--objects", man))
     man_w = base / "objects-world.txt"
     manifest(man_w, dll, [u[:-2] + ".o" for u in derived.units], commit=commit, sha=sha)
     case("RETAINED", "retained-dll-world-objects-listed", 1, "world/environment objects are linked", run(*args, "--objects", man_w))
@@ -325,10 +427,12 @@ if __name__ == "__main__":
     with tempfile.TemporaryDirectory() as tmp:
         (Path(tmp) / "syn").mkdir()
         synthetic(Path(tmp) / "syn")
-        if len(sys.argv) == 3:
+        skipped = len(sys.argv) != 3
+        if skipped:
+            print("SKIPPED   6 retained-DLL cases: pass <eech_dc.dll> <BUILD-INFO.txt>; skipped is not passed, and "
+                  "nothing here says anything about the real DLL")
+        else:
             (Path(tmp) / "real").mkdir()
             retained(Path(tmp) / "real", sys.argv[1], sys.argv[2])
-        else:
-            print("SKIPPED   retained-DLL cases: pass <eech_dc.dll> <BUILD-INFO.txt> (not a pass of them)")
-    print("%d/%d cases as expected" % (sum(results), len(results)))
+    print("%d/%d cases as expected%s" % (sum(results), len(results), "; 6 retained-DLL cases SKIPPED, not run" if skipped else ""))
     sys.exit(0 if all(results) else 1)

@@ -2,15 +2,18 @@
 
 **Status.** A mechanical check for [M5 criterion 2](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337)
 (no physical world inside the campaign module), version 1 of the goal. It does
-not accept criterion 2 or M5. Its job today is to be unable to call the current
-whole-engine `eech_dc.dll` compliant, and to say so reproducibly. It changes no
-production C, Rust or build file.
+not accept criterion 2 or M5, and a tool PASS alone would not either. It is a
+known-source-definition and object check: static symbols, data definitions,
+indirect dispatch, the semantic map/type/state of the boundary and the public
+host checks remain obligations it does not discharge. Its job today is to be
+unable to call the current whole-engine `eech_dc.dll` compliant, and to say so
+reproducibly. It changes no production C, Rust or build file.
 
 | Tool | Level | Meaning |
 | --- | --- | --- |
-| `tools/world-boundary-check.py check` | B, acceptance | Zero physical definitions in the built DLL |
+| `tools/world-boundary-check.py check` | B, acceptance | Zero known W/E-class definitions in the built DLL |
 | `tools/world-boundary-check.py staging` | A, ratchet | Per campaign file references to physical code; may only shrink |
-| `tools/world-boundary-check-selftest.py` | | 31 synthetic cases and 6 cases against a real DLL |
+| `tools/world-boundary-check-selftest.py` | | 66 synthetic cases and 6 cases against a real DLL |
 
 Level A progress never satisfies Level B. They share source classification
 only.
@@ -20,39 +23,60 @@ only.
 Inputs: `--dll`, `--build-info` (the `BUILD-INFO.txt` beside it), optionally
 `--objects` (see below), `--expect-commit`, `--report`.
 
-1. **Derive the physical set from source.** At the commit `BUILD-INFO.txt`
-   names, read the maintained `sources.txt` and apply the path classes of the
-   M5 call map (branch `codex/m5-dcs-call-map`, not merged here; the rules are
-   restated in `CLASS_RULES`) (first match wins): C campaign
-   (`ai/`, `ai_extrn.c`, `entity/mobile/cargo/`, ten `entity/special/*`
-   campaign directories), W world (`entity/mobile/`, `entity/fixed/`,
-   `entity/special/{bridge,effect}/`), E environment (`modules/3d/`,
-   `terr_db`, `tod`, `timeaccl`, `session/`, random, time, timer), X
-   presentation, H headless host layer, F shared. Physical is W or E. Each
-   non-static function defined in a compiled W/E file is a physical definition.
-   There is no hand-kept list or allowlist.
+1. **Derive the world/environment set from source.** At the commit
+   `BUILD-INFO.txt` names, read the maintained `sources.txt` and apply the
+   tool's own path classes, `CLASS_RULES` version 1 (first match wins): C
+   campaign (`ai/`, `ai_extrn.c`, `entity/mobile/cargo/`, ten
+   `entity/special/*` campaign directories), W world (`entity/mobile/`,
+   `entity/fixed/`, `entity/special/{bridge,effect}/`), E environment
+   (`modules/3d/`, `terr_db`, `tod`, `timeaccl`, `session/`, random, time,
+   timer), X presentation, H headless host layer, F shared. The rules were
+   drafted from the M5 call map, which is under review and is not their
+   authority; they change only with a bump of the version, which the report
+   records. W and E are conservative path classes, not a review of each
+   function's semantics: E includes pure RNG, time and timer helpers, and the
+   classes decide nothing about who should own them (no RNG ownership decision
+   is made here). A W/E-class function is each non-static function defined in a
+   W/E file, whether or not that file is compiled: the reference tree supplies
+   the definitions, so a build that compiles no World file is still judged
+   against them. There is no hand-kept list or allowlist.
 2. **Read the DLL itself.** The tool parses the PE/COFF symbol table and import
    directory. It does not trust `nm` or other text output.
-3. **FAIL** if the DLL defines any physical function, or a C/H function whose
-   normalised body (at least 60 characters) equals a physical body whose
+3. **FAIL** if the DLL defines any W/E-class function, or a C/H function whose
+   normalised body (at least 60 characters) equals a W/E-class body whose
    original is not defined in the DLL under that or another name. A renamed
-   in-DLL stub of a physical obligation therefore cannot turn green. Same-name
+   in-DLL stub of a known obligation therefore cannot turn green. Same-name
    or still-defined originals are template siblings and are only counted.
 4. **PASS** additionally needs an object manifest proving no world object was
-   linked. Without one, a DLL with no physical definition is `INCOMPLETE`, not
+   linked. Without one, a DLL with no W/E-class definition is `INCOMPLETE`, not
    `PASS`.
 5. **INCOMPLETE (exit 2), never PASS,** for a missing, unreadable, truncated,
    blank or malformed DLL or symbol table; no `luaopen_eech_dc` export; a DLL
-   hash that differs from `BUILD-INFO.txt`; a dirty-input or malformed
-   `BUILD-INFO.txt`; an unresolvable or wrong-expected commit; a symbol table
-   that does not correspond to the source (fewer than half the campaign
-   functions corroborated); an empty `sources.txt`; classes matching no world
-   file; a compiled unit absent from the tree; and a stale or incomplete
-   manifest (below).
+   hash that differs from `BUILD-INFO.txt`; an unresolvable or wrong-expected
+   commit; a symbol table that does not look like this source (fewer than half
+   the campaign functions defined: an arbitrary sanity heuristic, not
+   provenance or completeness); an empty `sources.txt`; classes that find no
+   W/E definition or no campaign function in the compiled units and the
+   reference tree (stale rules, or an absent or empty reference world); a
+   compiled unit absent from the tree; and a stale or incomplete manifest
+   (below).
+
+   The identity records are strict. `BUILD-INFO.txt` must hold exactly one
+   40-hex `commit:`, exactly one `uncommitted changes in the build inputs: N
+   files` (N above zero is INCOMPLETE), and exactly one `sha256:` block of
+   well-formed rows without a repeated name and with `eech_dc.dll`; toolchain
+   and other lines are free. The object manifest has a closed vocabulary
+   (`dll-sha256`, `source-commit`, `object`); a repeated header (wrong then
+   right, right then wrong, identical or truncated), an unknown, bare or
+   malformed record, or a repeated object (also after `\` to `/`
+   normalisation, or two objects for one compiled unit) is INCOMPLETE, not
+   resolved by taking the first or the last.
 
 Exit status: 0 PASS, 1 FAIL, 2 INCOMPLETE. With `--synthetic-source-dir` the
 tool reads a fixture tree, prints `SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE`
-and may print `SYNTHETIC-GREEN` with exit 0. That proves parser logic only.
+and may print `SYNTHETIC-GREEN` with exit 0. That proves parser logic only. A
+legitimate fixture that compiles no World file reaches it only when its
+reference tree still holds the physical C files; a known W/E stub in it fails.
 
 ### What final acceptance still needs: artifact provenance
 
@@ -72,7 +96,7 @@ object: <path>.o
 
 The guard rejects a manifest for another DLL hash or commit, an empty
 manifest, an object that maps to no compiled unit, a manifest missing any
-compiled campaign unit, duplicates, and any object that maps to a physical
+compiled campaign unit, duplicates, and any object that maps to a W/E-class
 unit. Producing the manifest needs a build and is not done here; a full pack
 was deliberately not rebuilt for it.
 
@@ -85,14 +109,15 @@ input files are recorded by that file; this tool only reads that record.
 
 ```
 FAIL eech_dc.dll 60cff8d96b97 at 5a3b0139
-  - 1378 physical functions are defined in the DLL (E 707, W 671)
+  - 1378 world/environment-class (W/E) functions are defined in the DLL (E 707, W 671)
 ```
 
-- 1,378 of 1,735 physical functions in source are defined; 1,230 compiled
+- 1,378 of 1,735 W/E-class functions in source are defined; 1,230 compiled
   units; 13,283 defined external symbols (read identically by `objdump`).
-- 501 of 602 campaign functions are corroborated in the DLL. The rest are
-  presumably static or unreferenced and dropped by the linker; the guard cannot
-  distinguish, and accepts the corroboration only above 50%.
+- 501 of 602 campaign functions are defined in the DLL. The sanity check
+  requires at least half; that threshold is arbitrary and is neither provenance
+  nor completeness. The rest are presumably static or unreferenced and dropped
+  by the linker; the guard cannot distinguish.
 - Renamed-stub copies 0; 60 same-name template siblings ignored.
 - Provenance: `5a3b0139` is an ancestor of `a1bb7231`. Their executable inputs
   are the same; only `eech-campaign/crates/eech-dc/lua5.1/README.md` differs.
@@ -131,9 +156,14 @@ not make it contract-only.
 
 ## Limits
 
-- Static symbols are not attributable from a DLL, and data definitions are not
-  derived; both are outside Level B's FAIL set.
-- X and H files are informational. This is a classification, not a review of
+- Level B checks known source definitions and objects only. Static symbols are
+  not attributable from a DLL, data definitions are not derived, and indirect
+  dispatch is not followed; all are outside its FAIL set.
+- The final boundary still needs the semantic map, type and indirect-state
+  review and the public host checks. A tool PASS alone is not acceptance of
+  criterion 2, and none of the six criteria is accepted by this guard.
+- W/E are conservative path classes (E includes pure RNG, time and timers).
+  X and H files are informational. This is a classification, not a review of
   every file.
 - Source is read from Git at the BUILD-INFO commit, not from the working tree.
 - A synthetic or fixture result proves parser logic only, never a build.
@@ -145,6 +175,9 @@ not make it contract-only.
 
 `reference/m5-world-boundary-guard/` retains `retained-dll-check-report.json`,
 `selftest-output.txt` and `staging-baseline.json`, with hashes in its README.
+`checkpoint-cdffc799/` keeps the earlier measurement (before the strict
+records) unchanged; only the wording of the reason and the added report keys
+differ, and the verdict and counts are the same.
 
 ```
 python tools/world-boundary-check-selftest.py <eech_dc.dll> <BUILD-INFO.txt>
@@ -153,7 +186,8 @@ python tools/world-boundary-check.py staging --build-info <BUILD-INFO.txt> [--ba
 ```
 
 Run the selftest with no arguments and the six retained cases are skipped
-loudly. The retained red cases (all against the real DLL) are: no manifest
+loudly: the summary says `SKIPPED, not run`, never passed. The portable
+synthetic cases run in the `evidence-selftest` CI job. The retained red cases (all against the real DLL) are: no manifest
 (FAIL), a clean-looking manifest (still FAIL, physical functions defined),
 world objects listed (FAIL), one changed byte (INCOMPLETE, hash mismatch), a
 truncated image (INCOMPLETE) and `a1bb7231` as the build commit (FAIL).

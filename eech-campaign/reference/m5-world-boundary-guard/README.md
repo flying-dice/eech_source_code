@@ -11,8 +11,12 @@ object manifest exists for it, so object provenance is unavailable and unverifie
 
 | File | What it is | SHA-256 |
 | --- | --- | --- |
-| `retained-dll-check-report.json` | `check` on the real DLL: verdict FAIL (1378 physical functions defined) | `70545dceb367ad51c5b193264f0ac2b127df28e53032aab22d8dc2941d950134` |
-| `selftest-output.txt` | Selftest run, 37/37 as expected (31 synthetic, 6 on the real DLL); a local temp path on one line is elided | `5c89634b5b9e5ac3d1c5a35be3516a74b76f8ff9e1f571fe0b472d8219cf321d` |
+| `retained-dll-check-report.json` | `check` on the real DLL: verdict FAIL (1378 W/E-class functions defined), CLASS_RULES v1 | `1846c6ff4551b5917713721776448e3fe8e28ee23fd37148012e8fa00d2bd01a` |
+| `selftest-output.txt` | Selftest run, 72/72 as expected (66 synthetic, 6 on the real DLL); a local temp path on one line is elided and trailing whitespace is stripped | `e9ee7b5480fe0092839fe132275940b671a6cec6fce1c41b3cce17974624ad57` |
 | `staging-baseline.json` | Level A per-file baseline (161 campaign files) at the build commit; a ratchet record, not acceptance. Do not re-record silently. | `885025eb42497cd6cdd2b17528670da68d7e75b89d26286d7d11c6c261d026b8` |
 
-Hashes are of the committed (LF) bytes.
+| `checkpoint-cdffc799/retained-dll-check-report.json` | Old checkpoint, unchanged: the report of the tool at `cdffc799`. Same verdict and counts; older reason wording and key names | `70545dceb367ad51c5b193264f0ac2b127df28e53032aab22d8dc2941d950134` |
+| `checkpoint-cdffc799/selftest-output.txt` | Old checkpoint, unchanged: 37/37 as expected at `cdffc799` | `5c89634b5b9e5ac3d1c5a35be3516a74b76f8ff9e1f571fe0b472d8219cf321d` |
+
+Hashes are of the committed (LF) bytes. The staging baseline is unchanged by the strict-record change.
+The retained report is Level B on known source definitions and objects only; it is not criterion 2 acceptance.

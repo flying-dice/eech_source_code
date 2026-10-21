@@ -1,7 +1,9 @@
 {
  "build_commit": "5a3b0139ba6d66e4be6b778290025a3bff3dd6e8",
- "campaign_functions_corroborated": "501/602",
+ "campaign_symbol_sanity_check": "501/602 campaign functions defined; at least half is required. An arbitrary sanity heuristic, not provenance or completeness",
+ "classification": "CLASS_RULES v1: conservative path classes, not a semantic review (E includes pure RNG and time helpers); decides nothing about ownership",
  "compiled_units": 1230,
+ "compiled_world_units": 405,
  "dll_defined_external_symbols": 13283,
  "dll_sha256": "60cff8d96b97dfa820043db6b4aca136105e5514e5e70aa3de23a876e75f2057",
  "dll_undefined_external_symbols": 1,
@@ -115,11 +117,12 @@
  },
  "platform_imports_note": "recorded, not enforced: no import whitelist is applied",
  "reasons": [
-  "1378 physical functions are defined in the DLL (E 707, W 671)"
+  "1378 world/environment-class (W/E) functions are defined in the DLL (E 707, W 671)"
  ],
  "renamed_or_stub_body_copies": [],
  "renamed_or_stub_body_copy_count": 0,
  "same_name_template_siblings_ignored": 60,
+ "scope": "known-source-definition and object check only; static symbols, data definitions, indirect dispatch, semantic map/type/state and public host checks remain; a PASS alone is not criterion 2 acceptance",
  "synthetic_fixture": false,
  "tree_only_world_files": 42,
  "units_by_class": {
