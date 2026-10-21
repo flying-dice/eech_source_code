@@ -688,7 +688,12 @@ where
     }
 }
 
-fn with_host<F, G, H>(bind_mobile_fn: &mut F, observe_loss_fn: &mut G, supply_reached_fn: &mut H, call: impl FnOnce(*const sys::eech_engine_host) -> c_int) -> Result<(), EngineError>
+fn with_host<F, G, H>(
+    bind_mobile_fn: &mut F,
+    observe_loss_fn: &mut G,
+    supply_reached_fn: &mut H,
+    call: impl FnOnce(*const sys::eech_engine_host) -> c_int,
+) -> Result<(), EngineError>
 where
     F: FnMut(MemberDescriptor) -> Result<String, String>,
     G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
@@ -733,9 +738,9 @@ impl Engine {
     /// boots EECH's dedicated-server path into the campaign (once per process)
     pub fn boot<F, G, H>(config: &EngineConfig, bind_mobile_fn: &mut F, observe_loss_fn: &mut G, supply_reached_fn: &mut H) -> Result<Engine, EngineError>
     where
-    F: FnMut(MemberDescriptor) -> Result<String, String>,
-    G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
-    H: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
     {
         if BOOTED.swap(true, Ordering::SeqCst) {
             return Err(EngineError::State);
@@ -757,7 +762,9 @@ impl Engine {
             arguments: argv.as_ptr(),
         };
         // SAFETY: every config pointer and the temporary host callback are valid for the call.
-        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, |host| unsafe { sys::eech_engine_boot(&c, host) })?;
+        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, |host| unsafe {
+            sys::eech_engine_boot(&c, host)
+        })?;
         Ok(Engine {
             _not_send: std::marker::PhantomData,
         })
@@ -771,7 +778,9 @@ impl Engine {
         H: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
     {
         // SAFETY: the temporary host callback is valid for the call.
-        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, |host| unsafe { sys::eech_engine_frame(milliseconds, host) })
+        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, |host| unsafe {
+            sys::eech_engine_frame(milliseconds, host)
+        })
     }
 
     /// Applies one previously withheld loss by opaque physical-incarnation ID.
