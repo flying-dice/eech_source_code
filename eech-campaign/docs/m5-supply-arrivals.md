@@ -40,6 +40,12 @@ maintained waypoint rows currently set LAST_TO_REACH false for both aircraft
 types, so boot also validates that exact scoped invariant rather than claiming
 a natural runtime case that cannot occur.
 
+The public C boundary accepts only finite copied floating-point facts; a NaN or
+infinity is a malformed descriptor and fails loudly before the host callback.
+The reference helper's unordered-comparison tests protect its legacy predicate
+when called directly, but do not claim that non-finite facts can pass through
+the public C boundary.
+
 Those four rows also have no action message and disable action checking. Boot
 validates both facts, and the guide action predicate explicitly refuses the
 four scoped waypoints. Therefore withholding the reached observation cannot
@@ -61,8 +67,9 @@ cargo while physical position reports continue, then a true observation
 advances the task, debits the supplier and attaches cargo; and a delayed loaded
 DROP_OFF leaves cargo and receiver stock unchanged until a later true physical
 observation, then advances the task and credits the receiver. The retained
-legacy group-receiver path credits supplies but leaves its cargo attached at
-DROP_OFF, so the causal check records that state without claiming a removal.
+causal run's first post-transition snapshot observes receiver fuel `60 -> 100`,
+waypoint `DROP_OFF -> FINISH_DROP_OFF`, and cargo `1 -> 1`. It records that
+instant without claiming the cargo is retained permanently or removed later.
 
 `tools/supply-arrivals-lifecycle-windows.ps1` checks a missing callable before
 boot, nil and thrown callback failures at a natural SUPPLY arrival, poison
@@ -76,8 +83,11 @@ not distributable; the build, lint and source-level tests remain mandatory CI.
 
 ## Compatibility and remaining work
 
-This is a breaking host API change. Every maintained caller passes the second
-callable; there is no hostless or embedded-answer fallback. Legacy Tacview IDs,
+This is a breaking host API change. Every maintained EECH World runtime and
+lifecycle caller passes the second callable; there is no hostless or
+embedded-answer fallback. The staged DCS probe still boots without either
+mandatory host callback and therefore fails until a real DCS adapter supplies
+both `bind_mobile` and `supply_reached`. Legacy Tacview IDs,
 `engine:objects()`, recordings, metrics, random stream, frame timing and all
 non-SUPPLY arrival handlers remain unchanged. The reference predicate is
 synchronous in the same frame, preserving the existing consequence ordering.
