@@ -11,7 +11,9 @@ loading and ABI assumptions here. This note does not implement an adapter.
 - DCS World is a 64-bit Windows program that embeds **Lua 5.1**. The module
   builds and passes its tests for `x86_64-pc-windows-gnu` (`docs/64-bit.md`).
   The retained M5 controls show that an MSVC build does not remedy the DCS
-  `lua_Debug` layout mismatch; the product needs the reviewed size correction.
+  `lua_Debug` layout mismatch. PR #84 merged the reviewed size correction; its clean
+  combined-source build passes the standalone native-error controls and M4 pack, but no
+  corrected build has yet run in a DCS mission.
 - Rust native Lua modules are established practice. DCS-gRPC
   (github.com/DCS-gRPC/rust-server) is a Rust `cdylib` that uses **mlua** with
   `default-features = false, features = ["lua51", "module", ...]`. It is loaded

@@ -8,7 +8,7 @@ engine state. It never feeds DCS state into the campaign and never commands unit
 
 | File | Purpose |
 |---|---|
-| `pe-lua-link-check.py` | Static, link-level check of the module's PE imports against a host `lua.dll`'s exports, plus PE32+, `luaopen_eech_dc`, delay-import and MinGW-runtime checks. **It cannot see struct layouts.** The current candidate passes it, yet crashes on DCS's `lua_Debug` size. |
+| `pe-lua-link-check.py` | Static, link-level check of the module's PE imports against a host `lua.dll`'s exports, plus PE32+, `luaopen_eech_dc`, delay-import and MinGW-runtime checks. **It cannot see struct layouts.** The historical `65892de1` run-9 candidate passed it, yet the actual DCS run ended `0xC0000005` after loading; attribution to the next native error call remains inferred. Separate standalone controls diagnosed the `lua_Debug` mismatch. The corrected product source is merged, while its DCS mission run remains pending. |
 | `eech-dcs-probe.lua` | The mission-state probe, in cumulative stages: `env`, `load` (`require` plus one native error with a flushed begin marker), `boot`, `frames`. It writes `EECH_DCS_PROBE event=…` records to `dcs.log` and `log_file`. |
 | `build-probe-miz.py` | Builds a byte-reproducible probe mission from an installed DCS mission: units and module requirements stripped, and one MISSION START `DO SCRIPT` that sets `EECH_DCS_PROBE` and `dofile`s the probe. |
 | `eech-m5probe-hook.lua` | A GUI hook for the isolated profile only. It does nothing unless the runner set `EECH_M5PROBE_RUN_SECONDS`. It logs simulation callbacks, releases the briefing pause, and calls `exitProcess` a bounded time after the simulation starts. It does not start missions: that did not work from a hook. |
@@ -31,7 +31,11 @@ engine state. It never feeds DCS state into the campaign and never commands unit
   with matching SHA-256 hashes for the candidate `eech_dc.dll` and the installed
   `bin-mt/lua.dll`, plus completed zero-exit `first_error` and `repeated_errors` controls on
   that pair (risk L2). An operator must retain the actual control outputs beside this record;
-  the guard validates the record's content, types and hashes. It is read strictly (`System.Text.Json`): the top level is an object (an array is refused even with one element), no key repeats (case variants included) and key names match exactly, hashes are strings of exactly 64 hex digits with no surrounding whitespace (the digits match case-insensitively), `completed` is the JSON boolean `true` and `exit_code` is the integer `0`. not the provenance of a claimed test.
+  the guard validates the record's content, types and hashes, not the provenance of a claimed
+  test. It is read strictly (`System.Text.Json`): the top level is an object (an array is refused
+  even with one element), no key repeats (case variants included) and key names match exactly,
+  hashes are strings of exactly 64 hex digits with no surrounding whitespace (the digits match
+  case-insensitively), `completed` is the JSON boolean `true` and `exit_code` is the integer `0`.
   An arbitrary existing file, failed control, or mismatched DLL is rejected before profile
   writes. The record shape is:
 
