@@ -16,13 +16,13 @@ loads the module with `require ("eech_dc")` and records Tacview.
 
 ```
    eech-world (host binary)     Rust; embeds Lua 5.1; Tacview ACMI 2.2
-        │  require ("eech_dc") → boot { ... } · engine:frame (ms) · engine:objects ()
+        │  require ("eech_dc") → boot { bind_mobile=... } · frame · objects · members
         ▼
    eech-dc (libeech_dc.so)      the Lua module (mlua, lua51 + module)
         ▼
    eech-engine / -sys           safe API · native build, headless platform layer, synthetic data
         ▼
-   original EECH C              ../aphavoc/source, ../modules (1,218 files as written)
+   original EECH C              ../aphavoc/source, ../modules (1,218 legacy files + the host roster)
 
    eech-map                     OpenStreetMap + SRTM → an EECH map and dynamic campaign
 ```
@@ -59,6 +59,8 @@ M5: a proposal for the first host-boundary cut (loss first), with public-path ch
 [`docs/m5-host-boundary.md`](docs/m5-host-boundary.md).
 M5 slice 1a: the campaign's loss consequences moved out of world destroy code, behaviour unchanged:
 [`docs/m5-loss-structural.md`](docs/m5-loss-structural.md).
+M5 prerequisite: externally issued physical-incarnation identities and the durable roster:
+[`docs/m5-host-identities.md`](docs/m5-host-identities.md).
 
 ## The campaign kernel spike
 

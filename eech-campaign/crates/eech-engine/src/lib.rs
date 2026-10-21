@@ -9,6 +9,7 @@
 use eech_engine_sys as sys;
 use serde::Serialize;
 use std::ffi::{c_char, c_int, c_void, CStr, CString};
+use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -130,6 +131,42 @@ pub struct Object {
     pub usable: Option<String>,
 }
 
+/// Copied facts supplied to the host when a physical member is first bound.
+/// `entity_id` is a transient correlation value and may be reused by EECH; the
+/// returned host identity is the durable identity.
+#[derive(Clone, Copy, Debug, Serialize)]
+pub struct MemberDescriptor {
+    pub member_key: u64,
+    pub group_key: u64,
+    pub entity_id: i32,
+    pub entity_type: i32,
+    pub sub_type: i32,
+    pub side: Side,
+}
+
+/// One durable campaign roster entry. Membership can change while the same
+/// physical incarnation and host identity continue.
+#[derive(Clone, Debug, Serialize)]
+pub struct Member {
+    pub member_key: u64,
+    pub group_key: u64,
+    pub host_id: String,
+    pub origin_entity_id: i32,
+    pub current_entity_id: Option<i32>,
+    pub entity_type: i32,
+    pub sub_type: i32,
+    pub side: Side,
+    pub initial_alive: bool,
+    pub physical_present: bool,
+    pub in_group: bool,
+}
+
+#[derive(Clone, Copy, Debug, Default, Serialize)]
+pub struct RosterStats {
+    pub duplicate_comparisons: u64,
+    pub duplicate_scan_seconds: f64,
+}
+
 #[derive(Clone, Copy, Debug, Default, Serialize)]
 pub struct Clock {
     pub elapsed_seconds: f32,
@@ -140,6 +177,102 @@ pub struct Clock {
 /// the booted engine (one per process)
 pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
+}
+
+struct HostContext<'a, F> {
+    bind_mobile: &'a mut F,
+}
+
+fn side(value: c_int) -> Side {
+    match value {
+        1 => Side::Blue,
+        2 => Side::Red,
+        _ => Side::Neutral,
+    }
+}
+
+unsafe fn write_callback_text(target: *mut c_char, capacity: usize, value: &str) {
+    if target.is_null() || capacity == 0 {
+        return;
+    }
+    let bytes = value.as_bytes();
+    let length = bytes.len().min(capacity - 1);
+    // SAFETY: the caller supplies a writable callback buffer of `capacity` bytes.
+    let out = unsafe { std::slice::from_raw_parts_mut(target.cast::<u8>(), capacity) };
+    for (destination, source) in out.iter_mut().take(length).zip(bytes.iter()) {
+        *destination = if *source == 0 { b'?' } else { *source };
+    }
+    out[length] = 0;
+}
+
+unsafe extern "C" fn bind_mobile<F>(
+    descriptor: *const sys::eech_member_descriptor,
+    host_id: *mut c_char,
+    host_id_size: usize,
+    error: *mut c_char,
+    error_size: usize,
+    user: *mut c_void,
+) -> c_int
+where
+    F: FnMut(MemberDescriptor) -> Result<String, String>,
+{
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
+        if descriptor.is_null() || user.is_null() {
+            return Err("invalid native bind_mobile callback context".into());
+        }
+        // SAFETY: C supplies both pointers for the duration of this callback.
+        let (descriptor, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F>)) };
+        let descriptor = MemberDescriptor {
+            member_key: descriptor.member_key,
+            group_key: descriptor.group_key,
+            entity_id: descriptor.entity_index,
+            entity_type: descriptor.entity_type,
+            sub_type: descriptor.sub_type,
+            side: side(descriptor.side),
+        };
+        let identity = (context.bind_mobile)(descriptor)?;
+        let bytes = identity.as_bytes();
+        if bytes.is_empty() {
+            return Err("bind_mobile returned an empty identity".into());
+        }
+        if bytes.len() > sys::EECH_HOST_ID_MAX {
+            return Err(format!("bind_mobile identity is {} bytes; maximum is {}", bytes.len(), sys::EECH_HOST_ID_MAX));
+        }
+        if bytes.contains(&0) {
+            return Err("bind_mobile identity contains NUL".into());
+        }
+        if host_id.is_null() || host_id_size <= bytes.len() {
+            return Err("native host identity buffer is too small".into());
+        }
+        // SAFETY: capacity was checked above and C owns the writable buffer.
+        unsafe { write_callback_text(host_id, host_id_size, &identity) };
+        Ok(())
+    }));
+    match result {
+        Ok(Ok(())) => 0,
+        Ok(Err(message)) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, &message) };
+            1
+        }
+        Err(_) => {
+            // No Rust panic may unwind through C.
+            unsafe { write_callback_text(error, error_size, "bind_mobile panicked") };
+            1
+        }
+    }
+}
+
+fn with_host<F>(bind_mobile_fn: &mut F, call: impl FnOnce(*const sys::eech_engine_host) -> c_int) -> Result<(), EngineError>
+where
+    F: FnMut(MemberDescriptor) -> Result<String, String>,
+{
+    let mut context = HostContext { bind_mobile: bind_mobile_fn };
+    let host = sys::eech_engine_host {
+        bind_mobile: Some(bind_mobile::<F>),
+        user: (&mut context as *mut HostContext<'_, F>).cast::<c_void>(),
+    };
+    check(call(&host))
 }
 
 /// EECH's keysite usable states (en_state.h KEYSITE_USABLE_STATES)
@@ -165,7 +298,10 @@ pub fn prepare_installation(root: &Path) -> Result<(), EngineError> {
 
 impl Engine {
     /// boots EECH's dedicated-server path into the campaign (once per process)
-    pub fn boot(config: &EngineConfig) -> Result<Engine, EngineError> {
+    pub fn boot<F>(config: &EngineConfig, bind_mobile_fn: &mut F) -> Result<Engine, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+    {
         if BOOTED.swap(true, Ordering::SeqCst) {
             return Err(EngineError::State);
         }
@@ -185,17 +321,20 @@ impl Engine {
             random_seed: config.random_seed,
             arguments: argv.as_ptr(),
         };
-        // SAFETY: every pointer is valid for the call
-        check(unsafe { sys::eech_engine_boot(&c) })?;
+        // SAFETY: every config pointer and the temporary host callback are valid for the call.
+        with_host(bind_mobile_fn, |host| unsafe { sys::eech_engine_boot(&c, host) })?;
         Ok(Engine {
             _not_send: std::marker::PhantomData,
         })
     }
 
     /// advances simulated time and runs one iteration of EECH's flight loop
-    pub fn frame(&mut self, milliseconds: u32) -> Result<(), EngineError> {
-        // SAFETY: no arguments
-        check(unsafe { sys::eech_engine_frame(milliseconds) })
+    pub fn frame<F>(&self, milliseconds: u32, bind_mobile_fn: &mut F) -> Result<(), EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+    {
+        // SAFETY: the temporary host callback is valid for the call.
+        with_host(bind_mobile_fn, |host| unsafe { sys::eech_engine_frame(milliseconds, host) })
     }
 
     pub fn objects(&self) -> Result<Vec<Object>, EngineError> {
@@ -217,11 +356,7 @@ impl Engine {
                 id: o.id,
                 kind,
                 sub_type: o.sub_type,
-                side: match o.side {
-                    1 => Side::Blue,
-                    2 => Side::Red,
-                    _ => Side::Neutral,
-                },
+                side: side(o.side),
                 alive: o.alive != 0,
                 group_id: (o.group_id >= 0).then_some(o.group_id),
                 type_name: text(o.type_name).unwrap_or_default(),
@@ -243,6 +378,47 @@ impl Engine {
         // SAFETY: the callback only touches `out` during the call
         check(unsafe { sys::eech_engine_objects(collect, &mut out as *mut Vec<Object> as *mut c_void, &mut count) })?;
         Ok(out)
+    }
+
+    pub fn members(&self) -> Result<Vec<Member>, EngineError> {
+        unsafe extern "C" fn collect(member: *const sys::eech_member, user: *mut c_void) {
+            // SAFETY: the engine passes a valid member; user is the Vec below.
+            let (member, out) = unsafe { (&*member, &mut *(user as *mut Vec<Member>)) };
+            let host_id = if member.host_id.is_null() {
+                String::new()
+            } else {
+                // SAFETY: roster identities are NUL-terminated for the engine session.
+                unsafe { CStr::from_ptr(member.host_id) }.to_string_lossy().into_owned()
+            };
+            out.push(Member {
+                member_key: member.member_key,
+                group_key: member.group_key,
+                host_id,
+                origin_entity_id: member.origin_entity_id,
+                current_entity_id: (member.current_entity_id >= 0).then_some(member.current_entity_id),
+                entity_type: member.entity_type,
+                sub_type: member.sub_type,
+                side: side(member.side),
+                initial_alive: member.initial_alive != 0,
+                physical_present: member.physical_present != 0,
+                in_group: member.in_group != 0,
+            });
+        }
+        let mut out: Vec<Member> = Vec::new();
+        let mut count: c_int = 0;
+        // SAFETY: the callback only touches `out` during the call.
+        check(unsafe { sys::eech_engine_members(collect, (&mut out as *mut Vec<Member>).cast::<c_void>(), &mut count) })?;
+        Ok(out)
+    }
+
+    pub fn roster_stats(&self) -> Result<RosterStats, EngineError> {
+        let mut stats = sys::eech_roster_stats::default();
+        // SAFETY: a valid out pointer; the native operation guard serialises access.
+        check(unsafe { sys::eech_engine_roster_stats(&mut stats) })?;
+        Ok(RosterStats {
+            duplicate_comparisons: stats.duplicate_comparisons,
+            duplicate_scan_seconds: stats.duplicate_scan_seconds,
+        })
     }
 
     pub fn clock(&self) -> Result<Clock, EngineError> {

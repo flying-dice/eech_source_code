@@ -280,6 +280,14 @@ typedef struct GROUP group;
 
 #include "gp_loss.h"
 
+#ifdef EECH_CAMPAIGN_HOST_IDENTITIES
+#include "gp_roster.h"
+#else
+#define campaign_roster_link_member(GROUP,MEMBER) ((void) 0)
+#define campaign_roster_unlink_member(GROUP,MEMBER) ((void) 0)
+#define campaign_roster_release_entity(ENTITY) ((void) 0)
+#endif
+
 #include "gp_msgs.h"
 
 #include "gp_pack.h"

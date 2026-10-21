@@ -10,7 +10,7 @@ mod crash;
 
 use eech_world::tacview::{ObjectInfo, Recorder};
 use mlua::prelude::*;
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::io::BufWriter;
 use std::rc::Rc;
@@ -202,6 +202,33 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         })?,
     )?;
+
+    // The reference host issues opaque identities outside the campaign DLL.
+    // Physical creation is still transitional and DLL-resident; this callback
+    // makes the selected host participate without deriving identity from EECH's
+    // reused entity index.
+    let next_host_id = Rc::new(Cell::new(1_u64));
+    {
+        let next_host_id = next_host_id.clone();
+        host.set(
+            "bind_mobile",
+            lua.create_function(move |_, descriptor: LuaTable| {
+                // Reading the semantic descriptor also rejects a mismatched adapter contract.
+                let _: u64 = descriptor.get("member_key")?;
+                let _: u64 = descriptor.get("group_key")?;
+                let _: i64 = descriptor.get("entity_id")?;
+                let _: i64 = descriptor.get("entity_type")?;
+                let _: i64 = descriptor.get("sub_type")?;
+                let _: String = descriptor.get("side")?;
+                let id = next_host_id.get();
+                let Some(next) = id.checked_add(1) else {
+                    return Err(LuaError::runtime("host.bind_mobile: identity counter exhausted"));
+                };
+                next_host_id.set(next);
+                Ok(format!("eech-world:{id}"))
+            })?,
+        )?;
+    }
 
     let recording: Rc<RefCell<Option<Recording>>> = Rc::new(RefCell::new(None));
     {

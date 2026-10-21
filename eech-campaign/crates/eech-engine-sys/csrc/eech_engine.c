@@ -38,31 +38,47 @@ extern char comanche_hokum_installation_path[];
 extern int game_update_time;
 
 enum engine_state { ENGINE_NEW, ENGINE_RUNNING };
+enum engine_operation { OPERATION_NONE, OPERATION_BOOT, OPERATION_FRAME, OPERATION_OBSERVE, OPERATION_PREPARE };
 
 static enum engine_state state;
+static enum engine_operation operation;
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 /* entry discipline: FPU environment and fatal-error unwinding */
 
-#define ENTER(RESULT) \
+#define ENTER(OPERATION,HOST) \
 	fenv_t caller_fenv; \
 	jmp_buf fatal_jmp; \
 	jmp_buf *saved_target = eech_fatal_target; \
+	const struct eech_engine_host *entry_host = (HOST); \
+	campaign_roster_host roster_host; \
 	if (eech_engine_poisoned) \
 	{ \
 		return EECH_ENGINE_POISONED; \
 	} \
+	if (operation != OPERATION_NONE) \
+	{ \
+		return EECH_ENGINE_STATE; \
+	} \
+	operation = (OPERATION); \
+	roster_host.bind_member = entry_host ? entry_host->bind_mobile : NULL; \
+	roster_host.user = entry_host ? entry_host->user : NULL; \
+	campaign_roster_set_host (entry_host ? &roster_host : NULL); \
 	fegetenv (&caller_fenv); \
 	fesetround (FE_TOWARDZERO); \
 	eech_fatal_target = &fatal_jmp; \
 	if (setjmp (fatal_jmp)) \
 	{ \
+		campaign_roster_set_host (NULL); \
+		operation = OPERATION_NONE; \
 		eech_fatal_target = saved_target; \
 		fesetenv (&caller_fenv); \
 		return EECH_ENGINE_FATAL; \
 	}
 
 #define LEAVE(RESULT) \
+	campaign_roster_set_host (NULL); \
+	operation = OPERATION_NONE; \
 	eech_fatal_target = saved_target; \
 	fesetenv (&caller_fenv); \
 	return (RESULT)
@@ -193,6 +209,7 @@ static void boot (const struct eech_engine_config *config)
 	load_3d_terrain_game_data ();
 	initialise_population_name_database ();
 	reinitialise_entity_system ();
+	campaign_roster_reset ();
 
 	/* GUNSHIP_TYPE (host) */
 	create_campaign (get_current_game_session ());
@@ -218,14 +235,14 @@ static void boot (const struct eech_engine_config *config)
 	reset_receive_packet_list_time_stamps ();
 }
 
-int eech_engine_boot (const struct eech_engine_config *config)
+int eech_engine_boot (const struct eech_engine_config *config, const struct eech_engine_host *host)
 {
-	ENTER (0);
+	ENTER (OPERATION_BOOT, host);
 	if (state != ENGINE_NEW)
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename)
+	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -285,9 +302,9 @@ static void frame (uint32_t milliseconds)
 	process_events ();
 }
 
-int eech_engine_frame (uint32_t milliseconds)
+int eech_engine_frame (uint32_t milliseconds, const struct eech_engine_host *host)
 {
-	ENTER (0);
+	ENTER (OPERATION_FRAME, host);
 	if (state != ENGINE_RUNNING)
 	{
 		LEAVE (EECH_ENGINE_STATE);
@@ -298,7 +315,7 @@ int eech_engine_frame (uint32_t milliseconds)
 
 int eech_engine_prepare_installation (const char *root)
 {
-	ENTER (0);
+	ENTER (OPERATION_PREPARE, NULL);
 	char path[4096];
 	int ok;
 	snprintf (path, sizeof (path), "%s/cohokum", root);
@@ -393,7 +410,7 @@ void eech_engine_debug_keysites (void)
 
 int eech_engine_diagnostics (void)
 {
-	ENTER (0);
+	ENTER (OPERATION_OBSERVE, NULL);
 	if (state != ENGINE_RUNNING)
 	{
 		LEAVE (EECH_ENGINE_STATE);
@@ -409,9 +426,15 @@ int eech_engine_diagnostics (void)
 extern int eech_observe_objects (eech_object_callback callback, void *user);
 extern int eech_observe_clock (struct eech_clock *clock);
 
+struct member_callback_context
+{
+	eech_member_callback callback;
+	void *user;
+};
+
 int eech_engine_objects (eech_object_callback callback, void *user, int *count)
 {
-	ENTER (0);
+	ENTER (OPERATION_OBSERVE, NULL);
 	if (state != ENGINE_RUNNING)
 	{
 		LEAVE (EECH_ENGINE_STATE);
@@ -420,9 +443,63 @@ int eech_engine_objects (eech_object_callback callback, void *user, int *count)
 	LEAVE (EECH_ENGINE_OK);
 }
 
+static void copy_member (const campaign_member_snapshot *source, void *user)
+{
+	struct member_callback_context *context = (struct member_callback_context *) user;
+	struct eech_member member;
+	member.member_key = source->member_key;
+	member.group_key = source->group_key;
+	member.host_id = source->host_id;
+	member.origin_entity_id = source->origin_entity_index;
+	member.current_entity_id = source->current_entity_index;
+	member.entity_type = source->entity_type;
+	member.sub_type = source->sub_type;
+	member.side = source->side;
+	member.initial_alive = source->initial_alive;
+	member.physical_present = source->physical_present;
+	member.in_group = source->in_group;
+	context->callback (&member, context->user);
+}
+
+int eech_engine_members (eech_member_callback callback, void *user, int *count)
+{
+	struct member_callback_context context;
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!callback || !count)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	context.callback = callback;
+	context.user = user;
+	*count = campaign_roster_members (copy_member, &context);
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_roster_stats (struct eech_roster_stats *stats)
+{
+	campaign_roster_stats source;
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!stats)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	campaign_roster_get_stats (&source);
+	stats->duplicate_comparisons = source.duplicate_comparisons;
+	stats->duplicate_scan_seconds = source.duplicate_scan_seconds;
+	LEAVE (EECH_ENGINE_OK);
+}
+
 int eech_engine_clock (struct eech_clock *clock)
 {
-	ENTER (0);
+	ENTER (OPERATION_OBSERVE, NULL);
 	if (state != ENGINE_RUNNING)
 	{
 		LEAVE (EECH_ENGINE_STATE);

@@ -11,6 +11,9 @@
 #define EECH_ENGINE_H
 
 #include <stdint.h>
+#include <stddef.h>
+
+#include "entity/special/group/gp_roster.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -33,10 +36,22 @@ struct eech_engine_config
 	const char *const *arguments;
 };
 
-int eech_engine_boot (const struct eech_engine_config *config);
+#define EECH_HOST_ID_MAX CAMPAIGN_HOST_ID_MAX
+
+typedef campaign_member_descriptor eech_member_descriptor;
+typedef campaign_bind_member_fn eech_bind_mobile_callback;
+
+struct eech_engine_host
+{
+	/* Called synchronously while the physical entity exists. */
+	eech_bind_mobile_callback bind_mobile;
+	void *user;
+};
+
+int eech_engine_boot (const struct eech_engine_config *config, const struct eech_engine_host *host);
 
 /* advance simulated time by milliseconds and run one iteration of EECH's flight loop */
-int eech_engine_frame (uint32_t milliseconds);
+int eech_engine_frame (uint32_t milliseconds, const struct eech_engine_host *host);
 
 const char *eech_engine_fatal_message (void);
 
@@ -85,6 +100,34 @@ typedef void (*eech_object_callback) (const struct eech_object *object, void *us
 
 /* calls back once per observed object and stores the count. Strings live until the next frame. */
 int eech_engine_objects (eech_object_callback callback, void *user, int *count);
+
+struct eech_member
+{
+	uint64_t member_key;
+	uint64_t group_key;
+	const char *host_id;
+	int origin_entity_id;
+	int current_entity_id;
+	int entity_type;
+	int sub_type;
+	int side;
+	int initial_alive;
+	int physical_present;
+	int in_group;
+};
+
+typedef void (*eech_member_callback) (const struct eech_member *member, void *user);
+
+/* Durable campaign roster. Strings live for the engine session. */
+int eech_engine_members (eech_member_callback callback, void *user, int *count);
+
+struct eech_roster_stats
+{
+	uint64_t duplicate_comparisons;
+	double duplicate_scan_seconds;
+};
+
+int eech_engine_roster_stats (struct eech_roster_stats *stats);
 
 struct eech_clock
 {

@@ -38,11 +38,11 @@ emit { event = "surface", module = dc.name, exports = table.concat (exports, " "
 dc.prepare_installation (root)
 local engine = dc.boot {
 	install_root = root, map = "..\\common\\maps\\map5", campaign_directory = "camp01",
-	campaign = "LEBANON.CHC", gunship = "apache", seed = 1,
+	campaign = "LEBANON.CHC", gunship = "apache", seed = 1, bind_mobile = host.bind_mobile,
 }
 
--- what a host can hand the engine besides time: try the obvious kinds of call
--- and record that the surface refuses them (no interface is proposed by the names)
+-- Retain the original guessed event/report surface checks. Host binding now
+-- enters through the required boot callback above; these unrelated names stay absent.
 for _, name in ipairs { "event", "report", "observe", "on_event", "host" } do
 	local ok, err = pcall (function () return engine[name] end)
 	emit { event = "engine_index", name = name, ok = ok, value = ok and type (err) or tostring (err) }
