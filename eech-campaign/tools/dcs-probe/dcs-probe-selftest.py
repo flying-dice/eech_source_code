@@ -276,6 +276,55 @@ def runner_guard_tests(tmp):
         result = run(write_dir=alias)
         check(f"runner rejects default profile alias {alias!r}", result.returncode != 0 and "default profile" in result.stderr,
               result.stdout + result.stderr)
+    # Physical identity, not spelling: junctions (Windows) or symlinks (elsewhere) that reach the
+    # protected default profile must be refused, and the profile must be left untouched.
+    default_dir = os.path.join(saved, "DCS.openbeta")
+    harmless = os.path.join(tmp, "elsewhere")
+    os.makedirs(harmless)
+    links = []
+
+    def link(path, target):
+        kind = "Junction" if os.name == "nt" else "SymbolicLink"
+        made = subprocess.run(["pwsh", "-NoProfile", "-Command",
+                               "New-Item -ItemType $env:LINK_KIND -Path $env:LINK_PATH -Target $env:LINK_TARGET | Out-Null"],
+                              capture_output=True, text=True,
+                              env={**os.environ, "LINK_KIND": kind, "LINK_PATH": path, "LINK_TARGET": target})
+        check(f"fixture {kind} {os.path.basename(path)} is created", made.returncode == 0, made.stderr)
+        links.append(path)
+
+    def unlink(path):
+        # remove the link itself only, never its target
+        try:
+            os.rmdir(path) if os.name == "nt" else os.unlink(path)
+        except OSError:
+            pass
+
+    try:
+        link(os.path.join(saved, "DCS.Alias"), default_dir)
+        link(os.path.join(saved, "DCS.SavedGamesAlias"), saved)
+        os.makedirs(os.path.join(saved, "DCS.LogsAlias"))
+        link(os.path.join(saved, "DCS.LogsAlias", "Logs"), os.path.dirname(default_log))
+        link(os.path.join(saved, "DCS.InsideAlias"), os.path.dirname(default_log))
+        link(os.path.join(saved, "DCS.HarmlessAlias"), harmless)
+        before = os.stat(default_log).st_mtime_ns
+        for name, why in (("DCS.Alias", "a junction or symlink to the default profile"),
+                          (os.path.join("DCS.Alias", "Probe"), "a directory below a link to the default profile"),
+                          ("DCS.SavedGamesAlias", "a link to the directory that contains the default profile"),
+                          ("DCS.LogsAlias", "a Logs link that reaches the default profile's log"),
+                          ("DCS.InsideAlias", "a link into the default profile")):
+            result = run(write_dir=name)
+            check(f"runner rejects {why}",
+                  result.returncode != 0 and "default profile" in result.stderr and "prelaunch guards passed" not in result.stdout,
+                  result.stdout + result.stderr)
+        result = run(write_dir="DCS.HarmlessAlias")
+        check("runner accepts a link that reaches nowhere near the default profile",
+              result.returncode == 0 and "prelaunch guards passed" in result.stdout, result.stdout + result.stderr)
+        check("the default profile log is untouched by the guard tests",
+              os.stat(default_log).st_mtime_ns == before and open(default_log, "rb").read() == b"do not change")
+    finally:
+        for path in reversed(links):
+            unlink(path)
+    check("removing the fixture links left the default profile intact", os.path.exists(default_log))
     arbitrary = os.path.join(tmp, "arbitrary.txt")
     with open(arbitrary, "w") as stream:
         stream.write("any existing file")
@@ -494,7 +543,7 @@ def lua_tests(tmp, lua):
           len(rows) == 2 and rows[0].get("frames") == "2" and rows[0].get("frames_window") == "2"
           and rows[1].get("frames") == "5" and rows[1].get("frames_window") == "3", str(rows))
     check("successful scheduled callbacks return the next model times",
-          "SCHEDULE_RETURN=0.3" in out and "SCHEDULE_RETURN=0.55" in out, out)
+          [l for l in out.splitlines() if l.startswith("SCHEDULE_RETURN=")] == ["SCHEDULE_RETURN=0.3", "SCHEDULE_RETURN=0.55"], out)
     check("values with spaces are quoted", 'name="fake 0"' in out, out)
 
     code, out = run("bad", "frames")
@@ -548,7 +597,7 @@ def lua_tests(tmp, lua):
     out = subprocess.run([lua, gui, hook], capture_output=True, text=True, env={**environment, "EECH_M5PROBE_RUN_SECONDS": "20"}).stdout
     check("the hook sets its callbacks when the runner set the bound", "callbacks set" in out and "run_seconds=20" in out, out)
     check("the hook releases briefing pause once and exits at its bound once",
-          out.count("setPause=false") == 1 and out.count("exitProcess") == 2, out)
+          out.splitlines().count("setPause=false") == 1 and out.splitlines().count("exitProcess") == 1, out)
 
 
 def main(argv):

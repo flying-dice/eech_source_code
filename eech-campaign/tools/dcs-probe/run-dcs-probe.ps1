@@ -47,8 +47,68 @@ $manifest = [ordered]@{ run = $runId; stage = $Stage; started = (Get-Date).ToStr
 function Hash($p) { (Get-FileHash -Algorithm SHA256 $p).Hash.ToLower() }
 function DefaultLogTicks { (Get-Item $defaultLog).LastWriteTimeUtc.Ticks }
 
-if ([IO.Path]::GetFullPath($writeDir).TrimEnd('\', '/') -eq [IO.Path]::GetFullPath($defaultDir).TrimEnd('\', '/')) {
-	throw "-WriteDirName must not resolve to the default profile $DefaultWriteDirName"
+# Physical identity of a path, for the protected-profile guard. Spelling is not identity:
+# a junction or symlink anywhere in a path lets another name reach the same directory.
+# Each existing component is resolved through links to its final target and takes its
+# on-disk spelling; components that do not exist yet are kept as written. A link that
+# cannot be resolved throws, so the guard fails closed.
+function Resolve-PhysicalPath([string] $Path) {
+	$comparison = if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
+	$separator = [string][IO.Path]::DirectorySeparatorChar
+	$current = [IO.Path]::GetFullPath($Path)
+	for ($hop = 0; $hop -le 32; $hop++) {
+		$root = [IO.Path]::GetPathRoot($current)
+		$parts = @($current.Substring($root.Length).Split([char[]]@('\', '/'), [StringSplitOptions]::RemoveEmptyEntries))
+		$resolved = $root
+		$redirected = $false
+		for ($i = 0; $i -lt $parts.Count -and -not $redirected; $i++) {
+			$name = $parts[$i]
+			if ($name.IndexOfAny([char[]]@('*', '?')) -ge 0) { throw "wildcard in path: $Path" }
+			$entry = $null
+			if ([IO.Directory]::Exists($resolved)) {
+				$entry = [IO.DirectoryInfo]::new($resolved).GetFileSystemInfos($name) |
+					Where-Object { [string]::Equals($_.Name, $name, $comparison) } | Select-Object -First 1
+			}
+			if (-not $entry) {
+				return [IO.Path]::GetFullPath([IO.Path]::Combine($resolved, ($parts[$i..($parts.Count - 1)] -join $separator)))
+			}
+			if ($entry.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+				$target = $entry.ResolveLinkTarget($true)
+				if (-not $target) { throw "cannot resolve the reparse point $($entry.FullName)" }
+				$rest = if ($i + 1 -lt $parts.Count) { $parts[($i + 1)..($parts.Count - 1)] } else { @() }
+				$current = [IO.Path]::GetFullPath([IO.Path]::Combine($target.FullName, ($rest -join $separator)))
+				$redirected = $true
+			} else {
+				$resolved = $entry.FullName
+			}
+		}
+		if (-not $redirected) { return $resolved }
+	}
+	throw "too many links while resolving $Path"
+}
+
+# The probe profile is written to (hook installed, dcs.log replaced). None of those paths may
+# be, lie inside, or contain the protected default profile or its dcs.log, however they are
+# spelled or linked.
+try {
+	$protected = @((Resolve-PhysicalPath $defaultDir), (Resolve-PhysicalPath $defaultLog))
+	$written = @($writeDir) + @('Logs', 'Logs/dcs.log', 'Scripts', 'Scripts/Hooks', 'Scripts/Hooks/eech-m5probe-hook.lua' |
+		ForEach-Object { Join-Path $writeDir $_ })
+	$comparison = if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
+	$separator = [string][IO.Path]::DirectorySeparatorChar
+	foreach ($path in $written) {
+		$physical = (Resolve-PhysicalPath $path).TrimEnd('\', '/')
+		foreach ($guarded in $protected) {
+			$guarded = $guarded.TrimEnd('\', '/')
+			if ([string]::Equals($physical, $guarded, $comparison) -or
+				$physical.StartsWith($guarded + $separator, $comparison) -or
+				$guarded.StartsWith($physical + $separator, $comparison)) {
+				throw "$path is, lies inside or contains the default profile $DefaultWriteDirName ($physical vs $guarded)"
+			}
+		}
+	}
+} catch {
+	throw "-WriteDirName $WriteDirName is not a safe probe profile: $($_.Exception.Message)"
 }
 if (-not (Test-Path -LiteralPath $defaultLog -PathType Leaf)) {
 	throw "no $defaultLog to watch: pass the installation's -DefaultWriteDirName"
@@ -69,21 +129,53 @@ if ($Stage -in 'boot', 'frames') {
 }
 if ($ValidatePrelaunchOnly) { Write-Output 'prelaunch guards passed'; return }
 
-# Stops a started process and its descendants, and returns the stopped PIDs. A child
-# counts only if it started after its parent: Windows keeps a dead parent's PID in
-# ParentProcessId, so a reused PID must not adopt an unrelated process.
-function Stop-OwnedTree($process, $started) {
-	$ids = if ($process.HasExited) { @() } else { @($process.Id) }
+# Stops a started process and its descendants, and returns the stopped PIDs. A process
+# instance is its PID together with its creation time, because Windows reuses PIDs and keeps
+# a dead parent's PID in ParentProcessId. A child belongs to a parent instance only if it was
+# created within that instance's lifetime: not before it started, and not after it ended. The
+# end is the root's exit time, or the creation of a different process that now holds the
+# same PID. So an unrelated process that reuses a PID, and that process's children, are
+# never selected, while real survivors of an exited root or intermediate parent still are.
+# $seen holds descendant instances recorded earlier (-ObserveOnly returns them): a
+# descendant that survives its exited parent stays reachable. A process is stopped only
+# if the live process list still shows that PID with that creation time.
+function Stop-OwnedTree($process, $started, $seen = @(), [switch] $ObserveOnly) {
+	$tolerance = [TimeSpan]::FromMilliseconds(500)   # Process.StartTime and WMI CreationDate round differently
+	$rootEnded = $null
+	if ($process.HasExited) { try { $rootEnded = $process.ExitTime } catch {} }
+	$ids = @(if (-not $process.HasExited) { [int]$process.Id })   # no process list: the live root alone
+	$descendants = @($seen)
 	try {
 		$all = @(Get-CimInstance Win32_Process)
-		$tree = @(@{ id = $process.Id; started = $started })
+		$tree = [System.Collections.Generic.List[object]]::new()
+		$tree.Add(@{ id = [int]$process.Id; started = $started; ended = $rootEnded })
+		foreach ($old in @($seen)) {
+			if (-not ($old.id -eq $process.Id -and [Math]::Abs(($old.started - $started).TotalMilliseconds) -le $tolerance.TotalMilliseconds)) {
+				$tree.Add(@{ id = [int]$old.id; started = $old.started; ended = $null })
+			}
+		}
 		for ($i = 0; $i -lt $tree.Count; $i++) {
 			$parent = $tree[$i]
-			$tree += @($all | Where-Object { $_.ParentProcessId -eq $parent.id -and $_.CreationDate -ge $parent.started } |
-				ForEach-Object { @{ id = $_.ProcessId; started = $_.CreationDate } })
+			$end = $parent.ended
+			foreach ($row in $all) {
+				if ($row.ProcessId -eq $parent.id -and $row.CreationDate -gt ($parent.started + $tolerance) -and
+					($null -eq $end -or $row.CreationDate -lt $end)) { $end = $row.CreationDate }
+			}
+			foreach ($row in $all) {
+				if ($row.ParentProcessId -ne $parent.id -or $row.CreationDate -lt $parent.started -or
+					($null -ne $end -and $row.CreationDate -gt $end)) { continue }
+				$known = $false
+				foreach ($instance in $tree) { if ($instance.id -eq $row.ProcessId -and $instance.started -eq $row.CreationDate) { $known = $true } }
+				if (-not $known) { $tree.Add(@{ id = [int]$row.ProcessId; started = $row.CreationDate; ended = $null }) }
+			}
 		}
-		$ids = @($tree | Where-Object { $_.id -ne $process.Id -or -not $process.HasExited } | ForEach-Object { $_.id })
-	} catch {}   # no process list: the owned root alone is stopped
+		$descendants = @($tree | Select-Object -Skip 1)
+		$ids = @(if (-not $process.HasExited) { [int]$process.Id })
+		foreach ($instance in $descendants) {
+			if (@($all | Where-Object { $_.ProcessId -eq $instance.id -and $_.CreationDate -eq $instance.started }).Count -gt 0) { $ids += $instance.id }
+		}
+	} catch {}
+	if ($ObserveOnly) { return , $descendants }
 	$stopped = @()
 	foreach ($id in $ids) { try { Stop-Process -Id $id -Force -ErrorAction Stop; $stopped += $id } catch {} }
 	return , $stopped
@@ -161,6 +253,7 @@ $t0 = Get-Date
 $verdict = 'timeout'
 $dialogs = [ordered]@{}
 $stopped = @()
+$seen = @()   # descendants observed while the run is live (PID plus creation time)
 try {
 	while ($true) {
 		Start-Sleep -Seconds 2
@@ -171,12 +264,13 @@ try {
 		if ((DefaultLogTicks) -ne $defaultLogTicksBefore) { $verdict = 'aborted: the default profile log changed'; break }
 		if ($p.HasExited) { $verdict = 'exited with code {0} (0x{0:X8})' -f $p.ExitCode; break }
 		if ($elapsed -gt $TimeoutSeconds) { break }
+		try { $seen = Stop-OwnedTree $p $processStarted $seen -ObserveOnly } catch {}
 	}
 } catch {
 	$verdict = "runner error: $($_.Exception.Message)"
 } finally {
 	# whatever happened above, the owned DCS does not outlive the runner
-	$stopped = Stop-OwnedTree $p $processStarted
+	$stopped = Stop-OwnedTree $p $processStarted $seen
 	# the hook's run bound must not leak to a later manual launch from this shell
 	Remove-Item Env:EECH_M5PROBE_RUN_SECONDS -ErrorAction SilentlyContinue
 }
