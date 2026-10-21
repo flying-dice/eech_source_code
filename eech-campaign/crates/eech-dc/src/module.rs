@@ -1,6 +1,6 @@
 //! The Lua surface of the module.
 
-use eech_engine::{Engine, EngineConfig, EngineError, Gunship, MemberDescriptor, Side, SupplyReachDescriptor};
+use eech_engine::{Engine, EngineConfig, EngineError, Gunship, LossDecision, LossDescriptor, MemberDescriptor, Side, SupplyReachDescriptor};
 use mlua::prelude::*;
 use std::path::PathBuf;
 
@@ -16,6 +16,7 @@ fn lua_error(e: EngineError) -> LuaError {
 struct LuaEngine {
     engine: Engine,
     bind_mobile: LuaFunction,
+    observe_loss: LuaFunction,
     supply_reached: LuaFunction,
 }
 
@@ -46,6 +47,18 @@ fn call_bind_mobile(lua: &Lua, function: &LuaFunction, descriptor: MemberDescrip
     }
 }
 
+fn call_observe_loss(lua: &Lua, function: &LuaFunction, descriptor: LossDescriptor) -> Result<LossDecision, String> {
+    let value: LuaValue = function
+        .call(lua.to_value_with(&descriptor, options()).map_err(|e| e.to_string())?)
+        .map_err(|e| e.to_string())?;
+    match value {
+        LuaValue::String(decision) if decision.as_bytes() == b"forward" => Ok(LossDecision::Forward),
+        LuaValue::String(decision) if decision.as_bytes() == b"withhold" => Ok(LossDecision::Withhold),
+        LuaValue::String(decision) => Err(format!("observe_loss returned unknown decision {:?}", decision.to_string_lossy())),
+        other => Err(format!("observe_loss must return 'forward' or 'withhold', got {}", other.type_name())),
+    }
+}
+
 fn call_supply_reached(lua: &Lua, function: &LuaFunction, descriptor: SupplyReachDescriptor) -> Result<bool, String> {
     let value = lua.to_value_with(&descriptor, options()).map_err(|e| e.to_string())?;
     let answer: LuaValue = function.call(value).map_err(|e| e.to_string())?;
@@ -59,10 +72,16 @@ impl LuaUserData for LuaEngine {
     fn add_methods<M: LuaUserDataMethods<Self>>(methods: &mut M) {
         methods.add_method("frame", |lua, this, milliseconds: u32| {
             let bind_mobile = this.bind_mobile.clone();
+            let observe_loss = this.observe_loss.clone();
             let supply_reached = this.supply_reached.clone();
             let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+            let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
             let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
-            this.engine.frame(milliseconds, &mut binder, &mut reach).map_err(lua_error)
+            this.engine.frame(milliseconds, &mut binder, &mut observer, &mut reach).map_err(lua_error)
+        });
+        methods.add_method("report_loss", |lua, this, host_id: String| {
+            let receipt = this.engine.report_loss(&host_id).map_err(lua_error)?;
+            lua.to_value_with(&receipt, options())
         });
         methods.add_method("objects", |lua, this, ()| {
             let objects = this.engine.objects().map_err(lua_error)?;
@@ -104,6 +123,11 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
         LuaValue::Nil => return Err(LuaError::runtime("eech: missing host bind_mobile callback")),
         value => return Err(LuaError::runtime(format!("eech: bind_mobile must be a function, got {}", value.type_name()))),
     };
+    let observe_loss = match config.get::<LuaValue>("observe_loss")? {
+        LuaValue::Function(function) => function,
+        LuaValue::Nil => return Err(LuaError::runtime("eech: missing host observe_loss callback")),
+        value => return Err(LuaError::runtime(format!("eech: observe_loss must be a function, got {}", value.type_name()))),
+    };
     let supply_reached = match config.get::<LuaValue>("supply_reached")? {
         LuaValue::Function(function) => function,
         LuaValue::Nil => return Err(LuaError::runtime("eech: missing host supply_reached callback")),
@@ -120,11 +144,13 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
         arguments,
     };
     let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+    let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
     let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
-    let engine = Engine::boot(&config, &mut binder, &mut reach).map_err(lua_error)?;
+    let engine = Engine::boot(&config, &mut binder, &mut observer, &mut reach).map_err(lua_error)?;
     Ok(LuaEngine {
         engine,
         bind_mobile,
+        observe_loss,
         supply_reached,
     })
 }

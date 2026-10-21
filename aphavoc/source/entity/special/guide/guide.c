@@ -884,11 +884,24 @@ void attach_group_to_guide_entity (entity *group, entity *guide)
 
 void delete_group_member_from_guide_entity (entity *member, entity *guide)
 {
-	unsigned int
-		valid_members,
-		member_number;
-			
 	ASSERT (member);
+	ASSERT (guide);
+	delete_group_member_number_from_guide_entity
+	(
+		1 << get_local_entity_int_value (member, INT_TYPE_GROUP_MEMBER_NUMBER),
+		guide
+	);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void delete_group_member_number_from_guide_entity (unsigned int member_number, entity *guide)
+{
+	unsigned int
+		valid_members;
+			
 	ASSERT (guide);
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
@@ -897,8 +910,6 @@ void delete_group_member_from_guide_entity (entity *member, entity *guide)
 
 	ASSERT (valid_members != TASK_ASSIGN_ALL_MEMBERS);
 
-	member_number = (1 << get_local_entity_int_value (member, INT_TYPE_GROUP_MEMBER_NUMBER));
-	
 	ASSERT (valid_members & member_number);
 
 	//
@@ -922,9 +933,8 @@ void delete_group_member_from_guide_entity (entity *member, entity *guide)
 		
 		#if DEBUG_MODULE
 
-		debug_log ("GUIDE: Deleting %s (%d) from guide (%d) valid members zero - task %s (%d)",
-							get_local_entity_string (member, STRING_TYPE_FULL_NAME),
-							get_local_entity_index (member),
+		debug_log ("GUIDE: Deleting member mask %u from guide (%d) valid members zero - task %s (%d)",
+							member_number,
 							get_local_entity_index (guide),
 							get_local_entity_string (task, STRING_TYPE_FULL_NAME),
 							get_local_entity_index (task));

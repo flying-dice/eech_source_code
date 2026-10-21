@@ -82,11 +82,17 @@ extern void increment_group_losses (entity *group);
 
 extern void increment_group_primary_task_losses (entity *group);
 
+extern void increment_task_losses (entity *task);
+
 // must be called after the member is unlinked from the group's member list
 
 extern void notify_group_member_killed (entity *group, entity *member);
 
+extern int apply_group_member_killed (entity *group, unsigned int member_number);
+
 extern void notify_forces_check_campaign_objectives (entity *member);
+
+extern void check_all_force_campaign_objectives (void);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -8,7 +8,8 @@ a Lua module (a DLL), and runs it from a Rust host process.
 
 ```
    eech-world (host binary)       Rust; embeds a Lua 5.1 state; records Tacview
-        │  lua: require ("eech_dc") → boot { bind_mobile=..., supply_reached=... }, frame, objects, members, supply_tasks
+        │  lua: require ("eech_dc") → boot { bind_mobile=..., supply_reached=..., observe_loss=... }
+        │                               frame, report_loss, objects, members, supply_tasks
         ▼
    eech-dc (cdylib: libeech_dc.so)     the Lua module; mlua 0.10 (lua51, module)
         │  eech-engine: Engine::boot / frame / objects / clock      (safe Rust)

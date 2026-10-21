@@ -333,6 +333,11 @@ static void kill_local (entity *en)
 
 	ASSERT (group);
 
+	if (campaign_roster_observe_physical_loss (en, group) != CAMPAIGN_LOSS_FORWARD)
+	{
+		debug_fatal ("campaign loss: routed-vehicle withholding is unsupported");
+	}
+
 	//
 	// update force info
 	//

@@ -1282,7 +1282,7 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int response_to_mobile_killed (entity_messages message, entity *receiver, entity *sender, va_list pargs)
+int apply_group_member_killed (entity *receiver, unsigned int member_number)
 {
 	entity
 		*guide,
@@ -1290,14 +1290,9 @@ static int response_to_mobile_killed (entity_messages message, entity *receiver,
 		*next;
 
 	unsigned int
-		valid_members,
-		member_number;
+		valid_members;
 			
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
-
-	ASSERT (sender);
-
-	ASSERT (get_local_entity_int_value (sender, INT_TYPE_IDENTIFY_MOBILE));
 
 	if (get_local_entity_int_value (receiver, INT_TYPE_MEMBER_COUNT) == 0)
 	{
@@ -1344,8 +1339,6 @@ static int response_to_mobile_killed (entity_messages message, entity *receiver,
 		// more than one guide in the group's guide stack 
 		//
 		
-		member_number = (1 << get_local_entity_int_value (sender, INT_TYPE_GROUP_MEMBER_NUMBER));
-
 		do
 		{
 			guide = get_local_entity_first_child (receiver, LIST_TYPE_GUIDE_STACK);
@@ -1374,7 +1367,7 @@ static int response_to_mobile_killed (entity_messages message, entity *receiver,
 					}
 					else
 					{	
-						delete_group_member_from_guide_entity (sender, guide);
+						delete_group_member_number_from_guide_entity (member_number, guide);
 					}
 
 					break;
@@ -1387,6 +1380,17 @@ static int response_to_mobile_killed (entity_messages message, entity *receiver,
 	}
 
 	return TRUE;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int response_to_mobile_killed (entity_messages message, entity *receiver, entity *sender, va_list pargs)
+{
+	ASSERT (sender);
+	ASSERT (get_local_entity_int_value (sender, INT_TYPE_IDENTIFY_MOBILE));
+	return apply_group_member_killed (receiver, 1 << get_local_entity_int_value (sender, INT_TYPE_GROUP_MEMBER_NUMBER));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -15,7 +15,8 @@
 //!                          campaign_directory = "camp01", campaign = "georgia.chc",
 //!                          gunship = "apache", seed = 1,
 //!                          bind_mobile = function () next_id = next_id + 1; return "host:" .. next_id end,
-//!                          supply_reached = observe_supply_reach }
+//!                          supply_reached = observe_supply_reach,
+//!                          observe_loss = function () return "forward" end }
 //! while true do
 //!     engine:frame (100)                -- milliseconds of simulated time
 //!     for _, o in ipairs (engine:objects ()) do ... end

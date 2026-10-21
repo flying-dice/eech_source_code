@@ -41,6 +41,21 @@ struct eech_engine_config
 
 typedef campaign_member_descriptor eech_member_descriptor;
 typedef campaign_bind_member_fn eech_bind_mobile_callback;
+typedef campaign_loss_descriptor eech_loss_descriptor;
+typedef campaign_loss_task_dependent eech_loss_task_dependent;
+typedef campaign_loss_landing_action eech_loss_landing_action;
+typedef campaign_observe_loss_fn eech_observe_loss_callback;
+
+#define EECH_LOSS_TASK_DEPENDENT_MAX CAMPAIGN_LOSS_TASK_DEPENDENT_MAX
+#define EECH_LOSS_LANDING_ACTION_MAX CAMPAIGN_LOSS_LANDING_ACTION_MAX
+#define EECH_LOSS_EVENT_CREDIT CAMPAIGN_LOSS_EVENT_CREDIT
+#define EECH_LOSS_EVENT_PHYSICAL CAMPAIGN_LOSS_EVENT_PHYSICAL
+#define EECH_LOSS_FORWARD CAMPAIGN_LOSS_FORWARD
+#define EECH_LOSS_WITHHOLD CAMPAIGN_LOSS_WITHHOLD
+#define EECH_LOSS_LANDING_UNRESERVE_SITE CAMPAIGN_LOSS_LANDING_UNRESERVE_SITE
+#define EECH_LOSS_LANDING_UNLOCK_ROUTE CAMPAIGN_LOSS_LANDING_UNLOCK_ROUTE
+#define EECH_LOSS_LANDING_UNLOCK_TAKEOFF_ROUTE CAMPAIGN_LOSS_LANDING_UNLOCK_TAKEOFF_ROUTE
+#define EECH_LOSS_LANDING_UNLOCK_SITE CAMPAIGN_LOSS_LANDING_UNLOCK_SITE
 typedef campaign_supply_reach_descriptor eech_supply_reach_descriptor;
 typedef campaign_observe_supply_reach_fn eech_supply_reached_callback;
 
@@ -48,6 +63,8 @@ struct eech_engine_host
 {
 	/* Called synchronously while the physical entity exists. */
 	eech_bind_mobile_callback bind_mobile;
+	/* Called synchronously at the original credit and physical-loss sites. */
+	eech_observe_loss_callback observe_loss;
 	/* Called synchronously for the physical predicate at four SUPPLY waypoints. */
 	eech_supply_reached_callback supply_reached;
 	void *user;
@@ -57,6 +74,22 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 
 /* advance simulated time by milliseconds and run one iteration of EECH's flight loop */
 int eech_engine_frame (uint32_t milliseconds, const struct eech_engine_host *host);
+
+/* Copy of what one report applied; an observation of performed actions, not engine state. */
+struct eech_loss_report_receipt
+{
+	int landing_reserved_before, landing_reserved_after;
+	int group_losses_before, group_losses_after;
+	int primary_task_losses_before, primary_task_losses_after;
+	int group_logical_members_before, group_logical_members_after, group_physical_members_before;
+	int tasks_retired_expire, tasks_completed_on_report;
+};
+
+/*
+ * Applies one previously withheld campaign loss, exactly once, by opaque host identity.
+ * The receipt is written only when the report succeeds; on any other result it is untouched.
+ */
+int eech_engine_report_loss (const char *host_id, struct eech_loss_report_receipt *receipt);
 
 const char *eech_engine_fatal_message (void);
 

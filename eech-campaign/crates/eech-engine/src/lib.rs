@@ -146,11 +146,95 @@ pub struct MemberDescriptor {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
+pub enum LossEventKind {
+    Credit,
+    Physical,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LossDecision {
+    Forward,
+    Withhold,
+}
+
+#[derive(Clone, Copy, Debug, Serialize)]
+pub struct LossTaskDependent {
+    pub task_key: u64,
+    pub entity_type: i32,
+    pub sub_type: i32,
+    pub task_state: Option<i32>,
+    pub task_completed: Option<bool>,
+    pub primary_task: bool,
+    pub persistent_task: bool,
+    pub objective_is_member: bool,
+    pub task_dependent_children: i32,
+    pub guide_children: i32,
+    pub expire_timer: f32,
+    pub stop_timer: f32,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum SupplyWaypoint {
     PickUp,
     PrepareForDropOff,
     DropOff,
     FinishDropOff,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum LossLandingActionKind {
+    UnreserveSite,
+    UnlockRoute,
+    UnlockTakeoffRoute,
+    UnlockSite,
+}
+
+#[derive(Clone, Copy, Debug, Serialize)]
+pub struct LossLandingAction {
+    pub landing_key: u64,
+    pub action: LossLandingActionKind,
+    pub count: i32,
+    pub landing_sub_type: i32,
+    pub reserved_landing_sites: i32,
+    pub free_landing_sites: i32,
+    pub landing_lock: bool,
+    pub landed_lock: bool,
+    pub takeoff_lock: bool,
+}
+
+/// Copied campaign and physical facts supplied synchronously at an existing
+/// credit or physical-loss site. The opaque `host_id` identifies the physical
+/// incarnation; entity indices are deliberately absent. `Withhold` defers only
+/// a supported campaign consequence set; reference-world physical death always
+/// continues.
+#[derive(Clone, Debug, Serialize)]
+pub struct LossDescriptor {
+    pub host_id: String,
+    pub member_key: u64,
+    pub group_key: u64,
+    pub event: LossEventKind,
+    pub entity_type: i32,
+    pub sub_type: i32,
+    pub side: Side,
+    pub force_info_category: i32,
+    pub group_sub_type: i32,
+    pub primary_task_sub_type: Option<i32>,
+    pub primary_task_key: Option<u64>,
+    pub group_member_number: i32,
+    pub campaign_member_count: i32,
+    pub player: i32,
+    pub landed: bool,
+    pub member_task_dependent_count: i32,
+    pub member_task_dependents: Vec<LossTaskDependent>,
+    pub group_task_dependents: i32,
+    pub restricted_guides: i32,
+    pub landing_action_count: i32,
+    pub landing_actions: Vec<LossLandingAction>,
+    pub movement_parent: bool,
+    pub movement_dependents: i32,
+    pub takeoff_queue: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
@@ -230,6 +314,22 @@ pub struct RosterStats {
     pub duplicate_scan_seconds: f64,
 }
 
+/// What one `report_loss` applied, copied from the performed campaign actions; an observation, never an input.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize)]
+pub struct LossReceipt {
+    pub landing_reserved_before: i32,
+    pub landing_reserved_after: i32,
+    pub group_losses_before: i32,
+    pub group_losses_after: i32,
+    pub primary_task_losses_before: i32,
+    pub primary_task_losses_after: i32,
+    pub group_logical_members_before: i32,
+    pub group_logical_members_after: i32,
+    pub group_physical_members_before: i32,
+    pub tasks_retired_expire: i32,
+    pub tasks_completed_on_report: i32,
+}
+
 #[derive(Clone, Copy, Debug, Default, Serialize)]
 pub struct Clock {
     pub elapsed_seconds: f32,
@@ -242,9 +342,10 @@ pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
 }
 
-struct HostContext<'a, F, G> {
+struct HostContext<'a, F, G, H> {
     bind_mobile: &'a mut F,
-    supply_reached: &'a mut G,
+    observe_loss: &'a mut G,
+    supply_reached: &'a mut H,
 }
 
 fn side(value: c_int) -> Side {
@@ -269,7 +370,7 @@ unsafe fn write_callback_text(target: *mut c_char, capacity: usize, value: &str)
     out[length] = 0;
 }
 
-unsafe extern "C" fn bind_mobile<F, G>(
+unsafe extern "C" fn bind_mobile<F, G, H>(
     descriptor: *const sys::eech_member_descriptor,
     host_id: *mut c_char,
     host_id_size: usize,
@@ -279,13 +380,15 @@ unsafe extern "C" fn bind_mobile<F, G>(
 ) -> c_int
 where
     F: FnMut(MemberDescriptor) -> Result<String, String>,
+    G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+    H: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if descriptor.is_null() || user.is_null() {
             return Err("invalid native bind_mobile callback context".into());
         }
         // SAFETY: C supplies both pointers for the duration of this callback.
-        let (descriptor, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G>)) };
+        let (descriptor, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G, H>)) };
         let descriptor = MemberDescriptor {
             member_key: descriptor.member_key,
             group_key: descriptor.group_key,
@@ -327,6 +430,141 @@ where
     }
 }
 
+unsafe extern "C" fn observe_loss<F, G, H>(
+    descriptor: *const sys::eech_loss_descriptor,
+    decision: *mut c_int,
+    error: *mut c_char,
+    error_size: usize,
+    user: *mut c_void,
+) -> c_int
+where
+    F: FnMut(MemberDescriptor) -> Result<String, String>,
+    G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+    H: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
+{
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
+        if descriptor.is_null() || decision.is_null() || user.is_null() {
+            return Err("invalid native observe_loss callback context".into());
+        }
+        // SAFETY: C supplies these pointers for the duration of the callback.
+        let (descriptor, decision, context) = unsafe { (&*descriptor, &mut *decision, &mut *(user as *mut HostContext<'_, F, G, H>)) };
+        if descriptor.host_id.is_null() {
+            return Err("observe_loss received an empty host identity".into());
+        }
+        // SAFETY: roster identities are NUL-terminated and live for the engine session.
+        let host_id = unsafe { CStr::from_ptr(descriptor.host_id) }
+            .to_str()
+            .map_err(|_| "observe_loss received a non-UTF-8 host identity")?
+            .to_owned();
+        let event = match descriptor.event_kind {
+            sys::EECH_LOSS_EVENT_CREDIT => LossEventKind::Credit,
+            sys::EECH_LOSS_EVENT_PHYSICAL => LossEventKind::Physical,
+            value => return Err(format!("observe_loss received unknown event kind {value}")),
+        };
+        let dependent_count =
+            usize::try_from(descriptor.member_task_dependent_copied).map_err(|_| "observe_loss received a negative copied task-dependent count")?;
+        if dependent_count > sys::EECH_LOSS_TASK_DEPENDENT_MAX {
+            return Err(format!(
+                "observe_loss received {} copied task dependents; maximum is {}",
+                dependent_count,
+                sys::EECH_LOSS_TASK_DEPENDENT_MAX
+            ));
+        }
+        let member_task_dependents = descriptor.member_task_dependents[..dependent_count]
+            .iter()
+            .map(|dependent| LossTaskDependent {
+                task_key: dependent.task_key,
+                entity_type: dependent.entity_type,
+                sub_type: dependent.sub_type,
+                task_state: (dependent.task_state >= 0).then_some(dependent.task_state),
+                task_completed: (dependent.task_completed >= 0).then_some(dependent.task_completed != 0),
+                primary_task: dependent.primary_task != 0,
+                persistent_task: dependent.persistent_task != 0,
+                objective_is_member: dependent.objective_is_member != 0,
+                task_dependent_children: dependent.task_dependent_children,
+                guide_children: dependent.guide_children,
+                expire_timer: dependent.expire_timer,
+                stop_timer: dependent.stop_timer,
+            })
+            .collect();
+        let landing_count = usize::try_from(descriptor.landing_action_copied).map_err(|_| "observe_loss received a negative copied landing-action count")?;
+        if landing_count > sys::EECH_LOSS_LANDING_ACTION_MAX {
+            return Err(format!(
+                "observe_loss received {} copied landing actions; maximum is {}",
+                landing_count,
+                sys::EECH_LOSS_LANDING_ACTION_MAX
+            ));
+        }
+        let landing_actions = descriptor.landing_actions[..landing_count]
+            .iter()
+            .map(|action| {
+                let action_kind = match action.action_kind {
+                    sys::EECH_LOSS_LANDING_UNRESERVE_SITE => LossLandingActionKind::UnreserveSite,
+                    sys::EECH_LOSS_LANDING_UNLOCK_ROUTE => LossLandingActionKind::UnlockRoute,
+                    sys::EECH_LOSS_LANDING_UNLOCK_TAKEOFF_ROUTE => LossLandingActionKind::UnlockTakeoffRoute,
+                    sys::EECH_LOSS_LANDING_UNLOCK_SITE => LossLandingActionKind::UnlockSite,
+                    value => return Err(format!("observe_loss received unknown landing action kind {value}")),
+                };
+                Ok(LossLandingAction {
+                    landing_key: action.landing_key,
+                    action: action_kind,
+                    count: action.count,
+                    landing_sub_type: action.landing_sub_type,
+                    reserved_landing_sites: action.reserved_landing_sites,
+                    free_landing_sites: action.free_landing_sites,
+                    landing_lock: action.landing_lock != 0,
+                    landed_lock: action.landed_lock != 0,
+                    takeoff_lock: action.takeoff_lock != 0,
+                })
+            })
+            .collect::<Result<Vec<_>, String>>()?;
+        let descriptor = LossDescriptor {
+            host_id,
+            member_key: descriptor.member_key,
+            group_key: descriptor.group_key,
+            event,
+            entity_type: descriptor.entity_type,
+            sub_type: descriptor.sub_type,
+            side: side(descriptor.side),
+            force_info_category: descriptor.force_info_category,
+            group_sub_type: descriptor.group_sub_type,
+            primary_task_sub_type: (descriptor.primary_task_sub_type >= 0).then_some(descriptor.primary_task_sub_type),
+            primary_task_key: (descriptor.primary_task_key != 0).then_some(descriptor.primary_task_key),
+            group_member_number: descriptor.group_member_number,
+            campaign_member_count: descriptor.campaign_member_count,
+            player: descriptor.player,
+            landed: descriptor.landed != 0,
+            member_task_dependent_count: descriptor.member_task_dependent_count,
+            member_task_dependents,
+            group_task_dependents: descriptor.group_task_dependents,
+            restricted_guides: descriptor.restricted_guides,
+            landing_action_count: descriptor.landing_action_count,
+            landing_actions,
+            movement_parent: descriptor.movement_parent != 0,
+            movement_dependents: descriptor.movement_dependents,
+            takeoff_queue: descriptor.takeoff_queue != 0,
+        };
+        *decision = match (context.observe_loss)(descriptor)? {
+            LossDecision::Forward => sys::EECH_LOSS_FORWARD,
+            LossDecision::Withhold => sys::EECH_LOSS_WITHHOLD,
+        };
+        Ok(())
+    }));
+    match result {
+        Ok(Ok(())) => 0,
+        Ok(Err(message)) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, &message) };
+            1
+        }
+        Err(_) => {
+            // No Rust panic may unwind through C.
+            unsafe { write_callback_text(error, error_size, "observe_loss panicked") };
+            1
+        }
+    }
+}
+
 fn supply_waypoint(value: c_int) -> Result<SupplyWaypoint, String> {
     match value {
         sys::CAMPAIGN_SUPPLY_WAYPOINT_PICK_UP => Ok(SupplyWaypoint::PickUp),
@@ -354,7 +592,7 @@ fn checked_floats(values: &[(&str, f32)]) -> Result<(), String> {
     Ok(())
 }
 
-unsafe extern "C" fn supply_reached<F, G>(
+unsafe extern "C" fn supply_reached<F, G, H>(
     descriptor: *const sys::eech_supply_reach_descriptor,
     reached: *mut c_int,
     error: *mut c_char,
@@ -363,14 +601,15 @@ unsafe extern "C" fn supply_reached<F, G>(
 ) -> c_int
 where
     F: FnMut(MemberDescriptor) -> Result<String, String>,
-    G: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
+    G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+    H: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if descriptor.is_null() || reached.is_null() || user.is_null() {
             return Err("invalid native supply_reached callback context".into());
         }
         // SAFETY: C supplies both pointers for the duration of this callback.
-        let (source, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G>)) };
+        let (source, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G, H>)) };
         let host_id_bytes = source.host_id.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect::<Vec<_>>();
         if host_id_bytes.is_empty() || host_id_bytes.len() > sys::EECH_HOST_ID_MAX {
             return Err("supply_reached received an invalid host identity length".into());
@@ -449,19 +688,27 @@ where
     }
 }
 
-fn with_host<F, G>(bind_mobile_fn: &mut F, supply_reached_fn: &mut G, call: impl FnOnce(*const sys::eech_engine_host) -> c_int) -> Result<(), EngineError>
+fn with_host<F, G, H>(
+    bind_mobile_fn: &mut F,
+    observe_loss_fn: &mut G,
+    supply_reached_fn: &mut H,
+    call: impl FnOnce(*const sys::eech_engine_host) -> c_int,
+) -> Result<(), EngineError>
 where
     F: FnMut(MemberDescriptor) -> Result<String, String>,
-    G: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
+    G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+    H: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
 {
     let mut context = HostContext {
         bind_mobile: bind_mobile_fn,
+        observe_loss: observe_loss_fn,
         supply_reached: supply_reached_fn,
     };
     let host = sys::eech_engine_host {
-        bind_mobile: Some(bind_mobile::<F, G>),
-        supply_reached: Some(supply_reached::<F, G>),
-        user: (&mut context as *mut HostContext<'_, F, G>).cast::<c_void>(),
+        bind_mobile: Some(bind_mobile::<F, G, H>),
+        observe_loss: Some(observe_loss::<F, G, H>),
+        supply_reached: Some(supply_reached::<F, G, H>),
+        user: (&mut context as *mut HostContext<'_, F, G, H>).cast::<c_void>(),
     };
     check(call(&host))
 }
@@ -489,10 +736,11 @@ pub fn prepare_installation(root: &Path) -> Result<(), EngineError> {
 
 impl Engine {
     /// boots EECH's dedicated-server path into the campaign (once per process)
-    pub fn boot<F, G>(config: &EngineConfig, bind_mobile_fn: &mut F, supply_reached_fn: &mut G) -> Result<Engine, EngineError>
+    pub fn boot<F, G, H>(config: &EngineConfig, bind_mobile_fn: &mut F, observe_loss_fn: &mut G, supply_reached_fn: &mut H) -> Result<Engine, EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
-        G: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
     {
         if BOOTED.swap(true, Ordering::SeqCst) {
             return Err(EngineError::State);
@@ -514,20 +762,47 @@ impl Engine {
             arguments: argv.as_ptr(),
         };
         // SAFETY: every config pointer and the temporary host callback are valid for the call.
-        with_host(bind_mobile_fn, supply_reached_fn, |host| unsafe { sys::eech_engine_boot(&c, host) })?;
+        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, |host| unsafe {
+            sys::eech_engine_boot(&c, host)
+        })?;
         Ok(Engine {
             _not_send: std::marker::PhantomData,
         })
     }
 
     /// advances simulated time and runs one iteration of EECH's flight loop
-    pub fn frame<F, G>(&self, milliseconds: u32, bind_mobile_fn: &mut F, supply_reached_fn: &mut G) -> Result<(), EngineError>
+    pub fn frame<F, G, H>(&self, milliseconds: u32, bind_mobile_fn: &mut F, observe_loss_fn: &mut G, supply_reached_fn: &mut H) -> Result<(), EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
-        G: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
     {
         // SAFETY: the temporary host callback is valid for the call.
-        with_host(bind_mobile_fn, supply_reached_fn, |host| unsafe { sys::eech_engine_frame(milliseconds, host) })
+        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, |host| unsafe {
+            sys::eech_engine_frame(milliseconds, host)
+        })
+    }
+
+    /// Applies one previously withheld loss by opaque physical-incarnation ID.
+    /// Duplicate, unknown, stale and unsupported reports fail visibly and return no receipt.
+    pub fn report_loss(&self, host_id: &str) -> Result<LossReceipt, EngineError> {
+        let host_id = cstring(host_id)?;
+        let mut r = sys::eech_loss_report_receipt::default();
+        // SAFETY: a valid NUL-terminated identity and out pointer for the call; the receipt is read only on success.
+        check(unsafe { sys::eech_engine_report_loss(host_id.as_ptr(), &mut r) })?;
+        Ok(LossReceipt {
+            landing_reserved_before: r.landing_reserved_before,
+            landing_reserved_after: r.landing_reserved_after,
+            group_losses_before: r.group_losses_before,
+            group_losses_after: r.group_losses_after,
+            primary_task_losses_before: r.primary_task_losses_before,
+            primary_task_losses_after: r.primary_task_losses_after,
+            group_logical_members_before: r.group_logical_members_before,
+            group_logical_members_after: r.group_logical_members_after,
+            group_physical_members_before: r.group_physical_members_before,
+            tasks_retired_expire: r.tasks_retired_expire,
+            tasks_completed_on_report: r.tasks_completed_on_report,
+        })
     }
 
     pub fn objects(&self) -> Result<Vec<Object>, EngineError> {

@@ -47,6 +47,7 @@ local engine = dc.boot {
 	gunship = "apache",
 	seed = 1,
 	bind_mobile = binder,
+	observe_loss = host.observe_loss,
 	supply_reached = host.supply_reached,
 }
 

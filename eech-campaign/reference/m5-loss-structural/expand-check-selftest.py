@@ -1,4 +1,7 @@
-"""Exercise the slice 1a proof against the named base in an isolated Git tree."""
+"""Exercise the slice 1a proof against the named base in an isolated Git tree.
+
+With a revision argument the candidate sources are that revision's, otherwise the working tree's.
+"""
 
 from pathlib import Path
 from typing import NamedTuple
@@ -172,7 +175,11 @@ def main() -> None:
             cwd=isolated,
         )
         base = git("rev-parse", "HEAD", cwd=isolated).decode().strip()
-        candidate = {name: (ROOT / name).read_bytes() for name in (*FILES, GROUP)}
+        revision = sys.argv[1] if len(sys.argv) > 1 else None
+        candidate = {
+            name: git("show", f"{revision}:{name}") if revision else (ROOT / name).read_bytes()
+            for name in (*FILES, GROUP)
+        }
         for name, content in candidate.items():
             target = isolated / name
             target.parent.mkdir(parents=True, exist_ok=True)
