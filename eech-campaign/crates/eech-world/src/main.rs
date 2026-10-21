@@ -95,6 +95,7 @@ fn segment_perpendicular_distance(a: [f32; 3], b: [f32; 3], c: [f32; 3]) -> f32 
 /// Reference-host implementation of EECH's original fixed-wing/helicopter
 /// physical predicate for the four SUPPLY waypoints. The DLL supplies raw
 /// facts; this host computes the verdict.
+#[allow(clippy::neg_cmp_op_on_partial_ord)] // Legacy predicates reject only greater values, so unordered values pass.
 fn supply_reached(descriptor: LuaTable) -> LuaResult<bool> {
     let _: u64 = descriptor.get("member_key")?;
     let _: u64 = descriptor.get("task_key")?;
@@ -158,143 +159,6 @@ fn supply_reached(descriptor: LuaTable) -> LuaResult<bool> {
             Ok(true)
         }
         _ => Err(LuaError::runtime(format!("host.supply_reached: unsupported mobile {mobile:?}"))),
-    }
-}
-
-#[cfg(test)]
-mod supply_reached_tests {
-    use super::*;
-
-    fn descriptor(lua: &Lua, mobile: &str) -> LuaResult<LuaTable> {
-        let value = lua.create_table()?;
-        value.set("member_key", 1_u64)?;
-        value.set("task_key", 2_u64)?;
-        value.set("waypoint_key", 3_u64)?;
-        value.set("host_id", "member-1")?;
-        value.set("waypoint", "pick_up")?;
-        value.set("mobile", mobile)?;
-        value.set("is_ai", true)?;
-        value.set("landed", false)?;
-        value.set("radius", 50.0_f32)?;
-        value.set("distance", 40.0_f32)?;
-        value.set("velocity", 10.0_f32)?;
-        value.set("position", vec![0.0_f32, 0.0, 0.0])?;
-        value.set("motion", vec![10.0_f32, 0.0, 0.0])?;
-        value.set("guide_position", vec![5.0_f32, 0.0, 1.0])?;
-        value.set("delta_seconds", 1.0_f32)?;
-        value.set("updated", false)?;
-        value.set("rotor_spin_up_seconds", 0.0_f32)?;
-        value.set("is_task_leader", true)?;
-        value.set("leader_is_ai", true)?;
-        value.set("leader_position", vec![0.0_f32, 0.0, 0.0])?;
-        Ok(value)
-    }
-
-    #[test]
-    fn fixed_wing_physical_boundaries() -> LuaResult<()> {
-        let lua = Lua::new();
-
-        for waypoint in ["pick_up", "prepare_for_drop_off", "drop_off", "finish_drop_off"] {
-            let value = descriptor(&lua, "fixed_wing")?;
-            value.set("waypoint", waypoint)?;
-            assert!(supply_reached(value)?);
-        }
-
-        let landed = descriptor(&lua, "fixed_wing")?;
-        landed.set("landed", true)?;
-        assert!(!supply_reached(landed)?);
-
-        let too_early = descriptor(&lua, "fixed_wing")?;
-        too_early.set("distance", 61.0_f32)?;
-        assert!(!supply_reached(too_early)?);
-
-        let at_radius = descriptor(&lua, "fixed_wing")?;
-        at_radius.set("distance", 50.0_f32)?;
-        at_radius.set("velocity", 0.0_f32)?;
-        assert!(supply_reached(at_radius)?);
-
-        let forward_segment = descriptor(&lua, "fixed_wing")?;
-        forward_segment.set("radius", 2.0_f32)?;
-        forward_segment.set("distance", 60.0_f32)?;
-        forward_segment.set("velocity", 60.0_f32)?;
-        assert!(supply_reached(forward_segment)?);
-
-        let reverse_segment = descriptor(&lua, "fixed_wing")?;
-        reverse_segment.set("radius", 2.0_f32)?;
-        reverse_segment.set("distance", 60.0_f32)?;
-        reverse_segment.set("velocity", 60.0_f32)?;
-        reverse_segment.set("updated", true)?;
-        assert!(!supply_reached(reverse_segment)?);
-
-        let degenerate_segment = descriptor(&lua, "fixed_wing")?;
-        degenerate_segment.set("radius", 2.0_f32)?;
-        degenerate_segment.set("distance", 3.0_f32)?;
-        degenerate_segment.set("velocity", 3.0_f32)?;
-        degenerate_segment.set("motion", vec![0.0_f32, 0.0, 0.0])?;
-        assert!(!supply_reached(degenerate_segment)?);
-        Ok(())
-    }
-
-    #[test]
-    fn helicopter_physical_boundaries() -> LuaResult<()> {
-        let lua = Lua::new();
-
-        let ai_landed = descriptor(&lua, "helicopter")?;
-        ai_landed.set("landed", true)?;
-        assert!(!supply_reached(ai_landed)?);
-
-        let ai_spinning_up = descriptor(&lua, "helicopter")?;
-        ai_spinning_up.set("rotor_spin_up_seconds", 0.1_f32)?;
-        assert!(!supply_reached(ai_spinning_up)?);
-
-        let leader_at_radius = descriptor(&lua, "helicopter")?;
-        leader_at_radius.set("distance", 50.0_f32)?;
-        assert!(supply_reached(leader_at_radius)?);
-
-        let leader_outside_radius = descriptor(&lua, "helicopter")?;
-        leader_outside_radius.set("distance", 50.1_f32)?;
-        assert!(!supply_reached(leader_outside_radius)?);
-
-        let leader_unordered_radius = descriptor(&lua, "helicopter")?;
-        leader_unordered_radius.set("distance", f32::NAN)?;
-        assert!(supply_reached(leader_unordered_radius)?);
-
-        let wingman_at_cohesion_boundary = descriptor(&lua, "helicopter")?;
-        wingman_at_cohesion_boundary.set("is_task_leader", false)?;
-        wingman_at_cohesion_boundary.set("leader_position", vec![750.0_f32, 100.0, 0.0])?;
-        assert!(supply_reached(wingman_at_cohesion_boundary)?);
-
-        let wingman_outside_cohesion = descriptor(&lua, "helicopter")?;
-        wingman_outside_cohesion.set("is_task_leader", false)?;
-        wingman_outside_cohesion.set("leader_position", vec![750.1_f32, 0.0, 0.0])?;
-        assert!(!supply_reached(wingman_outside_cohesion)?);
-
-        let wingman_unordered_cohesion = descriptor(&lua, "helicopter")?;
-        wingman_unordered_cohesion.set("is_task_leader", false)?;
-        wingman_unordered_cohesion.set("position", vec![f32::NAN, 0.0, 0.0])?;
-        assert!(supply_reached(wingman_unordered_cohesion)?);
-
-        let human_led_wingman = descriptor(&lua, "helicopter")?;
-        human_led_wingman.set("is_task_leader", false)?;
-        human_led_wingman.set("leader_is_ai", false)?;
-        human_led_wingman.set("leader_position", vec![10_000.0_f32, 0.0, 0.0])?;
-        assert!(supply_reached(human_led_wingman)?);
-
-        let human_leader = descriptor(&lua, "helicopter")?;
-        human_leader.set("is_ai", false)?;
-        human_leader.set("landed", true)?;
-        human_leader.set("rotor_spin_up_seconds", 1.0_f32)?;
-        human_leader.set("distance", 50.0_f32)?;
-        assert!(supply_reached(human_leader)?);
-
-        let human_leader_outside_radius = descriptor(&lua, "helicopter")?;
-        human_leader_outside_radius.set("is_ai", false)?;
-        human_leader_outside_radius.set("landed", true)?;
-        human_leader_outside_radius.set("rotor_spin_up_seconds", 1.0_f32)?;
-        human_leader_outside_radius.set("distance", 50.1_f32)?;
-        assert!(!supply_reached(human_leader_outside_radius)?);
-
-        Ok(())
     }
 }
 
@@ -547,4 +411,141 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     result?;
     Ok(())
+}
+
+#[cfg(test)]
+mod supply_reached_tests {
+    use super::*;
+
+    fn descriptor(lua: &Lua, mobile: &str) -> LuaResult<LuaTable> {
+        let value = lua.create_table()?;
+        value.set("member_key", 1_u64)?;
+        value.set("task_key", 2_u64)?;
+        value.set("waypoint_key", 3_u64)?;
+        value.set("host_id", "member-1")?;
+        value.set("waypoint", "pick_up")?;
+        value.set("mobile", mobile)?;
+        value.set("is_ai", true)?;
+        value.set("landed", false)?;
+        value.set("radius", 50.0_f32)?;
+        value.set("distance", 40.0_f32)?;
+        value.set("velocity", 10.0_f32)?;
+        value.set("position", vec![0.0_f32, 0.0, 0.0])?;
+        value.set("motion", vec![10.0_f32, 0.0, 0.0])?;
+        value.set("guide_position", vec![5.0_f32, 0.0, 1.0])?;
+        value.set("delta_seconds", 1.0_f32)?;
+        value.set("updated", false)?;
+        value.set("rotor_spin_up_seconds", 0.0_f32)?;
+        value.set("is_task_leader", true)?;
+        value.set("leader_is_ai", true)?;
+        value.set("leader_position", vec![0.0_f32, 0.0, 0.0])?;
+        Ok(value)
+    }
+
+    #[test]
+    fn fixed_wing_physical_boundaries() -> LuaResult<()> {
+        let lua = Lua::new();
+
+        for waypoint in ["pick_up", "prepare_for_drop_off", "drop_off", "finish_drop_off"] {
+            let value = descriptor(&lua, "fixed_wing")?;
+            value.set("waypoint", waypoint)?;
+            assert!(supply_reached(value)?);
+        }
+
+        let landed = descriptor(&lua, "fixed_wing")?;
+        landed.set("landed", true)?;
+        assert!(!supply_reached(landed)?);
+
+        let too_early = descriptor(&lua, "fixed_wing")?;
+        too_early.set("distance", 61.0_f32)?;
+        assert!(!supply_reached(too_early)?);
+
+        let at_radius = descriptor(&lua, "fixed_wing")?;
+        at_radius.set("distance", 50.0_f32)?;
+        at_radius.set("velocity", 0.0_f32)?;
+        assert!(supply_reached(at_radius)?);
+
+        let forward_segment = descriptor(&lua, "fixed_wing")?;
+        forward_segment.set("radius", 2.0_f32)?;
+        forward_segment.set("distance", 60.0_f32)?;
+        forward_segment.set("velocity", 60.0_f32)?;
+        assert!(supply_reached(forward_segment)?);
+
+        let reverse_segment = descriptor(&lua, "fixed_wing")?;
+        reverse_segment.set("radius", 2.0_f32)?;
+        reverse_segment.set("distance", 60.0_f32)?;
+        reverse_segment.set("velocity", 60.0_f32)?;
+        reverse_segment.set("updated", true)?;
+        assert!(!supply_reached(reverse_segment)?);
+
+        let degenerate_segment = descriptor(&lua, "fixed_wing")?;
+        degenerate_segment.set("radius", 2.0_f32)?;
+        degenerate_segment.set("distance", 3.0_f32)?;
+        degenerate_segment.set("velocity", 3.0_f32)?;
+        degenerate_segment.set("motion", vec![0.0_f32, 0.0, 0.0])?;
+        assert!(!supply_reached(degenerate_segment)?);
+        Ok(())
+    }
+
+    #[test]
+    fn helicopter_physical_boundaries() -> LuaResult<()> {
+        let lua = Lua::new();
+
+        let ai_landed = descriptor(&lua, "helicopter")?;
+        ai_landed.set("landed", true)?;
+        assert!(!supply_reached(ai_landed)?);
+
+        let ai_spinning_up = descriptor(&lua, "helicopter")?;
+        ai_spinning_up.set("rotor_spin_up_seconds", 0.1_f32)?;
+        assert!(!supply_reached(ai_spinning_up)?);
+
+        let leader_at_radius = descriptor(&lua, "helicopter")?;
+        leader_at_radius.set("distance", 50.0_f32)?;
+        assert!(supply_reached(leader_at_radius)?);
+
+        let leader_outside_radius = descriptor(&lua, "helicopter")?;
+        leader_outside_radius.set("distance", 50.1_f32)?;
+        assert!(!supply_reached(leader_outside_radius)?);
+
+        let leader_unordered_radius = descriptor(&lua, "helicopter")?;
+        leader_unordered_radius.set("distance", f32::NAN)?;
+        assert!(supply_reached(leader_unordered_radius)?);
+
+        let wingman_at_cohesion_boundary = descriptor(&lua, "helicopter")?;
+        wingman_at_cohesion_boundary.set("is_task_leader", false)?;
+        wingman_at_cohesion_boundary.set("leader_position", vec![750.0_f32, 100.0, 0.0])?;
+        assert!(supply_reached(wingman_at_cohesion_boundary)?);
+
+        let wingman_outside_cohesion = descriptor(&lua, "helicopter")?;
+        wingman_outside_cohesion.set("is_task_leader", false)?;
+        wingman_outside_cohesion.set("leader_position", vec![750.1_f32, 0.0, 0.0])?;
+        assert!(!supply_reached(wingman_outside_cohesion)?);
+
+        let wingman_unordered_cohesion = descriptor(&lua, "helicopter")?;
+        wingman_unordered_cohesion.set("is_task_leader", false)?;
+        wingman_unordered_cohesion.set("position", vec![f32::NAN, 0.0, 0.0])?;
+        assert!(supply_reached(wingman_unordered_cohesion)?);
+
+        let human_led_wingman = descriptor(&lua, "helicopter")?;
+        human_led_wingman.set("is_task_leader", false)?;
+        human_led_wingman.set("leader_is_ai", false)?;
+        human_led_wingman.set("leader_position", vec![10_000.0_f32, 0.0, 0.0])?;
+        assert!(supply_reached(human_led_wingman)?);
+
+        let human_leader = descriptor(&lua, "helicopter")?;
+        human_leader.set("is_ai", false)?;
+        human_leader.set("landed", true)?;
+        human_leader.set("rotor_spin_up_seconds", 1.0_f32)?;
+        human_leader.set("distance", 50.0_f32)?;
+        assert!(supply_reached(human_leader)?);
+
+        let human_leader_outside_radius = descriptor(&lua, "helicopter")?;
+        human_leader_outside_radius.set("is_ai", false)?;
+        human_leader_outside_radius.set("landed", true)?;
+        human_leader_outside_radius.set("rotor_spin_up_seconds", 1.0_f32)?;
+        human_leader_outside_radius.set("distance", 50.1_f32)?;
+        assert!(!supply_reached(human_leader_outside_radius)?);
+
+        Ok(())
+    }
 }
