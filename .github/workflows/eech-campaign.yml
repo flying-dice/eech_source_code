@@ -87,7 +87,9 @@ jobs:
       - name: Evidence comparison selftest
         run: python3 -I reference/pr59-candidate-identity/compare-selftest.py --strict
       - name: Host-identity retained hashes
-        run: python3 -I reference/m5-host-identities/verify-hashes.py
+        run: |
+          python3 -I reference/m5-host-identities/verify-hashes.py
+          python3 -I reference/m5-host-identities/verify-hashes-selftest.py
 
   windows-cross:
     # LLP64 (the DCS platform): MinGW cross build, run under Wine
