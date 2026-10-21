@@ -28,6 +28,13 @@ pub const CAMPAIGN_SUPPLY_WAYPOINT_FINISH_DROP_OFF: c_int = 4;
 pub const CAMPAIGN_RADIUS_ARRIVAL_WAYPOINT: c_int = 5;
 pub const CAMPAIGN_SUPPLY_MOBILE_FIXED_WING: c_int = 1;
 pub const CAMPAIGN_SUPPLY_MOBILE_HELICOPTER: c_int = 2;
+pub const CAMPAIGN_SUPPLY_MOBILE_ROUTED_VEHICLE: c_int = 3;
+pub const CAMPAIGN_SUPPLY_MOBILE_SHIP_VEHICLE: c_int = 4;
+pub const CAMPAIGN_SUPPLY_MOBILE_ANTI_AIRCRAFT: c_int = 5;
+pub const CAMPAIGN_SUPPLY_MOBILE_PERSON: c_int = 6;
+pub const CAMPAIGN_ARRIVAL_QUERY_REACHED: c_int = 1;
+pub const CAMPAIGN_ARRIVAL_QUERY_ACTION: c_int = 2;
+pub const CAMPAIGN_ARRIVAL_QUERY_RECON: c_int = 3;
 
 #[repr(C)]
 pub struct eech_engine_config {
@@ -129,9 +136,11 @@ pub struct eech_supply_reach_descriptor {
     pub task_key: u64,
     pub waypoint_key: u64,
     pub host_id: [c_char; EECH_HOST_ID_MAX + 1],
+    pub query: c_int,
     pub waypoint_kind: c_int,
     pub waypoint_sub_type: c_int,
     pub player_skip_waypoint: c_int,
+    pub landing_waypoint: c_int,
     pub mobile_kind: c_int,
     pub is_task_leader: c_int,
     pub is_ai: c_int,
@@ -147,11 +156,38 @@ pub struct eech_supply_reach_descriptor {
     pub motion: [f32; 3],
     pub guide_position: [f32; 3],
     pub leader_position: [f32; 3],
+    pub radius_valid: c_int,
+    pub altitude_valid: c_int,
+    pub heading_valid: c_int,
+    pub last_to_reach_valid: c_int,
+    pub weapon_gate: c_int,
+    pub vectors_valid: c_int,
+    pub airborne: c_int,
+    pub auto_pilot: c_int,
+    pub altitude_criterion: f32,
+    pub heading_criterion: f32,
+    pub altitude: f32,
+    pub heading: f32,
+    pub centre_of_gravity_to_ground: f32,
+    pub guide_altitude: f32,
+    pub required_heading_present: c_int,
+    pub required_heading: f32,
+    pub weapon_vector: [f32; 3],
+    pub intercept_vector: [f32; 3],
+    pub action_radius: f32,
+    pub waypoint_position: [f32; 3],
+}
+
+#[repr(C)]
+pub struct eech_arrival_result {
+    pub gates_passed: c_int,
+    pub angle_present: c_int,
+    pub launch_angle_error: f32,
 }
 
 pub type eech_supply_reached_callback = unsafe extern "C" fn(
     descriptor: *const eech_supply_reach_descriptor,
-    reached: *mut c_int,
+    result: *mut eech_arrival_result,
     error: *mut c_char,
     error_size: usize,
     user: *mut c_void,

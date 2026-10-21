@@ -65,7 +65,7 @@ struct eech_engine_host
 	eech_bind_mobile_callback bind_mobile;
 	/* Called synchronously at the original credit and physical-loss sites. */
 	eech_observe_loss_callback observe_loss;
-	/* Called synchronously for the physical predicate at four SUPPLY waypoints. */
+	/* Called synchronously for the physical arrival and proximity predicates: SUPPLY and mixed-criteria arrivals, waypoint action and recon radius. */
 	eech_supply_reached_callback supply_reached;
 	void *user;
 };

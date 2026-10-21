@@ -397,6 +397,10 @@ int check_guide_waypoint_action_reached (entity *en)
 		return FALSE;
 	}
 
+#ifdef EECH_CAMPAIGN_HOST_ARRIVALS
+	/* The host decides whether the leader is inside the action radius. */
+	return campaign_waypoint_action_reached (en, leader);
+#else
 	range = get_local_entity_float_value (leader, FLOAT_TYPE_DISTANCE);
 	
 	if (range > get_local_entity_waypoint_database_action_radius_value (wp, leader))
@@ -411,6 +415,7 @@ int check_guide_waypoint_action_reached (entity *en)
 	}
 		
 	return TRUE;
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

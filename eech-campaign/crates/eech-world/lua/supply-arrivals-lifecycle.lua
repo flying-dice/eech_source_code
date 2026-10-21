@@ -42,7 +42,7 @@ if case == "missing" then
 elseif case == "malformed" or case == "error" then
 	local callback = case == "malformed" and function () return nil end or function () error ("host arrival observation failed") end
 	local engine = dc.boot (config (callback))
-	frames_until_error (engine, case == "malformed" and "supply_reached must return a boolean, got nil" or "host arrival observation failed")
+	frames_until_error (engine, case == "malformed" and "supply_reached must return a boolean or a result table, got nil" or "host arrival observation failed")
 	expect_error ("poisoned", function () engine:objects () end, "engine is poisoned")
 elseif case == "reentry" then
 	local engine

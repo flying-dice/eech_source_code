@@ -36,8 +36,11 @@ local function distance (a, b)
 end
 
 local function supply_reached (descriptor)
-	local reached = reference (descriptor)
-	if descriptor.waypoint ~= ARRIVAL then return reached end
+	local answer = reference (descriptor)
+	local reached = answer.gates_passed
+	-- this check is about aircraft arrival; the other queries and mobile kinds have their own witnesses
+	if descriptor.waypoint ~= ARRIVAL or descriptor.query ~= "reached" then return answer end
+	if descriptor.mobile ~= "fixed_wing" and descriptor.mobile ~= "helicopter" then return answer end
 
 	assert (type (descriptor.waypoint_sub_type) == "number", "descriptor carries no campaign waypoint sub-type")
 	counts[descriptor.mobile] = (counts[descriptor.mobile] or 0) + 1
@@ -48,7 +51,7 @@ local function supply_reached (descriptor)
 		leader_cohesion[#leader_cohesion + 1] = descriptor.host_id
 	end
 
-	if mode ~= "withhold" then return reached end
+	if mode ~= "withhold" then return answer end
 
 	-- a leader that is already flying, so that its own movement can be told from a hover
 	if not selected_host and reached and descriptor.is_task_leader and descriptor.velocity > MOVING then
@@ -56,7 +59,7 @@ local function supply_reached (descriptor)
 		selected_waypoint, selected_host = descriptor.waypoint_key, descriptor.host_id
 	end
 	-- every other member, including the rest of the same task, keeps the reference answer
-	if descriptor.host_id ~= selected_host then return reached end
+	if descriptor.host_id ~= selected_host then return answer end
 
 	if descriptor.waypoint_key == selected_waypoint then
 		assert (descriptor.task_key == selected, "selected host identity changed task at the same waypoint")
@@ -67,12 +70,12 @@ local function supply_reached (descriptor)
 			return false
 		end
 		released_at = released_at or elapsed
-		return reached
+		return answer
 	end
 	-- a different current waypoint for the same identity (possibly the next task's): the campaign advanced
 	assert (released_at, "campaign advanced the member while its arrival was withheld")
 	advanced_to, advanced_task, advanced_at = descriptor.waypoint_key, descriptor.task_key, advanced_at or elapsed
-	return reached
+	return answer
 end
 
 local engine = dc.boot {
