@@ -18,7 +18,7 @@ loads the module with `require ("eech_dc")` and records Tacview.
         ▼
    eech-engine / -sys           safe API · native build, headless platform layer, synthetic data
         ▼
-   original EECH C              ../aphavoc/source, ../modules (1,217 files as written)
+   original EECH C              ../aphavoc/source, ../modules (1,218 files as written)
 
    eech-map                     OpenStreetMap + SRTM → an EECH map and dynamic campaign
 ```

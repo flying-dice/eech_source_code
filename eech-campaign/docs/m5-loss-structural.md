@@ -86,6 +86,14 @@ Results (Python 3.13):
 - [`expand-check.txt`](../reference/m5-loss-structural/expand-check.txt): 9 helpers SAME and 67 functions SAME, PASS.
 - [`selftest.txt`](../reference/m5-loss-structural/selftest.txt): seven mutations, each applied alone, checked and restored, and each reported: a reordered unlink, an added per-type consequence, a changed helper body, swapped helper parameters, a file-scope redefinition, `DEBUG_MODULE 1`, and an unlisted helper. The restored tree passes, and the mutated files hash back to their originals.
 
+The portable [`eech-loss-structural` workflow](../../.github/workflows/eech-loss-structural.yml)
+checks the PR head against base `163e9158` and runs
+[`expand-check-selftest.py`](../reference/m5-loss-structural/expand-check-selftest.py).
+The selftest applies those seven mutations to isolated copies and requires the checker
+to reject each one. This guards the equivalence claim for slice 1a; a later reviewed
+semantic cut can revise or retire the check. The full Windows M4 pack still uses
+private retail roots and is retained as the local run below.
+
 The script does not compare the types of local declarations. The build's own type checks cover those.
 
 ### Candidate build, public-path checks and regression pack
