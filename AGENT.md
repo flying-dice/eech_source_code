@@ -7,8 +7,11 @@ The review procedure is in [REVIEW.md](docs/governance/REVIEW.md).
 
 ## Start each session
 
-Read PROJECT.md, the active Task and parent Epic, the latest accepted baseline,
-and outstanding PR review feedback. Inspect the actual branch, base SHA and
+Read the current M5 goal on Confluence, live:
+[EECH M5 Goal: EECH_DC into DCS World](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337).
+It is the authoritative current scope and outranks Jira or legacy GitHub issue
+goals and the historical roadmap in PROJECT.md. Then read PROJECT.md, the active
+Task and parent Epic, the latest accepted baseline, and outstanding PR review feedback. Inspect the actual branch, base SHA and
 working tree; do not overwrite another session's work. The native integration
 branch is `claude/eech-campaign-native-spike-tjkj6g`;
 verify the current agreed target rather than assuming `master` contains it.
