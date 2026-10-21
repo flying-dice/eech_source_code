@@ -111,7 +111,12 @@ PROSE = {
 
 
 def extract_scripts(doc_text, directory):
-    found = {name: code for name, code in BLOCK.findall(doc_text)}
+    blocks = BLOCK.findall(doc_text)
+    names = [name for name, _ in blocks]
+    repeated = sorted({n for n in names if names.count(n) > 1})
+    if repeated:
+        raise Failure(f"the document embeds more than one block for {', '.join(repeated)}")
+    found = dict(blocks)
     missing = [s for s in SCRIPTS if s not in found]
     if missing:
         raise Failure(f"the document embeds no block for {', '.join(missing)}")
@@ -166,13 +171,24 @@ def prose_figures(doc_text):
 
 
 def ledger_table(doc_text):
-    """section 1's coverage-ledger table: report key -> {mapped, excluded, outstanding}"""
+    """section 1's coverage-ledger table: report key -> {items, mapped, excluded, outstanding}"""
     rows = {}
     for line in doc_text.splitlines():
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
         if len(cells) == 5 and cells[0] in LEDGER_ROWS:
-            rows[LEDGER_ROWS[cells[0]]] = {"mapped": number(cells[2]), "excluded": number(cells[3]),
-                                          "outstanding": number(cells[4])}
+            label = cells[0]
+            if LEDGER_ROWS[label] in rows:
+                raise Failure(f"the section 1 ledger table has more than one row labelled {label}")
+            try:
+                items, mapped, excluded, outstanding = (number(c) for c in cells[1:])
+            except ValueError as e:
+                raise Failure(f"the section 1 ledger row {label} has a cell that is not a number: {e}") from e
+            if items != mapped + excluded + outstanding:
+                raise Failure(f"the section 1 ledger row {label} states {items} items, but "
+                              f"{mapped} mapped + {excluded} excluded + {outstanding} outstanding is "
+                              f"{mapped + excluded + outstanding}")
+            rows[LEDGER_ROWS[label]] = {"items": items, "mapped": mapped, "excluded": excluded,
+                                        "outstanding": outstanding}
     return rows
 
 
@@ -197,13 +213,17 @@ class Report:
 
 
 def check_figures(doc_text, scripts, tree, report):
+    documented = ledger_table(doc_text)  # a malformed table fails before any script runs
+    prose = prose_figures(doc_text)
     out = {"inventory": run(scripts, "inventory.py", ".", cwd=tree)[0]}
     for name in ("reach", "dispatch", "globals"):
         out[name] = run(scripts, f"{name}.py", tree, "--detail", f"{scripts}/{name}.json", cwd=tree)[0]
     out["ledger"], ledger_text = run(scripts, "ledger.py", f"{scripts}/reach.json", f"{scripts}/dispatch.json",
                                      f"{scripts}/globals.json", "--items", f"{scripts}/items.json", cwd=tree)
-    items = json.loads(Path(scripts, "items.json").read_text(encoding="utf-8"))
-    prose = prose_figures(doc_text)
+    try:
+        items = json.loads(Path(scripts, "items.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise Failure(f"ledger.py exited successfully but wrote no valid items.json: {e}") from e
     ledger, kinds = out["ledger"], out["ledger"]["items by rule kind"]
     outstanding = len([l for l in ledger_text.splitlines() if l.startswith("OUTSTANDING")])
 
@@ -225,10 +245,10 @@ def check_figures(doc_text, scripts, tree, report):
     for script, key, want in EXPECTED:
         report.compare(f"{script}: {key}", out[script].get(key), want)
 
-    documented = ledger_table(doc_text)
     report.compare("section 1 ledger table: rows", sorted(documented), sorted(LEDGER_ROWS.values()))
     for key, want in sorted(documented.items()):
         got = {d: ledger.get(key, {}).get(d, 0) for d in ("mapped", "excluded", "outstanding")}
+        got["items"] = sum(got.values())
         report.compare(f"section 1 ledger table: {key}", got, want)
     counts = {}
     for i in deciding:
@@ -250,8 +270,8 @@ def main():
         REPO = Path(git("rev-parse", "--show-toplevel").strip())
         try:
             doc_text = (REPO / args.doc).read_text(encoding="utf-8")
-        except OSError as e:
-            raise SetupError(f"cannot read the document: {e}")
+        except (OSError, UnicodeDecodeError) as e:
+            raise SetupError(f"cannot read the document {args.doc} as UTF-8 text: {e}")
         if args.extract:
             extract_scripts(doc_text, args.extract)
             print(f"extracted {', '.join(SCRIPTS)} to {args.extract}")

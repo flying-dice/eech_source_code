@@ -241,7 +241,7 @@ Result at `65892de1` [R-src]:
 - **Tables:**
   - 11 draw, sound and UI tables.
   - `campaign_screen_message_responses` (`ca_group.c:1584-1588`, 37 registrations, F4). It is the campaign-screen UI's own handler table, fed only through `notify_campaign_screen`, which is itself excluded as presentation.
-  - 5 data arrays that the scan flagged only because a variable shares a function's name, for example `polygon_3d_vertices[0].v = v;` (`3dscon.c:993`).
+  - 5 data arrays that the scan flagged only because a variable shares a function's name, for example `polygon_3d_vertices[0].v = v;` (`3dscon.c:993`). Each is named in `ledger.py` with its reviewed site; any other table name is outstanding.
 - **Waypoint ids:** 2 with no registered handler, so no-ops (`END`, `WAIT`).
 - **Names with no definition:**
   - `#endif` followed by a parenthesised expression (`ld_msgs.c:512`);
@@ -546,7 +546,7 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
   - **The attribute disposition** uses the implementing entity classes and the usage context. Every world- or session-implemented token that the campaign uses in an accessor, a creation argument or another expression is named in `ledger.py` with its row, including suppress-AI-fire (I36) and difficulty (I53). Three world-implemented tokens appear in campaign code only as the campaign entity's own `case` labels and registrations, and fall to the own-implementation fallback: `PTR_TYPE_TERRAIN_FACE_NORMAL`, `FLOAT_TYPE_RECON_DISTANCE` and `INT_TYPE_MAP_ICON`. That assignment is a judgement the reviewer can check line by line.
   - **Globals** are found from `extern` declarations in headers only. A global declared only in a `.c` file, or used through a function rather than a macro, is not in this ledger; its accessor function is in the call ledger instead.
   - **Pattern and fallback rules.** This is the one place the rule totals are stated; they are reproduced by `ledger.py` ("items by rule kind", "decided by pattern or fallback rules") on the embedded scripts.
-    - Of the 1,126 items, exact rules and fixed tables decide 376, 52 pattern rules decide 601, and 5 fallbacks decide 149: four by attribute usage context, and one for the other-table forms, where no regex is involved. So 57 pattern and fallback rules decide 750 items, each listed below.
+    - Of the 1,126 items, exact rules and fixed tables decide 381, 52 pattern rules decide 601, and 4 fallbacks decide 144, all by attribute usage context. So 56 pattern and fallback rules decide 745 items, each listed below. The 381 exact items include the six other-table forms: one campaign-screen UI table and five data arrays, each named in `ledger.py` with the site where it was reviewed. No fallback excludes an unlisted form: it is reported as outstanding.
     - Each rule's reason applies to every item it matches. The per-item list (`items.json`, with the deciding rule id) lets a reviewer check them.
     - Since F3, no rule assigns a default list of rows. Where a rule names two rows, both apply to every item it matches. The former catch-alls ("I6, I12, I30", "I12, I13, I30, I32", "I5 and G3" for all lists, "I18, I19, I27 … or framework default") are gone.
     - Since C2, every rule that was hand-labelled exact at `ab830a04` but matches whole files or wildcards is counted as a pattern: 28 rules over 145 items (calls, writes and globals). These include the reviewer's 15 call rules over 88 items.
@@ -605,7 +605,6 @@ How DCS events are ordered and duplicated (for example, whether one loss yields 
 | globals | `pattern:globals#3` | excluded | debug drawing colours and 2D state (gd_draw.c, imaps.c, gd_cover.c) | 10 |
 | globals | `pattern:globals#4` | excluded | campaign data image read natively (popread.c:362) | 2 |
 | globals | `pattern:globals#7` | mapped | I2, I26 (3D object data, G14) | 2 |
-| other tables | `fallback:other-tables` | excluded | not a function table: a data array assigned from a variable that shares a function's name (for example `.v = v;`) | 5 |
 | writes | `pattern:writes#2` | mapped | I1 (spawn placement and state) | 12 |
 | writes | `pattern:writes#3` | mapped | I30 (landing and takeoff sequencing, G16) | 4 |
 | writes | `pattern:writes#4` | mapped | I4 (group membership, G3) | 3 |
@@ -1537,7 +1536,14 @@ TABLE_VERBS = {"create": (MAPPED, "I1"), "destroy": (MAPPED, "I3, I43"), "kill":
 OTHER_TABLES = {
     "campaign_screen_message_responses": (EXCLUDED, "campaign-screen UI handlers (ca_group.c:1584-1588); fed only by notify_campaign_screen, itself excluded: " + NO_DRAW),
 }
-NOT_A_TABLE = "not a function table: a data array assigned from a variable that shares a function's name (for example `.v = v;`)"
+DATA_ARRAY = "not a function table: a data array whose element fields are assigned from a variable that shares a function's name (for example `.v = v;`), reviewed at "
+DATA_ARRAYS = {  # the reviewed false positives of dispatch.py's other-table scan; a name not listed here stays OUTSTANDING
+    "buffered_translucent_polygons_array": "modules/graphics/tranbuf.c:554 (polygon buffer)",
+    "destination_vertices": "modules/3d/3dwface2.c:2432 (vertex buffer)",
+    "polygon_3d_vertices": "modules/3d/3dscon.c:993 (vertex array)",
+    "surface_texture_points": "aphavoc/source/gunships/avionics/hind/hi_hud.c:468 (HUD texture points)",
+    "texture_animations": "modules/3d/3danim.c:145 (frame array)",
+}
 
 # ---- 4. waypoint_database message ids -------------------------------------------------------------------
 WAYPOINT_IDS = [
@@ -1684,8 +1690,13 @@ def table_items(dispatch):
         d, ref = (EXCLUDED, NO_DRAW) if verb == "ui" else TABLE_VERBS.get(verb, (OUTSTANDING, "no rule"))
         out.append(ledger_entry("tables", t, "dispatch", d, ref, "exact"))
     for t, r in sorted(dispatch["other_tables"].items()):
-        d, ref = OTHER_TABLES.get(t, (EXCLUDED, NOT_A_TABLE))
-        out.append(ledger_entry("other tables", t, "dispatch", d, ref, "exact" if t in OTHER_TABLES else "fallback:other-tables", first=r["first"]))
+        if t in OTHER_TABLES:
+            d, ref = OTHER_TABLES[t]
+        elif t in DATA_ARRAYS:
+            d, ref = EXCLUDED, DATA_ARRAY + DATA_ARRAYS[t]
+        else:
+            d, ref = OUTSTANDING, "unreviewed function-pointer table form"
+        out.append(ledger_entry("other tables", t, "dispatch", d, ref, "exact" if (t in OTHER_TABLES or t in DATA_ARRAYS) else "no rule", first=r["first"]))
     return out
 
 
