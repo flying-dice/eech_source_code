@@ -51,4 +51,11 @@ extern float eech_ks_updt_task_timer;
 /* en_heap.c's get_free_entity, renamed by a controlled definition (spec.rs UNIT_DEFINES) */
 extern entity *eech_original_get_free_entity (int index);
 
+/* en_heap.c's set_free_entity releases arrival state through guide.h's hook. This
+   kernel never compiles gd_supply_arrival.c, the only owner of that state, so it has
+   nothing to release: the same no-op guide.h gives builds without EECH_CAMPAIGN_HOST_ARRIVALS. */
+#ifndef campaign_supply_arrival_release_entity
+#define campaign_supply_arrival_release_entity(ENTITY) ((void) 0)
+#endif
+
 #endif
