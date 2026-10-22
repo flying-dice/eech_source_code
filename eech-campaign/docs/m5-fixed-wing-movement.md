@@ -69,7 +69,7 @@ now keeps it per host ID:
   coupling that may update the retained vector (and the pose); it is the only
   path that does. Tests:
   `placing_an_aircraft_adopts_the_campaign_motion_vector_and_other_kinds_ignore_it`
-  (a stale mirror after a place is refused), 
+  (a stale mirror after a place is refused),
   `placing_a_ship_a_person_or_an_aircraft_adopts_the_campaign_pose`.
 - **Hold witness coherence.** When the host declines to step, the Lua answer
   returns its own `position`, `velocity`, `attitude` and
