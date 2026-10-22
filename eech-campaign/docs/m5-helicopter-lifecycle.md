@@ -1,11 +1,9 @@
 # M5: host-owned AI helicopter rotor and dying/crash motion (EEDCS-36)
 
-**Status: implemented and committed locally; the native build and the witness control
-run have passed. The 1-second hold run and the regression pack are pending, so no
-witness-hold or pack result is claimed. Nothing here is accepted.** It awaits the
-parent's independent review and the technical lead's approval. **D1 and the
-aircraft work are not complete.** The parent owns push, PR, Jira/Confluence,
-approval and merge.
+**Status: implemented at runtime commit `68a16fc1` (draft PR95), natively validated,
+and awaiting the parent's independent review and the technical lead's approval.
+Nothing here is accepted. D1, the aircraft work and M5 are not complete.** The
+parent owns push, PR, Jira/Confluence, approval and merge.
 
 **Scope.** One physical extraction under D1 (EEDCS-15), on base `f70f30c3` (the PR #94
 merge), following [`m5-helicopter-movement.md`](m5-helicopter-movement.md). The rotor
@@ -57,97 +55,84 @@ While a crash slide is pending every mode except `crash_end` is refused.
   fresh CG and `settle` (with a clearing Place if buried); then the two `frand1`
   draws and `tumble`.
 
-## Evidence (local; this stage)
+## Draw precision
 
-Linux container (pinned image `eech-build`, sha256:bb10e44a…562be, Rust 1.98.1;
-ephemeral clippy): `cargo fmt --all -- --check` clean; `cargo clippy --locked
---all-targets -p eech-world -p eech-engine -p eech-dc -- -D warnings` exit 0;
-`cargo test` (counts from the retained logs):
+The tumble draws are `frand1 ()` doubles, and the original forms
+`PI * 0.2 * frand1 () * dt` in double, narrowing only the float heading or roll it
+assigns. The first transport carried the draws as floats. The first native pack (at
+`3ace3841`) then failed one of 40 checks, `retained.observations`: first difference at
+line 62489 (t = 1559.67, snapshot 83324, a dead AH-1T), height 0.75041 in the baseline
+against 0.75040. Both complete Tacviews still equalled the baseline.
 
-- `eech-world` library: 57 tests (56 movement tests, 17 of them new for the lifecycle
-  modes and the double draws, plus the Tacview well-formedness test);
-- `eech-world` binary: 18 tests (the exact-number tests, one of them new for the double
-  read, and the supply tests);
-- `eech-world` `host_callbacks` 2 and `load_dc` 2;
-- `eech-engine`: 5 tests, 2 of them new transport tests for the lifecycle fields;
-- `eech-dc`: 2 (the `lua_debug_layout` tests; its library has none).
+`68a16fc1` carries the draws as doubles end to end: C `hc_draws[2]` (`hc_move.c`,
+`rv_hostmv.h/.c`), `eech-engine-sys`, `eech-engine`, `movement.rs`, `hc_step.c`, and an
+exact `%.17g` f64 Lua read in `main.rs`. Real float fields stay float; the RNG order and
+count are unchanged. `hc_draws` is the step's last field so the double's alignment moves
+no other field, and `eech-engine-sys` asserts that at compile time. This corrects the
+candidate. It is not an accepted difference, and no golden, tolerance or scenario changed.
 
-Logs are in `E:/eech-runs/m5-d1/helicopter-lifecycle-20261022/`; failed attempts are
-kept (`clippy.log`, no clippy in the image; `test-world.log`, `load_dc` needed the
-built `libeech_dc.so`). The Linux build compiles the host C (`hc_step.c`, linked into
-`eech-world`) and the Rust. Only the `aphavoc` call sites (`hc_move.c`, `hc_float.c`,
-`hc_pack.c`, `hc_updt.c`, `rv_hostmv.c`) were first compiled by the retail MinGW build.
+Mutation check: with the step's call narrowed back to `f64::from(draw as f32)`,
+`the_tumble_step_hands_the_helper_the_draws_it_received_in_double` fails (red); restored,
+both precision tests pass (green). The unit tests characterise the ported maths and the
+guards; bit-identity is the regression pack's job.
 
-**Draw precision (found by the first native pack, corrected here).** The tumble draws
-are `frand1 ()` doubles and the original forms `PI * 0.2 * frand1 () * dt` in double,
-narrowing only the float heading or roll it assigns. The first transport carried the
-draws as floats, which landed a recorded wreck's height one float step off (0.75041 in
-the baseline, 0.75040 in the candidate; snapshot 83324, t = 1559.67), so the pack's
-`retained.observations` check failed while both complete Tacviews stayed identical to
-the baseline. The draws are now doubles end to end (`hc_move.c`, `rv_hostmv.h/.c`,
-`eech-engine-sys`, `eech-engine`, `eech-world` `movement.rs`, `hc_step.c`, and an exact
-f64 Lua read in `main.rs`); the real float fields stay float, and the RNG order and
-count are unchanged. `hc_draws` is the step's last field so a double's alignment moves
-no other field, and `eech-engine-sys` asserts that at compile time. Two new tests
-fail under the old narrowing and pass now. This is a correction of the candidate, not an
-accepted difference, and no native build or pack has been rerun for it yet: the
-original pack result (FAIL, one check) stands as recorded.
+## Evidence
 
-The new tests characterise the ported maths and the guards; bit-identity is the
-regression pack's job.
+All for runtime commit `68a16fc1a31715d5f884344d9e9ae06a980004b1` (tree `4c6904a7`,
+0 dirty inputs). The compact portable record is
+[`../reference/m5-helicopter-lifecycle/`](../reference/m5-helicopter-lifecycle/)
+(`reference-summary.txt`, `identities.txt`, `BUILD-INFO.txt`, pack report, witness
+outputs, container log). The Tacview recording and observations are identified by hash
+there, not copied.
 
-**Native build.** Clean runtime commit `3ace3841d31ee92cff5b8f9c02ff8ae191168d57`
-(tree `c08f5855cf5d3bb1a9a54b7ca7e1fa23e92ac69a`), pinned image, fresh cargo volume:
-`EECH_WIN_TARGET=eech-lifecycle-settled-target tools/build-windows.sh
-target/lifecycle-settled` exit 0, no dirty inputs (`native/build.log`, `BUILD-INFO.txt`
-in the output). The MinGW compile of the C half passed first time.
+| Evidence | Result | Source |
+|---|---|---|
+| Linux container (pinned image `sha256:bb10e44a…562be`, Rust 1.98.1): `fmt` clean; `clippy --locked --offline --all-targets -D warnings`, no warnings; `cargo test` | `eech-dc` 2; `eech-engine` 5; `eech-world` library 57, binary 18, `host_callbacks` 2, `load_dc` 2; 0 failed | `container-clippy-and-test-final.log` |
+| Precision mutation | red (1 failed), green (2 passed) | `precision-mutation-red2.log`, `-green2.log` |
+| Retail MinGW build, fresh volume, pinned image | exit 0, 0 dirty inputs | `BUILD-INFO.txt` |
+| Focused 0.5 h Lebanon replay | 72,971 observation lines equal the accepted prefix, 0 differences (prefix only, not full acceptance) | `replay-0.5h-prefix-comparison.json` |
+| Public witness, control and 1 s hold | PASS | `witness-*.out`, `witness-driver.log` |
+| Full regression pack | exit 0, PASS, 40 of 40 checks, `windows-retail v1`, Georgia and Lebanon exact IDENTICAL | `pack-report.json`, `pack-report.md` |
+| Reference runs (the parent's independent hashing) | Tacview `3bd17b64…2d19b` and observations `da26bab0…77cf` equal the accepted baseline in both runs; metrics identical; 39 of 39 campaign expectations | `identities.txt`, `parent-independent-reference-hashes.json` |
 
-**Witness control run (passed).** Subject `eech-world:3069` (legacy 87568, group key
-712): impact and physical loss at 1584.90 s; `rotor_down` first at 1585.00 s and
-called 34 times, each changing the rotor; `fall`, `fall_gravity`, `contact` and
-`tumble` 34 times each; `settle` first at 1587.70 s, 7 calls, buried once (by about
-1588.3 s); no `crash_begin`/`crash_end` (the subject took the fall path). This is
-coverage; no terminal state is claimed (`native/witness/control-lifecycle.out`).
+The Linux build compiles the host C (`hc_step.c`) and the Rust; the `aphavoc` call sites
+(`hc_move.c`, `hc_float.c`, `hc_pack.c`, `hc_updt.c`, `rv_hostmv.c`) were compiled by the
+retail MinGW build. The pack reports the build as differing from the accepted one in
+`eech_dc.dll`, `eech-world.exe`, `lua.dll`, `lua/campaign.lua` and `lua/lifecycle.lua`;
+there is no output difference to classify. The Tacview recording was checked by hash and
+was not visually reviewed. The pack's blind spots stand (`coupled-engine`, `three-hours`,
+`one-war`, `captures`, `tacview-visual`, `linux`).
 
-**Stopped 20-second hold attempt (retained, not a result).** The first driver default
-held the rotor for 20 s. The control shows why that cannot isolate the host's
-`rotor_down` answer: the settle buries the wreck about 3.3 s after the death and that
-burial clears the rotor independently of `rotor_down`, which also ends the
-`rotor_down` calls. The parent stopped that run; its logs (`native/witness-driver.log`,
-`witness/hold-lifecycle.*`, `witness.exit` = 1) are kept and are not a pass.
-
-**Pending.** The 1-second hold (`native/witness/hold1.*`, PID 7512 at the time of
-writing) and one regression pack of the candidate (`windows-retail v1` baseline,
-40 checks) have not completed. No pass is claimed for either.
+Retained outside the repository and not passes: the original 39/40 pack at `3ace3841`
+and the stopped 20 s hold attempt (`native/` in the external output directory).
 
 ## Public witness
 
-`lua/helicopter-lifecycle.lua` through `tools/helicopter-lifecycle-windows.ps1`
-(Lebanon retail root). Subject: the retained natural loss of the Lebanon reference
-run, the Mi-17 Hip (legacy entity 87568, group 87567) that dies at about 1584.66 s
-([`m3-supply-loss.md`](m3-supply-loss.md)); the host ID comes from the campaign's
-binding, never from the legacy index.
+`crates/eech-world/lua/helicopter-lifecycle.lua` through `tools/helicopter-lifecycle-windows.ps1`
+(Lebanon retail root; embedded Lua 5.1). Subject: the retained natural loss of the
+Lebanon reference run, the Mi-17 Hip `eech-world:3069` (legacy entity 87568, group
+87567) that dies at 1584.66 s ([`m3-supply-loss.md`](m3-supply-loss.md)); the host ID
+comes from the campaign's binding, never from the legacy index.
 
-- **Causal claim: rotor hold and release only.** From the subject's first
-  `rotor_down`, the host declines to spin the rotor down for `hold_seconds` (it
-  answers the rotor and motion vector it already holds). The driver default is 1 s, a
-  window derived from the control run: it has to end before the independent burial
-  at about 3.3 s, which clears the rotor and stops the `rotor_down` calls, so the
-  release and the first rotor change still come from `rotor_down`. A 1-second hold at
-  the 0.1 s frame is about ten held steps. The witness algorithm is unchanged; only the
-  hold length is. The campaign's rotor, handed
-  to the host on each held step, must not change while held, and after the host
-  answers again it must change, the first change since the release coming from the
-  host's `rotor_down` answer and not from another phase.
-- **Coverage, not claims.** The control run reports which lifecycle modes the
-  subject passed through, in what order, and what the host answered for the phases
-  that report an outcome (contact touched, settle buried, crash_end stopped). These
-  phases are not held or delayed, and no terminal state is claimed.
-- The script targets the embedded Lua 5.1 (`math.tointeger` is not there; the legacy
-  index is validated with `tonumber` and `math.floor`). It was syntax-checked with Lua 5.1.5
-  `luac -p` (rough check) before the native runs.
+- **Causal claim: rotor hold and release only.** From the subject's first `rotor_down`
+  (1585.00 s) the host declines to spin the rotor down for `hold_seconds` (default 1 s)
+  and answers the rotor it already holds. Result: 11 held steps over 1.1 s with 0 rotor
+  changes; 23 released steps; the first change after release was `rotor_down` at
+  1586.10 s. Host answers therefore drive the campaign's rotor, through the public
+  Lua -> module -> world path. The 1 s window comes from the control run: the settle
+  burial at about 1587.7 s clears the rotor independently of `rotor_down`, so a
+  longer hold (a 20 s attempt was stopped) cannot isolate `rotor_down`.
+- **Coverage, not claims (control).** `rotor_down`, `fall`, `fall_gravity`, `contact`
+  and `tumble` 34 times each (every `rotor_down` changed the rotor), `settle` 7 times
+  (buried once), `impact` once. These phases are not held or delayed, and no terminal
+  state is claimed.
+- **Limits.** One subject, on the fall path. The crash slide (`crash_begin`/`crash_end`)
+  and `rotor_idle` appear in the fleet-wide counts and the regression pack, but this
+  witness does not hold or change them. Its `exit.txt` is empty because PowerShell's
+  `$LASTEXITCODE` was null on completion; the verdict is the driver log's `PASS` and
+  the hold output's `result ok`.
 
-`lua/helicopter-movement.lua` covers only live, alive-state integration; this witness
+`crates/eech-world/lua/helicopter-movement.lua` covers only live, alive-state integration; this witness
 covers the migrated rotor and dying state.
 
 ## Remaining coupling
@@ -155,37 +140,27 @@ covers the migrated rotor and dying state.
 D1/aircraft is **not** finished. These are retained physical dependencies in the DLL,
 not campaign policy, and each needs its own boundary decision:
 
-- Terrain sampling and its cache (D3), including the sample the fall uses.
-- Smoke, effects and sounds raised during dying and crash; the RNG draws
-  (`frand1`) around tumble.
-- Pilot control, avoidance, targeting and guidance; bounding-box sizes; the DEAD
-  state clears and `kill_client_server_entity`.
-- The DLL's rotor copy remains because the entity still lives in the DLL.
-- The witness exercises the fall path (settle after contact). The crash-slide path
-  (`crash_begin`/`crash_end`) and `rotor_idle` are covered by the Rust tests and, in the
-  full run, by the regression pack, not by this witness's hold.
+- **D3, terrain:** sampling and its cache, including the sample the fall uses.
+- **D2, effects:** smoke, effects and sounds raised during dying and crash.
+- **D1, other aircraft physics:** pilot control, avoidance, targeting and guidance;
+  bounding-box sizes; the DEAD state clears and `kill_client_server_entity`; the
+  `frand1` draws stay in the DLL (only their values cross the seam).
+- The DLL's rotor copy remains because the entity still lives in the DLL, and the
+  campaign and the physical world still share `eech_dc.dll` (the `coupled-engine`
+  blind spot).
 - Other direct writers announced to the host only through the setters' `place`.
 - Client/multiplayer helicopters are unsupported in a host build.
 
 The campaign keeps deciding when a helicopter dies and the death consequences (group
 state, removal, logistics).
 
-## Author handoff
-
-One inline author pass; not an independent review, which is the parent's. No pushes,
-posts or identity changes. Next bounded action: the parent supervises the 1-second
-hold and launches the pack after an actual pass. The documentation and driver-default
-corrections made after the native build change no runtime source, so no rebuild was
-needed; if C or Rust source changes, the build, witness and pack must be rerun on the
-new commit and no golden or tolerance may be re-recorded.
-
 ## Commands
 
 ```
 cargo fmt --all -- --check
-cargo clippy --locked --all-targets -p eech-world -p eech-engine -p eech-dc -- -D warnings
-cargo test --offline -p eech-world        # pinned image, fresh target volume
-EECH_WIN_TARGET=<fresh volume> tools/build-windows.sh target/lifecycle-settled
-tools/helicopter-lifecycle-windows.ps1 -Root <lebanon root> -Bin target/lifecycle-settled -Out <out>
-python tools/regression-pack.py --georgia <georgia> --lebanon <lebanon> --lebanon-repeat <lebanon copy> --bin target/lifecycle-settled --out <out>
+cargo clippy --locked --offline --all-targets -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world -- -D warnings
+cargo test -p eech-world -p eech-engine -p eech-dc        # pinned image
+EECH_WIN_TARGET=<fresh volume> tools/build-windows.sh target/lifecycle-precision
+tools/helicopter-lifecycle-windows.ps1 -Root <lebanon root> -Bin target/lifecycle-precision -Out <out>
+python tools/regression-pack.py --georgia <georgia> --lebanon <lebanon> --lebanon-repeat <lebanon copy> --bin target/lifecycle-precision --out <out>
 ```
