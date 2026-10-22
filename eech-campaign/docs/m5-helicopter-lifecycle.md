@@ -1,8 +1,9 @@
 # M5: host-owned AI helicopter rotor and dying/crash motion (EEDCS-36)
 
-**Status: implemented locally; native build, witness and regression pack results are
-recorded under Evidence only once they exist. Nothing here is accepted.** It awaits
-the parent's independent review and the technical lead's approval. **D1 and the
+**Status: implemented and committed locally; the native build and the witness control
+run have passed. The 1-second hold run and the regression pack are pending, so no
+witness-hold or pack result is claimed. Nothing here is accepted.** It awaits the
+parent's independent review and the technical lead's approval. **D1 and the
 aircraft work are not complete.** The parent owns push, PR, Jira/Confluence,
 approval and merge.
 
@@ -61,14 +62,47 @@ While a crash slide is pending every mode except `crash_end` is refused.
 Linux container (pinned image `eech-build`, sha256:bb10e44a…562be, Rust 1.98.1;
 ephemeral clippy): `cargo fmt --all -- --check` clean; `cargo clippy --locked
 --all-targets -p eech-world -p eech-engine -p eech-dc -- -D warnings` exit 0;
-`cargo test`: `eech-world` movement 55 unit tests (15 new lifecycle tests), supply 17,
-`host_callbacks` 2, `load_dc` 2; `eech-engine` 2 new transport tests; `eech-dc` 5.
+`cargo test` (counts from the retained logs):
+
+- `eech-world` library: 55 tests (54 movement tests, 15 of them new for the lifecycle
+  modes, plus the Tacview well-formedness test);
+- `eech-world` binary: 17 tests (the exact-number tests and the supply tests);
+- `eech-world` `host_callbacks` 2 and `load_dc` 2;
+- `eech-engine`: 5 tests, 2 of them new transport tests for the lifecycle fields;
+- `eech-dc`: 2 (the `lua_debug_layout` tests; its library has none).
+
 Logs are in `E:/eech-runs/m5-d1/helicopter-lifecycle-20261022/`; failed attempts are
 kept (`clippy.log`, no clippy in the image; `test-world.log`, `load_dc` needed the
-built `libeech_dc.so`). The C half was not compiled until the native build below.
+built `libeech_dc.so`). The Linux build compiles the host C (`hc_step.c`, linked into
+`eech-world`) and the Rust. Only the `aphavoc` call sites (`hc_move.c`, `hc_float.c`,
+`hc_pack.c`, `hc_updt.c`, `rv_hostmv.c`) were first compiled by the retail MinGW build.
 
 The new tests characterise the ported maths and the guards; bit-identity is the
 regression pack's job.
+
+**Native build.** Clean runtime commit `3ace3841d31ee92cff5b8f9c02ff8ae191168d57`
+(tree `c08f5855cf5d3bb1a9a54b7ca7e1fa23e92ac69a`), pinned image, fresh cargo volume:
+`EECH_WIN_TARGET=eech-lifecycle-settled-target tools/build-windows.sh
+target/lifecycle-settled` exit 0, no dirty inputs (`native/build.log`, `BUILD-INFO.txt`
+in the output). The MinGW compile of the C half passed first time.
+
+**Witness control run (passed).** Subject `eech-world:3069` (legacy 87568, group key
+712): impact and physical loss at 1584.90 s; `rotor_down` first at 1585.00 s and
+called 34 times, each changing the rotor; `fall`, `fall_gravity`, `contact` and
+`tumble` 34 times each; `settle` first at 1587.70 s, 7 calls, buried once (by about
+1588.3 s); no `crash_begin`/`crash_end` (the subject took the fall path). This is
+coverage; no terminal state is claimed (`native/witness/control-lifecycle.out`).
+
+**Stopped 20-second hold attempt (retained, not a result).** The first driver default
+held the rotor for 20 s. The control shows why that cannot isolate the host's
+`rotor_down` answer: the settle buries the wreck about 3.3 s after the death and that
+burial clears the rotor independently of `rotor_down`, which also ends the
+`rotor_down` calls. The parent stopped that run; its logs (`native/witness-driver.log`,
+`witness/hold-lifecycle.*`, `witness.exit` = 1) are kept and are not a pass.
+
+**Pending.** The 1-second hold (`native/witness/hold1.*`, PID 7512 at the time of
+writing) and one regression pack of the candidate (`windows-retail v1` baseline,
+40 checks) have not completed. No pass is claimed for either.
 
 ## Public witness
 
@@ -80,7 +114,12 @@ binding, never from the legacy index.
 
 - **Causal claim: rotor hold and release only.** From the subject's first
   `rotor_down`, the host declines to spin the rotor down for `hold_seconds` (it
-  answers the rotor and motion vector it already holds). The campaign's rotor, handed
+  answers the rotor and motion vector it already holds). The driver default is 1 s, a
+  window derived from the control run: it has to end before the independent burial
+  at about 3.3 s, which clears the rotor and stops the `rotor_down` calls, so the
+  release and the first rotor change still come from `rotor_down`. A 1-second hold at
+  the 0.1 s frame is about ten held steps. The witness algorithm is unchanged; only the
+  hold length is. The campaign's rotor, handed
   to the host on each held step, must not change while held, and after the host
   answers again it must change, the first change since the release coming from the
   host's `rotor_down` answer and not from another phase.
@@ -88,7 +127,8 @@ binding, never from the legacy index.
   subject passed through, in what order, and what the host answered for the phases
   that report an outcome (contact touched, settle buried, crash_end stopped). These
   phases are not held or delayed, and no terminal state is claimed.
-- The script targets the embedded Lua 5.1. It was syntax-checked with Lua 5.1.5
+- The script targets the embedded Lua 5.1 (`math.tointeger` is not there; the legacy
+  index is validated with `tonumber` and `math.floor`). It was syntax-checked with Lua 5.1.5
   `luac -p` (rough check) before the native runs.
 
 `lua/helicopter-movement.lua` covers only live, alive-state integration; this witness
@@ -105,6 +145,9 @@ not campaign policy, and each needs its own boundary decision:
 - Pilot control, avoidance, targeting and guidance; bounding-box sizes; the DEAD
   state clears and `kill_client_server_entity`.
 - The DLL's rotor copy remains because the entity still lives in the DLL.
+- The witness exercises the fall path (settle after contact). The crash-slide path
+  (`crash_begin`/`crash_end`) and `rotor_idle` are covered by the Rust tests and, in the
+  full run, by the regression pack, not by this witness's hold.
 - Other direct writers announced to the host only through the setters' `place`.
 - Client/multiplayer helicopters are unsupported in a host build.
 
@@ -114,9 +157,11 @@ state, removal, logistics).
 ## Author handoff
 
 One inline author pass; not an independent review, which is the parent's. No pushes,
-posts or identity changes. Next bounded action: the parent's review; if C or Rust
-source changes, the settled build, witness and pack must be rerun on the new commit
-and no golden or tolerance may be re-recorded.
+posts or identity changes. Next bounded action: the parent supervises the 1-second
+hold and launches the pack after an actual pass. The documentation and driver-default
+corrections made after the native build change no runtime source, so no rebuild was
+needed; if C or Rust source changes, the build, witness and pack must be rerun on the
+new commit and no golden or tolerance may be re-recorded.
 
 ## Commands
 

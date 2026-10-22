@@ -5,12 +5,16 @@
 # rotor_down step, then answer again. The campaign must not see the rotor change while it is held, and must see it
 # change once the host answers, the first change coming from the host's rotor_down answer. The fall, contact,
 # settle and crash phases are reported as coverage; no terminal state is claimed.
+# The default hold is 1 s, a window derived from the control run: the subject starts dying at about 1585.0 s, is
+# buried by the settle at about 1587.7 to 1588.3 s, and that burial clears the rotor independently of rotor_down,
+# ending the rotor_down calls about 3.3 s after the death. A longer hold (the earlier 20 s default) therefore
+# cannot isolate the host's rotor_down answer; it was tried, stopped, and its logs are retained, not erased.
 param(
 	[Parameter(Mandatory = $true)] [string] $Root,
 	[string] $Bin,
 	[string] $Out,
 	[double] $Hours = 0.65,
-	[double] $HoldSeconds = 20,
+	[double] $HoldSeconds = 1,
 	[int] $TimeoutSeconds = 1800
 )
 $ErrorActionPreference = 'Stop'
