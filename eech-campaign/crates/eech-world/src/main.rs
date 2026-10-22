@@ -157,13 +157,7 @@ fn required_heading(descriptor: &LuaTable) -> LuaResult<Option<f32>> {
 
 /// The original `bound (x, -1, 1)`: an unordered value passes through.
 fn bound_unit(value: f32) -> f32 {
-    if value < -1.0 {
-        -1.0
-    } else if value > 1.0 {
-        1.0
-    } else {
-        value
-    }
+    value.clamp(-1.0, 1.0)
 }
 
 /// The angle EECH computes between the weapon and intercept vectors. The
@@ -279,7 +273,7 @@ fn helicopter_reached(descriptor: &LuaTable) -> LuaResult<Answer> {
             return Ok(Answer::target_missing());
         };
         let mut delta = required - descriptor.get::<f32>("heading")?;
-        let pi = 3.141_592_7_f32;
+        let pi = std::f32::consts::PI;
         if delta < -pi {
             delta += pi * 2.0;
         } else if delta > pi {
@@ -1125,5 +1119,68 @@ mod supply_reached_tests {
         unknown_query.set("query", "teleport")?;
         assert!(supply_reached(unknown_query).is_err());
         Ok(())
+    }
+
+    /// The previous `bound_unit` spelling (the legacy literal text is parsed in the
+    /// test), kept to prove the standard-library forms map every input to the same bits.
+    fn legacy_bound_unit(value: f32) -> f32 {
+        // `partial_cmp` is `None` for NaN, which falls through unchanged like `<` and `>`.
+        match (value.partial_cmp(&-1.0), value.partial_cmp(&1.0)) {
+            (Some(std::cmp::Ordering::Less), _) => -1.0,
+            (_, Some(std::cmp::Ordering::Greater)) => 1.0,
+            _ => value,
+        }
+    }
+
+    #[test]
+    fn standard_forms_match_the_legacy_expressions_bit_for_bit() {
+        let legacy_pi: f32 = "3.1415927".parse().expect("legacy literal text");
+        assert_eq!(legacy_pi.to_bits(), std::f32::consts::PI.to_bits());
+        assert_eq!(std::f32::consts::PI.to_bits(), 0x4049_0fdb);
+        let negative_nan = f32::from_bits(f32::NAN.to_bits() | 0x8000_0000);
+        let payload_nan = f32::from_bits(0x7fc0_1234);
+        let samples = [
+            f32::NAN,
+            negative_nan,
+            payload_nan,
+            0.0,
+            -0.0,
+            f32::INFINITY,
+            f32::NEG_INFINITY,
+            1.0,
+            -1.0,
+            f32::from_bits(1.0_f32.to_bits() + 1),
+            f32::from_bits(1.0_f32.to_bits() - 1),
+            f32::from_bits((-1.0_f32).to_bits() + 1),
+            f32::from_bits((-1.0_f32).to_bits() - 1),
+            0.5,
+            -0.5,
+            2.0,
+            -2.0,
+            f32::MAX,
+            f32::MIN,
+            f32::MIN_POSITIVE,
+            f32::from_bits(1),
+            -f32::from_bits(1),
+        ];
+        for value in samples {
+            assert_eq!(
+                bound_unit(value).to_bits(),
+                legacy_bound_unit(value).to_bits(),
+                "bound_unit differs for bits {:#010x}",
+                value.to_bits()
+            );
+        }
+        // Explicit expectations: bounds saturate, NaN and signed zero pass through.
+        assert_eq!(bound_unit(f32::INFINITY), 1.0);
+        assert_eq!(bound_unit(f32::NEG_INFINITY), -1.0);
+        assert!(bound_unit(f32::NAN).is_nan());
+        assert!(bound_unit(-0.0).is_sign_negative());
+        assert!(bound_unit(0.0).is_sign_positive());
+        // A coarse sweep across and beyond the bounds.
+        for step in -4000..=4000 {
+            let value = step as f32 * 0.001;
+            assert_eq!(bound_unit(value).to_bits(), legacy_bound_unit(value).to_bits());
+        }
     }
 }

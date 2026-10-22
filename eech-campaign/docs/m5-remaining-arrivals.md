@@ -113,7 +113,8 @@ The build and pack recorded at `551f7aa9` predate the heading repair and are
 discarded: they are not evidence. `cdcbd72e` (native build) and `2158d0d8` (the
 witness script, a Lua file run from the repository path, so no binary was rebuilt
 for it) are valid. The publication commits after `2158d0d8` change formatting and
-documentation only; the native build identity stays `cdcbd72e`.
+documentation only, except the clippy-driven expression change recorded in
+"Lint fix after hosted CI" below; the native build identity stays `cdcbd72e`.
 
 Native build: `BUILD-INFO.txt` reports commit `cdcbd72e`, 0 uncommitted build
 inputs, image
@@ -212,6 +213,51 @@ Limits: the host answers synchronously in the same frame, so the ordering of
 consequences is unchanged. The DLL still owns the aircraft and their movement. The
 physical result is the same reference predicate, not a DCS adapter. The recon query
 and the unbound-member failure have no public-path witness.
+
+## Lint fix after hosted CI
+
+Hosted CI on draft PR #90 (at `1d9dddfc`) passed tests but failed the Linux
+`cargo clippy --locked --all-targets -- -D warnings` job on two findings in
+`crates/eech-world/src/main.rs`, both in code added by this slice:
+
+- `clippy::manual_clamp` on `bound_unit`, now `value.clamp(-1.0, 1.0)`.
+- `clippy::approx_constant` on the heading-delta wrap constant
+  `3.141_592_7_f32`, now `std::f32::consts::PI`.
+
+No lint is suppressed and CI is unchanged. The change maps every input to the
+same f32 value, shown by the focused test
+`standard_forms_match_the_legacy_expressions_bit_for_bit`:
+
+- the legacy literal text parses to the bits of `std::f32::consts::PI`
+  (`0x40490fdb`);
+- the previous `bound_unit` spelling (kept in the test as a `partial_cmp` match,
+  because the original `if/else` is what the lint rejects) and `clamp` return
+  identical bits for NaN (positive, negative, payload), +0.0, -0.0, both
+  infinities, exactly +/-1.0 and one ulp either side, f32 extremes, subnormals,
+  and a -4.0..4.0 sweep. NaN and signed zero pass through; infinities saturate.
+  `clamp` does not panic here because the bounds are constant, ordered and not NaN.
+
+Checks, 2026-10-22: Linux `cargo test --locked --target x86_64-unknown-linux-gnu
+--workspace` exit 0 (39 tests ok, the new test among them); Windows
+`cargo clippy --locked --all-targets -p eech-world -- -D warnings` clean (local
+clippy 0.1.97, CI reports 1.99); `cargo fmt --all -- --check` exit 0.
+
+Limitations: the other workspace crates cannot be linted locally (`eech-engine-sys`
+does not build on MSVC and the pinned image has no clippy), so only hosted CI
+lints them; the CI log stopped at `eech-world`. Nothing was rebuilt or re-run
+natively at the final head.
+
+Why the retained `cdcbd72e` evidence still applies: the native DLL and the
+settled 40-check pack were produced from the earlier spellings. Those compile to
+the same value mapping, with identical f32 bits for every sampled input including
+the edge cases above, so the observed `supply_reached` behaviour, Tacview hashes
+and withhold results are unchanged by it. This is an equivalence argument, not a
+rebuild: the pack was not re-run at the final head and the evidence stays labelled
+`cdcbd72e`. Hosted CI builds the current head.
+
+Self-review addendum: the commits after `2158d0d8` are formatting, documentation
+and this lint fix. The lint fix is the only source change among them and has no
+intended behaviour change; nothing else in the diff was touched.
 
 ## Remaining coupling
 
