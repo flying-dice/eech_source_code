@@ -15,7 +15,9 @@ A new host callback, `move_vehicle`, answers each alive routed-vehicle movement
 step. The campaign still owns routes, formation, hold/engage policy and waypoint
 progression. The host owns the pose of the vehicle (position, velocity,
 orientation) per host ID, steps it with the original C maths
-(`crates/eech-world/csrc/convoy_step.c`, verbatim from `rv_move.c`/`vh_vec3d.c`),
+(`crates/eech-world/csrc/convoy_step.c`, kept expression for expression from
+`rv_move.c`, `matrix.c` and `vector.c`: the heading/pitch and face-normal attitude
+helpers, the identity matrix, vector normalisation and the cross product),
 and returns the stepped pose, which the DLL applies.
 
 | Request | Meaning | Host does |
@@ -34,7 +36,7 @@ Result application order is: velocity, attitude, `ROTATED` (Tacview logging only
 position (inside the apply bracket), then the motion-vector recompute.
 
 **Inputs carried to the host** are copied primitives: the host ID, mode, the
-desired and maximum velocity and acceleration, the waypoint-derived target, the
+desired velocity and maximum acceleration, the waypoint-derived target, the
 terrain sample and normal, map bounds and the elapsed time. No pointer crosses the
 boundary and legacy layouts stay private. Terrain is still sampled by the DLL
 (D3) and passed as input; the sample is taken at the original site, only in the
@@ -70,8 +72,15 @@ distance > 1 branch with terrain-follow enabled.
   {name}" for movement inputs routed through it; movement has its own
   "non-finite movement {name}" and "move_vehicle host returned a non-finite pose".
   The stale message is cosmetic and was left alone.
-- `crates/eech-world/tests/load_dc.rs` has two Docker-only failures (not caused by
-  this change; probably a missing `libeech_dc.so` precondition). Not confirmed.
+- Linux workspace tests: the parent ran the full `cargo test --locked` workspace
+  in the pinned Linux image and it **passed**, including both
+  `crates/eech-world/tests/load_dc.rs` tests, the 2 `host_callbacks.rs` tests and
+  the 16 `eech-world` bin tests (log: `reference/m5-convoy-movement/independent-linux-workspace.log`;
+  the log records neither the revision nor the exact `docker run` line, which
+  the parent reported). The earlier author-side partial run
+  (`cargo test --locked -p eech-world --bin eech-world`, 16/16) did not cover
+  `load_dc.rs`; a `load_dc.rs` failure seen then was never reproduced or
+  diagnosed and is superseded by the parent's full run.
 
 ## Number transport
 
@@ -142,7 +151,17 @@ occurred). A real physical loss intervening would not be a failure of the cut.
 The failure paths are covered by `crates/eech-world/tests/host_callbacks.rs`
 (`move_vehicle_refuses_an_unknown_id_a_foreign_pose_and_an_unknown_mode`) and the
 `convoy.rs` unit tests (7 tests: stepping, stop branches, adoption, bit-exact
-divergence rejection, unknown id).
+divergence rejection, unknown id). They are not the only evidence for an unknown
+ID: the standalone lifecycle case `move_unknown_id`
+(`tools/host-identities-lifecycle-windows.ps1`, run on the **iter1 diagnostic
+build**, not the settled build, so it is behavioural evidence for that build only;
+kept as `reference/m5-convoy-movement/lifecycle-iter1-move_unknown_id.out`) boots
+a real campaign whose host answers for an identity it never bound. The boot fails
+with `EECH fatal error: routed vehicle movement: host move_vehicle failed for
+stranger:2784: ... host.move_vehicle: unknown host id stranger:2784`, and a second
+boot is then refused (`not valid in the engine's state`). The settled pack's
+lifecycle checks do not include this case, and it was not re-run on the settled
+build.
 
 ### Regression pack and Tacview
 
@@ -172,15 +191,18 @@ evidence-only, all unchanged from the accepted pack.
   tolerance was widened.
 
 The pack was run on the settled candidate only (iterations are in the next
-section). The report is kept at
-`E:/eech-runs/m5-d1/convoy-movement-20261022/settled-pack/report.md` (SHA-256
-`9f39b443e29b7f05bea49e97dbd53ca3f4b003088dd3a28aa1f9b0be47d57bb8`), not committed.
+section). The report is committed byte-exact as
+`reference/m5-convoy-movement/pack-report.md` (SHA-256
+`9f39b443e29b7f05bea49e97dbd53ca3f4b003088dd3a28aa1f9b0be47d57bb8`) with
+`pack-report.json`; the full pack output tree stays local. The parent
+independently hashed both full Tacview recordings and they match the baseline.
 
 ### Retained failed iterations
 
 Each failure was reproduced in the host's divergence guard on the Lebanon 1 h
-census, with the output kept under `E:/eech-runs/m5-d1/convoy-movement-20261022/`
-(not committed):
+census, with the output kept locally under
+`E:/eech-runs/m5-d1/convoy-movement-20261022/` (these iteration outputs are not
+committed):
 
 | Iteration | Failure | Cause and fix |
 |---|---|---|
@@ -192,18 +214,25 @@ census, with the output kept under `E:/eech-runs/m5-d1/convoy-movement-20261022/
 | iter7 | passed the census | the lossy `LuaValue` read remained (lead review) |
 | iter8 | passed | lookup moved inside Lua for all inputs; `census-iter8.out` is byte-identical to the baseline census |
 
-The first held-convoy run (`witness-iter8/`) selected `eech-world:3399`, which was
-physically lost at 149.5 s before any waypoint query; the hold run then failed on
-a nil waypoint (exit 1). That is an unusable selection, not a defect of the cut;
-the subject is now chosen from a control run as a vehicle that demonstrably moves
-and passes the arrival gate. The failed run is retained, not counted.
+The first held-convoy run (`witness-iter8/`) was an unsuitable comparison. Its
+original control selected `eech-world:3399` at its first move (12.0 s) and had
+**no waypoint** (`waypoint=nil`) before the vehicle was physically lost at
+149.5 s, so it never showed an arrival and could not support one. The hold run
+for that identity did see a waypoint (`4295059857`) but exited 1 on the witness
+assertion `the held convoy moved in the campaign while the host held it`, after
+2039 held steps (a loss at 1991.2 s, no waypoint advance); the cause was not
+investigated further. It is not a nil-waypoint failure. The run is kept as
+failed, unusable-selection evidence and is not counted; the subject is now chosen
+by a control run as a routed vehicle that moves at least 10 m and passes the
+reference arrival gate.
 
 ### Limits
 
 The host steps the vehicle synchronously in the same frame, so the order of
-consequences is unchanged. The DLL still owns the entity and its physical
-simulation (D1 coupling), the terrain sample (D3), and every non-routed mobile
-family. The result is the same reference physics, not a DCS adapter. Visual
+consequences is unchanged. Alive routed-vehicle motion is now host-owned; the DLL
+still owns the entity and the remaining physical simulation (D1 coupling:
+other mobile families, death motion, creation/removal), the terrain sample (D3)
+and every non-routed mobile family. The result is the same reference physics, not a DCS adapter. Visual
 inspection of Tacview and a live DCS run are not claimed.
 
 ## Remaining coupling
@@ -241,8 +270,9 @@ boundary and panic safety. It is not an independent review.
   as errors rather than unwinding through C.
 
 Retained text evidence is in `reference/m5-convoy-movement/`: `BUILD-INFO.txt`,
-`identities.txt`, the three witness stdout files, `pack-report.md/json` and
-`reference-summary.txt`. No retail data, binaries or recordings are committed.
+`identities.txt`, the three witness stdout files, `pack-report.md/json`,
+`reference-summary.txt`, `independent-linux-workspace.log` and
+`lifecycle-iter1-move_unknown_id.out`. No retail data, binaries or recordings are committed.
 
 ## Commands
 
