@@ -499,10 +499,12 @@ void helicopter_death_movement (entity *en)
 	helicopter
 		*raw;
 
+	double
+		hd,
+		rd;
+
 	float
 		altitude,
-		hd,
-		rd,
 		terrain_elevation,
 		old_terrain_elevation,
 		cg_to_ground;

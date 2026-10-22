@@ -132,7 +132,7 @@ typedef struct campaign_movement_step
 	   PRE-kill CG) are the terrain sample; CONTACT(candidate) altitude is retained host-side for SETTLE.  SETTLE:
 	   hc_terrain_class (0 solid, 1 sea, 2 river/lake, 3 forest), elevation, hc_cg_to_ground (the FRESH post-kill CG, final
 	   heights only) and hc_bury_limit; the bury tests use the retained contact altitude.  TUMBLE: hc_draws are the two
-	   random draws the DLL made after the effects.
+	   random draws (doubles, as frand1 () returns them) the DLL made after the effects.
 	   CRASH_BEGIN: face_normal is the OLD terrain normal, hc_pitch_offset/hc_bank_offset the destroyed attitude offsets;
 	   CRASH_END: face_normal is the NEW (refreshed) terrain normal, forest/elevation/hc_cg_to_ground the terrain sample.
 	   IMPACT: hc_signed_speed is the shove the DLL decided (after its random draw) */
@@ -143,10 +143,12 @@ typedef struct campaign_movement_step
 	float hc_gravity;
 	int hc_terrain_class;
 	float hc_bury_limit;
-	float hc_draws[2];
 	float hc_pitch_offset;
 	float hc_bank_offset;
 	float hc_signed_speed;
+	/* the two TUMBLE draws are frand1 () doubles and stay doubles: the original expression multiplies them in double
+	   before narrowing the result to the float heading/roll.  Last, so the double's alignment cannot move another field */
+	double hc_draws[2];
 } campaign_movement_step;
 
 typedef struct campaign_movement_result
@@ -280,7 +282,7 @@ void campaign_movement_fall (struct ENTITY *helicopter, float delta_seconds, str
 void campaign_movement_fall_gravity (struct ENTITY *helicopter, float gravity, float delta_seconds);
 int campaign_movement_contact (struct ENTITY *helicopter, int use_candidate, float elevation, float cg_to_ground, float *altitude);
 int campaign_movement_settle (struct ENTITY *helicopter, int terrain_class, float elevation, float cg_to_ground, float bury_limit, struct VEC3D *candidate);
-void campaign_movement_tumble (struct ENTITY *helicopter, float heading_draw, float roll_draw);
+void campaign_movement_tumble (struct ENTITY *helicopter, double heading_draw, double roll_draw);
 void campaign_movement_crash_begin (struct ENTITY *helicopter, const struct VEC3D *old_normal, float pitch_offset, float bank_offset, float delta_seconds, struct VEC3D *candidate);
 int campaign_movement_crash_end (struct ENTITY *helicopter, const struct VEC3D *new_normal, int forest, float elevation, float cg_to_ground, float delta_seconds);
 void campaign_movement_impact (struct ENTITY *helicopter, float signed_speed);

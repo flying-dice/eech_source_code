@@ -198,7 +198,7 @@ void eech_hc_fall_gravity(float *motion_vector, float gravity, float delta_secon
 }
 
 /* Dying, on contact: the heading, pitch and roll tumble.  The two random draws were made by the DLL, heading's first. */
-void eech_hc_tumble(float *attitude, float heading_draw, float roll_draw, float delta_seconds)
+void eech_hc_tumble(float *attitude, double heading_draw, double roll_draw, float delta_seconds)
 {
 	matrix3x3 *matrix = (matrix3x3 *)attitude;
 	float heading, pitch, roll;

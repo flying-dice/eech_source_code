@@ -284,10 +284,11 @@ pub struct eech_movement_step {
     pub hc_gravity: f32,
     pub hc_terrain_class: c_int,
     pub hc_bury_limit: f32,
-    pub hc_draws: [f32; 2],
     pub hc_pitch_offset: f32,
     pub hc_bank_offset: f32,
     pub hc_signed_speed: f32,
+    /// The two tumble draws are `frand1 ()` doubles and stay doubles; last, so the double's alignment moves no other field.
+    pub hc_draws: [f64; 2],
 }
 
 #[repr(C)]
@@ -423,3 +424,7 @@ extern "C" {
     pub fn eech_engine_diagnostics() -> c_int;
     pub fn eech_set_log_sink(sink: Option<eech_log_sink>, user: *mut c_void);
 }
+
+// The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by
+// target) cannot move any float or int before it; the C struct in rv_hostmv.h declares them last as well.
+const _: () = assert!(core::mem::offset_of!(eech_movement_step, hc_draws) > core::mem::offset_of!(eech_movement_step, hc_signed_speed));

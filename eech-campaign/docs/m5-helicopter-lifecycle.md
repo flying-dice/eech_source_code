@@ -64,9 +64,10 @@ ephemeral clippy): `cargo fmt --all -- --check` clean; `cargo clippy --locked
 --all-targets -p eech-world -p eech-engine -p eech-dc -- -D warnings` exit 0;
 `cargo test` (counts from the retained logs):
 
-- `eech-world` library: 55 tests (54 movement tests, 15 of them new for the lifecycle
-  modes, plus the Tacview well-formedness test);
-- `eech-world` binary: 17 tests (the exact-number tests and the supply tests);
+- `eech-world` library: 57 tests (56 movement tests, 17 of them new for the lifecycle
+  modes and the double draws, plus the Tacview well-formedness test);
+- `eech-world` binary: 18 tests (the exact-number tests, one of them new for the double
+  read, and the supply tests);
 - `eech-world` `host_callbacks` 2 and `load_dc` 2;
 - `eech-engine`: 5 tests, 2 of them new transport tests for the lifecycle fields;
 - `eech-dc`: 2 (the `lua_debug_layout` tests; its library has none).
@@ -76,6 +77,21 @@ kept (`clippy.log`, no clippy in the image; `test-world.log`, `load_dc` needed t
 built `libeech_dc.so`). The Linux build compiles the host C (`hc_step.c`, linked into
 `eech-world`) and the Rust. Only the `aphavoc` call sites (`hc_move.c`, `hc_float.c`,
 `hc_pack.c`, `hc_updt.c`, `rv_hostmv.c`) were first compiled by the retail MinGW build.
+
+**Draw precision (found by the first native pack, corrected here).** The tumble draws
+are `frand1 ()` doubles and the original forms `PI * 0.2 * frand1 () * dt` in double,
+narrowing only the float heading or roll it assigns. The first transport carried the
+draws as floats, which landed a recorded wreck's height one float step off (0.75041 in
+the baseline, 0.75040 in the candidate; snapshot 83324, t = 1559.67), so the pack's
+`retained.observations` check failed while both complete Tacviews stayed identical to
+the baseline. The draws are now doubles end to end (`hc_move.c`, `rv_hostmv.h/.c`,
+`eech-engine-sys`, `eech-engine`, `eech-world` `movement.rs`, `hc_step.c`, and an exact
+f64 Lua read in `main.rs`); the real float fields stay float, and the RNG order and
+count are unchanged. `hc_draws` is the step's last field so a double's alignment moves
+no other field, and `eech-engine-sys` asserts that at compile time. Two new tests
+fail under the old narrowing and pass now. This is a correction of the candidate, not an
+accepted difference, and no native build or pack has been rerun for it yet: the
+original pack result (FAIL, one check) stands as recorded.
 
 The new tests characterise the ported maths and the guards; bit-identity is the
 regression pack's job.

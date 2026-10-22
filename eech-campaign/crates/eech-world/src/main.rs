@@ -82,6 +82,28 @@ fn numbers<const N: usize>(lua: &Lua, table: &LuaTable, name: &str) -> LuaResult
 /// copies of a pose would differ. Lua looks the field up and formats the numbers at 17 significant digits instead,
 /// and `nearest_f32` narrows them.
 fn exact_numbers<const N: usize>(lua: &Lua, table: &LuaTable, field: &str) -> Result<[f32; N], String> {
+    let values = exact_f64s::<N>(lua, table, field)?;
+    let mut numbers = [0.0f32; N];
+    for (slot, value) in numbers.iter_mut().zip(values) {
+        *slot = nearest_f32(value).ok_or_else(|| shape(field, N))?;
+    }
+    Ok(numbers)
+}
+
+fn shape(field: &str, n: usize) -> String {
+    format!(
+        "{field} must be {}",
+        if n == 1 {
+            "a finite number".to_owned()
+        } else {
+            format!("{n} finite numbers")
+        }
+    )
+}
+
+/// The `N` finite numbers of `exact_numbers`, kept as the `f64` Lua holds, for a value the campaign
+/// itself holds in double (the `frand1 ()` draws), where a narrowing to `f32` would change the result.
+fn exact_f64s<const N: usize>(lua: &Lua, table: &LuaTable, field: &str) -> Result<[f64; N], String> {
     const KEY: &str = "eech_exact_numbers";
     let format: LuaFunction = match lua.named_registry_value(KEY) {
         Ok(function) => function,
@@ -106,21 +128,15 @@ fn exact_numbers<const N: usize>(lua: &Lua, table: &LuaTable, field: &str) -> Re
         }
     };
     let text: Option<String> = format.call((table, field, N)).map_err(|e| e.to_string())?;
-    let shape = || {
-        format!(
-            "{field} must be {}",
-            if N == 1 {
-                "a finite number".to_owned()
-            } else {
-                format!("{N} finite numbers")
-            }
-        )
-    };
-    let text = text.ok_or_else(shape)?;
+    let text = text.ok_or_else(|| shape(field, N))?;
     let mut parts = text.split_whitespace();
-    let mut numbers = [0.0f32; N];
+    let mut numbers = [0.0f64; N];
     for slot in &mut numbers {
-        *slot = parts.next().and_then(|part| part.parse::<f64>().ok()).and_then(nearest_f32).ok_or_else(shape)?;
+        *slot = parts
+            .next()
+            .and_then(|part| part.parse::<f64>().ok())
+            .filter(|value| value.is_finite())
+            .ok_or_else(|| shape(field, N))?;
     }
     Ok(numbers)
 }
@@ -219,7 +235,7 @@ fn lifecycle_from(lua: &Lua, step: &LuaTable, mode: LifecycleMode) -> LuaResult<
         }
         LifecycleMode::Tumble => {
             lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
-            lifecycle.draws = numbers(lua, step, "draws")?;
+            lifecycle.draws = exact_f64s(lua, step, "draws").map_err(|e| LuaError::runtime(format!("host.move_vehicle: {e}")))?;
         }
         LifecycleMode::CrashBegin => {
             lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
@@ -1593,6 +1609,31 @@ mod exact_number_tests {
                     }
                 }
             });
+        }
+    }
+
+    #[test]
+    fn a_double_read_keeps_every_bit_a_float_read_would_narrow() {
+        let lua = Lua::new();
+        // frand1 () draws: k / 32767 is never a float, and the old transport narrowed it
+        for k in (0..=32767u32).step_by(7) {
+            let draw = f64::from(k) * (1.0 / 32767.0);
+            let table = lua.create_table().expect("table");
+            table.set("v", vec![draw, -draw]).expect("array");
+            let read = exact_f64s::<2>(&lua, &table, "v").expect("exact read");
+            assert_eq!([read[0].to_bits(), read[1].to_bits()], [draw.to_bits(), (-draw).to_bits()]);
+        }
+        let table = lua.create_table().expect("table");
+        table.set("v", vec![f64::MIN_POSITIVE, f64::MAX]).expect("array");
+        assert_eq!(exact_f64s::<2>(&lua, &table, "v").expect("extremes"), [f64::MIN_POSITIVE, f64::MAX]);
+        for bad in [vec![f64::NAN, 0.0], vec![0.0, f64::INFINITY], vec![0.0, f64::NEG_INFINITY], vec![0.5]] {
+            table.set("v", bad.clone()).expect("array");
+            assert!(
+                exact_f64s::<2>(&lua, &table, "v")
+                    .expect_err("refused")
+                    .starts_with("v must be 2 finite numbers"),
+                "{bad:?}"
+            );
         }
     }
 

@@ -302,8 +302,9 @@ pub struct MovementStep {
     pub terrain_class: i32,
     /// `Settle`: the depth beyond which the wreck is buried
     pub bury_limit: f32,
-    /// `Tumble`: the campaign's two random draws (heading, roll)
-    pub draws: [f32; 2],
+    /// `Tumble`: the campaign's two random draws (heading, roll), the doubles `frand1 ()` returns: the original
+    /// expression multiplies them in double before narrowing the result
+    pub draws: [f64; 2],
     /// `CrashBegin`: the pitch and bank offsets
     pub pitch_offset: f32,
     pub bank_offset: f32,
@@ -1153,11 +1154,13 @@ where
             ("fw_motion_vector", &source.fw_motion_vector[..]),
             ("hc_motion_vector", &source.hc_motion_vector[..]),
             ("hc_rotor", &source.hc_rotor[..]),
-            ("hc_draws", &source.hc_draws[..]),
         ] {
             if values.iter().any(|value| !value.is_finite()) {
                 return Err(format!("non-finite movement {name}"));
             }
+        }
+        if source.hc_draws.iter().any(|value| !value.is_finite()) {
+            return Err("non-finite movement hc_draws".into());
         }
         if source.delta_seconds < 0.0 || source.frame_delta < 0.0 {
             return Err("move_vehicle received a negative delta".into());
@@ -1665,7 +1668,7 @@ mod tests {
             step.hc_gravity = 9.5;
             step.hc_terrain_class = 2;
             step.hc_bury_limit = 3.5;
-            step.hc_draws = [0.125, 0.5];
+            step.hc_draws = [1.0 / 32767.0, 0.5];
             step.hc_pitch_offset = 0.1;
             step.hc_bank_offset = -0.2;
             step.hc_signed_speed = -6.0;
@@ -1678,7 +1681,8 @@ mod tests {
             assert_eq!(request.rotor, [90.0, 80.0, 4.0]);
             assert_eq!((request.lift, request.power_output, request.flag), (0.25, 0.75, true));
             assert_eq!((request.gravity, request.terrain_class, request.bury_limit), (9.5, 2, 3.5));
-            assert_eq!(request.draws, [0.125, 0.5]);
+            // double draws, not representable as float: they arrive bit for bit
+            assert_eq!(request.draws, [1.0 / 32767.0, 0.5]);
             assert_eq!((request.pitch_offset, request.bank_offset, request.signed_speed), (0.1, -0.2, -6.0));
             assert_eq!(request.cg_to_ground, 1.5);
             assert!(request.forest);
@@ -1713,7 +1717,7 @@ mod tests {
         };
         refuses(&|step| step.hc_rotor[1] = f32::NAN);
         refuses(&|step| step.hc_lift = f32::INFINITY);
-        refuses(&|step| step.hc_draws[0] = f32::NAN);
+        refuses(&|step| step.hc_draws[0] = f64::NAN);
         refuses(&|step| step.hc_flag = 2);
     }
 }

@@ -680,7 +680,7 @@ int campaign_movement_settle (entity *en, int terrain_class, float elevation, fl
 
 // the tumble attitude and the host's final vector and position (the settled or fall candidate), the position through the setter
 
-void campaign_movement_tumble (entity *en, float heading_draw, float roll_draw)
+void campaign_movement_tumble (entity *en, double heading_draw, double roll_draw)
 {
 	helicopter *raw = (helicopter *) get_local_entity_data (en);
 	campaign_movement_step step;
