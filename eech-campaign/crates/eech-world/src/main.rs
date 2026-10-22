@@ -8,7 +8,7 @@
 
 mod crash;
 
-use eech_world::convoy::{Advance, Convoys, Pose, Request, Terrain};
+use eech_world::movement::{Advance, Kind, Movers, PersonBegin, PersonEnd, Pose, Request, ShipMove, Terrain};
 use eech_world::tacview::{ObjectInfo, Recorder};
 use mlua::prelude::*;
 use std::cell::{Cell, RefCell};
@@ -154,6 +154,25 @@ fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request
     let request = match mode.as_str() {
         "stop" => Request::Stop,
         "place" => Request::Place,
+        "ship_move" => Request::ShipMove(ShipMove {
+            delta_seconds: number(lua, step, "delta_seconds")?,
+            frame_delta: number(lua, step, "frame_delta")?,
+            guide_velocity: number(lua, step, "desired_velocity")?,
+            max_acceleration: number(lua, step, "max_acceleration")?,
+            g_max: number(lua, step, "g_max")?,
+            waypoint: numbers(lua, step, "waypoint")?,
+            map_min: numbers(lua, step, "map_min")?,
+            map_max: numbers(lua, step, "map_max")?,
+        }),
+        "person_begin" => Request::PersonBegin(PersonBegin {
+            delta_seconds: number(lua, step, "delta_seconds")?,
+            ps_vel: number(lua, step, "ps_vel")?,
+            waypoint: numbers(lua, step, "waypoint")?,
+            terrain_follow: step.get("terrain_follow")?,
+        }),
+        "person_end" => Request::PersonEnd(PersonEnd {
+            elevation: number(lua, step, "elevation")?,
+        }),
         "move" => Request::Advance(Advance {
             delta_seconds: number(lua, step, "delta_seconds")?,
             desired_velocity: number(lua, step, "desired_velocity")?,
@@ -617,11 +636,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // makes the selected host participate without deriving identity from EECH's
     // reused entity index.
     let next_host_id = Rc::new(Cell::new(1_u64));
-    // The host's physical record of each ground convoy vehicle, keyed by the identity issued below.
-    let convoys = Rc::new(RefCell::new(Convoys::default()));
+    // The host's physical record of each alive ground vehicle, ship and infantryman, keyed by the identity issued below.
+    let movers = Rc::new(RefCell::new(Movers::default()));
     {
         let next_host_id = next_host_id.clone();
-        let convoys = convoys.clone();
+        let movers = movers.clone();
         host.set(
             "bind_mobile",
             lua.create_function(move |lua, descriptor: LuaTable| {
@@ -638,26 +657,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 };
                 next_host_id.set(next);
                 let host_id = format!("eech-world:{id}");
-                // a routed vehicle arrives with the pose that starts the host's record of it
+                // a mobile the host moves arrives with the pose that starts its record
                 if let Some(pose) = descriptor.get::<Option<LuaTable>>("pose")? {
-                    convoys.borrow_mut().bind(&host_id, pose_from(lua, &pose)?);
+                    let kind = match descriptor.get::<i64>("movement_kind")? {
+                        1 => Kind::Routed,
+                        2 => Kind::Ship,
+                        3 => Kind::Person,
+                        other => return Err(LuaError::runtime(format!("host.bind_mobile: unknown movement_kind {other}"))),
+                    };
+                    movers.borrow_mut().bind(&host_id, kind, pose_from(lua, &pose)?);
                 }
                 Ok(host_id)
             })?,
         )?;
     }
     {
-        let convoys = convoys.clone();
+        let movers = movers.clone();
         host.set(
             "move_vehicle",
             lua.create_function(move |lua, step: LuaTable| {
                 let (host_id, campaign, request) = movement_from(lua, &step)?;
-                let (pose, rotated) = convoys.borrow_mut().step(&host_id, campaign, request).map_err(LuaError::runtime)?;
+                let outcome = movers.borrow_mut().step(&host_id, campaign, request).map_err(LuaError::runtime)?;
                 let result = lua.create_table()?;
-                result.set("position", pose.position.to_vec())?;
-                result.set("velocity", pose.velocity)?;
-                result.set("attitude", pose.attitude.to_vec())?;
-                result.set("rotated", rotated)?;
+                result.set("position", outcome.pose.position.to_vec())?;
+                result.set("velocity", outcome.pose.velocity)?;
+                result.set("attitude", outcome.pose.attitude.to_vec())?;
+                result.set("rotated", outcome.rotated)?;
+                result.set("motion_vector", outcome.motion_vector.to_vec())?;
+                result.set("pending", outcome.pending)?;
                 Ok(result)
             })?,
         )?;

@@ -63,6 +63,7 @@ pub struct eech_member_descriptor {
     pub position: [f32; 3],
     pub velocity: f32,
     pub attitude: [f32; 9],
+    pub movement_kind: c_int,
 }
 
 pub type eech_bind_mobile_callback = unsafe extern "C" fn(
@@ -209,6 +210,13 @@ pub const EECH_MOVEMENT_HOST_ID_MAX: usize = 128;
 pub const EECH_MOVEMENT_MOVE: c_int = 1;
 pub const EECH_MOVEMENT_STOP: c_int = 2;
 pub const EECH_MOVEMENT_PLACE: c_int = 3;
+pub const EECH_MOVEMENT_SHIP_MOVE: c_int = 4;
+pub const EECH_MOVEMENT_PERSON_BEGIN: c_int = 5;
+pub const EECH_MOVEMENT_PERSON_END: c_int = 6;
+
+pub const EECH_MOVEMENT_KIND_ROUTED: c_int = 1;
+pub const EECH_MOVEMENT_KIND_SHIP: c_int = 2;
+pub const EECH_MOVEMENT_KIND_PERSON: c_int = 3;
 
 #[repr(C)]
 pub struct eech_movement_step {
@@ -229,6 +237,9 @@ pub struct eech_movement_step {
     pub face_normal: [f32; 3],
     pub map_min: [f32; 3],
     pub map_max: [f32; 3],
+    pub frame_delta: f32,
+    pub g_max: f32,
+    pub ps_vel: f32,
 }
 
 #[repr(C)]
@@ -237,6 +248,8 @@ pub struct eech_movement_result {
     pub velocity: f32,
     pub attitude: [f32; 9],
     pub rotated: c_int,
+    pub motion_vector: [f32; 3],
+    pub pending: c_int,
 }
 
 pub type eech_move_vehicle_callback =

@@ -142,11 +142,26 @@ pub struct MemberDescriptor {
     pub entity_type: i32,
     pub sub_type: i32,
     pub side: Side,
-    /// routed vehicles only: the pose that seeds the host's record of the vehicle
+    /// movable members only: the pose that seeds the host's record of the member
     pub pose: Option<VehiclePose>,
+    /// what physical step the host performs for the member; present exactly when `pose` is
+    pub movement_kind: Option<MovementKind>,
 }
 
-/// A routed vehicle's physical state: EECH world metres, speed in m/s, a row-major 3x3 attitude.
+/// The physical step the host performs for a movable member.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+#[repr(i32)]
+pub enum MovementKind {
+    /// a ground convoy member: terrain-following heading and pitch
+    Routed = 1,
+    /// a ship: heading, speed and position along the guide
+    Ship = 2,
+    /// infantry: walk or run along the waypoint, in two phases around the campaign's terrain sample
+    Person = 3,
+}
+
+/// A movable member's physical state: EECH world metres, speed in m/s, a row-major 3x3 attitude.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize)]
 pub struct VehiclePose {
     pub position: [f32; 3],
@@ -164,6 +179,12 @@ pub enum MovementMode {
     Stop,
     /// the campaign placed the vehicle: the host adopts the pose
     Place,
+    /// a ship's step towards the waypoint (single phase)
+    ShipMove,
+    /// first phase of an infantry step: the horizontal advance; the host holds the result until `PersonEnd`
+    PersonBegin,
+    /// second phase of an infantry step: the host places the member at the campaign's terrain elevation
+    PersonEnd,
 }
 
 /// Terrain at the pre-move position, sampled by the campaign.
@@ -176,7 +197,9 @@ pub struct TerrainSample {
 
 /// One movement request for the vehicle whose host identity is `host_id`.
 /// `pose` is the campaign's copy: compared with the host's record on `Move` and `Stop`, adopted on `Place`.
-/// The remaining fields are meaningful for `Move` only.
+/// The remaining fields depend on the mode: `Move` uses the routed set, `ShipMove` the ship set
+/// (`frame_delta`, `desired_velocity` as the guide velocity, `g_max`), `PersonBegin` `ps_vel` and
+/// `terrain_follow`, and `PersonEnd` `elevation`.
 #[derive(Clone, Debug, Serialize)]
 pub struct MovementStep {
     pub host_id: String,
@@ -192,13 +215,27 @@ pub struct MovementStep {
     pub terrain: Option<TerrainSample>,
     pub map_min: [f32; 3],
     pub map_max: [f32; 3],
+    /// the frame delta, distinct from `delta_seconds` (the engine's movement delta)
+    pub frame_delta: f32,
+    pub g_max: f32,
+    pub ps_vel: f32,
+    /// `PersonBegin`: the campaign will sample terrain at the returned position and send `PersonEnd`
+    pub terrain_follow: bool,
+    /// `PersonEnd`: the terrain elevation the campaign sampled at the position `PersonBegin` returned
+    pub elevation: f32,
 }
 
 /// The host's record of the vehicle after the step; the campaign applies it.
+/// While `pending`, only `pose.position` is meaningful (the horizontal advance) and the campaign
+/// applies nothing until the `PersonEnd` result.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct MovementResult {
     pub pose: VehiclePose,
     pub rotated: bool,
+    /// the motion vector the step leaves on the member (ships and infantry)
+    pub motion_vector: [f32; 3],
+    /// an infantry step awaits its second phase
+    pub pending: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
@@ -542,6 +579,16 @@ where
                 velocity: descriptor.velocity,
                 attitude: descriptor.attitude,
             }),
+            movement_kind: if checked_bool("has_pose", descriptor.has_pose)? {
+                Some(match descriptor.movement_kind {
+                    sys::EECH_MOVEMENT_KIND_ROUTED => MovementKind::Routed,
+                    sys::EECH_MOVEMENT_KIND_SHIP => MovementKind::Ship,
+                    sys::EECH_MOVEMENT_KIND_PERSON => MovementKind::Person,
+                    other => return Err(format!("bind_mobile received unknown movement kind {other}")),
+                })
+            } else {
+                None
+            },
         };
         let identity = (context.bind_mobile)(descriptor)?;
         let bytes = identity.as_bytes();
@@ -928,11 +975,15 @@ where
             sys::EECH_MOVEMENT_MOVE => MovementMode::Move,
             sys::EECH_MOVEMENT_STOP => MovementMode::Stop,
             sys::EECH_MOVEMENT_PLACE => MovementMode::Place,
+            sys::EECH_MOVEMENT_SHIP_MOVE => MovementMode::ShipMove,
+            sys::EECH_MOVEMENT_PERSON_BEGIN => MovementMode::PersonBegin,
+            sys::EECH_MOVEMENT_PERSON_END => MovementMode::PersonEnd,
             other => return Err(format!("move_vehicle received unknown mode {other}")),
         };
         let terrain_follow = checked_bool("terrain_follow", source.terrain_follow)?;
         let terrain_present = checked_bool("terrain_present", source.terrain_present)?;
-        if terrain_follow != terrain_present {
+        // a routed step follows terrain exactly when it carries a sample; an infantry begin announces a sample to come
+        if mode != MovementMode::PersonBegin && terrain_follow != terrain_present {
             return Err("move_vehicle received terrain-follow without a terrain sample".into());
         }
         checked_floats(&[
@@ -941,6 +992,9 @@ where
             ("desired_velocity", source.desired_velocity),
             ("max_acceleration", source.max_acceleration),
             ("elevation", source.elevation),
+            ("frame_delta", source.frame_delta),
+            ("g_max", source.g_max),
+            ("ps_vel", source.ps_vel),
         ])?;
         for (name, values) in [
             ("position", &source.position[..]),
@@ -954,7 +1008,7 @@ where
                 return Err(format!("non-finite movement {name}"));
             }
         }
-        if source.delta_seconds < 0.0 {
+        if source.delta_seconds < 0.0 || source.frame_delta < 0.0 {
             return Err("move_vehicle received a negative delta".into());
         }
         let terrain = if terrain_present {
@@ -982,10 +1036,22 @@ where
             terrain,
             map_min: source.map_min,
             map_max: source.map_max,
+            frame_delta: source.frame_delta,
+            g_max: source.g_max,
+            ps_vel: source.ps_vel,
+            terrain_follow,
+            elevation: source.elevation,
         };
         let answer = (context.move_vehicle)(request)?;
         let pose = answer.pose;
-        if !pose.velocity.is_finite() || pose.position.iter().chain(pose.attitude.iter()).any(|value| !value.is_finite()) {
+        if !pose.velocity.is_finite()
+            || pose
+                .position
+                .iter()
+                .chain(pose.attitude.iter())
+                .chain(answer.motion_vector.iter())
+                .any(|value| !value.is_finite())
+        {
             return Err("move_vehicle host returned a non-finite pose".into());
         }
         // SAFETY: C supplies a writable result for the duration of this callback.
@@ -995,6 +1061,8 @@ where
                 velocity: pose.velocity,
                 attitude: pose.attitude,
                 rotated: c_int::from(answer.rotated),
+                motion_vector: answer.motion_vector,
+                pending: c_int::from(answer.pending),
             };
         }
         Ok(())
