@@ -812,17 +812,29 @@ void campaign_roster_link_member (entity *group, entity *member)
 			case ENTITY_TYPE_PERSON:
 				descriptor.movement_kind = CAMPAIGN_MOVEMENT_KIND_PERSON;
 				break;
+			case ENTITY_TYPE_FIXED_WING:
+				descriptor.movement_kind = CAMPAIGN_MOVEMENT_KIND_FIXED_WING;
+				break;
 		}
 		if (descriptor.movement_kind)
 		{
-			vehicle *raw = (vehicle *) get_local_entity_data (member);
+			// an aircraft carries its mobile part inside the aircraft part, a vehicle directly
+			const mobile *mob = (descriptor.entity_type == ENTITY_TYPE_FIXED_WING) ?
+				&((fixed_wing *) get_local_entity_data (member))->ac.mob :
+				&((vehicle *) get_local_entity_data (member))->mob;
 
 			descriptor.has_pose = TRUE;
-			descriptor.position[0] = raw->mob.position.x;
-			descriptor.position[1] = raw->mob.position.y;
-			descriptor.position[2] = raw->mob.position.z;
-			descriptor.velocity = raw->mob.velocity;
-			memcpy (descriptor.attitude, raw->mob.attitude, sizeof (descriptor.attitude));
+			descriptor.position[0] = mob->position.x;
+			descriptor.position[1] = mob->position.y;
+			descriptor.position[2] = mob->position.z;
+			descriptor.velocity = mob->velocity;
+			memcpy (descriptor.attitude, mob->attitude, sizeof (descriptor.attitude));
+			if (descriptor.movement_kind == CAMPAIGN_MOVEMENT_KIND_FIXED_WING)
+			{
+				descriptor.motion_vector[0] = mob->motion_vector.x;
+				descriptor.motion_vector[1] = mob->motion_vector.y;
+				descriptor.motion_vector[2] = mob->motion_vector.z;
+			}
 		}
 #endif
 

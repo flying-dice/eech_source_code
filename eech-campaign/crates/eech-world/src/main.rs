@@ -8,7 +8,7 @@
 
 mod crash;
 
-use eech_world::movement::{Advance, Kind, Movers, PersonBegin, PersonEnd, Pose, Request, ShipMove, Terrain};
+use eech_world::movement::{Advance, FixedWingMove, FixedWingPhase, Kind, Movers, PersonBegin, PersonEnd, Pose, Request, ShipMove, Terrain};
 use eech_world::tacview::{ObjectInfo, Recorder};
 use mlua::prelude::*;
 use std::cell::{Cell, RefCell};
@@ -146,6 +146,18 @@ fn pose_from(lua: &Lua, table: &LuaTable) -> LuaResult<Pose> {
     })
 }
 
+/// The fixed-wing phase a step names. The number must be exactly one of the phases: a fraction or
+/// a value out of range is refused, not truncated to a neighbour.
+fn fixed_wing_phase(value: f32) -> LuaResult<FixedWingPhase> {
+    match value {
+        0.0 => Ok(FixedWingPhase::Taxi),
+        1.0 => Ok(FixedWingPhase::Flight),
+        2.0 => Ok(FixedWingPhase::Land),
+        3.0 => Ok(FixedWingPhase::Absolute),
+        other => Err(LuaError::runtime(format!("host.move_vehicle: unknown fixed-wing phase {other}"))),
+    }
+}
+
 /// The movement request a step table carries, with the campaign's copy of the pose.
 fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request)> {
     let host_id: String = step.get("host_id")?;
@@ -153,7 +165,9 @@ fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request
     let mode: String = step.get("mode")?;
     let request = match mode.as_str() {
         "stop" => Request::Stop,
-        "place" => Request::Place,
+        "place" => Request::Place {
+            motion_vector: numbers(lua, step, "motion_vector_in")?,
+        },
         "ship_move" => Request::ShipMove(ShipMove {
             delta_seconds: number(lua, step, "delta_seconds")?,
             frame_delta: number(lua, step, "frame_delta")?,
@@ -169,6 +183,26 @@ fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request
             ps_vel: number(lua, step, "ps_vel")?,
             waypoint: numbers(lua, step, "waypoint")?,
             terrain_follow: step.get("terrain_follow")?,
+        }),
+        "fixed_wing_move" => Request::FixedWingMove(FixedWingMove {
+            phase: fixed_wing_phase(number(lua, step, "phase")?)?,
+            delta_seconds: number(lua, step, "delta_seconds")?,
+            frame_delta: number(lua, step, "frame_delta")?,
+            wp_vel: number(lua, step, "desired_velocity")?,
+            cruise_velocity: number(lua, step, "cruise_velocity")?,
+            g_max: number(lua, step, "g_max")?,
+            fuselage_angle: number(lua, step, "fuselage_angle")?,
+            cg_to_ground: number(lua, step, "cg_to_ground")?,
+            max_roll: number(lua, step, "max_roll")?,
+            turn_speed_multi: number(lua, step, "turn_speed_multi")?,
+            waypoint: numbers(lua, step, "waypoint")?,
+            acceleration: numbers(lua, step, "acceleration")?,
+            motion_vector: numbers(lua, step, "motion_vector_in")?,
+            navigating: step.get("navigating")?,
+            elevation: number(lua, step, "elevation")?,
+            tacview_logging: step.get("tacview_logging")?,
+            map_min: numbers(lua, step, "map_min")?,
+            map_max: numbers(lua, step, "map_max")?,
         }),
         "person_end" => Request::PersonEnd(PersonEnd {
             elevation: number(lua, step, "elevation")?,
@@ -663,9 +697,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         1 => Kind::Routed,
                         2 => Kind::Ship,
                         3 => Kind::Person,
+                        4 => Kind::FixedWing,
                         other => return Err(LuaError::runtime(format!("host.bind_mobile: unknown movement_kind {other}"))),
                     };
-                    movers.borrow_mut().bind(&host_id, kind, pose_from(lua, &pose)?);
+                    // an aircraft's motion vector is physical state the host retains: the seed is explicit
+                    let motion_vector = match descriptor.get::<Option<LuaTable>>("motion_vector")? {
+                        Some(_) => Some(numbers(lua, &descriptor, "motion_vector")?),
+                        None => None,
+                    };
+                    movers
+                        .borrow_mut()
+                        .bind(&host_id, kind, pose_from(lua, &pose)?, motion_vector)
+                        .map_err(LuaError::runtime)?;
                 }
                 Ok(host_id)
             })?,
@@ -1470,5 +1513,16 @@ mod exact_number_tests {
         assert_eq!(nearest_f32(f64::from(f32::MAX) * 2.0), None);
         assert_eq!(nearest_f32(f64::NAN), None);
         assert_eq!(nearest_f32(f64::NEG_INFINITY), None);
+    }
+
+    #[test]
+    fn a_fixed_wing_phase_must_be_exactly_one_of_the_four_integers() {
+        assert!(matches!(fixed_wing_phase(0.0), Ok(FixedWingPhase::Taxi)));
+        assert!(matches!(fixed_wing_phase(1.0), Ok(FixedWingPhase::Flight)));
+        assert!(matches!(fixed_wing_phase(2.0), Ok(FixedWingPhase::Land)));
+        assert!(matches!(fixed_wing_phase(3.0), Ok(FixedWingPhase::Absolute)));
+        for bad in [1.5, 0.999_999, -1.0, 4.0, 256.0, f32::NAN, f32::INFINITY] {
+            assert!(fixed_wing_phase(bad).is_err(), "phase {bad} must be refused");
+        }
     }
 }

@@ -1531,6 +1531,106 @@ static void fixed_wing_movement_avoid_enemy_fire (entity *en, vec3d *wp_pos)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+// hosted movement: the engine keeps the guidance (the waypoint, the navigator's acceleration, the speed demand and
+// which sub-mode applies) and the host performs the physical step it asks for
+
+static void hosted_fixed_wing_step (entity *en, int phase, const vec3d *wp_pos, const vec3d *acc, float terrain_elevation)
+{
+	fixed_wing
+		*raw;
+
+	entity
+		*guide;
+
+	campaign_fixed_wing_guidance
+		guidance;
+
+	float
+		wp_vel;
+
+	raw = (fixed_wing *) get_local_entity_data (en);
+
+	guide = get_local_entity_parent (en, LIST_TYPE_FOLLOWER);
+
+	ASSERT (guide);
+
+	wp_vel = get_local_entity_float_value (guide, FLOAT_TYPE_VELOCITY);
+
+	if (wp_vel == 0.0)
+	{
+		wp_vel = get_local_entity_float_value (en, FLOAT_TYPE_CRUISE_VELOCITY);
+	}
+
+	memset (&guidance, 0, sizeof (guidance));
+
+	guidance.phase = phase;
+	guidance.wp_vel = wp_vel;
+	guidance.cruise_velocity = get_local_entity_float_value (en, FLOAT_TYPE_CRUISE_VELOCITY);
+	guidance.g_max = aircraft_database [raw->ac.mob.sub_type].g_max;
+	guidance.fuselage_angle = aircraft_database [raw->ac.mob.sub_type].fuselage_angle;
+	guidance.cg_to_ground = get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+	guidance.max_roll = get_local_entity_float_value (en, FLOAT_TYPE_MAX_ROLL);
+	guidance.turn_speed_multi = raw->turn_speed_multi;
+
+	if (wp_pos)
+	{
+		guidance.waypoint[0] = wp_pos->x;
+		guidance.waypoint[1] = wp_pos->y;
+		guidance.waypoint[2] = wp_pos->z;
+	}
+
+	if (acc)
+	{
+		guidance.acceleration[0] = acc->x;
+		guidance.acceleration[1] = acc->y;
+		guidance.acceleration[2] = acc->z;
+	}
+
+	guidance.motion_vector[0] = raw->ac.mob.motion_vector.x;
+	guidance.motion_vector[1] = raw->ac.mob.motion_vector.y;
+	guidance.motion_vector[2] = raw->ac.mob.motion_vector.z;
+	guidance.navigating = (raw->ac.operational_state == OPERATIONAL_STATE_NAVIGATING);
+	guidance.elevation = terrain_elevation;
+	guidance.delta_seconds = get_entity_movement_delta_time ();
+	guidance.frame_delta = get_one_over_delta_time ();
+
+	campaign_movement_fixed_wing_move (en, &guidance);
+}
+
+// normal flight (the navigator's acceleration) or the touch-down approach (its own waypoint)
+
+static void hosted_fixed_wing_flight (entity *en, float terrain_elevation)
+{
+	fixed_wing
+		*raw;
+
+	vec3d
+		wp_pos,
+		acc,
+		vel;
+
+	raw = (fixed_wing *) get_local_entity_data (en);
+
+	if (get_local_entity_int_value (get_local_entity_current_waypoint (en), INT_TYPE_ENTITY_SUB_TYPE) != ENTITY_SUB_TYPE_WAYPOINT_TOUCH_DOWN)
+	{
+		vel = raw->ac.mob.motion_vector;
+
+		fixed_wing_navigator (en, &acc, &vel);
+
+		hosted_fixed_wing_step (en, CAMPAIGN_FIXED_WING_FLIGHT, NULL, &acc, terrain_elevation);
+	}
+	else
+	{
+		fixed_wing_movement_get_waypoint_position (en, &wp_pos);
+
+		hosted_fixed_wing_step (en, CAMPAIGN_FIXED_WING_LAND, &wp_pos, NULL, terrain_elevation);
+	}
+}
+
+#endif
+
 void basic_fixed_wing_movement (entity *en)
 {
 	fixed_wing
@@ -1610,6 +1710,22 @@ void basic_fixed_wing_movement (entity *en)
 
 	if (!get_local_entity_int_value (en, INT_TYPE_AIRBORNE_AIRCRAFT))
 	{
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+		// a host-movement build never falls through to the legacy taxi below
+
+		campaign_movement_require_hosted (en);
+
+		// the taxi fetches its own waypoint, without the fire avoidance
+
+		fixed_wing_movement_get_waypoint_position (en, &wp_pos);
+
+		hosted_fixed_wing_step (en, CAMPAIGN_FIXED_WING_TAXI, &wp_pos, NULL, terrain_elevation);
+
+		return;
+
+#endif
+
 		fixed_wing_taxi (en, current_pos, &dist, &new_pos, terrain_elevation);
 	}
 	else
@@ -1752,6 +1868,18 @@ void basic_fixed_wing_movement (entity *en)
 			basic_fixed_wing_movement_absolute(en);
 			return;
 		}
+
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+		// a host-movement build never falls through to the legacy flight below
+
+		campaign_movement_require_hosted (en);
+
+		hosted_fixed_wing_flight (en, terrain_elevation);
+
+		return;
+
+#endif
 	
 		fixed_wing_flight (en, &new_pos);
 
@@ -1880,6 +2008,25 @@ void basic_fixed_wing_movement_absolute (entity *en)
 	{
 		wp_vel = get_local_entity_float_value (en, FLOAT_TYPE_CRUISE_VELOCITY);
 	}
+
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	// a host-movement build never falls through to the legacy absolute flight below
+
+	campaign_movement_require_hosted (en);
+
+	// only the airborne flight reaches here (basic_fixed_wing_movement calls it from the air); the host has no ground variant
+
+	if (!get_local_entity_int_value (en, INT_TYPE_AIRBORNE_AIRCRAFT))
+	{
+		debug_fatal ("host movement: absolute fixed-wing flight on the ground (entity %d)", get_local_entity_index (en));
+	}
+
+	hosted_fixed_wing_step (en, CAMPAIGN_FIXED_WING_ABSOLUTE, &wp_pos, NULL, terrain_elevation);
+
+	return;
+
+#endif
 
 	//
 	// GET VECTOR TO WAYPOINT

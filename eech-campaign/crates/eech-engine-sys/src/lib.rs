@@ -64,6 +64,7 @@ pub struct eech_member_descriptor {
     pub velocity: f32,
     pub attitude: [f32; 9],
     pub movement_kind: c_int,
+    pub motion_vector: [f32; 3],
 }
 
 pub type eech_bind_mobile_callback = unsafe extern "C" fn(
@@ -213,10 +214,12 @@ pub const EECH_MOVEMENT_PLACE: c_int = 3;
 pub const EECH_MOVEMENT_SHIP_MOVE: c_int = 4;
 pub const EECH_MOVEMENT_PERSON_BEGIN: c_int = 5;
 pub const EECH_MOVEMENT_PERSON_END: c_int = 6;
+pub const EECH_MOVEMENT_FIXED_WING_MOVE: c_int = 7;
 
 pub const EECH_MOVEMENT_KIND_ROUTED: c_int = 1;
 pub const EECH_MOVEMENT_KIND_SHIP: c_int = 2;
 pub const EECH_MOVEMENT_KIND_PERSON: c_int = 3;
+pub const EECH_MOVEMENT_KIND_FIXED_WING: c_int = 4;
 
 #[repr(C)]
 pub struct eech_movement_step {
@@ -240,6 +243,15 @@ pub struct eech_movement_step {
     pub frame_delta: f32,
     pub g_max: f32,
     pub ps_vel: f32,
+    pub fw_phase: c_int,
+    pub fw_acceleration: [f32; 3],
+    pub fw_motion_vector: [f32; 3],
+    pub fw_cruise_velocity: f32,
+    pub fw_fuselage_angle: f32,
+    pub fw_cg_to_ground: f32,
+    pub fw_max_roll: f32,
+    pub fw_turn_speed_multi: f32,
+    pub fw_navigating: c_int,
 }
 
 #[repr(C)]

@@ -1,6 +1,6 @@
 /*
  * EECH's own arithmetic shared by the host's physical steps (convoy_step.c,
- * ship_step.c, person_step.c): the macros and vector, matrix and map-bound
+ * ship_step.c, person_step.c, fw_step.c): the macros and vector, matrix and map-bound
  * helpers, each kept expression for expression from the engine (maths/matrix.c,
  * vector.c, en_world.c) so that the host and the original reference produce the
  * same bits.
@@ -57,6 +57,28 @@ static float normalise_any_3d_vector(vec3d *vector)
 	}
 
 	return (length);
+}
+
+static float get_3d_vector_magnitude(const vec3d *vector)
+{
+	float x, y, z;
+
+	x = (vector->x * vector->x);
+	y = (vector->y * vector->y);
+	z = (vector->z * vector->z);
+
+	return (sqrt(x + y + z));
+}
+
+static void normalise_3d_vector_given_magnitude(vec3d *vector, float length)
+{
+	float one_over_length;
+
+	one_over_length = 1.0 / length;
+
+	vector->x = (vector->x * one_over_length);
+	vector->y = (vector->y * one_over_length);
+	vector->z = (vector->z * one_over_length);
 }
 
 /* clamp the position to the map volume, per axis, as bound_position_to_map_volume does */

@@ -81,6 +81,8 @@ typedef struct campaign_member_descriptor
 	float velocity;
 	float attitude[9];
 	int movement_kind;
+	// a fixed-wing aircraft only: its previous motion vector, physical state the host retains from binding
+	float motion_vector[3];
 } campaign_member_descriptor;
 
 typedef int (*campaign_bind_member_fn)
