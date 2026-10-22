@@ -103,8 +103,8 @@ synchronous in the same frame, preserving the existing consequence ordering.
 
 The physical aircraft and movement model still live inside the DLL. Non-SUPPLY
 radius-only fixed-wing and helicopter arrival now uses this seam
-([`m5-aircraft-arrivals.md`](m5-aircraft-arrivals.md)); all other non-SUPPLY
-arrivals remain coupled. A DCS adapter must supply the callback from
+([`m5-aircraft-arrivals.md`](m5-aircraft-arrivals.md)); the remaining arrival and
+proximity decisions followed in [`m5-remaining-arrivals.md`](m5-remaining-arrivals.md). A DCS adapter must supply the callback from
 real DCS object facts; this repository does not claim that adapter exists. The
 bounded loss slice (PR #88, [`m5-physical-loss.md`](m5-physical-loss.md)) is
 delivered: physical destruction occurs independently while host loss reporting

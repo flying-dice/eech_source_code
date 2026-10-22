@@ -92,12 +92,225 @@ fn segment_perpendicular_distance(a: [f32; 3], b: [f32; 3], c: [f32; 3]) -> f32 
     (f64::from(mag_ac) * f64::from(theta).sin()) as f32
 }
 
-/// Reference-host implementation of EECH's original fixed-wing/helicopter
-/// physical predicate for the four SUPPLY waypoints and for other radius-only
-/// waypoints (`radius_arrival`). The DLL supplies raw facts; this host computes
-/// the verdict.
+/// What the reference host answers: the physical gates and, where the
+/// campaign's weapon-vector tolerance applies, the launch angle error. The
+/// campaign keeps the random tolerance and the weapon limit.
+#[derive(Debug, PartialEq)]
+struct Answer {
+    gates_passed: bool,
+    launch_angle_error: Option<f32>,
+    /// The HEADING gate was reached on a TARGET waypoint whose task or target is absent.
+    heading_target_missing: bool,
+}
+
+impl Answer {
+    fn denied() -> Self {
+        Self {
+            gates_passed: false,
+            launch_angle_error: None,
+            heading_target_missing: false,
+        }
+    }
+
+    fn passed(launch_angle_error: Option<f32>) -> Self {
+        Self {
+            gates_passed: true,
+            launch_angle_error,
+            heading_target_missing: false,
+        }
+    }
+
+    fn target_missing() -> Self {
+        Self {
+            gates_passed: false,
+            launch_angle_error: None,
+            heading_target_missing: true,
+        }
+    }
+}
+
+/// The heading the guide requires, derived from the copied facts as the original
+/// get_guide_required_heading did. None: a TARGET waypoint has no task-dependent target.
+fn required_heading(descriptor: &LuaTable) -> LuaResult<Option<f32>> {
+    let source: String = descriptor
+        .get::<Option<String>>("heading_source")?
+        .ok_or_else(|| LuaError::runtime("host.supply_reached: the heading source is unavailable"))?;
+    let waypoint: f32 = descriptor.get("waypoint_heading")?;
+    match source.as_str() {
+        "zero" => Ok(Some(0.0)),
+        "waypoint" => Ok(Some(waypoint)),
+        "target" => {
+            if !descriptor.get::<bool>("heading_target_present")? {
+                return Ok(None);
+            }
+            // Without both positions the original falls back to the waypoint heading.
+            let Some(target) = descriptor.get::<Option<LuaTable>>("heading_target_position")? else {
+                return Ok(Some(waypoint));
+            };
+            let position = vector3(descriptor, "position")?;
+            let (x, z): (f32, f32) = (target.get(1)?, target.get(3)?);
+            Ok(Some(f64::atan2(f64::from(x - position[0]), f64::from(z - position[2])) as f32))
+        }
+        other => Err(LuaError::runtime(format!("host.supply_reached: unknown heading source {other}"))),
+    }
+}
+
+/// The original `bound (x, -1, 1)`: an unordered value passes through.
+fn bound_unit(value: f32) -> f32 {
+    value.clamp(-1.0, 1.0)
+}
+
+/// The angle EECH computes between the weapon and intercept vectors. The
+/// C double-precision `acos` result is stored back into a float.
+fn launch_angle_error(descriptor: &LuaTable) -> LuaResult<f32> {
+    let weapon = vector3(descriptor, "weapon_vector")?;
+    let intercept = vector3(descriptor, "intercept_vector")?;
+    let dot = bound_unit(weapon[0] * intercept[0] + weapon[1] * intercept[1] + weapon[2] * intercept[2]);
+    Ok(f64::from(dot).acos() as f32)
+}
+
+/// The weapon-vector angle is reported when the rule applies and both vectors are present.
+fn weapon_angle(descriptor: &LuaTable) -> LuaResult<Option<f32>> {
+    if descriptor.get::<bool>("weapon_gate")? && descriptor.get::<bool>("vectors_valid")? {
+        return Ok(Some(launch_angle_error(descriptor)?));
+    }
+    Ok(None)
+}
+
+fn require(descriptor: &LuaTable, flag: &str, what: &str) -> LuaResult<()> {
+    if descriptor.get::<bool>(flag)? {
+        return Ok(());
+    }
+    Err(LuaError::runtime(format!("host.supply_reached: {what} criterion is missing")))
+}
+
+/// Original fixed-wing predicate: landed, then the radius early-out and
+/// pass-through, then the weapon vector (ALTITUDE and HEADING are not used).
 #[allow(clippy::neg_cmp_op_on_partial_ord)] // Legacy predicates reject only greater values, so unordered values pass.
-fn supply_reached(descriptor: LuaTable) -> LuaResult<bool> {
+fn fixed_wing_reached(descriptor: &LuaTable) -> LuaResult<Answer> {
+    if descriptor.get::<bool>("landed")? {
+        return Ok(Answer::denied());
+    }
+    if descriptor.get::<bool>("radius_valid")? {
+        let radius: f32 = descriptor.get("radius")?;
+        let distance: f32 = descriptor.get("distance")?;
+        let velocity: f32 = descriptor.get("velocity")?;
+        if distance - velocity > radius {
+            return Ok(Answer::denied());
+        }
+        if !(distance <= radius) {
+            let position = vector3(descriptor, "position")?;
+            let motion = vector3(descriptor, "motion")?;
+            let guide = vector3(descriptor, "guide_position")?;
+            let delta: f32 = descriptor.get("delta_seconds")?;
+            let direction = if descriptor.get::<bool>("updated")? { -1.0 } else { 1.0 };
+            let other = [
+                position[0] + direction * motion[0] * delta,
+                position[1] + direction * motion[1] * delta,
+                position[2] + direction * motion[2] * delta,
+            ];
+            // The original accepts an unordered (NaN) distance because its
+            // only rejecting comparison is `range > radius`.
+            if segment_perpendicular_distance(position, other, guide) > radius {
+                return Ok(Answer::denied());
+            }
+        }
+    }
+    Ok(Answer::passed(weapon_angle(descriptor)?))
+}
+
+/// Original helicopter predicate, branch for branch: player skip, AI landed,
+/// rotor spin-up, then the leader's radius/altitude/heading/weapon-vector
+/// gates or a follower's last-to-reach cohesion.
+#[allow(clippy::neg_cmp_op_on_partial_ord)] // Legacy predicates reject only greater values, so unordered values pass.
+fn helicopter_reached(descriptor: &LuaTable) -> LuaResult<Answer> {
+    let is_ai: bool = descriptor.get("is_ai")?;
+    if !is_ai {
+        if descriptor.get::<bool>("player_skip_waypoint")? {
+            return Ok(Answer::passed(None));
+        }
+    } else if descriptor.get::<bool>("landed")? {
+        return Ok(Answer::denied());
+    }
+    if descriptor.get::<f32>("rotor_spin_up_seconds")? > 0.0 && is_ai {
+        return Ok(Answer::denied());
+    }
+
+    if !descriptor.get::<bool>("is_task_leader")? {
+        require(descriptor, "last_to_reach_valid", "last-to-reach")?;
+        if descriptor.get::<bool>("leader_is_ai")? {
+            let position = vector3(descriptor, "position")?;
+            let leader = vector3(descriptor, "leader_position")?;
+            let dx = position[0] - leader[0];
+            let dz = position[2] - leader[2];
+            if dx * dx + dz * dz > 750.0 * 750.0 {
+                return Ok(Answer::denied());
+            }
+        }
+        return Ok(Answer::passed(None));
+    }
+
+    if descriptor.get::<bool>("radius_valid")? && descriptor.get::<f32>("distance")? > descriptor.get::<f32>("radius")? {
+        return Ok(Answer::denied());
+    }
+    if descriptor.get::<bool>("altitude_valid")? {
+        if !is_ai && descriptor.get::<bool>("landing_waypoint")? && !descriptor.get::<bool>("auto_pilot")? {
+            // An unassisted human must be on the ground at a landing or troop-insert waypoint.
+            if descriptor.get::<bool>("airborne")? {
+                return Ok(Answer::denied());
+            }
+        } else {
+            let mut error: f32 = descriptor.get("altitude")?;
+            error -= descriptor.get::<f32>("centre_of_gravity_to_ground")?;
+            error -= descriptor.get::<f32>("guide_altitude")?;
+            if error.abs() > descriptor.get::<f32>("altitude_criterion")? {
+                return Ok(Answer::denied());
+            }
+        }
+    }
+    if is_ai && descriptor.get::<bool>("heading_valid")? {
+        let Some(required) = required_heading(descriptor)? else {
+            return Ok(Answer::target_missing());
+        };
+        let mut delta = required - descriptor.get::<f32>("heading")?;
+        let pi = std::f32::consts::PI;
+        if delta < -pi {
+            delta += pi * 2.0;
+        } else if delta > pi {
+            delta -= pi * 2.0;
+        }
+        if delta.abs() > descriptor.get::<f32>("heading_criterion")? {
+            return Ok(Answer::denied());
+        }
+    }
+    Ok(Answer::passed(weapon_angle(descriptor)?))
+}
+
+/// Original vehicle, ship, anti-aircraft and person predicate: landed, radius,
+/// then altitude against the guide height (no centre-of-gravity term).
+#[allow(clippy::neg_cmp_op_on_partial_ord)] // Legacy predicates reject only greater values, so unordered values pass.
+fn vehicle_reached(descriptor: &LuaTable) -> LuaResult<Answer> {
+    if descriptor.get::<bool>("landed")? {
+        return Ok(Answer::denied());
+    }
+    if descriptor.get::<bool>("radius_valid")? && descriptor.get::<f32>("distance")? > descriptor.get::<f32>("radius")? {
+        return Ok(Answer::denied());
+    }
+    if descriptor.get::<bool>("altitude_valid")? {
+        let error = descriptor.get::<f32>("altitude")? - descriptor.get::<f32>("guide_altitude")?;
+        if error.abs() > descriptor.get::<f32>("altitude_criterion")? {
+            return Ok(Answer::denied());
+        }
+    }
+    Ok(Answer::passed(None))
+}
+
+/// Reference-host implementation of EECH's original physical arrival and
+/// proximity predicates: each mobile kind's reached-waypoint criteria, the
+/// waypoint action radius and the helicopter recon radius. The DLL supplies
+/// raw facts; this host computes the physical verdict.
+#[allow(clippy::neg_cmp_op_on_partial_ord)] // Legacy predicates reject only greater values, so unordered values pass.
+fn supply_reached(descriptor: LuaTable) -> LuaResult<Answer> {
     let _: u64 = descriptor.get("member_key")?;
     let _: u64 = descriptor.get("task_key")?;
     let _: u64 = descriptor.get("waypoint_key")?;
@@ -109,63 +322,33 @@ fn supply_reached(descriptor: LuaTable) -> LuaResult<bool> {
     ) {
         return Err(LuaError::runtime(format!("host.supply_reached: unsupported waypoint {waypoint:?}")));
     }
+    let query: String = descriptor.get("query")?;
     let mobile: String = descriptor.get("mobile")?;
-    let is_ai: bool = descriptor.get("is_ai")?;
-    let landed: bool = descriptor.get("landed")?;
-    let radius: f32 = descriptor.get("radius")?;
-    let distance: f32 = descriptor.get("distance")?;
-
-    match mobile.as_str() {
-        "fixed_wing" => {
-            if landed {
-                return Ok(false);
-            }
-            let velocity: f32 = descriptor.get("velocity")?;
-            if distance - velocity > radius {
-                return Ok(false);
-            }
-            if distance <= radius {
-                return Ok(true);
-            }
+    match (query.as_str(), mobile.as_str()) {
+        ("reached", "fixed_wing") => fixed_wing_reached(&descriptor),
+        ("reached", "helicopter") => helicopter_reached(&descriptor),
+        ("reached", "routed_vehicle" | "ship_vehicle" | "anti_aircraft" | "person") => vehicle_reached(&descriptor),
+        ("action", _) => {
+            // The leader is inside the action radius unless it is farther away.
+            let inside = !(descriptor.get::<f32>("distance")? > descriptor.get::<f32>("action_radius")?);
+            Ok(if inside { Answer::passed(None) } else { Answer::denied() })
+        }
+        ("recon", "helicopter") => {
+            // Strictly inside the squared 2D range, so a helicopter exactly on the radius is outside.
             let position = vector3(&descriptor, "position")?;
-            let motion = vector3(&descriptor, "motion")?;
-            let guide = vector3(&descriptor, "guide_position")?;
-            let delta: f32 = descriptor.get("delta_seconds")?;
-            let direction = if descriptor.get::<bool>("updated")? { -1.0 } else { 1.0 };
-            let other = [
-                position[0] + direction * motion[0] * delta,
-                position[1] + direction * motion[1] * delta,
-                position[2] + direction * motion[2] * delta,
-            ];
-            // The original accepts an unordered (NaN) distance because its
-            // only rejecting comparison is `range > radius`.
-            Ok(!(segment_perpendicular_distance(position, other, guide) > radius))
+            let waypoint = vector3(&descriptor, "waypoint_position")?;
+            let radius: f32 = descriptor.get("action_radius")?;
+            let dx = position[0] - waypoint[0];
+            let dz = position[2] - waypoint[2];
+            Ok(if dx * dx + dz * dz < radius * radius {
+                Answer::passed(None)
+            } else {
+                Answer::denied()
+            })
         }
-        "helicopter" => {
-            if !is_ai && descriptor.get::<bool>("player_skip_waypoint")? {
-                return Ok(true);
-            }
-            if is_ai && landed {
-                return Ok(false);
-            }
-            if is_ai && descriptor.get::<f32>("rotor_spin_up_seconds")? > 0.0 {
-                return Ok(false);
-            }
-            // Both legacy branches accept an unordered range because they
-            // reject only `range > bound`.
-            if descriptor.get::<bool>("is_task_leader")? {
-                return Ok(!(distance > radius));
-            }
-            if descriptor.get::<bool>("leader_is_ai")? {
-                let position = vector3(&descriptor, "position")?;
-                let leader = vector3(&descriptor, "leader_position")?;
-                let dx = position[0] - leader[0];
-                let dz = position[2] - leader[2];
-                return Ok(!(dx * dx + dz * dz > 750.0 * 750.0));
-            }
-            Ok(true)
-        }
-        _ => Err(LuaError::runtime(format!("host.supply_reached: unsupported mobile {mobile:?}"))),
+        _ => Err(LuaError::runtime(format!(
+            "host.supply_reached: unsupported {query:?} query for mobile {mobile:?}"
+        ))),
     }
 }
 
@@ -351,7 +534,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok("forward")
         })?,
     )?;
-    host.set("supply_reached", lua.create_function(|_, descriptor: LuaTable| supply_reached(descriptor))?)?;
+    host.set(
+        "supply_reached",
+        lua.create_function(|lua, descriptor: LuaTable| {
+            let answer = supply_reached(descriptor)?;
+            let result = lua.create_table()?;
+            result.set("gates_passed", answer.gates_passed)?;
+            result.set("launch_angle_error", answer.launch_angle_error)?;
+            if answer.heading_target_missing {
+                result.set("heading_target_missing", true)?;
+            }
+            Ok(result)
+        })?,
+    )?;
 
     let recording: Rc<RefCell<Option<Recording>>> = Rc::new(RefCell::new(None));
     {
@@ -457,7 +652,35 @@ mod supply_reached_tests {
         value.set("is_task_leader", true)?;
         value.set("leader_is_ai", true)?;
         value.set("leader_position", vec![0.0_f32, 0.0, 0.0])?;
+        value.set("query", "reached")?;
+        value.set("landing_waypoint", false)?;
+        value.set("radius_valid", true)?;
+        value.set("altitude_valid", false)?;
+        value.set("heading_valid", false)?;
+        value.set("last_to_reach_valid", true)?;
+        value.set("weapon_gate", false)?;
+        value.set("vectors_valid", false)?;
+        value.set("airborne", false)?;
+        value.set("auto_pilot", false)?;
+        for name in [
+            "altitude_criterion",
+            "heading_criterion",
+            "altitude",
+            "heading",
+            "centre_of_gravity_to_ground",
+            "guide_altitude",
+            "action_radius",
+        ] {
+            value.set(name, 0.0_f32)?;
+        }
+        for name in ["weapon_vector", "intercept_vector", "waypoint_position"] {
+            value.set(name, vec![0.0_f32, 0.0, 0.0])?;
+        }
         Ok(value)
+    }
+
+    fn passes(descriptor: LuaTable) -> LuaResult<bool> {
+        Ok(supply_reached(descriptor)?.gates_passed)
     }
 
     #[test]
@@ -467,41 +690,41 @@ mod supply_reached_tests {
         for waypoint in ["pick_up", "prepare_for_drop_off", "drop_off", "finish_drop_off", "radius_arrival"] {
             let value = descriptor(&lua, "fixed_wing")?;
             value.set("waypoint", waypoint)?;
-            assert!(supply_reached(value)?);
+            assert!(passes(value)?);
         }
 
         let landed = descriptor(&lua, "fixed_wing")?;
         landed.set("landed", true)?;
-        assert!(!supply_reached(landed)?);
+        assert!(!passes(landed)?);
 
         let too_early = descriptor(&lua, "fixed_wing")?;
         too_early.set("distance", 61.0_f32)?;
-        assert!(!supply_reached(too_early)?);
+        assert!(!passes(too_early)?);
 
         let at_radius = descriptor(&lua, "fixed_wing")?;
         at_radius.set("distance", 50.0_f32)?;
         at_radius.set("velocity", 0.0_f32)?;
-        assert!(supply_reached(at_radius)?);
+        assert!(passes(at_radius)?);
 
         let forward_segment = descriptor(&lua, "fixed_wing")?;
         forward_segment.set("radius", 2.0_f32)?;
         forward_segment.set("distance", 60.0_f32)?;
         forward_segment.set("velocity", 60.0_f32)?;
-        assert!(supply_reached(forward_segment)?);
+        assert!(passes(forward_segment)?);
 
         let reverse_segment = descriptor(&lua, "fixed_wing")?;
         reverse_segment.set("radius", 2.0_f32)?;
         reverse_segment.set("distance", 60.0_f32)?;
         reverse_segment.set("velocity", 60.0_f32)?;
         reverse_segment.set("updated", true)?;
-        assert!(!supply_reached(reverse_segment)?);
+        assert!(!passes(reverse_segment)?);
 
         let degenerate_segment = descriptor(&lua, "fixed_wing")?;
         degenerate_segment.set("radius", 2.0_f32)?;
         degenerate_segment.set("distance", 3.0_f32)?;
         degenerate_segment.set("velocity", 3.0_f32)?;
         degenerate_segment.set("motion", vec![0.0_f32, 0.0, 0.0])?;
-        assert!(!supply_reached(degenerate_segment)?);
+        assert!(!passes(degenerate_segment)?);
         Ok(())
     }
 
@@ -512,7 +735,7 @@ mod supply_reached_tests {
         let fixed_wing_outside = descriptor(&lua, "fixed_wing")?;
         fixed_wing_outside.set("waypoint", "radius_arrival")?;
         fixed_wing_outside.set("distance", 61.0_f32)?;
-        assert!(!supply_reached(fixed_wing_outside)?);
+        assert!(!passes(fixed_wing_outside)?);
 
         // a human helicopter member skips a waypoint whose database entry says so, even landed
         let skipped = descriptor(&lua, "helicopter")?;
@@ -521,30 +744,30 @@ mod supply_reached_tests {
         skipped.set("landed", true)?;
         skipped.set("distance", 5_000.0_f32)?;
         skipped.set("player_skip_waypoint", true)?;
-        assert!(supply_reached(skipped)?);
+        assert!(passes(skipped)?);
 
         // ... but an AI member never does, and a human member only where the database says so
         let ai_not_skipped = descriptor(&lua, "helicopter")?;
         ai_not_skipped.set("waypoint", "radius_arrival")?;
         ai_not_skipped.set("distance", 5_000.0_f32)?;
         ai_not_skipped.set("player_skip_waypoint", true)?;
-        assert!(!supply_reached(ai_not_skipped)?);
+        assert!(!passes(ai_not_skipped)?);
 
         let human_not_skipped = descriptor(&lua, "helicopter")?;
         human_not_skipped.set("waypoint", "radius_arrival")?;
         human_not_skipped.set("is_ai", false)?;
         human_not_skipped.set("distance", 5_000.0_f32)?;
-        assert!(!supply_reached(human_not_skipped)?);
+        assert!(!passes(human_not_skipped)?);
 
         let wingman_outside_cohesion = descriptor(&lua, "helicopter")?;
         wingman_outside_cohesion.set("waypoint", "radius_arrival")?;
         wingman_outside_cohesion.set("is_task_leader", false)?;
         wingman_outside_cohesion.set("leader_position", vec![750.1_f32, 0.0, 0.0])?;
-        assert!(!supply_reached(wingman_outside_cohesion)?);
+        assert!(!passes(wingman_outside_cohesion)?);
 
         let unknown = descriptor(&lua, "helicopter")?;
         unknown.set("waypoint", "something_else")?;
-        assert!(supply_reached(unknown).is_err());
+        assert!(passes(unknown).is_err());
         Ok(())
     }
 
@@ -554,59 +777,410 @@ mod supply_reached_tests {
 
         let ai_landed = descriptor(&lua, "helicopter")?;
         ai_landed.set("landed", true)?;
-        assert!(!supply_reached(ai_landed)?);
+        assert!(!passes(ai_landed)?);
 
         let ai_spinning_up = descriptor(&lua, "helicopter")?;
         ai_spinning_up.set("rotor_spin_up_seconds", 0.1_f32)?;
-        assert!(!supply_reached(ai_spinning_up)?);
+        assert!(!passes(ai_spinning_up)?);
 
         let leader_at_radius = descriptor(&lua, "helicopter")?;
         leader_at_radius.set("distance", 50.0_f32)?;
-        assert!(supply_reached(leader_at_radius)?);
+        assert!(passes(leader_at_radius)?);
 
         let leader_outside_radius = descriptor(&lua, "helicopter")?;
         leader_outside_radius.set("distance", 50.1_f32)?;
-        assert!(!supply_reached(leader_outside_radius)?);
+        assert!(!passes(leader_outside_radius)?);
 
         let leader_unordered_radius = descriptor(&lua, "helicopter")?;
         leader_unordered_radius.set("distance", f32::NAN)?;
-        assert!(supply_reached(leader_unordered_radius)?);
+        assert!(passes(leader_unordered_radius)?);
 
         let wingman_at_cohesion_boundary = descriptor(&lua, "helicopter")?;
         wingman_at_cohesion_boundary.set("is_task_leader", false)?;
         wingman_at_cohesion_boundary.set("leader_position", vec![750.0_f32, 100.0, 0.0])?;
-        assert!(supply_reached(wingman_at_cohesion_boundary)?);
+        assert!(passes(wingman_at_cohesion_boundary)?);
 
         let wingman_outside_cohesion = descriptor(&lua, "helicopter")?;
         wingman_outside_cohesion.set("is_task_leader", false)?;
         wingman_outside_cohesion.set("leader_position", vec![750.1_f32, 0.0, 0.0])?;
-        assert!(!supply_reached(wingman_outside_cohesion)?);
+        assert!(!passes(wingman_outside_cohesion)?);
 
         let wingman_unordered_cohesion = descriptor(&lua, "helicopter")?;
         wingman_unordered_cohesion.set("is_task_leader", false)?;
         wingman_unordered_cohesion.set("position", vec![f32::NAN, 0.0, 0.0])?;
-        assert!(supply_reached(wingman_unordered_cohesion)?);
+        assert!(passes(wingman_unordered_cohesion)?);
 
         let human_led_wingman = descriptor(&lua, "helicopter")?;
         human_led_wingman.set("is_task_leader", false)?;
         human_led_wingman.set("leader_is_ai", false)?;
         human_led_wingman.set("leader_position", vec![10_000.0_f32, 0.0, 0.0])?;
-        assert!(supply_reached(human_led_wingman)?);
+        assert!(passes(human_led_wingman)?);
 
         let human_leader = descriptor(&lua, "helicopter")?;
         human_leader.set("is_ai", false)?;
         human_leader.set("landed", true)?;
         human_leader.set("rotor_spin_up_seconds", 1.0_f32)?;
         human_leader.set("distance", 50.0_f32)?;
-        assert!(supply_reached(human_leader)?);
+        assert!(passes(human_leader)?);
 
         let human_leader_outside_radius = descriptor(&lua, "helicopter")?;
         human_leader_outside_radius.set("is_ai", false)?;
         human_leader_outside_radius.set("landed", true)?;
         human_leader_outside_radius.set("rotor_spin_up_seconds", 1.0_f32)?;
         human_leader_outside_radius.set("distance", 50.1_f32)?;
-        assert!(!supply_reached(human_leader_outside_radius)?);
+        assert!(!passes(human_leader_outside_radius)?);
 
         Ok(())
+    }
+
+    #[test]
+    fn helicopter_leader_altitude_and_heading_gates() -> LuaResult<()> {
+        let lua = Lua::new();
+        let gated = |lua: &Lua| -> LuaResult<LuaTable> {
+            let value = descriptor(lua, "helicopter")?;
+            value.set("altitude_valid", true)?;
+            value.set("altitude_criterion", 10.0_f32)?;
+            value.set("altitude", 130.0_f32)?;
+            value.set("centre_of_gravity_to_ground", 2.0_f32)?;
+            value.set("guide_altitude", 120.0_f32)?;
+            Ok(value)
+        };
+
+        assert!(passes(gated(&lua)?)?);
+        let high = gated(&lua)?;
+        high.set("altitude", 132.1_f32)?;
+        assert!(!passes(high)?);
+        let low = gated(&lua)?;
+        low.set("altitude", 107.9_f32)?;
+        assert!(!passes(low)?);
+
+        // an unassisted human at a landing waypoint is judged by being on the ground, not by height
+        let airborne = gated(&lua)?;
+        airborne.set("is_ai", false)?;
+        airborne.set("landing_waypoint", true)?;
+        airborne.set("airborne", true)?;
+        assert!(!passes(airborne)?);
+        let grounded = gated(&lua)?;
+        grounded.set("is_ai", false)?;
+        grounded.set("landing_waypoint", true)?;
+        grounded.set("altitude", 5_000.0_f32)?;
+        assert!(passes(grounded)?);
+        let assisted = gated(&lua)?;
+        assisted.set("is_ai", false)?;
+        assisted.set("landing_waypoint", true)?;
+        assisted.set("auto_pilot", true)?;
+        assisted.set("airborne", true)?;
+        assisted.set("altitude", 5_000.0_f32)?;
+        assert!(!passes(assisted)?);
+
+        let heading = |lua: &Lua, required: f32, current: f32| -> LuaResult<LuaTable> {
+            let value = descriptor(lua, "helicopter")?;
+            value.set("heading_valid", true)?;
+            value.set("heading_criterion", 0.5_f32)?;
+            value.set("heading_source", "waypoint")?;
+            value.set("waypoint_heading", required)?;
+            value.set("heading", current)?;
+            Ok(value)
+        };
+        assert!(passes(heading(&lua, 1.0, 1.4)?)?);
+        assert!(!passes(heading(&lua, 1.0, 1.6)?)?);
+        // the delta wraps around a full turn: 3.0 to -3.0 is 0.28 radians, not 6.0
+        assert!(passes(heading(&lua, 3.0, -3.0)?)?);
+        assert!(passes(heading(&lua, -3.0, 3.0)?)?);
+        assert!(!passes(heading(&lua, 2.0, -2.0)?)?);
+        // a human member is not held to the heading
+        let human = heading(&lua, 1.0, 3.0)?;
+        human.set("is_ai", false)?;
+        assert!(passes(human)?);
+        // a heading gate with no heading source is a boundary failure, not a pass
+        let missing = heading(&lua, 1.0, 1.0)?;
+        missing.set("heading_source", mlua::Value::Nil)?;
+        assert!(supply_reached(missing).is_err());
+        let unknown = heading(&lua, 1.0, 1.0)?;
+        unknown.set("heading_source", "sideways")?;
+        assert!(supply_reached(unknown).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn helicopter_required_heading_follows_the_original_source_rules() -> LuaResult<()> {
+        let lua = Lua::new();
+        let heading = |lua: &Lua, source: &str, current: f32| -> LuaResult<LuaTable> {
+            let value = descriptor(lua, "helicopter")?;
+            value.set("heading_valid", true)?;
+            value.set("heading_criterion", 0.1_f32)?;
+            value.set("heading_source", source)?;
+            value.set("waypoint_heading", 2.0_f32)?;
+            value.set("heading", current)?;
+            Ok(value)
+        };
+        // prepare-for-insertion and troop-insert hold a zero heading, whatever the waypoint says
+        assert!(passes(heading(&lua, "zero", 0.05)?)?);
+        assert!(!passes(heading(&lua, "zero", 2.0)?)?);
+
+        // a TARGET waypoint points from the member to the task-dependent target: x east, z north
+        let toward = |lua: &Lua, target: [f32; 3], current: f32| -> LuaResult<LuaTable> {
+            let value = heading(lua, "target", current)?;
+            value.set("position", vec![100.0_f32, 0.0, 200.0])?;
+            value.set("heading_target_present", true)?;
+            value.set("heading_target_position", target.to_vec())?;
+            Ok(value)
+        };
+        // due east of the member is pi/2, due north is 0, due south is pi
+        assert!(passes(toward(&lua, [300.0, 0.0, 200.0], std::f32::consts::FRAC_PI_2)?)?);
+        assert!(!passes(toward(&lua, [300.0, 0.0, 200.0], 0.0)?)?);
+        assert!(passes(toward(&lua, [100.0, 0.0, 900.0], 0.0)?)?);
+        assert!(passes(toward(&lua, [100.0, 0.0, -900.0], 3.1)?)?);
+        // the waypoint heading (2.0) is ignored once the target direction is known
+        assert!(!passes(toward(&lua, [100.0, 0.0, 900.0], 2.0)?)?);
+
+        // a target without a readable position falls back to the waypoint heading
+        let fallback = heading(&lua, "target", 2.0)?;
+        fallback.set("heading_target_present", true)?;
+        assert!(passes(fallback)?);
+        let fallback_off = heading(&lua, "target", 0.0)?;
+        fallback_off.set("heading_target_present", true)?;
+        assert!(!passes(fallback_off)?);
+        Ok(())
+    }
+
+    #[test]
+    fn helicopter_missing_target_is_reported_only_where_the_original_asserts() -> LuaResult<()> {
+        let lua = Lua::new();
+        let target_without_task = |lua: &Lua| -> LuaResult<LuaTable> {
+            let value = descriptor(lua, "helicopter")?;
+            value.set("heading_valid", true)?;
+            value.set("heading_criterion", 0.1_f32)?;
+            value.set("heading_source", "target")?;
+            value.set("waypoint_heading", 0.0_f32)?;
+            value.set("heading_target_present", false)?;
+            Ok(value)
+        };
+        // the heading gate is reached with no task or target: the original asserted here
+        assert_eq!(supply_reached(target_without_task(&lua)?)?, Answer::target_missing());
+
+        // every earlier gate keeps its own early-out and never reports the missing target
+        let outside = target_without_task(&lua)?;
+        outside.set("distance", 5_000.0_f32)?;
+        assert_eq!(supply_reached(outside)?, Answer::denied());
+        let landed = target_without_task(&lua)?;
+        landed.set("landed", true)?;
+        assert_eq!(supply_reached(landed)?, Answer::denied());
+        let spinning = target_without_task(&lua)?;
+        spinning.set("rotor_spin_up_seconds", 3.0_f32)?;
+        assert_eq!(supply_reached(spinning)?, Answer::denied());
+        let off_altitude = target_without_task(&lua)?;
+        off_altitude.set("altitude_valid", true)?;
+        off_altitude.set("altitude_criterion", 10.0_f32)?;
+        off_altitude.set("altitude", 500.0_f32)?;
+        assert_eq!(supply_reached(off_altitude)?, Answer::denied());
+        // a follower never evaluates the heading, and neither does a human member
+        let follower = target_without_task(&lua)?;
+        follower.set("is_task_leader", false)?;
+        assert_eq!(supply_reached(follower)?, Answer::passed(None));
+        let human = target_without_task(&lua)?;
+        human.set("is_ai", false)?;
+        assert_eq!(supply_reached(human)?, Answer::passed(None));
+        Ok(())
+    }
+
+    #[test]
+    fn weapon_angle_is_reported_only_when_the_rule_applies() -> LuaResult<()> {
+        let lua = Lua::new();
+        for mobile in ["fixed_wing", "helicopter"] {
+            let vectors = |lua: &Lua| -> LuaResult<LuaTable> {
+                let value = descriptor(lua, mobile)?;
+                value.set("weapon_gate", true)?;
+                value.set("vectors_valid", true)?;
+                value.set("weapon_vector", vec![1.0_f32, 0.0, 0.0])?;
+                value.set("intercept_vector", vec![0.0_f32, 1.0, 0.0])?;
+                Ok(value)
+            };
+            let right_angle = supply_reached(vectors(&lua)?)?;
+            assert!(right_angle.gates_passed);
+            assert_eq!(right_angle.launch_angle_error, Some(std::f64::consts::FRAC_PI_2 as f32));
+
+            let parallel = vectors(&lua)?;
+            parallel.set("intercept_vector", vec![1.0_f32, 0.0, 0.0])?;
+            assert_eq!(supply_reached(parallel)?.launch_angle_error, Some(0.0));
+
+            // a dot product just beyond one is clamped, as in the original
+            let beyond = vectors(&lua)?;
+            beyond.set("weapon_vector", vec![1.0001_f32, 0.0, 0.0])?;
+            beyond.set("intercept_vector", vec![1.0_f32, 0.0, 0.0])?;
+            assert_eq!(supply_reached(beyond)?.launch_angle_error, Some(0.0));
+
+            let no_vectors = vectors(&lua)?;
+            no_vectors.set("vectors_valid", false)?;
+            assert_eq!(supply_reached(no_vectors)?, Answer::passed(None));
+            let no_rule = vectors(&lua)?;
+            no_rule.set("weapon_gate", false)?;
+            assert_eq!(supply_reached(no_rule)?, Answer::passed(None));
+
+            // a physical denial never reports an angle
+            let denied = vectors(&lua)?;
+            denied.set("distance", 5_000.0_f32)?;
+            denied.set("velocity", 0.0_f32)?;
+            assert_eq!(supply_reached(denied)?, Answer::denied());
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn vehicle_kinds_share_landed_radius_and_altitude_without_a_cog_term() -> LuaResult<()> {
+        let lua = Lua::new();
+        for mobile in ["routed_vehicle", "ship_vehicle", "anti_aircraft", "person"] {
+            let vehicle = |lua: &Lua| -> LuaResult<LuaTable> {
+                let value = descriptor(lua, mobile)?;
+                value.set("altitude_valid", true)?;
+                value.set("altitude_criterion", 5.0_f32)?;
+                value.set("altitude", 103.0_f32)?;
+                value.set("guide_altitude", 100.0_f32)?;
+                value.set("centre_of_gravity_to_ground", 50.0_f32)?;
+                Ok(value)
+            };
+            assert_eq!(supply_reached(vehicle(&lua)?)?, Answer::passed(None));
+            let landed = vehicle(&lua)?;
+            landed.set("landed", true)?;
+            assert!(!passes(landed)?);
+            let far = vehicle(&lua)?;
+            far.set("distance", 50.1_f32)?;
+            assert!(!passes(far)?);
+            let high = vehicle(&lua)?;
+            high.set("altitude", 105.1_f32)?;
+            assert!(!passes(high)?);
+            let no_altitude_rule = vehicle(&lua)?;
+            no_altitude_rule.set("altitude_valid", false)?;
+            no_altitude_rule.set("altitude", 9_999.0_f32)?;
+            assert!(passes(no_altitude_rule)?);
+            // heading and weapon vectors are not part of a vehicle's arrival
+            let ignored = vehicle(&lua)?;
+            ignored.set("heading_valid", true)?;
+            ignored.set("weapon_gate", true)?;
+            assert_eq!(supply_reached(ignored)?, Answer::passed(None));
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn fixed_wing_ignores_helicopter_altitude_and_heading() -> LuaResult<()> {
+        let lua = Lua::new();
+        let value = descriptor(&lua, "fixed_wing")?;
+        value.set("altitude_valid", true)?;
+        value.set("altitude", 9_999.0_f32)?;
+        value.set("heading_valid", true)?;
+        assert!(passes(value)?);
+        Ok(())
+    }
+
+    #[test]
+    fn follower_requires_the_last_to_reach_criterion() -> LuaResult<()> {
+        let lua = Lua::new();
+        let follower = descriptor(&lua, "helicopter")?;
+        follower.set("is_task_leader", false)?;
+        follower.set("last_to_reach_valid", false)?;
+        assert!(supply_reached(follower).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn action_and_recon_queries() -> LuaResult<()> {
+        let lua = Lua::new();
+        for mobile in ["fixed_wing", "helicopter", "person"] {
+            let action = descriptor(&lua, mobile)?;
+            action.set("query", "action")?;
+            action.set("action_radius", 100.0_f32)?;
+            action.set("distance", 100.0_f32)?;
+            assert!(passes(action)?);
+            let outside = descriptor(&lua, mobile)?;
+            outside.set("query", "action")?;
+            outside.set("action_radius", 100.0_f32)?;
+            outside.set("distance", 100.1_f32)?;
+            assert!(!passes(outside)?);
+        }
+
+        let recon = |lua: &Lua, x: f32| -> LuaResult<LuaTable> {
+            let value = descriptor(lua, "helicopter")?;
+            value.set("query", "recon")?;
+            value.set("action_radius", 100.0_f32)?;
+            value.set("position", vec![x, 500.0, 0.0])?;
+            value.set("waypoint_position", vec![0.0_f32, 0.0, 0.0])?;
+            Ok(value)
+        };
+        assert!(passes(recon(&lua, 99.9)?)?);
+        // exactly on the radius is outside, and height is ignored
+        assert!(!passes(recon(&lua, 100.0)?)?);
+        assert!(!passes(recon(&lua, 100.1)?)?);
+
+        let fixed_wing_recon = descriptor(&lua, "fixed_wing")?;
+        fixed_wing_recon.set("query", "recon")?;
+        assert!(supply_reached(fixed_wing_recon).is_err());
+        let unknown_query = descriptor(&lua, "helicopter")?;
+        unknown_query.set("query", "teleport")?;
+        assert!(supply_reached(unknown_query).is_err());
+        Ok(())
+    }
+
+    /// The previous `bound_unit` spelling (the legacy literal text is parsed in the
+    /// test), kept to prove the standard-library forms map every input to the same bits.
+    fn legacy_bound_unit(value: f32) -> f32 {
+        // `partial_cmp` is `None` for NaN, which falls through unchanged like `<` and `>`.
+        match (value.partial_cmp(&-1.0), value.partial_cmp(&1.0)) {
+            (Some(std::cmp::Ordering::Less), _) => -1.0,
+            (_, Some(std::cmp::Ordering::Greater)) => 1.0,
+            _ => value,
+        }
+    }
+
+    #[test]
+    fn standard_forms_match_the_legacy_expressions_bit_for_bit() {
+        let legacy_pi: f32 = "3.1415927".parse().expect("legacy literal text");
+        assert_eq!(legacy_pi.to_bits(), std::f32::consts::PI.to_bits());
+        assert_eq!(std::f32::consts::PI.to_bits(), 0x4049_0fdb);
+        let negative_nan = f32::from_bits(f32::NAN.to_bits() | 0x8000_0000);
+        let payload_nan = f32::from_bits(0x7fc0_1234);
+        let samples = [
+            f32::NAN,
+            negative_nan,
+            payload_nan,
+            0.0,
+            -0.0,
+            f32::INFINITY,
+            f32::NEG_INFINITY,
+            1.0,
+            -1.0,
+            f32::from_bits(1.0_f32.to_bits() + 1),
+            f32::from_bits(1.0_f32.to_bits() - 1),
+            f32::from_bits((-1.0_f32).to_bits() + 1),
+            f32::from_bits((-1.0_f32).to_bits() - 1),
+            0.5,
+            -0.5,
+            2.0,
+            -2.0,
+            f32::MAX,
+            f32::MIN,
+            f32::MIN_POSITIVE,
+            f32::from_bits(1),
+            -f32::from_bits(1),
+        ];
+        for value in samples {
+            assert_eq!(
+                bound_unit(value).to_bits(),
+                legacy_bound_unit(value).to_bits(),
+                "bound_unit differs for bits {:#010x}",
+                value.to_bits()
+            );
+        }
+        // Explicit expectations: bounds saturate, NaN and signed zero pass through.
+        assert_eq!(bound_unit(f32::INFINITY), 1.0);
+        assert_eq!(bound_unit(f32::NEG_INFINITY), -1.0);
+        assert!(bound_unit(f32::NAN).is_nan());
+        assert!(bound_unit(-0.0).is_sign_negative());
+        assert!(bound_unit(0.0).is_sign_positive());
+        // A coarse sweep across and beyond the bounds.
+        for step in -4000..=4000 {
+            let value = step as f32 * 0.001;
+            assert_eq!(bound_unit(value).to_bits(), legacy_bound_unit(value).to_bits());
+        }
     }
 }

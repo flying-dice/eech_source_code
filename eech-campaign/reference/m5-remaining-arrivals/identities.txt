@@ -1,0 +1,10 @@
+# SHA-256 of what the cdcbd72e native build, the 2158d0d8 witness script and the pack used (paths relative to eech-campaign/)
+28f18272251a72d45f3b7bdbdfce14671f028234af73cc7a728d910ee39a07b7 *crates/eech-world/lua/remaining-arrivals.lua
+c67dc5a6766268277d316a4d760f1e1a98fb0712155a3841882f0e762dcd28b2 *target/rem-final2-bin/eech_dc.dll
+1a5f7d585c5c5fdf9b806cab2fc578167619c5541ce1e2f4b6e285abb35aaa52 *target/rem-final2-bin/eech-world.exe
+b224cb2eacdea06fcb7fe273979e660fbef0c1a9c65be53c7be9fc0a4571daca *target/rem-final2-bin/lua.dll
+# PR89 Tacview baseline recording (local only, 117690861 bytes) and this pack's three recordings
+3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b *aircraft-arrivals-20261021/recording.acmi
+3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b *settled-pack/reference/run1/recording.acmi
+3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b *settled-pack/reference/run2/recording.acmi
+3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b *settled-pack/retained/recording.acmi

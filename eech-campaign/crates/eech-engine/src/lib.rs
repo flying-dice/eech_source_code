@@ -244,22 +244,55 @@ pub struct LossDescriptor {
 pub enum SupplyMobile {
     FixedWing,
     Helicopter,
+    RoutedVehicle,
+    ShipVehicle,
+    AntiAircraft,
+    Person,
 }
 
-/// Copied physical facts for one campaign-selected member at one of the four
-/// SUPPLY waypoints. Task and waypoint keys are session-local correlation
-/// keys; only `host_id` is the host-issued mobile identity.
+/// Which physical question the host is asked. The names `SupplyReachDescriptor`
+/// and `supply_reached` are retained historical naming for the whole seam.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ArrivalQuery {
+    /// A member's reached-waypoint criteria.
+    Reached,
+    /// The task leader is inside the waypoint action radius.
+    Action,
+    /// A helicopter is strictly inside the recon radius.
+    Recon,
+}
+
+/// How the guide derives a helicopter's required heading.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum HeadingSource {
+    /// The waypoint's own heading.
+    Waypoint,
+    /// Prepare-for-insertion and troop-insert waypoints hold a zero heading.
+    Zero,
+    /// Point from the member to the task-dependent target.
+    Target,
+}
+
+/// Copied physical facts for one campaign-selected member at a waypoint.
+/// Task and waypoint keys are session-local correlation keys; only `host_id`
+/// is the host-issued mobile identity. Only the facts the queried mobile
+/// kind's rule reads are populated; the rest are zero or false.
 #[derive(Clone, Debug, Serialize)]
 pub struct SupplyReachDescriptor {
     pub member_key: u64,
     pub task_key: u64,
     pub waypoint_key: u64,
     pub host_id: String,
+    pub query: ArrivalQuery,
     pub waypoint: SupplyWaypoint,
     /// The campaign waypoint sub-type, so a host can tell non-SUPPLY waypoints apart.
     pub waypoint_sub_type: i32,
     /// Waypoint database fact: a human member's arrival is waived.
     pub player_skip_waypoint: bool,
+    /// Waypoint database fact: a landing or troop-insert waypoint, where an unassisted human must be on the ground.
+    pub landing_waypoint: bool,
     pub mobile: SupplyMobile,
     pub is_task_leader: bool,
     pub is_ai: bool,
@@ -275,6 +308,49 @@ pub struct SupplyReachDescriptor {
     pub motion: [f32; 3],
     pub guide_position: [f32; 3],
     pub leader_position: [f32; 3],
+    pub radius_valid: bool,
+    pub altitude_valid: bool,
+    pub heading_valid: bool,
+    pub last_to_reach_valid: bool,
+    /// The weapon-vector rule applies to this member: the host reports an angle.
+    pub weapon_gate: bool,
+    /// Both weapon and target vectors are present and valid.
+    pub vectors_valid: bool,
+    pub airborne: bool,
+    pub auto_pilot: bool,
+    pub altitude_criterion: f32,
+    pub heading_criterion: f32,
+    pub altitude: f32,
+    pub heading: f32,
+    pub centre_of_gravity_to_ground: f32,
+    pub guide_altitude: f32,
+    /// Helicopter HEADING gate: how the guide derives the required heading. Absent when the gate
+    /// does not apply to this member; the host derives the heading from the facts below.
+    pub heading_source: Option<HeadingSource>,
+    /// The waypoint's own heading; also the fallback when a TARGET waypoint has no target position.
+    pub waypoint_heading: f32,
+    /// TARGET waypoint: the guide's task has a task-dependent target.
+    pub heading_target_present: bool,
+    /// The task-dependent target's position, when it has one.
+    pub heading_target_position: Option<[f32; 3]>,
+    pub weapon_vector: [f32; 3],
+    pub intercept_vector: [f32; 3],
+    pub action_radius: f32,
+    pub waypoint_position: [f32; 3],
+}
+
+/// The host's answer. `gates_passed` is every physical gate that precedes the
+/// campaign's weapon-vector tolerance. `launch_angle_error` is the angle
+/// between the weapon and intercept vectors, required when the descriptor has
+/// `weapon_gate` and `vectors_valid` and the gates passed; the campaign keeps
+/// the random tolerance and the weapon limit. `heading_target_missing` reports
+/// that the host reached the HEADING gate of a TARGET waypoint whose task or
+/// target is absent; the campaign then raises the legacy assertion.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ArrivalAnswer {
+    pub gates_passed: bool,
+    pub launch_angle_error: Option<f32>,
+    pub heading_target_missing: bool,
 }
 
 /// One durable campaign roster entry. Membership can change while the same
@@ -387,7 +463,7 @@ unsafe extern "C" fn bind_mobile<F, G, H>(
 where
     F: FnMut(MemberDescriptor) -> Result<String, String>,
     G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
-    H: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
+    H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if descriptor.is_null() || user.is_null() {
@@ -446,7 +522,7 @@ unsafe extern "C" fn observe_loss<F, G, H>(
 where
     F: FnMut(MemberDescriptor) -> Result<String, String>,
     G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
-    H: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
+    H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if descriptor.is_null() || decision.is_null() || user.is_null() {
@@ -601,7 +677,7 @@ fn checked_floats(values: &[(&str, f32)]) -> Result<(), String> {
 
 unsafe extern "C" fn supply_reached<F, G, H>(
     descriptor: *const sys::eech_supply_reach_descriptor,
-    reached: *mut c_int,
+    answer_out: *mut sys::eech_arrival_result,
     error: *mut c_char,
     error_size: usize,
     user: *mut c_void,
@@ -609,10 +685,10 @@ unsafe extern "C" fn supply_reached<F, G, H>(
 where
     F: FnMut(MemberDescriptor) -> Result<String, String>,
     G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
-    H: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
+    H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
-        if descriptor.is_null() || reached.is_null() || user.is_null() {
+        if descriptor.is_null() || answer_out.is_null() || user.is_null() {
             return Err("invalid native supply_reached callback context".into());
         }
         // SAFETY: C supplies both pointers for the duration of this callback.
@@ -630,7 +706,24 @@ where
         let mobile = match source.mobile_kind {
             sys::CAMPAIGN_SUPPLY_MOBILE_FIXED_WING => SupplyMobile::FixedWing,
             sys::CAMPAIGN_SUPPLY_MOBILE_HELICOPTER => SupplyMobile::Helicopter,
-            other => return Err(format!("unknown SUPPLY mobile kind {other}")),
+            sys::CAMPAIGN_SUPPLY_MOBILE_ROUTED_VEHICLE => SupplyMobile::RoutedVehicle,
+            sys::CAMPAIGN_SUPPLY_MOBILE_SHIP_VEHICLE => SupplyMobile::ShipVehicle,
+            sys::CAMPAIGN_SUPPLY_MOBILE_ANTI_AIRCRAFT => SupplyMobile::AntiAircraft,
+            sys::CAMPAIGN_SUPPLY_MOBILE_PERSON => SupplyMobile::Person,
+            other => return Err(format!("unknown arrival mobile kind {other}")),
+        };
+        let query = match source.query {
+            sys::CAMPAIGN_ARRIVAL_QUERY_REACHED => ArrivalQuery::Reached,
+            sys::CAMPAIGN_ARRIVAL_QUERY_ACTION => ArrivalQuery::Action,
+            sys::CAMPAIGN_ARRIVAL_QUERY_RECON => ArrivalQuery::Recon,
+            other => return Err(format!("unknown arrival query {other}")),
+        };
+        let heading_source = match source.heading_source {
+            sys::CAMPAIGN_HEADING_SOURCE_NONE => None,
+            sys::CAMPAIGN_HEADING_SOURCE_WAYPOINT => Some(HeadingSource::Waypoint),
+            sys::CAMPAIGN_HEADING_SOURCE_ZERO => Some(HeadingSource::Zero),
+            sys::CAMPAIGN_HEADING_SOURCE_TARGET => Some(HeadingSource::Target),
+            other => return Err(format!("unknown arrival heading source {other}")),
         };
         checked_floats(&[
             ("rotor_spin_up_seconds", source.rotor_spin_up_seconds),
@@ -638,12 +731,22 @@ where
             ("velocity", source.velocity),
             ("delta_seconds", source.delta_seconds),
             ("radius", source.radius),
+            ("altitude_criterion", source.altitude_criterion),
+            ("heading_criterion", source.heading_criterion),
+            ("altitude", source.altitude),
+            ("heading", source.heading),
+            ("centre_of_gravity_to_ground", source.centre_of_gravity_to_ground),
+            ("guide_altitude", source.guide_altitude),
+            ("waypoint_heading", source.waypoint_heading),
+            ("action_radius", source.action_radius),
         ])?;
         for (name, vector) in [
             ("position", source.position),
             ("motion", source.motion),
             ("guide_position", source.guide_position),
             ("leader_position", source.leader_position),
+            ("waypoint_position", source.waypoint_position),
+            ("heading_target_position", source.heading_target_position),
         ] {
             for value in vector {
                 if !value.is_finite() {
@@ -659,9 +762,11 @@ where
             task_key: source.task_key,
             waypoint_key: source.waypoint_key,
             host_id,
+            query,
             waypoint: supply_waypoint(source.waypoint_kind)?,
             waypoint_sub_type: source.waypoint_sub_type,
             player_skip_waypoint: checked_bool("player_skip_waypoint", source.player_skip_waypoint)?,
+            landing_waypoint: checked_bool("landing_waypoint", source.landing_waypoint)?,
             mobile,
             is_task_leader: checked_bool("is_task_leader", source.is_task_leader)?,
             is_ai: checked_bool("is_ai", source.is_ai)?,
@@ -677,10 +782,40 @@ where
             motion: source.motion,
             guide_position: source.guide_position,
             leader_position: source.leader_position,
+            radius_valid: checked_bool("radius_valid", source.radius_valid)?,
+            altitude_valid: checked_bool("altitude_valid", source.altitude_valid)?,
+            heading_valid: checked_bool("heading_valid", source.heading_valid)?,
+            last_to_reach_valid: checked_bool("last_to_reach_valid", source.last_to_reach_valid)?,
+            weapon_gate: checked_bool("weapon_gate", source.weapon_gate)?,
+            vectors_valid: checked_bool("vectors_valid", source.vectors_valid)?,
+            airborne: checked_bool("airborne", source.airborne)?,
+            auto_pilot: checked_bool("auto_pilot", source.auto_pilot)?,
+            altitude_criterion: source.altitude_criterion,
+            heading_criterion: source.heading_criterion,
+            altitude: source.altitude,
+            heading: source.heading,
+            centre_of_gravity_to_ground: source.centre_of_gravity_to_ground,
+            guide_altitude: source.guide_altitude,
+            heading_source,
+            waypoint_heading: source.waypoint_heading,
+            heading_target_present: checked_bool("heading_target_present", source.heading_target_present)?,
+            heading_target_position: checked_bool("heading_target_position_present", source.heading_target_position_present)?
+                .then_some(source.heading_target_position),
+            weapon_vector: source.weapon_vector,
+            intercept_vector: source.intercept_vector,
+            action_radius: source.action_radius,
+            waypoint_position: source.waypoint_position,
         };
         let answer = (context.supply_reached)(descriptor)?;
         // SAFETY: C supplies a writable result for the duration of this callback.
-        unsafe { *reached = c_int::from(answer) };
+        unsafe {
+            *answer_out = sys::eech_arrival_result {
+                gates_passed: c_int::from(answer.gates_passed),
+                angle_present: c_int::from(answer.launch_angle_error.is_some()),
+                launch_angle_error: answer.launch_angle_error.unwrap_or(0.0),
+                heading_target_missing: c_int::from(answer.heading_target_missing),
+            };
+        }
         Ok(())
     }));
     match result {
@@ -706,7 +841,7 @@ fn with_host<F, G, H>(
 where
     F: FnMut(MemberDescriptor) -> Result<String, String>,
     G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
-    H: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
+    H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
 {
     let mut context = HostContext {
         bind_mobile: bind_mobile_fn,
@@ -749,7 +884,7 @@ impl Engine {
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
         G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
-        H: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
     {
         if BOOTED.swap(true, Ordering::SeqCst) {
             return Err(EngineError::State);
@@ -784,7 +919,7 @@ impl Engine {
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
         G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
-        H: FnMut(SupplyReachDescriptor) -> Result<bool, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
     {
         // SAFETY: the temporary host callback is valid for the call.
         with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, |host| unsafe {

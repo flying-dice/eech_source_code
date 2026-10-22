@@ -2118,7 +2118,12 @@ void transmit_player_recon_data (entity *en)
 
 			recon_radius = get_local_entity_waypoint_database_action_radius_value (current_waypoint, en);
 
+#ifdef EECH_CAMPAIGN_HOST_ARRIVALS
+			/* The host decides whether the helicopter is strictly inside the recon radius. */
+			if (campaign_recon_reached (en, current_waypoint))
+#else
 			if (get_sqr_2d_range (wp_pos, en_pos) < (recon_radius * recon_radius))
+#endif
 			{
 				debug_log ("HELICOP: Transmitting recon data");
 

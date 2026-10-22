@@ -182,7 +182,8 @@ Full local artifacts are under `E:/eech-runs/m5-d1/aircraft-arrivals-20261021/`
 
 One coherent remaining-arrival cut, from the advisory plan with the parent's
 corrections binding (`E:/eech-runs/m5-d1/remaining-arrival-plan-20261021/LEAD-DECISIONS.md`).
-It is not started here, and a new Task is raised at implementation start.
+It was not started here; it is implemented as EEDCS-31 in
+[`m5-remaining-arrivals.md`](m5-remaining-arrivals.md).
 
 - **Scope:** mixed aircraft criteria, ground/sea/mobile predicates, direct
   waypoint-action proximity and recon proximity.

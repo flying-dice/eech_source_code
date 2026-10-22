@@ -1,6 +1,6 @@
 //! The Lua surface of the module.
 
-use eech_engine::{Engine, EngineConfig, EngineError, Gunship, LossDecision, LossDescriptor, MemberDescriptor, Side, SupplyReachDescriptor};
+use eech_engine::{ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship, LossDecision, LossDescriptor, MemberDescriptor, Side, SupplyReachDescriptor};
 use mlua::prelude::*;
 use std::path::PathBuf;
 
@@ -59,12 +59,38 @@ fn call_observe_loss(lua: &Lua, function: &LuaFunction, descriptor: LossDescript
     }
 }
 
-fn call_supply_reached(lua: &Lua, function: &LuaFunction, descriptor: SupplyReachDescriptor) -> Result<bool, String> {
+fn call_supply_reached(lua: &Lua, function: &LuaFunction, descriptor: SupplyReachDescriptor) -> Result<ArrivalAnswer, String> {
     let value = lua.to_value_with(&descriptor, options()).map_err(|e| e.to_string())?;
     let answer: LuaValue = function.call(value).map_err(|e| e.to_string())?;
     match answer {
-        LuaValue::Boolean(reached) => Ok(reached),
-        other => Err(format!("supply_reached must return a boolean, got {}", other.type_name())),
+        LuaValue::Boolean(gates_passed) => Ok(ArrivalAnswer {
+            gates_passed,
+            launch_angle_error: None,
+            heading_target_missing: false,
+        }),
+        LuaValue::Table(table) => {
+            let gates_passed = match table.get::<LuaValue>("gates_passed").map_err(|e| e.to_string())? {
+                LuaValue::Boolean(passed) => passed,
+                other => return Err(format!("supply_reached gates_passed must be a boolean, got {}", other.type_name())),
+            };
+            let launch_angle_error = match table.get::<LuaValue>("launch_angle_error").map_err(|e| e.to_string())? {
+                LuaValue::Nil => None,
+                LuaValue::Number(angle) => Some(angle as f32),
+                LuaValue::Integer(angle) => Some(angle as f32),
+                other => return Err(format!("supply_reached launch_angle_error must be a number, got {}", other.type_name())),
+            };
+            let heading_target_missing = match table.get::<LuaValue>("heading_target_missing").map_err(|e| e.to_string())? {
+                LuaValue::Nil => false,
+                LuaValue::Boolean(missing) => missing,
+                other => return Err(format!("supply_reached heading_target_missing must be a boolean, got {}", other.type_name())),
+            };
+            Ok(ArrivalAnswer {
+                gates_passed,
+                launch_angle_error,
+                heading_target_missing,
+            })
+        }
+        other => Err(format!("supply_reached must return a boolean or a result table, got {}", other.type_name())),
     }
 }
 

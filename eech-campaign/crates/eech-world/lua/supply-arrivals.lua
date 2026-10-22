@@ -55,7 +55,8 @@ local function moved ()
 end
 
 local function supply_reached (descriptor)
-	local reached = reference (descriptor)
+	local answer = reference (descriptor)
+	local reached = answer.gates_passed
 	counts[descriptor.waypoint] = (counts[descriptor.waypoint] or 0) + 1
 	if mode == "withhold_pick_up" and descriptor.waypoint == "pick_up" then
 		if not selected then
@@ -96,7 +97,7 @@ local function supply_reached (descriptor)
 			allowed = true
 		end
 	end
-	return reached
+	return answer
 end
 
 local engine = dc.boot {
