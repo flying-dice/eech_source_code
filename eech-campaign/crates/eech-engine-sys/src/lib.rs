@@ -230,6 +230,21 @@ pub const EECH_MOVEMENT_CRASH_END: c_int = 18;
 pub const EECH_MOVEMENT_IMPACT: c_int = 19;
 pub const EECH_MOVEMENT_FALL_GRAVITY: c_int = 20;
 pub const EECH_MOVEMENT_ROTOR_IDLE: c_int = 21;
+pub const EECH_MOVEMENT_GV_DEATH_CANDIDATE: c_int = 22;
+pub const EECH_MOVEMENT_GV_DEATH_DECAY: c_int = 23;
+pub const EECH_MOVEMENT_GV_FALL_CANDIDATE: c_int = 24;
+pub const EECH_MOVEMENT_GV_FALL_GRAVITY: c_int = 25;
+pub const EECH_MOVEMENT_GV_FALL_SETTLE: c_int = 26;
+pub const EECH_MOVEMENT_GV_IMPACT: c_int = 27;
+pub const EECH_MOVEMENT_SHIP_SINK: c_int = 28;
+pub const EECH_MOVEMENT_VEHICLE_VECTOR_SEED: c_int = 29;
+pub const EECH_MOVEMENT_FW_DEATH_ATTITUDE: c_int = 30;
+pub const EECH_MOVEMENT_FW_CRASH_CANDIDATE: c_int = 31;
+pub const EECH_MOVEMENT_FW_CRASH_VELOCITY: c_int = 32;
+pub const EECH_MOVEMENT_GV_FALL_VECTOR: c_int = 33;
+pub const EECH_MOVEMENT_GV_FALL_COMMIT: c_int = 34;
+pub const EECH_MOVEMENT_FW_SETTLE: c_int = 35;
+pub const EECH_MOVEMENT_FW_CRASH_ATTITUDE: c_int = 36;
 
 pub const EECH_MOVEMENT_KIND_ROUTED: c_int = 1;
 pub const EECH_MOVEMENT_KIND_SHIP: c_int = 2;
@@ -284,10 +299,15 @@ pub struct eech_movement_step {
     pub hc_gravity: f32,
     pub hc_terrain_class: c_int,
     pub hc_bury_limit: f32,
-    pub hc_draws: [f32; 2],
     pub hc_pitch_offset: f32,
     pub hc_bank_offset: f32,
     pub hc_signed_speed: f32,
+    pub gv_old_elevation: f32,
+    pub gv_bbox_diagonal: f32,
+    pub gv_wide: c_int,
+    pub gv_water: c_int,
+    /// The two tumble draws are `frand1 ()` doubles and stay doubles; last, so the double's alignment moves no other field.
+    pub hc_draws: [f64; 2],
 }
 
 #[repr(C)]
@@ -301,6 +321,7 @@ pub struct eech_movement_result {
     pub moved: c_int,
     pub rotor: [f32; 3],
     pub altitude: f32,
+    pub flags: c_int,
 }
 
 pub type eech_move_vehicle_callback =
@@ -423,3 +444,7 @@ extern "C" {
     pub fn eech_engine_diagnostics() -> c_int;
     pub fn eech_set_log_sink(sink: Option<eech_log_sink>, user: *mut c_void);
 }
+
+// The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by
+// target) cannot move any float or int before it; the C struct in rv_hostmv.h declares them last as well.
+const _: () = assert!(core::mem::offset_of!(eech_movement_step, hc_draws) > core::mem::offset_of!(eech_movement_step, gv_water));

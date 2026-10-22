@@ -198,7 +198,7 @@ void eech_hc_fall_gravity(float *motion_vector, float gravity, float delta_secon
 }
 
 /* Dying, on contact: the heading, pitch and roll tumble.  The two random draws were made by the DLL, heading's first. */
-void eech_hc_tumble(float *attitude, float heading_draw, float roll_draw, float delta_seconds)
+void eech_hc_tumble(float *attitude, double heading_draw, double roll_draw, float delta_seconds)
 {
 	matrix3x3 *matrix = (matrix3x3 *)attitude;
 	float heading, pitch, roll;
@@ -443,4 +443,254 @@ void eech_hc_impact(float *motion_vector, const float *attitude, float signed_sp
 	velocity->x += (signed_speed * xv->x);
 
 	velocity->z += (signed_speed * xv->z);
+}
+
+/*
+ * Fixed-wing dying and crash arithmetic (EEDCS-37).  These share hc_face_normal_matrix and the type-agnostic fall,
+ * contact and impact helpers above (eech_hc_fall_position, eech_hc_fall_gravity, eech_hc_contact, eech_hc_impact); the
+ * settle is eech_fw_settle below because the fixed-wing river depth is the double 3.0 and there is no rotor.  Everything
+ * here is the fw_move.c expression for expression; the terrain refresh, effects, RNG draws, kill, DEAD and smoke clears stay
+ * in the DLL.
+ */
+
+/*
+ * fixed_wing_crash_movement, phase one: the candidate x and z are the held position plus the motion vector, bound to the
+ * map area (x and z only).  The candidate's y is the held position's until phase two.
+ */
+void eech_fw_crash_candidate(const float *position, const float *motion_vector, float delta_seconds, const float *map_min, const float *map_max, float *candidate)
+{
+	const vec3d *pos = (const vec3d *)position;
+	const vec3d *velocity = (const vec3d *)motion_vector;
+	vec3d *new_pos = (vec3d *)candidate;
+
+	new_pos->x = pos->x + (velocity->x * delta_seconds);
+	new_pos->z = pos->z + (velocity->z * delta_seconds);
+
+	if (new_pos->x < map_min[0])
+	{
+		new_pos->x = map_min[0];
+	}
+	else if (new_pos->x > map_max[0])
+	{
+		new_pos->x = map_max[0];
+	}
+
+	if (new_pos->z < map_min[2])
+	{
+		new_pos->z = map_min[2];
+	}
+	else if (new_pos->z > map_max[2])
+	{
+		new_pos->z = map_max[2];
+	}
+
+	new_pos->y = pos->y;
+}
+
+/*
+ * fixed_wing_crash_movement, phase two (CRASH_VELOCITY), after the DLL's terrain sample at the candidate: the candidate's
+ * height, then friction and the slope push on the motion vector using the NEW sample's face normal (unlike the
+ * helicopter, which eases to the old normal).  The pre-friction speed (the `speed > 0` test) is the magnitude of the held
+ * vector.  `speed_out` is the post-slope magnitude and `stopped` is speed < 1; the DLL then clears the velocity
+ * (stopped) or sets FLOAT_TYPE_VELOCITY to the speed, which is BEFORE the attitude rebuild and the position setter.
+ */
+void eech_fw_crash_velocity(const float *position, float *candidate, float *motion_vector, const float *face_normal, int forest, float elevation, float cg_to_ground, float delta_seconds, float *speed_out, int *stopped)
+{
+	const vec3d *pos = (const vec3d *)position;
+	vec3d *new_pos = (vec3d *)candidate;
+	vec3d *velocity = (vec3d *)motion_vector;
+	const vec3d *normal = (const vec3d *)face_normal;
+	float speed, horizontal_speed;
+
+	speed = get_3d_vector_magnitude(velocity);
+
+	if (forest)
+	{
+		new_pos->y = pos->y;
+	}
+	else
+	{
+		new_pos->y = elevation + cg_to_ground;
+	}
+
+	horizontal_speed = sqrt((velocity->x * velocity->x) + (velocity->z * velocity->z));
+
+	if (speed > 0.0)
+	{
+		normalise_3d_vector_given_magnitude(velocity, speed);
+
+		horizontal_speed -= (((8.0f * horizontal_speed > 10.0f) ? 8.0f * horizontal_speed : 10.0f) * delta_seconds);
+
+		horizontal_speed = (horizontal_speed > 0.0f) ? horizontal_speed : 0.0f;
+
+		velocity->x *= horizontal_speed;
+		velocity->y = 0.0;
+		velocity->z *= horizontal_speed;
+	}
+	else
+	{
+		velocity->x = 0.0;
+		velocity->y = 0.0;
+		velocity->z = 0.0;
+	}
+
+	if (normal->y < 0.3)
+	{
+		velocity->x += (EECH_HC_G * normal->x * delta_seconds);
+		velocity->z += (EECH_HC_G * normal->z * delta_seconds);
+	}
+
+	speed = get_3d_vector_magnitude(velocity);
+
+	*speed_out = speed;
+	*stopped = (speed < 1.0) ? 1 : 0;
+}
+
+/*
+ * fixed_wing_crash_movement, phase three (CRASH_ATTITUDE), after the DLL has cleared the velocity or set the speed: the
+ * pitch and roll ease toward the NEW face normal's attitude plus the destroyed offsets and the attitude is rebuilt (the
+ * caller writes it raw), then the DLL's position setter runs.  `at_rest` is the DLL's stop test without its `!alive` term:
+ * speed <= 0.01 && delta_pitch <= 0.01 && delta_roll <= 0.01 (signed deltas, as the engine compares them); `speed` is
+ * the phase-two post-slope magnitude.
+ */
+void eech_fw_crash_attitude(float *attitude, const float *face_normal, float speed, float destroyed_pitch_offset, float destroyed_bank_offset, float delta_seconds, int *at_rest)
+{
+	matrix3x3 *matrix = (matrix3x3 *)attitude;
+	const vec3d *normal = (const vec3d *)face_normal;
+	matrix3x3 m;
+	float heading, pitch, roll, required_angle, max_angle, delta_pitch, delta_roll;
+
+	heading = get_heading_from_attitude_matrix(*matrix);
+	pitch = get_pitch_from_attitude_matrix(*matrix);
+	roll = get_roll_from_attitude_matrix(*matrix);
+
+	hc_face_normal_matrix(m, normal, heading);
+
+	required_angle = get_pitch_from_attitude_matrix(m) + destroyed_pitch_offset;
+	max_angle = 2 * PI * delta_seconds;
+	delta_pitch = bound(required_angle - pitch, -max_angle, max_angle);
+	pitch += delta_pitch;
+
+	required_angle = get_roll_from_attitude_matrix(m) + destroyed_bank_offset;
+	max_angle = 2 * PI * delta_seconds;
+	delta_roll = bound(required_angle - roll, -max_angle, max_angle);
+	roll += delta_roll;
+
+	get_3d_transformation_matrix(*matrix, heading, pitch, roll);
+
+	*at_rest = ((speed <= 0.01) && (delta_pitch <= 0.01) && (delta_roll <= 0.01)) ? 1 : 0;
+}
+
+/*
+ * basic_fixed_wing_death_movement settle, after the DLL's effects and the fresh post-kill CG query.  Same classes and
+ * bury tests as eech_hc_settle, but the river depth is the double RIVER_DEPTH 3.0 with the original expression shape
+ * (`y = elevation + cg; y -= 3.0`, test `altitude < -3.0`) and there is no rotor: a bury only zeroes the motion vector (the
+ * DLL then runs clear_fixed_wing_velocity at the original point).  `contact_altitude` is the candidate's altitude measured
+ * with the PRE-kill CG; `cg_to_ground` is the FRESH post-kill CG and sets only the final solid and river heights.
+ */
+void eech_fw_settle(float *candidate, const float *held_position, float *motion_vector, int terrain_class, float elevation, float cg_to_ground, float contact_altitude, float bury_limit, int *buried)
+{
+	vec3d *new_pos = (vec3d *)candidate;
+	const vec3d *pos = (const vec3d *)held_position;
+	vec3d *mv = (vec3d *)motion_vector;
+	float altitude;
+
+	altitude = contact_altitude;
+
+	*buried = 0;
+
+	switch (terrain_class)
+	{
+	case 1:
+		new_pos->x = pos->x;
+		new_pos->z = pos->z;
+		if (altitude < bury_limit)
+		{
+			*buried = 1;
+		}
+		break;
+	case 2:
+		new_pos->x = pos->x;
+		new_pos->z = pos->z;
+		if (altitude < -3.0)
+		{
+			new_pos->y = elevation + cg_to_ground;
+			new_pos->y -= 3.0;
+			*buried = 1;
+		}
+		break;
+	case 3:
+		if (altitude < bury_limit)
+		{
+			*buried = 1;
+		}
+		break;
+	default:
+		new_pos->y = elevation + cg_to_ground;
+		break;
+	}
+
+	if (*buried)
+	{
+		mv->x = 0.0;
+		mv->y = 0.0;
+		mv->z = 0.0;
+	}
+}
+
+/*
+ * basic_fixed_wing_death_movement, attitude block (after the settle/bury, before the position setter).  `speed` is the
+ * magnitude the engine last computed (after gravity, before any bury clear); `altitude` is the candidate altitude
+ * measured against the new terrain with the live CG.  The block runs only while the motion vector's x or z is non-zero,
+ * and eases the roll by the DLL's frand1() draw only when altitude > 12.  The DLL draws only in exactly that case and
+ * passes `draw_made`; the function returns -1 when the host's gate and the DLL's draw disagree, otherwise bit 0 =
+ * attitude rebuilt, bit 1 = draw consumed.
+ */
+int eech_fw_death_attitude(float *attitude, const float *motion_vector, float speed, float altitude, int draw_made, double roll_draw, float delta_seconds)
+{
+	matrix3x3 *matrix = (matrix3x3 *)attitude;
+	vec3d direction_vector;
+	float heading, pitch, roll, required_heading, required_pitch, dh, dp;
+	int needs_draw;
+
+	if (!((motion_vector[0] != 0.0) || (motion_vector[2] != 0.0)))
+	{
+		return draw_made ? -1 : 0;
+	}
+
+	needs_draw = (altitude > 12.0) ? 1 : 0;
+
+	if (needs_draw != (draw_made ? 1 : 0))
+	{
+		return -1;
+	}
+
+	heading = get_heading_from_attitude_matrix(*matrix);
+	pitch = get_pitch_from_attitude_matrix(*matrix);
+	roll = get_roll_from_attitude_matrix(*matrix);
+
+	memcpy(&direction_vector, motion_vector, sizeof(vec3d));
+
+	normalise_3d_vector_given_magnitude(&direction_vector, speed);
+
+	/* get_heading_and_pitch_from_3d_unit_vector */
+	required_heading = atan2(direction_vector.x, direction_vector.z);
+	required_pitch = asin(direction_vector.y);
+
+	dh = bound(required_heading - heading, -(PI * 0.25), (PI * 0.25));
+
+	heading += (dh * delta_seconds);
+
+	if (needs_draw)
+	{
+		roll += (PI * 0.2 * roll_draw * delta_seconds);
+
+		dp = bound(required_pitch - pitch, -(PI * 0.25), (PI * 0.25));
+
+		pitch += (dp * delta_seconds);
+	}
+
+	get_3d_transformation_matrix(*matrix, heading, pitch, roll);
+
+	return 1 | (needs_draw ? 2 : 0);
 }
