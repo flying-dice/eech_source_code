@@ -1,0 +1,5 @@
+diag_selected	mode=control kind=person host=eech-world:3460 selected_at=18.7 hold_seconds=0.0 waypoint=4295058708
+diag_steps	held=0 moved=0 released_at=nil advanced_to=nil advanced_at=nil lost_at=nil ended_at=18.8
+subject	eech-world:3460
+selected_at	18.7
+result	control

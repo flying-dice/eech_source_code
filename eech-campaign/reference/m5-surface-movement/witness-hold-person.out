@@ -1,0 +1,11 @@
+diag_selected	mode=hold kind=person host=eech-world:3460 selected_at=5.0 hold_seconds=79.0 waypoint=4295058708
+diag_steps	held=1582 moved=278 released_at=84.099999999997 advanced_to=4295058709 advanced_at=97.899999999996 lost_at=nil ended_at=98.0
+select	hold
+host_id	eech-world:3460
+held_seconds	79.1
+held_steps	1582
+held_displacement	0.000
+displacement_after_release	13.142
+outcome_after_release	advanced
+waypoint_key_before_after	4295058708	4295058709
+result	ok
