@@ -50,15 +50,20 @@ the original C maths, kept expression for expression:
   (for example a host that holds a subject and answers with its own pose)
   defaults the motion vector to zero; the held witness relies on this.
 
-Host refusals (all before any mutation, in `Movers::step`):
+Host refusals. These are raised in different places:
 
-- unknown host id: `host.move_vehicle: unknown host id <id>`;
-- a request for another kind: `... is not a request for <Kind>`;
-- `person_end` without a pending `person_begin`;
-- any request for an ID `while its person step is pending`;
-- a campaign pose that differs bitwise from the host record;
-- an unknown mode;
-- a missing callback: `eech: missing host move_vehicle callback`.
+- In `Movers::step` (`eech-engine/src/lib.rs`), where the guard checks run before
+  the host record is mutated:
+  - unknown host id: `host.move_vehicle: unknown host id <id>`;
+  - a request for another kind: `... is not a request for <Kind>`;
+  - `person_end` without a pending `person_begin`;
+  - any request for an ID `while its person step is pending`;
+  - a campaign pose that differs bitwise from the host record.
+- An unknown mode is rejected earlier, when the host parses the request in
+  `movement_from` (`eech-world/src/main.rs`): `host.move_vehicle: unknown mode <m>`.
+  `Movers::step` also has a defensive unknown-mode arm.
+- A missing callback is rejected in the campaign module at boot
+  (`eech-dc/src/module.rs`): `eech: missing host move_vehicle callback`.
 
 The bit-exact (`to_bits`) divergence guard of PR #91 runs on every non-`place`
 request; `place` alone adopts DLL state and is suppressed while the DLL applies a
@@ -133,9 +138,11 @@ steps person_begin 5018584, person_end 4934037, routed:move 1702001, routed:stop
 ```
 
 - **Infantry:** 140 bound, all 140 moved at least 10 m, 37 arrived.
-- **Ships: public ship motion is NOT COVERED.** 36 ships are bound but **no ship
-  step occurs** in the retained scenario, so `ship_move` is never exercised by
-  the public path, the pack or Tacview. Ship coverage is the focused
+- **Ships: no public ship-movement witness or observed runtime coverage is
+  claimed.** In the Lebanon 1 h iteration census 36 ships are bound and zero
+  `ship_move` steps occurred. That census does not show whether a ship steps in
+  the longer Georgia or Lebanon pack runs, and no independent evidence on that is
+  held. Ship coverage is the focused
   `movement.rs` tests only (acceleration ahead with the frame delta used only
   for the motion vector, the g-limited turn towards an abeam waypoint, the
   near-waypoint legacy branch, map bounds, adoption). No public ship coverage
@@ -189,8 +196,8 @@ evidence-only, all unchanged from the accepted pack.
 - **Classification of differences against the baseline: none.** Nothing to classify
   as regression, approved defect correction, intentional semantic change or
   input/world variation. No golden output was re-recorded and no tolerance was
-  widened. Because ships never step in this scenario, byte identity says nothing
-  about `ship_move`; it is the proof for the routed refactor and for the infantry
+  widened. Because no ship step was observed in the 1 h census, byte identity is not
+  claimed as evidence for `ship_move`; it is the proof for the routed refactor and for the infantry
   path (about 5.0 M `person_begin` steps in the 1 h census; the pack runs 3 h).
 
 The report is committed byte-exact as `reference/m5-surface-movement/pack-report.md`
@@ -204,19 +211,20 @@ local.
 | Iteration | Failure | Cause and fix |
 |---|---|---|
 | iter1 build | `rv_hostmv.c:81:36` compile error | the `vehicle` parameter shadowed the `vehicle` typedef in `begin_step`; the parameter was renamed `en`. Log kept: `build-iter1-failed-vehicle-shadow.log` (local) |
-| first Lua run | `settled.pose.position` nil | the result is flat; read `settled.position`. Fixed in `lua/surface-movement.lua` |
+| first test run | `settled.pose.position` nil | the result is flat; the assertion read `settled.position`. The error was in the embedded Lua fixture in `crates/eech-world/tests/host_callbacks.rs`, not in `lua/surface-movement.lua` |
 | first test run | wrong count | `stop` on a Person now reports "is not a request for", so the expected count went 6 to 5 |
 | wiring | field mismatch | `ship_move` read a different field than `MovementStep` serialised; it now reads `desired_velocity` (found in review, fixed before the commit) |
 
 ### Interruption record
 
-During the settled run the lead deliberately stopped the witness wrapper (CLI
-33040) and its redundant private census (23672) after verifying identities, to
-avoid duplicate checking. This is neither quota exhaustion nor a failed
-scenario. The wrapper exited 1 with `census exited -1`; its partial output is
-kept locally as `settled-witness/census-stopped-by-lead.*` and is not evidence.
-The ONE settled regression pack was deliberately left running and its result is
-the one reported here. An earlier settled wrapper run on the shared
+During the settled run the parent deliberately stopped the Claude CLI process
+(33040, the implementation session, not the witness wrapper) and the redundant
+private census (23672) after verifying identities, to avoid duplicate checking.
+This is neither quota exhaustion nor a failed scenario. The PowerShell witness
+wrapper (45092) then exited 1 with `census exited -1` because its child was
+terminated; its partial output is kept locally as
+`settled-witness/census-stopped-by-lead.*` and is not evidence. The ONE settled
+regression pack was left untouched and its result is the one reported here. An earlier settled wrapper run on the shared
 `lebanon-root` was aborted by the author to avoid a writable-root conflict with
 the concurrent pack (`settled-witness-aborted-shared-root.log`).
 
@@ -236,7 +244,8 @@ adapter. Visual inspection of Tacview and a live DCS run (M6) are not claimed.
 - The terrain sample (`get_3d_terrain_elevation`) and `point_inside_map_area`
   stay in the DLL (D3).
 - Death motion, force creation/removal and lifecycle/loss handling (later D1).
-- Public ship motion is not exercised by any retained scenario.
+- No public ship-movement witness exists; runtime ship coverage is not claimed
+  (the Lebanon 1 h census saw zero ship steps).
 
 ## Author handoff
 
@@ -288,5 +297,5 @@ docker run --rm -v <worktree>:/src -v <target volume>:/target -e CARGO_TARGET_DI
 ## Next bounded action
 
 D1: death motion, force creation/removal and complete lifecycle and loss
-handling in the host; and a scenario in which ships actually move, so that
+handling in the host; and a witnessed scenario in which ships move, so that
 `ship_move` has public coverage.
