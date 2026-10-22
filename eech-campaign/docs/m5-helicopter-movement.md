@@ -225,8 +225,8 @@ decision; none is relabelled campaign policy:
   guidance that is a physical control or avoidance input (including the
   `desired_heading`/`max_turn_rate` handed to `helicopter_end`), LOS/structure
   avoidance and guide/leader/formation are physical coupling, not campaign policy.
-- **D2** is only targeting and combat decisions; **D3** is terrain services (such as
-  look-ahead). Neither is migrated here.
+- **D2** covers combat and perception; **D3** covers terrain services (such as
+  look-ahead). Campaign decisions remain in the DLL. Neither world responsibility is migrated here.
 - **Death/crash movement and other direct writers:** `clear_helicopter_velocity`,
   VELOCITY writes in death/crash, `hc_updt.c:979`, `hc_msgs.c:514-518`,
   `hc_pack.c:751-757`. These are **explicitly transitional placement**, announced to

@@ -1,7 +1,7 @@
 EEDCS-35 host-owned alive AI helicopter movement: check and provenance summary
 runtime commit: e5ec3b69d33c8ef3c4b5e56b2731f64b1f2fc4c1 (draft PR94, published by the parent; this folder is added by a docs/evidence-only commit, source unchanged since e5ec3b69)
 build: tools/build-windows.sh target/hc-settled, EECH_WIN_TARGET=eech-hc-settled-target (fresh), image sha256:bb10e44a...562be, exit 0, 0 dirty inputs (BUILD-INFO.txt, identities.txt).
-  The retail MinGW compile of the DLL C (including eech-world/csrc/hc_step.c) passed.
+  The retail MinGW build compiled the DLL C and the host's eech-world/csrc/hc_step.c successfully.
 
 public witness (witness-*.out, witness-driver.log; Lebanon retail root, tools/helicopter-movement-windows.ps1): PASS
   missing refusal: the campaign refuses to start without a host move_vehicle callback
@@ -22,6 +22,7 @@ regression pack (pack-report.json/.md, reference-summary-pack.txt; pack.exit 0):
 hosted checks: all eight hosted checks on draft PR94 passed at e5ec3b69 (reported by the parent).
 
 helper compile/lint evidence (container-clippy-and-test-final.log passed). The following earlier attempts failed on helper/test setup or the environment and were fixed and rerun; they are not product regressions:
+  The copied passing log omits one trailing blank line; its full original remains in the local post-fix logs.
   helper-failed-fmt-check-1.log (formatting, fixed with cargo fmt --all)
   helper-failed-test-scoped1.log, -scoped2.log, -scoped3.log (closure/generic compile errors in new test code E0109/E0057/E0282/E0283; fixed)
   helper-failed-clippy-scoped-1.log (clippy expect_used in new test code; fixed with let-else/panic!)
