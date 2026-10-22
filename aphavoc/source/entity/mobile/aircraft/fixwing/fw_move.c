@@ -2276,6 +2276,304 @@ void basic_fixed_wing_movement_absolute (entity *en)
 #define RIVER_DEPTH 3.0
 
 void basic_fixed_wing_death_movement (entity *en)
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+{
+	// The host owns the fall, the contact tests, the settled position, the vector and the dying attitude.  The campaign keeps
+	// what it decides at the original points: the terrain samples and cache, the kill, the effects and sounds, the lifecycle
+	// (DEAD, smoke, the velocity clear), and the roll random draw.  The contact before the kill uses the live centre of
+	// gravity; the settled heights use the one asked afresh after the kill.
+
+	fixed_wing
+		*raw;
+
+	double
+		roll_draw;
+
+	float
+		speed,
+		altitude,
+		terrain_elevation,
+		old_terrain_elevation,
+		cg_to_ground;
+
+	int
+		draw_made;
+
+	vec3d
+		*pos,
+		*velocity,
+		new_pos;
+
+	terrain_classes
+		terrain_class;
+
+	raw = (fixed_wing *) get_local_entity_data (en);
+
+	campaign_movement_require_hosted (en);
+
+	velocity = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_MOTION_VECTOR);
+
+	pos = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
+
+	//
+	// check terrain elevation is valid
+	//
+
+	if (raw->ac.terrain_info.terrain_face == NULL)
+	{
+		ASSERT(point_inside_map_area(pos));
+
+		get_3d_terrain_point_data (pos->x, pos->z, &raw->ac.terrain_info);
+	}
+
+	//
+	// ground test
+	//
+
+	old_terrain_elevation = get_3d_terrain_point_data_elevation (&raw->ac.terrain_info);
+
+	cg_to_ground = get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+
+	if (campaign_movement_fw_contact (en, FALSE, old_terrain_elevation, cg_to_ground, &altitude))
+	{
+		if (get_comms_model() == COMMS_MODEL_SERVER)
+		{
+			//
+			// ensure that the aircraft is actually dead
+			//
+
+			if (get_local_entity_int_value (en, INT_TYPE_ALIVE))
+			{
+				kill_client_server_entity (en);
+			}
+
+			//
+			// stop any engine noise
+			//
+
+			kill_client_server_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING2);
+
+			kill_client_server_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1);
+		}
+
+		//
+		// if aircraft is already on the ground, but not on water, call different movement function
+		//
+
+		if (get_terrain_type_class (get_3d_terrain_point_data_type (&raw->ac.terrain_info)) == TERRAIN_CLASS_LAND)
+		{
+			fixed_wing_crash_movement (en);
+
+			return;
+		}
+	}
+
+	//
+	// the fall, in the original order: the host's candidate position, the DLL samples the terrain under it, then the host
+	// applies gravity to the vector and speed (the speed returned is the one the attitude is normalised by)
+	//
+
+	campaign_movement_fw_fall (en, get_entity_movement_delta_time (), &new_pos);
+
+	get_3d_terrain_point_data (new_pos.x, new_pos.z, &raw->ac.terrain_info);
+
+	speed = campaign_movement_fw_fall_gravity (en, G, get_entity_movement_delta_time ());
+
+	//
+	// check if aircraft has hit the floor
+	//
+
+	terrain_elevation = get_3d_terrain_point_data_elevation (&raw->ac.terrain_info);
+
+	terrain_class = get_terrain_type_class (get_3d_terrain_point_data_type (&raw->ac.terrain_info));
+
+	cg_to_ground = get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+
+	if (campaign_movement_fw_contact (en, TRUE, terrain_elevation, cg_to_ground, &altitude))
+	{
+		int
+			host_class,
+			buried;
+
+		float
+			bury_limit,
+			fresh_cg;
+
+		if (get_comms_model() == COMMS_MODEL_SERVER)
+		{
+			//
+			// ensure that the aircraft is actually dead
+			//
+
+			if (get_local_entity_int_value (en, INT_TYPE_ALIVE))
+			{
+				kill_client_server_entity (en);
+			}
+
+			if (pos->y > old_terrain_elevation)
+			{
+				//
+				// aircraft has hit the terrain this frame - create a "splash"
+				//
+
+				vec3d
+					temp_pos;
+				int
+					power;
+				float
+					total_velocity = fabs(velocity->x) + fabs(velocity->y) + fabs(velocity->z);
+
+				temp_pos.x = new_pos.x;
+				temp_pos.y = terrain_elevation;
+				temp_pos.z = new_pos.z;
+
+				set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &temp_pos);
+
+				switch (get_terrain_type_class(get_3d_terrain_point_data_type (&raw->ac.terrain_info)))
+				{
+					case TERRAIN_CLASS_WATER:
+					{
+						power = (int) (bound(total_velocity / 5, 0, 2));
+						create_client_server_collision_effect (&temp_pos, DYNAMICS_COLLISION_SURFACE_WATER, power);
+						break;
+					}
+					case TERRAIN_CLASS_LAND:
+					case TERRAIN_CLASS_FOREST:
+					{
+						power = (int) (bound(total_velocity / 5, 0, 4));
+						create_client_server_collision_effect (&temp_pos, DYNAMICS_COLLISION_SURFACE_GROUND, power);
+
+						if (power > 1)
+							create_client_server_crater ((crater_types)(CRATER_TYPE_SMALL_EXPLOSION + (power - 2)), pos);
+
+						break;
+					}
+				}
+			}
+		}
+
+		//
+		// the host settles the candidate by the terrain class: 0 solid, 1 sea, 2 river or lake, 3 forest.  The sea and the
+		// forest are buried past half the bounding box, the river past its own depth (the host holds that constant); the host
+		// zeroes the vector when buried and the campaign clears the speed with the lifecycle below.
+		//
+
+		bury_limit = 0.0;
+
+		if (terrain_class == TERRAIN_CLASS_WATER)
+		{
+			host_class = (get_3d_terrain_point_data_type (&raw->ac.terrain_info) == TERRAIN_TYPE_SEA) ? 1 : 2;
+		}
+		else if (terrain_class == TERRAIN_CLASS_FOREST)
+		{
+			host_class = 3;
+		}
+		else
+		{
+			host_class = 0;
+		}
+
+		if ((host_class == 1) || (host_class == 3))
+		{
+			struct OBJECT_3D_BOUNDS
+				*bounding_box;
+
+			vec3d
+				d;
+
+			bounding_box = get_object_3d_bounding_box (get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE));
+
+			d.x = bounding_box->xmax - bounding_box->xmin;
+			d.y = bounding_box->ymax - bounding_box->ymin;
+			d.z = bounding_box->zmax - bounding_box->zmin;
+
+			bury_limit = -(get_3d_vector_magnitude (&d) * 0.5);
+		}
+
+		if (terrain_class == TERRAIN_CLASS_WATER)
+		{
+			//
+			// also if it lands in water kill any fires that may be burning
+			//
+
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_FIRE);
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_EXPLOSION_TRAIL);
+		}
+
+		//
+		// the final heights use the centre of gravity asked afresh after the kill (the destroyed one); the bury tests use
+		// the altitude the host retained from the contact, measured with the live one above
+		//
+
+		fresh_cg = get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+
+		buried = campaign_movement_fw_settle (en, host_class, terrain_elevation, fresh_cg, bury_limit, &new_pos);
+
+		if ((terrain_class != TERRAIN_CLASS_WATER) && (terrain_class != TERRAIN_CLASS_FOREST) && (get_comms_model () == COMMS_MODEL_SERVER))
+		{
+			//
+			// aircraft has hit solid ground: crash sound effect
+			//
+
+			sound_sample_indices
+				sound_sample_index;
+
+			sound_sample_index = SOUND_SAMPLE_INDEX_AIRCRAFT_CRASH;
+
+			create_client_server_sound_effect_entity
+			(
+				en,
+				ENTITY_SIDE_NEUTRAL,
+				ENTITY_SUB_TYPE_EFFECT_SOUND_MISC,
+				SOUND_CHANNEL_SOUND_EFFECT,
+				SOUND_LOCALITY_ALL,
+				NULL,												// position
+				1.0,												// amplification
+				1.0,												// Werewolf pitch
+				TRUE,												// valid sound effect
+				FALSE,											// looping
+				1,													// sample count
+				&sound_sample_index							// sample index list
+			);
+		}
+
+		if (buried)
+		{
+			//
+			// aircraft is no longer visible (the host has zeroed its vector)
+			//
+
+			clear_fixed_wing_velocity (en);
+
+			set_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE, OPERATIONAL_STATE_DEAD);
+
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_LIGHT_DAMAGE_MOVING);
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_HEAVY_DAMAGE_MOVING);
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_LIGHT_DAMAGE_STATIC);
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_HEAVY_DAMAGE_STATIC);
+		}
+	}
+
+	//
+	// update attitude: the roll draw is the campaign's, made only when the vector (after any bury clear) has a horizontal
+	// part and the candidate altitude is over 12; the host recomputes that gate, eases the attitude, then sets the final
+	// position last
+	//
+
+	draw_made = FALSE;
+
+	roll_draw = 0.0;
+
+	if (((velocity->x != 0.0) || (velocity->z != 0.0)) && (altitude > 12.0))
+	{
+		roll_draw = frand1 ();
+
+		draw_made = TRUE;
+	}
+
+	campaign_movement_fw_death_attitude (en, altitude, speed, draw_made, roll_draw, get_entity_movement_delta_time ());
+}
+#else
 {
 
 	fixed_wing
@@ -2665,12 +2963,94 @@ void basic_fixed_wing_death_movement (entity *en)
 
 	set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &new_pos);
 }
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void fixed_wing_crash_movement (entity *en)
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+{
+	// The host owns the candidate position, the friction and slope velocity, the attitude easing and the final position.  The
+	// campaign keeps the terrain sample at the candidate, the velocity clear and the lifecycle at the original points.
+
+	fixed_wing
+		*raw;
+
+	float
+		terrain_elevation,
+		cg_to_ground;
+
+	vec3d
+		new_pos,
+		*face_normal;
+
+	int
+		forest,
+		stopped,
+		at_rest;
+
+	raw = (fixed_wing *) get_local_entity_data (en);
+
+	campaign_movement_require_hosted (en);
+
+	//
+	// work out new position
+	//
+
+	campaign_movement_fw_crash_candidate (en, get_entity_movement_delta_time (), &new_pos);
+
+	get_3d_terrain_point_data (new_pos.x, new_pos.z, &raw->ac.terrain_info);
+
+	terrain_elevation = get_3d_terrain_point_data_elevation (&raw->ac.terrain_info);
+
+	forest = (get_terrain_type_class (get_3d_terrain_point_data_type (&raw->ac.terrain_info)) == TERRAIN_CLASS_FOREST);
+
+	cg_to_ground = get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+
+	face_normal = get_3d_terrain_point_data_normal (&raw->ac.terrain_info);
+
+	//
+	// update velocity: the host applies the friction and the slope push and sets the speed, or reports it stopped and the
+	// campaign clears the velocity here, before the attitude and the position as in the original
+	//
+
+	stopped = campaign_movement_fw_crash_velocity (en, face_normal, forest, terrain_elevation, cg_to_ground, get_entity_movement_delta_time ());
+
+	if (stopped)
+	{
+		clear_fixed_wing_velocity (en);
+	}
+
+	//
+	// update attitude and set the new position (the host's, last)
+	//
+
+	at_rest = campaign_movement_fw_crash_attitude
+	(
+		en,
+		face_normal,
+		aircraft_database [raw->ac.mob.sub_type].destroyed_pitch_offset,
+		aircraft_database [raw->ac.mob.sub_type].destroyed_bank_offset,
+		get_entity_movement_delta_time ()
+	);
+
+	//
+	// if aircraft has come to a stop, remove from update list
+	//
+
+	if (at_rest && (!raw->ac.mob.alive))
+	{
+		set_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE, OPERATIONAL_STATE_DEAD);
+
+		clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_LIGHT_DAMAGE_MOVING);
+		clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_HEAVY_DAMAGE_MOVING);
+		clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_LIGHT_DAMAGE_STATIC);
+		clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_HEAVY_DAMAGE_STATIC);
+	}
+}
+#else
 {
 
 	fixed_wing
@@ -2835,12 +3215,37 @@ void fixed_wing_crash_movement (entity *en)
 		clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_HEAVY_DAMAGE_STATIC);
 	}
 }
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void fixed_wing_impact_movement (entity *en)
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+{
+	// the random draw is the campaign's; the host shoves its vector along the attitude x axis
+
+	float
+		speed;
+
+	int
+		seed;
+
+	campaign_movement_require_hosted (en);
+
+	seed = get_client_server_entity_random_number_seed(en);
+
+	speed = 3.0 * frand1x (&seed);
+
+	if (seed & 1)
+	{
+		speed = -speed;
+	}
+
+	campaign_movement_fw_impact (en, speed);
+}
+#else
 {
 
 	fixed_wing
@@ -2872,6 +3277,7 @@ void fixed_wing_impact_movement (entity *en)
 
 	velocity->z += (speed * raw->ac.mob.xv.z);
 }
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

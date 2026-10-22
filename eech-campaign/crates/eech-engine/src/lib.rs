@@ -225,6 +225,36 @@ pub enum MovementMode {
     FallGravity,
     /// an idle helicopter's linear rotor wind-down by the frame delta
     RotorIdle,
+    /// routed or anti-air wreck slide, phase one: the candidate x/z; the campaign refreshes the terrain there
+    GvDeathCandidate,
+    /// routed or anti-air wreck slide, phase two: the decayed speed and vector, the heading drift and the position
+    GvDeathDecay,
+    /// a falling routed or anti-air wreck: the candidate position, held until the settle
+    GvFallCandidate,
+    /// a falling wreck's gravity: the vector only (the scalar speed is held until the commit)
+    GvFallGravity,
+    /// a falling wreck's contact: stages the settled position, vector and speed and answers the contact `flags`
+    GvFallSettle,
+    /// a wreck's shove along the attitude x axis by the float the campaign drew
+    GvImpact,
+    /// a sinking ship's drag, sink rate and attitude drift; answers the new height
+    ShipSink,
+    /// a routed, anti-air or ship member claims its vector at a wreck, fall or sink entry
+    VehicleVectorSeed,
+    /// a dying fixed wing's attitude and final position, after the campaign's roll draw
+    FwDeathAttitude,
+    /// a fixed-wing crash slide, phase one: the candidate position
+    FwCrashCandidate,
+    /// a fixed-wing crash slide, phase two: friction and slope velocity
+    FwCrashVelocity,
+    /// the staged fall vector written after the effects
+    GvFallVector,
+    /// the staged fall scalar, position and pose written at the end of the falling step
+    GvFallCommit,
+    /// a dying fixed wing settles on or in the terrain class at the stored candidate
+    FwSettle,
+    /// a fixed-wing crash slide, phase three: the attitude, the staged position and the at-rest test
+    FwCrashAttitude,
 }
 
 /// Terrain at the pre-move position, sampled by the campaign.
@@ -302,8 +332,8 @@ pub struct MovementStep {
     pub terrain_class: i32,
     /// `Settle`: the depth beyond which the wreck is buried
     pub bury_limit: f32,
-    /// `Tumble`: the campaign's two random draws (heading, roll), the doubles `frand1 ()` returns: the original
-    /// expression multiplies them in double before narrowing the result
+    /// `Tumble`/`FwDeathAttitude`: the campaign's random draws (heading, roll), the doubles `frand1 ()` returns: the
+    /// original expression multiplies them in double before narrowing the result
     pub draws: [f64; 2],
     /// `CrashBegin`: the pitch and bank offsets
     pub pitch_offset: f32,
@@ -314,6 +344,14 @@ pub struct MovementStep {
     pub forest: bool,
     /// `CrashBegin` the OLD terrain normal, `CrashEnd` the NEW terrain normal
     pub face_normal: [f32; 3],
+    /// `GvFallSettle`: the terrain elevation before the campaign's refresh at the candidate
+    pub old_elevation: f32,
+    /// `GvFallSettle`: the diagonal of the member's bounding box
+    pub bbox_diagonal: f32,
+    /// `GvDeathDecay`: the anti-air decay (the speed loss in double precision) rather than the routed one
+    pub wide: bool,
+    /// `GvFallSettle`: the terrain under the candidate is water
+    pub water: bool,
 }
 
 /// The host's record of the vehicle after the step; the campaign applies it.
@@ -333,6 +371,23 @@ pub struct MovementResult {
     pub rotor: [f32; 3],
     /// `Contact`: the altitude of the measured position over the terrain
     pub altitude: f32,
+    /// per-mode result bits, checked against `result_flags_are_valid` before they reach the engine:
+    /// `GvFallSettle` bit 0 contact, bit 1 splash, bit 2 sunk, bit 3 ground impact (splash and sunk need contact and
+    /// water; ground impact needs contact and excludes both); `FwDeathAttitude` -1 the gate and draw disagree, 0
+    /// nothing eased, 1 eased, 3 eased and the roll draw consumed; `FwCrashVelocity` bit 0 stopped;
+    /// `FwCrashAttitude` bit 0 at rest; every other mode 0
+    pub flags: i32,
+}
+
+/// Whether `flags` is a value `mode` can answer.  The bits are not generic truthiness: each mode defines its own.
+pub fn result_flags_are_valid(mode: MovementMode, flags: i32) -> bool {
+    match mode {
+        // contact alone; contact with the water effects (splash, sunk, both); contact with the ground impact
+        MovementMode::GvFallSettle => matches!(flags, 0 | 1 | 3 | 5 | 7 | 9),
+        MovementMode::FwDeathAttitude => matches!(flags, -1 | 0 | 1 | 3),
+        MovementMode::FwCrashVelocity | MovementMode::FwCrashAttitude => matches!(flags, 0 | 1),
+        _ => flags == 0,
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
@@ -1103,6 +1158,21 @@ where
             sys::EECH_MOVEMENT_IMPACT => MovementMode::Impact,
             sys::EECH_MOVEMENT_FALL_GRAVITY => MovementMode::FallGravity,
             sys::EECH_MOVEMENT_ROTOR_IDLE => MovementMode::RotorIdle,
+            sys::EECH_MOVEMENT_GV_DEATH_CANDIDATE => MovementMode::GvDeathCandidate,
+            sys::EECH_MOVEMENT_GV_DEATH_DECAY => MovementMode::GvDeathDecay,
+            sys::EECH_MOVEMENT_GV_FALL_CANDIDATE => MovementMode::GvFallCandidate,
+            sys::EECH_MOVEMENT_GV_FALL_GRAVITY => MovementMode::GvFallGravity,
+            sys::EECH_MOVEMENT_GV_FALL_SETTLE => MovementMode::GvFallSettle,
+            sys::EECH_MOVEMENT_GV_IMPACT => MovementMode::GvImpact,
+            sys::EECH_MOVEMENT_SHIP_SINK => MovementMode::ShipSink,
+            sys::EECH_MOVEMENT_VEHICLE_VECTOR_SEED => MovementMode::VehicleVectorSeed,
+            sys::EECH_MOVEMENT_FW_DEATH_ATTITUDE => MovementMode::FwDeathAttitude,
+            sys::EECH_MOVEMENT_FW_CRASH_CANDIDATE => MovementMode::FwCrashCandidate,
+            sys::EECH_MOVEMENT_FW_CRASH_VELOCITY => MovementMode::FwCrashVelocity,
+            sys::EECH_MOVEMENT_GV_FALL_VECTOR => MovementMode::GvFallVector,
+            sys::EECH_MOVEMENT_GV_FALL_COMMIT => MovementMode::GvFallCommit,
+            sys::EECH_MOVEMENT_FW_SETTLE => MovementMode::FwSettle,
+            sys::EECH_MOVEMENT_FW_CRASH_ATTITUDE => MovementMode::FwCrashAttitude,
             other => return Err(format!("move_vehicle received unknown mode {other}")),
         };
         let terrain_follow = checked_bool("terrain_follow", source.terrain_follow)?;
@@ -1142,6 +1212,8 @@ where
             ("hc_pitch_offset", source.hc_pitch_offset),
             ("hc_bank_offset", source.hc_bank_offset),
             ("hc_signed_speed", source.hc_signed_speed),
+            ("gv_old_elevation", source.gv_old_elevation),
+            ("gv_bbox_diagonal", source.gv_bbox_diagonal),
         ])?;
         for (name, values) in [
             ("position", &source.position[..]),
@@ -1235,8 +1307,15 @@ where
             signed_speed: source.hc_signed_speed,
             forest: checked_bool("forest", source.forest)?,
             face_normal: source.face_normal,
+            old_elevation: source.gv_old_elevation,
+            bbox_diagonal: source.gv_bbox_diagonal,
+            wide: checked_bool("gv_wide", source.gv_wide)?,
+            water: checked_bool("gv_water", source.gv_water)?,
         };
         let answer = (context.move_vehicle)(request)?;
+        if !result_flags_are_valid(mode, answer.flags) {
+            return Err(format!("move_vehicle host returned flags {} that {mode:?} cannot answer", answer.flags));
+        }
         let pose = answer.pose;
         if !pose.velocity.is_finite()
             || pose
@@ -1262,6 +1341,7 @@ where
                 moved: c_int::from(answer.moved),
                 rotor: answer.rotor,
                 altitude: answer.altitude,
+                flags: answer.flags,
             };
         }
         Ok(())
@@ -1591,6 +1671,7 @@ mod tests {
                 moved: false,
                 rotor: [0.0; 3],
                 altitude: 0.0,
+                flags: 0,
             })
         };
         let mut result: sys::eech_movement_result = unsafe { std::mem::zeroed() };
@@ -1656,6 +1737,21 @@ mod tests {
             (sys::EECH_MOVEMENT_IMPACT, MovementMode::Impact),
             (sys::EECH_MOVEMENT_FALL_GRAVITY, MovementMode::FallGravity),
             (sys::EECH_MOVEMENT_ROTOR_IDLE, MovementMode::RotorIdle),
+            (sys::EECH_MOVEMENT_GV_DEATH_CANDIDATE, MovementMode::GvDeathCandidate),
+            (sys::EECH_MOVEMENT_GV_DEATH_DECAY, MovementMode::GvDeathDecay),
+            (sys::EECH_MOVEMENT_GV_FALL_CANDIDATE, MovementMode::GvFallCandidate),
+            (sys::EECH_MOVEMENT_GV_FALL_GRAVITY, MovementMode::GvFallGravity),
+            (sys::EECH_MOVEMENT_GV_FALL_SETTLE, MovementMode::GvFallSettle),
+            (sys::EECH_MOVEMENT_GV_IMPACT, MovementMode::GvImpact),
+            (sys::EECH_MOVEMENT_SHIP_SINK, MovementMode::ShipSink),
+            (sys::EECH_MOVEMENT_VEHICLE_VECTOR_SEED, MovementMode::VehicleVectorSeed),
+            (sys::EECH_MOVEMENT_FW_DEATH_ATTITUDE, MovementMode::FwDeathAttitude),
+            (sys::EECH_MOVEMENT_FW_CRASH_CANDIDATE, MovementMode::FwCrashCandidate),
+            (sys::EECH_MOVEMENT_FW_CRASH_VELOCITY, MovementMode::FwCrashVelocity),
+            (sys::EECH_MOVEMENT_GV_FALL_VECTOR, MovementMode::GvFallVector),
+            (sys::EECH_MOVEMENT_GV_FALL_COMMIT, MovementMode::GvFallCommit),
+            (sys::EECH_MOVEMENT_FW_SETTLE, MovementMode::FwSettle),
+            (sys::EECH_MOVEMENT_FW_CRASH_ATTITUDE, MovementMode::FwCrashAttitude),
         ];
         for (mode, expected) in modes {
             let mut step = place_step([9.0, 9.0, 9.0]);
@@ -1689,6 +1785,37 @@ mod tests {
             assert_eq!(request.face_normal, [0.0, 0.5, 0.5]);
             assert!(request.terrain.is_none(), "a lifecycle step announces no routed terrain sample");
         }
+    }
+
+    #[test]
+    fn each_mode_answers_only_the_flags_it_defines() {
+        let accepted = |mode, flags: &[i32]| {
+            for flags in flags {
+                assert!(result_flags_are_valid(mode, *flags), "{mode:?} {flags}");
+            }
+            for flags in -2..=10 {
+                assert_eq!(result_flags_are_valid(mode, flags), flags_in(flags, flags_of(mode)), "{mode:?} {flags}");
+            }
+        };
+        fn flags_of(mode: MovementMode) -> &'static [i32] {
+            match mode {
+                MovementMode::GvFallSettle => &[0, 1, 3, 5, 7, 9],
+                MovementMode::FwDeathAttitude => &[-1, 0, 1, 3],
+                MovementMode::FwCrashVelocity | MovementMode::FwCrashAttitude => &[0, 1],
+                _ => &[0],
+            }
+        }
+        fn flags_in(flags: i32, set: &[i32]) -> bool {
+            set.contains(&flags)
+        }
+        accepted(MovementMode::GvFallSettle, &[0, 1, 3, 5, 7, 9]);
+        accepted(MovementMode::FwDeathAttitude, &[-1, 0, 1, 3]);
+        accepted(MovementMode::FwCrashVelocity, &[0, 1]);
+        accepted(MovementMode::FwCrashAttitude, &[0, 1]);
+        accepted(MovementMode::GvDeathDecay, &[0]);
+        accepted(MovementMode::FwSettle, &[0]);
+        // the ground impact and a splash that is not also a contact are not answers
+        assert!(!result_flags_are_valid(MovementMode::GvFallSettle, 8) && !result_flags_are_valid(MovementMode::GvFallSettle, 2));
     }
 
     #[test]

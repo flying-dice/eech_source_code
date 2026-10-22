@@ -7,6 +7,7 @@
 
 static campaign_movement_host current_host;
 static int applying_host_result;
+static void apply_speed (entity *en, float speed);
 
 void campaign_movement_set_host (const campaign_movement_host *host)
 {
@@ -155,7 +156,7 @@ void campaign_movement_place (entity *vehicle)
 		return;
 	}
 	type = get_local_entity_type (vehicle);
-	if ((type != ENTITY_TYPE_ROUTED_VEHICLE) && (type != ENTITY_TYPE_SHIP_VEHICLE) && (type != ENTITY_TYPE_PERSON) && (type != ENTITY_TYPE_FIXED_WING) && (type != ENTITY_TYPE_HELICOPTER))
+	if ((type != ENTITY_TYPE_ROUTED_VEHICLE) && (type != ENTITY_TYPE_ANTI_AIRCRAFT) && (type != ENTITY_TYPE_SHIP_VEHICLE) && (type != ENTITY_TYPE_PERSON) && (type != ENTITY_TYPE_FIXED_WING) && (type != ENTITY_TYPE_HELICOPTER))
 	{
 		return;
 	}
@@ -775,6 +776,467 @@ void campaign_movement_impact (entity *en, float signed_speed)
 	result = ask_lifecycle (&step, FALSE);
 
 	apply_motion_vector (raw, result.motion_vector);
+}
+
+// EEDCS-37: fixed-wing dying and crash.  Same host protocol as the helicopter above, on the fixed_wing part and with no
+// rotor: the fall, gravity, contact and impact use the helicopter modes (the host dispatches by member kind), hc_rotor is
+// zero and ignored, and hc_motion_vector is the DLL copy of the vector the host retains for the member.
+
+static void fill_fw_state (campaign_movement_step *step, const fixed_wing *raw)
+{
+	step->hc_motion_vector[0] = raw->ac.mob.motion_vector.x;
+	step->hc_motion_vector[1] = raw->ac.mob.motion_vector.y;
+	step->hc_motion_vector[2] = raw->ac.mob.motion_vector.z;
+}
+
+static void apply_fw_vector (fixed_wing *raw, const float *motion_vector)
+{
+	raw->ac.mob.motion_vector.x = motion_vector[0];
+	raw->ac.mob.motion_vector.y = motion_vector[1];
+	raw->ac.mob.motion_vector.z = motion_vector[2];
+}
+
+static void take_candidate (vec3d *candidate, const campaign_movement_result *result)
+{
+	candidate->x = result->position[0];
+	candidate->y = result->position[1];
+	candidate->z = result->position[2];
+}
+
+void campaign_movement_fw_fall (entity *en, float delta_seconds, vec3d *candidate)
+{
+	fixed_wing *raw = (fixed_wing *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_FALL);
+	fill_fw_state (&step, raw);
+	step.delta_seconds = delta_seconds;
+	fill_map_bounds (&step);
+
+	result = ask_lifecycle (&step, FALSE);
+
+	take_candidate (candidate, &result);
+}
+
+// the vector raw and the speed through the setter at once, as the legacy death step wrote them (the attitude block reads the
+// post-gravity speed the DLL keeps for it)
+
+float campaign_movement_fw_fall_gravity (entity *en, float gravity, float delta_seconds)
+{
+	fixed_wing *raw = (fixed_wing *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_FALL_GRAVITY);
+	fill_fw_state (&step, raw);
+	step.delta_seconds = delta_seconds;
+	step.hc_gravity = gravity;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	apply_fw_vector (raw, result.motion_vector);
+	apply_speed (en, result.velocity);
+
+	return result.velocity;
+}
+
+int campaign_movement_fw_contact (entity *en, int use_candidate, float elevation, float cg_to_ground, float *altitude)
+{
+	fixed_wing *raw = (fixed_wing *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_CONTACT);
+	fill_fw_state (&step, raw);
+	step.hc_flag = use_candidate ? TRUE : FALSE;
+	step.elevation = elevation;
+	step.hc_cg_to_ground = cg_to_ground;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	*altitude = result.altitude;
+	return result.moved;
+}
+
+// the bury test uses the altitude retained from CONTACT(candidate) (pre-kill CG); cg_to_ground is the fresh post-kill CG and
+// sets only the final heights.  A bury zeroes the host vector; the caller's clear_fixed_wing_velocity announces the zero at the
+// original point.  The vector is written back raw, the candidate updated.
+
+int campaign_movement_fw_settle (entity *en, int terrain_class, float elevation, float cg_to_ground, float bury_limit, vec3d *candidate)
+{
+	fixed_wing *raw = (fixed_wing *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_FW_SETTLE);
+	fill_fw_state (&step, raw);
+	step.hc_terrain_class = terrain_class;
+	step.elevation = elevation;
+	step.hc_cg_to_ground = cg_to_ground;
+	step.hc_bury_limit = bury_limit;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	take_candidate (candidate, &result);
+	apply_fw_vector (raw, result.motion_vector);
+
+	return result.moved;
+}
+
+// the dying attitude block then the final position through the setter, which is last as in the legacy step.  `draw_made` is
+// whether the DLL drew the roll (only when altitude > 12 and the vector has x or z); the host recomputes the gate and a
+// mismatch is fatal.  `speed` is the post-gravity, pre-bury magnitude.
+
+void campaign_movement_fw_death_attitude (entity *en, float altitude, float speed, int draw_made, double roll_draw, float delta_seconds)
+{
+	fixed_wing *raw = (fixed_wing *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_FW_DEATH_ATTITUDE);
+	fill_fw_state (&step, raw);
+	step.delta_seconds = delta_seconds;
+	step.elevation = altitude;
+	step.hc_signed_speed = speed;
+	step.hc_flag = draw_made ? TRUE : FALSE;
+	step.hc_draws[1] = roll_draw;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	if (result.flags < 0)
+	{
+		debug_fatal ("host movement: fixed-wing dying attitude gate disagrees with the campaign's roll draw (%d) for %s", draw_made, step.host_id);
+	}
+	if (result.flags & 1)
+	{
+		memcpy (raw->ac.mob.attitude, result.attitude, sizeof (result.attitude));
+	}
+
+	apply_position (en, result.position);
+}
+
+// the crash slide, phase one: the map-clamped candidate x and z with the held y; the DLL then refreshes the terrain there
+
+void campaign_movement_fw_crash_candidate (entity *en, float delta_seconds, vec3d *candidate)
+{
+	fixed_wing *raw = (fixed_wing *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_FW_CRASH_CANDIDATE);
+	fill_fw_state (&step, raw);
+	step.delta_seconds = delta_seconds;
+	fill_map_bounds (&step);
+
+	result = ask_lifecycle (&step, FALSE);
+
+	take_candidate (candidate, &result);
+}
+
+// phase two, with the NEW normal: friction and the slope push.  The vector is written raw; the speed is set here unless the
+// slide stopped (speed < 1), in which case the caller runs clear_fixed_wing_velocity.  Both are before the attitude and the
+// position, as in the legacy step.  Returns whether the slide stopped.
+
+int campaign_movement_fw_crash_velocity (entity *en, const vec3d *new_normal, int forest, float elevation, float cg_to_ground, float delta_seconds)
+{
+	fixed_wing *raw = (fixed_wing *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_FW_CRASH_VELOCITY);
+	fill_fw_state (&step, raw);
+	step.delta_seconds = delta_seconds;
+	step.face_normal[0] = new_normal->x;
+	step.face_normal[1] = new_normal->y;
+	step.face_normal[2] = new_normal->z;
+	step.forest = forest ? TRUE : FALSE;
+	step.elevation = elevation;
+	step.hc_cg_to_ground = cg_to_ground;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	apply_fw_vector (raw, result.motion_vector);
+
+	if (!(result.flags & 1))
+	{
+		apply_speed (en, result.velocity);
+	}
+	return (result.flags & 1);
+}
+
+// phase three: the attitude eases to the NEW normal plus the destroyed offsets (raw), then the position setter.  Returns the
+// at-rest test without the DLL's !alive term (the speed is the host's retained post-slope magnitude).
+
+int campaign_movement_fw_crash_attitude (entity *en, const vec3d *new_normal, float pitch_offset, float bank_offset, float delta_seconds)
+{
+	fixed_wing *raw = (fixed_wing *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_FW_CRASH_ATTITUDE);
+	fill_fw_state (&step, raw);
+	step.delta_seconds = delta_seconds;
+	step.face_normal[0] = new_normal->x;
+	step.face_normal[1] = new_normal->y;
+	step.face_normal[2] = new_normal->z;
+	step.hc_pitch_offset = pitch_offset;
+	step.hc_bank_offset = bank_offset;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	memcpy (raw->ac.mob.attitude, result.attitude, sizeof (result.attitude));
+	apply_position (en, result.position);
+
+	return (result.flags & 1);
+}
+
+void campaign_movement_fw_impact (entity *en, float signed_speed)
+{
+	fixed_wing *raw = (fixed_wing *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_IMPACT);
+	fill_fw_state (&step, raw);
+	step.hc_signed_speed = signed_speed;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	apply_fw_vector (raw, result.motion_vector);
+}
+
+// EEDCS-37: routed, anti-air and ship wreck/fall/sink.  The host claims the vehicle vector at the first VEHICLE_VECTOR_SEED
+// (adopted only while it retains none) and every later mode sends the DLL's copy in hc_motion_vector, which the host validates
+// bit-identically against the held vector and refuses on a difference.  The host's result is written
+// back raw or through the setters inside apply_begin/end, in the order the legacy step wrote it.
+
+static void fill_vehicle_vector (campaign_movement_step *step, const vehicle *raw)
+{
+	step->hc_motion_vector[0] = raw->mob.motion_vector.x;
+	step->hc_motion_vector[1] = raw->mob.motion_vector.y;
+	step->hc_motion_vector[2] = raw->mob.motion_vector.z;
+}
+
+static void apply_vehicle_vector (vehicle *raw, const float *motion_vector)
+{
+	raw->mob.motion_vector.x = motion_vector[0];
+	raw->mob.motion_vector.y = motion_vector[1];
+	raw->mob.motion_vector.z = motion_vector[2];
+}
+
+static void apply_speed (entity *en, float speed)
+{
+	campaign_movement_apply_begin ();
+	set_local_entity_float_value (en, FLOAT_TYPE_VELOCITY, speed);
+	campaign_movement_apply_end ();
+}
+
+void campaign_movement_vehicle_vector_seed (entity *vehicle_en)
+{
+	campaign_movement_step step;
+
+	if (applying_host_result || !current_host.move_vehicle)
+	{
+		return;
+	}
+	if (!campaign_roster_host_id (vehicle_en))
+	{
+		return;
+	}
+	begin_step (&step, vehicle_en, CAMPAIGN_MOVEMENT_VEHICLE_VECTOR_SEED);
+	fill_vehicle_vector (&step, (const vehicle *) get_local_entity_data (vehicle_en));
+	ask_lifecycle (&step, FALSE);
+}
+
+// wreck slide, phase one: the candidate x/z (no map bound, as the legacy ASSERT) before the DLL refreshes the terrain there
+
+void campaign_movement_gv_death_candidate (entity *en, float delta_seconds, float *candidate_xz)
+{
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_GV_DEATH_CANDIDATE);
+	fill_vehicle_vector (&step, (const vehicle *) get_local_entity_data (en));
+	step.delta_seconds = delta_seconds;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	candidate_xz[0] = result.position[0];
+	candidate_xz[1] = result.position[2];
+}
+
+// phase two (after the terrain refresh at the candidate): the speed through the setter, the decayed vector and attitude raw,
+// then the position through the setter, as the legacy step wrote them.  candidate_xz travels in waypoint[0] and waypoint[2].
+// Returns the new speed (the routed DEAD gate on speed == 0 stays with the caller, which decided before the candidate)
+
+float campaign_movement_gv_death_decay (entity *en, const float *candidate_xz, float elevation, float cg_to_ground, float delta_seconds, int anti_air)
+{
+	vehicle *raw = (vehicle *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_GV_DEATH_DECAY);
+	fill_vehicle_vector (&step, raw);
+	step.delta_seconds = delta_seconds;
+	step.waypoint[0] = candidate_xz[0];
+	step.waypoint[2] = candidate_xz[1];
+	step.elevation = elevation;
+	step.hc_cg_to_ground = cg_to_ground;
+	step.gv_wide = anti_air ? TRUE : FALSE;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	apply_speed (en, result.velocity);
+	apply_vehicle_vector (raw, result.motion_vector);
+	memcpy (raw->mob.attitude, result.attitude, sizeof (result.attitude));
+	apply_position (en, result.position);
+
+	return result.velocity;
+}
+
+void campaign_movement_gv_fall_candidate (entity *en, float delta_seconds, vec3d *candidate)
+{
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_GV_FALL_CANDIDATE);
+	fill_vehicle_vector (&step, (const vehicle *) get_local_entity_data (en));
+	step.delta_seconds = delta_seconds;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	candidate->x = result.position[0];
+	candidate->y = result.position[1];
+	candidate->z = result.position[2];
+}
+
+// gravity on the vector after the refresh, written raw in place (the legacy `velocity->y -= G * dt`); the speed is set at the
+// end of the legacy step (after the settle), so it is not applied here
+
+void campaign_movement_gv_fall_gravity (entity *en, float gravity, float delta_seconds)
+{
+	vehicle *raw = (vehicle *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_GV_FALL_GRAVITY);
+	fill_vehicle_vector (&step, raw);
+	step.delta_seconds = delta_seconds;
+	step.hc_gravity = gravity;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	apply_vehicle_vector (raw, result.motion_vector);
+}
+
+// contact / splash / sunk / ground impact over the terrain at the candidate: returns the flags (bit0 contact, bit1 splash,
+// bit2 sunk, bit3 ground impact), the settled position and the final speed for the DLL's effects.  The host STAGES the
+// result (vector zeroed when sunk, y zeroed on ground, settled position, scalar speed); nothing is written here
+
+int campaign_movement_gv_fall_settle (entity *en, const vec3d *candidate, int water, float old_elevation, float elevation, float cg_to_ground, float bbox_diagonal, vec3d *settled, float *speed)
+{
+	vehicle *raw = (vehicle *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_GV_FALL_SETTLE);
+	fill_vehicle_vector (&step, raw);
+	step.waypoint[0] = candidate->x;
+	step.waypoint[1] = candidate->y;
+	step.waypoint[2] = candidate->z;
+	step.gv_water = water ? TRUE : FALSE;
+	step.gv_old_elevation = old_elevation;
+	step.elevation = elevation;
+	step.hc_cg_to_ground = cg_to_ground;
+	step.gv_bbox_diagonal = bbox_diagonal;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	/* nothing is applied: the host stages the settled position, vector and speed; the DLL's effects run first */
+
+	settled->x = result.position[0];
+	settled->y = result.position[1];
+	settled->z = result.position[2];
+	*speed = result.velocity;
+
+	return result.flags;
+}
+
+// where the legacy step wrote the vector (sunk: before DEAD; ground: after the effect): the staged vector, raw.  The host
+// compares the DLL copy with the retained vector first, so an effect that wrote the vector itself is refused
+
+void campaign_movement_gv_fall_vector (entity *en)
+{
+	vehicle *raw = (vehicle *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_GV_FALL_VECTOR);
+	fill_vehicle_vector (&step, raw);
+
+	result = ask_lifecycle (&step, FALSE);
+
+	apply_vehicle_vector (raw, result.motion_vector);
+}
+
+// the end of the legacy falling step, after the effects and the DEAD: the host finalises its staged state (retained vector,
+// scalar speed, settled pose) and the DLL then writes the speed through the setter and the position through the setter,
+// in that order.  An intermediate collision POSITION (an explicit PLACE) has not lost the staged candidate
+
+void campaign_movement_gv_commit (entity *en)
+{
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_GV_FALL_COMMIT);
+	fill_vehicle_vector (&step, (const vehicle *) get_local_entity_data (en));
+
+	result = ask_lifecycle (&step, FALSE);
+
+	apply_speed (en, result.velocity);
+	apply_position (en, result.position);
+}
+
+// the shove along the attitude x axis (attitude row 0 is xv); the DLL drew the speed from the entity's seed and narrowed it to a float, as the original stored it
+
+void campaign_movement_gv_impact (entity *en, float speed)
+{
+	vehicle *raw = (vehicle *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_GV_IMPACT);
+	fill_vehicle_vector (&step, raw);
+	step.hc_signed_speed = speed;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	apply_vehicle_vector (raw, result.motion_vector);
+}
+
+// ship sinking: the candidate position, drag, sink rate, pitch/roll drift and attitude, written as the legacy step did:
+// vector raw, speed through the setter, attitude raw, then the position through the setter.  Returns the new height for the
+// DLL's destroy test (the DLL keeps clear_ship_fires and the destroy)
+
+float campaign_movement_ship_sink (entity *en, float delta_seconds)
+{
+	vehicle *raw = (vehicle *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_SHIP_SINK);
+	fill_vehicle_vector (&step, raw);
+	step.delta_seconds = delta_seconds;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	apply_vehicle_vector (raw, result.motion_vector);
+	apply_speed (en, result.velocity);
+	memcpy (raw->mob.attitude, result.attitude, sizeof (result.attitude));
+	apply_position (en, result.position);
+
+	return result.position[1];
 }
 
 // the final pose of an infantry step, as the legacy step wrote it: attitude, position through the setter, speed, motion vector

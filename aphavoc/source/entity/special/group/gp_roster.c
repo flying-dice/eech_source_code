@@ -804,6 +804,7 @@ void campaign_roster_link_member (entity *group, entity *member)
 		switch (descriptor.entity_type)
 		{
 			case ENTITY_TYPE_ROUTED_VEHICLE:
+			case ENTITY_TYPE_ANTI_AIRCRAFT:
 				descriptor.movement_kind = CAMPAIGN_MOVEMENT_KIND_ROUTED;
 				break;
 			case ENTITY_TYPE_SHIP_VEHICLE:

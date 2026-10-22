@@ -173,6 +173,94 @@ extern "C" {
         stopped: *mut c_int,
     );
     fn eech_hc_impact(motion_vector: *mut f32, attitude: *const f32, signed_speed: f32);
+    fn eech_gv_death_candidate(position: *const f32, motion_vector: *const f32, delta_seconds: f32, out_xz: *mut f32);
+    fn eech_gv_death_decay(
+        candidate_xz: *const f32,
+        elevation: f32,
+        cg_to_ground: f32,
+        motion_vector: *const f32,
+        attitude: *const f32,
+        delta_seconds: f32,
+        wide: c_int,
+        out_position: *mut f32,
+        out_motion_vector: *mut f32,
+        out_speed: *mut f32,
+        out_attitude: *mut f32,
+    );
+    fn eech_gv_fall_candidate(position: *const f32, motion_vector: *const f32, delta_seconds: f32, out_position: *mut f32);
+    fn eech_gv_fall_gravity(motion_vector: *mut f32, gravity: f32, delta_seconds: f32) -> f32;
+    fn eech_gv_fall_settle(
+        position: *const f32,
+        candidate: *const f32,
+        motion_vector: *mut f32,
+        is_water: c_int,
+        old_elevation: f32,
+        elevation: f32,
+        cg_to_ground: f32,
+        bbox_diagonal: f32,
+        out_position: *mut f32,
+        out_speed: *mut f32,
+    ) -> c_int;
+    fn eech_gv_impact(motion_vector: *mut f32, speed: f32, xv: *const f32);
+    fn eech_ship_sink(
+        position: *const f32,
+        motion_vector: *const f32,
+        attitude: *const f32,
+        delta_seconds: f32,
+        out_position: *mut f32,
+        out_motion_vector: *mut f32,
+        out_speed: *mut f32,
+        out_attitude: *mut f32,
+    );
+    fn eech_fw_crash_candidate(
+        position: *const f32,
+        motion_vector: *const f32,
+        delta_seconds: f32,
+        map_min: *const f32,
+        map_max: *const f32,
+        candidate: *mut f32,
+    );
+    fn eech_fw_crash_velocity(
+        position: *const f32,
+        candidate: *mut f32,
+        motion_vector: *mut f32,
+        face_normal: *const f32,
+        forest: c_int,
+        elevation: f32,
+        cg_to_ground: f32,
+        delta_seconds: f32,
+        speed_out: *mut f32,
+        stopped: *mut c_int,
+    );
+    fn eech_fw_crash_attitude(
+        attitude: *mut f32,
+        face_normal: *const f32,
+        speed: f32,
+        destroyed_pitch_offset: f32,
+        destroyed_bank_offset: f32,
+        delta_seconds: f32,
+        at_rest: *mut c_int,
+    );
+    fn eech_fw_settle(
+        candidate: *mut f32,
+        held_position: *const f32,
+        motion_vector: *mut f32,
+        terrain_class: c_int,
+        elevation: f32,
+        cg_to_ground: f32,
+        contact_altitude: f32,
+        bury_limit: f32,
+        buried: *mut c_int,
+    );
+    fn eech_fw_death_attitude(
+        attitude: *mut f32,
+        motion_vector: *const f32,
+        speed: f32,
+        altitude: f32,
+        draw_made: c_int,
+        roll_draw: f64,
+        delta_seconds: f32,
+    ) -> c_int;
 }
 
 /// Position in EECH world metres, speed in m/s, a row-major 3x3 attitude.
@@ -362,6 +450,36 @@ pub enum LifecycleMode {
     CrashEnd,
     /// the shove along the attitude x axis
     Impact,
+    /// a dying routed or anti-air vehicle's slide candidate (x and z); the pose is untouched
+    GvDeathCandidate,
+    /// the slide's decay at the candidate, after the campaign's terrain refresh there
+    GvDeathDecay,
+    /// a falling routed or anti-air vehicle's candidate position; opens the fall
+    GvFallCandidate,
+    /// gravity on the vehicle's vector only, after the campaign's terrain refresh at the candidate
+    GvFallGravity,
+    /// stage the fall's settled position, vector and speed; nothing is applied
+    GvFallSettle,
+    /// the shove along the attitude x axis of a routed or anti-air wreck
+    GvImpact,
+    /// a dying ship's sink step
+    ShipSink,
+    /// the host adopts the vehicle's vector when it retains none; later it must match bit for bit
+    VehicleVectorSeed,
+    /// a dying fixed-wing aircraft's final attitude; the settled candidate becomes its position
+    FwDeathAttitude,
+    /// a fixed-wing crash slide's first phase: the candidate position
+    FwCrashCandidate,
+    /// the crash slide's second phase: the slope's effect on the vector and the speed
+    FwCrashVelocity,
+    /// the fall's staged vector, applied after the campaign's effects when it changed
+    GvFallVector,
+    /// the fall's end: the staged scalar and pose
+    GvFallCommit,
+    /// settle a fixed-wing aircraft's stored candidate on the terrain class
+    FwSettle,
+    /// the crash slide's last phase: the attitude and the final position
+    FwCrashAttitude,
 }
 
 impl LifecycleMode {
@@ -379,6 +497,56 @@ impl LifecycleMode {
             LifecycleMode::CrashBegin => "crash_begin",
             LifecycleMode::CrashEnd => "crash_end",
             LifecycleMode::Impact => "impact",
+            LifecycleMode::GvDeathCandidate => "gv_death_candidate",
+            LifecycleMode::GvDeathDecay => "gv_death_decay",
+            LifecycleMode::GvFallCandidate => "gv_fall_candidate",
+            LifecycleMode::GvFallGravity => "gv_fall_gravity",
+            LifecycleMode::GvFallSettle => "gv_fall_settle",
+            LifecycleMode::GvImpact => "gv_impact",
+            LifecycleMode::ShipSink => "ship_sink",
+            LifecycleMode::VehicleVectorSeed => "vehicle_vector_seed",
+            LifecycleMode::FwDeathAttitude => "fw_death_attitude",
+            LifecycleMode::FwCrashCandidate => "fw_crash_candidate",
+            LifecycleMode::FwCrashVelocity => "fw_crash_velocity",
+            LifecycleMode::GvFallVector => "gv_fall_vector",
+            LifecycleMode::GvFallCommit => "gv_fall_commit",
+            LifecycleMode::FwSettle => "fw_settle",
+            LifecycleMode::FwCrashAttitude => "fw_crash_attitude",
+        }
+    }
+
+    /// Whether a mobile of `kind` may make this step. The rotor, tumble, settle and crash modes are a helicopter's;
+    /// fall, gravity, contact and impact are shared by both aircraft; the routed and anti-air vehicles' wreck and fall
+    /// steps are `Routed`'s (the anti-air gun is bound as a routed vehicle), the sink step is a ship's and the
+    /// vector seed is the one step both vehicle kinds make.
+    pub fn allows(self, kind: Kind) -> bool {
+        match self {
+            LifecycleMode::RotorSet
+            | LifecycleMode::RotorAlive
+            | LifecycleMode::RotorDown
+            | LifecycleMode::RotorIdle
+            | LifecycleMode::Settle
+            | LifecycleMode::Tumble
+            | LifecycleMode::CrashBegin
+            | LifecycleMode::CrashEnd => kind == Kind::Helicopter,
+            LifecycleMode::Fall | LifecycleMode::FallGravity | LifecycleMode::Contact | LifecycleMode::Impact => {
+                matches!(kind, Kind::Helicopter | Kind::FixedWing)
+            }
+            LifecycleMode::FwDeathAttitude
+            | LifecycleMode::FwCrashCandidate
+            | LifecycleMode::FwCrashVelocity
+            | LifecycleMode::FwSettle
+            | LifecycleMode::FwCrashAttitude => kind == Kind::FixedWing,
+            LifecycleMode::GvDeathCandidate
+            | LifecycleMode::GvDeathDecay
+            | LifecycleMode::GvFallCandidate
+            | LifecycleMode::GvFallGravity
+            | LifecycleMode::GvFallSettle
+            | LifecycleMode::GvImpact
+            | LifecycleMode::GvFallVector
+            | LifecycleMode::GvFallCommit => kind == Kind::Routed,
+            LifecycleMode::ShipSink => kind == Kind::Ship,
+            LifecycleMode::VehicleVectorSeed => matches!(kind, Kind::Routed | Kind::Ship),
         }
     }
 }
@@ -411,11 +579,22 @@ pub struct Lifecycle {
     pub face_normal: [f32; 3],
     pub map_min: [f32; 3],
     pub map_max: [f32; 3],
+    /// `GvFallSettle`: the terrain elevation before the fall's refresh, for the splash test
+    pub old_elevation: f32,
+    /// `GvFallSettle`: the vehicle's bounding box diagonal, for the sunk test
+    pub bbox_diagonal: f32,
+    /// `GvDeathDecay`: the anti-air gun's double-precision decay literal
+    pub wide: bool,
+    /// `GvFallSettle`: the terrain under the candidate is water
+    pub water: bool,
+    /// The DLL's mirror of a staged candidate (`GvDeathDecay`: x and z; `GvFallSettle`: x, y and z), validated
+    /// bit for bit against the one the host retained
+    pub waypoint: [f32; 3],
 }
 
 #[derive(Clone, Copy, Debug)]
 pub enum Request {
-    /// a helicopter's rotor, dying, crash or impact step
+    /// a rotor, dying, wreck, fall, sink, crash or impact step of the kinds `LifecycleMode::allows` names
     Lifecycle(Lifecycle),
     /// a routed vehicle steps towards the waypoint
     Advance(Advance),
@@ -455,15 +634,16 @@ impl Request {
         }
     }
 
-    /// The kind that may make this request; `None` for a placement, which any kind may receive.
-    fn kind(&self) -> Option<Kind> {
+    /// Whether a mobile of `kind` may make this request; any kind may receive a placement.
+    fn allows(&self, kind: Kind) -> bool {
         match self {
-            Request::Advance(_) | Request::Stop => Some(Kind::Routed),
-            Request::ShipMove(_) => Some(Kind::Ship),
-            Request::PersonBegin(_) | Request::PersonEnd(_) => Some(Kind::Person),
-            Request::FixedWingMove(_) => Some(Kind::FixedWing),
-            Request::HelicopterBegin(_) | Request::HelicopterEnd(_) | Request::Lifecycle(_) => Some(Kind::Helicopter),
-            Request::Place { .. } => None,
+            Request::Advance(_) | Request::Stop => kind == Kind::Routed,
+            Request::ShipMove(_) => kind == Kind::Ship,
+            Request::PersonBegin(_) | Request::PersonEnd(_) => kind == Kind::Person,
+            Request::FixedWingMove(_) => kind == Kind::FixedWing,
+            Request::HelicopterBegin(_) | Request::HelicopterEnd(_) => kind == Kind::Helicopter,
+            Request::Lifecycle(step) => step.mode.allows(kind),
+            Request::Place { .. } => true,
         }
     }
 }
@@ -483,6 +663,10 @@ pub struct Outcome {
     pub rotor: [f32; 3],
     /// a helicopter contact's altitude over the terrain
     pub altitude: f32,
+    /// The mode's result bits (see the engine's `result_flags_are_valid`): `GvFallSettle` 1 contact, 2 splash, 4 sunk,
+    /// 8 ground impact; `FwDeathAttitude` -1 gate mismatch (nothing mutated), 1 eased, 3 eased with the roll draw
+    /// consumed; `FwCrashVelocity` 1 stopped; `FwCrashAttitude` 1 at rest. Zero for every other request.
+    pub flags: i32,
 }
 
 /// An infantry step between its two phases.
@@ -512,6 +696,51 @@ struct Record {
     contact_altitude: Option<f32>,
     /// A crash slide's first phase ran and the second is owed. Nothing else may be requested until it is made.
     crash_pending: bool,
+    /// A routed, anti-air or ship wreck's vector as the host holds it, which is also the vector the campaign's copy
+    /// holds. Adopted by the seed only when absent, and then validated bit for bit; live movement (a step that
+    /// legitimately changes the vector) releases it so the next wreck or fall establishes the current one. A placement
+    /// never touches it.
+    vehicle_vector: Option<[f32; 3]>,
+    /// A dying vehicle's slide candidate (x and z), between its candidate and its decay.
+    death_candidate: Option<[f32; 2]>,
+    /// A falling routed or anti-air vehicle's open fall, from its candidate to its commit.
+    fall: Option<GroundFall>,
+    /// A dying fixed-wing aircraft's post-gravity, pre-bury speed, which its death attitude is verified against.
+    fw_speed: Option<f32>,
+    /// A fixed-wing crash slide between its candidate and its attitude. The candidate itself is `candidate`.
+    fw_crash: Option<CrashStage>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum FallStage {
+    /// the candidate position is retained
+    Candidate,
+    /// gravity changed the vehicle's vector
+    Gravity,
+    /// the settled position, vector, speed and flags are staged; nothing is applied
+    Settled,
+    /// the staged vector was applied after the campaign's effects
+    Vectored,
+}
+
+/// A falling vehicle's retained state. The prior scalar speed is the pose's `velocity`, which only the commit changes, so
+/// the campaign's effects see the original scalar while gravity has changed the vector.
+#[derive(Clone, Copy, Debug)]
+struct GroundFall {
+    stage: FallStage,
+    candidate: [f32; 3],
+    staged_vector: [f32; 3],
+    staged_position: [f32; 3],
+    staged_speed: f32,
+}
+
+#[derive(Clone, Copy, Debug)]
+enum CrashStage {
+    Candidate,
+    /// the slope's phase ran; the post-slope speed is kept for the at-rest test even when the stop cleared the scalar
+    Velocity {
+        speed: f32,
+    },
 }
 
 #[derive(Default)]
@@ -554,6 +783,11 @@ impl Movers {
                 candidate: None,
                 contact_altitude: None,
                 crash_pending: false,
+                vehicle_vector: None,
+                death_candidate: None,
+                fall: None,
+                fw_speed: None,
+                fw_crash: None,
             },
         );
         Ok(())
@@ -574,7 +808,7 @@ impl Movers {
             .mobiles
             .get_mut(host_id)
             .ok_or_else(|| format!("host.move_vehicle: unknown host id {host_id}"))?;
-        if request.kind().is_some_and(|kind| kind != record.kind) {
+        if !request.allows(record.kind) {
             return Err(format!(
                 "host.move_vehicle: {} is not a request for {:?} {host_id}",
                 request.name(),
@@ -604,6 +838,20 @@ impl Movers {
             }
             (_, false) => {}
         }
+        if !matches!(request, Request::Place { .. } | Request::Lifecycle(_)) {
+            let open = if record.fall.is_some() {
+                Some("its fall is open")
+            } else if record.fw_crash.is_some() {
+                Some("its crash slide is open")
+            } else if record.death_candidate.is_some() {
+                Some("its death slide is pending (gv_death_decay first)")
+            } else {
+                None
+            };
+            if let Some(open) = open {
+                return Err(format!("host.move_vehicle: {} for {host_id} while {open}", request.name()));
+            }
+        }
         let crash_end = matches!(&request, Request::Lifecycle(step) if step.mode == LifecycleMode::CrashEnd);
         match (crash_end, record.crash_pending) {
             (true, false) => {
@@ -628,14 +876,17 @@ impl Movers {
         }
         match request {
             Request::Advance(advance) => {
+                release_vehicle_vector(record);
                 let rotated = advance_pose(&mut record.pose, &advance);
                 Ok(settled(record.pose, rotated, [0.0; 3]))
             }
             Request::Stop => {
+                release_vehicle_vector(record);
                 record.pose.velocity = 0.0;
                 Ok(settled(record.pose, false, [0.0; 3]))
             }
             Request::ShipMove(ship) => {
+                release_vehicle_vector(record);
                 let motion_vector = ship_pose(&mut record.pose, &ship);
                 Ok(settled(record.pose, false, motion_vector))
             }
@@ -695,11 +946,43 @@ fn held_rotor(record: &Record, host_id: &str, mirror: &[f32; 3]) -> Result<[f32;
     Ok(held)
 }
 
-/// One helicopter lifecycle step. Everything is validated (mirrors, phase) before the record changes.
+/// Live movement changes the vehicle's vector legitimately, so the next wreck, fall or sink establishes it afresh.
+fn release_vehicle_vector(record: &mut Record) {
+    record.vehicle_vector = None;
+    record.death_candidate = None;
+}
+
+/// One lifecycle step. Everything is validated (mirrors, phase) before the record changes. The vehicle and the
+/// fixed-wing-only modes have their own steps; fall, gravity, contact and impact are shared by both aircraft, where only
+/// a helicopter has a rotor.
 fn lifecycle(record: &mut Record, host_id: &str, step: &Lifecycle) -> Result<Outcome, String> {
     let mode = step.mode;
+    match mode {
+        LifecycleMode::GvDeathCandidate
+        | LifecycleMode::GvDeathDecay
+        | LifecycleMode::GvFallCandidate
+        | LifecycleMode::GvFallGravity
+        | LifecycleMode::GvFallSettle
+        | LifecycleMode::GvFallVector
+        | LifecycleMode::GvFallCommit
+        | LifecycleMode::GvImpact
+        | LifecycleMode::ShipSink
+        | LifecycleMode::VehicleVectorSeed => return vehicle_lifecycle(record, host_id, step),
+        LifecycleMode::FwSettle
+        | LifecycleMode::FwDeathAttitude
+        | LifecycleMode::FwCrashCandidate
+        | LifecycleMode::FwCrashVelocity
+        | LifecycleMode::FwCrashAttitude => return fixed_wing_lifecycle(record, host_id, step),
+        _ => {}
+    }
+    if record.fw_crash.is_some() {
+        return Err(format!("host.move_vehicle: {} for {host_id} while its crash slide is open", mode.name()));
+    }
+    let helicopter = record.kind == Kind::Helicopter;
     let mut vector = held_vector(record, host_id, &step.motion_vector)?;
-    let mut rotor = if mode == LifecycleMode::RotorSet {
+    let mut rotor = if !helicopter {
+        [0.0; 3]
+    } else if mode == LifecycleMode::RotorSet {
         step.rotor
     } else {
         held_rotor(record, host_id, &step.rotor)?
@@ -760,7 +1043,8 @@ fn lifecycle(record: &mut Record, host_id: &str, step: &Lifecycle) -> Result<Out
             }
             record.candidate = Some(fallen);
             record.contact_altitude = None;
-            // the candidate only: the pose waits for the tumble
+            record.fw_speed = None;
+            // the candidate only: the pose waits for the tumble (a helicopter's) or the death attitude (a fixed-wing's)
             outcome.pose.position = fallen;
         }
         LifecycleMode::FallGravity => {
@@ -768,6 +1052,9 @@ fn lifecycle(record: &mut Record, host_id: &str, step: &Lifecycle) -> Result<Out
             // SAFETY: as above.
             unsafe { eech_hc_fall_gravity(vector.as_mut_ptr(), step.gravity, dt, &mut speed) };
             record.pose.velocity = speed;
+            if !helicopter {
+                record.fw_speed = Some(speed);
+            }
             outcome.pose = record.pose;
         }
         LifecycleMode::Contact => {
@@ -870,8 +1157,401 @@ fn lifecycle(record: &mut Record, host_id: &str, step: &Lifecycle) -> Result<Out
             // SAFETY: as above; the attitude is 9 floats.
             unsafe { eech_hc_impact(vector.as_mut_ptr(), record.pose.attitude.as_ptr(), step.signed_speed) };
         }
+        _ => unreachable!("routed above"),
     }
-    record.rotor = Some(rotor);
+    if helicopter {
+        record.rotor = Some(rotor);
+    }
+    record.motion_vector = Some(vector);
+    outcome.motion_vector = vector;
+    Ok(outcome)
+}
+
+/// Refused (before anything is mutated) unless the campaign's mirror equals what the host holds, bit for bit.
+fn check_mirror(what: &str, host_id: &str, held: &[f32], mirror: &[f32]) -> Result<(), String> {
+    if let Some(index) = held.iter().zip(mirror).position(|(a, b)| a.to_bits() != b.to_bits()) {
+        return Err(format!(
+            "host.move_vehicle: the campaign's {what}[{index}] ({} against {}) for {host_id} differs from the host's record (a write the host did not make)",
+            mirror[index], held[index]
+        ));
+    }
+    Ok(())
+}
+
+/// The open fall, refused unless it is at one of the `wanted` stages.
+fn open_fall(record: &Record, host_id: &str, mode: LifecycleMode, wanted: &[FallStage]) -> Result<GroundFall, String> {
+    match record.fall {
+        Some(fall) if wanted.contains(&fall.stage) => Ok(fall),
+        Some(fall) => Err(format!(
+            "host.move_vehicle: {} for {host_id} out of order (the fall is at {:?})",
+            mode.name(),
+            fall.stage
+        )),
+        None => Err(format!(
+            "host.move_vehicle: {} for {host_id} without an open fall (gv_fall_candidate first)",
+            mode.name()
+        )),
+    }
+}
+
+/// One routed, anti-air or ship wreck, fall, sink or impact step. The campaign's copy of the vector is validated against the
+/// host's claim on every mode, and everything is validated before the record changes.
+fn vehicle_lifecycle(record: &mut Record, host_id: &str, step: &Lifecycle) -> Result<Outcome, String> {
+    let mode = step.mode;
+    if record.fall.is_some()
+        && !matches!(
+            mode,
+            LifecycleMode::GvFallGravity | LifecycleMode::GvFallSettle | LifecycleMode::GvFallVector | LifecycleMode::GvFallCommit
+        )
+    {
+        return Err(format!("host.move_vehicle: {} for {host_id} while its fall is open", mode.name()));
+    }
+    // a staged death slide ends only with its own decay (or a placement, which keeps it): nothing else may overwrite or abandon it
+    if record.death_candidate.is_some() && mode != LifecycleMode::GvDeathDecay {
+        return Err(format!(
+            "host.move_vehicle: {} for {host_id} while its death slide is pending (gv_death_decay first)",
+            mode.name()
+        ));
+    }
+    if mode == LifecycleMode::VehicleVectorSeed {
+        let held = match record.vehicle_vector {
+            Some(held) => {
+                check_mirror("motion_vector", host_id, &held, &step.motion_vector)?;
+                held
+            }
+            None => step.motion_vector,
+        };
+        record.vehicle_vector = Some(held);
+        return Ok(settled(record.pose, false, held));
+    }
+    let claim = record.vehicle_vector.ok_or_else(|| {
+        format!(
+            "host.move_vehicle: {} for {host_id} without a claimed vehicle vector (vehicle_vector_seed first)",
+            mode.name()
+        )
+    })?;
+    check_mirror("motion_vector", host_id, &claim, &step.motion_vector)?;
+    let dt = step.delta_seconds;
+    let mut outcome = settled(record.pose, false, claim);
+    match mode {
+        LifecycleMode::GvDeathCandidate => {
+            let mut xz = [0.0f32; 2];
+            // SAFETY: the position and vector are 3 floats and the output 2.
+            unsafe { eech_gv_death_candidate(record.pose.position.as_ptr(), claim.as_ptr(), dt, xz.as_mut_ptr()) };
+            record.death_candidate = Some(xz);
+            outcome.pose.position[0] = xz[0];
+            outcome.pose.position[2] = xz[1];
+        }
+        LifecycleMode::GvDeathDecay => {
+            let candidate = record
+                .death_candidate
+                .ok_or_else(|| format!("host.move_vehicle: gv_death_decay for {host_id} without a death candidate (gv_death_candidate first)"))?;
+            check_mirror("candidate", host_id, &candidate, &[step.waypoint[0], step.waypoint[2]])?;
+            let mut position = [0.0f32; 3];
+            let mut vector = [0.0f32; 3];
+            let mut speed = 0.0f32;
+            let mut attitude = [0.0f32; 9];
+            // SAFETY: as above; the attitude is 9 floats written.
+            unsafe {
+                eech_gv_death_decay(
+                    candidate.as_ptr(),
+                    step.elevation,
+                    step.cg_to_ground,
+                    claim.as_ptr(),
+                    record.pose.attitude.as_ptr(),
+                    dt,
+                    c_int::from(step.wide),
+                    position.as_mut_ptr(),
+                    vector.as_mut_ptr(),
+                    &mut speed,
+                    attitude.as_mut_ptr(),
+                );
+            }
+            record.death_candidate = None;
+            record.vehicle_vector = Some(vector);
+            record.pose.position = position;
+            record.pose.velocity = speed;
+            record.pose.attitude = attitude;
+            outcome.pose = record.pose;
+            outcome.motion_vector = vector;
+        }
+        LifecycleMode::GvFallCandidate => {
+            let mut candidate = [0.0f32; 3];
+            // SAFETY: as above.
+            unsafe { eech_gv_fall_candidate(record.pose.position.as_ptr(), claim.as_ptr(), dt, candidate.as_mut_ptr()) };
+            record.fall = Some(GroundFall {
+                stage: FallStage::Candidate,
+                candidate,
+                staged_vector: claim,
+                staged_position: candidate,
+                staged_speed: record.pose.velocity,
+            });
+            outcome.pose.position = candidate;
+        }
+        LifecycleMode::GvFallGravity => {
+            let mut fall = open_fall(record, host_id, mode, &[FallStage::Candidate])?;
+            let mut vector = claim;
+            // SAFETY: as above. Gravity changes the vector only; the scalar stays the pose's until the commit.
+            let _ = unsafe { eech_gv_fall_gravity(vector.as_mut_ptr(), step.gravity, dt) };
+            fall.stage = FallStage::Gravity;
+            record.fall = Some(fall);
+            record.vehicle_vector = Some(vector);
+            outcome.motion_vector = vector;
+        }
+        LifecycleMode::GvFallSettle => {
+            let mut fall = open_fall(record, host_id, mode, &[FallStage::Gravity])?;
+            check_mirror("candidate", host_id, &fall.candidate, &step.waypoint)?;
+            let mut vector = claim;
+            let mut position = [0.0f32; 3];
+            let mut speed = 0.0f32;
+            // SAFETY: as above. Nothing is applied: the position, vector and speed are staged for the commit.
+            let flags = unsafe {
+                eech_gv_fall_settle(
+                    record.pose.position.as_ptr(),
+                    fall.candidate.as_ptr(),
+                    vector.as_mut_ptr(),
+                    c_int::from(step.water),
+                    step.old_elevation,
+                    step.elevation,
+                    step.cg_to_ground,
+                    step.bbox_diagonal,
+                    position.as_mut_ptr(),
+                    &mut speed,
+                )
+            };
+            fall.stage = FallStage::Settled;
+            fall.staged_vector = vector;
+            fall.staged_position = position;
+            fall.staged_speed = speed;
+            record.fall = Some(fall);
+            outcome.pose.position = position;
+            outcome.pose.velocity = speed;
+            outcome.motion_vector = vector;
+            outcome.flags = flags;
+        }
+        LifecycleMode::GvFallVector => {
+            let mut fall = open_fall(record, host_id, mode, &[FallStage::Settled])?;
+            fall.stage = FallStage::Vectored;
+            record.fall = Some(fall);
+            record.vehicle_vector = Some(fall.staged_vector);
+            outcome.motion_vector = fall.staged_vector;
+        }
+        LifecycleMode::GvFallCommit => {
+            let fall = open_fall(record, host_id, mode, &[FallStage::Settled, FallStage::Vectored])?;
+            if let Err(error) = check_mirror("staged motion_vector", host_id, &claim, &fall.staged_vector) {
+                return Err(format!("{error}; gv_fall_vector was not applied before the commit"));
+            }
+            record.fall = None;
+            record.pose.velocity = fall.staged_speed;
+            record.pose.position = fall.staged_position;
+            outcome.pose = record.pose;
+        }
+        LifecycleMode::GvImpact => {
+            let mut vector = claim;
+            // SAFETY: as above; the attitude is 9 floats and its first row is the x axis.
+            unsafe { eech_gv_impact(vector.as_mut_ptr(), step.signed_speed, record.pose.attitude.as_ptr()) };
+            record.vehicle_vector = Some(vector);
+            outcome.motion_vector = vector;
+        }
+        LifecycleMode::ShipSink => {
+            let mut position = [0.0f32; 3];
+            let mut vector = [0.0f32; 3];
+            let mut speed = 0.0f32;
+            let mut attitude = [0.0f32; 9];
+            // SAFETY: as above.
+            unsafe {
+                eech_ship_sink(
+                    record.pose.position.as_ptr(),
+                    claim.as_ptr(),
+                    record.pose.attitude.as_ptr(),
+                    dt,
+                    position.as_mut_ptr(),
+                    vector.as_mut_ptr(),
+                    &mut speed,
+                    attitude.as_mut_ptr(),
+                );
+            }
+            record.vehicle_vector = Some(vector);
+            record.pose.position = position;
+            record.pose.velocity = speed;
+            record.pose.attitude = attitude;
+            outcome.pose = record.pose;
+            outcome.motion_vector = vector;
+        }
+        _ => unreachable!("not a vehicle mode"),
+    }
+    Ok(outcome)
+}
+
+/// One fixed-wing death settle, death attitude or crash-slide step (fall, gravity, contact and impact are `lifecycle`'s).
+/// The staged candidate is the record's; a placement between phases keeps it.
+fn fixed_wing_lifecycle(record: &mut Record, host_id: &str, step: &Lifecycle) -> Result<Outcome, String> {
+    let mode = step.mode;
+    let mut vector = held_vector(record, host_id, &step.motion_vector)?;
+    let dt = step.delta_seconds;
+    let mut outcome = settled(record.pose, false, vector);
+    let crash = record.fw_crash;
+    match (mode, crash) {
+        (LifecycleMode::FwCrashVelocity, Some(CrashStage::Candidate)) | (LifecycleMode::FwCrashAttitude, Some(CrashStage::Velocity { .. })) => {}
+        (LifecycleMode::FwCrashVelocity | LifecycleMode::FwCrashAttitude, _) => {
+            return Err(format!(
+                "host.move_vehicle: {} for {host_id} out of order (the crash slide is at {crash:?})",
+                mode.name()
+            ));
+        }
+        (_, Some(_)) => {
+            return Err(format!("host.move_vehicle: {} for {host_id} while its crash slide is open", mode.name()));
+        }
+        _ => {}
+    }
+    match mode {
+        LifecycleMode::FwSettle => {
+            let mut candidate = record
+                .candidate
+                .ok_or_else(|| format!("host.move_vehicle: fw_settle for {host_id} without a stored candidate position (fall first)"))?;
+            let altitude = record
+                .contact_altitude
+                .ok_or_else(|| format!("host.move_vehicle: fw_settle for {host_id} without the contact of its candidate (contact with the candidate first)"))?;
+            let mut buried: c_int = 0;
+            // SAFETY: as above; the held position is the pose after the campaign's splash placement.
+            unsafe {
+                eech_fw_settle(
+                    candidate.as_mut_ptr(),
+                    record.pose.position.as_ptr(),
+                    vector.as_mut_ptr(),
+                    step.terrain_class,
+                    step.elevation,
+                    step.cg_to_ground,
+                    altitude,
+                    step.bury_limit,
+                    &mut buried,
+                );
+            }
+            // the contact altitude stays: the death attitude is verified against it, and the position is applied there
+            record.candidate = Some(candidate);
+            outcome.pose.position = candidate;
+            outcome.moved = buried != 0;
+        }
+        LifecycleMode::FwDeathAttitude => {
+            let candidate = record
+                .candidate
+                .ok_or_else(|| format!("host.move_vehicle: fw_death_attitude for {host_id} without a stored candidate position (fall first)"))?;
+            let altitude = record
+                .contact_altitude
+                .ok_or_else(|| format!("host.move_vehicle: fw_death_attitude for {host_id} without the contact of its candidate"))?;
+            let speed = record
+                .fw_speed
+                .ok_or_else(|| format!("host.move_vehicle: fw_death_attitude for {host_id} without a stored post-gravity speed (fall_gravity first)"))?;
+            check_mirror("altitude", host_id, &[altitude], &[step.elevation])?;
+            check_mirror("speed", host_id, &[speed], &[step.signed_speed])?;
+            let mut attitude = record.pose.attitude;
+            // SAFETY: as above; the attitude is 9 floats read then written.
+            let flags = unsafe {
+                eech_fw_death_attitude(
+                    attitude.as_mut_ptr(),
+                    vector.as_ptr(),
+                    speed,
+                    altitude,
+                    c_int::from(step.flag),
+                    step.draws[1],
+                    dt,
+                )
+            };
+            outcome.flags = flags;
+            if flags >= 0 {
+                if flags & 1 != 0 {
+                    record.pose.attitude = attitude;
+                }
+                // always: the staged candidate is the final position, even when the attitude gate is false
+                record.pose.position = candidate;
+                record.candidate = None;
+                record.contact_altitude = None;
+                record.fw_speed = None;
+                outcome.pose = record.pose;
+            }
+            return Ok(outcome);
+        }
+        LifecycleMode::FwCrashCandidate => {
+            if record.candidate.is_some() {
+                return Err(format!(
+                    "host.move_vehicle: fw_crash_candidate for {host_id} while a candidate position is stored"
+                ));
+            }
+            let mut slid = [0.0f32; 3];
+            // SAFETY: as above.
+            unsafe {
+                eech_fw_crash_candidate(
+                    record.pose.position.as_ptr(),
+                    vector.as_ptr(),
+                    dt,
+                    step.map_min.as_ptr(),
+                    step.map_max.as_ptr(),
+                    slid.as_mut_ptr(),
+                );
+            }
+            record.candidate = Some(slid);
+            record.fw_crash = Some(CrashStage::Candidate);
+            outcome.pose.position = slid;
+        }
+        LifecycleMode::FwCrashVelocity => {
+            let mut slid = record
+                .candidate
+                .ok_or_else(|| format!("host.move_vehicle: fw_crash_velocity for {host_id} without a stored candidate position"))?;
+            let mut speed = 0.0f32;
+            let mut stopped: c_int = 0;
+            // SAFETY: as above.
+            unsafe {
+                eech_fw_crash_velocity(
+                    record.pose.position.as_ptr(),
+                    slid.as_mut_ptr(),
+                    vector.as_mut_ptr(),
+                    step.face_normal.as_ptr(),
+                    c_int::from(step.forest),
+                    step.elevation,
+                    step.cg_to_ground,
+                    dt,
+                    &mut speed,
+                    &mut stopped,
+                );
+            }
+            record.candidate = Some(slid);
+            record.fw_crash = Some(CrashStage::Velocity { speed });
+            if stopped == 0 {
+                record.pose.velocity = speed;
+            }
+            // when stopped the scalar is the campaign's to clear (a placement); the slope's speed stays retained
+            outcome.pose.position = slid;
+            outcome.pose.velocity = speed;
+            outcome.flags = c_int::from(stopped != 0);
+        }
+        LifecycleMode::FwCrashAttitude => {
+            let Some(CrashStage::Velocity { speed }) = crash else {
+                unreachable!("checked above")
+            };
+            let slid = record.candidate.expect("stored with the crash candidate");
+            let mut attitude = record.pose.attitude;
+            let mut at_rest: c_int = 0;
+            // SAFETY: as above; the attitude is 9 floats read then written.
+            unsafe {
+                eech_fw_crash_attitude(
+                    attitude.as_mut_ptr(),
+                    step.face_normal.as_ptr(),
+                    speed,
+                    step.pitch_offset,
+                    step.bank_offset,
+                    dt,
+                    &mut at_rest,
+                );
+            }
+            record.pose.attitude = attitude;
+            record.pose.position = slid;
+            record.candidate = None;
+            record.fw_crash = None;
+            outcome.pose = record.pose;
+            outcome.flags = c_int::from(at_rest != 0);
+        }
+        _ => unreachable!("not a fixed-wing mode"),
+    }
     record.motion_vector = Some(vector);
     outcome.motion_vector = vector;
     Ok(outcome)
@@ -900,6 +1580,7 @@ fn settled(pose: Pose, rotated: bool, motion_vector: [f32; 3]) -> Outcome {
         pending: false,
         rotor: [0.0; 3],
         altitude: 0.0,
+        flags: 0,
     }
 }
 
@@ -1070,6 +1751,7 @@ fn begin_person(record: &mut Record, begin: &PersonBegin) -> Outcome {
             pending: true,
             rotor: [0.0; 3],
             altitude: 0.0,
+            flags: 0,
         };
     }
     settle_person(&mut record.pose, &pending, false, 0.0)
@@ -1474,7 +2156,7 @@ mod tests {
             Request::HelicopterBegin(helicopter_begin_request()),
             Request::HelicopterEnd(helicopter_end_request()),
         ];
-        let own = |kind: Kind, request: &Request| request.kind() == Some(kind);
+        let own = |kind: Kind, request: &Request| request.allows(kind);
         for request in requests {
             for (kind, movers) in [
                 (Kind::Routed, &mut routed),
@@ -1876,6 +2558,11 @@ mod tests {
             face_normal: [0.0, 1.0, 0.0],
             map_min: [-1.0e6; 3],
             map_max: [1.0e6; 3],
+            old_elevation: 0.0,
+            bbox_diagonal: 0.0,
+            wide: false,
+            water: false,
+            waypoint: [0.0; 3],
         }
     }
 
@@ -2024,94 +2711,6 @@ mod tests {
         assert_within(&tumbled.pose.position, &[10.0, 100.0, 70.0], 1.0e-4);
         let error = run(&mut movers, tumbled.pose, tumble).unwrap_err();
         assert!(error.contains("without a stored candidate"), "{error}");
-    }
-
-    /// The original dying tumble is `heading += PI * 0.2 * frand1 () * dt` with `PI` a float constant and `frand1 ()` a
-    /// double: the product is formed in double and only the sum is narrowed. A draw narrowed to float first lands the
-    /// heading or roll one float step away for some draws, which is what moved a recorded wreck's height from 0.75041 to
-    /// 0.75040 in the native pack.
-    #[test]
-    fn a_tumble_forms_its_draws_in_double_as_the_original_expression_does() {
-        // the original's `PI` (3.14159265359f) is this float
-        const PI: f32 = std::f32::consts::PI;
-        const DT: f32 = 1.0 / 30.0;
-        let heading_for = |draw: f64| (0.0 + f64::from(PI) * 0.2 * draw * f64::from(DT)) as f32;
-        let roll_for = |draw: f64| (0.0 - f64::from(PI) * 0.2 * draw * f64::from(DT)) as f32;
-        let tumble = |heading: f64, roll: f64| {
-            let mut attitude = LEVEL;
-            // SAFETY: the attitude is 9 floats read then written.
-            unsafe { eech_hc_tumble(attitude.as_mut_ptr(), heading, roll, DT) };
-            attitude
-        };
-        // a draw whose exact product gives back `want` as the float sum, searched among the neighbouring doubles
-        let reproducing = |want: f32, form: &dyn Fn(f64) -> f32, sign: f64, spacing: f64| {
-            let centre = sign * f64::from(want) / (f64::from(PI) * 0.2 * f64::from(DT));
-            (0..64)
-                .flat_map(|step| [centre + f64::from(step) * spacing, centre - f64::from(step) * spacing])
-                .find(|candidate| form(*candidate).to_bits() == want.to_bits())
-        };
-        let mut separated = 0;
-        for k in 1..=2000u32 {
-            let heading_draw = f64::from(k) * (1.0 / 32767.0);
-            let roll_draw = f64::from((k * 7) % 32767 + 1) * (1.0 / 32767.0);
-            let narrowed = (f64::from(heading_draw as f32), f64::from(roll_draw as f32));
-            let heading = heading_for(heading_draw);
-            let roll = roll_for(roll_draw);
-            if heading.to_bits() == heading_for(narrowed.0).to_bits() && roll.to_bits() == roll_for(narrowed.1).to_bits() {
-                continue;
-            }
-            // the draws as transported (double) against the draws as the old float transport delivered them
-            let exact = tumble(heading_draw, roll_draw);
-            assert_ne!(
-                exact,
-                tumble(narrowed.0, narrowed.1),
-                "draw {k}: the float-narrowed draws give the same attitude"
-            );
-            // the host's attitude is the one for the float heading and roll the original expression assigns: the same
-            // attitude arises from any pair of draws that forms those floats in double
-            let (Some(h), Some(r)) = (reproducing(heading, &heading_for, 1.0, 1.0e-12), reproducing(roll, &roll_for, -1.0, 1.0e-12)) else {
-                continue;
-            };
-            assert_eq!(
-                exact,
-                tumble(h, r),
-                "draw {k}: the attitude is not the one for heading {heading} and roll {roll}"
-            );
-            separated += 1;
-        }
-        assert!(separated >= 50, "only {separated} draws separate the float transport from the double one");
-    }
-
-    /// The helper alone is not the transport: the step must hand the helper the draws it received, undiminished.
-    #[test]
-    fn the_tumble_step_hands_the_helper_the_draws_it_received_in_double() {
-        const DT: f32 = 1.0 / 30.0;
-        let start = at(10.0, 100.0, 20.0);
-        let mut checked = 0;
-        for k in 1..=2000u32 {
-            let draws = [f64::from(k) * (1.0 / 32767.0), f64::from((k * 7) % 32767 + 1) * (1.0 / 32767.0)];
-            let direct = |heading: f64, roll: f64| {
-                let mut attitude = start.attitude;
-                // SAFETY: the attitude is 9 floats read then written.
-                unsafe { eech_hc_tumble(attitude.as_mut_ptr(), heading, roll, DT) };
-                attitude
-            };
-            let exact = direct(draws[0], draws[1]);
-            if exact == direct(f64::from(draws[0] as f32), f64::from(draws[1] as f32)) {
-                continue;
-            }
-            let mut movers = flying(start, SEED);
-            let mut fall = life(LifecycleMode::Fall, ROTOR, SEED);
-            fall.map_max = [1.0e6, 1.0e6, 1.0e6];
-            run(&mut movers, start, fall).unwrap();
-            let mut tumble = life(LifecycleMode::Tumble, ROTOR, SEED);
-            tumble.delta_seconds = DT;
-            tumble.draws = draws;
-            let tumbled = run(&mut movers, start, tumble).unwrap();
-            assert_eq!(tumbled.pose.attitude, exact, "draw {k}: the step did not use the draws it was given");
-            checked += 1;
-        }
-        assert!(checked >= 50, "only {checked} draws separate the float transport from the double one");
     }
 
     #[test]
@@ -2329,5 +2928,517 @@ mod tests {
             .bind("v", Kind::Helicopter, pose(0.0, 0.0), Some(SEED), Some([f32::NAN, 0.0, 0.0]))
             .unwrap_err();
         assert!(error.contains("non-finite rotor"), "{error}");
+    }
+
+    /// The original dying tumble is `heading += PI * 0.2 * frand1 () * dt` with `PI` a float constant and `frand1 ()` a
+    /// double: the product is formed in double and only the sum is narrowed. A draw narrowed to float first lands the
+    /// heading or roll one float step away for some draws, which is what moved a recorded wreck's height from 0.75041 to
+    /// 0.75040 in the native pack.
+    #[test]
+    fn a_tumble_forms_its_draws_in_double_as_the_original_expression_does() {
+        // the original's `PI` (3.14159265359f) is this float
+        const PI: f32 = std::f32::consts::PI;
+        const DT: f32 = 1.0 / 30.0;
+        let heading_for = |draw: f64| (0.0 + f64::from(PI) * 0.2 * draw * f64::from(DT)) as f32;
+        let roll_for = |draw: f64| (0.0 - f64::from(PI) * 0.2 * draw * f64::from(DT)) as f32;
+        let tumble = |heading: f64, roll: f64| {
+            let mut attitude = LEVEL;
+            // SAFETY: the attitude is 9 floats read then written.
+            unsafe { eech_hc_tumble(attitude.as_mut_ptr(), heading, roll, DT) };
+            attitude
+        };
+        // a draw whose exact product gives back `want` as the float sum, searched among the neighbouring doubles
+        let reproducing = |want: f32, form: &dyn Fn(f64) -> f32, sign: f64, spacing: f64| {
+            let centre = sign * f64::from(want) / (f64::from(PI) * 0.2 * f64::from(DT));
+            (0..64)
+                .flat_map(|step| [centre + f64::from(step) * spacing, centre - f64::from(step) * spacing])
+                .find(|candidate| form(*candidate).to_bits() == want.to_bits())
+        };
+        let mut separated = 0;
+        for k in 1..=2000u32 {
+            let heading_draw = f64::from(k) * (1.0 / 32767.0);
+            let roll_draw = f64::from((k * 7) % 32767 + 1) * (1.0 / 32767.0);
+            let narrowed = (f64::from(heading_draw as f32), f64::from(roll_draw as f32));
+            let heading = heading_for(heading_draw);
+            let roll = roll_for(roll_draw);
+            if heading.to_bits() == heading_for(narrowed.0).to_bits() && roll.to_bits() == roll_for(narrowed.1).to_bits() {
+                continue;
+            }
+            // the draws as transported (double) against the draws as the old float transport delivered them
+            let exact = tumble(heading_draw, roll_draw);
+            assert_ne!(
+                exact,
+                tumble(narrowed.0, narrowed.1),
+                "draw {k}: the float-narrowed draws give the same attitude"
+            );
+            // the host's attitude is the one for the float heading and roll the original expression assigns: the same
+            // attitude arises from any pair of draws that forms those floats in double
+            let (Some(h), Some(r)) = (reproducing(heading, &heading_for, 1.0, 1.0e-12), reproducing(roll, &roll_for, -1.0, 1.0e-12)) else {
+                continue;
+            };
+            assert_eq!(
+                exact,
+                tumble(h, r),
+                "draw {k}: the attitude is not the one for heading {heading} and roll {roll}"
+            );
+            separated += 1;
+        }
+        assert!(separated >= 50, "only {separated} draws separate the float transport from the double one");
+    }
+
+    /// The helper alone is not the transport: the step must hand the helper the draws it received, undiminished.
+    #[test]
+    fn the_tumble_step_hands_the_helper_the_draws_it_received_in_double() {
+        const DT: f32 = 1.0 / 30.0;
+        let start = at(10.0, 100.0, 20.0);
+        let mut checked = 0;
+        for k in 1..=2000u32 {
+            let draws = [f64::from(k) * (1.0 / 32767.0), f64::from((k * 7) % 32767 + 1) * (1.0 / 32767.0)];
+            let direct = |heading: f64, roll: f64| {
+                let mut attitude = start.attitude;
+                // SAFETY: the attitude is 9 floats read then written.
+                unsafe { eech_hc_tumble(attitude.as_mut_ptr(), heading, roll, DT) };
+                attitude
+            };
+            let exact = direct(draws[0], draws[1]);
+            if exact == direct(f64::from(draws[0] as f32), f64::from(draws[1] as f32)) {
+                continue;
+            }
+            let mut movers = flying(start, SEED);
+            let mut fall = life(LifecycleMode::Fall, ROTOR, SEED);
+            fall.map_max = [1.0e6, 1.0e6, 1.0e6];
+            run(&mut movers, start, fall).unwrap();
+            let mut tumble = life(LifecycleMode::Tumble, ROTOR, SEED);
+            tumble.delta_seconds = DT;
+            tumble.draws = draws;
+            let tumbled = run(&mut movers, start, tumble).unwrap();
+            assert_eq!(tumbled.pose.attitude, exact, "draw {k}: the step did not use the draws it was given");
+            checked += 1;
+        }
+        assert!(checked >= 50, "only {checked} draws separate the float transport from the double one");
+    }
+
+    // ---- the routed, anti-air and ship lifecycle, and the fixed-wing death settle (EEDCS-37) ----
+
+    /// the vector a test vehicle moves with: 5 m/s along a 3-4 diagonal
+    const GROUND: [f32; 3] = [3.0, 0.0, 4.0];
+
+    fn moving(y: f32) -> Pose {
+        Pose {
+            position: [0.0, y, 0.0],
+            velocity: 7.0,
+            attitude: LEVEL,
+        }
+    }
+
+    /// a vehicle of `kind` that has claimed `vector`
+    fn vehicle(kind: Kind, start: Pose, vector: [f32; 3]) -> Movers {
+        let mut movers = movers(kind, start);
+        let seeded = run(&mut movers, start, life(LifecycleMode::VehicleVectorSeed, [0.0; 3], vector)).unwrap();
+        assert_eq!(seeded.motion_vector, vector);
+        movers
+    }
+
+    fn vehicle_step(mode: LifecycleMode, vector: [f32; 3], delta_seconds: f32) -> Lifecycle {
+        let mut step = life(mode, [0.0; 3], vector);
+        step.delta_seconds = delta_seconds;
+        step
+    }
+
+    fn heading_of(a: &[f32; 9]) -> f32 {
+        a[6].atan2(a[8])
+    }
+
+    fn pitch_of(a: &[f32; 9]) -> f32 {
+        a[7].asin()
+    }
+
+    fn roll_of(a: &[f32; 9]) -> f32 {
+        (-a[1]).atan2(a[4])
+    }
+
+    /// a routed vehicle 10 m up, taken through its fall candidate and gravity (`gravity` for half a second) to its
+    /// settle over a terrain at 10 m with the CG 1 m up: (movers, the start pose, the held vector, the settle's answer)
+    fn settled_fall(water: bool, old_elevation: f32, bbox_diagonal: f32, gravity: f32) -> (Movers, Pose, [f32; 3], Outcome) {
+        let start = moving(10.0);
+        let mut movers = vehicle(Kind::Routed, start, GROUND);
+        let staged = run(&mut movers, start, vehicle_step(LifecycleMode::GvFallCandidate, GROUND, 1.0)).unwrap();
+        assert_within(&staged.pose.position, &[3.0, 10.0, 4.0], 1.0e-5);
+        let mut pull = vehicle_step(LifecycleMode::GvFallGravity, GROUND, 0.5);
+        pull.gravity = gravity;
+        let pulled = run(&mut movers, start, pull).unwrap();
+        let mut settle = vehicle_step(LifecycleMode::GvFallSettle, pulled.motion_vector, 0.5);
+        settle.waypoint = [3.0, 10.0, 4.0];
+        settle.water = water;
+        settle.old_elevation = old_elevation;
+        settle.elevation = 10.0;
+        settle.cg_to_ground = 1.0;
+        settle.bbox_diagonal = bbox_diagonal;
+        let settled = run(&mut movers, start, settle).unwrap();
+        (movers, start, pulled.motion_vector, settled)
+    }
+
+    #[test]
+    fn a_vehicle_vector_is_claimed_once_and_only_live_movement_releases_it() {
+        let start = moving(0.0);
+        let mut movers = vehicle(Kind::Routed, start, GROUND);
+        let again = run(&mut movers, start, life(LifecycleMode::VehicleVectorSeed, [0.0; 3], GROUND)).unwrap();
+        assert_eq!(again.motion_vector, GROUND);
+        let error = run(&mut movers, start, life(LifecycleMode::VehicleVectorSeed, [0.0; 3], [1.0, 2.0, 3.0])).unwrap_err();
+        assert!(error.contains("motion_vector[0]"), "{error}");
+        // a placement leaves the claim: the campaign's other vector is still a foreign one
+        movers
+            .step(
+                "v",
+                start,
+                Request::Place {
+                    motion_vector: [9.0, 9.0, 9.0],
+                },
+            )
+            .unwrap();
+        let error = run(&mut movers, start, life(LifecycleMode::VehicleVectorSeed, [0.0; 3], [9.0, 9.0, 9.0])).unwrap_err();
+        assert!(error.contains("motion_vector[0]"), "{error}");
+        let impact = run(&mut movers, start, life(LifecycleMode::GvImpact, [0.0; 3], GROUND)).unwrap();
+        assert_eq!(impact.motion_vector, GROUND);
+        // a vehicle that never claimed one cannot be stepped
+        let mut unclaimed = self::movers(Kind::Routed, start);
+        let error = run(&mut unclaimed, start, vehicle_step(LifecycleMode::GvDeathCandidate, GROUND, 1.0)).unwrap_err();
+        assert!(error.contains("without a claimed vehicle vector"), "{error}");
+        // live movement releases the claim: the next claim is a fresh one
+        let stopped = movers.step("v", start, Request::Stop).unwrap();
+        run(&mut movers, stopped.pose, life(LifecycleMode::VehicleVectorSeed, [0.0; 3], [1.0, 2.0, 3.0])).unwrap();
+    }
+
+    #[test]
+    fn a_ground_fall_stages_its_results_and_only_the_commit_applies_them() {
+        let (mut movers, start, held, settled) = settled_fall(false, 0.0, 5.0, 10.0);
+        assert_within(&held, &[3.0, -5.0, 4.0], 1.0e-5);
+        // solid ground: contact (1) and ground impact (8); the settled vector keeps no vertical part and the scalar is its length
+        assert_eq!(settled.flags, 9);
+        assert_within(&settled.pose.position, &[0.0, 11.0, 0.0], 1.0e-5);
+        assert_within(&settled.motion_vector, &GROUND, 1.0e-5);
+        assert_within(&[settled.pose.velocity], &[5.0], 1.0e-5);
+        // nothing was applied: the commit before the vector is refused, and the refusal keeps the fall
+        let error = run(&mut movers, start, vehicle_step(LifecycleMode::GvFallCommit, held, 0.5)).unwrap_err();
+        assert!(error.contains("gv_fall_vector was not applied"), "{error}");
+        let vectored = run(&mut movers, start, vehicle_step(LifecycleMode::GvFallVector, held, 0.5)).unwrap();
+        assert_within(&vectored.motion_vector, &GROUND, 1.0e-5);
+        let committed = run(&mut movers, start, vehicle_step(LifecycleMode::GvFallCommit, vectored.motion_vector, 0.5)).unwrap();
+        assert_within(&committed.pose.position, &[0.0, 11.0, 0.0], 1.0e-5);
+        assert_within(&[committed.pose.velocity], &[5.0], 1.0e-5);
+        // the fall is over: a second commit is stale, and the vehicle can claim again the vector it ended with
+        let error = run(
+            &mut movers,
+            committed.pose,
+            vehicle_step(LifecycleMode::GvFallCommit, vectored.motion_vector, 0.5),
+        )
+        .unwrap_err();
+        assert!(!error.is_empty());
+        let seeded = run(
+            &mut movers,
+            committed.pose,
+            life(LifecycleMode::VehicleVectorSeed, [0.0; 3], vectored.motion_vector),
+        )
+        .unwrap();
+        assert_eq!(seeded.motion_vector, vectored.motion_vector);
+    }
+
+    #[test]
+    fn an_open_fall_keeps_its_order_and_refuses_every_other_step() {
+        let start = moving(10.0);
+        let mut movers = vehicle(Kind::Routed, start, GROUND);
+        run(&mut movers, start, vehicle_step(LifecycleMode::GvFallCandidate, GROUND, 1.0)).unwrap();
+        for mode in [
+            LifecycleMode::GvDeathCandidate,
+            LifecycleMode::GvImpact,
+            LifecycleMode::VehicleVectorSeed,
+            LifecycleMode::GvFallCandidate,
+        ] {
+            assert!(run(&mut movers, start, vehicle_step(mode, GROUND, 1.0)).is_err(), "{mode:?}");
+        }
+        assert!(movers.step("v", start, Request::Stop).is_err());
+        // a later phase before its turn is refused, and the fall is still at its first stage
+        let mut settle = vehicle_step(LifecycleMode::GvFallSettle, GROUND, 1.0);
+        settle.waypoint = [3.0, 10.0, 4.0];
+        assert!(run(&mut movers, start, settle).is_err());
+        assert!(run(&mut movers, start, vehicle_step(LifecycleMode::GvFallVector, GROUND, 1.0)).is_err());
+        run(&mut movers, start, vehicle_step(LifecycleMode::GvFallGravity, GROUND, 1.0)).unwrap();
+    }
+
+    #[test]
+    fn a_water_fall_splashes_and_a_deep_one_sinks_with_nothing_left_to_move() {
+        // water at 10 m under a vehicle that was 10 m up over a terrain at 5 m: contact (1) and splash (2); it keeps its x and z
+        let (_, _, _, splashed) = settled_fall(true, 5.0, 5.0, 0.0);
+        assert_eq!(splashed.flags, 3);
+        assert_within(&splashed.pose.position, &[0.0, 10.0, 0.0], 1.0e-5);
+        assert_within(&splashed.motion_vector, &GROUND, 1.0e-5);
+        // a bounding box shorter than the depth sinks it: the vector is zeroed (sunk, 4)
+        let (_, _, _, sunk) = settled_fall(true, 5.0, 0.5, 0.0);
+        assert_eq!(sunk.flags, 7);
+        assert_eq!(sunk.motion_vector, [0.0; 3]);
+        // a settle whose candidate mirror differs is refused before anything is staged, and the fall can still settle
+        let start = moving(10.0);
+        let mut movers = vehicle(Kind::Routed, start, GROUND);
+        run(&mut movers, start, vehicle_step(LifecycleMode::GvFallCandidate, GROUND, 1.0)).unwrap();
+        let pulled = run(&mut movers, start, vehicle_step(LifecycleMode::GvFallGravity, GROUND, 0.5)).unwrap();
+        let mut settle = vehicle_step(LifecycleMode::GvFallSettle, pulled.motion_vector, 0.5);
+        settle.waypoint = [3.0, 10.0, 5.0];
+        assert!(run(&mut movers, start, settle).is_err());
+        settle.waypoint = [3.0, 10.0, 4.0];
+        run(&mut movers, start, settle).unwrap();
+    }
+
+    #[test]
+    fn a_death_slide_decays_the_speed_and_lands_on_the_terrain_at_its_candidate() {
+        for wide in [false, true] {
+            let start = moving(10.0);
+            let mut movers = vehicle(Kind::Routed, start, GROUND);
+            let staged = run(&mut movers, start, vehicle_step(LifecycleMode::GvDeathCandidate, GROUND, 1.0)).unwrap();
+            // the candidate is x and z only; the height waits for the terrain
+            assert_within(&staged.pose.position, &[3.0, 10.0, 4.0], 1.0e-5);
+            let mut decay = vehicle_step(LifecycleMode::GvDeathDecay, GROUND, 1.0);
+            decay.waypoint = [3.0, 0.0, 4.0];
+            decay.elevation = 20.0;
+            decay.cg_to_ground = 2.0;
+            decay.wide = wide;
+            let decayed = run(&mut movers, start, decay).unwrap();
+            // 5 m/s less 4 m/s each second, along the same direction
+            assert_within(&decayed.pose.position, &[3.0, 22.0, 4.0], 1.0e-5);
+            assert_within(&decayed.motion_vector, &[0.6, 0.0, 0.8], 1.0e-5);
+            assert_within(&[decayed.pose.velocity], &[1.0], 1.0e-5);
+            // a second second takes the rest and the speed stops at zero
+            run(
+                &mut movers,
+                decayed.pose,
+                vehicle_step(LifecycleMode::GvDeathCandidate, decayed.motion_vector, 1.0),
+            )
+            .unwrap();
+            let mut last = vehicle_step(LifecycleMode::GvDeathDecay, decayed.motion_vector, 1.0);
+            last.waypoint = [3.6, 0.0, 4.8];
+            last.elevation = 20.0;
+            last.cg_to_ground = 2.0;
+            last.wide = wide;
+            let stopped = run(&mut movers, decayed.pose, last).unwrap();
+            assert_eq!(stopped.pose.velocity, 0.0);
+            assert_within(&stopped.motion_vector, &[0.0; 3], 1.0e-6);
+        }
+    }
+
+    #[test]
+    fn the_decay_and_the_sink_turn_the_attitude_the_host_holds_and_the_dll_cannot_set_it() {
+        let mut movers = vehicle(Kind::Routed, moving(10.0), GROUND);
+        let mut pose = moving(10.0);
+        let mut vector = GROUND;
+        for turn in 1..=2 {
+            run(&mut movers, pose, vehicle_step(LifecycleMode::GvDeathCandidate, vector, 0.5)).unwrap();
+            let mut decay = vehicle_step(LifecycleMode::GvDeathDecay, vector, 0.5);
+            decay.waypoint = [pose.position[0] + vector[0] * 0.5, 0.0, pose.position[2] + vector[2] * 0.5];
+            let decayed = run(&mut movers, pose, decay).unwrap();
+            // the heading is the held one less a tenth of a half-turn each time, accumulating on what the host kept
+            assert_within(
+                &[heading_of(&decayed.pose.attitude)],
+                &[-0.1 * std::f32::consts::PI * 0.5 * turn as f32],
+                1.0e-5,
+            );
+            assert_within(&[pitch_of(&decayed.pose.attitude), roll_of(&decayed.pose.attitude)], &[0.0, 0.0], 1.0e-5);
+            pose = decayed.pose;
+            vector = decayed.motion_vector;
+        }
+        // a sinking ship leaves its heading and drifts its pitch and roll from the held attitude
+        let ship = moving(0.0);
+        let mut movers = vehicle(Kind::Ship, ship, [0.0, 0.0, 1.0]);
+        let mut pose = ship;
+        let mut vector = [0.0, 0.0, 1.0];
+        for sunk in 1..=2 {
+            let sank = run(&mut movers, pose, vehicle_step(LifecycleMode::ShipSink, vector, 1.0)).unwrap();
+            let attitude = sank.pose.attitude;
+            assert_within(&[heading_of(&attitude)], &[0.0], 1.0e-5);
+            assert_within(&[pitch_of(&attitude)], &[0.1f32.to_radians() * sunk as f32], 1.0e-5);
+            assert_within(&[roll_of(&attitude)], &[0.5f32.to_radians() * sunk as f32], 1.0e-5);
+            pose = sank.pose;
+            vector = sank.motion_vector;
+        }
+    }
+
+    #[test]
+    fn a_pending_death_slide_refuses_everything_but_its_decay_and_a_placement() {
+        let start = moving(10.0);
+        let mut movers = vehicle(Kind::Routed, start, GROUND);
+        run(&mut movers, start, vehicle_step(LifecycleMode::GvDeathCandidate, GROUND, 1.0)).unwrap();
+        // none of these may overwrite or abandon the staged candidate (x 3, z 4)
+        for mode in [
+            LifecycleMode::GvDeathCandidate,
+            LifecycleMode::GvImpact,
+            LifecycleMode::GvFallCandidate,
+            LifecycleMode::VehicleVectorSeed,
+        ] {
+            assert!(run(&mut movers, start, vehicle_step(mode, GROUND, 2.0)).is_err(), "{mode:?}");
+        }
+        assert!(movers.step("v", start, Request::Stop).is_err());
+        assert!(movers.step("v", start, Request::Advance(advance([0.0, 0.0, 100.0]))).is_err());
+        // a decay for another candidate is refused too
+        let mut decay = vehicle_step(LifecycleMode::GvDeathDecay, GROUND, 1.0);
+        decay.waypoint = [6.0, 0.0, 8.0];
+        decay.elevation = 20.0;
+        decay.cg_to_ground = 2.0;
+        assert!(run(&mut movers, start, decay).is_err());
+        // a placement keeps the candidate, and the decay then lands on the first one rather than any refused replacement
+        movers.step("v", start, Request::Place { motion_vector: GROUND }).unwrap();
+        decay.waypoint = [3.0, 0.0, 4.0];
+        let decayed = run(&mut movers, start, decay).unwrap();
+        assert_within(&decayed.pose.position, &[3.0, 22.0, 4.0], 1.0e-5);
+        // and with the slide ended the vehicle accepts a new one
+        run(
+            &mut movers,
+            decayed.pose,
+            vehicle_step(LifecycleMode::GvDeathCandidate, decayed.motion_vector, 1.0),
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn the_vehicle_steps_belong_to_their_own_kinds() {
+        for (kind, mode) in [
+            (Kind::Ship, LifecycleMode::GvDeathCandidate),
+            (Kind::Helicopter, LifecycleMode::GvImpact),
+            (Kind::FixedWing, LifecycleMode::VehicleVectorSeed),
+            (Kind::Routed, LifecycleMode::ShipSink),
+            (Kind::Routed, LifecycleMode::FwDeathAttitude),
+            (Kind::Ship, LifecycleMode::FwSettle),
+        ] {
+            assert!(!mode.allows(kind));
+            let mut movers = movers(kind, pose(0.0, 0.0));
+            assert!(run(&mut movers, pose(0.0, 0.0), life(mode, ROTOR, SEED)).is_err(), "{kind:?} {mode:?}");
+        }
+        assert!(LifecycleMode::ShipSink.allows(Kind::Ship) && LifecycleMode::VehicleVectorSeed.allows(Kind::Ship));
+    }
+
+    /// a fixed-wing aircraft taken through its fall and gravity to its contact: (movers, the gravity's answer, the contact altitude)
+    fn fallen_wing(start: Pose, delta_seconds: f32) -> (Movers, Outcome, f32) {
+        let mut movers = movers(Kind::FixedWing, start);
+        run(&mut movers, start, vehicle_step(LifecycleMode::Fall, SEED, delta_seconds)).unwrap();
+        let pulled = run(&mut movers, start, vehicle_step(LifecycleMode::FallGravity, SEED, delta_seconds)).unwrap();
+        let mut contact = vehicle_step(LifecycleMode::Contact, pulled.motion_vector, delta_seconds);
+        contact.flag = true;
+        let touched = run(&mut movers, pulled.pose, contact).unwrap();
+        (movers, pulled, touched.altitude)
+    }
+
+    fn death_attitude(vector: [f32; 3], altitude: f32, speed: f32, flag: bool, draw: f64, delta_seconds: f32) -> Lifecycle {
+        let mut step = vehicle_step(LifecycleMode::FwDeathAttitude, vector, delta_seconds);
+        step.elevation = altitude;
+        step.signed_speed = speed;
+        step.flag = flag;
+        step.draws = [0.0, draw];
+        step
+    }
+
+    #[test]
+    fn a_wing_death_attitude_checks_the_campaigns_gate_and_mirrors_and_then_commits_the_candidate() {
+        let start = at(10.0, 100.0, 20.0);
+        let (mut movers, pulled, altitude) = fallen_wing(start, 0.5);
+        let speed = pulled.pose.velocity;
+        // the campaign's gate disagrees with the aircraft's altitude: -1, and nothing is consumed
+        let gate = run(
+            &mut movers,
+            pulled.pose,
+            death_attitude(pulled.motion_vector, altitude, speed, altitude <= 12.0, 0.0, 0.5),
+        )
+        .unwrap();
+        assert_eq!(gate.flags, -1);
+        assert_eq!(gate.pose, pulled.pose);
+        // an altitude or speed mirror that differs is refused before anything changes
+        assert!(run(
+            &mut movers,
+            pulled.pose,
+            death_attitude(pulled.motion_vector, altitude - 1.0, speed, true, 0.5, 0.5)
+        )
+        .is_err());
+        assert!(run(
+            &mut movers,
+            pulled.pose,
+            death_attitude(pulled.motion_vector, altitude, speed + 1.0, true, 0.5, 0.5)
+        )
+        .is_err());
+        // the right step eases the attitude with its draw and ends at the staged candidate
+        let eased = run(&mut movers, pulled.pose, death_attitude(pulled.motion_vector, altitude, speed, true, 0.5, 0.5)).unwrap();
+        assert_eq!(eased.flags & 3, 3);
+        assert_ne!(eased.pose.attitude, start.attitude);
+        // the candidate was consumed: the same step cannot be made again
+        assert!(run(&mut movers, eased.pose, death_attitude(pulled.motion_vector, altitude, speed, true, 0.5, 0.5)).is_err());
+    }
+
+    /// The fixed-wing roll draw is `frand1`'s double and the original forms `PI * 0.2 * draw * dt` in double before narrowing
+    /// the sum: a draw narrowed to float first is a different roll for some draws, and the step must use the draw it received.
+    #[test]
+    fn the_wing_death_attitude_forms_its_roll_draw_in_double_end_to_end() {
+        const DT: f32 = 1.0 / 30.0;
+        let start = at(10.0, 100.0, 20.0);
+        let direct = |draw: f64, speed: f32| {
+            let mut attitude = start.attitude;
+            // SAFETY: the attitude is 9 floats read then written and the vector 3.
+            unsafe { eech_fw_death_attitude(attitude.as_mut_ptr(), SEED.as_ptr(), speed, 100.0, 1, draw, DT) };
+            attitude
+        };
+        let mut checked = 0;
+        for k in 1..=2000u32 {
+            let draw = f64::from(k) * (1.0 / 32767.0);
+            let (mut movers, pulled, altitude) = fallen_wing(start, DT);
+            let speed = pulled.pose.velocity;
+            if direct(draw, speed) == direct(f64::from(draw as f32), speed) {
+                continue;
+            }
+            let died = run(&mut movers, pulled.pose, death_attitude(pulled.motion_vector, altitude, speed, true, draw, DT)).unwrap();
+            assert_eq!(died.flags & 3, 3);
+            assert_eq!(died.pose.attitude, direct(draw, speed), "draw {k}: the step did not use the draw it was given");
+            checked += 1;
+        }
+        assert!(checked >= 50, "only {checked} draws separate the float transport from the double one");
+    }
+
+    #[test]
+    fn a_wing_crash_slide_keeps_its_post_slope_speed_through_the_clear_and_commits_the_staged_candidate() {
+        let start = Pose {
+            position: [0.0, 50.0, 0.0],
+            velocity: 0.6,
+            attitude: LEVEL,
+        };
+        let slow = [0.6, 0.0, 0.0];
+        let mut movers = movers(Kind::FixedWing, start);
+        movers.step("v", start, Request::Place { motion_vector: slow }).unwrap();
+        let step = |mode, vector| {
+            let mut step = vehicle_step(mode, vector, 0.01);
+            step.elevation = 30.0;
+            step.cg_to_ground = 2.0;
+            step
+        };
+        let candidate = run(&mut movers, start, step(LifecycleMode::FwCrashCandidate, slow)).unwrap();
+        assert_within(&candidate.pose.position, &[0.006, 50.0, 0.0], 1.0e-6);
+        // out of order, interleaved or repeated requests are refused, and the candidate survives them all
+        for refused in [
+            LifecycleMode::FwCrashAttitude,
+            LifecycleMode::FwCrashCandidate,
+            LifecycleMode::FwSettle,
+            LifecycleMode::Fall,
+        ] {
+            assert!(run(&mut movers, start, step(refused, slow)).is_err(), "{refused:?}");
+        }
+        assert!(movers.step("v", start, Request::Stop).is_err());
+        // flat ground: the friction (10 * 0.01) leaves 0.5, under 1, so the velocity phase asks the campaign to clear
+        let velocity = run(&mut movers, start, step(LifecycleMode::FwCrashVelocity, slow)).unwrap();
+        assert_eq!(velocity.flags, 1);
+        assert_within(&[velocity.pose.velocity], &[0.5], 1.0e-6);
+        assert_within(&velocity.motion_vector, &[0.5, 0.0, 0.0], 1.0e-6);
+        assert_within(&velocity.pose.position, &[0.006, 32.0, 0.0], 1.0e-6);
+        assert!(run(&mut movers, start, step(LifecycleMode::FwCrashVelocity, velocity.motion_vector)).is_err());
+        // the campaign's clear is a placement of zero; the post-slope speed is still the one the rest test sees
+        let cleared = Pose { velocity: 0.0, ..start };
+        movers.step("v", cleared, Request::Place { motion_vector: [0.0; 3] }).unwrap();
+        let landed = run(&mut movers, cleared, step(LifecycleMode::FwCrashAttitude, [0.0; 3])).unwrap();
+        assert_eq!(landed.flags, 0, "a 0.5 m/s slide is not at rest, whatever the cleared scalar says");
+        assert_within(&landed.pose.position, &[0.006, 32.0, 0.0], 1.0e-6);
+        // the slide is closed: a crash phase now needs a new candidate, and a live step is accepted again
+        assert!(run(&mut movers, landed.pose, step(LifecycleMode::FwCrashAttitude, [0.0; 3])).is_err());
+        run(&mut movers, landed.pose, step(LifecycleMode::FwCrashCandidate, [0.0; 3])).unwrap();
     }
 }

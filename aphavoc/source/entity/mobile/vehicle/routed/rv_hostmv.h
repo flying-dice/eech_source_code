@@ -48,7 +48,23 @@ enum campaign_movement_mode
 	CAMPAIGN_MOVEMENT_CRASH_END,		/* crash slide, phase two: friction and slope from the NEW terrain normal */
 	CAMPAIGN_MOVEMENT_IMPACT,		/* impact shove along the helicopter's attitude x axis */
 	CAMPAIGN_MOVEMENT_FALL_GRAVITY,		/* dying helicopter, after the terrain sample: gravity, the motion vector and the speed */
-	CAMPAIGN_MOVEMENT_ROTOR_IDLE		/* idle helicopter (no follower parent): linear rotor wind-down by the frame delta */
+	CAMPAIGN_MOVEMENT_ROTOR_IDLE,		/* idle helicopter (no follower parent): linear rotor wind-down by the frame delta */
+	/* EEDCS-37: routed, anti-air, ship and fixed-wing wreck/fall/sink/crash motion */
+	CAMPAIGN_MOVEMENT_GV_DEATH_CANDIDATE,	/* routed/AA wreck slide, before the terrain refresh: candidate x/z (no map bound) */
+	CAMPAIGN_MOVEMENT_GV_DEATH_DECAY,	/* routed/AA wreck slide, after the refresh: speed decay, heading, y = elevation + cg, attitude */
+	CAMPAIGN_MOVEMENT_GV_FALL_CANDIDATE,	/* routed/AA falling, before the refresh: candidate position, all axes (no map bound) */
+	CAMPAIGN_MOVEMENT_GV_FALL_GRAVITY,	/* routed/AA falling, after the refresh: gravity, the vector and the speed */
+	CAMPAIGN_MOVEMENT_GV_FALL_SETTLE,	/* routed/AA falling: contact / splash / sunk / ground impact flags; the settled position, vector and speed are STAGED host-side, nothing is applied */
+	CAMPAIGN_MOVEMENT_GV_IMPACT,		/* routed/AA impact shove (the DLL drew the float speed) */
+	CAMPAIGN_MOVEMENT_SHIP_SINK,		/* ship sinking: candidate position, drag, sink rate, pitch/roll drift, attitude */
+	CAMPAIGN_MOVEMENT_VEHICLE_VECTOR_SEED,	/* routed/AA/ship: ownership claim; the host adopts hc_motion_vector only when it retains no vehicle vector, else it must match bit-identically */
+	CAMPAIGN_MOVEMENT_FW_DEATH_ATTITUDE,	/* dying fixed-wing, after the gravity step: heading/pitch/roll easing toward the velocity direction */
+	CAMPAIGN_MOVEMENT_FW_CRASH_CANDIDATE,	/* fixed-wing crash slide, phase one: candidate x/z, map-bounded; y held */
+	CAMPAIGN_MOVEMENT_FW_CRASH_VELOCITY,	/* fixed-wing crash slide, phase two: candidate y, friction and slope push from the NEW normal; stopped flag */
+	CAMPAIGN_MOVEMENT_GV_FALL_VECTOR,	/* routed/AA falling, after the settle effects: the staged vector (sunk zero / ground y zero) is written */
+	CAMPAIGN_MOVEMENT_GV_FALL_COMMIT,	/* routed/AA falling, last: the staged speed then the staged settled position are finalised */
+	CAMPAIGN_MOVEMENT_FW_SETTLE,		/* dying fixed-wing: settle by terrain class, double 3.0 river depth, no rotor; bury zeroes the vector only */
+	CAMPAIGN_MOVEMENT_FW_CRASH_ATTITUDE	/* fixed-wing crash slide, phase three: pitch/roll easing toward the NEW normal, rest flag */
 };
 
 enum campaign_movement_kind
@@ -146,8 +162,27 @@ typedef struct campaign_movement_step
 	float hc_pitch_offset;
 	float hc_bank_offset;
 	float hc_signed_speed;
-	/* the two TUMBLE draws are frand1 () doubles and stay doubles: the original expression multiplies them in double
-	   before narrowing the result to the float heading/roll.  Last, so the double's alignment cannot move another field */
+	/* EEDCS-37.  hc_motion_vector is the DLL's copy of the vector for every kind in these modes (the host refuses a
+	   difference except on VEHICLE_VECTOR_SEED while none is retained).  GV_*: the host derives heading, pitch and roll from its own retained attitude (none is sent); gv_wide selects the anti-air
+	   double literal for the speed decay; gv_old_elevation is the terrain elevation before the refresh, gv_bbox_diagonal
+	   the bounding box diagonal, gv_water the water terrain class; elevation and hc_cg_to_ground are the refreshed sample;
+	   GV_IMPACT: hc_signed_speed is the float the DLL drew (4.0*frand1x narrowed to float, as the original stored it); hc_gravity is the gravity.  SHIP_SINK: delta_seconds.
+	   FW_DEATH_ATTITUDE: hc_flag is whether the DLL drew the roll (hc_draws[1]), altitude is carried in elevation (the
+	   altitude above terrain) and the speed is hc_signed_speed.
+	   Fixed-wing members use the helicopter FALL, FALL_GRAVITY, CONTACT and IMPACT modes (host-dispatched by member kind;
+	   the arithmetic is type-agnostic) with hc_motion_vector the DLL copy of the retained fw vector and hc_rotor zero (a
+	   fixed wing has no rotor: the host ignores it).  FW_SETTLE: hc_terrain_class, elevation, hc_cg_to_ground (the FRESH
+	   post-kill CG), hc_bury_limit; the bury uses the contact altitude retained from CONTACT(candidate).
+	   FW_CRASH_CANDIDATE: delta_seconds, map bounds.  FW_CRASH_VELOCITY: face_normal is the NEW normal, forest, elevation,
+	   hc_cg_to_ground, delta_seconds; the host retains the candidate and the post-slope speed.  FW_CRASH_ATTITUDE:
+	   face_normal (NEW), hc_pitch_offset, hc_bank_offset, delta_seconds */
+	float gv_old_elevation;
+	float gv_bbox_diagonal;
+	int gv_wide;
+	int gv_water;
+	/* the TUMBLE and FW_DEATH_ATTITUDE draws are frand1 () doubles and stay doubles: the original expression multiplies
+	   them in double before narrowing the result to the float heading/roll.  Last, so the double's alignment cannot move
+	   another field */
 	double hc_draws[2];
 } campaign_movement_step;
 
@@ -170,6 +205,9 @@ typedef struct campaign_movement_result
 	float rotor[3];
 	/* CONTACT: the altitude of the point over the terrain, cg height included */
 	float altitude;
+	/* EEDCS-37: GV_FALL_SETTLE bit0 contact, bit1 splash, bit2 sunk, bit3 ground impact; FW_DEATH_ATTITUDE -1 gate/draw
+	   mismatch, 0 nothing, 1 eased, 3 eased and the roll draw was consumed; FW_CRASH_VELOCITY bit0 stopped; FW_CRASH_ATTITUDE bit0 at rest */
+	int flags;
 } campaign_movement_result;
 
 typedef int (*campaign_move_vehicle_fn)
@@ -286,6 +324,48 @@ void campaign_movement_tumble (struct ENTITY *helicopter, double heading_draw, d
 void campaign_movement_crash_begin (struct ENTITY *helicopter, const struct VEC3D *old_normal, float pitch_offset, float bank_offset, float delta_seconds, struct VEC3D *candidate);
 int campaign_movement_crash_end (struct ENTITY *helicopter, const struct VEC3D *new_normal, int forest, float elevation, float cg_to_ground, float delta_seconds);
 void campaign_movement_impact (struct ENTITY *helicopter, float signed_speed);
+
+/*
+ * EEDCS-37 routed, anti-air and ship wreck/fall/sink.  The vehicle's vector is not retained host-side until the campaign
+ * claims it with vehicle_vector_seed at a wreck/fall/sink entry: the host adopts the DLL copy only while it retains none, and
+ * every later request (this one included) must match the retained vector bit-identically or the host refuses.  An explicit
+ * PLACE never changes the retained vector or the staged fall candidate.  Order for a wreck: gv_death_candidate -> terrain
+ * refresh at the candidate -> gv_death_decay (the DLL keeps the DEAD gate: routed only when damage_level <= 0, anti-air
+ * always).  Order for falling: gv_fall_candidate -> terrain refresh -> gv_fall_gravity -> gv_fall_settle (flags and a STAGED
+ * result only) -> the DLL effects (any POSITION setter there is an explicit PLACE) -> gv_fall_vector where the original wrote
+ * the vector (sunk: before DEAD; ground: after the effect) -> DLL DEAD -> gv_commit (speed, then position, as the original
+ * did last).  gv_impact when the original shoves.  Ship: ship_sink; the DLL keeps clear_ship_fires and the destroy test.
+ * `anti_air` selects the wide literal.  Nothing is applied that the original did not write at the same point.
+ */
+/* EEDCS-37 fixed-wing dying and crash: the helicopter protocol on the fixed_wing part, with no rotor.  Death order: fw_fall ->
+   DLL terrain sample -> fw_fall_gravity (vector raw, speed through the setter at once; returns the post-gravity speed the DLL
+   keeps for the attitude block) -> fw_contact(candidate) with the PRE-kill CG -> [server kill, splash placement, effects] ->
+   water smoke clears -> fresh post-kill CG -> fw_settle (returns buried, vector zeroed host-side) -> [buried:
+   clear_fixed_wing_velocity, DEAD, smoke clears] -> [solid ground: crash sound] -> the roll draw (only if altitude > 12 and the
+   vector has x or z) -> fw_death_attitude (attitude raw if eased, then the final position through the setter).
+   Crash order: fw_crash_candidate -> DLL terrain sample -> fw_crash_velocity (vector raw; speed set unless stopped, then the DLL
+   runs clear_fixed_wing_velocity) -> fw_crash_attitude (attitude raw, position through the setter; returns at rest) -> [at rest
+   and not alive: DEAD, smoke clears] */
+void campaign_movement_fw_fall (struct ENTITY *aircraft, float delta_seconds, struct VEC3D *candidate);
+float campaign_movement_fw_fall_gravity (struct ENTITY *aircraft, float gravity, float delta_seconds);
+int campaign_movement_fw_contact (struct ENTITY *aircraft, int use_candidate, float elevation, float cg_to_ground, float *altitude);
+int campaign_movement_fw_settle (struct ENTITY *aircraft, int terrain_class, float elevation, float cg_to_ground, float bury_limit, struct VEC3D *candidate);
+void campaign_movement_fw_death_attitude (struct ENTITY *aircraft, float altitude, float speed, int draw_made, double roll_draw, float delta_seconds);
+void campaign_movement_fw_crash_candidate (struct ENTITY *aircraft, float delta_seconds, struct VEC3D *candidate);
+int campaign_movement_fw_crash_velocity (struct ENTITY *aircraft, const struct VEC3D *new_normal, int forest, float elevation, float cg_to_ground, float delta_seconds);
+int campaign_movement_fw_crash_attitude (struct ENTITY *aircraft, const struct VEC3D *new_normal, float pitch_offset, float bank_offset, float delta_seconds);
+void campaign_movement_fw_impact (struct ENTITY *aircraft, float signed_speed);
+
+void campaign_movement_vehicle_vector_seed (struct ENTITY *vehicle);
+void campaign_movement_gv_death_candidate (struct ENTITY *vehicle, float delta_seconds, float *candidate_xz);
+float campaign_movement_gv_death_decay (struct ENTITY *vehicle, const float *candidate_xz, float elevation, float cg_to_ground, float delta_seconds, int anti_air);
+void campaign_movement_gv_fall_candidate (struct ENTITY *vehicle, float delta_seconds, struct VEC3D *candidate);
+void campaign_movement_gv_fall_gravity (struct ENTITY *vehicle, float gravity, float delta_seconds);
+int campaign_movement_gv_fall_settle (struct ENTITY *vehicle, const struct VEC3D *candidate, int water, float old_elevation, float elevation, float cg_to_ground, float bbox_diagonal, struct VEC3D *settled, float *speed);
+void campaign_movement_gv_fall_vector (struct ENTITY *vehicle);
+void campaign_movement_gv_commit (struct ENTITY *vehicle);
+void campaign_movement_gv_impact (struct ENTITY *vehicle, float speed);
+float campaign_movement_ship_sink (struct ENTITY *vehicle, float delta_seconds);
 
 /*
  * One infantry step in two phases around the campaign's terrain sample.  `begin` returns the

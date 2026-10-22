@@ -201,6 +201,11 @@ fn lifecycle_from(lua: &Lua, step: &LuaTable, mode: LifecycleMode) -> LuaResult<
         face_normal: [0.0; 3],
         map_min: [0.0; 3],
         map_max: [0.0; 3],
+        old_elevation: 0.0,
+        bbox_diagonal: 0.0,
+        wide: false,
+        water: false,
+        waypoint: [0.0; 3],
     };
     match mode {
         LifecycleMode::RotorSet => {}
@@ -252,8 +257,65 @@ fn lifecycle_from(lua: &Lua, step: &LuaTable, mode: LifecycleMode) -> LuaResult<
             lifecycle.elevation = number(lua, step, "elevation")?;
             lifecycle.cg_to_ground = number(lua, step, "cg_to_ground")?;
         }
-        LifecycleMode::Impact => {
+        LifecycleMode::Impact | LifecycleMode::GvImpact => {
             lifecycle.signed_speed = number(lua, step, "signed_speed")?;
+        }
+        LifecycleMode::GvDeathCandidate | LifecycleMode::GvFallCandidate => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+        }
+        LifecycleMode::GvDeathDecay => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.waypoint = numbers(lua, step, "waypoint")?;
+            lifecycle.elevation = number(lua, step, "elevation")?;
+            lifecycle.cg_to_ground = number(lua, step, "cg_to_ground")?;
+            lifecycle.wide = step.get("wide")?;
+        }
+        LifecycleMode::GvFallGravity => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.gravity = number(lua, step, "gravity")?;
+        }
+        LifecycleMode::GvFallSettle => {
+            lifecycle.waypoint = numbers(lua, step, "waypoint")?;
+            lifecycle.water = step.get("water")?;
+            lifecycle.old_elevation = number(lua, step, "old_elevation")?;
+            lifecycle.elevation = number(lua, step, "elevation")?;
+            lifecycle.cg_to_ground = number(lua, step, "cg_to_ground")?;
+            lifecycle.bbox_diagonal = number(lua, step, "bbox_diagonal")?;
+        }
+        LifecycleMode::ShipSink => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+        }
+        LifecycleMode::VehicleVectorSeed | LifecycleMode::GvFallVector | LifecycleMode::GvFallCommit => {}
+        LifecycleMode::FwSettle => {
+            lifecycle.terrain_class = step.get("terrain_class")?;
+            lifecycle.elevation = number(lua, step, "elevation")?;
+            lifecycle.cg_to_ground = number(lua, step, "cg_to_ground")?;
+            lifecycle.bury_limit = number(lua, step, "bury_limit")?;
+        }
+        LifecycleMode::FwDeathAttitude => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.elevation = number(lua, step, "elevation")?;
+            lifecycle.signed_speed = number(lua, step, "signed_speed")?;
+            lifecycle.flag = step.get("flag")?;
+            lifecycle.draws = exact_f64s(lua, step, "draws").map_err(|e| LuaError::runtime(format!("host.move_vehicle: {e}")))?;
+        }
+        LifecycleMode::FwCrashCandidate => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.map_min = numbers(lua, step, "map_min")?;
+            lifecycle.map_max = numbers(lua, step, "map_max")?;
+        }
+        LifecycleMode::FwCrashVelocity => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.face_normal = numbers(lua, step, "face_normal")?;
+            lifecycle.forest = step.get("forest")?;
+            lifecycle.elevation = number(lua, step, "elevation")?;
+            lifecycle.cg_to_ground = number(lua, step, "cg_to_ground")?;
+        }
+        LifecycleMode::FwCrashAttitude => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.face_normal = numbers(lua, step, "face_normal")?;
+            lifecycle.pitch_offset = number(lua, step, "pitch_offset")?;
+            lifecycle.bank_offset = number(lua, step, "bank_offset")?;
         }
     }
     Ok(Request::Lifecycle(lifecycle))
@@ -357,6 +419,21 @@ fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request
         "crash_begin" => lifecycle_from(lua, step, LifecycleMode::CrashBegin)?,
         "crash_end" => lifecycle_from(lua, step, LifecycleMode::CrashEnd)?,
         "impact" => lifecycle_from(lua, step, LifecycleMode::Impact)?,
+        "gv_death_candidate" => lifecycle_from(lua, step, LifecycleMode::GvDeathCandidate)?,
+        "gv_death_decay" => lifecycle_from(lua, step, LifecycleMode::GvDeathDecay)?,
+        "gv_fall_candidate" => lifecycle_from(lua, step, LifecycleMode::GvFallCandidate)?,
+        "gv_fall_gravity" => lifecycle_from(lua, step, LifecycleMode::GvFallGravity)?,
+        "gv_fall_settle" => lifecycle_from(lua, step, LifecycleMode::GvFallSettle)?,
+        "gv_impact" => lifecycle_from(lua, step, LifecycleMode::GvImpact)?,
+        "ship_sink" => lifecycle_from(lua, step, LifecycleMode::ShipSink)?,
+        "vehicle_vector_seed" => lifecycle_from(lua, step, LifecycleMode::VehicleVectorSeed)?,
+        "fw_death_attitude" => lifecycle_from(lua, step, LifecycleMode::FwDeathAttitude)?,
+        "fw_crash_candidate" => lifecycle_from(lua, step, LifecycleMode::FwCrashCandidate)?,
+        "fw_crash_velocity" => lifecycle_from(lua, step, LifecycleMode::FwCrashVelocity)?,
+        "gv_fall_vector" => lifecycle_from(lua, step, LifecycleMode::GvFallVector)?,
+        "gv_fall_commit" => lifecycle_from(lua, step, LifecycleMode::GvFallCommit)?,
+        "fw_settle" => lifecycle_from(lua, step, LifecycleMode::FwSettle)?,
+        "fw_crash_attitude" => lifecycle_from(lua, step, LifecycleMode::FwCrashAttitude)?,
         other => return Err(LuaError::runtime(format!("host.move_vehicle: unknown mode {other}"))),
     };
     Ok((host_id, pose, request))
@@ -870,6 +947,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 result.set("moved", outcome.moved)?;
                 result.set("rotor", outcome.rotor.to_vec())?;
                 result.set("altitude", outcome.altitude)?;
+                result.set("flags", outcome.flags)?;
                 Ok(result)
             })?,
         )?;

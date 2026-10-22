@@ -181,31 +181,67 @@ fn nearest_f32(value: f64) -> Option<f32> {
 
 fn call_move_vehicle(lua: &Lua, function: &LuaFunction, step: MovementStep) -> Result<MovementResult, String> {
     let mode = step.mode;
-    // the helicopter lifecycle modes: every one answers with the rotor and the motion vector the host retains
-    let lifecycle_step = !matches!(
-        mode,
-        MovementMode::Move
-            | MovementMode::Stop
-            | MovementMode::Place
-            | MovementMode::ShipMove
-            | MovementMode::PersonBegin
-            | MovementMode::PersonEnd
-            | MovementMode::FixedWingMove
-            | MovementMode::HelicopterBegin
-            | MovementMode::HelicopterEnd
-    );
-    let aircraft_step = lifecycle_step || matches!(mode, MovementMode::FixedWingMove | MovementMode::HelicopterBegin | MovementMode::HelicopterEnd);
-    // the lifecycle modes whose answer decides something in the campaign
-    let decides = matches!(
-        mode,
-        MovementMode::RotorAlive | MovementMode::Contact | MovementMode::Settle | MovementMode::CrashEnd
-    );
     let value = lua.to_value_with(&step, options()).map_err(|e| e.to_string())?;
     let answer: LuaValue = function.call(value).map_err(|e| e.to_string())?;
     let LuaValue::Table(table) = answer else {
         return Err(format!("move_vehicle must return a result table, got {}", answer.type_name()));
     };
-    let [velocity] = exact_numbers::<1>(lua, &table, "velocity").map_err(|e| format!("move_vehicle result {e}"))?;
+    read_move_result(lua, mode, &table)
+}
+
+/// The host's answer to one `mode` step, every field exact; the fields a mode's answer must carry are mandatory, so an
+/// absent answer is an error rather than a default of zero or false.
+fn read_move_result(lua: &Lua, mode: MovementMode, table: &LuaTable) -> Result<MovementResult, String> {
+    // the helicopter lifecycle modes (shared by the fixed wing's dying steps): every one answers with the rotor and the
+    // motion vector the host retains
+    let lifecycle_step = matches!(
+        mode,
+        MovementMode::RotorSet
+            | MovementMode::RotorAlive
+            | MovementMode::RotorDown
+            | MovementMode::RotorIdle
+            | MovementMode::Fall
+            | MovementMode::FallGravity
+            | MovementMode::Contact
+            | MovementMode::Settle
+            | MovementMode::Tumble
+            | MovementMode::CrashBegin
+            | MovementMode::CrashEnd
+            | MovementMode::Impact
+    );
+    // the fixed-wing lifecycle modes that are new: they answer with the motion vector but carry no rotor
+    let fixed_wing_step = matches!(
+        mode,
+        MovementMode::FwSettle | MovementMode::FwDeathAttitude | MovementMode::FwCrashCandidate | MovementMode::FwCrashVelocity | MovementMode::FwCrashAttitude
+    );
+    // the vehicle lifecycle modes (routed, anti-air, ship): every one answers with the vector the host has claimed, which
+    // the campaign applies, and carries no rotor
+    let vehicle_step = matches!(
+        mode,
+        MovementMode::GvDeathCandidate
+            | MovementMode::GvDeathDecay
+            | MovementMode::GvFallCandidate
+            | MovementMode::GvFallGravity
+            | MovementMode::GvFallSettle
+            | MovementMode::GvImpact
+            | MovementMode::ShipSink
+            | MovementMode::VehicleVectorSeed
+            | MovementMode::GvFallVector
+            | MovementMode::GvFallCommit
+    );
+    // the modes whose answer carries bits the campaign acts on: an absent answer is an error, never 0
+    let flags_step = matches!(
+        mode,
+        MovementMode::GvFallSettle | MovementMode::FwDeathAttitude | MovementMode::FwCrashVelocity | MovementMode::FwCrashAttitude
+    );
+    let aircraft_step =
+        lifecycle_step || fixed_wing_step || matches!(mode, MovementMode::FixedWingMove | MovementMode::HelicopterBegin | MovementMode::HelicopterEnd);
+    // the lifecycle modes whose answer decides something in the campaign
+    let decides = matches!(
+        mode,
+        MovementMode::RotorAlive | MovementMode::Contact | MovementMode::Settle | MovementMode::CrashEnd | MovementMode::FwSettle
+    );
+    let [velocity] = exact_numbers::<1>(lua, table, "velocity").map_err(|e| format!("move_vehicle result {e}"))?;
     let rotated = match table.get::<LuaValue>("rotated").map_err(|e| e.to_string())? {
         LuaValue::Nil => false,
         LuaValue::Boolean(rotated) => rotated,
@@ -223,27 +259,36 @@ fn call_move_vehicle(lua: &Lua, function: &LuaFunction, step: MovementStep) -> R
         LuaValue::Boolean(moved) => moved,
         other => return Err(format!("move_vehicle result moved must be a boolean, got {}", other.type_name())),
     };
-    // a routed or held member returns no motion vector; an aircraft's answer must carry the one it holds
+    // a routed or held member's live step returns no motion vector; an aircraft's or a wreck's answer must carry the one it holds
     let motion_vector = match table.get::<LuaValue>("motion_vector").map_err(|e| e.to_string())? {
         LuaValue::Nil if aircraft_step => return Err("move_vehicle result for an aircraft step must carry its motion_vector".into()),
+        LuaValue::Nil if vehicle_step => return Err("move_vehicle result for a vehicle lifecycle step must carry its motion_vector".into()),
         LuaValue::Nil => [0.0; 3],
-        _ => exact_numbers(lua, &table, "motion_vector").map_err(|e| format!("move_vehicle result {e}"))?,
+        _ => exact_numbers(lua, table, "motion_vector").map_err(|e| format!("move_vehicle result {e}"))?,
     };
     let rotor = match table.get::<LuaValue>("rotor").map_err(|e| e.to_string())? {
         LuaValue::Nil if lifecycle_step => return Err("move_vehicle result for a helicopter lifecycle step must carry its rotor".into()),
         LuaValue::Nil => [0.0; 3],
-        _ => exact_numbers(lua, &table, "rotor").map_err(|e| format!("move_vehicle result {e}"))?,
+        _ => exact_numbers(lua, table, "rotor").map_err(|e| format!("move_vehicle result {e}"))?,
     };
     let altitude = match table.get::<LuaValue>("altitude").map_err(|e| e.to_string())? {
         LuaValue::Nil if mode == MovementMode::Contact => return Err("move_vehicle result for a contact step must carry its altitude".into()),
         LuaValue::Nil => 0.0,
-        _ => exact_numbers::<1>(lua, &table, "altitude").map_err(|e| format!("move_vehicle result {e}"))?[0],
+        _ => exact_numbers::<1>(lua, table, "altitude").map_err(|e| format!("move_vehicle result {e}"))?[0],
+    };
+    // the per-mode bits are checked by the engine against the mode; here only an exact integer (or none) is accepted
+    let flags = match table.get::<LuaValue>("flags").map_err(|e| e.to_string())? {
+        LuaValue::Nil if flags_step => return Err("move_vehicle result for this step must carry its flags".into()),
+        LuaValue::Nil => 0,
+        LuaValue::Integer(flags) => i32::try_from(flags).map_err(|_| format!("move_vehicle result flags {flags} is out of range"))?,
+        LuaValue::Number(flags) if flags.fract() == 0.0 && flags.abs() <= f64::from(i32::MAX) => flags as i32,
+        other => return Err(format!("move_vehicle result flags must be an integer, got {}", other.type_name())),
     };
     Ok(MovementResult {
         pose: VehiclePose {
-            position: exact_numbers(lua, &table, "position").map_err(|e| format!("move_vehicle result {e}"))?,
+            position: exact_numbers(lua, table, "position").map_err(|e| format!("move_vehicle result {e}"))?,
             velocity,
-            attitude: exact_numbers(lua, &table, "attitude").map_err(|e| format!("move_vehicle result {e}"))?,
+            attitude: exact_numbers(lua, table, "attitude").map_err(|e| format!("move_vehicle result {e}"))?,
         },
         rotated,
         motion_vector,
@@ -251,6 +296,7 @@ fn call_move_vehicle(lua: &Lua, function: &LuaFunction, step: MovementStep) -> R
         moved,
         rotor,
         altitude,
+        flags,
     })
 }
 
@@ -362,4 +408,71 @@ pub fn eech_dc(lua: &Lua) -> LuaResult<LuaTable> {
         lua.create_function(|_, root: String| eech_engine::prepare_installation(std::path::Path::new(&root)).map_err(lua_error))?,
     )?;
     Ok(exports)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn answer(lua: &Lua, fields: &str) -> mlua::Result<LuaTable> {
+        lua.load(format!(
+            "return {{ position = {{0, 1, 2}}, velocity = 3, attitude = {{1, 0, 0, 0, 1, 0, 0, 0, 1}}, {fields} }}"
+        ))
+        .eval()
+    }
+
+    #[test]
+    fn a_vehicle_lifecycle_answer_without_its_vector_is_an_error() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        for mode in [
+            MovementMode::GvDeathCandidate,
+            MovementMode::GvDeathDecay,
+            MovementMode::GvFallCandidate,
+            MovementMode::GvFallGravity,
+            MovementMode::GvFallSettle,
+            MovementMode::GvImpact,
+            MovementMode::ShipSink,
+            MovementMode::VehicleVectorSeed,
+            MovementMode::GvFallVector,
+            MovementMode::GvFallCommit,
+        ] {
+            let table = answer(&lua, "flags = 0")?;
+            let error = read_move_result(&lua, mode, &table).err().ok_or("accepted")?;
+            assert!(error.contains("motion_vector"), "{mode:?}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn an_explicit_zero_vector_and_zero_flags_are_accepted() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let table = answer(&lua, "motion_vector = {0, 0, 0}, flags = 0")?;
+        let result = read_move_result(&lua, MovementMode::GvFallSettle, &table)?;
+        assert_eq!(result.motion_vector, [0.0; 3]);
+        assert_eq!(result.flags, 0);
+        // a live step still answers without a vector
+        read_move_result(&lua, MovementMode::Move, &answer(&lua, "")?)?;
+        Ok(())
+    }
+
+    #[test]
+    fn an_answer_that_decides_on_bits_must_carry_its_flags() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        for mode in [
+            MovementMode::GvFallSettle,
+            MovementMode::FwDeathAttitude,
+            MovementMode::FwCrashVelocity,
+            MovementMode::FwCrashAttitude,
+        ] {
+            let table = answer(&lua, "motion_vector = {0, 0, 0}")?;
+            let error = read_move_result(&lua, mode, &table).err().ok_or("accepted")?;
+            assert!(error.contains("flags"), "{mode:?}: {error}");
+            let table = answer(&lua, "motion_vector = {0, 0, 0}, flags = 0")?;
+            assert_eq!(read_move_result(&lua, mode, &table)?.flags, 0, "{mode:?}");
+        }
+        // a mode that carries no bits still reads an absent answer as 0
+        let table = answer(&lua, "motion_vector = {0, 0, 0}")?;
+        assert_eq!(read_move_result(&lua, MovementMode::GvImpact, &table)?.flags, 0);
+        Ok(())
+    }
 }

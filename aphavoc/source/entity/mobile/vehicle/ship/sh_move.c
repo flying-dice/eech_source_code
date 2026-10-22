@@ -494,6 +494,21 @@ void ship_vehicle_death_movement (entity *en)
 
 	pos = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
 
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	//
+	// host-owned sinking: the host holds the vector, speed, attitude and position; the fire clears and the destroy test
+	// below stay with the campaign and read the returned height (EEDCS-37)
+	//
+
+	campaign_movement_require_hosted (en);
+
+	campaign_movement_vehicle_vector_seed (en);
+
+	new_pos.y = campaign_movement_ship_sink (en, get_entity_movement_delta_time ());
+
+#else
+
 	new_pos.x = pos->x + (velocity->x * get_entity_movement_delta_time());
 	new_pos.y = pos->y + (velocity->y * get_entity_movement_delta_time());
 	new_pos.z = pos->z + (velocity->z * get_entity_movement_delta_time());
@@ -531,6 +546,8 @@ void ship_vehicle_death_movement (entity *en)
 	//
 
 	set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &new_pos);
+
+#endif
 
 	clear_ship_fires (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_FIRE);
 	clear_ship_fires (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_EXPLOSION_TRAIL);
