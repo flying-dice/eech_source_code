@@ -1,9 +1,7 @@
 # M5: host-owned AI helicopter rotor and dying/crash motion (EEDCS-36)
 
-**Status: implemented at runtime commit `68a16fc1` (draft PR95), natively validated,
-and awaiting the parent's independent review and the technical lead's approval.
-Nothing here is accepted. D1, the aircraft work and M5 are not complete.** The
-parent owns push, PR, Jira/Confluence, approval and merge.
+**Status: runtime commit `68a16fc1` is natively validated; delivery is tracked by the
+linked PR95. D1 and M5 are not complete.**
 
 **Scope.** One physical extraction under D1 (EEDCS-15), on base `f70f30c3` (the PR #94
 merge), following [`m5-helicopter-movement.md`](m5-helicopter-movement.md). The rotor
@@ -29,7 +27,7 @@ timer). `pending` is true only for `crash_begin`.
 | `fall_gravity` | original gravity step of the fall | false |
 | `contact` | ground contact test; also returns `altitude`; a false flag clears the retained altitude | touched |
 | `settle` | settle into the ground; consumes the retained contact altitude | buried |
-| `tumble` | original tumble; consumes the crash candidate | false |
+| `tumble` | original tumble; consumes the fall candidate | false |
 | `crash_begin` | starts a crash slide (`pending = true`) | false |
 | `crash_end` | finishes the slide; consumes the candidate | stopped |
 | `impact` | original impact step | false |
@@ -61,7 +59,7 @@ The tumble draws are `frand1 ()` doubles, and the original forms
 `PI * 0.2 * frand1 () * dt` in double, narrowing only the float heading or roll it
 assigns. The first transport carried the draws as floats. The first native pack (at
 `3ace3841`) then failed one of 40 checks, `retained.observations`: first difference at
-line 62489 (t = 1559.67, snapshot 83324, a dead AH-1T), height 0.75041 in the baseline
+line 62489 (t = 1559.67, snapshot 83324, a dead AH-1T), heading 0.75041 in the baseline
 against 0.75040. Both complete Tacviews still equalled the baseline.
 
 `68a16fc1` carries the draws as doubles end to end: C `hc_draws[2]` (`hc_move.c`,
@@ -137,22 +135,24 @@ covers the migrated rotor and dying state.
 
 ## Remaining coupling
 
-D1/aircraft is **not** finished. These are retained physical dependencies in the DLL,
-not campaign policy, and each needs its own boundary decision:
+D1 and M5 are **not** complete. The following remain, and each needs its own boundary
+decision:
 
-- **D3, terrain:** sampling and its cache, including the sample the fall uses.
-- **D2, effects:** smoke, effects and sounds raised during dying and crash.
-- **D1, other aircraft physics:** pilot control, avoidance, targeting and guidance;
-  bounding-box sizes; the DEAD state clears and `kill_client_server_entity`; the
-  `frand1` draws stay in the DLL (only their values cross the seam).
+- **D1:** other force lifecycle (EEDCS-37, source-only); creation, placement and removal
+  authority; aircraft physical control and avoidance.
+- **D3:** terrain sampling and its cache, including the sample the fall uses.
+- **Remaining physical and presentation coupling in the DLL:** smoke, effects and sounds
+  raised during dying and crash, and the shared `frand1` RNG (only the draw values cross
+  the seam).
 - The DLL's rotor copy remains because the entity still lives in the DLL, and the
   campaign and the physical world still share `eech_dc.dll` (the `coupled-engine`
   blind spot).
 - Other direct writers announced to the host only through the setters' `place`.
 - Client/multiplayer helicopters are unsupported in a host build.
 
-The campaign keeps deciding when a helicopter dies and the death consequences (group
-state, removal, logistics).
+D2 (combat, targeting, perception) is not changed by this Task. The campaign keeps
+deciding when a helicopter dies and the death consequences (group state, removal,
+logistics).
 
 ## Commands
 
