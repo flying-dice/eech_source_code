@@ -1,0 +1,6 @@
+clippy 0.1.99 (58cf8f9c35 2026-10-13)
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Checking eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.81s
+EXIT=0
+docker exit=0

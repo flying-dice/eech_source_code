@@ -89,7 +89,7 @@ actual DCS identity binding exists in this slice.
 
 ## Remaining work
 
-In code (not yet validated by the native pack), the host computes the physical
+In code (the pack passed 40 of 40 on its own scenarios; the rest is not claimed), the host computes the physical
 initial height and attitude from the campaign's input facts, owns the wreck
 lifetime gate and timer, and refuses a retired identity, as of EEDCS-38
 (`m5-force-creation.md`, which also records what remains coupled and unverified).
