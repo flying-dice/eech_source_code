@@ -1,6 +1,9 @@
 //! The Lua surface of the module.
 
-use eech_engine::{ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship, LossDecision, LossDescriptor, MemberDescriptor, Side, SupplyReachDescriptor};
+use eech_engine::{
+    ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship, LossDecision, LossDescriptor, MemberDescriptor, MovementResult, MovementStep, Side,
+    SupplyReachDescriptor, VehiclePose,
+};
 use mlua::prelude::*;
 use std::path::PathBuf;
 
@@ -18,6 +21,7 @@ struct LuaEngine {
     bind_mobile: LuaFunction,
     observe_loss: LuaFunction,
     supply_reached: LuaFunction,
+    move_vehicle: LuaFunction,
 }
 
 fn call_bind_mobile(lua: &Lua, function: &LuaFunction, descriptor: MemberDescriptor) -> Result<String, String> {
@@ -37,6 +41,11 @@ fn call_bind_mobile(lua: &Lua, function: &LuaFunction, descriptor: MemberDescrip
             },
         )
         .map_err(|e| e.to_string())?;
+    if let Some(pose) = descriptor.pose {
+        table
+            .set("pose", lua.to_value_with(&pose, options()).map_err(|e| e.to_string())?)
+            .map_err(|e| e.to_string())?;
+    }
     let value: LuaValue = function.call(table).map_err(|e| e.to_string())?;
     match value {
         LuaValue::String(identity) => identity
@@ -94,16 +103,107 @@ fn call_supply_reached(lua: &Lua, function: &LuaFunction, descriptor: SupplyReac
     }
 }
 
+/// The `N` numbers a table field holds (a number for `N == 1`, else an array), exactly as Lua
+/// holds them. mlua's own number reads turn any value within `f64::EPSILON` of an integer into
+/// that integer, so a physical value such as -6.7e-17 would arrive as 0 and the two sides'
+/// copies of a pose would differ. Lua looks the field up and formats the numbers at 17 significant digits instead,
+/// and `nearest_f32` narrows them.
+fn exact_numbers<const N: usize>(lua: &Lua, table: &LuaTable, field: &str) -> Result<[f32; N], String> {
+    const KEY: &str = "eech_exact_numbers";
+    let format: LuaFunction = match lua.named_registry_value(KEY) {
+        Ok(function) => function,
+        Err(_) => {
+            let function: LuaFunction = lua
+                .load(
+                    "return function(t, f, n)
+                       local v = t[f]
+                       if n == 1 and type(v) == 'number' then v = { v }
+                       elseif type(v) ~= 'table' or #v ~= n then return nil end
+                       for i = 1, n do
+                         local x = v[i]
+                         if type(x) ~= 'number' or x ~= x or x == math.huge or x == -math.huge then return nil end
+                       end
+                       return string.format(string.rep('%.17g ', n), unpack(v))
+                     end",
+                )
+                .eval()
+                .map_err(|e| e.to_string())?;
+            lua.set_named_registry_value(KEY, function.clone()).map_err(|e| e.to_string())?;
+            function
+        }
+    };
+    let text: Option<String> = format.call((table, field, N)).map_err(|e| e.to_string())?;
+    let shape = || {
+        format!(
+            "{field} must be {}",
+            if N == 1 {
+                "a finite number".to_owned()
+            } else {
+                format!("{N} finite numbers")
+            }
+        )
+    };
+    let text = text.ok_or_else(shape)?;
+    let mut parts = text.split_whitespace();
+    let mut numbers = [0.0f32; N];
+    for slot in &mut numbers {
+        *slot = parts.next().and_then(|part| part.parse::<f64>().ok()).and_then(nearest_f32).ok_or_else(shape)?;
+    }
+    Ok(numbers)
+}
+
+/// The `f32` nearest `value`, or `None` beyond the `f32` range. A plain `as f32` follows the
+/// FPU rounding mode, and the engine runs a callback under round-toward-zero, where a value a
+/// hair under an `f32` narrows to its neighbour. The cast only picks the neighbourhood; the
+/// nearest of it and the two adjacent `f32`s is taken, the cast's own result winning a tie so a
+/// zero keeps its sign.
+fn nearest_f32(value: f64) -> Option<f32> {
+    if !value.is_finite() || value.abs() > f64::from(f32::MAX) {
+        return None;
+    }
+    let guess = value as f32;
+    [guess, guess.next_down(), guess.next_up()]
+        .into_iter()
+        .filter(|candidate| candidate.is_finite())
+        .min_by(|a, b| (f64::from(*a) - value).abs().total_cmp(&(f64::from(*b) - value).abs()))
+}
+
+fn call_move_vehicle(lua: &Lua, function: &LuaFunction, step: MovementStep) -> Result<MovementResult, String> {
+    let value = lua.to_value_with(&step, options()).map_err(|e| e.to_string())?;
+    let answer: LuaValue = function.call(value).map_err(|e| e.to_string())?;
+    let LuaValue::Table(table) = answer else {
+        return Err(format!("move_vehicle must return a result table, got {}", answer.type_name()));
+    };
+    let [velocity] = exact_numbers::<1>(lua, &table, "velocity").map_err(|e| format!("move_vehicle result {e}"))?;
+    let rotated = match table.get::<LuaValue>("rotated").map_err(|e| e.to_string())? {
+        LuaValue::Nil => false,
+        LuaValue::Boolean(rotated) => rotated,
+        other => return Err(format!("move_vehicle result rotated must be a boolean, got {}", other.type_name())),
+    };
+    Ok(MovementResult {
+        pose: VehiclePose {
+            position: exact_numbers(lua, &table, "position").map_err(|e| format!("move_vehicle result {e}"))?,
+            velocity,
+            attitude: exact_numbers(lua, &table, "attitude").map_err(|e| format!("move_vehicle result {e}"))?,
+        },
+        rotated,
+    })
+}
+
 impl LuaUserData for LuaEngine {
     fn add_methods<M: LuaUserDataMethods<Self>>(methods: &mut M) {
         methods.add_method("frame", |lua, this, milliseconds: u32| {
             let bind_mobile = this.bind_mobile.clone();
             let observe_loss = this.observe_loss.clone();
             let supply_reached = this.supply_reached.clone();
+            let move_vehicle = this.move_vehicle.clone();
             let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
             let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
             let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
-            this.engine.frame(milliseconds, &mut binder, &mut observer, &mut reach).map_err(lua_error)
+            let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+            this.engine
+                .frame(milliseconds, &mut binder, &mut observer, &mut reach, &mut mover)
+                .map_err(lua_error)
         });
         methods.add_method("report_loss", |lua, this, host_id: String| {
             let receipt = this.engine.report_loss(&host_id).map_err(lua_error)?;
@@ -159,6 +259,11 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
         LuaValue::Nil => return Err(LuaError::runtime("eech: missing host supply_reached callback")),
         value => return Err(LuaError::runtime(format!("eech: supply_reached must be a function, got {}", value.type_name()))),
     };
+    let move_vehicle = match config.get::<LuaValue>("move_vehicle")? {
+        LuaValue::Function(function) => function,
+        LuaValue::Nil => return Err(LuaError::runtime("eech: missing host move_vehicle callback")),
+        value => return Err(LuaError::runtime(format!("eech: move_vehicle must be a function, got {}", value.type_name()))),
+    };
     let arguments: Vec<String> = config.get::<Option<Vec<String>>>("arguments")?.unwrap_or_default();
     let config = EngineConfig {
         install_root: PathBuf::from(config.get::<String>("install_root")?),
@@ -172,12 +277,14 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
     let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
     let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
     let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
-    let engine = Engine::boot(&config, &mut binder, &mut observer, &mut reach).map_err(lua_error)?;
+    let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+    let engine = Engine::boot(&config, &mut binder, &mut observer, &mut reach, &mut mover).map_err(lua_error)?;
     Ok(LuaEngine {
         engine,
         bind_mobile,
         observe_loss,
         supply_reached,
+        move_vehicle,
     })
 }
 

@@ -53,6 +53,7 @@ static enum engine_operation operation;
 	const struct eech_engine_host *entry_host = (HOST); \
 	campaign_roster_host roster_host; \
 	campaign_supply_arrival_host arrival_host; \
+	campaign_movement_host movement_host; \
 	if (eech_engine_poisoned) \
 	{ \
 		return EECH_ENGINE_POISONED; \
@@ -67,8 +68,11 @@ static enum engine_operation operation;
 	roster_host.user = entry_host ? entry_host->user : NULL; \
 	arrival_host.observe_reach = entry_host ? entry_host->supply_reached : NULL; \
 	arrival_host.user = entry_host ? entry_host->user : NULL; \
+	movement_host.move_vehicle = entry_host ? entry_host->move_vehicle : NULL; \
+	movement_host.user = entry_host ? entry_host->user : NULL; \
 	campaign_roster_set_host (entry_host ? &roster_host : NULL); \
 	campaign_supply_arrival_set_host (entry_host ? &arrival_host : NULL); \
+	campaign_movement_set_host (entry_host ? &movement_host : NULL); \
 	fegetenv (&caller_fenv); \
 	fesetround (FE_TOWARDZERO); \
 	eech_fatal_target = &fatal_jmp; \
@@ -76,6 +80,7 @@ static enum engine_operation operation;
 	{ \
 		campaign_roster_set_host (NULL); \
 		campaign_supply_arrival_set_host (NULL); \
+		campaign_movement_set_host (NULL); \
 		operation = OPERATION_NONE; \
 		eech_fatal_target = saved_target; \
 		fesetenv (&caller_fenv); \
@@ -85,6 +90,7 @@ static enum engine_operation operation;
 #define LEAVE(RESULT) \
 	campaign_roster_set_host (NULL); \
 	campaign_supply_arrival_set_host (NULL); \
+	campaign_movement_set_host (NULL); \
 	operation = OPERATION_NONE; \
 	eech_fatal_target = saved_target; \
 	fesetenv (&caller_fenv); \
@@ -250,7 +256,7 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached)
+	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -317,7 +323,7 @@ int eech_engine_frame (uint32_t milliseconds, const struct eech_engine_host *hos
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached)
+	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}

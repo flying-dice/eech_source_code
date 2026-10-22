@@ -1,0 +1,253 @@
+   Compiling regex-syntax v0.8.11
+   Compiling aho-corasick v1.1.5
+   Compiling bitflags v2.13.2
+   Compiling thiserror v1.0.69
+   Compiling crc32fast v1.5.2
+   Compiling rustix v1.1.5
+   Compiling simd-adler32 v0.3.10
+   Compiling getrandom v0.4.3
+   Compiling rustix v0.38.44
+   Compiling adler2 v2.0.1
+   Compiling linux-raw-sys v0.12.1
+   Compiling jobserver v0.1.35
+   Compiling linux-raw-sys v0.4.15
+   Compiling protobuf v3.7.2
+   Compiling once_cell v1.21.4
+   Compiling anyhow v1.0.104
+   Compiling crossbeam-utils v0.8.23
+   Compiling crossbeam-epoch v0.9.21
+   Compiling home v0.5.12
+   Compiling equivalent v1.0.2
+   Compiling fastrand v2.5.0
+   Compiling thiserror-impl v1.0.69
+   Compiling hashbrown v0.17.1
+   Compiling log v0.4.34
+   Compiling crossbeam-deque v0.8.8
+   Compiling miniz_oxide v0.9.1
+   Compiling rayon-core v1.13.0
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+   Compiling memmap2 v0.5.10
+   Compiling byteorder v1.5.0
+   Compiling cc v1.4.7
+   Compiling indexmap v2.14.2
+   Compiling flate2 v1.1.10
+   Compiling protobuf-support v3.7.2
+   Compiling rayon v1.12.0
+   Compiling mlua-sys v0.6.8 (/src/eech-campaign/patches/mlua-sys-0.6.8)
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+   Compiling regex-automata v0.4.18
+   Compiling mlua v0.10.5
+   Compiling tempfile v3.27.0
+   Compiling which v4.4.2
+   Compiling regex v1.13.1
+   Compiling eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)
+   Compiling protobuf-parse v3.7.2
+   Compiling protobuf-codegen v3.7.2
+   Compiling osmpbf v0.3.8
+   Compiling eech-map v0.1.0 (/src/eech-campaign/crates/eech-map)
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+   Compiling eech-campaign v0.1.0 (/src/eech-campaign/crates/eech-campaign)
+   Compiling eech-harness v0.1.0 (/src/eech-campaign/crates/eech-harness)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7m 05s
+     Running unittests src/lib.rs (/target/debug/deps/eech_campaign-f5ec679b8a9ffc61)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/campaign.rs (/target/debug/deps/campaign-3e3c09f1acf91f38)
+
+running 11 tests
+test campaign_is_send ... ok
+test a_panicking_world_unwinds_in_rust_and_poisons_the_campaign ... ok
+test a_sequential_campaign_starts_from_a_clean_state ... ok
+test a_server_replicates_what_changed ... ok
+test an_unknown_position_fails_loudly_and_poisons_the_campaign ... ok
+test invalid_configurations_are_refused_before_the_campaign_starts ... ok
+test stale_and_foreign_ids_are_detected ... ok
+test one_campaign_per_process_and_campaigns_run_one_after_another ... ok
+test the_supply_chain_runs_from_keysite_consumption_to_the_assignment_boundary ... ok
+test unknown_object_bounds_fail_loudly ... ok
+test without_a_suitable_group_the_mission_waits_and_the_campaign_keeps_running ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/lib.rs (/target/debug/deps/eech_dc-fedb9ea04f5c3d7b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/lua_debug_layout.rs (/target/debug/deps/lua_debug_layout-e214ce67e9d4a635)
+
+running 2 tests
+test lua_debug_holds_the_dcs_world_record ... ok
+test lua_debug_short_src_starts_where_dcs_world_writes_it ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/target/debug/deps/eech_engine-458a7b086ff4a14e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/target/debug/deps/eech_engine_sys-7897d272160a0e94)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/target/debug/deps/eech_harness-7f688bc62bd18e93)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/target/debug/deps/eech_harness-8854a3f6e1ea458c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/corpus.rs (/target/debug/deps/corpus-ee50b2db7a420b43)
+
+running 3 tests
+test fresh_scenarios_match_the_c_reference ... ok
+test recorded_scenarios_match_the_c_reference ... ok
+test float_semantics_match_the_c_reference ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s
+
+     Running tests/scenarios.rs (/target/debug/deps/scenarios-64a45c6083bb228f)
+
+running 1 test
+test scenarios_produce_their_recorded_results ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running unittests src/main.rs (/target/debug/deps/eech_map-fa83bd7e0eda9cb0)
+
+running 1 test
+test geo::tests::round_trips ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/target/debug/deps/eech_sys-411edd2742e8ef46)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/findings.rs (/target/debug/deps/findings-d29a604b409901e0)
+
+running 2 tests
+test b1_va_list_reinterpretation_is_an_i386_only_idiom ... ok
+test every_writable_global_is_classified ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/smoke.rs (/target/debug/deps/smoke-a0f40bff934f1744)
+
+running 2 tests
+test probe ... ok
+test replay_slice1 ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/target/debug/deps/eech_world-687e6018310f7dfa)
+
+running 8 tests
+test convoy::tests::a_campaign_copy_the_host_did_not_make_is_refused ... ok
+test convoy::tests::a_vehicle_on_its_waypoint_is_not_moved ... ok
+test convoy::tests::accelerates_towards_the_waypoint_and_keeps_its_own_record ... ok
+test convoy::tests::an_unknown_host_id_is_an_error ... ok
+test convoy::tests::placing_adopts_the_campaign_pose_and_stopping_zeroes_the_speed ... ok
+test convoy::tests::the_map_volume_bounds_the_position ... ok
+test convoy::tests::turning_towards_a_waypoint_reports_the_rotation ... ok
+test tacview::tests::writes_a_well_formed_acmi ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/target/debug/deps/eech_world-b660db99f20ec5ab)
+
+running 16 tests
+test exact_number_tests::narrowing_picks_the_nearest_f32_at_the_edges ... ok
+test exact_number_tests::the_value_read_loses_what_the_exact_read_keeps ... ok
+test exact_number_tests::a_missing_wrong_shaped_or_non_finite_field_is_refused_by_name ... ok
+test supply_reached_tests::follower_requires_the_last_to_reach_criterion ... ok
+test supply_reached_tests::fixed_wing_ignores_helicopter_altitude_and_heading ... ok
+test supply_reached_tests::action_and_recon_queries ... ok
+test supply_reached_tests::helicopter_required_heading_follows_the_original_source_rules ... ok
+test supply_reached_tests::standard_forms_match_the_legacy_expressions_bit_for_bit ... ok
+test supply_reached_tests::fixed_wing_physical_boundaries ... ok
+test supply_reached_tests::helicopter_physical_boundaries ... ok
+test supply_reached_tests::radius_arrival_keeps_the_same_physical_boundaries ... ok
+test supply_reached_tests::helicopter_missing_target_is_reported_only_where_the_original_asserts ... ok
+test supply_reached_tests::weapon_angle_is_reported_only_when_the_rule_applies ... ok
+test supply_reached_tests::vehicle_kinds_share_landed_radius_and_altitude_without_a_cog_term ... ok
+test supply_reached_tests::helicopter_leader_altitude_and_heading_gates ... ok
+test exact_number_tests::a_scalar_and_an_array_keep_every_bit_under_either_rounding_mode ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-faca2881d98b91b8)
+
+running 2 tests
+test move_vehicle_refuses_an_unknown_id_a_foreign_pose_and_an_unknown_mode ... ok
+test a_failing_host_callback_returns_its_error_to_pcall ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/load_dc.rs (/target/debug/deps/load_dc-bef93054fa1b23eb)
+
+running 2 tests
+test require_loads_the_dc_dll ... ok
+test a_failing_dc_callback_returns_its_error_to_pcall ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests eech_campaign
+
+running 1 test
+test crates/eech-campaign/src/lib.rs - (line 21) - compile ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+   Doc-tests eech_dc
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests eech_engine
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests eech_engine_sys
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests eech_harness
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests eech_sys
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests eech_world
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

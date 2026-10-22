@@ -167,6 +167,7 @@ dependencies = [
 name = "eech-world"
 version = "0.1.0"
 dependencies = [
+ "cc",
  "mlua",
  "serde",
  "serde_json",

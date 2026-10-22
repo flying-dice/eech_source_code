@@ -74,6 +74,11 @@ typedef struct campaign_member_descriptor
 	int entity_type;
 	int sub_type;
 	int side;
+	// routed vehicles only: the physical pose the host takes over (has_pose), attitude row-major
+	int has_pose;
+	float position[3];
+	float velocity;
+	float attitude[9];
 } campaign_member_descriptor;
 
 typedef int (*campaign_bind_member_fn)

@@ -167,7 +167,7 @@ local engine = dc.boot {
 	campaign = "LEBANON.CHC",
 	gunship = "apache",
 	seed = 1,
-	bind_mobile = host.bind_mobile,
+	bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle,
 	observe_loss = watch_loss,
 	supply_reached = supply_reached,
 }

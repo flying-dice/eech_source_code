@@ -38,7 +38,7 @@ emit { event = "surface", module = dc.name, exports = table.concat (exports, " "
 dc.prepare_installation (root)
 local engine = dc.boot {
 	install_root = root, map = "..\\common\\maps\\map5", campaign_directory = "camp01",
-	campaign = "LEBANON.CHC", gunship = "apache", seed = 1, bind_mobile = host.bind_mobile,
+	campaign = "LEBANON.CHC", gunship = "apache", seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle,
 	observe_loss = host.observe_loss, supply_reached = host.supply_reached,
 }
 

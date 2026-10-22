@@ -130,6 +130,8 @@ static void set_local_float_value (entity *en, float_types type, float value)
 			
 			raw->velocity = value;
 
+			campaign_movement_place (en);
+
 			if (update_smoke)
 				switch_aircraft_damaged_smoke(en);
 

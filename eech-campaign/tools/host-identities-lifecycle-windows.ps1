@@ -50,6 +50,10 @@ $cases = [ordered]@{
 		'boot ok', 'frames ok', "boot_after_collect error $notAgain", 'require_again ok', "boot_after_require error $notAgain") }
 	missing_host = @{ exit = 0; steps = $load + @(
 		'boot_without_bind error missing host bind_mobile callback', 'boot_after ok', 'members ok') }
+	missing_move = @{ exit = 0; steps = $load + @(
+		'boot_without_move error missing host move_vehicle callback', 'boot_after ok', 'members ok') }
+	move_unknown_id = @{ exit = 0; steps = $load + @(
+		'boot error unknown host id stranger:', "boot_after error $notAgain") }
 	host_identity = @{ exit = 0; steps = $load + @(
 		'boot ok', 'reentry_guards ok', 'binding_count ok', 'objects_compatible ok') }
 	bind_nil = @{ exit = 0; steps = $load + @(

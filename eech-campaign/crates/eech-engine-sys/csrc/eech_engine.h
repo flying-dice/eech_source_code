@@ -15,6 +15,7 @@
 
 #include "entity/special/group/gp_roster.h"
 #include "entity/special/guide/gd_supply_arrival.h"
+#include "entity/mobile/vehicle/routed/rv_hostmv.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -58,6 +59,9 @@ typedef campaign_observe_loss_fn eech_observe_loss_callback;
 #define EECH_LOSS_LANDING_UNLOCK_SITE CAMPAIGN_LOSS_LANDING_UNLOCK_SITE
 typedef campaign_supply_reach_descriptor eech_supply_reach_descriptor;
 typedef campaign_observe_supply_reach_fn eech_supply_reached_callback;
+typedef campaign_movement_step eech_movement_step;
+typedef campaign_movement_result eech_movement_result;
+typedef campaign_move_vehicle_fn eech_move_vehicle_callback;
 
 struct eech_engine_host
 {
@@ -67,6 +71,8 @@ struct eech_engine_host
 	eech_observe_loss_callback observe_loss;
 	/* Called synchronously for the physical arrival and proximity predicates: SUPPLY and mixed-criteria arrivals, waypoint action and recon radius. */
 	eech_supply_reached_callback supply_reached;
+	/* Called synchronously for each routed-vehicle movement step (MOVE, STOP) and pose placement (PLACE); the host owns the vehicle's position, speed and attitude. */
+	eech_move_vehicle_callback move_vehicle;
 	void *user;
 };
 

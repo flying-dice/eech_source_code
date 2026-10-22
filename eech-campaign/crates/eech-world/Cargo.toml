@@ -16,3 +16,6 @@ path = "src/main.rs"
 mlua = { version = "0.10", features = ["lua51", "module", "serialize"] }
 serde.workspace = true
 serde_json.workspace = true
+
+[build-dependencies]
+cc = "1.2"

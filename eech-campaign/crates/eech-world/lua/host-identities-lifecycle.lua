@@ -18,7 +18,7 @@ local scenarios = {
 local scenario = assert (scenarios[args.scenario or "lebanon_retail"], "scenario=lebanon_retail|georgia_retail")
 
 local function config (overrides)
-	local c = { install_root = root, map = scenario.map, campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache", seed = 1, bind_mobile = host.bind_mobile, observe_loss = host.observe_loss, supply_reached = host.supply_reached }
+	local c = { install_root = root, map = scenario.map, campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache", seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss, supply_reached = host.supply_reached }
 	for k, v in pairs (overrides or {}) do
 		if v == false then c[k] = nil else c[k] = v end
 	end
@@ -41,13 +41,31 @@ local function frames (engine, n)
 	for _ = 1, n do engine:frame (100) end
 end
 
+-- A case that issues its own identities still needs the host to record each
+-- vehicle's physical state: the identity the case issues is translated to the one
+-- the reference host issued when it bound the same descriptor.
+local function own_identities (issue)
+	local issued_by_host = {}
+	local function bind (descriptor)
+		local id = issue (descriptor)
+		issued_by_host [id] = host.bind_mobile (descriptor)
+		return id
+	end
+	local function move (request)
+		request.host_id = issued_by_host [request.host_id] or request.host_id
+		return host.move_vehicle (request)
+	end
+	return bind, move
+end
+
 local cases = {}
 
 -- one boot per process: a second boot is refused and the first engine carries on
 function cases.boot_twice ()
 	local calls = 0
 	local engine, frame_reentry_checked
-	local function binder ()
+	local binder, move
+	local function issue ()
 		calls = calls + 1
 		if engine and not frame_reentry_checked then
 			frame_reentry_checked = true
@@ -64,13 +82,14 @@ function cases.boot_twice ()
 		end
 		return "sequential:" .. calls
 	end
+	binder, move = own_identities (issue)
 	local _
-	_, engine = step ("boot", dc.boot, config { bind_mobile = binder })
+	_, engine = step ("boot", dc.boot, config { bind_mobile = binder, move_vehicle = move })
 	step ("frames", frames, engine, 50)
 	step ("frame_reentry_guards", function () assert (frame_reentry_checked) end)
 	local before_second_calls = calls
 	local before_second_members = #engine:members ()
-	step ("boot_again", dc.boot, config { bind_mobile = binder })
+	step ("boot_again", dc.boot, config { bind_mobile = binder, move_vehicle = move })
 	step ("roster_not_reset", function ()
 		assert (#engine:members () == before_second_members)
 		assert (calls == before_second_calls)
@@ -134,12 +153,32 @@ function cases.missing_host ()
 	step ("members", function () assert (#engine:members () > 0) end)
 end
 
+-- The movement capability is required too, and is checked before engine state is consumed.
+function cases.missing_move ()
+	step ("boot_without_move", dc.boot, config { move_vehicle = false })
+	local _, engine = step ("boot_after", dc.boot, config ())
+	step ("members", function () assert (#engine:members () > 0) end)
+end
+
+-- A host that issues identities its movement side never recorded: the first step
+-- of a vehicle it does not know is a clear failure, not an adopted pose, and the
+-- engine is then poisoned like any other fatal error.
+function cases.move_unknown_id ()
+	local issued = 0
+	local function stranger ()
+		issued = issued + 1
+		return "stranger:" .. issued
+	end
+	step ("boot", dc.boot, config { bind_mobile = stranger })
+	step ("boot_after", dc.boot, config ())
+end
+
 -- The callable is invoked and its opaque results become the public durable roster.
 -- Re-entry through a different public C entry is refused while boot is active.
 function cases.host_identity ()
 	local calls, issued = 0, {}
-	local binder
-	binder = function (descriptor)
+	local binder, move
+	local function issue (descriptor)
 		calls = calls + 1
 		assert (type (descriptor.member_key) == "number" and descriptor.member_key > 0)
 		assert (type (descriptor.group_key) == "number" and descriptor.group_key > 0)
@@ -147,14 +186,15 @@ function cases.host_identity ()
 		if calls == 1 then
 			local ok, message = pcall (dc.prepare_installation, root)
 			assert (not ok and tostring (message):find ("not valid in the engine's state", 1, true))
-			ok, message = pcall (dc.boot, config { bind_mobile = binder })
+			ok, message = pcall (dc.boot, config { bind_mobile = binder, move_vehicle = move })
 			assert (not ok and tostring (message):find ("not valid in the engine's state", 1, true))
 		end
 		local id = "lifecycle:" .. calls
 		issued[id] = true
 		return id
 	end
-	local _, engine = step ("boot", dc.boot, config { bind_mobile = binder })
+	binder, move = own_identities (issue)
+	local _, engine = step ("boot", dc.boot, config { bind_mobile = binder, move_vehicle = move })
 	step ("reentry_guards", function () assert (calls > 0) end)
 	step ("binding_count", function ()
 		local members = engine:members ()
@@ -207,6 +247,6 @@ function cases.bind_error ()
 	step ("boot_after", dc.boot, config ())
 end
 
-local case = assert (cases[args.case], "case=boot_twice|bad_arguments|missing_root|missing_map|missing_campaign|no_reuse|missing_host|host_identity|bind_nil|bind_invalid|bind_nul|bind_non_utf8|bind_duplicate|bind_error")
+local case = assert (cases[args.case], "case=boot_twice|bad_arguments|missing_root|missing_map|missing_campaign|no_reuse|missing_host|host_identity|bind_nil|bind_invalid|bind_nul|bind_non_utf8|bind_duplicate|bind_error|missing_move|move_unknown_id")
 case ()
 print ("end")

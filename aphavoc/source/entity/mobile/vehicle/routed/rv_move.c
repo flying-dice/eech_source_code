@@ -94,6 +94,49 @@ static void routed_vehicle_movement_get_waypoint_position (entity *en, vec3d *wp
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// zero the vehicle's speed; with the host owning the movement, the host zeroes it and the engine applies its answer
+
+static void routed_vehicle_movement_stop (entity *en, int client_server)
+{
+
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	float
+		velocity;
+
+	velocity = campaign_movement_stop (en);
+
+	campaign_movement_apply_begin ();
+
+	if (client_server)
+	{
+
+		set_client_server_entity_float_value (en, FLOAT_TYPE_VELOCITY, velocity);
+	}
+	else
+	{
+
+		set_local_entity_float_value (en, FLOAT_TYPE_VELOCITY, velocity);
+	}
+
+	campaign_movement_apply_end ();
+
+#else
+
+	if (client_server)
+	{
+
+		set_client_server_entity_float_value (en, FLOAT_TYPE_VELOCITY, 0.0);
+	}
+	else
+	{
+
+		set_local_entity_float_value (en, FLOAT_TYPE_VELOCITY, 0.0);
+	}
+
+#endif
+}
+
 void routed_vehicle_movement (entity *en)
 {
 
@@ -127,7 +170,7 @@ void routed_vehicle_movement (entity *en)
 		if (raw->vh.mob.velocity != 0.0)
 		{
 
-			set_local_entity_float_value (en, FLOAT_TYPE_VELOCITY, 0.0);
+			routed_vehicle_movement_stop (en, FALSE);
 		}
 
 		group = get_local_entity_parent (en, LIST_TYPE_MEMBER);
@@ -188,7 +231,7 @@ void routed_vehicle_movement (entity *en)
 			if (get_comms_model () == COMMS_MODEL_SERVER)
 			{
 
-				set_client_server_entity_float_value (en, FLOAT_TYPE_VELOCITY, 0.0);
+				routed_vehicle_movement_stop (en, TRUE);
 			}
 			else
 			{
@@ -222,7 +265,7 @@ void routed_vehicle_movement (entity *en)
 			if (get_comms_model () == COMMS_MODEL_SERVER)
 			{
 
-				set_client_server_entity_float_value (en, FLOAT_TYPE_VELOCITY, 0.0);
+				routed_vehicle_movement_stop (en, TRUE);
 			}
 			else
 			{
@@ -259,6 +302,14 @@ void routed_vehicle_movement (entity *en)
 		return;
 	}
 	//
+
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	// the host steps the vehicle (speed, attitude, position); the engine keeps the route and the waypoint
+
+	campaign_movement_move (en, guide, &wp_pos);
+
+#else
 
    wp_vec.x = wp_pos.x - raw->vh.mob.position.x;
    wp_vec.y = wp_pos.y - raw->vh.mob.position.y;
@@ -406,6 +457,8 @@ void routed_vehicle_movement (entity *en)
 	raw->vh.mob.motion_vector.x = raw->vh.mob.attitude [2][0] * raw->vh.mob.velocity;
 	raw->vh.mob.motion_vector.y = raw->vh.mob.attitude [2][1] * raw->vh.mob.velocity;
 	raw->vh.mob.motion_vector.z = raw->vh.mob.attitude [2][2] * raw->vh.mob.velocity;
+
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

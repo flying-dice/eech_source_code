@@ -113,6 +113,7 @@ fn main() {
         .define("WIN32", None)
         .define("EECH_CAMPAIGN_HOST_IDENTITIES", None)
         .define("EECH_CAMPAIGN_HOST_ARRIVALS", None)
+        .define("EECH_CAMPAIGN_HOST_MOVEMENT", None)
         .opt_level_str(&opt)
         .debug(true)
         .pic(true)
