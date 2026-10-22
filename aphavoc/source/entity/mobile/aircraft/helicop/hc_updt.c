@@ -86,18 +86,25 @@ static void interpolate_entity_position (entity *en);
 
 static void update_rotors (entity *en)
 {
+#ifndef EECH_CAMPAIGN_HOST_MOVEMENT
 	helicopter
 		*raw;
 
 	raw = (helicopter *) get_local_entity_data (en);
+#endif
 
 	if (!get_local_entity_parent (en, LIST_TYPE_FOLLOWER))
 	{
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+		// the idle wind-down is its own physical law (linear, frame delta); the host integrates it
+		campaign_movement_rotor_idle (en, get_delta_time ());
+#else
 		raw->main_rotor_rpm -= 5.0 * get_delta_time ();
 
 		raw->main_rotor_rpm = bound (raw->main_rotor_rpm, 0.0, 100.0);
 
 		raw->tail_rotor_rpm = raw->main_rotor_rpm;
+#endif
 	}
 }
 

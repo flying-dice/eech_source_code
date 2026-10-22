@@ -52,6 +52,11 @@ fn call_bind_mobile(lua: &Lua, function: &LuaFunction, descriptor: MemberDescrip
             .set("motion_vector", lua.to_value_with(&motion_vector, options()).map_err(|e| e.to_string())?)
             .map_err(|e| e.to_string())?;
     }
+    if let Some(rotor) = descriptor.rotor {
+        table
+            .set("rotor", lua.to_value_with(&rotor, options()).map_err(|e| e.to_string())?)
+            .map_err(|e| e.to_string())?;
+    }
     let value: LuaValue = function.call(table).map_err(|e| e.to_string())?;
     match value {
         LuaValue::String(identity) => identity
@@ -176,7 +181,25 @@ fn nearest_f32(value: f64) -> Option<f32> {
 
 fn call_move_vehicle(lua: &Lua, function: &LuaFunction, step: MovementStep) -> Result<MovementResult, String> {
     let mode = step.mode;
-    let aircraft_step = matches!(mode, MovementMode::FixedWingMove | MovementMode::HelicopterBegin | MovementMode::HelicopterEnd);
+    // the helicopter lifecycle modes: every one answers with the rotor and the motion vector the host retains
+    let lifecycle_step = !matches!(
+        mode,
+        MovementMode::Move
+            | MovementMode::Stop
+            | MovementMode::Place
+            | MovementMode::ShipMove
+            | MovementMode::PersonBegin
+            | MovementMode::PersonEnd
+            | MovementMode::FixedWingMove
+            | MovementMode::HelicopterBegin
+            | MovementMode::HelicopterEnd
+    );
+    let aircraft_step = lifecycle_step || matches!(mode, MovementMode::FixedWingMove | MovementMode::HelicopterBegin | MovementMode::HelicopterEnd);
+    // the lifecycle modes whose answer decides something in the campaign
+    let decides = matches!(
+        mode,
+        MovementMode::RotorAlive | MovementMode::Contact | MovementMode::Settle | MovementMode::CrashEnd
+    );
     let value = lua.to_value_with(&step, options()).map_err(|e| e.to_string())?;
     let answer: LuaValue = function.call(value).map_err(|e| e.to_string())?;
     let LuaValue::Table(table) = answer else {
@@ -195,7 +218,7 @@ fn call_move_vehicle(lua: &Lua, function: &LuaFunction, step: MovementStep) -> R
     };
     // a helicopter's first phase reports whether it moved; no other step has an answer for it
     let moved = match table.get::<LuaValue>("moved").map_err(|e| e.to_string())? {
-        LuaValue::Nil if mode == MovementMode::HelicopterBegin => return Err("move_vehicle result for a helicopter begin must carry moved".into()),
+        LuaValue::Nil if mode == MovementMode::HelicopterBegin || decides => return Err("move_vehicle result for this step must carry moved".into()),
         LuaValue::Nil => false,
         LuaValue::Boolean(moved) => moved,
         other => return Err(format!("move_vehicle result moved must be a boolean, got {}", other.type_name())),
@@ -205,6 +228,16 @@ fn call_move_vehicle(lua: &Lua, function: &LuaFunction, step: MovementStep) -> R
         LuaValue::Nil if aircraft_step => return Err("move_vehicle result for an aircraft step must carry its motion_vector".into()),
         LuaValue::Nil => [0.0; 3],
         _ => exact_numbers(lua, &table, "motion_vector").map_err(|e| format!("move_vehicle result {e}"))?,
+    };
+    let rotor = match table.get::<LuaValue>("rotor").map_err(|e| e.to_string())? {
+        LuaValue::Nil if lifecycle_step => return Err("move_vehicle result for a helicopter lifecycle step must carry its rotor".into()),
+        LuaValue::Nil => [0.0; 3],
+        _ => exact_numbers(lua, &table, "rotor").map_err(|e| format!("move_vehicle result {e}"))?,
+    };
+    let altitude = match table.get::<LuaValue>("altitude").map_err(|e| e.to_string())? {
+        LuaValue::Nil if mode == MovementMode::Contact => return Err("move_vehicle result for a contact step must carry its altitude".into()),
+        LuaValue::Nil => 0.0,
+        _ => exact_numbers::<1>(lua, &table, "altitude").map_err(|e| format!("move_vehicle result {e}"))?[0],
     };
     Ok(MovementResult {
         pose: VehiclePose {
@@ -216,6 +249,8 @@ fn call_move_vehicle(lua: &Lua, function: &LuaFunction, step: MovementStep) -> R
         motion_vector,
         pending,
         moved,
+        rotor,
+        altitude,
     })
 }
 

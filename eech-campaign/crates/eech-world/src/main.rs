@@ -9,7 +9,8 @@
 mod crash;
 
 use eech_world::movement::{
-    Advance, FixedWingMove, FixedWingPhase, HelicopterBegin, HelicopterEnd, Kind, Movers, PersonBegin, PersonEnd, Pose, Request, ShipMove, Terrain,
+    Advance, FixedWingMove, FixedWingPhase, HelicopterBegin, HelicopterEnd, Kind, Lifecycle, LifecycleMode, Movers, PersonBegin, PersonEnd, Pose, Request,
+    ShipMove, Terrain,
 };
 use eech_world::tacview::{ObjectInfo, Recorder};
 use mlua::prelude::*;
@@ -160,6 +161,88 @@ fn fixed_wing_phase(value: f32) -> LuaResult<FixedWingPhase> {
     }
 }
 
+/// The helicopter lifecycle step a table carries: every mode reads the campaign's mirror of the host's rotor state and
+/// motion vector, and each reads only the inputs its mode owns.
+fn lifecycle_from(lua: &Lua, step: &LuaTable, mode: LifecycleMode) -> LuaResult<Request> {
+    let mut lifecycle = Lifecycle {
+        mode,
+        rotor: numbers(lua, step, "rotor")?,
+        motion_vector: numbers(lua, step, "motion_vector_in")?,
+        delta_seconds: 0.0,
+        lift: 0.0,
+        power_output: 0.0,
+        flag: false,
+        gravity: 0.0,
+        terrain_class: 0,
+        bury_limit: 0.0,
+        elevation: 0.0,
+        cg_to_ground: 0.0,
+        draws: [0.0; 2],
+        pitch_offset: 0.0,
+        bank_offset: 0.0,
+        signed_speed: 0.0,
+        forest: false,
+        face_normal: [0.0; 3],
+        map_min: [0.0; 3],
+        map_max: [0.0; 3],
+    };
+    match mode {
+        LifecycleMode::RotorSet => {}
+        LifecycleMode::RotorAlive => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.lift = number(lua, step, "lift")?;
+            lifecycle.power_output = number(lua, step, "power_output")?;
+            lifecycle.flag = step.get("flag")?;
+        }
+        LifecycleMode::RotorDown | LifecycleMode::RotorIdle => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+        }
+        LifecycleMode::Fall => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.map_min = numbers(lua, step, "map_min")?;
+            lifecycle.map_max = numbers(lua, step, "map_max")?;
+        }
+        LifecycleMode::FallGravity => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.gravity = number(lua, step, "gravity")?;
+        }
+        LifecycleMode::Contact => {
+            lifecycle.flag = step.get("flag")?;
+            lifecycle.elevation = number(lua, step, "elevation")?;
+            lifecycle.cg_to_ground = number(lua, step, "cg_to_ground")?;
+        }
+        LifecycleMode::Settle => {
+            lifecycle.terrain_class = step.get("terrain_class")?;
+            lifecycle.elevation = number(lua, step, "elevation")?;
+            lifecycle.cg_to_ground = number(lua, step, "cg_to_ground")?;
+            lifecycle.bury_limit = number(lua, step, "bury_limit")?;
+        }
+        LifecycleMode::Tumble => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.draws = numbers(lua, step, "draws")?;
+        }
+        LifecycleMode::CrashBegin => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.face_normal = numbers(lua, step, "face_normal")?;
+            lifecycle.pitch_offset = number(lua, step, "pitch_offset")?;
+            lifecycle.bank_offset = number(lua, step, "bank_offset")?;
+            lifecycle.map_min = numbers(lua, step, "map_min")?;
+            lifecycle.map_max = numbers(lua, step, "map_max")?;
+        }
+        LifecycleMode::CrashEnd => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.face_normal = numbers(lua, step, "face_normal")?;
+            lifecycle.forest = step.get("forest")?;
+            lifecycle.elevation = number(lua, step, "elevation")?;
+            lifecycle.cg_to_ground = number(lua, step, "cg_to_ground")?;
+        }
+        LifecycleMode::Impact => {
+            lifecycle.signed_speed = number(lua, step, "signed_speed")?;
+        }
+    }
+    Ok(Request::Lifecycle(lifecycle))
+}
+
 /// The movement request a step table carries, with the campaign's copy of the pose.
 fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request)> {
     let host_id: String = step.get("host_id")?;
@@ -246,6 +329,18 @@ fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request
             map_min: numbers(lua, step, "map_min")?,
             map_max: numbers(lua, step, "map_max")?,
         }),
+        "rotor_set" => lifecycle_from(lua, step, LifecycleMode::RotorSet)?,
+        "rotor_alive" => lifecycle_from(lua, step, LifecycleMode::RotorAlive)?,
+        "rotor_down" => lifecycle_from(lua, step, LifecycleMode::RotorDown)?,
+        "rotor_idle" => lifecycle_from(lua, step, LifecycleMode::RotorIdle)?,
+        "fall" => lifecycle_from(lua, step, LifecycleMode::Fall)?,
+        "fall_gravity" => lifecycle_from(lua, step, LifecycleMode::FallGravity)?,
+        "contact" => lifecycle_from(lua, step, LifecycleMode::Contact)?,
+        "settle" => lifecycle_from(lua, step, LifecycleMode::Settle)?,
+        "tumble" => lifecycle_from(lua, step, LifecycleMode::Tumble)?,
+        "crash_begin" => lifecycle_from(lua, step, LifecycleMode::CrashBegin)?,
+        "crash_end" => lifecycle_from(lua, step, LifecycleMode::CrashEnd)?,
+        "impact" => lifecycle_from(lua, step, LifecycleMode::Impact)?,
         other => return Err(LuaError::runtime(format!("host.move_vehicle: unknown mode {other}"))),
     };
     Ok((host_id, pose, request))
@@ -728,9 +823,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         Some(_) => Some(numbers(lua, &descriptor, "motion_vector")?),
                         None => None,
                     };
+                    // so is a helicopter's rotor state (rpm, tail rpm, spin-up timer)
+                    let rotor = match descriptor.get::<Option<LuaTable>>("rotor")? {
+                        Some(_) => Some(numbers(lua, &descriptor, "rotor")?),
+                        None => None,
+                    };
                     movers
                         .borrow_mut()
-                        .bind(&host_id, kind, pose_from(lua, &pose)?, motion_vector)
+                        .bind(&host_id, kind, pose_from(lua, &pose)?, motion_vector, rotor)
                         .map_err(LuaError::runtime)?;
                 }
                 Ok(host_id)
@@ -752,6 +852,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 result.set("motion_vector", outcome.motion_vector.to_vec())?;
                 result.set("pending", outcome.pending)?;
                 result.set("moved", outcome.moved)?;
+                result.set("rotor", outcome.rotor.to_vec())?;
+                result.set("altitude", outcome.altitude)?;
                 Ok(result)
             })?,
         )?;

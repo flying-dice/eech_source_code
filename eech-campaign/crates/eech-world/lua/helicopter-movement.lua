@@ -4,10 +4,11 @@
 --
 -- A helicopter step is two host calls around the campaign's attitude guidance: helicopter_begin
 -- (the motion vector, the speed and whether it moved) then helicopter_end (the attitude, the
--- position and the floor clamp). The rotor, the guidance, the look-ahead, the avoidance, the pilot
--- control and the death and crash movement are not part of this witness; they stay campaign-side
--- physical coupling. Only the AI helicopters the headless campaign updates through the server
--- path are exercised.
+-- position and the floor clamp). This witness covers only that live, alive-state integration. The
+-- rotor and the dying, fall and crash movement are covered separately by helicopter-lifecycle.lua;
+-- the guidance, the look-ahead, the avoidance and the pilot control are not covered by either and
+-- remain DLL-side physical dependencies. Only the AI helicopters the headless campaign updates
+-- through the server path are exercised.
 --
 -- mode=census   the reference host moves everything. Counts the members the campaign bound per
 --               movement kind, the host steps by kind and mode, the helicopter placements the

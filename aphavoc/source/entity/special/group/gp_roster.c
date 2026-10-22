@@ -850,6 +850,14 @@ void campaign_roster_link_member (entity *group, entity *member)
 				descriptor.motion_vector[1] = mob->motion_vector.y;
 				descriptor.motion_vector[2] = mob->motion_vector.z;
 			}
+			if (descriptor.movement_kind == CAMPAIGN_MOVEMENT_KIND_HELICOPTER)
+			{
+				const helicopter *raw = (helicopter *) get_local_entity_data (member);
+
+				descriptor.rotor[0] = raw->main_rotor_rpm;
+				descriptor.rotor[1] = raw->tail_rotor_rpm;
+				descriptor.rotor[2] = raw->main_rotor_spin_up_timer;
+			}
 		}
 #endif
 

@@ -135,7 +135,7 @@ static campaign_movement_result ask_host (const campaign_movement_step *step)
 		debug_fatal ("host movement: host move_vehicle failed for %s: %s", step->host_id, error[0] ? error : "unspecified error");
 	}
 	if (!all_finite (result.position, 3) || !all_finite (&result.velocity, 1) || !all_finite (result.attitude, 9) ||
-		!all_finite (result.motion_vector, 3) ||
+		!all_finite (result.motion_vector, 3) || !all_finite (result.rotor, 3) || !all_finite (&result.altitude, 1) ||
 		((result.rotated != FALSE) && (result.rotated != TRUE)) ||
 		((result.pending != FALSE) && (result.pending != TRUE)) ||
 		((result.moved != FALSE) && (result.moved != TRUE)))
@@ -454,6 +454,327 @@ void campaign_movement_helicopter_end (entity *en, float desired_heading, float 
 	campaign_movement_apply_begin ();
 	set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &raw->ac.mob.position);
 	campaign_movement_apply_end ();
+}
+
+// helicopter rotor and dying/crash physics.  Every mode carries the DLL's copy of the motion vector and the rotor state,
+// which the host refuses a difference from (except ROTOR_SET, the explicit seed/reset it adopts).  The host's results are
+// written back as raw fields or inside apply_begin/end, never as placements.
+
+static void fill_helicopter_state (campaign_movement_step *step, const helicopter *raw)
+{
+	step->hc_motion_vector[0] = raw->ac.mob.motion_vector.x;
+	step->hc_motion_vector[1] = raw->ac.mob.motion_vector.y;
+	step->hc_motion_vector[2] = raw->ac.mob.motion_vector.z;
+	step->hc_rotor[0] = raw->main_rotor_rpm;
+	step->hc_rotor[1] = raw->tail_rotor_rpm;
+	step->hc_rotor[2] = raw->main_rotor_spin_up_timer;
+}
+
+static void apply_rotor (helicopter *raw, const float *rotor)
+{
+	raw->main_rotor_rpm = rotor[0];
+	raw->tail_rotor_rpm = rotor[1];
+	raw->main_rotor_spin_up_timer = rotor[2];
+}
+
+static void apply_motion_vector (helicopter *raw, const float *motion_vector)
+{
+	raw->ac.mob.motion_vector.x = motion_vector[0];
+	raw->ac.mob.motion_vector.y = motion_vector[1];
+	raw->ac.mob.motion_vector.z = motion_vector[2];
+}
+
+static campaign_movement_result ask_lifecycle (campaign_movement_step *step, int expect_pending)
+{
+	campaign_movement_result result = ask_host (step);
+
+	if (result.pending != expect_pending)
+	{
+		debug_fatal ("host movement: host move_vehicle answered pending %d for helicopter mode %d of %s", result.pending, step->mode, step->host_id);
+	}
+	return result;
+}
+
+// dying and crashing helicopters hand the POSITION setter a separate local position: the raw position still holds the old
+// pose while dependents are notified, as the legacy step did (only alive integration aliases the raw position)
+
+static void apply_position (entity *en, const float *position)
+{
+	vec3d new_pos;
+
+	new_pos.x = position[0];
+	new_pos.y = position[1];
+	new_pos.z = position[2];
+
+	campaign_movement_apply_begin ();
+	set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &new_pos);
+	campaign_movement_apply_end ();
+}
+
+// an explicit seed/reset of the rotor state (creation, unpack, setter, wind-down): the host adopts it
+
+void campaign_movement_rotor_set (entity *en)
+{
+	campaign_movement_step step;
+
+	if (applying_host_result || !current_host.move_vehicle)
+	{
+		return;
+	}
+	if ((get_local_entity_type (en) != ENTITY_TYPE_HELICOPTER) || !campaign_roster_host_id (en))
+	{
+		return;
+	}
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_ROTOR_SET);
+	fill_helicopter_state (&step, (const helicopter *) get_local_entity_data (en));
+	ask_lifecycle (&step, FALSE);
+}
+
+// alive: the rotor integration and the timer; the result is whether the DLL's spin-up gate held (the DLL then returns)
+
+int campaign_movement_rotor_alive (entity *en, float lift, float power_output, float delta_seconds, int gate)
+{
+	helicopter *raw = (helicopter *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_ROTOR_ALIVE);
+	fill_helicopter_state (&step, raw);
+	step.delta_seconds = delta_seconds;
+	step.hc_lift = lift;
+	step.hc_power_output = power_output;
+	step.hc_flag = gate ? TRUE : FALSE;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	apply_rotor (raw, result.rotor);
+	return result.moved;
+}
+
+void campaign_movement_rotor_down (entity *en, float delta_seconds)
+{
+	helicopter *raw = (helicopter *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_ROTOR_DOWN);
+	fill_helicopter_state (&step, raw);
+	step.delta_seconds = delta_seconds;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	apply_rotor (raw, result.rotor);
+}
+
+// idle (no follower parent): the linear wind-down by the FRAME delta, a different law from the dying wind-down above
+
+void campaign_movement_rotor_idle (entity *en, float delta_seconds)
+{
+	helicopter *raw = (helicopter *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	campaign_movement_require_hosted (en);
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_ROTOR_IDLE);
+	fill_helicopter_state (&step, raw);
+	step.delta_seconds = delta_seconds;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	apply_rotor (raw, result.rotor);
+}
+
+// dying, phase one: the host holds the candidate position (map-clamped); nothing else changes, so the DLL samples the
+// terrain at the candidate before the gravity step, as the legacy step did
+
+void campaign_movement_fall (entity *en, float delta_seconds, vec3d *candidate)
+{
+	helicopter *raw = (helicopter *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_FALL);
+	fill_helicopter_state (&step, raw);
+	step.delta_seconds = delta_seconds;
+	fill_map_bounds (&step);
+
+	result = ask_lifecycle (&step, FALSE);
+
+	candidate->x = result.position[0];
+	candidate->y = result.position[1];
+	candidate->z = result.position[2];
+}
+
+// dying, phase two (after the terrain sample): gravity, the vector written raw and the speed through the setter, as the
+// legacy step wrote them
+
+void campaign_movement_fall_gravity (entity *en, float gravity, float delta_seconds)
+{
+	helicopter *raw = (helicopter *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_FALL_GRAVITY);
+	fill_helicopter_state (&step, raw);
+	step.delta_seconds = delta_seconds;
+	step.hc_gravity = gravity;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	apply_motion_vector (raw, result.motion_vector);
+
+	campaign_movement_apply_begin ();
+	set_local_entity_float_value (en, FLOAT_TYPE_VELOCITY, result.velocity);
+	campaign_movement_apply_end ();
+}
+
+// the altitude of the held position (use_candidate FALSE) or the FALL candidate over the campaign's terrain sample, with the
+// CG height the caller read BEFORE the kill; the host retains the candidate altitude for SETTLE
+
+int campaign_movement_contact (entity *en, int use_candidate, float elevation, float cg_to_ground, float *altitude)
+{
+	helicopter *raw = (helicopter *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_CONTACT);
+	fill_helicopter_state (&step, raw);
+	step.hc_flag = use_candidate ? TRUE : FALSE;
+	step.elevation = elevation;
+	step.hc_cg_to_ground = cg_to_ground;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	*altitude = result.altitude;
+	return result.moved;
+}
+
+// settle on or in the terrain class.  The bury tests use the altitude the host retained from CONTACT(candidate), which was
+// measured with the pre-kill CG; cg_to_ground here is the CG queried afresh AFTER the kill (the destroyed CG) and sets only
+// the final heights.  A bury zeroes the rotor (written back here) and the host's vector (the caller's
+// clear_helicopter_velocity announces the zero at the original point)
+
+int campaign_movement_settle (entity *en, int terrain_class, float elevation, float cg_to_ground, float bury_limit, vec3d *candidate)
+{
+	helicopter *raw = (helicopter *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_SETTLE);
+	fill_helicopter_state (&step, raw);
+	step.hc_terrain_class = terrain_class;
+	step.elevation = elevation;
+	step.hc_cg_to_ground = cg_to_ground;
+	step.hc_bury_limit = bury_limit;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	candidate->x = result.position[0];
+	candidate->y = result.position[1];
+	candidate->z = result.position[2];
+
+	apply_rotor (raw, result.rotor);
+	return result.moved;
+}
+
+// the tumble attitude and the host's final vector and position (the settled or fall candidate), the position through the setter
+
+void campaign_movement_tumble (entity *en, float heading_draw, float roll_draw)
+{
+	helicopter *raw = (helicopter *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_TUMBLE);
+	fill_helicopter_state (&step, raw);
+	step.delta_seconds = get_entity_movement_delta_time ();
+	step.hc_draws[0] = heading_draw;
+	step.hc_draws[1] = roll_draw;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	memcpy (raw->ac.mob.attitude, result.attitude, sizeof (result.attitude));
+	apply_motion_vector (raw, result.motion_vector);
+	apply_position (en, result.position);
+}
+
+// crash slide, phase one: the attitude from the OLD terrain normal (the caller passes the terrain info's normal before the
+// refresh) and the candidate position; the step awaits CRASH_END with nothing else in between
+
+void campaign_movement_crash_begin (entity *en, const vec3d *old_normal, float pitch_offset, float bank_offset, float delta_seconds, vec3d *candidate)
+{
+	helicopter *raw = (helicopter *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_CRASH_BEGIN);
+	fill_helicopter_state (&step, raw);
+	step.delta_seconds = delta_seconds;
+	step.face_normal[0] = old_normal->x;
+	step.face_normal[1] = old_normal->y;
+	step.face_normal[2] = old_normal->z;
+	step.hc_pitch_offset = pitch_offset;
+	step.hc_bank_offset = bank_offset;
+	fill_map_bounds (&step);
+
+	result = ask_lifecycle (&step, TRUE);
+
+	memcpy (raw->ac.mob.attitude, result.attitude, sizeof (result.attitude));
+
+	candidate->x = result.position[0];
+	candidate->y = result.position[1];
+	candidate->z = result.position[2];
+}
+
+// phase two: the NEW (refreshed) terrain normal gives the slope push.  The pre-clear vector is written, then the position
+// through the setter; a stopped slide is returned for the caller to clear AFTER that setter, otherwise the speed is set here
+
+int campaign_movement_crash_end (entity *en, const vec3d *new_normal, int forest, float elevation, float cg_to_ground, float delta_seconds)
+{
+	helicopter *raw = (helicopter *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_CRASH_END);
+	fill_helicopter_state (&step, raw);
+	step.delta_seconds = delta_seconds;
+	step.face_normal[0] = new_normal->x;
+	step.face_normal[1] = new_normal->y;
+	step.face_normal[2] = new_normal->z;
+	step.forest = forest ? TRUE : FALSE;
+	step.elevation = elevation;
+	step.hc_cg_to_ground = cg_to_ground;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	apply_motion_vector (raw, result.motion_vector);
+	apply_position (en, result.position);
+
+	if (!result.moved)
+	{
+		campaign_movement_apply_begin ();
+		set_local_entity_float_value (en, FLOAT_TYPE_VELOCITY, result.velocity);
+		campaign_movement_apply_end ();
+	}
+	return result.moved;
+}
+
+// the shove along the attitude x axis, decided (with its random draw) by the DLL
+
+void campaign_movement_impact (entity *en, float signed_speed)
+{
+	helicopter *raw = (helicopter *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_IMPACT);
+	fill_helicopter_state (&step, raw);
+	step.hc_signed_speed = signed_speed;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	apply_motion_vector (raw, result.motion_vector);
 }
 
 // the final pose of an infantry step, as the legacy step wrote it: attitude, position through the setter, speed, motion vector
