@@ -1,0 +1,23 @@
+asked	action	fixed_wing	13835	passed=62	identities=46
+asked	action	helicopter	49761	passed=77	identities=82
+asked	reached	anti_aircraft	105313	passed=0	identities=83
+asked	reached	fixed_wing	797969	passed=32079	identities=78
+asked	reached	helicopter	749574	passed=37599	identities=134
+asked	reached	person	1263015	passed=468	identities=39
+asked	reached	routed_vehicle	590272	passed=15563	identities=232
+asked	reached	ship_vehicle	52873	passed=0	identities=9
+feature	altitude_valid	fixed_wing	3390
+feature	altitude_valid	helicopter	52301
+feature	altitude_valid	routed_vehicle	5581
+feature	angle_reported	helicopter	9052
+feature	heading_source_target	helicopter	113175
+feature	heading_source_waypoint	helicopter	13212
+feature	heading_target_position	helicopter	113175
+feature	heading_valid	fixed_wing	3390
+feature	heading_valid	helicopter	126387
+feature	heading_valid	routed_vehicle	5581
+feature	non_leader	helicopter	322
+feature	non_leader	routed_vehicle	15246
+feature	vectors_valid	helicopter	29281
+feature	weapon_gate	helicopter	29538
+result	ok

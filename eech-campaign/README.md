@@ -67,6 +67,8 @@ consequences while physical wreck/free continues:
 [`docs/m5-physical-loss.md`](docs/m5-physical-loss.md).
 M5 slice: non-SUPPLY fixed-wing and helicopter radius-only waypoint arrival answered by the host:
 [`docs/m5-aircraft-arrivals.md`](docs/m5-aircraft-arrivals.md).
+M5 slice: the remaining physical arrival and proximity decisions (mixed aircraft, ground/sea/mobile, waypoint action, recon) answered by the host:
+[`docs/m5-remaining-arrivals.md`](docs/m5-remaining-arrivals.md).
 
 ## The campaign kernel spike
 
