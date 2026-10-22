@@ -71,7 +71,7 @@ struct eech_engine_host
 	eech_observe_loss_callback observe_loss;
 	/* Called synchronously for the physical arrival and proximity predicates: SUPPLY and mixed-criteria arrivals, waypoint action and recon radius. */
 	eech_supply_reached_callback supply_reached;
-	/* Called synchronously for each host-owned movement step (routed MOVE/STOP, SHIP_MOVE, PERSON_BEGIN/END, FIXED_WING_MOVE) and pose placement (PLACE); the host owns the mobile's position, speed and attitude. */
+	/* Called synchronously for each host-owned movement step (routed MOVE/STOP, SHIP_MOVE, PERSON_BEGIN/END, FIXED_WING_MOVE, HELICOPTER_BEGIN/END) and pose placement (PLACE); the host owns the mobile's position, speed and attitude. */
 	eech_move_vehicle_callback move_vehicle;
 	void *user;
 };

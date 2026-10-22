@@ -146,7 +146,7 @@ pub struct MemberDescriptor {
     pub pose: Option<VehiclePose>,
     /// what physical step the host performs for the member; present exactly when `pose` is
     pub movement_kind: Option<MovementKind>,
-    /// fixed-wing members only: the aircraft's previous motion vector, physical state the host
+    /// aircraft members only: the aircraft's previous motion vector, physical state the host
     /// retains from binding (an explicit seed, never defaulted)
     pub motion_vector: Option<[f32; 3]>,
 }
@@ -164,6 +164,8 @@ pub enum MovementKind {
     Person = 3,
     /// a fixed-wing aircraft: taxi, flight, landing or the absolute turn-around, as the campaign's guidance selects
     FixedWing = 4,
+    /// an alive AI helicopter: the motion vector, attitude and position in two phases around the campaign's guidance
+    Helicopter = 5,
 }
 
 /// A movable member's physical state: EECH world metres, speed in m/s, a row-major 3x3 attitude.
@@ -192,6 +194,10 @@ pub enum MovementMode {
     PersonEnd,
     /// a fixed-wing aircraft's step (single phase): the campaign's guidance selects taxi, flight, landing or absolute
     FixedWingMove,
+    /// first phase of an alive AI helicopter's step: the motion vector, the speed and whether it moved, held for `HelicopterEnd`
+    HelicopterBegin,
+    /// second phase of an alive AI helicopter's step: the attitude, the position and the floor clamp
+    HelicopterEnd,
 }
 
 /// Terrain at the pre-move position, sampled by the campaign.
@@ -235,7 +241,9 @@ pub struct MovementStep {
     pub phase: i32,
     /// `FixedWingMove`: the navigator's acceleration advisory
     pub acceleration: [f32; 3],
-    /// `FixedWingMove`: the motion vector the previous step left (the old direction of travel)
+    /// `FixedWingMove`: the motion vector the previous step left (the old direction of travel); `Place`: the one
+    /// aircraft placement vector (`fw_motion_vector`, fixed-wing and helicopter alike);
+    /// `HelicopterBegin` and `HelicopterEnd`: the campaign's mirror of the vector the host retains
     pub motion_vector_in: [f32; 3],
     pub cruise_velocity: f32,
     pub fuselage_angle: f32,
@@ -244,6 +252,16 @@ pub struct MovementStep {
     pub turn_speed_multi: f32,
     /// `FixedWingMove`: the operational state is navigating
     pub navigating: bool,
+    /// `HelicopterBegin`: the campaign's acceleration decision along x and z, and the climb demand
+    pub acceleration_x: f32,
+    pub acceleration_z: f32,
+    pub wp_vec_y: f32,
+    /// `HelicopterEnd`: the guidance's desired heading, pitch and roll, and the aircraft's turn-rate limit (a physical
+    /// input: the host wraps the heading to the shortest turn and bounds it to this rate)
+    pub desired_heading: f32,
+    pub max_turn_rate: f32,
+    pub desired_pitch: f32,
+    pub desired_roll: f32,
 }
 
 /// The host's record of the vehicle after the step; the campaign applies it.
@@ -255,8 +273,10 @@ pub struct MovementResult {
     pub rotated: bool,
     /// the motion vector the step leaves on the member (ships and infantry)
     pub motion_vector: [f32; 3],
-    /// an infantry step awaits its second phase
+    /// an infantry or helicopter step awaits its second phase
     pub pending: bool,
+    /// `HelicopterBegin` only: the speed crossed the moved threshold
+    pub moved: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
@@ -594,12 +614,13 @@ where
                 sys::EECH_MOVEMENT_KIND_SHIP => MovementKind::Ship,
                 sys::EECH_MOVEMENT_KIND_PERSON => MovementKind::Person,
                 sys::EECH_MOVEMENT_KIND_FIXED_WING => MovementKind::FixedWing,
+                sys::EECH_MOVEMENT_KIND_HELICOPTER => MovementKind::Helicopter,
                 other => return Err(format!("bind_mobile received unknown movement kind {other}")),
             })
         } else {
             None
         };
-        let motion_vector = (movement_kind == Some(MovementKind::FixedWing)).then_some(descriptor.motion_vector);
+        let motion_vector = matches!(movement_kind, Some(MovementKind::FixedWing | MovementKind::Helicopter)).then_some(descriptor.motion_vector);
         if motion_vector.is_some_and(|vector| vector.iter().any(|value| !value.is_finite())) {
             return Err("bind_mobile received a non-finite motion vector".into());
         }
@@ -1007,12 +1028,16 @@ where
             sys::EECH_MOVEMENT_PERSON_BEGIN => MovementMode::PersonBegin,
             sys::EECH_MOVEMENT_PERSON_END => MovementMode::PersonEnd,
             sys::EECH_MOVEMENT_FIXED_WING_MOVE => MovementMode::FixedWingMove,
+            sys::EECH_MOVEMENT_HELICOPTER_BEGIN => MovementMode::HelicopterBegin,
+            sys::EECH_MOVEMENT_HELICOPTER_END => MovementMode::HelicopterEnd,
             other => return Err(format!("move_vehicle received unknown mode {other}")),
         };
         let terrain_follow = checked_bool("terrain_follow", source.terrain_follow)?;
         let terrain_present = checked_bool("terrain_present", source.terrain_present)?;
         // a routed step follows terrain exactly when it carries a sample; an infantry begin announces a sample to come
-        if mode != MovementMode::PersonBegin && terrain_follow != terrain_present {
+        // an infantry begin and a helicopter end announce their terrain sample (the elevation) separately
+        let announces_terrain = matches!(mode, MovementMode::PersonBegin | MovementMode::HelicopterEnd);
+        if !announces_terrain && terrain_follow != terrain_present {
             return Err("move_vehicle received terrain-follow without a terrain sample".into());
         }
         checked_floats(&[
@@ -1029,6 +1054,14 @@ where
             ("fw_cg_to_ground", source.fw_cg_to_ground),
             ("fw_max_roll", source.fw_max_roll),
             ("fw_turn_speed_multi", source.fw_turn_speed_multi),
+            ("hc_acceleration_x", source.hc_acceleration_x),
+            ("hc_acceleration_z", source.hc_acceleration_z),
+            ("hc_wp_vec_y", source.hc_wp_vec_y),
+            ("hc_desired_heading", source.hc_desired_heading),
+            ("hc_max_turn_rate", source.hc_max_turn_rate),
+            ("hc_desired_pitch", source.hc_desired_pitch),
+            ("hc_desired_roll", source.hc_desired_roll),
+            ("hc_cg_to_ground", source.hc_cg_to_ground),
         ])?;
         for (name, values) in [
             ("position", &source.position[..]),
@@ -1039,6 +1072,7 @@ where
             ("map_max", &source.map_max[..]),
             ("fw_acceleration", &source.fw_acceleration[..]),
             ("fw_motion_vector", &source.fw_motion_vector[..]),
+            ("hc_motion_vector", &source.hc_motion_vector[..]),
         ] {
             if values.iter().any(|value| !value.is_finite()) {
                 return Err(format!("non-finite movement {name}"));
@@ -1056,6 +1090,7 @@ where
         } else {
             None
         };
+        let helicopter_step = matches!(mode, MovementMode::HelicopterBegin | MovementMode::HelicopterEnd);
         let request = MovementStep {
             host_id,
             mode,
@@ -1079,13 +1114,20 @@ where
             elevation: source.elevation,
             phase: source.fw_phase,
             acceleration: source.fw_acceleration,
-            motion_vector_in: source.fw_motion_vector,
+            motion_vector_in: if helicopter_step { source.hc_motion_vector } else { source.fw_motion_vector },
             cruise_velocity: source.fw_cruise_velocity,
             fuselage_angle: source.fw_fuselage_angle,
-            cg_to_ground: source.fw_cg_to_ground,
+            cg_to_ground: if helicopter_step { source.hc_cg_to_ground } else { source.fw_cg_to_ground },
             max_roll: source.fw_max_roll,
             turn_speed_multi: source.fw_turn_speed_multi,
             navigating: checked_bool("fw_navigating", source.fw_navigating)?,
+            acceleration_x: source.hc_acceleration_x,
+            acceleration_z: source.hc_acceleration_z,
+            wp_vec_y: source.hc_wp_vec_y,
+            desired_heading: source.hc_desired_heading,
+            max_turn_rate: source.hc_max_turn_rate,
+            desired_pitch: source.hc_desired_pitch,
+            desired_roll: source.hc_desired_roll,
         };
         let answer = (context.move_vehicle)(request)?;
         let pose = answer.pose;
@@ -1108,6 +1150,7 @@ where
                 rotated: c_int::from(answer.rotated),
                 motion_vector: answer.motion_vector,
                 pending: c_int::from(answer.pending),
+                moved: c_int::from(answer.moved),
             };
         }
         Ok(())
@@ -1399,5 +1442,89 @@ impl Engine {
     pub fn diagnostics(&self) -> Result<(), EngineError> {
         // SAFETY: no arguments; the engine checks its own state
         check(unsafe { sys::eech_engine_diagnostics() })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A `PLACE` step as the C side builds it for an aircraft (fixed-wing or helicopter): the campaign's motion vector
+    /// is in the one placement field, `fw_motion_vector`.
+    fn place_step(vector: [f32; 3]) -> sys::eech_movement_step {
+        // SAFETY: the step is plain data; zero is a valid value for every field.
+        let mut step: sys::eech_movement_step = unsafe { std::mem::zeroed() };
+        step.mode = sys::EECH_MOVEMENT_PLACE;
+        step.host_id[0] = b'h' as c_char;
+        step.attitude[0] = 1.0;
+        step.attitude[4] = 1.0;
+        step.attitude[8] = 1.0;
+        step.fw_motion_vector = vector;
+        step
+    }
+
+    /// The request the host receives for `step`, as it crosses the engine's `move_vehicle` callback.
+    fn received(step: &sys::eech_movement_step) -> MovementStep {
+        let mut seen = None;
+        let mut bind_mobile = |_: MemberDescriptor| -> Result<String, String> { Err("unused".into()) };
+        let mut observe_loss = |_: LossDescriptor| -> Result<LossDecision, String> { Ok(LossDecision::Forward) };
+        let mut supply_reached = |_: SupplyReachDescriptor| -> Result<ArrivalAnswer, String> { Err("unused".into()) };
+        let mut host_move = |request: MovementStep| -> Result<MovementResult, String> {
+            let pose = request.pose;
+            seen = Some(request);
+            Ok(MovementResult {
+                pose,
+                rotated: false,
+                motion_vector: [0.0; 3],
+                pending: false,
+                moved: false,
+            })
+        };
+        let mut result: sys::eech_movement_result = unsafe { std::mem::zeroed() };
+        let mut error = [0 as c_char; 256];
+        // the production wiring: with_host builds the callback table the engine is given
+        let outcome = with_host(&mut bind_mobile, &mut observe_loss, &mut supply_reached, &mut host_move, |host| {
+            // SAFETY: the table and its user context are valid for the call; every other pointer is local.
+            unsafe {
+                let host = &*host;
+                let Some(call) = host.move_vehicle else { return -1 };
+                call(step, &mut result, error.as_mut_ptr(), error.len(), host.user)
+            }
+        });
+        assert!(outcome.is_ok(), "the callback refused the step");
+        let Some(request) = seen else { panic!("the host was not called") };
+        request
+    }
+
+    #[test]
+    fn an_aircraft_placement_carries_its_nonzero_vector_across_the_callback_boundary() {
+        // helicopter and fixed-wing placements are the same step on the wire: neither may be reset to zero
+        let vector = [3.0, -2.0, 90.0];
+        let request = received(&place_step(vector));
+        assert_eq!(request.mode, MovementMode::Place);
+        assert_eq!(request.motion_vector_in, vector);
+    }
+
+    #[test]
+    fn a_placement_reads_the_placement_field_not_the_helicopter_step_field() {
+        let mut step = place_step([3.0, -2.0, 90.0]);
+        step.hc_motion_vector = [7.0, 7.0, 7.0];
+        assert_eq!(received(&step).motion_vector_in, [3.0, -2.0, 90.0]);
+    }
+
+    #[test]
+    fn the_helicopter_step_modes_read_the_helicopter_vector_not_the_placement_field() {
+        for mode in [sys::EECH_MOVEMENT_HELICOPTER_BEGIN, sys::EECH_MOVEMENT_HELICOPTER_END] {
+            let mut step = place_step([9.0, 9.0, 9.0]);
+            step.mode = mode;
+            step.hc_motion_vector = [1.0, 2.0, 3.0];
+            step.hc_cg_to_ground = 1.5;
+            step.hc_desired_heading = 0.5;
+            step.hc_max_turn_rate = 0.25;
+            let request = received(&step);
+            assert_eq!(request.motion_vector_in, [1.0, 2.0, 3.0]);
+            assert_eq!(request.cg_to_ground, 1.5);
+            assert_eq!((request.desired_heading, request.max_turn_rate), (0.5, 0.25));
+        }
     }
 }

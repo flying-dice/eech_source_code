@@ -69,6 +69,11 @@ static const mobile *hosted_mobile (entity *en)
 		return &((const fixed_wing *) get_local_entity_data (en))->ac.mob;
 	}
 
+	if (get_local_entity_type (en) == ENTITY_TYPE_HELICOPTER)
+	{
+		return &((const helicopter *) get_local_entity_data (en))->ac.mob;
+	}
+
 	return &((const vehicle *) get_local_entity_data (en))->mob;
 }
 
@@ -124,6 +129,7 @@ static campaign_movement_result ask_host (const campaign_movement_step *step)
 	memset (&result, 0, sizeof (result));
 	result.rotated = -1;
 	result.pending = -1;
+	result.moved = -1;
 	if (current_host.move_vehicle (step, &result, error, CAMPAIGN_MOVEMENT_ERROR_MAX, current_host.user) != 0)
 	{
 		debug_fatal ("host movement: host move_vehicle failed for %s: %s", step->host_id, error[0] ? error : "unspecified error");
@@ -131,7 +137,8 @@ static campaign_movement_result ask_host (const campaign_movement_step *step)
 	if (!all_finite (result.position, 3) || !all_finite (&result.velocity, 1) || !all_finite (result.attitude, 9) ||
 		!all_finite (result.motion_vector, 3) ||
 		((result.rotated != FALSE) && (result.rotated != TRUE)) ||
-		((result.pending != FALSE) && (result.pending != TRUE)))
+		((result.pending != FALSE) && (result.pending != TRUE)) ||
+		((result.moved != FALSE) && (result.moved != TRUE)))
 	{
 		debug_fatal ("host movement: host move_vehicle returned an invalid result for %s", step->host_id);
 	}
@@ -148,7 +155,7 @@ void campaign_movement_place (entity *vehicle)
 		return;
 	}
 	type = get_local_entity_type (vehicle);
-	if ((type != ENTITY_TYPE_ROUTED_VEHICLE) && (type != ENTITY_TYPE_SHIP_VEHICLE) && (type != ENTITY_TYPE_PERSON) && (type != ENTITY_TYPE_FIXED_WING))
+	if ((type != ENTITY_TYPE_ROUTED_VEHICLE) && (type != ENTITY_TYPE_SHIP_VEHICLE) && (type != ENTITY_TYPE_PERSON) && (type != ENTITY_TYPE_FIXED_WING) && (type != ENTITY_TYPE_HELICOPTER))
 	{
 		return;
 	}
@@ -160,6 +167,15 @@ void campaign_movement_place (entity *vehicle)
 	if (type == ENTITY_TYPE_FIXED_WING)
 	{
 		/* the campaign's own write of an aircraft's motion vector is an explicit placement of that physical state */
+		const mobile *mob = hosted_mobile (vehicle);
+
+		step.fw_motion_vector[0] = mob->motion_vector.x;
+		step.fw_motion_vector[1] = mob->motion_vector.y;
+		step.fw_motion_vector[2] = mob->motion_vector.z;
+	}
+	if (type == ENTITY_TYPE_HELICOPTER)
+	{
+		/* likewise a helicopter's: any campaign write of its pose or vector is a placement the host adopts */
 		const mobile *mob = hosted_mobile (vehicle);
 
 		step.fw_motion_vector[0] = mob->motion_vector.x;
@@ -348,6 +364,95 @@ void campaign_movement_fixed_wing_move (entity *aircraft, const campaign_fixed_w
 
 	campaign_movement_apply_begin ();
 	set_local_entity_vec3d (aircraft, VEC3D_TYPE_POSITION, &new_pos);
+	campaign_movement_apply_end ();
+}
+
+// an alive AI helicopter, phase one: the motion vector and the speed are applied at once, as the legacy step wrote them,
+// because the campaign's attitude guidance reads them before phase two
+
+void campaign_movement_helicopter_begin (entity *en, float acceleration_x, float acceleration_z, float wp_vec_y)
+{
+	helicopter *raw = (helicopter *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_HELICOPTER_BEGIN);
+	step.delta_seconds = get_entity_movement_delta_time ();
+	step.hc_acceleration_x = acceleration_x;
+	step.hc_acceleration_z = acceleration_z;
+	step.hc_wp_vec_y = wp_vec_y;
+	step.hc_motion_vector[0] = raw->ac.mob.motion_vector.x;
+	step.hc_motion_vector[1] = raw->ac.mob.motion_vector.y;
+	step.hc_motion_vector[2] = raw->ac.mob.motion_vector.z;
+
+	result = ask_host (&step);
+
+	if (result.pending != TRUE)
+	{
+		debug_fatal ("host movement: host move_vehicle did not hold the helicopter step of %s for its second phase", step.host_id);
+	}
+
+	raw->ac.mob.motion_vector.x = result.motion_vector[0];
+	raw->ac.mob.motion_vector.y = result.motion_vector[1];
+	raw->ac.mob.motion_vector.z = result.motion_vector[2];
+
+	campaign_movement_apply_begin ();
+	set_local_entity_float_value (en, FLOAT_TYPE_VELOCITY, result.velocity);
+	campaign_movement_apply_end ();
+
+	if (result.moved)
+	{
+		set_local_entity_int_value (en, INT_TYPE_MOVED, TRUE);
+	}
+}
+
+// phase two: the attitude, the position and the floor-clamped vector; the position goes through the setter with the
+// aircraft's own stored position as the argument, as the legacy step passed it
+
+void campaign_movement_helicopter_end (entity *en, float desired_heading, float max_turn_rate, float desired_pitch, float desired_roll, float elevation, float cg_to_ground, int terrain_follow)
+{
+	helicopter *raw = (helicopter *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_HELICOPTER_END);
+	step.delta_seconds = get_entity_movement_delta_time ();
+	step.hc_desired_heading = desired_heading;
+	step.hc_max_turn_rate = max_turn_rate;
+	step.hc_desired_pitch = desired_pitch;
+	step.hc_desired_roll = desired_roll;
+	step.elevation = elevation;
+	step.hc_cg_to_ground = cg_to_ground;
+	step.terrain_follow = terrain_follow ? TRUE : FALSE;
+	step.hc_motion_vector[0] = raw->ac.mob.motion_vector.x;
+	step.hc_motion_vector[1] = raw->ac.mob.motion_vector.y;
+	step.hc_motion_vector[2] = raw->ac.mob.motion_vector.z;
+	fill_map_bounds (&step);
+
+	result = ask_host (&step);
+
+	if (result.pending)
+	{
+		debug_fatal ("host movement: host move_vehicle left the helicopter step of %s pending after its second phase", step.host_id);
+	}
+
+	memcpy (raw->ac.mob.attitude, result.attitude, sizeof (result.attitude));
+
+	if (result.rotated)
+	{
+		set_local_entity_int_value (en, INT_TYPE_ROTATED, TRUE);
+	}
+
+	raw->ac.mob.motion_vector.x = result.motion_vector[0];
+	raw->ac.mob.motion_vector.y = result.motion_vector[1];
+	raw->ac.mob.motion_vector.z = result.motion_vector[2];
+
+	raw->ac.mob.position.x = result.position[0];
+	raw->ac.mob.position.y = result.position[1];
+	raw->ac.mob.position.z = result.position[2];
+
+	campaign_movement_apply_begin ();
+	set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &raw->ac.mob.position);
 	campaign_movement_apply_end ();
 }
 

@@ -374,6 +374,17 @@ void helicopter_movement (entity *en)
 	// calculate the motion vector, in world coords
 	//
 
+	#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	// the host owns the vector and the speed: it answers at once, so the guidance below reads the updated vector.
+	// An alive helicopter is never moved by this module in a host-movement build.  The rotor, the spin-up above, the
+	// guidance, the look-ahead, the avoidance and the pilot control stay campaign-side physical coupling.
+	campaign_movement_require_hosted (en);
+
+	campaign_movement_helicopter_begin (en, world_acceleration_vector.x, world_acceleration_vector.z, wp_vec.y);
+
+	#else
+
 	raw->ac.mob.motion_vector.x += world_acceleration_vector.x * get_entity_movement_delta_time ();
 		raw->ac.mob.motion_vector.y = wp_vec.y;
 	raw->ac.mob.motion_vector.z += world_acceleration_vector.z * get_entity_movement_delta_time ();
@@ -384,12 +395,16 @@ void helicopter_movement (entity *en)
 	if (fabs(speed) > 0.1)
 		set_local_entity_int_value(en, INT_TYPE_MOVED, TRUE);
 
+	#endif
+
 	current_heading = get_heading_from_attitude_matrix (raw->ac.mob.attitude);
 	current_pitch = get_pitch_from_attitude_matrix (raw->ac.mob.attitude);
 	current_roll = get_roll_from_attitude_matrix (raw->ac.mob.attitude);
 
 	// attitude
 	desired_heading = helicopter_movement_get_desired_heading (en, &wp_vec, current_heading);
+
+	#ifndef EECH_CAMPAIGN_HOST_MOVEMENT
 
 	delta_heading = (desired_heading - current_heading);
 
@@ -410,11 +425,32 @@ void helicopter_movement (entity *en)
 
 	new_heading = current_heading + (delta_heading * get_entity_movement_delta_time ());
 
+	#endif
+
 	multiply_transpose_matrix3x3_vec3d (&model_motion_vector, raw->ac.mob.attitude, &raw->ac.mob.motion_vector);
 	multiply_transpose_matrix3x3_vec3d (&model_acceleration_vector, raw->ac.mob.attitude, &world_acceleration_vector);
 
 	desired_pitch = helicopter_movement_get_desired_pitch (en, &model_motion_vector, &model_acceleration_vector, NULL);
 	desired_roll = helicopter_movement_get_desired_roll (en, model_motion_vector.x, model_acceleration_vector.x, NULL);
+
+	#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	// the host wraps and bounds the turn to the aircraft's turn rate, then turns, pitches, rolls and moves the helicopter
+	// from the guidance's attitude demands and the terrain sample under it, keeps it above the floor, and answers the
+	// attitude, position and rotated flag.  The turn rate and the demands are physical inputs, not campaign decisions.
+	campaign_movement_helicopter_end
+	(
+		en,
+		desired_heading,
+		get_local_entity_float_value (en, FLOAT_TYPE_MAX_TURN_RATE),
+		desired_pitch,
+		desired_roll,
+		get_3d_terrain_point_data_elevation (&raw->ac.terrain_info),
+		get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE),
+		get_local_entity_int_value (guide, INT_TYPE_TERRAIN_FOLLOW_MODE) != GUIDE_TERRAIN_FOLLOW_NONE
+	);
+
+	#else
 
 	new_pitch = current_pitch + (desired_pitch - current_pitch) * 0.5 * get_entity_movement_delta_time ();
 	new_roll = current_roll + (desired_roll - current_roll) * 0.5 * get_entity_movement_delta_time ();
@@ -425,6 +461,8 @@ void helicopter_movement (entity *en)
 	get_3d_transformation_matrix (raw->ac.mob.attitude, new_heading, new_pitch, new_roll);
 
 	helicopter_movement_calculate_new_position (en, guide, &wp_pos);
+
+	#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -5,7 +5,7 @@ fn main() {
     // The convoy, ship, person and fixed-wing steps are EECH's own arithmetic: it takes the engine's numeric flags
     // (eech-engine-sys build) so the host and the original reference produce the same bits.
     println!("cargo::rerun-if-env-changed=EECH_ENGINE_OPT");
-    for file in ["eech_arith.h", "convoy_step.c", "ship_step.c", "person_step.c", "fw_step.c"] {
+    for file in ["eech_arith.h", "convoy_step.c", "ship_step.c", "person_step.c", "fw_step.c", "hc_step.c"] {
         println!("cargo::rerun-if-changed=csrc/{file}");
     }
     let opt = std::env::var("EECH_ENGINE_OPT").unwrap_or_else(|_| "1".into());
@@ -14,6 +14,7 @@ fn main() {
         .file("csrc/ship_step.c")
         .file("csrc/person_step.c")
         .file("csrc/fw_step.c")
+        .file("csrc/hc_step.c")
         .opt_level_str(&opt)
         .debug(true)
         .pic(true)

@@ -101,6 +101,25 @@ extern "C" {
         tacview_logging: c_int,
         rotated: *mut c_int,
     );
+
+    fn eech_hc_begin(motion_vector: *mut f32, acceleration_x: f32, acceleration_z: f32, wp_vec_y: f32, delta_seconds: f32, speed: *mut f32, moved: *mut c_int);
+
+    fn eech_hc_end(
+        position: *mut f32,
+        motion_vector: *mut f32,
+        attitude: *mut f32,
+        desired_heading: f32,
+        max_turn_rate: f32,
+        desired_pitch: f32,
+        desired_roll: f32,
+        delta_seconds: f32,
+        elevation: f32,
+        cg_to_ground: f32,
+        terrain_follow: c_int,
+        map_min: *const f32,
+        map_max: *const f32,
+        rotated: *mut c_int,
+    );
 }
 
 /// Position in EECH world metres, speed in m/s, a row-major 3x3 attitude.
@@ -134,6 +153,7 @@ pub enum Kind {
     Ship,
     Person,
     FixedWing,
+    Helicopter,
 }
 
 /// Terrain at the pre-move position, sampled by the campaign.
@@ -229,6 +249,39 @@ pub struct FixedWingMove {
     pub map_max: [f32; 3],
 }
 
+/// Phase one of an alive AI helicopter's step: the motion vector, its speed and whether the helicopter moved.
+/// The campaign supplies its decisions (the world acceleration's x and z and the climb demand); the host
+/// retains the vector and answers it, and the campaign applies the answer at once, because its guidance reads it
+/// before phase two. `motion_vector` is the DLL's mirror of the previous vector, validated bit for bit like the pose.
+#[derive(Clone, Copy, Debug)]
+pub struct HelicopterBegin {
+    pub delta_seconds: f32,
+    pub acceleration_x: f32,
+    pub acceleration_z: f32,
+    pub wp_vec_y: f32,
+    pub motion_vector: [f32; 3],
+}
+
+/// Phase two of an alive AI helicopter's step, after the campaign's guidance read phase one: the guidance's desired
+/// heading, pitch and roll, the aircraft's turn-rate limit and the terrain under the helicopter. The host wraps the heading
+/// to the shortest turn, bounds it to `max_turn_rate`, turns, integrates the position, bounds it to the map and the floor.
+/// The desired attitude is guidance input and the turn limit a physical input; neither is a campaign decision made here.
+/// `motion_vector` is the mirror phase one left, validated bit for bit.
+#[derive(Clone, Copy, Debug)]
+pub struct HelicopterEnd {
+    pub delta_seconds: f32,
+    pub desired_heading: f32,
+    pub max_turn_rate: f32,
+    pub desired_pitch: f32,
+    pub desired_roll: f32,
+    pub elevation: f32,
+    pub cg_to_ground: f32,
+    pub terrain_follow: bool,
+    pub motion_vector: [f32; 3],
+    pub map_min: [f32; 3],
+    pub map_max: [f32; 3],
+}
+
 #[derive(Clone, Copy, Debug)]
 pub enum Request {
     /// a routed vehicle steps towards the waypoint
@@ -243,8 +296,12 @@ pub enum Request {
     PersonEnd(PersonEnd),
     /// an alive fixed-wing aircraft's step
     FixedWingMove(FixedWingMove),
+    /// an alive AI helicopter's step, phase one
+    HelicopterBegin(HelicopterBegin),
+    /// an alive AI helicopter's step, phase two
+    HelicopterEnd(HelicopterEnd),
     /// the campaign placed the mobile: adopt its pose. `motion_vector` is the DLL's motion
-    /// vector, adopted only by a fixed-wing record (declared transitional coupling: the DLL
+    /// vector, adopted only by an aircraft record (declared transitional coupling: the DLL
     /// still writes an aircraft's vector outside a host step).
     Place { motion_vector: [f32; 3] },
 }
@@ -258,6 +315,8 @@ impl Request {
             Request::PersonBegin(_) => "person_begin",
             Request::PersonEnd(_) => "person_end",
             Request::FixedWingMove(_) => "fixed_wing_move",
+            Request::HelicopterBegin(_) => "helicopter_begin",
+            Request::HelicopterEnd(_) => "helicopter_end",
             Request::Place { .. } => "place",
         }
     }
@@ -269,6 +328,7 @@ impl Request {
             Request::ShipMove(_) => Some(Kind::Ship),
             Request::PersonBegin(_) | Request::PersonEnd(_) => Some(Kind::Person),
             Request::FixedWingMove(_) => Some(Kind::FixedWing),
+            Request::HelicopterBegin(_) | Request::HelicopterEnd(_) => Some(Kind::Helicopter),
             Request::Place { .. } => None,
         }
     }
@@ -281,6 +341,8 @@ impl Request {
 pub struct Outcome {
     pub pose: Pose,
     pub rotated: bool,
+    /// a helicopter's phase one: whether its speed crossed the movement threshold (false for every other request)
+    pub moved: bool,
     pub motion_vector: [f32; 3],
     pub pending: bool,
 }
@@ -298,9 +360,11 @@ struct Pending {
 struct Record {
     kind: Kind,
     pose: Pose,
-    /// A fixed-wing aircraft's previous motion vector, retained by the host; `None` for other kinds.
+    /// An aircraft's previous motion vector, retained by the host; `None` for other kinds.
     motion_vector: Option<[f32; 3]>,
     pending: Option<Pending>,
+    /// A helicopter's phase one ran and phase two is owed. Nothing else may be requested until it is made.
+    helicopter_pending: bool,
 }
 
 #[derive(Default)]
@@ -309,13 +373,15 @@ pub struct Movers {
 }
 
 impl Movers {
-    /// Start the record of a mobile the host just issued `host_id` to. A fixed-wing aircraft
-    /// must be seeded with its motion vector, and no other kind may be: a missing seed is
-    /// refused rather than defaulted.
+    /// Start the record of a mobile the host just issued `host_id` to. An aircraft (fixed-wing
+    /// or helicopter) must be seeded with its motion vector, and no other kind may be: a missing
+    /// seed is refused rather than defaulted.
     pub fn bind(&mut self, host_id: &str, kind: Kind, pose: Pose, motion_vector: Option<[f32; 3]>) -> Result<(), String> {
         match (kind, motion_vector) {
-            (Kind::FixedWing, None) => return Err(format!("host.bind_mobile: fixed-wing {host_id} was bound without a motion vector")),
-            (Kind::FixedWing, Some(_)) => {}
+            (Kind::FixedWing | Kind::Helicopter, None) => {
+                return Err(format!("host.bind_mobile: {kind:?} {host_id} was bound without a motion vector"));
+            }
+            (Kind::FixedWing | Kind::Helicopter, Some(_)) => {}
             (_, Some(_)) => return Err(format!("host.bind_mobile: {kind:?} {host_id} was bound with a motion vector")),
             (_, None) => {}
         }
@@ -326,6 +392,7 @@ impl Movers {
                 pose,
                 motion_vector,
                 pending: None,
+                helicopter_pending: false,
             },
         );
         Ok(())
@@ -355,9 +422,22 @@ impl Movers {
             }
             (_, false) => {}
         }
+        match (&request, record.helicopter_pending) {
+            (Request::HelicopterEnd(_), false) => {
+                return Err(format!("host.move_vehicle: helicopter_end for {host_id} without a pending helicopter_begin"));
+            }
+            (Request::HelicopterEnd(_), true) => {}
+            (_, true) => {
+                return Err(format!(
+                    "host.move_vehicle: {} for {host_id} while its helicopter step is pending",
+                    request.name()
+                ));
+            }
+            (_, false) => {}
+        }
         if let Request::Place { motion_vector } = request {
             record.pose = campaign;
-            if record.kind == Kind::FixedWing {
+            if matches!(record.kind, Kind::FixedWing | Kind::Helicopter) {
                 record.motion_vector = Some(motion_vector);
             }
             return Ok(settled(record.pose, false, [0.0; 3]));
@@ -396,15 +476,50 @@ impl Movers {
                 record.motion_vector = Some(motion_vector);
                 Ok(settled(record.pose, rotated, motion_vector))
             }
+            Request::HelicopterBegin(begin) => {
+                let held = held_vector(record, host_id, &begin.motion_vector)?;
+                let (motion_vector, speed, moved) = helicopter_begin(held, &begin);
+                record.motion_vector = Some(motion_vector);
+                record.pose.velocity = speed;
+                record.helicopter_pending = true;
+                // the step is open until its end: the DLL's begin requires this answer
+                Ok(Outcome {
+                    moved,
+                    pending: true,
+                    ..settled(record.pose, false, motion_vector)
+                })
+            }
+            Request::HelicopterEnd(end) => {
+                let held = held_vector(record, host_id, &end.motion_vector)?;
+                let (motion_vector, rotated) = helicopter_end(&mut record.pose, held, &end);
+                record.motion_vector = Some(motion_vector);
+                record.helicopter_pending = false;
+                Ok(settled(record.pose, rotated, motion_vector))
+            }
             Request::Place { .. } => unreachable!("placed above"),
         }
     }
+}
+
+/// The aircraft's retained motion vector, refused (before anything is mutated) unless the campaign's mirror equals it bit for bit.
+fn held_vector(record: &Record, host_id: &str, mirror: &[f32; 3]) -> Result<[f32; 3], String> {
+    let held = record
+        .motion_vector
+        .ok_or_else(|| format!("host.move_vehicle: {:?} {host_id} has no retained motion vector", record.kind))?;
+    if let Some(index) = held.iter().zip(mirror).position(|(a, b)| a.to_bits() != b.to_bits()) {
+        return Err(format!(
+            "host.move_vehicle: the campaign's motion_vector[{index}] ({} against {}) for {host_id} differs from the host's record (a write the host did not make)",
+            mirror[index], held[index]
+        ));
+    }
+    Ok(held)
 }
 
 fn settled(pose: Pose, rotated: bool, motion_vector: [f32; 3]) -> Outcome {
     Outcome {
         pose,
         rotated,
+        moved: false,
         motion_vector,
         pending: false,
     }
@@ -499,6 +614,52 @@ fn fixed_wing_pose(record: &mut Pose, previous: [f32; 3], step: &FixedWingMove) 
     (motion_vector, rotated != 0)
 }
 
+/// A helicopter's phase one: the new motion vector, its speed and whether it moved.
+fn helicopter_begin(previous: [f32; 3], begin: &HelicopterBegin) -> ([f32; 3], f32, bool) {
+    let mut motion_vector = previous;
+    let mut speed = 0.0f32;
+    let mut moved: c_int = 0;
+    // SAFETY: as for `advance_pose`; the motion vector is 3 floats read then written.
+    unsafe {
+        eech_hc_begin(
+            motion_vector.as_mut_ptr(),
+            begin.acceleration_x,
+            begin.acceleration_z,
+            begin.wp_vec_y,
+            begin.delta_seconds,
+            &mut speed,
+            &mut moved,
+        );
+    }
+    (motion_vector, speed, moved != 0)
+}
+
+/// A helicopter's phase two: the new motion vector (its y may be clamped after the speed was taken) and whether it turned enough to report.
+fn helicopter_end(record: &mut Pose, previous: [f32; 3], end: &HelicopterEnd) -> ([f32; 3], bool) {
+    let mut motion_vector = previous;
+    let mut rotated: c_int = 0;
+    // SAFETY: as for `advance_pose`; the bounds are 3 floats.
+    unsafe {
+        eech_hc_end(
+            record.position.as_mut_ptr(),
+            motion_vector.as_mut_ptr(),
+            record.attitude.as_mut_ptr(),
+            end.desired_heading,
+            end.max_turn_rate,
+            end.desired_pitch,
+            end.desired_roll,
+            end.delta_seconds,
+            end.elevation,
+            end.cg_to_ground,
+            c_int::from(end.terrain_follow),
+            end.map_min.as_ptr(),
+            end.map_max.as_ptr(),
+            &mut rotated,
+        );
+    }
+    (motion_vector, rotated != 0)
+}
+
 fn begin_person(record: &mut Record, begin: &PersonBegin) -> Outcome {
     let mut pending = Pending {
         ps_vel: begin.ps_vel,
@@ -526,6 +687,7 @@ fn begin_person(record: &mut Record, begin: &PersonBegin) -> Outcome {
         return Outcome {
             pose: partial,
             rotated: false,
+            moved: false,
             motion_vector: [0.0; 3],
             pending: true,
         };
@@ -631,6 +793,40 @@ mod tests {
         }
     }
 
+    fn helicopter_begin_request() -> HelicopterBegin {
+        HelicopterBegin {
+            delta_seconds: 1.0,
+            acceleration_x: 0.0,
+            acceleration_z: 0.0,
+            wp_vec_y: 0.0,
+            motion_vector: [0.0, 0.0, 100.0],
+        }
+    }
+
+    fn helicopter_end_request() -> HelicopterEnd {
+        HelicopterEnd {
+            delta_seconds: 1.0,
+            desired_heading: 0.0,
+            // far above any step in these tests, so only the tests of the bound see it
+            max_turn_rate: 10.0,
+            desired_pitch: 0.0,
+            desired_roll: 0.0,
+            elevation: -100.0,
+            cg_to_ground: 0.0,
+            terrain_follow: false,
+            motion_vector: [0.0, 0.0, 100.0],
+            map_min: [-1.0e6; 3],
+            map_max: [1.0e6; 3],
+        }
+    }
+
+    /// a helicopter at the origin, stepped through phase one; the mirror for phase two is what the host answered
+    fn begun(begin: HelicopterBegin) -> (Movers, Outcome) {
+        let mut movers = movers(Kind::Helicopter, pose(0.0, 0.0));
+        let first = movers.step("v", pose(0.0, 0.0), Request::HelicopterBegin(begin)).unwrap();
+        (movers, first)
+    }
+
     fn assert_near(actual: [f32; 3], expected: [f32; 3]) {
         for (actual, expected) in actual.iter().zip(expected) {
             assert!((actual - expected).abs() < 1.0e-5, "{actual:?} vs {expected:?}");
@@ -640,7 +836,7 @@ mod tests {
     fn movers(kind: Kind, start: Pose) -> Movers {
         let mut movers = Movers::default();
         // an aircraft is seeded with the vector `fixed_wing_move` mirrors
-        let seed = (kind == Kind::FixedWing).then_some([0.0, 0.0, 100.0]);
+        let seed = matches!(kind, Kind::FixedWing | Kind::Helicopter).then_some([0.0, 0.0, 100.0]);
         movers.bind("v", kind, start, seed).unwrap();
         movers
     }
@@ -884,6 +1080,7 @@ mod tests {
         let mut ship = movers(Kind::Ship, pose(0.0, 0.0));
         let mut person = movers(Kind::Person, pose(0.0, 0.0));
         let mut fixed_wing = movers(Kind::FixedWing, pose(0.0, 0.0));
+        let mut helicopter = movers(Kind::Helicopter, pose(0.0, 0.0));
         let requests = [
             Request::Advance(advance([0.0, 0.0, 10.0])),
             Request::Stop,
@@ -891,6 +1088,8 @@ mod tests {
             Request::PersonBegin(person_begin([0.0, 0.0, 10.0], 1.0, false)),
             Request::PersonEnd(PersonEnd { elevation: 0.0 }),
             Request::FixedWingMove(fixed_wing_move(FixedWingPhase::Taxi)),
+            Request::HelicopterBegin(helicopter_begin_request()),
+            Request::HelicopterEnd(helicopter_end_request()),
         ];
         let own = |kind: Kind, request: &Request| request.kind() == Some(kind);
         for request in requests {
@@ -899,6 +1098,7 @@ mod tests {
                 (Kind::Ship, &mut ship),
                 (Kind::Person, &mut person),
                 (Kind::FixedWing, &mut fixed_wing),
+                (Kind::Helicopter, &mut helicopter),
             ] {
                 let result = movers.step("v", pose(0.0, 0.0), request);
                 if !own(kind, &request) {
@@ -911,7 +1111,7 @@ mod tests {
 
     #[test]
     fn placing_a_ship_a_person_or_an_aircraft_adopts_the_campaign_pose() {
-        for kind in [Kind::Ship, Kind::Person, Kind::FixedWing] {
+        for kind in [Kind::Ship, Kind::Person, Kind::FixedWing, Kind::Helicopter] {
             let mut movers = movers(kind, pose(0.0, 0.0));
             let mut moving = pose(50.0, 60.0);
             moving.velocity = 7.0;
@@ -1052,5 +1252,207 @@ mod tests {
         assert!(error.contains("motion_vector"), "{error}");
         taxi.motion_vector = first.motion_vector;
         movers.step("v", first.pose, Request::FixedWingMove(taxi)).unwrap();
+    }
+    #[test]
+    fn a_helicopter_step_is_two_phases_and_the_second_flies_from_the_vector_the_first_answered() {
+        let mut begin = helicopter_begin_request();
+        begin.acceleration_x = 4.0;
+        begin.wp_vec_y = 3.0;
+        let (mut movers, first) = begun(begin);
+        // the vector is advanced by the acceleration over the step, the climb demand replaces y, and the speed is its magnitude
+        assert_near(first.motion_vector, [4.0, 3.0, 100.0]);
+        assert!(first.moved && first.pending && !first.rotated, "phase one answers an open step");
+        assert_near([first.pose.velocity, 0.0, 0.0], [(16.0f32 + 9.0 + 10000.0).sqrt(), 0.0, 0.0]);
+        assert_eq!(first.pose.position, [0.0; 3], "phase one moves nothing");
+        let mut end = helicopter_end_request();
+        end.motion_vector = first.motion_vector;
+        let second = movers.step("v", first.pose, Request::HelicopterEnd(end)).unwrap();
+        assert_near(second.pose.position, [4.0, 3.0, 100.0]);
+        assert_eq!(second.pose.velocity, first.pose.velocity, "phase two does not recompute the speed");
+        assert!(!second.rotated && !second.pending, "phase two closes the step");
+        assert_eq!(second.motion_vector, first.motion_vector);
+    }
+
+    /// the attitude a helicopter at the level attitude ends a one second step with, when guidance asks for `desired_heading` under `max_turn_rate`
+    fn turned(desired_heading: f32, max_turn_rate: f32) -> Outcome {
+        let (mut movers, first) = begun(helicopter_begin_request());
+        let mut end = helicopter_end_request();
+        end.motion_vector = first.motion_vector;
+        end.desired_heading = desired_heading;
+        end.max_turn_rate = max_turn_rate;
+        movers.step("v", first.pose, Request::HelicopterEnd(end)).unwrap()
+    }
+
+    fn assert_attitude(actual: [f32; 9], expected: [f32; 9]) {
+        for (actual, expected) in actual.iter().zip(expected) {
+            assert!((actual - expected).abs() < 1.0e-5, "{actual:?} vs {expected:?}");
+        }
+    }
+
+    #[test]
+    fn a_helicopter_turns_the_shortest_way_to_the_desired_heading() {
+        use std::f32::consts::{FRAC_PI_2, PI};
+        let wide = 10.0;
+        // a demand just inside half a turn is followed directly; the same angle the other way round the circle wraps to it
+        assert_attitude(turned(0.75 * PI, wide).pose.attitude, turned(-1.25 * PI, wide).pose.attitude);
+        assert_attitude(turned(-0.75 * PI, wide).pose.attitude, turned(1.25 * PI, wide).pose.attitude);
+        // beyond half a turn the shortest turn is the other way: 3/2 pi is a quarter turn back, not a three-quarter turn on
+        assert_attitude(turned(3.0 * FRAC_PI_2, wide).pose.attitude, turned(-FRAC_PI_2, wide).pose.attitude);
+        let direct = turned(0.75 * PI, wide).pose.attitude;
+        assert!(direct.iter().zip(turned(-0.75 * PI, wide).pose.attitude).any(|(a, b)| (a - b).abs() > 1.0e-3));
+        assert!(turned(3.0 * FRAC_PI_2, wide).rotated);
+    }
+
+    #[test]
+    fn a_helicopter_turns_no_faster_than_its_turn_rate() {
+        let limit = 0.25;
+        // a demand beyond the limit turns by exactly the limit over the step, in either direction
+        assert_attitude(turned(1.0, limit).pose.attitude, turned(limit, 10.0).pose.attitude);
+        assert_attitude(turned(-1.0, limit).pose.attitude, turned(-limit, 10.0).pose.attitude);
+        // a demand inside the limit is reached, not the limit
+        assert_attitude(turned(0.1, limit).pose.attitude, turned(0.1, 10.0).pose.attitude);
+        assert!(turned(1.0, limit)
+            .pose
+            .attitude
+            .iter()
+            .zip(turned(1.0, 10.0).pose.attitude)
+            .any(|(a, b)| (a - b).abs() > 1.0e-3));
+        // a zero limit does not turn at all
+        assert!(!turned(1.0, 0.0).rotated);
+    }
+
+    #[test]
+    fn a_hovering_helicopter_has_not_moved() {
+        let mut begin = helicopter_begin_request();
+        begin.motion_vector = [0.0, 0.0, 0.0];
+        let mut movers = Movers::default();
+        movers.bind("v", Kind::Helicopter, pose(0.0, 0.0), Some([0.0; 3])).unwrap();
+        let first = movers.step("v", pose(0.0, 0.0), Request::HelicopterBegin(begin)).unwrap();
+        assert!(!first.moved);
+        assert_eq!(first.pose.velocity, 0.0);
+    }
+
+    #[test]
+    fn the_floor_clamp_stops_the_climb_after_the_speed_was_taken() {
+        let mut begin = helicopter_begin_request();
+        begin.wp_vec_y = -5.0;
+        let (mut movers, first) = begun(begin);
+        let speed = first.pose.velocity;
+        assert_near([speed, 0.0, 0.0], [(25.0f32 + 10000.0).sqrt(), 0.0, 0.0]);
+        let mut end = helicopter_end_request();
+        end.motion_vector = first.motion_vector;
+        end.elevation = 0.0;
+        end.cg_to_ground = 2.0;
+        let second = movers.step("v", first.pose, Request::HelicopterEnd(end)).unwrap();
+        // the position falls to -5, below the floor (2 m, level attitude): put back on it, the downward vector stopped, the speed untouched
+        assert_near(second.pose.position, [0.0, 2.0, 100.0]);
+        assert_eq!(second.motion_vector[1], 0.0);
+        assert_eq!(second.pose.velocity, speed);
+        // terrain-follow raises the floor by 2 m
+        let (mut movers, first) = begun(begin);
+        end.terrain_follow = true;
+        let second = movers.step("v", first.pose, Request::HelicopterEnd(end)).unwrap();
+        assert_near(second.pose.position, [0.0, 4.0, 100.0]);
+    }
+
+    #[test]
+    fn a_helicopter_is_bounded_to_the_map() {
+        let (mut movers, first) = begun(helicopter_begin_request());
+        let mut end = helicopter_end_request();
+        end.motion_vector = first.motion_vector;
+        end.map_max = [1.0e6, 1.0e6, 60.0];
+        let second = movers.step("v", first.pose, Request::HelicopterEnd(end)).unwrap();
+        assert_near(second.pose.position, [0.0, 0.0, 60.0]);
+    }
+
+    #[test]
+    fn a_helicopter_reports_a_rotation_only_beyond_a_tenth_of_a_degree() {
+        // pitch and roll move half the demand over a one second step; the heading moves the demand (inside the turn limit)
+        let tenth_of_a_degree = 0.1f32.to_radians();
+        for (step, rotated) in [(tenth_of_a_degree * 0.99, false), (tenth_of_a_degree * 1.01, true)] {
+            for axis in 0..3 {
+                let (mut movers, first) = begun(helicopter_begin_request());
+                let mut end = helicopter_end_request();
+                end.motion_vector = first.motion_vector;
+                match axis {
+                    0 => end.desired_pitch = step * 2.0,
+                    1 => end.desired_roll = step * 2.0,
+                    _ => end.desired_heading = step,
+                }
+                let second = movers.step("v", first.pose, Request::HelicopterEnd(end)).unwrap();
+                assert_eq!(second.rotated, rotated, "axis {axis} step {step}");
+            }
+        }
+    }
+
+    #[test]
+    fn a_helicopter_end_without_a_begin_or_a_second_begin_is_refused_before_any_change() {
+        let mut movers = movers(Kind::Helicopter, pose(0.0, 0.0));
+        let error = movers.step("v", pose(0.0, 0.0), Request::HelicopterEnd(helicopter_end_request())).unwrap_err();
+        assert!(error.contains("without a pending helicopter_begin"), "{error}");
+        let first = movers.step("v", pose(0.0, 0.0), Request::HelicopterBegin(helicopter_begin_request())).unwrap();
+        // while the step is pending nothing else is accepted: not another begin, not a placement, not another kind's request
+        for request in [Request::HelicopterBegin(helicopter_begin_request()), PLACED, Request::Stop] {
+            let error = movers.step("v", first.pose, request).unwrap_err();
+            assert!(error.contains("pending") || error.contains("is not a request"), "{error}");
+        }
+        let mut end = helicopter_end_request();
+        end.motion_vector = first.motion_vector;
+        let second = movers.step("v", first.pose, Request::HelicopterEnd(end)).unwrap();
+        assert_near(second.pose.position, [0.0, 0.0, 100.0]);
+        // the step is finished: a second end is refused again
+        let error = movers.step("v", second.pose, Request::HelicopterEnd(end)).unwrap_err();
+        assert!(error.contains("without a pending helicopter_begin"), "{error}");
+    }
+
+    #[test]
+    fn a_helicopter_mirror_that_differs_is_refused_and_nothing_moves() {
+        let mut movers = movers(Kind::Helicopter, pose(0.0, 0.0));
+        let mut begin = helicopter_begin_request();
+        begin.motion_vector[2] = f32::from_bits(100.0f32.to_bits() + 1);
+        let error = movers.step("v", pose(0.0, 0.0), Request::HelicopterBegin(begin)).unwrap_err();
+        assert!(
+            error.contains("motion_vector[2]") && error.contains("differs from the host's record"),
+            "{error}"
+        );
+        // not pending, not moved: the correct begin still works from the seed
+        begin.motion_vector[2] = 100.0;
+        let first = movers.step("v", pose(0.0, 0.0), Request::HelicopterBegin(begin)).unwrap();
+        // a stale pose or phase-two mirror is refused too, and the pending step survives for the correct one
+        let mut end = helicopter_end_request();
+        end.motion_vector = first.motion_vector;
+        let mut stale = first.pose;
+        stale.velocity += 1.0;
+        let error = movers.step("v", stale, Request::HelicopterEnd(end)).unwrap_err();
+        assert!(error.contains("velocity"), "{error}");
+        let mut wrong = end;
+        wrong.motion_vector[0] = 1.0;
+        let error = movers.step("v", first.pose, Request::HelicopterEnd(wrong)).unwrap_err();
+        assert!(error.contains("motion_vector[0]"), "{error}");
+        movers.step("v", first.pose, Request::HelicopterEnd(end)).unwrap();
+    }
+
+    #[test]
+    fn a_helicopter_is_never_bound_without_its_motion_vector() {
+        let mut movers = Movers::default();
+        let error = movers.bind("v", Kind::Helicopter, pose(0.0, 0.0), None).unwrap_err();
+        assert!(error.contains("without a motion vector"), "{error}");
+        let error = movers
+            .step("v", pose(0.0, 0.0), Request::HelicopterBegin(helicopter_begin_request()))
+            .unwrap_err();
+        assert!(error.contains("unknown host id"), "{error}");
+    }
+
+    #[test]
+    fn placing_a_helicopter_adopts_the_campaign_motion_vector() {
+        let mut movers = movers(Kind::Helicopter, pose(0.0, 0.0));
+        let placed = Request::Place {
+            motion_vector: [1.0, 2.0, 3.0],
+        };
+        movers.step("v", pose(5.0, 6.0), placed).unwrap();
+        let mut begin = helicopter_begin_request();
+        begin.motion_vector = [1.0, 2.0, 3.0];
+        let first = movers.step("v", pose(5.0, 6.0), Request::HelicopterBegin(begin)).unwrap();
+        assert_near(first.motion_vector, [1.0, 0.0, 3.0]);
     }
 }

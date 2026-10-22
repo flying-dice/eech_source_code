@@ -1,0 +1,29 @@
+diag_selected	mode=hold host=eech-world:2975 selected_at=77.9 hold_seconds=140.0
+diag_steps	held=1401 moved=2 released_at=217.99999999999 ended_at=218.2
+census	routed	bound=455	moved_10m=0
+census	ship	bound=36	moved_10m=0
+census	person	bound=140	moved_10m=0
+census	fixed_wing	bound=91	moved_10m=0
+census	helicopter	bound=174	moved_10m=27
+steps	fixed_wing:fixed_wing_move	6098
+steps	fixed_wing:place	182
+steps	helicopter:helicopter_begin	17994
+steps	helicopter:helicopter_end	17994
+steps	helicopter:place	348
+steps	person:person_begin	298480
+steps	person:person_end	298044
+steps	person:place	280
+steps	routed:move	158611
+steps	routed:place	1199
+steps	routed:stop	9
+steps	ship:place	72
+pairing_errors	0
+helicopter_pairs	17994	moved_begins=16592	places=348
+ended_at	218.2
+select	hold
+host_id	eech-world:2975
+held_seconds	140.1
+held_steps	1401
+held_displacement	0.000
+displacement_after_release	0.764
+result	ok
