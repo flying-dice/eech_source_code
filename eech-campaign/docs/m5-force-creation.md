@@ -2,8 +2,9 @@
 
 **Status: source change committed locally on base `8ddce83d` (the PR96 merge), revised after
 the source review (`SOURCE-REVIEW.md`, CHANGES REQUIRED). Host/Rust tests and clippy pass; the
-C changes have not been compiled by any C toolchain here and the native pack has NOT been run
-against them. Nothing here is initial source delivery or ownership beyond code. EEDCS-38, D1
+legacy hosted C callers (`faction.c`, `rv_hostmv.c`, the family updaters) were not compiled by the
+prior Linux checks (the host C arithmetic in `eech-world/csrc` was), and the native pack has NOT
+been run against them. Nothing here is initial source delivery or ownership beyond code. EEDCS-38, D1
 (EEDCS-15) and M5 are not complete.**
 
 **Scope.** One physical extraction under D1, following
@@ -69,18 +70,17 @@ Review-fix run (current), all exit 0, unique logs:
   `manual_range_patterns` at `eech-engine/src/lib.rs:407` (fixed as `0..=2`),
   `clippy-fixes-3.log` is clean.
 
-**Red evidence.** This is a new capability, but the red evidence is weaker than "compile-red":
-the new modes and fields did not exist, so the first tests could not build. The one test that
-failed at runtime failed because of an **incorrect test setup** (it opened a helicopter fall,
-which does not enter the ground-fall phase, so nothing was open); it was neither a production
-red nor a compile-red. The retained `logs/test-initial-failure-transcript.txt` is a
-parent-recovered excerpt, not the original full log.
+**Red evidence.** None is claimed. The one retained runtime failure was an **incorrect test
+setup** (it opened a helicopter fall, which does not enter the ground-fall phase, so nothing was
+open); it is not a production red. No red test was manufactured for this extraction. The
+retained `logs/test-initial-failure-transcript.txt` is a parent-recovered excerpt, not the
+original full log.
 
-**Host-answer influence checks (public path).** The two `movement.rs` tests that vary the
-campaign's base height and centre-of-gravity offset and observe a different returned position
-and angles, and the `eech-engine` wire test that carries `cg_to_ground`, `death_range` and
-`death_policy` through to the host request. They show the host answer is what the DLL applies;
-they do not exercise the C setters.
+**Host and bridge tests.** The two `movement.rs` tests vary the campaign's base height and
+centre-of-gravity offset and check the host's returned position and angles; the `eech-engine`
+wire test carries `cg_to_ground`, `death_range` and `death_policy` to the host request. These
+are host-side and bridge-level tests only. They make no claim about what the DLL does with the
+answer; that is a separate check (a boot-only host-answer witness, then the native pack).
 
 ## Corrections made in the review pass
 
@@ -112,7 +112,9 @@ closed the host's sequence before the entity is DEAD.
 
 - **Ground vehicles, traced:** `rv_move.c:695-743` calls the host `gv_fall_settle`; on
   `flags & 0x04` it calls `campaign_movement_gv_fall_vector` and sets DEAD in the same call,
-  so the expire branch (DEAD only) follows the host's terminal answer. Anti-air has the same
+  and `campaign_movement_gv_commit` (`rv_move.c:747`) runs after DEAD is marked, closing the
+  host's sequence in that call. The expire branch (DEAD only) therefore follows the host's
+  terminal answer and closure. Anti-air has the same
   shape (`aa_move.c:317-365`) and never issues expire.
 - **Not verified:** helicopter (`hc_move.c` DEAD at 565/762/865/1024/1052/1099, using
   `campaign_movement_fall` and `crash_begin`/`crash_end`), fixed-wing (`fw_move.c`
@@ -127,9 +129,10 @@ would or would not happen.
 
 ## Remaining coupling and limitations
 
-- **Native pack not run; C not compiled.** The Rust build does not compile `faction.c`,
-  `rv_hostmv.c`, `gp_roster.c` or the six family updaters, so these edits are unbuilt by any C
-  toolchain here. The affected M4 regression pack and a Tacview comparison are still required.
+- **Native pack not run; legacy hosted C callers not yet compiled.** The prior Linux checks
+  compiled the host C arithmetic (`eech-world/csrc`) but not `faction.c`, `rv_hostmv.c`,
+  `gp_roster.c` or the six family updaters. The affected M4 regression pack and a Tacview
+  comparison are still required.
 - **Fatal-guard reachability** is open for helicopter, fixed-wing and person (see the ordering
   analysis above); only ground vehicles are traced.
 - **Keysite range is campaign-computed, now lazily.** `calculate_mobile_nearest_keysite_sqr_range`
