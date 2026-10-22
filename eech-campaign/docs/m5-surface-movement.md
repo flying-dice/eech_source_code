@@ -52,7 +52,7 @@ the original C maths, kept expression for expression:
 
 Host refusals. These are raised in different places:
 
-- In `Movers::step` (`eech-engine/src/lib.rs`), where the guard checks run before
+- In `Movers::step` (`crates/eech-world/src/movement.rs`), where the guard checks run before
   the host record is mutated:
   - unknown host id: `host.move_vehicle: unknown host id <id>`;
   - a request for another kind: `... is not a request for <Kind>`;
@@ -61,7 +61,6 @@ Host refusals. These are raised in different places:
   - a campaign pose that differs bitwise from the host record.
 - An unknown mode is rejected earlier, when the host parses the request in
   `movement_from` (`eech-world/src/main.rs`): `host.move_vehicle: unknown mode <m>`.
-  `Movers::step` also has a defensive unknown-mode arm.
 - A missing callback is rejected in the campaign module at boot
   (`eech-dc/src/module.rs`): `eech: missing host move_vehicle callback`.
 
@@ -233,7 +232,7 @@ the concurrent pack (`settled-witness-aborted-shared-root.log`).
 The host steps the entity synchronously in the same frame, so the order of
 consequences is unchanged. Alive ship and person motion is host-owned; the DLL
 still owns the entity, the terrain sample (D3), death/lifecycle, combat (D2) and
-every other mobile family. The result is the same reference physics, not a DCS
+remaining aircraft physical movement. The result is the same reference physics, not a DCS
 adapter. Visual inspection of Tacview and a live DCS run (M6) are not claimed.
 
 ## Remaining coupling
@@ -296,6 +295,6 @@ docker run --rm -v <worktree>:/src -v <target volume>:/target -e CARGO_TARGET_DI
 
 ## Next bounded action
 
-D1: death motion, force creation/removal and complete lifecycle and loss
-handling in the host; and a witnessed scenario in which ships move, so that
-`ship_move` has public coverage.
+D1: remaining aircraft physical movement, creation/placement/removal and
+death/lifecycle (including loss handling) in the host. The lead chooses the next
+extraction.
