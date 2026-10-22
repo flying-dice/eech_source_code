@@ -74,14 +74,14 @@ typedef struct campaign_member_descriptor
 	int entity_type;
 	int sub_type;
 	int side;
-	// movable members only (routed vehicles, ships, infantry): the physical pose the host takes over (has_pose),
+	// movable members only (routed vehicles, ships, infantry, aircraft): the physical pose the host takes over (has_pose),
 	// attitude row-major, and which physical step the host performs (campaign_movement_kind)
 	int has_pose;
 	float position[3];
 	float velocity;
 	float attitude[9];
 	int movement_kind;
-	// a fixed-wing aircraft only: its previous motion vector, physical state the host retains from binding
+	// a fixed-wing aircraft or helicopter only: its previous motion vector, physical state the host retains from binding
 	float motion_vector[3];
 } campaign_member_descriptor;
 

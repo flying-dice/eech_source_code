@@ -175,7 +175,8 @@ fn nearest_f32(value: f64) -> Option<f32> {
 }
 
 fn call_move_vehicle(lua: &Lua, function: &LuaFunction, step: MovementStep) -> Result<MovementResult, String> {
-    let fixed_wing = step.mode == MovementMode::FixedWingMove;
+    let mode = step.mode;
+    let aircraft_step = matches!(mode, MovementMode::FixedWingMove | MovementMode::HelicopterBegin | MovementMode::HelicopterEnd);
     let value = lua.to_value_with(&step, options()).map_err(|e| e.to_string())?;
     let answer: LuaValue = function.call(value).map_err(|e| e.to_string())?;
     let LuaValue::Table(table) = answer else {
@@ -192,9 +193,16 @@ fn call_move_vehicle(lua: &Lua, function: &LuaFunction, step: MovementStep) -> R
         LuaValue::Boolean(pending) => pending,
         other => return Err(format!("move_vehicle result pending must be a boolean, got {}", other.type_name())),
     };
+    // a helicopter's first phase reports whether it moved; no other step has an answer for it
+    let moved = match table.get::<LuaValue>("moved").map_err(|e| e.to_string())? {
+        LuaValue::Nil if mode == MovementMode::HelicopterBegin => return Err("move_vehicle result for a helicopter begin must carry moved".into()),
+        LuaValue::Nil => false,
+        LuaValue::Boolean(moved) => moved,
+        other => return Err(format!("move_vehicle result moved must be a boolean, got {}", other.type_name())),
+    };
     // a routed or held member returns no motion vector; an aircraft's answer must carry the one it holds
     let motion_vector = match table.get::<LuaValue>("motion_vector").map_err(|e| e.to_string())? {
-        LuaValue::Nil if fixed_wing => return Err("move_vehicle result for a fixed-wing step must carry its motion_vector".into()),
+        LuaValue::Nil if aircraft_step => return Err("move_vehicle result for an aircraft step must carry its motion_vector".into()),
         LuaValue::Nil => [0.0; 3],
         _ => exact_numbers(lua, &table, "motion_vector").map_err(|e| format!("move_vehicle result {e}"))?,
     };
@@ -207,6 +215,7 @@ fn call_move_vehicle(lua: &Lua, function: &LuaFunction, step: MovementStep) -> R
         rotated,
         motion_vector,
         pending,
+        moved,
     })
 }
 

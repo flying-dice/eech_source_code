@@ -8,7 +8,9 @@
 
 mod crash;
 
-use eech_world::movement::{Advance, FixedWingMove, FixedWingPhase, Kind, Movers, PersonBegin, PersonEnd, Pose, Request, ShipMove, Terrain};
+use eech_world::movement::{
+    Advance, FixedWingMove, FixedWingPhase, HelicopterBegin, HelicopterEnd, Kind, Movers, PersonBegin, PersonEnd, Pose, Request, ShipMove, Terrain,
+};
 use eech_world::tacview::{ObjectInfo, Recorder};
 use mlua::prelude::*;
 use std::cell::{Cell, RefCell};
@@ -201,6 +203,26 @@ fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request
             navigating: step.get("navigating")?,
             elevation: number(lua, step, "elevation")?,
             tacview_logging: step.get("tacview_logging")?,
+            map_min: numbers(lua, step, "map_min")?,
+            map_max: numbers(lua, step, "map_max")?,
+        }),
+        "helicopter_begin" => Request::HelicopterBegin(HelicopterBegin {
+            delta_seconds: number(lua, step, "delta_seconds")?,
+            acceleration_x: number(lua, step, "acceleration_x")?,
+            acceleration_z: number(lua, step, "acceleration_z")?,
+            wp_vec_y: number(lua, step, "wp_vec_y")?,
+            motion_vector: numbers(lua, step, "motion_vector_in")?,
+        }),
+        "helicopter_end" => Request::HelicopterEnd(HelicopterEnd {
+            delta_seconds: number(lua, step, "delta_seconds")?,
+            desired_heading: number(lua, step, "desired_heading")?,
+            max_turn_rate: number(lua, step, "max_turn_rate")?,
+            desired_pitch: number(lua, step, "desired_pitch")?,
+            desired_roll: number(lua, step, "desired_roll")?,
+            elevation: number(lua, step, "elevation")?,
+            cg_to_ground: number(lua, step, "cg_to_ground")?,
+            terrain_follow: step.get("terrain_follow")?,
+            motion_vector: numbers(lua, step, "motion_vector_in")?,
             map_min: numbers(lua, step, "map_min")?,
             map_max: numbers(lua, step, "map_max")?,
         }),
@@ -698,6 +720,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         2 => Kind::Ship,
                         3 => Kind::Person,
                         4 => Kind::FixedWing,
+                        5 => Kind::Helicopter,
                         other => return Err(LuaError::runtime(format!("host.bind_mobile: unknown movement_kind {other}"))),
                     };
                     // an aircraft's motion vector is physical state the host retains: the seed is explicit
@@ -728,6 +751,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 result.set("rotated", outcome.rotated)?;
                 result.set("motion_vector", outcome.motion_vector.to_vec())?;
                 result.set("pending", outcome.pending)?;
+                result.set("moved", outcome.moved)?;
                 Ok(result)
             })?,
         )?;

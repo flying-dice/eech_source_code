@@ -215,11 +215,14 @@ pub const EECH_MOVEMENT_SHIP_MOVE: c_int = 4;
 pub const EECH_MOVEMENT_PERSON_BEGIN: c_int = 5;
 pub const EECH_MOVEMENT_PERSON_END: c_int = 6;
 pub const EECH_MOVEMENT_FIXED_WING_MOVE: c_int = 7;
+pub const EECH_MOVEMENT_HELICOPTER_BEGIN: c_int = 8;
+pub const EECH_MOVEMENT_HELICOPTER_END: c_int = 9;
 
 pub const EECH_MOVEMENT_KIND_ROUTED: c_int = 1;
 pub const EECH_MOVEMENT_KIND_SHIP: c_int = 2;
 pub const EECH_MOVEMENT_KIND_PERSON: c_int = 3;
 pub const EECH_MOVEMENT_KIND_FIXED_WING: c_int = 4;
+pub const EECH_MOVEMENT_KIND_HELICOPTER: c_int = 5;
 
 #[repr(C)]
 pub struct eech_movement_step {
@@ -252,6 +255,15 @@ pub struct eech_movement_step {
     pub fw_max_roll: f32,
     pub fw_turn_speed_multi: f32,
     pub fw_navigating: c_int,
+    pub hc_acceleration_x: f32,
+    pub hc_acceleration_z: f32,
+    pub hc_wp_vec_y: f32,
+    pub hc_desired_heading: f32,
+    pub hc_max_turn_rate: f32,
+    pub hc_desired_pitch: f32,
+    pub hc_desired_roll: f32,
+    pub hc_cg_to_ground: f32,
+    pub hc_motion_vector: [f32; 3],
 }
 
 #[repr(C)]
@@ -262,6 +274,7 @@ pub struct eech_movement_result {
     pub rotated: c_int,
     pub motion_vector: [f32; 3],
     pub pending: c_int,
+    pub moved: c_int,
 }
 
 pub type eech_move_vehicle_callback =
