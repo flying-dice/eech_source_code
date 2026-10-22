@@ -105,22 +105,36 @@ struct Answer {
 
 impl Answer {
     fn denied() -> Self {
-        Self { gates_passed: false, launch_angle_error: None, heading_target_missing: false }
+        Self {
+            gates_passed: false,
+            launch_angle_error: None,
+            heading_target_missing: false,
+        }
     }
 
     fn passed(launch_angle_error: Option<f32>) -> Self {
-        Self { gates_passed: true, launch_angle_error, heading_target_missing: false }
+        Self {
+            gates_passed: true,
+            launch_angle_error,
+            heading_target_missing: false,
+        }
     }
 
     fn target_missing() -> Self {
-        Self { gates_passed: false, launch_angle_error: None, heading_target_missing: true }
+        Self {
+            gates_passed: false,
+            launch_angle_error: None,
+            heading_target_missing: true,
+        }
     }
 }
 
 /// The heading the guide requires, derived from the copied facts as the original
 /// get_guide_required_heading did. None: a TARGET waypoint has no task-dependent target.
 fn required_heading(descriptor: &LuaTable) -> LuaResult<Option<f32>> {
-    let source: String = descriptor.get::<Option<String>>("heading_source")?.ok_or_else(|| LuaError::runtime("host.supply_reached: the heading source is unavailable"))?;
+    let source: String = descriptor
+        .get::<Option<String>>("heading_source")?
+        .ok_or_else(|| LuaError::runtime("host.supply_reached: the heading source is unavailable"))?;
     let waypoint: f32 = descriptor.get("waypoint_heading")?;
     match source.as_str() {
         "zero" => Ok(Some(0.0)),
@@ -332,9 +346,15 @@ fn supply_reached(descriptor: LuaTable) -> LuaResult<Answer> {
             let radius: f32 = descriptor.get("action_radius")?;
             let dx = position[0] - waypoint[0];
             let dz = position[2] - waypoint[2];
-            Ok(if dx * dx + dz * dz < radius * radius { Answer::passed(None) } else { Answer::denied() })
+            Ok(if dx * dx + dz * dz < radius * radius {
+                Answer::passed(None)
+            } else {
+                Answer::denied()
+            })
         }
-        _ => Err(LuaError::runtime(format!("host.supply_reached: unsupported {query:?} query for mobile {mobile:?}"))),
+        _ => Err(LuaError::runtime(format!(
+            "host.supply_reached: unsupported {query:?} query for mobile {mobile:?}"
+        ))),
     }
 }
 

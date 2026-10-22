@@ -109,10 +109,11 @@ Revisions involved; they must not be conflated:
 | `cdcbd72e` | `cdcbd72e313502ccab7efc1d0cbe081a2e761e7c` | the only native build under test |
 | `2158d0d8` | `2158d0d8cdb8c1e9227ef94997479ea8e3822cd8` | test-only witness fix; binaries not rebuilt |
 
-The recorded build
-and pack at that revision predate the heading repair and are discarded. The
-native binaries come from `cdcbd72e`; the witness script (`2158d0d8`) is a Lua
-file run from the repository path, so no binary was rebuilt for it.
+The build and pack recorded at `551f7aa9` predate the heading repair and are
+discarded: they are not evidence. `cdcbd72e` (native build) and `2158d0d8` (the
+witness script, a Lua file run from the repository path, so no binary was rebuilt
+for it) are valid. The publication commits after `2158d0d8` change formatting and
+documentation only; the native build identity stays `cdcbd72e`.
 
 Native build: `BUILD-INFO.txt` reports commit `cdcbd72e`, 0 uncommitted build
 inputs, image
@@ -214,11 +215,13 @@ and the unbound-member failure have no public-path witness.
 
 ## Remaining coupling
 
-The raw facts the host judges (positions, headings, altitudes, velocities, weapon
-and intercept vectors, rotor spin-up) are still produced by the DLL's physical
-simulation. That is the D1/D2 coupling: the host is the decider, not yet the
-source of the observations. Host force creation/removal, movement and route
-execution, and complete lifecycle and loss handling are untouched.
+The physical facts the host judges (positions, headings, altitudes, velocities,
+rotor spin-up) are still produced by the DLL's physical simulation. That is D1
+coupling: the host decides the arrival predicate but does not yet own the physical
+world those facts come from. Host force creation/removal, movement and route
+execution, and complete lifecycle and loss handling are likewise untouched D1
+work. D2 (combat and perception) is separate: the weapon and intercept vectors
+behind the launch-angle fact belong to it, and this change does not move them.
 
 ## Author handoff
 
@@ -259,5 +262,8 @@ tools/regression-pack.py --georgia E:/eech-runs/roots/georgia --lebanon E:/eech-
 
 ## Next bounded action
 
-Host force creation/removal, movement and route execution, and complete lifecycle
-and loss handling (D1), with the observation source moving to the host (D2).
+D1: the host owns the physical world: force creation/removal, movement and route
+execution, the physical position, heading, altitude and velocity facts, and
+complete lifecycle and loss handling. D2 (combat and perception, including the
+weapon and intercept facts) is not postponed work for these physical
+responsibilities.
