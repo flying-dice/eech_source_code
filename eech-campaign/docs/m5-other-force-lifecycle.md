@@ -1,16 +1,18 @@
 # M5: host-owned wreck, fall, sink and crash motion of the other forces (EEDCS-37)
 
-**Status: runtime commit `1a8080c3` is natively validated; delivery is a local branch
-awaiting the independent review, publication and the lead's formal approval. D1 and M5
-are not complete.**
+**Status: runtime commit `1a8080c3` is natively validated; delivery is tracked by
+[EEDCS-37](https://flying-dice.atlassian.net/browse/EEDCS-37). D1 and M5 are not
+complete.**
 
 **Scope.** One physical extraction under D1 (EEDCS-15), on base `11dcf588` (the PR95
 merge), following [`m5-helicopter-lifecycle.md`](m5-helicopter-lifecycle.md). The dying
 motion of the routed and anti-air ground vehicles, of ships and of fixed-wing aircraft
 is stepped by the host, per host ID, through the same `move_vehicle` seam. The original C
-arithmetic and its order are kept. The campaign still decides when a unit dies and what
-its death means; the host's retained physical state drives the DLL's response. A live
-DCS run is M6 and is not claimed.
+arithmetic and its order are kept. The host's retained physical state drives the DLL's
+response. The current damage and death triggers and the physical teardown and effects
+stay in legacy DLL world code in this cut (see Remaining coupling); campaign
+consequences (group, task, logistics) stay in campaign code. A live DCS run is M6 and is
+not claimed.
 
 ## What moved
 
@@ -23,9 +25,9 @@ Each is a step of the original per-frame death code, called in the original orde
 | `gv_death_decay` | routed, AA | after the refresh: speed decay, heading turn, `y = elevation + cg`, attitude | 0 |
 | `gv_fall_candidate` | routed, AA | falling, before the refresh: candidate position, all axes (no map bound) | 0 |
 | `gv_fall_gravity` | routed, AA | after the refresh: gravity, the vector and the speed | 0 |
-| `gv_fall_settle` | routed, AA | contact, splash, sunk, ground impact; the settled position, vector and speed are **staged** host-side and nothing is applied | bit 0 contact, 1 splash, 2 sunk, 3 ground impact |
-| `gv_fall_vector` | routed, AA | writes the staged vector (zero when sunk, `y` zero on ground) | 0 |
-| `gv_fall_commit` | routed, AA | finalises the staged speed, then the staged settled position | 0 |
+| `gv_fall_settle` | routed, AA | contact, splash, sunk, ground impact; the settled position, vector and speed are **staged** host-side; this step applies none of them | bit 0 contact, 1 splash, 2 sunk, 3 ground impact |
+| `gv_fall_vector` | routed, AA | after the DLL's settle effects: applies the staged vector (zero when sunk, `y` zero on ground) | 0 |
+| `gv_fall_commit` | routed, AA | afterwards: finalises the staged speed, then the staged settled position | 0 |
 | `gv_impact` | routed, AA | impact shove; the DLL drew the float speed | 0 |
 | `ship_sink` | ship | candidate position, drag, sink rate, pitch/roll drift, attitude; returns the height | 0 |
 | `fw_death_attitude` | fixed wing | after the gravity step: heading, pitch and roll ease toward the velocity direction | -1 gate/draw mismatch, 0 nothing, 1 eased, 3 eased and the roll draw was consumed |
@@ -77,10 +79,13 @@ the rotor is ignored. Anti-air vehicles now take the routed movement kind
   terrain refresh; `gv_death_decay`. Heading turns by `-0.1 * pi * dt`.
 - **Routed/AA fall:** `vehicle_vector_seed`; `gv_fall_candidate`; the refresh;
   `gv_fall_gravity`; `gv_fall_settle` (flags, staged); the DLL's splash, sunk and impact
-  effects; `gv_fall_vector`; `gv_fall_commit` last. Nothing of the settle is applied
-  until the commit. `gv_impact` is the separate impact shove.
-- **Ship sink:** `vehicle_vector_seed`; `ship_sink` (returns the new height; the fire
-  clears and the destroy test stay with the campaign and read it). Pitch and roll drift.
+  effects; `gv_fall_vector`; `gv_fall_commit` last. `gv_fall_settle` stages all of its
+  results and applies none; `gv_fall_vector` applies the staged vector after the original
+  effects; `gv_fall_commit` then finalises the staged speed and, after it, the staged
+  settled position. `gv_impact` is the separate impact shove.
+- **Ship sink:** `vehicle_vector_seed`; `ship_sink` (returns the new height). The fire
+  clear and the destroy test stay in legacy DLL world code in this cut and read that
+  height. Pitch and roll drift.
 - **Fixed wing dying:** `contact(false)` on land crashes (below); otherwise
   `fall`, the DLL's terrain sample, `fall_gravity`, `contact(true)`, `fw_settle` if in
   contact, then `fw_death_attitude` (with its optional roll draw).
@@ -135,7 +140,8 @@ and was not visually reviewed.
   They do not hold or delay a single phase, so they do not isolate that host answers
   drive the DLL for each mode. Per-mode hit counts were not extracted from the pack.
 - The Linux unit tests characterise the ported maths, guards and ordering (for example
-  staged fall results applied only at the commit, the open-sequence refusals, the
+  the settle staging its results, the vector then the speed and position applied in that
+  order, the open-sequence refusals, the
   DLL-cannot-set-attitude rule and the crash-slide speed retention). Bit identity of the
   full war is the pack's job.
 - The pack's blind spots stand (`coupled-engine`, `three-hours`, `one-war`, `captures`,
@@ -153,18 +159,20 @@ decision:
   avoidance.
 - **D3:** terrain sampling and its cache, including the refreshed sample the wreck, fall
   and crash steps consume.
-- **Presentation coupling in the DLL:** smoke, fire, effects and sounds raised during
-  dying, splash, sinking and crash, and the shared `frand1` RNG (only the draw values
-  cross the seam).
+- **Remaining DLL world coupling:** the current damage and death triggers (including the
+  ship fire clear and destroy test), the physical teardown and removal, and the smoke,
+  fire, effects and sounds raised during dying, splash, sinking and crash, plus the
+  shared `frand1` RNG (only the draw values cross the seam). No damage or removal
+  boundary moved in this Task.
 - The DLL's copy of each vector and attitude remains because the entity still lives in the
   DLL, and the campaign and the physical world still share `eech_dc.dll` (the
   `coupled-engine` blind spot).
 - Other direct writers are announced to the host only through the setters' `place`.
 - Client/multiplayer entities are unsupported in a host build.
 
-D2 (combat, targeting, perception) is not changed by this Task and comes later. The
-campaign keeps deciding when a unit dies and the death consequences (group state,
-removal, logistics).
+D2 (combat, targeting, perception, damage) is not changed by this Task and comes later;
+D1 still owns creation, placement and removal. Campaign consequences of a death (group,
+task, logistics) remain in campaign code.
 
 ## Commands
 
