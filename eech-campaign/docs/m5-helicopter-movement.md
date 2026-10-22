@@ -1,8 +1,11 @@
 # M5: host-owned live AI helicopter movement (EEDCS-35)
 
 **Status: implemented; settled retail build, public witness and 40/40 regression pack
-run at runtime commit `e5ec3b69`.** Nothing here is accepted: it awaits independent
-review and the technical lead's approval. D1 and the aircraft work are not complete.
+run at runtime commit `e5ec3b69`, published by the parent as draft PR #94 (all eight
+hosted checks passed on that runtime).** Nothing here is accepted: it awaits the
+technical lead's approval. D1 and the aircraft work are not complete. The parent owns
+push, PR updates, approval and merge. Portable evidence:
+[`reference/m5-helicopter-movement/`](../reference/m5-helicopter-movement/reference-summary.txt).
 
 **Scope.** One physical extraction under D1 (EEDCS-15) toward criteria 2 and 3 of
 the [M5 goal](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337)
@@ -129,7 +132,10 @@ Output: `E:/eech-runs/m5-d1/helicopter-impl-20261022/native/` (`build.log`,
   `eech-world.exe` `ac6e9668f225b1c7b3b22979bd1472e0c4b6e54be2f2a72b4bae85ea7498365f`
   (full list in `BUILD-INFO.txt`).
 - **Public witness.** `tools/helicopter-movement-windows.ps1 -Root E:/eech-runs/m2/lebanon-root`
-  (Lebanon retail root, 1 h): `PASS`, one run.
+  (Lebanon retail root): `PASS`, one run. The script's `-Hours` is a 1 h ceiling, not
+  the duration: the measured simulated runs were 79.4 s (`control`, stopped once the
+  subject was found) and 218.2 s (`hold` ended), about a minute of driver wall clock.
+  It was not a one-hour execution.
   - `missing`: `runtime error: eech: missing host move_vehicle callback`.
   - `control`: helicopter `eech-world:2975` selected at 79.3 s.
   - `hold`: the host declined to move it for 140.1 s (1401 held steps,
@@ -215,9 +221,12 @@ decision; none is relabelled campaign policy:
 - **Rotor RPM and spin-up** (`helicopter_movement_calculate_rotor_rpm`,
   `main_rotor_spin_up_timer`, `update_rotors`): physical, deferred to D1
   death/lifecycle.
-- **Pilot control and avoidance:** physical coupling. LOS/structure avoidance and
-  guide/leader/formation likewise.
-- **D2** pitch/roll/heading guidance and **D3** terrain look-ahead.
+- **Physical pilot control and avoidance remain D1:** the pitch/roll/heading
+  guidance that is a physical control or avoidance input (including the
+  `desired_heading`/`max_turn_rate` handed to `helicopter_end`), LOS/structure
+  avoidance and guide/leader/formation are physical coupling, not campaign policy.
+- **D2** is only targeting and combat decisions; **D3** is terrain services (such as
+  look-ahead). Neither is migrated here.
 - **Death/crash movement and other direct writers:** `clear_helicopter_velocity`,
   VELOCITY writes in death/crash, `hc_updt.c:979`, `hc_msgs.c:514-518`,
   `hc_pack.c:751-757`. These are **explicitly transitional placement**, announced to
@@ -232,7 +241,12 @@ One inline author pass against SRP, DRY, naming, coupling, dead code, KISS, boun
 and panic safety. It is not an independent review; the parent is the sole
 independent reviewer. The C diff of `hc_step.c` was compared with the original
 `helicopter_movement_calculate_new_position`: matches. The DLL C compiled under gcc
-in the Linux container; the retail image compile is pending.
+in the Linux container and then in the retail (MinGW) image, where the build passed
+(`build.log` exit 0 at `e5ec3b69`; `reference/m5-helicopter-movement/BUILD-INFO.txt`).
+Earlier helper compile/lint attempts failed on test-setup errors in new test code, a
+format check and the host msvc environment limit (`helper-failed-*.log` in the
+evidence folder); each was fixed and rerun or is an environment limit. They are not
+product regressions.
 
 - **SRP:** the DLL gathers guidance and decides; the host holds pose/vector and
   steps. `hc_step.c` is the maths; `movement.rs` the records and guards.
@@ -260,7 +274,7 @@ python tools/regression-pack.py --georgia <georgia> --lebanon <lebanon> --lebano
 
 ## Next bounded action
 
-Independent review of this runtime and evidence by the parent, then publication
-(branch, PR on the Task, handover). The PR needs the technical lead's formal approval
-before merge. If a later review changes C or Rust source, the settled build, witness
+The parent's independent review of this runtime and evidence on draft PR #94. The PR
+needs the technical lead's formal approval before merge; this session does not push,
+update the PR or change any identity. If a later review changes C or Rust source, the settled build, witness
 and pack must be rerun against the new commit; do not re-record goldens.
