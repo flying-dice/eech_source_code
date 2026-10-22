@@ -83,6 +83,8 @@ typedef struct campaign_member_descriptor
 	int movement_kind;
 	// a fixed-wing aircraft or helicopter only: its previous motion vector, physical state the host retains from binding
 	float motion_vector[3];
+	// a helicopter only: main rotor rpm, tail rotor rpm and main rotor spin-up timer, physical state the host retains from binding
+	float rotor[3];
 } campaign_member_descriptor;
 
 typedef int (*campaign_bind_member_fn)

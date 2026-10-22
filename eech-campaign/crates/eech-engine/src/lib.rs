@@ -149,6 +149,9 @@ pub struct MemberDescriptor {
     /// aircraft members only: the aircraft's previous motion vector, physical state the host
     /// retains from binding (an explicit seed, never defaulted)
     pub motion_vector: Option<[f32; 3]>,
+    /// helicopter members only: the main rotor rpm, tail rotor rpm and main rotor spin-up timer, physical state the
+    /// host retains from binding (an explicit seed, never defaulted)
+    pub rotor: Option<[f32; 3]>,
 }
 
 /// The physical step the host performs for a movable member.
@@ -198,6 +201,30 @@ pub enum MovementMode {
     HelicopterBegin,
     /// second phase of an alive AI helicopter's step: the attitude, the position and the floor clamp
     HelicopterEnd,
+    /// the DLL announces its rotor state (rpm, tail rpm, spin-up timer) as the host's: the explicit seed/reset it adopts
+    RotorSet,
+    /// an alive helicopter's rotor integration and spin-up timer
+    RotorAlive,
+    /// a dying helicopter's rotor wind-down by the movement delta
+    RotorDown,
+    /// dying phase one: the map-clamped candidate position; the host stores it
+    Fall,
+    /// the altitude of the held position or the stored candidate over the campaign's terrain sample
+    Contact,
+    /// settle on or in the terrain class at the stored candidate
+    Settle,
+    /// the tumble attitude and the final position and vector
+    Tumble,
+    /// first phase of the crash slide: the attitude and the candidate position, held for `CrashEnd`
+    CrashBegin,
+    /// second phase of the crash slide: the slope push, the position and whether the slide stopped
+    CrashEnd,
+    /// the shove along the attitude x axis
+    Impact,
+    /// dying phase two: gravity applied to the vector and speed after the terrain sample
+    FallGravity,
+    /// an idle helicopter's linear rotor wind-down by the frame delta
+    RotorIdle,
 }
 
 /// Terrain at the pre-move position, sampled by the campaign.
@@ -262,6 +289,31 @@ pub struct MovementStep {
     pub max_turn_rate: f32,
     pub desired_pitch: f32,
     pub desired_roll: f32,
+    /// helicopter lifecycle modes: the campaign's mirror of the rotor state the host retains (`RotorSet` adopts it)
+    pub rotor: [f32; 3],
+    /// `RotorAlive`: the lift and the power output the rotor integrates
+    pub lift: f32,
+    pub power_output: f32,
+    /// `RotorAlive`: the spin-up gate held; `Contact`: the FALL candidate (rather than the held position) is measured
+    pub flag: bool,
+    /// `FallGravity`: the gravity the vector falls by
+    pub gravity: f32,
+    /// `Settle`: 0 solid, 1 sea, 2 river or lake, 3 forest
+    pub terrain_class: i32,
+    /// `Settle`: the depth beyond which the wreck is buried
+    pub bury_limit: f32,
+    /// `Tumble`: the campaign's two random draws (heading, roll), the doubles `frand1 ()` returns: the original
+    /// expression multiplies them in double before narrowing the result
+    pub draws: [f64; 2],
+    /// `CrashBegin`: the pitch and bank offsets
+    pub pitch_offset: f32,
+    pub bank_offset: f32,
+    /// `Impact`: the signed speed of the shove
+    pub signed_speed: f32,
+    /// `CrashEnd`: the terrain class under the wreck is forest
+    pub forest: bool,
+    /// `CrashBegin` the OLD terrain normal, `CrashEnd` the NEW terrain normal
+    pub face_normal: [f32; 3],
 }
 
 /// The host's record of the vehicle after the step; the campaign applies it.
@@ -277,6 +329,10 @@ pub struct MovementResult {
     pub pending: bool,
     /// `HelicopterBegin` only: the speed crossed the moved threshold
     pub moved: bool,
+    /// helicopter lifecycle modes: the host's rotor state (every helicopter mode echoes it)
+    pub rotor: [f32; 3],
+    /// `Contact`: the altitude of the measured position over the terrain
+    pub altitude: f32,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
@@ -624,6 +680,10 @@ where
         if motion_vector.is_some_and(|vector| vector.iter().any(|value| !value.is_finite())) {
             return Err("bind_mobile received a non-finite motion vector".into());
         }
+        let rotor = matches!(movement_kind, Some(MovementKind::Helicopter)).then_some(descriptor.rotor);
+        if rotor.is_some_and(|rotor| rotor.iter().any(|value| !value.is_finite())) {
+            return Err("bind_mobile received a non-finite rotor state".into());
+        }
         let descriptor = MemberDescriptor {
             member_key: descriptor.member_key,
             group_key: descriptor.group_key,
@@ -638,6 +698,7 @@ where
             }),
             movement_kind,
             motion_vector,
+            rotor,
         };
         let identity = (context.bind_mobile)(descriptor)?;
         let bytes = identity.as_bytes();
@@ -1030,6 +1091,18 @@ where
             sys::EECH_MOVEMENT_FIXED_WING_MOVE => MovementMode::FixedWingMove,
             sys::EECH_MOVEMENT_HELICOPTER_BEGIN => MovementMode::HelicopterBegin,
             sys::EECH_MOVEMENT_HELICOPTER_END => MovementMode::HelicopterEnd,
+            sys::EECH_MOVEMENT_ROTOR_SET => MovementMode::RotorSet,
+            sys::EECH_MOVEMENT_ROTOR_ALIVE => MovementMode::RotorAlive,
+            sys::EECH_MOVEMENT_ROTOR_DOWN => MovementMode::RotorDown,
+            sys::EECH_MOVEMENT_FALL => MovementMode::Fall,
+            sys::EECH_MOVEMENT_CONTACT => MovementMode::Contact,
+            sys::EECH_MOVEMENT_SETTLE => MovementMode::Settle,
+            sys::EECH_MOVEMENT_TUMBLE => MovementMode::Tumble,
+            sys::EECH_MOVEMENT_CRASH_BEGIN => MovementMode::CrashBegin,
+            sys::EECH_MOVEMENT_CRASH_END => MovementMode::CrashEnd,
+            sys::EECH_MOVEMENT_IMPACT => MovementMode::Impact,
+            sys::EECH_MOVEMENT_FALL_GRAVITY => MovementMode::FallGravity,
+            sys::EECH_MOVEMENT_ROTOR_IDLE => MovementMode::RotorIdle,
             other => return Err(format!("move_vehicle received unknown mode {other}")),
         };
         let terrain_follow = checked_bool("terrain_follow", source.terrain_follow)?;
@@ -1062,6 +1135,13 @@ where
             ("hc_desired_pitch", source.hc_desired_pitch),
             ("hc_desired_roll", source.hc_desired_roll),
             ("hc_cg_to_ground", source.hc_cg_to_ground),
+            ("hc_lift", source.hc_lift),
+            ("hc_power_output", source.hc_power_output),
+            ("hc_gravity", source.hc_gravity),
+            ("hc_bury_limit", source.hc_bury_limit),
+            ("hc_pitch_offset", source.hc_pitch_offset),
+            ("hc_bank_offset", source.hc_bank_offset),
+            ("hc_signed_speed", source.hc_signed_speed),
         ])?;
         for (name, values) in [
             ("position", &source.position[..]),
@@ -1073,10 +1153,14 @@ where
             ("fw_acceleration", &source.fw_acceleration[..]),
             ("fw_motion_vector", &source.fw_motion_vector[..]),
             ("hc_motion_vector", &source.hc_motion_vector[..]),
+            ("hc_rotor", &source.hc_rotor[..]),
         ] {
             if values.iter().any(|value| !value.is_finite()) {
                 return Err(format!("non-finite movement {name}"));
             }
+        }
+        if source.hc_draws.iter().any(|value| !value.is_finite()) {
+            return Err("non-finite movement hc_draws".into());
         }
         if source.delta_seconds < 0.0 || source.frame_delta < 0.0 {
             return Err("move_vehicle received a negative delta".into());
@@ -1090,7 +1174,17 @@ where
         } else {
             None
         };
-        let helicopter_step = matches!(mode, MovementMode::HelicopterBegin | MovementMode::HelicopterEnd);
+        // every helicopter mode carries its vector and CG height in the helicopter fields
+        let helicopter_step = !matches!(
+            mode,
+            MovementMode::Move
+                | MovementMode::Stop
+                | MovementMode::Place
+                | MovementMode::ShipMove
+                | MovementMode::PersonBegin
+                | MovementMode::PersonEnd
+                | MovementMode::FixedWingMove
+        );
         let request = MovementStep {
             host_id,
             mode,
@@ -1128,6 +1222,19 @@ where
             max_turn_rate: source.hc_max_turn_rate,
             desired_pitch: source.hc_desired_pitch,
             desired_roll: source.hc_desired_roll,
+            rotor: source.hc_rotor,
+            lift: source.hc_lift,
+            power_output: source.hc_power_output,
+            flag: checked_bool("hc_flag", source.hc_flag)?,
+            gravity: source.hc_gravity,
+            terrain_class: source.hc_terrain_class,
+            bury_limit: source.hc_bury_limit,
+            draws: source.hc_draws,
+            pitch_offset: source.hc_pitch_offset,
+            bank_offset: source.hc_bank_offset,
+            signed_speed: source.hc_signed_speed,
+            forest: checked_bool("forest", source.forest)?,
+            face_normal: source.face_normal,
         };
         let answer = (context.move_vehicle)(request)?;
         let pose = answer.pose;
@@ -1137,6 +1244,8 @@ where
                 .iter()
                 .chain(pose.attitude.iter())
                 .chain(answer.motion_vector.iter())
+                .chain(answer.rotor.iter())
+                .chain(std::iter::once(&answer.altitude))
                 .any(|value| !value.is_finite())
         {
             return Err("move_vehicle host returned a non-finite pose".into());
@@ -1151,6 +1260,8 @@ where
                 motion_vector: answer.motion_vector,
                 pending: c_int::from(answer.pending),
                 moved: c_int::from(answer.moved),
+                rotor: answer.rotor,
+                altitude: answer.altitude,
             };
         }
         Ok(())
@@ -1478,6 +1589,8 @@ mod tests {
                 motion_vector: [0.0; 3],
                 pending: false,
                 moved: false,
+                rotor: [0.0; 3],
+                altitude: 0.0,
             })
         };
         let mut result: sys::eech_movement_result = unsafe { std::mem::zeroed() };
@@ -1526,5 +1639,85 @@ mod tests {
             assert_eq!(request.cg_to_ground, 1.5);
             assert_eq!((request.desired_heading, request.max_turn_rate), (0.5, 0.25));
         }
+    }
+
+    #[test]
+    fn every_lifecycle_mode_reads_the_helicopter_fields_and_carries_its_inputs() {
+        let modes = [
+            (sys::EECH_MOVEMENT_ROTOR_SET, MovementMode::RotorSet),
+            (sys::EECH_MOVEMENT_ROTOR_ALIVE, MovementMode::RotorAlive),
+            (sys::EECH_MOVEMENT_ROTOR_DOWN, MovementMode::RotorDown),
+            (sys::EECH_MOVEMENT_FALL, MovementMode::Fall),
+            (sys::EECH_MOVEMENT_CONTACT, MovementMode::Contact),
+            (sys::EECH_MOVEMENT_SETTLE, MovementMode::Settle),
+            (sys::EECH_MOVEMENT_TUMBLE, MovementMode::Tumble),
+            (sys::EECH_MOVEMENT_CRASH_BEGIN, MovementMode::CrashBegin),
+            (sys::EECH_MOVEMENT_CRASH_END, MovementMode::CrashEnd),
+            (sys::EECH_MOVEMENT_IMPACT, MovementMode::Impact),
+            (sys::EECH_MOVEMENT_FALL_GRAVITY, MovementMode::FallGravity),
+            (sys::EECH_MOVEMENT_ROTOR_IDLE, MovementMode::RotorIdle),
+        ];
+        for (mode, expected) in modes {
+            let mut step = place_step([9.0, 9.0, 9.0]);
+            step.mode = mode;
+            step.hc_motion_vector = [1.0, 2.0, 3.0];
+            step.hc_rotor = [90.0, 80.0, 4.0];
+            step.hc_lift = 0.25;
+            step.hc_power_output = 0.75;
+            step.hc_flag = 1;
+            step.hc_gravity = 9.5;
+            step.hc_terrain_class = 2;
+            step.hc_bury_limit = 3.5;
+            step.hc_draws = [1.0 / 32767.0, 0.5];
+            step.hc_pitch_offset = 0.1;
+            step.hc_bank_offset = -0.2;
+            step.hc_signed_speed = -6.0;
+            step.hc_cg_to_ground = 1.5;
+            step.forest = 1;
+            step.face_normal = [0.0, 0.5, 0.5];
+            let request = received(&step);
+            assert_eq!(request.mode, expected);
+            assert_eq!(request.motion_vector_in, [1.0, 2.0, 3.0]);
+            assert_eq!(request.rotor, [90.0, 80.0, 4.0]);
+            assert_eq!((request.lift, request.power_output, request.flag), (0.25, 0.75, true));
+            assert_eq!((request.gravity, request.terrain_class, request.bury_limit), (9.5, 2, 3.5));
+            // double draws, not representable as float: they arrive bit for bit
+            assert_eq!(request.draws, [1.0 / 32767.0, 0.5]);
+            assert_eq!((request.pitch_offset, request.bank_offset, request.signed_speed), (0.1, -0.2, -6.0));
+            assert_eq!(request.cg_to_ground, 1.5);
+            assert!(request.forest);
+            assert_eq!(request.face_normal, [0.0, 0.5, 0.5]);
+            assert!(request.terrain.is_none(), "a lifecycle step announces no routed terrain sample");
+        }
+    }
+
+    #[test]
+    fn a_non_finite_lifecycle_field_or_a_bad_flag_is_refused_before_the_host_runs() {
+        let refuses = |edit: &dyn Fn(&mut sys::eech_movement_step)| {
+            let mut step = place_step([0.0; 3]);
+            step.mode = sys::EECH_MOVEMENT_ROTOR_ALIVE;
+            edit(&mut step);
+            let mut called = false;
+            let mut bind_mobile = |_: MemberDescriptor| -> Result<String, String> { Err("unused".into()) };
+            let mut observe_loss = |_: LossDescriptor| -> Result<LossDecision, String> { Ok(LossDecision::Forward) };
+            let mut supply_reached = |_: SupplyReachDescriptor| -> Result<ArrivalAnswer, String> { Err("unused".into()) };
+            let mut host_move = |_: MovementStep| -> Result<MovementResult, String> {
+                called = true;
+                Err("must not run".into())
+            };
+            let mut result: sys::eech_movement_result = unsafe { std::mem::zeroed() };
+            let mut error = [0 as c_char; 256];
+            let outcome = with_host(&mut bind_mobile, &mut observe_loss, &mut supply_reached, &mut host_move, |host| unsafe {
+                let host = &*host;
+                let Some(call) = host.move_vehicle else { return -1 };
+                call(&step, &mut result, error.as_mut_ptr(), error.len(), host.user)
+            });
+            assert!(outcome.is_err());
+            assert!(!called);
+        };
+        refuses(&|step| step.hc_rotor[1] = f32::NAN);
+        refuses(&|step| step.hc_lift = f32::INFINITY);
+        refuses(&|step| step.hc_draws[0] = f64::NAN);
+        refuses(&|step| step.hc_flag = 2);
     }
 }

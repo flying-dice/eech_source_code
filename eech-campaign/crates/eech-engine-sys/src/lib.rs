@@ -65,6 +65,7 @@ pub struct eech_member_descriptor {
     pub attitude: [f32; 9],
     pub movement_kind: c_int,
     pub motion_vector: [f32; 3],
+    pub rotor: [f32; 3],
 }
 
 pub type eech_bind_mobile_callback = unsafe extern "C" fn(
@@ -217,6 +218,18 @@ pub const EECH_MOVEMENT_PERSON_END: c_int = 6;
 pub const EECH_MOVEMENT_FIXED_WING_MOVE: c_int = 7;
 pub const EECH_MOVEMENT_HELICOPTER_BEGIN: c_int = 8;
 pub const EECH_MOVEMENT_HELICOPTER_END: c_int = 9;
+pub const EECH_MOVEMENT_ROTOR_SET: c_int = 10;
+pub const EECH_MOVEMENT_ROTOR_ALIVE: c_int = 11;
+pub const EECH_MOVEMENT_ROTOR_DOWN: c_int = 12;
+pub const EECH_MOVEMENT_FALL: c_int = 13;
+pub const EECH_MOVEMENT_CONTACT: c_int = 14;
+pub const EECH_MOVEMENT_SETTLE: c_int = 15;
+pub const EECH_MOVEMENT_TUMBLE: c_int = 16;
+pub const EECH_MOVEMENT_CRASH_BEGIN: c_int = 17;
+pub const EECH_MOVEMENT_CRASH_END: c_int = 18;
+pub const EECH_MOVEMENT_IMPACT: c_int = 19;
+pub const EECH_MOVEMENT_FALL_GRAVITY: c_int = 20;
+pub const EECH_MOVEMENT_ROTOR_IDLE: c_int = 21;
 
 pub const EECH_MOVEMENT_KIND_ROUTED: c_int = 1;
 pub const EECH_MOVEMENT_KIND_SHIP: c_int = 2;
@@ -264,6 +277,18 @@ pub struct eech_movement_step {
     pub hc_desired_roll: f32,
     pub hc_cg_to_ground: f32,
     pub hc_motion_vector: [f32; 3],
+    pub hc_rotor: [f32; 3],
+    pub hc_lift: f32,
+    pub hc_power_output: f32,
+    pub hc_flag: c_int,
+    pub hc_gravity: f32,
+    pub hc_terrain_class: c_int,
+    pub hc_bury_limit: f32,
+    pub hc_pitch_offset: f32,
+    pub hc_bank_offset: f32,
+    pub hc_signed_speed: f32,
+    /// The two tumble draws are `frand1 ()` doubles and stay doubles; last, so the double's alignment moves no other field.
+    pub hc_draws: [f64; 2],
 }
 
 #[repr(C)]
@@ -275,6 +300,8 @@ pub struct eech_movement_result {
     pub motion_vector: [f32; 3],
     pub pending: c_int,
     pub moved: c_int,
+    pub rotor: [f32; 3],
+    pub altitude: f32,
 }
 
 pub type eech_move_vehicle_callback =
@@ -397,3 +424,7 @@ extern "C" {
     pub fn eech_engine_diagnostics() -> c_int;
     pub fn eech_set_log_sink(sink: Option<eech_log_sink>, user: *mut c_void);
 }
+
+// The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by
+// target) cannot move any float or int before it; the C struct in rv_hostmv.h declares them last as well.
+const _: () = assert!(core::mem::offset_of!(eech_movement_step, hc_draws) > core::mem::offset_of!(eech_movement_step, hc_signed_speed));

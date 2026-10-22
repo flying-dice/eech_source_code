@@ -36,7 +36,19 @@ enum campaign_movement_mode
 	CAMPAIGN_MOVEMENT_PERSON_END,	/* infantry, phase two: the host places at the campaign's terrain elevation */
 	CAMPAIGN_MOVEMENT_FIXED_WING_MOVE,	/* a fixed-wing aircraft's step (taxi, flight, landing or absolute) */
 	CAMPAIGN_MOVEMENT_HELICOPTER_BEGIN,	/* an alive AI helicopter, phase one: the motion vector, the speed and whether it moved */
-	CAMPAIGN_MOVEMENT_HELICOPTER_END	/* an alive AI helicopter, phase two: the attitude, the position and the floor clamp */
+	CAMPAIGN_MOVEMENT_HELICOPTER_END,	/* an alive AI helicopter, phase two: the attitude, the position and the floor clamp */
+	CAMPAIGN_MOVEMENT_ROTOR_SET,		/* explicit rotor seed/reset or campaign write: the host adopts hc_rotor */
+	CAMPAIGN_MOVEMENT_ROTOR_ALIVE,		/* alive helicopter rotor rpm and spin-up timer integration */
+	CAMPAIGN_MOVEMENT_ROTOR_DOWN,		/* dying helicopter rotor wind-down */
+	CAMPAIGN_MOVEMENT_FALL,			/* dying helicopter, before the terrain sample: the candidate position only */
+	CAMPAIGN_MOVEMENT_CONTACT,		/* dying helicopter: altitude over the terrain and whether it touched */
+	CAMPAIGN_MOVEMENT_SETTLE,		/* dying helicopter: settle on or in the terrain class; bury zeroes rotor and vector */
+	CAMPAIGN_MOVEMENT_TUMBLE,		/* dying helicopter: tumble attitude, then the host position is finalised */
+	CAMPAIGN_MOVEMENT_CRASH_BEGIN,		/* crash slide, phase one: attitude from the OLD terrain normal, candidate position */
+	CAMPAIGN_MOVEMENT_CRASH_END,		/* crash slide, phase two: friction and slope from the NEW terrain normal */
+	CAMPAIGN_MOVEMENT_IMPACT,		/* impact shove along the helicopter's attitude x axis */
+	CAMPAIGN_MOVEMENT_FALL_GRAVITY,		/* dying helicopter, after the terrain sample: gravity, the motion vector and the speed */
+	CAMPAIGN_MOVEMENT_ROTOR_IDLE		/* idle helicopter (no follower parent): linear rotor wind-down by the frame delta */
 };
 
 enum campaign_movement_kind
@@ -107,6 +119,36 @@ typedef struct campaign_movement_step
 	float hc_desired_roll;
 	float hc_cg_to_ground;
 	float hc_motion_vector[3];
+	/* ROTOR_* and the death/crash modes: hc_rotor is the DLL's copy of the retained rotor state {main rpm, tail rpm,
+	   spin-up timer}; the host refuses a difference except on ROTOR_SET, where it is the explicit seed/reset (bind descriptor,
+	   creation, unpack, setter) the host adopts.
+	   ROTOR_ALIVE: hc_lift, hc_power_output and delta_seconds are the integration inputs; hc_flag is the DLL's decision
+	   that the spin-up gate applies (the host reports `moved` TRUE when it decremented the timer, i.e. the gate held).
+	   ROTOR_DOWN: delta_seconds only.
+	   ROTOR_IDLE: delta_seconds is the FRAME delta (get_delta_time), not the movement delta.
+	   FALL: delta_seconds and the map bounds; the host holds the candidate position for CONTACT/SETTLE/TUMBLE.
+	   FALL_GRAVITY: hc_gravity and delta_seconds, after the DLL's terrain sample at the candidate.
+	   CONTACT: hc_flag selects the point (0 the held position, 1 the FALL candidate); elevation and hc_cg_to_ground (the
+	   PRE-kill CG) are the terrain sample; CONTACT(candidate) altitude is retained host-side for SETTLE.  SETTLE:
+	   hc_terrain_class (0 solid, 1 sea, 2 river/lake, 3 forest), elevation, hc_cg_to_ground (the FRESH post-kill CG, final
+	   heights only) and hc_bury_limit; the bury tests use the retained contact altitude.  TUMBLE: hc_draws are the two
+	   random draws (doubles, as frand1 () returns them) the DLL made after the effects.
+	   CRASH_BEGIN: face_normal is the OLD terrain normal, hc_pitch_offset/hc_bank_offset the destroyed attitude offsets;
+	   CRASH_END: face_normal is the NEW (refreshed) terrain normal, forest/elevation/hc_cg_to_ground the terrain sample.
+	   IMPACT: hc_signed_speed is the shove the DLL decided (after its random draw) */
+	float hc_rotor[3];
+	float hc_lift;
+	float hc_power_output;
+	int hc_flag;
+	float hc_gravity;
+	int hc_terrain_class;
+	float hc_bury_limit;
+	float hc_pitch_offset;
+	float hc_bank_offset;
+	float hc_signed_speed;
+	/* the two TUMBLE draws are frand1 () doubles and stay doubles: the original expression multiplies them in double
+	   before narrowing the result to the float heading/roll.  Last, so the double's alignment cannot move another field */
+	double hc_draws[2];
 } campaign_movement_step;
 
 typedef struct campaign_movement_result
@@ -117,12 +159,17 @@ typedef struct campaign_movement_result
 	int rotated;
 	/* the motion vector the step leaves on a ship or infantry member */
 	float motion_vector[3];
-	/* PERSON_BEGIN and HELICOPTER_BEGIN: the step awaits its second phase (PERSON_END / HELICOPTER_END).  For
-	   PERSON_BEGIN only `position` (the horizontal advance) is meaningful.  HELICOPTER_BEGIN must answer TRUE and every
-	   other helicopter answer FALSE */
+	/* PERSON_BEGIN, HELICOPTER_BEGIN and CRASH_BEGIN: the step awaits its second phase (PERSON_END / HELICOPTER_END /
+	   CRASH_END).  For PERSON_BEGIN only `position` (the horizontal advance) is meaningful.  HELICOPTER_BEGIN and
+	   CRASH_BEGIN must answer TRUE and every other helicopter answer FALSE */
 	int pending;
-	/* HELICOPTER_BEGIN only: the speed exceeds the moved threshold */
+	/* a per-mode flag (always 0 or 1): HELICOPTER_BEGIN the speed exceeds the moved threshold; ROTOR_ALIVE the spin-up
+	   gate held; CONTACT the helicopter touched; SETTLE it is buried; CRASH_END the slide stopped; other modes 0 */
 	int moved;
+	/* the rotor state {main rpm, tail rpm, spin-up timer} after ROTOR_* and SETTLE (every mode echoes the retained one) */
+	float rotor[3];
+	/* CONTACT: the altitude of the point over the terrain, cg height included */
+	float altitude;
 } campaign_movement_result;
 
 typedef int (*campaign_move_vehicle_fn)
@@ -196,11 +243,49 @@ void campaign_movement_fixed_wing_move (struct ENTITY *aircraft, const campaign_
  * acceleration and climb demand, and applies the host's motion vector and speed to the helicopter at once (the guidance
  * reads them); `end` takes the bounded turn, the desired pitch and roll and the terrain sample, and applies the attitude,
  * the position and the floor-clamped motion vector.  The rotor, the guidance, the look-ahead, the avoidance and the pilot
- * control stay campaign-side physical coupling; so do the death and crash movement and every other direct write of the
- * helicopter's pose; those writers are announced to the host only through the setters' placements.
+ * control stay campaign-side physical coupling, as do the terrain sampling, effects, sounds, random draws and the
+ * lifecycle (dead state, smoke, kill); every other direct write of the helicopter's pose is announced to the host only
+ * through the setters' placements.
  */
 void campaign_movement_helicopter_begin (struct ENTITY *helicopter, float acceleration_x, float acceleration_z, float wp_vec_y);
 void campaign_movement_helicopter_end (struct ENTITY *helicopter, float desired_heading, float max_turn_rate, float desired_pitch, float desired_roll, float elevation, float cg_to_ground, int terrain_follow);
+
+/*
+ * Helicopter rotor and dying/crash physics.  The rotor state {main rpm, tail rpm, spin-up timer} is read from, and the
+ * host's result is written back to, the helicopter's own fields by the wrappers (raw writes, never placements).
+ *
+ * rotor_set announces the entity's current rotor state as an explicit seed/reset (host adopts); every direct writer
+ * of the rotor fields (setters, creation, unpack, wind-down) calls it afterwards.  It is a no-op for unhosted entities and
+ * during a host-result application.  rotor_alive returns whether the spin-up gate held (the caller returns).  The DLL
+ * decides `gate` (the original early-return condition's other operand); the rotor integration and timer stay host-side.
+ *
+ * rotor_idle is the idle wind-down (no follower parent) by the frame delta; the DLL no longer does that arithmetic.
+ *
+ * Death order (caller keeps the original order and the effects): rotor_down; contact(held) -> crash_begin/crash_end if
+ * landed; else fall (position only) -> terrain sample -> fall_gravity -> contact(candidate) -> [server kill, splash
+ * placement, effects, crater] -> water fire/explosion-trail smoke clears -> fresh post-kill CG query -> settle ->
+ * [solid-ground crash sound] -> [buried: clear_helicopter_velocity, DEAD, smoke clears] -> random draws -> tumble.
+ * contact uses the pre-kill CG for both calls; its candidate altitude is retained host-side and settle uses it for the bury
+ * tests, with only the fresh CG setting the final solid/river heights.  fall fills `candidate`; fall_gravity applies the
+ * vector (raw) and speed (setter).  settle returns whether buried (rotor and vector zeroed host-side; the caller then runs
+ * clear_helicopter_velocity at the original point, which announces the zero vector) and updates `candidate`.  tumble applies
+ * the attitude and the final position (through the setter with a local position; the raw position still holds the old pose).
+ * crash_begin applies the attitude (old normal) and returns the candidate; crash_end (new normal) applies the pre-clear
+ * vector and the position, then returns whether the slide stopped; the caller clears the velocity AFTER the position
+ * setter (clear_helicopter_velocity announces the zero), otherwise crash_end has applied the speed.
+ */
+void campaign_movement_rotor_set (struct ENTITY *helicopter);
+int campaign_movement_rotor_alive (struct ENTITY *helicopter, float lift, float power_output, float delta_seconds, int gate);
+void campaign_movement_rotor_down (struct ENTITY *helicopter, float delta_seconds);
+void campaign_movement_rotor_idle (struct ENTITY *helicopter, float delta_seconds);
+void campaign_movement_fall (struct ENTITY *helicopter, float delta_seconds, struct VEC3D *candidate);
+void campaign_movement_fall_gravity (struct ENTITY *helicopter, float gravity, float delta_seconds);
+int campaign_movement_contact (struct ENTITY *helicopter, int use_candidate, float elevation, float cg_to_ground, float *altitude);
+int campaign_movement_settle (struct ENTITY *helicopter, int terrain_class, float elevation, float cg_to_ground, float bury_limit, struct VEC3D *candidate);
+void campaign_movement_tumble (struct ENTITY *helicopter, double heading_draw, double roll_draw);
+void campaign_movement_crash_begin (struct ENTITY *helicopter, const struct VEC3D *old_normal, float pitch_offset, float bank_offset, float delta_seconds, struct VEC3D *candidate);
+int campaign_movement_crash_end (struct ENTITY *helicopter, const struct VEC3D *new_normal, int forest, float elevation, float cg_to_ground, float delta_seconds);
+void campaign_movement_impact (struct ENTITY *helicopter, float signed_speed);
 
 /*
  * One infantry step in two phases around the campaign's terrain sample.  `begin` returns the
