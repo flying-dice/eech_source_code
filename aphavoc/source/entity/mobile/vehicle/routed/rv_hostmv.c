@@ -42,33 +42,43 @@ static const char *require_host_id (entity *vehicle)
 
 	if (!current_host.move_vehicle)
 	{
-		debug_fatal ("routed vehicle movement: host move_vehicle callback is unavailable");
+		debug_fatal ("host movement: host move_vehicle callback is unavailable");
 	}
 	host_id = campaign_roster_host_id (vehicle);
 	if (!host_id || !host_id[0] || (strlen (host_id) > CAMPAIGN_MOVEMENT_HOST_ID_MAX))
 	{
-		debug_fatal ("routed vehicle movement: entity %d has no host identity", get_local_entity_index (vehicle));
+		debug_fatal ("host movement: entity %d has no host identity", get_local_entity_index (vehicle));
 	}
 	return host_id;
 }
 
-static void fill_pose (campaign_movement_step *step, const routed_vehicle *raw)
+static void fill_pose (campaign_movement_step *step, const vehicle *raw)
 {
-	step->position[0] = raw->vh.mob.position.x;
-	step->position[1] = raw->vh.mob.position.y;
-	step->position[2] = raw->vh.mob.position.z;
-	step->velocity = raw->vh.mob.velocity;
-	memcpy (step->attitude, raw->vh.mob.attitude, sizeof (step->attitude));
+	step->position[0] = raw->mob.position.x;
+	step->position[1] = raw->mob.position.y;
+	step->position[2] = raw->mob.position.z;
+	step->velocity = raw->mob.velocity;
+	memcpy (step->attitude, raw->mob.attitude, sizeof (step->attitude));
 }
 
-static void begin_step (campaign_movement_step *step, entity *vehicle, int mode)
+static void fill_map_bounds (campaign_movement_step *step)
 {
-	const char *host_id = require_host_id (vehicle);
+	step->map_min[0] = MIN_MAP_X;
+	step->map_min[1] = MIN_MAP_Y;
+	step->map_min[2] = MIN_MAP_Z;
+	step->map_max[0] = MAX_MAP_X;
+	step->map_max[1] = MAX_MAP_Y;
+	step->map_max[2] = MAX_MAP_Z;
+}
+
+static void begin_step (campaign_movement_step *step, entity *en, int mode)
+{
+	const char *host_id = require_host_id (en);
 
 	memset (step, 0, sizeof (*step));
 	memcpy (step->host_id, host_id, strlen (host_id) + 1);
 	step->mode = mode;
-	fill_pose (step, (routed_vehicle *) get_local_entity_data (vehicle));
+	fill_pose (step, (vehicle *) get_local_entity_data (en));
 }
 
 static int all_finite (const float *values, int count)
@@ -93,14 +103,17 @@ static campaign_movement_result ask_host (const campaign_movement_step *step)
 	memset (error, 0, sizeof (error));
 	memset (&result, 0, sizeof (result));
 	result.rotated = -1;
+	result.pending = -1;
 	if (current_host.move_vehicle (step, &result, error, CAMPAIGN_MOVEMENT_ERROR_MAX, current_host.user) != 0)
 	{
-		debug_fatal ("routed vehicle movement: host move_vehicle failed for %s: %s", step->host_id, error[0] ? error : "unspecified error");
+		debug_fatal ("host movement: host move_vehicle failed for %s: %s", step->host_id, error[0] ? error : "unspecified error");
 	}
 	if (!all_finite (result.position, 3) || !all_finite (&result.velocity, 1) || !all_finite (result.attitude, 9) ||
-		((result.rotated != FALSE) && (result.rotated != TRUE)))
+		!all_finite (result.motion_vector, 3) ||
+		((result.rotated != FALSE) && (result.rotated != TRUE)) ||
+		((result.pending != FALSE) && (result.pending != TRUE)))
 	{
-		debug_fatal ("routed vehicle movement: host move_vehicle returned an invalid result for %s", step->host_id);
+		debug_fatal ("host movement: host move_vehicle returned an invalid result for %s", step->host_id);
 	}
 	return result;
 }
@@ -108,8 +121,14 @@ static campaign_movement_result ask_host (const campaign_movement_step *step)
 void campaign_movement_place (entity *vehicle)
 {
 	campaign_movement_step step;
+	entity_types type;
 
-	if (applying_host_result || !current_host.move_vehicle || (get_local_entity_type (vehicle) != ENTITY_TYPE_ROUTED_VEHICLE))
+	if (applying_host_result || !current_host.move_vehicle)
+	{
+		return;
+	}
+	type = get_local_entity_type (vehicle);
+	if ((type != ENTITY_TYPE_ROUTED_VEHICLE) && (type != ENTITY_TYPE_SHIP_VEHICLE) && (type != ENTITY_TYPE_PERSON))
 	{
 		return;
 	}
@@ -145,12 +164,7 @@ void campaign_movement_move (entity *vehicle, entity *guide, const vec3d *waypoi
 	step.waypoint[1] = waypoint->y;
 	step.waypoint[2] = waypoint->z;
 	step.tacview_logging = raw->vh.mob.tacview_logging ? TRUE : FALSE;
-	step.map_min[0] = MIN_MAP_X;
-	step.map_min[1] = MIN_MAP_Y;
-	step.map_min[2] = MIN_MAP_Z;
-	step.map_max[0] = MAX_MAP_X;
-	step.map_max[1] = MAX_MAP_Y;
-	step.map_max[2] = MAX_MAP_Z;
+	fill_map_bounds (&step);
 
 	wp_vec.x = waypoint->x - raw->vh.mob.position.x;
 	wp_vec.z = waypoint->z - raw->vh.mob.position.z;
@@ -213,4 +227,116 @@ void campaign_movement_move (entity *vehicle, entity *guide, const vec3d *waypoi
 	raw->vh.mob.motion_vector.x = raw->vh.mob.attitude [2][0] * raw->vh.mob.velocity;
 	raw->vh.mob.motion_vector.y = raw->vh.mob.attitude [2][1] * raw->vh.mob.velocity;
 	raw->vh.mob.motion_vector.z = raw->vh.mob.attitude [2][2] * raw->vh.mob.velocity;
+}
+
+void campaign_movement_ship_move (entity *vehicle, entity *guide, const vec3d *waypoint)
+{
+	ship_vehicle *raw = (ship_vehicle *) get_local_entity_data (vehicle);
+	campaign_movement_step step;
+	campaign_movement_result result;
+	vec3d new_pos;
+
+	begin_step (&step, vehicle, CAMPAIGN_MOVEMENT_SHIP_MOVE);
+	step.delta_seconds = get_entity_movement_delta_time ();
+	step.frame_delta = get_one_over_delta_time ();
+	step.desired_velocity = get_local_entity_float_value (guide, FLOAT_TYPE_VELOCITY);
+	step.max_acceleration = get_local_entity_float_value (vehicle, FLOAT_TYPE_MAX_ACCELERATION);
+	step.g_max = vehicle_database [raw->vh.mob.sub_type].g_max;
+	step.waypoint[0] = waypoint->x;
+	step.waypoint[1] = waypoint->y;
+	step.waypoint[2] = waypoint->z;
+	fill_map_bounds (&step);
+
+	result = ask_host (&step);
+
+	//
+	// apply: the attitude, speed and motion vector as the legacy step wrote them, then the position through the setter
+	//
+
+	memcpy (raw->vh.mob.attitude, result.attitude, sizeof (result.attitude));
+	raw->vh.mob.velocity = result.velocity;
+	raw->vh.mob.motion_vector.x = result.motion_vector[0];
+	raw->vh.mob.motion_vector.y = result.motion_vector[1];
+	raw->vh.mob.motion_vector.z = result.motion_vector[2];
+
+	new_pos.x = result.position[0];
+	new_pos.y = result.position[1];
+	new_pos.z = result.position[2];
+
+	campaign_movement_apply_begin ();
+	set_local_entity_vec3d (vehicle, VEC3D_TYPE_POSITION, &new_pos);
+	campaign_movement_apply_end ();
+}
+
+// the final pose of an infantry step, as the legacy step wrote it: attitude, position through the setter, speed, motion vector
+
+static void apply_person_pose (entity *vehicle, const campaign_movement_result *result)
+{
+	person *raw = (person *) get_local_entity_data (vehicle);
+	vec3d new_pos;
+
+	memcpy (raw->vh.mob.attitude, result->attitude, sizeof (result->attitude));
+
+	new_pos.x = result->position[0];
+	new_pos.y = result->position[1];
+	new_pos.z = result->position[2];
+
+	campaign_movement_apply_begin ();
+	set_local_entity_vec3d (vehicle, VEC3D_TYPE_POSITION, &new_pos);
+	campaign_movement_apply_end ();
+
+	raw->vh.mob.velocity = result->velocity;
+	raw->vh.mob.motion_vector.x = result->motion_vector[0];
+	raw->vh.mob.motion_vector.y = result->motion_vector[1];
+	raw->vh.mob.motion_vector.z = result->motion_vector[2];
+}
+
+int campaign_movement_person_begin (entity *vehicle, float ps_vel, const vec3d *waypoint, int terrain_follow, vec3d *advanced)
+{
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, vehicle, CAMPAIGN_MOVEMENT_PERSON_BEGIN);
+	step.delta_seconds = get_entity_movement_delta_time ();
+	step.ps_vel = ps_vel;
+	step.waypoint[0] = waypoint->x;
+	step.waypoint[1] = waypoint->y;
+	step.waypoint[2] = waypoint->z;
+	step.terrain_follow = terrain_follow ? TRUE : FALSE;
+
+	result = ask_host (&step);
+
+	if (result.pending != step.terrain_follow)
+	{
+		debug_fatal ("host movement: host move_vehicle answered pending %d for an infantry step with terrain follow %d (%s)", result.pending, step.terrain_follow, step.host_id);
+	}
+
+	advanced->x = result.position[0];
+	advanced->y = result.position[1];
+	advanced->z = result.position[2];
+
+	if (!result.pending)
+	{
+		apply_person_pose (vehicle, &result);
+	}
+
+	return result.pending;
+}
+
+void campaign_movement_person_end (entity *vehicle, float elevation)
+{
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, vehicle, CAMPAIGN_MOVEMENT_PERSON_END);
+	step.elevation = elevation;
+
+	result = ask_host (&step);
+
+	if (result.pending)
+	{
+		debug_fatal ("host movement: host move_vehicle left the infantry step of %s pending after its terrain sample", step.host_id);
+	}
+
+	apply_person_pose (vehicle, &result);
 }

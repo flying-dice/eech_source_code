@@ -801,16 +801,28 @@ void campaign_roster_link_member (entity *group, entity *member)
 		descriptor.sub_type = get_local_entity_int_value (member, INT_TYPE_ENTITY_SUB_TYPE);
 		descriptor.side = get_local_entity_int_value (member, INT_TYPE_SIDE);
 #ifdef EECH_CAMPAIGN_HOST_MOVEMENT
-		if (descriptor.entity_type == ENTITY_TYPE_ROUTED_VEHICLE)
+		switch (descriptor.entity_type)
 		{
-			routed_vehicle *raw = (routed_vehicle *) get_local_entity_data (member);
+			case ENTITY_TYPE_ROUTED_VEHICLE:
+				descriptor.movement_kind = CAMPAIGN_MOVEMENT_KIND_ROUTED;
+				break;
+			case ENTITY_TYPE_SHIP_VEHICLE:
+				descriptor.movement_kind = CAMPAIGN_MOVEMENT_KIND_SHIP;
+				break;
+			case ENTITY_TYPE_PERSON:
+				descriptor.movement_kind = CAMPAIGN_MOVEMENT_KIND_PERSON;
+				break;
+		}
+		if (descriptor.movement_kind)
+		{
+			vehicle *raw = (vehicle *) get_local_entity_data (member);
 
 			descriptor.has_pose = TRUE;
-			descriptor.position[0] = raw->vh.mob.position.x;
-			descriptor.position[1] = raw->vh.mob.position.y;
-			descriptor.position[2] = raw->vh.mob.position.z;
-			descriptor.velocity = raw->vh.mob.velocity;
-			memcpy (descriptor.attitude, raw->vh.mob.attitude, sizeof (descriptor.attitude));
+			descriptor.position[0] = raw->mob.position.x;
+			descriptor.position[1] = raw->mob.position.y;
+			descriptor.position[2] = raw->mob.position.z;
+			descriptor.velocity = raw->mob.velocity;
+			memcpy (descriptor.attitude, raw->mob.attitude, sizeof (descriptor.attitude));
 		}
 #endif
 

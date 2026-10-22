@@ -41,7 +41,8 @@ fn call_bind_mobile(lua: &Lua, function: &LuaFunction, descriptor: MemberDescrip
             },
         )
         .map_err(|e| e.to_string())?;
-    if let Some(pose) = descriptor.pose {
+    if let (Some(pose), Some(kind)) = (descriptor.pose, descriptor.movement_kind) {
+        table.set("movement_kind", kind as i32).map_err(|e| e.to_string())?;
         table
             .set("pose", lua.to_value_with(&pose, options()).map_err(|e| e.to_string())?)
             .map_err(|e| e.to_string())?;
@@ -180,6 +181,16 @@ fn call_move_vehicle(lua: &Lua, function: &LuaFunction, step: MovementStep) -> R
         LuaValue::Boolean(rotated) => rotated,
         other => return Err(format!("move_vehicle result rotated must be a boolean, got {}", other.type_name())),
     };
+    let pending = match table.get::<LuaValue>("pending").map_err(|e| e.to_string())? {
+        LuaValue::Nil => false,
+        LuaValue::Boolean(pending) => pending,
+        other => return Err(format!("move_vehicle result pending must be a boolean, got {}", other.type_name())),
+    };
+    // a routed or held member returns no motion vector
+    let motion_vector = match table.get::<LuaValue>("motion_vector").map_err(|e| e.to_string())? {
+        LuaValue::Nil => [0.0; 3],
+        _ => exact_numbers(lua, &table, "motion_vector").map_err(|e| format!("move_vehicle result {e}"))?,
+    };
     Ok(MovementResult {
         pose: VehiclePose {
             position: exact_numbers(lua, &table, "position").map_err(|e| format!("move_vehicle result {e}"))?,
@@ -187,6 +198,8 @@ fn call_move_vehicle(lua: &Lua, function: &LuaFunction, step: MovementStep) -> R
             attitude: exact_numbers(lua, &table, "attitude").map_err(|e| format!("move_vehicle result {e}"))?,
         },
         rotated,
+        motion_vector,
+        pending,
     })
 }
 

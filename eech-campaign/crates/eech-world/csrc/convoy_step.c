@@ -10,54 +10,7 @@
  * file only performs the step it is asked for.  Build flags match the engine's
  * numeric flags (build.rs).
  */
-#include <math.h>
-#include <string.h>
-
-#define PI (3.14159265359f)
-#define rad(DEG) ((DEG) * (PI / 180.0f))
-#define bound(VALUE, LOWER, UPPER) (((VALUE) < (LOWER)) ? (LOWER) : (((VALUE) > (UPPER)) ? (UPPER) : (VALUE)))
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-
-#define get_heading_from_attitude_matrix(ATTITUDE) (atan2((ATTITUDE)[2][0], (ATTITUDE)[2][2]))
-#define get_pitch_from_attitude_matrix(ATTITUDE) (asin((ATTITUDE)[2][1]))
-#define get_roll_from_attitude_matrix(ATTITUDE) (atan2(-(ATTITUDE)[0][1], (ATTITUDE)[1][1]))
-
-typedef struct vec3d
-{
-	float x, y, z;
-} vec3d;
-
-typedef float matrix3x3[3][3];
-
-static float normalise_any_3d_vector(vec3d *vector)
-{
-	float x, y, z, length;
-
-	x = ((vector->x) * (vector->x));
-	y = ((vector->y) * (vector->y));
-	z = ((vector->z) * (vector->z));
-
-	length = sqrt(x + y + z);
-
-	if (length > 0)
-	{
-		float one_over_length;
-
-		one_over_length = 1.0 / length;
-
-		vector->x = (vector->x * one_over_length);
-		vector->y = (vector->y * one_over_length);
-		vector->z = (vector->z * one_over_length);
-	}
-	else
-	{
-		vector->x = 0;
-		vector->y = 0;
-		vector->z = 0;
-	}
-
-	return (length);
-}
+#include "eech_arith.h"
 
 static void get_3d_vector_cross_product(vec3d *result, const vec3d *v1, const vec3d *v2)
 {
@@ -119,37 +72,6 @@ static void get_3d_transformation_matrix_from_face_normal_and_heading(matrix3x3 
 	else
 	{
 		get_identity_matrix3x3(result);
-	}
-}
-
-/* clamp the position to the map volume, per axis, as bound_position_to_map_volume does */
-static void bound_position_to_map_volume(vec3d *position, const float *map_min, const float *map_max)
-{
-	if (position->x < map_min[0])
-	{
-		position->x = map_min[0];
-	}
-	else if (position->x > map_max[0])
-	{
-		position->x = map_max[0];
-	}
-
-	if (position->y < map_min[1])
-	{
-		position->y = map_min[1];
-	}
-	else if (position->y > map_max[1])
-	{
-		position->y = map_max[1];
-	}
-
-	if (position->z < map_min[2])
-	{
-		position->z = map_min[2];
-	}
-	else if (position->z > map_max[2])
-	{
-		position->z = map_max[2];
 	}
 }
 

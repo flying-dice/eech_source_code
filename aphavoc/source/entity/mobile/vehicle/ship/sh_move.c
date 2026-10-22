@@ -294,6 +294,14 @@ void ship_vehicle_movement (entity *en)
 
 	ship_movement_get_waypoint_position (en, &wp_pos);
 
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	// the host steps the ship (heading, speed, position); the engine keeps the guide and the waypoint
+
+	campaign_movement_ship_move (en, guide, &wp_pos);
+
+#else
+
 	wp_vec.x = wp_pos.x - raw->vh.mob.position.x;
 	wp_vec.y = 0;
 	wp_vec.z = wp_pos.z - raw->vh.mob.position.z;
@@ -446,6 +454,8 @@ void ship_vehicle_movement (entity *en)
 	new_pos.y = 0.0;
 
 	set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &new_pos);
+
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

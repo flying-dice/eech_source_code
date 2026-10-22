@@ -330,6 +330,8 @@ void update_person_animation (entity *en)
 				ps_heading = atan2 (fire_heading.x, fire_heading.z);
 
 				get_3d_transformation_heading_matrix (raw->vh.mob.attitude, ps_heading);
+
+				campaign_movement_place (en);
 			}
 		}
 
