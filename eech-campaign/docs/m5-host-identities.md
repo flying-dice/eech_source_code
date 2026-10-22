@@ -49,6 +49,9 @@ The roster separates physical lifetime from list membership.
   incarnation. Its append-only record remains observable with
   `physical_present=false`; the entity-index map is cleared. Reusing that index
   therefore creates a new member key and requires a new host identity.
+  Under the host-movement build (EEDCS-38) the release also retires the host
+  identity (`campaign_movement_retire`); the host then refuses any later step
+  for that id and any reuse of it. See `m5-force-creation.md`.
 
 The public `engine:members()` snapshot exposes copied values only. Its
 `initial_alive` field is explicitly the internal birth fact read at first link;
@@ -86,8 +89,10 @@ actual DCS identity binding exists in this slice.
 
 ## Remaining work
 
-The next cuts must make physical creation host-owned, publish campaign requests,
-accept host observations, route the natural loss and arrival paths through
+Physical initial placement, wreck lifetime and heap-release retirement are
+host-owned for the six mobile families as of EEDCS-38 (`m5-force-creation.md`,
+which also records what remains coupled). The next cuts must publish campaign
+requests, accept host observations, route the natural loss and arrival paths through
 those observations, and remove pointer and hidden-world reads before the
 campaign/world link split. The existing loss structural proof remains the
 starting campaign-consequence implementation. Identity alone neither moves

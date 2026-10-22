@@ -16,7 +16,7 @@
 //! pending step is the host's; the record does not change until it ends, and no
 //! other request is accepted for that man meanwhile.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::os::raw::c_int;
 
 extern "C" {
@@ -173,6 +173,9 @@ extern "C" {
         stopped: *mut c_int,
     );
     fn eech_hc_impact(motion_vector: *mut f32, attitude: *const f32, signed_speed: f32);
+    fn eech_place_attitude(face_normal: *const f32, heading: f32, fuselage_angle: f32, angles: *mut f32, attitude: *mut f32);
+    fn eech_expire_threshold(range: f32) -> f32;
+    fn eech_expire_gate(timer: f32) -> c_int;
     fn eech_gv_death_candidate(position: *const f32, motion_vector: *const f32, delta_seconds: f32, out_xz: *mut f32);
     fn eech_gv_death_decay(
         candidate_xz: *const f32,
@@ -480,7 +483,15 @@ pub enum LifecycleMode {
     FwSettle,
     /// the crash slide's last phase: the attitude and the final position
     FwCrashAttitude,
+    /// a dead mobile's wreck ages one frame: the host owns the timer and says when the wreck's physical life is over
+    /// (a ship's is its sinking out of sight instead)
+    Expire,
 }
+
+/// `Lifecycle::death_policy`: the mobile never expires (the anti-air gun accumulates its timer and is never removed)
+pub const DEATH_NEVER_EXPIRES: i32 = 1;
+/// `Lifecycle::death_policy`: a helicopter still occupied by a player is not removed; its timer restarts instead
+pub const DEATH_OCCUPIED: i32 = 2;
 
 impl LifecycleMode {
     fn name(self) -> &'static str {
@@ -512,6 +523,7 @@ impl LifecycleMode {
             LifecycleMode::GvFallCommit => "gv_fall_commit",
             LifecycleMode::FwSettle => "fw_settle",
             LifecycleMode::FwCrashAttitude => "fw_crash_attitude",
+            LifecycleMode::Expire => "expire",
         }
     }
 
@@ -547,6 +559,7 @@ impl LifecycleMode {
             | LifecycleMode::GvFallCommit => kind == Kind::Routed,
             LifecycleMode::ShipSink => kind == Kind::Ship,
             LifecycleMode::VehicleVectorSeed => matches!(kind, Kind::Routed | Kind::Ship),
+            LifecycleMode::Expire => true,
         }
     }
 }
@@ -590,10 +603,31 @@ pub struct Lifecycle {
     /// The DLL's mirror of a staged candidate (`GvDeathDecay`: x and z; `GvFallSettle`: x, y and z), validated
     /// bit for bit against the one the host retained
     pub waypoint: [f32; 3],
+    /// `Expire`: the campaign's mirror of the wreck's timer, adopted while the host retains none, then validated bit for bit
+    pub death_timer: f32,
+    /// `Expire`: the squared range to the nearest keysite, which is campaign state; the host owns the curve over it
+    pub death_range: f32,
+    /// `Expire`: `DEATH_NEVER_EXPIRES` | `DEATH_OCCUPIED`
+    pub death_policy: i32,
+}
+
+/// The campaign's placement decision for a mobile it has just built: where (the height already includes the class's
+/// centre-of-gravity offset over the terrain the campaign sampled, the shared terrain service), which way it faces, the
+/// terrain face under it and the airframe's fuselage angle. The host owns the physical state this produces.
+#[derive(Clone, Copy, Debug)]
+pub struct Creation {
+    pub position: [f32; 3],
+    pub heading: f32,
+    pub fuselage_angle: f32,
+    pub face_normal: [f32; 3],
+    /// the DLL's motion vector, adopted only by an aircraft record (as `Request::Place`)
+    pub motion_vector: [f32; 3],
 }
 
 #[derive(Clone, Copy, Debug)]
 pub enum Request {
+    /// the campaign decided a new mobile's placement: the host computes its initial attitude and adopts the pose, once
+    Create(Creation),
     /// a rotor, dying, wreck, fall, sink, crash or impact step of the kinds `LifecycleMode::allows` names
     Lifecycle(Lifecycle),
     /// a routed vehicle steps towards the waypoint
@@ -631,6 +665,7 @@ impl Request {
             Request::HelicopterEnd(_) => "helicopter_end",
             Request::Lifecycle(step) => step.mode.name(),
             Request::Place { .. } => "place",
+            Request::Create(_) => "create_place",
         }
     }
 
@@ -643,7 +678,7 @@ impl Request {
             Request::FixedWingMove(_) => kind == Kind::FixedWing,
             Request::HelicopterBegin(_) | Request::HelicopterEnd(_) => kind == Kind::Helicopter,
             Request::Lifecycle(step) => step.mode.allows(kind),
-            Request::Place { .. } => true,
+            Request::Place { .. } | Request::Create(_) => true,
         }
     }
 }
@@ -667,6 +702,26 @@ pub struct Outcome {
     /// 8 ground impact; `FwDeathAttitude` -1 gate mismatch (nothing mutated), 1 eased, 3 eased with the roll draw
     /// consumed; `FwCrashVelocity` 1 stopped; `FwCrashAttitude` 1 at rest. Zero for every other request.
     pub flags: i32,
+    /// `Create`: the heading, pitch and roll of the attitude the host built, for the campaign's angle setter; zero otherwise
+    pub angles: [f32; 3],
+    /// `Expire`: the wreck's timer after this frame, for the campaign's copy (its drawing reads it); zero otherwise.
+    /// The expiry itself is `flags` bit 0.
+    pub death_timer: f32,
+}
+
+impl Outcome {
+    /// The empty answer to a retirement: the mobile no longer has a pose, so nothing here is applied.
+    pub fn retired() -> Self {
+        settled(
+            Pose {
+                position: [0.0; 3],
+                velocity: 0.0,
+                attitude: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
+            },
+            false,
+            [0.0; 3],
+        )
+    }
 }
 
 /// An infantry step between its two phases.
@@ -682,6 +737,8 @@ struct Pending {
 struct Record {
     kind: Kind,
     pose: Pose,
+    /// The host built this mobile's initial pose (a `Create` request); a mobile is created once.
+    placed: bool,
     /// An aircraft's previous motion vector, retained by the host; `None` for other kinds.
     motion_vector: Option<[f32; 3]>,
     pending: Option<Pending>,
@@ -709,6 +766,9 @@ struct Record {
     fw_speed: Option<f32>,
     /// A fixed-wing crash slide between its candidate and its attitude. The candidate itself is `candidate`.
     fw_crash: Option<CrashStage>,
+    /// A dead wreck's age as the host holds it, adopted from the campaign's copy by the first `Expire` and validated bit
+    /// for bit afterwards; `None` for a ship, which has no timer.
+    death_timer: Option<f32>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -743,12 +803,49 @@ enum CrashStage {
     },
 }
 
+/// The host's registry of the physical mobiles it issued identities to. An id is live (with a record, or issued by a link
+/// that made no creation request) until the campaign reports the physical incarnation freed, then retired for good: the host
+/// never answers a retired id and never issues it again.
 #[derive(Default)]
 pub struct Movers {
     mobiles: HashMap<String, Record>,
+    /// ids issued to a member that has no movement record (a link without a creation request)
+    unrecorded: HashSet<String>,
+    retired: HashSet<String>,
 }
 
 impl Movers {
+    /// Whether `host_id` may still be issued or bound: refused when live or retired.
+    fn ensure_fresh(&self, host_id: &str) -> Result<(), String> {
+        if self.retired.contains(host_id) {
+            return Err(format!("host.bind_mobile: host id {host_id} was retired and cannot be reused"));
+        }
+        if self.mobiles.contains_key(host_id) || self.unrecorded.contains(host_id) {
+            return Err(format!("host.bind_mobile: host id {host_id} is already issued to a live mobile"));
+        }
+        Ok(())
+    }
+
+    /// Register an identity issued to a member that makes no movement record.
+    pub fn issue(&mut self, host_id: &str) -> Result<(), String> {
+        self.ensure_fresh(host_id)?;
+        self.unrecorded.insert(host_id.to_owned());
+        Ok(())
+    }
+
+    /// The physical incarnation ended (the entity was released): drop the record and any open step with it, and refuse the id
+    /// from now on. Distinct from an expiry the host computes; this is the campaign's report that the heap slot is gone.
+    pub fn retire(&mut self, host_id: &str) -> Result<(), String> {
+        if self.retired.contains(host_id) {
+            return Err(format!("host.retire: host id {host_id} was already retired"));
+        }
+        if self.mobiles.remove(host_id).is_none() && !self.unrecorded.remove(host_id) {
+            return Err(format!("host.retire: unknown host id {host_id}"));
+        }
+        self.retired.insert(host_id.to_owned());
+        Ok(())
+    }
+
     /// Start the record of a mobile the host just issued `host_id` to. An aircraft (fixed-wing
     /// or helicopter) must be seeded with its motion vector, and no other kind may be: a missing
     /// seed is refused rather than defaulted. A helicopter must also be seeded with its rotor state, and no other kind may be.
@@ -771,11 +868,13 @@ impl Movers {
             (Kind::Helicopter, Some(_)) | (_, None) => {}
             (_, Some(_)) => return Err(format!("host.bind_mobile: {kind:?} {host_id} was bound with a rotor state")),
         }
+        self.ensure_fresh(host_id)?;
         self.mobiles.insert(
             host_id.to_owned(),
             Record {
                 kind,
                 pose,
+                placed: false,
                 motion_vector,
                 pending: None,
                 helicopter_pending: false,
@@ -788,6 +887,7 @@ impl Movers {
                 fall: None,
                 fw_speed: None,
                 fw_crash: None,
+                death_timer: None,
             },
         );
         Ok(())
@@ -804,6 +904,9 @@ impl Movers {
     }
 
     fn dispatch(&mut self, host_id: &str, campaign: Pose, request: Request) -> Result<Outcome, String> {
+        if self.retired.contains(host_id) {
+            return Err(format!("host.move_vehicle: {} for retired host id {host_id}", request.name()));
+        }
         let record = self
             .mobiles
             .get_mut(host_id)
@@ -861,6 +964,45 @@ impl Movers {
                 return Err(format!("host.move_vehicle: {} for {host_id} while its crash slide is pending", request.name()));
             }
             _ => {}
+        }
+        if let Request::Create(creation) = request {
+            if record.placed {
+                return Err(format!("host.move_vehicle: create_place for {host_id}, which the host already created"));
+            }
+            let numbers = creation
+                .position
+                .iter()
+                .chain(&creation.face_normal)
+                .chain(&creation.motion_vector)
+                .chain([&creation.heading, &creation.fuselage_angle]);
+            if numbers.into_iter().any(|value| !value.is_finite()) {
+                return Err(format!("host.move_vehicle: create_place for {host_id} has a non-finite input"));
+            }
+            let mut angles = [0.0f32; 3];
+            let mut attitude = [0.0f32; 9];
+            // SAFETY: both outputs are exactly the sizes the C function writes (three and nine floats); the inputs are read-only
+            unsafe {
+                eech_place_attitude(
+                    creation.face_normal.as_ptr(),
+                    creation.heading,
+                    creation.fuselage_angle,
+                    angles.as_mut_ptr(),
+                    attitude.as_mut_ptr(),
+                );
+            }
+            record.pose = Pose {
+                position: creation.position,
+                velocity: campaign.velocity,
+                attitude,
+            };
+            if matches!(record.kind, Kind::FixedWing | Kind::Helicopter) {
+                record.motion_vector = Some(creation.motion_vector);
+            }
+            record.placed = true;
+            return Ok(Outcome {
+                angles,
+                ..settled(record.pose, false, [0.0; 3])
+            });
         }
         if let Request::Place { motion_vector } = request {
             record.pose = campaign;
@@ -927,7 +1069,7 @@ impl Movers {
                 Ok(settled(record.pose, rotated, motion_vector))
             }
             Request::Lifecycle(step) => lifecycle(record, host_id, &step),
-            Request::Place { .. } => unreachable!("placed above"),
+            Request::Place { .. } | Request::Create(_) => unreachable!("placed above"),
         }
     }
 }
@@ -973,6 +1115,7 @@ fn lifecycle(record: &mut Record, host_id: &str, step: &Lifecycle) -> Result<Out
         | LifecycleMode::FwCrashCandidate
         | LifecycleMode::FwCrashVelocity
         | LifecycleMode::FwCrashAttitude => return fixed_wing_lifecycle(record, host_id, step),
+        LifecycleMode::Expire => return expire_lifecycle(record, host_id, step),
         _ => {}
     }
     if record.fw_crash.is_some() {
@@ -1164,6 +1307,53 @@ fn lifecycle(record: &mut Record, host_id: &str, step: &Lifecycle) -> Result<Out
     }
     record.motion_vector = Some(vector);
     outcome.motion_vector = vector;
+    Ok(outcome)
+}
+
+/// The end of a dead mobile's physical life (`mobile.c`, `rv_updt.c`, `ps_updt.c`, `fw_updt.c`, `hc_updt.c`, `sh_move.c`).
+/// A ship has no timer: it is gone when its position has sunk below half its bounding-box diagonal under the waterline.
+/// Every other wreck ages by the frame, and only on the frames where `(int)(timer + 1)` is a multiple of 300 is the timer
+/// compared with the threshold that the squared range to the campaign's nearest keysite sets. The host owns the timer
+/// (adopted from the campaign's copy while it holds none, then validated bit for bit) and the answer; the campaign
+/// removes the entity family when told the life is over, which retires the host id. Nothing else is mutated by a refusal.
+fn expire_lifecycle(record: &mut Record, host_id: &str, step: &Lifecycle) -> Result<Outcome, String> {
+    let mode = step.mode;
+    if record.fall.is_some() || record.death_candidate.is_some() || record.fw_crash.is_some() {
+        return Err(format!(
+            "host.move_vehicle: {} for {host_id} while its fall, death slide or crash slide is still open",
+            mode.name()
+        ));
+    }
+    let mut outcome = settled(record.pose, false, [0.0; 3]);
+    if record.kind == Kind::Ship {
+        // `obscured_altitude = -(0.5 * magnitude)` is a double product narrowed into a float, then compared with a float
+        let obscured_altitude = (-(0.5f64 * f64::from(step.bbox_diagonal))) as f32;
+        outcome.flags = i32::from(record.pose.position[1] < obscured_altitude);
+        return Ok(outcome);
+    }
+    let held = match record.death_timer {
+        Some(held) => {
+            check_mirror("death_timer", host_id, &[held], &[step.death_timer])?;
+            held
+        }
+        None => step.death_timer,
+    };
+    let mut timer = held + step.delta_seconds;
+    let mut expired = false;
+    if step.death_policy & DEATH_NEVER_EXPIRES == 0 {
+        // SAFETY: both are scalar-in, scalar-out arithmetic.
+        let (gated, threshold) = unsafe { (eech_expire_gate(timer) != 0, eech_expire_threshold(step.death_range)) };
+        if gated && timer >= threshold {
+            if step.death_policy & DEATH_OCCUPIED != 0 {
+                timer = 0.0;
+            } else {
+                expired = true;
+            }
+        }
+    }
+    record.death_timer = Some(timer);
+    outcome.death_timer = timer;
+    outcome.flags = i32::from(expired);
     Ok(outcome)
 }
 
@@ -1581,6 +1771,8 @@ fn settled(pose: Pose, rotated: bool, motion_vector: [f32; 3]) -> Outcome {
         rotor: [0.0; 3],
         altitude: 0.0,
         flags: 0,
+        angles: [0.0; 3],
+        death_timer: 0.0,
     }
 }
 
@@ -1752,6 +1944,8 @@ fn begin_person(record: &mut Record, begin: &PersonBegin) -> Outcome {
             rotor: [0.0; 3],
             altitude: 0.0,
             flags: 0,
+            angles: [0.0; 3],
+            death_timer: 0.0,
         };
     }
     settle_person(&mut record.pose, &pending, false, 0.0)
@@ -1909,6 +2103,175 @@ mod tests {
     const PLACED: Request = Request::Place {
         motion_vector: [0.0, 0.0, 100.0],
     };
+
+    fn creation(position: [f32; 3], heading: f32, face_normal: [f32; 3]) -> Creation {
+        Creation {
+            position,
+            heading,
+            fuselage_angle: 0.0,
+            face_normal,
+            motion_vector: [0.0, 0.0, 100.0],
+        }
+    }
+
+    #[test]
+    fn the_host_builds_the_placement_attitude_on_flat_ground() {
+        let mut movers = movers(Kind::Routed, pose(0.0, 0.0));
+        let heading = 0.5f32;
+        let made = movers
+            .step("v", pose(0.0, 0.0), Request::Create(creation([10.0, 2.0, 20.0], heading, [0.0, 1.0, 0.0])))
+            .unwrap();
+        assert_eq!(made.pose.position, [10.0, 2.0, 20.0]);
+        assert_eq!(made.angles[0], heading);
+        assert!(
+            made.angles[1].abs() < 1.0e-6 && made.angles[2].abs() < 1.0e-6,
+            "level ground: {:?}",
+            made.angles
+        );
+        // facing `heading`: the heading row is [sin, 0, cos]
+        assert!((made.pose.attitude[6] - heading.sin()).abs() < 1.0e-6);
+        assert!((made.pose.attitude[8] - heading.cos()).abs() < 1.0e-6);
+        // the record is the host's: the next step compares against it
+        let kept = movers.step("v", made.pose, Request::Stop).unwrap();
+        assert_eq!(kept.pose.position, [10.0, 2.0, 20.0]);
+    }
+
+    #[test]
+    fn the_terrain_face_and_the_fuselage_angle_shape_the_host_attitude() {
+        let mut level = movers(Kind::Routed, pose(0.0, 0.0));
+        let mut sloped = movers(Kind::Routed, pose(0.0, 0.0));
+        let normal = {
+            let (x, y, z) = (0.2f32, 0.9f32, -0.1f32);
+            let length = (x * x + y * y + z * z).sqrt();
+            [x / length, y / length, z / length]
+        };
+        let flat = level
+            .step("v", pose(0.0, 0.0), Request::Create(creation([0.0; 3], 1.0, [0.0, 1.0, 0.0])))
+            .unwrap();
+        let tilted = sloped.step("v", pose(0.0, 0.0), Request::Create(creation([0.0; 3], 1.0, normal))).unwrap();
+        assert_ne!(
+            flat.pose.attitude, tilted.pose.attitude,
+            "the host's attitude follows the terrain face it was given"
+        );
+        assert!(tilted.angles[1].abs() > 0.01 && tilted.angles[2].abs() > 0.01, "{:?}", tilted.angles);
+        // the matrix is the one those angles build (its forward row is heading and pitch), so the campaign's angle setter
+        // reproduces it
+        let (sh, ch) = tilted.angles[0].sin_cos();
+        let (sp, cp) = tilted.angles[1].sin_cos();
+        let forward = [sh * cp, sp, ch * cp];
+        for (offset, value) in forward.iter().enumerate() {
+            assert!((tilted.pose.attitude[6 + offset] - value).abs() < 1.0e-5, "forward row [{offset}]");
+        }
+        // the fuselage angle lifts the pitch
+        let mut lifted = movers(Kind::Helicopter, pose(0.0, 0.0));
+        let mut request = creation([0.0; 3], 0.0, [0.0, 1.0, 0.0]);
+        request.fuselage_angle = 0.1;
+        let made = lifted.step("v", pose(0.0, 0.0), Request::Create(request)).unwrap();
+        assert!((made.angles[1] - 0.1).abs() < 1.0e-6, "{:?}", made.angles);
+    }
+
+    #[test]
+    fn a_mobile_is_created_once() {
+        let mut movers = movers(Kind::Routed, pose(0.0, 0.0));
+        movers
+            .step("v", pose(0.0, 0.0), Request::Create(creation([1.0; 3], 0.0, [0.0, 1.0, 0.0])))
+            .unwrap();
+        let error = movers
+            .step("v", pose(1.0, 1.0), Request::Create(creation([2.0; 3], 0.0, [0.0, 1.0, 0.0])))
+            .unwrap_err();
+        assert!(error.contains("already created"), "{error}");
+    }
+
+    #[test]
+    fn a_creation_for_an_unknown_or_retired_id_is_refused() {
+        let mut movers = movers(Kind::Routed, pose(0.0, 0.0));
+        let request = Request::Create(creation([0.0; 3], 0.0, [0.0, 1.0, 0.0]));
+        assert!(movers.step("other", pose(0.0, 0.0), request).unwrap_err().contains("unknown host id"));
+        movers.retire("v").unwrap();
+        assert!(movers.step("v", pose(0.0, 0.0), request).unwrap_err().contains("retired"));
+    }
+
+    #[test]
+    fn a_creation_with_a_non_finite_input_changes_nothing() {
+        let mut movers = movers(Kind::Routed, pose(3.0, 4.0));
+        let mut bad = creation([0.0; 3], 0.0, [0.0, 1.0, 0.0]);
+        bad.position[1] = f32::NAN;
+        assert!(movers.step("v", pose(3.0, 4.0), Request::Create(bad)).unwrap_err().contains("non-finite"));
+        // refused before the record changed: the creation may still be made
+        let made = movers
+            .step("v", pose(3.0, 4.0), Request::Create(creation([5.0; 3], 0.0, [0.0, 1.0, 0.0])))
+            .unwrap();
+        assert_eq!(made.pose.position, [5.0; 3]);
+    }
+
+    #[test]
+    fn an_aircraft_creation_seeds_the_motion_vector_its_steps_are_checked_against() {
+        let mut movers = movers(Kind::FixedWing, pose(0.0, 0.0));
+        let mut request = creation([0.0, 10.0, 0.0], 0.0, [0.0, 1.0, 0.0]);
+        request.motion_vector = [0.0, 0.0, 50.0];
+        let made = movers.step("v", pose(0.0, 0.0), Request::Create(request)).unwrap();
+        // a step that carries a different vector than the one created is a write the host did not make
+        let mut step = fixed_wing_move(FixedWingPhase::Flight);
+        step.motion_vector = [0.0, 0.0, 49.0];
+        let error = movers.step("v", made.pose, Request::FixedWingMove(step)).unwrap_err();
+        assert!(error.contains("motion_vector"), "{error}");
+    }
+
+    #[test]
+    fn a_retired_mobile_answers_no_later_step() {
+        let mut movers = movers(Kind::Routed, pose(0.0, 0.0));
+        movers.step("v", pose(0.0, 0.0), Request::Stop).unwrap();
+        movers.retire("v").unwrap();
+        for request in [Request::Stop, PLACED, Request::Advance(advance([0.0, 0.0, 100.0]))] {
+            let error = movers.step("v", pose(0.0, 0.0), request).unwrap_err();
+            assert!(error.contains("retired"), "{error}");
+        }
+    }
+
+    #[test]
+    fn a_retired_id_is_never_reused() {
+        let mut movers = movers(Kind::Routed, pose(0.0, 0.0));
+        movers.retire("v").unwrap();
+        let error = movers.bind("v", Kind::Routed, pose(0.0, 0.0), None, None).unwrap_err();
+        assert!(error.contains("retired"), "{error}");
+        assert!(movers.issue("v").unwrap_err().contains("retired"));
+        assert!(movers.retire("v").unwrap_err().contains("retired"), "a mobile is retired once");
+    }
+
+    #[test]
+    fn a_live_id_is_never_bound_twice() {
+        let mut movers = movers(Kind::Routed, pose(1.0, 1.0));
+        let error = movers.bind("v", Kind::Ship, pose(0.0, 0.0), None, None).unwrap_err();
+        assert!(error.contains("already"), "{error}");
+        assert!(movers.issue("v").unwrap_err().contains("already"));
+        // the refused bind left the first record untouched
+        let kept = movers.step("v", pose(1.0, 1.0), Request::Stop).unwrap();
+        assert_eq!(kept.pose, pose(1.0, 1.0));
+    }
+
+    #[test]
+    fn an_id_issued_without_a_creation_request_retires_cleanly() {
+        let mut movers = Movers::default();
+        movers.issue("link-only").unwrap();
+        assert!(movers.issue("link-only").unwrap_err().contains("already"));
+        let error = movers.step("link-only", pose(0.0, 0.0), Request::Stop).unwrap_err();
+        assert!(error.contains("unknown host id"), "{error}");
+        movers.retire("link-only").unwrap();
+        assert!(movers.step("link-only", pose(0.0, 0.0), Request::Stop).unwrap_err().contains("retired"));
+        assert!(movers.retire("never-issued").unwrap_err().contains("unknown host id"));
+    }
+
+    #[test]
+    fn a_mobile_retires_from_any_open_step() {
+        let mut movers = movers(Kind::Helicopter, pose(0.0, 0.0));
+        movers.step("v", pose(0.0, 0.0), Request::HelicopterBegin(helicopter_begin_request())).unwrap();
+        // the heap may free an entity mid-step: the host drops the open phase with the record
+        movers.retire("v").unwrap();
+        assert!(movers
+            .step("v", pose(0.0, 0.0), Request::HelicopterEnd(helicopter_end_request()))
+            .unwrap_err()
+            .contains("retired"));
+    }
 
     #[test]
     fn accelerates_towards_the_waypoint_and_keeps_its_own_record() {
@@ -2563,6 +2926,9 @@ mod tests {
             wide: false,
             water: false,
             waypoint: [0.0; 3],
+            death_timer: 0.0,
+            death_range: 0.0,
+            death_policy: 0,
         }
     }
 
@@ -3440,5 +3806,119 @@ mod tests {
         // the slide is closed: a crash phase now needs a new candidate, and a live step is accepted again
         assert!(run(&mut movers, landed.pose, step(LifecycleMode::FwCrashAttitude, [0.0; 3])).is_err());
         run(&mut movers, landed.pose, step(LifecycleMode::FwCrashCandidate, [0.0; 3])).unwrap();
+    }
+
+    fn expiry(timer: f32, delta: f32, range: f32, policy: i32) -> Lifecycle {
+        let mut step = life(LifecycleMode::Expire, ROTOR, SEED);
+        step.death_timer = timer;
+        step.delta_seconds = delta;
+        step.death_range = range;
+        step.death_policy = policy;
+        step
+    }
+
+    #[test]
+    fn a_wreck_ages_by_the_frame_and_ends_only_on_a_gated_frame_past_the_ranges_threshold() {
+        let start = pose(0.0, 0.0);
+        let mut movers = movers(Kind::Routed, start);
+        // the first copy is adopted (the campaign zeroes the timer at destruction) and then the host holds it
+        let first = run(&mut movers, start, expiry(0.0, 0.5, 0.0, 0)).unwrap();
+        assert_eq!((first.death_timer, first.flags), (0.5, 0));
+        let second = run(&mut movers, start, expiry(first.death_timer, 0.5, 0.0, 0)).unwrap();
+        assert_eq!((second.death_timer, second.flags), (1.0, 0));
+
+        // within 1000 m the threshold is 300 s, but the gate (int(timer + 1) % 300 == 0) opens only for [299, 300)
+        let mut near = Movers::default();
+        near.bind("v", Kind::Routed, start, None, None).unwrap();
+        run(&mut near, start, expiry(298.6, 0.0, 0.0, 0)).unwrap();
+        let before = run(&mut near, start, expiry(298.6, 0.5, 0.0, 0)).unwrap();
+        assert_eq!((before.death_timer, before.flags), (299.1, 0), "gated but under 300 s");
+        let past = run(&mut near, start, expiry(before.death_timer, 1.0, 0.0, 0)).unwrap();
+        assert_eq!((past.death_timer, past.flags), (300.1, 0), "over the threshold but off the gate");
+
+        // the next gate window is [599, 600): over the threshold there, the life is over
+        let mut late = Movers::default();
+        late.bind("v", Kind::Routed, start, None, None).unwrap();
+        run(&mut late, start, expiry(598.9, 0.0, 0.0, 0)).unwrap();
+        let ended = run(&mut late, start, expiry(598.9, 0.5, 0.0, 0)).unwrap();
+        assert_eq!((ended.death_timer, ended.flags), (599.4, 1));
+    }
+
+    #[test]
+    fn the_threshold_follows_the_squared_range_to_the_nearest_keysite() {
+        let curve = |range: f32| unsafe { eech_expire_threshold(range) };
+        assert_eq!(curve(0.0), 300.0);
+        assert_eq!(curve(1.0e6), 300.0);
+        assert_eq!(curve(1.0e8), 10800.0);
+        assert_eq!(curve(5.0e9), 10800.0);
+        // the engine's unparenthesised divisor is 10000 * 10000 / 1000 * 1000 = 1e8, not 100
+        assert_within(&[curve(5.0e7)], &[5445.0], 1.0e-2);
+
+        // at 5e7 the gate window [5399, 5400) is under the 5445 s threshold, [5699, 5700) is over it
+        let start = pose(0.0, 0.0);
+        let mut movers = movers(Kind::Routed, start);
+        run(&mut movers, start, expiry(5399.2, 0.0, 5.0e7, 0)).unwrap();
+        assert_eq!(run(&mut movers, start, expiry(5399.2, 0.5, 5.0e7, 0)).unwrap().flags, 0);
+        let mut over = Movers::default();
+        over.bind("v", Kind::Routed, start, None, None).unwrap();
+        run(&mut over, start, expiry(5699.0, 0.0, 5.0e7, 0)).unwrap();
+        assert_eq!(run(&mut over, start, expiry(5699.0, 0.5, 5.0e7, 0)).unwrap().flags, 1);
+    }
+
+    #[test]
+    fn an_occupied_helicopter_restarts_its_timer_and_anti_air_never_ends() {
+        let start = pose(0.0, 0.0);
+        let mut player = Movers::default();
+        player.bind("v", Kind::Helicopter, start, Some(SEED), Some(ROTOR)).unwrap();
+        run(&mut player, start, expiry(598.9, 0.0, 0.0, DEATH_OCCUPIED)).unwrap();
+        let reset = run(&mut player, start, expiry(598.9, 0.5, 0.0, DEATH_OCCUPIED)).unwrap();
+        assert_eq!((reset.death_timer, reset.flags), (0.0, 0));
+        // the reset is the host's answer: the next frame ages from zero
+        let aged = run(&mut player, start, expiry(reset.death_timer, 0.5, 0.0, DEATH_OCCUPIED)).unwrap();
+        assert_eq!((aged.death_timer, aged.flags), (0.5, 0));
+
+        let mut guns = Movers::default();
+        guns.bind("v", Kind::Routed, start, None, None).unwrap();
+        run(&mut guns, start, expiry(598.9, 0.0, 0.0, DEATH_NEVER_EXPIRES)).unwrap();
+        let kept = run(&mut guns, start, expiry(598.9, 0.5, 0.0, DEATH_NEVER_EXPIRES)).unwrap();
+        assert_eq!((kept.death_timer, kept.flags), (599.4, 0), "ages, but is never told its life is over");
+    }
+
+    #[test]
+    fn a_ship_ends_when_it_has_sunk_half_its_diagonal_under_the_waterline() {
+        let ship = |height: f32, diagonal: f32| {
+            let start = at(0.0, height, 0.0);
+            let mut movers = movers(Kind::Ship, start);
+            let mut step = expiry(0.0, 0.5, 0.0, 0);
+            step.bbox_diagonal = diagonal;
+            run(&mut movers, start, step).unwrap()
+        };
+        assert_eq!(ship(-5.9, 12.0).flags, 0);
+        assert_eq!(ship(-6.0, 12.0).flags, 0, "exactly half the diagonal is not below it");
+        assert_eq!(ship(-6.1, 12.0).flags, 1);
+        assert_eq!(ship(0.0, 12.0).flags, 0);
+        assert_eq!(ship(0.0, 12.0).death_timer, 0.0, "a ship has no timer");
+    }
+
+    #[test]
+    fn a_refused_expiry_changes_nothing_and_a_retired_wreck_is_never_answered() {
+        let start = pose(0.0, 0.0);
+        let mut movers = movers(Kind::Routed, start);
+        run(&mut movers, start, expiry(10.0, 0.5, 0.0, 0)).unwrap();
+        // a timer the host did not make is refused, and the record still holds what it did
+        let error = run(&mut movers, start, expiry(11.0, 0.5, 0.0, 0)).unwrap_err();
+        assert!(error.contains("death_timer"), "{error}");
+        assert_eq!(run(&mut movers, start, expiry(10.5, 0.5, 0.0, 0)).unwrap().death_timer, 11.0);
+
+        // an open fall means the wreck has not come to rest: the lifetime is not asked for yet
+        let airborne = moving(10.0);
+        let mut falling = vehicle(Kind::Routed, airborne, GROUND);
+        run(&mut falling, airborne, vehicle_step(LifecycleMode::GvFallCandidate, GROUND, 1.0)).unwrap();
+        let error = run(&mut falling, airborne, expiry(0.0, 0.5, 0.0, 0)).unwrap_err();
+        assert!(error.contains("still open"), "{error}");
+
+        movers.retire("v").unwrap();
+        let error = run(&mut movers, start, expiry(11.0, 0.5, 0.0, 0)).unwrap_err();
+        assert!(error.contains("retired"), "{error}");
     }
 }

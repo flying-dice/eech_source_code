@@ -13,6 +13,8 @@ fn main() {
         "fw_step.c",
         "hc_step.c",
         "death_step.c",
+        "place_step.c",
+        "expire_step.c",
     ] {
         println!("cargo::rerun-if-changed=csrc/{file}");
     }
@@ -24,6 +26,8 @@ fn main() {
         .file("csrc/fw_step.c")
         .file("csrc/hc_step.c")
         .file("csrc/death_step.c")
+        .file("csrc/place_step.c")
+        .file("csrc/expire_step.c")
         .opt_level_str(&opt)
         .debug(true)
         .pic(true)

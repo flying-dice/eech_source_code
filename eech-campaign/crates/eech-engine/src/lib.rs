@@ -255,6 +255,12 @@ pub enum MovementMode {
     FwSettle,
     /// a fixed-wing crash slide, phase three: the attitude, the staged position and the at-rest test
     FwCrashAttitude,
+    /// the physical incarnation ended (heap release): the host retires the identity and answers no later step for it
+    Retire,
+    /// initial physical placement of a freshly created member: the host answers the pose and the Euler angles
+    CreatePlace,
+    /// a dead mobile's lifetime: the host accumulates the timer, gates it and decides whether the wreck has expired
+    Expire,
 }
 
 /// Terrain at the pre-move position, sampled by the campaign.
@@ -352,6 +358,12 @@ pub struct MovementStep {
     pub wide: bool,
     /// `GvFallSettle`: the terrain under the candidate is water
     pub water: bool,
+    /// `Expire`: the campaign's mirror of the wreck's timer
+    pub death_timer: f32,
+    /// `Expire`: the campaign's squared 2D range to the nearest keysite
+    pub death_range: f32,
+    /// `Expire`: the campaign's decision bits (1 never expires, 2 occupied by a player)
+    pub death_policy: i32,
 }
 
 /// The host's record of the vehicle after the step; the campaign applies it.
@@ -377,6 +389,10 @@ pub struct MovementResult {
     /// nothing eased, 1 eased, 3 eased and the roll draw consumed; `FwCrashVelocity` bit 0 stopped;
     /// `FwCrashAttitude` bit 0 at rest; every other mode 0
     pub flags: i32,
+    /// `CreatePlace` only: the heading, pitch and roll the host placed the member at (zero for every other mode)
+    pub angles: [f32; 3],
+    /// `Expire` only: the host's timer after the step, which the campaign mirrors (zero for every other mode)
+    pub death_timer: f32,
 }
 
 /// Whether `flags` is a value `mode` can answer.  The bits are not generic truthiness: each mode defines its own.
@@ -385,7 +401,7 @@ pub fn result_flags_are_valid(mode: MovementMode, flags: i32) -> bool {
         // contact alone; contact with the water effects (splash, sunk, both); contact with the ground impact
         MovementMode::GvFallSettle => matches!(flags, 0 | 1 | 3 | 5 | 7 | 9),
         MovementMode::FwDeathAttitude => matches!(flags, -1 | 0 | 1 | 3),
-        MovementMode::FwCrashVelocity | MovementMode::FwCrashAttitude => matches!(flags, 0 | 1),
+        MovementMode::FwCrashVelocity | MovementMode::FwCrashAttitude | MovementMode::Expire => matches!(flags, 0 | 1),
         _ => flags == 0,
     }
 }
@@ -1173,6 +1189,9 @@ where
             sys::EECH_MOVEMENT_GV_FALL_COMMIT => MovementMode::GvFallCommit,
             sys::EECH_MOVEMENT_FW_SETTLE => MovementMode::FwSettle,
             sys::EECH_MOVEMENT_FW_CRASH_ATTITUDE => MovementMode::FwCrashAttitude,
+            sys::EECH_MOVEMENT_RETIRE => MovementMode::Retire,
+            sys::EECH_MOVEMENT_CREATE_PLACE => MovementMode::CreatePlace,
+            sys::EECH_MOVEMENT_EXPIRE => MovementMode::Expire,
             other => return Err(format!("move_vehicle received unknown mode {other}")),
         };
         let terrain_follow = checked_bool("terrain_follow", source.terrain_follow)?;
@@ -1214,6 +1233,8 @@ where
             ("hc_signed_speed", source.hc_signed_speed),
             ("gv_old_elevation", source.gv_old_elevation),
             ("gv_bbox_diagonal", source.gv_bbox_diagonal),
+            ("death_timer", source.death_timer),
+            ("death_range", source.death_range),
         ])?;
         for (name, values) in [
             ("position", &source.position[..]),
@@ -1256,6 +1277,9 @@ where
                 | MovementMode::PersonBegin
                 | MovementMode::PersonEnd
                 | MovementMode::FixedWingMove
+                | MovementMode::Retire
+                | MovementMode::CreatePlace
+                | MovementMode::Expire
         );
         let request = MovementStep {
             host_id,
@@ -1311,6 +1335,9 @@ where
             bbox_diagonal: source.gv_bbox_diagonal,
             wide: checked_bool("gv_wide", source.gv_wide)?,
             water: checked_bool("gv_water", source.gv_water)?,
+            death_timer: source.death_timer,
+            death_range: source.death_range,
+            death_policy: source.death_policy,
         };
         let answer = (context.move_vehicle)(request)?;
         if !result_flags_are_valid(mode, answer.flags) {
@@ -1324,7 +1351,9 @@ where
                 .chain(pose.attitude.iter())
                 .chain(answer.motion_vector.iter())
                 .chain(answer.rotor.iter())
+                .chain(answer.angles.iter())
                 .chain(std::iter::once(&answer.altitude))
+                .chain(std::iter::once(&answer.death_timer))
                 .any(|value| !value.is_finite())
         {
             return Err("move_vehicle host returned a non-finite pose".into());
@@ -1342,6 +1371,8 @@ where
                 rotor: answer.rotor,
                 altitude: answer.altitude,
                 flags: answer.flags,
+                angles: answer.angles,
+                death_timer: answer.death_timer,
             };
         }
         Ok(())
@@ -1672,6 +1703,8 @@ mod tests {
                 rotor: [0.0; 3],
                 altitude: 0.0,
                 flags: 0,
+                angles: [0.0; 3],
+                death_timer: 0.0,
             })
         };
         let mut result: sys::eech_movement_result = unsafe { std::mem::zeroed() };
@@ -1788,6 +1821,57 @@ mod tests {
     }
 
     #[test]
+    fn a_retire_step_crosses_the_callback_with_its_identity_and_no_terrain() {
+        let mut step = place_step([0.0; 3]);
+        step.mode = sys::EECH_MOVEMENT_RETIRE;
+        let request = received(&step);
+        assert_eq!(request.mode, MovementMode::Retire);
+        assert_eq!(request.host_id, "h");
+        assert!(request.terrain.is_none());
+        assert!(result_flags_are_valid(MovementMode::Retire, 0) && !result_flags_are_valid(MovementMode::Retire, 1));
+    }
+
+    #[test]
+    fn a_create_place_step_carries_the_constructor_inputs_across_the_callback() {
+        let mut step = place_step([4.0, -1.0, 80.0]);
+        step.mode = sys::EECH_MOVEMENT_CREATE_PLACE;
+        step.position = [10.0, 20.0, 30.0];
+        step.hc_desired_heading = 1.25;
+        step.fw_fuselage_angle = 0.1;
+        step.face_normal = [0.0, 0.8, 0.6];
+        let request = received(&step);
+        assert_eq!(request.mode, MovementMode::CreatePlace);
+        assert_eq!(request.pose.position, [10.0, 20.0, 30.0]);
+        assert_eq!((request.desired_heading, request.fuselage_angle), (1.25, 0.1));
+        assert_eq!(request.face_normal, [0.0, 0.8, 0.6]);
+        // the aircraft vector is the placement field, as for Place
+        assert_eq!(request.motion_vector_in, [4.0, -1.0, 80.0]);
+        assert!(request.terrain.is_none());
+        assert!(result_flags_are_valid(MovementMode::CreatePlace, 0) && !result_flags_are_valid(MovementMode::CreatePlace, 1));
+    }
+
+    #[test]
+    fn an_expire_step_carries_the_wreck_timer_range_and_policy_and_answers_only_a_yes_or_no() {
+        let mut step = place_step([0.0; 3]);
+        step.mode = sys::EECH_MOVEMENT_EXPIRE;
+        step.delta_seconds = 0.25;
+        step.death_timer = 598.5;
+        step.death_range = 5.0e7;
+        step.death_policy = 2;
+        step.gv_bbox_diagonal = 12.0;
+        let request = received(&step);
+        assert_eq!(request.mode, MovementMode::Expire);
+        assert_eq!(
+            (request.delta_seconds, request.death_timer, request.death_range, request.death_policy),
+            (0.25, 598.5, 5.0e7, 2)
+        );
+        assert_eq!(request.bbox_diagonal, 12.0);
+        assert!(request.terrain.is_none());
+        assert!(result_flags_are_valid(MovementMode::Expire, 0) && result_flags_are_valid(MovementMode::Expire, 1));
+        assert!(!result_flags_are_valid(MovementMode::Expire, 2));
+    }
+
+    #[test]
     fn each_mode_answers_only_the_flags_it_defines() {
         let accepted = |mode, flags: &[i32]| {
             for flags in flags {
@@ -1801,7 +1885,7 @@ mod tests {
             match mode {
                 MovementMode::GvFallSettle => &[0, 1, 3, 5, 7, 9],
                 MovementMode::FwDeathAttitude => &[-1, 0, 1, 3],
-                MovementMode::FwCrashVelocity | MovementMode::FwCrashAttitude => &[0, 1],
+                MovementMode::FwCrashVelocity | MovementMode::FwCrashAttitude | MovementMode::Expire => &[0, 1],
                 _ => &[0],
             }
         }
@@ -1812,6 +1896,7 @@ mod tests {
         accepted(MovementMode::FwDeathAttitude, &[-1, 0, 1, 3]);
         accepted(MovementMode::FwCrashVelocity, &[0, 1]);
         accepted(MovementMode::FwCrashAttitude, &[0, 1]);
+        accepted(MovementMode::Expire, &[0, 1]);
         accepted(MovementMode::GvDeathDecay, &[0]);
         accepted(MovementMode::FwSettle, &[0]);
         // the ground impact and a splash that is not also a contact are not answers
@@ -1846,5 +1931,14 @@ mod tests {
         refuses(&|step| step.hc_lift = f32::INFINITY);
         refuses(&|step| step.hc_draws[0] = f64::NAN);
         refuses(&|step| step.hc_flag = 2);
+        // a wreck timer or range that is not a number never reaches the host
+        refuses(&|step| {
+            step.mode = sys::EECH_MOVEMENT_EXPIRE;
+            step.death_timer = f32::NAN;
+        });
+        refuses(&|step| {
+            step.mode = sys::EECH_MOVEMENT_EXPIRE;
+            step.death_range = f32::INFINITY;
+        });
     }
 }
