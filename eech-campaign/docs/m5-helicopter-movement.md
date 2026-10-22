@@ -1,8 +1,8 @@
 # M5: host-owned live AI helicopter movement (EEDCS-35)
 
-**Status: implemented and locally checked; native build, regression pack and public
-witness NOT yet run.** Nothing here is accepted. This is not review evidence for
-the runtime behaviour, only for the Rust side and the seam.
+**Status: implemented; settled retail build, public witness and 40/40 regression pack
+run at runtime commit `e5ec3b69`.** Nothing here is accepted: it awaits independent
+review and the technical lead's approval. D1 and the aircraft work are not complete.
 
 **Scope.** One physical extraction under D1 (EEDCS-15) toward criteria 2 and 3 of
 the [M5 goal](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337)
@@ -116,16 +116,53 @@ refusal (environment limit).
   The DLL C therefore **compiled under gcc in the Linux container** with the host
   flags in the post-fix runs.
 
-**Not run, not claimed:**
+### Native evidence (runtime commit `e5ec3b69`, clean tree: 0 uncommitted build inputs)
 
-- **The retail (MinGW) image compile and every runtime behaviour** of the DLL changes
-  are unvalidated until the settled native build.
-- **The public witness and its driver are unexecuted.**
-- **No regression pack, no Tacview comparison, no war.** The baseline is the accepted
-  40/40 pack at `windows-retail v1` and Tacview SHA-256
-  `3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b`
-  (`E:/eech-runs/m5-d1/fixed-wing-movement-20261022/settled-pack`). No difference is
-  classified yet because nothing has been compared.
+Output: `E:/eech-runs/m5-d1/helicopter-impl-20261022/native/` (`build.log`,
+`witness/`, `pack/`, `pack.log`).
+
+- **Build.** `tools/build-windows.sh target/hc-settled` with `EECH_WIN_TARGET=eech-hc-settled-target`
+  (fresh volume), pinned image `sha256:bb10e44a20e9c6304b3a318902bcf0f8ec8175c162862240ce25c34bd7e562be`
+  (rustc 1.98.1, MinGW gcc 12-posix): exit 0, one build. This is the first
+  compile of the DLL C under the retail (MinGW) image. `eech_dc.dll`
+  `8e14e68170df097aa250c84964940b6a7d9ea724553641d07c2c865a3462e02a`,
+  `eech-world.exe` `ac6e9668f225b1c7b3b22979bd1472e0c4b6e54be2f2a72b4bae85ea7498365f`
+  (full list in `BUILD-INFO.txt`).
+- **Public witness.** `tools/helicopter-movement-windows.ps1 -Root E:/eech-runs/m2/lebanon-root`
+  (Lebanon retail root, 1 h): `PASS`, one run.
+  - `missing`: `runtime error: eech: missing host move_vehicle callback`.
+  - `control`: helicopter `eech-world:2975` selected at 79.3 s.
+  - `hold`: the host declined to move it for 140.1 s (1401 held steps,
+    `held_displacement 0.000`), then released it (`displacement_after_release 0.764`
+    m, measured over the 0.2 s to the end of the run).
+  - Census: helicopters bound 174, 27 moved at least 10 m; 17,994 begin and 17,994
+    end steps, `pairing_errors 0`, `helicopter_pairs 17994 moved_begins=16592
+    places=348`. Fixed-wing, routed, ship and person steps also flowed.
+  - This is a causal hold/release witness of the Lua -> `eech_dc` -> `move_vehicle`
+    path. It asserts no waypoint completion.
+- **Regression pack.** `tools/regression-pack.py --georgia E:/eech-runs/roots/georgia
+  --lebanon E:/eech-runs/m2/lebanon-root --lebanon-repeat E:/eech-runs/m2/lebanon-m1-copy
+  --bin target/hc-settled`: `REGRESSION PACK: PASS`, 40/40 checks PASS.
+  `regress.georgia.exact` and `regress.lebanon.exact` are `IDENTICAL to the baseline`;
+  inputs are identical to the retained manifests. The Tacview recording
+  (`pack/reference/run1`, `run2`, `retained`) has SHA-256
+  `3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b`, equal to the
+  accepted PR #93 baseline. Baseline differences: **none**; no golden, tolerance or
+  scenario was changed.
+
+**Not claimed:**
+
+- **No Tacview visual review.** The recording is byte-identical and structurally
+  checked, not visually inspected (the pack's own `tacview-visual` limitation).
+- **One seed per scenario and a coupled engine** (the pack's `one-war` and
+  `coupled-engine` limits): identity to the baseline shows no change at that seed
+  and does not prove the helicopter step bit-identical for all inputs, nor
+  attribute behaviour to the host world rather than the DLL.
+- **Hold/release moved by only 0.764 m after release**, a small displacement
+  measured over a short window. It demonstrates the host-controlled pose is what
+  the campaign sees, not a flight profile.
+- **No live DCS run** (M6) and no separate long census, baseline or ABI rerun.
+- Only the AI server-path helicopter call is exercised.
 
 ### Tests
 
@@ -156,7 +193,7 @@ path:
 characterisation of ported maths and the guard tests are error-path checks written
 with the guard. Stated as a limitation, not as red evidence.
 
-### Public witness (to be run)
+### Public witness (design; result under Native evidence)
 
 `lua/helicopter-movement.lua` through `tools/helicopter-movement-windows.ps1` (modes
 `missing`, `control`, `hold`, plus `census` counts folded into `hold`), Lebanon
@@ -168,7 +205,7 @@ held and does change after release, and that every begin is followed by its end.
 also prints bound/moved counts per kind, begin/end step counts and
 `helicopter_pairs` (paired ends, begins that moved, and placements, the declared
 transitional writers). It makes no waypoint-advance claim. Paths: host Lua
--> `eech_dc` -> `move_vehicle`. Expected output: `result ok`.
+-> `eech_dc` -> `move_vehicle`. Output: `result ok` and `PASS`.
 
 ## Remaining coupling
 
@@ -216,13 +253,14 @@ cargo clippy --locked --all-targets -p eech-world -- -D warnings     # Windows h
 # pinned image eech-build, volumes eech-fw-target / eech-cargo
 cargo clippy --workspace --all-targets -- -D warnings                # after rustup component add clippy
 cargo test --locked                                                  # full workspace
+EECH_WIN_TARGET=eech-hc-settled-target tools/build-windows.sh target/hc-settled
+tools/helicopter-movement-windows.ps1 -Root <lebanon root> -Bin target/hc-settled -Out <out>
+python tools/regression-pack.py --georgia <georgia> --lebanon <lebanon> --lebanon-repeat <lebanon copy> --bin target/hc-settled --out <out>
 ```
 
 ## Next bounded action
 
-With the review corrections settled and committed locally: exactly one clean settled build
-(`tools/build-windows.sh`, pinned image, fresh target volume), then
-`tools/helicopter-movement-windows.ps1 -Root <lebanon root> -Bin <build> -Out <out>`
-for the combined causal witness and counts, then one candidate regression pack
-against the 40/40 baseline and the Tacview SHA-256 above. Record any difference
-under REVIEW.md's baseline governance; do not re-record goldens.
+Independent review of this runtime and evidence by the parent, then publication
+(branch, PR on the Task, handover). The PR needs the technical lead's formal approval
+before merge. If a later review changes C or Rust source, the settled build, witness
+and pack must be rerun against the new commit; do not re-record goldens.
