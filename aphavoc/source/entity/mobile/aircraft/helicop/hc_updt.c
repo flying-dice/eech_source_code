@@ -568,7 +568,6 @@ static void update_server (entity *en)
 					en,
 					&raw->ac.death_timer,
 					get_delta_time (),
-					calculate_mobile_nearest_keysite_sqr_range (en),
 					(get_local_entity_int_value (en, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI) ? 0 : CAMPAIGN_MOVEMENT_DEATH_OCCUPIED))
 			{
 				destroy_client_server_entity_family (en);

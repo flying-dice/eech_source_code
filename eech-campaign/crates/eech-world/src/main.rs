@@ -343,6 +343,7 @@ fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request
         },
         "create_place" => Request::Create(Creation {
             position: pose.position,
+            cg_to_ground: number(lua, step, "cg_to_ground")?,
             heading: number(lua, step, "desired_heading")?,
             fuselage_angle: number(lua, step, "fuselage_angle")?,
             face_normal: numbers(lua, step, "face_normal")?,

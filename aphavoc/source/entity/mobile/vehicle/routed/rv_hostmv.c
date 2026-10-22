@@ -187,7 +187,7 @@ void campaign_movement_place (entity *vehicle)
 	ask_host (&step);
 }
 
-int campaign_movement_create_place (entity *mobile, const vec3d *position, float heading, float fuselage_angle, const vec3d *face_normal, const vec3d *aircraft_vector, float *angles)
+int campaign_movement_create_place (entity *mobile, const vec3d *position, float cg_to_ground, float heading, float fuselage_angle, const vec3d *face_normal, const vec3d *aircraft_vector, vec3d *placed, float *angles)
 {
 	campaign_movement_step step;
 	campaign_movement_result result;
@@ -197,9 +197,12 @@ int campaign_movement_create_place (entity *mobile, const vec3d *position, float
 		return FALSE;
 	}
 	begin_step (&step, mobile, CAMPAIGN_MOVEMENT_CREATE_PLACE);
+	// the campaign's formation point on the terrain (x, z and the sampled ground height) and the entity's physical offset above
+	// it are inputs; the host answers the physical height
 	step.position[0] = position->x;
 	step.position[1] = position->y;
 	step.position[2] = position->z;
+	step.fw_cg_to_ground = cg_to_ground;
 	step.hc_desired_heading = heading;
 	step.fw_fuselage_angle = fuselage_angle;
 	step.face_normal[0] = face_normal->x;
@@ -212,6 +215,9 @@ int campaign_movement_create_place (entity *mobile, const vec3d *position, float
 		step.fw_motion_vector[2] = aircraft_vector->z;
 	}
 	result = ask_host (&step);
+	placed->x = result.position[0];
+	placed->y = result.position[1];
+	placed->z = result.position[2];
 	angles[0] = result.angles[0];
 	angles[1] = result.angles[1];
 	angles[2] = result.angles[2];
@@ -1285,22 +1291,31 @@ float campaign_movement_ship_sink (entity *en, float delta_seconds)
 	return result.position[1];
 }
 
-// EEDCS-38: the lifetime of a dead mobile.  The campaign passes its mirrored timer, its squared range to the nearest keysite and
-// its policy; the host accumulates the timer, applies the gate and the range-to-lifetime curve, and says whether the wreck has
-// expired.  The host's timer is written back to the mirror.  The explicit campaign removal request stays with the caller
+// EEDCS-38: the lifetime of a dead mobile.  The campaign passes its mirrored timer and its policy; the host accumulates the
+// timer, applies the gate and the range-to-lifetime curve, and says whether the wreck has expired.  The host's timer is written
+// back to the mirror.  The squared range to the nearest keysite is a full keysite traversal, which the original made only on a
+// gated frame: the host answers 2 when the gate is open and it needs the range, and the campaign then samples it once and
+// asks again with the range supplied.  The explicit campaign removal request stays with the caller
 
-int campaign_movement_expire (entity *en, float *death_timer, float delta_seconds, float nearest_keysite_sqr_range, int policy)
+int campaign_movement_expire (entity *en, float *death_timer, float delta_seconds, int policy)
 {
 	campaign_movement_step step;
 	campaign_movement_result result;
 
 	begin_step (&step, en, CAMPAIGN_MOVEMENT_EXPIRE);
 	step.death_timer = *death_timer;
-	step.death_range = nearest_keysite_sqr_range;
 	step.death_policy = policy;
 	step.delta_seconds = delta_seconds;
 
 	result = ask_lifecycle (&step, FALSE);
+
+	if (result.flags == CAMPAIGN_MOVEMENT_EXPIRE_NEEDS_RANGE)
+	{
+		step.death_range = calculate_mobile_nearest_keysite_sqr_range (en);
+		step.death_policy = policy | CAMPAIGN_MOVEMENT_DEATH_RANGE_SUPPLIED;
+
+		result = ask_lifecycle (&step, FALSE);
+	}
 
 	*death_timer = result.death_timer;
 

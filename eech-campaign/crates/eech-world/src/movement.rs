@@ -492,6 +492,13 @@ pub enum LifecycleMode {
 pub const DEATH_NEVER_EXPIRES: i32 = 1;
 /// `Lifecycle::death_policy`: a helicopter still occupied by a player is not removed; its timer restarts instead
 pub const DEATH_OCCUPIED: i32 = 2;
+/// `Lifecycle::death_policy`: `death_range` carries the campaign's squared range to the nearest keysite. Absent, the host
+/// answers `EXPIRE_NEEDS_RANGE` on a gated frame and the campaign samples the range only then (the original scanned every
+/// keysite only on the gated frame), asking again with this bit set.
+pub const DEATH_RANGE_SUPPLIED: i32 = 4;
+const DEATH_POLICY_BITS: i32 = DEATH_NEVER_EXPIRES | DEATH_OCCUPIED | DEATH_RANGE_SUPPLIED;
+/// the `Expire` answer asking for the keysite range: the gate is open, nothing has been aged or recorded
+pub const EXPIRE_NEEDS_RANGE: i32 = 2;
 
 impl LifecycleMode {
     fn name(self) -> &'static str {
@@ -611,12 +618,16 @@ pub struct Lifecycle {
     pub death_policy: i32,
 }
 
-/// The campaign's placement decision for a mobile it has just built: where (the height already includes the class's
-/// centre-of-gravity offset over the terrain the campaign sampled, the shared terrain service), which way it faces, the
-/// terrain face under it and the airframe's fuselage angle. The host owns the physical state this produces.
+/// The campaign's placement intent for a mobile it has just built, and the physical facts the host needs to place it:
+/// the formation's base point (x and z are the campaign's decision; y is the terrain height the campaign sampled from
+/// the shared terrain service, or the formation's own height where no terrain is followed), the class's
+/// centre-of-gravity offset above that base, which way it faces, the terrain face under it and the airframe's fuselage
+/// angle. The host computes the physical height and attitude, owns the state this produces and answers it.
 #[derive(Clone, Copy, Debug)]
 pub struct Creation {
     pub position: [f32; 3],
+    /// the physical offset the host adds to the base height (zero where the original added none)
+    pub cg_to_ground: f32,
     pub heading: f32,
     pub fuselage_angle: f32,
     pub face_normal: [f32; 3],
@@ -969,14 +980,20 @@ impl Movers {
             if record.placed {
                 return Err(format!("host.move_vehicle: create_place for {host_id}, which the host already created"));
             }
-            let numbers = creation
-                .position
-                .iter()
-                .chain(&creation.face_normal)
-                .chain(&creation.motion_vector)
-                .chain([&creation.heading, &creation.fuselage_angle]);
+            let numbers = creation.position.iter().chain(&creation.face_normal).chain(&creation.motion_vector).chain([
+                &creation.heading,
+                &creation.fuselage_angle,
+                &creation.cg_to_ground,
+            ]);
             if numbers.into_iter().any(|value| !value.is_finite()) {
                 return Err(format!("host.move_vehicle: create_place for {host_id} has a non-finite input"));
+            }
+            // the physical height: the base plus the centre-of-gravity offset, in single precision as the original added it
+            let placed = [creation.position[0], creation.position[1] + creation.cg_to_ground, creation.position[2]];
+            if !placed[1].is_finite() {
+                return Err(format!(
+                    "host.move_vehicle: create_place for {host_id} places the member at a non-finite height"
+                ));
             }
             let mut angles = [0.0f32; 3];
             let mut attitude = [0.0f32; 9];
@@ -991,7 +1008,7 @@ impl Movers {
                 );
             }
             record.pose = Pose {
-                position: creation.position,
+                position: placed,
                 velocity: campaign.velocity,
                 attitude,
             };
@@ -1324,12 +1341,23 @@ fn expire_lifecycle(record: &mut Record, host_id: &str, step: &Lifecycle) -> Res
             mode.name()
         ));
     }
+    if step.death_policy & !DEATH_POLICY_BITS != 0 {
+        return Err(format!(
+            "host.move_vehicle: expire for {host_id} carries unsupported death_policy bits {:#x}",
+            step.death_policy & !DEATH_POLICY_BITS
+        ));
+    }
     let mut outcome = settled(record.pose, false, [0.0; 3]);
     if record.kind == Kind::Ship {
         // `obscured_altitude = -(0.5 * magnitude)` is a double product narrowed into a float, then compared with a float
         let obscured_altitude = (-(0.5f64 * f64::from(step.bbox_diagonal))) as f32;
         outcome.flags = i32::from(record.pose.position[1] < obscured_altitude);
         return Ok(outcome);
+    }
+    // the C gate converts `(int)(timer + 1)`: refuse a timer or delta it cannot convert, before anything is read or kept
+    let valid_time = |value: f32| value.is_finite() && value >= 0.0;
+    if !valid_time(step.death_timer) || !valid_time(step.delta_seconds) {
+        return Err(format!("host.move_vehicle: expire for {host_id} needs a finite, nonnegative timer and delta"));
     }
     let held = match record.death_timer {
         Some(held) => {
@@ -1339,10 +1367,28 @@ fn expire_lifecycle(record: &mut Record, host_id: &str, step: &Lifecycle) -> Res
         None => step.death_timer,
     };
     let mut timer = held + step.delta_seconds;
+    // the gate's `(int)(timer + 1)` is undefined past the int range; `i32::MAX as f32` is 2^31, so strict
+    if !timer.is_finite() || timer + 1.0 >= i32::MAX as f32 {
+        return Err(format!("host.move_vehicle: expire for {host_id} would age its timer past the gate's range"));
+    }
+    let range_supplied = step.death_policy & DEATH_RANGE_SUPPLIED != 0;
+    if range_supplied && !valid_time(step.death_range) {
+        return Err(format!(
+            "host.move_vehicle: expire for {host_id} supplies a non-finite or negative keysite range"
+        ));
+    }
     let mut expired = false;
     if step.death_policy & DEATH_NEVER_EXPIRES == 0 {
-        // SAFETY: both are scalar-in, scalar-out arithmetic.
-        let (gated, threshold) = unsafe { (eech_expire_gate(timer) != 0, eech_expire_threshold(step.death_range)) };
+        // SAFETY: scalar-in, scalar-out arithmetic; the timer was range-checked above.
+        let gated = unsafe { eech_expire_gate(timer) != 0 };
+        if gated && !range_supplied {
+            // the range is the campaign's costly full keysite scan, wanted only on a gated frame: ask for it, change nothing
+            outcome.death_timer = held;
+            outcome.flags = EXPIRE_NEEDS_RANGE;
+            return Ok(outcome);
+        }
+        // SAFETY: scalar-in, scalar-out arithmetic.
+        let threshold = if gated { unsafe { eech_expire_threshold(step.death_range) } } else { 0.0 };
         if gated && timer >= threshold {
             if step.death_policy & DEATH_OCCUPIED != 0 {
                 timer = 0.0;
@@ -2107,11 +2153,39 @@ mod tests {
     fn creation(position: [f32; 3], heading: f32, face_normal: [f32; 3]) -> Creation {
         Creation {
             position,
+            cg_to_ground: 0.0,
             heading,
             fuselage_angle: 0.0,
             face_normal,
             motion_vector: [0.0, 0.0, 100.0],
         }
+    }
+
+    #[test]
+    fn the_host_answers_the_physical_height_from_the_base_and_the_cg_offset() {
+        let mut low = movers(Kind::Routed, pose(0.0, 0.0));
+        let mut high = movers(Kind::Routed, pose(0.0, 0.0));
+        let mut request = creation([10.0, 100.0, 20.0], 0.0, [0.0, 1.0, 0.0]);
+        request.cg_to_ground = 1.5;
+        let first = low.step("v", pose(0.0, 0.0), Request::Create(request)).unwrap();
+        // x and z are the campaign's formation intent; the height is the host's sum
+        assert_eq!(first.pose.position, [10.0, 100.0 + 1.5, 20.0]);
+        request.cg_to_ground = 4.0;
+        let second = high.step("v", pose(0.0, 0.0), Request::Create(request)).unwrap();
+        assert_eq!(second.pose.position, [10.0, 104.0, 20.0]);
+        // the record keeps the host's height, not the request's base
+        assert_eq!(high.step("v", second.pose, Request::Stop).unwrap().pose.position, [10.0, 104.0, 20.0]);
+    }
+
+    #[test]
+    fn a_creation_whose_height_overflows_changes_nothing() {
+        let mut movers = movers(Kind::Routed, pose(3.0, 4.0));
+        let mut bad = creation([0.0, f32::MAX, 0.0], 0.0, [0.0, 1.0, 0.0]);
+        bad.cg_to_ground = f32::MAX;
+        assert!(movers.step("v", pose(3.0, 4.0), Request::Create(bad)).unwrap_err().contains("non-finite"));
+        assert!(movers
+            .step("v", pose(3.0, 4.0), Request::Create(creation([5.0; 3], 0.0, [0.0, 1.0, 0.0])))
+            .is_ok());
     }
 
     #[test]
@@ -3831,7 +3905,7 @@ mod tests {
         let mut near = Movers::default();
         near.bind("v", Kind::Routed, start, None, None).unwrap();
         run(&mut near, start, expiry(298.6, 0.0, 0.0, 0)).unwrap();
-        let before = run(&mut near, start, expiry(298.6, 0.5, 0.0, 0)).unwrap();
+        let before = run(&mut near, start, expiry(298.6, 0.5, 0.0, DEATH_RANGE_SUPPLIED)).unwrap();
         assert_eq!((before.death_timer, before.flags), (299.1, 0), "gated but under 300 s");
         let past = run(&mut near, start, expiry(before.death_timer, 1.0, 0.0, 0)).unwrap();
         assert_eq!((past.death_timer, past.flags), (300.1, 0), "over the threshold but off the gate");
@@ -3840,7 +3914,7 @@ mod tests {
         let mut late = Movers::default();
         late.bind("v", Kind::Routed, start, None, None).unwrap();
         run(&mut late, start, expiry(598.9, 0.0, 0.0, 0)).unwrap();
-        let ended = run(&mut late, start, expiry(598.9, 0.5, 0.0, 0)).unwrap();
+        let ended = run(&mut late, start, expiry(598.9, 0.5, 0.0, DEATH_RANGE_SUPPLIED)).unwrap();
         assert_eq!((ended.death_timer, ended.flags), (599.4, 1));
     }
 
@@ -3857,12 +3931,12 @@ mod tests {
         // at 5e7 the gate window [5399, 5400) is under the 5445 s threshold, [5699, 5700) is over it
         let start = pose(0.0, 0.0);
         let mut movers = movers(Kind::Routed, start);
-        run(&mut movers, start, expiry(5399.2, 0.0, 5.0e7, 0)).unwrap();
-        assert_eq!(run(&mut movers, start, expiry(5399.2, 0.5, 5.0e7, 0)).unwrap().flags, 0);
+        run(&mut movers, start, expiry(5399.2, 0.0, 5.0e7, DEATH_RANGE_SUPPLIED)).unwrap();
+        assert_eq!(run(&mut movers, start, expiry(5399.2, 0.5, 5.0e7, DEATH_RANGE_SUPPLIED)).unwrap().flags, 0);
         let mut over = Movers::default();
         over.bind("v", Kind::Routed, start, None, None).unwrap();
-        run(&mut over, start, expiry(5699.0, 0.0, 5.0e7, 0)).unwrap();
-        assert_eq!(run(&mut over, start, expiry(5699.0, 0.5, 5.0e7, 0)).unwrap().flags, 1);
+        run(&mut over, start, expiry(5699.0, 0.0, 5.0e7, DEATH_RANGE_SUPPLIED)).unwrap();
+        assert_eq!(run(&mut over, start, expiry(5699.0, 0.5, 5.0e7, DEATH_RANGE_SUPPLIED)).unwrap().flags, 1);
     }
 
     #[test]
@@ -3871,7 +3945,7 @@ mod tests {
         let mut player = Movers::default();
         player.bind("v", Kind::Helicopter, start, Some(SEED), Some(ROTOR)).unwrap();
         run(&mut player, start, expiry(598.9, 0.0, 0.0, DEATH_OCCUPIED)).unwrap();
-        let reset = run(&mut player, start, expiry(598.9, 0.5, 0.0, DEATH_OCCUPIED)).unwrap();
+        let reset = run(&mut player, start, expiry(598.9, 0.5, 0.0, DEATH_OCCUPIED | DEATH_RANGE_SUPPLIED)).unwrap();
         assert_eq!((reset.death_timer, reset.flags), (0.0, 0));
         // the reset is the host's answer: the next frame ages from zero
         let aged = run(&mut player, start, expiry(reset.death_timer, 0.5, 0.0, DEATH_OCCUPIED)).unwrap();
@@ -3920,5 +3994,61 @@ mod tests {
         movers.retire("v").unwrap();
         let error = run(&mut movers, start, expiry(11.0, 0.5, 0.0, 0)).unwrap_err();
         assert!(error.contains("retired"), "{error}");
+    }
+
+    #[test]
+    fn the_keysite_range_is_asked_for_only_on_a_gated_frame_and_the_ask_changes_nothing() {
+        let start = pose(0.0, 0.0);
+        let mut movers = movers(Kind::Routed, start);
+        // off the gate (int(timer + 1) is not a multiple of 300) the host never asks, whatever the range bit says
+        for (timer, delta) in [(0.0, 0.5), (1.0, 0.5), (297.0, 0.5), (298.6, 0.0), (299.1, 1.0), (300.1, 0.5)] {
+            let mut quiet = Movers::default();
+            quiet.bind("v", Kind::Routed, start, None, None).unwrap();
+            let answer = run(&mut quiet, start, expiry(timer, delta, 0.0, 0)).unwrap();
+            assert_eq!(answer.flags, 0, "{timer}+{delta} is off the gate");
+        }
+        // on the gate it asks, and has neither aged nor recorded the timer, so the same step can be repeated
+        run(&mut movers, start, expiry(598.9, 0.0, 0.0, 0)).unwrap();
+        let asked = run(&mut movers, start, expiry(598.9, 0.5, 0.0, 0)).unwrap();
+        assert_eq!((asked.flags, asked.death_timer), (EXPIRE_NEEDS_RANGE, 598.9));
+        let again = run(&mut movers, start, expiry(598.9, 0.5, 0.0, 0)).unwrap();
+        assert_eq!(again.flags, EXPIRE_NEEDS_RANGE);
+        // supplied, the same step is answered and aged: 599.4 s is over the 300 s threshold at zero range
+        let answered = run(&mut movers, start, expiry(598.9, 0.5, 0.0, DEATH_RANGE_SUPPLIED)).unwrap();
+        assert_eq!((answered.flags, answered.death_timer), (1, 599.4));
+        // a wreck that never expires does not ask for a range it would not use
+        let mut guns = Movers::default();
+        guns.bind("v", Kind::Routed, start, None, None).unwrap();
+        run(&mut guns, start, expiry(598.9, 0.0, 0.0, DEATH_NEVER_EXPIRES)).unwrap();
+        assert_eq!(run(&mut guns, start, expiry(598.9, 0.5, 0.0, DEATH_NEVER_EXPIRES)).unwrap().flags, 0);
+    }
+
+    #[test]
+    fn an_expiry_the_gate_cannot_convert_is_refused_before_anything_is_kept() {
+        let start = pose(0.0, 0.0);
+        let mut movers = movers(Kind::Routed, start);
+        run(&mut movers, start, expiry(10.0, 0.5, 0.0, 0)).unwrap();
+        let ranged = DEATH_RANGE_SUPPLIED;
+        let refused = [
+            ("negative delta", expiry(10.5, -1.0, 0.0, 0), "nonnegative"),
+            ("nan delta", expiry(10.5, f32::NAN, 0.0, 0), "nonnegative"),
+            ("infinite delta", expiry(10.5, f32::INFINITY, 0.0, 0), "nonnegative"),
+            ("negative timer", expiry(-1.0, 0.5, 0.0, 0), "nonnegative"),
+            ("nan timer", expiry(f32::NAN, 0.5, 0.0, 0), "nonnegative"),
+            ("overflowing delta", expiry(10.5, f32::MAX, 0.0, 0), "past the gate's range"),
+            ("out of int range delta", expiry(10.5, 3.0e9, 0.0, 0), "past the gate's range"),
+            ("unknown policy bit", expiry(10.5, 0.5, 0.0, 8), "death_policy"),
+            ("negative policy", expiry(10.5, 0.5, 0.0, -1), "death_policy"),
+            ("nan range", expiry(10.5, 0.5, f32::NAN, ranged), "keysite range"),
+            ("negative range", expiry(10.5, 0.5, -1.0, ranged), "keysite range"),
+        ];
+        for (name, step, expected) in refused {
+            let error = run(&mut movers, start, step).unwrap_err();
+            assert!(error.contains(expected), "{name}: {error}");
+        }
+        // none of it reached the record: the host still holds 10.5 and ages from there
+        assert_eq!(run(&mut movers, start, expiry(10.5, 0.5, 0.0, 0)).unwrap().death_timer, 11.0);
+        // an unsupplied range may be anything: it is not read
+        assert_eq!(run(&mut movers, start, expiry(11.0, 0.5, f32::NAN, 0)).unwrap().death_timer, 11.5);
     }
 }

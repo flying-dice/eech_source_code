@@ -360,9 +360,9 @@ pub struct MovementStep {
     pub water: bool,
     /// `Expire`: the campaign's mirror of the wreck's timer
     pub death_timer: f32,
-    /// `Expire`: the campaign's squared 2D range to the nearest keysite
+    /// `Expire`: the campaign's squared 2D range to the nearest keysite; meaningful only with the range-supplied bit
     pub death_range: f32,
-    /// `Expire`: the campaign's decision bits (1 never expires, 2 occupied by a player)
+    /// `Expire`: the campaign's decision bits (1 never expires, 2 occupied by a player, 4 `death_range` is supplied)
     pub death_policy: i32,
 }
 
@@ -389,7 +389,8 @@ pub struct MovementResult {
     /// nothing eased, 1 eased, 3 eased and the roll draw consumed; `FwCrashVelocity` bit 0 stopped;
     /// `FwCrashAttitude` bit 0 at rest; every other mode 0
     pub flags: i32,
-    /// `CreatePlace` only: the heading, pitch and roll the host placed the member at (zero for every other mode)
+    /// `CreatePlace` only: the heading, pitch and roll the host placed the member at (zero for every other mode); the
+    /// host's physical position is `pose.position`
     pub angles: [f32; 3],
     /// `Expire` only: the host's timer after the step, which the campaign mirrors (zero for every other mode)
     pub death_timer: f32,
@@ -401,7 +402,9 @@ pub fn result_flags_are_valid(mode: MovementMode, flags: i32) -> bool {
         // contact alone; contact with the water effects (splash, sunk, both); contact with the ground impact
         MovementMode::GvFallSettle => matches!(flags, 0 | 1 | 3 | 5 | 7 | 9),
         MovementMode::FwDeathAttitude => matches!(flags, -1 | 0 | 1 | 3),
-        MovementMode::FwCrashVelocity | MovementMode::FwCrashAttitude | MovementMode::Expire => matches!(flags, 0 | 1),
+        MovementMode::FwCrashVelocity | MovementMode::FwCrashAttitude => matches!(flags, 0 | 1),
+        // not expired; expired; or the gate fell and the host needs the campaign's keysite range before it can decide
+        MovementMode::Expire => matches!(flags, 0..=2),
         _ => flags == 0,
     }
 }
@@ -1836,12 +1839,15 @@ mod tests {
         let mut step = place_step([4.0, -1.0, 80.0]);
         step.mode = sys::EECH_MOVEMENT_CREATE_PLACE;
         step.position = [10.0, 20.0, 30.0];
+        step.fw_cg_to_ground = 1.75;
         step.hc_desired_heading = 1.25;
         step.fw_fuselage_angle = 0.1;
         step.face_normal = [0.0, 0.8, 0.6];
         let request = received(&step);
         assert_eq!(request.mode, MovementMode::CreatePlace);
         assert_eq!(request.pose.position, [10.0, 20.0, 30.0]);
+        // the physical offset is an input fact the host adds; it is not folded into the position
+        assert_eq!(request.cg_to_ground, 1.75);
         assert_eq!((request.desired_heading, request.fuselage_angle), (1.25, 0.1));
         assert_eq!(request.face_normal, [0.0, 0.8, 0.6]);
         // the aircraft vector is the placement field, as for Place
@@ -1868,7 +1874,9 @@ mod tests {
         assert_eq!(request.bbox_diagonal, 12.0);
         assert!(request.terrain.is_none());
         assert!(result_flags_are_valid(MovementMode::Expire, 0) && result_flags_are_valid(MovementMode::Expire, 1));
-        assert!(!result_flags_are_valid(MovementMode::Expire, 2));
+        // 2: the gate fell and the host asks for the keysite range
+        assert!(result_flags_are_valid(MovementMode::Expire, 2));
+        assert!(!result_flags_are_valid(MovementMode::Expire, 3));
     }
 
     #[test]
@@ -1885,7 +1893,8 @@ mod tests {
             match mode {
                 MovementMode::GvFallSettle => &[0, 1, 3, 5, 7, 9],
                 MovementMode::FwDeathAttitude => &[-1, 0, 1, 3],
-                MovementMode::FwCrashVelocity | MovementMode::FwCrashAttitude | MovementMode::Expire => &[0, 1],
+                MovementMode::FwCrashVelocity | MovementMode::FwCrashAttitude => &[0, 1],
+                MovementMode::Expire => &[0, 1, 2],
                 _ => &[0],
             }
         }
@@ -1896,7 +1905,7 @@ mod tests {
         accepted(MovementMode::FwDeathAttitude, &[-1, 0, 1, 3]);
         accepted(MovementMode::FwCrashVelocity, &[0, 1]);
         accepted(MovementMode::FwCrashAttitude, &[0, 1]);
-        accepted(MovementMode::Expire, &[0, 1]);
+        accepted(MovementMode::Expire, &[0, 1, 2]);
         accepted(MovementMode::GvDeathDecay, &[0]);
         accepted(MovementMode::FwSettle, &[0]);
         // the ground impact and a splash that is not also a contact are not answers

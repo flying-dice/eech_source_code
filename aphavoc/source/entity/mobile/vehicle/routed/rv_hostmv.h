@@ -407,22 +407,26 @@ void campaign_movement_place (struct ENTITY *vehicle);
 void campaign_movement_retire (const char *host_id);
 
 /*
- * EEDCS-38 initial placement.  The campaign chose the point, the heading and the terrain sample; the host builds the physical
- * attitude and adopts the pose (the creation speed is the entity's own).  Returns TRUE and fills `angles` (heading, pitch,
- * roll) when the entity is hosted; FALSE (nothing filled) otherwise, and the caller then runs the original in-process
- * arithmetic.  The caller applies `angles` through the original angle setter and the position through the original position
- * setter, both inside apply_begin/apply_end so neither re-issues a PLACE nor overwrites the host's answer.
- * `aircraft_vector` (may be NULL) is an aircraft's creation motion vector.
+ * EEDCS-38 initial placement.  The campaign chose the formation point (x, z), the sampled terrain height (`position->y`, the
+ * shared terrain service), the heading and the entity's centre-of-gravity offset above the ground; the host builds the physical
+ * height and attitude and adopts the pose (the creation speed is the entity's own).  Returns TRUE and fills `placed` (the
+ * host's position) and `angles` (heading, pitch, roll) when the entity is hosted; FALSE (nothing filled) otherwise, and the
+ * caller then runs the original in-process arithmetic.  The caller applies `angles` through the original angle setter and
+ * `placed` through the original position setter, both inside apply_begin/apply_end so neither re-issues a PLACE nor overwrites
+ * the host's answer.  `aircraft_vector` (may be NULL) is an aircraft's creation motion vector.
  */
-int campaign_movement_create_place (struct ENTITY *mobile, const struct VEC3D *position, float heading, float fuselage_angle, const struct VEC3D *face_normal, const struct VEC3D *aircraft_vector, float *angles);
+int campaign_movement_create_place (struct ENTITY *mobile, const struct VEC3D *position, float cg_to_ground, float heading, float fuselage_angle, const struct VEC3D *face_normal, const struct VEC3D *aircraft_vector, struct VEC3D *placed, float *angles);
 
-/* EEDCS-38 physical expiry of a dead mobile.  The host owns the timer, its gate and the lifetime curve; the campaign supplies its
-   squared range to the nearest keysite and whether the wreck may expire at all.  The mirrored timer is written back.  Returns TRUE
-   when the host says the wreck has expired (the caller then makes the explicit campaign removal request).  An entity that is not
-   hosted is a fatal error, as for the other lifecycle steps */
+/* EEDCS-38 physical expiry of a dead mobile.  The host owns the timer, its gate and the lifetime curve; the campaign supplies
+   whether the wreck may expire at all.  The squared range to the nearest keysite is sampled by the campaign only when the host
+   says its gate is open (answer 2) and is then supplied with CAMPAIGN_MOVEMENT_DEATH_RANGE_SUPPLIED.  The mirrored timer is
+   written back.  Returns TRUE when the host says the wreck has expired (the caller then makes the explicit campaign removal
+   request).  An entity that is not hosted is a fatal error, as for the other lifecycle steps */
 #define CAMPAIGN_MOVEMENT_DEATH_NEVER_EXPIRES	1
 #define CAMPAIGN_MOVEMENT_DEATH_OCCUPIED		2
-int campaign_movement_expire (struct ENTITY *mobile, float *death_timer, float delta_seconds, float nearest_keysite_sqr_range, int policy);
+#define CAMPAIGN_MOVEMENT_DEATH_RANGE_SUPPLIED	4
+#define CAMPAIGN_MOVEMENT_EXPIRE_NEEDS_RANGE	2
+int campaign_movement_expire (struct ENTITY *mobile, float *death_timer, float delta_seconds, int policy);
 
 /* a ship's sink test: TRUE when the host's height for the sunk ship is below the sight of its shape (bounding box diagonal) */
 int campaign_movement_ship_sunk (struct ENTITY *ship, float bbox_diagonal);

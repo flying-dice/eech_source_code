@@ -224,7 +224,7 @@ static void update_server (entity *en)
 
 			campaign_movement_require_hosted (en);
 
-			if (campaign_movement_expire (en, &raw->ac.death_timer, get_delta_time (), calculate_mobile_nearest_keysite_sqr_range (en), 0))
+			if (campaign_movement_expire (en, &raw->ac.death_timer, get_delta_time (), 0))
 			{
 				destroy_client_server_entity_family (en);
 			}

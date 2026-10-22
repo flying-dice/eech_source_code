@@ -89,9 +89,11 @@ actual DCS identity binding exists in this slice.
 
 ## Remaining work
 
-Physical initial placement, wreck lifetime and heap-release retirement are
-host-owned for the six mobile families as of EEDCS-38 (`m5-force-creation.md`,
-which also records what remains coupled). The next cuts must publish campaign
+In code (not yet validated by the native pack), the host computes the physical
+initial height and attitude from the campaign's input facts, owns the wreck
+lifetime gate and timer, and refuses a retired identity, as of EEDCS-38
+(`m5-force-creation.md`, which also records what remains coupled and unverified).
+The campaign keeps formation, route, heading and the terrain base sample. The next cuts must publish campaign
 requests, accept host observations, route the natural loss and arrival paths through
 those observations, and remove pointer and hidden-world reads before the
 campaign/world link split. The existing loss structural proof remains the
