@@ -1,5 +1,5 @@
 /*
- * Host-owned movement of alive routed vehicles, ships and infantry.  The host
+ * Host-owned movement of alive routed vehicles, ships, infantry and fixed-wing aircraft.  The host
  * keeps the authoritative position, speed and orientation of an alive mobile,
  * keyed by its host identity, and performs the physical step.  Campaign code keeps the
  * route, formation, hold and engage policy: it decides whether to move, stop
@@ -33,14 +33,16 @@ enum campaign_movement_mode
 	CAMPAIGN_MOVEMENT_PLACE,	/* the campaign placed the vehicle: adopt the pose */
 	CAMPAIGN_MOVEMENT_SHIP_MOVE,	/* a ship's step towards the waypoint */
 	CAMPAIGN_MOVEMENT_PERSON_BEGIN,	/* infantry, phase one: the horizontal advance, held by the host */
-	CAMPAIGN_MOVEMENT_PERSON_END	/* infantry, phase two: the host places at the campaign's terrain elevation */
+	CAMPAIGN_MOVEMENT_PERSON_END,	/* infantry, phase two: the host places at the campaign's terrain elevation */
+	CAMPAIGN_MOVEMENT_FIXED_WING_MOVE	/* a fixed-wing aircraft's step (taxi, flight, landing or absolute) */
 };
 
 enum campaign_movement_kind
 {
 	CAMPAIGN_MOVEMENT_KIND_ROUTED = 1,
 	CAMPAIGN_MOVEMENT_KIND_SHIP,
-	CAMPAIGN_MOVEMENT_KIND_PERSON
+	CAMPAIGN_MOVEMENT_KIND_PERSON,
+	CAMPAIGN_MOVEMENT_KIND_FIXED_WING
 };
 
 typedef struct campaign_movement_step
@@ -71,6 +73,19 @@ typedef struct campaign_movement_step
 	/* PERSON_BEGIN: the animation's speed; terrain_follow announces that PERSON_END will follow;
 	   PERSON_END: elevation is the campaign's terrain sample at the position PERSON_BEGIN returned */
 	float ps_vel;
+	/* FIXED_WING_MOVE: the campaign's guidance for the step.  desired_velocity is the waypoint speed, g_max the
+	   class's g limit, elevation the terrain sample under the aircraft; the other shared fields are as for a ship.
+	   fw_phase selects taxi, flight, landing or the absolute update; fw_acceleration is the navigator's
+	   advisory; fw_motion_vector is the motion vector the previous step left (the old direction of travel) */
+	int fw_phase;
+	float fw_acceleration[3];
+	float fw_motion_vector[3];
+	float fw_cruise_velocity;
+	float fw_fuselage_angle;
+	float fw_cg_to_ground;
+	float fw_max_roll;
+	float fw_turn_speed_multi;
+	int fw_navigating;
 } campaign_movement_step;
 
 typedef struct campaign_movement_result
@@ -103,10 +118,41 @@ typedef struct campaign_movement_host
 struct ENTITY;
 struct VEC3D;
 
+/* the campaign's guidance for one fixed-wing step: the phase is one of the CAMPAIGN_FIXED_WING_* values */
+enum
+{
+	CAMPAIGN_FIXED_WING_TAXI = 0,
+	CAMPAIGN_FIXED_WING_FLIGHT,
+	CAMPAIGN_FIXED_WING_LAND,
+	CAMPAIGN_FIXED_WING_ABSOLUTE
+};
+
+typedef struct campaign_fixed_wing_guidance
+{
+	int phase;
+	float wp_vel;
+	float cruise_velocity;
+	float g_max;
+	float fuselage_angle;
+	float cg_to_ground;
+	float max_roll;
+	float turn_speed_multi;
+	float waypoint[3];
+	float acceleration[3];
+	float motion_vector[3];
+	int navigating;
+	float elevation;
+	float delta_seconds;
+	float frame_delta;
+} campaign_fixed_wing_guidance;
+
 void campaign_movement_set_host (const campaign_movement_host *host);
 
 /* the vehicle's physical state is host-owned: it has a host identity and a movement host is set */
 int campaign_movement_is_hosted (struct ENTITY *vehicle);
+
+/* a host-movement build never moves a live vehicle itself: stop with a clear error when it has no host to move it */
+void campaign_movement_require_hosted (struct ENTITY *vehicle);
 
 /* one MOVE step towards the waypoint; the host's pose is applied to the entity */
 void campaign_movement_move (struct ENTITY *vehicle, struct ENTITY *guide, const struct VEC3D *waypoint);
@@ -116,6 +162,9 @@ float campaign_movement_stop (struct ENTITY *vehicle);
 
 /* one ship step; the host's pose and motion vector are applied to the entity */
 void campaign_movement_ship_move (struct ENTITY *vehicle, struct ENTITY *guide, const struct VEC3D *waypoint);
+
+/* one fixed-wing step; the host's pose and motion vector are applied to the aircraft */
+void campaign_movement_fixed_wing_move (struct ENTITY *aircraft, const campaign_fixed_wing_guidance *guidance);
 
 /*
  * One infantry step in two phases around the campaign's terrain sample.  `begin` returns the

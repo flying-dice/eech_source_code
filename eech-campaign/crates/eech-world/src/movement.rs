@@ -1,5 +1,5 @@
-//! The host's physical record of its alive ground convoy vehicles, ships and
-//! infantry, keyed by the host identity it issued at `bind_mobile`. The campaign
+//! The host's physical record of its alive ground convoy vehicles, ships,
+//! infantry and fixed-wing aircraft, keyed by the host identity it issued at `bind_mobile`. The campaign
 //! asks for a step; the host owns the position, speed and attitude it keeps, and
 //! the answer is what the campaign applies.
 //!
@@ -76,6 +76,31 @@ extern "C" {
         elevation: f32,
         motion_vector: *mut f32,
     );
+
+    fn eech_fw_step(
+        phase: c_int,
+        position: *mut f32,
+        velocity: *mut f32,
+        attitude: *mut f32,
+        delta_seconds: f32,
+        frame_delta: f32,
+        wp_vel: f32,
+        cruise_velocity: f32,
+        g_max: f32,
+        fuselage_angle: f32,
+        cg_to_ground: f32,
+        max_roll: f32,
+        turn_speed_multi: f32,
+        waypoint: *const f32,
+        acceleration: *const f32,
+        motion_vector: *mut f32,
+        navigating: c_int,
+        elevation: f32,
+        map_min: *const f32,
+        map_max: *const f32,
+        tacview_logging: c_int,
+        rotated: *mut c_int,
+    );
 }
 
 /// Position in EECH world metres, speed in m/s, a row-major 3x3 attitude.
@@ -108,6 +133,7 @@ pub enum Kind {
     Routed,
     Ship,
     Person,
+    FixedWing,
 }
 
 /// Terrain at the pre-move position, sampled by the campaign.
@@ -162,6 +188,47 @@ pub struct PersonEnd {
     pub elevation: f32,
 }
 
+/// Which physical step of an alive fixed-wing aircraft the campaign's guidance chose.
+/// The numbers are the C step's `PHASE_*`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(i32)]
+pub enum FixedWingPhase {
+    Taxi = 0,
+    Flight = 1,
+    Land = 2,
+    Absolute = 3,
+}
+
+/// A fixed-wing aircraft's step. The campaign supplies the guidance (the phase, the waypoint,
+/// the guide's speed, the navigator's acceleration, the previous motion vector and the class
+/// parameters); the host integrates velocity, position and attitude and answers the new motion
+/// vector. `delta_seconds` is the engine's step delta and `frame_delta` the frame reciprocal:
+/// they are different values.
+#[derive(Clone, Copy, Debug)]
+pub struct FixedWingMove {
+    pub phase: FixedWingPhase,
+    pub delta_seconds: f32,
+    pub frame_delta: f32,
+    pub wp_vel: f32,
+    pub cruise_velocity: f32,
+    pub g_max: f32,
+    pub fuselage_angle: f32,
+    pub cg_to_ground: f32,
+    pub max_roll: f32,
+    pub turn_speed_multi: f32,
+    pub waypoint: [f32; 3],
+    pub acceleration: [f32; 3],
+    /// The DLL's mirror of the aircraft's previous motion vector. The host retains the vector
+    /// itself (physical state, seeded at binding) and flies with its own; the mirror is only
+    /// validated bit for bit against it, like the pose, so a write the host did not make is refused.
+    pub motion_vector: [f32; 3],
+    pub navigating: bool,
+    pub elevation: f32,
+    pub tacview_logging: bool,
+    pub map_min: [f32; 3],
+    pub map_max: [f32; 3],
+}
+
 #[derive(Clone, Copy, Debug)]
 pub enum Request {
     /// a routed vehicle steps towards the waypoint
@@ -174,8 +241,12 @@ pub enum Request {
     PersonBegin(PersonBegin),
     /// an infantryman's final step, after the campaign sampled the terrain
     PersonEnd(PersonEnd),
-    /// the campaign placed the mobile: adopt its pose
-    Place,
+    /// an alive fixed-wing aircraft's step
+    FixedWingMove(FixedWingMove),
+    /// the campaign placed the mobile: adopt its pose. `motion_vector` is the DLL's motion
+    /// vector, adopted only by a fixed-wing record (declared transitional coupling: the DLL
+    /// still writes an aircraft's vector outside a host step).
+    Place { motion_vector: [f32; 3] },
 }
 
 impl Request {
@@ -186,7 +257,8 @@ impl Request {
             Request::ShipMove(_) => "ship_move",
             Request::PersonBegin(_) => "person_begin",
             Request::PersonEnd(_) => "person_end",
-            Request::Place => "place",
+            Request::FixedWingMove(_) => "fixed_wing_move",
+            Request::Place { .. } => "place",
         }
     }
 
@@ -196,7 +268,8 @@ impl Request {
             Request::Advance(_) | Request::Stop => Some(Kind::Routed),
             Request::ShipMove(_) => Some(Kind::Ship),
             Request::PersonBegin(_) | Request::PersonEnd(_) => Some(Kind::Person),
-            Request::Place => None,
+            Request::FixedWingMove(_) => Some(Kind::FixedWing),
+            Request::Place { .. } => None,
         }
     }
 }
@@ -225,6 +298,8 @@ struct Pending {
 struct Record {
     kind: Kind,
     pose: Pose,
+    /// A fixed-wing aircraft's previous motion vector, retained by the host; `None` for other kinds.
+    motion_vector: Option<[f32; 3]>,
     pending: Option<Pending>,
 }
 
@@ -234,9 +309,26 @@ pub struct Movers {
 }
 
 impl Movers {
-    /// Start the record of a mobile the host just issued `host_id` to.
-    pub fn bind(&mut self, host_id: &str, kind: Kind, pose: Pose) {
-        self.mobiles.insert(host_id.to_owned(), Record { kind, pose, pending: None });
+    /// Start the record of a mobile the host just issued `host_id` to. A fixed-wing aircraft
+    /// must be seeded with its motion vector, and no other kind may be: a missing seed is
+    /// refused rather than defaulted.
+    pub fn bind(&mut self, host_id: &str, kind: Kind, pose: Pose, motion_vector: Option<[f32; 3]>) -> Result<(), String> {
+        match (kind, motion_vector) {
+            (Kind::FixedWing, None) => return Err(format!("host.bind_mobile: fixed-wing {host_id} was bound without a motion vector")),
+            (Kind::FixedWing, Some(_)) => {}
+            (_, Some(_)) => return Err(format!("host.bind_mobile: {kind:?} {host_id} was bound with a motion vector")),
+            (_, None) => {}
+        }
+        self.mobiles.insert(
+            host_id.to_owned(),
+            Record {
+                kind,
+                pose,
+                motion_vector,
+                pending: None,
+            },
+        );
+        Ok(())
     }
 
     /// Run one request. `campaign` is the campaign's copy of the pose; the
@@ -263,8 +355,11 @@ impl Movers {
             }
             (_, false) => {}
         }
-        if matches!(request, Request::Place) {
+        if let Request::Place { motion_vector } = request {
             record.pose = campaign;
+            if record.kind == Kind::FixedWing {
+                record.motion_vector = Some(motion_vector);
+            }
             return Ok(settled(record.pose, false, [0.0; 3]));
         }
         if let Some(what) = campaign.first_difference(&record.pose) {
@@ -287,7 +382,21 @@ impl Movers {
             }
             Request::PersonBegin(begin) => Ok(begin_person(record, &begin)),
             Request::PersonEnd(end) => Ok(end_person(record, &end)),
-            Request::Place => unreachable!("placed above"),
+            Request::FixedWingMove(fixed_wing) => {
+                let held = record
+                    .motion_vector
+                    .ok_or_else(|| format!("host.move_vehicle: fixed-wing {host_id} has no retained motion vector"))?;
+                if let Some(index) = held.iter().zip(&fixed_wing.motion_vector).position(|(a, b)| a.to_bits() != b.to_bits()) {
+                    return Err(format!(
+                        "host.move_vehicle: the campaign's motion_vector[{index}] ({} against {}) for {host_id} differs from the host's record (a write the host did not make)",
+                        fixed_wing.motion_vector[index], held[index]
+                    ));
+                }
+                let (motion_vector, rotated) = fixed_wing_pose(&mut record.pose, held, &fixed_wing);
+                record.motion_vector = Some(motion_vector);
+                Ok(settled(record.pose, rotated, motion_vector))
+            }
+            Request::Place { .. } => unreachable!("placed above"),
         }
     }
 }
@@ -353,6 +462,41 @@ fn ship_pose(record: &mut Pose, ship: &ShipMove) -> [f32; 3] {
         );
     }
     motion_vector
+}
+
+/// The aircraft's new motion vector and whether the step turned it enough to report.
+fn fixed_wing_pose(record: &mut Pose, previous: [f32; 3], step: &FixedWingMove) -> ([f32; 3], bool) {
+    let mut motion_vector = previous;
+    let mut rotated: c_int = 0;
+    // SAFETY: as for `advance_pose`; the acceleration, waypoint and bounds are 3 floats, the
+    // motion vector is 3 floats read then written.
+    unsafe {
+        eech_fw_step(
+            step.phase as c_int,
+            record.position.as_mut_ptr(),
+            &mut record.velocity,
+            record.attitude.as_mut_ptr(),
+            step.delta_seconds,
+            step.frame_delta,
+            step.wp_vel,
+            step.cruise_velocity,
+            step.g_max,
+            step.fuselage_angle,
+            step.cg_to_ground,
+            step.max_roll,
+            step.turn_speed_multi,
+            step.waypoint.as_ptr(),
+            step.acceleration.as_ptr(),
+            motion_vector.as_mut_ptr(),
+            c_int::from(step.navigating),
+            step.elevation,
+            step.map_min.as_ptr(),
+            step.map_max.as_ptr(),
+            c_int::from(step.tacview_logging),
+            &mut rotated,
+        );
+    }
+    (motion_vector, rotated != 0)
 }
 
 fn begin_person(record: &mut Record, begin: &PersonBegin) -> Outcome {
@@ -464,6 +608,29 @@ mod tests {
         }
     }
 
+    fn fixed_wing_move(phase: FixedWingPhase) -> FixedWingMove {
+        FixedWingMove {
+            phase,
+            delta_seconds: 0.5,
+            frame_delta: 2.0,
+            wp_vel: 100.0,
+            cruise_velocity: 100.0,
+            g_max: 50.0,
+            fuselage_angle: 0.0,
+            cg_to_ground: 2.0,
+            max_roll: 1.0,
+            turn_speed_multi: 1.0,
+            waypoint: [0.0, 0.0, 5000.0],
+            acceleration: [0.0; 3],
+            motion_vector: [0.0, 0.0, 100.0],
+            navigating: false,
+            elevation: 10.0,
+            tacview_logging: true,
+            map_min: [-1.0e6; 3],
+            map_max: [1.0e6; 3],
+        }
+    }
+
     fn assert_near(actual: [f32; 3], expected: [f32; 3]) {
         for (actual, expected) in actual.iter().zip(expected) {
             assert!((actual - expected).abs() < 1.0e-5, "{actual:?} vs {expected:?}");
@@ -472,9 +639,15 @@ mod tests {
 
     fn movers(kind: Kind, start: Pose) -> Movers {
         let mut movers = Movers::default();
-        movers.bind("v", kind, start);
+        // an aircraft is seeded with the vector `fixed_wing_move` mirrors
+        let seed = (kind == Kind::FixedWing).then_some([0.0, 0.0, 100.0]);
+        movers.bind("v", kind, start, seed).unwrap();
         movers
     }
+
+    const PLACED: Request = Request::Place {
+        motion_vector: [0.0, 0.0, 100.0],
+    };
 
     #[test]
     fn accelerates_towards_the_waypoint_and_keeps_its_own_record() {
@@ -530,7 +703,7 @@ mod tests {
         let mut movers = movers(Kind::Routed, pose(0.0, 0.0));
         let mut moving = pose(50.0, 60.0);
         moving.velocity = 7.0;
-        let adopted = movers.step("v", moving, Request::Place).unwrap();
+        let adopted = movers.step("v", moving, PLACED).unwrap();
         assert_eq!(adopted.pose, moving);
         let stopped = movers.step("v", moving, Request::Stop).unwrap();
         assert_eq!(stopped.pose.velocity, 0.0);
@@ -542,11 +715,12 @@ mod tests {
         let mut movers = Movers::default();
         let requests = [
             Request::Stop,
-            Request::Place,
+            PLACED,
             Request::Advance(advance([0.0; 3])),
             Request::ShipMove(ship_move([0.0; 3])),
             Request::PersonBegin(person_begin([0.0; 3], 1.0, false)),
             Request::PersonEnd(PersonEnd { elevation: 0.0 }),
+            Request::FixedWingMove(fixed_wing_move(FixedWingPhase::Flight)),
         ];
         for request in requests {
             let error = movers.step("eech-world:9", pose(0.0, 0.0), request).unwrap_err();
@@ -668,7 +842,7 @@ mod tests {
         movers
             .step("v", pose(0.0, 0.0), Request::PersonBegin(person_begin([0.0, 0.0, 100.0], 1.5, true)))
             .unwrap();
-        for request in [Request::Place, Request::PersonBegin(person_begin([0.0, 0.0, 100.0], 1.5, true))] {
+        for request in [PLACED, Request::PersonBegin(person_begin([0.0, 0.0, 100.0], 1.5, true))] {
             let error = movers.step("v", pose(0.0, 0.0), request).unwrap_err();
             assert!(error.contains("while its person step is pending"), "{error}");
         }
@@ -709,16 +883,23 @@ mod tests {
         let mut routed = movers(Kind::Routed, pose(0.0, 0.0));
         let mut ship = movers(Kind::Ship, pose(0.0, 0.0));
         let mut person = movers(Kind::Person, pose(0.0, 0.0));
+        let mut fixed_wing = movers(Kind::FixedWing, pose(0.0, 0.0));
         let requests = [
             Request::Advance(advance([0.0, 0.0, 10.0])),
             Request::Stop,
             Request::ShipMove(ship_move([0.0, 0.0, 10.0])),
             Request::PersonBegin(person_begin([0.0, 0.0, 10.0], 1.0, false)),
             Request::PersonEnd(PersonEnd { elevation: 0.0 }),
+            Request::FixedWingMove(fixed_wing_move(FixedWingPhase::Taxi)),
         ];
         let own = |kind: Kind, request: &Request| request.kind() == Some(kind);
         for request in requests {
-            for (kind, movers) in [(Kind::Routed, &mut routed), (Kind::Ship, &mut ship), (Kind::Person, &mut person)] {
+            for (kind, movers) in [
+                (Kind::Routed, &mut routed),
+                (Kind::Ship, &mut ship),
+                (Kind::Person, &mut person),
+                (Kind::FixedWing, &mut fixed_wing),
+            ] {
                 let result = movers.step("v", pose(0.0, 0.0), request);
                 if !own(kind, &request) {
                     let error = result.unwrap_err();
@@ -729,13 +910,147 @@ mod tests {
     }
 
     #[test]
-    fn placing_a_ship_or_a_person_adopts_the_campaign_pose() {
-        for kind in [Kind::Ship, Kind::Person] {
+    fn placing_a_ship_a_person_or_an_aircraft_adopts_the_campaign_pose() {
+        for kind in [Kind::Ship, Kind::Person, Kind::FixedWing] {
             let mut movers = movers(kind, pose(0.0, 0.0));
             let mut moving = pose(50.0, 60.0);
             moving.velocity = 7.0;
-            let adopted = movers.step("v", moving, Request::Place).unwrap();
+            let adopted = movers.step("v", moving, PLACED).unwrap();
             assert_eq!(adopted.pose, moving);
         }
+    }
+
+    #[test]
+    fn placing_an_aircraft_adopts_the_campaign_motion_vector_and_other_kinds_ignore_it() {
+        let mut movers = movers(Kind::FixedWing, pose(0.0, 0.0));
+        let placed = Request::Place {
+            motion_vector: [0.0, 0.0, 40.0],
+        };
+        movers.step("v", pose(0.0, 0.0), placed).unwrap();
+        // the host now flies at the placed 40 m/s, and the 100 m/s mirror is a write it did not make
+        let mut flight = fixed_wing_move(FixedWingPhase::Flight);
+        flight.elevation = 0.0;
+        // the flight clamps the speed to 0.7 to 2 times the cruise velocity
+        flight.cruise_velocity = 40.0;
+        let mut stale = flight;
+        stale.motion_vector = [0.0, 0.0, 100.0];
+        let error = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(stale)).unwrap_err();
+        assert!(error.contains("motion_vector"), "{error}");
+        flight.motion_vector = [0.0, 0.0, 40.0];
+        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(flight)).unwrap();
+        assert_eq!(first.pose.velocity, 40.0);
+        let mut ship = self::movers(Kind::Ship, pose(0.0, 0.0));
+        ship.step("v", pose(0.0, 0.0), placed).unwrap();
+    }
+
+    #[test]
+    fn an_aircraft_needs_a_motion_vector_seed_and_no_other_kind_takes_one() {
+        let mut movers = Movers::default();
+        let error = movers.bind("v", Kind::FixedWing, pose(0.0, 0.0), None).unwrap_err();
+        assert!(error.contains("without a motion vector"), "{error}");
+        for kind in [Kind::Routed, Kind::Ship, Kind::Person] {
+            let error = movers.bind("v", kind, pose(0.0, 0.0), Some([0.0; 3])).unwrap_err();
+            assert!(error.contains("with a motion vector"), "{error}");
+        }
+        let error = movers
+            .step("v", pose(0.0, 0.0), Request::FixedWingMove(fixed_wing_move(FixedWingPhase::Flight)))
+            .unwrap_err();
+        assert!(error.contains("unknown host id"), "nothing was bound: {error}");
+    }
+
+    #[test]
+    fn a_taxiing_aircraft_accelerates_on_the_ground_and_keeps_to_the_terrain() {
+        let mut movers = movers(Kind::FixedWing, pose(0.0, 0.0));
+        let mut taxi = fixed_wing_move(FixedWingPhase::Taxi);
+        taxi.delta_seconds = 1.0;
+        taxi.wp_vel = 10.0;
+        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(taxi)).unwrap();
+        // min(10 - 0, 3 m/s^2) over 1 s, due +z; the height is the terrain plus the centre of gravity
+        assert_eq!(first.pose.velocity, 3.0);
+        assert_near(first.pose.position, [0.0, 12.0, 3.0]);
+        assert_near(first.motion_vector, [0.0, 0.0, 3.0]);
+        assert!(!first.rotated);
+    }
+
+    #[test]
+    fn a_flying_aircraft_follows_its_motion_vector_and_scales_the_new_one_by_the_frame_delta() {
+        let mut movers = movers(Kind::FixedWing, pose(0.0, 0.0));
+        // the terrain is level with the aircraft, so the clamp does not lift it
+        let mut flight = fixed_wing_move(FixedWingPhase::Flight);
+        flight.elevation = 0.0;
+        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(flight)).unwrap();
+        // 100 m/s along +z for the 0.5 s engine delta; (new - old) * the frame reciprocal 2
+        assert_eq!(first.pose.velocity, 100.0);
+        assert_near(first.pose.position, [0.0, 0.0, 50.0]);
+        assert_near(first.motion_vector, [0.0, 0.0, 100.0]);
+    }
+
+    #[test]
+    fn a_landing_aircraft_takes_the_waypoint_speed_at_once() {
+        let mut movers = movers(Kind::FixedWing, pose(0.0, 0.0));
+        let mut land = fixed_wing_move(FixedWingPhase::Land);
+        land.wp_vel = 50.0;
+        land.delta_seconds = 1.0;
+        land.frame_delta = 1.0;
+        land.elevation = 0.0;
+        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(land)).unwrap();
+        assert_eq!(first.pose.velocity, 50.0);
+        assert_near(first.pose.position, [0.0, 0.0, 50.0]);
+        assert_near(first.motion_vector, [0.0, 0.0, 50.0]);
+    }
+
+    #[test]
+    fn the_absolute_flight_integrates_from_the_attitude_before_its_turn_and_never_reports_rotation() {
+        let mut movers = movers(Kind::FixedWing, pose(0.0, 0.0));
+        let mut absolute = fixed_wing_move(FixedWingPhase::Absolute);
+        absolute.waypoint = [5000.0, 0.0, 0.0];
+        absolute.delta_seconds = 1.0;
+        absolute.elevation = 0.0;
+        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(absolute)).unwrap();
+        // min(100 - 0, 30 m/s^2) over 1 s, along the old +z axis although the waypoint is abeam
+        assert_eq!(first.pose.velocity, 30.0);
+        assert_near(first.pose.position, [0.0, 0.0, 30.0]);
+        assert!(!first.rotated, "the absolute flight never reports a rotation");
+    }
+
+    #[test]
+    fn an_aircraft_whose_campaign_copy_differs_from_the_record_is_refused() {
+        let mut movers = movers(Kind::FixedWing, pose(0.0, 0.0));
+        let error = movers
+            .step("v", pose(0.0, 1.0), Request::FixedWingMove(fixed_wing_move(FixedWingPhase::Flight)))
+            .unwrap_err();
+        assert!(error.contains("position[2]") && error.contains("differs from the host's record"), "{error}");
+    }
+
+    #[test]
+    fn an_aircraft_whose_only_difference_is_the_campaign_motion_vector_is_refused_before_the_host_moves() {
+        let mut movers = movers(Kind::FixedWing, pose(0.0, 0.0));
+        let mut flight = fixed_wing_move(FixedWingPhase::Flight);
+        flight.elevation = 0.0;
+        // the pose is exactly the host's; the mirror differs in the last bit of one component
+        flight.motion_vector[2] = f32::from_bits(100.0_f32.to_bits() + 1);
+        let error = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(flight)).unwrap_err();
+        assert!(
+            error.contains("motion_vector[2]") && error.contains("differs from the host's record"),
+            "{error}"
+        );
+        // nothing moved and the host's vector is unchanged: the correct mirror still flies from it
+        flight.motion_vector[2] = 100.0;
+        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(flight)).unwrap();
+        assert_near(first.pose.position, [0.0, 0.0, 50.0]);
+    }
+
+    #[test]
+    fn the_next_step_flies_from_the_vector_the_host_answered() {
+        let mut movers = movers(Kind::FixedWing, pose(0.0, 0.0));
+        let mut taxi = fixed_wing_move(FixedWingPhase::Taxi);
+        taxi.delta_seconds = 1.0;
+        taxi.wp_vel = 10.0;
+        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(taxi)).unwrap();
+        // the stale mirror (the seed) is refused; the answered vector is accepted
+        let error = movers.step("v", first.pose, Request::FixedWingMove(taxi)).unwrap_err();
+        assert!(error.contains("motion_vector"), "{error}");
+        taxi.motion_vector = first.motion_vector;
+        movers.step("v", first.pose, Request::FixedWingMove(taxi)).unwrap();
     }
 }

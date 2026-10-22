@@ -36,6 +36,14 @@ int campaign_movement_is_hosted (entity *vehicle)
 	return (current_host.move_vehicle != NULL) && (campaign_roster_host_id (vehicle) != NULL);
 }
 
+void campaign_movement_require_hosted (entity *vehicle)
+{
+	if (!campaign_movement_is_hosted (vehicle))
+	{
+		debug_fatal ("host movement: live movement of entity %d needs a host move_vehicle callback and a host identity", get_local_entity_index (vehicle));
+	}
+}
+
 static const char *require_host_id (entity *vehicle)
 {
 	const char *host_id;
@@ -52,13 +60,25 @@ static const char *require_host_id (entity *vehicle)
 	return host_id;
 }
 
-static void fill_pose (campaign_movement_step *step, const vehicle *raw)
+// the mobile part of a hosted entity: an aircraft carries it inside its aircraft part, a vehicle directly
+
+static const mobile *hosted_mobile (entity *en)
 {
-	step->position[0] = raw->mob.position.x;
-	step->position[1] = raw->mob.position.y;
-	step->position[2] = raw->mob.position.z;
-	step->velocity = raw->mob.velocity;
-	memcpy (step->attitude, raw->mob.attitude, sizeof (step->attitude));
+	if (get_local_entity_type (en) == ENTITY_TYPE_FIXED_WING)
+	{
+		return &((const fixed_wing *) get_local_entity_data (en))->ac.mob;
+	}
+
+	return &((const vehicle *) get_local_entity_data (en))->mob;
+}
+
+static void fill_pose (campaign_movement_step *step, const mobile *mob)
+{
+	step->position[0] = mob->position.x;
+	step->position[1] = mob->position.y;
+	step->position[2] = mob->position.z;
+	step->velocity = mob->velocity;
+	memcpy (step->attitude, mob->attitude, sizeof (step->attitude));
 }
 
 static void fill_map_bounds (campaign_movement_step *step)
@@ -78,7 +98,7 @@ static void begin_step (campaign_movement_step *step, entity *en, int mode)
 	memset (step, 0, sizeof (*step));
 	memcpy (step->host_id, host_id, strlen (host_id) + 1);
 	step->mode = mode;
-	fill_pose (step, (vehicle *) get_local_entity_data (en));
+	fill_pose (step, hosted_mobile (en));
 }
 
 static int all_finite (const float *values, int count)
@@ -128,7 +148,7 @@ void campaign_movement_place (entity *vehicle)
 		return;
 	}
 	type = get_local_entity_type (vehicle);
-	if ((type != ENTITY_TYPE_ROUTED_VEHICLE) && (type != ENTITY_TYPE_SHIP_VEHICLE) && (type != ENTITY_TYPE_PERSON))
+	if ((type != ENTITY_TYPE_ROUTED_VEHICLE) && (type != ENTITY_TYPE_SHIP_VEHICLE) && (type != ENTITY_TYPE_PERSON) && (type != ENTITY_TYPE_FIXED_WING))
 	{
 		return;
 	}
@@ -137,6 +157,15 @@ void campaign_movement_place (entity *vehicle)
 		return;
 	}
 	begin_step (&step, vehicle, CAMPAIGN_MOVEMENT_PLACE);
+	if (type == ENTITY_TYPE_FIXED_WING)
+	{
+		/* the campaign's own write of an aircraft's motion vector is an explicit placement of that physical state */
+		const mobile *mob = hosted_mobile (vehicle);
+
+		step.fw_motion_vector[0] = mob->motion_vector.x;
+		step.fw_motion_vector[1] = mob->motion_vector.y;
+		step.fw_motion_vector[2] = mob->motion_vector.z;
+	}
 	ask_host (&step);
 }
 
@@ -265,6 +294,60 @@ void campaign_movement_ship_move (entity *vehicle, entity *guide, const vec3d *w
 
 	campaign_movement_apply_begin ();
 	set_local_entity_vec3d (vehicle, VEC3D_TYPE_POSITION, &new_pos);
+	campaign_movement_apply_end ();
+}
+
+void campaign_movement_fixed_wing_move (entity *aircraft, const campaign_fixed_wing_guidance *guidance)
+{
+	fixed_wing *raw = (fixed_wing *) get_local_entity_data (aircraft);
+	campaign_movement_step step;
+	campaign_movement_result result;
+	vec3d new_pos;
+
+	begin_step (&step, aircraft, CAMPAIGN_MOVEMENT_FIXED_WING_MOVE);
+	step.delta_seconds = guidance->delta_seconds;
+	step.frame_delta = guidance->frame_delta;
+	step.desired_velocity = guidance->wp_vel;
+	step.g_max = guidance->g_max;
+	step.elevation = guidance->elevation;
+	step.waypoint[0] = guidance->waypoint[0];
+	step.waypoint[1] = guidance->waypoint[1];
+	step.waypoint[2] = guidance->waypoint[2];
+	step.tacview_logging = raw->ac.mob.tacview_logging ? TRUE : FALSE;
+	fill_map_bounds (&step);
+	step.fw_phase = guidance->phase;
+	memcpy (step.fw_acceleration, guidance->acceleration, sizeof (step.fw_acceleration));
+	memcpy (step.fw_motion_vector, guidance->motion_vector, sizeof (step.fw_motion_vector));
+	step.fw_cruise_velocity = guidance->cruise_velocity;
+	step.fw_fuselage_angle = guidance->fuselage_angle;
+	step.fw_cg_to_ground = guidance->cg_to_ground;
+	step.fw_max_roll = guidance->max_roll;
+	step.fw_turn_speed_multi = guidance->turn_speed_multi;
+	step.fw_navigating = guidance->navigating ? TRUE : FALSE;
+
+	result = ask_host (&step);
+
+	//
+	// apply: the attitude, speed and motion vector as the legacy step wrote them, then the position through the setter
+	//
+
+	memcpy (raw->ac.mob.attitude, result.attitude, sizeof (result.attitude));
+	raw->ac.mob.velocity = result.velocity;
+	raw->ac.mob.motion_vector.x = result.motion_vector[0];
+	raw->ac.mob.motion_vector.y = result.motion_vector[1];
+	raw->ac.mob.motion_vector.z = result.motion_vector[2];
+
+	if (raw->ac.mob.tacview_logging && result.rotated)
+	{
+		set_local_entity_int_value (aircraft, INT_TYPE_ROTATED, TRUE);
+	}
+
+	new_pos.x = result.position[0];
+	new_pos.y = result.position[1];
+	new_pos.z = result.position[2];
+
+	campaign_movement_apply_begin ();
+	set_local_entity_vec3d (aircraft, VEC3D_TYPE_POSITION, &new_pos);
 	campaign_movement_apply_end ();
 }
 

@@ -146,6 +146,9 @@ pub struct MemberDescriptor {
     pub pose: Option<VehiclePose>,
     /// what physical step the host performs for the member; present exactly when `pose` is
     pub movement_kind: Option<MovementKind>,
+    /// fixed-wing members only: the aircraft's previous motion vector, physical state the host
+    /// retains from binding (an explicit seed, never defaulted)
+    pub motion_vector: Option<[f32; 3]>,
 }
 
 /// The physical step the host performs for a movable member.
@@ -159,6 +162,8 @@ pub enum MovementKind {
     Ship = 2,
     /// infantry: walk or run along the waypoint, in two phases around the campaign's terrain sample
     Person = 3,
+    /// a fixed-wing aircraft: taxi, flight, landing or the absolute turn-around, as the campaign's guidance selects
+    FixedWing = 4,
 }
 
 /// A movable member's physical state: EECH world metres, speed in m/s, a row-major 3x3 attitude.
@@ -185,6 +190,8 @@ pub enum MovementMode {
     PersonBegin,
     /// second phase of an infantry step: the host places the member at the campaign's terrain elevation
     PersonEnd,
+    /// a fixed-wing aircraft's step (single phase): the campaign's guidance selects taxi, flight, landing or absolute
+    FixedWingMove,
 }
 
 /// Terrain at the pre-move position, sampled by the campaign.
@@ -199,7 +206,8 @@ pub struct TerrainSample {
 /// `pose` is the campaign's copy: compared with the host's record on `Move` and `Stop`, adopted on `Place`.
 /// The remaining fields depend on the mode: `Move` uses the routed set, `ShipMove` the ship set
 /// (`frame_delta`, `desired_velocity` as the guide velocity, `g_max`), `PersonBegin` `ps_vel` and
-/// `terrain_follow`, and `PersonEnd` `elevation`.
+/// `terrain_follow`, and `PersonEnd` `elevation`.  `FixedWingMove` carries `phase`, the guide's speed as
+/// `desired_velocity`, `g_max`, the terrain `elevation`, and the fixed-wing guidance below.
 #[derive(Clone, Debug, Serialize)]
 pub struct MovementStep {
     pub host_id: String,
@@ -223,6 +231,19 @@ pub struct MovementStep {
     pub terrain_follow: bool,
     /// `PersonEnd`: the terrain elevation the campaign sampled at the position `PersonBegin` returned
     pub elevation: f32,
+    /// `FixedWingMove`: 0 taxi, 1 flight, 2 landing, 3 absolute
+    pub phase: i32,
+    /// `FixedWingMove`: the navigator's acceleration advisory
+    pub acceleration: [f32; 3],
+    /// `FixedWingMove`: the motion vector the previous step left (the old direction of travel)
+    pub motion_vector_in: [f32; 3],
+    pub cruise_velocity: f32,
+    pub fuselage_angle: f32,
+    pub cg_to_ground: f32,
+    pub max_roll: f32,
+    pub turn_speed_multi: f32,
+    /// `FixedWingMove`: the operational state is navigating
+    pub navigating: bool,
 }
 
 /// The host's record of the vehicle after the step; the campaign applies it.
@@ -567,6 +588,21 @@ where
         }
         // SAFETY: C supplies both pointers for the duration of this callback.
         let (descriptor, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G, H, M>)) };
+        let movement_kind = if checked_bool("has_pose", descriptor.has_pose)? {
+            Some(match descriptor.movement_kind {
+                sys::EECH_MOVEMENT_KIND_ROUTED => MovementKind::Routed,
+                sys::EECH_MOVEMENT_KIND_SHIP => MovementKind::Ship,
+                sys::EECH_MOVEMENT_KIND_PERSON => MovementKind::Person,
+                sys::EECH_MOVEMENT_KIND_FIXED_WING => MovementKind::FixedWing,
+                other => return Err(format!("bind_mobile received unknown movement kind {other}")),
+            })
+        } else {
+            None
+        };
+        let motion_vector = (movement_kind == Some(MovementKind::FixedWing)).then_some(descriptor.motion_vector);
+        if motion_vector.is_some_and(|vector| vector.iter().any(|value| !value.is_finite())) {
+            return Err("bind_mobile received a non-finite motion vector".into());
+        }
         let descriptor = MemberDescriptor {
             member_key: descriptor.member_key,
             group_key: descriptor.group_key,
@@ -579,16 +615,8 @@ where
                 velocity: descriptor.velocity,
                 attitude: descriptor.attitude,
             }),
-            movement_kind: if checked_bool("has_pose", descriptor.has_pose)? {
-                Some(match descriptor.movement_kind {
-                    sys::EECH_MOVEMENT_KIND_ROUTED => MovementKind::Routed,
-                    sys::EECH_MOVEMENT_KIND_SHIP => MovementKind::Ship,
-                    sys::EECH_MOVEMENT_KIND_PERSON => MovementKind::Person,
-                    other => return Err(format!("bind_mobile received unknown movement kind {other}")),
-                })
-            } else {
-                None
-            },
+            movement_kind,
+            motion_vector,
         };
         let identity = (context.bind_mobile)(descriptor)?;
         let bytes = identity.as_bytes();
@@ -978,6 +1006,7 @@ where
             sys::EECH_MOVEMENT_SHIP_MOVE => MovementMode::ShipMove,
             sys::EECH_MOVEMENT_PERSON_BEGIN => MovementMode::PersonBegin,
             sys::EECH_MOVEMENT_PERSON_END => MovementMode::PersonEnd,
+            sys::EECH_MOVEMENT_FIXED_WING_MOVE => MovementMode::FixedWingMove,
             other => return Err(format!("move_vehicle received unknown mode {other}")),
         };
         let terrain_follow = checked_bool("terrain_follow", source.terrain_follow)?;
@@ -995,6 +1024,11 @@ where
             ("frame_delta", source.frame_delta),
             ("g_max", source.g_max),
             ("ps_vel", source.ps_vel),
+            ("fw_cruise_velocity", source.fw_cruise_velocity),
+            ("fw_fuselage_angle", source.fw_fuselage_angle),
+            ("fw_cg_to_ground", source.fw_cg_to_ground),
+            ("fw_max_roll", source.fw_max_roll),
+            ("fw_turn_speed_multi", source.fw_turn_speed_multi),
         ])?;
         for (name, values) in [
             ("position", &source.position[..]),
@@ -1003,6 +1037,8 @@ where
             ("face_normal", &source.face_normal[..]),
             ("map_min", &source.map_min[..]),
             ("map_max", &source.map_max[..]),
+            ("fw_acceleration", &source.fw_acceleration[..]),
+            ("fw_motion_vector", &source.fw_motion_vector[..]),
         ] {
             if values.iter().any(|value| !value.is_finite()) {
                 return Err(format!("non-finite movement {name}"));
@@ -1041,6 +1077,15 @@ where
             ps_vel: source.ps_vel,
             terrain_follow,
             elevation: source.elevation,
+            phase: source.fw_phase,
+            acceleration: source.fw_acceleration,
+            motion_vector_in: source.fw_motion_vector,
+            cruise_velocity: source.fw_cruise_velocity,
+            fuselage_angle: source.fw_fuselage_angle,
+            cg_to_ground: source.fw_cg_to_ground,
+            max_roll: source.fw_max_roll,
+            turn_speed_multi: source.fw_turn_speed_multi,
+            navigating: checked_bool("fw_navigating", source.fw_navigating)?,
         };
         let answer = (context.move_vehicle)(request)?;
         let pose = answer.pose;

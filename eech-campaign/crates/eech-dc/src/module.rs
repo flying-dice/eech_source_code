@@ -1,8 +1,8 @@
 //! The Lua surface of the module.
 
 use eech_engine::{
-    ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship, LossDecision, LossDescriptor, MemberDescriptor, MovementResult, MovementStep, Side,
-    SupplyReachDescriptor, VehiclePose,
+    ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship, LossDecision, LossDescriptor, MemberDescriptor, MovementMode, MovementResult, MovementStep,
+    Side, SupplyReachDescriptor, VehiclePose,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -45,6 +45,11 @@ fn call_bind_mobile(lua: &Lua, function: &LuaFunction, descriptor: MemberDescrip
         table.set("movement_kind", kind as i32).map_err(|e| e.to_string())?;
         table
             .set("pose", lua.to_value_with(&pose, options()).map_err(|e| e.to_string())?)
+            .map_err(|e| e.to_string())?;
+    }
+    if let Some(motion_vector) = descriptor.motion_vector {
+        table
+            .set("motion_vector", lua.to_value_with(&motion_vector, options()).map_err(|e| e.to_string())?)
             .map_err(|e| e.to_string())?;
     }
     let value: LuaValue = function.call(table).map_err(|e| e.to_string())?;
@@ -170,6 +175,7 @@ fn nearest_f32(value: f64) -> Option<f32> {
 }
 
 fn call_move_vehicle(lua: &Lua, function: &LuaFunction, step: MovementStep) -> Result<MovementResult, String> {
+    let fixed_wing = step.mode == MovementMode::FixedWingMove;
     let value = lua.to_value_with(&step, options()).map_err(|e| e.to_string())?;
     let answer: LuaValue = function.call(value).map_err(|e| e.to_string())?;
     let LuaValue::Table(table) = answer else {
@@ -186,8 +192,9 @@ fn call_move_vehicle(lua: &Lua, function: &LuaFunction, step: MovementStep) -> R
         LuaValue::Boolean(pending) => pending,
         other => return Err(format!("move_vehicle result pending must be a boolean, got {}", other.type_name())),
     };
-    // a routed or held member returns no motion vector
+    // a routed or held member returns no motion vector; an aircraft's answer must carry the one it holds
     let motion_vector = match table.get::<LuaValue>("motion_vector").map_err(|e| e.to_string())? {
+        LuaValue::Nil if fixed_wing => return Err("move_vehicle result for a fixed-wing step must carry its motion_vector".into()),
         LuaValue::Nil => [0.0; 3],
         _ => exact_numbers(lua, &table, "motion_vector").map_err(|e| format!("move_vehicle result {e}"))?,
     };

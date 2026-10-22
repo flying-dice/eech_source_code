@@ -1,0 +1,18 @@
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-std=gnu99'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fno-strict-aliasing'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fwrapv'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-ftrivial-auto-var-init=zero'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-std=gnu99'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fno-strict-aliasing'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fwrapv'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-ftrivial-auto-var-init=zero'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-std=gnu99'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fno-strict-aliasing'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fwrapv'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-ftrivial-auto-var-init=zero'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-std=gnu99'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fno-strict-aliasing'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fwrapv'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-ftrivial-auto-var-init=zero'
+    Checking eech-world v0.1.0 (E:\eech_source_code\.claude\worktrees\m5-fixed-wing-movement\eech-campaign\crates\eech-world)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.35s
