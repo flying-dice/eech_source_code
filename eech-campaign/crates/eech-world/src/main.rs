@@ -8,6 +8,7 @@
 
 mod crash;
 
+use eech_world::convoy::{Advance, Convoys, Pose, Request, Terrain};
 use eech_world::tacview::{ObjectInfo, Recorder};
 use mlua::prelude::*;
 use std::cell::{Cell, RefCell};
@@ -61,6 +62,118 @@ fn vector3(table: &LuaTable, name: &str) -> LuaResult<[f32; 3]> {
     values
         .try_into()
         .map_err(|values: Vec<f32>| LuaError::runtime(format!("host.supply_reached: {name} has {} components", values.len())))
+}
+
+fn number(lua: &Lua, table: &LuaTable, name: &str) -> LuaResult<f32> {
+    let [value] = exact_numbers::<1>(lua, table, name).map_err(|e| LuaError::runtime(format!("host.move_vehicle: {e}")))?;
+    Ok(value)
+}
+
+fn numbers<const N: usize>(lua: &Lua, table: &LuaTable, name: &str) -> LuaResult<[f32; N]> {
+    exact_numbers(lua, table, name).map_err(|e| LuaError::runtime(format!("host.move_vehicle: {e}")))
+}
+
+/// The `N` numbers a table field holds (a number for `N == 1`, else an array), exactly as Lua
+/// holds them. mlua's own number reads turn any value within `f64::EPSILON` of an integer into
+/// that integer, so a physical value such as -6.7e-17 would arrive as 0 and the two sides'
+/// copies of a pose would differ. Lua looks the field up and formats the numbers at 17 significant digits instead,
+/// and `nearest_f32` narrows them.
+fn exact_numbers<const N: usize>(lua: &Lua, table: &LuaTable, field: &str) -> Result<[f32; N], String> {
+    const KEY: &str = "eech_exact_numbers";
+    let format: LuaFunction = match lua.named_registry_value(KEY) {
+        Ok(function) => function,
+        Err(_) => {
+            let function: LuaFunction = lua
+                .load(
+                    "return function(t, f, n)
+                       local v = t[f]
+                       if n == 1 and type(v) == 'number' then v = { v }
+                       elseif type(v) ~= 'table' or #v ~= n then return nil end
+                       for i = 1, n do
+                         local x = v[i]
+                         if type(x) ~= 'number' or x ~= x or x == math.huge or x == -math.huge then return nil end
+                       end
+                       return string.format(string.rep('%.17g ', n), unpack(v))
+                     end",
+                )
+                .eval()
+                .map_err(|e| e.to_string())?;
+            lua.set_named_registry_value(KEY, function.clone()).map_err(|e| e.to_string())?;
+            function
+        }
+    };
+    let text: Option<String> = format.call((table, field, N)).map_err(|e| e.to_string())?;
+    let shape = || {
+        format!(
+            "{field} must be {}",
+            if N == 1 {
+                "a finite number".to_owned()
+            } else {
+                format!("{N} finite numbers")
+            }
+        )
+    };
+    let text = text.ok_or_else(shape)?;
+    let mut parts = text.split_whitespace();
+    let mut numbers = [0.0f32; N];
+    for slot in &mut numbers {
+        *slot = parts.next().and_then(|part| part.parse::<f64>().ok()).and_then(nearest_f32).ok_or_else(shape)?;
+    }
+    Ok(numbers)
+}
+
+/// The `f32` nearest `value`, or `None` beyond the `f32` range. A plain `as f32` follows the
+/// FPU rounding mode, and the engine runs a callback under round-toward-zero, where a value a
+/// hair under an `f32` narrows to its neighbour. The cast only picks the neighbourhood; the
+/// nearest of it and the two adjacent `f32`s is taken, the cast's own result winning a tie so a
+/// zero keeps its sign.
+fn nearest_f32(value: f64) -> Option<f32> {
+    if !value.is_finite() || value.abs() > f64::from(f32::MAX) {
+        return None;
+    }
+    let guess = value as f32;
+    [guess, guess.next_down(), guess.next_up()]
+        .into_iter()
+        .filter(|candidate| candidate.is_finite())
+        .min_by(|a, b| (f64::from(*a) - value).abs().total_cmp(&(f64::from(*b) - value).abs()))
+}
+
+fn pose_from(lua: &Lua, table: &LuaTable) -> LuaResult<Pose> {
+    Ok(Pose {
+        position: numbers(lua, table, "position")?,
+        velocity: number(lua, table, "velocity")?,
+        attitude: numbers(lua, table, "attitude")?,
+    })
+}
+
+/// The movement request a step table carries, with the campaign's copy of the pose.
+fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request)> {
+    let host_id: String = step.get("host_id")?;
+    let pose = pose_from(lua, &step.get::<LuaTable>("pose")?)?;
+    let mode: String = step.get("mode")?;
+    let request = match mode.as_str() {
+        "stop" => Request::Stop,
+        "place" => Request::Place,
+        "move" => Request::Advance(Advance {
+            delta_seconds: number(lua, step, "delta_seconds")?,
+            desired_velocity: number(lua, step, "desired_velocity")?,
+            max_acceleration: number(lua, step, "max_acceleration")?,
+            waypoint: numbers(lua, step, "waypoint")?,
+            tacview_logging: step.get("tacview_logging")?,
+            terrain: match step.get::<Option<LuaTable>>("terrain")? {
+                Some(terrain) => Some(Terrain {
+                    elevation: number(lua, &terrain, "elevation")?,
+                    forest: terrain.get("forest")?,
+                    face_normal: numbers(lua, &terrain, "face_normal")?,
+                }),
+                None => None,
+            },
+            map_min: numbers(lua, step, "map_min")?,
+            map_max: numbers(lua, step, "map_max")?,
+        }),
+        other => return Err(LuaError::runtime(format!("host.move_vehicle: unknown mode {other}"))),
+    };
+    Ok((host_id, pose, request))
 }
 
 fn segment_perpendicular_distance(a: [f32; 3], b: [f32; 3], c: [f32; 3]) -> f32 {
@@ -504,11 +617,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // makes the selected host participate without deriving identity from EECH's
     // reused entity index.
     let next_host_id = Rc::new(Cell::new(1_u64));
+    // The host's physical record of each ground convoy vehicle, keyed by the identity issued below.
+    let convoys = Rc::new(RefCell::new(Convoys::default()));
     {
         let next_host_id = next_host_id.clone();
+        let convoys = convoys.clone();
         host.set(
             "bind_mobile",
-            lua.create_function(move |_, descriptor: LuaTable| {
+            lua.create_function(move |lua, descriptor: LuaTable| {
                 // Reading the semantic descriptor also rejects a mismatched adapter contract.
                 let _: u64 = descriptor.get("member_key")?;
                 let _: u64 = descriptor.get("group_key")?;
@@ -521,7 +637,28 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     return Err(LuaError::runtime("host.bind_mobile: identity counter exhausted"));
                 };
                 next_host_id.set(next);
-                Ok(format!("eech-world:{id}"))
+                let host_id = format!("eech-world:{id}");
+                // a routed vehicle arrives with the pose that starts the host's record of it
+                if let Some(pose) = descriptor.get::<Option<LuaTable>>("pose")? {
+                    convoys.borrow_mut().bind(&host_id, pose_from(lua, &pose)?);
+                }
+                Ok(host_id)
+            })?,
+        )?;
+    }
+    {
+        let convoys = convoys.clone();
+        host.set(
+            "move_vehicle",
+            lua.create_function(move |lua, step: LuaTable| {
+                let (host_id, campaign, request) = movement_from(lua, &step)?;
+                let (pose, rotated) = convoys.borrow_mut().step(&host_id, campaign, request).map_err(LuaError::runtime)?;
+                let result = lua.create_table()?;
+                result.set("position", pose.position.to_vec())?;
+                result.set("velocity", pose.velocity)?;
+                result.set("attitude", pose.attitude.to_vec())?;
+                result.set("rotated", rotated)?;
+                Ok(result)
             })?,
         )?;
     }
@@ -1182,5 +1319,129 @@ mod supply_reached_tests {
             let value = step as f32 * 0.001;
             assert_eq!(bound_unit(value).to_bits(), legacy_bound_unit(value).to_bits());
         }
+    }
+}
+
+#[cfg(all(test, target_arch = "x86_64"))]
+mod exact_number_tests {
+    use super::*;
+
+    extern "C" {
+        fn fesetround(mode: i32) -> i32;
+    }
+    const FE_TONEAREST: i32 = 0;
+    const FE_TOWARDZERO: i32 = 0xc00;
+
+    /// Runs `body` under the rounding mode the engine's callbacks run in, then restores it.
+    fn under(mode: i32, body: impl FnOnce()) {
+        unsafe { fesetround(mode) };
+        body();
+        unsafe { fesetround(FE_TONEAREST) };
+    }
+
+    fn table_of(lua: &Lua, values: &[f32]) -> LuaTable {
+        let table = lua.create_table().expect("table");
+        table.set("v", values.iter().map(|value| f64::from(*value)).collect::<Vec<_>>()).expect("array");
+        table
+    }
+
+    fn scalar_of(lua: &Lua, value: f32) -> LuaTable {
+        let table = lua.create_table().expect("table");
+        table.set("v", f64::from(value)).expect("scalar");
+        table
+    }
+
+    /// Edge values first (signed zeros, a value mlua would read as an integer, the smallest and
+    /// largest finite `f32`), then a deterministic spread of bit patterns.
+    fn samples() -> Vec<f32> {
+        let mut values = vec![
+            -0.0,
+            0.0,
+            -6.710_065e-17,
+            6.710_065e-17,
+            -0.646_527,
+            f32::from_bits(1),
+            -f32::from_bits(1),
+            f32::MIN_POSITIVE,
+            f32::MAX,
+            f32::MIN,
+            1.0,
+            -1.0,
+        ];
+        let mut state = 0x2545_f491_u32;
+        while values.len() < 20_000 {
+            state ^= state << 13;
+            state ^= state >> 17;
+            state ^= state << 5;
+            let value = f32::from_bits(state);
+            if value.is_finite() {
+                values.push(value);
+            }
+        }
+        values
+    }
+
+    #[test]
+    fn a_scalar_and_an_array_keep_every_bit_under_either_rounding_mode() {
+        let lua = Lua::new();
+        for mode in [FE_TONEAREST, FE_TOWARDZERO] {
+            under(mode, || {
+                for value in samples() {
+                    let [one] = exact_numbers::<1>(&lua, &scalar_of(&lua, value), "v").expect("scalar");
+                    assert_eq!(one.to_bits(), value.to_bits(), "scalar {value:e} under mode {mode:#x}");
+                }
+                for chunk in samples().chunks(3).filter(|chunk| chunk.len() == 3) {
+                    let read = exact_numbers::<3>(&lua, &table_of(&lua, chunk), "v").expect("array");
+                    for (got, want) in read.iter().zip(chunk) {
+                        assert_eq!(got.to_bits(), want.to_bits(), "array {want:e} under mode {mode:#x}");
+                    }
+                }
+            });
+        }
+    }
+
+    #[test]
+    fn the_value_read_loses_what_the_exact_read_keeps() {
+        // The reason `exact_numbers` exists: mlua's value reads (a `Value`, a `Vec<f32>`) return
+        // any number within `f64::EPSILON` of an integer as that integer.
+        let lua = Lua::new();
+        for value in [-0.0_f32, -6.710_065e-17] {
+            let table = scalar_of(&lua, value);
+            assert!(matches!(table.get::<LuaValue>("v").expect("value read"), LuaValue::Integer(0)), "{value:e}");
+            let [exact] = exact_numbers::<1>(&lua, &table, "v").expect("exact read");
+            assert_eq!(exact.to_bits(), value.to_bits());
+        }
+    }
+
+    #[test]
+    fn a_missing_wrong_shaped_or_non_finite_field_is_refused_by_name() {
+        let lua = Lua::new();
+        let table = lua.create_table().expect("table");
+        table.set("short", vec![1.0_f64, 2.0]).expect("short");
+        table.set("text", "1").expect("text");
+        table.set("infinite", f64::INFINITY).expect("infinite");
+        table.set("nan", vec![f64::NAN, 0.0, 0.0]).expect("nan");
+        table.set("huge", 1.0e300_f64).expect("huge");
+        for field in ["absent", "short", "text", "infinite", "huge"] {
+            let error = exact_numbers::<1>(&lua, &table, field).expect_err(field);
+            assert!(error.starts_with(field), "{error}");
+        }
+        assert!(exact_numbers::<3>(&lua, &table, "short").expect_err("short").starts_with("short must be 3"));
+        assert!(exact_numbers::<3>(&lua, &table, "nan").expect_err("nan").starts_with("nan"));
+    }
+
+    #[test]
+    fn narrowing_picks_the_nearest_f32_at_the_edges() {
+        under(FE_TOWARDZERO, || {
+            let below = f64::from(1.0_f32) - f64::EPSILON;
+            assert_eq!(nearest_f32(below).map(f32::to_bits), Some(1.0_f32.to_bits()));
+            assert_eq!(nearest_f32(-0.0).map(f32::to_bits), Some((-0.0_f32).to_bits()));
+            assert_eq!(nearest_f32(-1.0e-50).map(f32::to_bits), Some((-0.0_f32).to_bits()));
+            assert_eq!(nearest_f32(f64::from(f32::from_bits(1))).map(f32::to_bits), Some(1));
+            assert_eq!(nearest_f32(f64::from(f32::MAX)), Some(f32::MAX));
+        });
+        assert_eq!(nearest_f32(f64::from(f32::MAX) * 2.0), None);
+        assert_eq!(nearest_f32(f64::NAN), None);
+        assert_eq!(nearest_f32(f64::NEG_INFINITY), None);
     }
 }

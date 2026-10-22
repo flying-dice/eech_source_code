@@ -232,6 +232,7 @@ aphavoc/source/entity/mobile/vehicle/routed/rv_float.c
 aphavoc/source/entity/mobile/vehicle/routed/rv_funcs.c
 aphavoc/source/entity/mobile/vehicle/routed/rv_int.c
 aphavoc/source/entity/mobile/vehicle/routed/rv_move.c
+aphavoc/source/entity/mobile/vehicle/routed/rv_hostmv.c
 aphavoc/source/entity/mobile/vehicle/routed/rv_msgs.c
 aphavoc/source/entity/mobile/vehicle/routed/rv_pack.c
 aphavoc/source/entity/mobile/vehicle/routed/rv_updt.c

@@ -800,6 +800,19 @@ void campaign_roster_link_member (entity *group, entity *member)
 		descriptor.entity_type = get_local_entity_type (member);
 		descriptor.sub_type = get_local_entity_int_value (member, INT_TYPE_ENTITY_SUB_TYPE);
 		descriptor.side = get_local_entity_int_value (member, INT_TYPE_SIDE);
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+		if (descriptor.entity_type == ENTITY_TYPE_ROUTED_VEHICLE)
+		{
+			routed_vehicle *raw = (routed_vehicle *) get_local_entity_data (member);
+
+			descriptor.has_pose = TRUE;
+			descriptor.position[0] = raw->vh.mob.position.x;
+			descriptor.position[1] = raw->vh.mob.position.y;
+			descriptor.position[2] = raw->vh.mob.position.z;
+			descriptor.velocity = raw->vh.mob.velocity;
+			memcpy (descriptor.attitude, raw->vh.mob.attitude, sizeof (descriptor.attitude));
+		}
+#endif
 
 		if (current_host.bind_member (&descriptor, host_id, CAMPAIGN_HOST_ID_MAX + 1, error, CAMPAIGN_HOST_ERROR_MAX, current_host.user) != 0)
 		{

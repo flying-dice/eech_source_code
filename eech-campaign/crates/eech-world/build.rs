@@ -2,6 +2,23 @@
 // resolves its lua_* symbols against that same library, as a module DLL does
 // against its host's Lua.
 fn main() {
+    // The convoy step is EECH's own arithmetic: it takes the engine's numeric flags
+    // (eech-engine-sys build) so the host and the original reference produce the same bits.
+    println!("cargo::rerun-if-env-changed=EECH_ENGINE_OPT");
+    println!("cargo::rerun-if-changed=csrc/convoy_step.c");
+    let opt = std::env::var("EECH_ENGINE_OPT").unwrap_or_else(|_| "1".into());
+    cc::Build::new()
+        .file("csrc/convoy_step.c")
+        .opt_level_str(&opt)
+        .debug(true)
+        .pic(true)
+        .warnings(false)
+        .flag("-std=gnu99")
+        .flag("-w")
+        .flag("-fno-strict-aliasing")
+        .flag("-fwrapv")
+        .flag("-ftrivial-auto-var-init=zero")
+        .compile("eech_convoy_step");
     if std::env::var_os("CARGO_CFG_WINDOWS").is_none() {
         // a link argument (at the end of every link line of this package: the
         // binary and the tests), after mlua-sys, which references lua_*

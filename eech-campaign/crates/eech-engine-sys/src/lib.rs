@@ -59,6 +59,10 @@ pub struct eech_member_descriptor {
     pub entity_type: c_int,
     pub sub_type: c_int,
     pub side: c_int,
+    pub has_pose: c_int,
+    pub position: [f32; 3],
+    pub velocity: f32,
+    pub attitude: [f32; 9],
 }
 
 pub type eech_bind_mobile_callback = unsafe extern "C" fn(
@@ -201,11 +205,49 @@ pub type eech_supply_reached_callback = unsafe extern "C" fn(
     user: *mut c_void,
 ) -> c_int;
 
+pub const EECH_MOVEMENT_HOST_ID_MAX: usize = 128;
+pub const EECH_MOVEMENT_MOVE: c_int = 1;
+pub const EECH_MOVEMENT_STOP: c_int = 2;
+pub const EECH_MOVEMENT_PLACE: c_int = 3;
+
+#[repr(C)]
+pub struct eech_movement_step {
+    pub host_id: [c_char; EECH_MOVEMENT_HOST_ID_MAX + 1],
+    pub mode: c_int,
+    pub position: [f32; 3],
+    pub velocity: f32,
+    pub attitude: [f32; 9],
+    pub delta_seconds: f32,
+    pub desired_velocity: f32,
+    pub max_acceleration: f32,
+    pub waypoint: [f32; 3],
+    pub tacview_logging: c_int,
+    pub terrain_follow: c_int,
+    pub terrain_present: c_int,
+    pub elevation: f32,
+    pub forest: c_int,
+    pub face_normal: [f32; 3],
+    pub map_min: [f32; 3],
+    pub map_max: [f32; 3],
+}
+
+#[repr(C)]
+pub struct eech_movement_result {
+    pub position: [f32; 3],
+    pub velocity: f32,
+    pub attitude: [f32; 9],
+    pub rotated: c_int,
+}
+
+pub type eech_move_vehicle_callback =
+    unsafe extern "C" fn(step: *const eech_movement_step, result: *mut eech_movement_result, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
+
 #[repr(C)]
 pub struct eech_engine_host {
     pub bind_mobile: Option<eech_bind_mobile_callback>,
     pub observe_loss: Option<eech_observe_loss_callback>,
     pub supply_reached: Option<eech_supply_reached_callback>,
+    pub move_vehicle: Option<eech_move_vehicle_callback>,
     pub user: *mut c_void,
 }
 

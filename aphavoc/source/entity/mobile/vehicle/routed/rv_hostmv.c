@@ -1,0 +1,216 @@
+#include "project.h"
+
+#include <math.h>
+#include <string.h>
+
+#include "rv_hostmv.h"
+
+static campaign_movement_host current_host;
+static int applying_host_result;
+
+void campaign_movement_set_host (const campaign_movement_host *host)
+{
+	if (host)
+	{
+		current_host = *host;
+	}
+	else
+	{
+		memset (&current_host, 0, sizeof (current_host));
+	}
+	applying_host_result = FALSE;
+}
+
+void campaign_movement_apply_begin (void)
+{
+	applying_host_result = TRUE;
+}
+
+void campaign_movement_apply_end (void)
+{
+	applying_host_result = FALSE;
+}
+
+int campaign_movement_is_hosted (entity *vehicle)
+{
+	return (current_host.move_vehicle != NULL) && (campaign_roster_host_id (vehicle) != NULL);
+}
+
+static const char *require_host_id (entity *vehicle)
+{
+	const char *host_id;
+
+	if (!current_host.move_vehicle)
+	{
+		debug_fatal ("routed vehicle movement: host move_vehicle callback is unavailable");
+	}
+	host_id = campaign_roster_host_id (vehicle);
+	if (!host_id || !host_id[0] || (strlen (host_id) > CAMPAIGN_MOVEMENT_HOST_ID_MAX))
+	{
+		debug_fatal ("routed vehicle movement: entity %d has no host identity", get_local_entity_index (vehicle));
+	}
+	return host_id;
+}
+
+static void fill_pose (campaign_movement_step *step, const routed_vehicle *raw)
+{
+	step->position[0] = raw->vh.mob.position.x;
+	step->position[1] = raw->vh.mob.position.y;
+	step->position[2] = raw->vh.mob.position.z;
+	step->velocity = raw->vh.mob.velocity;
+	memcpy (step->attitude, raw->vh.mob.attitude, sizeof (step->attitude));
+}
+
+static void begin_step (campaign_movement_step *step, entity *vehicle, int mode)
+{
+	const char *host_id = require_host_id (vehicle);
+
+	memset (step, 0, sizeof (*step));
+	memcpy (step->host_id, host_id, strlen (host_id) + 1);
+	step->mode = mode;
+	fill_pose (step, (routed_vehicle *) get_local_entity_data (vehicle));
+}
+
+static int all_finite (const float *values, int count)
+{
+	int i;
+
+	for (i = 0; i < count; i++)
+	{
+		if (!isfinite (values[i]))
+		{
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
+static campaign_movement_result ask_host (const campaign_movement_step *step)
+{
+	campaign_movement_result result;
+	char error[CAMPAIGN_MOVEMENT_ERROR_MAX + 1];
+
+	memset (error, 0, sizeof (error));
+	memset (&result, 0, sizeof (result));
+	result.rotated = -1;
+	if (current_host.move_vehicle (step, &result, error, CAMPAIGN_MOVEMENT_ERROR_MAX, current_host.user) != 0)
+	{
+		debug_fatal ("routed vehicle movement: host move_vehicle failed for %s: %s", step->host_id, error[0] ? error : "unspecified error");
+	}
+	if (!all_finite (result.position, 3) || !all_finite (&result.velocity, 1) || !all_finite (result.attitude, 9) ||
+		((result.rotated != FALSE) && (result.rotated != TRUE)))
+	{
+		debug_fatal ("routed vehicle movement: host move_vehicle returned an invalid result for %s", step->host_id);
+	}
+	return result;
+}
+
+void campaign_movement_place (entity *vehicle)
+{
+	campaign_movement_step step;
+
+	if (applying_host_result || !current_host.move_vehicle || (get_local_entity_type (vehicle) != ENTITY_TYPE_ROUTED_VEHICLE))
+	{
+		return;
+	}
+	if (!campaign_roster_host_id (vehicle))
+	{
+		return;
+	}
+	begin_step (&step, vehicle, CAMPAIGN_MOVEMENT_PLACE);
+	ask_host (&step);
+}
+
+float campaign_movement_stop (entity *vehicle)
+{
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, vehicle, CAMPAIGN_MOVEMENT_STOP);
+	result = ask_host (&step);
+	return result.velocity;
+}
+
+void campaign_movement_move (entity *vehicle, entity *guide, const vec3d *waypoint)
+{
+	routed_vehicle *raw = (routed_vehicle *) get_local_entity_data (vehicle);
+	campaign_movement_step step;
+	campaign_movement_result result;
+	vec3d wp_vec;
+	vec3d new_pos;
+
+	begin_step (&step, vehicle, CAMPAIGN_MOVEMENT_MOVE);
+	step.delta_seconds = get_entity_movement_delta_time ();
+	step.waypoint[0] = waypoint->x;
+	step.waypoint[1] = waypoint->y;
+	step.waypoint[2] = waypoint->z;
+	step.tacview_logging = raw->vh.mob.tacview_logging ? TRUE : FALSE;
+	step.map_min[0] = MIN_MAP_X;
+	step.map_min[1] = MIN_MAP_Y;
+	step.map_min[2] = MIN_MAP_Z;
+	step.map_max[0] = MAX_MAP_X;
+	step.map_max[1] = MAX_MAP_Y;
+	step.map_max[2] = MAX_MAP_Z;
+
+	wp_vec.x = waypoint->x - raw->vh.mob.position.x;
+	wp_vec.z = waypoint->z - raw->vh.mob.position.z;
+
+	/* not on top of the waypoint (sqr check within 0.1m): the host steps, and needs the speed inputs and terrain */
+	if (((wp_vec.x * wp_vec.x) + (wp_vec.z * wp_vec.z)) > 1.0)
+	{
+		raw->desired_velocity = get_local_entity_float_value (guide, FLOAT_TYPE_VELOCITY);
+		step.desired_velocity = raw->desired_velocity;
+		step.max_acceleration = get_local_entity_float_value (vehicle, FLOAT_TYPE_MAX_ACCELERATION);
+
+		if (get_local_entity_int_value (guide, INT_TYPE_TERRAIN_FOLLOW_MODE) != GUIDE_TERRAIN_FOLLOW_NONE)
+		{
+			vec3d *face_normal;
+
+			new_pos = raw->vh.mob.position;
+
+			ASSERT (point_inside_map_area (&new_pos));
+
+			get_3d_terrain_point_data (new_pos.x, new_pos.z, &raw->vh.terrain_info);
+
+			face_normal = get_3d_terrain_point_data_normal (&raw->vh.terrain_info);
+
+			step.terrain_follow = TRUE;
+			step.terrain_present = TRUE;
+			step.elevation = get_3d_terrain_point_data_elevation (&raw->vh.terrain_info);
+			step.forest = (get_terrain_type_class (get_3d_terrain_point_data_type (&raw->vh.terrain_info)) == TERRAIN_CLASS_FOREST) ? TRUE : FALSE;
+			step.face_normal[0] = face_normal->x;
+			step.face_normal[1] = face_normal->y;
+			step.face_normal[2] = face_normal->z;
+		}
+	}
+
+	result = ask_host (&step);
+
+	//
+	// apply: the speed and attitude as the legacy step wrote them, then the position through the setter
+	//
+
+	raw->vh.mob.velocity = result.velocity;
+	memcpy (raw->vh.mob.attitude, result.attitude, sizeof (result.attitude));
+
+	if (raw->vh.mob.tacview_logging && result.rotated)
+	{
+		set_local_entity_int_value (vehicle, INT_TYPE_ROTATED, TRUE);
+	}
+
+	new_pos.x = result.position[0];
+	new_pos.y = result.position[1];
+	new_pos.z = result.position[2];
+
+	campaign_movement_apply_begin ();
+	set_local_entity_vec3d (vehicle, VEC3D_TYPE_POSITION, &new_pos);
+	campaign_movement_apply_end ();
+
+	//
+	// Calculate motion vector for view system
+	//
+
+	raw->vh.mob.motion_vector.x = raw->vh.mob.attitude [2][0] * raw->vh.mob.velocity;
+	raw->vh.mob.motion_vector.y = raw->vh.mob.attitude [2][1] * raw->vh.mob.velocity;
+	raw->vh.mob.motion_vector.z = raw->vh.mob.attitude [2][2] * raw->vh.mob.velocity;
+}

@@ -100,6 +100,12 @@ typedef struct ROUTED_VEHICLE routed_vehicle;
 
 #include "rv_funcs.h"
 
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+#include "rv_hostmv.h"
+#else
+#define campaign_movement_place(ENTITY) ((void) 0)
+#endif
+
 #include "rv_int.h"
 
 //#include "rv_list.h"

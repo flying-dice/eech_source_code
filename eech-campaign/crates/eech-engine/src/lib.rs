@@ -142,6 +142,63 @@ pub struct MemberDescriptor {
     pub entity_type: i32,
     pub sub_type: i32,
     pub side: Side,
+    /// routed vehicles only: the pose that seeds the host's record of the vehicle
+    pub pose: Option<VehiclePose>,
+}
+
+/// A routed vehicle's physical state: EECH world metres, speed in m/s, a row-major 3x3 attitude.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize)]
+pub struct VehiclePose {
+    pub position: [f32; 3],
+    pub velocity: f32,
+    pub attitude: [f32; 9],
+}
+
+/// What the campaign asks of the host's record of one routed vehicle.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MovementMode {
+    /// step towards the waypoint; the campaign's pose is sent for comparison only
+    Move,
+    /// the campaign zeroes the speed (hold, no waypoint, no guide)
+    Stop,
+    /// the campaign placed the vehicle: the host adopts the pose
+    Place,
+}
+
+/// Terrain at the pre-move position, sampled by the campaign.
+#[derive(Clone, Copy, Debug, Serialize)]
+pub struct TerrainSample {
+    pub elevation: f32,
+    pub forest: bool,
+    pub face_normal: [f32; 3],
+}
+
+/// One movement request for the vehicle whose host identity is `host_id`.
+/// `pose` is the campaign's copy: compared with the host's record on `Move` and `Stop`, adopted on `Place`.
+/// The remaining fields are meaningful for `Move` only.
+#[derive(Clone, Debug, Serialize)]
+pub struct MovementStep {
+    pub host_id: String,
+    pub mode: MovementMode,
+    pub pose: VehiclePose,
+    pub delta_seconds: f32,
+    pub desired_velocity: f32,
+    pub max_acceleration: f32,
+    pub waypoint: [f32; 3],
+    /// the host reports `rotated` only when this is set
+    pub tacview_logging: bool,
+    /// present when the guide follows terrain
+    pub terrain: Option<TerrainSample>,
+    pub map_min: [f32; 3],
+    pub map_max: [f32; 3],
+}
+
+/// The host's record of the vehicle after the step; the campaign applies it.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct MovementResult {
+    pub pose: VehiclePose,
+    pub rotated: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
@@ -424,10 +481,11 @@ pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
 }
 
-struct HostContext<'a, F, G, H> {
+struct HostContext<'a, F, G, H, M> {
     bind_mobile: &'a mut F,
     observe_loss: &'a mut G,
     supply_reached: &'a mut H,
+    move_vehicle: &'a mut M,
 }
 
 fn side(value: c_int) -> Side {
@@ -452,7 +510,7 @@ unsafe fn write_callback_text(target: *mut c_char, capacity: usize, value: &str)
     out[length] = 0;
 }
 
-unsafe extern "C" fn bind_mobile<F, G, H>(
+unsafe extern "C" fn bind_mobile<F, G, H, M>(
     descriptor: *const sys::eech_member_descriptor,
     host_id: *mut c_char,
     host_id_size: usize,
@@ -464,13 +522,14 @@ where
     F: FnMut(MemberDescriptor) -> Result<String, String>,
     G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
     H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+    M: FnMut(MovementStep) -> Result<MovementResult, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if descriptor.is_null() || user.is_null() {
             return Err("invalid native bind_mobile callback context".into());
         }
         // SAFETY: C supplies both pointers for the duration of this callback.
-        let (descriptor, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G, H>)) };
+        let (descriptor, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G, H, M>)) };
         let descriptor = MemberDescriptor {
             member_key: descriptor.member_key,
             group_key: descriptor.group_key,
@@ -478,6 +537,11 @@ where
             entity_type: descriptor.entity_type,
             sub_type: descriptor.sub_type,
             side: side(descriptor.side),
+            pose: checked_bool("has_pose", descriptor.has_pose)?.then_some(VehiclePose {
+                position: descriptor.position,
+                velocity: descriptor.velocity,
+                attitude: descriptor.attitude,
+            }),
         };
         let identity = (context.bind_mobile)(descriptor)?;
         let bytes = identity.as_bytes();
@@ -512,7 +576,7 @@ where
     }
 }
 
-unsafe extern "C" fn observe_loss<F, G, H>(
+unsafe extern "C" fn observe_loss<F, G, H, M>(
     descriptor: *const sys::eech_loss_descriptor,
     decision: *mut c_int,
     error: *mut c_char,
@@ -523,13 +587,14 @@ where
     F: FnMut(MemberDescriptor) -> Result<String, String>,
     G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
     H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+    M: FnMut(MovementStep) -> Result<MovementResult, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if descriptor.is_null() || decision.is_null() || user.is_null() {
             return Err("invalid native observe_loss callback context".into());
         }
         // SAFETY: C supplies these pointers for the duration of the callback.
-        let (descriptor, decision, context) = unsafe { (&*descriptor, &mut *decision, &mut *(user as *mut HostContext<'_, F, G, H>)) };
+        let (descriptor, decision, context) = unsafe { (&*descriptor, &mut *decision, &mut *(user as *mut HostContext<'_, F, G, H, M>)) };
         if descriptor.host_id.is_null() {
             return Err("observe_loss received an empty host identity".into());
         }
@@ -675,7 +740,7 @@ fn checked_floats(values: &[(&str, f32)]) -> Result<(), String> {
     Ok(())
 }
 
-unsafe extern "C" fn supply_reached<F, G, H>(
+unsafe extern "C" fn supply_reached<F, G, H, M>(
     descriptor: *const sys::eech_supply_reach_descriptor,
     answer_out: *mut sys::eech_arrival_result,
     error: *mut c_char,
@@ -686,13 +751,14 @@ where
     F: FnMut(MemberDescriptor) -> Result<String, String>,
     G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
     H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+    M: FnMut(MovementStep) -> Result<MovementResult, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if descriptor.is_null() || answer_out.is_null() || user.is_null() {
             return Err("invalid native supply_reached callback context".into());
         }
         // SAFETY: C supplies both pointers for the duration of this callback.
-        let (source, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G, H>)) };
+        let (source, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G, H, M>)) };
         let host_id_bytes = source.host_id.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect::<Vec<_>>();
         if host_id_bytes.is_empty() || host_id_bytes.len() > sys::EECH_HOST_ID_MAX {
             return Err("supply_reached received an invalid host identity length".into());
@@ -832,27 +898,147 @@ where
     }
 }
 
-fn with_host<F, G, H>(
+unsafe extern "C" fn move_vehicle<F, G, H, M>(
+    step: *const sys::eech_movement_step,
+    result_out: *mut sys::eech_movement_result,
+    error: *mut c_char,
+    error_size: usize,
+    user: *mut c_void,
+) -> c_int
+where
+    F: FnMut(MemberDescriptor) -> Result<String, String>,
+    G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+    H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+    M: FnMut(MovementStep) -> Result<MovementResult, String>,
+{
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
+        if step.is_null() || result_out.is_null() || user.is_null() {
+            return Err("invalid native move_vehicle callback context".into());
+        }
+        // SAFETY: C supplies all three pointers for the duration of this callback.
+        let (source, context) = unsafe { (&*step, &mut *(user as *mut HostContext<'_, F, G, H, M>)) };
+        let host_id_bytes = source.host_id.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect::<Vec<_>>();
+        if host_id_bytes.is_empty() || host_id_bytes.len() > sys::EECH_MOVEMENT_HOST_ID_MAX {
+            return Err("move_vehicle received an invalid host identity length".into());
+        }
+        let host_id = std::str::from_utf8(&host_id_bytes)
+            .map_err(|_| "move_vehicle received a non-UTF-8 host identity")?
+            .to_owned();
+        let mode = match source.mode {
+            sys::EECH_MOVEMENT_MOVE => MovementMode::Move,
+            sys::EECH_MOVEMENT_STOP => MovementMode::Stop,
+            sys::EECH_MOVEMENT_PLACE => MovementMode::Place,
+            other => return Err(format!("move_vehicle received unknown mode {other}")),
+        };
+        let terrain_follow = checked_bool("terrain_follow", source.terrain_follow)?;
+        let terrain_present = checked_bool("terrain_present", source.terrain_present)?;
+        if terrain_follow != terrain_present {
+            return Err("move_vehicle received terrain-follow without a terrain sample".into());
+        }
+        checked_floats(&[
+            ("velocity", source.velocity),
+            ("delta_seconds", source.delta_seconds),
+            ("desired_velocity", source.desired_velocity),
+            ("max_acceleration", source.max_acceleration),
+            ("elevation", source.elevation),
+        ])?;
+        for (name, values) in [
+            ("position", &source.position[..]),
+            ("attitude", &source.attitude[..]),
+            ("waypoint", &source.waypoint[..]),
+            ("face_normal", &source.face_normal[..]),
+            ("map_min", &source.map_min[..]),
+            ("map_max", &source.map_max[..]),
+        ] {
+            if values.iter().any(|value| !value.is_finite()) {
+                return Err(format!("non-finite movement {name}"));
+            }
+        }
+        if source.delta_seconds < 0.0 {
+            return Err("move_vehicle received a negative delta".into());
+        }
+        let terrain = if terrain_present {
+            Some(TerrainSample {
+                elevation: source.elevation,
+                forest: checked_bool("forest", source.forest)?,
+                face_normal: source.face_normal,
+            })
+        } else {
+            None
+        };
+        let request = MovementStep {
+            host_id,
+            mode,
+            pose: VehiclePose {
+                position: source.position,
+                velocity: source.velocity,
+                attitude: source.attitude,
+            },
+            delta_seconds: source.delta_seconds,
+            desired_velocity: source.desired_velocity,
+            max_acceleration: source.max_acceleration,
+            waypoint: source.waypoint,
+            tacview_logging: checked_bool("tacview_logging", source.tacview_logging)?,
+            terrain,
+            map_min: source.map_min,
+            map_max: source.map_max,
+        };
+        let answer = (context.move_vehicle)(request)?;
+        let pose = answer.pose;
+        if !pose.velocity.is_finite() || pose.position.iter().chain(pose.attitude.iter()).any(|value| !value.is_finite()) {
+            return Err("move_vehicle host returned a non-finite pose".into());
+        }
+        // SAFETY: C supplies a writable result for the duration of this callback.
+        unsafe {
+            *result_out = sys::eech_movement_result {
+                position: pose.position,
+                velocity: pose.velocity,
+                attitude: pose.attitude,
+                rotated: c_int::from(answer.rotated),
+            };
+        }
+        Ok(())
+    }));
+    match result {
+        Ok(Ok(())) => 0,
+        Ok(Err(message)) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, &message) };
+            1
+        }
+        Err(_) => {
+            // No Rust panic may unwind through C.
+            unsafe { write_callback_text(error, error_size, "move_vehicle panicked") };
+            1
+        }
+    }
+}
+
+fn with_host<F, G, H, M>(
     bind_mobile_fn: &mut F,
     observe_loss_fn: &mut G,
     supply_reached_fn: &mut H,
+    move_vehicle_fn: &mut M,
     call: impl FnOnce(*const sys::eech_engine_host) -> c_int,
 ) -> Result<(), EngineError>
 where
     F: FnMut(MemberDescriptor) -> Result<String, String>,
     G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
     H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+    M: FnMut(MovementStep) -> Result<MovementResult, String>,
 {
     let mut context = HostContext {
         bind_mobile: bind_mobile_fn,
         observe_loss: observe_loss_fn,
         supply_reached: supply_reached_fn,
+        move_vehicle: move_vehicle_fn,
     };
     let host = sys::eech_engine_host {
-        bind_mobile: Some(bind_mobile::<F, G, H>),
-        observe_loss: Some(observe_loss::<F, G, H>),
-        supply_reached: Some(supply_reached::<F, G, H>),
-        user: (&mut context as *mut HostContext<'_, F, G, H>).cast::<c_void>(),
+        bind_mobile: Some(bind_mobile::<F, G, H, M>),
+        observe_loss: Some(observe_loss::<F, G, H, M>),
+        supply_reached: Some(supply_reached::<F, G, H, M>),
+        move_vehicle: Some(move_vehicle::<F, G, H, M>),
+        user: (&mut context as *mut HostContext<'_, F, G, H, M>).cast::<c_void>(),
     };
     check(call(&host))
 }
@@ -880,11 +1066,18 @@ pub fn prepare_installation(root: &Path) -> Result<(), EngineError> {
 
 impl Engine {
     /// boots EECH's dedicated-server path into the campaign (once per process)
-    pub fn boot<F, G, H>(config: &EngineConfig, bind_mobile_fn: &mut F, observe_loss_fn: &mut G, supply_reached_fn: &mut H) -> Result<Engine, EngineError>
+    pub fn boot<F, G, H, M>(
+        config: &EngineConfig,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+    ) -> Result<Engine, EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
         G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
         H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
     {
         if BOOTED.swap(true, Ordering::SeqCst) {
             return Err(EngineError::State);
@@ -906,7 +1099,7 @@ impl Engine {
             arguments: argv.as_ptr(),
         };
         // SAFETY: every config pointer and the temporary host callback are valid for the call.
-        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, |host| unsafe {
+        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, move_vehicle_fn, |host| unsafe {
             sys::eech_engine_boot(&c, host)
         })?;
         Ok(Engine {
@@ -915,14 +1108,22 @@ impl Engine {
     }
 
     /// advances simulated time and runs one iteration of EECH's flight loop
-    pub fn frame<F, G, H>(&self, milliseconds: u32, bind_mobile_fn: &mut F, observe_loss_fn: &mut G, supply_reached_fn: &mut H) -> Result<(), EngineError>
+    pub fn frame<F, G, H, M>(
+        &self,
+        milliseconds: u32,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+    ) -> Result<(), EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
         G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
         H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
     {
         // SAFETY: the temporary host callback is valid for the call.
-        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, |host| unsafe {
+        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, move_vehicle_fn, |host| unsafe {
             sys::eech_engine_frame(milliseconds, host)
         })
     }
