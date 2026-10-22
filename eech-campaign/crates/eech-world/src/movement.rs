@@ -3395,4 +3395,50 @@ mod tests {
         }
         assert!(checked >= 50, "only {checked} draws separate the float transport from the double one");
     }
+
+    #[test]
+    fn a_wing_crash_slide_keeps_its_post_slope_speed_through_the_clear_and_commits_the_staged_candidate() {
+        let start = Pose {
+            position: [0.0, 50.0, 0.0],
+            velocity: 0.6,
+            attitude: LEVEL,
+        };
+        let slow = [0.6, 0.0, 0.0];
+        let mut movers = movers(Kind::FixedWing, start);
+        movers.step("v", start, Request::Place { motion_vector: slow }).unwrap();
+        let step = |mode, vector| {
+            let mut step = vehicle_step(mode, vector, 0.01);
+            step.elevation = 30.0;
+            step.cg_to_ground = 2.0;
+            step
+        };
+        let candidate = run(&mut movers, start, step(LifecycleMode::FwCrashCandidate, slow)).unwrap();
+        assert_within(&candidate.pose.position, &[0.006, 50.0, 0.0], 1.0e-6);
+        // out of order, interleaved or repeated requests are refused, and the candidate survives them all
+        for refused in [
+            LifecycleMode::FwCrashAttitude,
+            LifecycleMode::FwCrashCandidate,
+            LifecycleMode::FwSettle,
+            LifecycleMode::Fall,
+        ] {
+            assert!(run(&mut movers, start, step(refused, slow)).is_err(), "{refused:?}");
+        }
+        assert!(movers.step("v", start, Request::Stop).is_err());
+        // flat ground: the friction (10 * 0.01) leaves 0.5, under 1, so the velocity phase asks the campaign to clear
+        let velocity = run(&mut movers, start, step(LifecycleMode::FwCrashVelocity, slow)).unwrap();
+        assert_eq!(velocity.flags, 1);
+        assert_within(&[velocity.pose.velocity], &[0.5], 1.0e-6);
+        assert_within(&velocity.motion_vector, &[0.5, 0.0, 0.0], 1.0e-6);
+        assert_within(&velocity.pose.position, &[0.006, 32.0, 0.0], 1.0e-6);
+        assert!(run(&mut movers, start, step(LifecycleMode::FwCrashVelocity, velocity.motion_vector)).is_err());
+        // the campaign's clear is a placement of zero; the post-slope speed is still the one the rest test sees
+        let cleared = Pose { velocity: 0.0, ..start };
+        movers.step("v", cleared, Request::Place { motion_vector: [0.0; 3] }).unwrap();
+        let landed = run(&mut movers, cleared, step(LifecycleMode::FwCrashAttitude, [0.0; 3])).unwrap();
+        assert_eq!(landed.flags, 0, "a 0.5 m/s slide is not at rest, whatever the cleared scalar says");
+        assert_within(&landed.pose.position, &[0.006, 32.0, 0.0], 1.0e-6);
+        // the slide is closed: a crash phase now needs a new candidate, and a live step is accepted again
+        assert!(run(&mut movers, landed.pose, step(LifecycleMode::FwCrashAttitude, [0.0; 3])).is_err());
+        run(&mut movers, landed.pose, step(LifecycleMode::FwCrashCandidate, [0.0; 3])).unwrap();
+    }
 }
