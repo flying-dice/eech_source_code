@@ -12,6 +12,8 @@ build = "build/main.rs"
 dependent-fixture = []
 # TEST-ONLY red build: dependent-fixture with the pre-EEDCS-40 boolean apply guard, applied to the staged copy only.
 dependent-fixture-old-guard = ["dependent-fixture"]
+# TEST-ONLY (EEDCS-41): the all-family loss trigger. Never enabled in the shipping build.
+loss-fixture = []
 
 [build-dependencies]
 cc = { version = "1.2", features = ["parallel"] }

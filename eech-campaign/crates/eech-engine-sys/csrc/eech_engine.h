@@ -202,4 +202,9 @@ int eech_engine_diagnostics (void);
 int eech_engine_dependent_fixture (int op, int parent_id, int child_id, const double position[3], const struct eech_engine_host *host);
 #endif
 
+#ifdef EECH_LOSS_FIXTURE
+/* TEST-ONLY (feature loss-fixture): see eech_engine.c. Not part of the shipping module. */
+int eech_engine_loss_fixture (int entity_id, const struct eech_engine_host *host);
+#endif
+
 #endif

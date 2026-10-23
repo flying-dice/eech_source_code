@@ -647,16 +647,7 @@ void eech_engine_debug_engagements (void)
 	}
 }
 
-#ifdef EECH_DEPENDENT_FIXTURE
-
-/* ---------------------------------------------------------------------------------------------------------------------------- */
-/*
- * TEST-ONLY dependent-positioning fixture (EEDCS-40). Compiled only with the `dependent-fixture` feature; never part of the
- * shipping module. It constructs no entity and replaces no handler: it names two live, hosted campaign entities by index and
- * either re-links one as a movement dependent of the other (the same list insert mb_msgs.c uses for cargo and keysite
- * receivers) or moves the parent through the campaign's own setter, so EECH's genuine notify_local_entity handlers (rv_msgs.c,
- * aa_msgs.c, ps_msgs.c, hc_msgs.c) run and call campaign_movement_dependent_carry themselves.
- */
+#if defined(EECH_DEPENDENT_FIXTURE) || defined(EECH_LOSS_FIXTURE)
 
 static entity *fixture_hosted_entity (int index)
 {
@@ -673,6 +664,19 @@ static entity *fixture_hosted_entity (int index)
 	}
 	return en;
 }
+
+#endif
+
+#ifdef EECH_DEPENDENT_FIXTURE
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/*
+ * TEST-ONLY dependent-positioning fixture (EEDCS-40). Compiled only with the `dependent-fixture` feature; never part of the
+ * shipping module. It constructs no entity and replaces no handler: it names two live, hosted campaign entities by index and
+ * either re-links one as a movement dependent of the other (the same list insert mb_msgs.c uses for cargo and keysite
+ * receivers) or moves the parent through the campaign's own setter, so EECH's genuine notify_local_entity handlers (rv_msgs.c,
+ * aa_msgs.c, ps_msgs.c, hc_msgs.c) run and call campaign_movement_dependent_carry themselves.
+ */
 
 int eech_engine_dependent_fixture (int op, int parent_id, int child_id, const double position[3], const struct eech_engine_host *host)
 {
@@ -728,6 +732,39 @@ int eech_engine_dependent_fixture (int op, int parent_id, int child_id, const do
 	default:
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_LOSS_FIXTURE
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/*
+ * TEST-ONLY all-family loss trigger (EEDCS-41). Compiled only with the `loss-fixture` feature; never part of the shipping
+ * module. It names one live, hosted campaign member by index and ends it through the campaign's own kill_client_server_entity,
+ * so the genuine kill_local handler of its family runs, asks the host observe_loss callback, and either applies the
+ * consequences inline (forward) or leaves them pending for engine:report_loss (withhold). It constructs no entity and replaces
+ * no handler. It stands in only for the combat that would otherwise end the member at a time the scenario cannot choose.
+ */
+int eech_engine_loss_fixture (int entity_id, const struct eech_engine_host *host)
+{
+	entity *en;
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	en = fixture_hosted_entity (entity_id);
+	if (!en)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	kill_client_server_entity (en);
 	LEAVE (EECH_ENGINE_OK);
 }
 

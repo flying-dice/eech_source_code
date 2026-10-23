@@ -1,0 +1,355 @@
+-- TEST-ONLY witness for host loss reports in the five non-helicopter force families (EEDCS-41).
+-- Needs a DLL built with the `loss-fixture` feature; the shipping module has no `loss_fixture` method.
+--
+-- The fixture constructs no entity and replaces no handler. It names one live, hosted member of the booted Lebanon
+-- campaign and ends it through the campaign's own kill_client_server_entity, so the genuine kill_local of the family
+-- runs, reaches the DLL's loss decision, and calls this script's observe_loss (in the same stack). It stands in for the
+-- combat that would end a member at a time a scenario cannot choose; it is not a causal claim about combat (D2).
+--
+-- Per family (fixed_wing, routed, anti_air, person, ship) the host answers `withhold` for one member A whose shape the
+-- bounded case supports (AI, not landed, a non-final group, no group/member task dependents, no landing actions, no
+-- movement relations). A member whose shape is not supported is answered `forward` by the host (a host policy decision on
+-- the descriptor the campaign supplied) and the next candidate is tried; those are listed as `skipped`. Then:
+--   * campaign transition: A leaves the campaign group at once, but the group still counts it logically (the withheld
+--     loss has no campaign consequence yet);
+--   * a FORWARD control B of the same group is ended with the reference host's answer (`forward`, taken from
+--     reference_loss, not from this script): the same stack, and B is out of the group at once. B's immediate loss must
+--     not disturb the pending A;
+--   * wreck disposal is host-owned (5 min to 3 h of game time) and asserted separately: the report is only accepted once
+--     the wreck is retired and the physical identity is gone;
+--   * `engine:report_loss(host_id)` then applies A's loss exactly once: the receipt shows the group's loss count +1, its
+--     logical members -1 from what B's immediate loss left, the primary task's loss count +1 where the family has one;
+--   * a probe C of the same group (group of at least 4 only) shows both campaign decrements (A's report, B's forward) in
+--     the member count the campaign supplies to the host.
+-- A requested family with no supported member fails the run. Force info and the regen queue are not observable from Lua;
+-- the phase order is enforced inside the DLL (strictly ascending phases, fatal otherwise) and FORWARD exactness is covered
+-- by the retained regression pack.
+--
+-- mode=witness   the above (default)
+-- mode=negative  the unsupported-shape case: withhold the final member of a group of one. The campaign must fail
+--                explicitly (a fatal engine error naming the final member); this poisons the engine, so it ends the run.
+--
+-- reject=duplicate|forwarded|unknown (witness mode, optional): after the last family, one rejected report: the A already
+--            reported, the FORWARD control B (no loss is pending for it), or an id the campaign never saw. It must raise.
+--            A rejected report is fatal to the engine, so a run carries at most one.
+-- host.args: root, mode, warmup (default 30 frames), frame_ms (default 100), settle_ms (default 1000, the frame step while a wreck ages),
+--            settle_limit (default 12000 frames), families (default fixed_wing,routed,anti_air,person,ship),
+--            candidates (default 40 tries per family), reject
+
+io.stdout:setvbuf ("no")
+
+local args = host.args
+local root = assert (args.root, "root=<installation root>")
+local mode = args.mode or "witness"
+assert (mode == "witness" or mode == "negative", "mode=witness|negative")
+local frame_ms = tonumber (args.frame_ms or "100")
+local warmup = tonumber (args.warmup or "30")
+local settle_ms = tonumber (args.settle_ms or "1000")
+local settle_limit = tonumber (args.settle_limit or "12000")
+local max_tries = tonumber (args.candidates or "40")
+local dc = require ("eech_dc")
+dc.prepare_installation (root)
+
+local ENTITY = { fixed_wing = 10, routed = 23, anti_air = 1, person = 19, ship = 28 }
+local HAS_PRIMARY_TASK_LOSSES = { fixed_wing = true, routed = true, ship = true }
+local order = {}
+for name in string.gmatch (args.families or "fixed_wing,routed,anti_air,person,ship", "[^,]+") do
+	assert (ENTITY [name], "unknown family " .. name)
+	order [#order + 1] = name
+end
+
+local reference_bind = host.bind_mobile
+local reference_loss = host.observe_loss
+local entity_of = {}
+local want = {}       -- host id -> true only for the members the host should withhold if the shape is supported
+local observed = {}   -- host id -> { descriptor, answer, why, in_fixture }
+local in_fixture = false
+
+local function bind_mobile (descriptor)
+	local id = reference_bind (descriptor)
+	entity_of [id] = descriptor.entity_id
+	return id
+end
+
+-- the shapes the campaign's bounded WITHHOLD supports; anything else the host forwards
+local function unsupported (d)
+	if d.player ~= 0 then return "not an AI member" end
+	if d.landed then return "landed" end
+	if d.campaign_member_count <= 1 then return "final member" end
+	if d.group_task_dependents ~= 0 or d.restricted_guides ~= 0 then return "group task dependents or restricted guides" end
+	if d.movement_parent or d.movement_dependents ~= 0 or d.takeoff_queue then return "movement relations" end
+	if d.member_task_dependent_count ~= 0 then return "member task dependents" end
+	if d.landing_action_count ~= 0 then return "landing actions" end
+	return nil
+end
+
+local function observe_loss (d)
+	local entry = { descriptor = d, in_fixture = in_fixture }
+	observed [d.host_id] = entry
+	if mode == "witness" and want [d.host_id] then
+		local why = unsupported (d)
+		if not why then
+			entry.answer = "withhold"
+			return "withhold"
+		end
+		entry.answer, entry.why = "forward", why
+		return "forward"
+	end
+	if mode == "negative" and want [d.host_id] then
+		entry.answer = "withhold"
+		return "withhold"
+	end
+	-- everything not marked is answered by the reference host, not by this script
+	entry.answer = reference_loss (d)
+	return entry.answer
+end
+
+local engine = dc.boot ({
+	install_root = root,
+	map = "..\\common\\maps\\map5",
+	campaign_directory = "camp01",
+	campaign = "LEBANON.CHC",
+	gunship = "apache",
+	seed = 1,
+	bind_mobile = bind_mobile,
+	move_vehicle = host.move_vehicle,
+	observe_loss = observe_loss,
+	supply_reached = host.supply_reached,
+})
+for _ = 1, warmup do engine:frame (frame_ms) end
+
+local failures = {}
+local function check (name, ok, detail)
+	print (string.format ("check\t%s\t%s%s", name, ok and "pass" or "FAIL", detail and ("\t" .. detail) or ""))
+	if not ok then failures [#failures + 1] = name end
+end
+
+local function finish ()
+	if #failures > 0 then
+		print ("result\tfail")
+		error (#failures .. " check(s) failed: " .. table.concat (failures, ", "), 0)
+	end
+	print ("result\tok")
+end
+
+-- logical group sizes (members still counted in their group) and the live members per family
+local function census (family)
+	local size, list = {}, {}
+	for _, member in ipairs (engine:members ()) do
+		if member.in_group and member.physical_present and member.host_id then
+			size [member.group_key] = (size [member.group_key] or 0) + 1
+		end
+	end
+	for _, member in ipairs (engine:members ()) do
+		if member.in_group and member.physical_present and member.host_id and member.current_entity_id
+			and member.entity_type == ENTITY [family] and entity_of [member.host_id] then
+			list [#list + 1] = { member = member, size = size [member.group_key] }
+		end
+	end
+	table.sort (list, function (a, b) return a.member.current_entity_id < b.member.current_entity_id end)
+	return list
+end
+
+local function find_member (host_id)
+	for _, member in ipairs (engine:members ()) do
+		if member.host_id == host_id then return member end
+	end
+end
+
+local function raises (f, ...)
+	local ok, message = pcall (f, ...)
+	return not ok, tostring (message)
+end
+
+-- role "withhold" marks the member for the host's withhold policy; any other role is left to the reference host's answer
+local function kill (candidate, role)
+	local id = candidate.member.host_id
+	if role == "withhold" then want [id] = true end
+	in_fixture = true
+	local ok, message = pcall (engine.loss_fixture, engine, candidate.member.current_entity_id)
+	in_fixture = false
+	return ok, message, id
+end
+
+if mode == "negative" then
+	-- a member alone in its group: the final member, which the bounded case does not support
+	local lone
+	for _, family in ipairs (order) do
+		for _, candidate in ipairs (census (family)) do
+			if candidate.size == 1 then lone = lone or { candidate = candidate, family = family } end
+		end
+	end
+	if not lone then
+		print ("note\tno single-member group of the selected families in this campaign")
+		check ("negative.available", false, "no single-member group of the selected families")
+		finish ()
+		return
+	end
+	local ok, message, id = kill (lone.candidate, "withhold")
+	local entry = observed [id]
+	print (string.format ("negative\tfamily=%s host_id=%s answer=%s message=%s", lone.family, id, tostring (entry and entry.answer), message))
+	check ("negative.fails_explicitly", not ok and string.find (message, "final member", 1, true) ~= nil, message)
+	finish ()
+	return
+end
+
+-- candidates of the family in a group of at least `minimum` (largest groups first), skipping members already tried
+local function candidates_of (family, minimum, tried)
+	local list = {}
+	for _, candidate in ipairs (census (family)) do
+		if candidate.size >= minimum and not tried [candidate.member.host_id] then list [#list + 1] = candidate end
+	end
+	table.sort (list, function (a, b)
+		if a.size ~= b.size then return a.size > b.size end
+		return a.member.current_entity_id < b.member.current_entity_id
+	end)
+	return list
+end
+
+local function same_group (family, group_key, tried)
+	for _, candidate in ipairs (census (family)) do
+		if candidate.member.group_key == group_key and not tried [candidate.member.host_id] then return candidate end
+	end
+end
+
+local summary, last_reported, last_forwarded = {}, nil, nil
+for _, family in ipairs (order) do
+	local skipped, done, tried, tries = {}, nil, {}, 0
+	while not done and tries < max_tries do
+		local candidate = candidates_of (family, 3, tried) [1]
+		if not candidate then break end
+		tries = tries + 1
+		tried [candidate.member.host_id] = true
+		local ok, message, id = kill (candidate, "withhold")
+		local entry = observed [id]
+		if not ok then
+			check (family .. ".kill_call", false, message)
+			break
+		end
+		if entry and entry.answer == "withhold" then
+			done = { candidate = candidate, id = id, entry = entry }
+		else
+			skipped [#skipped + 1] = string.format ("%s:%s", id, entry and entry.why or "no loss observed")
+		end
+	end
+	for _, line in ipairs (skipped) do print (string.format ("skipped\t%s\t%s", family, line)) end
+	if not done then
+		print (string.format ("unavailable\t%s\tno supported member in %d tries", family, tries))
+		check (family .. ".available", false, string.format ("no withhold-supported member in %d tries", tries))
+		summary [#summary + 1] = family .. "=UNAVAILABLE"
+	else
+		local d, id, candidate = done.entry.descriptor, done.id, done.candidate
+		local n, group_key = d.campaign_member_count, candidate.member.group_key
+		print (string.format ("withheld\t%s\thost_id=%s entity=%d event=%s group_members=%d primary_task=%s", family, id, candidate.member.current_entity_id,
+			tostring (d.event), n, tostring (d.primary_task_key)))
+		check (family .. ".observed_in_same_stack", done.entry.in_fixture, "observe_loss ran inside the kill call")
+		check (family .. ".event_physical", d.event == "physical", tostring (d.event))
+		check (family .. ".entity_type", d.entity_type == ENTITY [family], tostring (d.entity_type))
+
+		-- campaign transition: out of the group at once; the wreck's physical presence is the host's, reported not asserted
+		local record = find_member (id)
+		check (family .. ".left_group_at_once", record and not record.in_group,
+			record and string.format ("physical_present=%s in_group=%s", tostring (record.physical_present), tostring (record.in_group)) or "no record")
+		print (string.format ("wreck\t%s\tphysical_present_at_once=%s", family, tostring (record and record.physical_present)))
+
+		-- FORWARD control B of the same group, answered by the reference host while A is pending
+		local forwarded = 0
+		local control = same_group (family, group_key, tried)
+		if not control then
+			print (string.format ("note\t%s\tno second member of the group for the forward control", family))
+		else
+			tried [control.member.host_id] = true
+			local ok, message, control_id = kill (control, "control")
+			local entry = observed [control_id]
+			check (family .. ".forward_call", ok, message)
+			check (family .. ".forward_same_stack", entry and entry.in_fixture and entry.answer == "forward",
+				entry and tostring (entry.answer) or "no loss observed")
+			check (family .. ".forward_withheld_member_still_counted", entry and entry.descriptor.campaign_member_count == n,
+				entry and string.format ("count=%d expected=%d", entry.descriptor.campaign_member_count, n) or "no loss observed")
+			local gone = find_member (control_id)
+			check (family .. ".forward_left_group_at_once", gone and not gone.in_group,
+				gone and string.format ("physical_present=%s in_group=%s", tostring (gone.physical_present), tostring (gone.in_group)) or "no record")
+			if ok and entry and entry.answer == "forward" then
+				forwarded = 1
+				last_forwarded = control_id
+			end
+		end
+
+		-- wreck disposal (host-owned, 5 min to 3 h of game time by distance to a keysite): run the world on until retired
+		local waited = 0
+		local still = find_member (id)
+		while still and still.physical_present and waited < settle_limit do
+			engine:frame (settle_ms)
+			waited = waited + 1
+			if waited % 5 == 0 then print (string.format ("waiting\t%s\t%d frames, cpu %.1f s", family, waited, os.clock ())) end
+			still = find_member (id)
+		end
+		print (string.format ("settled\t%s\t%d frames of %d ms (%.1f game minutes)", family, waited, settle_ms, waited * settle_ms / 60000))
+		check (family .. ".wreck_retired", still and not still.physical_present,
+			still and string.format ("physical_present=%s in_group=%s after %d frames", tostring (still.physical_present), tostring (still.in_group), waited) or "no record")
+		check (family .. ".still_out_of_group_before_report", still and not still.in_group)
+
+		-- the report: the campaign consequences apply now, once
+		local receipt = engine:report_loss (id)
+		print (string.format ("receipt\t%s\tgroup_losses=%d>%d logical=%d>%d physical_before=%d primary_losses=%d>%d landing=%d>%d expire=%d completed=%d",
+			family, receipt.group_losses_before, receipt.group_losses_after, receipt.group_logical_members_before, receipt.group_logical_members_after,
+			receipt.group_physical_members_before, receipt.primary_task_losses_before, receipt.primary_task_losses_after,
+			receipt.landing_reserved_before, receipt.landing_reserved_after, receipt.tasks_retired_expire, receipt.tasks_completed_on_report))
+		check (family .. ".group_losses_plus_one", receipt.group_losses_after == receipt.group_losses_before + 1)
+		check (family .. ".logical_members_held_until_report", receipt.group_logical_members_before == n - forwarded,
+			string.format ("observe=%d forwarded=%d report_before=%d", n, forwarded, receipt.group_logical_members_before))
+		check (family .. ".logical_members_minus_one", receipt.group_logical_members_after == receipt.group_logical_members_before - 1)
+		check (family .. ".physical_members_already_removed", receipt.group_physical_members_before == n - 1 - forwarded,
+			string.format ("physical_before=%d", receipt.group_physical_members_before))
+		if HAS_PRIMARY_TASK_LOSSES [family] and d.primary_task_key then
+			check (family .. ".primary_task_losses_plus_one", receipt.primary_task_losses_after == receipt.primary_task_losses_before + 1)
+		else
+			check (family .. ".primary_task_losses_unchanged", receipt.primary_task_losses_after == receipt.primary_task_losses_before)
+		end
+		check (family .. ".no_landing_or_task_work", receipt.landing_reserved_before == 0 and receipt.landing_reserved_after == 0
+			and receipt.tasks_retired_expire == 0 and receipt.tasks_completed_on_report == 0)
+		last_reported = id
+		for _ = 1, 10 do engine:frame (frame_ms) end
+
+		-- probe C: the campaign's own member count now reflects A's report and B's immediate loss
+		local expected = n - 1 - forwarded
+		if expected >= 2 then
+			local probe = same_group (family, group_key, tried)
+			if probe then
+				tried [probe.member.host_id] = true
+				local ok, message, probe_id = kill (probe, "probe")
+				local entry = observed [probe_id]
+				check (family .. ".probe_call", ok, message)
+				check (family .. ".probe_sees_both_decrements", entry and entry.descriptor.campaign_member_count == expected,
+					entry and string.format ("count=%d expected=%d", entry.descriptor.campaign_member_count, expected) or "no loss observed")
+			else
+				print (string.format ("note\t%s\tno third member of the group for the probe", family))
+			end
+		else
+			print (string.format ("note\t%s\tgroup too small for the probe (%d members at observe)", family, n))
+		end
+		summary [#summary + 1] = family .. "=withheld+reported"
+	end
+end
+
+-- one rejected report, last: it is fatal to the engine
+local reject = args.reject
+if reject then
+	local id, expect
+	if reject == "duplicate" then id, expect = last_reported, "already reported"
+	elseif reject == "forwarded" then id, expect = last_forwarded, "no loss is pending"
+	elseif reject == "unknown" then id, expect = "host-id-the-campaign-never-saw", "no loss is pending"
+	else error ("reject=duplicate|forwarded|unknown", 0) end
+	if not id then
+		check ("reject." .. reject .. ".available", false, "no such id in this run")
+	else
+		local failed, message = raises (engine.report_loss, engine, id)
+		print (string.format ("rejected\t%s\thost_id=%s message=%s", reject, id, message))
+		check ("reject." .. reject .. ".raises", failed and string.find (message, expect, 1, true) ~= nil, message)
+		local frame_failed, frame_message = raises (engine.frame, engine, frame_ms)
+		print (string.format ("note\tengine after the rejected report: frame %s (%s)", frame_failed and "raises" or "runs", frame_message))
+	end
+	summary [#summary + 1] = "reject=" .. reject
+end
+print ("summary\t" .. table.concat (summary, " "))
+finish ()

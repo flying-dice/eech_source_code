@@ -2035,6 +2035,28 @@ impl Engine {
         })
     }
 
+    /// TEST-ONLY (feature `loss-fixture`): ends one live hosted member through the campaign's own kill path.
+    #[cfg(feature = "loss-fixture")]
+    pub fn loss_fixture<F, G, H, M>(
+        &self,
+        entity_id: i32,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+    ) -> Result<(), EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+    {
+        // SAFETY: the temporary host callback is valid for the call.
+        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, move_vehicle_fn, |host| unsafe {
+            sys::eech_engine_loss_fixture(entity_id, host)
+        })
+    }
+
     /// Applies one previously withheld loss by opaque physical-incarnation ID.
     /// Duplicate, unknown, stale and unsupported reports fail visibly and return no receipt.
     pub fn report_loss(&self, host_id: &str) -> Result<LossReceipt, EngineError> {

@@ -13,6 +13,8 @@ serde = { workspace = true }
 # TEST-ONLY (EEDCS-40): see eech-engine-sys.
 dependent-fixture = ["eech-engine-sys/dependent-fixture"]
 dependent-fixture-old-guard = ["eech-engine-sys/dependent-fixture-old-guard"]
+# TEST-ONLY (EEDCS-41): see eech-engine-sys.
+loss-fixture = ["eech-engine-sys/loss-fixture"]
 
 [lints.rust]
 unsafe_op_in_unsafe_fn = "deny"
