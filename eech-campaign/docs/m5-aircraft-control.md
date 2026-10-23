@@ -5,7 +5,7 @@ and not technical-lead approval.** Native runtime `b721ae5a`; reviewed equivalen
 `f1371dda`; workflow-only head `10b02621`. The Windows regression pack passed 40/40 (exit 0), the
 full Lebanon reference files are byte-equal to the retained references, the three-hour census
 exited 0, and PR98 CI is green at `10b02621`. Scope authority is the live Confluence M5 goal and
-the Jira ledger; this file records evidence only.
+Confluence migration ledger; this file records evidence only.
 
 Evidence is in [`../reference/m5-aircraft-control/`](../reference/m5-aircraft-control/reference-summary.txt).
 
