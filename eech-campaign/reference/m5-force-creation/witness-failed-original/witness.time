@@ -1,0 +1,5 @@
+/usr/bin/bash: line 215: 21370 Segmentation fault      timeout 300 ./eech-world.exe $W/create-place-witness.lua root=E:/eech-runs/m5-d1/surface-movement-20261022/lebanon-private > $W/witness.out 2> $W/witness.err
+
+real	0m7.297s
+user	0m0.031s
+sys	0m0.015s

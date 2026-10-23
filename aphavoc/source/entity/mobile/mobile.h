@@ -173,6 +173,10 @@ extern void credit_client_server_mobile_kill (entity *victim, entity *aggressor)
 
 extern float calculate_mobile_death_timer_value (entity *en);
 
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+extern float calculate_mobile_nearest_keysite_sqr_range (entity *en);
+#endif
+
 extern int insert_mobile_into_takeoff_route (entity *member, entity *landing_entity);
 
 extern int mobile_check_all_members_taken_off (entity *en);

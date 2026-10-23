@@ -9,8 +9,8 @@
 mod crash;
 
 use eech_world::movement::{
-    Advance, FixedWingMove, FixedWingPhase, HelicopterBegin, HelicopterEnd, Kind, Lifecycle, LifecycleMode, Movers, PersonBegin, PersonEnd, Pose, Request,
-    ShipMove, Terrain,
+    Advance, Creation, FixedWingMove, FixedWingPhase, HelicopterBegin, HelicopterEnd, Kind, Lifecycle, LifecycleMode, Movers, Outcome, PersonBegin, PersonEnd,
+    Pose, Request, ShipMove, Terrain,
 };
 use eech_world::tacview::{ObjectInfo, Recorder};
 use mlua::prelude::*;
@@ -206,6 +206,9 @@ fn lifecycle_from(lua: &Lua, step: &LuaTable, mode: LifecycleMode) -> LuaResult<
         wide: false,
         water: false,
         waypoint: [0.0; 3],
+        death_timer: 0.0,
+        death_range: 0.0,
+        death_policy: 0,
     };
     match mode {
         LifecycleMode::RotorSet => {}
@@ -285,6 +288,13 @@ fn lifecycle_from(lua: &Lua, step: &LuaTable, mode: LifecycleMode) -> LuaResult<
         LifecycleMode::ShipSink => {
             lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
         }
+        LifecycleMode::Expire => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.death_timer = number(lua, step, "death_timer")?;
+            lifecycle.death_range = number(lua, step, "death_range")?;
+            lifecycle.death_policy = step.get("death_policy")?;
+            lifecycle.bbox_diagonal = number(lua, step, "bbox_diagonal")?;
+        }
         LifecycleMode::VehicleVectorSeed | LifecycleMode::GvFallVector | LifecycleMode::GvFallCommit => {}
         LifecycleMode::FwSettle => {
             lifecycle.terrain_class = step.get("terrain_class")?;
@@ -331,6 +341,14 @@ fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request
         "place" => Request::Place {
             motion_vector: numbers(lua, step, "motion_vector_in")?,
         },
+        "create_place" => Request::Create(Creation {
+            position: pose.position,
+            cg_to_ground: number(lua, step, "cg_to_ground")?,
+            heading: number(lua, step, "desired_heading")?,
+            fuselage_angle: number(lua, step, "fuselage_angle")?,
+            face_normal: numbers(lua, step, "face_normal")?,
+            motion_vector: numbers(lua, step, "motion_vector_in")?,
+        }),
         "ship_move" => Request::ShipMove(ShipMove {
             delta_seconds: number(lua, step, "delta_seconds")?,
             frame_delta: number(lua, step, "frame_delta")?,
@@ -434,6 +452,7 @@ fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request
         "gv_fall_commit" => lifecycle_from(lua, step, LifecycleMode::GvFallCommit)?,
         "fw_settle" => lifecycle_from(lua, step, LifecycleMode::FwSettle)?,
         "fw_crash_attitude" => lifecycle_from(lua, step, LifecycleMode::FwCrashAttitude)?,
+        "expire" => lifecycle_from(lua, step, LifecycleMode::Expire)?,
         other => return Err(LuaError::runtime(format!("host.move_vehicle: unknown mode {other}"))),
     };
     Ok((host_id, pose, request))
@@ -925,6 +944,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .borrow_mut()
                         .bind(&host_id, kind, pose_from(lua, &pose)?, motion_vector, rotor)
                         .map_err(LuaError::runtime)?;
+                } else {
+                    // a link without a creation request still owns an identity the host must retire
+                    movers.borrow_mut().issue(&host_id).map_err(LuaError::runtime)?;
                 }
                 Ok(host_id)
             })?,
@@ -935,8 +957,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         host.set(
             "move_vehicle",
             lua.create_function(move |lua, step: LuaTable| {
-                let (host_id, campaign, request) = movement_from(lua, &step)?;
-                let outcome = movers.borrow_mut().step(&host_id, campaign, request).map_err(LuaError::runtime)?;
+                // the physical incarnation ended: the host retires the identity; nothing is stepped or answered
+                let outcome = if step.get::<String>("mode")? == "retire" {
+                    let host_id: String = step.get("host_id")?;
+                    let mut movers = movers.borrow_mut();
+                    movers.retire(&host_id).map_err(LuaError::runtime)?;
+                    Outcome::retired()
+                } else {
+                    let (host_id, campaign, request) = movement_from(lua, &step)?;
+                    movers.borrow_mut().step(&host_id, campaign, request).map_err(LuaError::runtime)?
+                };
                 let result = lua.create_table()?;
                 result.set("position", outcome.pose.position.to_vec())?;
                 result.set("velocity", outcome.pose.velocity)?;
@@ -948,6 +978,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 result.set("rotor", outcome.rotor.to_vec())?;
                 result.set("altitude", outcome.altitude)?;
                 result.set("flags", outcome.flags)?;
+                result.set("angles", outcome.angles.to_vec())?;
+                result.set("death_timer", outcome.death_timer)?;
                 Ok(result)
             })?,
         )?;

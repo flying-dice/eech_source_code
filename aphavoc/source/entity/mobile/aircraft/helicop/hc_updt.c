@@ -556,6 +556,23 @@ static void update_server (entity *en)
 	{
 		if (get_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE) == OPERATIONAL_STATE_DEAD)
 		{
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+			//
+			// host-owned lifetime (EEDCS-38): see rv_updt.c.  A helicopter a player still occupies is not destroyed (otherwise
+			// avionics / pilot-entity etc. don't get deinitialised): the host restarts its timer instead
+			//
+
+			campaign_movement_require_hosted (en);
+
+			if (campaign_movement_expire (
+					en,
+					&raw->ac.death_timer,
+					get_delta_time (),
+					(get_local_entity_int_value (en, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI) ? 0 : CAMPAIGN_MOVEMENT_DEATH_OCCUPIED))
+			{
+				destroy_client_server_entity_family (en);
+			}
+#else
 			raw->ac.death_timer += get_delta_time ();
 
 			if (!((int)(raw->ac.death_timer + 1) % 300))
@@ -574,6 +591,7 @@ static void update_server (entity *en)
 						raw->ac.death_timer = 0.0;
 					}
 				}
+#endif
 		}
 		else
 		{

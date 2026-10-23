@@ -64,7 +64,11 @@ enum campaign_movement_mode
 	CAMPAIGN_MOVEMENT_GV_FALL_VECTOR,	/* routed/AA falling, after the settle effects: the staged vector (sunk zero / ground y zero) is written */
 	CAMPAIGN_MOVEMENT_GV_FALL_COMMIT,	/* routed/AA falling, last: the staged speed then the staged settled position are finalised */
 	CAMPAIGN_MOVEMENT_FW_SETTLE,		/* dying fixed-wing: settle by terrain class, double 3.0 river depth, no rotor; bury zeroes the vector only */
-	CAMPAIGN_MOVEMENT_FW_CRASH_ATTITUDE	/* fixed-wing crash slide, phase three: pitch/roll easing toward the NEW normal, rest flag */
+	CAMPAIGN_MOVEMENT_FW_CRASH_ATTITUDE,	/* fixed-wing crash slide, phase three: pitch/roll easing toward the NEW normal, rest flag */
+	CAMPAIGN_MOVEMENT_RETIRE,			/* the physical incarnation ends (heap release): the host retires the id, drops any open step, and answers no later step for it */
+	/* EEDCS-38 */
+	CAMPAIGN_MOVEMENT_CREATE_PLACE,		/* initial placement of a newly created mobile: the host builds the attitude from the terrain face, the heading and the fuselage angle, and adopts the pose; once per identity */
+	CAMPAIGN_MOVEMENT_EXPIRE			/* a dead mobile's lifetime: the host accumulates the death timer, gates it and decides whether the wreck has expired (a ship: whether it has sunk out of sight) */
 };
 
 enum campaign_movement_kind
@@ -175,11 +179,23 @@ typedef struct campaign_movement_step
 	   post-kill CG), hc_bury_limit; the bury uses the contact altitude retained from CONTACT(candidate).
 	   FW_CRASH_CANDIDATE: delta_seconds, map bounds.  FW_CRASH_VELOCITY: face_normal is the NEW normal, forest, elevation,
 	   hc_cg_to_ground, delta_seconds; the host retains the candidate and the post-slope speed.  FW_CRASH_ATTITUDE:
-	   face_normal (NEW), hc_pitch_offset, hc_bank_offset, delta_seconds */
+	   face_normal (NEW), hc_pitch_offset, hc_bank_offset, delta_seconds.
+	   CREATE_PLACE (EEDCS-38): position is the campaign's chosen placement point, velocity the creation speed, hc_desired_heading the
+	   campaign's heading, fw_fuselage_angle the airframe angle (zero for a ground mobile) and face_normal the terrain face under
+	   the point; fw_motion_vector is the aircraft's creation vector.  The host answers the attitude matrix and the heading, pitch and
+	   roll that build it (result.angles), which the campaign applies through its own angle setter */
 	float gv_old_elevation;
 	float gv_bbox_diagonal;
 	int gv_wide;
 	int gv_water;
+	/* EEDCS-38 EXPIRE: death_timer is the campaign's mirror of the wreck's timer (the host adopts it while it retains none, then
+	   refuses a difference); death_range the campaign's squared 2D range to the nearest keysite, its own world knowledge;
+	   death_policy the campaign's decision: bit0 the wreck never expires (anti-air), bit1 the wreck is still occupied by a player
+	   (the host resets the timer rather than expiring it).  The gate, the range-to-lifetime curve and the comparison are the host's.
+	   For a ship, gv_bbox_diagonal is the shape's bounding box diagonal and the host decides from its own height whether it has sunk */
+	float death_timer;
+	float death_range;
+	int death_policy;
 	/* the TUMBLE and FW_DEATH_ATTITUDE draws are frand1 () doubles and stay doubles: the original expression multiplies
 	   them in double before narrowing the result to the float heading/roll.  Last, so the double's alignment cannot move
 	   another field */
@@ -208,6 +224,10 @@ typedef struct campaign_movement_result
 	/* EEDCS-37: GV_FALL_SETTLE bit0 contact, bit1 splash, bit2 sunk, bit3 ground impact; FW_DEATH_ATTITUDE -1 gate/draw
 	   mismatch, 0 nothing, 1 eased, 3 eased and the roll draw was consumed; FW_CRASH_VELOCITY bit0 stopped; FW_CRASH_ATTITUDE bit0 at rest */
 	int flags;
+	/* EEDCS-38 CREATE_PLACE: the heading, pitch and roll the host built `attitude` from; zero in every other mode */
+	float angles[3];
+	/* EEDCS-38 EXPIRE: flags bit0 the wreck has expired; the host's timer after the step, which the campaign mirrors */
+	float death_timer;
 } campaign_movement_result;
 
 typedef int (*campaign_move_vehicle_fn)
@@ -382,5 +402,33 @@ void campaign_movement_apply_end (void);
 
 /* a campaign pose write: tell the host (no-op during the host-result application or for unhosted entities) */
 void campaign_movement_place (struct ENTITY *vehicle);
+
+/* the physical incarnation ends: tell the host to retire the identity (no-op without a host id); called before the heap free */
+void campaign_movement_retire (const char *host_id);
+
+/*
+ * EEDCS-38 initial placement.  The campaign chose the formation point (x, z), the sampled terrain height (`position->y`, the
+ * shared terrain service), the heading and the entity's centre-of-gravity offset above the ground; the host builds the physical
+ * height and attitude and adopts the pose (the creation speed is the entity's own).  Returns TRUE and fills `placed` (the
+ * host's position) and `angles` (heading, pitch, roll) when the entity is hosted; FALSE (nothing filled) otherwise, and the
+ * caller then runs the original in-process arithmetic.  The caller applies `angles` through the original angle setter and
+ * `placed` through the original position setter, both inside apply_begin/apply_end so neither re-issues a PLACE nor overwrites
+ * the host's answer.  `aircraft_vector` (may be NULL) is an aircraft's creation motion vector.
+ */
+int campaign_movement_create_place (struct ENTITY *mobile, const struct VEC3D *position, float cg_to_ground, float heading, float fuselage_angle, const struct VEC3D *face_normal, const struct VEC3D *aircraft_vector, struct VEC3D *placed, float *angles);
+
+/* EEDCS-38 physical expiry of a dead mobile.  The host owns the timer, its gate and the lifetime curve; the campaign supplies
+   whether the wreck may expire at all.  The squared range to the nearest keysite is sampled by the campaign only when the host
+   says its gate is open (answer 2) and is then supplied with CAMPAIGN_MOVEMENT_DEATH_RANGE_SUPPLIED.  The mirrored timer is
+   written back.  Returns TRUE when the host says the wreck has expired (the caller then makes the explicit campaign removal
+   request).  An entity that is not hosted is a fatal error, as for the other lifecycle steps */
+#define CAMPAIGN_MOVEMENT_DEATH_NEVER_EXPIRES	1
+#define CAMPAIGN_MOVEMENT_DEATH_OCCUPIED		2
+#define CAMPAIGN_MOVEMENT_DEATH_RANGE_SUPPLIED	4
+#define CAMPAIGN_MOVEMENT_EXPIRE_NEEDS_RANGE	2
+int campaign_movement_expire (struct ENTITY *mobile, float *death_timer, float delta_seconds, int policy);
+
+/* a ship's sink test: TRUE when the host's height for the sunk ship is below the sight of its shape (bounding box diagonal) */
+int campaign_movement_ship_sunk (struct ENTITY *ship, float bbox_diagonal);
 
 #endif

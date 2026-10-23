@@ -245,6 +245,9 @@ pub const EECH_MOVEMENT_GV_FALL_VECTOR: c_int = 33;
 pub const EECH_MOVEMENT_GV_FALL_COMMIT: c_int = 34;
 pub const EECH_MOVEMENT_FW_SETTLE: c_int = 35;
 pub const EECH_MOVEMENT_FW_CRASH_ATTITUDE: c_int = 36;
+pub const EECH_MOVEMENT_RETIRE: c_int = 37;
+pub const EECH_MOVEMENT_CREATE_PLACE: c_int = 38;
+pub const EECH_MOVEMENT_EXPIRE: c_int = 39;
 
 pub const EECH_MOVEMENT_KIND_ROUTED: c_int = 1;
 pub const EECH_MOVEMENT_KIND_SHIP: c_int = 2;
@@ -306,6 +309,9 @@ pub struct eech_movement_step {
     pub gv_bbox_diagonal: f32,
     pub gv_wide: c_int,
     pub gv_water: c_int,
+    pub death_timer: f32,
+    pub death_range: f32,
+    pub death_policy: c_int,
     /// The two tumble draws are `frand1 ()` doubles and stay doubles; last, so the double's alignment moves no other field.
     pub hc_draws: [f64; 2],
 }
@@ -322,6 +328,9 @@ pub struct eech_movement_result {
     pub rotor: [f32; 3],
     pub altitude: f32,
     pub flags: c_int,
+    /// EEDCS-38 CREATE_PLACE: the heading, pitch and roll the host built the attitude from; zero in every other mode.
+    pub angles: [f32; 3],
+    pub death_timer: f32,
 }
 
 pub type eech_move_vehicle_callback =

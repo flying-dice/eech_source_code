@@ -232,7 +232,7 @@ fn read_move_result(lua: &Lua, mode: MovementMode, table: &LuaTable) -> Result<M
     // the modes whose answer carries bits the campaign acts on: an absent answer is an error, never 0
     let flags_step = matches!(
         mode,
-        MovementMode::GvFallSettle | MovementMode::FwDeathAttitude | MovementMode::FwCrashVelocity | MovementMode::FwCrashAttitude
+        MovementMode::GvFallSettle | MovementMode::FwDeathAttitude | MovementMode::FwCrashVelocity | MovementMode::FwCrashAttitude | MovementMode::Expire
     );
     let aircraft_step =
         lifecycle_step || fixed_wing_step || matches!(mode, MovementMode::FixedWingMove | MovementMode::HelicopterBegin | MovementMode::HelicopterEnd);
@@ -284,6 +284,18 @@ fn read_move_result(lua: &Lua, mode: MovementMode, table: &LuaTable) -> Result<M
         LuaValue::Number(flags) if flags.fract() == 0.0 && flags.abs() <= f64::from(i32::MAX) => flags as i32,
         other => return Err(format!("move_vehicle result flags must be an integer, got {}", other.type_name())),
     };
+    // a creation placement answers the Euler angles the host placed the member at; no other step has them
+    let angles = match table.get::<LuaValue>("angles").map_err(|e| e.to_string())? {
+        LuaValue::Nil if mode == MovementMode::CreatePlace => return Err("move_vehicle result for a create_place step must carry its angles".into()),
+        LuaValue::Nil => [0.0; 3],
+        _ => exact_numbers(lua, table, "angles").map_err(|e| format!("move_vehicle result {e}"))?,
+    };
+    // an expiry answers the host's timer, which the campaign mirrors; no other step has one
+    let death_timer = match table.get::<LuaValue>("death_timer").map_err(|e| e.to_string())? {
+        LuaValue::Nil if mode == MovementMode::Expire => return Err("move_vehicle result for an expire step must carry its death_timer".into()),
+        LuaValue::Nil => 0.0,
+        _ => exact_numbers::<1>(lua, table, "death_timer").map_err(|e| format!("move_vehicle result {e}"))?[0],
+    };
     Ok(MovementResult {
         pose: VehiclePose {
             position: exact_numbers(lua, table, "position").map_err(|e| format!("move_vehicle result {e}"))?,
@@ -297,6 +309,8 @@ fn read_move_result(lua: &Lua, mode: MovementMode, table: &LuaTable) -> Result<M
         rotor,
         altitude,
         flags,
+        angles,
+        death_timer,
     })
 }
 

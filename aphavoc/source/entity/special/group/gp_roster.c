@@ -939,6 +939,13 @@ void campaign_roster_release_entity (entity *en)
 	if (record_index >= 0)
 	{
 		campaign_member_record *record = &records[record_index];
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+		/* The physical incarnation ends here, before the heap slot is cleared: the host retires the identity. */
+		if (record->physical_present)
+		{
+			campaign_movement_retire (record->host_id);
+		}
+#endif
 		record->physical_present = FALSE;
 		record->in_group = FALSE;
 		/* A freed incarnation with no host report owed has left the campaign. */

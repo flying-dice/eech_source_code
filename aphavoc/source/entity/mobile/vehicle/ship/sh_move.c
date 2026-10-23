@@ -574,9 +574,21 @@ void ship_vehicle_death_movement (entity *en)
 		d.y = bounding_box->ymax - bounding_box->ymin;
 		d.z = bounding_box->zmax - bounding_box->zmin;
 
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+		//
+		// the host's height against the sight of the shape: whether the ship's physical life is over is the host's answer
+		// (EEDCS-38); the family is still destroyed here
+		//
+
+		obscured_altitude = 0.0;
+
+		if (campaign_movement_ship_sunk (en, get_3d_vector_magnitude (&d)))
+#else
 		obscured_altitude = -(0.5 * get_3d_vector_magnitude (&d));
 
 		if (new_pos.y < obscured_altitude)
+#endif
 		{
 			//
 			// ship is no longer visible

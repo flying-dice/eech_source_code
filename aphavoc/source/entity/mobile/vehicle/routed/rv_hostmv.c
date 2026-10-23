@@ -137,6 +137,7 @@ static campaign_movement_result ask_host (const campaign_movement_step *step)
 	}
 	if (!all_finite (result.position, 3) || !all_finite (&result.velocity, 1) || !all_finite (result.attitude, 9) ||
 		!all_finite (result.motion_vector, 3) || !all_finite (result.rotor, 3) || !all_finite (&result.altitude, 1) ||
+		!all_finite (result.angles, 3) ||
 		((result.rotated != FALSE) && (result.rotated != TRUE)) ||
 		((result.pending != FALSE) && (result.pending != TRUE)) ||
 		((result.moved != FALSE) && (result.moved != TRUE)))
@@ -183,6 +184,57 @@ void campaign_movement_place (entity *vehicle)
 		step.fw_motion_vector[1] = mob->motion_vector.y;
 		step.fw_motion_vector[2] = mob->motion_vector.z;
 	}
+	ask_host (&step);
+}
+
+int campaign_movement_create_place (entity *mobile, const vec3d *position, float cg_to_ground, float heading, float fuselage_angle, const vec3d *face_normal, const vec3d *aircraft_vector, vec3d *placed, float *angles)
+{
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	if (!campaign_movement_is_hosted (mobile))
+	{
+		return FALSE;
+	}
+	begin_step (&step, mobile, CAMPAIGN_MOVEMENT_CREATE_PLACE);
+	// the campaign's formation point on the terrain (x, z and the sampled ground height) and the entity's physical offset above
+	// it are inputs; the host answers the physical height
+	step.position[0] = position->x;
+	step.position[1] = position->y;
+	step.position[2] = position->z;
+	step.fw_cg_to_ground = cg_to_ground;
+	step.hc_desired_heading = heading;
+	step.fw_fuselage_angle = fuselage_angle;
+	step.face_normal[0] = face_normal->x;
+	step.face_normal[1] = face_normal->y;
+	step.face_normal[2] = face_normal->z;
+	if (aircraft_vector)
+	{
+		step.fw_motion_vector[0] = aircraft_vector->x;
+		step.fw_motion_vector[1] = aircraft_vector->y;
+		step.fw_motion_vector[2] = aircraft_vector->z;
+	}
+	result = ask_host (&step);
+	placed->x = result.position[0];
+	placed->y = result.position[1];
+	placed->z = result.position[2];
+	angles[0] = result.angles[0];
+	angles[1] = result.angles[1];
+	angles[2] = result.angles[2];
+	return TRUE;
+}
+
+void campaign_movement_retire (const char *host_id)
+{
+	campaign_movement_step step;
+
+	if (!current_host.move_vehicle || !host_id || !host_id[0])
+	{
+		return;
+	}
+	memset (&step, 0, sizeof (step));
+	memcpy (step.host_id, host_id, strlen (host_id) + 1);
+	step.mode = CAMPAIGN_MOVEMENT_RETIRE;
 	ask_host (&step);
 }
 
@@ -1237,6 +1289,52 @@ float campaign_movement_ship_sink (entity *en, float delta_seconds)
 	apply_position (en, result.position);
 
 	return result.position[1];
+}
+
+// EEDCS-38: the lifetime of a dead mobile.  The campaign passes its mirrored timer and its policy; the host accumulates the
+// timer, applies the gate and the range-to-lifetime curve, and says whether the wreck has expired.  The host's timer is written
+// back to the mirror.  The squared range to the nearest keysite is a full keysite traversal, which the original made only on a
+// gated frame: the host answers 2 when the gate is open and it needs the range, and the campaign then samples it once and
+// asks again with the range supplied.  The explicit campaign removal request stays with the caller
+
+int campaign_movement_expire (entity *en, float *death_timer, float delta_seconds, int policy)
+{
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_EXPIRE);
+	step.death_timer = *death_timer;
+	step.death_policy = policy;
+	step.delta_seconds = delta_seconds;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	if (result.flags == CAMPAIGN_MOVEMENT_EXPIRE_NEEDS_RANGE)
+	{
+		step.death_range = calculate_mobile_nearest_keysite_sqr_range (en);
+		step.death_policy = policy | CAMPAIGN_MOVEMENT_DEATH_RANGE_SUPPLIED;
+
+		result = ask_lifecycle (&step, FALSE);
+	}
+
+	*death_timer = result.death_timer;
+
+	return (result.flags & 1) != 0;
+}
+
+// a ship's sink test: the host's height (after campaign_movement_ship_sink) against the sight of the ship's shape
+
+int campaign_movement_ship_sunk (entity *en, float bbox_diagonal)
+{
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_EXPIRE);
+	step.gv_bbox_diagonal = bbox_diagonal;
+
+	result = ask_lifecycle (&step, FALSE);
+
+	return (result.flags & 1) != 0;
 }
 
 // the final pose of an infantry step, as the legacy step wrote it: attitude, position through the setter, speed, motion vector
