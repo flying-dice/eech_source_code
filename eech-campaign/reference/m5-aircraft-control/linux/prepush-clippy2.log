@@ -1,0 +1,10 @@
+info: downloading component clippy
+clippy 0.1.98 (48a229ceae 2026-09-01)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+    Checking eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Checking eech-campaign v0.1.0 (/src/eech-campaign/crates/eech-campaign)
+    Checking eech-harness v0.1.0 (/src/eech-campaign/crates/eech-harness)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.60s
+EXIT=0
+docker exit=0

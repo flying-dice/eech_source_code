@@ -1,0 +1,30 @@
+EEDCS-39 host-owned aircraft control (fixed-wing and helicopter): what each file here is, and what it does and does not show
+
+STATUS: native regression pack PENDING, existing census PENDING. No acceptance, no D1 completion. Nothing here is a result of either.
+
+Revisions
+  native-built source   b721ae5ac8e0a7fa86aa47e79a0ca19884c0710f  (tree 1b0a2ca99b64656a9ca053c1e4eea6853b2eab59)
+  branch head           f1371dda9a7884ee60601bf68a870d093368d23e  (tree 65a8fab735946e39deb970481734d637280a4c85), parent b721ae5a
+  The head differs from the native-built source by rustfmt layout, #[cfg(test)] code in eech-engine, and one equivalent production range predicate in eech-dc/src/module.rs (terrain_sample_count). The native binaries are identified by b721ae5a only; no rebuild was done for the head. See ../../docs/m5-aircraft-control.md.
+
+Provenance of the native binaries
+BUILD-INFO.txt, build.head, build.exit, docker.exit   build identity: commit b721ae5a, 0 dirty build inputs, pinned image digest, rustc/cargo 1.98.1, MinGW gcc 12-posix, Lua 5.1.5, target x86_64-pc-windows-gnu release, sha256 of eech_dc.dll, eech-world.exe, lua.dll and the staged Lua scripts. build.head also records the tree and the start/finish times (15:50:05Z to 15:51:01Z). There is no separate build.tree file; the tree is in build.head.
+build.log                         final cargo lines of the MinGW build: Finished release in 54.21 s, EXIT=0. Short; not the full compiler output
+staged-aphavoc.txt, worktree-aphavoc.sha   sha256 of the four staged aphavoc C files built with EECH_CAMPAIGN_HOST_MOVEMENT and the worktree hashes (staged-aphavoc.txt lists the file names); the four hashes match
+
+Pre-push record
+prepush.md                        the pre-push fmt/clippy record, corrected after review to state that one production expression changed and that production code is not literally unchanged
+
+linux/ (Linux, pinned image, cached target volume; full unfiltered logs)
+prepush-fmt-check.log             cargo fmt --all --check on the lint tree: EXIT=0
+prepush-clippy1.log               cargo clippy --locked --all-targets -- -D warnings on the unfixed tree: EXIT=101, 21 errors, all new in b721ae5a (20 in eech-engine tests, 1 in eech-dc/module.rs). Kept as the failing listing. The clippy component was installed transiently (not in the image)
+prepush-clippy2.log               the same command after the fixes: EXIT=0
+prepush-test.log                  cargo test --offline --locked -p eech-world -p eech-engine -p eech-dc --no-fail-fast on the lint tree: EXIT=0; eech-dc 3 + lua_debug_layout 2, eech-engine 28, eech-world lib 131, bin 18, host_callbacks 3, load_dc 2; 0 failed
+r1-green.log                      the same test command before the lint commit (R1 source), EXIT=0, identical counts. Differs from prepush-test.log only in test print order, build timing and compile-line order
+r1-red1.log                       a compile break in a test written during R1 (Kind::Vehicle does not exist), EXIT=101. A test-authoring slip, NOT a behavioural red
+
+Not here, by design
+  the native pack output and its traces (large, still being written); the Tacview recording; observations.jsonl; any retail game data; the earlier incomplete prefix check of the pack output (not acceptance, deliberately not retained); the stage notes and agent prompts; final-fmt.log (71 KB; the 85 pre-fix formatting diffs, superseded by prepush-fmt-check.log).
+
+Not claimed
+  That the pack, the census or any Tacview recording passes or has been reviewed; that the host arithmetic matches the legacy code on real terrain (that waits for the native run); that the new behavioural tests were red against the pre-R1 code (they were not run there); that the DLL C is exercised other than through the Rust mock and the build; the i686 CI leg; any live DCS behaviour (M6); technical-lead approval.
