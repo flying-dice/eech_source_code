@@ -7,5 +7,11 @@ publish.workspace = true
 links = "eech_engine"
 build = "build/main.rs"
 
+[features]
+# TEST-ONLY (EEDCS-40): the dependent-positioning fixture driver. Never enabled in the shipping build.
+dependent-fixture = []
+# TEST-ONLY red build: dependent-fixture with the pre-EEDCS-40 boolean apply guard, applied to the staged copy only.
+dependent-fixture-old-guard = ["dependent-fixture"]
+
 [build-dependencies]
 cc = { version = "1.2", features = ["parallel"] }

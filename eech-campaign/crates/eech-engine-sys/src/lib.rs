@@ -579,6 +579,18 @@ extern "C" {
     pub fn eech_set_log_sink(sink: Option<eech_log_sink>, user: *mut c_void);
 }
 
+// TEST-ONLY (feature dependent-fixture, EEDCS-40): the dependent-positioning fixture driver.
+#[cfg(feature = "dependent-fixture")]
+pub const EECH_FIXTURE_LINK: c_int = 1;
+#[cfg(feature = "dependent-fixture")]
+pub const EECH_FIXTURE_MOVE: c_int = 2;
+#[cfg(feature = "dependent-fixture")]
+pub const EECH_FIXTURE_SINK: c_int = 3;
+#[cfg(feature = "dependent-fixture")]
+extern "C" {
+    pub fn eech_engine_dependent_fixture(op: c_int, parent_id: c_int, child_id: c_int, position: *const f64, host: *const eech_engine_host) -> c_int;
+}
+
 // The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by
 // target) cannot move any float or int before it; the C struct in rv_hostmv.h declares them last as well.
 const _: () = assert!(core::mem::offset_of!(eech_movement_step, hc_draws) > core::mem::offset_of!(eech_movement_step, gv_water));

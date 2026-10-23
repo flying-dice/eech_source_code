@@ -194,4 +194,12 @@ int eech_engine_clock (struct eech_clock *clock);
  */
 int eech_engine_diagnostics (void);
 
+#ifdef EECH_DEPENDENT_FIXTURE
+/* TEST-ONLY (feature dependent-fixture): see eech_engine.c. Not part of the shipping module. */
+#define EECH_FIXTURE_LINK 1
+#define EECH_FIXTURE_MOVE 2
+#define EECH_FIXTURE_SINK 3
+int eech_engine_dependent_fixture (int op, int parent_id, int child_id, const double position[3], const struct eech_engine_host *host);
+#endif
+
 #endif

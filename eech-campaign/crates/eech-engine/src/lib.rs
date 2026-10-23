@@ -2006,6 +2006,35 @@ impl Engine {
         })
     }
 
+    /// TEST-ONLY (feature `dependent-fixture`, EEDCS-40): re-links `child` under `parent` as a movement dependent
+    /// (`op` 1), moves `parent` through the campaign's own position setter (`op` 2, `position`), or runs a ship
+    /// parent's own sinking step (`op` 3). The campaign's genuine notification handlers do the rest; the host answers
+    /// the movement steps they send. Not part of the shipping module.
+    #[cfg(feature = "dependent-fixture")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn dependent_fixture<F, G, H, M>(
+        &self,
+        op: i32,
+        parent: i32,
+        child: i32,
+        position: [f64; 3],
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+    ) -> Result<(), EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+    {
+        // SAFETY: the position array and the temporary host callback are valid for the call.
+        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, move_vehicle_fn, |host| unsafe {
+            sys::eech_engine_dependent_fixture(op, parent, child, position.as_ptr(), host)
+        })
+    }
+
     /// Applies one previously withheld loss by opaque physical-incarnation ID.
     /// Duplicate, unknown, stale and unsupported reports fail visibly and return no receipt.
     pub fn report_loss(&self, host_id: &str) -> Result<LossReceipt, EngineError> {
