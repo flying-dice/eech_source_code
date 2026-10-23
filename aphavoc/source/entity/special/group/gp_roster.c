@@ -1268,6 +1268,32 @@ int campaign_roster_has_pending_loss (void)
 }
 
 /*
+ * Whether the host's physical loss of this member is final, the precondition of a report.  The wreck's lifetime belongs to the
+ * host and differs by family: a routed vehicle, person, fixed-wing and helicopter wreck is retired after the host's timer, a
+ * ship is destroyed once it has sunk, and an anti-aircraft vehicle's wreck is never retired (aa_updt.c only ages it).  So the
+ * loss is final either when the host has retired the identity (the incarnation was released, physical_present is false) or
+ * while the identity is still the very incarnation the record maps (current_member_by_entity still names this record, so a
+ * reused slot is never mistaken for it) and that entity is the member's type, dead and unlinked from its group.  Anything else,
+ * including a live member, is refused by the caller.
+ */
+static int physical_loss_is_final (const campaign_member_record *record)
+{
+	entity *en;
+	if (!record->physical_present)
+	{
+		return TRUE;
+	}
+	if ((record->current_entity_index < 0) || (record->current_entity_index >= map_size) ||
+		(current_member_by_entity[record->current_entity_index] != (int) (record - records) + 1))
+	{
+		return FALSE;
+	}
+	en = get_local_entity_ptr (record->current_entity_index);
+	return en && (get_local_entity_type (en) == (entity_types) record->entity_type) &&
+		!get_local_entity_int_value (en, INT_TYPE_ALIVE) && !get_local_entity_parent (en, LIST_TYPE_MEMBER);
+}
+
+/*
  * Reports a withheld loss of a fixed-wing aircraft, routed vehicle, anti-aircraft
  * vehicle, person or ship.  The consequences are those the family's kill_local runs
  * inline on FORWARD, in the same order: force information, regen queue (fixed-wing,
@@ -1322,9 +1348,9 @@ static void report_bounded_loss (const char *host_id, const campaign_pending_los
 	}
 	group_losses_before = get_local_entity_int_value (group, INT_TYPE_LOSSES);
 	member_record = find_member_record (plan->member_key);
-	if (!member_record || member_record->physical_present || member_record->in_group || !member_record->loss_pending)
+	if (!member_record || !physical_loss_is_final (member_record) || member_record->in_group || !member_record->loss_pending)
 	{
-		debug_fatal ("campaign loss: physical member is not durably released for %s", host_id);
+		debug_fatal ("campaign loss: physical loss is not final for %s", host_id);
 	}
 	group = NULL;
 	primary_task = NULL;

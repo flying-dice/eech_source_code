@@ -2057,8 +2057,34 @@ impl Engine {
         })
     }
 
+    /// TEST-ONLY (feature `loss-fixture`): releases the tasks that target one hosted member's group, through the campaign's own task
+    /// completion handlers, and returns how many it notified.  Setup for the fixed-wing witness; the group itself is not ended.
+    #[cfg(feature = "loss-fixture")]
+    pub fn loss_release<F, G, H, M>(
+        &self,
+        entity_id: i32,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+    ) -> Result<i32, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+    {
+        let mut released = 0i32;
+        // SAFETY: the out pointer and the temporary host callback are valid for the call.
+        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, move_vehicle_fn, |host| unsafe {
+            sys::eech_engine_loss_release(entity_id, &mut released, host)
+        })?;
+        Ok(released)
+    }
+
     /// TEST-ONLY (feature `loss-fixture`): one side's total losses, the category and regen-queue counts, then force-info current
-    /// hardware per category and regen queue lengths, read-only.  These are the values the force-info and regen loss phases change.
+    /// hardware per category, then per regen queue its count, front and size and the type, sub type and group of the slot written
+    /// last, read-only.  These are the values the force-info and regen loss phases change.
     #[cfg(feature = "loss-fixture")]
     pub fn loss_state(&self, side: i32) -> Result<Vec<i32>, EngineError> {
         let mut values = [0i32; 256];

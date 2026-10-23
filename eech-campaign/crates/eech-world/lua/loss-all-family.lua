@@ -15,23 +15,33 @@
 --   * a FORWARD control B of the same group is ended with the reference host's answer (`forward`, taken from
 --     reference_loss, not from this script): the same stack, and B is out of the group at once. B's immediate loss must
 --     not disturb the pending A;
---   * wreck disposal is host-owned (5 min to 3 h of game time) and asserted separately: the report is only accepted once
---     the wreck is retired and the physical identity is gone;
+--   * wreck disposal is host-owned and differs by family (a routed vehicle, person or fixed-wing wreck is retired after
+--     5 min to 3 h of game time, a ship once it has sunk, an anti-aircraft wreck never). The campaign accepts the report once
+--     the physical loss is final: the identity is gone, or it is still the incarnation the campaign maps and is dead and
+--     unlinked. report=present (default) reports at once, with the wreck still present; report=retired waits for the host to
+--     retire it first (the retirement-gated path);
 --   * `engine:report_loss(host_id)` then applies A's loss exactly once: the receipt shows the group's loss count +1, its
 --     logical members -1 from what B's immediate loss left, the primary task's loss count +1 where the family has one;
 --   * a probe C of the same group (group of at least 4 only) shows both campaign decrements (A's report, B's forward) in
 --     the member count the campaign supplies to the host.
 -- A requested family with no supported member fails the run. Force info and the regen queue are read through the
 -- feature-gated, read-only engine:loss_state(side) (total force losses, force-info hardware per category, regen queue
--- lengths) with no frame between the two readings of a pair: the withheld kill leaves all three unchanged, the FORWARD
--- control changes them by exactly one loss / one hardware / one regen entry, and the report changes them by exactly the
--- same amount, once, for the phases the family has (a person has neither; ship and anti-air have no regen). The phase order is enforced inside the DLL (strictly ascending phases, fatal otherwise) and FORWARD
+-- ring state and its last-written slot) with no frame between the two readings of a pair: the withheld kill leaves all of it
+-- unchanged, the FORWARD control changes it by exactly one loss / one hardware / one regen ring insertion, and the report changes
+-- it by exactly the same amount, once, for the phases the family has (a person has neither; ship and anti-air have no regen). The phase order is enforced inside the DLL (strictly ascending phases, fatal otherwise) and FORWARD
 -- exactness is covered by the retained regression pack. A rejected report poisons the engine, so no state is read after it.
 --
 -- Candidates are screened, before any kill, by the feature-gated, read-only engine:loss_shape(entity_id): it runs the guard
 -- the bounded WITHHOLD itself runs on the descriptor the host would be shown and returns its refusal text ("" when the loss
 -- would be withheld). A screened-out member is not killed, so no member is spent on an unsupported shape. screen=off restores
 -- the try-by-kill selection (the host answers `forward` for an unsupported shape and the next candidate is tried).
+--
+-- release=<families> (optional, witness mode): setup for a family whose members in flight are almost always the objective of some
+--            task, which the bounded WITHHOLD refuses by design ("group with task dependents"). For a candidate refused for exactly
+--            that reason, the feature-gated engine:loss_release(entity_id) ends the tasks that target its group through the campaign's
+--            own task-completion handlers (what group.c does when it kills a group), without ending the group, and the candidate is
+--            screened again. It never changes the guard or the physics; each release (count, then the new screen result) is printed
+--            as `released`. It is a setup step, not a claim that the campaign would have released those tasks itself.
 --
 -- mode=witness   the above (default)
 -- mode=shape     read-only census, no kill: per family the members, how many the bounded WITHHOLD would accept, and the
@@ -42,7 +52,7 @@
 -- reject=duplicate|forwarded|unknown (witness mode, optional): after the last family, one rejected report: the A already
 --            reported, the FORWARD control B (no loss is pending for it), or an id the campaign never saw. It must raise.
 --            A rejected report is fatal to the engine, so a run carries at most one.
--- host.args: root, mode, warmup (default 30 frames) of warmup_ms (default frame_ms; a long warmup lets fixed-wing and ships leave the ground/port), frame_ms (default 100), settle_ms (default 1000, the frame step while a wreck ages),
+-- host.args: root, mode, report (present|retired), warmup (default 30 frames) of warmup_ms (default frame_ms; a long warmup lets fixed-wing and ships leave the ground/port), frame_ms (default 100), settle_ms (default 1000, the frame step while a wreck ages),
 --            settle_limit (default 12000 frames), families (default fixed_wing,routed,anti_air,person,ship),
 --            candidates (default 40 tries per family), reject
 
@@ -59,6 +69,8 @@ local settle_ms = tonumber (args.settle_ms or "1000")
 local settle_limit = tonumber (args.settle_limit or "12000")
 local max_tries = tonumber (args.candidates or "40")
 local screen = args.screen ~= "off"
+local release_families, release_limit = {}, tonumber (args.release_limit or "6")
+for name in string.gmatch (args.release or "", "[^,]+") do release_families [name] = true end
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
 
@@ -197,25 +209,44 @@ local function kill (candidate, role)
 	return ok, tostring (message), id
 end
 
--- what changed between two force states: total losses, and the per-category / per-queue deltas that are not zero
+local function slot_text (slot)
+	return slot and string.format ("%d/%d/%d", slot [1], slot [2], slot [3]) or "-"
+end
+
+-- what changed between two force states: total losses, the per-category hardware deltas that are not zero, and the regen queues
+-- that changed.  A regen queue is a ring (regen_queue_insert in rg_updt.c): an insertion writes the slot at (front + count) % size
+-- and either grows the count by one (below capacity) or, at capacity, overwrites the oldest entry, advances the front by one
+-- and leaves the count unchanged.  So a queue's change is classified by count, front and the slot written last, never by the count
+-- alone: kind "insert" is exactly one of those two ring moves, anything else that changed is kind "other".
 local function state_delta (before, after)
 	local delta = { losses = after.losses - before.losses, hardware = {}, regen = {} }
 	local text = { hardware = {}, regen = {} }
-	for _, kind in ipairs ({ "hardware", "regen" }) do
-		for index = 1, #before [kind] do
-			local change = after [kind] [index] - before [kind] [index]
-			if change ~= 0 then
-				delta [kind] [#delta [kind] + 1] = change   -- numeric, in category / queue order
-				text [kind] [#text [kind] + 1] = string.format ("%d:%+d", index - 1, change)
-			end
+	for index = 1, #before.hardware do
+		local change = after.hardware [index] - before.hardware [index]
+		if change ~= 0 then
+			delta.hardware [#delta.hardware + 1] = change   -- numeric, in category order
+			text.hardware [#text.hardware + 1] = string.format ("%d:%+d", index - 1, change)
 		end
 	end
-	delta.text = string.format ("losses%+d hardware[%s] regen[%s]", delta.losses, table.concat (text.hardware, ","), table.concat (text.regen, ","))
+	for index = 1, #before.regen do
+		local count0, count1 = before.regen [index], after.regen [index]
+		local front0, front1 = before.regen_front [index], after.regen_front [index]
+		local size = before.regen_size [index]
+		local last0, last1 = slot_text (before.regen_last [index]), slot_text (after.regen_last [index])
+		if count0 ~= count1 or front0 ~= front1 or size ~= after.regen_size [index] or last0 ~= last1 then
+			local grew = size == after.regen_size [index] and count1 == count0 + 1 and count0 < size and front1 == front0
+			local wrapped = size == after.regen_size [index] and count0 == size and count1 == size and front1 == (front0 + 1) % size
+			delta.regen [#delta.regen + 1] = { queue = index - 1, kind = (grew or wrapped) and "insert" or "other", wrapped = wrapped }
+			text.regen [#text.regen + 1] = string.format ("%d:%s count %d>%d front %d>%d size %d last %s>%s", index - 1,
+				wrapped and "wrapped" or (grew and "grew" or "other"), count0, count1, front0, front1, size, last0, last1)
+		end
+	end
+	delta.text = string.format ("losses%+d hardware[%s] regen[%s]", delta.losses, table.concat (text.hardware, ","), table.concat (text.regen, ";"))
 	return delta
 end
 
 -- the force-state phases each family's original destroy code ran (docs/m5-physical-loss.md): force info (a force loss and one
--- hardware unit fewer in the member's category) and regen (one more entry in one regen queue)
+-- hardware unit fewer in the member's category) and regen (one ring insertion into one regen queue)
 local PHASES = {
 	routed    = { force_info = true,  regen = true  },
 	fixed_wing = { force_info = true,  regen = true  },
@@ -225,13 +256,13 @@ local PHASES = {
 }
 
 -- exactly the family's loss consequence: nothing where the family steps neither phase, else one force loss, one hardware unit
--- fewer in one category, and one more entry in one regen queue only where the family has the regen phase
+-- fewer in one category, and one ring insertion into one regen queue only where the family has the regen phase
 local function is_one_loss (family, delta)
 	local phases = assert (PHASES [family], family)
 	if not phases.force_info then
 		return delta.losses == 0 and #delta.hardware == 0 and #delta.regen == 0
 	end
-	local regen_ok = phases.regen and (#delta.regen == 1 and delta.regen [1] == 1) or (not phases.regen and #delta.regen == 0)
+	local regen_ok = phases.regen and (#delta.regen == 1 and delta.regen [1].kind == "insert") or (not phases.regen and #delta.regen == 0)
 	return delta.losses == 1 and #delta.hardware == 1 and delta.hardware [1] == -1 and regen_ok
 end
 
@@ -296,13 +327,38 @@ if mode == "negative" then
 	return
 end
 
--- candidates of the family in a group of at least `minimum` (largest groups first), skipping members already tried
+-- squared horizontal distance (m^2) from each live entity to the nearest keysite, by entity id. The host ages a dead wreck 5 minutes
+-- within 1000 m of a keysite and up to 3 hours at 10000 m or more (mobile.c), and the report needs the wreck retired, so a member
+-- near a keysite is the cheapest to witness. Observation only: it orders candidates, it never changes what is supported.
+local function keysite_distances ()
+	local sites, distance = {}, {}
+	local objects = engine:objects ()
+	for _, o in ipairs (objects) do
+		if o.kind == "keysite" and o.alive then sites [#sites + 1] = o.position end
+	end
+	for _, o in ipairs (objects) do
+		local best = math.huge
+		for _, site in ipairs (sites) do
+			local dx, dz = o.position [1] - site [1], o.position [3] - site [3]
+			best = math.min (best, dx * dx + dz * dz)
+		end
+		distance [o.id] = best
+	end
+	return distance
+end
+
+-- candidates of the family in a group of at least `minimum` (nearest a keysite first, then largest groups), skipping members
+-- already tried
 local function candidates_of (family, minimum, tried)
-	local list = {}
+	local list, near = {}, keysite_distances ()
 	for _, candidate in ipairs (census (family)) do
-		if candidate.size >= minimum and not tried [candidate.member.host_id] then list [#list + 1] = candidate end
+		if candidate.size >= minimum and not tried [candidate.member.host_id] then
+			candidate.keysite_m2 = near [candidate.member.current_entity_id] or math.huge
+			list [#list + 1] = candidate
+		end
 	end
 	table.sort (list, function (a, b)
+		if a.keysite_m2 ~= b.keysite_m2 then return a.keysite_m2 < b.keysite_m2 end
 		if a.size ~= b.size then return a.size > b.size end
 		return a.member.current_entity_id < b.member.current_entity_id
 	end)
@@ -328,6 +384,12 @@ for _, family in ipairs (order) do
 			candidate = nil
 			for _, option in ipairs (candidates_of (family, 2, tried)) do
 				local reason = shape_of (option)
+				if release_families [family] and release_limit > 0 and string.find (reason, "task dependents", 1, true) then
+					release_limit = release_limit - 1
+					local count = engine:loss_release (option.member.current_entity_id)
+					reason = shape_of (option)
+					print (string.format ("released\t%s\t%s tasks=%d then=%s", family, option.member.host_id, count, reason == "" and "supported" or reason))
+				end
 				if reason == "" then candidate = option break end
 				tried [option.member.host_id] = true
 				screened [#screened + 1] = string.format ("%s:%s", option.member.host_id, reason)
@@ -357,8 +419,8 @@ for _, family in ipairs (order) do
 	else
 		local d, id, candidate = done.entry.descriptor, done.id, done.candidate
 		local n, group_key = d.campaign_member_count, candidate.member.group_key
-		print (string.format ("withheld\t%s\thost_id=%s entity=%d event=%s group_members=%d primary_task=%s", family, id, candidate.member.current_entity_id,
-			tostring (d.event), n, tostring (d.primary_task_key)))
+		print (string.format ("withheld\t%s\thost_id=%s entity=%d event=%s group_members=%d primary_task=%s keysite_m=%.0f", family, id, candidate.member.current_entity_id,
+			tostring (d.event), n, tostring (d.primary_task_key), math.sqrt (candidate.keysite_m2)))
 		check (family .. ".observed_in_same_stack", done.entry.in_fixture, "observe_loss ran inside the kill call")
 		check (family .. ".event_physical", d.event == "physical", tostring (d.event))
 		check (family .. ".entity_type", d.entity_type == ENTITY [family], tostring (d.entity_type))
@@ -404,7 +466,10 @@ for _, family in ipairs (order) do
 	end
 end
 
--- stage 2: wreck disposal (host-owned, 5 min to 3 h of game time by distance to a keysite): one world run for all the withheld members
+-- stage 2: with report=retired only, wreck disposal (host-owned, 5 min to 3 h of game time by distance to a keysite): one world
+-- run for all the withheld members
+local report_mode = args.report or "present"
+if report_mode ~= "present" and report_mode ~= "retired" then error ("report=present|retired", 0) end
 local waited = 0
 local function all_retired ()
 	for _, w in ipairs (withheld) do
@@ -413,7 +478,7 @@ local function all_retired ()
 	end
 	return true
 end
-while not all_retired () and waited < settle_limit do
+while report_mode == "retired" and not all_retired () and waited < settle_limit do
 	engine:frame (settle_ms)
 	waited = waited + 1
 	if waited % 5 == 0 then print (string.format ("waiting	%d frames, cpu %.1f s", waited, os.clock ())) end
@@ -424,13 +489,16 @@ print (string.format ("settled	%d frames of %d ms (%.1f game minutes)", waited, 
 local function report_family (w)
 	local family, id, candidate, d, n, group_key, tried, forwarded = w.family, w.id, w.candidate, w.descriptor, w.n, w.group_key, w.tried, w.forwarded
 	local still = find_member (id)
-	check (family .. ".wreck_retired", still and not still.physical_present,
-		still and string.format ("physical_present=%s in_group=%s after %d frames", tostring (still.physical_present), tostring (still.in_group), waited) or "no record")
+	print (string.format ("wreck	%s	at_report physical_present=%s in_group=%s after %d frames", family,
+		tostring (still and still.physical_present), tostring (still and still.in_group), waited))
 	check (family .. ".still_out_of_group_before_report", still and not still.in_group)
-	if not (still and not still.physical_present) then
-		-- the campaign refuses a report for a member the host has not released; do not ask it to
-		summary [#summary + 1] = family .. "=WRECK-NOT-RETIRED"
-		return
+	if report_mode == "retired" then
+		check (family .. ".wreck_retired", still and not still.physical_present)
+		if not (still and not still.physical_present) then
+			-- retirement-gated mode reports only a retired wreck
+			summary [#summary + 1] = family .. "=WRECK-NOT-RETIRED"
+			return
+		end
 	end
 
 	-- the report: the campaign consequences apply now, once
@@ -476,7 +544,7 @@ local function report_family (w)
 	else
 		print (string.format ("note\t%s\tgroup too small for the probe (%d members at observe)", family, n))
 	end
-	summary [#summary + 1] = family .. "=withheld+reported"
+	summary [#summary + 1] = family .. "=withheld+reported(" .. report_mode .. ")"
 end
 for _, w in ipairs (withheld) do report_family (w) end
 

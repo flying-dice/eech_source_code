@@ -594,6 +594,7 @@ extern "C" {
 #[cfg(feature = "loss-fixture")]
 extern "C" {
     pub fn eech_engine_loss_fixture(entity_id: c_int, host: *const eech_engine_host) -> c_int;
+    pub fn eech_engine_loss_release(entity_id: c_int, released: *mut c_int, host: *const eech_engine_host) -> c_int;
     pub fn eech_engine_loss_state(side: c_int, values: *mut c_int, capacity: c_int, count: *mut c_int) -> c_int;
     pub fn eech_engine_loss_shape(entity_id: c_int, reason: *mut c_char, capacity: c_int) -> c_int;
 }

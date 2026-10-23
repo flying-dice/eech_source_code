@@ -201,16 +201,40 @@ movement parent/dependent, takeoff-queue, member-task-dependent, landing, or
 credited-aggression state. Anything else fails explicitly at the observe step
 (`begin_bounded_pending_loss`), including a final member (`final member`), a
 player, an invalid force category, and a duplicate or incomplete pending record.
-CREDIT withholding stays fatal. A report requires the host to have retired the
-dead wreck first (`!physical_present && !in_group && loss_pending`); the host ages
-the wreck, 5 minutes to 3 hours of game time by distance to the nearest keysite,
-so a report earlier than that is fatal.
+CREDIT withholding stays fatal.
+
+Report-final contract (`physical_loss_is_final`, `gp_roster.c`). A report is
+accepted only when the loss is pending, the member is out of the group and the
+physical loss is final: either the host released the identity
+(`!physical_present`), or the record still maps the current incarnation
+(`current_member_by_entity[index] == record + 1`) and that entity is of the
+member's type, dead and unlinked from its group. A stale, reused or live entity
+is fatal. This replaces the earlier rule that the host must have retired the
+wreck first, which no host can satisfy for every family: fixed-wing,
+helicopter, routed and person wrecks age out (5 minutes within 1000 m of a
+keysite, up to 3 hours at 10000 m or more), ships sink and are destroyed, and
+anti-air wrecks only age and are never retired. The helicopter path is
+unchanged.
+
+Force-info and regen effects are observable through the fixture-only
+`loss_state(side)` (feature `loss-fixture`, absent from the default module):
+loss and hardware counters per force-info category and the regen ring. The ring
+is written at `(front + count) % size`; at capacity `front` advances and `count`
+stays, so the effect is read as the last written slot, not as a count rise.
+
+Setup fixtures (feature `loss-fixture`, never in the default build):
+`loss_fixture`, `loss_state`, `loss_shape` (a read-only support screen) and
+`loss_release`. `loss_release(entity_id)` ends the tasks whose objective is the
+member's group by sending the original `TASK_COMPLETED` /
+`TASK_TERMINATED_OBJECTIVE_MESSAGE` that a group kill sends (`group.c`). It is
+setup only: it changes no guard and no physics, and does not claim the campaign
+would have released those tasks itself. Airborne fixed-wing groups are usually
+the objective of some task, so without it no fixed-wing member is in the bounded
+shape.
 
 Not covered: save/restore, a group freed while a loss is pending, the delay
 robustness of a late report, ship keysite/carrier exclusions, and the person's
-variadic `TASK_COMPLETED` loop (unchanged). Force-info and regen effects are not
-visible through the Lua API; they are covered only by FORWARD-exactness pack
-evidence and by the order in code.
+variadic `TASK_COMPLETED` loop (unchanged).
 
 ## Known incomplete boundary
 

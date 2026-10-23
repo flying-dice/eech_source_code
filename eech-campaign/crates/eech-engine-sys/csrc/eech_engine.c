@@ -769,11 +769,46 @@ int eech_engine_loss_fixture (int entity_id, const struct eech_engine_host *host
 }
 
 /*
- * TEST-ONLY read-only view of one side's force-info and regeneration state (EEDCS-41), the state the force-info and regen loss
- * phases change: values[0] is the force's total losses, values[1] and values[2] the number of force-info categories and of regen
- * queues, then the current hardware of each category, then the length of each regen queue.  It reads the same arrays the
- * phases write; nothing is modified.
+ * TEST-ONLY setup step (EEDCS-41): releases the tasks that target one hosted member's group, the way the campaign does when it
+ * kills that group (group.c notifies each task dependent ENTITY_MESSAGE_TASK_COMPLETED with TASK_TERMINATED_OBJECTIVE_MESSAGE
+ * and the task's own handlers then end and unlink it), without ending the group.  A fixed-wing group in flight is nearly always
+ * the objective of some task, which the bounded WITHHOLD refuses by design; this lets the witness reach the plain shape.  It
+ * changes no guard and no physics, constructs nothing, and `*released` is the number of tasks it notified.
  */
+int eech_engine_loss_release (int entity_id, int *released, const struct eech_engine_host *host)
+{
+	entity *en, *group, *task, *next;
+	int n = 0;
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!released || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	en = fixture_hosted_entity (entity_id);
+	group = en ? get_local_entity_parent (en, LIST_TYPE_MEMBER) : NULL;
+	if (!group)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	task = get_local_entity_first_child (group, LIST_TYPE_TASK_DEPENDENT);
+	while (task)
+	{
+		next = get_local_entity_child_succ (task, LIST_TYPE_TASK_DEPENDENT);
+		if (task->type == ENTITY_TYPE_TASK)
+		{
+			notify_local_entity (ENTITY_MESSAGE_TASK_COMPLETED, task, group, TASK_TERMINATED_OBJECTIVE_MESSAGE);
+			n++;
+		}
+		task = next;
+	}
+	*released = n;
+	LEAVE (EECH_ENGINE_OK);
+}
+
 /*
  * TEST-ONLY read-only eligibility probe (EEDCS-41): runs, without ending anything, the guard the bounded WITHHOLD itself runs on
  * the descriptor the host would be shown, and returns its refusal text ("" when the loss would be withheld).  It lets the witness
@@ -804,6 +839,14 @@ int eech_engine_loss_shape (int entity_id, char *reason, int capacity)
 	LEAVE (EECH_ENGINE_OK);
 }
 
+/*
+ * TEST-ONLY read-only view of one side's force-info and regeneration state (EEDCS-41), the state the force-info and regen loss
+ * phases change: values[0] is the force's total losses, values[1] and values[2] the number of force-info categories (C) and of
+ * regen queues (R), then the current hardware of each category (C values), then for each queue in turn its count (R), its front
+ * (R), its size (R) and the type, sub type and group of the slot written last (3 x R, -1 when the queue is empty).  The queues are
+ * rings: regen_queue_insert writes at (front + count) % size and, at capacity, advances the front and leaves the count, so the
+ * count alone cannot show an insertion.  It reads the arrays the phases write; nothing is modified.
+ */
 int eech_engine_loss_state (int side, int *values, int capacity, int *count)
 {
 	entity *force_en;
@@ -814,7 +857,7 @@ int eech_engine_loss_state (int side, int *values, int capacity, int *count)
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!values || !count || side <= 0 || side >= NUM_ENTITY_SIDES || capacity < 3 + NUM_FORCE_INFO_CATAGORIES + NUM_ENTITY_SUB_TYPE_REGENS)
+	if (!values || !count || side <= 0 || side >= NUM_ENTITY_SIDES || capacity < 3 + NUM_FORCE_INFO_CATAGORIES + 6 * NUM_ENTITY_SUB_TYPE_REGENS)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -839,6 +882,22 @@ int eech_engine_loss_state (int side, int *values, int capacity, int *count)
 	for (int r = 0; r < NUM_ENTITY_SUB_TYPE_REGENS; r++)
 	{
 		values[n++] = regen_manager[side][r].count;
+	}
+	for (int r = 0; r < NUM_ENTITY_SUB_TYPE_REGENS; r++)
+	{
+		values[n++] = regen_manager[side][r].front;
+	}
+	for (int r = 0; r < NUM_ENTITY_SUB_TYPE_REGENS; r++)
+	{
+		values[n++] = regen_manager[side][r].size;
+	}
+	for (int r = 0; r < NUM_ENTITY_SUB_TYPE_REGENS; r++)
+	{
+		const regen_management_element *m = &regen_manager[side][r];
+		const regen_list_element *last = (m->count > 0 && m->size > 0 && regen_queue[side][r]) ? &regen_queue[side][r][(m->front + m->count - 1) % m->size] : NULL;
+		values[n++] = last ? last->type : -1;
+		values[n++] = last ? last->sub_type : -1;
+		values[n++] = last ? last->group : -1;
 	}
 	*count = n;
 	LEAVE (EECH_ENGINE_OK);
