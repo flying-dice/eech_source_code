@@ -774,6 +774,36 @@ int eech_engine_loss_fixture (int entity_id, const struct eech_engine_host *host
  * queues, then the current hardware of each category, then the length of each regen queue.  It reads the same arrays the
  * phases write; nothing is modified.
  */
+/*
+ * TEST-ONLY read-only eligibility probe (EEDCS-41): runs, without ending anything, the guard the bounded WITHHOLD itself runs on
+ * the descriptor the host would be shown, and returns its refusal text ("" when the loss would be withheld).  It lets the witness
+ * choose a supported member instead of spending real kills on unsupported ones.
+ */
+int eech_engine_loss_shape (int entity_id, char *reason, int capacity)
+{
+	entity *en;
+	char buffer[256];
+	const char *refusal;
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!reason || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	en = fixture_hosted_entity (entity_id);
+	if (!en)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	refusal = campaign_roster_withhold_refusal (en, buffer, sizeof (buffer));
+	strncpy (reason, refusal, (size_t) capacity - 1);
+	reason[capacity - 1] = ' ';
+	LEAVE (EECH_ENGINE_OK);
+}
+
 int eech_engine_loss_state (int side, int *values, int capacity, int *count)
 {
 	entity *force_en;

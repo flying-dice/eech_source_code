@@ -212,6 +212,9 @@ void campaign_roster_loss_step (const campaign_loss_ticket *ticket, int phase);
 void campaign_roster_record_task_termination (struct ENTITY *task, int termination_reason);
 int campaign_roster_has_pending_loss (void);
 int campaign_roster_report_loss (const char *host_id, campaign_loss_report_receipt *receipt);
+#ifdef EECH_LOSS_FIXTURE
+const char *campaign_roster_withhold_refusal (struct ENTITY *member, char *buffer, size_t size);
+#endif
 int campaign_roster_group_member_count (struct ENTITY *group);
 uint64_t campaign_roster_member_key (struct ENTITY *member);
 const char *campaign_roster_host_id (struct ENTITY *member);

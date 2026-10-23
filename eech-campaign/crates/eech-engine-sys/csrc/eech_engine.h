@@ -207,6 +207,8 @@ int eech_engine_dependent_fixture (int op, int parent_id, int child_id, const do
 int eech_engine_loss_fixture (int entity_id, const struct eech_engine_host *host);
 /* TEST-ONLY: one side's total losses, force-info current hardware and regen queue lengths, read-only. */
 int eech_engine_loss_state (int side, int *values, int capacity, int *count);
+/* TEST-ONLY: the reason a bounded family would refuse to withhold this hosted member's loss ("" if it would accept), read-only. */
+int eech_engine_loss_shape (int entity_id, char *reason, int capacity);
 #endif
 
 #endif

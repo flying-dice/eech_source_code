@@ -25,10 +25,17 @@
 -- feature-gated, read-only engine:loss_state(side) (total force losses, force-info hardware per category, regen queue
 -- lengths) with no frame between the two readings of a pair: the withheld kill leaves all three unchanged, the FORWARD
 -- control changes them by exactly one loss / one hardware / one regen entry, and the report changes them by exactly the
--- same amount, once. The phase order is enforced inside the DLL (strictly ascending phases, fatal otherwise) and FORWARD
+-- same amount, once, for the phases the family has (a person has neither; ship and anti-air have no regen). The phase order is enforced inside the DLL (strictly ascending phases, fatal otherwise) and FORWARD
 -- exactness is covered by the retained regression pack. A rejected report poisons the engine, so no state is read after it.
 --
+-- Candidates are screened, before any kill, by the feature-gated, read-only engine:loss_shape(entity_id): it runs the guard
+-- the bounded WITHHOLD itself runs on the descriptor the host would be shown and returns its refusal text ("" when the loss
+-- would be withheld). A screened-out member is not killed, so no member is spent on an unsupported shape. screen=off restores
+-- the try-by-kill selection (the host answers `forward` for an unsupported shape and the next candidate is tried).
+--
 -- mode=witness   the above (default)
+-- mode=shape     read-only census, no kill: per family the members, how many the bounded WITHHOLD would accept, and the
+--                refusal histogram of the rest.
 -- mode=negative  the unsupported-shape case: withhold the final member of a group of one. The campaign must fail
 --                explicitly (a fatal engine error naming the final member); this poisons the engine, so it ends the run.
 --
@@ -44,13 +51,14 @@ io.stdout:setvbuf ("no")
 local args = host.args
 local root = assert (args.root, "root=<installation root>")
 local mode = args.mode or "witness"
-assert (mode == "witness" or mode == "negative", "mode=witness|negative")
+assert (mode == "witness" or mode == "negative" or mode == "shape", "mode=witness|negative|shape")
 local frame_ms = tonumber (args.frame_ms or "100")
 local warmup = tonumber (args.warmup or "30")
 local warmup_ms = tonumber (args.warmup_ms or args.frame_ms or "100")
 local settle_ms = tonumber (args.settle_ms or "1000")
 local settle_limit = tonumber (args.settle_limit or "12000")
 local max_tries = tonumber (args.candidates or "40")
+local screen = args.screen ~= "off"
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
 
@@ -206,13 +214,57 @@ local function state_delta (before, after)
 	return delta
 end
 
--- exactly one loss consequence: one more force loss, one hardware unit fewer in one category, one more entry in one regen queue
-local function is_one_loss (delta)
-	return delta.losses == 1 and #delta.hardware == 1 and delta.hardware [1] == -1 and #delta.regen == 1 and delta.regen [1] == 1
+-- the force-state phases each family's original destroy code ran (docs/m5-physical-loss.md): force info (a force loss and one
+-- hardware unit fewer in the member's category) and regen (one more entry in one regen queue)
+local PHASES = {
+	routed    = { force_info = true,  regen = true  },
+	fixed_wing = { force_info = true,  regen = true  },
+	ship      = { force_info = true,  regen = false },
+	anti_air  = { force_info = true,  regen = false },
+	person    = { force_info = false, regen = false },
+}
+
+-- exactly the family's loss consequence: nothing where the family steps neither phase, else one force loss, one hardware unit
+-- fewer in one category, and one more entry in one regen queue only where the family has the regen phase
+local function is_one_loss (family, delta)
+	local phases = assert (PHASES [family], family)
+	if not phases.force_info then
+		return delta.losses == 0 and #delta.hardware == 0 and #delta.regen == 0
+	end
+	local regen_ok = phases.regen and (#delta.regen == 1 and delta.regen [1] == 1) or (not phases.regen and #delta.regen == 0)
+	return delta.losses == 1 and #delta.hardware == 1 and delta.hardware [1] == -1 and regen_ok
 end
 
 local function is_unchanged (delta)
 	return delta.losses == 0 and #delta.hardware == 0 and #delta.regen == 0
+end
+
+-- the bounded WITHHOLD's own refusal for a member ("" if it would accept), read-only
+local function shape_of (candidate)
+	return engine:loss_shape (candidate.member.current_entity_id)
+end
+
+if mode == "shape" then
+	for _, family in ipairs (order) do
+		local members, reasons, supported = census (family), {}, {}
+		for _, candidate in ipairs (members) do
+			local reason = shape_of (candidate)
+			if reason == "" then
+				supported [#supported + 1] = string.format ("%s(group %d)", candidate.member.host_id, candidate.size)
+			else
+				reason = string.gsub (reason, "^campaign loss: ", "")
+				reasons [reason] = (reasons [reason] or 0) + 1
+			end
+		end
+		print (string.format ("shape\t%s\tmembers=%d supported=%d", family, #members, #supported))
+		local names = {}
+		for reason in pairs (reasons) do names [#names + 1] = reason end
+		table.sort (names)
+		for _, reason in ipairs (names) do print (string.format ("shape\t%s\trefused %d: %s", family, reasons [reason], reason)) end
+		for _, line in ipairs (supported) do print (string.format ("shape\t%s\tsupported %s", family, line)) end
+	end
+	finish ()
+	return
 end
 
 if mode == "negative" then
@@ -268,9 +320,19 @@ local withheld = {}   -- one entry per family whose member was withheld, in fami
 
 -- stage 1: per family, withhold one member and forward a control of the same group
 for _, family in ipairs (order) do
-	local skipped, done, tried, tries = {}, nil, {}, 0
+	local skipped, screened, done, tried, tries = {}, {}, nil, {}, 0
 	while not done and tries < max_tries do
 		local candidate = candidates_of (family, 2, tried) [1] -- 2: a lone member is the final member, which is unsupported
+		if candidate and screen then
+			-- read-only screen: the first candidate the bounded WITHHOLD would accept; the rest are not killed
+			candidate = nil
+			for _, option in ipairs (candidates_of (family, 2, tried)) do
+				local reason = shape_of (option)
+				if reason == "" then candidate = option break end
+				tried [option.member.host_id] = true
+				screened [#screened + 1] = string.format ("%s:%s", option.member.host_id, reason)
+			end
+		end
 		if not candidate then break end
 		tries = tries + 1
 		tried [candidate.member.host_id] = true
@@ -286,10 +348,11 @@ for _, family in ipairs (order) do
 			skipped [#skipped + 1] = string.format ("%s:%s", id, entry and entry.why or "no loss observed")
 		end
 	end
+	for _, line in ipairs (screened) do print (string.format ("screened\t%s\t%s", family, line)) end
 	for _, line in ipairs (skipped) do print (string.format ("skipped\t%s\t%s", family, line)) end
 	if not done then
-		print (string.format ("unavailable\t%s\tno supported member in %d tries", family, tries))
-		check (family .. ".available", false, string.format ("no withhold-supported member in %d tries", tries))
+		print (string.format ("unavailable\t%s\tno supported member in %d tries, %d screened out", family, tries, #screened))
+		check (family .. ".available", false, string.format ("no withhold-supported member in %d tries, %d screened out", tries, #screened))
 		summary [#summary + 1] = family .. "=UNAVAILABLE"
 	else
 		local d, id, candidate = done.entry.descriptor, done.id, done.candidate
@@ -328,7 +391,7 @@ for _, family in ipairs (order) do
 			local control_snapshot = snapshots [control_id]
 			local control_delta = control_snapshot and state_delta (control_snapshot.before, control_snapshot.after)
 			print (string.format ("force_state\t%s\tforward control kill: %s", family, control_delta and control_delta.text or "not read"))
-			check (family .. ".forward_applies_force_info_and_regen_once", control_delta and is_one_loss (control_delta), control_delta and control_delta.text)
+			check (family .. ".forward_applies_force_info_and_regen_once", control_delta and is_one_loss (family, control_delta), control_delta and control_delta.text)
 			local gone = find_member (control_id)
 			check (family .. ".forward_left_group_at_once", gone and not gone.in_group,
 				gone and string.format ("physical_present=%s in_group=%s", tostring (gone.physical_present), tostring (gone.in_group)) or "no record")
@@ -375,7 +438,7 @@ local function report_family (w)
 	local receipt = engine:report_loss (id)
 	local report_delta = state_delta (state_before, engine:loss_state (SIDE [candidate.member.side]))
 	print (string.format ("force_state\t%s\treport: %s", family, report_delta.text))
-	check (family .. ".report_applies_force_info_and_regen_once", is_one_loss (report_delta), report_delta.text)
+	check (family .. ".report_applies_force_info_and_regen_once", is_one_loss (family, report_delta), report_delta.text)
 	print (string.format ("receipt\t%s\tgroup_losses=%d>%d logical=%d>%d physical_before=%d primary_losses=%d>%d landing=%d>%d expire=%d completed=%d",
 		family, receipt.group_losses_before, receipt.group_losses_after, receipt.group_logical_members_before, receipt.group_logical_members_after,
 		receipt.group_physical_members_before, receipt.primary_task_losses_before, receipt.primary_task_losses_after,

@@ -460,6 +460,57 @@ static int is_bounded_family (int entity_type)
 		(entity_type == ENTITY_TYPE_SHIP_VEHICLE);
 }
 
+/* The first reason the bounded families cannot withhold this loss, or NULL; the one rule begin_bounded_pending_loss enforces. */
+static const char *bounded_loss_refusal (entity *group, campaign_member_record *member_record, const campaign_loss_descriptor *descriptor, char *buffer, size_t size)
+{
+	int needs_force_info = descriptor->entity_type != ENTITY_TYPE_PERSON;
+
+	if ((descriptor->player != ENTITY_PLAYER_AI) || descriptor->landed)
+	{
+		return "campaign loss: WITHHOLD supports only an AI member that is not landed";
+	}
+	if (descriptor->campaign_member_count <= 1)
+	{
+		return "campaign loss: WITHHOLD does not support the final member of a group";
+	}
+	if (descriptor->group_task_dependents || descriptor->restricted_guides)
+	{
+		return "campaign loss: WITHHOLD does not support a group with task dependents or restricted guides";
+	}
+	if (descriptor->movement_parent || descriptor->movement_dependents || descriptor->takeoff_queue)
+	{
+		return "campaign loss: WITHHOLD does not support a member with movement or takeoff-queue relations";
+	}
+	if (descriptor->member_task_dependent_count || descriptor->member_task_dependent_copied)
+	{
+		return "campaign loss: WITHHOLD does not support a member with task dependents";
+	}
+	if (descriptor->landing_action_count || descriptor->landing_action_copied)
+	{
+		return "campaign loss: WITHHOLD does not support a member with landing actions";
+	}
+	if (needs_force_info &&
+		((descriptor->force_info_category < 0) || (descriptor->force_info_category >= NUM_FORCE_INFO_CATAGORIES)))
+	{
+		snprintf (buffer, size, "campaign loss: invalid force information category %d", descriptor->force_info_category);
+		return buffer;
+	}
+	if (find_pending_loss (descriptor->host_id) || member_record->loss_pending)
+	{
+		snprintf (buffer, size, "campaign loss: duplicate or incomplete pending loss for %s", descriptor->host_id);
+		return buffer;
+	}
+	if (member_record->credit_observed)
+	{
+		return "campaign loss: WITHHOLD does not support a member with credited aggression";
+	}
+	if (get_local_entity_int_value (group, INT_TYPE_MEMBER_COUNT) <= 1)
+	{
+		return "campaign loss: WITHHOLD does not support the final physical member of a group";
+	}
+	return NULL;
+}
+
 /*
  * The other five force families withhold only the plainest loss: an AI member of
  * a group that keeps at least one other physical member, with no task dependents,
@@ -470,47 +521,12 @@ static void begin_bounded_pending_loss (entity *group, campaign_member_record *m
 {
 	campaign_pending_loss *pending;
 	int needs_force_info = descriptor->entity_type != ENTITY_TYPE_PERSON;
+	char buffer[CAMPAIGN_HOST_ERROR_MAX + 1];
+	const char *refusal = bounded_loss_refusal (group, member_record, descriptor, buffer, sizeof (buffer));
 
-	if ((descriptor->player != ENTITY_PLAYER_AI) || descriptor->landed)
+	if (refusal)
 	{
-		debug_fatal ("campaign loss: WITHHOLD supports only an AI member that is not landed");
-	}
-	if (descriptor->campaign_member_count <= 1)
-	{
-		debug_fatal ("campaign loss: WITHHOLD does not support the final member of a group");
-	}
-	if (descriptor->group_task_dependents || descriptor->restricted_guides)
-	{
-		debug_fatal ("campaign loss: WITHHOLD does not support a group with task dependents or restricted guides");
-	}
-	if (descriptor->movement_parent || descriptor->movement_dependents || descriptor->takeoff_queue)
-	{
-		debug_fatal ("campaign loss: WITHHOLD does not support a member with movement or takeoff-queue relations");
-	}
-	if (descriptor->member_task_dependent_count || descriptor->member_task_dependent_copied)
-	{
-		debug_fatal ("campaign loss: WITHHOLD does not support a member with task dependents");
-	}
-	if (descriptor->landing_action_count || descriptor->landing_action_copied)
-	{
-		debug_fatal ("campaign loss: WITHHOLD does not support a member with landing actions");
-	}
-	if (needs_force_info &&
-		((descriptor->force_info_category < 0) || (descriptor->force_info_category >= NUM_FORCE_INFO_CATAGORIES)))
-	{
-		debug_fatal ("campaign loss: invalid force information category %d", descriptor->force_info_category);
-	}
-	if (find_pending_loss (descriptor->host_id) || member_record->loss_pending)
-	{
-		debug_fatal ("campaign loss: duplicate or incomplete pending loss for %s", descriptor->host_id);
-	}
-	if (member_record->credit_observed)
-	{
-		debug_fatal ("campaign loss: WITHHOLD does not support a member with credited aggression");
-	}
-	if (get_local_entity_int_value (group, INT_TYPE_MEMBER_COUNT) <= 1)
-	{
-		debug_fatal ("campaign loss: WITHHOLD does not support the final physical member of a group");
+		debug_fatal ("%s", refusal);
 	}
 
 	ensure_pending_loss_capacity ();
@@ -638,22 +654,13 @@ static void begin_pending_loss (entity *group, campaign_member_record *member_re
 	member_record->loss_pending = TRUE;
 }
 
-static int observe_loss_event (entity *member, entity *group, campaign_loss_event_kind event_kind)
+static void fill_loss_descriptor (entity *member, entity *group, campaign_member_record *record, campaign_loss_event_kind event_kind, campaign_loss_descriptor *out)
 {
 	campaign_loss_descriptor descriptor;
-	campaign_member_record *record;
 	entity *task;
-	char error[CAMPAIGN_HOST_ERROR_MAX + 1];
-	int decision = CAMPAIGN_LOSS_FORWARD;
 
-	if (!current_host.observe_loss)
-	{
-		debug_fatal ("campaign roster: host observe_loss callback is unavailable");
-	}
-	record = record_for_member (member);
 	task = get_local_group_primary_task (group);
 	memset (&descriptor, 0, sizeof (descriptor));
-	memset (error, 0, sizeof (error));
 	descriptor.host_id = record->host_id;
 	descriptor.member_key = record->member_key;
 	descriptor.group_key = record->group_key;
@@ -676,6 +683,23 @@ static int observe_loss_event (entity *member, entity *group, campaign_loss_even
 	descriptor.movement_parent = get_local_entity_parent (member, LIST_TYPE_MOVEMENT_DEPENDENT) != NULL;
 	descriptor.movement_dependents = child_count (member, LIST_TYPE_MOVEMENT_DEPENDENT);
 	descriptor.takeoff_queue = get_local_entity_parent (member, LIST_TYPE_TAKEOFF_QUEUE) != NULL;
+	*out = descriptor;
+}
+
+static int observe_loss_event (entity *member, entity *group, campaign_loss_event_kind event_kind)
+{
+	campaign_loss_descriptor descriptor;
+	campaign_member_record *record;
+	char error[CAMPAIGN_HOST_ERROR_MAX + 1];
+	int decision = CAMPAIGN_LOSS_FORWARD;
+
+	if (!current_host.observe_loss)
+	{
+		debug_fatal ("campaign roster: host observe_loss callback is unavailable");
+	}
+	record = record_for_member (member);
+	memset (error, 0, sizeof (error));
+	fill_loss_descriptor (member, group, record, event_kind, &descriptor);
 
 	if (current_host.observe_loss (&descriptor, &decision, error, CAMPAIGN_HOST_ERROR_MAX, current_host.user) != 0)
 	{
@@ -1624,6 +1648,32 @@ uint64_t campaign_roster_member_key (entity *member)
 	campaign_member_record *record = current_member_record (member);
 	return record ? record->member_key : 0;
 }
+
+#ifdef EECH_LOSS_FIXTURE
+/*
+ * TEST-ONLY (EEDCS-41): the reason a bounded family would refuse to withhold this member's physical loss, "" if it would
+ * accept.  It builds the descriptor and runs the guard the withhold itself runs, and changes nothing.
+ */
+const char *campaign_roster_withhold_refusal (entity *member, char *buffer, size_t size)
+{
+	campaign_member_record *record = current_member_record (member);
+	entity *group = get_local_entity_parent (member, LIST_TYPE_MEMBER);
+	campaign_loss_descriptor descriptor;
+	const char *refusal;
+
+	if (!record || !group)
+	{
+		return "campaign loss: member is not hosted or has no group";
+	}
+	if (!is_bounded_family (record->entity_type))
+	{
+		return "campaign loss: not a bounded family";
+	}
+	fill_loss_descriptor (member, group, record, CAMPAIGN_LOSS_EVENT_PHYSICAL, &descriptor);
+	refusal = bounded_loss_refusal (group, record, &descriptor, buffer, size);
+	return refusal ? refusal : "";
+}
+#endif
 
 const char *campaign_roster_host_id (entity *member)
 {

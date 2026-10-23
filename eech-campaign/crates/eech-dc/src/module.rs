@@ -426,6 +426,9 @@ impl LuaUserData for LuaEngine {
             state.set("regen", values[3 + categories..3 + categories + regens].to_vec())?;
             Ok(state)
         });
+        // TEST-ONLY (feature `loss-fixture`, EEDCS-41): read-only withhold eligibility of one hosted member; not part of the shipping module.
+        #[cfg(feature = "loss-fixture")]
+        methods.add_method("loss_shape", |_, this, entity_id: i32| this.engine.loss_shape(entity_id).map_err(lua_error));
         // TEST-ONLY (feature `dependent-fixture`, EEDCS-40): not part of the shipping module.
         #[cfg(feature = "dependent-fixture")]
         methods.add_method(
