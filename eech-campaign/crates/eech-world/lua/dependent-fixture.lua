@@ -20,6 +20,9 @@
 --
 -- warmup=<frames>  frames of the campaign before arranging (default 30)   frame_ms=<ms> (default 100)
 
+-- unbuffered: a native exit (debug_fatal) must not swallow the checks already printed
+io.stdout:setvbuf ("no")
+
 local args = host.args
 local root = assert (args.root, "root=<installation root>")
 local frame_ms = tonumber (args.frame_ms or "100")

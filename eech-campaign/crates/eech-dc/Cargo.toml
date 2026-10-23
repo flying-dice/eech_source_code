@@ -27,7 +27,7 @@ serde_json.workspace = true
 [features]
 # TEST-ONLY (EEDCS-40): the dependent-positioning fixture driver. Never enabled in the shipping build.
 dependent-fixture = ["eech-engine/dependent-fixture"]
-dependent-fixture-old-guard = ["eech-engine/dependent-fixture-old-guard"]
+dependent-fixture-old-guard = ["dependent-fixture", "eech-engine/dependent-fixture-old-guard"]
 
 [lints.clippy]
 unwrap_used = "deny"
