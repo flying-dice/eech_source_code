@@ -2057,6 +2057,17 @@ impl Engine {
         })
     }
 
+    /// TEST-ONLY (feature `loss-fixture`): one side's total losses, the category and regen-queue counts, then force-info current
+    /// hardware per category and regen queue lengths, read-only.  These are the values the force-info and regen loss phases change.
+    #[cfg(feature = "loss-fixture")]
+    pub fn loss_state(&self, side: i32) -> Result<Vec<i32>, EngineError> {
+        let mut values = [0i32; 256];
+        let mut count = 0i32;
+        // SAFETY: the buffer and count outlive the call and the capacity passed is the buffer length.
+        check(unsafe { sys::eech_engine_loss_state(side, values.as_mut_ptr(), values.len() as i32, &mut count) })?;
+        Ok(values[..count as usize].to_vec())
+    }
+
     /// Applies one previously withheld loss by opaque physical-incarnation ID.
     /// Duplicate, unknown, stale and unsupported reports fail visibly and return no receipt.
     pub fn report_loss(&self, host_id: &str) -> Result<LossReceipt, EngineError> {

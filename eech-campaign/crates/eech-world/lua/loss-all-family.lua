@@ -21,9 +21,12 @@
 --     logical members -1 from what B's immediate loss left, the primary task's loss count +1 where the family has one;
 --   * a probe C of the same group (group of at least 4 only) shows both campaign decrements (A's report, B's forward) in
 --     the member count the campaign supplies to the host.
--- A requested family with no supported member fails the run. Force info and the regen queue are not observable from Lua;
--- the phase order is enforced inside the DLL (strictly ascending phases, fatal otherwise) and FORWARD exactness is covered
--- by the retained regression pack.
+-- A requested family with no supported member fails the run. Force info and the regen queue are read through the
+-- feature-gated, read-only engine:loss_state(side) (total force losses, force-info hardware per category, regen queue
+-- lengths) with no frame between the two readings of a pair: the withheld kill leaves all three unchanged, the FORWARD
+-- control changes them by exactly one loss / one hardware / one regen entry, and the report changes them by exactly the
+-- same amount, once. The phase order is enforced inside the DLL (strictly ascending phases, fatal otherwise) and FORWARD
+-- exactness is covered by the retained regression pack. A rejected report poisons the engine, so no state is read after it.
 --
 -- mode=witness   the above (default)
 -- mode=negative  the unsupported-shape case: withhold the final member of a group of one. The campaign must fail
@@ -172,13 +175,41 @@ local function raises (f, ...)
 end
 
 -- role "withhold" marks the member for the host's withhold policy; any other role is left to the reference host's answer
+local SIDE = { blue = 1, red = 2 }   -- entity_sides of the force entities
+local snapshots = {}   -- host id -> { before, after }: force state around its kill, read with no frame between
 local function kill (candidate, role)
 	local id = candidate.member.host_id
+	local side = SIDE [candidate.member.side]
 	if role == "withhold" then want [id] = true end
+	local before = engine:loss_state (side)
 	in_fixture = true
 	local ok, message = pcall (engine.loss_fixture, engine, candidate.member.current_entity_id)
 	in_fixture = false
+	if ok then snapshots [id] = { before = before, after = engine:loss_state (side) } end
 	return ok, tostring (message), id
+end
+
+-- what changed between two force states: total losses, and the per-category / per-queue deltas that are not zero
+local function state_delta (before, after)
+	local delta = { losses = after.losses - before.losses, hardware = {}, regen = {} }
+	for _, kind in ipairs ({ "hardware", "regen" }) do
+		for index = 1, #before [kind] do
+			local change = after [kind] [index] - before [kind] [index]
+			if change ~= 0 then delta [kind] [#delta [kind] + 1] = string.format ("%d:%+d", index - 1, change) end
+		end
+	end
+	delta.text = string.format ("losses%+d hardware[%s] regen[%s]", delta.losses, table.concat (delta.hardware, ","), table.concat (delta.regen, ","))
+	return delta
+end
+
+-- exactly one loss consequence: one more force loss, one hardware unit fewer in one category, one more entry in one regen queue
+local function is_one_loss (delta)
+	return delta.losses == 1 and #delta.hardware == 1 and string.sub (delta.hardware [1], -2) == ":-1" and #delta.regen == 1
+		and string.sub (delta.regen [1], -2) == ":+1"
+end
+
+local function is_unchanged (delta)
+	return delta.losses == 0 and #delta.hardware == 0 and #delta.regen == 0
 end
 
 if mode == "negative" then
@@ -271,6 +302,10 @@ for _, family in ipairs (order) do
 		check (family .. ".left_group_at_once", record and not record.in_group,
 			record and string.format ("physical_present=%s in_group=%s", tostring (record.physical_present), tostring (record.in_group)) or "no record")
 		print (string.format ("wreck\t%s\tphysical_present_at_once=%s", family, tostring (record and record.physical_present)))
+		local snapshot = snapshots [id]
+		local withheld_delta = snapshot and state_delta (snapshot.before, snapshot.after)
+		print (string.format ("force_state\t%s\twithheld kill: %s", family, withheld_delta and withheld_delta.text or "not read"))
+		check (family .. ".withheld_force_info_and_regen_unchanged", withheld_delta and is_unchanged (withheld_delta), withheld_delta and withheld_delta.text)
 
 		-- FORWARD control B of the same group, answered by the reference host while A is pending
 		local forwarded = 0
@@ -287,6 +322,10 @@ for _, family in ipairs (order) do
 				entry and tostring (entry.answer) or "no loss observed")
 			check (family .. ".forward_withheld_member_still_counted", entry and entry.descriptor.campaign_member_count == n,
 				entry and string.format ("count=%d expected=%d", entry.descriptor.campaign_member_count, n) or "no loss observed")
+			local control_snapshot = snapshots [control_id]
+			local control_delta = control_snapshot and state_delta (control_snapshot.before, control_snapshot.after)
+			print (string.format ("force_state\t%s\tforward control kill: %s", family, control_delta and control_delta.text or "not read"))
+			check (family .. ".forward_applies_force_info_and_regen_once", control_delta and is_one_loss (control_delta), control_delta and control_delta.text)
 			local gone = find_member (control_id)
 			check (family .. ".forward_left_group_at_once", gone and not gone.in_group,
 				gone and string.format ("physical_present=%s in_group=%s", tostring (gone.physical_present), tostring (gone.in_group)) or "no record")
@@ -329,7 +368,11 @@ local function report_family (w)
 	end
 
 	-- the report: the campaign consequences apply now, once
+	local state_before = engine:loss_state (SIDE [candidate.member.side])
 	local receipt = engine:report_loss (id)
+	local report_delta = state_delta (state_before, engine:loss_state (SIDE [candidate.member.side]))
+	print (string.format ("force_state\t%s\treport: %s", family, report_delta.text))
+	check (family .. ".report_applies_force_info_and_regen_once", is_one_loss (report_delta), report_delta.text)
 	print (string.format ("receipt\t%s\tgroup_losses=%d>%d logical=%d>%d physical_before=%d primary_losses=%d>%d landing=%d>%d expire=%d completed=%d",
 		family, receipt.group_losses_before, receipt.group_losses_after, receipt.group_logical_members_before, receipt.group_logical_members_after,
 		receipt.group_physical_members_before, receipt.primary_task_losses_before, receipt.primary_task_losses_after,

@@ -415,6 +415,17 @@ impl LuaUserData for LuaEngine {
                 .loss_fixture(entity_id, &mut binder, &mut observer, &mut reach, &mut mover)
                 .map_err(lua_error)
         });
+        // TEST-ONLY (feature `loss-fixture`, EEDCS-41): read-only force-info and regen state; not part of the shipping module.
+        #[cfg(feature = "loss-fixture")]
+        methods.add_method("loss_state", |lua, this, side: i32| {
+            let values = this.engine.loss_state(side).map_err(lua_error)?;
+            let (categories, regens) = (values[1] as usize, values[2] as usize);
+            let state = lua.create_table()?;
+            state.set("losses", values[0])?;
+            state.set("hardware", values[3..3 + categories].to_vec())?;
+            state.set("regen", values[3 + categories..3 + categories + regens].to_vec())?;
+            Ok(state)
+        });
         // TEST-ONLY (feature `dependent-fixture`, EEDCS-40): not part of the shipping module.
         #[cfg(feature = "dependent-fixture")]
         methods.add_method(

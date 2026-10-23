@@ -768,4 +768,50 @@ int eech_engine_loss_fixture (int entity_id, const struct eech_engine_host *host
 	LEAVE (EECH_ENGINE_OK);
 }
 
+/*
+ * TEST-ONLY read-only view of one side's force-info and regeneration state (EEDCS-41), the state the force-info and regen loss
+ * phases change: values[0] is the force's total losses, values[1] and values[2] the number of force-info categories and of regen
+ * queues, then the current hardware of each category, then the length of each regen queue.  It reads the same arrays the
+ * phases write; nothing is modified.
+ */
+int eech_engine_loss_state (int side, int *values, int capacity, int *count)
+{
+	entity *force_en;
+	force *raw;
+	int n = 0;
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!values || !count || side <= 0 || side >= NUM_ENTITY_SIDES || capacity < 3 + NUM_FORCE_INFO_CATAGORIES + NUM_ENTITY_SUB_TYPE_REGENS)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	force_en = get_local_force_entity ((entity_sides) side);
+	if (!force_en)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	raw = (force *) get_local_entity_data (force_en);
+	values[n] = 0;
+	for (int g = 0; g < NUM_ENTITY_SUB_TYPE_GROUPS; g++)
+	{
+		values[n] += raw->losses[g];
+	}
+	n++;
+	values[n++] = NUM_FORCE_INFO_CATAGORIES;
+	values[n++] = NUM_ENTITY_SUB_TYPE_REGENS;
+	for (int c = 0; c < NUM_FORCE_INFO_CATAGORIES; c++)
+	{
+		values[n++] = raw->force_info_current_hardware[c];
+	}
+	for (int r = 0; r < NUM_ENTITY_SUB_TYPE_REGENS; r++)
+	{
+		values[n++] = regen_manager[side][r].count;
+	}
+	*count = n;
+	LEAVE (EECH_ENGINE_OK);
+}
+
 #endif
