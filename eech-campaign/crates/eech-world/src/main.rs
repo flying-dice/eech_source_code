@@ -9,8 +9,9 @@
 mod crash;
 
 use eech_world::movement::{
-    Advance, Creation, FixedWingMove, FixedWingPhase, HelicopterBegin, HelicopterEnd, Kind, Lifecycle, LifecycleMode, Movers, Outcome, PersonBegin, PersonEnd,
-    Pose, Request, ShipMove, Terrain,
+    Advance, Creation, FixedWingMove, FixedWingNavigation, FixedWingPhase, FixedWingTerrain, HelicopterAnswer, HelicopterBegin, HelicopterEnd, HelicopterGuide,
+    HelicopterPlan, HelicopterSteer, HelicopterStructure, HelicopterTerrainSample, HelicopterWaypointKind, Kind, Lifecycle, LifecycleMode, Movers,
+    NavigationMember, Outcome, PersonBegin, PersonEnd, Pose, Request, ShipMove, Terrain,
 };
 use eech_world::tacview::{ObjectInfo, Recorder};
 use mlua::prelude::*;
@@ -163,6 +164,159 @@ fn pose_from(lua: &Lua, table: &LuaTable) -> LuaResult<Pose> {
         velocity: number(lua, table, "velocity")?,
         attitude: numbers(lua, table, "attitude")?,
     })
+}
+
+/// A number a table field may omit (the engine leaves an absent optional out of the step table).
+fn optional_number(lua: &Lua, table: &LuaTable, name: &str) -> LuaResult<Option<f32>> {
+    if table.contains_key(name)? {
+        Ok(Some(number(lua, table, name)?))
+    } else {
+        Ok(None)
+    }
+}
+
+/// The waypoint-kind group a helicopter step names (`EECH_HC_WP_*`). Anything else is refused, not mapped to a neighbour.
+fn helicopter_waypoint_kind(value: i32) -> LuaResult<HelicopterWaypointKind> {
+    match value {
+        0 => Ok(HelicopterWaypointKind::Other),
+        1 => Ok(HelicopterWaypointKind::Route),
+        2 => Ok(HelicopterWaypointKind::Holding),
+        3 => Ok(HelicopterWaypointKind::Landed),
+        4 => Ok(HelicopterWaypointKind::Insertion),
+        other => Err(LuaError::runtime(format!("host.move_vehicle: unknown helicopter waypoint kind {other}"))),
+    }
+}
+
+/// The list a step field holds, in order and uncapped (absent: empty).
+fn list_of_tables(step: &LuaTable, name: &str) -> LuaResult<Vec<LuaTable>> {
+    match step.get::<Option<LuaTable>>(name)? {
+        Some(list) => list.sequence_values::<LuaTable>().collect(),
+        None => Ok(Vec::new()),
+    }
+}
+
+/// The campaign's guidance intent for a hosted helicopter step. Each group member is a table holding its host id (nil
+/// when the roster lacks it).
+fn helicopter_plan_from(lua: &Lua, step: &LuaTable) -> LuaResult<HelicopterPlan> {
+    let mut members = Vec::new();
+    for member in list_of_tables(step, "hc_plan_members")? {
+        members.push(member.get::<Option<String>>("host_id")?);
+    }
+    Ok(HelicopterPlan {
+        group_leader: step.get("hc_group_leader")?,
+        task_leader: step.get("hc_task_leader")?,
+        task_leader_is_self: step.get("hc_task_leader_is_self")?,
+        position_hold: step.get("hc_position_hold")?,
+        terrain_follow: step.get("terrain_follow")?,
+        terrain_follow_attack_altitude: step.get("hc_terrain_follow_attack_altitude")?,
+        waypoint_kind: helicopter_waypoint_kind(step.get("hc_waypoint_kind")?)?,
+        guide_radius: optional_number(lua, step, "hc_guide_radius")?,
+        guide_altitude_valid: step.get("hc_guide_altitude_valid")?,
+        waypoint: numbers(lua, step, "waypoint")?,
+        waypoint_velocity: numbers(lua, step, "hc_waypoint_velocity")?,
+        distance: number(lua, step, "hc_distance")?,
+        terrain_elevation: number(lua, step, "elevation")?,
+        fuel_supply_level: number(lua, step, "hc_fuel_supply_level")?,
+        cruise_velocity: number(lua, step, "hc_cruise_velocity")?,
+        power_output: number(lua, step, "power_output")?,
+        cruise_altitude: number(lua, step, "hc_cruise_altitude")?,
+        attack_altitude: number(lua, step, "hc_attack_altitude")?,
+        leader_radar_altitude: number(lua, step, "hc_leader_radar_altitude")?,
+        map_min: numbers(lua, step, "map_min")?,
+        map_max: numbers(lua, step, "map_max")?,
+        delta_seconds: number(lua, step, "delta_seconds")?,
+        members,
+        motion_vector: numbers(lua, step, "motion_vector_in")?,
+    })
+}
+
+/// The answers to the lookups the host planned: the aircraft's own sector's structures in order and the getter returns of
+/// each terrain sample in call order.
+fn helicopter_guide_from(lua: &Lua, step: &LuaTable) -> LuaResult<HelicopterGuide> {
+    let mut structures = Vec::new();
+    for structure in list_of_tables(step, "hc_structures")? {
+        structures.push(HelicopterStructure {
+            position: numbers(lua, &structure, "position")?,
+            avoidance_radius: number(lua, &structure, "avoidance_radius")?,
+            height: number(lua, &structure, "height")?,
+        });
+    }
+    let mut terrain_samples = Vec::new();
+    for sample in list_of_tables(step, "hc_terrain_samples")? {
+        terrain_samples.push(HelicopterTerrainSample {
+            first: number(lua, &sample, "first")?,
+            second: optional_number(lua, &sample, "second")?,
+        });
+    }
+    Ok(HelicopterGuide {
+        structures,
+        terrain_samples,
+        motion_vector: numbers(lua, step, "motion_vector_in")?,
+    })
+}
+
+/// The steering intent of a hosted helicopter step's second phase: facts, no desired steering.
+fn helicopter_steer_from(lua: &Lua, step: &LuaTable) -> LuaResult<HelicopterSteer> {
+    Ok(HelicopterSteer {
+        delta_seconds: number(lua, step, "delta_seconds")?,
+        max_turn_rate: number(lua, step, "max_turn_rate")?,
+        elevation: number(lua, step, "elevation")?,
+        cg_to_ground: number(lua, step, "cg_to_ground")?,
+        terrain_follow: step.get("terrain_follow")?,
+        map_min: numbers(lua, step, "map_min")?,
+        map_max: numbers(lua, step, "map_max")?,
+        waypoint_kind: helicopter_waypoint_kind(step.get("hc_waypoint_kind")?)?,
+        task_leader_is_self: step.get("hc_task_leader_is_self")?,
+        guide_radius: optional_number(lua, step, "hc_guide_radius")?,
+        required_heading: optional_number(lua, step, "hc_required_heading")?,
+        leader: step.get::<Option<String>>("hc_leader_host_id")?,
+        targeting_active: step.get("hc_targeting_active")?,
+        weapon_vector: numbers(lua, step, "hc_weapon_vector")?,
+        weapon_to_intercept_vector: numbers(lua, step, "hc_weapon_to_intercept_vector")?,
+        g_max: number(lua, step, "g_max")?,
+        main_rotor_shaft_angle: number(lua, step, "hc_main_rotor_shaft_angle")?,
+        motion_vector: numbers(lua, step, "motion_vector_in")?,
+    })
+}
+
+/// The navigation intent a flight step carries: the flags, the parameters, the task leader's identity (nil when the
+/// aircraft leads its task, or its roster lacks it) and the group's other members in list order, each with its
+/// avoidance radius and its identity (nil when the roster lacks it). Whether an unresolved identity matters is the
+/// host's decision, taken only on a path that reads it.
+fn navigation_from(lua: &Lua, step: &LuaTable) -> LuaResult<FixedWingNavigation> {
+    let mut members = Vec::new();
+    for member in step.get::<LuaTable>("members")?.sequence_values::<LuaTable>() {
+        let member = member?;
+        members.push(NavigationMember {
+            host_id: member.get::<Option<String>>("host_id")?,
+            avoidance_radius: number(lua, &member, "avoidance_radius")?,
+        });
+    }
+    Ok(FixedWingNavigation {
+        group_leader: step.get("group_leader")?,
+        task_leader: step.get("task_leader")?,
+        max_vertical_turn_allowance: number(lua, step, "max_vertical_turn_allowance")?,
+        avoidance_radius: number(lua, step, "avoidance_radius")?,
+        leader: step.get::<Option<String>>("leader_host_id")?,
+        members,
+    })
+}
+
+/// The terrain observation a terrain-following fixed-wing step carries (nil when the guide does not follow terrain):
+/// the campaign's `min_height` and selected guide position, the point it sampled and the elevation its terrain service
+/// answered there, and the formation addends applied after the host shapes the height.
+fn fixed_wing_terrain_from(lua: &Lua, step: &LuaTable) -> LuaResult<Option<FixedWingTerrain>> {
+    let Some(terrain) = step.get::<Option<LuaTable>>("fixed_wing_terrain")? else {
+        return Ok(None);
+    };
+    Ok(Some(FixedWingTerrain {
+        min_height: number(lua, &terrain, "min_height")?,
+        guide_position: numbers(lua, &terrain, "guide_position")?,
+        sample_point: numbers(lua, &terrain, "sample_point")?,
+        sample_elevation: number(lua, &terrain, "sample_elevation")?,
+        site_y: number(lua, &terrain, "site_y")?,
+        cg: number(lua, &terrain, "cg")?,
+    }))
 }
 
 /// The fixed-wing phase a step names. The number must be exactly one of the phases: a fraction or
@@ -365,26 +519,34 @@ fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request
             waypoint: numbers(lua, step, "waypoint")?,
             terrain_follow: step.get("terrain_follow")?,
         }),
-        "fixed_wing_move" => Request::FixedWingMove(FixedWingMove {
-            phase: fixed_wing_phase(number(lua, step, "phase")?)?,
-            delta_seconds: number(lua, step, "delta_seconds")?,
-            frame_delta: number(lua, step, "frame_delta")?,
-            wp_vel: number(lua, step, "desired_velocity")?,
-            cruise_velocity: number(lua, step, "cruise_velocity")?,
-            g_max: number(lua, step, "g_max")?,
-            fuselage_angle: number(lua, step, "fuselage_angle")?,
-            cg_to_ground: number(lua, step, "cg_to_ground")?,
-            max_roll: number(lua, step, "max_roll")?,
-            turn_speed_multi: number(lua, step, "turn_speed_multi")?,
-            waypoint: numbers(lua, step, "waypoint")?,
-            acceleration: numbers(lua, step, "acceleration")?,
-            motion_vector: numbers(lua, step, "motion_vector_in")?,
-            navigating: step.get("navigating")?,
-            elevation: number(lua, step, "elevation")?,
-            tacview_logging: step.get("tacview_logging")?,
-            map_min: numbers(lua, step, "map_min")?,
-            map_max: numbers(lua, step, "map_max")?,
-        }),
+        "fixed_wing_move" => {
+            let phase = fixed_wing_phase(number(lua, step, "phase")?)?;
+            Request::FixedWingMove(FixedWingMove {
+                phase,
+                delta_seconds: number(lua, step, "delta_seconds")?,
+                frame_delta: number(lua, step, "frame_delta")?,
+                wp_vel: number(lua, step, "desired_velocity")?,
+                cruise_velocity: number(lua, step, "cruise_velocity")?,
+                g_max: number(lua, step, "g_max")?,
+                fuselage_angle: number(lua, step, "fuselage_angle")?,
+                cg_to_ground: number(lua, step, "cg_to_ground")?,
+                max_roll: number(lua, step, "max_roll")?,
+                waypoint: numbers(lua, step, "waypoint")?,
+                aiming_cannon: step.get("aiming_cannon")?,
+                elapsed_time: number(lua, step, "elapsed_time")?,
+                navigation: match phase {
+                    FixedWingPhase::Flight | FixedWingPhase::Land => Some(navigation_from(lua, step)?),
+                    _ => None,
+                },
+                terrain: fixed_wing_terrain_from(lua, step)?,
+                motion_vector: numbers(lua, step, "motion_vector_in")?,
+                navigating: step.get("navigating")?,
+                elevation: number(lua, step, "elevation")?,
+                tacview_logging: step.get("tacview_logging")?,
+                map_min: numbers(lua, step, "map_min")?,
+                map_max: numbers(lua, step, "map_max")?,
+            })
+        }
         "helicopter_begin" => Request::HelicopterBegin(HelicopterBegin {
             delta_seconds: number(lua, step, "delta_seconds")?,
             acceleration_x: number(lua, step, "acceleration_x")?,
@@ -405,6 +567,14 @@ fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request
             map_min: numbers(lua, step, "map_min")?,
             map_max: numbers(lua, step, "map_max")?,
         }),
+        "helicopter_plan" => Request::HelicopterPlan(Box::new(helicopter_plan_from(lua, step)?)),
+        "helicopter_guide" => Request::HelicopterGuide(helicopter_guide_from(lua, step)?),
+        "helicopter_guided_begin" => Request::HelicopterGuidedBegin {
+            motion_vector: numbers(lua, step, "motion_vector_in")?,
+        },
+        "helicopter_guided_end" => Request::HelicopterGuidedEnd(helicopter_steer_from(lua, step)?),
+        "helicopter_abandon" => Request::HelicopterAbandon,
+        "fixed_wing_lookahead" => Request::FixedWingLookahead,
         "person_end" => Request::PersonEnd(PersonEnd {
             elevation: number(lua, step, "elevation")?,
         }),
@@ -967,7 +1137,29 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let (host_id, campaign, request) = movement_from(lua, &step)?;
                     movers.borrow_mut().step(&host_id, campaign, request).map_err(LuaError::runtime)?
                 };
+                let answer = movers.borrow_mut().take_answer();
                 let result = lua.create_table()?;
+                match answer {
+                    Some(HelicopterAnswer::Query(query)) => {
+                        let table = lua.create_table()?;
+                        table.set("structure_scan", query.structure_scan)?;
+                        table.set("structure_position", query.structure_position.to_vec())?;
+                        table.set("terrain_sample_count", query.terrain_sample_count)?;
+                        let [[x0, z0], [x1, z1]] = query.terrain_sample;
+                        table.set("terrain_sample", vec![x0, z0, x1, z1])?;
+                        result.set("query", table)?;
+                    }
+                    Some(HelicopterAnswer::Guidance(guidance)) => {
+                        let table = lua.create_table()?;
+                        table.set("lift", guidance.lift)?;
+                        table.set("waypoint", guidance.waypoint.to_vec())?;
+                        table.set("required_height", guidance.required_height)?;
+                        table.set("world_acceleration", guidance.world_acceleration.to_vec())?;
+                        table.set("wp_vec", guidance.wp_vec.to_vec())?;
+                        result.set("guidance", table)?;
+                    }
+                    None => {}
+                }
                 result.set("position", outcome.pose.position.to_vec())?;
                 result.set("velocity", outcome.pose.velocity)?;
                 result.set("attitude", outcome.pose.attitude.to_vec())?;

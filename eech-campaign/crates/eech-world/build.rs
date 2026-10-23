@@ -12,6 +12,8 @@ fn main() {
         "person_step.c",
         "fw_step.c",
         "hc_step.c",
+        "fw_navigator.h",
+        "hc_guidance.h",
         "death_step.c",
         "place_step.c",
         "expire_step.c",

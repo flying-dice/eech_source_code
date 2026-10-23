@@ -1,0 +1,45 @@
+{
+  "checked_at": "2026-10-23T18:28:07.049873+00:00",
+  "scope": "Completed reference processes only. Georgia regression and full pack acceptance remain pending.",
+  "passed": true,
+  "results": [
+    {
+      "run": "run1",
+      "file": "recording.acmi",
+      "bytes": 117690861,
+      "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+      "matches": true
+    },
+    {
+      "run": "run1",
+      "file": "observations.jsonl",
+      "bytes": 85716447,
+      "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+      "matches": true
+    },
+    {
+      "run": "run1",
+      "file": "metrics.json",
+      "matches": true
+    },
+    {
+      "run": "run2",
+      "file": "recording.acmi",
+      "bytes": 117690861,
+      "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+      "matches": true
+    },
+    {
+      "run": "run2",
+      "file": "observations.jsonl",
+      "bytes": 85716447,
+      "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+      "matches": true
+    },
+    {
+      "run": "run2",
+      "file": "metrics.json",
+      "matches": true
+    }
+  ]
+}

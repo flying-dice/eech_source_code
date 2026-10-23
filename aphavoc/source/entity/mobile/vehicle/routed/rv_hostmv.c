@@ -140,7 +140,13 @@ static campaign_movement_result ask_host (const campaign_movement_step *step)
 		!all_finite (result.angles, 3) ||
 		((result.rotated != FALSE) && (result.rotated != TRUE)) ||
 		((result.pending != FALSE) && (result.pending != TRUE)) ||
-		((result.moved != FALSE) && (result.moved != TRUE)))
+		((result.moved != FALSE) && (result.moved != TRUE)) ||
+		!all_finite (result.hc_query.structure_position, 3) || !all_finite (&result.hc_query.terrain_sample[0][0], 4) ||
+		((result.hc_query.structure_scan != FALSE) && (result.hc_query.structure_scan != TRUE)) ||
+		(result.hc_query.terrain_sample_count < 0) || (result.hc_query.terrain_sample_count > CAMPAIGN_HC_TERRAIN_SAMPLES) ||
+		!all_finite (&result.hc_guidance.lift, 1) || !all_finite (result.hc_guidance.waypoint, 3) ||
+		!all_finite (&result.hc_guidance.required_height, 1) || !all_finite (result.hc_guidance.world_acceleration, 3) ||
+		!all_finite (result.hc_guidance.wp_vec, 3))
 	{
 		debug_fatal ("host movement: host move_vehicle returned an invalid result for %s", step->host_id);
 	}
@@ -366,6 +372,18 @@ void campaign_movement_ship_move (entity *vehicle, entity *guide, const vec3d *w
 	campaign_movement_apply_end ();
 }
 
+// a navigation identity the campaign resolved from its own roster: the host resolves the aircraft behind it.  An identity
+// the roster does not have is passed on as unresolved (NULL or empty): the host decides whether the step reads it.  One
+// that is supplied but cannot be carried is a fault here
+
+static void check_navigation_id (const char *host_id, const char *role)
+{
+	if (host_id && (strlen (host_id) > CAMPAIGN_MOVEMENT_HOST_ID_MAX))
+	{
+		debug_fatal ("host movement: the host identity of the %s of a navigating aircraft is too long", role);
+	}
+}
+
 void campaign_movement_fixed_wing_move (entity *aircraft, const campaign_fixed_wing_guidance *guidance)
 {
 	fixed_wing *raw = (fixed_wing *) get_local_entity_data (aircraft);
@@ -385,14 +403,69 @@ void campaign_movement_fixed_wing_move (entity *aircraft, const campaign_fixed_w
 	step.tacview_logging = raw->ac.mob.tacview_logging ? TRUE : FALSE;
 	fill_map_bounds (&step);
 	step.fw_phase = guidance->phase;
-	memcpy (step.fw_acceleration, guidance->acceleration, sizeof (step.fw_acceleration));
 	memcpy (step.fw_motion_vector, guidance->motion_vector, sizeof (step.fw_motion_vector));
 	step.fw_cruise_velocity = guidance->cruise_velocity;
 	step.fw_fuselage_angle = guidance->fuselage_angle;
 	step.fw_cg_to_ground = guidance->cg_to_ground;
 	step.fw_max_roll = guidance->max_roll;
-	step.fw_turn_speed_multi = guidance->turn_speed_multi;
 	step.fw_navigating = guidance->navigating ? TRUE : FALSE;
+
+	if (guidance->terrain.follow)
+	{
+		step.fw_terrain = TRUE;
+		step.fw_terrain_min_height = guidance->terrain.min_height;
+		memcpy (step.fw_terrain_guide_position, guidance->terrain.guide_position, sizeof (step.fw_terrain_guide_position));
+		memcpy (step.fw_terrain_sample_point, guidance->terrain.sample_point, sizeof (step.fw_terrain_sample_point));
+		step.fw_terrain_sample_elevation = guidance->terrain.sample_elevation;
+		step.fw_terrain_site_y = guidance->terrain.site_y;
+		step.fw_terrain_cg = guidance->terrain.cg;
+	}
+
+	if ((guidance->phase == CAMPAIGN_FIXED_WING_FLIGHT) || (guidance->phase == CAMPAIGN_FIXED_WING_LAND))
+	{
+		int member;
+
+		if (guidance->member_count < 0)
+		{
+			debug_fatal ("host movement: a navigating aircraft has %d group members", guidance->member_count);
+		}
+
+		step.fw_aiming_cannon = guidance->aiming_cannon ? TRUE : FALSE;
+		step.fw_elapsed_time = guidance->elapsed_time;
+		step.fw_group_leader = guidance->group_leader ? TRUE : FALSE;
+		step.fw_task_leader = guidance->task_leader ? TRUE : FALSE;
+		step.fw_max_vertical_turn_allowance = guidance->max_vertical_turn_allowance;
+		step.fw_avoidance_radius = guidance->avoidance_radius;
+
+		if (!guidance->task_leader)
+		{
+			check_navigation_id (guidance->leader_host_id, "task leader");
+
+			if (guidance->leader_host_id)
+			{
+				memcpy (step.fw_leader_host_id, guidance->leader_host_id, strlen (guidance->leader_host_id) + 1);
+			}
+		}
+
+		// the group leader never tests for a collision, so it sends no members; the members are checked here, before the
+		// host sees the step, and travel as the caller's own lists, whatever their length
+		if (!guidance->group_leader)
+		{
+			if ((guidance->member_count > 0) && (!guidance->member_host_id || !guidance->member_radius))
+			{
+				debug_fatal ("host movement: a navigating aircraft has %d group members without their lists", guidance->member_count);
+			}
+
+			step.fw_member_count = guidance->member_count;
+			step.fw_member_host_id = guidance->member_host_id;
+			step.fw_member_radius = guidance->member_radius;
+
+			for (member = 0; member < guidance->member_count; member++)
+			{
+				check_navigation_id (guidance->member_host_id [member], "group member");
+			}
+		}
+	}
 
 	result = ask_host (&step);
 
@@ -507,6 +580,248 @@ void campaign_movement_helicopter_end (entity *en, float desired_heading, float 
 	campaign_movement_apply_begin ();
 	set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &raw->ac.mob.position);
 	campaign_movement_apply_end ();
+}
+
+//
+// EEDCS-39 host-planned helicopter control.  The campaign supplies facts and the DLL's lookups; the host owns the guidance
+// and the physical demands.  Each helper builds a zeroed step, so a field a mode does not name is zero.
+//
+
+static void copy_helicopter_motion_vector (campaign_movement_step *step, const helicopter *raw)
+{
+	step->hc_motion_vector[0] = raw->ac.mob.motion_vector.x;
+	step->hc_motion_vector[1] = raw->ac.mob.motion_vector.y;
+	step->hc_motion_vector[2] = raw->ac.mob.motion_vector.z;
+}
+
+// step one: facts and members in, the lookups the DLL must make out.  Nothing is applied and no hold is required of the host
+// beyond what the plan names
+
+void campaign_movement_helicopter_plan (entity *en, const campaign_hc_plan *plan, campaign_hc_query *query)
+{
+	helicopter *raw = (helicopter *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+	int member;
+
+	if (plan->member_count < 0)
+	{
+		debug_fatal ("host movement: a navigating helicopter has %d group members", plan->member_count);
+	}
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_HELICOPTER_PLAN);
+	step.delta_seconds = plan->delta_seconds;
+	step.terrain_follow = plan->terrain_follow ? TRUE : FALSE;
+	step.elevation = plan->terrain_elevation;
+	step.waypoint[0] = plan->waypoint[0];
+	step.waypoint[1] = plan->waypoint[1];
+	step.waypoint[2] = plan->waypoint[2];
+	fill_map_bounds (&step);
+	copy_helicopter_motion_vector (&step, raw);
+	step.hc_power_output = plan->power_output;
+
+	step.hc_group_leader = plan->group_leader ? TRUE : FALSE;
+	step.hc_task_leader = plan->task_leader ? TRUE : FALSE;
+	step.hc_task_leader_is_self = plan->task_leader_is_self ? TRUE : FALSE;
+	step.hc_position_hold = plan->position_hold ? TRUE : FALSE;
+	step.hc_terrain_follow_attack_altitude = plan->terrain_follow_attack_altitude ? TRUE : FALSE;
+	step.hc_waypoint_kind = plan->waypoint_kind;
+	step.hc_guide_radius_valid = plan->guide_radius_valid ? TRUE : FALSE;
+	step.hc_guide_radius = plan->guide_radius;
+	step.hc_guide_altitude_valid = plan->guide_altitude_valid ? TRUE : FALSE;
+	memcpy (step.hc_waypoint_velocity, plan->waypoint_velocity, sizeof (step.hc_waypoint_velocity));
+	step.hc_distance = plan->distance;
+	step.hc_fuel_supply_level = plan->fuel_supply_level;
+	step.hc_cruise_velocity = plan->cruise_velocity;
+	step.hc_cruise_altitude = plan->cruise_altitude;
+	step.hc_attack_altitude = plan->attack_altitude;
+	step.hc_leader_radar_altitude = plan->leader_radar_altitude;
+
+	// the group leader never tests for a collision, so it sends no members; the others travel as the caller's own list,
+	// whatever its length
+	if (!plan->group_leader)
+	{
+		if ((plan->member_count > 0) && !plan->member_host_id)
+		{
+			debug_fatal ("host movement: a navigating helicopter has %d group members without their list", plan->member_count);
+		}
+
+		step.hc_member_count = plan->member_count;
+		step.hc_member_host_id = plan->member_host_id;
+
+		for (member = 0; member < plan->member_count; member++)
+		{
+			check_navigation_id (plan->member_host_id [member], "group member");
+		}
+	}
+
+	result = ask_host (&step);
+
+	*query = result.hc_query;
+}
+
+// step two: the lookups' results in (own-sector structures in sector order; each terrain sample's getter returns in call
+// order), the host's guidance out.  The lists are the caller's own and are read only during the call
+
+void campaign_movement_helicopter_guide (entity *en, int structure_count, const campaign_hc_structure *structures, int terrain_sample_count, const campaign_hc_terrain_sample *terrain_samples, campaign_hc_guidance_answer *guidance)
+{
+	helicopter *raw = (helicopter *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	if ((structure_count < 0) || (terrain_sample_count < 0))
+	{
+		debug_fatal ("host movement: a navigating helicopter has %d structures and %d terrain samples", structure_count, terrain_sample_count);
+	}
+
+	if (((structure_count > 0) && !structures) || ((terrain_sample_count > 0) && !terrain_samples))
+	{
+		debug_fatal ("host movement: a navigating helicopter has %d structures and %d terrain samples without their lists", structure_count, terrain_sample_count);
+	}
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_HELICOPTER_GUIDE);
+	copy_helicopter_motion_vector (&step, raw);
+	step.hc_structure_count = structure_count;
+	step.hc_structures = structures;
+	step.hc_terrain_sample_count = terrain_sample_count;
+	step.hc_terrain_samples = terrain_samples;
+
+	result = ask_host (&step);
+
+	*guidance = result.hc_guidance;
+}
+
+// step three: as the legacy phase one, the motion vector and speed applied at once, but the host's own retained guidance
+// supplies the acceleration.  The position is not touched
+
+void campaign_movement_helicopter_guided_begin (entity *en)
+{
+	helicopter *raw = (helicopter *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_HELICOPTER_GUIDED_BEGIN);
+	step.delta_seconds = get_entity_movement_delta_time ();
+	copy_helicopter_motion_vector (&step, raw);
+
+	result = ask_host (&step);
+
+	if (result.pending != TRUE)
+	{
+		debug_fatal ("host movement: host move_vehicle did not hold the helicopter step of %s for its second phase", step.host_id);
+	}
+
+	raw->ac.mob.motion_vector.x = result.motion_vector[0];
+	raw->ac.mob.motion_vector.y = result.motion_vector[1];
+	raw->ac.mob.motion_vector.z = result.motion_vector[2];
+
+	campaign_movement_apply_begin ();
+	set_local_entity_float_value (en, FLOAT_TYPE_VELOCITY, result.velocity);
+	campaign_movement_apply_end ();
+
+	if (result.moved)
+	{
+		set_local_entity_int_value (en, INT_TYPE_MOVED, TRUE);
+	}
+}
+
+// step four: the steering facts in (the elevation is the altitude follow's cached sample; no terrain is queried here), the
+// host's attitude, rotated flag, motion vector and position applied as the legacy phase two did, its heading, pitch and roll
+// out.  The leader is named by host id, and only when this aircraft is not its own task leader
+
+void campaign_movement_helicopter_guided_end (entity *en, const campaign_hc_steer *steer, float angles[3])
+{
+	helicopter *raw = (helicopter *) get_local_entity_data (en);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_HELICOPTER_GUIDED_END);
+	step.delta_seconds = steer->delta_seconds;
+	step.hc_max_turn_rate = steer->max_turn_rate;
+	step.elevation = steer->elevation;
+	step.hc_cg_to_ground = steer->cg_to_ground;
+	step.g_max = steer->g_max;
+	step.terrain_follow = steer->terrain_follow ? TRUE : FALSE;
+	copy_helicopter_motion_vector (&step, raw);
+	fill_map_bounds (&step);
+
+	step.hc_waypoint_kind = steer->waypoint_kind;
+	step.hc_task_leader_is_self = steer->task_leader_is_self ? TRUE : FALSE;
+	step.hc_guide_radius_valid = steer->guide_radius_valid ? TRUE : FALSE;
+	step.hc_guide_radius = steer->guide_radius;
+	step.hc_required_heading_valid = steer->required_heading_valid ? TRUE : FALSE;
+	step.hc_required_heading = steer->required_heading;
+	step.hc_targeting_active = steer->targeting_active ? TRUE : FALSE;
+	memcpy (step.hc_weapon_vector, steer->weapon_vector, sizeof (step.hc_weapon_vector));
+	memcpy (step.hc_weapon_to_intercept_vector, steer->weapon_to_intercept_vector, sizeof (step.hc_weapon_to_intercept_vector));
+	step.hc_main_rotor_shaft_angle = steer->main_rotor_shaft_angle;
+
+	if (!steer->task_leader_is_self)
+	{
+		check_navigation_id (steer->leader_host_id, "task leader");
+
+		if (steer->leader_host_id)
+		{
+			memcpy (step.hc_leader_host_id, steer->leader_host_id, strlen (steer->leader_host_id) + 1);
+		}
+	}
+
+	result = ask_host (&step);
+
+	if (result.pending)
+	{
+		debug_fatal ("host movement: host move_vehicle left the helicopter step of %s pending after its second phase", step.host_id);
+	}
+
+	memcpy (raw->ac.mob.attitude, result.attitude, sizeof (result.attitude));
+
+	if (result.rotated)
+	{
+		set_local_entity_int_value (en, INT_TYPE_ROTATED, TRUE);
+	}
+
+	raw->ac.mob.motion_vector.x = result.motion_vector[0];
+	raw->ac.mob.motion_vector.y = result.motion_vector[1];
+	raw->ac.mob.motion_vector.z = result.motion_vector[2];
+
+	raw->ac.mob.position.x = result.position[0];
+	raw->ac.mob.position.y = result.position[1];
+	raw->ac.mob.position.z = result.position[2];
+
+	campaign_movement_apply_begin ();
+	set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &raw->ac.mob.position);
+	campaign_movement_apply_end ();
+
+	memcpy (angles, result.angles, sizeof (result.angles));
+}
+
+// drops an open plan host-side; nothing is applied
+
+void campaign_movement_helicopter_abandon (entity *en)
+{
+	campaign_movement_step step;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_HELICOPTER_ABANDON);
+	ask_host (&step);
+}
+
+// the look-ahead point of a terrain-following fixed-wing waypoint: the host's own pose decides it, nothing is applied
+
+void campaign_movement_fixed_wing_lookahead (entity *aircraft, float *point_x, float *point_z)
+{
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, aircraft, CAMPAIGN_MOVEMENT_FIXED_WING_LOOKAHEAD);
+	result = ask_host (&step);
+
+	if (result.hc_query.terrain_sample_count != 1)
+	{
+		debug_fatal ("host movement: the host answered %d look-ahead points for %s", result.hc_query.terrain_sample_count, step.host_id);
+	}
+
+	*point_x = result.hc_query.terrain_sample[0][0];
+	*point_z = result.hc_query.terrain_sample[0][1];
 }
 
 // helicopter rotor and dying/crash physics.  Every mode carries the DLL's copy of the motion vector and the rotor state,

@@ -1,0 +1,63 @@
+{
+  "checked_at": "2026-10-23T18:54:32.904112+00:00",
+  "complete_files": true,
+  "pack_exit": 0,
+  "pack_checks_passed": 40,
+  "native_head": "commit: b721ae5ac8e0a7fa86aa47e79a0ca19884c0710f\ntree: 1b0a2ca99b64656a9ca053c1e4eea6853b2eab59\ndirty build inputs: 0\nimage: sha256:bb10e44a20e9c6304b3a318902bcf0f8ec8175c162862240ce25c34bd7e562be\nstarted: 2026-10-23T15:50:05Z\nfinished: 2026-10-23T15:51:01Z",
+  "passed": true,
+  "note": "Complete Tacview compared with reference/lebanon-3h/recording.zip.acmi; observations with the accepted supply-detail reference/m3-resupply-loop/observations.jsonl.gz. Metrics compared as JSON values; normalized-byte equality is reported separately. No baseline was modified.",
+  "results": [
+    {
+      "run": "run1",
+      "file": "recording.acmi",
+      "bytes": 117690861,
+      "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+      "retained_bytes": 117690861,
+      "retained_sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+      "matches_retained_bytes": true
+    },
+    {
+      "run": "run1",
+      "file": "observations.jsonl",
+      "bytes": 85716447,
+      "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+      "retained_bytes": 85716447,
+      "retained_sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+      "matches_retained_bytes": true
+    },
+    {
+      "run": "run1",
+      "file": "metrics.json",
+      "bytes": 35942,
+      "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587",
+      "matches_retained_json_values": true,
+      "matches_after_crlf_normalization": true
+    },
+    {
+      "run": "run2",
+      "file": "recording.acmi",
+      "bytes": 117690861,
+      "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+      "retained_bytes": 117690861,
+      "retained_sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+      "matches_retained_bytes": true
+    },
+    {
+      "run": "run2",
+      "file": "observations.jsonl",
+      "bytes": 85716447,
+      "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+      "retained_bytes": 85716447,
+      "retained_sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+      "matches_retained_bytes": true
+    },
+    {
+      "run": "run2",
+      "file": "metrics.json",
+      "bytes": 35942,
+      "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587",
+      "matches_retained_json_values": true,
+      "matches_after_crlf_normalization": true
+    }
+  ]
+}

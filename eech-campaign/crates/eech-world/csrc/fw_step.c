@@ -459,3 +459,459 @@ void eech_fw_step(
 	position[2] = new_pos.z;
 	*velocity_io = velocity;
 }
+
+/*
+ * The host's fixed-wing navigator: fw_move.c's fixed_wing_navigator and the
+ * functions it calls (collision avoidance, pursue guide, follow waypoint,
+ * attain waypoint, aim correction, accum), kept expression for expression,
+ * including float/double promotions, vector mutation and evaluation order.
+ * Inputs are the plain values in fw_navigator.h.  Preserved as the engine has
+ * them: the task leader's follow_waypoint overwrites the acceleration collision
+ * avoidance accumulated, and the second accum reuses the acc_req the first accum
+ * normalised.
+ */
+#include "fw_navigator.h"
+
+#define check_zero_3d_vector(VECTOR) (get_3d_vector_magnitude(VECTOR) == 0.0)
+
+static void load_vec3d(vec3d *vector, const float *values)
+{
+	vector->x = values[0];
+	vector->y = values[1];
+	vector->z = values[2];
+}
+
+static void fixed_wing_collision_avoidance(const eech_fw_nav_input *in, vec3d *des_acc)
+{
+	matrix3x3 wp_attitude;
+	vec3d curr_pos, jet_pos, jet_to_jet, nearest_jet_to_jet, local_jet_to_jet, wp_pos, wp_vec, motion_vector, jet_motion_vector;
+	float test_distance, shortest_distance, jet_to_jet_2d_distance, avoid_distance, max_speed, wp_distance;
+	float delta_time = in->delta_time;
+	int nearest = 0;
+	int index;
+
+	/* only read when a nearest jet was found, which needs the non-leader branch below */
+	memset(wp_attitude, 0, sizeof(wp_attitude));
+	nearest_jet_to_jet.x = nearest_jet_to_jet.y = nearest_jet_to_jet.z = 0.0;
+
+	if (!in->group_leader)
+	{
+		load_vec3d(&curr_pos, in->position);
+		load_vec3d(&motion_vector, in->motion_vector);
+
+		shortest_distance = in->velocity;
+
+		load_vec3d(&wp_pos, in->waypoint);
+
+		wp_vec.x = wp_pos.x - curr_pos.x;
+		wp_vec.y = wp_pos.y - curr_pos.y;
+		wp_vec.z = wp_pos.z - curr_pos.z;
+
+		wp_distance = get_3d_vector_magnitude(&wp_vec);
+
+		normalise_any_3d_vector(&wp_vec);
+
+		get_matrix3x3_from_unit_vec3d(wp_attitude, &wp_vec);
+
+		/* find nearest jet to ours that is in the way of our objective */
+		for (index = 0; index < in->other_count; index++)
+		{
+			const eech_fw_nav_other *other = &in->others[index];
+
+			load_vec3d(&jet_pos, other->position);
+			load_vec3d(&jet_motion_vector, other->motion_vector);
+
+			jet_to_jet.x = (jet_pos.x + jet_motion_vector.x * delta_time) - (curr_pos.x + motion_vector.x * delta_time);
+			jet_to_jet.y = (jet_pos.y + jet_motion_vector.y * delta_time) - (curr_pos.y + motion_vector.y * delta_time);
+			jet_to_jet.z = (jet_pos.z + jet_motion_vector.z * delta_time) - (curr_pos.z + motion_vector.z * delta_time);
+
+			multiply_transpose_matrix3x3_vec3d(&local_jet_to_jet, wp_attitude, &jet_to_jet);
+
+			test_distance = get_3d_vector_magnitude(&jet_to_jet);
+
+			/* is the jet between us and our waypoint? */
+			if ((local_jet_to_jet.z > 0.0) && (test_distance < wp_distance))
+			{
+				/* get 2d distance & collision avoidance radius */
+				jet_to_jet_2d_distance = (local_jet_to_jet.x * local_jet_to_jet.x + local_jet_to_jet.y * local_jet_to_jet.y);
+
+				avoid_distance = in->avoidance_radius + other->avoidance_radius;
+
+				/* does the jet get in our way? */
+				if (jet_to_jet_2d_distance < (avoid_distance * avoid_distance))
+				{
+					/* is it the nearest jet in our way? */
+					if (test_distance < shortest_distance)
+					{
+						nearest = 1;
+
+						nearest_jet_to_jet = local_jet_to_jet;
+
+						shortest_distance = test_distance;
+					}
+				}
+			}
+		}
+	}
+
+	/* if a jet is in the way, modify our direction */
+	if (nearest)
+	{
+		max_speed = in->cruise_velocity * 2.0;
+
+		/* get local acc. request */
+		nearest_jet_to_jet.x = -nearest_jet_to_jet.x;
+		nearest_jet_to_jet.y = -nearest_jet_to_jet.y;
+		nearest_jet_to_jet.z = 0.0;
+
+		normalise_any_3d_vector(&nearest_jet_to_jet);
+
+		/* rotate back into world coord sys */
+		multiply_matrix3x3_vec3d(des_acc, wp_attitude, &nearest_jet_to_jet);
+
+		des_acc->x *= max_speed;
+		des_acc->y *= max_speed;
+		des_acc->z *= max_speed;
+	}
+	else
+	{
+		/* set desired acceleration to nothing */
+		des_acc->z = des_acc->y = des_acc->x = 0.0;
+	}
+}
+
+static void fixed_wing_attain_waypoint(const eech_fw_nav_input *in, vec3d *wp_vec, const vec3d *vel)
+{
+	float distance_to_wp, max_turn_radius;
+
+	distance_to_wp = get_3d_vector_magnitude(wp_vec);
+
+	max_turn_radius = (in->velocity * in->velocity) / in->g_max;
+
+	/* test to see if waypoint is attainable */
+	if (distance_to_wp < max_turn_radius)
+	{
+		/* continue along current motion vector until waypoint can be reached */
+		*wp_vec = *vel;
+	}
+}
+
+static void fixed_wing_aim_correction(const eech_fw_nav_input *in, vec3d *wp_vec, const vec3d *vel)
+{
+	matrix3x3 attitude;
+	vec3d dir_vec;
+
+	memcpy(attitude, in->attitude, sizeof(attitude));
+
+	if (!check_zero_3d_vector(vel))
+	{
+		if ((get_3d_vector_dot_product(wp_vec, vel) < 0.0))
+		{
+			multiply_transpose_matrix3x3_vec3d(&dir_vec, attitude, wp_vec);
+
+			if (fabs(dir_vec.y) > fabs(dir_vec.z))
+			{
+				dir_vec.y = fabs(dir_vec.y);
+			}
+			else
+			{
+				dir_vec.y = fabs(dir_vec.z);
+			}
+
+			dir_vec.y *= in->max_vertical_turn_allowance;
+
+			dir_vec.z = 0.0;
+
+			normalise_any_3d_vector(&dir_vec);
+
+			multiply_matrix3x3_vec3d(wp_vec, attitude, &dir_vec);
+		}
+	}
+}
+
+static void fixed_wing_follow_waypoint(const eech_fw_nav_input *in, const vec3d *vel, vec3d *des_acc)
+{
+	vec3d curr_pos, wp_pos, wp_vec;
+	float wp_vel;
+
+	load_vec3d(&wp_pos, in->waypoint);
+
+	load_vec3d(&curr_pos, in->position);
+
+	wp_vel = in->guide_velocity;
+
+	if (wp_vel == 0)
+	{
+		wp_vel = in->cruise_velocity;
+	}
+
+	/* get waypoint vector - no lookahead */
+	wp_vec.x = wp_pos.x - curr_pos.x;
+	wp_vec.y = wp_pos.y - curr_pos.y;
+	wp_vec.z = wp_pos.z - curr_pos.z;
+
+	fixed_wing_attain_waypoint(in, &wp_vec, vel);
+
+	/* scale to correct length - that of waypoint velocity */
+	normalise_any_3d_vector(&wp_vec);
+
+	fixed_wing_aim_correction(in, &wp_vec, vel);
+
+	wp_vec.x *= wp_vel;
+	wp_vec.y *= wp_vel;
+	wp_vec.z *= wp_vel;
+
+	/* calculate desired change in velocity */
+	des_acc->x = wp_vec.x - vel->x;
+	des_acc->y = wp_vec.y - vel->y;
+	des_acc->z = wp_vec.z - vel->z;
+}
+
+static void fixed_wing_pursue_guide(const eech_fw_nav_input *in, const vec3d *vel, vec3d *des_acc)
+{
+	vec3d curr_pos, wp_pos, wp_vec, vel_shift;
+	float slowdown_distance, distance, wp_speed, max_speed, sd_shift, ramped_speed;
+	float delta_time = in->delta_time;
+
+	wp_speed = in->guide_velocity;
+
+	if (wp_speed == 0)
+	{
+		wp_speed = in->cruise_velocity;
+	}
+
+	load_vec3d(&wp_pos, in->waypoint);
+
+	load_vec3d(&curr_pos, in->position);
+
+	max_speed = in->cruise_velocity * 2.0;
+
+	slowdown_distance = max_speed * 1.5;
+
+	/* shift slowdown radius forwards so point of velocity equilibrium is coincident with formation position required */
+	sd_shift = (wp_speed * 1.5);
+
+	load_vec3d(&vel_shift, in->task_leader_motion_vector);
+
+	normalise_any_3d_vector(&vel_shift);
+
+	/* get vector to the offset waypoint */
+	wp_vec.x = (wp_pos.x + vel_shift.x * sd_shift) - (curr_pos.x + vel->x * delta_time);
+	wp_vec.y = (wp_pos.y + vel_shift.y * sd_shift) - (curr_pos.y + vel->y * delta_time);
+	wp_vec.z = (wp_pos.z + vel_shift.z * sd_shift) - (curr_pos.z + vel->z * delta_time);
+
+	distance = get_3d_vector_magnitude(&wp_vec);
+
+	if (distance > 0.0)
+	{
+		/* ramp the speed linearly to zero from slowdown distance to formation point */
+		ramped_speed = max_speed * (distance / slowdown_distance);
+
+		ramped_speed = bound(ramped_speed, -max_speed, max_speed);
+
+		normalise_3d_vector_given_magnitude(&wp_vec, distance);
+
+		fixed_wing_aim_correction(in, &wp_vec, vel);
+
+		wp_vec.x *= ramped_speed;
+		wp_vec.y *= ramped_speed;
+		wp_vec.z *= ramped_speed;
+
+		/* calculate desired change in velocity */
+		des_acc->x = wp_vec.x - vel->x;
+		des_acc->y = wp_vec.y - vel->y;
+		des_acc->z = wp_vec.z - vel->z;
+	}
+	else
+	{
+		des_acc->x = -vel->x;
+		des_acc->y = -vel->y;
+		des_acc->z = -vel->z;
+	}
+}
+
+/* accumulates all acceleration vectors, works on a first come first served basis */
+static float fixed_wing_accum(const eech_fw_nav_input *in, vec3d *accumulator, vec3d *new_acc)
+{
+	float acc_avail, vm, new_mag, max_acc;
+
+	max_acc = in->cruise_velocity * 2.0;
+
+	acc_avail = max_acc - get_3d_vector_magnitude(accumulator);
+
+	vm = get_3d_vector_magnitude(new_acc);
+
+	new_mag = vm < acc_avail ? vm : acc_avail;
+
+	/* scale newacc by new_mag */
+	normalise_any_3d_vector(new_acc);
+
+	accumulator->x += new_acc->x * new_mag;
+	accumulator->y += new_acc->y * new_mag;
+	accumulator->z += new_acc->z * new_mag;
+
+	return new_mag;
+}
+
+void eech_fw_navigate(const eech_fw_nav_input *input, float *acceleration)
+{
+	vec3d acc_req, acc, vel;
+
+	load_vec3d(&vel, input->navigation_velocity);
+
+	acc_req.x = acc_req.y = acc_req.z = 0.0;
+
+	acc.x = acc.y = acc.z = 0.0;
+
+	if (!input->task_leader)
+	{
+		fixed_wing_collision_avoidance(input, &acc_req);
+
+		fixed_wing_accum(input, &acc, &acc_req);
+
+		fixed_wing_pursue_guide(input, &vel, &acc_req);
+
+		fixed_wing_accum(input, &acc, &acc_req);
+	}
+	else
+	{
+		fixed_wing_collision_avoidance(input, &acc_req);
+
+		fixed_wing_accum(input, &acc, &acc_req);
+
+		fixed_wing_follow_waypoint(input, &vel, &acc);
+
+		fixed_wing_accum(input, &acc, &acc_req);
+	}
+
+	acceleration[0] = acc.x;
+	acceleration[1] = acc.y;
+	acceleration[2] = acc.z;
+}
+
+/*
+ * basic_fixed_wing_movement, airborne: the cannon-aim and facing-away decisions
+ * that choose the absolute turn-around flight, in the legacy order and with the
+ * legacy float/double promotions.  The turn multiplier and the hold-until time
+ * are retained by the caller between steps.
+ */
+int eech_fw_facing_away(const float *position, const float *motion_vector, const float *waypoint)
+{
+	vec3d wpvector, mvvector;
+
+	wpvector.x = waypoint[0] - position[0];
+	wpvector.y = waypoint[1] - position[1];
+	wpvector.z = waypoint[2] - position[2];
+
+	load_vec3d(&mvvector, motion_vector);
+
+	return get_3d_vector_dot_product(&wpvector, &mvvector) < 0.0;
+}
+
+int eech_fw_turn(const eech_fw_turn_input *in, float *turn_speed_multi, float *fixed_wing_toggle)
+{
+	if (in->aiming_cannon)
+	{
+		*turn_speed_multi = 1.0;
+		*fixed_wing_toggle = in->elapsed_time + 0.250;
+	}
+
+	if (eech_fw_facing_away(in->position, in->motion_vector, in->waypoint))
+	{
+		if (!in->task_leader)
+		{
+			vec3d leader_dist;
+
+			leader_dist.x = in->leader_position[0] - in->position[0];
+			leader_dist.y = in->leader_position[1] - in->position[1];
+			leader_dist.z = in->leader_position[2] - in->position[2];
+
+			if (fabs(get_3d_vector_magnitude(&leader_dist)) > 1500.0)
+			{
+				*fixed_wing_toggle = in->elapsed_time + 3.0;
+				*turn_speed_multi = 2.0;
+			}
+		}
+		else
+		{
+			*fixed_wing_toggle = in->elapsed_time + 3.0;
+			*turn_speed_multi = 2.0;
+		}
+	}
+
+	return *fixed_wing_toggle > in->elapsed_time;
+}
+
+void eech_fw_lookahead(const float *position, float velocity, const float *attitude, float *point_xz)
+{
+	/* the attitude's third row is the aircraft's zv */
+	point_xz[0] = position[0] + ((velocity * 1.0 + 10.0) * attitude[6]);
+	point_xz[1] = position[2] + ((velocity * 1.0 + 10.0) * attitude[8]);
+}
+
+/*
+ * mobile_terrain_adjust_waypoint_height, after its terrain sample, for an aircraft that is not a helicopter.  The
+ * original wrote into the waypoint it was handed; the height it leaves is returned, and the guide's own is returned
+ * where the original left the waypoint alone.
+ */
+float eech_fw_terrain_height(
+	const float *position,
+	float velocity,
+	const float *attitude,
+	const float *guide_position,
+	float terrain_elevation,
+	float min_height)
+{
+	float range, height, xz[2];
+	vec3d test_point, wp_vec, vector;
+
+	height = guide_position[1];
+
+	eech_fw_lookahead(position, velocity, attitude, xz);
+	test_point.x = xz[0];
+	test_point.z = xz[1];
+
+	/* check waypoint SHOULD be adjusted */
+	if (min_height == -1.0)
+	{
+		return height;
+	}
+
+	wp_vec.x = guide_position[0] - position[0];
+	wp_vec.y = 0.0;
+	wp_vec.z = guide_position[2] - position[2];
+
+	range = sqrt((wp_vec.x * wp_vec.x) + (wp_vec.z * wp_vec.z));
+
+	if (range <= 1.0)
+	{
+		return terrain_elevation + min_height;
+	}
+
+	test_point.y = terrain_elevation + min_height;
+
+	vector.x = test_point.x - position[0];
+	vector.y = test_point.y - position[1];
+	vector.z = test_point.z - position[2];
+
+	if (normalise_any_3d_vector(&vector) != 0.0)
+	{
+		float d, h;
+
+		h = vector.y;
+
+		d = sqrt((vector.x * vector.x) + (vector.z * vector.z));
+
+		/* too little lateral velocity (jets suspended themselves pointing down into the ground) */
+		if (d > fabs(h))
+		{
+			height = position[1] + (range * h / d);
+		}
+		else
+		{
+			height = terrain_elevation + min_height;
+		}
+	}
+
+	return height;
+}

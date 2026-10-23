@@ -1,8 +1,8 @@
 //! The Lua surface of the module.
 
 use eech_engine::{
-    ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship, LossDecision, LossDescriptor, MemberDescriptor, MovementMode, MovementResult, MovementStep,
-    Side, SupplyReachDescriptor, VehiclePose,
+    ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship, HelicopterGuidanceAnswer, HelicopterQuery, LossDecision, LossDescriptor, MemberDescriptor,
+    MovementMode, MovementResult, MovementStep, Side, SupplyReachDescriptor, VehiclePose,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -234,8 +234,22 @@ fn read_move_result(lua: &Lua, mode: MovementMode, table: &LuaTable) -> Result<M
         mode,
         MovementMode::GvFallSettle | MovementMode::FwDeathAttitude | MovementMode::FwCrashVelocity | MovementMode::FwCrashAttitude | MovementMode::Expire
     );
-    let aircraft_step =
-        lifecycle_step || fixed_wing_step || matches!(mode, MovementMode::FixedWingMove | MovementMode::HelicopterBegin | MovementMode::HelicopterEnd);
+    // the hosted helicopter flow: every step answers with the vector the host holds
+    let hosted_helicopter_step = matches!(
+        mode,
+        MovementMode::HelicopterPlan
+            | MovementMode::HelicopterGuide
+            | MovementMode::HelicopterGuidedBegin
+            | MovementMode::HelicopterGuidedEnd
+            | MovementMode::HelicopterAbandon
+    );
+    let aircraft_step = lifecycle_step
+        || fixed_wing_step
+        || hosted_helicopter_step
+        || matches!(
+            mode,
+            MovementMode::FixedWingMove | MovementMode::FixedWingLookahead | MovementMode::HelicopterBegin | MovementMode::HelicopterEnd
+        );
     // the lifecycle modes whose answer decides something in the campaign
     let decides = matches!(
         mode,
@@ -254,7 +268,9 @@ fn read_move_result(lua: &Lua, mode: MovementMode, table: &LuaTable) -> Result<M
     };
     // a helicopter's first phase reports whether it moved; no other step has an answer for it
     let moved = match table.get::<LuaValue>("moved").map_err(|e| e.to_string())? {
-        LuaValue::Nil if mode == MovementMode::HelicopterBegin || decides => return Err("move_vehicle result for this step must carry moved".into()),
+        LuaValue::Nil if matches!(mode, MovementMode::HelicopterBegin | MovementMode::HelicopterGuidedBegin) || decides => {
+            return Err("move_vehicle result for this step must carry moved".into())
+        }
         LuaValue::Nil => false,
         LuaValue::Boolean(moved) => moved,
         other => return Err(format!("move_vehicle result moved must be a boolean, got {}", other.type_name())),
@@ -287,8 +303,61 @@ fn read_move_result(lua: &Lua, mode: MovementMode, table: &LuaTable) -> Result<M
     // a creation placement answers the Euler angles the host placed the member at; no other step has them
     let angles = match table.get::<LuaValue>("angles").map_err(|e| e.to_string())? {
         LuaValue::Nil if mode == MovementMode::CreatePlace => return Err("move_vehicle result for a create_place step must carry its angles".into()),
+        LuaValue::Nil if mode == MovementMode::HelicopterGuidedEnd => {
+            return Err("move_vehicle result for a helicopter_guided_end step must carry its angles".into())
+        }
         LuaValue::Nil => [0.0; 3],
         _ => exact_numbers(lua, table, "angles").map_err(|e| format!("move_vehicle result {e}"))?,
+    };
+    // the hosted helicopter's two answers: the transitional lookup plan after the plan step (and, for a fixed-wing look-ahead,
+    // the one terrain sample the host asks for), the guidance after the guide step. Each is mandatory for its mode and absent
+    // from every other, so a stray table is an error rather than ignored
+    let plans_query = matches!(mode, MovementMode::HelicopterPlan | MovementMode::FixedWingLookahead);
+    let query = match table.get::<LuaValue>("query").map_err(|e| e.to_string())? {
+        LuaValue::Nil if plans_query => return Err(format!("move_vehicle result for a {mode:?} step must carry its query")),
+        LuaValue::Nil => None,
+        LuaValue::Table(_) if !plans_query => return Err("move_vehicle result carries a query for a step that plans none".into()),
+        LuaValue::Table(query) => {
+            let structure_scan = match query.get::<LuaValue>("structure_scan").map_err(|e| e.to_string())? {
+                LuaValue::Boolean(scan) => scan,
+                other => return Err(format!("move_vehicle result query structure_scan must be a boolean, got {}", other.type_name())),
+            };
+            let count = match query.get::<LuaValue>("terrain_sample_count").map_err(|e| e.to_string())? {
+                LuaValue::Integer(count) => usize::try_from(count).ok(),
+                LuaValue::Number(count) if count.fract() == 0.0 && (0.0..=1.0e6).contains(&count) => Some(count as usize),
+                _ => None,
+            }
+            .ok_or("move_vehicle result query terrain_sample_count must be a non-negative integer")?;
+            // the engine refuses a count above the sample capacity; the array always carries every slot's x and z
+            let [x0, z0, x1, z1] = exact_numbers::<4>(lua, &query, "terrain_sample").map_err(|e| format!("move_vehicle result query {e}"))?;
+            Some(HelicopterQuery {
+                structure_scan,
+                structure_position: exact_numbers(lua, &query, "structure_position").map_err(|e| format!("move_vehicle result query {e}"))?,
+                terrain_sample_count: count,
+                terrain_sample: [[x0, z0], [x1, z1]],
+            })
+        }
+        other => return Err(format!("move_vehicle result query must be a table, got {}", other.type_name())),
+    };
+    let guidance = match table.get::<LuaValue>("guidance").map_err(|e| e.to_string())? {
+        LuaValue::Nil if mode == MovementMode::HelicopterGuide => return Err("move_vehicle result for a helicopter_guide step must carry its guidance".into()),
+        LuaValue::Nil => None,
+        LuaValue::Table(_) if mode != MovementMode::HelicopterGuide => return Err("move_vehicle result carries guidance for a step that guides none".into()),
+        LuaValue::Table(guidance) => {
+            let field = |name: &str| {
+                exact_numbers::<1>(lua, &guidance, name)
+                    .map(|[value]| value)
+                    .map_err(|e| format!("move_vehicle result guidance {e}"))
+            };
+            Some(HelicopterGuidanceAnswer {
+                lift: field("lift")?,
+                waypoint: exact_numbers(lua, &guidance, "waypoint").map_err(|e| format!("move_vehicle result guidance {e}"))?,
+                required_height: field("required_height")?,
+                world_acceleration: exact_numbers(lua, &guidance, "world_acceleration").map_err(|e| format!("move_vehicle result guidance {e}"))?,
+                wp_vec: exact_numbers(lua, &guidance, "wp_vec").map_err(|e| format!("move_vehicle result guidance {e}"))?,
+            })
+        }
+        other => return Err(format!("move_vehicle result guidance must be a table, got {}", other.type_name())),
     };
     // an expiry answers the host's timer, which the campaign mirrors; no other step has one
     let death_timer = match table.get::<LuaValue>("death_timer").map_err(|e| e.to_string())? {
@@ -311,6 +380,8 @@ fn read_move_result(lua: &Lua, mode: MovementMode, table: &LuaTable) -> Result<M
         flags,
         angles,
         death_timer,
+        query,
+        guidance,
     })
 }
 

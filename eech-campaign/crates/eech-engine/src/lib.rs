@@ -261,6 +261,19 @@ pub enum MovementMode {
     CreatePlace,
     /// a dead mobile's lifetime: the host accumulates the timer, gates it and decides whether the wreck has expired
     Expire,
+    /// hosted helicopter control, phase one: the campaign's intent and observations; the host answers the lookups it needs
+    HelicopterPlan,
+    /// hosted helicopter control, phase two: the lookup answers; the host answers the guidance (lift, acceleration, climb demand)
+    HelicopterGuide,
+    /// hosted helicopter control, phase three: the host takes the retained guidance's acceleration and climb demand
+    HelicopterGuidedBegin,
+    /// hosted helicopter control, phase four: the host builds the heading, pitch and roll demands and answers the angles
+    HelicopterGuidedEnd,
+    /// an early exit of the hosted helicopter step (rotor or human-wait gate): the host discards the retained guidance
+    HelicopterAbandon,
+    /// the fixed-wing terrain look-ahead (non-mutating): the host answers the one point it will sample terrain at, from its
+    /// own retained pose, speed and attitude
+    FixedWingLookahead,
 }
 
 /// Terrain at the pre-move position, sampled by the campaign.
@@ -269,6 +282,77 @@ pub struct TerrainSample {
     pub elevation: f32,
     pub forest: bool,
     pub face_normal: [f32; 3],
+}
+
+/// A group member as the step table carries it: a table holding its host id when the roster has one. A bare `None` in a
+/// Lua array would leave a hole and end the sequence, so each member is a table (as the fixed-wing members are).
+#[derive(Serialize)]
+struct MemberId<'a> {
+    host_id: Option<&'a str>,
+}
+
+fn serialize_members<S: serde::Serializer>(members: &[Option<String>], serializer: S) -> Result<S::Ok, S::Error> {
+    serializer.collect_seq(members.iter().map(|member| MemberId { host_id: member.as_deref() }))
+}
+
+/// One structure of the aircraft's own sector, as the DLL's structure scan saw it (sector list order).
+#[derive(Clone, Copy, Debug, Serialize)]
+pub struct HelicopterStructure {
+    pub position: [f32; 3],
+    pub avoidance_radius: f32,
+    pub height: f32,
+}
+
+/// One terrain sample of the original `max (terrain_elevation, get_3d_terrain_point_data (...))`, as the getter returned
+/// it: `second` is present only when the macro called the getter again, and the host folds the records.
+#[derive(Clone, Copy, Debug, Serialize)]
+pub struct HelicopterTerrainSample {
+    pub first: f32,
+    pub second: Option<f32>,
+}
+
+/// What the host's plan asks the DLL to look up before the guidance (the fixed-wing look-ahead asks for one terrain sample).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct HelicopterQuery {
+    /// the structures of the aircraft's OWN sector are to be listed
+    pub structure_scan: bool,
+    /// the look-ahead point those structures are obstacle-tested against (not the sector to enumerate)
+    pub structure_position: [f32; 3],
+    /// the terrain samples, far to near
+    pub terrain_sample_count: usize,
+    pub terrain_sample: [[f32; 2]; sys::EECH_HC_TERRAIN_SAMPLES],
+}
+
+/// The host's guidance for the pre-begin physical state.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct HelicopterGuidanceAnswer {
+    pub lift: f32,
+    pub waypoint: [f32; 3],
+    pub required_height: f32,
+    pub world_acceleration: [f32; 3],
+    pub wp_vec: [f32; 3],
+}
+
+/// The campaign's part of a terrain-following fixed-wing waypoint.  The host performs the climb arithmetic from it: the
+/// look-ahead point is the host's own (`sample_point` is checked against it), the elevation is the terrain service's answer
+/// there (transitional), `min_height` and `guide_position` are the campaign's intent, and `site_y` and `cg` are the
+/// formation and centre-of-gravity heights added after the adjustment.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize)]
+pub struct FixedWingTerrain {
+    pub min_height: f32,
+    pub guide_position: [f32; 3],
+    pub sample_point: [f32; 2],
+    pub sample_elevation: f32,
+    pub site_y: f32,
+    pub cg: f32,
+}
+
+/// A group member a fixed-wing navigator avoids: the identity and the avoidance radius of its aircraft type.
+#[derive(Clone, Debug, Serialize)]
+pub struct NavigationMember {
+    /// `None`: the campaign's roster has no identity for this member. The host refuses the step only if it reads it
+    pub host_id: Option<String>,
+    pub avoidance_radius: f32,
 }
 
 /// One movement request for the vehicle whose host identity is `host_id`.
@@ -302,8 +386,20 @@ pub struct MovementStep {
     pub elevation: f32,
     /// `FixedWingMove`: 0 taxi, 1 flight, 2 landing, 3 absolute
     pub phase: i32,
-    /// `FixedWingMove`: the navigator's acceleration advisory
-    pub acceleration: [f32; 3],
+    /// `FixedWingMove` flight: the aircraft leads its group (its navigator makes no collision test)
+    pub group_leader: bool,
+    /// `FixedWingMove` flight: the aircraft leads its task and follows its waypoint, not the leader
+    pub task_leader: bool,
+    pub max_vertical_turn_allowance: f32,
+    /// `FixedWingMove` flight: this aircraft's avoidance radius
+    pub avoidance_radius: f32,
+    /// `FixedWingMove` flight and landing: the task leader the aircraft pursues, when the campaign's roster has it. `None`
+    /// is an unresolved observation (or an aircraft that is its own task leader); the host refuses the step only on a
+    /// path that reads the leader
+    pub leader_host_id: Option<String>,
+    /// `FixedWingMove` flight: the group's other members in list order; empty when the aircraft leads its group.
+    /// The host resolves each one's pose and motion from its own records
+    pub members: Vec<NavigationMember>,
     /// `FixedWingMove`: the motion vector the previous step left (the old direction of travel); `Place`: the one
     /// aircraft placement vector (`fw_motion_vector`, fixed-wing and helicopter alike);
     /// `HelicopterBegin` and `HelicopterEnd`: the campaign's mirror of the vector the host retains
@@ -312,9 +408,16 @@ pub struct MovementStep {
     pub fuselage_angle: f32,
     pub cg_to_ground: f32,
     pub max_roll: f32,
-    pub turn_speed_multi: f32,
+    /// `FixedWingMove` flight and landing: the DLL's cannon-aim policy found a target in range to engage (an intent fact;
+    /// the host decides the turn it causes)
+    pub aiming_cannon: bool,
+    /// `FixedWingMove` flight and landing: the session's elapsed time, against which the host holds its turn state
+    pub elapsed_time: f32,
     /// `FixedWingMove`: the operational state is navigating
     pub navigating: bool,
+    /// `FixedWingMove`: the terrain observation of a terrain-following task leader's waypoint (the Lua key is
+    /// `fixed_wing_terrain`; `terrain` is the routed sample); absent otherwise
+    pub fixed_wing_terrain: Option<FixedWingTerrain>,
     /// `HelicopterBegin`: the campaign's acceleration decision along x and z, and the climb demand
     pub acceleration_x: f32,
     pub acceleration_z: f32,
@@ -364,6 +467,43 @@ pub struct MovementStep {
     pub death_range: f32,
     /// `Expire`: the campaign's decision bits (1 never expires, 2 occupied by a player, 4 `death_range` is supplied)
     pub death_policy: i32,
+    /// `HelicopterPlan`: the campaign's task and waypoint facts (the plan also uses `delta_seconds`, `terrain_follow`,
+    /// `elevation` as the cached terrain elevation, `waypoint`, `map_min`, `map_max`, `motion_vector_in`, `power_output`);
+    /// `HelicopterGuidedEnd` shares `hc_waypoint_kind`, `hc_task_leader_is_self`, `hc_guide_radius`, `hc_distance` and
+    /// `hc_cruise_velocity`
+    pub hc_group_leader: bool,
+    pub hc_task_leader: bool,
+    pub hc_task_leader_is_self: bool,
+    pub hc_position_hold: bool,
+    pub hc_terrain_follow_attack_altitude: bool,
+    /// one of the `EECH_HC_WP_*` groups
+    pub hc_waypoint_kind: i32,
+    /// the guide's radius criterion; `None` when it has none
+    pub hc_guide_radius: Option<f32>,
+    pub hc_guide_altitude_valid: bool,
+    pub hc_waypoint_velocity: [f32; 3],
+    pub hc_distance: f32,
+    pub hc_fuel_supply_level: f32,
+    pub hc_cruise_velocity: f32,
+    pub hc_cruise_altitude: f32,
+    pub hc_attack_altitude: f32,
+    /// the task leader's radar altitude: transitional terrain data, not host-owned
+    pub hc_leader_radar_altitude: f32,
+    /// `HelicopterPlan`: the group's other members' host ids in list order; empty when the aircraft leads its group.
+    /// `None`: the campaign's roster has no identity for that member (the host refuses the step only if it reads it)
+    #[serde(serialize_with = "serialize_members")]
+    pub hc_plan_members: Vec<Option<String>>,
+    /// `HelicopterGuide`: the structures of the aircraft's own sector (uncapped) and the terrain samples in call order
+    pub hc_structures: Vec<HelicopterStructure>,
+    pub hc_terrain_samples: Vec<HelicopterTerrainSample>,
+    /// `HelicopterGuidedEnd`: the guide's required heading (campaign intent), when it has one
+    pub hc_required_heading: Option<f32>,
+    /// `HelicopterGuidedEnd`: the task leader's host id; the host reads its attitude only where the heading follows it
+    pub hc_leader_host_id: Option<String>,
+    pub hc_targeting_active: bool,
+    pub hc_weapon_vector: [f32; 3],
+    pub hc_weapon_to_intercept_vector: [f32; 3],
+    pub hc_main_rotor_shaft_angle: f32,
 }
 
 /// The host's record of the vehicle after the step; the campaign applies it.
@@ -394,6 +534,11 @@ pub struct MovementResult {
     pub angles: [f32; 3],
     /// `Expire` only: the host's timer after the step, which the campaign mirrors (zero for every other mode)
     pub death_timer: f32,
+    /// `HelicopterPlan` (the lookups) and `FixedWingLookahead` (one terrain sample) only: what the DLL must look up (`None`
+    /// in every other mode)
+    pub query: Option<HelicopterQuery>,
+    /// `HelicopterGuide` only: the host's guidance (`None` in every other mode)
+    pub guidance: Option<HelicopterGuidanceAnswer>,
 }
 
 /// Whether `flags` is a value `mode` can answer.  The bits are not generic truthiness: each mode defines its own.
@@ -962,6 +1107,178 @@ fn checked_bool(name: &str, value: c_int) -> Result<bool, String> {
     }
 }
 
+/// `fw_phase` of normal flight
+const FIXED_WING_FLIGHT_PHASE: i32 = 1;
+/// `fw_phase` of a landing approach; with flight, the phases whose navigation and turn intent the campaign sends
+const FIXED_WING_LAND_PHASE: i32 = 2;
+
+/// Reads one NUL-terminated host identity through a pointer the caller supplied, never past the longest legal identity.
+/// A null pointer or an empty string is an identity the campaign does not have: `None`, not an error. One that is
+/// supplied but too long or not UTF-8 is refused.
+///
+/// # Safety
+/// `id` is null or points to at least `EECH_MOVEMENT_HOST_ID_MAX + 1` readable bytes, or to a NUL-terminated string
+/// shorter than that.
+unsafe fn navigation_pointer_id(id: *const c_char, role: &str) -> Result<Option<String>, String> {
+    if id.is_null() {
+        return Ok(None);
+    }
+    let mut bytes = Vec::new();
+    for index in 0..=sys::EECH_MOVEMENT_HOST_ID_MAX {
+        // SAFETY: the caller guarantees the bytes up to the terminator, or `EECH_MOVEMENT_HOST_ID_MAX + 1` of them
+        let byte = unsafe { *id.add(index) } as u8;
+        if byte == 0 {
+            break;
+        }
+        bytes.push(byte);
+    }
+    checked_navigation_id(bytes, role)
+}
+
+fn navigation_id(bytes: &[c_char], role: &str) -> Result<Option<String>, String> {
+    let bytes = bytes.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect::<Vec<_>>();
+    checked_navigation_id(bytes, role)
+}
+
+fn checked_navigation_id(bytes: Vec<u8>, role: &str) -> Result<Option<String>, String> {
+    if bytes.is_empty() {
+        return Ok(None);
+    }
+    if bytes.len() > sys::EECH_MOVEMENT_HOST_ID_MAX {
+        return Err(format!("move_vehicle received an invalid {role} host identity length"));
+    }
+    String::from_utf8(bytes)
+        .map(Some)
+        .map_err(|_| format!("move_vehicle received a non-UTF-8 {role} host identity"))
+}
+
+type Navigation = (bool, bool, Option<String>, Vec<NavigationMember>);
+
+/// The variable-length inputs of a hosted helicopter step, converted for the mode that carries them.
+#[derive(Default)]
+struct HelicopterLists {
+    members: Vec<Option<String>>,
+    structures: Vec<HelicopterStructure>,
+    terrain_samples: Vec<HelicopterTerrainSample>,
+    leader_host_id: Option<String>,
+}
+
+/// The lists a hosted helicopter mode carries: `HelicopterPlan` the group's other members (read only when the aircraft
+/// does not lead its group), `HelicopterGuide` the own-sector structures and the terrain getter returns,
+/// `HelicopterGuidedEnd` the task leader's host id. No count is refused but a negative one, and a null list for a
+/// positive one; every number must be finite.
+///
+/// # Safety
+/// `hc_member_host_id` points to `hc_member_count` NUL-terminated ids, `hc_structures` to `hc_structure_count` entries
+/// and `hc_terrain_samples` to `hc_terrain_sample_count` entries, each readable and only for the mode that uses it,
+/// whenever the count is positive.
+unsafe fn helicopter_lists(mode: MovementMode, source: &sys::eech_movement_step) -> Result<HelicopterLists, String> {
+    let mut lists = HelicopterLists::default();
+    match mode {
+        MovementMode::HelicopterPlan => {
+            if !checked_bool("hc_group_leader", source.hc_group_leader)? {
+                let count = usize::try_from(source.hc_member_count)
+                    .map_err(|_| format!("move_vehicle received an invalid group member count {}", source.hc_member_count))?;
+                if count > 0 && source.hc_member_host_id.is_null() {
+                    return Err(format!("move_vehicle received {count} group members without their identity list"));
+                }
+                for index in 0..count {
+                    // SAFETY: the list holds `count` entries, per this function's contract
+                    let id = unsafe { *source.hc_member_host_id.add(index) };
+                    // SAFETY: each listed id is a NUL-terminated string, per this function's contract
+                    lists.members.push(unsafe { navigation_pointer_id(id, "group member") }?);
+                }
+            }
+        }
+        MovementMode::HelicopterGuide => {
+            let structures = usize::try_from(source.hc_structure_count)
+                .map_err(|_| format!("move_vehicle received an invalid structure count {}", source.hc_structure_count))?;
+            if structures > 0 && source.hc_structures.is_null() {
+                return Err(format!("move_vehicle received {structures} structures without their list"));
+            }
+            for index in 0..structures {
+                // SAFETY: the list holds `structures` entries, per this function's contract
+                let entry = unsafe { *source.hc_structures.add(index) };
+                if entry
+                    .position
+                    .iter()
+                    .chain([&entry.avoidance_radius, &entry.height])
+                    .any(|value| !value.is_finite())
+                {
+                    return Err("non-finite movement hc_structures".into());
+                }
+                lists.structures.push(HelicopterStructure {
+                    position: entry.position,
+                    avoidance_radius: entry.avoidance_radius,
+                    height: entry.height,
+                });
+            }
+            let samples = usize::try_from(source.hc_terrain_sample_count)
+                .map_err(|_| format!("move_vehicle received an invalid terrain sample count {}", source.hc_terrain_sample_count))?;
+            if samples > 0 && source.hc_terrain_samples.is_null() {
+                return Err(format!("move_vehicle received {samples} terrain samples without their list"));
+            }
+            for index in 0..samples {
+                // SAFETY: the list holds `samples` entries, per this function's contract
+                let entry = unsafe { *source.hc_terrain_samples.add(index) };
+                let second = checked_bool("hc_terrain_sample second_present", entry.second_present)?;
+                if !entry.first.is_finite() || (second && !entry.second.is_finite()) {
+                    return Err("non-finite movement hc_terrain_samples".into());
+                }
+                lists.terrain_samples.push(HelicopterTerrainSample {
+                    first: entry.first,
+                    second: second.then_some(entry.second),
+                });
+            }
+        }
+        MovementMode::HelicopterGuidedEnd => {
+            lists.leader_host_id = navigation_id(&source.hc_leader_host_id, "task leader")?;
+        }
+        _ => {}
+    }
+    Ok(lists)
+}
+
+/// The flight navigation intent: the leader flags, the task leader's identity (carried only when the aircraft does not
+/// lead its task) and the group's other members in order (carried only when it does not lead its group). An identity
+/// the campaign's roster lacks arrives as `None`: whether the host reads it depends on what it finds, so only the host
+/// refuses it. The group is as large as the campaign listed: no count is refused but a negative one, and a null list
+/// for a positive one.
+///
+/// # Safety
+/// `fw_member_host_id` and `fw_member_radius` each point to `fw_member_count` readable entries (each id a
+/// NUL-terminated string) whenever the aircraft does not lead its group and the count is positive.
+unsafe fn navigation_from(source: &sys::eech_movement_step) -> Result<Navigation, String> {
+    let group_leader = checked_bool("fw_group_leader", source.fw_group_leader)?;
+    let task_leader = checked_bool("fw_task_leader", source.fw_task_leader)?;
+    let leader_host_id = if task_leader {
+        None
+    } else {
+        navigation_id(&source.fw_leader_host_id, "task leader")?
+    };
+    let mut members = Vec::new();
+    if !group_leader {
+        let count =
+            usize::try_from(source.fw_member_count).map_err(|_| format!("move_vehicle received an invalid group member count {}", source.fw_member_count))?;
+        if count > 0 && (source.fw_member_host_id.is_null() || source.fw_member_radius.is_null()) {
+            return Err(format!("move_vehicle received {count} group members without their identity or radius list"));
+        }
+        for index in 0..count {
+            // SAFETY: both lists hold `count` entries, per this function's contract
+            let (id, avoidance_radius) = unsafe { (*source.fw_member_host_id.add(index), *source.fw_member_radius.add(index)) };
+            if !avoidance_radius.is_finite() {
+                return Err("non-finite movement fw_member_radius".into());
+            }
+            members.push(NavigationMember {
+                // SAFETY: each listed id is a NUL-terminated string, per this function's contract
+                host_id: unsafe { navigation_pointer_id(id, "group member") }?,
+                avoidance_radius,
+            });
+        }
+    }
+    Ok((group_leader, task_leader, leader_host_id, members))
+}
+
 fn checked_floats(values: &[(&str, f32)]) -> Result<(), String> {
     for (name, value) in values {
         if !value.is_finite() {
@@ -1195,13 +1512,22 @@ where
             sys::EECH_MOVEMENT_RETIRE => MovementMode::Retire,
             sys::EECH_MOVEMENT_CREATE_PLACE => MovementMode::CreatePlace,
             sys::EECH_MOVEMENT_EXPIRE => MovementMode::Expire,
+            sys::EECH_MOVEMENT_HELICOPTER_PLAN => MovementMode::HelicopterPlan,
+            sys::EECH_MOVEMENT_HELICOPTER_GUIDE => MovementMode::HelicopterGuide,
+            sys::EECH_MOVEMENT_HELICOPTER_GUIDED_BEGIN => MovementMode::HelicopterGuidedBegin,
+            sys::EECH_MOVEMENT_HELICOPTER_GUIDED_END => MovementMode::HelicopterGuidedEnd,
+            sys::EECH_MOVEMENT_HELICOPTER_ABANDON => MovementMode::HelicopterAbandon,
+            sys::EECH_MOVEMENT_FIXED_WING_LOOKAHEAD => MovementMode::FixedWingLookahead,
             other => return Err(format!("move_vehicle received unknown mode {other}")),
         };
         let terrain_follow = checked_bool("terrain_follow", source.terrain_follow)?;
         let terrain_present = checked_bool("terrain_present", source.terrain_present)?;
         // a routed step follows terrain exactly when it carries a sample; an infantry begin announces a sample to come
         // an infantry begin and a helicopter end announce their terrain sample (the elevation) separately
-        let announces_terrain = matches!(mode, MovementMode::PersonBegin | MovementMode::HelicopterEnd);
+        let announces_terrain = matches!(
+            mode,
+            MovementMode::PersonBegin | MovementMode::HelicopterEnd | MovementMode::HelicopterPlan | MovementMode::HelicopterGuidedEnd
+        );
         if !announces_terrain && terrain_follow != terrain_present {
             return Err("move_vehicle received terrain-follow without a terrain sample".into());
         }
@@ -1218,7 +1544,9 @@ where
             ("fw_fuselage_angle", source.fw_fuselage_angle),
             ("fw_cg_to_ground", source.fw_cg_to_ground),
             ("fw_max_roll", source.fw_max_roll),
-            ("fw_turn_speed_multi", source.fw_turn_speed_multi),
+            ("fw_elapsed_time", source.fw_elapsed_time),
+            ("fw_max_vertical_turn_allowance", source.fw_max_vertical_turn_allowance),
+            ("fw_avoidance_radius", source.fw_avoidance_radius),
             ("hc_acceleration_x", source.hc_acceleration_x),
             ("hc_acceleration_z", source.hc_acceleration_z),
             ("hc_wp_vec_y", source.hc_wp_vec_y),
@@ -1238,6 +1566,15 @@ where
             ("gv_bbox_diagonal", source.gv_bbox_diagonal),
             ("death_timer", source.death_timer),
             ("death_range", source.death_range),
+            ("hc_guide_radius", source.hc_guide_radius),
+            ("hc_distance", source.hc_distance),
+            ("hc_fuel_supply_level", source.hc_fuel_supply_level),
+            ("hc_cruise_velocity", source.hc_cruise_velocity),
+            ("hc_cruise_altitude", source.hc_cruise_altitude),
+            ("hc_attack_altitude", source.hc_attack_altitude),
+            ("hc_leader_radar_altitude", source.hc_leader_radar_altitude),
+            ("hc_required_heading", source.hc_required_heading),
+            ("hc_main_rotor_shaft_angle", source.hc_main_rotor_shaft_angle),
         ])?;
         for (name, values) in [
             ("position", &source.position[..]),
@@ -1246,10 +1583,12 @@ where
             ("face_normal", &source.face_normal[..]),
             ("map_min", &source.map_min[..]),
             ("map_max", &source.map_max[..]),
-            ("fw_acceleration", &source.fw_acceleration[..]),
             ("fw_motion_vector", &source.fw_motion_vector[..]),
             ("hc_motion_vector", &source.hc_motion_vector[..]),
             ("hc_rotor", &source.hc_rotor[..]),
+            ("hc_waypoint_velocity", &source.hc_waypoint_velocity[..]),
+            ("hc_weapon_vector", &source.hc_weapon_vector[..]),
+            ("hc_weapon_to_intercept_vector", &source.hc_weapon_to_intercept_vector[..]),
         ] {
             if values.iter().any(|value| !value.is_finite()) {
                 return Err(format!("non-finite movement {name}"));
@@ -1280,10 +1619,50 @@ where
                 | MovementMode::PersonBegin
                 | MovementMode::PersonEnd
                 | MovementMode::FixedWingMove
+                | MovementMode::FixedWingLookahead
                 | MovementMode::Retire
                 | MovementMode::CreatePlace
                 | MovementMode::Expire
         );
+        // the terrain observation belongs to a fixed-wing move; its floats are read only when it is present
+        let fixed_wing_terrain = if checked_bool("fw_terrain", source.fw_terrain)? {
+            if mode != MovementMode::FixedWingMove {
+                return Err(format!("move_vehicle received a fixed-wing terrain observation for {mode:?}"));
+            }
+            checked_floats(&[
+                ("fw_terrain_min_height", source.fw_terrain_min_height),
+                ("fw_terrain_sample_elevation", source.fw_terrain_sample_elevation),
+                ("fw_terrain_site_y", source.fw_terrain_site_y),
+                ("fw_terrain_cg", source.fw_terrain_cg),
+            ])?;
+            for (name, values) in [
+                ("fw_terrain_guide_position", &source.fw_terrain_guide_position[..]),
+                ("fw_terrain_sample_point", &source.fw_terrain_sample_point[..]),
+            ] {
+                if values.iter().any(|value| !value.is_finite()) {
+                    return Err(format!("non-finite movement {name}"));
+                }
+            }
+            Some(FixedWingTerrain {
+                min_height: source.fw_terrain_min_height,
+                guide_position: source.fw_terrain_guide_position,
+                sample_point: source.fw_terrain_sample_point,
+                sample_elevation: source.fw_terrain_sample_elevation,
+                site_y: source.fw_terrain_site_y,
+                cg: source.fw_terrain_cg,
+            })
+        } else {
+            None
+        };
+        let navigation = if mode == MovementMode::FixedWingMove && matches!(source.fw_phase, FIXED_WING_FLIGHT_PHASE | FIXED_WING_LAND_PHASE) {
+            // SAFETY: the C side supplies the member lists for the duration of this callback
+            Some(unsafe { navigation_from(source) }?)
+        } else {
+            None
+        };
+        let (group_leader, task_leader, leader_host_id, members) = navigation.unwrap_or_default();
+        // SAFETY: the C side supplies the hosted helicopter lists for the duration of this callback
+        let lists = unsafe { helicopter_lists(mode, source) }?;
         let request = MovementStep {
             host_id,
             mode,
@@ -1306,14 +1685,21 @@ where
             terrain_follow,
             elevation: source.elevation,
             phase: source.fw_phase,
-            acceleration: source.fw_acceleration,
+            group_leader,
+            task_leader,
+            max_vertical_turn_allowance: source.fw_max_vertical_turn_allowance,
+            avoidance_radius: source.fw_avoidance_radius,
+            leader_host_id,
+            members,
             motion_vector_in: if helicopter_step { source.hc_motion_vector } else { source.fw_motion_vector },
             cruise_velocity: source.fw_cruise_velocity,
             fuselage_angle: source.fw_fuselage_angle,
             cg_to_ground: if helicopter_step { source.hc_cg_to_ground } else { source.fw_cg_to_ground },
             max_roll: source.fw_max_roll,
-            turn_speed_multi: source.fw_turn_speed_multi,
+            aiming_cannon: checked_bool("fw_aiming_cannon", source.fw_aiming_cannon)?,
+            elapsed_time: source.fw_elapsed_time,
             navigating: checked_bool("fw_navigating", source.fw_navigating)?,
+            fixed_wing_terrain,
             acceleration_x: source.hc_acceleration_x,
             acceleration_z: source.hc_acceleration_z,
             wp_vec_y: source.hc_wp_vec_y,
@@ -1341,11 +1727,70 @@ where
             death_timer: source.death_timer,
             death_range: source.death_range,
             death_policy: source.death_policy,
+            hc_group_leader: checked_bool("hc_group_leader", source.hc_group_leader)?,
+            hc_task_leader: checked_bool("hc_task_leader", source.hc_task_leader)?,
+            hc_task_leader_is_self: checked_bool("hc_task_leader_is_self", source.hc_task_leader_is_self)?,
+            hc_position_hold: checked_bool("hc_position_hold", source.hc_position_hold)?,
+            hc_terrain_follow_attack_altitude: checked_bool("hc_terrain_follow_attack_altitude", source.hc_terrain_follow_attack_altitude)?,
+            hc_waypoint_kind: source.hc_waypoint_kind,
+            hc_guide_radius: checked_bool("hc_guide_radius_valid", source.hc_guide_radius_valid)?.then_some(source.hc_guide_radius),
+            hc_guide_altitude_valid: checked_bool("hc_guide_altitude_valid", source.hc_guide_altitude_valid)?,
+            hc_waypoint_velocity: source.hc_waypoint_velocity,
+            hc_distance: source.hc_distance,
+            hc_fuel_supply_level: source.hc_fuel_supply_level,
+            hc_cruise_velocity: source.hc_cruise_velocity,
+            hc_cruise_altitude: source.hc_cruise_altitude,
+            hc_attack_altitude: source.hc_attack_altitude,
+            hc_leader_radar_altitude: source.hc_leader_radar_altitude,
+            hc_plan_members: lists.members,
+            hc_structures: lists.structures,
+            hc_terrain_samples: lists.terrain_samples,
+            hc_required_heading: checked_bool("hc_required_heading_valid", source.hc_required_heading_valid)?.then_some(source.hc_required_heading),
+            hc_leader_host_id: lists.leader_host_id,
+            hc_targeting_active: checked_bool("hc_targeting_active", source.hc_targeting_active)?,
+            hc_weapon_vector: source.hc_weapon_vector,
+            hc_weapon_to_intercept_vector: source.hc_weapon_to_intercept_vector,
+            hc_main_rotor_shaft_angle: source.hc_main_rotor_shaft_angle,
         };
         let answer = (context.move_vehicle)(request)?;
         if !result_flags_are_valid(mode, answer.flags) {
             return Err(format!("move_vehicle host returned flags {} that {mode:?} cannot answer", answer.flags));
         }
+        // the lookup plan and the guidance each belong to their mode: a missing one would reach C as zeros
+        if answer.query.is_some() != matches!(mode, MovementMode::HelicopterPlan | MovementMode::FixedWingLookahead) {
+            return Err(format!(
+                "move_vehicle host {} a lookup plan for {mode:?}",
+                if answer.query.is_some() { "returned" } else { "did not return" }
+            ));
+        }
+        if answer.guidance.is_some() != (mode == MovementMode::HelicopterGuide) {
+            return Err(format!(
+                "move_vehicle host {} guidance for {mode:?}",
+                if answer.guidance.is_some() { "returned" } else { "did not return" }
+            ));
+        }
+        let query = answer.query.unwrap_or(HelicopterQuery {
+            structure_scan: false,
+            structure_position: [0.0; 3],
+            terrain_sample_count: 0,
+            terrain_sample: [[0.0; 2]; sys::EECH_HC_TERRAIN_SAMPLES],
+        });
+        if query.terrain_sample_count > sys::EECH_HC_TERRAIN_SAMPLES {
+            return Err(format!("move_vehicle host asked for {} terrain samples", query.terrain_sample_count));
+        }
+        if mode == MovementMode::FixedWingLookahead && query.terrain_sample_count != 1 {
+            return Err(format!(
+                "move_vehicle host answered the fixed-wing look-ahead with {} terrain samples",
+                query.terrain_sample_count
+            ));
+        }
+        let guidance = answer.guidance.unwrap_or(HelicopterGuidanceAnswer {
+            lift: 0.0,
+            waypoint: [0.0; 3],
+            required_height: 0.0,
+            world_acceleration: [0.0; 3],
+            wp_vec: [0.0; 3],
+        });
         let pose = answer.pose;
         if !pose.velocity.is_finite()
             || pose
@@ -1357,6 +1802,12 @@ where
                 .chain(answer.angles.iter())
                 .chain(std::iter::once(&answer.altitude))
                 .chain(std::iter::once(&answer.death_timer))
+                .chain(query.structure_position.iter())
+                .chain(query.terrain_sample.iter().flatten())
+                .chain(guidance.waypoint.iter())
+                .chain(guidance.world_acceleration.iter())
+                .chain(guidance.wp_vec.iter())
+                .chain([&guidance.lift, &guidance.required_height])
                 .any(|value| !value.is_finite())
         {
             return Err("move_vehicle host returned a non-finite pose".into());
@@ -1376,6 +1827,20 @@ where
                 flags: answer.flags,
                 angles: answer.angles,
                 death_timer: answer.death_timer,
+                hc_query: sys::eech_hc_query {
+                    structure_scan: c_int::from(query.structure_scan),
+                    structure_position: query.structure_position,
+                    // bounded by `EECH_HC_TERRAIN_SAMPLES` above
+                    terrain_sample_count: query.terrain_sample_count as c_int,
+                    terrain_sample: query.terrain_sample,
+                },
+                hc_guidance: sys::eech_hc_guidance_answer {
+                    lift: guidance.lift,
+                    waypoint: guidance.waypoint,
+                    required_height: guidance.required_height,
+                    world_acceleration: guidance.world_acceleration,
+                    wp_vec: guidance.wp_vec,
+                },
             };
         }
         Ok(())
@@ -1674,6 +2139,22 @@ impl Engine {
 mod tests {
     use super::*;
 
+    /// The refusal of a step that must be refused (`expect_err` is denied in this crate).
+    fn refusal<T, E>(result: Result<T, E>) -> E {
+        match result {
+            Err(error) => error,
+            Ok(_) => panic!("the step must be refused"),
+        }
+    }
+
+    /// The value of a step that must be accepted (`unwrap` is denied in this crate).
+    fn accepted<T, E: std::fmt::Debug>(result: Result<T, E>) -> T {
+        match result {
+            Ok(value) => value,
+            Err(error) => panic!("the step must be accepted: {error:?}"),
+        }
+    }
+
     /// A `PLACE` step as the C side builds it for an aircraft (fixed-wing or helicopter): the campaign's motion vector
     /// is in the one placement field, `fw_motion_vector`.
     fn place_step(vector: [f32; 3]) -> sys::eech_movement_step {
@@ -1688,8 +2169,46 @@ mod tests {
         step
     }
 
+    fn plan_query() -> HelicopterQuery {
+        HelicopterQuery {
+            structure_scan: true,
+            structure_position: [1.0, 0.0, 2.0],
+            terrain_sample_count: 2,
+            terrain_sample: [[10.0, 20.0], [30.0, 40.0]],
+        }
+    }
+
+    fn lookahead_query() -> HelicopterQuery {
+        HelicopterQuery {
+            structure_scan: false,
+            structure_position: [0.0; 3],
+            terrain_sample_count: 1,
+            terrain_sample: [[7.0, 8.0], [0.0; 2]],
+        }
+    }
+
+    /// the lookup plan the host answers `mode` with, when it answers one
+    fn query_for(mode: MovementMode) -> Option<HelicopterQuery> {
+        match mode {
+            MovementMode::HelicopterPlan => Some(plan_query()),
+            MovementMode::FixedWingLookahead => Some(lookahead_query()),
+            _ => None,
+        }
+    }
+
+    fn plan_guidance() -> HelicopterGuidanceAnswer {
+        HelicopterGuidanceAnswer {
+            lift: 9.5,
+            waypoint: [5.0, 6.0, 7.0],
+            required_height: 120.0,
+            world_acceleration: [0.5, -0.25, 0.75],
+            wp_vec: [1.0, 2.0, 3.0],
+        }
+    }
+
     /// The request the host receives for `step`, as it crosses the engine's `move_vehicle` callback.
     fn received(step: &sys::eech_movement_step) -> MovementStep {
+        let mode = received_mode(step);
         let mut seen = None;
         let mut bind_mobile = |_: MemberDescriptor| -> Result<String, String> { Err("unused".into()) };
         let mut observe_loss = |_: LossDescriptor| -> Result<LossDecision, String> { Ok(LossDecision::Forward) };
@@ -1708,6 +2227,8 @@ mod tests {
                 flags: 0,
                 angles: [0.0; 3],
                 death_timer: 0.0,
+                query: query_for(mode),
+                guidance: (mode == MovementMode::HelicopterGuide).then(plan_guidance),
             })
         };
         let mut result: sys::eech_movement_result = unsafe { std::mem::zeroed() };
@@ -1724,6 +2245,237 @@ mod tests {
         assert!(outcome.is_ok(), "the callback refused the step");
         let Some(request) = seen else { panic!("the host was not called") };
         request
+    }
+
+    fn received_mode(step: &sys::eech_movement_step) -> MovementMode {
+        match step.mode {
+            sys::EECH_MOVEMENT_HELICOPTER_PLAN => MovementMode::HelicopterPlan,
+            sys::EECH_MOVEMENT_HELICOPTER_GUIDE => MovementMode::HelicopterGuide,
+            sys::EECH_MOVEMENT_FIXED_WING_LOOKAHEAD => MovementMode::FixedWingLookahead,
+            _ => MovementMode::Place,
+        }
+    }
+
+    /// What the callback does with `step` when the host answers with `answer`: the result C is given, or the refusal.
+    fn crossing(step: &sys::eech_movement_step, answer: impl FnOnce(MovementStep) -> MovementResult) -> (Result<(), String>, sys::eech_movement_result) {
+        let mut answer = Some(answer);
+        let mut bind_mobile = |_: MemberDescriptor| -> Result<String, String> { Err("unused".into()) };
+        let mut observe_loss = |_: LossDescriptor| -> Result<LossDecision, String> { Ok(LossDecision::Forward) };
+        let mut supply_reached = |_: SupplyReachDescriptor| -> Result<ArrivalAnswer, String> { Err("unused".into()) };
+        let mut host_move = |request: MovementStep| -> Result<MovementResult, String> {
+            match answer.take() {
+                Some(answer) => Ok(answer(request)),
+                None => Err("the host was called twice".into()),
+            }
+        };
+        // SAFETY: the result is plain data; zero is a valid value for every field.
+        let mut result: sys::eech_movement_result = unsafe { std::mem::zeroed() };
+        let mut error = [0 as c_char; 256];
+        let outcome = with_host(&mut bind_mobile, &mut observe_loss, &mut supply_reached, &mut host_move, |host| {
+            // SAFETY: the table and its user context are valid for the call; every other pointer is local.
+            unsafe {
+                let host = &*host;
+                let Some(call) = host.move_vehicle else { return -1 };
+                call(step, &mut result, error.as_mut_ptr(), error.len(), host.user)
+            }
+        });
+        let text = error.iter().take_while(|byte| **byte != 0).map(|byte| *byte as u8 as char).collect::<String>();
+        (outcome.map(|_| ()).map_err(|_| text), result)
+    }
+
+    fn answer_for(request: &MovementStep) -> MovementResult {
+        MovementResult {
+            pose: request.pose,
+            rotated: false,
+            motion_vector: [0.0; 3],
+            pending: false,
+            moved: false,
+            rotor: [0.0; 3],
+            altitude: 0.0,
+            flags: 0,
+            angles: [0.0; 3],
+            death_timer: 0.0,
+            query: query_for(request.mode),
+            guidance: (request.mode == MovementMode::HelicopterGuide).then(plan_guidance),
+        }
+    }
+
+    fn set_id(slot: &mut [c_char], id: &str) {
+        for (index, byte) in id.bytes().enumerate() {
+            slot[index] = byte as c_char;
+        }
+        slot[id.len()] = 0;
+    }
+
+    /// The storage behind a step's member lists, as the C side keeps it for the duration of the call.
+    struct Group {
+        ids: Vec<std::ffi::CString>,
+        pointers: Vec<*const c_char>,
+        radii: Vec<f32>,
+    }
+
+    impl Group {
+        fn new(members: &[(&str, f32)]) -> Self {
+            let ids: Vec<std::ffi::CString> = members.iter().map(|(id, _)| accepted(std::ffi::CString::new(*id))).collect();
+            let pointers = ids.iter().map(|id| id.as_ptr()).collect();
+            Self {
+                ids,
+                pointers,
+                radii: members.iter().map(|(_, radius)| *radius).collect(),
+            }
+        }
+
+        fn attach(&self, step: &mut sys::eech_movement_step) {
+            step.fw_member_count = self.ids.len() as c_int;
+            step.fw_member_host_id = self.pointers.as_ptr();
+            step.fw_member_radius = self.radii.as_ptr();
+        }
+    }
+
+    /// A normal-flight step as the C side builds it: a follower of "lead" that avoids the group's members.
+    fn flight_step(group: &Group) -> sys::eech_movement_step {
+        let mut step = place_step([0.0; 3]);
+        step.mode = sys::EECH_MOVEMENT_FIXED_WING_MOVE;
+        step.fw_phase = FIXED_WING_FLIGHT_PHASE;
+        set_id(&mut step.fw_leader_host_id, "lead");
+        group.attach(&mut step);
+        step.fw_max_vertical_turn_allowance = 0.5;
+        step.fw_avoidance_radius = 20.0;
+        step
+    }
+
+    #[test]
+    fn flight_navigation_intent_crosses_the_callback_boundary_in_group_order() {
+        let group = Group::new(&[("a", 12.0), ("b", 30.0)]);
+        let seen = received(&flight_step(&group));
+        assert!(!seen.group_leader && !seen.task_leader);
+        assert_eq!(seen.leader_host_id.as_deref(), Some("lead"));
+        let members: Vec<(&str, f32)> = seen
+            .members
+            .iter()
+            .map(|member| (member.host_id.as_deref().unwrap_or("?"), member.avoidance_radius))
+            .collect();
+        assert_eq!(members, [("a", 12.0), ("b", 30.0)]);
+        assert_eq!((seen.max_vertical_turn_allowance, seen.avoidance_radius), (0.5, 20.0));
+    }
+
+    #[test]
+    fn groups_beyond_thirty_two_cross_the_callback_boundary_whole_and_in_order() {
+        for count in [32usize, 33, 40, 63, 1000] {
+            let listed: Vec<(String, f32)> = (0..count).map(|index| (format!("member-{index}"), index as f32)).collect();
+            let group = Group::new(&listed.iter().map(|(id, radius)| (id.as_str(), *radius)).collect::<Vec<_>>());
+            let seen = received(&flight_step(&group));
+            assert_eq!(seen.members.len(), count);
+            for (index, member) in seen.members.iter().enumerate() {
+                assert_eq!(
+                    (member.host_id.as_deref(), member.avoidance_radius),
+                    (Some(listed[index].0.as_str()), index as f32)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn the_landing_phase_carries_its_navigation_and_the_turn_intent_not_a_multiplier() {
+        let group = Group::new(&[("a", 12.0)]);
+        let mut step = flight_step(&group);
+        step.fw_phase = FIXED_WING_LAND_PHASE;
+        step.fw_aiming_cannon = 1;
+        step.fw_elapsed_time = 123.5;
+        let seen = received(&step);
+        assert_eq!(seen.leader_host_id.as_deref(), Some("lead"));
+        assert_eq!(seen.members.len(), 1);
+        assert!(seen.aiming_cannon);
+        assert_eq!(seen.elapsed_time, 123.5);
+        // the other airborne phases and taxi send no navigation
+        for phase in [0, 3] {
+            let mut step = flight_step(&group);
+            step.fw_phase = phase;
+            let seen = received(&step);
+            assert!(seen.leader_host_id.is_none() && seen.members.is_empty(), "phase {phase}");
+        }
+    }
+
+    #[test]
+    fn a_leader_is_not_asked_for_what_it_never_reads() {
+        let mut step = flight_step(&Group::new(&[]));
+        step.fw_group_leader = 1;
+        step.fw_task_leader = 1;
+        step.fw_leader_host_id[0] = 0;
+        step.fw_member_count = -1;
+        step.fw_member_host_id = std::ptr::null();
+        step.fw_member_radius = std::ptr::null();
+        let seen = received(&step);
+        assert!(seen.group_leader && seen.task_leader);
+        assert!(seen.leader_host_id.is_none() && seen.members.is_empty());
+    }
+
+    #[test]
+    fn a_leader_the_roster_lacks_crosses_the_boundary_as_unresolved_in_flight_and_landing() {
+        // whether the host reads the leader depends on what it finds (facing away, a hold in force), so the boundary
+        // must not refuse a step for want of one
+        let group = Group::new(&[("a", 12.0)]);
+        for phase in [FIXED_WING_FLIGHT_PHASE, FIXED_WING_LAND_PHASE] {
+            let mut step = flight_step(&group);
+            step.fw_phase = phase;
+            step.fw_leader_host_id[0] = 0;
+            let seen = received(&step);
+            assert!(!seen.task_leader && seen.leader_host_id.is_none(), "phase {phase}");
+        }
+    }
+
+    #[test]
+    fn a_member_the_roster_lacks_crosses_the_boundary_as_unresolved_and_keeps_its_place() {
+        // an empty entry and a null entry are the same observation: no identity, the radius and the order still carried
+        let group = Group::new(&[("a", 12.0), ("", 30.0), ("c", 7.0)]);
+        let mut step = flight_step(&group);
+        let mut pointers = group.pointers.clone();
+        pointers[1] = std::ptr::null();
+        step.fw_member_host_id = pointers.as_ptr();
+        for step in [flight_step(&group), step] {
+            let seen = received(&step);
+            let members: Vec<(Option<&str>, f32)> = seen.members.iter().map(|member| (member.host_id.as_deref(), member.avoidance_radius)).collect();
+            assert_eq!(members, [(Some("a"), 12.0), (None, 30.0), (Some("c"), 7.0)]);
+        }
+    }
+
+    #[test]
+    fn invalid_flight_navigation_is_refused_at_the_boundary() {
+        let group = Group::new(&[("a", 12.0), ("b", 30.0)]);
+        let refused = |change: &dyn Fn(&mut sys::eech_movement_step)| {
+            let mut step = flight_step(&group);
+            change(&mut step);
+            // SAFETY: `group` outlives the call and holds the two members the step lists
+            refusal(unsafe { navigation_from(&step) })
+        };
+        // a leader that is supplied but malformed is refused; one that is absent is the host's business, not the boundary's
+        assert!(refused(&|s| s.fw_leader_host_id.fill(b'x' as c_char)).contains("task leader"));
+        assert!(refused(&|s| s.fw_leader_host_id[0] = 0xffu8 as c_char).contains("task leader"));
+        assert!(refused(&|s| s.fw_group_leader = 2).contains("fw_group_leader"));
+        assert!(refused(&|s| s.fw_member_count = -1).contains("group member count"));
+        assert!(refused(&|s| s.fw_member_host_id = std::ptr::null()).contains("without their identity"));
+        assert!(refused(&|s| s.fw_member_radius = std::ptr::null()).contains("without their identity"));
+        let mut step;
+        let too_long = Group::new(&[("a", 12.0), (&"x".repeat(sys::EECH_MOVEMENT_HOST_ID_MAX + 1), 30.0)]);
+        step = flight_step(&too_long);
+        assert!(refusal(unsafe { navigation_from(&step) }).contains("group member"));
+        let longest = Group::new(&[("a", 12.0), (&"x".repeat(sys::EECH_MOVEMENT_HOST_ID_MAX), 30.0)]);
+        step = flight_step(&longest);
+        assert_eq!(
+            accepted(unsafe { navigation_from(&step) }).3[1].host_id.as_ref().map(String::len),
+            Some(sys::EECH_MOVEMENT_HOST_ID_MAX)
+        );
+        let mut pointers = group.pointers.clone();
+        pointers[1] = std::ptr::null();
+        step = flight_step(&group);
+        step.fw_member_host_id = pointers.as_ptr();
+        assert!(accepted(unsafe { navigation_from(&step) }).3[1].host_id.is_none(), "a null entry is unresolved");
+        let bad_utf8 = [0xffu8 as c_char, 0];
+        pointers[1] = bad_utf8.as_ptr();
+        assert!(refusal(unsafe { navigation_from(&step) }).contains("non-UTF-8"));
+        let nan = Group::new(&[("a", 12.0), ("b", f32::NAN)]);
+        step = flight_step(&nan);
+        assert!(refusal(unsafe { navigation_from(&step) }).contains("fw_member_radius"));
     }
 
     #[test]
@@ -1949,5 +2701,565 @@ mod tests {
             step.mode = sys::EECH_MOVEMENT_EXPIRE;
             step.death_range = f32::INFINITY;
         });
+    }
+
+    /// A hosted helicopter step of `mode` with the aircraft's identity and a unit attitude.
+    fn hosted_step(mode: c_int) -> sys::eech_movement_step {
+        let mut step = place_step([0.0; 3]);
+        step.mode = mode;
+        step
+    }
+
+    #[test]
+    fn a_plan_step_carries_the_campaign_facts_and_the_other_members_host_ids_in_list_order_uncapped() {
+        let mut step = hosted_step(sys::EECH_MOVEMENT_HELICOPTER_PLAN);
+        step.hc_task_leader = 1;
+        step.hc_waypoint_kind = 2;
+        step.hc_guide_radius_valid = 1;
+        step.hc_guide_radius = 750.0;
+        step.hc_guide_altitude_valid = 1;
+        step.hc_waypoint_velocity = [1.0, 2.0, 3.0];
+        step.hc_distance = 4000.0;
+        step.hc_fuel_supply_level = 0.5;
+        step.hc_cruise_velocity = 60.0;
+        step.hc_cruise_altitude = 90.0;
+        step.hc_attack_altitude = 30.0;
+        step.hc_leader_radar_altitude = 45.0;
+        // many more members than any fixed buffer would hold, one without an identity
+        let names: Vec<std::ffi::CString> = (0..300).map(|index| accepted(std::ffi::CString::new(format!("m{index}")))).collect();
+        let mut ids: Vec<*const c_char> = names.iter().map(|name| name.as_ptr()).collect();
+        ids[7] = std::ptr::null();
+        step.hc_member_count = ids.len() as c_int;
+        step.hc_member_host_id = ids.as_ptr();
+        // the lists of the other modes are ignored here
+        step.hc_structure_count = 5;
+        let (outcome, result) = crossing(&step, |request| {
+            assert_eq!(request.mode, MovementMode::HelicopterPlan);
+            assert!(request.hc_task_leader && !request.hc_group_leader && !request.hc_position_hold);
+            assert_eq!(request.hc_waypoint_kind, 2);
+            assert_eq!(request.hc_guide_radius, Some(750.0));
+            assert!(request.hc_guide_altitude_valid);
+            assert_eq!(request.hc_waypoint_velocity, [1.0, 2.0, 3.0]);
+            assert_eq!(
+                (request.hc_distance, request.hc_fuel_supply_level, request.hc_cruise_velocity),
+                (4000.0, 0.5, 60.0)
+            );
+            assert_eq!(
+                (request.hc_cruise_altitude, request.hc_attack_altitude, request.hc_leader_radar_altitude),
+                (90.0, 30.0, 45.0)
+            );
+            assert_eq!(request.hc_plan_members.len(), 300);
+            assert_eq!(request.hc_plan_members[0].as_deref(), Some("m0"));
+            assert_eq!(request.hc_plan_members[7], None);
+            assert_eq!(request.hc_plan_members[299].as_deref(), Some("m299"));
+            assert!(request.hc_structures.is_empty() && request.hc_terrain_samples.is_empty());
+            answer_for(&request)
+        });
+        assert_eq!(outcome, Ok(()));
+        // the host's lookup plan reaches C unchanged
+        assert_eq!(result.hc_query.structure_scan, 1);
+        assert_eq!(result.hc_query.structure_position, [1.0, 0.0, 2.0]);
+        assert_eq!(result.hc_query.terrain_sample_count, 2);
+        assert_eq!(result.hc_query.terrain_sample, [[10.0, 20.0], [30.0, 40.0]]);
+        assert_eq!(result.hc_guidance.lift, 0.0);
+    }
+
+    #[test]
+    fn a_group_leaders_plan_does_not_read_the_member_list_and_an_invalid_list_is_refused_before_the_host_runs() {
+        let mut leader = hosted_step(sys::EECH_MOVEMENT_HELICOPTER_PLAN);
+        leader.hc_group_leader = 1;
+        leader.hc_member_count = -5;
+        let (outcome, _) = crossing(&leader, |request| {
+            assert!(request.hc_group_leader && request.hc_plan_members.is_empty());
+            answer_for(&request)
+        });
+        assert_eq!(outcome, Ok(()));
+
+        let refuses = |edit: &dyn Fn(&mut sys::eech_movement_step), expected: &str| {
+            let mut step = hosted_step(sys::EECH_MOVEMENT_HELICOPTER_PLAN);
+            edit(&mut step);
+            let mut called = false;
+            let (outcome, _) = crossing(&step, |request| {
+                called = true;
+                answer_for(&request)
+            });
+            let message = refusal(outcome);
+            assert!(message.contains(expected), "{message}");
+            assert!(!called, "the host ran");
+        };
+        refuses(&|step| step.hc_member_count = -1, "invalid group member count");
+        refuses(&|step| step.hc_member_count = 3, "without their identity list");
+        refuses(&|step| step.hc_group_leader = 2, "invalid hc_group_leader flag");
+        refuses(&|step| step.hc_guide_radius_valid = 7, "invalid hc_guide_radius_valid flag");
+        refuses(&|step| step.hc_distance = f32::NAN, "hc_distance");
+        refuses(&|step| step.hc_leader_radar_altitude = f32::INFINITY, "hc_leader_radar_altitude");
+        refuses(&|step| step.hc_waypoint_velocity[2] = f32::NAN, "hc_waypoint_velocity");
+    }
+
+    #[test]
+    fn a_guide_step_carries_every_structure_of_the_sector_and_the_getter_returns_in_call_order() {
+        let structures: Vec<sys::eech_hc_structure> = (0..1000)
+            .map(|index| sys::eech_hc_structure {
+                position: [index as f32, 0.0, -(index as f32)],
+                avoidance_radius: 5.0 + index as f32,
+                height: 10.0,
+            })
+            .collect();
+        let samples = [
+            sys::eech_hc_terrain_sample {
+                first: 12.0,
+                second: 0.0,
+                second_present: 0,
+            },
+            sys::eech_hc_terrain_sample {
+                first: 3.0,
+                second: 14.5,
+                second_present: 1,
+            },
+        ];
+        let mut step = hosted_step(sys::EECH_MOVEMENT_HELICOPTER_GUIDE);
+        step.hc_structure_count = structures.len() as c_int;
+        step.hc_structures = structures.as_ptr();
+        step.hc_terrain_sample_count = samples.len() as c_int;
+        step.hc_terrain_samples = samples.as_ptr();
+        // the member list of the plan is not read in this mode
+        step.hc_member_count = -1;
+        let (outcome, result) = crossing(&step, |request| {
+            assert_eq!(request.mode, MovementMode::HelicopterGuide);
+            assert_eq!(request.hc_structures.len(), 1000);
+            assert_eq!(request.hc_structures[999].position, [999.0, 0.0, -999.0]);
+            assert_eq!(request.hc_structures[999].avoidance_radius, 1004.0);
+            assert_eq!(request.hc_structures[3].height, 10.0);
+            // the records are not folded here: the second return is kept only where the macro made the second call
+            assert_eq!(request.hc_terrain_samples.len(), 2);
+            assert_eq!((request.hc_terrain_samples[0].first, request.hc_terrain_samples[0].second), (12.0, None));
+            assert_eq!((request.hc_terrain_samples[1].first, request.hc_terrain_samples[1].second), (3.0, Some(14.5)));
+            answer_for(&request)
+        });
+        assert_eq!(outcome, Ok(()));
+        let guidance = plan_guidance();
+        assert_eq!(result.hc_guidance.lift, guidance.lift);
+        assert_eq!(result.hc_guidance.waypoint, guidance.waypoint);
+        assert_eq!(result.hc_guidance.required_height, guidance.required_height);
+        assert_eq!(result.hc_guidance.world_acceleration, guidance.world_acceleration);
+        assert_eq!(result.hc_guidance.wp_vec, guidance.wp_vec);
+        // no lookup plan outside the plan step
+        assert_eq!(result.hc_query.structure_scan, 0);
+        assert_eq!(result.hc_query.terrain_sample_count, 0);
+    }
+
+    #[test]
+    fn a_guide_step_with_bad_lists_is_refused_before_the_host_runs() {
+        let structure = sys::eech_hc_structure {
+            position: [0.0; 3],
+            avoidance_radius: 1.0,
+            height: 1.0,
+        };
+        let sample = sys::eech_hc_terrain_sample {
+            first: 1.0,
+            second: 2.0,
+            second_present: 1,
+        };
+        let refuses = |edit: &dyn Fn(&mut sys::eech_movement_step), expected: &str| {
+            let mut step = hosted_step(sys::EECH_MOVEMENT_HELICOPTER_GUIDE);
+            step.hc_structures = &structure;
+            step.hc_terrain_samples = &sample;
+            edit(&mut step);
+            let mut called = false;
+            let (outcome, _) = crossing(&step, |request| {
+                called = true;
+                answer_for(&request)
+            });
+            let message = refusal(outcome);
+            assert!(message.contains(expected), "{message}");
+            assert!(!called, "the host ran");
+        };
+        refuses(&|step| step.hc_structure_count = -2, "invalid structure count");
+        refuses(
+            &|step| {
+                step.hc_structure_count = 1;
+                step.hc_structures = std::ptr::null();
+            },
+            "without their list",
+        );
+        refuses(&|step| step.hc_terrain_sample_count = -1, "invalid terrain sample count");
+        refuses(
+            &|step| {
+                step.hc_terrain_sample_count = 1;
+                step.hc_terrain_samples = std::ptr::null();
+            },
+            "without their list",
+        );
+        let nan_structure = sys::eech_hc_structure {
+            position: [0.0, f32::NAN, 0.0],
+            ..structure
+        };
+        refuses(
+            &|step| {
+                step.hc_structure_count = 1;
+                step.hc_structures = &nan_structure;
+            },
+            "non-finite movement hc_structures",
+        );
+        let nan_height = sys::eech_hc_structure {
+            height: f32::INFINITY,
+            ..structure
+        };
+        refuses(
+            &|step| {
+                step.hc_structure_count = 1;
+                step.hc_structures = &nan_height;
+            },
+            "non-finite movement hc_structures",
+        );
+        let nan_sample = sys::eech_hc_terrain_sample { first: f32::NAN, ..sample };
+        refuses(
+            &|step| {
+                step.hc_terrain_sample_count = 1;
+                step.hc_terrain_samples = &nan_sample;
+            },
+            "non-finite movement hc_terrain_samples",
+        );
+        // a second return that is not a number matters only where it was recorded
+        let nan_second = sys::eech_hc_terrain_sample { second: f32::NAN, ..sample };
+        refuses(
+            &|step| {
+                step.hc_terrain_sample_count = 1;
+                step.hc_terrain_samples = &nan_second;
+            },
+            "non-finite movement hc_terrain_samples",
+        );
+        let bad_flag = sys::eech_hc_terrain_sample { second_present: 2, ..sample };
+        refuses(
+            &|step| {
+                step.hc_terrain_sample_count = 1;
+                step.hc_terrain_samples = &bad_flag;
+            },
+            "second_present",
+        );
+        // an unrecorded second return is not read, whatever the field holds
+        let ignored = sys::eech_hc_terrain_sample {
+            first: 1.0,
+            second: f32::NAN,
+            second_present: 0,
+        };
+        let mut step = hosted_step(sys::EECH_MOVEMENT_HELICOPTER_GUIDE);
+        step.hc_terrain_sample_count = 1;
+        step.hc_terrain_samples = &ignored;
+        let (outcome, _) = crossing(&step, |request| {
+            assert_eq!(request.hc_terrain_samples[0].second, None);
+            answer_for(&request)
+        });
+        assert_eq!(outcome, Ok(()));
+    }
+
+    #[test]
+    fn a_guided_end_step_names_the_leader_by_host_id_and_carries_the_steering_intent() {
+        let mut step = hosted_step(sys::EECH_MOVEMENT_HELICOPTER_GUIDED_END);
+        set_id(&mut step.hc_leader_host_id, "leader-1");
+        step.hc_waypoint_kind = 1;
+        step.hc_task_leader_is_self = 0;
+        step.hc_guide_radius_valid = 1;
+        step.hc_guide_radius = 300.0;
+        step.hc_distance = 120.0;
+        step.hc_cruise_velocity = 55.0;
+        step.hc_required_heading_valid = 1;
+        step.hc_required_heading = 1.25;
+        step.hc_targeting_active = 1;
+        step.hc_weapon_vector = [0.0, 0.0, 1.0];
+        step.hc_weapon_to_intercept_vector = [0.1, 0.2, 0.9];
+        step.hc_main_rotor_shaft_angle = 0.05;
+        step.elevation = 33.0;
+        let (outcome, _) = crossing(&step, |request| {
+            assert_eq!(request.mode, MovementMode::HelicopterGuidedEnd);
+            assert_eq!(request.hc_leader_host_id.as_deref(), Some("leader-1"));
+            assert_eq!(request.hc_required_heading, Some(1.25));
+            assert_eq!(request.hc_guide_radius, Some(300.0));
+            assert!(request.hc_targeting_active && !request.hc_task_leader_is_self);
+            assert_eq!(request.hc_weapon_to_intercept_vector, [0.1, 0.2, 0.9]);
+            assert_eq!(request.hc_main_rotor_shaft_angle, 0.05);
+            // the cached terrain elevation announced by the DLL, not a new sample
+            assert_eq!(request.elevation, 33.0);
+            let mut answer = answer_for(&request);
+            answer.angles = [0.5, -0.1, 0.25];
+            answer
+        });
+        assert_eq!(outcome, Ok(()));
+
+        // no leader and no required heading are legitimate: the host refuses only where it reads them
+        let mut alone = hosted_step(sys::EECH_MOVEMENT_HELICOPTER_GUIDED_END);
+        alone.hc_required_heading = 7.0;
+        let (outcome, _) = crossing(&alone, |request| {
+            assert_eq!((request.hc_leader_host_id.as_deref(), request.hc_required_heading), (None, None));
+            answer_for(&request)
+        });
+        assert_eq!(outcome, Ok(()));
+        let mut not_finite = hosted_step(sys::EECH_MOVEMENT_HELICOPTER_GUIDED_END);
+        not_finite.hc_required_heading_valid = 1;
+        not_finite.hc_required_heading = f32::NAN;
+        assert!(crossing(&not_finite, |request| answer_for(&request)).0.is_err());
+    }
+
+    #[test]
+    fn the_host_must_answer_the_plan_with_a_lookup_plan_and_the_guide_with_guidance_and_nothing_else_does() {
+        let plan = hosted_step(sys::EECH_MOVEMENT_HELICOPTER_PLAN);
+        let missing = crossing(&plan, |request| MovementResult {
+            query: None,
+            ..answer_for(&request)
+        })
+        .0;
+        assert!(refusal(missing).contains("did not return a lookup plan"));
+        let too_many = crossing(&plan, |request| {
+            let mut answer = answer_for(&request);
+            if let Some(query) = answer.query.as_mut() {
+                query.terrain_sample_count = sys::EECH_HC_TERRAIN_SAMPLES + 1;
+            }
+            answer
+        })
+        .0;
+        assert!(refusal(too_many).contains("terrain samples"));
+        let not_a_number = crossing(&plan, |request| {
+            let mut answer = answer_for(&request);
+            if let Some(query) = answer.query.as_mut() {
+                query.terrain_sample[1][0] = f32::NAN;
+            }
+            answer
+        })
+        .0;
+        assert!(not_a_number.is_err());
+
+        let guide = hosted_step(sys::EECH_MOVEMENT_HELICOPTER_GUIDE);
+        let missing = crossing(&guide, |request| MovementResult {
+            guidance: None,
+            ..answer_for(&request)
+        })
+        .0;
+        assert!(refusal(missing).contains("did not return guidance"));
+        let not_a_number = crossing(&guide, |request| {
+            let mut answer = answer_for(&request);
+            if let Some(guidance) = answer.guidance.as_mut() {
+                guidance.wp_vec[1] = f32::INFINITY;
+            }
+            answer
+        })
+        .0;
+        assert!(not_a_number.is_err());
+
+        // a lookup plan or guidance on any other mode is a host that mixed its answers up
+        for mode in [
+            sys::EECH_MOVEMENT_HELICOPTER_GUIDE,
+            sys::EECH_MOVEMENT_HELICOPTER_GUIDED_BEGIN,
+            sys::EECH_MOVEMENT_HELICOPTER_GUIDED_END,
+            sys::EECH_MOVEMENT_HELICOPTER_ABANDON,
+        ] {
+            let step = hosted_step(mode);
+            let stray = crossing(&step, |request| MovementResult {
+                query: Some(plan_query()),
+                ..answer_for(&request)
+            })
+            .0;
+            assert!(refusal(stray).contains("a lookup plan"), "mode {mode}");
+        }
+        for mode in [
+            sys::EECH_MOVEMENT_HELICOPTER_PLAN,
+            sys::EECH_MOVEMENT_HELICOPTER_GUIDED_BEGIN,
+            sys::EECH_MOVEMENT_HELICOPTER_GUIDED_END,
+            sys::EECH_MOVEMENT_HELICOPTER_ABANDON,
+        ] {
+            let step = hosted_step(mode);
+            let stray = crossing(&step, |request| MovementResult {
+                guidance: Some(plan_guidance()),
+                ..answer_for(&request)
+            })
+            .0;
+            assert!(refusal(stray).contains("guidance"), "mode {mode}");
+        }
+        // the hosted modes answer no flags
+        for mode in [
+            MovementMode::HelicopterPlan,
+            MovementMode::HelicopterGuide,
+            MovementMode::HelicopterGuidedBegin,
+            MovementMode::HelicopterGuidedEnd,
+            MovementMode::HelicopterAbandon,
+        ] {
+            assert!(result_flags_are_valid(mode, 0) && !result_flags_are_valid(mode, 1) && !result_flags_are_valid(mode, -1));
+        }
+    }
+
+    #[test]
+    fn the_hosted_helicopter_modes_are_helicopter_steps_and_a_plan_and_the_end_announce_the_terrain() {
+        for mode in [
+            sys::EECH_MOVEMENT_HELICOPTER_PLAN,
+            sys::EECH_MOVEMENT_HELICOPTER_GUIDE,
+            sys::EECH_MOVEMENT_HELICOPTER_GUIDED_BEGIN,
+            sys::EECH_MOVEMENT_HELICOPTER_GUIDED_END,
+            sys::EECH_MOVEMENT_HELICOPTER_ABANDON,
+        ] {
+            let mut step = hosted_step(mode);
+            step.hc_motion_vector = [1.0, 2.0, 3.0];
+            step.hc_power_output = 0.75;
+            // the plan and the end announce their terrain sample; for the other modes a sample without terrain-follow is refused
+            let announces = mode == sys::EECH_MOVEMENT_HELICOPTER_PLAN || mode == sys::EECH_MOVEMENT_HELICOPTER_GUIDED_END;
+            step.terrain_present = announces as c_int;
+            let (outcome, _) = crossing(&step, |request| {
+                assert_eq!(request.terrain.is_some(), announces, "{:?}", request.mode);
+                assert_eq!(request.motion_vector_in, [1.0, 2.0, 3.0], "{:?}", request.mode);
+                answer_for(&request)
+            });
+            assert_eq!(outcome, Ok(()), "mode {mode}");
+        }
+    }
+
+    /// a terrain-following flight step: the campaign's observation of the waypoint, as the C side fills it
+    fn terrained_flight_step(group: &Group) -> sys::eech_movement_step {
+        let mut step = flight_step(group);
+        step.fw_terrain = 1;
+        step.fw_terrain_min_height = 30.0;
+        step.fw_terrain_guide_position = [1.0, 2.0, 3.0];
+        step.fw_terrain_sample_point = [4.0, 5.0];
+        step.fw_terrain_sample_elevation = 6.0;
+        step.fw_terrain_site_y = 0.25;
+        step.fw_terrain_cg = 1.5;
+        step
+    }
+
+    #[test]
+    fn a_terrain_following_flight_step_carries_the_campaigns_observation_and_no_shaped_height() {
+        let group = Group::new(&[("a", 12.0)]);
+        let step = terrained_flight_step(&group);
+        let (outcome, _) = crossing(&step, |request| {
+            assert_eq!(request.mode, MovementMode::FixedWingMove);
+            assert_eq!(
+                request.fixed_wing_terrain,
+                Some(FixedWingTerrain {
+                    min_height: 30.0,
+                    guide_position: [1.0, 2.0, 3.0],
+                    sample_point: [4.0, 5.0],
+                    sample_elevation: 6.0,
+                    site_y: 0.25,
+                    cg: 1.5,
+                })
+            );
+            answer_for(&request)
+        });
+        assert_eq!(outcome, Ok(()));
+    }
+
+    #[test]
+    fn a_step_without_the_terrain_flag_carries_none_and_its_fields_are_not_read() {
+        let group = Group::new(&[("a", 12.0)]);
+        let mut step = terrained_flight_step(&group);
+        step.fw_terrain = 0;
+        step.fw_terrain_cg = f32::NAN;
+        step.fw_terrain_sample_point = [f32::NAN, 0.0];
+        let (outcome, _) = crossing(&step, |request| {
+            assert_eq!(request.fixed_wing_terrain, None);
+            answer_for(&request)
+        });
+        assert_eq!(outcome, Ok(()));
+    }
+
+    #[test]
+    fn a_terrain_observation_is_refused_on_any_other_mode_and_when_it_is_not_finite() {
+        let group = Group::new(&[("a", 12.0)]);
+        let refused = |step: &sys::eech_movement_step, expected: &str| {
+            let mut called = false;
+            let (outcome, _) = crossing(step, |request| {
+                called = true;
+                answer_for(&request)
+            });
+            let message = refusal(outcome);
+            assert!(message.contains(expected), "{message}");
+            assert!(!called, "the host ran");
+        };
+        let mut misplaced = terrained_flight_step(&group);
+        misplaced.mode = sys::EECH_MOVEMENT_PLACE;
+        refused(&misplaced, "fixed-wing terrain observation");
+        let mut hosted = hosted_step(sys::EECH_MOVEMENT_HELICOPTER_GUIDED_END);
+        hosted.fw_terrain = 1;
+        refused(&hosted, "fixed-wing terrain observation");
+        let mut flag = terrained_flight_step(&group);
+        flag.fw_terrain = 2;
+        assert!(crossing(&flag, |request| answer_for(&request)).0.is_err());
+        for edit in [
+            (|step: &mut sys::eech_movement_step| step.fw_terrain_min_height = f32::INFINITY) as fn(&mut sys::eech_movement_step),
+            |step| step.fw_terrain_sample_elevation = f32::NAN,
+            |step| step.fw_terrain_site_y = f32::NAN,
+            |step| step.fw_terrain_cg = f32::NAN,
+            |step| step.fw_terrain_guide_position[1] = f32::NAN,
+            |step| step.fw_terrain_sample_point[0] = f32::INFINITY,
+        ] {
+            let mut step = terrained_flight_step(&group);
+            edit(&mut step);
+            refused(&step, "non-finite");
+        }
+    }
+
+    #[test]
+    fn the_fixed_wing_lookahead_is_a_non_mutating_fixed_wing_step_the_host_answers_with_one_sample() {
+        let mut step = hosted_step(sys::EECH_MOVEMENT_FIXED_WING_LOOKAHEAD);
+        step.fw_motion_vector = [1.0, 2.0, 3.0];
+        step.hc_motion_vector = [9.0, 9.0, 9.0];
+        step.fw_terrain = 0;
+        let (outcome, result) = crossing(&step, |request| {
+            assert_eq!(request.mode, MovementMode::FixedWingLookahead);
+            assert_eq!(request.fixed_wing_terrain, None);
+            // the vector is the fixed-wing one, not the helicopter field
+            assert_eq!(request.motion_vector_in, [1.0, 2.0, 3.0]);
+            answer_for(&request)
+        });
+        assert_eq!(outcome, Ok(()));
+        assert_eq!(result.hc_query.terrain_sample_count, 1);
+        assert_eq!(result.hc_query.terrain_sample[0], [7.0, 8.0]);
+        assert_eq!(result.hc_query.structure_scan, 0);
+    }
+
+    #[test]
+    fn the_host_must_answer_the_fixed_wing_lookahead_with_exactly_one_sample_and_no_flags() {
+        let step = hosted_step(sys::EECH_MOVEMENT_FIXED_WING_LOOKAHEAD);
+        let missing = crossing(&step, |request| MovementResult {
+            query: None,
+            ..answer_for(&request)
+        })
+        .0;
+        assert!(refusal(missing).contains("did not return a lookup plan"));
+        for count in [0, 2] {
+            let wrong = crossing(&step, |request| {
+                let mut answer = answer_for(&request);
+                if let Some(query) = answer.query.as_mut() {
+                    query.terrain_sample_count = count;
+                }
+                answer
+            })
+            .0;
+            assert!(refusal(wrong).contains("look-ahead"), "count {count}");
+        }
+        let not_a_number = crossing(&step, |request| {
+            let mut answer = answer_for(&request);
+            if let Some(query) = answer.query.as_mut() {
+                query.terrain_sample[0][1] = f32::NAN;
+            }
+            answer
+        })
+        .0;
+        assert!(not_a_number.is_err());
+        let flagged = crossing(&step, |request| MovementResult {
+            flags: 1,
+            ..answer_for(&request)
+        })
+        .0;
+        assert!(flagged.is_err());
+        assert!(result_flags_are_valid(MovementMode::FixedWingLookahead, 0));
+        assert!(!result_flags_are_valid(MovementMode::FixedWingLookahead, 1));
+        assert!(!result_flags_are_valid(MovementMode::FixedWingLookahead, -1));
+        // a move that is not the look-ahead is not answered with a lookup plan
+        let group = Group::new(&[("a", 12.0)]);
+        let flight = flight_step(&group);
+        let stray = crossing(&flight, |request| MovementResult {
+            query: Some(lookahead_query()),
+            ..answer_for(&request)
+        })
+        .0;
+        assert!(refusal(stray).contains("a lookup plan"));
     }
 }
