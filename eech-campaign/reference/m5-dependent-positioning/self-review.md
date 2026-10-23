@@ -38,3 +38,20 @@ lints comment so the comment precedes `[lints.clippy]` again. No semantic change
 - Not repeated: fixture green/red runs (nothing invalidated them). Not run: the established pack and
   Tacview evidence; the non-host (retail) C build. Hashes differ from the `7c61e13a` build; cause
   not isolated.
+
+## Delta since the final candidate (publication closeout)
+
+Author self-review, not independent. Changes since `263b48a4`: docs/evidence only plus the local merge of PR98.
+- `a6732390`: final-candidate record (already reviewed above).
+- Merge `b83c9699` of `ed38c8fb` (PR98): upstream delta since base `6e837440` is `.github/workflows/eech-campaign.yml`,
+  `eech-campaign/docs/m5-aircraft-control.md` and `eech-campaign/reference/m5-aircraft-control/**` (16 files). No C, Rust, Lua,
+  Cargo or tools path; no file overlap; merge had no conflicts. `git diff --name-only 263b48a4 HEAD` over `aphavoc`,
+  `eech-campaign/crates`, Cargo files and `tools` is empty, so no runtime semantic conflict and no second native pack.
+- Docs: status and pending list updated for the completed pack; new "Final pack" section and
+  `native/final-pack.summary.txt`; an addendum on `native/candidate-normal.summary.txt` (original text kept).
+- Checked: pack artifacts inspected, not rerun (pack.exit 0; report.json 40 PASS; verify-complete.exit 0; hashes in
+  independent-reference-hashes.json equal the retained references; native_head is c1 at `263b48a4`).
+- Wording checked against the evidence: bytes-equal to retained references, not a visual Tacview inspection; fixture `link`
+  is artificial; old-guard is a test-only mutant; the 0-carry 900 s runs are not acceptance; census not run; the merged
+  commit itself was not built.
+- Not done: no push, PR, merge to remote, or approval. D1 remains incomplete until EEDCS-41 is delivered and the closure audit passes.

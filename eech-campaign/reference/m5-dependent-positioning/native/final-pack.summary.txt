@@ -1,0 +1,49 @@
+EEDCS-40 final-pack summary (clean summary; full artifacts stay external)
+External evidence: E:\eech-runs\m5-d1\dependent-positioning-20261023\final-pack\  (not copied into git; not modified here)
+
+Binaries under test: candidate c1 = normal (default-feature) native build at 263b48a4d65914f0383cd098b364847e6497b51c,
+  no dirty build inputs, pinned image sha256:bb10e44a20e9c6304b3a318902bcf0f8ec8175c162862240ce25c34bd7e562be,
+  volume eech-dep-cand-c1, build 2026-10-23T18:36:14Z..18:36:59Z.
+  eech_dc.dll  a5b9deddae1a1f15991a144bf699219874a583a1c8c9918c79ad37352de7bafe
+  eech-world.exe bc91c27c83142a3edab8647fbcf3ad0700aaa3a86a67bf1dfd4925e4fa087cb5
+  lua.dll      b224cb2eacdea06fcb7fe273979e660fbef0c1a9c65be53c7be9fc0a4571daca
+Pack tool: eech-campaign/tools/regression-pack.py, report head pack_revision a6732390 (tool files identical at 263b48a4).
+Command (python -I, copied Georgia/Lebanon/Lebanon-repeat roots, never PR98's data roots):
+  regression-pack.py --georgia <final-pack/inputs/georgia> --lebanon <final-pack/inputs/lebanon>
+    --lebanon-repeat <final-pack/inputs/lebanon-repeat> --bin <candidate/c1/out> --out <final-pack/pack>
+Started 2026-10-23T18:54:33Z (final-pack/started); pack.exit = 0.
+
+Result: REGRESSION PACK: PASS. report.json holds 40 automated checks, all PASS, 0 failed; baseline windows-retail v1 not
+  modified, no tolerance changed. The report's disposition table lists 45 rows: PASS directly protected 17, PASS
+  baseline-sensitive 12, EVIDENCE ONLY not automatically checked 8, NOT COVERED 8.
+  Not covered by the pack, unchanged: M1 longer runs/corrections N1_N2 N3 U1, M2 captures and tacview_visual, M3 adaptive_compensation.
+
+Independent complete-file comparison (parent's verify-complete-reference.py, verify-complete.exit = 0,
+  independent-reference-hashes.json passed=true, complete_files=true, pack_checks_passed=40, checked 2026-10-23T22:09:08Z):
+  run1 and run2 recording.acmi 117690861 B sha256 3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b
+       == retained reference/lebanon-3h/recording.zip.acmi (byte-identical)
+  run1 and run2 observations.jsonl 85716447 B sha256 da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf
+       == retained reference/m3-resupply-loop/observations.jsonl.gz payload (byte-identical)
+  metrics.json (35942 B, sha256 fa09d562...2587) equals retained JSON values (and after CRLF normalisation) in both runs.
+
+What this does and does not show:
+  - The default-feature c1 build reproduces the retained Lebanon 3 h Tacview and observations byte-for-byte, twice.
+    That is a bytes-equal-to-retained-reference claim. It is not a claim that anyone visually inspected a Tacview
+    recording; a generated, a structurally checked and a visually inspected recording are three different claims.
+  - The pack, with its Lebanon scenario, observed no dependent carries that would change those bytes; it is a
+    no-regression check for normal builds, not evidence of the carry path (see fixture and limits below).
+  - Carry behaviour evidence is the controlled fixture only (c9cb51a3: 34 checks green; old-guard mutant fails 3).
+    The fixture and old-guard were not rerun for c1 (only a Cargo.toml comment moved since c9cb51a3).
+  - The census was not run by this author.
+
+Merge provenance: PR98 merge ed38c8fb244a26f2d0b40022ea6fc3761d368197 merged locally at b83c9699 (merge base 6e837440).
+  PR98 delta since the base is 16 files: .github/workflows/eech-campaign.yml, eech-campaign/docs/m5-aircraft-control.md and
+  eech-campaign/reference/m5-aircraft-control/**; no C, Rust, Lua, Cargo or tools path; no file overlaps this branch.
+  `git diff --name-only 263b48a4 HEAD -- aphavoc eech-campaign/crates eech-campaign/Cargo.toml eech-campaign/Cargo.lock eech-campaign/tools`
+  is empty, so the runtime inputs of the merged tree equal those c1 was built from. The merged commit itself was not built
+  or packed; no byte identity with c1 is claimed beyond that source equality, and no further pack was warranted by a CI/docs-only delta.
+
+Limits (unchanged): the `link` arrangement is artificial; the old-guard is a test-only mutant of the staged rv_hostmv.c copy,
+  not pre-change C; depth >2, an unhosted parent, the debug_fatal unsupported-child path and the non-host (retail) C build
+  were not exercised; nesting is shown by order and guard outcome, not depth; C compiled with -w; the dll/exe hashes differ
+  from the 7c61e13a build and the cause is not isolated.
