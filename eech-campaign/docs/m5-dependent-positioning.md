@@ -121,10 +121,11 @@ volume and data roots were not touched; the run used a copied retail root.
 
 Witness (`crates/eech-world/lua/dependent-carry.lua`, observational: wraps the reference
 `move_vehicle`, answers every step with the real host, counts `dependent_carry` steps by child and
-parent kind and shape, nested depth, a campaign `place` of a carried child, and refusals; checks each
-answer against its step). Scenario: `map5`, `camp01/LEBANON.CHC`, apache, seed 1.
+parent kind and shape, carries whose parent had itself been carried earlier (`parent_previously_carried`:
+history, not proof of call-stack nesting), a campaign `place` of a carried child, and refusals; checks
+each answer against its step). Scenario: `map5`, `camp01/LEBANON.CHC`, apache, seed 1.
 
-| Run | Simulated | Exit | Wall | Carries | Refused | Nested | place after carry |
+| Run | Simulated | Exit | Wall | Carries | Refused | Previously carried | place after carry |
 |---|---|---|---|---|---|---|---|
 | probe 1 | 900 s | 0 | 10m31s | 0 | 0 | 0 | 0 |
 | probe 2 (adds a per-step-mode census) | 900 s | 0 | 10m32s | 0 | 0 | 0 | 0 |
@@ -138,16 +139,76 @@ step was of a dependents-bearing parent is not established; no carry resulted.
 `LIST_TYPE_MOVEMENT_DEPENDENT`) are excluded from task assignment, so a shipped campaign does not
 move them and no natural carry is expected. The run is consistent with that and does not prove it.
 
-**Not achieved.** Producing a real carry needs either a scenario edit (a moving parent) or a
-test-only driver hook, both of which change scenario data or add an API and were not done without a
-lead decision. Until then, the position, helicopter, nested and guard shapes are covered only by the
-Rust host tests and the Lua boundary test, which emulate the notification, and must not be presented
-as native acceptance. Raw logs are kept outside git.
+**Not achieved by those probes.** Zero carries is not acceptance: the probes show no carry occurred,
+not that carries are correct. R2 was closed with the controlled fixture below instead.
+
+## Controlled fixture (R2): genuine C handlers, test-only driver
+
+**Route.** A shipped campaign never moves a carrier, so the fixture arranges the parent/child pair.
+Scenario data was not edited. Test-only features `eech-dc/dependent-fixture` and
+`eech-dc/dependent-fixture-old-guard` (never in the shipping build, never labelled as it) add one
+gated C function and Lua method, `engine:dependent_fixture(op, parent, child, x, y, z)`, at the
+existing module boundary; the production API and production C are unchanged without the feature.
+Ops: `link` re-inserts an existing hosted entity of the booted Lebanon campaign into the parent's
+original `LIST_TYPE_MOVEMENT_DEPENDENT` list; `move` calls the original
+`set_local_entity_vec3d(parent, POSITION)`; `sink` calls the original `ship_vehicle_death_movement`.
+Everything after that is the unmodified path: the parent setter's
+`notify_local_entity(SET_ENTITY_POSITION)`, the original child handlers (`rv/aa/ps/hc_msgs.c`),
+`campaign_movement_dependent_carry` and the reference host's callbacks (`dependent_carry` steps
+answered by the real host arithmetic). No handler is replaced by Rust or Lua. The driver is called
+from `crates/eech-world/lua/dependent-fixture.lua`, which records every step and compares
+`engine:objects()` positions (DLL) with the positions the host last returned.
+
+**Red.** `dependent-fixture-old-guard` rewrites only the staged copy of `rv_hostmv.c` to the old
+boolean guard (`applying_host_result = 1` / `= 0`). The repository source, the PR98 candidate and
+accepted references are untouched.
+
+Builds at commit `c9cb51a3dd2fbf4130fc59323fa2e255d2905a28`, no uncommitted build inputs, pinned
+image, new volumes `eech-dep-fix-green-g2` / `eech-dep-fix-red-old-guard-r2`, all exits 0: green
+`eech_dc.dll` `5cae0903...34c7`, red `a09ade2a...f396` (test builds); `eech-world.exe` and `lua.dll`
+as in the native build above. Summaries:
+`reference/m5-dependent-positioning/native/fixture-{green,red-old-guard}.summary.txt`.
+
+| Build | Exit | Carries | Refused | Checks | Failed |
+|---|---|---|---|---|---|
+| green (fixed guard) | 0 | 43 | 0 | 34 | 0 |
+| red (old boolean guard) | 1 | 43 | 0 | 34 | 3 |
+
+**Observed (green).** Parent = hosted ship 83133; each shape reached through the real handlers:
+- position: a routed child under the ship is carried once to `parent_new` (host = DLL). Six
+  pre-existing campaign dependents of that ship were carried too (real carries, included in totals).
+- helicopter: horizontal offset kept to 0.0017, height to 0.00003, heading = parent heading. With a
+  rotated parent (heading -2.07) the host result matches the original handler's formula to 0.001,
+  the offset is turned rather than copied, heading = parent heading, host = DLL.
+- chain: a grandchild under the carried child: the child's carry precedes the grandchild's, the
+  grandchild lands on the child's new position, no campaign `place` of a carried id in the same
+  operation (`chain.no_place_after_carry`), and a second move after the nested application still
+  reaches the parent's own `place` and carries the chain again (`guard.restored_after_chain`).
+- sink: original `ship_vehicle_death_movement`, 9 carries, every carry's parent the ship or the
+  carried child, no spurious `place`, host and DLL agree for child, helicopter, grandchild, parent.
+
+**Observed (red).** The same script fails exactly the guard checks: `chain.no_place_after_carry`
+(1), `guard.restored_after_chain`, `sink.no_place_after_carry` (1). The position, helicopter,
+rotation and agreement checks still pass under the old guard, so the failures are the guard defect
+and not a fixture artefact. A first red attempt failed for a setup reason (the feature did not
+expose the driver method: `attempt to call method 'dependent_fixture' (a nil value)`); fixed in
+`c9cb51a3` and not counted.
+
+**Limits.**
+- `link` is an artificial arrangement (routed under a ship, helicopter under a routed vehicle,
+  grandchild under the routed child): the relationships exist in the original list types but the
+  campaign would not make them. It mutates the copied campaign's lists only.
+- Depth beyond two levels, a hosted child of an unhosted parent, the `debug_fatal`
+  unsupported-child path and the non-host (retail) C build were not exercised or compiled.
+- Nested application is shown by order and by the guard outcome, not by a call-stack depth reading.
+- The fixture is a bounded 30-frame warm-up of the Lebanon campaign, not the established
+  deterministic pack or Tacview evidence, which remain pending.
+- The dev build used while writing the fixture came from a dirty tree and is not evidence.
 
 ## Pending and not claimed
 
-- R2: a real public Lua -> native module -> world parent/child carry through the actual C handlers
-  (needs a lead decision, above).
+- R2: closed for the fixture route above (genuine handlers through the public module, artificial
+  linking, bounded scenario); the established deterministic pack and Tacview evidence remain.
 - The non-host (retail) DLL C build.
 - The established deterministic regression pack, Tacview evidence (`windows-retail v1` baseline)
   and the census are required before delivery and are pending; PR98's runs are live. No baseline
