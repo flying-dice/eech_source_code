@@ -297,7 +297,7 @@ static void kill_local (entity *en)
 		*raw;
 
 	int
-		losses;
+		loss_decision;
 
 	entity
 		*task,
@@ -347,9 +347,11 @@ static void kill_local (entity *en)
 
 	ASSERT (group);
 
-	if (campaign_roster_observe_physical_loss (en, group) != CAMPAIGN_LOSS_FORWARD)
+	loss_decision = campaign_roster_observe_physical_loss (en, group);
+
+	if ((loss_decision != CAMPAIGN_LOSS_FORWARD) && (loss_decision != CAMPAIGN_LOSS_WITHHOLD))
 	{
-		debug_fatal ("campaign loss: person withholding is unsupported");
+		debug_fatal ("campaign loss: invalid person loss decision %d", loss_decision);
 	}
 
 	//
@@ -359,13 +361,10 @@ static void kill_local (entity *en)
 	// kept inline, as is the task notification below: that notification passes
 	// no task_terminated argument, which the TASK_COMPLETED response reads with
 	// va_arg (ts_msgs.c), so it reads whatever the argument register holds at
-	// the call. The code leading up to the call is kept unchanged.
+	// the call. The notification loop is kept unchanged and ungated: a withheld
+	// person has no task dependents, so it sends nothing for one.
 
-	losses = get_local_entity_int_value (group, INT_TYPE_LOSSES);
-
-	losses ++;
-
-	set_local_entity_int_value (group, INT_TYPE_LOSSES, losses);
+	campaign_roster_loss_phase (en, group, loss_decision, CAMPAIGN_LOSS_PHASE_GROUP_LOSS);
 
 	////////////////////////////////////////
 	//
@@ -478,7 +477,7 @@ static void kill_local (entity *en)
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
-		notify_group_member_killed (group, en);
+		campaign_roster_loss_phase (en, group, loss_decision, CAMPAIGN_LOSS_PHASE_MEMBER_KILLED);
 	}
 
 	////////////////////////////////////////

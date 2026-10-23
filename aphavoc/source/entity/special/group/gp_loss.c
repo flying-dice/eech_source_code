@@ -70,6 +70,67 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void apply_member_loss_phase (entity *member, entity *group, int phase)
+{
+	switch (phase)
+	{
+		case CAMPAIGN_LOSS_PHASE_FORCE_INFO:
+		{
+			remove_from_force_info (get_local_force_entity ((entity_sides) get_local_entity_int_value (member, INT_TYPE_SIDE)), member);
+			break;
+		}
+		case CAMPAIGN_LOSS_PHASE_REGEN:
+		{
+			add_entity_to_regen_queue
+			(
+				(entity_sides) get_local_entity_int_value (member, INT_TYPE_SIDE),
+				get_local_entity_type (member),
+				get_local_entity_int_value (member, INT_TYPE_ENTITY_SUB_TYPE),
+				get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE)
+			);
+			break;
+		}
+		case CAMPAIGN_LOSS_PHASE_MEMBER_TASKS:
+		{
+			notify_member_task_dependents_completed (member);
+			break;
+		}
+		case CAMPAIGN_LOSS_PHASE_LANDING:
+		{
+			release_mobile_entity_landing_locks (member);
+			break;
+		}
+		case CAMPAIGN_LOSS_PHASE_GROUP_LOSS:
+		{
+			increment_group_losses (group);
+			break;
+		}
+		case CAMPAIGN_LOSS_PHASE_TASK_LOSS:
+		{
+			increment_group_primary_task_losses (group);
+			break;
+		}
+		case CAMPAIGN_LOSS_PHASE_MEMBER_KILLED:
+		{
+			notify_group_member_killed (group, member);
+			break;
+		}
+		case CAMPAIGN_LOSS_PHASE_OBJECTIVES:
+		{
+			notify_forces_check_campaign_objectives (member);
+			break;
+		}
+		default:
+		{
+			debug_fatal ("campaign loss: unknown loss phase %d", phase);
+		}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void notify_member_task_dependents_completed (entity *member)
 {
 	entity

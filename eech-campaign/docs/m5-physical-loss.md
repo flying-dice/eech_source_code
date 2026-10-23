@@ -138,6 +138,67 @@ scenario does not produce. The roster count (receipt before/after fields) is a
 membership observation, not proof that a decision changed. No policy constant,
 force outcome or scenario was altered to manufacture one.
 
+## The other five families (EEDCS-41)
+
+All six destroy files (helicopter included) now hand their campaign consequences
+to the DLL by host identity instead of gating the original inline calls on
+FORWARD. Each `kill_local` calls `campaign_roster_observe_physical_loss`, then
+calls `campaign_roster_loss_phase (entity, group, decision, phase)` at the points
+where the original code ran each consequence, with the physical work (death,
+sector removal, UI, Tacview, the ship's keysite kill, the person's
+`TASK_COMPLETED` loop and the helicopter player paths) left in place and unchanged.
+The phases are `FORCE_INFO`, `REGEN`, `MEMBER_TASKS`, `LANDING`, `GROUP_LOSS`,
+`TASK_LOSS`, `MEMBER_KILLED` and `OBJECTIVES`; a family calls only those its
+original code ran:
+
+| Family | Phases at the original interleave points |
+|---|---|
+| fixed-wing, routed | force info; (server) regen, member tasks, landing; group loss, task loss; (server) member-killed |
+| ship | as above without regen |
+| anti-air | force info; (server) member tasks, landing; group loss; (server) member-killed |
+| person | group loss (early, before its unlinks); (server) member-killed |
+| helicopter | force info; (server) regen; member tasks, landing, group loss, task loss; (server) member-killed, objectives |
+
+On FORWARD a phase runs the shared value leaf at once (same stack, order, timing,
+no added random draw) and the DLL enforces strictly ascending phase order per
+loss: an out-of-order or repeated phase is a `debug_fatal`. On WITHHOLD the phase
+call is a no-op; the pending record owns the phases and
+`engine:report_loss(host_id)` runs them once from a value copy, re-resolving
+entities from private generation keys. The non-roster build maps the phase call
+straight to the original helper (`group.h`). An answer that is neither forward nor
+withhold is a `debug_fatal`.
+
+A withheld report for the bounded families applies the same leaves in the
+original FORWARD order:
+
+| Family | Report order after the host's identity loss report |
+|---|---|
+| fixed-wing, routed | force info, regen, logical unlink, group losses, primary-task losses (when a primary task was recorded), group member-killed |
+| ship | as above without regen |
+| anti-air | force info, logical unlink, group losses, group member-killed |
+| person | logical unlink, group losses, group member-killed (no force info) |
+
+The helicopter SUPPLY case, its receipt, tombstone and stale/duplicate protections
+are unchanged, and it keeps the force objective check. The bounded families skip
+`check_all_force_campaign_objectives`.
+
+Bounded shape: an AI, non-landed member of a group with at least two logical and
+two physical members and no final-member, task-dependent, restricted-guide,
+movement parent/dependent, takeoff-queue, member-task-dependent, landing, or
+credited-aggression state. Anything else fails explicitly at the observe step
+(`begin_bounded_pending_loss`), including a final member (`final member`), a
+player, an invalid force category, and a duplicate or incomplete pending record.
+CREDIT withholding stays fatal. A report requires the host to have retired the
+dead wreck first (`!physical_present && !in_group && loss_pending`); the host ages
+the wreck, 5 minutes to 3 hours of game time by distance to the nearest keysite,
+so a report earlier than that is fatal.
+
+Not covered: save/restore, a group freed while a loss is pending, the delay
+robustness of a late report, ship keysite/carrier exclusions, and the person's
+variadic `TASK_COMPLETED` loop (unchanged). Force-info and regen effects are not
+visible through the Lua API; they are covered only by FORWARD-exactness pack
+evidence and by the order in code.
+
 ## Known incomplete boundary
 
 The physical readers above still observe physical removal before a withheld loss
@@ -148,8 +209,9 @@ Save/restore of pending loss records and of logical membership is unsupported.
 A FORWARD final kill of a group while another member's loss is still withheld
 (a group freed with a pending loss) is uncharacterised and unsupported; the
 `begin_pending_loss` guard covers only a WITHHOLD final member. Six entity
-families retain different consequence sets; only helicopter SUPPLY withholding is
-enabled and the other five families continue to reject WITHHOLD. DCS mapping and
+families retain different consequence sets; helicopter SUPPLY and the bounded
+shape of the other five families (see above) enable WITHHOLD, and every other
+shape rejects it. DCS mapping and
 actual DCS operation remain future evidence. A passing reference-host run
 demonstrates the bounded causal cut only.
 

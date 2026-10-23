@@ -74,6 +74,28 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// The campaign consequences of one member's physical loss, as phases. Each family's
+// kill_local names the phase at the point its original inline code ran, so the
+// interleaving with the physical work is unchanged; the campaign decides here whether
+// the phase runs now (the host forwarded the loss) or at the host's report (withheld).
+// Phases of one member are applied at most once and in ascending order.
+
+typedef enum campaign_loss_phase
+{
+	CAMPAIGN_LOSS_PHASE_FORCE_INFO = 1,
+	CAMPAIGN_LOSS_PHASE_REGEN,
+	CAMPAIGN_LOSS_PHASE_MEMBER_TASKS,
+	CAMPAIGN_LOSS_PHASE_LANDING,
+	CAMPAIGN_LOSS_PHASE_GROUP_LOSS,
+	CAMPAIGN_LOSS_PHASE_TASK_LOSS,
+	CAMPAIGN_LOSS_PHASE_MEMBER_KILLED,
+	CAMPAIGN_LOSS_PHASE_OBJECTIVES
+} campaign_loss_phase;
+
+// the live-entity consequence of one phase; the immediate (forwarded) loss path
+
+extern void apply_member_loss_phase (entity *member, entity *group, int phase);
+
 // a lost member's consequences
 
 extern void notify_member_task_dependents_completed (entity *member);

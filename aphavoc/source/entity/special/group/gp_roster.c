@@ -26,6 +26,8 @@ typedef struct campaign_member_record
 	int active;
 	int counted;
 	int loss_forwarded;
+	/* Last campaign_loss_phase applied on the forwarded path; phases are applied once, in ascending order. */
+	int loss_phase;
 } campaign_member_record;
 
 typedef struct campaign_entity_reference_record
@@ -50,6 +52,7 @@ typedef struct campaign_pending_loss
 	uint64_t member_key;
 	uint64_t group_reference_key;
 	uint64_t primary_task_key;
+	int primary_task_sub_type;
 	int side;
 	int entity_type;
 	int sub_type;
@@ -436,6 +439,84 @@ static void capture_landing_actions (entity *member, entity *group, campaign_los
 	}
 }
 
+static int is_bounded_family (int entity_type)
+{
+	return (entity_type == ENTITY_TYPE_FIXED_WING) || (entity_type == ENTITY_TYPE_ROUTED_VEHICLE) ||
+		(entity_type == ENTITY_TYPE_ANTI_AIRCRAFT) || (entity_type == ENTITY_TYPE_PERSON) ||
+		(entity_type == ENTITY_TYPE_SHIP_VEHICLE);
+}
+
+/*
+ * The other five force families withhold only the plainest loss: an AI member of
+ * a group that keeps at least one other physical member, with no task dependents,
+ * landing actions, guide, movement or takeoff-queue relations of its own or its
+ * group's.  Every other shape is a fatal, named refusal; none is approximated.
+ */
+static void begin_bounded_pending_loss (entity *group, campaign_member_record *member_record, const campaign_loss_descriptor *descriptor)
+{
+	campaign_pending_loss *pending;
+	int needs_force_info = descriptor->entity_type != ENTITY_TYPE_PERSON;
+
+	if ((descriptor->player != ENTITY_PLAYER_AI) || descriptor->landed)
+	{
+		debug_fatal ("campaign loss: WITHHOLD supports only an AI member that is not landed");
+	}
+	if (descriptor->campaign_member_count <= 1)
+	{
+		debug_fatal ("campaign loss: WITHHOLD does not support the final member of a group");
+	}
+	if (descriptor->group_task_dependents || descriptor->restricted_guides)
+	{
+		debug_fatal ("campaign loss: WITHHOLD does not support a group with task dependents or restricted guides");
+	}
+	if (descriptor->movement_parent || descriptor->movement_dependents || descriptor->takeoff_queue)
+	{
+		debug_fatal ("campaign loss: WITHHOLD does not support a member with movement or takeoff-queue relations");
+	}
+	if (descriptor->member_task_dependent_count || descriptor->member_task_dependent_copied)
+	{
+		debug_fatal ("campaign loss: WITHHOLD does not support a member with task dependents");
+	}
+	if (descriptor->landing_action_count || descriptor->landing_action_copied)
+	{
+		debug_fatal ("campaign loss: WITHHOLD does not support a member with landing actions");
+	}
+	if (needs_force_info &&
+		((descriptor->force_info_category < 0) || (descriptor->force_info_category >= NUM_FORCE_INFO_CATAGORIES)))
+	{
+		debug_fatal ("campaign loss: invalid force information category %d", descriptor->force_info_category);
+	}
+	if (find_pending_loss (descriptor->host_id) || member_record->loss_pending)
+	{
+		debug_fatal ("campaign loss: duplicate or incomplete pending loss for %s", descriptor->host_id);
+	}
+	if (member_record->credit_observed)
+	{
+		debug_fatal ("campaign loss: WITHHOLD does not support a member with credited aggression");
+	}
+	if (get_local_entity_int_value (group, INT_TYPE_MEMBER_COUNT) <= 1)
+	{
+		debug_fatal ("campaign loss: WITHHOLD does not support the final physical member of a group");
+	}
+
+	ensure_pending_loss_capacity ();
+	pending = &pending_losses[pending_loss_count++];
+	memset (pending, 0, sizeof (*pending));
+	strcpy (pending->host_id, descriptor->host_id);
+	pending->member_key = descriptor->member_key;
+	pending->group_reference_key = campaign_reference_key (group);
+	pending->primary_task_key = descriptor->primary_task_key;
+	pending->primary_task_sub_type = descriptor->primary_task_sub_type;
+	pending->side = descriptor->side;
+	pending->entity_type = descriptor->entity_type;
+	pending->sub_type = descriptor->sub_type;
+	pending->group_sub_type = descriptor->group_sub_type;
+	pending->group_member_number = descriptor->group_member_number;
+	pending->force_info_category = needs_force_info ? descriptor->force_info_category : -1;
+	pending->state = CAMPAIGN_PENDING_LOSS_ACTIVE;
+	member_record->loss_pending = TRUE;
+}
+
 static void begin_pending_loss (entity *group, campaign_member_record *member_record, const campaign_loss_descriptor *descriptor)
 {
 	campaign_pending_loss *pending;
@@ -443,6 +524,11 @@ static void begin_pending_loss (entity *group, campaign_member_record *member_re
 	int waypoint_count = 0;
 	int i;
 
+	if (is_bounded_family (descriptor->entity_type))
+	{
+		begin_bounded_pending_loss (group, member_record, descriptor);
+		return;
+	}
 	if ((descriptor->entity_type != ENTITY_TYPE_HELICOPTER) ||
 		(descriptor->primary_task_sub_type != ENTITY_SUB_TYPE_TASK_SUPPLY) ||
 		(descriptor->player != ENTITY_PLAYER_AI) || descriptor->landed ||
@@ -514,6 +600,7 @@ static void begin_pending_loss (entity *group, campaign_member_record *member_re
 	pending->member_key = descriptor->member_key;
 	pending->group_reference_key = campaign_reference_key (group);
 	pending->primary_task_key = descriptor->primary_task_key;
+	pending->primary_task_sub_type = descriptor->primary_task_sub_type;
 	pending->side = descriptor->side;
 	pending->entity_type = descriptor->entity_type;
 	pending->sub_type = descriptor->sub_type;
@@ -981,6 +1068,41 @@ int campaign_roster_observe_physical_loss (entity *member, entity *group)
 	return observe_loss_event (member, group, CAMPAIGN_LOSS_EVENT_PHYSICAL);
 }
 
+/*
+ * The campaign's decision point for one phase of a member's physical loss.  The
+ * family's kill_local calls this where its original inline consequence ran.  A
+ * withheld loss applies nothing here: campaign_roster_report_loss owns every
+ * phase.  A forwarded loss applies the phase now, in the caller's own order, and
+ * that order is checked: a repeated or out-of-order phase is fatal rather than
+ * silently reordering campaign consequences.  The record is updated before the
+ * action, and no pointer into the registry is held across it.
+ */
+void campaign_roster_loss_phase (entity *member, entity *group, int decision, int phase)
+{
+	campaign_member_record *record;
+
+	if (decision == CAMPAIGN_LOSS_WITHHOLD)
+	{
+		return;
+	}
+	if (decision != CAMPAIGN_LOSS_FORWARD)
+	{
+		debug_fatal ("campaign loss: invalid loss decision %d for phase %d", decision, phase);
+	}
+	record = record_for_member (member);
+	if (!record->loss_forwarded || record->loss_pending)
+	{
+		debug_fatal ("campaign loss: phase %d applied without a forwarded loss for %s", phase, record->host_id);
+	}
+	if (phase <= record->loss_phase)
+	{
+		debug_fatal ("campaign loss: phase %d is repeated or out of order after phase %d for %s", phase, record->loss_phase, record->host_id);
+	}
+	record->loss_phase = phase;
+	record = NULL;
+	apply_member_loss_phase (member, group, phase);
+}
+
 void campaign_roster_record_task_termination (entity *task, int termination_reason)
 {
 	campaign_entity_reference_record *reference;
@@ -1062,6 +1184,139 @@ int campaign_roster_has_pending_loss (void)
 	return FALSE;
 }
 
+/*
+ * Reports a withheld loss of a fixed-wing aircraft, routed vehicle, anti-aircraft
+ * vehicle, person or ship.  The consequences are those the family's kill_local runs
+ * inline on FORWARD, in the same order: force information, regen queue (fixed-wing,
+ * routed vehicle), the logical unlink, group losses, primary task losses (fixed-wing,
+ * routed vehicle, ship), then the group's member-killed handling.  A member with no
+ * task dependents and no landing actions has nothing to complete or release, which
+ * the withhold gate guarantees.  The lifetime rule of campaign_roster_report_loss
+ * applies: only the value copy is held, and entities are re-resolved before use.
+ */
+static void report_bounded_loss (const char *host_id, const campaign_pending_loss *plan, campaign_loss_report_receipt *receipt)
+{
+	campaign_member_record *member_record;
+	entity *group;
+	entity *primary_task;
+	int counts_task_losses = (plan->entity_type == ENTITY_TYPE_FIXED_WING) ||
+		(plan->entity_type == ENTITY_TYPE_ROUTED_VEHICLE) || (plan->entity_type == ENTITY_TYPE_SHIP_VEHICLE);
+	int queues_regen = (plan->entity_type == ENTITY_TYPE_FIXED_WING) || (plan->entity_type == ENTITY_TYPE_ROUTED_VEHICLE);
+	int has_force_info = plan->entity_type != ENTITY_TYPE_PERSON;
+	int group_losses_before;
+	int group_losses_after;
+	int task_losses_before = 0;
+	int task_losses_after = 0;
+	int logical_members_before;
+	int logical_members_after;
+	int physical_members_before;
+
+	group = campaign_reference_resolve (plan->group_reference_key, ENTITY_TYPE_GROUP);
+	if (get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE) != plan->group_sub_type)
+	{
+		debug_fatal ("campaign loss: group changed before report for %s", host_id);
+	}
+	if ((plan->group_member_number < 0) ||
+		(plan->group_member_number >= (int) (sizeof (unsigned int) * 8)))
+	{
+		debug_fatal ("campaign loss: invalid group member number %d for %s", plan->group_member_number, host_id);
+	}
+	if (plan->primary_task_key)
+	{
+		primary_task = campaign_reference_resolve (plan->primary_task_key, ENTITY_TYPE_TASK);
+		if (get_local_entity_int_value (primary_task, INT_TYPE_ENTITY_SUB_TYPE) != plan->primary_task_sub_type)
+		{
+			debug_fatal ("campaign loss: primary task changed before report for %s", host_id);
+		}
+		if (counts_task_losses)
+		{
+			task_losses_before = get_local_entity_int_value (primary_task, INT_TYPE_LOSSES);
+		}
+	}
+	group_losses_before = get_local_entity_int_value (group, INT_TYPE_LOSSES);
+	member_record = find_member_record (plan->member_key);
+	if (!member_record || member_record->physical_present || member_record->in_group || !member_record->loss_pending)
+	{
+		debug_fatal ("campaign loss: physical member is not durably released for %s", host_id);
+	}
+	group = NULL;
+	primary_task = NULL;
+	member_record = NULL;
+
+	if (has_force_info)
+	{
+		remove_from_force_info_values
+		(
+			get_local_force_entity ((entity_sides) plan->side),
+			(entity_sub_types) plan->group_sub_type,
+			plan->force_info_category
+		);
+	}
+	if (queues_regen)
+	{
+		add_entity_to_regen_queue
+		(
+			(entity_sides) plan->side,
+			(entity_types) plan->entity_type,
+			(entity_sub_types) plan->sub_type,
+			(entity_sub_types) plan->group_sub_type
+		);
+	}
+
+	/* The logical-unlink phase: after the member-bound consequences, before the group loss. */
+	group = campaign_reference_resolve (plan->group_reference_key, ENTITY_TYPE_GROUP);
+	logical_members_before = campaign_roster_group_member_count (group);
+	physical_members_before = get_local_entity_int_value (group, INT_TYPE_MEMBER_COUNT);
+	member_record = find_member_record (plan->member_key);
+	if (!member_record)
+	{
+		debug_fatal ("campaign loss: member record vanished during report for %s", host_id);
+	}
+	member_record->loss_pending = FALSE;
+	member_record->active = FALSE;
+	update_logical_membership (member_record, member_record->group_key);
+	member_record = NULL;
+	logical_members_after = campaign_roster_group_member_count (group);
+
+	increment_group_losses (group);
+	group_losses_after = get_local_entity_int_value (group, INT_TYPE_LOSSES);
+
+	if (counts_task_losses && plan->primary_task_key)
+	{
+		primary_task = campaign_reference_resolve (plan->primary_task_key, ENTITY_TYPE_TASK);
+		increment_task_losses (primary_task);
+		task_losses_after = get_local_entity_int_value (primary_task, INT_TYPE_LOSSES);
+	}
+
+	/* Frees the group when this was its last physical member; group is dead afterwards. */
+	group = campaign_reference_resolve (plan->group_reference_key, ENTITY_TYPE_GROUP);
+	apply_group_member_killed (group, 1U << plan->group_member_number);
+	group = NULL;
+	primary_task = NULL;
+
+	debug_log
+	(
+		"campaign loss: reported %s group_losses=%d->%d primary_task_losses=%d->%d",
+		host_id,
+		group_losses_before,
+		group_losses_after,
+		task_losses_before,
+		task_losses_after
+	);
+
+	require_pending_loss (host_id)->state = CAMPAIGN_PENDING_LOSS_REPORTED;
+
+	/* Filled only now, after every fatal check: a failed report leaves the caller's receipt untouched. */
+	memset (receipt, 0, sizeof (*receipt));
+	receipt->group_losses_before = group_losses_before;
+	receipt->group_losses_after = group_losses_after;
+	receipt->primary_task_losses_before = task_losses_before;
+	receipt->primary_task_losses_after = task_losses_after;
+	receipt->group_logical_members_before = logical_members_before;
+	receipt->group_logical_members_after = logical_members_after;
+	receipt->group_physical_members_before = physical_members_before;
+}
+
 int campaign_roster_report_loss (const char *host_id, campaign_loss_report_receipt *receipt)
 {
 	/*
@@ -1111,6 +1366,12 @@ int campaign_roster_report_loss (const char *host_id, campaign_loss_report_recei
 	}
 	plan = *pending;
 	pending = NULL;
+
+	if (is_bounded_family (plan.entity_type))
+	{
+		report_bounded_loss (host_id, &plan, receipt);
+		return TRUE;
+	}
 
 	group = campaign_reference_resolve (plan.group_reference_key, ENTITY_TYPE_GROUP);
 	primary_task = campaign_reference_resolve (plan.primary_task_key, ENTITY_TYPE_TASK);
