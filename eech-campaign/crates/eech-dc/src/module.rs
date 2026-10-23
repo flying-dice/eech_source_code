@@ -400,7 +400,7 @@ impl LuaUserData for LuaEngine {
                 .frame(milliseconds, &mut binder, &mut observer, &mut reach, &mut mover)
                 .map_err(lua_error)
         });
-        // TEST-ONLY (feature `dependent-fixture`, EEDCS-40): not part of the shipping module.
+        // TEST-ONLY (feature `loss-fixture`, EEDCS-41): not part of the shipping module.
         #[cfg(feature = "loss-fixture")]
         methods.add_method("loss_fixture", |lua, this, entity_id: i32| {
             let bind_mobile = this.bind_mobile.clone();
@@ -415,6 +415,7 @@ impl LuaUserData for LuaEngine {
                 .loss_fixture(entity_id, &mut binder, &mut observer, &mut reach, &mut mover)
                 .map_err(lua_error)
         });
+        // TEST-ONLY (feature `dependent-fixture`, EEDCS-40): not part of the shipping module.
         #[cfg(feature = "dependent-fixture")]
         methods.add_method(
             "dependent_fixture",

@@ -32,7 +32,7 @@
 -- reject=duplicate|forwarded|unknown (witness mode, optional): after the last family, one rejected report: the A already
 --            reported, the FORWARD control B (no loss is pending for it), or an id the campaign never saw. It must raise.
 --            A rejected report is fatal to the engine, so a run carries at most one.
--- host.args: root, mode, warmup (default 30 frames), frame_ms (default 100), settle_ms (default 1000, the frame step while a wreck ages),
+-- host.args: root, mode, warmup (default 30 frames) of warmup_ms (default frame_ms; a long warmup lets fixed-wing and ships leave the ground/port), frame_ms (default 100), settle_ms (default 1000, the frame step while a wreck ages),
 --            settle_limit (default 12000 frames), families (default fixed_wing,routed,anti_air,person,ship),
 --            candidates (default 40 tries per family), reject
 
@@ -44,6 +44,7 @@ local mode = args.mode or "witness"
 assert (mode == "witness" or mode == "negative", "mode=witness|negative")
 local frame_ms = tonumber (args.frame_ms or "100")
 local warmup = tonumber (args.warmup or "30")
+local warmup_ms = tonumber (args.warmup_ms or args.frame_ms or "100")
 local settle_ms = tonumber (args.settle_ms or "1000")
 local settle_limit = tonumber (args.settle_limit or "12000")
 local max_tries = tonumber (args.candidates or "40")
@@ -121,7 +122,7 @@ local engine = dc.boot ({
 	observe_loss = observe_loss,
 	supply_reached = host.supply_reached,
 })
-for _ = 1, warmup do engine:frame (frame_ms) end
+for _ = 1, warmup do engine:frame (warmup_ms) end
 
 local failures = {}
 local function check (name, ok, detail)
@@ -231,7 +232,7 @@ local withheld = {}   -- one entry per family whose member was withheld, in fami
 for _, family in ipairs (order) do
 	local skipped, done, tried, tries = {}, nil, {}, 0
 	while not done and tries < max_tries do
-		local candidate = candidates_of (family, 3, tried) [1]
+		local candidate = candidates_of (family, 2, tried) [1] -- 2: a lone member is the final member, which is unsupported
 		if not candidate then break end
 		tries = tries + 1
 		tried [candidate.member.host_id] = true
@@ -269,9 +270,10 @@ for _, family in ipairs (order) do
 
 		-- FORWARD control B of the same group, answered by the reference host while A is pending
 		local forwarded = 0
-		local control = same_group (family, group_key, tried)
+		-- run only when a member survives it: forwarding the second-to-last member while A is pending would free the group
+		local control = n >= 3 and same_group (family, group_key, tried) or nil
 		if not control then
-			print (string.format ("note\t%s\tno second member of the group for the forward control", family))
+			print (string.format ("note\t%s\tno forward control (group of %d members at observe)", family, n))
 		else
 			tried [control.member.host_id] = true
 			local ok, message, control_id = kill (control, "control")
