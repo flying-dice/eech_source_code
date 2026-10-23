@@ -1,0 +1,62 @@
+test movement::tests::the_hosted_requests_belong_to_helicopters_and_the_answer_is_cleared_each_step ... ok
+test movement::tests::the_keysite_range_is_asked_for_only_on_a_gated_frame_and_the_ask_changes_nothing ... ok
+test movement::tests::the_host_ignores_the_height_the_campaign_supplied_and_keeps_its_horizontal_waypoint ... ok
+test movement::tests::the_map_volume_bounds_the_position ... ok
+test movement::tests::the_members_of_a_group_leader_and_a_task_leaders_missing_leader_are_not_read ... ok
+test movement::tests::the_shaped_height_not_the_campaigns_reaches_the_flight ... ok
+test movement::tests::the_lookahead_query_answers_the_hosts_own_point_and_changes_nothing ... ok
+test movement::tests::the_lookahead_point_follows_the_hosts_pose_not_the_campaigns ... ok
+test movement::tests::the_lookahead_query_is_for_fixed_wing_subjects_only ... ok
+test movement::tests::the_terrain_face_and_the_fuselage_angle_shape_the_host_attitude ... ok
+test movement::tests::the_threshold_follows_the_squared_range_to_the_nearest_keysite ... ok
+test movement::tests::the_next_step_flies_from_the_vector_the_host_answered ... ok
+test movement::tests::turning_towards_a_waypoint_reports_the_rotation ... ok
+test movement::tests::the_vehicle_steps_belong_to_their_own_kinds ... ok
+test movement::tests::the_leader_is_resolved_only_where_the_heading_follows_it_and_a_refusal_keeps_the_step_open ... ok
+test tacview::tests::writes_a_well_formed_acmi ... ok
+test movement::tests::the_phases_are_ordered_and_a_stale_or_unchecked_guidance_cannot_begin ... ok
+test movement::tests::the_other_aircrafts_host_positions_decide_the_avoidance_not_anything_the_campaign_sends ... ok
+test movement::tests::the_retained_contact_altitude_buries_and_the_fresh_cg_only_sets_the_final_height_over_a_splash_place ... ok
+test movement::tests::the_tumble_step_hands_the_helper_the_draws_it_received_in_double ... ok
+test movement::tests::the_wing_death_attitude_forms_its_roll_draw_in_double_end_to_end ... ok
+test result: ok. 136 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+running 18 tests
+test exact_number_tests::a_fixed_wing_phase_must_be_exactly_one_of_the_four_integers ... ok
+test exact_number_tests::narrowing_picks_the_nearest_f32_at_the_edges ... ok
+test exact_number_tests::a_missing_wrong_shaped_or_non_finite_field_is_refused_by_name ... ok
+test exact_number_tests::the_value_read_loses_what_the_exact_read_keeps ... ok
+test supply_reached_tests::fixed_wing_ignores_helicopter_altitude_and_heading ... ok
+test supply_reached_tests::fixed_wing_physical_boundaries ... ok
+test supply_reached_tests::follower_requires_the_last_to_reach_criterion ... ok
+test supply_reached_tests::action_and_recon_queries ... ok
+test supply_reached_tests::helicopter_missing_target_is_reported_only_where_the_original_asserts ... ok
+test supply_reached_tests::helicopter_leader_altitude_and_heading_gates ... ok
+test supply_reached_tests::standard_forms_match_the_legacy_expressions_bit_for_bit ... ok
+test supply_reached_tests::helicopter_physical_boundaries ... ok
+test supply_reached_tests::radius_arrival_keeps_the_same_physical_boundaries ... ok
+test supply_reached_tests::helicopter_required_heading_follows_the_original_source_rules ... ok
+test supply_reached_tests::weapon_angle_is_reported_only_when_the_rule_applies ... ok
+test supply_reached_tests::vehicle_kinds_share_landed_radius_and_altitude_without_a_cog_term ... ok
+test exact_number_tests::a_double_read_keeps_every_bit_a_float_read_would_narrow ... ok
+test exact_number_tests::a_scalar_and_an_array_keep_every_bit_under_either_rounding_mode ... ok
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+running 3 tests
+test move_vehicle_refuses_an_unknown_id_a_foreign_pose_and_an_unknown_mode ... ok
+test the_hosted_helicopter_plan_guide_and_abandon_round_trip_through_lua ... ok
+test a_failing_host_callback_returns_its_error_to_pcall ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+running 2 tests
+test require_loads_the_dc_dll ... ok
+test a_failing_dc_callback_returns_its_error_to_pcall ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+   Doc-tests eech_dc
+running 0 tests
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+   Doc-tests eech_engine
+running 0 tests
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+   Doc-tests eech_world
+running 0 tests
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+EXIT=0
+docker exit=0

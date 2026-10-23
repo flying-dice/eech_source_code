@@ -501,6 +501,12 @@ static int response_to_set_entity_position (entity_messages message, entity *rec
 
 	velocity = (float) va_arg (pargs, double);
 
+	// EEDCS-40: a hosted dependent of a hosted parent is positioned by the host; otherwise the original code below runs
+	if (campaign_movement_dependent_carry (receiver, sender, position, heading, velocity))
+	{
+		return (TRUE);
+	}
+
 	parent_position = get_local_entity_vec3d_ptr (sender, VEC3D_TYPE_POSITION);
 
 	delta_position.x = raw->ac.mob.position.x - parent_position->x;

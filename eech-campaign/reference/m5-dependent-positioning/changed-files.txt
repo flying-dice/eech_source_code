@@ -1,0 +1,16 @@
+EEDCS-40 changed files (base 6e837440)
+M aphavoc/source/entity/mobile/aircraft/helicop/hc_msgs.c
+M aphavoc/source/entity/mobile/vehicle/anti_air/aa_msgs.c
+M aphavoc/source/entity/mobile/vehicle/person/ps_msgs.c
+M aphavoc/source/entity/mobile/vehicle/routed/rv_hostmv.c
+M aphavoc/source/entity/mobile/vehicle/routed/rv_hostmv.h
+M aphavoc/source/entity/mobile/vehicle/routed/rv_msgs.c
+M eech-campaign/crates/eech-engine-sys/src/lib.rs
+M eech-campaign/crates/eech-engine/src/lib.rs
+M eech-campaign/crates/eech-world/build.rs
+M eech-campaign/crates/eech-world/src/main.rs
+M eech-campaign/crates/eech-world/src/movement.rs
+M eech-campaign/crates/eech-world/tests/host_callbacks.rs
+A eech-campaign/crates/eech-world/csrc/dependent_step.c
+A eech-campaign/docs/m5-dependent-positioning.md
+A eech-campaign/reference/m5-dependent-positioning/ (linux logs, dock.sh, self-review.md, changed-files.txt)

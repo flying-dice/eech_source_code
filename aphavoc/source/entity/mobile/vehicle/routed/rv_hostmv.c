@@ -6,7 +6,7 @@
 #include "rv_hostmv.h"
 
 static campaign_movement_host current_host;
-static int applying_host_result;
+static int applying_host_result;		// a depth: a host result applied inside another (a dependent's carry) must not end the outer guard
 static void apply_speed (entity *en, float speed);
 
 void campaign_movement_set_host (const campaign_movement_host *host)
@@ -19,17 +19,20 @@ void campaign_movement_set_host (const campaign_movement_host *host)
 	{
 		memset (&current_host, 0, sizeof (current_host));
 	}
-	applying_host_result = FALSE;
+	applying_host_result = 0;
 }
 
 void campaign_movement_apply_begin (void)
 {
-	applying_host_result = TRUE;
+	applying_host_result++;
 }
 
 void campaign_movement_apply_end (void)
 {
-	applying_host_result = FALSE;
+	if (applying_host_result > 0)
+	{
+		applying_host_result--;
+	}
 }
 
 int campaign_movement_is_hosted (entity *vehicle)
@@ -158,7 +161,7 @@ void campaign_movement_place (entity *vehicle)
 	campaign_movement_step step;
 	entity_types type;
 
-	if (applying_host_result || !current_host.move_vehicle)
+	if ((applying_host_result > 0) || !current_host.move_vehicle)
 	{
 		return;
 	}
@@ -227,6 +230,61 @@ int campaign_movement_create_place (entity *mobile, const vec3d *position, float
 	angles[0] = result.angles[0];
 	angles[1] = result.angles[1];
 	angles[2] = result.angles[2];
+	return TRUE;
+}
+
+// EEDCS-40: a movement-dependent mobile follows the parent that notified it.  The campaign keeps the attachment (the dependent
+// list, the decision to notify) and passes on what the original handler read: the parent's old and new position, its heading
+// and speed.  The host holds both mobiles' physical state, validates the parent's move against its own records and answers the
+// dependent's pose.  Returns FALSE when the dependent or its parent has no host identity (campaign-owned physical state: the
+// caller's original code runs)
+
+int campaign_movement_dependent_carry (entity *child, entity *parent, const vec3d *parent_new, float heading, float velocity)
+{
+	campaign_movement_step step;
+	campaign_movement_result result;
+	const char *parent_id;
+	const vec3d *parent_old;
+	entity_types type;
+	vec3d new_pos;
+
+	if (!campaign_movement_is_hosted (child) || !campaign_movement_is_hosted (parent))
+	{
+		return FALSE;
+	}
+	type = get_local_entity_type (child);
+	if ((type != ENTITY_TYPE_ROUTED_VEHICLE) && (type != ENTITY_TYPE_ANTI_AIRCRAFT) && (type != ENTITY_TYPE_PERSON) && (type != ENTITY_TYPE_HELICOPTER))
+	{
+		debug_fatal ("host movement: hosted entity %d (type %d) has no dependent positioning", get_local_entity_index (child), type);
+	}
+	parent_id = require_host_id (parent);
+	parent_old = get_local_entity_vec3d_ptr (parent, VEC3D_TYPE_POSITION);
+	begin_step (&step, child, CAMPAIGN_MOVEMENT_DEPENDENT_CARRY);
+	memcpy (step.dc_parent_host_id, parent_id, strlen (parent_id) + 1);
+	step.dc_helicopter = (type == ENTITY_TYPE_HELICOPTER) ? TRUE : FALSE;
+	step.dc_parent_old[0] = parent_old->x;
+	step.dc_parent_old[1] = parent_old->y;
+	step.dc_parent_old[2] = parent_old->z;
+	step.dc_parent_new[0] = parent_new->x;
+	step.dc_parent_new[1] = parent_new->y;
+	step.dc_parent_new[2] = parent_new->z;
+	step.dc_heading = heading;
+	step.dc_velocity = velocity;
+	result = ask_host (&step);
+
+	// apply in the original order: the position first (its setter tells the dependent's own dependents the position, heading and
+	// speed it still has), then a helicopter's heading and speed.  The host has recorded all of it, so none is a placement
+	new_pos.x = result.position[0];
+	new_pos.y = result.position[1];
+	new_pos.z = result.position[2];
+	campaign_movement_apply_begin ();
+	set_local_entity_vec3d (child, VEC3D_TYPE_POSITION, &new_pos);
+	if (type == ENTITY_TYPE_HELICOPTER)
+	{
+		set_local_entity_attitude_matrix (child, (float (*)[3]) result.attitude);
+		set_local_entity_float_value (child, FLOAT_TYPE_VELOCITY, result.velocity);
+	}
+	campaign_movement_apply_end ();
 	return TRUE;
 }
 
@@ -885,7 +943,7 @@ void campaign_movement_rotor_set (entity *en)
 {
 	campaign_movement_step step;
 
-	if (applying_host_result || !current_host.move_vehicle)
+	if ((applying_host_result > 0) || !current_host.move_vehicle)
 	{
 		return;
 	}
@@ -1403,7 +1461,7 @@ void campaign_movement_vehicle_vector_seed (entity *vehicle_en)
 {
 	campaign_movement_step step;
 
-	if (applying_host_result || !current_host.move_vehicle)
+	if ((applying_host_result > 0) || !current_host.move_vehicle)
 	{
 		return;
 	}
