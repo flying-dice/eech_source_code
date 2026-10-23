@@ -123,6 +123,10 @@ local engine = dc.boot ({
 	supply_reached = host.supply_reached,
 })
 for _ = 1, warmup do engine:frame (warmup_ms) end
+-- The wreck's dead-frame test fires only when (int)(timer + 1) is a multiple of 300 (rv_updt.c), a one second window; a wreck's
+-- timer starts at the delta of the frame before the kill.  A settle step that divides 300 s then lands in that window only if
+-- that delta is settle_ms - 500 ms, so one aligning frame precedes the kills (the kills follow it with no frame between).
+if settle_ms >= 1000 and 300000 % settle_ms == 0 then engine:frame (settle_ms - 500) end
 
 local failures = {}
 local function check (name, ok, detail)
