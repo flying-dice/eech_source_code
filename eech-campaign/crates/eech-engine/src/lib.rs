@@ -2105,6 +2105,16 @@ impl Engine {
         Ok(unsafe { std::ffi::CStr::from_ptr(reason.as_ptr()) }.to_string_lossy().into_owned())
     }
 
+    /// TEST-ONLY (feature `loss-fixture`): the task dependents and guide stack of this hosted member's group as text; read-only.
+    #[cfg(feature = "loss-fixture")]
+    pub fn loss_group(&self, entity_id: i32) -> Result<String, EngineError> {
+        let mut text = [0 as std::os::raw::c_char; 512];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_loss_group(entity_id, text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
     /// Applies one previously withheld loss by opaque physical-incarnation ID.
     /// Duplicate, unknown, stale and unsupported reports fail visibly and return no receipt.
     pub fn report_loss(&self, host_id: &str) -> Result<LossReceipt, EngineError> {

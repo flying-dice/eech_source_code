@@ -769,11 +769,16 @@ int eech_engine_loss_fixture (int entity_id, const struct eech_engine_host *host
 }
 
 /*
- * TEST-ONLY setup step (EEDCS-41): releases the tasks that target one hosted member's group, the way the campaign does when it
- * kills that group (group.c notifies each task dependent ENTITY_MESSAGE_TASK_COMPLETED with TASK_TERMINATED_OBJECTIVE_MESSAGE
- * and the task's own handlers then end and unlink it), without ending the group.  A fixed-wing group in flight is nearly always
- * the objective of some task, which the bounded WITHHOLD refuses by design; this lets the witness reach the plain shape.  It
- * changes no guard and no physics, constructs nothing, and `*released` is the number of tasks it notified.
+ * TEST-ONLY setup step (EEDCS-41): ends the engagements that keep one hosted member's group out of the plain shape, using only
+ * the campaign's own lifecycle operations, without ending the group.  (1) Tasks that target the group, and then those that
+ * target the member itself, are notified the way group.c does when it kills the group (ENTITY_MESSAGE_TASK_COMPLETED with
+ * TASK_TERMINATED_OBJECTIVE_MESSAGE; the task's own handlers end and unlink it).  (2) Engage guides, which hold a per-member valid-member mask and are what the bounded WITHHOLD
+ * counts as restricted guides on a fixed-wing or ship group in flight, are ended the way the campaign ends an engagement:
+ * terminate_all_engage_tasks (group) for the not yet assigned ones, as when the group is sent home or lands, and
+ * terminate_entity_current_engage_task (member) for each member's own, as when a wingman is told to break off
+ * (msg_in.c) and the member is reassigned to a valid task.  Takeoff guides are never touched: they belong to a member that has
+ * not completed takeoff, which the guard refuses for its own reasons.  It changes no guard and no physics, constructs nothing,
+ * and `*released` is the number of tasks notified plus the number of guides that left the group's guide stack.
  */
 int eech_engine_loss_release (int entity_id, int *released, const struct eech_engine_host *host)
 {
@@ -804,6 +809,57 @@ int eech_engine_loss_release (int entity_id, int *released, const struct eech_en
 			n++;
 		}
 		task = next;
+	}
+	task = get_local_entity_first_child (en, LIST_TYPE_TASK_DEPENDENT);
+	while (task)
+	{
+		next = get_local_entity_child_succ (task, LIST_TYPE_TASK_DEPENDENT);
+		if (task->type == ENTITY_TYPE_TASK)
+		{
+			notify_local_entity (ENTITY_MESSAGE_TASK_COMPLETED, task, en, TASK_TERMINATED_OBJECTIVE_MESSAGE);
+			n++;
+		}
+		task = next;
+	}
+	{
+		entity *guide, *member;
+		int before = 0, after = 0, round;
+		for (guide = get_local_entity_first_child (group, LIST_TYPE_GUIDE_STACK); guide; guide = get_local_entity_child_succ (guide, LIST_TYPE_GUIDE_STACK))
+		{
+			before++;
+		}
+		terminate_all_engage_tasks (group);
+		/* reassignment can give a member another engage guide, so repeat until a pass ends none (bounded) */
+		for (round = 0; round < 8; round++)
+		{
+			int ended = 0;
+			member = get_local_entity_first_child (group, LIST_TYPE_MEMBER);
+			while (member)
+			{
+				entity *next_member = get_local_entity_child_succ (member, LIST_TYPE_MEMBER);
+				entity *current = get_local_entity_parent (member, LIST_TYPE_FOLLOWER);
+				entity *owner = current ? get_local_entity_parent (current, LIST_TYPE_GUIDE) : NULL;
+				if (owner && (get_local_entity_int_value (owner, INT_TYPE_ENTITY_SUB_TYPE) == ENTITY_SUB_TYPE_TASK_ENGAGE))
+				{
+					terminate_entity_current_engage_task (member);
+					ended++;
+				}
+				member = next_member;
+			}
+			if (!ended)
+			{
+				break;
+			}
+		}
+		terminate_all_engage_tasks (group);
+		for (guide = get_local_entity_first_child (group, LIST_TYPE_GUIDE_STACK); guide; guide = get_local_entity_child_succ (guide, LIST_TYPE_GUIDE_STACK))
+		{
+			after++;
+		}
+		if (before > after)
+		{
+			n += before - after;
+		}
 	}
 	*released = n;
 	LEAVE (EECH_ENGINE_OK);
@@ -836,6 +892,53 @@ int eech_engine_loss_shape (int entity_id, char *reason, int capacity)
 	refusal = campaign_roster_withhold_refusal (en, buffer, sizeof (buffer));
 	strncpy (reason, refusal, (size_t) capacity - 1);
 	reason[capacity - 1] = ' ';
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/*
+ * TEST-ONLY read-only diagnostic (EEDCS-41): describes why a hosted member's group is, or is not, a plain shape for the bounded
+ * WITHHOLD: the member's group number and task dependents of the group (entity type and sub type of each) and each guide on its
+ * guide stack (valid-member mask, 1 when it is not "all members", and the sub type of the task owning it).  Nothing is modified.
+ */
+int eech_engine_loss_group (int entity_id, char *text, int capacity)
+{
+	entity *en, *group, *child;
+	char line[96];
+	int used = 0;
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	en = fixture_hosted_entity (entity_id);
+	group = en ? get_local_entity_parent (en, LIST_TYPE_MEMBER) : NULL;
+	if (!group)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	text[0] = 0;
+#define LOSS_GROUP_APPEND(...) \n	do \n	{ \n		int n_ = snprintf (line, sizeof (line), __VA_ARGS__); \n		if ((n_ > 0) && (used + n_ < capacity - 1)) \n		{ \n			memcpy (text + used, line, (size_t) n_ + 1); \n			used += n_; \n		} \n	} while (0)
+	LOSS_GROUP_APPEND ("member_number=%d", get_local_entity_int_value (en, INT_TYPE_GROUP_MEMBER_NUMBER));
+	child = get_local_entity_first_child (group, LIST_TYPE_TASK_DEPENDENT);
+	while (child)
+	{
+		LOSS_GROUP_APPEND (" dep=%d/%d", (int) child->type, get_local_entity_int_value (child, INT_TYPE_ENTITY_SUB_TYPE));
+		child = get_local_entity_child_succ (child, LIST_TYPE_TASK_DEPENDENT);
+	}
+	child = get_local_entity_first_child (group, LIST_TYPE_GUIDE_STACK);
+	while (child)
+	{
+		entity *task = get_local_entity_parent (child, LIST_TYPE_GUIDE);
+		unsigned int mask = (unsigned int) get_local_entity_int_value (child, INT_TYPE_VALID_GUIDE_MEMBERS);
+		LOSS_GROUP_APPEND (" guide=task%d,mask%08x%s", task ? get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) : -1, mask,
+			(mask == 0xffffffffu) ? "" : ",restricted");
+		child = get_local_entity_child_succ (child, LIST_TYPE_GUIDE_STACK);
+	}
+#undef LOSS_GROUP_APPEND
 	LEAVE (EECH_ENGINE_OK);
 }
 

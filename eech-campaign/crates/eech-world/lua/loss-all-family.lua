@@ -36,12 +36,15 @@
 -- would be withheld). A screened-out member is not killed, so no member is spent on an unsupported shape. screen=off restores
 -- the try-by-kill selection (the host answers `forward` for an unsupported shape and the next candidate is tried).
 --
--- release=<families> (optional, witness mode): setup for a family whose members in flight are almost always the objective of some
---            task, which the bounded WITHHOLD refuses by design ("group with task dependents"). For a candidate refused for exactly
---            that reason, the feature-gated engine:loss_release(entity_id) ends the tasks that target its group through the campaign's
---            own task-completion handlers (what group.c does when it kills a group), without ending the group, and the candidate is
---            screened again. It never changes the guard or the physics; each release (count, then the new screen result) is printed
---            as `released`. It is a setup step, not a claim that the campaign would have released those tasks itself.
+-- release=<families> (optional, witness mode): setup for a family whose members in flight are almost always engaged, which the
+--            bounded WITHHOLD refuses by design ("group with task dependents or restricted guides": a task targets the group, or an
+--            engage guide holds a per-member valid-member mask). For a candidate refused for that reason, the feature-gated
+--            engine:loss_release(entity_id) ends the tasks that target its group through the campaign's own task-completion
+--            handlers (what group.c does when it kills a group) and ends its engage guides through the campaign's own engagement
+--            teardown (terminate_all_engage_tasks, terminate_entity_current_engage_task), without ending the group; takeoff guides
+--            are not touched. The candidate is screened again. It never changes the guard or the physics; each release (count of
+--            tasks notified plus guides ended, then the new screen result) is printed as `released`. It is a setup step, not a
+--            claim that the campaign would have ended those engagements itself.
 --
 -- mode=witness   the above (default)
 -- mode=shape     read-only census, no kill: per family the members, how many the bounded WITHHOLD would accept, and the
@@ -70,6 +73,7 @@ local settle_limit = tonumber (args.settle_limit or "12000")
 local max_tries = tonumber (args.candidates or "40")
 local screen = args.screen ~= "off"
 local release_families, release_limit = {}, tonumber (args.release_limit or "6")
+local group_limit = tonumber (args.group_limit or "0") -- mode=shape: print the group shape (loss_group) of the first N refused members per family
 for name in string.gmatch (args.release or "", "[^,]+") do release_families [name] = true end
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
@@ -277,7 +281,7 @@ end
 
 if mode == "shape" then
 	for _, family in ipairs (order) do
-		local members, reasons, supported = census (family), {}, {}
+		local members, reasons, supported, groups = census (family), {}, {}, {}
 		for _, candidate in ipairs (members) do
 			local reason = shape_of (candidate)
 			if reason == "" then
@@ -285,6 +289,7 @@ if mode == "shape" then
 			else
 				reason = string.gsub (reason, "^campaign loss: ", "")
 				reasons [reason] = (reasons [reason] or 0) + 1
+				if string.find (reason, "task dependents", 1, true) then groups [#groups + 1] = string.format ("%s size=%d %s", candidate.member.host_id, candidate.size, engine:loss_group (candidate.member.current_entity_id)) end
 			end
 		end
 		print (string.format ("shape\t%s\tmembers=%d supported=%d", family, #members, #supported))
@@ -293,6 +298,7 @@ if mode == "shape" then
 		table.sort (names)
 		for _, reason in ipairs (names) do print (string.format ("shape\t%s\trefused %d: %s", family, reasons [reason], reason)) end
 		for _, line in ipairs (supported) do print (string.format ("shape\t%s\tsupported %s", family, line)) end
+		for i, line in ipairs (groups) do if i <= group_limit then print (string.format ("group\t%s\t%s", family, line)) end end
 	end
 	finish ()
 	return
@@ -388,7 +394,8 @@ for _, family in ipairs (order) do
 					release_limit = release_limit - 1
 					local count = engine:loss_release (option.member.current_entity_id)
 					reason = shape_of (option)
-					print (string.format ("released\t%s\t%s tasks=%d then=%s", family, option.member.host_id, count, reason == "" and "supported" or reason))
+					print (string.format ("released\t%s\t%s released=%d then=%s", family, option.member.host_id, count, reason == "" and "supported" or reason))
+					if reason ~= "" then print (string.format ("residual\t%s\t%s %s", family, option.member.host_id, engine:loss_group (option.member.current_entity_id))) end
 				end
 				if reason == "" then candidate = option break end
 				tried [option.member.host_id] = true

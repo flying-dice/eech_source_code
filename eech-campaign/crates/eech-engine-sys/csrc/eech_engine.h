@@ -211,6 +211,8 @@ int eech_engine_loss_release (int entity_id, int *released, const struct eech_en
 int eech_engine_loss_state (int side, int *values, int capacity, int *count);
 /* TEST-ONLY: the reason a bounded family would refuse to withhold this hosted member's loss ("" if it would accept), read-only. */
 int eech_engine_loss_shape (int entity_id, char *reason, int capacity);
+/* TEST-ONLY: the task dependents and guide stack of this hosted member's group, as text, read-only. */
+int eech_engine_loss_group (int entity_id, char *text, int capacity);
 #endif
 
 #endif
