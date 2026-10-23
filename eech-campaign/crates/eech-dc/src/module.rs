@@ -1,8 +1,8 @@
 //! The Lua surface of the module.
 
 use eech_engine::{
-    ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship, HelicopterGuidanceAnswer, HelicopterQuery, LossDecision, LossDescriptor, MemberDescriptor, MovementMode, MovementResult, MovementStep,
-    Side, SupplyReachDescriptor, VehiclePose,
+    ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship, HelicopterGuidanceAnswer, HelicopterQuery, LossDecision, LossDescriptor, MemberDescriptor,
+    MovementMode, MovementResult, MovementStep, Side, SupplyReachDescriptor, VehiclePose,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -324,13 +324,12 @@ fn read_move_result(lua: &Lua, mode: MovementMode, table: &LuaTable) -> Result<M
             };
             let count = match query.get::<LuaValue>("terrain_sample_count").map_err(|e| e.to_string())? {
                 LuaValue::Integer(count) => usize::try_from(count).ok(),
-                LuaValue::Number(count) if count.fract() == 0.0 && count >= 0.0 && count <= 1.0e6 => Some(count as usize),
+                LuaValue::Number(count) if count.fract() == 0.0 && (0.0..=1.0e6).contains(&count) => Some(count as usize),
                 _ => None,
             }
             .ok_or("move_vehicle result query terrain_sample_count must be a non-negative integer")?;
             // the engine refuses a count above the sample capacity; the array always carries every slot's x and z
-            let [x0, z0, x1, z1] =
-                exact_numbers::<4>(lua, &query, "terrain_sample").map_err(|e| format!("move_vehicle result query {e}"))?;
+            let [x0, z0, x1, z1] = exact_numbers::<4>(lua, &query, "terrain_sample").map_err(|e| format!("move_vehicle result query {e}"))?;
             Some(HelicopterQuery {
                 structure_scan,
                 structure_position: exact_numbers(lua, &query, "structure_position").map_err(|e| format!("move_vehicle result query {e}"))?,
@@ -345,7 +344,11 @@ fn read_move_result(lua: &Lua, mode: MovementMode, table: &LuaTable) -> Result<M
         LuaValue::Nil => None,
         LuaValue::Table(_) if mode != MovementMode::HelicopterGuide => return Err("move_vehicle result carries guidance for a step that guides none".into()),
         LuaValue::Table(guidance) => {
-            let field = |name: &str| exact_numbers::<1>(lua, &guidance, name).map(|[value]| value).map_err(|e| format!("move_vehicle result guidance {e}"));
+            let field = |name: &str| {
+                exact_numbers::<1>(lua, &guidance, name)
+                    .map(|[value]| value)
+                    .map_err(|e| format!("move_vehicle result guidance {e}"))
+            };
             Some(HelicopterGuidanceAnswer {
                 lift: field("lift")?,
                 waypoint: exact_numbers(lua, &guidance, "waypoint").map_err(|e| format!("move_vehicle result guidance {e}"))?,

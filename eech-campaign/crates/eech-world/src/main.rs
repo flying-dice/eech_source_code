@@ -9,9 +9,9 @@
 mod crash;
 
 use eech_world::movement::{
-    Advance, Creation, FixedWingMove, FixedWingNavigation, FixedWingPhase, FixedWingTerrain, HelicopterAnswer, HelicopterBegin, HelicopterEnd, HelicopterGuide, HelicopterPlan, HelicopterSteer,
-    HelicopterStructure, HelicopterTerrainSample, HelicopterWaypointKind, Kind, Lifecycle, LifecycleMode, Movers, NavigationMember, Outcome, PersonBegin, PersonEnd, Pose, Request, ShipMove,
-    Terrain,
+    Advance, Creation, FixedWingMove, FixedWingNavigation, FixedWingPhase, FixedWingTerrain, HelicopterAnswer, HelicopterBegin, HelicopterEnd, HelicopterGuide,
+    HelicopterPlan, HelicopterSteer, HelicopterStructure, HelicopterTerrainSample, HelicopterWaypointKind, Kind, Lifecycle, LifecycleMode, Movers,
+    NavigationMember, Outcome, PersonBegin, PersonEnd, Pose, Request, ShipMove, Terrain,
 };
 use eech_world::tacview::{ObjectInfo, Recorder};
 use mlua::prelude::*;
@@ -522,29 +522,29 @@ fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request
         "fixed_wing_move" => {
             let phase = fixed_wing_phase(number(lua, step, "phase")?)?;
             Request::FixedWingMove(FixedWingMove {
-            phase,
-            delta_seconds: number(lua, step, "delta_seconds")?,
-            frame_delta: number(lua, step, "frame_delta")?,
-            wp_vel: number(lua, step, "desired_velocity")?,
-            cruise_velocity: number(lua, step, "cruise_velocity")?,
-            g_max: number(lua, step, "g_max")?,
-            fuselage_angle: number(lua, step, "fuselage_angle")?,
-            cg_to_ground: number(lua, step, "cg_to_ground")?,
-            max_roll: number(lua, step, "max_roll")?,
-            waypoint: numbers(lua, step, "waypoint")?,
-            aiming_cannon: step.get("aiming_cannon")?,
-            elapsed_time: number(lua, step, "elapsed_time")?,
-            navigation: match phase {
-                FixedWingPhase::Flight | FixedWingPhase::Land => Some(navigation_from(lua, step)?),
-                _ => None,
-            },
-            terrain: fixed_wing_terrain_from(lua, step)?,
-            motion_vector: numbers(lua, step, "motion_vector_in")?,
-            navigating: step.get("navigating")?,
-            elevation: number(lua, step, "elevation")?,
-            tacview_logging: step.get("tacview_logging")?,
-            map_min: numbers(lua, step, "map_min")?,
-            map_max: numbers(lua, step, "map_max")?,
+                phase,
+                delta_seconds: number(lua, step, "delta_seconds")?,
+                frame_delta: number(lua, step, "frame_delta")?,
+                wp_vel: number(lua, step, "desired_velocity")?,
+                cruise_velocity: number(lua, step, "cruise_velocity")?,
+                g_max: number(lua, step, "g_max")?,
+                fuselage_angle: number(lua, step, "fuselage_angle")?,
+                cg_to_ground: number(lua, step, "cg_to_ground")?,
+                max_roll: number(lua, step, "max_roll")?,
+                waypoint: numbers(lua, step, "waypoint")?,
+                aiming_cannon: step.get("aiming_cannon")?,
+                elapsed_time: number(lua, step, "elapsed_time")?,
+                navigation: match phase {
+                    FixedWingPhase::Flight | FixedWingPhase::Land => Some(navigation_from(lua, step)?),
+                    _ => None,
+                },
+                terrain: fixed_wing_terrain_from(lua, step)?,
+                motion_vector: numbers(lua, step, "motion_vector_in")?,
+                navigating: step.get("navigating")?,
+                elevation: number(lua, step, "elevation")?,
+                tacview_logging: step.get("tacview_logging")?,
+                map_min: numbers(lua, step, "map_min")?,
+                map_max: numbers(lua, step, "map_max")?,
             })
         }
         "helicopter_begin" => Request::HelicopterBegin(HelicopterBegin {
