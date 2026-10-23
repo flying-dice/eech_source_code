@@ -45,3 +45,7 @@ Established pack, for the parent to start once PR98's pack is terminal (from eec
       -Out <new empty dir>
   Roots: copies, not PR98's data roots (tools/retail-map3-installs.sh, tools/retail-cvh.sh). The Lebanon copy used for the
   fixture is E:\eech-runs\m5-d1\dependent-positioning-20261023\root-lebanon. The runner never writes baselines.
+
+Addendum (publication closeout): the regress-windows.ps1 command above was the planned form. The pack actually run was
+tools/regression-pack.py via the external launcher; see native/final-pack.summary.txt for the command, 40/40 PASS result and
+retained-reference byte comparisons. The text above is preserved unchanged as the pre-pack record.

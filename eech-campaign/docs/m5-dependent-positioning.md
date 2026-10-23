@@ -6,8 +6,10 @@ Lebanon witness runs through the public Lua -> `eech_dc` -> host path saw **0 ca
 non-acceptance. R2 is closed only by the controlled fixture (commit `c9cb51a3`): genuine C handlers
 reached through the public module, an artificial `link` arrangement, 34 checks green, and a
 test-only old-guard build that fails the 3 guard checks. A final default-feature candidate was built
-at `263b48a4` (section "Final default-feature candidate"). The Windows deterministic/Tacview pack is
-PENDING; no result of it is claimed. Not to be merged before PR98. EEDCS-40, D1 (EEDCS-15) and M5
+at `263b48a4` (section "Final default-feature candidate"). The established regression pack then
+passed 40/40 on that candidate (exit 0, retained Lebanon Tacview and observations byte-identical in
+both runs, `independent-reference-hashes.json` passed=true; section "Final pack"). PR98 (`ed38c8fb`,
+CI/docs only) is merged locally at `b83c9699`. No visual Tacview claim. EEDCS-40, D1 (EEDCS-15) and M5
 are not complete, and the technical lead has not approved.**
 
 Evidence is in [`../reference/m5-dependent-positioning/`](../reference/m5-dependent-positioning/linux/).
@@ -202,7 +204,7 @@ expose the driver method: `attempt to call method 'dependent_fixture' (a nil val
   unsupported-child path and the non-host (retail) C build were not exercised or compiled.
 - Nested application is shown by order and by the guard outcome, not by a call-stack depth reading.
 - The fixture is a bounded 30-frame warm-up of the Lebanon campaign, not the established
-  deterministic pack or Tacview evidence, which remain pending.
+  deterministic pack or Tacview evidence (see "Final pack" for those).
 - The dev build used while writing the fixture came from a dirty tree and is not evidence.
 
 ## Final default-feature candidate
@@ -223,14 +225,32 @@ checks and the pack command: `reference/m5-dependent-positioning/native/candidat
 - The fixture green/red runs were not repeated: the only source change since `c9cb51a3` is a
   comment move in `Cargo.toml`.
 
+## Final pack
+
+Normal c1 (`263b48a4`) passed the established `tools/regression-pack.py` (copied roots, `windows-retail v1`,
+no baseline or tolerance change): **40 checks PASS, exit 0**. The parent's complete-file check
+(`verify-complete.exit` 0, `independent-reference-hashes.json` passed=true) shows both runs' Tacview
+(`3bd17b64...d19b`, 117690861 B) and observations (`da26bab0...77cf`, 85716447 B)
+byte-identical to the retained references. Command, hashes and counts:
+`reference/m5-dependent-positioning/native/final-pack.summary.txt`.
+
+This is a no-regression result for the normal build. It is a bytes-equal-to-reference claim, not a visual
+inspection of a Tacview recording. It proves reference / no-regression equality, not independent carry-path
+coverage: no census was run on the full pack, so no carry count was measured in it. The controlled fixture
+proves carry (with the limits above); the earlier 900 s probes measured zero carries (non-acceptance).
+
+PR98 merge: `ed38c8fb` brings only the CI workflow and docs/evidence (16 files, no runtime path, no overlap);
+runtime inputs of the merged tree equal those c1 was built from, so no second native pack was run. The merged
+commit was not itself built.
+
 ## Pending and not claimed
 
 - R2: closed for the fixture route above (genuine handlers through the public module, artificial
-  linking, bounded scenario); the established deterministic pack and Tacview evidence remain.
+  linking, bounded scenario). The `link` arrangement is artificial and the old-guard is a test-only
+  mutant of the staged copy of `rv_hostmv.c`, not the pre-change C.
 - The non-host (retail) DLL C build.
-- The established deterministic regression pack, Tacview evidence (`windows-retail v1` baseline)
-  and the census are required before delivery and are pending; PR98's runs are live. No baseline
-  or tolerance was changed.
+- The census, and the pack's own NOT COVERED rows, are unchanged and not claimed.
 - Not claimed: carry under an unhosted parent, a general scene graph, the loss handoff, DCS
   behaviour, the untested `debug_fatal` path for an unsupported hosted child type.
-- Ordering: do not merge before PR98. Technical-lead approval has not been given.
+- Technical-lead approval has not been given. D1 stays incomplete until EEDCS-41 is delivered and the
+  closure audit passes.
