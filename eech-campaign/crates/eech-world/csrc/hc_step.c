@@ -694,3 +694,528 @@ int eech_fw_death_attitude(float *attitude, const float *motion_vector, float sp
 
 	return 1 | (needs_draw ? 2 : 0);
 }
+
+/*
+ * Helicopter physical guidance (EEDCS-39), from helicopter_movement and its helpers in hc_move.c: the LOS adjustment of the
+ * fly-to position (helicopter_adjust_waypoint_position_with_los), the altitude follow with the structure avoidance and the
+ * terrain look-ahead (helicopter_movement_altitude_follow, helicopter_movement_structure_avoidance), the velocity shaping,
+ * the world acceleration and the lift, and the heading, pitch and roll demands (helicopter_movement_get_desired_heading,
+ * _pitch and _roll).  Expression for expression: the double literals, the float stores, the macros' repeated operands and the
+ * engine's quirks are kept.  Quirks kept on purpose:
+ *   - the holding waypoints compute a ramped max_vel and then overwrite it with 15.0;
+ *   - the desired roll is computed from the lateral velocity and then overwritten by the acceleration term;
+ *   - the absolute-velocity limit divides by (mag / (1.1 * max_vel)).
+ * The campaign keeps which waypoint, formation slot, hold, target and required heading apply; none of that is decided here.
+ * The sector's structures and the terrain samples are the DLL's transitional services: the physical positions to look up
+ * are computed here (eech_hc_guidance_plan) and the obstacle selection and avoidance arithmetic on the answers too.
+ */
+#include "hc_guidance.h"
+
+#define EECH_HC_METRE (1.0f)
+#define EECH_HC_VELOCITY_RAMP_DISTANCE (500.0f * EECH_HC_METRE)
+#define EECH_HC_MAX_PITCH (rad(20.0f))
+#define EECH_HC_MAX_ROLL (rad(30.0f))
+#define EECH_HC_LATERAL_TO_FORWARD_VELOCITY_SCALING 5.0f
+#define EECH_HC_AVOIDANCE_DISTANCE 20.0f
+#define EECH_HC_STRUCTURE_AVOIDANCE_LOOKAHEAD_TIME 1.0f
+#define EECH_HC_TERRAIN_AVOIDANCE_LOOKAHEAD_TIME 2.0f
+#define EECH_HC_TERRAIN_AVOIDANCE_LOOKAHEAD_SAMPLE_NUMBER 1
+
+static void hc_load_vec3d(vec3d *vector, const float *values)
+{
+	vector->x = values[0];
+	vector->y = values[1];
+	vector->z = values[2];
+}
+
+/* helicopter_adjust_waypoint_position_with_los: steer the fly-to position off the nearest group member on the line to it */
+static void hc_adjust_waypoint_with_los(const eech_hc_guidance_input *input, vec3d *wp_pos)
+{
+	float closest_range, range, distance;
+	vec3d closest_collision_point, collision_point, en_pos, hc_pos;
+	const eech_hc_other *closest_hc;
+	int index;
+
+	if (input->group_leader)
+	{
+		/* leader doesn't avoid wingmen */
+		return;
+	}
+
+	hc_load_vec3d(&en_pos, input->position);
+
+	memset(&closest_collision_point, 0, sizeof(closest_collision_point));
+	memset(&collision_point, 0, sizeof(collision_point));
+
+	closest_range = ((500.0 * EECH_HC_METRE) * (500.0 * EECH_HC_METRE));
+
+	closest_hc = NULL;
+
+	for (index = 0; index < input->other_count; index++)
+	{
+		hc_load_vec3d(&hc_pos, input->others[index].position);
+
+		range = get_sqr_3d_range(&hc_pos, &en_pos);
+
+		if (range < closest_range)
+		{
+			distance = get_3d_perp_dist_of_point_from_line(&en_pos, wp_pos, &hc_pos, &collision_point);
+
+			if (distance <= EECH_HC_AVOIDANCE_DISTANCE)
+			{
+				closest_range = range;
+
+				closest_hc = &input->others[index];
+
+				closest_collision_point = collision_point;
+			}
+		}
+	}
+
+	if (closest_hc)
+	{
+		vec3d new_pos;
+
+		hc_load_vec3d(&hc_pos, closest_hc->position);
+
+		new_pos.x = closest_collision_point.x - hc_pos.x;
+		new_pos.y = closest_collision_point.y - hc_pos.y;
+		new_pos.z = closest_collision_point.z - hc_pos.z;
+
+		normalise_any_3d_vector(&new_pos);
+
+		new_pos.x = hc_pos.x + (2.0 * EECH_HC_AVOIDANCE_DISTANCE * new_pos.x);
+		new_pos.y = hc_pos.y + (2.0 * EECH_HC_AVOIDANCE_DISTANCE * new_pos.y);
+		new_pos.z = hc_pos.z + (2.0 * EECH_HC_AVOIDANCE_DISTANCE * new_pos.z);
+
+		wp_pos->x = new_pos.x;
+		wp_pos->y = new_pos.y;
+		wp_pos->z = new_pos.z;
+	}
+}
+
+/* the task leader inside its guide radius, with an altitude criterion, takes no structure clearance */
+static int hc_structure_avoidance_skipped(const eech_hc_guidance_input *input)
+{
+	if (input->task_leader)
+	{
+		if (input->guide_radius_valid)
+		{
+			if (input->guide_altitude_valid)
+			{
+				if (input->distance < input->guide_radius)
+				{
+					return 1;
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+
+/* the look-ahead point of helicopter_movement_structure_avoidance (y is 0) */
+static void hc_structure_look_ahead(const eech_hc_guidance_input *input, vec3d *pos)
+{
+	const matrix3x3 *attitude = (const matrix3x3 *)input->attitude;
+
+	hc_load_vec3d(pos, input->position);
+
+	pos->x += ((*attitude)[2][0] * input->cruise_velocity * EECH_HC_STRUCTURE_AVOIDANCE_LOOKAHEAD_TIME);
+	pos->y = 0.0;
+	pos->z += ((*attitude)[2][2] * input->cruise_velocity * EECH_HC_STRUCTURE_AVOIDANCE_LOOKAHEAD_TIME);
+}
+
+/* helicopter_movement_structure_avoidance: the tallest structure whose radius reaches the look-ahead point */
+static float hc_structure_avoidance(const eech_hc_guidance_input *input, const eech_hc_structure *structures, int structure_count)
+{
+	vec3d pos, test_pos;
+	float d, radius, max_height;
+	int index;
+
+	if (hc_structure_avoidance_skipped(input))
+	{
+		return 0.0;
+	}
+
+	hc_structure_look_ahead(input, &pos);
+
+	max_height = 0;
+
+	for (index = 0; index < structure_count; index++)
+	{
+		radius = structures[index].avoidance_radius;
+
+		if (radius > 0.0)
+		{
+			radius *= radius;
+
+			hc_load_vec3d(&test_pos, structures[index].position);
+
+			d = get_sqr_2d_range(&pos, &test_pos);
+
+			if (d < radius)
+			{
+				max_height = max(max_height, structures[index].height);
+			}
+		}
+	}
+
+	return max_height;
+}
+
+/* the terrain sample positions of helicopter_movement_altitude_follow, loop from the far sample down to the aircraft */
+static void hc_terrain_sample_position(const eech_hc_guidance_input *input, int loop, vec3d *test_pos)
+{
+	const matrix3x3 *attitude = (const matrix3x3 *)input->attitude;
+	vec3d pos;
+
+	hc_load_vec3d(&pos, input->position);
+
+	test_pos->x = pos.x + ((*attitude)[2][0] * loop * input->cruise_velocity * EECH_HC_TERRAIN_AVOIDANCE_LOOKAHEAD_TIME);
+	test_pos->y = pos.y + 0.0;
+	test_pos->z = pos.z + ((*attitude)[2][2] * loop * input->cruise_velocity * EECH_HC_TERRAIN_AVOIDANCE_LOOKAHEAD_TIME);
+
+	bound_position_to_map_area(test_pos, input->map_min, input->map_max);
+}
+
+void eech_hc_guidance_plan(const eech_hc_guidance_input *input, eech_hc_query_plan *plan)
+{
+	int loop, sample;
+	vec3d pos;
+
+	memset(plan, 0, sizeof(*plan));
+
+	if (!input->terrain_follow)
+	{
+		return;
+	}
+
+	if (!hc_structure_avoidance_skipped(input))
+	{
+		hc_structure_look_ahead(input, &pos);
+
+		plan->structure_scan = 1;
+		plan->structure_position[0] = pos.x;
+		plan->structure_position[1] = pos.y;
+		plan->structure_position[2] = pos.z;
+	}
+
+	sample = 0;
+
+	for (loop = EECH_HC_TERRAIN_AVOIDANCE_LOOKAHEAD_SAMPLE_NUMBER; loop >= 0; loop--)
+	{
+		hc_terrain_sample_position(input, loop, &pos);
+
+		plan->terrain_sample[sample][0] = pos.x;
+		plan->terrain_sample[sample][1] = pos.z;
+
+		sample++;
+	}
+
+	plan->terrain_sample_count = sample;
+}
+
+/* helicopter_movement_altitude_follow: the required height above sea level */
+static float hc_altitude_follow(const eech_hc_guidance_input *input, const eech_hc_structure *structures, int structure_count, float sampled_terrain_elevation, const vec3d *wp_pos)
+{
+	float min_height, required_height;
+
+	if (input->terrain_follow)
+	{
+		if (input->terrain_follow_attack_altitude || input->position_hold)
+		{
+			min_height = input->attack_altitude + hc_structure_avoidance(input, structures, structure_count);
+		}
+		else
+		{
+			if (input->task_leader_is_self)
+			{
+				min_height = input->cruise_altitude + hc_structure_avoidance(input, structures, structure_count);
+			}
+			else
+			{
+				min_height = max(input->leader_radar_altitude, (input->cruise_altitude + hc_structure_avoidance(input, structures, structure_count)));
+			}
+		}
+
+		/*
+		 * The original folds the samples with terrain_elevation = max (terrain_elevation, get_3d_terrain_point_data (...)),
+		 * starting from 0.0.  The max macro calls the getter once when the running value exceeds the first return and
+		 * otherwise a second time, and then selects that second return.  Which return is selected is the host's fold (it
+		 * keeps every return in call order); this is its result.
+		 */
+		required_height = min_height + sampled_terrain_elevation;
+	}
+	else
+	{
+		float tmp;
+
+		tmp = pow(input->velocity, 4.0f) - 0.1f;
+		required_height = wp_pos->y + bound(tmp, 0.0f, 2.0f);
+	}
+
+	return required_height;
+}
+
+void eech_hc_guidance(const eech_hc_guidance_input *input, const eech_hc_structure *structures, int structure_count, float sampled_terrain_elevation, eech_hc_guidance_result *result)
+{
+	float lift, height, range, max_vel, range_scaler, max_x_vel, max_y_vel, max_z_vel;
+	vec3d wp_vec, wp_pos, wp_vel, hc_pos, normalised_wp_vec, motion_vector, world_acceleration_vector;
+	matrix3x3 attitude;
+
+	memcpy(attitude, input->attitude, sizeof(attitude));
+
+	hc_load_vec3d(&hc_pos, input->position);
+	hc_load_vec3d(&wp_pos, input->waypoint);
+	hc_load_vec3d(&wp_vel, input->waypoint_velocity);
+	hc_load_vec3d(&motion_vector, input->motion_vector);
+
+	wp_pos.y = max(wp_pos.y, input->terrain_elevation);
+
+	hc_adjust_waypoint_with_los(input, &wp_pos);
+
+	range = input->distance;
+
+	height = hc_altitude_follow(input, structures, structure_count, sampled_terrain_elevation, &wp_pos);
+
+	// ramp vel from 0.01 to cruise_vel between 0m -> HELICOPTER_VELOCITY_RAMP_DISTANCE
+	range_scaler = range / EECH_HC_VELOCITY_RAMP_DISTANCE;
+	range_scaler = bound(range_scaler, 0.01f, 1.0f);
+
+	wp_vec.x = wp_pos.x - hc_pos.x;
+	wp_vec.y = wp_pos.y - hc_pos.y;
+	wp_vec.z = wp_pos.z - hc_pos.z;
+
+	// calcualte max_vel
+	max_vel = input->cruise_velocity;
+
+	// OUT OF FUEL HANDICAP
+	if (input->fuel_supply_level <= 10.0)
+	{
+		max_vel /= 5.0;
+	}
+
+	switch (input->waypoint_kind)
+	{
+	case EECH_HC_WP_ROUTE:
+		break;
+	case EECH_HC_WP_HOLDING:
+		max_vel = min(max_vel * ((2.0 * range_scaler) - (range_scaler * range_scaler)), 15.0);
+		max_vel = 15.0;
+		break;
+	default:
+		max_vel *= ((2.0 * range_scaler) - (range_scaler * range_scaler));
+		break;
+	}
+
+	// bound speeds to something realistic
+	max_x_vel = 0.2 * input->cruise_velocity;
+	max_y_vel = 0.1 * input->cruise_velocity;
+	max_z_vel = 1.0 * input->cruise_velocity;
+
+	normalise_any_3d_vector(&wp_vec);
+
+	// rotate into model space for speed bounding
+	multiply_transpose_matrix3x3_vec3d(&wp_vec, attitude, &wp_vec);
+
+	normalised_wp_vec = wp_vec;
+
+	// get velocity vector to wp
+	wp_vec.x *= max_vel;
+	wp_vec.y *= max_vel;
+	wp_vec.z *= max_vel;
+
+	// limit max_velocity depending on required climb rate
+	max_z_vel -= (max_z_vel * min((max(height - hc_pos.y, 0.0f) / max_y_vel), 1.0f));
+	max_x_vel -= (max_x_vel * min((max(height - hc_pos.y, 0.0f) / max_y_vel), 1.0f));
+
+	// limit forward acceleration depending on climb demand
+
+	wp_vec.x = bound(wp_vec.x, -max_x_vel, max_x_vel);
+	wp_vec.y = bound(wp_vec.y, -max_y_vel, max_y_vel);
+	wp_vec.z = bound(wp_vec.z, -max_z_vel, max_z_vel);
+
+	// rotate back into world space
+	multiply_matrix3x3_vec3d(&wp_vec, attitude, &wp_vec);
+
+	// add on required height for terrain avoidance
+	wp_vec.y = (height - hc_pos.y);
+	wp_vec.y = bound(wp_vec.y, -max_y_vel, max_y_vel);
+
+	// add on the velocity of the wp (i.e. the speed it is moving)
+	// don't add in Y-component as it causes the wingmen to crash into the floor if the player decends quickly
+	wp_vec.x += wp_vel.x;
+	wp_vec.z += wp_vel.z;
+
+	if (get_3d_vector_magnitude(&wp_vec) > 1.1 * max_vel) // limit absolute velocity value
+		normalise_3d_vector_given_magnitude(&wp_vec, get_3d_vector_magnitude(&wp_vec) / (1.1 * max_vel));
+
+	world_acceleration_vector.x = (wp_vec.x - motion_vector.x) * 0.3;
+	world_acceleration_vector.y = (wp_vec.y - motion_vector.y) * 0.3;
+	world_acceleration_vector.z = (wp_vec.z - motion_vector.z) * 0.3;
+
+	// bodge for rotor rpm
+	lift = (0.7 * input->power_output) + (fabs(world_acceleration_vector.y) + fabs(world_acceleration_vector.z));
+
+	result->world_acceleration[0] = world_acceleration_vector.x;
+	result->world_acceleration[1] = world_acceleration_vector.y;
+	result->world_acceleration[2] = world_acceleration_vector.z;
+	result->wp_vec[0] = wp_vec.x;
+	result->wp_vec[1] = wp_vec.y;
+	result->wp_vec[2] = wp_vec.z;
+	result->lift = lift;
+	result->waypoint[0] = wp_pos.x;
+	result->waypoint[1] = wp_pos.y;
+	result->waypoint[2] = wp_pos.z;
+	result->required_height = height;
+}
+
+/* helicopter_movement_get_desired_heading */
+static float hc_desired_heading(const eech_hc_demand_input *input, const vec3d *fly_to_pos, float current_heading, int *needs_leader)
+{
+	float heading;
+
+	*needs_leader = 0;
+
+	switch (input->waypoint_kind)
+	{
+	case EECH_HC_WP_LANDED: // save heading angle so helicopter will land properly
+		if (input->velocity < 10.0)
+			return current_heading;
+		/* fall through */
+	case EECH_HC_WP_INSERTION: // do not change leader's heading value before troops insertion
+		if (input->task_leader_is_self && input->velocity < 5.0)
+			return current_heading;
+	}
+
+	if (input->guide_radius_valid)
+	{
+		if (input->distance < input->guide_radius)
+		{
+			if (((input->motion_vector[0] * input->motion_vector[0]) + (input->motion_vector[2] * input->motion_vector[2])) < (5.0 * 5.0))
+			{
+				if (input->required_heading_valid)
+				{
+					return input->required_heading;
+				}
+				else
+				{
+					if (!input->task_leader_is_self)
+					{
+						/* get_local_entity_float_value (leader, FLOAT_TYPE_HEADING): the heading of the leader's attitude */
+						if (!input->leader_attitude_valid)
+						{
+							*needs_leader = 1;
+
+							return current_heading;
+						}
+
+						return get_heading_from_attitude_matrix(((const float (*)[3]) input->leader_attitude));
+					}
+				}
+			}
+		}
+	}
+
+	// Default case :- face the direction the helicopter is flying if more than 5m away,
+	// otherwise just face the way its facing already.
+	if (((fly_to_pos->x * fly_to_pos->x) + (fly_to_pos->z * fly_to_pos->z)) < (5.0 * 5.0))
+	{
+		heading = current_heading;
+	}
+	else
+	{
+		heading = atan2(fly_to_pos->x, fly_to_pos->z);
+	}
+
+	return heading;
+}
+
+/* helicopter_movement_get_desired_pitch */
+static float hc_desired_pitch(const eech_hc_demand_input *input, const vec3d *model_motion_vector, const vec3d *model_acceleration_vector)
+{
+	const matrix3x3 *attitude = (const matrix3x3 *)input->attitude;
+	float pitch, targeting_pitch = 0.0, current_pitch;
+
+	if (input->targeting_active)
+	{
+		float weapon_to_target_pitch, weapon_pitch;
+		vec3d weapon_vector, weapon_to_intercept_point_vector;
+
+		hc_load_vec3d(&weapon_vector, input->weapon_vector);
+		hc_load_vec3d(&weapon_to_intercept_point_vector, input->weapon_to_intercept_vector);
+
+		/* get_heading_and_pitch_from_3d_unit_vector: only the pitch is used */
+		weapon_to_target_pitch = asin(weapon_to_intercept_point_vector.y);
+		weapon_pitch = asin(weapon_vector.y);
+
+		targeting_pitch = weapon_to_target_pitch - weapon_pitch;
+	}
+
+	// calculate pitch for helicopter at given velocity
+	pitch = -(EECH_HC_MAX_PITCH * min((model_motion_vector->z / input->cruise_velocity), 1.0f));
+
+	// reduce pitch if climbing, upto 0 pitch
+	pitch = min(pitch + EECH_HC_MAX_PITCH * bound(((fabs(model_motion_vector->y) * EECH_HC_G) / input->g_max), -1.0, 1.0), 0.0);
+
+	// calculate pitch for helicopter at given acceleration
+	pitch -= EECH_HC_MAX_PITCH * bound(((model_acceleration_vector->z * EECH_HC_G) / input->g_max), -1.0, 1.0);
+
+	// add in rotor angle
+	pitch += input->main_rotor_shaft_angle;
+
+	/* FLOAT_TYPE_PITCH */
+	current_pitch = get_pitch_from_attitude_matrix(*attitude);
+
+	return bound(targeting_pitch ? current_pitch + targeting_pitch : pitch, - EECH_HC_MAX_PITCH, EECH_HC_MAX_PITCH);
+}
+
+/* helicopter_movement_get_desired_roll */
+static float hc_desired_roll(const eech_hc_demand_input *input, float lateral_velocity, float lateral_acceleration)
+{
+	float roll;
+
+	// calculate roll for helicopter at given velocity
+	roll = (EECH_HC_MAX_ROLL * min(((lateral_velocity * EECH_HC_LATERAL_TO_FORWARD_VELOCITY_SCALING) / input->cruise_velocity), 1.0f));
+
+	// calculate roll for helicopter at given acceleration (the engine overwrites the velocity term)
+	roll = EECH_HC_MAX_ROLL * min(((lateral_acceleration * EECH_HC_G) / input->g_max), 1.0f);
+
+	return roll;
+}
+
+/*
+ * The post-begin demands: the heading from the fly-to velocity, the pitch and roll from the model-space motion vector (the
+ * one eech_hc_begin just built) and the model-space world acceleration (the pre-begin one).
+ */
+int eech_hc_demand(const eech_hc_demand_input *input, eech_hc_demand_result *result)
+{
+	matrix3x3 attitude;
+	vec3d wp_vec, motion_vector, world_acceleration_vector, model_motion_vector, model_acceleration_vector;
+	float current_heading;
+	int needs_leader;
+
+	memcpy(attitude, input->attitude, sizeof(attitude));
+
+	hc_load_vec3d(&wp_vec, input->wp_vec);
+	hc_load_vec3d(&motion_vector, input->motion_vector);
+	hc_load_vec3d(&world_acceleration_vector, input->world_acceleration);
+
+	current_heading = get_heading_from_attitude_matrix(attitude);
+
+	result->desired_heading = hc_desired_heading(input, &wp_vec, current_heading, &needs_leader);
+
+	if (needs_leader)
+	{
+		return EECH_HC_DEMAND_NEEDS_LEADER;
+	}
+
+	multiply_transpose_matrix3x3_vec3d(&model_motion_vector, attitude, &motion_vector);
+	multiply_transpose_matrix3x3_vec3d(&model_acceleration_vector, attitude, &world_acceleration_vector);
+
+	result->desired_pitch = hc_desired_pitch(input, &model_motion_vector, &model_acceleration_vector);
+	result->desired_roll = hc_desired_roll(input, model_motion_vector.x, model_acceleration_vector.x);
+
+	return 0;
+}

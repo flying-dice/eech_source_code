@@ -248,12 +248,63 @@ pub const EECH_MOVEMENT_FW_CRASH_ATTITUDE: c_int = 36;
 pub const EECH_MOVEMENT_RETIRE: c_int = 37;
 pub const EECH_MOVEMENT_CREATE_PLACE: c_int = 38;
 pub const EECH_MOVEMENT_EXPIRE: c_int = 39;
+/// EEDCS-39 hosted helicopter control: plan (answers the lookup `hc_query`), guide (answers the `hc_guidance`), the hosted
+/// begin and end, and the abandon of an open step.
+pub const EECH_MOVEMENT_HELICOPTER_PLAN: c_int = 40;
+pub const EECH_MOVEMENT_HELICOPTER_GUIDE: c_int = 41;
+pub const EECH_MOVEMENT_HELICOPTER_GUIDED_BEGIN: c_int = 42;
+pub const EECH_MOVEMENT_HELICOPTER_GUIDED_END: c_int = 43;
+pub const EECH_MOVEMENT_HELICOPTER_ABANDON: c_int = 44;
+/// EEDCS-39 R1: the fixed-wing terrain look-ahead query. Non-mutating; answers `hc_query` with the host's own look-ahead point
+/// as the single terrain sample.
+pub const EECH_MOVEMENT_FIXED_WING_LOOKAHEAD: c_int = 45;
+/// The terrain samples a helicopter's guidance asks for at most (HELICOPTER_TERRAIN_AVOIDANCE_LOOKAHEAD_SAMPLE_NUMBER + 1).
+pub const EECH_HC_TERRAIN_SAMPLES: usize = 2;
 
 pub const EECH_MOVEMENT_KIND_ROUTED: c_int = 1;
 pub const EECH_MOVEMENT_KIND_SHIP: c_int = 2;
 pub const EECH_MOVEMENT_KIND_PERSON: c_int = 3;
 pub const EECH_MOVEMENT_KIND_FIXED_WING: c_int = 4;
 pub const EECH_MOVEMENT_KIND_HELICOPTER: c_int = 5;
+
+/// A structure of the aircraft's own sector, as the DLL's structure scan saw it.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_hc_structure {
+    pub position: [f32; 3],
+    pub avoidance_radius: f32,
+    pub height: f32,
+}
+
+/// One terrain sample's getter returns, in call order: `second` is meaningful only when `second_present`.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_hc_terrain_sample {
+    pub first: f32,
+    pub second: f32,
+    pub second_present: c_int,
+}
+
+/// What the host's plan asks the DLL to look up.
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+pub struct eech_hc_query {
+    pub structure_scan: c_int,
+    pub structure_position: [f32; 3],
+    pub terrain_sample_count: c_int,
+    pub terrain_sample: [[f32; 2]; EECH_HC_TERRAIN_SAMPLES],
+}
+
+/// The host's guidance for the pre-begin physical state.
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+pub struct eech_hc_guidance_answer {
+    pub lift: f32,
+    pub waypoint: [f32; 3],
+    pub required_height: f32,
+    pub world_acceleration: [f32; 3],
+    pub wp_vec: [f32; 3],
+}
 
 #[repr(C)]
 pub struct eech_movement_step {
@@ -278,14 +329,27 @@ pub struct eech_movement_step {
     pub g_max: f32,
     pub ps_vel: f32,
     pub fw_phase: c_int,
-    pub fw_acceleration: [f32; 3],
     pub fw_motion_vector: [f32; 3],
     pub fw_cruise_velocity: f32,
     pub fw_fuselage_angle: f32,
     pub fw_cg_to_ground: f32,
     pub fw_max_roll: f32,
-    pub fw_turn_speed_multi: f32,
+    pub fw_aiming_cannon: c_int,
+    pub fw_elapsed_time: f32,
     pub fw_navigating: c_int,
+    pub fw_group_leader: c_int,
+    pub fw_task_leader: c_int,
+    pub fw_max_vertical_turn_allowance: f32,
+    pub fw_avoidance_radius: f32,
+    /// the task leader's host id; empty when the aircraft leads its task or the campaign roster lacks the leader
+    /// (unresolved: the host refuses the step only if it reads the leader)
+    pub fw_leader_host_id: [c_char; EECH_MOVEMENT_HOST_ID_MAX + 1],
+    pub fw_member_count: c_int,
+    /// `fw_member_count` NUL-terminated host ids and radii, in the group's order; the caller owns both arrays and they
+    /// are read only during the call. Null only when the count is zero. A null or empty entry is a member the roster
+    /// lacks (unresolved, its place and radius kept); the host refuses only if it reads that member.
+    pub fw_member_host_id: *const *const c_char,
+    pub fw_member_radius: *const f32,
     pub hc_acceleration_x: f32,
     pub hc_acceleration_z: f32,
     pub hc_wp_vec_y: f32,
@@ -312,6 +376,53 @@ pub struct eech_movement_step {
     pub death_timer: f32,
     pub death_range: f32,
     pub death_policy: c_int,
+    /// EEDCS-39 helicopter plan (and the steering facts GUIDED_END shares): the campaign's task and waypoint facts. The plan
+    /// also uses `delta_seconds`, `terrain_follow`, `elevation` (the cached terrain elevation), `waypoint`, `map_min`,
+    /// `map_max`, `hc_motion_vector`, `hc_power_output`; GUIDED_END uses `delta_seconds`, `hc_max_turn_rate`, `elevation`,
+    /// `hc_cg_to_ground`, `terrain_follow`, `map_min`, `map_max`, `g_max`, `hc_motion_vector`.
+    pub hc_group_leader: c_int,
+    pub hc_task_leader: c_int,
+    pub hc_task_leader_is_self: c_int,
+    pub hc_position_hold: c_int,
+    pub hc_terrain_follow_attack_altitude: c_int,
+    pub hc_waypoint_kind: c_int,
+    pub hc_guide_radius_valid: c_int,
+    pub hc_guide_radius: f32,
+    pub hc_guide_altitude_valid: c_int,
+    pub hc_waypoint_velocity: [f32; 3],
+    pub hc_distance: f32,
+    pub hc_fuel_supply_level: f32,
+    pub hc_cruise_velocity: f32,
+    pub hc_cruise_altitude: f32,
+    pub hc_attack_altitude: f32,
+    pub hc_leader_radar_altitude: f32,
+    /// PLAN: the group's other members' NUL-terminated host ids in list order (null or empty entry: the roster lacks it).
+    /// Caller-owned, read only during the call; null only when the count is zero.
+    pub hc_member_count: c_int,
+    pub hc_member_host_id: *const *const c_char,
+    /// GUIDE: the structures of the aircraft's own sector (sector order, uncapped) and the terrain samples' getter returns
+    /// in call order. Caller-owned, read only during the call; null only when the count is zero.
+    pub hc_structure_count: c_int,
+    pub hc_structures: *const eech_hc_structure,
+    pub hc_terrain_sample_count: c_int,
+    pub hc_terrain_samples: *const eech_hc_terrain_sample,
+    /// GUIDED_END: the guide's required heading (campaign intent), the task leader's host id (empty: none), the targeting
+    /// decision and the weapon vectors, and the rotor shaft angle
+    pub hc_required_heading_valid: c_int,
+    pub hc_required_heading: f32,
+    pub hc_leader_host_id: [c_char; EECH_MOVEMENT_HOST_ID_MAX + 1],
+    pub hc_targeting_active: c_int,
+    pub hc_weapon_vector: [f32; 3],
+    pub hc_weapon_to_intercept_vector: [f32; 3],
+    pub hc_main_rotor_shaft_angle: f32,
+    /// FIXED_WING_MOVE: the terrain observation for a terrain-following task leader's waypoint (`fw_terrain` false otherwise).
+    pub fw_terrain: c_int,
+    pub fw_terrain_min_height: f32,
+    pub fw_terrain_guide_position: [f32; 3],
+    pub fw_terrain_sample_point: [f32; 2],
+    pub fw_terrain_sample_elevation: f32,
+    pub fw_terrain_site_y: f32,
+    pub fw_terrain_cg: f32,
     /// The two tumble draws are `frand1 ()` doubles and stay doubles; last, so the double's alignment moves no other field.
     pub hc_draws: [f64; 2],
 }
@@ -331,6 +442,10 @@ pub struct eech_movement_result {
     /// EEDCS-38 CREATE_PLACE: the heading, pitch and roll the host built the attitude from; zero in every other mode.
     pub angles: [f32; 3],
     pub death_timer: f32,
+    /// HELICOPTER_PLAN: what the DLL must look up; zero in every other mode
+    pub hc_query: eech_hc_query,
+    /// HELICOPTER_GUIDE: the host's guidance; zero in every other mode
+    pub hc_guidance: eech_hc_guidance_answer,
 }
 
 pub type eech_move_vehicle_callback =

@@ -77,6 +77,23 @@ extern "C" {
         motion_vector: *mut f32,
     );
 
+    fn eech_fw_navigate(input: *const FwNavInput, acceleration: *mut f32);
+
+    fn eech_fw_facing_away(position: *const f32, motion_vector: *const f32, waypoint: *const f32) -> c_int;
+
+    fn eech_fw_turn(input: *const FwTurnInput, turn_speed_multi: *mut f32, fixed_wing_toggle: *mut f32) -> c_int;
+
+    fn eech_fw_lookahead(position: *const f32, velocity: f32, attitude: *const f32, point_xz: *mut f32);
+
+    fn eech_fw_terrain_height(
+        position: *const f32,
+        velocity: f32,
+        attitude: *const f32,
+        guide_position: *const f32,
+        terrain_elevation: f32,
+        min_height: f32,
+    ) -> f32;
+
     fn eech_fw_step(
         phase: c_int,
         position: *mut f32,
@@ -363,12 +380,124 @@ pub enum FixedWingPhase {
     Absolute = 3,
 }
 
+/// Another member of the aircraft's group, as `fw_navigator.h` takes it (`eech_fw_nav_other`).
+#[repr(C)]
+struct FwNavOther {
+    position: [f32; 3],
+    motion_vector: [f32; 3],
+    avoidance_radius: f32,
+}
+
+/// The host navigator's input, as `fw_navigator.h` declares it (`eech_fw_nav_input`).
+#[repr(C)]
+struct FwNavInput {
+    group_leader: c_int,
+    task_leader: c_int,
+    delta_time: f32,
+    position: [f32; 3],
+    motion_vector: [f32; 3],
+    attitude: [f32; 9],
+    velocity: f32,
+    navigation_velocity: [f32; 3],
+    cruise_velocity: f32,
+    max_vertical_turn_allowance: f32,
+    g_max: f32,
+    avoidance_radius: f32,
+    waypoint: [f32; 3],
+    guide_velocity: f32,
+    task_leader_motion_vector: [f32; 3],
+    other_count: c_int,
+    others: *const FwNavOther,
+}
+
+/// The host's turn-around decision input, as `fw_navigator.h` declares it (`eech_fw_turn_input`).
+#[repr(C)]
+struct FwTurnInput {
+    task_leader: c_int,
+    aiming_cannon: c_int,
+    elapsed_time: f32,
+    position: [f32; 3],
+    motion_vector: [f32; 3],
+    waypoint: [f32; 3],
+    leader_position: [f32; 3],
+}
+
+/// The turn multiplier and hold-until time the host retains between a fixed-wing aircraft's steps, as the original kept
+/// them on the entity (`turn_speed_multi` and `fixed_wing_toggle`). Physical state: the campaign never sends them.
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct FixedWingTurn {
+    turn_speed_multi: f32,
+    toggle: f32,
+}
+
+impl FixedWingTurn {
+    /// the values the original creates an aircraft with
+    const CREATED: Self = Self { turn_speed_multi: 2.0, toggle: 0.0 };
+}
+
+/// A group member a fixed-wing navigator avoids: the identity of another aircraft the host holds, and the avoidance
+/// radius of its type (metadata). Its pose and motion come from the host's own record of it, never from the campaign.
+#[derive(Clone, Debug)]
+pub struct NavigationMember {
+    /// `None`: the campaign's roster lacks the aircraft. The host refuses the step only if it reads the member.
+    pub host_id: Option<String>,
+    pub avoidance_radius: f32,
+}
+
+/// The navigation intent of a fixed-wing flight step. The campaign decides which aircraft matter and in what order; it
+/// sends no steering and no pose or motion of any aircraft but its own mirror (which is validated, not used).
+#[derive(Clone, Debug)]
+pub struct FixedWingNavigation {
+    /// the aircraft leads its group: its navigator makes no collision test, and `members` is not read
+    pub group_leader: bool,
+    /// the aircraft leads its task and follows its waypoint; otherwise it pursues `leader`
+    pub task_leader: bool,
+    pub max_vertical_turn_allowance: f32,
+    pub avoidance_radius: f32,
+    /// the task leader the aircraft pursues, if the campaign's roster has it. Required only on a path that reads it
+    /// (facing away, or the navigator, when the aircraft is not `task_leader`); never refused for lacking it otherwise.
+    pub leader: Option<String>,
+    /// the group's other members in the group list's order (this aircraft excluded)
+    pub members: Vec<NavigationMember>,
+}
+
+/// A flight step's navigator input once the host has resolved the other aircraft from its own records.
+struct ResolvedNavigation {
+    group_leader: bool,
+    task_leader: bool,
+    max_vertical_turn_allowance: f32,
+    avoidance_radius: f32,
+    /// the task leader's host-held position and motion; zero when the aircraft leads its task, or (landing) when the
+    /// aircraft is not facing away from its waypoint and the leader is not read
+    leader_position: [f32; 3],
+    leader_motion_vector: [f32; 3],
+    others: Vec<FwNavOther>,
+}
+
+/// What the campaign decided and observed about a terrain-following waypoint; the physical climb to it is the host's.
+/// The campaign chose the guide position and the height to keep above the terrain (`min_height`, -1 for none), added
+/// the formation's height offset and the centre of gravity, and answered the terrain elevation at the point the host
+/// asked about ([`Request::FixedWingLookahead`]); the host performs the original climb arithmetic from its own pose.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct FixedWingTerrain {
+    pub min_height: f32,
+    /// the guide's position, before the terrain adjustment and the formation and centre-of-gravity offsets
+    pub guide_position: [f32; 3],
+    /// the look-ahead point the campaign sampled the terrain at (an echo, validated bit for bit against the host's own)
+    pub sample_point: [f32; 2],
+    pub sample_elevation: f32,
+    /// the formation site's height added after the adjustment (a task leader that does not lead its group), else 0
+    pub site_y: f32,
+    /// the centre-of-gravity height added last
+    pub cg: f32,
+}
+
 /// A fixed-wing aircraft's step. The campaign supplies the guidance (the phase, the waypoint,
-/// the guide's speed, the navigator's acceleration, the previous motion vector and the class
+/// the guide's speed, the navigation intent of normal flight, the previous motion vector and the class
 /// parameters); the host integrates velocity, position and attitude and answers the new motion
 /// vector. `delta_seconds` is the engine's step delta and `frame_delta` the frame reciprocal:
 /// they are different values.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct FixedWingMove {
     pub phase: FixedWingPhase,
     pub delta_seconds: f32,
@@ -379,9 +508,22 @@ pub struct FixedWingMove {
     pub fuselage_angle: f32,
     pub cg_to_ground: f32,
     pub max_roll: f32,
-    pub turn_speed_multi: f32,
     pub waypoint: [f32; 3],
-    pub acceleration: [f32; 3],
+    /// Campaign policy: a cannon engagement is in range and the aircraft is aiming it (the original's gun-aim test,
+    /// which needs the target and the weapon). The host turns this into its multiplier and hold; the campaign does
+    /// not send them.
+    pub aiming_cannon: bool,
+    /// The session's elapsed time, for the hold-until time the host retains.
+    pub elapsed_time: f32,
+    /// Required in `Flight` and `Land`, where the host navigates and decides whether the aircraft is facing away from
+    /// its waypoint (and so turns round in absolute flight); unused by the other phases. A `Land` step reads the
+    /// leader only when the host finds the aircraft facing away, so it is not refused for lacking one otherwise.
+    /// Likewise a held absolute flight reads neither the leader nor the members.
+    pub navigation: Option<FixedWingNavigation>,
+    /// The campaign's terrain-follow intent for this waypoint, when its guide follows terrain. The waypoint's height is
+    /// then the HOST's: it is recomputed from the retained pose and this terrain observation, and the height sent in
+    /// `waypoint` is not read. `None` leaves the waypoint as the campaign sent it.
+    pub terrain: Option<FixedWingTerrain>,
     /// The DLL's mirror of the aircraft's previous motion vector. The host retains the vector
     /// itself (physical state, seeded at binding) and flies with its own; the mirror is only
     /// validated bit for bit against it, like the pose, so a write the host did not make is refused.
@@ -424,6 +566,355 @@ pub struct HelicopterEnd {
     pub motion_vector: [f32; 3],
     pub map_min: [f32; 3],
     pub map_max: [f32; 3],
+}
+
+/// The kind of the waypoint a helicopter's guidance reads, as `hc_guidance.h` classifies it (`EECH_HC_WP_*`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HelicopterWaypointKind {
+    Other = 0,
+    /// navigation, CAP loop or CAP start
+    Route = 1,
+    /// holding, holding loop or taxi
+    Holding = 2,
+    Landed = 3,
+    /// prepare for insertion or troop insertion
+    Insertion = 4,
+}
+
+/// A group member of a helicopter, named by the identity the campaign's roster holds (`None`: the roster lacks it).
+/// Its position comes from the host's own record of it, never from the campaign.
+pub type HelicopterMember = Option<String>;
+
+/// Step one of an alive AI helicopter's hosted step: the campaign's guidance intent. The campaign decides the task, the
+/// waypoint and the formation, and reports the environment it observes (the terrain under the helicopter, its leader's
+/// radar altitude); it sends no steering, no avoidance and no pose or motion of any aircraft but its own mirror (which is
+/// validated, not used). The host answers the lookups the guidance needs ([`HelicopterQueryPlan`]).
+#[derive(Clone, Debug)]
+pub struct HelicopterPlan {
+    pub group_leader: bool,
+    pub task_leader: bool,
+    pub task_leader_is_self: bool,
+    pub position_hold: bool,
+    pub terrain_follow: bool,
+    pub terrain_follow_attack_altitude: bool,
+    pub waypoint_kind: HelicopterWaypointKind,
+    /// the guide's radius, if it has one
+    pub guide_radius: Option<f32>,
+    pub guide_altitude_valid: bool,
+    pub waypoint: [f32; 3],
+    pub waypoint_velocity: [f32; 3],
+    /// the distance the campaign's waypoint routine stored
+    pub distance: f32,
+    /// the terrain cache's elevation, read before any sample of this step
+    pub terrain_elevation: f32,
+    pub fuel_supply_level: f32,
+    pub cruise_velocity: f32,
+    pub power_output: f32,
+    pub cruise_altitude: f32,
+    pub attack_altitude: f32,
+    /// The task leader's radar altitude: transitional terrain data (height above the terrain the campaign's terrain
+    /// service measured), NOT host-owned physical state; consumed only when the helicopter follows another aircraft.
+    pub leader_radar_altitude: f32,
+    pub map_min: [f32; 3],
+    pub map_max: [f32; 3],
+    pub delta_seconds: f32,
+    /// the group's other members in the group list's order (this aircraft excluded). Read only when the aircraft does
+    /// not lead its group; no member is dropped or refused for the count.
+    pub members: Vec<HelicopterMember>,
+    /// the DLL's mirror of the aircraft's motion vector, validated bit for bit like the pose
+    pub motion_vector: [f32; 3],
+}
+
+/// The lookups the campaign's transitional services perform for the host's guidance, as the host planned them from the
+/// step's inputs.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct HelicopterQueryPlan {
+    /// enumerate the structures of the AIRCRAFT'S OWN sector, in the sector list's order and without a cap, as the
+    /// original scans them. `structure_position` is only the look-ahead point the host tests those structures against
+    /// (the engine's y is 0); it is not the sector to enumerate.
+    pub structure_scan: bool,
+    pub structure_position: [f32; 3],
+    /// how many terrain samples to take (at most two), in this order (far to near)
+    pub terrain_sample_count: usize,
+    pub terrain_sample: [[f32; 2]; 2],
+}
+
+/// A structure the campaign's sector enumeration found. The host decides which matter and how they steer the aircraft.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct HelicopterStructure {
+    pub position: [f32; 3],
+    pub avoidance_radius: f32,
+    pub height: f32,
+}
+
+/// One terrain sample as the original statement
+/// `terrain_elevation = max (terrain_elevation, get_3d_terrain_point_data (x, z, &terrain_info))` took it. The `max` macro
+/// evaluates the getter once, and a second time when the running maximum does not exceed that first return, selecting the
+/// SECOND return. The DLL runs that statement literally and records each getter return in call order; the host folds them.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct HelicopterTerrainSample {
+    /// the getter's first return
+    pub first: f32,
+    /// the getter's second return: present exactly when the running maximum did not exceed `first`
+    pub second: Option<f32>,
+}
+
+/// Step two: the answers to the [`HelicopterQueryPlan`]. The terrain samples are taken in the plan's order, far to near,
+/// each with the original `max` statement on a running maximum that starts at 0.0; every getter call writes `terrain_info`
+/// and the last call is at the aircraft. Each sample carries every getter return the DLL obtained, and the host folds them
+/// to the running maximum (a sample whose pattern does not match the host's fold is refused with the plan retained). The
+/// structures are of the aircraft's own sector, in sector order. The host runs its guidance and retains the answer for
+/// the phases that follow.
+#[derive(Clone, Debug)]
+pub struct HelicopterGuide {
+    pub structures: Vec<HelicopterStructure>,
+    pub terrain_samples: Vec<HelicopterTerrainSample>,
+    /// the DLL's mirror of the aircraft's motion vector, validated bit for bit like the pose
+    pub motion_vector: [f32; 3],
+}
+
+/// Phase two of a hosted helicopter step, after the campaign's rotor and early gates: the campaign's steering intent.
+/// The host computes the desired heading, pitch and roll from the guidance it retained, the state phase one left and
+/// these facts, then runs the end integration. Nothing here is a desired steering value.
+#[derive(Clone, Debug)]
+pub struct HelicopterSteer {
+    pub delta_seconds: f32,
+    pub max_turn_rate: f32,
+    pub elevation: f32,
+    pub cg_to_ground: f32,
+    pub terrain_follow: bool,
+    pub map_min: [f32; 3],
+    pub map_max: [f32; 3],
+    /// the waypoint kind the heading reads (the helicopter's current waypoint, which can differ from the guide's)
+    pub waypoint_kind: HelicopterWaypointKind,
+    pub task_leader_is_self: bool,
+    pub guide_radius: Option<f32>,
+    /// the heading the campaign requires, if it requires one
+    pub required_heading: Option<f32>,
+    /// The task leader, by host id. Its heading is the heading of the host's own record of its attitude, resolved only on
+    /// the path that reads it (a follower close to its leader with no required heading and little speed); `None` or an
+    /// id nothing on that path uses is never looked at. The campaign sends no heading.
+    pub leader: Option<String>,
+    pub targeting_active: bool,
+    pub weapon_vector: [f32; 3],
+    pub weapon_to_intercept_vector: [f32; 3],
+    pub g_max: f32,
+    pub main_rotor_shaft_angle: f32,
+    /// the DLL's mirror of the motion vector phase one left, validated bit for bit
+    pub motion_vector: [f32; 3],
+}
+
+/// `eech_hc_structure` in `hc_guidance.h`.
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct HcStructure {
+    position: [f32; 3],
+    avoidance_radius: f32,
+    height: f32,
+}
+
+/// `eech_hc_other` in `hc_guidance.h`.
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct HcOther {
+    position: [f32; 3],
+}
+
+/// `eech_hc_guidance_input` in `hc_guidance.h`.
+#[repr(C)]
+struct HcGuidanceInput {
+    group_leader: c_int,
+    task_leader: c_int,
+    task_leader_is_self: c_int,
+    position_hold: c_int,
+    terrain_follow: c_int,
+    terrain_follow_attack_altitude: c_int,
+    waypoint_kind: c_int,
+    guide_radius_valid: c_int,
+    guide_radius: f32,
+    guide_altitude_valid: c_int,
+    waypoint: [f32; 3],
+    waypoint_velocity: [f32; 3],
+    distance: f32,
+    position: [f32; 3],
+    motion_vector: [f32; 3],
+    attitude: [f32; 9],
+    velocity: f32,
+    terrain_elevation: f32,
+    fuel_supply_level: f32,
+    cruise_velocity: f32,
+    power_output: f32,
+    cruise_altitude: f32,
+    attack_altitude: f32,
+    leader_radar_altitude: f32,
+    map_min: [f32; 3],
+    map_max: [f32; 3],
+    delta_time: f32,
+    other_count: c_int,
+    others: *const HcOther,
+}
+
+/// `eech_hc_query_plan` in `hc_guidance.h`.
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+struct HcQueryPlan {
+    structure_scan: c_int,
+    structure_position: [f32; 3],
+    terrain_sample_count: c_int,
+    terrain_sample: [[f32; 2]; 2],
+}
+
+/// `eech_hc_guidance_result` in `hc_guidance.h`.
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+struct HcGuidanceResult {
+    world_acceleration: [f32; 3],
+    wp_vec: [f32; 3],
+    lift: f32,
+    waypoint: [f32; 3],
+    required_height: f32,
+}
+
+/// `eech_hc_demand_input` in `hc_guidance.h`.
+#[repr(C)]
+struct HcDemandInput {
+    waypoint_kind: c_int,
+    task_leader_is_self: c_int,
+    guide_radius_valid: c_int,
+    guide_radius: f32,
+    distance: f32,
+    required_heading_valid: c_int,
+    required_heading: f32,
+    leader_attitude_valid: c_int,
+    leader_attitude: [f32; 9],
+    targeting_active: c_int,
+    weapon_vector: [f32; 3],
+    weapon_to_intercept_vector: [f32; 3],
+    attitude: [f32; 9],
+    motion_vector: [f32; 3],
+    velocity: f32,
+    cruise_velocity: f32,
+    g_max: f32,
+    main_rotor_shaft_angle: f32,
+    world_acceleration: [f32; 3],
+    wp_vec: [f32; 3],
+}
+
+/// `eech_hc_demand_result` in `hc_guidance.h`.
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+struct HcDemandResult {
+    desired_heading: f32,
+    desired_pitch: f32,
+    desired_roll: f32,
+}
+
+extern "C" {
+    fn eech_hc_guidance_plan(input: *const HcGuidanceInput, plan: *mut HcQueryPlan);
+    fn eech_hc_guidance(
+        input: *const HcGuidanceInput,
+        structures: *const HcStructure,
+        structure_count: c_int,
+        sampled_terrain_elevation: f32,
+        result: *mut HcGuidanceResult,
+    );
+    /// 0: the demands are in `result`; `HC_DEMAND_NEEDS_LEADER`: the heading follows the leader and no leader attitude was given
+    fn eech_hc_demand(input: *const HcDemandInput, result: *mut HcDemandResult) -> c_int;
+}
+
+/// `EECH_HC_DEMAND_NEEDS_LEADER` in `hc_guidance.h`.
+const HC_DEMAND_NEEDS_LEADER: c_int = 1;
+
+/// A hosted helicopter step's retained guidance, in the order the phases consume it. Physical state: the campaign never
+/// sends it and never supplies an answer in its place. Any request outside the step's phases drops it, a new plan
+/// replaces it, and a gated rotor ends it.
+enum HelicopterFlow {
+    /// the plan was answered; the lookups are owed
+    Planned { plan: HelicopterPlan, others: Vec<HcOther>, query: HcQueryPlan },
+    /// the host's guidance ran. `rotor_checked`: the rotor step confirmed the lift and did not gate the helicopter.
+    Guided { plan: HelicopterPlan, result: HcGuidanceResult, rotor_checked: bool },
+    /// phase one integrated with the retained acceleration and climb; the steering is owed
+    Begun { plan: HelicopterPlan, result: HcGuidanceResult },
+}
+
+fn flag(value: bool) -> c_int {
+    c_int::from(value)
+}
+
+/// The guidance input as the host builds it: the self state is the host's own record, the intent is the campaign's.
+fn hc_guidance_input(pose: &Pose, motion_vector: [f32; 3], plan: &HelicopterPlan, others: &[HcOther]) -> HcGuidanceInput {
+    HcGuidanceInput {
+        group_leader: flag(plan.group_leader),
+        task_leader: flag(plan.task_leader),
+        task_leader_is_self: flag(plan.task_leader_is_self),
+        position_hold: flag(plan.position_hold),
+        terrain_follow: flag(plan.terrain_follow),
+        terrain_follow_attack_altitude: flag(plan.terrain_follow_attack_altitude),
+        waypoint_kind: plan.waypoint_kind as c_int,
+        guide_radius_valid: flag(plan.guide_radius.is_some()),
+        guide_radius: plan.guide_radius.unwrap_or(0.0),
+        guide_altitude_valid: flag(plan.guide_altitude_valid),
+        waypoint: plan.waypoint,
+        waypoint_velocity: plan.waypoint_velocity,
+        distance: plan.distance,
+        position: pose.position,
+        motion_vector,
+        attitude: pose.attitude,
+        velocity: pose.velocity,
+        terrain_elevation: plan.terrain_elevation,
+        fuel_supply_level: plan.fuel_supply_level,
+        cruise_velocity: plan.cruise_velocity,
+        power_output: plan.power_output,
+        cruise_altitude: plan.cruise_altitude,
+        attack_altitude: plan.attack_altitude,
+        leader_radar_altitude: plan.leader_radar_altitude,
+        map_min: plan.map_min,
+        map_max: plan.map_max,
+        delta_time: plan.delta_seconds,
+        other_count: others.len() as c_int,
+        others: others.as_ptr(),
+    }
+}
+
+fn hc_plan_is_finite(plan: &HelicopterPlan) -> bool {
+    plan.waypoint
+        .iter()
+        .chain(&plan.waypoint_velocity)
+        .chain(&plan.map_min)
+        .chain(&plan.map_max)
+        .chain(plan.guide_radius.iter())
+        .chain([
+            &plan.distance,
+            &plan.terrain_elevation,
+            &plan.fuel_supply_level,
+            &plan.cruise_velocity,
+            &plan.power_output,
+            &plan.cruise_altitude,
+            &plan.attack_altitude,
+            &plan.leader_radar_altitude,
+            &plan.delta_seconds,
+        ])
+        .all(|value| value.is_finite())
+}
+
+fn hc_steer_is_finite(steer: &HelicopterSteer) -> bool {
+    steer
+        .map_min
+        .iter()
+        .chain(&steer.map_max)
+        .chain(&steer.weapon_vector)
+        .chain(&steer.weapon_to_intercept_vector)
+        .chain(steer.guide_radius.iter())
+        .chain(steer.required_heading.iter())
+        .chain([
+            &steer.delta_seconds,
+            &steer.max_turn_rate,
+            &steer.elevation,
+            &steer.cg_to_ground,
+            &steer.g_max,
+            &steer.main_rotor_shaft_angle,
+        ])
+        .all(|value| value.is_finite())
 }
 
 /// The helicopter lifecycle modes: the rotor and the dying, crash and impact physics.
@@ -635,7 +1126,7 @@ pub struct Creation {
     pub motion_vector: [f32; 3],
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub enum Request {
     /// the campaign decided a new mobile's placement: the host computes its initial attitude and adopts the pose, once
     Create(Creation),
@@ -653,10 +1144,24 @@ pub enum Request {
     PersonEnd(PersonEnd),
     /// an alive fixed-wing aircraft's step
     FixedWingMove(FixedWingMove),
+    /// where the host wants the terrain sampled for a fixed-wing aircraft's terrain-following waypoint (its look-ahead
+    /// point, from the retained pose); the host answers [`HelicopterAnswer::Query`] with one sample and changes nothing
+    FixedWingLookahead,
     /// an alive AI helicopter's step, phase one
     HelicopterBegin(HelicopterBegin),
     /// an alive AI helicopter's step, phase two
     HelicopterEnd(HelicopterEnd),
+    /// a hosted helicopter step, phase 0: the campaign's guidance intent; the host answers [`HelicopterAnswer::Query`]
+    HelicopterPlan(Box<HelicopterPlan>),
+    /// a hosted helicopter step, phase 1: the answers to the query; the host runs its guidance and answers [`HelicopterAnswer::Guidance`]
+    HelicopterGuide(HelicopterGuide),
+    /// a hosted helicopter step, phase 3: integrate with the retained acceleration and climb. `motion_vector` is the
+    /// DLL's mirror, validated bit for bit.
+    HelicopterGuidedBegin { motion_vector: [f32; 3] },
+    /// a hosted helicopter step, phase 4: the host computes the steering demand and integrates
+    HelicopterGuidedEnd(HelicopterSteer),
+    /// the campaign's early gate (human wait, landed) ended the hosted step before its begin: drop the retained guidance
+    HelicopterAbandon,
     /// the campaign placed the mobile: adopt its pose. `motion_vector` is the DLL's motion
     /// vector, adopted only by an aircraft record (declared transitional coupling: the DLL
     /// still writes an aircraft's vector outside a host step).
@@ -672,8 +1177,14 @@ impl Request {
             Request::PersonBegin(_) => "person_begin",
             Request::PersonEnd(_) => "person_end",
             Request::FixedWingMove(_) => "fixed_wing_move",
+            Request::FixedWingLookahead => "fixed_wing_lookahead",
             Request::HelicopterBegin(_) => "helicopter_begin",
             Request::HelicopterEnd(_) => "helicopter_end",
+            Request::HelicopterPlan(_) => "helicopter_plan",
+            Request::HelicopterGuide(_) => "helicopter_guide",
+            Request::HelicopterGuidedBegin { .. } => "helicopter_guided_begin",
+            Request::HelicopterGuidedEnd(_) => "helicopter_guided_end",
+            Request::HelicopterAbandon => "helicopter_abandon",
             Request::Lifecycle(step) => step.mode.name(),
             Request::Place { .. } => "place",
             Request::Create(_) => "create_place",
@@ -686,12 +1197,37 @@ impl Request {
             Request::Advance(_) | Request::Stop => kind == Kind::Routed,
             Request::ShipMove(_) => kind == Kind::Ship,
             Request::PersonBegin(_) | Request::PersonEnd(_) => kind == Kind::Person,
-            Request::FixedWingMove(_) => kind == Kind::FixedWing,
-            Request::HelicopterBegin(_) | Request::HelicopterEnd(_) => kind == Kind::Helicopter,
+            Request::FixedWingMove(_) | Request::FixedWingLookahead => kind == Kind::FixedWing,
+            Request::HelicopterBegin(_)
+            | Request::HelicopterEnd(_)
+            | Request::HelicopterPlan(_)
+            | Request::HelicopterGuide(_)
+            | Request::HelicopterGuidedBegin { .. }
+            | Request::HelicopterGuidedEnd(_)
+            | Request::HelicopterAbandon => kind == Kind::Helicopter,
             Request::Lifecycle(step) => step.mode.allows(kind),
             Request::Place { .. } | Request::Create(_) => true,
         }
     }
+}
+
+/// The host's guidance answer to a hosted helicopter step's plan or guide request, read with [`Movers::take_answer`].
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum HelicopterAnswer {
+    /// the lookups the campaign's transitional services owe the host
+    Query(HelicopterQueryPlan),
+    /// The host's guidance. `lift` is what the campaign's rotor step must present (it is validated against it); the
+    /// acceleration and climb demand stay with the host for the begin phase and are reported for evidence only.
+    Guidance(HelicopterGuidance),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct HelicopterGuidance {
+    pub lift: f32,
+    pub waypoint: [f32; 3],
+    pub required_height: f32,
+    pub world_acceleration: [f32; 3],
+    pub wp_vec: [f32; 3],
 }
 
 /// What the host answers. `motion_vector` is meaningful for ships and persons. While
@@ -777,9 +1313,13 @@ struct Record {
     fw_speed: Option<f32>,
     /// A fixed-wing crash slide between its candidate and its attitude. The candidate itself is `candidate`.
     fw_crash: Option<CrashStage>,
+    /// An alive fixed-wing aircraft's turn multiplier and hold-until time; `None` for other kinds.
+    fw_turn: Option<FixedWingTurn>,
     /// A dead wreck's age as the host holds it, adopted from the campaign's copy by the first `Expire` and validated bit
     /// for bit afterwards; `None` for a ship, which has no timer.
     death_timer: Option<f32>,
+    /// A hosted helicopter step's retained guidance between its phases; `None` outside a hosted step.
+    hc_flow: Option<HelicopterFlow>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -823,6 +1363,7 @@ pub struct Movers {
     /// ids issued to a member that has no movement record (a link without a creation request)
     unrecorded: HashSet<String>,
     retired: HashSet<String>,
+    answer: Option<HelicopterAnswer>,
 }
 
 impl Movers {
@@ -898,15 +1439,23 @@ impl Movers {
                 fall: None,
                 fw_speed: None,
                 fw_crash: None,
+                fw_turn: (kind == Kind::FixedWing).then_some(FixedWingTurn::CREATED),
                 death_timer: None,
+                hc_flow: None,
             },
         );
         Ok(())
     }
 
+    /// The guidance answer the last [`Movers::step`] produced (a plan or guide request), if any; taken once.
+    pub fn take_answer(&mut self) -> Option<HelicopterAnswer> {
+        self.answer.take()
+    }
+
     /// Run one request. `campaign` is the campaign's copy of the pose; the
     /// outcome is the host's record afterwards.
     pub fn step(&mut self, host_id: &str, campaign: Pose, request: Request) -> Result<Outcome, String> {
+        self.answer = None;
         let mut outcome = self.dispatch(host_id, campaign, request)?;
         if let Some(rotor) = self.mobiles.get(host_id).and_then(|record| record.rotor) {
             outcome.rotor = rotor;
@@ -914,10 +1463,128 @@ impl Movers {
         Ok(outcome)
     }
 
-    fn dispatch(&mut self, host_id: &str, campaign: Pose, request: Request) -> Result<Outcome, String> {
+    /// The pose and retained motion of another fixed-wing aircraft, by the host's record of it.
+    fn navigation_aircraft(&self, host_id: &str, other: &str, role: &str) -> Result<([f32; 3], [f32; 3]), String> {
+        if other == host_id {
+            return Err(format!("host.move_vehicle: fixed_wing_move for {host_id} names itself as its {role}"));
+        }
+        if self.retired.contains(other) {
+            return Err(format!("host.move_vehicle: fixed_wing_move for {host_id}: its {role} {other} is retired"));
+        }
+        let record = self
+            .mobiles
+            .get(other)
+            .ok_or_else(|| format!("host.move_vehicle: fixed_wing_move for {host_id}: its {role} {other} is not a host id"))?;
+        if record.kind != Kind::FixedWing {
+            return Err(format!(
+                "host.move_vehicle: fixed_wing_move for {host_id}: its {role} {other} is {:?}, not a fixed-wing aircraft",
+                record.kind
+            ));
+        }
+        let motion_vector = record.motion_vector.ok_or_else(|| {
+            format!("host.move_vehicle: fixed_wing_move for {host_id}: its {role} {other} has no retained motion vector")
+        })?;
+        Ok((record.pose.position, motion_vector))
+    }
+
+    /// The navigator's other aircraft for a normal-flight step, resolved from host records and validated, or `None`
+    /// for any other request. Nothing is mutated; every failure is a contract error naming the aircraft.
+    fn resolve_navigation(&self, host_id: &str, request: &Request) -> Result<Option<ResolvedNavigation>, String> {
+        let Request::FixedWingMove(step) = request else { return Ok(None) };
+        if !matches!(step.phase, FixedWingPhase::Flight | FixedWingPhase::Land) {
+            return Ok(None);
+        }
+        let phase = if step.phase == FixedWingPhase::Flight { "flight" } else { "landing" };
+        // an unknown, retired or non-fixed-wing subject is reported by the ordinary checks
+        if !self.mobiles.get(host_id).is_some_and(|record| record.kind == Kind::FixedWing) {
+            return Ok(None);
+        }
+        let navigation = step
+            .navigation
+            .as_ref()
+            .ok_or_else(|| format!("host.move_vehicle: fixed_wing_move {phase} for {host_id} carries no navigation"))?;
+        let numbers = step.waypoint.iter().chain([
+            &step.delta_seconds,
+            &step.elapsed_time,
+            &step.wp_vel,
+            &step.cruise_velocity,
+            &step.g_max,
+            &navigation.max_vertical_turn_allowance,
+            &navigation.avoidance_radius,
+        ]);
+        if numbers.into_iter().any(|value| !value.is_finite()) {
+            return Err(format!("host.move_vehicle: fixed_wing_move {phase} for {host_id} has a non-finite navigation input"));
+        }
+        // The campaign names the leader and the members it knows; the host asks for one only on the path that reads it,
+        // so an aircraft is never refused for an identity the original path did not look at. The turn decision is the
+        // host's: facing away (the one place the original measured the leader's distance) reads the leader, and a
+        // step the turn leaves to the navigator reads the leader it pursues and the members it avoids. A cannon or
+        // turn-around hold in force, a landing facing forward, a task leader and a group leader read less.
+        let record = self.mobiles.get(host_id).ok_or_else(|| format!("host.move_vehicle: unknown host id {host_id}"))?;
+        let read_leader = || {
+            let leader = navigation
+                .leader
+                .as_deref()
+                .ok_or_else(|| format!("host.move_vehicle: fixed_wing_move {phase} for {host_id} names no task leader"))?;
+            self.navigation_aircraft(host_id, leader, "task leader")
+        };
+        let mut leader_state = ([0.0f32; 3], [0.0f32; 3]);
+        let mut others = Vec::new();
+        // a record without its retained vector or turn state is refused by the ordinary checks before anything is read
+        if let (Some(held), Some(mut turn)) = (record.motion_vector, record.fw_turn) {
+            if !navigation.task_leader && eech_facing_away(&record.pose.position, &held, &step.waypoint) {
+                leader_state = read_leader()?;
+            }
+            // the same decision the step takes, on a copy: the retained multiplier and hold change only with the step
+            let absolute = turn_is_absolute(step, record.pose.position, held, navigation.task_leader, leader_state.0, &mut turn);
+            if step.phase == FixedWingPhase::Flight && !absolute {
+                if !navigation.task_leader {
+                    leader_state = read_leader()?;
+                }
+                // a group leader makes no collision test, so the members are not read. The group is as large as the
+                // campaign sent: no member is dropped or refused for the count
+                if !navigation.group_leader {
+                    for (index, member) in navigation.members.iter().enumerate() {
+                        let name = member.host_id.as_deref().ok_or_else(|| {
+                            format!(
+                                "host.move_vehicle: fixed_wing_move {phase} for {host_id}: group member #{index} names no host id"
+                            )
+                        })?;
+                        if !member.avoidance_radius.is_finite() {
+                            return Err(format!(
+                                "host.move_vehicle: fixed_wing_move {phase} for {host_id}: group member {name} has a non-finite avoidance radius"
+                            ));
+                        }
+                        let (position, motion_vector) = self.navigation_aircraft(host_id, name, "group member")?;
+                        others.push(FwNavOther { position, motion_vector, avoidance_radius: member.avoidance_radius });
+                    }
+                }
+            }
+        }
+        let (leader_position, leader_motion_vector) = leader_state;
+        Ok(Some(ResolvedNavigation {
+            group_leader: navigation.group_leader,
+            task_leader: navigation.task_leader,
+            max_vertical_turn_allowance: navigation.max_vertical_turn_allowance,
+            avoidance_radius: navigation.avoidance_radius,
+            leader_position,
+            leader_motion_vector,
+            others,
+        }))
+    }
+
+    fn dispatch(&mut self, host_id: &str, campaign: Pose, mut request: Request) -> Result<Outcome, String> {
         if self.retired.contains(host_id) {
             return Err(format!("host.move_vehicle: {} for retired host id {host_id}", request.name()));
         }
+        // read-only, and before the mutable borrow: a terrain-following waypoint's height is the host's, so the turn,
+        // navigation and step below all see it
+        self.shape_fixed_wing_waypoint(host_id, &mut request)?;
+        // read-only, and before the mutable borrow: the other aircraft are resolved from the host's own records
+        let navigation = self.resolve_navigation(host_id, &request)?;
+        let hc_others = self.resolve_helicopter_others(host_id, &request)?;
+        // the leader's attitude, looked up now and refused only if the heading demand actually reads it
+        let hc_leader = self.look_up_helicopter_leader(host_id, &request);
         let record = self
             .mobiles
             .get_mut(host_id)
@@ -940,10 +1607,10 @@ impl Movers {
             (_, false) => {}
         }
         match (&request, record.helicopter_pending) {
-            (Request::HelicopterEnd(_), false) => {
-                return Err(format!("host.move_vehicle: helicopter_end for {host_id} without a pending helicopter_begin"));
+            (Request::HelicopterEnd(_) | Request::HelicopterGuidedEnd(_), false) => {
+                return Err(format!("host.move_vehicle: {} for {host_id} without a pending helicopter_begin", request.name()));
             }
-            (Request::HelicopterEnd(_), true) => {}
+            (Request::HelicopterEnd(_) | Request::HelicopterGuidedEnd(_), true) => {}
             (_, true) => {
                 return Err(format!(
                     "host.move_vehicle: {} for {host_id} while its helicopter step is pending",
@@ -964,6 +1631,23 @@ impl Movers {
             };
             if let Some(open) = open {
                 return Err(format!("host.move_vehicle: {} for {host_id} while {open}", request.name()));
+            }
+        }
+        // Retained guidance lives only through the hosted step's own requests (and the rotor step it feeds); any other
+        // request that SUCCEEDS ends it, so a later step can never begin from a stale answer. A request refused for any
+        // reason changes nothing: the flow is cleared only once the request has been applied.
+        let in_flow = matches!(
+            &request,
+            Request::HelicopterPlan(_)
+                | Request::HelicopterGuide(_)
+                | Request::HelicopterGuidedBegin { .. }
+                | Request::HelicopterGuidedEnd(_)
+                | Request::HelicopterAbandon
+        ) || matches!(&request, Request::Lifecycle(step) if step.mode == LifecycleMode::RotorAlive);
+        // the legacy begin/end pair and the hosted pair are not mixed within one step
+        if let Request::HelicopterEnd(_) = request {
+            if matches!(record.hc_flow, Some(HelicopterFlow::Begun { .. })) {
+                return Err(format!("host.move_vehicle: helicopter_end for {host_id} after a hosted begin (helicopter_guided_end)"));
             }
         }
         let crash_end = matches!(&request, Request::Lifecycle(step) if step.mode == LifecycleMode::CrashEnd);
@@ -1016,6 +1700,7 @@ impl Movers {
                 record.motion_vector = Some(creation.motion_vector);
             }
             record.placed = true;
+            record.hc_flow = None;
             return Ok(Outcome {
                 angles,
                 ..settled(record.pose, false, [0.0; 3])
@@ -1026,6 +1711,7 @@ impl Movers {
             if matches!(record.kind, Kind::FixedWing | Kind::Helicopter) {
                 record.motion_vector = Some(motion_vector);
             }
+            record.hc_flow = None;
             return Ok(settled(record.pose, false, [0.0; 3]));
         }
         if let Some(what) = campaign.first_difference(&record.pose) {
@@ -1033,7 +1719,7 @@ impl Movers {
                 "host.move_vehicle: the campaign's {what} for {host_id} differs from the host's record (a write the host did not make)"
             ));
         }
-        match request {
+        let result = match request {
             Request::Advance(advance) => {
                 release_vehicle_vector(record);
                 let rotated = advance_pose(&mut record.pose, &advance);
@@ -1049,6 +1735,20 @@ impl Movers {
                 let motion_vector = ship_pose(&mut record.pose, &ship);
                 Ok(settled(record.pose, false, motion_vector))
             }
+            Request::FixedWingLookahead => {
+                let mut point = [0.0f32; 2];
+                // SAFETY: the position and attitude are the 3 and 9 floats the C function reads; the point is the 2 it writes
+                unsafe {
+                    eech_fw_lookahead(record.pose.position.as_ptr(), record.pose.velocity, record.pose.attitude.as_ptr(), point.as_mut_ptr());
+                }
+                self.answer = Some(HelicopterAnswer::Query(HelicopterQueryPlan {
+                    structure_scan: false,
+                    structure_position: [0.0; 3],
+                    terrain_sample_count: 1,
+                    terrain_sample: [point, [0.0; 2]],
+                }));
+                Ok(settled(record.pose, false, record.motion_vector.unwrap_or([0.0; 3])))
+            }
             Request::PersonBegin(begin) => Ok(begin_person(record, &begin)),
             Request::PersonEnd(end) => Ok(end_person(record, &end)),
             Request::FixedWingMove(fixed_wing) => {
@@ -1061,8 +1761,12 @@ impl Movers {
                         fixed_wing.motion_vector[index], held[index]
                     ));
                 }
-                let (motion_vector, rotated) = fixed_wing_pose(&mut record.pose, held, &fixed_wing);
+                let mut turn = record
+                    .fw_turn
+                    .ok_or_else(|| format!("host.move_vehicle: fixed-wing {host_id} has no retained turn state"))?;
+                let (motion_vector, rotated) = fixed_wing_pose(&mut record.pose, held, &fixed_wing, navigation.as_ref(), &mut turn);
                 record.motion_vector = Some(motion_vector);
+                record.fw_turn = Some(turn);
                 Ok(settled(record.pose, rotated, motion_vector))
             }
             Request::HelicopterBegin(begin) => {
@@ -1085,9 +1789,350 @@ impl Movers {
                 record.helicopter_pending = false;
                 Ok(settled(record.pose, rotated, motion_vector))
             }
-            Request::Lifecycle(step) => lifecycle(record, host_id, &step),
+            Request::HelicopterPlan(plan) => {
+                if !hc_plan_is_finite(&plan) {
+                    return Err(format!("host.move_vehicle: helicopter_plan for {host_id} has a non-finite input"));
+                }
+                let held = held_vector(record, host_id, &plan.motion_vector)?;
+                let others = hc_others.unwrap_or_default();
+                let input = hc_guidance_input(&record.pose, held, &plan, &others);
+                let mut query = HcQueryPlan::default();
+                // SAFETY: `input` points at `others`, which outlives the call; the plan is one struct the C writes
+                unsafe { eech_hc_guidance_plan(&input, &mut query) };
+                let answer = HelicopterQueryPlan {
+                    structure_scan: query.structure_scan != 0,
+                    structure_position: query.structure_position,
+                    terrain_sample_count: query.terrain_sample_count.clamp(0, 2) as usize,
+                    terrain_sample: query.terrain_sample,
+                };
+                record.hc_flow = Some(HelicopterFlow::Planned { plan: *plan, others, query });
+                self.answer = Some(HelicopterAnswer::Query(answer));
+                Ok(settled(record.pose, false, held))
+            }
+            Request::HelicopterGuide(guide) => {
+                // everything is checked against the retained plan before the flow is touched: a refused answer leaves the
+                // plan in place for a corrected one, and a repeated guide (no plan left) changes nothing
+                let Some(HelicopterFlow::Planned { query, .. }) = &record.hc_flow else {
+                    return Err(format!("host.move_vehicle: helicopter_guide for {host_id} without a planned step (helicopter_plan first)"));
+                };
+                let refuse = |reason: String| format!("host.move_vehicle: helicopter_guide for {host_id}: {reason}");
+                let held = held_vector(record, host_id, &guide.motion_vector)?;
+                let wanted = query.terrain_sample_count.max(0) as usize;
+                if guide.terrain_samples.len() != wanted {
+                    return Err(refuse(format!("{} terrain samples answered, {wanted} planned", guide.terrain_samples.len())));
+                }
+                if query.structure_scan == 0 && !guide.structures.is_empty() {
+                    return Err(refuse("structures answered to a plan that scans none".to_owned()));
+                }
+                if guide
+                    .structures
+                    .iter()
+                    .any(|s| s.position.iter().chain([&s.avoidance_radius, &s.height]).any(|v| !v.is_finite()))
+                {
+                    return Err(refuse("a non-finite structure".to_owned()));
+                }
+                // the original `terrain_elevation = max (terrain_elevation, get_3d_terrain_point_data (...))`, per sample in
+                // the plan's order: the running maximum starts at 0.0; the getter's first return is kept when the running
+                // value exceeds it (one call), otherwise the getter ran again and its SECOND return is selected
+                let mut sampled = 0.0f32;
+                for (index, sample) in guide.terrain_samples.iter().enumerate() {
+                    if !sample.first.is_finite() || sample.second.is_some_and(|second| !second.is_finite()) {
+                        return Err(refuse(format!("terrain sample #{index} is non-finite")));
+                    }
+                    if sampled > sample.first {
+                        if sample.second.is_some() {
+                            return Err(refuse(format!(
+                                "terrain sample #{index} carries a second getter return, but the running maximum {sampled} exceeds its first {} (the original calls the getter once)",
+                                sample.first
+                            )));
+                        }
+                    } else {
+                        sampled = sample.second.ok_or_else(|| {
+                            refuse(format!(
+                                "terrain sample #{index} carries no second getter return, but the running maximum {sampled} does not exceed its first {} (the original calls the getter again)",
+                                sample.first
+                            ))
+                        })?;
+                    }
+                }
+                let Some(HelicopterFlow::Planned { plan, others, .. }) = record.hc_flow.take() else { unreachable!("checked above") };
+                let structures: Vec<HcStructure> = guide
+                    .structures
+                    .iter()
+                    .map(|s| HcStructure { position: s.position, avoidance_radius: s.avoidance_radius, height: s.height })
+                    .collect();
+                let input = hc_guidance_input(&record.pose, held, &plan, &others);
+                let mut result = HcGuidanceResult::default();
+                // SAFETY: every pointer is to a live array of the length passed beside it; the C keeps none of them
+                unsafe {
+                    eech_hc_guidance(&input, structures.as_ptr(), structures.len() as c_int, sampled, &mut result);
+                }
+                self.answer = Some(HelicopterAnswer::Guidance(HelicopterGuidance {
+                    lift: result.lift,
+                    waypoint: result.waypoint,
+                    required_height: result.required_height,
+                    world_acceleration: result.world_acceleration,
+                    wp_vec: result.wp_vec,
+                }));
+                record.hc_flow = Some(HelicopterFlow::Guided { plan, result, rotor_checked: false });
+                Ok(settled(record.pose, false, held))
+            }
+            Request::HelicopterGuidedBegin { motion_vector } => {
+                match &record.hc_flow {
+                    Some(HelicopterFlow::Guided { rotor_checked: true, .. }) => {}
+                    Some(HelicopterFlow::Guided { .. }) => {
+                        return Err(format!("host.move_vehicle: helicopter_guided_begin for {host_id} before its rotor step (rotor_alive first)"));
+                    }
+                    _ => {
+                        return Err(format!("host.move_vehicle: helicopter_guided_begin for {host_id} without host guidance (helicopter_plan, helicopter_guide first)"));
+                    }
+                }
+                let held = held_vector(record, host_id, &motion_vector)?;
+                let Some(HelicopterFlow::Guided { plan, result, .. }) = record.hc_flow.take() else { unreachable!("checked above") };
+                let begin = HelicopterBegin {
+                    delta_seconds: plan.delta_seconds,
+                    acceleration_x: result.world_acceleration[0],
+                    acceleration_z: result.world_acceleration[2],
+                    wp_vec_y: result.wp_vec[1],
+                    motion_vector,
+                };
+                let (motion_vector, speed, moved) = helicopter_begin(held, &begin);
+                record.motion_vector = Some(motion_vector);
+                record.pose.velocity = speed;
+                record.helicopter_pending = true;
+                record.hc_flow = Some(HelicopterFlow::Begun { plan, result });
+                Ok(Outcome {
+                    moved,
+                    pending: true,
+                    ..settled(record.pose, false, motion_vector)
+                })
+            }
+            Request::HelicopterGuidedEnd(steer) => {
+                if !matches!(record.hc_flow, Some(HelicopterFlow::Begun { .. })) {
+                    return Err(format!("host.move_vehicle: helicopter_guided_end for {host_id} without a hosted begin (helicopter_end is the legacy pair's)"));
+                }
+                if !hc_steer_is_finite(&steer) {
+                    return Err(format!("host.move_vehicle: helicopter_guided_end for {host_id} has a non-finite input"));
+                }
+                let held = held_vector(record, host_id, &steer.motion_vector)?;
+                let Some(HelicopterFlow::Begun { plan, result }) = record.hc_flow.take() else { unreachable!("checked above") };
+                // the demand reads the state the begin phase left: its vector and speed, and the unchanged attitude
+                let mut input = HcDemandInput {
+                    waypoint_kind: steer.waypoint_kind as c_int,
+                    task_leader_is_self: flag(steer.task_leader_is_self),
+                    guide_radius_valid: flag(steer.guide_radius.is_some()),
+                    guide_radius: steer.guide_radius.unwrap_or(0.0),
+                    distance: plan.distance,
+                    required_heading_valid: flag(steer.required_heading.is_some()),
+                    required_heading: steer.required_heading.unwrap_or(0.0),
+                    leader_attitude_valid: 0,
+                    leader_attitude: [0.0; 9],
+                    targeting_active: flag(steer.targeting_active),
+                    weapon_vector: steer.weapon_vector,
+                    weapon_to_intercept_vector: steer.weapon_to_intercept_vector,
+                    attitude: record.pose.attitude,
+                    motion_vector: held,
+                    velocity: record.pose.velocity,
+                    cruise_velocity: plan.cruise_velocity,
+                    g_max: steer.g_max,
+                    main_rotor_shaft_angle: steer.main_rotor_shaft_angle,
+                    world_acceleration: result.world_acceleration,
+                    wp_vec: result.wp_vec,
+                };
+                let mut demand = HcDemandResult::default();
+                // SAFETY: both are single structs; the C keeps no pointer
+                let mut needs_leader = unsafe { eech_hc_demand(&input, &mut demand) };
+                if needs_leader == HC_DEMAND_NEEDS_LEADER {
+                    // the heading follows the leader: only now is its host record required, and its attitude is the host's
+                    let leader = match hc_leader {
+                        Some(Ok(attitude)) => attitude,
+                        Some(Err(error)) => {
+                            // nothing has changed: the step stays open for a corrected end
+                            record.hc_flow = Some(HelicopterFlow::Begun { plan, result });
+                            return Err(error);
+                        }
+                        None => unreachable!("a guided end always looks its leader up"),
+                    };
+                    input.leader_attitude_valid = 1;
+                    input.leader_attitude = leader;
+                    // SAFETY: as above
+                    needs_leader = unsafe { eech_hc_demand(&input, &mut demand) };
+                }
+                debug_assert_eq!(needs_leader, 0, "the demand has its leader");
+                let end = HelicopterEnd {
+                    delta_seconds: steer.delta_seconds,
+                    desired_heading: demand.desired_heading,
+                    max_turn_rate: steer.max_turn_rate,
+                    desired_pitch: demand.desired_pitch,
+                    desired_roll: demand.desired_roll,
+                    elevation: steer.elevation,
+                    cg_to_ground: steer.cg_to_ground,
+                    terrain_follow: steer.terrain_follow,
+                    motion_vector: steer.motion_vector,
+                    map_min: steer.map_min,
+                    map_max: steer.map_max,
+                };
+                let (motion_vector, rotated) = helicopter_end(&mut record.pose, held, &end);
+                record.motion_vector = Some(motion_vector);
+                record.helicopter_pending = false;
+                // the demand the host computed, for the record: heading, pitch, roll
+                Ok(Outcome {
+                    angles: [demand.desired_heading, demand.desired_pitch, demand.desired_roll],
+                    ..settled(record.pose, rotated, motion_vector)
+                })
+            }
+            Request::HelicopterAbandon => {
+                record.hc_flow = None;
+                Ok(settled(record.pose, false, record.motion_vector.unwrap_or([0.0; 3])))
+            }
+            Request::Lifecycle(step) => {
+                let rotor_alive = step.mode == LifecycleMode::RotorAlive;
+                if rotor_alive {
+                    match &record.hc_flow {
+                        Some(HelicopterFlow::Guided { plan, result, .. }) => {
+                            if step.lift.to_bits() != result.lift.to_bits() {
+                                return Err(format!(
+                                    "host.move_vehicle: rotor_alive lift {} for {host_id} differs from the host's guidance ({})",
+                                    step.lift, result.lift
+                                ));
+                            }
+                            if step.power_output.to_bits() != plan.power_output.to_bits() {
+                                return Err(format!(
+                                    "host.move_vehicle: rotor_alive power {} for {host_id} differs from the planned step's ({})",
+                                    step.power_output, plan.power_output
+                                ));
+                            }
+                        }
+                        Some(_) => {
+                            return Err(format!("host.move_vehicle: rotor_alive for {host_id} between helicopter_plan and helicopter_guide"));
+                        }
+                        // no hosted step open: the legacy rotor step
+                        None => {}
+                    }
+                }
+                let outcome = lifecycle(record, host_id, &step)?;
+                if rotor_alive {
+                    // a gated rotor ends the step before it begins; otherwise the begin may now follow
+                    match record.hc_flow.take() {
+                        Some(HelicopterFlow::Guided { plan, result, .. }) if !outcome.moved => {
+                            record.hc_flow = Some(HelicopterFlow::Guided { plan, result, rotor_checked: true });
+                        }
+                        _ => {}
+                    }
+                }
+                Ok(outcome)
+            }
             Request::Place { .. } | Request::Create(_) => unreachable!("placed above"),
+        };
+        if result.is_ok() && !in_flow {
+            record.hc_flow = None;
         }
+        result
+    }
+
+    /// A terrain-following fixed-wing waypoint's height, performed by the host: the original climb arithmetic from the
+    /// retained pose and the terrain the campaign observed at the host's own look-ahead point, then the formation's
+    /// height offset and the centre of gravity added in the original's order. The campaign's `waypoint` height is
+    /// overwritten (its x and z, the formation's, stay). Read-only on the host's records and before the mutable
+    /// borrow: a refusal changes nothing. Any other request, or one without terrain intent, is left alone.
+    fn shape_fixed_wing_waypoint(&self, host_id: &str, request: &mut Request) -> Result<(), String> {
+        let Request::FixedWingMove(step) = request else { return Ok(()) };
+        let Some(terrain) = step.terrain else { return Ok(()) };
+        // an unknown or non-fixed-wing subject is reported by the ordinary checks
+        let Some(record) = self.mobiles.get(host_id).filter(|record| record.kind == Kind::FixedWing) else { return Ok(()) };
+        let refuse = |reason: &str| format!("host.move_vehicle: fixed_wing_move for {host_id}: terrain {reason}");
+        let numbers = terrain
+            .guide_position
+            .iter()
+            .chain(&terrain.sample_point)
+            .chain([&terrain.min_height, &terrain.sample_elevation, &terrain.site_y, &terrain.cg]);
+        if numbers.into_iter().any(|value| !value.is_finite()) {
+            return Err(refuse("has a non-finite input"));
+        }
+        let pose = &record.pose;
+        let mut point = [0.0f32; 2];
+        // SAFETY: the position and attitude are the 3 and 9 floats the C function reads; the point is the 2 it writes
+        unsafe { eech_fw_lookahead(pose.position.as_ptr(), pose.velocity, pose.attitude.as_ptr(), point.as_mut_ptr()) };
+        if point.iter().zip(&terrain.sample_point).any(|(host, campaign)| host.to_bits() != campaign.to_bits()) {
+            return Err(refuse(&format!(
+                "was sampled at ({}, {}), not the host's look-ahead point ({}, {})",
+                terrain.sample_point[0], terrain.sample_point[1], point[0], point[1]
+            )));
+        }
+        // SAFETY: the position, attitude and guide position are the 3, 9 and 3 floats the C function reads
+        let mut height = unsafe {
+            eech_fw_terrain_height(
+                pose.position.as_ptr(),
+                pose.velocity,
+                pose.attitude.as_ptr(),
+                terrain.guide_position.as_ptr(),
+                terrain.sample_elevation,
+                terrain.min_height,
+            )
+        };
+        // as the original added them, in single precision and in this order: the formation site, then the centre of gravity
+        height += terrain.site_y;
+        height += terrain.cg;
+        step.waypoint[1] = height;
+        Ok(())
+    }
+
+    /// The attitude of the task leader a hosted helicopter's guided end names, from the host's own record of it. Read-only
+    /// and before the mutable borrow. `None` when the request is not a guided end. The result is an error only if the id is
+    /// missing or unusable, and the caller surfaces it only when the heading demand reads the leader: an id that path does
+    /// not use is never refused, and no leader heading is invented.
+    fn look_up_helicopter_leader(&self, host_id: &str, request: &Request) -> Option<Result<[f32; 9], String>> {
+        let Request::HelicopterGuidedEnd(steer) = request else { return None };
+        Some((|| {
+            let name = steer.leader.as_deref().ok_or_else(|| {
+                format!("host.move_vehicle: helicopter_guided_end for {host_id} follows its task leader but names no leader host id")
+            })?;
+            if name == host_id {
+                return Err(format!("host.move_vehicle: helicopter_guided_end for {host_id} names itself as the task leader it follows"));
+            }
+            if self.retired.contains(name) {
+                return Err(format!("host.move_vehicle: helicopter_guided_end for {host_id}: task leader {name} is retired"));
+            }
+            let leader = self
+                .mobiles
+                .get(name)
+                .ok_or_else(|| format!("host.move_vehicle: helicopter_guided_end for {host_id}: task leader {name} is not a host id"))?;
+            if leader.kind != Kind::Helicopter {
+                return Err(format!("host.move_vehicle: helicopter_guided_end for {host_id}: task leader {name} is not a helicopter"));
+            }
+            Ok(leader.pose.attitude)
+        })())
+    }
+
+    /// The positions of a hosted helicopter's group members, by the host's record of each, in the order the campaign's
+    /// group list names them. Read-only and before the mutable borrow; `Ok(None)` when the request needs none (another
+    /// request, a group leader, or a subject the ordinary checks refuse). The group is as large as the campaign sent.
+    fn resolve_helicopter_others(&self, host_id: &str, request: &Request) -> Result<Option<Vec<HcOther>>, String> {
+        let Request::HelicopterPlan(plan) = request else { return Ok(None) };
+        if self.mobiles.get(host_id).map(|record| record.kind) != Some(Kind::Helicopter) || plan.group_leader {
+            return Ok(None);
+        }
+        let mut others = Vec::with_capacity(plan.members.len());
+        for (index, member) in plan.members.iter().enumerate() {
+            let name = member
+                .as_deref()
+                .ok_or_else(|| format!("host.move_vehicle: helicopter_plan for {host_id}: group member #{index} names no host id"))?;
+            if name == host_id {
+                return Err(format!("host.move_vehicle: helicopter_plan for {host_id} names itself as group member #{index}"));
+            }
+            if self.retired.contains(name) {
+                return Err(format!("host.move_vehicle: helicopter_plan for {host_id}: group member {name} is retired"));
+            }
+            let other = self
+                .mobiles
+                .get(name)
+                .ok_or_else(|| format!("host.move_vehicle: helicopter_plan for {host_id}: group member {name} is not a host id"))?;
+            if other.kind != Kind::Helicopter {
+                return Err(format!("host.move_vehicle: helicopter_plan for {host_id}: group member {name} is not a helicopter"));
+            }
+            others.push(HcOther { position: other.pose.position });
+        }
+        Ok(Some(others))
     }
 }
 
@@ -1876,15 +2921,89 @@ fn ship_pose(record: &mut Pose, ship: &ShipMove) -> [f32; 3] {
     motion_vector
 }
 
-/// The aircraft's new motion vector and whether the step turned it enough to report.
-fn fixed_wing_pose(record: &mut Pose, previous: [f32; 3], step: &FixedWingMove) -> ([f32; 3], bool) {
+/// Whether the waypoint lies behind the motion vector (the original's dot-product test, in the host's C).
+fn eech_facing_away(position: &[f32; 3], motion_vector: &[f32; 3], waypoint: &[f32; 3]) -> bool {
+    // SAFETY: each argument is 3 floats the C function only reads.
+    unsafe { eech_fw_facing_away(position.as_ptr(), motion_vector.as_ptr(), waypoint.as_ptr()) != 0 }
+}
+
+/// The host's turn decision for an airborne step: whether the cannon hold, the turn-around or a hold still in force
+/// sends the aircraft to the absolute branch instead of the navigator. `turn` (the retained multiplier and hold) is
+/// updated in place; the leader's position is read only when the aircraft is facing away and does not lead its task.
+/// The step and the host's look ahead at what it will read both come through here, so they cannot disagree.
+fn turn_is_absolute(
+    step: &FixedWingMove,
+    position: [f32; 3],
+    motion_vector: [f32; 3],
+    task_leader: bool,
+    leader_position: [f32; 3],
+    turn: &mut FixedWingTurn,
+) -> bool {
+    let input = FwTurnInput {
+        task_leader: c_int::from(task_leader),
+        aiming_cannon: c_int::from(step.aiming_cannon),
+        elapsed_time: step.elapsed_time,
+        position,
+        motion_vector,
+        waypoint: step.waypoint,
+        leader_position,
+    };
+    // SAFETY: `input` is read-only; the multiplier and toggle are single floats the C function reads and writes.
+    unsafe { eech_fw_turn(&input, &mut turn.turn_speed_multi, &mut turn.toggle) != 0 }
+}
+
+/// The aircraft's new motion vector and whether the step turned it enough to report. An airborne step (flight or
+/// landing) first lets the host decide, from its retained pose and motion, whether the aircraft is facing away from
+/// its waypoint (or aiming a cannon) and so flies the absolute turn-around instead; `turn` is the retained multiplier
+/// and hold, updated in place and committed by the caller only when the step is made. Taxi and an explicit absolute
+/// step leave the decision alone and fly with the retained multiplier.
+fn fixed_wing_pose(
+    record: &mut Pose,
+    previous: [f32; 3],
+    step: &FixedWingMove,
+    navigation: Option<&ResolvedNavigation>,
+    turn: &mut FixedWingTurn,
+) -> ([f32; 3], bool) {
     let mut motion_vector = previous;
     let mut rotated: c_int = 0;
+    let mut phase = step.phase;
+    if let (FixedWingPhase::Flight | FixedWingPhase::Land, Some(navigation)) = (step.phase, navigation) {
+        if turn_is_absolute(step, record.position, previous, navigation.task_leader, navigation.leader_position, turn) {
+            phase = FixedWingPhase::Absolute;
+        }
+    }
+    // only normal flight reads the acceleration; the host computes it from its own pose and motion (before the step
+    // moves them) and from the other aircraft its records resolved
+    let mut acceleration = [0.0f32; 3];
+    if let (FixedWingPhase::Flight, Some(navigation)) = (phase, navigation) {
+        let input = FwNavInput {
+            group_leader: c_int::from(navigation.group_leader),
+            task_leader: c_int::from(navigation.task_leader),
+            delta_time: step.delta_seconds,
+            position: record.position,
+            motion_vector: previous,
+            attitude: record.attitude,
+            velocity: record.velocity,
+            navigation_velocity: previous,
+            cruise_velocity: step.cruise_velocity,
+            max_vertical_turn_allowance: navigation.max_vertical_turn_allowance,
+            g_max: step.g_max,
+            avoidance_radius: navigation.avoidance_radius,
+            waypoint: step.waypoint,
+            guide_velocity: step.wp_vel,
+            task_leader_motion_vector: navigation.leader_motion_vector,
+            other_count: navigation.others.len() as c_int,
+            others: navigation.others.as_ptr(),
+        };
+        // SAFETY: `input` is read-only and its `others` points at `other_count` initialised entries that outlive the
+        // call; the acceleration is the 3 floats the C function writes.
+        unsafe { eech_fw_navigate(&input, acceleration.as_mut_ptr()) };
+    }
     // SAFETY: as for `advance_pose`; the acceleration, waypoint and bounds are 3 floats, the
     // motion vector is 3 floats read then written.
     unsafe {
         eech_fw_step(
-            step.phase as c_int,
+            phase as c_int,
             record.position.as_mut_ptr(),
             &mut record.velocity,
             record.attitude.as_mut_ptr(),
@@ -1896,9 +3015,9 @@ fn fixed_wing_pose(record: &mut Pose, previous: [f32; 3], step: &FixedWingMove) 
             step.fuselage_angle,
             step.cg_to_ground,
             step.max_roll,
-            step.turn_speed_multi,
+            turn.turn_speed_multi,
             step.waypoint.as_ptr(),
-            step.acceleration.as_ptr(),
+            acceleration.as_ptr(),
             motion_vector.as_mut_ptr(),
             c_int::from(step.navigating),
             step.elevation,
@@ -2072,6 +3191,18 @@ mod tests {
         }
     }
 
+    /// a navigation that needs no other aircraft: the task leader of a group it leads
+    fn task_leader_navigation() -> FixedWingNavigation {
+        FixedWingNavigation {
+            group_leader: true,
+            task_leader: true,
+            max_vertical_turn_allowance: 0.5,
+            avoidance_radius: 20.0,
+            leader: None,
+            members: Vec::new(),
+        }
+    }
+
     fn fixed_wing_move(phase: FixedWingPhase) -> FixedWingMove {
         FixedWingMove {
             phase,
@@ -2083,9 +3214,11 @@ mod tests {
             fuselage_angle: 0.0,
             cg_to_ground: 2.0,
             max_roll: 1.0,
-            turn_speed_multi: 1.0,
             waypoint: [0.0, 0.0, 5000.0],
-            acceleration: [0.0; 3],
+            aiming_cannon: false,
+            elapsed_time: 100.0,
+            navigation: matches!(phase, FixedWingPhase::Flight | FixedWingPhase::Land).then(task_leader_navigation),
+            terrain: None,
             motion_vector: [0.0, 0.0, 100.0],
             navigating: false,
             elevation: 10.0,
@@ -2260,7 +3393,7 @@ mod tests {
     fn a_creation_for_an_unknown_or_retired_id_is_refused() {
         let mut movers = movers(Kind::Routed, pose(0.0, 0.0));
         let request = Request::Create(creation([0.0; 3], 0.0, [0.0, 1.0, 0.0]));
-        assert!(movers.step("other", pose(0.0, 0.0), request).unwrap_err().contains("unknown host id"));
+        assert!(movers.step("other", pose(0.0, 0.0), request.clone()).unwrap_err().contains("unknown host id"));
         movers.retire("v").unwrap();
         assert!(movers.step("v", pose(0.0, 0.0), request).unwrap_err().contains("retired"));
     }
@@ -2602,7 +3735,7 @@ mod tests {
                 (Kind::FixedWing, &mut fixed_wing),
                 (Kind::Helicopter, &mut helicopter),
             ] {
-                let result = movers.step("v", pose(0.0, 0.0), request);
+                let result = movers.step("v", pose(0.0, 0.0), request.clone());
                 if !own(kind, &request) {
                     let error = result.unwrap_err();
                     assert!(error.contains(&format!("is not a request for {kind:?}")), "{error}");
@@ -2628,18 +3761,20 @@ mod tests {
         let placed = Request::Place {
             motion_vector: [0.0, 0.0, 40.0],
         };
-        movers.step("v", pose(0.0, 0.0), placed).unwrap();
+        movers.step("v", pose(0.0, 0.0), placed.clone()).unwrap();
         // the host now flies at the placed 40 m/s, and the 100 m/s mirror is a write it did not make
         let mut flight = fixed_wing_move(FixedWingPhase::Flight);
         flight.elevation = 0.0;
         // the flight clamps the speed to 0.7 to 2 times the cruise velocity
         flight.cruise_velocity = 40.0;
-        let mut stale = flight;
+        // the host's navigator now supplies the acceleration, and a guide speed of 40 asks for none
+        flight.wp_vel = 40.0;
+        let mut stale = flight.clone();
         stale.motion_vector = [0.0, 0.0, 100.0];
-        let error = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(stale)).unwrap_err();
+        let error = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(stale.clone())).unwrap_err();
         assert!(error.contains("motion_vector"), "{error}");
         flight.motion_vector = [0.0, 0.0, 40.0];
-        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(flight)).unwrap();
+        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(flight.clone())).unwrap();
         assert_eq!(first.pose.velocity, 40.0);
         let mut ship = self::movers(Kind::Ship, pose(0.0, 0.0));
         ship.step("v", pose(0.0, 0.0), placed).unwrap();
@@ -2666,7 +3801,7 @@ mod tests {
         let mut taxi = fixed_wing_move(FixedWingPhase::Taxi);
         taxi.delta_seconds = 1.0;
         taxi.wp_vel = 10.0;
-        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(taxi)).unwrap();
+        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(taxi.clone())).unwrap();
         // min(10 - 0, 3 m/s^2) over 1 s, due +z; the height is the terrain plus the centre of gravity
         assert_eq!(first.pose.velocity, 3.0);
         assert_near(first.pose.position, [0.0, 12.0, 3.0]);
@@ -2680,7 +3815,7 @@ mod tests {
         // the terrain is level with the aircraft, so the clamp does not lift it
         let mut flight = fixed_wing_move(FixedWingPhase::Flight);
         flight.elevation = 0.0;
-        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(flight)).unwrap();
+        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(flight.clone())).unwrap();
         // 100 m/s along +z for the 0.5 s engine delta; (new - old) * the frame reciprocal 2
         assert_eq!(first.pose.velocity, 100.0);
         assert_near(first.pose.position, [0.0, 0.0, 50.0]);
@@ -2695,7 +3830,7 @@ mod tests {
         land.delta_seconds = 1.0;
         land.frame_delta = 1.0;
         land.elevation = 0.0;
-        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(land)).unwrap();
+        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(land.clone())).unwrap();
         assert_eq!(first.pose.velocity, 50.0);
         assert_near(first.pose.position, [0.0, 0.0, 50.0]);
         assert_near(first.motion_vector, [0.0, 0.0, 50.0]);
@@ -2708,7 +3843,7 @@ mod tests {
         absolute.waypoint = [5000.0, 0.0, 0.0];
         absolute.delta_seconds = 1.0;
         absolute.elevation = 0.0;
-        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(absolute)).unwrap();
+        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(absolute.clone())).unwrap();
         // min(100 - 0, 30 m/s^2) over 1 s, along the old +z axis although the waypoint is abeam
         assert_eq!(first.pose.velocity, 30.0);
         assert_near(first.pose.position, [0.0, 0.0, 30.0]);
@@ -2731,14 +3866,14 @@ mod tests {
         flight.elevation = 0.0;
         // the pose is exactly the host's; the mirror differs in the last bit of one component
         flight.motion_vector[2] = f32::from_bits(100.0_f32.to_bits() + 1);
-        let error = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(flight)).unwrap_err();
+        let error = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(flight.clone())).unwrap_err();
         assert!(
             error.contains("motion_vector[2]") && error.contains("differs from the host's record"),
             "{error}"
         );
         // nothing moved and the host's vector is unchanged: the correct mirror still flies from it
         flight.motion_vector[2] = 100.0;
-        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(flight)).unwrap();
+        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(flight.clone())).unwrap();
         assert_near(first.pose.position, [0.0, 0.0, 50.0]);
     }
 
@@ -2748,12 +3883,12 @@ mod tests {
         let mut taxi = fixed_wing_move(FixedWingPhase::Taxi);
         taxi.delta_seconds = 1.0;
         taxi.wp_vel = 10.0;
-        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(taxi)).unwrap();
+        let first = movers.step("v", pose(0.0, 0.0), Request::FixedWingMove(taxi.clone())).unwrap();
         // the stale mirror (the seed) is refused; the answered vector is accepted
-        let error = movers.step("v", first.pose, Request::FixedWingMove(taxi)).unwrap_err();
+        let error = movers.step("v", first.pose, Request::FixedWingMove(taxi.clone())).unwrap_err();
         assert!(error.contains("motion_vector"), "{error}");
         taxi.motion_vector = first.motion_vector;
-        movers.step("v", first.pose, Request::FixedWingMove(taxi)).unwrap();
+        movers.step("v", first.pose, Request::FixedWingMove(taxi.clone())).unwrap();
     }
     #[test]
     fn a_helicopter_step_is_two_phases_and_the_second_flies_from_the_vector_the_first_answered() {
@@ -4050,5 +5185,1135 @@ mod tests {
         assert_eq!(run(&mut movers, start, expiry(10.5, 0.5, 0.0, 0)).unwrap().death_timer, 11.0);
         // an unsupplied range may be anything: it is not read
         assert_eq!(run(&mut movers, start, expiry(11.0, 0.5, f32::NAN, 0)).unwrap().death_timer, 11.5);
+    }
+
+    /// the subject at the origin already flying at the cruise speed: the collision test's range is the host's own speed
+    fn cruising() -> Pose {
+        Pose {
+            velocity: 100.0,
+            ..pose(0.0, 0.0)
+        }
+    }
+
+    /// the subject "v" beside a fixed-wing "leader" and "b", a helicopter "h" and a retired fixed-wing "r"
+    fn fleet(leader_motion: [f32; 3], b: Pose, b_motion: [f32; 3]) -> Movers {
+        let mut movers = movers(Kind::FixedWing, cruising());
+        movers.bind("leader", Kind::FixedWing, pose(0.0, 500.0), Some(leader_motion), None).unwrap();
+        movers.bind("b", Kind::FixedWing, b, Some(b_motion), None).unwrap();
+        movers.bind("h", Kind::Helicopter, pose(0.0, 800.0), Some([0.0, 0.0, 10.0]), Some(ROTOR)).unwrap();
+        movers.bind("r", Kind::FixedWing, pose(0.0, 900.0), Some([0.0, 0.0, 100.0]), None).unwrap();
+        movers.retire("r").unwrap();
+        movers
+    }
+
+    fn quiet_fleet() -> Movers {
+        fleet([0.0, 0.0, 100.0], pose(0.0, 100_000.0), [0.0, 0.0, 100.0])
+    }
+
+    fn member(host_id: &str) -> NavigationMember {
+        NavigationMember {
+            host_id: Some(host_id.to_string()),
+            avoidance_radius: 20.0,
+        }
+    }
+
+    /// a non-leader of its group that pursues "leader" and avoids the named members
+    fn pursuing(members: &[&str]) -> FixedWingNavigation {
+        FixedWingNavigation {
+            group_leader: false,
+            task_leader: false,
+            leader: Some("leader".to_string()),
+            members: members.iter().map(|id| member(id)).collect(),
+            ..task_leader_navigation()
+        }
+    }
+
+    fn flight_with(navigation: FixedWingNavigation) -> Request {
+        let mut flight = fixed_wing_move(FixedWingPhase::Flight);
+        flight.navigation = Some(navigation);
+        Request::FixedWingMove(flight)
+    }
+
+    /// the cruising subject at the origin looks ahead along +z: its speed plus ten metres
+    const LOOKAHEAD: [f32; 2] = [0.0, 110.0];
+
+    fn terrain_at(min_height: f32, guide_position: [f32; 3], sample_elevation: f32) -> FixedWingTerrain {
+        FixedWingTerrain {
+            min_height,
+            guide_position,
+            sample_point: LOOKAHEAD,
+            sample_elevation,
+            site_y: 0.0,
+            cg: 0.0,
+        }
+    }
+
+    /// the waypoint the host leaves a flight step with, after shaping, for a campaign waypoint of `waypoint`
+    fn shaped_waypoint(movers: &Movers, terrain: Option<FixedWingTerrain>, waypoint: [f32; 3]) -> Result<[f32; 3], String> {
+        let mut step = fixed_wing_move(FixedWingPhase::Flight);
+        step.waypoint = waypoint;
+        step.terrain = terrain;
+        let mut request = Request::FixedWingMove(step);
+        movers.shape_fixed_wing_waypoint("v", &mut request)?;
+        match request {
+            Request::FixedWingMove(step) => Ok(step.waypoint),
+            _ => panic!("the request changed kind"),
+        }
+    }
+
+    fn height_of(terrain: FixedWingTerrain) -> f32 {
+        shaped_waypoint(&movers(Kind::FixedWing, cruising()), Some(terrain), [0.0, 12345.0, 5000.0]).unwrap()[1]
+    }
+
+    #[test]
+    fn the_lookahead_query_answers_the_hosts_own_point_and_changes_nothing() {
+        let mut movers = movers(Kind::FixedWing, cruising());
+        let outcome = movers.step("v", cruising(), Request::FixedWingLookahead).unwrap();
+        let Some(HelicopterAnswer::Query(query)) = movers.take_answer() else { panic!("no query was answered") };
+        assert_eq!((query.terrain_sample_count, query.terrain_sample[0]), (1, LOOKAHEAD));
+        assert!(!query.structure_scan);
+        assert_eq!(outcome.pose.position, cruising().position);
+        assert_eq!(outcome.pose.attitude, cruising().attitude);
+        assert_eq!(outcome.motion_vector, [0.0, 0.0, 100.0]);
+        // asking again gives the same answer: nothing was retained or advanced
+        movers.step("v", cruising(), Request::FixedWingLookahead).unwrap();
+        let Some(HelicopterAnswer::Query(again)) = movers.take_answer() else { panic!("no query was answered") };
+        assert_eq!(again.terrain_sample[0], LOOKAHEAD);
+    }
+
+    #[test]
+    fn the_lookahead_point_follows_the_hosts_pose_not_the_campaigns() {
+        let mut flying = cruising();
+        flying.position = [10.0, 0.0, 20.0];
+        flying.velocity = 40.0;
+        let mut movers = movers(Kind::FixedWing, flying);
+        // the campaign's mirror is the same pose; the host's record fixes the point
+        movers.step("v", flying, Request::FixedWingLookahead).unwrap();
+        let Some(HelicopterAnswer::Query(query)) = movers.take_answer() else { panic!("no query was answered") };
+        assert_eq!(query.terrain_sample[0], [10.0, 70.0]);
+    }
+
+    #[test]
+    fn the_lookahead_query_is_for_fixed_wing_subjects_only() {
+        let mut helicopter = movers(Kind::Helicopter, cruising());
+        assert!(helicopter.step("v", cruising(), Request::FixedWingLookahead).is_err());
+        let mut vehicle = movers(Kind::Routed, pose(0.0, 0.0));
+        assert!(vehicle.step("v", pose(0.0, 0.0), Request::FixedWingLookahead).is_err());
+    }
+
+    #[test]
+    fn the_host_climbs_to_the_terrain_when_the_look_ahead_height_is_inside_the_range() {
+        // sampled terrain 20 and a minimum of 30: the look-ahead target is 50 high, 110 ahead, the waypoint 5000 away
+        let height = height_of(terrain_at(30.0, [0.0, 0.0, 5000.0], 20.0));
+        assert!((height - 5000.0 * 50.0 / 110.0).abs() < 1.0e-2, "{height}");
+        // descending is the same arithmetic
+        let down = height_of(terrain_at(0.0, [0.0, 0.0, 5000.0], -50.0));
+        assert!((down + 5000.0 * 50.0 / 110.0).abs() < 1.0e-2, "{down}");
+    }
+
+    #[test]
+    fn the_host_sets_the_target_height_when_the_look_ahead_is_steeper_than_it_is_far() {
+        assert_eq!(height_of(terrain_at(30.0, [0.0, 0.0, 5000.0], 170.0)), 200.0);
+        // exactly as steep as far is not "farther than it is high"
+        let level = height_of(terrain_at(0.0, [0.0, 0.0, 5000.0], 110.0));
+        assert!(level.is_finite());
+    }
+
+    #[test]
+    fn the_host_sets_the_target_height_when_the_waypoint_is_within_a_metre() {
+        assert_eq!(height_of(terrain_at(30.0, [0.0, 7.0, 0.5], 20.0)), 50.0);
+    }
+
+    #[test]
+    fn a_minimum_height_of_minus_one_leaves_the_campaigns_guide_height() {
+        assert_eq!(height_of(terrain_at(-1.0, [0.0, 123.0, 5000.0], 20.0)), 123.0);
+    }
+
+    #[test]
+    fn a_look_ahead_that_is_the_aircraft_itself_leaves_the_campaigns_guide_height() {
+        let mut still = cruising();
+        still.attitude = [0.0; 9];
+        let movers = movers(Kind::FixedWing, still);
+        let terrain = FixedWingTerrain {
+            sample_point: [0.0, 0.0],
+            ..terrain_at(0.0, [0.0, 321.0, 5000.0], 0.0)
+        };
+        let waypoint = shaped_waypoint(&movers, Some(terrain), [0.0, 12345.0, 5000.0]).unwrap();
+        assert_eq!(waypoint[1], 321.0);
+    }
+
+    #[test]
+    fn the_formation_site_and_the_centre_of_gravity_are_added_after_the_adjustment_in_single_precision() {
+        let base = height_of(terrain_at(30.0, [0.0, 0.0, 5000.0], 20.0));
+        let terrain = FixedWingTerrain {
+            site_y: 0.3,
+            cg: 0.3,
+            ..terrain_at(30.0, [0.0, 0.0, 5000.0], 20.0)
+        };
+        let mut expected = base;
+        expected += 0.3;
+        expected += 0.3;
+        assert_eq!(height_of(terrain).to_bits(), expected.to_bits());
+        // the addends move the height whatever the branch: a -1 minimum keeps the guide height and then adds them
+        let kept = FixedWingTerrain {
+            site_y: 2.0,
+            cg: 3.0,
+            ..terrain_at(-1.0, [0.0, 10.0, 5000.0], 20.0)
+        };
+        assert_eq!(height_of(kept), 15.0);
+    }
+
+    #[test]
+    fn the_host_ignores_the_height_the_campaign_supplied_and_keeps_its_horizontal_waypoint() {
+        let movers = movers(Kind::FixedWing, cruising());
+        let terrain = Some(terrain_at(30.0, [0.0, 0.0, 5000.0], 20.0));
+        let low = shaped_waypoint(&movers, terrain, [3.0, -999.0, 5000.0]).unwrap();
+        let high = shaped_waypoint(&movers, terrain, [3.0, 99_999.0, 5000.0]).unwrap();
+        assert_eq!(low, high);
+        assert_eq!((low[0], low[2]), (3.0, 5000.0));
+    }
+
+    #[test]
+    fn a_step_without_terrain_keeps_the_campaigns_waypoint_untouched() {
+        let movers = movers(Kind::FixedWing, cruising());
+        assert_eq!(shaped_waypoint(&movers, None, [1.0, 2.0, 3.0]).unwrap(), [1.0, 2.0, 3.0]);
+    }
+
+    #[test]
+    fn a_terrain_sampled_somewhere_other_than_the_hosts_look_ahead_is_refused() {
+        let movers = movers(Kind::FixedWing, cruising());
+        let elsewhere = FixedWingTerrain {
+            sample_point: [0.0, 111.0],
+            ..terrain_at(30.0, [0.0, 0.0, 5000.0], 20.0)
+        };
+        let refused = shaped_waypoint(&movers, Some(elsewhere), [0.0, 0.0, 5000.0]).unwrap_err();
+        assert!(refused.contains("look-ahead point"), "{refused}");
+    }
+
+    #[test]
+    fn a_non_finite_terrain_input_is_refused() {
+        let movers = movers(Kind::FixedWing, cruising());
+        for broken in [
+            FixedWingTerrain { sample_elevation: f32::NAN, ..terrain_at(30.0, [0.0, 0.0, 5000.0], 20.0) },
+            FixedWingTerrain { min_height: f32::INFINITY, ..terrain_at(30.0, [0.0, 0.0, 5000.0], 20.0) },
+            FixedWingTerrain { cg: f32::NAN, ..terrain_at(30.0, [0.0, 0.0, 5000.0], 20.0) },
+            terrain_at(30.0, [f32::NAN, 0.0, 5000.0], 20.0),
+        ] {
+            let refused = shaped_waypoint(&movers, Some(broken), [0.0, 0.0, 5000.0]).unwrap_err();
+            assert!(refused.contains("non-finite"), "{refused}");
+        }
+    }
+
+    #[test]
+    fn a_refused_terrain_changes_nothing_in_the_dispatched_step() {
+        let mut movers = movers(Kind::FixedWing, cruising());
+        let mut step = fixed_wing_move(FixedWingPhase::Flight);
+        step.terrain = Some(FixedWingTerrain { sample_point: [1.0, 1.0], ..terrain_at(30.0, [0.0, 0.0, 5000.0], 20.0) });
+        assert!(movers.step("v", cruising(), Request::FixedWingMove(step)).is_err());
+        // the step that follows runs from the unchanged record
+        let clean = fixed_wing_move(FixedWingPhase::Flight);
+        assert!(movers.step("v", cruising(), Request::FixedWingMove(clean)).is_ok());
+    }
+
+    #[test]
+    fn the_shaped_height_not_the_campaigns_reaches_the_flight() {
+        let flight = |waypoint_y: f32, terrain: Option<FixedWingTerrain>| {
+            let mut movers = movers(Kind::FixedWing, cruising());
+            let mut step = fixed_wing_move(FixedWingPhase::Flight);
+            step.waypoint = [0.0, waypoint_y, 5000.0];
+            step.terrain = terrain;
+            movers.step("v", cruising(), Request::FixedWingMove(step)).unwrap()
+        };
+        let terrain = Some(terrain_at(30.0, [0.0, 0.0, 5000.0], 20.0));
+        let (low, high) = (flight(0.0, terrain), flight(9000.0, terrain));
+        assert_eq!((low.pose.position, low.pose.attitude, low.motion_vector), (high.pose.position, high.pose.attitude, high.motion_vector));
+        // without terrain the campaign's own height is what the flight steers to
+        let (plain_low, plain_high) = (flight(0.0, None), flight(9000.0, None));
+        assert_ne!(plain_low.motion_vector, plain_high.motion_vector);
+    }
+
+    #[test]
+    fn a_flight_step_with_unresolvable_navigation_is_refused_before_any_change() {
+        let with = |change: &dyn Fn(&mut FixedWingNavigation)| {
+            let mut navigation = pursuing(&["b"]);
+            change(&mut navigation);
+            flight_with(navigation)
+        };
+        let mut no_navigation = fixed_wing_move(FixedWingPhase::Flight);
+        no_navigation.navigation = None;
+        let mut nan_waypoint = fixed_wing_move(FixedWingPhase::Flight);
+        nan_waypoint.waypoint[1] = f32::NAN;
+        nan_waypoint.navigation = Some(pursuing(&["b"]));
+        let refused = [
+            ("no navigation", Request::FixedWingMove(no_navigation), "carries no navigation"),
+            ("no task leader", with(&|n| n.leader = None), "names no task leader"),
+            ("itself as leader", with(&|n| n.leader = Some("v".into())), "names itself"),
+            ("unknown leader", with(&|n| n.leader = Some("ghost".into())), "ghost is not a host id"),
+            ("retired leader", with(&|n| n.leader = Some("r".into())), "r is retired"),
+            ("helicopter leader", with(&|n| n.leader = Some("h".into())), "not a fixed-wing aircraft"),
+            ("itself as member", with(&|n| n.members = vec![member("b"), member("v")]), "names itself"),
+            ("retired member", with(&|n| n.members = vec![member("r")]), "r is retired"),
+            ("helicopter member", with(&|n| n.members = vec![member("h")]), "not a fixed-wing aircraft"),
+            (
+                "the first unresolvable member is the one named",
+                with(&|n| n.members = vec![member("b"), member("ghost1"), member("ghost2")]),
+                "ghost1 is not a host id",
+            ),
+            (
+                "non-finite member radius",
+                with(&|n| n.members[0].avoidance_radius = f32::INFINITY),
+                "non-finite avoidance radius",
+            ),
+            ("non-finite turn allowance", with(&|n| n.max_vertical_turn_allowance = f32::NAN), "non-finite"),
+            ("non-finite avoidance radius", with(&|n| n.avoidance_radius = f32::NAN), "non-finite"),
+            ("non-finite waypoint", Request::FixedWingMove(nan_waypoint), "non-finite"),
+        ];
+        let mut movers = quiet_fleet();
+        for (name, request, expected) in refused {
+            let error = movers.step("v", cruising(), request).unwrap_err();
+            assert!(error.contains(expected), "{name}: {error}");
+        }
+        // none of it reached the record: the step the refusals shared a record with is the step a fresh host takes
+        let valid = || flight_with(pursuing(&["b"]));
+        let after = movers.step("v", cruising(), valid()).unwrap();
+        let fresh = quiet_fleet().step("v", cruising(), valid()).unwrap();
+        assert_eq!(after.pose, fresh.pose);
+        assert_eq!(after.motion_vector, fresh.motion_vector);
+    }
+
+    #[test]
+    fn the_members_of_a_group_leader_and_a_task_leaders_missing_leader_are_not_read() {
+        // a group leader makes no collision test; a task leader follows its waypoint, so neither names what it never reads
+        let group_leader = FixedWingNavigation {
+            group_leader: true,
+            members: vec![member("ghost")],
+            ..pursuing(&[])
+        };
+        quiet_fleet().step("v", cruising(), flight_with(group_leader)).unwrap();
+        let task_leader = FixedWingNavigation {
+            task_leader: true,
+            leader: None,
+            ..pursuing(&["b"])
+        };
+        quiet_fleet().step("v", cruising(), flight_with(task_leader)).unwrap();
+    }
+
+    #[test]
+    fn other_aircraft_steer_a_flight_step_from_the_host_records_not_from_the_campaign() {
+        let fly = |movers: &mut Movers, navigation: FixedWingNavigation| {
+            movers.step("v", cruising(), flight_with(navigation)).unwrap()
+        };
+        // the task leader's retained motion is what the pursuit reads: the campaign sends no pose or motion for it
+        let towards = fly(&mut fleet([0.0, 0.0, 100.0], pose(0.0, 100_000.0), [0.0; 3]), pursuing(&[]));
+        let across = fly(&mut fleet([100.0, 0.0, 0.0], pose(0.0, 100_000.0), [0.0; 3]), pursuing(&[]));
+        assert_ne!(towards.motion_vector, across.motion_vector, "the leader's motion did not steer");
+        // a group member in the way, from the host's record of it, bends the same request; far away it does not
+        let clear = fly(&mut quiet_fleet(), pursuing(&["b"]));
+        let head_on = fly(&mut fleet([0.0, 0.0, 100.0], pose(10.0, 120.0), [0.0, 0.0, -100.0]), pursuing(&["b"]));
+        assert_ne!(clear.motion_vector, head_on.motion_vector, "the blocking member did not steer");
+        // the same blocker is ignored when the aircraft leads its group, and when it is not named
+        let leading = FixedWingNavigation {
+            group_leader: true,
+            ..pursuing(&["b"])
+        };
+        let blocked = || fleet([0.0, 0.0, 100.0], pose(10.0, 120.0), [0.0, 0.0, -100.0]);
+        assert_eq!(fly(&mut blocked(), leading).motion_vector, clear.motion_vector);
+        assert_eq!(fly(&mut blocked(), pursuing(&[])).motion_vector, clear.motion_vector);
+    }
+
+    /// the subject flying +z at the cruise speed, with its waypoint behind it
+    fn facing_away(phase: FixedWingPhase) -> FixedWingMove {
+        let mut step = fixed_wing_move(phase);
+        step.waypoint = [0.0, 0.0, -5000.0];
+        step.elevation = 0.0;
+        step
+    }
+
+    /// the next step from what the host answered, with the answered motion vector as the campaign mirror
+    fn then(movers: &mut Movers, after: &Outcome, mut step: FixedWingMove) -> Outcome {
+        step.motion_vector = after.motion_vector;
+        movers.step("v", after.pose, Request::FixedWingMove(step)).unwrap()
+    }
+
+    fn with_leader_at(z: f32) -> Movers {
+        let mut movers = movers(Kind::FixedWing, cruising());
+        movers.bind("leader", Kind::FixedWing, pose(0.0, z), Some([0.0, 0.0, 100.0]), None).unwrap();
+        movers
+    }
+
+    fn only(navigation: FixedWingNavigation, mut step: FixedWingMove) -> Request {
+        step.navigation = Some(navigation);
+        Request::FixedWingMove(step)
+    }
+
+    #[test]
+    fn the_host_finds_an_aircraft_facing_away_from_its_waypoint_and_flies_the_turn_around() {
+        for phase in [FixedWingPhase::Flight, FixedWingPhase::Land] {
+            // behind: the retained multiplier 2.0 halves the waypoint speed in the absolute branch,
+            // 100 + min(50 - 100, 30) * 0.5
+            let mut away = movers(Kind::FixedWing, cruising());
+            let turned = away.step("v", cruising(), Request::FixedWingMove(facing_away(phase))).unwrap();
+            assert_eq!(turned.pose.velocity, 75.0, "{phase:?}");
+            assert!(!turned.rotated, "the absolute flight never reports a rotation: {phase:?}");
+            // ahead: the same aircraft and request but for the waypoint is not turned around
+            let mut ahead = movers(Kind::FixedWing, cruising());
+            let mut step = facing_away(phase);
+            step.waypoint = [0.0, 0.0, 5000.0];
+            let straight = ahead.step("v", cruising(), Request::FixedWingMove(step)).unwrap();
+            assert_ne!(straight.pose.velocity, 75.0, "{phase:?}");
+        }
+    }
+
+    #[test]
+    fn a_task_leader_is_always_turned_around_but_a_follower_only_beyond_fifteen_hundred_metres() {
+        let follower = || only(pursuing(&[]), facing_away(FixedWingPhase::Flight));
+        let near = with_leader_at(1500.0).step("v", cruising(), follower()).unwrap();
+        let far = with_leader_at(1500.5).step("v", cruising(), follower()).unwrap();
+        assert_ne!(near.pose.velocity, 75.0, "at exactly 1500 m the original does not correct");
+        assert_eq!(far.pose.velocity, 75.0, "beyond 1500 m the host corrects");
+        let led = only(task_leader_navigation(), facing_away(FixedWingPhase::Flight));
+        let leading = movers(Kind::FixedWing, cruising()).step("v", cruising(), led).unwrap();
+        assert_eq!(leading.pose.velocity, 75.0, "a task leader corrects without any leader");
+    }
+
+    #[test]
+    fn the_cannon_intent_holds_the_turn_for_a_quarter_second_at_the_waypoint_speed() {
+        let mut movers = movers(Kind::FixedWing, cruising());
+        let mut ahead = fixed_wing_move(FixedWingPhase::Flight);
+        ahead.wp_vel = 60.0;
+        ahead.elevation = 0.0;
+        // aiming: multiplier 1.0 and a hold to 100.25; 100 + min(60 - 100, 30) * 0.5
+        let mut aiming = ahead.clone();
+        aiming.aiming_cannon = true;
+        let first = movers.step("v", cruising(), Request::FixedWingMove(aiming)).unwrap();
+        assert_eq!(first.pose.velocity, 80.0);
+        // no longer aiming, inside the hold: still absolute with the retained 1.0, 80 + (60 - 80) * 0.5
+        let mut held = ahead.clone();
+        held.elapsed_time = 100.2;
+        let second = then(&mut movers, &first, held);
+        assert_eq!(second.pose.velocity, 70.0);
+        // the hold lapsed: the flight branch takes over, and not as the absolute 70 + (60 - 70) * 0.5
+        let mut lapsed = ahead.clone();
+        lapsed.elapsed_time = 100.3;
+        let third = then(&mut movers, &second, lapsed);
+        assert_ne!(third.pose.velocity, 65.0);
+    }
+
+    #[test]
+    fn the_facing_away_hold_and_multiplier_persist_across_steps() {
+        let mut movers = movers(Kind::FixedWing, cruising());
+        let first = movers.step("v", cruising(), Request::FixedWingMove(facing_away(FixedWingPhase::Flight))).unwrap();
+        assert_eq!(first.pose.velocity, 75.0);
+        // now flying +z, the waypoint is ahead, but the hold runs to 103.0 and the multiplier is still 2.0
+        let mut ahead = fixed_wing_move(FixedWingPhase::Flight);
+        ahead.elevation = 0.0;
+        ahead.elapsed_time = 102.9;
+        let second = then(&mut movers, &first, ahead.clone());
+        assert_eq!(second.pose.velocity, 62.5, "75 + (50 - 75) * 0.5");
+        ahead.elapsed_time = 103.5;
+        let third = then(&mut movers, &second, ahead);
+        assert_ne!(third.pose.velocity, 56.25, "the hold lapsed");
+    }
+
+    #[test]
+    fn a_landing_needs_its_leader_only_when_the_host_finds_it_facing_away() {
+        let follower = |step: FixedWingMove| {
+            only(
+                FixedWingNavigation {
+                    leader: None,
+                    ..pursuing(&[])
+                },
+                step,
+            )
+        };
+        // ahead of its waypoint it never reads the leader
+        movers(Kind::FixedWing, cruising()).step("v", cruising(), follower(fixed_wing_move(FixedWingPhase::Land))).unwrap();
+        // facing away it must name one; the refusal leaves the retained turn state untouched
+        let mut movers = with_leader_at(3000.0);
+        let error = movers.step("v", cruising(), follower(facing_away(FixedWingPhase::Land))).unwrap_err();
+        assert!(error.contains("names no task leader"), "{error}");
+        let valid = || only(pursuing(&[]), facing_away(FixedWingPhase::Land));
+        let after = movers.step("v", cruising(), valid()).unwrap();
+        let fresh = with_leader_at(3000.0).step("v", cruising(), valid()).unwrap();
+        assert_eq!(after.pose, fresh.pose);
+        assert_eq!(after.pose.velocity, 75.0);
+        // an unresolvable leader is a contract error when it is read
+        let ghost = FixedWingNavigation {
+            leader: Some("ghost".into()),
+            ..pursuing(&[])
+        };
+        let error = with_leader_at(3000.0).step("v", cruising(), only(ghost, facing_away(FixedWingPhase::Land))).unwrap_err();
+        assert!(error.contains("ghost is not a host id"), "{error}");
+    }
+
+    /// a member the campaign's roster lacks, in the place the group list gives it
+    fn with_unresolved_member(mut navigation: FixedWingNavigation, at: usize) -> FixedWingNavigation {
+        navigation.members.insert(at, NavigationMember { host_id: None, avoidance_radius: 20.0 });
+        navigation
+    }
+
+    #[test]
+    fn a_member_the_roster_lacks_is_refused_only_where_the_navigator_reads_it() {
+        // read: a navigating follower avoids every member in order, so the step is refused whole and changes nothing
+        let mut movers = quiet_fleet();
+        let error = movers.step("v", cruising(), flight_with(with_unresolved_member(pursuing(&["b"]), 1))).unwrap_err();
+        assert!(error.contains("group member #1 names no host id"), "{error}");
+        let after = movers.step("v", cruising(), flight_with(pursuing(&["b"]))).unwrap();
+        let fresh = quiet_fleet().step("v", cruising(), flight_with(pursuing(&["b"]))).unwrap();
+        assert_eq!(after.pose, fresh.pose);
+        // not read: a group leader makes no collision test, and a landing makes none either
+        let led = FixedWingNavigation { group_leader: true, ..with_unresolved_member(pursuing(&["b"]), 0) };
+        let reference = FixedWingNavigation { group_leader: true, ..pursuing(&["b"]) };
+        let led = quiet_fleet().step("v", cruising(), flight_with(led)).unwrap();
+        let reference = quiet_fleet().step("v", cruising(), flight_with(reference)).unwrap();
+        assert_eq!(led.pose, reference.pose);
+        let mut landing = fixed_wing_move(FixedWingPhase::Land);
+        landing.navigation = Some(with_unresolved_member(pursuing(&["b"]), 0));
+        quiet_fleet().step("v", cruising(), Request::FixedWingMove(landing)).unwrap();
+        // not read: a held absolute flight bypasses the navigator
+        let mut aiming = fixed_wing_move(FixedWingPhase::Flight);
+        aiming.aiming_cannon = true;
+        aiming.navigation = Some(with_unresolved_member(pursuing(&["b"]), 0));
+        quiet_fleet().step("v", cruising(), Request::FixedWingMove(aiming)).unwrap();
+    }
+
+    /// a follower whose roster has neither its task leader nor (here) a resolvable member
+    fn leaderless(members: &[&str]) -> FixedWingNavigation {
+        FixedWingNavigation {
+            leader: None,
+            ..pursuing(members)
+        }
+    }
+
+    #[test]
+    fn a_held_absolute_flight_reads_neither_its_leader_nor_its_members() {
+        // the cannon verdict holds the absolute branch, so the navigator is bypassed: nothing it would read is asked for,
+        // even a member the host cannot resolve
+        let mut aiming = fixed_wing_move(FixedWingPhase::Flight);
+        aiming.aiming_cannon = true;
+        aiming.wp_vel = 60.0;
+        aiming.elevation = 0.0;
+        let held = movers(Kind::FixedWing, cruising())
+            .step("v", cruising(), only(leaderless(&["ghost"]), aiming.clone()))
+            .unwrap();
+        let reference = movers(Kind::FixedWing, cruising()).step("v", cruising(), only(task_leader_navigation(), aiming)).unwrap();
+        assert_eq!(held.pose, reference.pose);
+        assert_eq!(held.motion_vector, reference.motion_vector);
+        assert_eq!(held.pose.velocity, 80.0, "the absolute branch ran: 100 + min(60 - 100, 30) * 0.5");
+    }
+
+    #[test]
+    fn a_hold_left_by_a_turn_around_needs_no_leader_until_it_lapses() {
+        let turned_around = || {
+            let mut movers = movers(Kind::FixedWing, cruising());
+            let first = movers.step("v", cruising(), only(task_leader_navigation(), facing_away(FixedWingPhase::Flight))).unwrap();
+            assert_eq!(first.pose.velocity, 75.0);
+            (movers, first)
+        };
+        let ahead = |elapsed: f32, navigation: FixedWingNavigation| {
+            let mut step = fixed_wing_move(FixedWingPhase::Flight);
+            step.elevation = 0.0;
+            step.elapsed_time = elapsed;
+            step.navigation = Some(navigation);
+            step
+        };
+        // forward-facing inside the 3 s hold: the absolute branch again, with no leader and an unresolvable member
+        let (mut movers, first) = turned_around();
+        let held = then(&mut movers, &first, ahead(102.9, leaderless(&["ghost"])));
+        assert_eq!(held.pose.velocity, 62.5, "75 + (50 - 75) * 0.5");
+        // the hold lapsed: the navigator runs, reads the leader, and the step is refused whole
+        let (mut movers, first) = turned_around();
+        let mut lapsed = ahead(103.5, leaderless(&[]));
+        lapsed.motion_vector = first.motion_vector;
+        let error = movers.step("v", first.pose, Request::FixedWingMove(lapsed)).unwrap_err();
+        assert!(error.contains("names no task leader"), "{error}");
+        // the refusal changed nothing: the retained hold and multiplier still serve the next, valid, step
+        let (mut twin, twin_first) = turned_around();
+        let after = then(&mut movers, &first, ahead(102.9, task_leader_navigation()));
+        let expected = then(&mut twin, &twin_first, ahead(102.9, task_leader_navigation()));
+        assert_eq!(after.pose, expected.pose);
+        assert_eq!(after.pose.velocity, 62.5);
+    }
+
+    #[test]
+    fn a_navigating_flight_still_needs_its_leader_and_refuses_before_any_change() {
+        let mut movers = quiet_fleet();
+        let error = movers.step("v", cruising(), flight_with(leaderless(&["b"]))).unwrap_err();
+        assert!(error.contains("names no task leader"), "{error}");
+        let after = movers.step("v", cruising(), flight_with(pursuing(&["b"]))).unwrap();
+        let fresh = quiet_fleet().step("v", cruising(), flight_with(pursuing(&["b"]))).unwrap();
+        assert_eq!(after.pose, fresh.pose);
+        // facing away, the turn-around reads it too: refused whole, the retained turn state untouched
+        let mut movers = with_leader_at(3000.0);
+        let error = movers.step("v", cruising(), only(leaderless(&[]), facing_away(FixedWingPhase::Flight))).unwrap_err();
+        assert!(error.contains("names no task leader"), "{error}");
+        let valid = || only(pursuing(&[]), facing_away(FixedWingPhase::Flight));
+        let after = movers.step("v", cruising(), valid()).unwrap();
+        let fresh = with_leader_at(3000.0).step("v", cruising(), valid()).unwrap();
+        assert_eq!(after.pose, fresh.pose);
+        assert_eq!(after.pose.velocity, 75.0);
+    }
+
+    #[test]
+    fn a_group_larger_than_thirty_two_is_flown_in_order_and_never_refused_for_its_count() {
+        for count in [40usize, 63] {
+            let fleet = || {
+                let mut movers = quiet_fleet();
+                for index in 0..count {
+                    // the last member is the blocker; the rest are far away
+                    let (at, motion) = if index + 1 == count {
+                        (pose(10.0, 120.0), [0.0, 0.0, -100.0])
+                    } else {
+                        (pose(0.0, 100_000.0 + index as f32), [0.0, 0.0, 100.0])
+                    };
+                    movers.bind(&format!("m{index}"), Kind::FixedWing, at, Some(motion), None).unwrap();
+                }
+                movers
+            };
+            let names: Vec<String> = (0..count).map(|index| format!("m{index}")).collect();
+            let all: Vec<&str> = names.iter().map(String::as_str).collect();
+            let with = fleet().step("v", cruising(), flight_with(pursuing(&all))).unwrap();
+            let without = fleet().step("v", cruising(), flight_with(pursuing(&all[..count - 1]))).unwrap();
+            assert_ne!(with.motion_vector, without.motion_vector, "{count}: the last member did not steer");
+            // the first unresolvable member, past the old limit, is the one named
+            let mut broken: Vec<&str> = all.clone();
+            broken.insert(33, "ghost1");
+            broken.push("ghost2");
+            let error = fleet().step("v", cruising(), flight_with(pursuing(&broken))).unwrap_err();
+            assert!(error.contains("ghost1 is not a host id"), "{count}: {error}");
+        }
+    }
+
+    // ---- the hosted helicopter step: plan, guide, rotor, begin, steer ----
+
+    fn hc_plan(members: Vec<HelicopterMember>) -> HelicopterPlan {
+        HelicopterPlan {
+            group_leader: false,
+            task_leader: true,
+            task_leader_is_self: true,
+            position_hold: false,
+            terrain_follow: false,
+            terrain_follow_attack_altitude: false,
+            waypoint_kind: HelicopterWaypointKind::Route,
+            guide_radius: None,
+            guide_altitude_valid: false,
+            waypoint: [0.0, 0.0, 1000.0],
+            waypoint_velocity: [0.0; 3],
+            distance: 1000.0,
+            terrain_elevation: 0.0,
+            fuel_supply_level: 100.0,
+            cruise_velocity: 50.0,
+            power_output: 1.0,
+            cruise_altitude: 50.0,
+            attack_altitude: 30.0,
+            leader_radar_altitude: 0.0,
+            map_min: [-1.0e6; 3],
+            map_max: [1.0e6; 3],
+            delta_seconds: 0.5,
+            members,
+            motion_vector: SEED,
+        }
+    }
+
+    fn hc_steer(motion_vector: [f32; 3]) -> HelicopterSteer {
+        HelicopterSteer {
+            delta_seconds: 0.5,
+            max_turn_rate: 10.0,
+            elevation: -100.0,
+            cg_to_ground: 0.0,
+            terrain_follow: false,
+            map_min: [-1.0e6; 3],
+            map_max: [1.0e6; 3],
+            waypoint_kind: HelicopterWaypointKind::Route,
+            task_leader_is_self: true,
+            guide_radius: None,
+            required_heading: None,
+            leader: None,
+            targeting_active: false,
+            weapon_vector: [0.0; 3],
+            weapon_to_intercept_vector: [0.0; 3],
+            g_max: 2.0,
+            main_rotor_shaft_angle: 0.0,
+            motion_vector,
+        }
+    }
+
+    /// "v" and a wingman "w" at `other`, both helicopters
+    fn wing(other: [f32; 3]) -> Movers {
+        let mut movers = flying(pose(0.0, 0.0), SEED);
+        movers.bind("w", Kind::Helicopter, at(other[0], other[1], other[2]), Some(SEED), Some(ROTOR)).unwrap();
+        movers
+    }
+
+    /// the pose the host holds for "v": the campaign's next position must be this one
+    fn held(movers: &Movers) -> Pose {
+        movers.mobiles.get("v").unwrap().pose
+    }
+
+    fn planned(movers: &mut Movers, plan: HelicopterPlan) -> Result<HelicopterQueryPlan, String> {
+        movers.step("v", held(movers), Request::HelicopterPlan(Box::new(plan)))?;
+        match movers.take_answer() {
+            Some(HelicopterAnswer::Query(query)) => Ok(query),
+            other => panic!("a plan answers the lookups it needs, got {other:?}"),
+        }
+    }
+
+    /// the recorded getter returns of the original `terrain_elevation = max (terrain_elevation, get (...))` over points
+    /// whose terrain is `heights` (far to near), the running value starting at 0.0 and the getter repeatable
+    fn recorded(heights: &[f32]) -> Vec<HelicopterTerrainSample> {
+        let mut running = 0.0f32;
+        heights
+            .iter()
+            .map(|&height| {
+                if running > height {
+                    HelicopterTerrainSample { first: height, second: None }
+                } else {
+                    running = height;
+                    HelicopterTerrainSample { first: height, second: Some(height) }
+                }
+            })
+            .collect()
+    }
+
+    fn guided(movers: &mut Movers, samples: Vec<HelicopterTerrainSample>) -> Result<HelicopterGuidance, String> {
+        let guide = HelicopterGuide {
+            structures: Vec::new(),
+            terrain_samples: samples,
+            motion_vector: SEED,
+        };
+        movers.step("v", held(movers), Request::HelicopterGuide(guide))?;
+        match movers.take_answer() {
+            Some(HelicopterAnswer::Guidance(guidance)) => Ok(guidance),
+            other => panic!("a guide answers the guidance, got {other:?}"),
+        }
+    }
+
+    fn rotor_step(movers: &mut Movers, lift: f32, power_output: f32, gate: bool) -> Result<Outcome, String> {
+        let mut alive = life(LifecycleMode::RotorAlive, ROTOR, SEED);
+        alive.lift = lift;
+        alive.power_output = power_output;
+        alive.flag = gate;
+        run(movers, held(movers), alive)
+    }
+
+    /// a whole hosted step up to and including the rotor check
+    fn ready(movers: &mut Movers, plan: HelicopterPlan) -> HelicopterGuidance {
+        let query = planned(movers, plan).unwrap();
+        let guidance = guided(movers, recorded(&vec![0.0; query.terrain_sample_count])).unwrap();
+        assert!(!rotor_step(movers, guidance.lift, 1.0, false).unwrap().moved);
+        guidance
+    }
+
+    fn guided_begin(movers: &mut Movers) -> Result<Outcome, String> {
+        movers.step("v", held(movers), Request::HelicopterGuidedBegin { motion_vector: SEED })
+    }
+
+    #[test]
+    fn a_hosted_step_runs_plan_guide_rotor_begin_and_steer_and_the_host_owns_the_demand() {
+        let mut movers = wing([5000.0, 0.0, 5000.0]);
+        ready(&mut movers, hc_plan(vec![Some("w".into())]));
+        let begun = guided_begin(&mut movers).unwrap();
+        assert!(begun.pending);
+        let ended = movers
+            .step("v", begun.pose, Request::HelicopterGuidedEnd(hc_steer(begun.motion_vector)))
+            .unwrap();
+        assert!(!ended.pending);
+        assert!(ended.angles.iter().all(|angle| angle.is_finite()), "{:?}", ended.angles);
+        // the step is spent: the next one starts from a plan, and the retained guidance is not reused
+        let error = guided_begin(&mut movers).unwrap_err();
+        assert!(error.contains("without host guidance"), "{error}");
+    }
+
+    #[test]
+    fn the_other_aircrafts_host_positions_decide_the_avoidance_not_anything_the_campaign_sends() {
+        // the same plan and the same member name; only the host's record of that member differs
+        let mut clear = wing([5000.0, 0.0, 5000.0]);
+        let mut crossing = wing([3.0, 0.0, 100.0]);
+        planned(&mut clear, hc_plan(vec![Some("w".into())])).unwrap();
+        planned(&mut crossing, hc_plan(vec![Some("w".into())])).unwrap();
+        let free = guided(&mut clear, Vec::new()).unwrap();
+        let steered = guided(&mut crossing, Vec::new()).unwrap();
+        assert_eq!(free.waypoint[0], 0.0);
+        assert_ne!(free.waypoint, steered.waypoint, "a wingman on the line moved the waypoint");
+        // a group leader does not avoid its wingmen, whatever the host records
+        let mut leader = hc_plan(vec![Some("w".into())]);
+        leader.group_leader = true;
+        let mut leading = wing([3.0, 0.0, 100.0]);
+        planned(&mut leading, leader).unwrap();
+        assert_eq!(guided(&mut leading, Vec::new()).unwrap().waypoint, free.waypoint);
+    }
+
+    #[test]
+    fn members_are_resolved_from_host_records_only_where_the_guidance_reads_them() {
+        let mut movers = wing([50.0, 0.0, 50.0]);
+        // a group leader reads no member, so none needs an id
+        let mut leader = hc_plan(vec![None, Some("nobody".into())]);
+        leader.group_leader = true;
+        planned(&mut movers, leader).unwrap();
+        // a follower names each member by a host id
+        let error = planned(&mut movers, hc_plan(vec![Some("w".into()), None])).unwrap_err();
+        assert!(error.contains("group member #1 names no host id"), "{error}");
+        for (names, wanted) in [
+            (vec![Some("v".to_owned())], "names itself"),
+            (vec![Some("nobody".to_owned())], "is not a host id"),
+        ] {
+            let error = planned(&mut movers, hc_plan(names)).unwrap_err();
+            assert!(error.contains(wanted), "{error}");
+        }
+        movers.bind("g", Kind::Routed, at(0.0, 0.0, 0.0), None, None).unwrap();
+        let error = planned(&mut movers, hc_plan(vec![Some("g".into())])).unwrap_err();
+        assert!(error.contains("is not a helicopter"), "{error}");
+        // no member count is refused: a group of 64 resolves
+        let mut big = wing([50.0, 0.0, 50.0]);
+        for index in 0..63 {
+            big.bind(&format!("m{index}"), Kind::Helicopter, at(100.0 + index as f32, 0.0, 0.0), Some(SEED), Some(ROTOR)).unwrap();
+        }
+        let mut names: Vec<HelicopterMember> = (0..63).map(|index| Some(format!("m{index}"))).collect();
+        names.push(Some("w".into()));
+        planned(&mut big, hc_plan(names)).unwrap();
+    }
+
+    #[test]
+    fn the_host_plans_the_lookups_far_to_near_and_none_without_terrain_following() {
+        let mut movers = wing([5000.0, 0.0, 5000.0]);
+        let flat = planned(&mut movers, hc_plan(Vec::new())).unwrap();
+        assert!(!flat.structure_scan);
+        assert_eq!(flat.terrain_sample_count, 0);
+        let mut follow = hc_plan(Vec::new());
+        follow.terrain_follow = true;
+        let query = planned(&mut movers, follow).unwrap();
+        assert!(query.structure_scan);
+        assert_eq!(query.terrain_sample_count, 2);
+        // the aircraft faces +z: the far sample first, the near one at the aircraft
+        assert!(query.terrain_sample[0][1] > query.terrain_sample[1][1], "{:?}", query.terrain_sample);
+        assert_eq!(query.terrain_sample[1], [0.0, 0.0]);
+    }
+
+    #[test]
+    fn terrain_samples_set_the_required_height_and_a_wrong_answer_leaves_the_plan_to_be_corrected() {
+        let mut movers = wing([5000.0, 0.0, 5000.0]);
+        let mut follow = hc_plan(Vec::new());
+        follow.terrain_follow = true;
+        planned(&mut movers, follow).unwrap();
+        let error = guided(&mut movers, recorded(&[10.0])).unwrap_err();
+        assert!(error.contains("1 terrain samples answered, 2 planned"), "{error}");
+        let nan = vec![
+            HelicopterTerrainSample { first: 10.0, second: Some(10.0) },
+            HelicopterTerrainSample { first: f32::NAN, second: None },
+        ];
+        let error = guided(&mut movers, nan).unwrap_err();
+        assert!(error.contains("non-finite"), "{error}");
+        let low = guided(&mut movers, recorded(&[10.0, 5.0])).unwrap();
+        // the plan was answered once: a second answer has no plan to answer
+        assert!(guided(&mut movers, recorded(&[10.0, 5.0])).unwrap_err().contains("without a planned step"));
+        let mut again = hc_plan(Vec::new());
+        again.terrain_follow = true;
+        planned(&mut movers, again).unwrap();
+        let high = guided(&mut movers, recorded(&[400.0, 5.0])).unwrap();
+        assert!(high.required_height > low.required_height + 300.0, "{} vs {}", high.required_height, low.required_height);
+    }
+
+    /// the required height of a terrain-following plan answered with `samples`
+    fn required_height_for(samples: Vec<HelicopterTerrainSample>) -> Result<f32, String> {
+        let mut movers = wing([5000.0, 0.0, 5000.0]);
+        let mut follow = hc_plan(Vec::new());
+        follow.terrain_follow = true;
+        planned(&mut movers, follow).unwrap();
+        guided(&mut movers, samples).map(|guidance| guidance.required_height)
+    }
+
+    #[test]
+    fn the_host_folds_the_recorded_getter_returns_as_the_original_max_macro_selects_them() {
+        let sample = |first: f32, second: Option<f32>| HelicopterTerrainSample { first, second };
+        // running 0.0 does not exceed a first return of 10: the getter is called again and the SECOND return is selected;
+        // then running (10) exceeds the next first return (5): one call, the running value is kept
+        let base = required_height_for(vec![sample(10.0, Some(10.0)), sample(5.0, None)]).unwrap();
+        // the same first returns, but a lower second return: the second is what is selected, not the first
+        let lower_second = required_height_for(vec![sample(10.0, Some(3.0)), sample(1.0, None)]).unwrap();
+        assert!((base - lower_second - 7.0).abs() < 1.0e-3, "{base} vs {lower_second}");
+        // a later second return that is lower than the running value replaces it: max is a selection, not a maximum
+        let replaced = required_height_for(vec![sample(10.0, Some(10.0)), sample(20.0, Some(2.0))]).unwrap();
+        assert!((base - replaced - 8.0).abs() < 1.0e-3, "{base} vs {replaced}");
+        // the recorded pattern must be the one the macro produces: a second return where none can be, none where one is owed
+        let error = required_height_for(vec![sample(10.0, Some(10.0)), sample(5.0, Some(5.0))]).unwrap_err();
+        assert!(error.contains("carries a second getter return"), "{error}");
+        let error = required_height_for(vec![sample(10.0, None), sample(5.0, None)]).unwrap_err();
+        assert!(error.contains("carries no second getter return"), "{error}");
+        // a refused answer leaves the plan in place: the corrected answer follows
+        let mut movers = wing([5000.0, 0.0, 5000.0]);
+        let mut follow = hc_plan(Vec::new());
+        follow.terrain_follow = true;
+        planned(&mut movers, follow).unwrap();
+        assert!(guided(&mut movers, vec![sample(10.0, None), sample(5.0, None)]).is_err());
+        let corrected = guided(&mut movers, vec![sample(10.0, Some(10.0)), sample(5.0, None)]).unwrap();
+        assert_eq!(corrected.required_height, base);
+    }
+
+    #[test]
+    fn the_phases_are_ordered_and_a_stale_or_unchecked_guidance_cannot_begin() {
+        let mut movers = wing([5000.0, 0.0, 5000.0]);
+        assert!(guided_begin(&mut movers).unwrap_err().contains("without host guidance"));
+        let query = planned(&mut movers, hc_plan(Vec::new())).unwrap();
+        assert!(guided_begin(&mut movers).unwrap_err().contains("without host guidance"));
+        let guidance = guided(&mut movers, recorded(&vec![0.0; query.terrain_sample_count])).unwrap();
+        // the rotor step has not run
+        assert!(guided_begin(&mut movers).unwrap_err().contains("before its rotor step"));
+        // the rotor step must carry the lift and the power the host's step used
+        let error = rotor_step(&mut movers, guidance.lift + 0.25, 1.0, false).unwrap_err();
+        assert!(error.contains("differs from the host's guidance"), "{error}");
+        let error = rotor_step(&mut movers, guidance.lift, 0.5, false).unwrap_err();
+        assert!(error.contains("differs from the planned step's"), "{error}");
+        assert!(!rotor_step(&mut movers, guidance.lift, 1.0, false).unwrap().moved);
+        guided_begin(&mut movers).unwrap();
+        // the steering belongs to a hosted begin only; the legacy end is not its pair, and the refusal is that one
+        let error = movers
+            .step("v", held(&movers), Request::HelicopterEnd(helicopter_end_request()))
+            .unwrap_err();
+        assert!(error.contains("after a hosted begin"), "{error}");
+    }
+
+    #[test]
+    fn a_step_ended_early_by_a_gate_leaves_no_pending_phase_and_no_guidance_to_reuse() {
+        // the campaign's own gate (the human wait, LANDED): abandon
+        let mut abandoned = wing([5000.0, 0.0, 5000.0]);
+        ready(&mut abandoned, hc_plan(Vec::new()));
+        abandoned.step("v", held(&abandoned), Request::HelicopterAbandon).unwrap();
+        assert!(guided_begin(&mut abandoned).unwrap_err().contains("without host guidance"));
+        // the next step plans afresh and runs
+        ready(&mut abandoned, hc_plan(Vec::new()));
+        guided_begin(&mut abandoned).unwrap();
+
+        // the rotor's spin-up gate holds the step: the begin is refused, and so is the guidance on a later step
+        let mut gated = wing([5000.0, 0.0, 5000.0]);
+        let spun = held(&gated);
+        run(&mut gated, spun, life(LifecycleMode::RotorSet, [0.0, 0.0, 2.0], SEED)).unwrap();
+        let query = planned(&mut gated, hc_plan(Vec::new())).unwrap();
+        let guidance = guided(&mut gated, recorded(&vec![0.0; query.terrain_sample_count])).unwrap();
+        let mut alive = life(LifecycleMode::RotorAlive, [0.0, 0.0, 2.0], SEED);
+        alive.lift = guidance.lift;
+        alive.flag = true;
+        let held_at = held(&gated);
+        assert!(run(&mut gated, held_at, alive).unwrap().moved);
+        assert!(guided_begin(&mut gated).unwrap_err().contains("without host guidance"));
+
+        // any other request between the phases drops the guidance
+        let mut interrupted = wing([5000.0, 0.0, 5000.0]);
+        ready(&mut interrupted, hc_plan(Vec::new()));
+        let rotor = life(LifecycleMode::RotorSet, ROTOR, SEED);
+        let held_at = held(&interrupted);
+        run(&mut interrupted, held_at, rotor).unwrap();
+        assert!(guided_begin(&mut interrupted).unwrap_err().contains("without host guidance"));
+
+        // once begun, the step cannot be abandoned: the end is owed
+        let mut owed = wing([5000.0, 0.0, 5000.0]);
+        ready(&mut owed, hc_plan(Vec::new()));
+        guided_begin(&mut owed).unwrap();
+        assert!(owed.step("v", held(&owed), Request::HelicopterAbandon).is_err());
+    }
+
+    #[test]
+    fn the_hosted_requests_belong_to_helicopters_and_the_answer_is_cleared_each_step() {
+        let mut routed = movers(Kind::Routed, pose(0.0, 0.0));
+        let plan = Request::HelicopterPlan(Box::new(hc_plan(Vec::new())));
+        let error = routed.step("v", pose(0.0, 0.0), plan).unwrap_err();
+        assert!(error.contains("is not a request for Routed"), "{error}");
+        let mut movers = wing([5000.0, 0.0, 5000.0]);
+        planned(&mut movers, hc_plan(Vec::new())).unwrap();
+        // an unread answer is dropped by the next step rather than served later
+        let rotor = life(LifecycleMode::RotorSet, ROTOR, SEED);
+        let held_at = held(&movers);
+        run(&mut movers, held_at, rotor).unwrap();
+        assert!(movers.take_answer().is_none());
+    }
+
+    // ---- the flow is validated before it is changed ----
+
+    #[test]
+    fn a_legacy_end_after_a_hosted_begin_is_refused_by_the_pairing_guard_and_the_hosted_end_still_follows() {
+        let mut movers = wing([5000.0, 0.0, 5000.0]);
+        ready(&mut movers, hc_plan(Vec::new()));
+        let begun = guided_begin(&mut movers).unwrap();
+        let error = movers
+            .step("v", begun.pose, Request::HelicopterEnd(helicopter_end_request()))
+            .unwrap_err();
+        assert!(error.contains("after a hosted begin"), "{error}");
+        // nothing changed: the step is still pending and its hosted end is still owed
+        assert!(movers.mobiles.get("v").unwrap().helicopter_pending);
+        let ended = movers
+            .step("v", begun.pose, Request::HelicopterGuidedEnd(hc_steer(begun.motion_vector)))
+            .unwrap();
+        assert!(!ended.pending);
+    }
+
+    #[test]
+    fn a_refused_guide_changes_nothing_and_a_repeated_guide_does_not_discard_the_open_step() {
+        let mut movers = wing([5000.0, 0.0, 5000.0]);
+        let mut follow = hc_plan(Vec::new());
+        follow.terrain_follow = true;
+        planned(&mut movers, follow).unwrap();
+        // a refused answer leaves the plan: the corrected retry is accepted
+        assert!(guided(&mut movers, recorded(&[10.0])).is_err());
+        let guidance = guided(&mut movers, recorded(&[10.0, 5.0])).unwrap();
+        // the step is guided; a repeated guide is refused and must not take the guidance with it
+        let error = guided(&mut movers, recorded(&[10.0, 5.0])).unwrap_err();
+        assert!(error.contains("without a planned step"), "{error}");
+        assert!(matches!(movers.mobiles.get("v").unwrap().hc_flow, Some(HelicopterFlow::Guided { .. })));
+        assert!(!rotor_step(&mut movers, guidance.lift, 1.0, false).unwrap().moved);
+        assert!(guided_begin(&mut movers).unwrap().pending);
+    }
+
+    #[test]
+    fn a_refused_unrelated_request_keeps_the_open_step_while_a_valid_one_or_a_gate_ends_it() {
+        let mut movers = wing([5000.0, 0.0, 5000.0]);
+        ready(&mut movers, hc_plan(Vec::new()));
+        // refused (no crash is open): the step is untouched and begins
+        let held_at = held(&movers);
+        let error = run(&mut movers, held_at, life(LifecycleMode::CrashEnd, ROTOR, SEED)).unwrap_err();
+        assert!(error.contains("without a pending crash_begin"), "{error}");
+        assert!(matches!(movers.mobiles.get("v").unwrap().hc_flow, Some(HelicopterFlow::Guided { rotor_checked: true, .. })));
+        assert!(guided_begin(&mut movers).unwrap().pending);
+
+        // a valid unrelated request still ends the stale guidance
+        let mut interrupted = wing([5000.0, 0.0, 5000.0]);
+        ready(&mut interrupted, hc_plan(Vec::new()));
+        let held_at = held(&interrupted);
+        run(&mut interrupted, held_at, life(LifecycleMode::RotorSet, ROTOR, SEED)).unwrap();
+        assert!(interrupted.mobiles.get("v").unwrap().hc_flow.is_none());
+        assert!(guided_begin(&mut interrupted).unwrap_err().contains("without host guidance"));
+
+        // a valid early gate ends it too
+        let mut gated = wing([5000.0, 0.0, 5000.0]);
+        ready(&mut gated, hc_plan(Vec::new()));
+        gated.step("v", held(&gated), Request::HelicopterAbandon).unwrap();
+        assert!(gated.mobiles.get("v").unwrap().hc_flow.is_none());
+    }
+
+    #[test]
+    fn a_successful_placement_ends_the_open_step_and_a_refused_one_keeps_it() {
+        // refused (a non-finite creation): the guidance and the rotor check survive and the step begins
+        let mut movers = wing([5000.0, 0.0, 5000.0]);
+        ready(&mut movers, hc_plan(Vec::new()));
+        let held_at = held(&movers);
+        let bad = creation([f32::NAN, 0.0, 0.0], 0.0, [0.0, 1.0, 0.0]);
+        assert!(movers.step("v", held_at, Request::Create(bad)).unwrap_err().contains("non-finite"));
+        assert!(matches!(movers.mobiles.get("v").unwrap().hc_flow, Some(HelicopterFlow::Guided { rotor_checked: true, .. })));
+        assert!(guided_begin(&mut movers).unwrap().pending);
+
+        // a Place between the guide and the begin moves the aircraft: the guidance is stale and cannot begin
+        let mut placed = wing([5000.0, 0.0, 5000.0]);
+        ready(&mut placed, hc_plan(Vec::new()));
+        let moved = at(100.0, 0.0, 100.0);
+        placed.step("v", moved, Request::Place { motion_vector: SEED }).unwrap();
+        assert!(placed.mobiles.get("v").unwrap().hc_flow.is_none());
+        assert!(guided_begin(&mut placed).unwrap_err().contains("without host guidance"));
+
+        // so does a creation
+        let mut created = wing([5000.0, 0.0, 5000.0]);
+        ready(&mut created, hc_plan(Vec::new()));
+        let held_at = held(&created);
+        created.step("v", held_at, Request::Create(creation([100.0, 0.0, 100.0], 0.0, [0.0, 1.0, 0.0]))).unwrap();
+        assert!(created.mobiles.get("v").unwrap().hc_flow.is_none());
+        assert!(guided_begin(&mut created).unwrap_err().contains("without host guidance"));
+    }
+
+    // ---- the leader's heading is the host's record, read only where the demand reads it ----
+
+    const STILL: [f32; 3] = [0.0; 3];
+
+    /// "v" at rest following "l" at `leader_attitude`, planned, guided, rotor-checked and begun; the next call is the end
+    fn follower_begun(leader_attitude: [f32; 9]) -> (Movers, Outcome) {
+        let mut movers = Movers::default();
+        movers.bind("v", Kind::Helicopter, at(0.0, 0.0, 0.0), Some(STILL), Some(ROTOR)).unwrap();
+        let mut lead = at(500.0, 0.0, 0.0);
+        lead.attitude = leader_attitude;
+        movers.bind("l", Kind::Helicopter, lead, Some(STILL), Some(ROTOR)).unwrap();
+        let mut plan = hc_plan(Vec::new());
+        plan.group_leader = true;
+        plan.task_leader_is_self = false;
+        plan.guide_radius = Some(2000.0);
+        plan.cruise_velocity = 1.0;
+        plan.motion_vector = STILL;
+        movers.step("v", held(&movers), Request::HelicopterPlan(Box::new(plan))).unwrap();
+        let guide = HelicopterGuide { structures: Vec::new(), terrain_samples: Vec::new(), motion_vector: STILL };
+        movers.step("v", held(&movers), Request::HelicopterGuide(guide)).unwrap();
+        let Some(HelicopterAnswer::Guidance(guidance)) = movers.take_answer() else { panic!("a guide answers the guidance") };
+        let mut alive = life(LifecycleMode::RotorAlive, ROTOR, STILL);
+        alive.lift = guidance.lift;
+        let held_at = held(&movers);
+        assert!(!run(&mut movers, held_at, alive).unwrap().moved);
+        let begun = movers
+            .step("v", held(&movers), Request::HelicopterGuidedBegin { motion_vector: STILL })
+            .unwrap();
+        (movers, begun)
+    }
+
+    fn follower_steer(begun: &Outcome, leader: Option<&str>) -> HelicopterSteer {
+        let mut steer = hc_steer(begun.motion_vector);
+        steer.task_leader_is_self = false;
+        steer.guide_radius = Some(2000.0);
+        steer.leader = leader.map(str::to_owned);
+        steer
+    }
+
+    fn leader_turned(angle: f32) -> [f32; 9] {
+        let (sin, cos) = angle.sin_cos();
+        [cos, 0.0, sin, 0.0, 1.0, 0.0, -sin, 0.0, cos]
+    }
+
+    #[test]
+    fn a_follower_close_to_its_leader_takes_the_heading_of_the_hosts_record_of_that_leader() {
+        let mut headings = Vec::new();
+        for angle in [0.4f32, -1.1] {
+            let (mut movers, begun) = follower_begun(LEVEL);
+            // the leader turns after the begin: the end reads the record as it is then, not as it was when the step began
+            movers.mobiles.get_mut("l").unwrap().pose.attitude = leader_turned(angle);
+            let ended = movers
+                .step("v", begun.pose, Request::HelicopterGuidedEnd(follower_steer(&begun, Some("l"))))
+                .unwrap();
+            let expected = heading_of(&leader_turned(angle));
+            assert!((ended.angles[0] - expected).abs() < 1.0e-5, "{} vs {expected}", ended.angles[0]);
+            headings.push(ended.angles[0]);
+        }
+        assert_ne!(headings[0], headings[1], "the retained leader attitude decided the heading");
+    }
+
+    #[test]
+    fn the_leader_is_resolved_only_where_the_heading_follows_it_and_a_refusal_keeps_the_step_open() {
+        // a required heading is campaign intent: the leader id is not needed, even one that does not exist
+        let (mut movers, begun) = follower_begun(leader_turned(0.4));
+        let mut steer = follower_steer(&begun, Some("nobody"));
+        steer.required_heading = Some(0.7);
+        let ended = movers.step("v", begun.pose, Request::HelicopterGuidedEnd(steer)).unwrap();
+        assert!((ended.angles[0] - 0.7).abs() < 1.0e-6, "{}", ended.angles[0]);
+
+        // the task leader itself needs no leader either
+        let (mut movers, begun) = follower_begun(leader_turned(0.4));
+        let mut steer = follower_steer(&begun, None);
+        steer.task_leader_is_self = true;
+        movers.step("v", begun.pose, Request::HelicopterGuidedEnd(steer)).unwrap();
+
+        // where the heading does follow the leader, a missing or unusable id is refused with the step still open
+        let (mut movers, begun) = follower_begun(leader_turned(0.4));
+        for (leader, wanted) in [
+            (None, "names no leader host id"),
+            (Some("v"), "names itself"),
+            (Some("nobody"), "is not a host id"),
+        ] {
+            let error = movers
+                .step("v", begun.pose, Request::HelicopterGuidedEnd(follower_steer(&begun, leader)))
+                .unwrap_err();
+            assert!(error.contains(wanted), "{error}");
+            assert!(movers.mobiles.get("v").unwrap().helicopter_pending, "{wanted}: the step is still owed");
+        }
+        movers.bind("g", Kind::Routed, at(0.0, 0.0, 0.0), None, None).unwrap();
+        let error = movers
+            .step("v", begun.pose, Request::HelicopterGuidedEnd(follower_steer(&begun, Some("g"))))
+            .unwrap_err();
+        assert!(error.contains("is not a helicopter"), "{error}");
+        // the corrected end then runs on the retained step
+        let ended = movers
+            .step("v", begun.pose, Request::HelicopterGuidedEnd(follower_steer(&begun, Some("l"))))
+            .unwrap();
+        assert!((ended.angles[0] - heading_of(&leader_turned(0.4))).abs() < 1.0e-5, "{}", ended.angles[0]);
     }
 }

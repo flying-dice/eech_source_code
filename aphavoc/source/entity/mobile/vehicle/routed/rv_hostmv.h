@@ -68,7 +68,15 @@ enum campaign_movement_mode
 	CAMPAIGN_MOVEMENT_RETIRE,			/* the physical incarnation ends (heap release): the host retires the id, drops any open step, and answers no later step for it */
 	/* EEDCS-38 */
 	CAMPAIGN_MOVEMENT_CREATE_PLACE,		/* initial placement of a newly created mobile: the host builds the attitude from the terrain face, the heading and the fuselage angle, and adopts the pose; once per identity */
-	CAMPAIGN_MOVEMENT_EXPIRE			/* a dead mobile's lifetime: the host accumulates the death timer, gates it and decides whether the wreck has expired (a ship: whether it has sunk out of sight) */
+	CAMPAIGN_MOVEMENT_EXPIRE,			/* a dead mobile's lifetime: the host accumulates the death timer, gates it and decides whether the wreck has expired (a ship: whether it has sunk out of sight) */
+	/* EEDCS-39 hosted helicopter control: the guidance flow Plan -> (DLL lookups) -> Guide -> rotor gate -> GuidedBegin -> GuidedEnd */
+	CAMPAIGN_MOVEMENT_HELICOPTER_PLAN,		/* the campaign's task and waypoint facts; the host answers hc_query: the lookups it needs, planned from its own pose */
+	CAMPAIGN_MOVEMENT_HELICOPTER_GUIDE,		/* the DLL's lookup results (own-sector structures, terrain samples); the host answers hc_guidance */
+	CAMPAIGN_MOVEMENT_HELICOPTER_GUIDED_BEGIN,	/* after the rotor and campaign gates: the host applies the guidance it retained to the motion vector and speed */
+	CAMPAIGN_MOVEMENT_HELICOPTER_GUIDED_END,	/* the steering facts: the host steers and moves from its retained guidance and answers the attitude, position and angles */
+	CAMPAIGN_MOVEMENT_HELICOPTER_ABANDON,		/* the campaign decided not to fly the step (human wait, landed): the host drops the open flow */
+	/* EEDCS-39 R1 */
+	CAMPAIGN_MOVEMENT_FIXED_WING_LOOKAHEAD		/* a terrain-following fixed-wing waypoint is being selected: the host answers hc_query with the one point it needs sampled, from its own pose; nothing is advanced */
 };
 
 enum campaign_movement_kind
@@ -79,6 +87,44 @@ enum campaign_movement_kind
 	CAMPAIGN_MOVEMENT_KIND_FIXED_WING,
 	CAMPAIGN_MOVEMENT_KIND_HELICOPTER
 };
+
+/* EEDCS-39: a structure of the aircraft's own sector, as the DLL's structure scan saw it */
+typedef struct campaign_hc_structure
+{
+	float position[3];
+	float avoidance_radius;
+	float height;
+} campaign_hc_structure;
+
+/* EEDCS-39: one terrain sample's getter returns in call order; second is meaningful only when second_present */
+typedef struct campaign_hc_terrain_sample
+{
+	float first;
+	float second;
+	int second_present;
+} campaign_hc_terrain_sample;
+
+#define CAMPAIGN_HC_TERRAIN_SAMPLES 2
+
+/* EEDCS-39: what the host's plan asks the DLL to look up: the structure scan at structure_position, and terrain_sample_count
+   (0 to CAMPAIGN_HC_TERRAIN_SAMPLES) x/z positions in the order to sample them */
+typedef struct campaign_hc_query
+{
+	int structure_scan;
+	float structure_position[3];
+	int terrain_sample_count;
+	float terrain_sample[CAMPAIGN_HC_TERRAIN_SAMPLES][2];
+} campaign_hc_query;
+
+/* EEDCS-39: the host's guidance for the step */
+typedef struct campaign_hc_guidance_answer
+{
+	float lift;
+	float waypoint[3];
+	float required_height;
+	float world_acceleration[3];
+	float wp_vec[3];
+} campaign_hc_guidance_answer;
 
 typedef struct campaign_movement_step
 {
@@ -110,19 +156,41 @@ typedef struct campaign_movement_step
 	float ps_vel;
 	/* FIXED_WING_MOVE: the campaign's guidance for the step.  desired_velocity is the waypoint speed, g_max the
 	   class's g limit, elevation the terrain sample under the aircraft; the other shared fields are as for a ship.
-	   fw_phase selects taxi, flight, landing or the absolute update; fw_acceleration is the navigator's
-	   advisory; fw_motion_vector is the motion vector the previous step left (the old direction of travel).  On PLACE
-	   it is the one placement vector for every aircraft (fixed-wing and helicopter): hc_motion_vector is never read
-	   for PLACE */
+	   fw_phase selects taxi, flight, landing or the absolute update; fw_motion_vector is the motion vector the previous
+	   step left (the old direction of travel).  On PLACE it is the one placement vector for every aircraft (fixed-wing and
+	   helicopter): hc_motion_vector is never read for PLACE.
+	   FLIGHT and LAND (EEDCS-39): the host decides the physical facing and turn itself.  From its own retained pose,
+	   velocity, attitude and motion vector it finds whether the aircraft faces away from the waypoint, applies the
+	   1500 m task-leader gate, holds the turn (0.25 s when aiming a cannon, 3.0 s when facing away), keeps the turn
+	   multiplier and chooses between the flight branch and the absolute turn-around; FLIGHT also computes the steering
+	   acceleration (eech_fw_navigate).  The campaign sends only the intent and observations: waypoint (the resolved
+	   waypoint) and desired_velocity (the guide's speed, cruise when it is zero), fw_aiming_cannon (the campaign's cannon
+	   policy found a target to engage) and fw_elapsed_time (the session clock the holds run on), fw_group_leader and
+	   fw_task_leader (different flags), the class's turn allowance and avoidance radius, the task leader's host id (read
+	   when !fw_task_leader; on LAND only when the host finds the aircraft facing away) and, on FLIGHT only, the group's
+	   other members in list order, self excluded, each with its class's avoidance radius (read only when
+	   !fw_group_leader).  The member lists are fw_member_count entries long, owned by the caller and read only during
+	   the call; a group of any size is sent whole.  An id is an observation the campaign passes on if its roster has
+	   it: a leader id left empty and a NULL or empty member entry mean unresolved.  The host asks for one only on the
+	   path that reads it (facing away, or flying the navigator) and then refuses the step, before it mutates anything,
+	   if it is unresolved or not a fixed-wing aircraft the host retains.  No turn multiplier crosses the boundary */
 	int fw_phase;
-	float fw_acceleration[3];
 	float fw_motion_vector[3];
 	float fw_cruise_velocity;
 	float fw_fuselage_angle;
 	float fw_cg_to_ground;
 	float fw_max_roll;
-	float fw_turn_speed_multi;
+	int fw_aiming_cannon;
+	float fw_elapsed_time;
 	int fw_navigating;
+	int fw_group_leader;
+	int fw_task_leader;
+	float fw_max_vertical_turn_allowance;
+	float fw_avoidance_radius;
+	char fw_leader_host_id[CAMPAIGN_MOVEMENT_HOST_ID_MAX + 1];
+	int fw_member_count;
+	const char *const *fw_member_host_id;	/* fw_member_count NUL-terminated ids, 1 to CAMPAIGN_MOVEMENT_HOST_ID_MAX bytes each */
+	const float *fw_member_radius;		/* fw_member_count radii, in the same order */
 	/* HELICOPTER_BEGIN/END: the DLL's guidance for the step.  hc_motion_vector is the DLL's copy of the vector the
 	   host retains (what the previous step left, or what HELICOPTER_BEGIN answered for END): the host refuses a difference.
 	   BEGIN: hc_acceleration_x/z and hc_wp_vec_y are the guidance's world acceleration and climb demand.  END:
@@ -196,6 +264,56 @@ typedef struct campaign_movement_step
 	float death_timer;
 	float death_range;
 	int death_policy;
+	/* EEDCS-39 hosted helicopter control.  PLAN: the campaign's task and waypoint facts (hc_group_leader .. hc_leader_radar_altitude),
+	   delta_seconds, terrain_follow, elevation (the cached terrain elevation), waypoint, the map bounds, hc_motion_vector and
+	   hc_power_output, and the group's other members in list order (read only when !hc_group_leader; a NULL or empty entry means
+	   the roster lacks the id).  GUIDE: the DLL's own-sector structures (uncapped, sector order) and the getter returns of the
+	   terrain samples the plan asked for, with hc_motion_vector.  GUIDED_BEGIN: hc_motion_vector.  GUIDED_END: delta_seconds,
+	   hc_max_turn_rate, elevation (the cached sample, no new one), hc_cg_to_ground, terrain_follow, the map bounds, g_max,
+	   hc_motion_vector, and the steering facts: the waypoint kind, whether the aircraft leads its task, the guide radius, the
+	   required heading (campaign intent), the task leader's host id (read only on the path that needs it), the targeting
+	   decision, the weapon vectors and the rotor shaft angle.  No desired steering crosses the boundary.  The lists are owned by
+	   the caller and read only during the call */
+	int hc_group_leader;
+	int hc_task_leader;
+	int hc_task_leader_is_self;
+	int hc_position_hold;
+	int hc_terrain_follow_attack_altitude;
+	int hc_waypoint_kind;			/* CAMPAIGN_HC_WP_* */
+	int hc_guide_radius_valid;
+	float hc_guide_radius;
+	int hc_guide_altitude_valid;
+	float hc_waypoint_velocity[3];
+	float hc_distance;
+	float hc_fuel_supply_level;
+	float hc_cruise_velocity;
+	float hc_cruise_altitude;
+	float hc_attack_altitude;
+	float hc_leader_radar_altitude;
+	int hc_member_count;
+	const char *const *hc_member_host_id;
+	int hc_structure_count;
+	const campaign_hc_structure *hc_structures;
+	int hc_terrain_sample_count;
+	const campaign_hc_terrain_sample *hc_terrain_samples;
+	int hc_required_heading_valid;
+	float hc_required_heading;
+	char hc_leader_host_id[CAMPAIGN_MOVEMENT_HOST_ID_MAX + 1];
+	int hc_targeting_active;
+	float hc_weapon_vector[3];
+	float hc_weapon_to_intercept_vector[3];
+	float hc_main_rotor_shaft_angle;
+	/* FIXED_WING_MOVE: the terrain observation for a terrain-following task leader's waypoint (fw_terrain false otherwise).
+	   The campaign sends its minimum height, the guide position it selected, the host's own look-ahead point echoed back,
+	   the elevation its terrain service answered there and the formation site and centre-of-gravity heights to add after
+	   the host has shaped the waypoint height.  The waypoint height the step carries is then not read */
+	int fw_terrain;
+	float fw_terrain_min_height;
+	float fw_terrain_guide_position[3];
+	float fw_terrain_sample_point[2];
+	float fw_terrain_sample_elevation;
+	float fw_terrain_site_y;
+	float fw_terrain_cg;
 	/* the TUMBLE and FW_DEATH_ATTITUDE draws are frand1 () doubles and stay doubles: the original expression multiplies
 	   them in double before narrowing the result to the float heading/roll.  Last, so the double's alignment cannot move
 	   another field */
@@ -228,6 +346,9 @@ typedef struct campaign_movement_result
 	float angles[3];
 	/* EEDCS-38 EXPIRE: flags bit0 the wreck has expired; the host's timer after the step, which the campaign mirrors */
 	float death_timer;
+	/* EEDCS-39 HELICOPTER_PLAN: the lookups the DLL must make; HELICOPTER_GUIDE: the host's guidance.  Zero in every other mode */
+	campaign_hc_query hc_query;
+	campaign_hc_guidance_answer hc_guidance;
 } campaign_movement_result;
 
 typedef int (*campaign_move_vehicle_fn)
@@ -257,6 +378,20 @@ enum
 	CAMPAIGN_FIXED_WING_ABSOLUTE
 };
 
+/* a terrain-following task leader's waypoint, the campaign's part of it: see campaign_movement_step fw_terrain.  The
+   campaign selects the guide and the formation offsets and answers the terrain lookup (a transitional service); the
+   host chooses the look-ahead point and performs the height arithmetic */
+typedef struct campaign_fixed_wing_terrain
+{
+	int follow;
+	float min_height;
+	float guide_position[3];
+	float sample_point[2];
+	float sample_elevation;
+	float site_y;
+	float cg;
+} campaign_fixed_wing_terrain;
+
 typedef struct campaign_fixed_wing_guidance
 {
 	int phase;
@@ -266,15 +401,91 @@ typedef struct campaign_fixed_wing_guidance
 	float fuselage_angle;
 	float cg_to_ground;
 	float max_roll;
-	float turn_speed_multi;
 	float waypoint[3];
-	float acceleration[3];
 	float motion_vector[3];
 	int navigating;
 	float elevation;
 	float delta_seconds;
 	float frame_delta;
+	/* FLIGHT and LAND: the turn intent and the navigation intent.  The host id strings and the member lists are only
+	   read during the call; the lists hold member_count entries (FLIGHT only) and the caller owns them.  A NULL
+	   leader_host_id or member entry is an identity the roster does not have: it is sent as unresolved */
+	int aiming_cannon;
+	float elapsed_time;
+	int group_leader;
+	int task_leader;
+	float max_vertical_turn_allowance;
+	float avoidance_radius;
+	const char *leader_host_id;
+	int member_count;
+	const char *const *member_host_id;
+	const float *member_radius;
+	/* FLIGHT, LAND and ABSOLUTE: set (follow) when the waypoint's height is the host's to shape; waypoint[1] is then unshaped */
+	campaign_fixed_wing_terrain terrain;
 } campaign_fixed_wing_guidance;
+
+/* the waypoint-kind group the campaign names for a hosted helicopter step (hc_waypoint_kind) */
+enum
+{
+	CAMPAIGN_HC_WP_OTHER = 0,
+	CAMPAIGN_HC_WP_ROUTE,			/* NAVIGATION, CAP_LOOP, CAP_START */
+	CAMPAIGN_HC_WP_HOLDING,			/* HOLDING, HOLDING_LOOP, TAXI */
+	CAMPAIGN_HC_WP_LANDED,
+	CAMPAIGN_HC_WP_INSERTION		/* PREPARE_FOR_INSERTION, TROOP_INSERT */
+};
+
+/* the campaign's facts for the PLAN step of a hosted helicopter (EEDCS-39).  Facts only: no desired velocity, heading,
+   pitch or roll.  The member list holds member_count ids in group list order (read only when !group_leader; a NULL entry is
+   an identity the roster lacks), owned by the caller and read only during the call; it has no cap */
+typedef struct campaign_hc_plan
+{
+	int group_leader;
+	int task_leader;
+	int task_leader_is_self;
+	int position_hold;
+	int terrain_follow;				/* the guide's terrain-follow mode is not NONE */
+	int terrain_follow_attack_altitude;
+	int waypoint_kind;				/* CAMPAIGN_HC_WP_* of the guide's current waypoint */
+	int guide_radius_valid;
+	float guide_radius;
+	int guide_altitude_valid;
+	float waypoint[3];
+	float waypoint_velocity[3];
+	float distance;
+	float terrain_elevation;		/* the cached terrain_info elevation: no new sample */
+	float fuel_supply_level;
+	float cruise_velocity;
+	float power_output;
+	float cruise_altitude;
+	float attack_altitude;
+	float leader_radar_altitude;
+	float delta_seconds;
+	int member_count;
+	const char *const *member_host_id;
+} campaign_hc_plan;
+
+/* the campaign's facts for the GUIDED_END step: the steering is the host's.  The leader's host id is read only on the path
+   that needs it and is ignored when the aircraft leads its own task; the required heading is campaign intent */
+typedef struct campaign_hc_steer
+{
+	float delta_seconds;
+	float max_turn_rate;
+	float elevation;				/* the cached sample from the altitude follow: no new one */
+	float cg_to_ground;
+	float g_max;
+	int terrain_follow;
+	int waypoint_kind;				/* CAMPAIGN_HC_WP_* of the helicopter's current waypoint */
+	int task_leader_is_self;
+	int guide_radius_valid;
+	float guide_radius;
+	int required_heading_valid;
+	float required_heading;
+	const char *leader_host_id;
+	int targeting_active;
+	float weapon_vector[3];
+	float weapon_to_intercept_vector[3];
+	float main_rotor_shaft_angle;
+} campaign_hc_steer;
 
 void campaign_movement_set_host (const campaign_movement_host *host);
 
@@ -296,6 +507,9 @@ void campaign_movement_ship_move (struct ENTITY *vehicle, struct ENTITY *guide, 
 /* one fixed-wing step; the host's pose and motion vector are applied to the aircraft */
 void campaign_movement_fixed_wing_move (struct ENTITY *aircraft, const campaign_fixed_wing_guidance *guidance);
 
+/* the x and z of the one point the host needs the terrain sampled at to shape a terrain-following waypoint, from its own pose; nothing is advanced */
+void campaign_movement_fixed_wing_lookahead (struct ENTITY *aircraft, float *point_x, float *point_z);
+
 /*
  * One alive AI helicopter step in two phases around the campaign's attitude guidance.  `begin` takes the campaign's
  * acceleration and climb demand, and applies the host's motion vector and speed to the helicopter at once (the guidance
@@ -307,6 +521,25 @@ void campaign_movement_fixed_wing_move (struct ENTITY *aircraft, const campaign_
  */
 void campaign_movement_helicopter_begin (struct ENTITY *helicopter, float acceleration_x, float acceleration_z, float wp_vec_y);
 void campaign_movement_helicopter_end (struct ENTITY *helicopter, float desired_heading, float max_turn_rate, float desired_pitch, float desired_roll, float elevation, float cg_to_ground, int terrain_follow);
+
+/*
+ * EEDCS-39 host-planned helicopter control, in this order: plan -> (the DLL's lookups) -> guide -> rotor gate ->
+ * guided_begin -> guided_end, or abandon from any point once a plan is open.  None of them moves the helicopter's position
+ * until guided_end; none of them adopts a pose, rotor or motion vector (the DLL's copies are mirrors the host validates).
+ *   plan:    sends the facts and the group members, and returns what the DLL must look up (query)
+ *   guide:   sends the lookups' results (own-sector structures in sector order, and each terrain sample's getter returns in
+ *            call order) and returns the host's guidance (lift, waypoint, required height, acceleration, velocity demand)
+ *   guided_begin: the host's motion vector and speed are applied (setter); the position is untouched
+ *   guided_end:   the host's attitude, rotated flag, motion vector and position are applied; angles receives the host's
+ *            heading, pitch and roll
+ *   abandon: the step is dropped host-side and nothing is applied
+ * Every call is fatal on a host failure or an invalid answer, like the other hosted steps.
+ */
+void campaign_movement_helicopter_plan (struct ENTITY *helicopter, const campaign_hc_plan *plan, campaign_hc_query *query);
+void campaign_movement_helicopter_guide (struct ENTITY *helicopter, int structure_count, const campaign_hc_structure *structures, int terrain_sample_count, const campaign_hc_terrain_sample *terrain_samples, campaign_hc_guidance_answer *guidance);
+void campaign_movement_helicopter_guided_begin (struct ENTITY *helicopter);
+void campaign_movement_helicopter_guided_end (struct ENTITY *helicopter, const campaign_hc_steer *steer, float angles[3]);
+void campaign_movement_helicopter_abandon (struct ENTITY *helicopter);
 
 /*
  * Helicopter rotor and dying/crash physics.  The rotor state {main rpm, tail rpm, spin-up timer} is read from, and the
