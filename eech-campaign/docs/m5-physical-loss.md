@@ -230,7 +230,9 @@ member's group by sending the original `TASK_COMPLETED` /
 setup only: it changes no guard and no physics, and does not claim the campaign
 would have released those tasks itself. Airborne fixed-wing groups are usually
 the objective of some task, so without it no fixed-wing member is in the bounded
-shape.
+shape. That is bounded evidence from one observed census (no eligible fixed-wing
+member was found there), not a claim that none can exist; the fixed-wing witness
+therefore rests on this artificial setup and is stated as such.
 
 Not covered: save/restore, a group freed while a loss is pending, the delay
 robustness of a late report, ship keysite/carrier exclusions, and the person's
