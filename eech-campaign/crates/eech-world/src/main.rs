@@ -9,9 +9,9 @@
 mod crash;
 
 use eech_world::movement::{
-    Advance, Creation, FixedWingMove, FixedWingNavigation, FixedWingPhase, FixedWingTerrain, HelicopterAnswer, HelicopterBegin, HelicopterEnd, HelicopterGuide,
-    HelicopterPlan, HelicopterSteer, HelicopterStructure, HelicopterTerrainSample, HelicopterWaypointKind, Kind, Lifecycle, LifecycleMode, Movers,
-    NavigationMember, Outcome, PersonBegin, PersonEnd, Pose, Request, ShipMove, Terrain,
+    Advance, CarryShape, Creation, DependentCarry, FixedWingMove, FixedWingNavigation, FixedWingPhase, FixedWingTerrain, HelicopterAnswer, HelicopterBegin,
+    HelicopterEnd, HelicopterGuide, HelicopterPlan, HelicopterSteer, HelicopterStructure, HelicopterTerrainSample, HelicopterWaypointKind, Kind, Lifecycle,
+    LifecycleMode, Movers, NavigationMember, Outcome, PersonBegin, PersonEnd, Pose, Request, ShipMove, Terrain,
 };
 use eech_world::tacview::{ObjectInfo, Recorder};
 use mlua::prelude::*;
@@ -575,6 +575,18 @@ fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request
         "helicopter_guided_end" => Request::HelicopterGuidedEnd(helicopter_steer_from(lua, step)?),
         "helicopter_abandon" => Request::HelicopterAbandon,
         "fixed_wing_lookahead" => Request::FixedWingLookahead,
+        "dependent_carry" => Request::DependentCarry(DependentCarry {
+            parent: step.get("dc_parent")?,
+            shape: if step.get("dc_helicopter")? {
+                CarryShape::Helicopter
+            } else {
+                CarryShape::Position
+            },
+            parent_old: numbers(lua, step, "dc_parent_old")?,
+            parent_new: numbers(lua, step, "dc_parent_new")?,
+            heading: number(lua, step, "dc_heading")?,
+            velocity: number(lua, step, "dc_velocity")?,
+        }),
         "person_end" => Request::PersonEnd(PersonEnd {
             elevation: number(lua, step, "elevation")?,
         }),

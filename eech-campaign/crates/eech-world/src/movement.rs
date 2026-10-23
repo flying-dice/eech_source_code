@@ -191,6 +191,15 @@ extern "C" {
     );
     fn eech_hc_impact(motion_vector: *mut f32, attitude: *const f32, signed_speed: f32);
     fn eech_place_attitude(face_normal: *const f32, heading: f32, fuselage_angle: f32, angles: *mut f32, attitude: *mut f32);
+    fn eech_dependent_helicopter(
+        parent_old: *const f32,
+        parent_new: *const f32,
+        heading: f32,
+        position: *const f32,
+        attitude: *const f32,
+        out_position: *mut f32,
+        out_attitude: *mut f32,
+    );
     fn eech_expire_threshold(range: f32) -> f32;
     fn eech_expire_gate(timer: f32) -> c_int;
     fn eech_gv_death_candidate(position: *const f32, motion_vector: *const f32, delta_seconds: f32, out_xz: *mut f32);
@@ -1177,6 +1186,32 @@ pub enum Request {
     /// vector, adopted only by an aircraft record (declared transitional coupling: the DLL
     /// still writes an aircraft's vector outside a host step).
     Place { motion_vector: [f32; 3] },
+    /// the campaign's parent moved and notified this attached child (membership is the campaign's): the host positions the
+    /// child by the parent's displacement, as the original notification handler did, and answers the child's new pose
+    DependentCarry(DependentCarry),
+}
+
+/// How an attached child follows its moving parent; fixed by the child's class in the original handlers.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CarryShape {
+    /// the routed vehicle, anti-aircraft gun and infantryman take the parent's new position and nothing else
+    Position,
+    /// the helicopter keeps its offset from the parent, rotated by the parent's heading change, and takes the parent's
+    /// heading and speed
+    Helicopter,
+}
+
+/// The parent's move as the campaign's notification carried it: the host identity of the parent, the position it had
+/// (its stored one, as the notification went out before the write) and is given, and the heading and speed the original
+/// message carried. The host validates both positions against its own record of the parent.
+#[derive(Clone, Debug)]
+pub struct DependentCarry {
+    pub parent: String,
+    pub shape: CarryShape,
+    pub parent_old: [f32; 3],
+    pub parent_new: [f32; 3],
+    pub heading: f32,
+    pub velocity: f32,
 }
 
 impl Request {
@@ -1199,6 +1234,7 @@ impl Request {
             Request::Lifecycle(step) => step.mode.name(),
             Request::Place { .. } => "place",
             Request::Create(_) => "create_place",
+            Request::DependentCarry(_) => "dependent_carry",
         }
     }
 
@@ -1218,6 +1254,10 @@ impl Request {
             | Request::HelicopterAbandon => kind == Kind::Helicopter,
             Request::Lifecycle(step) => step.mode.allows(kind),
             Request::Place { .. } | Request::Create(_) => true,
+            Request::DependentCarry(carry) => match carry.shape {
+                CarryShape::Position => matches!(kind, Kind::Routed | Kind::Person),
+                CarryShape::Helicopter => kind == Kind::Helicopter,
+            },
         }
     }
 }
@@ -1331,6 +1371,9 @@ struct Record {
     death_timer: Option<f32>,
     /// A hosted helicopter step's retained guidance between its phases; `None` outside a hosted step.
     hc_flow: Option<HelicopterFlow>,
+    /// The position this mobile had before the last request the host accepted for it. A parent the host itself moved is
+    /// already at its new position when its children are notified, so this is the old one they are carried from.
+    previous_position: [f32; 3],
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -1453,6 +1496,7 @@ impl Movers {
                 fw_turn: (kind == Kind::FixedWing).then_some(FixedWingTurn::CREATED),
                 death_timer: None,
                 hc_flow: None,
+                previous_position: pose.position,
             },
         );
         Ok(())
@@ -1467,11 +1511,51 @@ impl Movers {
     /// outcome is the host's record afterwards.
     pub fn step(&mut self, host_id: &str, campaign: Pose, request: Request) -> Result<Outcome, String> {
         self.answer = None;
+        let before = self.mobiles.get(host_id).map(|record| record.pose.position);
         let mut outcome = self.dispatch(host_id, campaign, request)?;
-        if let Some(rotor) = self.mobiles.get(host_id).and_then(|record| record.rotor) {
-            outcome.rotor = rotor;
+        if let Some(record) = self.mobiles.get_mut(host_id) {
+            if let Some(before) = before {
+                record.previous_position = before;
+            }
+            if let Some(rotor) = record.rotor {
+                outcome.rotor = rotor;
+            }
         }
         Ok(outcome)
+    }
+
+    /// The parent of an attached child's carry, resolved from the host's own record and validated; `None` for any other
+    /// request. Read-only and before the mutable borrow: a refusal changes nothing. The parent must be a live mobile the
+    /// host holds, and not the child itself. Its old position is either its record's (the campaign is about to write the
+    /// parent and place it afterwards, so the host still holds the position the notification came from) or the one before
+    /// the host's own last step (the host already moved it, so its record is the new position, which must then match too).
+    fn resolve_dependent_parent(&self, host_id: &str, request: &Request) -> Result<(), String> {
+        let Request::DependentCarry(carry) = request else { return Ok(()) };
+        let refuse = |reason: &str| format!("host.move_vehicle: dependent_carry for {host_id}: parent {} {reason}", carry.parent);
+        let numbers = carry.parent_old.iter().chain(&carry.parent_new).chain([&carry.heading, &carry.velocity]);
+        if numbers.into_iter().any(|value| !value.is_finite()) {
+            return Err(format!("host.move_vehicle: dependent_carry for {host_id} has a non-finite input"));
+        }
+        if carry.parent == host_id {
+            return Err(refuse("is the child itself"));
+        }
+        if self.retired.contains(&carry.parent) {
+            return Err(refuse("is retired"));
+        }
+        let parent = self
+            .mobiles
+            .get(&carry.parent)
+            .ok_or_else(|| refuse("is not a host id with a movement record"))?;
+        let same = |a: &[f32; 3], b: &[f32; 3]| a.iter().zip(b).all(|(a, b)| a.to_bits() == b.to_bits());
+        let before_the_write = same(&carry.parent_old, &parent.pose.position);
+        let after_the_step = same(&carry.parent_old, &parent.previous_position) && same(&carry.parent_new, &parent.pose.position);
+        if !before_the_write && !after_the_step {
+            return Err(refuse(&format!(
+                "was carried from {:?} to {:?}, but the host holds it at {:?} (from {:?}): a move the host did not make",
+                carry.parent_old, carry.parent_new, parent.pose.position, parent.previous_position
+            )));
+        }
+        Ok(())
     }
 
     /// The pose and retained motion of another fixed-wing aircraft, by the host's record of it.
@@ -1602,6 +1686,7 @@ impl Movers {
         // read-only, and before the mutable borrow: the other aircraft are resolved from the host's own records
         let navigation = self.resolve_navigation(host_id, &request)?;
         let hc_others = self.resolve_helicopter_others(host_id, &request)?;
+        self.resolve_dependent_parent(host_id, &request)?;
         // the leader's attitude, looked up now and refused only if the heading demand actually reads it
         let hc_leader = self.look_up_helicopter_leader(host_id, &request);
         let record = self
@@ -2078,6 +2163,32 @@ impl Movers {
                     }
                 }
                 Ok(outcome)
+            }
+            Request::DependentCarry(carry) => {
+                // a placement of the child, so (as `Place`) its wreck vector is left alone
+                match carry.shape {
+                    CarryShape::Position => record.pose.position = carry.parent_new,
+                    CarryShape::Helicopter => {
+                        let mut position = [0.0f32; 3];
+                        let mut attitude = [0.0f32; 9];
+                        // SAFETY: the positions and attitude are the 3, 3 and 9 floats the C function reads; it writes 3 and 9
+                        unsafe {
+                            eech_dependent_helicopter(
+                                carry.parent_old.as_ptr(),
+                                carry.parent_new.as_ptr(),
+                                carry.heading,
+                                record.pose.position.as_ptr(),
+                                record.pose.attitude.as_ptr(),
+                                position.as_mut_ptr(),
+                                attitude.as_mut_ptr(),
+                            );
+                        }
+                        record.pose.position = position;
+                        record.pose.attitude = attitude;
+                        record.pose.velocity = carry.velocity;
+                    }
+                }
+                Ok(settled(record.pose, false, [0.0; 3]))
             }
             Request::Place { .. } | Request::Create(_) => unreachable!("placed above"),
         };
@@ -3645,6 +3756,184 @@ mod tests {
         let second = movers.step("v", first.pose, Request::ShipMove(ship_move([0.0, 0.0, 1000.0]))).unwrap();
         assert_eq!(second.pose.velocity, 2.0);
         assert_near(second.pose.position, [0.0, 0.0, 1.5]);
+    }
+
+    /// BASE CHARACTERISATION (EEDCS-40): the DLL moves a carried child by its own setters while the host steps the parent,
+    /// and `applying_host_result` suppresses the child's `campaign_movement_place`. The host therefore never sees the
+    /// child's new pose: its next request for the child is refused as a write the host did not make.
+    #[test]
+    fn base_a_child_pose_the_campaign_wrote_during_its_parents_step_is_a_write_the_host_never_saw() {
+        let mut movers = Movers::default();
+        movers.bind("ship", Kind::Ship, pose(0.0, 0.0), None, None).unwrap();
+        movers.bind("child", Kind::Routed, pose(10.0, 0.0), None, None).unwrap();
+        movers.bind("grandchild", Kind::Routed, pose(20.0, 0.0), None, None).unwrap();
+        let moved = movers.step("ship", pose(0.0, 0.0), Request::ShipMove(ship_move([0.0, 0.0, 1000.0]))).unwrap();
+        let delta = [moved.pose.position[0] - 0.0, moved.pose.position[1] - 0.0, moved.pose.position[2] - 0.0];
+        assert_near(delta, [0.0, 0.0, 0.5]);
+        // the campaign's setter carried the child and the grandchild with the parent; nothing told the host
+        let carried = |start: f32| Pose {
+            position: [start + delta[0], delta[1], delta[2]],
+            ..pose(start, 0.0)
+        };
+        for (id, start) in [("child", 10.0), ("grandchild", 20.0)] {
+            let error = movers.step(id, carried(start), Request::Stop).unwrap_err();
+            assert!(
+                error.contains("differs from the host's record (a write the host did not make)"),
+                "{id}: {error}"
+            );
+        }
+        // an unguarded setter would have placed it: that is what makes the record agree again
+        for (id, start) in [("child", 10.0), ("grandchild", 20.0)] {
+            movers.step(id, carried(start), PLACED).unwrap();
+            movers.step(id, carried(start), Request::Stop).unwrap();
+        }
+    }
+
+    fn carry(parent: &str, shape: CarryShape, old: [f32; 3], new: [f32; 3]) -> Request {
+        Request::DependentCarry(DependentCarry {
+            parent: parent.to_owned(),
+            shape,
+            parent_old: old,
+            parent_new: new,
+            heading: 0.0,
+            velocity: 0.0,
+        })
+    }
+
+    /// The fix for the witness above: the host positions the attached children itself, so its records follow the
+    /// parent the host moved, nested one level further, and the next request for each is accepted unchanged.
+    #[test]
+    fn a_child_and_a_grandchild_follow_a_parent_the_host_moved_and_stay_consistent() {
+        let mut movers = Movers::default();
+        movers.bind("ship", Kind::Ship, pose(0.0, 0.0), None, None).unwrap();
+        movers.bind("child", Kind::Routed, pose(10.0, 0.0), None, None).unwrap();
+        movers.bind("grandchild", Kind::Person, pose(20.0, 0.0), None, None).unwrap();
+        let moved = movers.step("ship", pose(0.0, 0.0), Request::ShipMove(ship_move([0.0, 0.0, 1000.0]))).unwrap();
+        // the notification names the position the parent had; the host already holds the new one
+        let child = movers
+            .step("child", pose(10.0, 0.0), carry("ship", CarryShape::Position, [0.0; 3], moved.pose.position))
+            .unwrap();
+        // a copy of the parent's new position, the child's own attitude and speed untouched
+        assert_eq!(child.pose.position, moved.pose.position);
+        assert_eq!(child.pose.attitude, LEVEL);
+        // the grandchild is notified by the child's setter, from the child's old position to its new one
+        let grandchild = movers
+            .step(
+                "grandchild",
+                pose(20.0, 0.0),
+                carry("child", CarryShape::Position, [10.0, 0.0, 0.0], child.pose.position),
+            )
+            .unwrap();
+        assert_eq!(grandchild.pose.position, moved.pose.position);
+        // the DLL applied the same poses, so its next write is no unseen write
+        movers.step("child", child.pose, Request::Stop).unwrap();
+        movers.step("grandchild", grandchild.pose, PLACED).unwrap();
+    }
+
+    /// The other order: the campaign's own setter writes the parent after notifying, and places it afterwards. The host
+    /// still holds the position the notification came from.
+    #[test]
+    fn a_child_follows_a_parent_the_campaign_is_about_to_write() {
+        let mut movers = Movers::default();
+        movers.bind("parent", Kind::Routed, pose(5.0, 5.0), None, None).unwrap();
+        movers.bind("child", Kind::Routed, pose(10.0, 0.0), None, None).unwrap();
+        let new = [6.0, 0.0, 7.0];
+        let child = movers
+            .step("child", pose(10.0, 0.0), carry("parent", CarryShape::Position, [5.0, 0.0, 5.0], new))
+            .unwrap();
+        assert_eq!(child.pose.position, new);
+        // the campaign then writes and places the parent; the child's record is untouched by that
+        movers.step("parent", pose(5.0, 5.0), PLACED).unwrap();
+        movers.step("child", child.pose, PLACED).unwrap();
+    }
+
+    #[test]
+    fn a_carry_the_host_cannot_vouch_for_is_refused_and_changes_nothing() {
+        let mut movers = Movers::default();
+        movers.bind("parent", Kind::Routed, pose(5.0, 5.0), None, None).unwrap();
+        movers.bind("child", Kind::Routed, pose(10.0, 0.0), None, None).unwrap();
+        movers.bind("ship", Kind::Ship, pose(0.0, 0.0), None, None).unwrap();
+        movers.bind("gone", Kind::Routed, pose(0.0, 0.0), None, None).unwrap();
+        movers.retire("gone").unwrap();
+        let old = [5.0, 0.0, 5.0];
+        let new = [6.0, 0.0, 7.0];
+        let refused = |movers: &mut Movers, id: &str, request: Request, what: &str| {
+            let error = movers.step(id, pose(10.0, 0.0), request).unwrap_err();
+            assert!(error.contains(what), "{what}: {error}");
+        };
+        refused(&mut movers, "child", carry("child", CarryShape::Position, old, new), "is the child itself");
+        refused(&mut movers, "child", carry("gone", CarryShape::Position, old, new), "is retired");
+        refused(&mut movers, "child", carry("nobody", CarryShape::Position, old, new), "is not a host id");
+        // the parent was not where the notification says it was: a move the host did not make
+        refused(
+            &mut movers,
+            "child",
+            carry("parent", CarryShape::Position, [9.0, 0.0, 9.0], new),
+            "a move the host did not make",
+        );
+        // a non-finite input
+        refused(
+            &mut movers,
+            "child",
+            carry("parent", CarryShape::Position, old, [f32::NAN, 0.0, 0.0]),
+            "non-finite",
+        );
+        // shapes the original handlers never had: a ship child, a helicopter shape for a routed child
+        refused(
+            &mut movers,
+            "ship",
+            carry("parent", CarryShape::Position, old, new),
+            "is not a request for Ship",
+        );
+        refused(
+            &mut movers,
+            "child",
+            carry("parent", CarryShape::Helicopter, old, new),
+            "is not a request for Routed",
+        );
+        // an unknown child
+        refused(&mut movers, "nobody", carry("parent", CarryShape::Position, old, new), "unknown host id");
+        // nothing above moved the child, and it still agrees with the campaign
+        movers.step("child", pose(10.0, 0.0), Request::Stop).unwrap();
+    }
+
+    /// The helicopter keeps its offset from the parent, turned by the parent's heading change: the original expressions,
+    /// evaluated in the original's precision (doubles from the floats, narrowed on assignment).
+    #[test]
+    fn a_helicopter_child_is_carried_with_the_original_arithmetic() {
+        let mut movers = Movers::default();
+        movers.bind("parent", Kind::Routed, pose(0.0, 0.0), None, None).unwrap();
+        movers.bind("child", Kind::Helicopter, pose(10.0, 3.0), Some([0.0; 3]), Some(ROTOR)).unwrap();
+        let heading = 0.7f32;
+        let (old, new) = ([0.0f32; 3], [1.5f32, 0.25, 2.5]);
+        let request = Request::DependentCarry(DependentCarry {
+            parent: "parent".to_owned(),
+            shape: CarryShape::Helicopter,
+            parent_old: old,
+            parent_new: new,
+            heading,
+            velocity: 4.5,
+        });
+        let carried = movers.step("child", pose(10.0, 3.0), request).unwrap();
+        // the child's own heading is level (zero), so the angle is the parent's heading alone
+        let angle = f64::from(heading - 0.0f32);
+        let (dx, dy, dz) = (f64::from(10.0f32 - old[0]), f64::from(0.0f32 - old[1]), f64::from(3.0f32 - old[2]));
+        let expected = [
+            (f64::from(new[0]) + (angle.cos() * dx + angle.sin() * dz)) as f32,
+            (f64::from(new[1]) + dy) as f32,
+            (f64::from(new[2]) + (angle.cos() * dz - angle.sin() * dx)) as f32,
+        ];
+        assert_eq!(carried.pose.position.map(f32::to_bits), expected.map(f32::to_bits));
+        assert_eq!(carried.pose.velocity, 4.5);
+        // the attitude is the parent's heading with the child's own (level) pitch and roll
+        assert!((carried.pose.attitude[0] - heading.cos()).abs() < 1.0e-6, "{:?}", carried.pose.attitude);
+        assert!(
+            (carried.pose.attitude[6].abs() - heading.sin().abs()).abs() < 1.0e-6,
+            "{:?}",
+            carried.pose.attitude
+        );
+        // and the next request is checked against what the host answered
+        movers.step("child", carried.pose, PLACED).unwrap();
     }
 
     #[test]

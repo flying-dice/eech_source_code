@@ -264,6 +264,16 @@ static int response_to_set_entity_position (entity_messages message, entity *rec
 
 	velocity = (float) va_arg (pargs, double);
 
+	#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	// EEDCS-40: a hosted dependent of a hosted parent is positioned by the host; otherwise the original code below runs
+	if (campaign_movement_dependent_carry (receiver, sender, position, heading, velocity))
+	{
+		return (TRUE);
+	}
+
+	#endif
+
 	//
 	// should this notify children of movement (for mobile landing entities) ?
 	//

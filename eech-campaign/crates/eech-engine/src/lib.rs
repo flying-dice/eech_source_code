@@ -274,6 +274,9 @@ pub enum MovementMode {
     /// the fixed-wing terrain look-ahead (non-mutating): the host answers the one point it will sample terrain at, from its
     /// own retained pose, speed and attitude
     FixedWingLookahead,
+    /// a movement-dependent mobile follows the parent that just moved (EEDCS-40): the host checks the parent's move against its
+    /// own record and answers the dependent's pose (and, for a helicopter, its attitude and speed)
+    DependentCarry,
 }
 
 /// Terrain at the pre-move position, sampled by the campaign.
@@ -504,6 +507,16 @@ pub struct MovementStep {
     pub hc_weapon_vector: [f32; 3],
     pub hc_weapon_to_intercept_vector: [f32; 3],
     pub hc_main_rotor_shaft_angle: f32,
+    /// `DependentCarry`: the parent that notified the dependent (`None` in every other mode)
+    pub dc_parent: Option<String>,
+    /// `DependentCarry`: the dependent is a helicopter, which keeps its offset from the parent and turns it by the heading change
+    pub dc_helicopter: bool,
+    /// `DependentCarry`: the parent's position before and after the move the campaign is applying
+    pub dc_parent_old: [f32; 3],
+    pub dc_parent_new: [f32; 3],
+    /// `DependentCarry`: the heading and speed the parent's setter sent its dependents
+    pub dc_heading: f32,
+    pub dc_velocity: f32,
 }
 
 /// The host's record of the vehicle after the step; the campaign applies it.
@@ -1518,6 +1531,7 @@ where
             sys::EECH_MOVEMENT_HELICOPTER_GUIDED_END => MovementMode::HelicopterGuidedEnd,
             sys::EECH_MOVEMENT_HELICOPTER_ABANDON => MovementMode::HelicopterAbandon,
             sys::EECH_MOVEMENT_FIXED_WING_LOOKAHEAD => MovementMode::FixedWingLookahead,
+            sys::EECH_MOVEMENT_DEPENDENT_CARRY => MovementMode::DependentCarry,
             other => return Err(format!("move_vehicle received unknown mode {other}")),
         };
         let terrain_follow = checked_bool("terrain_follow", source.terrain_follow)?;
@@ -1575,6 +1589,8 @@ where
             ("hc_leader_radar_altitude", source.hc_leader_radar_altitude),
             ("hc_required_heading", source.hc_required_heading),
             ("hc_main_rotor_shaft_angle", source.hc_main_rotor_shaft_angle),
+            ("dc_heading", source.dc_heading),
+            ("dc_velocity", source.dc_velocity),
         ])?;
         for (name, values) in [
             ("position", &source.position[..]),
@@ -1589,6 +1605,8 @@ where
             ("hc_waypoint_velocity", &source.hc_waypoint_velocity[..]),
             ("hc_weapon_vector", &source.hc_weapon_vector[..]),
             ("hc_weapon_to_intercept_vector", &source.hc_weapon_to_intercept_vector[..]),
+            ("dc_parent_old", &source.dc_parent_old[..]),
+            ("dc_parent_new", &source.dc_parent_new[..]),
         ] {
             if values.iter().any(|value| !value.is_finite()) {
                 return Err(format!("non-finite movement {name}"));
@@ -1620,6 +1638,7 @@ where
                 | MovementMode::PersonEnd
                 | MovementMode::FixedWingMove
                 | MovementMode::FixedWingLookahead
+                | MovementMode::DependentCarry
                 | MovementMode::Retire
                 | MovementMode::CreatePlace
                 | MovementMode::Expire
@@ -1663,6 +1682,13 @@ where
         let (group_leader, task_leader, leader_host_id, members) = navigation.unwrap_or_default();
         // SAFETY: the C side supplies the hosted helicopter lists for the duration of this callback
         let lists = unsafe { helicopter_lists(mode, source) }?;
+        let dc_parent = navigation_id(&source.dc_parent_host_id, "dependent parent")?;
+        if dc_parent.is_some() != (mode == MovementMode::DependentCarry) {
+            return Err(format!(
+                "move_vehicle received {mode:?} {} a dependent parent",
+                if dc_parent.is_some() { "with" } else { "without" }
+            ));
+        }
         let request = MovementStep {
             host_id,
             mode,
@@ -1751,6 +1777,12 @@ where
             hc_weapon_vector: source.hc_weapon_vector,
             hc_weapon_to_intercept_vector: source.hc_weapon_to_intercept_vector,
             hc_main_rotor_shaft_angle: source.hc_main_rotor_shaft_angle,
+            dc_parent,
+            dc_helicopter: checked_bool("dc_helicopter", source.dc_helicopter)?,
+            dc_parent_old: source.dc_parent_old,
+            dc_parent_new: source.dc_parent_new,
+            dc_heading: source.dc_heading,
+            dc_velocity: source.dc_velocity,
         };
         let answer = (context.move_vehicle)(request)?;
         if !result_flags_are_valid(mode, answer.flags) {
@@ -1971,6 +2003,35 @@ impl Engine {
         // SAFETY: the temporary host callback is valid for the call.
         with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, move_vehicle_fn, |host| unsafe {
             sys::eech_engine_frame(milliseconds, host)
+        })
+    }
+
+    /// TEST-ONLY (feature `dependent-fixture`, EEDCS-40): re-links `child` under `parent` as a movement dependent
+    /// (`op` 1), moves `parent` through the campaign's own position setter (`op` 2, `position`), or runs a ship
+    /// parent's own sinking step (`op` 3). The campaign's genuine notification handlers do the rest; the host answers
+    /// the movement steps they send. Not part of the shipping module.
+    #[cfg(feature = "dependent-fixture")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn dependent_fixture<F, G, H, M>(
+        &self,
+        op: i32,
+        parent: i32,
+        child: i32,
+        position: [f64; 3],
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+    ) -> Result<(), EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+    {
+        // SAFETY: the position array and the temporary host callback are valid for the call.
+        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, move_vehicle_fn, |host| unsafe {
+            sys::eech_engine_dependent_fixture(op, parent, child, position.as_ptr(), host)
         })
     }
 
@@ -2252,6 +2313,7 @@ mod tests {
             sys::EECH_MOVEMENT_HELICOPTER_PLAN => MovementMode::HelicopterPlan,
             sys::EECH_MOVEMENT_HELICOPTER_GUIDE => MovementMode::HelicopterGuide,
             sys::EECH_MOVEMENT_FIXED_WING_LOOKAHEAD => MovementMode::FixedWingLookahead,
+            sys::EECH_MOVEMENT_DEPENDENT_CARRY => MovementMode::DependentCarry,
             _ => MovementMode::Place,
         }
     }
@@ -2606,6 +2668,40 @@ mod tests {
         assert_eq!(request.motion_vector_in, [4.0, -1.0, 80.0]);
         assert!(request.terrain.is_none());
         assert!(result_flags_are_valid(MovementMode::CreatePlace, 0) && !result_flags_are_valid(MovementMode::CreatePlace, 1));
+    }
+
+    #[test]
+    fn a_dependent_carry_step_carries_the_parent_and_both_of_its_positions_across_the_callback() {
+        let mut step = place_step([0.0; 3]);
+        step.mode = sys::EECH_MOVEMENT_DEPENDENT_CARRY;
+        for (slot, byte) in step.dc_parent_host_id.iter_mut().zip(b"parent") {
+            *slot = *byte as c_char;
+        }
+        step.dc_helicopter = 1;
+        step.dc_parent_old = [1.0, 2.0, 3.0];
+        step.dc_parent_new = [4.0, 5.0, 6.0];
+        step.dc_heading = 0.75;
+        step.dc_velocity = 12.5;
+        let request = received(&step);
+        assert_eq!(request.mode, MovementMode::DependentCarry);
+        assert_eq!(request.dc_parent.as_deref(), Some("parent"));
+        assert!(request.dc_helicopter);
+        assert_eq!((request.dc_parent_old, request.dc_parent_new), ([1.0, 2.0, 3.0], [4.0, 5.0, 6.0]));
+        assert_eq!((request.dc_heading, request.dc_velocity), (0.75, 12.5));
+        assert!(request.terrain.is_none());
+        assert!(result_flags_are_valid(MovementMode::DependentCarry, 0) && !result_flags_are_valid(MovementMode::DependentCarry, 1));
+    }
+
+    #[test]
+    fn a_dependent_carry_step_without_a_parent_or_with_a_non_finite_position_is_refused() {
+        let mut step = place_step([0.0; 3]);
+        step.mode = sys::EECH_MOVEMENT_DEPENDENT_CARRY;
+        let (outcome, _) = crossing(&step, |_| panic!("the host must not be asked"));
+        assert!(outcome.is_err(), "a carry names its parent");
+        step.dc_parent_host_id[0] = b'p' as c_char;
+        step.dc_parent_new = [f32::NAN, 0.0, 0.0];
+        let (outcome, _) = crossing(&step, |_| panic!("the host must not be asked"));
+        assert!(outcome.is_err(), "a non-finite parent position never reaches the host");
     }
 
     #[test]

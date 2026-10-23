@@ -258,6 +258,8 @@ pub const EECH_MOVEMENT_HELICOPTER_ABANDON: c_int = 44;
 /// EEDCS-39 R1: the fixed-wing terrain look-ahead query. Non-mutating; answers `hc_query` with the host's own look-ahead point
 /// as the single terrain sample.
 pub const EECH_MOVEMENT_FIXED_WING_LOOKAHEAD: c_int = 45;
+/// EEDCS-40: a movement-dependent mobile follows its parent; the host validates the parent's move and answers the dependent's pose.
+pub const EECH_MOVEMENT_DEPENDENT_CARRY: c_int = 46;
 /// The terrain samples a helicopter's guidance asks for at most (HELICOPTER_TERRAIN_AVOIDANCE_LOOKAHEAD_SAMPLE_NUMBER + 1).
 pub const EECH_HC_TERRAIN_SAMPLES: usize = 2;
 
@@ -423,6 +425,14 @@ pub struct eech_movement_step {
     pub fw_terrain_sample_elevation: f32,
     pub fw_terrain_site_y: f32,
     pub fw_terrain_cg: f32,
+    /// DEPENDENT_CARRY: the parent that notified the dependent, the parent's position before and after the move, the heading and
+    /// speed its setter sent, and whether the dependent is a helicopter (it keeps its offset, turned by the heading change)
+    pub dc_parent_host_id: [c_char; EECH_MOVEMENT_HOST_ID_MAX + 1],
+    pub dc_helicopter: c_int,
+    pub dc_parent_old: [f32; 3],
+    pub dc_parent_new: [f32; 3],
+    pub dc_heading: f32,
+    pub dc_velocity: f32,
     /// The two tumble draws are `frand1 ()` doubles and stay doubles; last, so the double's alignment moves no other field.
     pub hc_draws: [f64; 2],
 }
@@ -567,6 +577,18 @@ extern "C" {
     pub fn eech_engine_clock(clock: *mut eech_clock) -> c_int;
     pub fn eech_engine_diagnostics() -> c_int;
     pub fn eech_set_log_sink(sink: Option<eech_log_sink>, user: *mut c_void);
+}
+
+// TEST-ONLY (feature dependent-fixture, EEDCS-40): the dependent-positioning fixture driver.
+#[cfg(feature = "dependent-fixture")]
+pub const EECH_FIXTURE_LINK: c_int = 1;
+#[cfg(feature = "dependent-fixture")]
+pub const EECH_FIXTURE_MOVE: c_int = 2;
+#[cfg(feature = "dependent-fixture")]
+pub const EECH_FIXTURE_SINK: c_int = 3;
+#[cfg(feature = "dependent-fixture")]
+extern "C" {
+    pub fn eech_engine_dependent_fixture(op: c_int, parent_id: c_int, child_id: c_int, position: *const f64, host: *const eech_engine_host) -> c_int;
 }
 
 // The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by

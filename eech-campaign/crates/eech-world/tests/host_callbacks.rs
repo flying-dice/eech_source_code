@@ -135,3 +135,57 @@ fn the_hosted_helicopter_plan_guide_and_abandon_round_trip_through_lua() {
     assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
     assert!(stdout.contains("HELICOPTER_HOSTED_LUA=ok"), "{stdout}\n{stderr}");
 }
+
+const DEPENDENT_CARRY_SCRIPT: &str = "local level = { 1, 0, 0, 0, 1, 0, 0, 0, 1 }
+local function at(x, z) return { position = { x, 0, z }, velocity = 0, attitude = level } end
+local function bind(key, kind, x, z, extra)
+  local request = { member_key = key, group_key = 1, entity_id = key, entity_type = key, sub_type = 1, side = 1, pose = at(x, z), movement_kind = kind }
+  for name, value in pairs(extra or {}) do request[name] = value end
+  return host.bind_mobile(request)
+end
+local ship, child, grandchild = bind(1, 1, 0, 0), bind(2, 1, 10, 0), bind(3, 1, 20, 0)
+local function carry(host_id, pose, extra)
+  local request = { host_id = host_id, mode = 'dependent_carry', pose = pose, dc_helicopter = false, dc_heading = 0, dc_velocity = 0 }
+  for name, value in pairs(extra) do request[name] = value end
+  return host.move_vehicle(request)
+end
+local function from_parent(parent, old, new) return { dc_parent = parent, dc_parent_old = old, dc_parent_new = new } end
+-- the parent is written and placed after its dependents are told, so the host still holds its old position
+local moved = carry(child, at(10, 0), from_parent(ship, { 0, 0, 0 }, { 5, 0, 5 }))
+assert(moved.position[1] == 5 and moved.position[3] == 5, 'a routed child adopts the parent position')
+-- the host moved the child, so the grandchild (told with the child's old position) is carried from the child's new record
+local nested = carry(grandchild, at(20, 0), from_parent(child, { 10, 0, 0 }, { 5, 0, 5 }))
+assert(nested.position[1] == 5 and nested.position[3] == 5, 'a nested child adopts its parent position')
+-- the host's records now agree with what the campaign wrote: a later step is checked against the carried pose
+assert(host.move_vehicle({ host_id = child, mode = 'stop', pose = at(5, 5) }).velocity == 0)
+local function refused(fragment, host_id, pose, extra)
+  local ok, err = pcall(carry, host_id, pose, extra)
+  assert(not ok and tostring(err):find(fragment, 1, true), fragment .. ' / ' .. tostring(err))
+end
+refused('is the child itself', child, at(5, 5), from_parent(child, { 5, 5, 5 }, { 6, 5, 5 }))
+refused('is not a host id with a movement record', child, at(5, 5), from_parent('eech-world:999', { 0, 0, 0 }, { 1, 0, 0 }))
+refused('a move the host did not make', child, at(5, 5), from_parent(ship, { 9, 0, 9 }, { 1, 0, 0 }))
+refused('dc_parent_new must be 3 finite numbers', child, at(5, 5), from_parent(ship, { 0, 0, 0 }, { 0 / 0, 0, 0 }))
+refused('differs from the host', child, at(6, 5), from_parent(ship, { 0, 0, 0 }, { 6, 0, 5 }))
+refused('Lua nil to String', child, at(5, 5), { dc_parent_old = { 0, 0, 0 }, dc_parent_new = { 6, 0, 5 } })
+-- a helicopter child is turned by the parent's heading change and adopts its velocity; a routed child is not a helicopter shape
+local pilot = bind(4, 5, 100, 100, { motion_vector = { 0, 0, 100 }, rotor = { 100, 100, 0 } })
+local turned = carry(pilot, at(100, 100), { dc_parent = ship, dc_helicopter = true, dc_parent_old = { 0, 0, 0 }, dc_parent_new = { 6, 0, 5 }, dc_heading = 0, dc_velocity = 7 })
+assert(turned.velocity == 7 and #turned.attitude == 9, 'a helicopter child adopts the parent velocity and rebuilt attitude')
+assert(math.abs(turned.position[1] - 106) < 1e-4 and math.abs(turned.position[3] - 105) < 1e-4, turned.position[1] .. ',' .. turned.position[3])
+refused('is not a request for', child, at(5, 5), { dc_parent = ship, dc_helicopter = true, dc_parent_old = { 0, 0, 0 }, dc_parent_new = { 6, 0, 5 } })
+print('DEPENDENT_CARRY_LUA=ok')
+";
+
+#[test]
+fn a_dependent_carry_round_trips_through_lua_and_refuses_what_the_host_did_not_move() {
+    let script = std::env::temp_dir().join(format!("eech-world-dependent-carry-{}.lua", std::process::id()));
+    std::fs::write(&script, DEPENDENT_CARRY_SCRIPT).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("DEPENDENT_CARRY_LUA=ok"), "{stdout}\n{stderr}");
+}

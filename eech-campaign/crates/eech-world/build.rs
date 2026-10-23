@@ -16,6 +16,7 @@ fn main() {
         "hc_guidance.h",
         "death_step.c",
         "place_step.c",
+        "dependent_step.c",
         "expire_step.c",
     ] {
         println!("cargo::rerun-if-changed=csrc/{file}");
@@ -29,6 +30,7 @@ fn main() {
         .file("csrc/hc_step.c")
         .file("csrc/death_step.c")
         .file("csrc/place_step.c")
+        .file("csrc/dependent_step.c")
         .file("csrc/expire_step.c")
         .opt_level_str(&opt)
         .debug(true)

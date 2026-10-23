@@ -400,6 +400,39 @@ impl LuaUserData for LuaEngine {
                 .frame(milliseconds, &mut binder, &mut observer, &mut reach, &mut mover)
                 .map_err(lua_error)
         });
+        // TEST-ONLY (feature `dependent-fixture`, EEDCS-40): not part of the shipping module.
+        #[cfg(feature = "dependent-fixture")]
+        methods.add_method(
+            "dependent_fixture",
+            |lua, this, (op, parent, child, x, y, z): (String, i32, i32, Option<f64>, Option<f64>, Option<f64>)| {
+                let code = match op.as_str() {
+                    "link" => 1,
+                    "move" => 2,
+                    "sink" => 3,
+                    _ => return Err(mlua::Error::runtime("dependent_fixture: op is link, move or sink")),
+                };
+                let bind_mobile = this.bind_mobile.clone();
+                let observe_loss = this.observe_loss.clone();
+                let supply_reached = this.supply_reached.clone();
+                let move_vehicle = this.move_vehicle.clone();
+                let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+                let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+                let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+                let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+                this.engine
+                    .dependent_fixture(
+                        code,
+                        parent,
+                        child,
+                        [x.unwrap_or(0.0), y.unwrap_or(0.0), z.unwrap_or(0.0)],
+                        &mut binder,
+                        &mut observer,
+                        &mut reach,
+                        &mut mover,
+                    )
+                    .map_err(lua_error)
+            },
+        );
         methods.add_method("report_loss", |lua, this, host_id: String| {
             let receipt = this.engine.report_loss(&host_id).map_err(lua_error)?;
             lua.to_value_with(&receipt, options())

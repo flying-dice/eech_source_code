@@ -76,7 +76,9 @@ enum campaign_movement_mode
 	CAMPAIGN_MOVEMENT_HELICOPTER_GUIDED_END,	/* the steering facts: the host steers and moves from its retained guidance and answers the attitude, position and angles */
 	CAMPAIGN_MOVEMENT_HELICOPTER_ABANDON,		/* the campaign decided not to fly the step (human wait, landed): the host drops the open flow */
 	/* EEDCS-39 R1 */
-	CAMPAIGN_MOVEMENT_FIXED_WING_LOOKAHEAD		/* a terrain-following fixed-wing waypoint is being selected: the host answers hc_query with the one point it needs sampled, from its own pose; nothing is advanced */
+	CAMPAIGN_MOVEMENT_FIXED_WING_LOOKAHEAD,		/* a terrain-following fixed-wing waypoint is being selected: the host answers hc_query with the one point it needs sampled, from its own pose; nothing is advanced */
+	/* EEDCS-40 */
+	CAMPAIGN_MOVEMENT_DEPENDENT_CARRY		/* a movement-dependent mobile follows its parent: the host validates the parent's move, positions the dependent and answers its pose */
 };
 
 enum campaign_movement_kind
@@ -314,6 +316,18 @@ typedef struct campaign_movement_step
 	float fw_terrain_sample_elevation;
 	float fw_terrain_site_y;
 	float fw_terrain_cg;
+	/* EEDCS-40 DEPENDENT_CARRY: the dependent's own pose is position/velocity/attitude as always (the host refuses a difference from
+	   its record).  dc_parent_host_id names the parent that notified it, dc_parent_old and dc_parent_new the parent's position before
+	   and after the move (the notification names the new one while the parent still stores the old), dc_heading and dc_velocity the
+	   heading and speed the parent's setter sent.  dc_helicopter selects the helicopter shape (the dependent keeps its offset, turned
+	   by the heading change, and takes the heading and speed); otherwise it takes the parent's new position.  The host answers
+	   position, attitude and velocity.  A parent move the host does not hold is refused */
+	char dc_parent_host_id[CAMPAIGN_MOVEMENT_HOST_ID_MAX + 1];
+	int dc_helicopter;
+	float dc_parent_old[3];
+	float dc_parent_new[3];
+	float dc_heading;
+	float dc_velocity;
 	/* the TUMBLE and FW_DEATH_ATTITUDE draws are frand1 () doubles and stay doubles: the original expression multiplies
 	   them in double before narrowing the result to the float heading/roll.  Last, so the double's alignment cannot move
 	   another field */
@@ -629,7 +643,14 @@ float campaign_movement_ship_sink (struct ENTITY *vehicle, float delta_seconds);
 int campaign_movement_person_begin (struct ENTITY *vehicle, float ps_vel, const struct VEC3D *waypoint, int terrain_follow, struct VEC3D *advanced);
 void campaign_movement_person_end (struct ENTITY *vehicle, float elevation);
 
-/* bracket the campaign's own writes of host results, which are not placements */
+/*
+ * EEDCS-40: a movement-dependent mobile follows its parent.  `parent_new` is the position the parent's setter notified (the
+ * parent still stores the old one), `heading` and `velocity` what it sent.  Returns TRUE after applying the host's pose to the
+ * dependent; FALSE (nothing applied) when it or its parent has no host identity, and the caller runs the original arithmetic.
+ */
+int campaign_movement_dependent_carry (struct ENTITY *child, struct ENTITY *parent, const struct VEC3D *parent_new, float heading, float velocity);
+
+/* bracket the campaign's own writes of host results, which are not placements (nestable) */
 void campaign_movement_apply_begin (void);
 void campaign_movement_apply_end (void);
 

@@ -91,6 +91,35 @@ fn main() {
         write_if_changed(&tree.join(file), &patched);
     }
 
+    // 1b. TEST-ONLY red build (feature dependent-fixture-old-guard): the staged copy of rv_hostmv.c gets the boolean apply guard
+    //     EEDCS-40 replaced by a depth counter. The source tree and the shipping build are untouched.
+    if env::var_os("CARGO_FEATURE_DEPENDENT_FIXTURE_OLD_GUARD").is_some() {
+        let staged = tree.join("aphavoc/source/entity/mobile/vehicle/routed/rv_hostmv.c");
+        let text = fs::read_to_string(&staged).unwrap();
+        let begin = "	applying_host_result++;
+";
+        let end = "	if (applying_host_result > 0)
+	{
+		applying_host_result--;
+	}
+";
+        assert_eq!(text.matches(begin).count(), 1, "old-guard: apply_begin text");
+        assert_eq!(text.matches(end).count(), 1, "old-guard: apply_end text");
+        let old = text
+            .replace(
+                begin,
+                "	applying_host_result = 1; /* OLD GUARD (test-only red build) */
+",
+            )
+            .replace(
+                end,
+                "	applying_host_result = 0; /* OLD GUARD (test-only red build) */
+",
+            );
+        write_if_changed(&staged, old.as_bytes());
+    }
+    println!("cargo:rerun-if-env-changed=CARGO_FEATURE_DEPENDENT_FIXTURE_OLD_GUARD");
+
     // 2. generated sources: the system texture names (textname.h's enum members
     //    without their TEXTURE_INDEX_ prefix), which textures.bin lists
     let gen = out.join("gen");
@@ -130,6 +159,9 @@ fn main() {
         .flag("-Werror=implicit-function-declaration")
         .flag("-Werror=implicit-int")
         .flag("-Werror=int-conversion");
+    if env::var_os("CARGO_FEATURE_DEPENDENT_FIXTURE").is_some() {
+        build.define("EECH_DEPENDENT_FIXTURE", None);
+    }
     if windows {
         build.flag("-include").flag(manifest.join("csrc/eech_win32_names.h").to_str().unwrap());
     }

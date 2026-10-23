@@ -646,3 +646,89 @@ void eech_engine_debug_engagements (void)
 		}
 	}
 }
+
+#ifdef EECH_DEPENDENT_FIXTURE
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/*
+ * TEST-ONLY dependent-positioning fixture (EEDCS-40). Compiled only with the `dependent-fixture` feature; never part of the
+ * shipping module. It constructs no entity and replaces no handler: it names two live, hosted campaign entities by index and
+ * either re-links one as a movement dependent of the other (the same list insert mb_msgs.c uses for cargo and keysite
+ * receivers) or moves the parent through the campaign's own setter, so EECH's genuine notify_local_entity handlers (rv_msgs.c,
+ * aa_msgs.c, ps_msgs.c, hc_msgs.c) run and call campaign_movement_dependent_carry themselves.
+ */
+
+static entity *fixture_hosted_entity (int index)
+{
+	entity *en;
+
+	if ((index < 0) || (index >= MAX_NUM_ENTITIES))
+	{
+		return NULL;
+	}
+	en = get_local_entity_ptr (index);
+	if (!en || (get_local_entity_type (en) == ENTITY_TYPE_UNKNOWN) || !campaign_roster_host_id (en))
+	{
+		return NULL;
+	}
+	return en;
+}
+
+int eech_engine_dependent_fixture (int op, int parent_id, int child_id, const double position[3], const struct eech_engine_host *host)
+{
+	entity *parent, *child;
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	parent = fixture_hosted_entity (parent_id);
+	if (!parent)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	switch (op)
+	{
+	case EECH_FIXTURE_LINK:
+		child = fixture_hosted_entity (child_id);
+		if (!child || (child == parent))
+		{
+			LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+		}
+		/* the child's current movement parent (a keysite or carrier, if any) is replaced */
+		delete_local_entity_from_parents_child_list (child, LIST_TYPE_MOVEMENT_DEPENDENT);
+		insert_local_entity_into_parents_child_list (child, LIST_TYPE_MOVEMENT_DEPENDENT, parent, NULL);
+		break;
+	case EECH_FIXTURE_MOVE:
+		if (!position)
+		{
+			LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+		}
+		{
+			vec3d v;
+			v.x = position[0];
+			v.y = position[1];
+			v.z = position[2];
+			/* the genuine setter: notifies each movement dependent, then writes and places the parent */
+			set_local_entity_vec3d (parent, VEC3D_TYPE_POSITION, &v);
+		}
+		break;
+	case EECH_FIXTURE_SINK:
+		if (get_local_entity_type (parent) != ENTITY_TYPE_SHIP_VEHICLE)
+		{
+			LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+		}
+		/* the campaign's own sinking step: the host answers it, and the position it applies reaches the setter */
+		ship_vehicle_death_movement (parent);
+		break;
+	default:
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
