@@ -22,13 +22,13 @@ mlua = { version = "0.10", features = ["lua51", "module", "serialize"] }
 serde.workspace = true
 serde_json.workspace = true
 
-# Code that runs inside a host's process: a panic in this DLL takes the host
-# down. The reference crate's restriction lints, denied here.
 [features]
 # TEST-ONLY (EEDCS-40): the dependent-positioning fixture driver. Never enabled in the shipping build.
 dependent-fixture = ["eech-engine/dependent-fixture"]
 dependent-fixture-old-guard = ["dependent-fixture", "eech-engine/dependent-fixture-old-guard"]
 
+# Code that runs inside a host's process: a panic in this DLL takes the host
+# down. The reference crate's restriction lints, denied here.
 [lints.clippy]
 unwrap_used = "deny"
 expect_used = "deny"
