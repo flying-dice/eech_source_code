@@ -22,3 +22,19 @@ Risks for the reviewer:
 5. rustfmt was applied after the last test run.
 6. The `debug_fatal` for an unsupported hosted child type is a C path and is untested.
 7. The fixture driver is test-only C compiled behind features; a reviewer should confirm it is absent from the default build (no `EECH_DEPENDENT_FIXTURE` define, no Lua method) and unreachable in a shipping module.
+
+## Delta since the fixture (final candidate, `263b48a4`), author self-review
+
+Only `eech-dc/Cargo.toml` changed in source since `c9cb51a3`: the `[features]` block moved above the
+lints comment so the comment precedes `[lints.clippy]` again. No semantic change.
+
+- The gated Rust and C (`dependent-fixture*`) were checked with clippy `-D warnings` and built
+  by the build script under both features; default checks skip them.
+- Features are only `eech-dc/dependent-fixture{,-old-guard}` -> engine -> sys; none is in a
+  default feature set, and `build-candidate.sh` builds without them. The normal DLL does not expose
+  `engine:dependent_fixture` (public Lua check, with a positive control against the fixture DLL).
+- `dependent-fixture.lua` ships in `lua/` as a script; without the fixture DLL its driver call fails
+  with the nil-method error, so it cannot move anything in a normal build.
+- Not repeated: fixture green/red runs (nothing invalidated them). Not run: the established pack and
+  Tacview evidence; the non-host (retail) C build. Hashes differ from the `7c61e13a` build; cause
+  not isolated.

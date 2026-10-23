@@ -1,14 +1,14 @@
 # M5: host-owned movement-dependent positioning (EEDCS-40)
 
 **Status: source change on base `6e837440` (EEDCS-39 evidence head); R1 build gating fixed at
-`7c61e13a`. Host, engine and Lua-boundary tests, clippy and rustfmt pass on Linux. The host-build DLL
-C compiled and linked in an isolated pinned native build and `eech-world.exe` ran two Lebanon
-witness runs through the public Lua -> `eech_dc` -> host path, but **no `dependent_carry` step
-occurred in either run (0 carries)**, so the real causal witness the independent review asked for
-(R2) is NOT achieved and no carry shape (position, helicopter, nested, guard) has been observed on
-the real C path. The Windows deterministic/Tacview pack is PENDING; no result of it is claimed. Not
-to be merged before PR98. EEDCS-40, D1 (EEDCS-15) and M5 are not complete, and the technical lead
-has not approved.**
+`7c61e13a`. Host, engine and Lua-boundary tests, clippy and rustfmt pass on Linux. The two 900 s
+Lebanon witness runs through the public Lua -> `eech_dc` -> host path saw **0 carries**, which is
+non-acceptance. R2 is closed only by the controlled fixture (commit `c9cb51a3`): genuine C handlers
+reached through the public module, an artificial `link` arrangement, 34 checks green, and a
+test-only old-guard build that fails the 3 guard checks. A final default-feature candidate was built
+at `263b48a4` (section "Final default-feature candidate"). The Windows deterministic/Tacview pack is
+PENDING; no result of it is claimed. Not to be merged before PR98. EEDCS-40, D1 (EEDCS-15) and M5
+are not complete, and the technical lead has not approved.**
 
 Evidence is in [`../reference/m5-dependent-positioning/`](../reference/m5-dependent-positioning/linux/).
 Author self-review (not independent):
@@ -204,6 +204,24 @@ expose the driver method: `attempt to call method 'dependent_fixture' (a nil val
 - The fixture is a bounded 30-frame warm-up of the Lebanon campaign, not the established
   deterministic pack or Tacview evidence, which remain pending.
 - The dev build used while writing the fixture came from a dirty tree and is not evidence.
+
+## Final default-feature candidate
+
+Built at `263b48a4d65914f0383cd098b364847e6497b51c` (no uncommitted build inputs), pinned image,
+new volume `eech-dep-cand-c1`, default features, exits 0: `eech_dc.dll` `a5b9dedd...bafe`,
+`eech-world.exe` `bc91c27c...7cb5`, `lua.dll` `b224cb2e...daca`. Both hashes differ from the
+`7c61e13a` native build; byte identity is not claimed and the cause is not isolated. Full hashes,
+checks and the pack command: `reference/m5-dependent-positioning/native/candidate-normal.summary.txt`.
+
+- `cargo fmt --all --check`, and `cargo clippy --locked --all-targets -- -D warnings` for default,
+  `dependent-fixture` and `dependent-fixture-old-guard` (default checks skip the gated Rust and C):
+  clean. Default tests: eech-dc 3, lua_debug_layout 2, eech-engine 30, eech-engine-sys 0; all pass.
+  The only finding was the `[features]` block splitting the lints comment in `eech-dc/Cargo.toml`.
+- Public Lua check: the normal DLL has no `engine:dependent_fixture` (index nil; call "attempt to
+  call method 'dependent_fixture' (a nil value)"); the fixture-green DLL does, as a positive control.
+  This shows the Lua method is absent, not a byte-level symbol absence proof.
+- The fixture green/red runs were not repeated: the only source change since `c9cb51a3` is a
+  comment move in `Cargo.toml`.
 
 ## Pending and not claimed
 
