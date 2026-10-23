@@ -1305,17 +1305,20 @@ static void report_bounded_loss (const char *host_id, const campaign_pending_los
 	{
 		debug_fatal ("campaign loss: invalid group member number %d for %s", plan->group_member_number, host_id);
 	}
-	if (plan->primary_task_key)
+	/*
+	 * The primary task is an input only where the family counts task losses.  A person or anti-aircraft
+	 * vehicle never touches it, so a task that ended naturally during the delay owes this report nothing;
+	 * resolving it there would turn an unrelated task lifetime into a fatal.  Where the task is consumed
+	 * the stale-reference checks are unchanged.
+	 */
+	if (counts_task_losses && plan->primary_task_key)
 	{
 		primary_task = campaign_reference_resolve (plan->primary_task_key, ENTITY_TYPE_TASK);
 		if (get_local_entity_int_value (primary_task, INT_TYPE_ENTITY_SUB_TYPE) != plan->primary_task_sub_type)
 		{
 			debug_fatal ("campaign loss: primary task changed before report for %s", host_id);
 		}
-		if (counts_task_losses)
-		{
-			task_losses_before = get_local_entity_int_value (primary_task, INT_TYPE_LOSSES);
-		}
+		task_losses_before = get_local_entity_int_value (primary_task, INT_TYPE_LOSSES);
 	}
 	group_losses_before = get_local_entity_int_value (group, INT_TYPE_LOSSES);
 	member_record = find_member_record (plan->member_key);
