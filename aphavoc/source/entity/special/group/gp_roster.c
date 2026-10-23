@@ -7,6 +7,21 @@
 #include "ai/taskgen/taskgen.h"
 #include "gp_roster.h"
 
+/*
+ * One accepted, immediately forwarded physical loss report, keyed by the opaque host
+ * identity of the record that owns it.  The campaign consequences of that loss are
+ * applied only through campaign_roster_loss_step, in ascending campaign_loss_phase
+ * order, each phase at most once.  The transaction holds private generation keys,
+ * never entity pointers: the member and the group are re-resolved before each phase.
+ */
+typedef struct campaign_loss_transaction
+{
+	int open;
+	int phase;
+	uint64_t member_reference_key;
+	uint64_t group_reference_key;
+} campaign_loss_transaction;
+
 typedef struct campaign_member_record
 {
 	uint64_t member_key;
@@ -25,9 +40,8 @@ typedef struct campaign_member_record
 	/* Campaign-owned logical membership; physical_present and in_group stay physical. */
 	int active;
 	int counted;
-	int loss_forwarded;
-	/* Last campaign_loss_phase applied on the forwarded path; phases are applied once, in ascending order. */
-	int loss_phase;
+	/* The open report transaction of an immediately forwarded physical loss; see campaign_roster_accept_physical_loss. */
+	campaign_loss_transaction loss;
 } campaign_member_record;
 
 typedef struct campaign_entity_reference_record
@@ -685,7 +699,15 @@ static int observe_loss_event (entity *member, entity *group, campaign_loss_even
 	}
 	else if (decision == CAMPAIGN_LOSS_FORWARD)
 	{
-		record->loss_forwarded = TRUE;
+		/* The host reports the loss now, in this stack: the accepted report opens the transaction that owns the consequences. */
+		if (record->loss.open)
+		{
+			debug_fatal ("campaign loss: loss for %s was already reported", record->host_id);
+		}
+		record->loss.open = TRUE;
+		record->loss.phase = 0;
+		record->loss.member_reference_key = campaign_reference_key (member);
+		record->loss.group_reference_key = campaign_reference_key (group);
 	}
 	return decision;
 }
@@ -1001,7 +1023,7 @@ void campaign_roster_unlink_member (entity *group, entity *member)
 		campaign_member_record *record = &records[record_index];
 		record->in_group = FALSE;
 		/* A forwarded physical loss retires the member at the original unlink phase. */
-		if (record->loss_forwarded)
+		if (record->loss.open)
 		{
 			record->active = FALSE;
 		}
@@ -1063,43 +1085,80 @@ int campaign_roster_observe_credit (entity *member)
 	return observe_loss_event (member, group, CAMPAIGN_LOSS_EVENT_CREDIT);
 }
 
-int campaign_roster_observe_physical_loss (entity *member, entity *group)
+/* The one ordering rule of a loss report, shared by the forwarded transaction and the deferred report. */
+static void advance_loss_phase (int *current, int phase, const char *host_id)
 {
-	return observe_loss_event (member, group, CAMPAIGN_LOSS_EVENT_PHYSICAL);
+	if (phase <= *current)
+	{
+		debug_fatal ("campaign loss: phase %d is repeated or out of order after phase %d for %s", phase, *current, host_id);
+	}
+	*current = phase;
 }
 
 /*
- * The campaign's decision point for one phase of a member's physical loss.  The
- * family's kill_local calls this where its original inline consequence ran.  A
- * withheld loss applies nothing here: campaign_roster_report_loss owns every
- * phase.  A forwarded loss applies the phase now, in the caller's own order, and
- * that order is checked: a repeated or out-of-order phase is fatal rather than
- * silently reordering campaign consequences.  The record is updated before the
- * action, and no pointer into the registry is held across it.
+ * Accepts the host's loss report for one physical member.  The host answers by its
+ * opaque identity: FORWARD opens the report transaction, WITHHOLD records a pending
+ * loss for a later campaign_roster_report_loss.  The ticket carries the identity,
+ * the decision and the record slot, never an entity pointer.
  */
-void campaign_roster_loss_phase (entity *member, entity *group, int decision, int phase)
+void campaign_roster_accept_physical_loss (entity *member, entity *group, campaign_loss_ticket *ticket)
 {
 	campaign_member_record *record;
 
-	if (decision == CAMPAIGN_LOSS_WITHHOLD)
+	memset (ticket, 0, sizeof (*ticket));
+	ticket->decision = observe_loss_event (member, group, CAMPAIGN_LOSS_EVENT_PHYSICAL);
+	record = record_for_member (member);
+	ticket->record_index = (size_t) (record - records);
+	strcpy (ticket->host_id, record->host_id);
+}
+
+/*
+ * One phase of an accepted physical loss.  The family's kill_local calls this where
+ * its original inline consequence ran, so the original interleaving is kept.  A
+ * withheld loss applies nothing here: campaign_roster_report_loss owns every phase.
+ * A forwarded phase is authorised only by the open transaction of the ticket's host
+ * identity, and is checked: a repeated or out-of-order phase is fatal rather than a
+ * silent reordering.  The record is updated before the action and nothing pointing
+ * into the registry is held across it; the entities are re-resolved from their keys.
+ */
+void campaign_roster_loss_step (const campaign_loss_ticket *ticket, int phase)
+{
+	campaign_member_record *record;
+	uint64_t member_key;
+	uint64_t group_key;
+	entity_types member_type;
+	entity *member;
+	entity *group = NULL;
+
+	if (ticket->decision == CAMPAIGN_LOSS_WITHHOLD)
 	{
 		return;
 	}
-	if (decision != CAMPAIGN_LOSS_FORWARD)
+	if (ticket->decision != CAMPAIGN_LOSS_FORWARD)
 	{
-		debug_fatal ("campaign loss: invalid loss decision %d for phase %d", decision, phase);
+		debug_fatal ("campaign loss: invalid loss decision %d for phase %d", ticket->decision, phase);
 	}
-	record = record_for_member (member);
-	if (!record->loss_forwarded || record->loss_pending)
+	if ((ticket->record_index >= record_count) || strcmp (records[ticket->record_index].host_id, ticket->host_id))
 	{
-		debug_fatal ("campaign loss: phase %d applied without a forwarded loss for %s", phase, record->host_id);
+		debug_fatal ("campaign loss: ticket for %s does not match a member record", ticket->host_id);
 	}
-	if (phase <= record->loss_phase)
+	record = &records[ticket->record_index];
+	if (!record->loss.open || record->loss_pending)
 	{
-		debug_fatal ("campaign loss: phase %d is repeated or out of order after phase %d for %s", phase, record->loss_phase, record->host_id);
+		debug_fatal ("campaign loss: phase %d applied without an open loss report for %s", phase, record->host_id);
 	}
-	record->loss_phase = phase;
+	advance_loss_phase (&record->loss.phase, phase, record->host_id);
+	member_key = record->loss.member_reference_key;
+	group_key = record->loss.group_reference_key;
+	member_type = (entity_types) record->entity_type;
 	record = NULL;
+
+	member = campaign_reference_resolve (member_key, member_type);
+	if ((phase == CAMPAIGN_LOSS_PHASE_REGEN) || (phase == CAMPAIGN_LOSS_PHASE_GROUP_LOSS) ||
+		(phase == CAMPAIGN_LOSS_PHASE_TASK_LOSS) || (phase == CAMPAIGN_LOSS_PHASE_MEMBER_KILLED))
+	{
+		group = campaign_reference_resolve (group_key, ENTITY_TYPE_GROUP);
+	}
 	apply_member_loss_phase (member, group, phase);
 }
 
@@ -1210,6 +1269,7 @@ static void report_bounded_loss (const char *host_id, const campaign_pending_los
 	int logical_members_before;
 	int logical_members_after;
 	int physical_members_before;
+	int phase = 0;
 
 	group = campaign_reference_resolve (plan->group_reference_key, ENTITY_TYPE_GROUP);
 	if (get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE) != plan->group_sub_type)
@@ -1245,6 +1305,7 @@ static void report_bounded_loss (const char *host_id, const campaign_pending_los
 
 	if (has_force_info)
 	{
+		advance_loss_phase (&phase, CAMPAIGN_LOSS_PHASE_FORCE_INFO, host_id);
 		remove_from_force_info_values
 		(
 			get_local_force_entity ((entity_sides) plan->side),
@@ -1254,6 +1315,7 @@ static void report_bounded_loss (const char *host_id, const campaign_pending_los
 	}
 	if (queues_regen)
 	{
+		advance_loss_phase (&phase, CAMPAIGN_LOSS_PHASE_REGEN, host_id);
 		add_entity_to_regen_queue
 		(
 			(entity_sides) plan->side,
@@ -1278,17 +1340,20 @@ static void report_bounded_loss (const char *host_id, const campaign_pending_los
 	member_record = NULL;
 	logical_members_after = campaign_roster_group_member_count (group);
 
+	advance_loss_phase (&phase, CAMPAIGN_LOSS_PHASE_GROUP_LOSS, host_id);
 	increment_group_losses (group);
 	group_losses_after = get_local_entity_int_value (group, INT_TYPE_LOSSES);
 
 	if (counts_task_losses && plan->primary_task_key)
 	{
+		advance_loss_phase (&phase, CAMPAIGN_LOSS_PHASE_TASK_LOSS, host_id);
 		primary_task = campaign_reference_resolve (plan->primary_task_key, ENTITY_TYPE_TASK);
 		increment_task_losses (primary_task);
 		task_losses_after = get_local_entity_int_value (primary_task, INT_TYPE_LOSSES);
 	}
 
 	/* Frees the group when this was its last physical member; group is dead afterwards. */
+	advance_loss_phase (&phase, CAMPAIGN_LOSS_PHASE_MEMBER_KILLED, host_id);
 	group = campaign_reference_resolve (plan->group_reference_key, ENTITY_TYPE_GROUP);
 	apply_group_member_killed (group, 1U << plan->group_member_number);
 	group = NULL;
@@ -1346,6 +1411,7 @@ int campaign_roster_report_loss (const char *host_id, campaign_loss_report_recei
 	int physical_members_before;
 	int retired_expire_count = 0;
 	int completed_on_report_count = 0;
+	int phase = 0;
 
 	if (!host_id || !host_id[0])
 	{
@@ -1435,12 +1501,14 @@ int campaign_roster_report_loss (const char *host_id, campaign_loss_report_recei
 	task = NULL;
 	member_record = NULL;
 
+	advance_loss_phase (&phase, CAMPAIGN_LOSS_PHASE_FORCE_INFO, host_id);
 	remove_from_force_info_values
 	(
 		get_local_force_entity ((entity_sides) plan.side),
 		(entity_sub_types) plan.group_sub_type,
 		plan.force_info_category
 	);
+	advance_loss_phase (&phase, CAMPAIGN_LOSS_PHASE_REGEN, host_id);
 	add_entity_to_regen_queue
 	(
 		(entity_sides) plan.side,
@@ -1448,6 +1516,7 @@ int campaign_roster_report_loss (const char *host_id, campaign_loss_report_recei
 		(entity_sub_types) plan.sub_type,
 		(entity_sub_types) plan.group_sub_type
 	);
+	advance_loss_phase (&phase, CAMPAIGN_LOSS_PHASE_MEMBER_TASKS, host_id);
 	for (i = 0; i < plan.task_count; ++i)
 	{
 		if (plan.tasks[i].state == CAMPAIGN_PENDING_TASK_RETIRED_EXPIRE)
@@ -1465,6 +1534,7 @@ int campaign_roster_report_loss (const char *host_id, campaign_loss_report_recei
 	}
 	task = NULL;
 
+	advance_loss_phase (&phase, CAMPAIGN_LOSS_PHASE_LANDING, host_id);
 	landing = campaign_reference_resolve (plan.landing_key, ENTITY_TYPE_LANDING);
 	unreserve_local_landing_sites (landing, plan.landing_count);
 	landing_reserved_after = get_local_entity_int_value (landing, INT_TYPE_RESERVED_LANDING_SITES);
@@ -1484,20 +1554,24 @@ int campaign_roster_report_loss (const char *host_id, campaign_loss_report_recei
 	member_record = NULL;
 	logical_members_after = campaign_roster_group_member_count (group);
 
+	advance_loss_phase (&phase, CAMPAIGN_LOSS_PHASE_GROUP_LOSS, host_id);
 	increment_group_losses (group);
 	group_losses_after = get_local_entity_int_value (group, INT_TYPE_LOSSES);
 
+	advance_loss_phase (&phase, CAMPAIGN_LOSS_PHASE_TASK_LOSS, host_id);
 	primary_task = campaign_reference_resolve (plan.primary_task_key, ENTITY_TYPE_TASK);
 	increment_task_losses (primary_task);
 	task_losses_after = get_local_entity_int_value (primary_task, INT_TYPE_LOSSES);
 
 	/* Frees the group when this was its last physical member; group is dead afterwards. */
+	advance_loss_phase (&phase, CAMPAIGN_LOSS_PHASE_MEMBER_KILLED, host_id);
 	group = campaign_reference_resolve (plan.group_reference_key, ENTITY_TYPE_GROUP);
 	apply_group_member_killed (group, 1U << plan.group_member_number);
 	group = NULL;
 	primary_task = NULL;
 	landing = NULL;
 
+	advance_loss_phase (&phase, CAMPAIGN_LOSS_PHASE_OBJECTIVES, host_id);
 	check_all_force_campaign_objectives ();
 	debug_log
 	(

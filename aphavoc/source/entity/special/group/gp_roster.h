@@ -176,6 +176,23 @@ typedef struct campaign_loss_report_receipt
 	int tasks_completed_on_report;
 } campaign_loss_report_receipt;
 
+/*
+ * Host-identity handle for one accepted physical loss.  campaign_roster_accept_physical_loss
+ * asks the host for its loss report decision.  FORWARD means the host reports the loss
+ * now, in the caller's stack: the campaign opens a transaction keyed by the opaque host
+ * identity, and every campaign consequence of that loss is applied through
+ * campaign_roster_loss_step against that transaction.  WITHHOLD opens no transaction: the
+ * later campaign_roster_report_loss for the same host identity owns the consequences,
+ * and a step taken with a withheld ticket applies nothing.  The ticket carries no entity
+ * pointer; entities are re-resolved from the transaction's private generation keys.
+ */
+typedef struct campaign_loss_ticket
+{
+	int decision;
+	size_t record_index;
+	char host_id[CAMPAIGN_HOST_ID_MAX + 1];
+} campaign_loss_ticket;
+
 typedef struct campaign_roster_stats
 {
 	uint64_t duplicate_comparisons;
@@ -190,8 +207,8 @@ void campaign_roster_link_member (struct ENTITY *group, struct ENTITY *member);
 void campaign_roster_unlink_member (struct ENTITY *group, struct ENTITY *member);
 void campaign_roster_release_entity (struct ENTITY *entity);
 int campaign_roster_observe_credit (struct ENTITY *member);
-int campaign_roster_observe_physical_loss (struct ENTITY *member, struct ENTITY *group);
-void campaign_roster_loss_phase (struct ENTITY *member, struct ENTITY *group, int decision, int phase);
+void campaign_roster_accept_physical_loss (struct ENTITY *member, struct ENTITY *group, campaign_loss_ticket *ticket);
+void campaign_roster_loss_step (const campaign_loss_ticket *ticket, int phase);
 void campaign_roster_record_task_termination (struct ENTITY *task, int termination_reason);
 int campaign_roster_has_pending_loss (void);
 int campaign_roster_report_loss (const char *host_id, campaign_loss_report_receipt *receipt);

@@ -146,7 +146,7 @@ So its results are kept as history only: [`wip2/`](../reference/m5-loss-structur
 - **Ships:** the carrier keysite search, and killing that keysite.
 - **The anti-aircraft restore path:** its client branch reads the group's member count and kills an empty group.
 - **Inline in the person file:** the `TASK_COMPLETED` notification loop (the group-loss count and member-killed now go through the loss phase entry point, EEDCS-41).
-- **Loss phases (EEDCS-41):** the six destroy files call `campaign_roster_loss_phase` at the original interleave points, so on FORWARD the same leaves run in the same order, and on WITHHOLD the report owns them (see [`m5-physical-loss.md`](m5-physical-loss.md)). The destroy files still name which phases their family runs and the server-only comms checks; the leaves themselves are in the DLL.
+- **Loss report transaction (EEDCS-41):** each destroy file accepts its physical loss through `campaign_roster_accept_physical_loss`, which asks the host and opens a transaction keyed by the opaque host identity on FORWARD. It then applies each campaign consequence through `campaign_roster_loss_step` at the original interleave point, so the accepted report owns the consequences and the same call stack, order and timing are kept. WITHHOLD steps apply nothing and the later `report_loss` runs the same phases in the same order (see [`m5-physical-loss.md`](m5-physical-loss.md)). The destroy files still hold the physical work and the server-only comms checks; the leaves are in the DLL.
 
 **Movement dependents.** They are physical carriage, not campaign work, but campaign keysites and crates ride on them. The world destroys them with their carrier (`destroy_local_family`) and unlinks them inline (above).
 

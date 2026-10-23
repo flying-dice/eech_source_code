@@ -296,8 +296,8 @@ static void kill_local (entity *en)
 	person
 		*raw;
 
-	int
-		loss_decision;
+	campaign_loss_ticket
+		loss;
 
 	entity
 		*task,
@@ -347,12 +347,7 @@ static void kill_local (entity *en)
 
 	ASSERT (group);
 
-	loss_decision = campaign_roster_observe_physical_loss (en, group);
-
-	if ((loss_decision != CAMPAIGN_LOSS_FORWARD) && (loss_decision != CAMPAIGN_LOSS_WITHHOLD))
-	{
-		debug_fatal ("campaign loss: invalid person loss decision %d", loss_decision);
-	}
+	campaign_roster_accept_physical_loss (en, group, &loss);
 
 	//
 	// group losses
@@ -364,7 +359,7 @@ static void kill_local (entity *en)
 	// the call. The notification loop is kept unchanged and ungated: a withheld
 	// person has no task dependents, so it sends nothing for one.
 
-	campaign_roster_loss_phase (en, group, loss_decision, CAMPAIGN_LOSS_PHASE_GROUP_LOSS);
+	campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_GROUP_LOSS);
 
 	////////////////////////////////////////
 	//
@@ -477,7 +472,7 @@ static void kill_local (entity *en)
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
-		campaign_roster_loss_phase (en, group, loss_decision, CAMPAIGN_LOSS_PHASE_MEMBER_KILLED);
+		campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_MEMBER_KILLED);
 	}
 
 	////////////////////////////////////////

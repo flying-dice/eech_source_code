@@ -140,16 +140,35 @@ force outcome or scenario was altered to manufacture one.
 
 ## The other five families (EEDCS-41)
 
-All six destroy files (helicopter included) now hand their campaign consequences
-to the DLL by host identity instead of gating the original inline calls on
-FORWARD. Each `kill_local` calls `campaign_roster_observe_physical_loss`, then
-calls `campaign_roster_loss_phase (entity, group, decision, phase)` at the points
-where the original code ran each consequence, with the physical work (death,
-sector removal, UI, Tacview, the ship's keysite kill, the person's
-`TASK_COMPLETED` loop and the helicopter player paths) left in place and unchanged.
-The phases are `FORCE_INFO`, `REGEN`, `MEMBER_TASKS`, `LANDING`, `GROUP_LOSS`,
-`TASK_LOSS`, `MEMBER_KILLED` and `OBJECTIVES`; a family calls only those its
-original code ran:
+All six destroy files (helicopter included) hand their campaign consequences to
+the DLL through one accepted loss-report transaction keyed by the opaque host
+identity. Each `kill_local` calls `campaign_roster_accept_physical_loss (entity,
+group, &ticket)`: the DLL asks the host for its loss report decision and fills a
+pointer-free `campaign_loss_ticket {decision, record_index, host_id}`.
+
+- **FORWARD** (the host reports now, in the caller's stack): the DLL opens a
+  transaction on the member's record. Every campaign consequence then runs only
+  through `campaign_roster_loss_step (&ticket, phase)` at the points where the
+  original code ran it. The step verifies the ticket's record index and host
+  identity against the open transaction, advances the phase (strictly ascending,
+  each phase once), copies the private generation keys, re-resolves the member
+  (and the group, only for the phases that need it) and applies the shared value
+  leaf through `apply_member_loss_phase`. No entity pointer is stored in the
+  ticket or the transaction. A second accept on an open transaction, an
+  out-of-order or repeated phase, or a step with a mismatched identity is a
+  `debug_fatal`.
+- **WITHHOLD**: no transaction opens and a step with that ticket applies nothing;
+  the pending record owns every consequence and `engine:report_loss(host_id)`
+  runs them once, in the same enum order, through the same phase check.
+- A CREDIT FORWARD opens no transaction. An answer that is neither forward nor
+  withhold is a `debug_fatal`.
+
+The physical work (death, sector removal, UI, Tacview, the ship's keysite kill,
+the person's `TASK_COMPLETED` loop and the helicopter player paths) stays in the
+destroy files unchanged, so the host report decides the campaign consequences while
+the original interleaving is kept. The phases are `FORCE_INFO`, `REGEN`,
+`MEMBER_TASKS`, `LANDING`, `GROUP_LOSS`, `TASK_LOSS`, `MEMBER_KILLED` and
+`OBJECTIVES`; a family steps only those its original code ran:
 
 | Family | Phases at the original interleave points |
 |---|---|
@@ -159,14 +178,8 @@ original code ran:
 | person | group loss (early, before its unlinks); (server) member-killed |
 | helicopter | force info; (server) regen; member tasks, landing, group loss, task loss; (server) member-killed, objectives |
 
-On FORWARD a phase runs the shared value leaf at once (same stack, order, timing,
-no added random draw) and the DLL enforces strictly ascending phase order per
-loss: an out-of-order or repeated phase is a `debug_fatal`. On WITHHOLD the phase
-call is a no-op; the pending record owns the phases and
-`engine:report_loss(host_id)` runs them once from a value copy, re-resolving
-entities from private generation keys. The non-roster build maps the phase call
-straight to the original helper (`group.h`). An answer that is neither forward nor
-withhold is a `debug_fatal`.
+The non-roster build maps the ticket calls straight to the original helper
+(`group.h`), so the other builds are unchanged.
 
 A withheld report for the bounded families applies the same leaves in the
 original FORWARD order:

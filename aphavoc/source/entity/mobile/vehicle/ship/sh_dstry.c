@@ -308,8 +308,8 @@ static void kill_local (entity *en)
 	ship_vehicle
 		*raw;
 
-	int
-		loss_decision;
+	campaign_loss_ticket
+		loss;
 
 	////////////////////////////////////////
 	//
@@ -334,12 +334,7 @@ static void kill_local (entity *en)
 
 	ASSERT (group);
 
-	loss_decision = campaign_roster_observe_physical_loss (en, group);
-
-	if ((loss_decision != CAMPAIGN_LOSS_FORWARD) && (loss_decision != CAMPAIGN_LOSS_WITHHOLD))
-	{
-		debug_fatal ("campaign loss: invalid ship loss decision %d", loss_decision);
-	}
+	campaign_roster_accept_physical_loss (en, group, &loss);
 
 	keysite = NULL;
 
@@ -350,7 +345,7 @@ static void kill_local (entity *en)
 	// update force info
 	//
 
-	campaign_roster_loss_phase (en, group, loss_decision, CAMPAIGN_LOSS_PHASE_FORCE_INFO);
+	campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_FORCE_INFO);
 
 	////////////////////////////////////////
 	//
@@ -366,13 +361,13 @@ static void kill_local (entity *en)
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
-		campaign_roster_loss_phase (en, group, loss_decision, CAMPAIGN_LOSS_PHASE_MEMBER_TASKS);
+		campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_MEMBER_TASKS);
 
 		//
 		// Release landing lock (if any)
 		//
 
-		campaign_roster_loss_phase (en, group, loss_decision, CAMPAIGN_LOSS_PHASE_LANDING);
+		campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_LANDING);
 
 		////////////////////////////////////////
 		//
@@ -470,13 +465,13 @@ static void kill_local (entity *en)
 	// group losses
 	//
 
-	campaign_roster_loss_phase (en, group, loss_decision, CAMPAIGN_LOSS_PHASE_GROUP_LOSS);
+	campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_GROUP_LOSS);
 
 	//
 	// task losses
 	//
 
-	campaign_roster_loss_phase (en, group, loss_decision, CAMPAIGN_LOSS_PHASE_TASK_LOSS);
+	campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_TASK_LOSS);
 
 	//
 	// Notify Campaign Screen
@@ -490,7 +485,7 @@ static void kill_local (entity *en)
 		// Notify the GROUP that the mobile has been killed  (N.B. must be done AFTER mobile is unlinked from member list)
 		//
 
-		campaign_roster_loss_phase (en, group, loss_decision, CAMPAIGN_LOSS_PHASE_MEMBER_KILLED);
+		campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_MEMBER_KILLED);
 
 		//
 		// Kill the keysite if ship is the carrier (N.B. must be done AFTER ships alive flag cleared)
