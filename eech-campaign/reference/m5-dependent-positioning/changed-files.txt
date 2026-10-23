@@ -1,4 +1,4 @@
-EEDCS-40 changed files (base 6e837440)
+EEDCS-40 changed files (base 6e837440; head 7c61e13a plus the local follow-up commit)
 M aphavoc/source/entity/mobile/aircraft/helicop/hc_msgs.c
 M aphavoc/source/entity/mobile/vehicle/anti_air/aa_msgs.c
 M aphavoc/source/entity/mobile/vehicle/person/ps_msgs.c
@@ -12,5 +12,6 @@ M eech-campaign/crates/eech-world/src/main.rs
 M eech-campaign/crates/eech-world/src/movement.rs
 M eech-campaign/crates/eech-world/tests/host_callbacks.rs
 A eech-campaign/crates/eech-world/csrc/dependent_step.c
+A eech-campaign/crates/eech-world/lua/dependent-carry.lua
 A eech-campaign/docs/m5-dependent-positioning.md
-A eech-campaign/reference/m5-dependent-positioning/ (linux logs, dock.sh, self-review.md, changed-files.txt)
+A eech-campaign/reference/m5-dependent-positioning/ (linux logs, dock.sh, self-review.md, changed-files.txt; dep-fmt-clippy.summary.txt replaces the raw clippy log, kept outside git)

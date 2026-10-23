@@ -15,9 +15,9 @@ Checked by reading the diff against the original handlers:
 
 Risks for the reviewer:
 
-1. The DLL C is not compiled; the MinGW build and the Windows pack are the first real check.
+1. The host-build DLL C compiled and linked under the pinned MinGW image at `7c61e13a` (`-w`, so no warning-clean claim); no carry has been observed through the real C path (see the doc's native section). The non-host (retail) build was not compiled.
 2. A hosted child under an unhosted parent silently uses the original path (disclosed).
 3. The position shape ignores `result.attitude` (the original does too).
-4. The carry tests were written with the implementation; only the base witness is red.
+4. The carry tests were written with the implementation. No red run against the real C path exists; the base unit test is a host-consistency check, not that.
 5. rustfmt was applied after the last test run.
 6. The `debug_fatal` for an unsupported hosted child type is a C path and is untested.

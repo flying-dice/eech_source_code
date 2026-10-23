@@ -1,0 +1,14 @@
+EEDCS-40 rustfmt and clippy summary (excerpt of the raw run; the raw log is kept outside git)
+
+raw log: dep-fmt-clippy.log, sha256 11de592661388eb02deffffd31c3829faacf11447d3481cd80c753d4ba266a17
+  kept in the evidence directory outside the repository (it contains trailing whitespace from
+  rustfmt diff output, so it is not committed)
+
+rustfmt --check (before apply): 9 diff hunks, all in lines this Task added
+  eech-engine/src/lib.rs:1684
+  eech-world/src/movement.rs:1532, 3772, 3785, 3823, 3866, 3908
+  eech-world/src/main.rs:9, 577
+cargo fmt --all, then --check: FMT=0 (dep-fmt-apply.log)
+cargo clippy --locked --all-targets -- -D warnings: CLIPPY=0, EXIT=0 (docker exit=0)
+
+Formatting was applied after the last full test run; the tests were not rerun for a layout-only change.
