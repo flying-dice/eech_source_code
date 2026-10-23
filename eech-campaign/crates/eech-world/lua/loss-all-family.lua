@@ -192,20 +192,23 @@ end
 -- what changed between two force states: total losses, and the per-category / per-queue deltas that are not zero
 local function state_delta (before, after)
 	local delta = { losses = after.losses - before.losses, hardware = {}, regen = {} }
+	local text = { hardware = {}, regen = {} }
 	for _, kind in ipairs ({ "hardware", "regen" }) do
 		for index = 1, #before [kind] do
 			local change = after [kind] [index] - before [kind] [index]
-			if change ~= 0 then delta [kind] [#delta [kind] + 1] = string.format ("%d:%+d", index - 1, change) end
+			if change ~= 0 then
+				delta [kind] [#delta [kind] + 1] = change   -- numeric, in category / queue order
+				text [kind] [#text [kind] + 1] = string.format ("%d:%+d", index - 1, change)
+			end
 		end
 	end
-	delta.text = string.format ("losses%+d hardware[%s] regen[%s]", delta.losses, table.concat (delta.hardware, ","), table.concat (delta.regen, ","))
+	delta.text = string.format ("losses%+d hardware[%s] regen[%s]", delta.losses, table.concat (text.hardware, ","), table.concat (text.regen, ","))
 	return delta
 end
 
 -- exactly one loss consequence: one more force loss, one hardware unit fewer in one category, one more entry in one regen queue
 local function is_one_loss (delta)
-	return delta.losses == 1 and #delta.hardware == 1 and string.sub (delta.hardware [1], -2) == ":-1" and #delta.regen == 1
-		and string.sub (delta.regen [1], -2) == ":+1"
+	return delta.losses == 1 and #delta.hardware == 1 and delta.hardware [1] == -1 and #delta.regen == 1 and delta.regen [1] == 1
 end
 
 local function is_unchanged (delta)
