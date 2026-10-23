@@ -235,8 +235,9 @@ byte-identical to the retained references. Command, hashes and counts:
 `reference/m5-dependent-positioning/native/final-pack.summary.txt`.
 
 This is a no-regression result for the normal build. It is a bytes-equal-to-reference claim, not a visual
-inspection of a Tacview recording, and it does not exercise the carry path (the 900 s runs saw 0 carries;
-the fixture does, with the limits above). The census was not run here.
+inspection of a Tacview recording. It proves reference / no-regression equality, not independent carry-path
+coverage: no census was run on the full pack, so no carry count was measured in it. The controlled fixture
+proves carry (with the limits above); the earlier 900 s probes measured zero carries (non-acceptance).
 
 PR98 merge: `ed38c8fb` brings only the CI workflow and docs/evidence (16 files, no runtime path, no overlap);
 runtime inputs of the merged tree equal those c1 was built from, so no second native pack was run. The merged

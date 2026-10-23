@@ -30,9 +30,11 @@ What this does and does not show:
   - The default-feature c1 build reproduces the retained Lebanon 3 h Tacview and observations byte-for-byte, twice.
     That is a bytes-equal-to-retained-reference claim. It is not a claim that anyone visually inspected a Tacview
     recording; a generated, a structurally checked and a visually inspected recording are three different claims.
-  - The pack, with its Lebanon scenario, observed no dependent carries that would change those bytes; it is a
-    no-regression check for normal builds, not evidence of the carry path (see fixture and limits below).
+  - The full pack proves reference / no-regression equality of the normal build against the retained references. It
+    is not independent carry-path coverage: no census was run on the full pack, so no carry count (zero or otherwise)
+    was measured in it, and no zero-carry observation is claimed from it.
   - Carry behaviour evidence is the controlled fixture only (c9cb51a3: 34 checks green; old-guard mutant fails 3).
+    The only measured zero-carry evidence is the two earlier 900 s witness probes (non-acceptance), not the full pack.
     The fixture and old-guard were not rerun for c1 (only a Cargo.toml comment moved since c9cb51a3).
   - The census was not run by this author.
 
