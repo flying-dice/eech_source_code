@@ -1,12 +1,11 @@
 # M5: host-owned aircraft control, fixed-wing and helicopter (EEDCS-39)
 
-**Status: source change on base `f5eacbc9` (the PR97 merge). The native binaries were built from
-`b721ae5a`; `f1371dda` is the later lint/source checkpoint (rustfmt and clippy fixes, described
-below), and the docs/evidence commits come after it. Host/Rust tests and clippy pass on Linux, fmt
-passes with a local rustfmt, and one pinned MinGW build exited 0. The native regression
-pack and the existing census are PENDING: neither had finished when this was written, and no
-result of either is claimed. EEDCS-39, D1 (EEDCS-15) and M5 are not complete, and nothing here is
-final acceptance.**
+**Status: complete evidence for EEDCS-39 under D1 (EEDCS-15); not D1 closure, not M5 acceptance,
+and not technical-lead approval.** Native runtime `b721ae5a`; reviewed equivalent lint delta
+`f1371dda`; workflow-only head `10b02621`. The Windows regression pack passed 40/40 (exit 0), the
+full Lebanon reference files are byte-equal to the retained references, the three-hour census
+exited 0, and PR98 CI is green at `10b02621`. Scope authority is the live Confluence M5 goal and
+Confluence migration ledger; this file records evidence only.
 
 Evidence is in [`../reference/m5-aircraft-control/`](../reference/m5-aircraft-control/reference-summary.txt).
 
@@ -96,10 +95,10 @@ The parent is the one independent reviewer so far; the technical lead has not ap
   (`r1-red1.log`, `Kind::Vehicle` does not exist); it is not behavioural red evidence, and the new
   R1 tests were not run against the pre-R1 code. Earlier stage 3 and R2 behavioural red exists in
   the source notes and is not retained in this directory.
-- **Integrated flight behaviour is not established by these tests.** The new control tests, plus
-  the limited real-module `load_dc` checks (`require('eech_dc')` loads the native module, and
+- **Integrated flight behaviour is not established by these Linux tests.** The new control tests,
+  plus the limited real-module `load_dc` checks (`require('eech_dc')` loads the native module, and
   `pcall(dc.boot, 'not a table')` returns the invalid-boot-argument error), do not establish
-  integrated flight behaviour. That waits for the native pack.
+  integrated flight behaviour. The native pack and census below are the integrated evidence.
 
 ## Reproduction
 
@@ -121,18 +120,50 @@ The native build is the release build for `x86_64-pc-windows-gnu` at `b721ae5a`
 (`reference/m5-aircraft-control/build-native.sh`, which holds local paths and the image digest);
 the regression pack is run per [`m4-regression-pack.md`](m4-regression-pack.md).
 
-## Pending and not claimed
+## Native results (Windows retail host, 2026-10-23)
 
-- **Native regression pack: PENDING.** It was started at 2026-10-23T15:51:29Z against the
-  `b721ae5a` binaries and had not exited when this was written. Existing census: PENDING. No
-  partial or prefix comparison is offered as acceptance, and none is in this directory.
-- Equivalence of the host arithmetic against the legacy code on real terrain, and any Tacview
-  evidence, wait for those results.
-- Not shown: any airborne coverage beyond the pack's own scenarios, the `i686` CI leg, the
-  C/aphavoc build outside the pinned MinGW and Linux builds, and any live DCS behaviour (M6).
-- Remaining coupling: terrain lookups, the sector structure data and the waypoint altitude feeding
-  `min_height` stay in the DLL as transitional services; the entity heap stays in the DLL as a
-  mirror. TAXI, ABSOLUTE and LAND re-fetch the waypoint,
-  so they issue extra non-mutating look-ahead queries. `fw_draw` debug shows the unadjusted y in a
-  host build.
+Retained in [`../reference/m5-aircraft-control/`](../reference/m5-aircraft-control/reference-summary.txt)
+(`native/`, `ci/`); the run directory also holds the traces, roots and logs, which are not in Git.
+
+| Item | Result |
+|---|---|
+| Provenance | Binaries `b721ae5a` (tree `1b0a2ca9`, 0 dirty build inputs, pinned image `sha256:bb10e44a…e562be`). The pack tool and its report revision are the `10b02621` worktree; the binaries are the same ones reported by the pack's `build` block. No claim that the binaries are byte-equal to a build of `f1371dda` or `10b02621`. |
+| Regression pack | `native/report.json`, `report.md`: verdict **PASS**, `pack.exit` 0, **40/40 checks PASS** (`regress.georgia.exact`, `regress.lebanon.exact`, `reference.repeatable`, `reference.observed_equals_unobserved`, the retained recording/observation/check/chain/loss checks and the lifecycle checks). Claims: 17 PASS directly protected, 12 PASS baseline-sensitive, 8 NOT COVERED and 8 EVIDENCE ONLY, the pack's declared gaps, unchanged. Baseline `windows-retail v1`, not modified. |
+| Full-file comparison | `native/independent-reference-hashes.json`, both runs: `recording.acmi` (117,690,861 B, sha256 `3bd17b64…d19b`) and `observations.jsonl` (85,716,447 B, sha256 `da26bab0…77cf`) are byte-equal to the retained `reference/lebanon-3h` Tacview and `reference/m3-resupply-loop` supply-detail observations; `metrics.json` is equal as JSON values and after CRLF normalisation. The earlier `completed-reference-comparison.json` covered the completed reference processes only and is kept as that partial record. |
+| Tacview | "Unchanged" means byte-identical, a structural/hash claim. **No visual inspection in Tacview is claimed.** |
+| Census | `native/census.out`: 3 h, exit 0, `ended_at 10800.0`, same binaries, isolated Lebanon root copy. Fixed-wing: 127 identities, 104 moved at least 10 m; taxi 809,413 / flight 1,996,817 / land 22,294 steps; `fixed_wing_lookahead` 1,230,916; `fixed_wing_move` 2,828,524. Helicopter plan/guide 3,488,618 and guided begin/end 3,408,914 steps. |
+| Census limits | Helicopter steps print as `unbound` because the script has no helicopter kind label (a missing label, not a registration failure). Displacement is tracked for fixed-wing only, so `moved_10m=0` for other kinds is not "stationary". No `ship_move` observed. Counts show exercised modes, not every avoidance conditional or numeric boundary. It is coverage evidence, not acceptance evidence. |
+| CI at `10b02621` | `ci/pr98-checks-10b02621.json`: all 8 checks SUCCESS (test x86_64, test i686, i686 with `EECH_ORIGINAL_STACK_ATTRIBUTES=1`, x86_64 with `EECH_C_OPT=2`, evidence-selftest, dcs-probe-tools, windows-cross, eech-core-ts verify). The `windows-cross` apt-source workflow fix is confirmed on the real runner; earlier attempts had timed out in apt. CI is not evidence for the retail pack. |
+
+Reproduce (local retail roots and the built `target/aircraft-control` required; paths are inside
+the scripts): `reference/m5-aircraft-control/native/run-pack.ps1` runs
+`tools/regression-pack.py --georgia … --lebanon … --lebanon-repeat … --bin target/aircraft-control --out …`
+(see [`m4-regression-pack.md`](m4-regression-pack.md)); `run-census.py` runs
+`eech-world.exe lua/fixed-wing-movement.lua root=… mode=census hours=3`;
+`verify-complete-reference.py` re-hashes the run outputs against the retained references.
+
+## Author self-review of the docs-only closeout
+
+Author self-review, not independent review. The closeout changes this file and
+`reference/m5-aircraft-control/` only: no source, workflow, test, baseline or golden change, and no
+retail data or binaries (hashes, counts and reports only). Results are copied from the run
+directory unedited; earlier unsuccessful or partial records (the failing clippy listing, the
+partial reference comparison, the pre-pack statements in the build, pre-push and census-assessment
+notes) are kept with their original wording and marked as dated in the reference summary. The
+parent is the independent reviewer and publishes, approves and merges.
+
+## Limits and what remains
+
+- Not shown: airborne coverage beyond the pack's scenarios and the census, per-conditional
+  avoidance and numeric-boundary coverage, host arithmetic equivalence beyond the exact Lebanon and
+  Georgia comparison, the C/aphavoc build outside the pinned MinGW and Linux builds, any visual
+  Tacview review, and any live DCS behaviour (M6). No native rebuild exists for `f1371dda` or
+  `10b02621`.
+- Declared coupling remains: campaign policy, terrain (lookups, sector structure data and the
+  waypoint altitude feeding `min_height`), the entity heap (a mirror), RNG and effects stay in the
+  DLL. TAXI, ABSOLUTE and LAND re-fetch the waypoint, so they issue extra non-mutating look-ahead
+  queries. `fw_draw` debug shows the unadjusted y in a host build.
+- D1 follow-ups, not part of this Task: dependent-force positioning and all-family report-loss
+  work. D1 closure needs its own reconciliation and review.
+- Red evidence for R1 remains limited, as described above.
 - Technical-lead approval (@fd-starscream-bot) has not been given.
