@@ -262,6 +262,12 @@ a two-member group, so the preservation check is a direct state read, not a
 same-landing comparison), and the report moves it 2 -> 1 once. The forward control
 needs a group of at least three members, so it was not run for this case.
 
+Retained evidence for the all-family report-driven consequences (EEDCS-41), with
+build identities, per-family results, failures and limits, is in
+[`reference/m5-all-family-loss/`](../reference/m5-all-family-loss/README.md). The
+final shipping native regression pack is PENDING there. The accepted helicopter
+proof is linked from that record, not copied.
+
 Not covered: save/restore, a group freed while a loss is pending, the delay
 robustness of a late report, ship keysite/carrier exclusions, and the person's
 variadic `TASK_COMPLETED` loop (unchanged).

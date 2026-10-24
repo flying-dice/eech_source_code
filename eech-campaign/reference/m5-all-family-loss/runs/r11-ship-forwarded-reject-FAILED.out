@@ -1,0 +1,28 @@
+screened	ship	eech-world:3137:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	ship	eech-world:3113:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	ship	eech-world:3125:campaign loss: WITHHOLD supports only an AI member that is not landed
+withheld	ship	host_id=eech-world:2717 entity=83137 event=physical group_members=2 primary_task=nil keysite_m=403
+check	ship.observed_in_same_stack	pass	observe_loss ran inside the kill call
+check	ship.event_physical	pass	physical
+check	ship.entity_type	pass	28
+check	ship.left_group_at_once	pass	physical_present=true in_group=false
+wreck	ship	physical_present_at_once=true
+force_state	ship	withheld kill: losses+0 hardware[] regen[]
+check	ship.withheld_force_info_and_regen_unchanged	pass	losses+0 hardware[] regen[]
+note	ship	no forward control (group of 2 members at observe)
+settled	0 frames of 1000 ms (0.0 game minutes)
+wreck	ship	at_report physical_present=true in_group=false after 0 frames
+check	ship.still_out_of_group_before_report	pass
+force_state	ship	report: losses+1 hardware[6:-1] regen[]
+check	ship.report_applies_force_info_and_regen_once	pass	losses+1 hardware[6:-1] regen[]
+receipt	ship	group_losses=0>1 logical=2>1 physical_before=1 primary_losses=0>0 landing=0>0 expire=0 completed=0
+check	ship.group_losses_plus_one	pass
+check	ship.logical_members_held_until_report	pass	observe=2 forwarded=0 report_before=2
+check	ship.logical_members_minus_one	pass
+check	ship.physical_members_already_removed	pass	physical_before=1
+check	ship.primary_task_losses_unchanged	pass
+check	ship.no_landing_or_task_work	pass
+note	ship	group too small for the probe (2 members at observe)
+check	reject.forwarded.available	FAIL	no such id in this run
+summary	ship=withheld+reported(present) reject=forwarded
+result	fail
