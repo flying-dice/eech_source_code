@@ -6,14 +6,40 @@ Source of this record: the author's evidence map `PROVENANCE-AND-SELF-REVIEW-41.
 and the parent's `INDEPENDENT-REVIEW.md`, kept in the (non-repository) run root
 `E:/eech-runs/m5-d1/all-family-loss-20261023`.
 
-## Status: final shipping native pack PENDING
+## Status: final shipping native pack PASSED (40/40); EEDCS-41 evidence only
 
-The M4 regression pack on the shipping `final-default22` build was running when this
-record was written (started 2026-10-24T01:24:34+01:00). **No pass is claimed.** No
-live or incomplete pack output is copied here. The pack result, full-file
-comparison to the accepted baseline, independent approval and D1 scope
-reconciliation are all outstanding. This record is evidence for the extraction, not
-acceptance.
+The unchanged M4 regression pack (`eech-campaign/tools/regression-pack.py`) ran on the
+shipping `final-default22` build (`eech_dc.dll` `e0071743...92e2`, `eech-world.exe`
+`c6a5bf51...57e2`) from 2026-10-24T01:24:34+01:00 to 07:23:01+01:00. Retained in
+[`final-pack/`](final-pack/): `report.md`, `report.json`, `pack.start`, `pack.end`,
+`pack.exit` (0), `pack.out.log` (UTF-16, as written) and
+`independent-reference-hashes.json`.
+
+- Pack verdict `PASS`, exit 0. All 40 checks have status PASS. Claim counts: 17 PASS
+  directly protected, 12 PASS baseline-sensitive, 8 NOT COVERED, 8 EVIDENCE ONLY. The
+  NOT COVERED and EVIDENCE ONLY claims are the pack's standing M1 to M4 limits and are
+  not changed by EEDCS-41.
+- Baseline `windows-retail v1`, unchanged; no baseline, tolerance, golden or runner
+  change. The pack reports the build as differing from the accepted one in
+  `eech_dc.dll`, `eech-world.exe`, `lua.dll`, `lua/campaign.lua`, `lua/lifecycle.lua`
+  (the expected consequence of a rebuilt DLL and Lua tree).
+- Independent comparison (`independent-reference-hashes.json`, checked
+  2026-10-24T06:23:39Z, `complete_files: true`, `passed: true`, `pack_exit: 0`,
+  `pack_checks_passed: 40`): for both runs, the complete `recording.acmi` (117,690,861
+  bytes, SHA-256 `3bd17b64...d19b`) and `observations.jsonl` (85,716,447 bytes,
+  `da26bab0...77cf`) are byte-identical to the retained accepted reference
+  (`reference/lebanon-3h`, `reference/m3-resupply-loop`); `metrics.json`
+  (`fa09d562...2587`) matches by JSON value and after CRLF normalisation. The
+  recordings and observations themselves are not copied here.
+- `pack_revision` in the report is `694447d2`, the worktree HEAD when the report was
+  written. The pack began at `eefd0bb0`; between them only this reference directory and
+  one docs paragraph changed (no runner, regression, baseline or runtime file). The
+  tested binaries are the `final-default22` export, not a build of that revision.
+- Limits: the pack runs the shipping module, so it does not exercise the loss
+  fixtures or fixed-wing reservation path (that evidence is under `runs/`). A generated
+  and structurally compared recording is not a visual Tacview review; none is claimed.
+- **Not claimed:** D1 or M5 completion, publication, review approval or merge. The
+  independent approval and the D1 scope reconciliation remain outstanding.
 
 ## Source state
 
@@ -66,7 +92,7 @@ once.
 | final-member rejection | `r13-final-member-rejection.out` | final-fixture21 | 0 | `negative.fails_explicitly` pass. This is final-member rejection only, not duplicate-report evidence |
 | unknown host id | `r12-unknown-id-fw-unavailable-FAILED.out` | rel12 | **1** | `reject.unknown.raises` pass; run FAILED overall (fixed-wing UNAVAILABLE) |
 | forwarded-report rejection | `r11-ship-forwarded-reject-FAILED.out` | ring9 | **1** | `reject.forwarded.available` FAIL ("no such id in this run"); see limits |
-| helicopter | not copied | | | Accepted helicopter proof is linked, not repeated: [`docs/m5-physical-loss.md`](../../docs/m5-physical-loss.md), [`../m5-loss-structural/`](../m5-loss-structural/), [`../m5-helicopter-lifecycle/`](../m5-helicopter-lifecycle/). No new helicopter run was made for EEDCS-41. The final pack (pending) is the remaining runtime check of the reordered helicopter path |
+| helicopter | not copied | | | Accepted helicopter proof is linked, not repeated: [`docs/m5-physical-loss.md`](../../docs/m5-physical-loss.md), [`../m5-loss-structural/`](../m5-loss-structural/), [`../m5-helicopter-lifecycle/`](../m5-helicopter-lifecycle/). No new helicopter run was made for EEDCS-41. The final shipping pack (PASS 40/40, see Status) is the runtime check that ran the reordered helicopter path |
 | shipping API | `api22-shipping-surface.out`, `api-surface.lua` | final-default22 | 0 | `frame`, `report_loss`, `members`, `objects` are functions; `loss_fixture`, `loss_state`, `loss_shape`, `loss_release`, `loss_group`, `dependent_fixture` are nil. Driver DLL hash equals the default22 export |
 
 `runs/*.exit` hold each exit code. Verbose `.err` debug logs and failed
@@ -97,6 +123,6 @@ run separately. `eefd0bb0` changes no Rust or C source, so these were not rerun.
 - Ship, routed and person evidence is from partial-tree builds, as above.
 - Duplicate and unknown-id dispatch were exercised only as listed, not on the final
   DLL; the final delta does not touch that dispatch.
-- Tacview, baseline and full-file comparison are not part of this record.
+- Tacview is compared as complete files only (see Status); no visual review is claimed.
 
-`SHA256SUMS` covers every retained file (`sha256sum -c SHA256SUMS`).
+`SHA256SUMS` covers every retained file under `runs/`, `linux8/`, `builds/` and `final-pack/` (`sha256sum -c SHA256SUMS`).

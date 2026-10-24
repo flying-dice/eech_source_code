@@ -265,8 +265,10 @@ needs a group of at least three members, so it was not run for this case.
 Retained evidence for the all-family report-driven consequences (EEDCS-41), with
 build identities, per-family results, failures and limits, is in
 [`reference/m5-all-family-loss/`](../reference/m5-all-family-loss/README.md). The
-final shipping native regression pack is PENDING there. The accepted helicopter
-proof is linked from that record, not copied.
+final shipping native regression pack (40/40 checks PASS, complete-file comparison
+with the accepted references passed, `windows-retail v1` unchanged) is retained there
+under `final-pack/`. That is evidence for this extraction only, not D1 or M5
+completion. The accepted helicopter proof is linked from that record, not copied.
 
 Not covered: save/restore, a group freed while a loss is pending, the delay
 robustness of a late report, ship keysite/carrier exclusions, and the person's
