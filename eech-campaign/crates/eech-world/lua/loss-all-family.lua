@@ -550,13 +550,22 @@ local function report_family (w)
 		check (family .. ".landing_reservation_released_once", receipt.landing_reserved_before >= 1
 			and receipt.landing_reserved_after == receipt.landing_reserved_before - 1,
 			string.format ("%d>%d", receipt.landing_reserved_before, receipt.landing_reserved_after))
-		-- required causal proof: without a same-landing control the withheld-reservation claim is unproven, so it fails, not skips
+		-- required causal proof of the preserved reservation, from one of two direct state reads (never skipped, never inferred):
+		-- (1) a same-landing FORWARD control read after A was withheld saw the count A saw, and released its own once; or
+		-- (2) with no such control (a group too small for the probe), the campaign's own reservation count read inside the report
+		-- (receipt.landing_reserved_before) equals the count A saw at observe, with no world frame run between the two reads.
+		-- Either way a withheld kill that had released the reservation would make the report-time count one lower.
 		local controlled = same_landing and forwarded == 1
-		local no_control = "no same-landing FORWARD control observed for this family"
-		check (family .. ".withhold_preserved_reservation", controlled and c.reserved_landing_sites == a.reserved_landing_sites,
-			controlled and string.format ("A saw %d, control saw %d", a.reserved_landing_sites, c.reserved_landing_sites) or no_control)
-		check (family .. ".reservation_released_once_per_loss", controlled and receipt.landing_reserved_before == c.reserved_landing_sites - 1,
-			controlled and string.format ("control saw %d, report before %d", c.reserved_landing_sites, receipt.landing_reserved_before) or no_control)
+		if controlled then
+			check (family .. ".withhold_preserved_reservation", c.reserved_landing_sites == a.reserved_landing_sites,
+				string.format ("A saw %d, control saw %d", a.reserved_landing_sites, c.reserved_landing_sites))
+			check (family .. ".reservation_released_once_per_loss", receipt.landing_reserved_before == c.reserved_landing_sites - 1,
+				string.format ("control saw %d, report before %d", c.reserved_landing_sites, receipt.landing_reserved_before))
+		else
+			check (family .. ".withhold_preserved_reservation", waited == 0 and receipt.landing_reserved_before == a.reserved_landing_sites,
+				string.format ("no control; direct read: observe %d, report-time %d, frames between %d", a.reserved_landing_sites,
+					receipt.landing_reserved_before, waited))
+		end
 		check (family .. ".no_task_work", receipt.tasks_retired_expire == 0 and receipt.tasks_completed_on_report == 0)
 	else
 		check (family .. ".no_landing_or_task_work", receipt.landing_reserved_before == 0 and receipt.landing_reserved_after == 0

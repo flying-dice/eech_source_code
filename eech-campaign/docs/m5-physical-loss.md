@@ -13,14 +13,31 @@ Unknown, stale, duplicate, or unsupported reports fail visibly.
 
 ## Bounded supported case
 
-WITHHOLD is implemented only for the characterized AI helicopter SUPPLY case.
-The captured member must be one of at least two physical group members, airborne,
+WITHHOLD is implemented for the characterized AI helicopter SUPPLY case and the
+bounded shapes of the other five families (see the family table below).
+The captured helicopter member must be one of at least two physical group members, airborne,
 without movement cargo/parent, group task dependents, restricted guides, takeoff
 queue state, or credited aggression. Its exact loss-derived work is four
 unassigned, incomplete, non-primary ENGAGE tasks aimed at that member and one
 helicopter landing-site reservation. Other member types, final-member loss,
 players, CREDIT withholding, other task/landing shapes, and stale referenced
 campaign entities fail at the boundary.
+
+Fixed-wing adds one bounded landing shape. A normal in-flight fixed-wing member
+whose primary task assesses landing carries exactly one `UNRESERVE_SITE` count-1
+landing action, against the group's keysite landing (`FW` or `FW_TRANSPORT`), and
+that landing must currently hold at least that many reservations
+(`is_supported_fixed_wing_reservation`, `gp_roster.c`). The observe step stores the
+landing generation key and count; WITHHOLD leaves the reservation in place. The
+host-ID report validates the landing key (stale is fatal), type, count and current
+reservation, advances the LANDING phase in its original position, and releases the
+reservation once through `unreserve_local_landing_sites`. The receipt records
+`landing_reserved_before/after`. The campaign landing accounting stays in the DLL;
+this is D1 loss-consequence handoff, not D4 airfield migration. Landing,
+takeoff, route/site unlock and any other landing-action shape, or a count other
+than one, is still refused (`campaign loss: WITHHOLD does not support a member
+with landing actions`). No task subtype is fabricated, no primary task is
+detached, and the campaign task database is not adjusted.
 
 The loss record copies force, regeneration, group, primary-task, task and landing
 values before physical unlink. Group, task and landing entities use private
@@ -186,7 +203,7 @@ original FORWARD order:
 
 | Family | Report order after the host's identity loss report |
 |---|---|
-| fixed-wing, routed | force info, regen, logical unlink, group losses, primary-task losses (when a primary task was recorded), group member-killed |
+| fixed-wing, routed | force info, regen, logical unlink, landing reservation release (fixed-wing single `UNRESERVE_SITE` only), group losses, primary-task losses (when a primary task was recorded), group member-killed |
 | ship | as above without regen |
 | anti-air | force info, logical unlink, group losses, group member-killed |
 | person | logical unlink, group losses, group member-killed (no force info) |
@@ -197,7 +214,8 @@ are unchanged, and it keeps the force objective check. The bounded families skip
 
 Bounded shape: an AI, non-landed member of a group with at least two logical and
 two physical members and no final-member, task-dependent, restricted-guide,
-movement parent/dependent, takeoff-queue, member-task-dependent, landing, or
+movement parent/dependent, takeoff-queue, member-task-dependent, unsupported
+landing (only the fixed-wing single reservation above is supported), or
 credited-aggression state. Anything else fails explicitly at the observe step
 (`begin_bounded_pending_loss`), including a final member (`final member`), a
 player, an invalid force category, and a duplicate or incomplete pending record.
@@ -223,16 +241,26 @@ is written at `(front + count) % size`; at capacity `front` advances and `count`
 stays, so the effect is read as the last written slot, not as a count rise.
 
 Setup fixtures (feature `loss-fixture`, never in the default build):
-`loss_fixture`, `loss_state`, `loss_shape` (a read-only support screen) and
-`loss_release`. `loss_release(entity_id)` ends the tasks whose objective is the
-member's group by sending the original `TASK_COMPLETED` /
-`TASK_TERMINATED_OBJECTIVE_MESSAGE` that a group kill sends (`group.c`). It is
-setup only: it changes no guard and no physics, and does not claim the campaign
-would have released those tasks itself. Airborne fixed-wing groups are usually
+`loss_fixture`, `loss_state`, `loss_shape` (a read-only support screen),
+`loss_group` (a read-only group shape diagnostic) and `loss_release`.
+`loss_release(entity_id)` is an explicitly artificial setup step: it ends the tasks
+whose objective is the member's group or one of its members (including member
+target tasks) by sending the original `TASK_COMPLETED` /
+`TASK_TERMINATED_OBJECTIVE_MESSAGE` that a group kill sends (`group.c`), and ends
+engage guides. It changes no guard and no physics, and does not claim the
+campaign would have released those tasks itself. The default Lua module must not
+expose `loss_release`, `loss_group` or `loss_shape` (asserted by the shipping API
+test). Airborne fixed-wing groups are usually
 the objective of some task, so without it no fixed-wing member is in the bounded
 shape. That is bounded evidence from one observed census (no eligible fixed-wing
 member was found there), not a claim that none can exist; the fixed-wing witness
 therefore rests on this artificial setup and is stated as such.
+
+Fixed-wing witness evidence: the controlled run observes reservation 2, reads
+report-time reservation 2 with no intervening frames (no FORWARD control exists for
+a two-member group, so the preservation check is a direct state read, not a
+same-landing comparison), and the report moves it 2 -> 1 once. The forward control
+needs a group of at least three members, so it was not run for this case.
 
 Not covered: save/restore, a group freed while a loss is pending, the delay
 robustness of a late report, ship keysite/carrier exclusions, and the person's
