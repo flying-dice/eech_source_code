@@ -308,6 +308,9 @@ static void kill_local (entity *en)
 	ship_vehicle
 		*raw;
 
+	campaign_loss_ticket
+		loss;
+
 	////////////////////////////////////////
 	//
 	// PRE-AMBLE
@@ -331,10 +334,7 @@ static void kill_local (entity *en)
 
 	ASSERT (group);
 
-	if (campaign_roster_observe_physical_loss (en, group) != CAMPAIGN_LOSS_FORWARD)
-	{
-		debug_fatal ("campaign loss: ship withholding is unsupported");
-	}
+	campaign_roster_accept_physical_loss (en, group, &loss);
 
 	keysite = NULL;
 
@@ -345,7 +345,7 @@ static void kill_local (entity *en)
 	// update force info
 	//
 
-	remove_from_force_info (get_local_force_entity ((entity_sides) raw->vh.mob.side), en);
+	campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_FORCE_INFO);
 
 	////////////////////////////////////////
 	//
@@ -361,13 +361,13 @@ static void kill_local (entity *en)
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
-		notify_member_task_dependents_completed (en);
+		campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_MEMBER_TASKS);
 
 		//
 		// Release landing lock (if any)
 		//
 
-		release_mobile_entity_landing_locks (en);
+		campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_LANDING);
 
 		////////////////////////////////////////
 		//
@@ -465,13 +465,13 @@ static void kill_local (entity *en)
 	// group losses
 	//
 
-	increment_group_losses (group);
+	campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_GROUP_LOSS);
 
 	//
 	// task losses
 	//
 
-	increment_group_primary_task_losses (group);
+	campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_TASK_LOSS);
 
 	//
 	// Notify Campaign Screen
@@ -485,7 +485,7 @@ static void kill_local (entity *en)
 		// Notify the GROUP that the mobile has been killed  (N.B. must be done AFTER mobile is unlinked from member list)
 		//
 
-		notify_group_member_killed (group, en);
+		campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_MEMBER_KILLED);
 
 		//
 		// Kill the keysite if ship is the carrier (N.B. must be done AFTER ships alive flag cleared)

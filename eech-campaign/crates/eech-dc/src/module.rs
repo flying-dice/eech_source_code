@@ -400,6 +400,48 @@ impl LuaUserData for LuaEngine {
                 .frame(milliseconds, &mut binder, &mut observer, &mut reach, &mut mover)
                 .map_err(lua_error)
         });
+        // TEST-ONLY (feature `loss-fixture`, EEDCS-41): not part of the shipping module.
+        #[cfg(feature = "loss-fixture")]
+        methods.add_method("loss_fixture", |lua, this, entity_id: i32| {
+            let bind_mobile = this.bind_mobile.clone();
+            let observe_loss = this.observe_loss.clone();
+            let supply_reached = this.supply_reached.clone();
+            let move_vehicle = this.move_vehicle.clone();
+            let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+            let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+            let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+            let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+            this.engine
+                .loss_fixture(entity_id, &mut binder, &mut observer, &mut reach, &mut mover)
+                .map_err(lua_error)
+        });
+        // TEST-ONLY (feature `loss-fixture`, EEDCS-41): releases the tasks targeting a member's group (setup); not part of the shipping module.
+        #[cfg(feature = "loss-fixture")]
+        methods.add_method("loss_release", |lua, this, entity_id: i32| {
+            let bind_mobile = this.bind_mobile.clone();
+            let observe_loss = this.observe_loss.clone();
+            let supply_reached = this.supply_reached.clone();
+            let move_vehicle = this.move_vehicle.clone();
+            let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+            let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+            let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+            let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+            this.engine
+                .loss_release(entity_id, &mut binder, &mut observer, &mut reach, &mut mover)
+                .map_err(lua_error)
+        });
+        // TEST-ONLY (feature `loss-fixture`, EEDCS-41): read-only force-info and regen state; not part of the shipping module.
+        #[cfg(feature = "loss-fixture")]
+        methods.add_method("loss_state", |lua, this, side: i32| {
+            let values = this.engine.loss_state(side).map_err(lua_error)?;
+            loss_state_table(lua, &values)
+        });
+        // TEST-ONLY (feature `loss-fixture`, EEDCS-41): read-only withhold eligibility of one hosted member; not part of the shipping module.
+        #[cfg(feature = "loss-fixture")]
+        methods.add_method("loss_shape", |_, this, entity_id: i32| this.engine.loss_shape(entity_id).map_err(lua_error));
+        // TEST-ONLY (feature `loss-fixture`, EEDCS-41): read-only task dependents and guide stack of a hosted member's group; not part of the shipping module.
+        #[cfg(feature = "loss-fixture")]
+        methods.add_method("loss_group", |_, this, entity_id: i32| this.engine.loss_group(entity_id).map_err(lua_error));
         // TEST-ONLY (feature `dependent-fixture`, EEDCS-40): not part of the shipping module.
         #[cfg(feature = "dependent-fixture")]
         methods.add_method(
@@ -526,6 +568,39 @@ pub fn eech_dc(lua: &Lua) -> LuaResult<LuaTable> {
         lua.create_function(|_, root: String| eech_engine::prepare_installation(std::path::Path::new(&root)).map_err(lua_error))?,
     )?;
     Ok(exports)
+}
+
+/// TEST-ONLY (feature `loss-fixture`): lays out `Engine::loss_state` values as a Lua table. Every read is bounds-checked, so a
+/// short or inconsistent buffer is an error and not a panic.
+#[cfg(feature = "loss-fixture")]
+fn loss_state_table(lua: &Lua, values: &[i32]) -> mlua::Result<mlua::Table> {
+    let short = || mlua::Error::runtime("loss_state: the engine returned a short state buffer");
+    let at = |i: usize| values.get(i).copied().ok_or_else(short);
+    let span = |from: usize, len: usize| values.get(from..from + len).map(<[i32]>::to_vec).ok_or_else(short);
+    let (categories, regens) = (at(1)? as usize, at(2)? as usize);
+    let queues = 3 + categories;
+    let state = lua.create_table()?;
+    state.set("losses", at(0)?)?;
+    state.set("hardware", span(3, categories)?)?;
+    state.set("regen", span(queues, regens)?)?;
+    state.set("regen_front", span(queues + regens, regens)?)?;
+    state.set("regen_size", span(queues + 2 * regens, regens)?)?;
+    // the slot written last in each queue, as { type, sub_type, group }, or false for an empty queue
+    let last = lua.create_table()?;
+    for r in 0..regens {
+        let slot = span(queues + 3 * regens + 3 * r, 3)?;
+        let empty = slot.first().is_none_or(|t| *t < 0);
+        last.set(
+            r + 1,
+            if empty {
+                mlua::Value::Boolean(false)
+            } else {
+                mlua::Value::Table(lua.create_sequence_from(slot)?)
+            },
+        )?;
+    }
+    state.set("regen_last", last)?;
+    Ok(state)
 }
 
 #[cfg(test)]

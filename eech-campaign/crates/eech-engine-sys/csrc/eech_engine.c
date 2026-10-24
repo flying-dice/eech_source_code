@@ -647,16 +647,7 @@ void eech_engine_debug_engagements (void)
 	}
 }
 
-#ifdef EECH_DEPENDENT_FIXTURE
-
-/* ---------------------------------------------------------------------------------------------------------------------------- */
-/*
- * TEST-ONLY dependent-positioning fixture (EEDCS-40). Compiled only with the `dependent-fixture` feature; never part of the
- * shipping module. It constructs no entity and replaces no handler: it names two live, hosted campaign entities by index and
- * either re-links one as a movement dependent of the other (the same list insert mb_msgs.c uses for cargo and keysite
- * receivers) or moves the parent through the campaign's own setter, so EECH's genuine notify_local_entity handlers (rv_msgs.c,
- * aa_msgs.c, ps_msgs.c, hc_msgs.c) run and call campaign_movement_dependent_carry themselves.
- */
+#if defined(EECH_DEPENDENT_FIXTURE) || defined(EECH_LOSS_FIXTURE)
 
 static entity *fixture_hosted_entity (int index)
 {
@@ -673,6 +664,19 @@ static entity *fixture_hosted_entity (int index)
 	}
 	return en;
 }
+
+#endif
+
+#ifdef EECH_DEPENDENT_FIXTURE
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/*
+ * TEST-ONLY dependent-positioning fixture (EEDCS-40). Compiled only with the `dependent-fixture` feature; never part of the
+ * shipping module. It constructs no entity and replaces no handler: it names two live, hosted campaign entities by index and
+ * either re-links one as a movement dependent of the other (the same list insert mb_msgs.c uses for cargo and keysite
+ * receivers) or moves the parent through the campaign's own setter, so EECH's genuine notify_local_entity handlers (rv_msgs.c,
+ * aa_msgs.c, ps_msgs.c, hc_msgs.c) run and call campaign_movement_dependent_carry themselves.
+ */
 
 int eech_engine_dependent_fixture (int op, int parent_id, int child_id, const double position[3], const struct eech_engine_host *host)
 {
@@ -728,6 +732,286 @@ int eech_engine_dependent_fixture (int op, int parent_id, int child_id, const do
 	default:
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_LOSS_FIXTURE
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/*
+ * TEST-ONLY all-family loss trigger (EEDCS-41). Compiled only with the `loss-fixture` feature; never part of the shipping
+ * module. It names one live, hosted campaign member by index and ends it through the campaign's own kill_client_server_entity,
+ * so the genuine kill_local handler of its family runs, asks the host observe_loss callback, and either applies the
+ * consequences inline (forward) or leaves them pending for engine:report_loss (withhold). It constructs no entity and replaces
+ * no handler. It stands in only for the combat that would otherwise end the member at a time the scenario cannot choose.
+ */
+int eech_engine_loss_fixture (int entity_id, const struct eech_engine_host *host)
+{
+	entity *en;
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	en = fixture_hosted_entity (entity_id);
+	if (!en)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	kill_client_server_entity (en);
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/*
+ * TEST-ONLY setup step (EEDCS-41): ends the engagements that keep one hosted member's group out of the plain shape, using only
+ * the campaign's own lifecycle operations, without ending the group.  (1) Tasks that target the group, and then those that
+ * target the member itself, are notified the way group.c does when it kills the group (ENTITY_MESSAGE_TASK_COMPLETED with
+ * TASK_TERMINATED_OBJECTIVE_MESSAGE; the task's own handlers end and unlink it).  (2) Engage guides, which hold a per-member valid-member mask and are what the bounded WITHHOLD
+ * counts as restricted guides on a fixed-wing or ship group in flight, are ended the way the campaign ends an engagement:
+ * terminate_all_engage_tasks (group) for the not yet assigned ones, as when the group is sent home or lands, and
+ * terminate_entity_current_engage_task (member) for each member's own, as when a wingman is told to break off
+ * (msg_in.c) and the member is reassigned to a valid task.  Takeoff guides are never touched: they belong to a member that has
+ * not completed takeoff, which the guard refuses for its own reasons.  It changes no guard and no physics, constructs nothing,
+ * and `*released` is the number of tasks notified plus the number of guides that left the group's guide stack.
+ */
+int eech_engine_loss_release (int entity_id, int *released, const struct eech_engine_host *host)
+{
+	entity *en, *group, *task, *next;
+	int n = 0;
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!released || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	en = fixture_hosted_entity (entity_id);
+	group = en ? get_local_entity_parent (en, LIST_TYPE_MEMBER) : NULL;
+	if (!group)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	task = get_local_entity_first_child (group, LIST_TYPE_TASK_DEPENDENT);
+	while (task)
+	{
+		next = get_local_entity_child_succ (task, LIST_TYPE_TASK_DEPENDENT);
+		if (task->type == ENTITY_TYPE_TASK)
+		{
+			notify_local_entity (ENTITY_MESSAGE_TASK_COMPLETED, task, group, TASK_TERMINATED_OBJECTIVE_MESSAGE);
+			n++;
+		}
+		task = next;
+	}
+	task = get_local_entity_first_child (en, LIST_TYPE_TASK_DEPENDENT);
+	while (task)
+	{
+		next = get_local_entity_child_succ (task, LIST_TYPE_TASK_DEPENDENT);
+		if (task->type == ENTITY_TYPE_TASK)
+		{
+			notify_local_entity (ENTITY_MESSAGE_TASK_COMPLETED, task, en, TASK_TERMINATED_OBJECTIVE_MESSAGE);
+			n++;
+		}
+		task = next;
+	}
+	{
+		entity *guide, *member;
+		int before = 0, after = 0, round;
+		for (guide = get_local_entity_first_child (group, LIST_TYPE_GUIDE_STACK); guide; guide = get_local_entity_child_succ (guide, LIST_TYPE_GUIDE_STACK))
+		{
+			before++;
+		}
+		terminate_all_engage_tasks (group);
+		/* reassignment can give a member another engage guide, so repeat until a pass ends none (bounded) */
+		for (round = 0; round < 8; round++)
+		{
+			int ended = 0;
+			member = get_local_entity_first_child (group, LIST_TYPE_MEMBER);
+			while (member)
+			{
+				entity *next_member = get_local_entity_child_succ (member, LIST_TYPE_MEMBER);
+				entity *current = get_local_entity_parent (member, LIST_TYPE_FOLLOWER);
+				entity *owner = current ? get_local_entity_parent (current, LIST_TYPE_GUIDE) : NULL;
+				if (owner && (get_local_entity_int_value (owner, INT_TYPE_ENTITY_SUB_TYPE) == ENTITY_SUB_TYPE_TASK_ENGAGE))
+				{
+					terminate_entity_current_engage_task (member);
+					ended++;
+				}
+				member = next_member;
+			}
+			if (!ended)
+			{
+				break;
+			}
+		}
+		terminate_all_engage_tasks (group);
+		for (guide = get_local_entity_first_child (group, LIST_TYPE_GUIDE_STACK); guide; guide = get_local_entity_child_succ (guide, LIST_TYPE_GUIDE_STACK))
+		{
+			after++;
+		}
+		if (before > after)
+		{
+			n += before - after;
+		}
+	}
+	*released = n;
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/*
+ * TEST-ONLY read-only eligibility probe (EEDCS-41): runs, without ending anything, the guard the bounded WITHHOLD itself runs on
+ * the descriptor the host would be shown, and returns its refusal text ("" when the loss would be withheld).  It lets the witness
+ * choose a supported member instead of spending real kills on unsupported ones.
+ */
+int eech_engine_loss_shape (int entity_id, char *reason, int capacity)
+{
+	entity *en;
+	char buffer[256];
+	const char *refusal;
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!reason || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	en = fixture_hosted_entity (entity_id);
+	if (!en)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	refusal = campaign_roster_withhold_refusal (en, buffer, sizeof (buffer));
+	strncpy (reason, refusal, (size_t) capacity - 1);
+	reason[capacity - 1] = ' ';
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/*
+ * TEST-ONLY read-only diagnostic (EEDCS-41): describes why a hosted member's group is, or is not, a plain shape for the bounded
+ * WITHHOLD: the member's group number and task dependents of the group (entity type and sub type of each) and each guide on its
+ * guide stack (valid-member mask, 1 when it is not "all members", and the sub type of the task owning it).  Nothing is modified.
+ */
+int eech_engine_loss_group (int entity_id, char *text, int capacity)
+{
+	entity *en, *group, *child;
+	char line[96];
+	int used = 0;
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	en = fixture_hosted_entity (entity_id);
+	group = en ? get_local_entity_parent (en, LIST_TYPE_MEMBER) : NULL;
+	if (!group)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	text[0] = 0;
+#define LOSS_GROUP_APPEND(...) \
+	do \
+	{ \
+		int n_ = snprintf (line, sizeof (line), __VA_ARGS__); \
+		if ((n_ > 0) && (used + n_ < capacity - 1)) \
+		{ \
+			memcpy (text + used, line, (size_t) n_ + 1); \
+			used += n_; \
+		} \
+	} while (0)
+	LOSS_GROUP_APPEND ("member_number=%d", get_local_entity_int_value (en, INT_TYPE_GROUP_MEMBER_NUMBER));
+	child = get_local_entity_first_child (group, LIST_TYPE_TASK_DEPENDENT);
+	while (child)
+	{
+		LOSS_GROUP_APPEND (" dep=%d/%d", (int) child->type, get_local_entity_int_value (child, INT_TYPE_ENTITY_SUB_TYPE));
+		child = get_local_entity_child_succ (child, LIST_TYPE_TASK_DEPENDENT);
+	}
+	child = get_local_entity_first_child (group, LIST_TYPE_GUIDE_STACK);
+	while (child)
+	{
+		entity *task = get_local_entity_parent (child, LIST_TYPE_GUIDE);
+		unsigned int mask = (unsigned int) get_local_entity_int_value (child, INT_TYPE_VALID_GUIDE_MEMBERS);
+		LOSS_GROUP_APPEND (" guide=task%d,mask%08x%s", task ? get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) : -1, mask,
+			(mask == 0xffffffffu) ? "" : ",restricted");
+		child = get_local_entity_child_succ (child, LIST_TYPE_GUIDE_STACK);
+	}
+#undef LOSS_GROUP_APPEND
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/*
+ * TEST-ONLY read-only view of one side's force-info and regeneration state (EEDCS-41), the state the force-info and regen loss
+ * phases change: values[0] is the force's total losses, values[1] and values[2] the number of force-info categories (C) and of
+ * regen queues (R), then the current hardware of each category (C values), then for each queue in turn its count (R), its front
+ * (R), its size (R) and the type, sub type and group of the slot written last (3 x R, -1 when the queue is empty).  The queues are
+ * rings: regen_queue_insert writes at (front + count) % size and, at capacity, advances the front and leaves the count, so the
+ * count alone cannot show an insertion.  It reads the arrays the phases write; nothing is modified.
+ */
+int eech_engine_loss_state (int side, int *values, int capacity, int *count)
+{
+	entity *force_en;
+	force *raw;
+	int n = 0;
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!values || !count || side <= 0 || side >= NUM_ENTITY_SIDES || capacity < 3 + NUM_FORCE_INFO_CATAGORIES + 6 * NUM_ENTITY_SUB_TYPE_REGENS)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	force_en = get_local_force_entity ((entity_sides) side);
+	if (!force_en)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	raw = (force *) get_local_entity_data (force_en);
+	values[n] = 0;
+	for (int g = 0; g < NUM_ENTITY_SUB_TYPE_GROUPS; g++)
+	{
+		values[n] += raw->losses[g];
+	}
+	n++;
+	values[n++] = NUM_FORCE_INFO_CATAGORIES;
+	values[n++] = NUM_ENTITY_SUB_TYPE_REGENS;
+	for (int c = 0; c < NUM_FORCE_INFO_CATAGORIES; c++)
+	{
+		values[n++] = raw->force_info_current_hardware[c];
+	}
+	for (int r = 0; r < NUM_ENTITY_SUB_TYPE_REGENS; r++)
+	{
+		values[n++] = regen_manager[side][r].count;
+	}
+	for (int r = 0; r < NUM_ENTITY_SUB_TYPE_REGENS; r++)
+	{
+		values[n++] = regen_manager[side][r].front;
+	}
+	for (int r = 0; r < NUM_ENTITY_SUB_TYPE_REGENS; r++)
+	{
+		values[n++] = regen_manager[side][r].size;
+	}
+	for (int r = 0; r < NUM_ENTITY_SUB_TYPE_REGENS; r++)
+	{
+		const regen_management_element *m = &regen_manager[side][r];
+		const regen_list_element *last = (m->count > 0 && m->size > 0 && regen_queue[side][r]) ? &regen_queue[side][r][(m->front + m->count - 1) % m->size] : NULL;
+		values[n++] = last ? last->type : -1;
+		values[n++] = last ? last->sub_type : -1;
+		values[n++] = last ? last->group : -1;
+	}
+	*count = n;
 	LEAVE (EECH_ENGINE_OK);
 }
 

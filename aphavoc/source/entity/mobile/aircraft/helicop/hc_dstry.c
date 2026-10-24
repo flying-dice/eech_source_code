@@ -324,8 +324,8 @@ static void kill_local (entity *en)
 		*group,
 		*member;
 
-	int
-		loss_decision;
+	campaign_loss_ticket
+		loss;
 
 	////////////////////////////////////////
 	//
@@ -350,21 +350,13 @@ static void kill_local (entity *en)
 
 	ASSERT (group);
 
-	loss_decision = campaign_roster_observe_physical_loss (en, group);
-
-	if ((loss_decision != CAMPAIGN_LOSS_FORWARD) && (loss_decision != CAMPAIGN_LOSS_WITHHOLD))
-	{
-		debug_fatal ("campaign loss: invalid helicopter loss decision %d", loss_decision);
-	}
+	campaign_roster_accept_physical_loss (en, group, &loss);
 
 	//
 	// update force info
 	//
 
-	if (loss_decision == CAMPAIGN_LOSS_FORWARD)
-	{
-		remove_from_force_info (get_local_force_entity ((entity_sides) raw->ac.mob.side), en);
-	}
+	campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_FORCE_INFO);
 
 	if (tacview_is_logging())
 		write_tacview_unit_event(en, TACVIEW_UNIT_DESTROYED, NULL);
@@ -414,30 +406,21 @@ static void kill_local (entity *en)
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
-		if (loss_decision == CAMPAIGN_LOSS_FORWARD)
-		{
-			// notify regen of kill
+		// notify regen of kill
 
-			add_entity_to_regen_queue
-			(
-				(entity_sides) get_local_entity_int_value(en, INT_TYPE_SIDE),
-				get_local_entity_type(en),
-				get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE),
-				get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE)
-			);
+		campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_REGEN);
 
-			//
-			// notify task dependents
-			//
+		//
+		// notify task dependents
+		//
 
-			notify_member_task_dependents_completed (en);
+		campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_MEMBER_TASKS);
 
-			//
-			// Release landing lock (if any)
-			//
+		//
+		// Release landing lock (if any)
+		//
 
-			release_mobile_entity_landing_locks (en);
-		}
+		campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_LANDING);
 
 		//
 		// if group contains player, set all helicopters in group to "weapons free", and clear "hold position" flag
@@ -579,19 +562,13 @@ static void kill_local (entity *en)
 	// group losses
 	//
 
-	if (loss_decision == CAMPAIGN_LOSS_FORWARD)
-	{
-		increment_group_losses (group);
-	}
+	campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_GROUP_LOSS);
 
 	//
 	// task losses
 	//
 
-	if (loss_decision == CAMPAIGN_LOSS_FORWARD)
-	{
-		increment_group_primary_task_losses (group);
-	}
+	campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_TASK_LOSS);
 
 	//
 	// Notify Campaign Screen
@@ -603,18 +580,18 @@ static void kill_local (entity *en)
 	// Notify the GROUP that the mobile has been killed  (N.B. must be done AFTER mobile is unlinked from member list)
 	//
 
-	if ((get_comms_model () == COMMS_MODEL_SERVER) && (loss_decision == CAMPAIGN_LOSS_FORWARD))
+	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
-		notify_group_member_killed (group, en);
+		campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_MEMBER_KILLED);
 	}
 
 	//
 	// Notify force to check campaign criteria
 	//
 
-	if ((get_comms_model () == COMMS_MODEL_SERVER) && (loss_decision == CAMPAIGN_LOSS_FORWARD))
+	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
-		notify_forces_check_campaign_objectives (en);
+		campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_OBJECTIVES);
 	}
 
 	////////////////////////////////////////

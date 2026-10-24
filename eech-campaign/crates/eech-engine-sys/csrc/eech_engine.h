@@ -202,4 +202,17 @@ int eech_engine_diagnostics (void);
 int eech_engine_dependent_fixture (int op, int parent_id, int child_id, const double position[3], const struct eech_engine_host *host);
 #endif
 
+#ifdef EECH_LOSS_FIXTURE
+/* TEST-ONLY (feature loss-fixture): see eech_engine.c. Not part of the shipping module. */
+int eech_engine_loss_fixture (int entity_id, const struct eech_engine_host *host);
+/* TEST-ONLY: releases the tasks that target this hosted member's group, as the campaign does when it kills a group; *released is how many. */
+int eech_engine_loss_release (int entity_id, int *released, const struct eech_engine_host *host);
+/* TEST-ONLY: one side's total losses, force-info current hardware and regen queue lengths, read-only. */
+int eech_engine_loss_state (int side, int *values, int capacity, int *count);
+/* TEST-ONLY: the reason a bounded family would refuse to withhold this hosted member's loss ("" if it would accept), read-only. */
+int eech_engine_loss_shape (int entity_id, char *reason, int capacity);
+/* TEST-ONLY: the task dependents and guide stack of this hosted member's group, as text, read-only. */
+int eech_engine_loss_group (int entity_id, char *text, int capacity);
+#endif
+
 #endif

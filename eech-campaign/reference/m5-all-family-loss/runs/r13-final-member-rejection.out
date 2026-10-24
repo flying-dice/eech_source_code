@@ -1,0 +1,16 @@
+note	lone fixed_wing member eech-world:2702 answered forward (landed); trying the next
+negative	family=fixed_wing host_id=eech-world:2703 answer=withhold message=runtime error: eech: EECH fatal error: campaign loss: WITHHOLD does not support the final member of a group
+stack traceback:
+	[C]: in ?
+	[C]: in function 'pcall'
+	[string "loss-all-family.lua"]:216: in function 'kill'
+	[string "loss-all-family.lua"]:330: in main chunk
+
+check	negative.fails_explicitly	pass	runtime error: eech: EECH fatal error: campaign loss: WITHHOLD does not support the final member of a group
+stack traceback:
+	[C]: in ?
+	[C]: in function 'pcall'
+	[string "loss-all-family.lua"]:216: in function 'kill'
+	[string "loss-all-family.lua"]:330: in main chunk
+
+result	ok

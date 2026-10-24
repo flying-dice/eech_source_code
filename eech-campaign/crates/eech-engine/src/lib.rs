@@ -2035,6 +2035,86 @@ impl Engine {
         })
     }
 
+    /// TEST-ONLY (feature `loss-fixture`): ends one live hosted member through the campaign's own kill path.
+    #[cfg(feature = "loss-fixture")]
+    pub fn loss_fixture<F, G, H, M>(
+        &self,
+        entity_id: i32,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+    ) -> Result<(), EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+    {
+        // SAFETY: the temporary host callback is valid for the call.
+        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, move_vehicle_fn, |host| unsafe {
+            sys::eech_engine_loss_fixture(entity_id, host)
+        })
+    }
+
+    /// TEST-ONLY (feature `loss-fixture`): releases the tasks that target one hosted member's group, through the campaign's own task
+    /// completion handlers, and returns how many it notified.  Setup for the fixed-wing witness; the group itself is not ended.
+    #[cfg(feature = "loss-fixture")]
+    pub fn loss_release<F, G, H, M>(
+        &self,
+        entity_id: i32,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+    ) -> Result<i32, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+    {
+        let mut released = 0i32;
+        // SAFETY: the out pointer and the temporary host callback are valid for the call.
+        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, move_vehicle_fn, |host| unsafe {
+            sys::eech_engine_loss_release(entity_id, &mut released, host)
+        })?;
+        Ok(released)
+    }
+
+    /// TEST-ONLY (feature `loss-fixture`): one side's total losses, the category and regen-queue counts, then force-info current
+    /// hardware per category, then per regen queue its count, front and size and the type, sub type and group of the slot written
+    /// last, read-only.  These are the values the force-info and regen loss phases change.
+    #[cfg(feature = "loss-fixture")]
+    pub fn loss_state(&self, side: i32) -> Result<Vec<i32>, EngineError> {
+        let mut values = [0i32; 256];
+        let mut count = 0i32;
+        // SAFETY: the buffer and count outlive the call and the capacity passed is the buffer length.
+        check(unsafe { sys::eech_engine_loss_state(side, values.as_mut_ptr(), values.len() as i32, &mut count) })?;
+        Ok(values[..count as usize].to_vec())
+    }
+
+    /// TEST-ONLY (feature `loss-fixture`): why a bounded family would refuse to withhold this hosted member's loss, or `""` when it
+    /// would accept; read-only, runs the guard the withhold itself runs.
+    #[cfg(feature = "loss-fixture")]
+    pub fn loss_shape(&self, entity_id: i32) -> Result<String, EngineError> {
+        let mut reason = [0 as std::os::raw::c_char; 256];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_loss_shape(entity_id, reason.as_mut_ptr(), reason.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(reason.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `loss-fixture`): the task dependents and guide stack of this hosted member's group as text; read-only.
+    #[cfg(feature = "loss-fixture")]
+    pub fn loss_group(&self, entity_id: i32) -> Result<String, EngineError> {
+        let mut text = [0 as std::os::raw::c_char; 512];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_loss_group(entity_id, text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
     /// Applies one previously withheld loss by opaque physical-incarnation ID.
     /// Duplicate, unknown, stale and unsupported reports fail visibly and return no receipt.
     pub fn report_loss(&self, host_id: &str) -> Result<LossReceipt, EngineError> {

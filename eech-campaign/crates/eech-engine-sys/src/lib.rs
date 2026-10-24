@@ -591,6 +591,15 @@ extern "C" {
     pub fn eech_engine_dependent_fixture(op: c_int, parent_id: c_int, child_id: c_int, position: *const f64, host: *const eech_engine_host) -> c_int;
 }
 
+#[cfg(feature = "loss-fixture")]
+extern "C" {
+    pub fn eech_engine_loss_fixture(entity_id: c_int, host: *const eech_engine_host) -> c_int;
+    pub fn eech_engine_loss_release(entity_id: c_int, released: *mut c_int, host: *const eech_engine_host) -> c_int;
+    pub fn eech_engine_loss_state(side: c_int, values: *mut c_int, capacity: c_int, count: *mut c_int) -> c_int;
+    pub fn eech_engine_loss_shape(entity_id: c_int, reason: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_loss_group(entity_id: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
 // The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by
 // target) cannot move any float or int before it; the C struct in rv_hostmv.h declares them last as well.
 const _: () = assert!(core::mem::offset_of!(eech_movement_step, hc_draws) > core::mem::offset_of!(eech_movement_step, gv_water));
