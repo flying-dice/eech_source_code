@@ -460,6 +460,26 @@ static int is_bounded_family (int entity_type)
 		(entity_type == ENTITY_TYPE_SHIP_VEHICLE);
 }
 
+/*
+ * The one landing action a bounded family can carry through a withheld loss: an airborne
+ * fixed-wing member's release of the single reservation its group's primary task made at
+ * its landing site (capture_landing_actions, default branch).  The action must be exactly one
+ * UNRESERVE_SITE for one site at a fixed-wing landing that currently holds at least that many
+ * reservations.  Landing and takeoff routes, site unlocks, further or zero-count actions, and
+ * every other family are not this shape and stay refused.
+ */
+static int is_supported_fixed_wing_reservation (const campaign_loss_descriptor *descriptor)
+{
+	const campaign_loss_landing_action *action = &descriptor->landing_actions[0];
+
+	return (descriptor->entity_type == ENTITY_TYPE_FIXED_WING) &&
+		(descriptor->landing_action_count == 1) && (descriptor->landing_action_copied == 1) &&
+		(action->action_kind == CAMPAIGN_LOSS_LANDING_UNRESERVE_SITE) && (action->count == 1) &&
+		((action->landing_sub_type == ENTITY_SUB_TYPE_LANDING_FIXED_WING) ||
+			(action->landing_sub_type == ENTITY_SUB_TYPE_LANDING_FIXED_WING_TRANSPORT)) &&
+		action->landing_key && (action->reserved_landing_sites >= action->count);
+}
+
 /* The first reason the bounded families cannot withhold this loss, or NULL; the one rule begin_bounded_pending_loss enforces. */
 static const char *bounded_loss_refusal (entity *group, campaign_member_record *member_record, const campaign_loss_descriptor *descriptor, char *buffer, size_t size)
 {
@@ -485,7 +505,8 @@ static const char *bounded_loss_refusal (entity *group, campaign_member_record *
 	{
 		return "campaign loss: WITHHOLD does not support a member with task dependents";
 	}
-	if (descriptor->landing_action_count || descriptor->landing_action_copied)
+	if ((descriptor->landing_action_count || descriptor->landing_action_copied) &&
+		!is_supported_fixed_wing_reservation (descriptor))
 	{
 		return "campaign loss: WITHHOLD does not support a member with landing actions";
 	}
@@ -514,8 +535,9 @@ static const char *bounded_loss_refusal (entity *group, campaign_member_record *
 /*
  * The other five force families withhold only the plainest loss: an AI member of
  * a group that keeps at least one other physical member, with no task dependents,
- * landing actions, guide, movement or takeoff-queue relations of its own or its
- * group's.  Every other shape is a fatal, named refusal; none is approximated.
+ * guide, movement or takeoff-queue relations of its own or its group's, and no landing
+ * action except an airborne fixed-wing member's single site reservation.  Every other
+ * shape is a fatal, named refusal; none is approximated.
  */
 static void begin_bounded_pending_loss (entity *group, campaign_member_record *member_record, const campaign_loss_descriptor *descriptor)
 {
@@ -543,6 +565,11 @@ static void begin_bounded_pending_loss (entity *group, campaign_member_record *m
 	pending->group_sub_type = descriptor->group_sub_type;
 	pending->group_member_number = descriptor->group_member_number;
 	pending->force_info_category = needs_force_info ? descriptor->force_info_category : -1;
+	if (descriptor->landing_action_count)
+	{
+		pending->landing_key = descriptor->landing_actions[0].landing_key;
+		pending->landing_count = descriptor->landing_actions[0].count;
+	}
 	pending->state = CAMPAIGN_PENDING_LOSS_ACTIVE;
 	member_record->loss_pending = TRUE;
 }
@@ -1299,8 +1326,10 @@ static int physical_loss_is_final (const campaign_member_record *record)
  * inline on FORWARD, in the same order: force information, regen queue (fixed-wing,
  * routed vehicle), the logical unlink, group losses, primary task losses (fixed-wing,
  * routed vehicle, ship), then the group's member-killed handling.  A member with no
- * task dependents and no landing actions has nothing to complete or release, which
- * the withhold gate guarantees.  The lifetime rule of campaign_roster_report_loss
+ * task dependents has nothing to complete, which the withhold gate guarantees; the one
+ * landing action it admits, a fixed-wing member's single site reservation, is released in
+ * the LANDING phase, between the regeneration queue and the group loss as the forwarded
+ * path orders it.  The lifetime rule of campaign_roster_report_loss
  * applies: only the value copy is held, and entities are re-resolved before use.
  */
 static void report_bounded_loss (const char *host_id, const campaign_pending_loss *plan, campaign_loss_report_receipt *receipt)
@@ -1319,7 +1348,10 @@ static void report_bounded_loss (const char *host_id, const campaign_pending_los
 	int logical_members_before;
 	int logical_members_after;
 	int physical_members_before;
+	int landing_reserved_before = 0;
+	int landing_reserved_after = 0;
 	int phase = 0;
+	entity *landing;
 
 	group = campaign_reference_resolve (plan->group_reference_key, ENTITY_TYPE_GROUP);
 	if (get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE) != plan->group_sub_type)
@@ -1345,6 +1377,25 @@ static void report_bounded_loss (const char *host_id, const campaign_pending_los
 			debug_fatal ("campaign loss: primary task changed before report for %s", host_id);
 		}
 		task_losses_before = get_local_entity_int_value (primary_task, INT_TYPE_LOSSES);
+	}
+	if (plan->landing_key)
+	{
+		int landing_sub_type;
+
+		landing = campaign_reference_resolve (plan->landing_key, ENTITY_TYPE_LANDING);
+		landing_sub_type = get_local_entity_int_value (landing, INT_TYPE_ENTITY_SUB_TYPE);
+		if ((plan->entity_type != ENTITY_TYPE_FIXED_WING) || (plan->landing_count != 1) ||
+			((landing_sub_type != ENTITY_SUB_TYPE_LANDING_FIXED_WING) &&
+				(landing_sub_type != ENTITY_SUB_TYPE_LANDING_FIXED_WING_TRANSPORT)))
+		{
+			debug_fatal ("campaign loss: landing changed before report for %s", host_id);
+		}
+		landing_reserved_before = get_local_entity_int_value (landing, INT_TYPE_RESERVED_LANDING_SITES);
+		if (landing_reserved_before < plan->landing_count)
+		{
+			debug_fatal ("campaign loss: landing reservation changed before report for %s", host_id);
+		}
+		landing = NULL;
 	}
 	group_losses_before = get_local_entity_int_value (group, INT_TYPE_LOSSES);
 	member_record = find_member_record (plan->member_key);
@@ -1376,6 +1427,14 @@ static void report_bounded_loss (const char *host_id, const campaign_pending_los
 			(entity_sub_types) plan->sub_type,
 			(entity_sub_types) plan->group_sub_type
 		);
+	}
+	if (plan->landing_key)
+	{
+		advance_loss_phase (&phase, CAMPAIGN_LOSS_PHASE_LANDING, host_id);
+		landing = campaign_reference_resolve (plan->landing_key, ENTITY_TYPE_LANDING);
+		unreserve_local_landing_sites (landing, plan->landing_count);
+		landing_reserved_after = get_local_entity_int_value (landing, INT_TYPE_RESERVED_LANDING_SITES);
+		landing = NULL;
 	}
 
 	/* The logical-unlink phase: after the member-bound consequences, before the group loss. */
@@ -1426,6 +1485,8 @@ static void report_bounded_loss (const char *host_id, const campaign_pending_los
 
 	/* Filled only now, after every fatal check: a failed report leaves the caller's receipt untouched. */
 	memset (receipt, 0, sizeof (*receipt));
+	receipt->landing_reserved_before = landing_reserved_before;
+	receipt->landing_reserved_after = landing_reserved_after;
 	receipt->group_losses_before = group_losses_before;
 	receipt->group_losses_after = group_losses_after;
 	receipt->primary_task_losses_before = task_losses_before;

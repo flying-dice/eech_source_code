@@ -7,8 +7,8 @@
 -- combat that would end a member at a time a scenario cannot choose; it is not a causal claim about combat (D2).
 --
 -- Per family (fixed_wing, routed, anti_air, person, ship) the host answers `withhold` for one member A whose shape the
--- bounded case supports (AI, not landed, a non-final group, no group/member task dependents, no landing actions, no
--- movement relations). A member whose shape is not supported is answered `forward` by the host (a host policy decision on
+-- bounded case supports (AI, not landed, a non-final group, no group/member task dependents, no landing action but a
+-- fixed-wing member's one site reservation, no movement relations). A member whose shape is not supported is answered `forward` by the host (a host policy decision on
 -- the descriptor the campaign supplied) and the next candidate is tried; those are listed as `skipped`. Then:
 --   * campaign transition: A leaves the campaign group at once, but the group still counts it logically (the withheld
 --     loss has no campaign consequence yet);
@@ -99,6 +99,12 @@ local function bind_mobile (descriptor)
 	return id
 end
 
+-- the one landing action the bounded WITHHOLD carries: a fixed-wing member's single reservation release
+local function fixed_wing_reservation (d)
+	local a = d.landing_actions and d.landing_actions [1]
+	return d.entity_type == ENTITY.fixed_wing and d.landing_action_count == 1 and a ~= nil and a.action == "unreserve_site" and a.count == 1
+end
+
 -- the shapes the campaign's bounded WITHHOLD supports; anything else the host forwards
 local function unsupported (d)
 	if d.player ~= 0 then return "not an AI member" end
@@ -107,7 +113,7 @@ local function unsupported (d)
 	if d.group_task_dependents ~= 0 or d.restricted_guides ~= 0 then return "group task dependents or restricted guides" end
 	if d.movement_parent or d.movement_dependents ~= 0 or d.takeoff_queue then return "movement relations" end
 	if d.member_task_dependent_count ~= 0 then return "member task dependents" end
-	if d.landing_action_count ~= 0 then return "landing actions" end
+	if d.landing_action_count ~= 0 and not fixed_wing_reservation (d) then return "landing actions" end
 	return nil
 end
 
@@ -443,7 +449,7 @@ for _, family in ipairs (order) do
 		check (family .. ".withheld_force_info_and_regen_unchanged", withheld_delta and is_unchanged (withheld_delta), withheld_delta and withheld_delta.text)
 
 		-- FORWARD control B of the same group, answered by the reference host while A is pending
-		local forwarded = 0
+		local forwarded, control_descriptor = 0, nil
 		-- run only when a member survives it: forwarding the second-to-last member while A is pending would free the group
 		local control = n >= 3 and same_group (family, group_key, tried) or nil
 		if not control then
@@ -467,9 +473,11 @@ for _, family in ipairs (order) do
 			if ok and entry and entry.answer == "forward" then
 				forwarded = 1
 				last_forwarded = control_id
+				control_descriptor = entry.descriptor
 			end
 		end
-		withheld [#withheld + 1] = { family = family, id = id, candidate = candidate, descriptor = d, n = n, group_key = group_key, tried = tried, forwarded = forwarded }
+		withheld [#withheld + 1] = { family = family, id = id, candidate = candidate, descriptor = d, n = n, group_key = group_key, tried = tried, forwarded = forwarded,
+			control_descriptor = control_descriptor }
 	end
 end
 
@@ -495,6 +503,7 @@ print (string.format ("settled	%d frames of %d ms (%.1f game minutes)", waited, 
 -- stage 3: per family, the report and the probe
 local function report_family (w)
 	local family, id, candidate, d, n, group_key, tried, forwarded = w.family, w.id, w.candidate, w.descriptor, w.n, w.group_key, w.tried, w.forwarded
+	local control_descriptor = w.control_descriptor
 	local still = find_member (id)
 	print (string.format ("wreck	%s	at_report physical_present=%s in_group=%s after %d frames", family,
 		tostring (still and still.physical_present), tostring (still and still.in_group), waited))
@@ -529,8 +538,30 @@ local function report_family (w)
 	else
 		check (family .. ".primary_task_losses_unchanged", receipt.primary_task_losses_after == receipt.primary_task_losses_before)
 	end
-	check (family .. ".no_landing_or_task_work", receipt.landing_reserved_before == 0 and receipt.landing_reserved_after == 0
-		and receipt.tasks_retired_expire == 0 and receipt.tasks_completed_on_report == 0)
+	if fixed_wing_reservation (d) then
+		-- the withheld kill left the reservation in place (this family's own same-stack FORWARD control, which read the reservation
+		-- after A was withheld, saw the count A saw), the control released its own once, and the report released A's once.
+		-- The control is stored per withheld entry, never the global last_forwarded, which a later family overwrites.
+		local a = d.landing_actions [1]
+		local c = control_descriptor and control_descriptor.landing_actions and control_descriptor.landing_actions [1]
+		local same_landing = c and c.landing_key == a.landing_key
+		print (string.format ("landing	%s	observe reserved=%d control_saw=%s report=%d>%d", family, a.reserved_landing_sites,
+			same_landing and tostring (c.reserved_landing_sites) or "n/a", receipt.landing_reserved_before, receipt.landing_reserved_after))
+		check (family .. ".landing_reservation_released_once", receipt.landing_reserved_before >= 1
+			and receipt.landing_reserved_after == receipt.landing_reserved_before - 1,
+			string.format ("%d>%d", receipt.landing_reserved_before, receipt.landing_reserved_after))
+		-- required causal proof: without a same-landing control the withheld-reservation claim is unproven, so it fails, not skips
+		local controlled = same_landing and forwarded == 1
+		local no_control = "no same-landing FORWARD control observed for this family"
+		check (family .. ".withhold_preserved_reservation", controlled and c.reserved_landing_sites == a.reserved_landing_sites,
+			controlled and string.format ("A saw %d, control saw %d", a.reserved_landing_sites, c.reserved_landing_sites) or no_control)
+		check (family .. ".reservation_released_once_per_loss", controlled and receipt.landing_reserved_before == c.reserved_landing_sites - 1,
+			controlled and string.format ("control saw %d, report before %d", c.reserved_landing_sites, receipt.landing_reserved_before) or no_control)
+		check (family .. ".no_task_work", receipt.tasks_retired_expire == 0 and receipt.tasks_completed_on_report == 0)
+	else
+		check (family .. ".no_landing_or_task_work", receipt.landing_reserved_before == 0 and receipt.landing_reserved_after == 0
+			and receipt.tasks_retired_expire == 0 and receipt.tasks_completed_on_report == 0)
+	end
 	last_reported = id
 	for _ = 1, 10 do engine:frame (frame_ms) end
 

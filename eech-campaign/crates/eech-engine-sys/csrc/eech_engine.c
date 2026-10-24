@@ -921,7 +921,16 @@ int eech_engine_loss_group (int entity_id, char *text, int capacity)
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
 	text[0] = 0;
-#define LOSS_GROUP_APPEND(...) \n	do \n	{ \n		int n_ = snprintf (line, sizeof (line), __VA_ARGS__); \n		if ((n_ > 0) && (used + n_ < capacity - 1)) \n		{ \n			memcpy (text + used, line, (size_t) n_ + 1); \n			used += n_; \n		} \n	} while (0)
+#define LOSS_GROUP_APPEND(...) \
+	do \
+	{ \
+		int n_ = snprintf (line, sizeof (line), __VA_ARGS__); \
+		if ((n_ > 0) && (used + n_ < capacity - 1)) \
+		{ \
+			memcpy (text + used, line, (size_t) n_ + 1); \
+			used += n_; \
+		} \
+	} while (0)
 	LOSS_GROUP_APPEND ("member_number=%d", get_local_entity_int_value (en, INT_TYPE_GROUP_MEMBER_NUMBER));
 	child = get_local_entity_first_child (group, LIST_TYPE_TASK_DEPENDENT);
 	while (child)
