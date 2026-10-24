@@ -1,0 +1,81 @@
+SYNTHETIC green-fixture-only                 exit 0 (want 0) ok | SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: SYNTHETIC-GREEN eech_dc.dll 9dfbb9fa97ae at aaaaaaaa
+SYNTHETIC green-states-its-scope             exit 0 (want 0) ok | SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: SYNTHETIC-GREEN eech_dc.dll 9dfbb9fa97ae at aaaaaaaa
+SYNTHETIC clean-dll-no-object-manifest       exit 2 (want 2) ok | SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: INCOMPLETE eech_dc.dll 9dfbb9fa97ae at aaaaaaaa
+SYNTHETIC physical-function-defined          exit 1 (want 1) ok | SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: FAIL eech_dc.dll cc3eb2444254 at aaaaaaaa
+SYNTHETIC physical-no-manifest-still-fail    exit 1 (want 1) ok | SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: FAIL eech_dc.dll dd3b1fd6238e at aaaaaaaa
+SYNTHETIC doubled-symbol-table               exit 1 (want 1) ok | SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: FAIL eech_dc.dll ee31a029cce7 at aaaaaaaa
+SYNTHETIC world-file-dropped-from-sources    exit 1 (want 1) ok | SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: FAIL eech_dc.dll cc3eb2444254 at aaaaaaaa
+SYNTHETIC renamed-in-dll-physical-stub       exit 1 (want 1) ok | SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: FAIL eech_dc.dll 74135ddaf96e at aaaaaaaa
+SYNTHETIC renamed-stub-world-file-dropped    exit 1 (want 1) ok | SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: FAIL eech_dc.dll 74135ddaf96e at aaaaaaaa
+SYNTHETIC world-objects-in-link-map          exit 1 (want 1) ok | SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: FAIL eech_dc.dll 9dfbb9fa97ae at aaaaaaaa
+SYNTHETIC doubled-world-object-manifest      exit 2 (want 2) ok | INCOMPLETE: the object manifest lists 4 objects more than once, e.g. build/aphavoc/source/ai/campaig
+SYNTHETIC zero-world-fixture-green           exit 0 (want 0) ok | SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: SYNTHETIC-GREEN eech_dc.dll 9dfbb9fa97ae at aaaaaaaa
+SYNTHETIC zero-world-judged-vs-reference     ok | compiled world units 0, reference physical functions 2
+SYNTHETIC zero-world-known-physical-stub     exit 1 (want 1) ok | SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: FAIL eech_dc.dll cc3eb2444254 at aaaaaaaa
+SYNTHETIC zero-world-known-environment-stub  exit 1 (want 1) ok | SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: FAIL eech_dc.dll dd3b1fd6238e at aaaaaaaa
+SYNTHETIC zero-world-renamed-stub            exit 1 (want 1) ok | SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: FAIL eech_dc.dll 74135ddaf96e at aaaaaaaa
+SYNTHETIC man-header-wrong-then-right        exit 2 (want 2) ok | INCOMPLETE: the object manifest repeats source-commit at line 3
+SYNTHETIC man-header-right-then-wrong        exit 2 (want 2) ok | INCOMPLETE: the object manifest repeats source-commit at line 3
+SYNTHETIC man-header-identical-repeat        exit 2 (want 2) ok | INCOMPLETE: the object manifest repeats source-commit at line 3
+SYNTHETIC man-header-malformed-repeat        exit 2 (want 2) ok | INCOMPLETE: the object manifest repeats source-commit at line 3
+SYNTHETIC man-header-truncated-repeat        exit 2 (want 2) ok | INCOMPLETE: the object manifest has an unknown or malformed record at line 1: 'source-commit: '
+SYNTHETIC man-sha-repeat                     exit 2 (want 2) ok | INCOMPLETE: the object manifest repeats dll-sha256 at line 2
+SYNTHETIC man-unknown-record                 exit 2 (want 2) ok | INCOMPLETE: the object manifest has an unknown or malformed record at line 5: 'extra: x'
+SYNTHETIC man-bare-line                      exit 2 (want 2) ok | INCOMPLETE: the object manifest has an unknown or malformed record at line 5: 'campaign.o'
+SYNTHETIC man-empty-object                   exit 2 (want 2) ok | INCOMPLETE: the object manifest has an unknown or malformed record at line 5: 'object: '
+SYNTHETIC man-commit-malformed               exit 2 (want 2) ok | INCOMPLETE: the object manifest source-commit is malformed: 'zz'
+SYNTHETIC man-no-headers                     exit 2 (want 2) ok | INCOMPLETE: the object manifest has no dll-sha256 record
+SYNTHETIC duplicate-clean-object             exit 2 (want 2) ok | INCOMPLETE: the object manifest lists 1 objects more than once, e.g. build/aphavoc/source/ai/campaig
+SYNTHETIC duplicate-clean-object-backslashes exit 2 (want 2) ok | INCOMPLETE: the object manifest lists 1 objects more than once, e.g. build/aphavoc/source/ai/campaig
+SYNTHETIC duplicate-unit-other-directory     exit 2 (want 2) ok | INCOMPLETE: the object manifest lists compiled unit aphavoc/source/ai/campaign.c more than once
+SYNTHETIC blank-symbol-table                 exit 2 (want 2) ok | INCOMPLETE: the DLL has no COFF symbol table (stripped); nothing can be corroborated
+SYNTHETIC truncated-symbol-table             exit 2 (want 2) ok | INCOMPLETE: malformed PE image: subsection not found
+SYNTHETIC symbol-count-beyond-file           exit 2 (want 2) ok | INCOMPLETE: malformed PE image: subsection not found
+SYNTHETIC non-pe-input                       exit 2 (want 2) ok | INCOMPLETE: not a PE file
+SYNTHETIC no-lua-entry-point                 exit 2 (want 2) ok | INCOMPLETE: the DLL does not define luaopen_eech_dc; it is not the EECH_DC module
+SYNTHETIC symbols-fail-sanity-heuristic      exit 2 (want 2) ok | INCOMPLETE: only 0 of 3 campaign functions from source are defined in the DLL; the symbol table does
+SYNTHETIC platform-imports-recorded          exit 0 (want 0) ok | SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: SYNTHETIC-GREEN eech_dc.dll 5f30cdeb4a52 at aaaaaaaa
+SYNTHETIC dll-sha-mismatch                   exit 2 (want 2) ok | INCOMPLETE: the DLL sha256 9dfbb9fa97ae2b2ab8236eee6c22573cff7e67b82949b32f730b2ffc46c8d075 is not t
+SYNTHETIC dirty-build-info                   exit 2 (want 2) ok | INCOMPLETE: the DLL was built with 3 uncommitted input files; its source is not a revision
+SYNTHETIC malformed-build-info               exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO commit is malformed: 'commit: nothing'
+SYNTHETIC info-commit-correct-then-wrong     exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO has 2 'commit:' records, need exactly one
+SYNTHETIC info-commit-wrong-then-right       exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO has 2 'commit:' records, need exactly one
+SYNTHETIC info-commit-identical-repeat       exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO has 2 'commit:' records, need exactly one
+SYNTHETIC info-commit-truncated-repeat       exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO has 2 'commit:' records, need exactly one
+SYNTHETIC info-commit-truncated              exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO commit is malformed: 'commit: aaaaaaaaaaaaaaaaaaaa'
+SYNTHETIC info-dirty-count-repeated          exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO has 2 'uncommitted changes' records, need exactly one
+SYNTHETIC info-dirty-count-malformed         exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO uncommitted count is malformed: 'uncommitted changes in the build inputs: no
+SYNTHETIC info-sha-row-wrong-then-right      exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO lists eech_dc.dll twice
+SYNTHETIC info-sha-row-right-then-wrong      exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO lists eech_dc.dll twice
+SYNTHETIC info-sha-row-truncated             exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO has a malformed sha256 row: '  abcd  lua.dll'
+SYNTHETIC info-sha-block-repeated            exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO has 2 'sha256:' blocks, need exactly one
+SYNTHETIC info-sha-header-truncated-before-block exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO has a malformed sha256 header record: 'sha256: truncated'
+SYNTHETIC info-sha-header-truncated-after-block exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO has a malformed sha256 header record: 'sha256: truncated'
+SYNTHETIC info-sha-header-bare-before-block  exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO has a malformed sha256 header record: 'sha256'
+SYNTHETIC info-sha-header-hash-value-before-block exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO has a malformed sha256 header record: 'sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+SYNTHETIC info-sha-header-uppercase-before-block exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO has a malformed sha256 header record: 'SHA256:'
+SYNTHETIC info-sha-header-indented-before-block exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO has a malformed sha256 header record: '  sha256: x'
+SYNTHETIC info-sha-header-identical-before-block exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO has 2 'sha256:' blocks, need exactly one
+SYNTHETIC info-sha-header-only-truncated     exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO has a malformed sha256 header record: 'sha256: truncated'
+SYNTHETIC info-no-sha-block                  exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO has 0 'sha256:' blocks, need exactly one
+SYNTHETIC info-not-text                      exit 2 (want 2) ok | INCOMPLETE: cannot read BUILD-INFO: 'charmap' codec can't decode byte 0x81 in position 0: character
+SYNTHETIC info-real-layout-still-reads       exit 0 (want 0) ok | SYNTHETIC FIXTURE, NOT ACCEPTANCE EVIDENCE: SYNTHETIC-GREEN eech_dc.dll 9dfbb9fa97ae at aaaaaaaa
+SYNTHETIC wrong-expected-commit              exit 2 (want 2) ok | INCOMPLETE: BUILD-INFO commit aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa is not the expected bbbbbbbbb
+SYNTHETIC unresolvable-commit-no-fixture     exit 2 (want 2) ok | INCOMPLETE: git ls-tree -r --name-only ffffffffffffffffffffffffffffffffffffffff failed: fatal: not a
+SYNTHETIC stale-manifest-other-dll           exit 2 (want 2) ok | INCOMPLETE: the object manifest is for another DLL (stale): dll-sha256 11111111111111111111111111111
+SYNTHETIC stale-manifest-other-commit        exit 2 (want 2) ok | INCOMPLETE: the object manifest is for another source commit: cccccccccccccccccccccccccccccccccccccc
+SYNTHETIC incomplete-manifest-missing-campaign exit 2 (want 2) ok | INCOMPLETE: the object manifest is incomplete: 0 objects map to no compiled unit, 1 campaign units a
+SYNTHETIC manifest-object-maps-to-no-unit    exit 2 (want 2) ok | INCOMPLETE: the object manifest is incomplete: 1 objects map to no compiled unit, 0 campaign units a
+SYNTHETIC empty-manifest                     exit 2 (want 2) ok | INCOMPLETE: the object manifest lists no objects
+SYNTHETIC missing-manifest-file              exit 2 (want 2) ok | INCOMPLETE: cannot read the object manifest: [Errno 2] No such file or directory: <temp path elided>
+SYNTHETIC empty-sources-txt                  exit 2 (want 2) ok | INCOMPLETE: sources.txt lists no compiled units
+SYNTHETIC no-world-in-build-or-reference     exit 2 (want 2) ok | INCOMPLETE: the path classes find no world/environment definition in the compiled units or the refer
+SYNTHETIC no-campaign-function-in-build      exit 2 (want 2) ok | INCOMPLETE: no campaign function is defined in the compiled units; the rules are stale
+SYNTHETIC compiled-unit-not-in-tree          exit 2 (want 2) ok | INCOMPLETE: 1 compiled units are not in the source tree, e.g. modules/misc/missing.c
+RETAINED  retained-dll-no-manifest           exit 1 (want 1) ok | FAIL eech_dc.dll 60cff8d96b97 at 5a3b0139
+RETAINED  retained-dll-clean-looking-manifest exit 1 (want 1) ok | FAIL eech_dc.dll 60cff8d96b97 at 5a3b0139
+RETAINED  retained-dll-world-objects-listed  exit 1 (want 1) ok | FAIL eech_dc.dll 60cff8d96b97 at 5a3b0139
+RETAINED  retained-dll-one-byte-changed      exit 2 (want 2) ok | INCOMPLETE: the DLL sha256 d774519d0364b306baa274f9adf8734dbca7073b0815ef3c99e6e8cd7b3830b3 is not t
+RETAINED  retained-dll-truncated             exit 2 (want 2) ok | INCOMPLETE: malformed PE image: unpack_from requires a buffer of at least 13229074 bytes for unpacki
+RETAINED  retained-dll-head-as-build-commit  exit 1 (want 1) ok | FAIL eech_dc.dll 60cff8d96b97 at 69110bcc
+80/80 cases as expected

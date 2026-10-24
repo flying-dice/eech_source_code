@@ -94,6 +94,8 @@ jobs:
         run: |
           python3 -I reference/m5-supply-arrivals/verify-hashes.py
           python3 -I reference/m5-supply-arrivals/verify-hashes-selftest.py
+      - name: World-boundary guard selftest (portable synthetic cases; real-DLL cases are skipped here, not passed)
+        run: python3 -I tools/world-boundary-check-selftest.py
 
   dcs-probe-tools:
     # the DCS probe tooling's portable checks (hosted CI has no DCS): syntax of each tool language,
