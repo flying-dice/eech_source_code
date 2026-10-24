@@ -1,0 +1,165 @@
+name: eech-campaign
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "eech-campaign/**"
+      - "aphavoc/**"
+      - "modules/**"
+      - ".github/workflows/eech-campaign.yml"
+  pull_request:
+    paths:
+      - "eech-campaign/**"
+      # the native module compiles the original C sources
+      - "aphavoc/**"
+      - "modules/**"
+      - ".github/workflows/eech-campaign.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: eech-campaign-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: eech-campaign
+    env:
+      # tools/Dockerfile's GCC 12: GCC 14 makes the original sources'
+      # incompatible-pointer warnings errors
+      CC: gcc-12
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # the intended native target
+          - target: x86_64-unknown-linux-gnu
+            env: ""
+          # EECH's historical platform: platform parity of the same module
+          - target: i686-unknown-linux-gnu
+            env: ""
+          # i686 with en_creat.c's original va_list reinterpretation: patch P1 is behaviour-neutral
+          - target: i686-unknown-linux-gnu
+            env: EECH_ORIGINAL_STACK_ATTRIBUTES=1
+          # an optimised kernel reproduces the C reference too (docs/fpu.md)
+          - target: x86_64-unknown-linux-gnu
+            env: EECH_C_OPT=2
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          sudo apt-get update
+          # the host links PUC Lua 5.1 (crates/eech-world/build.rs), for the target's arch
+          if [ "${{ matrix.target }}" = i686-unknown-linux-gnu ]; then
+            sudo dpkg --add-architecture i386
+            sudo apt-get update
+            lua=liblua5.1-0-dev:i386
+          else
+            lua=liblua5.1-0-dev
+          fi
+          sudo apt-get install -y --no-install-recommends gcc gcc-multilib gcc-12 gcc-12-multilib $lua
+          rustup target add ${{ matrix.target }}
+      - name: Test
+        run: env ${{ matrix.env }} cargo test --locked --target ${{ matrix.target }}
+      - name: Lints
+        if: matrix.target == 'x86_64-unknown-linux-gnu' && matrix.env == ''
+        run: |
+          cargo fmt --check
+          cargo clippy --locked --all-targets -- -D warnings
+
+  evidence-selftest:
+    # the helpers that compare retained evidence must fail closed; --strict fails the job if a
+    # symbolic-link or permission case cannot run here (junction cases are Windows-only by design)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: eech-campaign
+    steps:
+      - uses: actions/checkout@v4
+      - name: Evidence comparison selftest
+        run: python3 -I reference/pr59-candidate-identity/compare-selftest.py --strict
+      - name: Host-identity retained hashes
+        run: |
+          python3 -I reference/m5-host-identities/verify-hashes.py
+          python3 -I reference/m5-host-identities/verify-hashes-selftest.py
+      - name: Supply-arrival retained hashes
+        run: |
+          python3 -I reference/m5-supply-arrivals/verify-hashes.py
+          python3 -I reference/m5-supply-arrivals/verify-hashes-selftest.py
+
+  dcs-probe-tools:
+    # the DCS probe tooling's portable checks (hosted CI has no DCS): syntax of each tool language,
+    # and the self-test with an explicit Lua 5.1, so its Lua cases run and can fail the job
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: eech-campaign/tools/dcs-probe
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lua 5.1
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends lua5.1
+      - name: Syntax
+        run: |
+          luac5.1 -p *.lua
+          python3 -I -m py_compile *.py
+          pwsh -NoProfile -Command '$errors = $null; [void][System.Management.Automation.Language.Parser]::ParseFile("$PWD/run-dcs-probe.ps1", [ref]$null, [ref]$errors); if ($errors) { $errors; exit 1 }'
+      - name: Self-test
+        run: python3 -I dcs-probe-selftest.py "$(command -v lua5.1)"
+      - name: SUPPLY arrival runner inputs
+        # an unknown lifecycle case is rejected before setup, and the runners' argument string
+        # reaches a real child process unchanged (spaces, quotes, backslashes, empty argument)
+        working-directory: eech-campaign
+        run: |
+          luac5.1 -p crates/eech-world/lua/supply-arrivals-lifecycle.lua
+          python3 -I tools/supply-arrivals-tools-selftest.py "$(command -v lua5.1)" "$(command -v pwsh)"
+
+  windows-cross:
+    # LLP64 (the DCS platform): MinGW cross build, run under Wine
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: eech-campaign
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          # The runner's apt mirror list (mirror+file:/etc/apt/apt-mirrors.txt)
+          # resolves to azure.archive.ubuntu.com, whose package downloads stalled
+          # past the job timeout. Point only those entries at the canonical HTTPS
+          # archive; other sources, suites and signature checks are unchanged.
+          sudo find /etc/apt -maxdepth 2 -type f \( -name sources.list -o -name '*.sources' -o -name '*.list' \) \
+            -exec sed -i -E 's#(mirror\+file:/etc/apt/apt-mirrors\.txt|https?://azure\.archive\.ubuntu\.com/ubuntu/?)#https://archive.ubuntu.com/ubuntu#g' {} +
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gcc-mingw-w64-x86-64 wine wine64
+          sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+          rustup target add x86_64-pc-windows-gnu
+      - name: Lua 5.1.5 as lua.dll
+        # the vendored DCS import lib (crates/eech-dc/lua5.1/lua.lib) is not in
+        # the repository, so build the same lua.dll as tools/Dockerfile does
+        working-directory: ${{ runner.temp }}
+        run: |
+          curl -fsSL -o lua.tar.gz https://www.lua.org/ftp/lua-5.1.5.tar.gz
+          echo "2640fc56a795f29d28ef15e13c34a47e223960b0240e8cb0a82d9b0738695333  lua.tar.gz" | sha256sum -c -
+          mkdir -p lua-mingw/include && tar xzf lua.tar.gz && cd lua-5.1.5/src
+          x86_64-w64-mingw32-gcc -O2 -DLUA_BUILD_AS_DLL -c $(ls *.c | grep -v -E '^(lua|luac|print)\.c$')
+          x86_64-w64-mingw32-gcc -shared -o ../../lua-mingw/lua.dll *.o -Wl,--out-implib,../../lua-mingw/liblua.dll.a
+          cp lua.h luaconf.h lualib.h lauxlib.h ../../lua-mingw/include/
+      - name: Test under Wine
+        env:
+          WINEDEBUG: -all
+          CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUNNER: wine
+          LUA_LIB: ${{ runner.temp }}/lua-mingw
+          WINEPATH: ${{ runner.temp }}/lua-mingw
+        run: cargo test --locked --target x86_64-pc-windows-gnu

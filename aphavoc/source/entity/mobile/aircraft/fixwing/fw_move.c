@@ -1110,7 +1110,13 @@ void fixed_wing_taxi(entity *en, vec3d *current_pos, vec3d *dist, vec3d *new_pos
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void fixed_wing_movement_get_waypoint_position (entity *en, vec3d *wp_pos)
+// EEDCS-39 R1: in a host-movement build the terrain-follow height adjustment is physical and the host's.  `terrain`
+// receives the campaign's part of it (the guide position, the minimum height, the host's look-ahead point and the terrain
+// elevation answered there, the formation and centre-of-gravity heights added afterwards) and the height left in wp_pos
+// is the unshaped campaign intent.  A caller that passes no terrain (a debug draw) gets that unshaped height and asks the
+// host nothing.  The build that moves aircraft itself adjusts the height here as it always did
+
+static void fixed_wing_movement_waypoint (entity *en, vec3d *wp_pos, campaign_fixed_wing_terrain *terrain)
 {
 	entity
 		*wp,
@@ -1119,6 +1125,7 @@ void fixed_wing_movement_get_waypoint_position (entity *en, vec3d *wp_pos)
 
 	float
 		distance,
+		cg_to_ground,
 		min_height,
 		terrain_elevation;
 
@@ -1139,6 +1146,11 @@ void fixed_wing_movement_get_waypoint_position (entity *en, vec3d *wp_pos)
 	ASSERT (en);
 
 	ASSERT (wp_pos);
+
+	if (terrain)
+	{
+		memset (terrain, 0, sizeof (*terrain));
+	}
 
 	group = get_local_entity_parent (en, LIST_TYPE_MEMBER);
 
@@ -1232,7 +1244,29 @@ void fixed_wing_movement_get_waypoint_position (entity *en, vec3d *wp_pos)
 
 					min_height = max (get_local_entity_float_value (wp, FLOAT_TYPE_ALTITUDE), min_height);
 
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+					if (terrain)
+					{
+						// the host chooses the look-ahead point from its own pose, the terrain service answers there (transitional) and
+						// the host performs the climb arithmetic: nothing is adjusted here
+
+						terrain->follow = TRUE;
+						terrain->min_height = min_height;
+						terrain->guide_position [0] = wp_pos->x;
+						terrain->guide_position [1] = wp_pos->y;
+						terrain->guide_position [2] = wp_pos->z;
+
+						campaign_movement_fixed_wing_lookahead (en, &terrain->sample_point [0], &terrain->sample_point [1]);
+
+						terrain->sample_elevation = get_3d_terrain_fast_elevation (terrain->sample_point [0], terrain->sample_point [1]);
+					}
+
+#else
+
 					mobile_terrain_adjust_waypoint_height (en, wp_pos, min_height);
+
+#endif
 				}
 
 				if (!get_local_entity_int_value (en, INT_TYPE_GROUP_LEADER))
@@ -1317,6 +1351,11 @@ void fixed_wing_movement_get_waypoint_position (entity *en, vec3d *wp_pos)
 					wp_pos->x += ((xv.x * formation->sites [formation_index].x) - (xv.z * formation->sites [formation_index].z));
 					wp_pos->y += formation->sites [formation_index].y;
 					wp_pos->z += ((xv.x * formation->sites [formation_index].z) + (xv.z * formation->sites [formation_index].x));
+
+					if (terrain)
+					{
+						terrain->site_y = formation->sites [formation_index].y;
+					}
 				}
 			}
 			else
@@ -1398,7 +1437,14 @@ void fixed_wing_movement_get_waypoint_position (entity *en, vec3d *wp_pos)
 		// align waypoint altitude with the lowest point on the aircraft
 		//
 
-		wp_pos->y += get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+		cg_to_ground = get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+
+		wp_pos->y += cg_to_ground;
+
+		if (terrain)
+		{
+			terrain->cg = cg_to_ground;
+		}
 	}
 
 	//
@@ -1408,6 +1454,11 @@ void fixed_wing_movement_get_waypoint_position (entity *en, vec3d *wp_pos)
 	distance = get_2d_range (pos, wp_pos);
 
 	set_local_entity_float_value (en, FLOAT_TYPE_DISTANCE, distance);
+}
+
+void fixed_wing_movement_get_waypoint_position (entity *en, vec3d *wp_pos)
+{
+	fixed_wing_movement_waypoint (en, wp_pos, NULL);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1531,6 +1582,301 @@ static void fixed_wing_movement_avoid_enemy_fire (entity *en, vec3d *wp_pos)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// the campaign's cannon policy: is this aircraft, on a hostile target waypoint of its engage task, with an unguided
+// weapon selected and the target within 1.7 times the weapon's effective range?  (EEDCS-39: the policy stays here; what
+// the aircraft then physically does about it is the host's)
+
+static int fixed_wing_aiming_cannon (entity *en, vec3d *current_pos)
+{
+	fixed_wing
+		*raw;
+
+	entity
+		*wp,
+		*guide,
+		*task,
+		*target;
+
+	int
+		selected_weapon;
+
+	vec3d
+		*target_pos;
+
+	raw = (fixed_wing *) get_local_entity_data (en);
+
+	if (!raw->ac.mob.target_link.parent)
+	{
+		return FALSE;
+	}
+
+	wp = get_local_entity_current_waypoint (en);
+
+	if (get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE) != 27)
+	{
+		return FALSE;
+	}
+
+	guide = get_local_entity_parent (en, LIST_TYPE_FOLLOWER);
+
+	if (!guide)
+	{
+		return FALSE;
+	}
+
+	task = get_local_entity_current_task (en);
+
+	if (!task)
+	{
+		return FALSE;
+	}
+
+	if (get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) != ENTITY_SUB_TYPE_TASK_ENGAGE)
+	{
+		return FALSE;
+	}
+
+	target = get_local_entity_parent (task, LIST_TYPE_TASK_DEPENDENT);
+
+	if (!target)
+	{
+		return FALSE;
+	}
+
+	selected_weapon = get_local_entity_int_value (en, INT_TYPE_SELECTED_WEAPON);
+
+	if (!selected_weapon)
+	{
+		return FALSE;
+	}
+
+	// only useful for unguided weapon accuracy
+	if (weapon_database[selected_weapon].guidance_type != WEAPON_GUIDANCE_TYPE_NONE)
+	{
+		return FALSE;
+	}
+
+	target_pos = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
+
+	return (get_3d_range (current_pos, target_pos) < weapon_database [selected_weapon].effective_range*1.7);
+}
+
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+// hosted movement: the engine keeps the guidance (the waypoint, the speed demand, the navigation intent and which
+// sub-mode applies) and the host performs the physical step it asks for, including the steering acceleration
+
+// the navigation intent of normal flight: the flags, the resolved waypoint and the identities of the leader and of the
+// group's other members in list order.  Where the host's navigator reads another aircraft it resolves that aircraft's
+// pose and motion from its own records; none is selected or computed here
+
+static void hosted_fixed_wing_navigation (entity *en, int phase, campaign_fixed_wing_guidance *guidance)
+{
+	fixed_wing
+		*raw;
+
+	entity
+		*guide,
+		*leader,
+		*group,
+		*member;
+
+	vec3d
+		wp_pos;
+
+	int
+		count;
+
+	raw = (fixed_wing *) get_local_entity_data (en);
+
+	guidance->group_leader = get_local_entity_int_value (en, INT_TYPE_GROUP_LEADER);
+	guidance->task_leader = get_local_entity_int_value (en, INT_TYPE_TASK_LEADER);
+	guidance->max_vertical_turn_allowance = get_local_entity_float_value (en, FLOAT_TYPE_MAX_VERTICAL_TURN_ALLOWANCE);
+	guidance->avoidance_radius = aircraft_database [raw->ac.mob.sub_type].avoidance_radius;
+
+	fixed_wing_movement_waypoint (en, &wp_pos, &guidance->terrain);
+
+	guidance->waypoint[0] = wp_pos.x;
+	guidance->waypoint[1] = wp_pos.y;
+	guidance->waypoint[2] = wp_pos.z;
+
+	// the identities are observations the campaign passes on if it has them.  Whether the host reads the leader or a member
+	// depends on what it finds (facing away, a hold in force), so a missing identity is sent as unresolved and the host
+	// refuses only where it truly needs it
+	if (!guidance->task_leader)
+	{
+		guide = get_local_entity_parent (en, LIST_TYPE_FOLLOWER);
+
+		leader = guide ? (entity *) get_local_entity_ptr_value (guide, PTR_TYPE_TASK_LEADER) : NULL;
+
+		guidance->leader_host_id = leader ? campaign_roster_host_id (leader) : NULL;
+	}
+
+	// the landing approach turns and steers by its own waypoint: it sends the leader but no members
+	if ((phase == CAMPAIGN_FIXED_WING_FLIGHT) && !guidance->group_leader)
+	{
+		group = get_local_entity_parent (en, LIST_TYPE_MEMBER);
+
+		ASSERT (group);
+
+		// the group is sent whole, of whatever size it has: count the other members, then list them in order
+		count = 0;
+
+		member = get_local_entity_first_child (group, LIST_TYPE_MEMBER);
+
+		while (member)
+		{
+			if (member != en)
+			{
+				count++;
+			}
+
+			member = get_local_entity_child_succ (member, LIST_TYPE_MEMBER);
+		}
+
+		if (count > 0)
+		{
+			const char
+				**member_host_id;
+
+			float
+				*member_radius;
+
+			member_host_id = (const char **) safe_malloc (count * sizeof (const char *));
+			member_radius = (float *) safe_malloc (count * sizeof (float));
+
+			member = get_local_entity_first_child (group, LIST_TYPE_MEMBER);
+
+			while (member)
+			{
+				if (member != en)
+				{
+					fixed_wing
+						*jet_raw;
+
+					jet_raw = (fixed_wing *) get_local_entity_data (member);
+
+					member_host_id [guidance->member_count] = campaign_roster_host_id (member);
+					member_radius [guidance->member_count] = aircraft_database [jet_raw->ac.mob.sub_type].avoidance_radius;
+
+					guidance->member_count++;
+				}
+
+				member = get_local_entity_child_succ (member, LIST_TYPE_MEMBER);
+			}
+
+			guidance->member_host_id = member_host_id;
+			guidance->member_radius = member_radius;
+		}
+	}
+}
+
+static void hosted_fixed_wing_step (entity *en, int phase, const vec3d *wp_pos, const campaign_fixed_wing_terrain *terrain, float terrain_elevation)
+{
+	fixed_wing
+		*raw;
+
+	entity
+		*guide;
+
+	campaign_fixed_wing_guidance
+		guidance;
+
+	float
+		wp_vel;
+
+	raw = (fixed_wing *) get_local_entity_data (en);
+
+	guide = get_local_entity_parent (en, LIST_TYPE_FOLLOWER);
+
+	ASSERT (guide);
+
+	wp_vel = get_local_entity_float_value (guide, FLOAT_TYPE_VELOCITY);
+
+	if (wp_vel == 0.0)
+	{
+		wp_vel = get_local_entity_float_value (en, FLOAT_TYPE_CRUISE_VELOCITY);
+	}
+
+	memset (&guidance, 0, sizeof (guidance));
+
+	guidance.phase = phase;
+	guidance.wp_vel = wp_vel;
+	guidance.cruise_velocity = get_local_entity_float_value (en, FLOAT_TYPE_CRUISE_VELOCITY);
+	guidance.g_max = aircraft_database [raw->ac.mob.sub_type].g_max;
+	guidance.fuselage_angle = aircraft_database [raw->ac.mob.sub_type].fuselage_angle;
+	guidance.cg_to_ground = get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+	guidance.max_roll = get_local_entity_float_value (en, FLOAT_TYPE_MAX_ROLL);
+
+	if (wp_pos)
+	{
+		guidance.waypoint[0] = wp_pos->x;
+		guidance.waypoint[1] = wp_pos->y;
+		guidance.waypoint[2] = wp_pos->z;
+	}
+
+	// the terrain observation of the waypoint the caller fetched (flight and landing fetch their own again below)
+	if (terrain)
+	{
+		guidance.terrain = *terrain;
+	}
+
+	guidance.motion_vector[0] = raw->ac.mob.motion_vector.x;
+	guidance.motion_vector[1] = raw->ac.mob.motion_vector.y;
+	guidance.motion_vector[2] = raw->ac.mob.motion_vector.z;
+	guidance.navigating = (raw->ac.operational_state == OPERATIONAL_STATE_NAVIGATING);
+	guidance.elevation = terrain_elevation;
+	guidance.delta_seconds = get_entity_movement_delta_time ();
+	guidance.frame_delta = get_one_over_delta_time ();
+
+	// flight and landing: the physical facing and turn are the host's.  It is sent the policy's verdict on the cannon, the
+	// clock its holds run on and the navigation intent, never a multiplier or a decision to turn around
+	if ((phase == CAMPAIGN_FIXED_WING_FLIGHT) || (phase == CAMPAIGN_FIXED_WING_LAND))
+	{
+		guidance.aiming_cannon = fixed_wing_aiming_cannon (en, get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION));
+		guidance.elapsed_time = get_local_entity_float_value (get_session_entity (), FLOAT_TYPE_ELAPSED_TIME);
+
+		hosted_fixed_wing_navigation (en, phase, &guidance);
+	}
+
+	campaign_movement_fixed_wing_move (en, &guidance);
+
+	// the lists were built for this call only
+	if (guidance.member_host_id)
+	{
+		safe_free ((void *) guidance.member_host_id);
+	}
+
+	if (guidance.member_radius)
+	{
+		safe_free ((void *) guidance.member_radius);
+	}
+}
+
+// normal flight (the host navigates from the intent) or the touch-down approach (its own waypoint)
+
+static void hosted_fixed_wing_flight (entity *en, float terrain_elevation)
+{
+	vec3d
+		wp_pos;
+
+	campaign_fixed_wing_terrain
+		terrain;
+
+	if (get_local_entity_int_value (get_local_entity_current_waypoint (en), INT_TYPE_ENTITY_SUB_TYPE) != ENTITY_SUB_TYPE_WAYPOINT_TOUCH_DOWN)
+	{
+		hosted_fixed_wing_step (en, CAMPAIGN_FIXED_WING_FLIGHT, NULL, NULL, terrain_elevation);
+	}
+	else
+	{
+		fixed_wing_movement_waypoint (en, &wp_pos, &terrain);
+
+		hosted_fixed_wing_step (en, CAMPAIGN_FIXED_WING_LAND, &wp_pos, &terrain, terrain_elevation);
+	}
+}
+
+#endif
+
 void basic_fixed_wing_movement (entity *en)
 {
 	fixed_wing
@@ -1610,103 +1956,64 @@ void basic_fixed_wing_movement (entity *en)
 
 	if (!get_local_entity_int_value (en, INT_TYPE_AIRBORNE_AIRCRAFT))
 	{
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+		// a host-movement build never falls through to the legacy taxi below
+
+		campaign_movement_require_hosted (en);
+
+		// the taxi fetches its own waypoint, without the fire avoidance
+
+		{
+			campaign_fixed_wing_terrain
+				terrain;
+
+			fixed_wing_movement_waypoint (en, &wp_pos, &terrain);
+
+			hosted_fixed_wing_step (en, CAMPAIGN_FIXED_WING_TAXI, &wp_pos, &terrain, terrain_elevation);
+		}
+
+		return;
+
+#endif
+
 		fixed_wing_taxi (en, current_pos, &dist, &new_pos, terrain_elevation);
 	}
 	else
 	{
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+		// a host-movement build never falls through to the legacy flight below
+
+		campaign_movement_require_hosted (en);
+
+		// EEDCS-39: the physical facing, the turn-around hold and the turn multiplier are the host's (eech_fw_turn
+		// performs the decision the legacy build makes below); the campaign sends its cannon policy's verdict and the clock
+
+		hosted_fixed_wing_flight (en, terrain_elevation);
+
+		return;
+
+#else
+
 		//magitek: if we are facing away from our waypoint, switch to the absolute flight system to turn around to face correct way
 		vec3d wpvector, mvvector;
-		
-		entity
-			*wp;
-			
-		int curr_wp;
-		
+
 		wpvector.x = wp_pos.x - current_pos->x;
 		wpvector.y = wp_pos.y - current_pos->y;
 		wpvector.z = wp_pos.z - current_pos->z;
 		mvvector.x = raw->ac.mob.motion_vector.x;
 		mvvector.y = raw->ac.mob.motion_vector.y;
 		mvvector.z = raw->ac.mob.motion_vector.z;
-		
-		wp = get_local_entity_current_waypoint (en);
-		curr_wp = get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE);
 
-	//	if (curr_wp == ENTITY_SUB_TYPE_WAYPOINT_TARGET)
-	//	{
-			if(raw->ac.mob.target_link.parent)//target in area
-			{
-				if(get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE) == 27)//if hostile 'Target' waypoint
-				{
-					//magitek - absolute heading if we are aiming cannon
-					if(guide)
-					{
-						entity
-							*task,
-							*target;
+		// magitek - absolute heading if we are aiming cannon
+		if (fixed_wing_aiming_cannon (en, current_pos))
+		{
+			//absolute navigation to aim cannon
+			raw->turn_speed_multi = 1.0;//full speed absolute flight
+			raw->fixed_wing_toggle = get_local_entity_float_value (get_session_entity (), FLOAT_TYPE_ELAPSED_TIME) + 0.250;
+		}
 
-						task = get_local_entity_current_task (en);
-
-						if (task)
-						{
-							// ASSERT (get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) == ENTITY_SUB_TYPE_TASK_ENGAGE);
-
-							if(get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) == ENTITY_SUB_TYPE_TASK_ENGAGE)
-							{
-								 target = get_local_entity_parent (task, LIST_TYPE_TASK_DEPENDENT);
-								 
-								 if(target)
-								 {
-									int selected_weapon;
-									selected_weapon = get_local_entity_int_value (en, INT_TYPE_SELECTED_WEAPON);
-									
-									if(selected_weapon)
-									{
-										//only useful for unguided weapon accuracy
-										if(weapon_database[selected_weapon].guidance_type == WEAPON_GUIDANCE_TYPE_NONE)
-										{
-											vec3d
-											//	vec_to_targ,
-												*target_pos;
-
-											target_pos = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
-											//magitek: bother checking if we are actually using a cannon?
-											if(get_3d_range (current_pos, target_pos) < weapon_database [selected_weapon].effective_range*1.7)
-											{
-											//	vec_to_targ.x = target_pos->x - current_pos->x;
-											//	vec_to_targ.y = target_pos->y - current_pos->y;
-											//	vec_to_targ.z = target_pos->z - current_pos->z;
-												
-											//	if (get_3d_vector_dot_product (&mvvector, &vec_to_targ) > 0.9)//must be strafing target
-											//	{
-													//absolute navigation to aim cannon
-													raw->turn_speed_multi = 1.0;//full speed absolute flight
-													raw->fixed_wing_toggle = get_local_entity_float_value (get_session_entity (), FLOAT_TYPE_ELAPSED_TIME) + 0.250;			 
-											//	}
-											//	else//facing away - immediately restore normal navigation
-											//	{
-											//		raw->fixed_wing_toggle = 0.0;
-											//	}
-											}
-										}
-									}
-								 }
-							}
-							// aggressor = (entity *) get_local_entity_ptr_value (en, PTR_TYPE_TASK_LEADER);
-
-							// ASSERT (aggressor);
-
-							// target = get_local_entity_parent (task, LIST_TYPE_TASK_DEPENDENT);
-
-							// ASSERT (target);
-
-						
-						}
-					}
-				}
-			}
-	//	}
-		
 		if (get_3d_vector_dot_product (&wpvector, &mvvector) < 0.0)//facing opposite way to our required vector
 		{
 			if(!get_local_entity_int_value (en, INT_TYPE_TASK_LEADER))
@@ -1752,6 +2059,7 @@ void basic_fixed_wing_movement (entity *en)
 			basic_fixed_wing_movement_absolute(en);
 			return;
 		}
+
 	
 		fixed_wing_flight (en, &new_pos);
 
@@ -1764,6 +2072,7 @@ void basic_fixed_wing_movement (entity *en)
 		raw->ac.mob.motion_vector.z = (new_pos.z - current_pos->z) * get_one_over_delta_time ();
 
 		//ASSERT (!check_zero_3d_vector (&raw->ac.mob.motion_vector));
+		#endif
 	}
 
 	bound_position_to_map_volume (&new_pos);
@@ -1880,6 +2189,34 @@ void basic_fixed_wing_movement_absolute (entity *en)
 	{
 		wp_vel = get_local_entity_float_value (en, FLOAT_TYPE_CRUISE_VELOCITY);
 	}
+
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	// a host-movement build never falls through to the legacy absolute flight below
+
+	campaign_movement_require_hosted (en);
+
+	// only the airborne flight reaches here (basic_fixed_wing_movement calls it from the air); the host has no ground variant
+
+	if (!get_local_entity_int_value (en, INT_TYPE_AIRBORNE_AIRCRAFT))
+	{
+		debug_fatal ("host movement: absolute fixed-wing flight on the ground (entity %d)", get_local_entity_index (en));
+	}
+
+	{
+		campaign_fixed_wing_terrain
+			terrain;
+
+		// the waypoint is fetched again with its terrain observation: the fetch above only seeds the legacy locals
+
+		fixed_wing_movement_waypoint (en, &wp_pos, &terrain);
+
+		hosted_fixed_wing_step (en, CAMPAIGN_FIXED_WING_ABSOLUTE, &wp_pos, &terrain, terrain_elevation);
+	}
+
+	return;
+
+#endif
 
 	//
 	// GET VECTOR TO WAYPOINT
@@ -2129,6 +2466,304 @@ void basic_fixed_wing_movement_absolute (entity *en)
 #define RIVER_DEPTH 3.0
 
 void basic_fixed_wing_death_movement (entity *en)
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+{
+	// The host owns the fall, the contact tests, the settled position, the vector and the dying attitude.  The campaign keeps
+	// what it decides at the original points: the terrain samples and cache, the kill, the effects and sounds, the lifecycle
+	// (DEAD, smoke, the velocity clear), and the roll random draw.  The contact before the kill uses the live centre of
+	// gravity; the settled heights use the one asked afresh after the kill.
+
+	fixed_wing
+		*raw;
+
+	double
+		roll_draw;
+
+	float
+		speed,
+		altitude,
+		terrain_elevation,
+		old_terrain_elevation,
+		cg_to_ground;
+
+	int
+		draw_made;
+
+	vec3d
+		*pos,
+		*velocity,
+		new_pos;
+
+	terrain_classes
+		terrain_class;
+
+	raw = (fixed_wing *) get_local_entity_data (en);
+
+	campaign_movement_require_hosted (en);
+
+	velocity = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_MOTION_VECTOR);
+
+	pos = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
+
+	//
+	// check terrain elevation is valid
+	//
+
+	if (raw->ac.terrain_info.terrain_face == NULL)
+	{
+		ASSERT(point_inside_map_area(pos));
+
+		get_3d_terrain_point_data (pos->x, pos->z, &raw->ac.terrain_info);
+	}
+
+	//
+	// ground test
+	//
+
+	old_terrain_elevation = get_3d_terrain_point_data_elevation (&raw->ac.terrain_info);
+
+	cg_to_ground = get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+
+	if (campaign_movement_fw_contact (en, FALSE, old_terrain_elevation, cg_to_ground, &altitude))
+	{
+		if (get_comms_model() == COMMS_MODEL_SERVER)
+		{
+			//
+			// ensure that the aircraft is actually dead
+			//
+
+			if (get_local_entity_int_value (en, INT_TYPE_ALIVE))
+			{
+				kill_client_server_entity (en);
+			}
+
+			//
+			// stop any engine noise
+			//
+
+			kill_client_server_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING2);
+
+			kill_client_server_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1);
+		}
+
+		//
+		// if aircraft is already on the ground, but not on water, call different movement function
+		//
+
+		if (get_terrain_type_class (get_3d_terrain_point_data_type (&raw->ac.terrain_info)) == TERRAIN_CLASS_LAND)
+		{
+			fixed_wing_crash_movement (en);
+
+			return;
+		}
+	}
+
+	//
+	// the fall, in the original order: the host's candidate position, the DLL samples the terrain under it, then the host
+	// applies gravity to the vector and speed (the speed returned is the one the attitude is normalised by)
+	//
+
+	campaign_movement_fw_fall (en, get_entity_movement_delta_time (), &new_pos);
+
+	get_3d_terrain_point_data (new_pos.x, new_pos.z, &raw->ac.terrain_info);
+
+	speed = campaign_movement_fw_fall_gravity (en, G, get_entity_movement_delta_time ());
+
+	//
+	// check if aircraft has hit the floor
+	//
+
+	terrain_elevation = get_3d_terrain_point_data_elevation (&raw->ac.terrain_info);
+
+	terrain_class = get_terrain_type_class (get_3d_terrain_point_data_type (&raw->ac.terrain_info));
+
+	cg_to_ground = get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+
+	if (campaign_movement_fw_contact (en, TRUE, terrain_elevation, cg_to_ground, &altitude))
+	{
+		int
+			host_class,
+			buried;
+
+		float
+			bury_limit,
+			fresh_cg;
+
+		if (get_comms_model() == COMMS_MODEL_SERVER)
+		{
+			//
+			// ensure that the aircraft is actually dead
+			//
+
+			if (get_local_entity_int_value (en, INT_TYPE_ALIVE))
+			{
+				kill_client_server_entity (en);
+			}
+
+			if (pos->y > old_terrain_elevation)
+			{
+				//
+				// aircraft has hit the terrain this frame - create a "splash"
+				//
+
+				vec3d
+					temp_pos;
+				int
+					power;
+				float
+					total_velocity = fabs(velocity->x) + fabs(velocity->y) + fabs(velocity->z);
+
+				temp_pos.x = new_pos.x;
+				temp_pos.y = terrain_elevation;
+				temp_pos.z = new_pos.z;
+
+				set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &temp_pos);
+
+				switch (get_terrain_type_class(get_3d_terrain_point_data_type (&raw->ac.terrain_info)))
+				{
+					case TERRAIN_CLASS_WATER:
+					{
+						power = (int) (bound(total_velocity / 5, 0, 2));
+						create_client_server_collision_effect (&temp_pos, DYNAMICS_COLLISION_SURFACE_WATER, power);
+						break;
+					}
+					case TERRAIN_CLASS_LAND:
+					case TERRAIN_CLASS_FOREST:
+					{
+						power = (int) (bound(total_velocity / 5, 0, 4));
+						create_client_server_collision_effect (&temp_pos, DYNAMICS_COLLISION_SURFACE_GROUND, power);
+
+						if (power > 1)
+							create_client_server_crater ((crater_types)(CRATER_TYPE_SMALL_EXPLOSION + (power - 2)), pos);
+
+						break;
+					}
+				}
+			}
+		}
+
+		//
+		// the host settles the candidate by the terrain class: 0 solid, 1 sea, 2 river or lake, 3 forest.  The sea and the
+		// forest are buried past half the bounding box, the river past its own depth (the host holds that constant); the host
+		// zeroes the vector when buried and the campaign clears the speed with the lifecycle below.
+		//
+
+		bury_limit = 0.0;
+
+		if (terrain_class == TERRAIN_CLASS_WATER)
+		{
+			host_class = (get_3d_terrain_point_data_type (&raw->ac.terrain_info) == TERRAIN_TYPE_SEA) ? 1 : 2;
+		}
+		else if (terrain_class == TERRAIN_CLASS_FOREST)
+		{
+			host_class = 3;
+		}
+		else
+		{
+			host_class = 0;
+		}
+
+		if ((host_class == 1) || (host_class == 3))
+		{
+			struct OBJECT_3D_BOUNDS
+				*bounding_box;
+
+			vec3d
+				d;
+
+			bounding_box = get_object_3d_bounding_box (get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE));
+
+			d.x = bounding_box->xmax - bounding_box->xmin;
+			d.y = bounding_box->ymax - bounding_box->ymin;
+			d.z = bounding_box->zmax - bounding_box->zmin;
+
+			bury_limit = -(get_3d_vector_magnitude (&d) * 0.5);
+		}
+
+		if (terrain_class == TERRAIN_CLASS_WATER)
+		{
+			//
+			// also if it lands in water kill any fires that may be burning
+			//
+
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_FIRE);
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_EXPLOSION_TRAIL);
+		}
+
+		//
+		// the final heights use the centre of gravity asked afresh after the kill (the destroyed one); the bury tests use
+		// the altitude the host retained from the contact, measured with the live one above
+		//
+
+		fresh_cg = get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+
+		buried = campaign_movement_fw_settle (en, host_class, terrain_elevation, fresh_cg, bury_limit, &new_pos);
+
+		if ((terrain_class != TERRAIN_CLASS_WATER) && (terrain_class != TERRAIN_CLASS_FOREST) && (get_comms_model () == COMMS_MODEL_SERVER))
+		{
+			//
+			// aircraft has hit solid ground: crash sound effect
+			//
+
+			sound_sample_indices
+				sound_sample_index;
+
+			sound_sample_index = SOUND_SAMPLE_INDEX_AIRCRAFT_CRASH;
+
+			create_client_server_sound_effect_entity
+			(
+				en,
+				ENTITY_SIDE_NEUTRAL,
+				ENTITY_SUB_TYPE_EFFECT_SOUND_MISC,
+				SOUND_CHANNEL_SOUND_EFFECT,
+				SOUND_LOCALITY_ALL,
+				NULL,												// position
+				1.0,												// amplification
+				1.0,												// Werewolf pitch
+				TRUE,												// valid sound effect
+				FALSE,											// looping
+				1,													// sample count
+				&sound_sample_index							// sample index list
+			);
+		}
+
+		if (buried)
+		{
+			//
+			// aircraft is no longer visible (the host has zeroed its vector)
+			//
+
+			clear_fixed_wing_velocity (en);
+
+			set_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE, OPERATIONAL_STATE_DEAD);
+
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_LIGHT_DAMAGE_MOVING);
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_HEAVY_DAMAGE_MOVING);
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_LIGHT_DAMAGE_STATIC);
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_HEAVY_DAMAGE_STATIC);
+		}
+	}
+
+	//
+	// update attitude: the roll draw is the campaign's, made only when the vector (after any bury clear) has a horizontal
+	// part and the candidate altitude is over 12; the host recomputes that gate, eases the attitude, then sets the final
+	// position last
+	//
+
+	draw_made = FALSE;
+
+	roll_draw = 0.0;
+
+	if (((velocity->x != 0.0) || (velocity->z != 0.0)) && (altitude > 12.0))
+	{
+		roll_draw = frand1 ();
+
+		draw_made = TRUE;
+	}
+
+	campaign_movement_fw_death_attitude (en, altitude, speed, draw_made, roll_draw, get_entity_movement_delta_time ());
+}
+#else
 {
 
 	fixed_wing
@@ -2518,12 +3153,94 @@ void basic_fixed_wing_death_movement (entity *en)
 
 	set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &new_pos);
 }
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void fixed_wing_crash_movement (entity *en)
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+{
+	// The host owns the candidate position, the friction and slope velocity, the attitude easing and the final position.  The
+	// campaign keeps the terrain sample at the candidate, the velocity clear and the lifecycle at the original points.
+
+	fixed_wing
+		*raw;
+
+	float
+		terrain_elevation,
+		cg_to_ground;
+
+	vec3d
+		new_pos,
+		*face_normal;
+
+	int
+		forest,
+		stopped,
+		at_rest;
+
+	raw = (fixed_wing *) get_local_entity_data (en);
+
+	campaign_movement_require_hosted (en);
+
+	//
+	// work out new position
+	//
+
+	campaign_movement_fw_crash_candidate (en, get_entity_movement_delta_time (), &new_pos);
+
+	get_3d_terrain_point_data (new_pos.x, new_pos.z, &raw->ac.terrain_info);
+
+	terrain_elevation = get_3d_terrain_point_data_elevation (&raw->ac.terrain_info);
+
+	forest = (get_terrain_type_class (get_3d_terrain_point_data_type (&raw->ac.terrain_info)) == TERRAIN_CLASS_FOREST);
+
+	cg_to_ground = get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+
+	face_normal = get_3d_terrain_point_data_normal (&raw->ac.terrain_info);
+
+	//
+	// update velocity: the host applies the friction and the slope push and sets the speed, or reports it stopped and the
+	// campaign clears the velocity here, before the attitude and the position as in the original
+	//
+
+	stopped = campaign_movement_fw_crash_velocity (en, face_normal, forest, terrain_elevation, cg_to_ground, get_entity_movement_delta_time ());
+
+	if (stopped)
+	{
+		clear_fixed_wing_velocity (en);
+	}
+
+	//
+	// update attitude and set the new position (the host's, last)
+	//
+
+	at_rest = campaign_movement_fw_crash_attitude
+	(
+		en,
+		face_normal,
+		aircraft_database [raw->ac.mob.sub_type].destroyed_pitch_offset,
+		aircraft_database [raw->ac.mob.sub_type].destroyed_bank_offset,
+		get_entity_movement_delta_time ()
+	);
+
+	//
+	// if aircraft has come to a stop, remove from update list
+	//
+
+	if (at_rest && (!raw->ac.mob.alive))
+	{
+		set_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE, OPERATIONAL_STATE_DEAD);
+
+		clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_LIGHT_DAMAGE_MOVING);
+		clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_HEAVY_DAMAGE_MOVING);
+		clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_LIGHT_DAMAGE_STATIC);
+		clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_HEAVY_DAMAGE_STATIC);
+	}
+}
+#else
 {
 
 	fixed_wing
@@ -2688,12 +3405,37 @@ void fixed_wing_crash_movement (entity *en)
 		clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_HEAVY_DAMAGE_STATIC);
 	}
 }
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void fixed_wing_impact_movement (entity *en)
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+{
+	// the random draw is the campaign's; the host shoves its vector along the attitude x axis
+
+	float
+		speed;
+
+	int
+		seed;
+
+	campaign_movement_require_hosted (en);
+
+	seed = get_client_server_entity_random_number_seed(en);
+
+	speed = 3.0 * frand1x (&seed);
+
+	if (seed & 1)
+	{
+		speed = -speed;
+	}
+
+	campaign_movement_fw_impact (en, speed);
+}
+#else
 {
 
 	fixed_wing
@@ -2725,6 +3467,7 @@ void fixed_wing_impact_movement (entity *en)
 
 	velocity->z += (speed * raw->ac.mob.xv.z);
 }
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

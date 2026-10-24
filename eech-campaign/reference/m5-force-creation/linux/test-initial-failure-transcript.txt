@@ -1,0 +1,37 @@
+Recovered from Claude tool-result transcript; original test-workspace.log was subsequently overwritten.
+
+2:     Running unittests src/lib.rs (/target/debug/deps/eech_campaign-f5ec679b8a9ffc61)
+6:test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+8:     Running tests/campaign.rs (/target/debug/deps/campaign-3e3c09f1acf91f38)
+23:test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+25:     Running unittests src/lib.rs (/target/debug/deps/eech_dc-fedb9ea04f5c3d7b)
+32:test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+34:     Running tests/lua_debug_layout.rs (/target/debug/deps/lua_debug_layout-e214ce67e9d4a635)
+40:test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+42:     Running unittests src/lib.rs (/target/debug/deps/eech_engine-458a7b086ff4a14e)
+55:test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+57:     Running unittests src/lib.rs (/target/debug/deps/eech_engine_sys-7897d272160a0e94)
+61:test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+63:     Running unittests src/lib.rs (/target/debug/deps/eech_harness-7f688bc62bd18e93)
+67:test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+69:     Running unittests src/main.rs (/target/debug/deps/eech_harness-8854a3f6e1ea458c)
+73:test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+75:     Running tests/corpus.rs (/target/debug/deps/corpus-ee50b2db7a420b43)
+82:test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s
+84:     Running tests/scenarios.rs (/target/debug/deps/scenarios-64a45c6083bb228f)
+89:test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+91:     Running unittests src/main.rs (/target/debug/deps/eech_map-fa83bd7e0eda9cb0)
+96:test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+98:     Running unittests src/lib.rs (/target/debug/deps/eech_sys-411edd2742e8ef46)
+102:test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+104:     Running tests/findings.rs (/target/debug/deps/findings-d29a604b409901e0)
+110:test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+112:     Running tests/smoke.rs (/target/debug/deps/smoke-a0f40bff934f1744)
+118:test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+120:     Running unittests src/lib.rs (/target/debug/deps/eech_world-687e6018310f7dfa)
+154:test movement::tests::a_refused_expiry_changes_nothing_and_a_retired_wreck_is_never_answered ... FAILED
+212:thread 'movement::tests::a_refused_expiry_changes_nothing_and_a_retired_wreck_is_never_answered' (187) panicked at crates/eech-world/src/movement.rs:3915:85:
+220:test result: FAILED. 83 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+222:error: test failed, to rerun pass `-p eech-world --lib`
+223:TEST_EXIT=101
+224:docker exit=101

@@ -1,0 +1,61 @@
+census	routed	bound=1213	moved_10m=0
+census	ship	bound=36	moved_10m=0
+census	person	bound=152	moved_10m=0
+census	fixed_wing	bound=127	moved_10m=104
+steps	fixed_wing:contact	5849
+steps	fixed_wing:create_place	127
+steps	fixed_wing:expire	679956
+steps	fixed_wing:fall	2844
+steps	fixed_wing:fall_gravity	2844
+steps	fixed_wing:fixed_wing_lookahead	1230916
+steps	fixed_wing:fixed_wing_move	2828524
+steps	fixed_wing:fw_crash_attitude	161
+steps	fixed_wing:fw_crash_candidate	161
+steps	fixed_wing:fw_crash_velocity	161
+steps	fixed_wing:fw_death_attitude	2844
+steps	fixed_wing:fw_settle	55
+steps	fixed_wing:impact	52
+steps	fixed_wing:retire	46
+steps	fixed_wing_phase:0	809413
+steps	fixed_wing_phase:1	1996817
+steps	fixed_wing_phase:2	22294
+steps	person:create_place	152
+steps	person:expire	119770
+steps	person:person_begin	14724815
+steps	person:person_end	14448361
+steps	person:retire	19
+steps	routed:create_place	1213
+steps	routed:expire	9028929
+steps	routed:gv_death_candidate	1812
+steps	routed:gv_death_decay	1812
+steps	routed:gv_impact	193
+steps	routed:move	3126624
+steps	routed:retire	139
+steps	routed:stop	360
+steps	routed:vehicle_vector_seed	2005
+steps	ship:create_place	36
+steps	ship:expire	15039
+steps	ship:retire	12
+steps	ship:ship_sink	15039
+steps	ship:vehicle_vector_seed	15039
+steps	unbound:contact	12723
+steps	unbound:crash_begin	8193
+steps	unbound:crash_end	8193
+steps	unbound:create_place	253
+steps	unbound:expire	3498900
+steps	unbound:fall	2666
+steps	unbound:fall_gravity	2666
+steps	unbound:helicopter_guide	3488618
+steps	unbound:helicopter_guided_begin	3408914
+steps	unbound:helicopter_guided_end	3408914
+steps	unbound:helicopter_plan	3488618
+steps	unbound:impact	138
+steps	unbound:retire	122
+steps	unbound:rotor_alive	3488618
+steps	unbound:rotor_down	10859
+steps	unbound:rotor_idle	10320050
+steps	unbound:rotor_set	398
+steps	unbound:settle	293
+steps	unbound:tumble	2666
+ended_at	10800.0
+result	census

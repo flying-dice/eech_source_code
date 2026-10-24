@@ -1,0 +1,6 @@
+boot_twice: PASS
+bad_arguments: PASS
+missing_root: PASS
+missing_campaign: PASS
+no_reuse: PASS
+missing_map: KNOWN DEFECT (unchanged)

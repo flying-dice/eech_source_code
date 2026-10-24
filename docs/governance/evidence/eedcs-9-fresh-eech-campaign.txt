@@ -1,0 +1,72 @@
+I read the checked-in instructions, but I did not read the live Jira Task, the Epic, or the GitHub records. I answer from the files below and mark where that limits the answer.
+
+## Answers
+
+**Product and hosts.** The product is one native EECH dynamic campaign Lua DLL, EECH_DC [1]. It starts as the original C behind a Rust public boundary, not a rewrite. The hosts are alternatives and neither is layered on the other:
+- **EECH World [2]** is a Rust reference host with its own Lua environment and physical world.
+- **DCS World [3]** is the real DCS host.
+
+**Active Task and Epic.** The active Epic is **EEDCS-5** (M5, host interchangeability). The files name no active Task. AGENT.md says to read its live state in Jira, which I could not do, so the Task is unknown. #51 and #52 are retired (closed `not_planned`) and are not gates.
+
+**What authorises M5 structural work.** Two accepted, live records do: the M4 acceptance review (#31 comment, EEDCS-4) and the M5 kickoff (#35 comment). They open M5 under EEDCS-5 from integration state `a02d489c`, with `windows-retail v1` as the authoritative baseline. The presence of the instruction files authorises nothing.
+
+**Before moving existing behaviour.**
+- Reproduce it on a named baseline revision.
+- Protect it with sociable tests of the real collaborating components.
+- Record passing behaviour, known defects, unsupported cases and unavailable prerequisites.
+- Work on a dedicated Task branch and PR, not directly on the integration branch.
+
+**What a pure refactor must prove.**
+- A red test is not required. Passing characterisation before the move is correct.
+- The sociable tests stay green across the move.
+- Both the preserved behaviour and the new ownership contract are asserted.
+- Host observations demonstrably influence the campaign and host actions are demonstrably used. Interface declarations don't prove this.
+- The same scenarios run on the old and new paths.
+- Structural moves stay separate from bug fixes and rule changes.
+
+**Who approves a PR.** A current formal GitHub **APPROVED** review from **@fd-starscream-bot** is mandatory. Passing checks and resolved blocking feedback are also required. Comments, CI, other approvals and self-review don't substitute. The PR author must be a different identity from the lead, and new commits need fresh approval.
+
+**When the M4 regression pack differs.**
+- A red pack produces a proposal, not a new baseline. Baselines are never re-recorded in place, and a failing check is never made to pass.
+- You run `baseline-governance.py propose`, which creates a change record under `regression/changes/`.
+- You classify each delta, with evidence, as `regression` (rejected), `approved-defect-correction`, `intentional-semantic-change`, or `expected-input-world-variation`.
+- The PR goes to review. Only fd-starscream-bot's approval of the commit holding that record counts.
+- After approval, `adopt` verifies the review on GitHub and adds the new baseline version. The old version is kept.
+
+## If you asked me now
+
+**Restructure campaign code.** I would not start editing yet.
+- **Authorisation:** it is authorised in principle, because M1–M4 are accepted and M5 is open.
+- **Missing records:** I haven't read the live Task, Epic, #31/#35 comments or review feedback. AGENT.md says to read these first.
+- **Branch and base:** I haven't checked the base SHA (expected `a02d489c`) or the target branch (`claude/eech-campaign-native-spike-tjkj6g`).
+- **Characterisation:** I would also need to characterise the behaviour on `windows-retail v1` first.
+
+So I would first read the live records and verify the branch and base. Then I would characterise the behaviour and open a dedicated Task branch and PR under a non-lead identity. I would run the M4 pack on each candidate and hand over per AGENT.md. If no active Task exists, I would ask you to create or name one rather than pick one myself.
+
+**Merge an approved PR.** I would refuse, for three reasons:
+- **Merge protection:** AGENT.md and REVIEW.md say server-side protection is unverified, and that until an administrator activates and verifies it, no PR merges. That is a blocker whatever the reviews or checks say.
+- **Approval:** an "approved" PR still needs me to verify a current formal APPROVED review from fd-starscream-bot on the head commit. I can't do that without GitHub access to that PR.
+- **My role:** implementing agents don't self-merge. An authorised maintainer merges.
+
+I would report what is missing instead, and I would not enable auto-merge or bypass anything.
+
+## What I read
+
+- **Read:**
+  - `CLAUDE.md`, which I read after it was already attached as context
+  - `AGENT.md` and `AGENTS.md`
+  - `PROJECT.md`
+  - `docs/governance/REVIEW.md`, `BOOTSTRAP.md` and `BASELINE_RECORD.md`
+  - `docs/governance/evidence/eedcs-9-instruction-discovery.md`
+  - `.github/PULL_REQUEST_TEMPLATE.md`
+- **Path note:** these files are in the parent `cand/` directory. My working directory, `cand/eech-campaign`, doesn't contain `AGENT.md` or `PROJECT.md`. That matches the repo's note that the paths are relative to the repo root.
+- **Not reached or not checked:**
+  - Jira EEDCS, including the active Task, EEDCS-4 and EEDCS-5.
+  - The GitHub issue comments (#31, #35) and any PR review state.
+  - The actual git branch, base SHA and working tree.
+  - Server-side branch protection. The files say it is unverified.
+  - `.github/CODEOWNERS`, which my glob didn't cover.
+  - The `regression/` lineages, change records and tools.
+
+I can check the git state next. I can also try `gh` against the GitHub records, if you want that.
+exit 0

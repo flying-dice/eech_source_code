@@ -1,0 +1,89 @@
+# The campaign regression test, natively on Windows: eech-world.exe and
+# eech_dc.dll (tools/build-windows.sh) run the retail Lebanon and Georgia
+# campaigns for 3 simulated hours each, in parallel. Each run must:
+#   1. play out as an EECH campaign should (tools/campaign-expectations.py:
+#      tasking, combat, attrition, regen, supply, production, captures);
+#   2. match its baseline in regression/windows/ (tools/regress-compare.py):
+#      identical, as runs are deterministic, or within tolerance.
+# The baselines are the current version of the accepted lineage
+# (regression/baselines/lineages.json). This runner never writes them: a
+# baseline changes only through a classified, approved change record
+# (tools/baseline-governance.py; docs/governance/REVIEW.md, "Baseline changes").
+# See regression/README.md.
+#
+# Usage (PowerShell):
+#   tools\regress-windows.ps1 -Georgia <root> -Lebanon <root> [-Exact] [-Build]
+#   roots: tools/retail-map3-installs.sh and tools/retail-cvh.sh (or tools/regress-docker.sh's, copied out)
+#   -Build  runs tools/build-windows.sh (Docker) first
+param(
+	[Parameter(Mandatory = $true)] [string] $Georgia,
+	[Parameter(Mandatory = $true)] [string] $Lebanon,
+	# refused: kept only to say how a baseline changes now
+	[switch] $Update,
+	[switch] $Exact,
+	[switch] $Build,
+	[double] $Hours = 3,
+	# the binaries' directory (tools/build-windows.sh [dir]); default target\windows
+	[string] $Bin,
+	# where the runs' metrics and logs go; default target\regress-windows
+	[string] $Out
+)
+$ErrorActionPreference = 'Stop'
+if ($Update) { throw 'regress-windows.ps1 no longer writes baselines: propose a change record from the regression pack (tools/baseline-governance.py propose), classify it, and adopt it once fd-starscream-bot has approved it (docs/governance/REVIEW.md, "Baseline changes")' }
+$here = Split-Path -Parent $PSScriptRoot
+$bin = if ($Bin) { $Bin } else { Join-Path $here 'target\windows' }
+$out = if ($Out) { $Out } else { Join-Path $here 'target\regress-windows' }
+$baselines = Join-Path $here 'regression\windows'
+New-Item -ItemType Directory -Force $out, $baselines | Out-Null
+
+if ($Build) {
+	& sh (Join-Path $here 'tools/build-windows.sh')
+	if ($LASTEXITCODE -ne 0) { throw 'tools/build-windows.sh failed' }
+}
+$world = Join-Path $bin 'eech-world.exe'
+if (-not (Test-Path $world)) { throw "$world not found: run with -Build, or tools/build-windows.sh" }
+
+$python = (Get-Command python3, python -ErrorAction SilentlyContinue | Select-Object -First 1).Source
+if (-not $python) { throw 'Python 3 is needed for tools/regress-compare.py' }
+
+$start = Get-Date
+Write-Host "running georgia_retail and lebanon_retail for $Hours simulated hours each ..."
+$runs = @{}
+foreach ($s in @(@{ Name = 'georgia_retail'; Root = $Georgia }, @{ Name = 'lebanon_retail'; Root = $Lebanon })) {
+	$metrics = Join-Path $out "$($s.Name).json"
+	$log = Join-Path $out "$($s.Name).log"
+	$runs[$s.Name] = Start-Process -FilePath $world -NoNewWindow -PassThru -RedirectStandardError $log -RedirectStandardOutput "$log.out" -ArgumentList @(
+		(Join-Path $bin 'lua\campaign.lua'), "root=$($s.Root -replace '\\', '/')", "scenario=$($s.Name)", "hours=$Hours",
+		'record=0', 'checkpoint_every=3600', "metrics=$($metrics -replace '\\', '/')")
+	# read the handle now: Start-Process -PassThru reports no ExitCode otherwise
+	$null = $runs[$s.Name].Handle
+}
+$failed = $false
+foreach ($name in $runs.Keys) {
+	$p = $runs[$name]
+	$p.WaitForExit()
+	if ($p.ExitCode -ne 0) { Write-Host "$name failed (exit $($p.ExitCode)): see $out\$name.log"; $failed = $true }
+}
+Write-Host ("runs took {0:N0} s" -f ((Get-Date) - $start).TotalSeconds)
+if ($failed) { exit 1 }
+
+$status = 0
+foreach ($name in 'georgia_retail', 'lebanon_retail') {
+	$current = Join-Path $out "$name.json"
+	$base = Join-Path $baselines "$name.json"
+	Write-Host ''
+	# the campaign played out as EECH's should: every mechanic present (no reference needed)
+	& $python (Join-Path $here 'tools\campaign-expectations.py') $current
+	if ($LASTEXITCODE -ne 0) { Write-Host "${name}: FAIL (campaign expectations)"; $status = 1 }
+	if (-not (Test-Path $base)) {
+		# never write a missing baseline: that would accept whatever this run did
+		Write-Host "${name}: FAIL (no accepted baseline regression/windows/$name.json; see regression/baselines/lineages.json)"
+		$status = 1
+	} else {
+		$arguments = @((Join-Path $here 'tools\regress-compare.py'), $base, $current)
+		if ($Exact) { $arguments += '--exact' }
+		& $python @arguments
+		if ($LASTEXITCODE -eq 0) { Write-Host "${name}: PASS" } else { Write-Host "${name}: FAIL"; $status = 1 }
+	}
+}
+exit $status

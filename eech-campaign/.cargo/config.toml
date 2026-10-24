@@ -1,0 +1,8 @@
+# eech-dcs (mlua `module` mode) never links Lua into its cdylib: DCS provides
+# the symbols at load time. On Windows the linker still needs an import lib to
+# resolve `lua_*`: pin it to the vendored DCS Lua 5.1 import lib (the reference
+# crate's arrangement, flying-dice/dcs-studio bridge/.cargo/config.toml).
+# `relative` resolves against the workspace root (the parent of `.cargo`).
+[env]
+LUA_LIB_NAME = "lua"
+LUA_LIB = { value = "crates/eech-dc/lua5.1", relative = true }

@@ -1,0 +1,19 @@
+[package]
+name = "eech-engine-sys"
+version = "0.1.0"
+description = "Private native layer: ALL of EECH (the maintained Windows build's 1,226 C files) compiled headless for the host, with its raw FFI."
+edition.workspace = true
+publish.workspace = true
+links = "eech_engine"
+build = "build/main.rs"
+
+[features]
+# TEST-ONLY (EEDCS-40): the dependent-positioning fixture driver. Never enabled in the shipping build.
+dependent-fixture = []
+# TEST-ONLY red build: dependent-fixture with the pre-EEDCS-40 boolean apply guard, applied to the staged copy only.
+dependent-fixture-old-guard = ["dependent-fixture"]
+# TEST-ONLY (EEDCS-41): the all-family loss trigger. Never enabled in the shipping build.
+loss-fixture = []
+
+[build-dependencies]
+cc = { version = "1.2", features = ["parallel"] }

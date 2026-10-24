@@ -1,0 +1,52 @@
+EEDCS-39 host-owned aircraft control (fixed-wing and helicopter): what each file here is, and what it does and does not show
+
+STATUS: native regression pack PASS (40/40, exit 0), full reference files byte-equal, 3 h census exit 0, PR98 CI green at 10b02621. Evidence for EEDCS-39 under D1 only: no D1 closure, no M5 acceptance, no technical-lead approval. The files below dated before the pack finished (build.log, prepush.md, ci/SELF-REVIEW.md, native/census-independent-assessment.md) keep their original wording, including 'pending'; the current results are in the sections 'Native results' and 'CI' of this file.
+
+Revisions
+  native-built source   b721ae5ac8e0a7fa86aa47e79a0ca19884c0710f  (tree 1b0a2ca99b64656a9ca053c1e4eea6853b2eab59)
+  lint/source checkpoint f1371dda9a7884ee60601bf68a870d093368d23e  (tree 65a8fab735946e39deb970481734d637280a4c85), parent b721ae5a. Not the branch head: the docs/evidence commits are later.
+  The checkpoint differs from the native-built source by rustfmt layout, #[cfg(test)] code in eech-engine, and one equivalent production range predicate in eech-dc/src/module.rs (terrain_sample_count). The native binaries are identified by b721ae5a only; no rebuild was done for the checkpoint. See ../../docs/m5-aircraft-control.md.
+
+Provenance (three distinct roles; no literal-byte-build equality claim to the latest head)
+  native runtime       b721ae5a  the binaries the pack and census ran (build identity below)
+  reviewed lint delta  f1371dda  rustfmt/clippy/test-code change plus one equivalent production range predicate; parent-reviewed as behaviour-equivalent; NOT rebuilt natively
+  workflow-only        10b02621  only the windows-cross apt-source lines in .github/workflows/eech-campaign.yml (+ docs/evidence commits); no production source change; the CI run below is at this head
+  The pack ran with tools/regression-pack.py from the 10b02621 worktree (pack_revision in native/report.json) against the b721ae5a binaries (build.commit in the same report).
+
+Provenance of the native binaries
+BUILD-INFO.txt, build.head, build.exit, docker.exit   build identity: commit b721ae5a, 0 dirty build inputs, pinned image digest, rustc/cargo 1.98.1, MinGW gcc 12-posix, Lua 5.1.5, target x86_64-pc-windows-gnu release, sha256 of eech_dc.dll, eech-world.exe, lua.dll and the staged Lua scripts. build.head also records the tree and the start/finish times (15:50:05Z to 15:51:01Z). There is no separate build.tree file; the tree is in build.head.
+build.log                         the full, unfiltered, non-verbose cargo build output (cargo build ... > /evidence/build.log 2>&1): 279 B, four lines, Finished release in 54.21 s. The exit code 0 is in build.exit, not in this file. The C flags include -w (eech-engine-sys/build/main.rs), so no C warning-clean claim is made
+build-native.sh                   the script that produced build.log and build.exit (local paths and the pinned image digest), kept as reproduction evidence
+staged-aphavoc.txt, worktree-aphavoc.sha   sha256 of the four staged aphavoc C files built with EECH_CAMPAIGN_HOST_MOVEMENT and the worktree hashes (staged-aphavoc.txt lists the file names); the four hashes match
+
+Pre-push record
+prepush.md                        the pre-push fmt/clippy record, corrected after review to state that one production expression changed and that production code is not literally unchanged
+
+linux/ (full unfiltered logs; all but the fmt log ran in the pinned image with a cached target volume)
+prepush-fmt-check.log             cargo fmt --all --check on the lint tree: EXIT=0. Run LOCALLY with rustfmt 1.9.0-stable, not in Linux or the pinned image (the image has no rustfmt)
+prepush-clippy1.log               cargo clippy --locked --all-targets -- -D warnings on the unfixed tree: EXIT=101, 21 errors, all new in b721ae5a (20 in eech-engine tests, 1 in eech-dc/module.rs). Kept as the failing listing. The clippy component was installed transiently in a --rm container (rustup component add clippy); the image has none
+prepush-clippy2.log               the same command after the fixes: EXIT=0
+prepush-test.log                  cargo test --offline --locked -p eech-world -p eech-engine -p eech-dc --no-fail-fast on the lint tree: EXIT=0; eech-dc 3 + lua_debug_layout 2, eech-engine 28, eech-world lib 131, bin 18, host_callbacks 3, load_dc 2; 0 failed. Ran with --offline against the populated eech-cargo registry cache; a fresh setup should use cargo test --locked
+r1-green.log                     the same test command before the lint commit (R1 source), EXIT=0, identical counts. Differs from prepush-test.log only in test print order, build timing and compile-line order
+r1-red1.log                       a compile break in a test written during R1 (Kind::Vehicle does not exist), EXIT=101. A test-authoring slip, NOT a behavioural red. It is the only red recorded here for R1; earlier stage 3 and R2 behavioural red exists in the source notes and is not retained here
+
+Native results (native/; run 2026-10-23, binaries b721ae5a, windows-retail v1 baseline unchanged)
+report.json, report.md             full regression pack report: verdict PASS, 40 checks all PASS (pack.exit 0). Claims: 17 PASS directly protected, 12 PASS baseline-sensitive, 8 NOT COVERED, 8 EVIDENCE ONLY (the pack's declared gaps, unchanged). Tiers run: retained, runtime. Includes regress.georgia.exact, regress.lebanon.exact, reference.repeatable, reference.observed_equals_unobserved, retained.recording/observations. The report lists the pack's own blind spots (3 h, one seed, coupled engine, no visual Tacview review, local retail data not in CI); they apply here unchanged. build.differs_from_accepted: eech_dc.dll, eech-world.exe, lua.dll, lua/campaign.lua, lua/lifecycle.lua
+independent-reference-hashes.json  parent-run full-file comparison (verify-complete-reference.py, never writes a baseline) of both Lebanon reference runs against the retained references: recording.acmi 117690861 B sha256 3bd17b64...d19b and observations.jsonl 85716447 B sha256 da26bab0...77cf byte-equal to reference/lebanon-3h/recording.zip.acmi and reference/m3-resupply-loop/observations.jsonl.gz (run1 and run2); metrics.json equal as JSON values and after CRLF normalisation (raw bytes differ only by line endings). 'Tacview unchanged' here is byte equality, not a visual inspection.
+completed-reference-comparison.json  earlier comparison of the two completed reference processes only (written before the Georgia regression and pack had finished; its scope line says so). Superseded for acceptance by the two items above, kept as the original partial record.
+census.out, census-independent-assessment.md  three-hour native census, exit 0, ended_at 10800.0, same binaries, isolated copy of the Lebanon root. Fixed-wing: 127 identities bound, 104 moved >= 10 m; phases taxi 809413 / flight 1996817 / land 22294 steps; fixed_wing_lookahead 1230916, fixed_wing_move 2828524. Helicopter modes exercised: plan/guide 3488618, guided_begin/end 3408914. Limits: the census script's kind table has no helicopter kind, so helicopter steps print as 'unbound' (a missing label, not a registration failure); displacement is only tracked for fixed-wing, so moved_10m=0 for other kinds is not 'stationary'; no ship_move observed; counts show exercised modes, not every avoidance conditional or numeric boundary. Coverage evidence, not the Tacview acceptance pack and not a visual inspection. The assessment file was written before the pack finished and still says 'pending' for it.
+run-pack.ps1, run-census.py, verify-complete-reference.py  the exact scripts run (local paths inside; they need local retail roots and the built target/aircraft-control)
+
+CI (ci/)
+pr98-checks-10b02621.json         gh statusCheckRollup at head 10b026216b1c0b23958d69f34a54a90ac48ed568: all 8 checks SUCCESS (eech-campaign: test x86_64, test i686, test i686 EECH_ORIGINAL_STACK_ATTRIBUTES=1, test x86_64 EECH_C_OPT=2, evidence-selftest, dcs-probe-tools, windows-cross; eech-core-ts: verify). This includes the real-runner windows-cross run that the earlier workflow fix (ci-fix.diff) was awaiting; the earlier windows-cross attempts had timed out in apt (SELF-REVIEW.md). CI is not evidence for the retail pack.
+INDEPENDENT-PREPUSH.md, SELF-REVIEW.md, ci-fix.diff   pre-push review of 6e837440..10b02621 (six workflow lines) and the author self-review; both predate the green run and say runner confirmation was outstanding.
+
+Closeout self-review (author, docs-only; not independent review): changed docs and reference copies only; no source, workflow, test, baseline or golden change; no retail data or binaries committed (hashes and counts only); results copied from the run directory outputs without edit apart from this summary; stale 'pending' statements replaced in the current-status text, originals kept where marked above. The parent remains the only independent reviewer.
+
+Not here, by design
+  the pack's per-run traces, roots and logs (large); the Tacview recording; observations.jsonl; any binary; any retail game data; the earlier incomplete prefix check of the pack output (not acceptance, deliberately not retained); the stage notes and agent prompts; final-fmt.log (71 KB; the 85 pre-fix formatting diffs, superseded by prepush-fmt-check.log).
+
+Not claimed
+  That any Tacview recording has been visually reviewed; that the host arithmetic matches the legacy code beyond what the pack's exact Lebanon/Georgia comparison and the census exercise (no isolated numeric or avoidance-boundary equivalence proof); that the new R1 behavioural tests were red against the pre-R1 code (they were not run there); that the new control tests, plus the limited real-module load_dc checks (they load the native module and check invalid boot-argument errors), establish integrated flight behaviour (they do not); C warning-cleanliness (the C flags include -w); native binaries built at 10b02621 or f1371dda (the native runtime is b721ae5a); any live DCS behaviour (M6); technical-lead approval.
+
+Declared coupling and D1 follow-ups (not closed here): campaign policy, terrain, entity heap, RNG and effects stay coupled in the DLL as declared; dependent-force positioning and all-family report-loss work remain D1 follow-ups. This is EEDCS-39 under D1, not D1 closure.

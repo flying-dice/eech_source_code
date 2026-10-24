@@ -1,0 +1,67 @@
+== RED (stock mlua-sys 0.6.8): cargo test -p eech-dc --test lua_debug_layout
+test lua_debug_short_src_starts_where_dcs_world_writes_it ... ok
+test lua_debug_holds_the_dcs_world_record ... FAILED
+thread 'lua_debug_holds_the_dcs_world_record' (4124) panicked at crates/eech-dc/tests/lua_debug_layout.rs:19:5:
+mlua-sys lua_Debug is 120 bytes, DCS World's Lua writes 316
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+name = "mlua-sys" version = "0.6.8" source = "registry+https://github.com/rust-lang/crates.io-index" 
+== GREEN: cargo test --locked --no-fail-fast (x86_64)
+green-exit=0
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test campaign_is_send ... ok
+test a_panicking_world_unwinds_in_rust_and_poisons_the_campaign ... ok
+test a_sequential_campaign_starts_from_a_clean_state ... ok
+test a_server_replicates_what_changed ... ok
+test an_unknown_position_fails_loudly_and_poisons_the_campaign ... ok
+test invalid_configurations_are_refused_before_the_campaign_starts ... ok
+test one_campaign_per_process_and_campaigns_run_one_after_another ... ok
+test stale_and_foreign_ids_are_detected ... ok
+test the_supply_chain_runs_from_keysite_consumption_to_the_assignment_boundary ... ok
+test unknown_object_bounds_fail_loudly ... ok
+test without_a_suitable_group_the_mission_waits_and_the_campaign_keeps_running ... ok
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test lua_debug_holds_the_dcs_world_record ... ok
+test lua_debug_short_src_starts_where_dcs_world_writes_it ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test float_semantics_match_the_c_reference ... ok
+test fresh_scenarios_match_the_c_reference ... ok
+test recorded_scenarios_match_the_c_reference ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s
+test scenarios_produce_their_recorded_results ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+test geo::tests::round_trips ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test b1_va_list_reinterpretation_is_an_i386_only_idiom ... ok
+test every_writable_global_is_classified ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+test probe ... ok
+test replay_slice1 ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test tacview::tests::writes_a_well_formed_acmi ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test a_failing_host_callback_returns_its_error_to_pcall ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test require_loads_the_dc_dll ... ok
+test a_failing_dc_callback_returns_its_error_to_pcall ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test crates/eech-campaign/src/lib.rs - (line 21) - compile ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+== fmt
+fmt-exit=0
+== clippy
+clippy-exit=0
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 28.56s
+script-exit=0

@@ -294,6 +294,14 @@ void ship_vehicle_movement (entity *en)
 
 	ship_movement_get_waypoint_position (en, &wp_pos);
 
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	// the host steps the ship (heading, speed, position); the engine keeps the guide and the waypoint
+
+	campaign_movement_ship_move (en, guide, &wp_pos);
+
+#else
+
 	wp_vec.x = wp_pos.x - raw->vh.mob.position.x;
 	wp_vec.y = 0;
 	wp_vec.z = wp_pos.z - raw->vh.mob.position.z;
@@ -446,6 +454,8 @@ void ship_vehicle_movement (entity *en)
 	new_pos.y = 0.0;
 
 	set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &new_pos);
+
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -483,6 +493,21 @@ void ship_vehicle_death_movement (entity *en)
 	velocity = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_MOTION_VECTOR);
 
 	pos = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
+
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	//
+	// host-owned sinking: the host holds the vector, speed, attitude and position; the fire clears and the destroy test
+	// below stay with the campaign and read the returned height (EEDCS-37)
+	//
+
+	campaign_movement_require_hosted (en);
+
+	campaign_movement_vehicle_vector_seed (en);
+
+	new_pos.y = campaign_movement_ship_sink (en, get_entity_movement_delta_time ());
+
+#else
 
 	new_pos.x = pos->x + (velocity->x * get_entity_movement_delta_time());
 	new_pos.y = pos->y + (velocity->y * get_entity_movement_delta_time());
@@ -522,6 +547,8 @@ void ship_vehicle_death_movement (entity *en)
 
 	set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &new_pos);
 
+#endif
+
 	clear_ship_fires (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_FIRE);
 	clear_ship_fires (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_EXPLOSION_TRAIL);
 
@@ -547,9 +574,21 @@ void ship_vehicle_death_movement (entity *en)
 		d.y = bounding_box->ymax - bounding_box->ymin;
 		d.z = bounding_box->zmax - bounding_box->zmin;
 
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+		//
+		// the host's height against the sight of the shape: whether the ship's physical life is over is the host's answer
+		// (EEDCS-38); the family is still destroyed here
+		//
+
+		obscured_altitude = 0.0;
+
+		if (campaign_movement_ship_sunk (en, get_3d_vector_magnitude (&d)))
+#else
 		obscured_altitude = -(0.5 * get_3d_vector_magnitude (&d));
 
 		if (new_pos.y < obscured_altitude)
+#endif
 		{
 			//
 			// ship is no longer visible

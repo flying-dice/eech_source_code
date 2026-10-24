@@ -1,0 +1,22 @@
+diag_selected	mode=withhold host=eech-world:2995 task=21474930583 waypoint=21474930584 sub_type=27 query=reached mobile=helicopter selected_at=282.0 delay=10.0
+diag_calls	total=936 passed=202 after_delay=835 after_delay_passed=102 withheld=101 released_at=292.09999999997 advanced_to=12884997751 advanced_at=375.59999999995 ended_at=375.7
+diag_first	distance=1.65 radius=20.00 velocity=0.00 landed=false heading=1.9902 heading_criterion=0.0873 heading_source=target waypoint_heading=0.0000 altitude=617.15 altitude_criterion=1.00 guide_altitude=612.23
+diag_last	distance=2205.09 radius=20.00 velocity=0.00 landed=false heading=-2.7745 heading_criterion=0.0873 heading_source=target waypoint_heading=0.0000 altitude=0.00 altitude_criterion=0.00 guide_altitude=0.00
+diag_seen	waypoint=21474930584 kind=radius_arrival sub_type=27 query=reached first=282.1 last=375.5 calls=935 passed=201
+diag_seen	waypoint=12884997751 kind=radius_arrival sub_type=27 query=reached first=375.6 last=375.6 calls=1 passed=1
+diag_last_call	at=375.5 reference_gates_passed=false
+select	altitude
+query	reached
+mobile	helicopter
+waypoint_sub_type	27
+outcome_after_release	advanced
+task_key_before_after	21474930583	12884997750
+waypoint_key_before_after	21474930584	12884997751
+leader_host_id	eech-world:2995
+withheld_seconds	10.1
+withheld_calls	101
+selected_first_position	138004.672	617.153	62607.715
+selected_last_position	138004.516	616.165	62609.570
+selected_displacement	2.108
+advanced_after_release_seconds	83.5
+result	ok

@@ -1,0 +1,34 @@
+bound	host_id=eech-world:3069 legacy=87568 entity_type=14 sub_type=9 side=red group_key=712
+death_at	1585.00	expected=1584.66
+fleet	rotor_set	98
+fleet	rotor_alive	593039
+fleet	rotor_idle	1979145
+fleet	rotor_down	3399
+fleet	fall	973
+fleet	fall_gravity	973
+fleet	contact	3901
+fleet	settle	131
+fleet	tumble	973
+fleet	impact	46
+fleet	crash_begin	2426
+fleet	crash_end	2426
+subject	eech-world:3069
+lifecycle	rotor_set	first_at=921.90	count=1
+lifecycle	rotor_alive	first_at=922.00	count=6630
+lifecycle	rotor_idle	first_at=0.00	count=9220
+lifecycle	rotor_down	first_at=1585.00	count=34
+lifecycle	fall	first_at=1585.00	count=34
+lifecycle	fall_gravity	first_at=1585.00	count=34
+lifecycle	contact	first_at=1585.00	count=34
+lifecycle	settle	first_at=1587.70	count=7
+lifecycle	tumble	first_at=1585.00	count=34
+lifecycle	impact	first_at=1584.90	count=1
+sequence	rotor_idle>rotor_set>rotor_alive>impact>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>tumble>rotor_down>fall>fall_gravity>contact>settle>tumble>rotor_down>fall>fall_gravity>contact>settle>tumble>rotor_down>fall>fall_gravity>contact>settle>tumble>rotor_down>fall>fall_gravity>contact>settle>tumble>rotor_down>fall>fall_gravity>contact>settle>tumble>rotor_down>fall>fall_gravity>contact>settle>tumble>rotor_down>fall>fall_gravity>contact>settle>tumble
+answered	contact	touched=true:7 false:27	first_at=1585.00
+answered	settle	buried=true:1 false:6	first_at=1587.70
+rotor_changed_by	rotor_alive	260
+rotor_changed_by	rotor_down	34
+rotor_changed_by	settle	1
+loss	1584.90	physical
+ended_at	1597.9
+result	control

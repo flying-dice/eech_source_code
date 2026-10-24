@@ -1,0 +1,14 @@
+[package]
+name = "eech-harness"
+version = "0.1.0"
+description = "Deterministic headless harness around the public eech-campaign API: scenarios in, JSON results out; legacy corpus replay."
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+eech-campaign = { path = "../eech-campaign", features = ["conformance", "serde"] }
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+flate2 = "1"

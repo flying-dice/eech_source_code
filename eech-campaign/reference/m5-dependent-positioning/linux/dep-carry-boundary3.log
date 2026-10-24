@@ -1,0 +1,30 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.37s
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-8cb91bce5a541db5)
+
+running 4 tests
+test move_vehicle_refuses_an_unknown_id_a_foreign_pose_and_an_unknown_mode ... ok
+test a_dependent_carry_round_trips_through_lua_and_refuses_what_the_host_did_not_move ... FAILED
+test a_failing_host_callback_returns_its_error_to_pcall ... ok
+test the_hosted_helicopter_plan_guide_and_abandon_round_trip_through_lua ... ok
+
+failures:
+
+---- a_dependent_carry_round_trips_through_lua_and_refuses_what_the_host_did_not_move stdout ----
+
+thread 'a_dependent_carry_round_trips_through_lua_and_refuses_what_the_host_did_not_move' (115) panicked at crates/eech-world/tests/host_callbacks.rs:189:5:
+exit status: 1
+
+Error: RuntimeError("[string \"/tmp/eech-world-dependent-carry-114.lua\"]:25: dc_parent / error converting Lua nil to String (expected string or number)\nstack traceback:\n\t[C]: in function 'move_vehicle'\n\t[string \"/tmp/eech-world-dependent-carry-114.lua\"]:12: in function <[string \"/tmp/eech-world-dependent-carry-114.lua\"]:9>\n\t[C]: in function 'pcall'\n\t[string \"/tmp/eech-world-dependent-carry-114.lua\"]:24: in function 'refused'\n\t[string \"/tmp/eech-world-dependent-carry-114.lua\"]:32: in main chunk\n\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'assert'\n\t[string \"/tmp/eech-world-dependent-carry-114.lua\"]:25: in function 'refused'\n\t[string \"/tmp/eech-world-dependent-carry-114.lua\"]:32: in main chunk")
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    a_dependent_carry_round_trips_through_lua_and_refuses_what_the_host_did_not_move
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p eech-world --test host_callbacks`
+EXIT=101
+docker exit=101

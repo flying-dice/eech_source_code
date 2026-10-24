@@ -238,6 +238,16 @@ typedef enum GUIDE_TERRAIN_FOLLOW_MODES guide_terrain_follow_modes;
 
 #include	"gd_nav.h"
 
+#ifdef EECH_CAMPAIGN_HOST_ARRIVALS
+#include	"gd_supply_arrival.h"
+#else
+#define campaign_supply_arrival_release_entity(ENTITY) ((void) 0)
+#define campaign_supply_arrival_is_target(GUIDE) (FALSE)
+#define campaign_supply_arrival_check(MEMBER,GUIDE) (FALSE)
+#define campaign_radius_arrival_is_target(MEMBER,GUIDE) (FALSE)
+#define campaign_radius_arrival_check(MEMBER,GUIDE) (FALSE)
+#endif
+
 #include	"gd_pack.h"
 
 #include	"gd_ptr.h"
@@ -275,6 +285,8 @@ extern void attach_group_member_to_guide_entity (entity *member, entity *guide);
 extern void attach_group_to_guide_entity (entity *group, entity *guide);
 
 extern void delete_group_member_from_guide_entity (entity *member, entity *guide);
+
+extern void delete_group_member_number_from_guide_entity (unsigned int member_number, entity *guide);
 
 extern void delete_group_member_from_engage_guide (entity *member, entity *guide, int engage_enemy);
 

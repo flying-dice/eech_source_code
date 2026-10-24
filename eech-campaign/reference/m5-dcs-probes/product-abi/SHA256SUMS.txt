@@ -1,0 +1,8 @@
+# sha256 of each file as copied byte for byte from E:/eech-runs/dcs-probe/abi-microprobe/product/ (lead-verified experiment, EEDCS-12 comment 10446)
+b9a601ac5c61c625577789289fabca08b37affaa90c5dd4d6ef3471cbd3846ed  cargo-lock.diff
+29034cab3dd4ec2b3e348ae92d59fcf63cbd99392bf5b2b988909f8efa723bc2  cargo-toml.diff
+8e48ff52c8735abed7a447a72ab7266f8c596db177ab45fd91cfe90348267de1  controls-patched.summary.txt
+99c29427366d556ebe1b73b999a1db6cded3a3cfbd457b35ae03a2c9ab605f8d  controls-stock.summary.txt
+b0f4b5bf70f43dbdfd13f19a50d54b4c8f8b0be6ae56f962144e0cf397d8719b  mlua-sys-idsize256.diff
+75ae2cd2a593f1a94a4f028fd2b4ffe235aaf0e9ec61383d6d9a01e7782e95c1  pack-patched.report.json
+404edac3c4480cd6a701a772d3e958d89d7730cdd737b9704396e4b2a624f2f2  pack-patched.report.md

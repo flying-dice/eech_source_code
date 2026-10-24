@@ -1,0 +1,18 @@
+# at 61b53bde, 2026-09-27T23:14:22+01:00
+$ python tools/baseline-governance-selftest.py
+approved path      as expected: proposal UNCLASSIFIED; classified CLASSIFIED - APPROVAL REQUIRED (adopt refused: True); approved CLASSIFIED AND APPROVED; adopted: v2 current, versions ['v1', 'v2'], v1 kept True, working value 2
+  before approval: CLASSIFIED AS intentional-semantic-change - APPROVAL REQUIRED (change record regression/changes/fixture-change.json)
+  after adoption:  against v1: approved intentional-semantic-change; v2 is the accepted baseline (change record regression/changes/fixture-change.json)
+  the lineage: {"fixture": true, "configuration": "test fixture", "inputs": {}, "working_path": "regression/fixture-working", "current": "v2", "versions": [{"id": "v1", "path": "regression/baselines/fixture/v1", "files": {"fixture_metrics.json": "f0c1bc42f1861dc5721f0192c59dfe326275765aa3278cfbe4e788085badd2e0"}, "established": {"at": "the fixture"}}, {"id": "v2", "path": "regression/baselines/fixture/v2", "files": {"fixture_metrics.json": "089c31a52fb16e7fb7c951d36b9e0aa1380f27d0dcab38ca0dfb918bbfd6c031"}, "supersedes": "v1", "change": "fixture-change"}]}
+no-classification  as expected: fixture-change: it produced a baseline, but it is UNCLASSIFIED
+no-approval        as expected: fixture-change: it produced a baseline, but it is CLASSIFIED - APPROVAL REQUIRED
+no-previous        as expected: fixture v1: regression/baselines/fixture/v1/fixture_metrics.json is missing (versions are never removed)
+tampered           as expected: fixture-change: the record differs from the version approved at 906c9ea6
+wrong-reviewer     as expected: fixture-change: review 1 is by fd-starscream-bot, not governance-fixture-approver (test only; not fd-starscream-bot)
+withdrawn          as expected: fixture-change: review 1 was followed by a request for changes
+overwritten        as expected: fixture: regression/fixture-working/fixture_metrics.json is not the current version v2: a baseline changes only through an approved change record (tools/baseline-governance.py adopt)
+invented-class     as expected: fixture-change: benign-drift is not a programme classification (regression, approved-defect-correction, intentional-semantic-change, expected-input-world-variation)
+regression         as expected: refused: fixture-change is classified as a regression, which never advances a baseline; the candidate stays failing; current v1; CLASSIFIED AS REGRESSION - REJECTED (change record regression/changes/fixture-change.json)
+variation          as expected: founded fixture-other-inputs v1; fixture still v1 (value 1)
+governance fixture: 11 of 11 as expected
+exit 0

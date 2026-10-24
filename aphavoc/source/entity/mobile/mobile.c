@@ -384,6 +384,11 @@ void credit_client_server_mobile_kill (entity *victim, entity *aggressor)
 	// Victim should still be "alive" at this point
 	ASSERT (get_local_entity_int_value (victim, INT_TYPE_ALIVE));
 
+	if (campaign_roster_observe_credit (victim) != CAMPAIGN_LOSS_FORWARD)
+	{
+		debug_fatal ("campaign loss: credit withholding is unsupported");
+	}
+
 	//
 	// Group kills
 	//
@@ -494,6 +499,61 @@ void credit_client_server_mobile_kill (entity *victim, entity *aggressor)
 #define MAX_DEATH_TIMER_VALUE	3.0 * ONE_HOUR
 
 #define DEATH_TIMER_SPECIAL_GAME_MULTIPLIER	0.1
+
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+//
+// the campaign's half of a wreck's lifetime: the squared 2D range to its nearest keysite (keysites are campaign state).
+// The host owns the curve over it (calculate_mobile_death_timer_value below is the original, kept for the other build).
+//
+
+float calculate_mobile_nearest_keysite_sqr_range (entity *en)
+{
+	vec3d
+		*pos,
+		*keysite_pos;
+
+	float
+		range,
+		closest;
+
+	entity
+		*force,
+		*keysite;
+
+	pos = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
+
+	closest = FLT_MAX;
+
+	ASSERT (get_session_entity ());
+
+	force = get_local_entity_first_child (get_session_entity (), LIST_TYPE_FORCE);
+
+	while (force)
+	{
+		keysite = get_local_entity_first_child (force, LIST_TYPE_KEYSITE_FORCE);
+
+		while (keysite)
+		{
+			keysite_pos = get_local_entity_vec3d_ptr (keysite, VEC3D_TYPE_POSITION);
+
+			range = get_sqr_2d_range (pos, keysite_pos);
+
+			if (range < closest)
+			{
+				closest = range;
+			}
+
+			keysite = get_local_entity_child_succ (keysite, LIST_TYPE_KEYSITE_FORCE);
+		}
+
+		force = get_local_entity_child_succ (force, LIST_TYPE_FORCE);
+	}
+
+	return closest;
+}
+
+#endif
 
 float calculate_mobile_death_timer_value (entity *en)
 {

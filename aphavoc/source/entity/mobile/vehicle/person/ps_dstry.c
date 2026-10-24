@@ -136,21 +136,21 @@ static void destroy_local (entity *en)
 	// vehicle
 	//
 
-	unlink_local_entity_children (en, LIST_TYPE_TASK_DEPENDENT);
+	unlink_member_task_dependents (en);
 
 	unlink_local_entity_children (en, LIST_TYPE_LAUNCHED_WEAPON);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_FOLLOWER);
+	unlink_member_from_guide (en);
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_DESIGNATED_TARGET); // Jabberwock 031107 Designated targets
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_GUNSHIP_TARGET);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_MEMBER);
+	unlink_member_from_group (en);
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_VIEW);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_TAKEOFF_QUEUE);
+	unlink_member_from_takeoff_queue (en);
 
 	//
 	// mobile
@@ -296,8 +296,8 @@ static void kill_local (entity *en)
 	person
 		*raw;
 
-	int
-		losses;
+	campaign_loss_ticket
+		loss;
 
 	entity
 		*task,
@@ -347,15 +347,19 @@ static void kill_local (entity *en)
 
 	ASSERT (group);
 
+	campaign_roster_accept_physical_loss (en, group, &loss);
+
 	//
 	// group losses
 	//
 
-	losses = get_local_entity_int_value (group, INT_TYPE_LOSSES);
+	// kept inline, as is the task notification below: that notification passes
+	// no task_terminated argument, which the TASK_COMPLETED response reads with
+	// va_arg (ts_msgs.c), so it reads whatever the argument register holds at
+	// the call. The notification loop is kept unchanged and ungated: a withheld
+	// person has no task dependents, so it sends nothing for one.
 
-	losses ++;
-
-	set_local_entity_int_value (group, INT_TYPE_LOSSES, losses);
+	campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_GROUP_LOSS);
 
 	////////////////////////////////////////
 	//
@@ -418,13 +422,13 @@ static void kill_local (entity *en)
 	// vehicle
 	//
 
-	unlink_local_entity_children (en, LIST_TYPE_TASK_DEPENDENT);
+	unlink_member_task_dependents (en);
 
 	unlink_local_entity_children (en, LIST_TYPE_LAUNCHED_WEAPON);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_MEMBER);
+	unlink_member_from_group (en);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_FOLLOWER);
+	unlink_member_from_guide (en);
 
 	// gunship_target_link
 
@@ -432,7 +436,7 @@ static void kill_local (entity *en)
 
 	// view_link
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_TAKEOFF_QUEUE);
+	unlink_member_from_takeoff_queue (en);
 
 	//
 	// mobile
@@ -468,7 +472,7 @@ static void kill_local (entity *en)
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
-		notify_local_entity (ENTITY_MESSAGE_MOBILE_KILLED, group, en);
+		campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_MEMBER_KILLED);
 	}
 
 	////////////////////////////////////////

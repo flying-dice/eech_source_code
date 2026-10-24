@@ -494,6 +494,9 @@ void set_free_entity (entity *en)
 {
 	ASSERT (en);
 
+	campaign_roster_release_entity (en);
+	campaign_supply_arrival_release_entity (en);
+
 	en->type = ENTITY_TYPE_UNKNOWN;
 
 	en->data = NULL;
