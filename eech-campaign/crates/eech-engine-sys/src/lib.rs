@@ -600,6 +600,36 @@ extern "C" {
     pub fn eech_engine_loss_group(entity_id: c_int, text: *mut c_char, capacity: c_int) -> c_int;
 }
 
+/// TEST-ONLY (feature los-fixture, EEDCS-42): a fold of line-of-sight queries; see csrc/eech_los_fixture.c.
+#[cfg(feature = "los-fixture")]
+pub const EECH_LOS_CRITERIA: usize = 32;
+
+#[cfg(feature = "los-fixture")]
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_los_trace {
+    pub hash: u64,
+    pub calls: u64,
+    pub visible: u64,
+    pub skipped: u64,
+    pub by_criteria_calls: [u64; EECH_LOS_CRITERIA],
+    pub by_criteria_visible: [u64; EECH_LOS_CRITERIA],
+}
+
+#[cfg(feature = "los-fixture")]
+extern "C" {
+    pub fn eech_engine_los_trace(out: *mut eech_los_trace) -> c_int;
+    pub fn eech_engine_los_trace_reset() -> c_int;
+    pub fn eech_engine_los_probe(
+        source_id: c_int,
+        target_id: c_int,
+        seed: u32,
+        count: c_int,
+        out: *mut eech_los_trace,
+        host: *const eech_engine_host,
+    ) -> c_int;
+}
+
 // The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by
 // target) cannot move any float or int before it; the C struct in rv_hostmv.h declares them last as well.
 const _: () = assert!(core::mem::offset_of!(eech_movement_step, hc_draws) > core::mem::offset_of!(eech_movement_step, gv_water));

@@ -215,4 +215,31 @@ int eech_engine_loss_shape (int entity_id, char *reason, int capacity);
 int eech_engine_loss_group (int entity_id, char *text, int capacity);
 #endif
 
+#ifdef EECH_LOS_FIXTURE
+/*
+ * TEST-ONLY (feature los-fixture, EEDCS-42): see eech_los_fixture.c. Not part of the shipping module.
+ * A trace folds line-of-sight queries: how many, how many were visible, the same per criteria value, how many sweep
+ * points were skipped for lying near the map edge, and an order-dependent FNV-1a hash over each query's criteria,
+ * six position floats (bit patterns) and answer.
+ */
+#define EECH_LOS_CRITERIA 32
+struct eech_los_trace
+{
+	uint64_t hash;
+	uint64_t calls;
+	uint64_t visible;
+	uint64_t skipped;
+	uint64_t by_criteria_calls[EECH_LOS_CRITERIA];
+	uint64_t by_criteria_visible[EECH_LOS_CRITERIA];
+};
+/* The run-wide trace of every query the campaign has made since boot or the last reset. */
+int eech_engine_los_trace (struct eech_los_trace *out);
+int eech_engine_los_trace_reset (void);
+/*
+ * Runs the deterministic sweep between two live entities and returns its own trace in `out`; the run-wide trace is not
+ * changed. `host` is the engine host, passed so the same entry serves a build whose queries cross the host boundary.
+ */
+int eech_engine_los_probe (int source_id, int target_id, uint32_t seed, int count, struct eech_los_trace *out, const struct eech_engine_host *host);
+#endif
+
 #endif

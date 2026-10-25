@@ -1016,3 +1016,62 @@ int eech_engine_loss_state (int side, int *values, int capacity, int *count)
 }
 
 #endif
+
+#ifdef EECH_LOS_FIXTURE
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/*
+ * TEST-ONLY line-of-sight characterisation entries (EEDCS-42). Compiled only with the `los-fixture` feature; never part of the
+ * shipping module. They read the run-wide trace the recorder in mb_tgt.c keeps, clear it, or run the deterministic probe sweep
+ * of eech_los_fixture.c between two live entities. The probe runs inside the engine entry so it sees EECH's round-toward-zero
+ * mode, as the campaign's own queries do. None of them constructs an entity or replaces a handler.
+ */
+extern void eech_los_trace_get (struct eech_los_trace *out);
+extern void eech_los_trace_clear (void);
+extern int eech_los_probe_run (int source_id, int target_id, uint32_t seed, int count, struct eech_los_trace *out);
+
+int eech_engine_los_trace (struct eech_los_trace *out)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!out)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	eech_los_trace_get (out);
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_los_trace_reset (void)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	eech_los_trace_clear ();
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_los_probe (int source_id, int target_id, uint32_t seed, int count, struct eech_los_trace *out, const struct eech_engine_host *host)
+{
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!out || (count < 0) || (count > 100000))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_los_probe_run (source_id, target_id, seed, count, out) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif

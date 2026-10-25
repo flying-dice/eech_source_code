@@ -135,6 +135,35 @@ int check_entity_line_of_sight (entity *source, entity *target, mobile_los_check
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_LOS_FIXTURE
+
+//
+// TEST-ONLY characterisation recorder (EEDCS-42), compiled only with the `los-fixture` feature and never part of the shipping
+// module. Every line of sight query, whether it arrives as an entity or a position check, passes through the public
+// check_position_line_of_sight, which here only forwards to the unchanged solver below and records the query's inputs and its
+// answer. Recording is observational: it reads the inputs and the result and alters neither.
+//
+
+extern void eech_los_trace_record (vec3d *source_position, vec3d *target_position, mobile_los_check_criteria criteria, int result);
+
+int eech_los_solver (entity *source, entity *target, vec3d *source_position, vec3d *target_position, mobile_los_check_criteria criteria);
+
+int check_position_line_of_sight (entity *source, entity *target, vec3d *source_position, vec3d *target_position, mobile_los_check_criteria criteria)
+{
+	int
+		result;
+
+	result = eech_los_solver (source, target, source_position, target_position, criteria);
+
+	eech_los_trace_record (source_position, target_position, criteria, result);
+
+	return result;
+}
+
+#define check_position_line_of_sight eech_los_solver
+
+#endif
+
 int check_position_line_of_sight (entity *source, entity *target, vec3d *source_position, vec3d *target_position, mobile_los_check_criteria criteria)
 {
 
@@ -421,3 +450,10 @@ int check_position_line_of_sight (entity *source, entity *target, vec3d *source_
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_LOS_FIXTURE
+
+#undef check_position_line_of_sight
+
+#endif
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

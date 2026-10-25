@@ -819,6 +819,47 @@ pub struct RosterStats {
     pub duplicate_scan_seconds: f64,
 }
 
+/// TEST-ONLY (feature `los-fixture`, EEDCS-42): a fold of line-of-sight queries. `hash` is an order-dependent FNV-1a over each
+/// query's criteria, six position floats (bit patterns) and answer; the counts are per criteria value (index = the criteria bits).
+#[cfg(feature = "los-fixture")]
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LosTrace {
+    pub hash: u64,
+    pub calls: u64,
+    pub visible: u64,
+    pub skipped: u64,
+    pub by_criteria_calls: Vec<u64>,
+    pub by_criteria_visible: Vec<u64>,
+}
+
+#[cfg(feature = "los-fixture")]
+impl LosTrace {
+    fn blank() -> sys::eech_los_trace {
+        sys::eech_los_trace {
+            hash: 0,
+            calls: 0,
+            visible: 0,
+            skipped: 0,
+            by_criteria_calls: [0; sys::EECH_LOS_CRITERIA],
+            by_criteria_visible: [0; sys::EECH_LOS_CRITERIA],
+        }
+    }
+}
+
+#[cfg(feature = "los-fixture")]
+impl From<sys::eech_los_trace> for LosTrace {
+    fn from(raw: sys::eech_los_trace) -> Self {
+        Self {
+            hash: raw.hash,
+            calls: raw.calls,
+            visible: raw.visible,
+            skipped: raw.skipped,
+            by_criteria_calls: raw.by_criteria_calls.to_vec(),
+            by_criteria_visible: raw.by_criteria_visible.to_vec(),
+        }
+    }
+}
+
 /// What one `report_loss` applied, copied from the performed campaign actions; an observation, never an input.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize)]
 pub struct LossReceipt {
@@ -2113,6 +2154,52 @@ impl Engine {
         check(unsafe { sys::eech_engine_loss_group(entity_id, text.as_mut_ptr(), text.len() as i32) })?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `los-fixture`, EEDCS-42): the run-wide fold of every line-of-sight query the campaign has made since boot
+    /// or the last reset. Read-only.
+    #[cfg(feature = "los-fixture")]
+    pub fn los_trace(&self) -> Result<LosTrace, EngineError> {
+        let mut raw = LosTrace::blank();
+        // SAFETY: the out pointer is valid for the call.
+        check(unsafe { sys::eech_engine_los_trace(&mut raw) })?;
+        Ok(LosTrace::from(raw))
+    }
+
+    /// TEST-ONLY (feature `los-fixture`, EEDCS-42): clears the run-wide line-of-sight fold.
+    #[cfg(feature = "los-fixture")]
+    pub fn los_trace_reset(&self) -> Result<(), EngineError> {
+        // SAFETY: no pointers cross.
+        check(unsafe { sys::eech_engine_los_trace_reset() })
+    }
+
+    /// TEST-ONLY (feature `los-fixture`, EEDCS-42): runs the deterministic line-of-sight sweep of `eech_los_fixture.c` between two live
+    /// entities through the campaign's own solver, and returns the fold of just that sweep; the run-wide fold is untouched.
+    #[cfg(feature = "los-fixture")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn los_probe<F, G, H, M>(
+        &self,
+        source_id: i32,
+        target_id: i32,
+        seed: u32,
+        count: i32,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+    ) -> Result<LosTrace, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+    {
+        let mut raw = LosTrace::blank();
+        // SAFETY: the out pointer and the temporary host callback are valid for the call.
+        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, move_vehicle_fn, |host| unsafe {
+            sys::eech_engine_los_probe(source_id, target_id, seed, count, &mut raw, host)
+        })?;
+        Ok(LosTrace::from(raw))
     }
 
     /// Applies one previously withheld loss by opaque physical-incarnation ID.

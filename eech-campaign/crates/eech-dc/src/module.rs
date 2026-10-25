@@ -442,6 +442,32 @@ impl LuaUserData for LuaEngine {
         // TEST-ONLY (feature `loss-fixture`, EEDCS-41): read-only task dependents and guide stack of a hosted member's group; not part of the shipping module.
         #[cfg(feature = "loss-fixture")]
         methods.add_method("loss_group", |_, this, entity_id: i32| this.engine.loss_group(entity_id).map_err(lua_error));
+        // TEST-ONLY (feature `los-fixture`, EEDCS-42): the run-wide fold of line-of-sight queries; not part of the shipping module.
+        #[cfg(feature = "los-fixture")]
+        methods.add_method("los_trace", |lua, this, ()| {
+            let trace = this.engine.los_trace().map_err(lua_error)?;
+            los_trace_table(lua, &trace)
+        });
+        // TEST-ONLY (feature `los-fixture`, EEDCS-42): clears that fold; not part of the shipping module.
+        #[cfg(feature = "los-fixture")]
+        methods.add_method("los_trace_reset", |_, this, ()| this.engine.los_trace_reset().map_err(lua_error));
+        // TEST-ONLY (feature `los-fixture`, EEDCS-42): the deterministic line-of-sight sweep between two live entities; not part of the shipping module.
+        #[cfg(feature = "los-fixture")]
+        methods.add_method("los_probe", |lua, this, (source, target, seed, count): (i32, i32, u32, i32)| {
+            let bind_mobile = this.bind_mobile.clone();
+            let observe_loss = this.observe_loss.clone();
+            let supply_reached = this.supply_reached.clone();
+            let move_vehicle = this.move_vehicle.clone();
+            let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+            let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+            let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+            let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+            let trace = this
+                .engine
+                .los_probe(source, target, seed, count, &mut binder, &mut observer, &mut reach, &mut mover)
+                .map_err(lua_error)?;
+            los_trace_table(lua, &trace)
+        });
         // TEST-ONLY (feature `dependent-fixture`, EEDCS-40): not part of the shipping module.
         #[cfg(feature = "dependent-fixture")]
         methods.add_method(
@@ -568,6 +594,28 @@ pub fn eech_dc(lua: &Lua) -> LuaResult<LuaTable> {
         lua.create_function(|_, root: String| eech_engine::prepare_installation(std::path::Path::new(&root)).map_err(lua_error))?,
     )?;
     Ok(exports)
+}
+
+/// TEST-ONLY (feature `los-fixture`): lays out a line-of-sight fold as a Lua table. The hash is a 16-digit hex string, because a
+/// Lua number cannot hold 64 bits; `by_criteria` maps each criteria value that was queried to `{ calls, visible }`.
+#[cfg(feature = "los-fixture")]
+fn los_trace_table(lua: &Lua, trace: &eech_engine::LosTrace) -> mlua::Result<mlua::Table> {
+    let table = lua.create_table()?;
+    table.set("hash", format!("{:016x}", trace.hash))?;
+    table.set("calls", trace.calls)?;
+    table.set("visible", trace.visible)?;
+    table.set("skipped", trace.skipped)?;
+    let by_criteria = lua.create_table()?;
+    for (criteria, (calls, visible)) in trace.by_criteria_calls.iter().zip(trace.by_criteria_visible.iter()).enumerate() {
+        if *calls > 0 {
+            let row = lua.create_table()?;
+            row.set("calls", *calls)?;
+            row.set("visible", *visible)?;
+            by_criteria.set(criteria as i64, row)?;
+        }
+    }
+    table.set("by_criteria", by_criteria)?;
+    Ok(table)
 }
 
 /// TEST-ONLY (feature `loss-fixture`): lays out `Engine::loss_state` values as a Lua table. Every read is bounds-checked, so a
