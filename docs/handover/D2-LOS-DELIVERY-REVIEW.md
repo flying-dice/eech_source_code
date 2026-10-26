@@ -35,8 +35,13 @@ manifests still match after the run. The baseline completion/report/comparison r
 
 ## Limits and pending acceptance
 
-No overall delivery acceptance yet. Pending: complete shipping candidate pack; candidate
-complete-file Tacview/observation/metric comparisons; current CI; normal merge
+Both final candidate reference runs have completed. The lead independently checked all six
+complete Tacview/observation/metric files against accepted D1 sizes and SHA-256; all agree.
+Record: `eech-campaign/reference/d2-los-observation/extraction/candidate-reference-comparison.json`.
+Lebanon regression completed exit 0. Georgia remains active; no whole candidate report exists yet.
+
+No overall delivery acceptance yet. Pending: complete shipping candidate pack; final eight-file
+baseline/candidate comparison including both regression metrics; current CI; normal merge
 and Jira/Confluence delivery records. The 900-second A/B comparison does not pass the full-pack
 gate. Partial prefixes and active processes do not pass those gates either.
 

@@ -45,7 +45,11 @@ accepted D1 sizes/SHA-256, and all three input manifests still match after the r
 The separate 900-second A/B comparison completed:
 Tacview, observations and metrics are byte-identical, independently checked by the lead. The
 final shipping candidate's full pack is RUNNING at `R:/d2-evidence/candidate-pack-los-61e856645`.
-The short A/B comparison does not replace it.
+Both complete candidate reference runs have now finished: all 6 Tacview/observation/metric
+files independently match accepted D1 sizes and SHA-256. Candidate Lebanon regression also
+completed exit 0; Georgia remains active and the whole 40-check report is pending. The
+complete-reference comparison is retained under `extraction/candidate-reference-comparison.json`.
+The short A/B comparison and completed reference subruns do not replace the full pack.
 
 Build setup is resolved through isolated WSL2 distro `EECH-D2-Build` and the unchanged repository
 Dockerfile (Rust/cargo1.99.1, MinGW12-posix, Lua5.1.5; exact image and hashes recorded per build).
@@ -63,7 +67,13 @@ Current sole implementation lane: EEDCS-43 on `codex/d2-sensor-detections`, cont
 the observer900s recording control are unchanged; evidence-tool empty/incomplete refusals pass.
 Reviewed LOS source is composed into that task branch as development stacking. Its combined
 600-second entry-path witness exactly matches the original trace; fmt and all combined
-fixture Clippy checks pass. Physical sensor extraction is now underway in that sole lane;
+fixture Clippy checks pass. Physical sensor extraction at `37989fa5f` moves scan-envelope,
+range, tolerance and signature/emitter calculations to the host. Its fresh 600-second witness
+matches all 443 original events, including every diagnostic counter. An earlier incremental
+build retained stale C; that failed evidence remains preserved. The single independent source
+review identified original-input build invalidation and generic host nondetection contract
+corrections; these remain pending, together with sensor Tacview/authority/refusal/full-pack gates.
+The same Sonnet context and independent reviewer handle the focused correction;
 no sensor delivery is accepted, and PR101 is not yet accepted/merged. LOS delivery precedes
 sensor delivery; D2 remains the only active epic.
 
