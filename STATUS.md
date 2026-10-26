@@ -2,15 +2,21 @@
 
 Current task: EEDCS-44, In Progress. Branch `codex/d2-weapon-aiming` was created from
 verified accepted integration `3ce17432e4026f85b19ebf06cc582314817ddac2`.
-Characterization comes first: no aiming responsibility has moved and no aiming
-Tacview comparison is claimed. Draft PR103 contains the characterization harness;
-4927157a5 adds per-kind/branch diagnostics; f9f15f52f corrects observer safety.
-Both named b7f907894 clean-build600s
-witnesses completed with native0 and all1720 events equal. Root verified all27
-build-manifest entries and all18 comparator controls. Its900s observational control
-completed native0; all3 complete artifacts match the retained supplied-build900s
-baseline. The corrected f9 observer's named witnesses/control are now running,
-not passed. D2 is the only active delivery epic; D3 has not started.
+Characterization comes first: no aiming responsibility has moved. Draft PR103
+contains the observer and evidence work. Corrected f9f15f52f original600s traces
+match all1740 events and raw bytes; its900s control completed native0 with all3
+complete artifacts exact against the retained supplied-build baseline. B7 evidence
+and its completed exact900s control remain preserved.
+
+Current oracle0ee1fa46b additionally measures readiness producers. Both600s runs
+completed native/driver0; all1962 events and raw bytes match. Physical signature
+8d5afe5ea932338f now includes readiness; decision4e542d029ba7362a is unchanged.
+Its900s control is running, not passed. Root verified all27 fresh build entries and
+strict feature-off equivalence for all8 instrumented sources. A controlled,
+host-identified person/target case is being implemented because both Lebanon and
+Georgia natural600s witnesses recorded0 person-facing events. No physical cut
+before these remaining characterization gates close. D2 is the only active
+delivery epic; D3 has not started.
 
 Authority: live M5 goal11534337v3 and migration ledger14548994v35. D2 covers physical
 sensing/visibility, physical aiming/weapon execution, and combat resolution/reports.
@@ -29,7 +35,7 @@ remain in EECH_DC. Historical TypeScript and old call-map inventory are not scop
   Root's fresh ordinary build passed, all26 hashes match, and full pack89376 is RUNNING
   at `R:/d2-evidence/candidate-pack-sensing-a2a041fec`. Python18836; native9648/22368/23396/8024.
   Snapshot/bin/roots are immutable. All9 current CI checks pass; full40-check/full-byte
-  and normal-merge gates remain. Live prefixes through roughly one simulated hour
+  and normal-merge gates remain. Live prefixes through roughly90 simulated minutes
   match accepted bytes; this is not a full result.
 - Reviewed sensing branche7e46dcc2 is composed before the first aiming build. This is
   development stacking of runtimea2a041fec, not accepted43 delivery. Delivery43 precedes44;
@@ -40,7 +46,8 @@ remain in EECH_DC. Historical TypeScript and old call-map inventory are not scop
 Characterize active physical aiming, intercept/vector production, readiness/device
 orientation and person target-facing paths through the real host Lua -> native module.
 Current source anchors: weapon.c around700/755/943/1102/1257/2213/2635, ac_wpn.c,
-vh_wpn.c, ps_anim.c around311, en_maths.c target-point geometry, and all6 family updates.
+vh_wpn.c, ps_anim.c around311, en_maths.c target-point geometry, readiness producers
+in en_anim/ac_anim/vh_anim, and all6 family updates.
 Those are starting observations, not a predetermined ABI or proof of runtime coverage.
 Observe existing computed values without changing calls, RNG/FPU order or campaign policy.
 No physical cut before a passing named characterization and observational control.
@@ -48,14 +55,18 @@ Root identified fixture wrappers evaluating unwritten outputs on early exits
 before the hook's internal guard. Those exits were absent from the completed600s
 witnesses, which remain retained with their exact provenance. Sonnet corrected the
 call boundaries at f9f15f52f; root checked the source and all27 fresh build hashes.
-Root's stricter feature-off preprocessing check passes all5 sources with compiler
+Root's stricter feature-off preprocessing check passes all8 sources with compiler
 failures propagated and real numeric constants preserved. It supersedes the earlier
 broad normalizer; its missing-relative-include setup failure is retained separately.
 Person-facing count0 is a coverage
 gap, not proof of that physical behavior. See
 `../d2-evidence/AIM-LEAD-CHARACTERIZATION-FINDINGS.md`. The unstarted492 final-run
-launcher remains lead-gated; the completed b7 control was undisturbed. The corrected
-f9 sequence is running one native case at a time; no physical cut is authorized yet.
+launcher remains lead-gated. Root also rejected an unstarted4500s natural person
+search based only on an infantry-loss timestamp, gated its launcher and canceled
+only its identified waiting PowerShell process with no child/native. The active
+readiness witness and all4 frozen sensing natives were untouched. The controlled
+person case replaces that search; its source remains fixture-only. One additional
+native case runs at a time; no physical cut has begun.
 
 One compact read-only Opus5.5Medium plan completed actual0, with source-grounded
 lead corrections recorded in `../d2-evidence/AIM-COMPACT-PLAN-LEAD-DISPOSITION.md`.
