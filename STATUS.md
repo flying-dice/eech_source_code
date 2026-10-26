@@ -256,7 +256,7 @@ C:/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/eech-regression-20261025
 All 3,581 payload hashes pass; Georgia 1,174 and Lebanon/repeat 1,179 input files match
 their checked-in manifests exactly. Read docs/handover/HOST-READINESS-20261025.md.
 
-Now: one Claude CLI 2.1.310 context `ae34a3d7-0931-4638-b06a-a2d399277929`, exact
+LOS implementation: one Claude CLI 2.1.310 context `ae34a3d7-0931-4638-b06a-a2d399277929`, exact
 `claude-sonnet-5-5` High via `-p`, completed and exited cleanly. Both original/candidate
 600-second characterizations match: Lebanon 156,581 queries / 60,731 visible / hash
 `d97f59bb364bb253`; Georgia 21,104 / 1,646 / `7fdc5ab0b8b5db5d`. The frozen original40s
@@ -273,11 +273,20 @@ The lead built ordinary-feature shipping binaries from an immutable clean 61e856
 fresh target volume and unchanged recipe (exit 0, no dirty build inputs). Exact hashes are in
 `eech-campaign/reference/d2-los-observation/extraction/checks/final-shipping-BUILD-INFO.txt`. Shipping symbols place the LOS kernel in
 World, with no trace/probe fixture symbols in the DLL. The full supplied-binary destination pack
-is still RUNNING at `R:/d2-evidence/baseline-host-20261026-shortpath`; checked prefixes match,
-but no completed full-pack pass is claimed. The separate 900-second A/B comparison completed:
+completed at `R:/d2-evidence/baseline-host-20261026-shortpath`: runner exit 0, all 40 established
+checks PASS. Both complete reference Tacview/observation/metric sets independently match
+accepted D1 sizes/SHA-256, and all three input manifests still match after the run. Evidence:
+`eech-campaign/reference/d2-los-observation/extraction/destination-baseline/`.
+The separate 900-second A/B comparison completed:
 Tacview, observations and metrics are byte-identical, independently checked by the lead. The
-final shipping candidate's full pack is RUNNING at `R:/d2-evidence/candidate-pack-los-61e856645`.
-The short A/B comparison does not replace it.
+final shipping candidate completed all 40 checks at15:54:05 UTC. Both complete reference
+Tacview/observation/metric sets and both regression metrics match the supplied baseline
+byte for byte (8/8); all three post-run input manifests match. The original runner exited1
+on its final cross-drive report-display line, after writing the PASS reports. Separate
+unchanged report-only recovery exited0 without rerunning scenarios or changing results;
+the same independent reviewer inspected that recovery and rehashed the originals.
+Evidence and the explicit process-exit distinction are in
+`eech-campaign/reference/d2-los-observation/extraction/final-pack/`.
 
 Build setup is resolved through isolated WSL2 distro `EECH-D2-Build` and the unchanged repository
 Dockerfile (Rust/cargo1.99.1, MinGW12-posix, Lua5.1.5; exact image and hashes recorded per build).
@@ -290,8 +299,26 @@ supersedes the earlier request for a distinct author connection. No authenticati
 change is needed. Do not attempt GitHub self-approval; keep the independent
 review and actual remaining delivery gates explicit.
 
-Next: finish the established full baseline/candidate packs and complete-file Tacview/observation/
-metric comparisons, current-head CI and normal merge. The lead owns these steps autonomously.
+Current sole implementation lane: EEDCS-43 on `codex/d2-sensor-detections`, context
+`67f40663-046f-435e-be4b-902073b9a69d`, exact Sonnet5.5 High. Original600s sensor reports and
+the observer900s recording control are unchanged; evidence-tool empty/incomplete refusals pass.
+Reviewed LOS source is composed into that task branch as development stacking. Its combined
+600-second entry-path witness exactly matches the original trace; fmt and all combined
+fixture Clippy checks pass. Physical sensor extraction at `37989fa5f` moves scan-envelope,
+range, tolerance and signature/emitter calculations to the host. Its fresh 600-second witness
+matches all 443 original events, including every diagnostic counter. An earlier incremental
+build retained stale C; that failed evidence remains preserved. The single independent source
+review identified original-input build invalidation and generic host nondetection contract
+corrections, now committed at `647558f8b` and `5c00ab4fa` with focused follow-up in progress.
+The379 shipping900s Tacview/observation/metric files are unchanged; its retained causal/refusal
+records were independently checked. A new generic-provider control and final full pack remain
+pending. Three fresh final-pack roots are prepared and match the repository manifests.
+The same Sonnet context and independent reviewer handle the focused correction;
+no sensor delivery is accepted, and PR101 is not yet accepted/merged. LOS delivery precedes
+sensor delivery; D2 remains the only active epic.
+
+Next: final evidence-head CI and normal LOS merge, then Jira/Confluence delivery records.
+The lead owns these steps autonomously and continues the sensor review/build/full pack.
 No baseline or tolerance changed. Terrain elevation and object collision services remain coupled;
 target selection and engagement policy remain in EECH_DC. EEDCS-42 and the rest of D2 are incomplete.
 

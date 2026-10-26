@@ -1,4 +1,12 @@
-# EEDCS-42 los-fixture build record (compile only; no characterisation run yet)
+# EEDCS-42 line-of-sight evidence
+
+Current runtime source `61e856645` has completed characterization, source review and
+all40 shipping regression checks. All8 complete scenario artifacts match the
+supplied baseline byte for byte. See [`extraction/final-pack/`](extraction/final-pack/README.md)
+for reports, input identities and the explicit original exit1/report-only recovery0
+distinction. Final CI/normal merge remain delivery gates. No baseline or tolerance changed.
+
+## Historical first fixture build (compile only at that checkpoint)
 
 Fixture source commit `da8b8c327008ce720c95e9f48971ff6b4aab0321` (PR101 head at build time), 0 uncommitted build inputs.
 Built 26 Oct 2026 08:14-08:15 UTC in the lead's isolated WSL2 distro `EECH-D2-Build` (Alpine, Docker 29.9.2 on its own

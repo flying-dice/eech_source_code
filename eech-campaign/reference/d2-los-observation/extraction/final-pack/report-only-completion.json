@@ -1,0 +1,27 @@
+{
+  "scope": "Report-only recovery of completed LOS pack; NO scenario/check rerun",
+  "original_runner_exec_session": 15414,
+  "original_runner_observed_exit": 1,
+  "original_failure": "write_report final display: ntpath.relpath ValueError R: vs C:",
+  "original_pack_report_verdict": "PASS",
+  "original_checks_passed": 40,
+  "report_writer_source": "R:\\d2-evidence\\shipping-source-a7863a73f\\eech-campaign\\tools\\regression-pack.py",
+  "report_writer_sha256": "4dc08480b72722a7dfdae5dea319f61acc6414c4bdb29351982e1579393d66db",
+  "report_only_return": 0,
+  "original_evidence_unchanged": true,
+  "preserved_original_sha256": {
+    "R:\\d2-evidence\\candidate-pack-los-61e856645\\report.json": "d7eee5a29b6b39603438b735b78c462272b0404aa31bf0ef6c451ae89bd4d0ce",
+    "R:\\d2-evidence\\candidate-pack-los-61e856645\\report.md": "982ca7d2626dfef68d7253963ba4d449ace2b874976f82f0217f9afbccd537db",
+    "R:\\d2-evidence\\candidate-pack-los-61e856645.console.log": "822da26c90d53dc6fc5a12eb767494c44db4c00e1805be50622833190fdd6bf0",
+    "R:\\d2-evidence\\candidate-pack-los-61e856645\\reference\\run1\\recording.acmi": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+    "R:\\d2-evidence\\candidate-pack-los-61e856645\\reference\\run1\\observations.jsonl": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+    "R:\\d2-evidence\\candidate-pack-los-61e856645\\reference\\run1\\metrics.json": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587",
+    "R:\\d2-evidence\\candidate-pack-los-61e856645\\reference\\run2\\recording.acmi": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+    "R:\\d2-evidence\\candidate-pack-los-61e856645\\reference\\run2\\observations.jsonl": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+    "R:\\d2-evidence\\candidate-pack-los-61e856645\\reference\\run2\\metrics.json": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587",
+    "R:\\d2-evidence\\candidate-pack-los-61e856645\\regress\\georgia_retail.json": "7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d",
+    "R:\\d2-evidence\\candidate-pack-los-61e856645\\regress\\lebanon_retail.json": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+  },
+  "regenerated_content_matches_except_command_and_time": true,
+  "report_only_output": "R:\\d2-evidence\\candidate-pack-los-61e856645\\report-completion"
+}

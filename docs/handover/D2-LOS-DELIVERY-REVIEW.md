@@ -28,13 +28,31 @@ The exact independent report is retained under
 `eech-campaign/reference/d2-los-observation/extraction/ab/independent-comparison.json`.
 Both candidate600 cases and public-path causal/refusal checks completed as recorded in the
 extraction evidence. The final ordinary-feature shipping build from clean 61e856645 passed;
-its full pack is now running alongside the supplied-binary destination baseline.
+its full pack completed all40 checks PASS. The supplied-binary destination baseline completed exit0/all40checks
+PASS. All6 complete reference files independently match accepted D1 bytes/hashes, and all3 input
+manifests still match after the run. The baseline completion/report/comparison records are in
+`eech-campaign/reference/d2-los-observation/extraction/destination-baseline`.
 
 ## Limits and pending acceptance
 
-No overall delivery acceptance yet. Pending: complete supplied-binary baseline and shipping
-candidate packs; complete-file Tacview/observation/metric comparisons; current CI; normal merge
-and Jira/Confluence delivery records. The 900-second A/B comparison does not pass the full-pack
-gate. Partial prefixes and active processes do not pass those gates either.
+Both final candidate reference runs have completed. The lead independently checked all six
+complete Tacview/observation/metric files against accepted D1 sizes and SHA-256; all agree.
+Record: `eech-campaign/reference/d2-los-observation/extraction/candidate-reference-comparison.json`.
+Georgia and Lebanon regression and both reference runs are complete. All eight complete scenario
+files match the supplied baseline, including both regression metrics. All three post-run input
+manifests match (actual Python exits0).
+
+The original runner exited1 on the report writer's final display line (`ntpath.relpath` between
+R: output and C: cwd), after writing both PASS reports. A separate report-only invocation of
+the unchanged writer exited0 using the original40 results and an explicit R: native cwd. It
+called no scenario/check execution function and wrote to a separate directory. The same
+independent reviewer inspected this new recovery, compared regenerated claims/checks/identity
+and independently rehashed the original reports, console and eight scenario artifacts: no
+blocking evidence issue. The original exit remains1; recovery is not relabelled as a successful
+original process. See `eech-campaign/reference/d2-los-observation/extraction/final-pack/`.
+
+No overall delivery acceptance yet. Pending: current final-evidence-head CI, normal merge
+and Jira/Confluence delivery records. The earlier900-second A/B comparison and partial prefixes
+are superseded by the completed full scenario comparisons; no coverage claim was expanded.
 
 The user directs the lead to use the logged-in GitHub identity and manage normal merges autonomously. No authentication changes, copied credentials or fabricated GitHub self-approval.

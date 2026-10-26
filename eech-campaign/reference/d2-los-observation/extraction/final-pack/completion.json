@@ -1,0 +1,34 @@
+{
+  "runtime_source": "61e85664540770ab10e3ac7e9f5dfa916291c52f",
+  "original_pack_report_time": "2026-10-26T15:54:05",
+  "checks_passed": 40,
+  "complete_artifact_pairs_exact": 8,
+  "original_runner_observed_exit": 1,
+  "original_exit_reason": "post-report cross-drive final display ValueError, not scenario/check failure",
+  "separate_report_only_observed_process_exit": 0,
+  "no_scenarios_or_checks_rerun": true,
+  "original_evidence_preserved": true,
+  "independent_report_recovery_review": "same Codex reviewer, focused new recovery evidence check; no blocking evidence issue; originals independently rehashed",
+  "post_run_input_manifests": [
+    {
+      "root": "georgia",
+      "actual_python_exit": 0,
+      "raw_external_log": "R:\\d2-evidence\\candidate-los-post-run-inputs-georgia.log",
+      "raw_external_sha256": "c3f9aa0cedd1271768a61559c050267e0e35f891cc9b262a55c817668465cdd2"
+    },
+    {
+      "root": "lebanon",
+      "actual_python_exit": 0,
+      "raw_external_log": "R:\\d2-evidence\\candidate-los-post-run-inputs-lebanon.log",
+      "raw_external_sha256": "e2634cea0437afb772f6c1ca1223b06eafe21b77c3c6c8549db43f9fafd2cdb1"
+    },
+    {
+      "root": "lebanon-repeat",
+      "actual_python_exit": 0,
+      "raw_external_log": "R:\\d2-evidence\\candidate-los-post-run-inputs-lebanon-repeat.log",
+      "raw_external_sha256": "1403b39f09762ebd34fc9adaaa65e4868a718a3c4958fc191833ed9088f25af7"
+    }
+  ],
+  "baseline_and_tolerances_changed": false,
+  "delivery": "Final evidence-head CI and normal merge pending; no Task42 Done or overall D2 acceptance yet"
+}
