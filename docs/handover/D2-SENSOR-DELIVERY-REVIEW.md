@@ -1,9 +1,11 @@
 # D2 sensing delivery review — EEDCS-43
 
-**Current lead disposition:** source findings are resolved at runtime `a2a041fec`;
-focused green evidence is checked and the frozen full pack is running. CI, full
-regression/recording acceptance and normal merge remain pending. Earlier pending
-statements below are historical; see the lead closure section for current gates.
+**Current lead disposition:** source findings are resolved at runtime `a2a041fec`.
+The completed native outputs pass the same40 checks through a separately recorded,
+independently reviewed checker recovery; all8 complete files and post-inputs match.
+The original invocation exited1 and remains preserved. Current CI and normal merge
+are still delivery gates. See [final validation](D2-SENSOR-FINAL-VALIDATION.md).
+Earlier pending statements below are historical.
 
 Independent reviewer: the single Codex reviewer also used for EEDCS-42. One read-only
 source, harness and comparator pass of `37989fa5f183abbffa122fb47535923a83f6bfa9`

@@ -1,3 +1,21 @@
+# EEDCS-43 delivery candidate — full validation complete
+
+Physical sensing runtimea2a041fec is source-reviewed with its findings resolved.
+All4 native campaigns completed. Original full invocation89376 exited1 because
+child PowerShell selected the Windows Store Python alias. Its7 failed checker
+results are preserved. Separate unchanged postchecks/reporting completed actual0,
+the same40 checks allPASS; all8 COMPLETE scenario artifacts equal the established
+destination baseline and all3 post-input checks exited0. No baseline/tolerance
+changed, no scenario rerun. Evidence: eech-campaign/reference/d2-sensor-detections/
+extraction/final-pack. Original/recovery exits are explicitly distinct.
+
+Final delivery checklist: independent review of this new recovery/evidence,
+current CI, normal PR102 merge and Jira/Confluence acceptance. See live PR/Jira
+for merge state; validation alone does not declare EEDCS-43 or D2 delivered.
+Campaign filtering/ranking/engagement/awareness remain core. Physical aiming,
+weapon execution and combat resolution remain D2; D3 has not started.
+
+## Earlier checkpoint (superseded where the current record above differs)
 # D2 — EEDCS-43 sensor detection, stacked on EEDCS-42 line of sight — 26 October 2026
 
 Branch `codex/d2-sensor-detections`, from reverified integration

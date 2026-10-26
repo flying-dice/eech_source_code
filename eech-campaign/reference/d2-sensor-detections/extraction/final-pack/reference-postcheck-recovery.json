@@ -1,0 +1,170 @@
+{
+  "scope": "Separate unchanged reference postchecks only; NO native scenario rerun; NOT a complete40-check pack yet",
+  "original_pack_exec": 89376,
+  "original_pack_exit": "still running Georgia; not asserted",
+  "original_reference_native_exits": "Both zero established by unchanged runner exit guard reaching postchecks; no fabricated direct exit capture",
+  "original_reference_failure": "PowerShell selected Windows Store Python alias; original summary FAIL retained untouched",
+  "source": "R:\\d2-evidence\\shipping-source-d2-sensing-a2a041fec\\eech-campaign\\tools\\reference-windows.ps1",
+  "source_identity": {
+    "bytes": 6839,
+    "sha256": "2813814bf2bb3d20bd7f5a6f5d40d71b3672db1a43e48922df918cfc19b4b0f6"
+  },
+  "unchanged_postcheck_block_sha256": "3f0643c2366c816dd3df2e1491cf3940b39c8159baf6fcb90569c2c7fa4a559a",
+  "recovery_script": "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec-postcheck-recovery\\reference-postchecks.ps1",
+  "recovery_script_identity": {
+    "bytes": 2855,
+    "sha256": "a19182830037a84252d5045fd1dd9864ed96f6b5c34eee54f7f730b9b420d94f"
+  },
+  "explicit_python": "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+  "python_version": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "actual_postcheck_process_exit": 0,
+  "all_six_complete_reference_files_equal_baseline": [
+    {
+      "file": "reference/run1/recording.acmi",
+      "baseline": {
+        "bytes": 117690861,
+        "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+      },
+      "candidate": {
+        "bytes": 117690861,
+        "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+      },
+      "matches": true
+    },
+    {
+      "file": "reference/run1/observations.jsonl",
+      "baseline": {
+        "bytes": 85716447,
+        "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+      },
+      "candidate": {
+        "bytes": 85716447,
+        "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+      },
+      "matches": true
+    },
+    {
+      "file": "reference/run1/metrics.json",
+      "baseline": {
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+      },
+      "candidate": {
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+      },
+      "matches": true
+    },
+    {
+      "file": "reference/run2/recording.acmi",
+      "baseline": {
+        "bytes": 117690861,
+        "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+      },
+      "candidate": {
+        "bytes": 117690861,
+        "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+      },
+      "matches": true
+    },
+    {
+      "file": "reference/run2/observations.jsonl",
+      "baseline": {
+        "bytes": 85716447,
+        "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+      },
+      "candidate": {
+        "bytes": 85716447,
+        "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+      },
+      "matches": true
+    },
+    {
+      "file": "reference/run2/metrics.json",
+      "baseline": {
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+      },
+      "candidate": {
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+      },
+      "matches": true
+    }
+  ],
+  "original_reference_files_unchanged": true,
+  "preserved_original_reference_files": {
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\BUILD-INFO.txt": {
+      "bytes": 2837,
+      "sha256": "e0746abce1875126492de5ab801be05560591c18cb8b0bc3580d5a2bfd3cb317"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\summary.txt": {
+      "bytes": 1114,
+      "sha256": "696ba489ed5264247f9b80656fddff46d509c83a1e86df492fef262e95061f60"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run1\\chains.log": {
+      "bytes": 177,
+      "sha256": "adf27d430ca4c636ac731cd04730a3aaf4382fe595f849edd4e4bb70a83e23a5"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run1\\chains.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run1\\check.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run1\\metrics.json": {
+      "bytes": 35942,
+      "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run1\\observations.jsonl": {
+      "bytes": 85716447,
+      "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run1\\recording.acmi": {
+      "bytes": 117690861,
+      "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run1\\run.log": {
+      "bytes": 56489,
+      "sha256": "a3c3d018c1e313f0ca4a7a493f114bce7ded6375818c76148a505d8e00dc79a5"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run1\\run.out": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run2\\chains.log": {
+      "bytes": 177,
+      "sha256": "adf27d430ca4c636ac731cd04730a3aaf4382fe595f849edd4e4bb70a83e23a5"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run2\\chains.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run2\\check.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run2\\metrics.json": {
+      "bytes": 35942,
+      "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run2\\observations.jsonl": {
+      "bytes": 85716447,
+      "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run2\\recording.acmi": {
+      "bytes": 117690861,
+      "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run2\\run.log": {
+      "bytes": 58176,
+      "sha256": "ad8098f08d53866c0bc2d1ddb23d0ef64b3ab8b943981c510828d339f8c33db6"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run2\\run.out": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}
