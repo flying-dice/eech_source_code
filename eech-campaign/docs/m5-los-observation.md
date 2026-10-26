@@ -4,7 +4,10 @@
 The independent source review and focused correction check are complete. The lead's clean final shipping build passed; the established
 supplied-binary destination baseline completed all40 checks (runner exit0); all6 complete reference files match accepted D1 sizes/SHA-256,
 and all3 post-run input manifests match. Evidence is in `reference/d2-los-observation/extraction/destination-baseline`.
-The40-check candidate pack is still running. Its complete-file comparison, current CI and normal merge remain gates.
+The candidate completed all40 checks. All8 complete scenario artifacts match the supplied baseline byte for byte,
+and all3 post-run input manifests match. Original runner exit1 was a final C:/R: report-display error after reports
+were written; unchanged report-only recovery exited0 without rerunning scenarios or changing results, independently
+checked. Exact records: `reference/d2-los-observation/extraction/final-pack/`. Final evidence-head CI and normal merge remain gates.
 Scope authority is the live M5 goal (Confluence 11534337) and the
 migration ledger (14548994): move physical combat and perception observation into the host and keep target selection, priorities and
 engagement decisions in EECH_DC. Evidence: [`reference/d2-los-observation/`](../reference/d2-los-observation/README.md).
@@ -99,8 +102,9 @@ All results are from the runs recorded under `reference/d2-los-observation/` (pr
 ## Limits and costs
 
 - **Not run by the implementation lane**: the lead's final shipping build and established full pack, independent review, or live DCS operation (M6).
-  The lead subsequently completed the clean corrected-head shipping build and independent source-review closure; the full pack remains running.
-  The short comparisons above cover 900 s of one scenario and 600 s of two.
+  The lead subsequently completed the clean corrected-head shipping build, independent source-review closure and40-check full pack;
+  complete artifacts match the supplied baseline (see the explicit report-only recovery record above). Live DCS remains M6.
+  The earlier short comparisons above cover 900 s of one scenario and 600 s of two.
 - **Cost**: the reference dialogue costs about 18 host crossings per query (1.3 M requests in 300 s of Lebanon). The 900 s whole-campaign comparison took 19 m 13 s against 18 m 06 s
   (+6%), run in parallel under the same load; that is an indication, not a benchmark. Batching would change the lookup order, so it is not done.
 - **Known coupling, unchanged**: terrain (D3), collision and its entity-pointer exclusion (D5), the callers' own ray construction, and the host identities which the reference host does not use yet.

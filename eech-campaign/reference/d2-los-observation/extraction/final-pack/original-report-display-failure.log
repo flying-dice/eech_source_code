@@ -1,0 +1,18 @@
+PASS - directly protected                     M3.supply_loss
+PASS - baseline-sensitive                     M3.supply_loss_reproduced
+NOT COVERED                                   M3.adaptive_compensation
+EVIDENCE ONLY - not automatically checked     M3.chdir
+PASS - directly protected                     M4.s3_detected
+EVIDENCE ONLY - not automatically checked: 8; NOT COVERED: 8; PASS - baseline-sensitive: 12; PASS - directly protected: 17
+Traceback (most recent call last):
+  File "R:\d2-evidence\shipping-source-a7863a73f\eech-campaign\tools\regression-pack.py", line 575, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "R:\d2-evidence\shipping-source-a7863a73f\eech-campaign\tools\regression-pack.py", line 571, in main
+    return write_report(pack, a, out, results, identity, tiers)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "R:\d2-evidence\shipping-source-a7863a73f\eech-campaign\tools\regression-pack.py", line 537, in write_report
+    print(f'REGRESSION PACK: {verdict} (report: {os.path.relpath(os.path.join(out, "report.md"), os.getcwd())})')
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen ntpath>", line 763, in relpath
+ValueError: path is on mount 'R:', start on mount 'C:'
