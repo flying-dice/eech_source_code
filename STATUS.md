@@ -148,3 +148,20 @@ image. The final shipping build and 40/40 pack are the lead's, not to be run con
 When `docker info` succeeds: build the harness commit in the pinned image on a fresh target volume, run the baseline
 characterisation, retain outputs under `eech-campaign/reference/d2-los-observation/`, fix compile errors in the harness only,
 then begin the extraction.
+
+### Update 26 October 2026 (implementation lane)
+
+- Baseline: the lead is running the pack with the unchanged supplied Windows binaries
+  (`../d2-evidence/baseline-host-20261026`). No extraction or solver change until the lead confirms it passes; no second
+  pack is started from this lane. Delivery is user-directed, autonomous under the lead (PR101, fd-starscream-bot author);
+  no self-approval and no authentication change.
+- PR101 CI: the one `cargo fmt --check` diff (the `eech_engine_los_probe` declaration) is applied alone in `7ef45829a`.
+- Fixture build (not run; Docker unavailable): from a clean checkout in Git Bash with Docker Linux containers,
+  `sh eech-campaign/tools/build-windows-los-fixture.sh target/los-fixture/<dir>` (run from `eech-campaign/`). It runs the
+  unchanged `tools/build-windows.sh` and Dockerfile image from a temporary copy in the ignored `target/` directory whose
+  only two differences are `--features eech-dc/los-fixture` on the cargo line and a `FIXTURE BUILD` stamp in `BUILD-INFO.txt`
+  (the wrapper refuses otherwise). Fresh cargo volume `eech-win-target-los-fixture` (override with `EECH_WIN_TARGET`); the
+  shipping volume and flags are untouched. Whether `--features eech-dc/los-fixture` resolves with `-p eech-world` in the
+  workspace is unverified until it runs.
+- Next, when the lead says baseline and Docker are ready: build with that command, run `los-characterization.lua` from the
+  fixture output on the copied Lebanon and Georgia roots (see the harness section), retain outputs, then extract.
