@@ -23,10 +23,11 @@ fixture-finding/runtime-build pending paragraphs below are superseded by this ga
 EEDCS-42 is Done (Jira comment10773); Confluence ledgerv34 preserves all5 epic reports.
 All40 checks passed and all8 complete scenario artifacts match the supplied baseline.
 The original exit1/report-only recovery0 distinction remains recorded and independently checked.
-This worktree still has the earlier reviewed development stack; root will incorporate the
-accepted merge after this CLI actually finishes. Do not mutate a valid run or final frozen
-snapshot. Root's immutable cleana2a041fec final shipping build is running (exec2774);
-source follow-up found no remaining issue, while new green/check records are being inspected.
+The accepted merge is incorporated by branch merge `80db9a9bb0937b8eef5a6bbfa09b3046fa897d3c`.
+The runtime folders still match the reviewed/frozen a2a041fec source exactly; the merge
+adds predecessor delivery records. Root's final ordinary build completed exit0 (exec2774),
+all26 manifest files match, and full pack89376 is running. All focused green/check records
+are inspected and source follow-up found no remaining issue. Keep the run snapshot frozen.
 The earlier predecessor-pending paragraphs below are historical and superseded here.
 
 Lead update after the focused5c00 source follow-up: P1 resolved and P2 shipping
