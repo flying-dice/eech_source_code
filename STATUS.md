@@ -61,11 +61,19 @@ remain in EECH_DC. Historical TypeScript and old call-map inventory are not scop
   recovery exited0, independently checked, originals preserved. Ledgerv34 keeps all5 reports.
 - EEDCS-43 is not accepted. Reviewed runtimea2a041fec has resolved source findings,
   passing characterization/causal/refusal/fixture controls and unchanged900s records.
-  Root's fresh ordinary build passed, all26 hashes match, and full pack89376 is RUNNING
-  at `R:/d2-evidence/candidate-pack-sensing-a2a041fec`. Python18836; native9648/22368/23396/8024.
-  Snapshot/bin/roots are immutable. All9 current CI checks pass; full40-check/full-byte
-  and normal-merge gates remain. Live prefixes through over2.5 simulated hours
-  match accepted bytes; this is not a full result.
+  Root's fresh ordinary build passed and all26 hashes match. Original pack89376
+  remains active on Georgia; both full reference recordings and Lebanon regression
+  completed. All6 complete reference files and completed Lebanon metrics match the
+  baseline. PowerShell postchecks selected the Windows Store Python alias and failed;
+  this is an environment failure, not a passed original pack. Failed evidence is
+  untouched. A separate unchanged reference-postcheck invocation completed actual0
+  with explicit Python3.12.14; complete40-check recovery, all8artifact comparison,
+  post-input manifests, independent recovery review and normal merge remain pending.
+  Original source/bin/roots stay immutable. Recovery lives under
+  `R:/d2-evidence/candidate-pack-sensing-a2a041fec-postcheck-recovery`.
+  Future root pack launches use a verified process-local Python command shim; no
+  system configuration or authentication changed. All9 CI at the reviewed sensing
+  head passed; final delivery checks remain. Sensing is not accepted yet.
 - Reviewed sensing branche7e46dcc2 is composed before the first aiming build. This is
   development stacking of runtimea2a041fec, not accepted43 delivery. Delivery43 precedes44;
   any later source correction must be incorporated and its affected evidence renewed.
