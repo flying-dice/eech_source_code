@@ -750,6 +750,14 @@ extern "C" {
 extern "C" {
     pub fn eech_engine_aim_trace(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_aim_trace_reset() -> c_int;
+    pub fn eech_engine_aim_person_query(host_id: *const c_char, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_aim_person_case(
+        person_id: *const c_char,
+        target_id: *const c_char,
+        text: *mut c_char,
+        capacity: c_int,
+        host: *const eech_engine_host,
+    ) -> c_int;
 }
 
 // The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by

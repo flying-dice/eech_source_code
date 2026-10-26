@@ -1315,4 +1315,102 @@ void eech_aim_trace_clear (void)
 	trace_reset ();
 }
 
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* controlled person case (EEDCS-44): one real host-identified person is given a real host-identified target through the campaign's own target-link
+ * API, then the game steps normally. Only host ids cross; no pointer, index or seed leaves this file. */
+
+static int case_entity_live (entity *en)
+{
+	return entities && en >= entities && en < entities + number_of_entities;
+}
+
+static entity *case_find (const char *host_id)
+{
+	entity *en;
+	for (en = get_local_entity_list (); en; en = get_local_entity_succ (en))
+	{
+		const char *id;
+		if (!case_entity_live (en))
+		{
+			break;
+		}
+		id = campaign_roster_host_id (en);
+		if (id && strcmp (id, host_id) == 0)
+		{
+			return en;
+		}
+	}
+	return NULL;
+}
+
+static int case_state (const char *label, const char *host_id, entity *en, char *text, int capacity)
+{
+	vec3d position;
+	matrix3x3 attitude;
+	entity *target = get_local_entity_parent (en, LIST_TYPE_TARGET);
+	vec3d target_position;
+	const char *target_id = target ? campaign_roster_host_id (target) : NULL;
+	int n;
+	get_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &position);
+	get_local_entity_attitude_matrix (en, attitude);
+	target_position.x = target_position.y = target_position.z = 0.0f;
+	if (target)
+	{
+		get_local_entity_vec3d (target, VEC3D_TYPE_POSITION, &target_position);
+	}
+	n = snprintf (text, (size_t) capacity,
+		"aim-case-state label=%s host_id=%s type=%s alive=%d position=%.9g,%.9g,%.9g attitude=%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g has_target=%d target_host_id=%s "
+		"target_position=%.9g,%.9g,%.9g\n",
+		label, host_id, get_entity_type_name ((entity_types) en->type), get_local_entity_int_value (en, INT_TYPE_ALIVE), (double) position.x, (double) position.y,
+		(double) position.z, (double) attitude[0][0], (double) attitude[0][1], (double) attitude[0][2], (double) attitude[1][0], (double) attitude[1][1],
+		(double) attitude[1][2], (double) attitude[2][0], (double) attitude[2][1], (double) attitude[2][2], target ? 1 : 0, target_id ? target_id : "none",
+		(double) target_position.x, (double) target_position.y, (double) target_position.z);
+	return (n < 0 || n >= capacity) ? -1 : n;
+}
+
+int eech_aim_person_query_run (const char *host_id, char *text, int capacity)
+{
+	entity *en = case_find (host_id);
+	text[0] = 0;
+	if (!en)
+	{
+		snprintf (text, (size_t) capacity, "aim-case-error reason=no_such_host_id host_id=%s\n", host_id);
+		return -1;
+	}
+	return case_state ("query", host_id, en, text, capacity) < 0 ? -1 : 0;
+}
+
+/* gives `person` the target through the campaign's own set_client_server_entity_parent (the call the family target code makes) and reports before and after */
+int eech_aim_person_case_run (const char *person_id, const char *target_id, char *text, int capacity)
+{
+	entity *person = case_find (person_id);
+	entity *target = case_find (target_id);
+	int used, n;
+	text[0] = 0;
+	if (!person || !target)
+	{
+		snprintf (text, (size_t) capacity, "aim-case-error reason=%s\n", !person ? "no_such_person_host_id" : "no_such_target_host_id");
+		return -1;
+	}
+	if (person == target || get_local_entity_type (person) != ENTITY_TYPE_PERSON || !get_local_entity_int_value (person, INT_TYPE_ALIVE)
+		|| !get_local_entity_int_value (target, INT_TYPE_ALIVE))
+	{
+		snprintf (text, (size_t) capacity, "aim-case-error reason=person_or_target_not_valid\n");
+		return -1;
+	}
+	used = case_state ("before", person_id, person, text, capacity);
+	if (used < 0)
+	{
+		return -1;
+	}
+	set_client_server_entity_parent (person, LIST_TYPE_TARGET, target);
+	if (get_local_entity_parent (person, LIST_TYPE_TARGET) != target)
+	{
+		snprintf (text + used, (size_t) (capacity - used), "aim-case-error reason=target_link_not_set\n");
+		return -1;
+	}
+	n = case_state ("after_setup", person_id, person, text + used, capacity - used);
+	return n < 0 ? -1 : 0;
+}
+
 #endif

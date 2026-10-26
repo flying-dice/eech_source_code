@@ -2763,6 +2763,57 @@ impl Engine {
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
+    /// TEST-ONLY (feature `aim-fixture`, EEDCS-44): the pose of one host-identified entity (type, alive, position, attitude, target link), as `key=value` text.
+    #[cfg(feature = "aim-fixture")]
+    pub fn aim_person_query(&self, host_id: &str) -> Result<String, EngineError> {
+        let host_id = std::ffi::CString::new(host_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
+        let mut text = vec![0 as std::os::raw::c_char; AIM_REPORT_CAPACITY];
+        // SAFETY: the string and the buffer outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_aim_person_query(host_id.as_ptr(), text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `aim-fixture`, EEDCS-44): gives one host-identified person one host-identified target through the campaign's own target link,
+    /// and reports the person before and after. The call is given the same complete host as a frame.
+    #[cfg(feature = "aim-fixture")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn aim_person_case<F, G, H, M, L, D>(
+        &self,
+        person_id: &str,
+        target_id: &str,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
+        sense_fn: &mut D,
+    ) -> Result<String, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
+        D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+    {
+        let person_id = std::ffi::CString::new(person_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
+        let target_id = std::ffi::CString::new(target_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
+        let mut text = vec![0 as std::os::raw::c_char; AIM_REPORT_CAPACITY];
+        // SAFETY: the strings, the buffer and the temporary host callback outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            sense_fn,
+            |host| unsafe { sys::eech_engine_aim_person_case(person_id.as_ptr(), target_id.as_ptr(), text.as_mut_ptr(), text.len() as i32, host) },
+        )?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
     /// TEST-ONLY (feature `aim-fixture`, EEDCS-44): clears the run-wide aiming trace.
     #[cfg(feature = "aim-fixture")]
     pub fn aim_trace_reset(&self) -> Result<(), EngineError> {

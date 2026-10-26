@@ -777,6 +777,39 @@ impl LuaUserData for LuaEngine {
         // TEST-ONLY (feature `aim-fixture`, EEDCS-44): the run-wide report of the physical weapon-aiming code; not part of the shipping module.
         #[cfg(feature = "aim-fixture")]
         methods.add_method("aim_trace", |_, this, ()| this.engine.aim_trace().map_err(lua_error));
+        // TEST-ONLY (feature `aim-fixture`, EEDCS-44): the pose and target link of one host-identified entity; not part of the shipping module.
+        #[cfg(feature = "aim-fixture")]
+        methods.add_method("aim_person_query", |_, this, host_id: String| {
+            this.engine.aim_person_query(&host_id).map_err(lua_error)
+        });
+        // TEST-ONLY (feature `aim-fixture`, EEDCS-44): the controlled person case, given the same complete host callbacks as a frame; not part of the shipping module.
+        #[cfg(feature = "aim-fixture")]
+        methods.add_method("aim_person_case", |lua, this, (person_id, target_id): (String, String)| {
+            let bind_mobile = this.bind_mobile.clone();
+            let observe_loss = this.observe_loss.clone();
+            let supply_reached = this.supply_reached.clone();
+            let move_vehicle = this.move_vehicle.clone();
+            let line_of_sight = this.line_of_sight.clone();
+            let sense = this.sense.clone();
+            let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+            let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+            let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+            let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+            let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+            let mut sensor = |message| call_sense(lua, &sense, message);
+            this.engine
+                .aim_person_case(
+                    &person_id,
+                    &target_id,
+                    &mut binder,
+                    &mut observer,
+                    &mut reach,
+                    &mut mover,
+                    &mut sighter,
+                    &mut sensor,
+                )
+                .map_err(lua_error)
+        });
         // TEST-ONLY (feature `aim-fixture`, EEDCS-44): clears that trace; not part of the shipping module.
         #[cfg(feature = "aim-fixture")]
         methods.add_method("aim_trace_reset", |_, this, ()| this.engine.aim_trace_reset().map_err(lua_error));

@@ -1189,4 +1189,44 @@ int eech_engine_aim_trace_reset (void)
 	LEAVE (EECH_ENGINE_OK);
 }
 
+extern int eech_aim_person_query_run (const char *host_id, char *text, int capacity);
+extern int eech_aim_person_case_run (const char *person_id, const char *target_id, char *text, int capacity);
+
+/* controlled person case (EEDCS-44): the campaign's own target link set on one host-identified person, and a read of one entity's pose */
+int eech_engine_aim_person_query (const char *host_id, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!host_id || !text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_aim_person_query_run (host_id, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_aim_person_case (const char *person_id, const char *target_id, char *text, int capacity, const struct eech_engine_host *host)
+{
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!person_id || !target_id || !text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_aim_person_case_run (person_id, target_id, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
 #endif

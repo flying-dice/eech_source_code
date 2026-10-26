@@ -278,6 +278,9 @@ int eech_engine_sensor_probe (char *text, int capacity, const struct eech_engine
 /* The run-wide trace of the aiming code since boot or the last reset. */
 int eech_engine_aim_trace (char *text, int capacity);
 int eech_engine_aim_trace_reset (void);
+/* Controlled person case: the pose of one host-identified entity, and the campaign's own target link set on one host-identified person. */
+int eech_engine_aim_person_query (const char *host_id, char *text, int capacity);
+int eech_engine_aim_person_case (const char *person_id, const char *target_id, char *text, int capacity, const struct eech_engine_host *host);
 #endif
 
 #endif
