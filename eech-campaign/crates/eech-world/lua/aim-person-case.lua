@@ -132,9 +132,11 @@ local frames = math.floor (warmup * 1000 / frame_ms)
 for _ = 1, frames do engine:frame (frame_ms) end
 emit { event = "warmed_up", elapsed = engine:clock ().elapsed_seconds, bound = #order }
 
--- pick the closest pair of one real person and one real enemy ground target (routed vehicle, ship or person: the host identities the campaign bound) within
--- max_range (the closest such pair is taken), requiring a non-trivial turn from the person's present heading: a target far outside the person's reach is dropped by the campaign within the
--- frame (the first attempt, at 11.7 km, kept the link for one frame), so the closest pair is the honest precondition
+-- Rank real person/enemy ground pairs by binding-time descriptor distance within
+-- max_range, then query current state and require a non-trivial turn. This does
+-- not select the currently closest pair. The retained case's binding/current
+-- separations are 5853.8/5856.5 m; an earlier 11.7 km case lost its link after one
+-- frame for an uncharacterized campaign reason. Selection is a case precondition.
 local max_range = tonumber (args.max_range or "12000")
 local pairs_found = {}
 for _, id in ipairs (order) do

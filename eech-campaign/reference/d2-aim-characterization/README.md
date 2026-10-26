@@ -35,8 +35,8 @@ the campaign removed after one frame; an expectation that the person would move 
 
 ## Checks (`checks/`)
 
-Input manifests before and after each run (`tools/input-manifest.py --compare reference/lebanon-3h/inputs.json`, Georgia against `reference/m4-s3-mutation/inputs-georgia.json`): IDENTICAL every time. The person-case roots `pc-t2`, `pc-c2` and `pc-t3` were fresh copies without a before-run
-manifest; their after-run manifests are identical to the reference, so the files were unchanged by the run. `static-checks-*.log`: `cargo fmt --all --check`, `cargo clippy --locked --all-targets -- -D warnings` (default features) and with `--features eech-dc/aim-fixture`, each cargo exit captured
+Natural-witness input manifests before and after each run (`tools/input-manifest.py --compare reference/lebanon-3h/inputs.json`, Georgia against `reference/m4-s3-mutation/inputs-georgia.json`): IDENTICAL. The person-case roots `pc-t2`, `pc-c2` and `pc-t3` were fresh copies without a before-run
+manifest; their after-run inputs match the reference, while their before-run identity was not independently verified. Pair selection uses binding-time descriptor separation; current queried separation is reported separately in the characterization document. `static-checks-*.log`: `cargo fmt --all --check`, `cargo clippy --locked --all-targets -- -D warnings` (default features) and with `--features eech-dc/aim-fixture`, each cargo exit captured
 (the image has no clippy or rustfmt, so the components are added in the disposable container). `strict-preprocess-0ee1fa46b.log`: feature OFF preprocesses identically to the baseline blobs for all eight instrumented sources (the root's own run of the same check is in the private evidence directory).
 `crlf-worktree-files.txt`: the 14 retained-evidence files whose working copies were rewritten to their committed LF bytes.
 
