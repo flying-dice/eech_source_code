@@ -77,8 +77,8 @@ struct sensor_trace
 	uint64_t skips[F][S];
 	/* edges: what the run actually exercised */
 	uint64_t player_candidates[F], emitter_off[F], stealth_not_one[F], adjusted_differs[F], replaced[F];
-	uint64_t sector_cells_sum[F], sector_whole_map[F], cos_seen[F], cos_outside_unit[F];
-	double cos_min[F], cos_max[F];
+	uint64_t sector_cells_sum[F], sector_whole_map[F], sector_empty[F], cos_seen[F], cos_outside_unit[F];
+	double cos_min[F], cos_max[F], scan_range_min[F], scan_range_max[F];
 	uint64_t floor_cumulative_differs, floor_multi_candidate_calls, altitude_below_floor, altitude_above_ceiling;
 	uint64_t tolerance_draws, tolerance_mismatch, tolerance_varies_in_call, tolerance_rejects_after_floor_pass;
 	uint64_t difficulty_factors;
@@ -163,6 +163,8 @@ static void trace_reset (struct sensor_trace *trace)
 		{
 			trace->cos_min[f] = 1e30;
 			trace->cos_max[f] = -1e30;
+			trace->scan_range_min[f] = 1e30;
+			trace->scan_range_max[f] = -1e30;
 		}
 	}
 }
@@ -328,6 +330,14 @@ void eech_sensor_f (int tag, float value)
 		break;
 	case EECH_SENSOR_TAG_SCAN_RANGE:
 		cur.scan_range = value;
+		if ((double) value < trace->scan_range_min[cur.function])
+		{
+			trace->scan_range_min[cur.function] = value;
+		}
+		if ((double) value > trace->scan_range_max[cur.function])
+		{
+			trace->scan_range_max[cur.function] = value;
+		}
 		break;
 	case EECH_SENSOR_TAG_SCAN_FLOOR_INITIAL:
 		cur.floor_initial = value;
@@ -405,7 +415,7 @@ void eech_sensor_dec_f (int tag, float value)
 	describe_f (tag, value);
 	if (tag == EECH_SENSOR_TAG_COS_ANGLE)
 	{
-		/* the original's cos_angle is a dot product with an unnormalised vector: a length in metres, not a cosine */
+		/* get_3d_vector_dot_product normalises both vectors, so cos_angle is a true cosine in [-1, 1]: outside_unit stays 0 */
 		trace->cos_seen[cur.function]++;
 		if ((double) value < trace->cos_min[cur.function])
 		{
@@ -609,11 +619,21 @@ void eech_sensor_end (int target_count, entity *best_group, float best_score)
 	{
 		trace->scanned[cur.function]++;
 		note_scanned (trace, cur_source, cur.function);
-		trace->sector_cells_sum[cur.function] += (uint64_t) (cur.sector_x_max - cur.sector_x_min + 1) * (uint64_t) (cur.sector_z_max - cur.sector_z_min + 1);
-		if (cur.sector_x_min == MIN_MAP_X_SECTOR && cur.sector_x_max == MAX_MAP_X_SECTOR && cur.sector_z_min == MIN_MAP_Z_SECTOR
-			&& cur.sector_z_max == MAX_MAP_Z_SECTOR)
+		/* an inverted rectangle visits no sector at all: the scan loops never run (the squared range of the aircraft scans can leave int range) */
+		if (cur.sector_x_max < cur.sector_x_min || cur.sector_z_max < cur.sector_z_min)
 		{
-			trace->sector_whole_map[cur.function]++;
+			trace->sector_empty[cur.function]++;
+			snprintf (key, sizeof (key), "%s/sector_empty", function_names[cur.function]);
+			keep_sample (trace, key);
+		}
+		else
+		{
+			trace->sector_cells_sum[cur.function] += (uint64_t) (cur.sector_x_max - cur.sector_x_min + 1) * (uint64_t) (cur.sector_z_max - cur.sector_z_min + 1);
+			if (cur.sector_x_min == MIN_MAP_X_SECTOR && cur.sector_x_max == MAX_MAP_X_SECTOR && cur.sector_z_min == MIN_MAP_Z_SECTOR
+				&& cur.sector_z_max == MAX_MAP_Z_SECTOR)
+			{
+				trace->sector_whole_map[cur.function]++;
+			}
 		}
 	}
 	if (cur.function == EECH_SENSOR_SURFACE_TO_AIR && cur.floor_evals >= 2)
@@ -709,10 +729,13 @@ static int report (const struct sensor_trace *trace, char *text, int capacity)
 		emit (&out, "sensor-edges name=%s player_candidates=%llu emitter_off=%llu stealth_not_one=%llu adjusted_differs=%llu\n",
 			function_names[f], (unsigned long long) trace->player_candidates[f], (unsigned long long) trace->emitter_off[f],
 			(unsigned long long) trace->stealth_not_one[f], (unsigned long long) trace->adjusted_differs[f]);
-		emit (&out, "sensor-geometry name=%s sector_cells_sum=%llu sector_whole_map=%llu cos_values=%llu cos_outside_unit=%llu cos_min=%.9g cos_max=%.9g\n",
+		emit (&out, "sensor-geometry name=%s sector_cells_sum=%llu sector_whole_map=%llu sector_empty=%llu scan_range_min=%.9g scan_range_max=%.9g "
+			"cos_values=%llu cos_outside_unit=%llu cos_min=%.9g cos_max=%.9g\n",
 			function_names[f], (unsigned long long) trace->sector_cells_sum[f], (unsigned long long) trace->sector_whole_map[f],
-			(unsigned long long) trace->cos_seen[f], (unsigned long long) trace->cos_outside_unit[f],
-			trace->cos_seen[f] ? trace->cos_min[f] : 0.0, trace->cos_seen[f] ? trace->cos_max[f] : 0.0);
+			(unsigned long long) trace->sector_empty[f], trace->scanned[f] ? trace->scan_range_min[f] : 0.0,
+			trace->scanned[f] ? trace->scan_range_max[f] : 0.0, (unsigned long long) trace->cos_seen[f],
+			(unsigned long long) trace->cos_outside_unit[f], trace->cos_seen[f] ? trace->cos_min[f] : 0.0,
+			trace->cos_seen[f] ? trace->cos_max[f] : 0.0);
 	}
 	emit (&out, "sensor-surface-to-air floor_cumulative_differs=%llu multi_candidate_calls=%llu altitude_below_floor=%llu altitude_above_ceiling=%llu "
 		"difficulty_factors=%llu floor_ratio_min=%.9g\n",
@@ -806,7 +829,7 @@ int eech_sensor_probe_run (char *text, int capacity)
 	static struct sensor_trace probe_trace;
 	struct sensor_trace *saved = active_trace;
 	entity *en;
-	int sources = 0, aircraft = 0, vehicles = 0, count, rc;
+	int sources = 0, aircraft = 0, vehicles = 0, aircraft_entities = 0, player_aircraft = 0, count, rc;
 	trace_reset (&probe_trace);
 	active_trace = &probe_trace;
 	for (en = get_local_entity_list (); en; en = get_local_entity_succ (en))
@@ -814,6 +837,14 @@ int eech_sensor_probe_run (char *text, int capacity)
 		if (!allocated_entity (en))
 		{
 			break;
+		}
+		if (get_local_entity_type (en) == ENTITY_TYPE_HELICOPTER || get_local_entity_type (en) == ENTITY_TYPE_FIXED_WING)
+		{
+			aircraft_entities++;
+			if (get_local_entity_int_value (en, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
+			{
+				player_aircraft++;
+			}
 		}
 		if (aircraft_source (en))
 		{
@@ -834,7 +865,8 @@ int eech_sensor_probe_run (char *text, int capacity)
 	if (rc == 0)
 	{
 		int used = (int) strlen (text);
-		int n = snprintf (text + used, (size_t) (capacity - used), "sensor-probe sources=%d aircraft=%d vehicles=%d\n", sources, aircraft, vehicles);
+		int n = snprintf (text + used, (size_t) (capacity - used), "sensor-probe sources=%d aircraft=%d vehicles=%d aircraft_entities=%d player_aircraft=%d\n", sources,
+			aircraft, vehicles, aircraft_entities, player_aircraft);
 		if (n < 0 || n >= capacity - used)
 		{
 			rc = -1;
