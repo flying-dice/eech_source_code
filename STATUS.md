@@ -3,11 +3,13 @@
 Current task: EEDCS-44, In Progress. Branch `codex/d2-weapon-aiming` was created from
 verified accepted integration `3ce17432e4026f85b19ebf06cc582314817ddac2`.
 Characterization comes first: no aiming responsibility has moved and no aiming
-Tacview comparison is claimed. Draft PR103 contains characterization harness
-b7f907894; its fresh clean-build witnesses are running. D2 is the only active
-delivery epic; D3 has not started.
+Tacview comparison is claimed. Draft PR103 contains the characterization harness;
+4927157a5 adds per-kind/branch diagnostics. Both named b7f907894 clean-build600s
+witnesses completed with native0 and all1720 events equal. Root verified all27
+build-manifest entries and all18 comparator controls. The900s observational control
+is running, not passed. D2 is the only active delivery epic; D3 has not started.
 
-Authority: live M5 goal11534337v3 and migration ledger14548994v34. D2 covers physical
+Authority: live M5 goal11534337v3 and migration ledger14548994v35. D2 covers physical
 sensing/visibility, physical aiming/weapon execution, and combat resolution/reports.
 Campaign target and weapon choice, priorities, engagement, awareness and consequences
 remain in EECH_DC. Historical TypeScript and old call-map inventory are not scope.
@@ -23,7 +25,9 @@ remain in EECH_DC. Historical TypeScript and old call-map inventory are not scop
   passing characterization/causal/refusal/fixture controls and unchanged900s records.
   Root's fresh ordinary build passed, all26 hashes match, and full pack89376 is RUNNING
   at `R:/d2-evidence/candidate-pack-sensing-a2a041fec`. Python18836; native9648/22368/23396/8024.
-  Snapshot/bin/roots are immutable. Its full40-check/full-byte/CI/merge gates remain.
+  Snapshot/bin/roots are immutable. All9 current CI checks pass; full40-check/full-byte
+  and normal-merge gates remain. Live prefixes through roughly one simulated hour
+  match accepted bytes; this is not a full result.
 - Reviewed sensing branche7e46dcc2 is composed before the first aiming build. This is
   development stacking of runtimea2a041fec, not accepted43 delivery. Delivery43 precedes44;
   any later source correction must be incorporated and its affected evidence renewed.
@@ -37,6 +41,17 @@ vh_wpn.c, ps_anim.c around311, en_maths.c target-point geometry, and all6 family
 Those are starting observations, not a predetermined ABI or proof of runtime coverage.
 Observe existing computed values without changing calls, RNG/FPU order or campaign policy.
 No physical cut before a passing named characterization and observational control.
+Root also identified fixture wrappers evaluating unwritten outputs on early exits
+before the hook's internal guard. Those exits were absent from the completed600s
+witnesses, which remain retained with their exact provenance. Correct the observer
+before further original-build runs/extraction. Person-facing count0 is a coverage
+gap, not proof of that physical behavior. See
+`../d2-evidence/AIM-LEAD-CHARACTERIZATION-FINDINGS.md`. The unstarted492 final-run
+launcher has an explicit lead gate; the healthy b7 control remains undisturbed.
+
+Fresh eventual aiming full-pack roots at
+`R:/d2-evidence/candidate-roots-d2-aiming` match all3 repository input manifests,
+actualPython0. They have not run and no final aiming candidate exists yet.
 
 One Sonnet5.5 High CLI `-p` implementation lane, one independent Codex reviewer.
 No nested agents or review fleet. Root owns Jira/Confluence, final builds/full packs,
