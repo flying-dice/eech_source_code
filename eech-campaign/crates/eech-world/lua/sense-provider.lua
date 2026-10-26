@@ -79,7 +79,8 @@ elseif mode:sub (1, 4) == "bad_" then
 	-- the reference host answers until the first candidate (or begin for bad_begin); that answer is malformed and the engine must stop there
 	local armed = true
 	provider = function (step)
-		local first = (mode == "bad_begin" and step.mode == "begin") or (mode ~= "bad_begin" and step.mode == "candidate")
+		-- bad_draw_for_range asks for a draw on a scan that has no tolerance, so it waits for the first candidate that is not a surface-to-air one
+		local first = (mode == "bad_begin" and step.mode == "begin") or (mode ~= "bad_begin" and step.mode == "candidate" and (mode ~= "bad_draw_for_range" or step.scan ~= "surface_to_air"))
 		if armed and first then
 			armed = false
 			if mode == "bad_nil" then return nil

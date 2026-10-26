@@ -28,6 +28,11 @@ retained, safe-to-publish artifacts. No retail asset, installation root or binar
   real red controls `empty-*.jsonl`, `incomplete-probe-*.jsonl` with their reproduction records, and `derived/` copies: changed value, truncated, malformed) and
   `lead-independent-original-characterization-check.json` (the lead's byte/field check of the complete reports; not a source review).
 
+## Later stages
+
+* `composition/`: the original observer across the host-owned line of sight (development stacking).
+* `extraction/`: EEDCS-43's host-owned physical sensing: the red control, the 600 s witness against this directory's original traces, the causal and refusal runs and the 900 s control. See its README.
+
 ## Not done here
 
 No extraction, no host boundary, no shipping-build change, no full pack, no Georgia run, no player-controlled target (see the document's unexercised edges).

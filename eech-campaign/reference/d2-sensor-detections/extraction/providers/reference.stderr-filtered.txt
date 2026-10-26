@@ -1,0 +1,1 @@
+sense-provider: mode=reference begin=16840 candidate=277652 draw=174 signature=5341 end=16840 accept=356 reject=277296 weapon_births=185 losses=6 failure=none

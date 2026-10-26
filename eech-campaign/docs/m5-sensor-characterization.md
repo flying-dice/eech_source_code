@@ -1,11 +1,89 @@
-# D2: characterisation of the original AI sensor-detection scans (EEDCS-43)
+# D2: host-owned physical sensing for the AI target scans (EEDCS-43)
 
-**Status: characterisation of UNMOVED code. Nothing was extracted or changed in behaviour.** Task EEDCS-43 (under EEDCS-18), branch
-`codex/d2-sensor-detections`, base `a7934aa7d1bcffc2ea5057bb3f1b0af332606c61`. The shipping scans are the original text; the only source additions
-are test-only observer hooks that are empty macros unless the cargo feature `sensor-fixture` is on. Scope authority is the live M5 goal
-(Confluence 11534337) and the migration ledger (14548994): physical sensing facts are the intended next host responsibility; candidate
-eligibility, ranking, priorities, engagement and awareness stay in EECH_DC. This document records what the original does so the
-extraction can be held to it. Artifacts: [`reference/d2-sensor-detections/`](../reference/d2-sensor-detections/README.md).
+**Status: source-complete and validated on the bounded evidence below; not accepted, not merged.** Task EEDCS-43 (under EEDCS-18), branch `codex/d2-sensor-detections`, draft PR102, from integration
+`a7934aa7d1bcffc2ea5057bb3f1b0af332606c61`, **stacked on the reviewed frozen EEDCS-42 head `a42f1cfad` (development stacking: EEDCS-42 is not accepted or merged, and its delivery must precede this task's)**.
+Scope authority is the live M5 goal (Confluence 11534337) and the migration ledger (14548994): physical sensing facts are the host's; candidate eligibility, enumeration, ranking, priorities, engagement
+and awareness stay in EECH_DC. EEDCS-43 and D2 remain incomplete: no final full pack, independent review, merge or live DCS evidence exists. Artifacts:
+[`reference/d2-sensor-detections/`](../reference/d2-sensor-detections/README.md) (the original characterisation, `composition/`, and `extraction/`).
+
+The document has two parts. **Part 1** describes what moved and the evidence for it. **Part 2** is the characterisation of the original code that preceded the move and is the oracle the move was held to.
+
+## Part 1: the extraction
+
+### What moved to the host, and what stayed
+
+The physical sensing of the four AI target scans (`ac_tgt.c` air-to-air and air-to-surface, `vh_tgt.c` surface-to-air and surface-to-surface) is now the host's, behind a sixth required host callback `sense`
+(`mb_hostsense.[ch]` in the campaign, `eech-world/csrc/sense_step.c` and `src/sense.rs` in the reference host). The kernel is EECH's own arithmetic expression for expression, under the same float and double types and round-toward-zero.
+
+| Moved (the host owns the calculation and the state between candidates) | Stays in EECH_DC |
+|---|---|
+| planar squared range (aircraft scans) and `max + (med + min)/4` approximate 3-D range (vehicle scans) | which targets are candidates: side, group, alive, airborne, target type, "group is already best", self |
+| the aircraft scans' squared scan range and the stealth-scaled squared limit | candidate enumeration and order, the sector rectangles, including the squared-range quirk and the empty rectangle above about 46 km |
+| the surface-to-air envelope: ceiling = group ceiling + the source's own altitude; the floor **lowered in place by every candidate asked about** (and by a human pilot's difficulty factor), never restored within a scan; the radar-altitude test | the `target_count` increments (before the range test for surface-to-surface, before line of sight for surface-to-air) |
+| the random-tolerance limit `floor * (1.0 + 0.5 * draw)` and its test | the random **draw**, taken from the private source-derived generator at the original conditional point (after the altitude test); only the draw crosses |
+| the emitter range adjustment (1.1 per switched-off emitter of a human-flown target) | the configuration facts it mirrors: player flag, emitter states, radar altitude, difficulty factor, positions |
+| the radar-stealth factor of a helicopter: 1, less 0.4 weapon bay closed, less 0.35 stub wings off, less 0.1 undercarriage up | line of sight (host-owned since EEDCS-42), the ranking (`cos_angle`, range weighting, potential threat), best-group choice, engagement, speech |
+
+No second authoritative physical predicate is left in the DLL: the shipping `ac_tgt.o` and `vh_tgt.o` no longer reference `get_sqr_2d_range` or `get_approx_3d_range`, the kernel symbols are in `eech-world.exe` and not in `eech_dc.dll`,
+and the DLL holds neither the floor nor the limits (`extraction/checks/symbol-check-37989fa5f.log`). The campaign still squares the aircraft scan range for the sector bounds; that statement is candidate enumeration (the quirk, kept), not the predicate,
+which the host squares again from the raw figure.
+
+### The boundary
+
+One callback, `sense`, in the same Lua -> `eech_dc` -> host path as the others (`dc.boot { sense = ... }`), with at most one scan open (`mb_hostsense.h`):
+
+| Message | Contents | Host answers |
+|---|---|---|
+| `begin` | scan, source host identity (when the roster has one), source position, the unit's raw scan range; surface-to-air adds the group's raw ceiling and initial floor | `open` |
+| `candidate` | target host identity (when it has one), position, player flag (aircraft-to-aircraft and surface-to-air), difficulty factor (a human pilot), radar altitude (surface-to-air) | `reject` with the failed predicate, `accept` with the measured range, or `need_draw` (surface-to-air) / `need_signature` |
+| `draw` | the campaign's random draw in [0, 1] | `reject` (tolerance) or `need_signature` |
+| `signature` | emitter states (human-flown targets) and, for a helicopter target, weapon-bay-closed, stub-wings-attached, undercarriage-up | `accept` or `reject` (range adjusted) |
+| `end` | | `closed` |
+
+The measured range also comes back on a rejection and is what the ranking uses. Validation in the campaign (`mb_hostsense.c`) refuses: a missing callback (boot: `eech: missing host sense callback`), an unknown state, a state the message cannot receive, a reject reason the scan cannot have,
+an acceptance without a finite non-negative range, a non-finite value, a scan inside another, and more than 16 requests for one candidate; the Rust layer refuses non-boolean flags, a draw outside [0, 1], non-finite positions and an overlong or non-UTF-8 identity.
+A host that owns the world can decide at `candidate` from its own state and never be asked for a draw or a signature. There is no campaign fallback. An optional `echo` table of the reference host's intermediate values is read only by the test-fixture build; the shipping module ignores it.
+No pointer, entity index, list layout or seed crosses: identities are the ones the roster already holds.
+
+**Declared transitional coupling** (facts the host is given, not physical authority): the unit-database figures (scan range, ceiling, floor), entity positions, the target's radar altitude, the helicopter's bay/stub-wing/undercarriage state, the emitter states, the pilot's difficulty factor, the sector entity lists that
+supply candidates, and terrain and object collision for line of sight (D3, D5). The draw's generator is the campaign's own; how a DCS host would be given a stable per-source tolerance is open.
+
+### Evidence
+
+All runs are on private fresh copies of the Lebanon root (manifests IDENTICAL to `reference/lebanon-3h/inputs.json` before and after), one native process at a time while the lead's full packs ran. Details, hashes and commands: `reference/d2-sensor-detections/extraction/README.md`.
+
+* **Red against the original (before the cut).** The retained composed original build `1fc0cdc62` booted with the new provider (`mode=blocked`, 300 s): it ran, consulted the provider **0** times (begin = candidate = 0) and the world was the unmodified one (185 weapon births, 6 losses). A concrete missing behaviour, not a setup failure.
+* **The original oracle held across the move.** The same 600 s Lebanon witness (probes at 30, 300, 590 s; seed 1) on the extraction's fixture build `37989fa5f`: native exit 0; physical hash `d60c462829c9714e`, decision hash `2611b04d99f5c689`;
+  the raw trace file is byte-identical to the composed original's (`bfb8fab3...`) and the corrected comparator reports **0 differences, Python exit 0** for run (75 events), probe (182), run-at-probe (186) and default (257). The host's numbers, folded from its echo, equal what the original computed in the DLL.
+* **First causes of the two differences found on the way** (both kept in `extraction/intermediate/`): the first run's physical hash differed in one value, the tolerance limit, one ulp low (`...538` for `...54`). Cause: the existing `exact_f64s` reads a double through `string.format('%.17g')`, and the engine runs a callback under round-toward-zero, where the C library truncates the digits.
+  Measured over 60,000 doubles, 4,010 come back one ulp low (3,199 of the 32,768 draws `k/32767`). The sensing dialogue reads its doubles in exact steps instead (`exact_f64_bits`, tested under both rounding modes); the existing reader and its D1 uses were left untouched and are reported to the lead as a finding.
+  The second run (a rebuild after an `aphavoc/`-only edit) still carried the old fixture hook, because `eech-engine-sys` reruns its build script only when `csrc/`, `compat/`, `build/` or `sources.txt` change, not when the campaign sources do: a reused cargo volume linked stale C. Identity builds now use fresh volumes.
+* **Causal, through the public path** (ordinary-feature shipping build `37989fa5f`, Lebanon, 300 s, seed 1, one run each, so a demonstration and not statistics):
+
+  | Provider | begin | candidates | draws | signatures | accepts | weapon births | losses |
+  |---|---|---|---|---|---|---|---|
+  | reference host (and the original with its provider ignored) | 16,840 | 277,652 | 174 | 5,341 | 356 | 185 | 6 |
+  | host reports every candidate undetectable (`blocked`) | 17,047 | 324,946 | 0 | 0 | 0 | 176 | 1 |
+  | reference host, every scan range tripled (`far`) | 16,334 | 81,876 | 551 | 2,726 | 4,303 | 208 | 10 |
+
+  The reference host reproduces the original's 185/6 exactly; what the host perceives changes what the campaign does, while which targets are candidates, the order, the ranking and the engagement stay the campaign's. Blocking all detection does not stop all launches (176 births), as for line of sight: launches that do not depend on a detection are not separated here.
+* **Missing and malformed providers** (same build): no provider fails at boot (`eech: missing host sense callback`); at the first scan or candidate that reaches it each of a begin answered with an accept, a nil, an unknown state, a reject reason no scan has, an accept with a non-finite range, a `need_draw` for a scan with no tolerance, and a Lua error stops the engine with `EECH fatal error: host sense: ...`
+  and the specific boundary reason (`extraction/providers/`). The baseline module has no such concept and ignores the key by construction.
+* **Whole campaign, Tacview unchanged.** The ordinary-feature shipping candidate ran Lebanon for 900 s (`campaign.lua hours=0.25 record_every=10 observe_every=60 observe_supply=0`, native exit 0): the Tacview recording (11,363,845 bytes), observations (6,629,273) and metrics (11,777) have the same SHA-256 as the retained supplied-baseline-binary run;
+  the recording passed `observation-check.py` (generated, byte-compared and structurally checked; **not** visually inspected). The configuration is verified as in the earlier control (same argument list, defaults seed 1 and 100 ms, identical Lua scripts); one scenario, 900 s, not the full pack.
+* **Checks** (cargo's own exits, fresh clippy volume): `cargo fmt --all --check` 0; `cargo clippy --locked --all-targets -- -D warnings` for the default features, for all fixtures together (dependent, loss, LOS, sensor), for old-guard plus sensor, and for sensor alone: all 0. `cargo test --locked -p eech-engine -p eech-dc -p eech-world` (default features): 3+2, 30, 165, 19, 6, 2 tests pass.
+  New focused contracts: nine kernel contracts derived from the original scans (range forms and their quirks, the cumulative floor and its 0.1 bound, the ceiling at the source's altitude, tolerance after altitude, the stealth subtractions, the emitter adjustment, refusals), the Lua boundary of `host.sense`, and the exact-double transport under both rounding modes.
+* **Cost.** 316,847 host crossings in 300 s (about 1,056 per second). Wall time for 300 simulated seconds was 273 s with the reference host and 276 s for the original with no crossings, measured under different background loads: no penalty was visible, and this is not a benchmark. No batching was introduced.
+
+### Coverage that is NOT claimed
+
+* Player-controlled targets, the difficulty factor and the emitter-off adjustment are not exercised by any campaign run (the headless world has no player aircraft; 0 of 265 aircraft entities); they are covered only by the kernel contracts, which are not the whole campaign. Altitude above the ceiling is likewise unexercised in the campaign (0 in the original run).
+* One scenario (Lebanon), one seed, 600 s and 900 s. Georgia was not run. The full 3 h pack, the independent review and merge are the lead's. `cargo test` was run with default features only.
+* The equality evidence is a float-bit fold and a byte comparison, not an independent oracle of correctness.
+
+# Part 2: the original behaviour that preceded the move (the characterisation the extraction was held to)
+
+The sections below describe the **original** code as it was before EEDCS-43 moved the physical predicates; line references, the "hooks" and the "recomputed" values describe the characterisation build. In the extraction the same hooks are fed from the host's echo.
 
 ## Active call paths (verified in source, not inferred from names)
 
@@ -142,19 +220,14 @@ Source hazards that are exercised, characterised and **not** fixed:
 * Georgia (`georgia_retail`, `georgia`) and any seed other than 1; durations past 600 s. One scenario at one seed was run because it exercised every physical predicate except those above; Georgia was not needed to resolve a coverage hole.
 * The numbers are equality evidence (float bit patterns folded into FNV-1a), not an independent oracle of correctness.
 
-## The bounded physical-fact boundary that follows
+## The bounded physical-fact boundary that followed
 
-Measured, per candidate and per source, the facts a host could answer: the pair's distance (planar squared or approximate 3-D), the target's height above terrain, the target's radar
-signature factor, and (for players) its radar and jammer state, plus visibility (already host-owned). The campaign keeps the source's scan envelope (range, floor, ceiling from its unit database), the
-candidate set, every eligibility filter, the ranking and the engagement. Two properties constrain any extraction: the surface-to-air floor makes that scan **sequence-dependent**
-(hazard 1), and the tolerance draw ties it to a per-source value (hazard 2). No interface, ABI or host callback is designed or implemented here.
+Measured before the move, per candidate and per source, the facts a host can answer: the pair's distance (planar squared or approximate 3-D), the target's height above terrain, the target's radar signature factor, and (for players) its radar and jammer state, plus visibility (already host-owned).
+The campaign keeps the source's scan envelope (range, floor, ceiling from its unit database), the candidate set, every eligibility filter, the ranking and the engagement. Two properties constrained the extraction and were preserved: the surface-to-air floor makes that scan **sequence-dependent**
+(hazard 1), and the tolerance draw is a fixed per-source value from a private seed (hazard 2). The interface that followed is Part 1's.
 
-**Preconditions the extraction must keep explicit** (recorded, not resolved):
-
-* *Line-of-sight wiring.* The surface-to-air scan reaches `check_entity_line_of_sight`; after EEDCS-42 is incorporated that call is the host-owned `campaign_los_query` dialogue with a required `line_of_sight` host callback and no fallback. The
-  extraction must keep that required entry wired and keep the verdict hook (`EECH_SENSOR_VERDICT_LINE_OF_SIGHT`) on the same decision; the baseline here was measured on the pre-EEDCS-42 solver, so a comparison against it also needs the LOS provider.
-* *Private heap-index RNG provenance.* The tolerance seed is the source entity's heap index (`get_client_server_entity_random_number_seed (EN) = EN - entities`), a private legacy value. It must never appear in a public payload, trace or host
-  message, and no public seed derived from it is introduced; the traces here carry only the draw and the limit. How a stable per-source tolerance is supplied to a host is an extraction decision still to be made.
+**Preconditions that were kept explicit and are now met:** the surface-to-air scan reaches the required `line_of_sight` provider through `campaign_los_query` (the extraction kept that entry wired, and the sensor probe is handed the same complete host as a frame); the tolerance seed is the source's heap index
+(`get_client_server_entity_random_number_seed (EN) = EN - entities`), a private legacy value that appears in no public payload, trace or host message: only the draw crosses.
 
 ## Composition with the host-owned line of sight (development stacking)
 

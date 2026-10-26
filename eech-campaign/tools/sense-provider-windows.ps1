@@ -38,3 +38,5 @@ foreach ($mode in $Modes) {
 	$proc.WaitForExit()
 	"{0} exit {1} after {2:N0} s" -f $mode, $proc.ExitCode, ((Get-Date) - $start).TotalSeconds
 }
+# the native exit code of every mode is printed above; the script itself succeeds when it ran them all
+exit 0

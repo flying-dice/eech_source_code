@@ -9,11 +9,70 @@ D1 remains accepted; D2 (EEDCS-18) is active and **incomplete**; D3 has not star
 ## Current state in one place
 
 * **EEDCS-42 (PR101) is NOT accepted or merged.** Its reviewed frozen head `a42f1cfad39e5b29ce18bfd2d4ff6cf0f5e0cf12` (runtime source `61e856645`; later commits docs/evidence only) is merged
-  into this branch as **development stacking** so the sensor work can be built on the host-owned line of sight. Its supplied-binary baseline pack and its final-source candidate full pack are still
-  running (the lead's). Delivery of EEDCS-42 must precede EEDCS-43: nothing here claims LOS accepted, a sensor predicate moved, or D2 complete, and this branch is not merged anywhere.
-* **EEDCS-43 so far:** original-behaviour characterisation of the four AI scan functions with a test-only gated observer (below); no physical sensor behaviour has moved, every sensor formula,
-  filter, ranking and random-input order is the original text.
-* **Source composition stage** (see the section after this one): the observer is composed with the LOS extraction, and its public entries are given the required LOS callback context.
+  into this branch as **development stacking**. The supplied-binary destination baseline completed all 40 checks, runner exit 0, and all 6 complete reference files match accepted D1 bytes.
+  Its final-source LOS candidate full pack is still running. Baseline evidence is published at `de987c471`; all 9 checks pass there, and ledger v33 preserves all 5 epic reports.
+  Delivery of EEDCS-42 must precede EEDCS-43; neither task nor D2 is accepted by this status.
+* **EEDCS-43 is source-complete and validated on the bounded evidence below, not accepted:** `37989fa5f` moves the physical sensing of the four AI target scans (planar and approximate 3-D range, the surface-to-air envelope with its
+  cumulative floor, the tolerance limit, the emitter and stealth adjustment) to the host behind a sixth required callback `sense`; campaign filters, enumeration, the random draw, ranking and engagement remain core.
+  The original 600-second oracle holds across the move (below). The final full pack, the independent delivery review and merge are the lead's; EEDCS-42 must be delivered first; D2 is incomplete.
+* **Original characterization and composition are complete:** the original 600-second reports, observer 900-second recording control and combined LOS/observer 600-second trace match as recorded below.
+  Root's live process/source checkpoint is `../d2-evidence/ACTIVE-RUNS.json`. Sole active implementation context: `67f40663-046f-435e-be4b-902073b9a69d`, exact Sonnet 5.5 High via CLI `-p`.
+
+## Extraction result (EEDCS-43), pinned `37989fa5f` — development stacking on EEDCS-42, not accepted
+
+Account: `eech-campaign/docs/m5-sensor-characterization.md` Part 1. Evidence, hashes and commands: `eech-campaign/reference/d2-sensor-detections/extraction/README.md`.
+
+* **Red first.** The retained composed original `1fc0cdc62` booted with the new provider (`blocked`, 300 s), ran, and consulted it 0 times (185 weapon births, 6 losses): a concrete missing behaviour. Pure relocation itself was held to passing characterisation.
+* **What moved / stayed / is transitional coupling:** see the document. No second authoritative physical predicate remains in the DLL (symbol check: the scan objects no longer reference the range functions; the kernel is in `eech-world.exe`).
+  The draw is the campaign's and is taken at the original conditional point; the heap-index seed never crosses. Positions, radar altitude, helicopter configuration, emitter states, the difficulty factor and the unit database figures are declared facts; terrain and collision for line of sight remain D3/D5.
+* **Oracle held.** The 600 s Lebanon witness (probes 30/300/590, seed 1) on the fresh-volume fixture build `37989fa5f`: native exit 0 after 763 s; physical `d60c462829c9714e`, decision `2611b04d99f5c689`; the raw trace is byte-identical to the composed original's;
+  the corrected comparator exits 0 with 0 differences for run (75), probe (182), run-at-probe (186) and default (257) events. Probe invariant true at all three probes.
+* **First causes of the two earlier differences** (retained as failed evidence): a one-ulp-low tolerance limit from the existing `exact_f64s` reader under round-toward-zero (4,010 of 60,000 sampled doubles, 3,199 of 32,768 draws; fixed for the sensing dialogue by `exact_f64_bits`, the D1 reader untouched and reported), then a stale fixture hook
+  linked from a reused cargo volume after an `aphavoc/`-only edit. Fresh volumes are used for every identity build.
+* **Causal and refusals (ordinary-feature shipping build, 300 s):** reference host 185 births / 6 losses (equals the original); every candidate undetectable 176 / 1; scan ranges tripled 208 / 10. A missing provider fails at boot; seven malformed providers stop the engine with `host sense: ...` and the specific reason.
+* **Whole campaign:** the shipping candidate's 900 s Lebanon recording, observations and metrics are byte-identical to the retained supplied-binary reference (native exit 0; `observation-check.py` PASS; not visually inspected in Tacview).
+* **Checks:** fmt 0; clippy 0 for default, all fixtures, old-guard+sensor and sensor alone (fresh volume); `cargo test` (default features) all pass: 3+2, 30, 165 (nine new sensing contracts), 19 (exact-double transport under both rounding modes), 6 (Lua `host.sense` round trip), 2.
+* **Not claimed:** player-controlled targets, the difficulty factor and emitter-off adjustment in a campaign run (the headless world has none; kernel contracts only); altitude above the ceiling; Georgia; other seeds; the final full pack; batching (none was needed or introduced; 316,847 crossings in 300 s showed no visible wall-time penalty, not a benchmark).
+
+### Lead QA before accepting the sensing witness
+
+Root independently compared all 443 events of the completed `d588656e3` witness2 against
+the immutable original: physical/decision hashes and every other field agree, but **5
+`sensor-tolerance.recompute_mismatch` records differ**, so the comparison still exits 1.
+The final run counter is 1079 instead of 0 (exactly 1398 draws minus 319 tolerance rejects).
+Evidence: `../d2-evidence/independent-sensor-d588-comparison.txt`. Keep the counter and old
+expected values; investigate its bookkeeping rather than dropping it or accepting only hashes.
+**Resolved in the fresh third witness:** root independently compared `out/extract-witness3/trace.jsonl`
+at `37989fa5f` with `out/lebanon-probe/trace.jsonl`: all 443 events agree, comparator exit 0,
+including all five formerly differing counters. Evidence: `../d2-evidence/independent-sensor-379-comparison.txt`.
+No further unchanged 600-second rerun is needed. `37989fa5f` itself adds only lint attributes;
+the important build difference is the fresh fixture-2 volume. Root read-only inspection found
+fixture-1's staged `mb_hostsense.c` still SHA-256 `77fd5ce446b522f8732689c63e811b6c6dfc20b56aa9125e85a25f6efbed6c09`,
+while fixture-2 and the corrected source both have `51ca46e22ec1ea6220db32fe2de21429d8977375cd3191897492c90cde47528d`.
+The d588 fixture build finished in 5.12 seconds: its source label did not establish recompilation
+of the external C input. Investigate/fix incremental invalidation for the newly edited external C
+source (build/main.rs watches build/compat/csrc/sources.txt and cc's staged files, not the original
+aphavoc tree). Preserve the stale witness/bin as failed evidence. Final acceptance uses verified
+freshly compiled C, not a stale incremental artifact. This is lead evidence QA during development,
+not the independent delivery source-review pass.
+
+### Independent review in progress, pinned 37989fa5f
+
+The same independent Codex reviewer is doing the single source pass. Two findings
+confirmed so far (final report still pending):
+
+* Track the original source/header inputs in `eech-engine-sys/build/main.rs`, not
+  only its local files and staged `OUT_DIR/tree` copies. Verify a representative
+  original-input incremental edit triggers recompilation without cleaning.
+* `call_sense` and `mb_hostsense.c` currently require every rejected detection to
+  name a scan-specific legacy predicate (range, adjusted range, altitude or
+  tolerance). The host needs a generic physical nondetection result that does not
+  pretend one of those predicates failed. Preserve existing fixture reasons for
+  exact characterization, and keep target selection/engagement in the campaign.
+
+Lead will pass the complete consolidated review back through the same Sonnet
+context after actual CLI completion. This is not permission to create another
+implementation lane or independent review fleet.
 
 ## Composition stage: observer + host-owned LOS (development stacking only)
 
@@ -33,10 +92,10 @@ Merge `1fc0cdc621fc0e643b1b78373c2fa230f8ef20c3` of the reviewed frozen LOS head
 * Next (root's): confirm the complete baseline, then the physical sensor extraction in this lane. For that scope the host owns the physical model and the campaign selection/ranking; the heap-index seed stays private
   (a random draw fact at the original conditional point is allowed, never the seed).
 
-## Stage: original-behaviour characterisation; evidence-tool correction; no host extraction
+## Original characterization and evidence-tool correction (completed before extraction)
 
-Nothing moved. The four AI scan functions (`ac_tgt.c` air-to-air and air-to-surface, `vh_tgt.c`
-surface-to-air and surface-to-surface) are the original text; the only source additions are
+At that original-characterization stage, the four AI scan functions (`ac_tgt.c` air-to-air and air-to-surface, `vh_tgt.c`
+surface-to-air and surface-to-surface) retained the original text; the only source additions were
 test-only hooks that are empty macros unless the cargo feature `sensor-fixture` is on.
 
 * Source: observer `60f6a4876e02d4ce4e6d32436930b69d82214260`; counters added in

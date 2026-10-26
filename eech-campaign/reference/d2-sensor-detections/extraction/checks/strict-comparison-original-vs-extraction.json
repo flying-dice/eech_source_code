@@ -1,0 +1,94 @@
+{
+  "original_trace": "traces/lebanon-probe.jsonl (retained original, LF text copy)",
+  "comparator": "tools/sensor-trace-compare.py",
+  "comparator_sha256": "d5027336248fab28c588483105cbb478c8b555dc0bdf9c411628001de5a21165",
+  "comparisons": [
+    {
+      "run": "witness-37989fa5f-final",
+      "raw_file_sha256": "bfb8fab361d16a030cba658dbe6944758f31ba3898b00bba5e878cb0e0a4e37a",
+      "retained_lf_text_sha256": "dec1daf01efb5655c5648c2d5acfa5660ab50245ec1fc00456156a69a2e4f753",
+      "scopes": {
+        "run": {
+          "python_exit": 0,
+          "summary": "75 events in a, 75 in b, scopes ['run']: 0 differences",
+          "first_differences": []
+        },
+        "probe": {
+          "python_exit": 0,
+          "summary": "182 events in a, 182 in b, scopes ['probe']: 0 differences",
+          "first_differences": []
+        },
+        "run-at-probe": {
+          "python_exit": 0,
+          "summary": "186 events in a, 186 in b, scopes ['run-at-probe']: 0 differences",
+          "first_differences": []
+        }
+      }
+    },
+    {
+      "run": "first-cause-d588656e3-stale-C",
+      "raw_file_sha256": "7a4bb6bf544b57acdd0c91f55a4b7af4292513133117ccd5c4914b6e327bf9f7",
+      "retained_lf_text_sha256": "e1047b96a0e91e28de5b40b71c4615965cedaf9db6a6e0134a3f974281227294",
+      "scopes": {
+        "run": {
+          "python_exit": 1,
+          "summary": "75 events in a, 75 in b, scopes ['run']: 1 differences",
+          "first_differences": [
+            "difference at event 22:"
+          ]
+        },
+        "probe": {
+          "python_exit": 1,
+          "summary": "182 events in a, 182 in b, scopes ['probe']: 2 differences",
+          "first_differences": [
+            "difference at event 64:",
+            "difference at event 128:"
+          ]
+        },
+        "run-at-probe": {
+          "python_exit": 1,
+          "summary": "186 events in a, 186 in b, scopes ['run-at-probe']: 2 differences",
+          "first_differences": [
+            "difference at event 63:",
+            "difference at event 133:"
+          ]
+        }
+      }
+    },
+    {
+      "run": "first-cause-bf176c1af-f64-transport",
+      "raw_file_sha256": "5ea5fadcbbfd5af3dfc8cfee5af5eb7f56d98425f3e8e3b81d9ce58b5af074c0",
+      "retained_lf_text_sha256": "910052f5055e7d8c164c7d8f5da96e893fab60a81842b2f8dd4c38dad982bbbe",
+      "scopes": {
+        "run": {
+          "python_exit": 1,
+          "summary": "75 events in a, 75 in b, scopes ['run']: 3 differences",
+          "first_differences": [
+            "difference at event 0:",
+            "difference at event 22:",
+            "difference at event 56:"
+          ]
+        },
+        "probe": {
+          "python_exit": 1,
+          "summary": "182 events in a, 182 in b, scopes ['probe']: 3 differences",
+          "first_differences": [
+            "difference at event 64:",
+            "difference at event 106:",
+            "difference at event 128:"
+          ]
+        },
+        "run-at-probe": {
+          "python_exit": 1,
+          "summary": "186 events in a, 186 in b, scopes ['run-at-probe']: 6 differences",
+          "first_differences": [
+            "difference at event 41:",
+            "difference at event 63:",
+            "difference at event 97:"
+          ]
+        }
+      }
+    }
+  ],
+  "original_raw_file_sha256_of_composed_witness": "bfb8fab361d16a030cba658dbe6944758f31ba3898b00bba5e878cb0e0a4e37a (the lead recorded this raw hash of the composed original witness trace)"
+}
