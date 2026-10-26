@@ -28,12 +28,15 @@ The exact independent report is retained under
 `eech-campaign/reference/d2-los-observation/extraction/ab/independent-comparison.json`.
 Both candidate600 cases and public-path causal/refusal checks completed as recorded in the
 extraction evidence. The final ordinary-feature shipping build from clean 61e856645 passed;
-its full pack is now running alongside the supplied-binary destination baseline.
+its full pack is still running. The supplied-binary destination baseline completed exit0/all40checks
+PASS. All6 complete reference files independently match accepted D1 bytes/hashes, and all3 input
+manifests still match after the run. The baseline completion/report/comparison records are in
+`eech-campaign/reference/d2-los-observation/extraction/destination-baseline`.
 
 ## Limits and pending acceptance
 
-No overall delivery acceptance yet. Pending: complete supplied-binary baseline and shipping
-candidate packs; complete-file Tacview/observation/metric comparisons; current CI; normal merge
+No overall delivery acceptance yet. Pending: complete shipping candidate pack; candidate
+complete-file Tacview/observation/metric comparisons; current CI; normal merge
 and Jira/Confluence delivery records. The 900-second A/B comparison does not pass the full-pack
 gate. Partial prefixes and active processes do not pass those gates either.
 

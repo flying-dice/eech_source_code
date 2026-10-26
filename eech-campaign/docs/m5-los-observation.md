@@ -2,7 +2,9 @@
 
 **Status: implemented on PR101 (`codex/d2-perception-los`), corrected source `61e85664540770ab10e3ac7e9f5dfa916291c52f`. Not accepted.**
 The independent source review and focused correction check are complete. The lead's clean final shipping build passed; the established
-40-check candidate pack and supplied-binary destination baseline are running. Complete-file comparison, current CI and normal merge remain gates.
+supplied-binary destination baseline completed all40 checks (runner exit0); all6 complete reference files match accepted D1 sizes/SHA-256,
+and all3 post-run input manifests match. Evidence is in `reference/d2-los-observation/extraction/destination-baseline`.
+The40-check candidate pack is still running. Its complete-file comparison, current CI and normal merge remain gates.
 Scope authority is the live M5 goal (Confluence 11534337) and the
 migration ledger (14548994): move physical combat and perception observation into the host and keep target selection, priorities and
 engagement decisions in EECH_DC. Evidence: [`reference/d2-los-observation/`](../reference/d2-los-observation/README.md).
