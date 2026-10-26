@@ -65,6 +65,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "project.h"
+#include "entity/mobile/mb_aimfx.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -341,6 +342,7 @@ void open_entity_weapon_system_ready (entity *en)
 		val;
 
 	val = set_entity_keyframe_value_animating_forwards( en, get_local_entity_float_value( en, FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE ) );
+	AIM_FX_READY_COMMAND (en, 1, val)
 
 	set_local_entity_float_value( en, FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE, val );
 }
@@ -355,6 +357,7 @@ void close_entity_weapon_system_ready( entity *en )
 		val;
 
 	val = set_entity_keyframe_value_animating_reverse( en, get_local_entity_float_value( en, FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE ) );
+	AIM_FX_READY_COMMAND (en, 0, val)
 
 	set_local_entity_float_value( en, FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE, val );
 }

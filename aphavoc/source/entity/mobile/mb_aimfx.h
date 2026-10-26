@@ -114,6 +114,8 @@ extern void eech_aim_ws_edge (int edge);
 extern void eech_aim_ws_exit (entity *source, int reason, const weapon_package_status *package_status, int config_type);
 extern void eech_aim_ws_end (entity *source, int selected_weapon_system_ready, const weapon_package_status *package_status, int config_type);
 
+extern void eech_aim_ready_update (int vehicle, entity *en, float state_after, int state_before);
+extern void eech_aim_ready_command (entity *en, int open, float new_state);
 extern void eech_aim_angle (int site, entity *launcher, float launch_angle_error, float limit);
 extern void eech_aim_reject (int site, int reason);
 
@@ -143,6 +145,8 @@ extern void eech_aim_person_facing (entity *person, const vec3d *position, const
 #define AIM_FX_WS_EXIT(SOURCE,REASON,STATUS,CONFIG)		eech_aim_ws_exit ((SOURCE), (REASON), (STATUS), (CONFIG));
 #define AIM_FX_WS_END(SOURCE,READY,STATUS,CONFIG)		eech_aim_ws_end ((SOURCE), (READY), (STATUS), (CONFIG));
 
+#define AIM_FX_READY_UPDATE(VEHICLE,EN,AFTER,BEFORE)		eech_aim_ready_update ((VEHICLE), (EN), (AFTER), (BEFORE));
+#define AIM_FX_READY_COMMAND(EN,OPEN,STATE)				eech_aim_ready_command ((EN), (OPEN), (STATE));
 #define AIM_FX_ANGLE(SITE,LAUNCHER,ERROR,LIMIT)			eech_aim_angle ((SITE), (LAUNCHER), (ERROR), (LIMIT));
 #define AIM_FX_REJECT(SITE,REASON)						eech_aim_reject ((SITE), (REASON));
 
@@ -174,6 +178,8 @@ extern void eech_aim_person_facing (entity *person, const vec3d *position, const
 #define AIM_FX_WS_EXIT(SOURCE,REASON,STATUS,CONFIG)
 #define AIM_FX_WS_END(SOURCE,READY,STATUS,CONFIG)
 
+#define AIM_FX_READY_UPDATE(VEHICLE,EN,AFTER,BEFORE)
+#define AIM_FX_READY_COMMAND(EN,OPEN,STATE)
 #define AIM_FX_ANGLE(SITE,LAUNCHER,ERROR,LIMIT)
 #define AIM_FX_REJECT(SITE,REASON)
 

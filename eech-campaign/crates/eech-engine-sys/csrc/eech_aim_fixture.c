@@ -45,7 +45,7 @@
 #define KIND_ROWS 48
 #define WEAPON_ROWS 96
 #define STAGES 8
-#define RANGES 12
+#define RANGES 13
 
 #define FNV_OFFSET 14695981039346656037ull
 #define FNV_PRIME 1099511628211ull
@@ -138,6 +138,14 @@ enum counter
 	C_REJECT_VEHICLE_UPDATE_NOT_READY,
 	C_REJECT_VEHICLE_UPDATE_VECTORS_INVALID,
 	C_REJECT_VEHICLE_UPDATE_LAUNCH_ANGLE,
+	C_READY_UPDATE_AIRCRAFT,
+	C_READY_UPDATE_VEHICLE,
+	C_READY_STATE_START,
+	C_READY_STATE_OPENING,
+	C_READY_STATE_OPEN,
+	C_READY_STATE_CLOSING,
+	C_READY_COMMAND_OPEN,
+	C_READY_COMMAND_CLOSE,
 	C_PERSON_BRANCH_ENTERED,
 	C_PERSON_BRANCH_WITH_TARGET_LINK,
 	C_PERSON_FACING,
@@ -164,6 +172,8 @@ static const char *const counter_names[COUNTERS] = {
 	"reject_aircraft_fire_not_ready", "reject_aircraft_fire_vectors_invalid", "reject_aircraft_fire_launch_angle",
 	"reject_aircraft_update_not_ready", "reject_aircraft_update_vectors_invalid", "reject_aircraft_update_launch_angle",
 	"reject_vehicle_update_not_ready", "reject_vehicle_update_vectors_invalid", "reject_vehicle_update_launch_angle",
+	"ready_update_aircraft", "ready_update_vehicle", "ready_state_start", "ready_state_opening", "ready_state_open", "ready_state_closing",
+	"ready_command_open", "ready_command_close",
 	"person_branch_entered", "person_branch_with_target_link", "person_facing"
 };
 
@@ -182,15 +192,16 @@ enum range_id
 	R_LAUNCH_ANGLE_LIMIT,
 	R_WS_STEP_HEADING,
 	R_PERSON_HEADING,
+	R_READY_STATE_AFTER,
 	RANGE_IDS
 };
 
 static const char *const range_names[RANGES] = {
 	"vec_intercept_range", "solve_intercept_range", "lead_range", "lead_time_of_flight", "lead_angle", "ballistic_range",
-	"ballistic_parent_velocity", "ballistic_time_of_flight", "launch_angle_error", "launch_angle_limit", "ws_step_heading", "person_heading"
+	"ballistic_parent_velocity", "ballistic_time_of_flight", "launch_angle_error", "launch_angle_limit", "ws_step_heading", "person_heading", "ready_state_after"
 };
 
-static const char *const function_names[3] = { "vector_update", "weapon_system_update", "person_facing" };
+static const char *const function_names[4] = { "vector_update", "weapon_system_update", "person_facing", "ready_update" };
 static const char *const aiming_names[4] = { "none", "guided_intercept", "angle_of_projection", "lead_and_ballistic" };
 
 struct sample
@@ -1122,6 +1133,49 @@ void eech_aim_ws_end (entity *source, int selected_weapon_system_ready, const we
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 /* the fire decision's reads of the physical result */
+
+/* the readiness state machine (aircraft and vehicle producers, advanced every update whether or not the entity is drawn) */
+void eech_aim_ready_update (int vehicle, entity *en, float state_after, int state_before)
+{
+	char text[SAMPLE_TEXT], key[40];
+	static const char *const state_names[4] = { "closed", "opening", "open", "closing" };
+	struct kind_row *row;
+	ready ();
+	bump (vehicle ? C_READY_UPDATE_VEHICLE : C_READY_UPDATE_AIRCRAFT);
+	if (state_before >= 0 && state_before <= 3)
+	{
+		bump (C_READY_STATE_START + state_before);
+	}
+	note_kind (en, 3);
+	row = kind_row_for ((int) en->type, 3);
+	if (row && (state_before == 1 || state_before == 3))
+	{
+		row->steps++;
+	}
+	fold (&trace.physical_hash, 0xE4000000u | (uint32_t) (vehicle ? 0x100 : 0) | (uint32_t) (state_before & 0xff));
+	fold_f (&trace.physical_hash, state_after);
+	note_range (R_READY_STATE_AFTER, (double) state_after);
+	if (state_before == 1 || state_before == 3)
+	{
+		text[0] = 0;
+		text_append (text, sizeof (text), "source=%s state_before=%s state_after=%.9g", get_entity_type_name ((entity_types) en->type),
+			state_before >= 0 && state_before <= 3 ? state_names[state_before] : "invalid", (double) state_after);
+		snprintf (key, sizeof (key), "ready/update/%s", state_before == 1 ? "opening" : "closing");
+		keep_sample (key, text);
+	}
+}
+
+void eech_aim_ready_command (entity *en, int open, float new_state)
+{
+	char text[SAMPLE_TEXT];
+	ready ();
+	bump (open ? C_READY_COMMAND_OPEN : C_READY_COMMAND_CLOSE);
+	fold (&trace.physical_hash, 0xE5000000u | (uint32_t) (open ? 1 : 0));
+	fold_f (&trace.physical_hash, new_state);
+	text[0] = 0;
+	text_append (text, sizeof (text), "source=%s command=%s new_state=%.9g", get_entity_type_name ((entity_types) en->type), open ? "open" : "close", (double) new_state);
+	keep_sample (open ? "ready/command/open" : "ready/command/close", text);
+}
 
 void eech_aim_angle (int site, entity *launcher, float launch_angle_error, float limit)
 {
