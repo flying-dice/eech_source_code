@@ -106,6 +106,9 @@ So both names sit at offsets 4 and 8 in each struct. The patch renames the secon
 - **Patch:** returns FALSE ("no solution") unless `|height| < range`. FALSE is an existing result: callers already handle it for unknown weapons.
 - **Difference:** only where `|height| >= range`. In the exact-equality case the original returned a ±90° aim at zero range; that case has measure zero.
 - **Evidence:** fault reported (`231bc98c`).
+- **Moved with the code (EEDCS-44):** `get_ballistic_pitch_deflection` no longer interpolates in the DLL: the table interpolation is the host's (`m5-aim-extraction.md`). The guard is a line of the reference host's kernel
+  (`ballistic_pitch_deflection` in `crates/eech-world/csrc/aim_step.c`, "no solution" unless `|height| < range`), and the engine's patch table no longer carries W1. The behaviour is unchanged; the point-blank case
+  was not exercised by the natural witnesses (the characterisation lists the W1 point-blank patch as not covered) and is covered by a kernel contract test.
 
 ### S1: a keysite is not its own supplier (defect correction)
 
