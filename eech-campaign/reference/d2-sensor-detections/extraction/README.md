@@ -36,7 +36,7 @@ negative:  tools/sense-provider-windows.ps1 ... -Modes missing,bad_begin,bad_nil
 ## Hazards found on the way (reported, not fixed outside this task)
 
 * The existing `exact_f64s` reader (formats at 17 digits) is not exact under round-toward-zero: 4,010 of 60,000 sampled doubles, 3,199 of the 32,768 draws `k/32767`, come back one ulp low. It is used by D1 for `frand1 ()` draws; D1's accepted evidence is unchanged and untouched here. The sensing dialogue uses `exact_f64_bits`.
-* `eech-engine-sys` reruns its build script only for `csrc/`, `compat/`, `build/` and `sources.txt`; a campaign-source (`aphavoc/`, `modules/`) edit alone leaves stale C in a reused cargo volume. This lane builds identities on fresh volumes.
+* `eech-engine-sys` reran its build script only for `csrc/`, `compat/`, `build/` and `sources.txt`; a campaign-source (`aphavoc/`, `modules/`) edit alone left stale C in a reused cargo volume. This lane built identities on fresh volumes. **Corrected after the independent review** (`647558f8b`, `../review-corrections/`): the original tree is now a build input. Everything above is the evidence of `37989fa5f`, unchanged.
 
 ## Not done here
 

@@ -8,15 +8,38 @@ D1 remains accepted; D2 (EEDCS-18) is active and **incomplete**; D3 has not star
 
 ## Current state in one place
 
+Lead update after the focused5c00 source follow-up: P1 resolved and P2 shipping
+transport resolved, but a new **P2 fixture issue remains**. A valid `not_perceived`
+result must not `debug_fatal` merely because observational `sensor-fixture` is on.
+Read the latest disposition at the end of `docs/handover/D2-SENSOR-DELIVERY-REVIEW.md`.
+Observe generic nondetection separately without faking a legacy predicate or
+changing the existing443-event reference oracle. Preserve/finish the in-progress
+shipping controls; only a short focused fixture check is needed for this new fix.
+The same reviewer will check only its new delta. Do not declare source closure
+or launch the final pack until that issue is resolved.
+
 * **EEDCS-42 (PR101) is NOT accepted or merged.** Its reviewed frozen head `a42f1cfad39e5b29ce18bfd2d4ff6cf0f5e0cf12` (runtime source `61e856645`; later commits docs/evidence only) is merged
   into this branch as **development stacking**. The supplied-binary destination baseline completed all 40 checks, runner exit 0, and all 6 complete reference files match accepted D1 bytes.
   Its final-source LOS candidate full pack is still running. Baseline evidence is published at `de987c471`; all 9 checks pass there, and ledger v33 preserves all 5 epic reports.
   Delivery of EEDCS-42 must precede EEDCS-43; neither task nor D2 is accepted by this status.
-* **EEDCS-43 is source-complete and validated on the bounded evidence below, not accepted:** `37989fa5f` moves the physical sensing of the four AI target scans (planar and approximate 3-D range, the surface-to-air envelope with its
+* **Independent source review has happened; its findings are corrected and await the same reviewer's follow-up on the delta** (see "Review corrections" below): P1 `647558f8b`, P2 `5c00ab4fa`, follow-up P2 (fixture) `a2a041fec`. Not accepted; no source-closure claim until that follow-up.
+* **EEDCS-43 is source-complete as extracted (pre-review pin) and validated on the bounded evidence below, not accepted:** `37989fa5f` moves the physical sensing of the four AI target scans (planar and approximate 3-D range, the surface-to-air envelope with its
   cumulative floor, the tolerance limit, the emitter and stealth adjustment) to the host behind a sixth required callback `sense`; campaign filters, enumeration, the random draw, ranking and engagement remain core.
   The original 600-second oracle holds across the move (below). The final full pack, the independent delivery review and merge are the lead's; EEDCS-42 must be delivered first; D2 is incomplete.
 * **Original characterization and composition are complete:** the original 600-second reports, observer 900-second recording control and combined LOS/observer 600-second trace match as recorded below.
   Root's live process/source checkpoint is `../d2-evidence/ACTIVE-RUNS.json`. Sole active implementation context: `67f40663-046f-435e-be4b-902073b9a69d`, exact Sonnet 5.5 High via CLI `-p`.
+
+## Review corrections (EEDCS-43), head `a2a041fec` — development stacking, not accepted
+
+Account: `eech-campaign/docs/m5-sensor-characterization.md` ("Review corrections"). Evidence, hashes, commands: `eech-campaign/reference/d2-sensor-detections/review-corrections/README.md`. The review record with its original findings, the lead's dispositions and the resolution status is `docs/handover/D2-SENSOR-DELIVERY-REVIEW.md`.
+
+* **P1 resolved (`647558f8b`).** `eech-engine-sys/build/main.rs` registers `modules/` and `aphavoc/source` under the resolved `EECH_SOURCE_ROOT`. On one never-cleaned cargo target: the old script ignores an original-file edit (staged copy stale, RED); the new one reruns on an edit of a `.c`, a `.h` and `modules/3d/textname.h`, and not on an unchanged build (GREEN).
+* **P2 resolved for shipping (`5c00ab4fa`).** Generic reason `not_perceived`, accepted for every scan; the EECH predicates remain the reference host's diagnostics; unknown reasons still refused; comments say the supplied facts are transitional mirrors, not a campaign-owned solver. Public-path shipping runs (Lebanon, 300 s, one each): `not_perceived` for every candidate equals the retained `blocked` counters
+  (17,047 begins, 324,946 candidates, 176 births, 1 loss; all four scan kinds); a host model of its own (distance only, no draw/signature/seed/entity index) gives 199 detections, 180 births, 9 losses. fmt 0, clippy 0 (default, sensor-fixture), `cargo test --workspace` 0.
+* **Follow-up P2 (fixture) corrected (`a2a041fec`).** Red: the `5c00ab4fa` fixture stops after 6 s on a valid `not_perceived`. Green: the fixture counts it apart (rows and samples only when a host answered it), skips the reference-only hooks of that exchange, folds nothing into either hash; 60 s and 300 s runs exit 0 (300 s: 6,245 / 312,160 / 520 / 6,021 generic verdicts,
+  every table verdict 0); a reference run records no such row and its 83 events at the 30 s probe equal the retained original's byte for byte (ad-hoc text comparison, not the strict tool). The 443-event oracle and expected counters are unchanged and were not re-run. Shipping objects unchanged except four `debug_fatal` line-number immediates. fmt 0; clippy 0 for default, all fixtures, old-guard+sensor, sensor alone; symbol check clean.
+* **Builds:** clean fixture and shipping builds of `a2a041fec` (0 uncommitted inputs, fresh volumes `-5`): fixture `eech_dc.dll` `e5f3674b...6ef3`, shipping `ab42d053...968b`. The final shipping build, full pack and the reviewer's follow-up on this delta are the lead's.
+* **Not repeated, by decision:** the 600 s witness, the 900 s control, the retained reference/blocked/far/malformed records. Not claimed: a DCS host (the host models here are mine), Georgia, player-controlled targets, visual Tacview inspection.
 
 ## Extraction result (EEDCS-43), pinned `37989fa5f` — development stacking on EEDCS-42, not accepted
 
@@ -56,7 +79,17 @@ aphavoc tree). Preserve the stale witness/bin as failed evidence. Final acceptan
 freshly compiled C, not a stale incremental artifact. This is lead evidence QA during development,
 not the independent delivery source-review pass.
 
-### Independent review in progress, pinned 37989fa5f
+### Independent review of 37989fa5f (the lead's notes as written; the pass is complete and its findings are corrected, see "Review corrections")
+
+Lead source/provenance note: that pass is complete with P1/P2 below (the correction
+stage is active). The eventual focused follow-up must also include the small
+`cee800898` test-driver delta. That commit is not docs-only: it amends the malformed
+draw control and documents wrapper exits. The private bin's sense-provider.lua
+was amended after BUILD-INFO was captured (build-time hash be4d916f..., amended
+script/source hash5cfade67...). Preserve the original manifest and explicitly
+record binary-source379 plus driver amendmentcee; see
+`../d2-evidence/sensor-driver-provenance-note.md`. This does not require repeating
+the unchanged reference/blocked/far or campaign.lua900s runs.
 
 The same independent Codex reviewer is doing the single source pass. Two findings
 confirmed so far (final report still pending):

@@ -32,6 +32,7 @@ retained, safe-to-publish artifacts. No retail asset, installation root or binar
 
 * `composition/`: the original observer across the host-owned line of sight (development stacking).
 * `extraction/`: EEDCS-43's host-owned physical sensing: the red control, the 600 s witness against this directory's original traces, the causal and refusal runs and the 900 s control. See its README.
+* `review-corrections/`: the corrections after the independent source review: original sources as build inputs, the generic `not_perceived` nondetection result, and the fixture observing it. See its README.
 
 ## Not done here
 

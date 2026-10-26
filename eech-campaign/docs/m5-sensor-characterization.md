@@ -3,7 +3,9 @@
 **Status: source-complete and validated on the bounded evidence below; not accepted, not merged.** Task EEDCS-43 (under EEDCS-18), branch `codex/d2-sensor-detections`, draft PR102, from integration
 `a7934aa7d1bcffc2ea5057bb3f1b0af332606c61`, **stacked on the reviewed frozen EEDCS-42 head `a42f1cfad` (development stacking: EEDCS-42 is not accepted or merged, and its delivery must precede this task's)**.
 Scope authority is the live M5 goal (Confluence 11534337) and the migration ledger (14548994): physical sensing facts are the host's; candidate eligibility, enumeration, ranking, priorities, engagement
-and awareness stay in EECH_DC. EEDCS-43 and D2 remain incomplete: no final full pack, independent review, merge or live DCS evidence exists. Artifacts:
+and awareness stay in EECH_DC. EEDCS-43 and D2 remain incomplete: no final full pack, completed independent review, merge or live DCS evidence exists. One independent source review of `37989fa5f` has happened
+(`docs/handover/D2-SENSOR-DELIVERY-REVIEW.md`): its two findings (the original EECH tree was not a build input; a host could not report a generic nondetection) and the follow-up finding on the fixture are corrected
+in the commits named in "Review corrections" below and await the same reviewer's follow-up. Artifacts:
 [`reference/d2-sensor-detections/`](../reference/d2-sensor-detections/README.md) (the original characterisation, `composition/`, and `extraction/`).
 
 The document has two parts. **Part 1** describes what moved and the evidence for it. **Part 2** is the characterisation of the original code that preceded the move and is the oracle the move was held to.
@@ -35,17 +37,20 @@ One callback, `sense`, in the same Lua -> `eech_dc` -> host path as the others (
 | Message | Contents | Host answers |
 |---|---|---|
 | `begin` | scan, source host identity (when the roster has one), source position, the unit's raw scan range; surface-to-air adds the group's raw ceiling and initial floor | `open` |
-| `candidate` | target host identity (when it has one), position, player flag (aircraft-to-aircraft and surface-to-air), difficulty factor (a human pilot), radar altitude (surface-to-air) | `reject` with the failed predicate, `accept` with the measured range, or `need_draw` (surface-to-air) / `need_signature` |
+| `candidate` | target host identity (when it has one), position, player flag (aircraft-to-aircraft and surface-to-air), difficulty factor (a human pilot), radar altitude (surface-to-air) | `reject` (with `not_perceived`, or the reference host's failed predicate), `accept` with the measured range, or `need_draw` (surface-to-air) / `need_signature` |
 | `draw` | the campaign's random draw in [0, 1] | `reject` (tolerance) or `need_signature` |
 | `signature` | emitter states (human-flown targets) and, for a helicopter target, weapon-bay-closed, stub-wings-attached, undercarriage-up | `accept` or `reject` (range adjusted) |
 | `end` | | `closed` |
 
-The measured range also comes back on a rejection and is what the ranking uses. Validation in the campaign (`mb_hostsense.c`) refuses: a missing callback (boot: `eech: missing host sense callback`), an unknown state, a state the message cannot receive, a reject reason the scan cannot have,
+The measured range also comes back on a rejection and is what the ranking uses. Validation in the campaign (`mb_hostsense.c`) refuses: a missing callback (boot: `eech: missing host sense callback`), an unknown state, a state the message cannot receive, an unknown reject reason or one of the reference predicates the scan cannot have (`not_perceived` is legal for every scan),
 an acceptance without a finite non-negative range, a non-finite value, a scan inside another, and more than 16 requests for one candidate; the Rust layer refuses non-boolean flags, a draw outside [0, 1], non-finite positions and an overlong or non-UTF-8 identity.
 A host that owns the world can decide at `candidate` from its own state and never be asked for a draw or a signature. There is no campaign fallback. An optional `echo` table of the reference host's intermediate values is read only by the test-fixture build; the shipping module ignores it.
 No pointer, entity index, list layout or seed crosses: identities are the ones the roster already holds.
 
-**Declared transitional coupling** (facts the host is given, not physical authority): the unit-database figures (scan range, ceiling, floor), entity positions, the target's radar altitude, the helicopter's bay/stub-wing/undercarriage state, the emitter states, the pilot's difficulty factor, the sector entity lists that
+**Rejection reasons.** `range`, `range_adjusted`, `altitude` and `tolerance` are the predicates of the original EECH model that the reference host reproduces; they are characterisation diagnostics, each legal only for the scans whose original had it. `not_perceived` is a host's own verdict
+from whatever model it has: any scan accepts it, the campaign treats the candidate as any other rejected one, and no EECH predicate has to be invented. Unknown reasons are still refused.
+
+**Declared transitional coupling** (facts the host is given as inputs of the reference host's model; they do not make the campaign the owner of a physical solver): the unit-database figures (scan range, ceiling, floor), entity positions, the target's radar altitude, the helicopter's bay/stub-wing/undercarriage state, the emitter states, the pilot's difficulty factor, the sector entity lists that
 supply candidates, and terrain and object collision for line of sight (D3, D5). The draw's generator is the campaign's own; how a DCS host would be given a stable per-source tolerance is open.
 
 ### Evidence
@@ -57,7 +62,7 @@ All runs are on private fresh copies of the Lebanon root (manifests IDENTICAL to
   the raw trace file is byte-identical to the composed original's (`bfb8fab3...`) and the corrected comparator reports **0 differences, Python exit 0** for run (75 events), probe (182), run-at-probe (186) and default (257). The host's numbers, folded from its echo, equal what the original computed in the DLL.
 * **First causes of the two differences found on the way** (both kept in `extraction/intermediate/`): the first run's physical hash differed in one value, the tolerance limit, one ulp low (`...538` for `...54`). Cause: the existing `exact_f64s` reads a double through `string.format('%.17g')`, and the engine runs a callback under round-toward-zero, where the C library truncates the digits.
   Measured over 60,000 doubles, 4,010 come back one ulp low (3,199 of the 32,768 draws `k/32767`). The sensing dialogue reads its doubles in exact steps instead (`exact_f64_bits`, tested under both rounding modes); the existing reader and its D1 uses were left untouched and are reported to the lead as a finding.
-  The second run (a rebuild after an `aphavoc/`-only edit) still carried the old fixture hook, because `eech-engine-sys` reruns its build script only when `csrc/`, `compat/`, `build/` or `sources.txt` change, not when the campaign sources do: a reused cargo volume linked stale C. Identity builds now use fresh volumes.
+  The second run (a rebuild after an `aphavoc/`-only edit) still carried the old fixture hook, because `eech-engine-sys` reruns its build script only when `csrc/`, `compat/`, `build/` or `sources.txt` change, not when the campaign sources do: a reused cargo volume linked stale C. Identity builds used fresh volumes; the build-script gap itself is corrected (review P1 below).
 * **Causal, through the public path** (ordinary-feature shipping build `37989fa5f`, Lebanon, 300 s, seed 1, one run each, so a demonstration and not statistics):
 
   | Provider | begin | candidates | draws | signatures | accepts | weapon births | losses |
@@ -74,6 +79,19 @@ All runs are on private fresh copies of the Lebanon root (manifests IDENTICAL to
 * **Checks** (cargo's own exits, fresh clippy volume): `cargo fmt --all --check` 0; `cargo clippy --locked --all-targets -- -D warnings` for the default features, for all fixtures together (dependent, loss, LOS, sensor), for old-guard plus sensor, and for sensor alone: all 0. `cargo test --locked -p eech-engine -p eech-dc -p eech-world` (default features): 3+2, 30, 165, 19, 6, 2 tests pass.
   New focused contracts: nine kernel contracts derived from the original scans (range forms and their quirks, the cumulative floor and its 0.1 bound, the ceiling at the source's altitude, tolerance after altitude, the stealth subtractions, the emitter adjustment, refusals), the Lua boundary of `host.sense`, and the exact-double transport under both rounding modes.
 * **Cost.** 316,847 host crossings in 300 s (about 1,056 per second). Wall time for 300 simulated seconds was 273 s with the reference host and 276 s for the original with no crossings, measured under different background loads: no penalty was visible, and this is not a benchmark. No batching was introduced.
+
+### Review corrections (independent source review of `37989fa5f`)
+
+The review's two findings and a follow-up finding are corrected in focused commits; evidence in `reference/d2-sensor-detections/review-corrections/` (README). All three await the same reviewer's follow-up; none is accepted.
+
+* **P1, the original EECH tree is a build input (`647558f8b`).** `eech-engine-sys` staged `modules/` and `aphavoc/` C and headers into `OUT_DIR` and compiled the copies, but watched only its own files, so a reused cargo target kept stale C (the cause of the stale second witness above).
+  It now watches `modules/` and `aphavoc/source` under the resolved `EECH_SOURCE_ROOT`. RED/GREEN on one never-cleaned target: with the old script an original-file edit does not rerun it; with the new one a `.c`, a `.h` and `modules/3d/textname.h` edit each do, and an unchanged build does not.
+* **P2, a host can report a generic nondetection (`5c00ab4fa`).** Reason `not_perceived` is accepted for every scan; the four EECH reasons remain the reference host's diagnostics with their per-scan legality; unknown reasons are still refused; comments now describe positions, radar altitude, configuration facts and unit figures as transitional mirrors that feed the reference model.
+  Public path (shipping build, Lebanon, 300 s): `not_perceived` for every candidate gives exactly the retained `blocked` counters (17,047 begins, 324,946 candidates, 176 births, 1 loss) with all four scan kinds consulted; a host model of its own (a plain horizontal distance, no draw, no signature, no seed or entity index) gives 199 detections, 180 births, 9 losses.
+* **Follow-up P2, the fixture observes it (`a2a041fec`).** A valid `not_perceived` stopped the engine in `sensor-fixture` builds. The fixture now counts it apart (`sensor-host-verdicts` rows and `host_not_perceived` samples appear only when a host answered it), skips the reference-only hooks of that exchange, and folds nothing into either hash.
+  Red: the `5c00ab4fa` fixture dies after 6 s. Green: 60 s and 300 s runs exit 0 with the per-scan counts above; a reference run records no such row and its 83 events at the 30 s probe equal the retained original's byte for byte. The 443-event oracle, its hashes and its expected counters are unchanged and were not re-run.
+
+Not repeated, by decision: the 600 s witness, the 900 s control and the retained reference/blocked/far/malformed records (reference-host behaviour is unchanged). The final shipping build and the full pack are the lead's.
 
 ### Coverage that is NOT claimed
 
