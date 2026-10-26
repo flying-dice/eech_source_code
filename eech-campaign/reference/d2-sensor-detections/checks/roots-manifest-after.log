@@ -1,0 +1,4 @@
+lebanon-probe: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+lebanon-probe2: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+lebanon-noprobe2: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+lebanon-ab-fixture: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json

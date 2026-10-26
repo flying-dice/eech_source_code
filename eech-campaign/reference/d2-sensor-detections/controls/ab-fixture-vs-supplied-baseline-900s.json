@@ -1,0 +1,43 @@
+{
+  "scope": "Lebanon 900 s (hours=0.25) whole-campaign comparison only; NOT the full 3 h pack",
+  "fixture_build": {
+    "commit": "e0d58d818661620ddfa7e386118551de8c191da0",
+    "eech_dc_dll_sha256": "352f8f8563dc1f59266d06ec804de1420749e1dd5651c6d1091d686d99b693e8",
+    "hooks": "enabled, observing (sensor-fixture)"
+  },
+  "command": "eech-world.exe R:/d2-evidence/sensor-characterization-baseline-20261026/bin-fixture2/lua/campaign.lua root=R:/d2-evidence/sensor-characterization-baseline-20261026/roots/lebanon-ab-fixture scenario=lebanon_retail hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/sensor-characterization-baseline-20261026/out/ab-fixture/recording.acmi observe=R:/d2-evidence/sensor-characterization-baseline-20261026/out/ab-fixture/observations.jsonl metrics=R:/d2-evidence/sensor-characterization-baseline-20261026/out/ab-fixture/metrics.json observe_supply=0 (cwd R:\\d2-evidence\\sensor-characterization-baseline-20261026\\out\\ab-fixture)",
+  "fixture_run": {
+    "start": "12:43:31",
+    "end": "13:02:27",
+    "exit": 0,
+    "root": "lebanon-ab-fixture, fresh copy, inputs IDENTICAL to reference/lebanon-3h/inputs.json before and after"
+  },
+  "supplied_baseline_source": "the lead's independent-ab-comparison-20261026.json (supplied-binary side of the EEDCS-42 900 s comparison); that side was NOT re-run by this lane. Equal hashes from two independent runs also show the command lines are equivalent",
+  "artifacts": [
+    {
+      "file": "recording.acmi",
+      "fixture_bytes": 11363845,
+      "fixture_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+      "supplied_baseline_bytes": 11363845,
+      "supplied_baseline_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+      "match": true
+    },
+    {
+      "file": "observations.jsonl",
+      "fixture_bytes": 6629273,
+      "fixture_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+      "supplied_baseline_bytes": 6629273,
+      "supplied_baseline_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+      "match": true
+    },
+    {
+      "file": "metrics.json",
+      "fixture_bytes": 11777,
+      "fixture_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+      "supplied_baseline_bytes": 11777,
+      "supplied_baseline_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+      "match": true
+    }
+  ],
+  "all_match": true
+}
