@@ -18,8 +18,10 @@ instrumented sources.
 
 Characterization source74ae6a96d, final evidence c2554db2d (pushed). Actual Claude
 exec43568 completed0 and PID22636 is gone. Fmt/default-Clippy/aim-Clippy and Docker
-all exited0. Same independent reviewer is finishing the characterization pass;
-physical extraction follows that disposition in the same relevant Sonnet context.
+all exited0. Independent characterization review found no blocking issue; two P3 reporting
+corrections are committed. Root is launching physical extraction in the same relevant
+Sonnet5.5High context; no source cut is claimed at launch. See
+docs/handover/D2-AIM-CHARACTERIZATION-REVIEW.md.
 Some intermediate person-driver traces were overwritten and are explicitly
 disclosed; the final target/control/repeat and last continuity failure are retained.
 
@@ -97,8 +99,8 @@ fixture-only. One additional native case ran at a time; no physical cut has begu
 
 One compact read-only Opus5.5Medium plan completed actual0, with source-grounded
 lead corrections recorded in `../d2-evidence/AIM-COMPACT-PLAN-LEAD-DISPOSITION.md`.
-It is advisory, not source approval. `../d2-aim-extraction-prompt-DRAFT.txt` has
-not been launched; characterize and close the remaining gates first.
+It is advisory, not source approval. `../d2-aim-extraction-prompt.txt` is authorized after characterization and review;
+the physical implementation stage begins now. The older DRAFT remains unlaunched.
 
 Fresh eventual aiming full-pack roots at
 `R:/d2-evidence/candidate-roots-d2-aiming` match all3 repository input manifests,
