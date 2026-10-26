@@ -13,8 +13,15 @@ completed native/driver0; all1962 events and raw bytes match. Physical signature
 8d5afe5ea932338f includes readiness; decision4e542d029ba7362a is unchanged.
 Its900s hooks-on control completed native0 (1,194 s) with all3 complete files equal
 to the retained supplied-build baseline; the same holds for the b7 and f9 controls.
-Root verified all27 fresh build entries and strict feature-off equivalence for all8
+Root verified all27 readiness-build entries, all28 person-build entries and strict feature-off equivalence for all8
 instrumented sources.
+
+Characterization source74ae6a96d, final evidence c2554db2d (pushed). Actual Claude
+exec43568 completed0 and PID22636 is gone. Fmt/default-Clippy/aim-Clippy and Docker
+all exited0. Same independent reviewer is finishing the characterization pass;
+physical extraction follows that disposition in the same relevant Sonnet context.
+Some intermediate person-driver traces were overwritten and are explicitly
+disclosed; the final target/control/repeat and last continuity failure are retained.
 
 Lane report (author, 74ae6a96d, no cut begun): both Lebanon and Georgia natural
 600s witnesses recorded0 person-branch entries, so one bounded controlled case closes
@@ -38,7 +45,7 @@ simulation. Evidence: `eech-campaign/reference/d2-aim-characterization/`. No phy
 cut before the independent review of this characterization. D2 is the only active
 delivery epic; D3 has not started.
 
-Authority: live M5 goal11534337v3 and migration ledger14548994v35. D2 covers physical
+Authority: live M5 goal11534337v3 and migration ledger14548994v36 (reread20:32UTC). D2 covers physical
 sensing/visibility, physical aiming/weapon execution, and combat resolution/reports.
 Campaign target and weapon choice, priorities, engagement, awareness and consequences
 remain in EECH_DC. Historical TypeScript and old call-map inventory are not scope.
@@ -55,7 +62,7 @@ remain in EECH_DC. Historical TypeScript and old call-map inventory are not scop
   Root's fresh ordinary build passed, all26 hashes match, and full pack89376 is RUNNING
   at `R:/d2-evidence/candidate-pack-sensing-a2a041fec`. Python18836; native9648/22368/23396/8024.
   Snapshot/bin/roots are immutable. All9 current CI checks pass; full40-check/full-byte
-  and normal-merge gates remain. Live prefixes through roughly90 simulated minutes
+  and normal-merge gates remain. Live prefixes through over2.5 simulated hours
   match accepted bytes; this is not a full result.
 - Reviewed sensing branche7e46dcc2 is composed before the first aiming build. This is
   development stacking of runtimea2a041fec, not accepted43 delivery. Delivery43 precedes44;
