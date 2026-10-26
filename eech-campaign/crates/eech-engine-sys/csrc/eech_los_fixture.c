@@ -50,10 +50,70 @@ static uint32_t float_bits (float value)
 	return bits;
 }
 
+static void fold_lookup (struct eech_los_trace *trace, uint32_t word)
+{
+	int byte;
+	for (byte = 0; byte < 4; byte++)
+	{
+		trace->lookup_hash ^= (uint64_t) ((word >> (8 * byte)) & 0xffu);
+		trace->lookup_hash *= FNV_PRIME;
+	}
+}
+
 static void trace_reset (struct eech_los_trace *trace)
 {
 	memset (trace, 0, sizeof (*trace));
 	trace->hash = FNV_OFFSET;
+	trace->lookup_hash = FNV_OFFSET;
+}
+
+static struct eech_los_trace *ready (void)
+{
+	struct eech_los_trace *trace = active_trace;
+	if (trace->calls == 0 && trace->hash == 0)
+	{
+		trace_reset (trace);
+	}
+	return trace;
+}
+
+/*
+ * The lookup transcript (EEDCS-42): the solver's environment lookups in the order they are made, each folded as a kind word
+ * (phase and event) and the meaningful fields' bit patterns. Terrain: the sample point (x, ray height, z) and the elevation the
+ * solver read. Objects: the ray's start and end, the hit flag and, only when hit, the collision point. The query end marker
+ * folds the answer. The original solver and the hosted dialogue call these at the same boundary, so the same query gives the same
+ * transcript. A lookup event names a phase (1 coarse, 2 source-end fine, 3 target-end fine, 4 source-end objects, 5 target-end
+ * objects).
+ */
+void eech_los_lookup_terrain (int phase, vec3d *point, float elevation)
+{
+	struct eech_los_trace *trace = ready ();
+	trace->lookups++;
+	fold_lookup (trace, 0x54000000u | (uint32_t) phase);
+	fold_lookup (trace, float_bits (point->x));
+	fold_lookup (trace, float_bits (point->y));
+	fold_lookup (trace, float_bits (point->z));
+	fold_lookup (trace, float_bits (elevation));
+}
+
+void eech_los_lookup_objects (int phase, vec3d *start, vec3d *end, int hit, vec3d *collision_point)
+{
+	struct eech_los_trace *trace = ready ();
+	trace->lookups++;
+	fold_lookup (trace, 0x4f000000u | (uint32_t) phase);
+	fold_lookup (trace, float_bits (start->x));
+	fold_lookup (trace, float_bits (start->y));
+	fold_lookup (trace, float_bits (start->z));
+	fold_lookup (trace, float_bits (end->x));
+	fold_lookup (trace, float_bits (end->y));
+	fold_lookup (trace, float_bits (end->z));
+	fold_lookup (trace, (uint32_t) (hit ? 1 : 0));
+	if (hit)
+	{
+		fold_lookup (trace, float_bits (collision_point->x));
+		fold_lookup (trace, float_bits (collision_point->y));
+		fold_lookup (trace, float_bits (collision_point->z));
+	}
 }
 
 /*
@@ -132,6 +192,7 @@ void eech_los_trace_record (entity *source, entity *target, vec3d *source_positi
 	fold (trace, float_bits (target_position->y));
 	fold (trace, float_bits (target_position->z));
 	fold (trace, (uint32_t) (result ? 1 : 0));
+	fold_lookup (trace, 0x45000000u | (uint32_t) (result ? 1 : 0));
 }
 
 void eech_los_trace_get (struct eech_los_trace *out)

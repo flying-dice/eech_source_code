@@ -63,7 +63,7 @@ end
 
 local function emit_trace (event, extra, trace)
 	local t = { event = event, hash = trace.hash, calls = trace.calls, visible = trace.visible, skipped = trace.skipped,
-		by_criteria = criteria_text (trace) }
+		lookup_hash = trace.lookup_hash, lookups = trace.lookups, by_criteria = criteria_text (trace) }
 	for k, v in pairs (extra) do t [k] = v end
 	emit (t)
 end

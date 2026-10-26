@@ -612,6 +612,8 @@ pub struct eech_los_trace {
     pub calls: u64,
     pub visible: u64,
     pub skipped: u64,
+    pub lookup_hash: u64,
+    pub lookups: u64,
     pub by_criteria_calls: [u64; EECH_LOS_CRITERIA],
     pub by_criteria_visible: [u64; EECH_LOS_CRITERIA],
 }

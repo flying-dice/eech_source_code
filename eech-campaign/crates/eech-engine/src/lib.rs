@@ -828,6 +828,8 @@ pub struct LosTrace {
     pub calls: u64,
     pub visible: u64,
     pub skipped: u64,
+    pub lookup_hash: u64,
+    pub lookups: u64,
     pub by_criteria_calls: Vec<u64>,
     pub by_criteria_visible: Vec<u64>,
 }
@@ -840,6 +842,8 @@ impl LosTrace {
             calls: 0,
             visible: 0,
             skipped: 0,
+            lookup_hash: 0,
+            lookups: 0,
             by_criteria_calls: [0; sys::EECH_LOS_CRITERIA],
             by_criteria_visible: [0; sys::EECH_LOS_CRITERIA],
         }
@@ -854,6 +858,8 @@ impl From<sys::eech_los_trace> for LosTrace {
             calls: raw.calls,
             visible: raw.visible,
             skipped: raw.skipped,
+            lookup_hash: raw.lookup_hash,
+            lookups: raw.lookups,
             by_criteria_calls: raw.by_criteria_calls.to_vec(),
             by_criteria_visible: raw.by_criteria_visible.to_vec(),
         }

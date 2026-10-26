@@ -605,6 +605,8 @@ fn los_trace_table(lua: &Lua, trace: &eech_engine::LosTrace) -> mlua::Result<mlu
     table.set("calls", trace.calls)?;
     table.set("visible", trace.visible)?;
     table.set("skipped", trace.skipped)?;
+    table.set("lookup_hash", format!("{:016x}", trace.lookup_hash))?;
+    table.set("lookups", trace.lookups)?;
     let by_criteria = lua.create_table()?;
     for (criteria, (calls, visible)) in trace.by_criteria_calls.iter().zip(trace.by_criteria_visible.iter()).enumerate() {
         if *calls > 0 {

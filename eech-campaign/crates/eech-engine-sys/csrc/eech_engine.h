@@ -220,7 +220,9 @@ int eech_engine_loss_group (int entity_id, char *text, int capacity);
  * TEST-ONLY (feature los-fixture, EEDCS-42): see eech_los_fixture.c. Not part of the shipping module.
  * A trace folds line-of-sight queries: how many, how many were visible, the same per criteria value, how many sweep
  * points were skipped for lying near the map edge, and an order-dependent FNV-1a hash over each query's criteria,
- * six position floats (bit patterns) and answer.
+ * six position floats (bit patterns) and answer. lookup_hash is the same kind of hash over the solver's ordered environment
+ * lookups (EEDCS-42 transcript): each terrain sample (phase, point, returned elevation), each object ray (phase, start, end,
+ * hit, collision point when hit) and a query-end marker with the answer; lookups counts the terrain and object events.
  */
 #define EECH_LOS_CRITERIA 32
 struct eech_los_trace
@@ -229,6 +231,8 @@ struct eech_los_trace
 	uint64_t calls;
 	uint64_t visible;
 	uint64_t skipped;
+	uint64_t lookup_hash;
+	uint64_t lookups;
 	uint64_t by_criteria_calls[EECH_LOS_CRITERIA];
 	uint64_t by_criteria_visible[EECH_LOS_CRITERIA];
 };

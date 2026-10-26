@@ -144,6 +144,10 @@ int check_entity_line_of_sight (entity *source, entity *target, mobile_los_check
 // answer. Recording is observational: it reads the inputs and the result and alters neither.
 //
 
+extern void eech_los_lookup_terrain (int phase, vec3d *point, float elevation);
+
+extern void eech_los_lookup_objects (int phase, vec3d *start, vec3d *end, int hit, vec3d *collision_point);
+
 extern void eech_los_trace_record (entity *source, entity *target, vec3d *source_position, vec3d *target_position, mobile_los_check_criteria criteria, int result);
 
 int eech_los_solver (entity *source, entity *target, vec3d *source_position, vec3d *target_position, mobile_los_check_criteria criteria);
@@ -238,6 +242,12 @@ int check_position_line_of_sight (entity *source, entity *target, vec3d *source_
 			get_3d_terrain_point_data (check_position.x, check_position.z, &terrain_info);
 	
 			terrain_elevation = get_3d_terrain_point_data_elevation (&terrain_info);
+
+			#ifdef EECH_LOS_FIXTURE
+
+			eech_los_lookup_terrain (1, &check_position, terrain_elevation);
+
+			#endif
 	
 			if (terrain_elevation > check_position.y)
 			{
@@ -294,6 +304,12 @@ int check_position_line_of_sight (entity *source, entity *target, vec3d *source_
 			get_3d_terrain_point_data (check_position.x, check_position.z, &terrain_info);
 	
 			terrain_elevation = get_3d_terrain_point_data_elevation (&terrain_info);
+
+			#ifdef EECH_LOS_FIXTURE
+
+			eech_los_lookup_terrain (2, &check_position, terrain_elevation);
+
+			#endif
 	
 			if (terrain_elevation > check_position.y)
 			{
@@ -350,6 +366,12 @@ int check_position_line_of_sight (entity *source, entity *target, vec3d *source_
 			get_3d_terrain_point_data (check_position.x, check_position.z, &terrain_info);
 	
 			terrain_elevation = get_3d_terrain_point_data_elevation (&terrain_info);
+
+			#ifdef EECH_LOS_FIXTURE
+
+			eech_los_lookup_terrain (3, &check_position, terrain_elevation);
+
+			#endif
 	
 			if (terrain_elevation > check_position.y)
 			{
@@ -392,6 +414,12 @@ int check_position_line_of_sight (entity *source, entity *target, vec3d *source_
 								&collision_point,
 								&normal
 							);
+
+		#ifdef EECH_LOS_FIXTURE
+
+		eech_los_lookup_objects (4, source_position, &check_position, collision_en != NULL, &collision_point);
+
+		#endif
 	
 		if (collision_en)
 		{
@@ -425,6 +453,12 @@ int check_position_line_of_sight (entity *source, entity *target, vec3d *source_
 								&collision_point,
 								&normal
 							);
+
+		#ifdef EECH_LOS_FIXTURE
+
+		eech_los_lookup_objects (5, target_position, &check_position, collision_en != NULL, &collision_point);
+
+		#endif
 	
 		if (collision_en)
 		{
