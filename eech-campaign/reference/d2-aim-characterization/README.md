@@ -26,6 +26,8 @@ Builds of identical source in different volumes produce different DLL bytes; com
 * `georgia-f-g.jsonl`: `f9f15f52f`, `georgia_retail`, 600 s (physical `9bfcb4319945068f`, decision `eb2cf0a10c0696f6`).
 * `person-target.jsonl`, `person-target-repeat.jsonl` (byte-identical), `person-control.jsonl`: `74ae6a96d`, the controlled person case (11 checks, 0 failed) and its control (3 checks, 0 failed).
 * `*.stderr-final-line(s).txt`: the driver's last line (the engine prints about a thousand lines about missing artwork, dropped).
+* **Line endings.** The Windows driver wrote the traces with CRLF; Git stores them with LF. The raw sizes and SHA-256 values quoted in the document (for example `c4e9c2b1...ce62`, 287,242 bytes for `lebanon-r-a`) are those of the original CRLF files, which are retained privately;
+  `traces/SHA256SUMS.txt` gives both the original and the LF-normalised hash and size of every committed trace. The comparator and the summary tool read either form (JSON Lines).
 
 Each run was one native process with exit 0 (the logs in the private output directories; the runner scripts in `controls/`). The intermediate development iterations of the person case (an `ipairs` over a step without an attitude; a far target whose link
 the campaign removed after one frame; an expectation that the person would move after being linked) were run from the repository script against the `b4a00f29d` binaries and their traces were overwritten; they are described, not retained, except the last:
