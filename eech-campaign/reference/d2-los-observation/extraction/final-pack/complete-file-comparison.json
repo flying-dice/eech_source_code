@@ -1,0 +1,131 @@
+{
+  "complete_scenario_files_only": true,
+  "pack_checks_each": 40,
+  "scope": "Two full reference recordings/observations/metrics plus Georgia and unobserved Lebanon metrics; no visual review",
+  "process_exit_check": "Required separately; this comparator does not control processes",
+  "sources": {
+    "baseline": {
+      "pack_revision": "a42f1cfad39e5b29ce18bfd2d4ff6cf0f5e0cf12",
+      "build": {
+        "eech_dc.dll": "e0071743142692379b7ef4991f4ff395c8a815bcf8fa31ca96c4e62f0a7d92e2",
+        "eech-world.exe": "c6a5bf51bc855fe145f60afd4867a395f4578e3663489bf73f6c1a30aced57e2",
+        "lua.dll": "b224cb2eacdea06fcb7fe273979e660fbef0c1a9c65be53c7be9fc0a4571daca",
+        "lua/campaign.lua": "e5c04cc4aeb17d03fd680e95678aa02ac45c58464a8f27425d0923f8b04952b4",
+        "lua/lifecycle.lua": "16c7fb1b68d8e40f48149195502dee6518d6f66403dde9aefece57630411654a",
+        "lua/metrics.lua": "dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053",
+        "lua/observations.lua": "68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701"
+      }
+    },
+    "candidate": {
+      "pack_revision": "61e85664540770ab10e3ac7e9f5dfa916291c52f",
+      "build": {
+        "eech_dc.dll": "366e85a9a73e504182839e48f80a37d07eac7fd63a21871820f87bc7c5bb2652",
+        "eech-world.exe": "92e70bb2b9bcaf5280fbffec0ee4ba898a2a2bc50a1df9db719f5df6f29c2905",
+        "lua.dll": "fdd3325eab5f5fa1a1542e9ba82809960bda31a323641955348b6c223d803a05",
+        "lua/campaign.lua": "786ef6d582bd3641c114848e974a8b53a4dbad20d3c99f50f5e9a841aaccb760",
+        "lua/lifecycle.lua": "eb06feeebc9137a5eb2aac2bcec4cd54f5a8ebec01e43f5afd2b1bf1debfc29d",
+        "lua/metrics.lua": "dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053",
+        "lua/observations.lua": "68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701"
+      }
+    }
+  },
+  "results": [
+    {
+      "file": "reference/run1/recording.acmi",
+      "baseline": {
+        "bytes": 117690861,
+        "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+      },
+      "candidate": {
+        "bytes": 117690861,
+        "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+      },
+      "matches": true
+    },
+    {
+      "file": "reference/run1/observations.jsonl",
+      "baseline": {
+        "bytes": 85716447,
+        "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+      },
+      "candidate": {
+        "bytes": 85716447,
+        "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+      },
+      "matches": true
+    },
+    {
+      "file": "reference/run1/metrics.json",
+      "baseline": {
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+      },
+      "candidate": {
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+      },
+      "matches": true
+    },
+    {
+      "file": "reference/run2/recording.acmi",
+      "baseline": {
+        "bytes": 117690861,
+        "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+      },
+      "candidate": {
+        "bytes": 117690861,
+        "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+      },
+      "matches": true
+    },
+    {
+      "file": "reference/run2/observations.jsonl",
+      "baseline": {
+        "bytes": 85716447,
+        "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+      },
+      "candidate": {
+        "bytes": 85716447,
+        "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+      },
+      "matches": true
+    },
+    {
+      "file": "reference/run2/metrics.json",
+      "baseline": {
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+      },
+      "candidate": {
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+      },
+      "matches": true
+    },
+    {
+      "file": "regress/georgia_retail.json",
+      "baseline": {
+        "bytes": 22427,
+        "sha256": "7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d"
+      },
+      "candidate": {
+        "bytes": 22427,
+        "sha256": "7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d"
+      },
+      "matches": true
+    },
+    {
+      "file": "regress/lebanon_retail.json",
+      "baseline": {
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+      },
+      "candidate": {
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+      },
+      "matches": true
+    }
+  ],
+  "passed": true
+}

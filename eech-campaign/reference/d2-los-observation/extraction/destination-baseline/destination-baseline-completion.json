@@ -1,0 +1,39 @@
+{
+  "scope": "Complete supplied-binary destination baseline only; LOS candidate acceptance still pending",
+  "verified_at_utc": "2026-10-26T13:44:29.603918+00:00",
+  "runner_exec_session": 87915,
+  "observed_runner_exit": 0,
+  "pack_finished_report_time": "2026-10-26T13:39:13",
+  "pack_verdict": "PASS",
+  "checks": 40,
+  "all_checks_pass": true,
+  "accepted_check_set_matches": true,
+  "supplied_build_and_script_hashes_match_accepted_D1_record": true,
+  "report_sha256": "0d6cadc4d1506686d6d6535459498c561bf70b4d2e9fbaff03c4600cffff1a97",
+  "six_complete_reference_files_match_accepted_D1": true,
+  "post_run_input_manifests": [
+    {
+      "root": "georgia",
+      "log": "baseline-post-run-inputs-georgia.log",
+      "identical": true,
+      "raw_external_log": "R:/d2-evidence/baseline-post-run-inputs-georgia.log",
+      "raw_external_log_sha256": "eb442bdbaffc1fe69a4a2b0e071860620e05938c1dd657a53d6daa2d95939398"
+    },
+    {
+      "root": "lebanon",
+      "log": "baseline-post-run-inputs-lebanon.log",
+      "identical": true,
+      "raw_external_log": "R:/d2-evidence/baseline-post-run-inputs-lebanon.log",
+      "raw_external_log_sha256": "d3f96a855e7b9c3a3a1706310c8e4ad5e8adbef7dc31461c2b4b8a0846aca07b"
+    },
+    {
+      "root": "lebanon-repeat",
+      "log": "baseline-post-run-inputs-lebanon-repeat.log",
+      "identical": true,
+      "raw_external_log": "R:/d2-evidence/baseline-post-run-inputs-lebanon-repeat.log",
+      "raw_external_log_sha256": "bb06037f5ed855b9d43ff57cdd8eecbcb610e6243ce2aede23ffc46aea04610a"
+    }
+  ],
+  "limits": "Accepted blind spots/claim limits unchanged; byte comparison, no visual Tacview review. Not LOS candidate or D2 acceptance.",
+  "official_raw_report": "R:/d2-evidence/baseline-host-20261026-shortpath/report.json"
+}

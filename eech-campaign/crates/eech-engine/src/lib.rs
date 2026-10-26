@@ -819,6 +819,53 @@ pub struct RosterStats {
     pub duplicate_scan_seconds: f64,
 }
 
+/// TEST-ONLY (feature `los-fixture`, EEDCS-42): a fold of line-of-sight queries. `hash` is an order-dependent FNV-1a over each
+/// query's criteria, six position floats (bit patterns) and answer; the counts are per criteria value (index = the criteria bits).
+#[cfg(feature = "los-fixture")]
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LosTrace {
+    pub hash: u64,
+    pub calls: u64,
+    pub visible: u64,
+    pub skipped: u64,
+    pub lookup_hash: u64,
+    pub lookups: u64,
+    pub by_criteria_calls: Vec<u64>,
+    pub by_criteria_visible: Vec<u64>,
+}
+
+#[cfg(feature = "los-fixture")]
+impl LosTrace {
+    fn blank() -> sys::eech_los_trace {
+        sys::eech_los_trace {
+            hash: 0,
+            calls: 0,
+            visible: 0,
+            skipped: 0,
+            lookup_hash: 0,
+            lookups: 0,
+            by_criteria_calls: [0; sys::EECH_LOS_CRITERIA],
+            by_criteria_visible: [0; sys::EECH_LOS_CRITERIA],
+        }
+    }
+}
+
+#[cfg(feature = "los-fixture")]
+impl From<sys::eech_los_trace> for LosTrace {
+    fn from(raw: sys::eech_los_trace) -> Self {
+        Self {
+            hash: raw.hash,
+            calls: raw.calls,
+            visible: raw.visible,
+            skipped: raw.skipped,
+            lookup_hash: raw.lookup_hash,
+            lookups: raw.lookups,
+            by_criteria_calls: raw.by_criteria_calls.to_vec(),
+            by_criteria_visible: raw.by_criteria_visible.to_vec(),
+        }
+    }
+}
+
 /// What one `report_loss` applied, copied from the performed campaign actions; an observation, never an input.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize)]
 pub struct LossReceipt {
@@ -847,11 +894,49 @@ pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
 }
 
-struct HostContext<'a, F, G, H, M> {
+struct HostContext<'a, F, G, H, M, L> {
     bind_mobile: &'a mut F,
     observe_loss: &'a mut G,
     supply_reached: &'a mut H,
     move_vehicle: &'a mut M,
+    line_of_sight: &'a mut L,
+}
+
+/// One message of the host-owned line-of-sight dialogue. The campaign sends `Begin` with the ray; the host answers `Done` or asks for
+/// one environmental value, which the campaign supplies as `Terrain` or `Objects`. No EECH pointer or entity index is in a message.
+#[derive(Clone, Debug, PartialEq)]
+pub enum LosMessage {
+    Begin(LosBegin),
+    /// the terrain elevation at the point the host asked about
+    Terrain {
+        elevation: f32,
+    },
+    /// whether a collision entity blocks the ray the host asked about, and where, only when it does
+    Objects {
+        hit: bool,
+        collision_point: Option<[f32; 3]>,
+    },
+}
+
+/// The ray and the campaign facts that come with it. `criteria` are the original `MOBILE_LOS_CHECK_*` bits.
+#[derive(Clone, Debug, PartialEq)]
+pub struct LosBegin {
+    pub entity_form: bool,
+    pub criteria: i32,
+    pub source_eye: bool,
+    pub target_eye: bool,
+    pub source_host_id: Option<String>,
+    pub target_host_id: Option<String>,
+    pub source_position: [f32; 3],
+    pub target_position: [f32; 3],
+}
+
+/// What the host answers to a message: the visibility, or one value it needs from the campaign. `phase` is informational.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum LosReply {
+    NeedTerrain { phase: i32, point: [f32; 3] },
+    NeedObjects { phase: i32, start: [f32; 3], end: [f32; 3] },
+    Done { visible: bool },
 }
 
 fn side(value: c_int) -> Side {
@@ -876,7 +961,7 @@ unsafe fn write_callback_text(target: *mut c_char, capacity: usize, value: &str)
     out[length] = 0;
 }
 
-unsafe extern "C" fn bind_mobile<F, G, H, M>(
+unsafe extern "C" fn bind_mobile<F, G, H, M, L>(
     descriptor: *const sys::eech_member_descriptor,
     host_id: *mut c_char,
     host_id_size: usize,
@@ -889,13 +974,14 @@ where
     G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
     H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
     M: FnMut(MovementStep) -> Result<MovementResult, String>,
+    L: FnMut(LosMessage) -> Result<LosReply, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if descriptor.is_null() || user.is_null() {
             return Err("invalid native bind_mobile callback context".into());
         }
         // SAFETY: C supplies both pointers for the duration of this callback.
-        let (descriptor, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G, H, M>)) };
+        let (descriptor, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G, H, M, L>)) };
         let movement_kind = if checked_bool("has_pose", descriptor.has_pose)? {
             Some(match descriptor.movement_kind {
                 sys::EECH_MOVEMENT_KIND_ROUTED => MovementKind::Routed,
@@ -965,7 +1051,7 @@ where
     }
 }
 
-unsafe extern "C" fn observe_loss<F, G, H, M>(
+unsafe extern "C" fn observe_loss<F, G, H, M, L>(
     descriptor: *const sys::eech_loss_descriptor,
     decision: *mut c_int,
     error: *mut c_char,
@@ -977,13 +1063,14 @@ where
     G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
     H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
     M: FnMut(MovementStep) -> Result<MovementResult, String>,
+    L: FnMut(LosMessage) -> Result<LosReply, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if descriptor.is_null() || decision.is_null() || user.is_null() {
             return Err("invalid native observe_loss callback context".into());
         }
         // SAFETY: C supplies these pointers for the duration of the callback.
-        let (descriptor, decision, context) = unsafe { (&*descriptor, &mut *decision, &mut *(user as *mut HostContext<'_, F, G, H, M>)) };
+        let (descriptor, decision, context) = unsafe { (&*descriptor, &mut *decision, &mut *(user as *mut HostContext<'_, F, G, H, M, L>)) };
         if descriptor.host_id.is_null() {
             return Err("observe_loss received an empty host identity".into());
         }
@@ -1301,7 +1388,7 @@ fn checked_floats(values: &[(&str, f32)]) -> Result<(), String> {
     Ok(())
 }
 
-unsafe extern "C" fn supply_reached<F, G, H, M>(
+unsafe extern "C" fn supply_reached<F, G, H, M, L>(
     descriptor: *const sys::eech_supply_reach_descriptor,
     answer_out: *mut sys::eech_arrival_result,
     error: *mut c_char,
@@ -1313,13 +1400,14 @@ where
     G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
     H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
     M: FnMut(MovementStep) -> Result<MovementResult, String>,
+    L: FnMut(LosMessage) -> Result<LosReply, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if descriptor.is_null() || answer_out.is_null() || user.is_null() {
             return Err("invalid native supply_reached callback context".into());
         }
         // SAFETY: C supplies both pointers for the duration of this callback.
-        let (source, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G, H, M>)) };
+        let (source, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G, H, M, L>)) };
         let host_id_bytes = source.host_id.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect::<Vec<_>>();
         if host_id_bytes.is_empty() || host_id_bytes.len() > sys::EECH_HOST_ID_MAX {
             return Err("supply_reached received an invalid host identity length".into());
@@ -1459,7 +1547,127 @@ where
     }
 }
 
-unsafe extern "C" fn move_vehicle<F, G, H, M>(
+/// Reads a NUL-terminated host identity out of a fixed buffer: an empty one is `None`, one that is not UTF-8 is refused.
+fn los_host_id(buffer: &[c_char], role: &str) -> Result<Option<String>, String> {
+    let bytes: Vec<u8> = buffer.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();
+    if bytes.is_empty() {
+        return Ok(None);
+    }
+    if bytes.len() > sys::EECH_LOS_HOST_ID_MAX {
+        return Err(format!("line_of_sight received an overlong {role} host identity"));
+    }
+    String::from_utf8(bytes)
+        .map(Some)
+        .map_err(|_| format!("line_of_sight received a non-UTF-8 {role} host identity"))
+}
+
+unsafe extern "C" fn line_of_sight<F, G, H, M, L>(
+    step: *const sys::eech_los_step,
+    result_out: *mut sys::eech_los_result,
+    error: *mut c_char,
+    error_size: usize,
+    user: *mut c_void,
+) -> c_int
+where
+    F: FnMut(MemberDescriptor) -> Result<String, String>,
+    G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+    H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+    M: FnMut(MovementStep) -> Result<MovementResult, String>,
+    L: FnMut(LosMessage) -> Result<LosReply, String>,
+{
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
+        if step.is_null() || result_out.is_null() || user.is_null() {
+            return Err("invalid native line_of_sight callback context".into());
+        }
+        // SAFETY: C supplies both pointers for the duration of this callback.
+        let (source, context) = unsafe { (&*step, &mut *(user as *mut HostContext<'_, F, G, H, M, L>)) };
+        let message = match source.mode {
+            sys::EECH_LOS_BEGIN => {
+                for (name, values) in [
+                    ("source_position", &source.source_position[..]),
+                    ("target_position", &source.target_position[..]),
+                ] {
+                    if values.iter().any(|value| !value.is_finite()) {
+                        return Err(format!("non-finite line_of_sight {name}"));
+                    }
+                }
+                if !(0..32).contains(&source.criteria) {
+                    return Err(format!("line_of_sight received criteria {} outside the five check bits", source.criteria));
+                }
+                LosMessage::Begin(LosBegin {
+                    entity_form: checked_bool("entity_form", source.entity_form)?,
+                    criteria: source.criteria,
+                    source_eye: checked_bool("source_eye", source.source_eye)?,
+                    target_eye: checked_bool("target_eye", source.target_eye)?,
+                    source_host_id: los_host_id(&source.source_host_id, "source")?,
+                    target_host_id: los_host_id(&source.target_host_id, "target")?,
+                    source_position: source.source_position,
+                    target_position: source.target_position,
+                })
+            }
+            sys::EECH_LOS_TERRAIN => {
+                if !source.elevation.is_finite() {
+                    return Err("non-finite line_of_sight terrain elevation".into());
+                }
+                LosMessage::Terrain { elevation: source.elevation }
+            }
+            sys::EECH_LOS_OBJECTS => {
+                let hit = checked_bool("hit", source.hit)?;
+                if hit && source.collision_point.iter().any(|value| !value.is_finite()) {
+                    return Err("non-finite line_of_sight collision point".into());
+                }
+                LosMessage::Objects {
+                    hit,
+                    collision_point: hit.then_some(source.collision_point),
+                }
+            }
+            other => return Err(format!("line_of_sight received unknown mode {other}")),
+        };
+        let reply = (context.line_of_sight)(message)?;
+        let mut answer = sys::eech_los_result {
+            state: 0,
+            phase: 0,
+            point: [0.0; 3],
+            start: [0.0; 3],
+            end: [0.0; 3],
+            visible: 0,
+        };
+        match reply {
+            LosReply::NeedTerrain { phase, point } => {
+                answer.state = sys::EECH_LOS_NEED_TERRAIN;
+                answer.phase = phase;
+                answer.point = point;
+            }
+            LosReply::NeedObjects { phase, start, end } => {
+                answer.state = sys::EECH_LOS_NEED_OBJECTS;
+                answer.phase = phase;
+                answer.start = start;
+                answer.end = end;
+            }
+            LosReply::Done { visible } => {
+                answer.state = sys::EECH_LOS_DONE;
+                answer.visible = c_int::from(visible);
+            }
+        }
+        // SAFETY: C supplies a writable result for the duration of this callback.
+        unsafe { *result_out = answer };
+        Ok(())
+    }));
+    match result {
+        Ok(Ok(())) => 0,
+        Ok(Err(message)) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, &message) };
+            1
+        }
+        Err(_) => {
+            unsafe { write_callback_text(error, error_size, "line_of_sight panicked") };
+            1
+        }
+    }
+}
+
+unsafe extern "C" fn move_vehicle<F, G, H, M, L>(
     step: *const sys::eech_movement_step,
     result_out: *mut sys::eech_movement_result,
     error: *mut c_char,
@@ -1471,13 +1679,14 @@ where
     G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
     H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
     M: FnMut(MovementStep) -> Result<MovementResult, String>,
+    L: FnMut(LosMessage) -> Result<LosReply, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if step.is_null() || result_out.is_null() || user.is_null() {
             return Err("invalid native move_vehicle callback context".into());
         }
         // SAFETY: C supplies all three pointers for the duration of this callback.
-        let (source, context) = unsafe { (&*step, &mut *(user as *mut HostContext<'_, F, G, H, M>)) };
+        let (source, context) = unsafe { (&*step, &mut *(user as *mut HostContext<'_, F, G, H, M, L>)) };
         let host_id_bytes = source.host_id.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect::<Vec<_>>();
         if host_id_bytes.is_empty() || host_id_bytes.len() > sys::EECH_MOVEMENT_HOST_ID_MAX {
             return Err("move_vehicle received an invalid host identity length".into());
@@ -1892,11 +2101,12 @@ where
     }
 }
 
-fn with_host<F, G, H, M>(
+fn with_host<F, G, H, M, L>(
     bind_mobile_fn: &mut F,
     observe_loss_fn: &mut G,
     supply_reached_fn: &mut H,
     move_vehicle_fn: &mut M,
+    line_of_sight_fn: &mut L,
     call: impl FnOnce(*const sys::eech_engine_host) -> c_int,
 ) -> Result<(), EngineError>
 where
@@ -1904,19 +2114,22 @@ where
     G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
     H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
     M: FnMut(MovementStep) -> Result<MovementResult, String>,
+    L: FnMut(LosMessage) -> Result<LosReply, String>,
 {
     let mut context = HostContext {
         bind_mobile: bind_mobile_fn,
         observe_loss: observe_loss_fn,
         supply_reached: supply_reached_fn,
         move_vehicle: move_vehicle_fn,
+        line_of_sight: line_of_sight_fn,
     };
     let host = sys::eech_engine_host {
-        bind_mobile: Some(bind_mobile::<F, G, H, M>),
-        observe_loss: Some(observe_loss::<F, G, H, M>),
-        supply_reached: Some(supply_reached::<F, G, H, M>),
-        move_vehicle: Some(move_vehicle::<F, G, H, M>),
-        user: (&mut context as *mut HostContext<'_, F, G, H, M>).cast::<c_void>(),
+        bind_mobile: Some(bind_mobile::<F, G, H, M, L>),
+        observe_loss: Some(observe_loss::<F, G, H, M, L>),
+        supply_reached: Some(supply_reached::<F, G, H, M, L>),
+        move_vehicle: Some(move_vehicle::<F, G, H, M, L>),
+        line_of_sight: Some(line_of_sight::<F, G, H, M, L>),
+        user: (&mut context as *mut HostContext<'_, F, G, H, M, L>).cast::<c_void>(),
     };
     check(call(&host))
 }
@@ -1944,18 +2157,20 @@ pub fn prepare_installation(root: &Path) -> Result<(), EngineError> {
 
 impl Engine {
     /// boots EECH's dedicated-server path into the campaign (once per process)
-    pub fn boot<F, G, H, M>(
+    pub fn boot<F, G, H, M, L>(
         config: &EngineConfig,
         bind_mobile_fn: &mut F,
         observe_loss_fn: &mut G,
         supply_reached_fn: &mut H,
         move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
     ) -> Result<Engine, EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
         G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
         H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
         M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
     {
         if BOOTED.swap(true, Ordering::SeqCst) {
             return Err(EngineError::State);
@@ -1977,33 +2192,45 @@ impl Engine {
             arguments: argv.as_ptr(),
         };
         // SAFETY: every config pointer and the temporary host callback are valid for the call.
-        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, move_vehicle_fn, |host| unsafe {
-            sys::eech_engine_boot(&c, host)
-        })?;
+        with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            |host| unsafe { sys::eech_engine_boot(&c, host) },
+        )?;
         Ok(Engine {
             _not_send: std::marker::PhantomData,
         })
     }
 
     /// advances simulated time and runs one iteration of EECH's flight loop
-    pub fn frame<F, G, H, M>(
+    pub fn frame<F, G, H, M, L>(
         &self,
         milliseconds: u32,
         bind_mobile_fn: &mut F,
         observe_loss_fn: &mut G,
         supply_reached_fn: &mut H,
         move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
     ) -> Result<(), EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
         G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
         H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
         M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
     {
         // SAFETY: the temporary host callback is valid for the call.
-        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, move_vehicle_fn, |host| unsafe {
-            sys::eech_engine_frame(milliseconds, host)
-        })
+        with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            |host| unsafe { sys::eech_engine_frame(milliseconds, host) },
+        )
     }
 
     /// TEST-ONLY (feature `dependent-fixture`, EEDCS-40): re-links `child` under `parent` as a movement dependent
@@ -2012,7 +2239,7 @@ impl Engine {
     /// the movement steps they send. Not part of the shipping module.
     #[cfg(feature = "dependent-fixture")]
     #[allow(clippy::too_many_arguments)]
-    pub fn dependent_fixture<F, G, H, M>(
+    pub fn dependent_fixture<F, G, H, M, L>(
         &self,
         op: i32,
         parent: i32,
@@ -2022,63 +2249,84 @@ impl Engine {
         observe_loss_fn: &mut G,
         supply_reached_fn: &mut H,
         move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
     ) -> Result<(), EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
         G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
         H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
         M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
     {
         // SAFETY: the position array and the temporary host callback are valid for the call.
-        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, move_vehicle_fn, |host| unsafe {
-            sys::eech_engine_dependent_fixture(op, parent, child, position.as_ptr(), host)
-        })
+        with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            |host| unsafe { sys::eech_engine_dependent_fixture(op, parent, child, position.as_ptr(), host) },
+        )
     }
 
     /// TEST-ONLY (feature `loss-fixture`): ends one live hosted member through the campaign's own kill path.
     #[cfg(feature = "loss-fixture")]
-    pub fn loss_fixture<F, G, H, M>(
+    pub fn loss_fixture<F, G, H, M, L>(
         &self,
         entity_id: i32,
         bind_mobile_fn: &mut F,
         observe_loss_fn: &mut G,
         supply_reached_fn: &mut H,
         move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
     ) -> Result<(), EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
         G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
         H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
         M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
     {
         // SAFETY: the temporary host callback is valid for the call.
-        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, move_vehicle_fn, |host| unsafe {
-            sys::eech_engine_loss_fixture(entity_id, host)
-        })
+        with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            |host| unsafe { sys::eech_engine_loss_fixture(entity_id, host) },
+        )
     }
 
     /// TEST-ONLY (feature `loss-fixture`): releases the tasks that target one hosted member's group, through the campaign's own task
     /// completion handlers, and returns how many it notified.  Setup for the fixed-wing witness; the group itself is not ended.
     #[cfg(feature = "loss-fixture")]
-    pub fn loss_release<F, G, H, M>(
+    pub fn loss_release<F, G, H, M, L>(
         &self,
         entity_id: i32,
         bind_mobile_fn: &mut F,
         observe_loss_fn: &mut G,
         supply_reached_fn: &mut H,
         move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
     ) -> Result<i32, EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
         G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
         H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
         M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
     {
         let mut released = 0i32;
         // SAFETY: the out pointer and the temporary host callback are valid for the call.
-        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, move_vehicle_fn, |host| unsafe {
-            sys::eech_engine_loss_release(entity_id, &mut released, host)
-        })?;
+        with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            |host| unsafe { sys::eech_engine_loss_release(entity_id, &mut released, host) },
+        )?;
         Ok(released)
     }
 
@@ -2113,6 +2361,59 @@ impl Engine {
         check(unsafe { sys::eech_engine_loss_group(entity_id, text.as_mut_ptr(), text.len() as i32) })?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `los-fixture`, EEDCS-42): the run-wide fold of every line-of-sight query the campaign has made since boot
+    /// or the last reset. Read-only.
+    #[cfg(feature = "los-fixture")]
+    pub fn los_trace(&self) -> Result<LosTrace, EngineError> {
+        let mut raw = LosTrace::blank();
+        // SAFETY: the out pointer is valid for the call.
+        check(unsafe { sys::eech_engine_los_trace(&mut raw) })?;
+        Ok(LosTrace::from(raw))
+    }
+
+    /// TEST-ONLY (feature `los-fixture`, EEDCS-42): clears the run-wide line-of-sight fold.
+    #[cfg(feature = "los-fixture")]
+    pub fn los_trace_reset(&self) -> Result<(), EngineError> {
+        // SAFETY: no pointers cross.
+        check(unsafe { sys::eech_engine_los_trace_reset() })
+    }
+
+    /// TEST-ONLY (feature `los-fixture`, EEDCS-42): runs the deterministic line-of-sight sweep of `eech_los_fixture.c` between two live
+    /// entities through the campaign's own solver, and returns the fold of just that sweep; the run-wide fold is untouched.
+    #[cfg(feature = "los-fixture")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn los_probe<F, G, H, M, L>(
+        &self,
+        source_id: i32,
+        target_id: i32,
+        seed: u32,
+        count: i32,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
+    ) -> Result<LosTrace, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
+    {
+        let mut raw = LosTrace::blank();
+        // SAFETY: the out pointer and the temporary host callback are valid for the call.
+        with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            |host| unsafe { sys::eech_engine_los_probe(source_id, target_id, seed, count, &mut raw, host) },
+        )?;
+        Ok(LosTrace::from(raw))
     }
 
     /// Applies one previously withheld loss by opaque physical-incarnation ID.
@@ -2375,14 +2676,22 @@ mod tests {
         let mut result: sys::eech_movement_result = unsafe { std::mem::zeroed() };
         let mut error = [0 as c_char; 256];
         // the production wiring: with_host builds the callback table the engine is given
-        let outcome = with_host(&mut bind_mobile, &mut observe_loss, &mut supply_reached, &mut host_move, |host| {
-            // SAFETY: the table and its user context are valid for the call; every other pointer is local.
-            unsafe {
-                let host = &*host;
-                let Some(call) = host.move_vehicle else { return -1 };
-                call(step, &mut result, error.as_mut_ptr(), error.len(), host.user)
-            }
-        });
+        let mut line_of_sight = |_: LosMessage| -> Result<LosReply, String> { Err("unused".into()) };
+        let outcome = with_host(
+            &mut bind_mobile,
+            &mut observe_loss,
+            &mut supply_reached,
+            &mut host_move,
+            &mut line_of_sight,
+            |host| {
+                // SAFETY: the table and its user context are valid for the call; every other pointer is local.
+                unsafe {
+                    let host = &*host;
+                    let Some(call) = host.move_vehicle else { return -1 };
+                    call(step, &mut result, error.as_mut_ptr(), error.len(), host.user)
+                }
+            },
+        );
         assert!(outcome.is_ok(), "the callback refused the step");
         let Some(request) = seen else { panic!("the host was not called") };
         request
@@ -2413,14 +2722,22 @@ mod tests {
         // SAFETY: the result is plain data; zero is a valid value for every field.
         let mut result: sys::eech_movement_result = unsafe { std::mem::zeroed() };
         let mut error = [0 as c_char; 256];
-        let outcome = with_host(&mut bind_mobile, &mut observe_loss, &mut supply_reached, &mut host_move, |host| {
-            // SAFETY: the table and its user context are valid for the call; every other pointer is local.
-            unsafe {
-                let host = &*host;
-                let Some(call) = host.move_vehicle else { return -1 };
-                call(step, &mut result, error.as_mut_ptr(), error.len(), host.user)
-            }
-        });
+        let mut line_of_sight = |_: LosMessage| -> Result<LosReply, String> { Err("unused".into()) };
+        let outcome = with_host(
+            &mut bind_mobile,
+            &mut observe_loss,
+            &mut supply_reached,
+            &mut host_move,
+            &mut line_of_sight,
+            |host| {
+                // SAFETY: the table and its user context are valid for the call; every other pointer is local.
+                unsafe {
+                    let host = &*host;
+                    let Some(call) = host.move_vehicle else { return -1 };
+                    call(step, &mut result, error.as_mut_ptr(), error.len(), host.user)
+                }
+            },
+        );
         let text = error.iter().take_while(|byte| **byte != 0).map(|byte| *byte as u8 as char).collect::<String>();
         (outcome.map(|_| ()).map_err(|_| text), result)
     }
@@ -2856,11 +3173,19 @@ mod tests {
             };
             let mut result: sys::eech_movement_result = unsafe { std::mem::zeroed() };
             let mut error = [0 as c_char; 256];
-            let outcome = with_host(&mut bind_mobile, &mut observe_loss, &mut supply_reached, &mut host_move, |host| unsafe {
-                let host = &*host;
-                let Some(call) = host.move_vehicle else { return -1 };
-                call(&step, &mut result, error.as_mut_ptr(), error.len(), host.user)
-            });
+            let mut line_of_sight = |_: LosMessage| -> Result<LosReply, String> { Err("unused".into()) };
+            let outcome = with_host(
+                &mut bind_mobile,
+                &mut observe_loss,
+                &mut supply_reached,
+                &mut host_move,
+                &mut line_of_sight,
+                |host| unsafe {
+                    let host = &*host;
+                    let Some(call) = host.move_vehicle else { return -1 };
+                    call(&step, &mut result, error.as_mut_ptr(), error.len(), host.user)
+                },
+            );
             assert!(outcome.is_err());
             assert!(!called);
         };

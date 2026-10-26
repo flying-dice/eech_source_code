@@ -1,0 +1,97 @@
+/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/tree/aphavoc/source/entity/mobile/mb_tgt.h
+/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/tree/aphavoc/source/entity/mobile/mb_tgt.c
+/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/f6fc6cb7fd4fea60-mb_tgt.o
+mb_tgt object: /target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/f6fc6cb7fd4fea60-mb_tgt.o
+--- defined in mb_tgt.o
+b .bss
+d .data
+r .rdata
+r .rdata$.refptr.fn_get_local_entity_int_value
+r .rdata$.refptr.fn_get_local_entity_vec3d
+r .rdata$zzz
+R .refptr.fn_get_local_entity_int_value
+R .refptr.fn_get_local_entity_vec3d
+t .text
+t .text$check_entity_line_of_sight
+t .text$check_position_line_of_sight
+r .xdata$check_entity_line_of_sight
+r .xdata$check_position_line_of_sight
+T check_entity_line_of_sight
+T check_position_line_of_sight
+--- undefined in mb_tgt.o
+campaign_los_query fn_get_local_entity_int_value fn_get_local_entity_vec3d write_debug_log
+mb_hostlos object: /target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/f6fc6cb7fd4fea60-mb_hostlos.o
+--- defined in mb_hostlos.o
+b .bss
+d .data
+d .data$current_host
+d .data$query_open
+r .rdata
+r .rdata$.refptr.entities
+r .rdata$.refptr.world_map
+r .rdata$zzz
+R .refptr.entities
+R .refptr.world_map
+t .text
+t .text$all_finite
+t .text$ask_host
+t .text$campaign_los_query
+t .text$campaign_los_set_host
+t .text$fill_host_id
+r .xdata$all_finite
+r .xdata$ask_host
+r .xdata$campaign_los_query
+r .xdata$campaign_los_set_host
+r .xdata$fill_host_id
+t all_finite
+t ask_host
+T campaign_los_query
+T campaign_los_set_host
+d current_host
+t fill_host_id
+d query_open
+--- undefined in mb_hostlos.o (environment services and maths)
+campaign_roster_host_id debug_fatal get_3d_terrain_point_data get_3d_terrain_point_data_elevation get_line_of_sight_collision_entity
+--- eech_dc.dll symbols named like the kernel or fixture (expected none in a shipping DLL)
+eech_los_begin: 0
+eech_los_terrain: 0
+eech_los_objects: 0
+eech_los_query_size: 0
+eech_los_solver: 0
+eech_los_trace: 0
+eech_los_lookup: 0
+eech_engine_los: 0
+--- eech_dc.dll check_*_line_of_sight and campaign_los symbols
+p .pdata$campaign_los_query
+p .pdata$campaign_los_set_host
+p .pdata$check_entity_line_of_sight
+p .pdata$check_position_line_of_sight
+t .text$campaign_los_query
+t .text$campaign_los_set_host
+t .text$check_entity_line_of_sight
+t .text$check_position_line_of_sight
+r .xdata$campaign_los_query
+r .xdata$campaign_los_set_host
+r .xdata$check_entity_line_of_sight
+r .xdata$check_position_line_of_sight
+T campaign_los_query
+T campaign_los_set_host
+T check_entity_line_of_sight
+T check_position_line_of_sight
+--- eech-world.exe kernel symbols (expected present)
+p .pdata$eech_los_begin
+p .pdata$eech_los_objects
+p .pdata$eech_los_query_size
+p .pdata$eech_los_terrain
+t .text$eech_los_begin
+t .text$eech_los_objects
+t .text$eech_los_query_size
+t .text$eech_los_terrain
+r .xdata$eech_los_begin
+r .xdata$eech_los_objects
+r .xdata$eech_los_query_size
+r .xdata$eech_los_terrain
+T eech_los_begin
+T eech_los_objects
+T eech_los_query_size
+T eech_los_terrain
