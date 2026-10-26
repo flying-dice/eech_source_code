@@ -3,8 +3,9 @@
 Current task: EEDCS-44, In Progress. Branch `codex/d2-weapon-aiming` was created from
 verified accepted integration `3ce17432e4026f85b19ebf06cc582314817ddac2`.
 Characterization comes first: no aiming responsibility has moved and no aiming
-Tacview comparison is claimed. No Task44 PR yet; publish a draft when source work
-is concrete. D2 is the only active delivery epic; D3 has not started.
+Tacview comparison is claimed. Draft PR103 contains characterization harness
+b7f907894; its fresh clean-build witnesses are running. D2 is the only active
+delivery epic; D3 has not started.
 
 Authority: live M5 goal11534337v3 and migration ledger14548994v34. D2 covers physical
 sensing/visibility, physical aiming/weapon execution, and combat resolution/reports.
