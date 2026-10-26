@@ -4,10 +4,13 @@ Current task: EEDCS-44, In Progress. Branch `codex/d2-weapon-aiming` was created
 verified accepted integration `3ce17432e4026f85b19ebf06cc582314817ddac2`.
 Characterization comes first: no aiming responsibility has moved and no aiming
 Tacview comparison is claimed. Draft PR103 contains the characterization harness;
-4927157a5 adds per-kind/branch diagnostics. Both named b7f907894 clean-build600s
+4927157a5 adds per-kind/branch diagnostics; f9f15f52f corrects observer safety.
+Both named b7f907894 clean-build600s
 witnesses completed with native0 and all1720 events equal. Root verified all27
-build-manifest entries and all18 comparator controls. The900s observational control
-is running, not passed. D2 is the only active delivery epic; D3 has not started.
+build-manifest entries and all18 comparator controls. Its900s observational control
+completed native0; all3 complete artifacts match the retained supplied-build900s
+baseline. The corrected f9 observer's named witnesses/control are now running,
+not passed. D2 is the only active delivery epic; D3 has not started.
 
 Authority: live M5 goal11534337v3 and migration ledger14548994v35. D2 covers physical
 sensing/visibility, physical aiming/weapon execution, and combat resolution/reports.
@@ -41,13 +44,23 @@ vh_wpn.c, ps_anim.c around311, en_maths.c target-point geometry, and all6 family
 Those are starting observations, not a predetermined ABI or proof of runtime coverage.
 Observe existing computed values without changing calls, RNG/FPU order or campaign policy.
 No physical cut before a passing named characterization and observational control.
-Root also identified fixture wrappers evaluating unwritten outputs on early exits
+Root identified fixture wrappers evaluating unwritten outputs on early exits
 before the hook's internal guard. Those exits were absent from the completed600s
-witnesses, which remain retained with their exact provenance. Correct the observer
-before further original-build runs/extraction. Person-facing count0 is a coverage
+witnesses, which remain retained with their exact provenance. Sonnet corrected the
+call boundaries at f9f15f52f; root checked the source and all27 fresh build hashes.
+Root's stricter feature-off preprocessing check passes all5 sources with compiler
+failures propagated and real numeric constants preserved. It supersedes the earlier
+broad normalizer; its missing-relative-include setup failure is retained separately.
+Person-facing count0 is a coverage
 gap, not proof of that physical behavior. See
 `../d2-evidence/AIM-LEAD-CHARACTERIZATION-FINDINGS.md`. The unstarted492 final-run
-launcher has an explicit lead gate; the healthy b7 control remains undisturbed.
+launcher remains lead-gated; the completed b7 control was undisturbed. The corrected
+f9 sequence is running one native case at a time; no physical cut is authorized yet.
+
+One compact read-only Opus5.5Medium plan completed actual0, with source-grounded
+lead corrections recorded in `../d2-evidence/AIM-COMPACT-PLAN-LEAD-DISPOSITION.md`.
+It is advisory, not source approval. `../d2-aim-extraction-prompt-DRAFT.txt` has
+not been launched; characterize and close the remaining gates first.
 
 Fresh eventual aiming full-pack roots at
 `R:/d2-evidence/candidate-roots-d2-aiming` match all3 repository input manifests,
