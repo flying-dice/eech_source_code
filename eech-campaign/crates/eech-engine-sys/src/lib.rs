@@ -600,6 +600,13 @@ extern "C" {
     pub fn eech_engine_loss_group(entity_id: c_int, text: *mut c_char, capacity: c_int) -> c_int;
 }
 
+#[cfg(feature = "sensor-fixture")]
+extern "C" {
+    pub fn eech_engine_sensor_trace(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_sensor_trace_reset() -> c_int;
+    pub fn eech_engine_sensor_probe(text: *mut c_char, capacity: c_int) -> c_int;
+}
+
 // The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by
 // target) cannot move any float or int before it; the C struct in rv_hostmv.h declares them last as well.
 const _: () = assert!(core::mem::offset_of!(eech_movement_step, hc_draws) > core::mem::offset_of!(eech_movement_step, gv_water));

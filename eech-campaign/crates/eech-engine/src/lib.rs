@@ -842,6 +842,10 @@ pub struct Clock {
     pub day: i32,
 }
 
+/// TEST-ONLY (feature `sensor-fixture`): room for one sensor report; a report that does not fit is refused, never cut short.
+#[cfg(feature = "sensor-fixture")]
+const SENSOR_REPORT_CAPACITY: usize = 96 * 1024;
+
 /// the booted engine (one per process)
 pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
@@ -2111,6 +2115,35 @@ impl Engine {
         let mut text = [0 as std::os::raw::c_char; 512];
         // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
         check(unsafe { sys::eech_engine_loss_group(entity_id, text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `sensor-fixture`, EEDCS-43): the run-wide report of every AI target scan the campaign has made since boot or
+    /// the last reset, as `key=value` text lines. Read-only.
+    #[cfg(feature = "sensor-fixture")]
+    pub fn sensor_trace(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; SENSOR_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_sensor_trace(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `sensor-fixture`, EEDCS-43): clears the run-wide sensor trace.
+    #[cfg(feature = "sensor-fixture")]
+    pub fn sensor_trace_reset(&self) -> Result<(), EngineError> {
+        // SAFETY: no pointers cross.
+        check(unsafe { sys::eech_engine_sensor_trace_reset() })
+    }
+
+    /// TEST-ONLY (feature `sensor-fixture`, EEDCS-43): runs the AI target-scan group functions for every eligible live source,
+    /// read-only, and reports a trace of just that sweep; the run-wide trace is untouched.
+    #[cfg(feature = "sensor-fixture")]
+    pub fn sensor_probe(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; SENSOR_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_sensor_probe(text.as_mut_ptr(), text.len() as i32) })?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }

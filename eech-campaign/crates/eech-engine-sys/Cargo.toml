@@ -14,6 +14,8 @@ dependent-fixture = []
 dependent-fixture-old-guard = ["dependent-fixture"]
 # TEST-ONLY (EEDCS-41): the all-family loss trigger. Never enabled in the shipping build.
 loss-fixture = []
+# TEST-ONLY (EEDCS-43): the sensor-detection characterisation trace and probe. Never enabled in the shipping build.
+sensor-fixture = []
 
 [build-dependencies]
 cc = { version = "1.2", features = ["parallel"] }

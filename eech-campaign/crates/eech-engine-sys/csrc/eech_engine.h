@@ -215,4 +215,18 @@ int eech_engine_loss_shape (int entity_id, char *reason, int capacity);
 int eech_engine_loss_group (int entity_id, char *text, int capacity);
 #endif
 
+#ifdef EECH_SENSOR_FIXTURE
+/*
+ * TEST-ONLY (feature sensor-fixture, EEDCS-43): see eech_sensor_fixture.c. Not part of the shipping module.
+ * The report is `key=value` text lines: the physical and decision hashes, per scan function the calls, the candidates and each
+ * candidate's verdict, the eligibility skips, which edges the run exercised, the entity kinds that scan, and sample candidates.
+ * Fails (bad argument) when the report does not fit `capacity`.
+ */
+/* The run-wide trace of every AI target scan the campaign has made since boot or the last reset. */
+int eech_engine_sensor_trace (char *text, int capacity);
+int eech_engine_sensor_trace_reset (void);
+/* Runs the scan group functions for every eligible live source, read-only, and reports a trace of just that sweep; the run-wide trace is not changed. */
+int eech_engine_sensor_probe (char *text, int capacity);
+#endif
+
 #endif

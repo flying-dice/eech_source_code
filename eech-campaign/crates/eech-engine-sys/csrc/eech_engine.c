@@ -1016,3 +1016,64 @@ int eech_engine_loss_state (int side, int *values, int capacity, int *count)
 }
 
 #endif
+
+#ifdef EECH_SENSOR_FIXTURE
+
+/*
+ * TEST-ONLY sensor-detection characterisation (EEDCS-43): the run-wide trace of the AI target-scan group functions and a read-only
+ * probe that runs them for every eligible live source (eech_sensor_fixture.c). Both run inside the engine entry, so they see EECH's
+ * round-toward-zero mode as the campaign's own scans do. None of them constructs an entity, engages a target or replaces a handler.
+ * The report is text, `key=value` lines; nothing in it is an entity index or address.
+ */
+extern int eech_sensor_trace_get (char *text, int capacity);
+extern void eech_sensor_trace_clear (void);
+extern int eech_sensor_probe_run (char *text, int capacity);
+
+int eech_engine_sensor_trace (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_sensor_trace_get (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_sensor_trace_reset (void)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	eech_sensor_trace_clear ();
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_sensor_probe (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_sensor_probe_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
