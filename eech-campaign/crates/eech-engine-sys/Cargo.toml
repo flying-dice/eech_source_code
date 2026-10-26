@@ -18,6 +18,8 @@ loss-fixture = []
 los-fixture = []
 # TEST-ONLY (EEDCS-43): the sensor-detection characterisation trace and probe. Never enabled in the shipping build.
 sensor-fixture = []
+# TEST-ONLY (EEDCS-44): the physical weapon-aiming characterisation trace. Never enabled in the shipping build.
+aim-fixture = []
 
 [build-dependencies]
 cc = { version = "1.2", features = ["parallel"] }

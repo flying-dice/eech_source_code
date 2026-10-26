@@ -893,6 +893,10 @@ pub struct Clock {
 #[cfg(feature = "sensor-fixture")]
 const SENSOR_REPORT_CAPACITY: usize = 96 * 1024;
 
+/// TEST-ONLY (feature `aim-fixture`): room for one aiming report; a report that does not fit is refused, never cut short.
+#[cfg(feature = "aim-fixture")]
+const AIM_REPORT_CAPACITY: usize = 96 * 1024;
+
 /// the booted engine (one per process)
 pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
@@ -2746,6 +2750,24 @@ impl Engine {
         check(unsafe { sys::eech_engine_sensor_trace(text.as_mut_ptr(), text.len() as i32) })?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `aim-fixture`, EEDCS-44): the run-wide report of the physical weapon-aiming code the campaign's own update loop has run
+    /// since boot or the last reset, as `key=value` text lines. Read-only; there is no probe.
+    #[cfg(feature = "aim-fixture")]
+    pub fn aim_trace(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; AIM_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_aim_trace(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `aim-fixture`, EEDCS-44): clears the run-wide aiming trace.
+    #[cfg(feature = "aim-fixture")]
+    pub fn aim_trace_reset(&self) -> Result<(), EngineError> {
+        // SAFETY: no pointers cross.
+        check(unsafe { sys::eech_engine_aim_trace_reset() })
     }
 
     /// TEST-ONLY (feature `sensor-fixture`, EEDCS-43): clears the run-wide sensor trace.

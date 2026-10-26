@@ -1149,3 +1149,44 @@ int eech_engine_sensor_probe (char *text, int capacity, const struct eech_engine
 }
 
 #endif
+
+#ifdef EECH_AIM_FIXTURE
+
+/*
+ * TEST-ONLY physical weapon-aiming characterisation (EEDCS-44): the run-wide trace of the aiming code the campaign's own update loop runs
+ * (eech_aim_fixture.c). Reading or clearing it runs inside the engine entry, as the game's own calls do. There is no probe: nothing
+ * here calls an aiming function. The report is text, `key=value` lines; nothing in it is an entity index, address or seed.
+ */
+extern int eech_aim_trace_get (char *text, int capacity);
+extern void eech_aim_trace_clear (void);
+
+int eech_engine_aim_trace (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_aim_trace_get (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_aim_trace_reset (void)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	eech_aim_trace_clear ();
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif

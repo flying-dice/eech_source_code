@@ -774,6 +774,12 @@ impl LuaUserData for LuaEngine {
                 .map_err(lua_error)?;
             los_trace_table(lua, &trace)
         });
+        // TEST-ONLY (feature `aim-fixture`, EEDCS-44): the run-wide report of the physical weapon-aiming code; not part of the shipping module.
+        #[cfg(feature = "aim-fixture")]
+        methods.add_method("aim_trace", |_, this, ()| this.engine.aim_trace().map_err(lua_error));
+        // TEST-ONLY (feature `aim-fixture`, EEDCS-44): clears that trace; not part of the shipping module.
+        #[cfg(feature = "aim-fixture")]
+        methods.add_method("aim_trace_reset", |_, this, ()| this.engine.aim_trace_reset().map_err(lua_error));
         // TEST-ONLY (feature `sensor-fixture`, EEDCS-43): the run-wide report of the AI target scans; not part of the shipping module.
         #[cfg(feature = "sensor-fixture")]
         methods.add_method("sensor_trace", |_, this, ()| this.engine.sensor_trace().map_err(lua_error));

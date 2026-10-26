@@ -65,6 +65,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "project.h"
+#include "entity/mobile/mb_aimfx.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -720,6 +721,7 @@ static void get_intercept_point (vec3d *pitch_device_position, float weapon_velo
 	get_local_entity_target_point (target, intercept_point);
 
 	target_true_velocity = get_local_entity_vec3d_magnitude (target, VEC3D_TYPE_MOTION_VECTOR);
+	AIM_FX_INTERCEPT_BEGIN (pitch_device_position, weapon_velocity, target_true_velocity, intercept_point)
 
 	if ((weapon_velocity > 0.001) && (target_true_velocity > 0.001))
 	{
@@ -745,6 +747,8 @@ static void get_intercept_point (vec3d *pitch_device_position, float weapon_velo
 			}
 		}
 	}
+
+	AIM_FX_INTERCEPT_END (intercept_point)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -940,6 +944,9 @@ unsigned get_number_of_pods_firing(entity* launcher, entity_sub_types weapon_typ
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_AIM_FIXTURE
+#define get_lead_and_ballistic_intercept_point_and_angle_of_projection aim_fx_inner_lead_and_ballistic
+#endif
 int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 (
 	vec3d *pitch_device_position,
@@ -987,6 +994,7 @@ int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 	triangulate_range = (source == get_gunship_entity() && get_range_finder() == RANGEFINDER_TRIANGULATION);
 	if (triangulate_range)
 	{
+		AIM_FX_LEAD_TRIANGULATED ()
 		range = get_triangulated_by_position_range(pitch_device_position, intercept_point);
 		if (range == -1.0)
 			range = 1000.0;  // use 1000 meters if unable to triangulate range
@@ -997,6 +1005,7 @@ int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 	else
 		range = get_3d_range (pitch_device_position, intercept_point);
 
+	AIM_FX_LEAD_RANGE (0, 0, range)
 	if (range < 0.001)
 		return FALSE;
 
@@ -1026,6 +1035,7 @@ int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 				number_of_iterations = 5;
 			else
 				number_of_iterations = 3;
+				AIM_FX_LEAD_PATH (EECH_AIM_LEAD_PATH_MOVING, target_true_velocity, number_of_iterations)
 
 			if (!get_ballistic_pitch_deflection(wpn_type, range, pitch_device_position->y - intercept_point->y, angle_of_projection, time_of_flight, number_of_iterations > 1, FALSE, parent_velocity))
 				return FALSE;
@@ -1037,6 +1047,7 @@ int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 				new_intercept_point.x = current_target_position.x + (target_motion_vector.x * target_move_distance);
 				new_intercept_point.y = current_target_position.y + (target_motion_vector.y * target_move_distance);
 				new_intercept_point.z = current_target_position.z + (target_motion_vector.z * target_move_distance);
+				AIM_FX_LEAD_ITERATION (number_of_iterations, target_move_distance, &new_intercept_point)
 
 				*intercept_point = new_intercept_point;
 				#if DEBUG_MODULE
@@ -1054,8 +1065,10 @@ int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 				else
 					range = get_3d_range (pitch_device_position, intercept_point);
 
+				AIM_FX_LEAD_RANGE (1, number_of_iterations, range)
 				if (number_of_iterations == 1)
 					range += 5 * sfrand1();
+				AIM_FX_LEAD_RANGE (2, number_of_iterations, range)
 
 				if (!get_ballistic_pitch_deflection(wpn_type, range, pitch_device_position->y - intercept_point->y, angle_of_projection, time_of_flight, number_of_iterations > 1, FALSE, parent_velocity))
 					return FALSE;
@@ -1069,6 +1082,7 @@ int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 		else
 		{
 			// stationary target
+			AIM_FX_LEAD_PATH (EECH_AIM_LEAD_PATH_STATIONARY, target_true_velocity, 0)
 
 			if (get_ballistic_pitch_deflection(wpn_type, range, pitch_device_position->y - intercept_point->y, angle_of_projection, time_of_flight, FALSE, FALSE, parent_velocity))
 			{
@@ -1085,6 +1099,7 @@ int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 		//
 		// target off map
 		//
+		AIM_FX_LEAD_PATH (EECH_AIM_LEAD_PATH_OFF_MAP, 0.0, 0)
 
 		return get_angle_of_projection (pitch_device_position, intercept_point, parent_velocity, angle_of_projection);
 	}
@@ -1095,10 +1110,40 @@ int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 
 	return TRUE;
 }
+
+#ifdef EECH_AIM_FIXTURE
+#undef get_lead_and_ballistic_intercept_point_and_angle_of_projection
+int get_lead_and_ballistic_intercept_point_and_angle_of_projection
+(
+	vec3d *pitch_device_position,
+	entity_sub_types wpn_type,
+	float parent_velocity,
+	entity *source,
+	entity *target,
+	vec3d *intercept_point,
+	float *angle_of_projection,
+	float *time_of_flight
+)
+{
+	int
+		result;
+
+	eech_aim_lead_begin ();
+
+	result = aim_fx_inner_lead_and_ballistic (pitch_device_position, wpn_type, parent_velocity, source, target, intercept_point, angle_of_projection, time_of_flight);
+
+	eech_aim_lead_end (pitch_device_position, wpn_type, parent_velocity, source, target, intercept_point, *angle_of_projection, *time_of_flight, result);
+
+	return result;
+}
+#endif
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_AIM_FIXTURE
+#define get_pitch_device_to_target_vector aim_fx_inner_pitch_device_to_target_vector
+#endif
 static int get_pitch_device_to_target_vector
 (
 	entity *source,
@@ -1250,6 +1295,32 @@ static int get_pitch_device_to_target_vector
 	return (result);
 }
 
+#ifdef EECH_AIM_FIXTURE
+#undef get_pitch_device_to_target_vector
+static int get_pitch_device_to_target_vector
+(
+	entity *source,
+	entity *target,
+	entity_sub_types weapon_sub_type,
+	vec3d *pitch_device_position,
+	vec3d *target_vector,
+	vec3d *intercept_point_vector,
+	float *intercept_point_range
+)
+{
+	int
+		result;
+
+	eech_aim_pitch_solve_begin ();
+
+	result = aim_fx_inner_pitch_device_to_target_vector (source, target, weapon_sub_type, pitch_device_position, target_vector, intercept_point_vector, intercept_point_range);
+
+	eech_aim_pitch_solve (source, target, weapon_sub_type, pitch_device_position, target_vector, intercept_point_vector, *intercept_point_range, result);
+
+	return result;
+}
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1298,6 +1369,7 @@ void update_entity_weapon_systems (entity *source)
 		flat_range;
 
 	ASSERT (source);
+	AIM_FX_WS_BEGIN (source)
 
 	//
 	// assume that the selected weapon system is ready
@@ -1453,6 +1525,7 @@ void update_entity_weapon_systems (entity *source)
 						}
 					}
 				}
+							AIM_FX_WS_READY (found_weapon_system_ready_device, make_selected_weapon_system_ready, selected_weapon_system_ready)
 			}
 
 			////////////////////////////////////////
@@ -1526,6 +1599,7 @@ void update_entity_weapon_systems (entity *source)
 											{
 												debug_colour_log (DEBUG_COLOUR_AMBER, "Cannot locate device to rotate (name = %s, package = %d)", get_local_entity_string (source, STRING_TYPE_FULL_NAME), package);
 
+												AIM_FX_WS_EXIT (source, EECH_AIM_WS_EXIT_NO_VIEWPOINT, package_status, config_type)
 												return;
 											}
 
@@ -1563,6 +1637,7 @@ void update_entity_weapon_systems (entity *source)
 													&& (source->type == ENTITY_TYPE_ANTI_AIRCRAFT || source->type == ENTITY_TYPE_ROUTED_VEHICLE))
 												{
 													min_pitch = max(rad(10.0f), min_pitch);
+													AIM_FX_WS_EDGE (EECH_AIM_WS_EDGE_CLIMB_BUMP)
 												}
 
 												required_pitch_offset = bound
@@ -1587,14 +1662,17 @@ void update_entity_weapon_systems (entity *source)
 								required_pitch_offset = package_status[package].weapon_system_pitch;
 
 								set_local_entity_int_value (source, INT_TYPE_SELECTED_WEAPON_SYSTEM_READY, FALSE);
+								AIM_FX_WS_EDGE (EECH_AIM_WS_EDGE_HOLD_NOT_READY)
 							}
 
 							// 050320 Jabberwock - Cannon tracking - major restructuring for MP
 
 							if (get_local_entity_int_value (source, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
 							{
+								AIM_FX_WS_EDGE (EECH_AIM_WS_EDGE_NON_AI_PLAYER)
 								if (get_local_entity_int_value (source, INT_TYPE_PLAYER) == ENTITY_PLAYER_LOCAL) // Jabberwock 050128 Bug removed!
 								{
+									AIM_FX_WS_EDGE (EECH_AIM_WS_EDGE_PLAYER_LOCAL)
 									int use_eo_sight_for_direction = is_using_eo_system(command_line_cannontrack != 2);
 
 									// Mi-24's nose gun which doesn't have as good aiming devices as other helicopters
@@ -1742,6 +1820,7 @@ void update_entity_weapon_systems (entity *source)
 							//set_local_entity_int_value (source, INT_TYPE_SELECTED_WEAPON_SYSTEM_READY, FALSE);
 
 
+						AIM_FX_WS_REQUIRED (package, located_heading_and_pitch_devices, required_heading_offset, required_pitch_offset, package_status[package].weapon_system_heading, package_status[package].weapon_system_pitch)
 						if ((required_heading_offset != package_status[package].weapon_system_heading) || (required_pitch_offset != package_status[package].weapon_system_pitch))
 						{
 							if (!located_heading_and_pitch_devices)
@@ -1759,6 +1838,7 @@ void update_entity_weapon_systems (entity *source)
 									{
 	//									debug_colour_log (DEBUG_COLOUR_AMBER, "Cannot locate pitch device to rotate (name = %s, package = %d)", get_local_entity_string (source, STRING_TYPE_FULL_NAME), package);
 
+										AIM_FX_WS_EXIT (source, EECH_AIM_WS_EXIT_NO_PITCH_DEVICE, package_status, config_type)
 										return;
 									}
 								}
@@ -1766,6 +1846,7 @@ void update_entity_weapon_systems (entity *source)
 								{
 	//								debug_colour_log (DEBUG_COLOUR_AMBER, "Cannot locate heading device to rotate (name = %s, package = %d)", get_local_entity_string (source, STRING_TYPE_FULL_NAME), package);
 
+									AIM_FX_WS_EXIT (source, EECH_AIM_WS_EXIT_NO_HEADING_DEVICE, package_status, config_type)
 									return;
 								}
 							}
@@ -1812,6 +1893,7 @@ void update_entity_weapon_systems (entity *source)
 							delta_pitch_offset = bound (delta_pitch_offset, -pitch_rate_delta_time, pitch_rate_delta_time);
 
 							new_pitch_offset = package_status[package].weapon_system_pitch + delta_pitch_offset;
+							AIM_FX_WS_STEP (package, delta_heading_offset, delta_pitch_offset, new_heading_offset, new_pitch_offset, weapon_config_database[config_type][package].heading_share_mask != 0, weapon_config_database[config_type][package].pitch_share_mask != 0)
 
 							////////////////////////////////////////
 							//
@@ -2013,6 +2095,8 @@ void update_entity_weapon_systems (entity *source)
 			}
 		}
 	}
+
+	AIM_FX_WS_END (source, selected_weapon_system_ready, package_status, config_type)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2248,6 +2332,7 @@ void update_entity_weapon_system_weapon_and_target_vectors (entity *launcher)
 
 	ASSERT (launcher);
 	ASSERT(launcher->type != ENTITY_TYPE_WEAPON);
+	AIM_FX_VEC_BEGIN (launcher)
 
 	weapon_vector_ptr = get_local_entity_vec3d_ptr (launcher, VEC3D_TYPE_WEAPON_VECTOR);
 
@@ -2285,14 +2370,18 @@ void update_entity_weapon_system_weapon_and_target_vectors (entity *launcher)
 
 	if (package_status)
 	{
+		AIM_FX_VEC_STAGE (1)
 		weapon_sub_type = get_local_entity_int_value (launcher, INT_TYPE_SELECTED_WEAPON);
 
 		if (weapon_sub_type != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
 		{
+			AIM_FX_VEC_STAGE (2)
 			target = get_local_entity_parent (launcher, LIST_TYPE_TARGET);
 
 			if (target || get_local_entity_int_value(launcher, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
 			{
+				AIM_FX_VEC_STAGE (3)
+				AIM_FX_VEC_TARGETED (target != NULL)
 				config_type = (weapon_config_types) get_local_entity_int_value (launcher, INT_TYPE_WEAPON_CONFIG_TYPE);
 
 				//
@@ -2322,6 +2411,7 @@ void update_entity_weapon_system_weapon_and_target_vectors (entity *launcher)
 
 				if (found_package_number > 0)
 				{
+					AIM_FX_VEC_STAGE (4)
 					inst3d = (object_3d_instance *) get_local_entity_ptr_value (launcher, PTR_TYPE_INSTANCE_3D_OBJECT);
 
 					ASSERT (inst3d);
@@ -2340,11 +2430,13 @@ void update_entity_weapon_system_weapon_and_target_vectors (entity *launcher)
 
 					if (find_object_3d_sub_object (&search_weapon_system_heading) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
 					{
+						AIM_FX_VEC_STAGE (5)
 						search_weapon_system_pitch.search_depth = weapon_config_database[config_type][found_package].pitch_depth;
 						search_weapon_system_pitch.sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_PITCH;
 
 						if (find_object_3d_sub_object_from_sub_object (&search_weapon_system_heading, &search_weapon_system_pitch) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
 						{
+							AIM_FX_VEC_STAGE (6)
 							vec3d* tracking_point = NULL;
 							int tracking_point_valid = FALSE;
 
@@ -2365,6 +2457,7 @@ void update_entity_weapon_system_weapon_and_target_vectors (entity *launcher)
 									weapon_to_intercept_point_vector_ptr->z = tracking_point->z - vp.position.z;
 
 									tracking_point_valid = TRUE;
+									AIM_FX_VEC_TRACKING ()
 									set_local_entity_int_value (launcher, INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID, TRUE);
 									weapon_to_intercept_point_range = get_3d_range(&vp.position, weapon_to_intercept_point_vector_ptr);
 									normalise_3d_vector (weapon_to_intercept_point_vector_ptr);
@@ -2381,6 +2474,8 @@ void update_entity_weapon_system_weapon_and_target_vectors (entity *launcher)
 			}
 		}
 	}
+
+	AIM_FX_VEC_END (launcher, weapon_vector_ptr, weapon_to_target_vector_ptr, weapon_to_intercept_point_vector_ptr, weapon_to_intercept_point_range)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

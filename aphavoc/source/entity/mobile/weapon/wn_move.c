@@ -65,6 +65,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "project.h"
+#include "entity/mobile/mb_aimfx.h"
 
 #include "entity/tacview/tacview.h"
 
@@ -2079,6 +2080,9 @@ void delete_ballistics_tables(void)
  * As we probably don't have the value for the exact range/pitch requested it
  * will make a weighted average of the closeset values we have.
  */
+#ifdef EECH_AIM_FIXTURE
+#define get_ballistic_pitch_deflection aim_fx_inner_get_ballistic_pitch_deflection
+#endif
 int get_ballistic_pitch_deflection(entity_sub_types wpn_type, float range, float height_diff_or_pitch, float* aiming_pitch, float* time_of_flight, int simplified, int fixed_pitch, float parent_velocity)
 {
 	float
@@ -2233,6 +2237,20 @@ int get_ballistic_pitch_deflection(entity_sub_types wpn_type, float range, float
 	
 	return TRUE;
 }
+
+#ifdef EECH_AIM_FIXTURE
+#undef get_ballistic_pitch_deflection
+int get_ballistic_pitch_deflection(entity_sub_types wpn_type, float range, float height_diff_or_pitch, float* aiming_pitch, float* time_of_flight, int simplified, int fixed_pitch, float parent_velocity)
+{
+	int result;
+
+	result = aim_fx_inner_get_ballistic_pitch_deflection (wpn_type, range, height_diff_or_pitch, aiming_pitch, time_of_flight, simplified, fixed_pitch, parent_velocity);
+
+	eech_aim_ballistic (wpn_type, range, height_diff_or_pitch, simplified, fixed_pitch, parent_velocity, result, *aiming_pitch, *time_of_flight);
+
+	return result;
+}
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -269,4 +269,15 @@ int eech_engine_sensor_trace_reset (void);
 int eech_engine_sensor_probe (char *text, int capacity, const struct eech_engine_host *host);
 #endif
 
+#ifdef EECH_AIM_FIXTURE
+/*
+ * TEST-ONLY (feature aim-fixture, EEDCS-44): see eech_aim_fixture.c. Not part of the shipping module.
+ * The report is `key=value` text lines: the physical and decision hashes, every counter, the measured value ranges, the entity kinds and
+ * weapons that aimed, and sample records. Fails (bad argument) when the report does not fit `capacity`.
+ */
+/* The run-wide trace of the aiming code since boot or the last reset. */
+int eech_engine_aim_trace (char *text, int capacity);
+int eech_engine_aim_trace_reset (void);
+#endif
+
 #endif
