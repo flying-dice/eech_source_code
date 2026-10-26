@@ -1256,8 +1256,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     LosRequest::NeedObjects { phase, start, end } => {
                         result.set("state", "need_objects")?;
                         result.set("phase", phase)?;
-                        result.set("start", start.to_vec())?;
-                        result.set("end", end.to_vec())?;
+                        result.set("from", start.to_vec())?;
+                        result.set("to", end.to_vec())?;
                     }
                     LosRequest::Done { visible } => {
                         result.set("state", "done")?;

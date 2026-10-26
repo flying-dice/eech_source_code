@@ -215,7 +215,7 @@ fn los_message_table(lua: &Lua, message: &LosMessage) -> Result<LuaTable, String
     Ok(table)
 }
 
-/// The host's answer to a line-of-sight message: `{ state = "need_terrain", phase, point }`, `{ state = "need_objects", phase, start, end }` or
+/// The host's answer to a line-of-sight message: `{ state = "need_terrain", phase, point }`, `{ state = "need_objects", phase, from, to }` or
 /// `{ state = "done", visible }`. Every field is mandatory for its state and exact; anything else is an error, never a default.
 fn call_line_of_sight(lua: &Lua, function: &LuaFunction, message: LosMessage) -> Result<LosReply, String> {
     let argument = los_message_table(lua, &message)?;
@@ -241,8 +241,8 @@ fn call_line_of_sight(lua: &Lua, function: &LuaFunction, message: LosMessage) ->
         }),
         "need_objects" => Ok(LosReply::NeedObjects {
             phase: phase(&table)?,
-            start: exact_numbers(lua, &table, "start").map_err(|e| format!("line_of_sight result {e}"))?,
-            end: exact_numbers(lua, &table, "end").map_err(|e| format!("line_of_sight result {e}"))?,
+            start: exact_numbers(lua, &table, "from").map_err(|e| format!("line_of_sight result {e}"))?,
+            end: exact_numbers(lua, &table, "to").map_err(|e| format!("line_of_sight result {e}"))?,
         }),
         "done" => match table.get::<LuaValue>("visible").map_err(|e| e.to_string())? {
             LuaValue::Boolean(visible) => Ok(LosReply::Done { visible }),

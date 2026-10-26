@@ -189,3 +189,76 @@ fn a_dependent_carry_round_trips_through_lua_and_refuses_what_the_host_did_not_m
     assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
     assert!(stdout.contains("DEPENDENT_CARRY_LUA=ok"), "{stdout}\n{stderr}");
 }
+
+const LINE_OF_SIGHT_SCRIPT: &str = "local function begin(extra)
+  local step = { mode = 'begin', entity_form = false, criteria = 1, source_eye = false, target_eye = false, source_position = { 0, 100, 0 }, target_position = { 1000, 100, 0 } }
+  for key, value in pairs(extra or {}) do step[key] = value end
+  return host.line_of_sight(step)
+end
+local function refused(step, text)
+  local ok, err = pcall(host.line_of_sight, step)
+  assert(not ok and tostring(err):find(text, 1, true), text .. ' / ' .. tostring(err))
+end
+-- a clear ray: four coarse samples, asked one at a time, then the visibility
+local r = begin()
+assert(r.state == 'need_terrain' and r.phase == 1 and math.abs(r.point[1] - 200) < 0.01 and math.abs(r.point[2] - 100) < 0.01, 'first sample')
+for i = 2, 4 do
+  r = host.line_of_sight({ mode = 'terrain', elevation = 0 })
+  assert(r.state == 'need_terrain' and math.abs(r.point[1] - 200 * i) < 0.01, 'sample ' .. i)
+end
+r = host.line_of_sight({ mode = 'terrain', elevation = 0 })
+assert(r.state == 'done' and r.visible == true, 'clear')
+-- a blocked ray ends at the first blocker
+r = begin()
+r = host.line_of_sight({ mode = 'terrain', elevation = 150 })
+assert(r.state == 'done' and r.visible == false, 'blocked at the first sample')
+-- identities pass through by shape only: a source and a target id, and none
+r = begin({ criteria = 0, source_host_id = 'eech-world:1', target_host_id = 'eech-world:2' })
+assert(r.state == 'done' and r.visible == true)
+refused({ mode = 'begin', entity_form = false, criteria = 0, source_eye = false, target_eye = false, source_host_id = string.rep('x', 129), source_position = { 0, 0, 0 }, target_position = { 1, 0, 0 } }, 'source_host_id must be 1 to 128 bytes')
+refused({ mode = 'begin', entity_form = false, criteria = 0, source_eye = false, target_eye = false, target_host_id = '', source_position = { 0, 0, 0 }, target_position = { 1, 0, 0 } }, 'target_host_id must be 1 to 128 bytes')
+refused({ mode = 'begin', entity_form = false, criteria = 0, source_eye = false, target_eye = false, source_host_id = 5, source_position = { 0, 0, 0 }, target_position = { 1, 0, 0 } }, 'source_host_id must be a string')
+-- malformed requests
+refused({ mode = 'begin', entity_form = false, criteria = 32, source_eye = false, target_eye = false, source_position = { 0, 0, 0 }, target_position = { 1, 0, 0 } }, 'outside the five check bits')
+refused({ mode = 'begin', entity_form = false, criteria = 1, source_eye = 1, target_eye = false, source_position = { 0, 0, 0 }, target_position = { 1, 0, 0 } }, 'source_eye must be a boolean')
+refused({ mode = 'begin', entity_form = 'no', criteria = 1, source_eye = false, target_eye = false, source_position = { 0, 0, 0 }, target_position = { 1, 0, 0 } }, 'entity_form must be a boolean')
+refused({ mode = 'begin', entity_form = false, criteria = 1, source_eye = false, target_eye = false, source_position = { 0, 0 }, target_position = { 1, 0, 0 } }, 'source_position must be 3 finite numbers')
+refused({ mode = 'begin', entity_form = false, criteria = 1, source_eye = false, target_eye = false, source_position = { 0, 0, 0 / 0 }, target_position = { 1, 0, 0 } }, 'source_position must be 3 finite numbers')
+refused({ mode = 'begin', entity_form = false, criteria = 1.5, source_eye = false, target_eye = false, source_position = { 0, 0, 0 }, target_position = { 1, 0, 0 } }, 'criteria must be an integer')
+refused({ mode = 'glide' }, 'unknown mode')
+-- answers that were not asked for
+begin()
+refused({ mode = 'objects', hit = false }, 'none was asked for')
+refused({ mode = 'terrain', elevation = 1 / 0 }, 'elevation must be')
+r = host.line_of_sight({ mode = 'terrain', elevation = 0 })
+assert(r.state == 'need_terrain' and math.abs(r.point[1] - 400) < 0.01, 'the refused answers changed nothing')
+r = begin({ criteria = 0 })
+assert(r.state == 'done')
+refused({ mode = 'terrain', elevation = 0 }, 'no query open')
+refused({ mode = 'objects', hit = false }, 'no query open')
+-- object rays: a hit needs its point, a miss carries none, and the 12 m exclusion is the host's
+r = begin({ criteria = 16, target_position = { 1000, 0, 0 }, source_position = { 0, 0, 0 } })
+assert(r.state == 'need_objects' and r.phase == 5 and math.abs(r.from[1] - 1000) < 0.01 and math.abs(r.to[1] - 800) < 0.01, 'target-end ray')
+refused({ mode = 'objects', hit = true }, 'needs its collision point')
+refused({ mode = 'objects', hit = false, collision_point = { 0, 0, 0 } }, 'must not carry a collision point')
+refused({ mode = 'objects', hit = 'yes' }, 'hit must be a boolean')
+r = host.line_of_sight({ mode = 'objects', hit = true, collision_point = { 988, 0, 0 } })
+assert(r.state == 'done' and r.visible == true, 'a hit exactly 12 m from the target is excluded')
+r = begin({ criteria = 16, target_position = { 1000, 0, 0 }, source_position = { 0, 0, 0 } })
+r = host.line_of_sight({ mode = 'objects', hit = true, collision_point = { 987, 0, 0 } })
+assert(r.state == 'done' and r.visible == false, 'a hit 13 m from the target blocks')
+print('LINE_OF_SIGHT_HOST=ok')
+";
+
+#[test]
+fn line_of_sight_round_trips_through_lua_and_refuses_what_it_was_not_asked() {
+    let script = std::env::temp_dir().join(format!("eech-world-line-of-sight-{}.lua", std::process::id()));
+    std::fs::write(&script, LINE_OF_SIGHT_SCRIPT).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("LINE_OF_SIGHT_HOST=ok"), "{stdout}\n{stderr}");
+}
