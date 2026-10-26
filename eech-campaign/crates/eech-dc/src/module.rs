@@ -442,12 +442,26 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
             table.set("mode", "required").map_err(e)?;
             aim_ids_into(&table, &data.source, &None)?;
             table.set("device_attitude", data.device_attitude.to_vec()).map_err(e)?;
-            table.set("intercept_vector", data.intercept_vector.to_vec()).map_err(e)?;
-            table.set("heading_min", data.heading_min).map_err(e)?;
-            table.set("heading_max", data.heading_max).map_err(e)?;
-            table.set("pitch_min", data.pitch_min).map_err(e)?;
-            table.set("pitch_max", data.pitch_max).map_err(e)?;
-            table.set("climb", data.climb).map_err(e)?;
+            match &data.limits {
+                Some(limits) => {
+                    table.set("heading_min", limits.heading_min).map_err(e)?;
+                    table.set("heading_max", limits.heading_max).map_err(e)?;
+                    table.set("pitch_min", limits.pitch_min).map_err(e)?;
+                    table.set("pitch_max", limits.pitch_max).map_err(e)?;
+                    table.set("climb", limits.climb).map_err(e)?;
+                }
+                None => table.set("unbounded", true).map_err(e)?,
+            }
+            match &data.tracking {
+                Some(track) => {
+                    let facts = lua.create_table().map_err(e)?;
+                    facts.set("device_position", track.device_position.to_vec()).map_err(e)?;
+                    facts.set("point", track.point.to_vec()).map_err(e)?;
+                    facts.set("pitch", track.pitch).map_err(e)?;
+                    table.set("tracking", facts).map_err(e)?;
+                }
+                None => table.set("intercept_vector", data.intercept_vector.to_vec()).map_err(e)?,
+            }
         }
         AimRequest::Step(data) => {
             table.set("mode", "step").map_err(e)?;

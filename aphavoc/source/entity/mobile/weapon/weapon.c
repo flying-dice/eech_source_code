@@ -991,6 +991,64 @@ static int aim_type_uses_lead (entity_sub_types weapon_sub_type)
 		(weapon_database[weapon_sub_type].aiming_type == WEAPON_AIMING_TYPE_CALC_LEAD_AND_BALLISTIC);
 }
 
+// The offsets of a device toward a direction, with no package limit: the HUD's offsets (from the intercept vector) and the player's cannon tracking (from the
+// tracking point lowered by the ballistic pitch the host answered).  Physical, so the host's.
+
+static void ask_unbounded_offsets
+(
+	entity *source,
+	const viewpoint *vp,
+	const vec3d *intercept_vector,
+	const vec3d *tracking_point,
+	float tracking_pitch,
+	float *heading_offset,
+	float *pitch_offset
+)
+{
+	campaign_aim_step
+		step;
+
+	campaign_aim_result
+		result;
+
+	memset (&step, 0, sizeof (step));
+
+	step.mode = CAMPAIGN_AIM_REQUIRED;
+
+	campaign_aim_identify (&step, source, NULL);
+
+	memcpy (step.device_attitude, vp->attitude, sizeof (step.device_attitude));
+
+	step.unbounded = TRUE;
+
+	if (tracking_point)
+	{
+		step.has_tracking = TRUE;
+
+		step.device_position[0] = vp->position.x;
+		step.device_position[1] = vp->position.y;
+		step.device_position[2] = vp->position.z;
+
+		step.tracking_point[0] = tracking_point->x;
+		step.tracking_point[1] = tracking_point->y;
+		step.tracking_point[2] = tracking_point->z;
+
+		step.track_pitch = tracking_pitch;
+	}
+	else
+	{
+		step.intercept_vector[0] = intercept_vector->x;
+		step.intercept_vector[1] = intercept_vector->y;
+		step.intercept_vector[2] = intercept_vector->z;
+	}
+
+	result = campaign_aim_ask (&step, FALSE);
+
+	*heading_offset = result.required_heading;
+
+	*pitch_offset = result.required_pitch;
+}
+
 // The pitch device's weapon vector (where it points), the weapon-to-target vector, the weapon-to-intercept-point vector and its range, for a launcher
 // with a weapon and a target (or the player's tracking point).  Returns whether the vectors are valid.  Every output is written, as the original
 // wrote its defaults: (0, 0, -1) for a vector that was not computed and 0 for the range.
@@ -1643,31 +1701,8 @@ void update_entity_weapon_systems (entity *source)
 											// adjust weapon elevation for range
 											if (get_ballistic_pitch_deflection(selected_weapon, range, height_diff, &pitch, &dummy, FALSE, FALSE, weapon_database [selected_weapon].acquire_parent_forward_velocity * get_local_entity_float_value (source, FLOAT_TYPE_VELOCITY)))
 											{
-												matrix3x3 m;
-												float dx, dz;
-												float heading;
-												vec3d offset_vector, tracking_vector;
-
-												// get heading and pitch offsets
-
-												dx = tracking_point->x - vp.position.x;
-												dz = tracking_point->z - vp.position.z;
-
-												heading = atan2 (dx, dz);
-
-												// need to adjust for the gun's attitude, as the helicopter may not fly level all the time
-												get_3d_transformation_matrix (m, heading, pitch, 0.0);
-
-												tracking_vector.x = m[2][0];
-												tracking_vector.y = m[2][1];
-												tracking_vector.z = m[2][2];
-
-												multiply_transpose_matrix3x3_vec3d (&offset_vector, vp.attitude, &tracking_vector);
-
-												required_heading_offset = atan2 (offset_vector.x, offset_vector.z);
-
-												flat_range = sqrt ((offset_vector.x * offset_vector.x) + (offset_vector.z * offset_vector.z));
-												required_pitch_offset = atan2 (offset_vector.y, flat_range);
+												// get heading and pitch offsets: the host works out the offsets of a gun aimed at the tracking point lowered by the ballistic pitch
+												ask_unbounded_offsets (source, &vp, NULL, tracking_point, pitch, &required_heading_offset, &required_pitch_offset);
 											}
 										}
 									}
@@ -2478,13 +2513,7 @@ int get_local_entity_selected_weapon_to_target_offsets (entity *launcher, float 
 
 							if (ask_vectors (launcher, target, weapon_sub_type, &vp, NULL, &weapon_vector, &weapon_to_target_vector, &weapon_to_intercept_point_vector, &weapon_to_intercept_point_range))
 							{
-								multiply_transpose_matrix3x3_vec3d (&offset_vector, vp.attitude, &weapon_to_intercept_point_vector);
-
-								*heading_offset = atan2 (offset_vector.x, offset_vector.z);
-
-								flat_range = sqrt ((offset_vector.x * offset_vector.x) + (offset_vector.z * offset_vector.z));
-
-								*pitch_offset = atan2 (offset_vector.y, flat_range);
+								ask_unbounded_offsets (launcher, &vp, &weapon_to_intercept_point_vector, NULL, 0.0, heading_offset, pitch_offset);
 
 								result = TRUE;
 							}

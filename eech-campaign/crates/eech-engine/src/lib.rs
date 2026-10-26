@@ -1121,16 +1121,34 @@ pub struct AimReadyCommand {
     pub open: bool,
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct AimRequired {
-    pub source: Option<String>,
-    pub device_attitude: [f32; 9],
-    pub intercept_vector: [f32; 3],
+/// A package's limits on the offsets its devices are asked to reach, and whether the weapon is a ground-launched guided missile (a slight climb is
+/// asked for).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AimLimits {
     pub heading_min: f32,
     pub heading_max: f32,
     pub pitch_min: f32,
     pub pitch_max: f32,
     pub climb: bool,
+}
+
+/// The player's cannon tracking: the gun is aimed at `point` from `device_position`, lowered by `pitch`.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AimTrack {
+    pub device_position: [f32; 3],
+    pub point: [f32; 3],
+    pub pitch: f32,
+}
+
+/// The offsets a device is asked to reach: toward `intercept_vector` within the package's `limits`, or, without limits (the HUD's offsets, the player's
+/// cannon tracking), as they are. With `tracking` there is no intercept vector (it is zero).
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimRequired {
+    pub source: Option<String>,
+    pub device_attitude: [f32; 9],
+    pub intercept_vector: [f32; 3],
+    pub limits: Option<AimLimits>,
+    pub tracking: Option<AimTrack>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -2272,16 +2290,36 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
         sys::EECH_AIM_REQUIRED => {
             finite("device attitude", &source.device_attitude)?;
             finite("intercept vector", &source.intercept_vector)?;
-            finite("device limit", &[source.heading_min, source.heading_max, source.pitch_min, source.pitch_max])?;
+            let limits = if checked_bool("unbounded", source.unbounded)? {
+                None
+            } else {
+                finite("device limit", &[source.heading_min, source.heading_max, source.pitch_min, source.pitch_max])?;
+                Some(AimLimits {
+                    heading_min: source.heading_min,
+                    heading_max: source.heading_max,
+                    pitch_min: source.pitch_min,
+                    pitch_max: source.pitch_max,
+                    climb: checked_bool("climb", source.climb)?,
+                })
+            };
+            let tracking = if checked_bool("has_tracking", source.has_tracking)? {
+                finite("device position", &source.device_position)?;
+                finite("tracking point", &source.tracking_point)?;
+                finite("tracking pitch", &[source.track_pitch])?;
+                Some(AimTrack {
+                    device_position: source.device_position,
+                    point: source.tracking_point,
+                    pitch: source.track_pitch,
+                })
+            } else {
+                None
+            };
             AimRequest::Required(AimRequired {
                 source: source_id()?,
                 device_attitude: source.device_attitude,
                 intercept_vector: source.intercept_vector,
-                heading_min: source.heading_min,
-                heading_max: source.heading_max,
-                pitch_min: source.pitch_min,
-                pitch_max: source.pitch_max,
-                climb: checked_bool("climb", source.climb)?,
+                limits,
+                tracking,
             })
         }
         sys::EECH_AIM_STEP => {

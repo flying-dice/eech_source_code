@@ -137,7 +137,8 @@ static void validate_request (const campaign_aim_step *step)
 		case CAMPAIGN_AIM_STEP:
 		{
 			if (!all_finite (step->device_attitude, 9) || !all_finite (step->intercept_vector, 3) || !all_finite (&step->heading_min, 6) ||
-				!all_finite (&step->current_heading, 4) || !isfinite (step->delta_time))
+				!all_finite (&step->current_heading, 4) || !isfinite (step->delta_time) || !isfinite (step->track_pitch) || !all_finite (step->device_position, 3) ||
+				!all_finite (step->tracking_point, 3))
 			{
 				debug_fatal ("host aim: a %s request with a non-finite figure", mode_name (step->mode));
 			}

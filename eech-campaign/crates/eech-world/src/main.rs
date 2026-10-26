@@ -1636,18 +1636,41 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                     "required" => {
                         check_id("source_host_id")?;
+                        let tracking = match step.get::<LuaValue>("tracking")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Table(facts) => Some(aim::Track {
+                                device_position: exact_numbers::<3>(lua, &facts, "device_position").map_err(fail)?,
+                                point: exact_numbers::<3>(lua, &facts, "point").map_err(fail)?,
+                                pitch: one(&facts, "pitch")?,
+                            }),
+                            other => return Err(fail(format!("tracking must be a table, got {}", other.type_name()))),
+                        };
+                        let unbounded = match step.get::<LuaValue>("unbounded")? {
+                            LuaValue::Nil => false,
+                            LuaValue::Boolean(unbounded) => unbounded,
+                            other => return Err(fail(format!("unbounded must be a boolean, got {}", other.type_name()))),
+                        };
+                        let limits = if unbounded {
+                            None
+                        } else {
+                            Some(aim::Limits {
+                                heading: [one(&step, "heading_min")?, one(&step, "heading_max")?],
+                                pitch: [one(&step, "pitch_min")?, one(&step, "pitch_max")?],
+                                climb: flag(&step, "climb")?,
+                            })
+                        };
+                        let intercept_vector = if tracking.is_some() {
+                            [0.0; 3]
+                        } else {
+                            exact_numbers::<3>(lua, &step, "intercept_vector").map_err(fail)?
+                        };
                         let (heading, pitch) = aim
                             .borrow()
                             .required(
                                 exact_numbers::<9>(lua, &step, "device_attitude").map_err(fail)?,
-                                exact_numbers::<3>(lua, &step, "intercept_vector").map_err(fail)?,
-                                [
-                                    one(&step, "heading_min")?,
-                                    one(&step, "heading_max")?,
-                                    one(&step, "pitch_min")?,
-                                    one(&step, "pitch_max")?,
-                                ],
-                                flag(&step, "climb")?,
+                                intercept_vector,
+                                limits,
+                                tracking,
                             )
                             .map_err(fail)?;
                         result.set("state", "done")?;

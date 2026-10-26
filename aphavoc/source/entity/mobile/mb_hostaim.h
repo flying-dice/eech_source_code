@@ -17,7 +17,8 @@
  *   READY_COMMAND  open or close the weapon-system-ready devices: the state and the command.  DONE with the state.
  *   REQUIRED       the offsets a package's devices are asked to reach to point at the launcher's intercept vector: the pitch device's unrotated attitude,
  *                  the intercept vector, the package's heading and pitch limits and whether the weapon is a ground-launched guided missile.  DONE with
- *                  the required heading and pitch.
+ *                  the required heading and pitch.  Unbounded (no limits), the same question serves the HUD's offsets; unbounded with a tracking point and
+ *                  the ballistic pitch, the player's cannon tracking.
  *   STEP           one rate-limited step of the devices toward the required offsets: the current and required offsets, the package's limits and turn
  *                  rates and the elapsed time.  DONE with the step and the new offsets.
  *   VECTORS        the pitch device's weapon vector, weapon-to-target vector and weapon-to-intercept-point vector and the range, for a launcher with a
@@ -136,6 +137,10 @@ typedef struct campaign_aim_step
 	float current_pitch;
 	float required_heading;
 	float required_pitch;
+	/* REQUIRED without the package's limits (the player's cannon tracking and the HUD's offsets): the offsets come back as they are.  With has_tracking the request
+	   carries no intercept vector: the offsets are those of a gun aimed at tracking_point from device_position, lowered by track_pitch */
+	int unbounded;
+	float track_pitch;
 
 	/* VECTORS, LEAD, BALLISTIC, INTERCEPT: the weapon's figures and the launcher's and target's state */
 	int aiming_type;

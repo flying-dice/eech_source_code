@@ -346,6 +346,14 @@ assert(r.ready_state == 0.0 and r.phase == 0, 'closed holds')
 -- the device step: nothing to reach, nothing taken
 r = host.aim({ mode = 'step', current_heading = 0.25, current_pitch = -0.1, required_heading = 0.25, required_pitch = -0.1, heading_min = -1, heading_max = 1, heading_rate = 1, pitch_rate = 1, delta_time = 0.1 })
 assert(r.state == 'done' and r.delta_heading == 0 and r.delta_pitch == 0 and r.new_heading == 0.25 and near(r.new_pitch, -0.1), 'a device at its required offsets stays')
+-- the offsets with no package limit (the HUD's) and of a gun aimed at a tracking point (the player's cannon tracking)
+local LEVEL = { 1, 0, 0, 0, 1, 0, 0, 0, 1 }
+r = host.aim({ mode = 'required', device_attitude = LEVEL, intercept_vector = { 1, 0, 0 }, unbounded = true })
+assert(r.state == 'done' and near(r.required_heading, math.pi / 2) and near(r.required_pitch, 0), 'unbounded offsets are the bearing as it is')
+r = host.aim({ mode = 'required', device_attitude = LEVEL, tracking = { device_position = { 0, 0, 0 }, point = { 100, 7, 0 }, pitch = 0 }, unbounded = true })
+assert(near(r.required_heading, math.pi / 2) and near(r.required_pitch, 0), 'a tracking point is aimed at in the horizontal plane, lowered by the ballistic pitch')
+refused({ mode = 'required', device_attitude = LEVEL, tracking = { device_position = { 0, 0, 0 }, point = { 1, 0, 1 }, pitch = 0 }, heading_min = -1, heading_max = 1, pitch_min = -1, pitch_max = 1, climb = false }, 'tracking request has no package limits')
+refused({ mode = 'required', device_attitude = LEVEL, intercept_vector = { 0, 0, 1 }, unbounded = 1 }, 'unbounded must be a boolean')
 -- a ballistic table is raw data of the model's shape, and a request for a weapon without one is refused
 local cells = string.rep(string.char(0, 0, 0, 0), 5 * 85 * 7 * 2)
 r = host.aim({ mode = 'table', weapon = 7, max_range = 100, velocity_tests = 5, pitch_indices = 85, range_values = 7, cells = cells })

@@ -641,6 +641,8 @@ pub struct eech_aim_step {
     pub current_pitch: f32,
     pub required_heading: f32,
     pub required_pitch: f32,
+    pub unbounded: c_int,
+    pub track_pitch: f32,
     pub aiming_type: c_int,
     pub cruise_velocity: f32,
     pub acquire_forward: c_int,

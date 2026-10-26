@@ -60,6 +60,15 @@ extern "C" {
         required_heading: *mut f32,
         required_pitch: *mut f32,
     );
+    fn eech_aim_required_unbounded(attitude: *const f32, intercept_vector: *const f32, required_heading: *mut f32, required_pitch: *mut f32);
+    fn eech_aim_required_tracked(
+        attitude: *const f32,
+        device_position: *const f32,
+        tracking_point: *const f32,
+        pitch: f32,
+        required_heading: *mut f32,
+        required_pitch: *mut f32,
+    );
     #[allow(clippy::too_many_arguments)]
     fn eech_aim_step(
         current_heading: f32,
@@ -156,6 +165,23 @@ pub struct Event {
     pub c: i32,
     pub d: i32,
     pub f: [f32; 12],
+}
+
+/// A package's limits on the offsets its devices are asked to reach: heading min and max, pitch min and max, and whether the weapon is a ground-launched
+/// guided missile.
+#[derive(Clone, Copy, Debug)]
+pub struct Limits {
+    pub heading: [f32; 2],
+    pub pitch: [f32; 2],
+    pub climb: bool,
+}
+
+/// The player's cannon tracking: a gun at `device_position` aimed at `point`, lowered by `pitch`.
+#[derive(Clone, Copy, Debug)]
+pub struct Track {
+    pub device_position: [f32; 3],
+    pub point: [f32; 3],
+    pub pitch: f32,
 }
 
 /// The target facts a prediction is made from.
@@ -359,25 +385,50 @@ impl Aim {
         Ok(unsafe { eech_aim_ready_command(state, c_int::from(open)) })
     }
 
-    /// The offsets a package's devices are asked to reach: heading, pitch.
-    pub fn required(&self, attitude: [f32; 9], intercept_vector: [f32; 3], limits: [f32; 4], climb: bool) -> Result<(f32, f32), String> {
+    /// The offsets a device is asked to reach: heading, pitch. Toward `intercept_vector` within the package's `limits` (with the slight climb for a
+    /// ground-launched guided missile), or with no limits as they are (the HUD's offsets); with `tracking`, those of a gun aimed at the tracking point.
+    pub fn required(&self, attitude: [f32; 9], intercept_vector: [f32; 3], limits: Option<Limits>, tracking: Option<Track>) -> Result<(f32, f32), String> {
         finite("device attitude", &attitude)?;
         finite("intercept vector", &intercept_vector)?;
-        finite("device limits", &limits)?;
         let (mut heading, mut pitch) = (0.0f32, 0.0f32);
-        // SAFETY: a pure function of its arguments; the nine attitude floats and three vector floats are valid for the call.
-        unsafe {
-            eech_aim_required(
-                attitude.as_ptr(),
-                intercept_vector.as_ptr(),
-                limits[0],
-                limits[1],
-                limits[2],
-                limits[3],
-                c_int::from(climb),
-                &mut heading,
-                &mut pitch,
-            );
+        match (limits, tracking) {
+            (Some(limits), None) => {
+                finite("device limits", &[limits.heading[0], limits.heading[1], limits.pitch[0], limits.pitch[1]])?;
+                // SAFETY: a pure function of its arguments; the nine attitude floats and three vector floats are valid for the call.
+                unsafe {
+                    eech_aim_required(
+                        attitude.as_ptr(),
+                        intercept_vector.as_ptr(),
+                        limits.heading[0],
+                        limits.heading[1],
+                        limits.pitch[0],
+                        limits.pitch[1],
+                        c_int::from(limits.climb),
+                        &mut heading,
+                        &mut pitch,
+                    );
+                }
+            }
+            (None, None) => {
+                // SAFETY: as above.
+                unsafe { eech_aim_required_unbounded(attitude.as_ptr(), intercept_vector.as_ptr(), &mut heading, &mut pitch) };
+            }
+            (None, Some(track)) => {
+                finite("tracking", &[track.device_position, track.point].concat())?;
+                finite("tracking pitch", &[track.pitch])?;
+                // SAFETY: as above; the positions are three floats each.
+                unsafe {
+                    eech_aim_required_tracked(
+                        attitude.as_ptr(),
+                        track.device_position.as_ptr(),
+                        track.point.as_ptr(),
+                        track.pitch,
+                        &mut heading,
+                        &mut pitch,
+                    );
+                }
+            }
+            (Some(_), Some(_)) => return Err("aim required: a tracking request has no package limits".into()),
         }
         Ok((heading, pitch))
     }
@@ -727,16 +778,42 @@ mod tests {
     fn the_required_offsets_are_the_bearing_of_the_intercept_vector_in_the_device_frame_within_its_limits() {
         let aim = Aim::new();
         let half = std::f32::consts::FRAC_1_SQRT_2;
-        let (heading, pitch) = aim.required(LEVEL, [0.0, 0.0, 1.0], [-1.0, 1.0, -1.0, 1.0], false).unwrap();
+        let limits = |heading: [f32; 2], pitch: [f32; 2], climb: bool| Some(Limits { heading, pitch, climb });
+        let (heading, pitch) = aim.required(LEVEL, [0.0, 0.0, 1.0], limits([-1.0, 1.0], [-1.0, 1.0], false), None).unwrap();
         assert!(near(heading, 0.0) && near(pitch, 0.0));
-        let (heading, _) = aim.required(LEVEL, [half, 0.0, half], [-1.0, 1.0, -1.0, 1.0], false).unwrap();
+        let (heading, _) = aim.required(LEVEL, [half, 0.0, half], limits([-1.0, 1.0], [-1.0, 1.0], false), None).unwrap();
         assert!(near(heading, std::f32::consts::FRAC_PI_4), "{heading}");
-        let (heading, _) = aim.required(LEVEL, [half, 0.0, half], [-0.5, 0.5, -1.0, 1.0], false).unwrap();
+        let (heading, _) = aim.required(LEVEL, [half, 0.0, half], limits([-0.5, 0.5], [-1.0, 1.0], false), None).unwrap();
         assert!(near(heading, 0.5), "the heading is bounded by the package's limit: {heading}");
         // a ground-launched guided missile is aimed at a slight climb: the pitch floor is at least ten degrees
-        let (_, pitch) = aim.required(LEVEL, [0.0, 0.0, 1.0], [-1.0, 1.0, -0.5, 0.5], true).unwrap();
+        let (_, pitch) = aim.required(LEVEL, [0.0, 0.0, 1.0], limits([-1.0, 1.0], [-0.5, 0.5], true), None).unwrap();
         assert!(near(pitch, 10.0f32.to_radians()), "{pitch}");
-        assert!(aim.required(LEVEL, [0.0, f32::INFINITY, 1.0], [-1.0, 1.0, -1.0, 1.0], false).is_err());
+        assert!(aim
+            .required(LEVEL, [0.0, f32::INFINITY, 1.0], limits([-1.0, 1.0], [-1.0, 1.0], false), None)
+            .is_err());
+        // with no limits the offsets come back as they are (the HUD's), and a gun aimed at a tracking point is lowered by the ballistic pitch (the player's)
+        let (heading, pitch) = aim.required(LEVEL, [half, half, 0.0], None, None).unwrap();
+        assert!(
+            near(heading, std::f32::consts::FRAC_PI_2) && near(pitch, std::f32::consts::FRAC_PI_4),
+            "{heading} {pitch}"
+        );
+        let track = |point: [f32; 3], pitch: f32| {
+            Some(Track {
+                device_position: [0.0; 3],
+                point,
+                pitch,
+            })
+        };
+        let (heading, pitch) = aim.required(LEVEL, [0.0; 3], None, track([100.0, 0.0, 0.0], 0.0)).unwrap();
+        assert!(near(heading, std::f32::consts::FRAC_PI_2) && near(pitch, 0.0), "{heading} {pitch}");
+        let (heading, pitch) = aim.required(LEVEL, [0.0; 3], None, track([0.0, 5.0, 100.0], 0.5)).unwrap();
+        assert!(
+            near(heading, 0.0) && near(pitch.abs(), 0.5),
+            "the tracking point's height is ignored; the ballistic pitch is the gun's elevation: {heading} {pitch}"
+        );
+        assert!(aim
+            .required(LEVEL, [0.0; 3], limits([-1.0, 1.0], [-1.0, 1.0], false), track([1.0, 0.0, 1.0], 0.0))
+            .is_err());
     }
 
     #[test]

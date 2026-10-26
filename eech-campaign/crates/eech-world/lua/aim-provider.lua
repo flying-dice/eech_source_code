@@ -112,15 +112,22 @@ function own.ready_update (step)
 end
 function own.ready_command (step) return { state = "done", ready_state = step.open and 2.0 or 0.0 } end
 function own.required (step)
-	-- the intercept vector in the device frame by the transpose of its attitude (rows are the device axes), then a bearing
+	-- the intercept vector in the device frame by the transpose of its attitude (rows are the device axes), then a bearing; a gun aimed at a tracking point
+	-- takes the plain direction to it
 	local m, v = step.device_attitude, step.intercept_vector
+	if step.tracking then
+		local d, p = step.tracking.device_position, step.tracking.point
+		v = normalise { p [1] - d [1], p [2] - d [2], p [3] - d [3] }
+	end
 	local x = m [1] * v [1] + m [2] * v [2] + m [3] * v [3]
 	local y = m [4] * v [1] + m [5] * v [2] + m [6] * v [3]
 	local z = m [7] * v [1] + m [8] * v [2] + m [9] * v [3]
 	local heading = math.atan2 (x, z)
 	local pitch = math.atan2 (y, math.sqrt (x * x + z * z))
-	heading = math.max (step.heading_min, math.min (step.heading_max, heading))
-	pitch = math.max (step.pitch_min, math.min (step.pitch_max, pitch))
+	if not step.unbounded then
+		heading = math.max (step.heading_min, math.min (step.heading_max, heading))
+		pitch = math.max (step.pitch_min, math.min (step.pitch_max, pitch))
+	end
 	return { state = "done", required_heading = heading, required_pitch = pitch }
 end
 function own.step (step)

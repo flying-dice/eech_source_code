@@ -347,6 +347,60 @@ void eech_aim_required(const float *attitude, const float *intercept_vector, flo
 	*required_pitch = required_pitch_offset;
 }
 
+/* weapon.c get_local_entity_selected_weapon_to_target_offsets (the HUD's offsets): the same offsets with no package limit and no climb floor. */
+void eech_aim_required_unbounded(const float *attitude, const float *intercept_vector, float *required_heading, float *required_pitch)
+{
+	matrix3x3 m;
+	vec3d offset_vector, intercept;
+	float flat_range;
+
+	memcpy(m, attitude, sizeof(m));
+
+	intercept.x = intercept_vector[0];
+	intercept.y = intercept_vector[1];
+	intercept.z = intercept_vector[2];
+
+	multiply_transpose_matrix3x3_vec3d(&offset_vector, m, &intercept);
+
+	*required_heading = atan2(offset_vector.x, offset_vector.z);
+
+	flat_range = sqrt((offset_vector.x * offset_vector.x) + (offset_vector.z * offset_vector.z));
+
+	*required_pitch = atan2(offset_vector.y, flat_range);
+}
+
+/* weapon.c update_entity_weapon_systems, the player's cannon tracking: the gun is aimed at a tracking point lowered by the ballistic pitch the host answered. The tracking
+   vector is built from the heading to the point (x and z only) and that pitch, then taken into the device frame; the offsets are not bounded here (the campaign sends them
+   to its clients as they are, then bounds them). */
+void eech_aim_required_tracked(const float *attitude, const float *device_position, const float *tracking_point, float pitch, float *required_heading, float *required_pitch)
+{
+	matrix3x3 m, attitude_matrix;
+	float dx, dz, heading, flat_range;
+	vec3d offset_vector, tracking_vector;
+
+	memcpy(attitude_matrix, attitude, sizeof(attitude_matrix));
+
+	dx = tracking_point[0] - device_position[0];
+	dz = tracking_point[2] - device_position[2];
+
+	heading = atan2(dx, dz);
+
+	// need to adjust for the gun's attitude, as the helicopter may not fly level all the time
+	get_3d_transformation_matrix(m, heading, pitch, 0.0);
+
+	tracking_vector.x = m[2][0];
+	tracking_vector.y = m[2][1];
+	tracking_vector.z = m[2][2];
+
+	multiply_transpose_matrix3x3_vec3d(&offset_vector, attitude_matrix, &tracking_vector);
+
+	*required_heading = atan2(offset_vector.x, offset_vector.z);
+
+	flat_range = sqrt((offset_vector.x * offset_vector.x) + (offset_vector.z * offset_vector.z));
+
+	*required_pitch = atan2(offset_vector.y, flat_range);
+}
+
 /* weapon.c update_entity_weapon_systems: one rate-limited step of a package's devices toward the required offsets.
    out: delta heading, delta pitch, new heading, new pitch */
 void eech_aim_step(float current_heading, float current_pitch, float required_heading, float required_pitch, float min_heading, float max_heading, float heading_rate,
