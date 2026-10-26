@@ -8,14 +8,34 @@ match all1740 events and raw bytes; its900s control completed native0 with all3
 complete artifacts exact against the retained supplied-build baseline. B7 evidence
 and its completed exact900s control remain preserved.
 
-Current oracle0ee1fa46b additionally measures readiness producers. Both600s runs
+Oracle0ee1fa46b additionally measures readiness producers. Both600s runs
 completed native/driver0; all1962 events and raw bytes match. Physical signature
-8d5afe5ea932338f now includes readiness; decision4e542d029ba7362a is unchanged.
-Its900s control is running, not passed. Root verified all27 fresh build entries and
-strict feature-off equivalence for all8 instrumented sources. A controlled,
-host-identified person/target case is being implemented because both Lebanon and
-Georgia natural600s witnesses recorded0 person-facing events. No physical cut
-before these remaining characterization gates close. D2 is the only active
+8d5afe5ea932338f includes readiness; decision4e542d029ba7362a is unchanged.
+Its900s hooks-on control completed native0 (1,194 s) with all3 complete files equal
+to the retained supplied-build baseline; the same holds for the b7 and f9 controls.
+Root verified all27 fresh build entries and strict feature-off equivalence for all8
+instrumented sources.
+
+Lane report (author, 74ae6a96d, no cut begun): both Lebanon and Georgia natural
+600s witnesses recorded0 person-branch entries, so one bounded controlled case closes
+it through the real host path (`lua/aim-person-case.lua`, fixture-only entries that
+take and return host ids only; build 74ae6a96d, 0 uncommitted inputs). A real
+host-identified person was given a real host-identified target by the campaign's own
+target-link call (a precondition, not target-selection policy) and stepped normally,
+native0 after21 s: all11 checks pass (branch entered20/20 with a link, facing heading
+equals the independently computed bearing, a 1.65 rad turn, the host placed the person
+20/20 and adopted exactly the pose sent, the mirror equals the host answer, and after
+the link was released all40 later person steps arrived with the attitude the host had
+last answered). The control without a link enters the branch0 times. The target case
+repeated byte-identically. Remaining unexercised, stated not covered: player/cockpit and
+HUD paths; the lead solver's tiny-range, off-map, triangulated and failure exits;
+fixed-pitch ballistic lookups; the guided static-point branch; other seeds/durations;
+person aiming in natural runs. Also open and recorded in
+`eech-campaign/docs/m5-aim-characterization.md`: the lead solver draws the shared
+random stream once per moving-target solve (7,676 in 600 s), the weapon-system update
+slews on the previous update's vectors, and ballistic-table generation is weapon
+simulation. Evidence: `eech-campaign/reference/d2-aim-characterization/`. No physical
+cut before the independent review of this characterization. D2 is the only active
 delivery epic; D3 has not started.
 
 Authority: live M5 goal11534337v3 and migration ledger14548994v35. D2 covers physical
@@ -65,8 +85,8 @@ launcher remains lead-gated. Root also rejected an unstarted4500s natural person
 search based only on an infantry-loss timestamp, gated its launcher and canceled
 only its identified waiting PowerShell process with no child/native. The active
 readiness witness and all4 frozen sensing natives were untouched. The controlled
-person case replaces that search; its source remains fixture-only. One additional
-native case runs at a time; no physical cut has begun.
+person case replaced that search and ran (lane report above); its source remains
+fixture-only. One additional native case ran at a time; no physical cut has begun.
 
 One compact read-only Opus5.5Medium plan completed actual0, with source-grounded
 lead corrections recorded in `../d2-evidence/AIM-COMPACT-PLAN-LEAD-DISPOSITION.md`.

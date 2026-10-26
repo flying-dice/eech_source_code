@@ -1,0 +1,273 @@
+{
+  "comparator": "tools/aim-trace-compare.py",
+  "comparator_sha256": "21b682b1e799dffadb9d6fcf3ee7fe96df3f93a4a378100e25a0ae7d32077e10",
+  "repository_head_when_run": "74ae6a96d64c5ec994bf4bdd321ce96ff80cf6bc",
+  "python": "3.12.14",
+  "cases": [
+    {
+      "case": "RED control 1: two empty files",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "empty-a.jsonl",
+        "empty-b.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: R:/d2-evidence/aim-characterization-20261026/controls/inputs-final\\empty-a.jsonl: empty, not a trace\n",
+      "ok": true
+    },
+    {
+      "case": "RED control 2: checkpoint snapshots without the final run report, scope checkpoint",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "checkpoints-only.jsonl",
+        "checkpoints-only.jsonl",
+        "--scope",
+        "checkpoint"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: R:/d2-evidence/aim-characterization-20261026/controls/inputs-final\\checkpoints-only.jsonl: incomplete, the last event (line 1751) is not the terminal run report (event aim-samples, scope run); a truncated run does not qualify\n",
+      "ok": true
+    },
+    {
+      "case": "checkpoint snapshots only, --skip-samples does not weaken completion",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "checkpoints-only.jsonl",
+        "checkpoints-only.jsonl",
+        "--scope",
+        "checkpoint",
+        "--skip-samples"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: R:/d2-evidence/aim-characterization-20261026/controls/inputs-final\\checkpoints-only.jsonl: incomplete, the last event (line 1751) is not the terminal run report (event aim-samples, scope run); a truncated run does not qualify\n",
+      "ok": true
+    },
+    {
+      "case": "RED control 3: a complete but inactive trace against itself",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "inactive.jsonl",
+        "inactive.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: R:/d2-evidence/aim-characterization-20261026/controls/inputs-final\\inactive.jsonl: no aiming activity recorded (vec_calls and ws_calls are 0); an inactive trace is not a characterisation\n",
+      "ok": true
+    },
+    {
+      "case": "a complete trace without the run-wide hash",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "trace.jsonl",
+        "no-run-hash.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: R:/d2-evidence/aim-characterization-20261026/controls/inputs-final\\no-run-hash.jsonl: the run report has no well-formed aim-hash event\n",
+      "ok": true
+    },
+    {
+      "case": "two complete traces of the same configuration, all scopes",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "trace.jsonl",
+        "trace.jsonl"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "1962 events in a, 1962 in b, scopes ['checkpoint', 'run']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "a complete trace against itself, all scopes",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "trace.jsonl",
+        "trace.jsonl"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "1962 events in a, 1962 in b, scopes ['checkpoint', 'run']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "a complete trace against itself, scope run",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "trace.jsonl",
+        "trace.jsonl",
+        "--scope",
+        "run"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "221 events in a, 221 in b, scopes ['run']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "a complete trace against itself, scope checkpoint",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "trace.jsonl",
+        "trace.jsonl",
+        "--scope",
+        "checkpoint"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "1752 events in a, 1752 in b, scopes ['checkpoint']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "a complete trace against itself, --skip-samples",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "trace.jsonl",
+        "trace.jsonl",
+        "--skip-samples"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "1496 events in a, 1496 in b, scopes ['checkpoint', 'run']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "changed value in a copy (run counter lead_calls + 1)",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "trace.jsonl",
+        "changed-run-counter.jsonl"
+      ],
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "stdout": "difference at event 1780:\n  a: {\"at\": 599.90252685547, \"event\": \"aim-counter\", \"name\": \"lead_calls\", \"scope\": \"run\", \"value\": 47744}\n  b: {\"at\": 599.90252685547, \"event\": \"aim-counter\", \"name\": \"lead_calls\", \"scope\": \"run\", \"value\": 47745}\n1962 events in a, 1962 in b, scopes ['checkpoint', 'run']: 1 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "changed run physical hash in a copy",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "trace.jsonl",
+        "changed-run-hash.jsonl"
+      ],
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "stdout": "difference at event 1752:\n  a: {\"at\": 599.90252685547, \"decision\": \"4e542d029ba7362a\", \"event\": \"aim-hash\", \"physical\": \"8d5afe5ea932338f\", \"scope\": \"run\"}\n  b: {\"at\": 599.90252685547, \"decision\": \"4e542d029ba7362a\", \"event\": \"aim-hash\", \"physical\": \"0d5afe5ea932338f\", \"scope\": \"run\"}\n1962 events in a, 1962 in b, scopes ['checkpoint', 'run']: 1 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "changed checkpoint counter in a copy (vec_calls + 1), all scopes",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "trace.jsonl",
+        "changed-checkpoint-counter.jsonl"
+      ],
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "stdout": "difference at event 3:\n  a: {\"at\": 60, \"event\": \"aim-counter\", \"name\": \"vec_calls\", \"scope\": \"checkpoint\", \"value\": 944984}\n  b: {\"at\": 60, \"event\": \"aim-counter\", \"name\": \"vec_calls\", \"scope\": \"checkpoint\", \"value\": 944985}\n1962 events in a, 1962 in b, scopes ['checkpoint', 'run']: 1 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "changed checkpoint counter in a copy, scope run only (the checkpoint change is outside the selection)",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "trace.jsonl",
+        "changed-checkpoint-counter.jsonl",
+        "--scope",
+        "run"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "221 events in a, 221 in b, scopes ['run']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "changed value range in a copy (max + 1)",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "trace.jsonl",
+        "changed-run-range.jsonl"
+      ],
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "stdout": "difference at event 1850:\n  a: {\"at\": 599.90252685547, \"event\": \"aim-range\", \"max\": 42432.4453, \"min\": 5.34948969, \"n\": 112621, \"name\": \"vec_intercept_range\", \"scope\": \"run\"}\n  b: {\"at\": 599.90252685547, \"event\": \"aim-range\", \"max\": 42433.4453, \"min\": 5.34948969, \"n\": 112621, \"name\": \"vec_intercept_range\", \"scope\": \"run\"}\n1962 events in a, 1962 in b, scopes ['checkpoint', 'run']: 1 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "truncated copy without the terminal event",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "trace.jsonl",
+        "truncated-no-terminal.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: R:/d2-evidence/aim-characterization-20261026/controls/inputs-final\\truncated-no-terminal.jsonl: incomplete, the last event (line 1961) is not the terminal run report (event aim-samples, scope run); a truncated run does not qualify\n",
+      "ok": true
+    },
+    {
+      "case": "malformed line in a copy",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "trace.jsonl",
+        "malformed.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: R:/d2-evidence/aim-characterization-20261026/controls/inputs-final\\malformed.jsonl: line 6 is not JSON (Expecting property name enclosed in double quotes: line 1 column 2 (char 1))\n",
+      "ok": true
+    },
+    {
+      "case": "missing file",
+      "command": [
+        "python",
+        "tools/aim-trace-compare.py",
+        "trace.jsonl",
+        "R:/d2-evidence/aim-characterization-20261026/controls/inputs-final\\does-not-exist.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: R:/d2-evidence/aim-characterization-20261026/controls/inputs-final\\does-not-exist.jsonl: cannot read (No such file or directory)\n",
+      "ok": true
+    }
+  ],
+  "all_ok": true
+}
