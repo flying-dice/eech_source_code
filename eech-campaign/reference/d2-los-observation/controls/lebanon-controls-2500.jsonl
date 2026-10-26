@@ -1,0 +1,12 @@
+{"event":"census","frames":2500,"kinds":"air_defence=689 fixed_wing=91 ground_vehicle=457 helicopter=174 infantry=140 keysite=133 ship=36"}
+{"case":"source_index_500000","error":"runtime error: eech: bad argument: rejected by the engine","event":"case","result":"refused","source":500000,"target":88877}
+{"case":"target_index_500000","error":"runtime error: eech: bad argument: rejected by the engine","event":"case","result":"refused","source":84348,"target":500000}
+{"case":"source_index_1000000","error":"runtime error: eech: bad argument: rejected by the engine","event":"case","result":"refused","source":1000000,"target":88877}
+{"case":"source_index_int_max","error":"runtime error: eech: bad argument: rejected by the engine","event":"case","result":"refused","source":2147483647,"target":88877}
+{"case":"source_index_negative","error":"runtime error: eech: bad argument: rejected by the engine","event":"case","result":"refused","source":-1,"target":88877}
+{"case":"same_entity_twice","error":"runtime error: eech: bad argument: rejected by the engine","event":"case","result":"refused","source":84348,"target":84348}
+{"case":"source_keysite","error":"runtime error: eech: bad argument: rejected by the engine","event":"case","result":"refused","source":8797,"target":88877}
+{"case":"source_weapon","event":"case","result":"unavailable","why":"no weapon in flight after 2500 frames"}
+{"case":"source_not_an_object","error":"runtime error: eech: bad argument: rejected by the engine","event":"case","result":"refused","source":0,"target":88877}
+{"calls":66,"event":"valid_after_refusals","hash":"7ebb108e22a9bddb","ok":true}
+{"accepted_wrongly":0,"event":"summary","refused":8,"unavailable":1}

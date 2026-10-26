@@ -177,3 +177,21 @@ then begin the extraction.
 - The lead's baseline pack (unchanged supplied binaries) is still pending its byte-equality result. No characterisation is run,
   no solver or policy changed, until the lead confirms it. Next: run `los-characterization.lua` from the fixture output on
   copied roots when told, retain outputs, then extract.
+
+### Update 26 October 2026, unchanged-solver characterisation done (implementation lane)
+
+- Clippy result settled fail-closed (cargo exit 0, no pipeline). Fixture B `ee7f6f79b` adds entity-kind counters and
+  `los-controls.lua`; fixture A `da8b8c327` and B both built in the WSL image, no compile error.
+- Characterised the ORIGINAL solver on private root copies (manifests IDENTICAL before and after; none used by the lead's pack):
+  Lebanon 600 s with and without probes and a third copy with kinds, and Georgia (`georgia_retail`, map3). Lebanon run-wide fold
+  identical across all three (156,581 queries, 60,731 visible, hash `d97f59bb364bb253`); Georgia 21,104 / 1,646,
+  `7fdc5ab0b8b5db5d`. The probe leaves the fold untouched. The campaign requests only masks 1 (coarse, 70%) and 31 (all, 29%); the
+  fine-terrain and single-object phases are reachable only by the probe. The two probe times gave identical pairs and hashes, so
+  three distinct sweeps per map. Boundary controls: 8 refused, 0 wrongly accepted, valid probe works after; weapon-as-source
+  unavailable; unreached time and no-pair fail the driver (exit 1). Weapon targets (397 queries) have no host id. Details,
+  identities and limits: `eech-campaign/reference/d2-los-observation/characterization-20261026.md`.
+- Still pending and not claimed: the lead's full 3 h baseline pack and its byte comparison. No extraction started.
+- Next bounded extraction (after the lead confirms the gate): a host `line_of_sight` callback carrying positions and a criteria
+  mask only (no entity identity while collision stays in the DLL), the host-owned coarse and fine terrain arithmetic in C
+  beside `hc_step.c`, the DLL answering terrain and collision lookups in the original order; candidate checked by the same fold
+  hash, probe and a blocking-versus-clear host change of weapon choice.

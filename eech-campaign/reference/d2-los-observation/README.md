@@ -19,3 +19,11 @@ Other checks (Linux image, disposable containers): `cargo fmt --all --check` cle
 fixture C with the Linux gcc; the logged `CLIPPY_EXIT=0` is the pipe's, the verdict is the absence of diagnostics before
 `Finished`). `eech-world.exe lua/los-characterization.lua` with no arguments parses and stops at the `root=` assert (no root, no
 campaign). Not run: any characterisation, any campaign, `cargo test`, the pack.
+
+## Update 26 Oct 2026: clippy settled, baseline characterisation
+
+- `fixture-clippy-settled.log`: the cached repeat, with cargo's own exit status captured without a pipeline:
+  `CARGO_CLIPPY_EXIT=0`, `DOCKER_EXIT=0` (`cargo clippy --locked -p eech-engine -p eech-dc --features eech-dc/los-fixture
+  --all-targets -- -D warnings`, `Finished` from cache). This settles the earlier pipe ambiguity.
+- `fixture-B-BUILD-INFO.txt`: fixture B (commit `ee7f6f79b`, entity-kind counters), same image and toolchain.
+- `characterization-20261026.md`, `traces/`, `controls/`: the characterisation of the unchanged solver, results and limits.
