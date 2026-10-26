@@ -23,7 +23,10 @@ retained, safe-to-publish artifacts. No retail asset, installation root or binar
 * `builds/`: BUILD-INFO of both fixtures. `checks/`: fmt and clippy of the committed tree (`cargo fmt --all --check` and `cargo clippy --locked --all-targets -- -D warnings`, default and
   `--features eech-dc/sensor-fixture`, each cargo exit captured; the image has no clippy so the component is added in the disposable container), the feature-off preprocessing equivalence, input manifests. (`preprocess-equivalence.log` ran at `60f6a4876`; the hook text in `ac_tgt.c` and `vh_tgt.c` is unchanged since — `git diff 60f6a4876 e0d58d818 -- aphavoc`
   is empty. Its "dirty files: 1" is the then-CRLF working copy of the fixture C file, content equal to the index, fixed before the builds.)
-* `controls/`: the whole-campaign comparison of the fixture build against the supplied baseline binary.
+* `controls/`: `ab-fixture-vs-supplied-baseline-900s.json` (the whole-campaign comparison of the hooked build against the supplied baseline binary, with the verified-versus-inferred configuration comparison) and
+  `ab-fixture-observation-check.json`; `comparator-controls-result.json` (actual Python exits of `tools/sensor-trace-compare-controls.py`, comparator SHA-256 `d5027336...1165`), its inputs in `comparator-inputs/` (the lead's two
+  real red controls `empty-*.jsonl`, `incomplete-probe-*.jsonl` with their reproduction records, and `derived/` copies: changed value, truncated, malformed) and
+  `lead-independent-original-characterization-check.json` (the lead's byte/field check of the complete reports; not a source review).
 
 ## Not done here
 

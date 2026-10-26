@@ -6,7 +6,7 @@ https://github.com/flying-dice/eech_source_code/pull/102.
 Authority: live M5 goal 11534337 v3 and migration ledger 14548994 (v32 at start).
 D1 remains accepted; D2 is active; D3 has not started.
 
-## Stage: original-behaviour characterisation — complete; no host extraction
+## Stage: original-behaviour characterisation; evidence-tool correction; no host extraction
 
 Nothing moved. The four AI scan functions (`ac_tgt.c` air-to-air and air-to-surface, `vh_tgt.c`
 surface-to-air and surface-to-surface) are the original text; the only source additions are
@@ -25,6 +25,26 @@ test-only hooks that are empty macros unless the cargo feature `sensor-fixture` 
 * Hooks on, 900 s whole-campaign Lebanon run: Tacview recording, observations and metrics are
   byte-identical to the supplied-baseline-binary run the lead recorded (that side not re-run here);
   `observation-check.py` PASS. Not a visual Tacview inspection; not the 3 h pack.
+
+## Evidence-tool correction (review feedback)
+
+`tools/sensor-trace-compare.py` at `e0d58d818` was NOT acceptable: it exited 0 for empty files and for probe
+snapshots with no final run report (two real red controls, retained in
+`reference/d2-sensor-detections/controls/comparator-inputs/`). It now fails closed: exit 2 with a reason for a
+missing, empty, malformed or incomplete file (the terminal `sensor-samples` event of scope `run` is required,
+whatever scopes are selected and with `--skip-samples`) and for a selection that matches no event; exit 1 for a
+difference; exit 0 only for complete files with a non-empty, equal selection. Actual Python exits are in
+`controls/comparator-controls-result.json`: both red controls exit 2; the retained complete v2 pair `--scope run`
+exits 0 (75 events, 0 differences); a complete probe trace against itself exits 0 (`--scope probe`, 182 events);
+a changed-value copy exits 1; truncated, malformed, missing and empty-selection cases exit 2. No traces or
+baselines were altered, no rebuild or campaign was rerun. The comparison of the original characterisation is not
+claimed from zero or partial reports.
+
+The 900 s control's configuration is now stated as verified versus inferred (docs section "Non-perturbation"):
+verified from retained records that both runs used the same argument list (`hours=0.25 record_every=10
+checkpoint_every=3600 observe_every=60 observe_supply=0`; seed 1 and 100 ms by default for both) and
+byte-identical `campaign.lua`/`metrics.lua`/`observations.lua`; inferred that the original root was an
+unmodified Lebanon copy. Identical bytes are the non-perturbation result for this configuration only.
 
 ## Boundary discovered (measured, not designed)
 
@@ -46,6 +66,12 @@ is a fixed per-source draw derived from a heap slot.
   (1,676 of 1,676 air-to-surface calls), and for scan ranges above about 46.3 km (80 km observed, 179 of
   1,726 air-to-air calls) the squared range overflows `int` and the rectangle is empty, so the source
   finds nothing. Characterised, not fixed.
+
+## Preconditions for the extraction
+
+* Keep the required LOS entry wired: after EEDCS-42 the surface-to-air scan's LOS is the host-owned
+  `campaign_los_query` dialogue (required `line_of_sight` callback, no fallback); this baseline predates it.
+* The tolerance seed is a private heap index (`EN - entities`); never expose it or a seed derived from it publicly.
 
 ## Unexercised edges
 

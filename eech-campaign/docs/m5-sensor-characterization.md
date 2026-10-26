@@ -112,17 +112,27 @@ Source hazards that are exercised, characterised and **not** fixed:
 * **The probe is inert.** The run-wide report with probes at 30/300/590 s and with none (`probe_at=`) is identical event for event, including every counter and
   sample (`tools/sensor-trace-compare.py --scope run`: 75 events, 0 differences), and the run-wide report before and after each probe was equal
   (`run_trace_untouched_by_probe` true at all three). Two separate roots and two builds (`60f6a4876`, `e0d58d818`) give the same run hashes, so a candidate's hash is a meaningful comparison.
-* **Feature off is the original text.** `logs/preprocess-check.log`: with the shipping definitions, `ac_tgt.c` and `vh_tgt.c` preprocess to text identical to the base
+* **Feature off is the original text.** `checks/preprocess-equivalence.log`: with the shipping definitions, `ac_tgt.c` and `vh_tgt.c` preprocess to text identical to the base
   (blank lines dropped, assertion `__LINE__` and path normalised; the added hook lines shift the line numbers inside assertion messages, nothing else). With the feature on, 143 lines are added to each.
 * **Hooks are observational at campaign level.** The fixture build (hooks on, `e0d58d818`) ran the whole Lebanon campaign for 900 s (`campaign.lua scenario=lebanon_retail hours=0.25 record_every=10
   observe_every=60`, exit 0): the Tacview recording (11,363,845 bytes), observations (6,629,273) and metrics (11,777) have the same SHA-256 as the supplied-baseline-binary run the lead recorded
-  (`independent-ab-comparison-20261026.json`; that side was **not** re-run here, and two independent runs giving the same bytes also shows the command lines are equivalent). The recording was generated,
+  (`independent-ab-comparison-20261026.json`; that side was **not** re-run here). Configuration, verified from retained records: the original run's command is in the EEDCS-42 lane transcript and is the same
+  argument list as this one (`hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 observe_supply=0`; neither passes `seed` or `frame_ms`, so the defaults, seed 1 and 100 ms, apply to both), and
+  `campaign.lua`, `metrics.lua` and `observations.lua` are byte-identical in the supplied bin and the fixture bin. Inferred, not verified: that the original run's root was an unmodified Lebanon copy (its manifest was not re-compared
+  here; the fixture root was, before and after). Identical bytes are the non-perturbation result for **this** configuration only; no other scenario, seed, duration or observation setting is claimed. The recording was generated,
   byte-compared and structurally checked (`observation-check.py`: PASS, 900 frames, 0 failures); it was **not** visually inspected in Tacview. This is 900 s of one scenario, not the 3 h pack.
   `reference/d2-sensor-detections/controls/`.
 
 * **Static checks** (Linux image, disposable containers, cargo's own exit captured, `checks/`): `cargo fmt --all --check`, `cargo clippy --locked --all-targets -- -D warnings` (default
   features) and `cargo clippy --locked -p eech-engine -p eech-dc --features eech-dc/sensor-fixture --all-targets -- -D warnings` all exit 0 at `60f6a4876` and again at `e0d58d818`. Both Windows fixture builds
   exit 0 from a clean checkout (0 uncommitted build inputs). **Not run:** `cargo test`, the shipping-feature Windows build and its pack, any Georgia run, any visual Tacview inspection.
+* **The comparator fails closed** (correction after review feedback). `tools/sensor-trace-compare.py` first passed empty files and probe-only snapshots with exit 0 (two real red controls, retained in
+  `controls/comparator-inputs/`). It now exits 2 with a reason for a missing, empty, malformed or incomplete file, and for a selection that matches no event; a complete trace must end with the terminal
+  `sensor-samples` event of scope `run`, required whatever scopes are selected and also with `--skip-samples`; exit 1 is a difference; exit 0 only for complete files with at least one selected event, all equal in
+  value and order. `tools/sensor-trace-compare-controls.py` records the actual Python exit of each case in `controls/comparator-controls-result.json` (comparator SHA-256 `d5027336...1165`): the two red controls and
+  a `--skip-samples` variant exit 2; the retained complete pair `--scope run` exits 0 (75 events, 0 differences); a complete probe trace against itself exits 0 (`--scope probe`: 182 events; default scopes: 257);
+  a copy with one run-wide counter changed by one exits 1; a truncated copy, a malformed copy, a missing file and a selection with no events exit 2. The earlier "75 events, 0 differences" in this document was
+  produced by the pre-correction tool on complete files; the corrected tool gives the same result.
 
 ## Unexercised edges (stated, not covered)
 
@@ -138,6 +148,13 @@ Measured, per candidate and per source, the facts a host could answer: the pair'
 signature factor, and (for players) its radar and jammer state, plus visibility (already host-owned). The campaign keeps the source's scan envelope (range, floor, ceiling from its unit database), the
 candidate set, every eligibility filter, the ranking and the engagement. Two properties constrain any extraction: the surface-to-air floor makes that scan **sequence-dependent**
 (hazard 1), and the tolerance draw ties it to a per-source value (hazard 2). No interface, ABI or host callback is designed or implemented here.
+
+**Preconditions the extraction must keep explicit** (recorded, not resolved):
+
+* *Line-of-sight wiring.* The surface-to-air scan reaches `check_entity_line_of_sight`; after EEDCS-42 is incorporated that call is the host-owned `campaign_los_query` dialogue with a required `line_of_sight` host callback and no fallback. The
+  extraction must keep that required entry wired and keep the verdict hook (`EECH_SENSOR_VERDICT_LINE_OF_SIGHT`) on the same decision; the baseline here was measured on the pre-EEDCS-42 solver, so a comparison against it also needs the LOS provider.
+* *Private heap-index RNG provenance.* The tolerance seed is the source entity's heap index (`get_client_server_entity_random_number_seed (EN) = EN - entities`), a private legacy value. It must never appear in a public payload, trace or host
+  message, and no public seed derived from it is introduced; the traces here carry only the draw and the limit. How a stable per-source tolerance is supplied to a host is an extraction decision still to be made.
 
 ## Reproduce
 

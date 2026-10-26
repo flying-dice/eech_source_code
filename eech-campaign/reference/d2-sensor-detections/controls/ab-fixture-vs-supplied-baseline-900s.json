@@ -12,7 +12,7 @@
     "exit": 0,
     "root": "lebanon-ab-fixture, fresh copy, inputs IDENTICAL to reference/lebanon-3h/inputs.json before and after"
   },
-  "supplied_baseline_source": "the lead's independent-ab-comparison-20261026.json (supplied-binary side of the EEDCS-42 900 s comparison); that side was NOT re-run by this lane. Equal hashes from two independent runs also show the command lines are equivalent",
+  "supplied_baseline_source": "the lead's independent-ab-comparison-20261026.json (supplied-binary side of the EEDCS-42 900 s comparison); that side was NOT re-run by this lane",
   "artifacts": [
     {
       "file": "recording.acmi",
@@ -39,5 +39,19 @@
       "match": true
     }
   ],
-  "all_match": true
+  "all_match": true,
+  "configuration_comparison": {
+    "verified_from_retained_records": {
+      "original_command": "recorded in the EEDCS-42 lane's transcript (d2-claude-implement-los.jsonl, 2026-10-26T09:54:18Z): campaign.lua root=<private copy of eech-regression-20261025/roots/lebanon> scenario=lebanon_retail hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 acmi=/observe=/metrics=<its own out dir> observe_supply=0, run with the supplied bin",
+      "fixture_command": "the command above in this file (same arguments, only the output directory and root differ)",
+      "same_scripts": "campaign.lua e5c04cc4aeb17d03fd680e95678aa02ac45c58464a8f27425d0923f8b04952b4, metrics.lua dd28274e..., observations.lua 68527ae6... are byte-identical in the supplied bin and the fixture bin",
+      "seed_and_frame": "neither command passes seed or frame_ms: campaign.lua defaults apply to both (seed 1, frame_ms 100)",
+      "duration": "900 s (hours=0.25), record_every=10, observe_every=60, checkpoint_every=3600, observe_supply=0"
+    },
+    "inferred_not_verified": [
+      "the original run's root was a fresh copy of the bundle's Lebanon root; its manifest was not re-compared by this lane (the fixture root was: IDENTICAL to reference/lebanon-3h/inputs.json before and after)",
+      "nothing is claimed about other scenarios, seeds, durations or observation settings"
+    ],
+    "conclusion": "identical bytes from the verified-equal configuration is the non-perturbation result for this configuration only"
+  }
 }
