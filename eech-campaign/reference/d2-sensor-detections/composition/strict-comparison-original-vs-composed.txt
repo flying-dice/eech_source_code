@@ -1,0 +1,13 @@
+75 events in a, 75 in b, scopes ['run']: 0 differences
+scope run python exit=0
+182 events in a, 182 in b, scopes ['probe']: 0 differences
+scope probe python exit=0
+186 events in a, 186 in b, scopes ['run-at-probe']: 0 differences
+scope run-at-probe python exit=0
+257 events in a, 257 in b, scopes ['probe', 'run']: 0 differences
+default scopes python exit=0
+443 events in a, 443 in b, scopes ['probe', 'run', 'run-at-probe']: 0 differences
+all three scopes python exit=0
+dec1daf01efb5655c5648c2d5acfa5660ab50245ec1fc00456156a69a2e4f753 *d2-sensor-detections/eech-campaign/reference/d2-sensor-detections/traces/lebanon-probe.jsonl
+dec1daf01efb5655c5648c2d5acfa5660ab50245ec1fc00456156a69a2e4f753 *d2-sensor-detections/eech-campaign/reference/d2-sensor-detections/composition/composed-lebanon-probe.jsonl
+d5027336248fab28c588483105cbb478c8b555dc0bdf9c411628001de5a21165 *d2-sensor-detections/eech-campaign/tools/sensor-trace-compare.py

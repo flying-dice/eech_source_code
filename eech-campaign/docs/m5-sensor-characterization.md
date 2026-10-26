@@ -156,6 +156,12 @@ candidate set, every eligibility filter, the ranking and the engagement. Two pro
 * *Private heap-index RNG provenance.* The tolerance seed is the source entity's heap index (`get_client_server_entity_random_number_seed (EN) = EN - entities`), a private legacy value. It must never appear in a public payload, trace or host
   message, and no public seed derived from it is introduced; the traces here carry only the draw and the limit. How a stable per-source tolerance is supplied to a host is an extraction decision still to be made.
 
+## Composition with the host-owned line of sight (development stacking)
+
+The reviewed frozen EEDCS-42 head `a42f1cfad` is merged under the observer (`1fc0cdc62`, then `544debee3`) so the observer can run across the required LOS entry wiring; EEDCS-42 is not accepted and delivery 42 precedes 43. The sensor probe now enters with the complete
+host, and the driver supplies the `line_of_sight` provider. The same 600 s Lebanon witness produced a trace byte-identical to the original one above (same SHA-256, corrected comparator 0 differences on all scopes). Details and limits:
+[`reference/d2-sensor-detections/composition/README.md`](../reference/d2-sensor-detections/composition/README.md). Nothing in this document's formulas or findings changes.
+
 ## Reproduce
 
 From `eech-campaign/` at a clean checkout: `sh tools/build-windows-sensor-fixture.sh target/sensor-fixture/<dir>` (Docker image `eech-build`; the shipping recipe and Dockerfile are untouched), then

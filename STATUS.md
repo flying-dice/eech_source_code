@@ -17,10 +17,21 @@ D1 remains accepted; D2 (EEDCS-18) is active and **incomplete**; D3 has not star
 
 ## Composition stage: observer + host-owned LOS (development stacking only)
 
-Merge of `a42f1cfad` into `f22269490` (the sensor characterisation and comparator-fix head). The ten textual conflicts were resolved by keeping both sides: the `los-fixture`
-and `sensor-fixture` features, defines, FFI and engine entries side by side. The sensor probe entry now takes the complete host (the surface-to-air scan reaches the required `line_of_sight`
-callback) and the sensor driver boots with `line_of_sight = host.line_of_sight`. Build, checks and the exact 600 s witness against the retained original are recorded in later commits;
-until then nothing about this composition is claimed as built or run.
+Merge `1fc0cdc621fc0e643b1b78373c2fa230f8ef20c3` of the reviewed frozen LOS head `a42f1cfad` into `f22269490` (the sensor characterisation and comparator-fix head); then `544debee3`
+(rustfmt line breaks only). Ten textual conflicts resolved by keeping both sides (`los-fixture` and `sensor-fixture` features, defines, FFI and engine entries side by side; `eech_engine.c` edited byte-safely).
+
+* **Entry wiring.** The surface-to-air scan asks the host for line of sight, which exists only inside an `ENTER (..., host)` context. `eech_engine_sensor_probe` now takes and requires the complete host
+  (five callbacks, as a frame), `Engine::sensor_probe` builds it with `with_host`, the Lua `sensor_probe` hands over all five callbacks, and the sensor driver boots with `line_of_sight = host.line_of_sight`.
+  The trace entries run no scan and stay host-less. No fallback; missing or malformed provider semantics are EEDCS-42's, unchanged.
+* **Checks** (cargo's own exits): `544debee3`: `cargo fmt --all --check` 0; clippy 0 for default, all fixtures (dependent+loss+los+sensor), old-guard+sensor, sensor alone. A clean fixture build of `1fc0cdc62`
+  (0 uncommitted inputs, exit 0): `eech_dc.dll` `917fe0f2...7e5c`. `cargo test` not run.
+* **Witness.** One 600 s Lebanon run of that build through the public Lua -> DLL path with the host-owned LOS provider, frame 100 ms, seed 1, probes at 30/300/590, fresh private root (manifest identical before
+  and after), native exit 0: the trace file is **byte-identical** to the retained original (SHA-256 `dec1daf0...f753`); the corrected comparator reports 0 differences, exit 0, for run (75 events), probe (182),
+  run-at-probe (186) and all scopes (443). Physical `d60c462829c9714e`, decision `2611b04d99f5c689`; the run-wide report was unchanged by each probe. Evidence and limits:
+  `eech-campaign/reference/d2-sensor-detections/composition/README.md`.
+* Not claimed: LOS accepted, any sensor predicate moved, a new 900 s or no-probe case, the full pack, D2 or EEDCS-43 complete. The `544debee3` binary differs in hash and was not run.
+* Next (root's): confirm the complete baseline, then the physical sensor extraction in this lane. For that scope the host owns the physical model and the campaign selection/ranking; the heap-index seed stays private
+  (a random draw fact at the original conditional point is allowed, never the seed).
 
 ## Stage: original-behaviour characterisation; evidence-tool correction; no host extraction
 
