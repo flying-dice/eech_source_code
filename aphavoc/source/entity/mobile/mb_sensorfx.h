@@ -99,7 +99,7 @@ extern void eech_sensor_dec_i (int tag, int value);
 extern void eech_sensor_verdict (int verdict);
 extern void eech_sensor_floor (float floor_after, float scan_range, float target_range);
 extern void eech_sensor_floor_factor (float factor);
-extern void eech_sensor_tolerance (entity *source, float floor, float radar_altitude);
+extern void eech_sensor_tolerance (double draw, double limit, float radar_altitude);
 
 #define SENSOR_FX_BEGIN(FUNCTION,SOURCE)		eech_sensor_begin ((FUNCTION), (SOURCE));
 #define SENSOR_FX_END(COUNT,GROUP,SCORE)		eech_sensor_end ((COUNT), (GROUP), (SCORE));
@@ -112,7 +112,7 @@ extern void eech_sensor_tolerance (entity *source, float floor, float radar_alti
 #define SENSOR_FX_VERDICT(VERDICT)				eech_sensor_verdict ((VERDICT));
 #define SENSOR_FX_FLOOR(FLOOR,RANGE,TARGET)	eech_sensor_floor ((FLOOR), (RANGE), (TARGET));
 #define SENSOR_FX_FLOOR_FACTOR(FACTOR)			eech_sensor_floor_factor ((FACTOR));
-#define SENSOR_FX_TOLERANCE(SOURCE,FLOOR,ALT)	eech_sensor_tolerance ((SOURCE), (FLOOR), (ALT));
+#define SENSOR_FX_TOLERANCE(DRAW,LIMIT,ALT)	eech_sensor_tolerance ((DRAW), (LIMIT), (ALT));
 
 #else
 
@@ -127,7 +127,7 @@ extern void eech_sensor_tolerance (entity *source, float floor, float radar_alti
 #define SENSOR_FX_VERDICT(VERDICT)
 #define SENSOR_FX_FLOOR(FLOOR,RANGE,TARGET)
 #define SENSOR_FX_FLOOR_FACTOR(FACTOR)
-#define SENSOR_FX_TOLERANCE(SOURCE,FLOOR,ALT)
+#define SENSOR_FX_TOLERANCE(DRAW,LIMIT,ALT)
 
 #endif
 

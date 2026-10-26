@@ -262,3 +262,63 @@ fn line_of_sight_round_trips_through_lua_and_refuses_what_it_was_not_asked() {
     assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
     assert!(stdout.contains("LINE_OF_SIGHT_HOST=ok"), "{stdout}\n{stderr}");
 }
+
+const SENSE_SCRIPT: &str = "local function refused(step, text)
+  local ok, err = pcall(host.sense, step)
+  assert(not ok and tostring(err):find(text, 1, true), text .. ' / ' .. tostring(err))
+end
+local SRC = { 1000, 100, 2000 }
+-- a surface-to-air scan: the floor, the draw, the signature, the end, over the Lua boundary
+local r = host.sense({ mode = 'begin', scan = 'surface_to_air', source_position = SRC, scan_range = 6000, scan_ceiling = 6000, scan_floor = 18, source_host_id = 'eech-world:1' })
+assert(r.state == 'open' and r.echo and r.echo.ceiling == 6100, 'begin')
+r = host.sense({ mode = 'candidate', scan = 'surface_to_air', target_position = { 4000, 100, 2000 }, target_player = false, radar_altitude = 15, target_host_id = 'eech-world:2' })
+assert(r.state == 'need_draw' and r.target_range == 3000 and r.echo.floor == 9, 'the floor is lowered by the half-range candidate')
+r = host.sense({ mode = 'draw', draw = 0.0 })
+assert(r.state == 'need_signature' and r.echo.tolerance_limit == 9, 'the limit is floor * (1 + 0.5 * draw)')
+r = host.sense({ mode = 'signature', scan = 'surface_to_air', helicopter = { weapon_bay_closed = false, stub_wings_attached = true, undercarriage_up = false } })
+assert(r.state == 'accept' and r.target_range == 3000 and r.echo.stealth_factor == 1, 'accepted')
+-- the next candidate meets the lowered floor
+r = host.sense({ mode = 'candidate', scan = 'surface_to_air', target_position = { 7000, 100, 2000 }, target_player = false, radar_altitude = 8 })
+assert(r.state == 'reject' and r.reason == 'altitude' and r.echo.floor == 9, 'the floor stayed lowered')
+r = host.sense({ mode = 'end' })
+assert(r.state == 'closed', 'end')
+-- an aircraft scan rejects with its reason
+host.sense({ mode = 'begin', scan = 'air_to_surface', source_position = SRC, scan_range = 4000 })
+r = host.sense({ mode = 'candidate', scan = 'air_to_surface', target_position = { 5001, 0, 2000 }, target_player = false })
+assert(r.state == 'reject' and r.reason == 'range' and r.target_range > 16000000, 'out of range')
+host.sense({ mode = 'end' })
+-- malformed messages
+refused({ mode = 'glide' }, 'unknown mode')
+refused({ mode = 'begin', scan = 'sideways', source_position = SRC, scan_range = 1 }, 'unknown scan')
+refused({ mode = 'begin', scan = 'air_to_air', source_position = { 0, 0 }, scan_range = 1 }, 'source_position must be 3 finite numbers')
+refused({ mode = 'begin', scan = 'air_to_air', source_position = SRC, scan_range = 0 / 0 }, 'scan_range must be a finite number')
+refused({ mode = 'begin', scan = 'air_to_air', source_position = SRC, scan_range = 1, source_host_id = '' }, 'source_host_id must be 1 to 128 bytes')
+host.sense({ mode = 'begin', scan = 'surface_to_air', source_position = SRC, scan_range = 6000, scan_ceiling = 6000, scan_floor = 18 })
+refused({ mode = 'candidate', scan = 'surface_to_air', target_position = SRC, target_player = 1, radar_altitude = 1 }, 'target_player must be a boolean')
+refused({ mode = 'candidate', scan = 'surface_to_air', target_position = SRC, target_player = true, radar_altitude = 1 }, 'difficulty factor')
+refused({ mode = 'candidate', scan = 'surface_to_air', target_position = SRC, target_player = false, radar_altitude = 1 / 0 }, 'radar_altitude must be a finite number')
+refused({ mode = 'candidate', scan = 'air_to_air', target_position = SRC, target_player = false }, 'arrived in a scan of kind')
+refused({ mode = 'draw', draw = 0.5 }, 'none was asked for')
+refused({ mode = 'signature', scan = 'surface_to_air' }, 'none was asked for')
+host.sense({ mode = 'candidate', scan = 'surface_to_air', target_position = { 7000, 100, 2000 }, target_player = false, radar_altitude = 25 })
+refused({ mode = 'draw', draw = 1.5 }, 'draw')
+refused({ mode = 'signature', scan = 'surface_to_air', emitters = { radar_on = 1 } }, 'radar_on must be a boolean')
+r = host.sense({ mode = 'draw', draw = 1.0 })
+assert(r.state == 'reject' and r.reason == 'tolerance', 'the refused answers changed nothing')
+host.sense({ mode = 'end' })
+refused({ mode = 'end' }, 'none open')
+print('SENSE_HOST=ok')
+";
+
+#[test]
+fn sense_round_trips_through_lua_and_refuses_what_it_was_not_asked() {
+    let script = std::env::temp_dir().join(format!("eech-world-sense-{}.lua", std::process::id()));
+    std::fs::write(&script, SENSE_SCRIPT).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("SENSE_HOST=ok"), "{stdout}\n{stderr}");
+}

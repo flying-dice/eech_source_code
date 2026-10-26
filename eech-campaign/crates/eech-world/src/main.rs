@@ -14,6 +14,7 @@ use eech_world::movement::{
     HelicopterEnd, HelicopterGuide, HelicopterPlan, HelicopterSteer, HelicopterStructure, HelicopterTerrainSample, HelicopterWaypointKind, Kind, Lifecycle,
     LifecycleMode, Movers, NavigationMember, Outcome, PersonBegin, PersonEnd, Pose, Request, ShipMove, Terrain,
 };
+use eech_world::sense::{self, Sense};
 use eech_world::tacview::{ObjectInfo, Recorder};
 use mlua::prelude::*;
 use std::cell::{Cell, RefCell};
@@ -1263,6 +1264,148 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         result.set("state", "done")?;
                         result.set("visible", visible)?;
                     }
+                }
+                Ok(result)
+            })?,
+        )?;
+    }
+    {
+        let sense = Rc::new(RefCell::new(Sense::new()));
+        host.set(
+            "sense",
+            lua.create_function(move |lua, step: LuaTable| {
+                let fail = |message: String| LuaError::runtime(format!("host.sense: {message}"));
+                let mode: String = step.get("mode")?;
+                let kind_of = |name: &str| -> LuaResult<i32> {
+                    match step.get::<LuaValue>("scan")? {
+                        LuaValue::String(scan) => match &*scan.to_str()? {
+                            "air_to_air" => Ok(sense::SCAN_AIR_TO_AIR),
+                            "air_to_surface" => Ok(sense::SCAN_AIR_TO_SURFACE),
+                            "surface_to_air" => Ok(sense::SCAN_SURFACE_TO_AIR),
+                            "surface_to_surface" => Ok(sense::SCAN_SURFACE_TO_SURFACE),
+                            other => Err(fail(format!("unknown scan {other:?} in a {name} message"))),
+                        },
+                        other => Err(fail(format!("scan must be a string, got {}", other.type_name()))),
+                    }
+                };
+                let flag = |table: &LuaTable, name: &str| -> LuaResult<bool> {
+                    match table.get::<LuaValue>(name)? {
+                        LuaValue::Boolean(value) => Ok(value),
+                        other => Err(fail(format!("{name} must be a boolean, got {}", other.type_name()))),
+                    }
+                };
+                // the identities are the host's own, passed through; they are checked for shape only (a host that owns the world uses them to find its units)
+                let check_id = |name: &str| -> LuaResult<()> {
+                    match step.get::<LuaValue>(name)? {
+                        LuaValue::Nil => Ok(()),
+                        LuaValue::String(id) => {
+                            let id = id.to_str()?;
+                            if id.is_empty() || id.len() > 128 {
+                                return Err(fail(format!("{name} must be 1 to 128 bytes")));
+                            }
+                            Ok(())
+                        }
+                        other => Err(fail(format!("{name} must be a string, got {}", other.type_name()))),
+                    }
+                };
+                let answer = match mode.as_str() {
+                    "begin" => {
+                        let kind = kind_of("begin")?;
+                        check_id("source_host_id")?;
+                        let source = exact_numbers::<3>(lua, &step, "source_position").map_err(fail)?;
+                        let [scan_range] = exact_numbers::<1>(lua, &step, "scan_range").map_err(fail)?;
+                        let (ceiling, floor) = if kind == sense::SCAN_SURFACE_TO_AIR {
+                            (
+                                exact_numbers::<1>(lua, &step, "scan_ceiling").map_err(fail)?[0],
+                                exact_numbers::<1>(lua, &step, "scan_floor").map_err(fail)?[0],
+                            )
+                        } else {
+                            (0.0, 0.0)
+                        };
+                        sense.borrow_mut().begin(kind, source, scan_range, ceiling, floor)
+                    }
+                    "candidate" => {
+                        let kind = kind_of("candidate")?;
+                        check_id("target_host_id")?;
+                        let target = exact_numbers::<3>(lua, &step, "target_position").map_err(fail)?;
+                        let player = flag(&step, "target_player")?;
+                        let difficulty = match step.get::<LuaValue>("difficulty_factor")? {
+                            LuaValue::Nil => None,
+                            _ => Some(exact_numbers::<1>(lua, &step, "difficulty_factor").map_err(fail)?[0]),
+                        };
+                        if kind == sense::SCAN_SURFACE_TO_AIR && player != difficulty.is_some() {
+                            return Err(fail("a human-flown target carries a difficulty factor, and only it".into()));
+                        }
+                        let radar_altitude = if kind == sense::SCAN_SURFACE_TO_AIR {
+                            exact_numbers::<1>(lua, &step, "radar_altitude").map_err(fail)?[0]
+                        } else {
+                            0.0
+                        };
+                        sense.borrow_mut().candidate(kind, target, difficulty, radar_altitude)
+                    }
+                    "draw" => {
+                        let [draw] = exact_f64s::<1>(lua, &step, "draw").map_err(fail)?;
+                        sense.borrow_mut().draw(draw)
+                    }
+                    "signature" => {
+                        let emitters = match step.get::<LuaValue>("emitters")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Table(table) => Some((
+                                flag(&table, "radar_on")?,
+                                flag(&table, "radar_jammer_on")?,
+                                flag(&table, "infra_red_jammer_on")?,
+                            )),
+                            other => return Err(fail(format!("emitters must be a table, got {}", other.type_name()))),
+                        };
+                        let helicopter = match step.get::<LuaValue>("helicopter")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Table(table) => Some((
+                                flag(&table, "weapon_bay_closed")?,
+                                flag(&table, "stub_wings_attached")?,
+                                flag(&table, "undercarriage_up")?,
+                            )),
+                            other => return Err(fail(format!("helicopter must be a table, got {}", other.type_name()))),
+                        };
+                        sense.borrow_mut().signature(emitters, helicopter)
+                    }
+                    "end" => sense.borrow_mut().end(),
+                    other => return Err(fail(format!("unknown mode {other:?}"))),
+                }
+                .map_err(fail)?;
+                let result = lua.create_table()?;
+                let state = match answer.state {
+                    sense::State::Open => "open",
+                    sense::State::Accept => "accept",
+                    sense::State::Reject(reason) => {
+                        result.set(
+                            "reason",
+                            match reason {
+                                sense::Reason::Range => "range",
+                                sense::Reason::RangeAdjusted => "range_adjusted",
+                                sense::Reason::Altitude => "altitude",
+                                sense::Reason::Tolerance => "tolerance",
+                            },
+                        )?;
+                        "reject"
+                    }
+                    sense::State::NeedDraw => "need_draw",
+                    sense::State::NeedSignature => "need_signature",
+                    sense::State::Closed => "closed",
+                };
+                result.set("state", state)?;
+                if let Some(range) = answer.target_range {
+                    result.set("target_range", range)?;
+                }
+                if let Some(echo) = answer.echo {
+                    // the reference host's intermediate values, for the campaign build that records a trace; a campaign without that feature ignores them
+                    let table = lua.create_table()?;
+                    table.set("ceiling", echo.ceiling)?;
+                    table.set("floor", echo.floor)?;
+                    table.set("adjusted_range", echo.adjusted_range)?;
+                    table.set("stealth_factor", echo.stealth_factor)?;
+                    table.set("stealth_limit", echo.stealth_limit)?;
+                    table.set("tolerance_limit", echo.tolerance_limit)?;
+                    result.set("echo", table)?;
                 }
                 Ok(result)
             })?,

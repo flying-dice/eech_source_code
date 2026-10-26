@@ -508,22 +508,18 @@ void eech_sensor_floor_factor (float factor)
 }
 
 /*
- * The random tolerance of vh_tgt.c: the original draws frand1x (&seed) from a local seed that is the source's heap slot, so the draw is
- * a fixed value per source, the same for every candidate of every scan by that source. The hook repeats the draw on its own copy
- * and folds the draw and the limit; it never reports the seed.
+ * The random tolerance (EEDCS-43): the campaign takes the draw from its private source-derived generator at the point the original scan took
+ * it (after the altitude test) and the host builds the limit (floor * (1 + 0.5 * draw)); the hook folds both. `tolerance_pending` is the
+ * outcome the limit implies for this radar altitude, which the host's own verdict must agree with (checked in eech_sensor_verdict).
+ * The draw is a fixed number per source; the seed behind it is the source's heap slot and is never reported.
  */
-void eech_sensor_tolerance (entity *source, float floor, float radar_altitude)
+void eech_sensor_tolerance (double draw, double limit, float radar_altitude)
 {
 	struct sensor_trace *trace = ready ();
-	int seed;
-	double draw, limit;
 	if (!cur.active)
 	{
 		return;
 	}
-	seed = get_client_server_entity_random_number_seed (source);
-	draw = frand1x (&seed);
-	limit = floor * (1.0 + (0.5 * draw));
 	fold_double (&trace->physical_hash, draw);
 	fold_double (&trace->physical_hash, limit);
 	text_append (cur.text, sizeof (cur.text), " tolerance_draw=%.17g tolerance_limit=%.17g", draw, limit);

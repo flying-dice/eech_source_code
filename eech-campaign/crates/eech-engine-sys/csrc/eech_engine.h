@@ -17,6 +17,7 @@
 #include "entity/special/guide/gd_supply_arrival.h"
 #include "entity/mobile/vehicle/routed/rv_hostmv.h"
 #include "entity/mobile/mb_hostlos.h"
+#include "entity/mobile/mb_hostsense.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -64,6 +65,7 @@ typedef campaign_movement_step eech_movement_step;
 typedef campaign_movement_result eech_movement_result;
 typedef campaign_move_vehicle_fn eech_move_vehicle_callback;
 typedef campaign_los_fn eech_line_of_sight_callback;
+typedef campaign_sense_fn eech_sense_callback;
 
 struct eech_engine_host
 {
@@ -77,6 +79,8 @@ struct eech_engine_host
 	eech_move_vehicle_callback move_vehicle;
 	/* Called synchronously for each host-owned line-of-sight query (mb_hostlos.h): the host owns the calculation and asks for one terrain elevation or one object-ray answer at a time, or answers directly. */
 	eech_line_of_sight_callback line_of_sight;
+	/* Called synchronously for each host-owned physical sensing exchange of an AI target scan (mb_hostsense.h): the host owns the range, envelope, tolerance, signature and emitter physics and the state a scan keeps between candidates. */
+	eech_sense_callback sense;
 	void *user;
 };
 

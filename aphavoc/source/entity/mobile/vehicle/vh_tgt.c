@@ -67,6 +67,7 @@
 #include "project.h"
 #include "ai/taskgen/engage.h"
 #include "entity/mobile/mb_sensorfx.h"
+#include "entity/mobile/mb_hostsense.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -87,7 +88,6 @@
 
 static void vehicle_target_scan (entity *en);
 
-static float get_scan_floor_difficulty_factor (entity *en);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -452,8 +452,7 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 		x_sec_max,
 		z_sec_max,
 		x_sec,
-		z_sec,
-		seed;
+		z_sec;
 
 	int
 		debug = FALSE;
@@ -478,7 +477,6 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 		source_air_scan_floor,
 		source_air_scan_ceiling,
 		target_range,
-		target_radar_altitude,
 		target_select_criteria,
 		best_target_select_criteria,
 		weighting;
@@ -536,15 +534,13 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 
 		source_position = get_local_entity_vec3d_ptr (source, VEC3D_TYPE_POSITION);
 
-		SENSOR_FX_F (EECH_SENSOR_TAG_SOURCE_X, source_position->x)
-		SENSOR_FX_F (EECH_SENSOR_TAG_SOURCE_Y, source_position->y)
-		SENSOR_FX_F (EECH_SENSOR_TAG_SOURCE_Z, source_position->z)
-		SENSOR_FX_F (EECH_SENSOR_TAG_SCAN_RANGE, source_air_scan_range)
-		SENSOR_FX_F (EECH_SENSOR_TAG_SCAN_FLOOR_INITIAL, source_air_scan_floor)
+		//
+		// the host owns what the group's sensor perceives (EEDCS-43): the envelope's ceiling (the group's raw ceiling plus the source's own
+		// altitude), the floor that falls as candidates are asked about, the random tolerance, the stealth and emitter adjustment and the range.
+		// The unit database figures are its facts; the campaign keeps the candidates, their order, line of sight and the ranking.
+		//
 
-		source_air_scan_ceiling += source_position->y;
-
-		SENSOR_FX_F (EECH_SENSOR_TAG_SCAN_CEILING, source_air_scan_ceiling)
+		campaign_sense_begin (CAMPAIGN_SENSE_SURFACE_TO_AIR, source, source_position, source_air_scan_range, source_air_scan_ceiling, source_air_scan_floor);
 
 		source_side = (entity_sides) get_local_entity_int_value (source, INT_TYPE_SIDE);
 
@@ -667,93 +663,14 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 
 						target_position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
 
-						target_range = get_approx_3d_range (source_position, target_position);
-
-						SENSOR_FX_CANDIDATE ()
-						SENSOR_FX_F (EECH_SENSOR_TAG_TARGET_RANGE, target_range)
-						SENSOR_FX_I (EECH_SENSOR_TAG_TARGET_PLAYER, get_local_entity_int_value (target, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-
 						//
-						// Check target altitude
+						// the physical predicates, in the order the original scan applied them, are the host's; the cumulative lowering of the floor
+						// by every candidate asked about, whether or not it is detected, is its state
 						//
 
-						// DECREASE SCAN FLOOR FOR CLOSE TARGETS
-						source_air_scan_floor *= bound(target_range / source_air_scan_range, 0.1, 1.0);
-
-						if (get_local_entity_int_value (target, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
+						if (!campaign_sense_candidate (source, target, target_position, &target_range))
 						{
-							source_air_scan_floor *= get_scan_floor_difficulty_factor (target);
-
-							SENSOR_FX_FLOOR_FACTOR (get_scan_floor_difficulty_factor (target))
-						}
-
-						SENSOR_FX_FLOOR (source_air_scan_floor, source_air_scan_range, target_range)
-
-						target_radar_altitude = get_local_entity_float_value (target, FLOAT_TYPE_RADAR_ALTITUDE);
-
-						SENSOR_FX_F (EECH_SENSOR_TAG_RADAR_ALTITUDE, target_radar_altitude)
-
-						if ((target_radar_altitude < source_air_scan_floor) || (target_radar_altitude > source_air_scan_ceiling))
-						{
-							SENSOR_FX_VERDICT (EECH_SENSOR_VERDICT_ALTITUDE)
-
 							continue;
-						}
-
-						//
-						// allow for random tolerance
-						//
-
-						seed = get_client_server_entity_random_number_seed (source);
-
-						SENSOR_FX_TOLERANCE (source, source_air_scan_floor, target_radar_altitude)
-
-						if (target_radar_altitude < (source_air_scan_floor * (1.0 + (0.5 * frand1x (&seed)))))
-						{
-							SENSOR_FX_VERDICT (EECH_SENSOR_VERDICT_TOLERANCE)
-
-							continue;
-						}
-
-						//
-						// adjust range if target is player - each jammer / radar turned off allows player to fly 10% closer
-						//
-						{
-							float
-								adj_range;
-
-							adj_range = target_range;
-
-							if (get_local_entity_int_value (target, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-							{
-								if (!get_local_entity_int_value (target, INT_TYPE_RADAR_ON))
-								{
-									adj_range *= 1.1;
-								}
-								if (!get_local_entity_int_value (target, INT_TYPE_RADAR_JAMMER_ON))
-								{
-									adj_range *= 1.1;
-								}
-								if (!get_local_entity_int_value (target, INT_TYPE_INFRA_RED_JAMMER_ON))
-								{
-									adj_range *= 1.1;
-								}
-
-								SENSOR_FX_I (EECH_SENSOR_TAG_RADAR_ON, get_local_entity_int_value (target, INT_TYPE_RADAR_ON))
-								SENSOR_FX_I (EECH_SENSOR_TAG_RADAR_JAMMER_ON, get_local_entity_int_value (target, INT_TYPE_RADAR_JAMMER_ON))
-								SENSOR_FX_I (EECH_SENSOR_TAG_INFRA_RED_JAMMER_ON, get_local_entity_int_value (target, INT_TYPE_INFRA_RED_JAMMER_ON))
-							}
-
-							SENSOR_FX_F (EECH_SENSOR_TAG_ADJUSTED_RANGE, adj_range)
-							SENSOR_FX_F (EECH_SENSOR_TAG_STEALTH_FACTOR, get_local_entity_float_value (target, FLOAT_TYPE_RADAR_STEALTH_FACTOR))
-							SENSOR_FX_F (EECH_SENSOR_TAG_STEALTH_LIMIT, source_air_scan_range * get_local_entity_float_value (target, FLOAT_TYPE_RADAR_STEALTH_FACTOR))
-
-							if (adj_range > (source_air_scan_range * get_local_entity_float_value (target, FLOAT_TYPE_RADAR_STEALTH_FACTOR)))
-							{
-								SENSOR_FX_VERDICT (EECH_SENSOR_VERDICT_RANGE_ADJUSTED)
-
-								continue;
-							}
 						}
 
 						(*target_count) ++;
@@ -863,6 +780,8 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 				}
 			}
 		}
+
+		campaign_sense_end ();
 	}
 	else if (debug)
 	{
@@ -968,6 +887,8 @@ entity *get_vehicle_surface_to_surface_scan_group_targets (entity *source, int *
 		SENSOR_FX_F (EECH_SENSOR_TAG_SOURCE_Y, source_position->y)
 		SENSOR_FX_F (EECH_SENSOR_TAG_SOURCE_Z, source_position->z)
 		SENSOR_FX_F (EECH_SENSOR_TAG_SCAN_RANGE, source_surface_scan_range)
+
+		campaign_sense_begin (CAMPAIGN_SENSE_SURFACE_TO_SURFACE, source, source_position, source_surface_scan_range, 0.0, 0.0);
 
 		source_side = (entity_sides) get_local_entity_int_value (source, INT_TYPE_SIDE);
 
@@ -1106,19 +1027,10 @@ entity *get_vehicle_surface_to_surface_scan_group_targets (entity *source, int *
 
 						target_position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
 
-						target_range = get_approx_3d_range (source_position, target_position);
-
-						SENSOR_FX_CANDIDATE ()
-						SENSOR_FX_F (EECH_SENSOR_TAG_TARGET_RANGE, target_range)
-
-						if (target_range > source_surface_scan_range)
+						if (!campaign_sense_candidate (source, target, target_position, &target_range))
 						{
-							SENSOR_FX_VERDICT (EECH_SENSOR_VERDICT_RANGE)
-
 							continue;
 						}
-
-						SENSOR_FX_VERDICT (EECH_SENSOR_VERDICT_ACCEPT)
 
 						////////////////////////////////////////
 						//
@@ -1196,6 +1108,8 @@ entity *get_vehicle_surface_to_surface_scan_group_targets (entity *source, int *
 				}
 			}
 		}
+
+		campaign_sense_end ();
 	}
 	else if (debug)
 	{

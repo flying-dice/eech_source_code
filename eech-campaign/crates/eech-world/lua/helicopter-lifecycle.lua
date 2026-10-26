@@ -170,6 +170,7 @@ local config = {
 	observe_loss = observe_loss,
 	supply_reached = reference_reached,
 	line_of_sight = host.line_of_sight,
+	sense = host.sense,
 }
 local engine = dc.boot (config)
 

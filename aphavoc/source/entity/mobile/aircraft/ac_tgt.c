@@ -69,6 +69,7 @@
 #include "ai/highlevl/highlevl.h"
 #include "ai/taskgen/engage.h"
 #include "entity/mobile/mb_sensorfx.h"
+#include "entity/mobile/mb_hostsense.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -396,6 +397,16 @@ entity *get_aircraft_air_to_surface_scan_group_targets (entity *source, int *tar
 	SENSOR_FX_F (EECH_SENSOR_TAG_SOURCE_Z, source_position->z)
 	SENSOR_FX_F (EECH_SENSOR_TAG_SCAN_RANGE, source_surface_scan_range)
 
+	//
+	// the host owns what this sensor perceives (range test, EEDCS-43); the raw scan range is its fact
+	//
+
+	campaign_sense_begin (CAMPAIGN_SENSE_AIR_TO_SURFACE, source, source_position, source_surface_scan_range, 0.0, 0.0);
+
+	//
+	// the candidate enumeration below squares the range before the sector bounds (a long-standing campaign quirk, kept as it was)
+	//
+
 	source_surface_scan_range *= source_surface_scan_range;
 
 	SENSOR_FX_F (EECH_SENSOR_TAG_SCAN_RANGE_SQUARED, source_surface_scan_range)
@@ -521,19 +532,10 @@ entity *get_aircraft_air_to_surface_scan_group_targets (entity *source, int *tar
 
 					target_position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
 
-					target_range = get_sqr_2d_range (source_position, target_position);
-
-					SENSOR_FX_CANDIDATE ()
-					SENSOR_FX_F (EECH_SENSOR_TAG_TARGET_RANGE, target_range)
-
-					if (target_range > source_surface_scan_range)
+					if (!campaign_sense_candidate (source, target, target_position, &target_range))
 					{
-						SENSOR_FX_VERDICT (EECH_SENSOR_VERDICT_RANGE)
-
 						continue;
 					}
-
-					SENSOR_FX_VERDICT (EECH_SENSOR_VERDICT_ACCEPT)
 
 					(*target_count) ++;
 
@@ -572,6 +574,8 @@ entity *get_aircraft_air_to_surface_scan_group_targets (entity *source, int *tar
 			}
 		}
 	}
+
+	campaign_sense_end ();
 
 	SENSOR_FX_END (*target_count, best_group, best_target_result)
 
@@ -648,6 +652,17 @@ entity *get_aircraft_air_to_air_scan_group_targets (entity *source, int *target_
 	SENSOR_FX_F (EECH_SENSOR_TAG_SOURCE_Y, source_position->y)
 	SENSOR_FX_F (EECH_SENSOR_TAG_SOURCE_Z, source_position->z)
 	SENSOR_FX_F (EECH_SENSOR_TAG_SCAN_RANGE, source_air_scan_range)
+
+	//
+	// the host owns what this sensor perceives (squared range, emitter and stealth adjustment, EEDCS-43); the raw scan range is its fact
+	//
+
+	campaign_sense_begin (CAMPAIGN_SENSE_AIR_TO_AIR, source, source_position, source_air_scan_range, 0.0, 0.0);
+
+	//
+	// the candidate enumeration below squares the range before the sector bounds (a long-standing campaign quirk, kept as it was, including
+	// the empty rectangle a range above about 46 km gives)
+	//
 
 	source_air_scan_range *= source_air_scan_range;
 
@@ -758,54 +773,10 @@ entity *get_aircraft_air_to_air_scan_group_targets (entity *source, int *target_
 
 					target_position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
 
-					target_range = get_sqr_2d_range (source_position, target_position);
-
-					SENSOR_FX_CANDIDATE ()
-					SENSOR_FX_F (EECH_SENSOR_TAG_TARGET_RANGE, target_range)
-					SENSOR_FX_I (EECH_SENSOR_TAG_TARGET_PLAYER, get_local_entity_int_value (target, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-
-					//
-					// adjust range if target is player - each jammer / radar turned off allows player to fly 10% closer
-					//
+					if (!campaign_sense_candidate (source, target, target_position, &target_range))
 					{
-						float
-							adj_range;
-
-						adj_range = target_range;
-
-						if (get_local_entity_int_value (target, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-						{
-							if (!get_local_entity_int_value (target, INT_TYPE_RADAR_ON))
-							{
-								adj_range *= 1.1;
-							}
-							if (!get_local_entity_int_value (target, INT_TYPE_RADAR_JAMMER_ON))
-							{
-								adj_range *= 1.1;
-							}
-							if (!get_local_entity_int_value (target, INT_TYPE_INFRA_RED_JAMMER_ON))
-							{
-								adj_range *= 1.1;
-							}
-
-							SENSOR_FX_I (EECH_SENSOR_TAG_RADAR_ON, get_local_entity_int_value (target, INT_TYPE_RADAR_ON))
-							SENSOR_FX_I (EECH_SENSOR_TAG_RADAR_JAMMER_ON, get_local_entity_int_value (target, INT_TYPE_RADAR_JAMMER_ON))
-							SENSOR_FX_I (EECH_SENSOR_TAG_INFRA_RED_JAMMER_ON, get_local_entity_int_value (target, INT_TYPE_INFRA_RED_JAMMER_ON))
-						}
-
-						SENSOR_FX_F (EECH_SENSOR_TAG_ADJUSTED_RANGE, adj_range)
-						SENSOR_FX_F (EECH_SENSOR_TAG_STEALTH_FACTOR, get_local_entity_float_value (target, FLOAT_TYPE_RADAR_STEALTH_FACTOR))
-						SENSOR_FX_F (EECH_SENSOR_TAG_STEALTH_LIMIT, source_air_scan_range * get_local_entity_float_value (target, FLOAT_TYPE_RADAR_STEALTH_FACTOR))
-
-						if (adj_range > (source_air_scan_range * get_local_entity_float_value (target, FLOAT_TYPE_RADAR_STEALTH_FACTOR)))
-						{
-							SENSOR_FX_VERDICT (EECH_SENSOR_VERDICT_RANGE_ADJUSTED)
-
-							continue;
-						}
+						continue;
 					}
-
-					SENSOR_FX_VERDICT (EECH_SENSOR_VERDICT_ACCEPT)
 
 					(*target_count) ++;
 
@@ -844,6 +815,8 @@ entity *get_aircraft_air_to_air_scan_group_targets (entity *source, int *target_
 			}
 		}
 	}
+
+	campaign_sense_end ();
 
 	SENSOR_FX_END (*target_count, best_group, best_target_result)
 
