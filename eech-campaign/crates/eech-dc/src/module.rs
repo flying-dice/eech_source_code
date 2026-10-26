@@ -569,7 +569,9 @@ impl LuaUserData for LuaEngine {
             let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
             let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
             let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
-            this.engine.sensor_probe(&mut binder, &mut observer, &mut reach, &mut mover, &mut sighter).map_err(lua_error)
+            this.engine
+                .sensor_probe(&mut binder, &mut observer, &mut reach, &mut mover, &mut sighter)
+                .map_err(lua_error)
         });
         // TEST-ONLY (feature `dependent-fixture`, EEDCS-40): not part of the shipping module.
         #[cfg(feature = "dependent-fixture")]

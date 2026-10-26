@@ -2459,9 +2459,14 @@ impl Engine {
     {
         let mut text = vec![0 as std::os::raw::c_char; SENSOR_REPORT_CAPACITY];
         // SAFETY: the buffer and the temporary host callback outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
-        with_host(bind_mobile_fn, observe_loss_fn, supply_reached_fn, move_vehicle_fn, line_of_sight_fn, |host| unsafe {
-            sys::eech_engine_sensor_probe(text.as_mut_ptr(), text.len() as i32, host)
-        })?;
+        with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            |host| unsafe { sys::eech_engine_sensor_probe(text.as_mut_ptr(), text.len() as i32, host) },
+        )?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
