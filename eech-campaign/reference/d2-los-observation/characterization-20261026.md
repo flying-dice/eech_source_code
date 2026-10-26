@@ -36,10 +36,14 @@ the lead is running separately and which remains a required gate).
 - **Probe coverage.** Each probe takes 3 live opposed pairs (ground vehicle to ground vehicle, helicopter to ground vehicle, air
   defence to helicopter): 500 position queries plus 16 entity-form queries (8 masks, both ways round) = 516 queries each, none
   skipped. **The probes at 30 s and at 300 s chose the same pairs and returned identical hashes** (the units had not moved), so
-  the six probes are 3 distinct sweeps (1,548 distinct queries), not 6. Every non-trivial mask returned both visible and blocked
-  answers on each pair, and mask `0` (NONE) was always visible (67/67, 74/74), so the sweep discriminates. The object phases block
-  rarely. Lebanon, per pair: mask `16` (target-end objects) blocked 0 of 62, 0 of 62 and 2 of 67; mask `8` (source-end objects)
-  blocked 3 of 77, 0 of 63 and 3 of 70. Georgia: mask `16` blocked 0, 0 and 7; mask `8` blocked 0, 0 and 8. The probe never uses a
+  the six probes are 3 distinct sweeps (1,548 distinct queries), not 6. Mask `0` (NONE) was always visible (67/67, 74/74). On
+  every pair the terrain masks (`1`, `2`, `4`, `7`) and ALL (`31`) returned both visible and blocked answers, so the terrain phases
+  and the combined mask are exercised in both outcomes on all three pairs per map. The object-only masks are weaker: they block
+  rarely and **not on every pair**. Lebanon, per pair: mask `16` (target-end objects) blocked 0 of 62, 0 of 62 and 2 of 67, so only
+  the third pair ever blocked; mask `8` (source-end objects) blocked 3 of 77, 0 of 63 and 3 of 70, so the second pair never did.
+  Georgia: mask `16` blocked 0, 0 and 7 and mask `8` blocked 0, 0 and 8, so only the third pair blocked for either. Whether any probe hit fell within the 12 m target-end
+  exclusion distance was not recorded, so that exclusion is not designed probe coverage; it is covered by the focused kernel contracts
+  instead (`los.rs`). The probe never uses a
   fixed-wing, ship or person as source or target (the driver takes the first three pair kinds), and does not probe a zero-length
   segment or a weapon target.
 - **Call kinds (fixture B, Lebanon, 600 s; `traces/lebanon-kinds.los-kinds-final-block.txt`).** Every source is a host-identified

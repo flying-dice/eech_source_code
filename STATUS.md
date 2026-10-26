@@ -209,3 +209,16 @@ then begin the extraction.
   mask only (no entity identity while collision stays in the DLL), the host-owned coarse and fine terrain arithmetic in C
   beside `hc_step.c`, the DLL answering terrain and collision lookups in the original order; candidate checked by the same fold
   hash, probe and a blocking-versus-clear host change of weapon choice.
+
+### Update 26 October 2026, LOS extraction candidate (implementation lane)
+
+- The physical line-of-sight calculation is moved behind a required host callback: `a7863a73fa8bfba56cfa6bac4bb1602e9b9b88eb` (code and tests; the evidence
+  commit that follows records the results). Kernel in `eech-world/csrc/los_step.c`, dialogue in `mb_hostlos.[ch]`, record in `docs/m5-los-observation.md`.
+  Policy callers are untouched; terrain (D3) and object collision (D5) stay the campaign's declared coupling.
+- Original lookup transcript frozen first (source `1387331fd`, `original-transcript/`). After the move the 40 s trace is byte-identical (fixture candidate `becb9d5d...`);
+  600 s Lebanon and Georgia probes and run totals equal; a 900 s whole-campaign comparison against the supplied baseline binaries is byte-identical in Tacview, observations
+  and metrics (about +6% wall). Causal runs: blocked / reference / clear host give 4 / 6 / 15 losses; missing and six malformed providers fail clearly.
+- Shipping candidate built (not the lead's final build): `eech_dc.dll` `37502d73...6c86`, `eech-world.exe` `d280f2cb...5f47`, source `a7863a73f`, rustc 1.99.1, MinGW gcc 12-posix.
+  fmt, clippy (default and fixture features) and tests exit 0. Symbol check: no solver in `mb_tgt.o` or the DLL; kernel only in `eech-world.exe`.
+- Pending, the lead's: final shipping build, the established pack with complete-file comparison against the baseline run, one independent review, normal merge and Jira/ledger.
+  Not claimed here: M6 live DCS operation, D3-D5.

@@ -27,3 +27,12 @@ campaign). Not run: any characterisation, any campaign, `cargo test`, the pack.
   --all-targets -- -D warnings`, `Finished` from cache). This settles the earlier pipe ambiguity.
 - `fixture-B-BUILD-INFO.txt`: fixture B (commit `ee7f6f79b`, entity-kind counters), same image and toolchain.
 - `characterization-20261026.md`, `traces/`, `controls/`: the characterisation of the unchanged solver, results and limits.
+
+## Update 26 Oct 2026: extraction evidence
+
+`original-transcript/` freezes the original solver's lookup transcript (source `1387331fd`); `extraction/` holds the candidate's results: traces
+(40 s byte-identical to the frozen original; 600 s Lebanon and Georgia equal on every compared field), the provider causal and failure runs, the
+900 s whole-campaign byte comparison against the supplied baseline binaries, the symbol check, build identities and check tails. The account, limits
+and costs are in [`docs/m5-los-observation.md`](../../docs/m5-los-observation.md). Build identity note: BUILD-INFO's `image:` line varied between builds
+(`16cfd029...`, `0522090f...`, `808f97a0...`) although the repository image in the WSL store was created once (08:10:12 UTC) and not rebuilt; the local store reports its id
+inconsistently, so the identity is the Dockerfile and the toolchain versions recorded in each BUILD-INFO.
