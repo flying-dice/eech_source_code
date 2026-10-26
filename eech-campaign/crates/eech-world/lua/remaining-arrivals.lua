@@ -170,6 +170,7 @@ local engine = dc.boot {
 	bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle,
 	observe_loss = watch_loss,
 	supply_reached = supply_reached,
+	line_of_sight = host.line_of_sight,
 }
 
 for _ = 1, frames do

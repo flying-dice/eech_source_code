@@ -169,6 +169,7 @@ local config = {
 	move_vehicle = move_vehicle,
 	observe_loss = observe_loss,
 	supply_reached = reference_reached,
+	line_of_sight = host.line_of_sight,
 }
 local engine = dc.boot (config)
 

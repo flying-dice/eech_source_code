@@ -193,6 +193,7 @@ aphavoc/source/entity/mobile/cargo/cg_updt.c
 aphavoc/source/entity/mobile/mb_att.c
 aphavoc/source/entity/mobile/mb_float.c
 aphavoc/source/entity/mobile/mb_funcs.c
+aphavoc/source/entity/mobile/mb_hostlos.c
 aphavoc/source/entity/mobile/mb_int.c
 aphavoc/source/entity/mobile/mb_list.c
 aphavoc/source/entity/mobile/mb_move.c

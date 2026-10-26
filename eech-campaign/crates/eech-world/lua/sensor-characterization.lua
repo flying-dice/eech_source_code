@@ -1,7 +1,8 @@
 -- TEST-ONLY sensor-detection characterisation (EEDCS-43). Needs a DLL built with the `sensor-fixture` feature; the shipping module
 -- has no `sensor_trace`, `sensor_trace_reset` or `sensor_probe` method.
 --
--- It boots the campaign through the public path (require ("eech_dc")) with the reference host's callbacks, runs frames, and reads
+-- It boots the campaign through the public path (require ("eech_dc")) with the reference host's callbacks, including the required
+-- line_of_sight provider (EEDCS-42; the read-only sweep is handed the same complete host as a frame), runs frames, and reads
 -- two things from the fixture:
 --   * the run-wide report: every AI target scan the campaign's own update loop made (aircraft and vehicle scans, see
 --     csrc/eech_sensor_fixture.c), as a physical-fact hash, a decision hash, per-scan-function counters, which edges the run
@@ -71,6 +72,7 @@ local engine = dc.boot {
 	install_root = root, map = scenario.map, campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache",
 	seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
 	supply_reached = host.supply_reached,
+	line_of_sight = host.line_of_sight,
 }
 emit { event = "boot", scenario = args.scenario or "lebanon_retail", seconds = seconds, frame_ms = frame_ms }
 engine:sensor_trace_reset ()

@@ -28,6 +28,8 @@ dependent-fixture = ["eech-engine/dependent-fixture"]
 dependent-fixture-old-guard = ["dependent-fixture", "eech-engine/dependent-fixture-old-guard"]
 # TEST-ONLY (EEDCS-41): the all-family loss trigger. Never enabled in the shipping build.
 loss-fixture = ["eech-engine/loss-fixture"]
+# TEST-ONLY (EEDCS-42): the line-of-sight characterisation trace and probe. Never enabled in the shipping build.
+los-fixture = ["eech-engine/los-fixture"]
 # TEST-ONLY (EEDCS-43): the sensor-detection characterisation trace and probe. Never enabled in the shipping build.
 sensor-fixture = ["eech-engine/sensor-fixture"]
 

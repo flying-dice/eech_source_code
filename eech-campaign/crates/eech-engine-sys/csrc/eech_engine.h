@@ -16,6 +16,7 @@
 #include "entity/special/group/gp_roster.h"
 #include "entity/special/guide/gd_supply_arrival.h"
 #include "entity/mobile/vehicle/routed/rv_hostmv.h"
+#include "entity/mobile/mb_hostlos.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -62,6 +63,7 @@ typedef campaign_observe_supply_reach_fn eech_supply_reached_callback;
 typedef campaign_movement_step eech_movement_step;
 typedef campaign_movement_result eech_movement_result;
 typedef campaign_move_vehicle_fn eech_move_vehicle_callback;
+typedef campaign_los_fn eech_line_of_sight_callback;
 
 struct eech_engine_host
 {
@@ -73,6 +75,8 @@ struct eech_engine_host
 	eech_supply_reached_callback supply_reached;
 	/* Called synchronously for each host-owned movement step (routed MOVE/STOP, SHIP_MOVE, PERSON_BEGIN/END, FIXED_WING_MOVE, HELICOPTER_BEGIN/END) and pose placement (PLACE); the host owns the mobile's position, speed and attitude. */
 	eech_move_vehicle_callback move_vehicle;
+	/* Called synchronously for each host-owned line-of-sight query (mb_hostlos.h): the host owns the calculation and asks for one terrain elevation or one object-ray answer at a time, or answers directly. */
+	eech_line_of_sight_callback line_of_sight;
 	void *user;
 };
 
@@ -215,6 +219,37 @@ int eech_engine_loss_shape (int entity_id, char *reason, int capacity);
 int eech_engine_loss_group (int entity_id, char *text, int capacity);
 #endif
 
+#ifdef EECH_LOS_FIXTURE
+/*
+ * TEST-ONLY (feature los-fixture, EEDCS-42): see eech_los_fixture.c. Not part of the shipping module.
+ * A trace folds line-of-sight queries: how many, how many were visible, the same per criteria value, how many sweep
+ * points were skipped for lying near the map edge, and an order-dependent FNV-1a hash over each query's criteria,
+ * six position floats (bit patterns) and answer. lookup_hash is the same kind of hash over the solver's ordered environment
+ * lookups (EEDCS-42 transcript): each terrain sample (phase, point, returned elevation), each object ray (phase, start, end,
+ * hit, collision point when hit) and a query-end marker with the answer; lookups counts the terrain and object events.
+ */
+#define EECH_LOS_CRITERIA 32
+struct eech_los_trace
+{
+	uint64_t hash;
+	uint64_t calls;
+	uint64_t visible;
+	uint64_t skipped;
+	uint64_t lookup_hash;
+	uint64_t lookups;
+	uint64_t by_criteria_calls[EECH_LOS_CRITERIA];
+	uint64_t by_criteria_visible[EECH_LOS_CRITERIA];
+};
+/* The run-wide trace of every query the campaign has made since boot or the last reset. */
+int eech_engine_los_trace (struct eech_los_trace *out);
+int eech_engine_los_trace_reset (void);
+/*
+ * Runs the deterministic sweep between two live entities and returns its own trace in `out`; the run-wide trace is not
+ * changed. `host` is the engine host, passed so the same entry serves a build whose queries cross the host boundary.
+ */
+int eech_engine_los_probe (int source_id, int target_id, uint32_t seed, int count, struct eech_los_trace *out, const struct eech_engine_host *host);
+#endif
+
 #ifdef EECH_SENSOR_FIXTURE
 /*
  * TEST-ONLY (feature sensor-fixture, EEDCS-43): see eech_sensor_fixture.c. Not part of the shipping module.
@@ -225,8 +260,9 @@ int eech_engine_loss_group (int entity_id, char *text, int capacity);
 /* The run-wide trace of every AI target scan the campaign has made since boot or the last reset. */
 int eech_engine_sensor_trace (char *text, int capacity);
 int eech_engine_sensor_trace_reset (void);
-/* Runs the scan group functions for every eligible live source, read-only, and reports a trace of just that sweep; the run-wide trace is not changed. */
-int eech_engine_sensor_probe (char *text, int capacity);
+/* Runs the scan group functions for every eligible live source, read-only, and reports a trace of just that sweep; the run-wide trace is not changed.
+ * The surface-to-air scan asks the host for line of sight, so `host` must carry every callback, as for a frame. */
+int eech_engine_sensor_probe (char *text, int capacity, const struct eech_engine_host *host);
 #endif
 
 #endif

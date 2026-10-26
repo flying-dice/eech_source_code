@@ -1,8 +1,8 @@
 //! The Lua surface of the module.
 
 use eech_engine::{
-    ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship, HelicopterGuidanceAnswer, HelicopterQuery, LossDecision, LossDescriptor, MemberDescriptor,
-    MovementMode, MovementResult, MovementStep, Side, SupplyReachDescriptor, VehiclePose,
+    ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship, HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor,
+    MemberDescriptor, MovementMode, MovementResult, MovementStep, Side, SupplyReachDescriptor, VehiclePose,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -22,6 +22,7 @@ struct LuaEngine {
     observe_loss: LuaFunction,
     supply_reached: LuaFunction,
     move_vehicle: LuaFunction,
+    line_of_sight: LuaFunction,
 }
 
 fn call_bind_mobile(lua: &Lua, function: &LuaFunction, descriptor: MemberDescriptor) -> Result<String, String> {
@@ -177,6 +178,78 @@ fn nearest_f32(value: f64) -> Option<f32> {
         .into_iter()
         .filter(|candidate| candidate.is_finite())
         .min_by(|a, b| (f64::from(*a) - value).abs().total_cmp(&(f64::from(*b) - value).abs()))
+}
+
+/// One message of the host-owned line-of-sight dialogue as a Lua table: `{ mode = "begin" | "terrain" | "objects", ... }`. Positions are
+/// arrays of three numbers; a host identity is absent (nil) when the campaign roster has none for that end.
+fn los_message_table(lua: &Lua, message: &LosMessage) -> Result<LuaTable, String> {
+    let table = lua.create_table().map_err(|e| e.to_string())?;
+    match message {
+        LosMessage::Begin(begin) => {
+            table.set("mode", "begin").map_err(|e| e.to_string())?;
+            table.set("entity_form", begin.entity_form).map_err(|e| e.to_string())?;
+            table.set("criteria", begin.criteria).map_err(|e| e.to_string())?;
+            table.set("source_eye", begin.source_eye).map_err(|e| e.to_string())?;
+            table.set("target_eye", begin.target_eye).map_err(|e| e.to_string())?;
+            table.set("source_position", begin.source_position.to_vec()).map_err(|e| e.to_string())?;
+            table.set("target_position", begin.target_position.to_vec()).map_err(|e| e.to_string())?;
+            if let Some(id) = &begin.source_host_id {
+                table.set("source_host_id", id.as_str()).map_err(|e| e.to_string())?;
+            }
+            if let Some(id) = &begin.target_host_id {
+                table.set("target_host_id", id.as_str()).map_err(|e| e.to_string())?;
+            }
+        }
+        LosMessage::Terrain { elevation } => {
+            table.set("mode", "terrain").map_err(|e| e.to_string())?;
+            table.set("elevation", *elevation).map_err(|e| e.to_string())?;
+        }
+        LosMessage::Objects { hit, collision_point } => {
+            table.set("mode", "objects").map_err(|e| e.to_string())?;
+            table.set("hit", *hit).map_err(|e| e.to_string())?;
+            if let Some(point) = collision_point {
+                table.set("collision_point", point.to_vec()).map_err(|e| e.to_string())?;
+            }
+        }
+    }
+    Ok(table)
+}
+
+/// The host's answer to a line-of-sight message: `{ state = "need_terrain", phase, point }`, `{ state = "need_objects", phase, from, to }` or
+/// `{ state = "done", visible }`. Every field is mandatory for its state and exact; anything else is an error, never a default.
+fn call_line_of_sight(lua: &Lua, function: &LuaFunction, message: LosMessage) -> Result<LosReply, String> {
+    let argument = los_message_table(lua, &message)?;
+    let answer: LuaValue = function.call(argument).map_err(|e| e.to_string())?;
+    let LuaValue::Table(table) = answer else {
+        return Err(format!("line_of_sight must return a result table, got {}", answer.type_name()));
+    };
+    let state: LuaValue = table.get("state").map_err(|e| e.to_string())?;
+    let LuaValue::String(state) = state else {
+        return Err(format!("line_of_sight result state must be a string, got {}", state.type_name()));
+    };
+    let phase = |table: &LuaTable| -> Result<i32, String> {
+        match table.get::<LuaValue>("phase").map_err(|e| e.to_string())? {
+            LuaValue::Integer(phase) => i32::try_from(phase).map_err(|_| format!("line_of_sight result phase {phase} is out of range")),
+            other => Err(format!("line_of_sight result phase must be an integer, got {}", other.type_name())),
+        }
+    };
+    let state_text = state.to_str().map_err(|e| e.to_string())?;
+    match &*state_text {
+        "need_terrain" => Ok(LosReply::NeedTerrain {
+            phase: phase(&table)?,
+            point: exact_numbers(lua, &table, "point").map_err(|e| format!("line_of_sight result {e}"))?,
+        }),
+        "need_objects" => Ok(LosReply::NeedObjects {
+            phase: phase(&table)?,
+            start: exact_numbers(lua, &table, "from").map_err(|e| format!("line_of_sight result {e}"))?,
+            end: exact_numbers(lua, &table, "to").map_err(|e| format!("line_of_sight result {e}"))?,
+        }),
+        "done" => match table.get::<LuaValue>("visible").map_err(|e| e.to_string())? {
+            LuaValue::Boolean(visible) => Ok(LosReply::Done { visible }),
+            other => Err(format!("line_of_sight result visible must be a boolean, got {}", other.type_name())),
+        },
+        other => Err(format!("line_of_sight result state {other:?} is not need_terrain, need_objects or done")),
+    }
 }
 
 fn call_move_vehicle(lua: &Lua, function: &LuaFunction, step: MovementStep) -> Result<MovementResult, String> {
@@ -392,12 +465,14 @@ impl LuaUserData for LuaEngine {
             let observe_loss = this.observe_loss.clone();
             let supply_reached = this.supply_reached.clone();
             let move_vehicle = this.move_vehicle.clone();
+            let line_of_sight = this.line_of_sight.clone();
             let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
             let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
             let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
             let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+            let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
             this.engine
-                .frame(milliseconds, &mut binder, &mut observer, &mut reach, &mut mover)
+                .frame(milliseconds, &mut binder, &mut observer, &mut reach, &mut mover, &mut sighter)
                 .map_err(lua_error)
         });
         // TEST-ONLY (feature `loss-fixture`, EEDCS-41): not part of the shipping module.
@@ -407,12 +482,14 @@ impl LuaUserData for LuaEngine {
             let observe_loss = this.observe_loss.clone();
             let supply_reached = this.supply_reached.clone();
             let move_vehicle = this.move_vehicle.clone();
+            let line_of_sight = this.line_of_sight.clone();
             let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
             let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
             let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
             let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+            let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
             this.engine
-                .loss_fixture(entity_id, &mut binder, &mut observer, &mut reach, &mut mover)
+                .loss_fixture(entity_id, &mut binder, &mut observer, &mut reach, &mut mover, &mut sighter)
                 .map_err(lua_error)
         });
         // TEST-ONLY (feature `loss-fixture`, EEDCS-41): releases the tasks targeting a member's group (setup); not part of the shipping module.
@@ -422,12 +499,14 @@ impl LuaUserData for LuaEngine {
             let observe_loss = this.observe_loss.clone();
             let supply_reached = this.supply_reached.clone();
             let move_vehicle = this.move_vehicle.clone();
+            let line_of_sight = this.line_of_sight.clone();
             let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
             let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
             let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
             let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+            let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
             this.engine
-                .loss_release(entity_id, &mut binder, &mut observer, &mut reach, &mut mover)
+                .loss_release(entity_id, &mut binder, &mut observer, &mut reach, &mut mover, &mut sighter)
                 .map_err(lua_error)
         });
         // TEST-ONLY (feature `loss-fixture`, EEDCS-41): read-only force-info and regen state; not part of the shipping module.
@@ -442,15 +521,56 @@ impl LuaUserData for LuaEngine {
         // TEST-ONLY (feature `loss-fixture`, EEDCS-41): read-only task dependents and guide stack of a hosted member's group; not part of the shipping module.
         #[cfg(feature = "loss-fixture")]
         methods.add_method("loss_group", |_, this, entity_id: i32| this.engine.loss_group(entity_id).map_err(lua_error));
+        // TEST-ONLY (feature `los-fixture`, EEDCS-42): the run-wide fold of line-of-sight queries; not part of the shipping module.
+        #[cfg(feature = "los-fixture")]
+        methods.add_method("los_trace", |lua, this, ()| {
+            let trace = this.engine.los_trace().map_err(lua_error)?;
+            los_trace_table(lua, &trace)
+        });
+        // TEST-ONLY (feature `los-fixture`, EEDCS-42): clears that fold; not part of the shipping module.
+        #[cfg(feature = "los-fixture")]
+        methods.add_method("los_trace_reset", |_, this, ()| this.engine.los_trace_reset().map_err(lua_error));
+        // TEST-ONLY (feature `los-fixture`, EEDCS-42): the deterministic line-of-sight sweep between two live entities; not part of the shipping module.
+        #[cfg(feature = "los-fixture")]
+        methods.add_method("los_probe", |lua, this, (source, target, seed, count): (i32, i32, u32, i32)| {
+            let bind_mobile = this.bind_mobile.clone();
+            let observe_loss = this.observe_loss.clone();
+            let supply_reached = this.supply_reached.clone();
+            let move_vehicle = this.move_vehicle.clone();
+            let line_of_sight = this.line_of_sight.clone();
+            let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+            let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+            let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+            let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+            let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+            let trace = this
+                .engine
+                .los_probe(source, target, seed, count, &mut binder, &mut observer, &mut reach, &mut mover, &mut sighter)
+                .map_err(lua_error)?;
+            los_trace_table(lua, &trace)
+        });
         // TEST-ONLY (feature `sensor-fixture`, EEDCS-43): the run-wide report of the AI target scans; not part of the shipping module.
         #[cfg(feature = "sensor-fixture")]
         methods.add_method("sensor_trace", |_, this, ()| this.engine.sensor_trace().map_err(lua_error));
         // TEST-ONLY (feature `sensor-fixture`, EEDCS-43): clears that trace; not part of the shipping module.
         #[cfg(feature = "sensor-fixture")]
         methods.add_method("sensor_trace_reset", |_, this, ()| this.engine.sensor_trace_reset().map_err(lua_error));
-        // TEST-ONLY (feature `sensor-fixture`, EEDCS-43): the read-only scan sweep; not part of the shipping module.
+        // TEST-ONLY (feature `sensor-fixture`, EEDCS-43): the read-only scan sweep; not part of the shipping module. The surface-to-air scan asks the host
+        // for line of sight, so the sweep is given the same complete host callbacks as a frame.
         #[cfg(feature = "sensor-fixture")]
-        methods.add_method("sensor_probe", |_, this, ()| this.engine.sensor_probe().map_err(lua_error));
+        methods.add_method("sensor_probe", |lua, this, ()| {
+            let bind_mobile = this.bind_mobile.clone();
+            let observe_loss = this.observe_loss.clone();
+            let supply_reached = this.supply_reached.clone();
+            let move_vehicle = this.move_vehicle.clone();
+            let line_of_sight = this.line_of_sight.clone();
+            let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+            let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+            let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+            let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+            let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+            this.engine.sensor_probe(&mut binder, &mut observer, &mut reach, &mut mover, &mut sighter).map_err(lua_error)
+        });
         // TEST-ONLY (feature `dependent-fixture`, EEDCS-40): not part of the shipping module.
         #[cfg(feature = "dependent-fixture")]
         methods.add_method(
@@ -466,10 +586,12 @@ impl LuaUserData for LuaEngine {
                 let observe_loss = this.observe_loss.clone();
                 let supply_reached = this.supply_reached.clone();
                 let move_vehicle = this.move_vehicle.clone();
+                let line_of_sight = this.line_of_sight.clone();
                 let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
                 let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
                 let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
                 let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+                let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
                 this.engine
                     .dependent_fixture(
                         code,
@@ -480,6 +602,7 @@ impl LuaUserData for LuaEngine {
                         &mut observer,
                         &mut reach,
                         &mut mover,
+                        &mut sighter,
                     )
                     .map_err(lua_error)
             },
@@ -543,6 +666,11 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
         LuaValue::Nil => return Err(LuaError::runtime("eech: missing host move_vehicle callback")),
         value => return Err(LuaError::runtime(format!("eech: move_vehicle must be a function, got {}", value.type_name()))),
     };
+    let line_of_sight = match config.get::<LuaValue>("line_of_sight")? {
+        LuaValue::Function(function) => function,
+        LuaValue::Nil => return Err(LuaError::runtime("eech: missing host line_of_sight callback")),
+        value => return Err(LuaError::runtime(format!("eech: line_of_sight must be a function, got {}", value.type_name()))),
+    };
     let arguments: Vec<String> = config.get::<Option<Vec<String>>>("arguments")?.unwrap_or_default();
     let config = EngineConfig {
         install_root: PathBuf::from(config.get::<String>("install_root")?),
@@ -557,13 +685,15 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
     let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
     let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
     let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
-    let engine = Engine::boot(&config, &mut binder, &mut observer, &mut reach, &mut mover).map_err(lua_error)?;
+    let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+    let engine = Engine::boot(&config, &mut binder, &mut observer, &mut reach, &mut mover, &mut sighter).map_err(lua_error)?;
     Ok(LuaEngine {
         engine,
         bind_mobile,
         observe_loss,
         supply_reached,
         move_vehicle,
+        line_of_sight,
     })
 }
 
@@ -577,6 +707,30 @@ pub fn eech_dc(lua: &Lua) -> LuaResult<LuaTable> {
         lua.create_function(|_, root: String| eech_engine::prepare_installation(std::path::Path::new(&root)).map_err(lua_error))?,
     )?;
     Ok(exports)
+}
+
+/// TEST-ONLY (feature `los-fixture`): lays out a line-of-sight fold as a Lua table. The hash is a 16-digit hex string, because a
+/// Lua number cannot hold 64 bits; `by_criteria` maps each criteria value that was queried to `{ calls, visible }`.
+#[cfg(feature = "los-fixture")]
+fn los_trace_table(lua: &Lua, trace: &eech_engine::LosTrace) -> mlua::Result<mlua::Table> {
+    let table = lua.create_table()?;
+    table.set("hash", format!("{:016x}", trace.hash))?;
+    table.set("calls", trace.calls)?;
+    table.set("visible", trace.visible)?;
+    table.set("skipped", trace.skipped)?;
+    table.set("lookup_hash", format!("{:016x}", trace.lookup_hash))?;
+    table.set("lookups", trace.lookups)?;
+    let by_criteria = lua.create_table()?;
+    for (criteria, (calls, visible)) in trace.by_criteria_calls.iter().zip(trace.by_criteria_visible.iter()).enumerate() {
+        if *calls > 0 {
+            let row = lua.create_table()?;
+            row.set("calls", *calls)?;
+            row.set("visible", *visible)?;
+            by_criteria.set(criteria as i64, row)?;
+        }
+    }
+    table.set("by_criteria", by_criteria)?;
+    Ok(table)
 }
 
 /// TEST-ONLY (feature `loss-fixture`): lays out `Engine::loss_state` values as a Lua table. Every read is bounds-checked, so a
