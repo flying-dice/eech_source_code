@@ -620,14 +620,8 @@ pub struct eech_los_trace {
 extern "C" {
     pub fn eech_engine_los_trace(out: *mut eech_los_trace) -> c_int;
     pub fn eech_engine_los_trace_reset() -> c_int;
-    pub fn eech_engine_los_probe(
-        source_id: c_int,
-        target_id: c_int,
-        seed: u32,
-        count: c_int,
-        out: *mut eech_los_trace,
-        host: *const eech_engine_host,
-    ) -> c_int;
+    pub fn eech_engine_los_probe(source_id: c_int, target_id: c_int, seed: u32, count: c_int, out: *mut eech_los_trace, host: *const eech_engine_host)
+        -> c_int;
 }
 
 // The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by
