@@ -2505,6 +2505,7 @@ impl Engine {
     }
 
     /// advances simulated time and runs one iteration of EECH's flight loop
+    #[allow(clippy::too_many_arguments)]
     pub fn frame<F, G, H, M, L, D>(
         &self,
         milliseconds: u32,
@@ -2576,6 +2577,7 @@ impl Engine {
 
     /// TEST-ONLY (feature `loss-fixture`): ends one live hosted member through the campaign's own kill path.
     #[cfg(feature = "loss-fixture")]
+    #[allow(clippy::too_many_arguments)]
     pub fn loss_fixture<F, G, H, M, L, D>(
         &self,
         entity_id: i32,
@@ -2609,6 +2611,7 @@ impl Engine {
     /// TEST-ONLY (feature `loss-fixture`): releases the tasks that target one hosted member's group, through the campaign's own task
     /// completion handlers, and returns how many it notified.  Setup for the fixed-wing witness; the group itself is not ended.
     #[cfg(feature = "loss-fixture")]
+    #[allow(clippy::too_many_arguments)]
     pub fn loss_release<F, G, H, M, L, D>(
         &self,
         entity_id: i32,
