@@ -25,6 +25,7 @@
 #include "project.h"
 
 #include "eech_engine.h"
+#include "eech_headless.h"
 
 static struct eech_los_trace run_trace;
 static struct eech_los_trace *active_trace = &run_trace;
@@ -55,9 +56,62 @@ static void trace_reset (struct eech_los_trace *trace)
 	trace->hash = FNV_OFFSET;
 }
 
-void eech_los_trace_record (vec3d *source_position, vec3d *target_position, mobile_los_check_criteria criteria, int result)
+/*
+ * Which kinds of entity ask and are asked: a small table of (source type, target type, source has a host id, target has a host
+ * id) -> count for the run-wide trace only (the probe's own sweep is not counted), read-only like the rest of the recorder.
+ * It is logged when the run-wide trace is read, one `los-kinds` line per row, and is not part of the hash.
+ */
+#define KIND_ROWS 256
+static struct { int source_type, target_type, source_hosted, target_hosted; uint64_t count; } kind_rows[KIND_ROWS];
+static int kind_row_count, kind_overflow;
+
+static void note_kinds (entity *source, entity *target)
+{
+	int st = (int) get_local_entity_type (source), tt = (int) get_local_entity_type (target);
+	int sh = campaign_roster_host_id (source) != NULL, th = campaign_roster_host_id (target) != NULL;
+	int i;
+	for (i = 0; i < kind_row_count; i++)
+	{
+		if (kind_rows[i].source_type == st && kind_rows[i].target_type == tt && kind_rows[i].source_hosted == sh && kind_rows[i].target_hosted == th)
+		{
+			kind_rows[i].count++;
+			return;
+		}
+	}
+	if (kind_row_count < KIND_ROWS)
+	{
+		kind_rows[kind_row_count].source_type = st;
+		kind_rows[kind_row_count].target_type = tt;
+		kind_rows[kind_row_count].source_hosted = sh;
+		kind_rows[kind_row_count].target_hosted = th;
+		kind_rows[kind_row_count].count = 1;
+		kind_row_count++;
+	}
+	else
+	{
+		kind_overflow++;
+	}
+}
+
+void eech_los_trace_log_kinds (void)
+{
+	int i;
+	for (i = 0; i < kind_row_count; i++)
+	{
+		eech_log (1, "los-kinds source=%s target=%s source_host_id=%d target_host_id=%d count=%llu",
+			get_entity_type_name ((entity_types) kind_rows[i].source_type), get_entity_type_name ((entity_types) kind_rows[i].target_type),
+			kind_rows[i].source_hosted, kind_rows[i].target_hosted, (unsigned long long) kind_rows[i].count);
+	}
+	eech_log (1, "los-kinds rows=%d overflow=%d", kind_row_count, kind_overflow);
+}
+
+void eech_los_trace_record (entity *source, entity *target, vec3d *source_position, vec3d *target_position, mobile_los_check_criteria criteria, int result)
 {
 	struct eech_los_trace *trace = active_trace;
+	if (trace == &run_trace)
+	{
+		note_kinds (source, target);
+	}
 	unsigned slot = ((unsigned) criteria) % EECH_LOS_CRITERIA;
 	if (trace->calls == 0 && trace->hash == 0)
 	{
@@ -82,6 +136,7 @@ void eech_los_trace_record (vec3d *source_position, vec3d *target_position, mobi
 
 void eech_los_trace_get (struct eech_los_trace *out)
 {
+	eech_los_trace_log_kinds ();
 	if (run_trace.calls == 0 && run_trace.hash == 0)
 	{
 		trace_reset (&run_trace);

@@ -144,7 +144,7 @@ int check_entity_line_of_sight (entity *source, entity *target, mobile_los_check
 // answer. Recording is observational: it reads the inputs and the result and alters neither.
 //
 
-extern void eech_los_trace_record (vec3d *source_position, vec3d *target_position, mobile_los_check_criteria criteria, int result);
+extern void eech_los_trace_record (entity *source, entity *target, vec3d *source_position, vec3d *target_position, mobile_los_check_criteria criteria, int result);
 
 int eech_los_solver (entity *source, entity *target, vec3d *source_position, vec3d *target_position, mobile_los_check_criteria criteria);
 
@@ -155,7 +155,7 @@ int check_position_line_of_sight (entity *source, entity *target, vec3d *source_
 
 	result = eech_los_solver (source, target, source_position, target_position, criteria);
 
-	eech_los_trace_record (source_position, target_position, criteria, result);
+	eech_los_trace_record (source, target, source_position, target_position, criteria, result);
 
 	return result;
 }
