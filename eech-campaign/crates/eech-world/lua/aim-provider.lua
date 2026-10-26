@@ -225,9 +225,11 @@ local frames = math.floor (seconds * 1000 / frame_ms)
 local seen, births, lost = {}, 0, 0
 local last_alive = {}
 local failure
-for f = 1, frames do
+local frames_run = 0
+for f = 1, frames + 10 do
 	local frame_ok, err = pcall (engine.frame, engine, frame_ms)
 	if not frame_ok then failure = (tostring (err):gsub ("\n.*", "")) break end
+	frames_run = f
 	if f % 10 == 0 then
 		local present = {}
 		for _, o in ipairs (engine:objects ()) do
@@ -241,16 +243,19 @@ for f = 1, frames do
 		end
 		seen = present
 	end
+	-- the run ends at the first frame after which the simulated clock has reached `seconds` (as the characterisation's checkpoints do), so a report taken
+	-- here is comparable with the characterisation's report at the same checkpoint
+	if engine:clock ().elapsed_seconds >= seconds then break end
 end
 if fixture and args.trace and not failure then
 	local trace = assert (io.open (args.trace, "wb"))
 	local clock = engine:clock ()
 	trace:write (string.format ("{\"event\":\"boot\",\"mode\":%q,\"scenario\":%q,\"seconds\":%s}\n", mode, args.scenario or "lebanon_retail", tostring (seconds)))
-	trace:write (string.format ("{\"elapsed\":%s,\"event\":\"run\",\"frames\":%d}\n", tostring (clock.elapsed_seconds), frames))
+	trace:write (string.format ("{\"elapsed\":%s,\"event\":\"run\",\"frames\":%d}\n", tostring (clock.elapsed_seconds), frames_run))
 	trace:write (table.concat (report_lines ("run", clock.elapsed_seconds, engine:aim_trace ()), "\n") .. "\n")
 	trace:close ()
 end
-emit { event = "summary", mode = mode, frames = frames, failure = failure or "", table = counts.table, ready_update = counts.ready_update, ready_command = counts.ready_command,
+emit { event = "summary", mode = mode, frames = frames_run, failure = failure or "", table = counts.table, ready_update = counts.ready_update, ready_command = counts.ready_command,
 	required = counts.required, step = counts.step, vectors = counts.vectors, lead = counts.lead, ballistic = counts.ballistic, intercept = counts.intercept,
 	vectors_valid = answers.valid, vectors_invalid = answers.invalid, need_draw = answers.need_draw, lead_ok = answers.lead_ok, lead_no = answers.lead_no,
 	ballistic_ok = answers.ballistic_ok, ballistic_no = answers.ballistic_no, ready_moving = answers.phase_moving, weapon_births = births, losses = lost }
