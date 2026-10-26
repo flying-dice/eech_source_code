@@ -1,0 +1,18 @@
+{
+  "purpose": "RED: matching probe snapshots without a completed final run report must fail, not pass",
+  "command": [
+    "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "d2-sensor-detections/eech-campaign/tools/sensor-trace-compare.py",
+    "d2-evidence\\sensor-characterization-baseline-20261026\\controls-comparator\\incomplete-probe-a.jsonl",
+    "d2-evidence\\sensor-characterization-baseline-20261026\\controls-comparator\\incomplete-probe-b.jsonl",
+    "--scope",
+    "probe"
+  ],
+  "actual_exit": 0,
+  "expected_exit_nonzero": true,
+  "stdout": "42 events in a, 42 in b, scopes ['probe']: 0 differences\n",
+  "stderr": "",
+  "false_pass_reproduced": true,
+  "source_revision": "e0d58d818661620ddfa7e386118551de8c191da0",
+  "comparator_sha256": "2f5c3f0b6be91760a0941705246d5530d97a47c4a038f99064ae79438eb8b645"
+}

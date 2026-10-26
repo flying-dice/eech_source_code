@@ -23,7 +23,7 @@ remain in EECH_DC. Historical TypeScript and old call-map inventory are not scop
   Root's fresh ordinary build passed, all26 hashes match, and full pack89376 is RUNNING
   at `R:/d2-evidence/candidate-pack-sensing-a2a041fec`. Python18836; native9648/22368/23396/8024.
   Snapshot/bin/roots are immutable. Its full40-check/full-byte/CI/merge gates remain.
-- Compose reviewed sensing branche7e46dcc2 before the first aiming build. This is
+- Reviewed sensing branche7e46dcc2 is composed before the first aiming build. This is
   development stacking of runtimea2a041fec, not accepted43 delivery. Delivery43 precedes44;
   any later source correction must be incorporated and its affected evidence renewed.
 

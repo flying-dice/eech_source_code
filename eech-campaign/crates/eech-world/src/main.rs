@@ -14,6 +14,7 @@ use eech_world::movement::{
     HelicopterEnd, HelicopterGuide, HelicopterPlan, HelicopterSteer, HelicopterStructure, HelicopterTerrainSample, HelicopterWaypointKind, Kind, Lifecycle,
     LifecycleMode, Movers, NavigationMember, Outcome, PersonBegin, PersonEnd, Pose, Request, ShipMove, Terrain,
 };
+use eech_world::sense::{self, Sense};
 use eech_world::tacview::{ObjectInfo, Recorder};
 use mlua::prelude::*;
 use std::cell::{Cell, RefCell};
@@ -101,6 +102,47 @@ fn shape(field: &str, n: usize) -> String {
             format!("{n} finite numbers")
         }
     )
+}
+
+/// A finite double exactly as Lua holds it, whatever the FPU rounding mode. `exact_f64s` formats at 17 significant digits, and the engine
+/// runs a callback under round-toward-zero, where the C library's formatting truncates instead of rounding: the parsed double can then be one
+/// ulp low. This reads the double in exact steps instead (`math.frexp`, a multiplication by a power of two, a floor, a subtraction: all exact in
+/// any mode) as three integers and rebuilds it with exact scalings.
+fn exact_f64_bits(lua: &Lua, table: &LuaTable, field: &str) -> Result<f64, String> {
+    const KEY: &str = "eech_exact_f64_bits";
+    let split: LuaFunction = match lua.named_registry_value(KEY) {
+        Ok(function) => function,
+        Err(_) => {
+            let function: LuaFunction = lua
+                .load(
+                    "return function(t, f)
+                       local v = t[f]
+                       if type(v) ~= 'number' or v ~= v or v == math.huge or v == -math.huge then return nil end
+                       local m, e = math.frexp(v)
+                       local mi = m * 9007199254740992
+                       local hi = math.floor(mi / 67108864)
+                       local lo = mi - hi * 67108864
+                       return string.format('%d %d %d', hi, lo, e)
+                     end",
+                )
+                .eval()
+                .map_err(|e| e.to_string())?;
+            lua.set_named_registry_value(KEY, function.clone()).map_err(|e| e.to_string())?;
+            function
+        }
+    };
+    let text: Option<String> = split.call((table, field)).map_err(|e| e.to_string())?;
+    let shape = || format!("{field} must be a finite number");
+    let text = text.ok_or_else(shape)?;
+    let mut parts = text.split_whitespace().map(|part| part.parse::<i64>().ok());
+    let (Some(Some(hi)), Some(Some(lo)), Some(Some(exponent))) = (parts.next(), parts.next(), parts.next()) else {
+        return Err(shape());
+    };
+    // the 53-bit significand is exact in an f64; the scaling is split so that a subnormal result is not rounded twice
+    let significand = (hi * 67_108_864 + lo) as f64;
+    let exponent = exponent - 53;
+    let (first, second) = if exponent < -1000 { (-1000, exponent + 1000) } else { (exponent, 0) };
+    Ok(significand * 2f64.powi(first as i32) * 2f64.powi(second as i32))
 }
 
 /// The `N` finite numbers of `exact_numbers`, kept as the `f64` Lua holds, for a value the campaign
@@ -1268,6 +1310,148 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             })?,
         )?;
     }
+    {
+        let sense = Rc::new(RefCell::new(Sense::new()));
+        host.set(
+            "sense",
+            lua.create_function(move |lua, step: LuaTable| {
+                let fail = |message: String| LuaError::runtime(format!("host.sense: {message}"));
+                let mode: String = step.get("mode")?;
+                let kind_of = |name: &str| -> LuaResult<i32> {
+                    match step.get::<LuaValue>("scan")? {
+                        LuaValue::String(scan) => match &*scan.to_str()? {
+                            "air_to_air" => Ok(sense::SCAN_AIR_TO_AIR),
+                            "air_to_surface" => Ok(sense::SCAN_AIR_TO_SURFACE),
+                            "surface_to_air" => Ok(sense::SCAN_SURFACE_TO_AIR),
+                            "surface_to_surface" => Ok(sense::SCAN_SURFACE_TO_SURFACE),
+                            other => Err(fail(format!("unknown scan {other:?} in a {name} message"))),
+                        },
+                        other => Err(fail(format!("scan must be a string, got {}", other.type_name()))),
+                    }
+                };
+                let flag = |table: &LuaTable, name: &str| -> LuaResult<bool> {
+                    match table.get::<LuaValue>(name)? {
+                        LuaValue::Boolean(value) => Ok(value),
+                        other => Err(fail(format!("{name} must be a boolean, got {}", other.type_name()))),
+                    }
+                };
+                // the identities are the host's own, passed through; they are checked for shape only (a host that owns the world uses them to find its units)
+                let check_id = |name: &str| -> LuaResult<()> {
+                    match step.get::<LuaValue>(name)? {
+                        LuaValue::Nil => Ok(()),
+                        LuaValue::String(id) => {
+                            let id = id.to_str()?;
+                            if id.is_empty() || id.len() > 128 {
+                                return Err(fail(format!("{name} must be 1 to 128 bytes")));
+                            }
+                            Ok(())
+                        }
+                        other => Err(fail(format!("{name} must be a string, got {}", other.type_name()))),
+                    }
+                };
+                let answer = match mode.as_str() {
+                    "begin" => {
+                        let kind = kind_of("begin")?;
+                        check_id("source_host_id")?;
+                        let source = exact_numbers::<3>(lua, &step, "source_position").map_err(fail)?;
+                        let [scan_range] = exact_numbers::<1>(lua, &step, "scan_range").map_err(fail)?;
+                        let (ceiling, floor) = if kind == sense::SCAN_SURFACE_TO_AIR {
+                            (
+                                exact_numbers::<1>(lua, &step, "scan_ceiling").map_err(fail)?[0],
+                                exact_numbers::<1>(lua, &step, "scan_floor").map_err(fail)?[0],
+                            )
+                        } else {
+                            (0.0, 0.0)
+                        };
+                        sense.borrow_mut().begin(kind, source, scan_range, ceiling, floor)
+                    }
+                    "candidate" => {
+                        let kind = kind_of("candidate")?;
+                        check_id("target_host_id")?;
+                        let target = exact_numbers::<3>(lua, &step, "target_position").map_err(fail)?;
+                        let player = flag(&step, "target_player")?;
+                        let difficulty = match step.get::<LuaValue>("difficulty_factor")? {
+                            LuaValue::Nil => None,
+                            _ => Some(exact_numbers::<1>(lua, &step, "difficulty_factor").map_err(fail)?[0]),
+                        };
+                        if kind == sense::SCAN_SURFACE_TO_AIR && player != difficulty.is_some() {
+                            return Err(fail("a human-flown target carries a difficulty factor, and only it".into()));
+                        }
+                        let radar_altitude = if kind == sense::SCAN_SURFACE_TO_AIR {
+                            exact_numbers::<1>(lua, &step, "radar_altitude").map_err(fail)?[0]
+                        } else {
+                            0.0
+                        };
+                        sense.borrow_mut().candidate(kind, target, difficulty, radar_altitude)
+                    }
+                    "draw" => {
+                        let draw = exact_f64_bits(lua, &step, "draw").map_err(fail)?;
+                        sense.borrow_mut().draw(draw)
+                    }
+                    "signature" => {
+                        let emitters = match step.get::<LuaValue>("emitters")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Table(table) => Some((
+                                flag(&table, "radar_on")?,
+                                flag(&table, "radar_jammer_on")?,
+                                flag(&table, "infra_red_jammer_on")?,
+                            )),
+                            other => return Err(fail(format!("emitters must be a table, got {}", other.type_name()))),
+                        };
+                        let helicopter = match step.get::<LuaValue>("helicopter")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Table(table) => Some((
+                                flag(&table, "weapon_bay_closed")?,
+                                flag(&table, "stub_wings_attached")?,
+                                flag(&table, "undercarriage_up")?,
+                            )),
+                            other => return Err(fail(format!("helicopter must be a table, got {}", other.type_name()))),
+                        };
+                        sense.borrow_mut().signature(emitters, helicopter)
+                    }
+                    "end" => sense.borrow_mut().end(),
+                    other => return Err(fail(format!("unknown mode {other:?}"))),
+                }
+                .map_err(fail)?;
+                let result = lua.create_table()?;
+                let state = match answer.state {
+                    sense::State::Open => "open",
+                    sense::State::Accept => "accept",
+                    sense::State::Reject(reason) => {
+                        result.set(
+                            "reason",
+                            match reason {
+                                sense::Reason::Range => "range",
+                                sense::Reason::RangeAdjusted => "range_adjusted",
+                                sense::Reason::Altitude => "altitude",
+                                sense::Reason::Tolerance => "tolerance",
+                            },
+                        )?;
+                        "reject"
+                    }
+                    sense::State::NeedDraw => "need_draw",
+                    sense::State::NeedSignature => "need_signature",
+                    sense::State::Closed => "closed",
+                };
+                result.set("state", state)?;
+                if let Some(range) = answer.target_range {
+                    result.set("target_range", range)?;
+                }
+                if let Some(echo) = answer.echo {
+                    // the reference host's intermediate values, for the campaign build that records a trace; a campaign without that feature ignores them
+                    let table = lua.create_table()?;
+                    table.set("ceiling", echo.ceiling)?;
+                    table.set("floor", echo.floor)?;
+                    table.set("adjusted_range", echo.adjusted_range)?;
+                    table.set("stealth_factor", echo.stealth_factor)?;
+                    table.set("stealth_limit", echo.stealth_limit)?;
+                    table.set("tolerance_limit", echo.tolerance_limit)?;
+                    result.set("echo", table)?;
+                }
+                Ok(result)
+            })?,
+        )?;
+    }
     host.set(
         "observe_loss",
         lua.create_function(|_, descriptor: LuaTable| {
@@ -2029,6 +2213,73 @@ mod exact_number_tests {
                 "{bad:?}"
             );
         }
+    }
+
+    /// Doubles that matter to the sensing dialogue (EEDCS-43): the campaign's random draws (`k / 32767`), a tolerance limit, edge values and a
+    /// deterministic spread of bit patterns.
+    fn double_samples() -> Vec<f64> {
+        let mut values: Vec<f64> = (0..=32767u32).map(|k| f64::from(k) * (1.0 / 32767.0)).collect();
+        values.extend([
+            13.346_791_876_629_54, // a tolerance limit the 17-digit read below returned one ulp low
+            f64::MIN_POSITIVE,
+            f64::from_bits(1), // the smallest subnormal
+            f64::from_bits(0x000f_ffff_ffff_ffff),
+            f64::MAX,
+            1.0 - f64::EPSILON / 2.0, // the double below 1, which mlua reads as the integer 1
+            1.0 + f64::EPSILON,
+            9.0,
+            0.0,
+            6.7e-17,
+        ]);
+        let mut state = 0x9e37_79b9_7f4a_7c15_u64;
+        while values.len() < 60_000 {
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            let value = f64::from_bits(state);
+            if value.is_finite() {
+                values.push(value);
+            }
+        }
+        values
+    }
+
+    #[test]
+    fn a_double_keeps_every_bit_under_round_toward_zero_when_it_is_read_in_exact_steps() {
+        let lua = Lua::new();
+        let mut seventeen_digit_misreads = 0;
+        let mut draw_misreads = 0;
+        under(FE_TOWARDZERO, || {
+            for (index, value) in double_samples().into_iter().enumerate() {
+                let table = lua.create_table().expect("table");
+                table.set("v", value).expect("scalar");
+                assert_eq!(exact_f64_bits(&lua, &table, "v").expect("exact steps").to_bits(), value.to_bits(), "{value:e}");
+                // the 17-significant-digit read that `exact_numbers` uses is exact for a float (its neighbours are tried) but, in
+                // this mode, the C library truncates the digits, and a double can come back one ulp low: why the sensing dialogue does not use it
+                if exact_f64s::<1>(&lua, &table, "v").map_or(true, |read| read[0].to_bits() != value.to_bits()) {
+                    seventeen_digit_misreads += 1;
+                    if index <= 32767 {
+                        draw_misreads += 1;
+                    }
+                }
+            }
+        });
+        under(FE_TONEAREST, || {
+            for value in double_samples() {
+                let table = lua.create_table().expect("table");
+                table.set("v", value).expect("scalar");
+                assert_eq!(exact_f64_bits(&lua, &table, "v").expect("exact steps").to_bits(), value.to_bits(), "{value:e}");
+            }
+        });
+        eprintln!("17-digit double reads that differ from the double under round-toward-zero: {seventeen_digit_misreads} of {} (of the 32768 draws k / 32767: {draw_misreads})", double_samples().len());
+        assert!(seventeen_digit_misreads > 0, "the 17-digit read was expected to lose bits in this mode");
+        let table = lua.create_table().expect("table");
+        for bad in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            table.set("v", bad).expect("scalar");
+            assert!(exact_f64_bits(&lua, &table, "v").is_err(), "{bad}");
+        }
+        table.set("v", "x").expect("text");
+        assert!(exact_f64_bits(&lua, &table, "v").is_err());
     }
 
     #[test]

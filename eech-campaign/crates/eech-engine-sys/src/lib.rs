@@ -505,6 +505,73 @@ pub struct eech_los_result {
 pub type eech_line_of_sight_callback =
     unsafe extern "C" fn(step: *const eech_los_step, result: *mut eech_los_result, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
 
+pub const EECH_SENSE_HOST_ID_MAX: usize = 128;
+pub const EECH_SENSE_BEGIN: c_int = 1;
+pub const EECH_SENSE_CANDIDATE: c_int = 2;
+pub const EECH_SENSE_DRAW: c_int = 3;
+pub const EECH_SENSE_SIGNATURE: c_int = 4;
+pub const EECH_SENSE_END: c_int = 5;
+pub const EECH_SENSE_AIR_TO_AIR: c_int = 1;
+pub const EECH_SENSE_AIR_TO_SURFACE: c_int = 2;
+pub const EECH_SENSE_SURFACE_TO_AIR: c_int = 3;
+pub const EECH_SENSE_SURFACE_TO_SURFACE: c_int = 4;
+pub const EECH_SENSE_OPEN: c_int = 1;
+pub const EECH_SENSE_ACCEPT: c_int = 2;
+pub const EECH_SENSE_REJECT: c_int = 3;
+pub const EECH_SENSE_NEED_DRAW: c_int = 4;
+pub const EECH_SENSE_NEED_SIGNATURE: c_int = 5;
+pub const EECH_SENSE_CLOSED: c_int = 6;
+pub const EECH_SENSE_REASON_RANGE: c_int = 1;
+pub const EECH_SENSE_REASON_RANGE_ADJUSTED: c_int = 2;
+pub const EECH_SENSE_REASON_ALTITUDE: c_int = 3;
+pub const EECH_SENSE_REASON_TOLERANCE: c_int = 4;
+pub const EECH_SENSE_REASON_NOT_PERCEIVED: c_int = 5;
+
+/// One message of the host-owned sensing dialogue (aphavoc/.../mb_hostsense.h), field for field.
+#[repr(C)]
+pub struct eech_sense_step {
+    pub mode: c_int,
+    pub scan: c_int,
+    pub source_host_id: [c_char; EECH_SENSE_HOST_ID_MAX + 1],
+    pub source_position: [f32; 3],
+    pub scan_range: f32,
+    pub scan_ceiling: f32,
+    pub scan_floor: f32,
+    pub target_host_id: [c_char; EECH_SENSE_HOST_ID_MAX + 1],
+    pub target_position: [f32; 3],
+    pub target_player: c_int,
+    pub has_difficulty: c_int,
+    pub difficulty_factor: f32,
+    pub radar_altitude: f32,
+    pub draw: f64,
+    pub has_emitters: c_int,
+    pub radar_on: c_int,
+    pub radar_jammer_on: c_int,
+    pub infra_red_jammer_on: c_int,
+    pub target_helicopter: c_int,
+    pub weapon_bay_closed: c_int,
+    pub stub_wings_attached: c_int,
+    pub undercarriage_up: c_int,
+}
+
+#[repr(C)]
+pub struct eech_sense_result {
+    pub state: c_int,
+    pub reason: c_int,
+    pub has_range: c_int,
+    pub target_range: f32,
+    pub has_echo: c_int,
+    pub echo_ceiling: f32,
+    pub echo_floor: f32,
+    pub echo_adjusted_range: f32,
+    pub echo_stealth_factor: f32,
+    pub echo_stealth_limit: f32,
+    pub echo_tolerance_limit: f64,
+}
+
+pub type eech_sense_callback =
+    unsafe extern "C" fn(step: *const eech_sense_step, result: *mut eech_sense_result, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
+
 #[repr(C)]
 pub struct eech_engine_host {
     pub bind_mobile: Option<eech_bind_mobile_callback>,
@@ -512,6 +579,7 @@ pub struct eech_engine_host {
     pub supply_reached: Option<eech_supply_reached_callback>,
     pub move_vehicle: Option<eech_move_vehicle_callback>,
     pub line_of_sight: Option<eech_line_of_sight_callback>,
+    pub sense: Option<eech_sense_callback>,
     pub user: *mut c_void,
 }
 
@@ -669,6 +737,13 @@ extern "C" {
     pub fn eech_engine_los_trace_reset() -> c_int;
     pub fn eech_engine_los_probe(source_id: c_int, target_id: c_int, seed: u32, count: c_int, out: *mut eech_los_trace, host: *const eech_engine_host)
         -> c_int;
+}
+
+#[cfg(feature = "sensor-fixture")]
+extern "C" {
+    pub fn eech_engine_sensor_trace(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_sensor_trace_reset() -> c_int;
+    pub fn eech_engine_sensor_probe(text: *mut c_char, capacity: c_int, host: *const eech_engine_host) -> c_int;
 }
 
 // The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by

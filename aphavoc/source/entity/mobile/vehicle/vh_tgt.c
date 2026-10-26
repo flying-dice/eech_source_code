@@ -66,6 +66,8 @@
 
 #include "project.h"
 #include "ai/taskgen/engage.h"
+#include "entity/mobile/mb_sensorfx.h"
+#include "entity/mobile/mb_hostsense.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,7 +88,6 @@
 
 static void vehicle_target_scan (entity *en);
 
-static float get_scan_floor_difficulty_factor (entity *en);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -451,8 +452,7 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 		x_sec_max,
 		z_sec_max,
 		x_sec,
-		z_sec,
-		seed;
+		z_sec;
 
 	int
 		debug = FALSE;
@@ -477,7 +477,6 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 		source_air_scan_floor,
 		source_air_scan_ceiling,
 		target_range,
-		target_radar_altitude,
 		target_select_criteria,
 		best_target_select_criteria,
 		weighting;
@@ -485,6 +484,8 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 	ASSERT (source);
 
 	(*target_count) = 0;
+
+	SENSOR_FX_BEGIN (EECH_SENSOR_SURFACE_TO_AIR, source)
 
 	//
 	// find best scan range
@@ -494,6 +495,8 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 
 	if (!group)
 	{
+		SENSOR_FX_END (0, NULL, 0.0)
+
 		return NULL;
 	}
 
@@ -531,7 +534,13 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 
 		source_position = get_local_entity_vec3d_ptr (source, VEC3D_TYPE_POSITION);
 
-		source_air_scan_ceiling += source_position->y;
+		//
+		// the host owns what the group's sensor perceives (EEDCS-43): the envelope's ceiling (the group's raw ceiling plus the source's own
+		// altitude), the floor that falls as candidates are asked about, the random tolerance, the stealth and emitter adjustment and the range.
+		// The unit database figures are its facts; the campaign keeps the candidates, their order, line of sight and the ranking.
+		//
+
+		campaign_sense_begin (CAMPAIGN_SENSE_SURFACE_TO_AIR, source, source_position, source_air_scan_range, source_air_scan_ceiling, source_air_scan_floor);
 
 		source_side = (entity_sides) get_local_entity_int_value (source, INT_TYPE_SIDE);
 
@@ -559,6 +568,11 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 
 		x_sec_max = min (x_sec_max, MAX_MAP_X_SECTOR);
 		z_sec_max = min (z_sec_max, MAX_MAP_Z_SECTOR);
+
+		SENSOR_FX_I (EECH_SENSOR_TAG_SECTOR_X_MIN, x_sec_min)
+		SENSOR_FX_I (EECH_SENSOR_TAG_SECTOR_Z_MIN, z_sec_min)
+		SENSOR_FX_I (EECH_SENSOR_TAG_SECTOR_X_MAX, x_sec_max)
+		SENSOR_FX_I (EECH_SENSOR_TAG_SECTOR_Z_MAX, z_sec_max)
 
 		////////////////////////////////////////
 		//
@@ -588,26 +602,36 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 
 						if (target == source)
 						{
+							SENSOR_FX_SKIP (EECH_SENSOR_SKIP_SELF)
+
 							continue;
 						}
 
 						if (!get_local_entity_int_value (target, INT_TYPE_AIRBORNE_AIRCRAFT))
 						{
+							SENSOR_FX_SKIP (EECH_SENSOR_SKIP_AIRBORNE)
+
 							continue;
 						}
 
 						if (get_local_entity_int_value (target, INT_TYPE_TARGET_TYPE) == TARGET_TYPE_INVALID)
 						{
+							SENSOR_FX_SKIP (EECH_SENSOR_SKIP_TARGET_TYPE)
+
 							continue;
 						}
 
 						if (!get_local_entity_int_value (target, INT_TYPE_ALIVE))
 						{
+							SENSOR_FX_SKIP (EECH_SENSOR_SKIP_DEAD)
+
 							continue;
 						}
 
 						if (get_local_entity_int_value (target, INT_TYPE_SIDE) == source_side)
 						{
+							SENSOR_FX_SKIP (EECH_SENSOR_SKIP_SIDE)
+
 							continue;
 						}
 
@@ -615,11 +639,15 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 
 						if (!group)
 						{
+							SENSOR_FX_SKIP (EECH_SENSOR_SKIP_NO_GROUP)
+
 							continue;
 						}
 
 						if ((group == best_group) && (get_local_entity_int_value (target, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI))
 						{
+							SENSOR_FX_SKIP (EECH_SENSOR_SKIP_BEST_GROUP)
+
 							continue;
 						}
 
@@ -632,70 +660,17 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 						//
 						// Target range
 						//
-						
+
 						target_position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
 
-						target_range = get_approx_3d_range (source_position, target_position);
-
 						//
-						// Check target altitude
+						// the physical predicates, in the order the original scan applied them, are the host's; the cumulative lowering of the floor
+						// by every candidate asked about, whether or not it is detected, is its state
 						//
 
-						// DECREASE SCAN FLOOR FOR CLOSE TARGETS
-						source_air_scan_floor *= bound(target_range / source_air_scan_range, 0.1, 1.0);
-
-						if (get_local_entity_int_value (target, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-						{
-							source_air_scan_floor *= get_scan_floor_difficulty_factor (target);
-						}
-						
-						target_radar_altitude = get_local_entity_float_value (target, FLOAT_TYPE_RADAR_ALTITUDE);
-
-						if ((target_radar_altitude < source_air_scan_floor) || (target_radar_altitude > source_air_scan_ceiling))
+						if (!campaign_sense_candidate (source, target, target_position, &target_range))
 						{
 							continue;
-						}
-
-						//
-						// allow for random tolerance
-						//
-
-						seed = get_client_server_entity_random_number_seed (source);
-
-						if (target_radar_altitude < (source_air_scan_floor * (1.0 + (0.5 * frand1x (&seed)))))
-						{
-							continue;
-						}
-
-						//
-						// adjust range if target is player - each jammer / radar turned off allows player to fly 10% closer
-						//
-						{
-							float
-								adj_range;
-
-							adj_range = target_range;
-
-							if (get_local_entity_int_value (target, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-							{
-								if (!get_local_entity_int_value (target, INT_TYPE_RADAR_ON))
-								{
-									adj_range *= 1.1;
-								}
-								if (!get_local_entity_int_value (target, INT_TYPE_RADAR_JAMMER_ON))
-								{
-									adj_range *= 1.1;
-								}
-								if (!get_local_entity_int_value (target, INT_TYPE_INFRA_RED_JAMMER_ON))
-								{
-									adj_range *= 1.1;
-								}
-							}
-
-							if (adj_range > (source_air_scan_range * get_local_entity_float_value (target, FLOAT_TYPE_RADAR_STEALTH_FACTOR)))
-							{
-								continue;
-							}
 						}
 
 						(*target_count) ++;
@@ -706,18 +681,28 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 
 						if (get_local_entity_int_value (target, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
 						{
+							SENSOR_FX_I (EECH_SENSOR_TAG_CRITERIA, MOBILE_LOS_CHECK_ALL)
+
 							if (!check_entity_line_of_sight (source, target, (mobile_los_check_criteria) MOBILE_LOS_CHECK_ALL))
 							{
+								SENSOR_FX_VERDICT (EECH_SENSOR_VERDICT_LINE_OF_SIGHT)
+
 								continue;
 							}
 						}
 						else
 						{
+							SENSOR_FX_I (EECH_SENSOR_TAG_CRITERIA, MOBILE_LOS_CHECK_COURSE_TERRAIN)
+
 							if (!check_entity_line_of_sight (source, target, MOBILE_LOS_CHECK_COURSE_TERRAIN))
 							{
+								SENSOR_FX_VERDICT (EECH_SENSOR_VERDICT_LINE_OF_SIGHT)
+
 								continue;
 							}
 						}
+
+						SENSOR_FX_VERDICT (EECH_SENSOR_VERDICT_ACCEPT)
 
 						////////////////////////////////////////
 						//
@@ -779,6 +764,9 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 
 						////////////////////////////////////////
 
+						SENSOR_FX_DEC_F (EECH_SENSOR_TAG_RESULT, target_select_criteria)
+						SENSOR_FX_DEC_I (EECH_SENSOR_TAG_REPLACED, target_select_criteria > best_target_select_criteria)
+
 						if (target_select_criteria > best_target_select_criteria)
 						{
 							best_target_select_criteria = target_select_criteria;
@@ -792,11 +780,15 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 				}
 			}
 		}
+
+		campaign_sense_end ();
 	}
 	else if (debug)
 	{
 		debug_log (" NO SCAN - SURFACE TO AIR ->SOURCE: %s (index = %d)", get_local_entity_string (source, STRING_TYPE_FULL_NAME), get_local_entity_index (source));
 	}
+
+	SENSOR_FX_END (*target_count, best_group, best_group ? best_target_select_criteria : 0.0)
 
 	return (best_group);
 }
@@ -846,6 +838,8 @@ entity *get_vehicle_surface_to_surface_scan_group_targets (entity *source, int *
 
 	*target_count = 0;
 
+	SENSOR_FX_BEGIN (EECH_SENSOR_SURFACE_TO_SURFACE, source)
+
 #ifdef DEBUG
 	debug = DEBUG_MODULE && source == get_external_view_entity ();
 #endif
@@ -858,6 +852,8 @@ entity *get_vehicle_surface_to_surface_scan_group_targets (entity *source, int *
 
 	if (!group)
 	{
+		SENSOR_FX_END (0, NULL, 0.0)
+
 		return NULL;
 	}
 
@@ -887,6 +883,13 @@ entity *get_vehicle_surface_to_surface_scan_group_targets (entity *source, int *
 
 		source_position = get_local_entity_vec3d_ptr (source, VEC3D_TYPE_POSITION);
 
+		SENSOR_FX_F (EECH_SENSOR_TAG_SOURCE_X, source_position->x)
+		SENSOR_FX_F (EECH_SENSOR_TAG_SOURCE_Y, source_position->y)
+		SENSOR_FX_F (EECH_SENSOR_TAG_SOURCE_Z, source_position->z)
+		SENSOR_FX_F (EECH_SENSOR_TAG_SCAN_RANGE, source_surface_scan_range)
+
+		campaign_sense_begin (CAMPAIGN_SENSE_SURFACE_TO_SURFACE, source, source_position, source_surface_scan_range, 0.0, 0.0);
+
 		source_side = (entity_sides) get_local_entity_int_value (source, INT_TYPE_SIDE);
 
 		////////////////////////////////////////
@@ -913,6 +916,11 @@ entity *get_vehicle_surface_to_surface_scan_group_targets (entity *source, int *
 
 		x_sec_max = min (x_sec_max, MAX_MAP_X_SECTOR);
 		z_sec_max = min (z_sec_max, MAX_MAP_Z_SECTOR);
+
+		SENSOR_FX_I (EECH_SENSOR_TAG_SECTOR_X_MIN, x_sec_min)
+		SENSOR_FX_I (EECH_SENSOR_TAG_SECTOR_Z_MIN, z_sec_min)
+		SENSOR_FX_I (EECH_SENSOR_TAG_SECTOR_X_MAX, x_sec_max)
+		SENSOR_FX_I (EECH_SENSOR_TAG_SECTOR_Z_MAX, z_sec_max)
 
 		////////////////////////////////////////
 		//
@@ -942,16 +950,20 @@ entity *get_vehicle_surface_to_surface_scan_group_targets (entity *source, int *
 
 						if (target == source)
 						{
+							SENSOR_FX_SKIP (EECH_SENSOR_SKIP_SELF)
+
 							continue;
 						}
 
 						//
 						// Allow vehicles and aircraft....
 						//
-						
-						if ((!get_local_entity_int_value (target, INT_TYPE_IDENTIFY_AIRCRAFT)) && 
+
+						if ((!get_local_entity_int_value (target, INT_TYPE_IDENTIFY_AIRCRAFT)) &&
 								(!get_local_entity_int_value (target, INT_TYPE_IDENTIFY_VEHICLE)))
 						{
+							SENSOR_FX_SKIP (EECH_SENSOR_SKIP_IDENTIFY)
+
 							continue;
 						}
 
@@ -961,11 +973,15 @@ entity *get_vehicle_surface_to_surface_scan_group_targets (entity *source, int *
 
 						if (get_local_entity_int_value (target, INT_TYPE_AIRBORNE_AIRCRAFT))
 						{
+							SENSOR_FX_SKIP (EECH_SENSOR_SKIP_AIRBORNE)
+
 							continue;
 						}
 
 						if (get_local_entity_int_value (target, INT_TYPE_TARGET_TYPE) == TARGET_TYPE_INVALID)
 						{
+							SENSOR_FX_SKIP (EECH_SENSOR_SKIP_TARGET_TYPE)
+
 							continue;
 						}
 
@@ -973,21 +989,29 @@ entity *get_vehicle_surface_to_surface_scan_group_targets (entity *source, int *
 
 						if (!group)
 						{
+							SENSOR_FX_SKIP (EECH_SENSOR_SKIP_NO_GROUP)
+
 							continue;
 						}
 
 						if (group == best_group)
 						{
+							SENSOR_FX_SKIP (EECH_SENSOR_SKIP_BEST_GROUP)
+
 							continue;
 						}
 
 						if (!get_local_entity_int_value (target, INT_TYPE_ALIVE))
 						{
+							SENSOR_FX_SKIP (EECH_SENSOR_SKIP_DEAD)
+
 							continue;
 						}
 
 						if (get_local_entity_int_value (target, INT_TYPE_SIDE) == source_side)
 						{
+							SENSOR_FX_SKIP (EECH_SENSOR_SKIP_SIDE)
+
 							continue;
 						}
 
@@ -1003,9 +1027,7 @@ entity *get_vehicle_surface_to_surface_scan_group_targets (entity *source, int *
 
 						target_position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
 
-						target_range = get_approx_3d_range (source_position, target_position);
-
-						if (target_range > source_surface_scan_range)
+						if (!campaign_sense_candidate (source, target, target_position, &target_range))
 						{
 							continue;
 						}
@@ -1070,6 +1092,9 @@ entity *get_vehicle_surface_to_surface_scan_group_targets (entity *source, int *
 
 						////////////////////////////////////////
 
+						SENSOR_FX_DEC_F (EECH_SENSOR_TAG_RESULT, target_select_criteria)
+						SENSOR_FX_DEC_I (EECH_SENSOR_TAG_REPLACED, target_select_criteria > best_target_select_criteria)
+
 						if (target_select_criteria > best_target_select_criteria)
 						{
 							best_target_select_criteria = target_select_criteria;
@@ -1083,11 +1108,15 @@ entity *get_vehicle_surface_to_surface_scan_group_targets (entity *source, int *
 				}
 			}
 		}
+
+		campaign_sense_end ();
 	}
 	else if (debug)
 	{
 		debug_log (" NO SCAN - SURFACE TO SURFACE ->SOURCE: %s (index = %d)", get_local_entity_string (source, STRING_TYPE_FULL_NAME), get_local_entity_index (source));
 	}
+
+	SENSOR_FX_END (*target_count, best_group, best_group ? best_target_select_criteria : 0.0)
 
 	return (best_group);
 }

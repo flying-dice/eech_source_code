@@ -88,6 +88,7 @@ local engine = dc.boot ({
 	observe_loss = host.observe_loss,
 	supply_reached = host.supply_reached,
 	line_of_sight = host.line_of_sight,
+	sense = host.sense,
 })
 
 for _ = 1, frames do

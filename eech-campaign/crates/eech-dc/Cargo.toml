@@ -30,6 +30,8 @@ dependent-fixture-old-guard = ["dependent-fixture", "eech-engine/dependent-fixtu
 loss-fixture = ["eech-engine/loss-fixture"]
 # TEST-ONLY (EEDCS-42): the line-of-sight characterisation trace and probe. Never enabled in the shipping build.
 los-fixture = ["eech-engine/los-fixture"]
+# TEST-ONLY (EEDCS-43): the sensor-detection characterisation trace and probe. Never enabled in the shipping build.
+sensor-fixture = ["eech-engine/sensor-fixture"]
 
 # Code that runs inside a host's process: a panic in this DLL takes the host
 # down. The reference crate's restriction lints, denied here.

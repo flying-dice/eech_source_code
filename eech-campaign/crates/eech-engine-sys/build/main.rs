@@ -57,6 +57,12 @@ fn main() {
     println!("cargo:rerun-if-changed=compat");
     println!("cargo:rerun-if-changed=csrc");
     println!("cargo:rerun-if-changed=sources.txt");
+    // The original tree is an input too: its C, headers (textname.h feeds the generated texture names) and inlines are staged into OUT_DIR below
+    // and compiled from the staged copies, so an edit under the resolved EECH_SOURCE_ROOT must rerun this script. Cargo scans a watched
+    // directory recursively, so a file that appears or disappears reruns it as well.
+    for dir in ["modules", "aphavoc/source"] {
+        println!("cargo:rerun-if-changed={}", root.join(dir).display());
+    }
 
     let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap();
     let target_env = env::var("CARGO_CFG_TARGET_ENV").unwrap_or_default();
@@ -168,6 +174,9 @@ fn main() {
     }
     if env::var_os("CARGO_FEATURE_LOS_FIXTURE").is_some() {
         build.define("EECH_LOS_FIXTURE", None);
+    }
+    if env::var_os("CARGO_FEATURE_SENSOR_FIXTURE").is_some() {
+        build.define("EECH_SENSOR_FIXTURE", None);
     }
     if windows {
         build.flag("-include").flag(manifest.join("csrc/eech_win32_names.h").to_str().unwrap());

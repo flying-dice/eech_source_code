@@ -1,0 +1,128 @@
+{"event":"boot","frame_ms":100,"scenario":"lebanon_retail","seconds":45}
+{"at":30,"elapsed":30.099733352661,"event":"probe","frame":301}
+{"at":30,"decision":"912d5270e53abcbc","event":"sensor-hash","physical":"597fd62d647eadc7","scope":"probe"}
+{"at":30,"calls":0,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"air_to_air","nonnull":0,"replaced":0,"scanned":0,"scope":"probe","target_count_sum":0}
+{"accept":0,"altitude":0,"at":30,"event":"sensor-verdicts","line_of_sight":0,"name":"air_to_air","range":0,"range_adjusted":0,"scope":"probe","tolerance":0}
+{"airborne":0,"at":30,"best_group":0,"dead":0,"event":"sensor-skips","identify":0,"name":"air_to_air","no_group":0,"scope":"probe","self":0,"side":0,"target_type":0}
+{"adjusted_differs":0,"at":30,"emitter_off":0,"event":"sensor-edges","name":"air_to_air","player_candidates":0,"scope":"probe","stealth_not_one":0}
+{"at":30,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"air_to_air","scan_range_max":0,"scan_range_min":0,"scope":"probe","sector_cells_sum":0,"sector_empty":0,"sector_whole_map":0}
+{"at":30,"calls":0,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"air_to_surface","nonnull":0,"replaced":0,"scanned":0,"scope":"probe","target_count_sum":0}
+{"accept":0,"altitude":0,"at":30,"event":"sensor-verdicts","line_of_sight":0,"name":"air_to_surface","range":0,"range_adjusted":0,"scope":"probe","tolerance":0}
+{"airborne":0,"at":30,"best_group":0,"dead":0,"event":"sensor-skips","identify":0,"name":"air_to_surface","no_group":0,"scope":"probe","self":0,"side":0,"target_type":0}
+{"adjusted_differs":0,"at":30,"emitter_off":0,"event":"sensor-edges","name":"air_to_surface","player_candidates":0,"scope":"probe","stealth_not_one":0}
+{"at":30,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"air_to_surface","scan_range_max":0,"scan_range_min":0,"scope":"probe","sector_cells_sum":0,"sector_empty":0,"sector_whole_map":0}
+{"at":30,"calls":555,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"surface_to_air","nonnull":0,"replaced":0,"scanned":555,"scope":"probe","target_count_sum":0}
+{"accept":0,"altitude":0,"at":30,"event":"sensor-verdicts","line_of_sight":0,"name":"surface_to_air","range":0,"range_adjusted":0,"scope":"probe","tolerance":0}
+{"airborne":1113665,"at":30,"best_group":0,"dead":0,"event":"sensor-skips","identify":0,"name":"surface_to_air","no_group":0,"scope":"probe","self":555,"side":0,"target_type":0}
+{"adjusted_differs":0,"at":30,"emitter_off":0,"event":"sensor-edges","name":"surface_to_air","player_candidates":0,"scope":"probe","stealth_not_one":0}
+{"at":30,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"surface_to_air","scan_range_max":14000,"scan_range_min":2000,"scope":"probe","sector_cells_sum":7180,"sector_empty":0,"sector_whole_map":0}
+{"at":30,"calls":555,"candidates":272,"count_positive_null_group":10,"event":"sensor-fn","name":"surface_to_surface","nonnull":9,"replaced":15,"scanned":327,"scope":"probe","target_count_sum":272}
+{"accept":24,"altitude":0,"at":30,"event":"sensor-verdicts","line_of_sight":0,"name":"surface_to_surface","range":248,"range_adjusted":0,"scope":"probe","tolerance":0}
+{"airborne":0,"at":30,"best_group":41,"dead":0,"event":"sensor-skips","identify":234004,"name":"surface_to_surface","no_group":0,"scope":"probe","self":327,"side":7155,"target_type":0}
+{"adjusted_differs":0,"at":30,"emitter_off":0,"event":"sensor-edges","name":"surface_to_surface","player_candidates":0,"scope":"probe","stealth_not_one":0}
+{"at":30,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"surface_to_surface","scan_range_max":12000,"scan_range_min":300,"scope":"probe","sector_cells_sum":1635,"sector_empty":0,"sector_whole_map":0}
+{"altitude_above_ceiling":0,"altitude_below_floor":0,"at":30,"difficulty_factors":0,"event":"sensor-surface-to-air","floor_cumulative_differs":0,"floor_ratio_min":2,"multi_candidate_calls":0,"scope":"probe"}
+{"at":30,"draw_max":0,"draw_min":0,"draws":0,"event":"sensor-tolerance","recompute_mismatch":0,"rejects":0,"scope":"probe","varies_within_call":0}
+{"at":30,"calls":35,"event":"sensor-kind","function":"surface_to_air","scanned":35,"scope":"probe","source":"ENTITY_TYPE_PERSON"}
+{"at":30,"calls":35,"event":"sensor-kind","function":"surface_to_surface","scanned":35,"scope":"probe","source":"ENTITY_TYPE_PERSON"}
+{"at":30,"calls":48,"event":"sensor-kind","function":"surface_to_air","scanned":48,"scope":"probe","source":"ENTITY_TYPE_ROUTED_VEHICLE"}
+{"at":30,"calls":48,"event":"sensor-kind","function":"surface_to_surface","scanned":48,"scope":"probe","source":"ENTITY_TYPE_ROUTED_VEHICLE"}
+{"at":30,"calls":15,"event":"sensor-kind","function":"surface_to_air","scanned":15,"scope":"probe","source":"ENTITY_TYPE_SHIP_VEHICLE"}
+{"at":30,"calls":15,"event":"sensor-kind","function":"surface_to_surface","scanned":12,"scope":"probe","source":"ENTITY_TYPE_SHIP_VEHICLE"}
+{"at":30,"calls":457,"event":"sensor-kind","function":"surface_to_air","scanned":457,"scope":"probe","source":"ENTITY_TYPE_ANTI_AIRCRAFT"}
+{"at":30,"calls":457,"event":"sensor-kind","function":"surface_to_surface","scanned":232,"scope":"probe","source":"ENTITY_TYPE_ANTI_AIRCRAFT"}
+{"at":30,"event":"sensor-kinds","overflow":0,"rows":8,"scope":"probe"}
+{"at":30,"event":"sensor-sample","key":"surface_to_surface/range","scope":"probe","text":"source_x=34440.7109 source_y=758.362488 source_z=44711.0547 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | target_range=5304.92285"}
+{"at":30,"event":"sensor-sample","key":"surface_to_surface/range","scope":"probe","text":"source_x=34440.7109 source_y=758.362488 source_z=44711.0547 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | target_range=5342.12988"}
+{"at":30,"event":"sensor-sample","key":"surface_to_surface/count_without_group","scope":"probe","text":"source_x=34440.7109 source_y=758.362488 source_z=44711.0547 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | target_count=2 best_group=none"}
+{"at":30,"event":"sensor-sample","key":"surface_to_surface/count_without_group","scope":"probe","text":"source_x=123904.57 source_y=637.978149 source_z=65018.0898 scan_range=5000 sector_x_min=29 sector_z_min=14 sector_x_max=31 sector_z_max=17 | target_count=11 best_group=none"}
+{"at":30,"event":"sensor-sample","key":"surface_to_surface/accept","scope":"probe","text":"source_x=139225.422 source_y=601.719421 source_z=62660.8867 scan_range=5000 sector_x_min=32 sector_z_min=14 sector_x_max=35 sector_z_max=16 | target_range=2897.8501"}
+{"at":30,"event":"sensor-sample","key":"surface_to_surface/ranked","scope":"probe","text":"source_x=139225.422 source_y=601.719421 source_z=62660.8867 scan_range=5000 sector_x_min=32 sector_z_min=14 sector_x_max=35 sector_z_max=16 | target_range=2897.8501 result=2.10214972 replaced=1"}
+{"at":30,"event":"sensor-sample","key":"surface_to_surface/accept","scope":"probe","text":"source_x=16528.7969 source_y=4.24674177 source_z=56827.1367 scan_range=5000 sector_x_min=2 sector_z_min=12 sector_x_max=5 sector_z_max=15 | target_range=1829.71033"}
+{"at":30,"event":"sensor-sample","key":"surface_to_surface/ranked","scope":"probe","text":"source_x=16528.7969 source_y=4.24674177 source_z=56827.1367 scan_range=5000 sector_x_min=2 sector_z_min=12 sector_x_max=5 sector_z_max=15 | target_range=1829.71033 result=3.17028928 replaced=1"}
+{"at":30,"count":8,"event":"sensor-samples","overflow":0,"scope":"probe"}
+{"aircraft":0,"aircraft_entities":265,"at":30,"event":"sensor-probe","player_aircraft":0,"scope":"probe","sources":555,"vehicles":555}
+{"at":30,"decision":"830c1e45a4da389f","event":"sensor-hash","physical":"e5976afa4bd6aa0c","scope":"run-at-probe"}
+{"at":30,"calls":0,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"air_to_air","nonnull":0,"replaced":0,"scanned":0,"scope":"run-at-probe","target_count_sum":0}
+{"accept":0,"altitude":0,"at":30,"event":"sensor-verdicts","line_of_sight":0,"name":"air_to_air","range":0,"range_adjusted":0,"scope":"run-at-probe","tolerance":0}
+{"airborne":0,"at":30,"best_group":0,"dead":0,"event":"sensor-skips","identify":0,"name":"air_to_air","no_group":0,"scope":"run-at-probe","self":0,"side":0,"target_type":0}
+{"adjusted_differs":0,"at":30,"emitter_off":0,"event":"sensor-edges","name":"air_to_air","player_candidates":0,"scope":"run-at-probe","stealth_not_one":0}
+{"at":30,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"air_to_air","scan_range_max":0,"scan_range_min":0,"scope":"run-at-probe","sector_cells_sum":0,"sector_empty":0,"sector_whole_map":0}
+{"at":30,"calls":0,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"air_to_surface","nonnull":0,"replaced":0,"scanned":0,"scope":"run-at-probe","target_count_sum":0}
+{"accept":0,"altitude":0,"at":30,"event":"sensor-verdicts","line_of_sight":0,"name":"air_to_surface","range":0,"range_adjusted":0,"scope":"run-at-probe","tolerance":0}
+{"airborne":0,"at":30,"best_group":0,"dead":0,"event":"sensor-skips","identify":0,"name":"air_to_surface","no_group":0,"scope":"run-at-probe","self":0,"side":0,"target_type":0}
+{"adjusted_differs":0,"at":30,"emitter_off":0,"event":"sensor-edges","name":"air_to_surface","player_candidates":0,"scope":"run-at-probe","stealth_not_one":0}
+{"at":30,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"air_to_surface","scan_range_max":0,"scan_range_min":0,"scope":"run-at-probe","sector_cells_sum":0,"sector_empty":0,"sector_whole_map":0}
+{"at":30,"calls":1222,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"surface_to_air","nonnull":0,"replaced":0,"scanned":1222,"scope":"run-at-probe","target_count_sum":0}
+{"accept":0,"altitude":0,"at":30,"event":"sensor-verdicts","line_of_sight":0,"name":"surface_to_air","range":0,"range_adjusted":0,"scope":"run-at-probe","tolerance":0}
+{"airborne":2621974,"at":30,"best_group":0,"dead":0,"event":"sensor-skips","identify":0,"name":"surface_to_air","no_group":0,"scope":"run-at-probe","self":1222,"side":0,"target_type":0}
+{"adjusted_differs":0,"at":30,"emitter_off":0,"event":"sensor-edges","name":"surface_to_air","player_candidates":0,"scope":"run-at-probe","stealth_not_one":0}
+{"at":30,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"surface_to_air","scan_range_max":14000,"scan_range_min":2000,"scope":"run-at-probe","sector_cells_sum":17254,"sector_empty":0,"sector_whole_map":0}
+{"at":30,"calls":1222,"candidates":478,"count_positive_null_group":22,"event":"sensor-fn","name":"surface_to_surface","nonnull":17,"replaced":27,"scanned":736,"scope":"run-at-probe","target_count_sum":478}
+{"accept":45,"altitude":0,"at":30,"event":"sensor-verdicts","line_of_sight":0,"name":"surface_to_surface","range":433,"range_adjusted":0,"scope":"run-at-probe","tolerance":0}
+{"airborne":0,"at":30,"best_group":82,"dead":0,"event":"sensor-skips","identify":549814,"name":"surface_to_surface","no_group":0,"scope":"run-at-probe","self":736,"side":15975,"target_type":0}
+{"adjusted_differs":0,"at":30,"emitter_off":0,"event":"sensor-edges","name":"surface_to_surface","player_candidates":0,"scope":"run-at-probe","stealth_not_one":0}
+{"at":30,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"surface_to_surface","scan_range_max":12000,"scan_range_min":300,"scope":"run-at-probe","sector_cells_sum":3763,"sector_empty":0,"sector_whole_map":0}
+{"altitude_above_ceiling":0,"altitude_below_floor":0,"at":30,"difficulty_factors":0,"event":"sensor-surface-to-air","floor_cumulative_differs":0,"floor_ratio_min":2,"multi_candidate_calls":0,"scope":"run-at-probe"}
+{"at":30,"draw_max":0,"draw_min":0,"draws":0,"event":"sensor-tolerance","recompute_mismatch":0,"rejects":0,"scope":"run-at-probe","varies_within_call":0}
+{"at":30,"calls":103,"event":"sensor-kind","function":"surface_to_air","scanned":103,"scope":"run-at-probe","source":"ENTITY_TYPE_ROUTED_VEHICLE"}
+{"at":30,"calls":103,"event":"sensor-kind","function":"surface_to_surface","scanned":103,"scope":"run-at-probe","source":"ENTITY_TYPE_ROUTED_VEHICLE"}
+{"at":30,"calls":37,"event":"sensor-kind","function":"surface_to_air","scanned":37,"scope":"run-at-probe","source":"ENTITY_TYPE_SHIP_VEHICLE"}
+{"at":30,"calls":37,"event":"sensor-kind","function":"surface_to_surface","scanned":29,"scope":"run-at-probe","source":"ENTITY_TYPE_SHIP_VEHICLE"}
+{"at":30,"calls":1063,"event":"sensor-kind","function":"surface_to_air","scanned":1063,"scope":"run-at-probe","source":"ENTITY_TYPE_ANTI_AIRCRAFT"}
+{"at":30,"calls":1063,"event":"sensor-kind","function":"surface_to_surface","scanned":585,"scope":"run-at-probe","source":"ENTITY_TYPE_ANTI_AIRCRAFT"}
+{"at":30,"calls":19,"event":"sensor-kind","function":"surface_to_air","scanned":19,"scope":"run-at-probe","source":"ENTITY_TYPE_PERSON"}
+{"at":30,"calls":19,"event":"sensor-kind","function":"surface_to_surface","scanned":19,"scope":"run-at-probe","source":"ENTITY_TYPE_PERSON"}
+{"at":30,"event":"sensor-kinds","overflow":0,"rows":8,"scope":"run-at-probe"}
+{"at":30,"event":"sensor-sample","key":"surface_to_surface/range","scope":"run-at-probe","text":"source_x=34443.4766 source_y=758.184753 source_z=44612.332 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | target_range=5205.46436"}
+{"at":30,"event":"sensor-sample","key":"surface_to_surface/range","scope":"run-at-probe","text":"source_x=34443.4766 source_y=758.184753 source_z=44612.332 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | target_range=5242.67139"}
+{"at":30,"event":"sensor-sample","key":"surface_to_surface/count_without_group","scope":"run-at-probe","text":"source_x=34443.4766 source_y=758.184753 source_z=44612.332 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | target_count=2 best_group=none"}
+{"at":30,"event":"sensor-sample","key":"surface_to_surface/count_without_group","scope":"run-at-probe","text":"source_x=123904.57 source_y=637.978149 source_z=65018.0898 scan_range=5000 sector_x_min=29 sector_z_min=14 sector_x_max=31 sector_z_max=17 | target_count=11 best_group=none"}
+{"at":30,"event":"sensor-sample","key":"surface_to_surface/accept","scope":"run-at-probe","text":"source_x=139225.422 source_y=601.719421 source_z=62660.8867 scan_range=5000 sector_x_min=32 sector_z_min=14 sector_x_max=35 sector_z_max=16 | target_range=2897.8501"}
+{"at":30,"event":"sensor-sample","key":"surface_to_surface/ranked","scope":"run-at-probe","text":"source_x=139225.422 source_y=601.719421 source_z=62660.8867 scan_range=5000 sector_x_min=32 sector_z_min=14 sector_x_max=35 sector_z_max=16 | target_range=2897.8501 result=2.10214972 replaced=1"}
+{"at":30,"event":"sensor-sample","key":"surface_to_surface/accept","scope":"run-at-probe","text":"source_x=16528.7969 source_y=4.24674177 source_z=56827.1367 scan_range=5000 sector_x_min=2 sector_z_min=12 sector_x_max=5 sector_z_max=15 | target_range=1829.71033"}
+{"at":30,"event":"sensor-sample","key":"surface_to_surface/ranked","scope":"run-at-probe","text":"source_x=16528.7969 source_y=4.24674177 source_z=56827.1367 scan_range=5000 sector_x_min=2 sector_z_min=12 sector_x_max=5 sector_z_max=15 | target_range=1829.71033 result=3.17028928 replaced=1"}
+{"at":30,"count":8,"event":"sensor-samples","overflow":0,"scope":"run-at-probe"}
+{"at":30,"event":"run_trace_untouched_by_probe","ok":true}
+{"elapsed":44.999504089355,"event":"run","frames":450,"probes":1}
+{"at":44.999504089355,"decision":"8ab996a3ebf24760","event":"sensor-hash","physical":"b8d911aad0f59654","scope":"run"}
+{"at":44.999504089355,"calls":0,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"air_to_air","nonnull":0,"replaced":0,"scanned":0,"scope":"run","target_count_sum":0}
+{"accept":0,"altitude":0,"at":44.999504089355,"event":"sensor-verdicts","line_of_sight":0,"name":"air_to_air","range":0,"range_adjusted":0,"scope":"run","tolerance":0}
+{"airborne":0,"at":44.999504089355,"best_group":0,"dead":0,"event":"sensor-skips","identify":0,"name":"air_to_air","no_group":0,"scope":"run","self":0,"side":0,"target_type":0}
+{"adjusted_differs":0,"at":44.999504089355,"emitter_off":0,"event":"sensor-edges","name":"air_to_air","player_candidates":0,"scope":"run","stealth_not_one":0}
+{"at":44.999504089355,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"air_to_air","scan_range_max":0,"scan_range_min":0,"scope":"run","sector_cells_sum":0,"sector_empty":0,"sector_whole_map":0}
+{"at":44.999504089355,"calls":0,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"air_to_surface","nonnull":0,"replaced":0,"scanned":0,"scope":"run","target_count_sum":0}
+{"accept":0,"altitude":0,"at":44.999504089355,"event":"sensor-verdicts","line_of_sight":0,"name":"air_to_surface","range":0,"range_adjusted":0,"scope":"run","tolerance":0}
+{"airborne":0,"at":44.999504089355,"best_group":0,"dead":0,"event":"sensor-skips","identify":0,"name":"air_to_surface","no_group":0,"scope":"run","self":0,"side":0,"target_type":0}
+{"adjusted_differs":0,"at":44.999504089355,"emitter_off":0,"event":"sensor-edges","name":"air_to_surface","player_candidates":0,"scope":"run","stealth_not_one":0}
+{"at":44.999504089355,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"air_to_surface","scan_range_max":0,"scan_range_min":0,"scope":"run","sector_cells_sum":0,"sector_empty":0,"sector_whole_map":0}
+{"at":44.999504089355,"calls":1696,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"surface_to_air","nonnull":0,"replaced":0,"scanned":1696,"scope":"run","target_count_sum":0}
+{"accept":0,"altitude":0,"at":44.999504089355,"event":"sensor-verdicts","line_of_sight":0,"name":"surface_to_air","range":0,"range_adjusted":0,"scope":"run","tolerance":0}
+{"airborne":3654745,"at":44.999504089355,"best_group":0,"dead":0,"event":"sensor-skips","identify":0,"name":"surface_to_air","no_group":0,"scope":"run","self":1696,"side":0,"target_type":0}
+{"adjusted_differs":0,"at":44.999504089355,"emitter_off":0,"event":"sensor-edges","name":"surface_to_air","player_candidates":0,"scope":"run","stealth_not_one":0}
+{"at":44.999504089355,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"surface_to_air","scan_range_max":14000,"scan_range_min":2000,"scope":"run","sector_cells_sum":23976,"sector_empty":0,"sector_whole_map":0}
+{"at":44.999504089355,"calls":1696,"candidates":609,"count_positive_null_group":29,"event":"sensor-fn","name":"surface_to_surface","nonnull":20,"replaced":33,"scanned":1053,"scope":"run","target_count_sum":609}
+{"accept":54,"altitude":0,"at":44.999504089355,"event":"sensor-verdicts","line_of_sight":0,"name":"surface_to_surface","range":555,"range_adjusted":0,"scope":"run","tolerance":0}
+{"airborne":0,"at":44.999504089355,"best_group":102,"dead":0,"event":"sensor-skips","identify":770080,"name":"surface_to_surface","no_group":0,"scope":"run","self":1053,"side":22868,"target_type":0}
+{"adjusted_differs":0,"at":44.999504089355,"emitter_off":0,"event":"sensor-edges","name":"surface_to_surface","player_candidates":0,"scope":"run","stealth_not_one":0}
+{"at":44.999504089355,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"surface_to_surface","scan_range_max":12000,"scan_range_min":300,"scope":"run","sector_cells_sum":5211,"sector_empty":0,"sector_whole_map":0}
+{"altitude_above_ceiling":0,"altitude_below_floor":0,"at":44.999504089355,"difficulty_factors":0,"event":"sensor-surface-to-air","floor_cumulative_differs":0,"floor_ratio_min":2,"multi_candidate_calls":0,"scope":"run"}
+{"at":44.999504089355,"draw_max":0,"draw_min":0,"draws":0,"event":"sensor-tolerance","recompute_mismatch":0,"rejects":0,"scope":"run","varies_within_call":0}
+{"at":44.999504089355,"calls":134,"event":"sensor-kind","function":"surface_to_air","scanned":134,"scope":"run","source":"ENTITY_TYPE_ROUTED_VEHICLE"}
+{"at":44.999504089355,"calls":134,"event":"sensor-kind","function":"surface_to_surface","scanned":134,"scope":"run","source":"ENTITY_TYPE_ROUTED_VEHICLE"}
+{"at":44.999504089355,"calls":52,"event":"sensor-kind","function":"surface_to_air","scanned":52,"scope":"run","source":"ENTITY_TYPE_SHIP_VEHICLE"}
+{"at":44.999504089355,"calls":52,"event":"sensor-kind","function":"surface_to_surface","scanned":40,"scope":"run","source":"ENTITY_TYPE_SHIP_VEHICLE"}
+{"at":44.999504089355,"calls":1460,"event":"sensor-kind","function":"surface_to_air","scanned":1460,"scope":"run","source":"ENTITY_TYPE_ANTI_AIRCRAFT"}
+{"at":44.999504089355,"calls":1460,"event":"sensor-kind","function":"surface_to_surface","scanned":829,"scope":"run","source":"ENTITY_TYPE_ANTI_AIRCRAFT"}
+{"at":44.999504089355,"calls":50,"event":"sensor-kind","function":"surface_to_air","scanned":50,"scope":"run","source":"ENTITY_TYPE_PERSON"}
+{"at":44.999504089355,"calls":50,"event":"sensor-kind","function":"surface_to_surface","scanned":50,"scope":"run","source":"ENTITY_TYPE_PERSON"}
+{"at":44.999504089355,"event":"sensor-kinds","overflow":0,"rows":8,"scope":"run"}
+{"at":44.999504089355,"event":"sensor-sample","key":"surface_to_surface/range","scope":"run","text":"source_x=34443.4766 source_y=758.184753 source_z=44612.332 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | target_range=5205.46436"}
+{"at":44.999504089355,"event":"sensor-sample","key":"surface_to_surface/range","scope":"run","text":"source_x=34443.4766 source_y=758.184753 source_z=44612.332 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | target_range=5242.67139"}
+{"at":44.999504089355,"event":"sensor-sample","key":"surface_to_surface/count_without_group","scope":"run","text":"source_x=34443.4766 source_y=758.184753 source_z=44612.332 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | target_count=2 best_group=none"}
+{"at":44.999504089355,"event":"sensor-sample","key":"surface_to_surface/count_without_group","scope":"run","text":"source_x=123904.57 source_y=637.978149 source_z=65018.0898 scan_range=5000 sector_x_min=29 sector_z_min=14 sector_x_max=31 sector_z_max=17 | target_count=11 best_group=none"}
+{"at":44.999504089355,"event":"sensor-sample","key":"surface_to_surface/accept","scope":"run","text":"source_x=139225.422 source_y=601.719421 source_z=62660.8867 scan_range=5000 sector_x_min=32 sector_z_min=14 sector_x_max=35 sector_z_max=16 | target_range=2897.8501"}
+{"at":44.999504089355,"event":"sensor-sample","key":"surface_to_surface/ranked","scope":"run","text":"source_x=139225.422 source_y=601.719421 source_z=62660.8867 scan_range=5000 sector_x_min=32 sector_z_min=14 sector_x_max=35 sector_z_max=16 | target_range=2897.8501 result=2.10214972 replaced=1"}
+{"at":44.999504089355,"event":"sensor-sample","key":"surface_to_surface/accept","scope":"run","text":"source_x=16528.7969 source_y=4.24674177 source_z=56827.1367 scan_range=5000 sector_x_min=2 sector_z_min=12 sector_x_max=5 sector_z_max=15 | target_range=1829.71033"}
+{"at":44.999504089355,"event":"sensor-sample","key":"surface_to_surface/ranked","scope":"run","text":"source_x=16528.7969 source_y=4.24674177 source_z=56827.1367 scan_range=5000 sector_x_min=2 sector_z_min=12 sector_x_max=5 sector_z_max=15 | target_range=1829.71033 result=3.17028928 replaced=1"}
+{"at":44.999504089355,"count":8,"event":"sensor-samples","overflow":0,"scope":"run"}

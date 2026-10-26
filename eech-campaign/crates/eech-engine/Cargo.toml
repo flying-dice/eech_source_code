@@ -17,6 +17,8 @@ dependent-fixture-old-guard = ["eech-engine-sys/dependent-fixture-old-guard"]
 loss-fixture = ["eech-engine-sys/loss-fixture"]
 # TEST-ONLY (EEDCS-42): see eech-engine-sys.
 los-fixture = ["eech-engine-sys/los-fixture"]
+# TEST-ONLY (EEDCS-43): see eech-engine-sys.
+sensor-fixture = ["eech-engine-sys/sensor-fixture"]
 
 [lints.rust]
 unsafe_op_in_unsafe_fn = "deny"
