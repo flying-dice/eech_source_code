@@ -8,8 +8,8 @@ and migration ledger 14548994. All five epic report macros are preserved.
 
 Delivery PR: https://github.com/flying-dice/eech_source_code/pull/101 (draft),
 authored as fd-starscream-bot following the user's logged-in-identity direction.
-Hosted CI has started; this does not replace the unrun local characterization.
-No formal approval or merge, and no physical solver extraction yet.
+The LOS physical solver and entity eye lift are implemented in the host at
+`a7863a73fa8bfba56cfa6bac4bb1602e9b9b88eb`. No merge or full regression acceptance yet.
 
 Accepted D1 evidence: native 40/40, full Tacview and observations unchanged, metrics
 equal; nine CI checks and independent exact-head approval before PR100 merge.
@@ -21,17 +21,29 @@ C:/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/eech-regression-20261025
 All 3,581 payload hashes pass; Georgia 1,174 and Lebanon/repeat 1,179 input files match
 their checked-in manifests exactly. Read docs/handover/HOST-READINESS-20261025.md.
 
-Now: one Claude CLI 2.1.310 implementation context
-ae34a3d7-0931-4638-b06a-a2d399277929, exact claude-sonnet-5-5 High via -p, has
-stopped at uncompiled characterization harness commit 676ab794c after one
-independent Codex source review and corrections. Both print-mode processes exited;
-no implementation/build/regression process remains running. No physical behavior
-has moved and no D2 Tacview comparison has run. D1 experiments were not repeated
-for readiness. See docs/handover/D2-LOS-HARNESS-REVIEW.md for evidence and limits.
+Now: one Claude CLI 2.1.310 context `ae34a3d7-0931-4638-b06a-a2d399277929`, exact
+`claude-sonnet-5-5` High via `-p`, is packaging the extraction evidence. Both original/candidate
+600-second characterizations match: Lebanon 156,581 queries / 60,731 visible / hash
+`d97f59bb364bb253`; Georgia 21,104 / 1,646 / `7fdc5ab0b8b5db5d`. The frozen original40s
+ordered lookup transcript and candidate are identical (4,567 queries / 107,162 lookups).
+Public-path 300s reference/blocked/clear host visibility changes actual weapon births and losses
+(185/6, 176/4, 254/15). Missing/malformed providers fail clearly. Exact source, builds, inputs,
+commands and limitations are retained under `eech-campaign/reference/d2-los-observation`.
 
-Build prerequisite: existing Docker Desktop first-run Subscription Service
-Agreement awaits user handling; Linux daemon is not ready. Windows 11 x64 and
-Python 3.12.14 are available. No numerical toolchain substitution or authentication
+One independent Codex delivery source pass found no blocking shipping-source defect and one P3
+duplicate callback setup in `dependent-fixture`, queued for correction and affected-feature Clippy.
+See `docs/handover/D2-LOS-DELIVERY-REVIEW.md`. Default/LOS-feature tests, Clippy and fmt passed.
+The lead built ordinary-feature shipping binaries from an immutable clean a7863a73f snapshot;
+the repeated build gave identical DLL/World hashes. Shipping symbols place the LOS kernel in
+World, with no trace/probe fixture symbols in the DLL. The full supplied-binary destination pack
+is still RUNNING at `R:/d2-evidence/baseline-host-20261026-shortpath`; checked prefixes match,
+but no completed full-pack/whole-recording pass is claimed. A separate 15-minute baseline/candidate
+recording comparison is running in the implementation lane; it does not replace the full pack.
+
+Build setup is resolved through isolated WSL2 distro `EECH-D2-Build` and the unchanged repository
+Dockerfile (Rust/cargo1.99.1, MinGW12-posix, Lua5.1.5; exact image and hashes recorded per build).
+This Rust is newer than the supplied baseline toolchain; equivalence is checked at runtime.
+Docker Desktop is not needed. Windows11x64 and Python3.12.14 are available. No authentication
 change made. Both GitHub connections identify fd-starscream-bot. On 26 October,
 the user directed that the PR author match the logged-in GitHub identity; use
 fd-starscream-bot for this task's PR publication. That task-specific direction
@@ -39,17 +51,19 @@ supersedes the earlier request for a distinct author connection. No authenticati
 change is needed. Do not attempt GitHub self-approval; keep the independent
 review and actual remaining delivery gates explicit.
 
-Next: compile the prepared los-fixture harness and exercise original-behavior
-characterization with the documented toolchain,
-then bounded LOS extraction, focused boundary evidence, clean shipping build,
-established deterministic pack and complete Tacview/observation/metric comparison,
-independent delivery review and normal merge. EEDCS-42 and D2 remain incomplete.
+Next: resolve the review's fixture duplication, validate the corrected head and immutable shipping
+build, finish the established full baseline/candidate packs and complete-file Tacview/observation/
+metric comparisons, current-head CI and normal merge. The lead owns these steps autonomously.
+No baseline or tolerance changed. Terrain elevation and object collision services remain coupled;
+target selection and engagement policy remain in EECH_DC. EEDCS-42 and the rest of D2 are incomplete.
 
 Later: remaining D2 work, then D3-D5 and M6 live DCS operation. Call-map PR83 is
 unfinished historical inventory and needs a current-source refresh. Historical
 ee-dcs TypeScript-port work is unrelated preservation, not the current roadmap.
 
-## EEDCS-42 implementation lane (Claude, Sonnet 5.5) — updated 25 October 2026
+## Historical implementation checkpoints (current status above)
+
+### EEDCS-42 implementation lane (Claude, Sonnet 5.5) — updated 25 October 2026
 
 Branch `codex/d2-perception-los`. **EEDCS-42 and D2 are not Done.** This is the earlier implementation checkpoint;
 the current PR publication status above supersedes its at-the-time lack of a PR. The lead owns publication, Jira and
