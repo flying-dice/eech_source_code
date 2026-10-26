@@ -117,6 +117,7 @@ extern void eech_aim_ws_end (entity *source, int selected_weapon_system_ready, c
 extern void eech_aim_angle (int site, entity *launcher, float launch_angle_error, float limit);
 extern void eech_aim_reject (int site, int reason);
 
+extern void eech_aim_person_branch (entity *person, int has_target_link);
 extern void eech_aim_person_facing (entity *person, const vec3d *position, const vec3d *target_position, float heading);
 
 #define AIM_FX_VEC_BEGIN(LAUNCHER)						eech_aim_vec_begin ((LAUNCHER));
@@ -145,6 +146,7 @@ extern void eech_aim_person_facing (entity *person, const vec3d *position, const
 #define AIM_FX_ANGLE(SITE,LAUNCHER,ERROR,LIMIT)			eech_aim_angle ((SITE), (LAUNCHER), (ERROR), (LIMIT));
 #define AIM_FX_REJECT(SITE,REASON)						eech_aim_reject ((SITE), (REASON));
 
+#define AIM_FX_PERSON_BRANCH(PERSON,HAS)				eech_aim_person_branch ((PERSON), (HAS));
 #define AIM_FX_PERSON_FACING(PERSON,POS,TARGET,HEADING)	eech_aim_person_facing ((PERSON), (POS), (TARGET), (HEADING));
 
 #else
@@ -175,6 +177,7 @@ extern void eech_aim_person_facing (entity *person, const vec3d *position, const
 #define AIM_FX_ANGLE(SITE,LAUNCHER,ERROR,LIMIT)
 #define AIM_FX_REJECT(SITE,REASON)
 
+#define AIM_FX_PERSON_BRANCH(PERSON,HAS)
 #define AIM_FX_PERSON_FACING(PERSON,POS,TARGET,HEADING)
 
 #endif

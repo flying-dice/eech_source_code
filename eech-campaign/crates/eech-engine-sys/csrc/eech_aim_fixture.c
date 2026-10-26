@@ -138,6 +138,8 @@ enum counter
 	C_REJECT_VEHICLE_UPDATE_NOT_READY,
 	C_REJECT_VEHICLE_UPDATE_VECTORS_INVALID,
 	C_REJECT_VEHICLE_UPDATE_LAUNCH_ANGLE,
+	C_PERSON_BRANCH_ENTERED,
+	C_PERSON_BRANCH_WITH_TARGET_LINK,
 	C_PERSON_FACING,
 	COUNTERS
 };
@@ -162,7 +164,7 @@ static const char *const counter_names[COUNTERS] = {
 	"reject_aircraft_fire_not_ready", "reject_aircraft_fire_vectors_invalid", "reject_aircraft_fire_launch_angle",
 	"reject_aircraft_update_not_ready", "reject_aircraft_update_vectors_invalid", "reject_aircraft_update_launch_angle",
 	"reject_vehicle_update_not_ready", "reject_vehicle_update_vectors_invalid", "reject_vehicle_update_launch_angle",
-	"person_facing"
+	"person_branch_entered", "person_branch_with_target_link", "person_facing"
 };
 
 /* named value ranges: min and max of what the run measured */
@@ -200,7 +202,7 @@ struct sample
 struct kind_row
 {
 	int source_type, function;
-	uint64_t calls;
+	uint64_t calls, reached_devices, valid, steps;
 };
 
 struct weapon_row
@@ -227,13 +229,13 @@ static struct aim_trace trace;
 /* the calls in flight (the vector update, the weapon-system update, the pitch-device solve and the lead solve nest as the original nests them) */
 static struct
 {
-	int active, stage, targeted, tracking, solve_result, solve_seen;
+	int active, stage, targeted, tracking, solve_result, solve_seen, source_type;
 	int guided_mobile, aiming, sub_type;
 } cur_vec;
 
 static struct
 {
-	int active, stage, config_type;
+	int active, stage, config_type, source_type;
 	float required_heading, required_pitch;
 } cur_ws;
 
@@ -360,6 +362,19 @@ static void keep_sample (const char *key, const char *text)
 	trace.sample_count++;
 }
 
+static struct kind_row *kind_row_for (int type, int function)
+{
+	int i;
+	for (i = 0; i < trace.kind_count; i++)
+	{
+		if (trace.kinds[i].source_type == type && trace.kinds[i].function == function)
+		{
+			return &trace.kinds[i];
+		}
+	}
+	return NULL;
+}
+
 static void note_kind (entity *source, int function)
 {
 	int type = (int) source->type;
@@ -457,6 +472,7 @@ void eech_aim_vec_begin (entity *launcher)
 	memset (&cur_vec, 0, sizeof (cur_vec));
 	cur_vec.active = 1;
 	cur_vec.solve_result = -1;
+	cur_vec.source_type = (int) launcher->type;
 	fold (&trace.physical_hash, 0xB1000000u | (uint32_t) launcher->type);
 	fold (&trace.decision_hash, 0xB1000000u | (uint32_t) launcher->type);
 }
@@ -505,6 +521,20 @@ void eech_aim_vec_end (entity *launcher, const vec3d *weapon_vector, const vec3d
 	}
 	valid = (cur_vec.tracking == 1) || (cur_vec.solve_result == 1);
 	bump (C_VEC_STAGE_0 + cur_vec.stage);
+	{
+		struct kind_row *row = kind_row_for (cur_vec.source_type, 0);
+		if (row)
+		{
+			if (cur_vec.stage >= 6)
+			{
+				row->reached_devices++;
+			}
+			if (valid)
+			{
+				row->valid++;
+			}
+		}
+	}
 	bump (valid ? C_VEC_VALID : C_VEC_INVALID);
 	fold (&trace.decision_hash, 0xB2000000u | (uint32_t) (cur_vec.stage << 4) | (uint32_t) (valid ? 1 : 0));
 	fold (&trace.physical_hash, 0xB3000000u | (uint32_t) cur_vec.stage);
@@ -893,6 +923,7 @@ void eech_aim_ws_begin (entity *source)
 	note_kind (source, 1);
 	memset (&cur_ws, 0, sizeof (cur_ws));
 	cur_ws.active = 1;
+	cur_ws.source_type = (int) source->type;
 	fold (&trace.physical_hash, 0xD1000000u | (uint32_t) source->type);
 	fold (&trace.decision_hash, 0xD1000000u | (uint32_t) source->type);
 }
@@ -981,6 +1012,13 @@ void eech_aim_ws_step (int package, float delta_heading, float delta_pitch, floa
 	fold_f (&trace.physical_hash, new_heading);
 	fold_f (&trace.physical_hash, new_pitch);
 	note_range (R_WS_STEP_HEADING, (double) delta_heading);
+	{
+		struct kind_row *row = kind_row_for (cur_ws.source_type, 1);
+		if (row)
+		{
+			row->steps++;
+		}
+	}
 	text[0] = 0;
 	text_append (text, sizeof (text), "package=%d delta_heading=%.9g delta_pitch=%.9g new_heading=%.9g new_pitch=%.9g heading_shared=%d pitch_shared=%d", package,
 		(double) delta_heading, (double) delta_pitch, (double) new_heading, (double) new_pitch, heading_shared, pitch_shared);
@@ -1097,12 +1135,22 @@ void eech_aim_reject (int site, int reason)
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 /* person target-facing (ps_anim.c) */
 
+void eech_aim_person_branch (entity *person, int has_target_link)
+{
+	ready ();
+	bump (C_PERSON_BRANCH_ENTERED);
+	if (has_target_link)
+	{
+		bump (C_PERSON_BRANCH_WITH_TARGET_LINK);
+	}
+	note_kind (person, 2);
+}
+
 void eech_aim_person_facing (entity *person, const vec3d *position, const vec3d *target_position, float heading)
 {
 	char text[SAMPLE_TEXT];
 	ready ();
 	bump (C_PERSON_FACING);
-	note_kind (person, 2);
 	fold (&trace.physical_hash, 0xE3000000u);
 	fold_vec (&trace.physical_hash, position);
 	fold_vec (&trace.physical_hash, target_position);
@@ -1165,8 +1213,10 @@ static int report (char *text, int capacity)
 	}
 	for (i = 0; i < trace.kind_count; i++)
 	{
-		emit (&out, "aim-kind source=%s function=%s calls=%llu\n", get_entity_type_name ((entity_types) trace.kinds[i].source_type),
-			function_names[trace.kinds[i].function], (unsigned long long) trace.kinds[i].calls);
+		emit (&out, "aim-kind source=%s function=%s calls=%llu reached_devices=%llu valid=%llu steps=%llu\n",
+			get_entity_type_name ((entity_types) trace.kinds[i].source_type), function_names[trace.kinds[i].function],
+			(unsigned long long) trace.kinds[i].calls, (unsigned long long) trace.kinds[i].reached_devices,
+			(unsigned long long) trace.kinds[i].valid, (unsigned long long) trace.kinds[i].steps);
 	}
 	emit (&out, "aim-kinds rows=%d overflow=%d\n", trace.kind_count, trace.kind_overflow);
 	for (i = 0; i < trace.weapon_count; i++)

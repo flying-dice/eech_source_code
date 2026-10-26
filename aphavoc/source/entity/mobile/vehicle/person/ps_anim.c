@@ -309,6 +309,7 @@ void update_person_animation (entity *en)
 
 	if(get_local_entity_parent (en, LIST_TYPE_TARGET) || state == PERSON_ANIM_SHOOT_STANDING || state == PERSON_ANIM_SHOOT_CROUCHING)
 	{
+		AIM_FX_PERSON_BRANCH (en, raw->vh.mob.target_link.parent != NULL)
 		if (raw->vh.mob.target_link.parent)
 		{
 			float ps_heading;

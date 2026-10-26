@@ -31,7 +31,7 @@ def main():
     for e in by.get('aim-range', []):
         print(f"  range {e['name']:30} n={e['n']} min={e['min']} max={e['max']}")
     for e in by.get('aim-kind', []):
-        print(f"  kind {e['source']:24} {e['function']:22} calls {e['calls']}")
+        print(f"  kind {e['source']:24} {e['function']:22} calls {e['calls']} reached_devices {e.get('reached_devices')} valid {e.get('valid')} steps {e.get('steps')}")
     for e in by.get('aim-weapon', []):
         print(f"  weapon {e['sub_type']:4} {e['name']:34} {e['aiming']:20} solves {e['solves']} true {e['solves_true']} leads {e['leads']} moving {e['leads_moving']} ballistic {e['ballistic']}")
     for name in ('aim-kinds', 'aim-weapons', 'aim-samples'):
