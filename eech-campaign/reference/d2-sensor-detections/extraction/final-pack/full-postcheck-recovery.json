@@ -1,0 +1,325 @@
+{
+  "scope": "Separate unchanged offline checker recovery; NO native/lifecycle/retained-experiment rerun",
+  "original_runner_exec": 89376,
+  "original_runner_observed_exit": 1,
+  "original_verdict": "FAIL - UNCLASSIFIED: no change record for this build (tools/baseline-governance.py propose)",
+  "original_failed_checks": [
+    "reference.baseline",
+    "reference.observation_check",
+    "reference.supply_chains",
+    "regress.georgia.exact",
+    "regress.lebanon.exact",
+    "retained.chains_report",
+    "retained.check_report"
+  ],
+  "reused_passing_results": "Original retained tier, input preflights and lifecycle results; no override of any failed check",
+  "new_results": "Unchanged PowerShell post-native checks and frozen pack post-run body/report writer",
+  "source": "R:\\d2-evidence\\shipping-source-d2-sensing-a2a041fec\\eech-campaign\\tools\\regression-pack.py",
+  "source_identity": {
+    "bytes": 37543,
+    "sha256": "4dc08480b72722a7dfdae5dea319f61acc6414c4bdb29351982e1579393d66db"
+  },
+  "recovery_helper_identity": {
+    "bytes": 7820,
+    "sha256": "0579e1e26a6acd14a64c702b4465486ec56b37ed9be4c37c3adf97a16e744b5b"
+  },
+  "reference_recovery_helper_identity": {
+    "bytes": 5114,
+    "sha256": "f9968eebf71ea4f6a55c251528cab9b3c3d86ac74cf31c60cf0e1ae76e94ef40"
+  },
+  "post_run_body_sha256": "190d020bcaeef771a05aa0aca81012584c5248ba4d78cdf06da2b4867ae3cab8",
+  "regression_postcheck_actual_exit": 0,
+  "pack_report_writer_return": 0,
+  "original_evidence_unchanged": true,
+  "preserved_original_files": {
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\loss-chain.json": {
+      "bytes": 5899,
+      "sha256": "34103d3bd7c5c24d4cd5ee6a4110402f597263b0762e2d37f57fe72bbe2b1d37"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\report.json": {
+      "bytes": 40827,
+      "sha256": "c17ccd98f0aba02d91909fc67ee8c0a875f9bc16c5eb95278c766a759bd94cb2"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\report.md": {
+      "bytes": 26611,
+      "sha256": "a2716a1048566d7a2fd7ffafc1ef7f87d4fa49740123bb52f4bd5018473fc1dc"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\lifecycle\\bad_arguments.log": {
+      "bytes": 36019,
+      "sha256": "245193f2cb8c88329a6061046a01e64cedb9273ebc28fed6cd6c30a89514a571"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\lifecycle\\bad_arguments.out": {
+      "bytes": 755,
+      "sha256": "598ef75917d5f6a7e2a4ee11083f4686901a9c0053dc0331394ef390fd75e71c"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\lifecycle\\boot_twice.log": {
+      "bytes": 36019,
+      "sha256": "245193f2cb8c88329a6061046a01e64cedb9273ebc28fed6cd6c30a89514a571"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\lifecycle\\boot_twice.out": {
+      "bytes": 150,
+      "sha256": "e183d997f19bb435bd72e46eb5aabfbd9ed6d12ddcbd59b8ef4164ba0a794a89"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\lifecycle\\missing_campaign.log": {
+      "bytes": 36166,
+      "sha256": "1c3745cf115dfffebbe1aa2634960dc3c4d089d754a3d242dafd2e47173f9c23"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\lifecycle\\missing_campaign.out": {
+      "bytes": 294,
+      "sha256": "a5eb98bcecbdd7c29a84a6ee41bac8f9656deca6dda8753431ce709a79ae5c47"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\lifecycle\\missing_map.log": {
+      "bytes": 33193,
+      "sha256": "5ab55198397805fcd61c8c5be96cbcb7481bad174d3098f83c4ef16e59e13876"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\lifecycle\\missing_map.out": {
+      "bytes": 23,
+      "sha256": "910487a5c0748d66af779556c10f3fcf598b483d21f17634541a30cc9651b8ef"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\lifecycle\\missing_root.log": {
+      "bytes": 135,
+      "sha256": "1f79f9bd8d9c4e95496f7c1ee2ab0b0e1b2352b6858339a8526c58d16fd74662"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\lifecycle\\missing_root.out": {
+      "bytes": 182,
+      "sha256": "10a4e1ae09b3980903208d21378fd376770d71b26e9c7159b882e32c531a1dc5"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\lifecycle\\no_reuse.log": {
+      "bytes": 36019,
+      "sha256": "245193f2cb8c88329a6061046a01e64cedb9273ebc28fed6cd6c30a89514a571"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\lifecycle\\no_reuse.out": {
+      "bytes": 227,
+      "sha256": "8b41fcf788223e80a02c77a3390483b1a860be7baa31c166833a42b488a85b1d"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\logs\\inputs.georgia.txt": {
+      "bytes": 303,
+      "sha256": "42361f8ab5d9b51b5ca428c7eef5472a3c7a0cdc83662538771233f300ec1d39"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\logs\\inputs.lebanon-copy.txt": {
+      "bytes": 311,
+      "sha256": "260043c9b76cb27758094d4b0e1b2e58fe978df0fa38fa25f15e532b30ed85bb"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\logs\\inputs.lebanon.txt": {
+      "bytes": 291,
+      "sha256": "f32c8b58f01d5d1c92aa6c3d2a623717b86c4cfdcb11d5b8d5036c6a167e940c"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\logs\\inputs.lebanon_repeat.txt": {
+      "bytes": 298,
+      "sha256": "13f7e534f69d530a981d9c9dcffb01c1be6050464c0728d2f60a058314025836"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\logs\\lifecycle.txt": {
+      "bytes": 206,
+      "sha256": "80dd0acce2c74ae68b8fe41dfe353875ac4c39cc06653e5502141b6664afb536"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\logs\\loss-chain.txt": {
+      "bytes": 61,
+      "sha256": "93466664911cf95ba2cd53d3a37883e212928a07cce8a94d6e583e7b24384dec"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\logs\\observed-vs-unobserved.txt": {
+      "bytes": 1654,
+      "sha256": "83f3fa44cb1b26d943ba40ac55524ef54e67285f2f20a76285a2538b081c8f60"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\logs\\reference.txt": {
+      "bytes": 2276,
+      "sha256": "9ff0eca736e222d8fc1c255c5c7d2323443bc35ec082efa2d992ba4db5f0da93"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\logs\\regress.txt": {
+      "bytes": 942,
+      "sha256": "4ce1cd36998533065d1f3bab94002d99752ad43b90816e4810fb872723502163"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\logs\\tolerance-georgia_retail.txt": {
+      "bytes": 1307,
+      "sha256": "bb278e075a1dd985eb762d8250de3cd3b8487e1ad3de1cd6b52886fe0edc7602"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\logs\\tolerance-lebanon_retail.txt": {
+      "bytes": 1654,
+      "sha256": "83f3fa44cb1b26d943ba40ac55524ef54e67285f2f20a76285a2538b081c8f60"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\BUILD-INFO.txt": {
+      "bytes": 2837,
+      "sha256": "e0746abce1875126492de5ab801be05560591c18cb8b0bc3580d5a2bfd3cb317"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\summary.txt": {
+      "bytes": 1114,
+      "sha256": "696ba489ed5264247f9b80656fddff46d509c83a1e86df492fef262e95061f60"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\regress\\georgia_retail.json": {
+      "bytes": 22427,
+      "sha256": "7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\regress\\georgia_retail.log": {
+      "bytes": 54705,
+      "sha256": "a9b6dd6a97debcecce5d2e54f63b520220b1ca7f779f513a3daf4c0013f58f7f"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\regress\\georgia_retail.log.out": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\regress\\lebanon_retail.json": {
+      "bytes": 35942,
+      "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\regress\\lebanon_retail.log": {
+      "bytes": 61230,
+      "sha256": "9420fe6008ec668e16036047341b7a95328c628dbd3e6f8a6743e967a5c9ed9e"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\regress\\lebanon_retail.log.out": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\retained\\chains.json": {
+      "bytes": 89264,
+      "sha256": "bbdff8c68c716dc566791acb177b905232a5c3be4ce57e3d0609c0b28dc15029"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\retained\\evidence.reproduce.chains.txt": {
+      "bytes": 95007,
+      "sha256": "69a628651c51f7dd3bd9c8e70a11755eb86991b0897865974cb6404c17c7d435"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\retained\\evidence.reproduce.loss.txt": {
+      "bytes": 6248,
+      "sha256": "208c6872b8051bcab488b2852eecbd0e3197e2e9796584d7f7ccdd9fad57ef3e"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\retained\\evidence.reproduce.m2_check.txt": {
+      "bytes": 4815,
+      "sha256": "520c6d1828ff87b007505543f57b481f985eb4423790ca7b589ec3c28c48aa80"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\retained\\evidence.reproduce.m3_check.txt": {
+      "bytes": 4821,
+      "sha256": "5fb032235eebbd93f5cc007cb2e16212a6dac6016fdbbe38192ca25ba7609ead"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\retained\\governance.fixture.txt": {
+      "bytes": 2585,
+      "sha256": "dc3876b0bb4800c0353555f440d06a9c92fec60e39a98229ec928e6b02c7dc9a"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\retained\\loss-chain.json": {
+      "bytes": 5931,
+      "sha256": "713ca39f6a5e4c10c61a5bcc3dde3b1c9b3a952ebce3e7025507b911763385d0"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\retained\\m2-check.json": {
+      "bytes": 4564,
+      "sha256": "de883167b06fdeb48deaf49f606ef09b1ff3db1911aff0476e9abca7dcbd31fa"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\retained\\m3-check.json": {
+      "bytes": 4570,
+      "sha256": "a341105574a499f00cb29ed504ae039df0df22eac5d88f2c97ca1d49587f1ee3"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\retained\\observations-m2.jsonl": {
+      "bytes": 69586021,
+      "sha256": "3136027595a8241e79343e0e6f2badbd86eaa032988ed4cff01b753c3fc2293e"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\retained\\observations-m3.jsonl": {
+      "bytes": 85716447,
+      "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\retained\\recording.acmi": {
+      "bytes": 117690861,
+      "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\retained\\s3-exact-georgia_retail.txt": {
+      "bytes": 9495,
+      "sha256": "64ac8fe9c539cfe410f0d88472bea50478364832e7178451a1bdceaa9feb1588"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\retained\\s3-exact-lebanon_retail.txt": {
+      "bytes": 11912,
+      "sha256": "f75239d1d83d4963ea814d73c42a67b968088a95d45601687f1080144c0cad99"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\retained\\sensitivity.loss_chain_check.txt": {
+      "bytes": 154,
+      "sha256": "cd515da559e3ba0b2aea1843831ab92714abbc0e87993d37bf76731dc057171f"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\retained\\sensitivity.observation_check.txt": {
+      "bytes": 199,
+      "sha256": "f3223bbf7cfe397104c580e71daafc46b91d6d6b981f5995bdb4c8f8d3a7059c"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\retained\\sensitivity.supply_chain_check.txt": {
+      "bytes": 283,
+      "sha256": "df7f66a156b759ac5ffc9841897db865f30d603f74815e794f131630a77dcfe9"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run1\\chains.log": {
+      "bytes": 177,
+      "sha256": "adf27d430ca4c636ac731cd04730a3aaf4382fe595f849edd4e4bb70a83e23a5"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run1\\chains.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run1\\check.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run1\\metrics.json": {
+      "bytes": 35942,
+      "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run1\\observations.jsonl": {
+      "bytes": 85716447,
+      "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run1\\recording.acmi": {
+      "bytes": 117690861,
+      "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run1\\run.log": {
+      "bytes": 56489,
+      "sha256": "a3c3d018c1e313f0ca4a7a493f114bce7ded6375818c76148a505d8e00dc79a5"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run1\\run.out": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run2\\chains.log": {
+      "bytes": 177,
+      "sha256": "adf27d430ca4c636ac731cd04730a3aaf4382fe595f849edd4e4bb70a83e23a5"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run2\\chains.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run2\\check.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run2\\metrics.json": {
+      "bytes": 35942,
+      "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run2\\observations.jsonl": {
+      "bytes": 85716447,
+      "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run2\\recording.acmi": {
+      "bytes": 117690861,
+      "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run2\\run.log": {
+      "bytes": 58176,
+      "sha256": "ad8098f08d53866c0bc2d1ddb23d0ef64b3ab8b943981c510828d339f8c33db6"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\run2\\run.out": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec.console.log": {
+      "bytes": 4395,
+      "sha256": "59488c0377e74164c318bf2da2e7784109b2a140615b2e37a7b84b88366f0fb3"
+    },
+    "R:\\d2-evidence\\run-frozen-pack.py": {
+      "bytes": 709,
+      "sha256": "9a724ea2c30868b25710757581224e54528633d48e5471544f8f361bc5119fb8"
+    },
+    "R:\\d2-evidence\\shipping-source-d2-sensing-a2a041fec\\eech-campaign\\tools\\regression-pack.py": {
+      "bytes": 37543,
+      "sha256": "4dc08480b72722a7dfdae5dea319f61acc6414c4bdb29351982e1579393d66db"
+    },
+    "R:\\d2-evidence\\shipping-source-d2-sensing-a2a041fec\\eech-campaign\\tools\\reference-windows.ps1": {
+      "bytes": 6839,
+      "sha256": "2813814bf2bb3d20bd7f5a6f5d40d71b3672db1a43e48922df918cfc19b4b0f6"
+    },
+    "R:\\d2-evidence\\shipping-source-d2-sensing-a2a041fec\\eech-campaign\\tools\\regress-windows.ps1": {
+      "bytes": 4603,
+      "sha256": "3cdb8463a175b9fce74b28314686f8146bf10a5539b9adebe35ceef88150519a"
+    }
+  },
+  "complete_40_checks_passed": true
+}

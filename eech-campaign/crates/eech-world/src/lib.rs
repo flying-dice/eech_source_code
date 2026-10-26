@@ -2,4 +2,5 @@
 //! campaign script observes.
 pub mod los;
 pub mod movement;
+pub mod sense;
 pub mod tacview;

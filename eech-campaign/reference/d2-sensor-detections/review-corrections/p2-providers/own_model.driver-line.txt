@@ -1,0 +1,2 @@
+erization-baseline-20261026/out/p2-providers/root-own_model\common\graphics\ui\cohokum\main.psd
+sense-provider: mode=own_model begin=16914 candidate=285097 draw=0 signature=0 end=16914 accept=199 reject=284898 weapon_births=180 losses=9 candidates/not_perceived by scan: air_to_air=5359/5359 air_to_surface=273780/273777 surface_to_air=537/536 surface_to_surface=5421/5226 failure=none

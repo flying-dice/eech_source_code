@@ -111,6 +111,7 @@ local engine = dc.boot {
 	observe_loss = host.observe_loss,
 	supply_reached = supply_reached,
 	line_of_sight = host.line_of_sight,
+	sense = host.sense,
 }
 
 local finished

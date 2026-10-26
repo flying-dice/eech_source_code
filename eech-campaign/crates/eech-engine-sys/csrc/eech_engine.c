@@ -55,6 +55,7 @@ static enum engine_operation operation;
 	campaign_supply_arrival_host arrival_host; \
 	campaign_movement_host movement_host; \
 	campaign_los_host los_host; \
+	campaign_sense_host sense_host; \
 	if (eech_engine_poisoned) \
 	{ \
 		return EECH_ENGINE_POISONED; \
@@ -73,10 +74,13 @@ static enum engine_operation operation;
 	movement_host.user = entry_host ? entry_host->user : NULL; \
 	los_host.line_of_sight = entry_host ? entry_host->line_of_sight : NULL; \
 	los_host.user = entry_host ? entry_host->user : NULL; \
+	sense_host.sense = entry_host ? entry_host->sense : NULL; \
+	sense_host.user = entry_host ? entry_host->user : NULL; \
 	campaign_roster_set_host (entry_host ? &roster_host : NULL); \
 	campaign_supply_arrival_set_host (entry_host ? &arrival_host : NULL); \
 	campaign_movement_set_host (entry_host ? &movement_host : NULL); \
 	campaign_los_set_host (entry_host ? &los_host : NULL); \
+	campaign_sense_set_host (entry_host ? &sense_host : NULL); \
 	fegetenv (&caller_fenv); \
 	fesetround (FE_TOWARDZERO); \
 	eech_fatal_target = &fatal_jmp; \
@@ -86,6 +90,7 @@ static enum engine_operation operation;
 		campaign_supply_arrival_set_host (NULL); \
 		campaign_movement_set_host (NULL); \
 		campaign_los_set_host (NULL); \
+		campaign_sense_set_host (NULL); \
 		operation = OPERATION_NONE; \
 		eech_fatal_target = saved_target; \
 		fesetenv (&caller_fenv); \
@@ -97,6 +102,7 @@ static enum engine_operation operation;
 	campaign_supply_arrival_set_host (NULL); \
 	campaign_movement_set_host (NULL); \
 	campaign_los_set_host (NULL); \
+	campaign_sense_set_host (NULL); \
 	operation = OPERATION_NONE; \
 	eech_fatal_target = saved_target; \
 	fesetenv (&caller_fenv); \
@@ -262,7 +268,7 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight)
+	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -329,7 +335,7 @@ int eech_engine_frame (uint32_t milliseconds, const struct eech_engine_host *hos
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight)
+	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -692,7 +698,7 @@ int eech_engine_dependent_fixture (int op, int parent_id, int child_id, const do
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight)
+	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -761,7 +767,7 @@ int eech_engine_loss_fixture (int entity_id, const struct eech_engine_host *host
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight)
+	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -795,7 +801,7 @@ int eech_engine_loss_release (int entity_id, int *released, const struct eech_en
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!released || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight)
+	if (!released || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -1074,6 +1080,68 @@ int eech_engine_los_probe (int source_id, int target_id, uint32_t seed, int coun
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
 	if (eech_los_probe_run (source_id, target_id, seed, count, out) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_SENSOR_FIXTURE
+
+/*
+ * TEST-ONLY sensor-detection characterisation (EEDCS-43): the run-wide trace of the AI target-scan group functions and a read-only
+ * probe that runs them for every eligible live source (eech_sensor_fixture.c). Both run inside the engine entry, so they see EECH's
+ * round-toward-zero mode as the campaign's own scans do. None of them constructs an entity, engages a target or replaces a handler.
+ * The report is text, `key=value` lines; nothing in it is an entity index or address.
+ */
+extern int eech_sensor_trace_get (char *text, int capacity);
+extern void eech_sensor_trace_clear (void);
+extern int eech_sensor_probe_run (char *text, int capacity);
+
+int eech_engine_sensor_trace (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_sensor_trace_get (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_sensor_trace_reset (void)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	eech_sensor_trace_clear ();
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_sensor_probe (char *text, int capacity, const struct eech_engine_host *host)
+{
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	/* the surface-to-air scan reaches the host-owned line of sight (EEDCS-42), so the probe needs the same complete host as a frame */
+	if (!text || (capacity <= 0) || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_sensor_probe_run (text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}

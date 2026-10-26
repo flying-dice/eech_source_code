@@ -2,7 +2,8 @@
 
 use eech_engine::{
     ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship, HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor,
-    MemberDescriptor, MovementMode, MovementResult, MovementStep, Side, SupplyReachDescriptor, VehiclePose,
+    MemberDescriptor, MovementMode, MovementResult, MovementStep, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor,
+    VehiclePose,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -23,6 +24,7 @@ struct LuaEngine {
     supply_reached: LuaFunction,
     move_vehicle: LuaFunction,
     line_of_sight: LuaFunction,
+    sense: LuaFunction,
 }
 
 fn call_bind_mobile(lua: &Lua, function: &LuaFunction, descriptor: MemberDescriptor) -> Result<String, String> {
@@ -121,6 +123,69 @@ fn call_supply_reached(lua: &Lua, function: &LuaFunction, descriptor: SupplyReac
 /// copies of a pose would differ. Lua looks the field up and formats the numbers at 17 significant digits instead,
 /// and `nearest_f32` narrows them.
 fn exact_numbers<const N: usize>(lua: &Lua, table: &LuaTable, field: &str) -> Result<[f32; N], String> {
+    let values = exact_f64s::<N>(lua, table, field)?;
+    let mut numbers = [0.0f32; N];
+    for (slot, value) in numbers.iter_mut().zip(values) {
+        *slot = nearest_f32(value).ok_or_else(|| shape_text(field, N))?;
+    }
+    Ok(numbers)
+}
+
+fn shape_text(field: &str, n: usize) -> String {
+    format!(
+        "{field} must be {}",
+        if n == 1 {
+            "a finite number".to_owned()
+        } else {
+            format!("{n} finite numbers")
+        }
+    )
+}
+
+#[cfg(feature = "sensor-fixture")]
+/// A finite double exactly as Lua holds it, whatever the FPU rounding mode. `exact_f64s` formats at 17 significant digits, and the engine
+/// runs a callback under round-toward-zero, where the C library's formatting truncates instead of rounding: the parsed double can then be one
+/// ulp low. This reads the double in exact steps instead (`math.frexp`, a multiplication by a power of two, a floor, a subtraction: all exact in
+/// any mode) as three integers and rebuilds it with exact scalings.
+fn exact_f64_bits(lua: &Lua, table: &LuaTable, field: &str) -> Result<f64, String> {
+    const KEY: &str = "eech_exact_f64_bits";
+    let split: LuaFunction = match lua.named_registry_value(KEY) {
+        Ok(function) => function,
+        Err(_) => {
+            let function: LuaFunction = lua
+                .load(
+                    "return function(t, f)
+                       local v = t[f]
+                       if type(v) ~= 'number' or v ~= v or v == math.huge or v == -math.huge then return nil end
+                       local m, e = math.frexp(v)
+                       local mi = m * 9007199254740992
+                       local hi = math.floor(mi / 67108864)
+                       local lo = mi - hi * 67108864
+                       return string.format('%d %d %d', hi, lo, e)
+                     end",
+                )
+                .eval()
+                .map_err(|e| e.to_string())?;
+            lua.set_named_registry_value(KEY, function.clone()).map_err(|e| e.to_string())?;
+            function
+        }
+    };
+    let text: Option<String> = split.call((table, field)).map_err(|e| e.to_string())?;
+    let shape = || format!("{field} must be a finite number");
+    let text = text.ok_or_else(shape)?;
+    let mut parts = text.split_whitespace().map(|part| part.parse::<i64>().ok());
+    let (Some(Some(hi)), Some(Some(lo)), Some(Some(exponent))) = (parts.next(), parts.next(), parts.next()) else {
+        return Err(shape());
+    };
+    // the 53-bit significand is exact in an f64; the scaling is split so that a subnormal result is not rounded twice
+    let significand = (hi * 67_108_864 + lo) as f64;
+    let exponent = exponent - 53;
+    let (first, second) = if exponent < -1000 { (-1000, exponent + 1000) } else { (exponent, 0) };
+    Ok(significand * 2f64.powi(first as i32) * 2f64.powi(second as i32))
+}
+
+/// The `N` finite numbers of `exact_numbers`, kept as the `f64` Lua holds.
+fn exact_f64s<const N: usize>(lua: &Lua, table: &LuaTable, field: &str) -> Result<[f64; N], String> {
     const KEY: &str = "eech_exact_numbers";
     let format: LuaFunction = match lua.named_registry_value(KEY) {
         Ok(function) => function,
@@ -145,21 +210,16 @@ fn exact_numbers<const N: usize>(lua: &Lua, table: &LuaTable, field: &str) -> Re
         }
     };
     let text: Option<String> = format.call((table, field, N)).map_err(|e| e.to_string())?;
-    let shape = || {
-        format!(
-            "{field} must be {}",
-            if N == 1 {
-                "a finite number".to_owned()
-            } else {
-                format!("{N} finite numbers")
-            }
-        )
-    };
+    let shape = || shape_text(field, N);
     let text = text.ok_or_else(shape)?;
     let mut parts = text.split_whitespace();
-    let mut numbers = [0.0f32; N];
+    let mut numbers = [0.0f64; N];
     for slot in &mut numbers {
-        *slot = parts.next().and_then(|part| part.parse::<f64>().ok()).and_then(nearest_f32).ok_or_else(shape)?;
+        *slot = parts
+            .next()
+            .and_then(|part| part.parse::<f64>().ok())
+            .filter(|value| value.is_finite())
+            .ok_or_else(shape)?;
     }
     Ok(numbers)
 }
@@ -250,6 +310,152 @@ fn call_line_of_sight(lua: &Lua, function: &LuaFunction, message: LosMessage) ->
         },
         other => Err(format!("line_of_sight result state {other:?} is not need_terrain, need_objects or done")),
     }
+}
+
+fn sense_scan_name(scan: SenseScan) -> &'static str {
+    match scan {
+        SenseScan::AirToAir => "air_to_air",
+        SenseScan::AirToSurface => "air_to_surface",
+        SenseScan::SurfaceToAir => "surface_to_air",
+        SenseScan::SurfaceToSurface => "surface_to_surface",
+    }
+}
+
+/// One message of the host-owned sensing dialogue as a Lua table: `{ mode = "begin" | "candidate" | "draw" | "signature" | "end", scan, ... }`.
+/// Positions are arrays of three numbers; a host identity is absent (nil) when the campaign roster has none for that end; the emitters and the
+/// helicopter facts are tables, present only when the campaign has them.
+fn sense_message_table(lua: &Lua, message: &SenseMessage) -> Result<LuaTable, String> {
+    let e = |error: LuaError| error.to_string();
+    let table = lua.create_table().map_err(e)?;
+    match message {
+        SenseMessage::Begin(begin) => {
+            table.set("mode", "begin").map_err(e)?;
+            table.set("scan", sense_scan_name(begin.scan)).map_err(e)?;
+            table.set("source_position", begin.source_position.to_vec()).map_err(e)?;
+            table.set("scan_range", begin.scan_range).map_err(e)?;
+            if begin.scan == SenseScan::SurfaceToAir {
+                table.set("scan_ceiling", begin.scan_ceiling).map_err(e)?;
+                table.set("scan_floor", begin.scan_floor).map_err(e)?;
+            }
+            if let Some(id) = &begin.source_host_id {
+                table.set("source_host_id", id.as_str()).map_err(e)?;
+            }
+        }
+        SenseMessage::Candidate(candidate) => {
+            table.set("mode", "candidate").map_err(e)?;
+            table.set("scan", sense_scan_name(candidate.scan)).map_err(e)?;
+            table.set("target_position", candidate.target_position.to_vec()).map_err(e)?;
+            table.set("target_player", candidate.target_player).map_err(e)?;
+            if let Some(factor) = candidate.difficulty_factor {
+                table.set("difficulty_factor", factor).map_err(e)?;
+            }
+            if let Some(altitude) = candidate.radar_altitude {
+                table.set("radar_altitude", altitude).map_err(e)?;
+            }
+            if let Some(id) = &candidate.target_host_id {
+                table.set("target_host_id", id.as_str()).map_err(e)?;
+            }
+        }
+        SenseMessage::Draw { draw } => {
+            table.set("mode", "draw").map_err(e)?;
+            table.set("draw", *draw).map_err(e)?;
+        }
+        SenseMessage::Signature(signature) => {
+            table.set("mode", "signature").map_err(e)?;
+            table.set("scan", sense_scan_name(signature.scan)).map_err(e)?;
+            if let Some(emitters) = signature.emitters {
+                let emitter_table = lua.create_table().map_err(e)?;
+                emitter_table.set("radar_on", emitters.radar_on).map_err(e)?;
+                emitter_table.set("radar_jammer_on", emitters.radar_jammer_on).map_err(e)?;
+                emitter_table.set("infra_red_jammer_on", emitters.infra_red_jammer_on).map_err(e)?;
+                table.set("emitters", emitter_table).map_err(e)?;
+            }
+            if let Some(helicopter) = signature.helicopter {
+                let helicopter_table = lua.create_table().map_err(e)?;
+                helicopter_table.set("weapon_bay_closed", helicopter.weapon_bay_closed).map_err(e)?;
+                helicopter_table.set("stub_wings_attached", helicopter.stub_wings_attached).map_err(e)?;
+                helicopter_table.set("undercarriage_up", helicopter.undercarriage_up).map_err(e)?;
+                table.set("helicopter", helicopter_table).map_err(e)?;
+            }
+        }
+        SenseMessage::End { scan } => {
+            table.set("mode", "end").map_err(e)?;
+            table.set("scan", sense_scan_name(*scan)).map_err(e)?;
+        }
+    }
+    Ok(table)
+}
+
+/// The host's answer to a sensing message: `{ state = "open" | "accept" | "reject" | "need_draw" | "need_signature" | "closed", reason, target_range, echo }`.
+/// A rejection names why the candidate was not perceived (`reason`): `not_perceived`, the verdict of a host's own model, which every scan accepts, or
+/// one of the original EECH model's predicates (range, range_adjusted, altitude, tolerance) that the reference host reports, each legal only for the
+/// scans whose original had it. An acceptance carries the measured `target_range`; every number is exact. The optional `echo` table is read only by
+/// the test fixture build.
+fn call_sense(lua: &Lua, function: &LuaFunction, message: SenseMessage) -> Result<SenseReply, String> {
+    let argument = sense_message_table(lua, &message)?;
+    let answer: LuaValue = function.call(argument).map_err(|e| e.to_string())?;
+    let LuaValue::Table(table) = answer else {
+        return Err(format!("sense must return a result table, got {}", answer.type_name()));
+    };
+    let state: LuaValue = table.get("state").map_err(|e| e.to_string())?;
+    let LuaValue::String(state) = state else {
+        return Err(format!("sense result state must be a string, got {}", state.type_name()));
+    };
+    let state_text = state.to_str().map_err(|e| e.to_string())?;
+    let state = match &*state_text {
+        "open" => SenseState::Open,
+        "accept" => SenseState::Accept,
+        "need_draw" => SenseState::NeedDraw,
+        "need_signature" => SenseState::NeedSignature,
+        "closed" => SenseState::Closed,
+        "reject" => {
+            let reason: LuaValue = table.get("reason").map_err(|e| e.to_string())?;
+            let LuaValue::String(reason) = reason else {
+                return Err(format!("sense result reason must be a string, got {}", reason.type_name()));
+            };
+            let reason_text = reason.to_str().map_err(|e| e.to_string())?;
+            SenseState::Reject(match &*reason_text {
+                "range" => SenseReason::Range,
+                "range_adjusted" => SenseReason::RangeAdjusted,
+                "altitude" => SenseReason::Altitude,
+                "tolerance" => SenseReason::Tolerance,
+                "not_perceived" => SenseReason::NotPerceived,
+                other => {
+                    return Err(format!(
+                        "sense result reason {other:?} is not range, range_adjusted, altitude, tolerance or not_perceived"
+                    ))
+                }
+            })
+        }
+        other => {
+            return Err(format!(
+                "sense result state {other:?} is not open, accept, reject, need_draw, need_signature or closed"
+            ))
+        }
+    };
+    let target_range = match table.get::<LuaValue>("target_range").map_err(|e| e.to_string())? {
+        LuaValue::Nil => None,
+        _ => Some(exact_numbers::<1>(lua, &table, "target_range").map_err(|e| format!("sense result {e}"))?[0]),
+    };
+    #[cfg(feature = "sensor-fixture")]
+    let echo = match table.get::<LuaValue>("echo").map_err(|e| e.to_string())? {
+        LuaValue::Table(echo) => {
+            let one = |name: &str| -> Result<f32, String> { Ok(exact_numbers::<1>(lua, &echo, name).map_err(|e| format!("sense result echo {e}"))?[0]) };
+            Some(eech_engine::SenseEcho {
+                ceiling: one("ceiling")?,
+                floor: one("floor")?,
+                adjusted_range: one("adjusted_range")?,
+                stealth_factor: one("stealth_factor")?,
+                stealth_limit: one("stealth_limit")?,
+                tolerance_limit: exact_f64_bits(lua, &echo, "tolerance_limit").map_err(|e| format!("sense result echo {e}"))?,
+            })
+        }
+        LuaValue::Nil => None,
+        other => return Err(format!("sense result echo must be a table, got {}", other.type_name())),
+    };
+    #[cfg(not(feature = "sensor-fixture"))]
+    let echo = None;
+    Ok(SenseReply { state, target_range, echo })
 }
 
 fn call_move_vehicle(lua: &Lua, function: &LuaFunction, step: MovementStep) -> Result<MovementResult, String> {
@@ -466,13 +672,15 @@ impl LuaUserData for LuaEngine {
             let supply_reached = this.supply_reached.clone();
             let move_vehicle = this.move_vehicle.clone();
             let line_of_sight = this.line_of_sight.clone();
+            let sense = this.sense.clone();
             let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
             let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
             let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
             let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
             let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+            let mut sensor = |message| call_sense(lua, &sense, message);
             this.engine
-                .frame(milliseconds, &mut binder, &mut observer, &mut reach, &mut mover, &mut sighter)
+                .frame(milliseconds, &mut binder, &mut observer, &mut reach, &mut mover, &mut sighter, &mut sensor)
                 .map_err(lua_error)
         });
         // TEST-ONLY (feature `loss-fixture`, EEDCS-41): not part of the shipping module.
@@ -483,13 +691,15 @@ impl LuaUserData for LuaEngine {
             let supply_reached = this.supply_reached.clone();
             let move_vehicle = this.move_vehicle.clone();
             let line_of_sight = this.line_of_sight.clone();
+            let sense = this.sense.clone();
             let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
             let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
             let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
             let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
             let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+            let mut sensor = |message| call_sense(lua, &sense, message);
             this.engine
-                .loss_fixture(entity_id, &mut binder, &mut observer, &mut reach, &mut mover, &mut sighter)
+                .loss_fixture(entity_id, &mut binder, &mut observer, &mut reach, &mut mover, &mut sighter, &mut sensor)
                 .map_err(lua_error)
         });
         // TEST-ONLY (feature `loss-fixture`, EEDCS-41): releases the tasks targeting a member's group (setup); not part of the shipping module.
@@ -500,13 +710,15 @@ impl LuaUserData for LuaEngine {
             let supply_reached = this.supply_reached.clone();
             let move_vehicle = this.move_vehicle.clone();
             let line_of_sight = this.line_of_sight.clone();
+            let sense = this.sense.clone();
             let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
             let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
             let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
             let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
             let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+            let mut sensor = |message| call_sense(lua, &sense, message);
             this.engine
-                .loss_release(entity_id, &mut binder, &mut observer, &mut reach, &mut mover, &mut sighter)
+                .loss_release(entity_id, &mut binder, &mut observer, &mut reach, &mut mover, &mut sighter, &mut sensor)
                 .map_err(lua_error)
         });
         // TEST-ONLY (feature `loss-fixture`, EEDCS-41): read-only force-info and regen state; not part of the shipping module.
@@ -538,16 +750,55 @@ impl LuaUserData for LuaEngine {
             let supply_reached = this.supply_reached.clone();
             let move_vehicle = this.move_vehicle.clone();
             let line_of_sight = this.line_of_sight.clone();
+            let sense = this.sense.clone();
             let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
             let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
             let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
             let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
             let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+            let mut sensor = |message| call_sense(lua, &sense, message);
             let trace = this
                 .engine
-                .los_probe(source, target, seed, count, &mut binder, &mut observer, &mut reach, &mut mover, &mut sighter)
+                .los_probe(
+                    source,
+                    target,
+                    seed,
+                    count,
+                    &mut binder,
+                    &mut observer,
+                    &mut reach,
+                    &mut mover,
+                    &mut sighter,
+                    &mut sensor,
+                )
                 .map_err(lua_error)?;
             los_trace_table(lua, &trace)
+        });
+        // TEST-ONLY (feature `sensor-fixture`, EEDCS-43): the run-wide report of the AI target scans; not part of the shipping module.
+        #[cfg(feature = "sensor-fixture")]
+        methods.add_method("sensor_trace", |_, this, ()| this.engine.sensor_trace().map_err(lua_error));
+        // TEST-ONLY (feature `sensor-fixture`, EEDCS-43): clears that trace; not part of the shipping module.
+        #[cfg(feature = "sensor-fixture")]
+        methods.add_method("sensor_trace_reset", |_, this, ()| this.engine.sensor_trace_reset().map_err(lua_error));
+        // TEST-ONLY (feature `sensor-fixture`, EEDCS-43): the read-only scan sweep; not part of the shipping module. The surface-to-air scan asks the host
+        // for line of sight, so the sweep is given the same complete host callbacks as a frame.
+        #[cfg(feature = "sensor-fixture")]
+        methods.add_method("sensor_probe", |lua, this, ()| {
+            let bind_mobile = this.bind_mobile.clone();
+            let observe_loss = this.observe_loss.clone();
+            let supply_reached = this.supply_reached.clone();
+            let move_vehicle = this.move_vehicle.clone();
+            let line_of_sight = this.line_of_sight.clone();
+            let sense = this.sense.clone();
+            let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+            let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+            let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+            let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+            let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+            let mut sensor = |message| call_sense(lua, &sense, message);
+            this.engine
+                .sensor_probe(&mut binder, &mut observer, &mut reach, &mut mover, &mut sighter, &mut sensor)
+                .map_err(lua_error)
         });
         // TEST-ONLY (feature `dependent-fixture`, EEDCS-40): not part of the shipping module.
         #[cfg(feature = "dependent-fixture")]
@@ -565,11 +816,13 @@ impl LuaUserData for LuaEngine {
                 let supply_reached = this.supply_reached.clone();
                 let move_vehicle = this.move_vehicle.clone();
                 let line_of_sight = this.line_of_sight.clone();
+                let sense = this.sense.clone();
                 let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
                 let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
                 let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
                 let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
                 let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+                let mut sensor = |message| call_sense(lua, &sense, message);
                 this.engine
                     .dependent_fixture(
                         code,
@@ -581,6 +834,7 @@ impl LuaUserData for LuaEngine {
                         &mut reach,
                         &mut mover,
                         &mut sighter,
+                        &mut sensor,
                     )
                     .map_err(lua_error)
             },
@@ -649,6 +903,11 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
         LuaValue::Nil => return Err(LuaError::runtime("eech: missing host line_of_sight callback")),
         value => return Err(LuaError::runtime(format!("eech: line_of_sight must be a function, got {}", value.type_name()))),
     };
+    let sense = match config.get::<LuaValue>("sense")? {
+        LuaValue::Function(function) => function,
+        LuaValue::Nil => return Err(LuaError::runtime("eech: missing host sense callback")),
+        value => return Err(LuaError::runtime(format!("eech: sense must be a function, got {}", value.type_name()))),
+    };
     let arguments: Vec<String> = config.get::<Option<Vec<String>>>("arguments")?.unwrap_or_default();
     let config = EngineConfig {
         install_root: PathBuf::from(config.get::<String>("install_root")?),
@@ -664,7 +923,8 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
     let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
     let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
     let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
-    let engine = Engine::boot(&config, &mut binder, &mut observer, &mut reach, &mut mover, &mut sighter).map_err(lua_error)?;
+    let mut sensor = |message| call_sense(lua, &sense, message);
+    let engine = Engine::boot(&config, &mut binder, &mut observer, &mut reach, &mut mover, &mut sighter, &mut sensor).map_err(lua_error)?;
     Ok(LuaEngine {
         engine,
         bind_mobile,
@@ -672,6 +932,7 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
         supply_reached,
         move_vehicle,
         line_of_sight,
+        sense,
     })
 }
 

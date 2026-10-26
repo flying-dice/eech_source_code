@@ -1,0 +1,12 @@
+d2-evidence/sensor-characterization-baseline-20261026/roots/lebanon-probe: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09
+inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+lebanon-probe exit=0
+d2-evidence/sensor-characterization-baseline-20261026/roots/lebanon-noprobe: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09
+inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+lebanon-noprobe exit=0
+d2-evidence/sensor-characterization-baseline-20261026/roots/lebanon-ab-base: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09
+inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+lebanon-ab-base exit=0
+d2-evidence/sensor-characterization-baseline-20261026/roots/lebanon-ab-fixture: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09
+inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+lebanon-ab-fixture exit=0

@@ -17,6 +17,7 @@
 #include "entity/special/guide/gd_supply_arrival.h"
 #include "entity/mobile/vehicle/routed/rv_hostmv.h"
 #include "entity/mobile/mb_hostlos.h"
+#include "entity/mobile/mb_hostsense.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -64,6 +65,7 @@ typedef campaign_movement_step eech_movement_step;
 typedef campaign_movement_result eech_movement_result;
 typedef campaign_move_vehicle_fn eech_move_vehicle_callback;
 typedef campaign_los_fn eech_line_of_sight_callback;
+typedef campaign_sense_fn eech_sense_callback;
 
 struct eech_engine_host
 {
@@ -77,6 +79,8 @@ struct eech_engine_host
 	eech_move_vehicle_callback move_vehicle;
 	/* Called synchronously for each host-owned line-of-sight query (mb_hostlos.h): the host owns the calculation and asks for one terrain elevation or one object-ray answer at a time, or answers directly. */
 	eech_line_of_sight_callback line_of_sight;
+	/* Called synchronously for each host-owned physical sensing exchange of an AI target scan (mb_hostsense.h): the host owns whether and at what range a candidate is perceived (the reference host: range, envelope, tolerance, signature and emitter arithmetic and the state a scan keeps between candidates; another host: its own model); the positions and unit figures sent with it are transitional mirrors. */
+	eech_sense_callback sense;
 	void *user;
 };
 
@@ -248,6 +252,21 @@ int eech_engine_los_trace_reset (void);
  * changed. `host` is the engine host, passed so the same entry serves a build whose queries cross the host boundary.
  */
 int eech_engine_los_probe (int source_id, int target_id, uint32_t seed, int count, struct eech_los_trace *out, const struct eech_engine_host *host);
+#endif
+
+#ifdef EECH_SENSOR_FIXTURE
+/*
+ * TEST-ONLY (feature sensor-fixture, EEDCS-43): see eech_sensor_fixture.c. Not part of the shipping module.
+ * The report is `key=value` text lines: the physical and decision hashes, per scan function the calls, the candidates and each
+ * candidate's verdict, the eligibility skips, which edges the run exercised, the entity kinds that scan, and sample candidates.
+ * Fails (bad argument) when the report does not fit `capacity`.
+ */
+/* The run-wide trace of every AI target scan the campaign has made since boot or the last reset. */
+int eech_engine_sensor_trace (char *text, int capacity);
+int eech_engine_sensor_trace_reset (void);
+/* Runs the scan group functions for every eligible live source, read-only, and reports a trace of just that sweep; the run-wide trace is not changed.
+ * The surface-to-air scan asks the host for line of sight, so `host` must carry every callback, as for a frame. */
+int eech_engine_sensor_probe (char *text, int capacity, const struct eech_engine_host *host);
 #endif
 
 #endif

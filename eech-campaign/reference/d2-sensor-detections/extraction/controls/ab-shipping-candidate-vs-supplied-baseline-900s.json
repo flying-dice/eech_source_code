@@ -1,0 +1,45 @@
+{
+  "scope": "Lebanon 900 s (hours=0.25) whole-campaign comparison of the ORDINARY-FEATURE shipping candidate only; NOT the full 3 h pack",
+  "candidate_build": {
+    "commit": "37989fa5f183abbffa122fb47535923a83f6bfa9",
+    "eech_dc_dll_sha256": "2c0815ad12b1ac451ad031aa3658b80d95b97e901d1c139a03e2c16147e5dab0",
+    "eech_world_exe_sha256": "7fcc5c7a0ec9071f5e3371e63e4e5737cf449eb258fc326a5468563c9c6e2bf5",
+    "features": "default (no fixture)",
+    "recipe": "unchanged tools/build-windows.sh and Dockerfile image, private cargo volume eech-win-target-d2-sensor-shipping-2, 0 uncommitted inputs"
+  },
+  "command": "eech-world.exe R:/d2-evidence/sensor-characterization-baseline-20261026/bin-ship3/lua/campaign.lua root=R:/d2-evidence/sensor-characterization-baseline-20261026/roots/lebanon-ab-ship scenario=lebanon_retail hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/sensor-characterization-baseline-20261026/out/ab-ship/recording.acmi observe=R:/d2-evidence/sensor-characterization-baseline-20261026/out/ab-ship/observations.jsonl metrics=R:/d2-evidence/sensor-characterization-baseline-20261026/out/ab-ship/metrics.json observe_supply=0 (cwd R:\\d2-evidence\\sensor-characterization-baseline-20261026\\out\\ab-ship)",
+  "candidate_run": {
+    "start": "15:14:12",
+    "end": "15:32:09",
+    "native_exit": "exit=0"
+  },
+  "supplied_baseline_source": "the lead's independent-ab-comparison-20261026.json (the supplied-binary side of the EEDCS-42 900 s comparison); that side was NOT re-run by this lane. Same argument list as the EEDCS-42 lane's recorded command (hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 observe_supply=0, defaults seed 1 and 100 ms); campaign.lua, metrics.lua and observations.lua are byte-identical to the supplied bin's",
+  "artifacts": [
+    {
+      "file": "recording.acmi",
+      "candidate_bytes": 11363845,
+      "candidate_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+      "supplied_baseline_bytes": 11363845,
+      "supplied_baseline_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+      "match": true
+    },
+    {
+      "file": "observations.jsonl",
+      "candidate_bytes": 6629273,
+      "candidate_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+      "supplied_baseline_bytes": 6629273,
+      "supplied_baseline_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+      "match": true
+    },
+    {
+      "file": "metrics.json",
+      "candidate_bytes": 11777,
+      "candidate_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+      "supplied_baseline_bytes": 11777,
+      "supplied_baseline_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+      "match": true
+    }
+  ],
+  "all_match": true,
+  "tacview_claim": "the recording was generated and byte-compared and passed tools/observation-check.py; it was not visually inspected in Tacview"
+}

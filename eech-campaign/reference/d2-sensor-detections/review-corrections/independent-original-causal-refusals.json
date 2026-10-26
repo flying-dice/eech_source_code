@@ -1,0 +1,80 @@
+{
+  "scope": "Lead inspection of retained native causal/refusal records; no reruns and no final acceptance",
+  "binary_source": "37989fa5f183abbffa122fb47535923a83f6bfa9",
+  "test_driver_amendment": "cee800898; see sensor-driver-provenance-note.md",
+  "red_original": {
+    "accept": 0,
+    "begin": 0,
+    "candidate": 0,
+    "draw": 0,
+    "end": 0,
+    "event": "summary",
+    "failure": "",
+    "frames": 3000,
+    "losses": 6,
+    "mode": "blocked",
+    "reject": 0,
+    "signature": 0,
+    "weapon_births": 185
+  },
+  "causal": {
+    "reference": {
+      "accept": 356,
+      "begin": 16840,
+      "candidate": 277652,
+      "draw": 174,
+      "end": 16840,
+      "event": "summary",
+      "failure": "",
+      "frames": 3000,
+      "losses": 6,
+      "mode": "reference",
+      "reject": 277296,
+      "signature": 5341,
+      "weapon_births": 185
+    },
+    "blocked": {
+      "accept": 0,
+      "begin": 17047,
+      "candidate": 324946,
+      "draw": 0,
+      "end": 17047,
+      "event": "summary",
+      "failure": "",
+      "frames": 3000,
+      "losses": 1,
+      "mode": "blocked",
+      "reject": 324946,
+      "signature": 0,
+      "weapon_births": 176
+    },
+    "far": {
+      "accept": 4303,
+      "begin": 16334,
+      "candidate": 81876,
+      "draw": 551,
+      "end": 16334,
+      "event": "summary",
+      "failure": "",
+      "frames": 3000,
+      "losses": 10,
+      "mode": "far",
+      "reject": 77573,
+      "signature": 2726,
+      "weapon_births": 208
+    }
+  },
+  "negative_boundary_errors": {
+    "missing": "runtime error: eech: missing host sense callback",
+    "bad_begin": "runtime error: eech: EECH fatal error: host sense: host sense answered state 2 to a begin message of scan 3",
+    "bad_nil": "runtime error: eech: EECH fatal error: host sense: host sense failed: sense must return a result table, got nil",
+    "bad_state": "runtime error: eech: EECH fatal error: host sense: host sense failed: sense result state \"later\" is not open, accept, reject, need_draw, need_signature or closed",
+    "bad_reason": "runtime error: eech: EECH fatal error: host sense: host sense failed: sense result reason \"because\" is not range, range_adjusted, altitude or tolerance",
+    "bad_accept_range": "runtime error: eech: EECH fatal error: host sense: host sense failed: sense result target_range must be a finite number",
+    "bad_draw_for_range": "runtime error: eech: EECH fatal error: host sense: host sense answered state 4 to a candidate message of scan 4",
+    "bad_error": "runtime error: eech: EECH fatal error: host sense: host sense failed: runtime error: [string \"R:/d2-evidence/sensor-characterization-base...\"]:92: provider failed on purpose"
+  },
+  "private_and_committed_records_agree": true,
+  "actual_driver_exit_records_checked": true,
+  "passed": true
+}

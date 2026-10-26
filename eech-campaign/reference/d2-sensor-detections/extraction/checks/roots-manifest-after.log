@@ -1,0 +1,16 @@
+lebanon-red: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+lebanon-extract-witness: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+lebanon-extract-witness2: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+lebanon-extract-witness3: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+root-reference: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+root-blocked: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+root-far: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+root-missing: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+root-bad_begin: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+root-bad_nil: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+root-bad_state: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+root-bad_reason: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+root-bad_accept_range: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+root-bad_draw_for_range: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+root-bad_error: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json
+ab-ship: inputs IDENTICAL to d2-sensor-detections/eech-campaign/reference/lebanon-3h/inputs.json

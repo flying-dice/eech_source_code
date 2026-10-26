@@ -16,6 +16,8 @@ dependent-fixture-old-guard = ["dependent-fixture"]
 loss-fixture = []
 # TEST-ONLY (EEDCS-42): the line-of-sight characterisation trace and probe. Never enabled in the shipping build.
 los-fixture = []
+# TEST-ONLY (EEDCS-43): the sensor-detection characterisation trace and probe. Never enabled in the shipping build.
+sensor-fixture = []
 
 [build-dependencies]
 cc = { version = "1.2", features = ["parallel"] }
