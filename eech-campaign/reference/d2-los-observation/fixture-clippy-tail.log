@@ -1,0 +1,4 @@
+    Checking mlua v0.10.5
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 12s
+CLIPPY_EXIT=0

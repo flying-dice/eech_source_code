@@ -165,3 +165,15 @@ then begin the extraction.
   workspace is unverified until it runs.
 - Next, when the lead says baseline and Docker are ready: build with that command, run `los-characterization.lua` from the
   fixture output on the copied Lebanon and Georgia roots (see the harness section), retain outputs, then extract.
+
+### Update 26 October 2026, fixture compiled (implementation lane)
+
+- Docker now works in the lead's isolated WSL2 distro `EECH-D2-Build` (same `tools/Dockerfile` image). The fixture build of
+  `da8b8c327` compiled first time: exit 0, `Finished release in 1m 11s`, no compile errors, so no source fix was needed.
+  Output `eech-campaign/target/los-fixture/baseline-20261026-wsl` (ignored; `BUILD-INFO.txt` and notes retained under
+  `eech-campaign/reference/d2-los-observation/`). Toolchain recorded by the build: rustc/cargo 1.99.1, MinGW gcc 12-posix
+  (`12.2.0-14+deb12u1+25.2+b1`). FIXTURE BUILD: never a shipping artifact. `cargo fmt --all --check` clean; clippy with the
+  feature, no diagnostics; the driver parses. **Not run: any characterisation, campaign, `cargo test` or the pack.**
+- The lead's baseline pack (unchanged supplied binaries) is still pending its byte-equality result. No characterisation is run,
+  no solver or policy changed, until the lead confirms it. Next: run `los-characterization.lua` from the fixture output on
+  copied roots when told, retain outputs, then extract.
