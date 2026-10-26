@@ -16,6 +16,7 @@
 #include "entity/special/group/gp_roster.h"
 #include "entity/special/guide/gd_supply_arrival.h"
 #include "entity/mobile/vehicle/routed/rv_hostmv.h"
+#include "entity/mobile/mb_hostlos.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -62,6 +63,7 @@ typedef campaign_observe_supply_reach_fn eech_supply_reached_callback;
 typedef campaign_movement_step eech_movement_step;
 typedef campaign_movement_result eech_movement_result;
 typedef campaign_move_vehicle_fn eech_move_vehicle_callback;
+typedef campaign_los_fn eech_line_of_sight_callback;
 
 struct eech_engine_host
 {
@@ -73,6 +75,8 @@ struct eech_engine_host
 	eech_supply_reached_callback supply_reached;
 	/* Called synchronously for each host-owned movement step (routed MOVE/STOP, SHIP_MOVE, PERSON_BEGIN/END, FIXED_WING_MOVE, HELICOPTER_BEGIN/END) and pose placement (PLACE); the host owns the mobile's position, speed and attitude. */
 	eech_move_vehicle_callback move_vehicle;
+	/* Called synchronously for each host-owned line-of-sight query (mb_hostlos.h): the host owns the calculation and asks for one terrain elevation or one object-ray answer at a time, or answers directly. */
+	eech_line_of_sight_callback line_of_sight;
 	void *user;
 };
 

@@ -12,7 +12,7 @@ dc.prepare_installation (root)
 local function config (callback)
 	return {
 		install_root = root, map = "..\\common\\maps\\map5", campaign_directory = "camp01", campaign = "LEBANON.CHC",
-		gunship = "apache", seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss, supply_reached = callback,
+		gunship = "apache", seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss, supply_reached = callback, line_of_sight = host.line_of_sight,
 	}
 end
 

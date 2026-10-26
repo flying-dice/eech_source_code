@@ -8,6 +8,7 @@
 
 mod crash;
 
+use eech_world::los::{Los, LosRequest};
 use eech_world::movement::{
     Advance, CarryShape, Creation, DependentCarry, FixedWingMove, FixedWingNavigation, FixedWingPhase, FixedWingTerrain, HelicopterAnswer, HelicopterBegin,
     HelicopterEnd, HelicopterGuide, HelicopterPlan, HelicopterSteer, HelicopterStructure, HelicopterTerrainSample, HelicopterWaypointKind, Kind, Lifecycle,
@@ -1184,6 +1185,85 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 result.set("flags", outcome.flags)?;
                 result.set("angles", outcome.angles.to_vec())?;
                 result.set("death_timer", outcome.death_timer)?;
+                Ok(result)
+            })?,
+        )?;
+    }
+    {
+        let los = Rc::new(RefCell::new(Los::new()));
+        host.set(
+            "line_of_sight",
+            lua.create_function(move |lua, step: LuaTable| {
+                let fail = |message: String| LuaError::runtime(format!("host.line_of_sight: {message}"));
+                let mode: String = step.get("mode")?;
+                let request = match mode.as_str() {
+                    "begin" => {
+                        let source = exact_numbers::<3>(lua, &step, "source_position").map_err(fail)?;
+                        let target = exact_numbers::<3>(lua, &step, "target_position").map_err(fail)?;
+                        let criteria = match step.get::<LuaValue>("criteria")? {
+                            LuaValue::Integer(value) => i32::try_from(value).map_err(|_| fail(format!("criteria {value} is out of range")))?,
+                            other => return Err(fail(format!("criteria must be an integer, got {}", other.type_name()))),
+                        };
+                        let flag = |name: &str| -> LuaResult<bool> {
+                            match step.get::<LuaValue>(name)? {
+                                LuaValue::Boolean(value) => Ok(value),
+                                other => Err(fail(format!("{name} must be a boolean, got {}", other.type_name()))),
+                            }
+                        };
+                        let (source_eye, target_eye) = (flag("source_eye")?, flag("target_eye")?);
+                        // the identities are the host's own, passed through for the campaign's collision exclusion later; they are
+                        // checked for shape only, never used to find a pose (a ray's end points are what the campaign supplied)
+                        for name in ["source_host_id", "target_host_id"] {
+                            match step.get::<LuaValue>(name)? {
+                                LuaValue::Nil => {}
+                                LuaValue::String(id) => {
+                                    let id = id.to_str()?;
+                                    if id.is_empty() || id.len() > 128 {
+                                        return Err(fail(format!("{name} must be 1 to 128 bytes")));
+                                    }
+                                }
+                                other => return Err(fail(format!("{name} must be a string, got {}", other.type_name()))),
+                            }
+                        }
+                        let _ = flag("entity_form")?;
+                        los.borrow_mut().begin(source, target, criteria, source_eye, target_eye)
+                    }
+                    "terrain" => {
+                        let [elevation] = exact_numbers::<1>(lua, &step, "elevation").map_err(fail)?;
+                        los.borrow_mut().terrain(elevation)
+                    }
+                    "objects" => {
+                        let hit = match step.get::<LuaValue>("hit")? {
+                            LuaValue::Boolean(value) => value,
+                            other => return Err(fail(format!("hit must be a boolean, got {}", other.type_name()))),
+                        };
+                        let point = match step.get::<LuaValue>("collision_point")? {
+                            LuaValue::Nil => None,
+                            _ => Some(exact_numbers::<3>(lua, &step, "collision_point").map_err(fail)?),
+                        };
+                        los.borrow_mut().objects(hit, point)
+                    }
+                    other => return Err(fail(format!("unknown mode {other:?}"))),
+                }
+                .map_err(fail)?;
+                let result = lua.create_table()?;
+                match request {
+                    LosRequest::NeedTerrain { phase, point } => {
+                        result.set("state", "need_terrain")?;
+                        result.set("phase", phase)?;
+                        result.set("point", point.to_vec())?;
+                    }
+                    LosRequest::NeedObjects { phase, start, end } => {
+                        result.set("state", "need_objects")?;
+                        result.set("phase", phase)?;
+                        result.set("start", start.to_vec())?;
+                        result.set("end", end.to_vec())?;
+                    }
+                    LosRequest::Done { visible } => {
+                        result.set("state", "done")?;
+                        result.set("visible", visible)?;
+                    }
+                }
                 Ok(result)
             })?,
         )?;

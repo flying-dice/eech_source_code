@@ -461,12 +461,57 @@ pub struct eech_movement_result {
 pub type eech_move_vehicle_callback =
     unsafe extern "C" fn(step: *const eech_movement_step, result: *mut eech_movement_result, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
 
+pub const EECH_LOS_HOST_ID_MAX: usize = 128;
+pub const EECH_LOS_BEGIN: c_int = 1;
+pub const EECH_LOS_TERRAIN: c_int = 2;
+pub const EECH_LOS_OBJECTS: c_int = 3;
+pub const EECH_LOS_DONE: c_int = 1;
+pub const EECH_LOS_NEED_TERRAIN: c_int = 2;
+pub const EECH_LOS_NEED_OBJECTS: c_int = 3;
+pub const EECH_LOS_PHASE_COARSE: c_int = 1;
+pub const EECH_LOS_PHASE_SOURCE_FINE: c_int = 2;
+pub const EECH_LOS_PHASE_TARGET_FINE: c_int = 3;
+pub const EECH_LOS_PHASE_SOURCE_OBJECTS: c_int = 4;
+pub const EECH_LOS_PHASE_TARGET_OBJECTS: c_int = 5;
+
+/// One message of the host-owned line-of-sight dialogue (aphavoc/.../mb_hostlos.h): BEGIN carries the ray, TERRAIN and OBJECTS the
+/// campaign's answers to what the host asked.
+#[repr(C)]
+pub struct eech_los_step {
+    pub mode: c_int,
+    pub entity_form: c_int,
+    pub criteria: c_int,
+    pub source_eye: c_int,
+    pub target_eye: c_int,
+    pub source_host_id: [c_char; EECH_LOS_HOST_ID_MAX + 1],
+    pub target_host_id: [c_char; EECH_LOS_HOST_ID_MAX + 1],
+    pub source_position: [f32; 3],
+    pub target_position: [f32; 3],
+    pub elevation: f32,
+    pub hit: c_int,
+    pub collision_point: [f32; 3],
+}
+
+#[repr(C)]
+pub struct eech_los_result {
+    pub state: c_int,
+    pub phase: c_int,
+    pub point: [f32; 3],
+    pub start: [f32; 3],
+    pub end: [f32; 3],
+    pub visible: c_int,
+}
+
+pub type eech_line_of_sight_callback =
+    unsafe extern "C" fn(step: *const eech_los_step, result: *mut eech_los_result, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
+
 #[repr(C)]
 pub struct eech_engine_host {
     pub bind_mobile: Option<eech_bind_mobile_callback>,
     pub observe_loss: Option<eech_observe_loss_callback>,
     pub supply_reached: Option<eech_supply_reached_callback>,
     pub move_vehicle: Option<eech_move_vehicle_callback>,
+    pub line_of_sight: Option<eech_line_of_sight_callback>,
     pub user: *mut c_void,
 }
 

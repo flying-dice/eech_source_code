@@ -34,6 +34,7 @@ local config = {
 	bind_mobile = host.bind_mobile,
 	observe_loss = host.observe_loss,
 	supply_reached = host.supply_reached,
+	line_of_sight = host.line_of_sight,
 }
 
 if mode == "missing" then

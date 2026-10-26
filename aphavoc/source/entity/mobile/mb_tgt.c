@@ -84,6 +84,53 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//
+// EEDCS-42: in a host build the physical line-of-sight calculation belongs to the host.  The two public checks stay as the
+// campaign's callers know them (target selection, weapon choice and guide placement call them and act on the boolean), read the
+// entity facts the host needs (a pose, and whether the end is a vehicle whose pose the ray lifts), and ask the host through
+// campaign_los_query.  The solver below, in the #else branch, is the original legacy-game code; it is not compiled into a host build.
+//
+
+#ifdef EECH_CAMPAIGN_HOST_LOS
+
+#include "entity/mobile/mb_hostlos.h"
+
+int check_entity_line_of_sight (entity *source, entity *target, mobile_los_check_criteria criteria)
+{
+	vec3d
+		source_position,
+		target_position;
+
+	int
+		source_eye,
+		target_eye;
+
+	ASSERT (source);
+
+	ASSERT (target);
+
+	get_local_entity_vec3d (source, VEC3D_TYPE_POSITION, &source_position);
+
+	source_eye = (get_local_entity_int_value (source, INT_TYPE_IDENTIFY_VEHICLE) != 0);
+
+	get_local_entity_vec3d (target, VEC3D_TYPE_POSITION, &target_position);
+
+	target_eye = (get_local_entity_int_value (target, INT_TYPE_IDENTIFY_VEHICLE) != 0);
+
+	return campaign_los_query (source, target, &source_position, &target_position, criteria, TRUE, source_eye, target_eye);
+}
+
+int check_position_line_of_sight (entity *source, entity *target, vec3d *source_position, vec3d *target_position, mobile_los_check_criteria criteria)
+{
+	return campaign_los_query (source, target, source_position, target_position, criteria, FALSE, FALSE, FALSE);
+}
+
+#else
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #define LOS_COARSE_CHECK_DISTANCE					200.0f
 
 #define LOS_FINE_CHECK_DISTANCE_SOURCE_END		40.0f
@@ -487,6 +534,8 @@ int check_position_line_of_sight (entity *source, entity *target, vec3d *source_
 #ifdef EECH_LOS_FIXTURE
 
 #undef check_position_line_of_sight
+
+#endif
 
 #endif
 
