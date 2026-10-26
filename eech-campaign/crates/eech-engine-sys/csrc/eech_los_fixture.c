@@ -9,9 +9,11 @@
  *      folds them into a call count, a visible count, per-criteria counts and an order-dependent FNV-1a hash over the
  *      inputs' bit patterns and the answers. It only observes: nothing it reads is altered.
  *
- *   2. The probe sweep. A deterministic set of queries over the loaded map from two live entities' positions: segments of
- *      every length class around the solver's step sizes (below, at and above 200 m, and out to 15 km), at several heights
- *      over the real terrain, for each criteria subset, then the entity form for each subset. The points come from a
+ *   2. The probe sweep. A deterministic set of queries over the loaded map from two live mobiles' positions: segments of
+ *      25 m to 15 km whose lengths bracket the 200 m coarse step (150, 199.5, 200, 201, 399, 450 m among them; the 40 m and
+ *      24 m fine steps are not bracketed), at five heights over the real terrain, each with one of eight chosen criteria masks
+ *      (ALL, each of the five bits alone, the three terrain bits together, and NONE; not every subset of the five bits),
+ *      then the entity form for each of those masks, both ways round. The points come from a
  *      private xorshift generator, so the sweep never touches the game's random stream, and the terrain heights it uses to
  *      place points come from a private point-data record, so it leaves EECH's shared terrain state alone.
  *
@@ -107,19 +109,32 @@ static float unit (uint32_t *state)
 	return (float) (next_random (state) & 0xffffffu) / 16777216.0f;
 }
 
+/*
+ * A live mobile the sweep can query: the index lies within the heap actually allocated (number_of_entities, which is less
+ * than MAX_NUM_ENTITIES), and the entity is one of the mobile families whose position the campaign reads for a line-of-sight
+ * check (the six hosted mobile families, so no weapon, keysite or free slot). Anything else is refused (NULL), and the caller
+ * reports a bad argument; nothing is dereferenced for an unsupported shape.
+ */
 static entity *live_entity (int index)
 {
 	entity *en;
-	if ((index < 0) || (index >= MAX_NUM_ENTITIES))
+	if (!entities || (index < 0) || (index >= number_of_entities))
 	{
 		return NULL;
 	}
 	en = get_local_entity_ptr (index);
-	if (!en || (get_local_entity_type (en) == ENTITY_TYPE_UNKNOWN))
+	switch (get_local_entity_type (en))
 	{
+	case ENTITY_TYPE_HELICOPTER:
+	case ENTITY_TYPE_FIXED_WING:
+	case ENTITY_TYPE_ROUTED_VEHICLE:
+	case ENTITY_TYPE_ANTI_AIRCRAFT:
+	case ENTITY_TYPE_PERSON:
+	case ENTITY_TYPE_SHIP_VEHICLE:
+		return en;
+	default:
 		return NULL;
 	}
-	return en;
 }
 
 static float terrain_height (float x, float z)

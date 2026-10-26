@@ -63,9 +63,10 @@ no gcc, rustc, cargo, clang or WSL distribution, and none was installed. Every C
   `INT_TYPE_IDENTIFY_VEHICLE`, and calls `check_position_line_of_sight`, which is the solver (`mb_tgt.c:138`).
 - Criteria are the five bits of `mobile_los_check_criteria`. Order, with an immediate FALSE on the first failure:
   1. direction = target − source; `target_range = sqrt (dx²+dz²)` (double sqrt, narrowed to float); `normalise_3d_vector`.
-  2. COARSE terrain: 200 m steps while `target_range/200 > 1`, from the source; `terrain_info` is zeroed here only.
-  3. SOURCE-END terrain: 40 m steps, `min (range/40, 8)` samples, from the source.
-  4. TARGET-END terrain: 24 m steps, `min (range/24, 8)` samples, walking back from the target.
+  2. COARSE terrain: 200 m steps while the float counter `target_range/200 > 1`, from the source; `terrain_info` is zeroed here only.
+  3. SOURCE-END terrain: 40 m steps from the source; the counter is `min (range/40, 8)` and the loop runs while it is `> 1`,
+     decremented by 1, so at most 7 terrain queries.
+  4. TARGET-END terrain: 24 m steps walking back from the target; counter `min (range/24, 8)`, same loop, at most 7 queries.
   5. SOURCE-END objects: one `get_line_of_sight_collision_entity` over `min (range, 200)` from the source.
   6. TARGET-END objects: the same from the target; a hit blocks only when `get_sqr_3d_range (collision_point, target) > 12²`.
   A terrain sample is `ASSERT (point_inside_map_area)`, `get_3d_terrain_point_data (x, z, &terrain_info)`,
@@ -73,8 +74,10 @@ no gcc, rustc, cargo, clang or WSL distribution, and none was installed. Every C
 - The step counter is a float decremented in the loop. The engine runs under round-toward-zero (`FE_TOWARDZERO`) and a host
   callback inherits that mode (docs/fpu.md, docs/m5-convoy-movement.md), so any host arithmetic must reproduce each
   expression at declared float type (as `crates/eech-world/csrc/hc_step.c` does), not use Rust floating point.
-- All in-tree callers pass `MOBILE_LOS_CHECK_ALL`, except `vh_tgt.c:716` (non-AI target) and `wn_tgt.c:302`, which pass
-  `MOBILE_LOS_CHECK_COURSE_TERRAIN`. Policy callers, which stay in the DLL: `vh_tgt.c:709,716` (vehicle target scan),
+- Criteria at the callers: `vh_tgt.c:709/716` and both `ac_wpn.c` sites (`:336`, `:594`) pass `MOBILE_LOS_CHECK_ALL` for a
+  non-AI target and `MOBILE_LOS_CHECK_COURSE_TERRAIN` (coarse terrain only) for an AI target; `wn_tgt.c:302` always passes
+  COURSE_TERRAIN; `vh_wpn.c:319`, `ag_attck.c:702,1097` and `gd_cover.c:762,816` pass ALL. So AI-versus-AI target
+  selection and aircraft weapon choice use only the coarse terrain phase. Policy callers, which stay in the DLL: `vh_tgt.c:709,716` (vehicle target scan),
   `vh_wpn.c:319`, `wn_tgt.c:302`, `ac_wpn.c:336,594` (aircraft weapons), `ag_attck.c:702,1097` and `gd_cover.c:762,816` (guide
   placement). `eech_engine_debug_engagements` calls it but is never invoked.
 - No existing Lua-visible entry exposes a line-of-sight answer, so the supplied bundle DLL cannot characterise it without a
@@ -83,14 +86,25 @@ no gcc, rustc, cargo, clang or WSL distribution, and none was installed. Every C
 ### Harness (uncompiled)
 
 Test-only feature `los-fixture`, in the pattern of `loss-fixture` and `dependent-fixture`. Everything sits behind
-`EECH_LOS_FIXTURE` or the cargo feature, so the default build is source-identical to the base.
+`EECH_LOS_FIXTURE` or the cargo feature, so the runtime paths of a build without the feature are unmodified (the files differ in
+text only inside those gates). **No build, no run and no Tacview comparison exists for this harness.**
 
 - `mb_tgt.c` (gated): the public `check_position_line_of_sight` forwards to the unchanged solver (renamed by macro) and
   records the inputs and the answer. Entity and position queries both pass through it.
 - `csrc/eech_los_fixture.c`: a run-wide trace (count, visible, per-criteria counts, order-dependent FNV-1a over criteria, six
   position float bit patterns and the answer) and a deterministic probe sweep (private xorshift generator and private terrain
-  point-data record, so neither the game's RNG nor shared terrain state is touched): 25 m to 15 km segments around the solver's
-  200/40/24 m steps, five heights over the real terrain, every criteria subset, then the entity form both ways.
+  point-data record, so neither the game's RNG nor shared terrain state is touched): segments of 25 m to 15 km whose lengths
+  bracket the 200 m coarse step (150, 199.5, 200, 201, 399, 450 m among them) but **not** the 40 m or 24 m fine steps, at five
+  heights over the real terrain, each with one of **eight chosen criteria masks** (ALL, each of the five bits alone, the three
+  terrain bits together, NONE; not every subset of the five bits), then the entity form for each mask both ways round. The
+  fine-terrain and object phases are therefore exercised only through ALL, their single bits, and the terrain-bit mask, with
+  no designed threshold coverage of the fine steps.
+- Review corrections (a0b624646 review): the probe entry refuses an index outside the allocated `number_of_entities` (not
+  `MAX_NUM_ENTITIES`), a NULL heap, and any entity that is not one of the six mobile families (bad argument, visible to Lua);
+  the driver asserts the run-fold invariant, fails when a requested probe time finds no opposed pair or is not reached, and
+  treats an explicitly empty `probe_at=` as the only no-probe control. Pending negative cases (out-of-range index, weapon or keysite
+  index, free slot, same entity twice, no pair, unreached time): the refusals are implemented but **no executable check for them
+  exists yet and none has run**; they need the build.
 - `eech_engine.c/.h` (`eech_engine_los_trace`, `_reset`, `_probe`; `eech_engine.c` holds one raw NUL byte, so it was edited
   binary-safely), `eech-engine-sys`, `eech-engine`, `eech-dc` (`engine:los_trace ()`, `:los_trace_reset ()`,
   `:los_probe (source, target, seed, count)`), and the driver `crates/eech-world/lua/los-characterization.lua`.

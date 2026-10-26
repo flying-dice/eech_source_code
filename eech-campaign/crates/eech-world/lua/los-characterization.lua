@@ -13,7 +13,8 @@
 -- difference in behaviour, and nothing here is tuned to make a run pass.
 --
 -- host.args: root, scenario (lebanon_retail default, georgia, georgia_retail), seconds (default 600), frame_ms (default 100),
---            probe_at (comma list of simulated seconds, default 30,300), count (sweep points per pair, default 500),
+--            probe_at (comma list of simulated seconds, default 30,300; an explicitly empty probe_at= is the no-probe control, and any
+--            requested time that finds no opposed pair or is never reached fails the run), count (sweep points per pair, default 500),
 --            pairs (probe pairs per time, default 3), seed (sweep seed, default 20261025), out (JSON Lines path)
 
 io.stdout:setvbuf ("no")
@@ -116,7 +117,14 @@ for f = 1, frames do
 	local clock = engine:clock ()
 	if next_probe <= #probe_at and clock.elapsed_seconds >= probe_at [next_probe] then
 		local before = engine:los_trace ()
-		for i, pair in ipairs (pick_pairs ()) do
+		local chosen = pick_pairs ()
+		-- a requested probe with no supported opposed pair is an unavailable characterisation, not a quiet success
+		if #chosen == 0 then
+			emit { event = "probe_unavailable", at = probe_at [next_probe], frame = f, reason = "no live opposed pair of supported mobiles" }
+			error (string.format ("los-characterization: probe at %s s found no supported opposed pair; characterisation unavailable", probe_at [next_probe]))
+		end
+		emit { event = "probe_pairs", at = probe_at [next_probe], requested = pair_limit, found = #chosen }
+		for i, pair in ipairs (chosen) do
 			local trace = engine:los_probe (pair.a.id, pair.b.id, sweep_seed + i, count)
 			probes_taken = probes_taken + 1
 			emit_trace ("probe", { at = probe_at [next_probe], frame = f, pair = pair.label, source = pair.a.id, target = pair.b.id,
@@ -124,10 +132,15 @@ for f = 1, frames do
 		end
 		local after = engine:los_trace ()
 		-- the probe must leave the run-wide fold exactly as it found it
-		emit { event = "run_fold_untouched_by_probe", ok = before.hash == after.hash and before.calls == after.calls }
+		local untouched = before.hash == after.hash and before.calls == after.calls
+		emit { event = "run_fold_untouched_by_probe", ok = untouched }
+		assert (untouched, "los-characterization: the probe changed the run-wide fold")
 		next_probe = next_probe + 1
 	end
 end
+
+-- every requested probe time must have been reached; an explicitly empty probe_at is the no-probe control
+assert (next_probe > #probe_at, string.format ("los-characterization: only %d of %d requested probes were taken before the run ended", next_probe - 1, #probe_at))
 
 local final = engine:los_trace ()
 local clock = engine:clock ()
