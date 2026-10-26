@@ -298,10 +298,17 @@ static int reason_to_verdict (int reason)
 		case CAMPAIGN_SENSE_REASON_TOLERANCE: return EECH_SENSOR_VERDICT_TOLERANCE;
 	}
 
-	// the sensor trace records the original's predicates; a verdict from another host model is not one of them and is not relabelled as one
-	debug_fatal ("host sense: the sensor fixture trace has no verdict for host reason %d (only the reference model's predicates are traced)", reason);
+	// only the original's predicates reach here: a host's own NOT_PERCEIVED is counted apart (host_verdict) and never relabelled as one of them
+	debug_fatal ("host sense: the sensor fixture has no predicate verdict for host reason %d", reason);
 
 	return EECH_SENSOR_VERDICT_TOLERANCE;
+}
+
+// a host's own nondetection verdict names none of the original's predicates: the fixture counts it separately and skips the reference-only
+// hooks of that exchange, so a run whose host never answers it records exactly what it recorded before
+static int host_verdict (const campaign_sense_result *result)
+{
+	return (result->state == CAMPAIGN_SENSE_REJECT) && (result->reason == CAMPAIGN_SENSE_REASON_NOT_PERCEIVED);
 }
 
 #endif
@@ -385,23 +392,26 @@ int campaign_sense_candidate (entity *source, entity *target, const vec3d *targe
 
 	#ifdef EECH_SENSOR_FIXTURE
 
-	SENSOR_FX_CANDIDATE ()
-	SENSOR_FX_F (EECH_SENSOR_TAG_TARGET_RANGE, *target_range)
-
-	if ((scan_kind == CAMPAIGN_SENSE_AIR_TO_AIR) || (scan_kind == CAMPAIGN_SENSE_SURFACE_TO_AIR))
+	if (!host_verdict (&result))
 	{
-		SENSOR_FX_I (EECH_SENSOR_TAG_TARGET_PLAYER, player)
-	}
+		SENSOR_FX_CANDIDATE ()
+		SENSOR_FX_F (EECH_SENSOR_TAG_TARGET_RANGE, *target_range)
 
-	if (scan_kind == CAMPAIGN_SENSE_SURFACE_TO_AIR)
-	{
-		if (player)
+		if ((scan_kind == CAMPAIGN_SENSE_AIR_TO_AIR) || (scan_kind == CAMPAIGN_SENSE_SURFACE_TO_AIR))
 		{
-			SENSOR_FX_FLOOR_FACTOR (step.difficulty_factor)
+			SENSOR_FX_I (EECH_SENSOR_TAG_TARGET_PLAYER, player)
 		}
 
-		SENSOR_FX_FLOOR (result.has_echo ? result.echo_floor : 0.0f, scan_range_raw, *target_range)
-		SENSOR_FX_F (EECH_SENSOR_TAG_RADAR_ALTITUDE, step.radar_altitude)
+		if (scan_kind == CAMPAIGN_SENSE_SURFACE_TO_AIR)
+		{
+			if (player)
+			{
+				SENSOR_FX_FLOOR_FACTOR (step.difficulty_factor)
+			}
+
+			SENSOR_FX_FLOOR (result.has_echo ? result.echo_floor : 0.0f, scan_range_raw, *target_range)
+			SENSOR_FX_F (EECH_SENSOR_TAG_RADAR_ALTITUDE, step.radar_altitude)
+		}
 	}
 
 	#endif
@@ -414,7 +424,14 @@ int campaign_sense_candidate (entity *source, entity *target, const vec3d *targe
 		{
 			#ifdef EECH_SENSOR_FIXTURE
 
-			SENSOR_FX_VERDICT (reason_to_verdict (result.reason))
+			if (host_verdict (&result))
+			{
+				SENSOR_FX_NOT_PERCEIVED ()
+			}
+			else
+			{
+				SENSOR_FX_VERDICT (reason_to_verdict (result.reason))
+			}
 
 			#endif
 
@@ -449,7 +466,10 @@ int campaign_sense_candidate (entity *source, entity *target, const vec3d *targe
 
 			#ifdef EECH_SENSOR_FIXTURE
 
-			SENSOR_FX_TOLERANCE (draw, result.has_echo ? result.echo_tolerance_limit : 0.0, radar_altitude)
+			if (!host_verdict (&result))
+			{
+				SENSOR_FX_TOLERANCE (draw, result.has_echo ? result.echo_tolerance_limit : 0.0, radar_altitude)
+			}
 
 			#endif
 		}
@@ -491,16 +511,19 @@ int campaign_sense_candidate (entity *source, entity *target, const vec3d *targe
 
 			#ifdef EECH_SENSOR_FIXTURE
 
-			if (player)
+			if (!host_verdict (&result))
 			{
-				SENSOR_FX_I (EECH_SENSOR_TAG_RADAR_ON, step.radar_on)
-				SENSOR_FX_I (EECH_SENSOR_TAG_RADAR_JAMMER_ON, step.radar_jammer_on)
-				SENSOR_FX_I (EECH_SENSOR_TAG_INFRA_RED_JAMMER_ON, step.infra_red_jammer_on)
-			}
+				if (player)
+				{
+					SENSOR_FX_I (EECH_SENSOR_TAG_RADAR_ON, step.radar_on)
+					SENSOR_FX_I (EECH_SENSOR_TAG_RADAR_JAMMER_ON, step.radar_jammer_on)
+					SENSOR_FX_I (EECH_SENSOR_TAG_INFRA_RED_JAMMER_ON, step.infra_red_jammer_on)
+				}
 
-			SENSOR_FX_F (EECH_SENSOR_TAG_ADJUSTED_RANGE, result.has_echo ? result.echo_adjusted_range : 0.0f)
-			SENSOR_FX_F (EECH_SENSOR_TAG_STEALTH_FACTOR, result.has_echo ? result.echo_stealth_factor : 0.0f)
-			SENSOR_FX_F (EECH_SENSOR_TAG_STEALTH_LIMIT, result.has_echo ? result.echo_stealth_limit : 0.0f)
+				SENSOR_FX_F (EECH_SENSOR_TAG_ADJUSTED_RANGE, result.has_echo ? result.echo_adjusted_range : 0.0f)
+				SENSOR_FX_F (EECH_SENSOR_TAG_STEALTH_FACTOR, result.has_echo ? result.echo_stealth_factor : 0.0f)
+				SENSOR_FX_F (EECH_SENSOR_TAG_STEALTH_LIMIT, result.has_echo ? result.echo_stealth_limit : 0.0f)
+			}
 
 			#endif
 

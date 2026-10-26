@@ -14,7 +14,10 @@
 --
 -- host.args: root, scenario (lebanon_retail default, georgia_retail, georgia), seconds (default 600), frame_ms (default 100),
 --            probe_at (comma list of simulated seconds, default 30,300; an explicitly empty probe_at= is the no-probe control, and any
---            requested time that is never reached fails the run), out (JSON Lines path)
+--            requested time that is never reached fails the run), out (JSON Lines path),
+--            sense (default: the reference host's `host.sense`, the characterisation and its oracle; `not_perceived` or `own_model` boot a host
+--            of its own model instead, as in lua/sense-provider.lua, to show that the fixture observes a host's generic nondetection verdict
+--            instead of stopping on it: not an oracle run)
 
 io.stdout:setvbuf ("no")
 
@@ -66,6 +69,25 @@ local function emit_report (scope, at, report)
 	end
 end
 
+-- the reference host unless the run asks for a host of its own model (never in an oracle run)
+local sense = host.sense
+if args.sense == "not_perceived" or args.sense == "own_model" then
+	local source
+	sense = function (step)
+		if step.mode == "begin" then source = step.source_position return { state = "open" } end
+		if step.mode == "end" then return { state = "closed" } end
+		assert (step.mode == "candidate", "a host that decides at the candidate is never asked for a draw or a signature")
+		if args.sense == "own_model" then
+			local dx, dz = step.target_position [1] - source [1], step.target_position [3] - source [3]
+			local distance = math.sqrt (dx * dx + dz * dz)
+			if distance < 4000.0 then return { state = "accept", target_range = distance } end
+		end
+		return { state = "reject", reason = "not_perceived" }
+	end
+else
+	assert (args.sense == nil, "sense=not_perceived|own_model, or omit it for the reference host")
+end
+
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
 local engine = dc.boot {
@@ -73,7 +95,7 @@ local engine = dc.boot {
 	seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
 	supply_reached = host.supply_reached,
 	line_of_sight = host.line_of_sight,
-	sense = host.sense,
+	sense = sense,
 }
 emit { event = "boot", scenario = args.scenario or "lebanon_retail", seconds = seconds, frame_ms = frame_ms }
 engine:sensor_trace_reset ()

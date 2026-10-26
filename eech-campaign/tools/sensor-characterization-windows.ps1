@@ -6,6 +6,7 @@
 #   -Out     the directory for trace.jsonl, run.log and run.out
 #   -Scenario lebanon_retail (default), georgia_retail or georgia
 #   -ProbeAt comma list of simulated seconds at which the read-only sweep runs ('' is the no-probe control)
+#   -Sense   optional: not_perceived or own_model boots a host of its own model instead of the reference host (the fixture-observes-a-host-verdict case; not an oracle run)
 #
 # The paths must hold no spaces (use a subst drive): the native argv is not quoted here.
 param(
@@ -15,7 +16,8 @@ param(
 	[string] $Scenario = 'lebanon_retail',
 	[int] $Seconds = 600,
 	[int] $FrameMs = 100,
-	[string] $ProbeAt = '30,300'
+	[string] $ProbeAt = '30,300',
+	[string] $Sense = ''
 )
 $ErrorActionPreference = 'Stop'
 $bin = (Resolve-Path $Bin).Path
@@ -27,6 +29,7 @@ foreach ($p in @($bin, $Root, $out)) { if ($p -match '\s') { throw "path with a 
 $script = (Join-Path $bin 'lua\sensor-characterization.lua') -replace '\\', '/'
 $arguments = @($script, "root=$($Root -replace '\\', '/')", "scenario=$Scenario", "seconds=$Seconds", "frame_ms=$FrameMs", "probe_at=$ProbeAt",
 	"out=$((Join-Path $out 'trace.jsonl') -replace '\\', '/')") -join ' '
+if ($Sense) { $arguments += " sense=$Sense" }
 $start = Get-Date
 $proc = Start-Process -FilePath $world -WorkingDirectory $out -NoNewWindow -PassThru -RedirectStandardError (Join-Path $out 'run.log') `
 	-RedirectStandardOutput (Join-Path $out 'run.out') -ArgumentList $arguments

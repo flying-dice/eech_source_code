@@ -74,6 +74,8 @@ struct sensor_trace
 	uint64_t physical_hash, decision_hash;
 	uint64_t calls[F], scanned[F], nonnull[F], count_sum[F], count_positive_null[F], candidates[F];
 	uint64_t verdicts[F][V];
+	/* a host's own nondetection verdict (not one of the original's predicates): counted apart, folded into neither hash, reported only when it occurred */
+	uint64_t host_not_perceived[F];
 	uint64_t skips[F][S];
 	/* edges: what the run actually exercised */
 	uint64_t player_candidates[F], emitter_off[F], stealth_not_one[F], adjusted_differs[F], replaced[F];
@@ -600,6 +602,27 @@ void eech_sensor_verdict (int verdict)
 	cur.tolerance_pending = -1;
 }
 
+/*
+ * A host's own verdict that the candidate was not perceived (EEDCS-43 review): it names none of the original's predicates, so it is not a verdict of
+ * the table above and is not relabelled as one. It is counted apart and folds nothing into the reference hashes, so a run whose host never answers
+ * it hashes and reports exactly as before; the candidate's reference-only hooks are skipped by the caller for the same reason.
+ */
+void eech_sensor_not_perceived (void)
+{
+	struct sensor_trace *trace = ready ();
+	char key[40];
+	if (!cur.active)
+	{
+		return;
+	}
+	trace->host_not_perceived[cur.function]++;
+	cur.candidate_open = 0;
+	cur.text[0] = 0;
+	cur.tolerance_pending = -1;
+	snprintf (key, sizeof (key), "%s/host_not_perceived", function_names[cur.function]);
+	keep_sample (trace, key);
+}
+
 void eech_sensor_end (int target_count, entity *best_group, float best_score)
 {
 	struct sensor_trace *trace = ready ();
@@ -732,6 +755,21 @@ static int report (const struct sensor_trace *trace, char *text, int capacity)
 			trace->scanned[f] ? trace->scan_range_max[f] : 0.0, (unsigned long long) trace->cos_seen[f],
 			(unsigned long long) trace->cos_outside_unit[f], trace->cos_seen[f] ? trace->cos_min[f] : 0.0,
 			trace->cos_seen[f] ? trace->cos_max[f] : 0.0);
+	}
+	{
+		/* only when a host answered its own nondetection verdict: a reference run has no such row */
+		uint64_t host_total = 0;
+		for (f = 0; f < F; f++)
+		{
+			host_total += trace->host_not_perceived[f];
+		}
+		if (host_total)
+		{
+			for (f = 0; f < F; f++)
+			{
+				emit (&out, "sensor-host-verdicts name=%s not_perceived=%llu\n", function_names[f], (unsigned long long) trace->host_not_perceived[f]);
+			}
+		}
 	}
 	emit (&out, "sensor-surface-to-air floor_cumulative_differs=%llu multi_candidate_calls=%llu altitude_below_floor=%llu altitude_above_ceiling=%llu "
 		"difficulty_factors=%llu floor_ratio_min=%.9g\n",
