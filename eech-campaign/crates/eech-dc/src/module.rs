@@ -565,12 +565,10 @@ impl LuaUserData for LuaEngine {
                 let supply_reached = this.supply_reached.clone();
                 let move_vehicle = this.move_vehicle.clone();
                 let line_of_sight = this.line_of_sight.clone();
-                let line_of_sight = this.line_of_sight.clone();
                 let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
                 let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
                 let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
                 let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
-                let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
                 let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
                 this.engine
                     .dependent_fixture(

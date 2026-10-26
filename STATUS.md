@@ -222,3 +222,9 @@ then begin the extraction.
   fmt, clippy (default and fixture features) and tests exit 0. Symbol check: no solver in `mb_tgt.o` or the DLL; kernel only in `eech-world.exe`.
 - Pending, the lead's: final shipping build, the established pack with complete-file comparison against the baseline run, one independent review, normal merge and Jira/ledger.
   Not claimed here: M6 live DCS operation, D3-D5.
+
+- Review finding P3 (duplicate `line_of_sight` and `sighter` declarations in the `dependent-fixture` method of `eech-dc`, from my replace matching the
+  inner indentation) is fixed in the commit after `815b07aee`: both declarations are single again. It sits entirely behind the `dependent-fixture` cargo
+  feature, so the default shipping DLL and host are unchanged by it. Checked with cargo's own exit status: `cargo clippy --locked -p eech-engine -p eech-dc -p eech-world
+  --all-targets -- -D warnings` with `eech-dc/dependent-fixture,eech-dc/loss-fixture,eech-dc/los-fixture` and separately with `eech-dc/dependent-fixture-old-guard`: both
+  exit 0; `cargo fmt --all --check` exit 0. The lead's final shipping build should be of the corrected head, not `a7863a73f`.
