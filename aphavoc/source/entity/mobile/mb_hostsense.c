@@ -307,6 +307,9 @@ int campaign_sense_candidate (entity *source, entity *target, const vec3d *targe
 		player,
 		requests;
 
+	float
+		radar_altitude;
+
 	double
 		draw;
 
@@ -361,6 +364,8 @@ int campaign_sense_candidate (entity *source, entity *target, const vec3d *targe
 			debug_fatal ("host sense: a candidate with a non-finite radar altitude or difficulty factor");
 		}
 	}
+
+	radar_altitude = step.radar_altitude;
 
 	result = ask_host (&step);
 
@@ -432,7 +437,7 @@ int campaign_sense_candidate (entity *source, entity *target, const vec3d *targe
 
 			#ifdef EECH_SENSOR_FIXTURE
 
-			SENSOR_FX_TOLERANCE (draw, result.has_echo ? result.echo_tolerance_limit : 0.0, step.radar_altitude)
+			SENSOR_FX_TOLERANCE (draw, result.has_echo ? result.echo_tolerance_limit : 0.0, radar_altitude)
 
 			#endif
 		}

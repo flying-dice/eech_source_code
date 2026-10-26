@@ -142,10 +142,46 @@ fn shape_text(field: &str, n: usize) -> String {
     )
 }
 
-/// A finite number exactly as Lua holds it, in double (see `exact_numbers`).
 #[cfg(feature = "sensor-fixture")]
-fn exact_f64(lua: &Lua, table: &LuaTable, field: &str) -> Result<f64, String> {
-    Ok(exact_f64s::<1>(lua, table, field)?[0])
+/// A finite double exactly as Lua holds it, whatever the FPU rounding mode. `exact_f64s` formats at 17 significant digits, and the engine
+/// runs a callback under round-toward-zero, where the C library's formatting truncates instead of rounding: the parsed double can then be one
+/// ulp low. This reads the double in exact steps instead (`math.frexp`, a multiplication by a power of two, a floor, a subtraction: all exact in
+/// any mode) as three integers and rebuilds it with exact scalings.
+fn exact_f64_bits(lua: &Lua, table: &LuaTable, field: &str) -> Result<f64, String> {
+    const KEY: &str = "eech_exact_f64_bits";
+    let split: LuaFunction = match lua.named_registry_value(KEY) {
+        Ok(function) => function,
+        Err(_) => {
+            let function: LuaFunction = lua
+                .load(
+                    "return function(t, f)
+                       local v = t[f]
+                       if type(v) ~= 'number' or v ~= v or v == math.huge or v == -math.huge then return nil end
+                       local m, e = math.frexp(v)
+                       local mi = m * 9007199254740992
+                       local hi = math.floor(mi / 67108864)
+                       local lo = mi - hi * 67108864
+                       return string.format('%d %d %d', hi, lo, e)
+                     end",
+                )
+                .eval()
+                .map_err(|e| e.to_string())?;
+            lua.set_named_registry_value(KEY, function.clone()).map_err(|e| e.to_string())?;
+            function
+        }
+    };
+    let text: Option<String> = split.call((table, field)).map_err(|e| e.to_string())?;
+    let shape = || format!("{field} must be a finite number");
+    let text = text.ok_or_else(shape)?;
+    let mut parts = text.split_whitespace().map(|part| part.parse::<i64>().ok());
+    let (Some(Some(hi)), Some(Some(lo)), Some(Some(exponent))) = (parts.next(), parts.next(), parts.next()) else {
+        return Err(shape());
+    };
+    // the 53-bit significand is exact in an f64; the scaling is split so that a subnormal result is not rounded twice
+    let significand = (hi * 67_108_864 + lo) as f64;
+    let exponent = exponent - 53;
+    let (first, second) = if exponent < -1000 { (-1000, exponent + 1000) } else { (exponent, 0) };
+    Ok(significand * 2f64.powi(first as i32) * 2f64.powi(second as i32))
 }
 
 /// The `N` finite numbers of `exact_numbers`, kept as the `f64` Lua holds.
@@ -404,7 +440,7 @@ fn call_sense(lua: &Lua, function: &LuaFunction, message: SenseMessage) -> Resul
                 adjusted_range: one("adjusted_range")?,
                 stealth_factor: one("stealth_factor")?,
                 stealth_limit: one("stealth_limit")?,
-                tolerance_limit: exact_f64(lua, &echo, "tolerance_limit").map_err(|e| format!("sense result echo {e}"))?,
+                tolerance_limit: exact_f64_bits(lua, &echo, "tolerance_limit").map_err(|e| format!("sense result echo {e}"))?,
             })
         }
         LuaValue::Nil => None,
