@@ -1,10 +1,15 @@
-# D2 combat and perception — 25 October 2026
+# D2 combat and perception — 26 October 2026
 
 D1 / EEDCS-15 is complete at integration a7934aa7d1bcffc2ea5057bb3f1b0af332606c61.
 All 15 D1 tasks are Done. D2 / EEDCS-18 is now In Progress; first extraction
 EEDCS-42 moves AI line-of-sight observations to the host while keeping target
 selection and engagement policy in EECH_DC. Live authority: M5 goal 11534337 v3
-and migration ledger 14548994 v27. All five epic report macros are preserved.
+and migration ledger 14548994. All five epic report macros are preserved.
+
+Delivery PR: https://github.com/flying-dice/eech_source_code/pull/101 (draft),
+authored as fd-starscream-bot following the user's logged-in-identity direction.
+Hosted CI has started; this does not replace the unrun local characterization.
+No formal approval or merge, and no physical solver extraction yet.
 
 Accepted D1 evidence: native 40/40, full Tacview and observations unchanged, metrics
 equal; nine CI checks and independent exact-head approval before PR100 merge.
@@ -46,7 +51,8 @@ ee-dcs TypeScript-port work is unrelated preservation, not the current roadmap.
 
 ## EEDCS-42 implementation lane (Claude, Sonnet 5.5) — updated 25 October 2026
 
-Branch `codex/d2-perception-los`. **EEDCS-42 and D2 are not Done; no PR exists.** The lead owns publication, Jira and
+Branch `codex/d2-perception-los`. **EEDCS-42 and D2 are not Done.** This is the earlier implementation checkpoint;
+the current PR publication status above supersedes its at-the-time lack of a PR. The lead owns publication, Jira and
 ledger status, the final shipping build and 40/40 pack, and the independent review.
 
 **Stage:** characterisation harness written; **nothing compiled or run; extraction not started** (rule: only after the

@@ -1,7 +1,15 @@
 # D2 LOS characterization checkpoint — 26 October 2026
 
-**EEDCS-42 and D2 remain incomplete. No physical solver has moved. No PR or
-formal approval exists. No baseline or tolerance was changed.**
+**EEDCS-42 and D2 remain incomplete. No physical solver has moved. No formal
+approval exists. No baseline or tolerance was changed.** This review records
+the source checkpoint before draft PR101 was published.
+
+Publication update, 26 October: the user directed that the author match the
+logged-in GitHub identity. Draft PR101 is now open as fd-starscream-bot:
+https://github.com/flying-dice/eech_source_code/pull/101. This task-specific
+direction supersedes the earlier distinct-author request below for publication.
+No authentication changed and no self-approval was attempted. Compilation and
+runtime characterization remain blocked by the unavailable Docker daemon.
 
 The sole Claude Sonnet 5.5 High implementation lane prepared the feature-gated
 characterization harness at `a0b6246468a2c10932eccbde0a7eeeda4cbecf56`.
