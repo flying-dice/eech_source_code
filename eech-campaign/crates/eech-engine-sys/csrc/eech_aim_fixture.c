@@ -1380,20 +1380,22 @@ int eech_aim_person_query_run (const char *host_id, char *text, int capacity)
 	return case_state ("query", host_id, en, text, capacity) < 0 ? -1 : 0;
 }
 
-/* gives `person` the target through the campaign's own set_client_server_entity_parent (the call the family target code makes) and reports before and after */
+/* gives `person` the target through the campaign's own set_client_server_entity_parent (the call the family target code makes) and reports before and after;
+ * an empty target id releases the link through the same call (target NULL), so the person returns to its own movement */
 int eech_aim_person_case_run (const char *person_id, const char *target_id, char *text, int capacity)
 {
 	entity *person = case_find (person_id);
-	entity *target = case_find (target_id);
+	int release = !target_id[0];
+	entity *target = release ? NULL : case_find (target_id);
 	int used, n;
 	text[0] = 0;
-	if (!person || !target)
+	if (!person || (!release && !target))
 	{
 		snprintf (text, (size_t) capacity, "aim-case-error reason=%s\n", !person ? "no_such_person_host_id" : "no_such_target_host_id");
 		return -1;
 	}
 	if (person == target || get_local_entity_type (person) != ENTITY_TYPE_PERSON || !get_local_entity_int_value (person, INT_TYPE_ALIVE)
-		|| !get_local_entity_int_value (target, INT_TYPE_ALIVE))
+		|| (!release && !get_local_entity_int_value (target, INT_TYPE_ALIVE)))
 	{
 		snprintf (text, (size_t) capacity, "aim-case-error reason=person_or_target_not_valid\n");
 		return -1;
@@ -1409,7 +1411,7 @@ int eech_aim_person_case_run (const char *person_id, const char *target_id, char
 		snprintf (text + used, (size_t) (capacity - used), "aim-case-error reason=target_link_not_set\n");
 		return -1;
 	}
-	n = case_state ("after_setup", person_id, person, text + used, capacity - used);
+	n = case_state (release ? "after_release" : "after_setup", person_id, person, text + used, capacity - used);
 	return n < 0 ? -1 : 0;
 }
 

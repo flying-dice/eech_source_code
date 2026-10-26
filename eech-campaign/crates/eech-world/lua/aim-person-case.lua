@@ -15,8 +15,8 @@
 --     attitude the host last answered (the host refuses a campaign write it did not make; none was refused).
 -- case=control runs the same selection and steps WITHOUT the target link: the facing branch must stay at 0 (the witness does not pass by accident).
 --
--- host.args: root, scenario (lebanon_retail default, georgia_retail), case (target default, control), warmup (simulated seconds, default 20),
---            frames (default 20), frame_ms (default 100), out (JSON Lines path)
+-- host.args: root, scenario (lebanon_retail default, georgia_retail), case (target default, control), warmup (simulated seconds, default 20), max_range (metres, default 12000: the closest pair in the world is chosen),
+--            frames (default 20), release_frames (default 20: frames stepped after the link is released), frame_ms (default 100), out (JSON Lines path)
 
 io.stdout:setvbuf ("no")
 
@@ -26,6 +26,7 @@ local case = args.case or "target"
 assert (case == "target" or case == "control", "case=target|control")
 local warmup = tonumber (args.warmup or "20")
 local nframes = tonumber (args.frames or "20")
+local release_frames = tonumber (args.release_frames or "20")
 local frame_ms = tonumber (args.frame_ms or "100")
 local out = assert (io.open (assert (args.out, "out=<JSON Lines path>"), "w"))
 
@@ -99,7 +100,7 @@ end
 
 local function heading_of (a) return math.atan2 (a [7], a [9]) end -- the attitude's forward row (m[2][0], m[2][2]): (sin h, cos h)
 local function wrap (a) while a > math.pi do a = a - 2 * math.pi end while a < -math.pi do a = a + 2 * math.pi end return a end
-local function copy (t) local c = {} for i, v in ipairs (t) do c [i] = v end return c end
+local function copy (t) if not t then return nil end local c = {} for i, v in ipairs (t) do c [i] = v end return c end
 
 -- the host: the reference host's callbacks, wrapped to record what the case needs and to forward everything unchanged
 local descriptors, order = {}, {}
@@ -113,7 +114,7 @@ end
 local function move_vehicle (step)
 	local result = host.move_vehicle (step)
 	if watched and step.host_id == watched then
-		steps [#steps + 1] = { frame = frame_now, mode = step.mode, attitude_in = copy (step.attitude), attitude_out = copy (result.attitude) }
+		steps [#steps + 1] = { frame = frame_now, mode = step.mode, attitude_in = copy (step.pose and step.pose.attitude), attitude_out = copy (result.attitude) }
 	end
 	return result
 end
@@ -131,37 +132,42 @@ local frames = math.floor (warmup * 1000 / frame_ms)
 for _ = 1, frames do engine:frame (frame_ms) end
 emit { event = "warmed_up", elapsed = engine:clock ().elapsed_seconds, bound = #order }
 
--- pick one person and the nearest enemy routed vehicle; require a non-trivial turn from the person's present heading
-local chosen
+-- pick the closest pair of one real person and one real enemy ground target (routed vehicle, ship or person: the host identities the campaign bound) within
+-- max_range (the closest such pair is taken), requiring a non-trivial turn from the person's present heading: a target far outside the person's reach is dropped by the campaign within the
+-- frame (the first attempt, at 11.7 km, kept the link for one frame), so the closest pair is the honest precondition
+local max_range = tonumber (args.max_range or "12000")
+local pairs_found = {}
 for _, id in ipairs (order) do
 	local d = descriptors [id]
 	if d.kind == 3 and d.pose and (d.side == "blue" or d.side == "red") then
 		local px, pz = d.pose.position [1], d.pose.position [3]
-		local best, best_range
 		for _, other in ipairs (order) do
 			local o = descriptors [other]
-			if o.kind == 1 and o.pose and (o.side == "blue" or o.side == "red") and o.side ~= d.side then
+			if other ~= id and (o.kind == 1 or o.kind == 2 or o.kind == 3) and o.pose and (o.side == "blue" or o.side == "red") and o.side ~= d.side then
 				local dx, dz = o.pose.position [1] - px, o.pose.position [3] - pz
 				local range = math.sqrt (dx * dx + dz * dz)
-				if range > 200 and range < 12000 and (not best_range or range < best_range) then best, best_range = other, range end
-			end
-		end
-		if best then
-			local ok, text = pcall (engine.aim_person_query, engine, id)
-			local ok2, text2 = pcall (engine.aim_person_query, engine, best)
-			if ok and ok2 then
-				local p, t = parse_state (text, "query"), parse_state (text2, "query")
-				if p.alive == 1 and t.alive == 1 and p.type == "ENTITY_TYPE_PERSON" and p.has_target == 0 then
-					local bearing = math.atan2 (t.position [1] - p.position [1], t.position [3] - p.position [3])
-					local turn = math.abs (wrap (bearing - heading_of (p.attitude)))
-					if turn > 0.5 then chosen = { person = id, target = best, bearing = bearing, turn = turn, range = best_range } break end
-				end
+				if range > 150 and range < max_range then pairs_found [#pairs_found + 1] = { person = id, target = other, range = range } end
 			end
 		end
 	end
 end
-assert (chosen, "no host-identified person with a distinct enemy vehicle and a turn of at least 0.5 rad was found")
-emit { event = "chosen", person = chosen.person, target = chosen.target, range = chosen.range, bearing = chosen.bearing, turn_needed = chosen.turn }
+table.sort (pairs_found, function (a, b) if a.range ~= b.range then return a.range < b.range end if a.person ~= b.person then return a.person < b.person end return a.target < b.target end)
+emit { event = "candidates", count = #pairs_found, max_range = max_range }
+local chosen
+for _, c in ipairs (pairs_found) do
+	local ok, text = pcall (engine.aim_person_query, engine, c.person)
+	local ok2, text2 = pcall (engine.aim_person_query, engine, c.target)
+	if ok and ok2 then
+		local p, t = parse_state (text, "query"), parse_state (text2, "query")
+		if p.alive == 1 and t.alive == 1 and p.type == "ENTITY_TYPE_PERSON" and p.has_target == 0 then
+			local bearing = math.atan2 (t.position [1] - p.position [1], t.position [3] - p.position [3])
+			local turn = math.abs (wrap (bearing - heading_of (p.attitude)))
+			if turn > 0.5 then chosen = { person = c.person, target = c.target, bearing = bearing, turn = turn, range = c.range, target_type = t.type } break end
+		end
+	end
+end
+assert (chosen, "no host-identified person with an enemy ground target inside max_range and a turn of at least 0.5 rad was found")
+emit { event = "chosen", person = chosen.person, target = chosen.target, target_type = chosen.target_type, range = chosen.range, bearing = chosen.bearing, turn_needed = chosen.turn }
 
 watched = chosen.person
 engine:aim_trace_reset ()
@@ -188,6 +194,19 @@ for f = 1, nframes do
 		place_in = last_place and last_place.attitude_in or "none", place_out = last_place and last_place.attitude_out or "none" }
 end
 
+-- release the link through the same campaign call and step on: the person returns to its own movement, whose steps the host compares with its record
+local released, release_first
+if case == "target" then
+	released = parse_state (engine:aim_person_case (chosen.person, ""), "after_release")
+	emit { event = "state", label = "after_release", has_target = released.has_target }
+	release_first = #steps + 1
+	for f = nframes + 1, nframes + release_frames do
+		frame_now = f
+		engine:frame (frame_ms)
+	end
+	emit { event = "released", host_steps_after_release = #steps - release_first + 1 }
+end
+
 local report = engine:aim_trace ()
 emit_report ("run", engine:clock ().elapsed_seconds, report)
 local counters = {}
@@ -208,6 +227,7 @@ local function check (name, ok, detail)
 end
 
 local function close (a, b, tolerance)
+	if not a or not b then return false end
 	for i = 1, #a do if math.abs (a [i] - b [i]) > tolerance then return false end end
 	return #a == #b
 end
@@ -242,14 +262,15 @@ if case == "target" then
 	local held
 	for i = 1, #steps do
 		local s = steps [i]
-		if held and s.mode ~= "place" then
+		if held and s.attitude_in and s.mode ~= "place" then
 			compared = compared + 1
 			if not close (s.attitude_in, held, 0) then continuity = false end
 		end
-		held = s.attitude_out
+		if s.attitude_out then held = s.attitude_out end
 	end
-	check ("every later step arrived with the attitude the host last answered (no write the host did not make)", compared > 0 and continuity,
-		string.format ("%d later steps compared", compared))
+	check ("the link was released through the same call", released and released.has_target == 0)
+	check ("every non-place step arrived with the attitude the host last answered (no write the host did not make); at least one occurred after the release", compared > 0 and continuity,
+		string.format ("%d non-place steps compared", compared))
 else
 	check ("no target link in the control", before.has_target == 0 and mirror [nframes].has_target == 0)
 	check ("control: person branch not entered", (counters.person_branch_entered or 0) == 0 and (counters.person_facing or 0) == 0,
@@ -258,7 +279,12 @@ else
 	check ("control: the person did not turn toward the target", turned < 0.1, string.format ("turn %.9g rad, bearing needed %.9g", turned, chosen.turn))
 end
 
-emit { event = "verdict", case = case, failed = failed, frames = nframes, host_steps = #steps }
+local modes = {}
+for _, s in ipairs (steps) do modes [s.mode] = (modes [s.mode] or 0) + 1 end
+local mode_list = {}
+for mode, count in pairs (modes) do mode_list [#mode_list + 1] = mode .. "=" .. count end
+table.sort (mode_list)
+emit { event = "verdict", case = case, failed = failed, frames = nframes, host_steps = #steps, step_modes = mode_list }
 out:close ()
 io.stderr:write (string.format ("aim-person-case %s: %d failed checks, %d host steps for the person\n", case, failed, #steps))
 assert (failed == 0, string.format ("aim-person-case %s: %d checks failed", case, failed))
