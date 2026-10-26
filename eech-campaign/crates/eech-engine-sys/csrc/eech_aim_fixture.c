@@ -38,6 +38,7 @@
 #include "eech_engine.h"
 #include "eech_headless.h"
 #include "entity/mobile/mb_aimfx.h"
+#include "entity/mobile/mb_hostaim.h"
 
 #define SAMPLE_SLOTS 2
 #define SAMPLE_COUNT 64
@@ -937,6 +938,59 @@ void eech_aim_ballistic (int weapon_sub_type, float range, float height_diff_or_
 	}
 	snprintf (key, sizeof (key), "ballistic/%s/%s", fixed_pitch ? "fixed" : "free", result ? "true" : "false");
 	keep_sample (key, text);
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the reference host's echo of its predictions, replayed in its own order into the hooks the original solver bodies called */
+
+void eech_aim_replay_echo (struct campaign_aim_result *result)
+{
+	int i;
+	if (!result->has_echo)
+	{
+		return;
+	}
+	for (i = 0; i < result->echo_count; i++)
+	{
+		const campaign_aim_event *event = &result->echo[i];
+		switch (event->kind)
+		{
+		case CAMPAIGN_AIM_EVENT_INTERCEPT:
+		{
+			vec3d device, target_point, predicted;
+			device.x = event->f[0]; device.y = event->f[1]; device.z = event->f[2];
+			target_point.x = event->f[5]; target_point.y = event->f[6]; target_point.z = event->f[7];
+			predicted.x = event->f[8]; predicted.y = event->f[9]; predicted.z = event->f[10];
+			eech_aim_intercept_begin (&device, event->f[3], event->f[4], &target_point);
+			eech_aim_intercept_end (&predicted);
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_LEAD_PATH:
+			eech_aim_lead_path (event->a, event->f[0], event->b);
+			break;
+		case CAMPAIGN_AIM_EVENT_LEAD_RANGE:
+			eech_aim_lead_range (event->a, event->b, event->f[0]);
+			break;
+		case CAMPAIGN_AIM_EVENT_LEAD_ITERATION:
+		{
+			vec3d point;
+			point.x = event->f[1]; point.y = event->f[2]; point.z = event->f[3];
+			eech_aim_lead_iteration (event->a, event->f[0], &point);
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_BALLISTIC:
+			eech_aim_ballistic (event->a, event->f[0], event->f[1], event->b, event->c, event->f[2], event->d, &event->f[3], &event->f[4]);
+			break;
+		case CAMPAIGN_AIM_EVENT_LEAD_RESULT:
+			/* the prediction's own outputs inside a vectors answer (the answer itself carries only the vectors): the trace of the prediction reads them here */
+			result->intercept_point[0] = event->f[0];
+			result->intercept_point[1] = event->f[1];
+			result->intercept_point[2] = event->f[2];
+			result->angle = event->f[3];
+			result->time_of_flight = event->f[4];
+			break;
+		}
+	}
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */

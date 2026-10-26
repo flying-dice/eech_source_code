@@ -277,6 +277,9 @@ pub enum MovementMode {
     /// a movement-dependent mobile follows the parent that just moved (EEDCS-40): the host checks the parent's move against its
     /// own record and answers the dependent's pose (and, for a helicopter, its attitude and speed)
     DependentCarry,
+    /// an infantry member with a target turns to face it (EEDCS-44): the host forms the heading from its own record of the person's position
+    /// and the target position sent, turns its record and answers the attitude and the heading (`angles[0]`)
+    PersonFace,
 }
 
 /// Terrain at the pre-move position, sampled by the campaign.
@@ -517,6 +520,8 @@ pub struct MovementStep {
     /// `DependentCarry`: the heading and speed the parent's setter sent its dependents
     pub dc_heading: f32,
     pub dc_velocity: f32,
+    /// `PersonFace`: the target's position
+    pub pf_target: [f32; 3],
 }
 
 /// The host's record of the vehicle after the step; the campaign applies it.
@@ -902,13 +907,14 @@ pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
 }
 
-struct HostContext<'a, F, G, H, M, L, D> {
+struct HostContext<'a, F, G, H, M, L, D, A> {
     bind_mobile: &'a mut F,
     observe_loss: &'a mut G,
     supply_reached: &'a mut H,
     move_vehicle: &'a mut M,
     line_of_sight: &'a mut L,
     sense: &'a mut D,
+    aim: &'a mut A,
 }
 
 /// One message of the host-owned line-of-sight dialogue. The campaign sends `Begin` with the ray; the host answers `Done` or asks for
@@ -1060,6 +1066,192 @@ pub struct SenseReply {
     pub echo: Option<SenseEcho>,
 }
 
+/// One weapon's ballistic table, raw weapon data (the product of the campaign's projectile simulation), handed to the host once: `cells` is
+/// (drop angle, flight time) float pairs, velocity test by pitch index by range, `velocity_tests * pitch_indices * range_values * 2` in all.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimTable {
+    pub weapon: i32,
+    pub max_range: f32,
+    pub velocity_tests: i32,
+    pub pitch_indices: i32,
+    pub range_values: i32,
+    pub cells: Vec<f32>,
+}
+
+/// The figures of a weapon the host aims with. `present` is false when there is no weapon (a zero speed).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AimWeapon {
+    pub weapon: i32,
+    pub present: bool,
+    pub aiming_type: i32,
+    pub cruise_velocity: f32,
+    pub acquire_forward: bool,
+    pub source_velocity: f32,
+}
+
+/// The target facts the campaign supplies: its position, the model's target point, its motion vector and whether it is a mobile.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AimTarget {
+    pub position: [f32; 3],
+    pub point: [f32; 3],
+    pub motion_vector: [f32; 3],
+    pub mobile: bool,
+}
+
+/// The world figures a prediction is bounded by.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AimWorld {
+    pub map_min: [f32; 3],
+    pub map_max: [f32; 3],
+    pub comms_weapon_lag: f32,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimReadyUpdate {
+    pub source: Option<String>,
+    pub state: f32,
+    pub rate: f32,
+    pub delta_time: f32,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimReadyCommand {
+    pub source: Option<String>,
+    pub state: f32,
+    pub open: bool,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimRequired {
+    pub source: Option<String>,
+    pub device_attitude: [f32; 9],
+    pub intercept_vector: [f32; 3],
+    pub heading_min: f32,
+    pub heading_max: f32,
+    pub pitch_min: f32,
+    pub pitch_max: f32,
+    pub climb: bool,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimStep {
+    pub source: Option<String>,
+    pub current_heading: f32,
+    pub current_pitch: f32,
+    pub required_heading: f32,
+    pub required_pitch: f32,
+    pub heading_min: f32,
+    pub heading_max: f32,
+    pub heading_rate: f32,
+    pub pitch_rate: f32,
+    pub delta_time: f32,
+}
+
+/// The pitch device's vectors for a launcher: with a weapon and a target (`weapon` and `target` set) or from the player's tracking point.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimVectors {
+    pub echo: bool,
+    pub source: Option<String>,
+    pub target_id: Option<String>,
+    pub world: AimWorld,
+    pub device_position: [f32; 3],
+    pub device_attitude: [f32; 9],
+    pub tracking: Option<[f32; 3]>,
+    pub weapon: Option<AimWeapon>,
+    pub source_gunship: bool,
+    pub target: Option<AimTarget>,
+    /// the raw sample of the campaign's random stream the host asked for, an integer in [0, 32767]
+    pub draw: Option<i32>,
+}
+
+/// The lead and ballistic prediction alone.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimLead {
+    pub echo: bool,
+    pub source: Option<String>,
+    pub target_id: Option<String>,
+    pub world: AimWorld,
+    pub weapon: i32,
+    pub source_gunship: bool,
+    pub parent_velocity: f32,
+    pub device_position: [f32; 3],
+    pub target: AimTarget,
+    pub draw: Option<i32>,
+}
+
+/// One table interpolation.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimBallistic {
+    pub echo: bool,
+    pub weapon: i32,
+    pub range: f32,
+    pub height_diff_or_pitch: f32,
+    pub simplified: bool,
+    pub fixed_pitch: bool,
+    pub parent_velocity: f32,
+}
+
+/// The guided-weapon intercept prediction alone.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimIntercept {
+    pub echo: bool,
+    pub source: Option<String>,
+    pub target_id: Option<String>,
+    pub weapon: AimWeapon,
+    pub device_position: [f32; 3],
+    pub target: AimTarget,
+}
+
+/// One request of the host-owned physical aiming and weapon-system-readiness exchange (aphavoc/.../mb_hostaim.h). Every request is a pure
+/// question: the host keeps nothing between requests except the ballistic tables it was given. No EECH pointer, index or seed is in a request.
+#[derive(Clone, Debug, PartialEq)]
+pub enum AimRequest {
+    Table(AimTable),
+    ReadyUpdate(AimReadyUpdate),
+    ReadyCommand(AimReadyCommand),
+    Required(AimRequired),
+    Step(AimStep),
+    Vectors(AimVectors),
+    Lead(AimLead),
+    Ballistic(AimBallistic),
+    Intercept(AimIntercept),
+}
+
+/// One intermediate value of the reference host's prediction, in its order (for the test fixture build's trace only).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AimEvent {
+    pub kind: i32,
+    pub a: i32,
+    pub b: i32,
+    pub c: i32,
+    pub d: i32,
+    pub f: [f32; 12],
+}
+
+/// The host's answer. `need_draw` asks the campaign for one sample of its random stream (a vectors or lead request only); every other field
+/// is read according to the request. `result` is the validity of the vectors or the success of the prediction.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct AimReply {
+    pub need_draw: bool,
+    pub result: bool,
+    pub ready_state: f32,
+    pub phase: i32,
+    pub required_heading: f32,
+    pub required_pitch: f32,
+    pub delta_heading: f32,
+    pub delta_pitch: f32,
+    pub new_heading: f32,
+    pub new_pitch: f32,
+    pub weapon_vector: [f32; 3],
+    pub target_vector: [f32; 3],
+    pub intercept_vector: [f32; 3],
+    pub intercept_range: f32,
+    pub intercept_point: [f32; 3],
+    pub angle: f32,
+    pub time_of_flight: f32,
+    pub echo: Option<Vec<AimEvent>>,
+}
+
 fn side(value: c_int) -> Side {
     match value {
         1 => Side::Blue,
@@ -1082,7 +1274,7 @@ unsafe fn write_callback_text(target: *mut c_char, capacity: usize, value: &str)
     out[length] = 0;
 }
 
-unsafe extern "C" fn bind_mobile<F, G, H, M, L, D>(
+unsafe extern "C" fn bind_mobile<F, G, H, M, L, D, A>(
     descriptor: *const sys::eech_member_descriptor,
     host_id: *mut c_char,
     host_id_size: usize,
@@ -1097,13 +1289,14 @@ where
     M: FnMut(MovementStep) -> Result<MovementResult, String>,
     L: FnMut(LosMessage) -> Result<LosReply, String>,
     D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+    A: FnMut(AimRequest) -> Result<AimReply, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if descriptor.is_null() || user.is_null() {
             return Err("invalid native bind_mobile callback context".into());
         }
         // SAFETY: C supplies both pointers for the duration of this callback.
-        let (descriptor, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G, H, M, L, D>)) };
+        let (descriptor, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G, H, M, L, D, A>)) };
         let movement_kind = if checked_bool("has_pose", descriptor.has_pose)? {
             Some(match descriptor.movement_kind {
                 sys::EECH_MOVEMENT_KIND_ROUTED => MovementKind::Routed,
@@ -1173,7 +1366,7 @@ where
     }
 }
 
-unsafe extern "C" fn observe_loss<F, G, H, M, L, D>(
+unsafe extern "C" fn observe_loss<F, G, H, M, L, D, A>(
     descriptor: *const sys::eech_loss_descriptor,
     decision: *mut c_int,
     error: *mut c_char,
@@ -1187,13 +1380,14 @@ where
     M: FnMut(MovementStep) -> Result<MovementResult, String>,
     L: FnMut(LosMessage) -> Result<LosReply, String>,
     D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+    A: FnMut(AimRequest) -> Result<AimReply, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if descriptor.is_null() || decision.is_null() || user.is_null() {
             return Err("invalid native observe_loss callback context".into());
         }
         // SAFETY: C supplies these pointers for the duration of the callback.
-        let (descriptor, decision, context) = unsafe { (&*descriptor, &mut *decision, &mut *(user as *mut HostContext<'_, F, G, H, M, L, D>)) };
+        let (descriptor, decision, context) = unsafe { (&*descriptor, &mut *decision, &mut *(user as *mut HostContext<'_, F, G, H, M, L, D, A>)) };
         if descriptor.host_id.is_null() {
             return Err("observe_loss received an empty host identity".into());
         }
@@ -1511,7 +1705,7 @@ fn checked_floats(values: &[(&str, f32)]) -> Result<(), String> {
     Ok(())
 }
 
-unsafe extern "C" fn supply_reached<F, G, H, M, L, D>(
+unsafe extern "C" fn supply_reached<F, G, H, M, L, D, A>(
     descriptor: *const sys::eech_supply_reach_descriptor,
     answer_out: *mut sys::eech_arrival_result,
     error: *mut c_char,
@@ -1525,13 +1719,14 @@ where
     M: FnMut(MovementStep) -> Result<MovementResult, String>,
     L: FnMut(LosMessage) -> Result<LosReply, String>,
     D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+    A: FnMut(AimRequest) -> Result<AimReply, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if descriptor.is_null() || answer_out.is_null() || user.is_null() {
             return Err("invalid native supply_reached callback context".into());
         }
         // SAFETY: C supplies both pointers for the duration of this callback.
-        let (source, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G, H, M, L, D>)) };
+        let (source, context) = unsafe { (&*descriptor, &mut *(user as *mut HostContext<'_, F, G, H, M, L, D, A>)) };
         let host_id_bytes = source.host_id.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect::<Vec<_>>();
         if host_id_bytes.is_empty() || host_id_bytes.len() > sys::EECH_HOST_ID_MAX {
             return Err("supply_reached received an invalid host identity length".into());
@@ -1685,7 +1880,7 @@ fn los_host_id(buffer: &[c_char], role: &str) -> Result<Option<String>, String> 
         .map_err(|_| format!("line_of_sight received a non-UTF-8 {role} host identity"))
 }
 
-unsafe extern "C" fn line_of_sight<F, G, H, M, L, D>(
+unsafe extern "C" fn line_of_sight<F, G, H, M, L, D, A>(
     step: *const sys::eech_los_step,
     result_out: *mut sys::eech_los_result,
     error: *mut c_char,
@@ -1699,13 +1894,14 @@ where
     M: FnMut(MovementStep) -> Result<MovementResult, String>,
     L: FnMut(LosMessage) -> Result<LosReply, String>,
     D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+    A: FnMut(AimRequest) -> Result<AimReply, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if step.is_null() || result_out.is_null() || user.is_null() {
             return Err("invalid native line_of_sight callback context".into());
         }
         // SAFETY: C supplies both pointers for the duration of this callback.
-        let (source, context) = unsafe { (&*step, &mut *(user as *mut HostContext<'_, F, G, H, M, L, D>)) };
+        let (source, context) = unsafe { (&*step, &mut *(user as *mut HostContext<'_, F, G, H, M, L, D, A>)) };
         let message = match source.mode {
             sys::EECH_LOS_BEGIN => {
                 for (name, values) in [
@@ -1815,7 +2011,7 @@ fn sense_scan(value: c_int) -> Result<SenseScan, String> {
     }
 }
 
-unsafe extern "C" fn sense<F, G, H, M, L, D>(
+unsafe extern "C" fn sense<F, G, H, M, L, D, A>(
     step: *const sys::eech_sense_step,
     result_out: *mut sys::eech_sense_result,
     error: *mut c_char,
@@ -1829,13 +2025,14 @@ where
     M: FnMut(MovementStep) -> Result<MovementResult, String>,
     L: FnMut(LosMessage) -> Result<LosReply, String>,
     D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+    A: FnMut(AimRequest) -> Result<AimReply, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if step.is_null() || result_out.is_null() || user.is_null() {
             return Err("invalid native sense callback context".into());
         }
         // SAFETY: C supplies both pointers for the duration of this callback.
-        let (source, context) = unsafe { (&*step, &mut *(user as *mut HostContext<'_, F, G, H, M, L, D>)) };
+        let (source, context) = unsafe { (&*step, &mut *(user as *mut HostContext<'_, F, G, H, M, L, D, A>)) };
         let finite = |name: &str, values: &[f32]| -> Result<(), String> {
             if values.iter().any(|value| !value.is_finite()) {
                 Err(format!("non-finite sense {name}"))
@@ -1966,7 +2163,322 @@ where
     }
 }
 
-unsafe extern "C" fn move_vehicle<F, G, H, M, L, D>(
+fn aim_host_id(buffer: &[c_char], role: &str) -> Result<Option<String>, String> {
+    let bytes: Vec<u8> = buffer.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();
+    if bytes.is_empty() {
+        return Ok(None);
+    }
+    if bytes.len() > sys::EECH_AIM_HOST_ID_MAX {
+        return Err(format!("aim received an overlong {role} host identity"));
+    }
+    String::from_utf8(bytes)
+        .map(Some)
+        .map_err(|_| format!("aim received a non-UTF-8 {role} host identity"))
+}
+
+fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
+    let finite = |name: &str, values: &[f32]| -> Result<(), String> {
+        if values.iter().any(|value| !value.is_finite()) {
+            Err(format!("non-finite aim {name}"))
+        } else {
+            Ok(())
+        }
+    };
+    let echo = checked_bool("echo", source.echo)?;
+    let world = || -> Result<AimWorld, String> {
+        finite("map bound", &source.map_min)?;
+        finite("map bound", &source.map_max)?;
+        finite("comms weapon lag", &[source.comms_weapon_lag])?;
+        Ok(AimWorld {
+            map_min: source.map_min,
+            map_max: source.map_max,
+            comms_weapon_lag: source.comms_weapon_lag,
+        })
+    };
+    let weapon = || -> Result<AimWeapon, String> {
+        finite("weapon figure", &[source.cruise_velocity, source.source_velocity])?;
+        Ok(AimWeapon {
+            weapon: source.weapon,
+            present: checked_bool("has_weapon", source.has_weapon)?,
+            aiming_type: source.aiming_type,
+            cruise_velocity: source.cruise_velocity,
+            acquire_forward: checked_bool("acquire_forward", source.acquire_forward)?,
+            source_velocity: source.source_velocity,
+        })
+    };
+    let target = || -> Result<AimTarget, String> {
+        finite("target position", &source.target_position)?;
+        finite("target point", &source.target_point)?;
+        finite("target motion vector", &source.target_motion_vector)?;
+        Ok(AimTarget {
+            position: source.target_position,
+            point: source.target_point,
+            motion_vector: source.target_motion_vector,
+            mobile: checked_bool("target_mobile", source.target_mobile)?,
+        })
+    };
+    let draw = || -> Result<Option<i32>, String> {
+        if checked_bool("has_draw", source.has_draw)? {
+            if !(0..=32767).contains(&source.draw_sample) {
+                return Err(format!("aim draw sample {} is outside [0, 32767]", source.draw_sample));
+            }
+            Ok(Some(source.draw_sample))
+        } else {
+            Ok(None)
+        }
+    };
+    let source_id = || aim_host_id(&source.source_host_id, "source");
+    let target_id = || aim_host_id(&source.target_host_id, "target");
+    Ok(match source.mode {
+        sys::EECH_AIM_TABLE => {
+            if source.table_cells.is_null()
+                || source.table_velocity_tests <= 0
+                || source.table_pitch_indices <= 0
+                || source.table_range_values <= 0
+                || source.table_cell_count
+                    != (source.table_velocity_tests as usize) * (source.table_pitch_indices as usize) * (source.table_range_values as usize) * 2
+            {
+                return Err("aim received a ballistic table of an inconsistent shape".into());
+            }
+            finite("table range limit", &[source.table_max_range])?;
+            // SAFETY: C owns the cells for the call and gave their count; the shape was checked above.
+            let cells = unsafe { std::slice::from_raw_parts(source.table_cells, source.table_cell_count) }.to_vec();
+            AimRequest::Table(AimTable {
+                weapon: source.weapon,
+                max_range: source.table_max_range,
+                velocity_tests: source.table_velocity_tests,
+                pitch_indices: source.table_pitch_indices,
+                range_values: source.table_range_values,
+                cells,
+            })
+        }
+        sys::EECH_AIM_READY_UPDATE => {
+            finite("ready figure", &[source.ready_state, source.ready_rate, source.delta_time])?;
+            AimRequest::ReadyUpdate(AimReadyUpdate {
+                source: source_id()?,
+                state: source.ready_state,
+                rate: source.ready_rate,
+                delta_time: source.delta_time,
+            })
+        }
+        sys::EECH_AIM_READY_COMMAND => {
+            finite("ready figure", &[source.ready_state])?;
+            AimRequest::ReadyCommand(AimReadyCommand {
+                source: source_id()?,
+                state: source.ready_state,
+                open: checked_bool("ready_open", source.ready_open)?,
+            })
+        }
+        sys::EECH_AIM_REQUIRED => {
+            finite("device attitude", &source.device_attitude)?;
+            finite("intercept vector", &source.intercept_vector)?;
+            finite("device limit", &[source.heading_min, source.heading_max, source.pitch_min, source.pitch_max])?;
+            AimRequest::Required(AimRequired {
+                source: source_id()?,
+                device_attitude: source.device_attitude,
+                intercept_vector: source.intercept_vector,
+                heading_min: source.heading_min,
+                heading_max: source.heading_max,
+                pitch_min: source.pitch_min,
+                pitch_max: source.pitch_max,
+                climb: checked_bool("climb", source.climb)?,
+            })
+        }
+        sys::EECH_AIM_STEP => {
+            finite(
+                "device figure",
+                &[
+                    source.current_heading,
+                    source.current_pitch,
+                    source.required_heading,
+                    source.required_pitch,
+                    source.heading_min,
+                    source.heading_max,
+                    source.heading_rate,
+                    source.pitch_rate,
+                    source.delta_time,
+                ],
+            )?;
+            AimRequest::Step(AimStep {
+                source: source_id()?,
+                current_heading: source.current_heading,
+                current_pitch: source.current_pitch,
+                required_heading: source.required_heading,
+                required_pitch: source.required_pitch,
+                heading_min: source.heading_min,
+                heading_max: source.heading_max,
+                heading_rate: source.heading_rate,
+                pitch_rate: source.pitch_rate,
+                delta_time: source.delta_time,
+            })
+        }
+        sys::EECH_AIM_VECTORS => {
+            finite("device position", &source.device_position)?;
+            finite("device attitude", &source.device_attitude)?;
+            let tracking = if checked_bool("has_tracking", source.has_tracking)? {
+                finite("tracking point", &source.tracking_point)?;
+                Some(source.tracking_point)
+            } else {
+                None
+            };
+            AimRequest::Vectors(AimVectors {
+                echo,
+                source: source_id()?,
+                target_id: target_id()?,
+                world: world()?,
+                device_position: source.device_position,
+                device_attitude: source.device_attitude,
+                weapon: if tracking.is_none() { Some(weapon()?) } else { None },
+                target: if tracking.is_none() { Some(target()?) } else { None },
+                tracking,
+                source_gunship: checked_bool("source_gunship", source.source_gunship)?,
+                draw: draw()?,
+            })
+        }
+        sys::EECH_AIM_LEAD => {
+            finite("device position", &source.device_position)?;
+            finite("parent velocity", &[source.parent_velocity])?;
+            AimRequest::Lead(AimLead {
+                echo,
+                source: source_id()?,
+                target_id: target_id()?,
+                world: world()?,
+                weapon: source.weapon,
+                source_gunship: checked_bool("source_gunship", source.source_gunship)?,
+                parent_velocity: source.parent_velocity,
+                device_position: source.device_position,
+                target: target()?,
+                draw: draw()?,
+            })
+        }
+        sys::EECH_AIM_BALLISTIC => {
+            finite("ballistic figure", &[source.range, source.height_diff_or_pitch, source.parent_velocity])?;
+            AimRequest::Ballistic(AimBallistic {
+                echo,
+                weapon: source.weapon,
+                range: source.range,
+                height_diff_or_pitch: source.height_diff_or_pitch,
+                simplified: checked_bool("simplified", source.simplified)?,
+                fixed_pitch: checked_bool("fixed_pitch", source.fixed_pitch)?,
+                parent_velocity: source.parent_velocity,
+            })
+        }
+        sys::EECH_AIM_INTERCEPT => {
+            finite("device position", &source.device_position)?;
+            AimRequest::Intercept(AimIntercept {
+                echo,
+                source: source_id()?,
+                target_id: target_id()?,
+                weapon: weapon()?,
+                device_position: source.device_position,
+                target: target()?,
+            })
+        }
+        other => return Err(format!("aim received unknown mode {other}")),
+    })
+}
+
+fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech_aim_result, String> {
+    // SAFETY: the result is plain data; all-zero is a valid value of every field (the echo pointer is the campaign's, set after the call).
+    let mut answer: sys::eech_aim_result = unsafe { std::mem::zeroed() };
+    if reply.need_draw {
+        if source.mode != sys::EECH_AIM_VECTORS && source.mode != sys::EECH_AIM_LEAD {
+            return Err("aim asked for a draw in answer to a request that cannot take one".into());
+        }
+        answer.state = sys::EECH_AIM_NEED_DRAW;
+        return Ok(answer);
+    }
+    answer.state = sys::EECH_AIM_DONE;
+    answer.result = c_int::from(reply.result);
+    answer.ready_state = reply.ready_state;
+    answer.phase = reply.phase;
+    answer.required_heading = reply.required_heading;
+    answer.required_pitch = reply.required_pitch;
+    answer.delta_heading = reply.delta_heading;
+    answer.delta_pitch = reply.delta_pitch;
+    answer.new_heading = reply.new_heading;
+    answer.new_pitch = reply.new_pitch;
+    answer.weapon_vector = reply.weapon_vector;
+    answer.target_vector = reply.target_vector;
+    answer.intercept_vector = reply.intercept_vector;
+    answer.intercept_range = reply.intercept_range;
+    answer.intercept_point = reply.intercept_point;
+    answer.angle = reply.angle;
+    answer.time_of_flight = reply.time_of_flight;
+    if let Some(events) = &reply.echo {
+        if source.echo_out.is_null() || source.echo_capacity <= 0 {
+            return Err("aim sent an echo nobody asked for".into());
+        }
+        if events.len() > source.echo_capacity as usize {
+            return Err(format!(
+                "aim echoed {} events, more than the {} it can carry",
+                events.len(),
+                source.echo_capacity
+            ));
+        }
+        for (index, event) in events.iter().enumerate() {
+            // SAFETY: the campaign gave room for `echo_capacity` events at `echo_out` for this call, and `index` is below it.
+            unsafe {
+                source.echo_out.add(index).write(sys::eech_aim_event {
+                    kind: event.kind,
+                    a: event.a,
+                    b: event.b,
+                    c: event.c,
+                    d: event.d,
+                    f: event.f,
+                });
+            }
+        }
+        answer.has_echo = 1;
+        answer.echo_count = events.len() as c_int;
+    }
+    Ok(answer)
+}
+
+unsafe extern "C" fn aim<F, G, H, M, L, D, A>(
+    step: *const sys::eech_aim_step,
+    result_out: *mut sys::eech_aim_result,
+    error: *mut c_char,
+    error_size: usize,
+    user: *mut c_void,
+) -> c_int
+where
+    F: FnMut(MemberDescriptor) -> Result<String, String>,
+    G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+    H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+    M: FnMut(MovementStep) -> Result<MovementResult, String>,
+    L: FnMut(LosMessage) -> Result<LosReply, String>,
+    D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+    A: FnMut(AimRequest) -> Result<AimReply, String>,
+{
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
+        if step.is_null() || result_out.is_null() || user.is_null() {
+            return Err("invalid native aim callback context".into());
+        }
+        // SAFETY: C supplies all three pointers for the duration of this callback.
+        let (source, context) = unsafe { (&*step, &mut *(user as *mut HostContext<'_, F, G, H, M, L, D, A>)) };
+        let request = aim_request(source)?;
+        let reply = (context.aim)(request)?;
+        let answer = aim_answer(source, &reply)?;
+        // SAFETY: C supplies a writable result for the duration of this callback.
+        unsafe { std::ptr::write(result_out, answer) };
+        Ok(())
+    }));
+    match result {
+        Ok(Ok(())) => 0,
+        Ok(Err(message)) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, &message) };
+            1
+        }
+        Err(_) => {
+            unsafe { write_callback_text(error, error_size, "aim panicked") };
+            1
+        }
+    }
+}
+
+unsafe extern "C" fn move_vehicle<F, G, H, M, L, D, A>(
     step: *const sys::eech_movement_step,
     result_out: *mut sys::eech_movement_result,
     error: *mut c_char,
@@ -1980,13 +2492,14 @@ where
     M: FnMut(MovementStep) -> Result<MovementResult, String>,
     L: FnMut(LosMessage) -> Result<LosReply, String>,
     D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+    A: FnMut(AimRequest) -> Result<AimReply, String>,
 {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
         if step.is_null() || result_out.is_null() || user.is_null() {
             return Err("invalid native move_vehicle callback context".into());
         }
         // SAFETY: C supplies all three pointers for the duration of this callback.
-        let (source, context) = unsafe { (&*step, &mut *(user as *mut HostContext<'_, F, G, H, M, L, D>)) };
+        let (source, context) = unsafe { (&*step, &mut *(user as *mut HostContext<'_, F, G, H, M, L, D, A>)) };
         let host_id_bytes = source.host_id.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect::<Vec<_>>();
         if host_id_bytes.is_empty() || host_id_bytes.len() > sys::EECH_MOVEMENT_HOST_ID_MAX {
             return Err("move_vehicle received an invalid host identity length".into());
@@ -2041,6 +2554,7 @@ where
             sys::EECH_MOVEMENT_HELICOPTER_ABANDON => MovementMode::HelicopterAbandon,
             sys::EECH_MOVEMENT_FIXED_WING_LOOKAHEAD => MovementMode::FixedWingLookahead,
             sys::EECH_MOVEMENT_DEPENDENT_CARRY => MovementMode::DependentCarry,
+            sys::EECH_MOVEMENT_PERSON_FACE => MovementMode::PersonFace,
             other => return Err(format!("move_vehicle received unknown mode {other}")),
         };
         let terrain_follow = checked_bool("terrain_follow", source.terrain_follow)?;
@@ -2116,6 +2630,7 @@ where
             ("hc_weapon_to_intercept_vector", &source.hc_weapon_to_intercept_vector[..]),
             ("dc_parent_old", &source.dc_parent_old[..]),
             ("dc_parent_new", &source.dc_parent_new[..]),
+            ("pf_target", &source.pf_target[..]),
         ] {
             if values.iter().any(|value| !value.is_finite()) {
                 return Err(format!("non-finite movement {name}"));
@@ -2148,6 +2663,7 @@ where
                 | MovementMode::FixedWingMove
                 | MovementMode::FixedWingLookahead
                 | MovementMode::DependentCarry
+                | MovementMode::PersonFace
                 | MovementMode::Retire
                 | MovementMode::CreatePlace
                 | MovementMode::Expire
@@ -2292,6 +2808,7 @@ where
             dc_parent_new: source.dc_parent_new,
             dc_heading: source.dc_heading,
             dc_velocity: source.dc_velocity,
+            pf_target: source.pf_target,
         };
         let answer = (context.move_vehicle)(request)?;
         if !result_flags_are_valid(mode, answer.flags) {
@@ -2401,13 +2918,15 @@ where
     }
 }
 
-fn with_host<F, G, H, M, L, D>(
+#[allow(clippy::too_many_arguments)]
+fn with_host<F, G, H, M, L, D, A>(
     bind_mobile_fn: &mut F,
     observe_loss_fn: &mut G,
     supply_reached_fn: &mut H,
     move_vehicle_fn: &mut M,
     line_of_sight_fn: &mut L,
     sense_fn: &mut D,
+    aim_fn: &mut A,
     call: impl FnOnce(*const sys::eech_engine_host) -> c_int,
 ) -> Result<(), EngineError>
 where
@@ -2417,6 +2936,7 @@ where
     M: FnMut(MovementStep) -> Result<MovementResult, String>,
     L: FnMut(LosMessage) -> Result<LosReply, String>,
     D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+    A: FnMut(AimRequest) -> Result<AimReply, String>,
 {
     let mut context = HostContext {
         bind_mobile: bind_mobile_fn,
@@ -2425,15 +2945,17 @@ where
         move_vehicle: move_vehicle_fn,
         line_of_sight: line_of_sight_fn,
         sense: sense_fn,
+        aim: aim_fn,
     };
     let host = sys::eech_engine_host {
-        bind_mobile: Some(bind_mobile::<F, G, H, M, L, D>),
-        observe_loss: Some(observe_loss::<F, G, H, M, L, D>),
-        supply_reached: Some(supply_reached::<F, G, H, M, L, D>),
-        move_vehicle: Some(move_vehicle::<F, G, H, M, L, D>),
-        line_of_sight: Some(line_of_sight::<F, G, H, M, L, D>),
-        sense: Some(sense::<F, G, H, M, L, D>),
-        user: (&mut context as *mut HostContext<'_, F, G, H, M, L, D>).cast::<c_void>(),
+        bind_mobile: Some(bind_mobile::<F, G, H, M, L, D, A>),
+        observe_loss: Some(observe_loss::<F, G, H, M, L, D, A>),
+        supply_reached: Some(supply_reached::<F, G, H, M, L, D, A>),
+        move_vehicle: Some(move_vehicle::<F, G, H, M, L, D, A>),
+        line_of_sight: Some(line_of_sight::<F, G, H, M, L, D, A>),
+        sense: Some(sense::<F, G, H, M, L, D, A>),
+        aim: Some(aim::<F, G, H, M, L, D, A>),
+        user: (&mut context as *mut HostContext<'_, F, G, H, M, L, D, A>).cast::<c_void>(),
     };
     check(call(&host))
 }
@@ -2461,7 +2983,8 @@ pub fn prepare_installation(root: &Path) -> Result<(), EngineError> {
 
 impl Engine {
     /// boots EECH's dedicated-server path into the campaign (once per process)
-    pub fn boot<F, G, H, M, L, D>(
+    #[allow(clippy::too_many_arguments)]
+    pub fn boot<F, G, H, M, L, D, A>(
         config: &EngineConfig,
         bind_mobile_fn: &mut F,
         observe_loss_fn: &mut G,
@@ -2469,6 +2992,7 @@ impl Engine {
         move_vehicle_fn: &mut M,
         line_of_sight_fn: &mut L,
         sense_fn: &mut D,
+        aim_fn: &mut A,
     ) -> Result<Engine, EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
@@ -2477,6 +3001,7 @@ impl Engine {
         M: FnMut(MovementStep) -> Result<MovementResult, String>,
         L: FnMut(LosMessage) -> Result<LosReply, String>,
         D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
     {
         if BOOTED.swap(true, Ordering::SeqCst) {
             return Err(EngineError::State);
@@ -2505,6 +3030,7 @@ impl Engine {
             move_vehicle_fn,
             line_of_sight_fn,
             sense_fn,
+            aim_fn,
             |host| unsafe { sys::eech_engine_boot(&c, host) },
         )?;
         Ok(Engine {
@@ -2514,7 +3040,7 @@ impl Engine {
 
     /// advances simulated time and runs one iteration of EECH's flight loop
     #[allow(clippy::too_many_arguments)]
-    pub fn frame<F, G, H, M, L, D>(
+    pub fn frame<F, G, H, M, L, D, A>(
         &self,
         milliseconds: u32,
         bind_mobile_fn: &mut F,
@@ -2523,6 +3049,7 @@ impl Engine {
         move_vehicle_fn: &mut M,
         line_of_sight_fn: &mut L,
         sense_fn: &mut D,
+        aim_fn: &mut A,
     ) -> Result<(), EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
@@ -2531,6 +3058,7 @@ impl Engine {
         M: FnMut(MovementStep) -> Result<MovementResult, String>,
         L: FnMut(LosMessage) -> Result<LosReply, String>,
         D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
     {
         // SAFETY: the temporary host callback is valid for the call.
         with_host(
@@ -2540,6 +3068,7 @@ impl Engine {
             move_vehicle_fn,
             line_of_sight_fn,
             sense_fn,
+            aim_fn,
             |host| unsafe { sys::eech_engine_frame(milliseconds, host) },
         )
     }
@@ -2550,7 +3079,7 @@ impl Engine {
     /// the movement steps they send. Not part of the shipping module.
     #[cfg(feature = "dependent-fixture")]
     #[allow(clippy::too_many_arguments)]
-    pub fn dependent_fixture<F, G, H, M, L, D>(
+    pub fn dependent_fixture<F, G, H, M, L, D, A>(
         &self,
         op: i32,
         parent: i32,
@@ -2562,6 +3091,7 @@ impl Engine {
         move_vehicle_fn: &mut M,
         line_of_sight_fn: &mut L,
         sense_fn: &mut D,
+        aim_fn: &mut A,
     ) -> Result<(), EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
@@ -2570,6 +3100,7 @@ impl Engine {
         M: FnMut(MovementStep) -> Result<MovementResult, String>,
         L: FnMut(LosMessage) -> Result<LosReply, String>,
         D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
     {
         // SAFETY: the position array and the temporary host callback are valid for the call.
         with_host(
@@ -2579,6 +3110,7 @@ impl Engine {
             move_vehicle_fn,
             line_of_sight_fn,
             sense_fn,
+            aim_fn,
             |host| unsafe { sys::eech_engine_dependent_fixture(op, parent, child, position.as_ptr(), host) },
         )
     }
@@ -2586,7 +3118,7 @@ impl Engine {
     /// TEST-ONLY (feature `loss-fixture`): ends one live hosted member through the campaign's own kill path.
     #[cfg(feature = "loss-fixture")]
     #[allow(clippy::too_many_arguments)]
-    pub fn loss_fixture<F, G, H, M, L, D>(
+    pub fn loss_fixture<F, G, H, M, L, D, A>(
         &self,
         entity_id: i32,
         bind_mobile_fn: &mut F,
@@ -2595,6 +3127,7 @@ impl Engine {
         move_vehicle_fn: &mut M,
         line_of_sight_fn: &mut L,
         sense_fn: &mut D,
+        aim_fn: &mut A,
     ) -> Result<(), EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
@@ -2603,6 +3136,7 @@ impl Engine {
         M: FnMut(MovementStep) -> Result<MovementResult, String>,
         L: FnMut(LosMessage) -> Result<LosReply, String>,
         D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
     {
         // SAFETY: the temporary host callback is valid for the call.
         with_host(
@@ -2612,6 +3146,7 @@ impl Engine {
             move_vehicle_fn,
             line_of_sight_fn,
             sense_fn,
+            aim_fn,
             |host| unsafe { sys::eech_engine_loss_fixture(entity_id, host) },
         )
     }
@@ -2620,7 +3155,7 @@ impl Engine {
     /// completion handlers, and returns how many it notified.  Setup for the fixed-wing witness; the group itself is not ended.
     #[cfg(feature = "loss-fixture")]
     #[allow(clippy::too_many_arguments)]
-    pub fn loss_release<F, G, H, M, L, D>(
+    pub fn loss_release<F, G, H, M, L, D, A>(
         &self,
         entity_id: i32,
         bind_mobile_fn: &mut F,
@@ -2629,6 +3164,7 @@ impl Engine {
         move_vehicle_fn: &mut M,
         line_of_sight_fn: &mut L,
         sense_fn: &mut D,
+        aim_fn: &mut A,
     ) -> Result<i32, EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
@@ -2637,6 +3173,7 @@ impl Engine {
         M: FnMut(MovementStep) -> Result<MovementResult, String>,
         L: FnMut(LosMessage) -> Result<LosReply, String>,
         D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
     {
         let mut released = 0i32;
         // SAFETY: the out pointer and the temporary host callback are valid for the call.
@@ -2647,6 +3184,7 @@ impl Engine {
             move_vehicle_fn,
             line_of_sight_fn,
             sense_fn,
+            aim_fn,
             |host| unsafe { sys::eech_engine_loss_release(entity_id, &mut released, host) },
         )?;
         Ok(released)
@@ -2706,7 +3244,7 @@ impl Engine {
     /// entities through the campaign's own solver, and returns the fold of just that sweep; the run-wide fold is untouched.
     #[cfg(feature = "los-fixture")]
     #[allow(clippy::too_many_arguments)]
-    pub fn los_probe<F, G, H, M, L, D>(
+    pub fn los_probe<F, G, H, M, L, D, A>(
         &self,
         source_id: i32,
         target_id: i32,
@@ -2718,6 +3256,7 @@ impl Engine {
         move_vehicle_fn: &mut M,
         line_of_sight_fn: &mut L,
         sense_fn: &mut D,
+        aim_fn: &mut A,
     ) -> Result<LosTrace, EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
@@ -2726,6 +3265,7 @@ impl Engine {
         M: FnMut(MovementStep) -> Result<MovementResult, String>,
         L: FnMut(LosMessage) -> Result<LosReply, String>,
         D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
     {
         let mut raw = LosTrace::blank();
         // SAFETY: the out pointer and the temporary host callback are valid for the call.
@@ -2736,6 +3276,7 @@ impl Engine {
             move_vehicle_fn,
             line_of_sight_fn,
             sense_fn,
+            aim_fn,
             |host| unsafe { sys::eech_engine_los_probe(source_id, target_id, seed, count, &mut raw, host) },
         )?;
         Ok(LosTrace::from(raw))
@@ -2778,7 +3319,7 @@ impl Engine {
     /// and reports the person before and after. The call is given the same complete host as a frame.
     #[cfg(feature = "aim-fixture")]
     #[allow(clippy::too_many_arguments)]
-    pub fn aim_person_case<F, G, H, M, L, D>(
+    pub fn aim_person_case<F, G, H, M, L, D, A>(
         &self,
         person_id: &str,
         target_id: &str,
@@ -2788,6 +3329,7 @@ impl Engine {
         move_vehicle_fn: &mut M,
         line_of_sight_fn: &mut L,
         sense_fn: &mut D,
+        aim_fn: &mut A,
     ) -> Result<String, EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
@@ -2796,6 +3338,7 @@ impl Engine {
         M: FnMut(MovementStep) -> Result<MovementResult, String>,
         L: FnMut(LosMessage) -> Result<LosReply, String>,
         D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
     {
         let person_id = std::ffi::CString::new(person_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
         let target_id = std::ffi::CString::new(target_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
@@ -2808,6 +3351,7 @@ impl Engine {
             move_vehicle_fn,
             line_of_sight_fn,
             sense_fn,
+            aim_fn,
             |host| unsafe { sys::eech_engine_aim_person_case(person_id.as_ptr(), target_id.as_ptr(), text.as_mut_ptr(), text.len() as i32, host) },
         )?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
@@ -2832,7 +3376,7 @@ impl Engine {
     /// read-only, and reports a trace of just that sweep; the run-wide trace is untouched. The surface-to-air scan asks the host for line
     /// of sight, so the sweep is given the same complete host as a frame.
     #[cfg(feature = "sensor-fixture")]
-    pub fn sensor_probe<F, G, H, M, L, D>(
+    pub fn sensor_probe<F, G, H, M, L, D, A>(
         &self,
         bind_mobile_fn: &mut F,
         observe_loss_fn: &mut G,
@@ -2840,6 +3384,7 @@ impl Engine {
         move_vehicle_fn: &mut M,
         line_of_sight_fn: &mut L,
         sense_fn: &mut D,
+        aim_fn: &mut A,
     ) -> Result<String, EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
@@ -2848,6 +3393,7 @@ impl Engine {
         M: FnMut(MovementStep) -> Result<MovementResult, String>,
         L: FnMut(LosMessage) -> Result<LosReply, String>,
         D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
     {
         let mut text = vec![0 as std::os::raw::c_char; SENSOR_REPORT_CAPACITY];
         // SAFETY: the buffer and the temporary host callback outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
@@ -2858,6 +3404,7 @@ impl Engine {
             move_vehicle_fn,
             line_of_sight_fn,
             sense_fn,
+            aim_fn,
             |host| unsafe { sys::eech_engine_sensor_probe(text.as_mut_ptr(), text.len() as i32, host) },
         )?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
@@ -3126,6 +3673,7 @@ mod tests {
         // the production wiring: with_host builds the callback table the engine is given
         let mut line_of_sight = |_: LosMessage| -> Result<LosReply, String> { Err("unused".into()) };
         let mut sense = |_: SenseMessage| -> Result<SenseReply, String> { Err("unused".into()) };
+        let mut aim = |_: AimRequest| -> Result<AimReply, String> { Err("unused".into()) };
         let outcome = with_host(
             &mut bind_mobile,
             &mut observe_loss,
@@ -3133,6 +3681,7 @@ mod tests {
             &mut host_move,
             &mut line_of_sight,
             &mut sense,
+            &mut aim,
             |host| {
                 // SAFETY: the table and its user context are valid for the call; every other pointer is local.
                 unsafe {
@@ -3153,6 +3702,7 @@ mod tests {
             sys::EECH_MOVEMENT_HELICOPTER_GUIDE => MovementMode::HelicopterGuide,
             sys::EECH_MOVEMENT_FIXED_WING_LOOKAHEAD => MovementMode::FixedWingLookahead,
             sys::EECH_MOVEMENT_DEPENDENT_CARRY => MovementMode::DependentCarry,
+            sys::EECH_MOVEMENT_PERSON_FACE => MovementMode::PersonFace,
             _ => MovementMode::Place,
         }
     }
@@ -3174,6 +3724,7 @@ mod tests {
         let mut error = [0 as c_char; 256];
         let mut line_of_sight = |_: LosMessage| -> Result<LosReply, String> { Err("unused".into()) };
         let mut sense = |_: SenseMessage| -> Result<SenseReply, String> { Err("unused".into()) };
+        let mut aim = |_: AimRequest| -> Result<AimReply, String> { Err("unused".into()) };
         let outcome = with_host(
             &mut bind_mobile,
             &mut observe_loss,
@@ -3181,6 +3732,7 @@ mod tests {
             &mut host_move,
             &mut line_of_sight,
             &mut sense,
+            &mut aim,
             |host| {
                 // SAFETY: the table and its user context are valid for the call; every other pointer is local.
                 unsafe {
@@ -3627,6 +4179,7 @@ mod tests {
             let mut error = [0 as c_char; 256];
             let mut line_of_sight = |_: LosMessage| -> Result<LosReply, String> { Err("unused".into()) };
             let mut sense = |_: SenseMessage| -> Result<SenseReply, String> { Err("unused".into()) };
+            let mut aim = |_: AimRequest| -> Result<AimReply, String> { Err("unused".into()) };
             let outcome = with_host(
                 &mut bind_mobile,
                 &mut observe_loss,
@@ -3634,6 +4187,7 @@ mod tests {
                 &mut host_move,
                 &mut line_of_sight,
                 &mut sense,
+                &mut aim,
                 |host| unsafe {
                     let host = &*host;
                     let Some(call) = host.move_vehicle else { return -1 };
@@ -4216,5 +4770,262 @@ mod tests {
         })
         .0;
         assert!(refusal(stray).contains("a lookup plan"));
+    }
+
+    // ---- EEDCS-44: the seventh callback, `aim` ----
+
+    fn blank_aim_step(mode: c_int) -> sys::eech_aim_step {
+        // SAFETY: plain data; all-zero is a valid (empty) request of every field.
+        let mut step: sys::eech_aim_step = unsafe { std::mem::zeroed() };
+        step.mode = mode;
+        step
+    }
+
+    /// What the production wiring does with `step` when the host answers with `answer`: the request the host saw (none when the callback refused it
+    /// first), the result C is given, and C's code.
+    fn aim_crossing(
+        step: &sys::eech_aim_step,
+        answer: impl FnOnce(AimRequest) -> Result<AimReply, String>,
+    ) -> (Option<AimRequest>, sys::eech_aim_result, c_int, String) {
+        let mut answer = Some(answer);
+        let mut seen = None;
+        let mut bind_mobile = |_: MemberDescriptor| -> Result<String, String> { Err("unused".into()) };
+        let mut observe_loss = |_: LossDescriptor| -> Result<LossDecision, String> { Ok(LossDecision::Forward) };
+        let mut supply_reached = |_: SupplyReachDescriptor| -> Result<ArrivalAnswer, String> { Err("unused".into()) };
+        let mut host_move = |_: MovementStep| -> Result<MovementResult, String> { Err("unused".into()) };
+        let mut line_of_sight = |_: LosMessage| -> Result<LosReply, String> { Err("unused".into()) };
+        let mut sense = |_: SenseMessage| -> Result<SenseReply, String> { Err("unused".into()) };
+        let mut aim = |request: AimRequest| -> Result<AimReply, String> {
+            seen = Some(request.clone());
+            match answer.take() {
+                Some(answer) => answer(request),
+                None => Err("the host was asked twice".into()),
+            }
+        };
+        let mut result: sys::eech_aim_result = unsafe { std::mem::zeroed() };
+        let mut error = [0 as c_char; 256];
+        let mut code = -1;
+        let outcome = with_host(
+            &mut bind_mobile,
+            &mut observe_loss,
+            &mut supply_reached,
+            &mut host_move,
+            &mut line_of_sight,
+            &mut sense,
+            &mut aim,
+            |host| {
+                // SAFETY: the table and its user context are valid for the call; every other pointer is local.
+                unsafe {
+                    let host = &*host;
+                    let Some(call) = host.aim else { return -1 };
+                    code = call(step, &mut result, error.as_mut_ptr(), error.len(), host.user);
+                }
+                0
+            },
+        );
+        assert!(outcome.is_ok());
+        let text: Vec<u8> = error.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();
+        (seen, result, code, String::from_utf8_lossy(&text).into_owned())
+    }
+
+    #[test]
+    fn an_aim_table_request_hands_the_host_its_raw_cells_and_a_table_of_the_wrong_shape_never_reaches_it() {
+        let cells = vec![0.5f32; 5 * 85 * 7 * 2];
+        let mut step = blank_aim_step(sys::EECH_AIM_TABLE);
+        step.weapon = 12;
+        step.table_max_range = 100.0;
+        step.table_velocity_tests = 5;
+        step.table_pitch_indices = 85;
+        step.table_range_values = 7;
+        step.table_cells = cells.as_ptr();
+        step.table_cell_count = cells.len();
+        let (seen, _, code, _) = aim_crossing(&step, |_| Ok(AimReply::default()));
+        assert_eq!(code, 0);
+        let Some(AimRequest::Table(table)) = seen else {
+            panic!("the host was not asked for a table")
+        };
+        assert_eq!(
+            (table.weapon, table.max_range, table.velocity_tests, table.pitch_indices, table.range_values),
+            (12, 100.0, 5, 85, 7)
+        );
+        assert_eq!(table.cells, cells);
+        step.table_cell_count -= 2;
+        let (seen, _, code, error) = aim_crossing(&step, |_| panic!("the host must not be asked"));
+        assert!(seen.is_none() && code != 0 && error.contains("inconsistent shape"), "{error}");
+    }
+
+    #[test]
+    fn an_aim_ready_update_carries_the_source_the_keyframe_and_the_time_and_returns_the_hosts_state_and_phase() {
+        let mut step = blank_aim_step(sys::EECH_AIM_READY_UPDATE);
+        for (slot, byte) in step.source_host_id.iter_mut().zip(b"launcher") {
+            *slot = *byte as c_char;
+        }
+        step.ready_state = 1.25;
+        step.ready_rate = 0.5;
+        step.delta_time = 0.1;
+        let (seen, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                ready_state: 1.3,
+                phase: 1,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0);
+        let Some(AimRequest::ReadyUpdate(request)) = seen else {
+            panic!("not a ready update")
+        };
+        assert_eq!(request.source.as_deref(), Some("launcher"));
+        assert_eq!((request.state, request.rate, request.delta_time), (1.25, 0.5, 0.1));
+        assert_eq!((result.state, result.ready_state, result.phase), (sys::EECH_AIM_DONE, 1.3, 1));
+    }
+
+    #[test]
+    fn an_aim_vectors_request_carries_a_weapon_and_a_target_or_a_tracking_point_never_both() {
+        let mut step = blank_aim_step(sys::EECH_AIM_VECTORS);
+        step.has_weapon = 1;
+        step.weapon = 3;
+        step.aiming_type = 3;
+        step.cruise_velocity = 800.0;
+        step.target_position = [1.0, 2.0, 3.0];
+        step.target_point = [4.0, 5.0, 6.0];
+        step.target_mobile = 1;
+        step.map_max = [1.0e5; 3];
+        let (seen, _, code, _) = aim_crossing(&step, |_| Ok(AimReply::default()));
+        assert_eq!(code, 0);
+        let Some(AimRequest::Vectors(vectors)) = seen else {
+            panic!("not a vectors request")
+        };
+        assert!(vectors.tracking.is_none());
+        assert_eq!(
+            vectors.weapon.map(|weapon| (weapon.weapon, weapon.aiming_type, weapon.cruise_velocity)),
+            Some((3, 3, 800.0))
+        );
+        assert_eq!(
+            vectors.target.map(|target| (target.position, target.point, target.mobile)),
+            Some(([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], true))
+        );
+        step.has_tracking = 1;
+        step.tracking_point = [7.0, 8.0, 9.0];
+        let (seen, _, _, _) = aim_crossing(&step, |_| Ok(AimReply::default()));
+        let Some(AimRequest::Vectors(vectors)) = seen else {
+            panic!("not a vectors request")
+        };
+        assert_eq!(vectors.tracking, Some([7.0, 8.0, 9.0]));
+        assert!(vectors.weapon.is_none() && vectors.target.is_none());
+    }
+
+    #[test]
+    fn an_aim_draw_is_asked_for_only_by_a_vectors_or_lead_request_and_carries_a_raw_sample_in_range() {
+        // a lead request that asks, then is asked again with the sample
+        let mut step = blank_aim_step(sys::EECH_AIM_LEAD);
+        let (_, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_NEED_DRAW));
+        step.has_draw = 1;
+        step.draw_sample = 20000;
+        let (seen, _, _, _) = aim_crossing(&step, |_| Ok(AimReply::default()));
+        let Some(AimRequest::Lead(lead)) = seen else { panic!("not a lead request") };
+        assert_eq!(lead.draw, Some(20000));
+        // a sample outside [0, 32767] never reaches the host
+        step.draw_sample = 32768;
+        let (seen, _, code, error) = aim_crossing(&step, |_| panic!("the host must not be asked"));
+        assert!(seen.is_none() && code != 0 && error.contains("draw sample"), "{error}");
+        // a ballistic request cannot be answered with a request for a draw
+        let step = blank_aim_step(sys::EECH_AIM_BALLISTIC);
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("cannot take one"), "{error}");
+    }
+
+    #[test]
+    fn an_aim_request_with_a_non_finite_figure_or_an_unknown_mode_never_reaches_the_host_and_a_failing_host_stops_it() {
+        let mut step = blank_aim_step(sys::EECH_AIM_STEP);
+        step.current_heading = f32::NAN;
+        let (seen, _, code, error) = aim_crossing(&step, |_| panic!("the host must not be asked"));
+        assert!(seen.is_none() && code != 0 && error.contains("non-finite"), "{error}");
+        let step = blank_aim_step(99);
+        let (seen, _, code, error) = aim_crossing(&step, |_| panic!("the host must not be asked"));
+        assert!(seen.is_none() && code != 0 && error.contains("unknown mode"), "{error}");
+        let step = blank_aim_step(sys::EECH_AIM_READY_COMMAND);
+        let (seen, _, code, error) = aim_crossing(&step, |_| Err("the model refused".into()));
+        assert!(seen.is_some() && code != 0 && error.contains("the model refused"), "{error}");
+    }
+
+    #[test]
+    fn an_aim_echo_travels_in_order_and_one_that_does_not_fit_is_refused_not_cut_short() {
+        let mut room = vec![
+            sys::eech_aim_event {
+                kind: 0,
+                a: 0,
+                b: 0,
+                c: 0,
+                d: 0,
+                f: [0.0; 12],
+            };
+            sys::EECH_AIM_ECHO_MAX
+        ];
+        let mut step = blank_aim_step(sys::EECH_AIM_INTERCEPT);
+        step.echo_out = room.as_mut_ptr();
+        step.echo_capacity = room.len() as c_int;
+        let events: Vec<AimEvent> = (0..3)
+            .map(|index| AimEvent {
+                kind: 3,
+                a: index,
+                b: 0,
+                c: 0,
+                d: 0,
+                f: [index as f32; 12],
+            })
+            .collect();
+        let sent = events.clone();
+        let (_, result, code, _) = aim_crossing(&step, move |_| {
+            Ok(AimReply {
+                echo: Some(sent),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.has_echo, result.echo_count), (0, 1, 3));
+        assert!(room[..3]
+            .iter()
+            .enumerate()
+            .all(|(index, event)| event.a == index as c_int && event.f[0] == index as f32));
+        let too_many = vec![events[0]; sys::EECH_AIM_ECHO_MAX + 1];
+        let (_, _, code, error) = aim_crossing(&step, move |_| {
+            Ok(AimReply {
+                echo: Some(too_many),
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("more than"), "{error}");
+        // an echo nobody gave room for is refused too
+        step.echo_out = std::ptr::null_mut();
+        step.echo_capacity = 0;
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                echo: Some(vec![events[0]]),
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("nobody asked for"), "{error}");
+    }
+
+    #[test]
+    fn a_person_face_step_carries_the_target_position_and_a_non_finite_target_is_refused() {
+        let mut step = place_step([0.0; 3]);
+        step.mode = sys::EECH_MOVEMENT_PERSON_FACE;
+        step.pf_target = [10.0, 20.0, 30.0];
+        let request = received(&step);
+        assert_eq!(request.pf_target, [10.0, 20.0, 30.0]);
+        step.pf_target = [f32::INFINITY, 0.0, 0.0];
+        let (outcome, _) = crossing(&step, |_| panic!("the host must not be asked"));
+        assert!(outcome.is_err(), "a non-finite target position never reaches the host");
     }
 }

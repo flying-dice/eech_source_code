@@ -322,3 +322,57 @@ fn sense_round_trips_through_lua_and_refuses_what_it_was_not_asked() {
     assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
     assert!(stdout.contains("SENSE_HOST=ok"), "{stdout}\n{stderr}");
 }
+
+const AIM_SCRIPT: &str = "local function refused(step, text)
+  local ok, err = pcall(host.aim, step)
+  assert(not ok and tostring(err):find(text, 1, true), text .. ' / ' .. tostring(err))
+end
+local function near(a, b) return math.abs(a - b) < 1e-6 end
+-- the weapon-system-ready keyframe: closed, commanded open, opening, open, commanded closed, closing, wrapped
+local r = host.aim({ mode = 'ready_command', source_host_id = 'eech-world:1', state = 0.0, open = true })
+assert(r.state == 'done' and r.ready_state == 1.0, 'commanded open from closed starts the opening')
+r = host.aim({ mode = 'ready_update', state = 1.0, rate = 0.5, delta_time = 0.5 })
+assert(r.state == 'done' and r.ready_state == 1.25 and r.phase == 1, 'opening advances by rate * time')
+r = host.aim({ mode = 'ready_update', state = 1.75, rate = 0.5, delta_time = 1.0 })
+assert(r.ready_state == 2.0 and r.phase == 1, 'opening ends at open')
+r = host.aim({ mode = 'ready_update', state = 2.0, rate = 0.5, delta_time = 1.0 })
+assert(r.ready_state == 2.0 and r.phase == 2, 'open holds')
+r = host.aim({ mode = 'ready_command', state = 2.0, open = false })
+assert(r.ready_state == 3.0, 'commanded closed from open starts the closing')
+r = host.aim({ mode = 'ready_update', state = 3.5, rate = 0.5, delta_time = 2.0 })
+assert(r.ready_state == 0.0 and r.phase == 3, 'closing wraps to closed')
+r = host.aim({ mode = 'ready_update', state = 0.0, rate = 0.5, delta_time = 1.0 })
+assert(r.ready_state == 0.0 and r.phase == 0, 'closed holds')
+-- the device step: nothing to reach, nothing taken
+r = host.aim({ mode = 'step', current_heading = 0.25, current_pitch = -0.1, required_heading = 0.25, required_pitch = -0.1, heading_min = -1, heading_max = 1, heading_rate = 1, pitch_rate = 1, delta_time = 0.1 })
+assert(r.state == 'done' and r.delta_heading == 0 and r.delta_pitch == 0 and r.new_heading == 0.25 and near(r.new_pitch, -0.1), 'a device at its required offsets stays')
+-- a ballistic table is raw data of the model's shape, and a request for a weapon without one is refused
+local cells = string.rep(string.char(0, 0, 0, 0), 5 * 85 * 7 * 2)
+r = host.aim({ mode = 'table', weapon = 7, max_range = 100, velocity_tests = 5, pitch_indices = 85, range_values = 7, cells = cells })
+assert(r.state == 'done', 'table accepted')
+refused({ mode = 'ballistic', weapon = 8, range = 50, height_diff_or_pitch = 0, simplified = false, fixed_pitch = false, parent_velocity = 0 }, 'no ballistic table for weapon 8')
+refused({ mode = 'table', weapon = 7, max_range = 100, velocity_tests = 4, pitch_indices = 85, range_values = 7, cells = cells }, 'velocity tests')
+refused({ mode = 'table', weapon = 7, max_range = 100, velocity_tests = 5, pitch_indices = 85, range_values = 6, cells = cells }, 'range values')
+refused({ mode = 'table', weapon = 7, max_range = 100, velocity_tests = 5, pitch_indices = 85, range_values = 7, cells = 'short' }, 'bytes')
+-- malformed requests
+refused({ mode = 'glide' }, 'unknown mode')
+refused({ mode = 'ready_update', state = 0 / 0, rate = 0.5, delta_time = 1 }, 'state must be a finite number')
+refused({ mode = 'ready_command', state = 0, open = 1 }, 'open must be a boolean')
+refused({ mode = 'ready_command', source_host_id = '', state = 0, open = true }, 'source_host_id must be 1 to 128 bytes')
+refused({ mode = 'required', device_attitude = { 1, 0, 0 }, intercept_vector = { 0, 0, 1 }, heading_min = -1, heading_max = 1, pitch_min = -1, pitch_max = 1, climb = false }, 'device_attitude must be 9 finite numbers')
+refused({ mode = 'lead', weapon = 7, device_position = { 0, 0, 0 }, parent_velocity = 0, target = { position = { 0, 0, 0 }, point = { 0, 0, 0 }, motion_vector = { 0, 0, 0 }, mobile = false }, map_min = { 0, 0, 0 }, map_max = { 1, 1, 1 }, comms_weapon_lag = 0, source_gunship = false, draw = 40000 }, 'draw must be an integer in [0, 32767]')
+print('AIM_HOST=ok')
+";
+
+#[test]
+fn aim_round_trips_through_lua_and_refuses_what_it_was_not_asked() {
+    let script = std::env::temp_dir().join(format!("eech-world-aim-{}.lua", std::process::id()));
+    std::fs::write(&script, AIM_SCRIPT).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("AIM_HOST=ok"), "{stdout}\n{stderr}");
+}

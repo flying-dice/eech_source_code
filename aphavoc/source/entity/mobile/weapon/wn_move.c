@@ -66,6 +66,7 @@
 
 #include "project.h"
 #include "entity/mobile/mb_aimfx.h"
+#include "entity/mobile/mb_hostaim.h"
 
 #include "entity/tacview/tacview.h"
 
@@ -1945,6 +1946,36 @@ void calculate_range(weapon* wpn, FILE* output, int zero_pitch)
 		
 }
 
+/** hands one weapon's ballistics table to the host as raw data: velocity test by pitch index by range, (drop angle, flight time) float pairs */
+static void supply_ballistics_table_to_host(entity_sub_types wpn_type)
+{
+	const int velocity_tests = VELOCITY_TESTS;
+	const int pitch_indices = TOTAL_PITCH_INDICES;
+	int num_range_values, k, p, r;
+	size_t count, at;
+	float *cells;
+
+	num_range_values = (int)(weapon_database[wpn_type].max_range / RANGE_STEP) + 2;
+
+	count = (size_t) velocity_tests * pitch_indices * num_range_values * 2;
+
+	cells = (float *) safe_malloc(sizeof(float) * count);
+
+	at = 0;
+
+	for (k = 0; k < velocity_tests; k++)
+		for (p = 0; p < pitch_indices; p++)
+			for (r = 0; r < num_range_values; r++)
+			{
+				cells[at++] = ballistics_table[k][wpn_type][p][r].drop_angle;
+				cells[at++] = ballistics_table[k][wpn_type][p][r].flight_time;
+			}
+
+	campaign_aim_supply_table(wpn_type, weapon_database[wpn_type].max_range, velocity_tests, pitch_indices, num_range_values, cells, count);
+
+	safe_free(cells);
+}
+
 /** precalculates ballistics tables for all weapons with ballistic aiming.
  *  for certain range and angle intervals
  *
@@ -1996,6 +2027,12 @@ void generate_ballistics_tables(void)
 
 	if (write_file)
 		fclose(write_file);
+
+	// the host interpolates in the tables (EEDCS-44): it is given each one as raw data now that it is complete
+
+	for (wpn_type = 1; wpn_type <= LAST_WEAPON; wpn_type++)
+		if (weapon_database[wpn_type].aiming_type && !weapon_database[wpn_type].guidance_type)
+			supply_ballistics_table_to_host(wpn_type);
 }
 
 void generate_guided_missiles_tables(void)
@@ -2080,28 +2117,19 @@ void delete_ballistics_tables(void)
  * As we probably don't have the value for the exact range/pitch requested it
  * will make a weighted average of the closeset values we have.
  */
-#ifdef EECH_AIM_FIXTURE
-#define get_ballistic_pitch_deflection aim_fx_inner_get_ballistic_pitch_deflection
-#endif
 int get_ballistic_pitch_deflection(entity_sub_types wpn_type, float range, float height_diff_or_pitch, float* aiming_pitch, float* time_of_flight, int simplified, int fixed_pitch, float parent_velocity)
 {
-	float
-		pitch_delta,
-		range_error,
-		range_delta,
-		drop_compensation[2] = {0, 0},
-		time[2] = {0, 0},
-		straight_pitch,
-		velocity_multiplier = 1;
+	//
+	// The table interpolation (the iteration, the weighting and the drop limit) is the host's (EEDCS-44, mb_hostaim.h).  The tables themselves are raw
+	// weapon data: generate_ballistics_tables simulates each weapon's flight (the still-core projectile simulation) and hands the result to the host once.
+	// The outputs are written only when the host finds a solution, as the original wrote them.
+	//
 
-	int
-		iterations,
-		i,
-		k,
-		l = 0,
-		pitch_index,
-		range_index,
-		velocity_test = 0;
+	campaign_aim_step
+		step;
+
+	campaign_aim_result
+		result;
 
 	ASSERT(time_of_flight);
 	ASSERT(aiming_pitch);
@@ -2109,148 +2137,55 @@ int get_ballistic_pitch_deflection(entity_sub_types wpn_type, float range, float
 	if (wpn_type == ENTITY_SUB_TYPE_WEAPON_NO_WEAPON || wpn_type >= NUM_ENTITY_SUB_TYPE_WEAPONS) // some bug should be fixed..
 	{
 		debug_log("weapon type %i is illegal!", wpn_type);
-		return FALSE;
-	}
-	
-	if (!ballistics_table[0][wpn_type][0])
-		return FALSE;
 
-		// we need 2d range
+		#ifdef EECH_AIM_FIXTURE
 
-	if (!fixed_pitch)
-	{
-		straight_pitch = - asin(height_diff_or_pitch / range);
-		range = sqrt(range * range - height_diff_or_pitch * height_diff_or_pitch);
-	}
-	else
-	{
-		straight_pitch = height_diff_or_pitch;
-		range = range * cos(height_diff_or_pitch);
-	}
-	
-	if (fixed_pitch)
-		iterations = 2;
-	else
-		iterations = 3;
-
-	// prepare velocity test
-	
-	parent_velocity = bound(parent_velocity, 0, ((float)VELOCITY_TESTS - 1) * VELOCITY_TEST_STEP - 1);
-
-	if (parent_velocity > 1)
-	{
-		velocity_test = (int) (parent_velocity / VELOCITY_TEST_STEP);
-		velocity_multiplier = 1 - (parent_velocity / VELOCITY_TEST_STEP - velocity_test);
-	}
-	
-//	ASSERT(range >= 0.0);
-
-	if (range <= 0.1)
-	{
-		if (!fixed_pitch)
-			*aiming_pitch = straight_pitch;
-		else
-			*aiming_pitch = 0;
-		*time_of_flight = 0.0;
-		return TRUE;
-	}
-
-	range = bound(range, 0.01, weapon_database[wpn_type].max_range);
-	range_index = (int)(range / RANGE_STEP);
-	range_error = range - (range_index * RANGE_STEP);
-	range_delta = 1.0 - (range_error / RANGE_STEP);   // normalize to [0..1]
-
-	#if DEBUG_MODULE > 1
-	debug_log("WN_MOVE: simple range: %.0f (%.0f) closeness: %.02f, height_difference: %.0f", range, range_index*RANGE_STEP, range_delta, height_diff_or_pitch);
-	#endif
-
-	// refine drop_compensation - do it several times because as we adjust
-	// cannon pitch we have to use a different ballistics table.  Do it a few
-	// times so that it stabalizes somewhat
-
-	for (k = velocity_test; k <= velocity_test + (parent_velocity > 1); k++)
-	{
-		for (i = 0; i < iterations; i++)
 		{
-			float use_pitch = min(straight_pitch + drop_compensation[l], rad(90.0f));
+			float no_output = 0.0f;
 
-			pitch_index = get_floor_pitch_index(use_pitch, &pitch_delta);
-			ASSERT(pitch_index >= 0 && pitch_index < TOTAL_PITCH_INDICES);
-			drop_compensation[l] = ballistics_table[k][wpn_type][pitch_index][range_index].drop_angle;
-
-			if (drop_compensation[l] > rad(45.0))
-				return FALSE;
-
-			time[l] = ballistics_table[k][wpn_type][pitch_index][range_index].flight_time;
+			eech_aim_ballistic (wpn_type, range, height_diff_or_pitch, simplified, fixed_pitch, parent_velocity, FALSE, &no_output, &no_output);
 		}
 
-		// average between next pitch and range:
-		if (!simplified)
-		{
-			ballistics_data
-				pitch_compensation[2],
-				compensation_grid[2][2];
+		#endif
 
-			int next_pitch_index = min(pitch_index + 1, TOTAL_PITCH_INDICES-1);
-
-			// first average the next ranges
-			compensation_grid[0][0].drop_angle = drop_compensation[l];
-			compensation_grid[0][0].flight_time = time[l];
-
-			compensation_grid[0][1].drop_angle = ballistics_table[k][wpn_type][pitch_index][range_index+1].drop_angle;
-			compensation_grid[0][1].flight_time = ballistics_table[k][wpn_type][pitch_index][range_index+1].flight_time;
-
-			compensation_grid[1][0].drop_angle = ballistics_table[k][wpn_type][next_pitch_index][range_index].drop_angle;
-			compensation_grid[1][0].flight_time = ballistics_table[k][wpn_type][next_pitch_index][range_index].flight_time;
-
-			compensation_grid[1][1].drop_angle = ballistics_table[k][wpn_type][next_pitch_index][range_index+1].drop_angle;
-			compensation_grid[1][1].flight_time = ballistics_table[k][wpn_type][next_pitch_index][range_index+1].flight_time;
-
-			// then average oover next pitch
-			pitch_compensation[0].drop_angle = (pitch_delta * compensation_grid[0][0].drop_angle) + ((1 - pitch_delta) * compensation_grid[1][0].drop_angle);
-			pitch_compensation[0].flight_time = (pitch_delta * compensation_grid[0][0].flight_time) + ((1 - pitch_delta) * compensation_grid[1][0].flight_time);
-
-			pitch_compensation[1].drop_angle = (pitch_delta * compensation_grid[0][1].drop_angle) + ((1 - pitch_delta) * compensation_grid[1][1].drop_angle);
-			pitch_compensation[1].flight_time = (pitch_delta * compensation_grid[0][1].flight_time) + ((1 - pitch_delta) * compensation_grid[1][1].flight_time);
-
-			// and finally get a total
-			drop_compensation[l] = (range_delta * pitch_compensation[0].drop_angle) + ((1 - range_delta) * pitch_compensation[1].drop_angle);
-			time[l] = (range_delta * pitch_compensation[0].flight_time) + ((1 - range_delta) * pitch_compensation[1].flight_time);
-
-			#if DEBUG_MODULE > 1
-				debug_log("velocity_test: %f, velocity_multiplier %.2f, range: %.0f, pitch %.3f, drop: %.3f, time %.2f", (float)k * VELOCITY_TEST_STEP, velocity_multiplier, range, deg(straight_pitch), deg(drop_compensation[l]), time[l]);
-			#endif
-		}
-		
-		l++;
+		return FALSE;
 	}
 
-	*aiming_pitch = drop_compensation[0] * velocity_multiplier + drop_compensation[1] * (1 - velocity_multiplier);
-	*time_of_flight = time[0] * velocity_multiplier + time[1] * (1 - velocity_multiplier);
+	memset (&step, 0, sizeof (step));
 
-	#if DEBUG_MODULE > 1
-		debug_log("result pitch %.3f, time %.2f", deg(*aiming_pitch), *time_of_flight);
+	step.mode = CAMPAIGN_AIM_BALLISTIC;
+
+	step.echo = AIM_FX_ECHO;
+
+	step.weapon = wpn_type;
+
+	step.range = range;
+
+	step.height_diff_or_pitch = height_diff_or_pitch;
+
+	step.simplified = simplified;
+
+	step.fixed_pitch = fixed_pitch;
+
+	step.parent_velocity = parent_velocity;
+
+	result = campaign_aim_ask (&step, FALSE);
+
+	if (result.result)
+	{
+		*aiming_pitch = result.angle;
+
+		*time_of_flight = result.time_of_flight;
+	}
+
+	#ifdef EECH_AIM_FIXTURE
+
+	eech_aim_ballistic (wpn_type, range, height_diff_or_pitch, simplified, fixed_pitch, parent_velocity, result.result, &result.angle, &result.time_of_flight);
+
 	#endif
 
-	if (!fixed_pitch)
-		*aiming_pitch += straight_pitch; // get absolute angle only if straight_pitch wasn't given
-	
-	return TRUE;
+	return result.result;
 }
-
-#ifdef EECH_AIM_FIXTURE
-#undef get_ballistic_pitch_deflection
-int get_ballistic_pitch_deflection(entity_sub_types wpn_type, float range, float height_diff_or_pitch, float* aiming_pitch, float* time_of_flight, int simplified, int fixed_pitch, float parent_velocity)
-{
-	int result;
-
-	result = aim_fx_inner_get_ballistic_pitch_deflection (wpn_type, range, height_diff_or_pitch, aiming_pitch, time_of_flight, simplified, fixed_pitch, parent_velocity);
-
-	eech_aim_ballistic (wpn_type, range, height_diff_or_pitch, simplified, fixed_pitch, parent_velocity, result, aiming_pitch, time_of_flight);
-
-	return result;
-}
-#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

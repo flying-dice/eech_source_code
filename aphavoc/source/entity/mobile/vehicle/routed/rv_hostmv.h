@@ -78,7 +78,9 @@ enum campaign_movement_mode
 	/* EEDCS-39 R1 */
 	CAMPAIGN_MOVEMENT_FIXED_WING_LOOKAHEAD,		/* a terrain-following fixed-wing waypoint is being selected: the host answers hc_query with the one point it needs sampled, from its own pose; nothing is advanced */
 	/* EEDCS-40 */
-	CAMPAIGN_MOVEMENT_DEPENDENT_CARRY		/* a movement-dependent mobile follows its parent: the host validates the parent's move, positions the dependent and answers its pose */
+	CAMPAIGN_MOVEMENT_DEPENDENT_CARRY,		/* a movement-dependent mobile follows its parent: the host validates the parent's move, positions the dependent and answers its pose */
+	/* EEDCS-44 */
+	CAMPAIGN_MOVEMENT_PERSON_FACE			/* an infantry member with a target turns to face it: the host forms the heading from its own position and the target's, turns its record and answers the attitude and the heading */
 };
 
 enum campaign_movement_kind
@@ -328,6 +330,9 @@ typedef struct campaign_movement_step
 	float dc_parent_new[3];
 	float dc_heading;
 	float dc_velocity;
+	/* EEDCS-44 PERSON_FACE: the target's position (the person's own pose is position/velocity/attitude as always); the host answers the attitude and
+	   the heading in angles[0] */
+	float pf_target[3];
 	/* the TUMBLE and FW_DEATH_ATTITUDE draws are frand1 () doubles and stay doubles: the original expression multiplies
 	   them in double before narrowing the result to the float heading/roll.  Last, so the double's alignment cannot move
 	   another field */
@@ -649,6 +654,12 @@ void campaign_movement_person_end (struct ENTITY *vehicle, float elevation);
  * dependent; FALSE (nothing applied) when it or its parent has no host identity, and the caller runs the original arithmetic.
  */
 int campaign_movement_dependent_carry (struct ENTITY *child, struct ENTITY *parent, const struct VEC3D *parent_new, float heading, float velocity);
+
+/*
+ * EEDCS-44: an infantry member with a target link faces the target.  The campaign says which target; the host forms the heading from the person's
+ * own position and the target's, turns its record and answers the attitude, which is stored on the entity.  Returns the heading.
+ */
+float campaign_movement_person_face (struct ENTITY *person, const struct VEC3D *target_position);
 
 /* bracket the campaign's own writes of host results, which are not placements (nestable) */
 void campaign_movement_apply_begin (void);

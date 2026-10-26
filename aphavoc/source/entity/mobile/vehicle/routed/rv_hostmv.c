@@ -288,6 +288,29 @@ int campaign_movement_dependent_carry (entity *child, entity *parent, const vec3
 	return TRUE;
 }
 
+// EEDCS-44: an infantry member with a target faces it.  The host holds the person's pose, forms the heading and turns its record; the campaign
+// stores the attitude it is answered (the heading matrix) and returns the heading for the animation code.  The target's position is a fact the
+// campaign supplies
+
+float campaign_movement_person_face (entity *en, const vec3d *target_position)
+{
+	campaign_movement_step step;
+	campaign_movement_result result;
+	person *raw;
+
+	begin_step (&step, en, CAMPAIGN_MOVEMENT_PERSON_FACE);
+	step.pf_target[0] = target_position->x;
+	step.pf_target[1] = target_position->y;
+	step.pf_target[2] = target_position->z;
+
+	result = ask_host (&step);
+
+	raw = (person *) get_local_entity_data (en);
+	memcpy (raw->vh.mob.attitude, result.attitude, sizeof (raw->vh.mob.attitude));
+
+	return result.angles[0];
+}
+
 void campaign_movement_retire (const char *host_id)
 {
 	campaign_movement_step step;

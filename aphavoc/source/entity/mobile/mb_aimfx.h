@@ -8,8 +8,9 @@
 // stream, evaluates a campaign getter that the original did not, or changes a branch. The shared random stream is observed only by its
 // draw COUNT (stepping a local copy of the generator), never its value.
 //
-// Four solver entries are wrapped rather than edited: the original body is renamed behind a macro and a wrapper of the original name
-// calls it, then reports the arguments and results. The remaining hooks are single statements placed between original statements.
+// The solvers themselves are the host's now (mb_hostaim.h). The fixture build asks the reference host for an ordered echo of the intermediate
+// values of its predictions (AIM_FX_ECHO) and replays it, in the original order, into the same hooks the original solver bodies called, so the
+// complete original trace is reproduced from what the host did. The remaining hooks are single statements placed between campaign statements.
 //
 
 #ifndef MB_AIMFX_H
@@ -100,6 +101,10 @@ extern void eech_aim_lead_triangulated (void);
 extern void eech_aim_lead_end (const vec3d *pitch_device_position, int weapon_sub_type, float parent_velocity, entity *source,
 	entity *target, const vec3d *intercept_point, const float *angle_of_projection, const float *time_of_flight, int result);
 
+struct campaign_aim_result;
+
+extern void eech_aim_replay_echo (struct campaign_aim_result *result);
+
 extern void eech_aim_ballistic (int weapon_sub_type, float range, float height_diff_or_pitch, int simplified, int fixed_pitch,
 	float parent_velocity, int result, const float *aiming_pitch, const float *time_of_flight);
 
@@ -128,13 +133,9 @@ extern void eech_aim_person_facing (entity *person, const vec3d *position, const
 #define AIM_FX_VEC_TRACKING()							eech_aim_vec_tracking ();
 #define AIM_FX_VEC_END(L,WV,WT,WI,RANGE)				eech_aim_vec_end ((L), (WV), (WT), (WI), (RANGE));
 
-#define AIM_FX_INTERCEPT_BEGIN(P,WV,TV,TP)				eech_aim_intercept_begin ((P), (WV), (TV), (TP));
-#define AIM_FX_INTERCEPT_END(IP)						eech_aim_intercept_end ((IP));
-
-#define AIM_FX_LEAD_PATH(PATH,TV,ITER)					eech_aim_lead_path ((PATH), (TV), (ITER));
-#define AIM_FX_LEAD_RANGE(PHASE,ITER,RANGE)				eech_aim_lead_range ((PHASE), (ITER), (RANGE));
-#define AIM_FX_LEAD_ITERATION(ITER,DISTANCE,POINT)		eech_aim_lead_iteration ((ITER), (DISTANCE), (POINT));
-#define AIM_FX_LEAD_TRIANGULATED()						eech_aim_lead_triangulated ();
+#define AIM_FX_ECHO										1
+#define AIM_FX_SOLVE_BEGIN()							eech_aim_pitch_solve_begin ();
+#define AIM_FX_LEAD_BEGIN()								eech_aim_lead_begin ();
 
 #define AIM_FX_WS_BEGIN(SOURCE)							eech_aim_ws_begin ((SOURCE));
 #define AIM_FX_WS_STAGE(STAGE)							eech_aim_ws_stage ((STAGE));
@@ -161,13 +162,9 @@ extern void eech_aim_person_facing (entity *person, const vec3d *position, const
 #define AIM_FX_VEC_TRACKING()
 #define AIM_FX_VEC_END(L,WV,WT,WI,RANGE)
 
-#define AIM_FX_INTERCEPT_BEGIN(P,WV,TV,TP)
-#define AIM_FX_INTERCEPT_END(IP)
-
-#define AIM_FX_LEAD_PATH(PATH,TV,ITER)
-#define AIM_FX_LEAD_RANGE(PHASE,ITER,RANGE)
-#define AIM_FX_LEAD_ITERATION(ITER,DISTANCE,POINT)
-#define AIM_FX_LEAD_TRIANGULATED()
+#define AIM_FX_ECHO										0
+#define AIM_FX_SOLVE_BEGIN()
+#define AIM_FX_LEAD_BEGIN()
 
 #define AIM_FX_WS_BEGIN(SOURCE)
 #define AIM_FX_WS_STAGE(STAGE)

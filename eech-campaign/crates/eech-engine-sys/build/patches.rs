@@ -107,14 +107,6 @@ pub const PATCHES: &[Patch] = &[
         count: 4,
     },
     Patch {
-        file: "aphavoc/source/entity/mobile/weapon/wn_move.c",
-        id: "W1-ballistic-point-blank",
-        why: "get_ballistic_pitch_deflection takes asin (height / range). The aiming loop jitters the range by up to 5 m (weapon.c), so at point blank the height can exceed the range: the pitch is NaN, its table index is INT_MIN and the ballistics table read faults. No ballistic solution exists there; say so.",
-        original: "\tif (!fixed_pitch)\n\t{\n\t\tstraight_pitch = - asin(height_diff_or_pitch / range);\n",
-        replacement: "\tif (!fixed_pitch)\n\t{\n\t\tif (!(fabs (height_diff_or_pitch) < range)) return FALSE; /* EECH headless (W1) */\n\t\tstraight_pitch = - asin(height_diff_or_pitch / range);\n",
-        count: 1,
-    },
-    Patch {
         file: "modules/system/fpu.h",
         id: "X1-float-to-int",
         why: "64-bit blocker: the GNU convert_float_to_int / convert_double_to_int are `fistp (%1)`, which in AT&T syntax is the 16-bit store. Only the low 16 bits of the int are written, and values of 32,768 or more saturate, so every world coordinate past 32.7 km falls in the wrong sector (get_x_sector). The asm also pops the x87 stack without declaring it. Convert in C: on x86-64 that is cvttss2si/cvttsd2si, truncation, the rounding mode EECH sets for these conversions.",

@@ -171,7 +171,7 @@ local engine = dc.boot {
 	observe_loss = watch_loss,
 	supply_reached = supply_reached,
 	line_of_sight = host.line_of_sight,
-	sense = host.sense,
+	sense = host.sense, aim = host.aim,
 }
 
 for _ = 1, frames do

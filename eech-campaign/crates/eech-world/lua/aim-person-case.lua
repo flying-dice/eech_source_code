@@ -4,14 +4,14 @@
 -- This is one bounded, fresh original case that does: it boots the campaign through the public path (require ("eech_dc")) with the reference host's six
 -- callbacks, steps until persons exist, then picks ONE real host-identified person and ONE real host-identified enemy vehicle by their host ids, gives the
 -- person that target through the campaign's own target-link call (a case PRECONDITION: it asserts nothing about the campaign's target selection), and steps
--- normally. The original ps_anim.c then turns the person toward the target and asks the host to place the pose (campaign_movement_place, D1); the driver wraps
+-- normally. ps_anim.c then asks the host to turn the person toward the target (EEDCS-44: the move_vehicle mode person_face; the original asked the host to place the pose the campaign had turned); the driver wraps
 -- the host's move_vehicle to record every step of that person with the attitude the campaign sent and the attitude the host answered, and reads the engine's
 -- mirror of the person after every frame. Positive assertions, each recorded as a `check` event:
 --   * the person branch was entered with a target link and the facing hook fired (the fixture's counters),
 --   * the facing heading equals the bearing from the person to the target computed independently here from the positions the hook saw,
 --   * the turn from the person's heading before is not trivial,
 --   * the engine's mirror attitude after the frame is that heading, and equals the last attitude the host answered for the person (mirror == retained D1 pose),
---   * the host adopted exactly the pose the campaign sent (place: attitude in == attitude out) and every later step for the person arrived with the
+--   * the host answered the heading matrix of the bearing from ITS record of the person to the target position it was sent, and every later step for the person arrived with the
 --     attitude the host last answered (the host refuses a campaign write it did not make; none was refused).
 -- case=control runs the same selection and steps WITHOUT the target link: the facing branch must stay at 0 (the witness does not pass by accident).
 --
@@ -114,7 +114,8 @@ end
 local function move_vehicle (step)
 	local result = host.move_vehicle (step)
 	if watched and step.host_id == watched then
-		steps [#steps + 1] = { frame = frame_now, mode = step.mode, attitude_in = copy (step.pose and step.pose.attitude), attitude_out = copy (result.attitude) }
+		steps [#steps + 1] = { frame = frame_now, mode = step.mode, attitude_in = copy (step.pose and step.pose.attitude), attitude_out = copy (result.attitude),
+			position_in = copy (step.pose and step.pose.position), target = copy (step.pf_target), heading_out = result.angles and result.angles [1] }
 	end
 	return result
 end
@@ -124,7 +125,7 @@ dc.prepare_installation (root)
 local engine = dc.boot {
 	install_root = root, map = scenario.map, campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache",
 	seed = 1, bind_mobile = bind_mobile, move_vehicle = move_vehicle, observe_loss = host.observe_loss,
-	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, sense = host.sense,
+	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, sense = host.sense, aim = host.aim,
 }
 emit { event = "boot", scenario = args.scenario or "lebanon_retail", case = case, warmup = warmup, frames = nframes, frame_ms = frame_ms }
 
@@ -190,10 +191,10 @@ for f = 1, nframes do
 	engine:frame (frame_ms)
 	local q = parse_state (engine:aim_person_query (chosen.person), "query")
 	local last_place
-	for i = first, #steps do if steps [i].mode == "place" then last_place = steps [i] end end
+	for i = first, #steps do if steps [i].mode == "person_face" then last_place = steps [i] end end
 	mirror [f] = { heading = heading_of (q.attitude), attitude = q.attitude, alive = q.alive, has_target = q.has_target, place = last_place, steps = #steps - first + 1 }
 	emit { event = "frame", frame = f, heading = mirror [f].heading, alive = q.alive, has_target = q.has_target, host_steps = mirror [f].steps,
-		place_in = last_place and last_place.attitude_in or "none", place_out = last_place and last_place.attitude_out or "none" }
+		face_in = last_place and last_place.attitude_in or "none", face_out = last_place and last_place.attitude_out or "none" }
 end
 
 -- release the link through the same campaign call and step on: the person returns to its own movement, whose steps the host compares with its record
@@ -248,31 +249,32 @@ if case == "target" then
 		check ("mirror attitude after the first frame is the hook's heading", math.abs (wrap (mirror [1].heading - facing_hook.heading)) < 1e-5,
 			string.format ("mirror %.9g hook %.9g", mirror [1].heading, facing_hook.heading))
 	end
-	local places, equal_in_out, mirror_equals_host = 0, true, true
+	local places, answered_facing, mirror_equals_host = 0, true, true
 	for f = 1, nframes do
 		local p = mirror [f].place
 		if p then
 			places = places + 1
-			if not close (p.attitude_in, p.attitude_out, 0) then equal_in_out = false end
+			local expected = math.atan2 (p.target [1] - p.position_in [1], p.target [3] - p.position_in [3])
+			if math.abs (wrap (heading_of (p.attitude_out) - expected)) > 1e-5 or math.abs (wrap ((p.heading_out or 1e9) - expected)) > 1e-5 then answered_facing = false end
 			if not close (mirror [f].attitude, p.attitude_out, 1e-6) then mirror_equals_host = false end
 		end
 	end
-	check ("the host was asked to place the person (D1 campaign_movement_place) in most frames", places >= math.floor (nframes / 2), string.format ("%d places in %d frames", places, nframes))
-	check ("the host adopted exactly the pose the campaign sent (place: attitude in == out)", places > 0 and equal_in_out)
+	check ("the host was asked to turn the person (person_face) in most frames", places >= math.floor (nframes / 2), string.format ("%d person_face steps in %d frames", places, nframes))
+	check ("the host answered the facing of its own record toward the target (attitude and heading == the independent bearing)", places > 0 and answered_facing)
 	check ("mirror attitude after each frame == the attitude the host answered (retained D1 pose)", places > 0 and mirror_equals_host)
 	local continuity, compared = true, 0
 	local held
 	for i = 1, #steps do
 		local s = steps [i]
-		if held and s.attitude_in and s.mode ~= "place" then
+		if held and s.attitude_in and s.mode ~= "person_face" then
 			compared = compared + 1
 			if not close (s.attitude_in, held, 0) then continuity = false end
 		end
 		if s.attitude_out then held = s.attitude_out end
 	end
 	check ("the link was released through the same call", released and released.has_target == 0)
-	check ("every non-place step arrived with the attitude the host last answered (no write the host did not make); at least one occurred after the release", compared > 0 and continuity,
-		string.format ("%d non-place steps compared", compared))
+	check ("every non-person_face step arrived with the attitude the host last answered (no write the host did not make); at least one occurred after the release", compared > 0 and continuity,
+		string.format ("%d non-person_face steps compared", compared))
 else
 	check ("no target link in the control", before.has_target == 0 and mirror [nframes].has_target == 0)
 	check ("control: person branch not entered", (counters.person_branch_entered or 0) == 0 and (counters.person_facing or 0) == 0,

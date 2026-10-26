@@ -155,7 +155,7 @@ local engine = dc.boot ({
 	observe_loss = observe_loss,
 	supply_reached = host.supply_reached,
 	line_of_sight = host.line_of_sight,
-	sense = host.sense,
+	sense = host.sense, aim = host.aim,
 })
 for _ = 1, warmup do engine:frame (warmup_ms) end
 -- The wreck's dead-frame test fires only when (int)(timer + 1) is a multiple of 300 (rv_updt.c), a one second window; a wreck's

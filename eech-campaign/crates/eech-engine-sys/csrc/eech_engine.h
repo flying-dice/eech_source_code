@@ -18,6 +18,7 @@
 #include "entity/mobile/vehicle/routed/rv_hostmv.h"
 #include "entity/mobile/mb_hostlos.h"
 #include "entity/mobile/mb_hostsense.h"
+#include "entity/mobile/mb_hostaim.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -66,6 +67,7 @@ typedef campaign_movement_result eech_movement_result;
 typedef campaign_move_vehicle_fn eech_move_vehicle_callback;
 typedef campaign_los_fn eech_line_of_sight_callback;
 typedef campaign_sense_fn eech_sense_callback;
+typedef campaign_aim_fn eech_aim_callback;
 
 struct eech_engine_host
 {
@@ -81,6 +83,8 @@ struct eech_engine_host
 	eech_line_of_sight_callback line_of_sight;
 	/* Called synchronously for each host-owned physical sensing exchange of an AI target scan (mb_hostsense.h): the host owns whether and at what range a candidate is perceived (the reference host: range, envelope, tolerance, signature and emitter arithmetic and the state a scan keeps between candidates; another host: its own model); the positions and unit figures sent with it are transitional mirrors. */
 	eech_sense_callback sense;
+	/* Called synchronously for each host-owned physical aiming or weapon-system-readiness exchange (mb_hostaim.h): the host owns where a launcher's weapon-system devices point and whether they are ready, and the lead and ballistic predictions they are aimed with (the reference host: EECH's own arithmetic and the ballistic tables it is given at boot; another host: its own model); the device viewpoint, the target point, the entity positions and speeds and the weapon figures sent with it are transitional mirrors. */
+	eech_aim_callback aim;
 	void *user;
 };
 
