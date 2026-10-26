@@ -1132,7 +1132,7 @@ int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 
 	result = aim_fx_inner_lead_and_ballistic (pitch_device_position, wpn_type, parent_velocity, source, target, intercept_point, angle_of_projection, time_of_flight);
 
-	eech_aim_lead_end (pitch_device_position, wpn_type, parent_velocity, source, target, intercept_point, *angle_of_projection, *time_of_flight, result);
+	eech_aim_lead_end (pitch_device_position, wpn_type, parent_velocity, source, target, intercept_point, angle_of_projection, time_of_flight, result);
 
 	return result;
 }
@@ -2096,7 +2096,7 @@ void update_entity_weapon_systems (entity *source)
 		}
 	}
 
-	AIM_FX_WS_END (source, selected_weapon_system_ready, package_status, config_type)
+	AIM_FX_WS_END (source, selected_weapon_system_ready, package_status, package_status ? config_type : 0)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

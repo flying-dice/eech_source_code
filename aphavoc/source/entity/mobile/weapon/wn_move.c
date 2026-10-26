@@ -2246,7 +2246,7 @@ int get_ballistic_pitch_deflection(entity_sub_types wpn_type, float range, float
 
 	result = aim_fx_inner_get_ballistic_pitch_deflection (wpn_type, range, height_diff_or_pitch, aiming_pitch, time_of_flight, simplified, fixed_pitch, parent_velocity);
 
-	eech_aim_ballistic (wpn_type, range, height_diff_or_pitch, simplified, fixed_pitch, parent_velocity, result, *aiming_pitch, *time_of_flight);
+	eech_aim_ballistic (wpn_type, range, height_diff_or_pitch, simplified, fixed_pitch, parent_velocity, result, aiming_pitch, time_of_flight);
 
 	return result;
 }

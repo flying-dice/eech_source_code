@@ -769,10 +769,13 @@ void eech_aim_lead_triangulated (void)
 	bump (C_LEAD_TRIANGULATED);
 }
 
+/* The outputs arrive as pointers: the solver writes the angle before any exit but the time of flight only on its success paths (never on the range
+ * check or off-map exits), so a value is read here only where the original wrote it. */
 void eech_aim_lead_end (const vec3d *pitch_device_position, int weapon_sub_type, float parent_velocity, entity *source, entity *target,
-	const vec3d *intercept_point, float angle_of_projection, float time_of_flight, int result)
+	const vec3d *intercept_point, const float *angle_of_projection_out, const float *time_of_flight_out, int result)
 {
 	int draws;
+	float angle_of_projection = 0.0f, time_of_flight = 0.0f;
 	char text[SAMPLE_TEXT], key[40];
 	static const char *const path_names[EECH_AIM_LEAD_PATHS] = { "none", "tiny_range", "off_map", "stationary", "moving" };
 	struct weapon_row *row = find_weapon_row (aiming_of (weapon_sub_type), weapon_sub_type);
@@ -787,6 +790,11 @@ void eech_aim_lead_end (const vec3d *pitch_device_position, int weapon_sub_type,
 	{
 		/* every other exit sets its branch first: the solver returned at its range check */
 		cur_lead.path = EECH_AIM_LEAD_PATH_TINY_RANGE;
+	}
+	angle_of_projection = *angle_of_projection_out;
+	if (result && cur_lead.path != EECH_AIM_LEAD_PATH_OFF_MAP)
+	{
+		time_of_flight = *time_of_flight_out;
 	}
 	bump (C_LEAD_CALLS);
 	if (!cur_vec.active)
@@ -857,11 +865,18 @@ void eech_aim_lead_end (const vec3d *pitch_device_position, int weapon_sub_type,
 /* ballistic table lookup (wn_move.c) */
 
 void eech_aim_ballistic (int weapon_sub_type, float range, float height_diff_or_pitch, int simplified, int fixed_pitch, float parent_velocity, int result,
-	float aiming_pitch, float time_of_flight)
+	const float *aiming_pitch_out, const float *time_of_flight_out)
 {
+	/* the table lookup writes both outputs on every success path and neither on a failure: read them only after a success */
+	float aiming_pitch = 0.0f, time_of_flight = 0.0f;
 	char text[SAMPLE_TEXT], key[40];
 	struct weapon_row *row = find_weapon_row (aiming_of (weapon_sub_type), weapon_sub_type);
 	ready ();
+	if (result)
+	{
+		aiming_pitch = *aiming_pitch_out;
+		time_of_flight = *time_of_flight_out;
+	}
 	bump (C_BALLISTIC_CALLS);
 	if (!cur_vec.active)
 	{

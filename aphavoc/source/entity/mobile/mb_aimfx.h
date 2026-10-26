@@ -98,10 +98,10 @@ extern void eech_aim_lead_range (int phase, int iteration, float range);
 extern void eech_aim_lead_iteration (int iteration, float target_move_distance, const vec3d *new_intercept_point);
 extern void eech_aim_lead_triangulated (void);
 extern void eech_aim_lead_end (const vec3d *pitch_device_position, int weapon_sub_type, float parent_velocity, entity *source,
-	entity *target, const vec3d *intercept_point, float angle_of_projection, float time_of_flight, int result);
+	entity *target, const vec3d *intercept_point, const float *angle_of_projection, const float *time_of_flight, int result);
 
 extern void eech_aim_ballistic (int weapon_sub_type, float range, float height_diff_or_pitch, int simplified, int fixed_pitch,
-	float parent_velocity, int result, float aiming_pitch, float time_of_flight);
+	float parent_velocity, int result, const float *aiming_pitch, const float *time_of_flight);
 
 extern void eech_aim_ws_begin (entity *source);
 extern void eech_aim_ws_stage (int stage);
