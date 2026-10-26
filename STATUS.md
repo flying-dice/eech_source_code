@@ -8,6 +8,27 @@ D1 remains accepted; D2 (EEDCS-18) is active and **incomplete**; D3 has not star
 
 ## Current state in one place
 
+**Current lead gate:** all source findings are resolved at reviewed runtime
+`a2a041fecf52e18cbc16b33f3dc75a9c9b245c9d`. Same reviewer completed only focused
+new deltas. New generic fixture300s and three short cases exit0; all4 scan counts
+agree with shipping. Root independently checked83 original30s checkpoint events
+byte for byte. The final ordinary build exited0, clean/fresh, and all26 manifest
+hashes match. **Full pack is RUNNING**, exec89376 at
+`R:/d2-evidence/candidate-pack-sensing-a2a041fec`, with explicit native R: cwd and
+frozen snapshot/binaries/roots. No40/40 or full-byte acceptance yet. Earlier
+fixture-finding/runtime-build pending paragraphs below are superseded by this gate.
+
+**Accepted predecessor update:** PR101 merged normally at
+`3ce17432e4026f85b19ebf06cc582314817ddac2` on26October16:27:19UTC after all9CI passes.
+EEDCS-42 is Done (Jira comment10773); Confluence ledgerv34 preserves all5 epic reports.
+All40 checks passed and all8 complete scenario artifacts match the supplied baseline.
+The original exit1/report-only recovery0 distinction remains recorded and independently checked.
+This worktree still has the earlier reviewed development stack; root will incorporate the
+accepted merge after this CLI actually finishes. Do not mutate a valid run or final frozen
+snapshot. Root's immutable cleana2a041fec final shipping build is running (exec2774);
+source follow-up found no remaining issue, while new green/check records are being inspected.
+The earlier predecessor-pending paragraphs below are historical and superseded here.
+
 Lead update after the focused5c00 source follow-up: P1 resolved and P2 shipping
 transport resolved, but a new **P2 fixture issue remains**. A valid `not_perceived`
 result must not `debug_fatal` merely because observational `sensor-fixture` is on.

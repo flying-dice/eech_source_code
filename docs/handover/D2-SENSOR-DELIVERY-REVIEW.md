@@ -1,5 +1,10 @@
 # D2 sensing delivery review — EEDCS-43
 
+**Current lead disposition:** source findings are resolved at runtime `a2a041fec`;
+focused green evidence is checked and the frozen full pack is running. CI, full
+regression/recording acceptance and normal merge remain pending. Earlier pending
+statements below are historical; see the lead closure section for current gates.
+
 Independent reviewer: the single Codex reviewer also used for EEDCS-42. One read-only
 source, harness and comparator pass of `37989fa5f183abbffa122fb47535923a83f6bfa9`
 against reviewed LOS predecessor `a42f1cfad39e5b29ce18bfd2d4ff6cf0f5e0cf12`.
@@ -104,6 +109,34 @@ valid generic result is observational rather than fatal. Reuse completed shippin
 generic controls and unchanged379 reference runs; no extra whole war is needed.
 The same reviewer will inspect only this new correction and evidence. Generic
 shipping runs currently in progress should finish and be preserved.
+
+## Lead closure of source and focused evidence gates
+
+The same reviewer checked5c00 against379 (P1 resolved, P2 shipping resolved), then
+only the newa2a041fec fixture/driver delta against5c00. The fixture finding is
+resolved in source, with no new change-specific finding. It records generic
+nondetection separately, clears pending candidate/tolerance state, isolates/reset
+counts correctly and leaves reference hashes/events unchanged when no generic
+verdict occurs. Disabled-feature macros and explicit non-oracle driver modes are
+present. No golden output changed; no additional full source pass was requested.
+
+Root inspected actual native/wrapper exits0 for the new300s shipping generic and
+own-model controls, all three short fixture cases and the300s generic fixture.
+Final generic counts6245/312160/520/6021 match the shipping control across all4
+scan kinds; the fixture no longer aborts. Root independently compared all83 raw
+events at the original30s reference probe/run-at-probe checkpoint: exact bytes,
+15544bytes, SHA-2564466c77606ae6bba49fe8307e94b637a174ef8700741af316933730a2c9fc71f.
+Both source traces are complete, and the originals are unmodified. This short
+control checks the new fixture path; it is not a new600s run or full pack.
+Recorded actual fmt/default/all-fixtures/old-guard+sensor/sensor-only Clippy exits
+are0; default workspace tests at5c00 also exited0. The reference-model path is
+unchanged, so its earlier600s/900s evidence is reused explicitly.
+
+Root's fresh ordinarya2a041fec build exited0, clean, with all26 manifest files
+verified. The immutable final full pack is running; CI, its40-check result and
+complete raw comparisons, normal merge and delivery records remain required.
+Accepted LOS predecessor3ce17432e is delivered (Jira42Done, ledgerv34/five reports).
+This source/evidence closure is not overall EEDCS-43 or D2 acceptance.
 
 ## Resolution status of the follow-up finding (implementation lane)
 
