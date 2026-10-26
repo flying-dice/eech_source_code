@@ -4,7 +4,7 @@ D1 / EEDCS-15 is complete at integration a7934aa7d1bcffc2ea5057bb3f1b0af332606c6
 All 15 D1 tasks are Done. D2 / EEDCS-18 is now In Progress; first extraction
 EEDCS-42 moves AI line-of-sight observations to the host while keeping target
 selection and engagement policy in EECH_DC. Live authority: M5 goal 11534337 v3
-and migration ledger 14548994 v26. All five epic report macros are preserved.
+and migration ledger 14548994 v27. All five epic report macros are preserved.
 
 Accepted D1 evidence: native 40/40, full Tacview and observations unchanged, metrics
 equal; nine CI checks and independent exact-head approval before PR100 merge.
@@ -27,8 +27,12 @@ for readiness. See docs/handover/D2-LOS-HARNESS-REVIEW.md for evidence and limit
 Build prerequisite: existing Docker Desktop first-run Subscription Service
 Agreement awaits user handling; Linux daemon is not ready. Windows 11 x64 and
 Python 3.12.14 are available. No numerical toolchain substitution or authentication
-change made. Both GitHub connections identify fd-starscream-bot; normal delivery
-also needs a distinct authorized PR-author identity, without self-approval.
+change made. Both GitHub connections identify fd-starscream-bot. On 26 October,
+the user directed that the PR author match the logged-in GitHub identity; use
+fd-starscream-bot for this task's PR publication. That task-specific direction
+supersedes the earlier request for a distinct author connection. No authentication
+change is needed. Do not attempt GitHub self-approval; keep the independent
+review and actual remaining delivery gates explicit.
 
 Next: compile the prepared los-fixture harness and exercise original-behavior
 characterization with the documented toolchain,
