@@ -9,7 +9,7 @@ and migration ledger 14548994. All five epic report macros are preserved.
 Delivery PR: https://github.com/flying-dice/eech_source_code/pull/101 (draft),
 authored as fd-starscream-bot following the user's logged-in-identity direction.
 The LOS physical solver and entity eye lift are implemented in the host at
-`a7863a73fa8bfba56cfa6bac4bb1602e9b9b88eb`. No merge or full regression acceptance yet.
+`61e85664540770ab10e3ac7e9f5dfa916291c52f` (corrected candidate). No merge or full regression acceptance yet.
 
 Accepted D1 evidence: native 40/40, full Tacview and observations unchanged, metrics
 equal; nine CI checks and independent exact-head approval before PR100 merge.
@@ -22,7 +22,7 @@ All 3,581 payload hashes pass; Georgia 1,174 and Lebanon/repeat 1,179 input file
 their checked-in manifests exactly. Read docs/handover/HOST-READINESS-20261025.md.
 
 Now: one Claude CLI 2.1.310 context `ae34a3d7-0931-4638-b06a-a2d399277929`, exact
-`claude-sonnet-5-5` High via `-p`, is packaging the extraction evidence. Both original/candidate
+`claude-sonnet-5-5` High via `-p`, completed and exited cleanly. Both original/candidate
 600-second characterizations match: Lebanon 156,581 queries / 60,731 visible / hash
 `d97f59bb364bb253`; Georgia 21,104 / 1,646 / `7fdc5ab0b8b5db5d`. The frozen original40s
 ordered lookup transcript and candidate are identical (4,567 queries / 107,162 lookups).
@@ -30,15 +30,19 @@ Public-path 300s reference/blocked/clear host visibility changes actual weapon b
 (185/6, 176/4, 254/15). Missing/malformed providers fail clearly. Exact source, builds, inputs,
 commands and limitations are retained under `eech-campaign/reference/d2-los-observation`.
 
-One independent Codex delivery source pass found no blocking shipping-source defect and one P3
-duplicate callback setup in `dependent-fixture`, queued for correction and affected-feature Clippy.
+One independent Codex delivery source pass found no blocking shipping-source defect; its P3
+duplicate callback setup in `dependent-fixture` is resolved in 61e856645. The same reviewer checked
+the two-line correction and actual all-fixture/old-guard Clippy results (cargo/Docker exits 0).
 See `docs/handover/D2-LOS-DELIVERY-REVIEW.md`. Default/LOS-feature tests, Clippy and fmt passed.
-The lead built ordinary-feature shipping binaries from an immutable clean a7863a73f snapshot;
-the repeated build gave identical DLL/World hashes. Shipping symbols place the LOS kernel in
+The lead built ordinary-feature shipping binaries from an immutable clean 61e856645 snapshot,
+fresh target volume and unchanged recipe (exit 0, no dirty build inputs). Exact hashes are in
+`eech-campaign/reference/d2-los-observation/extraction/checks/final-shipping-BUILD-INFO.txt`. Shipping symbols place the LOS kernel in
 World, with no trace/probe fixture symbols in the DLL. The full supplied-binary destination pack
 is still RUNNING at `R:/d2-evidence/baseline-host-20261026-shortpath`; checked prefixes match,
-but no completed full-pack/whole-recording pass is claimed. A separate 15-minute baseline/candidate
-recording comparison is running in the implementation lane; it does not replace the full pack.
+but no completed full-pack pass is claimed. The separate 900-second A/B comparison completed:
+Tacview, observations and metrics are byte-identical, independently checked by the lead. The
+final shipping candidate's full pack is RUNNING at `R:/d2-evidence/candidate-pack-los-61e856645`.
+The short A/B comparison does not replace it.
 
 Build setup is resolved through isolated WSL2 distro `EECH-D2-Build` and the unchanged repository
 Dockerfile (Rust/cargo1.99.1, MinGW12-posix, Lua5.1.5; exact image and hashes recorded per build).
@@ -51,8 +55,7 @@ supersedes the earlier request for a distinct author connection. No authenticati
 change is needed. Do not attempt GitHub self-approval; keep the independent
 review and actual remaining delivery gates explicit.
 
-Next: resolve the review's fixture duplication, validate the corrected head and immutable shipping
-build, finish the established full baseline/candidate packs and complete-file Tacview/observation/
+Next: finish the established full baseline/candidate packs and complete-file Tacview/observation/
 metric comparisons, current-head CI and normal merge. The lead owns these steps autonomously.
 No baseline or tolerance changed. Terrain elevation and object collision services remain coupled;
 target selection and engagement policy remain in EECH_DC. EEDCS-42 and the rest of D2 are incomplete.

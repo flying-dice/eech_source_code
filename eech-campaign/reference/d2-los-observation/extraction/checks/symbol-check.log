@@ -19,7 +19,7 @@ r .xdata$check_position_line_of_sight
 T check_entity_line_of_sight
 T check_position_line_of_sight
 --- undefined in mb_tgt.o
-campaign_los_query fn_get_local_entity_int_value fn_get_local_entity_vec3d write_debug_log 
+campaign_los_query fn_get_local_entity_int_value fn_get_local_entity_vec3d write_debug_log
 mb_hostlos object: /target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/f6fc6cb7fd4fea60-mb_hostlos.o
 --- defined in mb_hostlos.o
 b .bss
@@ -51,7 +51,7 @@ d current_host
 t fill_host_id
 d query_open
 --- undefined in mb_hostlos.o (environment services and maths)
-campaign_roster_host_id debug_fatal get_3d_terrain_point_data get_3d_terrain_point_data_elevation get_line_of_sight_collision_entity 
+campaign_roster_host_id debug_fatal get_3d_terrain_point_data get_3d_terrain_point_data_elevation get_line_of_sight_collision_entity
 --- eech_dc.dll symbols named like the kernel or fixture (expected none in a shipping DLL)
 eech_los_begin: 0
 eech_los_terrain: 0

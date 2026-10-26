@@ -12,8 +12,29 @@ No blocking shipping-source findings. The reviewer traced both campaign LOS chec
 
 The reviewer independently compared all seven candidate40 trace lines with the retained original: identical, including 4,567 queries and 107,162 ordered lookups.
 
+## Finding resolution and focused follow-up
+
+The same reviewer checked new source changes at `61e85664540770ab10e3ac7e9f5dfa916291c52f`.
+The source delta from a7863a73f removes exactly the two duplicate declarations; the other changes
+are documentation/evidence. P3 is resolved, with no new change-specific correctness or boundary
+finding. All-fixture and old-guard Clippy full logs and exit records were inspected: both
+`CARGO_EXIT=0` and `DOCKER_EXIT=0`. This was a focused check of the new correction, not a second
+full source-review pass. Retained symbol output had trailing spaces on two lines; the readable
+copy was trimmed and its original output preserved outside Git.
+
+The lead independently compared completed 900-second A/B artifacts by length and SHA-256:
+Tacview 11,363,845 bytes, observations 6,629,273 bytes and metrics 11,777 bytes all match.
+The exact independent report is retained under
+`eech-campaign/reference/d2-los-observation/extraction/ab/independent-comparison.json`.
+Both candidate600 cases and public-path causal/refusal checks completed as recorded in the
+extraction evidence. The final ordinary-feature shipping build from clean 61e856645 passed;
+its full pack is now running alongside the supplied-binary destination baseline.
+
 ## Limits and pending acceptance
 
-No overall delivery acceptance yet. Pending: correction and affected-feature check; final corrected-head provenance; complete candidate600 comparisons and public-path causal/refusal evidence; complete supplied-binary baseline and shipping candidate packs; full-file Tacview/observation/metric comparisons; current CI; normal merge and Jira/Confluence delivery records. Partial prefixes and active processes do not pass those gates.
+No overall delivery acceptance yet. Pending: complete supplied-binary baseline and shipping
+candidate packs; complete-file Tacview/observation/metric comparisons; current CI; normal merge
+and Jira/Confluence delivery records. The 900-second A/B comparison does not pass the full-pack
+gate. Partial prefixes and active processes do not pass those gates either.
 
 The user directs the lead to use the logged-in GitHub identity and manage normal merges autonomously. No authentication changes, copied credentials or fabricated GitHub self-approval.

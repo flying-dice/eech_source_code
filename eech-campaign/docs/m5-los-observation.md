@@ -1,8 +1,9 @@
 # D2: host-owned line-of-sight observation (EEDCS-42)
 
-**Status: implemented on PR101 (`codex/d2-perception-los`), candidate `a7863a73fa8bfba56cfa6bac4bb1602e9b9b88eb` plus the evidence commit that
-records this file. Not accepted.** The lead's final shipping build, the established 40-check pack with complete-file comparison, one independent
-review and the normal merge are still to come, and none is claimed here. Scope authority is the live M5 goal (Confluence 11534337) and the
+**Status: implemented on PR101 (`codex/d2-perception-los`), corrected source `61e85664540770ab10e3ac7e9f5dfa916291c52f`. Not accepted.**
+The independent source review and focused correction check are complete. The lead's clean final shipping build passed; the established
+40-check candidate pack and supplied-binary destination baseline are running. Complete-file comparison, current CI and normal merge remain gates.
+Scope authority is the live M5 goal (Confluence 11534337) and the
 migration ledger (14548994): move physical combat and perception observation into the host and keep target selection, priorities and
 engagement decisions in EECH_DC. Evidence: [`reference/d2-los-observation/`](../reference/d2-los-observation/README.md).
 
@@ -81,6 +82,7 @@ All results are from the runs recorded under `reference/d2-los-observation/` (pr
   (and the births counter's own limits) are not separated here.
 - **Missing and malformed providers** (shipping candidate; `provider/failure-*.jsonl`): no provider fails at boot (`eech: missing host line_of_sight callback`); at the first query a nil answer,
   an unknown state, a non-boolean `done` visibility, a phase the state cannot have, a malformed point and a Lua error each stop the engine with `EECH fatal error: host line of sight: ...`.
+  In these negative summaries, `frames=600` is the requested upper limit, not completed frames after the first-query failure.
   The baseline DLL has no such concept and boots without one, so this contract is new and red there by construction.
 - **Source and symbols** (`extraction/checks/symbol-check.log`): in the shipping DLL's `mb_tgt.o` the only defined functions are the two public checks and the only
   undefined ones are `campaign_los_query`, the entity getters and the assert logger (no `sqrt`, no vector maths); `mb_hostlos.o` calls only the terrain, collision, roster and
@@ -94,7 +96,8 @@ All results are from the runs recorded under `reference/d2-los-observation/` (pr
 
 ## Limits and costs
 
-- **Not run by this lane**: the final shipping build and the established pack with complete-file comparison (the lead's gate), the independent review, any live DCS operation (M6).
+- **Not run by the implementation lane**: the lead's final shipping build and established full pack, independent review, or live DCS operation (M6).
+  The lead subsequently completed the clean corrected-head shipping build and independent source-review closure; the full pack remains running.
   The short comparisons above cover 900 s of one scenario and 600 s of two.
 - **Cost**: the reference dialogue costs about 18 host crossings per query (1.3 M requests in 300 s of Lebanon). The 900 s whole-campaign comparison took 19 m 13 s against 18 m 06 s
   (+6%), run in parallel under the same load; that is an indication, not a benchmark. Batching would change the lookup order, so it is not done.
