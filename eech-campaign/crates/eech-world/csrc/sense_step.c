@@ -19,7 +19,8 @@
  *
  * What is not here: which targets are candidates, in which order they are asked, the random generator and its seed, the ranking, line of sight
  * and engagement. The unit database figures (scan range, ceiling, floor), the positions, the radar altitude and the helicopter configuration
- * facts are the campaign's mirror of the world, supplied as facts: declared transitional coupling.
+ * facts are transitional mirrors of what a world-owning host already knows, supplied as inputs of this reference model (declared transitional
+ * coupling): they do not make the campaign the owner of a physical solver, and a host with another model need not use them.
  *
  * The state is one open scan. A new `eech_sense_begin` replaces whatever was open; a message that does not fit the state is refused.
  */

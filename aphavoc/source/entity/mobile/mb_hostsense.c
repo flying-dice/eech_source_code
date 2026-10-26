@@ -7,7 +7,9 @@
  * Two things stay here because they belong to the campaign: the random draw (taken from the source-derived generator at the point the
  * original scan took it, after the altitude test, and passed to the host as a measured fact; the generator's seed is the source's slot in
  * the entity heap and never leaves this file), and the configuration facts of a helicopter target (state of its weapon bay, stub wings
- * and undercarriage), which the host turns into its radar-stealth factor.
+ * and undercarriage), which the reference host turns into its radar-stealth factor.  The positions, radar altitude and unit figures this file
+ * reads are transitional mirrors of what a world-owning host already knows, supplied so the reference host can measure with them; what comes
+ * back is the host's verdict, including a NOT_PERCEIVED one from a model of its own.
  */
 
 #include "project.h"
@@ -75,6 +77,12 @@ static void fill_host_id (char *out, entity *en)
 
 static int reason_allowed (int scan, int reason)
 {
+	// the host's own verdict from its own model names no predicate of the original scans, so every scan accepts it
+	if (reason == CAMPAIGN_SENSE_REASON_NOT_PERCEIVED)
+	{
+		return (scan >= CAMPAIGN_SENSE_AIR_TO_AIR) && (scan <= CAMPAIGN_SENSE_SURFACE_TO_SURFACE);
+	}
+
 	switch (scan)
 	{
 		case CAMPAIGN_SENSE_AIR_TO_AIR:
@@ -287,7 +295,11 @@ static int reason_to_verdict (int reason)
 		case CAMPAIGN_SENSE_REASON_RANGE: return EECH_SENSOR_VERDICT_RANGE;
 		case CAMPAIGN_SENSE_REASON_RANGE_ADJUSTED: return EECH_SENSOR_VERDICT_RANGE_ADJUSTED;
 		case CAMPAIGN_SENSE_REASON_ALTITUDE: return EECH_SENSOR_VERDICT_ALTITUDE;
+		case CAMPAIGN_SENSE_REASON_TOLERANCE: return EECH_SENSOR_VERDICT_TOLERANCE;
 	}
+
+	// the sensor trace records the original's predicates; a verdict from another host model is not one of them and is not relabelled as one
+	debug_fatal ("host sense: the sensor fixture trace has no verdict for host reason %d (only the reference model's predicates are traced)", reason);
 
 	return EECH_SENSOR_VERDICT_TOLERANCE;
 }

@@ -387,8 +387,10 @@ fn sense_message_table(lua: &Lua, message: &SenseMessage) -> Result<LuaTable, St
 }
 
 /// The host's answer to a sensing message: `{ state = "open" | "accept" | "reject" | "need_draw" | "need_signature" | "closed", reason, target_range, echo }`.
-/// A rejection names its predicate (`reason`: range, range_adjusted, altitude, tolerance); an acceptance carries the measured `target_range`; every
-/// number is exact. The optional `echo` table is read only by the test fixture build.
+/// A rejection names why the candidate was not perceived (`reason`): `not_perceived`, the verdict of a host's own model, which every scan accepts, or
+/// one of the original EECH model's predicates (range, range_adjusted, altitude, tolerance) that the reference host reports, each legal only for the
+/// scans whose original had it. An acceptance carries the measured `target_range`; every number is exact. The optional `echo` table is read only by
+/// the test fixture build.
 fn call_sense(lua: &Lua, function: &LuaFunction, message: SenseMessage) -> Result<SenseReply, String> {
     let argument = sense_message_table(lua, &message)?;
     let answer: LuaValue = function.call(argument).map_err(|e| e.to_string())?;
@@ -417,7 +419,12 @@ fn call_sense(lua: &Lua, function: &LuaFunction, message: SenseMessage) -> Resul
                 "range_adjusted" => SenseReason::RangeAdjusted,
                 "altitude" => SenseReason::Altitude,
                 "tolerance" => SenseReason::Tolerance,
-                other => return Err(format!("sense result reason {other:?} is not range, range_adjusted, altitude or tolerance")),
+                "not_perceived" => SenseReason::NotPerceived,
+                other => {
+                    return Err(format!(
+                        "sense result reason {other:?} is not range, range_adjusted, altitude, tolerance or not_perceived"
+                    ))
+                }
             })
         }
         other => {

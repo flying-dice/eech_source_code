@@ -6,6 +6,11 @@
 -- a bad host is a visible failure. One mode per process (the engine is one per process):
 --   mode=reference    the reference host unchanged: the control
 --   mode=blocked      the host reports every candidate undetectable (reject, reason "range") at its first message
+--   mode=not_perceived  the host reports every candidate not perceived with the generic reason "not_perceived" (a verdict of its own model, no EECH
+--                     predicate): the same campaign behaviour as `blocked`, whatever the scan, because the campaign acts on the verdict and not on its reason
+--   mode=own_model    a host with a model of its own that is not EECH's: it perceives a candidate when a plain horizontal distance (from the positions it was
+--                     given) is under its own limit, answers that distance as the measured range, and otherwise reports "not_perceived". It needs
+--                     no draw and no signature, and no seed or entity index reaches it
 --   mode=far          the reference host, but every scan's raw scan range is tripled before the host's own arithmetic sees it
 --   mode=missing      boot without a sense provider: must fail at boot with a clear error
 --   mode=bad_*        a provider that answers the first candidate message malformed: the engine must stop with a clear error
@@ -41,9 +46,16 @@ end
 local reference = host.sense
 -- calls per message mode, and the answers by state: what the campaign asked and what the host said
 local counts = { begin = 0, candidate = 0, draw = 0, signature = 0, ["end"] = 0, accept = 0, reject = 0 }
+-- the candidates the host was consulted about, by scan kind, and the rejections of the generic reason by scan kind
+local consulted, not_perceived_by_scan = {}, {}
+
+local function consult (step)
+	counts [step.mode] = counts [step.mode] + 1
+	if step.mode == "candidate" then consulted [step.scan] = (consulted [step.scan] or 0) + 1 end
+end
 
 local function counted (step)
-	counts [step.mode] = counts [step.mode] + 1
+	consult (step)
 	local answer = reference (step)
 	if answer.state == "accept" then counts.accept = counts.accept + 1 end
 	if answer.state == "reject" then counts.reject = counts.reject + 1 end
@@ -56,12 +68,33 @@ if mode == "reference" then
 elseif mode == "blocked" then
 	-- a DCS-shaped host that decides detectability itself: it needs no dialogue, only the verdict, so it answers each candidate at once
 	provider = function (step)
-		counts [step.mode] = counts [step.mode] + 1
+		consult (step)
 		if step.mode == "begin" then return { state = "open" } end
 		if step.mode == "end" then return { state = "closed" } end
 		assert (step.mode == "candidate", "a host that rejects at the candidate is never asked for a draw or a signature")
 		counts.reject = counts.reject + 1
 		return { state = "reject", reason = (step.scan == "surface_to_air" and "altitude") or (step.scan == "air_to_air" and "range_adjusted") or "range" }
+	end
+elseif mode == "not_perceived" or mode == "own_model" then
+	-- a DCS-shaped host: it decides at the candidate from its own model, so it answers begin and end at once and never asks for a draw or a signature
+	local limit = 4000.0
+	local source
+	provider = function (step)
+		consult (step)
+		if step.mode == "begin" then source = step.source_position return { state = "open" } end
+		if step.mode == "end" then return { state = "closed" } end
+		assert (step.mode == "candidate", "a host that decides at the candidate is never asked for a draw or a signature")
+		if mode == "own_model" then
+			local dx, dz = step.target_position [1] - source [1], step.target_position [3] - source [3]
+			local distance = math.sqrt (dx * dx + dz * dz)
+			if distance < limit then
+				counts.accept = counts.accept + 1
+				return { state = "accept", target_range = distance }
+			end
+		end
+		counts.reject = counts.reject + 1
+		not_perceived_by_scan [step.scan] = (not_perceived_by_scan [step.scan] or 0) + 1
+		return { state = "reject", reason = "not_perceived" }
 	end
 elseif mode == "far" then
 	provider = function (step)
@@ -137,11 +170,17 @@ for f = 1, frames do
 		seen = present
 	end
 end
+local by_scan = {}
+for _, scan in ipairs { "air_to_air", "air_to_surface", "surface_to_air", "surface_to_surface" } do
+	by_scan [#by_scan + 1] = string.format ("%s=%d/%d", scan, consulted [scan] or 0, not_perceived_by_scan [scan] or 0)
+end
+by_scan = table.concat (by_scan, " ")
 emit { event = "summary", mode = mode, frames = frames, failure = failure or "", begin = counts.begin, candidate = counts.candidate, draw = counts.draw,
-	signature = counts.signature, ["end"] = counts ["end"], accept = counts.accept, reject = counts.reject, weapon_births = births, losses = lost }
+	signature = counts.signature, ["end"] = counts ["end"], accept = counts.accept, reject = counts.reject, weapon_births = births, losses = lost,
+	candidates_by_scan_and_not_perceived = by_scan }
 out:close ()
-io.stderr:write (string.format ("sense-provider: mode=%s begin=%d candidate=%d draw=%d signature=%d end=%d accept=%d reject=%d weapon_births=%d losses=%d failure=%s\n", mode,
-	counts.begin, counts.candidate, counts.draw, counts.signature, counts ["end"], counts.accept, counts.reject, births, lost, failure or "none"))
+io.stderr:write (string.format ("sense-provider: mode=%s begin=%d candidate=%d draw=%d signature=%d end=%d accept=%d reject=%d weapon_births=%d losses=%d candidates/not_perceived by scan: %s failure=%s\n", mode,
+	counts.begin, counts.candidate, counts.draw, counts.signature, counts ["end"], counts.accept, counts.reject, births, lost, by_scan, failure or "none"))
 if mode:sub (1, 4) == "bad_" then
 	assert (failure, "a malformed provider answer was accepted: mode " .. mode)
 elseif failure then

@@ -79,7 +79,7 @@ struct eech_engine_host
 	eech_move_vehicle_callback move_vehicle;
 	/* Called synchronously for each host-owned line-of-sight query (mb_hostlos.h): the host owns the calculation and asks for one terrain elevation or one object-ray answer at a time, or answers directly. */
 	eech_line_of_sight_callback line_of_sight;
-	/* Called synchronously for each host-owned physical sensing exchange of an AI target scan (mb_hostsense.h): the host owns the range, envelope, tolerance, signature and emitter physics and the state a scan keeps between candidates. */
+	/* Called synchronously for each host-owned physical sensing exchange of an AI target scan (mb_hostsense.h): the host owns whether and at what range a candidate is perceived (the reference host: range, envelope, tolerance, signature and emitter arithmetic and the state a scan keeps between candidates; another host: its own model); the positions and unit figures sent with it are transitional mirrors. */
 	eech_sense_callback sense;
 	void *user;
 };

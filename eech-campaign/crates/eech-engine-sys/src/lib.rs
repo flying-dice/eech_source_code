@@ -525,6 +525,7 @@ pub const EECH_SENSE_REASON_RANGE: c_int = 1;
 pub const EECH_SENSE_REASON_RANGE_ADJUSTED: c_int = 2;
 pub const EECH_SENSE_REASON_ALTITUDE: c_int = 3;
 pub const EECH_SENSE_REASON_TOLERANCE: c_int = 4;
+pub const EECH_SENSE_REASON_NOT_PERCEIVED: c_int = 5;
 
 /// One message of the host-owned sensing dialogue (aphavoc/.../mb_hostsense.h), field for field.
 #[repr(C)]

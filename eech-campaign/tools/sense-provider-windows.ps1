@@ -4,7 +4,7 @@
 #   -Bin     a build output directory (eech-world.exe, eech_dc.dll, lua.dll, lua/); the shipping build or a fixture build
 #   -Source  the installation root to copy from (never run on: the engine writes into its root)
 #   -Work    the directory that receives one root copy and one output directory per mode
-#   -Modes   reference, blocked, far, missing, bad_begin, bad_nil, bad_state, bad_reason, bad_accept_range, bad_draw_for_range, bad_error
+#   -Modes   reference, blocked, not_perceived, own_model, far, missing, bad_begin, bad_nil, bad_state, bad_reason, bad_accept_range, bad_draw_for_range, bad_error
 #   -Seconds simulated seconds per mode (default 300)
 #
 # The paths must hold no spaces (use a subst drive): the native argv is not quoted here. Prints one line per mode with the native exit code.

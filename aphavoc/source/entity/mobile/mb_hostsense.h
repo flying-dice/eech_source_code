@@ -21,9 +21,13 @@
  *   END        the scan is over.  The host answers CLOSED and drops what it kept.
  *
  * The host keeps the physical state of the scan between messages (the surface-to-air floor is lowered by each candidate the campaign
- * asks about, whether or not it is later detected, and the next candidate meets the lowered floor).  The configuration facts and the
- * positions are the campaign's own mirror of the world, supplied as facts; the unit database figures (scan range, ceiling, floor) are a
- * declared transitional lookup.  A host that owns the world (a DCS host, later) can decide at CANDIDATE from its own state.
+ * asks about, whether or not it is later detected, and the next candidate meets the lowered floor).  The positions, the radar altitude, the
+ * helicopter configuration facts and the unit database figures (scan range, ceiling, floor) that the campaign supplies are transitional mirrors
+ * of what a host that owns the world already knows: the reference (EECH) host measures with them as inputs of its own model; they do not make
+ * the campaign the owner of a physical solver.  A host that owns its world (a DCS host, later) may decide at CANDIDATE from its own state and
+ * answer REJECT with NOT_PERCEIVED, ignoring them.  Only the host's verdict returns to the campaign.  The four named predicates (range,
+ * range_adjusted, altitude, tolerance) are what the reference model of the original EECH scans reports; a host with another model has no
+ * obligation to map onto them.
  *
  * No EECH pointer, entity index or seed crosses the boundary; identities are the host's own, as for line of sight.  There is no campaign
  * fallback: a hosted engine with no sense provider stops with an error at the first scan.
@@ -63,14 +67,18 @@ enum campaign_sense_state
 	CAMPAIGN_SENSE_CLOSED
 };
 
-/* the predicate that rejected a candidate */
+/* why a candidate was not perceived.  RANGE, RANGE_ADJUSTED, ALTITUDE and TOLERANCE name the predicates of the original EECH sensing model, which the
+   reference host reproduces and the characterisation records; each is legal only for the scans whose original had it.  NOT_PERCEIVED is the host's
+   own verdict from whatever model it has (another simulator's radar, sight or visibility model): it names no predicate, so every scan accepts it
+   and campaign code treats the candidate exactly as it treats any other rejected one. */
 enum campaign_sense_reason
 {
 	CAMPAIGN_SENSE_REASON_NONE = 0,
 	CAMPAIGN_SENSE_REASON_RANGE,
 	CAMPAIGN_SENSE_REASON_RANGE_ADJUSTED,
 	CAMPAIGN_SENSE_REASON_ALTITUDE,
-	CAMPAIGN_SENSE_REASON_TOLERANCE
+	CAMPAIGN_SENSE_REASON_TOLERANCE,
+	CAMPAIGN_SENSE_REASON_NOT_PERCEIVED
 };
 
 typedef struct campaign_sense_step

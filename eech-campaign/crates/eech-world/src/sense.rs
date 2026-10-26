@@ -4,8 +4,10 @@
 //! the physical state of the open scan between messages: the surface-to-air floor lowered by every candidate asked about.
 //!
 //! Which targets are candidates, in which order they are asked, the random generator behind the draw, the ranking and the engagement are not here.
-//! The unit database figures, the positions, the radar altitude and the helicopter configuration facts are the campaign's mirror of the world,
-//! supplied as facts; that is declared transitional coupling.
+//! The unit database figures, the positions, the radar altitude and the helicopter configuration facts are transitional mirrors of what a host that
+//! owns its world already knows, supplied to this reference host as inputs of its model (declared transitional coupling); they do not make the
+//! campaign the owner of a physical solver. The model here is the reference one: a host with another model (a DCS host) answers each candidate from
+//! its own state, with `reject` and the reason `not_perceived` or an `accept` with its measured range, and needs none of the four named predicates.
 
 use std::ffi::{c_int, c_void};
 

@@ -1015,7 +1015,7 @@ pub struct SenseSignature {
     pub helicopter: Option<SenseHelicopter>,
 }
 
-/// What the host says: its answer state, and for a rejection the predicate that failed.
+/// What the host says: its answer state, and for a rejection why the candidate was not perceived.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SenseState {
     Open,
@@ -1026,12 +1026,15 @@ pub enum SenseState {
     Closed,
 }
 
+/// Why a candidate was not perceived. The first four name the predicates of the original EECH sensing model, which the reference host reproduces
+/// (each is legal only for the scans whose original had it); `NotPerceived` is a host's own verdict from its own model and is legal for every scan.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SenseReason {
     Range,
     RangeAdjusted,
     Altitude,
     Tolerance,
+    NotPerceived,
 }
 
 /// The host's intermediate physical values, for the test fixture build's trace only; the shipping module ignores them.
@@ -1913,6 +1916,7 @@ where
                     SenseReason::RangeAdjusted => sys::EECH_SENSE_REASON_RANGE_ADJUSTED,
                     SenseReason::Altitude => sys::EECH_SENSE_REASON_ALTITUDE,
                     SenseReason::Tolerance => sys::EECH_SENSE_REASON_TOLERANCE,
+                    SenseReason::NotPerceived => sys::EECH_SENSE_REASON_NOT_PERCEIVED,
                 },
             ),
             SenseState::NeedDraw => (sys::EECH_SENSE_NEED_DRAW, 0),
