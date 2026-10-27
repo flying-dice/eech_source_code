@@ -42,7 +42,7 @@ the repository's `tools/Dockerfile` image in WSL2 `EECH-D2-Build` (rustc/cargo 1
 
 ## Checks (`checks/`)
 
-Input manifests before and after every run (`tools/input-manifest.py --compare reference/lebanon-3h/inputs.json`): IDENTICAL, 31 of 31 after-run. `verify-v*.log` and the per-step logs: fmt, clippy (default and
+Input manifests for the original 31 extraction runs (`tools/input-manifest.py --compare reference/lebanon-3h/inputs.json`): IDENTICAL before and after, 31 of 31 after-run. The later correction probes are described separately below. `verify-v*.log` and the per-step logs: fmt, clippy (default and
 `aim-fixture`) and tests with cargo's own status (`CARGO_EXIT=`; the early `v1` and `v2` runs failed clippy and are kept: a wrapper that reported its own status instead of cargo's, and then two findings). `native-exits.json`:
 the native exit of every run. `symbol-check-shipping-*.log`: the shipping symbol checks. `queue-*.log`: the order of the runs.
 
@@ -61,7 +61,7 @@ result; those traces and builds are kept as that source's and are **not relabell
   verdict `failed 0`, native exit 0 (`run-lp-all2.log`). Identity (`binary-and-script-identity.txt`): `eech_dc.dll` and `eech-world.exe` are byte-identical to the `c21852b09` fixture build; the script is the corrected one of the
   following commit (the entity selection now requires routed vehicles, and a label now says "at least one lead request (one logical solve)"), copied beside the unchanged binaries; the script inside the build differs from it
   in exactly those two edits. `attempt1-selection-defect/`: the first native attempt with the script inside the build, native exit 1: it picked a site as its subject and the query stopped the engine
-  (`Invalid list type ... ENTITY_TYPE_SITE`); a defect of the probe script's selection, not of the contract; kept. That makes two native processes for this correction, one more than the one allowed, and the reason is stated here.
+  (`Invalid list type ... ENTITY_TYPE_SITE`); a defect of the probe script's selection, not of the contract; kept. These were two sequential attempts, with no overlapping native process or repeated baseline run.
   `bad_nan` and `bad_string` were not run.
 * `checks/`: `verify-v5` ... `v8` and their step logs, each step's `CARGO_EXIT=`. `v5`: the test step failed (101) on my kernel test, whose guarded case used a target 5000 m up and 10 m aside, whose 3-D range 5000.0098 passes the
   original strict guard (my input was wrong, not the guard). I then wrongly deleted that sub-case. `v6`: 101, the Lua round-trip request lacked the host's mandatory `echo` field. `v7`: all five steps 0 (with the sub-case
