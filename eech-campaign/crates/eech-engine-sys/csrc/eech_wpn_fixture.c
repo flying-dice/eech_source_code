@@ -151,7 +151,8 @@ struct track
 	int used, ordinal, sub_type, steps, terminal_seen, launcher_type, target_type, path_union;
 	uint64_t hash;
 	double distance;
-	float max_velocity, last_x, last_y, last_z;
+	float max_velocity, last_x, last_y, last_z, last_lifetime;
+	int on_ground;
 };
 
 struct table_row
@@ -886,13 +887,15 @@ void eech_wpn_birth_end (entity *en, const weapon *raw, int submunition)
 	text[0] = 0;
 	text_append (text, sizeof (text),
 		"kind=birth w=%d type=%s launcher=%s target=%s submunition=%d velocity=%.9g lifetime=%.9g decoy_timer=%.9g pos=%.9g,%.9g,%.9g "
-		"att=%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g burst=%d loal=%d phase=%d fuze=%d fuze_solved=%d fuze_timer=%.9g fuze_draws=%d dispersion=%d disp=%.9g,%.9g draws=%d",
+		"att=%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g burst=%d loal=%d phase=%d fuze=%d fuze_solved=%d fuze_timer=%.9g fuze_draws=%d dispersion=%d disp=%.9g,%.9g draws=%d cruise_time=%.9g cruise_error=%.9g survive_ground=%d",
 		t ? t->ordinal : -1, weapon_name (sub, name, sizeof (name)), type_name (launcher_type), type_name (target_type), submunition, (double) raw->mob.velocity,
 		(double) raw->weapon_lifetime, (double) raw->decoy_timer, (double) raw->mob.position.x, (double) raw->mob.position.y, (double) raw->mob.position.z,
 		(double) raw->mob.attitude[0][0], (double) raw->mob.attitude[0][1], (double) raw->mob.attitude[0][2], (double) raw->mob.attitude[1][0],
 		(double) raw->mob.attitude[1][1], (double) raw->mob.attitude[1][2], (double) raw->mob.attitude[2][0], (double) raw->mob.attitude[2][1],
 		(double) raw->mob.attitude[2][2], (int) raw->burst_size, (int) raw->loal_mode, (int) raw->missile_phase, cur_birth.fuze_entered, cur_birth.fuze_solved,
-		(double) cur_birth.fuze_timer, cur_birth.fuze_draws, cur_birth.dispersion, (double) cur_birth.disp_heading, (double) cur_birth.disp_pitch, draws);
+		(double) cur_birth.fuze_timer, cur_birth.fuze_draws, cur_birth.dispersion, (double) cur_birth.disp_heading, (double) cur_birth.disp_pitch, draws,
+		valid_sub_type (sub) ? (double) weapon_database[sub].cruise_time : -1.0, valid_sub_type (sub) ? (double) weapon_database[sub].cruise_time_max_error : -1.0,
+		valid_sub_type (sub) ? (int) weapon_database[sub].survive_ground_impact : -1);
 	log_event ("%s", text);
 	snprintf (key, sizeof (key), "birth/%s", submunition ? "submunition" : (cur_birth.fuze_solved ? "fuze_solved" : (cur_birth.dispersion ? "dispersed" : "plain")));
 	keep_sample (key, text + 5);
@@ -1219,6 +1222,8 @@ void eech_wpn_move_end (entity *en)
 		t->last_x = raw->mob.position.x;
 		t->last_y = raw->mob.position.y;
 		t->last_z = raw->mob.position.z;
+		t->last_lifetime = raw->weapon_lifetime;
+		t->on_ground = raw->weapon_on_ground ? 1 : 0;
 	}
 	snprintf (key, sizeof (key), "move/%s/mask%x", (cur_move.guidance >= 0 && cur_move.guidance < NUM_WEAPON_GUIDANCE_TYPES) ? guidance_keys[cur_move.guidance] : "unk",
 		(unsigned) cur_move.path_mask);
@@ -1470,6 +1475,20 @@ static int report (char *text, int capacity)
 			(unsigned long long) r->flights_short, (unsigned long long) r->steps, (unsigned long long) r->supplied);
 	}
 	emit (&out, "wpn-tables rows=%d overflow=%d\n", trace.table_count, trace.table_overflow);
+	/* every weapon still in flight or resting, with the state weapon_movement left: a weapon that survived ground impact is not moved again (on_ground=1) and ends only when its
+	 * lifetime reaches -(cruise_time + a draw of at most 0.5 * cruise_time_max_error), i.e. in at most `expires_in` + error more seconds */
+	for (i = 0; i < track_high; i++)
+	{
+		const struct track *t = &tracks[i];
+		if (t->used)
+		{
+			char name[48];
+			double cruise = valid_sub_type (t->sub_type) ? (double) weapon_database[t->sub_type].cruise_time : -1.0;
+			double error = valid_sub_type (t->sub_type) ? (double) weapon_database[t->sub_type].cruise_time_max_error : -1.0;
+			emit (&out, "wpn-live w=%d type=%s steps=%d on_ground=%d lifetime=%.9g cruise_time=%.9g cruise_error=%.9g expires_in_at_least=%.9g terminal_seen=%d\n", t->ordinal,
+				weapon_name (t->sub_type, name, sizeof (name)), t->steps, t->on_ground, (double) t->last_lifetime, cruise, error, (double) t->last_lifetime + cruise, t->terminal_seen);
+		}
+	}
 	for (i = 0; i < trace.sample_count; i++)
 	{
 		emit (&out, "wpn-sample key=%s %s\n", trace.samples[i].key, trace.samples[i].text);

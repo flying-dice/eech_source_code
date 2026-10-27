@@ -20,9 +20,9 @@
 --                                    the launcher's previous link is restored through the same setter
 --   no_ammo_outcome / no_ammo_changes_nothing   a launcher asked to launch a type it does not carry reports the no-ammunition outcome and creates nothing
 --   targeted_launches_created        at least three targeted launches by real launchers created weapons
---   case_weapons_reach_terminal      every weapon those launches created reached its terminal fact within the settle time, except smoke grenades, which survive
---                                    ground impact and rest on the ground (not moved again) until their long lifetime ends; those are named and must be accounted for by the
---                                    run's ground_survived tally. Optional categories (fuze timer, lock-on-after-launch, ...) are MEASURED and reported, never promised.
+--   case_weapons_reach_terminal      every weapon those launches created reached its terminal fact within the settle time, except weapons the fixture reports (wpn-live)
+--                                    resting on the ground after surviving impact with lifetime still above -cruise_time (the source ends them only then); those are named
+--                                    with their state and must be covered by the run's ground_survived tally. Optional categories (fuze timer, lock-on-after-launch, ...) are MEASURED and reported, never promised.
 --
 -- host.args: root, warmup (simulated seconds before the cases, default 60), settle (simulated seconds allowed for the case weapons to finish, default 240),
 --            frame_ms (default 100), out (JSON Lines path)
@@ -368,19 +368,33 @@ while pending > 0 and clock.elapsed_seconds < deadline do
 	pending = 0
 	for _, done in pairs (created_ordinals) do if not done then pending = pending + 1 end end
 end
--- A weapon of a type that survives ground impact (the smoke grenade) comes to rest and is not moved again (weapon_on_ground) until its long lifetime ends, so it can outlast
--- the settle time: it is not a terminal fact the original has produced yet. Such weapons are named and must be accounted for by the run's own ground_survived tally; any other
--- case weapon without a terminal fact fails the check.
-local resting, unexplained = {}, {}
-for w, done in pairs (created_ordinals) do
-	if not done then
-		if string.find (case_type [w] or "", "SMOKE", 1, true) then resting [#resting + 1] = tostring (w) .. ":" .. case_type [w] else unexplained [#unexplained + 1] = tostring (w) .. ":" .. tostring (case_type [w]) end
+-- weapon_movement ends a weapon when its lifetime reaches -(cruise_time + error); a weapon of a type that survives ground impact (survive_ground_impact) comes to rest and is not moved
+-- again (weapon_on_ground) until then, so it can outlast the settle time: no terminal fact has been produced for it YET. The fixture reports every live weapon with that state
+-- (wpn-live). A case weapon without a terminal fact is explained only if it is resting on the ground with lifetime still above -cruise_time, and the run's ground_survived tally
+-- must cover it; any other case weapon without a terminal fact fails the check.
+local live = {}
+for line in string.gmatch (engine:wpn_trace (), "[^\n]+") do
+	if string.match (line, "^wpn%-live ") then
+		local f = fields (line)
+		live [tonumber (f.w)] = { on_ground = f.on_ground, expires = tonumber (f.expires_in_at_least), type = f.type, lifetime = f.lifetime, cruise = f.cruise_time }
 	end
 end
 local survived = tonumber (string.match (engine:wpn_trace (), "wpn%-path name=ground_survived count=(%d+)")) or 0
-emit { event = "resting_case_weapons", resting = table.concat (resting, ","), unexplained = table.concat (unexplained, ","), ground_survived = survived, at = clock.elapsed_seconds }
+local resting, unexplained = {}, {}
+for w, done in pairs (created_ordinals) do
+	if not done then
+		local l = live [w]
+		-- explained only by the source's own mechanism, as the fixture saw it: resting on the ground (weapon_on_ground) with lifetime still above -(cruise_time)
+		if l and l.on_ground == "1" and l.expires and l.expires > 0 then
+			resting [#resting + 1] = string.format ("%d:%s(lifetime %s, cruise_time %s, >=%.1f s to go)", w, l.type, l.lifetime, l.cruise, l.expires)
+		else
+			unexplained [#unexplained + 1] = string.format ("%d:%s", w, tostring (case_type [w]))
+		end
+	end
+end
+emit { event = "resting_case_weapons", resting = table.concat (resting, ";"), unexplained = table.concat (unexplained, ";"), ground_survived = survived, at = clock.elapsed_seconds }
 check ("case_weapons_reach_terminal", #unexplained == 0 and #resting <= survived, string.format ("%d case weapons without a terminal fact at %s s: resting on the ground [%s] (ground_survived %d), unexplained [%s]",
-	pending, tostring (clock.elapsed_seconds), table.concat (resting, ","), survived, table.concat (unexplained, ",")))
+	pending, tostring (clock.elapsed_seconds), table.concat (resting, ";"), survived, table.concat (unexplained, ";")))
 
 drain ()
 emit { event = "run", elapsed = clock.elapsed_seconds, frames = frames }
