@@ -1,0 +1,2 @@
+eech: debug_fatal: host aim: host aim answered a vectors request with a negative range
+aim-provider: mode=bad_negative_range ready_update=638 ready_command=257 required=0 step=0 vectors=0 (valid 0 invalid 0) lead=0 ballistic=0 intercept=0 need_draw=0 ready_moving=0 weapon_births=0 losses=0 failure=runtime error: eech: EECH fatal error: host aim: host aim answered a vectors request with a negative range

@@ -1,0 +1,354 @@
+{
+ "provider_trace": "out/pv-step_slow/trace.jsonl",
+ "characterization_trace": "../aim-characterization-20261026/out/r-a/trace.jsonl",
+ "checkpoint_at": 300.0,
+ "provider_report_lines": 196,
+ "reference_report_lines": 196,
+ "differing_lines": 104,
+ "hashes": {
+  "provider": {
+   "physical": "837939eed9ae9c94",
+   "decision": "1f82ec4d8788c8ca"
+  },
+  "reference": {
+   "physical": "79efa18d48328638",
+   "decision": "cca4b35b00b2672c"
+  }
+ },
+ "differences_first30": [
+  {
+   "line": 1,
+   "event": "aim-hash",
+   "key": null,
+   "moved": {
+    "physical": [
+     "837939eed9ae9c94",
+     "79efa18d48328638"
+    ],
+    "decision": [
+     "1f82ec4d8788c8ca",
+     "cca4b35b00b2672c"
+    ]
+   }
+  },
+  {
+   "line": 2,
+   "event": "aim-counter",
+   "key": "vec_calls",
+   "moved": {
+    "value": [
+     4741089,
+     4741792
+    ]
+   }
+  },
+  {
+   "line": 3,
+   "event": "aim-counter",
+   "key": "vec_targeted",
+   "moved": {
+    "value": [
+     43327,
+     42720
+    ]
+   }
+  },
+  {
+   "line": 6,
+   "event": "aim-counter",
+   "key": "vec_valid",
+   "moved": {
+    "value": [
+     43317,
+     42710
+    ]
+   }
+  },
+  {
+   "line": 7,
+   "event": "aim-counter",
+   "key": "vec_invalid",
+   "moved": {
+    "value": [
+     4697772,
+     4699082
+    ]
+   }
+  },
+  {
+   "line": 9,
+   "event": "aim-counter",
+   "key": "vec_stage_1",
+   "moved": {
+    "value": [
+     4693166,
+     4695526
+    ]
+   }
+  },
+  {
+   "line": 10,
+   "event": "aim-counter",
+   "key": "vec_stage_2",
+   "moved": {
+    "value": [
+     4596,
+     3546
+    ]
+   }
+  },
+  {
+   "line": 14,
+   "event": "aim-counter",
+   "key": "vec_stage_6",
+   "moved": {
+    "value": [
+     43317,
+     42710
+    ]
+   }
+  },
+  {
+   "line": 15,
+   "event": "aim-counter",
+   "key": "solve_calls",
+   "moved": {
+    "value": [
+     43317,
+     42710
+    ]
+   }
+  },
+  {
+   "line": 17,
+   "event": "aim-counter",
+   "key": "solve_guided_mobile",
+   "moved": {
+    "value": [
+     10059,
+     10907
+    ]
+   }
+  },
+  {
+   "line": 19,
+   "event": "aim-counter",
+   "key": "solve_angle_of_projection",
+   "moved": {
+    "value": [
+     26771,
+     24893
+    ]
+   }
+  },
+  {
+   "line": 20,
+   "event": "aim-counter",
+   "key": "solve_lead_and_ballistic",
+   "moved": {
+    "value": [
+     6487,
+     6910
+    ]
+   }
+  },
+  {
+   "line": 21,
+   "event": "aim-counter",
+   "key": "solve_true",
+   "moved": {
+    "value": [
+     43317,
+     42710
+    ]
+   }
+  },
+  {
+   "line": 23,
+   "event": "aim-counter",
+   "key": "intercept_calls",
+   "moved": {
+    "value": [
+     10059,
+     10907
+    ]
+   }
+  },
+  {
+   "line": 25,
+   "event": "aim-counter",
+   "key": "intercept_iterated",
+   "moved": {
+    "value": [
+     593,
+     1075
+    ]
+   }
+  },
+  {
+   "line": 27,
+   "event": "aim-counter",
+   "key": "intercept_target_not_moving",
+   "moved": {
+    "value": [
+     9466,
+     9832
+    ]
+   }
+  },
+  {
+   "line": 29,
+   "event": "aim-counter",
+   "key": "lead_calls",
+   "moved": {
+    "value": [
+     33258,
+     31803
+    ]
+   }
+  },
+  {
+   "line": 31,
+   "event": "aim-counter",
+   "key": "lead_true",
+   "moved": {
+    "value": [
+     33258,
+     31803
+    ]
+   }
+  },
+  {
+   "line": 35,
+   "event": "aim-counter",
+   "key": "lead_path_stationary",
+   "moved": {
+    "value": [
+     29783,
+     28287
+    ]
+   }
+  },
+  {
+   "line": 36,
+   "event": "aim-counter",
+   "key": "lead_path_moving",
+   "moved": {
+    "value": [
+     3475,
+     3516
+    ]
+   }
+  },
+  {
+   "line": 38,
+   "event": "aim-counter",
+   "key": "lead_moving_3_iterations",
+   "moved": {
+    "value": [
+     3475,
+     3516
+    ]
+   }
+  },
+  {
+   "line": 39,
+   "event": "aim-counter",
+   "key": "lead_iterations_run",
+   "moved": {
+    "value": [
+     10425,
+     10548
+    ]
+   }
+  },
+  {
+   "line": 40,
+   "event": "aim-counter",
+   "key": "lead_jitter_applied",
+   "moved": {
+    "value": [
+     3475,
+     3516
+    ]
+   }
+  },
+  {
+   "line": 42,
+   "event": "aim-counter",
+   "key": "lead_rng_draws_0",
+   "moved": {
+    "value": [
+     29783,
+     28287
+    ]
+   }
+  },
+  {
+   "line": 43,
+   "event": "aim-counter",
+   "key": "lead_rng_draws_1",
+   "moved": {
+    "value": [
+     3475,
+     3516
+    ]
+   }
+  },
+  {
+   "line": 45,
+   "event": "aim-counter",
+   "key": "ballistic_calls",
+   "moved": {
+    "value": [
+     43683,
+     42351
+    ]
+   }
+  },
+  {
+   "line": 47,
+   "event": "aim-counter",
+   "key": "ballistic_from_lead",
+   "moved": {
+    "value": [
+     43683,
+     42351
+    ]
+   }
+  },
+  {
+   "line": 48,
+   "event": "aim-counter",
+   "key": "ballistic_true",
+   "moved": {
+    "value": [
+     43683,
+     42351
+    ]
+   }
+  },
+  {
+   "line": 50,
+   "event": "aim-counter",
+   "key": "ballistic_simplified",
+   "moved": {
+    "value": [
+     10425,
+     10548
+    ]
+   }
+  },
+  {
+   "line": 53,
+   "event": "aim-counter",
+   "key": "ws_calls",
+   "moved": {
+    "value": [
+     4741089,
+     4741792
+    ]
+   }
+  }
+ ]
+}

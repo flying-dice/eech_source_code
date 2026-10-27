@@ -1,6 +1,6 @@
 # D2: characterisation of the original physical weapon-aiming and readiness code (EEDCS-44)
 
-**Status: characterisation only. No aiming responsibility has moved; no host boundary, no extraction, no shipping-build change, no full pack.** Task EEDCS-44 (under EEDCS-18), branch `codex/d2-weapon-aiming`,
+**Status of this document: characterisation of the ORIGINAL code, unchanged by the move that followed it; the extraction is in [`m5-aim-extraction.md`](m5-aim-extraction.md). When this document was written: characterisation only. No aiming responsibility had moved; no host boundary, no extraction, no shipping-build change, no full pack.** Task EEDCS-44 (under EEDCS-18), branch `codex/d2-weapon-aiming`,
 from accepted integration `3ce17432e4026f85b19ebf06cc582314817ddac2`, composed with the reviewed sensing branch `e7e46dcc2` (runtime `a2a041fec`; development stacking, EEDCS-43 is not accepted and its delivery precedes this task). The
 characterisation baseline is the clean `2608f8022e8a5ce7c19da635af128e34803a4def`. Scope authority is the live M5 goal (Confluence 11534337) and the migration ledger (14548994): physical aiming and weapon execution are the host's;
 target and weapon choice, priorities, engagement, awareness and consequences stay in EECH_DC. Artifacts: [`reference/d2-aim-characterization/`](../reference/d2-aim-characterization/README.md).

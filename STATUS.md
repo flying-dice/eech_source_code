@@ -55,6 +55,23 @@ accepted. Integrate accepted04bf645a before delivery; the composed sensing runti
 is already a2, but the new accepted documentation/evidence base is not merged here.
 Do this when the author's current work is checkpointed/clean, preserving it.
 
+Lane report (author, 27 Oct, source d3c9a5c5e = a0d3b6f9c engine/kernel/module sources + provider driver script + docs; evidence in
+`eech-campaign/reference/d2-aim-extraction/`, account in `eech-campaign/docs/m5-aim-extraction.md`): every gate below ran in this lane, native exits the process's own.
+Final-head fixture a0d3b6f9c: c2-a and c2-b each native/driver0, 1,962 events, **raw bytes equal the original r-a/r-b** (physical 8d5afe5ea932338f, decision
+4e542d029ba7362a). Controlled person case (a0d3b6f9c) target/control/repeat native0, 0 failed checks; equal to the 74ae traces under the declared entry-point mapping
+(`place` -> `person_face`), repeat byte-identical. Ordinary 900 s with the ordinary d3c9a5c5e binaries: native0 (1,260 s), recording 11,363,845 / observations 6,629,273 /
+metrics 11,777 byte-identical to ab-base, observation check PASS, post-input manifest IDENTICAL. Host authority (provider, 300 s): the reference host's report equals the
+original's checkpoint (196 lines); a quarter-rate ready keyframe, tenth-rate device steps, all-invalid vectors and a non-EECH "own model" host each change births/losses/rejections
+(185/6 -> 182/6, 177/9, 0/0, 5/1) and the fixture records their answers; the ORIGINAL build is unmoved by the same hosts (equal, 0 requests). Shipping refusals: missing provider
+fails at boot; nil, unknown state, ready state 5, phase 7, NaN vector, second draw, negative range and a Lua error stop with `host aim:` and the reason. One refusal mode
+(`bad_draw_for_ballistic`) never fired because no standalone ballistic request occurs in 300 s (native1 from the driver's own assertion); covered by an engine unit test.
+fmt/clippy(default and aim-fixture)/tests: cargo `CARGO_EXIT=0` for all five steps. Failed experiments kept (x-dev1 physical-hash mismatch from a missing lead-result echo, fixed;
+first ordinary-900 attempt stopped in the runner script before any native; first provider runs one frame short). Remaining coupling: device viewpoint/model lookup, target point,
+ballistic-table generation (core projectile sim), the HUD sight's shared `get_angle_of_projection*`, rocket-tube roll and package-arc bearing, guided flight intercept
+(`wn_move.c`), the refused triangulated range. Unexercised by the natural witnesses: standalone lead/ballistic/intercept, off-map/stationary lead, point-blank, player tracking
+and HUD offsets. Cost: +17-19% wall time (about 12.9 M extra crossings per 600 s). Not done here: root's final ordinary build/full pack, independent review, merge, integration of
+accepted04bf645a. Next bounded action: independent review of the new physical source and evidence; then root's gates.
+
 ## Operator/workflow checkpoint
 
 One implementation lane: Claude CLI-p, exact claude-sonnet-5-5 High, local context

@@ -1,0 +1,1 @@
+aim-provider: mode=invalid ready_update=4746584 ready_command=1719573 required=0 step=0 vectors=57516 (valid 0 invalid 53934) lead=0 ballistic=0 intercept=0 need_draw=3582 ready_moving=252 weapon_births=0 losses=0 failure=none
