@@ -9,7 +9,7 @@ import re
 import sys
 
 EXPECTED = [
-    'rejects_unsupported_launcher', 'rejects_unsupported_target', 'queries_reject_unsupported_subject', 'rejection_leaves_state_unchanged',
+    'rejects_unsupported_launcher', 'queries_reject_unsupported_subject', 'rejection_leaves_state_unchanged', 'accepts_site_target',
     'empty_target_establishes_no_link', 'empty_target_restores_previous_link', 'empty_target_birth_has_no_target',
     'no_ammo_outcome', 'no_ammo_changes_nothing', 'targeted_launches_created', 'case_weapons_reach_terminal',
 ]

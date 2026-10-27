@@ -44,7 +44,7 @@ end
 local function emit (t)
 	local parts = {}
 	for k, v in pairs (t) do
-		local value = type (v) == "string" and string.format ("%q", v) or number_or_string (v)
+		local value = type (v) == "string" and string.format ("%q", (v:gsub ("%c", " "))) or number_or_string (v)
 		parts [#parts + 1] = string.format ("%q:%s", k, value)
 	end
 	table.sort (parts)

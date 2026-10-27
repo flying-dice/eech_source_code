@@ -1537,9 +1537,13 @@ static entity *case_find (const char *host_id)
 	return NULL;
 }
 
-/* The roster holds more kinds than can launch or be linked as a weapon target (a SITE has a roster id and neither a target list nor a weapon package): the case
- * operations support the six mobile families only, and reject anything else BEFORE any getter or setter runs on it. */
-static int supported_kind (const entity *en)
+/* The roster holds kinds with different abilities, so the guards are per ROLE, from the operations each role needs:
+ *   launcher / query subject: the weapon-package count, the alive flag and the target link as a child (LIST_TYPE_TARGET): the six mobile families. A SITE has a roster id and
+ *                             none of the launcher operations; it is rejected here.
+ *   target: the target list ROOT (LIST_TYPE_TARGET_ROOT), alive, side, position and target point. The six mobile families have them (mobile base) and so do the fixed kinds
+ *           with roster ids, SITE and SITE_UPDATABLE (fixed base: fx_list.c, fx_int.c, fx_vec3d.c; st_funcs.c overload_fixed_functions): a SITE is a valid static target.
+ * Anything else is rejected BEFORE any getter or setter runs on it. */
+static int launcher_kind (const entity *en)
 {
 	switch (en->type)
 	{
@@ -1555,13 +1559,25 @@ static int supported_kind (const entity *en)
 	}
 }
 
+static int target_kind (const entity *en)
+{
+	switch (en->type)
+	{
+		case ENTITY_TYPE_SITE:
+		case ENTITY_TYPE_SITE_UPDATABLE:
+			return 1;
+		default:
+			return launcher_kind (en);
+	}
+}
+
 /* The kind of a roster host id, from the entity's type field alone (no getter runs on it): found=0 for an id that names nothing. Never an error: it is how a driver learns
  * which roster ids the other case operations will reject. */
 int eech_wpn_case_kind_run (const char *host_id, char *text, int capacity)
 {
 	entity *en = case_find (host_id);
-	int n = snprintf (text, (size_t) capacity, "wpn-case-kind host_id=%s found=%d kind=%s supported=%d\n", host_id, en ? 1 : 0, en ? get_entity_type_name ((entity_types) en->type) : "none",
-		en ? supported_kind (en) : 0);
+	int n = snprintf (text, (size_t) capacity, "wpn-case-kind host_id=%s found=%d kind=%s launcher=%d target=%d\n", host_id, en ? 1 : 0, en ? get_entity_type_name ((entity_types) en->type) : "none",
+		en ? launcher_kind (en) : 0, en ? target_kind (en) : 0);
 	return (n < 0 || n >= capacity) ? -1 : 0;
 }
 
@@ -1577,7 +1593,7 @@ int eech_wpn_case_query_run (const char *host_id, int weapon, char *text, int ca
 		snprintf (text, (size_t) capacity, "wpn-case-error reason=no_such_host_id host_id=%s\n", host_id);
 		return -1;
 	}
-	if (!supported_kind (en))
+	if (!launcher_kind (en))
 	{
 		snprintf (text, (size_t) capacity, "wpn-case-error reason=subject_kind_unsupported kind=%s\n", get_entity_type_name ((entity_types) en->type));
 		return -1;
@@ -1611,12 +1627,12 @@ int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, in
 		return -1;
 	}
 	/* kinds first: no getter or setter below runs on an entity that cannot launch or be linked as a weapon target; nothing has been changed when this rejects */
-	if (!supported_kind (launcher))
+	if (!launcher_kind (launcher))
 	{
 		snprintf (text, (size_t) capacity, "wpn-case-error reason=launcher_kind_unsupported kind=%s\n", get_entity_type_name ((entity_types) launcher->type));
 		return -1;
 	}
-	if (target && !supported_kind (target))
+	if (target && !target_kind (target))
 	{
 		snprintf (text, (size_t) capacity, "wpn-case-error reason=target_kind_unsupported kind=%s\n", get_entity_type_name ((entity_types) target->type));
 		return -1;

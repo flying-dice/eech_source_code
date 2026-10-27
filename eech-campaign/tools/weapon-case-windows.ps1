@@ -23,8 +23,8 @@ if (-not (Test-Path $world)) { throw "$world not found" }
 New-Item -ItemType Directory -Force $Out | Out-Null
 $out = (Resolve-Path $Out).Path
 foreach ($p in @($bin, $Root, $out)) { if ($p -match '\s') { throw "path with a space: $p" } }
-$script = (Join-Path $bin 'lua\weapon-case.lua') -replace '\', '/'
-$arguments = @($script, "root=$($Root -replace '\', '/')", "warmup=$Warmup", "settle=$Settle", "frame_ms=$FrameMs", "out=$((Join-Path $out 'trace.jsonl') -replace '\', '/')") -join ' '
+$script = (Join-Path $bin 'lua\weapon-case.lua') -replace '\\', '/'
+$arguments = @($script, "root=$($Root -replace '\\', '/')", "warmup=$Warmup", "settle=$Settle", "frame_ms=$FrameMs", "out=$((Join-Path $out 'trace.jsonl') -replace '\\', '/')") -join ' '
 $start = Get-Date
 $proc = Start-Process -FilePath $world -WorkingDirectory $out -NoNewWindow -PassThru -RedirectStandardError (Join-Path $out 'run.log') `
 	-RedirectStandardOutput (Join-Path $out 'run.out') -ArgumentList $arguments

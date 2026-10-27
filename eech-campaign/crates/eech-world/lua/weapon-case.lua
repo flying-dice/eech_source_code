@@ -11,14 +11,18 @@
 --
 -- Checks (each a `check` event; the run fails, with a nonzero native exit, if any fails or any expected check is missing):
 --   rejects_unsupported_launcher     a roster id that is not one of the six launching families is rejected before any getter or mutation
---   rejects_unsupported_target       the same for a target id; the launcher's existing target link is untouched (rejection_leaves_state_unchanged)
 --   queries_reject_unsupported_subject  the read-only query refuses the same ids
+--   rejection_leaves_state_unchanged    the rejection changes nothing (the launcher's link and ammunition, and no event)
+--   accepts_site_target              a SITE is a valid static TARGET (target list root, alive, side, position, target point) though it is not a launcher: a real launcher
+--                                    is given the site as its target through the campaign's own setter, launches, and gets its previous link back
 --   empty_target_establishes_no_link / empty_target_restores_previous_link / empty_target_birth_has_no_target
 --                                    an empty target id really leaves the launcher with NO link (set through the campaign's setter), the launch then runs with no target, and
 --                                    the launcher's previous link is restored through the same setter
 --   no_ammo_outcome / no_ammo_changes_nothing   a launcher asked to launch a type it does not carry reports the no-ammunition outcome and creates nothing
 --   targeted_launches_created        at least three targeted launches by real launchers created weapons
---   case_weapons_reach_terminal      every weapon those launches created reached its terminal fact within the settle time
+--   case_weapons_reach_terminal      every weapon those launches created reached its terminal fact within the settle time, except smoke grenades, which survive
+--                                    ground impact and rest on the ground (not moved again) until their long lifetime ends; those are named and must be accounted for by the
+--                                    run's ground_survived tally. Optional categories (fuze timer, lock-on-after-launch, ...) are MEASURED and reported, never promised.
 --
 -- host.args: root, warmup (simulated seconds before the cases, default 60), settle (simulated seconds allowed for the case weapons to finish, default 240),
 --            frame_ms (default 100), out (JSON Lines path)
@@ -42,7 +46,7 @@ local function emit (t)
 	local parts = {}
 	for k, v in pairs (t) do
 		local value
-		if type (v) == "string" then value = string.format ("%q", v)
+		if type (v) == "string" then value = string.format ("%q", (v:gsub ("%c", " "))) -- Lua 5.1 %q writes a newline as backslash-newline, which is not JSON
 		elseif type (v) == "boolean" then value = v and "true" or "false"
 		else value = number_or_string (v) end
 		parts [#parts + 1] = string.format ("%q:%s", k, value)
@@ -181,14 +185,14 @@ local n_supported = 0
 for _ in pairs (supported) do n_supported = n_supported + 1 end
 emit { event = "inventory", supported_alive = n_supported, bound_ids = #ids, bound_ids_rejected_by_query = n_unsupported_queries }
 
--- a roster id that is not a launching family: found by kind, never by an error
+-- a roster id that is not a launching family but is a valid target (a site): found by kind, never by an error
 local site_id, site_kind
 for n = 1, 20000 do
 	local id = "eech-world:" .. n
 	local ok, text = pcall (engine.wpn_case_kind, engine, id)
 	if ok then
 		local k = fields (text)
-		if k.found == "1" and k.supported == "0" then site_id, site_kind = id, k.kind break end
+		if k.found == "1" and k.launcher == "0" and k.target == "1" then site_id, site_kind = id, k.kind break end
 	end
 end
 emit { event = "unsupported_roster_id", id = site_id or "none", kind = site_kind or "none" }
@@ -228,20 +232,38 @@ if linked and site_id then
 	local before = state (linked, w)
 	local r1 = launch (site_id, "", w)
 	check ("rejects_unsupported_launcher", not r1.ok, r1.text)
-	local r2 = launch (linked, site_id, w)
-	check ("rejects_unsupported_target", not r2.ok, r2.text)
 	local q = pcall (engine.wpn_case_query, engine, site_id, 0)
 	check ("queries_reject_unsupported_subject", not q, site_kind or "")
 	local after = state (linked, w)
 	check ("rejection_leaves_state_unchanged", before and after and before.has_target == after.has_target and before.target_type == after.target_type
-		and before.weapon_count == after.weapon_count and #r1.events == 0 and #r2.events == 0, string.format ("before target %s/%s count %s, after %s/%s %s", tostring (before and before.has_target),
+		and before.weapon_count == after.weapon_count and #r1.events == 0, string.format ("before target %s/%s count %s, after %s/%s %s", tostring (before and before.has_target),
 		tostring (before and before.target_type), tostring (before and before.weapon_count), tostring (after and after.has_target), tostring (after and after.target_type), tostring (after and after.weapon_count)))
 else
 	check ("rejects_unsupported_launcher", false, "no unsupported roster id or no linked launcher was found")
-	check ("rejects_unsupported_target", false, "no unsupported roster id or no linked launcher was found")
 	check ("queries_reject_unsupported_subject", false, "no unsupported roster id or no linked launcher was found")
 	check ("rejection_leaves_state_unchanged", false, "no unsupported roster id or no linked launcher was found")
 end
+
+-- a site is a valid static TARGET: the launcher is given the site through the campaign's own setter, launches (each weapon it carries in turn until one is created), and
+-- gets its previous link back. A weapon aimed at a static point is a branch no natural launch reached.
+local site_accepted
+if linked and site_id then
+	local before = state (linked, 0)
+	for _, w in ipairs (supported [linked].inventory) do
+		if w.decoy == 0 then
+			local r = launch (linked, site_id, w.weapon)
+			if r.ok and r.fields.creates >= 1 then
+				local after = state (linked, 0)
+				local birth
+				for _, e in ipairs (r.events) do if e.kind == "birth" and not birth then birth = e end end
+				site_accepted = r.fields.target_link == 1 and r.fields.restored == 1 and birth ~= nil and birth.target == site_kind and after ~= nil and after.has_target == 1 and after.target_type == before.target_type
+				emit { event = "site_target", weapon = w.weapon, site = site_id, site_kind = site_kind, birth_target = birth and birth.target or "none", text = r.text }
+				break
+			end
+		end
+	end
+end
+check ("accepts_site_target", site_accepted == true, site_accepted == nil and "no launch at the site created a weapon" or "")
 
 -- ---------------------------------------------------------------------------------------------------------------- empty target link (a launcher that HAS a link)
 local empty_done = false
@@ -307,7 +329,7 @@ local categories = {
 	{ name = "unguided_other", want = function (w) return w.guidance == 0 and w.aiming == 0 and w.decoy == 0 end },
 }
 local seen_weapon, used_launcher = {}, {}
-local made, created_ordinals, targeted_created = {}, {}, 0
+local made, created_ordinals, case_type, targeted_created = {}, {}, {}, 0
 local function try_category (cat, require_new_guidance)
 	for _, id in ipairs (ordered) do
 		local w = first_weapon (id, function (x) return cat.want (x) and not seen_weapon [x.weapon] end)
@@ -320,7 +342,7 @@ local function try_category (cat, require_new_guidance)
 			made [#made + 1] = { category = cat.name, launcher = id, target = target, weapon = w.weapon, created = created }
 			if created >= 1 then
 				targeted_created = targeted_created + 1
-				for _, e in ipairs (r.events) do if e.kind == "birth" then created_ordinals [e.w] = false end end
+				for _, e in ipairs (r.events) do if e.kind == "birth" then created_ordinals [e.w] = false case_type [e.w] = e.type end end
 				return true
 			end
 		end
@@ -346,7 +368,19 @@ while pending > 0 and clock.elapsed_seconds < deadline do
 	pending = 0
 	for _, done in pairs (created_ordinals) do if not done then pending = pending + 1 end end
 end
-check ("case_weapons_reach_terminal", pending == 0, string.format ("%d case weapons still without a terminal fact at %s s", pending, tostring (clock.elapsed_seconds)))
+-- A weapon of a type that survives ground impact (the smoke grenade) comes to rest and is not moved again (weapon_on_ground) until its long lifetime ends, so it can outlast
+-- the settle time: it is not a terminal fact the original has produced yet. Such weapons are named and must be accounted for by the run's own ground_survived tally; any other
+-- case weapon without a terminal fact fails the check.
+local resting, unexplained = {}, {}
+for w, done in pairs (created_ordinals) do
+	if not done then
+		if string.find (case_type [w] or "", "SMOKE", 1, true) then resting [#resting + 1] = tostring (w) .. ":" .. case_type [w] else unexplained [#unexplained + 1] = tostring (w) .. ":" .. tostring (case_type [w]) end
+	end
+end
+local survived = tonumber (string.match (engine:wpn_trace (), "wpn%-path name=ground_survived count=(%d+)")) or 0
+emit { event = "resting_case_weapons", resting = table.concat (resting, ","), unexplained = table.concat (unexplained, ","), ground_survived = survived, at = clock.elapsed_seconds }
+check ("case_weapons_reach_terminal", #unexplained == 0 and #resting <= survived, string.format ("%d case weapons without a terminal fact at %s s: resting on the ground [%s] (ground_survived %d), unexplained [%s]",
+	pending, tostring (clock.elapsed_seconds), table.concat (resting, ","), survived, table.concat (unexplained, ",")))
 
 drain ()
 emit { event = "run", elapsed = clock.elapsed_seconds, frames = frames }
