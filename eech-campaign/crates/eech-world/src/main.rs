@@ -8,11 +8,12 @@
 
 mod crash;
 
+use eech_world::aim::{self, Aim};
 use eech_world::los::{Los, LosRequest};
 use eech_world::movement::{
     Advance, CarryShape, Creation, DependentCarry, FixedWingMove, FixedWingNavigation, FixedWingPhase, FixedWingTerrain, HelicopterAnswer, HelicopterBegin,
     HelicopterEnd, HelicopterGuide, HelicopterPlan, HelicopterSteer, HelicopterStructure, HelicopterTerrainSample, HelicopterWaypointKind, Kind, Lifecycle,
-    LifecycleMode, Movers, NavigationMember, Outcome, PersonBegin, PersonEnd, Pose, Request, ShipMove, Terrain,
+    LifecycleMode, Movers, NavigationMember, Outcome, PersonBegin, PersonEnd, PersonFace, Pose, Request, ShipMove, Terrain,
 };
 use eech_world::sense::{self, Sense};
 use eech_world::tacview::{ObjectInfo, Recorder};
@@ -89,6 +90,45 @@ fn exact_numbers<const N: usize>(lua: &Lua, table: &LuaTable, field: &str) -> Re
     let mut numbers = [0.0f32; N];
     for (slot, value) in numbers.iter_mut().zip(values) {
         *slot = nearest_f32(value).ok_or_else(|| shape(field, N))?;
+    }
+    Ok(numbers)
+}
+
+/// The scalars `names` (comma-separated field names of `table`, `N` of them) exactly as Lua holds them, in one call: the formatting of
+/// `exact_f64s` for several scalar fields at once, which the aiming exchange (a request per entity per update) makes worth having. The Lua function
+/// for a name list is built once and kept in the registry.
+fn exact_fields<const N: usize>(lua: &Lua, table: &LuaTable, names: &'static str) -> Result<[f32; N], String> {
+    let key = format!("eech_exact_fields:{names}");
+    let format: LuaFunction = match lua.named_registry_value(&key) {
+        Ok(function) => function,
+        Err(_) => {
+            let fields: Vec<&str> = names.split(',').collect();
+            assert_eq!(fields.len(), N, "exact_fields: {names} is not {N} names");
+            let mut code = String::from("return function(t)\n");
+            for (index, field) in fields.iter().enumerate() {
+                code += &format!(
+                    "local v{index} = t.{field}\nif type(v{index}) ~= 'number' or v{index} ~= v{index} or v{index} == math.huge or v{index} == -math.huge then return nil, '{field}' end\n"
+                );
+            }
+            let vars: Vec<String> = (0..N).map(|index| format!("v{index}")).collect();
+            code += &format!("return string.format('{}', {})\nend", "%.17g ".repeat(N), vars.join(", "));
+            let function: LuaFunction = lua.load(code).eval().map_err(|e| e.to_string())?;
+            lua.set_named_registry_value(&key, function.clone()).map_err(|e| e.to_string())?;
+            function
+        }
+    };
+    let (text, bad): (Option<String>, Option<String>) = format.call(table).map_err(|e| e.to_string())?;
+    let Some(text) = text else {
+        return Err(shape(&bad.unwrap_or_default(), 1));
+    };
+    let mut parts = text.split_whitespace();
+    let mut numbers = [0.0f32; N];
+    for (slot, field) in numbers.iter_mut().zip(names.split(',')) {
+        *slot = parts
+            .next()
+            .and_then(|part| part.parse::<f64>().ok())
+            .and_then(nearest_f32)
+            .ok_or_else(|| shape(field, 1))?;
     }
     Ok(numbers)
 }
@@ -629,6 +669,9 @@ fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request
             parent_new: numbers(lua, step, "dc_parent_new")?,
             heading: number(lua, step, "dc_heading")?,
             velocity: number(lua, step, "dc_velocity")?,
+        }),
+        "person_face" => Request::PersonFace(PersonFace {
+            target: numbers(lua, step, "pf_target")?,
         }),
         "person_end" => Request::PersonEnd(PersonEnd {
             elevation: number(lua, step, "elevation")?,
@@ -1447,6 +1490,324 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     table.set("stealth_limit", echo.stealth_limit)?;
                     table.set("tolerance_limit", echo.tolerance_limit)?;
                     result.set("echo", table)?;
+                }
+                Ok(result)
+            })?,
+        )?;
+    }
+    {
+        let aim = Rc::new(RefCell::new(Aim::new()));
+        host.set(
+            "aim",
+            lua.create_function(move |lua, step: LuaTable| {
+                let fail = |message: String| LuaError::runtime(format!("host.aim: {message}"));
+                let mode: String = step.get("mode")?;
+                let one = |table: &LuaTable, name: &str| -> LuaResult<f32> { Ok(exact_numbers::<1>(lua, table, name).map_err(fail)?[0]) };
+                let flag = |table: &LuaTable, name: &str| -> LuaResult<bool> {
+                    match table.get::<LuaValue>(name)? {
+                        LuaValue::Boolean(value) => Ok(value),
+                        other => Err(fail(format!("{name} must be a boolean, got {}", other.type_name()))),
+                    }
+                };
+                // the identities are the host's own, passed through; they are checked for shape only (a host that owns the world uses them to find its units)
+                let check_id = |name: &str| -> LuaResult<()> {
+                    match step.get::<LuaValue>(name)? {
+                        LuaValue::Nil => Ok(()),
+                        LuaValue::String(id) => {
+                            let id = id.to_str()?;
+                            if id.is_empty() || id.len() > 128 {
+                                return Err(fail(format!("{name} must be 1 to 128 bytes")));
+                            }
+                            Ok(())
+                        }
+                        other => Err(fail(format!("{name} must be a string, got {}", other.type_name()))),
+                    }
+                };
+                let nested = |name: &str| -> LuaResult<LuaTable> {
+                    match step.get::<LuaValue>(name)? {
+                        LuaValue::Table(table) => Ok(table),
+                        other => Err(fail(format!("{name} must be a table, got {}", other.type_name()))),
+                    }
+                };
+                let weapon_of = || -> LuaResult<aim::Weapon> {
+                    let facts = nested("weapon")?;
+                    let aiming_type = match facts.get::<LuaValue>("aiming_type")? {
+                        LuaValue::String(name) => match &*name.to_str()? {
+                            "none" => 0,
+                            "intercept_point" => 1,
+                            "angle_of_projection" => 2,
+                            "lead_and_ballistic" => 3,
+                            other => return Err(fail(format!("unknown aiming type {other:?}"))),
+                        },
+                        other => return Err(fail(format!("aiming_type must be a string, got {}", other.type_name()))),
+                    };
+                    Ok(aim::Weapon {
+                        weapon: facts.get("weapon")?,
+                        present: flag(&facts, "present")?,
+                        aiming_type,
+                        cruise_velocity: one(&facts, "cruise_velocity")?,
+                        acquire_forward: flag(&facts, "acquire_parent_forward_velocity")?,
+                        source_velocity: one(&facts, "source_velocity")?,
+                    })
+                };
+                let target_of = || -> LuaResult<aim::Target> {
+                    let facts = nested("target")?;
+                    Ok(aim::Target {
+                        position: exact_numbers::<3>(lua, &facts, "position").map_err(fail)?,
+                        point: exact_numbers::<3>(lua, &facts, "point").map_err(fail)?,
+                        motion_vector: exact_numbers::<3>(lua, &facts, "motion_vector").map_err(fail)?,
+                        mobile: flag(&facts, "mobile")?,
+                    })
+                };
+                let world_of = || -> LuaResult<aim::World> {
+                    Ok(aim::World {
+                        map_min: exact_numbers::<3>(lua, &step, "map_min").map_err(fail)?,
+                        map_max: exact_numbers::<3>(lua, &step, "map_max").map_err(fail)?,
+                        comms_weapon_lag: one(&step, "comms_weapon_lag")?,
+                    })
+                };
+                let draw_of = || -> LuaResult<aim::Draw> {
+                    match step.get::<LuaValue>("draw")? {
+                        LuaValue::Nil => Ok(None),
+                        LuaValue::Integer(value) if (0..=32767).contains(&value) => Ok(Some(value as i32)),
+                        LuaValue::Number(value) if value.fract() == 0.0 && (0.0..=32767.0).contains(&value) => Ok(Some(value as i32)),
+                        other => Err(fail(format!("draw must be an integer in [0, 32767], got {other:?}"))),
+                    }
+                };
+                let echo_of = || flag(&step, "echo");
+                let result = lua.create_table()?;
+                let echo_into = |events: &Option<Vec<aim::Event>>| -> LuaResult<()> {
+                    if let Some(events) = events {
+                        // the model's intermediate values, for the campaign build that records a trace; a campaign without that feature refuses an echo it did not ask for
+                        let list = lua.create_table()?;
+                        for (index, event) in events.iter().enumerate() {
+                            let row = lua.create_table()?;
+                            row.set(
+                                "kind",
+                                match event.kind {
+                                    1 => "intercept",
+                                    2 => "lead_path",
+                                    3 => "lead_range",
+                                    4 => "lead_iteration",
+                                    5 => "ballistic",
+                                    6 => "lead_result",
+                                    other => return Err(fail(format!("the model produced an unknown echo kind {other}"))),
+                                },
+                            )?;
+                            row.set("a", event.a)?;
+                            row.set("b", event.b)?;
+                            row.set("c", event.c)?;
+                            row.set("d", event.d)?;
+                            row.set("f", event.f.to_vec())?;
+                            list.set(index + 1, row)?;
+                        }
+                        result.set("echo", list)?;
+                    }
+                    Ok(())
+                };
+                match mode.as_str() {
+                    "table" => {
+                        let bytes: LuaString = step.get("cells")?;
+                        aim.borrow_mut()
+                            .set_table(
+                                step.get("weapon")?,
+                                one(&step, "max_range")?,
+                                step.get("velocity_tests")?,
+                                step.get("pitch_indices")?,
+                                step.get("range_values")?,
+                                &bytes.as_bytes(),
+                            )
+                            .map_err(fail)?;
+                        result.set("state", "done")?;
+                    }
+                    "ready_update" => {
+                        check_id("source_host_id")?;
+                        let [state, rate, delta_time] = exact_fields::<3>(lua, &step, "state,rate,delta_time").map_err(fail)?;
+                        let (state, phase) = aim.borrow().ready_update(state, rate, delta_time).map_err(fail)?;
+                        result.set("state", "done")?;
+                        result.set("ready_state", state)?;
+                        result.set("phase", phase)?;
+                    }
+                    "ready_command" => {
+                        check_id("source_host_id")?;
+                        let state = aim.borrow().ready_command(one(&step, "state")?, flag(&step, "open")?).map_err(fail)?;
+                        result.set("state", "done")?;
+                        result.set("ready_state", state)?;
+                    }
+                    "required" => {
+                        check_id("source_host_id")?;
+                        let tracking = match step.get::<LuaValue>("tracking")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Table(facts) => Some(aim::Track {
+                                device_position: exact_numbers::<3>(lua, &facts, "device_position").map_err(fail)?,
+                                point: exact_numbers::<3>(lua, &facts, "point").map_err(fail)?,
+                                pitch: one(&facts, "pitch")?,
+                            }),
+                            other => return Err(fail(format!("tracking must be a table, got {}", other.type_name()))),
+                        };
+                        let unbounded = match step.get::<LuaValue>("unbounded")? {
+                            LuaValue::Nil => false,
+                            LuaValue::Boolean(unbounded) => unbounded,
+                            other => return Err(fail(format!("unbounded must be a boolean, got {}", other.type_name()))),
+                        };
+                        let limits = if unbounded {
+                            None
+                        } else {
+                            Some(aim::Limits {
+                                heading: [one(&step, "heading_min")?, one(&step, "heading_max")?],
+                                pitch: [one(&step, "pitch_min")?, one(&step, "pitch_max")?],
+                                climb: flag(&step, "climb")?,
+                            })
+                        };
+                        let intercept_vector = if tracking.is_some() {
+                            [0.0; 3]
+                        } else {
+                            exact_numbers::<3>(lua, &step, "intercept_vector").map_err(fail)?
+                        };
+                        let (heading, pitch) = aim
+                            .borrow()
+                            .required(
+                                exact_numbers::<9>(lua, &step, "device_attitude").map_err(fail)?,
+                                intercept_vector,
+                                limits,
+                                tracking,
+                            )
+                            .map_err(fail)?;
+                        result.set("state", "done")?;
+                        result.set("required_heading", heading)?;
+                        result.set("required_pitch", pitch)?;
+                    }
+                    "step" => {
+                        check_id("source_host_id")?;
+                        let [current_heading, current_pitch, required_heading, required_pitch, heading_min, heading_max, heading_rate, pitch_rate, delta_time] =
+                            exact_fields::<9>(
+                                lua,
+                                &step,
+                                "current_heading,current_pitch,required_heading,required_pitch,heading_min,heading_max,heading_rate,pitch_rate,delta_time",
+                            )
+                            .map_err(fail)?;
+                        let out = aim
+                            .borrow()
+                            .step(
+                                [current_heading, current_pitch],
+                                [required_heading, required_pitch],
+                                [heading_min, heading_max],
+                                [heading_rate, pitch_rate],
+                                delta_time,
+                            )
+                            .map_err(fail)?;
+                        result.set("state", "done")?;
+                        result.set("delta_heading", out[0])?;
+                        result.set("delta_pitch", out[1])?;
+                        result.set("new_heading", out[2])?;
+                        result.set("new_pitch", out[3])?;
+                    }
+                    "vectors" => {
+                        check_id("source_host_id")?;
+                        check_id("target_host_id")?;
+                        let tracking = match step.get::<LuaValue>("tracking_point")? {
+                            LuaValue::Nil => None,
+                            _ => Some(exact_numbers::<3>(lua, &step, "tracking_point").map_err(fail)?),
+                        };
+                        let (weapon, target) = if tracking.is_none() {
+                            (Some(weapon_of()?), Some(target_of()?))
+                        } else {
+                            (None, None)
+                        };
+                        let outcome = aim
+                            .borrow()
+                            .vectors(
+                                exact_numbers::<3>(lua, &step, "device_position").map_err(fail)?,
+                                exact_numbers::<9>(lua, &step, "device_attitude").map_err(fail)?,
+                                tracking,
+                                weapon.as_ref(),
+                                target.as_ref(),
+                                &world_of()?,
+                                flag(&step, "source_gunship")?,
+                                draw_of()?,
+                                echo_of()?,
+                            )
+                            .map_err(fail)?;
+                        match outcome {
+                            aim::Outcome::NeedDraw => result.set("state", "need_draw")?,
+                            aim::Outcome::Done(vectors) => {
+                                result.set("state", "done")?;
+                                result.set("valid", vectors.valid)?;
+                                result.set("weapon_vector", vectors.weapon_vector.to_vec())?;
+                                result.set("target_vector", vectors.target_vector.to_vec())?;
+                                result.set("intercept_vector", vectors.intercept_vector.to_vec())?;
+                                result.set("intercept_range", vectors.intercept_range)?;
+                                echo_into(&vectors.echo)?;
+                            }
+                        }
+                    }
+                    "lead" => {
+                        check_id("source_host_id")?;
+                        check_id("target_host_id")?;
+                        let outcome = aim
+                            .borrow()
+                            .lead(
+                                step.get("weapon")?,
+                                exact_numbers::<3>(lua, &step, "device_position").map_err(fail)?,
+                                one(&step, "parent_velocity")?,
+                                &target_of()?,
+                                &world_of()?,
+                                flag(&step, "source_gunship")?,
+                                draw_of()?,
+                                echo_of()?,
+                            )
+                            .map_err(fail)?;
+                        match outcome {
+                            aim::Outcome::NeedDraw => result.set("state", "need_draw")?,
+                            aim::Outcome::Done(lead) => {
+                                result.set("state", "done")?;
+                                result.set("ok", lead.ok)?;
+                                result.set("intercept_point", lead.intercept_point.to_vec())?;
+                                result.set("angle", lead.angle)?;
+                                // a partial output: sent only when the prediction produced one (the off-map and tiny-range paths produce none and the model invents none)
+                                if let Some(time_of_flight) = lead.time_of_flight {
+                                    result.set("time_of_flight", time_of_flight)?;
+                                }
+                                echo_into(&lead.echo)?;
+                            }
+                        }
+                    }
+                    "ballistic" => {
+                        let ballistic = aim
+                            .borrow()
+                            .ballistic(
+                                step.get("weapon")?,
+                                one(&step, "range")?,
+                                one(&step, "height_diff_or_pitch")?,
+                                flag(&step, "simplified")?,
+                                flag(&step, "fixed_pitch")?,
+                                one(&step, "parent_velocity")?,
+                            )
+                            .map_err(fail)?;
+                        result.set("state", "done")?;
+                        result.set("ok", ballistic.ok)?;
+                        if ballistic.ok {
+                            result.set("angle", ballistic.angle)?;
+                            result.set("time_of_flight", ballistic.time_of_flight)?;
+                        }
+                    }
+                    "intercept" => {
+                        check_id("source_host_id")?;
+                        check_id("target_host_id")?;
+                        let intercept = aim
+                            .borrow()
+                            .intercept(
+                                exact_numbers::<3>(lua, &step, "device_position").map_err(fail)?,
+                                &weapon_of()?,
+                                &target_of()?,
+                                echo_of()?,
+                            )
+                            .map_err(fail)?;
+                        result.set("state", "done")?;
+                        result.set("intercept_point", intercept.intercept_point.to_vec())?;
+                        echo_into(&intercept.echo)?;
+                    }
+                    other => return Err(fail(format!("unknown mode {other:?}"))),
                 }
                 Ok(result)
             })?,

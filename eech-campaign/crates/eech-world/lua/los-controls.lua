@@ -41,7 +41,7 @@ local engine = dc.boot {
 	seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
 	supply_reached = host.supply_reached,
 	line_of_sight = host.line_of_sight,
-	sense = host.sense,
+	sense = host.sense, aim = host.aim,
 }
 for _ = 1, frames do engine:frame (frame_ms) end
 

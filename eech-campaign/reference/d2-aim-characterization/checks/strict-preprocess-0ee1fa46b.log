@@ -1,0 +1,9 @@
+aphavoc/source/entity/mobile/weapon/weapon.c: strict feature-off equivalence PASS
+aphavoc/source/entity/mobile/weapon/wn_move.c: strict feature-off equivalence PASS
+aphavoc/source/entity/mobile/aircraft/ac_wpn.c: strict feature-off equivalence PASS
+aphavoc/source/entity/mobile/vehicle/vh_wpn.c: strict feature-off equivalence PASS
+aphavoc/source/entity/mobile/vehicle/person/ps_anim.c: strict feature-off equivalence PASS
+aphavoc/source/entity/en_misc/en_anim/en_anim.c: strict feature-off equivalence PASS
+aphavoc/source/entity/mobile/aircraft/ac_anim.c: strict feature-off equivalence PASS
+aphavoc/source/entity/mobile/vehicle/vh_anim.c: strict feature-off equivalence PASS
+STRICT_EXIT=0

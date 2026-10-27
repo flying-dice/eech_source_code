@@ -1,0 +1,7 @@
+21:51:37 queue-1 start bin=R:\eech_source_code\eech-campaign\target\aim-fixture\f749878ce-lf
+21:51:37 person case target
+21:52:24 person case control
+21:52:59 person case target repeat
+21:53:29 600 s a
+22:08:50 600 s b
+22:22:25 queue-1 DONE

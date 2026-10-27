@@ -56,6 +56,7 @@ static enum engine_operation operation;
 	campaign_movement_host movement_host; \
 	campaign_los_host los_host; \
 	campaign_sense_host sense_host; \
+	campaign_aim_host aim_host; \
 	if (eech_engine_poisoned) \
 	{ \
 		return EECH_ENGINE_POISONED; \
@@ -76,11 +77,14 @@ static enum engine_operation operation;
 	los_host.user = entry_host ? entry_host->user : NULL; \
 	sense_host.sense = entry_host ? entry_host->sense : NULL; \
 	sense_host.user = entry_host ? entry_host->user : NULL; \
+	aim_host.aim = entry_host ? entry_host->aim : NULL; \
+	aim_host.user = entry_host ? entry_host->user : NULL; \
 	campaign_roster_set_host (entry_host ? &roster_host : NULL); \
 	campaign_supply_arrival_set_host (entry_host ? &arrival_host : NULL); \
 	campaign_movement_set_host (entry_host ? &movement_host : NULL); \
 	campaign_los_set_host (entry_host ? &los_host : NULL); \
 	campaign_sense_set_host (entry_host ? &sense_host : NULL); \
+	campaign_aim_set_host (entry_host ? &aim_host : NULL); \
 	fegetenv (&caller_fenv); \
 	fesetround (FE_TOWARDZERO); \
 	eech_fatal_target = &fatal_jmp; \
@@ -91,6 +95,7 @@ static enum engine_operation operation;
 		campaign_movement_set_host (NULL); \
 		campaign_los_set_host (NULL); \
 		campaign_sense_set_host (NULL); \
+		campaign_aim_set_host (NULL); \
 		operation = OPERATION_NONE; \
 		eech_fatal_target = saved_target; \
 		fesetenv (&caller_fenv); \
@@ -103,6 +108,7 @@ static enum engine_operation operation;
 	campaign_movement_set_host (NULL); \
 	campaign_los_set_host (NULL); \
 	campaign_sense_set_host (NULL); \
+	campaign_aim_set_host (NULL); \
 	operation = OPERATION_NONE; \
 	eech_fatal_target = saved_target; \
 	fesetenv (&caller_fenv); \
@@ -268,7 +274,7 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense)
+	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -335,7 +341,7 @@ int eech_engine_frame (uint32_t milliseconds, const struct eech_engine_host *hos
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense)
+	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -698,7 +704,7 @@ int eech_engine_dependent_fixture (int op, int parent_id, int child_id, const do
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense)
+	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -767,7 +773,7 @@ int eech_engine_loss_fixture (int entity_id, const struct eech_engine_host *host
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense)
+	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -801,7 +807,7 @@ int eech_engine_loss_release (int entity_id, int *released, const struct eech_en
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!released || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense)
+	if (!released || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -1137,11 +1143,112 @@ int eech_engine_sensor_probe (char *text, int capacity, const struct eech_engine
 		LEAVE (EECH_ENGINE_STATE);
 	}
 	/* the surface-to-air scan reaches the host-owned line of sight (EEDCS-42), so the probe needs the same complete host as a frame */
-	if (!text || (capacity <= 0) || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense)
+	if (!text || (capacity <= 0) || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
 	if (eech_sensor_probe_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_AIM_FIXTURE
+
+/*
+ * TEST-ONLY physical weapon-aiming characterisation (EEDCS-44): the run-wide trace of the aiming code the campaign's own update loop runs
+ * (eech_aim_fixture.c). Reading or clearing it runs inside the engine entry, as the game's own calls do. There is no probe: nothing
+ * here calls an aiming function. The report is text, `key=value` lines; nothing in it is an entity index, address or seed.
+ */
+extern int eech_aim_trace_get (char *text, int capacity);
+extern void eech_aim_trace_clear (void);
+
+int eech_engine_aim_trace (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_aim_trace_get (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_aim_trace_reset (void)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	eech_aim_trace_clear ();
+	LEAVE (EECH_ENGINE_OK);
+}
+
+extern int eech_aim_person_query_run (const char *host_id, char *text, int capacity);
+extern int eech_aim_person_case_run (const char *person_id, const char *target_id, char *text, int capacity);
+
+/* controlled person case (EEDCS-44): the campaign's own target link set on one host-identified person, and a read of one entity's pose */
+int eech_engine_aim_person_query (const char *host_id, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!host_id || !text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_aim_person_query_run (host_id, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+extern int eech_aim_lead_probe_run (const char *source_id, const char *target_id, int weapon, float sentinel, char *text, int capacity);
+
+int eech_engine_aim_lead_probe (const char *source_id, const char *target_id, int weapon, float sentinel, char *text, int capacity, const struct eech_engine_host *host)
+{
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!source_id || !target_id || !text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_aim_lead_probe_run (source_id, target_id, weapon, sentinel, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_aim_person_case (const char *person_id, const char *target_id, char *text, int capacity, const struct eech_engine_host *host)
+{
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!person_id || !target_id || !text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_aim_person_case_run (person_id, target_id, text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}

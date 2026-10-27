@@ -1,0 +1,25 @@
+{
+  "old": "out/f-a/trace.jsonl",
+  "new": "out/r-a/trace.jsonl",
+  "old_events": 1740,
+  "new_events": 1962,
+  "old_events_missing_in_new": 0,
+  "old_fields_changed_undeclared": 0,
+  "declared_field_changes": {
+    "physical": "the physical hash now folds the readiness updates and commands (the added hooks)",
+    "rows": "the kind table gained the six ready_update rows",
+    "count": "the sample table gained the readiness sample keys"
+  },
+  "declared_changes_seen": 30,
+  "new_fields": [],
+  "new_event_names": [
+    "aim-counter",
+    "aim-kind",
+    "aim-range",
+    "aim-sample"
+  ],
+  "new_events_not_in_old": 222,
+  "first_undeclared_changes": [],
+  "first_missing": [],
+  "passed": true
+}

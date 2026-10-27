@@ -1,0 +1,182 @@
+{"event":"boot","mode":"own_model","scenario":"lebanon_retail","seconds":300}
+{"elapsed":300.07577514648,"event":"run","frames":3001}
+{"at":300.07577514648,"decision":"c275a4317e85abbc","event":"aim-hash","physical":"9f1e28e56208260e","scope":"run"}
+{"at":300.07577514648,"event":"aim-counter","name":"vec_calls","scope":"run","value":4746061}
+{"at":300.07577514648,"event":"aim-counter","name":"vec_targeted","scope":"run","value":54441}
+{"at":300.07577514648,"event":"aim-counter","name":"vec_player_without_target","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"vec_tracking_valid","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"vec_valid","scope":"run","value":8102}
+{"at":300.07577514648,"event":"aim-counter","name":"vec_invalid","scope":"run","value":4737959}
+{"at":300.07577514648,"event":"aim-counter","name":"vec_stage_0","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"vec_stage_1","scope":"run","value":4681675}
+{"at":300.07577514648,"event":"aim-counter","name":"vec_stage_2","scope":"run","value":9945}
+{"at":300.07577514648,"event":"aim-counter","name":"vec_stage_3","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"vec_stage_4","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"vec_stage_5","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"vec_stage_6","scope":"run","value":54441}
+{"at":300.07577514648,"event":"aim-counter","name":"solve_calls","scope":"run","value":54441}
+{"at":300.07577514648,"event":"aim-counter","name":"solve_outside_vector_update","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"solve_guided_mobile","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"solve_guided_static","scope":"run","value":8102}
+{"at":300.07577514648,"event":"aim-counter","name":"solve_angle_of_projection","scope":"run","value":39902}
+{"at":300.07577514648,"event":"aim-counter","name":"solve_lead_and_ballistic","scope":"run","value":6437}
+{"at":300.07577514648,"event":"aim-counter","name":"solve_true","scope":"run","value":8102}
+{"at":300.07577514648,"event":"aim-counter","name":"solve_false","scope":"run","value":46339}
+{"at":300.07577514648,"event":"aim-counter","name":"intercept_calls","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"intercept_outside_vector_update","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"intercept_iterated","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"intercept_weapon_not_moving","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"intercept_target_not_moving","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"intercept_target_not_slower","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"lead_calls","scope":"run","value":46339}
+{"at":300.07577514648,"event":"aim-counter","name":"lead_outside_vector_update","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"lead_true","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"lead_false","scope":"run","value":46339}
+{"at":300.07577514648,"event":"aim-counter","name":"lead_path_tiny_range","scope":"run","value":46339}
+{"at":300.07577514648,"event":"aim-counter","name":"lead_path_off_map","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"lead_path_stationary","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"lead_path_moving","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"lead_moving_5_iterations","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"lead_moving_3_iterations","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"lead_iterations_run","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"lead_jitter_applied","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"lead_triangulated","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"lead_rng_draws_0","scope":"run","value":46339}
+{"at":300.07577514648,"event":"aim-counter","name":"lead_rng_draws_1","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"lead_rng_draws_more","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ballistic_calls","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ballistic_outside_vector_update","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ballistic_from_lead","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ballistic_true","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ballistic_false","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ballistic_simplified","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ballistic_fixed_pitch","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ballistic_point_blank_zero_time","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_calls","scope":"run","value":4746061}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_no_package_status","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_unarmed","scope":"run","value":315105}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_armed","scope":"run","value":4430956}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_exit_no_viewpoint","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_exit_no_heading_device","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_exit_no_pitch_device","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_ready_device_found","scope":"run","value":1719573}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_make_selected_ready","scope":"run","value":6959}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_ready_true","scope":"run","value":4430956}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_ready_false","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_packages_rotating","scope":"run","value":9017656}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_required_located","scope":"run","value":54381}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_required_differs","scope":"run","value":7554}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_step_heading_short","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_step_pitch_short","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_step_heading_shared","scope":"run","value":5913}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_step_pitch_shared","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_edge_climb_bump","scope":"run","value":6041}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_edge_hold_not_ready","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_edge_non_ai_player","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_edge_player_local","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ws_edge_point_lock","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"angle_eval_aircraft_fire","scope":"run","value":3}
+{"at":300.07577514648,"event":"aim-counter","name":"angle_eval_aircraft_update","scope":"run","value":1784}
+{"at":300.07577514648,"event":"aim-counter","name":"angle_eval_vehicle_update","scope":"run","value":6050}
+{"at":300.07577514648,"event":"aim-counter","name":"reject_aircraft_fire_not_ready","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"reject_aircraft_fire_vectors_invalid","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"reject_aircraft_fire_launch_angle","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"reject_aircraft_update_not_ready","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"reject_aircraft_update_vectors_invalid","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"reject_aircraft_update_launch_angle","scope":"run","value":796}
+{"at":300.07577514648,"event":"aim-counter","name":"reject_vehicle_update_not_ready","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"reject_vehicle_update_vectors_invalid","scope":"run","value":46113}
+{"at":300.07577514648,"event":"aim-counter","name":"reject_vehicle_update_launch_angle","scope":"run","value":9}
+{"at":300.07577514648,"event":"aim-counter","name":"ready_update_aircraft","scope":"run","value":795265}
+{"at":300.07577514648,"event":"aim-counter","name":"ready_update_vehicle","scope":"run","value":3950796}
+{"at":300.07577514648,"event":"aim-counter","name":"ready_state_start","scope":"run","value":4739107}
+{"at":300.07577514648,"event":"aim-counter","name":"ready_state_opening","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ready_state_open","scope":"run","value":6954}
+{"at":300.07577514648,"event":"aim-counter","name":"ready_state_closing","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"ready_command_open","scope":"run","value":6959}
+{"at":300.07577514648,"event":"aim-counter","name":"ready_command_close","scope":"run","value":1712614}
+{"at":300.07577514648,"event":"aim-counter","name":"person_branch_entered","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"person_branch_with_target_link","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-counter","name":"person_facing","scope":"run","value":0}
+{"at":300.07577514648,"event":"aim-range","max":7323.73682,"min":0,"n":54441,"name":"vec_intercept_range","scope":"run"}
+{"at":300.07577514648,"event":"aim-range","max":7323.73682,"min":0,"n":54441,"name":"solve_intercept_range","scope":"run"}
+{"at":300.07577514648,"event":"aim-range","max":0,"min":0,"n":46339,"name":"lead_range","scope":"run"}
+{"at":300.07577514648,"event":"aim-range","max":0,"min":0,"n":0,"name":"lead_time_of_flight","scope":"run"}
+{"at":300.07577514648,"event":"aim-range","max":0,"min":0,"n":0,"name":"lead_angle","scope":"run"}
+{"at":300.07577514648,"event":"aim-range","max":0,"min":0,"n":0,"name":"ballistic_range","scope":"run"}
+{"at":300.07577514648,"event":"aim-range","max":0,"min":0,"n":0,"name":"ballistic_parent_velocity","scope":"run"}
+{"at":300.07577514648,"event":"aim-range","max":0,"min":0,"n":0,"name":"ballistic_time_of_flight","scope":"run"}
+{"at":300.07577514648,"event":"aim-range","max":3.12120962,"min":0.00059801992,"n":7837,"name":"launch_angle_error","scope":"run"}
+{"at":300.07577514648,"event":"aim-range","max":1.57079625,"min":0.0872664601,"n":7837,"name":"launch_angle_limit","scope":"run"}
+{"at":300.07577514648,"event":"aim-range","max":3.00666428,"min":-3.00666428,"n":7554,"name":"ws_step_heading","scope":"run"}
+{"at":300.07577514648,"event":"aim-range","max":0,"min":0,"n":0,"name":"person_heading","scope":"run"}
+{"at":300.07577514648,"event":"aim-range","max":2,"min":0,"n":4746061,"name":"ready_state_after","scope":"run"}
+{"at":300.07577514648,"calls":522174,"event":"aim-kind","function":"ready_update","reached_devices":0,"scope":"run","source":"ENTITY_TYPE_HELICOPTER","steps":0,"valid":0}
+{"at":300.07577514648,"calls":522174,"event":"aim-kind","function":"weapon_system_update","reached_devices":0,"scope":"run","source":"ENTITY_TYPE_HELICOPTER","steps":1500,"valid":0}
+{"at":300.07577514648,"calls":522174,"event":"aim-kind","function":"vector_update","reached_devices":2052,"scope":"run","source":"ENTITY_TYPE_HELICOPTER","steps":0,"valid":2052}
+{"at":300.07577514648,"calls":1362454,"event":"aim-kind","function":"ready_update","reached_devices":0,"scope":"run","source":"ENTITY_TYPE_ROUTED_VEHICLE","steps":0,"valid":0}
+{"at":300.07577514648,"calls":1362454,"event":"aim-kind","function":"weapon_system_update","reached_devices":0,"scope":"run","source":"ENTITY_TYPE_ROUTED_VEHICLE","steps":5925,"valid":0}
+{"at":300.07577514648,"calls":1362454,"event":"aim-kind","function":"vector_update","reached_devices":46675,"scope":"run","source":"ENTITY_TYPE_ROUTED_VEHICLE","steps":0,"valid":5920}
+{"at":300.07577514648,"calls":108036,"event":"aim-kind","function":"ready_update","reached_devices":0,"scope":"run","source":"ENTITY_TYPE_SHIP_VEHICLE","steps":0,"valid":0}
+{"at":300.07577514648,"calls":108036,"event":"aim-kind","function":"weapon_system_update","reached_devices":0,"scope":"run","source":"ENTITY_TYPE_SHIP_VEHICLE","steps":0,"valid":0}
+{"at":300.07577514648,"calls":108036,"event":"aim-kind","function":"vector_update","reached_devices":5584,"scope":"run","source":"ENTITY_TYPE_SHIP_VEHICLE","steps":0,"valid":0}
+{"at":300.07577514648,"calls":273091,"event":"aim-kind","function":"ready_update","reached_devices":0,"scope":"run","source":"ENTITY_TYPE_FIXED_WING","steps":0,"valid":0}
+{"at":300.07577514648,"calls":273091,"event":"aim-kind","function":"weapon_system_update","reached_devices":0,"scope":"run","source":"ENTITY_TYPE_FIXED_WING","steps":0,"valid":0}
+{"at":300.07577514648,"calls":273091,"event":"aim-kind","function":"vector_update","reached_devices":0,"scope":"run","source":"ENTITY_TYPE_FIXED_WING","steps":0,"valid":0}
+{"at":300.07577514648,"calls":2067166,"event":"aim-kind","function":"ready_update","reached_devices":0,"scope":"run","source":"ENTITY_TYPE_ANTI_AIRCRAFT","steps":0,"valid":0}
+{"at":300.07577514648,"calls":2067166,"event":"aim-kind","function":"weapon_system_update","reached_devices":0,"scope":"run","source":"ENTITY_TYPE_ANTI_AIRCRAFT","steps":129,"valid":0}
+{"at":300.07577514648,"calls":2067166,"event":"aim-kind","function":"vector_update","reached_devices":130,"scope":"run","source":"ENTITY_TYPE_ANTI_AIRCRAFT","steps":0,"valid":130}
+{"at":300.07577514648,"calls":413140,"event":"aim-kind","function":"ready_update","reached_devices":0,"scope":"run","source":"ENTITY_TYPE_PERSON","steps":0,"valid":0}
+{"at":300.07577514648,"calls":413140,"event":"aim-kind","function":"weapon_system_update","reached_devices":0,"scope":"run","source":"ENTITY_TYPE_PERSON","steps":0,"valid":0}
+{"at":300.07577514648,"calls":413140,"event":"aim-kind","function":"vector_update","reached_devices":0,"scope":"run","source":"ENTITY_TYPE_PERSON","steps":0,"valid":0}
+{"at":300.07577514648,"event":"aim-kinds","overflow":0,"rows":18,"scope":"run"}
+{"aiming":"guided_intercept","at":300.07577514648,"ballistic":0,"event":"aim-weapon","leads":0,"leads_moving":0,"name":"BGM-71D_TOW-2","scope":"run","solves":5906,"solves_true":5906,"sub_type":70}
+{"aiming":"lead_and_ballistic","at":300.07577514648,"ballistic":0,"event":"aim-weapon","leads":5906,"leads_moving":0,"name":"M256_M830A1_HEAT-MP-T_120mm","scope":"run","solves":5906,"solves_true":0,"sub_type":12}
+{"aiming":"angle_of_projection","at":300.07577514648,"ballistic":0,"event":"aim-weapon","leads":5584,"leads_moving":0,"name":"OTO_Melara_L/62_HE__76mm","scope":"run","solves":5584,"solves_true":0,"sub_type":11}
+{"aiming":"angle_of_projection","at":300.07577514648,"ballistic":0,"event":"aim-weapon","leads":13632,"leads_moving":0,"name":"2A65_3VOF96_HE_152mm","scope":"run","solves":13632,"solves_true":0,"sub_type":34}
+{"aiming":"angle_of_projection","at":300.07577514648,"ballistic":0,"event":"aim-weapon","leads":3422,"leads_moving":0,"name":"BM-21_9N51_HE_122mm_Rocket","scope":"run","solves":3422,"solves_true":0,"sub_type":32}
+{"aiming":"angle_of_projection","at":300.07577514648,"ballistic":0,"event":"aim-weapon","leads":3582,"leads_moving":0,"name":"M284_M795_HE_155mm","scope":"run","solves":3582,"solves_true":0,"sub_type":13}
+{"aiming":"angle_of_projection","at":300.07577514648,"ballistic":0,"event":"aim-weapon","leads":13682,"leads_moving":0,"name":"M26A1_M85_DPICM_227mm_Rocket","scope":"run","solves":13682,"solves_true":0,"sub_type":14}
+{"aiming":"guided_intercept","at":300.07577514648,"ballistic":0,"event":"aim-weapon","leads":0,"leads_moving":0,"name":"AGM-114R_Hellfire_II","scope":"run","solves":1046,"solves_true":1046,"sub_type":53}
+{"aiming":"guided_intercept","at":300.07577514648,"ballistic":0,"event":"aim-weapon","leads":0,"leads_moving":0,"name":"9K34_Strela-3","scope":"run","solves":130,"solves_true":130,"sub_type":65}
+{"aiming":"lead_and_ballistic","at":300.07577514648,"ballistic":0,"event":"aim-weapon","leads":531,"leads_moving":0,"name":"M242_M792_HEI-T_25mm","scope":"run","solves":531,"solves_true":0,"sub_type":8}
+{"aiming":"guided_intercept","at":300.07577514648,"ballistic":0,"event":"aim-weapon","leads":0,"leads_moving":0,"name":"9A4172_Vikhr","scope":"run","solves":996,"solves_true":996,"sub_type":57}
+{"aiming":"guided_intercept","at":300.07577514648,"ballistic":0,"event":"aim-weapon","leads":0,"leads_moving":0,"name":"MIM-72G_Chaparral","scope":"run","solves":7,"solves_true":7,"sub_type":61}
+{"aiming":"guided_intercept","at":300.07577514648,"ballistic":0,"event":"aim-weapon","leads":0,"leads_moving":0,"name":"FIM-92A_Stinger","scope":"run","solves":7,"solves_true":7,"sub_type":62}
+{"aiming":"guided_intercept","at":300.07577514648,"ballistic":0,"event":"aim-weapon","leads":0,"leads_moving":0,"name":"9M120_Ataka-V","scope":"run","solves":10,"solves_true":10,"sub_type":56}
+{"at":300.07577514648,"event":"aim-weapons","overflow":0,"rows":14,"scope":"run"}
+{"at":300.07577514648,"event":"aim-sample","key":"ws/end/ready","scope":"run","text":"source=ENTITY_TYPE_HELICOPTER ready=1"}
+{"at":300.07577514648,"event":"aim-sample","key":"vec/stage_1","scope":"run","text":"source=ENTITY_TYPE_HELICOPTER stage=1 valid=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"ws/end/ready","scope":"run","text":"source=ENTITY_TYPE_HELICOPTER ready=1"}
+{"at":300.07577514648,"event":"aim-sample","key":"vec/stage_1","scope":"run","text":"source=ENTITY_TYPE_HELICOPTER stage=1 valid=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"ready/command/close","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE command=close new_state=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"ready/command/close","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE command=close new_state=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"ready/command/open","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE command=open new_state=2"}
+{"at":300.07577514648,"event":"aim-sample","key":"solve/guided_static/true","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE weapon=70 branch=guided_static result=1 device=(31794.8945,3.63752818,85655.1406) target_vec=(0.994019806,-0.000263961148,0.109199494) intercept_vec=(0.994019866,-5.16565924e-05,0.109199494) range=2661.27026"}
+{"at":300.07577514648,"event":"aim-sample","key":"vec/guided_intercept/valid","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE stage=6 valid=1 targeted=1 aiming=guided_intercept weapon_vec=(-0.970295668,0,-0.241921917) target_vec=(0.994019806,-0.000263961148,0.109199494) intercept_vec=(0.994019866,-5.16565924e-05,0.109199494) range=2661.27026"}
+{"at":300.07577514648,"event":"aim-sample","key":"angle/vehicle_update","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE error=3.00666356 limit=0.392699063"}
+{"at":300.07577514648,"event":"aim-sample","key":"ready/command/open","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE command=open new_state=2"}
+{"at":300.07577514648,"event":"aim-sample","key":"solve/guided_static/true","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE weapon=70 branch=guided_static result=1 device=(31808.5156,3.63752818,85657.7656) target_vec=(0.994066,-0.000265339651,0.108778253) intercept_vec=(0.99406606,-5.19263631e-05,0.108778261) range=2647.44409"}
+{"at":300.07577514648,"event":"aim-sample","key":"vec/guided_intercept/valid","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE stage=6 valid=1 targeted=1 aiming=guided_intercept weapon_vec=(-0.694658518,0,0.719339609) target_vec=(0.994066,-0.000265339651,0.108778253) intercept_vec=(0.99406606,-5.19263631e-05,0.108778261) range=2647.44409"}
+{"at":300.07577514648,"event":"aim-sample","key":"angle/vehicle_update","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE error=2.2297473 limit=0.392699063"}
+{"at":300.07577514648,"event":"aim-sample","key":"lead/tiny_range/false","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE weapon=12 path=tiny_range result=0 iterations=0 tov=0 parent_velocity=0 rng_draws=0 range_initial=0 range_pre=0 range_post=0 intercept=(0,0,0) angle=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"solve/lead_and_ballistic/false","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE weapon=12 branch=lead_and_ballistic result=0 device=(31775.9023,3.2336278,85653.5156) target_vec=(0,0,-1) intercept_vec=(0,0,-1) range=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"vec/lead_and_ballistic/invalid","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE stage=6 valid=0 targeted=1 aiming=lead_and_ballistic weapon_vec=(0,0,-1) target_vec=(0,0,-1) intercept_vec=(0,0,-1) range=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"lead/tiny_range/false","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE weapon=12 path=tiny_range result=0 iterations=0 tov=0 parent_velocity=0 rng_draws=0 range_initial=0 range_pre=0 range_post=0 intercept=(0,0,0) angle=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"solve/lead_and_ballistic/false","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE weapon=12 branch=lead_and_ballistic result=0 device=(31784.4141,3.2336278,85663.875) target_vec=(0,0,-1) intercept_vec=(0,0,-1) range=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"vec/lead_and_ballistic/invalid","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE stage=6 valid=0 targeted=1 aiming=lead_and_ballistic weapon_vec=(0,0,-1) target_vec=(0,0,-1) intercept_vec=(0,0,-1) range=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"solve/angle_of_projection/false","scope":"run","text":"source=ENTITY_TYPE_SHIP_VEHICLE weapon=11 branch=angle_of_projection result=0 device=(32627.418,11.8369179,102524.297) target_vec=(0,0,-1) intercept_vec=(0,0,-1) range=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"vec/angle_of_projection/invalid","scope":"run","text":"source=ENTITY_TYPE_SHIP_VEHICLE stage=6 valid=0 targeted=1 aiming=angle_of_projection weapon_vec=(0,0,-1) target_vec=(0,0,-1) intercept_vec=(0,0,-1) range=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"solve/angle_of_projection/false","scope":"run","text":"source=ENTITY_TYPE_SHIP_VEHICLE weapon=11 branch=angle_of_projection result=0 device=(33579.7773,11.8369179,102293.578) target_vec=(0,0,-1) intercept_vec=(0,0,-1) range=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"vec/angle_of_projection/invalid","scope":"run","text":"source=ENTITY_TYPE_SHIP_VEHICLE stage=6 valid=0 targeted=1 aiming=angle_of_projection weapon_vec=(0,0,-1) target_vec=(0,0,-1) intercept_vec=(0,0,-1) range=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"ws/step/shared","scope":"run","text":"package=1 delta_heading=-3.00666428 delta_pitch=0 new_heading=-3.00666428 new_pitch=0 heading_shared=1 pitch_shared=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"ws/step/shared","scope":"run","text":"package=1 delta_heading=2.22974753 delta_pitch=0 new_heading=2.22974753 new_pitch=0 heading_shared=1 pitch_shared=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"vec/stage_2","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE stage=2 valid=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"vec/stage_2","scope":"run","text":"source=ENTITY_TYPE_ROUTED_VEHICLE stage=2 valid=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"angle/aircraft_update","scope":"run","text":"source=ENTITY_TYPE_HELICOPTER error=1.39170945 limit=1.57079625"}
+{"at":300.07577514648,"event":"aim-sample","key":"angle/aircraft_update","scope":"run","text":"source=ENTITY_TYPE_HELICOPTER error=1.31506979 limit=1.57079625"}
+{"at":300.07577514648,"event":"aim-sample","key":"ws/step","scope":"run","text":"package=0 delta_heading=-0.137581944 delta_pitch=0.0218330193 new_heading=-0.137581944 new_pitch=0.0218330193 heading_shared=0 pitch_shared=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"ws/step","scope":"run","text":"package=0 delta_heading=0.00140289962 delta_pitch=4.86392528e-05 new_heading=-0.136179045 new_pitch=0.0218816586 heading_shared=0 pitch_shared=0"}
+{"at":300.07577514648,"event":"aim-sample","key":"angle/aircraft_fire","scope":"run","text":"source=ENTITY_TYPE_HELICOPTER error=0.0618319213 limit=0.109083071"}
+{"at":300.07577514648,"event":"aim-sample","key":"angle/aircraft_fire","scope":"run","text":"source=ENTITY_TYPE_HELICOPTER error=0.000772040454 limit=0.109083071"}
+{"at":300.07577514648,"count":34,"event":"aim-samples","overflow":0,"scope":"run"}

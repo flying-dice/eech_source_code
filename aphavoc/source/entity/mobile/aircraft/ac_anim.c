@@ -65,6 +65,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "project.h"
+#include "entity/mobile/mb_aimfx.h"
+#include "entity/mobile/mb_hostaim.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -516,7 +518,33 @@ void update_aircraft_weapon_system_ready( entity *en )
 
 	raw = (aircraft *) get_local_entity_data( en );
 
-	wsr_state = update_entity_reversable_keyframed_value( en, &raw->weapon_system_ready_state, 0.5 );
+	{
+		campaign_aim_step
+			step;
+
+		campaign_aim_result
+			result;
+
+		memset (&step, 0, sizeof (step));
+
+		step.mode = CAMPAIGN_AIM_READY_UPDATE;
+
+		campaign_aim_identify (&step, en, NULL);
+
+		step.ready_state = raw->weapon_system_ready_state;
+
+		step.ready_rate = 0.5;
+
+		step.delta_time = get_delta_time ();
+
+		// the host advances the keyframed ready state (physical, whether or not the entity is drawn) and reports the phase it was in
+		result = campaign_aim_ask (&step, FALSE);
+
+		raw->weapon_system_ready_state = result.ready_state;
+
+		wsr_state = result.phase;
+	}
+	AIM_FX_READY_UPDATE (0, en, raw->weapon_system_ready_state, wsr_state)
 
 	if ( in_flight_articulation_test )
 	{

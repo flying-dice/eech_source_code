@@ -1,0 +1,21 @@
+23:02:24 queue-3 start head=d3c9a5c5e fixture=R:\eech_source_code\eech-campaign\target\aim-fixture\d3c9a5c5e ordinary=R:\eech_source_code\eech-campaign\target\windows-d3c9a5c5e
+23:02:24 900 s ordinary
+23:23:32 provider reference (candidate fixture)
+23:29:35 provider ready_slow (candidate fixture)
+23:35:43 provider step_slow (candidate fixture)
+23:41:46 provider invalid (candidate fixture)
+23:47:41 provider own_model (candidate fixture)
+23:53:08 provider ready_slow (original oracle build, negative control)
+23:57:44 provider invalid (original oracle build, negative control)
+00:02:21 provider missing (shipping)
+00:02:28 provider bad_nil (shipping)
+00:02:37 provider bad_state (shipping)
+00:02:47 provider bad_ready_state (shipping)
+00:02:56 provider bad_phase (shipping)
+00:03:05 provider bad_nan_vector (shipping)
+00:03:15 provider bad_draw_for_ballistic (shipping)
+00:09:02 provider bad_second_draw (shipping)
+00:09:50 provider bad_negative_range (shipping)
+00:10:00 provider bad_error (shipping)
+00:10:09 shipping reference provider 120 s
+00:12:20 queue-3 DONE
