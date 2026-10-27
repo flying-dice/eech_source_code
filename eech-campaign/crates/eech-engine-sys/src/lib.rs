@@ -871,6 +871,22 @@ extern "C" {
     pub fn eech_engine_sensor_probe(text: *mut c_char, capacity: c_int, host: *const eech_engine_host) -> c_int;
 }
 
+#[cfg(feature = "weapon-fixture")]
+extern "C" {
+    pub fn eech_engine_wpn_trace(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_wpn_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
+    pub fn eech_engine_wpn_case_query(host_id: *const c_char, weapon: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_wpn_case_launch(
+        launcher_id: *const c_char,
+        target_id: *const c_char,
+        weapon: c_int,
+        salvo_count: c_int,
+        text: *mut c_char,
+        capacity: c_int,
+        host: *const eech_engine_host,
+    ) -> c_int;
+}
+
 #[cfg(feature = "aim-fixture")]
 extern "C" {
     pub fn eech_engine_aim_trace(text: *mut c_char, capacity: c_int) -> c_int;

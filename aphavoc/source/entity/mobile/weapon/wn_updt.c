@@ -65,6 +65,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "project.h"
+#include "entity/mobile/mb_wpnfx.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -85,25 +86,31 @@ static void update_server (entity *en)
 
 	if (raw->mob.kill_next_update)
 	{
+		WPN_FX_DESTROY (en)
 		destroy_client_server_entity_family (en);
 
 		return;
 	}
 
 	weapon_movement (en);
+	WPN_FX_UPDATE_STAGE (en, 1)
 
 	update_weapon_animation (en);
+	WPN_FX_UPDATE_STAGE (en, 2)
 
 	if (weapon_database[raw->mob.sub_type].decoy_type != WEAPON_DECOY_TYPE_NONE)
 	{
 		update_decoy (en);
+		WPN_FX_DECOY (raw->decoy_timer)
 	}
 
 	if (raw->kill_code != WEAPON_KILL_CODE_OK)
 	{
+		WPN_FX_TERMINAL (en, raw)
 		create_client_server_weapon_killed_explosion_effect (en);
 
 		raw->mob.kill_next_update = TRUE;
+		WPN_FX_UPDATE_STAGE (en, 5)
 	}
 }
 

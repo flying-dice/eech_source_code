@@ -1241,6 +1241,54 @@ impl LuaUserData for LuaEngine {
         // TEST-ONLY (feature `aim-fixture`, EEDCS-44): clears that trace; not part of the shipping module.
         #[cfg(feature = "aim-fixture")]
         methods.add_method("aim_trace_reset", |_, this, ()| this.engine.aim_trace_reset().map_err(lua_error));
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the run-wide report of the physical weapon-execution code; not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("wpn_trace", |_, this, ()| this.engine.wpn_trace().map_err(lua_error));
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the ordered weapon event log, drained from the cursor; not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("wpn_events", |_, this, ()| this.engine.wpn_events().map_err(lua_error));
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the state of one host-identified entity and its count of one weapon type; not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("wpn_case_query", |_, this, (host_id, weapon): (String, i32)| {
+            this.engine.wpn_case_query(&host_id, weapon).map_err(lua_error)
+        });
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): one physical launch attempt through the campaign's own launch call, given the same complete host callbacks as a frame; not
+        // part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method(
+            "wpn_case_launch",
+            |lua, this, (launcher_id, target_id, weapon, salvo_count): (String, String, i32, i32)| {
+                let bind_mobile = this.bind_mobile.clone();
+                let observe_loss = this.observe_loss.clone();
+                let supply_reached = this.supply_reached.clone();
+                let move_vehicle = this.move_vehicle.clone();
+                let line_of_sight = this.line_of_sight.clone();
+                let sense = this.sense.clone();
+                let aim = this.aim.clone();
+                let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+                let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+                let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+                let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+                let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+                let mut sensor = |message| call_sense(lua, &sense, message);
+                let mut aimer = |request| call_aim(lua, &aim, request);
+                this.engine
+                    .wpn_case_launch(
+                        &launcher_id,
+                        &target_id,
+                        weapon,
+                        salvo_count,
+                        &mut binder,
+                        &mut observer,
+                        &mut reach,
+                        &mut mover,
+                        &mut sighter,
+                        &mut sensor,
+                        &mut aimer,
+                    )
+                    .map_err(lua_error)
+            },
+        );
         // TEST-ONLY (feature `sensor-fixture`, EEDCS-43): the run-wide report of the AI target scans; not part of the shipping module.
         #[cfg(feature = "sensor-fixture")]
         methods.add_method("sensor_trace", |_, this, ()| this.engine.sensor_trace().map_err(lua_error));

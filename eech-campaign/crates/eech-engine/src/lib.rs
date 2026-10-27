@@ -902,6 +902,10 @@ const SENSOR_REPORT_CAPACITY: usize = 96 * 1024;
 #[cfg(feature = "aim-fixture")]
 const AIM_REPORT_CAPACITY: usize = 96 * 1024;
 
+/// TEST-ONLY (feature `weapon-fixture`): room for one weapon-execution report or one chunk of the event log; a report that does not fit is refused, never cut short.
+#[cfg(feature = "weapon-fixture")]
+const WPN_REPORT_CAPACITY: usize = 160 * 1024;
+
 /// the booted engine (one per process)
 pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
@@ -3467,6 +3471,101 @@ impl Engine {
     pub fn aim_trace_reset(&self) -> Result<(), EngineError> {
         // SAFETY: no pointers cross.
         check(unsafe { sys::eech_engine_aim_trace_reset() })
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the run-wide report of the physical weapon-execution code (table generation at boot, launch, flight, update order,
+    /// contact and terminal facts) since process start, as `key=value` text lines. Read-only.
+    #[cfg(feature = "weapon-fixture")]
+    pub fn wpn_trace(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_wpn_trace(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-45): drains the ordered event log (births, launch outcomes, terminals, destroys, table summaries) from the cursor and returns
+    /// every event not yet returned, one `wpn-ev` line each. Read-only apart from advancing the cursor.
+    #[cfg(feature = "weapon-fixture")]
+    pub fn wpn_events(&self) -> Result<String, EngineError> {
+        let mut all = String::new();
+        loop {
+            let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
+            let mut more: std::os::raw::c_int = 0;
+            // SAFETY: the buffer and `more` outlive the call and the capacity passed is the buffer length; the engine NUL-terminates the text.
+            check(unsafe { sys::eech_engine_wpn_events(text.as_mut_ptr(), text.len() as i32, &mut more) })?;
+            // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+            all.push_str(&unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy());
+            if more == 0 {
+                return Ok(all);
+            }
+        }
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the state of one host-identified entity and its count of one weapon type, as `key=value` text.
+    #[cfg(feature = "weapon-fixture")]
+    pub fn wpn_case_query(&self, host_id: &str, weapon: i32) -> Result<String, EngineError> {
+        let host_id = std::ffi::CString::new(host_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
+        let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
+        // SAFETY: the string and the buffer outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_wpn_case_query(host_id.as_ptr(), weapon, text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-45): one physical launch attempt of one weapon type by one host-identified launcher through the campaign's own launch call,
+    /// after an optional host-identified target link set through the campaign's own link call (an empty target id sets none). Given the same complete host as a frame.
+    #[cfg(feature = "weapon-fixture")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn wpn_case_launch<F, G, H, M, L, D, A>(
+        &self,
+        launcher_id: &str,
+        target_id: &str,
+        weapon: i32,
+        salvo_count: i32,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
+        sense_fn: &mut D,
+        aim_fn: &mut A,
+    ) -> Result<String, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
+        D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
+    {
+        let launcher_id = std::ffi::CString::new(launcher_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
+        let target_id = std::ffi::CString::new(target_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
+        let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
+        // SAFETY: the strings, the buffer and the temporary host callback outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            sense_fn,
+            aim_fn,
+            |host| unsafe {
+                sys::eech_engine_wpn_case_launch(
+                    launcher_id.as_ptr(),
+                    target_id.as_ptr(),
+                    weapon,
+                    salvo_count,
+                    text.as_mut_ptr(),
+                    text.len() as i32,
+                    host,
+                )
+            },
+        )?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
     /// TEST-ONLY (feature `sensor-fixture`, EEDCS-43): clears the run-wide sensor trace.

@@ -67,6 +67,7 @@
 #include "project.h"
 #include "entity/mobile/mb_aimfx.h"
 #include "entity/mobile/mb_hostaim.h"
+#include "entity/mobile/mb_wpnfx.h"
 
 #include "entity/tacview/tacview.h"
 
@@ -222,6 +223,7 @@ static void get_intercept_point (entity *weapon_entity, entity *target, vec3d *i
 			}
 		}
 	}
+	WPN_FX_INTERCEPT (weapon_velocity, target_true_velocity, intercept_point)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -256,6 +258,7 @@ static int get_target_position (entity *en, vec3d *position, int can_guide_on_gr
 		get_local_entity_vec3d(raw->launched_weapon_link.parent, VEC3D_TYPE_EO_TRACKING_POINT, position);
 
 		target_position_valid = eo_tracking_point_valid(position);
+		WPN_FX_TGT_BRANCH (EECH_WPN_TGT_TRACKING_POINT, target_position_valid)
 	}
 
 	if (!target_position_valid && target)
@@ -267,6 +270,7 @@ static int get_target_position (entity *en, vec3d *position, int can_guide_on_gr
 			if (weapon_decoy_type == WEAPON_DECOY_TYPE_NONE)
 			{
 				get_intercept_point (en, target, position);
+				WPN_FX_TGT_BRANCH (EECH_WPN_TGT_MOBILE_INTERCEPT, 1)
 
 				//
 				// not a decoy, test for jammers
@@ -275,19 +279,23 @@ static int get_target_position (entity *en, vec3d *position, int can_guide_on_gr
 				if ((get_local_entity_int_value (target, INT_TYPE_RADAR_JAMMER_ON)) && (get_decoy_type_for_weapon (en) == ENTITY_SUB_TYPE_WEAPON_CHAFF))
 				{
 					get_jammer_distract_position (en, position);
+					WPN_FX_TGT_BRANCH (EECH_WPN_TGT_JAMMER_CHAFF, 1)
 				}
 				else if ((get_local_entity_int_value (target, INT_TYPE_INFRA_RED_JAMMER_ON)) && (get_decoy_type_for_weapon (en) == ENTITY_SUB_TYPE_WEAPON_FLARE))
 				{
 					get_jammer_distract_position (en, position);
+					WPN_FX_TGT_BRANCH (EECH_WPN_TGT_JAMMER_IR, 1)
 				}
 			}
 			else if (weapon_decoy_type == WEAPON_DECOY_TYPE_SMOKE_GRENADE)
 			{
 				get_smoke_grenade_distract_position (en, target, position);
+				WPN_FX_TGT_BRANCH (EECH_WPN_TGT_SMOKE_DISTRACT, 1)
 			}
 			else
 			{
 				get_intercept_point (en, target, position);
+				WPN_FX_TGT_BRANCH (EECH_WPN_TGT_DECOY_INTERCEPT, 1)
 			}
 		}
 		else
@@ -296,6 +304,7 @@ static int get_target_position (entity *en, vec3d *position, int can_guide_on_gr
 		target_position_valid = TRUE;
 	}
 
+	WPN_FX_TGT_END (target_position_valid, position)
 	return (target_position_valid);
 }
 
@@ -503,6 +512,7 @@ static void move_guided_weapon (entity *en, vec3d *new_position, vec3d *intercep
 			debug_log("%s too close to target, hit counts", weapon_database[raw->mob.sub_type].full_name);
 		#endif
 
+		WPN_FX_GUIDED (EECH_WPN_GUIDED_TOO_CLOSE, length, 0.0f, 0.0f, 0.0f)
 		raw->kill_code = WEAPON_KILL_CODE_HIT_TARGET;
 
 		return;
@@ -534,6 +544,7 @@ static void move_guided_weapon (entity *en, vec3d *new_position, vec3d *intercep
 						debug_log("%s overshot airborne target (%0.1f degrees, limit %.2f, range %.2f, detonation radius %.2f", weapon_database[raw->mob.sub_type].full_name, deg(acos(cos_turn_demand)), deg(acos(weapon_database[raw->mob.sub_type].max_seeker_limit)), length, weapon_database[raw->mob.sub_type].detonation_radius);
 					#endif
 
+					WPN_FX_GUIDED (EECH_WPN_GUIDED_OVERSHOT, length, cos_turn_demand, current_life_time, 0.0f)
 					raw->kill_code = WEAPON_KILL_CODE_OVERSHOT_TARGET;
 
 					return;
@@ -542,6 +553,7 @@ static void move_guided_weapon (entity *en, vec3d *new_position, vec3d *intercep
 	
 	if (target_lost && raw->mob.sub_type == ENTITY_SUB_TYPE_WEAPON_AGM114R_HELLFIRE_II && raw->weapon_lifetime > 0)
 		target_lost = FALSE; // some magic stuff with inertial unit, only when motor is alive
+	WPN_FX_GUIDED (EECH_WPN_GUIDED_TARGET_LOST, (float) target_lost, length, cos_turn_demand, raw->mob.velocity)
 		
 
 	if (!target_lost)
@@ -599,6 +611,7 @@ static void move_guided_weapon (entity *en, vec3d *new_position, vec3d *intercep
 		//
 
 		get_3d_transformation_matrix (raw->mob.attitude, get_heading_from_attitude_matrix (m2), get_pitch_from_attitude_matrix (m2), 0.0);
+		WPN_FX_GUIDED (EECH_WPN_GUIDED_TURNED, turn_demand, max_turn_rate, turn_rate, inhibit_damp_factor)
 	}
 	else
 		turn_rate = 0;
@@ -895,6 +908,7 @@ static void check_guidance_source (weapon *raw, entity *en, int laser_guided)
 			new_target = NULL;
 		}
 
+		WPN_FX_GUIDANCE_SOURCE (raw->launched_weapon_link.parent != NULL, new_target != raw->mob.target_link.parent, new_target != NULL)
 		if (new_target != raw->mob.target_link.parent)
 		{
 			set_client_server_entity_parent (en, LIST_TYPE_TARGET, new_target);
@@ -905,6 +919,10 @@ static void check_guidance_source (weapon *raw, entity *en, int laser_guided)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef EECH_WEAPON_FIXTURE
+#define weapon_movement weapon_movement_original
+#endif
 
 void weapon_movement (entity *en)
 {
@@ -992,6 +1010,7 @@ void weapon_movement (entity *en)
 
 				memcpy ( vp.attitude, raw->mob.attitude, sizeof ( matrix3x3 ) );
 				vp.position = raw->mob.position;
+				WPN_FX_SUBMUNITIONS (count)
 
 				if (get_comms_model () == COMMS_MODEL_SERVER)
 					while (count--)
@@ -1005,6 +1024,7 @@ void weapon_movement (entity *en)
 			raw->kill_code = WEAPON_KILL_CODE_SELF_DESTRUCT;
 		
 		raw->decoy_timer = 0;
+		WPN_FX_PATH (EECH_WPN_PATH_FUZE_TIMER)
 	
 		#if DEBUG_MODULE > 1
 			debug_log("Weapon timer is reached");
@@ -1019,6 +1039,7 @@ void weapon_movement (entity *en)
 			raw->kill_code = WEAPON_KILL_CODE_SELF_DESTRUCT;
 		else
 			raw->kill_code = WEAPON_KILL_CODE_EXHAUSTED;
+		WPN_FX_PATH (EECH_WPN_PATH_EXHAUSTED)
 		
 		#if DEBUG_MODULE
 			debug_log("Weapon destroyed due to time exceeded");
@@ -1040,6 +1061,7 @@ void weapon_movement (entity *en)
 		raw->mob.motion_vector.x = 0.0;
 		raw->mob.motion_vector.y = 0.0;
 		raw->mob.motion_vector.z = 0.0;
+		WPN_FX_PATH (EECH_WPN_PATH_ON_GROUND)
 
 		#if DEBUG_MODULE
 
@@ -1066,6 +1088,7 @@ void weapon_movement (entity *en)
 
 		tracking_point = eo_tracking_point_valid(&tracking_point_position);
 	}
+	WPN_FX_TRACKING (tracking_point)
 	
 	switch (weapon_database[raw->mob.sub_type].guidance_type)
 	{
@@ -1236,9 +1259,11 @@ void weapon_movement (entity *en)
 	//
 	////////////////////////////////////////
 
+	WPN_FX_GUIDANCE (weapon_database[raw->mob.sub_type].guidance_type, intercept_point_valid)
 	if (intercept_point_valid && (raw->weapon_lifetime > 0 || raw->mob.velocity > 200))
 	{
 		move_guided_weapon (en, &new_position, &intercept_point, FALSE);
+		WPN_FX_PATH (EECH_WPN_PATH_GUIDED)
 	}
 	else
 	{
@@ -1248,6 +1273,7 @@ void weapon_movement (entity *en)
 			weapon* weapon = (struct WEAPON *) get_local_entity_data (en);
 			
 			move_unguided_weapon (weapon, &new_position, get_delta_time(), weapon_database[raw->mob.sub_type].aiming_type != 2);
+			WPN_FX_PATH (EECH_WPN_PATH_UNGUIDED)
 		}
 		else
 		{
@@ -1283,6 +1309,7 @@ void weapon_movement (entity *en)
 			}
 
 			move_guided_weapon (en, &new_position, &intercept_point, TRUE);
+			WPN_FX_PATH (EECH_WPN_PATH_LOAL_CLIMB_DIVE)
 
 			//HELLFIRE//
 		}
@@ -1294,6 +1321,7 @@ void weapon_movement (entity *en)
 
 	if (raw->kill_code != WEAPON_KILL_CODE_OK)
 	{
+		WPN_FX_PATH (EECH_WPN_PATH_KILLED_BY_GUIDANCE)
 		return;
 	}
 
@@ -1326,6 +1354,7 @@ void weapon_movement (entity *en)
 	{
 		high_precision_collision = TRUE;
 	}
+	WPN_FX_PRECISION (high_precision_collision)
 	
 	////////////////////////////////////////
 	//
@@ -1360,6 +1389,7 @@ void weapon_movement (entity *en)
 						debug_log("%s hit target", weapon_database[raw->mob.sub_type].full_name);
 					#endif
 
+					WPN_FX_PATH (EECH_WPN_PATH_CONTACT_TARGET)
 					raw->kill_code = WEAPON_KILL_CODE_HIT_TARGET;
 				}
 				else if (high_precision_collision)
@@ -1370,6 +1400,7 @@ void weapon_movement (entity *en)
 							debug_log("%s collision with trees", weapon_database[raw->mob.sub_type].full_name);
 						#endif
 
+						WPN_FX_PATH (EECH_WPN_PATH_CONTACT_TREES)
 						raw->kill_code = WEAPON_KILL_CODE_SELF_DESTRUCT;
 					}
 				}
@@ -1405,6 +1436,7 @@ void weapon_movement (entity *en)
 	if (!point_inside_map_area (&new_position))
 	{
 		bound_position_to_map_volume (&new_position);
+		WPN_FX_PATH (EECH_WPN_PATH_OUT_OF_MAP_AREA)
 
 		ASSERT(point_inside_map_volume(&new_position));
 
@@ -1425,6 +1457,7 @@ void weapon_movement (entity *en)
 	if (!point_below_ceiling (&new_position))
 	{
 		bound_position_to_map_volume (&new_position);
+		WPN_FX_PATH (EECH_WPN_PATH_ABOVE_CEILING)
 
 		set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &new_position);
 
@@ -1497,9 +1530,11 @@ void weapon_movement (entity *en)
 		}
 	}
 
+	WPN_FX_GROUND (hit_ground, high_precision_collision)
 	if (hit_ground)
 	{
 		terrain_class = get_ground_impact_point (&old_position, &new_position, &new_position);
+		WPN_FX_IMPACT (terrain_class, weapon_database[raw->mob.sub_type].survive_ground_impact)
 
 		if (draw_weapon_terrain_los_markers && (get_view_mode () == VIEW_MODE_EXTERNAL))
 		{
@@ -1510,6 +1545,7 @@ void weapon_movement (entity *en)
 
 		if (terrain_class == TERRAIN_CLASS_WATER)
 		{
+			WPN_FX_PATH (EECH_WPN_PATH_GROUND_WATER)
 			if (raw->kill_code == WEAPON_KILL_CODE_OK)
 			{
 				raw->kill_code = WEAPON_KILL_CODE_HIT_WATER;
@@ -1519,6 +1555,7 @@ void weapon_movement (entity *en)
 		{
 			if (weapon_database[raw->mob.sub_type].survive_ground_impact)
 			{
+				WPN_FX_PATH (EECH_WPN_PATH_GROUND_SURVIVED)
 				//
 				// align weapon with terrain
 				//
@@ -1537,6 +1574,7 @@ void weapon_movement (entity *en)
 				{
 					if (get_comms_model () == COMMS_MODEL_SERVER)
 					{
+						WPN_FX_PATH (EECH_WPN_PATH_GROUND_SMOKE_GRENADE)
 						raw->kill_code = WEAPON_KILL_CODE_HIT_LAND;
 
 						create_client_server_weapon_killed_explosion_effect (en);
@@ -1551,6 +1589,7 @@ void weapon_movement (entity *en)
 			{
 				if (raw->kill_code == WEAPON_KILL_CODE_OK)
 				{
+					WPN_FX_PATH (EECH_WPN_PATH_GROUND_LAND)
 					raw->kill_code = WEAPON_KILL_CODE_HIT_LAND;
 				}
 			}
@@ -1582,6 +1621,21 @@ void weapon_movement (entity *en)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef EECH_WEAPON_FIXTURE
+
+#undef weapon_movement
+
+void weapon_movement (entity *en)
+{
+	eech_wpn_move_begin (en);
+
+	weapon_movement_original (en);
+
+	eech_wpn_move_end (en);
+}
+
+#endif
 
 /** calculates the index for the pitch value in the ballistics table.  Rounded down.
  *
@@ -1739,6 +1793,7 @@ void calculate_projectory(weapon* wpn, FILE* output, int velocity_test)
 			time += delta_time;
 			wpn->weapon_lifetime -= delta_time;
 			move_unguided_weapon(wpn, &wpn->mob.position, delta_time, FALSE);
+			WPN_FX_TABLE_STEP ()
 
 			if (wpn->weapon_lifetime < - weapon_database[wpn->mob.sub_type].cruise_time ||
 					wpn->mob.position.y < max(- weapon_database[wpn->mob.sub_type].max_range, - 4000.0f) ||
@@ -1816,6 +1871,7 @@ void calculate_projectory(weapon* wpn, FILE* output, int velocity_test)
 			}
 		}
 
+		WPN_FX_TABLE_FLIGHT (wpn->mob.sub_type, velocity_test, pitch_index, range_mark, num_range_values, time)
 		// if there's any spots left just copy the last to those (it will be wrong, but better than arbitrary values)
 		for (; range_mark < num_range_values; range_mark++)
 		{
@@ -1942,6 +1998,7 @@ void calculate_range(weapon* wpn, FILE* output, int zero_pitch)
 
 		fprintf(output, "%5.0f m %f m  %6.1f m/s %5.1f s, %.2f, pitch %.2f \n",
 			wpn->mob.position.z, wpn->mob.position.y, wpn->mob.velocity, time, get_weapon_drag(wpn->mob.velocity, wpn->mob.position.y, weapon_database[wpn->mob.sub_type].diameter, weapon_database[wpn->mob.sub_type].drag_coefficient), deg(pitch));
+		WPN_FX_RANGE_FLIGHT (wpn->mob.sub_type, zero_pitch, wpn->mob.position.z, wpn->mob.position.y, wpn->mob.velocity, wpn->weapon_lifetime)
 	}
 		
 }
@@ -1971,6 +2028,7 @@ static void supply_ballistics_table_to_host(entity_sub_types wpn_type)
 				cells[at++] = ballistics_table[k][wpn_type][p][r].flight_time;
 			}
 
+	WPN_FX_TABLE_SUPPLY (wpn_type, weapon_database[wpn_type].max_range, velocity_tests, pitch_indices, num_range_values, cells, count)
 	campaign_aim_supply_table(wpn_type, weapon_database[wpn_type].max_range, velocity_tests, pitch_indices, num_range_values, cells, count);
 
 	safe_free(cells);
@@ -2081,6 +2139,7 @@ void generate_guided_missiles_tables(void)
 			}
 
 			wpn.mob.sub_type = wpn_type;
+			WPN_FX_RANGE_TYPE (wpn_type, write_file != NULL)
 			for(i = 0; i < 2; i++)
 				calculate_range(&wpn, write_file, i);
 		}

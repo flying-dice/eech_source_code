@@ -1256,3 +1256,87 @@ int eech_engine_aim_person_case (const char *person_id, const char *target_id, c
 }
 
 #endif
+
+#ifdef EECH_WEAPON_FIXTURE
+
+/*
+ * TEST-ONLY physical weapon-execution characterisation (EEDCS-45): the run-wide trace of the weapon-creation, flight, update and contact code the campaign's own
+ * update loop runs (eech_wpn_fixture.c), the ordered event log, and the controlled launch case. Reading runs inside the engine entry, as the game's own calls do.
+ * Nothing here calls a weapon function except the controlled case, which calls launch_client_server_weapon once, as the family fire code does.
+ */
+extern int eech_wpn_trace_get (char *text, int capacity);
+extern int eech_wpn_events_get (char *text, int capacity);
+extern int eech_wpn_case_query_run (const char *host_id, int weapon, char *text, int capacity);
+extern int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, int weapon, int salvo_count, char *text, int capacity);
+
+int eech_engine_wpn_trace (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_wpn_trace_get (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* returns EECH_ENGINE_OK with `more` set to 1 while undrained events remain */
+int eech_engine_wpn_events (char *text, int capacity, int *more)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || !more)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	*more = eech_wpn_events_get (text, capacity);
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_wpn_case_query (const char *host_id, int weapon, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!host_id || !text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_wpn_case_query_run (host_id, weapon, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id, int weapon, int salvo_count, char *text, int capacity, const struct eech_engine_host *host)
+{
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!launcher_id || !target_id || !text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_wpn_case_launch_run (launcher_id, target_id, weapon, salvo_count, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif

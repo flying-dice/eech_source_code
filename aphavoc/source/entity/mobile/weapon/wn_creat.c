@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_wpnfx.h"
+
 #include "entity/tacview/tacview.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -121,6 +123,7 @@ static entity *create_local (entity_types type, int index, char *pargs)
 	if (en)
 	{
 		float dispersion;
+		WPN_FX_BIRTH_BEGIN ()
 
 		////////////////////////////////////////
    	//
@@ -235,6 +238,7 @@ static entity *create_local (entity_types type, int index, char *pargs)
 			entity *target;
 			float time_of_flight, dummy;
 			vec3d intercept_point;
+			WPN_FX_FUZE_BEGIN ()
 			
 			target = get_local_entity_parent (raw->launched_weapon_link.parent, LIST_TYPE_TARGET);
 			
@@ -247,6 +251,7 @@ static entity *create_local (entity_types type, int index, char *pargs)
 						raw->decoy_timer -= 1.0;
 					
 					raw->decoy_timer = max(0.0f, raw->decoy_timer);
+					WPN_FX_FUZE_SOLVED (raw->decoy_timer)
 					
 					#if DEBUG_MODULE
 						debug_log("DECOY TIMER %f, velocity %f", raw->decoy_timer, raw->mob.velocity - weapon_database[raw->mob.sub_type].muzzle_velocity);
@@ -270,6 +275,7 @@ static entity *create_local (entity_types type, int index, char *pargs)
 			
 			get_3d_transformation_matrix(m, heading, pitch, 0.0);
 			multiply_matrix3x3_matrix3x3(raw->mob.attitude, vp.attitude, m);
+			WPN_FX_DISPERSION (heading, pitch)
 		}
 		else
 			memcpy (raw->mob.attitude, vp.attitude, sizeof (matrix3x3));
@@ -299,6 +305,7 @@ static entity *create_local (entity_types type, int index, char *pargs)
 
 		if (tacview_is_logging())
 			write_tacview_new_unit(en);
+		WPN_FX_BIRTH_END (en, raw, submunition)
 
 		//
 		// check if the weapon camera is primed and this weapon has been launched by the external view entity
@@ -410,6 +417,10 @@ void overload_weapon_create_functions (void)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef EECH_WEAPON_FIXTURE
+#define create_client_server_entity_weapon create_client_server_entity_weapon_original
+#endif
 
 void create_client_server_entity_weapon (entity *launcher, entity_sub_types weapon_sub_type, int weapon_index, int burst_size, int *smoke_trail_indices, int salvo)
 {
@@ -565,6 +576,7 @@ void create_client_server_entity_weapon (entity *launcher, entity_sub_types weap
 			// set burst timer
 			//
 
+			WPN_FX_LAUNCH_ATTEMPT (current_weapon_count, burst_size, target != NULL)
 			valid_sound_effect = FALSE;
 
 			if (get_local_entity_float_value (launcher, FLOAT_TYPE_WEAPON_BURST_TIMER) <= 0)
@@ -598,6 +610,7 @@ void create_client_server_entity_weapon (entity *launcher, entity_sub_types weap
 			);
 
 			set_force_local_entity_create_stack_attributes (FALSE);
+			WPN_FX_LAUNCH_CREATED (weapon != NULL)
 
 			if (weapon)
 			{
@@ -615,6 +628,7 @@ void create_client_server_entity_weapon (entity *launcher, entity_sub_types weap
 					if (force)
 					{
 						notify_local_entity (ENTITY_MESSAGE_ENTITY_FIRED_AT, force, launcher, target);
+						WPN_FX_LAUNCH_FIRED_AT ()
 					}
 				}
 
@@ -700,6 +714,7 @@ void create_client_server_entity_weapon (entity *launcher, entity_sub_types weap
 				//
 
 				new_weapon_count = get_local_entity_weapon_count (launcher, weapon_sub_type);
+				WPN_FX_LAUNCH_AMMO (current_weapon_count, new_weapon_count, decoy)
 
 				if (new_weapon_count <= 0)
 				{
@@ -774,6 +789,7 @@ void create_client_server_entity_weapon (entity *launcher, entity_sub_types weap
 		}
 		else
 		{
+			WPN_FX_LAUNCH_NO_AMMO ()
 			pause_client_server_continuous_weapon_sound_effect (launcher, weapon_sub_type);
 		}
 	}
@@ -887,6 +903,21 @@ void create_client_server_entity_weapon (entity *launcher, entity_sub_types weap
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_WEAPON_FIXTURE
+
+#undef create_client_server_entity_weapon
+
+void create_client_server_entity_weapon (entity *launcher, entity_sub_types weapon_sub_type, int weapon_index, int burst_size, int *smoke_trail_indices, int salvo)
+{
+	eech_wpn_launch_begin (launcher, weapon_sub_type);
+
+	create_client_server_entity_weapon_original (launcher, weapon_sub_type, weapon_index, burst_size, smoke_trail_indices, salvo);
+
+	eech_wpn_launch_end ();
+}
+
+#endif
+
 void launch_client_server_weapon (entity *launcher, entity_sub_types weapon_sub_type, int salvo_count)
 {
 	int
@@ -927,6 +958,7 @@ void launch_client_server_weapon (entity *launcher, entity_sub_types weapon_sub_
 
 	ASSERT (salvo_size > 0);
 	ASSERT (salvo_count >= 0);
+	WPN_FX_SALVO (launcher, weapon_sub_type, salvo_size, pods_firing, get_local_entity_int_value (launcher, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI)
 
 	while (salvo_size--)
 	{

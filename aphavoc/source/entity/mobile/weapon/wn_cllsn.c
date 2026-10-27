@@ -65,6 +65,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "project.h"
+#include "entity/mobile/mb_wpnfx.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -263,6 +264,7 @@ entity *collision_test_weapon_with_any_target (entity *weapon, vec3d *weapon_old
 		*weapon_new_position = weapon_intercept_point;
 	}
 
+	WPN_FX_CONTACT_ANY (collision_entity, weapon_old_position, weapon_new_position)
 	return (collision_entity);
 }
 
@@ -292,6 +294,7 @@ int collision_test_weapon_with_trees (vec3d *weapon_old_position, vec3d *weapon_
 		*weapon_new_position = intercept_point;
 	}
 
+	WPN_FX_CONTACT_TREES (hit_tree, weapon_old_position, weapon_new_position)
 	return (hit_tree);
 }
 
