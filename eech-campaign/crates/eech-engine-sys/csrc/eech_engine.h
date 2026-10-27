@@ -285,6 +285,9 @@ int eech_engine_aim_trace_reset (void);
 /* Controlled person case: the pose of one host-identified entity, and the campaign's own target link set on one host-identified person. */
 int eech_engine_aim_person_query (const char *host_id, char *text, int capacity);
 int eech_engine_aim_person_case (const char *person_id, const char *target_id, char *text, int capacity, const struct eech_engine_host *host);
+/* The campaign's own lead-and-ballistic function asked once for two host-identified entities with the caller's time-of-flight variable set to `sentinel`; the report says
+   whether the variable still holds it. The host answers through the callbacks given. */
+int eech_engine_aim_lead_probe (const char *source_id, const char *target_id, int weapon, float sentinel, char *text, int capacity, const struct eech_engine_host *host);
 #endif
 
 #endif

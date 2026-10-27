@@ -25,8 +25,11 @@
  *                  weapon and a target (or a tracking point): the device's viewpoint, the weapon's figures, the target's position, point and motion.
  *                  The host answers DONE, or NEED_DRAW when the lead prediction reaches its random range jitter: the campaign takes ONE sample of its own
  *                  random stream (a raw integer in [0, 32767]; the generator and its seed never leave the campaign) and asks the same question again with it.
- *   LEAD           the lead and ballistic prediction alone (the decoy and fuze timer at weapon launch).  DONE or NEED_DRAW as above.
- *   BALLISTIC      one table interpolation (the AI salvo aim, the player's pipper).  DONE with the aiming pitch and the time of flight.
+ *   LEAD           the lead and ballistic prediction alone (the decoy and fuze timer at weapon launch).  DONE or NEED_DRAW as above.  The time of flight is
+ *                  a PARTIAL OUTPUT, as in the original: it comes back only when the host produced one (has_time_of_flight), and the campaign stores it into
+ *                  the caller's variable only then.  A prediction that produces none (the target is off the map, the range is under a millimetre, or no ballistic
+ *                  lookup succeeded) leaves the caller's variable as it was; the host invents no value, and a host that genuinely has a flight time may send it.
+ *   BALLISTIC      one table interpolation (the AI salvo aim, the player's pipper).  DONE with the aiming pitch and the time of flight (a success always has both).
  *   INTERCEPT      the guided-weapon intercept prediction alone (the player's HUD).  DONE with the predicted point.
  *
  * The device viewpoint, the target point, the entity positions, speeds and motion vectors and the weapon and package figures that the campaign supplies are
@@ -195,6 +198,8 @@ typedef struct campaign_aim_result
 	float intercept_point[3];
 	float angle;
 	float time_of_flight;
+	/* whether the host produced a time of flight: LEAD, any outcome; BALLISTIC, exactly on success; never otherwise.  When it is 0 the value above is 0 and means nothing */
+	int has_time_of_flight;
 	/* optional trace echo: the reference host's intermediate values, read only by the test fixture build */
 	int has_echo;
 	int echo_count;

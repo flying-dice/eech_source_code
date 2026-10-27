@@ -642,15 +642,17 @@ fn call_aim(lua: &Lua, function: &LuaFunction, request: AimRequest) -> Result<Ai
             reply.result = aim_boolean(&table, "ok")?;
             reply.intercept_point = vector("intercept_point")?;
             reply.angle = number("angle")?;
-            if reply.result {
-                reply.time_of_flight = number("time_of_flight")?;
-            }
+            // the time of flight is a partial output: absent (nil) when the host produced none, whatever `ok` says; present it must be a finite number
+            reply.time_of_flight = match table.get::<LuaValue>("time_of_flight").map_err(|e| e.to_string())? {
+                LuaValue::Nil => None,
+                _ => Some(number("time_of_flight")?),
+            };
         }
         AimRequest::Ballistic(_) => {
             reply.result = aim_boolean(&table, "ok")?;
             if reply.result {
                 reply.angle = number("angle")?;
-                reply.time_of_flight = number("time_of_flight")?;
+                reply.time_of_flight = Some(number("time_of_flight")?);
             }
         }
         AimRequest::Intercept(_) => {
@@ -1199,6 +1201,43 @@ impl LuaUserData for LuaEngine {
                 )
                 .map_err(lua_error)
         });
+        // TEST-ONLY (feature `aim-fixture`, EEDCS-44): the campaign's own lead-and-ballistic function asked once, with the caller's time-of-flight variable set to a
+        // sentinel; the report says whether it still holds it. Given the same complete host callbacks as a frame; not part of the shipping module.
+        #[cfg(feature = "aim-fixture")]
+        methods.add_method(
+            "aim_lead_probe",
+            |lua, this, (source_id, target_id, weapon, sentinel): (String, String, i32, f64)| {
+                let bind_mobile = this.bind_mobile.clone();
+                let observe_loss = this.observe_loss.clone();
+                let supply_reached = this.supply_reached.clone();
+                let move_vehicle = this.move_vehicle.clone();
+                let line_of_sight = this.line_of_sight.clone();
+                let sense = this.sense.clone();
+                let aim = this.aim.clone();
+                let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+                let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+                let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+                let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+                let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+                let mut sensor = |message| call_sense(lua, &sense, message);
+                let mut aimer = |request| call_aim(lua, &aim, request);
+                this.engine
+                    .aim_lead_probe(
+                        &source_id,
+                        &target_id,
+                        weapon,
+                        sentinel as f32,
+                        &mut binder,
+                        &mut observer,
+                        &mut reach,
+                        &mut mover,
+                        &mut sighter,
+                        &mut sensor,
+                        &mut aimer,
+                    )
+                    .map_err(lua_error)
+            },
+        );
         // TEST-ONLY (feature `aim-fixture`, EEDCS-44): clears that trace; not part of the shipping module.
         #[cfg(feature = "aim-fixture")]
         methods.add_method("aim_trace_reset", |_, this, ()| this.engine.aim_trace_reset().map_err(lua_error));

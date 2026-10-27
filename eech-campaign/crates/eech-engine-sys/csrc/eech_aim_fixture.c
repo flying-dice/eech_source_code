@@ -786,7 +786,7 @@ void eech_aim_lead_triangulated (void)
 void eech_aim_lead_end (const vec3d *pitch_device_position, int weapon_sub_type, float parent_velocity, entity *source, entity *target,
 	const vec3d *intercept_point, const float *angle_of_projection_out, const float *time_of_flight_out, int result)
 {
-	int draws;
+	int draws, have_time_of_flight;
 	float angle_of_projection = 0.0f, time_of_flight = 0.0f;
 	char text[SAMPLE_TEXT], key[40];
 	static const char *const path_names[EECH_AIM_LEAD_PATHS] = { "none", "tiny_range", "off_map", "stationary", "moving" };
@@ -804,7 +804,9 @@ void eech_aim_lead_end (const vec3d *pitch_device_position, int weapon_sub_type,
 		cur_lead.path = EECH_AIM_LEAD_PATH_TINY_RANGE;
 	}
 	angle_of_projection = *angle_of_projection_out;
-	if (result && cur_lead.path != EECH_AIM_LEAD_PATH_OFF_MAP)
+	/* a time of flight the host did not produce is not read (no pointer is given) and not folded */
+	have_time_of_flight = result && cur_lead.path != EECH_AIM_LEAD_PATH_OFF_MAP && time_of_flight_out != NULL;
+	if (have_time_of_flight)
 	{
 		time_of_flight = *time_of_flight_out;
 	}
@@ -849,7 +851,7 @@ void eech_aim_lead_end (const vec3d *pitch_device_position, int weapon_sub_type,
 	fold_vec (&trace.physical_hash, intercept_point);
 	fold_f (&trace.physical_hash, angle_of_projection);
 	/* time of flight is written only on the solver's success paths (the off-map path leaves the caller's value) */
-	if (result && cur_lead.path != EECH_AIM_LEAD_PATH_OFF_MAP)
+	if (have_time_of_flight)
 	{
 		fold_f (&trace.physical_hash, time_of_flight);
 		note_range (R_LEAD_TIME_OF_FLIGHT, (double) time_of_flight);
@@ -864,7 +866,7 @@ void eech_aim_lead_end (const vec3d *pitch_device_position, int weapon_sub_type,
 		"intercept=(%.9g,%.9g,%.9g) angle=%.9g", get_entity_type_name ((entity_types) source->type), weapon_sub_type, path_names[cur_lead.path], result,
 		cur_lead.iterations, (double) cur_lead.tov, (double) parent_velocity, draws, (double) cur_lead.range_initial, (double) cur_lead.range_pre, (double) cur_lead.range_post,
 		(double) intercept_point->x, (double) intercept_point->y, (double) intercept_point->z, (double) angle_of_projection);
-	if (result && cur_lead.path != EECH_AIM_LEAD_PATH_OFF_MAP)
+	if (have_time_of_flight)
 	{
 		text_append (text, sizeof (text), " tof=%.9g", (double) time_of_flight);
 	}
@@ -987,7 +989,9 @@ void eech_aim_replay_echo (struct campaign_aim_result *result)
 			result->intercept_point[1] = event->f[1];
 			result->intercept_point[2] = event->f[2];
 			result->angle = event->f[3];
-			result->time_of_flight = event->f[4];
+			/* the time of flight only when the prediction wrote one (event->a); an absent one is 0 and the hook below is given no pointer to read */
+			result->time_of_flight = event->a ? event->f[4] : 0.0f;
+			result->has_time_of_flight = event->a ? 1 : 0;
 			break;
 		}
 	}
@@ -1436,6 +1440,33 @@ int eech_aim_person_query_run (const char *host_id, char *text, int capacity)
 
 /* gives `person` the target through the campaign's own set_client_server_entity_parent (the call the family target code makes) and reports before and after;
  * an empty target id releases the link through the same call (target NULL), so the person returns to its own movement */
+/* TEST-ONLY: the campaign's own lead-and-ballistic function (weapon.c, the one weapon launch calls for the decoy and fuze timer) asked once for two host-identified live
+ * entities, with the caller's time-of-flight variable set to `sentinel`. The host answers through the real `aim` callback; the report says what the function returned and
+ * whether the caller's variable still holds the sentinel (the partial-output contract: it is stored only when the host produced a value). */
+int eech_aim_lead_probe_run (const char *source_id, const char *target_id, int weapon, float sentinel, char *text, int capacity)
+{
+	entity *source = case_find (source_id);
+	entity *target = case_find (target_id);
+	vec3d device, intercept_point;
+	float angle_of_projection, time_of_flight;
+	int result, n;
+	text[0] = 0;
+	if (!source || !target || source == target || !get_local_entity_int_value (source, INT_TYPE_ALIVE) || !get_local_entity_int_value (target, INT_TYPE_ALIVE)
+		|| weapon <= 0 || weapon >= NUM_ENTITY_SUB_TYPE_WEAPONS)
+	{
+		snprintf (text, (size_t) capacity, "aim-lead-probe-error reason=entities_or_weapon_not_valid\n");
+		return -1;
+	}
+	get_local_entity_vec3d (source, VEC3D_TYPE_POSITION, &device);
+	angle_of_projection = -7.0f;
+	time_of_flight = sentinel;
+	result = get_lead_and_ballistic_intercept_point_and_angle_of_projection (&device, (entity_sub_types) weapon, 0.0f, source, target, &intercept_point, &angle_of_projection,
+		&time_of_flight);
+	n = snprintf (text, (size_t) capacity, "aim-lead-probe result=%d time_of_flight_bits=%08x sentinel_bits=%08x kept_sentinel=%d time_of_flight=%.9g angle=%.9g\n", result,
+		float_bits (time_of_flight), float_bits (sentinel), float_bits (time_of_flight) == float_bits (sentinel), (double) time_of_flight, (double) angle_of_projection);
+	return (n < 0 || n >= capacity) ? -1 : 0;
+}
+
 int eech_aim_person_case_run (const char *person_id, const char *target_id, char *text, int capacity)
 {
 	entity *person = case_find (person_id);

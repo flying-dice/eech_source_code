@@ -1162,7 +1162,8 @@ static int ask_vectors
 
 		if (lead)
 		{
-			eech_aim_lead_end (&vp->position, weapon_sub_type, step.acquire_forward * step.source_velocity, source, target, &predicted, &result.angle, &result.time_of_flight,
+			eech_aim_lead_end (&vp->position, weapon_sub_type, step.acquire_forward * step.source_velocity, source, target, &predicted, &result.angle,
+				result.has_time_of_flight ? &result.time_of_flight : NULL,
 				result.result);
 		}
 
@@ -1237,7 +1238,9 @@ int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 
 	*angle_of_projection = result.angle;
 
-	if (result.result)
+	// the time of flight is a partial output (the original wrote it on its ballistic successes and left it alone on the off-map, tiny-range and failed paths): the
+	// caller's variable is stored into only when the host produced one, whatever the result
+	if (result.has_time_of_flight)
 	{
 		*time_of_flight = result.time_of_flight;
 	}
@@ -1246,7 +1249,8 @@ int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 
 	eech_aim_replay_echo (&result);
 
-	eech_aim_lead_end (pitch_device_position, wpn_type, parent_velocity, source, target, intercept_point, &result.angle, &result.time_of_flight, result.result);
+	eech_aim_lead_end (pitch_device_position, wpn_type, parent_velocity, source, target, intercept_point, &result.angle, result.has_time_of_flight ? &result.time_of_flight : NULL,
+		result.result);
 
 	#endif
 

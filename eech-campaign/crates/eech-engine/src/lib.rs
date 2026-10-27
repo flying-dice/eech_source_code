@@ -1266,7 +1266,9 @@ pub struct AimReply {
     pub intercept_range: f32,
     pub intercept_point: [f32; 3],
     pub angle: f32,
-    pub time_of_flight: f32,
+    /// A partial output (a `lead` or, on success, a `ballistic` answer only): `None` when the host produced no flight time, in which case the campaign leaves its caller's
+    /// variable alone. `Some` must be finite.
+    pub time_of_flight: Option<f32>,
     pub echo: Option<Vec<AimEvent>>,
 }
 
@@ -2442,7 +2444,16 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
     answer.intercept_range = reply.intercept_range;
     answer.intercept_point = reply.intercept_point;
     answer.angle = reply.angle;
-    answer.time_of_flight = reply.time_of_flight;
+    if let Some(time_of_flight) = reply.time_of_flight {
+        if source.mode != sys::EECH_AIM_LEAD && source.mode != sys::EECH_AIM_BALLISTIC {
+            return Err("aim answered a request that cannot carry a flight time with one".into());
+        }
+        if !time_of_flight.is_finite() {
+            return Err("aim answered a non-finite flight time".into());
+        }
+        answer.time_of_flight = time_of_flight;
+        answer.has_time_of_flight = 1;
+    }
     if let Some(events) = &reply.echo {
         if source.echo_out.is_null() || source.echo_capacity <= 0 {
             return Err("aim sent an echo nobody asked for".into());
@@ -3391,6 +3402,61 @@ impl Engine {
             sense_fn,
             aim_fn,
             |host| unsafe { sys::eech_engine_aim_person_case(person_id.as_ptr(), target_id.as_ptr(), text.as_mut_ptr(), text.len() as i32, host) },
+        )?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `aim-fixture`, EEDCS-44): the campaign's own lead-and-ballistic function asked once for two host-identified live entities with the caller's
+    /// time-of-flight variable set to `sentinel`; the report says whether the variable still holds it. Given the same complete host as a frame.
+    #[cfg(feature = "aim-fixture")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn aim_lead_probe<F, G, H, M, L, D, A>(
+        &self,
+        source_id: &str,
+        target_id: &str,
+        weapon: i32,
+        sentinel: f32,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
+        sense_fn: &mut D,
+        aim_fn: &mut A,
+    ) -> Result<String, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
+        D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
+    {
+        let source_id = std::ffi::CString::new(source_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
+        let target_id = std::ffi::CString::new(target_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
+        let mut text = vec![0 as std::os::raw::c_char; AIM_REPORT_CAPACITY];
+        // SAFETY: the strings, the buffer and the temporary host callback outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            sense_fn,
+            aim_fn,
+            |host| unsafe {
+                sys::eech_engine_aim_lead_probe(
+                    source_id.as_ptr(),
+                    target_id.as_ptr(),
+                    weapon,
+                    sentinel,
+                    text.as_mut_ptr(),
+                    text.len() as i32,
+                    host,
+                )
+            },
         )?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
@@ -5053,6 +5119,54 @@ mod tests {
             })
         });
         assert!(code != 0 && error.contains("nobody asked for"), "{error}");
+    }
+
+    #[test]
+    fn a_lead_flight_time_travels_only_when_the_host_produced_one_and_only_a_lead_or_ballistic_answer_may_carry_it() {
+        let step = blank_aim_step(sys::EECH_AIM_LEAD);
+        // none: the presence flag is clear and the value is zero
+        let (_, result, code, _) = aim_crossing(&step, |_| Ok(AimReply::default()));
+        assert_eq!((code, result.has_time_of_flight, result.time_of_flight), (0, 0, 0.0));
+        // one: present and exact, whatever the outcome (a failed solve may have produced one before it failed)
+        for ok in [true, false] {
+            let (_, result, code, _) = aim_crossing(&step, move |_| {
+                Ok(AimReply {
+                    result: ok,
+                    time_of_flight: Some(12.5),
+                    ..AimReply::default()
+                })
+            });
+            assert_eq!(
+                (code, result.has_time_of_flight, result.time_of_flight, result.result),
+                (0, 1, 12.5, c_int::from(ok))
+            );
+        }
+        // a ballistic success carries it too
+        let (_, result, code, _) = aim_crossing(&blank_aim_step(sys::EECH_AIM_BALLISTIC), |_| {
+            Ok(AimReply {
+                result: true,
+                time_of_flight: Some(2.0),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.has_time_of_flight, result.time_of_flight), (0, 1, 2.0));
+        // a non-finite one, and one on an answer that cannot carry it, are refused with the reason
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                time_of_flight: Some(f32::NAN),
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("non-finite flight time"), "{error}");
+        for mode in [sys::EECH_AIM_READY_UPDATE, sys::EECH_AIM_STEP, sys::EECH_AIM_VECTORS, sys::EECH_AIM_INTERCEPT] {
+            let (_, _, code, error) = aim_crossing(&blank_aim_step(mode), |_| {
+                Ok(AimReply {
+                    time_of_flight: Some(1.0),
+                    ..AimReply::default()
+                })
+            });
+            assert!(code != 0 && error.contains("cannot carry"), "mode {mode}: {error}");
+        }
     }
 
     #[test]

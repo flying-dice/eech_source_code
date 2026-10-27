@@ -1217,6 +1217,26 @@ int eech_engine_aim_person_query (const char *host_id, char *text, int capacity)
 	LEAVE (EECH_ENGINE_OK);
 }
 
+extern int eech_aim_lead_probe_run (const char *source_id, const char *target_id, int weapon, float sentinel, char *text, int capacity);
+
+int eech_engine_aim_lead_probe (const char *source_id, const char *target_id, int weapon, float sentinel, char *text, int capacity, const struct eech_engine_host *host)
+{
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!source_id || !target_id || !text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_aim_lead_probe_run (source_id, target_id, weapon, sentinel, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
 int eech_engine_aim_person_case (const char *person_id, const char *target_id, char *text, int capacity, const struct eech_engine_host *host)
 {
 	ENTER (OPERATION_OBSERVE, host);

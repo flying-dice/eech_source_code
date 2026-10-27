@@ -187,6 +187,27 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 		return;
 	}
 
+	// the time of flight is a partial output: its presence is a fact of its own, only a lead or a ballistic answer may carry it, a ballistic failure never does, and an
+	// absent one is zero (the value of an absent output is not read anywhere)
+	if ((result->has_time_of_flight != FALSE) && (result->has_time_of_flight != TRUE))
+	{
+		debug_fatal ("host aim: host aim answered a %s request with a non-boolean time-of-flight presence %d", mode_name (step->mode), result->has_time_of_flight);
+	}
+
+	if (result->has_time_of_flight)
+	{
+		if (((step->mode != CAMPAIGN_AIM_LEAD) && (step->mode != CAMPAIGN_AIM_BALLISTIC)) || ((step->mode == CAMPAIGN_AIM_BALLISTIC) && !result->result))
+		{
+			debug_fatal ("host aim: host aim answered a %s request with a time of flight it cannot carry", mode_name (step->mode));
+		}
+
+		require_finite (step, "time of flight", &result->time_of_flight, 1);
+	}
+	else if (result->time_of_flight != 0.0)
+	{
+		debug_fatal ("host aim: host aim answered a %s request with a time-of-flight value but no presence", mode_name (step->mode));
+	}
+
 	switch (step->mode)
 	{
 		case CAMPAIGN_AIM_TABLE:
@@ -248,7 +269,6 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 
 			require_finite (step, "intercept point", result->intercept_point, 3);
 			require_finite (step, "angle", &result->angle, 1);
-			require_finite (step, "time of flight", &result->time_of_flight, 1);
 
 			break;
 		}
@@ -262,7 +282,11 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 			if (result->result)
 			{
 				require_finite (step, "aiming angle", &result->angle, 1);
-				require_finite (step, "time of flight", &result->time_of_flight, 1);
+
+				if (!result->has_time_of_flight)
+				{
+					debug_fatal ("host aim: host aim answered a successful ballistic request without a time of flight");
+				}
 			}
 
 			break;

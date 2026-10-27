@@ -358,6 +358,19 @@ refused({ mode = 'required', device_attitude = LEVEL, intercept_vector = { 0, 0,
 local cells = string.rep(string.char(0, 0, 0, 0), 5 * 85 * 7 * 2)
 r = host.aim({ mode = 'table', weapon = 7, max_range = 100, velocity_tests = 5, pitch_indices = 85, range_values = 7, cells = cells })
 assert(r.state == 'done', 'table accepted')
+-- the lead's flight time is a partial output: sent when the prediction produced one, absent when it did not (it is never invented)
+local MAP = { map_min = { 0, 0, 0 }, map_max = { 100000, 100000, 100000 }, comms_weapon_lag = 0, source_gunship = false, echo = false }
+local function lead(device, point, parent_velocity)
+  local request = { mode = 'lead', weapon = 7, device_position = device, parent_velocity = parent_velocity, target = { position = point, point = point, motion_vector = { 0, 0, 0 }, mobile = true } }
+  for k, v in pairs(MAP) do request[k] = v end
+  return host.aim(request)
+end
+r = lead({ 0, 0, 0 }, { 500, 0, 0 }, 0)
+assert(r.state == 'done' and r.ok == true and type(r.time_of_flight) == 'number', 'a ballistic lookup produced a flight time')
+r = lead({ 198500, 0, 0 }, { 200000, 0, 0 }, 500)
+assert(r.state == 'done' and r.ok == true and r.time_of_flight == nil, 'the off-map success produces no flight time: it is absent, not zero')
+r = lead({ 10, 0, 10 }, { 10, 0, 10 }, 0)
+assert(r.state == 'done' and r.ok == false and r.time_of_flight == nil, 'a tiny range produces none')
 refused({ mode = 'ballistic', weapon = 8, range = 50, height_diff_or_pitch = 0, simplified = false, fixed_pitch = false, parent_velocity = 0 }, 'no ballistic table for weapon 8')
 refused({ mode = 'table', weapon = 7, max_range = 100, velocity_tests = 4, pitch_indices = 85, range_values = 7, cells = cells }, 'velocity tests')
 refused({ mode = 'table', weapon = 7, max_range = 100, velocity_tests = 5, pitch_indices = 85, range_values = 6, cells = cells }, 'range values')

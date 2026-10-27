@@ -122,6 +122,7 @@ extern "C" {
         has_draw: c_int,
         draw_sample: c_int,
         out: *mut f32,
+        time_written: *mut c_int,
         echo: *mut RawEcho,
         need_draw: *mut c_int,
         fault: *mut c_int,
@@ -230,7 +231,9 @@ pub struct Lead {
     pub ok: bool,
     pub intercept_point: [f32; 3],
     pub angle: f32,
-    pub time_of_flight: f32,
+    /// The flight time, only when the prediction produced one (a successful ballistic lookup). The off-map and tiny-range paths produce none and the model
+    /// invents no value; a host that has a flight time of its own may send it.
+    pub time_of_flight: Option<f32>,
     pub echo: Option<Vec<Event>>,
 }
 
@@ -568,7 +571,7 @@ impl Aim {
         self.require_table(weapon)?;
         let table = self.raw_table(weapon);
         let mut out = [0.0f32; 5];
-        let (mut need_draw, mut fault) = (0, 0);
+        let (mut need_draw, mut fault, mut time_written) = (0, 0, 0);
         let mut raw = echo.then(new_echo);
         // SAFETY: the table and its cells are valid for the call; the outputs and the echo are local.
         let ok = unsafe {
@@ -586,6 +589,7 @@ impl Aim {
                 c_int::from(draw.is_some()),
                 draw.unwrap_or(0),
                 out.as_mut_ptr(),
+                &mut time_written,
                 raw.as_mut().map_or(std::ptr::null_mut(), |echo| &mut **echo),
                 &mut need_draw,
                 &mut fault,
@@ -601,7 +605,7 @@ impl Aim {
             ok,
             intercept_point: [out[0], out[1], out[2]],
             angle: out[3],
-            time_of_flight: out[4],
+            time_of_flight: (time_written != 0).then_some(out[4]),
             echo: raw.as_deref().map(echo_events).transpose()?,
         }))
     }
@@ -650,7 +654,7 @@ impl Aim {
             self.require_table(weapon.weapon)?;
         }
         let table = self.raw_table(weapon.weapon);
-        let mut out = [0.0f32; 15];
+        let mut out = [0.0f32; 16];
         let (mut need_draw, mut fault) = (0, 0);
         let mut raw = echo.then(new_echo);
         // SAFETY: the table and its cells are valid for the call; the outputs and the echo are local.
@@ -696,7 +700,7 @@ impl Aim {
                 f[..5].copy_from_slice(&[out[12], out[13], out[14], out[10], out[11]]);
                 events.push(Event {
                     kind: 6,
-                    a: 0,
+                    a: i32::from(out[15] != 0.0), // whether the prediction produced a time of flight
                     b: 0,
                     c: 0,
                     d: i32::from(valid),
@@ -894,6 +898,39 @@ mod tests {
         assert_eq!(lead.intercept_point, [10.0, 0.0, 10.0]);
         assert_eq!(lead.angle, 0.0);
         assert!(lead.echo.is_none(), "an echo is produced only when it is asked for");
+    }
+
+    fn lead_request(aim: &Aim, device: [f32; 3], point: [f32; 3], parent_velocity: f32) -> Lead {
+        let target = Target {
+            position: point,
+            point,
+            motion_vector: [0.0; 3],
+            mobile: true,
+        };
+        let world = World {
+            map_min: [0.0; 3],
+            map_max: [1.0e5; 3],
+            comms_weapon_lag: 0.0,
+        };
+        match aim.lead(7, device, parent_velocity, &target, &world, false, None, false).unwrap() {
+            Outcome::Done(lead) => lead,
+            Outcome::NeedDraw => panic!("a stationary target reaches no random jitter"),
+        }
+    }
+
+    #[test]
+    fn the_flight_time_of_a_lead_is_a_partial_output_that_the_model_never_invents() {
+        let aim = zero_table(7, 100.0);
+        // a stationary target inside the map: a ballistic lookup succeeds, so the model produced a flight time
+        let normal = lead_request(&aim, [0.0, 0.0, 0.0], [500.0, 0.0, 0.0], 0.0);
+        assert!(normal.ok && normal.time_of_flight.is_some(), "{normal:?}");
+        // off the map the solver takes the projectile-angle fall-back, which succeeds and writes no flight time: none is reported, and it is not zero
+        let off_map = lead_request(&aim, [198_500.0, 0.0, 0.0], [200_000.0, 0.0, 0.0], 500.0);
+        assert!(off_map.ok, "the fall-back found an angle for a target within reach: {off_map:?}");
+        assert!(off_map.time_of_flight.is_none(), "the off-map path produces no flight time: {off_map:?}");
+        // a range under a millimetre fails before any lookup: none either
+        let tiny = lead_request(&aim, [10.0, 0.0, 10.0], [10.0, 0.0, 10.0], 0.0);
+        assert!(!tiny.ok && tiny.time_of_flight.is_none(), "{tiny:?}");
     }
 
     #[test]

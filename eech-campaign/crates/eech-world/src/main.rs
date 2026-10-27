@@ -1764,8 +1764,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 result.set("ok", lead.ok)?;
                                 result.set("intercept_point", lead.intercept_point.to_vec())?;
                                 result.set("angle", lead.angle)?;
-                                if lead.ok {
-                                    result.set("time_of_flight", lead.time_of_flight)?;
+                                // a partial output: sent only when the prediction produced one (the off-map and tiny-range paths produce none and the model invents none)
+                                if let Some(time_of_flight) = lead.time_of_flight {
+                                    result.set("time_of_flight", time_of_flight)?;
                                 }
                                 echo_into(&lead.echo)?;
                             }

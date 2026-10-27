@@ -782,8 +782,8 @@ static int point_inside_map_area(const eech_aim_world *world, const vec3d *posit
    jitter is reached without a draw (nothing else of the call is meaningful then); *fault when the table does not cover an index. The triangulated
    range of the player's gunship is not supported: the campaign refuses to ask. */
 static int lead_and_ballistic(const eech_aim_table *table, int weapon, const vec3d *pitch_device_position, float parent_velocity, const eech_aim_target *target,
-	const eech_aim_world *world, int has_draw, int draw_sample, vec3d *intercept_point, float *angle_of_projection, float *time_of_flight, eech_aim_echo *echo,
-	int *need_draw, int *fault)
+	const eech_aim_world *world, int has_draw, int draw_sample, vec3d *intercept_point, float *angle_of_projection, float *time_of_flight, int *time_written,
+	eech_aim_echo *echo, int *need_draw, int *fault)
 {
 	int result, number_of_iterations;
 
@@ -794,6 +794,10 @@ static int lead_and_ballistic(const eech_aim_table *table, int weapon, const vec
 	result = FALSE;
 
 	*angle_of_projection = 0.0;
+
+	/* *time_of_flight is a PARTIAL output as in the original: only a successful ballistic lookup writes it (the off-map and tiny-range paths and a failed lookup do not),
+	   so *time_written says whether this call produced a value; the caller keeps its own variable when it did not */
+	*time_written = FALSE;
 
 	current_target_position = target->point;
 	*intercept_point = current_target_position;
@@ -864,6 +868,8 @@ static int lead_and_ballistic(const eech_aim_table *table, int weapon, const vec
 				{
 					return FALSE;
 				}
+
+				*time_written = TRUE;
 			}
 
 			while (number_of_iterations > 0)
@@ -958,6 +964,8 @@ static int lead_and_ballistic(const eech_aim_table *table, int weapon, const vec
 					{
 						return FALSE;
 					}
+
+					*time_written = TRUE;
 				}
 
 				number_of_iterations--;
@@ -986,6 +994,8 @@ static int lead_and_ballistic(const eech_aim_table *table, int weapon, const vec
 				{
 					return FALSE;
 				}
+
+				*time_written = TRUE;
 			}
 		}
 	}
@@ -1112,10 +1122,11 @@ void eech_aim_intercept(const float *device_position, int has_weapon, float crui
 	intercept_point[2] = point.z;
 }
 
-/* the lead and ballistic solve as the campaign asks for it directly (the decoy and fuze timer at weapon launch). out: intercept point (3), angle, time of flight. */
+/* the lead and ballistic solve as the campaign asks for it directly (the decoy and fuze timer at weapon launch). out: intercept point (3), angle, time of flight.
+   *time_written says whether the call produced a time of flight (a successful ballistic lookup did); when it did not, out[4] is 0 and means nothing. */
 int eech_aim_lead(const eech_aim_table *table, int weapon, const float *device_position, float parent_velocity, const float *target_point, const float *target_motion_vector,
-	const float *map_min, const float *map_max, float comms_weapon_lag, int source_is_gunship, int has_draw, int draw_sample, float *out, eech_aim_echo *echo, int *need_draw,
-	int *fault)
+	const float *map_min, const float *map_max, float comms_weapon_lag, int source_is_gunship, int has_draw, int draw_sample, float *out, int *time_written, eech_aim_echo *echo,
+	int *need_draw, int *fault)
 {
 	vec3d device, intercept_point;
 	eech_aim_target target;
@@ -1145,14 +1156,14 @@ int eech_aim_lead(const eech_aim_table *table, int weapon, const float *device_p
 	angle_of_projection = 0.0f;
 	time_of_flight = 0.0f;
 
-	result = lead_and_ballistic(table, weapon, &device, parent_velocity, &target, &world, has_draw, draw_sample, &intercept_point, &angle_of_projection, &time_of_flight, echo,
-		need_draw, fault);
+	result = lead_and_ballistic(table, weapon, &device, parent_velocity, &target, &world, has_draw, draw_sample, &intercept_point, &angle_of_projection, &time_of_flight,
+		time_written, echo, need_draw, fault);
 
 	out[0] = intercept_point.x;
 	out[1] = intercept_point.y;
 	out[2] = intercept_point.z;
 	out[3] = angle_of_projection;
-	out[4] = time_of_flight;
+	out[4] = *time_written ? time_of_flight : 0.0f; /* an unproduced time of flight is not exported (it stays the zero it was initialised to) */
 
 	return result;
 }
@@ -1170,11 +1181,12 @@ int eech_aim_vectors(const eech_aim_table *table, int weapon, int aiming_type, f
 	eech_aim_target target;
 	eech_aim_world world;
 	float intercept_point_range, weapon_velocity, pitch, time_of_flight, dx, dz, heading;
-	int result;
+	int result, time_written;
 	matrix3x3 m;
 
 	*need_draw = FALSE;
 	*fault = FALSE;
+	time_written = FALSE;
 
 	device.x = device_position[0];
 	device.y = device_position[1];
@@ -1278,7 +1290,7 @@ int eech_aim_vectors(const eech_aim_table *table, int weapon, int aiming_type, f
 				time_of_flight = 0.0f;
 
 				result = lead_and_ballistic(table, weapon, &device, acquire_forward * source_velocity, &target, &world, has_draw, draw_sample, &intercept_point_position, &pitch,
-					&time_of_flight, echo, need_draw, fault);
+					&time_of_flight, &time_written, echo, need_draw, fault);
 
 				if (*need_draw)
 				{
@@ -1305,10 +1317,11 @@ int eech_aim_vectors(const eech_aim_table *table, int weapon, int aiming_type, f
 
 				// the lead solver's own outputs, for the campaign's trace of it
 				out[10] = pitch;
-				out[11] = time_of_flight;
+				out[11] = time_written ? time_of_flight : 0.0f;
 				out[12] = intercept_point_position.x;
 				out[13] = intercept_point_position.y;
 				out[14] = intercept_point_position.z;
+				out[15] = time_written ? 1.0f : 0.0f; /* whether the lead prediction produced a time of flight (for the fixture's echo of it only) */
 
 				break;
 			}

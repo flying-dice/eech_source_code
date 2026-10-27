@@ -687,6 +687,7 @@ pub struct eech_aim_result {
     pub intercept_point: [f32; 3],
     pub angle: f32,
     pub time_of_flight: f32,
+    pub has_time_of_flight: c_int,
     pub has_echo: c_int,
     pub echo_count: c_int,
     pub echo: *const eech_aim_event,
@@ -878,6 +879,15 @@ extern "C" {
     pub fn eech_engine_aim_person_case(
         person_id: *const c_char,
         target_id: *const c_char,
+        text: *mut c_char,
+        capacity: c_int,
+        host: *const eech_engine_host,
+    ) -> c_int;
+    pub fn eech_engine_aim_lead_probe(
+        source_id: *const c_char,
+        target_id: *const c_char,
+        weapon: c_int,
+        sentinel: f32,
         text: *mut c_char,
         capacity: c_int,
         host: *const eech_engine_host,
