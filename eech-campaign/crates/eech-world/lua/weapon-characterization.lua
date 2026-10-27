@@ -33,10 +33,17 @@ local scenarios = {
 local scenario = assert (scenarios [args.scenario or "lebanon_retail"], "scenario=lebanon_retail|georgia_retail|georgia")
 local seed = 1
 
+-- a string as a JSON string with every control character, quote, backslash and non-ASCII byte escaped losslessly (a byte >= 0x80 is written as the code point of the same value, i.e.
+-- the Latin-1 reading): nothing in the recorded text is replaced or dropped
+local escapes = { ['"'] = '\\"', ['\\'] = '\\\\', ['\n'] = '\\n', ['\r'] = '\\r', ['\t'] = '\\t' }
+local function json_string (s)
+	return '"' .. (string.gsub (s, '[%c"\\\128-\255]', function (c) return escapes [c] or string.format ("\\u%04x", string.byte (c)) end)) .. '"'
+end
+
 local function number_or_string (v)
 	-- a non-finite number is not valid JSON: keep it as the string it printed as, so the comparator sees it rather than a parse error
 	if v ~= v or v == math.huge or v == -math.huge then
-		return string.format ("%q", tostring (v))
+		return json_string (tostring (v))
 	end
 	return tostring (v)
 end
@@ -44,8 +51,8 @@ end
 local function emit (t)
 	local parts = {}
 	for k, v in pairs (t) do
-		local value = type (v) == "string" and string.format ("%q", (v:gsub ("%c", " "))) or number_or_string (v)
-		parts [#parts + 1] = string.format ("%q:%s", k, value)
+		local value = type (v) == "string" and json_string (v) or number_or_string (v)
+		parts [#parts + 1] = json_string (k) .. ":" .. value
 	end
 	table.sort (parts)
 	out:write ("{" .. table.concat (parts, ",") .. "}\n")

@@ -5,7 +5,7 @@
 #   -Root     a private copy of the retail installation (the engine writes into its root: one root per run)
 #   -Out      the directory for trace.jsonl, run.log and run.out
 #   -Warmup   simulated seconds the war runs before the controlled calls (default 60)
-#   -Settle   simulated seconds allowed for the case weapons to reach their terminal fact (default 240)
+#   -Settle   simulated seconds allowed for the case weapons to reach their terminal fact (the CAP; default 700)
 #
 # The native exit is the script's exit (nonzero when a check failed or the engine stopped). The paths must hold no spaces (use a subst drive): the native argv is not quoted here.
 param(
@@ -13,7 +13,7 @@ param(
 	[Parameter(Mandatory = $true)] [string] $Root,
 	[Parameter(Mandatory = $true)] [string] $Out,
 	[int] $Warmup = 60,
-	[int] $Settle = 240,
+	[int] $Settle = 700,
 	[int] $FrameMs = 100
 )
 $ErrorActionPreference = 'Stop'

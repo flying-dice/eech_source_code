@@ -20,11 +20,11 @@
 --                                    the launcher's previous link is restored through the same setter
 --   no_ammo_outcome / no_ammo_changes_nothing   a launcher asked to launch a type it does not carry reports the no-ammunition outcome and creates nothing
 --   targeted_launches_created        at least three targeted launches by real launchers created weapons
---   case_weapons_reach_terminal      every weapon those launches created reached its terminal fact within the settle time, except weapons the fixture reports (wpn-live)
---                                    resting on the ground after surviving impact with lifetime still above -cruise_time (the source ends them only then); those are named
---                                    with their state and must be covered by the run's ground_survived tally. Optional categories (fuze timer, lock-on-after-launch, ...) are MEASURED and reported, never promised.
+--   case_weapons_reach_terminal      every weapon those launches created reached its terminal fact. The wait is computed from the weapons themselves (their lifetime and
+--                                    the database cruise time, reported by the fixture): the source ends a weapon at lifetime <= -(cruise_time + error) or on a contact, so a
+--                                    crate with a 511 s cruise time needs about 511 s. Optional categories (fuze timer, lock-on-after-launch, ...) are MEASURED, never promised.
 --
--- host.args: root, warmup (simulated seconds before the cases, default 60), settle (simulated seconds allowed for the case weapons to finish, default 240),
+-- host.args: root, warmup (simulated seconds before the cases, default 60), settle (the CAP, in simulated seconds, on the wait for the case weapons to finish; the wait is computed from the weapons, default 700),
 --            frame_ms (default 100), out (JSON Lines path)
 
 io.stdout:setvbuf ("no")
@@ -32,13 +32,20 @@ io.stdout:setvbuf ("no")
 local args = host.args
 local root = assert (args.root, "root=<installation root>")
 local warmup = tonumber (args.warmup or "60")
-local settle = tonumber (args.settle or "240")
+local settle = tonumber (args.settle or "700")
 local frame_ms = tonumber (args.frame_ms or "100")
 local out = assert (io.open (assert (args.out, "out=<JSON Lines path>"), "w"))
 local seed = 1
 
+-- a string as a JSON string with every control character, quote, backslash and non-ASCII byte escaped losslessly (a byte >= 0x80 is written as the code point of the same value, i.e.
+-- the Latin-1 reading): nothing in the recorded text is replaced or dropped
+local escapes = { ['"'] = '\\"', ['\\'] = '\\\\', ['\n'] = '\\n', ['\r'] = '\\r', ['\t'] = '\\t' }
+local function json_string (s)
+	return '"' .. (string.gsub (s, '[%c"\\\128-\255]', function (c) return escapes [c] or string.format ("\\u%04x", string.byte (c)) end)) .. '"'
+end
+
 local function number_or_string (v)
-	if v ~= v or v == math.huge or v == -math.huge then return string.format ("%q", tostring (v)) end
+	if v ~= v or v == math.huge or v == -math.huge then return json_string (tostring (v)) end
 	return tostring (v)
 end
 
@@ -46,10 +53,10 @@ local function emit (t)
 	local parts = {}
 	for k, v in pairs (t) do
 		local value
-		if type (v) == "string" then value = string.format ("%q", (v:gsub ("%c", " "))) -- Lua 5.1 %q writes a newline as backslash-newline, which is not JSON
+		if type (v) == "string" then value = json_string (v)
 		elseif type (v) == "boolean" then value = v and "true" or "false"
 		else value = number_or_string (v) end
-		parts [#parts + 1] = string.format ("%q:%s", k, value)
+		parts [#parts + 1] = json_string (k) .. ":" .. value
 	end
 	table.sort (parts)
 	out:write ("{" .. table.concat (parts, ",") .. "}\n")
@@ -357,9 +364,29 @@ for i, m in ipairs (made) do emit { event = "targeted", index = i, category = m.
 check ("targeted_launches_created", targeted_created >= 3, string.format ("%d of %d targeted launches created weapons", targeted_created, #made))
 
 -- ---------------------------------------------------------------------------------------------------------------- let the case weapons finish
+-- weapon_movement ends a weapon when its lifetime reaches -(cruise_time + a draw of at most 0.5 * cruise_time_max_error), or earlier on a ground/water/target/bounds contact; a weapon
+-- that survives ground impact (a crate, a grenade) rests until then. The fixture reports each live weapon's own lifetime and the database cruise time (wpn-live), so the longest
+-- time any case weapon can still need is known from the weapons themselves, right after the launches. The wait is that horizon plus a margin, capped by `settle`; the check below
+-- stays strict: every case weapon must reach its terminal fact.
+local function live_weapons ()
+	local live = {}
+	for line in string.gmatch (engine:wpn_trace (), "[^\n]+") do
+		if string.match (line, "^wpn%-live ") then
+			local f = fields (line)
+			live [tonumber (f.w)] = { type = f.type, on_ground = f.on_ground, lifetime = f.lifetime, cruise = f.cruise_time, error = tonumber (f.cruise_error), expires = tonumber (f.expires_in_at_least), terminal_seen = f.terminal_seen }
+		end
+	end
+	return live
+end
+local horizon = 0
+for w, l in pairs (live_weapons ()) do
+	if created_ordinals [w] == false and l.expires then horizon = math.max (horizon, l.expires + 0.5 * (l.error or 0)) end
+end
+local wait = math.min (settle, horizon + 10)
+emit { event = "settle_horizon", horizon = horizon, wait = wait, cap = settle, at = clock.elapsed_seconds }
 local pending = 0
 for _ in pairs (created_ordinals) do pending = pending + 1 end
-local deadline = clock.elapsed_seconds + settle
+local deadline = clock.elapsed_seconds + wait
 while pending > 0 and clock.elapsed_seconds < deadline do
 	step (2)
 	for _, e in ipairs (drain ()) do
@@ -368,33 +395,16 @@ while pending > 0 and clock.elapsed_seconds < deadline do
 	pending = 0
 	for _, done in pairs (created_ordinals) do if not done then pending = pending + 1 end end
 end
--- weapon_movement ends a weapon when its lifetime reaches -(cruise_time + error); a weapon of a type that survives ground impact (survive_ground_impact) comes to rest and is not moved
--- again (weapon_on_ground) until then, so it can outlast the settle time: no terminal fact has been produced for it YET. The fixture reports every live weapon with that state
--- (wpn-live). A case weapon without a terminal fact is explained only if it is resting on the ground with lifetime still above -cruise_time, and the run's ground_survived tally
--- must cover it; any other case weapon without a terminal fact fails the check.
-local live = {}
-for line in string.gmatch (engine:wpn_trace (), "[^\n]+") do
-	if string.match (line, "^wpn%-live ") then
-		local f = fields (line)
-		live [tonumber (f.w)] = { on_ground = f.on_ground, expires = tonumber (f.expires_in_at_least), type = f.type, lifetime = f.lifetime, cruise = f.cruise_time }
-	end
-end
-local survived = tonumber (string.match (engine:wpn_trace (), "wpn%-path name=ground_survived count=(%d+)")) or 0
-local resting, unexplained = {}, {}
+local live = live_weapons ()
+local still = {}
 for w, done in pairs (created_ordinals) do
 	if not done then
-		local l = live [w]
-		-- explained only by the source's own mechanism, as the fixture saw it: resting on the ground (weapon_on_ground) with lifetime still above -(cruise_time)
-		if l and l.on_ground == "1" and l.expires and l.expires > 0 then
-			resting [#resting + 1] = string.format ("%d:%s(lifetime %s, cruise_time %s, >=%.1f s to go)", w, l.type, l.lifetime, l.cruise, l.expires)
-		else
-			unexplained [#unexplained + 1] = string.format ("%d:%s", w, tostring (case_type [w]))
-		end
+		local l = live [w] or {}
+		still [#still + 1] = string.format ("%d:%s(on_ground %s, lifetime %s, cruise_time %s)", w, tostring (l.type or case_type [w]), tostring (l.on_ground), tostring (l.lifetime), tostring (l.cruise))
 	end
 end
-emit { event = "resting_case_weapons", resting = table.concat (resting, ";"), unexplained = table.concat (unexplained, ";"), ground_survived = survived, at = clock.elapsed_seconds }
-check ("case_weapons_reach_terminal", #unexplained == 0 and #resting <= survived, string.format ("%d case weapons without a terminal fact at %s s: resting on the ground [%s] (ground_survived %d), unexplained [%s]",
-	pending, tostring (clock.elapsed_seconds), table.concat (resting, ";"), survived, table.concat (unexplained, ";")))
+check ("case_weapons_reach_terminal", pending == 0 and horizon <= settle, string.format ("%d case weapons without a terminal fact at %s s (horizon %.1f s, cap %s): [%s]", pending,
+	tostring (clock.elapsed_seconds), horizon, tostring (settle), table.concat (still, ";")))
 
 drain ()
 emit { event = "run", elapsed = clock.elapsed_seconds, frames = frames }
