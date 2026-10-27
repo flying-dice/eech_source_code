@@ -861,6 +861,9 @@ void eech_wpn_birth_end (entity *en, const weapon *raw, int submunition)
 		t->last_y = raw->mob.position.y;
 		t->last_z = raw->mob.position.z;
 		t->max_velocity = raw->mob.velocity;
+		/* a weapon that has not moved yet reports the state it was born with, not zero */
+		t->last_lifetime = raw->weapon_lifetime;
+		t->on_ground = raw->weapon_on_ground ? 1 : 0;
 	}
 	fold (&trace.launch_hash, 0xB1000000u | (uint32_t) (submunition ? 1 : 0));
 	fold (&trace.launch_hash, (uint32_t) sub);
