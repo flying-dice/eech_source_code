@@ -81,6 +81,7 @@ static const char *mode_name (int mode)
 		case CAMPAIGN_AIM_LEAD: return "lead";
 		case CAMPAIGN_AIM_BALLISTIC: return "ballistic";
 		case CAMPAIGN_AIM_INTERCEPT: return "intercept";
+		case CAMPAIGN_AIM_RANGE: return "range";
 	}
 
 	return "unknown";
@@ -109,16 +110,26 @@ static void require_finite (const campaign_aim_step *step, const char *what, con
 	}
 }
 
+/* the floats of the table a weapon's figures give: velocity tests by pitch indices by `max_range / 20 + 2` ranges, two floats a cell */
+static size_t table_cell_count (const campaign_weapon_figures *figures)
+{
+	return (size_t) CAMPAIGN_TABLE_VELOCITY_TESTS * CAMPAIGN_TABLE_PITCH_INDICES * (size_t) ((int) (figures->max_range / CAMPAIGN_TABLE_RANGE_STEP) + 2) * 2;
+}
+
 static void validate_request (const campaign_aim_step *step)
 {
 	switch (step->mode)
 	{
 		case CAMPAIGN_AIM_TABLE:
+		case CAMPAIGN_AIM_RANGE:
 		{
-			if (!step->table_cells || (step->table_velocity_tests <= 0) || (step->table_pitch_indices <= 0) || (step->table_range_values <= 0) ||
-				(step->table_cell_count != ((size_t) step->table_velocity_tests * step->table_pitch_indices * step->table_range_values * 2)) || !isfinite (step->table_max_range))
+			const campaign_weapon_figures *figures = &step->figures;
+
+			if ((step->weapon <= 0) || !all_finite (&figures->start_weight, 16) || (figures->max_range <= 0.0) || (figures->name[CAMPAIGN_WEAPON_NAME_MAX] != '\0') ||
+				((step->pass_first != FALSE) && (step->pass_first != TRUE)) || ((step->pass_last != FALSE) && (step->pass_last != TRUE)) ||
+				(step->echo && (step->mode == CAMPAIGN_AIM_TABLE) && (!step->echo_cells || (step->echo_cell_capacity != table_cell_count (figures)))))
 			{
-				debug_fatal ("host aim: a ballistic table with an inconsistent shape for weapon %d", step->weapon);
+				debug_fatal ("host aim: a %s request with inconsistent figures for weapon %d", mode_name (step->mode), step->weapon);
 			}
 
 			break;
@@ -212,6 +223,22 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 	{
 		case CAMPAIGN_AIM_TABLE:
 		{
+			// the host's table is its own: the answer carries nothing, except the echo the fixture build asked for, which must be exactly the table the figures give
+			if (step->echo && (result->echo_cell_count != table_cell_count (&step->figures)))
+			{
+				debug_fatal ("host aim: host aim echoed %lu table cells for weapon %d, not the %lu its figures give", (unsigned long) result->echo_cell_count, step->weapon,
+					(unsigned long) table_cell_count (&step->figures));
+			}
+
+			break;
+		}
+		case CAMPAIGN_AIM_RANGE:
+		{
+			if (step->echo && (!result->has_echo || (result->echo_count != 2)))
+			{
+				debug_fatal ("host aim: host aim echoed %d range runs for weapon %d, not 2", result->has_echo ? result->echo_count : 0, step->weapon);
+			}
+
 			break;
 		}
 		case CAMPAIGN_AIM_READY_UPDATE:
@@ -313,7 +340,7 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 
 		for (i = 0; i < result->echo_count; i++)
 		{
-			if ((result->echo[i].kind < CAMPAIGN_AIM_EVENT_INTERCEPT) || (result->echo[i].kind > CAMPAIGN_AIM_EVENT_LEAD_RESULT) || !all_finite (result->echo[i].f, 12))
+			if ((result->echo[i].kind < CAMPAIGN_AIM_EVENT_INTERCEPT) || (result->echo[i].kind > CAMPAIGN_AIM_EVENT_RANGE_RESULT) || !all_finite (result->echo[i].f, 12))
 			{
 				debug_fatal ("host aim: host aim sent a malformed echo event");
 			}
@@ -378,27 +405,38 @@ campaign_aim_result campaign_aim_ask (campaign_aim_step *step, int allow_draw)
 	return result;
 }
 
-void campaign_aim_supply_table (int weapon, float max_range, int velocity_tests, int pitch_indices, int range_values, const float *cells, size_t cell_count)
+campaign_aim_result campaign_aim_generate (int mode, int weapon, const campaign_weapon_figures *figures, int pass_first, int pass_last, float *echo_cells, size_t echo_cell_capacity)
 {
 	campaign_aim_step step;
 
+	campaign_aim_result result;
+
 	memset (&step, 0, sizeof (step));
 
-	step.mode = CAMPAIGN_AIM_TABLE;
+	step.mode = mode;
 
 	step.weapon = weapon;
 
-	step.table_max_range = max_range;
+	step.figures = *figures;
 
-	step.table_velocity_tests = velocity_tests;
+	step.pass_first = pass_first;
 
-	step.table_pitch_indices = pitch_indices;
+	step.pass_last = pass_last;
 
-	step.table_range_values = range_values;
+	if (echo_cells)
+	{
+		step.echo = TRUE;
 
-	step.table_cells = cells;
+		step.echo_out = echo_buffer;
 
-	step.table_cell_count = cell_count;
+		step.echo_capacity = CAMPAIGN_AIM_ECHO_MAX;
 
-	(void) ask_once (&step);
+		step.echo_cells = echo_cells;
+
+		step.echo_cell_capacity = echo_cell_capacity;
+	}
+
+	result = ask_once (&step);
+
+	return result;
 }

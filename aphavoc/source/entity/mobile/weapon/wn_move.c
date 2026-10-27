@@ -116,24 +116,7 @@ int
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define RANGE_STEP 20.0
-#define WRITE_STEP 250.0
-#define PITCH_STEP 5
-#define VELOCITY_TESTS 1 + 4
-#define VELOCITY_TEST_STEP 50.0
-#define NUM_SINGLE_DEGREE_VALUES 61
-#define NUM_NEGATIVE_PITCH_VALUES (((90 - (NUM_SINGLE_DEGREE_VALUES - 1) / 2) / PITCH_STEP))
-#define TOTAL_PITCH_INDICES (2*NUM_NEGATIVE_PITCH_VALUES + NUM_SINGLE_DEGREE_VALUES)
 #define LAST_WEAPON (NUM_ENTITY_SUB_TYPE_WEAPONS - 1)
-
-typedef struct
-{
-	float drop_angle;
-	float flight_time;
-} ballistics_data;
-
-static ballistics_data*
-	ballistics_table[VELOCITY_TESTS][LAST_WEAPON+1][TOTAL_PITCH_INDICES + 2];
 
 static void update_guided_weapon (	weapon* raw, vec3d* new_position, float delta_time, float turn_rate, float range, int wind);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1637,537 +1620,162 @@ void weapon_movement (entity *en)
 
 #endif
 
-/** calculates the index for the pitch value in the ballistics table.  Rounded down.
- *
- *  Closeness will be set to a value from 0.0 to 1.0 describing how
- *  close the index is to the returned index (compared to the next
- *  higher index.  1.0 means it is the exact index,  0.5 means
- *  halfway between return value and return value + 1, etc.
- *  Used for making a weighted average of value.
- */
-static int get_floor_pitch_index(float pitch, float* closeness)
+/** The weapon's physical figures, mirrored from the weapon database for the host (EEDCS-45).  The host owns the projectile simulation: it simulates the weapon at every
+ *  pitch and velocity test and keeps the ballistic table that results.  What the figures are is the database's; what to do with them is not decided here. */
+static void fill_weapon_figures (campaign_weapon_figures *figures, entity_sub_types wpn_type)
 {
-	float deg_pitch = deg(pitch);
+	const weapon_data
+		*data;
 
-	int
-		int_pitch,
-		i_elevation = (NUM_SINGLE_DEGREE_VALUES - 1) / 2;
-	float
-		f_elevation = (NUM_SINGLE_DEGREE_VALUES - 1) / 2;
-	
+	const char
+		*name;
 
-	ASSERT(closeness);
+	data = &weapon_database[wpn_type];
 
-	if (deg_pitch < - f_elevation)
+	name = data->full_name ? data->full_name : "(null)";
+
+	if (strlen (name) > CAMPAIGN_WEAPON_NAME_MAX)
 	{
-		int_pitch = (int)(floor(deg_pitch / PITCH_STEP));
-
-		*closeness = 1.0 - ((deg_pitch - (int_pitch * PITCH_STEP)) / PITCH_STEP);
-
-		return int_pitch + (i_elevation / PITCH_STEP) + NUM_NEGATIVE_PITCH_VALUES;
+		debug_fatal ("host aim: the name of weapon %d is longer than %d bytes", wpn_type, CAMPAIGN_WEAPON_NAME_MAX);
 	}
-	else if (deg_pitch < (f_elevation + PITCH_STEP))
-	{
-		int_pitch = (int)(floor(deg_pitch));
 
-		*closeness = 1.0 - (deg_pitch - int_pitch);
+	memset (figures, 0, sizeof (*figures));
 
-		return int_pitch + NUM_NEGATIVE_PITCH_VALUES + i_elevation;
-	}
-	else
-	{
-		int_pitch = (int)(floor(deg_pitch / PITCH_STEP));
+	memcpy (figures->name, name, strlen (name) + 1);
 
-		*closeness = 1.0 - ((deg_pitch - (int_pitch * PITCH_STEP)) / PITCH_STEP);
-
-		return int_pitch - (i_elevation / PITCH_STEP) + NUM_NEGATIVE_PITCH_VALUES + NUM_SINGLE_DEGREE_VALUES - 1;
-	}
+	figures->start_weight = data->start_weight;
+	figures->final_weight = data->final_weight;
+	figures->max_range = data->max_range;
+	figures->muzzle_velocity = data->muzzle_velocity;
+	figures->cruise_velocity = data->cruise_velocity;
+	figures->g_max = data->g_max;
+	figures->boost_time = data->boost_time;
+	figures->cruise_time = data->cruise_time;
+	figures->inhibit_time = data->inhibit_time;
+	figures->drag_coefficient = data->drag_coefficient;
+	figures->flightpath_deviation = data->flightpath_deviation;
+	figures->boost_power = data->boost_power;
+	figures->sustain_power = data->sustain_power;
+	figures->sustain_time = data->sustain_time;
+	figures->diameter = data->diameter;
+	figures->max_altitude = data->max_altitude;
+	figures->ignore_gravity = data->ignore_gravity;
+	figures->flight_profile_or_self_destr = data->flight_profile_or_self_destr;
+	figures->parachute_type = (wpn_type == ENTITY_SUB_TYPE_WEAPON_HOKUM_PILOT) || (wpn_type == ENTITY_SUB_TYPE_WEAPON_HOKUM_CO_PILOT) || (wpn_type == ENTITY_SUB_TYPE_WEAPON_CRATE);
+	figures->weapon_class = data->weapon_class;
 }
 
-
-/** calculates a ballistics table for the specified weapon
- *  if output is non-NULL part of the table will also be written
- *  to that file
- */
-void calculate_projectory(weapon* wpn, FILE* output, int velocity_test)
-{
-	int
-		i,
-		pitch_index = 0,
-		num_range_values;
-
-	float
-		pitch,
-		test_velocity[256],
-		test_time[256],
-		test_drop[256],
-		test_range[256],
-		test_drop_angle[256],
-		test_drag[256],
-		max_speed = 0;
-	
-	ballistics_data** data = ballistics_table[velocity_test][wpn->mob.sub_type];
-
-	num_range_values = (int)(weapon_database[wpn->mob.sub_type].max_range / RANGE_STEP) + 2;
-	
-	// initialize -90 and +90
-	data[0] = (ballistics_data *) safe_malloc(sizeof(ballistics_data) * num_range_values);
-	data[TOTAL_PITCH_INDICES - 1] = (ballistics_data *) safe_malloc(sizeof(ballistics_data) * num_range_values);
-
-	for (i=0; i < num_range_values; i++)
-	{
-		data[0][i].drop_angle = 0.0;
-		data[0][i].flight_time = 0.0;
-		data[TOTAL_PITCH_INDICES-1][i].drop_angle = 0.0;
-		data[TOTAL_PITCH_INDICES-1][i].flight_time = 0.0;
-	}
-	
-	for (i=0; i < 256; i++)
-	{
-		test_velocity[i] = test_time[i] = test_drop[i] = test_drop_angle[i] = test_drag[i] = 0.0;
-		test_range[i] = weapon_database[wpn->mob.sub_type].max_range;
-	}	
-
-	// initialize all the other pitches
-	pitch_index = 1;
-	pitch = rad(-90.0 + PITCH_STEP);
-	while (pitch_index < (TOTAL_PITCH_INDICES - 1))
-	{
-		float
-			dummy,
-			time = 0.0,
-			pitch_ratio,
-			max_range,
-			delta_time = 0.02;
-
-		int
-			range_mark = 0,
-			write_step = 0,
-			write_range = WRITE_STEP;
-		
-		data[pitch_index] = (ballistics_data *) safe_malloc(sizeof(ballistics_data) * num_range_values);
-
-		if (velocity_test && (weapon_database[wpn->mob.sub_type].weapon_class & WEAPON_CLASS_SURFACE_TO_AIR || weapon_database[wpn->mob.sub_type].weapon_class & WEAPON_CLASS_SURFACE_TO_SURFACE))
-		{
-			ballistics_data
-					*source_ptr = ballistics_table[velocity_test - 1][wpn->mob.sub_type][pitch_index],
-					*dest_ptr = ballistics_table[velocity_test][wpn->mob.sub_type][pitch_index];
-		
-			memcpy(dest_ptr, source_ptr, sizeof(ballistics_data) * num_range_values);
-			pitch_index++;
-			continue;
-		}
-		
-		ASSERT(get_floor_pitch_index(pitch + rad(0.1), &dummy) == pitch_index);
-
-		// initialize weapon for new firing
-		wpn->weapon_lifetime = weapon_database[wpn->mob.sub_type].boost_time + weapon_database[wpn->mob.sub_type].sustain_time;
-		wpn->mob.velocity = weapon_database[wpn->mob.sub_type].muzzle_velocity + velocity_test * VELOCITY_TEST_STEP;
-
-		wpn->mob.position.x = 0.0;
-		wpn->mob.position.y = 0.0;
-		wpn->mob.position.z = 0.0;
-
-		get_identity_matrix3x3(wpn->mob.attitude);
-		get_3d_transformation_matrix(wpn->mob.attitude, 0.0, pitch, 0.0);
-
-		// initialize 0-range:
-		data[pitch_index][range_mark].drop_angle = 0.0;
-		data[pitch_index][range_mark].flight_time = 0.0;
-		range_mark++;
-
-		pitch_ratio = tan(pitch);
-
-		// don't calculate out to entire range for very high or low pitch values (takes too long)
-		max_range = min(weapon_database[wpn->mob.sub_type].max_range,
-			weapon_database[wpn->mob.sub_type].max_range * cos(pitch) * 1.25f);
-
-		while (TRUE)
-		{
-			float
-				fake_y,
-				fake_z,
-				expected_height;
-			vec2d magnitude[2];
-
-			time += delta_time;
-			wpn->weapon_lifetime -= delta_time;
-			move_unguided_weapon(wpn, &wpn->mob.position, delta_time, FALSE);
-			WPN_FX_TABLE_STEP ()
-
-			if (wpn->weapon_lifetime < - weapon_database[wpn->mob.sub_type].cruise_time ||
-					wpn->mob.position.y < max(- weapon_database[wpn->mob.sub_type].max_range, - 4000.0f) ||
-					wpn->mob.velocity < 20.0 && wpn->weapon_lifetime < 0)
-				break;
-			
-			// increase delta_time when projectile slows down a lot so as to ease amount of calculations a little
-
-			if (wpn->mob.velocity < 75.0)
-				delta_time = 0.1;
-			else if (wpn->mob.velocity < 150.0)
-				delta_time = 0.04;
-			else
-				delta_time = 0.02;
-
-			if (pitch >= 0 && pitch <= PI / 4 && !velocity_test) // collect data for statistics, only for first velocity test
-			{
-				if (wpn->mob.velocity > max_speed)
-					max_speed = wpn->mob.velocity;
-
-				if (wpn->mob.position.z >= write_range - 1)
-				{
-					magnitude[0].x = test_range[write_step] - range_mark * RANGE_STEP;
-					magnitude[0].y = test_drop[write_step];
-					magnitude[1].x = wpn->mob.position.z - range_mark * RANGE_STEP;
-					magnitude[1].y = wpn->mob.position.y;
-
-					if(get_2d_vector_magnitude(&magnitude[1]) < get_2d_vector_magnitude(&magnitude[0]))
-					{
-						test_velocity[write_step] = wpn->mob.velocity;
-						test_time[write_step] = time;
-						test_drop[write_step] = wpn->mob.position.y;
-						test_range[write_step] = wpn->mob.position.z;
-						test_drop_angle[write_step] = pitch - atan(test_drop[write_step]/test_range[write_step]);
-						test_drag[write_step] = get_weapon_drag(wpn->mob.velocity, wpn->mob.position.y, weapon_database[wpn->mob.sub_type].diameter, weapon_database[wpn->mob.sub_type].drag_coefficient) / get_weapon_current_weight(wpn->weapon_lifetime, wpn->mob.sub_type);
-					}
-					
-					if (wpn->mob.position.z >= 10000)
-						write_range += WRITE_STEP * 4;
-					else if (wpn->mob.position.z >= 5000)
-						write_range +=  WRITE_STEP * 2;
-					else
-						write_range += WRITE_STEP;
-					
-					write_step++;
-				}
-			}
-
-			expected_height = pitch_ratio * wpn->mob.position.z;
-			fake_y = wpn->mob.position.y + cos(pitch) * (expected_height - wpn->mob.position.y);
-			fake_z = wpn->mob.position.z - sin(pitch) * (expected_height - wpn->mob.position.y);
-			
-			if (fake_z >= ((float)(range_mark * RANGE_STEP) - 1.0)) // this is a range we want to sample
-			{
-				int
-					stop_index = min((int)((fake_z + 1) / RANGE_STEP), num_range_values);
-				float
-					drop_angle;
-
-				// adjust for expected height if there was no drop, so as to calculate real drop
-
-				drop_angle = pitch - atan(wpn->mob.position.y / wpn->mob.position.z);
-
-				ASSERT(stop_index >= range_mark);
-
-				// if the projectile is really fast we might actually have passed several sample values, so set the value for all of them
-				for (; range_mark < stop_index; range_mark++)
-				{
-					data[pitch_index][range_mark].drop_angle = drop_angle;
-					data[pitch_index][range_mark].flight_time = time;
-				}
-
-				if (range_mark == num_range_values)
-					break;
-			}
-		}
-
-		WPN_FX_TABLE_FLIGHT (wpn->mob.sub_type, velocity_test, pitch_index, range_mark, num_range_values, time)
-		// if there's any spots left just copy the last to those (it will be wrong, but better than arbitrary values)
-		for (; range_mark < num_range_values; range_mark++)
-		{
-			data[pitch_index][range_mark] = data[pitch_index][range_mark-1];
-		}
-
-		// we have smaller steps around 0 pitch to get a little better accuracy there
-		pitch_index++;
-		if (pitch_index <= NUM_NEGATIVE_PITCH_VALUES)
-			pitch += rad(PITCH_STEP);
-		else if (pitch_index < (NUM_NEGATIVE_PITCH_VALUES + NUM_SINGLE_DEGREE_VALUES))
-			pitch += rad(1.0);
-		else
-			pitch += rad(PITCH_STEP);
-	}
-	
-	// write collected ballistics data
-	if (output && !velocity_test)
-	{
-		fputs("range     velocity    time     drop  drop angle   drag force\n", output);
-
-		i = 0;
-		
-		if (output)
-			while (test_time[i])
-			{
-				fprintf(output, "%5.2f m  %6.2f m/s %5.2f s %6.1f m %2.2f degrees %4.1f\n",
-					test_range[i], test_velocity[i], test_time[i], - test_drop[i], deg(test_drop_angle[i]), test_drag[i]);
-				i++;
-			}
-		fprintf(output, "top velocity %6.1f m/s \n", max_speed);
-	}
-}
-
-void calculate_range(weapon* wpn, FILE* output, int zero_pitch)
-{
-	float
-		pitch = 0,
-		range_step = 100,
-		write_step = 100;
-
-	if (output)
-	{
-
-		float
-			time = 0.0,
-			delta_time = 0.1;
-
-		int
-			last_write_range = 0;
-
-		fputs(" range    altitude    velocity    time     drag   weight\n", output);
-	
-		wpn->weapon_lifetime = weapon_database[wpn->mob.sub_type].boost_time + weapon_database[wpn->mob.sub_type].sustain_time;
-		wpn->mob.velocity = weapon_database[wpn->mob.sub_type].muzzle_velocity;
-		wpn->mob.position.x = wpn->mob.position.y = wpn->mob.position.z = 0.0;
-
-		if (!zero_pitch)
-		{
-			if (weapon_database[wpn->mob.sub_type].weapon_class & WEAPON_CLASS_AIR_TO_AIR || weapon_database[wpn->mob.sub_type].weapon_class & WEAPON_CLASS_AIR_TO_SURFACE)
-			{
-				wpn->mob.position.y = weapon_database[wpn->mob.sub_type].max_altitude;
-				pitch = - atan(weapon_database[wpn->mob.sub_type].max_altitude / weapon_database[wpn->mob.sub_type].max_range);
-			}
-			else if (weapon_database[wpn->mob.sub_type].weapon_class & WEAPON_CLASS_SURFACE_TO_AIR)
-				pitch = atan(weapon_database[wpn->mob.sub_type].max_altitude / weapon_database[wpn->mob.sub_type].max_range);
-			else
-				return;
-		}
-
-		get_identity_matrix3x3(wpn->mob.attitude);
-		get_3d_transformation_matrix(wpn->mob.attitude, 0.0, pitch, 0.0);
-
-		while (wpn->mob.position.z < weapon_database[wpn->mob.sub_type].max_range)
-		{
-			time += delta_time;
-			wpn->weapon_lifetime -= delta_time;
-
-			update_guided_weapon(wpn, &wpn->mob.position, delta_time, FALSE, FALSE, FALSE);
-			
-			// increase delta_time when projectile slows down a lot so as to ease amount of calculations a little
-
-			if (wpn->mob.velocity < 150.0)
-			{
-				delta_time = 0.04;
-				if (wpn->mob.velocity < 75.0)
-					delta_time = 0.1;
-
-				if (wpn->mob.velocity < 20.0 && wpn->weapon_lifetime < 0)
-					break;
-			}
-			
-			if (wpn->mob.position.z > 300000 || wpn->mob.position.y > 1.1 * weapon_database[wpn->mob.sub_type].max_altitude || wpn->mob.position.y < - weapon_database[wpn->mob.sub_type].max_altitude)
-				break;
-
-			if (output && wpn->mob.position.z > (last_write_range + write_step - 1))
-			{
-				last_write_range += write_step;
-				fprintf(output, "%5d m %f m  %6.1f m/s %5.1f s, %.2f, %.2f \n",
-					last_write_range, wpn->mob.position.y, wpn->mob.velocity, time, get_weapon_drag(wpn->mob.velocity, wpn->mob.position.y, weapon_database[wpn->mob.sub_type].diameter, weapon_database[wpn->mob.sub_type].drag_coefficient), get_weapon_current_weight(wpn->weapon_lifetime, wpn->mob.sub_type));
-			}
-
-			if (last_write_range >= 20000)
-			{
-				write_step = 5000;
-				range_step = 2500;
-			}
-			else if (last_write_range >= 10000)
-			{
-				write_step = 2000;
-				range_step = 1000;
-			}
-			else if (last_write_range >= 5000)
-			{
-				write_step = 1000;
-				range_step = 500;
-			}
-			else if (last_write_range >= 500)
-			{
-				write_step = 500;
-				range_step = 250;
-			}
-		}
-
-		fprintf(output, "%5.0f m %f m  %6.1f m/s %5.1f s, %.2f, pitch %.2f \n",
-			wpn->mob.position.z, wpn->mob.position.y, wpn->mob.velocity, time, get_weapon_drag(wpn->mob.velocity, wpn->mob.position.y, weapon_database[wpn->mob.sub_type].diameter, weapon_database[wpn->mob.sub_type].drag_coefficient), deg(pitch));
-		WPN_FX_RANGE_FLIGHT (wpn->mob.sub_type, zero_pitch, wpn->mob.position.z, wpn->mob.position.y, wpn->mob.velocity, wpn->weapon_lifetime)
-	}
-		
-}
-
-/** hands one weapon's ballistics table to the host as raw data: velocity test by pitch index by range, (drop angle, flight time) float pairs */
-static void supply_ballistics_table_to_host(entity_sub_types wpn_type)
-{
-	const int velocity_tests = VELOCITY_TESTS;
-	const int pitch_indices = TOTAL_PITCH_INDICES;
-	int num_range_values, k, p, r;
-	size_t count, at;
-	float *cells;
-
-	num_range_values = (int)(weapon_database[wpn_type].max_range / RANGE_STEP) + 2;
-
-	count = (size_t) velocity_tests * pitch_indices * num_range_values * 2;
-
-	cells = (float *) safe_malloc(sizeof(float) * count);
-
-	at = 0;
-
-	for (k = 0; k < velocity_tests; k++)
-		for (p = 0; p < pitch_indices; p++)
-			for (r = 0; r < num_range_values; r++)
-			{
-				cells[at++] = ballistics_table[k][wpn_type][p][r].drop_angle;
-				cells[at++] = ballistics_table[k][wpn_type][p][r].flight_time;
-			}
-
-	WPN_FX_TABLE_SUPPLY (wpn_type, weapon_database[wpn_type].max_range, velocity_tests, pitch_indices, num_range_values, cells, count)
-	campaign_aim_supply_table(wpn_type, weapon_database[wpn_type].max_range, velocity_tests, pitch_indices, num_range_values, cells, count);
-
-	safe_free(cells);
-}
-
-/** precalculates ballistics tables for all weapons with ballistic aiming.
- *  for certain range and angle intervals
- *
- *  The tables are calculated by simulating a firing and measuring drop at
- *  at various distances
+/** generates the ballistics tables for all weapons with ballistic aiming (the host does: each weapon's figures are sent once, in database order, the first and the last
+ *  flagged).  The test fixture build asks the host to echo what it generated and replays it into the observer in the order the original produced it: every weapon's
+ *  flights, then (after the pass) every weapon's table.
  */
 void generate_ballistics_tables(void)
 {
-	weapon
-		wpn;
-
 	entity_sub_types
-		wpn_type;
+		wpn_type,
+		last_type = ENTITY_SUB_TYPE_WEAPON_NO_WEAPON;
 
-	FILE*
-		write_file = NULL;
+	campaign_weapon_figures
+		figures;
 
-	write_file = fopen("ballistics-data.txt", "w");
+	int
+		first = TRUE;
 
-	fputs("Note: this file only lists ballistics data generated from the currently used GWUT File\n"
-		  "Changing the values will have no effect, change the GWUT file to see change\n"
-		  "This file can be used to help getting good values for the GWUT file\n\n", write_file);
+	for (wpn_type = 1; wpn_type <= LAST_WEAPON; wpn_type++)
+		if (weapon_database[wpn_type].aiming_type && !weapon_database[wpn_type].guidance_type)
+			last_type = wpn_type;
 
 	for (wpn_type = 1; wpn_type <= LAST_WEAPON; wpn_type++)
 	{
 		if (weapon_database[wpn_type].aiming_type && !weapon_database[wpn_type].guidance_type)
 		{
-			unsigned i;
-			
-			if (write_file)
+			fill_weapon_figures (&figures, wpn_type);
+
+			#ifdef EECH_WEAPON_FIXTURE
+
 			{
-				fprintf(write_file, "\n%s   max_range: %.0f m, muzzle velocity: %.0f m/s, cruise velocity: %.0f m/s, drag: %.2f\n",
-					weapon_database[wpn_type].full_name,
-					weapon_database[wpn_type].max_range,
-					weapon_database[wpn_type].muzzle_velocity,
-					weapon_database[wpn_type].cruise_velocity,
-					weapon_database[wpn_type].drag_coefficient);
+				campaign_aim_result
+					result;
+
+				size_t
+					count;
+
+				float
+					*cells;
+
+				count = (size_t) CAMPAIGN_TABLE_VELOCITY_TESTS * CAMPAIGN_TABLE_PITCH_INDICES * (size_t) ((int) (figures.max_range / CAMPAIGN_TABLE_RANGE_STEP) + 2) * 2;
+
+				cells = (float *) safe_malloc (sizeof (float) * count);
+
+				result = campaign_aim_generate (CAMPAIGN_AIM_TABLE, wpn_type, &figures, first, wpn_type == last_type, cells, count);
+
+				WPN_FX_TABLE_HOST (wpn_type, figures.max_range, result.echo, result.echo_count, cells, result.echo_cell_count)
+
+				safe_free (cells);
 			}
 
-			wpn.mob.sub_type = wpn_type;
+			#else
 
-			for(i = 0; i < VELOCITY_TESTS; i++)
-				calculate_projectory(&wpn, write_file, i);
+			campaign_aim_generate (CAMPAIGN_AIM_TABLE, wpn_type, &figures, first, wpn_type == last_type, NULL, 0);
+
+			#endif
+
+			first = FALSE;
 		}
-
-		if (write_file)
-			fflush(write_file);
 	}
-
-	if (write_file)
-		fclose(write_file);
-
-	// the host interpolates in the tables (EEDCS-44): it is given each one as raw data now that it is complete
 
 	for (wpn_type = 1; wpn_type <= LAST_WEAPON; wpn_type++)
 		if (weapon_database[wpn_type].aiming_type && !weapon_database[wpn_type].guidance_type)
-			supply_ballistics_table_to_host(wpn_type);
+		{
+			WPN_FX_TABLE_SUPPLIED (wpn_type)
+		}
 }
 
 void generate_guided_missiles_tables(void)
 {
-	weapon
-		wpn;
-
 	entity_sub_types
-		wpn_type;
+		wpn_type,
+		last_type = ENTITY_SUB_TYPE_WEAPON_NO_WEAPON;
 
-	FILE*
-		write_file = NULL;
+	campaign_weapon_figures
+		figures;
 
-	write_file = fopen("guided-missiles-data.txt", "w");
+	int
+		first = TRUE;
 
-	fputs("Note: this file only lists ballistics data generated from the currently used GWUT File\n"
-		  "Changing the values will have no effect, change the GWUT file to see change\n"
-		  "This file can be used to help getting good values for the GWUT file\n\n", write_file);
+	for (wpn_type = 1; wpn_type <= LAST_WEAPON; wpn_type++)
+		if (weapon_database[wpn_type].guidance_type)
+			last_type = wpn_type;
 
 	for (wpn_type = 1; wpn_type <= LAST_WEAPON; wpn_type++)
 	{
 		if (weapon_database[wpn_type].guidance_type)
 		{
-			int i;
-			
-			if (write_file)
+			fill_weapon_figures (&figures, wpn_type);
+
+			#ifdef EECH_WEAPON_FIXTURE
+
 			{
-				fprintf(write_file, "\n%s \n"
-						"max_range: %.0f m, max_altitude %.0f m, muzzle velocity: %.0f m/s, cruise velocity: %.0f m/s, cruise_time %.1f s\n"
-						"sustain_time %.1f s, sustain_power %.1f, g_max %.1f, drag: %.2f \n"
-						"boost_time %.1f s, boost_power %.1f, start_weight %.1f, final_weight %.1f \n",
-					weapon_database[wpn_type].full_name,
-					weapon_database[wpn_type].max_range,
-					weapon_database[wpn_type].max_altitude,
-					weapon_database[wpn_type].muzzle_velocity,
-					weapon_database[wpn_type].cruise_velocity,
-					weapon_database[wpn_type].cruise_time,
-					weapon_database[wpn_type].sustain_time,
-					weapon_database[wpn_type].sustain_power,
-					weapon_database[wpn_type].g_max,
-					weapon_database[wpn_type].drag_coefficient,
-					weapon_database[wpn_type].boost_time,
-					weapon_database[wpn_type].boost_power,
-					weapon_database[wpn_type].start_weight,
-					weapon_database[wpn_type].final_weight);
+				campaign_aim_result
+					result;
+
+				float
+					unused = 0.0;
+
+				result = campaign_aim_generate (CAMPAIGN_AIM_RANGE, wpn_type, &figures, first, wpn_type == last_type, &unused, 0);
+
+				WPN_FX_RANGE_HOST (wpn_type, result.echo, result.echo_count)
 			}
 
-			wpn.mob.sub_type = wpn_type;
-			WPN_FX_RANGE_TYPE (wpn_type, write_file != NULL)
-			for(i = 0; i < 2; i++)
-				calculate_range(&wpn, write_file, i);
+			#else
+
+			campaign_aim_generate (CAMPAIGN_AIM_RANGE, wpn_type, &figures, first, wpn_type == last_type, NULL, 0);
+
+			#endif
+
+			first = FALSE;
 		}
-
-		if (write_file)
-			fflush(write_file);
 	}
-
-	if (write_file)
-		fclose(write_file);
-}
-
-void delete_ballistics_tables(void)
-{
-	entity_sub_types wpn_type;
-	unsigned pitch_index, i;
-
-	for(i = 0; i < VELOCITY_TESTS; i++)
-		for (wpn_type = 1; wpn_type <= LAST_WEAPON; wpn_type++)
-			if (weapon_database[wpn_type].aiming_type && !weapon_database[wpn_type].guidance_type)
-			{
-				for(pitch_index = 0; pitch_index < TOTAL_PITCH_INDICES; pitch_index++)
-				{
-					if (ballistics_table[i][wpn_type][pitch_index])
-						safe_free(ballistics_table[i][wpn_type][pitch_index]);
-					ballistics_table[i][wpn_type][pitch_index] = NULL;
-				}
-			}
 }
 
 /**

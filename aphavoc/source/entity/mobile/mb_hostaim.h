@@ -8,10 +8,13 @@
  * altitude and line of sight).  The aiming functions in weapon.c, the readiness functions in ac_anim.c, vh_anim.c and en_anim.c and the fire code in
  * ac_wpn.c and vh_wpn.c ask the host at the points where the original computed and act on the answer.
  *
- * Every request is a pure question: the host keeps nothing between requests except the ballistic tables it is given once at boot.
+ * Every request is a pure question: the host keeps nothing between requests except the ballistic tables it generates at boot.
  *
- *   TABLE          one weapon's ballistic table (raw weapon data: the product of the still-core projectile simulation) and the weapon's range limit.
- *                  Sent at boot, after the campaign generates the tables.  The host answers DONE.
+ *   TABLE          one unguided weapon's physical figures (EEDCS-45).  The host SIMULATES the weapon's flight at every pitch and velocity test and keeps the
+ *                  ballistic table that results; it owns the projectile simulation and the table.  Sent at boot, once per weapon, in database order, the
+ *                  first and the last flagged (the host writes its diagnostic file across the pass).  The host answers DONE.  No table cell crosses the
+ *                  boundary; the test-fixture build asks for an echo of what the host generated (the cells and one record per simulated flight).
+ *   RANGE          one guided weapon's figures: the host runs its two range simulations (level and aimed) and writes its diagnostic file.  DONE.
  *   READY_UPDATE   the state of a launcher's weapon-system-ready keyframe, one update later: the state, the rate and the elapsed time.  The host answers
  *                  DONE with the advanced state and the phase the state was in before (0 closed, 1 opening, 2 open, 3 closing).
  *   READY_COMMAND  open or close the weapon-system-ready devices: the state and the command.  DONE with the state.
@@ -49,7 +52,14 @@
 
 #define CAMPAIGN_AIM_HOST_ID_MAX 128
 #define CAMPAIGN_AIM_ERROR_MAX 256
-#define CAMPAIGN_AIM_ECHO_MAX 48
+#define CAMPAIGN_AIM_ECHO_MAX 512
+#define CAMPAIGN_WEAPON_NAME_MAX 63
+
+/* the shape of a ballistic table: five velocity tests (the muzzle velocity and four steps above it), 85 pitch indices, `max_range / 20 + 2` ranges, a (drop angle,
+   flight time) pair of floats per cell */
+#define CAMPAIGN_TABLE_VELOCITY_TESTS 5
+#define CAMPAIGN_TABLE_PITCH_INDICES 85
+#define CAMPAIGN_TABLE_RANGE_STEP 20.0
 
 enum campaign_aim_mode
 {
@@ -61,7 +71,8 @@ enum campaign_aim_mode
 	CAMPAIGN_AIM_VECTORS,
 	CAMPAIGN_AIM_LEAD,
 	CAMPAIGN_AIM_BALLISTIC,
-	CAMPAIGN_AIM_INTERCEPT
+	CAMPAIGN_AIM_INTERCEPT,
+	CAMPAIGN_AIM_RANGE
 };
 
 enum campaign_aim_state
@@ -78,7 +89,11 @@ enum campaign_aim_event_kind
 	CAMPAIGN_AIM_EVENT_LEAD_ITERATION,
 	CAMPAIGN_AIM_EVENT_BALLISTIC,
 	/* a vectors request that ran the lead prediction: the prediction's own outputs (the point, the angle and the time of flight) in f[0..4], the validity in d */
-	CAMPAIGN_AIM_EVENT_LEAD_RESULT
+	CAMPAIGN_AIM_EVENT_LEAD_RESULT,
+	/* TABLE echo: one simulated flight, in order: velocity test in a, pitch index in b, range marks filled in c, steps in d; f[0] the end time, f[1] the range values */
+	CAMPAIGN_AIM_EVENT_TABLE_FLIGHT,
+	/* RANGE echo: one range run, in order: zero_pitch in a, whether it ran in b, whether the diagnostic file was open in c; f[0..3] the end z, y, velocity and lifetime */
+	CAMPAIGN_AIM_EVENT_RANGE_RESULT
 };
 
 enum campaign_aim_lead_path
@@ -99,6 +114,33 @@ typedef struct campaign_aim_event
 	float f[12];
 } campaign_aim_event;
 
+/* One weapon's physical figures, mirrored from the campaign's weapon database (transitional: a host with a model of its own needs none of them).  The layout is the
+   reference host's (eech-world csrc/wn_flight.c wf_figures). */
+typedef struct campaign_weapon_figures
+{
+	char name[CAMPAIGN_WEAPON_NAME_MAX + 1];
+	float start_weight;
+	float final_weight;
+	float max_range;
+	float muzzle_velocity;
+	float cruise_velocity;
+	float g_max;
+	float boost_time;
+	float cruise_time;
+	float inhibit_time;
+	float drag_coefficient;
+	float flightpath_deviation;
+	float boost_power;
+	float sustain_power;
+	float sustain_time;
+	float diameter;
+	float max_altitude;
+	int ignore_gravity;
+	int flight_profile_or_self_destr;
+	int parachute_type;
+	unsigned int weapon_class;
+} campaign_weapon_figures;
+
 typedef struct campaign_aim_step
 {
 	int mode;
@@ -111,14 +153,14 @@ typedef struct campaign_aim_step
 	char source_host_id[CAMPAIGN_AIM_HOST_ID_MAX + 1];
 	char target_host_id[CAMPAIGN_AIM_HOST_ID_MAX + 1];
 
-	/* TABLE: the weapon, its range limit, the table's shape and its cells: (drop angle, flight time) float pairs, velocity test by pitch index by range */
+	/* TABLE, RANGE: the weapon and its figures; whether this is the first and the last weapon of the pass.  The fixture build's echo room for the table the host generated:
+	   (drop angle, flight time) float pairs, velocity test by pitch index by range; the host writes at most echo_cell_capacity floats and reports how many */
 	int weapon;
-	float table_max_range;
-	int table_velocity_tests;
-	int table_pitch_indices;
-	int table_range_values;
-	const float *table_cells;
-	size_t table_cell_count;
+	campaign_weapon_figures figures;
+	int pass_first;
+	int pass_last;
+	float *echo_cells;
+	size_t echo_cell_capacity;
 
 	/* READY_UPDATE, READY_COMMAND */
 	float ready_state;
@@ -204,6 +246,8 @@ typedef struct campaign_aim_result
 	int has_echo;
 	int echo_count;
 	const campaign_aim_event *echo;
+	/* TABLE echo: the number of floats the host wrote at echo_cells */
+	size_t echo_cell_count;
 } campaign_aim_result;
 
 typedef int (*campaign_aim_fn)
@@ -235,7 +279,9 @@ void campaign_aim_identify (campaign_aim_step *step, struct ENTITY *source, stru
    is answered here when the request allows a draw: the campaign takes one sample of its own stream and asks again. */
 campaign_aim_result campaign_aim_ask (campaign_aim_step *step, int allow_draw);
 
-/* Hands the host one weapon's ballistic table (raw weapon data) at boot. */
-void campaign_aim_supply_table (int weapon, float max_range, int velocity_tests, int pitch_indices, int range_values, const float *cells, size_t cell_count);
+/* Hands the host one weapon's figures at boot: mode is CAMPAIGN_AIM_TABLE (an unguided weapon: the host generates its ballistic table) or CAMPAIGN_AIM_RANGE (a guided
+   weapon: the host runs its range simulations).  Asks for an echo (the test fixture build) when echo_cells is not NULL, and returns the result (its echo is valid until the
+   next request). */
+campaign_aim_result campaign_aim_generate (int mode, int weapon, const campaign_weapon_figures *figures, int pass_first, int pass_last, float *echo_cells, size_t echo_cell_capacity);
 
 #endif

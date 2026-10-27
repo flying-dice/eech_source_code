@@ -43,6 +43,7 @@
 #include "eech_engine.h"
 #include "eech_headless.h"
 #include "entity/mobile/mb_wpnfx.h"
+#include "entity/mobile/mb_hostaim.h"
 
 #define SAMPLE_SLOTS 2
 #define SAMPLE_COUNT 256
@@ -490,13 +491,6 @@ static struct table_row *table_row_for (int sub_type)
 
 static int table_flight_steps;
 
-void eech_wpn_table_step (void)
-{
-	ready ();
-	bump (C_table_steps);
-	table_flight_steps++;
-}
-
 void eech_wpn_table_flight (int sub_type, int velocity_test, int pitch_index, int range_mark, int num_range_values, float end_time)
 {
 	struct table_row *row;
@@ -630,6 +624,73 @@ void eech_wpn_range_flight (int sub_type, int zero_pitch, float end_z, float end
 	note_range (R_RANGE_END_Z, (double) end_z);
 	log_event ("kind=range type=%s zero_pitch=%d end_z=%.9g end_y=%.9g end_velocity=%.9g end_lifetime=%.9g", weapon_name (sub_type, name, sizeof (name)), zero_pitch,
 		(double) end_z, (double) end_y, (double) end_velocity, (double) end_lifetime);
+}
+
+/* The host generated the tables (EEDCS-45): it echoes one record per simulated flight and the table's cells; they are replayed here into the folds the original made while
+ * it simulated (every flight, with the steps it took, as the hooks inside the simulation saw them), and the table itself is folded after the pass, as the original handed
+ * it to the host after the pass. The cells are kept (a copy) until then. */
+static float *saved_cells[NUM_ENTITY_SUB_TYPE_WEAPONS];
+static unsigned long long saved_count[NUM_ENTITY_SUB_TYPE_WEAPONS];
+static float saved_max_range[NUM_ENTITY_SUB_TYPE_WEAPONS];
+
+void eech_wpn_table_host (int sub_type, float max_range, const struct campaign_aim_event *events, int event_count, const float *cells, unsigned long long cell_count)
+{
+	int i;
+	ready ();
+	for (i = 0; i < event_count; i++)
+	{
+		const struct campaign_aim_event *e = &events[i];
+		if (e->kind == CAMPAIGN_AIM_EVENT_TABLE_FLIGHT)
+		{
+			trace.counters[C_table_steps] += (uint64_t) e->d;
+			table_flight_steps = e->d;
+			eech_wpn_table_flight (sub_type, e->a, e->b, e->c, (int) e->f[1], e->f[0]);
+		}
+	}
+	if (valid_sub_type (sub_type))
+	{
+		free (saved_cells[sub_type]);
+		saved_cells[sub_type] = (float *) malloc ((size_t) cell_count * sizeof (float));
+		if (saved_cells[sub_type])
+		{
+			memcpy (saved_cells[sub_type], cells, (size_t) cell_count * sizeof (float));
+		}
+		saved_count[sub_type] = saved_cells[sub_type] ? cell_count : 0;
+		saved_max_range[sub_type] = max_range;
+	}
+}
+
+void eech_wpn_table_supplied (int sub_type)
+{
+	if (valid_sub_type (sub_type) && saved_cells[sub_type])
+	{
+		unsigned long long range_values = saved_count[sub_type] / (2ull * 5ull * 85ull);
+		eech_wpn_table_supply (sub_type, saved_max_range[sub_type], 5, 85, (int) range_values, saved_cells[sub_type], saved_count[sub_type]);
+		free (saved_cells[sub_type]);
+		saved_cells[sub_type] = NULL;
+		saved_count[sub_type] = 0;
+	}
+}
+
+void eech_wpn_range_host (int sub_type, const struct campaign_aim_event *events, int event_count)
+{
+	int i;
+	ready ();
+	for (i = 0; i < event_count; i++)
+	{
+		const struct campaign_aim_event *e = &events[i];
+		if (e->kind == CAMPAIGN_AIM_EVENT_RANGE_RESULT)
+		{
+			if (i == 0)
+			{
+				eech_wpn_range_type (sub_type, e->c);
+			}
+			if (e->b)
+			{
+				eech_wpn_range_flight (sub_type, e->a, e->f[0], e->f[1], e->f[2], e->f[3]);
+			}
+		}
+	}
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */

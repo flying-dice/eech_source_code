@@ -354,10 +354,14 @@ r = host.aim({ mode = 'required', device_attitude = LEVEL, tracking = { device_p
 assert(near(r.required_heading, math.pi / 2) and near(r.required_pitch, 0), 'a tracking point is aimed at in the horizontal plane, lowered by the ballistic pitch')
 refused({ mode = 'required', device_attitude = LEVEL, tracking = { device_position = { 0, 0, 0 }, point = { 1, 0, 1 }, pitch = 0 }, heading_min = -1, heading_max = 1, pitch_min = -1, pitch_max = 1, climb = false }, 'tracking request has no package limits')
 refused({ mode = 'required', device_attitude = LEVEL, intercept_vector = { 0, 0, 1 }, unbounded = 1 }, 'unbounded must be a boolean')
--- a ballistic table is raw data of the model's shape, and a request for a weapon without one is refused
-local cells = string.rep(string.char(0, 0, 0, 0), 5 * 85 * 7 * 2)
-r = host.aim({ mode = 'table', weapon = 7, max_range = 100, velocity_tests = 5, pitch_indices = 85, range_values = 7, cells = cells })
-assert(r.state == 'done', 'table accepted')
+-- the host generates its own ballistic table from the weapon's figures (no cell is sent), and a request for a weapon without one is refused
+local function gun(name) return { name = name, start_weight = 0.1, final_weight = 0.1, max_range = 1000, muzzle_velocity = 900, cruise_velocity = 900, g_max = 0, boost_time = 0, cruise_time = 4, inhibit_time = 0, drag_coefficient = 0.3, flightpath_deviation = 0, boost_power = 0, sustain_power = 0, sustain_time = 0, diameter = 0.02, max_altitude = 0, ignore_gravity = false, flight_profile_or_self_destr = 0, parachute_type = false, weapon_class = 8 } end
+r = host.aim({ mode = 'table', weapon = 7, figures = gun('test gun'), first = false, last = false, echo = false, echo_cells = 0 })
+assert(r.state == 'done' and r.echo_cells == nil and r.echo == nil, 'the table is generated and nothing comes back')
+-- with an echo (the test fixture build's) the host gives back its flights and the cells of the table it generated, in the model's shape
+r = host.aim({ mode = 'table', weapon = 9, figures = gun('echo gun'), first = false, last = false, echo = true, echo_cells = 5 * 85 * 52 * 2 })
+assert(r.state == 'done' and #r.echo_cells == 5 * 85 * 52 * 2 * 4, 'the echo carries every cell')
+assert(#r.echo == 83 and r.echo[1].kind == 'table_flight' and r.echo[1].a == 0 and r.echo[1].d > 0 and r.echo[1].f[2] == 52, 'one record per simulated flight')
 -- the lead's flight time is a partial output: sent when the prediction produced one, absent when it did not (it is never invented)
 local MAP = { map_min = { 0, 0, 0 }, map_max = { 100000, 100000, 100000 }, comms_weapon_lag = 0, source_gunship = false, echo = false }
 local function lead(device, point, parent_velocity)
@@ -372,9 +376,14 @@ assert(r.state == 'done' and r.ok == true and r.time_of_flight == nil, 'the off-
 r = lead({ 10, 0, 10 }, { 10, 0, 10 }, 0)
 assert(r.state == 'done' and r.ok == false and r.time_of_flight == nil, 'a tiny range produces none')
 refused({ mode = 'ballistic', weapon = 8, range = 50, height_diff_or_pitch = 0, simplified = false, fixed_pitch = false, parent_velocity = 0 }, 'no ballistic table for weapon 8')
-refused({ mode = 'table', weapon = 7, max_range = 100, velocity_tests = 4, pitch_indices = 85, range_values = 7, cells = cells }, 'velocity tests')
-refused({ mode = 'table', weapon = 7, max_range = 100, velocity_tests = 5, pitch_indices = 85, range_values = 6, cells = cells }, 'range values')
-refused({ mode = 'table', weapon = 7, max_range = 100, velocity_tests = 5, pitch_indices = 85, range_values = 7, cells = 'short' }, 'bytes')
+refused({ mode = 'table', weapon = 7, first = false, last = false, echo = false }, 'figures must be a table')
+refused({ mode = 'table', weapon = 7, figures = gun(''), first = false, last = false, echo = false }, 'weapon name must be 1 to 63 bytes')
+refused({ mode = 'table', weapon = 0, figures = gun('test gun'), first = false, last = false, echo = false }, 'not a weapon')
+refused({ mode = 'table', weapon = 7, figures = gun('test gun'), first = 1, last = false, echo = false }, 'first must be a boolean')
+local rangeless = gun('rangeless gun') rangeless.max_range = 0
+refused({ mode = 'table', weapon = 7, figures = rangeless, first = false, last = false, echo = false }, 'range limit')
+local slow = gun('infinite gun') slow.drag_coefficient = 1 / 0
+refused({ mode = 'table', weapon = 7, figures = slow, first = false, last = false, echo = false }, 'drag_coefficient')
 -- malformed requests
 refused({ mode = 'glide' }, 'unknown mode')
 refused({ mode = 'ready_update', state = 0 / 0, rate = 0.5, delta_time = 1 }, 'state must be a finite number')

@@ -9,6 +9,7 @@
 mod crash;
 
 use eech_world::aim::{self, Aim};
+use eech_world::flight;
 use eech_world::los::{Los, LosRequest};
 use eech_world::movement::{
     Advance, CarryShape, Creation, DependentCarry, FixedWingMove, FixedWingNavigation, FixedWingPhase, FixedWingTerrain, HelicopterAnswer, HelicopterBegin,
@@ -97,6 +98,61 @@ fn exact_numbers<const N: usize>(lua: &Lua, table: &LuaTable, field: &str) -> Re
 /// The scalars `names` (comma-separated field names of `table`, `N` of them) exactly as Lua holds them, in one call: the formatting of
 /// `exact_f64s` for several scalar fields at once, which the aiming exchange (a request per entity per update) makes worth having. The Lua function
 /// for a name list is built once and kept in the registry.
+/// The physical figures a `table` or `range` request carries (EEDCS-45), exactly as the campaign mirrored them from its weapon database.
+fn weapon_figures(lua: &Lua, request: &LuaTable) -> Result<flight::Figures, String> {
+    let facts: LuaTable = match request.get::<LuaValue>("figures").map_err(|e| e.to_string())? {
+        LuaValue::Table(facts) => facts,
+        other => return Err(format!("figures must be a table, got {}", other.type_name())),
+    };
+    let name: String = match facts.get::<LuaValue>("name").map_err(|e| e.to_string())? {
+        LuaValue::String(name) => name.to_str().map_err(|e| e.to_string())?.to_owned(),
+        other => return Err(format!("figures name must be a string, got {}", other.type_name())),
+    };
+    let [start_weight, final_weight, max_range, muzzle_velocity, cruise_velocity, g_max, boost_time, cruise_time, inhibit_time, drag_coefficient, flightpath_deviation, boost_power, sustain_power, sustain_time, diameter, max_altitude] =
+        exact_fields::<16>(
+            lua,
+            &facts,
+            "start_weight,final_weight,max_range,muzzle_velocity,cruise_velocity,g_max,boost_time,cruise_time,inhibit_time,drag_coefficient,flightpath_deviation,boost_power,sustain_power,sustain_time,diameter,max_altitude",
+        )?;
+    let flag = |field: &str| -> Result<bool, String> {
+        match facts.get::<LuaValue>(field).map_err(|e| e.to_string())? {
+            LuaValue::Boolean(value) => Ok(value),
+            other => Err(format!("figures {field} must be a boolean, got {}", other.type_name())),
+        }
+    };
+    let integer = |field: &str| -> Result<i64, String> {
+        match facts.get::<LuaValue>(field).map_err(|e| e.to_string())? {
+            LuaValue::Integer(value) => Ok(value),
+            LuaValue::Number(value) if value.fract() == 0.0 && value.abs() < 4.0e9 => Ok(value as i64),
+            other => Err(format!("figures {field} must be an integer, got {other:?}")),
+        }
+    };
+    // SAFETY: plain data; all-zero is a valid value of every field.
+    let mut figures: flight::Figures = unsafe { std::mem::zeroed() };
+    figures.set_name(&name)?;
+    figures.start_weight = start_weight;
+    figures.final_weight = final_weight;
+    figures.max_range = max_range;
+    figures.muzzle_velocity = muzzle_velocity;
+    figures.cruise_velocity = cruise_velocity;
+    figures.g_max = g_max;
+    figures.boost_time = boost_time;
+    figures.cruise_time = cruise_time;
+    figures.inhibit_time = inhibit_time;
+    figures.drag_coefficient = drag_coefficient;
+    figures.flightpath_deviation = flightpath_deviation;
+    figures.boost_power = boost_power;
+    figures.sustain_power = sustain_power;
+    figures.sustain_time = sustain_time;
+    figures.diameter = diameter;
+    figures.max_altitude = max_altitude;
+    figures.ignore_gravity = i32::from(flag("ignore_gravity")?);
+    figures.flight_profile_or_self_destr = i32::try_from(integer("flight_profile_or_self_destr")?).map_err(|e| e.to_string())?;
+    figures.parachute_type = i32::from(flag("parachute_type")?);
+    figures.weapon_class = u32::try_from(integer("weapon_class")?).map_err(|e| e.to_string())?;
+    Ok(figures)
+}
+
 fn exact_fields<const N: usize>(lua: &Lua, table: &LuaTable, names: &'static str) -> Result<[f32; N], String> {
     let key = format!("eech_exact_fields:{names}");
     let format: LuaFunction = match lua.named_registry_value(&key) {
@@ -1591,6 +1647,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     4 => "lead_iteration",
                                     5 => "ballistic",
                                     6 => "lead_result",
+                                    7 => "table_flight",
+                                    8 => "range_result",
                                     other => return Err(fail(format!("the model produced an unknown echo kind {other}"))),
                                 },
                             )?;
@@ -1607,17 +1665,67 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 };
                 match mode.as_str() {
                     "table" => {
-                        let bytes: LuaString = step.get("cells")?;
-                        aim.borrow_mut()
-                            .set_table(
-                                step.get("weapon")?,
-                                one(&step, "max_range")?,
-                                step.get("velocity_tests")?,
-                                step.get("pitch_indices")?,
-                                step.get("range_values")?,
-                                &bytes.as_bytes(),
-                            )
+                        // the host's table is its own: it simulates the weapon from the figures and keeps what results; only the test fixture build asks for it back
+                        let weapon: i32 = step.get("weapon")?;
+                        let figures = weapon_figures(lua, &step).map_err(fail)?;
+                        let echo = flag(&step, "echo")?;
+                        let flights = aim
+                            .borrow_mut()
+                            .generate_table(weapon, &figures, flag(&step, "first")?, flag(&step, "last")?)
                             .map_err(fail)?;
+                        if echo {
+                            let events = flights
+                                .iter()
+                                .map(|flight| {
+                                    let mut f = [0.0f32; 12];
+                                    f[0] = flight.end_time;
+                                    f[1] = flight.range_values as f32;
+                                    aim::Event {
+                                        kind: 7,
+                                        a: flight.velocity_test,
+                                        b: flight.pitch_index,
+                                        c: flight.range_mark,
+                                        d: flight.steps,
+                                        f,
+                                    }
+                                })
+                                .collect::<Vec<_>>();
+                            echo_into(&Some(events))?;
+                            let aim = aim.borrow();
+                            let cells = aim.table_cells(weapon).ok_or_else(|| fail(format!("no table was kept for weapon {weapon}")))?;
+                            let mut bytes = Vec::with_capacity(cells.len() * 4);
+                            for cell in cells {
+                                bytes.extend_from_slice(&cell.to_le_bytes());
+                            }
+                            result.set("echo_cells", lua.create_string(&bytes)?)?;
+                        }
+                        result.set("state", "done")?;
+                    }
+                    "range" => {
+                        let figures = weapon_figures(lua, &step).map_err(fail)?;
+                        let echo = flag(&step, "echo")?;
+                        let (runs, file_open) = aim
+                            .borrow_mut()
+                            .generate_range(&figures, flag(&step, "first")?, flag(&step, "last")?)
+                            .map_err(fail)?;
+                        if echo {
+                            let events = runs
+                                .iter()
+                                .map(|run| {
+                                    let mut f = [0.0f32; 12];
+                                    f[..4].copy_from_slice(&[run.end_z, run.end_y, run.end_velocity, run.end_lifetime]);
+                                    aim::Event {
+                                        kind: 8,
+                                        a: run.zero_pitch,
+                                        b: run.ran,
+                                        c: i32::from(file_open),
+                                        d: 0,
+                                        f,
+                                    }
+                                })
+                                .collect::<Vec<_>>();
+                            echo_into(&Some(events))?;
+                        }
                         result.set("state", "done")?;
                     }
                     "ready_update" => {

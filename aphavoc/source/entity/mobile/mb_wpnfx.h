@@ -67,12 +67,12 @@ enum eech_wpn_tgt
 	EECH_WPN_TGTS
 };
 
-// ballistic table generation (boot)
-extern void eech_wpn_table_step (void);
-extern void eech_wpn_table_flight (int sub_type, int velocity_test, int pitch_index, int range_mark, int num_range_values, float end_time);
-extern void eech_wpn_table_supply (int sub_type, float max_range, int velocity_tests, int pitch_indices, int num_range_values, const float *cells, unsigned long long count);
-extern void eech_wpn_range_type (int sub_type, int output_open);
-extern void eech_wpn_range_flight (int sub_type, int zero_pitch, float end_z, float end_y, float end_velocity, float end_lifetime);
+// ballistic table generation (boot): the HOST simulates and keeps the tables; the observer is given the host's echo of what it generated (the flights it simulated and the table
+// cells) and replays it, in the order the original produced it (every weapon's flights during the pass, every weapon's table after it, then the guided range runs)
+struct campaign_aim_event;
+extern void eech_wpn_table_host (int sub_type, float max_range, const struct campaign_aim_event *events, int event_count, const float *cells, unsigned long long cell_count);
+extern void eech_wpn_table_supplied (int sub_type);
+extern void eech_wpn_range_host (int sub_type, const struct campaign_aim_event *events, int event_count);
 
 // launch
 extern void eech_wpn_salvo (entity *launcher, int sub_type, int salvo_size, unsigned pods_firing, int ai_launcher);
@@ -116,11 +116,9 @@ extern void eech_wpn_decoy (float decoy_timer);
 extern void eech_wpn_terminal (entity *en, const weapon *raw);
 extern void eech_wpn_destroy (entity *en);
 
-#define WPN_FX_TABLE_STEP()										eech_wpn_table_step ();
-#define WPN_FX_TABLE_FLIGHT(T,V,P,M,N,TIME)						eech_wpn_table_flight ((T), (V), (P), (M), (N), (TIME));
-#define WPN_FX_TABLE_SUPPLY(T,MR,V,P,N,CELLS,COUNT)				eech_wpn_table_supply ((T), (MR), (V), (P), (N), (CELLS), (COUNT));
-#define WPN_FX_RANGE_TYPE(T,OPEN)								eech_wpn_range_type ((T), (OPEN));
-#define WPN_FX_RANGE_FLIGHT(T,ZERO,Z,Y,V,L)						eech_wpn_range_flight ((T), (ZERO), (Z), (Y), (V), (L));
+#define WPN_FX_TABLE_HOST(T,MR,EV,N,CELLS,COUNT)				eech_wpn_table_host ((T), (MR), (EV), (N), (CELLS), (COUNT));
+#define WPN_FX_TABLE_SUPPLIED(T)								eech_wpn_table_supplied ((T));
+#define WPN_FX_RANGE_HOST(T,EV,N)								eech_wpn_range_host ((T), (EV), (N));
 
 #define WPN_FX_SALVO(L,T,SIZE,PODS,AI)							eech_wpn_salvo ((L), (T), (SIZE), (PODS), (AI));
 #define WPN_FX_LAUNCH_NO_AMMO()									eech_wpn_launch_no_ammo ();
@@ -158,11 +156,9 @@ extern void eech_wpn_destroy (entity *en);
 
 #else
 
-#define WPN_FX_TABLE_STEP()
-#define WPN_FX_TABLE_FLIGHT(T,V,P,M,N,TIME)
-#define WPN_FX_TABLE_SUPPLY(T,MR,V,P,N,CELLS,COUNT)
-#define WPN_FX_RANGE_TYPE(T,OPEN)
-#define WPN_FX_RANGE_FLIGHT(T,ZERO,Z,Y,V,L)
+#define WPN_FX_TABLE_HOST(T,MR,EV,N,CELLS,COUNT)
+#define WPN_FX_TABLE_SUPPLIED(T)
+#define WPN_FX_RANGE_HOST(T,EV,N)
 
 #define WPN_FX_SALVO(L,T,SIZE,PODS,AI)
 #define WPN_FX_LAUNCH_NO_AMMO()

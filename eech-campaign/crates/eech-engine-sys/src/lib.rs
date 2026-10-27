@@ -3,7 +3,7 @@
 
 #![allow(non_camel_case_types)]
 
-use std::ffi::{c_char, c_int, c_void};
+use std::ffi::{c_char, c_int, c_uint, c_void};
 
 pub const EECH_ENGINE_OK: c_int = 0;
 pub const EECH_ENGINE_FATAL: c_int = 1;
@@ -577,7 +577,8 @@ pub type eech_sense_callback =
     unsafe extern "C" fn(step: *const eech_sense_step, result: *mut eech_sense_result, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
 
 pub const EECH_AIM_HOST_ID_MAX: usize = 128;
-pub const EECH_AIM_ECHO_MAX: usize = 48;
+pub const EECH_AIM_ECHO_MAX: usize = 512;
+pub const EECH_WEAPON_NAME_MAX: usize = 63;
 pub const EECH_AIM_TABLE: c_int = 1;
 pub const EECH_AIM_READY_UPDATE: c_int = 2;
 pub const EECH_AIM_READY_COMMAND: c_int = 3;
@@ -587,6 +588,7 @@ pub const EECH_AIM_VECTORS: c_int = 6;
 pub const EECH_AIM_LEAD: c_int = 7;
 pub const EECH_AIM_BALLISTIC: c_int = 8;
 pub const EECH_AIM_INTERCEPT: c_int = 9;
+pub const EECH_AIM_RANGE: c_int = 10;
 pub const EECH_AIM_DONE: c_int = 1;
 pub const EECH_AIM_NEED_DRAW: c_int = 2;
 pub const EECH_AIM_EVENT_INTERCEPT: c_int = 1;
@@ -595,6 +597,8 @@ pub const EECH_AIM_EVENT_LEAD_RANGE: c_int = 3;
 pub const EECH_AIM_EVENT_LEAD_ITERATION: c_int = 4;
 pub const EECH_AIM_EVENT_BALLISTIC: c_int = 5;
 pub const EECH_AIM_EVENT_LEAD_RESULT: c_int = 6;
+pub const EECH_AIM_EVENT_TABLE_FLIGHT: c_int = 7;
+pub const EECH_AIM_EVENT_RANGE_RESULT: c_int = 8;
 
 /// One intermediate value of the reference host's prediction, in its order (read only by the test fixture build).
 #[repr(C)]
@@ -608,6 +612,33 @@ pub struct eech_aim_event {
     pub f: [f32; 12],
 }
 
+/// One weapon's physical figures (aphavoc/.../mb_hostaim.h campaign_weapon_figures), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_weapon_figures {
+    pub name: [c_char; EECH_WEAPON_NAME_MAX + 1],
+    pub start_weight: f32,
+    pub final_weight: f32,
+    pub max_range: f32,
+    pub muzzle_velocity: f32,
+    pub cruise_velocity: f32,
+    pub g_max: f32,
+    pub boost_time: f32,
+    pub cruise_time: f32,
+    pub inhibit_time: f32,
+    pub drag_coefficient: f32,
+    pub flightpath_deviation: f32,
+    pub boost_power: f32,
+    pub sustain_power: f32,
+    pub sustain_time: f32,
+    pub diameter: f32,
+    pub max_altitude: f32,
+    pub ignore_gravity: c_int,
+    pub flight_profile_or_self_destr: c_int,
+    pub parachute_type: c_int,
+    pub weapon_class: c_uint,
+}
+
 /// One request of the host-owned aiming and readiness exchange (aphavoc/.../mb_hostaim.h), field for field.
 #[repr(C)]
 pub struct eech_aim_step {
@@ -618,12 +649,11 @@ pub struct eech_aim_step {
     pub source_host_id: [c_char; EECH_AIM_HOST_ID_MAX + 1],
     pub target_host_id: [c_char; EECH_AIM_HOST_ID_MAX + 1],
     pub weapon: c_int,
-    pub table_max_range: f32,
-    pub table_velocity_tests: c_int,
-    pub table_pitch_indices: c_int,
-    pub table_range_values: c_int,
-    pub table_cells: *const f32,
-    pub table_cell_count: usize,
+    pub figures: eech_weapon_figures,
+    pub pass_first: c_int,
+    pub pass_last: c_int,
+    pub echo_cells: *mut f32,
+    pub echo_cell_capacity: usize,
     pub ready_state: f32,
     pub ready_rate: f32,
     pub delta_time: f32,
@@ -691,6 +721,7 @@ pub struct eech_aim_result {
     pub has_echo: c_int,
     pub echo_count: c_int,
     pub echo: *const eech_aim_event,
+    pub echo_cell_count: usize,
 }
 
 pub type eech_aim_callback =

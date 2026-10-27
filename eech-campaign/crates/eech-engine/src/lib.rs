@@ -1070,16 +1070,53 @@ pub struct SenseReply {
     pub echo: Option<SenseEcho>,
 }
 
-/// One weapon's ballistic table, raw weapon data (the product of the campaign's projectile simulation), handed to the host once: `cells` is
-/// (drop angle, flight time) float pairs, velocity test by pitch index by range, `velocity_tests * pitch_indices * range_values * 2` in all.
+/// One weapon's physical figures, mirrored from the campaign's weapon database (transitional: a host with a model of its own needs none of them).
+#[derive(Clone, Debug, PartialEq)]
+pub struct WeaponFigures {
+    pub name: String,
+    pub start_weight: f32,
+    pub final_weight: f32,
+    pub max_range: f32,
+    pub muzzle_velocity: f32,
+    pub cruise_velocity: f32,
+    pub g_max: f32,
+    pub boost_time: f32,
+    pub cruise_time: f32,
+    pub inhibit_time: f32,
+    pub drag_coefficient: f32,
+    pub flightpath_deviation: f32,
+    pub boost_power: f32,
+    pub sustain_power: f32,
+    pub sustain_time: f32,
+    pub diameter: f32,
+    pub max_altitude: f32,
+    pub ignore_gravity: i32,
+    pub flight_profile_or_self_destr: i32,
+    pub parachute_type: i32,
+    pub weapon_class: u32,
+}
+
+/// An unguided weapon's figures, handed to the host once at boot: the host simulates the weapon's flight and keeps the ballistic table that results (no cell crosses the
+/// boundary). `first` and `last` flag the ends of the pass (the host writes a diagnostic file across it). `echo` is the test fixture build's request for the host's table
+/// and flight records back (`echo_cells` is the number of floats the campaign has room for).
 #[derive(Clone, Debug, PartialEq)]
 pub struct AimTable {
     pub weapon: i32,
-    pub max_range: f32,
-    pub velocity_tests: i32,
-    pub pitch_indices: i32,
-    pub range_values: i32,
-    pub cells: Vec<f32>,
+    pub figures: WeaponFigures,
+    pub first: bool,
+    pub last: bool,
+    pub echo: bool,
+    pub echo_cells: usize,
+}
+
+/// A guided weapon's figures, handed to the host once at boot: the host runs its two range simulations and writes its diagnostic file.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimRange {
+    pub weapon: i32,
+    pub figures: WeaponFigures,
+    pub first: bool,
+    pub last: bool,
+    pub echo: bool,
 }
 
 /// The figures of a weapon the host aims with. `present` is false when there is no weapon (a zero speed).
@@ -1229,6 +1266,7 @@ pub struct AimIntercept {
 #[derive(Clone, Debug, PartialEq)]
 pub enum AimRequest {
     Table(AimTable),
+    Range(AimRange),
     ReadyUpdate(AimReadyUpdate),
     ReadyCommand(AimReadyCommand),
     Required(AimRequired),
@@ -1274,6 +1312,9 @@ pub struct AimReply {
     /// variable alone. `Some` must be finite.
     pub time_of_flight: Option<f32>,
     pub echo: Option<Vec<AimEvent>>,
+    /// A table request's echo (the test fixture build only): the cells of the table the host generated, (drop angle, flight time) float pairs, velocity test by pitch index
+    /// by range; its length must be exactly the room the campaign gave.
+    pub table_cells: Option<Vec<f32>>,
 }
 
 fn side(value: c_int) -> Side {
@@ -2200,6 +2241,58 @@ fn aim_host_id(buffer: &[c_char], role: &str) -> Result<Option<String>, String> 
         .map_err(|_| format!("aim received a non-UTF-8 {role} host identity"))
 }
 
+fn weapon_figures(source: &sys::eech_weapon_figures) -> Result<WeaponFigures, String> {
+    let name_bytes = source.name.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect::<Vec<_>>();
+    if name_bytes.is_empty() || name_bytes.len() > sys::EECH_WEAPON_NAME_MAX {
+        return Err("aim received figures with an invalid weapon name".into());
+    }
+    let name = String::from_utf8_lossy(&name_bytes).into_owned();
+    let floats = [
+        source.start_weight,
+        source.final_weight,
+        source.max_range,
+        source.muzzle_velocity,
+        source.cruise_velocity,
+        source.g_max,
+        source.boost_time,
+        source.cruise_time,
+        source.inhibit_time,
+        source.drag_coefficient,
+        source.flightpath_deviation,
+        source.boost_power,
+        source.sustain_power,
+        source.sustain_time,
+        source.diameter,
+        source.max_altitude,
+    ];
+    if floats.iter().any(|value| !value.is_finite()) {
+        return Err(format!("aim received non-finite figures for weapon {name}"));
+    }
+    Ok(WeaponFigures {
+        name,
+        start_weight: source.start_weight,
+        final_weight: source.final_weight,
+        max_range: source.max_range,
+        muzzle_velocity: source.muzzle_velocity,
+        cruise_velocity: source.cruise_velocity,
+        g_max: source.g_max,
+        boost_time: source.boost_time,
+        cruise_time: source.cruise_time,
+        inhibit_time: source.inhibit_time,
+        drag_coefficient: source.drag_coefficient,
+        flightpath_deviation: source.flightpath_deviation,
+        boost_power: source.boost_power,
+        sustain_power: source.sustain_power,
+        sustain_time: source.sustain_time,
+        diameter: source.diameter,
+        max_altitude: source.max_altitude,
+        ignore_gravity: source.ignore_gravity,
+        flight_profile_or_self_destr: source.flight_profile_or_self_destr,
+        parachute_type: source.parachute_type,
+        weapon_class: source.weapon_class,
+    })
+}
+
 fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
     let finite = |name: &str, values: &[f32]| -> Result<(), String> {
         if values.iter().any(|value| !value.is_finite()) {
@@ -2254,27 +2347,33 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
     let source_id = || aim_host_id(&source.source_host_id, "source");
     let target_id = || aim_host_id(&source.target_host_id, "target");
     Ok(match source.mode {
-        sys::EECH_AIM_TABLE => {
-            if source.table_cells.is_null()
-                || source.table_velocity_tests <= 0
-                || source.table_pitch_indices <= 0
-                || source.table_range_values <= 0
-                || source.table_cell_count
-                    != (source.table_velocity_tests as usize) * (source.table_pitch_indices as usize) * (source.table_range_values as usize) * 2
-            {
-                return Err("aim received a ballistic table of an inconsistent shape".into());
+        sys::EECH_AIM_TABLE | sys::EECH_AIM_RANGE => {
+            let figures = weapon_figures(&source.figures)?;
+            if source.weapon <= 0 || figures.max_range <= 0.0 {
+                return Err(format!("aim received figures of an inconsistent weapon {}", source.weapon));
             }
-            finite("table range limit", &[source.table_max_range])?;
-            // SAFETY: C owns the cells for the call and gave their count; the shape was checked above.
-            let cells = unsafe { std::slice::from_raw_parts(source.table_cells, source.table_cell_count) }.to_vec();
-            AimRequest::Table(AimTable {
-                weapon: source.weapon,
-                max_range: source.table_max_range,
-                velocity_tests: source.table_velocity_tests,
-                pitch_indices: source.table_pitch_indices,
-                range_values: source.table_range_values,
-                cells,
-            })
+            let (first, last) = (checked_bool("pass_first", source.pass_first)?, checked_bool("pass_last", source.pass_last)?);
+            if source.mode == sys::EECH_AIM_TABLE {
+                if echo && (source.echo_cells.is_null() || source.echo_cell_capacity == 0) {
+                    return Err("aim was asked to echo a table with no room for it".into());
+                }
+                AimRequest::Table(AimTable {
+                    weapon: source.weapon,
+                    figures,
+                    first,
+                    last,
+                    echo,
+                    echo_cells: if echo { source.echo_cell_capacity } else { 0 },
+                })
+            } else {
+                AimRequest::Range(AimRange {
+                    weapon: source.weapon,
+                    figures,
+                    first,
+                    last,
+                    echo,
+                })
+            }
         }
         sys::EECH_AIM_READY_UPDATE => {
             finite("ready figure", &[source.ready_state, source.ready_rate, source.delta_time])?;
@@ -2484,6 +2583,21 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
         }
         answer.has_echo = 1;
         answer.echo_count = events.len() as c_int;
+    }
+    if let Some(cells) = &reply.table_cells {
+        if source.mode != sys::EECH_AIM_TABLE || source.echo_cells.is_null() {
+            return Err("aim echoed table cells nobody asked for".into());
+        }
+        if cells.len() > source.echo_cell_capacity {
+            return Err(format!(
+                "aim echoed {} table cells, more than the {} it can carry",
+                cells.len(),
+                source.echo_cell_capacity
+            ));
+        }
+        // SAFETY: the campaign gave room for `echo_cell_capacity` floats at `echo_cells` for this call, and the count was checked against it.
+        unsafe { std::ptr::copy_nonoverlapping(cells.as_ptr(), source.echo_cells, cells.len()) };
+        answer.echo_cell_count = cells.len();
     }
     Ok(answer)
 }
@@ -5042,30 +5156,105 @@ mod tests {
         (seen, result, code, String::from_utf8_lossy(&text).into_owned())
     }
 
-    #[test]
-    fn an_aim_table_request_hands_the_host_its_raw_cells_and_a_table_of_the_wrong_shape_never_reaches_it() {
-        let cells = vec![0.5f32; 5 * 85 * 7 * 2];
-        let mut step = blank_aim_step(sys::EECH_AIM_TABLE);
+    fn figures_step(mode: c_int) -> sys::eech_aim_step {
+        let mut step = blank_aim_step(mode);
         step.weapon = 12;
-        step.table_max_range = 100.0;
-        step.table_velocity_tests = 5;
-        step.table_pitch_indices = 85;
-        step.table_range_values = 7;
-        step.table_cells = cells.as_ptr();
-        step.table_cell_count = cells.len();
+        for (slot, byte) in step.figures.name.iter_mut().zip(b"M2HB_test_gun\0") {
+            *slot = *byte as c_char;
+        }
+        step.figures.max_range = 100.0;
+        step.figures.muzzle_velocity = 890.0;
+        step.figures.drag_coefficient = 0.3;
+        step.figures.diameter = 0.0127;
+        step.figures.weapon_class = 8;
+        step.pass_first = 1;
+        step.pass_last = 0;
+        step
+    }
+
+    #[test]
+    fn an_aim_table_request_hands_the_host_the_weapons_figures_and_no_cell_and_figures_that_cannot_be_a_weapon_never_reach_it() {
+        let step = figures_step(sys::EECH_AIM_TABLE);
         let (seen, _, code, _) = aim_crossing(&step, |_| Ok(AimReply::default()));
         assert_eq!(code, 0);
         let Some(AimRequest::Table(table)) = seen else {
-            panic!("the host was not asked for a table")
+            panic!("the host was not asked to generate a table")
         };
         assert_eq!(
-            (table.weapon, table.max_range, table.velocity_tests, table.pitch_indices, table.range_values),
-            (12, 100.0, 5, 85, 7)
+            (
+                table.weapon,
+                table.figures.name.as_str(),
+                table.figures.max_range,
+                table.figures.muzzle_velocity
+            ),
+            (12, "M2HB_test_gun", 100.0, 890.0)
         );
-        assert_eq!(table.cells, cells);
-        step.table_cell_count -= 2;
-        let (seen, _, code, error) = aim_crossing(&step, |_| panic!("the host must not be asked"));
-        assert!(seen.is_none() && code != 0 && error.contains("inconsistent shape"), "{error}");
+        assert_eq!(
+            (table.first, table.last, table.echo, table.echo_cells, table.figures.weapon_class),
+            (true, false, false, 0, 8)
+        );
+        // figures that are not a weapon's never reach the host: no name, a non-finite figure, no range, a flag that is not a boolean
+        let mut unnamed = figures_step(sys::EECH_AIM_TABLE);
+        unnamed.figures.name[0] = 0;
+        let mut infinite = figures_step(sys::EECH_AIM_TABLE);
+        infinite.figures.drag_coefficient = f32::INFINITY;
+        let mut rangeless = figures_step(sys::EECH_AIM_TABLE);
+        rangeless.figures.max_range = 0.0;
+        let mut flagged = figures_step(sys::EECH_AIM_TABLE);
+        flagged.pass_first = 2;
+        for (what, bad) in [("name", unnamed), ("figure", infinite), ("range", rangeless), ("flag", flagged)] {
+            let (seen, _, code, error) = aim_crossing(&bad, |_| panic!("the host must not be asked"));
+            assert!(seen.is_none() && code != 0, "{what}: {error}");
+        }
+    }
+
+    #[test]
+    fn an_aim_table_echo_is_written_into_the_room_the_campaign_gave_and_never_past_it() {
+        let mut room = vec![0.0f32; 6];
+        let mut step = figures_step(sys::EECH_AIM_TABLE);
+        step.echo = 1;
+        step.echo_cells = room.as_mut_ptr();
+        step.echo_cell_capacity = room.len();
+        let (seen, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                table_cells: Some(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0);
+        assert!(matches!(seen, Some(AimRequest::Table(ref table)) if table.echo && table.echo_cells == 6));
+        assert_eq!(result.echo_cell_count, 6);
+        assert_eq!(room, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                table_cells: Some(vec![0.0; 7]),
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("more than the 6"), "{error}");
+        // a host that echoes cells nobody asked for is refused
+        let quiet = figures_step(sys::EECH_AIM_TABLE);
+        let (_, _, code, error) = aim_crossing(&quiet, |_| {
+            Ok(AimReply {
+                table_cells: Some(vec![0.0; 6]),
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("nobody asked"), "{error}");
+    }
+
+    #[test]
+    fn an_aim_range_request_hands_the_host_a_guided_weapons_figures() {
+        let step = figures_step(sys::EECH_AIM_RANGE);
+        let (seen, _, code, _) = aim_crossing(&step, |_| Ok(AimReply::default()));
+        assert_eq!(code, 0);
+        let Some(AimRequest::Range(range)) = seen else {
+            panic!("the host was not asked for a range run")
+        };
+        assert_eq!(
+            (range.weapon, range.figures.name.as_str(), range.first, range.last, range.echo),
+            (12, "M2HB_test_gun", true, false, false)
+        );
     }
 
     #[test]

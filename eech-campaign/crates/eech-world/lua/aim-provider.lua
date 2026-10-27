@@ -12,6 +12,11 @@
 --   mode=own_model    a host with a model of its own that is not EECH's: the ready state is instant (closed 0 or open 2, no animation), the devices snap to the
 --                     required offsets within their limits, the required offsets are a plain bearing of the intercept vector in the device frame, a guided weapon
 --                     intercepts the target's point, and an unguided weapon has no solution (it needs no ballistic table, no draw, no EECH figure)
+--   mode=table_drag   the reference host, but every table request carries three times the weapon's drag: the host's tables are its own (EEDCS-45), so its ballistic
+--                     and lead answers must differ from the reference's (angle_sum), and so must the weapons the campaign then launches and where they fall
+--   mode=table_slow   the same with half the muzzle velocity
+--   mode=bad_table_nil, bad_table_state, bad_table_error    a provider whose answer to the first table request is nothing, a state that is not done or need_draw, or an error:
+--                     the engine must stop AT BOOT with a clear error
 --   mode=missing      boot without an aim provider: must fail at boot with a clear error
 --   mode=bad_*        a provider that answers the first request of a kind malformed: the engine must stop with a clear error (bad_nil, bad_state,
 --                     bad_ready_state, bad_phase, bad_nan_vector, bad_draw_for_ballistic, bad_second_draw, bad_negative_range, bad_error)
@@ -73,8 +78,8 @@ end
 
 local reference = host.aim
 -- what the campaign asked, by request mode, and what the host answered
-local counts = { table = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0 }
-local answers = { valid = 0, invalid = 0, need_draw = 0, lead_ok = 0, lead_no = 0, ballistic_ok = 0, ballistic_no = 0, phase_moving = 0 }
+local counts = { table = 0, range = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0 }
+local answers = { valid = 0, invalid = 0, need_draw = 0, lead_ok = 0, lead_no = 0, ballistic_ok = 0, ballistic_no = 0, phase_moving = 0, angle_sum = 0 }
 
 local function counted (step, answer)
 	counts [step.mode] = counts [step.mode] + 1
@@ -83,9 +88,9 @@ local function counted (step, answer)
 		elseif answer.valid then answers.valid = answers.valid + 1 else answers.invalid = answers.invalid + 1 end
 	elseif step.mode == "lead" then
 		if answer.state == "need_draw" then answers.need_draw = answers.need_draw + 1
-		elseif answer.ok then answers.lead_ok = answers.lead_ok + 1 else answers.lead_no = answers.lead_no + 1 end
+		elseif answer.ok then answers.lead_ok = answers.lead_ok + 1 answers.angle_sum = answers.angle_sum + answer.angle else answers.lead_no = answers.lead_no + 1 end
 	elseif step.mode == "ballistic" then
-		if answer.ok then answers.ballistic_ok = answers.ballistic_ok + 1 else answers.ballistic_no = answers.ballistic_no + 1 end
+		if answer.ok then answers.ballistic_ok = answers.ballistic_ok + 1 answers.angle_sum = answers.angle_sum + answer.angle else answers.ballistic_no = answers.ballistic_no + 1 end
 	elseif step.mode == "ready_update" and (answer.phase == 1 or answer.phase == 3) then
 		answers.phase_moving = answers.phase_moving + 1
 	end
@@ -149,6 +154,7 @@ function own.lead (step) return { state = "done", ok = false, intercept_point = 
 function own.ballistic () return { state = "done", ok = false } end
 function own.intercept (step) return { state = "done", intercept_point = step.target.point } end
 function own.table () return { state = "done" } end
+function own.range () return { state = "done" } end
 
 local provider
 if mode == "reference" then
@@ -173,6 +179,28 @@ elseif mode == "invalid" then
 	end
 elseif mode == "own_model" then
 	provider = function (step) return counted (step, own [step.mode] (step)) end
+elseif mode == "table_drag" or mode == "table_slow" then
+	provider = function (step)
+		if step.mode == "table" then
+			local figures = {}
+			for k, v in pairs (step.figures) do figures [k] = v end
+			if mode == "table_drag" then figures.drag_coefficient = figures.drag_coefficient * 3 else figures.muzzle_velocity = figures.muzzle_velocity * 0.5 end
+			step = with (step, { figures = figures })
+		end
+		return counted (step, reference (step))
+	end
+elseif mode == "bad_table_nil" or mode == "bad_table_state" or mode == "bad_table_error" then
+	local armed = true
+	provider = function (step)
+		local answer = reference (step)
+		if armed and step.mode == "table" then
+			armed = false
+			if mode == "bad_table_nil" then return nil
+			elseif mode == "bad_table_state" then return { state = "later" }
+			else error ("provider failed on purpose") end
+		end
+		return counted (step, answer)
+	end
 elseif mode == "missing" then
 	provider = nil
 elseif mode:sub (1, 4) == "bad_" then
@@ -214,10 +242,10 @@ if not ok then
 	emit { event = "boot_failed", mode = mode, error = (tostring (engine):gsub ("\n.*", "")) }
 	out:close ()
 	io.stderr:write ("aim-provider: boot failed: " .. (tostring (engine):gsub ("\n.*", "")) .. "\n")
-	assert (mode == "missing", "boot failed")
+	assert (mode == "missing" or mode:sub (1, 10) == "bad_table_", "boot failed")
 	return
 end
-assert (mode ~= "missing", "boot succeeded without an aim provider")
+assert (mode ~= "missing" and mode:sub (1, 10) ~= "bad_table_", "boot succeeded without a usable aim provider")
 
 local fixture = engine.aim_trace ~= nil
 if fixture then engine:aim_trace_reset () end
@@ -258,7 +286,7 @@ end
 emit { event = "summary", mode = mode, frames = frames_run, failure = failure or "", table = counts.table, ready_update = counts.ready_update, ready_command = counts.ready_command,
 	required = counts.required, step = counts.step, vectors = counts.vectors, lead = counts.lead, ballistic = counts.ballistic, intercept = counts.intercept,
 	vectors_valid = answers.valid, vectors_invalid = answers.invalid, need_draw = answers.need_draw, lead_ok = answers.lead_ok, lead_no = answers.lead_no,
-	ballistic_ok = answers.ballistic_ok, ballistic_no = answers.ballistic_no, ready_moving = answers.phase_moving, weapon_births = births, losses = lost }
+	ballistic_ok = answers.ballistic_ok, ballistic_no = answers.ballistic_no, ready_moving = answers.phase_moving, weapon_births = births, losses = lost, angle_sum = string.format ("%.9g", answers.angle_sum) }
 out:close ()
 io.stderr:write (string.format ("aim-provider: mode=%s ready_update=%d ready_command=%d required=%d step=%d vectors=%d (valid %d invalid %d) lead=%d ballistic=%d intercept=%d need_draw=%d ready_moving=%d weapon_births=%d losses=%d failure=%s\n",
 	mode, counts.ready_update, counts.ready_command, counts.required, counts.step, counts.vectors, answers.valid, answers.invalid, counts.lead, counts.ballistic, counts.intercept,

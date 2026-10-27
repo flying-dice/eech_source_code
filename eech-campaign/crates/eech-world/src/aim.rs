@@ -1,7 +1,8 @@
 //! The host's physical aiming and weapon-system-readiness kernel (EEDCS-44, D2): where a launcher's weapon-system devices point, whether they are
 //! ready, and the intercept, lead and ballistic predictions they are aimed with. Kept in C (`csrc/aim_step.c`, EECH's own arithmetic expression for
 //! expression) and driven here one question at a time. Every question is pure: this host keeps nothing between questions except the ballistic tables
-//! the campaign hands it once at boot (raw weapon data, the product of the campaign's still-core projectile simulation).
+//! it generates itself at boot (EEDCS-45: the campaign hands it each unguided weapon's physical figures once and this host simulates the weapon's flight,
+//! `flight.rs`; no table cell crosses the boundary).
 //!
 //! Which weapon is selected, which target is aimed at, which package's devices are used, whether the weapon system should be made ready, and the fire
 //! decision are not here. The device viewpoint, the target point, the positions, speeds and motion vectors and the weapon and package figures are
@@ -11,6 +12,8 @@
 
 use std::collections::HashMap;
 use std::ffi::c_int;
+
+use crate::flight;
 
 /// The shape of a ballistic table the kernel indexes: five velocity tests, 85 pitch indices, `max_range / 20 + 2` ranges.
 const VELOCITY_TESTS: i32 = 5;
@@ -265,10 +268,11 @@ struct Table {
     cells: Vec<f32>,
 }
 
-/// The host: the ballistic tables it was given and nothing else.
+/// The host: the ballistic tables it generated and nothing else (and whether its range diagnostic file is open across a boot pass).
 #[derive(Default)]
 pub struct Aim {
     tables: HashMap<i32, Table>,
+    range_file_open: bool,
 }
 
 fn finite(what: &str, values: &[f32]) -> Result<(), String> {
@@ -307,8 +311,68 @@ impl Aim {
         Self::default()
     }
 
-    /// Takes one weapon's ballistic table (raw weapon data: little-endian IEEE-754 single-precision (drop angle, flight time) pairs, velocity test by
-    /// pitch index by range). Replaces any table the weapon had. The shape is the one the model indexes.
+    /// Generates one unguided weapon's ballistic table from its physical figures: this host simulates the weapon's flight at every pitch and velocity test
+    /// (`flight.rs`) and keeps the table, replacing any the weapon had. `first` and `last` flag the ends of the campaign's boot pass: the diagnostic file the
+    /// simulation writes is opened before the first weapon and closed after the last. Returns what each simulated flight left behind, in order.
+    pub fn generate_table(&mut self, weapon: i32, figures: &flight::Figures, first: bool, last: bool) -> Result<Vec<flight::FlightRecord>, String> {
+        if weapon <= 0 {
+            return Err(format!("aim table for weapon {weapon} is not a weapon"));
+        }
+        finite("weapon figure", &figures.floats())?;
+        if figures.max_range <= 0.0 {
+            return Err(format!("aim figures for weapon {weapon} have no range limit"));
+        }
+        let range_values = (f64::from(figures.max_range) / 20.0) as i32 + 2;
+        let mut cells = vec![0.0f32; (VELOCITY_TESTS as usize) * (PITCH_INDICES as usize) * (range_values as usize) * 2];
+        if first {
+            flight::ballistics_open();
+        }
+        let flights = flight::ballistics_weapon(figures, &mut cells);
+        if last {
+            flight::ballistics_close();
+        }
+        let flights = flights.map_err(|error| format!("weapon {weapon}: {error}"))?;
+        if cells.iter().any(|cell| !cell.is_finite()) {
+            return Err(format!("aim table for weapon {weapon} holds a non-finite cell"));
+        }
+        self.tables.insert(
+            weapon,
+            Table {
+                velocity_tests: VELOCITY_TESTS,
+                pitch_indices: PITCH_INDICES,
+                range_values,
+                max_range: figures.max_range,
+                cells,
+            },
+        );
+        Ok(flights)
+    }
+
+    /// The cells of the table generated for a weapon (the test fixture build's echo asks for them).
+    #[must_use]
+    pub fn table_cells(&self, weapon: i32) -> Option<&[f32]> {
+        self.tables.get(&weapon).map(|table| table.cells.as_slice())
+    }
+
+    /// Runs one guided weapon's two range simulations and writes the diagnostic file across the boot pass (opened before the first weapon, closed after the last).
+    /// Returns the two runs' end states and whether the file was open.
+    pub fn generate_range(&mut self, figures: &flight::Figures, first: bool, last: bool) -> Result<([flight::RangeRecord; 2], bool), String> {
+        finite("weapon figure", &figures.floats())?;
+        if first {
+            self.range_file_open = flight::range_open();
+        }
+        let open = self.range_file_open;
+        let results = flight::range_weapon(figures);
+        if last {
+            flight::range_close();
+            self.range_file_open = false;
+        }
+        Ok((results?, open))
+    }
+
+    /// Test helper: stores a table from raw cells (little-endian IEEE-754 single-precision (drop angle, flight time) pairs, velocity test by pitch index by
+    /// range), as a custom host that brought its own tables would. The shape is the one the model indexes. The host's own tables come from `generate_table`.
+    #[cfg(test)]
     pub fn set_table(&mut self, weapon: i32, max_range: f32, velocity_tests: i32, pitch_indices: i32, range_values: i32, cells: &[u8]) -> Result<(), String> {
         finite("table range limit", &[max_range])?;
         if weapon <= 0 {
@@ -947,5 +1011,125 @@ mod tests {
         let (heading, _) = person_face([0.0; 3], [-10.0, 0.0, 0.0]).unwrap();
         assert!(near(heading, -std::f32::consts::FRAC_PI_2), "{heading}");
         assert!(person_face([0.0; 3], [f32::NAN, 0.0, 0.0]).is_err());
+    }
+
+    /// A small gun: 900 m/s at the muzzle, a 1 km limit, drag and a 20 mm calibre; no rocket motor, so the lifetime is the cruise time.
+    fn gun(name: &str) -> flight::Figures {
+        // SAFETY: plain data; all-zero is a valid value of every field.
+        let mut figures: flight::Figures = unsafe { std::mem::zeroed() };
+        figures.set_name(name).unwrap();
+        figures.start_weight = 0.1;
+        figures.final_weight = 0.1;
+        figures.max_range = 1000.0;
+        figures.muzzle_velocity = 900.0;
+        figures.cruise_velocity = 900.0;
+        figures.cruise_time = 4.0;
+        figures.drag_coefficient = 0.3;
+        figures.diameter = 0.02;
+        figures.weapon_class = 1 << 3;
+        figures
+    }
+
+    /// The (drop angle, flight time) pair of one cell: velocity test, pitch index, range index.
+    fn cell(aim: &Aim, weapon: i32, test: usize, pitch: usize, range: usize) -> (f32, f32) {
+        let table = aim.tables.get(&weapon).unwrap();
+        let at = ((test * PITCH_INDICES as usize + pitch) * table.range_values as usize + range) * 2;
+        (table.cells[at], table.cells[at + 1])
+    }
+
+    #[test]
+    fn the_host_generates_the_table_from_the_figures_in_the_shape_the_model_indexes_and_repeats_it_bit_for_bit() {
+        let mut aim = Aim::new();
+        let flights = aim.generate_table(7, &gun("test gun"), false, false).unwrap();
+        let table = aim.tables.get(&7).unwrap();
+        assert_eq!(
+            (table.velocity_tests, table.pitch_indices, table.range_values),
+            (VELOCITY_TESTS, PITCH_INDICES, 52)
+        );
+        assert_eq!(table.cells.len(), 5 * 85 * 52 * 2);
+        assert!(table.cells.iter().all(|cell| cell.is_finite()));
+        // a surface-to-surface weapon (class bit 3) simulates only the first velocity test of each pitch and copies it for the other four
+        assert_eq!(flights.len(), 83, "{} flights", flights.len());
+        assert!(flights
+            .iter()
+            .all(|flight| flight.velocity_test == 0 && flight.steps > 0 && flight.range_mark <= flight.range_values));
+        for test in 1..5 {
+            for pitch in 0..85 {
+                for range in 0..52 {
+                    assert_eq!(
+                        cell(&aim, 7, test, pitch, range),
+                        cell(&aim, 7, 0, pitch, range),
+                        "test {test} pitch {pitch} range {range}"
+                    );
+                }
+            }
+        }
+        // the rows at plus and minus ninety degrees are all zero (the original never simulates them)
+        assert!((0..52).all(|range| cell(&aim, 7, 0, 0, range) == (0.0, 0.0) && cell(&aim, 7, 0, 84, range) == (0.0, 0.0)));
+        // a level shot falls and takes longer to reach a farther mark
+        let level = 42;
+        let (drop_near, time_near) = cell(&aim, 7, 0, level, 10);
+        let (drop_far, time_far) = cell(&aim, 7, 0, level, 40);
+        assert!(
+            time_far > time_near && time_near > 0.0 && drop_far > drop_near,
+            "{drop_near} {time_near} {drop_far} {time_far}"
+        );
+        // the same figures give the same table, bit for bit, and the host keeps only the latest
+        let mut again = Aim::new();
+        again.generate_table(7, &gun("test gun"), false, false).unwrap();
+        assert_eq!(
+            aim.table_cells(7).unwrap().iter().map(|cell| cell.to_bits()).collect::<Vec<_>>(),
+            again.table_cells(7).unwrap().iter().map(|cell| cell.to_bits()).collect::<Vec<_>>()
+        );
+        assert!(aim.table_cells(8).is_none());
+    }
+
+    #[test]
+    fn the_generated_table_follows_the_figures_a_host_is_given() {
+        let mut reference = Aim::new();
+        reference.generate_table(7, &gun("test gun"), false, false).unwrap();
+        let mut slow = gun("slow gun");
+        slow.muzzle_velocity = 450.0;
+        let mut draggy = gun("draggy gun");
+        draggy.drag_coefficient = 0.9;
+        let mut other = Aim::new();
+        other.generate_table(7, &slow, false, false).unwrap();
+        other.generate_table(8, &draggy, false, false).unwrap();
+        let level = 42;
+        let (_, reference_time) = cell(&reference, 7, 0, level, 40);
+        let (_, slow_time) = cell(&other, 7, 0, level, 40);
+        assert!(
+            slow_time > reference_time * 1.5,
+            "half the muzzle velocity takes much longer: {slow_time} against {reference_time}"
+        );
+        let (_, draggy_time) = cell(&other, 8, 0, level, 40);
+        assert!(draggy_time > reference_time, "more drag takes longer: {draggy_time} against {reference_time}");
+        // and the lookup the aiming uses answers differently from each table
+        let reference_ballistic = reference.ballistic(7, 800.0, 0.0, false, false, 0.0).unwrap();
+        let slow_ballistic = other.ballistic(7, 800.0, 0.0, false, false, 0.0).unwrap();
+        assert!(reference_ballistic.ok && slow_ballistic.ok);
+        assert!(
+            slow_ballistic.angle > reference_ballistic.angle,
+            "{} {}",
+            slow_ballistic.angle,
+            reference_ballistic.angle
+        );
+    }
+
+    #[test]
+    fn figures_that_cannot_be_a_weapon_are_refused_without_a_table() {
+        let mut aim = Aim::new();
+        assert!(aim.generate_table(0, &gun("test gun"), false, false).unwrap_err().contains("not a weapon"));
+        let mut infinite = gun("test gun");
+        infinite.drag_coefficient = f32::INFINITY;
+        assert!(aim.generate_table(7, &infinite, false, false).unwrap_err().contains("finite"));
+        let mut rangeless = gun("test gun");
+        rangeless.max_range = 0.0;
+        assert!(aim.generate_table(7, &rangeless, false, false).unwrap_err().contains("range limit"));
+        assert!(aim.table_cells(7).is_none());
+        let mut figures = gun("test gun");
+        assert!(figures.set_name("").is_err());
+        assert!(figures.set_name(&"x".repeat(64)).is_err());
+        assert!(figures.set_name("a\u{0}b").is_err());
     }
 }
