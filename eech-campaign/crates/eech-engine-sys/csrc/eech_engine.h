@@ -301,6 +301,8 @@ int eech_engine_wpn_events (char *text, int capacity, int *more);
 /* Controlled launch case: the state of one host-identified entity (and its count of one weapon type), and one physical launch attempt of one weapon type by one
    host-identified launcher through the campaign's own launch call, with an optional host-identified target link set first. The host answers through the callbacks given. */
 int eech_engine_wpn_case_query (const char *host_id, int weapon, char *text, int capacity);
+/* The kind of a roster host id from its type field alone; reports found=0 for an unknown id. */
+int eech_engine_wpn_case_kind (const char *host_id, char *text, int capacity);
 int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id, int weapon, int salvo_count, char *text, int capacity, const struct eech_engine_host *host);
 #endif
 

@@ -1252,6 +1252,11 @@ impl LuaUserData for LuaEngine {
         methods.add_method("wpn_case_query", |_, this, (host_id, weapon): (String, i32)| {
             this.engine.wpn_case_query(&host_id, weapon).map_err(lua_error)
         });
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the entity kind of a roster host id; not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("wpn_case_kind", |_, this, host_id: String| {
+            this.engine.wpn_case_kind(&host_id).map_err(lua_error)
+        });
         // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): one physical launch attempt through the campaign's own launch call, given the same complete host callbacks as a frame; not
         // part of the shipping module.
         #[cfg(feature = "weapon-fixture")]

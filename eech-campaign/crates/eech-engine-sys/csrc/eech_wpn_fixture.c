@@ -1254,18 +1254,27 @@ void eech_wpn_update_stage (entity *en, int stage)
 	stage_order (stage);
 }
 
+/* update_decoy counts the weapon's timer down and, once it is below zero, sets it to the restart value. The hooks bracket ONE weapon's own call, so a restart is a timer
+ * that went up across that call; no state is carried from one weapon to the next. */
+static float decoy_before;
+
+void eech_wpn_decoy_begin (float decoy_timer)
+{
+	ready ();
+	decoy_before = decoy_timer;
+}
+
 void eech_wpn_decoy (float decoy_timer)
 {
-	static float previous = -1.0e30f;
 	ready ();
 	bump (C_decoy_updates);
 	bump (C_update_stage_3);
 	stage_order (3);
-	if (decoy_timer > previous && previous > -1.0e29f)
+	if (decoy_timer > decoy_before)
 	{
 		bump (C_decoy_restarts);
 	}
-	previous = decoy_timer;
+	fold_f (&trace.flight_hash, decoy_before);
 	fold_f (&trace.flight_hash, decoy_timer);
 }
 
@@ -1528,6 +1537,34 @@ static entity *case_find (const char *host_id)
 	return NULL;
 }
 
+/* The roster holds more kinds than can launch or be linked as a weapon target (a SITE has a roster id and neither a target list nor a weapon package): the case
+ * operations support the six mobile families only, and reject anything else BEFORE any getter or setter runs on it. */
+static int supported_kind (const entity *en)
+{
+	switch (en->type)
+	{
+		case ENTITY_TYPE_HELICOPTER:
+		case ENTITY_TYPE_FIXED_WING:
+		case ENTITY_TYPE_ANTI_AIRCRAFT:
+		case ENTITY_TYPE_ROUTED_VEHICLE:
+		case ENTITY_TYPE_SHIP_VEHICLE:
+		case ENTITY_TYPE_PERSON:
+			return 1;
+		default:
+			return 0;
+	}
+}
+
+/* The kind of a roster host id, from the entity's type field alone (no getter runs on it): found=0 for an id that names nothing. Never an error: it is how a driver learns
+ * which roster ids the other case operations will reject. */
+int eech_wpn_case_kind_run (const char *host_id, char *text, int capacity)
+{
+	entity *en = case_find (host_id);
+	int n = snprintf (text, (size_t) capacity, "wpn-case-kind host_id=%s found=%d kind=%s supported=%d\n", host_id, en ? 1 : 0, en ? get_entity_type_name ((entity_types) en->type) : "none",
+		en ? supported_kind (en) : 0);
+	return (n < 0 || n >= capacity) ? -1 : 0;
+}
+
 int eech_wpn_case_query_run (const char *host_id, int weapon, char *text, int capacity)
 {
 	entity *en = case_find (host_id);
@@ -1540,15 +1577,23 @@ int eech_wpn_case_query_run (const char *host_id, int weapon, char *text, int ca
 		snprintf (text, (size_t) capacity, "wpn-case-error reason=no_such_host_id host_id=%s\n", host_id);
 		return -1;
 	}
+	if (!supported_kind (en))
+	{
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=subject_kind_unsupported kind=%s\n", get_entity_type_name ((entity_types) en->type));
+		return -1;
+	}
 	get_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &position);
 	target = get_local_entity_parent (en, LIST_TYPE_TARGET);
 	if (valid_sub_type (weapon))
 	{
 		count = get_local_entity_weapon_count (en, (entity_sub_types) weapon);
 	}
-	n = snprintf (text, (size_t) capacity, "wpn-case-state host_id=%s type=%s alive=%d position=%.9g,%.9g,%.9g has_target=%d target_type=%s weapon=%d weapon_count=%d\n", host_id,
+	n = snprintf (text, (size_t) capacity,
+		"wpn-case-state host_id=%s type=%s alive=%d position=%.9g,%.9g,%.9g has_target=%d target_type=%s weapon=%d weapon_count=%d warhead=%d guidance=%d aiming=%d decoy=%d\n", host_id,
 		get_entity_type_name ((entity_types) en->type), get_local_entity_int_value (en, INT_TYPE_ALIVE), (double) position.x, (double) position.y, (double) position.z,
-		target ? 1 : 0, target ? get_entity_type_name ((entity_types) target->type) : "none", weapon, count);
+		target ? 1 : 0, target ? get_entity_type_name ((entity_types) target->type) : "none", weapon, count,
+		valid_sub_type (weapon) ? (int) weapon_database[weapon].warhead_type : -1, valid_sub_type (weapon) ? (int) weapon_database[weapon].guidance_type : -1,
+		valid_sub_type (weapon) ? (int) weapon_database[weapon].aiming_type : -1, valid_sub_type (weapon) ? (int) weapon_database[weapon].decoy_type : -1);
 	return (n < 0 || n >= capacity) ? -1 : 0;
 }
 
@@ -1556,12 +1601,24 @@ int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, in
 {
 	entity *launcher = case_find (launcher_id);
 	entity *target = target_id[0] ? case_find (target_id) : NULL;
+	entity *previous;
 	uint64_t births_before, created_before;
-	int count_before, count_after, n;
+	int count_before, count_after, n, link_before, link_after, restored = -1;
 	text[0] = 0;
 	if (!launcher || (target_id[0] && !target))
 	{
 		snprintf (text, (size_t) capacity, "wpn-case-error reason=%s\n", !launcher ? "no_such_launcher_host_id" : "no_such_target_host_id");
+		return -1;
+	}
+	/* kinds first: no getter or setter below runs on an entity that cannot launch or be linked as a weapon target; nothing has been changed when this rejects */
+	if (!supported_kind (launcher))
+	{
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=launcher_kind_unsupported kind=%s\n", get_entity_type_name ((entity_types) launcher->type));
+		return -1;
+	}
+	if (target && !supported_kind (target))
+	{
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=target_kind_unsupported kind=%s\n", get_entity_type_name ((entity_types) target->type));
 		return -1;
 	}
 	if (launcher == target || !valid_sub_type (weapon) || salvo_count < 0 || !get_local_entity_int_value (launcher, INT_TYPE_ALIVE)
@@ -1571,23 +1628,46 @@ int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, in
 		return -1;
 	}
 	ready ();
-	if (target)
+	previous = get_local_entity_parent (launcher, LIST_TYPE_TARGET);
+	link_before = previous ? 1 : 0;
+	/* the requested link, empty or not, is established through the campaign's own setter (NULL is the campaign's own "no target") and then read back */
+	if (previous != target)
 	{
 		set_client_server_entity_parent (launcher, LIST_TYPE_TARGET, target);
-		if (get_local_entity_parent (launcher, LIST_TYPE_TARGET) != target)
-		{
-			snprintf (text, (size_t) capacity, "wpn-case-error reason=target_link_not_set\n");
-			return -1;
-		}
 	}
+	if (get_local_entity_parent (launcher, LIST_TYPE_TARGET) != target)
+	{
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=target_link_not_set\n");
+		return -1;
+	}
+	link_after = target ? 1 : 0;
 	count_before = get_local_entity_weapon_count (launcher, (entity_sub_types) weapon);
 	births_before = trace.counters[C_birth_calls];
 	created_before = trace.counters[C_launch_created];
 	launch_client_server_weapon (launcher, (entity_sub_types) weapon, salvo_count);
 	count_after = get_local_entity_weapon_count (launcher, (entity_sub_types) weapon);
-	n = snprintf (text, (size_t) capacity, "wpn-case-launch launcher=%s weapon=%d target_link=%d count_before=%d count_after=%d births=%llu creates=%llu\n",
-		get_entity_type_name ((entity_types) launcher->type), weapon, target ? 1 : 0, count_before, count_after, (unsigned long long) (trace.counters[C_birth_calls] - births_before),
-		(unsigned long long) (trace.counters[C_launch_created] - created_before));
+	/* restore the launcher's previous link through the same setter, when that entity is still a live roster member */
+	if (previous != target)
+	{
+		if (!previous)
+		{
+			set_client_server_entity_parent (launcher, LIST_TYPE_TARGET, NULL);
+			restored = get_local_entity_parent (launcher, LIST_TYPE_TARGET) == NULL;
+		}
+		else if (case_entity_live (previous) && get_local_entity_int_value (previous, INT_TYPE_ALIVE))
+		{
+			set_client_server_entity_parent (launcher, LIST_TYPE_TARGET, previous);
+			restored = get_local_entity_parent (launcher, LIST_TYPE_TARGET) == previous;
+		}
+		else
+		{
+			restored = 0;
+		}
+	}
+	n = snprintf (text, (size_t) capacity,
+		"wpn-case-launch launcher=%s weapon=%d target_link_before=%d target_link=%d count_before=%d count_after=%d births=%llu creates=%llu restored=%d\n",
+		get_entity_type_name ((entity_types) launcher->type), weapon, link_before, link_after, count_before, count_after,
+		(unsigned long long) (trace.counters[C_birth_calls] - births_before), (unsigned long long) (trace.counters[C_launch_created] - created_before), restored);
 	return (n < 0 || n >= capacity) ? -1 : 0;
 }
 

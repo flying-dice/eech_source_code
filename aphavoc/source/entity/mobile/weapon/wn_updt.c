@@ -100,6 +100,7 @@ static void update_server (entity *en)
 
 	if (weapon_database[raw->mob.sub_type].decoy_type != WEAPON_DECOY_TYPE_NONE)
 	{
+		WPN_FX_DECOY_BEGIN (raw->decoy_timer)
 		update_decoy (en);
 		WPN_FX_DECOY (raw->decoy_timer)
 	}

@@ -8,7 +8,7 @@
 // the original did not on the same path, or changes a branch. The shared random stream is observed only by its draw COUNT (stepping a local
 // copy of the generator), never its value, and no entity pointer, index or seed leaves the fixture.
 //
-// Three functions are WRAPPED (the original body is renamed behind a feature-only macro; a wrapper of the original name observes its
+// Two functions are WRAPPED (the original body is renamed behind a feature-only macro; a wrapper of the original name observes its
 // arguments and the state it leaves): weapon_movement and create_client_server_entity_weapon. Everything
 // else is a single statement placed between original statements. A hook never reads an output the original left unwritten on the path taken
 // (the position of an invalid guided target position is never read).
@@ -111,6 +111,7 @@ extern void eech_wpn_contact_trees (int hit, const vec3d *old_position, const ve
 
 // update order and terminal
 extern void eech_wpn_update_stage (entity *en, int stage);
+extern void eech_wpn_decoy_begin (float decoy_timer);
 extern void eech_wpn_decoy (float decoy_timer);
 extern void eech_wpn_terminal (entity *en, const weapon *raw);
 extern void eech_wpn_destroy (entity *en);
@@ -150,6 +151,7 @@ extern void eech_wpn_destroy (entity *en);
 #define WPN_FX_CONTACT_TREES(HIT,OLD,NEW)						eech_wpn_contact_trees ((HIT), (OLD), (NEW));
 
 #define WPN_FX_UPDATE_STAGE(EN,STAGE)							eech_wpn_update_stage ((EN), (STAGE));
+#define WPN_FX_DECOY_BEGIN(TIMER)								eech_wpn_decoy_begin ((TIMER));
 #define WPN_FX_DECOY(TIMER)										eech_wpn_decoy ((TIMER));
 #define WPN_FX_TERMINAL(EN,RAW)									eech_wpn_terminal ((EN), (RAW));
 #define WPN_FX_DESTROY(EN)										eech_wpn_destroy ((EN));
@@ -191,6 +193,7 @@ extern void eech_wpn_destroy (entity *en);
 #define WPN_FX_CONTACT_TREES(HIT,OLD,NEW)
 
 #define WPN_FX_UPDATE_STAGE(EN,STAGE)
+#define WPN_FX_DECOY_BEGIN(TIMER)
 #define WPN_FX_DECOY(TIMER)
 #define WPN_FX_TERMINAL(EN,RAW)
 #define WPN_FX_DESTROY(EN)

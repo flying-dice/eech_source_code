@@ -1267,6 +1267,7 @@ int eech_engine_aim_person_case (const char *person_id, const char *target_id, c
 extern int eech_wpn_trace_get (char *text, int capacity);
 extern int eech_wpn_events_get (char *text, int capacity);
 extern int eech_wpn_case_query_run (const char *host_id, int weapon, char *text, int capacity);
+extern int eech_wpn_case_kind_run (const char *host_id, char *text, int capacity);
 extern int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, int weapon, int salvo_count, char *text, int capacity);
 
 int eech_engine_wpn_trace (char *text, int capacity)
@@ -1315,6 +1316,24 @@ int eech_engine_wpn_case_query (const char *host_id, int weapon, char *text, int
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
 	if (eech_wpn_case_query_run (host_id, weapon, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_wpn_case_kind (const char *host_id, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!host_id || !text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_wpn_case_kind_run (host_id, text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
