@@ -1,0 +1,144 @@
+aphavoc/source/entity/mobile/weapon/wn_creat.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-27 21:15:24.030979213 +0000
++++ /tmp/off.pp	2026-10-27 21:15:24.038979213 +0000
+@@ -32113,6 +32113,82 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++enum eech_wpn_path
++{
++ EECH_WPN_PATH_FUZE_TIMER,
++ EECH_WPN_PATH_EXHAUSTED,
++ EECH_WPN_PATH_ON_GROUND,
++ EECH_WPN_PATH_GUIDED,
++ EECH_WPN_PATH_UNGUIDED,
++ EECH_WPN_PATH_LOAL_CLIMB_DIVE,
++ EECH_WPN_PATH_KILLED_BY_GUIDANCE,
++ EECH_WPN_PATH_CONTACT_TARGET,
++ EECH_WPN_PATH_CONTACT_TREES,
++ EECH_WPN_PATH_OUT_OF_MAP_AREA,
++ EECH_WPN_PATH_ABOVE_CEILING,
++ EECH_WPN_PATH_GROUND_WATER,
++ EECH_WPN_PATH_GROUND_SURVIVED,
++ EECH_WPN_PATH_GROUND_SMOKE_GRENADE,
++ EECH_WPN_PATH_GROUND_LAND,
++ EECH_WPN_PATHS
++};
++enum eech_wpn_guided
++{
++ EECH_WPN_GUIDED_TOO_CLOSE,
++ EECH_WPN_GUIDED_OVERSHOT,
++ EECH_WPN_GUIDED_TARGET_LOST,
++ EECH_WPN_GUIDED_TURNED,
++ EECH_WPN_GUIDED_KINDS
++};
++enum eech_wpn_tgt
++{
+aphavoc/source/entity/mobile/weapon/wn_move.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-27 21:15:24.802979176 +0000
++++ /tmp/off.pp	2026-10-27 21:15:24.814979175 +0000
+@@ -32257,6 +32257,82 @@
+ void campaign_aim_identify (campaign_aim_step *step, struct ENTITY *source, struct ENTITY *target);
+ campaign_aim_result campaign_aim_ask (campaign_aim_step *step, int allow_draw);
+ void campaign_aim_supply_table (int weapon, float max_range, int velocity_tests, int pitch_indices, int range_values, const float *cells, size_t cell_count);
++enum eech_wpn_path
++{
++ EECH_WPN_PATH_FUZE_TIMER,
++ EECH_WPN_PATH_EXHAUSTED,
++ EECH_WPN_PATH_ON_GROUND,
++ EECH_WPN_PATH_GUIDED,
++ EECH_WPN_PATH_UNGUIDED,
++ EECH_WPN_PATH_LOAL_CLIMB_DIVE,
++ EECH_WPN_PATH_KILLED_BY_GUIDANCE,
++ EECH_WPN_PATH_CONTACT_TARGET,
++ EECH_WPN_PATH_CONTACT_TREES,
++ EECH_WPN_PATH_OUT_OF_MAP_AREA,
++ EECH_WPN_PATH_ABOVE_CEILING,
++ EECH_WPN_PATH_GROUND_WATER,
++ EECH_WPN_PATH_GROUND_SURVIVED,
++ EECH_WPN_PATH_GROUND_SMOKE_GRENADE,
++ EECH_WPN_PATH_GROUND_LAND,
++ EECH_WPN_PATHS
++};
++enum eech_wpn_guided
++{
++ EECH_WPN_GUIDED_TOO_CLOSE,
++ EECH_WPN_GUIDED_OVERSHOT,
++ EECH_WPN_GUIDED_TARGET_LOST,
++ EECH_WPN_GUIDED_TURNED,
++ EECH_WPN_GUIDED_KINDS
++};
++enum eech_wpn_tgt
++{
+aphavoc/source/entity/mobile/weapon/wn_updt.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-27 21:15:25.558979139 +0000
++++ /tmp/off.pp	2026-10-27 21:15:25.562979139 +0000
+@@ -32113,6 +32113,82 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++enum eech_wpn_path
++{
++ EECH_WPN_PATH_FUZE_TIMER,
++ EECH_WPN_PATH_EXHAUSTED,
++ EECH_WPN_PATH_ON_GROUND,
++ EECH_WPN_PATH_GUIDED,
++ EECH_WPN_PATH_UNGUIDED,
++ EECH_WPN_PATH_LOAL_CLIMB_DIVE,
++ EECH_WPN_PATH_KILLED_BY_GUIDANCE,
++ EECH_WPN_PATH_CONTACT_TARGET,
++ EECH_WPN_PATH_CONTACT_TREES,
++ EECH_WPN_PATH_OUT_OF_MAP_AREA,
++ EECH_WPN_PATH_ABOVE_CEILING,
++ EECH_WPN_PATH_GROUND_WATER,
++ EECH_WPN_PATH_GROUND_SURVIVED,
++ EECH_WPN_PATH_GROUND_SMOKE_GRENADE,
++ EECH_WPN_PATH_GROUND_LAND,
++ EECH_WPN_PATHS
++};
++enum eech_wpn_guided
++{
++ EECH_WPN_GUIDED_TOO_CLOSE,
++ EECH_WPN_GUIDED_OVERSHOT,
++ EECH_WPN_GUIDED_TARGET_LOST,
++ EECH_WPN_GUIDED_TURNED,
++ EECH_WPN_GUIDED_KINDS
++};
++enum eech_wpn_tgt
++{
+aphavoc/source/entity/mobile/weapon/wn_cllsn.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-27 21:15:26.314979102 +0000
++++ /tmp/off.pp	2026-10-27 21:15:26.322979102 +0000
+@@ -32113,6 +32113,82 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++enum eech_wpn_path
++{
++ EECH_WPN_PATH_FUZE_TIMER,
++ EECH_WPN_PATH_EXHAUSTED,
++ EECH_WPN_PATH_ON_GROUND,
++ EECH_WPN_PATH_GUIDED,
++ EECH_WPN_PATH_UNGUIDED,
++ EECH_WPN_PATH_LOAL_CLIMB_DIVE,
++ EECH_WPN_PATH_KILLED_BY_GUIDANCE,
++ EECH_WPN_PATH_CONTACT_TARGET,
++ EECH_WPN_PATH_CONTACT_TREES,
++ EECH_WPN_PATH_OUT_OF_MAP_AREA,
++ EECH_WPN_PATH_ABOVE_CEILING,
++ EECH_WPN_PATH_GROUND_WATER,
++ EECH_WPN_PATH_GROUND_SURVIVED,
++ EECH_WPN_PATH_GROUND_SMOKE_GRENADE,
++ EECH_WPN_PATH_GROUND_LAND,
++ EECH_WPN_PATHS
++};
++enum eech_wpn_guided
++{
++ EECH_WPN_GUIDED_TOO_CLOSE,
++ EECH_WPN_GUIDED_OVERSHOT,
++ EECH_WPN_GUIDED_TARGET_LOST,
++ EECH_WPN_GUIDED_TURNED,
++ EECH_WPN_GUIDED_KINDS
++};
++enum eech_wpn_tgt
++{

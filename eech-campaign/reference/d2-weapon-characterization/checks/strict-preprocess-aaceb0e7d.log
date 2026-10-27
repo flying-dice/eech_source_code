@@ -1,0 +1,5 @@
+aphavoc/source/entity/mobile/weapon/wn_creat.c: strict feature-off equivalence PASS (1287269 bytes preprocessed)
+aphavoc/source/entity/mobile/weapon/wn_move.c: strict feature-off equivalence PASS (1321864 bytes preprocessed)
+aphavoc/source/entity/mobile/weapon/wn_updt.c: strict feature-off equivalence PASS (1263209 bytes preprocessed)
+aphavoc/source/entity/mobile/weapon/wn_cllsn.c: strict feature-off equivalence PASS (1272709 bytes preprocessed)
+STRICT_EXIT=0

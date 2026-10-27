@@ -1,0 +1,7 @@
+﻿2026-10-27 21:31:08 start w5-600-a (w600, 600) bin=R:\eech_source_code\eech-campaign\target\weapon-fixture\aaceb0e7d root=R:\d2-evidence\weapon-characterization-20261027\roots\w5-600-a
+2026-10-27 21:44:46 end w5-600-a : script/native exit=0; exit 0 after 818 s
+2026-10-27 21:44:46 start w5-600-b (w600, 600) bin=R:\eech_source_code\eech-campaign\target\weapon-fixture\aaceb0e7d root=R:\d2-evidence\weapon-characterization-20261027\roots\w5-600-b
+2026-10-27 21:58:26 end w5-600-b : script/native exit=0; exit 0 after 820 s
+2026-10-27 21:58:26 start w5-ab900 (ab900) bin=R:\eech_source_code\eech-campaign\target\weapon-fixture\aaceb0e7d: R:/eech_source_code/eech-campaign/target/weapon-fixture/aaceb0e7d/lua/campaign.lua root=R:/d2-evidence/weapon-characterization-20261027/roots/w5-ab900 scenario=lebanon_retail hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/weapon-characterization-20261027/out/w5-ab900/recording.acmi observe=R:/d2-evidence/weapon-characterization-20261027/out/w5-ab900/observations.jsonl metrics=R:/d2-evidence/weapon-characterization-20261027/out/w5-ab900/metrics.json observe_supply=0
+2026-10-27 22:22:17 end w5-ab900 : native exit=0 after 1,431 s
+2026-10-27 22:22:17 PLAN COMPLETE: 3 runs, every actual exit 0 (not evidence by itself: see the per-run lines and traces)

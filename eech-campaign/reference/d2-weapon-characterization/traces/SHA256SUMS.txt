@@ -1,0 +1,3 @@
+faa94591c299ddb3ae20fe8b8101a4317f431139871297e65703c042d6289c0b    3097859  lebanon-600s-a.jsonl  (raw, as written by the driver; stored gzip -9 mtime 0 as lebanon-600s-a.jsonl.gz, 418270 bytes)
+14dfda07b8cf327aff9b9daf08a22e2a2034b56f0020ad14c818a9cf262eee55    2009115  controlled-launch-w4.jsonl  (raw, as written by the driver; stored gzip -9 mtime 0 as controlled-launch-w4.jsonl.gz, 267629 bytes)
+faa94591c299ddb3ae20fe8b8101a4317f431139871297e65703c042d6289c0b    3097859  lebanon-600s-b.jsonl  (raw; byte-identical to lebanon-600s-a.jsonl, not stored twice)
