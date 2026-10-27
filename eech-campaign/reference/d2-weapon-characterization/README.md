@@ -8,7 +8,7 @@ named here are private copies under `R:/d2-evidence/weapon-characterization-2026
 | commit | role | uncommitted build inputs |
 |---|---|---|
 | `0d6fa8a94` | first observer. SUPERSEDED: review found fixture defects; its two 600 s attempts were intentionally stopped (not crashes) | 0 |
-| `22db40e5b` | review-1 corrections. SUPERSEDED: controlled witness exit 1 (shared target guard refused a valid SITE target; one unexplained case weapon) | 0 |
+| `22db40e5b` | review-1 corrections. SUPERSEDED: controlled witness exit 1 from the fixed observation window ending while CRATE remained in flight; the overbroad SITE-target guard was a separate source-review defect | 0 |
 | `d9d6930b7` | role-specific guards and per-weapon live report. SUPERSEDED: controlled witness exit 1 (the in-flight 511 s crate) | 0 |
 | `aaceb0e7d` | **the build behind every result in the document**: adds the birth-state initialisation of the live report; Lua scripts (lossless JSON, per-weapon horizon) are the committed ones of this build | 0 |
 
@@ -26,7 +26,7 @@ Toolchain: repository `tools/Dockerfile` image in WSL2 `EECH-D2-Build`, rustc/ca
 * `checks/strict-preprocess-aaceb0e7d.log` (feature off equals baseline `e9cea88a2` for all four sources) and `...control-feature-on...` (differs for all four); earlier proofs for superseded builds are kept.
 * `checks/fmt-check-*.log`, `static-checks-v2.log` (clippy default and `--features eech-dc/weapon-fixture`, exit 0, at `22db40e5b`), `post-run-manifests.log` (repository input manifest after every run: IDENTICAL).
 * `controls/comparator-controls-result.json`: 34 comparator cases with the actual Python exit of each. `controls/ab-aaceb0e7d-*.json`: the 900 s control against the retained ab-base (byte-identical) and its structural check.
-* `controls/*.sh`, `*.ps1`: the build wrapper, the compiler-level proofs, the root and queue scripts. `run-queue.ps1` fails the plan on any nonzero actual exit **and on a PowerShell setup exception**, and writes `PLAN COMPLETE` only when every run exited 0; `run-natives.ps1` is the earlier queue that continued past a failure (kept; used for the superseded attempts).
+* `controls/*.sh`, `*.ps1`: the build wrapper, the compiler-level proofs, the root and queue scripts. `run-queue.ps1` fails the plan on any nonzero actual exit **and on a PowerShell setup exception**, and writes `PLAN COMPLETE` only when every run exited 0; `run-natives.ps1` is the earlier helper without the new setup-exception logging. Its initial superseded version continued after a nonzero native exit; the retained helper copy already includes the subsequent native-exit fail-fast correction. Use `run-queue.ps1` to reproduce the final sequence.
 
 ## Attempts (`attempts/`)
 
@@ -34,4 +34,4 @@ Toolchain: repository `tools/Dockerfile` image in WSL2 `EECH-D2-Build`, rustc/ca
 
 ## Limits
 
-Equality evidence is hash/byte based; the Tacview recording was not visually inspected; the model, terrain and object lookups come from the reference build's synthetic scenes; one map, one seed; the controlled witness's launcher/weapon/target are test preconditions. The branches not reached are listed in the document.
+Equality evidence is hash/byte based; the Tacview recording was not visually inspected; the verified roots preserve retail 3D data (`textures.pal` is present, so the synthetic-database fallback is skipped) and load retail session terrain; one map, one seed; the controlled witness's launcher/weapon/target are test preconditions. The branches not reached are listed in the document.
