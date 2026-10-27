@@ -25,7 +25,7 @@ all3 post-input processes exit0. Same independent reviewer verified the recovery
 24 public copies/72 original hashes and unchanged check definitions/limits.
 Jira43 Done (finalcomment10790); ledger37 verified with all5 report macros unchanged.
 Evidence: reference/d2-sensor-detections/extraction/final-pack and
-../../docs/handover/D2-SENSOR-FINAL-VALIDATION.md from eech-campaign.
+../docs/handover/D2-SENSOR-FINAL-VALIDATION.md from eech-campaign.
 
 ## Active EEDCS-44 / draft PR103
 
@@ -42,18 +42,31 @@ decision4e542d029ba7362a; rawSHAc4e9c2b108184243b2bb48034216cad80a7bc9e6225b6229
 Clean candidatef749-lf (0dirty,29 BUILDINFO entries independently verified): c-a
 and c-b each completed native/driver0, all1962events and COMPLETE raw bytes equal
 the original and each other (root comparatoractual0). This is fixture conformance,
-not full shipping acceptance. Currenta0d3 fixture c2-a started22:24:09, native21020;
-verify actual process/exit before restart. Latest results live in external
+not full shipping acceptance. Both a0d3 c2-a/c2-b completed native/driver0;
+root compared all1962events/rawbytes exact to the original and each other. Latest results live in external
 R:/d2-evidence/aim-extraction-20261026. Development builds/known-different partial
 x1 and exact x2 are retained with explicit working-tree provenance limits.
 
-Remaining gates: current-head host authority/healthy-original/refusal/person
-proof, ordinary900s exact3-file control reusing the existing supplied baseline,
-independent new-physics review, root's fresh ordinary snapshot/build/full40-check
-pack and all8 complete comparisons/post-inputs/currentCI/normalmerge. Aim is not
-accepted. Integrate accepted04bf645a before delivery; the composed sensing runtime
-is already a2, but the new accepted documentation/evidence base is not merged here.
-Do this when the author's current work is checkpointed/clean, preserving it.
+Current lead checkpoint, 27 Oct 19:12 UTC: author source52b6804d3 is committed,
+clean and pushed; Claude exec69430 actually exited0 and PID14560 is gone. Reusing
+relevant local context6f for one bounded comparator correction, not a duplicate
+implementation. Ordinary d3c9a5c5e900s completed native0; the author's complete
+three-file comparison matches ab-base. Causal/refusal results below await lead
+verification. No full shipping pack or aiming delivery is claimed.
+
+Independent NEW physical source pass at d3c9a5c5e found no confirmed runtime or
+boundary defect. P2: compare-person.py accepts incomplete traces/arbitrary true
+check renames; the retained actual p2 traces independently have complete passing
+verdicts. Correct the checker and recompute existing evidence; no person rerun is
+needed for this checker-only change. Do not call the untriggered ballistic bad-draw
+mode a native refusal. Clarify the off-map previously-unwritten output instead of
+asserting an unreviewed semantic difference is accepted.
+
+Accepted sensing04bf645a is being normally merged here; only docs/evidence differ
+from the already-composed sensing runtime. Remaining gates: bounded correction,
+lead evidence verification, frozen ordinary snapshot/build/full40checks/all8full
+files/post3inputs, finish independent review of NEW evidence, CI/normalmerge and
+Jira/Confluence. Then continue remaining D2 weapon execution/combat resolution.
 
 Lane report (author, 27 Oct, source d3c9a5c5e = a0d3b6f9c engine/kernel/module sources + provider driver script + docs; evidence in
 `eech-campaign/reference/d2-aim-extraction/`, account in `eech-campaign/docs/m5-aim-extraction.md`): every gate below ran in this lane, native exits the process's own.
@@ -75,7 +88,7 @@ accepted04bf645a. Next bounded action: independent review of the new physical so
 ## Operator/workflow checkpoint
 
 One implementation lane: Claude CLI-p, exact claude-sonnet-5-5 High, local context
-6f729579-d2da-46ae-af38-6e163c42dce4; exec69430/PID14560 was active at this checkpoint.
+6f729579-d2da-46ae-af38-6e163c42dce4; exec69430 completed0/PID14560 gone.
 Same independent Codex reviewer d2_los_review; no nested agents/review fleets.
 Check real process state after timeouts. No GitHub auth change/credential copying;
 use the logged-in fd-starscream-bot identity and autonomous normal merges as the

@@ -1,0 +1,146 @@
+[
+  {
+    "file": "original-pack-report.json",
+    "raw_external_source": "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\report.json",
+    "bytes": 40827,
+    "sha256": "c17ccd98f0aba02d91909fc67ee8c0a875f9bc16c5eb95278c766a759bd94cb2"
+  },
+  {
+    "file": "original-pack-report.md",
+    "raw_external_source": "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\report.md",
+    "bytes": 26611,
+    "sha256": "a2716a1048566d7a2fd7ffafc1ef7f87d4fa49740123bb52f4bd5018473fc1dc"
+  },
+  {
+    "file": "recovered-pack-report.json",
+    "raw_external_source": "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec-postcheck-recovery\\report.json",
+    "bytes": 38619,
+    "sha256": "6c3d5d7449975d617cb97a82bcb9244a1e9c34cb79ec64ef0a950ca3eca28f98"
+  },
+  {
+    "file": "recovered-pack-report.md",
+    "raw_external_source": "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec-postcheck-recovery\\report.md",
+    "bytes": 25741,
+    "sha256": "654e9c5fe6cd945ea8c419984c97fe03fa25cbe79505f8a9c9b54128460085dc"
+  },
+  {
+    "file": "original-reference-summary.txt",
+    "raw_external_source": "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\summary.txt",
+    "bytes": 1114,
+    "sha256": "696ba489ed5264247f9b80656fddff46d509c83a1e86df492fef262e95061f60"
+  },
+  {
+    "file": "recovered-reference-summary.txt",
+    "raw_external_source": "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec-postcheck-recovery\\reference\\summary.txt",
+    "bytes": 901,
+    "sha256": "a944e8b6d1d287e5ff9f9b60a243e9f52828894be386265d36b24fb6efcddc31"
+  },
+  {
+    "file": "reference-postcheck-recovery.json",
+    "raw_external_source": "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec-postcheck-recovery\\reference-postcheck-recovery.json",
+    "bytes": 7443,
+    "sha256": "c707065414b014198d1f08da195680c8a4bd715aef44449cf12c4318c45fc1c3"
+  },
+  {
+    "file": "full-postcheck-recovery.json",
+    "raw_external_source": "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec-postcheck-recovery\\full-postcheck-recovery.json",
+    "bytes": 16292,
+    "sha256": "c56590e58be86ffc59c62a8e70ad2b658e1143efe56ae532867d69f8da9d4472"
+  },
+  {
+    "file": "complete-comparison.json",
+    "raw_external_source": "R:\\d2-evidence\\sensing-final-complete-pack-comparison.json",
+    "bytes": 3221,
+    "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+  },
+  {
+    "file": "BUILD-INFO.txt",
+    "raw_external_source": "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\reference\\BUILD-INFO.txt",
+    "bytes": 2837,
+    "sha256": "e0746abce1875126492de5ab801be05560591c18cb8b0bc3580d5a2bfd3cb317"
+  },
+  {
+    "file": "original-pack-console.log",
+    "raw_external_source": "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec.console.log",
+    "bytes": 4395,
+    "sha256": "59488c0377e74164c318bf2da2e7784109b2a140615b2e37a7b84b88366f0fb3"
+  },
+  {
+    "file": "reference-postchecks-console.log",
+    "raw_external_source": "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec-postcheck-recovery\\reference-postchecks.log",
+    "bytes": 843,
+    "sha256": "c1021d83b785867572e0525cd17a8172d0cec92bda4f3f176a553132c7cfadca"
+  },
+  {
+    "file": "full-postchecks-console.log",
+    "raw_external_source": "R:\\d2-evidence\\sensing-full-postcheck-recovery.console.log",
+    "bytes": 3254,
+    "sha256": "f465b6a81061855765116531a4b5e9554059e5599e40f911928bf514844cb11b"
+  },
+  {
+    "file": "recover-reference-postchecks.py",
+    "raw_external_source": "R:\\d2-evidence\\recover-sensing-reference-postchecks.py",
+    "bytes": 5114,
+    "sha256": "f9968eebf71ea4f6a55c251528cab9b3c3d86ac74cf31c60cf0e1ae76e94ef40"
+  },
+  {
+    "file": "complete-postcheck-recovery.py",
+    "raw_external_source": "R:\\d2-evidence\\complete-sensing-postcheck-recovery.py",
+    "bytes": 7820,
+    "sha256": "0579e1e26a6acd14a64c702b4465486ec56b37ed9be4c37c3adf97a16e744b5b"
+  },
+  {
+    "file": "reference-postchecks.ps1",
+    "raw_external_source": "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec-postcheck-recovery\\reference-postchecks.ps1",
+    "bytes": 2855,
+    "sha256": "a19182830037a84252d5045fd1dd9864ed96f6b5c34eee54f7f730b9b420d94f"
+  },
+  {
+    "file": "regression-postchecks.ps1",
+    "raw_external_source": "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec-postcheck-recovery\\regress-postchecks.ps1",
+    "bytes": 1372,
+    "sha256": "60f82ebfe182685ad5307b7795f2627065b44cc13c52501a72b5175b0390ac5f"
+  },
+  {
+    "file": "original-launcher.py",
+    "raw_external_source": "R:\\d2-evidence\\run-frozen-pack.py",
+    "bytes": 709,
+    "sha256": "9a724ea2c30868b25710757581224e54528633d48e5471544f8f361bc5119fb8"
+  },
+  {
+    "file": "inputs-georgia-before.txt",
+    "raw_external_source": "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\logs\\inputs.georgia.txt",
+    "bytes": 303,
+    "sha256": "42361f8ab5d9b51b5ca428c7eef5472a3c7a0cdc83662538771233f300ec1d39"
+  },
+  {
+    "file": "inputs-lebanon-before.txt",
+    "raw_external_source": "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\logs\\inputs.lebanon.txt",
+    "bytes": 291,
+    "sha256": "f32c8b58f01d5d1c92aa6c3d2a623717b86c4cfdcb11d5b8d5036c6a167e940c"
+  },
+  {
+    "file": "inputs-lebanon-repeat-before.txt",
+    "raw_external_source": "R:\\d2-evidence\\candidate-pack-sensing-a2a041fec\\logs\\inputs.lebanon_repeat.txt",
+    "bytes": 298,
+    "sha256": "13f7e534f69d530a981d9c9dcffb01c1be6050464c0728d2f60a058314025836"
+  },
+  {
+    "file": "inputs-georgia-after.txt",
+    "raw_external_source": "R:\\d2-evidence\\sensing-post-inputs-georgia.log",
+    "bytes": 303,
+    "sha256": "cf6e8dcade79dc1c223d20b334a0db94a72c6d771be4a858ea5b38989ed21fd1"
+  },
+  {
+    "file": "inputs-lebanon-after.txt",
+    "raw_external_source": "R:\\d2-evidence\\sensing-post-inputs-lebanon.log",
+    "bytes": 291,
+    "sha256": "f91057ad70017260e6de9606325185b9013f67ce4c4160369a926a4b88448621"
+  },
+  {
+    "file": "inputs-lebanon-repeat-after.txt",
+    "raw_external_source": "R:\\d2-evidence\\sensing-post-inputs-lebanon-repeat.log",
+    "bytes": 298,
+    "sha256": "981d5e90c1dbd03c7e0d449d1cad79ca6e8f2322d5171cd32d01a038141537cc"
+  }
+]
