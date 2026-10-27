@@ -931,6 +931,12 @@ mod tests {
         // a range under a millimetre fails before any lookup: none either
         let tiny = lead_request(&aim, [10.0, 0.0, 10.0], [10.0, 0.0, 10.0], 0.0);
         assert!(!tiny.ok && tiny.time_of_flight.is_none(), "{tiny:?}");
+        // a target exactly above the device: the 3-D range equals the height, the original's strict guard (patch W1: the height must be less than the range) finds no
+        // solution, and the failed lookup produced no flight time. (A target 5000 m up and 10 m aside has a range of 5000.0098, passes the guard, and is not this case.)
+        let guarded = lead_request(&aim, [0.0, 0.0, 0.0], [0.0, 5000.0, 0.0], 0.0);
+        assert!(!guarded.ok && guarded.time_of_flight.is_none(), "{guarded:?}");
+        let not_guarded = lead_request(&aim, [0.0, 0.0, 0.0], [0.0, 5000.0, 10.0], 0.0);
+        assert!(not_guarded.ok && not_guarded.time_of_flight.is_some(), "{not_guarded:?}");
     }
 
     #[test]

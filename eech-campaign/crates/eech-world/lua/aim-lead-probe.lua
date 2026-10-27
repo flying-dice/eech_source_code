@@ -106,11 +106,12 @@ local function alive_state (id)
 	local alive = string.match (text, " alive=(%d+) ")
 	return alive == "1"
 end
+-- the entities are routed vehicles (movement kind 1): a site or a unit without a movement record is not a valid subject of the query
 local source, target
 for _, a in ipairs (order) do
-	if not source and (descriptors [a].side == "blue" or descriptors [a].side == "red") and alive_state (a) then
+	if not source and descriptors [a].kind == 1 and (descriptors [a].side == "blue" or descriptors [a].side == "red") and alive_state (a) then
 		for _, b in ipairs (order) do
-			if b ~= a and descriptors [b].side ~= descriptors [a].side and (descriptors [b].side == "blue" or descriptors [b].side == "red") and alive_state (b) then
+			if b ~= a and descriptors [b].kind == 1 and descriptors [b].side ~= descriptors [a].side and (descriptors [b].side == "blue" or descriptors [b].side == "red") and alive_state (b) then
 				source, target = a, b
 				break
 			end
@@ -138,7 +139,7 @@ local function expect (name, wanted)
 	local r, line, asked = probe (name)
 	if not r then check (name .. ": the probe ran", false, line) return end
 	emit { event = "probe", scenario = name, report = line, lead_requests = asked }
-	check (name .. ": the host was asked exactly one lead question", asked >= 1, tostring (asked))
+	check (name .. ": the host was asked at least one lead request (one logical solve; a random-draw handshake is two physical requests)", asked >= 1, tostring (asked))
 	wanted (r, line)
 end
 

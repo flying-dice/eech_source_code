@@ -155,19 +155,33 @@ IDENTICAL before and after each of the 31 runs, `checks/roots-manifest-*.log`). 
 - **Cost.** About 12.9 M extra host crossings per 600 s of Lebanon (almost all of them the keyframe: 9,429,480 updates and 3,387,517 close commands). The 600 s fixture runs took 808 to 914 s against the original 677 s (+19% for the
   808 to 809 s runs; the 914 s run overlapped builds), and the ordinary 900 s run 1,260 s against 1,080 s for the baseline (+17%); other work was running on the machine, so these are indications, not a benchmark. The
   reference host reads a request's scalars in one Lua call; batching would change the update order and is not done.
-- **Reached by the 600 s witness, and so inside the complete-trace equality**: the vector update's lead prediction (47,744 solves: 40,068 stationary and 7,676 moving, 7,676 random draws), and the standalone `lead`
-  request at weapon launch (the decoy and fuze timer in `wn_creat.c`; 143 launches, all after 420 s, so none in the 300 s provider window). **Not reached by the natural witnesses, so covered only by the focused
+- **Reached by the 600 s witness, and so inside the complete-trace equality**: 47,744 lead predictions in all, of which 47,601 are the vector update's and 143 are the standalone `lead` request at weapon
+  launch (the decoy and fuze timer in `wn_creat.c`; all 143 after 420 s); 40,068 took the stationary-target path and 7,676 the moving-target path (7,676 random draws), counted over both callers together. The 300 s
+  provider window is a different, shorter run: 31,803 lead predictions (28,287 stationary, 3,516 moving, 3,516 draws), none of them standalone. **Not reached by the natural witnesses, so covered only by the focused
   contracts and the unmoved arithmetic**: the standalone `ballistic` (AI salvo, the pipper) and `intercept` (the HUD) requests (0 in 600 s); the lead prediction's tiny-range and off-map paths (0); the fixed-pitch
   ballistic mode; the point-blank guard; the unbounded HUD offsets and the player's cannon tracking; the person branch outside the controlled case; any other seed, duration or scenario than Lebanon (Georgia was not
   rerun).
-- **Off-map lead success and the time of flight: an observed difference, acceptance PENDING.** When the target is off the map the original's lead function returns the result of `get_angle_of_projection` without ever
-  writing `*time_of_flight`; the host's kernel reports 0 and the campaign stores it when the result is true. The original caller of that output is `wn_creat.c` (lines 236-249): `float time_of_flight, dummy;` is an
-  **uninitialised local**, read only when the call returns true, for an unguided high-explosive anti-aircraft or conventional-munition shell with a target link, in
-  `decoy_timer = -(boost_time + sustain_time - time_of_flight + 0.5 * sfrand1 () * cruise_time_max_error)` (minus 1 for conventional munitions, then `max (0, ...)`); `wn_move.c` (line 984) then fires the shell's
-  remote fuze when `weapon_lifetime <= -decoy_timer`, and the timer is packed for clients (`wn_pack.c`). So in the original the off-map success feeds an indeterminate value into a fuze time; the candidate feeds 0
-  (the `sfrand1 ()` draw is the caller's and is unchanged). The other caller, the vector update, ignores the time of flight. The path was not reached (off-map count 0 in 600 s, so no trace changes), no semantic change
-  has been accepted by the lead, and whether the host contract needs an explicit partial-output presence flag (so the campaign can leave the caller's local unwritten, as the original did) is for the lead and the
-  reviewer to decide; nothing was changed in the runtime for this.
+- **The lead's time of flight is a partial output, and its original behaviour on the off-map branch is a preserved KNOWN DEFECT, not an equivalence.** In the original, `get_lead_and_ballistic_intercept_point_and_angle_of_projection`
+  writes `*time_of_flight` only on its successful ballistic lookups. On the off-map branch (it returns `get_angle_of_projection`'s result), on the tiny-range exit and after a failed lookup it writes nothing, and a lookup
+  that failed after an earlier one succeeded leaves that earlier value. The one reader that matters is `wn_creat.c` (lines 236-249): `float time_of_flight, dummy;` is an **uninitialised local**, read when the call returns
+  true, for an unguided high-explosive anti-aircraft or conventional-munition shell with a target link, in `decoy_timer = -(boost_time + sustain_time - time_of_flight + 0.5 * sfrand1 () * cruise_time_max_error)` (minus 1
+  for conventional munitions, then `max (0, ...)`); `wn_move.c` (line 984) fires the shell's remote fuze when `weapon_lifetime <= -decoy_timer`, and the timer is packed for clients (`wn_pack.c`). So on the off-map
+  branch the original feeds an indeterminate value into a fuze time. That behaviour is undefined, was never characterised (the off-map count is 0 in 600 s) and is not claimed to be equivalent to anything. The other caller,
+  the vector update, ignores the value. No defect correction and no semantic change was authorised, and none is made.
+  **What the contract is now (commit `c21852b09`).** The reply carries the output's *presence* as a fact of its own (`has_time_of_flight`; in Lua a `time_of_flight` key that is nil or a finite number). The reference kernel
+  sets it exactly where the original wrote the variable (after each successful ballistic lookup, so it survives a later failure) and **invents nothing**: the off-map and tiny-range paths and a failed first lookup report none;
+  another host that really has a flight time may send one. The campaign stores into the caller's variable only when it is present, whatever the result, so the caller's local is left alone exactly where the original left
+  it alone and the same indeterminate read remains in `wn_creat.c`, now with the original's own (unwritten) variable rather than a host-supplied 0. A flight time on an answer that cannot carry one, a non-finite one, a
+  successful ballistic answer without one, a presence flag that is not boolean, and a value with no presence are refused with the reason (trampoline, Lua reader and campaign validation). The fixture's lead hook is given
+  no pointer when nothing was produced, so it reads and folds nothing it was not given. Arithmetic, random order and update order are unchanged; the vectors protocol is unchanged. **Coverage:** the existing raw
+  traces (600 s pairs, the person case, the 900 s run, the 300 s providers) are from earlier source (`a0d3b6f9c` / `d3c9a5c5e`, whose lead reply stored the host's 0 on every true result) and are kept as that source's;
+  they are not relabelled as this commit's. The changed branch is covered by focused contracts: kernel (`aim.rs`: stationary produces one, off-map produces none, tiny range none, the strict point-blank guard
+  `|height| == range` none), the trampoline (`aim_crossing`: none, present on success and on failure, a ballistic success, and the refusals), the Lua round trip (`host_callbacks.rs`), and a **native probe of the
+  campaign's own function through the real `aim` callback with a sentinel** (`lua/aim-lead-probe.lua`, fixture build `c21852b09`, binaries byte-identical to the tested ones; `providers`-style evidence in
+  `lead-probe/`): the reference host's flight time replaces the sentinel; the reference solver on a rewritten off-map request succeeds, produces none, and the sentinel is kept; a host's flight time (12.5) replaces it;
+  success without one and failure without one keep it; a failure that carries one (3.0) stores it. The malformed-value modes of that driver (`bad_nan`, `bad_string`) were NOT run natively (one additional native
+  case was allowed): the Lua reader's refusal of a non-finite or non-numeric flight time has no native or unit test behind it. The fixture's 600 s trace was not rerun at this commit (no redundant campaign), and the new
+  source's ordinary build and the full pack are root's.
 - **Known coupling, unchanged and declared**: the device viewpoint (`get_3d_sub_object_world_viewpoint`, the 3-D model and subobject lookup) is still read by the campaign; the target point
   (`get_local_entity_target_point`); the ballistic tables are generated by the still-core projectile simulation (`generate_ballistics_tables`, `move_unguided_weapon`: weapon execution) and handed over once; the shared
   `get_angle_of_projection*` maths helper (`modules/maths/projtile.c`) is used by the player's HUD sight in `co_wpn.c` and stays; the rocket-pod launch-tube roll and the package-arc bearing in `weapon.c`

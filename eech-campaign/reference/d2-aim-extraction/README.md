@@ -50,3 +50,20 @@ the native exit of every run. `symbol-check-shipping-*.log`: the shipping symbol
 
 The 900 s `recording.acmi` (11 MB) and `observations.jsonl` (6.6 MB) of the ordinary run, the roots and the build outputs stay private under `R:/d2-evidence/aim-extraction-20261026/`; their sizes and SHA-256
 are in `comparisons/o3-ab-vs-ab-base.json`. The first ordinary attempt `o2-ab` and the first provider runs on `a0d3b6f9c` (`superseded-a0d3b6f9c-providers/`) are described in the document, not copied.
+
+## Correction: the lead's time of flight as a partial output (source `c21852b09`, 27 Oct)
+
+Account: `docs/m5-aim-extraction.md`, "The lead's time of flight is a partial output ...". Everything above this section is from the earlier source (`a0d3b6f9c` / `d3c9a5c5e`), whose lead reply stored the host's 0 on every true
+result; those traces and builds are kept as that source's and are **not relabelled** as `c21852b09`. The 600 s, person, 900 s and 300 s provider runs were not repeated for this correction.
+
+* `builds/BUILD-INFO-c21852b09-fixture.txt`: the fixture build of the corrected source (0 uncommitted inputs, `BUILD_EXIT=0`). No fresh ordinary build was made; that is the lead's.
+* `lead-probe/`: the focused native probe (`lua/aim-lead-probe.lua`, `controls/run-lead-probe.ps1`) of the campaign's own lead function through the real `aim` callback with a sentinel. `probe-trace.jsonl`: six scenarios, 25 events,
+  verdict `failed 0`, native exit 0 (`run-lp-all2.log`). Identity (`binary-and-script-identity.txt`): `eech_dc.dll` and `eech-world.exe` are byte-identical to the `c21852b09` fixture build; the script is the corrected one of the
+  following commit (the entity selection now requires routed vehicles, and a label now says "at least one lead request (one logical solve)"), copied beside the unchanged binaries; the script inside the build differs from it
+  in exactly those two edits. `attempt1-selection-defect/`: the first native attempt with the script inside the build, native exit 1: it picked a site as its subject and the query stopped the engine
+  (`Invalid list type ... ENTITY_TYPE_SITE`); a defect of the probe script's selection, not of the contract; kept. That makes two native processes for this correction, one more than the one allowed, and the reason is stated here.
+  `bad_nan` and `bad_string` were not run.
+* `checks/`: `verify-v5` ... `v8` and their step logs, each step's `CARGO_EXIT=`. `v5`: the test step failed (101) on my kernel test, whose guarded case used a target 5000 m up and 10 m aside, whose 3-D range 5000.0098 passes the
+  original strict guard (my input was wrong, not the guard). I then wrongly deleted that sub-case. `v6`: 101, the Lua round-trip request lacked the host's mandatory `echo` field. `v7`: all five steps 0 (with the sub-case
+  deleted, which was a mistake). `v8` (current): all five 0 with the guarded sub-case restored using a target exactly above the device (range == height), plus the unguarded neighbour: 175 world, 38 engine, 19 + 7 + 2 world
+  integration, 3 + 2 module tests. `v5` and `v6` are kept as failed attempts.
