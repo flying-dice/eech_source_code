@@ -125,7 +125,7 @@ static void validate_request (const campaign_aim_step *step)
 		{
 			const campaign_weapon_figures *figures = &step->figures;
 
-			if ((step->weapon <= 0) || !all_finite (&figures->start_weight, 16) || (figures->max_range <= 0.0) || (figures->name[CAMPAIGN_WEAPON_NAME_MAX] != '\0') ||
+			if ((step->weapon <= 0) || !all_finite (&figures->start_weight, 16) || (figures->max_range <= 0.0) || (figures->max_range > CAMPAIGN_TABLE_MAX_RANGE) || (figures->name[CAMPAIGN_WEAPON_NAME_MAX] != '\0') ||
 				((step->pass_first != FALSE) && (step->pass_first != TRUE)) || ((step->pass_last != FALSE) && (step->pass_last != TRUE)) ||
 				(step->echo && (step->mode == CAMPAIGN_AIM_TABLE) && (!step->echo_cells || (step->echo_cell_capacity != table_cell_count (figures)))))
 			{
@@ -223,8 +223,9 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 	{
 		case CAMPAIGN_AIM_TABLE:
 		{
-			// the host's table is its own: the answer carries nothing, except the echo the fixture build asked for, which must be exactly the table the figures give
-			if (step->echo && (result->echo_cell_count != table_cell_count (&step->figures)))
+			// the host's table is its own: the answer carries nothing, except the diagnostic echo the fixture build ASKED for. The echo is optional (a host with a model of its
+			// own has no EECH table to echo and is healthy without it), but one that is given must be exactly the table the figures give
+			if (step->echo && (result->echo_cell_count != 0) && (result->echo_cell_count != table_cell_count (&step->figures)))
 			{
 				debug_fatal ("host aim: host aim echoed %lu table cells for weapon %d, not the %lu its figures give", (unsigned long) result->echo_cell_count, step->weapon,
 					(unsigned long) table_cell_count (&step->figures));
@@ -234,9 +235,10 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 		}
 		case CAMPAIGN_AIM_RANGE:
 		{
-			if (step->echo && (!result->has_echo || (result->echo_count != 2)))
+			// the diagnostic echo is optional here too; one that is given is the two range runs
+			if (step->echo && result->has_echo && (result->echo_count != 2))
 			{
-				debug_fatal ("host aim: host aim echoed %d range runs for weapon %d, not 2", result->has_echo ? result->echo_count : 0, step->weapon);
+				debug_fatal ("host aim: host aim echoed %d range runs for weapon %d, not 2", result->echo_count, step->weapon);
 			}
 
 			break;

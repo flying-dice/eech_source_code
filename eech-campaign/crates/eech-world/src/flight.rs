@@ -103,6 +103,7 @@ extern "C" {
     fn eech_wn_ballistics_weapon(
         figures: *const Figures,
         cells: *mut f32,
+        cell_capacity: usize,
         records: *mut FlightRecord,
         record_capacity: c_int,
         flight_count: *mut c_int,
@@ -114,6 +115,30 @@ extern "C" {
 
 /// The most flights one table can hold: five velocity tests of at most 85 pitch indices.
 pub const FLIGHT_CAPACITY: usize = 5 * 85;
+
+/// Velocity tests and pitch indices of every table, and the most range a table may span (the largest weapon range there is is 80 km).
+const VELOCITY_TESTS: usize = 5;
+const PITCH_INDICES: usize = 85;
+pub const MAX_TABLE_RANGE: f32 = 200_000.0;
+
+/// The range marks of a table for a weapon's range limit: `max_range / 20 + 2`. An error for a limit that is not a finite number in (0, `MAX_TABLE_RANGE`].
+pub fn table_range_values(max_range: f32) -> Result<usize, String> {
+    if !max_range.is_finite() || max_range <= 0.0 || max_range > MAX_TABLE_RANGE {
+        return Err(format!(
+            "a range limit of {max_range} m cannot give a table (a finite range in (0, {MAX_TABLE_RANGE}] is needed)"
+        ));
+    }
+    Ok((f64::from(max_range) / 20.0) as usize + 2)
+}
+
+/// The floats of the table for a weapon's range limit: velocity tests by pitch indices by range marks, two floats a cell.
+pub fn table_cell_count(max_range: f32) -> Result<usize, String> {
+    VELOCITY_TESTS
+        .checked_mul(PITCH_INDICES)
+        .and_then(|cells| cells.checked_mul(table_range_values(max_range).ok()?))
+        .and_then(|cells| cells.checked_mul(2))
+        .ok_or_else(|| format!("the table for a range limit of {max_range} m is too large to size"))
+}
 
 /// Opens the ballistics diagnostic file in the working directory, as the original did before its first weapon. False when it cannot be opened (the tables do not depend on it).
 pub fn ballistics_open() -> bool {
@@ -128,10 +153,28 @@ pub fn ballistics_close() {
 
 /// Simulates one unguided weapon at every pitch and velocity test into `cells` (the table: `5 * 85 * range_values * 2` floats) and returns the flights it simulated.
 pub fn ballistics_weapon(figures: &Figures, cells: &mut [f32]) -> Result<Vec<FlightRecord>, String> {
+    let needed = table_cell_count(figures.max_range)?;
+    if cells.len() != needed {
+        return Err(format!(
+            "the table for a range limit of {} m needs {needed} cells, not {}",
+            figures.max_range,
+            cells.len()
+        ));
+    }
     let mut records = vec![FlightRecord::default(); FLIGHT_CAPACITY];
     let mut count: c_int = 0;
-    // SAFETY: the figures, the cells and the records are valid for the call; the capacity passed is the records' length, and the caller sized the cells for the weapon's range limit.
-    let status = unsafe { eech_wn_ballistics_weapon(figures, cells.as_mut_ptr(), records.as_mut_ptr(), records.len() as c_int, &mut count) };
+    // SAFETY: the figures, the cells and the records are valid for the call; the cells hold exactly what the figures need (checked above, and again by the C function, which
+    // writes nothing otherwise) and the record capacity passed is the records' length.
+    let status = unsafe {
+        eech_wn_ballistics_weapon(
+            figures,
+            cells.as_mut_ptr(),
+            cells.len(),
+            records.as_mut_ptr(),
+            records.len() as c_int,
+            &mut count,
+        )
+    };
     if status != 0 || count < 0 || count as usize > records.len() {
         return Err("the ballistic simulation did not complete (more flights than a table holds, or it asked for a draw or a wind sample)".into());
     }

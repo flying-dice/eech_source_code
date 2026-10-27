@@ -653,18 +653,22 @@ fn call_aim(lua: &Lua, function: &LuaFunction, request: AimRequest) -> Result<Ai
     }
     match &request {
         AimRequest::Table(data) => {
-            // the host's table is its own: the answer carries nothing, except the echo the test fixture build asked for (the table's cells, little-endian single-precision pairs)
+            // the host's table is its own: the answer carries nothing, except the diagnostic echo the test fixture build asked for (the table's cells, little-endian
+            // single-precision pairs). The echo is optional: a host with a model of its own has no EECH table to echo, and its absence (nil) is explicit, not an error
             if data.echo {
                 let bytes = match table.get::<LuaValue>("echo_cells").map_err(|e| e.to_string())? {
-                    LuaValue::String(bytes) => bytes,
-                    other => return Err(format!("aim result echo_cells must be a string of cells, got {}", other.type_name())),
+                    LuaValue::Nil => None,
+                    LuaValue::String(bytes) => Some(bytes),
+                    other => return Err(format!("aim result echo_cells must be a string of cells or absent, got {}", other.type_name())),
                 };
-                let guard = bytes.as_bytes();
-                let (words, rest) = guard.as_chunks::<4>();
-                if !rest.is_empty() {
-                    return Err("aim result echo_cells is not a whole number of single-precision cells".into());
+                if let Some(bytes) = bytes {
+                    let guard = bytes.as_bytes();
+                    let (words, rest) = guard.as_chunks::<4>();
+                    if !rest.is_empty() {
+                        return Err("aim result echo_cells is not a whole number of single-precision cells".into());
+                    }
+                    reply.table_cells = Some(words.iter().map(|word| f32::from_le_bytes(*word)).collect());
                 }
-                reply.table_cells = Some(words.iter().map(|word| f32::from_le_bytes(*word)).collect());
             }
         }
         AimRequest::Range(_) => {}

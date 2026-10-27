@@ -76,7 +76,7 @@
 	X (guided_turned) X (contact_any_tests) X (contact_any_hits) X (contact_trees_tests) X (contact_trees_hits) X (decoy_updates) \
 	X (decoy_restarts) X (update_stage_1) X (update_stage_2) X (update_stage_3) X (update_stage_4) X (update_stage_5) X (update_order_violations) \
 	X (terminal_calls) X (terminal_unregistered) X (terminal_with_target) X (terminal_without_target) X (destroy_calls) \
-	X (destroy_without_terminal) X (destroy_unregistered) X (log_events)
+	X (destroy_without_terminal) X (destroy_unregistered) X (table_diagnostics_absent) X (range_diagnostics_absent) X (log_events)
 
 enum counter
 {
@@ -637,6 +637,12 @@ void eech_wpn_table_host (int sub_type, float max_range, const struct campaign_a
 {
 	int i;
 	ready ();
+	if (event_count == 0 && cell_count == 0)
+	{
+		/* a host with a model of its own echoes nothing: that is recorded as absent, not invented, and the reference-evidence checker refuses such a trace */
+		bump (C_table_diagnostics_absent);
+		return;
+	}
 	for (i = 0; i < event_count; i++)
 	{
 		const struct campaign_aim_event *e = &events[i];
@@ -676,6 +682,11 @@ void eech_wpn_range_host (int sub_type, const struct campaign_aim_event *events,
 {
 	int i;
 	ready ();
+	if (event_count == 0)
+	{
+		bump (C_range_diagnostics_absent);
+		return;
+	}
 	for (i = 0; i < event_count; i++)
 	{
 		const struct campaign_aim_event *e = &events[i];

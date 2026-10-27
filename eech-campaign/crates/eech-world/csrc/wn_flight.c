@@ -790,7 +790,8 @@ static FILE *range_file;
    original goes on without it (the tables do not depend on it) */
 int eech_wn_ballistics_open(void)
 {
-	ballistics_file = fopen("ballistics-data.txt", "w");
+	/* binary mode: the original wrote through the engine's own file shim, which writes the text as it is (LF) */
+	ballistics_file = fopen("ballistics-data.txt", "wb");
 
 	if (ballistics_file)
 	{
@@ -812,15 +813,35 @@ void eech_wn_ballistics_close(void)
 	}
 }
 
-/* One unguided weapon's table: the header line, then five velocity tests. `cells` holds velocity_tests * TOTAL_PITCH_INDICES * range_values pairs; returns 0, or -1
-   when the flight records did not fit. */
-int eech_wn_ballistics_weapon(const wf_figures *fig, float *cells, wf_flight_record *records, int record_capacity, int *flight_count)
+/* The most a table may span: the largest weapon range there is is 80 km; a limit well above it keeps the table's size an honest function of the figures. */
+#define WF_MAX_TABLE_RANGE 200000.0f
+
+/* The floats a table holds for these figures, or 0 when the figures cannot give a table (not a finite range in (0, WF_MAX_TABLE_RANGE]). */
+static size_t wf_table_cells(const wf_figures *fig)
+{
+	if (!(fig->max_range > 0.0f) || !(fig->max_range <= WF_MAX_TABLE_RANGE))
+	{
+		return 0;
+	}
+
+	/* (VELOCITY_TESTS is the original's unparenthesised `1 + 4`) */
+	return (size_t) (VELOCITY_TESTS) * (TOTAL_PITCH_INDICES) * (size_t) ((int) (fig->max_range / RANGE_STEP) + 2) * 2;
+}
+
+/* One unguided weapon's table: the header line, then five velocity tests. `cells` holds velocity_tests * TOTAL_PITCH_INDICES * range_values pairs and `cell_capacity`
+   floats; nothing is written unless the capacity is exactly what the figures need. Returns 0, or -1 when the figures or the room are wrong or the flight records did not fit. */
+int eech_wn_ballistics_weapon(const wf_figures *fig, float *cells, size_t cell_capacity, wf_flight_record *records, int record_capacity, int *flight_count)
 {
 	wf_weapon wpn;
 	wf_context ctx;
 	wf_table *table;
 	wf_flights flights;
 	unsigned i;
+
+	if (!cells || (wf_table_cells(fig) == 0) || (cell_capacity != wf_table_cells(fig)) || !records || (record_capacity < 0) || !flight_count)
+	{
+		return -1;
+	}
 
 	memset(&wpn, 0, sizeof(wpn));
 	memset(&ctx, 0, sizeof(ctx));
@@ -866,7 +887,7 @@ int eech_wn_ballistics_weapon(const wf_figures *fig, float *cells, wf_flight_rec
 
 int eech_wn_range_open(void)
 {
-	range_file = fopen("guided-missiles-data.txt", "w");
+	range_file = fopen("guided-missiles-data.txt", "wb");
 
 	if (range_file)
 	{

@@ -322,8 +322,8 @@ impl Aim {
         if figures.max_range <= 0.0 {
             return Err(format!("aim figures for weapon {weapon} have no range limit"));
         }
-        let range_values = (f64::from(figures.max_range) / 20.0) as i32 + 2;
-        let mut cells = vec![0.0f32; (VELOCITY_TESTS as usize) * (PITCH_INDICES as usize) * (range_values as usize) * 2];
+        let range_values = flight::table_range_values(figures.max_range).map_err(|error| format!("aim figures for weapon {weapon}: {error}"))? as i32;
+        let mut cells = vec![0.0f32; flight::table_cell_count(figures.max_range).map_err(|error| format!("aim figures for weapon {weapon}: {error}"))?];
         if first {
             flight::ballistics_open();
         }

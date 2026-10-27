@@ -2349,7 +2349,7 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
     Ok(match source.mode {
         sys::EECH_AIM_TABLE | sys::EECH_AIM_RANGE => {
             let figures = weapon_figures(&source.figures)?;
-            if source.weapon <= 0 || figures.max_range <= 0.0 {
+            if source.weapon <= 0 || figures.max_range <= 0.0 || figures.max_range > 200_000.0 {
                 return Err(format!("aim received figures of an inconsistent weapon {}", source.weapon));
             }
             let (first, last) = (checked_bool("pass_first", source.pass_first)?, checked_bool("pass_last", source.pass_last)?);
