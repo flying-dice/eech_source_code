@@ -100,11 +100,20 @@ IDENTICAL before and after each of the 31 runs, `checks/roots-manifest-*.log`). 
   stopped at a fixed frame count, one frame short of the characterisation's checkpoint, so their reports could not be equal by construction (the reference one differed by exactly one frame's calls); the driver was
   corrected (`5656422d0`), those runs stopped or set aside, and they were rerun.
 - **The controlled person case, the same case.** `lua/aim-person-case.lua` (target, control, repeat) on the same 1,179-file inputs: native exit 0 each, **0 failed checks** (target 11 checks, 20 facing steps, 60 host steps;
-  control 3 checks, 0 facings), the target repeat byte-identical to the target. Against the original `74ae6a96d` traces all 213 (194 control) events are equal except the named entry-point differences, which
-  `controls/compare-person.py` maps exactly: the original asked the host to *place* the pose the campaign had turned (driver keys `place_in`/`place_out`, step mode `place`); the candidate asks the host to turn the person
-  (`person_face`; keys `face_in`/`face_out`), so on every frame `face_out == place_out`, and the only other differences are the three check names that name the entry point and the verdict's `place=20`/`person_face=20`.
-  The facing hook's counters and hashes, the selection, the headings and the 40 later normal steps (attitude in == the attitude the host last answered) are equal. This is a changed test entry point, explained here; it is
-  not claimed to be byte-identical to the original.
+  control 3 checks, 0 facings), the target repeat byte-identical to the target. Against the original `74ae6a96d` traces the 213 (194 control) events are equal except a **whitelist of three test-entry-point
+  differences**, which `controls/compare-person.py` (revision 2) applies and nothing else: the original asked the host to *place* the pose the campaign had turned (driver keys `place_in`/`place_out`, step mode
+  `place`); the candidate asks the host to turn the person (`person_face`; keys `face_in`/`face_out`). (1) On every one of the 20 frames `face_out` is exactly the original's `place_out`, the original's `place_in` equals
+  its `place_out`, `face_in` is the previous frame's `face_out` exactly (frame 1: the `before` attitude, to the 1e-8 its 9-digit print allows), and every other frame field is equal; the control's keys are all `"none"`.
+  (2) Exactly checks 7, 8 and 11 of the target's 11 map by their full (name, detail) strings to the three renamed ones; the other eight, and all three of the control's, must be exactly equal. (3) The verdict's
+  `place=20` is `person_face=20`. The checker fails closed: it requires both traces healthy (complete, one successful final verdict with failed 0, every check present and ok, 20 frames, the case's states and
+  host steps), the same case, the same event types at every index, and refuses any other change, including a renamed check whose flag is still true. Revision 1 of the checker (SHA-256 `959144d8...`) did not:
+  it accepted equal empty or prefix traces, arbitrary check renames with both flags true, and identical failed verdicts, so its six "equal" records were weaker than stated. They were recomputed with revision 2 from the
+  unchanged raw files (hashes before and after in `checks/person-checker-r2/`), all six pass, and revision 1 and its records are kept in `superseded/person-checker-959144d8/` with its acceptance of the reviewer's cases
+  shown. This changed test entry point is explained here; it is not claimed to be byte-identical to the original.
+  **Helper tests, not native campaigns:** `controls/compare-person-selftest.py` derives 35 cases from the retained traces (the two genuine pairs, empty, prefix, truncated and malformed files, missing and failed
+  verdicts, equal-and-failed pairs, unexpected and whitelisted check renames, swaps and detail changes, a deleted check, frame output/input/count/number/heading changes, a facing in the control, an unrenamed verdict,
+  a changed hook hash, an extra event, a target paired with a control) and records the checker's actual exit for each: the two genuine pairs exit 0 and the other 33 exit 1
+  (`checks/person-checker-r2/checker-selftest.json`). No native process or scenario ran for this; the person-case campaigns above are unchanged and were not rerun.
 - **Ordinary 900 s against the retained supplied-binary baseline** (`ab-base`, not rerun; ordinary shipping binaries `d3c9a5c5e`, `hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60
   observe_supply=0`, seed 1, 100 ms): native exit 0; `recording.acmi` (11,363,845 bytes), `observations.jsonl` (6,629,273) and `metrics.json` (11,777) are **byte-identical** to the baseline's
   (`comparisons/o3-ab-vs-ab-base.json`); the observation structure check passes (900 frames, 0 failures).
@@ -126,9 +135,10 @@ IDENTICAL before and after each of the 31 runs, `checks/roots-manifest-*.log`). 
   imposed on it. The reference counts are the crossing volume: about 6.5 M `aim` requests per 300 s of Lebanon, almost all of them the keyframe.
 - **Missing and malformed hosts** (shipping binaries `d3c9a5c5e`, Lebanon, up to 300 s; `providers/ship-pv-*`): no provider fails at boot (`eech: missing host aim callback`); a nil answer, an unknown state, a ready state
   of 5, a phase of 7, a non-finite weapon vector, a second request for a draw, a negative range and a Lua error each stop the engine at the first such request with `EECH fatal error: host aim: ...` and the host's
-  reason (the driver's controlled `pcall` then exits 0). **One mode did not trigger**: `bad_draw_for_ballistic` waits for a standalone ballistic request, and none occurred in 300 s (the natural witnesses make no
-  standalone `ballistic`, `lead` or `intercept` request at all; see the limits), so the driver's own assertion that a malformed answer must fail stopped it (native exit 1, the mode's expected failure to fire, recorded as
-  such). That refusal is covered by the engine unit test instead (`an_aim_draw_is_asked_for_only_by_a_vectors_or_lead_request...`). The shipping reference provider run (120 s) completes with failure none.
+  reason (the driver's controlled `pcall` then exits 0). **One mode was untriggered and is not a native refusal result**: `bad_draw_for_ballistic` waits for a standalone ballistic
+  request, and none occurred in 300 s (none occurs in 600 s either: every ballistic lookup the witnesses make is inside a lead prediction); the run completed with no failure and the driver's own end-of-run assertion
+  that a malformed answer must fail stopped it (native exit 1). That is the script reporting that its mode never fired, **not** the engine refusing anything, and it is not counted among the refusals above. The
+  refusal itself (a draw asked in answer to a request that cannot take one) has only the engine unit test (`an_aim_draw_is_asked_for_only_by_a_vectors_or_lead_request...`) behind it; no native case showed it. The shipping reference provider run (120 s) completes with failure none.
 - **Source and symbols** (`checks/symbol-check-shipping-d3c9a5c5e.log`, `controls/symcheck-aim.sh`): `mb_hostaim.o` and `rv_hostmv.o` reference no maths function; the kernel `eech_aim_*` symbols (ready update and command,
   required, step, ballistic, lead, vectors, intercept, person face) are in `eech-world.exe` and absent from `eech_dc.dll`; `ballistic_pitch_deflection` is absent from the DLL (`get_ballistic_pitch_deflection` remains as
   the thin campaign-side call); the fixture symbols are in no shipping binary. The `weapon.o` references to `atan2` and `get_3d_transformation_matrix` that remain are the rocket-pod tube roll and the package-arc
@@ -145,10 +155,19 @@ IDENTICAL before and after each of the 31 runs, `checks/roots-manifest-*.log`). 
 - **Cost.** About 12.9 M extra host crossings per 600 s of Lebanon (almost all of them the keyframe: 9,429,480 updates and 3,387,517 close commands). The 600 s fixture runs took 808 to 914 s against the original 677 s (+19% for the
   808 to 809 s runs; the 914 s run overlapped builds), and the ordinary 900 s run 1,260 s against 1,080 s for the baseline (+17%); other work was running on the machine, so these are indications, not a benchmark. The
   reference host reads a request's scalars in one Lua call; batching would change the update order and is not done.
-- **Not reached by the natural witnesses, so covered only by the focused contracts and the unmoved arithmetic**: the standalone `lead` (decoy and fuze timer at launch), `ballistic` (AI salvo, the pipper) and `intercept`
-  (the HUD) requests (0 in 300 s of Lebanon); the lead prediction's tiny-range, off-map and stationary paths; the fixed-pitch ballistic mode; the point-blank guard; the unbounded HUD offsets and the player's cannon
-  tracking; the person branch outside the controlled case; any other seed, duration or scenario than Lebanon (Georgia was not rerun). **One accepted difference, unreachable in the witnesses**: an off-map *success* of the
-  lead prediction left the caller's time of flight unwritten (an uninitialised local at weapon launch); the host answers 0 and the campaign stores it.
+- **Reached by the 600 s witness, and so inside the complete-trace equality**: the vector update's lead prediction (47,744 solves: 40,068 stationary and 7,676 moving, 7,676 random draws), and the standalone `lead`
+  request at weapon launch (the decoy and fuze timer in `wn_creat.c`; 143 launches, all after 420 s, so none in the 300 s provider window). **Not reached by the natural witnesses, so covered only by the focused
+  contracts and the unmoved arithmetic**: the standalone `ballistic` (AI salvo, the pipper) and `intercept` (the HUD) requests (0 in 600 s); the lead prediction's tiny-range and off-map paths (0); the fixed-pitch
+  ballistic mode; the point-blank guard; the unbounded HUD offsets and the player's cannon tracking; the person branch outside the controlled case; any other seed, duration or scenario than Lebanon (Georgia was not
+  rerun).
+- **Off-map lead success and the time of flight: an observed difference, acceptance PENDING.** When the target is off the map the original's lead function returns the result of `get_angle_of_projection` without ever
+  writing `*time_of_flight`; the host's kernel reports 0 and the campaign stores it when the result is true. The original caller of that output is `wn_creat.c` (lines 236-249): `float time_of_flight, dummy;` is an
+  **uninitialised local**, read only when the call returns true, for an unguided high-explosive anti-aircraft or conventional-munition shell with a target link, in
+  `decoy_timer = -(boost_time + sustain_time - time_of_flight + 0.5 * sfrand1 () * cruise_time_max_error)` (minus 1 for conventional munitions, then `max (0, ...)`); `wn_move.c` (line 984) then fires the shell's
+  remote fuze when `weapon_lifetime <= -decoy_timer`, and the timer is packed for clients (`wn_pack.c`). So in the original the off-map success feeds an indeterminate value into a fuze time; the candidate feeds 0
+  (the `sfrand1 ()` draw is the caller's and is unchanged). The other caller, the vector update, ignores the time of flight. The path was not reached (off-map count 0 in 600 s, so no trace changes), no semantic change
+  has been accepted by the lead, and whether the host contract needs an explicit partial-output presence flag (so the campaign can leave the caller's local unwritten, as the original did) is for the lead and the
+  reviewer to decide; nothing was changed in the runtime for this.
 - **Known coupling, unchanged and declared**: the device viewpoint (`get_3d_sub_object_world_viewpoint`, the 3-D model and subobject lookup) is still read by the campaign; the target point
   (`get_local_entity_target_point`); the ballistic tables are generated by the still-core projectile simulation (`generate_ballistics_tables`, `move_unguided_weapon`: weapon execution) and handed over once; the shared
   `get_angle_of_projection*` maths helper (`modules/maths/projtile.c`) is used by the player's HUD sight in `co_wpn.c` and stays; the rocket-pod launch-tube roll and the package-arc bearing in `weapon.c`

@@ -76,13 +76,16 @@ Final-head fixture a0d3b6f9c: c2-a and c2-b each native/driver0, 1,962 events, *
 metrics 11,777 byte-identical to ab-base, observation check PASS, post-input manifest IDENTICAL. Host authority (provider, 300 s): the reference host's report equals the
 original's checkpoint (196 lines); a quarter-rate ready keyframe, tenth-rate device steps, all-invalid vectors and a non-EECH "own model" host each change births/losses/rejections
 (185/6 -> 182/6, 177/9, 0/0, 5/1) and the fixture records their answers; the ORIGINAL build is unmoved by the same hosts (equal, 0 requests). Shipping refusals: missing provider
-fails at boot; nil, unknown state, ready state 5, phase 7, NaN vector, second draw, negative range and a Lua error stop with `host aim:` and the reason. One refusal mode
-(`bad_draw_for_ballistic`) never fired because no standalone ballistic request occurs in 300 s (native1 from the driver's own assertion); covered by an engine unit test.
+fails at boot; nil, unknown state, ready state 5, phase 7, NaN vector, second draw, negative range and a Lua error stop with `host aim:` and the reason. One mode
+(`bad_draw_for_ballistic`) was UNTRIGGERED (no standalone ballistic request occurs): its native exit1 is the driver's own end-of-run assertion, not an engine refusal, and it is not
+counted among the refusals; that draw refusal has only an engine unit test behind it.
 fmt/clippy(default and aim-fixture)/tests: cargo `CARGO_EXIT=0` for all five steps. Failed experiments kept (x-dev1 physical-hash mismatch from a missing lead-result echo, fixed;
 first ordinary-900 attempt stopped in the runner script before any native; first provider runs one frame short). Remaining coupling: device viewpoint/model lookup, target point,
 ballistic-table generation (core projectile sim), the HUD sight's shared `get_angle_of_projection*`, rocket-tube roll and package-arc bearing, guided flight intercept
-(`wn_move.c`), the refused triangulated range. Unexercised by the natural witnesses: standalone lead/ballistic/intercept, off-map/stationary lead, point-blank, player tracking
-and HUD offsets. Cost: +17-19% wall time (about 12.9 M extra crossings per 600 s). Not done here: root's final ordinary build/full pack, independent review, merge, integration of
+(`wn_move.c`), the refused triangulated range. Unexercised by the natural witnesses: standalone ballistic/intercept, off-map/tiny-range lead, point-blank, player tracking
+and HUD offsets (standalone lead at launch WAS reached: 143, all after 420 s, inside the equal 600 s trace). Off-map lead success returns time of flight 0 where the original left
+the caller's uninitialised local unwritten (wn_creat decoy/fuze timer): an observed difference, acceptance PENDING with lead/reviewer, runtime unchanged. Person comparison
+checker corrected (revision 2, fail-closed, 35-case helper self-test; revision 1 and its records superseded, kept); no native rerun. Cost: +17-19% wall time (about 12.9 M extra crossings per 600 s). Not done here: root's final ordinary build/full pack, independent review, merge, integration of
 accepted04bf645a. Next bounded action: independent review of the new physical source and evidence; then root's gates.
 
 ## Operator/workflow checkpoint

@@ -1,15 +1,20 @@
 {
+ "checker": "compare-person.py revision 2",
  "candidate": "out/p2-t2/trace.jsonl",
  "original": "../aim-characterization-20261026/out/person-target-repeat/trace.jsonl",
+ "equal_under_the_mapping": true,
+ "problems": [],
+ "candidate_sha256": "2c37fe5daaf9ad16d5a215321a138e129291ae4d7eddf6bdb0c01ef3ad735389",
+ "original_sha256": "7c5878b4597d637f92929c4006675be22728c3863694f34825701afe14cf3f94",
  "events": [
   213,
   213
  ],
+ "case": "target",
  "mapped": {
-  "frames_face_out_equals_place_out": 20,
-  "frames_face_in_present": 20,
-  "check_lines_renamed": 3
- },
- "problems": [],
- "equal_under_the_mapping": true
+  "frames_mapped": 20,
+  "checks_mapped": 3,
+  "verdict_mapped": 1,
+  "events_exactly_equal": 189
+ }
 }

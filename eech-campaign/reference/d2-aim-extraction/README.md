@@ -29,13 +29,16 @@ the repository's `tools/Dockerfile` image in WSL2 `EECH-D2-Build` (rustc/cargo 1
 ## Comparisons (`comparisons/`, each tool's own recorded exit)
 
 * `c-a-vs-r-a`, `c-b-vs-r-b`, `c-b-vs-c-a`, `c2-a-vs-r-a`, `c2-b-vs-r-b`, `c2-b-vs-c2-a`, `x2-a-vs-r-a` (`controls/compare-complete.py` + `tools/aim-trace-compare.py`): raw bytes equal, 0 differing lines, comparator exit 0.
-* `p-*-vs-74ae-*`, `p2-*-vs-74ae-*` (`controls/compare-person.py`): equal under the declared entry-point mapping (`place` -> `person_face`).
+* `p-*-vs-74ae-*`, `p2-*-vs-74ae-*` (`controls/compare-person.py` revision 2, recomputed from the unchanged raw files): equal under the declared three-item entry-point whitelist (frames `place_*` -> `face_*` with the
+  exact input/output chain for all 20 facings, three named checks, `place=20` -> `person_face=20`) and fail-closed otherwise. Revision 1 (SHA-256 `959144d8...`, which accepted empty/prefix traces, arbitrary check
+  renames and identical failed verdicts) and its records are in `superseded/person-checker-959144d8/`. `checks/person-checker-r2/`: the raw-trace hashes before and after, and `checker-selftest.json`, the helper
+  self-test (`controls/compare-person-selftest.py`: 35 derived cases, genuine pairs exit 0, the other 33 exit 1). The self-test is a helper test; it ran no native campaign.
 * `pv-*-vs-r-a-at-300` (`controls/compare-checkpoint.py`): the provider's run-wide report against the original's checkpoint report at 300 s. `pv-reference` and both `orig-pv-*`: equal; `pv-ready_slow`, `-step_slow`,
   `-invalid`, `-own_model`: different, as expected.
 * `o3-ab-vs-ab-base` (`R:/d2-evidence/aim-characterization-20261026/ab-compare.py`) and `o3-ab-observation-check`: the ordinary 900 s run against the retained supplied-binary baseline, three complete files byte-identical.
 
 ## Providers (`providers/`): the summary line and the driver's last stderr lines of every `lua/aim-provider.lua` run, including the shipping failure modes (`ship-pv-*`) and the one mode that did not fire
-(`ship-pv-bad_draw_for_ballistic`: no standalone ballistic request in 300 s; native exit 1 from the driver's own assertion).
+(`ship-pv-bad_draw_for_ballistic`: an UNTRIGGERED mode, not a native refusal result: no standalone ballistic request occurs, the engine refused nothing, and native exit 1 is the driver's own end-of-run assertion that its mode never fired).
 
 ## Checks (`checks/`)
 
