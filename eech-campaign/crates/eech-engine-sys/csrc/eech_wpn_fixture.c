@@ -1490,6 +1490,11 @@ static int report (char *text, int capacity)
 		(unsigned long long) trace.launch_hash, (unsigned long long) trace.flight_hash, (unsigned long long) trace.terminal_hash, (unsigned long long) trace.decision_hash);
 	for (i = 0; i < COUNTERS; i++)
 	{
+		/* the two ABSENCE diagnostics exist only for a host that gave no diagnostics: a reference host's trace carries exactly the rows it always did */
+		if (((i == C_table_diagnostics_absent) || (i == C_range_diagnostics_absent)) && !trace.counters[i])
+		{
+			continue;
+		}
 		emit (&out, "wpn-counter name=%s value=%llu\n", counter_names[i], (unsigned long long) trace.counters[i]);
 	}
 	emit (&out, "wpn-counter name=draws_total value=%d\n", draws_total);
