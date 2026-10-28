@@ -931,7 +931,7 @@ void create_client_server_weapon_killed_explosion_effect (entity *en)
 		position [1] = pos->y;
 		position [2] = pos->z;
 
-		plan = campaign_aim_impact ((int) kill_code, target != NULL, (target != NULL) && get_local_entity_int_value (target, INT_TYPE_ALIVE), position, impact_terrain, pos);
+		plan = campaign_aim_impact (target, (int) kill_code, target != NULL, (target != NULL) && get_local_entity_int_value (target, INT_TYPE_ALIVE), position, impact_terrain, pos);
 
 		if (plan.invalid)
 		{

@@ -412,7 +412,7 @@ int vehicle_critically_damaged (entity *en)
 	request.damage_level = raw->damage_level;
 	request.initial_damage_level = vehicle_database[raw->mob.sub_type].initial_damage_level;
 
-	return campaign_aim_health (&request).health.critical_class;
+	return campaign_aim_health (en, &request).health.critical_class;
 }
 
 /* The frame's timed health roll of a vehicle (EEDCS-46): fire for a vehicle that can burn, bleeding for a person.  The host owns the eligibility (health, a vehicle that can burn,
@@ -438,7 +438,7 @@ void vehicle_timed_health (entity *en, int damage_level, int explosive_quality, 
 	request.flammable = (explosive_quality & EXPLOSIVE_QUALITY_FLAMMABLE) ? TRUE : FALSE;
 	request.delta_time = get_delta_time ();
 
-	*out = campaign_aim_health (&request).health;
+	*out = campaign_aim_health (en, &request).health;
 }
 
 void assess_vehicle_damage_level (entity *en, int old_damage_level)
@@ -472,7 +472,7 @@ void assess_vehicle_damage_level (entity *en, int old_damage_level)
 
 		// create smoke effect
 
-		if (campaign_aim_health (&request).health.crossed)
+		if (campaign_aim_health (en, &request).health.crossed)
 		{
 			#if DEBUG_MODULE
 				debug_log("VEHICLE: creating damaged smoke for %s", vehicle_database[raw->mob.sub_type].full_name);

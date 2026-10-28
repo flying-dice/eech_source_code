@@ -133,7 +133,8 @@ struct eech_object_report_receipt
 
 int eech_engine_report_object (const struct eech_object_report *report, struct eech_object_report_receipt *receipt, const struct eech_engine_host *host);
 
-/* Every structure the host holds an identity for, identified now if it has none (the host is asked); copied values, strings live for the engine session */
+/* Every structure the host holds an identity for, identified now if it has none (the host is asked).  `host_id` is BORROWED: it is valid only inside the callback, for that one call (the registry may grow while the
+   enumeration identifies the next structure, which moves the strings), so the callback must copy it at once, as the Rust collector does.  The other fields are copied values. */
 #define EECH_STRUCTURE_CITY_BUILDING 1
 #define EECH_STRUCTURE_PYLON 2
 #define EECH_STRUCTURE_SCENIC 3

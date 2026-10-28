@@ -917,6 +917,20 @@ assert(repeating(identify()).host_id == issued_first, 'one that issues the same 
 assert(malformed('bad_blast_identity', host.aim, passed)(blast({ window = window({ object(2, 6, 10, { host_id = 'obj-2' }) }, true) })).host_id == 'x-obj-2', 'a blast answer with the identity of another object')
 assert(malformed('bad_blast_identity_missing', host.aim, passed)(blast({ window = window({ object(2, 6, 10, { host_id = 'obj-2' }) }, true) })).host_id == nil, 'and with none for an object offered with one')
 assert(malformed('bad_bridge_identity', host.aim, passed)(bridge({ op = 'vehicles', position = { 250, 5, 250 }, window = { sx = 2, sz = 2, after = 0, list_ends = true, objects = { vehicle(7, 3, { host_id = 'veh-7' }) } } })).host_id == 'x-veh-7', 'a vehicles answer with the identity of another object')
+-- the identity of the object a hit, a health fact and a weapon's death are about (EEDCS-46, R3): the reference host accepts it (the host's own, checked for shape) and answers exactly as it does without; a malformed one is refused
+local function same_answer(a, b)
+  for k, v in pairs(a) do if type(v) ~= 'table' and b[k] ~= v then return false end end
+  return true
+end
+for _, make in ipairs({ { 'damage', hit }, { 'health', health }, { 'impact', impact } }) do
+  local name, build = make[1], make[2]
+  local plain = host.aim(build())
+  local with = host.aim(build({ target_host_id = 'eech-world:object:5' }))
+  assert(same_answer(plain, with) and same_answer(with, plain), name .. ': the identity of the subject changes no answer')
+  refused(build({ target_host_id = 5 }), 'target_host_id must be a string')
+  refused(build({ target_host_id = string.rep('x', 129) }), 'target_host_id must be 1 to 128 bytes')
+  refused(build({ target_host_id = '' }), 'target_host_id must be 1 to 128 bytes')
+end
 print('AIM_HOST=ok')";
 
 #[test]

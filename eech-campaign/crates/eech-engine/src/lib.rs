@@ -1320,6 +1320,8 @@ pub struct AimDamage {
     pub critical_model: i32,
     pub draw: Option<i32>,
     pub echo: bool,
+    /// The identity of the object that is hit (a rostered mobile's or a structure's), when it has one.
+    pub target_host_id: Option<String>,
 }
 
 /// One health question that is not a hit (EEDCS-46), by value: see `eech_health_request` (mb_hostaim.h campaign_health_request).  `draw` is the sample of the campaign's shared random
@@ -1338,6 +1340,8 @@ pub struct AimHealth {
     pub self_hit: bool,
     pub target_not_ai: bool,
     pub draw: Option<i32>,
+    /// The identity of the object whose health it is, when it has one.
+    pub target_host_id: Option<String>,
 }
 
 /// What a weapon's death does to the world (EEDCS-46), by value: see `eech_impact_request` (mb_hostaim.h campaign_impact_request).  `terrain_draws_crater` is the terrain fact at the impact
@@ -1349,6 +1353,8 @@ pub struct AimImpact {
     pub target_alive: bool,
     pub terrain_draws_crater: Option<bool>,
     pub position: [f32; 3],
+    /// The identity of the weapon's target, when it has a target that has one.
+    pub target_host_id: Option<String>,
 }
 
 /// The facts of a structure the campaign asks the host to issue an identity for (EEDCS-46, R3), by value: see `eech_identify_request` (mb_hostaim.h campaign_identify_request).  `serial` counts the
@@ -2949,6 +2955,7 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                 critical_model: request.critical_model,
                 draw: draw()?,
                 echo,
+                target_host_id: target_id()?,
             })
         }
         sys::EECH_AIM_HEALTH => {
@@ -2979,6 +2986,7 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                 self_hit: checked_bool("health self_hit", request.self_hit)?,
                 target_not_ai: checked_bool("health target_not_ai", request.target_not_ai)?,
                 draw: draw()?,
+                target_host_id: target_id()?,
             })
         }
         sys::EECH_AIM_IMPACT => {
@@ -2997,6 +3005,7 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                 target_alive,
                 terrain_draws_crater: terrain_known.then_some(draws_crater),
                 position: request.position,
+                target_host_id: target_id()?,
             })
         }
         sys::EECH_AIM_BLAST => {
@@ -5092,7 +5101,7 @@ impl Engine {
             let host_id = if structure.host_id.is_null() {
                 String::new()
             } else {
-                // SAFETY: identities are NUL-terminated for the engine session.
+                // SAFETY: the identity is NUL-terminated and borrowed for this callback only (the registry may move it when it grows); it is copied into an owned String here, before the call returns.
                 unsafe { CStr::from_ptr(structure.host_id) }.to_string_lossy().into_owned()
             };
             out.push(Structure {
@@ -6968,12 +6977,49 @@ mod tests {
         assert_eq!((code, result.state, result.lookup_count), (0, sys::EECH_AIM_NEED_LOOKUP, 1));
     }
 
+    fn carried_target_identity(seen: Option<AimRequest>, what: &str) -> Option<String> {
+        match seen {
+            Some(AimRequest::Damage(d)) => d.target_host_id,
+            Some(AimRequest::Health(h)) => h.target_host_id,
+            Some(AimRequest::Impact(i)) => i.target_host_id,
+            other => panic!("{what}: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn the_identity_of_the_object_a_damage_a_health_and_an_impact_question_is_about_crosses_and_a_bad_one_is_refused() {
+        // a hit, a health fact and a weapon's death about an object that has an identity carry it; one about an object that has none carries none
+        for (what, mut step) in [("damage", damage_step()), ("health", health_step(3)), ("impact", impact_step())] {
+            step.target_host_id = test_id("veh:7");
+            let (seen, _, _, _) = aim_crossing(&step, |_| Ok(AimReply::default()));
+            assert_eq!(carried_target_identity(seen, what).as_deref(), Some("veh:7"), "{what}");
+            step.target_host_id = [0 as c_char; sys::EECH_AIM_HOST_ID_MAX + 1];
+            let (seen, _, _, _) = aim_crossing(&step, |_| Ok(AimReply::default()));
+            assert_eq!(carried_target_identity(seen, what), None, "{what}: an object with no identity carries none");
+            // an identity that does not end inside its field, and one that is not UTF-8, are refused before the host is asked
+            step.target_host_id = [b'x' as c_char; sys::EECH_AIM_HOST_ID_MAX + 1];
+            let (seen, _, code, error) = aim_crossing(&step, |_| Ok(AimReply::default()));
+            assert!(
+                code != 0 && seen.is_none() && error.contains("host identity"),
+                "{what}: overlong: {code} {error}"
+            );
+            step.target_host_id = test_id("veh:7");
+            step.target_host_id[0] = 0xff_u8 as c_char;
+            let (seen, _, code, error) = aim_crossing(&step, |_| Ok(AimReply::default()));
+            assert!(
+                code != 0 && seen.is_none() && error.contains("host identity"),
+                "{what}: not UTF-8: {code} {error}"
+            );
+        }
+    }
+
     fn impact_step() -> sys::eech_aim_step {
         let mut step = blank_aim_step(sys::EECH_AIM_IMPACT);
         step.impact.kill_code = 5;
         step.impact.has_target = 1;
         step.impact.target_alive = 1;
         step.impact.position = [250.0, 12.0, 750.0];
+        step.target_host_id = test_id("site:9");
         step
     }
 
@@ -6996,6 +7042,7 @@ mod tests {
                 target_alive: true,
                 terrain_draws_crater: None,
                 position: [250.0, 12.0, 750.0],
+                target_host_id: Some("site:9".into()),
             }))
         );
         // asked again with the terrain the campaign read, the host plans: a crater, a direct hit and two blasts that leave the target out

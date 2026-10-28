@@ -952,16 +952,16 @@ campaign_aim_result campaign_aim_forecast (int weapon, const campaign_damage_fig
 
 /* The damage of one hit (CAMPAIGN_AIM_DAMAGE) of `weapon` (a sub type): the campaign takes the one sample of its stream the host asks for.  `echo` asks the reference host for the
    observer's echo (the test fixture build); the result's echo is valid until the next request. */
-campaign_aim_result campaign_aim_damage (int weapon, const campaign_damage_request *request, int echo);
+campaign_aim_result campaign_aim_damage (struct ENTITY *subject, int weapon, const campaign_damage_request *request, int echo);
 
 /* A health fact (CAMPAIGN_AIM_HEALTH): the campaign takes the one sample of its stream that a TIMED roll asks for. */
-campaign_aim_result campaign_aim_health (const campaign_health_request *request);
+campaign_aim_result campaign_aim_health (struct ENTITY *subject, const campaign_health_request *request);
 
 /* The dispatch of a weapon's death (CAMPAIGN_AIM_IMPACT): the plan, with the terrain fact supplied when the host asks for it.  `terrain` is called at most once, with the impact
    position, and returns whether the terrain there takes a crater; the original read it only for a land hit.  A pure question: no sample is taken. */
 typedef int (*campaign_impact_terrain_fn) (void *context);
 
-campaign_impact_result campaign_aim_impact (int kill_code, int has_target, int target_alive, const float *position, campaign_impact_terrain_fn terrain, void *context);
+campaign_impact_result campaign_aim_impact (struct ENTITY *target, int kill_code, int has_target, int target_alive, const float *position, campaign_impact_terrain_fn terrain, void *context);
 
 /* One area blast (CAMPAIGN_AIM_BLAST), driven by the campaign for the host: `window` fills the request's window as the host asks (the sector, the handle it follows or 0, and the
    room), returning the objects in list order and whether the list ends with them; `apply` is given each object the host reaches, in order, and acts on it BEFORE the next question.

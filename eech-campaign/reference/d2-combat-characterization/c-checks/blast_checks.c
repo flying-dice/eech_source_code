@@ -32,6 +32,11 @@ int rand16 (void) { draws_taken++; return 4321; }
 float get_delta_time (void) { return 0.1f; }
 unsigned int get_system_time (void) { return 0; }
 const char *campaign_roster_host_id (entity *en) { return NULL; }
+
+/* the identity the stand-in gives the object a question is about (none unless a check sets it): the REAL campaign_aim_* helpers are asked about a subject and must carry it */
+static const char *subject_identity;
+static int subject_storage, use_subject;
+const char *campaign_object_identify (entity *en) { return en ? subject_identity : NULL; }
 int get_local_entity_index (entity *en) { return 0; }
 
 static int failures, checks;
@@ -640,7 +645,7 @@ static int impact_ask (int kill_code, int has_target, int target_alive)
 		return 0;
 	}
 
-	impact_result = campaign_aim_impact (kill_code, has_target, target_alive, impact_position, terrain_fn, NULL);
+	impact_result = campaign_aim_impact (use_subject ? (entity *) &subject_storage : NULL, kill_code, has_target, target_alive, impact_position, terrain_fn, NULL);
 
 	return 1;
 }
@@ -1023,6 +1028,42 @@ int main (void)
 	walk.sector_side_length = 0;
 	accepted = blast_ask ();
 	check (!accepted && refused_with ("inconsistent figures"), "a map with a sector of no length is not sent");
+
+	/* ---- the weapon's target: its identity crosses in the envelope of the impact question (the REAL campaign_aim_impact is asked about a target), none when it has none, and a malformed one is refused */
+	host_installed (HOST_IMPACT);
+	plan.blasts = 1;
+	terrain_calls = 0;
+	use_subject = 1;
+	subject_identity = "site:9";
+	accepted = impact_ask (5, 1, 1);
+	check (accepted && requests[0].mode == CAMPAIGN_AIM_IMPACT && strcmp (requests[0].target_host_id, "site:9") == 0 && requests[0].source_host_id[0] == '\0', "the identity of the weapon's target crosses as the target of the envelope");
+	host_installed (HOST_IMPACT);
+	plan.blasts = 1;
+	terrain_calls = 0;
+	subject_identity = NULL;
+	accepted = impact_ask (5, 1, 1);
+	check (accepted && requests[0].target_host_id[0] == '\0', "a target with no identity carries none");
+	host_installed (HOST_IMPACT);
+	plan.blasts = 1;
+	terrain_calls = 0;
+	use_subject = 0;
+	subject_identity = "site:9";
+	accepted = impact_ask (3, 0, 0);
+	check (accepted && requests[0].target_host_id[0] == '\0', "a weapon with no target carries none");
+	{
+		static char big[200];
+
+		host_installed (HOST_IMPACT);
+	plan.blasts = 1;
+	terrain_calls = 0;
+		memset (big, 'x', sizeof (big) - 1);
+		use_subject = 1;
+		subject_identity = big;
+		accepted = impact_ask (5, 1, 1);
+		check (!accepted && refused_with ("longer than") && request_count == 0, "an identity longer than the envelope holds is refused before the host is asked");
+		use_subject = 0;
+		subject_identity = NULL;
+	}
 
 	printf ("%d checks, %d failures\n", checks, failures);
 

@@ -72,31 +72,75 @@ void kill_client_server_entity (entity *en)
 	applied_index[applied_count++] = get_local_entity_index (en);
 }
 
-/* the roster: one rostered mobile (entity 7) with the identity "mobile-1", and one ended incarnation "mobile-0" */
+/* The roster, as a table the checks can grow: the identities the roster issued, each live (state 1, on an entity) or ended (state 2).  It starts with one rostered mobile (entity 7, "mobile-1") and one ended
+   incarnation ("mobile-0").  The binding of a later member goes through the REAL gp_rosterid.c (campaign_roster_accept_host_id, the function campaign_roster_link_member calls before it commits a record);
+   `roster_has` below is the roster's own record scan, and `roster_commit` is the commit that follows an accepted identity. */
+#define ROSTER_MAX 16
+static char roster_id[ROSTER_MAX][CAMPAIGN_OBJECT_ID_MAX + 1];
+static int roster_state[ROSTER_MAX], roster_entity[ROSTER_MAX], roster_count;
+
+static void roster_commit (const char *id, int state, int entity_index)
+{
+	snprintf (roster_id[roster_count], sizeof (roster_id[roster_count]), "%s", id);
+	roster_state[roster_count] = state;
+	roster_entity[roster_count] = entity_index;
+	roster_count++;
+}
+
+static void roster_reset (void)
+{
+	roster_count = 0;
+	roster_commit ("mobile-1", 1, 7);
+	roster_commit ("mobile-0", 2, -1);
+}
+
 const char *campaign_roster_host_id (entity *en)
 {
-	return get_local_entity_index (en) == 7 ? "mobile-1" : NULL;
+	int i;
+
+	for (i = 0; i < roster_count; i++)
+	{
+		if (roster_state[i] == 1 && roster_entity[i] == get_local_entity_index (en))
+		{
+			return roster_id[i];
+		}
+	}
+
+	return NULL;
 }
 
 int campaign_roster_find_host_id (const char *host_id, entity **member)
 {
+	int i;
+
 	if (member)
 	{
 		*member = NULL;
 	}
 
-	if (strcmp (host_id, "mobile-1") == 0)
+	for (i = 0; i < roster_count; i++)
 	{
-		if (member)
+		if (strcmp (roster_id[i], host_id) == 0)
 		{
-			*member = &fake_entities[7];
-		}
+			if (roster_state[i] == 1 && member)
+			{
+				*member = &fake_entities[roster_entity[i]];
+			}
 
-		return 1;
+			return roster_state[i];
+		}
 	}
 
-	return strcmp (host_id, "mobile-0") == 0 ? 2 : 0;
+	return 0;
 }
+
+static int roster_has (const char *host_id)
+{
+	return campaign_roster_find_host_id (host_id, NULL) != 0;
+}
+
+/* the production function the roster calls before it commits a binding (gp_rosterid.c) */
+void campaign_roster_accept_host_id (const char *host_id, int (*roster_has_fn) (const char *host_id));
 
 static int checks, failures;
 
@@ -174,6 +218,7 @@ static void world_reset (void)
 	campaign_aim_host host;
 
 	memset (fake_entities, 0, sizeof (fake_entities));
+	roster_reset ();
 	campaign_object_reset ();
 	memset (&host, 0, sizeof (host));
 	host.aim = host_aim;
@@ -211,6 +256,22 @@ static int try_identify (int index)
 	}
 
 	identified = campaign_object_identify (&fake_entities[index]);
+
+	return 1;
+}
+
+/* a later bind: the host returned `id` for a new group member; the REAL acceptance runs, and only an accepted identity is committed to the roster (as campaign_roster_link_member does) */
+static int try_bind_member (const char *id, int entity_index)
+{
+	harness_message[0] = '\0';
+
+	if (setjmp (harness_fatal))
+	{
+		return 0;
+	}
+
+	campaign_roster_accept_host_id (id, roster_has);
+	roster_commit (id, 1, entity_index);
 
 	return 1;
 }
@@ -398,6 +459,82 @@ int main (void)
 	check (campaign_object_structures (collect, NULL) == 3 && collected == 3 && collected_alive == 2 && host_calls == 3 && strcmp (collected_first, "obj-1") == 0, "the structures are listed, in entity-list order, each identified by the host once");
 	collected = 0;
 	check (campaign_object_structures (collect, NULL) == 3 && host_calls == 3, "and listed again without asking the host");
+
+	/* ================ ONE namespace, both orders (the roster's binding goes through the real gp_rosterid.c) ================ */
+	world_reset ();
+	place (1, ENTITY_TYPE_SITE, 1, 100, 100);
+	place (2, ENTITY_TYPE_SITE, 1, 100, 100);
+	place (3, ENTITY_TYPE_SITE, 1, 100, 100);
+	place (7, ENTITY_TYPE_ROUTED_VEHICLE, 1, 50, 50);
+	place (8, ENTITY_TYPE_ROUTED_VEHICLE, 1, 50, 50);
+	try_identify (1);
+	snprintf (first, sizeof (first), "%s", identified);
+	/* a member bound LATER may not take the identity of a LIVE structure */
+	accepted = try_bind_member (first, 8);
+	check (!accepted && refused_with ("already issued for a structure") && roster_count == 2 && campaign_object_host_id (&fake_entities[8]) == NULL, "a member bound later cannot take the identity of a live structure, and nothing is committed");
+	accepted = try_report (first, 1, 60, 0);
+	check (accepted && fake_entities[1].damage_level == 60 && applied_count == 1 && applied_index[0] == 1, "and a report by that identity still reaches the structure, never the refused member");
+	/* ... nor that of a structure whose incarnation ENDED */
+	campaign_object_release_entity (&fake_entities[1]);
+	accepted = try_bind_member (first, 8);
+	check (!accepted && refused_with ("already issued for a structure") && roster_count == 2, "nor the identity of a structure that ended (no identity is ever reused)");
+	accepted = try_report (first, 1, 0, 0);
+	check (!accepted && refused_with ("no longer exists"), "so the ended identity still reads as ended, not as the member's");
+	/* ... nor, from the same entity slot, once another structure lives there */
+	place (1, ENTITY_TYPE_SITE, 1, 100, 100);
+	try_identify (1);
+	snprintf (second, sizeof (second), "%s", identified);
+	check (strcmp (first, second) != 0, "the structure that now lives in the slot is issued another identity");
+	accepted = try_bind_member (first, 1);
+	check (!accepted && refused_with ("already issued for a structure") && roster_count == 2, "a member cannot take the old identity even in the slot its structure had");
+	accepted = try_bind_member (second, 8);
+	check (!accepted && refused_with ("already issued for a structure"), "nor the live identity of the structure now in that slot");
+	/* the converse order: a structure may not take any identity of the roster, live or ended */
+	accepted = try_bind_member ("member-2", 8);
+	check (accepted && roster_count == 3 && campaign_object_host_id (&fake_entities[8]) && strcmp (campaign_object_host_id (&fake_entities[8]), "member-2") == 0, "a fresh identity binds the member");
+	scripted_id = "member-2";
+	accepted = try_identify (2);
+	check (!accepted && refused_with ("of a rostered member") && campaign_object_host_id (&fake_entities[2]) == NULL, "a structure cannot take the identity of a live member");
+	fake_entities[8].type = ENTITY_TYPE_UNKNOWN;
+	roster_state[2] = 2;
+	accepted = try_identify (2);
+	check (!accepted && refused_with ("of a rostered member"), "nor that of a member that ended");
+	scripted_id = NULL;
+	/* the existing refusals of the roster's acceptance are the same ones as before */
+	accepted = try_bind_member ("mobile-1", 8);
+	check (!accepted && refused_with ("was reused for a new physical incarnation"), "a member cannot take a member's identity (live)");
+	accepted = try_bind_member ("mobile-0", 8);
+	check (!accepted && refused_with ("was reused for a new physical incarnation"), "or an ended member's");
+	accepted = try_bind_member ("", 8);
+	check (!accepted && refused_with ("invalid identity length"), "an empty identity is refused");
+	accepted = try_bind_member ("caf\xc3(", 8);
+	check (!accepted && refused_with ("non-UTF-8"), "and one that is not UTF-8");
+	accepted = try_bind_member ("caf\xc3\xa9", 8);
+	check (accepted, "while a UTF-8 identity is accepted");
+
+	/* ================ the common source/target envelope (the REAL campaign_aim_identify over the registry and the roster) ================ */
+	world_reset ();
+	place (1, ENTITY_TYPE_SITE, 1, 100, 100);
+	place (5, ENTITY_TYPE_WEAPON, 1, 1, 1);
+	place (7, ENTITY_TYPE_ROUTED_VEHICLE, 1, 50, 50);
+	{
+		campaign_aim_step envelope;
+
+		memset (&envelope, 0, sizeof (envelope));
+		campaign_aim_identify (&envelope, &fake_entities[7], &fake_entities[1]);
+		check (strcmp (envelope.source_host_id, "mobile-1") == 0 && strcmp (envelope.target_host_id, "obj-1") == 0 && host_calls == 1, "a rostered launcher keeps the roster's identity and a structure target is identified (asked of the host once, at its first physical need)");
+		memset (&envelope, 0, sizeof (envelope));
+		campaign_aim_identify (&envelope, &fake_entities[7], &fake_entities[1]);
+		check (strcmp (envelope.target_host_id, "obj-1") == 0 && host_calls == 1, "and carried again without asking the host");
+		memset (&envelope, 0, sizeof (envelope));
+		campaign_aim_identify (&envelope, &fake_entities[5], NULL);
+		check (envelope.source_host_id[0] == '\0' && envelope.target_host_id[0] == '\0' && host_calls == 1, "a weapon has no identity and no subject is none, and neither asks the host");
+		campaign_object_release_entity (&fake_entities[1]);
+		place (1, ENTITY_TYPE_SITE, 1, 100, 100);
+		memset (&envelope, 0, sizeof (envelope));
+		campaign_aim_identify (&envelope, NULL, &fake_entities[1]);
+		check (strcmp (envelope.target_host_id, "obj-2") == 0 && host_calls == 2, "an object that took the released slot is a new incarnation with a new identity, never the old one");
+	}
 
 	printf ("%d checks, %d failures\n", checks, failures);
 

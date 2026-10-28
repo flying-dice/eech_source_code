@@ -96,7 +96,7 @@ aircraft_damage_types aircraft_critically_damaged (entity *en)
 	request.damage_level = raw->damage_level;
 	request.initial_damage_level = aircraft_database[raw->mob.sub_type].initial_damage_level;
 
-	return (aircraft_damage_types) campaign_aim_health (&request).health.critical_class;
+	return (aircraft_damage_types) campaign_aim_health (en, &request).health.critical_class;
 }
 
 /* The frame's timed degradation roll of an aircraft in a class (EEDCS-46): the host's eligibility (the class the update computed earlier in the frame is above none), the campaign's ONE
@@ -120,7 +120,7 @@ void aircraft_timed_health (entity *en, aircraft_damage_types damage_type, campa
 	request.aircraft_class = (int) damage_type;
 	request.delta_time = get_delta_time ();
 
-	*out = campaign_aim_health (&request).health;
+	*out = campaign_aim_health (en, &request).health;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -318,7 +318,7 @@ void assess_aircraft_damage_level (entity *en, int old_damage_level, int new_dam
 	request.old_damage_level = old_damage_level;
 	request.initial_damage_level = aircraft_database[get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE)].initial_damage_level;
 
-	assessed = campaign_aim_health (&request).health;
+	assessed = campaign_aim_health (en, &request).health;
 
 	// Eject Pilot(s)
 

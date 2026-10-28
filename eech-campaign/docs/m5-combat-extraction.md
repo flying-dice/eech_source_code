@@ -641,3 +641,58 @@ Windows build is observed by a build that runs the probes.
 * **Still open in D2 (not claimed complete):** the root's native validation of this step and of the corrected Step 5 composition (default, controlled, host-authority and refusal), the whole-scope D2 audit
   (every combat and perception responsibility traced against the final tree), the final ordinary shipping 40, all 8, post 3, current CI, independent review and normal merge, and the final native frame-cost
   evidence. D4 repair quantities, D3 services and D5 integration are not touched.
+
+## Correction of the first independent review of Step 6 (`0ca067d1e`/`aff4904fd`, one P1, one P2, one P3)
+
+The source review found three defects before any native launch of Step 6; no source from `0ca067d1e` or `aff4904fd` was Windows-built or run. All three are corrected in ONE batch; no physical formula, number,
+campaign decision, credit, awareness, route or repair policy, accounting or D1 consequence changed.
+
+* **P1, R3-REVERSE-CROSS-REGISTRY-ID-COLLISION.** The structures' registry refused an identity held by a current or ended roster member, but `campaign_roster_link_member` checked a new member's identity only against
+  other roster records. A host could issue `X` for a structure and later return `X` for a new member; both registries accepted it, and `report_object (X)` (which resolves a structure first) then changed the structure
+  instead of the member, or, if the structure had ended, refused the member's identity as ended. The invariant (ONE namespace of host identities, never reused) now holds in both directions:
+  * `campaign_object_id_ever_issued` (`mb_hostobj.c`) answers, privately, whether an identity was ever issued for a structure, live or ended (the registry never forgets one). The roster's acceptance of a new
+    member's identity (its length of 1 to 128 bytes, UTF-8, not an identity of any roster incarnation) moved, unchanged and with the same messages, into `special/group/gp_rosterid.c
+    campaign_roster_accept_host_id`, which `campaign_roster_link_member` calls BEFORE it commits the record, and which now also refuses an identity ever issued for a structure. No prefix is parsed; no heap index
+    or pointer is involved; the numbering of default mobile identities, the order of allocation, the random stream and the D1 loss transactions are untouched (the commit and everything after it are the same lines).
+  * **Both-order controls through the production code** (`c-checks/object_checks.c`, now 56 checks; the roster's own record scan is the only stand-in, and the REAL `gp_rosterid.c`, `mb_hostobj.c` and `mb_hostaim.c`
+    run): a member bound later cannot take the identity of a LIVE structure, of one that ENDED, of the structure that took the same entity slot afterwards, nor the old identity in the old slot; nothing is committed
+    when it refuses and a report by that identity still reaches the structure; the converse (a structure cannot take a live or ended member's identity) and the existing refusals (empty, not UTF-8, a member's
+    identity) hold; a fresh UTF-8 identity binds.
+  * **The behavioural red against `0ca067d1e`.** `c-checks/run-object-checks-pre-reverse.sh` extracts the three inline checks and `valid_utf8` of the roster's acceptance AS THEY WERE at `0ca067d1e`, wraps them in the same
+    function and runs the current checks against that code: it compiles, runs under ASan/UBSan, and exactly the reverse-direction checks fail (5 failures: the live structure, the ended structure, the old
+    identity in its old slot, the live identity of the structure now in that slot, and the member bind that the mis-accepted commits spoiled), while the checks of the other direction and the old refusals pass
+    (`checks/object-checks-3-red-pre-reverse-0ca067d1e.log`). GREEN: `checks/object-checks-4.log`, 56 checks, 0 failures. The mutation controller (`mutate-object-checks.sh`) now removes 20 rules (the new ones: the
+    reverse check, the roster-duplicate check, the UTF-8 check, a registry that forgets ended identities, an envelope that ignores structures), all 20 caught, both setup controls as expected
+    (`checks/object-mutation-4.log`).
+  * **Limit.** `campaign_roster_link_member` itself is not run by a harness (its file needs the whole engine); its call of the acceptance is compiled in the real tree and read, and the acceptance it calls is the
+    production function that was tested. The native lifecycle of the roster is the Root's.
+* **P2, R3-PHYSICAL-SUBJECT-CORRELATION-INCOMPLETE.** The persistent identities reached windows and inbound reports only. Now an object that a physical request is ABOUT carries its identity in the existing envelope:
+  * `fill_host_id` (`mb_hostaim.c`), behind the common source/target of every weapon step, now asks `campaign_object_identify` instead of the roster alone: a rostered mobile keeps the roster's identity (no double
+    binding), a known structure its registry identity, and a structure with none is identified at that first physical need (an identify exchange before the step is asked, never inside one); a weapon, an unrostered
+    mobile and a kind that is not a structure have none.
+  * DAMAGE, HEALTH and IMPACT carry the subject in the same envelope field (`target_host_id`), with no new DTO and no changed layout: `campaign_aim_damage (subject, ...)` (the object that is hit; caller
+    `damage.c`), `campaign_aim_health (subject, ...)` (the object whose health it is; callers `vehicle.c` x3, `aircraft.c` x3, `hc_msgs.c`) and `campaign_aim_impact (target, ...)` (the weapon's target; caller
+    `explosn.c`). The Rust engine reads the field into `AimDamage`, `AimHealth` and `AimImpact` (`target_host_id`, optional, refused if it does not end inside its field or is not UTF-8), the DC module sets it in the
+    Lua request, and the reference host checks its shape. The solvers read none of it: every answer is the same with or without it (a Lua test compares them), and the pure forecast, table, range, animate and
+    ready/aim arithmetic requests, which have no physical subject, are untouched. The request is zeroed-and-filled before the identity is supplied, so no earlier field moves.
+  * **Coverage and evidence.** C: the REAL `campaign_aim_damage`, `campaign_aim_health` and `campaign_aim_impact` are asked about a subject through their harnesses (damage 70, health 63, blast 67 checks, 0
+    failures): the identity crosses as the target of the envelope with the weapon's source empty; none for an object with none; none with no subject whatever the registry holds; an identity longer than the envelope is
+    refused before the host is asked. The REAL `campaign_aim_identify` over the REAL registry and a rostered mobile (object checks): a rostered launcher and a structure target carry their identities, the host is
+    asked once, a released slot's new incarnation gets a new identity. Mutation (`mutate-subject-checks.sh`): the subject identification of each of the three helpers removed, the envelope ignoring the registry, and the
+    length check removed, all 6 caught with the three unmutated controls passing (`checks/subject-mutation-1.log`). Rust/Lua: the engine's crossing test (a damage, a health and an impact question carry the identity,
+    none carries none, overlong and not-UTF-8 identities are refused before the host is asked), the DC module's Lua request, and the public Lua host. No FFI DTO changed, so the layout probes of Step 6 stand.
+  * **The witness.** `lua/object-report-case.lua` counts, in its aim wrapper, the questions that carried a subject identity and whether it was the chosen structure's (`subject_id_<mode>`,
+    `subject_is_chosen_<mode>` in `object_aim_counts`); counts are context, not proof: the native state is judged from the structure's alive flag and damage level, as before.
+  * **Declared coupling that remains.** The LOS and sensor envelopes (`mb_hostlos.c`, `mb_hostsense.c`) keep their own roster-only identity fill (accepted, delivered exchanges that observe, not apply, a physical fact);
+    the entity mirrors and the terrain/model data the requests still carry by value are the declared D3/D5 coupling. HEALTH classify questions are frequent: each now costs one roster lookup (O(1)) and, for a
+    structure, one identify exchange the first time.
+* **P3, R3-STRUCTURE-CALLBACK-STRING-LIFETIME.** `eech_engine.h` promised the structure identity strings lived for the engine session, while the registry's records are reallocated as it grows. The header, the
+  registry's snapshot type and the Rust collector now say what is true: the string is BORROWED for the duration of the callback only and must be copied at once (the Rust consumer does). No storage was redesigned and no
+  native dangling pointer is claimed.
+* **Check results of the correction** (all Linux, source-level): the REAL registry/roster-acceptance/driver against the fake heap 56 checks, 20 mutants caught; damage 70, health 63, blast 67, bridge 70, forecast 25 checks,
+  0 failures; the bridge (84,036) and blast (6,000) differentials rerun and pass; `cargo test --locked` (workspace, including the kernel crate's link with the macro off) and with `eech-dc/weapon-fixture` exit 0;
+  default and fixture Clippy with `-D warnings` and `cargo fmt --check` exit 0; syntax-only compile 22 OK. The failed attempts are retained (`checks/*-failed-*.log`).
+* **State and the Root's next native plan.** Candidate, NOT accepted; no Windows or native run of any source from `0ca067d1e`. The Root builds a fresh clean corrected source and runs the planned six
+  shipping roots of `lua/object-report-case.lua` (site none / damage + raise / destroyed + duplicate / own-identity destroyed + unknown; segment none / destroyed; 5 s, 100 ms, 12 s) with the default and controlled
+  comparisons; the essential reads are the actual before/after state of the chosen structure and the specific primary errors of the controls, plus the new subject counters; the default raw protocols and the closed
+  bridge pair must be compared with their retained bytes. Whole D2 is not complete: the native validation, the whole-scope audit and the shipping gates remain.

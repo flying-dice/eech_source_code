@@ -233,7 +233,7 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 		request.self_hit = TRUE;
 		request.target_not_ai = (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI);
 
-		if (!campaign_aim_health (&request).health.eligible)
+		if (!campaign_aim_health (receiver, &request).health.eligible)
 		{
 			return TRUE;
 		}

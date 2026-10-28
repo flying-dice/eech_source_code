@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "mb_hostaim.h"
+#include "mb_hostobj.h"
 
 static campaign_aim_host current_host;
 
@@ -49,7 +50,8 @@ static void fill_host_id (char *out, entity *en)
 		return;
 	}
 
-	host_id = campaign_roster_host_id (en);
+	// the identity the host gave the object: a rostered mobile's, or a structure's (asked of the host now if it has none: this is its first physical need)
+	host_id = campaign_object_identify (en);
 
 	if (host_id && host_id[0])
 	{
@@ -1415,13 +1417,16 @@ campaign_aim_result campaign_aim_forecast (int weapon, const campaign_damage_fig
 	return ask_once (&step);
 }
 
-campaign_aim_result campaign_aim_damage (int weapon, const campaign_damage_request *request, int echo)
+campaign_aim_result campaign_aim_damage (entity *subject, int weapon, const campaign_damage_request *request, int echo)
 {
 	campaign_aim_step step;
 
 	memset (&step, 0, sizeof (step));
 
 	step.mode = CAMPAIGN_AIM_DAMAGE;
+
+	// the object that is hit, by the identity the host gave it (its first physical need identifies a structure); the weapon is the campaign's and has none
+	campaign_aim_identify (&step, NULL, subject);
 
 	step.weapon = weapon;
 
@@ -1451,13 +1456,16 @@ float campaign_aim_damage_echo_float (const campaign_aim_event *event, int index
 	return value;
 }
 
-campaign_aim_result campaign_aim_health (const campaign_health_request *request)
+campaign_aim_result campaign_aim_health (entity *subject, const campaign_health_request *request)
 {
 	campaign_aim_step step;
 
 	memset (&step, 0, sizeof (step));
 
 	step.mode = CAMPAIGN_AIM_HEALTH;
+
+	// the object whose health it is, by its identity (a rostered mobile's, or a structure's); none for an object that has none
+	campaign_aim_identify (&step, NULL, subject);
 
 	step.health = *request;
 
@@ -1486,7 +1494,7 @@ campaign_aim_result campaign_aim_animate (int weapon, int status, int on_ground,
 	return ask_once (&step);
 }
 
-campaign_impact_result campaign_aim_impact (int kill_code, int has_target, int target_alive, const float *position, campaign_impact_terrain_fn terrain, void *context)
+campaign_impact_result campaign_aim_impact (entity *target, int kill_code, int has_target, int target_alive, const float *position, campaign_impact_terrain_fn terrain, void *context)
 {
 	campaign_aim_step step;
 
@@ -1495,6 +1503,9 @@ campaign_impact_result campaign_aim_impact (int kill_code, int has_target, int t
 	memset (&step, 0, sizeof (step));
 
 	step.mode = CAMPAIGN_AIM_IMPACT;
+
+	// the weapon's target, if it has one, by its identity (the weapon itself is the campaign's projectile and has none)
+	campaign_aim_identify (&step, NULL, target);
 
 	step.impact.kill_code = kill_code;
 

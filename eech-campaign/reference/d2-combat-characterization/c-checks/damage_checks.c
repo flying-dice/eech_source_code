@@ -29,6 +29,11 @@ int rand16 (void) { draws_taken++; return next_sample; }
 float get_delta_time (void) { return 0.1f; }
 unsigned int get_system_time (void) { return 0; }
 const char *campaign_roster_host_id (entity *en) { return NULL; }
+
+/* the identity the stand-in gives the object a question is about (none unless a check sets it): the REAL campaign_aim_* helpers are asked about a subject and must carry it */
+static const char *subject_identity;
+static int subject_storage, use_subject;
+const char *campaign_object_identify (entity *en) { return en ? subject_identity : NULL; }
 int get_local_entity_index (entity *en) { return 0; }
 
 static campaign_aim_result scripted, last_result;
@@ -164,7 +169,7 @@ static int ask (int echo)
 		return 0;
 	}
 
-	last_result = campaign_aim_damage (54, &request, echo);
+	last_result = campaign_aim_damage (use_subject ? (entity *) &subject_storage : NULL, 54, &request, echo);
 
 	return 1;
 }
@@ -222,6 +227,33 @@ int main (void)
 	host_answers (-2147483647 - 1, 0, 80, 0, 0);
 	accepted = ask (0);
 	check (accepted, "and so is a capability of zero or less, which the original's arithmetic can give");
+
+	/* ---- the object that is hit: its identity crosses in the envelope (the REAL campaign_aim_damage is asked about a subject), none when it has none, a malformed one is refused before the host is asked */
+	a_hit ();
+	host_answers (7, 1, 73, 0, 0);
+	use_subject = 1;
+	subject_identity = "veh:7";
+	accepted = ask (0);
+	check (accepted && seen.mode == CAMPAIGN_AIM_DAMAGE && strcmp (seen.target_host_id, "veh:7") == 0 && seen.source_host_id[0] == '\0', "the identity of the object that is hit crosses as the target of the envelope, and the weapon has none");
+	subject_identity = NULL;
+	accepted = ask (0);
+	check (accepted && seen.target_host_id[0] == '\0', "an object with no identity carries none");
+	use_subject = 0;
+	subject_identity = "veh:7";
+	accepted = ask (0);
+	check (accepted && seen.target_host_id[0] == '\0', "a hit with no subject carries none whatever the registry holds");
+	{
+		static char big[200];
+
+		memset (big, 'x', sizeof (big) - 1);
+		use_subject = 1;
+		subject_identity = big;
+		host_calls = 0;
+		accepted = ask (0);
+		check (!accepted && refused_with ("longer than") && host_calls == 0, "an identity longer than the envelope holds is refused before the host is asked");
+		use_subject = 0;
+		subject_identity = NULL;
+	}
 
 	/* ---- the invulnerable player: stopped before the sample */
 	a_hit ();

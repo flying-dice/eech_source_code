@@ -10,12 +10,13 @@ root=${EECH_CHECKOUT:-/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DC
 cd "$root" || exit 2
 docker run --rm -v "$PWD:/src:ro" -w /tmp eech-build sh -c '
 R=/src/aphavoc/source/entity/mobile
+G=/src/aphavoc/source/entity/special/group
 C=/src/eech-campaign/reference/d2-combat-characterization/c-checks
 san="-fsanitize=address,undefined -fno-sanitize-recover=undefined"
 mkdir -p /tmp/m
-fresh() { cp "$R/mb_hostaim.c" "$R/mb_hostaim.h" "$R/mb_hostobj.c" "$R/mb_hostobj.h" /tmp/m/ || { echo "SETUP_FAILURE: cannot copy the sources"; exit 3; }; }
+fresh() { cp "$R/mb_hostaim.c" "$R/mb_hostaim.h" "$R/mb_hostobj.c" "$R/mb_hostobj.h" "$G/gp_rosterid.c" "$G/gp_roster.h" /tmp/m/ || { echo "SETUP_FAILURE: cannot copy the sources"; exit 3; }; }
 build_and_run() {
-    gcc -std=gnu99 -w $san -fno-pie -no-pie -I "$C/object-stub" -I /tmp/m -I /src/aphavoc/source -o /tmp/m/mutant "$C/object_checks.c" /tmp/m/mb_hostaim.c /tmp/m/mb_hostobj.c -lm > /tmp/m/compile.log 2>&1
+    gcc -std=gnu99 -w $san -fno-pie -no-pie -I "$C/object-stub" -I /tmp/m -I /src/aphavoc/source -o /tmp/m/mutant "$C/object_checks.c" /tmp/m/mb_hostaim.c /tmp/m/mb_hostobj.c /tmp/m/gp_rosterid.c -lm > /tmp/m/compile.log 2>&1
     COMPILE_RC=$?
     RUN_RC=-
     if [ "$COMPILE_RC" -ne 0 ]; then CLASS=BUILD_FAILURE; head -3 /tmp/m/compile.log; return; fi
@@ -38,7 +39,7 @@ mutate() {
     name=$1; file=$2; pattern=$3; replacement=$4
     fresh
     sed -i "s#$pattern#$replacement#" "/tmp/m/$file"
-    if cmp -s "$R/$file" "/tmp/m/$file"; then echo "MUTANT $name: PATTERN NOT FOUND (a failure)"; failed=$((failed+1)); return; fi
+    orig="$R/$file"; [ "$file" = gp_rosterid.c ] && orig="$G/$file"; if cmp -s "$orig" "/tmp/m/$file"; then echo "MUTANT $name: PATTERN NOT FOUND (a failure)"; failed=$((failed+1)); return; fi
     echo "== mutant: $name"
     build_and_run 60
     case "$CLASS" in
@@ -70,6 +71,11 @@ mutate stale_roster_identity mb_hostobj.c "case 2:" "case 3:"
 mutate identity_issued_once mb_hostobj.c "if (id)\$" "if (0)"
 mutate empty_report mb_hostobj.c "(!report->has_damage_level \&\& !report->destroyed)" "0"
 mutate identity_needs_a_body mb_hostaim.c "|| (id\[0\] == " "|| (0 \&\& id[0] == "
+mutate member_cannot_take_a_structure_identity gp_rosterid.c "if (campaign_object_id_ever_issued (host_id))" "if (0)"
+mutate member_cannot_take_a_member_identity gp_rosterid.c "if (roster_has (host_id))" "if (0)"
+mutate member_identity_is_utf8 gp_rosterid.c "if (!valid_utf8 ((const unsigned char \*) host_id, length))" "if (0)"
+mutate ever_issued_forgets_ended mb_hostobj.c "return find_record (host_id) >= 0;" "return find_record (host_id) >= 0 \&\& records[find_record (host_id)].entity_index >= 0;"
+mutate envelope_ignores_structures mb_hostaim.c "host_id = campaign_object_identify (en);" "host_id = campaign_roster_host_id (en);"
 setup_control cannot_compile BUILD_FAILURE 60 "#include \"project.h\"" "#include \"project.h\"\n#error a copy that cannot compile"
 setup_control never_ends TIMEOUT 5 "free (records);" "free (records); { volatile int spin = 1; while (spin) { } }"
 echo "CAUGHT=$caught FAILED=$failed SETUP_CONTROLS_AS_EXPECTED=$controls_ok SETUP_CONTROLS_WRONG=$controls_bad CONTROL_OK=$control_ok"

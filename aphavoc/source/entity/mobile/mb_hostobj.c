@@ -210,6 +210,11 @@ const char *campaign_object_host_id (struct ENTITY *en)
 	return campaign_roster_host_id (en);
 }
 
+int campaign_object_id_ever_issued (const char *host_id)
+{
+	return find_record (host_id) >= 0;
+}
+
 // an identity is text the campaign carries and never reads: printable, and not already an identity of this registry or of the roster (whatever incarnation it named)
 static void check_issued_identity (const char *id)
 {

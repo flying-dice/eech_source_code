@@ -106,3 +106,7 @@ withheld.
 The roster identifies the physical group members of the six mobile families. The structures a host must act on or report (sites, their updatables, city buildings, pylons, scenery, bridge segments) are identified by the
 same kind of opaque, host-issued, per-incarnation identity, asked of the host through the aim exchange (`CAMPAIGN_AIM_IDENTIFY`) and ended when the entity is released; a rostered mobile keeps the roster's identity and is
 never bound twice. See `m5-combat-extraction.md`, Step 6, for the contract, the report path (`engine:report_object`, `engine:structures()`) and the limits.
+
+The host's identities are ONE namespace that is never reused, in both directions: a structure may not take a roster member's identity (live or ended) and a member bound later may not take any identity ever
+issued for a structure (`gp_rosterid.c`, before the roster commits the binding). The common source/target envelope of the aim exchange, and the DAMAGE, HEALTH and IMPACT questions about a physical subject, carry
+the subject's identity (a rostered mobile's or a structure's).

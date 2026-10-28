@@ -85,11 +85,17 @@ if identity == "own" then
 end
 -- what the campaign asked the host while the case ran, by request mode (a bridge question by its op): the real handlers of a destroyed segment ask the host to decide the collapse, which is how a
 -- report is seen to have reached them
-local asked = {}
+local asked, named, named_chosen = {}, {}, {}
+local chosen_id = nil
 local issuer = aim
 aim = function (step)
 	local name = step.mode == "bridge" and ("bridge_" .. tostring (step.op)) or tostring (step.mode)
 	asked [name] = (asked [name] or 0) + 1
+	-- a question about a physical subject (a hit, a health fact, a weapon's death, a weapon step) carries the identity of the subject it is about: counted by mode, and whether it is the chosen structure's
+	if step.target_host_id ~= nil then
+		named [name] = (named [name] or 0) + 1
+		if step.target_host_id == chosen_id then named_chosen [name] = (named_chosen [name] or 0) + 1 end
+	end
 	return issuer (step)
 end
 
@@ -152,6 +158,7 @@ if chosen == nil then
 	print ("OBJECT_CASE_DONE")
 	return
 end
+chosen_id = chosen.host_id
 emit { event = "object_before", host_id = chosen.host_id, kind = chosen.kind, sub_type = chosen.sub_type, side = chosen.side, alive = chosen.alive, damage_level = chosen.damage_level,
 	initial_damage_level = chosen.initial_damage_level, x = chosen.position [1], y = chosen.position [2], z = chosen.position [3] }
 
@@ -179,6 +186,8 @@ emit { event = "object_summary", done = true, report = report, changed = changed
 
 local counts = { event = "object_aim_counts" }
 for name, count in pairs (asked) do counts ["asked_" .. name] = count end
+for name, count in pairs (named) do counts ["subject_id_" .. name] = count end
+for name, count in pairs (named_chosen) do counts ["subject_is_chosen_" .. name] = count end
 emit (counts)
 -- the control: a report the campaign must refuse.  It is the last step: a refusal poisons the engine
 if control ~= "none" then

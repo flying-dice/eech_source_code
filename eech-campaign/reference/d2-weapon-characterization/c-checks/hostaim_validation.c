@@ -22,6 +22,7 @@ int rand16 (void) { return 0; }
 float get_delta_time (void) { return 0.1f; }
 unsigned int get_system_time (void) { return 0; }
 const char *campaign_roster_host_id (entity *en) { return NULL; }
+const char *campaign_object_identify (entity *en) { return campaign_roster_host_id (en); }
 int get_local_entity_index (entity *en) { return 0; }
 
 static campaign_aim_result scripted;

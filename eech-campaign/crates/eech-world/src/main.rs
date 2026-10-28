@@ -2003,6 +2003,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         }
                     }
                     "damage" => {
+                        // the object that is hit, if it has an identity: the host's own, checked for shape only
+                        check_id("target_host_id")?;
                         // one hit that reached a damage handler (cmb.rs damage): everything by value, the campaign's one random sample asked for as a draw.  The answer is the whole of what
                         // the hit does: whether the invulnerability stopped it, the capability, whether and to what level the health is written, and the critical classes
                         let weapon = lua_i32(&step, "weapon").map_err(fail)?;
@@ -2076,6 +2078,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         }
                     }
                     "health" => {
+                        // the object whose health it is, if it has an identity: the host's own, checked for shape only
+                        check_id("target_host_id")?;
                         // a health fact that is not a hit (cmb.rs health): the critical class, what a change of health crosses, the frame's timed roll (its one random sample asked for
                         // as a draw, only by an eligible target) and the helicopter's refusal of its own hit
                         let op = match step.get::<LuaValue>("op")? {
@@ -2118,6 +2122,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         }
                     }
                     "impact" => {
+                        // the weapon's target, if it has an identity, is the host's own: checked for shape only
+                        check_id("target_host_id")?;
                         // what a weapon's death does to the world (cmb.rs impact): the plan for its kill code.  A land hit needs the terrain at the impact position, which the campaign reads
                         // on request; no other code asks for it
                         let kill_code = lua_i32(&step, "kill_code").map_err(fail)?;

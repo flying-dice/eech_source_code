@@ -410,7 +410,7 @@ int damage_client_server_entity_assess (entity *en, entity *weapon, float damage
 		CMB_FX_CAPABILITY_BEGIN ()
 	}
 
-	answer = campaign_aim_damage (weapon_type, &request, CMB_FX_DAMAGE_ECHO);
+	answer = campaign_aim_damage (en, weapon_type, &request, CMB_FX_DAMAGE_ECHO);
 
 	if (answer.damage.bad_modifier)
 	{

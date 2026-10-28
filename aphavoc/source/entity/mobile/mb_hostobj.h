@@ -72,6 +72,7 @@ typedef struct campaign_object_report_receipt
 
 typedef struct campaign_object_snapshot
 {
+	/* BORROWED from the registry: valid only inside the callback it is passed to (identifying the next structure may grow the registry and move it); the callback copies it */
 	const char *host_id;
 	int entity_type;
 	int sub_type;
@@ -92,6 +93,10 @@ const char *campaign_object_host_id (struct ENTITY *en);
 
 /* As above, but a structure that has none yet is identified now by asking the host (CAMPAIGN_AIM_IDENTIFY); NULL for an object that is not a structure or a rostered mobile */
 const char *campaign_object_identify (struct ENTITY *en);
+
+/* Whether the identity was ever issued for a structure, live or ended (never forgotten, like the roster's).  The host's identities are ONE namespace that is never reused: a group member bound later
+   may not take one (gp_rosterid.c, before the roster commits the binding), and a structure may not take a member's (campaign_object_identify). */
+int campaign_object_id_ever_issued (const char *host_id);
 
 /* the entity is released: its identity ends with it (called by set_free_entity) */
 void campaign_object_release_entity (struct ENTITY *en);

@@ -573,6 +573,7 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
         AimRequest::Damage(data) => {
             // one hit that reached a damage handler, everything by value; the sample of the campaign's stream is present once the host has asked for it
             table.set("mode", "damage").map_err(e)?;
+            aim_ids_into(&table, &None, &data.target_host_id)?;
             table.set("weapon", data.weapon).map_err(e)?;
             table.set("weapon_warhead", data.weapon_warhead).map_err(e)?;
             table.set("warhead", data.warhead).map_err(e)?;
@@ -610,6 +611,7 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
         AimRequest::Health(data) => {
             // a health fact that is not a hit, by value; the sample of the campaign's stream is present once a timed roll has asked for it
             table.set("mode", "health").map_err(e)?;
+            aim_ids_into(&table, &None, &data.target_host_id)?;
             table
                 .set(
                     "op",
@@ -638,6 +640,7 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
         AimRequest::Impact(data) => {
             // what a weapon's death does to the world: the kill code and the facts the dispatch reads, by value.  `terrain_draws_crater` is present once the host has asked for the terrain
             table.set("mode", "impact").map_err(e)?;
+            aim_ids_into(&table, &None, &data.target_host_id)?;
             table.set("kill_code", data.kill_code).map_err(e)?;
             table.set("has_target", data.has_target).map_err(e)?;
             table.set("target_alive", data.target_alive).map_err(e)?;
@@ -2404,12 +2407,13 @@ mod tests {
                 self_hit: false,
                 target_not_ai: false,
                 draw: Some(6553),
+                target_host_id: Some("veh:5".into()),
             })
         };
         let answering: LuaFunction = lua
             .load(
                 "return function(r) assert(r.mode == 'health' and r.op == 'timed' and r.critical_model == 1 and r.damage_level == 14 and r.initial_damage_level == 100 and r.explosive == true \
-                 and r.flammable == false and r.delta_time == 0.5 and r.draw == 6553 and r.self_hit == false)
+                 and r.flammable == false and r.delta_time == 0.5 and r.draw == 6553 and r.self_hit == false and r.target_host_id == 'veh:5')
                  return { state = 'done', critical_class = 1, crossed = false, recovered = false, eject = false, eligible = true, rolled = true, hit = true, new_level = 13, fatal = false } end",
             )
             .eval()?;
@@ -2458,11 +2462,12 @@ mod tests {
                 target_alive: false,
                 terrain_draws_crater: terrain,
                 position: [250.0, 12.0, 750.0],
+                target_host_id: Some("site:9".into()),
             })
         };
         let planning: LuaFunction = lua
             .load(
-                "return function(r) assert(r.mode == 'impact' and r.kill_code == 3 and r.has_target == true and r.target_alive == false and r.position[1] == 250 and r.position[3] == 750)
+                "return function(r) assert(r.mode == 'impact' and r.kill_code == 3 and r.has_target == true and r.target_alive == false and r.position[1] == 250 and r.position[3] == 750 and r.target_host_id == 'site:9')
                  if r.terrain_draws_crater == nil then return { state = 'need_lookup', need = 'terrain' } end
                  assert(r.terrain_draws_crater == true)
                  return { state = 'done', invalid = false, crater = true, direct_hit = false, blasts = 2, exclude_target = false } end",
