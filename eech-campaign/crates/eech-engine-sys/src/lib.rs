@@ -1114,7 +1114,15 @@ extern "C" {
 #[cfg(feature = "weapon-fixture")]
 extern "C" {
     pub fn eech_engine_cmb_trace(text: *mut c_char, capacity: c_int) -> c_int;
-    pub fn eech_engine_cmb_case_state(op: c_int, kind: *const c_char, ordinal: c_int, percent: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_cmb_case_state(
+        op: c_int,
+        kind: *const c_char,
+        ordinal: c_int,
+        percent: c_int,
+        text: *mut c_char,
+        capacity: c_int,
+        host: *const eech_engine_host,
+    ) -> c_int;
     pub fn eech_engine_cmb_case_act(
         op: c_int,
         kind: *const c_char,

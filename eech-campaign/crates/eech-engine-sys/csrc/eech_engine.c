@@ -1276,11 +1276,12 @@ extern int eech_wpn_case_query_run (const char *host_id, int weapon, char *text,
 extern int eech_wpn_case_kind_run (const char *host_id, char *text, int capacity);
 extern int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, int weapon, int salvo_count, char *text, int capacity);
 
-int eech_engine_cmb_case_state (int op, const char *kind, int ordinal, int percent, char *text, int capacity)
+int eech_engine_cmb_case_state (int op, const char *kind, int ordinal, int percent, char *text, int capacity, const struct eech_engine_host *host)
 {
 	int rc;
 
-	ENTER (OPERATION_OBSERVE, NULL);
+	/* the health case sets a health through the campaign's own setter and asks the critical predicate, both physical questions the host answers: it runs in the host's scope */
+	ENTER (OPERATION_OBSERVE, host);
 	if (state != ENGINE_RUNNING)
 	{
 		LEAVE (EECH_ENGINE_STATE);

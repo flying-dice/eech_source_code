@@ -256,3 +256,31 @@ and restoration quantities (they set health through their own writers; the class
   is replaced by `bad_health_classify_draw` (a pure question asking for the sample) and `bad_health_second_draw`; `critical_late` changes the DAMAGE critical classes too; the kernel header no longer says
   the timed rolls remain unmoved. Unavailable natively and explicit: a helicopter's own hit, a fatal anti-aircraft TIMED fire, a player's health, the multiplayer multiplier and the easy-difficulty armour; the
   five fatal anti-aircraft COLLISIONS of the retained natural 600 are covered.
+
+## Correction of the controlled-fixture callback scope (after `366d55914`, found by the first native controlled run of the timed candidate)
+
+The unchanged controlled script's first native run of the timed candidate (fixture 15922, run 86637, exit 1) stopped in its first health case, `timed_health_PERSON_declared_unreachable`, with the strict
+guard's own message: `host aim: a health request needs a host aim callback`. The cause is the test-only entry, not the guard and not the campaign: `eech_engine_cmb_case_state` entered the engine with NO
+host (`ENTER (OPERATION_OBSERVE, NULL)`), but its health case sets a health through the campaign's own setter and asks `vehicle_critically_damaged`, which since step 3 are host questions. Before step 3
+those were local reads, so the host-less scope had been enough (the original-behaviour controlled run completed with it). The later `cmb_trace` failure of that run is secondary: the first fatal poisoned the
+engine.
+
+* **Fixed at the boundary.** `eech_engine_cmb_case_state` now takes the complete host, as `eech_engine_cmb_case_act` and every frame already do (C entry, header, `-sys` declaration, `Engine::cmb_case_state`
+  generic over the seven callbacks, the DC module binding the same cloned callbacks). The host is bound and unbound by the same `ENTER`/`LEAVE` (including the fatal unwinding path), so the borrow, reentrancy and cleanup rules are
+  the ones every other host-scoped operation has; Rust callers can no longer enter the case without a host, because the method's signature requires one. The census (op 0) asks nothing and is unaffected.
+* **Not weakened.** The campaign's missing-host guard is unchanged (a health request with no callback still stops the engine); no private solver is called; no DLL eligibility veto is restored; PERSON is not
+  skipped (the reference host answers its class, and a person is never critical in the source, which the report says); the getter is not bypassed in Lua; the scenario, the observers and the accepted original are
+  untouched. The host that answers is the one the script already registers (`host.aim`), so a generic host supplies its own physical answers here as everywhere.
+* **Audit of the other fixture entries.** Every other host-less test-only entry (`cmb_trace`, `cmb_events`, `wpn_trace`, `wpn_events`, `wpn_case_query`, `wpn_case_kind`, the sensor, LOS and aim traces and
+  `aim_person_query`) was checked in source: none calls a health setter, a critical predicate, a forecast or a damage function (the only fixture-side callers of those are `eech_cmb_case_health_run`, in this
+  entry, and the collision wrapper, which runs inside host-scoped operations). The collide and blast entries (`cmb_case_act`) already had the host.
+* **Equivalence for unaffected witnesses.** Every changed line is under `#ifdef EECH_WEAPON_FIXTURE` (the C entry, the header declaration and the case driver's comment) or `#[cfg(feature = "weapon-fixture")]` (the
+  `-sys` declaration, the engine method and the DC binding). A shipping or non-fixture build therefore compiles to the same module as `366d55914` (no executable line outside the fixture gate changed), and a
+  fixture build differs only in the one test-only entry that was failing; the default frame path, the sample sequence, the observer hooks and the campaign sources are not touched. Natives that are in flight on
+  the frozen `366d55914` builds (the natural 600 and the 900 control, which never call `cmb_case_state`) therefore remain valid witnesses of their own code; they are not repeated here, and root decides what
+  is reused.
+* **Evidence.** The RED is the retained native failure (`out/timed-controlled-01` under the private evidence root: `ACTUAL 1`, first primary error above, 363,281-byte incomplete trace, never a pass). The
+  corrected GREEN needs the same unchanged controlled script on a fresh input root and a clean corrected fixture build, which are root-owned; nothing native was run or built here. Source checks: `cargo fmt --all
+  --check` exit 0 (`checks/fmt-c3.log`; the first check, which only found the layout of the new binding, is retained as `fmt-c3-failed-first.log`), Clippy default and with `eech-dc/weapon-fixture` over all targets with
+  `-D warnings`, exit 0 (`checks/clippy-c3-*.log`). No sociable bridge test can exercise this scope without a native build, because the defect is in the native engine entry; the caller-level stand-in
+  (`host_callbacks.rs`) replaces the engine and could not have caught it, and no mock was added that would pretend to.

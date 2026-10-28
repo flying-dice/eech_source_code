@@ -115,3 +115,6 @@ headers lacked the new declarations, retained) and strict feature-off preprocess
 
 Correction of `d6c878c7d` (timed eligibility is the host's): `checks/health-checks-red-c2.log` (the new controls against the previous draw gate: 8 failures, exit 1), `checks/health-checks-c2-*.log` (59 checks), the Rust,
 Clippy, syntax and preprocess records of the correction (`*-c2-*`). Nothing native was run.
+
+Controlled-fixture callback scope (after `366d55914`): `eech_engine_cmb_case_state` (health case) now runs in the complete host scope; `checks/fmt-c3*.log`, `checks/clippy-c3-*.log`. The native RED is root's
+`out/timed-controlled-01`; nothing native was run here (see `docs/m5-combat-extraction.md`).

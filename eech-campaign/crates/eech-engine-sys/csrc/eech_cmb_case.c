@@ -369,7 +369,9 @@ int eech_cmb_case_census_run (char *text, int capacity)
    ship vehicle.  The original predicate is `100 * damage_level / initial_damage_level < VEHICLE_CRITICAL_DAMAGE_LEVEL (15)` in integer arithmetic and is FALSE for a person whatever
    its health, so a person's bleeding roll cannot be reached from any health: this driver reports that and changes nothing.  A fire roll also needs an explosive or flammable
    vehicle type.  The driver sets the health through the campaign's own setter, asks the ORIGINAL predicate whether the vehicle is now critical, and puts the health back (and says
-   so) if it is not: it never edits the predicate and never claims a roll that cannot run. */
+   so) if it is not: it never edits the predicate and never claims a roll that cannot run.
+   The setter's threshold assessment and the critical predicate are physical questions the HOST answers (EEDCS-46), so this driver runs in the host's scope: eech_engine_cmb_case_state is
+   given the same complete host as a frame (the census, which asks nothing, runs in it too). */
 int eech_cmb_case_health_run (const char *kind, int ordinal, int percent, char *text, int capacity)
 {
 	int type = kind_by_name (kind), live, initial, before, level, quality, critical;

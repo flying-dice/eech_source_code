@@ -4210,13 +4210,46 @@ impl Engine {
     }
 
     /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): a controlled combat case that launches nothing (op 0 the census of living entities per health-bearing kind; op 1 the
-    /// `ordinal`-th living entity of `kind` set to `percent` of its initial health), as `key=value` text.
+    /// `ordinal`-th living entity of `kind` set to `percent` of its initial health), as `key=value` text. Given the same complete host as a frame: the health case sets a health
+    /// through the campaign's own setter and asks the critical predicate, and the host answers both (the physical health facts are the host's since EEDCS-46).
     #[cfg(feature = "weapon-fixture")]
-    pub fn cmb_case_state(&self, op: i32, kind: &str, ordinal: i32, percent: i32) -> Result<String, EngineError> {
+    #[allow(clippy::too_many_arguments)]
+    pub fn cmb_case_state<F, G, H, M, L, D, A>(
+        &self,
+        op: i32,
+        kind: &str,
+        ordinal: i32,
+        percent: i32,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
+        sense_fn: &mut D,
+        aim_fn: &mut A,
+    ) -> Result<String, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
+        D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
+    {
         let kind = std::ffi::CString::new(kind).map_err(|_| EngineError::BadArgument("a kind contains a NUL byte".into()))?;
         let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
-        // SAFETY: the string and the buffer outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
-        let status = check(unsafe { sys::eech_engine_cmb_case_state(op, kind.as_ptr(), ordinal, percent, text.as_mut_ptr(), text.len() as i32) });
+        // SAFETY: the string, the buffer and the temporary host callback outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        let status = with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            sense_fn,
+            aim_fn,
+            |host| unsafe { sys::eech_engine_cmb_case_state(op, kind.as_ptr(), ordinal, percent, text.as_mut_ptr(), text.len() as i32, host) },
+        );
         keep_case_reason(status, &text)
     }
 
