@@ -1,5 +1,13 @@
 # D2 combat-resolution characterization evidence (EEDCS-46)
 
+Later runtime investigation: an empty ASAN program reproduced the diagnostic flood
+independently of observer code; test-only non-PIE completed8/8. The bounded
+non-PIE real-observer guard then passed24 checks. See
+[probe evidence and retention limits](c-checks/runtime-probe/README.md). The first
+full flood log was not retained, and its identical cause is not asserted. No
+shipping flags or campaign data changed. Source correction review and native
+observational-equivalence gates remain separate.
+
 Source checks of the read-only combat observer (design: [`docs/m5-combat-characterization.md`](../../docs/m5-combat-characterization.md)). These are NOT native results.
 
 * `checks/syntax-check-46-4.log`: the twelve edited game sources, the observer and the engine glue, compiled for syntax and warnings with and without the fixture macro against the staged headers of the Task45 clean build with this branch's headers laid over them (a subset of the engine: `init.c` and the other callers are not in it).
