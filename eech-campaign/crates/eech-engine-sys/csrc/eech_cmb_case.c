@@ -208,17 +208,40 @@ static int retire_all_new (entity *launcher, entity *const *snapshot, int count)
 	}
 }
 
+/* the text of a launch result with every run of white space turned into a bar, so that it is one word in a key=value report */
+static void one_word (const char *from, char *to, int capacity)
+{
+	int i = 0;
+
+	for (; *from && i < capacity - 1; from++)
+	{
+		to[i++] = (*from == ' ' || *from == '\n' || *from == '\t') ? '|' : *from;
+	}
+
+	while (i > 0 && to[i - 1] == '|')
+	{
+		i--;
+	}
+
+	to[i] = 0;
+}
+
 /* launches one weapon from the host-identified launcher through the Task45 case launch (the campaign's own launch call, which asks the host for the birth) and returns the
    weapons it created, found as the launcher's launched-weapon children that were not there before.  FAIL CLOSED: a launcher that already has more children than the snapshot
    holds is refused BEFORE the launch (the new weapons could not be told from the old); a launch that creates more weapons than the table holds retires every one of them (all
-   provably new) and is reported as an error with the counts */
-static int launch_new (const char *launcher_id, int weapon, entity **created, char *text, int capacity)
+   provably new) and is reported as an error with the counts.
+   RETURNS: n > 0 the weapons created; 0 when the campaign REFUSED the launch or created nothing (no ammunition, the release gate's rate of fire, a launcher that is no longer
+   alive): that is a result of the campaign, not an argument error, so it is DATA, and `detail` holds the launch result (the Task45 text with the counts before and after, or the
+   reason it gave) as one word; -1 for an error of the case itself (`text` holds it).  `detail` is also filled when weapons were created. */
+static int launch_new (const char *launcher_id, int weapon, entity **created, char *detail, int detail_capacity, char *text, int capacity)
 {
 	entity *launcher = find_by_host_id (launcher_id);
 	entity *before[CHILD_MAX];
 	entity *w;
 	int before_count = 0, existing, made = 0, total_new = 0;
 	char launch_text[512];
+
+	detail[0] = 0;
 
 	if (!launcher)
 	{
@@ -241,8 +264,12 @@ static int launch_new (const char *launcher_id, int weapon, entity **created, ch
 
 	if (eech_wpn_case_launch_run (launcher_id, "", weapon, 1, launch_text, (int) sizeof (launch_text)) != 0)
 	{
-		return case_error (text, capacity, "launch_refused", launch_text);
+		one_word (launch_text, detail, detail_capacity);
+
+		return 0;
 	}
+
+	one_word (launch_text, detail, detail_capacity);
 
 	for (w = get_local_entity_first_child (launcher, LIST_TYPE_LAUNCHED_WEAPON); w; w = get_local_entity_child_succ (w, LIST_TYPE_LAUNCHED_WEAPON))
 	{
@@ -264,11 +291,6 @@ static int launch_new (const char *launcher_id, int weapon, entity **created, ch
 		snprintf (launch_text, sizeof (launch_text), "created=%d limit=%d retired_new=%d unrelated_retired=0", total_new, CHILD_MAX, retired);
 
 		return case_error (text, capacity, "launch_created_more_weapons_than_the_table_holds", launch_text);
-	}
-
-	if (!made)
-	{
-		return case_error (text, capacity, "launch_created_no_weapon", launch_text);
 	}
 
 	return made;
@@ -395,6 +417,7 @@ int eech_cmb_case_collide_run (const char *kind, int ordinal, const char *launch
 {
 	int type = kind_by_name (kind), live, made = 0, i, level_before, alive_before;
 	entity *receiver, *created[CHILD_MAX], *sender = NULL;
+	char detail[256];
 
 	text[0] = 0;
 
@@ -417,13 +440,24 @@ int eech_cmb_case_collide_run (const char *kind, int ordinal, const char *launch
 		return 0;
 	}
 
+	detail[0] = 0;
+
 	if (!weaponless)
 	{
-		made = launch_new (launcher_id, weapon, created, text, capacity);
+		made = launch_new (launcher_id, weapon, created, detail, (int) sizeof (detail), text, capacity);
 
 		if (made < 0)
 		{
 			return -1;
+		}
+
+		if (made == 0)
+		{
+			/* the campaign refused the launch or created nothing: the case is NOT done, and the reason is the result */
+			snprintf (text, (size_t) capacity, "cmb-case-collide kind=%s ordinal=%d live=%d found=1 weapon=%d weaponless=0 launched=0 refused=1 modifier=%.9g launch=%s\n", kind, ordinal, live, weapon,
+				modifier, detail);
+
+			return 0;
 		}
 
 		sender = created[0];
@@ -451,8 +485,8 @@ int eech_cmb_case_collide_run (const char *kind, int ordinal, const char *launch
 		retire (created[i]);
 	}
 
-	snprintf (text, (size_t) capacity, "cmb-case-collide kind=%s ordinal=%d live=%d found=1 weapon=%d weaponless=%d launched=%d modifier=%.9g level_before=%d alive_before=%d\n", kind, ordinal, live,
-		weapon, weaponless ? 1 : 0, made, modifier, level_before, alive_before);
+	snprintf (text, (size_t) capacity, "cmb-case-collide kind=%s ordinal=%d live=%d found=1 weapon=%d weaponless=%d launched=%d refused=0 modifier=%.9g level_before=%d alive_before=%d launch=%s\n", kind,
+		ordinal, live, weapon, weaponless ? 1 : 0, made, modifier, level_before, alive_before, detail[0] ? detail : "none");
 
 	return 0;
 }
@@ -462,6 +496,7 @@ int eech_cmb_case_blast_run (const char *kind, int ordinal, double offset, int k
 	int type = kind_by_name (kind), live, made, i, capability;
 	entity *receiver, *created[CHILD_MAX], *exploder;
 	vec3d position;
+	char detail[256];
 
 	text[0] = 0;
 
@@ -499,11 +534,20 @@ int eech_cmb_case_blast_run (const char *kind, int ordinal, double offset, int k
 		return 0;
 	}
 
-	made = launch_new (launcher_id, weapon, created, text, capacity);
+	made = launch_new (launcher_id, weapon, created, detail, (int) sizeof (detail), text, capacity);
 
 	if (made < 0)
 	{
 		return -1;
+	}
+
+	if (made == 0)
+	{
+		/* the campaign refused the launch or created nothing: the case is NOT done (the placement was valid), and the reason is the result */
+		snprintf (text, (size_t) capacity, "cmb-case-blast kind=%s ordinal=%d live=%d found=1 placed=1 weapon=%d kill_code=%d offset=%.9g launched=0 refused=1 launch=%s\n", kind, ordinal, live, weapon,
+			kill_code, offset, detail);
+
+		return 0;
 	}
 
 	exploder = created[0];
@@ -530,8 +574,8 @@ int eech_cmb_case_blast_run (const char *kind, int ordinal, double offset, int k
 
 	destroy_client_server_entity_family (exploder);
 
-	snprintf (text, (size_t) capacity, "cmb-case-blast kind=%s ordinal=%d live=%d found=1 placed=1 weapon=%d kill_code=%d offset=%.9g capability=%d launched=%d\n", kind, ordinal, live, weapon, kill_code,
-		offset, capability, made);
+	snprintf (text, (size_t) capacity, "cmb-case-blast kind=%s ordinal=%d live=%d found=1 placed=1 weapon=%d kill_code=%d offset=%.9g capability=%d launched=%d refused=0 launch=%s\n", kind, ordinal, live,
+		weapon, kill_code, offset, capability, made, detail[0] ? detail : "none");
 
 	return 0;
 }

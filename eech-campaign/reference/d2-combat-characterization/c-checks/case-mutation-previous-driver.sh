@@ -1,5 +1,5 @@
 #!/bin/sh
-# usage (inside EECH-D2-Build): case-mutation-previous-driver.sh <logfile>: the SAME case_checks.c against the PREVIOUS controlled-case driver (commit 450ecf60a, read from git), compiled and
+# usage (inside EECH-D2-Build): case-mutation-previous-driver.sh <logfile>: the SAME case_checks.c against a PREVIOUS controlled-case driver (default commit 450ecf60a, or the commit in EECH_PREVIOUS_DRIVER_COMMIT; read from git), compiled and
 # run with the test-only flags of run-case-checks.sh.  Expected: the checks FAIL and the old off-map position aborts, so the helper returns a NONZERO status (the mutant's own); a
 # control, never a product build.
 # Status honesty (the pattern of run-observer-checks.sh at f5430bf1e): the compile status is captured and logged and the run is SKIPPED when it is nonzero; the container's status
@@ -12,7 +12,7 @@ root=${EECH_CHECKOUT:-/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DC
 cd "$root" || exit 2
 prev=$(mktemp -d) || exit 2
 trap 'rm -rf "$prev"' EXIT
-if ! git show 450ecf60a:eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_case.c > "$prev/eech_cmb_case.c"; then
+if ! git show "${EECH_PREVIOUS_DRIVER_COMMIT:-450ecf60a}:eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_case.c" > "$prev/eech_cmb_case.c"; then
 	echo "PREVIOUS_DRIVER_NOT_READABLE" > "$log"
 	echo "DOCKER_EXIT=2" >> "$log"
 	exit 2

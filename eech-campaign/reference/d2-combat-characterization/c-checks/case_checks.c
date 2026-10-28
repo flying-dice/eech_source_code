@@ -382,7 +382,39 @@ int main (void)
 	add (2, ENTITY_TYPE_ROUTED_VEHICLE, 10, 10, 0);
 	launch_fail = 1;
 	rc = eech_cmb_case_collide_run ("ROUTED_VEHICLE", 0, "L1", 5, 0.0, 0, text, sizeof (text));
-	check(rc == -1 && strstr (text, "launch_refused") && notifies == 0 && destroys == 0, "a refused launch is an explicit error and nothing is delivered or retired");
+	check(rc == 0 && strstr (text, "launched=0") && strstr (text, "refused=1") && strstr (text, "found=1") && strstr (text, "launch=wpn-case-error|reason=refused"), "a launch the campaign refuses is DATA with its reason (not an argument error that discards it): not done, refused=1, the launch text kept as one word");
+	check(notifies == 0 && destroys == 0, "and nothing is delivered or retired");
+
+	/* a launch that returns normally but creates no weapon (no ammunition, the release gate, a launcher that is no longer alive) is the same: data, with the launch text and its counts */
+	reset_world ();
+	launcher_with (0);
+	add (2, ENTITY_TYPE_ROUTED_VEHICLE, 10, 10, 0);
+	launch_creates = 0;
+	rc = eech_cmb_case_collide_run ("ROUTED_VEHICLE", 0, "L1", 5, 0.5, 0, text, sizeof (text));
+	check(rc == 0 && strstr (text, "launched=0") && strstr (text, "refused=1") && strstr (text, "launch=wpn-case-launch|ok") && notifies == 0 && destroys == 0, "a launch that creates no weapon is data too, with the launch text, and delivers and retires nothing");
+
+	/* a refused launch for a blast: the placement was valid, the case is not done, and the reason is the result; nothing is exploded or destroyed */
+	reset_world ();
+	launcher_with (0);
+	add (2, ENTITY_TYPE_CITY_BUILDING, 10, 10, 0);
+	launch_fail = 1;
+	rc = eech_cmb_case_blast_run ("CITY_BUILDING", 0, 5.0, WEAPON_KILL_CODE_HIT_LAND, "L1", 5, text, sizeof (text));
+	check(rc == 0 && strstr (text, "placed=1") && strstr (text, "launched=0") && strstr (text, "refused=1") && strstr (text, "launch=wpn-case-error|reason=refused") && effects == 0 && destroys == 0 && sets == 0, "a refused launch for a blast is data: placed, not launched, refused with its reason; nothing exploded, destroyed or set");
+
+	reset_world ();
+	launcher_with (0);
+	add (2, ENTITY_TYPE_CITY_BUILDING, 10, 10, 0);
+	launch_creates = 0;
+	rc = eech_cmb_case_blast_run ("CITY_BUILDING", 0, 5.0, WEAPON_KILL_CODE_HIT_LAND, "L1", 5, text, sizeof (text));
+	check(rc == 0 && strstr (text, "launched=0") && strstr (text, "refused=1") && effects == 0 && destroys == 0, "a launch that creates no weapon for a blast is data too");
+
+	/* a launch that works says so, with the launch text */
+	reset_world ();
+	launcher_with (0);
+	add (2, ENTITY_TYPE_ROUTED_VEHICLE, 10, 10, 0);
+	launch_creates = 1;
+	rc = eech_cmb_case_collide_run ("ROUTED_VEHICLE", 0, "L1", 5, 0.0, 0, text, sizeof (text));
+	check(rc == 0 && strstr (text, "launched=1") && strstr (text, "refused=0") && strstr (text, "launch=wpn-case-launch|ok"), "a launch that works reports refused=0 and the launch text");
 
 	reset_world ();
 	add (2, ENTITY_TYPE_ROUTED_VEHICLE, 10, 10, 0);

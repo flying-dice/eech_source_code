@@ -53,6 +53,20 @@ fn check(code: c_int) -> Result<(), EngineError> {
     }
 }
 
+/// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the report text of a controlled combat case when the engine rejected its arguments. The case driver writes its reason
+/// (`cmb-case-error reason=... detail=...`) into the report buffer before it returns the argument error, and `check` turns every argument error into "rejected by the engine";
+/// this keeps the reason instead of discarding it. Any other failure, and a rejection that wrote nothing, is unchanged.
+#[cfg(feature = "weapon-fixture")]
+fn keep_case_reason(status: Result<(), EngineError>, text: &[std::os::raw::c_char]) -> Result<String, EngineError> {
+    // SAFETY: the buffer was zero-filled and the engine NUL-terminates anything it writes within it.
+    let report = unsafe { CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned();
+    match status {
+        Ok(()) => Ok(report),
+        Err(EngineError::BadArgument(_)) if !report.trim().is_empty() => Err(EngineError::BadArgument(report.trim().to_string())),
+        Err(error) => Err(error),
+    }
+}
+
 fn cstring(s: &str) -> Result<CString, EngineError> {
     CString::new(s).map_err(|_| EngineError::BadArgument(format!("{s:?} contains NUL")))
 }
@@ -3943,9 +3957,8 @@ impl Engine {
         let kind = std::ffi::CString::new(kind).map_err(|_| EngineError::BadArgument("a kind contains a NUL byte".into()))?;
         let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
         // SAFETY: the string and the buffer outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
-        check(unsafe { sys::eech_engine_cmb_case_state(op, kind.as_ptr(), ordinal, percent, text.as_mut_ptr(), text.len() as i32) })?;
-        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
-        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+        let status = check(unsafe { sys::eech_engine_cmb_case_state(op, kind.as_ptr(), ordinal, percent, text.as_mut_ptr(), text.len() as i32) });
+        keep_case_reason(status, &text)
     }
 
     /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): a controlled combat case that launches a real weapon through the campaign's own launch call (op 1: the `ordinal`-th living
@@ -3984,7 +3997,7 @@ impl Engine {
         let launcher_id = std::ffi::CString::new(launcher_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
         let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
         // SAFETY: the strings, the buffer and the temporary host callback outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
-        with_host(
+        let status = with_host(
             bind_mobile_fn,
             observe_loss_fn,
             supply_reached_fn,
@@ -4007,9 +4020,8 @@ impl Engine {
                     host,
                 )
             },
-        )?;
-        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
-        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+        );
+        keep_case_reason(status, &text)
     }
 
     /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): drains the ordered combat event log (collisions, blasts, repairs) from the cursor and returns every event not yet returned,

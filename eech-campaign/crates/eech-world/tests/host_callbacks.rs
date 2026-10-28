@@ -779,3 +779,51 @@ fn the_case_deltas_keep_every_indexed_report_row_apart() {
     assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
     assert!(stdout.contains("COMBAT_COUNTERS=ok"), "{stdout}\n{stderr}");
 }
+
+// The controlled witness spends its carrier's ammunition (a launch per case), and the first controlled original run took the FIRST launcher carrying each class whatever it held: the
+// high-explosive carrier launched six weapons and was then refused thirteen times. The test loads the SAME carrier choice the witness uses (lua/combat-plan.lua) with a synthetic
+// inventory shaped like the measured one (first carrier of the class holds six, a later one holds plenty).
+const COMBAT_PLAN_SCRIPT: &str = r#"
+local planning = dofile('@LUA_DIR@/combat-plan.lua')
+local function he(w) return w == 4 end
+local launchers = {
+  { id = 'eech-world:2690', inventory = { { weapon = 54, count = 6, warhead = 4 } } },
+  { id = 'eech-world:2700', inventory = { { weapon = 11, count = 2, warhead = 1 }, { weapon = 54, count = 40, warhead = 4 } } },
+  { id = 'eech-world:2784', inventory = { { weapon = 76, count = 12, warhead = 1 } } },
+}
+-- the plan: a direct hit and a blast-range collision per living kind, a land-hit explosion per kind and one hit on target
+assert(planning.need(0) == 0 and planning.need(1) == 4 and planning.need(7) == 22, 'need ' .. planning.need(7))
+-- a carrier that cannot afford the plan is passed over, even though it is first
+local id, weapon, warhead, count, shortfall = planning.choose(launchers, he, planning.need(7))
+assert(id == 'eech-world:2700' and weapon == 54 and warhead == 4 and count == 40 and shortfall == 0, 'the first affordable carrier: ' .. tostring(id) .. ' ' .. tostring(count))
+-- when the first one does afford it, it is kept (the choice is stable, in launcher order)
+id, weapon, _, count, shortfall = planning.choose(launchers, he, 6)
+assert(id == 'eech-world:2690' and count == 6 and shortfall == 0, 'the first carrier that affords the plan is kept')
+-- when none affords it, the one with the most ammunition is taken and the shortfall is reported, not hidden
+id, weapon, _, count, shortfall = planning.choose(launchers, he, 100)
+assert(id == 'eech-world:2700' and count == 40 and shortfall == 60, 'the richest carrier with the shortfall: ' .. tostring(shortfall))
+-- a class nobody carries is nothing
+assert(planning.choose(launchers, function(w) return w == 7 end, 4) == nil, 'no carrier for a class nobody holds')
+-- the solid class is chosen by its own warhead, and a carrier that holds both is read per weapon
+id, weapon, warhead, count, shortfall = planning.choose(launchers, function(w) return w == 1 end, 12)
+assert(id == 'eech-world:2784' and weapon == 76 and count == 12 and shortfall == 0)
+print('COMBAT_PLAN=ok')
+"#;
+
+#[test]
+fn the_case_carrier_is_one_that_can_afford_the_plan() {
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\\', "/");
+    let script = std::env::temp_dir().join(format!("eech-world-combat-plan-{}.lua", std::process::id()));
+    std::fs::write(&script, COMBAT_PLAN_SCRIPT.replace("@LUA_DIR@", &lua_dir)).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("COMBAT_PLAN=ok"), "{stdout}\n{stderr}");
+}
