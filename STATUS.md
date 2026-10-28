@@ -1,8 +1,10 @@
-# D2 — EEDCS-44 aiming/readiness full validation
+# D2 — EEDCS-44 aiming/readiness delivery validation
 
-This checkout remains on Task44/PR103 for final evidence and delivery. The sole coding lane is Task45 characterization in the main checkout; no second implementation lane.
+This checkout remains on Task44/PR103 for final evidence and delivery. The sole coding lane is Task45 weapon-execution implementation and validation in the main checkout; no second implementation lane.
 
-Authority: live M5 goal11534337v3 and migration ledger14548994v38, verified27Oct19:47UTC. D2 moves physical sensing/visibility, aiming/weapon execution and combat resolution/factual reports. Campaign decisions and consequences stay in EECH_DC. D3 has not started.
+Authority: live M5 goal11534337v3 and migration ledger14548994v40, reread28Oct. D2 moves physical sensing/visibility, aiming/weapon execution and combat resolution/factual reports. Campaign decisions and consequences stay in EECH_DC. D3 has not started. Root owns normal merges and Jira/Confluence delivery under the user's authorization; all five ledger reports are preserved.
+
+28Oct final-pack checkpoint: original runner completed02:00:52UTC with actual exit0; launcher80926 also exited0. All40 accepted checks pass. The independent full-file comparator exited0: all8 complete Tacview/observation/metrics artifacts equal the verified destination baseline byte for byte. All3 post-run retail manifests match, all30 exported build hashes match, and frozen source/build/accepted-report identity remains unchanged. Safe copied evidence is in eech-campaign/reference/d2-aim-extraction/final-pack. No recovery, native restart, baseline change or tolerance change was needed. The same independent reviewer is checking only the new final proof. Current evidence-commit CI and normal merge remain gates; Task44 is not yet delivered. This paragraph supersedes the older running-pack status below.
 
 ## Accepted increments
 

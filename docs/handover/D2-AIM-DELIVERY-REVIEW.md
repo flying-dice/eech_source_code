@@ -58,8 +58,17 @@ not relabelled. One author CLI was intentionally interrupted to deliver blocking
 review feedback after checking its identity and that no native was running; no
 native or valid build was stopped, and no quota/timeout failure is implied.
 
-Final full-pack evidence must use the lead's frozen ordinary52206fef3 source and
-state actual exits, all40 established checks, all8 complete file comparisons and
-all3 post-input manifests. Accepted baselines/tolerances remain unchanged.
+Final full-pack evidence now uses the lead's frozen clean ordinary52206fef3 source.
+The original runner completed28Oct02:00:52UTC with actual exit0; launcher80926
+also exited0. All40 accepted checks pass; the independent comparator exited0 and
+all8 complete artifacts match the verified baseline byte for byte. All3 post-input
+manifests and all30 build hashes match, and source/build/accepted-report identities
+remain unchanged. No recovery or native restart was needed. The safe final evidence
+and exact copy hashes are in reference/d2-aim-extraction/final-pack; full private
+outputs are preserved. The same independent Codex reviewer closed the new final
+proof with no findings after rehashing all8 artifacts, all23 public copies and
+all30 exports, and checking actual exits/exact40/post3/source identity. Its record
+is final-pack/independent-review.json. Current evidence-commit CI and normal merge
+remain delivery gates. Accepted baselines/tolerances remain unchanged.
 Weapon execution and combat resolution/reports remain D2 after this task; terrain,
 model lookups, entity mirrors, shared RNG, effects and sound remain declared coupling.

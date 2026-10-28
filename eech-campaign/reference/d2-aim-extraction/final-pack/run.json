@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "pid": 25444,
+  "when_utc": "2026-10-28T02:00:52.464211+00:00",
+  "native_cwd": "R:\\d2-evidence\\candidate-pack-aiming-52206fef3",
+  "runner": "R:\\d2-evidence\\shipping-source-d2-aiming-52206fef3\\eech-campaign\\tools\\regression-pack.py",
+  "arguments": [
+    "--georgia",
+    "R:\\d2-evidence\\candidate-roots-d2-aiming\\georgia",
+    "--lebanon",
+    "R:\\d2-evidence\\candidate-roots-d2-aiming\\lebanon",
+    "--lebanon-repeat",
+    "R:\\d2-evidence\\candidate-roots-d2-aiming\\lebanon-repeat",
+    "--bin",
+    "R:\\d2-evidence\\shipping-source-d2-aiming-52206fef3\\eech-campaign\\target\\windows-d2-aiming-final",
+    "--out",
+    "R:\\d2-evidence\\candidate-pack-aiming-52206fef3"
+  ],
+  "exit_code": 0
+}
