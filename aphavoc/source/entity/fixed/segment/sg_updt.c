@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_cmbfx.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,6 +105,8 @@ static void update_server (entity *en)
 
 	ASSERT (parent);
 
+	CMB_FX_BRIDGE (EECH_CMB_BRIDGE_SEGMENT_UPDATE, parent, en, 0, 0, 0.0f)
+
 	next_segment = get_local_entity_child_succ (en, LIST_TYPE_SEGMENT);
 
 	if (next_segment)
@@ -139,10 +143,14 @@ static void update_server (entity *en)
 		{
 			terrain_height -= 1.0;
 		}
+
+		CMB_FX_BRIDGE (EECH_CMB_BRIDGE_FALL, parent, en, 0, 0, terrain_height)
 	
 		if ( pos->y <= terrain_height )
 		{
 			pos->y = terrain_height;
+
+			CMB_FX_BRIDGE (EECH_CMB_BRIDGE_LANDED, parent, en, 0, 0, terrain_height)
 	
 			delete_local_entity_from_parents_child_list (en, LIST_TYPE_UPDATE);
 	
@@ -156,6 +164,8 @@ static void update_server (entity *en)
 		// segment is supported, and so should be instantly removed from the update list
 		// ( only put there in the first place so that neighbours would be notified )
 		//
+
+		CMB_FX_BRIDGE (EECH_CMB_BRIDGE_SUPPORTED_REMOVED, parent, en, 0, 0, 0.0f)
 
 		delete_local_entity_from_parents_child_list (en, LIST_TYPE_UPDATE);
 	}

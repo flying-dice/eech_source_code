@@ -1218,6 +1218,15 @@ extern "C" {
         capacity: c_int,
         host: *const eech_engine_host,
     ) -> c_int;
+    pub fn eech_engine_cmb_case_bridge(
+        op: c_int,
+        ordinal: c_int,
+        index: c_int,
+        criterion: c_int,
+        text: *mut c_char,
+        capacity: c_int,
+        host: *const eech_engine_host,
+    ) -> c_int;
     pub fn eech_engine_cmb_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
     pub fn eech_engine_wpn_trace(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_wpn_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;

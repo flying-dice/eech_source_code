@@ -988,6 +988,86 @@ void eech_cmb_blast_end (void)
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the controlled bridge case (EEDCS-46, R5): the ORIGINAL bridge and segment code is observed by CMB_FX_BRIDGE only while csrc/eech_cmb_case.c has armed it; outside the case every hook
+   returns before it reads or writes anything (no event, no sequence number), so a natural run's report and event log are untouched.  A hook only reads. */
+
+static int bridge_case_armed;
+
+void eech_cmb_bridge_case_set (int active)
+{
+	ready ();
+
+	bridge_case_armed = active ? 1 : 0;
+}
+
+static const char *bridge_event_name (int kind)
+{
+	switch (kind)
+	{
+		case EECH_CMB_BRIDGE_SEGMENT_UPDATE: return "segment-update";
+		case EECH_CMB_BRIDGE_COLLISION: return "collision";
+		case EECH_CMB_BRIDGE_UNSUPPORTED_KILL: return "unsupported-kill";
+		case EECH_CMB_BRIDGE_SHAPE: return "shape";
+		case EECH_CMB_BRIDGE_CHILD_KILLED: return "child-killed";
+		case EECH_CMB_BRIDGE_LINK_BROKEN: return "link-broken";
+		case EECH_CMB_BRIDGE_REPAIR_TASK: return "repair-task";
+		case EECH_CMB_BRIDGE_UPDATE_INSERTED: return "update-inserted";
+		case EECH_CMB_BRIDGE_FALL: return "fall";
+		case EECH_CMB_BRIDGE_LANDED: return "landed";
+		case EECH_CMB_BRIDGE_SUPPORTED_REMOVED: return "supported-removed";
+	}
+
+	return "unknown";
+}
+
+void eech_cmb_bridge_event (int kind, entity *bridge, entity *segment, int a, int b, float f)
+{
+	entity *en;
+	vec3d *position;
+	int ordinal = -1, bridges = 0, index = -1, segments = 0;
+
+	if (!bridge_case_armed)
+	{
+		return;
+	}
+
+	ready ();
+
+	for (en = get_local_entity_list (); en; en = get_local_entity_succ (en))
+	{
+		if (!(entities && en >= entities && en < entities + number_of_entities))
+		{
+			break;
+		}
+
+		if (en->type == ENTITY_TYPE_BRIDGE)
+		{
+			if (en == bridge)
+			{
+				ordinal = bridges;
+			}
+
+			bridges++;
+		}
+	}
+
+	for (en = get_local_entity_first_child (bridge, LIST_TYPE_SEGMENT); en; en = get_local_entity_child_succ (en, LIST_TYPE_SEGMENT))
+	{
+		if (en == segment)
+		{
+			index = segments;
+		}
+
+		segments++;
+	}
+
+	position = get_local_entity_vec3d_ptr (segment, VEC3D_TYPE_POSITION);
+
+	log_event ("kind=bridge-%s bridge=%d seg=%d of=%d sub=%d alive=%d shape=%d y=%.9g a=%d b=%d f=%.9g", bridge_event_name (kind), ordinal, index, segments,
+		get_local_entity_int_value (segment, INT_TYPE_ENTITY_SUB_TYPE), get_local_entity_int_value (segment, INT_TYPE_ALIVE) ? 1 : 0, get_local_entity_int_value (segment, INT_TYPE_OBJECT_3D_SHAPE),
+		position ? (double) position->y : 0.0, a, b, (double) f);
+}
+/* ---------------------------------------------------------------------------------------------------------------------------- */
 /* repair and restore */
 
 void eech_cmb_repair (entity *en, int old_level, int new_level, int source)

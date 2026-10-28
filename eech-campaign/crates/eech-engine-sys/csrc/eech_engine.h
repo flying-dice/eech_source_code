@@ -314,6 +314,8 @@ int eech_engine_cmb_trace (char *text, int capacity);
    explosion `amount` metres from that entity with `kill_code`. */
 int eech_engine_cmb_case_state (int op, const char *kind, int ordinal, int percent, char *text, int capacity, const struct eech_engine_host *host);
 int eech_engine_cmb_case_act (int op, const char *kind, int ordinal, const char *launcher_id, int weapon, double amount, int kill_code, int weaponless, char *text, int capacity, const struct eech_engine_host *host);
+/* The controlled bridge case of the ORIGINAL collapse (EEDCS-46, R5, see eech_cmb_case.c): op 0 survey of every bridge, op 1 state of the bridge at ordinal, op 2 the declared structural failure of one\n   segment of it (index, or -1 for the first by criterion), op 3 disarm the observer.  Given the same complete host as a frame. */
+int eech_engine_cmb_case_bridge (int op, int ordinal, int index, int criterion, char *text, int capacity, const struct eech_engine_host *host);
 int eech_engine_cmb_events (char *text, int capacity, int *more);
 #endif
 

@@ -34,6 +34,8 @@
 
 #include "project.h"
 
+#include "ai/ai_misc/ai_route.h"
+
 #include "eech_engine.h"
 #include "eech_headless.h"
 
@@ -615,6 +617,319 @@ int eech_cmb_case_blast_run (const char *kind, int ordinal, double offset, int k
 
 	snprintf (text, (size_t) capacity, "cmb-case-blast kind=%s ordinal=%d live=%d found=1 placed=1 weapon=%d kill_code=%d offset=%.9g capability=%d launched=%d refused=0 launch=%s\n", kind, ordinal, live,
 		weapon, kill_code, offset, capability, made, detail[0] ? detail : "none");
+
+	return 0;
+}
+
+
+/*
+ * THE CONTROLLED BRIDGE CASE (EEDCS-46, R5): the ORIGINAL collapse of a bridge and its segments, characterised before any of its physics moves.  Nothing here is a weapon hit: the
+ * PRECONDITION is a declared direct structural failure, the campaign's own kill_client_server_entity on one chosen segment, which is what a segment that is destroyed ends with.  Everything
+ * after it is the original's, in its own order, observed by the read-only CMB_FX_BRIDGE hooks of special/bridge/br_msgs.c and fixed/segment/sg_updt.c (armed only by this case):
+ *   - the killed segment (sg_dstry.c kill_local): its alive flag, its explosion effect, the routed vehicles on it, then the notification of its bridge (collision, then child killed);
+ *   - the bridge's collision response (br_msgs.c): a neighbour that is an unsupported mid section and alive is killed, and the sender's shape is chosen from its neighbours' state
+ *     (segment_database through get_bridge_segment_damaged_object);
+ *   - the bridge's child-killed response: the first kill of a bridge breaks the route link (a count), stops the vehicles on the route and asks for a repair task; the killed segment is put in the
+ *     update list;
+ *   - every frame, a segment in the update list (sg_updt.c) notifies its successor and then its predecessor, an unsupported one drops 10 * dt (a water floor is one metre lower) until it reaches the
+ *     terrain and leaves the list, a supported one leaves the list at once.
+ * The physical rules are those (the unsupported-span kill, the neighbour propagation, the shape choice, the fall); the data are the segment database's shapes, lengths and damage levels; the
+ * campaign's actions are the route link break, the stopping of vehicles, the repair task and the credit.  Every operation is read-only except `fail`.  Only kinds, ordinals, counts and numbers cross
+ * (a bridge by its ordinal in the entity list, a segment by its index along the bridge); no pointer, heap index or seed leaves this file.
+ *
+ *   op 0 survey   every bridge: ordinal, sub type, nodes, alive, segments, the pattern (E end, S supported mid, U unsupported mid), whether it has a segment next to an unsupported one, and the
+ *                 first such segment (criterion 0); the world's counts that the case reads before and after (routed vehicles alive, repair tasks)
+ *   op 1 state    one bridge and each of its segments (sub type, type, alive, damage level, shape, position, whether it is in the update list, its neighbours' state), the break count of its
+ *                 route link, and the world's counts
+ *   op 2 fail     arms the hooks and kills segment `index` of the bridge (index -1: the first by `criterion`), refused as NOT DONE when the precondition does not hold
+ *   op 3 disarm   stops the hooks recording
+ * criterion 0: a segment that is not an unsupported mid section and is next to one (the collapse then propagates to a real neighbour).
+ * UNREACHED and declared: a weapon hit on a segment (the segment collision response is the damage path already characterised), a player or multiplayer cause, a client (not a server), a bridge
+ * with no unsupported span, and the vehicles on the route (their stopping is reported only as the world's counts).
+ */
+extern void eech_cmb_bridge_case_set (int active);
+
+#define BRIDGE_SEGMENTS_MAX 256
+
+static entity *nth_bridge (int ordinal, int *count)
+{
+	entity *en, *found = NULL;
+	int n = 0;
+
+	for (en = get_local_entity_list (); en; en = get_local_entity_succ (en))
+	{
+		if (!entity_in_array (en))
+		{
+			break;
+		}
+
+		if (en->type == ENTITY_TYPE_BRIDGE)
+		{
+			if (n == ordinal)
+			{
+				found = en;
+			}
+
+			n++;
+		}
+	}
+
+	*count = n;
+
+	return found;
+}
+
+static int bridge_segments (entity *bridge, entity **out)
+{
+	entity *segment;
+	int n = 0;
+
+	for (segment = get_local_entity_first_child (bridge, LIST_TYPE_SEGMENT); segment; segment = get_local_entity_child_succ (segment, LIST_TYPE_SEGMENT))
+	{
+		if (n < BRIDGE_SEGMENTS_MAX)
+		{
+			out[n] = segment;
+		}
+
+		n++;
+	}
+
+	return n;
+}
+
+static char segment_letter (entity *segment)
+{
+	switch ((int) get_local_entity_int_value (segment, INT_TYPE_ENTITY_SUB_TYPE))
+	{
+		case ENTITY_SUB_TYPE_FIXED_BRIDGE_END_SECTION: return 'E';
+		case ENTITY_SUB_TYPE_FIXED_BRIDGE_SUPPORTED_MID_SECTION: return 'S';
+		case ENTITY_SUB_TYPE_FIXED_BRIDGE_UNSUPPORTED_MID_SECTION: return 'U';
+	}
+
+	return '?';
+}
+
+/* criterion 0: the first segment that is alive, not an unsupported mid section, and next to an unsupported mid section; -1 when there is none */
+static int first_by_criterion (entity **segments, int n, int criterion)
+{
+	int i;
+
+	if (criterion != 0)
+	{
+		return -1;
+	}
+
+	for (i = 0; i < n; i++)
+	{
+		if (segment_letter (segments[i]) != 'U' && get_local_entity_int_value (segments[i], INT_TYPE_ALIVE) &&
+			((i > 0 && segment_letter (segments[i - 1]) == 'U') || (i + 1 < n && segment_letter (segments[i + 1]) == 'U')))
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+static int world_count (int type, int sub_type)
+{
+	entity *en;
+	int n = 0;
+
+	for (en = get_local_entity_list (); en; en = get_local_entity_succ (en))
+	{
+		if (!entity_in_array (en))
+		{
+			break;
+		}
+
+		if ((int) en->type == type && (sub_type < 0 || (int) get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE) == sub_type) &&
+			(type != ENTITY_TYPE_ROUTED_VEHICLE || get_local_entity_int_value (en, INT_TYPE_ALIVE)))
+		{
+			n++;
+		}
+	}
+
+	return n;
+}
+
+static int append (char *text, int capacity, int *used, const char *format, ...) __attribute__ ((format (printf, 4, 5)));
+
+static int append (char *text, int capacity, int *used, const char *format, ...)
+{
+	va_list args;
+	int n;
+
+	va_start (args, format);
+	n = vsnprintf (text + *used, (size_t) (capacity - *used), format, args);
+	va_end (args);
+
+	if (n < 0 || n >= capacity - *used)
+	{
+		return -1;
+	}
+
+	*used += n;
+
+	return 0;
+}
+
+static int bridge_state (entity *bridge, int ordinal, char *text, int capacity, int *used)
+{
+	entity *segments[BRIDGE_SEGMENTS_MAX];
+	int n = bridge_segments (bridge, segments), i;
+	int start = get_local_entity_int_value (bridge, INT_TYPE_START_NODE), end = get_local_entity_int_value (bridge, INT_TYPE_END_NODE);
+
+	if (n > BRIDGE_SEGMENTS_MAX)
+	{
+		return -2;
+	}
+
+	if (append (text, capacity, used, "cmb-bridge-state bridge=%d sub_type=%d start=%d end=%d alive=%d breaks=%d segments=%d routed_alive=%d repair_tasks=%d\n", ordinal,
+		get_local_entity_int_value (bridge, INT_TYPE_ENTITY_SUB_TYPE), start, end, get_local_entity_int_value (bridge, INT_TYPE_ALIVE) ? 1 : 0, get_road_link_breaks (start, end), n,
+		world_count (ENTITY_TYPE_ROUTED_VEHICLE, -1), world_count (ENTITY_TYPE_TASK, ENTITY_SUB_TYPE_TASK_REPAIR)))
+	{
+		return -1;
+	}
+
+	for (i = 0; i < n; i++)
+	{
+		entity *s = segments[i];
+		vec3d *position = get_local_entity_vec3d_ptr (s, VEC3D_TYPE_POSITION);
+
+		if (append (text, capacity, used, "cmb-bridge-segment bridge=%d index=%d kind=%c sub=%d type=%d alive=%d damage=%d shape=%d x=%.9g y=%.9g z=%.9g in_update=%d pred_alive=%d succ_alive=%d\n", ordinal, i,
+			segment_letter (s), get_local_entity_int_value (s, INT_TYPE_ENTITY_SUB_TYPE), get_local_entity_int_value (s, INT_TYPE_BRIDGE_SEGMENT_TYPE), get_local_entity_int_value (s, INT_TYPE_ALIVE) ? 1 : 0,
+			get_local_entity_int_value (s, INT_TYPE_DAMAGE_LEVEL), get_local_entity_int_value (s, INT_TYPE_OBJECT_3D_SHAPE), position ? (double) position->x : 0.0, position ? (double) position->y : 0.0,
+			position ? (double) position->z : 0.0, get_local_entity_parent (s, LIST_TYPE_UPDATE) ? 1 : 0, i == 0 ? -1 : (get_local_entity_int_value (segments[i - 1], INT_TYPE_ALIVE) ? 1 : 0),
+			i + 1 == n ? -1 : (get_local_entity_int_value (segments[i + 1], INT_TYPE_ALIVE) ? 1 : 0)))
+		{
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+int eech_cmb_case_bridge_run (int op, int ordinal, int index, int criterion, char *text, int capacity)
+{
+	entity *bridge, *segments[BRIDGE_SEGMENTS_MAX];
+	int bridges, n, used = 0, i, rc;
+
+	text[0] = 0;
+
+	if (op < 0 || op > 3 || ordinal < -1 || index < -1 || criterion < 0)
+	{
+		return case_error (text, capacity, "op_ordinal_index_or_criterion_out_of_range", "bridge");
+	}
+
+	if (op == 0)
+	{
+		(void) nth_bridge (-1, &bridges);
+
+		if (append (text, capacity, &used, "cmb-bridge-census bridges=%d routed_alive=%d repair_tasks=%d comms_server=%d\n", bridges, world_count (ENTITY_TYPE_ROUTED_VEHICLE, -1),
+			world_count (ENTITY_TYPE_TASK, ENTITY_SUB_TYPE_TASK_REPAIR), get_comms_model () == COMMS_MODEL_SERVER ? 1 : 0))
+		{
+			return case_error (text, capacity, "report_does_not_fit", "census");
+		}
+
+		for (i = 0; i < bridges; i++)
+		{
+			int j, unsupported = 0, first;
+			char pattern[BRIDGE_SEGMENTS_MAX + 1];
+			vec3d *position;
+			int start, end;
+
+			bridge = nth_bridge (i, &n);
+			n = bridge_segments (bridge, segments);
+
+			if (n > BRIDGE_SEGMENTS_MAX)
+			{
+				return case_error (text, capacity, "bridge_has_more_segments_than_the_case_reports", "survey");
+			}
+
+			for (j = 0; j < n; j++)
+			{
+				pattern[j] = segment_letter (segments[j]);
+				unsupported += pattern[j] == 'U';
+			}
+
+			pattern[n] = 0;
+			first = first_by_criterion (segments, n, 0);
+			position = n ? get_local_entity_vec3d_ptr (segments[0], VEC3D_TYPE_POSITION) : NULL;
+			start = get_local_entity_int_value (bridge, INT_TYPE_START_NODE);
+			end = get_local_entity_int_value (bridge, INT_TYPE_END_NODE);
+
+			if (append (text, capacity, &used, "cmb-bridge-survey bridge=%d sub_type=%d start=%d end=%d alive=%d breaks=%d segments=%d unsupported=%d first_candidate=%d x=%.9g y=%.9g z=%.9g pattern=%s\n", i,
+				get_local_entity_int_value (bridge, INT_TYPE_ENTITY_SUB_TYPE), start, end, get_local_entity_int_value (bridge, INT_TYPE_ALIVE) ? 1 : 0, get_road_link_breaks (start, end), n, unsupported, first,
+				position ? (double) position->x : 0.0, position ? (double) position->y : 0.0, position ? (double) position->z : 0.0, pattern))
+			{
+				return case_error (text, capacity, "report_does_not_fit", "survey");
+			}
+		}
+
+		return 0;
+	}
+
+	if (op == 3)
+	{
+		eech_cmb_bridge_case_set (0);
+
+		snprintf (text, (size_t) capacity, "cmb-bridge-disarm armed=0\n");
+
+		return 0;
+	}
+
+	bridge = nth_bridge (ordinal, &bridges);
+
+	if (!bridge)
+	{
+		snprintf (text, (size_t) capacity, "cmb-bridge-%s bridge=%d bridges=%d found=0\n", op == 1 ? "state" : "fail", ordinal, bridges);
+
+		return 0;
+	}
+
+	if (op == 1)
+	{
+		rc = bridge_state (bridge, ordinal, text, capacity, &used);
+
+		return rc == 0 ? 0 : case_error (text, capacity, rc == -1 ? "report_does_not_fit" : "bridge_has_more_segments_than_the_case_reports", "state");
+	}
+
+	/* op 2: the declared structural failure */
+	n = bridge_segments (bridge, segments);
+
+	if (n > BRIDGE_SEGMENTS_MAX)
+	{
+		return case_error (text, capacity, "bridge_has_more_segments_than_the_case_reports", "fail");
+	}
+
+	if (index < 0)
+	{
+		index = first_by_criterion (segments, n, criterion);
+	}
+
+	if (index < 0 || index >= n)
+	{
+		snprintf (text, (size_t) capacity, "cmb-bridge-fail bridge=%d found=1 segments=%d index=%d criterion=%d done=0 reason=no_segment_meets_the_criterion\n", ordinal, n, index, criterion);
+
+		return 0;
+	}
+
+	if (get_comms_model () != COMMS_MODEL_SERVER || !get_local_entity_int_value (segments[index], INT_TYPE_ALIVE))
+	{
+		snprintf (text, (size_t) capacity, "cmb-bridge-fail bridge=%d found=1 segments=%d index=%d criterion=%d done=0 reason=%s\n", ordinal, n, index, criterion,
+			get_comms_model () != COMMS_MODEL_SERVER ? "not_a_server" : "segment_not_alive");
+
+		return 0;
+	}
+
+	eech_cmb_bridge_case_set (1);
+
+	/* the campaign's own call: what a destroyed segment ends with.  It is a declared direct structural failure, not a weapon hit */
+	kill_client_server_entity (segments[index]);
+
+	snprintf (text, (size_t) capacity, "cmb-bridge-fail bridge=%d found=1 segments=%d index=%d criterion=%d done=1 sub=%d precondition=declared_direct_structural_failure api=kill_client_server_entity armed=1\n",
+		ordinal, n, index, criterion, get_local_entity_int_value (segments[index], INT_TYPE_ENTITY_SUB_TYPE));
 
 	return 0;
 }

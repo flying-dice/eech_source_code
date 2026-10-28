@@ -1282,3 +1282,130 @@ fn the_case_caller_follows_the_live_ammunition_when_a_launch_spends_several_roun
     // the carrier of an unrelated class (warhead 2, not part of any role) was never fired
     assert!(!stdout.contains("eech-world:2800"), "{stdout}");
 }
+
+// The controlled bridge witness (EEDCS-46, R5; lua/bridge-case.lua) against a small stand-in for the engine: only its flow is checked here (the survey, the choice of a bridge by the explicit criterion,
+// the order of the operations, the frames recorded, the disarming, and the plain statement that there was no suitable bridge); the C driver and the observer are compiled and checked elsewhere, and the
+// original code's behaviour is the ROOT's native run.  Nothing here is the campaign's physics.
+const BRIDGE_CASE_CALLER_SCRIPT: &str = r#"
+local SURVEY = [==[@SURVEY@]==]
+local calls = {}
+local time = 0
+local engine = {}
+function engine:clock() return { elapsed_seconds = time } end
+function engine:frame(ms) time = time + ms / 1000 end
+function engine:cmb_events() return 'cmb-ev seq=1 kind=bridge-segment-update bridge=0 seg=1 of=3 sub=2 alive=0 shape=5 y=10 a=0 b=0 f=0\n' end
+function engine:cmb_trace() return 'cmb-blast calls=0\n' end
+function engine:cmb_case_bridge(op, ordinal, index, criterion)
+  calls[#calls + 1] = op .. ':' .. ordinal .. ':' .. index .. ':' .. criterion
+  if op == 0 then return SURVEY end
+  if op == 1 then return 'cmb-bridge-state bridge=' .. ordinal .. ' alive=1 breaks=0\ncmb-bridge-segment bridge=' .. ordinal .. ' index=0 kind=E alive=1\n' end
+  if op == 2 then return 'cmb-bridge-fail bridge=' .. ordinal .. ' found=1 segments=3 index=' .. (index < 0 and 1 or index) .. ' criterion=0 done=1 armed=1\n' end
+  return 'cmb-bridge-disarm armed=0\n'
+end
+package.loaded['eech_dc'] = { prepare_installation = function() end, boot = function() return engine end }
+dofile('@LUA_DIR@/bridge-case.lua')
+print('CALLS ' .. table.concat(calls, ' '))
+print('BRIDGE_CALLER_DONE')
+"#;
+
+fn run_bridge_case_caller(survey: &str, extra: &[&str]) -> (Vec<serde_json::Value>, String) {
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\u{5c}', "/");
+    let tag = format!("{}-{}", std::process::id(), survey.len());
+    let script = std::env::temp_dir().join(format!("eech-world-bridge-caller-{tag}.lua"));
+    let out = std::env::temp_dir().join(format!("eech-world-bridge-caller-{tag}.jsonl"));
+    std::fs::write(&script, BRIDGE_CASE_CALLER_SCRIPT.replace("@SURVEY@", survey).replace("@LUA_DIR@", &lua_dir)).unwrap();
+    let mut command = Command::new(env!("CARGO_BIN_EXE_eech-world"));
+    command
+        .arg(&script)
+        .arg("root=none")
+        .arg(format!("out={}", out.display().to_string().replace('\u{5c}', "/")))
+        .arg("warmup=0.2")
+        .arg("frame_ms=100")
+        .arg("window_seconds=0.25");
+    for arg in extra {
+        command.arg(arg);
+    }
+    let run = command.output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout).to_string();
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("BRIDGE_CASE_") || stdout.contains("BRIDGE_CALLER_DONE"), "{stdout}\n{stderr}");
+    let rows = std::fs::read_to_string(&out)
+        .unwrap()
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap())
+        .collect();
+    std::fs::remove_file(&out).unwrap();
+    (rows, stdout)
+}
+
+#[test]
+fn the_bridge_witness_records_a_declared_failure_and_a_bounded_window_of_frames_in_order() {
+    let survey = "cmb-bridge-census bridges=2 routed_alive=3 repair_tasks=0 comms_server=1\n\
+cmb-bridge-survey bridge=0 sub_type=1 start=4 end=5 alive=1 breaks=0 segments=3 unsupported=0 first_candidate=-1 x=1 y=2 z=3 pattern=ESE\n\
+cmb-bridge-survey bridge=1 sub_type=2 start=6 end=7 alive=1 breaks=0 segments=3 unsupported=1 first_candidate=0 x=1 y=2 z=3 pattern=ESU\n";
+    let (rows, stdout) = run_bridge_case_caller(survey, &[]);
+    // the survey, then the state, the failure of the explicit choice (the first bridge with a candidate, the first segment by the criterion), the state after, three frames of state, and the disarming
+    assert!(
+        stdout.contains("CALLS 0:0:-1:0 1:1:-1:0 2:1:-1:0 1:1:-1:0 1:1:-1:0 1:1:-1:0 1:1:-1:0 3:0:-1:0"),
+        "{stdout}"
+    );
+    let case = rows.iter().find(|r| r["event"] == "bridge_case").unwrap();
+    assert_eq!(
+        (case["done"].as_bool(), case["bridge"].as_i64(), case["segment"].as_i64()),
+        (Some(true), Some(1), Some(1)),
+        "{case}"
+    );
+    let scopes: Vec<&str> = rows.iter().filter_map(|r| r["scope"].as_str()).collect();
+    for scope in [
+        "bridge:survey",
+        "bridge:before",
+        "bridge:after",
+        "frame:0:log",
+        "frame:1:state",
+        "frame:3:log",
+        "bridge:disarm",
+        "bridge:trace:before",
+        "bridge:trace:after",
+    ] {
+        assert!(scopes.contains(&scope), "{scope} missing: {scopes:?}");
+    }
+    assert!(!scopes.contains(&"frame:4:state"), "the window is bounded at three frames: {scopes:?}");
+    // the order: the failure is recorded before the first frame, and the disarming after the last
+    let position = |scope: &str| scopes.iter().position(|s| *s == scope).unwrap();
+    assert!(
+        position("bridge:before") < position("frame:0:log")
+            && position("frame:0:log") < position("frame:1:state")
+            && position("frame:3:log") < position("bridge:disarm")
+    );
+    let event = rows.iter().find(|r| r["scope"] == "frame:1:log" && r["event"] == "cmb-ev").unwrap();
+    assert_eq!(event["kind"], "bridge-segment-update");
+}
+
+#[test]
+fn the_bridge_witness_says_so_and_does_nothing_when_no_bridge_has_a_segment_next_to_an_unsupported_span() {
+    let survey = "cmb-bridge-census bridges=1 routed_alive=3 repair_tasks=0 comms_server=1\n\
+cmb-bridge-survey bridge=0 sub_type=1 start=4 end=5 alive=1 breaks=0 segments=3 unsupported=0 first_candidate=-1 x=1 y=2 z=3 pattern=ESE\n";
+    let (rows, stdout) = run_bridge_case_caller(survey, &[]);
+    assert!(
+        stdout.contains("CALLS 0:0:-1:0\n") && stdout.contains("BRIDGE_CASE_NOT_DONE"),
+        "only the survey was asked, and the script said it did nothing: {stdout}"
+    );
+    let case = rows.iter().find(|r| r["event"] == "bridge_case").unwrap();
+    assert_eq!(case["done"], false);
+    assert_eq!(case["reason"], "no_bridge_with_a_segment_next_to_an_unsupported_span");
+    // and an explicit bridge that has none is not replaced by another
+    let two = format!(
+        "{survey}cmb-bridge-survey bridge=1 sub_type=2 start=6 end=7 alive=1 breaks=0 segments=3 unsupported=1 first_candidate=0 x=1 y=2 z=3 pattern=ESU\n"
+    );
+    let (rows, stdout) = run_bridge_case_caller(&two, &["bridge=0"]);
+    let case = rows.iter().find(|r| r["event"] == "bridge_case").unwrap();
+    assert_eq!(case["done"], false, "{stdout}");
+    assert_eq!(case["reason"], "the_asked_bridge_has_no_segment_next_to_an_unsupported_span");
+}

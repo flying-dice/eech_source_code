@@ -14,7 +14,7 @@
 // The receiver is identified across the handler by a fixture-private GENERATION of its slot, advanced by CMB_FX_RELEASE when the entity heap frees the slot: a slot that was
 // freed (and possibly reused) during the handler is reported as destroyed and read for nothing else.
 //
-// Timed health: the six per-frame updates that lose health outside a collision (fire, bleeding) are observed by CMB_FX_TIMED_*: the attempt, the draws the original's
+// Bridge collapse (EEDCS-46, R5): the ORIGINAL bridge and segment code (special/bridge/br_msgs.c, fixed/segment/sg_updt.c) is observed by CMB_FX_BRIDGE, which only READS (the bridge, the segment,\n// a small integer or float the original has already computed) and records an ordered line while the controlled bridge case (csrc/eech_cmb_case.c) has armed it; outside that case it records nothing, so\n// no natural run's report, event log or hash can change.\n//\n// Timed health: the six per-frame updates that lose health outside a collision (fire, bleeding) are observed by CMB_FX_TIMED_*: the attempt, the draws the original's
 // condition took, and when it fired the new health, in the original's order.
 //
 
@@ -76,6 +76,24 @@ extern void eech_cmb_timed_begin (int kind);
 extern void eech_cmb_timed_hit (struct ENTITY *en, int new_level);
 extern void eech_cmb_timed_end (void);
 
+enum eech_cmb_bridge_event_kind
+{
+	EECH_CMB_BRIDGE_SEGMENT_UPDATE = 1,		/* sg_updt.c update_server begins: a segment in the update list is about to notify its neighbours */
+	EECH_CMB_BRIDGE_COLLISION,			/* br_msgs.c response_to_collision: the bridge is told of a segment (a: its sub type, b: whether it is alive) */
+	EECH_CMB_BRIDGE_UNSUPPORTED_KILL,	/* ... and kills it because nothing supports it */
+	EECH_CMB_BRIDGE_SHAPE,				/* ... and chooses its shape from its neighbours (a: the shape, b: 2 * predecessor alive + successor alive, a missing neighbour counting as alive) */
+	EECH_CMB_BRIDGE_CHILD_KILLED,		/* br_msgs.c response_to_child_killed begins (a: whether the bridge was alive) */
+	EECH_CMB_BRIDGE_LINK_BROKEN,		/* the route link is broken (a: the break count now) */
+	EECH_CMB_BRIDGE_REPAIR_TASK,		/* the repair task was asked for (a: whether it was created) */
+	EECH_CMB_BRIDGE_UPDATE_INSERTED,	/* the killed segment is put in the update list */
+	EECH_CMB_BRIDGE_FALL,				/* sg_updt.c: an unsupported segment has dropped one step (f: the terrain height it is compared with) */
+	EECH_CMB_BRIDGE_LANDED,			/* ... and has reached it and leaves the update list (f: the height) */
+	EECH_CMB_BRIDGE_SUPPORTED_REMOVED	/* sg_updt.c: a supported segment leaves the update list at once */
+};
+
+extern void eech_cmb_bridge_event (int kind, struct ENTITY *bridge, struct ENTITY *segment, int a, int b, float f);
+extern void eech_cmb_bridge_case_set (int active);
+
 // wraps every collision handler that is not the default (do nothing) response
 #define CMB_FX_INSTALL(default_response) eech_cmb_install ((void *) default_response);
 #define CMB_FX_RELEASE(en) eech_cmb_release (en);
@@ -112,6 +130,8 @@ extern void eech_cmb_timed_end (void);
 #define CMB_FX_TIMED_HIT(en, new_level) eech_cmb_timed_hit (en, new_level);
 #define CMB_FX_TIMED_END() eech_cmb_timed_end ();
 
+#define CMB_FX_BRIDGE(kind, bridge, segment, a, b, f) eech_cmb_bridge_event (kind, bridge, segment, a, b, f);
+
 #else
 
 #define CMB_FX_INSTALL(default_response)
@@ -138,6 +158,7 @@ extern void eech_cmb_timed_end (void);
 #define CMB_FX_TIMED_BEGIN(kind)
 #define CMB_FX_TIMED_HIT(en, new_level)
 #define CMB_FX_TIMED_END()
+#define CMB_FX_BRIDGE(kind, bridge, segment, a, b, f)
 
 #endif
 

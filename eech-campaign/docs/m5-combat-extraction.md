@@ -400,3 +400,7 @@ the normal merge still gate it.
 * **Scope wording (P3).** The per-blast handle is a transitional mirror correlation, and persistent structure ownership and report correlation is explicit next D2 work (R3), not another milestone's; this document
   and `mb_hostaim.h` say so. The lead has not approved closing the whole of D2 before the physical factual reports and the structure and bridge responsibilities are complete. The sample model's comment about
   numbers is corrected: the module reads a modifier as a single-precision number and rounds a finite double to the nearest one; the plain model's quantization to 1/1024 is its own choice.
+
+## Bridge characterisation fixture
+
+The test-only characterisation of the ORIGINAL bridge and segment collapse that has to be run and accepted before the bridge rules move is described in `m5-bridge-characterization.md` (unrun; no bridge physics changed).

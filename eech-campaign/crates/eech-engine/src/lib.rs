@@ -4500,6 +4500,48 @@ impl Engine {
         keep_case_reason(status, &text)
     }
 
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46, R5): the controlled bridge case of the ORIGINAL collapse (op 0 survey of every bridge, op 1 state of the bridge at `ordinal`, op 2 the declared direct
+    /// structural failure of segment `index` of it, or of the first by `criterion` when `index` is -1, op 3 disarm the observer), as `key=value` text. Given the same complete host as a frame, because the
+    /// failure runs the campaign's own kill, explosion effects and consequences and the campaign asks the host for the physical facts they need.
+    #[cfg(feature = "weapon-fixture")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn cmb_case_bridge<F, G, H, M, L, D, A>(
+        &self,
+        op: i32,
+        ordinal: i32,
+        index: i32,
+        criterion: i32,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
+        sense_fn: &mut D,
+        aim_fn: &mut A,
+    ) -> Result<String, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
+        D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
+    {
+        let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
+        // SAFETY: the buffer and the temporary host callback outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        let status = with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            sense_fn,
+            aim_fn,
+            |host| unsafe { sys::eech_engine_cmb_case_bridge(op, ordinal, index, criterion, text.as_mut_ptr(), text.len() as i32, host) },
+        );
+        keep_case_reason(status, &text)
+    }
     /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): drains the ordered combat event log (collisions, blasts, repairs) from the cursor and returns every event not yet returned,
     /// one `cmb-ev` line each. Read-only apart from advancing the cursor.
     #[cfg(feature = "weapon-fixture")]

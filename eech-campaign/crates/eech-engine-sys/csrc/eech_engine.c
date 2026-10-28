@@ -1267,6 +1267,7 @@ int eech_engine_aim_person_case (const char *person_id, const char *target_id, c
 extern int eech_cmb_trace_get (char *text, int capacity);
 extern int eech_cmb_case_census_run (char *text, int capacity);
 extern int eech_cmb_case_health_run (const char *kind, int ordinal, int percent, char *text, int capacity);
+extern int eech_cmb_case_bridge_run (int op, int ordinal, int index, int criterion, char *text, int capacity);
 extern int eech_cmb_case_collide_run (const char *kind, int ordinal, const char *launcher_id, int weapon, double modifier, int weaponless, char *text, int capacity);
 extern int eech_cmb_case_blast_run (const char *kind, int ordinal, double offset, int kill_code, const char *launcher_id, int weapon, char *text, int capacity);
 extern int eech_cmb_events_get (char *text, int capacity);
@@ -1313,6 +1314,26 @@ int eech_engine_cmb_case_act (int op, const char *kind, int ordinal, const char 
 	}
 	rc = (op == 1) ? eech_cmb_case_collide_run (kind, ordinal, launcher_id, weapon, amount, weaponless, text, capacity) : eech_cmb_case_blast_run (kind, ordinal, amount, kill_code, launcher_id, weapon, text, capacity);
 	if (rc != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* The controlled bridge case (EEDCS-46, R5; see eech_cmb_case.c): the survey and the state of the bridges, the declared structural failure of one segment, and the disarming of the observer.  Given the
+   same complete host as a frame, because the failure runs the campaign's own kill, explosion effects and consequences. */
+int eech_engine_cmb_case_bridge (int op, int ordinal, int index, int criterion, char *text, int capacity, const struct eech_engine_host *host)
+{
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || (op < 0) || (op > 3))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_cmb_case_bridge_run (op, ordinal, index, criterion, text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
