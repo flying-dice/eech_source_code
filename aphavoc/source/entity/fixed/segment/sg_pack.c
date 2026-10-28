@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_hostaim.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -259,29 +261,32 @@ void unpack_local_segment_data (pack_modes mode)
 
 			raw->fix.alive = segment_alive;
 
-			if ((!raw->fix.alive) && (raw->fix.sub_type == ENTITY_SUB_TYPE_FIXED_BRIDGE_UNSUPPORTED_MID_SECTION))
 			{
 				//
-				// position the segment on the ground
+				// where a segment that is not alive rests (an unsupported one is positioned on the ground, a metre lower over water) is the HOST's physical decision (EEDCS-46, R5, mb_hostaim.h BRIDGE,
+				// REST); the terrain is read for it only if it asks
 				//
 
 				vec3d
 					*pos;
 
-				terrain_3d_point_data
-					terrain_info;
+				campaign_bridge_result
+					rest;
+
+				float
+					position [3];
 
 				pos = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
 
-				memset (&terrain_info, 0, sizeof (terrain_3d_point_data));
+				position [0] = pos->x;
+				position [1] = pos->y;
+				position [2] = pos->z;
 
-				ASSERT(point_inside_map_area(pos));
+				rest = campaign_aim_bridge_rest ((int) raw->fix.sub_type, raw->fix.alive, position, campaign_segment_terrain, pos);
 
-				pos->y = get_3d_terrain_point_data (pos->x, pos->z, &terrain_info);
-
-				if (get_terrain_type_class (terrain_info.terrain_type) == TERRAIN_CLASS_WATER)
+				if (rest.landed)
 				{
-					pos->y -= 1.0;
+					pos->y = rest.landed_y;
 				}
 			}
 		}

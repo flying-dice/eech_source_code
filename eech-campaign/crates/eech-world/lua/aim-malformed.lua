@@ -12,13 +12,58 @@ return function (mode, reference, counted)
 		bad_damage_level = "damage", bad_damage_draw_twice = "damage", bad_damage_exit = "damage", bad_damage_class = "damage", bad_damage_unwritten = "damage", bad_damage_missing = "damage",
 		bad_health_class = "health", bad_health_missing = "health", bad_health_classify_draw = "health", bad_health_second_draw = "health", bad_health_hit_ineligible = "health", bad_health_fatal = "health",
 		bad_impact_crater = "impact", bad_impact_draw = "impact", bad_impact_blasts = "impact",
-		bad_blast_handle = "blast", bad_blast_radius = "blast", bad_blast_draw = "blast", bad_blast_sector = "blast", bad_blast_repeat = "blast", bad_blast_modifier = "blast", bad_blast_rocket = "blast" }
+		bad_blast_handle = "blast", bad_blast_radius = "blast", bad_blast_draw = "blast", bad_blast_sector = "blast", bad_blast_repeat = "blast", bad_blast_modifier = "blast", bad_blast_rocket = "blast",
+		bad_bridge_kill_dead = "bridge", bad_bridge_variant = "bridge", bad_bridge_notify_absent = "bridge", bad_bridge_landed_not_fell = "bridge", bad_bridge_nonfinite = "bridge",
+		bad_bridge_draw = "bridge", bad_bridge_handle = "bridge", bad_bridge_terrain_twice = "bridge", bad_bridge_rest_alive = "bridge", bad_bridge_rest_nonfinite = "bridge" }
 	local kind = assert (kinds [mode], "unknown bad mode " .. mode)
 	local armed = true
 	return function (step)
 		-- the health providers corrupt the first answer of their kind: pure-question and repeated draws are invalid; a generic timed draw for a person is valid
 		-- the impact and blast providers corrupt the first answer that can carry their fault; a mode whose fault needs a walk that reaches an object or a second sector may not be
 		-- reached in a short run, and the summary's counters say so
+		-- the bridge providers corrupt the first answer that can carry their fault; a fault that needs a walked bridge (a dead segment's collision, a neighbour that is not there, a vehicle in reach) may not
+		-- be reached in a plain war, and the summary's counters say so
+		if step.mode == "bridge" and mode:find ("^bad_bridge_") then
+			local answer = reference (step)
+			if armed then
+				if mode == "bad_bridge_draw" then
+					armed = false
+					return { state = "need_draw" }
+				elseif mode == "bad_bridge_kill_dead" and step.op == "kill" and not step.alive then
+					armed = false
+					return { state = "done", kill = true }
+				elseif mode == "bad_bridge_variant" and step.op == "shape" then
+					armed = false
+					return { state = "done", variant = 9 }
+				elseif mode == "bad_bridge_notify_absent" and step.op == "neighbour" and not step.neighbour_present then
+					armed = false
+					return { state = "done", notify = true }
+				elseif mode == "bad_bridge_landed_not_fell" and step.op == "fall" and answer.state == "done" and not answer.fell then
+					armed = false
+					return { state = "done", fell = false, landed = true, remove = true, landed_y = 1 }
+				elseif mode == "bad_bridge_nonfinite" and step.op == "fall" and answer.state == "done" and answer.fell then
+					armed = false
+					answer.dropped_y = 0 / 0
+					return answer
+				elseif mode == "bad_bridge_terrain_twice" and step.op == "fall" and step.terrain ~= nil then
+					armed = false
+					return { state = "need_lookup", need = "terrain" }
+				elseif mode == "bad_bridge_rest_alive" and step.op == "rest" and step.alive and answer.state == "done" then
+					-- a segment that is alive moved when a saved world is unpacked
+					armed = false
+					return { state = "done", landed = true, landed_y = 1 }
+				elseif mode == "bad_bridge_rest_nonfinite" and step.op == "rest" and answer.state == "done" and answer.landed then
+					armed = false
+					answer.landed_y = 0 / 0
+					return answer
+				elseif mode == "bad_bridge_handle" and step.op == "vehicles" and answer.state == "done" and answer.action == "act" then
+					armed = false
+					answer.handle = 99999
+					return answer
+				end
+			end
+			return counted (step, answer)
+		end
 		if (step.mode == "impact" and mode:find ("^bad_impact_")) or (step.mode == "blast" and mode:find ("^bad_blast_")) then
 			local answer = reference (step)
 			if armed then

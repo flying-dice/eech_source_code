@@ -2236,6 +2236,141 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             echo_into(&Some(events))?;
                         }
                     }
+                    "bridge" => {
+                        // the physical collapse of a bridge segment (cmb.rs bridge): whether an unsupported span collapses, the damaged shape, which neighbours are told, the fall (the terrain under the segment asked
+                        // for, as a lookup, when the fall needs it) and the vehicles a killed segment kills (walked through windows of the sector's list).  None takes a draw
+                        let op = match step.get::<LuaValue>("op")? {
+                            LuaValue::String(name) => match &*name.to_str()? {
+                                "kill" => cmb::BRIDGE_KILL,
+                                "shape" => cmb::BRIDGE_SHAPE,
+                                "neighbour" => cmb::BRIDGE_NEIGHBOUR,
+                                "fall" => cmb::BRIDGE_FALL,
+                                "vehicles" => cmb::BRIDGE_VEHICLES,
+                                "rest" => cmb::BRIDGE_REST,
+                                other => return Err(fail(format!("unknown bridge op {other:?}"))),
+                            },
+                            other => return Err(fail(format!("op must be a string, got {}", other.type_name()))),
+                        };
+                        let terrain = match step.get::<LuaValue>("terrain")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Table(terrain) => Some((one(&terrain, "height")?, flag(&terrain, "water")?)),
+                            other => return Err(fail(format!("terrain must be a table, got {}", other.type_name()))),
+                        };
+                        let window = match step.get::<LuaValue>("window")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Table(window) => {
+                                let objects: LuaTable = window.get("objects")?;
+                                let mut entries = Vec::new();
+                                for value in objects.sequence_values::<LuaTable>() {
+                                    let object = value?;
+                                    entries.push(cmb::BlastEntry {
+                                        handle: lua_i32(&object, "handle").map_err(fail)?,
+                                        entity_type: lua_i32(&object, "entity_type").map_err(fail)?,
+                                        readable: flag(&object, "readable")?,
+                                        alive: flag(&object, "alive")?,
+                                        has_position: flag(&object, "has_position")?,
+                                        rocket: flag(&object, "rocket")?,
+                                        excluded: flag(&object, "excluded")?,
+                                        position: exact_numbers::<3>(lua, &object, "position").map_err(fail)?,
+                                    });
+                                }
+                                Some(cmb::BlastWindow {
+                                    sx: lua_i32(&window, "sx").map_err(fail)?,
+                                    sz: lua_i32(&window, "sz").map_err(fail)?,
+                                    after: lua_i32(&window, "after").map_err(fail)?,
+                                    end: flag(&window, "list_ends")?,
+                                    entries,
+                                })
+                            }
+                            other => return Err(fail(format!("window must be a table, got {}", other.type_name()))),
+                        };
+                        let input = cmb::BridgeInput {
+                            op,
+                            segment_kind: lua_i32(&step, "segment_kind").map_err(fail)?,
+                            alive: flag(&step, "alive")?,
+                            server: flag(&step, "server")?,
+                            pred_present: flag(&step, "pred_present")?,
+                            pred_alive: flag(&step, "pred_alive")?,
+                            succ_present: flag(&step, "succ_present")?,
+                            succ_alive: flag(&step, "succ_alive")?,
+                            which: lua_i32(&step, "which").map_err(fail)?,
+                            neighbour_present: flag(&step, "neighbour_present")?,
+                            neighbour_kind: lua_i32(&step, "neighbour_kind").map_err(fail)?,
+                            neighbour_alive: flag(&step, "neighbour_alive")?,
+                            position: exact_numbers::<3>(lua, &step, "position").map_err(fail)?,
+                            delta_time: one(&step, "delta_time")?,
+                            terrain,
+                            segment_length: one(&step, "segment_length")?,
+                            sector_side_length: lua_i32(&step, "sector_side_length").map_err(fail)?,
+                            min_x_sector: lua_i32(&step, "min_x_sector").map_err(fail)?,
+                            max_x_sector: lua_i32(&step, "max_x_sector").map_err(fail)?,
+                            min_z_sector: lua_i32(&step, "min_z_sector").map_err(fail)?,
+                            max_z_sector: lua_i32(&step, "max_z_sector").map_err(fail)?,
+                            window,
+                        };
+                        match cmb::bridge(&input).map_err(|error| fail(format!("bridge: {error}")))? {
+                            cmb::BridgeStep::Kill(kill) => {
+                                result.set("state", "done")?;
+                                result.set("kill", kill)?;
+                            }
+                            cmb::BridgeStep::Variant(variant) => {
+                                result.set("state", "done")?;
+                                result.set("variant", variant)?;
+                            }
+                            cmb::BridgeStep::Notify(notify) => {
+                                result.set("state", "done")?;
+                                result.set("notify", notify)?;
+                            }
+                            cmb::BridgeStep::NeedTerrain => {
+                                result.set("state", "need_lookup")?;
+                                result.set("need", "terrain")?;
+                            }
+                            cmb::BridgeStep::Fall {
+                                fell,
+                                dropped_y,
+                                floor_height,
+                                landed,
+                                landed_y,
+                                remove,
+                            } => {
+                                result.set("state", "done")?;
+                                result.set("fell", fell)?;
+                                result.set("landed", landed)?;
+                                result.set("remove", remove)?;
+                                if fell {
+                                    result.set("dropped_y", dropped_y)?;
+                                    result.set("floor_height", floor_height)?;
+                                }
+                                if landed {
+                                    result.set("landed_y", landed_y)?;
+                                }
+                            }
+                            cmb::BridgeStep::Rest { landed, landed_y } => {
+                                result.set("state", "done")?;
+                                result.set("landed", landed)?;
+                                if landed {
+                                    result.set("landed_y", landed_y)?;
+                                }
+                            }
+                            cmb::BridgeStep::NeedWindow { sx, sz, after } => {
+                                let need = lua.create_table()?;
+                                need.set("sx", sx)?;
+                                need.set("sz", sz)?;
+                                need.set("after", after)?;
+                                result.set("state", "need_lookup")?;
+                                result.set("need", need)?;
+                            }
+                            cmb::BridgeStep::Over => {
+                                result.set("state", "done")?;
+                                result.set("action", "none")?;
+                            }
+                            cmb::BridgeStep::Act { handle } => {
+                                result.set("state", "done")?;
+                                result.set("action", "act")?;
+                                result.set("handle", handle)?;
+                            }
+                        }
+                    }
                     "ready_update" => {
                         check_id("source_host_id")?;
                         let [state, rate, delta_time] = exact_fields::<3>(lua, &step, "state,rate,delta_time").map_err(fail)?;

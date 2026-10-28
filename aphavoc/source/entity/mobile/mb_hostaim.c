@@ -96,6 +96,7 @@ static const char *mode_name (int mode)
 		case CAMPAIGN_AIM_HEALTH: return "health";
 		case CAMPAIGN_AIM_IMPACT: return "impact";
 		case CAMPAIGN_AIM_BLAST: return "blast";
+		case CAMPAIGN_AIM_BRIDGE: return "bridge";
 	}
 
 	return "unknown";
@@ -219,6 +220,41 @@ static void validate_request (const campaign_aim_step *step)
 				((health->op == CAMPAIGN_HEALTH_TIMED) && (health->critical_model == CAMPAIGN_DAMAGE_CRITICAL_NONE)))
 			{
 				debug_fatal ("host aim: a health request (op %d) with inconsistent figures", health->op);
+			}
+
+			break;
+		}
+		case CAMPAIGN_AIM_BRIDGE:
+		{
+			const campaign_bridge_request *bridge = &step->bridge;
+			int i;
+
+			// the op is known, every flag is a boolean, a living neighbour exists, every figure is finite, and what is not the op's is empty: only the vehicles walk has a window
+			if ((bridge->op < CAMPAIGN_BRIDGE_KILL) || (bridge->op > CAMPAIGN_BRIDGE_REST) || (bridge->alive & ~1) || (bridge->server & ~1) || (bridge->pred_present & ~1) || (bridge->pred_alive & ~1) ||
+				(bridge->succ_present & ~1) || (bridge->succ_alive & ~1) || (bridge->which & ~1) || (bridge->neighbour_present & ~1) || (bridge->neighbour_alive & ~1) || (bridge->terrain_known & ~1) ||
+				(bridge->terrain_water & ~1) || (bridge->pred_alive && !bridge->pred_present) || (bridge->succ_alive && !bridge->succ_present) || (bridge->neighbour_alive && !bridge->neighbour_present) ||
+				!all_finite (bridge->position, 3) || !isfinite (bridge->delta_time) || !isfinite (bridge->terrain_height) || !isfinite (bridge->segment_length) || (bridge->segment_length < 0.0f) ||
+				(!bridge->terrain_known && ((bridge->terrain_height != 0.0f) || bridge->terrain_water)) ||
+				((bridge->op != CAMPAIGN_BRIDGE_VEHICLES) && (bridge->window_valid || bridge->window_count || bridge->window_end || bridge->window_after)) ||
+				((bridge->op == CAMPAIGN_BRIDGE_VEHICLES) && ((bridge->sector_side_length <= 0) || (bridge->min_x_sector > bridge->max_x_sector) || (bridge->min_z_sector > bridge->max_z_sector) ||
+				(bridge->window_valid & ~1) || (bridge->window_end & ~1) || (bridge->window_count < 0) || (bridge->window_count > CAMPAIGN_BLAST_WINDOW_MAX) || (bridge->window_after < 0) ||
+				(!bridge->window_valid && (bridge->window_count || bridge->window_end || bridge->window_after)) ||
+				(bridge->window_valid && ((bridge->window_sx < bridge->min_x_sector) || (bridge->window_sx > bridge->max_x_sector) || (bridge->window_sz < bridge->min_z_sector) ||
+				(bridge->window_sz > bridge->max_z_sector))))))
+			{
+				debug_fatal ("host aim: a bridge request (op %d) with inconsistent figures", bridge->op);
+			}
+
+			for (i = 0; i < bridge->window_count; i++)
+			{
+				const campaign_blast_entry *entry = &bridge->window[i];
+
+				if ((entry->handle <= 0) || (entry->readable & ~1) || (entry->alive & ~1) || (entry->has_position & ~1) || (entry->rocket & ~1) || (entry->excluded & ~1) ||
+					!all_finite (entry->position, 3) || (!entry->readable && (entry->alive || entry->has_position || entry->rocket)) ||
+					(!entry->has_position && ((entry->position[0] != 0.0f) || (entry->position[1] != 0.0f) || (entry->position[2] != 0.0f))) || ((i > 0) && (entry->handle <= bridge->window[i - 1].handle)))
+				{
+					debug_fatal ("host aim: a bridge request with an inconsistent object %d in its window", i);
+				}
 			}
 
 			break;
@@ -374,6 +410,142 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 	if ((result->state != CAMPAIGN_AIM_DONE) && (result->state != CAMPAIGN_AIM_NEED_DRAW) && (result->state != CAMPAIGN_AIM_NEED_LOOKUP))
 	{
 		debug_fatal ("host aim: host aim answered state %d to a %s request", result->state, mode_name (step->mode));
+	}
+
+	if (step->mode == CAMPAIGN_AIM_BRIDGE)
+	{
+		const campaign_bridge_request *request = &step->bridge;
+		const campaign_bridge_result *answer = &result->bridge;
+
+		if (result->has_echo)
+		{
+			debug_fatal ("host aim: host aim sent an echo to a bridge request, which has none");
+		}
+
+		if (result->state == CAMPAIGN_AIM_NEED_DRAW)
+		{
+			debug_fatal ("host aim: host aim asked for a draw in answer to a bridge request, which takes none");
+		}
+
+		// what a question does not answer is empty: an answer is only the op's own fields
+		if (result->state == CAMPAIGN_AIM_NEED_LOOKUP)
+		{
+			if (answer->kill || answer->variant || answer->notify || answer->fell || answer->landed || answer->remove || answer->action || answer->handle || (answer->dropped_y != 0.0f) ||
+				(answer->floor_height != 0.0f) || (answer->landed_y != 0.0f))
+			{
+				debug_fatal ("host aim: host aim asked a bridge request (op %d) for a lookup with an answer beside it", request->op);
+			}
+
+			if ((request->op == CAMPAIGN_BRIDGE_FALL) || (request->op == CAMPAIGN_BRIDGE_REST))
+			{
+				// the terrain under the segment, once
+				if ((answer->need_terrain != 1) || request->terrain_known || answer->need_sx || answer->need_sz || answer->need_after)
+				{
+					debug_fatal ("host aim: host aim asked a bridge fall request for the terrain %s", request->terrain_known ? "again" : "with something else beside it");
+				}
+			}
+			else if (request->op == CAMPAIGN_BRIDGE_VEHICLES)
+			{
+				// a window, as for a blast: of a sector the map holds, from its start or after an object (the walk checks that it is one the campaign can supply)
+				if (answer->need_terrain || (answer->need_sx < request->min_x_sector) || (answer->need_sx > request->max_x_sector) || (answer->need_sz < request->min_z_sector) ||
+					(answer->need_sz > request->max_z_sector) || (answer->need_after < 0))
+				{
+					debug_fatal ("host aim: host aim asked a bridge request for a malformed window (sector %d, %d after %d)", answer->need_sx, answer->need_sz, answer->need_after);
+				}
+			}
+			else
+			{
+				debug_fatal ("host aim: host aim asked for a lookup in answer to a bridge request (op %d), which has none", request->op);
+			}
+
+			return;
+		}
+
+		if (answer->need_terrain || answer->need_sx || answer->need_sz || answer->need_after)
+		{
+			debug_fatal ("host aim: host aim answered a bridge request (op %d) with a lookup beside the answer", request->op);
+		}
+
+		if ((answer->kill & ~1) || (answer->notify & ~1) || (answer->fell & ~1) || (answer->landed & ~1) || (answer->remove & ~1) || (answer->action & ~1) || !isfinite (answer->dropped_y) ||
+			!isfinite (answer->floor_height) || !isfinite (answer->landed_y) || (answer->variant < 0) || (answer->variant >= CAMPAIGN_BRIDGE_VARIANTS))
+		{
+			debug_fatal ("host aim: host aim answered a bridge request (op %d) with a flag that is not a boolean, a figure that is not finite or a variant %d outside the known ones", request->op,
+				answer->variant);
+		}
+
+		switch (request->op)
+		{
+			case CAMPAIGN_BRIDGE_KILL:
+			{
+				// only a living segment of a server can be killed (killing a dead one would run its kill again; a client does not kill)
+				if (answer->variant || answer->notify || answer->fell || answer->landed || answer->remove || answer->action || answer->handle || answer->dropped_y != 0.0f || answer->floor_height != 0.0f ||
+					answer->landed_y != 0.0f || (answer->kill && (!request->alive || !request->server)))
+				{
+					debug_fatal ("host aim: host aim answered a bridge kill request (segment %d, alive %d, server %d) with kill %d beside other answers or for a segment that cannot be killed", request->segment_kind,
+						request->alive, request->server, answer->kill);
+				}
+
+				break;
+			}
+			case CAMPAIGN_BRIDGE_SHAPE:
+			{
+				if (answer->kill || answer->notify || answer->fell || answer->landed || answer->remove || answer->action || answer->handle || answer->dropped_y != 0.0f || answer->floor_height != 0.0f ||
+					answer->landed_y != 0.0f)
+				{
+					debug_fatal ("host aim: host aim answered a bridge shape request with more than a variant");
+				}
+
+				break;
+			}
+			case CAMPAIGN_BRIDGE_NEIGHBOUR:
+			{
+				// a neighbour that is not there cannot be told
+				if (answer->kill || answer->variant || answer->fell || answer->landed || answer->remove || answer->action || answer->handle || answer->dropped_y != 0.0f || answer->floor_height != 0.0f ||
+					answer->landed_y != 0.0f || (answer->notify && !request->neighbour_present))
+				{
+					debug_fatal ("host aim: host aim answered a bridge neighbour request (which %d, present %d) with notify %d beside other answers or for a neighbour that is not there", request->which,
+						request->neighbour_present, answer->notify);
+				}
+
+				break;
+			}
+			case CAMPAIGN_BRIDGE_FALL:
+			{
+				// a segment lands only if it fell; what it did not do is empty
+				if (answer->kill || answer->variant || answer->notify || answer->action || answer->handle || (answer->landed && !answer->fell) || (!answer->fell && (answer->dropped_y != 0.0f || answer->floor_height != 0.0f)) ||
+					(!answer->landed && answer->landed_y != 0.0f))
+				{
+					debug_fatal ("host aim: host aim answered a bridge fall request with fell %d, landed %d, remove %d and a position that do not agree", answer->fell, answer->landed, answer->remove);
+				}
+
+				break;
+			}
+			case CAMPAIGN_BRIDGE_REST:
+			{
+				// a segment rests at a height or stays where it is; what it did not do is empty.  A living segment keeps the position it was saved at: only one that is not alive can be rested
+				if (answer->kill || answer->variant || answer->notify || answer->fell || answer->remove || answer->action || answer->handle || answer->dropped_y != 0.0f || answer->floor_height != 0.0f ||
+					(!answer->landed && answer->landed_y != 0.0f) || (answer->landed && request->alive))
+				{
+					debug_fatal ("host aim: host aim answered a bridge rest request (alive %d) with landed %d and a height that do not agree, with more than a rest, or for a segment that is alive", request->alive,
+						answer->landed);
+				}
+
+				break;
+			}
+			case CAMPAIGN_BRIDGE_VEHICLES:
+			{
+				// the end of the walk names nothing; an object is named by a positive handle (that it is one of the window is checked as it is reached)
+				if (answer->kill || answer->variant || answer->notify || answer->fell || answer->landed || answer->remove || answer->dropped_y != 0.0f || answer->floor_height != 0.0f || answer->landed_y != 0.0f ||
+					((answer->action == 0) != (answer->handle == 0)) || (answer->handle < 0))
+				{
+					debug_fatal ("host aim: host aim answered a bridge vehicles request with action %d and object %d", answer->action, answer->handle);
+				}
+
+				break;
+			}
+		}
+
+		return;
 	}
 
 	if (step->mode == CAMPAIGN_AIM_BLAST)
@@ -1540,4 +1712,367 @@ void campaign_aim_blast (const float *position, int damage_capability, int warhe
 	}
 
 	walk->end (walk->context);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the physical collapse of a bridge (CAMPAIGN_AIM_BRIDGE, EEDCS-46 R5): each question is asked at the point the original decided, with the facts as they are THEN, and answered before the next
+
+static campaign_aim_step bridge_step (int op)
+{
+	campaign_aim_step step;
+
+	memset (&step, 0, sizeof (step));
+
+	step.mode = CAMPAIGN_AIM_BRIDGE;
+
+	step.bridge.op = op;
+
+	return step;
+}
+
+int campaign_aim_bridge_kill (int segment_kind, int alive, int server)
+{
+	campaign_aim_step step = bridge_step (CAMPAIGN_BRIDGE_KILL);
+
+	step.bridge.segment_kind = segment_kind;
+
+	step.bridge.alive = alive ? TRUE : FALSE;
+
+	step.bridge.server = server ? TRUE : FALSE;
+
+	// a pure question: no sample is taken (campaign_aim_ask refuses a host that asks for one)
+	return campaign_aim_ask (&step, FALSE).bridge.kill;
+}
+
+int campaign_aim_bridge_shape (int alive, int pred_present, int pred_alive, int succ_present, int succ_alive)
+{
+	campaign_aim_step step = bridge_step (CAMPAIGN_BRIDGE_SHAPE);
+
+	step.bridge.alive = alive ? TRUE : FALSE;
+
+	step.bridge.pred_present = pred_present ? TRUE : FALSE;
+
+	step.bridge.pred_alive = pred_alive ? TRUE : FALSE;
+
+	step.bridge.succ_present = succ_present ? TRUE : FALSE;
+
+	step.bridge.succ_alive = succ_alive ? TRUE : FALSE;
+
+	return campaign_aim_ask (&step, FALSE).bridge.variant;
+}
+
+int campaign_aim_bridge_neighbour (int which, int neighbour_present, int neighbour_kind, int neighbour_alive)
+{
+	campaign_aim_step step = bridge_step (CAMPAIGN_BRIDGE_NEIGHBOUR);
+
+	step.bridge.which = which ? TRUE : FALSE;
+
+	step.bridge.neighbour_present = neighbour_present ? TRUE : FALSE;
+
+	step.bridge.neighbour_kind = neighbour_kind;
+
+	step.bridge.neighbour_alive = neighbour_alive ? TRUE : FALSE;
+
+	return campaign_aim_ask (&step, FALSE).bridge.notify;
+}
+
+campaign_bridge_result campaign_aim_bridge_fall (int segment_kind, const float *position, float delta_time, campaign_bridge_terrain_fn terrain, void *context)
+{
+	campaign_aim_step step = bridge_step (CAMPAIGN_BRIDGE_FALL);
+
+	campaign_aim_result result;
+
+	step.bridge.segment_kind = segment_kind;
+
+	step.bridge.position[0] = position[0];
+
+	step.bridge.position[1] = position[1];
+
+	step.bridge.position[2] = position[2];
+
+	step.bridge.delta_time = delta_time;
+
+	result = campaign_aim_ask (&step, FALSE);
+
+	if (result.state == CAMPAIGN_AIM_NEED_LOOKUP)
+	{
+		float
+			height;
+
+		int
+			water;
+
+		// the terrain under the segment, which the original read for an unsupported segment only (the host asks only when its answer needs it), is read once
+		if (!terrain)
+		{
+			debug_fatal ("host aim: host aim asked a bridge fall request for the terrain and the campaign has none to give");
+		}
+
+		height = 0.0f;
+
+		water = FALSE;
+
+		terrain (context, &height, &water);
+
+		step.bridge.terrain_known = TRUE;
+
+		step.bridge.terrain_height = height;
+
+		step.bridge.terrain_water = water ? TRUE : FALSE;
+
+		result = campaign_aim_ask (&step, FALSE);
+
+		if (result.state != CAMPAIGN_AIM_DONE)
+		{
+			debug_fatal ("host aim: host aim did not answer a bridge fall request once it had the terrain");
+		}
+	}
+
+	return result.bridge;
+}
+
+campaign_bridge_result campaign_aim_bridge_rest (int segment_kind, int alive, const float *position, campaign_bridge_terrain_fn terrain, void *context)
+{
+	campaign_aim_step step = bridge_step (CAMPAIGN_BRIDGE_REST);
+
+	campaign_aim_result result;
+
+	step.bridge.segment_kind = segment_kind;
+
+	step.bridge.alive = alive ? TRUE : FALSE;
+
+	step.bridge.position[0] = position[0];
+
+	step.bridge.position[1] = position[1];
+
+	step.bridge.position[2] = position[2];
+
+	result = campaign_aim_ask (&step, FALSE);
+
+	if (result.state == CAMPAIGN_AIM_NEED_LOOKUP)
+	{
+		float
+			height;
+
+		int
+			water;
+
+		// the terrain under the segment, once (as for a fall)
+		if (!terrain)
+		{
+			debug_fatal ("host aim: host aim asked a bridge rest request for the terrain and the campaign has none to give");
+		}
+
+		height = 0.0f;
+
+		water = FALSE;
+
+		terrain (context, &height, &water);
+
+		step.bridge.terrain_known = TRUE;
+
+		step.bridge.terrain_height = height;
+
+		step.bridge.terrain_water = water ? TRUE : FALSE;
+
+		result = campaign_aim_ask (&step, FALSE);
+
+		if (result.state != CAMPAIGN_AIM_DONE)
+		{
+			debug_fatal ("host aim: host aim did not answer a bridge rest request once it had the terrain");
+		}
+	}
+
+	return result.bridge;
+}
+// supplies the window of sector (sx, sz) following `after` (NULL: from the start of the list) as the host asked, naming each object for this walk only
+static void bridge_supply (campaign_bridge_request *bridge, const struct campaign_blast_walk *walk, void **objects, int *next_handle, int sx, int sz, const void *after, int after_handle)
+{
+	int
+		count,
+		end,
+		i;
+
+	memset (bridge->window, 0, sizeof (bridge->window));
+
+	end = FALSE;
+
+	count = walk->window (walk->context, sx, sz, after, bridge->window, objects, CAMPAIGN_BLAST_WINDOW_MAX, &end);
+
+	if ((count < 0) || (count > CAMPAIGN_BLAST_WINDOW_MAX) || (end & ~1))
+	{
+		debug_fatal ("host aim: the campaign's window of sector %d, %d holds %d objects", sx, sz, count);
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		if (*next_handle >= INT_MAX)
+		{
+			debug_fatal ("host aim: a bridge walk named more objects than it can number");
+		}
+
+		bridge->window[i].handle = (*next_handle)++;
+	}
+
+	bridge->window_valid = TRUE;
+
+	bridge->window_sx = sx;
+
+	bridge->window_sz = sz;
+
+	bridge->window_after = after_handle;
+
+	bridge->window_count = count;
+
+	bridge->window_end = end;
+}
+
+void campaign_aim_segment_vehicles (const float *position, float segment_length, const struct campaign_blast_walk *walk)
+{
+	campaign_aim_step step = bridge_step (CAMPAIGN_BRIDGE_VEHICLES);
+
+	campaign_aim_result result;
+
+	void *objects[CAMPAIGN_BLAST_WINDOW_MAX];
+
+	int
+		rounds,
+		next_handle,
+		visited_count;
+
+	// the sectors whose lists the host has started in this walk (each at most once, in whatever order the host walks them)
+	int
+		visited_sx [CAMPAIGN_BLAST_SECTORS_MAX],
+		visited_sz [CAMPAIGN_BLAST_SECTORS_MAX];
+
+	memset (objects, 0, sizeof (objects));
+
+	step.bridge.position[0] = position[0];
+
+	step.bridge.position[1] = position[1];
+
+	step.bridge.position[2] = position[2];
+
+	step.bridge.segment_length = segment_length;
+
+	step.bridge.sector_side_length = walk->sector_side_length;
+
+	step.bridge.min_x_sector = walk->min_x_sector;
+
+	step.bridge.max_x_sector = walk->max_x_sector;
+
+	step.bridge.min_z_sector = walk->min_z_sector;
+
+	step.bridge.max_z_sector = walk->max_z_sector;
+
+	rounds = 0;
+
+	next_handle = 1;
+
+	visited_count = 0;
+
+	for (;;)
+	{
+		rounds++;
+
+		if (rounds > CAMPAIGN_BLAST_ROUNDS_MAX)
+		{
+			debug_fatal ("host aim: a bridge vehicles walk did not finish within %d questions", CAMPAIGN_BLAST_ROUNDS_MAX);
+		}
+
+		result = campaign_aim_ask (&step, FALSE);
+
+		if (result.state == CAMPAIGN_AIM_NEED_LOOKUP)
+		{
+			int
+				i,
+				sx,
+				sz,
+				after_handle;
+
+			sx = result.bridge.need_sx;
+
+			sz = result.bridge.need_sz;
+
+			after_handle = result.bridge.need_after;
+
+			if (after_handle == 0)
+			{
+				// the start of a sector's list, at most once in a walk, in whatever order (as for a blast)
+				for (i = 0; i < visited_count; i++)
+				{
+					if ((visited_sx [i] == sx) && (visited_sz [i] == sz))
+					{
+						debug_fatal ("host aim: host aim asked a bridge vehicles request for the start of sector %d, %d again", sx, sz);
+					}
+				}
+
+				if (visited_count >= CAMPAIGN_BLAST_SECTORS_MAX)
+				{
+					debug_fatal ("host aim: host aim walked a bridge vehicles request through more than %d sectors", CAMPAIGN_BLAST_SECTORS_MAX);
+				}
+
+				visited_sx [visited_count] = sx;
+
+				visited_sz [visited_count] = sz;
+
+				visited_count++;
+
+				bridge_supply (&step.bridge, walk, objects, &next_handle, sx, sz, NULL, 0);
+			}
+			else
+			{
+				// the rest of a list a full window did not hold: the same sector, after the last object offered
+				if (!step.bridge.window_valid || step.bridge.window_end || (step.bridge.window_count < 1) || (sx != step.bridge.window_sx) || (sz != step.bridge.window_sz) ||
+					(after_handle != step.bridge.window[step.bridge.window_count - 1].handle))
+				{
+					debug_fatal ("host aim: host aim asked a bridge vehicles request for the objects of sector %d, %d after object %d, which is not where the window ended", sx, sz, after_handle);
+				}
+
+				bridge_supply (&step.bridge, walk, objects, &next_handle, sx, sz, objects[step.bridge.window_count - 1], after_handle);
+			}
+
+			continue;
+		}
+
+		if (result.bridge.action == 0)
+		{
+			break;
+		}
+
+		{
+			int
+				index,
+				i,
+				handle;
+
+			void
+				*object;
+
+			handle = result.bridge.handle;
+
+			index = -1;
+
+			for (i = 0; i < step.bridge.window_count; i++)
+			{
+				if (step.bridge.window[i].handle == handle)
+				{
+					index = i;
+				}
+			}
+
+			// only a living object of the window the campaign supplied can be killed (killing a dead one would run its kill again)
+			if ((index < 0) || !step.bridge.window[index].readable || !step.bridge.window[index].alive)
+			{
+				debug_fatal ("host aim: host aim named object %d to kill, which is not a living object of the window it was given", handle);
+			}
+
+			object = objects[index];
+
+			walk->apply (walk->context, object, 1, 0.0f);
+
+			// the walk goes on after that object, from the list as it is now: its death may have changed lists
+			bridge_supply (&step.bridge, walk, objects, &next_handle, step.bridge.window_sx, step.bridge.window_sz, object, handle);
+		}
+	}
 }

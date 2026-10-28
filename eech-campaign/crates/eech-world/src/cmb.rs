@@ -831,6 +831,265 @@ pub fn blast(input: &BlastInput) -> Result<BlastOutcome, String> {
     })
 }
 
+/// `cf_bridge_in`.
+#[repr(C)]
+struct RawBridgeIn {
+    op: c_int,
+    segment_kind: c_int,
+    alive: c_int,
+    server: c_int,
+    pred_present: c_int,
+    pred_alive: c_int,
+    succ_present: c_int,
+    succ_alive: c_int,
+    which: c_int,
+    neighbour_present: c_int,
+    neighbour_kind: c_int,
+    neighbour_alive: c_int,
+    position: [c_float; 3],
+    delta_time: c_float,
+    terrain_known: c_int,
+    terrain_height: c_float,
+    terrain_water: c_int,
+    segment_length: c_float,
+    sector_side_length: c_int,
+    min_x_sector: c_int,
+    max_x_sector: c_int,
+    min_z_sector: c_int,
+    max_z_sector: c_int,
+    window_valid: c_int,
+    window_sx: c_int,
+    window_sz: c_int,
+    window_after: c_int,
+    window_count: c_int,
+    window_end: c_int,
+    window: [RawBlastEntry; BLAST_WINDOW_MAX],
+}
+
+/// `cf_bridge_out`.
+#[repr(C)]
+#[derive(Default)]
+struct RawBridgeOut {
+    state: c_int,
+    failed: c_int,
+    kill: c_int,
+    variant: c_int,
+    notify: c_int,
+    need_terrain: c_int,
+    fell: c_int,
+    dropped_y: c_float,
+    floor_height: c_float,
+    landed: c_int,
+    landed_y: c_float,
+    remove: c_int,
+    need_sx: c_int,
+    need_sz: c_int,
+    need_after: c_int,
+    action: c_int,
+    handle: c_int,
+}
+
+extern "C" {
+    fn eech_cmb_bridge(input: *const RawBridgeIn, output: *mut RawBridgeOut);
+}
+
+/// The campaign's entity sub types of a bridge segment (`en_sbtyp.h`); the engine's tests compare them with the campaign as compiled.
+pub const SEGMENT_END_SECTION: i32 = 1;
+pub const SEGMENT_SUPPORTED_MID_SECTION: i32 = 2;
+pub const SEGMENT_UNSUPPORTED_MID_SECTION: i32 = 3;
+
+/// The bridge questions (`campaign_bridge_op`).
+pub const BRIDGE_KILL: i32 = 1;
+pub const BRIDGE_SHAPE: i32 = 2;
+pub const BRIDGE_NEIGHBOUR: i32 = 3;
+pub const BRIDGE_FALL: i32 = 4;
+pub const BRIDGE_VEHICLES: i32 = 5;
+pub const BRIDGE_REST: i32 = 6;
+
+/// The facts of a bridge question, by value (`campaign_bridge_request`).  The window is the vehicles walk's.
+#[derive(Clone, Debug, PartialEq)]
+pub struct BridgeInput {
+    pub op: i32,
+    pub segment_kind: i32,
+    pub alive: bool,
+    pub server: bool,
+    pub pred_present: bool,
+    pub pred_alive: bool,
+    pub succ_present: bool,
+    pub succ_alive: bool,
+    pub which: i32,
+    pub neighbour_present: bool,
+    pub neighbour_kind: i32,
+    pub neighbour_alive: bool,
+    pub position: [f32; 3],
+    pub delta_time: f32,
+    /// The terrain under the segment once the campaign has read it for the host: its height and whether it is water.
+    pub terrain: Option<(f32, bool)>,
+    pub segment_length: f32,
+    pub sector_side_length: i32,
+    pub min_x_sector: i32,
+    pub max_x_sector: i32,
+    pub min_z_sector: i32,
+    pub max_z_sector: i32,
+    pub window: Option<BlastWindow>,
+}
+
+impl BridgeInput {
+    /// A question with nothing but its op set.
+    pub fn new(op: i32) -> Self {
+        BridgeInput {
+            op,
+            segment_kind: 0,
+            alive: false,
+            server: false,
+            pred_present: false,
+            pred_alive: false,
+            succ_present: false,
+            succ_alive: false,
+            which: 0,
+            neighbour_present: false,
+            neighbour_kind: 0,
+            neighbour_alive: false,
+            position: [0.0; 3],
+            delta_time: 0.0,
+            terrain: None,
+            segment_length: 0.0,
+            sector_side_length: 1,
+            min_x_sector: 0,
+            max_x_sector: 0,
+            min_z_sector: 0,
+            max_z_sector: 0,
+            window: None,
+        }
+    }
+}
+
+/// The host's answer to a bridge question.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum BridgeStep {
+    /// KILL: whether the segment collapses now.
+    Kill(bool),
+    /// SHAPE: the variant (`campaign_bridge_variant`).
+    Variant(i32),
+    /// NEIGHBOUR: whether the neighbour is told.
+    Notify(bool),
+    /// FALL or REST: the host needs the terrain under the segment.
+    NeedTerrain,
+    /// FALL: whether it fell (to `dropped_y`, compared with `floor_height`), whether it landed (at `landed_y`) and whether it leaves the list.
+    Fall {
+        fell: bool,
+        dropped_y: f32,
+        floor_height: f32,
+        landed: bool,
+        landed_y: f32,
+        remove: bool,
+    },
+    /// REST: whether the segment rests on the ground (at `landed_y`) or stays where it is.
+    Rest { landed: bool, landed_y: f32 },
+    /// VEHICLES: the window of sector (sx, sz) after the handle (0: from the start of the list).
+    NeedWindow { sx: i32, sz: i32, after: i32 },
+    /// VEHICLES: the walk is over.
+    Over,
+    /// VEHICLES: the object `handle` is killed.
+    Act { handle: i32 },
+}
+
+/// One bridge question.  An error for a figure that is not finite, a sector the arithmetic cannot convert, a window outside the segment's sector, and a question whose answer is not defined.
+pub fn bridge(input: &BridgeInput) -> Result<BridgeStep, String> {
+    if !input.position.iter().all(|v| v.is_finite()) || !input.delta_time.is_finite() || !input.segment_length.is_finite() {
+        return Err("a bridge question needs finite figures".into());
+    }
+    let mut raw = RawBridgeIn {
+        op: input.op,
+        segment_kind: input.segment_kind,
+        alive: c_int::from(input.alive),
+        server: c_int::from(input.server),
+        pred_present: c_int::from(input.pred_present),
+        pred_alive: c_int::from(input.pred_alive),
+        succ_present: c_int::from(input.succ_present),
+        succ_alive: c_int::from(input.succ_alive),
+        which: input.which,
+        neighbour_present: c_int::from(input.neighbour_present),
+        neighbour_kind: input.neighbour_kind,
+        neighbour_alive: c_int::from(input.neighbour_alive),
+        position: input.position,
+        delta_time: input.delta_time,
+        terrain_known: c_int::from(input.terrain.is_some()),
+        terrain_height: input.terrain.map_or(0.0, |t| t.0),
+        terrain_water: c_int::from(input.terrain.is_some_and(|t| t.1)),
+        segment_length: input.segment_length,
+        sector_side_length: input.sector_side_length,
+        min_x_sector: input.min_x_sector,
+        max_x_sector: input.max_x_sector,
+        min_z_sector: input.min_z_sector,
+        max_z_sector: input.max_z_sector,
+        window_valid: 0,
+        window_sx: 0,
+        window_sz: 0,
+        window_after: 0,
+        window_count: 0,
+        window_end: 0,
+        window: [RawBlastEntry::default(); BLAST_WINDOW_MAX],
+    };
+    if let Some(window) = &input.window {
+        if window.entries.len() > BLAST_WINDOW_MAX {
+            return Err(format!("a window holds {} objects, not more than {BLAST_WINDOW_MAX}", window.entries.len()));
+        }
+        raw.window_valid = 1;
+        raw.window_sx = window.sx;
+        raw.window_sz = window.sz;
+        raw.window_after = window.after;
+        raw.window_count = window.entries.len() as c_int;
+        raw.window_end = c_int::from(window.end);
+        for (slot, entry) in raw.window.iter_mut().zip(&window.entries) {
+            *slot = RawBlastEntry {
+                handle: entry.handle,
+                kind: entry.entity_type,
+                readable: c_int::from(entry.readable),
+                alive: c_int::from(entry.alive),
+                has_position: c_int::from(entry.has_position),
+                rocket: c_int::from(entry.rocket),
+                excluded: c_int::from(entry.excluded),
+                position: entry.position,
+            };
+        }
+    }
+    let mut out = RawBridgeOut::default();
+    // SAFETY: both structures are valid for the call, which keeps nothing.
+    unsafe { eech_cmb_bridge(&raw, &mut out) };
+    if out.failed != 0 {
+        return Err(format!(
+            "the bridge question (op {}, segment kind {}) cannot be answered",
+            input.op, input.segment_kind
+        ));
+    }
+    Ok(match input.op {
+        BRIDGE_KILL => BridgeStep::Kill(out.kill != 0),
+        BRIDGE_SHAPE => BridgeStep::Variant(out.variant),
+        BRIDGE_NEIGHBOUR => BridgeStep::Notify(out.notify != 0),
+        BRIDGE_FALL | BRIDGE_REST if out.need_terrain != 0 => BridgeStep::NeedTerrain,
+        BRIDGE_REST => BridgeStep::Rest {
+            landed: out.landed != 0,
+            landed_y: out.landed_y,
+        },
+        BRIDGE_FALL => BridgeStep::Fall {
+            fell: out.fell != 0,
+            dropped_y: out.dropped_y,
+            floor_height: out.floor_height,
+            landed: out.landed != 0,
+            landed_y: out.landed_y,
+            remove: out.remove != 0,
+        },
+        _ if out.state != 0 => BridgeStep::NeedWindow {
+            sx: out.need_sx,
+            sz: out.need_sz,
+            after: out.need_after,
+        },
+        _ if out.action != 0 => BridgeStep::Act { handle: out.handle },
+        _ => BridgeStep::Over,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1823,5 +2082,308 @@ mod tests {
             e.entity_type = kind + 100;
             assert_eq!(step(e).examined.len(), 0, "kind {} is not", kind + 100);
         }
+    }
+
+    // ---- the physical collapse of a bridge segment (EEDCS-46, R5).  The expected values are worked out by hand from the original expressions, not read back from this code.
+
+    fn ask(input: &BridgeInput) -> BridgeStep {
+        bridge(input).unwrap()
+    }
+
+    #[test]
+    fn a_living_unsupported_mid_section_of_a_server_is_killed_and_nothing_else_is() {
+        let kill = |kind: i32, alive: bool, server: bool| {
+            let mut q = BridgeInput::new(BRIDGE_KILL);
+            q.segment_kind = kind;
+            q.alive = alive;
+            q.server = server;
+            ask(&q)
+        };
+        assert_eq!(kill(SEGMENT_UNSUPPORTED_MID_SECTION, true, true), BridgeStep::Kill(true));
+        for (kind, alive, server) in [
+            (SEGMENT_UNSUPPORTED_MID_SECTION, false, true),
+            (SEGMENT_UNSUPPORTED_MID_SECTION, true, false),
+            (SEGMENT_SUPPORTED_MID_SECTION, true, true),
+            (SEGMENT_END_SECTION, true, true),
+            (0, true, true),
+        ] {
+            assert_eq!(kill(kind, alive, server), BridgeStep::Kill(false), "kind {kind} alive {alive} server {server}");
+        }
+    }
+
+    #[test]
+    fn the_shape_follows_the_state_of_the_segment_and_its_neighbours_and_a_missing_neighbour_counts_as_alive() {
+        let shape = |alive: bool, pred: Option<bool>, succ: Option<bool>| {
+            let mut q = BridgeInput::new(BRIDGE_SHAPE);
+            q.alive = alive;
+            q.pred_present = pred.is_some();
+            q.pred_alive = pred.unwrap_or(false);
+            q.succ_present = succ.is_some();
+            q.succ_alive = succ.unwrap_or(false);
+            ask(&q)
+        };
+        // a dead segment is destroyed, whatever its neighbours
+        for pred in [None, Some(true), Some(false)] {
+            for succ in [None, Some(true), Some(false)] {
+                assert_eq!(shape(false, pred, succ), BridgeStep::Variant(1), "dead {pred:?} {succ:?}");
+            }
+        }
+        // alive: normal, predecessor destroyed, successor destroyed, both destroyed; a neighbour that is not there is alive
+        assert_eq!(shape(true, Some(true), Some(true)), BridgeStep::Variant(0));
+        assert_eq!(shape(true, None, None), BridgeStep::Variant(0));
+        assert_eq!(shape(true, None, Some(true)), BridgeStep::Variant(0));
+        assert_eq!(shape(true, Some(false), Some(true)), BridgeStep::Variant(2));
+        assert_eq!(shape(true, Some(false), None), BridgeStep::Variant(2));
+        assert_eq!(shape(true, Some(true), Some(false)), BridgeStep::Variant(3));
+        assert_eq!(shape(true, None, Some(false)), BridgeStep::Variant(3));
+        assert_eq!(shape(true, Some(false), Some(false)), BridgeStep::Variant(4));
+    }
+
+    #[test]
+    fn a_neighbour_is_told_if_it_is_there() {
+        let mut q = BridgeInput::new(BRIDGE_NEIGHBOUR);
+        assert_eq!(ask(&q), BridgeStep::Notify(false));
+        q.neighbour_present = true;
+        assert_eq!(ask(&q), BridgeStep::Notify(true));
+        q.which = 1;
+        q.neighbour_alive = true;
+        q.neighbour_kind = SEGMENT_UNSUPPORTED_MID_SECTION;
+        assert_eq!(ask(&q), BridgeStep::Notify(true), "the reference tells it whatever it is");
+    }
+
+    fn fall_question(kind: i32, y: f32, dt: f32, terrain: Option<(f32, bool)>) -> BridgeInput {
+        let mut q = BridgeInput::new(BRIDGE_FALL);
+        q.segment_kind = kind;
+        q.position = [250.0, y, 250.0];
+        q.delta_time = dt;
+        q.terrain = terrain;
+        q
+    }
+
+    #[test]
+    fn an_unsupported_segment_drops_ten_times_the_frame_to_the_floor_and_a_water_floor_is_a_metre_lower() {
+        let unsupported = SEGMENT_UNSUPPORTED_MID_SECTION;
+        // it asks for the terrain first, and takes the frame only once it has it
+        assert_eq!(ask(&fall_question(unsupported, 120.0, 0.1, None)), BridgeStep::NeedTerrain);
+        // 10.0 * 0.1f is 1.0000000149 as a double, so 120 drops to 118.99999998..., which the float rounds to 119 (the spacing there is 7.6e-6): above the floor at 100, it fell and did not land
+        match ask(&fall_question(unsupported, 120.0, 0.1, Some((100.0, false)))) {
+            BridgeStep::Fall {
+                fell,
+                dropped_y,
+                floor_height,
+                landed,
+                landed_y,
+                remove,
+            } => {
+                assert_eq!(
+                    (fell, dropped_y, floor_height, landed, landed_y, remove),
+                    (true, 119.0, 100.0, false, 0.0, false)
+                );
+            }
+            other => panic!("{other:?}"),
+        }
+        // from 100.5 it drops to 99.5, below a floor of 100: it lands, at the floor, and leaves the list
+        match ask(&fall_question(unsupported, 100.5, 0.1, Some((100.0, false)))) {
+            BridgeStep::Fall {
+                fell,
+                dropped_y,
+                floor_height,
+                landed,
+                landed_y,
+                remove,
+            } => {
+                assert_eq!(
+                    (fell, dropped_y, floor_height, landed, landed_y, remove),
+                    (true, 99.5, 100.0, true, 100.0, true)
+                );
+            }
+            other => panic!("{other:?}"),
+        }
+        // over water the floor is 99, so the same drop to 99.5 is still above it: the water offset decides
+        match ask(&fall_question(unsupported, 100.5, 0.1, Some((100.0, true)))) {
+            BridgeStep::Fall {
+                fell,
+                dropped_y,
+                floor_height,
+                landed,
+                remove,
+                ..
+            } => {
+                assert_eq!((fell, dropped_y, floor_height, landed, remove), (true, 99.5, 99.0, false, false));
+            }
+            other => panic!("{other:?}"),
+        }
+        // exactly on the floor is a landing (the comparison is "at or below")
+        match ask(&fall_question(unsupported, 101.0, 0.1, Some((100.0, false)))) {
+            BridgeStep::Fall {
+                dropped_y, landed, landed_y, ..
+            } => assert_eq!((dropped_y, landed, landed_y), (100.0, true, 100.0)),
+            other => panic!("{other:?}"),
+        }
+        // a supported segment, an end section and any other kind do not fall and leave the list at once, without the terrain
+        for kind in [SEGMENT_SUPPORTED_MID_SECTION, SEGMENT_END_SECTION, 0] {
+            assert_eq!(
+                ask(&fall_question(kind, 120.0, 0.1, None)),
+                BridgeStep::Fall {
+                    fell: false,
+                    dropped_y: 0.0,
+                    floor_height: 0.0,
+                    landed: false,
+                    landed_y: 0.0,
+                    remove: true
+                },
+                "kind {kind}"
+            );
+        }
+        // a figure that is not finite is refused
+        assert!(bridge(&fall_question(unsupported, f32::NAN, 0.1, Some((100.0, false)))).is_err());
+    }
+
+    fn rest_question(kind: i32, alive: bool, terrain: Option<(f32, bool)>) -> BridgeInput {
+        let mut q = BridgeInput::new(BRIDGE_REST);
+        q.segment_kind = kind;
+        q.alive = alive;
+        q.position = [250.0, 140.0, 250.0];
+        q.terrain = terrain;
+        q
+    }
+
+    #[test]
+    fn a_dead_unsupported_segment_rests_on_the_ground_a_metre_lower_over_water_and_nothing_else_is_moved() {
+        let unsupported = SEGMENT_UNSUPPORTED_MID_SECTION;
+        // it asks for the terrain first
+        assert_eq!(ask(&rest_question(unsupported, false, None)), BridgeStep::NeedTerrain);
+        assert_eq!(
+            ask(&rest_question(unsupported, false, Some((100.25, false)))),
+            BridgeStep::Rest {
+                landed: true,
+                landed_y: 100.25
+            }
+        );
+        assert_eq!(
+            ask(&rest_question(unsupported, false, Some((100.25, true)))),
+            BridgeStep::Rest { landed: true, landed_y: 99.25 }
+        );
+        // a living segment, a supported one and an end section stay where they were saved, without reading the terrain
+        for (kind, alive) in [
+            (unsupported, true),
+            (SEGMENT_SUPPORTED_MID_SECTION, false),
+            (SEGMENT_END_SECTION, false),
+            (0, false),
+        ] {
+            assert_eq!(
+                ask(&rest_question(kind, alive, None)),
+                BridgeStep::Rest { landed: false, landed_y: 0.0 },
+                "kind {kind} alive {alive}"
+            );
+        }
+        // a terrain that is not a number cannot be rested on
+        assert!(bridge(&rest_question(unsupported, false, Some((f32::NAN, false)))).is_err());
+    }
+
+    fn vehicle_entry(handle: i32, entity_type: i32, offset: [f32; 3], alive: bool) -> BlastEntry {
+        BlastEntry {
+            handle,
+            entity_type,
+            readable: true,
+            alive,
+            has_position: true,
+            rocket: false,
+            excluded: false,
+            position: [250.0 + offset[0], 5.0 + offset[1], 250.0 + offset[2]],
+        }
+    }
+
+    fn vehicles_question(length: f32, window: Option<BlastWindow>) -> BridgeInput {
+        let mut q = BridgeInput::new(BRIDGE_VEHICLES);
+        q.position = [250.0, 5.0, 250.0];
+        q.segment_length = length;
+        q.sector_side_length = 100;
+        q.max_x_sector = 99;
+        q.max_z_sector = 99;
+        q.window = window;
+        q
+    }
+
+    #[test]
+    fn a_killed_segment_kills_the_living_routed_vehicles_within_its_length_times_root_two_by_the_approximate_range() {
+        const ROUTED: i32 = 23;
+        // the segment's own sector, and nothing walked for a segment of no length (the original returned before any list)
+        assert_eq!(ask(&vehicles_question(10.0, None)), BridgeStep::NeedWindow { sx: 2, sz: 2, after: 0 });
+        assert_eq!(ask(&vehicles_question(0.0, None)), BridgeStep::Over);
+        let window = |entries: Vec<BlastEntry>, end: bool| {
+            Some(BlastWindow {
+                sx: 2,
+                sz: 2,
+                after: 0,
+                end,
+                entries,
+            })
+        };
+        // the radius is 10 * 1.414213562 = 14.142...  The approximate range is max + (med + min) / 4: 14 along one axis is 14 (inside), 14.2 is outside
+        assert_eq!(
+            ask(&vehicles_question(10.0, window(vec![vehicle_entry(1, ROUTED, [14.0, 0.0, 0.0], true)], true))),
+            BridgeStep::Act { handle: 1 }
+        );
+        assert_eq!(
+            ask(&vehicles_question(10.0, window(vec![vehicle_entry(1, ROUTED, [14.2, 0.0, 0.0], true)], true))),
+            BridgeStep::Over
+        );
+        // (10, 10, 0): 10 + (10 + 0) / 4 = 12.5, inside; (10, 10, 10): 10 + 20 / 4 = 15, outside (the exact range would be 17.3 and 14.1 respectively: it is the approximate one)
+        assert_eq!(
+            ask(&vehicles_question(10.0, window(vec![vehicle_entry(1, ROUTED, [10.0, 10.0, 0.0], true)], true))),
+            BridgeStep::Act { handle: 1 }
+        );
+        assert_eq!(
+            ask(&vehicles_question(10.0, window(vec![vehicle_entry(1, ROUTED, [10.0, 10.0, 10.0], true)], true))),
+            BridgeStep::Over
+        );
+        // the order of the axes does not matter: the largest is the base
+        assert_eq!(
+            ask(&vehicles_question(10.0, window(vec![vehicle_entry(1, ROUTED, [0.0, 0.0, 12.0], true)], true))),
+            BridgeStep::Act { handle: 1 }
+        );
+        // a dead vehicle, a vehicle that is not placed, an object of another kind and a vehicle outside are skipped; the first inside is named
+        let mut unplaced = vehicle_entry(2, ROUTED, [1.0, 0.0, 0.0], true);
+        unplaced.has_position = false;
+        let entries = vec![
+            vehicle_entry(1, ROUTED, [1.0, 0.0, 0.0], false),
+            unplaced,
+            vehicle_entry(3, 19, [1.0, 0.0, 0.0], true),
+            vehicle_entry(4, ROUTED, [30.0, 0.0, 0.0], true),
+            vehicle_entry(5, ROUTED, [5.0, 0.0, 0.0], true),
+            vehicle_entry(6, ROUTED, [2.0, 0.0, 0.0], true),
+        ];
+        assert_eq!(ask(&vehicles_question(10.0, window(entries, true))), BridgeStep::Act { handle: 5 });
+        // a full window with nothing inside asks for the rest of the list after its last object; an ended one is over
+        let sixteen: Vec<BlastEntry> = (1..=16).map(|h| vehicle_entry(h, ROUTED, [50.0, 0.0, 0.0], true)).collect();
+        assert_eq!(
+            ask(&vehicles_question(10.0, window(sixteen, false))),
+            BridgeStep::NeedWindow { sx: 2, sz: 2, after: 16 }
+        );
+        // no neighbouring sector is walked (the original did not)
+        assert_eq!(ask(&vehicles_question(10.0, window(vec![], true))), BridgeStep::Over);
+        // a segment outside the map, or a window of another sector than the segment's, has no answer
+        let mut outside = vehicles_question(10.0, None);
+        outside.position = [-500.0, 5.0, 250.0];
+        outside.min_x_sector = 0;
+        assert!(bridge(&outside).is_err());
+        assert!(bridge(&vehicles_question(
+            10.0,
+            Some(BlastWindow {
+                sx: 3,
+                sz: 2,
+                after: 0,
+                end: true,
+                entries: vec![]
+            })
+        ))
+        .is_err());
+    }
+
+    #[test]
+    fn the_enum_values_the_bridge_kernel_hard_codes_are_the_ones_the_engine_tests_compare_with_the_campaign() {
+        assert_eq!((SEGMENT_END_SECTION, SEGMENT_SUPPORTED_MID_SECTION, SEGMENT_UNSUPPORTED_MID_SECTION), (1, 2, 3));
+        assert_eq!(BLAST_ENTITY_TYPES[6], 23, "the routed vehicle");
     }
 }

@@ -71,6 +71,8 @@
 
 #include "entity/mobile/mb_cmbfx.h"
 
+#include "entity/mobile/mb_hostaim.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -209,23 +211,18 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 
 	CMB_FX_BRIDGE (EECH_CMB_BRIDGE_COLLISION, receiver, sender, sub_type, get_local_entity_int_value (sender, INT_TYPE_ALIVE), 0.0f)
 
-	if (sub_type == ENTITY_SUB_TYPE_FIXED_BRIDGE_UNSUPPORTED_MID_SECTION)
+	//
+	// Whether the segment collapses NOW is the host's physical decision (EEDCS-46, R5, mb_hostaim.h BRIDGE, KILL): the segment's sub type, whether it is alive and whether this is a server are sent as they
+	// are.  The reference host's answer is the original's: a living unsupported mid section of a server has nothing to support it, so it is killed.  The kill and its effects are the campaign's.
+	//
+
+	if (campaign_aim_bridge_kill (sub_type, get_local_entity_int_value (sender, INT_TYPE_ALIVE), get_comms_model() == COMMS_MODEL_SERVER))
 	{
-		if (get_local_entity_int_value (sender, INT_TYPE_ALIVE))
-		{
-			//
-			// Bridge section has nothing to support it, so kill it
-			//
-		
-			if (get_comms_model() == COMMS_MODEL_SERVER)
-			{
-				CMB_FX_BRIDGE (EECH_CMB_BRIDGE_UNSUPPORTED_KILL, receiver, sender, 0, 0, 0.0f)
+		CMB_FX_BRIDGE (EECH_CMB_BRIDGE_UNSUPPORTED_KILL, receiver, sender, 0, 0, 0.0f)
 
-				kill_client_server_entity (sender);
+		kill_client_server_entity (sender);
 
-				create_client_server_object_killed_explosion_effect (sender);
-			}
-		}
+		create_client_server_object_killed_explosion_effect (sender);
 	}
 
 	//

@@ -1008,3 +1008,327 @@ void eech_cmb_blast(const cf_blast_in *in, cf_blast_out *out)
 	// the last sector's list has ended: the walk is over
 	out->state = 0;
 }
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the physical collapse of a bridge and its segments (EEDCS-46, R5) */
+
+/* the campaign's entity sub types of a bridge segment (en_sbtyp.h ENTITY_SUB_TYPE_FIXED): the layout probe of the engine's tests reads them from the campaign as compiled */
+#define CF_SEGMENT_END_SECTION 1
+#define CF_SEGMENT_SUPPORTED_MID_SECTION 2
+#define CF_SEGMENT_UNSUPPORTED_MID_SECTION 3
+
+#define CF_BRIDGE_KILL 1
+#define CF_BRIDGE_SHAPE 2
+#define CF_BRIDGE_NEIGHBOUR 3
+#define CF_BRIDGE_FALL 4
+#define CF_BRIDGE_VEHICLES 5
+#define CF_BRIDGE_REST 6
+
+/* the variants of a segment's shape (campaign_bridge_variant) */
+#define CF_VARIANT_NORMAL 0
+#define CF_VARIANT_DESTROYED 1
+#define CF_VARIANT_PRED_DESTROYED 2
+#define CF_VARIANT_SUCC_DESTROYED 3
+#define CF_VARIANT_BOTH_DESTROYED 4
+
+/* modules/maths/constant.h */
+#define CF_ROOT2 (1.414213562f)
+
+typedef struct cf_bridge_in
+{
+	int op;
+	int segment_kind;
+	int alive;
+	int server;
+	int pred_present;
+	int pred_alive;
+	int succ_present;
+	int succ_alive;
+	int which;
+	int neighbour_present;
+	int neighbour_kind;
+	int neighbour_alive;
+	float position[3];
+	float delta_time;
+	int terrain_known;
+	float terrain_height;
+	int terrain_water;
+	float segment_length;
+	int sector_side_length;
+	int min_x_sector;
+	int max_x_sector;
+	int min_z_sector;
+	int max_z_sector;
+	int window_valid;
+	int window_sx;
+	int window_sz;
+	int window_after;
+	int window_count;
+	int window_end;
+	cf_blast_entry window[CF_BLAST_WINDOW_MAX];
+} cf_bridge_in;
+
+/* state: 0 the answer is final, 1 the host needs the terrain (FALL) or a window (VEHICLES); failed nonzero when the question has no answer */
+typedef struct cf_bridge_out
+{
+	int state;
+	int failed;
+	int kill;
+	int variant;
+	int notify;
+	int need_terrain;
+	int fell;
+	float dropped_y;
+	float floor_height;
+	int landed;
+	float landed_y;
+	int remove;
+	int need_sx;
+	int need_sz;
+	int need_after;
+	int action;
+	int handle;
+} cf_bridge_out;
+
+/* modules/maths/range.c get_approx_3d_range */
+static float bridge_approx_range(const float *v1, const float *v2)
+{
+	float dx, dy, dz, tmp, range;
+
+	dx = fabs(v1[0] - v2[0]);
+	dy = fabs(v1[1] - v2[1]);
+	dz = fabs(v1[2] - v2[2]);
+
+	if (dx < dy)
+	{
+		tmp = dx;
+		dx = dy;
+		dy = tmp;
+	}
+
+	if (dx < dz)
+	{
+		tmp = dx;
+		dx = dz;
+		dz = tmp;
+	}
+
+	range = dx + ((dy + dz) * (1.0 / 4.0));
+
+	return range;
+}
+
+/* The physical collapse of a bridge segment, one question at a time, expression for expression from special/bridge/br_msgs.c (response_to_collision), fixed/segment/sg_dbase.c
+   (get_bridge_segment_damaged_object), fixed/segment/sg_updt.c (update_server) and fixed/segment/sg_dstry.c (kill_routed_vehicles_on_segment):
+     KILL        a living unsupported mid section of a server has nothing to support it, so it is killed;
+     SHAPE       a dead segment is destroyed; otherwise the shape follows which neighbours are dead (a neighbour that is not there counts as alive);
+     NEIGHBOUR   the neighbour is told if it is there;
+     FALL        an unsupported mid section drops 10 * dt (a double expression assigned to the float), to the terrain's height (a metre lower over water) where it lands; a supported one leaves the list;
+     REST        an unsupported mid section that is not alive rests on the terrain's height (a metre lower over water) when a saved world is unpacked (fixed/segment/sg_pack.c); any other stays where it is;
+     VEHICLES    within the segment's length times root two, by the approximate range, of the routed vehicles that are alive and placed in the segment's own sector (no neighbouring sector).
+   Pure: nothing is kept between questions. */
+void eech_cmb_bridge(const cf_bridge_in *in, cf_bridge_out *out)
+{
+	memset(out, 0, sizeof(*out));
+
+	switch (in->op)
+	{
+		case CF_BRIDGE_KILL:
+			out->kill = (in->segment_kind == CF_SEGMENT_UNSUPPORTED_MID_SECTION && in->alive && in->server) ? 1 : 0;
+			break;
+
+		case CF_BRIDGE_SHAPE:
+		{
+			int pred_alive = (!in->pred_present) || in->pred_alive;
+			int succ_alive = (!in->succ_present) || in->succ_alive;
+
+			if (!in->alive)
+			{
+				out->variant = CF_VARIANT_DESTROYED;
+			}
+			else if ((!pred_alive) && (succ_alive))
+			{
+				out->variant = CF_VARIANT_PRED_DESTROYED;
+			}
+			else if ((pred_alive) && (!succ_alive))
+			{
+				out->variant = CF_VARIANT_SUCC_DESTROYED;
+			}
+			else if ((!pred_alive) && (!succ_alive))
+			{
+				out->variant = CF_VARIANT_BOTH_DESTROYED;
+			}
+			else
+			{
+				out->variant = CF_VARIANT_NORMAL;
+			}
+
+			break;
+		}
+
+		case CF_BRIDGE_NEIGHBOUR:
+			out->notify = in->neighbour_present ? 1 : 0;
+			break;
+
+		case CF_BRIDGE_FALL:
+			if (in->segment_kind == CF_SEGMENT_UNSUPPORTED_MID_SECTION)
+			{
+				float y = in->position[1], terrain_height;
+
+				if (!in->terrain_known)
+				{
+					out->state = 1;
+					out->need_terrain = 1;
+
+					return;
+				}
+
+				y -= (10.0 * in->delta_time);
+
+				terrain_height = in->terrain_height;
+
+				if (in->terrain_water)
+				{
+					terrain_height -= 1.0;
+				}
+
+				if (!isfinite(y) || !isfinite(terrain_height))
+				{
+					out->failed = 1;
+
+					return;
+				}
+
+				out->fell = 1;
+				out->dropped_y = y;
+				out->floor_height = terrain_height;
+
+				if (y <= terrain_height)
+				{
+					out->landed = 1;
+					out->landed_y = terrain_height;
+					out->remove = 1;
+				}
+			}
+			else
+			{
+				out->remove = 1;
+			}
+
+			break;
+
+		case CF_BRIDGE_REST:
+			if (in->segment_kind == CF_SEGMENT_UNSUPPORTED_MID_SECTION && !in->alive)
+			{
+				float terrain_height;
+
+				if (!in->terrain_known)
+				{
+					out->state = 1;
+					out->need_terrain = 1;
+
+					return;
+				}
+
+				terrain_height = in->terrain_height;
+
+				if (in->terrain_water)
+				{
+					terrain_height -= 1.0;
+				}
+
+				if (!isfinite(terrain_height))
+				{
+					out->failed = 1;
+
+					return;
+				}
+
+				out->landed = 1;
+				out->landed_y = terrain_height;
+			}
+
+			break;
+
+		case CF_BRIDGE_VEHICLES:
+		{
+			float damage_radius = in->segment_length;
+			float sx_f = in->position[0], sz_f = in->position[2];
+			int sx, sz, i;
+
+			if (damage_radius == 0.0)
+			{
+				return;
+			}
+
+			damage_radius *= CF_ROOT2;
+
+			if (!convertible(sx_f) || !convertible(sz_f) || in->sector_side_length <= 0)
+			{
+				out->failed = 1;
+
+				return;
+			}
+
+			sx = (int)sx_f;
+			sx /= in->sector_side_length;
+			sz = (int)sz_f;
+			sz /= in->sector_side_length;
+
+			if (sx < in->min_x_sector || sx > in->max_x_sector || sz < in->min_z_sector || sz > in->max_z_sector)
+			{
+				out->failed = 1;
+
+				return;
+			}
+
+			if (!in->window_valid)
+			{
+				out->state = 1;
+				out->need_sx = sx;
+				out->need_sz = sz;
+				out->need_after = 0;
+
+				return;
+			}
+
+			if (in->window_sx != sx || in->window_sz != sz || in->window_count < 0 || in->window_count > CF_BLAST_WINDOW_MAX || (!in->window_end && in->window_count == 0))
+			{
+				out->failed = 1;
+
+				return;
+			}
+
+			for (i = 0; i < in->window_count; i++)
+			{
+				const cf_blast_entry *object = &in->window[i];
+
+				if (object->type == CF_ET_ROUTED_VEHICLE && object->readable && object->alive && object->has_position)
+				{
+					float range = bridge_approx_range(in->position, object->position);
+
+					if (range < damage_radius)
+					{
+						out->action = 1;
+						out->handle = object->handle;
+
+						return;
+					}
+				}
+			}
+
+			if (!in->window_end)
+			{
+				out->state = 1;
+				out->need_sx = in->window_sx;
+				out->need_sz = in->window_sz;
+				out->need_after = in->window[in->window_count - 1].handle;
+			}
+
+			break;
+		}
+
+		default:
+			out->failed = 1;
+	}
+}

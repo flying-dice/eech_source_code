@@ -66,6 +66,15 @@
 --                     bad_blast_draw, bad_blast_sector (a window outside the map), bad_blast_repeat (the same sector's start asked twice), bad_blast_modifier (a modifier above one) and
 --                     bad_blast_rocket (a collision-free destruction of an object the campaign does not know as a rocket): the engine must stop with a clear error.  The blast modes need a
 --                     blast that reaches an object (`bad_blast_handle`, `bad_blast_modifier`, `bad_blast_rocket`) or a second sector (`bad_blast_repeat`) and may not trigger in a short run (`bad_blast_radius` needs only a window and a positive radius, and rewrites the echo's radius too)
+--   mode=bridge_withhold the reference host, but no unsupported span ever collapses (EEDCS-46, R5): the host answers every bridge KILL question no, so a segment killed by the declared failure takes no
+--                     neighbour with it; mode=bridge_slow a fall at a tenth of the reference's speed (the frame time the host is given is a tenth); mode=bridge_own a host with a plain model of its own for the
+--                     collapse (nothing collapses by propagation, no neighbour is told, a plain shape, a fall at two metres a second, no vehicle killed).  Counters `bridge_kill_withheld`, `bridge_slowed`, `bridge_own`
+--                     say the case was reached; the collapse the campaign then shows (the bridge-case witness's events) is what the host answered
+--   mode=bad_bridge_*   a provider whose first answer of the kind is malformed: bad_bridge_kill_dead (kill of a segment that is not alive), bad_bridge_variant (a shape variant that does not exist),
+--                     bad_bridge_notify_absent (a neighbour that is not there told), bad_bridge_landed_not_fell (a landing without a fall), bad_bridge_nonfinite (a drop that is not a number),
+--                     bad_bridge_draw (a request for a sample), bad_bridge_handle (an object that is not in the window), bad_bridge_terrain_twice (the terrain asked for again), bad_bridge_rest_alive (a living segment moved when a saved
+--                     world is unpacked), bad_bridge_rest_nonfinite (a resting height that is not a number): the engine must stop with a clear error.
+--                     bad_bridge_kill_dead, bad_bridge_notify_absent and bad_bridge_handle need a bridge walked by the case, and the rest ones a saved world unpacked, and may not trigger in a plain war: the counters say so
 --   mode=missing      boot without an aim provider: must fail at boot with a clear error
 --   mode=bad_*        a provider that answers the first request of a kind malformed: the engine must stop with a clear error (bad_nil, bad_state,
 --                     bad_ready_state, bad_phase, bad_nan_vector, bad_draw_for_ballistic, bad_second_draw, bad_negative_range, bad_error)
@@ -127,7 +136,7 @@ end
 
 local reference = host.aim
 -- what the campaign asked, by request mode, and what the host answered
-local counts = { table = 0, range = 0, figures = 0, weapon_step = 0, weapon_birth = 0, release = 0, animate = 0, weapon_decoy = 0, weapon_seduce = 0, weapon_reacquire = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0, forecast = 0, damage = 0, health = 0, impact = 0, blast = 0 }
+local counts = { table = 0, range = 0, figures = 0, weapon_step = 0, weapon_birth = 0, release = 0, animate = 0, weapon_decoy = 0, weapon_seduce = 0, weapon_reacquire = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0, forecast = 0, damage = 0, health = 0, impact = 0, blast = 0, bridge = 0 }
 local answers = { valid = 0, invalid = 0, need_draw = 0, lead_ok = 0, lead_no = 0, ballistic_ok = 0, ballistic_no = 0, phase_moving = 0, angle_sum = 0 }
 -- what the weapon steps came to: the passes the host was asked, the lookups it needed (by kind), the draws it asked for, and the kill codes it left (0 none ... 7)
 local steps = { passes = 0, done = 0, need_lookup = 0, need_draw = 0, kills = {}, lookups = {}, births = 0, birth_velocity = 0, releases = 0, release_refused = 0, release_rounds = 0,
@@ -137,7 +146,9 @@ local steps = { passes = 0, done = 0, need_lookup = 0, need_draw = 0, kills = {}
 	health_draws = 0, health_classified = 0, health_critical = 0, health_assessed = 0, health_crossed = 0, timed_asked = 0, timed_eligible = 0, timed_rolled = 0, timed_hit = 0, timed_fatal = 0,
 	selfhit_asked = 0, selfhit_refused = 0, timed_generic = 0,
 	impact_asked = 0, impact_terrain = 0, impact_land = 0, impact_blasts = 0, impact_crater = 0, impact_direct = 0, impact_invalid = 0, impact_denied = 0, impact_own_land = 0,
-	blast_begun = 0, blast_zero = 0, blast_windows = 0, blast_collisions = 0, blast_intercepts = 0, blast_ended = 0, blast_shrunk = 0, blast_denied = 0, blast_own = 0 }
+	blast_begun = 0, blast_zero = 0, blast_windows = 0, blast_collisions = 0, blast_intercepts = 0, blast_ended = 0, blast_shrunk = 0, blast_denied = 0, blast_own = 0,
+	bridge_kill_asked = 0, bridge_kill_yes = 0, bridge_kill_withheld = 0, bridge_shape_asked = 0, bridge_neighbour_asked = 0, bridge_neighbour_told = 0, bridge_fall_asked = 0, bridge_fell = 0,
+	bridge_landed = 0, bridge_removed = 0, bridge_vehicle_windows = 0, bridge_vehicles_killed = 0, bridge_rest_asked = 0, bridge_rest_landed = 0, bridge_slowed = 0, bridge_own = 0 }
 for code = 0, 7 do steps.kills [code] = 0 end
 
 local function counted (step, answer)
@@ -228,6 +239,26 @@ local function counted (step, answer)
 		elseif answer.action == "collision" then steps.blast_collisions = steps.blast_collisions + 1
 		elseif answer.action == "intercept" then steps.blast_intercepts = steps.blast_intercepts + 1
 		else steps.blast_ended = steps.blast_ended + 1 end
+	elseif step.mode == "bridge" then
+		if step.op == "kill" then
+			steps.bridge_kill_asked = steps.bridge_kill_asked + 1
+			if answer.kill then steps.bridge_kill_yes = steps.bridge_kill_yes + 1 end
+		elseif step.op == "shape" then steps.bridge_shape_asked = steps.bridge_shape_asked + 1
+		elseif step.op == "neighbour" then
+			steps.bridge_neighbour_asked = steps.bridge_neighbour_asked + 1
+			if answer.notify then steps.bridge_neighbour_told = steps.bridge_neighbour_told + 1 end
+		elseif step.op == "fall" and answer.state == "done" then
+			steps.bridge_fall_asked = steps.bridge_fall_asked + 1
+			if answer.fell then steps.bridge_fell = steps.bridge_fell + 1 end
+			if answer.landed then steps.bridge_landed = steps.bridge_landed + 1 end
+			if answer.remove then steps.bridge_removed = steps.bridge_removed + 1 end
+		elseif step.op == "rest" and answer.state == "done" then
+			steps.bridge_rest_asked = steps.bridge_rest_asked + 1
+			if answer.landed then steps.bridge_rest_landed = steps.bridge_rest_landed + 1 end
+		elseif step.op == "vehicles" then
+			if answer.state == "need_lookup" then steps.bridge_vehicle_windows = steps.bridge_vehicle_windows + 1
+			elseif answer.action == "act" then steps.bridge_vehicles_killed = steps.bridge_vehicles_killed + 1 end
+		end
 	elseif step.mode == "release" then
 		steps.releases = steps.releases + 1
 		if answer.refuse then steps.release_refused = steps.release_refused + 1 else steps.release_rounds = steps.release_rounds + answer.burst_size end
@@ -348,6 +379,23 @@ elseif mode == "impact_none" or mode == "impact_own" or mode == "blast_small" or
 			elseif mode == "blast_own" then
 				if step.window == nil then steps.blast_own = steps.blast_own + 1 end
 				return counted (step, own.blast (step))
+			end
+		end
+		return counted (step, reference (step))
+	end
+elseif mode == "bridge_withhold" or mode == "bridge_slow" or mode == "bridge_own" then
+	provider = function (step)
+		if step.mode == "bridge" then
+			if mode == "bridge_withhold" and step.op == "kill" then
+				-- the host's physical decision: nothing collapses by propagation.  What the reference would have answered says how many were withheld
+				if reference (step).kill then steps.bridge_kill_withheld = steps.bridge_kill_withheld + 1 end
+				return counted (step, { state = "done", kill = false })
+			elseif mode == "bridge_slow" and step.op == "fall" then
+				if step.terrain ~= nil then steps.bridge_slowed = steps.bridge_slowed + 1 end
+				step = with (step, { delta_time = step.delta_time * 0.1 })
+			elseif mode == "bridge_own" then
+				if step.op == "kill" then steps.bridge_own = steps.bridge_own + 1 end
+				return counted (step, own.bridge (step))
 			end
 		end
 		return counted (step, reference (step))
@@ -486,7 +534,11 @@ emit { event = "summary", mode = mode, frames = frames_run, failure = failure or
 	impact_asked = steps.impact_asked, impact_terrain = steps.impact_terrain, impact_land = steps.impact_land, impact_blasts = steps.impact_blasts, impact_crater = steps.impact_crater,
 	impact_direct = steps.impact_direct, impact_invalid = steps.impact_invalid, impact_denied = steps.impact_denied, impact_own_land = steps.impact_own_land,
 	blast_begun = steps.blast_begun, blast_zero = steps.blast_zero, blast_windows = steps.blast_windows, blast_collisions = steps.blast_collisions, blast_intercepts = steps.blast_intercepts,
-	blast_ended = steps.blast_ended, blast_shrunk = steps.blast_shrunk, blast_denied = steps.blast_denied, blast_own = steps.blast_own }
+	blast_ended = steps.blast_ended, blast_shrunk = steps.blast_shrunk, blast_denied = steps.blast_denied, blast_own = steps.blast_own,
+	bridge_kill_asked = steps.bridge_kill_asked, bridge_kill_yes = steps.bridge_kill_yes, bridge_kill_withheld = steps.bridge_kill_withheld, bridge_shape_asked = steps.bridge_shape_asked,
+	bridge_neighbour_asked = steps.bridge_neighbour_asked, bridge_neighbour_told = steps.bridge_neighbour_told, bridge_fall_asked = steps.bridge_fall_asked, bridge_fell = steps.bridge_fell,
+	bridge_landed = steps.bridge_landed, bridge_removed = steps.bridge_removed, bridge_vehicle_windows = steps.bridge_vehicle_windows, bridge_vehicles_killed = steps.bridge_vehicles_killed,
+	bridge_rest_asked = steps.bridge_rest_asked, bridge_rest_landed = steps.bridge_rest_landed, bridge_slowed = steps.bridge_slowed, bridge_own = steps.bridge_own }
 out:close ()
 io.stderr:write (string.format ("aim-provider: mode=%s ready_update=%d ready_command=%d required=%d step=%d vectors=%d (valid %d invalid %d) lead=%d ballistic=%d intercept=%d need_draw=%d ready_moving=%d weapon_births=%d losses=%d failure=%s\n",
 	mode, counts.ready_update, counts.ready_command, counts.required, counts.step, counts.vectors, answers.valid, answers.invalid, counts.lead, counts.ballistic, counts.intercept,

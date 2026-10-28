@@ -683,6 +683,70 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
                 table.set("window", window_table).map_err(e)?;
             }
         }
+        AimRequest::Bridge(data) => {
+            // a question about the physical collapse of a bridge segment, by value; `terrain` is present once the host has asked for it, `window` once the vehicles walk has been given one
+            table.set("mode", "bridge").map_err(e)?;
+            table
+                .set(
+                    "op",
+                    match data.op {
+                        1 => "kill",
+                        2 => "shape",
+                        3 => "neighbour",
+                        4 => "fall",
+                        5 => "vehicles",
+                        _ => "rest",
+                    },
+                )
+                .map_err(e)?;
+            table.set("segment_kind", data.segment_kind).map_err(e)?;
+            table.set("alive", data.alive).map_err(e)?;
+            table.set("server", data.server).map_err(e)?;
+            table.set("pred_present", data.pred_present).map_err(e)?;
+            table.set("pred_alive", data.pred_alive).map_err(e)?;
+            table.set("succ_present", data.succ_present).map_err(e)?;
+            table.set("succ_alive", data.succ_alive).map_err(e)?;
+            table.set("which", data.which).map_err(e)?;
+            table.set("neighbour_present", data.neighbour_present).map_err(e)?;
+            table.set("neighbour_kind", data.neighbour_kind).map_err(e)?;
+            table.set("neighbour_alive", data.neighbour_alive).map_err(e)?;
+            table.set("position", data.position.to_vec()).map_err(e)?;
+            table.set("delta_time", data.delta_time).map_err(e)?;
+            if let Some((height, water)) = data.terrain {
+                let terrain = lua.create_table().map_err(e)?;
+                terrain.set("height", height).map_err(e)?;
+                terrain.set("water", water).map_err(e)?;
+                table.set("terrain", terrain).map_err(e)?;
+            }
+            table.set("segment_length", data.segment_length).map_err(e)?;
+            table.set("sector_side_length", data.sector_side_length).map_err(e)?;
+            table.set("min_x_sector", data.min_x_sector).map_err(e)?;
+            table.set("max_x_sector", data.max_x_sector).map_err(e)?;
+            table.set("min_z_sector", data.min_z_sector).map_err(e)?;
+            table.set("max_z_sector", data.max_z_sector).map_err(e)?;
+            if let Some(window) = &data.window {
+                let window_table = lua.create_table().map_err(e)?;
+                window_table.set("sx", window.sx).map_err(e)?;
+                window_table.set("sz", window.sz).map_err(e)?;
+                window_table.set("after", window.after).map_err(e)?;
+                window_table.set("list_ends", window.end).map_err(e)?;
+                let objects = lua.create_table().map_err(e)?;
+                for (index, entry) in window.entries.iter().enumerate() {
+                    let object = lua.create_table().map_err(e)?;
+                    object.set("handle", entry.handle).map_err(e)?;
+                    object.set("entity_type", entry.entity_type).map_err(e)?;
+                    object.set("readable", entry.readable).map_err(e)?;
+                    object.set("alive", entry.alive).map_err(e)?;
+                    object.set("has_position", entry.has_position).map_err(e)?;
+                    object.set("rocket", entry.rocket).map_err(e)?;
+                    object.set("excluded", entry.excluded).map_err(e)?;
+                    object.set("position", entry.position.to_vec()).map_err(e)?;
+                    objects.set(index + 1, object).map_err(e)?;
+                }
+                window_table.set("objects", objects).map_err(e)?;
+                table.set("window", window_table).map_err(e)?;
+            }
+        }
         AimRequest::ReadyUpdate(data) => {
             table.set("mode", "ready_update").map_err(e)?;
             aim_ids_into(&table, &data.source, &None)?;
@@ -959,6 +1023,18 @@ fn call_aim(lua: &Lua, function: &LuaFunction, request: AimRequest) -> Result<Ai
                     reply.echo = aim_echo(lua, &table)?;
                     return Ok(reply);
                 }
+                AimRequest::Bridge(_) => {
+                    // a bridge question can ask for the terrain under the segment (a fall) or, for the vehicles walk, the window { sx, sz, after }
+                    reply.need_lookup = true;
+                    match table.get::<LuaValue>("need").map_err(|e| e.to_string())? {
+                        LuaValue::String(need) if &*need.to_str().map_err(|e| e.to_string())? == "terrain" => reply.bridge_need_terrain = true,
+                        LuaValue::Table(need) => {
+                            reply.bridge_need = Some((aim_integer(&need, "sx")?, aim_integer(&need, "sz")?, aim_integer(&need, "after")?));
+                        }
+                        _ => return Err("aim result need_lookup answers a bridge question with a need that is neither the terrain nor a window".into()),
+                    }
+                    return Ok(reply);
+                }
                 _ => return Err("aim result need_lookup answers a request that cannot take lookups".into()),
             }
         }
@@ -1057,6 +1133,47 @@ fn call_aim(lua: &Lua, function: &LuaFunction, request: AimRequest) -> Result<Ai
             if reply.blast_action != 0 {
                 reply.blast_handle = aim_integer(&table, "handle")?;
                 reply.blast_modifier = number("modifier")?;
+            }
+        }
+        AimRequest::Bridge(data) => {
+            // the answer of the op, each field mandatory and exact; a fall names its figures only for what it did
+            match data.op {
+                1 => reply.bridge_kill = aim_boolean(&table, "kill")?,
+                2 => reply.bridge_variant = aim_integer(&table, "variant")?,
+                3 => reply.bridge_notify = aim_boolean(&table, "notify")?,
+                4 => {
+                    reply.bridge_fell = aim_boolean(&table, "fell")?;
+                    reply.bridge_landed = aim_boolean(&table, "landed")?;
+                    reply.bridge_remove = aim_boolean(&table, "remove")?;
+                    if reply.bridge_fell {
+                        reply.bridge_dropped_y = number("dropped_y")?;
+                        reply.bridge_floor_height = number("floor_height")?;
+                    }
+                    if reply.bridge_landed {
+                        reply.bridge_landed_y = number("landed_y")?;
+                    }
+                }
+                6 => {
+                    // where a segment rests when a saved world is unpacked: the height it rests at, or nothing
+                    reply.bridge_landed = aim_boolean(&table, "landed")?;
+                    if reply.bridge_landed {
+                        reply.bridge_landed_y = number("landed_y")?;
+                    }
+                }
+                _ => {
+                    let action = match table.get::<LuaValue>("action").map_err(|e| e.to_string())? {
+                        LuaValue::String(text) => text.to_str().map_err(|e| e.to_string())?.to_owned(),
+                        other => return Err(format!("aim result action must be a string, got {}", other.type_name())),
+                    };
+                    reply.bridge_action = match action.as_str() {
+                        "none" => 0,
+                        "act" => 1,
+                        other => return Err(format!("aim result action {other:?} is not none or act")),
+                    };
+                    if reply.bridge_action != 0 {
+                        reply.bridge_handle = aim_integer(&table, "handle")?;
+                    }
+                }
             }
         }
         AimRequest::ReadyUpdate(_) => {
@@ -2327,6 +2444,131 @@ mod tests {
             let f: LuaFunction = lua.load(format!("return function(r) {body} end")).eval()?;
             assert!(call_aim(&lua, &f, request(true)).err().ok_or("accepted")?.contains(what), "{what}");
         }
+        Ok(())
+    }
+    // The bridge question reaches the host's Lua with its facts by value and, for a fall, the terrain only once the host has asked for it; each op's answer is read field by field.
+    #[test]
+    fn a_bridge_question_reaches_lua_by_value_and_each_answer_is_read_field_by_field() -> Result<(), Box<dyn std::error::Error>> {
+        use eech_engine::AimBridge;
+        let lua = Lua::new();
+        let request = |op: i32, terrain: Option<(f32, bool)>| {
+            AimRequest::Bridge(AimBridge {
+                op,
+                segment_kind: 3,
+                alive: true,
+                server: true,
+                pred_present: true,
+                pred_alive: false,
+                succ_present: false,
+                succ_alive: false,
+                which: 1,
+                neighbour_present: true,
+                neighbour_kind: 2,
+                neighbour_alive: true,
+                position: [250.0, 120.0, 250.0],
+                delta_time: 0.1,
+                terrain,
+                segment_length: 10.0,
+                sector_side_length: 100,
+                min_x_sector: 0,
+                max_x_sector: 9,
+                min_z_sector: 0,
+                max_z_sector: 9,
+                window: None,
+            })
+        };
+        let host: LuaFunction = lua
+            .load(
+                "return function(r) assert(r.mode == 'bridge' and r.segment_kind == 3 and r.alive == true and r.server == true and r.pred_present == true and r.pred_alive == false and r.which == 1 \
+                 and r.neighbour_present == true and r.neighbour_kind == 2 and r.position[2] == 120 and r.segment_length == 10 and r.sector_side_length == 100 and r.window == nil)
+                 if r.op == 'kill' then return { state = 'done', kill = true } end
+                 if r.op == 'shape' then return { state = 'done', variant = 4 } end
+                 if r.op == 'neighbour' then return { state = 'done', notify = true } end
+                 if r.op == 'fall' then
+                   if r.terrain == nil then return { state = 'need_lookup', need = 'terrain' } end
+                   assert(r.terrain.height == 100 and r.terrain.water == true)
+                   return { state = 'done', fell = true, landed = true, remove = true, dropped_y = 99.5, floor_height = 99, landed_y = 99 }
+                 end
+                 if r.op == 'rest' then
+                   if r.terrain == nil then return { state = 'need_lookup', need = 'terrain' } end
+                   return { state = 'done', landed = true, landed_y = r.terrain.height - 1 }
+                 end
+                 return { state = 'need_lookup', need = { sx = 2, sz = 2, after = 0 } } end",
+            )
+            .eval()?;
+        assert!(call_aim(&lua, &host, request(1, None))?.bridge_kill);
+        assert_eq!(call_aim(&lua, &host, request(2, None))?.bridge_variant, 4);
+        assert!(call_aim(&lua, &host, request(3, None))?.bridge_notify);
+        let asking = call_aim(&lua, &host, request(4, None))?;
+        assert!(asking.need_lookup && asking.bridge_need_terrain);
+        let fall = call_aim(&lua, &host, request(4, Some((100.0, true))))?;
+        assert_eq!(
+            (
+                fall.bridge_fell,
+                fall.bridge_landed,
+                fall.bridge_remove,
+                fall.bridge_dropped_y,
+                fall.bridge_floor_height,
+                fall.bridge_landed_y
+            ),
+            (true, true, true, 99.5, 99.0, 99.0)
+        );
+        let walk = call_aim(&lua, &host, request(5, None))?;
+        assert!(walk.need_lookup && walk.bridge_need == Some((2, 2, 0)));
+        // REST: the terrain is asked for, then the height the host rests the segment at comes back
+        let asking = call_aim(&lua, &host, request(6, None))?;
+        assert!(asking.need_lookup && asking.bridge_need_terrain);
+        let rest = call_aim(&lua, &host, request(6, Some((100.0, true))))?;
+        assert_eq!(
+            (rest.bridge_landed, rest.bridge_landed_y, rest.bridge_fell, rest.bridge_remove),
+            (true, 99.0, false, false)
+        );
+        let stays: LuaFunction = lua.load("return function(r) return { state = 'done', landed = false } end").eval()?;
+        let stayed = call_aim(&lua, &stays, request(6, None))?;
+        assert_eq!((stayed.bridge_landed, stayed.bridge_landed_y), (false, 0.0));
+        let unsaid: LuaFunction = lua.load("return function(r) return { state = 'done', landed = true } end").eval()?;
+        assert!(call_aim(&lua, &unsaid, request(6, Some((1.0, false))))
+            .err()
+            .ok_or("accepted")?
+            .contains("landed_y"));
+        // a field missing, an action that is not one, and a lookup that is neither are errors; a fall that did not fall names no figure
+        for (what, body) in [
+            ("kill", "return { state = 'done' }"),
+            ("variant", "return { state = 'done', notify = true }"),
+            ("fell", "return { state = 'done', landed = false, remove = true }"),
+            (
+                "dropped_y",
+                "return { state = 'done', fell = true, landed = false, remove = false, floor_height = 1 }",
+            ),
+            (
+                "landed_y",
+                "return { state = 'done', fell = true, landed = true, remove = true, dropped_y = 1, floor_height = 1 }",
+            ),
+            ("neither", "return { state = 'need_lookup', need = 'wind' }"),
+        ] {
+            let op = match what {
+                "kill" => 1,
+                "variant" => 2,
+                _ => 4,
+            };
+            let f: LuaFunction = lua.load(format!("return function(r) {body} end")).eval()?;
+            assert!(
+                call_aim(&lua, &f, request(op, Some((1.0, false)))).err().ok_or("accepted")?.contains(what),
+                "{what}"
+            );
+        }
+        let quiet: LuaFunction = lua
+            .load("return function(r) return { state = 'done', fell = false, landed = false, remove = true } end")
+            .eval()?;
+        let supported = call_aim(&lua, &quiet, request(4, None))?;
+        assert_eq!((supported.bridge_fell, supported.bridge_remove, supported.bridge_dropped_y), (false, true, 0.0));
+        let act: LuaFunction = lua
+            .load("return function(r) return { state = 'done', action = 'act', handle = 7 } end")
+            .eval()?;
+        let acted = call_aim(&lua, &act, request(5, None))?;
+        assert_eq!((acted.bridge_action, acted.bridge_handle), (1, 7));
+        let bad: LuaFunction = lua.load("return function(r) return { state = 'done', action = 'explode' } end").eval()?;
+        assert!(call_aim(&lua, &bad, request(5, None)).err().ok_or("accepted")?.contains("is not none or act"));
         Ok(())
     }
     #[test]

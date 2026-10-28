@@ -1,7 +1,7 @@
 # D2 bridge and segment collapse (R5): the test-only characterisation of the ORIGINAL behaviour (EEDCS-46)
 
-Status: **UNRUN.** This is a test-only fixture for the ORIGINAL bridge and segment collapse. It moves and changes no bridge physics, adds no host request and no persistent-structure or report API, and has
-had no native run or build: the root builds and runs it, and accepts its actual behaviour, before any bridge rule is extracted. The surroundings it runs in are the current code (the combat callbacks already
+Status: **RUN ON THE ORIGINAL, CLOSED** (the root ran it twice: native `original99734` / PID 10104 and `repeat81402` / PID 17440, both exit 0, 320,598 bytes, identical SHA `d4c198af...`, 118 bridges surveyed, bridge 0 of 8 segments; the bridge physics has since moved to the host, `m5-combat-extraction.md` Step 5, and this same script is the comparison). This is a test-only fixture for the ORIGINAL bridge and segment collapse. The fixture itself moves and changes no bridge physics, adds no host request and no persistent-structure or report API, and had
+no native run or build when it was written; the root built and ran it on the original and accepted its actual behaviour before any bridge rule was extracted. The surroundings it runs in are the current code (the combat callbacks already
 moved are existing surroundings); the later old/new comparison must share that same source and configuration.
 
 ## The original code under observation (read, not changed)
@@ -77,7 +77,7 @@ validation of every argument: 40 malformed values refused before anything was pr
 against the previous script (`checks/bridge-args-red-1.log`: `frame_ms=0` ran the stand-in to its cap of 3000 frames; `checks/bridge-args-red-2.log`: `segment=abc` killed a segment, `case 2:1:-1:0`, with exit 0) and GREEN against
 the corrected one (`checks/cargo-test-bridge2.log`); these prove the argument validation in the real script under the real host''s Lua, not any native physics. rustfmt; default and fixture Clippy (`checks/*-bridge*.log`). The first rustfmt check (`fmt-bridge-failed-layout.log`) found only the layout of the new binding.
 
-## The next ROOT native command
+## The ROOT native command (run on the original; the same command, unchanged, is the comparison for the new path)
 
 With the same fixture build used for `lua/combat-case.lua` (the `weapon-fixture` feature) and the verified retail install root:
 

@@ -602,6 +602,7 @@ pub const EECH_AIM_DAMAGE: c_int = 20;
 pub const EECH_AIM_HEALTH: c_int = 21;
 pub const EECH_AIM_IMPACT: c_int = 22;
 pub const EECH_AIM_BLAST: c_int = 23;
+pub const EECH_AIM_BRIDGE: c_int = 24;
 pub const EECH_AIM_DONE: c_int = 1;
 pub const EECH_AIM_NEED_DRAW: c_int = 2;
 pub const EECH_AIM_NEED_LOOKUP: c_int = 3;
@@ -841,8 +842,64 @@ pub struct eech_blast_result {
     pub modifier: f32,
 }
 
-/// The weapon as the campaign holds it, in a weapon step (aphavoc/.../mb_hostaim.h campaign_weapon_state), field for field.
+/// A bridge question, by value (aphavoc/.../mb_hostaim.h campaign_bridge_request), field for field.
 #[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_bridge_request {
+    pub op: c_int,
+    pub segment_kind: c_int,
+    pub alive: c_int,
+    pub server: c_int,
+    pub pred_present: c_int,
+    pub pred_alive: c_int,
+    pub succ_present: c_int,
+    pub succ_alive: c_int,
+    pub which: c_int,
+    pub neighbour_present: c_int,
+    pub neighbour_kind: c_int,
+    pub neighbour_alive: c_int,
+    pub position: [f32; 3],
+    pub delta_time: f32,
+    pub terrain_known: c_int,
+    pub terrain_height: f32,
+    pub terrain_water: c_int,
+    pub segment_length: f32,
+    pub sector_side_length: c_int,
+    pub min_x_sector: c_int,
+    pub max_x_sector: c_int,
+    pub min_z_sector: c_int,
+    pub max_z_sector: c_int,
+    pub window_valid: c_int,
+    pub window_sx: c_int,
+    pub window_sz: c_int,
+    pub window_after: c_int,
+    pub window_count: c_int,
+    pub window_end: c_int,
+    pub window: [eech_blast_entry; EECH_BLAST_WINDOW_MAX],
+}
+
+/// The host's answer to a bridge question (aphavoc/.../mb_hostaim.h campaign_bridge_result), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_bridge_result {
+    pub kill: c_int,
+    pub variant: c_int,
+    pub notify: c_int,
+    pub need_terrain: c_int,
+    pub fell: c_int,
+    pub dropped_y: f32,
+    pub floor_height: f32,
+    pub landed: c_int,
+    pub landed_y: f32,
+    pub remove: c_int,
+    pub need_sx: c_int,
+    pub need_sz: c_int,
+    pub need_after: c_int,
+    pub action: c_int,
+    pub handle: c_int,
+}
+
+/// The weapon as the campaign holds it, in a weapon step (aphavoc/.../mb_hostaim.h campaign_weapon_state), field for field.#[repr(C)]
 #[derive(Clone, Copy)]
 pub struct eech_weapon_state {
     pub position: [f32; 3],
@@ -946,6 +1003,7 @@ pub struct eech_aim_step {
     pub health: eech_health_request,
     pub impact: eech_impact_request,
     pub blast: eech_blast_request,
+    pub bridge: eech_bridge_request,
 }
 
 #[repr(C)]
@@ -988,6 +1046,7 @@ pub struct eech_aim_result {
     pub health: eech_health_result,
     pub impact: eech_impact_result,
     pub blast: eech_blast_result,
+    pub bridge: eech_bridge_result,
 }
 
 /// What each collision lookup of a weapon step found, by the question it was asked (aphavoc/.../mb_hostaim.h campaign_step_hits).

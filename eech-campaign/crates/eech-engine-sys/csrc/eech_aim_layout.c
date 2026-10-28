@@ -65,6 +65,17 @@ size_t eech_engine_aim_layout (int which)
 		case 47: return offsetof (campaign_blast_result, modifier);
 		case 48: return offsetof (campaign_impact_request, position);
 		case 49: return offsetof (campaign_blast_request, window_valid);
+		/* BRIDGE (EEDCS-46, R5) */
+		case 50: return sizeof (campaign_bridge_request);
+		case 51: return sizeof (campaign_bridge_result);
+		case 52: return offsetof (campaign_aim_step, bridge);
+		case 53: return offsetof (campaign_aim_result, bridge);
+		case 54: return offsetof (campaign_bridge_request, position);
+		case 55: return offsetof (campaign_bridge_request, terrain_known);
+		case 56: return offsetof (campaign_bridge_request, segment_length);
+		case 57: return offsetof (campaign_bridge_request, window);
+		case 58: return offsetof (campaign_bridge_result, dropped_y);
+		case 59: return offsetof (campaign_bridge_result, handle);
 		/* the campaign's enum values the reference host's kernel hard-codes: the thirteen kinds a blast examines and the weapon kill codes */
 		case 60: return (size_t) ENTITY_TYPE_ANTI_AIRCRAFT;
 		case 61: return (size_t) ENTITY_TYPE_CITY_BUILDING;
@@ -79,6 +90,16 @@ size_t eech_engine_aim_layout (int which)
 		case 70: return (size_t) ENTITY_TYPE_SITE;
 		case 71: return (size_t) ENTITY_TYPE_SITE_UPDATABLE;
 		case 72: return (size_t) ENTITY_TYPE_WEAPON;
+		case 90: return (size_t) ENTITY_SUB_TYPE_FIXED_BRIDGE_END_SECTION;
+		case 91: return (size_t) ENTITY_SUB_TYPE_FIXED_BRIDGE_SUPPORTED_MID_SECTION;
+		case 92: return (size_t) ENTITY_SUB_TYPE_FIXED_BRIDGE_UNSUPPORTED_MID_SECTION;
+		/* the bridge questions (campaign_bridge_op): the numbers the host speaks, which the reference host and the DC module name */
+		case 93: return (size_t) CAMPAIGN_BRIDGE_KILL;
+		case 94: return (size_t) CAMPAIGN_BRIDGE_SHAPE;
+		case 95: return (size_t) CAMPAIGN_BRIDGE_NEIGHBOUR;
+		case 96: return (size_t) CAMPAIGN_BRIDGE_FALL;
+		case 97: return (size_t) CAMPAIGN_BRIDGE_VEHICLES;
+		case 98: return (size_t) CAMPAIGN_BRIDGE_REST;
 		case 80: return (size_t) WEAPON_KILL_CODE_OK;
 		case 81: return (size_t) WEAPON_KILL_CODE_EXHAUSTED;
 		case 82: return (size_t) WEAPON_KILL_CODE_OUT_OF_BOUNDS;

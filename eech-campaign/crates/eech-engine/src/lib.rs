@@ -1347,6 +1347,34 @@ pub struct AimBlast {
     pub echo: bool,
 }
 
+/// One question about the physical collapse of a bridge segment (EEDCS-46, R5), by value: see `eech_bridge_request` (mb_hostaim.h campaign_bridge_request).  The terrain is present once the campaign has
+/// read it for the host; the window is the vehicles walk's.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimBridge {
+    pub op: i32,
+    pub segment_kind: i32,
+    pub alive: bool,
+    pub server: bool,
+    pub pred_present: bool,
+    pub pred_alive: bool,
+    pub succ_present: bool,
+    pub succ_alive: bool,
+    pub which: i32,
+    pub neighbour_present: bool,
+    pub neighbour_kind: i32,
+    pub neighbour_alive: bool,
+    pub position: [f32; 3],
+    pub delta_time: f32,
+    pub terrain: Option<(f32, bool)>,
+    pub segment_length: f32,
+    pub sector_side_length: i32,
+    pub min_x_sector: i32,
+    pub max_x_sector: i32,
+    pub min_z_sector: i32,
+    pub max_z_sector: i32,
+    pub window: Option<AimBlastWindow>,
+}
+
 /// One frame of one weapon's flight, or (with `birth`) its birth: the weapon, the clock and the frame, and what the host has been told so far in answer to the lookups it asked for (`answers`, each
 /// the lookup repeated with its results in `f[6..12]`) and the samples of the campaign's shared random stream it has been given (`draws`, raw integers in [0, 32767]).
 #[derive(Clone, Debug, PartialEq)]
@@ -1519,6 +1547,7 @@ pub enum AimRequest {
     Health(AimHealth),
     Impact(AimImpact),
     Blast(AimBlast),
+    Bridge(AimBridge),
     Animate(AimAnimate),
     ReadyUpdate(AimReadyUpdate),
     ReadyCommand(AimReadyCommand),
@@ -1589,6 +1618,20 @@ pub struct AimReply {
     pub blast_action: i32,
     pub blast_handle: i32,
     pub blast_modifier: f32,
+    /// A bridge question only: see `eech_bridge_result`.  With `need_lookup` the host asks for the terrain (`bridge_need_terrain`) or, for the vehicles walk, the window at `bridge_need`.
+    pub bridge_kill: bool,
+    pub bridge_variant: i32,
+    pub bridge_notify: bool,
+    pub bridge_need_terrain: bool,
+    pub bridge_fell: bool,
+    pub bridge_dropped_y: f32,
+    pub bridge_floor_height: f32,
+    pub bridge_landed: bool,
+    pub bridge_landed_y: f32,
+    pub bridge_remove: bool,
+    pub bridge_need: Option<(i32, i32, i32)>,
+    pub bridge_action: i32,
+    pub bridge_handle: i32,
     /// An animation only: the parachute's state, and the weapon's lifetime when the animation reset it.
     pub animate_status: i32,
     pub animate_lifetime: Option<f32>,
@@ -2928,6 +2971,81 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                 echo,
             })
         }
+        sys::EECH_AIM_BRIDGE => {
+            let request = &source.bridge;
+            finite("bridge position", &request.position)?;
+            finite("bridge figure", &[request.delta_time, request.terrain_height, request.segment_length])?;
+            if !(1..=6).contains(&request.op) || request.segment_length < 0.0 {
+                return Err(format!(
+                    "aim received a bridge question with op {} and segment length {}",
+                    request.op, request.segment_length
+                ));
+            }
+            let terrain_known = checked_bool("bridge terrain_known", request.terrain_known)?;
+            let window_valid = checked_bool("bridge window_valid", request.window_valid)?;
+            let window_end = checked_bool("bridge window_end", request.window_end)?;
+            if !(0..=sys::EECH_BLAST_WINDOW_MAX as c_int).contains(&request.window_count)
+                || request.window_after < 0
+                || (request.op != 5 && (window_valid || request.window_count != 0 || window_end || request.window_after != 0))
+                || (request.op == 5
+                    && (request.sector_side_length <= 0 || request.min_x_sector > request.max_x_sector || request.min_z_sector > request.max_z_sector))
+                || (!window_valid && (request.window_count != 0 || window_end || request.window_after != 0))
+            {
+                return Err("aim received a bridge question with inconsistent sector figures or window".into());
+            }
+            let window = if window_valid {
+                let mut entries = Vec::with_capacity(request.window_count as usize);
+                for entry in request.window.iter().take(request.window_count as usize) {
+                    finite("bridge object position", &entry.position)?;
+                    if entry.handle <= 0 {
+                        return Err(format!("aim received a bridge object with handle {}", entry.handle));
+                    }
+                    entries.push(AimBlastEntry {
+                        handle: entry.handle,
+                        entity_type: entry.kind,
+                        readable: checked_bool("bridge readable", entry.readable)?,
+                        alive: checked_bool("bridge alive", entry.alive)?,
+                        has_position: checked_bool("bridge has_position", entry.has_position)?,
+                        rocket: checked_bool("bridge rocket", entry.rocket)?,
+                        excluded: checked_bool("bridge excluded", entry.excluded)?,
+                        position: entry.position,
+                    });
+                }
+                Some(AimBlastWindow {
+                    sx: request.window_sx,
+                    sz: request.window_sz,
+                    after: request.window_after,
+                    end: window_end,
+                    entries,
+                })
+            } else {
+                None
+            };
+            AimRequest::Bridge(AimBridge {
+                op: request.op,
+                segment_kind: request.segment_kind,
+                alive: checked_bool("bridge alive", request.alive)?,
+                server: checked_bool("bridge server", request.server)?,
+                pred_present: checked_bool("bridge pred_present", request.pred_present)?,
+                pred_alive: checked_bool("bridge pred_alive", request.pred_alive)?,
+                succ_present: checked_bool("bridge succ_present", request.succ_present)?,
+                succ_alive: checked_bool("bridge succ_alive", request.succ_alive)?,
+                which: i32::from(checked_bool("bridge which", request.which)?),
+                neighbour_present: checked_bool("bridge neighbour_present", request.neighbour_present)?,
+                neighbour_kind: request.neighbour_kind,
+                neighbour_alive: checked_bool("bridge neighbour_alive", request.neighbour_alive)?,
+                position: request.position,
+                delta_time: request.delta_time,
+                terrain: terrain_known.then_some((request.terrain_height, checked_bool("bridge terrain_water", request.terrain_water)?)),
+                segment_length: request.segment_length,
+                sector_side_length: request.sector_side_length,
+                min_x_sector: request.min_x_sector,
+                max_x_sector: request.max_x_sector,
+                min_z_sector: request.min_z_sector,
+                max_z_sector: request.max_z_sector,
+                window,
+            })
+        }
         sys::EECH_AIM_ANIMATE => {
             finite("animation figure", &[source.animate_lifetime, source.animate_motion_y])?;
             if source.weapon <= 0 {
@@ -3228,6 +3346,43 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
         }
         answer.state = sys::EECH_AIM_NEED_LOOKUP;
         answer.impact.need_terrain = 1;
+        return Ok(answer);
+    }
+    if source.mode == sys::EECH_AIM_BRIDGE {
+        if reply.need_lookup {
+            answer.state = sys::EECH_AIM_NEED_LOOKUP;
+            if reply.bridge_need_terrain {
+                answer.bridge.need_terrain = 1;
+            } else if let Some((sx, sz, after)) = reply.bridge_need {
+                answer.bridge.need_sx = sx;
+                answer.bridge.need_sz = sz;
+                answer.bridge.need_after = after;
+            } else {
+                return Err("aim asked a bridge question for a lookup that is neither the terrain nor a window".into());
+            }
+            return Ok(answer);
+        }
+        answer.state = sys::EECH_AIM_DONE;
+        answer.bridge = sys::eech_bridge_result {
+            kill: c_int::from(reply.bridge_kill),
+            variant: reply.bridge_variant,
+            notify: c_int::from(reply.bridge_notify),
+            need_terrain: 0,
+            fell: c_int::from(reply.bridge_fell),
+            dropped_y: reply.bridge_dropped_y,
+            floor_height: reply.bridge_floor_height,
+            landed: c_int::from(reply.bridge_landed),
+            landed_y: reply.bridge_landed_y,
+            remove: c_int::from(reply.bridge_remove),
+            need_sx: 0,
+            need_sz: 0,
+            need_after: 0,
+            action: reply.bridge_action,
+            handle: reply.bridge_handle,
+        };
+        if reply.echo.is_some() {
+            return Err("aim sent an echo to a bridge question, which has none".into());
+        }
         return Ok(answer);
     }
     if source.mode == sys::EECH_AIM_BLAST {
@@ -6830,6 +6985,199 @@ mod tests {
             assert!(seen.is_none(), "{name}: the host was asked");
         }
     }
+    fn bridge_step(op: c_int) -> sys::eech_aim_step {
+        let mut step = blank_aim_step(sys::EECH_AIM_BRIDGE);
+        step.bridge.op = op;
+        step.bridge.segment_kind = 3;
+        step.bridge.alive = 1;
+        step.bridge.server = 1;
+        step.bridge.position = [250.0, 120.0, 250.0];
+        step.bridge.delta_time = 0.1;
+        step
+    }
+
+    #[test]
+    fn a_bridge_question_carries_the_facts_by_value_and_each_answer_comes_back_whole() {
+        // KILL
+        let (seen, result, code, error) = aim_crossing(&bridge_step(1), |_| {
+            Ok(AimReply {
+                bridge_kill: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state, result.bridge.kill), (0, sys::EECH_AIM_DONE, 1), "{error}");
+        assert!(
+            matches!(seen, Some(AimRequest::Bridge(ref b)) if b.op == 1 && b.segment_kind == 3 && b.alive && b.server && b.terrain.is_none() && b.window.is_none())
+        );
+        // SHAPE
+        let mut shape = bridge_step(2);
+        shape.bridge.pred_present = 1;
+        shape.bridge.succ_present = 1;
+        shape.bridge.succ_alive = 1;
+        let (seen, result, code, _) = aim_crossing(&shape, |_| {
+            Ok(AimReply {
+                bridge_variant: 2,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.bridge.variant), (0, 2));
+        assert!(matches!(seen, Some(AimRequest::Bridge(ref b)) if b.pred_present && !b.pred_alive && b.succ_present && b.succ_alive));
+        // NEIGHBOUR
+        let mut neighbour = bridge_step(3);
+        neighbour.bridge.which = 1;
+        neighbour.bridge.neighbour_present = 1;
+        let (seen, result, code, _) = aim_crossing(&neighbour, |_| {
+            Ok(AimReply {
+                bridge_notify: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.bridge.notify), (0, 1));
+        assert!(matches!(seen, Some(AimRequest::Bridge(ref b)) if b.which == 1 && b.neighbour_present));
+        // FALL: the host asks for the terrain, then, given it, answers the fall
+        let (_, result, code, error) = aim_crossing(&bridge_step(4), |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                bridge_need_terrain: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state, result.bridge.need_terrain), (0, sys::EECH_AIM_NEED_LOOKUP, 1), "{error}");
+        let mut fall = bridge_step(4);
+        fall.bridge.terrain_known = 1;
+        fall.bridge.terrain_height = 100.0;
+        fall.bridge.terrain_water = 1;
+        let (seen, result, code, _) = aim_crossing(&fall, |_| {
+            Ok(AimReply {
+                bridge_fell: true,
+                bridge_dropped_y: 119.0,
+                bridge_floor_height: 99.0,
+                bridge_remove: false,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(
+            (
+                code,
+                result.bridge.fell,
+                result.bridge.dropped_y,
+                result.bridge.floor_height,
+                result.bridge.landed,
+                result.bridge.remove
+            ),
+            (0, 1, 119.0, 99.0, 0, 0)
+        );
+        assert!(matches!(seen, Some(AimRequest::Bridge(ref b)) if b.terrain == Some((100.0, true))));
+        // REST: the terrain is asked for once, then the height the host rests the dead segment at comes back and nothing else
+        let mut rest = bridge_step(6);
+        rest.bridge.alive = 0;
+        let (_, result, code, error) = aim_crossing(&rest, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                bridge_need_terrain: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state, result.bridge.need_terrain), (0, sys::EECH_AIM_NEED_LOOKUP, 1), "{error}");
+        rest.bridge.terrain_known = 1;
+        rest.bridge.terrain_height = 100.0;
+        let (seen, result, code, _) = aim_crossing(&rest, |_| {
+            Ok(AimReply {
+                bridge_landed: true,
+                bridge_landed_y: 100.0,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(
+            (code, result.bridge.landed, result.bridge.landed_y, result.bridge.fell, result.bridge.remove),
+            (0, 1, 100.0, 0, 0)
+        );
+        assert!(matches!(seen, Some(AimRequest::Bridge(ref b)) if b.op == 6 && !b.alive && b.terrain == Some((100.0, false))));
+    }
+
+    #[test]
+    fn a_bridge_vehicles_walk_carries_its_window_and_the_hosts_walk_comes_back() {
+        let mut step = bridge_step(5);
+        step.bridge.segment_length = 10.0;
+        step.bridge.sector_side_length = 100;
+        step.bridge.max_x_sector = 9;
+        step.bridge.max_z_sector = 9;
+        let (_, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                bridge_need: Some((2, 2, 0)),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(
+            (code, result.state, result.bridge.need_sx, result.bridge.need_sz, result.bridge.need_after),
+            (0, sys::EECH_AIM_NEED_LOOKUP, 2, 2, 0),
+            "{error}"
+        );
+        step.bridge.window_valid = 1;
+        step.bridge.window_sx = 2;
+        step.bridge.window_sz = 2;
+        step.bridge.window_count = 1;
+        step.bridge.window_end = 1;
+        step.bridge.window[0] = sys::eech_blast_entry {
+            handle: 4,
+            kind: 23,
+            readable: 1,
+            alive: 1,
+            has_position: 1,
+            rocket: 0,
+            excluded: 0,
+            position: [255.0, 5.0, 250.0],
+        };
+        let (seen, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                bridge_action: 1,
+                bridge_handle: 4,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.bridge.action, result.bridge.handle), (0, 1, 4));
+        assert!(matches!(seen, Some(AimRequest::Bridge(ref b)) if b.window.as_ref().is_some_and(|w| w.entries.len() == 1 && w.entries[0].handle == 4)));
+    }
+
+    #[test]
+    fn a_bridge_question_refuses_what_has_no_defined_answer_and_never_takes_a_sample() {
+        let (_, _, code, error) = aim_crossing(&bridge_step(1), |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert_ne!(code, 0, "a bridge question may not ask for a sample");
+        assert!(error.contains("cannot take one"), "{error}");
+        // a lookup that is neither the terrain nor a window
+        let (_, _, code, error) = aim_crossing(&bridge_step(4), |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                ..AimReply::default()
+            })
+        });
+        assert_ne!(code, 0);
+        assert!(error.contains("neither the terrain nor a window"), "{error}");
+        // a request the campaign would not send
+        for (name, change) in [
+            (
+                "op",
+                Box::new(|s: &mut sys::eech_aim_step| s.bridge.op = 9) as Box<dyn Fn(&mut sys::eech_aim_step)>,
+            ),
+            ("position", Box::new(|s: &mut sys::eech_aim_step| s.bridge.position[1] = f32::NAN)),
+            ("delta time", Box::new(|s: &mut sys::eech_aim_step| s.bridge.delta_time = f32::INFINITY)),
+            ("flag", Box::new(|s: &mut sys::eech_aim_step| s.bridge.alive = 2)),
+            ("length", Box::new(|s: &mut sys::eech_aim_step| s.bridge.segment_length = -1.0)),
+            ("window on a fall", Box::new(|s: &mut sys::eech_aim_step| s.bridge.window_valid = 1)),
+        ] {
+            let mut bad = bridge_step(4);
+            change(&mut bad);
+            let (seen, _, code, _) = aim_crossing(&bad, |_| Ok(AimReply::default()));
+            assert_ne!(code, 0, "{name}");
+            assert!(seen.is_none(), "{name}: the host was asked");
+        }
+    }
     // The Rust mirrors of the aim exchange are written by hand, field for field; one that drifts from the C structure is memory corruption at the first request.  The campaign
     // reports the sizes and the offsets of the fields appended last (csrc/eech_aim_layout.c) and the mirrors must agree.
     #[test]
@@ -6888,6 +7236,24 @@ mod tests {
         assert_eq!(layout(48), offset_of!(sys::eech_impact_request, position));
         assert_eq!(layout(49), offset_of!(sys::eech_blast_request, window_valid));
         assert_eq!(sys::EECH_BLAST_WINDOW_MAX, 16);
+        // the bridge exchange (EEDCS-46, R5)
+        assert_eq!(layout(50), size_of::<sys::eech_bridge_request>(), "campaign_bridge_request");
+        assert_eq!(layout(51), size_of::<sys::eech_bridge_result>(), "campaign_bridge_result");
+        assert_eq!(layout(52), offset_of!(sys::eech_aim_step, bridge));
+        assert_eq!(layout(53), offset_of!(sys::eech_aim_result, bridge));
+        assert_eq!(layout(54), offset_of!(sys::eech_bridge_request, position));
+        assert_eq!(layout(55), offset_of!(sys::eech_bridge_request, terrain_known));
+        assert_eq!(layout(56), offset_of!(sys::eech_bridge_request, segment_length));
+        assert_eq!(layout(57), offset_of!(sys::eech_bridge_request, window));
+        assert_eq!(layout(58), offset_of!(sys::eech_bridge_result, dropped_y));
+        assert_eq!(layout(59), offset_of!(sys::eech_bridge_result, handle));
+        // the campaign's entity sub types of a bridge segment the reference kernel hard-codes (end, supported mid, unsupported mid)
+        assert_eq!((90..=92).map(layout).collect::<Vec<usize>>(), vec![1, 2, 3], "ENTITY_SUB_TYPE_FIXED_BRIDGE_*");
+        assert_eq!(
+            (93..=98).map(layout).collect::<Vec<usize>>(),
+            vec![1, 2, 3, 4, 5, 6],
+            "campaign_bridge_op: the numbers the reference host and the DC module name"
+        );
         // the campaign's enum values the reference host's kernel hard-codes (eech-world csrc/cmb_step.c; its own test compares the same two lists): the thirteen kinds a blast
         // examines, in the order of the probe's cases 60 to 72, and the weapon kill codes 0 to 7
         let entity_types: Vec<usize> = (60..=72).map(layout).collect();

@@ -154,4 +154,28 @@ function own.blast (step)
 	return { state = "done", radius = BLAST_RADIUS, action = "none" }
 end
 
+-- the physical collapse of a bridge segment (EEDCS-46, R5): a plain model that is not EECH's and needs none of its tables.  No span ever collapses by propagation (nothing is killed because a neighbour
+-- fell, and no neighbour is told); a segment's shape is normal while it is alive and destroyed once it is not, whatever its neighbours; a segment in the update list falls at two metres a second to the
+-- height of the terrain under it (which it asks for: no water offset of its own) and lands there; a segment that is not alive rests on that same terrain when a saved world is unpacked; killing a segment
+-- kills no vehicle.  The campaign applies whatever it answers.
+function own.bridge (step)
+	if step.op == "kill" then return { state = "done", kill = false } end
+	if step.op == "shape" then return { state = "done", variant = step.alive and 0 or 1 } end
+	if step.op == "neighbour" then return { state = "done", notify = false } end
+	if step.op == "fall" then
+		if step.terrain == nil then return { state = "need_lookup", need = "terrain" } end
+		local dropped = step.position [2] - 2 * step.delta_time
+		local floor = step.terrain.height
+		if dropped <= floor then return { state = "done", fell = true, landed = true, remove = true, dropped_y = dropped, floor_height = floor, landed_y = floor } end
+		return { state = "done", fell = true, landed = false, remove = false, dropped_y = dropped, floor_height = floor }
+	end
+	if step.op == "rest" then
+		-- a segment that is not alive lies on the terrain under it (its height, whatever is there); a living one stays where it was saved
+		if step.alive then return { state = "done", landed = false } end
+		if step.terrain == nil then return { state = "need_lookup", need = "terrain" } end
+		return { state = "done", landed = true, landed_y = step.terrain.height }
+	end
+	return { state = "done", action = "none" }
+end
+
 return own

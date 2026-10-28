@@ -403,4 +403,92 @@ the normal merge still gate it.
 
 ## Bridge characterisation fixture
 
-The test-only characterisation of the ORIGINAL bridge and segment collapse that has to be run and accepted before the bridge rules move is described in `m5-bridge-characterization.md` (unrun; no bridge physics changed).
+The test-only characterisation of the ORIGINAL bridge and segment collapse is described in `m5-bridge-characterization.md`. It is now CLOSED: the root ran it twice on the original code (native `original99734` /
+PID 10104 and `repeat81402` / PID 17440, both exit 0, 320,598 bytes with the identical SHA `d4c198af...`, a survey of 118 bridges, bridge 0 of 8 segments chosen by the criterion; the root's
+`root-original-bridge-pair-completion.json` and the independent reviews hold the evidence). Step 5 below is judged against that baseline by running the same script, unchanged.
+
+# Step 5: the physical collapse of a bridge and its segments
+
+Status: candidate moved, NOT accepted; nothing native was run or built for it (the root owns native builds and runs). What makes a span collapse and what a collapsed segment does physically are the host's:
+whether an unsupported span has nothing to hold it, the damaged shape a segment takes, which neighbours are told, the fall, the water floor and the landing of a segment, where a collapsed segment lies when a saved
+world is unpacked, and which routed vehicles a killed segment kills. The campaign still keeps the route link's break count and its accounting, stopping the vehicles of the route, the repair task and its
+quantities (D4), credit, awareness, the D1 loss consequences, the kill itself (`kill_client_server_entity`), the explosion effects and sound, and the once-only consequences of a bridge's death.
+
+## What moved: one request, six questions
+
+`CAMPAIGN_AIM_BRIDGE` (`mb_hostaim.h`, `campaign_bridge_request` / `campaign_bridge_result`). Each question is one small, stateless, by-value exchange asked at the point the original decided, with the facts as
+they are THEN; no plan is made ahead and no graph is frozen, so the original's synchronous interleaving (a kill's consequences before the next question) and every existing observer hook, which sees the
+APPLIED facts, are kept. None takes a sample of the shared random stream.
+
+| op | where the campaign asks | what the campaign sends | what the host answers |
+|---|---|---|---|
+| KILL | `br_msgs.c response_to_collision` | the segment's sub type, whether it is alive, whether this is a server | whether it collapses now (the unsupported-span kill). Only a living segment of a server may be named |
+| SHAPE | `sg_dbase.c get_bridge_segment_damaged_object` (the collision response AND `sg_pack.c` on unpack) | the segment's alive flag and whether each neighbour is there and alive | one of five variants; the campaign maps it to the segment database's object (data stays the campaign's) |
+| NEIGHBOUR | `sg_updt.c update_server`, once for the successor, then once for the predecessor read after it | which neighbour, whether it is there, its sub type and alive flag | whether it is told. A neighbour that is not there cannot be told |
+| FALL | `sg_updt.c update_server` | the sub type, the position, the frame time; the terrain under the segment only when the host asks (`NEED_LOOKUP`, once) | whether it fell, to what height and against what floor, whether it landed (and where), whether it leaves the update list |
+| REST | `sg_pack.c unpack_local_segment_data` | the sub type, whether it is alive, the position; the terrain only when asked | whether a segment that is not alive rests on the ground, and at what height. A living segment keeps its saved position |
+| VEHICLES | `sg_dstry.c kill_routed_vehicles_on_segment` | the segment's position, its length (data) and the map's sector figures; WINDOWS of the sector's list as the host asks | the next vehicle to kill (a handle), or that the walk is over |
+
+The reference kernel (`eech-world csrc/cmb_step.c eech_cmb_bridge`, outside the DLL) reproduces the original expression for expression: the kill rule, the five-variant shape (a missing neighbour counts alive), the
+notification, `y -= (10.0 * dt)` (a double expression into the float), the water floor `terrain_height -= 1.0`, the landing `y <= terrain_height`, the rest (`y = terrain_height`, a metre lower over water) and the
+radius `length * 1.414213562f` by `get_approx_3d_range` (the larger plus a quarter of the other two). `lua/own-weapon.lua own.bridge` is a plain model that is not EECH's (nothing collapses by propagation, a plain
+shape, a fall at two metres a second to the terrain's height with no water offset, a dead segment lying on the terrain, no vehicle killed). The providers `bridge_withhold` (no unsupported span ever collapses),
+`bridge_slow` (a tenth of the frame time in the fall) and `bridge_own` (the plain model) change the collapse the campaign then shows; the counters `bridge_kill_asked/yes/withheld`, `bridge_shape_asked`,
+`bridge_neighbour_asked/told`, `bridge_fall_asked`, `bridge_fell`, `bridge_landed`, `bridge_removed`, `bridge_rest_asked/landed`, `bridge_vehicle_windows`, `bridge_vehicles_killed`, `bridge_slowed` and `bridge_own`
+say which was reached. The malformed providers `bad_bridge_kill_dead`, `_variant`, `_notify_absent`, `_landed_not_fell`, `_nonfinite`, `_draw`, `_handle`, `_terrain_twice`, `_rest_alive` and `_rest_nonfinite` each make the
+engine stop with a clear error; a fault that needs a walked bridge or an unpacked world may not be reached in a plain war, and the counters say so.
+
+## The order the original had, kept
+
+The collision response asks KILL then SHAPE (the order of the hooks is unchanged). The segment's own update asks NEIGHBOUR for the successor, then for the predecessor (read after the successor's notification,
+which can change it), then FALL, applying `pos->y = dropped_y`, the FALL hook (with the floor), the landing (`pos->y = landed_y`, the LANDED hook) or the removal of a supported segment from the list. The vehicles
+walk reuses the blast's window and handle machinery: the campaign acts on each vehicle the host names BEFORE it asks again, and the next window is read from the successor of the vehicle just killed AFTER the kill
+(a kill that unlinks it is not offered). The order of the walk is the host's own.
+
+## What the campaign refuses (before anything is applied)
+
+A figure that is not finite; a sector the arithmetic cannot convert or outside the map; a request for a sample; an echo; a flag that is not a boolean; a variant outside the known five; a kill of a segment that
+is not alive or of a client; a neighbour told that is not there; a landing without a fall; a position for a fall or a rest that did not happen; a rest of a segment that is alive; the terrain asked for twice, or
+with something beside it; a window of a sector outside the map, a continuation after an object other than the last offered, the start of a sector walked twice, more than 4,096 sectors, a handle that is not a
+living object of the window; an answer with another question's fields beside it. It does NOT veto by the reference's rules: a host may withhold any collapse, choose its own shape, tell no neighbour, fall at its own
+speed to its own floor or not land, lay a dead segment where it chooses, or kill no vehicle (`lua/own-weapon.lua`).
+
+## What the campaign still supplies, as declared coupling
+
+The segment database (shapes, lengths, damage levels, sub types) and the bridge database's patterns are data. The terrain under a segment is read for the host once, on request (`campaign_segment_terrain`), and stays
+the campaign's service until D3. The window and handle of the vehicles walk are the transitional mirror correlation of Step 4 (R3), not a persistent host-owned identity. Effects, sound and the explosion at a
+landing stay the campaign's. Inventory of the helpers' callers (so no D4 or data caller leaves a solver in the DLL): `get_bridge_segment_damaged_object` is called from `br_msgs.c` and `sg_pack.c` only and both ask
+SHAPE; `kill_routed_vehicles_on_segment` from `sg_dstry.c kill_local` only; the fall and the notification only from `sg_updt.c update_server`; the unpack placement only from `sg_pack.c
+unpack_local_segment_data` (REST). Nothing else in `aphavoc/source` decides a collapse (the other mentions of the unsupported sub type are database rows and its enum).
+
+## Cost
+
+A collapse makes one KILL, one SHAPE and two NEIGHBOUR questions per notification round, one FALL per frame per segment in the update list (two requests in the first frame, because the terrain is asked for once)
+and a vehicles walk of one request per window. A bridge collapses rarely and its segments fall for a few seconds, so the traffic is tiny; the frame cost is a root-owned measurement.
+
+## Evidence, and what is not available
+
+* **Characterised on the original first** (see above). The fixture, its read-only hooks and its default protocol, output and validation are unchanged.
+* **Source and sociable checks** (all Linux, nothing native): `cargo test --locked` over the workspace exit 0 (`checks/cargo-test-r5-5.log`; the first run, which found the engine's own op range, is retained as
+  `cargo-test-r5-4-failed-engine-op-range.log`); with `eech-dc/weapon-fixture` exit 0 (`cargo-test-r5-fixture.log`); Clippy default and fixture over all targets with `-D warnings`, exit 0
+  (`clippy-r5b-*.log`); `cargo fmt --all --check` exit 0 (`fmt-r5-rest-check.log`). The Rust tests cover the kernel's rules by hand-worked values (the kill table, the five shapes, the notification, a fall from 120 with
+  a frame of 0.1 to 119.0, to 99.5 and 99.0 over water, the exact landing, the rest on the ground and over water, the vehicles range and radius), the layout and enum numbers read from the campaign as compiled
+  (`eech_aim_layout.c` cases 50 to 59 and 90 to 98), the DC module's reader, and, through the real production Lua bridge, the reference host, the plain model and every malformed provider.
+* **C driver checks** (`c-checks/bridge_checks.c`, ASan and UBSan, the REAL `mb_hostaim.c`): 57 checks, 0 failures (`checks/bridge-checks-2.log`; the first run, before REST, is `bridge-checks-1.log`).
+* **Differential against the transcribed originals** (`c-checks/bridge_differential.c`; the real driver, the reference kernel linked in): 84,036 comparisons, bit for bit, 0 failures: the discrete facts, 60,000 falls
+  (20,001 fell, 9,804 landed, 6,690 over water, 5,455 on the landing boundary), 20,000 rests (3,329 moved, 1,151 over water) and 4,000 vehicle walks with the effects a kill has on the list (10,104 vehicles killed,
+  4,426 effects on the lists) (`checks/bridge-differential-4.log`).
+* **Mutation controllers** (compile and run status kept apart; a build failure or a timeout is never a catch; two setup controls prove it): the checks 12 mutants all caught (11 by assertion, one by the sanitizer;
+  `checks/bridge-mutation-2.log`), the differential 12 all caught (`checks/bridge-differential-mutation-4.log`); the unmutated copies pass, both setup controls as expected.
+* **Other guards rerun against the changed driver**: blast 60 checks and 6,000 differential scenarios, damage 66, forecast 25, health 59, all 0 failures (`checks/*-r5b.log`).
+* **Compile of the touched campaign C**: the real tree compiles in the Linux cargo build; syntax-only compile, feature on and off, of the touched sources with the working tree's headers over the staged ones: 22 OK
+  (`checks/syntax-r5-4.log`; the first run, which used the staged `sg_dbase.h`, is `syntax-r5-3-failed-staged-sg_dbase-header.log`); strict feature-off preprocessing against the baseline blobs
+  (`checks/strict-preprocess-r5-2.log`): the five segment and bridge sources differ BY DESIGN and print their difference (no fixture hook in the feature-off view); the other sources were not in this run.
+* **Not available:** any native run of the new path. A stand-in engine and the C driver checks prove the contract and the decisions, not the campaign's handlers, which are untouched; they are not native physics.
+  The root's comparison of this path with the original baseline (default 5 / 100 / 12 / criterion 0, no golden, normalisation or tolerance rewrite) is the acceptance evidence.
+
+## Still open
+
+Persistent structure ownership and report correlation (R3: the handle is a transitional correlation, not a persistent host-owned identity or state of the static world) and the physical factual reports stay NEXT D2
+work. The route link's break and the repair task's quantities (D4), D3 services (terrain, the segment database) and D5 are not touched; the whole-scope D2 audit and the final shipping gates remain. Whole D2 is
+not complete.

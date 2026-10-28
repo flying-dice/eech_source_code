@@ -1,5 +1,8 @@
--- TEST-ONLY controlled witness of the ORIGINAL bridge and segment collapse (EEDCS-46, R5). Needs a DLL built with the `weapon-fixture` feature. NOT RUN: this script has been parsed and its flow
--- checked against a stand-in engine (tests/host_callbacks.rs); no build or native slot has been given to it. It moves and changes no bridge physics: it observes the campaign's own code.
+-- TEST-ONLY controlled witness of the ORIGINAL bridge and segment collapse (EEDCS-46, R5). Needs a DLL built with the `weapon-fixture` feature. RUN, ON THE ORIGINAL: the root built it and ran it twice
+-- on the original code (native original99734/PID10104 and repeat81402/PID17440, both exit 0, 320598 bytes with the identical SHA d4c198af..., the survey of 118 bridges, bridge 0 of 8 segments chosen by
+-- the criterion; the root's root-original-bridge-pair-completion.json and the independent reviews hold the evidence). Its flow and argument safety are also checked against a stand-in engine
+-- (tests/host_callbacks.rs). It moves and changes no bridge physics: it observes the campaign's own code. The protocol, the default arguments and the output are PROTECTED: the host's collapse (the R5
+-- extraction, docs/m5-combat-extraction.md Step 5) is judged by running this same script, unchanged, against the new path and comparing with that original baseline.
 --
 -- WHAT IT DOES. From a verified retail boot (Lebanon by default, Georgia with scenario=georgia_retail), it surveys the bridges the world holds, chooses one that meets the FIRST-COLLAPSE criterion
 -- (an explicit test-only criterion applied inside C: the bridge is alive, and one of its segments is alive, is not an unsupported mid section and is next to an unsupported mid section that is

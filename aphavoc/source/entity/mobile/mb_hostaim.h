@@ -147,7 +147,9 @@ enum campaign_aim_mode
 	/* what a weapon's death does to the world: the plan of the dispatch on its kill code (EEDCS-46); NEED_LOOKUP asks for the terrain fact once */
 	CAMPAIGN_AIM_IMPACT,
 	/* one area blast (EEDCS-46): the host walks the world through windows the campaign supplies and names the next object it reaches; NEED_LOOKUP asks for a window */
-	CAMPAIGN_AIM_BLAST
+	CAMPAIGN_AIM_BLAST,
+	/* the physical collapse of a bridge segment (EEDCS-46, R5): whether an unsupported span collapses, the damaged shape, which neighbours are told, the fall to the floor, the vehicles on a killed segment */
+	CAMPAIGN_AIM_BRIDGE
 };
 
 enum campaign_aim_state
@@ -540,6 +542,104 @@ typedef struct campaign_blast_result
 	float modifier;
 } campaign_blast_result;
 
+/* BRIDGE (EEDCS-46, R5): the physical collapse of a bridge and its segments, by value.  `op` says which question.
+ *
+ *   KILL         the bridge was told of a segment (br_msgs.c response_to_collision): does it collapse NOW?  The campaign sends the segment's sub type (the campaign's enum: end, supported mid or
+ *                unsupported mid section), whether it is alive and whether the campaign is a server.  The host answers `kill`; the campaign then kills the segment (its explosion effect and every
+ *                consequence of a kill are the campaign's).  The reference host answers yes for a living unsupported mid section on a server, which is how an unsupported span with nothing to hold it falls.
+ *   SHAPE        the damaged shape of a segment from the state of its neighbours (sg_dbase.c get_bridge_segment_damaged_object, for the bridge's response and for the unpacking of a saved world):
+ *                its own alive flag after any kill, and whether each neighbour exists and is alive.  The host answers the VARIANT (0 normal, 1 destroyed, 2 predecessor destroyed, 3 successor destroyed,
+ *                4 both destroyed); the shape each variant is for a segment type is the segment database (asset DATA, the campaign's).
+ *   NEIGHBOUR    a segment in the update list (sg_updt.c): is its successor (which = 0), then, read after that notification, its predecessor (which = 1) told?  The campaign sends whether the neighbour
+ *                exists, its sub type and whether it is alive.  The host answers `notify`; the campaign sends the bridge the collision for that neighbour (which can kill it, and so on).
+ *   FALL         the rest of the update of a segment in the list: an unsupported mid section drops, a supported one leaves the list.  The campaign sends the segment's sub type, its position and the
+ *                frame time and, when the host asks (NEED_LOOKUP), the terrain under it (the height and whether it is water; terrain is the campaign's data service until D3).  The host answers whether
+ *                the segment `fell` this frame (with the position it `dropped_y` to and the floor height it compared with), whether it `landed` (with `landed_y`) and whether it leaves the list (`remove`).
+ *   REST         where a segment that is not alive rests when a saved world is unpacked (sg_pack.c): the campaign sends the segment's sub type, whether it is alive and its position and, when the host asks
+ *                (NEED_LOOKUP), the terrain under it.  The host answers whether it rests on the ground (`landed`) and at what height (`landed_y`): the same floor, and the same water offset, that a fall comes to.
+ *   VEHICLES     the vehicles a killed segment kills (sg_dstry.c kill_routed_vehicles_on_segment), walked like a blast: the campaign sends the segment's position and length (data) and the map's sector
+ *                figures and supplies windows of a sector's list as the host asks; the host answers the NEXT object the campaign must kill, or that it is over.  Each kill is applied before the walk goes on.
+ * No question takes a sample of the random stream.  What stays the campaign's: the route link break, the stopping of vehicles on the route, the repair task, credit, awareness and accounting (br_msgs.c
+ * response_to_child_killed), the kill itself and its effects, the list operations, and the segment database. */
+enum campaign_bridge_op
+{
+	CAMPAIGN_BRIDGE_KILL = 1,
+	CAMPAIGN_BRIDGE_SHAPE,
+	CAMPAIGN_BRIDGE_NEIGHBOUR,
+	CAMPAIGN_BRIDGE_FALL,
+	CAMPAIGN_BRIDGE_VEHICLES,
+	CAMPAIGN_BRIDGE_REST
+};
+
+enum campaign_bridge_variant
+{
+	CAMPAIGN_BRIDGE_VARIANT_NORMAL = 0,
+	CAMPAIGN_BRIDGE_VARIANT_DESTROYED,
+	CAMPAIGN_BRIDGE_VARIANT_PRED_DESTROYED,
+	CAMPAIGN_BRIDGE_VARIANT_SUCC_DESTROYED,
+	CAMPAIGN_BRIDGE_VARIANT_BOTH_DESTROYED,
+	CAMPAIGN_BRIDGE_VARIANTS
+};
+
+typedef struct campaign_bridge_request
+{
+	int op;
+	/* KILL, SHAPE, NEIGHBOUR, FALL: the segment (its sub type is the campaign's entity sub type; `server` says the campaign is a server) */
+	int segment_kind;
+	int alive;
+	int server;
+	/* SHAPE: the neighbours */
+	int pred_present;
+	int pred_alive;
+	int succ_present;
+	int succ_alive;
+	/* NEIGHBOUR: which one (0 successor, 1 predecessor) and what the campaign knows of it */
+	int which;
+	int neighbour_present;
+	int neighbour_kind;
+	int neighbour_alive;
+	/* FALL, VEHICLES: the segment's position; the frame time; the terrain under it once the campaign has read it for the host */
+	float position[3];
+	float delta_time;
+	int terrain_known;
+	float terrain_height;
+	int terrain_water;
+	/* VEHICLES: the segment's length (data) and the map's sector figures, and the window the host last asked for, as for a blast */
+	float segment_length;
+	int sector_side_length;
+	int min_x_sector;
+	int max_x_sector;
+	int min_z_sector;
+	int max_z_sector;
+	int window_valid;
+	int window_sx;
+	int window_sz;
+	int window_after;
+	int window_count;
+	int window_end;
+	campaign_blast_entry window[CAMPAIGN_BLAST_WINDOW_MAX];
+} campaign_bridge_request;
+
+/* BRIDGE answer.  KILL: `kill`.  SHAPE: `variant`.  NEIGHBOUR: `notify`.  FALL (state NEED_LOOKUP: `need_terrain`): `fell`, `dropped_y`, `floor_height`, `landed`, `landed_y`, `remove`.  VEHICLES
+   (state NEED_LOOKUP: the window at need_sx, need_sz after need_after): `action` 0 over or 1 act (kill) on `handle`.  Every other field is zero. */
+typedef struct campaign_bridge_result
+{
+	int kill;
+	int variant;
+	int notify;
+	int need_terrain;
+	int fell;
+	float dropped_y;
+	float floor_height;
+	int landed;
+	float landed_y;
+	int remove;
+	int need_sx;
+	int need_sz;
+	int need_after;
+	int action;
+	int handle;
+} campaign_bridge_result;
 /* WEAPON_STEP: the weapon as the campaign holds it.  The entity-local random stream never leaves the campaign: its first four outputs are all any one call of the
    original uses (raw integers in [0, 32767]) */
 typedef struct campaign_weapon_state
@@ -678,6 +778,9 @@ typedef struct campaign_aim_step
 	/* IMPACT, BLAST (no sample is taken for either) */
 	campaign_impact_request impact;
 	campaign_blast_request blast;
+
+	/* BRIDGE (no sample is taken) */
+	campaign_bridge_request bridge;
 } campaign_aim_step;
 
 typedef struct campaign_aim_result
@@ -736,6 +839,8 @@ typedef struct campaign_aim_result
 	/* IMPACT, BLAST */
 	campaign_impact_result impact;
 	campaign_blast_result blast;
+	/* BRIDGE */
+	campaign_bridge_result bridge;
 } campaign_aim_result;
 
 typedef int (*campaign_aim_fn)
@@ -853,6 +958,25 @@ struct campaign_blast_walk
 
 void campaign_aim_blast (const float *position, int damage_capability, int warhead_type, int has_target, const struct campaign_blast_walk *walk);
 
+/* The bridge questions (CAMPAIGN_AIM_BRIDGE; none takes a sample).  `campaign_aim_bridge_kill` returns whether the segment collapses now; `campaign_aim_bridge_shape` the variant; `campaign_aim_bridge_neighbour`
+   whether the neighbour is told; `campaign_aim_bridge_fall` the host's answer, with the terrain read through `terrain` (called at most once, with the context, to give the height and whether it is water)
+   only if the host asks for it. */
+typedef void (*campaign_bridge_terrain_fn) (void *context, float *height, int *water);
+
+int campaign_aim_bridge_kill (int segment_kind, int alive, int server);
+
+int campaign_aim_bridge_shape (int alive, int pred_present, int pred_alive, int succ_present, int succ_alive);
+
+int campaign_aim_bridge_neighbour (int which, int neighbour_present, int neighbour_kind, int neighbour_alive);
+
+campaign_bridge_result campaign_aim_bridge_fall (int segment_kind, const float *position, float delta_time, campaign_bridge_terrain_fn terrain, void *context);
+
+/* Where a segment rests when a saved world is unpacked (REST): the host's answer, with the terrain read through `terrain` only if the host asks for it. */
+campaign_bridge_result campaign_aim_bridge_rest (int segment_kind, int alive, const float *position, campaign_bridge_terrain_fn terrain, void *context);
+
+/* The vehicles a killed segment kills: the host walks the segment's sector through the windows the campaign supplies (`walk->window`), and each object it names is given to `walk->apply` (action 1: kill it)
+   BEFORE the walk goes on; `walk->sector_side_length` and the sector rectangle are the map's.  `begin`, `examined` and `end` are not used. */
+void campaign_aim_segment_vehicles (const float *position, float segment_length, const struct campaign_blast_walk *walk);
 /* The float `index` (0 the damage modifier, 1 the penetration capability, 2 the armour thickness, 3 the random modifier) of a DAMAGE echo event, rebuilt from its raw bits. */
 float campaign_aim_damage_echo_float (const campaign_aim_event *event, int index);
 

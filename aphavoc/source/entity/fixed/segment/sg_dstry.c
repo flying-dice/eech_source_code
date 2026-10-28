@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_hostaim.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -424,83 +426,59 @@ void overload_segment_destroy_functions (void)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//
+// The vehicles a killed segment kills (EEDCS-46, R5).  Which objects are within reach, in what order, and the range test are the HOST's physical decision (mb_hostaim.h BRIDGE, VEHICLES): the
+// campaign sends the segment's position and its length (the segment database, data) and the map's sector figures, supplies the window of the segment's sector list as the host asks, and kills each
+// object the host names BEFORE the walk goes on (the original read an object's successor after killing it).  The kill and everything it causes are the campaign's.
+//
+
+static int vehicle_window (void *context, int sx, int sz, const void *after, campaign_blast_entry *entries, void **objects, int max, int *end)
+{
+	return campaign_sector_window (sx, sz, after, entries, objects, max, end);
+}
+
+static void vehicle_kill (void *context, void *object, int action, float modifier)
+{
+	kill_client_server_entity ((entity *) object);
+}
+
 void kill_routed_vehicles_on_segment (entity *en)
 {
-	float
-		range,
-		damage_radius;
-
-	int
-		sx,
-		sz;
+	struct campaign_blast_walk
+		walk;
 
 	vec3d
-		*segment_position,
-		*object_position;
+		*segment_position;
 
-	entity
-		*sect,
-		*object;
+	float
+		position [3],
+		length;
 
 	bridge_segment_types
 		bridge_segment_type;
 
-	//
-	// get damage radius ( plus a little overlap )
-	//
-
 	bridge_segment_type = (bridge_segment_types) get_local_entity_int_value (en, INT_TYPE_BRIDGE_SEGMENT_TYPE);
 
-	damage_radius = bridge_segment_length (bridge_segment_type);
-
-	if (damage_radius == 0.0)
-	{
-		return;
-	}
-
-	damage_radius *= ROOT2;
-
-	//
-	// get sector which the segment is in ( don't bother with adjacent sectors for now )
-	//
+	length = bridge_segment_length (bridge_segment_type);
 
 	segment_position = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
 
-	get_x_sector (sx, segment_position->x);
-	get_z_sector (sz, segment_position->z);
+	position [0] = segment_position->x;
+	position [1] = segment_position->y;
+	position [2] = segment_position->z;
 
-	sect = get_local_raw_sector_entity (sx, sz);
+	memset (&walk, 0, sizeof (walk));
 
-	//
-	// search for routed vehicles
-	//
+	walk.sector_side_length = SECTOR_SIDE_LENGTH;
+	walk.min_x_sector = MIN_MAP_X_SECTOR;
+	walk.max_x_sector = MAX_MAP_X_SECTOR;
+	walk.min_z_sector = MIN_MAP_Z_SECTOR;
+	walk.max_z_sector = MAX_MAP_Z_SECTOR;
+	walk.window = vehicle_window;
+	walk.apply = vehicle_kill;
 
-	object = get_local_entity_first_child (sect, LIST_TYPE_SECTOR);
-
-	while (object)
-	{
-		if (object->type == ENTITY_TYPE_ROUTED_VEHICLE)
-		{
-			if (get_local_entity_int_value (object, INT_TYPE_ALIVE))
-			{
-				object_position = get_local_entity_vec3d_ptr (object, VEC3D_TYPE_POSITION);
-
-				if (object_position)
-				{
-					range = get_approx_3d_range (segment_position, object_position);
-
-					if (range < damage_radius)
-					{
-						kill_client_server_entity (object);
-					}
-				}
-			}
-		}
-
-		object = get_local_entity_child_succ (object, LIST_TYPE_SECTOR);
-	}
+	campaign_aim_segment_vehicles (position, length, &walk);
 }
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1104,6 +1104,19 @@ static int blast_window (void *context, int sx, int sz, const void *after, campa
 	return count;
 }
 
+// the same window of a sector's list for a walk that excludes no object (the vehicles a killed bridge segment kills, sg_dstry.c): the facts the host judges the objects by are the blast's
+int campaign_sector_window (int sx, int sz, const void *after, struct campaign_blast_entry *entries, void **objects, int max, int *end)
+{
+	blast_context
+		none;
+
+	none.en = NULL;
+	none.target = NULL;
+	none.damage_capability = 0;
+
+	return blast_window (&none, sx, sz, after, entries, objects, max, end);
+}
+
 static void blast_begin (void *context, float radius)
 {
 	blast_context
