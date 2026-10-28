@@ -1283,74 +1283,133 @@ fn the_case_caller_follows_the_live_ammunition_when_a_launch_spends_several_roun
     assert!(!stdout.contains("eech-world:2800"), "{stdout}");
 }
 
-// The controlled bridge witness (EEDCS-46, R5; lua/bridge-case.lua) against a small stand-in for the engine: only its flow is checked here (the survey, the choice of a bridge by the explicit criterion,
-// the order of the operations, the frames recorded, the disarming, and the plain statement that there was no suitable bridge); the C driver and the observer are compiled and checked elsewhere, and the
-// original code's behaviour is the ROOT's native run.  Nothing here is the campaign's physics.
+// The controlled bridge witness (EEDCS-46, R5; lua/bridge-case.lua) against a small stand-in for the engine: only its flow and its argument safety are checked here (the survey, the choice of a bridge by
+// the explicit criterion, the order of the operations, the frames recorded, the disarming, the plain statement that there was no suitable bridge, and that a malformed argument is refused BEFORE the
+// installation is prepared, the engine booted, a frame run or a segment killed); the C driver and the observer are compiled and checked elsewhere, and the original code's behaviour is the ROOT's
+// native run. The script under test is the real file, run by the real host's Lua. The stand-in notes every call it receives in a file (so that a refusal can be shown to have touched nothing) and stops
+// the process with an error after 3000 frames or 200 case calls, so that a script without a bound cannot hang a test; this is a proof of argument validation, not of native physics.
 const BRIDGE_CASE_CALLER_SCRIPT: &str = r#"
 local SURVEY = [==[@SURVEY@]==]
 local calls = {}
 local time = 0
+local frames = 0
+local function note(text)
+  local f = io.open('@TRACE@', 'a')
+  f:write(text, '\n')
+  f:close()
+end
 local engine = {}
 function engine:clock() return { elapsed_seconds = time } end
-function engine:frame(ms) time = time + ms / 1000 end
+function engine:frame(ms)
+  frames = frames + 1
+  if frames > 3000 then error('stand-in cap: more than 3000 frames were run') end
+  note('frame ' .. ms)
+  time = time + ms / 1000
+end
 function engine:cmb_events() return 'cmb-ev seq=1 kind=bridge-segment-update bridge=0 seg=1 of=3 sub=2 alive=0 shape=5 y=10 a=0 b=0 f=0\n' end
 function engine:cmb_trace() return 'cmb-blast calls=0\n' end
 function engine:cmb_case_bridge(op, ordinal, index, criterion)
+  if #calls > 200 then error('stand-in cap: more than 200 case calls') end
   calls[#calls + 1] = op .. ':' .. ordinal .. ':' .. index .. ':' .. criterion
+  note('case ' .. op .. ':' .. ordinal .. ':' .. index .. ':' .. criterion)
   if op == 0 then return SURVEY end
-  if op == 1 then return 'cmb-bridge-state bridge=' .. ordinal .. ' alive=1 breaks=0\ncmb-bridge-segment bridge=' .. ordinal .. ' index=0 kind=E alive=1\n' end
-  if op == 2 then return 'cmb-bridge-fail bridge=' .. ordinal .. ' found=1 segments=3 index=' .. (index < 0 and 1 or index) .. ' criterion=0 done=1 armed=1\n' end
+  if op == 1 then return 'cmb-bridge-state bridge=' .. ordinal .. ' alive=1 breaks=0\ncmb-bridge-segment bridge=' .. ordinal .. ' index=0 kind=E alive=1 in_update=1\ncmb-bridge-segment bridge=' .. ordinal .. ' index=1 kind=S alive=0 in_update=0\n' end
+  if op == 2 then return 'cmb-bridge-fail bridge=' .. ordinal .. ' found=1 segments=3 index=' .. (index < 0 and 1 or index) .. ' criterion=0 done=1 bridge_alive=1 neighbour=2 neighbour_alive=1 first_collapse=1 armed=1\n' end
   return 'cmb-bridge-disarm armed=0\n'
 end
-package.loaded['eech_dc'] = { prepare_installation = function() end, boot = function() return engine end }
+package.loaded['eech_dc'] = {
+  prepare_installation = function() note('prepare') end,
+  boot = function() note('boot') return engine end,
+}
 dofile('@LUA_DIR@/bridge-case.lua')
 print('CALLS ' .. table.concat(calls, ' '))
 print('BRIDGE_CALLER_DONE')
 "#;
 
-fn run_bridge_case_caller(survey: &str, extra: &[&str]) -> (Vec<serde_json::Value>, String) {
+struct BridgeRun {
+    status: std::process::ExitStatus,
+    stdout: String,
+    stderr: String,
+    trace: String,
+    out_exists: bool,
+    rows: Vec<serde_json::Value>,
+}
+
+fn run_bridge_case_raw(survey: &str, extra: &[&str], base: &[&str]) -> BridgeRun {
     let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("lua")
         .display()
         .to_string()
         .replace('\u{5c}', "/");
-    let tag = format!("{}-{}", std::process::id(), survey.len());
+    static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let tag = format!("{}-{}", std::process::id(), COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
     let script = std::env::temp_dir().join(format!("eech-world-bridge-caller-{tag}.lua"));
     let out = std::env::temp_dir().join(format!("eech-world-bridge-caller-{tag}.jsonl"));
-    std::fs::write(&script, BRIDGE_CASE_CALLER_SCRIPT.replace("@SURVEY@", survey).replace("@LUA_DIR@", &lua_dir)).unwrap();
+    let trace = std::env::temp_dir().join(format!("eech-world-bridge-caller-{tag}.trace"));
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    let text = BRIDGE_CASE_CALLER_SCRIPT
+        .replace("@SURVEY@", survey)
+        .replace("@TRACE@", &trace.display().to_string().replace('\u{5c}', "/"))
+        .replace("@LUA_DIR@", &lua_dir);
+    std::fs::write(&script, text).unwrap();
     let mut command = Command::new(env!("CARGO_BIN_EXE_eech-world"));
     command
         .arg(&script)
         .arg("root=none")
-        .arg(format!("out={}", out.display().to_string().replace('\u{5c}', "/")))
-        .arg("warmup=0.2")
-        .arg("frame_ms=100")
-        .arg("window_seconds=0.25");
-    for arg in extra {
+        .arg(format!("out={}", out.display().to_string().replace('\u{5c}', "/")));
+    // a base argument is replaced by an extra one of the same name (the host does not say which of two it keeps)
+    let key = |arg: &str| arg.split('=').next().unwrap_or_default().to_string();
+    let overridden: Vec<String> = extra.iter().map(|a| key(a)).collect();
+    for arg in base.iter().filter(|a| !overridden.contains(&key(a))).chain(extra) {
         command.arg(arg);
     }
-    let run = command.output();
+    let run = command.output().unwrap();
     std::fs::remove_file(&script).unwrap();
-    let run = run.unwrap();
-    let stdout = String::from_utf8_lossy(&run.stdout).to_string();
-    let stderr = String::from_utf8_lossy(&run.stderr);
-    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
-    assert!(stdout.contains("BRIDGE_CASE_") || stdout.contains("BRIDGE_CALLER_DONE"), "{stdout}\n{stderr}");
-    let rows = std::fs::read_to_string(&out)
-        .unwrap()
-        .lines()
-        .map(|l| serde_json::from_str(l).unwrap())
-        .collect();
-    std::fs::remove_file(&out).unwrap();
-    (rows, stdout)
+    let out_exists = out.exists();
+    let rows = if out_exists {
+        std::fs::read_to_string(&out)
+            .unwrap()
+            .lines()
+            .filter_map(|l| serde_json::from_str(l).ok())
+            .collect()
+    } else {
+        Vec::new()
+    };
+    let trace_text = std::fs::read_to_string(&trace).unwrap_or_default();
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    BridgeRun {
+        status: run.status,
+        stdout: String::from_utf8_lossy(&run.stdout).to_string(),
+        stderr: String::from_utf8_lossy(&run.stderr).to_string(),
+        trace: trace_text,
+        out_exists,
+        rows,
+    }
 }
+
+const BRIDGE_BASE: [&str; 3] = ["warmup=0.2", "frame_ms=100", "window_seconds=0.25"];
+
+fn run_bridge_case_caller(survey: &str, extra: &[&str]) -> (Vec<serde_json::Value>, String) {
+    let run = run_bridge_case_raw(survey, extra, &BRIDGE_BASE);
+    assert!(run.status.success(), "{}\n{}\n{}", run.status, run.stdout, run.stderr);
+    assert!(
+        run.stdout.contains("BRIDGE_CASE_") || run.stdout.contains("BRIDGE_CALLER_DONE"),
+        "{}\n{}",
+        run.stdout,
+        run.stderr
+    );
+    (run.rows, run.stdout)
+}
+
+const BRIDGE_SURVEY_ONE: &str = "cmb-bridge-census bridges=2 routed_alive=3 repair_tasks=0 comms_server=1\n\
+cmb-bridge-survey bridge=0 sub_type=1 start=4 end=5 alive=1 breaks=0 segments=3 unsupported=0 first_candidate=-1 first_neighbour=-1 x=1 y=2 z=3 pattern=ESE\n\
+cmb-bridge-survey bridge=1 sub_type=2 start=6 end=7 alive=1 breaks=0 segments=3 unsupported=1 first_candidate=0 first_neighbour=2 x=1 y=2 z=3 pattern=ESU\n";
 
 #[test]
 fn the_bridge_witness_records_a_declared_failure_and_a_bounded_window_of_frames_in_order() {
-    let survey = "cmb-bridge-census bridges=2 routed_alive=3 repair_tasks=0 comms_server=1\n\
-cmb-bridge-survey bridge=0 sub_type=1 start=4 end=5 alive=1 breaks=0 segments=3 unsupported=0 first_candidate=-1 x=1 y=2 z=3 pattern=ESE\n\
-cmb-bridge-survey bridge=1 sub_type=2 start=6 end=7 alive=1 breaks=0 segments=3 unsupported=1 first_candidate=0 x=1 y=2 z=3 pattern=ESU\n";
-    let (rows, stdout) = run_bridge_case_caller(survey, &[]);
+    let (rows, stdout) = run_bridge_case_caller(BRIDGE_SURVEY_ONE, &[]);
     // the survey, then the state, the failure of the explicit choice (the first bridge with a candidate, the first segment by the criterion), the state after, three frames of state, and the disarming
     assert!(
         stdout.contains("CALLS 0:0:-1:0 1:1:-1:0 2:1:-1:0 1:1:-1:0 1:1:-1:0 1:1:-1:0 1:1:-1:0 3:0:-1:0"),
@@ -1358,8 +1417,13 @@ cmb-bridge-survey bridge=1 sub_type=2 start=6 end=7 alive=1 breaks=0 segments=3 
     );
     let case = rows.iter().find(|r| r["event"] == "bridge_case").unwrap();
     assert_eq!(
-        (case["done"].as_bool(), case["bridge"].as_i64(), case["segment"].as_i64()),
-        (Some(true), Some(1), Some(1)),
+        (
+            case["done"].as_bool(),
+            case["bridge"].as_i64(),
+            case["segment"].as_i64(),
+            case["first_collapse"].as_bool()
+        ),
+        (Some(true), Some(1), Some(1), Some(true)),
         "{case}"
     );
     let scopes: Vec<&str> = rows.iter().filter_map(|r| r["scope"].as_str()).collect();
@@ -1386,12 +1450,25 @@ cmb-bridge-survey bridge=1 sub_type=2 start=6 end=7 alive=1 breaks=0 segments=3 
     );
     let event = rows.iter().find(|r| r["scope"] == "frame:1:log" && r["event"] == "cmb-ev").unwrap();
     assert_eq!(event["kind"], "bridge-segment-update");
+    // what the original did is COUNTED from the events and the last state, not read from `done`: four logs of one segment-update each, no landing, one segment still in the update list
+    let summary = rows.iter().find(|r| r["event"] == "bridge_summary").unwrap();
+    assert_eq!(summary["n_segment_update"], 4, "{summary}");
+    assert_eq!(
+        (
+            summary["in_update_at_end"].as_i64(),
+            summary["landed_all"].as_bool(),
+            summary["frames"].as_i64()
+        ),
+        (Some(1), Some(false), Some(3)),
+        "{summary}"
+    );
+    assert!(summary.get("n_landed").is_none(), "no landing was logged, so none is claimed: {summary}");
 }
 
 #[test]
-fn the_bridge_witness_says_so_and_does_nothing_when_no_bridge_has_a_segment_next_to_an_unsupported_span() {
+fn the_bridge_witness_says_so_and_does_nothing_when_no_bridge_meets_the_first_collapse_criterion() {
     let survey = "cmb-bridge-census bridges=1 routed_alive=3 repair_tasks=0 comms_server=1\n\
-cmb-bridge-survey bridge=0 sub_type=1 start=4 end=5 alive=1 breaks=0 segments=3 unsupported=0 first_candidate=-1 x=1 y=2 z=3 pattern=ESE\n";
+cmb-bridge-survey bridge=0 sub_type=1 start=4 end=5 alive=1 breaks=0 segments=3 unsupported=0 first_candidate=-1 first_neighbour=-1 x=1 y=2 z=3 pattern=ESE\n";
     let (rows, stdout) = run_bridge_case_caller(survey, &[]);
     assert!(
         stdout.contains("CALLS 0:0:-1:0\n") && stdout.contains("BRIDGE_CASE_NOT_DONE"),
@@ -1399,13 +1476,106 @@ cmb-bridge-survey bridge=0 sub_type=1 start=4 end=5 alive=1 breaks=0 segments=3 
     );
     let case = rows.iter().find(|r| r["event"] == "bridge_case").unwrap();
     assert_eq!(case["done"], false);
-    assert_eq!(case["reason"], "no_bridge_with_a_segment_next_to_an_unsupported_span");
+    assert_eq!(case["reason"], "no_bridge_meets_the_first_collapse_criterion");
     // and an explicit bridge that has none is not replaced by another
-    let two = format!(
-        "{survey}cmb-bridge-survey bridge=1 sub_type=2 start=6 end=7 alive=1 breaks=0 segments=3 unsupported=1 first_candidate=0 x=1 y=2 z=3 pattern=ESU\n"
-    );
-    let (rows, stdout) = run_bridge_case_caller(&two, &["bridge=0"]);
+    let (rows, stdout) = run_bridge_case_caller(BRIDGE_SURVEY_ONE, &["bridge=0"]);
     let case = rows.iter().find(|r| r["event"] == "bridge_case").unwrap();
     assert_eq!(case["done"], false, "{stdout}");
-    assert_eq!(case["reason"], "the_asked_bridge_has_no_segment_next_to_an_unsupported_span");
+    assert_eq!(case["reason"], "the_asked_bridge_does_not_meet_the_first_collapse_criterion");
+}
+
+#[test]
+fn the_bridge_witness_accepts_an_explicit_valid_selector_and_the_edge_values_and_passes_them_on_exactly() {
+    // an explicit bridge and segment are passed to the case as given; zero warmup and a zero window are valid (no frame at all)
+    let run = run_bridge_case_raw(
+        BRIDGE_SURVEY_ONE,
+        &["bridge=1", "segment=2", "frame_ms=50", "warmup=0", "window_seconds=0", "criterion=0"],
+        &[],
+    );
+    assert!(run.status.success(), "{}\n{}", run.stdout, run.stderr);
+    assert!(run.stdout.contains("CALLS 0:0:-1:0 1:1:-1:0 2:1:2:0 1:1:-1:0 3:0:-1:0"), "{}", run.stdout);
+    assert!(!run.trace.contains("frame"), "no frame was run: {}", run.trace);
+    // the largest values the witness accepts (a frame of a second, ten minutes of both budgets within the frame limit)
+    let run = run_bridge_case_raw(
+        BRIDGE_SURVEY_ONE,
+        &["bridge=100000", "segment=255", "frame_ms=1000", "warmup=600", "window_seconds=600"],
+        &[],
+    );
+    assert!(run.status.success(), "{}\n{}", run.stdout, run.stderr);
+}
+
+// A malformed argument is refused BEFORE the output file is created, the installation prepared, the engine booted, a frame run or a segment killed, and is never turned into a default (the stand-in
+// stops a script that does not stop). `segment=abc` used to become the automatic choice and kill the first qualifying segment.
+#[test]
+fn the_bridge_witness_refuses_a_malformed_argument_before_anything_is_prepared_booted_run_or_killed() {
+    let cases: &[(&[&str], &str)] = &[
+        (&["frame_ms=0", "warmup=5"], "frame_ms"),
+        (&["frame_ms=-100"], "frame_ms"),
+        (&["frame_ms=100.5"], "frame_ms"),
+        (&["frame_ms=abc"], "frame_ms"),
+        (&["frame_ms="], "frame_ms"),
+        (&["frame_ms=1001"], "frame_ms"),
+        (&["frame_ms=10x"], "frame_ms"),
+        (&["warmup=-1"], "warmup"),
+        (&["warmup=nan"], "warmup"),
+        (&["warmup=inf"], "warmup"),
+        (&["warmup=1e3"], "warmup"),
+        (&["warmup=1e999"], "warmup"),
+        (&["warmup=0x10"], "warmup"),
+        (&["warmup=5s"], "warmup"),
+        (&["warmup=601"], "warmup"),
+        (&["warmup=abc"], "warmup"),
+        (&["window_seconds=-1"], "window_seconds"),
+        (&["window_seconds=nan"], "window_seconds"),
+        (&["window_seconds=inf"], "window_seconds"),
+        (&["window_seconds=100000"], "window_seconds"),
+        (&["window_seconds=12.5.1"], "window_seconds"),
+        (&["window_seconds=abc"], "window_seconds"),
+        (&["frame_ms=1", "window_seconds=600"], "frames"),
+        (&["frame_ms=1", "warmup=600"], "frames"),
+        (&["segment=abc"], "segment"),
+        (&["segment=-1"], "segment"),
+        (&["segment=1.5"], "segment"),
+        (&["segment=256"], "segment"),
+        (&["segment=99999999999999"], "segment"),
+        (&["segment="], "segment"),
+        (&["segment=1x"], "segment"),
+        (&["bridge=abc"], "bridge"),
+        (&["bridge=-1"], "bridge"),
+        (&["bridge=2.5"], "bridge"),
+        (&["bridge=100001"], "bridge"),
+        (&["bridge="], "bridge"),
+        (&["criterion=1"], "criterion"),
+        (&["criterion=abc"], "criterion"),
+        (&["criterion=0.0"], "criterion"),
+        (&["criterion=-0"], "criterion"),
+        (&["scenario=mars"], "scenario"),
+    ];
+    for (extra, name) in cases {
+        let run = run_bridge_case_raw(BRIDGE_SURVEY_ONE, extra, &BRIDGE_BASE);
+        assert!(!run.status.success(), "{extra:?} was accepted:\n{}\n{}", run.stdout, run.stderr);
+        assert!(
+            run.stderr.contains("bridge-case:") && run.stderr.contains(name),
+            "{extra:?}: the refusal does not name {name}: {}",
+            run.stderr
+        );
+        assert!(run.trace.is_empty(), "{extra:?}: something ran before the refusal: {}", run.trace);
+        assert!(!run.out_exists, "{extra:?}: the output file was created");
+        assert!(!run.stdout.contains("CALLS"), "{extra:?}: the script ran on: {}", run.stdout);
+    }
+}
+
+// The defect in its own words: an explicit segment that is not a number used to become the automatic choice, and the first qualifying segment of the first bridge was killed instead of the one asked
+// for. The stand-in records the case calls, so the kill (operation 2) is what must not happen.
+#[test]
+fn the_bridge_witness_never_turns_a_segment_that_is_not_a_number_into_the_automatic_choice() {
+    let run = run_bridge_case_raw(BRIDGE_SURVEY_ONE, &["segment=abc"], &BRIDGE_BASE);
+    assert!(
+        !run.trace.contains("case 2:"),
+        "a segment was killed for segment=abc (status {}):\n{}\n{}",
+        run.status,
+        run.trace,
+        run.stdout
+    );
+    assert!(!run.status.success() && run.stderr.contains("segment"), "{}\n{}", run.stdout, run.stderr);
 }

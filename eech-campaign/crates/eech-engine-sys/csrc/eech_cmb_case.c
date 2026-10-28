@@ -643,7 +643,7 @@ int eech_cmb_case_blast_run (const char *kind, int ordinal, double offset, int k
  *                 route link, and the world's counts
  *   op 2 fail     arms the hooks and kills segment `index` of the bridge (index -1: the first by `criterion`), refused as NOT DONE when the precondition does not hold
  *   op 3 disarm   stops the hooks recording
- * criterion 0: a segment that is not an unsupported mid section and is next to one (the collapse then propagates to a real neighbour).
+ * criterion 0 (the FIRST-COLLAPSE preconditions): the bridge is alive, and the segment is alive, is not an unsupported mid section and is next to an unsupported mid section that is ALIVE (so the original's\n *   unsupported-span kill, the first break of the route link and the first repair task are all reachable).  The facts are reported (survey: bridge alive, first neighbour; fail: bridge alive, the neighbour and\n *   whether it is alive, and first_collapse=1 only when all hold) and what actually ran is judged from the observed events, never from done.  An explicit index that does not meet them is still\n *   applied and reported first_collapse=0.
  * UNREACHED and declared: a weapon hit on a segment (the segment collision response is the damage path already characterised), a player or multiplayer cause, a client (not a server), a bridge
  * with no unsupported span, and the vehicles on the route (their stopping is reported only as the world's counts).
  */
@@ -709,20 +709,35 @@ static char segment_letter (entity *segment)
 	return '?';
 }
 
-/* criterion 0: the first segment that is alive, not an unsupported mid section, and next to an unsupported mid section; -1 when there is none */
-static int first_by_criterion (entity **segments, int n, int criterion)
+/* the index of an unsupported mid section next to segment i that is ALIVE (the predecessor first), or -1 */
+static int living_unsupported_neighbour (entity **segments, int n, int i)
+{
+	if (i > 0 && segment_letter (segments[i - 1]) == 'U' && get_local_entity_int_value (segments[i - 1], INT_TYPE_ALIVE))
+	{
+		return i - 1;
+	}
+
+	if (i + 1 < n && segment_letter (segments[i + 1]) == 'U' && get_local_entity_int_value (segments[i + 1], INT_TYPE_ALIVE))
+	{
+		return i + 1;
+	}
+
+	return -1;
+}
+
+/* criterion 0: of an alive bridge, the first segment that is alive, not an unsupported mid section, and next to an unsupported mid section that is alive; -1 when there is none */
+static int first_by_criterion (entity *bridge, entity **segments, int n, int criterion)
 {
 	int i;
 
-	if (criterion != 0)
+	if (criterion != 0 || !get_local_entity_int_value (bridge, INT_TYPE_ALIVE))
 	{
 		return -1;
 	}
 
 	for (i = 0; i < n; i++)
 	{
-		if (segment_letter (segments[i]) != 'U' && get_local_entity_int_value (segments[i], INT_TYPE_ALIVE) &&
-			((i > 0 && segment_letter (segments[i - 1]) == 'U') || (i + 1 < n && segment_letter (segments[i + 1]) == 'U')))
+		if (segment_letter (segments[i]) != 'U' && get_local_entity_int_value (segments[i], INT_TYPE_ALIVE) && living_unsupported_neighbour (segments, n, i) >= 0)
 		{
 			return i;
 		}
@@ -814,8 +829,10 @@ int eech_cmb_case_bridge_run (int op, int ordinal, int index, int criterion, cha
 {
 	entity *bridge, *segments[BRIDGE_SEGMENTS_MAX];
 	int bridges, n, used = 0, i, rc;
+	char precondition_facts[96];
 
 	text[0] = 0;
+	precondition_facts[0] = 0;
 
 	if (op < 0 || op > 3 || ordinal < -1 || index < -1 || criterion < 0)
 	{
@@ -854,13 +871,13 @@ int eech_cmb_case_bridge_run (int op, int ordinal, int index, int criterion, cha
 			}
 
 			pattern[n] = 0;
-			first = first_by_criterion (segments, n, 0);
+			first = first_by_criterion (bridge, segments, n, 0);
 			position = n ? get_local_entity_vec3d_ptr (segments[0], VEC3D_TYPE_POSITION) : NULL;
 			start = get_local_entity_int_value (bridge, INT_TYPE_START_NODE);
 			end = get_local_entity_int_value (bridge, INT_TYPE_END_NODE);
 
-			if (append (text, capacity, &used, "cmb-bridge-survey bridge=%d sub_type=%d start=%d end=%d alive=%d breaks=%d segments=%d unsupported=%d first_candidate=%d x=%.9g y=%.9g z=%.9g pattern=%s\n", i,
-				get_local_entity_int_value (bridge, INT_TYPE_ENTITY_SUB_TYPE), start, end, get_local_entity_int_value (bridge, INT_TYPE_ALIVE) ? 1 : 0, get_road_link_breaks (start, end), n, unsupported, first,
+			if (append (text, capacity, &used, "cmb-bridge-survey bridge=%d sub_type=%d start=%d end=%d alive=%d breaks=%d segments=%d unsupported=%d first_candidate=%d first_neighbour=%d x=%.9g y=%.9g z=%.9g pattern=%s\n", i,
+				get_local_entity_int_value (bridge, INT_TYPE_ENTITY_SUB_TYPE), start, end, get_local_entity_int_value (bridge, INT_TYPE_ALIVE) ? 1 : 0, get_road_link_breaks (start, end), n, unsupported, first, first >= 0 ? living_unsupported_neighbour (segments, n, first) : -1,
 				position ? (double) position->x : 0.0, position ? (double) position->y : 0.0, position ? (double) position->z : 0.0, pattern))
 			{
 				return case_error (text, capacity, "report_does_not_fit", "survey");
@@ -905,7 +922,7 @@ int eech_cmb_case_bridge_run (int op, int ordinal, int index, int criterion, cha
 
 	if (index < 0)
 	{
-		index = first_by_criterion (segments, n, criterion);
+		index = first_by_criterion (bridge, segments, n, criterion);
 	}
 
 	if (index < 0 || index >= n)
@@ -923,13 +940,23 @@ int eech_cmb_case_bridge_run (int op, int ordinal, int index, int criterion, cha
 		return 0;
 	}
 
+	{
+		int neighbour = living_unsupported_neighbour (segments, n, index);
+		int bridge_alive = get_local_entity_int_value (bridge, INT_TYPE_ALIVE) ? 1 : 0;
+		int neighbour_alive = neighbour >= 0 ? 1 : 0;
+		int first_collapse = bridge_alive && neighbour_alive && segment_letter (segments[index]) != 'U';
+
+		/* the facts the original's first-collapse branches depend on, read BEFORE the failure (an explicit index that does not meet them is applied all the same) */
+		snprintf (precondition_facts, sizeof (precondition_facts), "bridge_alive=%d neighbour=%d neighbour_alive=%d first_collapse=%d", bridge_alive, neighbour, neighbour_alive, first_collapse);
+	}
+
 	eech_cmb_bridge_case_set (1);
 
 	/* the campaign's own call: what a destroyed segment ends with.  It is a declared direct structural failure, not a weapon hit */
 	kill_client_server_entity (segments[index]);
 
-	snprintf (text, (size_t) capacity, "cmb-bridge-fail bridge=%d found=1 segments=%d index=%d criterion=%d done=1 sub=%d precondition=declared_direct_structural_failure api=kill_client_server_entity armed=1\n",
-		ordinal, n, index, criterion, get_local_entity_int_value (segments[index], INT_TYPE_ENTITY_SUB_TYPE));
+	snprintf (text, (size_t) capacity, "cmb-bridge-fail bridge=%d found=1 segments=%d index=%d criterion=%d done=1 sub=%d %s precondition=declared_direct_structural_failure api=kill_client_server_entity armed=1\n",
+		ordinal, n, index, criterion, get_local_entity_int_value (segments[index], INT_TYPE_ENTITY_SUB_TYPE), precondition_facts);
 
 	return 0;
 }

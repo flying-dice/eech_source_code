@@ -1,0 +1,46 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.49s
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-01e380bfce0df75c)
+
+running 4 tests
+test the_bridge_witness_says_so_and_does_nothing_when_no_bridge_meets_the_first_collapse_criterion ... FAILED
+test the_bridge_witness_records_a_declared_failure_and_a_bounded_window_of_frames_in_order ... FAILED
+test the_bridge_witness_accepts_an_explicit_valid_selector_and_the_edge_values_and_passes_them_on_exactly ... ok
+test the_bridge_witness_refuses_a_malformed_argument_before_anything_is_prepared_booted_run_or_killed ... FAILED
+
+failures:
+
+---- the_bridge_witness_says_so_and_does_nothing_when_no_bridge_meets_the_first_collapse_criterion stdout ----
+
+thread 'the_bridge_witness_says_so_and_does_nothing_when_no_bridge_meets_the_first_collapse_criterion' (167) panicked at crates/eech-world/tests/host_callbacks.rs:1430:5:
+assertion `left == right` failed
+  left: String("no_bridge_with_a_segment_next_to_an_unsupported_span")
+ right: "no_bridge_meets_the_first_collapse_criterion"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- the_bridge_witness_records_a_declared_failure_and_a_bounded_window_of_frames_in_order stdout ----
+
+thread 'the_bridge_witness_records_a_declared_failure_and_a_bounded_window_of_frames_in_order' (165) panicked at crates/eech-world/tests/host_callbacks.rs:1404:5:
+assertion `left == right` failed: {"bridge":1,"done":true,"event":"bridge_case","reason":"","scenario":"lebanon_retail","segment":1,"text":"cmb-bridge-fail bridge=1 found=1 segments=3 index=1 criterion=0 done=1 bridge_alive=1 neighbour=2 neighbour_alive=1 first_collapse=1 armed=1 "}
+  left: (Some(true), Some(1), Some(1), None)
+ right: (Some(true), Some(1), Some(1), Some(true))
+
+---- the_bridge_witness_refuses_a_malformed_argument_before_anything_is_prepared_booted_run_or_killed stdout ----
+
+thread 'the_bridge_witness_refuses_a_malformed_argument_before_anything_is_prepared_booted_run_or_killed' (166) panicked at crates/eech-world/tests/host_callbacks.rs:1500:9:
+["frame_ms=0", "warmup=5"]: the refusal does not name frame_ms: Error: RuntimeError("[string \"/tmp/eech-world-bridge-caller-163-2.lua\"]:18: stand-in cap: more than 3000 frames were run\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"/tmp/eech-world-bridge-caller-163-2.lua\"]:18: in function 'frame'\n\t.../eech-campaign/crates/eech-world/lua/bridge-case.lua:54: in function 'step_frame'\n\t.../eech-campaign/crates/eech-world/lua/bridge-case.lua:69: in main chunk\n\t[C]: in function 'dofile'\n\t[string \"/tmp/eech-world-bridge-caller-163-2.lua\"]:37: in main chunk")
+
+
+
+failures:
+    the_bridge_witness_records_a_declared_failure_and_a_bounded_window_of_frames_in_order
+    the_bridge_witness_refuses_a_malformed_argument_before_anything_is_prepared_booted_run_or_killed
+    the_bridge_witness_says_so_and_does_nothing_when_no_bridge_meets_the_first_collapse_criterion
+
+test result: FAILED. 1 passed; 3 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p eech-world --test host_callbacks`
+CARGO_EXIT=101
+DOCKER_EXIT=101

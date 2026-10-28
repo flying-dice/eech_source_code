@@ -29,7 +29,10 @@ touched by this fixture.
   vehicles alive and repair tasks); 1 state (the bridge and each segment: sub type, type, alive, damage, shape, position, whether in the update list, the neighbours' alive flags, the route link's break count); 2 fail
   (the declared structural failure); 3 disarm.
 * **The precondition is declared, not a weapon hit.** Operation 2 calls the campaign's own `kill_client_server_entity` on one segment, chosen by an explicit test-only criterion applied inside C
-  (criterion 0: alive, not an unsupported mid section, next to one) or by index. It is refused as NOT DONE, with the reason, if there is no such segment, the segment is not alive or the campaign is not a server.
+  (criterion 0, the FIRST-COLLAPSE preconditions: the bridge is alive, and the segment is alive, is not an unsupported mid section and is next to an unsupported mid section that is ALIVE) or by index. It is
+  refused as NOT DONE, with the reason, if there is no such segment, the segment is not alive or the campaign is not a server. The facts the original's first-collapse branches depend on are REPORTED, read
+  before the failure (the survey: `alive`, `first_candidate`, `first_neighbour`; the failure: `bridge_alive`, `neighbour`, `neighbour_alive`, `first_collapse`), and an explicit index that does not meet them is applied
+  all the same and reported `first_collapse=0`.
 * **The observer**: read-only `CMB_FX_BRIDGE` hooks (`mb_cmbfx.h`) in `br_msgs.c` and `sg_updt.c` record, in the original's own order, the segment update, the collision with its sender's sub type and alive flag, the
   unsupported-span kill, the shape chosen with the neighbours' state, the child-killed, the link break and its count, the repair task, the update-list insertion, each fall step with the terrain height compared, the
   landing and the removal of a supported segment, as ordered `cmb-ev ... kind=bridge-*` lines (bridge ordinal, segment index and count, sub type, alive, shape, the segment's height, two integers and a float). The
@@ -37,31 +40,42 @@ touched by this fixture.
 * **Gating**: the C driver and the observer are inside `#ifdef EECH_WEAPON_FIXTURE`, the Rust methods behind `cfg(feature = "weapon-fixture")`, and the hooks expand to nothing without the fixture. The ordinary view
   of the original sources is proven identical: the feature-off preprocessed text of `br_msgs.c`, `sg_updt.c` and (as a control) `sg_dstry.c` equals the baseline's byte for byte
   (`checks/strict-preprocess-bridge-1.log`).
-* **The witness script** `lua/bridge-case.lua`: boot from the verified retail root, `warmup` seconds of the war, the survey, the choice of the first bridge with a candidate segment (or `bridge=`), the state, the
-  failure, the state immediately after, then `window_seconds` of frames, each followed by the state and the events of that frame, the disarming and the observer's whole report before and after. If no bridge has
-  a segment next to an unsupported span it says so (`bridge_case done=false` with the reason) and does nothing else, so the same script is run on the other verified scenario; it never invents a bridge.
+* **The witness script** `lua/bridge-case.lua`: boot from the verified retail root, `warmup` seconds of the war, the survey, the choice of the first bridge that meets the criterion (or `bridge=`), the state, the
+  failure, the state immediately after, then `window_seconds` of frames, each followed by the state and the events of that frame, `bridge_summary`, the disarming and the observer's whole report before and after.
+  If no bridge meets the criterion it says so (`bridge_case done=false` with the reason) and does nothing else, so the same script is run on the other verified scenario; it never invents a bridge.
+* **Arguments are validated first.** Every argument is checked BEFORE the output file is created, the installation prepared, the engine booted, a frame run or a segment killed, and a malformed value is an error
+  naming it, never a default: `root` and `out` non-empty text; `scenario` `lebanon_retail` (default) or `georgia_retail`; `frame_ms` an integer from 1 to 1000 (default 100; zero never advances the clock);
+  `warmup` and `window_seconds` plain decimal numbers (digits and at most one point: no sign, exponent, hex, space or trailing text) from 0 to 600 (defaults 5 and 12); `bridge` an integer from 0 to 100000 and
+  `segment` an integer from 0 to 255, each absent for the automatic choice (an invalid `segment` is never the automatic one); `criterion` 0 (the only one). The frames of warmup and window together may not exceed
+  10,000, and the loops stop at their bounds whatever the clock does (a frame that does not advance the clock is an error). The defaults (5, 100, 12, criterion 0) are what the root's fixed driver uses.
+* **What ran is judged from the events.** `bridge_case done` and `first_collapse` say only that the preconditions were met. `bridge_summary` counts the `bridge-*` events seen (`n_unsupported_kill`,
+  `n_link_broken`, `n_repair_task`, `n_fall`, `n_landed`, ...) and reports `in_update_at_end` (the segments still in the update list when the window ended) and `landed_all`: a window of finite length does not
+  guarantee that a segment at an unknown height has landed, and the summary says whether it did.
 
 ## Expected preconditions (not evidence)
 
 Bridge types whose segment database has an unsupported deck: boat (`DECK MID DECK`), girder (`DECK MID DECK`), concrete arch and suspension (decks between supports). Which of these the Lebanon or Georgia retail map holds is
 what the survey reports; nothing here claims either does. The retail boot is the engine's own world creation (`create_local_bridge_entities`), so the bridge, its segments and their neighbours are the real
-collaborating entities, not constructed state. The chosen segment's neighbour is then an unsupported deck, which the original kills on the first update of the killed segment, and which falls.
+collaborating entities, not constructed state. When the criterion is met, the chosen segment's neighbour is a living unsupported deck of a living bridge, so the original's unsupported-span kill, the first break
+of the route link and the first repair task are REACHABLE on the first updates of the killed segment; whether each ran, and whether the decks landed within the window, is read from the events.
 
 ## Reachable original paths, and what is declared unreached
 
-Reachable by one run: the killed-segment path (effects, routed vehicles on it, collision then child-killed to the bridge), the first-kill route link break and repair task, the update-list insertion, the neighbour
+Reachable by one run when the first-collapse criterion is met (and shown to have run only by the events): the killed-segment path (effects, routed vehicles on it, collision then child-killed to the bridge), the first-kill route link break and repair task, the update-list insertion, the neighbour
 notification in both directions every frame, the unsupported-span kill by a neighbour's collision, the shape choice with the neighbours' state, the fall at `10 * dt` until the terrain (or a metre below a water
-floor) and the landing with its collision effect, the removal of a supported segment, and the bridge's second and later child-killed (the bridge is no longer alive, so no second break).
+floor) and the landing with its collision effect, the removal of a supported segment, and the bridge's second and later child-killed (the bridge is no longer alive, so no second break). The fall and the landing depend on the height of the bridge above the terrain, which no source fixes: the landing is reached only if the logs show `bridge-landed`.
 
 Declared unreached: a weapon hit on a segment (the segment's collision response is the damage path already characterised), a player or multiplayer cause, a client (the fixture refuses to run on one), a bridge with no
-unsupported span (the script reports none and stops), the vehicles on the route beyond the world's counts (the stopping is not reported per vehicle), a bridge no segment of which is alive, and the data cases no
+unsupported span (the script reports none and stops), the vehicles on the route beyond the world's counts (the stopping is not reported per vehicle), a bridge that is already dead or whose unsupported neighbours are already dead (the criterion refuses them), and the data cases no
 retail bridge holds.
 
 ## Source checks run (no native run)
 
-Real-header syntax of `br_msgs.c`, `sg_updt.c`, `sg_dstry.c`, `eech_cmb_fixture.c`, `eech_cmb_case.c` and `eech_engine.c` with the fixture on and off (`checks/syntax-bridge-1.log`, exit 0); the strict feature-off
-preprocess equality above; `cargo test` for the engine, DC module and world crates, including the stand-in tests of the witness script's flow (the order of the operations, the bounded window, the disarming, and the
-plain statement that no bridge was suitable); rustfmt; default and fixture Clippy (`checks/*-bridge*.log`). The first rustfmt check (`fmt-bridge-failed-layout.log`) found only the layout of the new binding.
+Real-header syntax of `br_msgs.c`, `sg_updt.c`, `sg_dstry.c`, `eech_cmb_fixture.c`, `eech_cmb_case.c` and `eech_engine.c` with the fixture on and off (`checks/syntax-bridge-2.log`, exit 0); the strict feature-off
+preprocess equality above; `cargo test` for the engine, DC module and world crates, including the stand-in tests of the witness script (the flow and its order, the bounded window, the disarming, the summary counted from the events, the plain statement that no bridge was suitable, and the
+validation of every argument: 40 malformed values refused before anything was prepared, booted, run or killed, and the edge values accepted and passed on exactly). The malformed-argument tests were shown RED
+against the previous script (`checks/bridge-args-red-1.log`: `frame_ms=0` ran the stand-in to its cap of 3000 frames; `checks/bridge-args-red-2.log`: `segment=abc` killed a segment, `case 2:1:-1:0`, with exit 0) and GREEN against
+the corrected one (`checks/cargo-test-bridge2.log`); these prove the argument validation in the real script under the real host''s Lua, not any native physics. rustfmt; default and fixture Clippy (`checks/*-bridge*.log`). The first rustfmt check (`fmt-bridge-failed-layout.log`) found only the layout of the new binding.
 
 ## The next ROOT native command
 
