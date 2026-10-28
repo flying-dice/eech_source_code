@@ -1,3 +1,24 @@
+# Current D2 lead checkpoint — 28 October 2026, 16:23 UTC
+
+D2/EEDCS-18 and Task46/PR105 remain ACTIVE/UNACCEPTED; noD3. Provisional finite
+D2 source-scope reconciliation is independently closed without a new active D2
+responsibility outstanding: `docs/handover/D2-SCOPE-AUDIT.md`, exact reviewed
+draft8906a8c4. The dormant EECH cockpit/HUD ballistic-avionics path is explicitly
+outside the supported campaign-DLL runtime; no active physical solver is deferred
+toD5. Provisional source review is not whole-epic acceptance.
+
+Current test-only63ea6cfa4 fixes two Windows-CI LF-only assertions using exact
+logical lines; raw stdout/trace/readers/baselines are unchanged. Local24callbacks
+andfmt pass, independent492732ef closed; new WindowsCI confirmation remains open.
+The frozen ordinary shipping build used by finalpack38810/PID23828 and raw-cost
+8557/native17720 stays64cf. Both runs remain ACTIVE. Production inputs are unchanged;
+seven coarse frontiers match, with the crates tree differing only in the integration
+test file. Do not claim all eight coarse trees equal after63ea or relabel the build.
+The prior six native report cases remain closed; complete40/full8/post3, finalcost,
+currentCI/finalreview/normalmerge and Task46/wholeD2 acceptance remain gates.
+Scope/equivalence/reviews: `eech-campaign/reference/d2-combat-characterization/final-scope-progress/`.
+Historical at-the-time paragraphs below retain their original limits.
+
 # Current author note — 28 October 2026: TEST-ONLY Windows-CI portability correction (the Root's lead checkpoint below is otherwise current)
 
 GitHub run 40723326838 (job 122939836511, raw log kept at `R:/d2-evidence/combat-characterization-20261028/ci-092-windows-cross-job-122939836511-attempt2.log`) was red at `09253829b` for two

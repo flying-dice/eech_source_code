@@ -1,0 +1,183 @@
+{
+  "when_utc": "2026-10-28T16:10:43.160217+00:00",
+  "published_head": "09253829b2822fe83dafd4031569410ed2edf6a7",
+  "clean": true,
+  "candidate_pushed": true,
+  "exact_private_worktree_git_copies": [
+    {
+      "file": "root-r3-f470-six-report-crashes.json",
+      "bytes": 27870,
+      "sha256": "6b27694b1411cac1f0e11e917dde8b36c8b223a11eff34ab2c592b769970d52d"
+    },
+    {
+      "file": "root-r3-f470-structure-crash-disassembly.log",
+      "bytes": 3233,
+      "sha256": "7c313cc38321e8422b496a246ac8011162357b5f39643e84434d716e8fa0aa32"
+    },
+    {
+      "file": "independent-r3-f470-six-crash-review-20261028.json",
+      "bytes": 37629,
+      "sha256": "cf90aa2a646906b2eae3b0c10cbb331ccc8d387b672f399a42d195a0a326ac3a"
+    },
+    {
+      "file": "independent-r3-heap-capacity-fix-review-30fbdfcbc-20261028.json",
+      "bytes": 23496,
+      "sha256": "c9ebab089ca97b1f8f8d9385647e4a455cc4ace317b19969ec51dbb184050f51"
+    },
+    {
+      "file": "independent-r3-guard-order-correction-review-64cf0f1c5-20261028.json",
+      "bytes": 14917,
+      "sha256": "5b1f02166eeff003eed6337846e9c8a7f31d2db7361e2d62a9063fc81385147a"
+    },
+    {
+      "file": "independent-r3-dummy-sentinel-correction-review-a89a668ae-20261028.json",
+      "bytes": 6579,
+      "sha256": "e75cb441fb620cf631f632bd52223d69fb231dda6fccc65ec0b03664f68a85fe"
+    },
+    {
+      "file": "root-a89a-harness-only-source-equivalence.json",
+      "bytes": 2438,
+      "sha256": "e3f3e4b3745a692edc7adcbe92eb6f8deeb56f527c0373a213f43c24e0605a07"
+    },
+    {
+      "file": "root-clean-r3-guarded-source-prebuild-64cf0f1c5.json",
+      "bytes": 2130,
+      "sha256": "b52b6131e100b934a9831717c9031315cde907947eccd84dd01da71939364caf"
+    },
+    {
+      "file": "root-build-r3-64cf-shipping-run.json",
+      "bytes": 630,
+      "sha256": "2aa53859fbee7708edefc35338cbef8f2c30dc265129e97dec66a5eceb40bdf5"
+    },
+    {
+      "file": "root-clean-r3-64cf-shipping-manifest.json",
+      "bytes": 11450,
+      "sha256": "00580806f4592947032753da3538ef70e8ed6af6bf8fa65c85354fb47371877f"
+    },
+    {
+      "file": "root-r3-64cf-shipping-six-prelaunch.json",
+      "bytes": 4405,
+      "sha256": "cdc6447a242a06a5da34b617b2fa052179c38a7adc7a0f52df538f5cd23d749a"
+    },
+    {
+      "file": "root-r3-64cf-six-original-driver-exits.json",
+      "bytes": 737,
+      "sha256": "952aa8b3a2233e461c202d9cb617f3d806b5198bcbe20b21a506654fed40e856"
+    },
+    {
+      "file": "root-r3-64cf-six-post-inputs.json",
+      "bytes": 6044,
+      "sha256": "202d57cc4837279719fe68a9cf5f3f05b1aa0bd7045572efe7e563473ebb594b"
+    },
+    {
+      "file": "root-r3-64cf-six-post-build.json",
+      "bytes": 11450,
+      "sha256": "855eea30339c6d16b1bb9afc715d31a4511c20c1265d228ece24f4d9854b11e1"
+    },
+    {
+      "file": "run-object-report-case.ps1",
+      "bytes": 3224,
+      "sha256": "7019ad4fb7d33258c59c414f93fac8bf429beefaba10dbe5583d6b06fbe7063c"
+    },
+    {
+      "file": "audit-r3-64cf-six.py",
+      "bytes": 6475,
+      "sha256": "471204245fa801f86f56fe32bbf6ace8e65f72cbfe3e08dcbf877b2ef2e40ec8"
+    },
+    {
+      "file": "root-r3-64cf-six-report-completion.json",
+      "bytes": 32422,
+      "sha256": "3a9140ad1f6925e28b85bfe669550924e5cb501c165f42e378a9a06ce976f4e2"
+    },
+    {
+      "file": "audit-r3-64cf-six-v2.py",
+      "bytes": 9626,
+      "sha256": "6ffd3c0d6886ba474655408f15a309124208bc26d4a9d43d45ff85804950a016"
+    },
+    {
+      "file": "check-r3-six-auditor-v2.py",
+      "bytes": 3481,
+      "sha256": "6c514600a69898c6ab0207eebb6ef548340043d3112c45dee34756447a7e188e"
+    },
+    {
+      "file": "root-r3-six-auditor-v2-controls.json",
+      "bytes": 2180,
+      "sha256": "d9db046bd261587058e54f76318e002111fad3976aaafde498914859f89f2d2e"
+    },
+    {
+      "file": "root-r3-64cf-six-report-completion-v2.json",
+      "bytes": 32688,
+      "sha256": "4936e7fc93e1c55e3dc65e15c62bead45a71baa7dd7b6828e617830db2476b05"
+    },
+    {
+      "file": "independent-r3-64cf-six-report-runtime-review-20261028.json",
+      "bytes": 8492,
+      "sha256": "b3f34540f3e0696f8b99bc9799bea02580697490e963e8187c210c1baa9543e0"
+    },
+    {
+      "file": "independent-r3-six-auditor-v2-correction-review-20261028.json",
+      "bytes": 5384,
+      "sha256": "6f2acae1d284ca4153c01a20c434749195b5939ef2788ab27f2597bb795229a8"
+    },
+    {
+      "file": "root-r3-f470-natural600-completion.json",
+      "bytes": 20403,
+      "sha256": "0e775267dc6da2a5a2bbf510a9781a744b27a6e4ff68f7c29f540eeb01b06e5a"
+    },
+    {
+      "file": "independent-r3-f470-natural600-runtime-review-20261028.json",
+      "bytes": 6788,
+      "sha256": "e367f56735f96a96a11bbd97f3a7d0741b8ee3881073f19a0ff82b58f4893bea"
+    },
+    {
+      "file": "root-r3-f470-bridge-pair-completion.json",
+      "bytes": 9265,
+      "sha256": "3c0b36beae610030d8eacf8ce9626983d857857a24441810448d72f4e5e53d9c"
+    }
+  ],
+  "count": 26,
+  "all8_frontiers": [
+    {
+      "path": "aphavoc",
+      "frozen": "62dfbb79d5298ead7040c5d4b190867e91c8d7ba",
+      "published": "62dfbb79d5298ead7040c5d4b190867e91c8d7ba"
+    },
+    {
+      "path": "modules",
+      "frozen": "cb40c4563825739137c59de394ed92ca9bf8ab9c",
+      "published": "cb40c4563825739137c59de394ed92ca9bf8ab9c"
+    },
+    {
+      "path": "eech-campaign/crates",
+      "frozen": "a6568e778fb27c39e9da7fa22d98a609224fc41b",
+      "published": "a6568e778fb27c39e9da7fa22d98a609224fc41b"
+    },
+    {
+      "path": "eech-campaign/tools",
+      "frozen": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1",
+      "published": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1"
+    },
+    {
+      "path": "eech-campaign/Cargo.toml",
+      "frozen": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+      "published": "6651665cec5e20632f00e9c2682042b4fa9f2db5"
+    },
+    {
+      "path": "eech-campaign/Cargo.lock",
+      "frozen": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+      "published": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3"
+    },
+    {
+      "path": "eech-campaign/scenarios",
+      "frozen": "d9a521c0db9069d557a5d73b0c68f055f79e7baa",
+      "published": "d9a521c0db9069d557a5d73b0c68f055f79e7baa"
+    },
+    {
+      "path": "eech-campaign/regression",
+      "frozen": "090bd08a26859a8d1ce0907473e049142342aa75",
+      "published": "090bd08a26859a8d1ce0907473e049142342aa75"
+    }
+  ],
+  "all8_equal": true,
+  "limits": "Metadata/evidence publication only; actualbuild remains64cf. Finalpack38810 and frame8557 active, no final acceptance."
+}
