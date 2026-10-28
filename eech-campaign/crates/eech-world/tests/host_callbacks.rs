@@ -806,6 +806,9 @@ assert(malformed('bad_blast_handle', host.aim, passed)(blast({ window = window({
 assert(malformed('bad_blast_modifier', host.aim, passed)(blast({ window = window({ object(1, 6, 10) }, true) })).modifier == 2, 'a modifier above one')
 assert(malformed('bad_blast_rocket', host.aim, passed)(blast({ window = window({ object(1, 6, 10) }, true) })).action == 'intercept', 'a destruction of an object that is not a rocket')
 assert(malformed('bad_blast_radius', host.aim, passed)(blast({ window = window({ object(1, 6, 30) }, true) })).radius == 21, 'a radius that changes within a blast')
+local radius_echo = malformed('bad_blast_radius', host.aim, passed)(blast({ echo = true, window = window({ object(1, 6, 30) }, true) }))
+assert(radius_echo.radius == 21 and #radius_echo.echo == 1 and radius_echo.echo[1].f[2] == 21, 'with the echo on, the diagnostic envelope says the new radius too (a supplied window and a positive radius are all it needs), so the changed radius is the primary refusal')
+assert(host.aim(blast({ echo = true, window = window({ object(1, 6, 30) }, true) })).echo[1].f[2] == 20, 'and the unmodified reference says the old one')
 local again = malformed('bad_blast_repeat', host.aim, passed)(blast({ damage_capability = 10000, window = window({}, true, 1, 1) }))
 assert(again.need.sx == 1 and again.need.sz == 1 and again.need.after == 0, 'the start of a sector asked for again')
 print('AIM_HOST=ok')";

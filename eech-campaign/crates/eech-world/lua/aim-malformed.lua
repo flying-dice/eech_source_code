@@ -46,8 +46,11 @@ return function (mode, reference, counted)
 					answer.need = { sx = step.window.sx, sz = step.window.sz, after = 0 }
 					return answer
 				elseif mode == "bad_blast_radius" and step.window ~= nil and answer.radius > 0 then
+					-- the radius changes at the first window the host is given; the optional echo of the candidates examined (the fixture build's) says the NEW radius too, so the diagnostic envelope is
+					-- consistent and the campaign's refusal of a changed radius is the primary one, not a refusal of a malformed echo.  A supplied window and a positive radius are all it needs
 					armed = false
 					answer.radius = answer.radius + 1
+					for _, event in ipairs (answer.echo or {}) do event.f [2] = answer.radius end
 					return answer
 				elseif mode == "bad_blast_handle" and answer.state == "done" and answer.action ~= "none" then
 					armed = false

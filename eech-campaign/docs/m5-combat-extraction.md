@@ -318,13 +318,14 @@ objects it read beyond are read again after the notification. The campaign holds
 A blast reaches scenery, buildings, pylons, segments and sites, which the group roster (mobiles only) does not identify. The identity an affected object carries is a **handle**: a positive number the campaign gives
 each object of each window for THIS blast only. No pointer, heap index, list layout or persistent identity crosses, nothing is registered anywhere (no existing roster, reference-key or entity numbering is touched, so
 no mobile or projectile identity, allocation order or recording byte can change), and the campaign accepts only a handle of an object in the window it just supplied (a stale, repeated or invented handle is
-refused before anything is applied). A fixed structure is therefore reported like any other object. The honest limit: a host that owns its world and names objects it was never offered (for instance by an identity
-it keeps itself) needs a persistent identity for structures, which is D5's registration and not needed here; such a host answers from the windows, which are a declared transitional mirror of the campaign's lists.
+refused before anything is applied). A fixed structure that is in a window is therefore reported like any other object. THE LIMIT: this handle is a transitional mirror CORRELATION for the current cut, not a persistent host-owned identity
+or state of the static world, and it cannot name an object that was not offered. Persistent structure ownership and report correlation is explicit NEXT D2 work (R3), not deferred to another milestone; this cut gives authoritative
+impact and blast math over a mirror of the campaign's lists, nothing more.
 
 ## What the campaign refuses (before anything is applied)
 
 A request with a non-finite figure, a sector of no length or an empty rectangle, a window of more objects than the room or one that is not where the host asked; an answer with a radius that is not a length or
-changes, a sample asked for (a blast and an impact take none), a window outside the map's sectors, the start of a sector's list asked twice or out of the walk's order (so a host cannot ask forever), a continuation
+changes, a sample asked for (a blast and an impact take none), a window outside the map's sectors, the start of a sector's list asked twice in one blast, or more than 4,096 sectors walked (the ORDER the host walks the sectors in is the host's own: a healthy host that visits (2, 1) and then (1, 1) is accepted, and the campaign's progress guards do not depend on the reference's row order), a continuation
 that is not after the last object offered in the same sector, an object that is not in the window, a modifier outside [0, 1] or not a number, the destruction of an object the campaign does not know as a rocket,
 an action it does not know, an end of the walk that names an object, an echo nobody asked for or that names an object not in the window; and for an impact a crater on a terrain not read, a direct hit on a target there
 is none of, more than two blasts, a target left out of no blast, any plan beside a code the host does not know, and the terrain asked for twice. It does NOT veto by the reference's rules: a host may reach a weapon
@@ -351,8 +352,8 @@ Source checks only (nothing native):
   destruction and effect of a notification on the lists (a kill of the next object, an unlink, an addition) in the same order with the same bits, including 1,105 objects exactly one radius away: failures 0,
   sanitizers on. Ten mutations of the driver or the kernel (inclusive radius, a range of zero counting, the rocket threshold and flag, the target not skipped, dead objects as candidates, the row order, the
   unbounded rectangle, a weapon sent a collision, a stale window) are each caught (`mutate-blast-differential.sh`).
-* **The campaign's bridge** (`c-checks/blast_checks.c`, `run-blast-checks.sh`, 54 checks of the real `mb_hostaim.c`): what is sent, the order of action against the reading of the list, the windows and their handles,
-  a changed host, and each refusal above; ten mutations of the campaign's rules are each caught (`mutate-blast-checks.sh`).
+* **The campaign's bridge** (`c-checks/blast_checks.c`, `run-blast-checks.sh`, 60 checks of the real `mb_hostaim.c` after the correction below): what is sent, the order of action against the reading of the list, the windows and their handles,
+  a changed host, and each refusal above; twelve mutations of the campaign's rules are each caught (`mutate-blast-checks.sh`, see the correction below for what counts as a catch).
 * **The kernel against values worked out by hand** (`eech-world/src/cmb.rs`: all kill codes, the rectangle and its truncation toward zero, the bounds, the windows and rows, the strict range, the exclusion, the kinds,
   the rocket threshold for four warheads including the one whose exponent is not a number), **the reference host's public contract** through `host.aim`, a plain own-model host and the malformed providers
   (`tests/host_callbacks.rs`), **the DC module's tables and readers** and **the engine boundary** with the extended layout (`eech-dc`, `eech-engine`); fmt, default and fixture Clippy, the real-header syntax check
@@ -365,8 +366,9 @@ accounting and the ordered log are produced by the same hooks; a host that echoe
 Providers for the ROOT-owned native authority and refusal runs (`lua/aim-provider.lua`): `impact_none` (a death does nothing to the world), `impact_own` (a land hit blasts once, no crater, no terrain asked),
 `blast_small` (a quarter of the capability: half the radius), `blast_none` (the radius, no object reached), `blast_own` (the plain model), with counters that tell a run that reaches a case from one that does not
 (`impact_asked/terrain/land/blasts/crater/direct/denied/own_land`, `blast_begun/windows/collisions/intercepts/ended/shrunk/denied/own`); and the malformed `bad_impact_crater`, `bad_impact_draw`,
-`bad_impact_blasts`, `bad_blast_draw`, `bad_blast_sector`, `bad_blast_handle`, `bad_blast_modifier`, `bad_blast_rocket`, `bad_blast_radius`, `bad_blast_repeat` (the last five need a blast that reaches an
-object or a second sector and may not trigger in a short run: the counters say so).
+`bad_impact_blasts`, `bad_blast_draw`, `bad_blast_sector`, `bad_blast_handle`, `bad_blast_modifier`, `bad_blast_rocket`, `bad_blast_radius`, `bad_blast_repeat` (`bad_blast_handle`, `bad_blast_modifier` and `bad_blast_rocket` need a blast that reaches an
+object, `bad_blast_repeat` one that walks a second sector, and they may not trigger in a short run: the counters say so; `bad_blast_radius` needs only a supplied window and a positive radius, and with the echo on it
+rewrites the echo's radius too, so the changed radius is the primary refusal and not a malformed echo).
 
 What the retained originals characterise and a native run of this candidate must reproduce: the f41 natural 600 (1,475 explosion invocations, 2,233 blast calls, 173,225 candidates, 160 zero-radius blasts, kill codes
 1,964 land, 104 target, 3 overshot, 162 self-destruct, the twelve trusted groups and six hashes) and the original35 SITE/SU and centred-solid cases (the land hit's double blast and the linked target; the
@@ -375,6 +377,26 @@ campaign's unchanged handlers; the differential proves the walk, not those handl
 
 ## Still open
 
-The bridge collapse (R5): a test-only characterisation of the ORIGINAL segment and bridge behaviour must be added and run before its rules move. The physical factual reporting, R3 for a host that owns a structure's
-state (a persistent identity), the D4 repair and restoration quantities, and the whole-scope D2 audit. Task45 delivery precedes Task46, and the full shipping 40, all 8, post 3, current CI, independent review and
+The bridge collapse (R5): a test-only characterisation of the ORIGINAL segment and bridge behaviour must be added and run before its rules move. The physical factual reporting, R3 (persistent host-owned
+structure identity, state and report correlation: explicit next D2 work), the D4 repair and restoration quantities, and the whole-scope D2 audit. Task45 delivery precedes Task46, and the full shipping 40, all 8, post 3, current CI, independent review and
 the normal merge still gate it.
+
+## Correction of the first review of this step (`0400af446`, three P2 and one grouped P3)
+
+* **The order of the walk is the host's (P2).** `campaign_aim_blast` no longer requires successive sector starts in increasing (row, column) order, which kept the reference's physical traversal rule in the campaign. The
+  reference host (`cmb_step.c`) still walks rows; the campaign validates the sector is in the map, refuses a sector's start asked twice in one blast (a bounded record of the sectors started, at most 4,096), a
+  continuation that is not after the last object of the current window, a stale or invented handle, and ends a runaway walk at its round limit, none of which depends on the order. Through the real driver
+  (`blast_checks.c`, now 60 checks): a healthy host walking fresh (2, 1) then fresh (1, 1) is accepted and its objects are reached in its order; a far-corner-to-near-corner walk is accepted; a revisited sector
+  (adjacent or not) is refused after the objects already reached were acted on; a walk through more than 4,096 fresh sectors is refused at the 4,097th. The reference differential is unchanged (6,000 worlds, 255,003
+  events identical, failures 0), and re-introducing the old row-order rule fails the new positive controls (mutation `row_order_reintroduced`).
+* **The radius probe no longer hides behind its echo (P2).** `bad_blast_radius` changed the radius but left the reference's echo at the old one, so with the echo on the campaign refused a malformed echo before
+  it reached its changed-radius guard. The provider now rewrites the echo's radius with the new one (a consistent diagnostic envelope; both guards are intact), so the changed-radius refusal is the primary one. The
+  production-bridge control (`FAULT_RADIUS_CHANGES_ECHO`, echo on, a window of candidates, nothing reached, no second sector) proves it, and `tests/host_callbacks.rs` checks the provider with the echo on.
+* **A build failure or a timeout is not a catch (P2).** Both mutation controllers (`mutate-blast-checks.sh`, `mutate-blast-differential.sh`) record the compile status and the run status apart. A mutant is caught
+  only if it compiled and the run ended with a failed assertion or differential (exit 1 and a `FAIL` line) or a sanitizer report; a mutant that does not compile (BUILD_FAILURE), times out (TIMEOUT), ends
+  otherwise (UNEXPECTED) or passes (PASSED) fails the controller, as does a setup failure or a pattern not found. Two setup controls prove it: a copy that cannot compile is classified BUILD_FAILURE and a copy
+  that never ends TIMEOUT, are counted apart from the catches, and a wrong classification fails the controller. The retained earlier mutation logs (twenty mutants, all of which compiled and exited 1) stay valid.
+  The current controllers: 12 mutants of the bridge (11 by assertion, one by the sanitizer) and 10 of the differential, all caught; the unmutated copies pass; both setup controls as expected.
+* **Scope wording (P3).** The per-blast handle is a transitional mirror correlation, and persistent structure ownership and report correlation is explicit next D2 work (R3), not another milestone's; this document
+  and `mb_hostaim.h` say so. The lead has not approved closing the whole of D2 before the physical factual reports and the structure and bridge responsibilities are complete. The sample model's comment about
+  numbers is corrected: the module reads a modifier as a single-precision number and rounds a finite double to the nearest one; the plain model's quantization to 1/1024 is its own choice.

@@ -142,7 +142,7 @@ function own.blast (step)
 			local q = object.position
 			local range = math.sqrt ((p [1] - q [1]) ^ 2 + (p [2] - q [2]) ^ 2 + (p [3] - q [3]) ^ 2)
 			if range > 0 and range < BLAST_RADIUS then
-				-- the module carries the modifier as a single-precision number, and a model that reported it in double precision would be refused as inexact
+				-- this plain model quantizes its modifier to 1/1024, its own choice: the module reads the modifier as a single-precision number, so any finite double is accepted and rounded to the nearest one
 				return { state = "done", radius = BLAST_RADIUS, action = "collision", handle = object.handle, modifier = math.floor (range / BLAST_RADIUS * 1024) / 1024 }
 			end
 		end

@@ -65,7 +65,7 @@
 --                     a sample), bad_impact_blasts (three blasts), bad_blast_handle (an object that is not in the window), bad_blast_radius (a radius that changes within a blast),
 --                     bad_blast_draw, bad_blast_sector (a window outside the map), bad_blast_repeat (the same sector's start asked twice), bad_blast_modifier (a modifier above one) and
 --                     bad_blast_rocket (a collision-free destruction of an object the campaign does not know as a rocket): the engine must stop with a clear error.  The blast modes need a
---                     blast that reaches an object (`bad_blast_handle`, `bad_blast_modifier`, `bad_blast_rocket`) or a second sector (`bad_blast_repeat`) and may not trigger in a short run
+--                     blast that reaches an object (`bad_blast_handle`, `bad_blast_modifier`, `bad_blast_rocket`) or a second sector (`bad_blast_repeat`) and may not trigger in a short run (`bad_blast_radius` needs only a window and a positive radius, and rewrites the echo's radius too)
 --   mode=missing      boot without an aim provider: must fail at boot with a clear error
 --   mode=bad_*        a provider that answers the first request of a kind malformed: the engine must stop with a clear error (bad_nil, bad_state,
 --                     bad_ready_state, bad_phase, bad_nan_vector, bad_draw_for_ballistic, bad_second_draw, bad_negative_range, bad_error)

@@ -1359,9 +1359,12 @@ void campaign_aim_blast (const float *position, int damage_capability, int warhe
 		rounds,
 		begun,
 		next_handle,
-		have_sector,
-		last_sx,
-		last_sz;
+		visited_count;
+
+	// the sectors whose lists the host has started in this blast (each at most once, in whatever order the host walks them)
+	int
+		visited_sx [CAMPAIGN_BLAST_SECTORS_MAX],
+		visited_sz [CAMPAIGN_BLAST_SECTORS_MAX];
 
 	float
 		radius;
@@ -1402,11 +1405,7 @@ void campaign_aim_blast (const float *position, int damage_capability, int warhe
 
 	next_handle = 1;
 
-	have_sector = FALSE;
-
-	last_sx = 0;
-
-	last_sz = 0;
+	visited_count = 0;
 
 	radius = 0.0f;
 
@@ -1443,6 +1442,7 @@ void campaign_aim_blast (const float *position, int damage_capability, int warhe
 		if (result.state == CAMPAIGN_AIM_NEED_LOOKUP)
 		{
 			int
+				i,
 				sx,
 				sz,
 				after_handle;
@@ -1455,17 +1455,26 @@ void campaign_aim_blast (const float *position, int damage_capability, int warhe
 
 			if (after_handle == 0)
 			{
-				// the start of a sector's list: a sector later in the walk's order than the last one (rows of sectors, each from its first), so a host cannot ask the same question forever
-				if (have_sector && ((sz < last_sz) || ((sz == last_sz) && (sx <= last_sx))))
+				// the start of a sector's list: the ORDER the host walks the sectors in is its own (the reference host's is rows of sectors, each from its first), but each sector's list is
+				// started at most once in a blast, so a host cannot ask the same question forever, and no more than a bounded number of sectors are walked
+				for (i = 0; i < visited_count; i++)
 				{
-					debug_fatal ("host aim: host aim asked a blast request for sector %d, %d after sector %d, %d", sx, sz, last_sx, last_sz);
+					if ((visited_sx [i] == sx) && (visited_sz [i] == sz))
+					{
+						debug_fatal ("host aim: host aim asked a blast request for the start of sector %d, %d again", sx, sz);
+					}
 				}
 
-				have_sector = TRUE;
+				if (visited_count >= CAMPAIGN_BLAST_SECTORS_MAX)
+				{
+					debug_fatal ("host aim: host aim walked a blast through more than %d sectors", CAMPAIGN_BLAST_SECTORS_MAX);
+				}
 
-				last_sx = sx;
+				visited_sx [visited_count] = sx;
 
-				last_sz = sz;
+				visited_sz [visited_count] = sz;
+
+				visited_count++;
 
 				blast_supply (&step.blast, walk, objects, &next_handle, sx, sz, NULL, 0);
 			}

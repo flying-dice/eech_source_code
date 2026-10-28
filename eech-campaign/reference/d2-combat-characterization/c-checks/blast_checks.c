@@ -4,7 +4,7 @@
    the host's answers are used as given (a changed host reaches other objects, none, or all), the ORDER the original had (the campaign acts on each object the host reaches BEFORE
    it supplies the rest of the list, and the rest is the list as it is then: a notification that unlinks the next object takes it out of the walk), that no sample of the random
    stream is taken, and what the campaign REFUSES before it applies anything: an object that is not in the window, a rocket that is not one, a modifier outside [0, 1], a radius that
-   is not a length or changes, a window outside the map, a sector's start asked twice or out of order, a continuation that is not where the window ended, a request for a sample,
+   is not a length or changes, a window outside the map, a sector's start asked twice (the ORDER the host walks the sectors in is the host's: a healthy host that walks them in another order than the reference's is accepted), a continuation that is not where the window ended, a request for a sample,
    a plan that contradicts the request, and a missing or failing host.  It checks the campaign's bridge; it is NOT a native run and says nothing about the arithmetic (the host's:
    eech-world src/cmb.rs).  Run by run-blast-checks.sh. */
 #include "project.h"
@@ -125,7 +125,7 @@ static int walk_window (void *context, int sx, int sz, const void *after, campai
 	}
 	else
 	{
-		object = first_of[sz][sx];
+		object = (sx >= 0 && sx <= 2 && sz >= 0 && sz <= 2) ? first_of[sz][sx] : 0;
 	}
 
 	while (object && count < max)
@@ -220,7 +220,9 @@ enum host_kind
 {
 	HOST_IMPACT = 1,		/* answers with `plan`, and for a land hit asks for the terrain once */
 	HOST_WALK,				/* a walk of the rectangle given: reaches the objects marked reach, in order */
-	HOST_NOTHING			/* the radius, and no object */
+	HOST_NOTHING,			/* the radius, and no object */
+	HOST_ORDERED,			/* walks the sectors in the order of order (a healthy host with another order than the reference's), reaching the first live object of each */
+	HOST_SWEEP				/* asks for the start of a fresh sector every time, in rows of a map of a hundred by a hundred, and reaches nothing */
 };
 
 static int host_kind, host_calls, host_fails;
@@ -230,6 +232,7 @@ static campaign_aim_step seen_first, seen, requests[128];
 static int request_count;
 static float walk_radius = 20.0f;
 static int fault;			/* a fault the walking host commits, once */
+static int order_sx[8], order_sz[8], order_count;	/* HOST_ORDERED: the sectors in the order the host walks them */
 static int fault_armed;
 
 enum faults
@@ -253,15 +256,17 @@ enum faults
 	FAULT_ECHO_BAD_INDEX,
 	FAULT_ACTION_WITHOUT_WINDOW,
 	FAULT_DONE_WITH_HANDLE,
-	FAULT_NEGATIVE_AFTER
+	FAULT_NEGATIVE_AFTER,
+	FAULT_SECTOR_REVISIT,		/* an earlier sector (not the last) started again */
+	FAULT_RADIUS_CHANGES_ECHO	/* the radius changes, and the echo is consistent with the NEW radius (the diagnostic envelope is not what is wrong) */
 };
 
 /* the walking host: asks for the window of the first sector, reaches the first live object that is not excluded in each window (a collision with 0.5, a rocket destroyed), asks for
    the rest of a list that did not fit, and for the next sector (rows, each from its first); it ends after sector (2, 2) */
-static int host_aim (const campaign_aim_step *step, campaign_aim_result *result, char *error, size_t error_size, void *user)
+static int host_aim_inner (const campaign_aim_step *step, campaign_aim_result *result, char *error, size_t error_size, void *user)
 {
 	const campaign_blast_request *blast = &step->blast;
-	int i;
+	int i, k;
 
 	host_calls++;
 
@@ -336,11 +341,24 @@ static int host_aim (const campaign_aim_step *step, campaign_aim_result *result,
 		result->blast.radius = walk_radius + 1.0f;
 	}
 
+	if (host_kind == HOST_SWEEP)
+	{
+		/* a fresh sector every time: sector number n of rows of a hundred; the first question has no window */
+		int n = blast->window_valid ? (blast->window_sz * 100 + blast->window_sx + 1) : 0;
+
+		result->state = CAMPAIGN_AIM_NEED_LOOKUP;
+		result->blast.need_sx = n % 100;
+		result->blast.need_sz = n / 100;
+		result->blast.need_after = 0;
+
+		return 0;
+	}
+
 	if (!blast->window_valid)
 	{
 		result->state = CAMPAIGN_AIM_NEED_LOOKUP;
-		result->blast.need_sx = 0;
-		result->blast.need_sz = 0;
+		result->blast.need_sx = (host_kind == HOST_ORDERED) ? order_sx[0] : 0;
+		result->blast.need_sz = (host_kind == HOST_ORDERED) ? order_sz[0] : 0;
 		result->blast.need_after = 0;
 
 		if (fault == FAULT_ACTION_WITHOUT_WINDOW && fault_armed)
@@ -466,7 +484,24 @@ static int host_aim (const campaign_aim_step *step, campaign_aim_result *result,
 	result->state = CAMPAIGN_AIM_NEED_LOOKUP;
 	result->blast.need_after = 0;
 
-	if (blast->window_sx < 2)
+	if (host_kind == HOST_ORDERED)
+	{
+		/* the next sector in the host's own order, or the end of the walk */
+		for (k = 0; k < order_count && !(order_sx[k] == blast->window_sx && order_sz[k] == blast->window_sz); k++)
+		{
+		}
+
+		if (k + 1 >= order_count)
+		{
+			result->state = CAMPAIGN_AIM_DONE;
+
+			return 0;
+		}
+
+		result->blast.need_sx = order_sx[k + 1];
+		result->blast.need_sz = order_sz[k + 1];
+	}
+	else if (blast->window_sx < 2)
 	{
 		result->blast.need_sx = blast->window_sx + 1;
 		result->blast.need_sz = blast->window_sz;
@@ -490,6 +525,14 @@ static int host_aim (const campaign_aim_step *step, campaign_aim_result *result,
 		result->blast.need_sz = blast->window_sz;
 	}
 
+	if (fault == FAULT_SECTOR_REVISIT && fault_armed && blast->window_sx == 2 && blast->window_sz == 0)
+	{
+		/* the third sector of the row has just been walked: start the FIRST again */
+		fault_armed = 0;
+		result->blast.need_sx = 0;
+		result->blast.need_sz = 0;
+	}
+
 	if (fault == FAULT_NEGATIVE_AFTER && fault_armed)
 	{
 		fault_armed = 0;
@@ -497,6 +540,30 @@ static int host_aim (const campaign_aim_step *step, campaign_aim_result *result,
 	}
 
 	return 0;
+}
+
+static int host_aim (const campaign_aim_step *step, campaign_aim_result *result, char *error, size_t error_size, void *user)
+{
+	int code = host_aim_inner (step, result, error, error_size, user);
+
+	if (code == 0 && fault == FAULT_RADIUS_CHANGES_ECHO && step->mode == CAMPAIGN_AIM_BLAST && step->blast.window_valid && step->blast.window_count > 0 && step->echo && step->echo_out)
+	{
+		/* the radius changes at the first window, and the optional echo of the candidate examined says the NEW radius, so the envelope is consistent and only the change is wrong */
+		campaign_aim_event *event = step->echo_out;
+
+		result->blast.radius = walk_radius + 1.0f;
+		memset (event, 0, sizeof (*event));
+		event->kind = CAMPAIGN_AIM_EVENT_BLAST;
+		event->a = 0;
+		event->b = 0;
+		event->f[0] = 30.0f;
+		event->f[1] = walk_radius + 1.0f;
+		result->has_echo = 1;
+		result->echo_count = 1;
+		result->echo = step->echo_out;
+	}
+
+	return code;
 }
 
 static void host_installed (int kind)
@@ -784,7 +851,8 @@ int main (void)
 			{ FAULT_RADIUS_NAN, "damage radius", "a radius that is not a number" },
 			{ FAULT_DRAW, "asked for a draw", "a request for a sample of the random stream" },
 			{ FAULT_SECTOR_OUTSIDE, "malformed window", "a window of a sector outside the map" },
-			{ FAULT_SECTOR_AGAIN, "after sector", "the start of a sector's list asked twice" },
+			{ FAULT_SECTOR_AGAIN, "again", "the start of the sector just walked asked again" },
+			{ FAULT_SECTOR_REVISIT, "again", "the start of an earlier sector asked again" },
 			{ FAULT_UNKNOWN_ACTION, "action", "an action the campaign does not know" },
 			{ FAULT_ECHO_UNASKED, "nobody asked for", "an echo nobody asked for" },
 			{ FAULT_NEGATIVE_AFTER, "malformed window", "a window after a negative handle" },
@@ -805,8 +873,59 @@ int main (void)
 		}
 	}
 
-	/* the faults that need a world of their own */
+	/* the ORDER the host walks the sectors in is the host's: a healthy host that visits the fresh sector (2,1) and then the fresh sector (1,1) is accepted (the reference's row order would
+	   visit them the other way), through the real driver, and so is a walk that crosses rows backwards */
+	host_installed (HOST_ORDERED);
+	world_clear ();
+	world_add (1, 1, 6, 1, 0);
+	world_add (2, 1, 6, 1, 0);
+	world_add (2, 2, 6, 1, 0);
+	order_count = 2;
+	order_sx[0] = 2; order_sz[0] = 1;
+	order_sx[1] = 1; order_sz[1] = 1;
+	accepted = blast_ask ();
+	check (accepted && apply_calls == 2 && applied[0] == 2 && applied[1] == 1 && begin_calls == 1 && end_calls == 1, "a healthy host that walks fresh sector (2, 1) and then fresh sector (1, 1) is accepted, and its objects are reached in ITS order");
+	host_installed (HOST_ORDERED);
+	world_clear ();
+	world_add (0, 0, 6, 1, 0);
+	world_add (1, 1, 6, 1, 0);
+	world_add (2, 2, 6, 1, 0);
+	order_count = 3;
+	order_sx[0] = 2; order_sz[0] = 2;
+	order_sx[1] = 0; order_sz[1] = 0;
+	order_sx[2] = 1; order_sz[2] = 1;
+	accepted = blast_ask ();
+	check (accepted && apply_calls == 3 && applied[0] == 3 && applied[1] == 1 && applied[2] == 2, "a walk from the far corner back to the near one and then the middle is accepted too");
+	host_installed (HOST_ORDERED);
+	world_clear ();
+	world_add (1, 1, 6, 1, 0);
+	world_add (2, 1, 6, 1, 0);
+	order_count = 3;
+	order_sx[0] = 2; order_sz[0] = 1;
+	order_sx[1] = 1; order_sz[1] = 1;
+	order_sx[2] = 2; order_sz[2] = 1;
+	accepted = blast_ask ();
+	check (!accepted && refused_with ("again") && apply_calls == 2, "but the same fresh sector started a second time is refused, after the objects already reached were acted on");
+	/* a walk of more sectors than a blast may walk is refused, whatever the order */
+	host_installed (HOST_SWEEP);
+	world_clear ();
+	walk.max_x_sector = 99;
+	walk.max_z_sector = 99;
+	accepted = blast_ask ();
+	check (!accepted && refused_with ("more than 4096 sectors") && windows_supplied == 4096 && end_calls == 0, "a host that walks more than 4096 fresh sectors is refused at the 4097th");
+	/* a changed radius is refused as such even with the optional echo turned on: the echo's own radius agrees with the new one, so the diagnostic envelope is not what is wrong */
 	host_installed (HOST_WALK);
+	small_world ();
+	world_clear ();
+	world_add (0, 0, 6, 0, 0);
+	world_add (0, 0, 6, 0, 0);
+	walk.echo = 1;
+	fault = FAULT_RADIUS_CHANGES_ECHO;
+	accepted = blast_ask ();
+	check (!accepted && refused_with ("changed the damage radius") && !refused_with ("malformed blast echo") && begin_calls == 1 && apply_calls == 0,
+		"with the echo on and a window of candidates (nothing reached, no second sector), a changed radius is refused as a changed radius and not as a malformed echo");
+
+	/* the faults that need a world of their own */	host_installed (HOST_WALK);
 	world_clear ();
 	for (i = 0; i < 20; i++)
 	{

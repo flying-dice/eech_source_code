@@ -81,8 +81,9 @@
  *                  campaign sends the explosion (position, the weapon's damage capability and warhead type) and the map's sector figures, and supplies the facts of the world the host
  *                  asks for as WINDOWS: up to CAMPAIGN_BLAST_WINDOW_MAX objects of one sector's list, in list order, from the start of a sector or after the object last offered (a
  *                  declared transitional mirror: a host that owns its world answers from its own objects).  Every object in a window is named by a HANDLE the campaign gives it for
- *                  this blast only (an opaque, positive, per-blast number: no pointer, no index, no list layout, no persistent identity), which is how a fixed structure, which the
- *                  roster does not cover, is reported.  The host answers: that it needs a window (NEED_LOOKUP: sector and after-handle), or DONE with the NEXT object the blast reaches
+ *                  this blast only (an opaque, positive, per-blast number: no pointer, no index, no list layout, no persistent identity), which is how an object of the window, a fixed
+ *                  structure included, is reported.  This is a transitional mirror CORRELATION for the current cut, not a persistent host-owned identity or state of the static world: a host
+ *                  cannot name an object it was not offered (persistent structure ownership and report correlation is further D2 work).  The host answers: that it needs a window (NEED_LOOKUP: sector and after-handle), or DONE with the NEXT object the blast reaches
  *                  and what the campaign must do (send it a collision with the modifier, or destroy a rocket), or DONE with nothing more.  The campaign applies each answer BEFORE the
  *                  walk continues and asks again after the object it applied, from the list as it is then (the original read the successor of an object after notifying it, and a
  *                  notification can kill objects and alter lists): the campaign never freezes the candidate set.  A blast takes no sample.  The campaign keeps what a collision does to
@@ -476,6 +477,9 @@ typedef struct campaign_impact_result
 } campaign_impact_result;
 
 #define CAMPAIGN_BLAST_WINDOW_MAX 16
+
+/* the most sectors one blast may walk: each sector's list is started at most once, in whatever order the host walks them (a bound on the walk, not a rule of its order) */
+#define CAMPAIGN_BLAST_SECTORS_MAX 4096
 
 /* BLAST: one object of a sector's list, offered to the host.  `handle` names it for this blast only (positive, unique within the blast).  `type` is the campaign's entity type
    (entity_types, en_types.h); `readable` says the campaign can read the object's state (the kinds a blast examines): when it is 0 `alive`, `has_position`, `rocket` and the position
