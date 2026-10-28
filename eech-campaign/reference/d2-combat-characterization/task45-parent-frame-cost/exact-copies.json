@@ -1,0 +1,95 @@
+{
+  "scope": "Exact byte copies from private retained originals; per-directory -text preserves line endings. Root verifies committed Git blobs after commit. No raw recordings/retail assets/binaries included.",
+  "files": [
+    {
+      "name": "completion.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-frame-cost-task45-900-01-completion.json",
+      "bytes": 7342,
+      "sha256": "4e84a448376ba3d4f2484a38505381a8a820d8aefb6cdb7581ff54fca6ef8ddb"
+    },
+    {
+      "name": "complete-comparison.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-frame-cost-task45-900-01-complete-comparison.json",
+      "bytes": 1318,
+      "sha256": "02555fde3f48cac1364928dc36aaa2dc807a96f772d0febe1e815c7c0669c747"
+    },
+    {
+      "name": "post-build.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-frame-cost-task45-900-01-post-build.json",
+      "bytes": 9577,
+      "sha256": "e722e0cbd94f9ba77a832dcbdee235c79127d3efa229daef11e065f3d2c30441"
+    },
+    {
+      "name": "post-inputs.log",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-frame-cost-task45-900-01-post-inputs.log",
+      "bytes": 319,
+      "sha256": "64db8e0aa852f0974a2ba6b3fcb9be08265a388e97e25c73897c1d288862b404"
+    },
+    {
+      "name": "clock-calibration.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-frame-cost-task45-clock-calibration.json",
+      "bytes": 1133,
+      "sha256": "bc8573f860b8bdee6e16f4e3d0403d50d51cdde120659b6a39bd5dbe0bd0802c"
+    },
+    {
+      "name": "independent-review.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-task45-native-frame-cost-review-20261028.json",
+      "bytes": 7002,
+      "sha256": "49a254c778e3e07f8a3c05509554a296ff3c4b528ab62cdc1c9afde7e86c1b20"
+    },
+    {
+      "name": "frame-cost.jsonl",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\frame-cost-task45-900-01\\frame-cost.jsonl",
+      "bytes": 1543,
+      "sha256": "752a2d98235b321af4968c908f38e8db71b09c0066b171e1f35eb8c876fb2150"
+    },
+    {
+      "name": "run.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\frame-cost-task45-900-01\\run.json",
+      "bytes": 1819,
+      "sha256": "731c79204734ae06a6d5d32330e4d75a6e8863ae0f1ea5da7c0e8a979761597b"
+    },
+    {
+      "name": "prepare-frame-measurement.py",
+      "source": "R:\\d2-evidence\\prepare-frame-measurement.py",
+      "bytes": 4914,
+      "sha256": "17a20fa8e6c78e89fe3b66684ddd58f6597483ce77bd97ae1fd9ee8a8f62fb23"
+    },
+    {
+      "name": "campaign-frame-cost.lua",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\frame-cost-task45-lua\\campaign-frame-cost.lua",
+      "bytes": 14607,
+      "sha256": "8bdc9cd8927265017af0a2548382475b4247fc07761aefc65ace659375e92046"
+    },
+    {
+      "name": "campaign-frame-cost.source.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\frame-cost-task45-lua\\campaign-frame-cost.source.json",
+      "bytes": 1106,
+      "sha256": "57f1bd70e052fbbf34a6f8012c41c56168bc46c0b71847bf08ec495a9238c3b0"
+    },
+    {
+      "name": "metrics.lua",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\frame-cost-task45-lua\\metrics.lua",
+      "bytes": 6903,
+      "sha256": "dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053"
+    },
+    {
+      "name": "observations.lua",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\frame-cost-task45-lua\\observations.lua",
+      "bytes": 7229,
+      "sha256": "68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701"
+    },
+    {
+      "name": "run-frame-cost.ps1",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\run-frame-cost.ps1",
+      "bytes": 2776,
+      "sha256": "9cc90470dfbf188ceaa26ea4a4c3c277251130763ac5ef6427ff943c758ae172"
+    },
+    {
+      "name": "audit-frame-cost-task45.py",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\audit-frame-cost-task45.py",
+      "bytes": 4615,
+      "sha256": "c06c15acf6c3866f8b74bd06ed009b71b3046b693b8655dc88dfcb6b8b7f02f9"
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "when_utc": "2026-10-28T10:56:25.808565+00:00",
+  "scope": "New originalbridge artifact auditor genuine valid and corrupted-artifact controls; no campaign/physics/baseline mutation",
+  "results": [
+    {
+      "name": "valid_original",
+      "actual_exit": 0,
+      "expected_exit": 0,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\valid_original-audit.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\valid_original.log"
+    },
+    {
+      "name": "missing_segment",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\missing_segment-audit.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\missing_segment.log"
+    },
+    {
+      "name": "duplicate_state",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\duplicate_state-audit.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\duplicate_state.log"
+    },
+    {
+      "name": "wrong_sequence",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\wrong_sequence-audit.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\wrong_sequence.log"
+    },
+    {
+      "name": "false_landing",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\false_landing-audit.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\false_landing.log"
+    },
+    {
+      "name": "unknown_event",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\unknown_event-audit.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\unknown_event.log"
+    },
+    {
+      "name": "unbounded_census",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\unbounded_census-audit.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\unbounded_census.log"
+    },
+    {
+      "name": "malformed_json",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\malformed_json-audit.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\malformed_json.log"
+    }
+  ],
+  "all_expected": true
+}

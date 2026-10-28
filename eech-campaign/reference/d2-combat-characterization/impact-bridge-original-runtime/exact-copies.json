@@ -1,0 +1,119 @@
+{
+  "scope": "Exact byte copies from private retained originals; per-directory -text preserves line endings. Root verifies committed Git blobs after commit. No raw recordings/retail assets/binaries included.",
+  "files": [
+    {
+      "name": "root-impact-natural-01-completion.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-impact-natural-01-completion.json",
+      "bytes": 2950,
+      "sha256": "ad1944d44331fb8fff075a4601584f9037059d24f48ce284dedf3c7518909ef8"
+    },
+    {
+      "name": "root-impact-four-focused-completion.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-impact-four-focused-completion.json",
+      "bytes": 9754,
+      "sha256": "6457a9675bf2892c88f3ab81426e95f8654226c9f1a60e3dcbbe33d119fa742f"
+    },
+    {
+      "name": "root-impact-control-01-completion.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-impact-control-01-completion.json",
+      "bytes": 4061,
+      "sha256": "a62c1682a9fb5ab421e555ecb11ca02ce7b0a8ea4bb80cb3587f4c38cb1c59a6"
+    },
+    {
+      "name": "root-impact-provider-all16-completion.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-impact-provider-all16-completion.json",
+      "bytes": 80675,
+      "sha256": "625a951817cf26d00c8ac51ad9d4dd5552cfc3f79050d299e5e0b3abd4ee4301"
+    },
+    {
+      "name": "independent-impact-blast-source-review-0400af446-20261028.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-impact-blast-source-review-0400af446-20261028.json",
+      "bytes": 37163,
+      "sha256": "a7ebf6887f995b4cc25e4f67eda7f1bb81a75c56d6dc7dec25ef69a77601d746"
+    },
+    {
+      "name": "independent-impact-blast-correction-and-timed-publication-review-e0a42825b-20261028.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-impact-blast-correction-and-timed-publication-review-e0a42825b-20261028.json",
+      "bytes": 42210,
+      "sha256": "103787b3c22506d7c13fcd0c3a4edf15d768084dee5f5f339cda4fc4f9725c58"
+    },
+    {
+      "name": "independent-impact-initial-runtime-review-e0a42825b-20261028.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-impact-initial-runtime-review-e0a42825b-20261028.json",
+      "bytes": 16052,
+      "sha256": "33dff4e8bfb9b90b2a6950cb0c3dc7c0f043c06471afd88f16d32f3f9a5f502f"
+    },
+    {
+      "name": "independent-impact-remaining-provider-runtime-review-20261028.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-impact-remaining-provider-runtime-review-20261028.json",
+      "bytes": 22131,
+      "sha256": "33641337df8963836b1a56eefce6a3946c90643e3fb108f2aef3c321a54ab337"
+    },
+    {
+      "name": "root-original-bridge-pair-completion.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-original-bridge-pair-completion.json",
+      "bytes": 21749,
+      "sha256": "115c959ffe5cc2ce43195dc7ba991f7e373687c3c3528e94c6fd61f117ff94af"
+    },
+    {
+      "name": "independent-original-bridge-fixture-source-review-e1ab9c560-20261028.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-original-bridge-fixture-source-review-e1ab9c560-20261028.json",
+      "bytes": 14071,
+      "sha256": "d14cb7e962003c647dc9c24a8eb0570a4c7528a112256668b2b8323bbba72efb"
+    },
+    {
+      "name": "independent-original-bridge-fixture-correction-review-181d957c0-20261028.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-original-bridge-fixture-correction-review-181d957c0-20261028.json",
+      "bytes": 10392,
+      "sha256": "1d38a323915e6cd8c6a5269c2bfda8aeb45caf92ae4ba3ec1c111914020e41b7"
+    },
+    {
+      "name": "independent-original-bridge-zero-window-correction-review-bbfea21fc-20261028.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-original-bridge-zero-window-correction-review-bbfea21fc-20261028.json",
+      "bytes": 6308,
+      "sha256": "2ab691bb17f2a0504d21097576343284aeb79355fdd0a5d79280f49be2579fdf"
+    },
+    {
+      "name": "independent-original-bridge-runtime-and-impact900-review-20261028.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-original-bridge-runtime-and-impact900-review-20261028.json",
+      "bytes": 12195,
+      "sha256": "0a5b41ca80b3673be47f382dc8dbd4bdbb2beaa5071ad3c5698ed396d8272cf4"
+    },
+    {
+      "name": "independent-original-bridge-auditor-phase-correction-review-20261028.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-original-bridge-auditor-phase-correction-review-20261028.json",
+      "bytes": 10432,
+      "sha256": "557282e0f9702caf292e21be246958b74475acba112ef5f88db2f876b6250b18"
+    },
+    {
+      "name": "root-original-bridge-auditor-phase-red.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-original-bridge-auditor-phase-red.json",
+      "bytes": 3179,
+      "sha256": "6044f2ed9b248a4f1fe1d1ff9248dea574a9b10a3bfeaf52052e8d05a7f6011d"
+    },
+    {
+      "name": "root-original-bridge-auditor-phase-fix.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-original-bridge-auditor-phase-fix.json",
+      "bytes": 5324,
+      "sha256": "ec7214e26be574284ea3259c4c73c984170f54d5184b82860b642840dc5ae5fd"
+    },
+    {
+      "name": "root-original-bridge-auditor-controls.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-original-bridge-auditor-controls.json",
+      "bytes": 2916,
+      "sha256": "8ac3bccb635ce21930e466d4a5324b60e4fb062e47163efabb867668e4f807b2"
+    },
+    {
+      "name": "root-clean-impact-e0a42825b-fixture-manifest.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-clean-impact-e0a42825b-fixture-manifest.json",
+      "bytes": 10915,
+      "sha256": "5d5afe7d99ebeb26d04974806573659276970bff82168c0f93430670ef4024ce"
+    },
+    {
+      "name": "root-clean-original-bridge-bbfea21fc-fixture-manifest.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-clean-original-bridge-bbfea21fc-fixture-manifest.json",
+      "bytes": 11195,
+      "sha256": "f557f3783bcd638edf453999f9f2315993d84ada5cea9c7773836d9f6b194803"
+    }
+  ]
+}
