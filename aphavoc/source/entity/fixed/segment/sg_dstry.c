@@ -442,6 +442,23 @@ static void vehicle_kill (void *context, void *object, int action, float modifie
 	kill_client_server_entity ((entity *) object);
 }
 
+// whether the walk can go on through an object once its kill has been applied: not if the kill of its type IS its destruction (a weapon is unlinked from its sector, freed and its slot may be
+// reused), which the dispatch tables say without a list of types.  Every other offered kind stays in its sector's list, dead (the routed vehicle the original killed among them)
+static int vehicle_resumable (void *context, const void *object)
+{
+	entity_types
+		type;
+
+	comms_model_types
+		model;
+
+	type = get_local_entity_type ((entity *) object);
+
+	model = get_comms_model ();
+
+	return (fn_kill_client_server_entity [type][model] != fn_destroy_client_server_entity [type][model]);
+}
+
 void kill_routed_vehicles_on_segment (entity *en)
 {
 	struct campaign_blast_walk
@@ -476,6 +493,7 @@ void kill_routed_vehicles_on_segment (entity *en)
 	walk.max_z_sector = MAX_MAP_Z_SECTOR;
 	walk.window = vehicle_window;
 	walk.apply = vehicle_kill;
+	walk.resumable = vehicle_resumable;
 
 	campaign_aim_segment_vehicles (position, length, &walk);
 }

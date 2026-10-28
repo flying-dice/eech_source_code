@@ -1,0 +1,24 @@
+bindings read: 136
+CLIENT BRIDGE           kill=destroy=destroy_client
+SERVER BRIDGE           kill=destroy=destroy_server
+CLIENT CRATER           kill=destroy=destroy_client
+SERVER CRATER           kill=destroy=destroy_server
+CLIENT DIVISION         kill=destroy=destroy_client
+SERVER DIVISION         kill=destroy=destroy_server
+CLIENT EXPLOSION        kill=destroy=destroy_client
+SERVER EXPLOSION        kill=destroy=destroy_server
+CLIENT GUIDE            kill=destroy=destroy_client
+SERVER GUIDE            kill=destroy=destroy_server
+CLIENT PARTICLE         kill=destroy=destroy_client
+SERVER PARTICLE         kill=destroy=destroy_server
+CLIENT PILOT            kill=destroy=destroy_client
+SERVER PILOT            kill=destroy=destroy_server
+CLIENT SMOKE_LIST       kill=destroy=destroy_client
+SERVER SMOKE_LIST       kill=destroy=destroy_server
+CLIENT SPRITE           kill=destroy=destroy_client
+SERVER SPRITE           kill=destroy=destroy_server
+CLIENT WAYPOINT         kill=destroy=destroy_client
+SERVER WAYPOINT         kill=destroy=destroy_server
+CLIENT WEAPON           kill=destroy=destroy_client  [offered by a blast window]: NOT RESUMABLE
+SERVER WEAPON           kill=destroy=destroy_server  [offered by a blast window]: NOT RESUMABLE
+kinds offered by a blast window:  ANTI_AIRCRAFT CITY_BUILDING FIXED_WING HELICOPTER PERSON PYLON ROUTED_VEHICLE SCENIC SEGMENT SHIP_VEHICLE SITE SITE_UPDATABLE WEAPON 

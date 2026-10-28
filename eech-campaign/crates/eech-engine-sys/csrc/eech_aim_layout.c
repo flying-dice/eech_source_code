@@ -100,6 +100,28 @@ size_t eech_engine_aim_layout (int which)
 		case 96: return (size_t) CAMPAIGN_BRIDGE_FALL;
 		case 97: return (size_t) CAMPAIGN_BRIDGE_VEHICLES;
 		case 98: return (size_t) CAMPAIGN_BRIDGE_REST;
+		/* the weapon state INSIDE the aim step (campaign_weapon_state): its size, alignment and the offset of every field, so the Rust mirror's inner field order is compared and not only the outer offset */
+		case 100: return sizeof (campaign_weapon_state);
+		case 101: return offsetof (struct { char c; campaign_weapon_state s; }, s);
+		case 102: return offsetof (campaign_weapon_state, position);
+		case 103: return offsetof (campaign_weapon_state, attitude);
+		case 104: return offsetof (campaign_weapon_state, motion_vector);
+		case 105: return offsetof (campaign_weapon_state, velocity);
+		case 106: return offsetof (campaign_weapon_state, weapon_lifetime);
+		case 107: return offsetof (campaign_weapon_state, decoy_timer);
+		case 108: return offsetof (campaign_weapon_state, missile_phase);
+		case 109: return offsetof (campaign_weapon_state, loal_mode);
+		case 110: return offsetof (campaign_weapon_state, weapon_on_ground);
+		case 111: return offsetof (campaign_weapon_state, parachute_status);
+		case 112: return offsetof (campaign_weapon_state, kill_code);
+		case 113: return offsetof (campaign_weapon_state, entity_samples);
+		case 114: return offsetof (campaign_weapon_state, has_launcher);
+		case 115: return offsetof (campaign_weapon_state, has_target);
+		case 116: return offsetof (campaign_weapon_state, server);
+		case 117: return offsetof (campaign_weapon_state, submunition);
+		case 118: return offsetof (campaign_weapon_state, other_weapon);
+		case 119: return offsetof (campaign_weapon_state, coefficient);
+		case 120: return offsetof (campaign_weapon_state, effectiveness);
 		case 80: return (size_t) WEAPON_KILL_CODE_OK;
 		case 81: return (size_t) WEAPON_KILL_CODE_EXHAUSTED;
 		case 82: return (size_t) WEAPON_KILL_CODE_OUT_OF_BOUNDS;

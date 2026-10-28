@@ -2069,6 +2069,13 @@ void campaign_aim_segment_vehicles (const float *position, float segment_length,
 
 			object = objects[index];
 
+			// the walk resumes through the object it just killed (the list is read from its successor AFTER the kill), so an object whose kill releases it is refused before the kill is applied:
+			// nothing of it can be read afterwards, and its slot may be reused.  This guards the lifetime of what the campaign applies; it is not the reference's physical rule about whom to kill
+			if (walk->resumable && !walk->resumable (walk->context, object))
+			{
+				debug_fatal ("host aim: host aim named object %d to kill, whose kill releases it so the walk could not go on through it", handle);
+			}
+
 			walk->apply (walk->context, object, 1, 0.0f);
 
 			// the walk goes on after that object, from the list as it is now: its death may have changed lists

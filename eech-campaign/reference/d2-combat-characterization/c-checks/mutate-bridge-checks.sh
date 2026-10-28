@@ -70,6 +70,7 @@ mutate vehicles_continuation_after "(after_handle != step.bridge.window\[step.br
 mutate fall_figures_finite "!isfinite (answer->dropped_y) ||" ""
 mutate rest_living_segment_not_moved "(answer->landed \&\& request->alive)" "0"
 mutate rest_landed_height_agrees "(!answer->landed \&\& answer->landed_y != 0.0f) || (answer->landed \&\& request->alive)" "(answer->landed \&\& request->alive)"
+mutate vehicles_destructive_target_guard "if (walk->resumable \&\& !walk->resumable (walk->context, object))" "if (0)"
 setup_control cannot_compile BUILD_FAILURE 60 "#include <limits.h>" "#include <limits.h>\n#error a copy that cannot compile"
 setup_control never_ends TIMEOUT 5 "step.mode = CAMPAIGN_AIM_BRIDGE;" "step.mode = CAMPAIGN_AIM_BRIDGE; { volatile int spin = 1; while (spin) { } }"
 echo "CAUGHT=$caught FAILED=$failed SETUP_CONTROLS_AS_EXPECTED=$controls_ok SETUP_CONTROLS_WRONG=$controls_bad CONTROL_OK=$control_ok"

@@ -492,3 +492,51 @@ and a vehicles walk of one request per window. A bridge collapses rarely and its
 Persistent structure ownership and report correlation (R3: the handle is a transitional correlation, not a persistent host-owned identity or state of the static world) and the physical factual reports stay NEXT D2
 work. The route link's break and the repair task's quantities (D4), D3 services (terrain, the segment database) and D5 are not touched; the whole-scope D2 audit and the final shipping gates remain. Whole D2 is
 not complete.
+
+## Correction of the first independent review of Step 5 (`b268c7e5a`; one P1 and one P2, plus a scoped publication P3 the root fixed)
+
+The review found the candidate source defective in two places before any native launch; the clean `b268c7e5a` Windows fixture build is REJECTED SOURCE and UNRUN, and nothing in it is to be launched or
+relabelled as corrected. A fresh corrected source and build follow a focused correction review. All findings below were corrected in ONE batch without changing a physical formula, a protocol value or the
+default output of the bridge case, and without broadening or shrinking D2.
+
+* **P1, R5-WEAPON-STATE-C-LAYOUT.** The declarations added for the bridge swallowed the existing `#[repr(C)]` of `eech_weapon_state` (`eech-engine-sys/src/lib.rs`) into the end of its doc comment, so the
+  mirror embedded in the C-layout aim step (and read by the campaign as `campaign_weapon_state` for WEAPON_STEP) had unspecified layout. Restored as a real standalone attribute before `derive`. An inventory of the
+  44 `pub struct`s of that file found no other lost attribute. New conformance, beside the outer-offset tests and read from the campaign AS COMPILED (`eech_aim_layout.c` cases 100 to 120): the inner
+  size, the alignment and the offset of every one of the 19 fields (`the_inner_layout_of_the_weapon_state_is_the_campaigns`), with a control that a mirror whose fields are in another order IS reported
+  (it names exactly the two swapped fields), so a pass is not an empty comparison; no source-text or attribute-string test is used. **The red was observable**: before the attribute was restored the new
+  test failed on this compiler with the mismatch list `[102 ... 113]` (rustc really did reorder the mirror: position through kill_code), retained as
+  `checks/cargo-test-r5c-1-layout-before-repr-fix.log`; after it, the test passes (`cargo-test-r5c-3-layout-after-repr-fix.log`; the first attempt, whose control listed the fields in the mirror's order,
+  failed for that reason and is `cargo-test-r5c-2-failed-control-order-in-test.log`). So the earlier outer-offset tests, which passed, were not evidence of the inner order. The limit: this proves the layout
+  of the Rust mirror on the compiler and target of the Linux test run; a Windows build's layout is the same declaration, fixed by `repr(C)`, but is only observed by a build that runs the probe.
+* **P2, R5-DESTRUCTIVE-VEHICLE-CONTINUATION.** The vehicles walk offers the objects of a sector the way a blast does (a weapon is a readable living object), accepts any offered living object the host names,
+  applies `kill_client_server_entity` and then resumes the list from that same private pointer (the successor is read AFTER the kill, because a kill changes lists; that stays). For a routed vehicle,
+  which is all the reference ever names, the object stays in its sector's list, dead. For a weapon the kill IS its destruction: unlinked from the sector, freed, its heap slot set to `UNKNOWN` and free for
+  reuse (`wn_dstry.c`, `en_heap.c`), so resuming through it reads a released slot (an invalid-list stop, or another object's list after a reuse), after the valid effect was already applied. The old
+  closed blast flow is not affected: its weapon collision only sets a kill state for the update, and its interception sets a kill code.
+  * **The lifetime-safe policy chosen: refuse, before anything is applied, a target whose kill releases it.** `campaign_blast_walk` has a new optional member `resumable (context, object)`; the vehicles
+    walk calls it once the host has named an object that is in the window, alive and readable, and stops with a clear error (`host aim named object N to kill, whose kill releases it so the walk could not
+    go on through it`) BEFORE `apply`. `sg_dstry.c vehicle_resumable` answers for the actual adapter: an object is resumable unless the kill of its type, in the running comms model, IS the destroy function of
+    that type (the dispatch tables are compared; no list of kinds is kept). No private pointer, handle or generation crosses; the successor is still read after the kill; no blanket cache of the next sibling.
+    A walk with no such member (the blast) is unchanged.
+  * **A distinction made on purpose.** This is the campaign's guard on the lifetime of what it applies, not the reference's physical rule about whom to kill: the reference still chooses only living routed
+    vehicles within range; a generic host still chooses among everything else the campaign offers (persons, ships, aircraft, fixed structures...), whose kills leave them in their lists. A host that names a
+    weapon is told so, as it is told about an object that is not in the window.
+  * **Source inventory** (`c-checks/inventory-kill-is-destroy.sh`, `checks/inventory-kill-is-destroy-r5c.log`): of the thirteen kinds a blast window offers, only the WEAPON has the same function bound
+    as kill and as destroy (server and client); the other twelve, including the routed vehicle, have a distinct kill. Limits: it reads plain assignments in the `*_dstry.c` files, and a kill that released an object
+    by a nested call would not be seen (the kill functions of those twelve were read for direct destroy calls and none was found); the run-time guard compares the real tables and does not rely on the list.
+  * **Red, then green, on behaviour.** `bridge_checks.c` has a destruction and slot-reuse stand-in: an offered weapon whose kill unlinks it, poisons the slot and (a second case) gives the slot to another
+    object at once, and a window that, like the production one, reads the successor of the object it is told to continue after and stops on a released one. RED: the same checks run against the
+    `f5a360199` driver (`run-bridge-checks-pre-guard.sh`; it compiles, runs without a sanitizer report, and exactly the two refusal checks fail: the old driver applies the kill and goes on) is
+    `checks/bridge-checks-3-red-pre-guard-driver-f5a360199.log` (64 checks, 2 failures). GREEN with the guard: `checks/bridge-checks-4.log` (64 checks, 0 failures): the weapon is refused with nothing
+    applied and no list read through it, with and without slot reuse; a host that names the vehicles around an offered weapon kills them and leaves the weapon; a dead weapon is never named; and three CONTROLS
+    without the guard show that the danger is real in the stand-in (the walk applies the kill and then reads through the released object; with a reused slot it silently continues in another sector and kills
+    an object it was never offered) and that a walk with no guard is still a walk (the blast's). The existing surviving-vehicle and unlinked-successor cases still pass. The mutation controller now has 13
+    mutants (the new one removes the guard) all caught, setup controls as expected (`checks/bridge-mutation-3.log`). The differential (84,036 comparisons, 0 failures) and the blast guards (60 checks, 6,000
+    scenarios) were rerun against the changed driver (`checks/*-r5c.log`).
+  * **Not available:** the production adapter predicate `vehicle_resumable` is exercised by the real campaign compile (Linux cargo build, syntax-only compile 22 OK) and by reading, not by a native run: no
+    native campaign ran here, and the stand-in is not the engine's heap.
+* **Check results of the correction:** `cargo test --locked` over the workspace exit 0 (`cargo-test-r5c-4.log`) and with `eech-dc/weapon-fixture` (`cargo-test-r5c-fixture.log`); default and fixture Clippy with
+  `-D warnings` exit 0 (`clippy-r5c-*.log`); `cargo fmt --check` exit 0 (`fmt-r5c-check.log`); syntax-only compile of the touched C, feature on and off, 22 OK (`syntax-r5c.log`); strict preprocess prints the same
+  five by-design differences (`strict-preprocess-r5c.log`).
+* **State.** Candidate, NOT accepted, nothing native run; the seven verified R5 roots stay UNRUN for the rejected build. R3 persistent structure ownership and report correlation and the physical factual
+  reports remain next D2 work; D4 repair quantities, D3 services, the whole-scope audit and the shipping gates remain. Whole D2 is not complete.

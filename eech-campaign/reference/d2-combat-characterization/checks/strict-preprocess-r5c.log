@@ -1,0 +1,77 @@
+aphavoc/source/entity/special/bridge/br_msgs.c: DIFFERS FROM THE BASELINE BY DESIGN (the physical collapse decisions moved to the host); changed lines: 606; fixture hooks in the feature-off view: 0; baseline hooks: 0
+aphavoc/source/entity/fixed/segment/sg_updt.c: DIFFERS FROM THE BASELINE BY DESIGN (the segment fall and the notification of its neighbours moved to the host); the difference of update_server only:
+--- /tmp/base.fn	2026-10-28 12:45:43.002870666 +0000
++++ /tmp/off.fn	2026-10-28 12:45:43.002870666 +0000
+@@ -8,46 +8,47 @@
+   sub_type;
+  vec3d
+   *pos;
++ campaign_bridge_result
++  fall;
+  float
+-  terrain_height;
+- terrain_3d_point_data
+-  terrain_info;
++  position [3];
+  parent = (fn_get_local_entity_parent[(((en))->type)][(((LIST_TYPE_SEGMENT)))] ((en), (LIST_TYPE_SEGMENT)));
+  if (!(parent)) (write_debug_log ("parent", "aphavoc/source/entity/fixed/segment/sg_updt.c", SOURCE_LINE));
+  next_segment = (fn_get_local_entity_child_succ[(((en))->type)][(((LIST_TYPE_SEGMENT)))] ((en), (LIST_TYPE_SEGMENT)));
+- if (next_segment)
++ if (campaign_aim_bridge_neighbour (0, next_segment != ((void *)0), (next_segment != ((void *)0)) ? (fn_get_local_entity_int_value[(((next_segment))->type)][(((INT_TYPE_ENTITY_SUB_TYPE)))] ((next_segment), (int_types)(INT_TYPE_ENTITY_SUB_TYPE))) : 0, (next_segment != ((void *)0)) && (fn_get_local_entity_int_value[(((next_segment))->type)][(((INT_TYPE_ALIVE)))] ((next_segment), (int_types)(INT_TYPE_ALIVE)))))
+  {
+   notify_local_entity (ENTITY_MESSAGE_COLLISION, parent, next_segment);
+  }
+  prev_segment = (fn_get_local_entity_child_pred[(((en))->type)][(((LIST_TYPE_SEGMENT)))] ((en), (LIST_TYPE_SEGMENT)));
+- if (prev_segment)
++ if (campaign_aim_bridge_neighbour (1, prev_segment != ((void *)0), (prev_segment != ((void *)0)) ? (fn_get_local_entity_int_value[(((prev_segment))->type)][(((INT_TYPE_ENTITY_SUB_TYPE)))] ((prev_segment), (int_types)(INT_TYPE_ENTITY_SUB_TYPE))) : 0, (prev_segment != ((void *)0)) && (fn_get_local_entity_int_value[(((prev_segment))->type)][(((INT_TYPE_ALIVE)))] ((prev_segment), (int_types)(INT_TYPE_ALIVE)))))
+  {
+   notify_local_entity (ENTITY_MESSAGE_COLLISION, parent, prev_segment);
+  }
+  sub_type = (fn_get_local_entity_int_value[(((en))->type)][(((INT_TYPE_ENTITY_SUB_TYPE)))] ((en), (int_types)(INT_TYPE_ENTITY_SUB_TYPE)));
+- if (sub_type == ENTITY_SUB_TYPE_FIXED_BRIDGE_UNSUPPORTED_MID_SECTION)
++ pos = (fn_get_local_entity_vec3d_ptr[(((en))->type)][(((VEC3D_TYPE_POSITION)))] ((en), (VEC3D_TYPE_POSITION)));
++ position [0] = pos->x;
++ position [1] = pos->y;
++ position [2] = pos->z;
++ fall = campaign_aim_bridge_fall ((int) sub_type, position, (system_delta_time), campaign_segment_terrain, pos);
++ if (fall.fell)
+  {
+-  pos = (fn_get_local_entity_vec3d_ptr[(((en))->type)][(((VEC3D_TYPE_POSITION)))] ((en), (VEC3D_TYPE_POSITION)));
+-  pos->y -= ( 10.0 * (system_delta_time) );
+-  memset (&terrain_info, 0, sizeof (terrain_3d_point_data));
+-  if (!(( ((pos)->x >= (world_map.min_map_x)) && ((pos)->x <= (world_map.max_map_x)) && ((pos)->z >= (world_map.min_map_z)) && ((pos)->z <= (world_map.max_map_z)) ))) (write_debug_log ("point_inside_map_area(pos)", "aphavoc/source/entity/fixed/segment/sg_updt.c", SOURCE_LINE));
+-  terrain_height = get_3d_terrain_point_data (pos->x, pos->z, &terrain_info);
+-  if (get_terrain_type_class (terrain_info.terrain_type) == TERRAIN_CLASS_WATER)
++  pos->y = fall.dropped_y;
++  if (fall.landed)
+   {
+-   terrain_height -= 1.0;
+-  }
+-  if ( pos->y <= terrain_height )
+-  {
+-   pos->y = terrain_height;
+-   delete_local_entity_from_parents_child_list (en, LIST_TYPE_UPDATE);
+-   if ((system_comms_model) == COMMS_MODEL_SERVER)
+-    create_client_server_collision_effect (pos, DYNAMICS_COLLISION_SURFACE_GROUND, 2);
++   pos->y = fall.landed_y;
+   }
+  }
+- else
++ else if (fall.remove)
++ {
++ }
++ if (fall.remove)
+  {
+   delete_local_entity_from_parents_child_list (en, LIST_TYPE_UPDATE);
+  }
++ if (fall.landed && ((system_comms_model) == COMMS_MODEL_SERVER))
++ {
++  create_client_server_collision_effect (pos, DYNAMICS_COLLISION_SURFACE_GROUND, 2);
++ }
+ }
+ void overload_segment_update_functions (void)
+ {
+aphavoc/source/entity/fixed/segment/sg_dstry.c: DIFFERS FROM THE BASELINE BY DESIGN (the physical collapse decisions moved to the host); changed lines: 672; fixture hooks in the feature-off view: 0; baseline hooks: 0
+aphavoc/source/entity/fixed/segment/sg_dbase.c: DIFFERS FROM THE BASELINE BY DESIGN (the physical collapse decisions moved to the host); changed lines: 659; fixture hooks in the feature-off view: 0; baseline hooks: 0
+aphavoc/source/entity/fixed/segment/sg_pack.c: DIFFERS FROM THE BASELINE BY DESIGN (the physical collapse decisions moved to the host); changed lines: 612; fixture hooks in the feature-off view: 0; baseline hooks: 0
+STRICT_EXIT=0

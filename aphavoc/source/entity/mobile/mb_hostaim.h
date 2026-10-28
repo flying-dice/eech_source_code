@@ -558,7 +558,7 @@ typedef struct campaign_blast_result
  *   REST         where a segment that is not alive rests when a saved world is unpacked (sg_pack.c): the campaign sends the segment's sub type, whether it is alive and its position and, when the host asks
  *                (NEED_LOOKUP), the terrain under it.  The host answers whether it rests on the ground (`landed`) and at what height (`landed_y`): the same floor, and the same water offset, that a fall comes to.
  *   VEHICLES     the vehicles a killed segment kills (sg_dstry.c kill_routed_vehicles_on_segment), walked like a blast: the campaign sends the segment's position and length (data) and the map's sector
- *                figures and supplies windows of a sector's list as the host asks; the host answers the NEXT object the campaign must kill, or that it is over.  Each kill is applied before the walk goes on.
+ *                figures and supplies windows of a sector's list as the host asks; the host answers the NEXT object the campaign must kill, or that it is over.  Each kill is applied before the walk goes on.  An object whose kill is its destruction (a weapon) cannot be named: the walk could not go on through it, so the campaign refuses it before applying anything (campaign_blast_walk.resumable).
  * No question takes a sample of the random stream.  What stays the campaign's: the route link break, the stopping of vehicles on the route, the repair task, credit, awareness and accounting (br_msgs.c
  * response_to_child_killed), the kill itself and its effects, the list operations, and the segment database. */
 enum campaign_bridge_op
@@ -947,6 +947,10 @@ struct campaign_blast_walk
 	int (*window) (void *context, int sx, int sz, const void *after, campaign_blast_entry *entries, void **objects, int max, int *end);
 	/* the object the host reached: act on it (a collision with the modifier, or a rocket's destruction); the walk then continues after that object, from the list as it is */
 	void (*apply) (void *context, void *object, int action, float modifier);
+	/* optional (NULL: every object, as for a blast, whose actions leave an object in its list): whether the action can be applied to `object` and the walk go on THROUGH it afterwards.  A vehicles walk applies a
+	   kill, and the walk resumes from the list as it is after the killed object; an object whose kill RELEASES it (a weapon is destroyed at once) has no place in the list to resume from, so the campaign refuses
+	   the host naming it BEFORE applying anything.  This is the campaign's own guard on the lifetime of what it applies, not a physical eligibility rule: the host still chooses whom to kill among the rest */
+	int (*resumable) (void *context, const void *object);
 	/* the radius the host computed, once, before the first object (the observer's blast begins here) */
 	void (*begin) (void *context, float radius);
 	/* the echo of the candidates the host examined in the window it was given (the test fixture build only); `objects` are the window's objects, in order */

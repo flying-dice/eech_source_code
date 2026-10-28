@@ -7178,6 +7178,100 @@ mod tests {
             assert!(seen.is_none(), "{name}: the host was asked");
         }
     }
+    // The weapon state is embedded in the C-layout aim step and read by the campaign as campaign_weapon_state, so its INNER field order is part of the ABI: a same-size outer offset does not
+    // establish it.  Every field's offset, the size and the alignment are read from the campaign as compiled (csrc/eech_aim_layout.c cases 100 to 120).
+    fn weapon_state_layout_mismatches(rust_size: usize, rust_align: usize, rust_offsets: [usize; 19]) -> Vec<usize> {
+        let layout = |which: c_int| unsafe { sys::eech_engine_aim_layout(which) };
+        let mut wrong = Vec::new();
+        if layout(100) != rust_size {
+            wrong.push(100);
+        }
+        if layout(101) != rust_align {
+            wrong.push(101);
+        }
+        for (index, offset) in rust_offsets.iter().enumerate() {
+            if layout(102 + index as c_int) != *offset {
+                wrong.push(102 + index);
+            }
+        }
+        wrong
+    }
+    #[test]
+    fn the_inner_layout_of_the_weapon_state_is_the_campaigns() {
+        use std::mem::{align_of, offset_of, size_of};
+        type W = sys::eech_weapon_state;
+        let offsets = [
+            offset_of!(W, position),
+            offset_of!(W, attitude),
+            offset_of!(W, motion_vector),
+            offset_of!(W, velocity),
+            offset_of!(W, weapon_lifetime),
+            offset_of!(W, decoy_timer),
+            offset_of!(W, missile_phase),
+            offset_of!(W, loal_mode),
+            offset_of!(W, weapon_on_ground),
+            offset_of!(W, parachute_status),
+            offset_of!(W, kill_code),
+            offset_of!(W, entity_samples),
+            offset_of!(W, has_launcher),
+            offset_of!(W, has_target),
+            offset_of!(W, server),
+            offset_of!(W, submunition),
+            offset_of!(W, other_weapon),
+            offset_of!(W, coefficient),
+            offset_of!(W, effectiveness),
+        ];
+        assert_eq!(weapon_state_layout_mismatches(size_of::<W>(), align_of::<W>(), offsets), Vec::<usize>::new());
+        // A control: the comparison does fail for a mirror whose fields are in another order (the first two integers swapped), so a pass above is not an empty check.
+        #[repr(C)]
+        struct Reordered {
+            position: [f32; 3],
+            attitude: [f32; 9],
+            motion_vector: [f32; 3],
+            velocity: f32,
+            weapon_lifetime: f32,
+            decoy_timer: f32,
+            loal_mode: c_int,
+            missile_phase: c_int,
+            weapon_on_ground: c_int,
+            parachute_status: c_int,
+            kill_code: c_int,
+            entity_samples: [c_int; 4],
+            has_launcher: c_int,
+            has_target: c_int,
+            server: c_int,
+            submunition: c_int,
+            other_weapon: c_int,
+            coefficient: f32,
+            effectiveness: [f32; 3],
+        }
+        let control = [
+            offset_of!(Reordered, position),
+            offset_of!(Reordered, attitude),
+            offset_of!(Reordered, motion_vector),
+            offset_of!(Reordered, velocity),
+            offset_of!(Reordered, weapon_lifetime),
+            offset_of!(Reordered, decoy_timer),
+            offset_of!(Reordered, missile_phase),
+            offset_of!(Reordered, loal_mode),
+            offset_of!(Reordered, weapon_on_ground),
+            offset_of!(Reordered, parachute_status),
+            offset_of!(Reordered, kill_code),
+            offset_of!(Reordered, entity_samples),
+            offset_of!(Reordered, has_launcher),
+            offset_of!(Reordered, has_target),
+            offset_of!(Reordered, server),
+            offset_of!(Reordered, submunition),
+            offset_of!(Reordered, other_weapon),
+            offset_of!(Reordered, coefficient),
+            offset_of!(Reordered, effectiveness),
+        ];
+        // by NAME, the reordered mirror puts missile_phase and loal_mode in each other's slots: the comparison names exactly those two (size and alignment still agree)
+        assert_eq!(
+            weapon_state_layout_mismatches(size_of::<Reordered>(), align_of::<Reordered>(), control),
+            vec![108, 109]
+        );
+    }
     // The Rust mirrors of the aim exchange are written by hand, field for field; one that drifts from the C structure is memory corruption at the first request.  The campaign
     // reports the sizes and the offsets of the fields appended last (csrc/eech_aim_layout.c) and the mirrors must agree.
     #[test]

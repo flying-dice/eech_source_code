@@ -899,7 +899,8 @@ pub struct eech_bridge_result {
     pub handle: c_int,
 }
 
-/// The weapon as the campaign holds it, in a weapon step (aphavoc/.../mb_hostaim.h campaign_weapon_state), field for field.#[repr(C)]
+/// The weapon as the campaign holds it, in a weapon step (aphavoc/.../mb_hostaim.h campaign_weapon_state), field for field.
+#[repr(C)]
 #[derive(Clone, Copy)]
 pub struct eech_weapon_state {
     pub position: [f32; 3],

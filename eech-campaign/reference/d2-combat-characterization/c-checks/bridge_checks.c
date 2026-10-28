@@ -66,6 +66,9 @@ static int vehicles_sx, vehicles_sz;		/* the sector the vehicles host asks for f
 static int sweep;							/* the host asks for a fresh sector every time */
 static int fault;
 static int asks_draw;						/* the host asks for a sample of the random stream */
+static int host_skips_weapons;				/* the scripted vehicles host never names a weapon */
+
+#define WEAPON_TYPE 37					/* a kind of object whose kill is its destruction, in the fake world */
 
 enum { FAULT_NONE, FAULT_REVISIT, FAULT_WRONG_AFTER, FAULT_NEGATIVE_AFTER, FAULT_SECTOR_OUTSIDE };
 
@@ -146,7 +149,7 @@ static int host_aim (const campaign_aim_step *step, campaign_aim_result *result,
 	{
 		for (i = 0; i < bridge->window_count; i++)
 		{
-			if (bridge->window[i].alive)
+			if (bridge->window[i].alive && !(host_skips_weapons && bridge->window[i].type == WEAPON_TYPE))
 			{
 				result->bridge.action = 1;
 				result->bridge.handle = bridge->window[i].handle;
@@ -208,6 +211,7 @@ static void host_installed (void)
 	host_calls = request_count = host_fails = 0;
 	terrain_asks_remaining = 0;
 	vehicles_mode = 1;
+	host_skips_weapons = 0;
 	vehicles_sx = vehicles_sz = 2;
 	sweep = 0;
 	fault = FAULT_NONE;
@@ -311,19 +315,27 @@ typedef struct fake_object
 {
 	int alive;
 	int next;
+	int type;			/* 0: a routed vehicle (23) */
+	int destroys;		/* its kill IS its destruction (a weapon): unlinked, freed, the slot poisoned or reused */
+	int released;
 } fake_object;
 
 static fake_object world[OBJECTS];
 static int first_of[3][3];
 static int object_count, windows_supplied, kills_applied, kill_order[64];
 static int kill_unlinks_successor;
-
+static int reuse_released_slot;			/* a destroyed object's slot is taken by another object at once (a decoy of sector 0, 0) */
+static int resumable_installed;			/* the campaign gives the walk its resumable guard (the vehicles walk does; the blast walk does not) */
+static int released_reads;				/* the window was asked to continue after an object that was released */
 static void world_clear (void)
 {
 	memset (world, 0, sizeof (world));
 	memset (first_of, 0, sizeof (first_of));
 	object_count = windows_supplied = kills_applied = 0;
 	kill_unlinks_successor = 0;
+	reuse_released_slot = 0;
+	resumable_installed = 1;
+	released_reads = 0;
 }
 
 static int world_add (int sx, int sz, int alive)
@@ -343,17 +355,35 @@ static int world_add (int sx, int sz, int alive)
 	return index + 1;
 }
 
+/* a weapon in the sector's list: the campaign offers it (a blast examines weapons) and its kill is its destruction */
+static int world_add_weapon (int sx, int sz, int alive)
+{
+	int handle = world_add (sx, sz, alive);
+
+	world[handle - 1].type = WEAPON_TYPE;
+	world[handle - 1].destroys = 1;
+
+	return handle;
+}
+
 static int walk_window (void *context, int sx, int sz, const void *after, campaign_blast_entry *entries, void **objects, int max, int *end)
 {
 	int object, count = 0;
 
 	windows_supplied++;
 
+	if (after && world[(int) (intptr_t) after - 1].released)
+	{
+		/* the production window reads the successor of the object it is told to continue after: a released slot has no list to read (the original reports an invalid list) */
+		released_reads++;
+		debug_fatal ("the window was asked to continue after object %d, which was released", (int) (intptr_t) after);
+	}
+
 	object = after ? world[(int) (intptr_t) after - 1].next : ((sx >= 0 && sx <= 2 && sz >= 0 && sz <= 2) ? first_of[sz][sx] : 0);
 
 	while (object && count < max)
 	{
-		entries[count].type = 23;
+		entries[count].type = world[object - 1].type ? world[object - 1].type : 23;
 		entries[count].readable = 1;
 		entries[count].alive = world[object - 1].alive;
 		entries[count].has_position = 1;
@@ -382,10 +412,52 @@ static void walk_apply (void *context, void *object, int action, float modifier)
 	kills_applied++;
 	world[index].alive = 0;
 
+	if (world[index].destroys)
+	{
+		/* destroy: unlink the object from its sector's list, free it (the slot is poisoned) and, if the world reuses slots, give the slot to another object at once */
+		int sector, *link;
+
+		for (sector = 0; sector < 9; sector++)
+		{
+			link = &first_of[sector / 3][sector % 3];
+
+			while (*link && *link != index + 1)
+			{
+				link = &world[*link - 1].next;
+			}
+
+			if (*link == index + 1)
+			{
+				*link = world[index].next;
+
+				break;
+			}
+		}
+
+		world[index].released = 1;
+		world[index].next = -1;
+
+		if (reuse_released_slot)
+		{
+			world[index].released = 0;
+			world[index].destroys = 0;
+			world[index].type = 0;
+			world[index].alive = 1;
+			world[index].next = first_of[0][0];
+		}
+
+		return;
+	}
+
 	if (kill_unlinks_successor && world[index].next)
 	{
 		world[index].next = world[world[index].next - 1].next;
 	}
+}
+
+static int walk_resumable (void *context, const void *object)
+{
+	return !world[(int) (intptr_t) object - 1].destroys;
 }
 
 static struct campaign_blast_walk walk;
@@ -400,6 +472,9 @@ static void walk_reset (void)
 	walk.max_z_sector = 2;
 	walk.window = walk_window;
 	walk.apply = walk_apply;
+#ifndef BRIDGE_CHECKS_PRE_GUARD_DRIVER
+	walk.resumable = resumable_installed ? walk_resumable : NULL;
+#endif
 }
 
 static int ask_vehicles (void)
@@ -644,6 +719,59 @@ int main (void)
 	world_add (2, 2, 1);
 	accepted = ask_vehicles ();
 	check (accepted && kills_applied == 0, "a host that kills no vehicle (they ride it out) is obeyed");
+	/* a weapon is offered like any object (a blast examines weapons) and its kill is its destruction: the walk could not go on through it, so it is refused BEFORE the kill is applied */
+	host_installed ();
+	world_clear ();
+	world_add_weapon (2, 2, 1);
+	world_add (2, 2, 1);
+	accepted = ask_vehicles ();
+	check (!accepted && refused_with ("whose kill releases it") && kills_applied == 0 && released_reads == 0 && world[0].alive == 1 && !world[0].released, "a living weapon the host names is refused before its kill is applied (nothing is released, no list is read through it)");
+	host_installed ();
+	world_clear ();
+	world_add (0, 0, 1);
+	world_add_weapon (2, 2, 1);
+	world_add (2, 2, 1);
+	reuse_released_slot = 1;
+	accepted = ask_vehicles ();
+	check (!accepted && refused_with ("whose kill releases it") && kills_applied == 0 && world[0].alive == 1 && world[1].alive == 1 && !world[1].released, "and the same where the world would reuse the released slot at once: nothing is applied");
+	/* the weapon is only OFFERED: a host that kills the vehicles around it is obeyed and the weapon is left alone */
+	host_installed ();
+	world_clear ();
+	world_add (2, 2, 1);
+	world_add_weapon (2, 2, 1);
+	world_add (2, 2, 1);
+	host_skips_weapons = 1;
+	accepted = ask_vehicles ();
+	check (accepted && kills_applied == 2 && kill_order[0] == 1 && kill_order[1] == 3 && world[1].alive == 1 && !world[1].released && released_reads == 0, "a host that names the routed vehicles around an offered weapon kills them and leaves the weapon (the refusal is for naming it)");
+	host_installed ();
+	world_clear ();
+	world_add_weapon (2, 2, 0);
+	world_add (2, 2, 1);
+	accepted = ask_vehicles ();
+	check (accepted && kills_applied == 1 && kill_order[0] == 2, "a dead weapon is not offered as living and is never named");
+	/* the controls: WITHOUT the guard (the shape of the walk before it, and of a blast walk, whose actions leave an object in its list) the same host naming the weapon IS dangerous in this stand-in, which shows the checks above are not vacuous */
+	host_installed ();
+	world_clear ();
+	resumable_installed = 0;
+	world_add_weapon (2, 2, 1);
+	world_add (2, 2, 1);
+	accepted = ask_vehicles ();
+	check (!accepted && refused_with ("which was released") && kills_applied == 1 && released_reads == 1, "control: with no guard the walk applies the kill and then reads the list through the released object");
+	host_installed ();
+	world_clear ();
+	resumable_installed = 0;
+	world_add (0, 0, 1);
+	world_add_weapon (2, 2, 1);
+	reuse_released_slot = 1;
+	accepted = ask_vehicles ();
+	check (accepted && kills_applied == 2 && kill_order[0] == 2 && kill_order[1] == 1, "control: with no guard and a reused slot the walk silently continues in another sector's list and kills an object it was never offered");
+	host_installed ();
+	world_clear ();
+	resumable_installed = 0;
+	world_add (2, 2, 1);
+	world_add (2, 2, 1);
+	accepted = ask_vehicles ();
+	check (accepted && kills_applied == 2, "control: no guard at all is still a walk (a blast walk's objects are never released by its action)");
 	/* refusals */
 	host_installed ();
 	world_clear ();
