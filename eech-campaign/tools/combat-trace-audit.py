@@ -4,6 +4,12 @@
 usage: combat-trace-audit.py <trace.jsonl> [--run-json run.json] [--seconds 600] [--frame-ms 100] [--checkpoint-every 60] [--seed 1]
                              [--partial] [--max-bytes 268435456] [--summary out.json]
 
+It REQUIRES the report structure the emitter writes before it judges any value (a trace with rows removed is a failure, not a pass on the rows that remain): the boot report, one
+report per `checkpoint` event and the final report, in that order and matched to the checkpoint markers and the final clock; each report holds exactly one of each of nine
+singleton rows (cmb-hash cmb-integrity cmb-capability cmb-damage cmb-explosion cmb-blast cmb-install cmb-repair cmb-log) and exactly one cmb-timed row for each of kinds 1..6;
+the optional rows (cmb-kind, cmb-warhead, cmb-blast-kill, cmb-unobserved) are unique by their type or code within a report; no other report row exists.  An incomplete LAST report
+is only allowed while the run is incomplete (no `run` event) and is then NOT_EVALUATED, never a pass.
+
 It reads the REAL schema the script writes (boot, checkpoint and run events; scope boot/checkpoint/run report lines; scope log ordered events) and decides, separately:
 
   PROCESS   the native process finished and exited 0, from run.json ONLY (status and actual_native_exit); the trace alone never says it
@@ -36,6 +42,10 @@ KILL_CODES = {0: 'ok', 1: 'exhausted', 2: 'out_of_bounds', 3: 'hit_land', 4: 'hi
 TIMED_NAMES = {1: 'helicopter_fire', 2: 'fixed_wing_fire', 3: 'person_bleeding', 4: 'anti_aircraft_fire', 5: 'routed_vehicle_fire', 6: 'ship_vehicle_fire'}
 HEALTH_KINDS = ['ANTI_AIRCRAFT', 'CITY_BUILDING', 'FIXED_WING', 'HELICOPTER', 'OBJECT', 'PERSON', 'PYLON', 'ROUTED_VEHICLE', 'SCENIC', 'SEGMENT', 'SHIP_VEHICLE', 'SITE', 'SITE_UPDATABLE']
 LINE_MAX = 4 * 1024 * 1024
+REQUIRED_SINGLE = ('cmb-hash', 'cmb-integrity', 'cmb-capability', 'cmb-damage', 'cmb-explosion', 'cmb-blast', 'cmb-install', 'cmb-repair', 'cmb-log')
+OPTIONAL_UNIQUE = {'cmb-kind': 'type', 'cmb-warhead': 'type', 'cmb-blast-kill': 'code', 'cmb-unobserved': 'type'}
+TIMED_KIND_SET = {1, 2, 3, 4, 5, 6}
+REPORT_SCOPES = ('boot', 'checkpoint', 'run')
 
 
 class Audit:
@@ -64,31 +74,85 @@ def as_int(v):
     raise ValueError(repr(v))
 
 
-def read_trace(path, max_bytes):
-    """-> (rows, problems). Streams the file by line; a file over max_bytes or a line over LINE_MAX is a problem, not a read."""
+def read_rows(f, max_bytes, line_max):
+    """-> (rows, problems, size).  Reads a binary file object line by line UNDER the limits: every readline asks for at most min(line_max, bytes left) + 1 bytes (the one extra byte is
+    the sentinel that says the limit was crossed), so a line, or a file, that is over its limit is rejected before it is retained, decoded or parsed, and never allocated whole."""
     rows, problems, size = [], [], 0
-    with open(path, 'rb') as f:
-        for number, raw in enumerate(f, 1):
-            size += len(raw)
-            if size > max_bytes:
-                problems.append(f'file larger than --max-bytes {max_bytes}: stopped at line {number}')
-                break
-            if len(raw) > LINE_MAX:
-                problems.append(f'line {number} longer than {LINE_MAX} bytes')
-                break
-            if not raw.endswith(b'\n'):
-                problems.append(f'line {number} has no newline (a write in progress or a truncated file)')
-                break
-            try:
-                row = json.loads(raw)
-            except ValueError as error:
-                problems.append(f'line {number} is not JSON: {error}')
-                break
-            if not isinstance(row, dict):
-                problems.append(f'line {number} is not a JSON object')
-                break
-            rows.append(row)
+    number = 0
+    while True:
+        remaining = max_bytes - size
+        limit = min(line_max, max(remaining, 0)) + 1
+        raw = f.readline(limit)
+        if not raw:
+            break
+        number += 1
+        if len(raw) > line_max:
+            problems.append(f'line {number} longer than {line_max} bytes')
+            break
+        if len(raw) > remaining:
+            problems.append(f'file larger than --max-bytes {max_bytes}: stopped at line {number}')
+            break
+        size += len(raw)
+        if not raw.endswith(b'\n'):
+            problems.append(f'line {number} has no newline (a write in progress or a truncated file)')
+            break
+        try:
+            row = json.loads(raw)
+        except ValueError as error:
+            problems.append(f'line {number} is not JSON: {error}')
+            break
+        if not isinstance(row, dict):
+            problems.append(f'line {number} is not a JSON object')
+            break
+        rows.append(row)
     return rows, problems, size
+
+
+def read_trace(path, max_bytes, line_max=LINE_MAX):
+    with open(path, 'rb') as f:
+        return read_rows(f, max_bytes, line_max)
+
+
+def build_groups(rows):
+    """The report groups in FILE order: consecutive report rows (scope boot/checkpoint/run, event cmb-*) with the same (scope, at) are one group; any other row ends it, so a
+    duplicated group is two groups, not one merged group.  -> list of {'key', 'rows', 'first'} """
+    groups, current = [], None
+    for i, r in enumerate(rows):
+        scope = r.get('scope')
+        if scope in REPORT_SCOPES and str(r.get('event', '')).startswith('cmb-'):
+            key = (scope, r.get('at'))
+            if current is not None and current['key'] == key:
+                current['rows'].append(r)
+            else:
+                current = {'key': key, 'rows': [r], 'first': i}
+                groups.append(current)
+        else:
+            current = None
+    return groups
+
+
+def group_problems(g):
+    """The ways one report group departs from the emitter's structure; [] when it is complete and exact."""
+    out = []
+    counts = {}
+    for r in g['rows']:
+        counts.setdefault(r['event'], []).append(r)
+    for e in REQUIRED_SINGLE:
+        n = len(counts.get(e, []))
+        if n != 1:
+            out.append(f'{e} x{n}')
+    timed = [r.get('kind') for r in counts.get('cmb-timed', [])]
+    if sorted(timed, key=str) != sorted(TIMED_KIND_SET, key=str):
+        out.append(f'cmb-timed kinds {sorted(timed, key=str)} (want 1..6 once each)')
+    for e, field in OPTIONAL_UNIQUE.items():
+        seen = [r.get(field) for r in counts.get(e, [])]
+        if len(seen) != len(set(seen)):
+            out.append(f'{e} rows repeat a {field}')
+    known = set(REQUIRED_SINGLE) | set(OPTIONAL_UNIQUE) | {'cmb-timed'}
+    unknown = sorted(set(counts) - known)
+    if unknown:
+        out.append(f'unknown report rows {unknown}')
+    return out
 
 
 def by(rows, scope, event):
@@ -106,6 +170,7 @@ def main():
     ap.add_argument('--require-corrected-schema', action='store_true', help='fail a trace whose cmb-kind blast counter is a string (the legacy f41 schema)')
     ap.add_argument('--partial', action='store_true', help='the run is still going: evaluate what exists, never exit 0')
     ap.add_argument('--max-bytes', type=int, default=256 * 1024 * 1024)
+    ap.add_argument('--line-max', type=int, default=LINE_MAX, help='the longest line accepted, in bytes (default 4 MiB)')
     ap.add_argument('--summary')
     a = ap.parse_args()
     au = Audit()
@@ -128,7 +193,7 @@ def main():
     else:
         au.add('PROCESS', 'native process finished', 'NOT_EVALUATED', 'no --run-json: process completion is not inferred from the trace')
 
-    rows, problems, size = read_trace(a.trace, a.max_bytes)
+    rows, problems, size = read_trace(a.trace, a.max_bytes, a.line_max)
     for p in problems:
         # a partial trace is allowed to end in a line being written; anything else is a failure
         if a.partial and 'no newline' in p:
@@ -169,13 +234,60 @@ def main():
         au.ok('ARTIFACT', 'the run event is the last unscoped event and a final `run` report follows it', rows.index(r) > rows.index(checkpoints[-1]) if checkpoints else True)
         au.ok('ARTIFACT', 'final report (scope run) present', len(by(rows, 'run', 'cmb-hash')) == 1 and len(by(rows, 'run', 'cmb-integrity')) == 1)
 
-    # ---- the report lines: hashes, integrity, damage balance, counters
+    # ---- the REQUIRED report structure (before any value is judged)
+    groups = build_groups(rows)
+    expected_keys = [('boot', 0)] + [('checkpoint', r.get('at')) for r in checkpoints] + ([('run', runs[0].get('elapsed'))] if complete else [])
+    file_keys = [g['key'] for g in groups]
+    incomplete_allowed = not complete  # a run still in progress may end in the middle of a report
+    structure_ok = True
+    detail = []
+    if len(set(file_keys)) != len(file_keys):
+        structure_ok = False
+        detail.append(f'a report group is repeated: {[k for k in file_keys if file_keys.count(k) > 1][:2]}')
+    if complete:
+        if file_keys != expected_keys:
+            structure_ok = False
+            detail.append(f'report groups {file_keys[:3]}..{file_keys[-2:]} ({len(file_keys)}) do not match boot + one per checkpoint event + run {expected_keys[:2]}..{expected_keys[-1:]} ({len(expected_keys)})')
+    else:
+        if file_keys != expected_keys[:len(file_keys)]:
+            structure_ok = False
+            detail.append(f'report groups {file_keys} are not a prefix of the expected {expected_keys}')
+    usable = []
+    for idx, g in enumerate(groups):
+        problems_here = group_problems(g)
+        last = idx == len(groups) - 1
+        if problems_here and last and incomplete_allowed:
+            au.add('ARTIFACT', f'last report group {g["key"]} (run in progress)', 'NOT_EVALUATED', f'incomplete: {problems_here[:3]}')
+            continue
+        if problems_here:
+            structure_ok = False
+            detail.append(f'group {g["key"]}: {problems_here[:3]}')
+        else:
+            usable.append(g)
+    # each checkpoint marker comes before its own report, and the boot report before the first marker
+    marker_rows = [i for i, r in enumerate(rows) if r.get('event') == 'checkpoint' and 'scope' not in r]
+    by_key = {g['key']: g for g in groups}
+    for r, i in zip(checkpoints, marker_rows):
+        g = by_key.get(('checkpoint', r.get('at')))
+        if g is not None and g['first'] < i:
+            structure_ok = False
+            detail.append(f'the report for checkpoint {r.get("at")} comes before its marker')
+    if groups and ('boot', 0) in by_key and marker_rows and by_key[('boot', 0)]['first'] > marker_rows[0]:
+        structure_ok = False
+        detail.append('the boot report comes after the first checkpoint marker')
+    au.ok('ARTIFACT', 'report structure: boot + one complete report per checkpoint marker + final, each with the nine singleton rows, six timed kinds once, optional rows unique', structure_ok and bool(groups),
+          '; '.join(detail[:4]) if detail else f'{len(groups)} groups, {len(usable)} complete')
     reports = {}
-    for r in rows:
-        s = r.get('scope')
-        if s in ('boot', 'checkpoint', 'run') and str(r.get('event', '')).startswith('cmb-'):
-            reports.setdefault((s, r.get('at') if s == 'checkpoint' else None), []).append(r)
-    ordered_keys = sorted(reports, key=lambda k: (['boot', 'checkpoint', 'run'].index(k[0]), k[1] or 0))
+    ordered_keys = []
+    for g in usable:
+        reports[g['key']] = g['rows']
+        ordered_keys.append(g['key'])
+    if not structure_ok:
+        # the values of a malformed trace are not judged on the rows that happen to remain
+        ordered_keys = []
+        reports = {}
+
+    # ---- the report lines: hashes, integrity, damage balance, counters
     hash_lines = [(k, [x for x in reports[k] if x['event'] == 'cmb-hash']) for k in ordered_keys]
     bad_hash = []
     for k, lines in hash_lines:
@@ -293,7 +405,10 @@ def main():
     if last_key:
         fl = flat(last_key)
         c = lambda tag, f: fl.get((tag, None, f))
-        counts = {k: sum(1 for r in ev if r.get('kind') == k) for k in EVENT_KINDS}
+        # the events a report accounts for: all of them in the final report; in a checkpoint report exactly those drained at or before it (the drain precedes the report), which
+        # is what lets a run still in progress be checked precisely instead of loosely.  A boot report is taken before its drain, so it has no tally.
+        ev_used = ev if last_key[0] == 'run' else [r for r in ev if r.get('at', 0) <= last_key[1]]
+        counts = {k: sum(1 for r in ev_used if r.get('kind') == k) for k in EVENT_KINDS}
         kinds_collisions = sum(v for (e, t, f), v in fl.items() if e == 'cmb-kind' and f == 'collisions' and v is not None)
         timed_hits = sum(v for (e, t, f), v in fl.items() if e == 'cmb-timed' and f == 'hits')
         repairs = sum(c('cmb-repair', f) or 0 for f in ('resupply', 'fixed_restore', 'other'))
@@ -304,14 +419,13 @@ def main():
             ('explosion events == explosion invocations', counts['explosion'] == c('cmb-explosion', 'invocations')),
             ('repair events == repair writes', counts['repair'] == repairs),
             ('timed events == timed hits', counts['timed'] == timed_hits),
-            ('cmb-log events == stored == drained == events read, overflow 0', c('cmb-log', 'events') == c('cmb-log', 'stored') == c('cmb-log', 'drained') == len(ev) and c('cmb-log', 'overflow') == 0),
+            ('cmb-log events == stored == drained == events read, overflow 0', c('cmb-log', 'events') == c('cmb-log', 'stored') == c('cmb-log', 'drained') == len(ev_used) and c('cmb-log', 'overflow') == 0),
         ]
         for name, cond in tallies:
-            if complete or not a.partial:
-                au.ok('ARTIFACT', name + f' ({"final report" if last_key[0] == "run" else "last checkpoint"})', bool(cond), f'events {counts}')
+            if last_key[0] == 'boot':
+                au.add('ARTIFACT', name, 'NOT_EVALUATED', 'only the boot report exists (it is taken before its event drain)')
             else:
-                # a partial trace: the events after the last checkpoint are not drained yet, so equality is only required at the checkpoint's own drain
-                au.ok('ARTIFACT', name + ' (last checkpoint of a partial trace)', bool(cond) or last_key[0] == 'checkpoint', f'events {counts}')
+                au.ok('ARTIFACT', name + f' ({"final report" if last_key[0] == "run" else "last complete checkpoint report, events drained up to it"})', bool(cond), f'events {counts}')
         # coverage
         cov = {'report': 'run' if last_key[0] == 'run' else f'checkpoint at {last_key[1]} s (PARTIAL)', 'kinds': {}, 'warheads': {}, 'kill_codes': {}, 'timed': {}, 'repair': {}, 'special': {}, 'unreached': []}
         for kind in HEALTH_KINDS:

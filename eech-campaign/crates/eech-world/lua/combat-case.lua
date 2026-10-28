@@ -10,9 +10,18 @@
 --
 -- Output, JSON Lines (the same writer and parser as the natural run, lua/combat-report.lua):
 --   boot, census (before), inventory
---   for every case: `case` (the name, the operation, ok, the engine's text), the observer's whole report immediately BEFORE (scope case:<name>:before) and AFTER
---                   (case:<name>:after), and the ordered events the case produced (scope case:<name>:log); the audit reads the difference
+--   for every case: `case` (the name, the engine's text, ok, `done`), the observer's whole report immediately BEFORE (scope case:<name>:before) and AFTER (case:<name>:after), the
+--                   ordered events the case produced (scope case:<name>:log), and `case_delta`: every observer counter that CHANGED during the case, as key = after - before.
+--                   Events the war logged between two cases are kept, not discarded (scope pre:<name>), so the whole run's event log is in the file, in order.
 --   census (after), run (the final whole report)
+--
+-- WHAT `done` AND THE RUN SUMMARY MEAN: `done` says only that the PRECONDITION was met (a receiver of the kind was found and, for a health case, the original critical predicate
+-- accepted it).  It is NOT a statement that a physical path ran.  The path ran if and only if the case's `case_delta` shows it: a collision on the kind, a capability draw, a
+-- blast call, a timed roll's draws and hits.  The natural-run audit (tools/combat-trace-audit.py) does NOT judge this file; a controlled acceptance reads the deltas.
+--
+-- Declared source-unreachable: a person's bleeding roll.  The original `vehicle_critically_damaged` returns FALSE for ENTITY_TYPE_PERSON before it looks at the health, so no health
+-- reaches it; the case below asks the original predicate once and records the answer.  An anti-aircraft vehicle's fire roll needs an explosive or flammable vehicle type and a
+-- health whose integer percentage is strictly below 15; the driver sets the health, asks the original predicate, and puts the health back (and says so) if it is not critical.
 --
 -- host.args: root, out (JSON Lines path), warmup (simulated seconds before the first case, default 60, the controlled-launch witnesses' warmup), frame_ms (default 100),
 --            timed_seconds (simulated seconds the timed-health cases run for, default 20)
@@ -65,10 +74,38 @@ local function fields (text)
 	return t
 end
 
--- everything the war logged before a case is taken first, so that the events read after it are the case's own
+-- everything the war logged before a case is taken first (and KEPT, under its own scope), so that the events read after it are the case's own and none is lost
 local function drain (scope, at)
 	local text = engine:cmb_events ()
 	if scope then emit_report (scope, at, text) end
+end
+
+-- the observer's counters as a flat table: `event.key`, `event.TYPE.key` for a row with a type, `timedN.key` for a timed row; numbers only
+local function counters (text)
+	local c = {}
+	for line in string.gmatch (text, "[^\n]+") do
+		local event = string.match (line, "^(%S+)")
+		if event ~= "cmb-hash" then
+			local kind = string.match (line, "^cmb%-timed kind=(%d+)")
+			local type_name = string.match (line, " type=(%S+)")
+			local prefix = kind and ("timed" .. kind) or (type_name and (event .. "." .. type_name) or event)
+			for k, v in string.gmatch (line, "(%S+)=(%S+)") do
+				local n = tonumber (v)
+				if n and k ~= "kind" then c [prefix .. "." .. k] = n end
+			end
+		end
+	end
+	return c
+end
+
+-- every counter that changed between two reports, as a flat table of after - before
+local function deltas (before_text, after_text)
+	local b, a, d = counters (before_text), counters (after_text), {}
+	for k, v in pairs (a) do
+		local diff = v - (b [k] or 0)
+		if diff ~= 0 and not string.find (k, "max_", 1, true) then d [k] = diff end
+	end
+	return d
 end
 
 -- the kinds a case can choose a receiver among
@@ -86,20 +123,29 @@ local function take_census (scope)
 end
 
 local case_count, case_done = 0, 0
-local function run_case (name, call, after_steps)
+local last_delta = {}
+-- `precondition_ok` (optional) decides `done` from the engine's fields; the default is that a receiver was found.  `done` is a PRECONDITION, never a physical result.
+local function run_case (name, call, after_steps, precondition_ok)
 	case_count = case_count + 1
-	drain (nil)
+	drain ("pre:" .. name, clock.elapsed_seconds)
 	local at = clock.elapsed_seconds
-	emit_report ("case:" .. name .. ":before", at, engine:cmb_trace ())
+	local before_text = engine:cmb_trace ()
+	emit_report ("case:" .. name .. ":before", at, before_text)
 	local ok, text = pcall (call)
-	if after_steps then step (after_steps) end
 	local f = ok and fields (tostring (text)) or {}
-	local done = ok and f.found == "1"
+	local done = ok and ((precondition_ok and precondition_ok (f)) or (not precondition_ok and f.found == "1" and f.placed ~= "0")) or false
 	if done then case_done = case_done + 1 end
+	if after_steps and done then step (after_steps) end
 	emit { event = "case", name = name, ok = ok and true or false, done = done and true or false, text = (tostring (text):gsub ("\n", " ")) }
-	emit_report ("case:" .. name .. ":after", clock.elapsed_seconds, engine:cmb_trace ())
+	local after_text = engine:cmb_trace ()
+	emit_report ("case:" .. name .. ":after", clock.elapsed_seconds, after_text)
 	drain ("case:" .. name .. ":log", clock.elapsed_seconds)
-	return done
+	local d = deltas (before_text, after_text)
+	local row = { event = "case_delta", name = name, done = done and true or false }
+	for k, v in pairs (d) do row [k] = v end
+	emit (row)
+	last_delta = d
+	return done, f, d
 end
 
 -- ---------------------------------------------------------------------------------------------------------------- warmup, census, inventory (read-only)
@@ -219,18 +265,37 @@ if exploder then
 	end
 end
 
--- the timed health rolls the natural run never fired: a person's bleeding and an anti-aircraft vehicle's fire (which needs an explosive or flammable vehicle type, so up to three
--- entities of each kind are tried); each is set to 20 % of its initial health and the campaign's own update loop then runs for timed_seconds
-for _, kind in ipairs { "PERSON", "ANTI_AIRCRAFT" } do
-	for ordinal = 0, math.min (2, (census [kind] or 0) - 1) do
-		run_case ("timed_health_" .. kind .. "_" .. ordinal, function () return engine:cmb_case_state (1, kind, ordinal, 20) end, timed_seconds)
+-- the timed health rolls the natural run never fired.  PERSON: the original predicate is FALSE for a person whatever its health, so the bleeding roll is source-unreachable; the
+-- case asks the original predicate once and records its answer, and the run says so rather than claiming the roll was missed by chance.  ANTI_AIRCRAFT: the fire roll needs an
+-- explosive or flammable vehicle type and an integer health percentage strictly below 15, so up to eight living vehicles are tried in order and the first the ORIGINAL predicate
+-- accepts at 14 % of its initial health is run for timed_seconds; every vehicle tried is reported with the reason it was or was not eligible.
+if (census.PERSON or 0) > 0 then
+	run_case ("timed_health_PERSON_declared_unreachable", function () return engine:cmb_case_state (1, "PERSON", 0, 14) end, nil,
+		function (f) return f.found == "1" end)
+	emit { event = "declared_unreachable", path = "person_bleeding", reason = "vehicle_critically_damaged is FALSE for ENTITY_TYPE_PERSON in the original source (vehicle.c)" }
+end
+local fire_ran = false
+for ordinal = 0, math.min (7, (census.ANTI_AIRCRAFT or 0) - 1) do
+	if not fire_ran then
+		local done, f, d = run_case ("timed_health_ANTI_AIRCRAFT_" .. ordinal, function () return engine:cmb_case_state (1, "ANTI_AIRCRAFT", ordinal, 14) end, timed_seconds,
+			function (f) return f.found == "1" and f.eligible == "1" end)
+		if done then
+			fire_ran = true
+			-- whether the fire roll ACTUALLY ran is read from the observer, not from `done`
+			local draws, hits = d ["timed4.draws"] or 0, d ["timed4.hits"] or 0
+			emit { event = "timed_activity", path = "anti_aircraft_fire", ordinal = ordinal, attempts = d ["timed4.attempts"] or 0, draws = draws, hits = hits, fatal = d ["timed4.fatal"] or 0,
+				rolled = draws > 0, fired = hits > 0 }
+		end
 	end
+end
+if not fire_ran then
+	emit { event = "timed_activity", path = "anti_aircraft_fire", rolled = false, fired = false, reason = (census.ANTI_AIRCRAFT or 0) > 0 and "no living anti-aircraft vehicle was eligible (explosive or flammable and critical at 14 percent)" or "no living anti-aircraft vehicle" }
 end
 
 -- ---------------------------------------------------------------------------------------------------------------- end
 take_census ("census:after")
 drain ("log", clock.elapsed_seconds)
-emit { event = "run", elapsed = clock.elapsed_seconds, cases = case_count, cases_done = case_done, usable_classes = #usable }
+emit { event = "run", elapsed = clock.elapsed_seconds, cases = case_count, preconditions_met = case_done, usable_classes = #usable, note = "preconditions_met is not physical coverage: read the case_delta rows" }
 emit_report ("run", clock.elapsed_seconds, engine:cmb_trace ())
 out:close ()
-io.stderr:write (string.format ("combat-case: %d cases, %d done, %d usable weapon classes, clock %s\n", case_count, case_done, #usable, tostring (clock.elapsed_seconds)))
+io.stderr:write (string.format ("combat-case: %d cases, %d preconditions met (not coverage: read the deltas), %d usable weapon classes, clock %s\n", case_count, case_done, #usable, tostring (clock.elapsed_seconds)))

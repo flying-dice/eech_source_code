@@ -90,8 +90,12 @@ def main():
     cps[-1]['calls'] = cps[0]['calls'] - 1  # a run-wide counter that goes down
     case('counter_decreases', r, 1)
 
+    # a final report whose run event is gone is inconsistent (the event is written before the report): a failure, not an incomplete run
     r = [x for x in copy() if not (x.get('event') == 'run' and 'scope' not in x)]
-    case('no_final_run_event', r, 2)
+    case('final_report_without_its_run_event_fails', r, 1)
+    # a genuinely unfinished run: neither the run event nor the final report
+    r = [x for x in copy() if not (x.get('event') == 'run' and 'scope' not in x) and x.get('scope') != 'run']
+    case('no_final_run_event_and_no_final_report_is_incomplete', r, 2)
 
     running = dict(done_json)
     running['status'] = 'running'
@@ -134,6 +138,123 @@ def main():
     r = copy()
     next(x for x in r if x.get('event') == 'cmb-hash' and x.get('scope') == 'run')['blast'] = 255  # the hash named like a counter must stay a string
     case('hash_blast_as_number_fails', r, 1)
+
+    # ---- the REQUIRED report structure: rows removed or repeated in the real trace must fail, never pass on the rows that remain
+    def report_rows(rr, scope, at=None, event=None):
+        return [i for i, x in enumerate(rr) if x.get('scope') == scope and str(x.get('event', '')).startswith('cmb-') and (at is None or x.get('at') == at) and (event is None or x.get('event') == event)]
+
+    def drop(rr, indexes):
+        gone = set(indexes)
+        return [x for i, x in enumerate(rr) if i not in gone]
+
+    r = copy()
+    case('structure_all_damage_rows_removed', drop(r, [i for i, x in enumerate(r) if x.get('event') == 'cmb-damage']), 1)
+    r = copy()
+    case('structure_all_checkpoint_integrity_rows_removed', drop(r, report_rows(r, 'checkpoint', event='cmb-integrity')), 1)
+    r = copy()
+    case('structure_one_singleton_removed_from_a_middle_checkpoint', drop(r, report_rows(r, 'checkpoint', 300, 'cmb-capability')), 1)
+    r = copy()
+    case('structure_one_timed_kind_removed', drop(r, [i for i in report_rows(r, 'checkpoint', 180, 'cmb-timed') if r[i].get('kind') == 3]), 1)
+    r = copy()
+    i = report_rows(r, 'checkpoint', 120, 'cmb-explosion')[0]
+    r.insert(i + 1, dict(r[i]))
+    case('structure_singleton_duplicated', r, 1)
+    r = copy()
+    i = [j for j in report_rows(r, 'checkpoint', 240, 'cmb-timed') if r[j].get('kind') == 5][0]
+    r.insert(i + 1, dict(r[i]))
+    case('structure_timed_kind_duplicated', r, 1)
+    r = copy()
+    case('structure_a_whole_checkpoint_report_removed_marker_kept', drop(r, report_rows(r, 'checkpoint', 300)), 1)
+    r = copy()
+    g = report_rows(r, 'checkpoint', 360)
+    after_group = g[-1] + 1
+    for k, j in enumerate(g):
+        r.insert(after_group + k, dict(r[j]))
+    case('structure_a_whole_report_repeated_contiguously', r, 1)
+    r = copy()
+    g = report_rows(r, 'checkpoint', 60)
+    nxt = report_rows(r, 'checkpoint', 120)[-1] + 1
+    for k, j in enumerate(g):
+        r.insert(nxt + k, dict(r[j]))
+    case('structure_a_whole_report_repeated_later', r, 1)
+    r = copy()
+    r.insert(report_rows(r, 'checkpoint', 60)[-1] + 1, {'event': 'cmb-bogus', 'scope': 'checkpoint', 'at': 60})
+    case('structure_unknown_report_row', r, 1)
+    r = copy()
+    j = next(i for i, x in enumerate(r) if x.get('event') == 'checkpoint' and x.get('at') == 420 and 'scope' not in x)
+    del r[j]
+    case('structure_a_checkpoint_marker_removed_report_kept', r, 1)
+    r = copy()
+    case('structure_boot_report_removed', drop(r, report_rows(r, 'boot')), 1)
+    r = copy()
+    case('structure_final_report_missing_a_timed_kind', drop(r, [i for i in report_rows(r, 'run', event='cmb-timed') if r[i].get('kind') == 6]), 1)
+    r = copy()
+    case('structure_final_report_missing_integrity', drop(r, report_rows(r, 'run', event='cmb-integrity')), 1)
+    r = copy()
+    j = next(i for i, x in enumerate(r) if x.get('scope') == 'checkpoint' and x.get('at') == 540 and x.get('event') == 'cmb-hash')
+    k = next(i for i, x in enumerate(r) if x.get('event') == 'checkpoint' and x.get('at') == 540 and 'scope' not in x)
+    r[j], r[k] = r[k], r[j]
+    case('structure_a_report_before_its_marker', r, 1)
+
+    # a run still in progress: the last report may be cut short (INCOMPLETE, never PASS, never FAIL for that alone); a hole in any earlier report is still a failure
+    full = copy()
+    cut = report_rows(full, 'checkpoint', 300, 'cmb-capability')[0]
+    truncated = full[:cut + 1]  # ends inside the 300 s report; no run event
+    case('partial_truncated_inside_the_last_report_is_incomplete', truncated, 2, extra=('--partial',))
+    case('partial_without_the_flag_is_still_incomplete_not_a_pass', truncated, 2)
+    hole = [x for i, x in enumerate(truncated) if not (x.get('scope') == 'checkpoint' and x.get('at') == 180 and x.get('event') == 'cmb-damage')]
+    case('partial_a_hole_in_an_earlier_report_fails', hole, 1, extra=('--partial',))
+    no_final_rows = copy()
+    case('complete_run_with_a_cut_final_report_fails', drop(no_final_rows, report_rows(no_final_rows, 'run', event='cmb-blast')), 1)
+
+    # ---- the bounded reader: the REAL read path with an instrumented file; every request is at most min(line limit, bytes left) + 1 and nothing is ever read whole
+    import importlib.util
+    import io
+    spec = importlib.util.spec_from_file_location('combat_trace_audit', AUDIT)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    class Spy(io.BytesIO):
+        def __init__(self, data):
+            super().__init__(data)
+            self.requests, self.returned = [], []
+
+        def readline(self, size=-1):
+            self.requests.append(size)
+            got = super().readline(size)
+            self.returned.append(len(got))
+            return got
+
+        def read(self, size=-1):
+            self.requests.append(('read', size))
+            return super().read(size)
+
+    def bounded(name, data, max_bytes, line_max, want_problem, want_rows):
+        spy = Spy(data)
+        rows_out, problems_out, size_out = module.read_rows(spy, max_bytes, line_max)
+        asked = [x for x in spy.requests if not isinstance(x, tuple)]
+        other = [x for x in spy.requests if isinstance(x, tuple)]
+        cap = line_max + 1
+        ok = (not other) and all(isinstance(x, int) and 0 < x <= cap for x in asked) and max(spy.returned or [0]) <= cap
+        ok = ok and (bool([p for p in problems_out if want_problem in p]) if want_problem else not problems_out) and len(rows_out) == want_rows
+        results.append((name, ok, f'requests<={max(asked or [0])} returned<={max(spy.returned or [0])} cap {cap} problems {problems_out} rows {len(rows_out)}'))
+
+    good = b'{"a":1}\n' * 5
+    bounded('reader_reads_small_valid_lines_fully', good, 10_000, 1_000, None, 5)
+    bounded('reader_rejects_an_oversized_unterminated_line_without_reading_it_whole', b'x' * 2_000_000, 100_000_000, 1_000, 'longer than 1000', 0)
+    bounded('reader_rejects_an_oversized_terminated_line_after_good_lines', good + b'y' * 5_000 + b'\n' + good, 100_000_000, 1_000, 'longer than 1000', 5)
+    bounded('reader_stops_at_the_total_limit', good * 100, 100, 1_000, 'larger than --max-bytes', 5 - 5 + 12)
+    bounded('reader_total_limit_inside_a_line', b'{"a":' + b'1' * 400 + b'}\n', 100, 1_000, 'larger than --max-bytes', 0)
+
+    # the same through the command line on a file on disk
+    big = os.path.join(work, 'long-line.jsonl')
+    with open(big, 'wb') as f:
+        f.write(b'{"event":"boot"}\n')
+        f.write(b'z' * 3_000_000)
+    code, out = audit(big, run_json, '--line-max', '1000')
+    results.append(('cli_line_limit_fails_a_long_unterminated_line', code == 1 and 'longer than 1000' in out, f'exit {code}'))
+    code, out = audit(big, run_json, '--max-bytes', '200')
+    results.append(('cli_total_limit_fails_a_long_line_under_the_default_line_limit', code == 1 and 'larger than --max-bytes' in out, f'exit {code}'))
 
     bad = 0
     for name, ok, detail in results:

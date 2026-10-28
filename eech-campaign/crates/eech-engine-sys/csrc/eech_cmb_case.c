@@ -13,8 +13,9 @@
  *   blast   a REAL weapon launched the same way is placed at a chosen offset from the n-th living entity of a kind, given a chosen kill code (and, for a hit on target, linked
  *           to that entity as its target) and put through create_client_server_weapon_killed_explosion_effect, the call the weapon's own update makes when its kill code is set,
  *           then destroyed as the update would
- *   health  the n-th living entity of a kind is set to a percentage of its initial health through the campaign's own setter, so that the campaign's own per-frame fire and
- *           bleeding rolls can run on it in the frames that follow
+ *   health  the n-th living entity of a vehicle kind with a timed roll is set to a percentage of its initial health through the campaign's own setter, and the ORIGINAL critical
+ *           predicate is asked whether it is now critical (the health is put back and the case reported not eligible if not); a person is never critical in the source and is
+ *           reported, not changed; a fire roll also needs an explosive or flammable vehicle type
  *
  * PRECONDITIONS are the test's choice and are declared as such: the receiver (kind and ordinal in the entity list's order), the weapon type and launcher, the modifier, the
  * offset, the kill code, the starting health. The weapon is a real launched weapon, but WHERE it ends and WITH WHAT kill code in a blast case is the test's choice, standing in
@@ -37,7 +38,9 @@
 
 extern int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, int weapon, int salvo_count, char *text, int capacity);
 
-#define NEW_MAX 16
+/* the most launched-weapon children a launcher may already have, and the most weapons one launch may create, that this driver will account for exactly: beyond either the case
+   is refused (before the launch for the first; after it, with every provably new weapon retired and the counts reported, for the second), never truncated */
+#define CHILD_MAX 256
 
 /* the thirteen kinds that hold a damage level and read the collision modifier */
 static const entity_types case_kinds[] =
@@ -145,14 +148,76 @@ static entity *find_by_host_id (const char *host_id)
 	return NULL;
 }
 
+/* the launched-weapon children of a launcher, counted in full */
+static int count_children (entity *launcher)
+{
+	entity *w;
+	int n = 0;
+
+	for (w = get_local_entity_first_child (launcher, LIST_TYPE_LAUNCHED_WEAPON); w; w = get_local_entity_child_succ (w, LIST_TYPE_LAUNCHED_WEAPON))
+	{
+		n++;
+	}
+
+	return n;
+}
+
+static int in_snapshot (entity *const *snapshot, int count, entity *w)
+{
+	int i;
+
+	for (i = 0; i < count; i++)
+	{
+		if (snapshot[i] == w)
+		{
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+/* destroys, by the campaign's own call, every launched-weapon child of the launcher that is NOT in the snapshot (it is complete, so those are exactly the weapons the launch
+   created); one at a time, rescanning, because destroying a child changes the list being walked */
+static int retire_all_new (entity *launcher, entity *const *snapshot, int count)
+{
+	int retired = 0;
+
+	for (;;)
+	{
+		entity *w, *fresh = NULL;
+
+		for (w = get_local_entity_first_child (launcher, LIST_TYPE_LAUNCHED_WEAPON); w; w = get_local_entity_child_succ (w, LIST_TYPE_LAUNCHED_WEAPON))
+		{
+			if (!in_snapshot (snapshot, count, w))
+			{
+				fresh = w;
+
+				break;
+			}
+		}
+
+		if (!fresh)
+		{
+			return retired;
+		}
+
+		destroy_client_server_entity_family (fresh);
+
+		retired++;
+	}
+}
+
 /* launches one weapon from the host-identified launcher through the Task45 case launch (the campaign's own launch call, which asks the host for the birth) and returns the
-   weapons it created, found as the launcher's launched-weapon children that were not there before */
+   weapons it created, found as the launcher's launched-weapon children that were not there before.  FAIL CLOSED: a launcher that already has more children than the snapshot
+   holds is refused BEFORE the launch (the new weapons could not be told from the old); a launch that creates more weapons than the table holds retires every one of them (all
+   provably new) and is reported as an error with the counts */
 static int launch_new (const char *launcher_id, int weapon, entity **created, char *text, int capacity)
 {
 	entity *launcher = find_by_host_id (launcher_id);
-	entity *before[NEW_MAX * 4];
+	entity *before[CHILD_MAX];
 	entity *w;
-	int before_count = 0, made = 0, i;
+	int before_count = 0, existing, made = 0, total_new = 0;
 	char launch_text[512];
 
 	if (!launcher)
@@ -160,7 +225,16 @@ static int launch_new (const char *launcher_id, int weapon, entity **created, ch
 		return case_error (text, capacity, "no_such_launcher_host_id", launcher_id);
 	}
 
-	for (w = get_local_entity_first_child (launcher, LIST_TYPE_LAUNCHED_WEAPON); w && before_count < NEW_MAX * 4; w = get_local_entity_child_succ (w, LIST_TYPE_LAUNCHED_WEAPON))
+	existing = count_children (launcher);
+
+	if (existing > CHILD_MAX)
+	{
+		snprintf (launch_text, sizeof (launch_text), "existing=%d limit=%d: nothing was launched", existing, CHILD_MAX);
+
+		return case_error (text, capacity, "launcher_has_too_many_children_to_tell_new_from_old", launch_text);
+	}
+
+	for (w = get_local_entity_first_child (launcher, LIST_TYPE_LAUNCHED_WEAPON); w; w = get_local_entity_child_succ (w, LIST_TYPE_LAUNCHED_WEAPON))
 	{
 		before[before_count++] = w;
 	}
@@ -172,20 +246,24 @@ static int launch_new (const char *launcher_id, int weapon, entity **created, ch
 
 	for (w = get_local_entity_first_child (launcher, LIST_TYPE_LAUNCHED_WEAPON); w; w = get_local_entity_child_succ (w, LIST_TYPE_LAUNCHED_WEAPON))
 	{
-		int known = 0;
-
-		for (i = 0; i < before_count; i++)
+		if (!in_snapshot (before, before_count, w))
 		{
-			if (before[i] == w)
+			total_new++;
+
+			if (made < CHILD_MAX)
 			{
-				known = 1;
+				created[made++] = w;
 			}
 		}
+	}
 
-		if (!known && made < NEW_MAX)
-		{
-			created[made++] = w;
-		}
+	if (total_new > CHILD_MAX)
+	{
+		int retired = retire_all_new (launcher, before, before_count);
+
+		snprintf (launch_text, sizeof (launch_text), "created=%d limit=%d retired_new=%d unrelated_retired=0", total_new, CHILD_MAX, retired);
+
+		return case_error (text, capacity, "launch_created_more_weapons_than_the_table_holds", launch_text);
 	}
 
 	if (!made)
@@ -228,9 +306,14 @@ int eech_cmb_case_census_run (char *text, int capacity)
 	return 0;
 }
 
+/* the vehicle kinds whose per-frame update has a timed health roll gated by vehicle_critically_damaged (vehicle.c): a person's bleeding, and the fire of an anti-aircraft, routed or
+   ship vehicle.  The original predicate is `100 * damage_level / initial_damage_level < VEHICLE_CRITICAL_DAMAGE_LEVEL (15)` in integer arithmetic and is FALSE for a person whatever
+   its health, so a person's bleeding roll cannot be reached from any health: this driver reports that and changes nothing.  A fire roll also needs an explosive or flammable
+   vehicle type.  The driver sets the health through the campaign's own setter, asks the ORIGINAL predicate whether the vehicle is now critical, and puts the health back (and says
+   so) if it is not: it never edits the predicate and never claims a roll that cannot run. */
 int eech_cmb_case_health_run (const char *kind, int ordinal, int percent, char *text, int capacity)
 {
-	int type = kind_by_name (kind), live, initial, before, level;
+	int type = kind_by_name (kind), live, initial, before, level, quality, critical;
 	entity *receiver;
 
 	text[0] = 0;
@@ -238,6 +321,11 @@ int eech_cmb_case_health_run (const char *kind, int ordinal, int percent, char *
 	if (type < 0)
 	{
 		return case_error (text, capacity, "kind_not_one_of_the_thirteen", kind);
+	}
+
+	if (type != ENTITY_TYPE_ANTI_AIRCRAFT && type != ENTITY_TYPE_ROUTED_VEHICLE && type != ENTITY_TYPE_SHIP_VEHICLE && type != ENTITY_TYPE_PERSON)
+	{
+		return case_error (text, capacity, "kind_has_no_vehicle_critical_predicate", kind);
 	}
 
 	if (ordinal < 0 || percent < 1 || percent > 100)
@@ -249,13 +337,34 @@ int eech_cmb_case_health_run (const char *kind, int ordinal, int percent, char *
 
 	if (!receiver)
 	{
-		snprintf (text, (size_t) capacity, "cmb-case-health kind=%s ordinal=%d live=%d found=0\n", kind, ordinal, live);
+		snprintf (text, (size_t) capacity, "cmb-case-health kind=%s ordinal=%d live=%d found=0 eligible=0\n", kind, ordinal, live);
 
 		return 0;
 	}
 
 	initial = get_local_entity_int_value (receiver, INT_TYPE_INITIAL_DAMAGE_LEVEL);
 	before = get_local_entity_int_value (receiver, INT_TYPE_DAMAGE_LEVEL);
+	quality = get_local_entity_int_value (receiver, INT_TYPE_EXPLOSIVE_QUALITY);
+
+	if (type == ENTITY_TYPE_PERSON)
+	{
+		/* the original predicate returns FALSE for a person before it looks at the health: asked once, as it is asked in the update, and nothing is changed */
+		critical = vehicle_critically_damaged (receiver);
+
+		snprintf (text, (size_t) capacity, "cmb-case-health kind=%s ordinal=%d live=%d found=1 eligible=0 reason=person_never_critical_in_source predicate=%d initial=%d before=%d set=-1\n", kind,
+			ordinal, live, critical ? 1 : 0, initial, before);
+
+		return 0;
+	}
+
+	if (!(quality & (EXPLOSIVE_QUALITY_EXPLOSIVE | EXPLOSIVE_QUALITY_FLAMMABLE)))
+	{
+		snprintf (text, (size_t) capacity, "cmb-case-health kind=%s ordinal=%d live=%d found=1 eligible=0 reason=not_explosive_or_flammable quality=%d initial=%d before=%d set=-1\n", kind, ordinal, live,
+			quality, initial, before);
+
+		return 0;
+	}
+
 	level = (initial * percent) / 100;
 
 	if (level < 1)
@@ -265,7 +374,19 @@ int eech_cmb_case_health_run (const char *kind, int ordinal, int percent, char *
 
 	set_client_server_entity_int_value (receiver, INT_TYPE_DAMAGE_LEVEL, level);
 
-	snprintf (text, (size_t) capacity, "cmb-case-health kind=%s ordinal=%d live=%d found=1 initial=%d before=%d set=%d\n", kind, ordinal, live, initial, before, level);
+	critical = vehicle_critically_damaged (receiver);
+
+	if (!critical)
+	{
+		set_client_server_entity_int_value (receiver, INT_TYPE_DAMAGE_LEVEL, before);
+
+		snprintf (text, (size_t) capacity, "cmb-case-health kind=%s ordinal=%d live=%d found=1 eligible=0 reason=level_not_critical quality=%d initial=%d before=%d set=%d restored=%d\n", kind, ordinal,
+			live, quality, initial, before, level, before);
+
+		return 0;
+	}
+
+	snprintf (text, (size_t) capacity, "cmb-case-health kind=%s ordinal=%d live=%d found=1 eligible=1 quality=%d initial=%d before=%d set=%d critical=1\n", kind, ordinal, live, quality, initial, before, level);
 
 	return 0;
 }
@@ -273,7 +394,7 @@ int eech_cmb_case_health_run (const char *kind, int ordinal, int percent, char *
 int eech_cmb_case_collide_run (const char *kind, int ordinal, const char *launcher_id, int weapon, double modifier, int weaponless, char *text, int capacity)
 {
 	int type = kind_by_name (kind), live, made = 0, i, level_before, alive_before;
-	entity *receiver, *created[NEW_MAX], *sender = NULL;
+	entity *receiver, *created[CHILD_MAX], *sender = NULL;
 
 	text[0] = 0;
 
@@ -339,7 +460,7 @@ int eech_cmb_case_collide_run (const char *kind, int ordinal, const char *launch
 int eech_cmb_case_blast_run (const char *kind, int ordinal, double offset, int kill_code, const char *launcher_id, int weapon, char *text, int capacity)
 {
 	int type = kind_by_name (kind), live, made, i, capability;
-	entity *receiver, *created[NEW_MAX], *exploder;
+	entity *receiver, *created[CHILD_MAX], *exploder;
 	vec3d position;
 
 	text[0] = 0;
@@ -364,6 +485,20 @@ int eech_cmb_case_blast_run (const char *kind, int ordinal, double offset, int k
 		return 0;
 	}
 
+	/* the resulting position is validated BEFORE anything is launched or mutated, with the game's own map test (the one the weapon position setter's sector lookup applies, and
+	   which it answers by stopping the engine); a non-finite or off-map placement, including the default offset near the map edge, is reported as not done */
+	get_local_entity_vec3d (receiver, VEC3D_TYPE_POSITION, &position);
+
+	position.x += (float) offset;
+
+	if (!isfinite (position.x) || !isfinite (position.y) || !isfinite (position.z) || !point_inside_map_area (&position))
+	{
+		snprintf (text, (size_t) capacity, "cmb-case-blast kind=%s ordinal=%d live=%d found=1 placed=0 reason=placement_off_map offset=%.9g x=%.9g z=%.9g\n", kind, ordinal, live, offset, (double) position.x,
+			(double) position.z);
+
+		return 0;
+	}
+
 	made = launch_new (launcher_id, weapon, created, text, capacity);
 
 	if (made < 0)
@@ -377,10 +512,6 @@ int eech_cmb_case_blast_run (const char *kind, int ordinal, double offset, int k
 	{
 		retire (created[i]);
 	}
-
-	get_local_entity_vec3d (receiver, VEC3D_TYPE_POSITION, &position);
-
-	position.x += (float) offset;
 
 	/* the test's precondition: where this weapon ends and with what kill code, standing in for the flight's decision */
 	set_client_server_entity_vec3d (exploder, VEC3D_TYPE_POSITION, &position);
@@ -399,7 +530,7 @@ int eech_cmb_case_blast_run (const char *kind, int ordinal, double offset, int k
 
 	destroy_client_server_entity_family (exploder);
 
-	snprintf (text, (size_t) capacity, "cmb-case-blast kind=%s ordinal=%d live=%d found=1 weapon=%d kill_code=%d offset=%.9g capability=%d launched=%d\n", kind, ordinal, live, weapon, kill_code,
+	snprintf (text, (size_t) capacity, "cmb-case-blast kind=%s ordinal=%d live=%d found=1 placed=1 weapon=%d kill_code=%d offset=%.9g capability=%d launched=%d\n", kind, ordinal, live, weapon, kill_code,
 		offset, capability, made);
 
 	return 0;
