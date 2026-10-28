@@ -4,7 +4,7 @@
 local own = {}
 
 local LOOKUP_GROUND_PROBE = 8
-local ACTION_STATE, ACTION_ATTITUDE, ACTION_POSITION, ACTION_BIRTH, ACTION_DECOY, ACTION_SEDUCE = 1, 2, 5, 8, 9, 10
+local ACTION_STATE, ACTION_ATTITUDE, ACTION_POSITION, ACTION_BIRTH, ACTION_DECOY, ACTION_SEDUCE, ACTION_REACQUIRE = 1, 2, 5, 8, 9, 10, 11
 
 -- The module carries the arguments of a lookup as single-precision numbers, and the campaign answers by repeating them; a model that asked about a point it computed in
 -- double precision would never recognise its own question.  Every coordinate this model asks about is therefore snapped to a grid of 1/64 m, every point of which a
@@ -25,8 +25,8 @@ end
 
 function own.release () return { state = "done", refuse = false, burst_size = 1 } end
 
--- after the flight: this model has no parachute (a falling crate is as it was), a decoy's timer restarts at half a second with no sample taken, and a seeker is never drawn
--- to a decoy
+-- after the flight: this model has no parachute (a falling crate is as it was), a decoy's timer restarts at half a second with no sample taken, a seeker is never drawn
+-- to a decoy and, if it ever followed one, drops the lock when the decoy expires (it does not go back to the launcher; the campaign unlinks it)
 function own.animate (step) return { state = "done", parachute_status = step.parachute_status } end
 
 function own.weapon_decoy (step)
@@ -35,6 +35,8 @@ function own.weapon_decoy (step)
 	if restarted then timer = 0.5 end
 	return { state = "done", actions = { { kind = ACTION_DECOY, a = restarted and 1 or 0, b = 0, c = 0, d = 0, f = { timer, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } } } }
 end
+
+function own.weapon_reacquire () return { state = "done", actions = { { kind = ACTION_REACQUIRE, a = 0, b = 0, c = 0, d = 0, f = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } } } } end
 
 function own.weapon_seduce () return { state = "done", actions = { { kind = ACTION_SEDUCE, a = 0, b = 0, c = 0, d = 0, f = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } } } } end
 

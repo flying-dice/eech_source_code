@@ -1812,10 +1812,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         aim.borrow_mut().set_figures(weapon, &figures).map_err(fail)?;
                         result.set("state", "done")?;
                     }
-                    "weapon_step" | "weapon_birth" | "weapon_decoy" | "weapon_seduce" => {
+                    "weapon_step" | "weapon_birth" | "weapon_decoy" | "weapon_seduce" | "weapon_reacquire" => {
                         // one frame of one weapon's flight, or its birth: the weapon in, the lookups it still needs or the ordered actions it leaves out (flight.rs weapon_step,
                         // weapon_birth)
-                        let (birth, decoy, seduce) = (mode == "weapon_birth", mode == "weapon_decoy", mode == "weapon_seduce");
+                        let (birth, decoy, seduce, reacquire) = (
+                            mode == "weapon_birth",
+                            mode == "weapon_decoy",
+                            mode == "weapon_seduce",
+                            mode == "weapon_reacquire",
+                        );
                         let weapon = lua_i32(&step, "weapon").map_err(fail)?;
                         let echo = echo_of()?;
                         let [delta_time, velocity, weapon_lifetime, decoy_timer] =
@@ -1862,6 +1867,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         } else if seduce {
                             let decoy_weapon = lua_i32(&step, "other_weapon").map_err(fail)?;
                             aim.borrow().weapon_seduce(weapon, decoy_weapon, &input, &answers, &draws)
+                        } else if reacquire {
+                            let decoy_weapon = lua_i32(&step, "other_weapon").map_err(fail)?;
+                            aim.borrow().weapon_reacquire(weapon, decoy_weapon, &input, &answers, &draws)
                         } else {
                             aim.borrow().weapon_step(weapon, &input, &answers, &draws)
                         }

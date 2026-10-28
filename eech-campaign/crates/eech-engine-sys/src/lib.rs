@@ -596,6 +596,7 @@ pub const EECH_AIM_RELEASE: c_int = 14;
 pub const EECH_AIM_ANIMATE: c_int = 15;
 pub const EECH_AIM_WEAPON_DECOY: c_int = 16;
 pub const EECH_AIM_WEAPON_SEDUCE: c_int = 17;
+pub const EECH_AIM_WEAPON_REACQUIRE: c_int = 18;
 pub const EECH_AIM_DONE: c_int = 1;
 pub const EECH_AIM_NEED_DRAW: c_int = 2;
 pub const EECH_AIM_NEED_LOOKUP: c_int = 3;

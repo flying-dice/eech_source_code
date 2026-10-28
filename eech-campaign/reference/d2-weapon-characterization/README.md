@@ -45,6 +45,9 @@ The design is in [`docs/m5-weapon-execution.md`](../../docs/m5-weapon-execution.
 * `checks/syntax-check-s4.log`: `controls/syntax-check2.sh`, the touched C sources compiled (syntax and warnings) with and without the fixture macro against the staged headers with the working tree's changed headers laid over them.
 * Earlier failures stay retained in the private evidence tree (`cargo-test-s2-1..3.log`, the first `World` alias collision and the NaN weight of a test gun with no motor times, both fixed in tests, not in the kernel, whose weight function is the original's).
 
+* `checks/cargo-test-p2-1.log`, `clippy-p2-1-default.log`, `clippy-p2-1-fixture.log`, `syntax-check-p2-1.log`, `fmt-p2-1.log`: the integrated source with the decoy-expiry reacquisition and the strict 0/1 decisions (eech-engine 48, eech-world 197 library, 19 binary, 8 host/Lua, eech-dc 3, load_dc 2; actual Cargo and Docker exit 0 each; the syntax check is a subset of the engine: `init.c` and other callers are not in it).
+* `c-checks/hostaim_validation.c`, `c-checks/run-hostaim-validation.sh`, `checks/hostaim-validation-1.log`: the real `mb_hostaim.c` compiled against a stand-in `project.h` and driven by a scripted host; every combination of -2, -1, 0, 1, 2, 3 and 256 for a decoy's, a seduction's and a reacquisition's decisions: only 0 and 1 accepted (`HOSTAIM_VALIDATION=ok: 0 failures`). This check needs the new protocol, so it has no meaningful result on the previous source; the previous source checked only an action's kind and finiteness (by reading, not by running).
+
 ## Diagnostic native run of the flight, launch and release cut (`d71fec4fb`)
 
 `builds/BUILD-INFO-d71fec4fb-fixture.txt`, `builds/build-fixture-d71fec4fb.log`: clean fixture build (BUILD_EXIT 0, zero uncommitted inputs). This build still had the reviewed post-flight seam in the campaign and the five reviewed defects, so its runs are **diagnostic**, not acceptance.

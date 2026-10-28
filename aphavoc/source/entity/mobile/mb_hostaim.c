@@ -89,6 +89,7 @@ static const char *mode_name (int mode)
 		case CAMPAIGN_AIM_ANIMATE: return "animate";
 		case CAMPAIGN_AIM_WEAPON_DECOY: return "weapon_decoy";
 		case CAMPAIGN_AIM_WEAPON_SEDUCE: return "weapon_seduce";
+		case CAMPAIGN_AIM_WEAPON_REACQUIRE: return "weapon_reacquire";
 	}
 
 	return "unknown";
@@ -126,7 +127,7 @@ static size_t table_cell_count (const campaign_weapon_figures *figures)
 // the modes of the step protocol (lookups, samples of the shared stream, ordered actions)
 static int step_mode (int mode)
 {
-	return (mode == CAMPAIGN_AIM_WEAPON_STEP) || (mode == CAMPAIGN_AIM_WEAPON_BIRTH) || (mode == CAMPAIGN_AIM_WEAPON_DECOY) || (mode == CAMPAIGN_AIM_WEAPON_SEDUCE);
+	return (mode == CAMPAIGN_AIM_WEAPON_STEP) || (mode == CAMPAIGN_AIM_WEAPON_BIRTH) || (mode == CAMPAIGN_AIM_WEAPON_DECOY) || (mode == CAMPAIGN_AIM_WEAPON_SEDUCE) || (mode == CAMPAIGN_AIM_WEAPON_REACQUIRE);
 }
 
 static void validate_request (const campaign_aim_step *step)
@@ -181,11 +182,12 @@ static void validate_request (const campaign_aim_step *step)
 		case CAMPAIGN_AIM_WEAPON_BIRTH:
 		case CAMPAIGN_AIM_WEAPON_DECOY:
 		case CAMPAIGN_AIM_WEAPON_SEDUCE:
+		case CAMPAIGN_AIM_WEAPON_REACQUIRE:
 		{
 			const campaign_weapon_state *state = &step->weapon_state;
 			int i;
 
-			if (!isfinite (state->coefficient) || !all_finite (state->effectiveness, 3) || ((step->mode == CAMPAIGN_AIM_WEAPON_SEDUCE) && (state->other_weapon <= 0)))
+			if (!isfinite (state->coefficient) || !all_finite (state->effectiveness, 3) || (((step->mode == CAMPAIGN_AIM_WEAPON_SEDUCE) || (step->mode == CAMPAIGN_AIM_WEAPON_REACQUIRE)) && (state->other_weapon <= 0)))
 			{
 				debug_fatal ("host aim: a %s request with an inconsistent decoy or setting (decoy weapon %d)", mode_name (step->mode), state->other_weapon);
 			}
@@ -477,6 +479,7 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 		case CAMPAIGN_AIM_WEAPON_BIRTH:
 		case CAMPAIGN_AIM_WEAPON_DECOY:
 		case CAMPAIGN_AIM_WEAPON_SEDUCE:
+		case CAMPAIGN_AIM_WEAPON_REACQUIRE:
 		{
 			// the actions, each of a kind the campaign applies, with figures it can apply; their meaning is checked as each is applied
 			if ((result->action_count < 0) || (result->action_count > CAMPAIGN_STEP_ACTIONS_MAX))
@@ -494,6 +497,18 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 				if ((result->actions[i].d < 0) || (result->actions[i].d > (step->echo && result->has_echo ? result->echo_count : 0)))
 				{
 					debug_fatal ("host aim: host aim answered a weapon_step request with an action that follows %d echo events", result->actions[i].d);
+				}
+
+				// the decisions the campaign acts on are booleans: 0 or 1, nothing else, whichever is meant; checked before any is applied
+				if (((result->actions[i].kind == CAMPAIGN_STEP_ACTION_DECOY) || (result->actions[i].kind == CAMPAIGN_STEP_ACTION_REACQUIRE)) && (result->actions[i].a & ~1))
+				{
+					debug_fatal ("host aim: host aim answered a %s request with a non-boolean decision %d (action kind %d)", mode_name (step->mode), result->actions[i].a, result->actions[i].kind);
+				}
+
+				if ((result->actions[i].kind == CAMPAIGN_STEP_ACTION_SEDUCE) && ((result->actions[i].a & ~1) || (result->actions[i].b & ~1)))
+				{
+					debug_fatal ("host aim: host aim answered a %s request with non-boolean decisions %d and %d (action kind %d)", mode_name (step->mode), result->actions[i].a, result->actions[i].b,
+						result->actions[i].kind);
 				}
 			}
 

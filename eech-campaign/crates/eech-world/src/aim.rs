@@ -410,6 +410,26 @@ impl Aim {
         flight::weapon_seduce(figures, decoy_figures, input, answers, draws).map_err(|error| format!("weapon {weapon}: {error}"))
     }
 
+    /// One pass of a seeker's answer to the decoy `decoy` it was tracking expiring (`flight::weapon_reacquire`), on the figures this host holds for both.
+    pub fn weapon_reacquire(
+        &self,
+        weapon: i32,
+        decoy: i32,
+        input: &flight::StepInput,
+        answers: &[flight::StepEvent],
+        draws: &[i32],
+    ) -> Result<flight::StepOutcome, String> {
+        let figures = self
+            .figures
+            .get(&weapon)
+            .ok_or_else(|| format!("aim reacquisition by weapon {weapon}: the host holds no figures for it"))?;
+        let decoy_figures = self
+            .figures
+            .get(&decoy)
+            .ok_or_else(|| format!("aim reacquisition after decoy {decoy}: the host holds no figures for it"))?;
+        flight::weapon_reacquire(figures, decoy_figures, input, answers, draws).map_err(|error| format!("weapon {weapon}: {error}"))
+    }
+
     /// One frame of a weapon's parachute (`flight::animate`) on the figures this host holds for it. An error when it holds none.
     pub fn animate(&self, weapon: i32, input: &flight::AnimateInput) -> Result<flight::AnimateOutcome, String> {
         let figures = self
@@ -1877,6 +1897,7 @@ mod tests {
 
     const ACTION_DECOY: i32 = 9;
     const ACTION_SEDUCE: i32 = 10;
+    const ACTION_REACQUIRE: i32 = 11;
 
     fn parachute(kind: i32) -> flight::Figures {
         let mut figures = flying_gun("test crate");
@@ -2091,5 +2112,31 @@ mod tests {
         let mut infinite = seduction(1.0);
         infinite.effectiveness[1] = f32::INFINITY;
         assert!(aim.weapon_seduce(10, 20, &infinite, &[], &[1]).unwrap_err().contains("finite"));
+    }
+
+    #[test]
+    fn a_seeker_whose_decoy_expired_is_told_to_go_back_to_the_launcher_with_no_sample_and_no_lookup() {
+        let mut aim = Aim::new();
+        aim.set_figures(10, &decoy_figures(0, 2)).unwrap();
+        aim.set_figures(20, &decoy_figures(1, 0)).unwrap();
+        aim.set_figures(21, &decoy_figures(2, 0)).unwrap();
+        // whichever decoy it was, and whatever the seeker's kind, the reference host's seekers return to the launcher, and the answer takes nothing from the campaign
+        for decoy in [20, 21] {
+            let outcome = aim.weapon_reacquire(10, decoy, &round(), &[], &[]).unwrap();
+            assert_eq!(outcome.state, flight::StepState::Done, "decoy {decoy}");
+            assert_eq!(outcome.actions.len(), 1, "one decision");
+            let action = outcome.actions[0];
+            assert_eq!((action.kind, action.a, action.b), (ACTION_REACQUIRE, 1, 0));
+            assert!(outcome.lookups.is_empty(), "no lookup, and the one decision is taken from no sample");
+        }
+        // a sample or a lookup answer the campaign was never asked for does not change the decision
+        let given = aim.weapon_reacquire(10, 20, &round(), &[], &[123]).unwrap();
+        assert_eq!((given.state, given.actions[0].a), (flight::StepState::Done, 1));
+        // the host holds the figures of both weapons or the question cannot be asked
+        assert!(aim.weapon_reacquire(10, 99, &round(), &[], &[]).unwrap_err().contains("no figures"));
+        assert!(aim.weapon_reacquire(99, 20, &round(), &[], &[]).unwrap_err().contains("no figures"));
+        let mut infinite = round();
+        infinite.delta_time = f32::INFINITY;
+        assert!(aim.weapon_reacquire(10, 20, &infinite, &[], &[]).unwrap_err().contains("finite"));
     }
 }

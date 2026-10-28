@@ -494,14 +494,17 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
                         AimStepKind::Birth => "weapon_birth",
                         AimStepKind::Decoy => "weapon_decoy",
                         AimStepKind::Seduce => "weapon_seduce",
+                        AimStepKind::Reacquire => "weapon_reacquire",
                     },
                 )
                 .map_err(e)?;
             if data.kind == AimStepKind::Birth {
                 table.set("submunition", state.submunition).map_err(e)?;
             }
-            if data.kind == AimStepKind::Seduce {
+            if matches!(data.kind, AimStepKind::Seduce | AimStepKind::Reacquire) {
                 table.set("other_weapon", state.other_weapon).map_err(e)?;
+            }
+            if data.kind == AimStepKind::Seduce {
                 table.set("coefficient", state.coefficient).map_err(e)?;
                 table.set("effectiveness", state.effectiveness.to_vec()).map_err(e)?;
             }

@@ -322,6 +322,7 @@ extern "C" {
     fn eech_wn_weapon_birth(input: *const RawStepIn, output: *mut RawStepOut) -> c_int;
     fn eech_wn_weapon_decoy(input: *const RawStepIn, output: *mut RawStepOut) -> c_int;
     fn eech_wn_weapon_seduce(input: *const RawStepIn, output: *mut RawStepOut) -> c_int;
+    fn eech_wn_weapon_reacquire(input: *const RawStepIn, output: *mut RawStepOut) -> c_int;
     fn eech_wn_weapon_animate(input: *const RawAnimateIn, output: *mut RawAnimateOut);
     fn eech_wn_release(input: *const RawReleaseIn, output: *mut RawReleaseOut);
 }
@@ -516,6 +517,13 @@ pub enum StepKind {
     Decoy,
     /// A seeker's answer to a decoy becoming active.
     Seduce,
+    /// A seeker's answer to the decoy it was tracking expiring.
+    Reacquire,
+}
+
+/// Runs one pass of a seeker's answer to the decoy `decoy` it was tracking expiring: whether it goes back to the decoy's launcher.
+pub fn weapon_reacquire(figures: &Figures, decoy: &Figures, input: &StepInput, answers: &[StepEvent], draws: &[i32]) -> Result<StepOutcome, String> {
+    run_step(figures, input, answers, draws, StepKind::Reacquire, Some(decoy))
 }
 
 /// Runs one pass of a decoy's update: the timer runs down and, when it runs out, restarts at a time drawn from the campaign's stream.
@@ -613,6 +621,7 @@ fn run_step(
             StepKind::Birth => eech_wn_weapon_birth(&raw, &mut *out),
             StepKind::Decoy => eech_wn_weapon_decoy(&raw, &mut *out),
             StepKind::Seduce => eech_wn_weapon_seduce(&raw, &mut *out),
+            StepKind::Reacquire => eech_wn_weapon_reacquire(&raw, &mut *out),
         }
     };
     if status != 0 || out.failed != 0 {

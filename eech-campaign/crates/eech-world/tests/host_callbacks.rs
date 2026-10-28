@@ -490,6 +490,18 @@ bad = seduce_step(1000) bad.effectiveness = { 0.5, 0.5 }
 refused(bad, 'effectiveness must be 3 finite numbers')
 bad = seduce_step(1000) bad.other_weapon = 31
 refused(bad, 'holds no figures')
+local function reacquire_step() local request = weapon_step(30) request.mode = 'weapon_reacquire' request.other_weapon = 29 return request end
+r = host.aim(reacquire_step())
+assert(r.state == 'done' and #r.actions == 1 and r.actions[1].kind == 11 and r.actions[1].a == 1 and r.actions[1].b == 0, 'a seeker whose decoy expired goes back to the launcher')
+local sampled = reacquire_step() sampled.draws = { 5 }
+assert(host.aim(sampled).state == 'done', 'and the answer takes no sample')
+bad = reacquire_step() bad.other_weapon = 31
+refused(bad, 'holds no figures')
+bad = reacquire_step() bad.other_weapon = nil
+refused(bad, 'other_weapon must be an integer')
+local own_model = dofile('@LUA_DIR@/own-weapon.lua')
+r = own_model.weapon_reacquire(reacquire_step())
+assert(r.state == 'done' and #r.actions == 1 and r.actions[1].kind == 11 and r.actions[1].a == 0, 'a generic host may tell the seeker to drop the lock')
 refused({ mode = 'release', weapon = 25, delta_time = 0.1, current_time = 1000, not_ai = 1 }, 'not_ai must be a boolean')
 local bad = weapon_step(21) bad.entity_samples = { 1, 2, 3 }
 refused(bad, 'entity_samples must be 4 integers')
@@ -531,6 +543,20 @@ local once = malformed('bad_step_state', host.aim, passed)
 assert(once(weapon_step(21)).state == 'later', 'the first weapon step is corrupted')
 assert(once(weapon_step(21)).state == 'need_lookup', 'and the reference host answers the rest')
 assert(malformed('bad_step_state', host.aim, passed)({ mode = 'ready_update', state = 1.0, rate = 0.5, delta_time = 0.5 }).state == 'done', 'a request of another kind is answered as the reference does')
+-- the decision providers corrupt the first decision of their kind, and only a decision (a seeker that has yet to draw a sample is not corrupted)
+local flagged = malformed('bad_decoy_flag', host.aim, passed)(decoy_step(0.5))
+assert(flagged.state == 'done' and flagged.actions[1].kind == 9 and flagged.actions[1].a == 2, 'a decoy decision that is neither 0 nor 1')
+local seduced = malformed('bad_seduce_flag', host.aim, passed)
+assert(seduced(seduce_step(nil)).state == 'need_draw', 'a seduction that asks for its sample is not yet a decision')
+flagged = seduced(seduce_step(1000))
+assert(flagged.state == 'done' and flagged.actions[1].kind == 10 and flagged.actions[1].b == 3, 'a seduction decision that is neither 0 nor 1')
+flagged = malformed('bad_reacquire_flag', host.aim, passed)(reacquire_step())
+assert(flagged.state == 'done' and flagged.actions[1].kind == 11 and flagged.actions[1].a == -1, 'a reacquisition decision that is neither 0 nor 1')
+flagged = malformed('bad_reacquire_none', host.aim, passed)(reacquire_step())
+assert(flagged.state == 'done' and #flagged.actions == 0, 'a reacquisition with no decision')
+local reacquirer = malformed('bad_reacquire_flag', host.aim, passed)
+assert(reacquirer(weapon_step(21)).state == 'need_lookup', 'a request of another kind is answered as the reference does')
+assert(reacquirer(reacquire_step()).actions[1].a == -1 and reacquirer(reacquire_step()).actions[1].a == 1, 'the first decision only')
 -- malformed requests
 refused({ mode = 'glide' }, 'unknown mode')
 refused({ mode = 'ready_update', state = 0 / 0, rate = 0.5, delta_time = 1 }, 'state must be a finite number')

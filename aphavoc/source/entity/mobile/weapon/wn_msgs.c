@@ -174,8 +174,32 @@ static int response_to_decoy_active (entity_messages message, entity *receiver, 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void refuse_reacquisition_lookup (const campaign_aim_event *lookup, campaign_aim_event *answer, void *context)
+{
+	debug_fatal ("host aim: the host asked a reacquisition request a lookup (kind %d) it does not take", lookup->kind);
+}
+
+//
+// the decoy a seeker was tracking expired (the message comes from the decoy's destruction, once for each seeker still linked to it, with the decoy's launcher as the sender):
+// whether the seeker goes back to the launcher is the host's.  The campaign unlinks it from the decoy whatever the answer is, so the decoy's destruction always makes progress,
+// and makes the link back when the host says so.  A missing or malformed answer stops the engine.
+//
+
 static int response_to_decoy_expired (entity_messages message, entity *receiver, entity *sender, va_list pargs)
 {
+	weapon
+		*raw,
+		*decoy_raw;
+
+	entity
+		*decoy;
+
+	campaign_aim_step
+		step;
+
+	campaign_aim_result
+		result;
+
 	#if DEBUG_MODULE
 
 	debug_log_entity_message (message, receiver, sender, pargs);
@@ -184,9 +208,40 @@ static int response_to_decoy_expired (entity_messages message, entity *receiver,
 
 	ASSERT (sender);
 
+	decoy = get_local_entity_parent (receiver, LIST_TYPE_TARGET);
+
+	ASSERT (decoy);
+
+	ASSERT (decoy->type == ENTITY_TYPE_WEAPON);
+
+	raw = (weapon *) get_local_entity_data (receiver);
+
+	decoy_raw = (weapon *) get_local_entity_data (decoy);
+
+	memset (&step, 0, sizeof (step));
+
+	step.mode = CAMPAIGN_AIM_WEAPON_REACQUIRE;
+
+	step.weapon = raw->mob.sub_type;
+
+	step.weapon_state.other_weapon = decoy_raw->mob.sub_type;
+
+	step.weapon_state.server = (get_comms_model () == COMMS_MODEL_SERVER);
+
+	result = campaign_aim_weapon_step (&step, refuse_reacquisition_lookup, NULL);
+
+	if ((result.action_count != 1) || (result.actions[0].kind != CAMPAIGN_STEP_ACTION_REACQUIRE))
+	{
+		debug_fatal ("host aim: a reacquisition left %d actions (the first of kind %d), not the one decision the campaign applies", result.action_count,
+			result.action_count ? result.actions[0].kind : 0);
+	}
+
 	delete_local_entity_from_parents_child_list (receiver, LIST_TYPE_TARGET);
 
-	insert_local_entity_into_parents_child_list (receiver, LIST_TYPE_TARGET, sender, NULL);
+	if (result.actions[0].a)
+	{
+		insert_local_entity_into_parents_child_list (receiver, LIST_TYPE_TARGET, sender, NULL);
+	}
 
 	//
 	// a comms message is not required as the unlinking will work on both client and server

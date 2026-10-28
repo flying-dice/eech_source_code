@@ -1183,6 +1183,8 @@ pub enum AimStepKind {
     Decoy,
     /// A seeker's answer to a decoy becoming active.
     Seduce,
+    /// A seeker's answer to the decoy it was tracking expiring.
+    Reacquire,
 }
 
 /// One frame of a falling weapon's parachute.
@@ -2560,7 +2562,7 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                 motion_vector_y: source.animate_motion_y,
             })
         }
-        sys::EECH_AIM_WEAPON_STEP | sys::EECH_AIM_WEAPON_BIRTH | sys::EECH_AIM_WEAPON_DECOY | sys::EECH_AIM_WEAPON_SEDUCE => {
+        sys::EECH_AIM_WEAPON_STEP | sys::EECH_AIM_WEAPON_BIRTH | sys::EECH_AIM_WEAPON_DECOY | sys::EECH_AIM_WEAPON_SEDUCE | sys::EECH_AIM_WEAPON_REACQUIRE => {
             let state = &source.weapon_state;
             finite("seduction setting", &[state.coefficient])?;
             finite("seduction setting", &state.effectiveness)?;
@@ -2599,6 +2601,7 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                     sys::EECH_AIM_WEAPON_BIRTH => AimStepKind::Birth,
                     sys::EECH_AIM_WEAPON_DECOY => AimStepKind::Decoy,
                     sys::EECH_AIM_WEAPON_SEDUCE => AimStepKind::Seduce,
+                    sys::EECH_AIM_WEAPON_REACQUIRE => AimStepKind::Reacquire,
                     _ => AimStepKind::Step,
                 },
                 echo,
@@ -2798,6 +2801,7 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
                 | sys::EECH_AIM_WEAPON_BIRTH
                 | sys::EECH_AIM_WEAPON_DECOY
                 | sys::EECH_AIM_WEAPON_SEDUCE
+                | sys::EECH_AIM_WEAPON_REACQUIRE
         ) {
             return Err("aim asked for a draw in answer to a request that cannot take one".into());
         }
@@ -2807,7 +2811,7 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
     if reply.need_lookup {
         if !matches!(
             source.mode,
-            sys::EECH_AIM_WEAPON_STEP | sys::EECH_AIM_WEAPON_BIRTH | sys::EECH_AIM_WEAPON_DECOY | sys::EECH_AIM_WEAPON_SEDUCE
+            sys::EECH_AIM_WEAPON_STEP | sys::EECH_AIM_WEAPON_BIRTH | sys::EECH_AIM_WEAPON_DECOY | sys::EECH_AIM_WEAPON_SEDUCE | sys::EECH_AIM_WEAPON_REACQUIRE
         ) {
             return Err("aim asked for lookups in answer to a request that cannot take them".into());
         }
@@ -2849,7 +2853,7 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
     if !reply.actions.is_empty() {
         if !matches!(
             source.mode,
-            sys::EECH_AIM_WEAPON_STEP | sys::EECH_AIM_WEAPON_BIRTH | sys::EECH_AIM_WEAPON_DECOY | sys::EECH_AIM_WEAPON_SEDUCE
+            sys::EECH_AIM_WEAPON_STEP | sys::EECH_AIM_WEAPON_BIRTH | sys::EECH_AIM_WEAPON_DECOY | sys::EECH_AIM_WEAPON_SEDUCE | sys::EECH_AIM_WEAPON_REACQUIRE
         ) {
             return Err("aim answered a request that cannot carry actions with some".into());
         }
@@ -5898,6 +5902,38 @@ mod tests {
         seduce.weapon_state.effectiveness[2] = f32::NAN;
         let (seen, _, code, error) = aim_crossing(&seduce, |_| panic!("the host must not be asked"));
         assert!(seen.is_none() && code != 0, "{error}");
+    }
+
+    #[test]
+    fn a_reacquisition_is_a_weapon_step_of_its_own_kind_that_names_the_decoy_and_can_take_neither_a_sample_nor_a_lookup_answer_it_did_not_ask_for() {
+        let mut reacquire = step_request(sys::EECH_AIM_WEAPON_REACQUIRE);
+        reacquire.weapon_state.other_weapon = 21;
+        let (seen, result, code, error) = aim_crossing(&reacquire, |_| {
+            Ok(AimReply {
+                actions: vec![event(11, 0, 0.0)],
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        let Some(AimRequest::WeaponStep(request)) = seen else { panic!("not a step") };
+        assert_eq!((request.kind, request.state.other_weapon), (AimStepKind::Reacquire, 21));
+        assert_eq!((result.state, result.action_count, result.actions[0].kind), (sys::EECH_AIM_DONE, 1, 11));
+        // it may ask for a lookup or a sample like any step, which the campaign refuses it in the handler; the engine boundary only carries them
+        let (_, result, code, _) = aim_crossing(&reacquire, |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_NEED_DRAW));
+        let (_, result, code, _) = aim_crossing(&reacquire, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                lookups: vec![event(8, 0, 0.0)],
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state, result.lookup_count), (0, sys::EECH_AIM_NEED_LOOKUP, 1));
     }
 
     #[test]

@@ -6,7 +6,8 @@ return function (mode, reference, counted)
 	local kinds = { bad_nil = "ready_update", bad_state = "ready_update", bad_ready_state = "ready_update", bad_phase = "ready_update", bad_nan_vector = "vectors",
 		bad_draw_for_ballistic = "ballistic", bad_second_draw = "vectors", bad_negative_range = "vectors", bad_error = "ready_command",
 		bad_step_state = "weapon_step", bad_step_lookup_kind = "weapon_step", bad_step_action_kind = "weapon_step", bad_step_nonfinite = "weapon_step",
-		bad_step_repeat = "weapon_step", bad_step_error = "weapon_step", bad_step_draw = "weapon_step", bad_birth_action = "weapon_birth", bad_release_burst = "release" }
+		bad_step_repeat = "weapon_step", bad_step_error = "weapon_step", bad_step_draw = "weapon_step", bad_birth_action = "weapon_birth", bad_release_burst = "release",
+		bad_decoy_flag = "weapon_decoy", bad_seduce_flag = "weapon_seduce", bad_reacquire_flag = "weapon_reacquire", bad_reacquire_none = "weapon_reacquire" }
 	local kind = assert (kinds [mode], "unknown bad mode " .. mode)
 	local armed = true
 	return function (step)
@@ -19,7 +20,7 @@ return function (mode, reference, counted)
 		if armed and step.mode == kind and (mode ~= "bad_second_draw" or step.draw ~= nil) and (mode ~= "bad_negative_range" or answer.state == "done")
 			and (mode ~= "bad_step_lookup_kind" or answer.state == "need_lookup") and (mode ~= "bad_step_action_kind" or answer.state == "done")
 			and (mode ~= "bad_step_nonfinite" or (answer.state == "done" and #answer.actions > 0)) and (mode ~= "bad_step_repeat" or #step.answers > 0)
-			and (mode ~= "bad_birth_action" or answer.state == "done") then
+			and (mode ~= "bad_birth_action" or answer.state == "done") and (not mode:find ("^bad_%a+_flag$") and mode ~= "bad_reacquire_none" or answer.state == "done") then
 			armed = false
 			if mode == "bad_nil" then return nil
 			elseif mode == "bad_state" then return { state = "later" }
@@ -31,6 +32,10 @@ return function (mode, reference, counted)
 			elseif mode == "bad_negative_range" then answer.intercept_range = -1 return answer
 			elseif mode == "bad_error" or mode == "bad_step_error" then error ("provider failed on purpose")
 			elseif mode == "bad_birth_action" then answer.actions [1].kind = 1 return answer
+			elseif mode == "bad_decoy_flag" then answer.actions [1].a = 2 return answer
+			elseif mode == "bad_seduce_flag" then answer.actions [1].b = 3 return answer
+			elseif mode == "bad_reacquire_flag" then answer.actions [1].a = -1 return answer
+			elseif mode == "bad_reacquire_none" then answer.actions = {} return answer
 			elseif mode == "bad_release_burst" then return { state = "done", refuse = false, burst_size = 0 }
 			elseif mode == "bad_step_state" then return { state = "later" }
 			elseif mode == "bad_step_lookup_kind" then answer.lookups [1].kind = 99 return answer

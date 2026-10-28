@@ -1042,6 +1042,7 @@ enum
 	WA_BIRTH,				/* a birth: f0 the velocity the weapon leaves with, f1 its lifetime, f2 its decoy or fuze timer */
 	WA_DECOY,				/* a decoy's update: a the timer ran out and restarted (the campaign tells the seekers locked on its launcher), f0 the timer now */
 	WA_SEDUCE,				/* a seeker's answer to a decoy becoming active: a it was drawn to it, b it goes for it (the campaign makes the link) */
+	WA_REACQUIRE,			/* a seeker's answer to the decoy it was tracking expiring: a it goes back to the decoy's launcher (0 it drops the lock and has no target) */
 	WA_KINDS
 };
 
@@ -3625,4 +3626,22 @@ int eech_wn_weapon_decoy(const wf_step_in *in, wf_step_out *out)
 int eech_wn_weapon_seduce(const wf_step_in *in, wf_step_out *out)
 {
 	return wf_entry(in, out, wf_weapon_seduce);
+}
+
+/* response_to_decoy_expired (wn_msgs.c): the decoy a seeker was tracking is gone and its launcher is the fact the campaign gives; whether the seeker goes back to it is the
+   host's.  This host's seekers do, as the original's did, and take no sample.  The campaign unlinks the seeker from the dead decoy whatever the answer, so destroying the decoy
+   always makes progress. */
+static void wf_weapon_reacquire(wf_run *r)
+{
+	if (!r->in->other)
+	{
+		wf_fail(r, "the host holds no figures for the decoy");
+	}
+
+	wf_action(r, WA_REACQUIRE, 1, 0, 0, NULL, 0);
+}
+
+int eech_wn_weapon_reacquire(const wf_step_in *in, wf_step_out *out)
+{
+	return wf_entry(in, out, wf_weapon_reacquire);
 }

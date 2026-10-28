@@ -87,7 +87,9 @@ enum campaign_aim_mode
 	/* a decoy's update: its timer, and the restart drawn from the shared stream when it runs out (the step protocol) */
 	CAMPAIGN_AIM_WEAPON_DECOY,
 	/* a seeker's answer to a decoy becoming active: whether it goes for the decoy (the step protocol) */
-	CAMPAIGN_AIM_WEAPON_SEDUCE
+	CAMPAIGN_AIM_WEAPON_SEDUCE,
+	/* a seeker's answer to the decoy it was tracking expiring: whether it goes back to the decoy's launcher (the step protocol) */
+	CAMPAIGN_AIM_WEAPON_REACQUIRE
 };
 
 enum campaign_aim_state
@@ -168,6 +170,7 @@ enum campaign_step_action
 	CAMPAIGN_STEP_ACTION_BIRTH,				/* a birth: f0 the velocity the weapon leaves with, f1 its lifetime, f2 its decoy or fuze timer */
 	CAMPAIGN_STEP_ACTION_DECOY,				/* a decoy's update: a the timer ran out and restarted (the campaign tells the seekers locked on its launcher), f0 the timer now */
 	CAMPAIGN_STEP_ACTION_SEDUCE,			/* a seeker's answer to a decoy becoming active: a it was drawn to it, b it goes for it (the campaign makes the link) */
+	CAMPAIGN_STEP_ACTION_REACQUIRE,			/* a seeker's answer to the decoy it was tracking expiring: a it goes back to the decoy's launcher (0 it has no target); the campaign unlinks it from the decoy either way */
 	CAMPAIGN_STEP_ACTIONS
 };
 

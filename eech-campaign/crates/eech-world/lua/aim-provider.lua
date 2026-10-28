@@ -23,6 +23,7 @@
 --   mode=weapon_fast  the same with twice the muzzle velocity: the weapons the campaign launches leave faster (the host's birth), and fly and end differently
 --   mode=release_slow the same with a quarter of the weapon's rate of fire: the launchers let fewer rounds go (the host's rate-of-fire gate)
 --   mode=seduce_never the reference host, but a seeker asked about a decoy is told the decoys have no effect: no seeker is drawn to a decoy (the host's seduction)
+--   mode=reacquire_never the reference host, but a seeker whose decoy expired is told to drop the lock: it does not go back to the decoy's launcher (the campaign unlinks it)
 --   mode=bad_step_*   a provider that answers the first weapon step malformed: the engine must stop with a clear error (bad_step_state, bad_step_lookup_kind, bad_step_action_kind,
 --                     bad_step_nonfinite, bad_step_repeat, bad_step_error, bad_step_draw)
 --   mode=bad_birth_action, bad_release_burst   the first weapon birth answered with a step's action, the first release with no rounds and no refusal
@@ -87,11 +88,11 @@ end
 
 local reference = host.aim
 -- what the campaign asked, by request mode, and what the host answered
-local counts = { table = 0, range = 0, figures = 0, weapon_step = 0, weapon_birth = 0, release = 0, animate = 0, weapon_decoy = 0, weapon_seduce = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0 }
+local counts = { table = 0, range = 0, figures = 0, weapon_step = 0, weapon_birth = 0, release = 0, animate = 0, weapon_decoy = 0, weapon_seduce = 0, weapon_reacquire = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0 }
 local answers = { valid = 0, invalid = 0, need_draw = 0, lead_ok = 0, lead_no = 0, ballistic_ok = 0, ballistic_no = 0, phase_moving = 0, angle_sum = 0 }
 -- what the weapon steps came to: the passes the host was asked, the lookups it needed (by kind), the draws it asked for, and the kill codes it left (0 none ... 7)
 local steps = { passes = 0, done = 0, need_lookup = 0, need_draw = 0, kills = {}, lookups = {}, births = 0, birth_velocity = 0, releases = 0, release_refused = 0, release_rounds = 0,
-	decoy_updates = 0, decoy_restarts = 0, seduce_asked = 0, seduce_locked = 0, seduce_retargeted = 0 }
+	decoy_updates = 0, decoy_restarts = 0, seduce_asked = 0, seduce_locked = 0, seduce_retargeted = 0, reacquire_asked = 0, reacquire_returned = 0 }
 for code = 0, 7 do steps.kills [code] = 0 end
 
 local function counted (step, answer)
@@ -122,6 +123,11 @@ local function counted (step, answer)
 			steps.seduce_asked = steps.seduce_asked + 1
 			steps.seduce_locked = steps.seduce_locked + answer.actions [1].a
 			steps.seduce_retargeted = steps.seduce_retargeted + answer.actions [1].b
+		end
+	elseif step.mode == "weapon_reacquire" then
+		if answer.state == "done" then
+			steps.reacquire_asked = steps.reacquire_asked + 1
+			steps.reacquire_returned = steps.reacquire_returned + answer.actions [1].a
 		end
 	elseif step.mode == "release" then
 		steps.releases = steps.releases + 1
@@ -184,6 +190,12 @@ elseif mode == "seduce_never" then
 	provider = function (step)
 		if step.mode == "weapon_seduce" then step = with (step, { effectiveness = { 0, 0, 0 } }) end
 		return counted (step, reference (step))
+	end
+elseif mode == "reacquire_never" then
+	provider = function (step)
+		local answer = reference (step)
+		if step.mode == "weapon_reacquire" and answer.state == "done" then answer.actions [1].a = 0 end
+		return counted (step, answer)
 	end
 elseif mode == "weapon_drag" or mode == "weapon_short" or mode == "weapon_fast" or mode == "release_slow" then
 	provider = function (step)
@@ -291,7 +303,8 @@ emit { event = "summary", mode = mode, frames = frames_run, failure = failure or
 	kill_overshot = steps.kills [6], kill_self_destruct = steps.kills [7], births_done = steps.births, birth_velocity_sum = string.format ("%.9g", steps.birth_velocity),
 	releases = steps.releases, release_refused = steps.release_refused, release_rounds = steps.release_rounds,
 	decoy_updates = steps.decoy_updates, decoy_restarts = steps.decoy_restarts, seduce_asked = steps.seduce_asked, seduce_locked = steps.seduce_locked,
-	seduce_retargeted = steps.seduce_retargeted }
+	seduce_retargeted = steps.seduce_retargeted,
+	reacquire_asked = steps.reacquire_asked, reacquire_returned = steps.reacquire_returned }
 out:close ()
 io.stderr:write (string.format ("aim-provider: mode=%s ready_update=%d ready_command=%d required=%d step=%d vectors=%d (valid %d invalid %d) lead=%d ballistic=%d intercept=%d need_draw=%d ready_moving=%d weapon_births=%d losses=%d failure=%s\n",
 	mode, counts.ready_update, counts.ready_command, counts.required, counts.step, counts.vectors, answers.valid, answers.invalid, counts.lead, counts.ballistic, counts.intercept,

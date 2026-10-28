@@ -1,0 +1,70 @@
+COMPILE_EXIT=0
+ok   decoy decision -2: refused - host aim: host aim answered a weapon_decoy request with a non-boolean decision -2 (action kind 9)
+ok   reacquisition decision -2: refused - host aim: host aim answered a weapon_reacquire request with a non-boolean decision -2 (action kind 11)
+ok   seduction decisions -2 and -2: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions -2 and -2 (action kind 10)
+ok   seduction decisions -2 and -1: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions -2 and -1 (action kind 10)
+ok   seduction decisions -2 and 0: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions -2 and 0 (action kind 10)
+ok   seduction decisions -2 and 1: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions -2 and 1 (action kind 10)
+ok   seduction decisions -2 and 2: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions -2 and 2 (action kind 10)
+ok   seduction decisions -2 and 3: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions -2 and 3 (action kind 10)
+ok   seduction decisions -2 and 256: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions -2 and 256 (action kind 10)
+ok   decoy decision -1: refused - host aim: host aim answered a weapon_decoy request with a non-boolean decision -1 (action kind 9)
+ok   reacquisition decision -1: refused - host aim: host aim answered a weapon_reacquire request with a non-boolean decision -1 (action kind 11)
+ok   seduction decisions -1 and -2: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions -1 and -2 (action kind 10)
+ok   seduction decisions -1 and -1: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions -1 and -1 (action kind 10)
+ok   seduction decisions -1 and 0: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions -1 and 0 (action kind 10)
+ok   seduction decisions -1 and 1: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions -1 and 1 (action kind 10)
+ok   seduction decisions -1 and 2: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions -1 and 2 (action kind 10)
+ok   seduction decisions -1 and 3: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions -1 and 3 (action kind 10)
+ok   seduction decisions -1 and 256: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions -1 and 256 (action kind 10)
+ok   decoy decision 0: accepted
+ok   reacquisition decision 0: accepted
+ok   seduction decisions 0 and -2: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 0 and -2 (action kind 10)
+ok   seduction decisions 0 and -1: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 0 and -1 (action kind 10)
+ok   seduction decisions 0 and 0: accepted
+ok   seduction decisions 0 and 1: accepted
+ok   seduction decisions 0 and 2: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 0 and 2 (action kind 10)
+ok   seduction decisions 0 and 3: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 0 and 3 (action kind 10)
+ok   seduction decisions 0 and 256: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 0 and 256 (action kind 10)
+ok   decoy decision 1: accepted
+ok   reacquisition decision 1: accepted
+ok   seduction decisions 1 and -2: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 1 and -2 (action kind 10)
+ok   seduction decisions 1 and -1: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 1 and -1 (action kind 10)
+ok   seduction decisions 1 and 0: accepted
+ok   seduction decisions 1 and 1: accepted
+ok   seduction decisions 1 and 2: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 1 and 2 (action kind 10)
+ok   seduction decisions 1 and 3: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 1 and 3 (action kind 10)
+ok   seduction decisions 1 and 256: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 1 and 256 (action kind 10)
+ok   decoy decision 2: refused - host aim: host aim answered a weapon_decoy request with a non-boolean decision 2 (action kind 9)
+ok   reacquisition decision 2: refused - host aim: host aim answered a weapon_reacquire request with a non-boolean decision 2 (action kind 11)
+ok   seduction decisions 2 and -2: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 2 and -2 (action kind 10)
+ok   seduction decisions 2 and -1: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 2 and -1 (action kind 10)
+ok   seduction decisions 2 and 0: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 2 and 0 (action kind 10)
+ok   seduction decisions 2 and 1: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 2 and 1 (action kind 10)
+ok   seduction decisions 2 and 2: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 2 and 2 (action kind 10)
+ok   seduction decisions 2 and 3: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 2 and 3 (action kind 10)
+ok   seduction decisions 2 and 256: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 2 and 256 (action kind 10)
+ok   decoy decision 3: refused - host aim: host aim answered a weapon_decoy request with a non-boolean decision 3 (action kind 9)
+ok   reacquisition decision 3: refused - host aim: host aim answered a weapon_reacquire request with a non-boolean decision 3 (action kind 11)
+ok   seduction decisions 3 and -2: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 3 and -2 (action kind 10)
+ok   seduction decisions 3 and -1: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 3 and -1 (action kind 10)
+ok   seduction decisions 3 and 0: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 3 and 0 (action kind 10)
+ok   seduction decisions 3 and 1: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 3 and 1 (action kind 10)
+ok   seduction decisions 3 and 2: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 3 and 2 (action kind 10)
+ok   seduction decisions 3 and 3: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 3 and 3 (action kind 10)
+ok   seduction decisions 3 and 256: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 3 and 256 (action kind 10)
+ok   decoy decision 256: refused - host aim: host aim answered a weapon_decoy request with a non-boolean decision 256 (action kind 9)
+ok   reacquisition decision 256: refused - host aim: host aim answered a weapon_reacquire request with a non-boolean decision 256 (action kind 11)
+ok   seduction decisions 256 and -2: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 256 and -2 (action kind 10)
+ok   seduction decisions 256 and -1: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 256 and -1 (action kind 10)
+ok   seduction decisions 256 and 0: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 256 and 0 (action kind 10)
+ok   seduction decisions 256 and 1: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 256 and 1 (action kind 10)
+ok   seduction decisions 256 and 2: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 256 and 2 (action kind 10)
+ok   seduction decisions 256 and 3: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 256 and 3 (action kind 10)
+ok   seduction decisions 256 and 256: refused - host aim: host aim answered a weapon_seduce request with non-boolean decisions 256 and 256 (action kind 10)
+ok   a step's state action with a missile phase of 5: accepted
+ok   a reacquisition with no action (refused when it is applied, not here): accepted
+ok   an action of a kind the campaign does not know: refused - host aim: host aim answered a weapon_step request with a malformed action (kind 12)
+HOSTAIM_VALIDATION=ok: 0 failures
+RUN_EXIT=0
+DOCKER_EXIT=0
