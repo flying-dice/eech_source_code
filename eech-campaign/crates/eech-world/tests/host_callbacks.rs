@@ -603,3 +603,29 @@ fn every_shipped_lua_script_parses_under_the_hosts_lua() {
     }
     assert!(parsed >= 20, "only {parsed} scripts were found in {}", directory.display());
 }
+
+#[test]
+fn the_provider_and_the_controlled_witness_find_the_model_files_beside_them_when_the_binary_runs_them_as_the_main_script() {
+    // the binary names the main script's chunk by its path alone, so a script that looks for a file beside itself must accept a source with no leading '@'; the root does not
+    // exist, so each run ends at the boot, after it has read the model files it needs and before it flies anything
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\\', "/");
+    for (script, own_model) in [("aim-provider.lua", "mode=own_model"), ("weapon-case.lua", "aim_model=own_model")] {
+        let out = std::env::temp_dir().join(format!("eech-world-main-script-{}-{script}.out", std::process::id()));
+        let run = Command::new(env!("CARGO_BIN_EXE_eech-world"))
+            .arg(format!("{lua_dir}/{script}"))
+            .arg("root=/nonexistent-root-for-a-script-test")
+            .arg("scenario=lebanon_retail")
+            .arg(format!("out={}", out.display().to_string().replace('\\', "/")))
+            .arg(own_model)
+            .output()
+            .unwrap();
+        let _ = std::fs::remove_file(&out);
+        let text = format!("{}\n{}", String::from_utf8_lossy(&run.stdout), String::from_utf8_lossy(&run.stderr));
+        assert!(!text.contains("cannot open"), "{script} could not find a model file beside it: {text}");
+        assert!(!text.contains("own-model.lua"), "{script}: {text}");
+    }
+}

@@ -160,7 +160,7 @@ local function with (step, changes)
 end
 
 -- the plain model of mode=own_model (and of the controlled launch witness with aim_model=own_model) is a file of its own, next to this one
-local here = (debug.getinfo (1, "S").source:match ("^@(.*[/\\])") or "")
+local here = (debug.getinfo (1, "S").source:match ("^@?(.*[/\\])") or "")
 local own = dofile (here .. "own-model.lua")
 
 local provider

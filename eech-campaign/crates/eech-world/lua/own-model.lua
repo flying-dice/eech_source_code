@@ -55,7 +55,7 @@ function own.table () return { state = "done" } end
 function own.range () return { state = "done" } end
 
 -- the weapon model of this mode (the figures, the launch, the release, the flight and what follows it) is a file of its own, next to this one
-local here = (debug.getinfo (1, "S").source:match ("^@(.*[/\\])") or "")
+local here = (debug.getinfo (1, "S").source:match ("^@?(.*[/\\])") or "")
 for name, weapon_model in pairs (dofile (here .. "own-weapon.lua")) do own [name] = weapon_model end
 
 return own

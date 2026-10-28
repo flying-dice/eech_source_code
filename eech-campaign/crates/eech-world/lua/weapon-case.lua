@@ -43,7 +43,7 @@ local seed = 1
 local aim = host.aim
 local model_calls
 if args.aim_model == "own_model" then
-	local here = (debug.getinfo (1, "S").source:match ("^@(.*[/\\])") or "")
+	local here = (debug.getinfo (1, "S").source:match ("^@?(.*[/\\])") or "")
 	local own = dofile (here .. "own-model.lua")
 	model_calls = {}
 	aim = function (step)
