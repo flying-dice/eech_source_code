@@ -1,0 +1,14 @@
+{
+  "reviewer": "/root/d2_los_review, SAME independent reviewer",
+  "head": "9d7cd106a2d5b0b23424c5e5bb5db2492d95f928",
+  "all26_pinned_hashes_match_before_after": true,
+  "disposition": "All four remaining findings CLOSED; no new findings",
+  "verified": [
+    "Actual audit original0; moved finalreport before runmarker control1",
+    "Invalid reader limits rejected before ANYread including directsharedcalls",
+    "SharedLua countercode preserves indexedrows; real redgreen coversbothkillcode directions/unchangedrows",
+    "Bothhelpers propagatecompile/run/Docker andskiprunaftercompilefailure; fourrawcontrollogsmatch; controller0onlyafterassertingexpectedstatuses; oldmaskedouter disclosed"
+  ],
+  "prior_closures": "C timed eligibility/snapshot/overflow/map guards, original observer/parser600/900 and unchanged physics closures stand",
+  "remaining": "Clean immutable fixture carrying newLua files, controllednativewitness/measuredcoverage, physicalextraction/fullacceptance. No builds/campaignslaunchedinreview."
+}
