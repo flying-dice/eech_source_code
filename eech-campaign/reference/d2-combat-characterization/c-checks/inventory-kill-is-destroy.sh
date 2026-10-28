@@ -16,4 +16,4 @@ echo "$bindings" | awk '$1 == "kill" { print $2, $3, $4 }' | sort | while read -
     printf '%s %-16s kill=destroy=%s%s\n' "$model" "$type" "$kfn" "$mark"
   fi
 done
-echo "kinds offered by a blast window: $offered"
+echo "kinds offered by a blast window:$(echo $offered | sed "s/^/ /")"

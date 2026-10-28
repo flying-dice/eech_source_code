@@ -21,4 +21,4 @@ CLIENT WAYPOINT         kill=destroy=destroy_client
 SERVER WAYPOINT         kill=destroy=destroy_server
 CLIENT WEAPON           kill=destroy=destroy_client  [offered by a blast window]: NOT RESUMABLE
 SERVER WEAPON           kill=destroy=destroy_server  [offered by a blast window]: NOT RESUMABLE
-kinds offered by a blast window:  ANTI_AIRCRAFT CITY_BUILDING FIXED_WING HELICOPTER PERSON PYLON ROUTED_VEHICLE SCENIC SEGMENT SHIP_VEHICLE SITE SITE_UPDATABLE WEAPON 
+kinds offered by a blast window: ANTI_AIRCRAFT CITY_BUILDING FIXED_WING HELICOPTER PERSON PYLON ROUTED_VEHICLE SCENIC SEGMENT SHIP_VEHICLE SITE SITE_UPDATABLE WEAPON
