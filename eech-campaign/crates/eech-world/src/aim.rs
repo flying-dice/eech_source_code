@@ -273,6 +273,8 @@ struct Table {
 pub struct Aim {
     tables: HashMap<i32, Table>,
     range_file_open: bool,
+    /// Every weapon's physical figures, by the weapon's number, as the campaign handed them over at boot (the weapon step flies a weapon by them).
+    figures: HashMap<i32, flight::Figures>,
 }
 
 fn finite(what: &str, values: &[f32]) -> Result<(), String> {
@@ -319,6 +321,7 @@ impl Aim {
             return Err(format!("aim table for weapon {weapon} is not a weapon"));
         }
         finite("weapon figure", &figures.floats())?;
+        finite("weapon figure", &figures.extra_floats())?;
         if figures.max_range <= 0.0 {
             return Err(format!("aim figures for weapon {weapon} have no range limit"));
         }
@@ -348,6 +351,26 @@ impl Aim {
         Ok(flights)
     }
 
+    /// Keeps one weapon's physical figures for its steps, replacing any it had.
+    pub fn set_figures(&mut self, weapon: i32, figures: &flight::Figures) -> Result<(), String> {
+        if weapon <= 0 {
+            return Err(format!("aim figures for weapon {weapon} are not a weapon's"));
+        }
+        finite("weapon figure", &figures.floats())?;
+        finite("weapon figure", &figures.extra_floats())?;
+        self.figures.insert(weapon, *figures);
+        Ok(())
+    }
+
+    /// One pass of a weapon's step (`flight::weapon_step`) on the figures this host holds for it. An error when it holds none.
+    pub fn weapon_step(&self, weapon: i32, input: &flight::StepInput, answers: &[flight::StepEvent], draws: &[i32]) -> Result<flight::StepOutcome, String> {
+        let figures = self
+            .figures
+            .get(&weapon)
+            .ok_or_else(|| format!("aim weapon step for weapon {weapon}: the host holds no figures for it"))?;
+        flight::weapon_step(figures, input, answers, draws).map_err(|error| format!("weapon {weapon}: {error}"))
+    }
+
     /// The cells of the table generated for a weapon (the test fixture build's echo asks for them).
     #[must_use]
     pub fn table_cells(&self, weapon: i32) -> Option<&[f32]> {
@@ -358,6 +381,7 @@ impl Aim {
     /// Returns the two runs' end states and whether the file was open.
     pub fn generate_range(&mut self, figures: &flight::Figures, first: bool, last: bool) -> Result<([flight::RangeRecord; 2], bool), String> {
         finite("weapon figure", &figures.floats())?;
+        finite("weapon figure", &figures.extra_floats())?;
         if first {
             self.range_file_open = flight::range_open();
         }
@@ -1131,5 +1155,354 @@ mod tests {
         assert!(figures.set_name("").is_err());
         assert!(figures.set_name(&"x".repeat(64)).is_err());
         assert!(figures.set_name("a\u{0}b").is_err());
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    // the weapon step (EEDCS-45): a frame of a weapon's flight, a pure question of its state and the answers to the lookups it asked for
+
+    const LOOKUP_VIEW_WEAPON: i32 = 1;
+    const LOOKUP_LAUNCHER_EO: i32 = 2;
+    const LOOKUP_TARGET_INT: i32 = 5;
+    const LOOKUP_TARGET_VEC: i32 = 6;
+    const LOOKUP_WIND: i32 = 7;
+    const LOOKUP_GROUND_PROBE: i32 = 8;
+    const LOOKUP_GROUND_IMPACT: i32 = 9;
+    const LOOKUP_FACE_NORMAL: i32 = 10;
+    const LOOKUP_COLLISION: i32 = 12;
+    const ACTION_STATE: i32 = 1;
+    const ACTION_ATTITUDE: i32 = 2;
+    const ACTION_TARGET_LINK: i32 = 6;
+    const ACTION_POSITION: i32 = 5;
+    const IDENTITY: [f32; 9] = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+
+    /// A heavy, thick round with a short motor: a weapon whose weight is defined for a positive lifetime (the original takes a motor's times as non-zero for any weapon
+    /// that lives), so the drag it flies by is measurable in one frame.
+    fn flying_gun(name: &str) -> flight::Figures {
+        let mut figures = gun(name);
+        figures.start_weight = 5.0;
+        figures.final_weight = 5.0;
+        figures.diameter = 0.1;
+        figures.boost_time = 1.0;
+        figures.sustain_time = 2.0;
+        figures.boost_power = 1.0;
+        figures.sustain_power = 1.0;
+        figures
+    }
+
+    /// A round in flight over open ground, in a map a hundred kilometres across, level at 500 m and pointing along +z.
+    fn round() -> flight::StepInput {
+        flight::StepInput {
+            delta_time: 0.1,
+            system_time: 1000,
+            position: [0.0, 500.0, 0.0],
+            attitude: IDENTITY,
+            motion_vector: [0.0; 3],
+            velocity: 900.0,
+            weapon_lifetime: 3.0,
+            decoy_timer: 0.0,
+            missile_phase: 0,
+            loal_mode: false,
+            weapon_on_ground: false,
+            parachute_status: 0,
+            kill_code: 0,
+            entity_samples: [100, 200, 300, 400],
+            has_launcher: false,
+            has_target: false,
+            server: true,
+            map_min: [-100_000.0, -1000.0, -100_000.0],
+            map_max: [100_000.0, 10_000.0, 100_000.0],
+            echo: false,
+        }
+    }
+
+    /// What a world answers: the results r0.. of a lookup.
+    type Answerer<'a> = &'a mut dyn FnMut(&flight::StepEvent) -> [f32; 6];
+
+    fn open_world(lookup: &flight::StepEvent) -> [f32; 6] {
+        let _ = lookup;
+        [0.0; 6]
+    }
+
+    /// Asks the host for one step until it is done, answering what it asks from `world` and giving it `draws` in order; returns what it left and the kinds it asked, in order.
+    fn fly(aim: &Aim, weapon: i32, input: &flight::StepInput, world: Answerer, draws: &[i32]) -> (flight::StepOutcome, Vec<i32>) {
+        let mut answers: Vec<flight::StepEvent> = Vec::new();
+        let mut given: Vec<i32> = Vec::new();
+        let mut asked = Vec::new();
+        for _ in 0..64 {
+            let outcome = aim.weapon_step(weapon, input, &answers, &given).unwrap();
+            match outcome.state {
+                flight::StepState::Done => return (outcome, asked),
+                flight::StepState::NeedDraw => given.push(draws[given.len()]),
+                flight::StepState::NeedLookup => {
+                    assert!(outcome.actions.is_empty(), "a step that is not done leaves no action");
+                    for lookup in outcome.lookups {
+                        asked.push(lookup.kind);
+                        let mut answer = lookup;
+                        answer.f[6..].copy_from_slice(&world(&lookup));
+                        answers.push(answer);
+                    }
+                }
+            }
+        }
+        panic!("the step did not finish");
+    }
+
+    fn last_action(outcome: &flight::StepOutcome, kind: i32) -> Option<flight::StepEvent> {
+        outcome.actions.iter().rev().find(|action| action.kind == kind).copied()
+    }
+
+    fn step_aim(figures: &flight::Figures) -> Aim {
+        let mut aim = Aim::new();
+        aim.set_figures(5, figures).unwrap();
+        aim
+    }
+
+    #[test]
+    fn a_free_round_flies_a_frame_by_the_figures_and_asks_only_for_the_world_it_meets() {
+        let aim = step_aim(&flying_gun("test gun"));
+        let input = round();
+        // with nothing answered it stops for lookups and has changed nothing
+        let first = aim.weapon_step(5, &input, &[], &[]).unwrap();
+        assert_eq!(first.state, flight::StepState::NeedLookup);
+        assert!(first.actions.is_empty() && !first.lookups.is_empty());
+        let (outcome, asked) = fly(&aim, 5, &input, &mut open_world, &[]);
+        assert!(
+            asked.contains(&LOOKUP_WIND) && asked.contains(&LOOKUP_VIEW_WEAPON) && asked.contains(&LOOKUP_GROUND_PROBE),
+            "{asked:?}"
+        );
+        assert!(
+            !asked.contains(&LOOKUP_LAUNCHER_EO) && !asked.contains(&LOOKUP_TARGET_INT) && !asked.contains(&LOOKUP_COLLISION),
+            "{asked:?}"
+        );
+        let state = last_action(&outcome, ACTION_STATE).unwrap();
+        assert_eq!((state.a, state.b, state.c), (0, 0, 0), "no phase change, not on the ground, no kill code");
+        assert_eq!(state.f[4].to_bits(), (3.0f32 - 0.1f32).to_bits(), "the lifetime runs down by exactly the frame");
+        assert!(state.f[0] < 900.0 && state.f[0] > 800.0, "drag slows the round: {}", state.f[0]);
+        let position = last_action(&outcome, ACTION_POSITION).unwrap();
+        assert!(position.f[2] > 80.0 && position.f[2] < 90.0, "{:?}", position.f);
+        assert_eq!(position.f[1], 500.0, "gravity acts after the move");
+        let attitude = last_action(&outcome, ACTION_ATTITUDE).unwrap();
+        assert!(attitude.f[7] < 0.0, "gravity pitches the round down: {:?}", attitude.f);
+        // the same question gives the same answer, bit for bit
+        let (again, _) = fly(&aim, 5, &input, &mut open_world, &[]);
+        assert_eq!(
+            outcome.actions.iter().map(|action| action.f.map(f32::to_bits)).collect::<Vec<_>>(),
+            again.actions.iter().map(|action| action.f.map(f32::to_bits)).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn the_host_flies_the_weapon_by_the_figures_it_was_given() {
+        let reference = step_aim(&flying_gun("test gun"));
+        let mut draggy = flying_gun("draggy gun");
+        draggy.drag_coefficient = 1.2;
+        let other = step_aim(&draggy);
+        let input = round();
+        let speed = |aim: &Aim| last_action(&fly(aim, 5, &input, &mut open_world, &[]).0, ACTION_STATE).unwrap().f[0];
+        assert!(speed(&other) < speed(&reference) - 1.0, "{} {}", speed(&other), speed(&reference));
+    }
+
+    #[test]
+    fn what_the_campaign_answers_about_the_ground_decides_how_the_weapon_ends() {
+        let mut figures = flying_gun("test gun");
+        let impact = |class: f32| {
+            move |lookup: &flight::StepEvent| match lookup.kind {
+                LOOKUP_GROUND_PROBE => [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                LOOKUP_GROUND_IMPACT => [class, 1.0, 2.0, 3.0, 0.0, 0.0],
+                _ => [0.0; 6],
+            }
+        };
+        let aim = step_aim(&figures);
+        let (land, _) = fly(&aim, 5, &round(), &mut impact(3.0), &[]);
+        assert_eq!(last_action(&land, ACTION_STATE).unwrap().c, 3, "land: hit-land");
+        assert_eq!(&last_action(&land, ACTION_POSITION).unwrap().f[..3], &[1.0, 2.0, 3.0], "at the impact point");
+        let (water, _) = fly(&aim, 5, &round(), &mut impact(1.0), &[]);
+        assert_eq!(last_action(&water, ACTION_STATE).unwrap().c, 4, "water: hit-water");
+        // a weapon that survives ground impact rests on it, aligned with the terrain
+        figures.survive_ground_impact = 1;
+        let aim = step_aim(&figures);
+        let mut sloped = |lookup: &flight::StepEvent| match lookup.kind {
+            LOOKUP_GROUND_PROBE => [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            LOOKUP_GROUND_IMPACT => [3.0, 1.0, 2.0, 3.0, 0.0, 0.0],
+            LOOKUP_FACE_NORMAL => [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+            _ => [0.0; 6],
+        };
+        let (rests, asked) = fly(&aim, 5, &round(), &mut sloped, &[]);
+        assert!(asked.contains(&LOOKUP_FACE_NORMAL));
+        let state = last_action(&rests, ACTION_STATE).unwrap();
+        assert_eq!((state.b, state.c), (1, 0), "on the ground, still alive");
+        let attitude = last_action(&rests, ACTION_ATTITUDE).unwrap();
+        assert_eq!(&attitude.f[3..6], &[0.0, 1.0, 0.0], "the weapon's up is the terrain's normal");
+    }
+
+    #[test]
+    fn a_contact_with_something_switches_the_weapon_to_it_and_ends_it() {
+        let mut figures = flying_gun("test gun");
+        figures.in_flight_collision_check = 1;
+        let aim = step_aim(&figures);
+        let mut world = |lookup: &flight::StepEvent| match lookup.kind {
+            LOOKUP_COLLISION => [1.0, 1.0, 5.0, 5.0, 6.0, 7.0],
+            _ => [0.0; 6],
+        };
+        let (outcome, asked) = fly(&aim, 5, &round(), &mut world, &[]);
+        assert!(asked.contains(&LOOKUP_COLLISION));
+        assert_eq!(last_action(&outcome, ACTION_STATE).unwrap().c, 5, "hit-target");
+        assert_eq!(
+            last_action(&outcome, ACTION_TARGET_LINK).unwrap().a,
+            2,
+            "the weapon's target is now what it hit"
+        );
+        assert_eq!(
+            &last_action(&outcome, ACTION_POSITION).unwrap().f[..3],
+            &[5.0, 6.0, 7.0],
+            "where the segment met it"
+        );
+        // a collision lookup that finds nothing leaves the round flying
+        let (clear, _) = fly(&aim, 5, &round(), &mut open_world, &[]);
+        assert_eq!(last_action(&clear, ACTION_STATE).unwrap().c, 0);
+        assert!(last_action(&clear, ACTION_TARGET_LINK).is_none());
+    }
+
+    #[test]
+    fn a_weapon_that_leaves_the_map_is_put_on_its_edge_and_ends_without_asking_about_the_ground() {
+        let aim = step_aim(&flying_gun("test gun"));
+        let mut input = round();
+        input.map_max[2] = 50.0;
+        let (outcome, asked) = fly(&aim, 5, &input, &mut open_world, &[]);
+        assert!(!asked.contains(&LOOKUP_GROUND_PROBE), "{asked:?}");
+        assert_eq!(last_action(&outcome, ACTION_STATE).unwrap().c, 2, "out of bounds");
+        assert_eq!(last_action(&outcome, ACTION_POSITION).unwrap().f[2], 50.0, "on the map's edge");
+    }
+
+    #[test]
+    fn a_weapon_whose_lifetime_has_run_out_is_over_before_it_moves() {
+        let aim = step_aim(&flying_gun("test gun"));
+        let mut input = round();
+        input.weapon_lifetime = -4.0;
+        let outcome = aim.weapon_step(5, &input, &[], &[]).unwrap();
+        assert_eq!(outcome.state, flight::StepState::Done, "it asked the campaign nothing");
+        assert_eq!(last_action(&outcome, ACTION_STATE).unwrap().c, 1, "exhausted");
+        assert!(last_action(&outcome, ACTION_POSITION).is_none());
+    }
+
+    #[test]
+    fn a_guided_weapon_asks_for_the_target_and_its_spiral_takes_the_campaigns_random_samples_in_order() {
+        let mut figures = flying_gun("test missile");
+        figures.guidance_type = 1;
+        figures.flight_profile_or_self_destr = 2;
+        figures.cruise_velocity = 400.0;
+        figures.muzzle_velocity = 300.0;
+        figures.g_max = 30.0;
+        figures.boost_time = 3.0;
+        figures.sustain_time = 6.0;
+        figures.inhibit_time = 2.0;
+        figures.cruise_time = 20.0;
+        figures.max_seeker_limit = -1.0;
+        figures.boost_power = 5000.0;
+        figures.sustain_power = 2000.0;
+        figures.start_weight = 20.0;
+        figures.final_weight = 15.0;
+        figures.diameter = 0.1;
+        figures.flightpath_deviation = 0.0;
+        let aim = step_aim(&figures);
+        let mut input = round();
+        input.velocity = 300.0;
+        input.weapon_lifetime = 5.0;
+        input.has_target = true;
+        let mut world = |lookup: &flight::StepEvent| match (lookup.kind, lookup.b) {
+            (LOOKUP_TARGET_INT, 0) => [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            (LOOKUP_TARGET_VEC, 1) => [0.0, 500.0, 4000.0, 0.0, 0.0, 0.0],
+            (LOOKUP_TARGET_VEC, 2) => [0.0, 0.0, 50.0, 0.0, 0.0, 0.0],
+            (LOOKUP_TARGET_VEC, 0) => [0.0, 500.0, 4000.0, 0.0, 0.0, 0.0],
+            _ => [0.0; 6],
+        };
+        // without samples it stops for one, then another
+        assert_eq!(aim.weapon_step(5, &input, &[], &[]).unwrap().state, flight::StepState::NeedLookup);
+        let (a, _) = fly(&aim, 5, &input, &mut world, &[16000, 8000]);
+        let (b, _) = fly(&aim, 5, &input, &mut world, &[16000, 8000]);
+        let (c, _) = fly(&aim, 5, &input, &mut world, &[1000, 30000]);
+        let position = |outcome: &flight::StepOutcome| last_action(outcome, ACTION_POSITION).unwrap().f.map(f32::to_bits);
+        assert_eq!(position(&a), position(&b), "the same samples give the same flight");
+        assert_ne!(
+            position(&a),
+            position(&c),
+            "other samples give another: the spiral is the campaign's random stream, taken in the host's order"
+        );
+        // given too few samples the step asks for more
+        let mut answers = Vec::new();
+        loop {
+            let outcome = aim.weapon_step(5, &input, &answers, &[16000]).unwrap();
+            match outcome.state {
+                flight::StepState::NeedLookup => {
+                    for lookup in outcome.lookups {
+                        let mut answer = lookup;
+                        answer.f[6..].copy_from_slice(&world(&lookup));
+                        answers.push(answer);
+                    }
+                }
+                flight::StepState::NeedDraw => break,
+                flight::StepState::Done => panic!("the spiral needs two samples"),
+            }
+        }
+    }
+
+    #[test]
+    fn a_semi_active_weapon_with_no_launcher_loses_its_target_and_flies_unguided() {
+        let mut figures = flying_gun("test sarh");
+        figures.guidance_type = 2;
+        figures.cruise_velocity = 400.0;
+        figures.cruise_time = 20.0;
+        figures.max_seeker_limit = -1.0;
+        let aim = step_aim(&figures);
+        let mut input = round();
+        input.has_target = true;
+        let (outcome, _) = fly(&aim, 5, &input, &mut open_world, &[]);
+        assert_eq!(
+            last_action(&outcome, ACTION_TARGET_LINK).unwrap().a,
+            0,
+            "no guidance source: the target is dropped"
+        );
+    }
+
+    #[test]
+    fn a_step_the_host_cannot_run_is_refused_with_the_reason() {
+        let aim = step_aim(&flying_gun("test gun"));
+        assert!(Aim::new().weapon_step(5, &round(), &[], &[]).unwrap_err().contains("no figures"));
+        assert!(aim.weapon_step(6, &round(), &[], &[]).unwrap_err().contains("no figures"));
+        let mut input = round();
+        input.position[1] = f32::NAN;
+        assert!(aim.weapon_step(5, &input, &[], &[]).unwrap_err().contains("finite"));
+        input = round();
+        input.entity_samples[2] = 40000;
+        assert!(aim.weapon_step(5, &input, &[], &[]).unwrap_err().contains("[0, 32767]"));
+        assert!(aim.weapon_step(5, &round(), &[], &[0; 9]).unwrap_err().contains("draws"));
+        assert!(aim
+            .weapon_step(5, &round(), &[flight::StepEvent::default(); 129], &[])
+            .unwrap_err()
+            .contains("lookup answers"));
+        // a weapon that asks for its launcher when it has none is a failure, not a default
+        let mut laser = flying_gun("test laser");
+        laser.guidance_type = 4;
+        laser.cruise_velocity = 400.0;
+        laser.cruise_time = 20.0;
+        let mut aim = step_aim(&laser);
+        let mut input = round();
+        input.has_target = true;
+        let mut answers = Vec::new();
+        let error = loop {
+            match aim.weapon_step(5, &input, &answers, &[]) {
+                Err(error) => break error,
+                Ok(outcome) => {
+                    assert_eq!(outcome.state, flight::StepState::NeedLookup);
+                    for lookup in outcome.lookups {
+                        let mut answer = lookup;
+                        answer.f[6..].copy_from_slice(&[1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+                        answers.push(answer);
+                    }
+                }
+            }
+        };
+        assert!(error.contains("launcher"), "{error}");
+        assert!(aim.set_figures(0, &gun("x")).unwrap_err().contains("not a weapon"));
     }
 }

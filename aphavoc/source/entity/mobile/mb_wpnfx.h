@@ -105,9 +105,8 @@ extern void eech_wpn_precision (int high_precision_collision);
 extern void eech_wpn_ground (int hit_ground, int high_precision_collision);
 extern void eech_wpn_impact (int terrain_class, int survive_ground_impact);
 
-// contact queries (wn_cllsn.c)
-extern void eech_wpn_contact_any (const entity *hit, const vec3d *old_position, const vec3d *new_position);
-extern void eech_wpn_contact_trees (int hit, const vec3d *old_position, const vec3d *new_position);
+// the host's weapon step: the hooks of the original weapon_movement its step passed, replayed in order from the step's echo
+extern void eech_wpn_step_echo (const struct campaign_aim_event *event);
 
 // update order and terminal
 extern void eech_wpn_update_stage (entity *en, int stage);
@@ -132,21 +131,9 @@ extern void eech_wpn_destroy (entity *en);
 #define WPN_FX_DISPERSION(H,P)									eech_wpn_dispersion ((H), (P));
 #define WPN_FX_BIRTH_END(EN,RAW,SUB)							eech_wpn_birth_end ((EN), (RAW), (SUB));
 
-#define WPN_FX_PATH(PATH)										eech_wpn_path ((PATH));
-#define WPN_FX_SUBMUNITIONS(COUNT)								eech_wpn_submunitions ((COUNT));
-#define WPN_FX_TRACKING(TRACKING)								eech_wpn_tracking ((TRACKING));
-#define WPN_FX_GUIDANCE(TYPE,VALID)								eech_wpn_guidance ((TYPE), (VALID));
-#define WPN_FX_GUIDANCE_SOURCE(LAUNCHER,CHANGES,PRESENT)		eech_wpn_guidance_source ((LAUNCHER), (CHANGES), (PRESENT));
-#define WPN_FX_TGT_BRANCH(BRANCH,TAKEN)							eech_wpn_tgt_branch ((BRANCH), (TAKEN));
-#define WPN_FX_TGT_END(VALID,POSITION)							eech_wpn_tgt_end ((VALID), (POSITION));
-#define WPN_FX_INTERCEPT(WV,TV,POINT)							eech_wpn_intercept ((WV), (TV), (POINT));
-#define WPN_FX_GUIDED(KIND,A,B,C,D)								eech_wpn_guided ((KIND), (A), (B), (C), (D));
-#define WPN_FX_PRECISION(HIGH)									eech_wpn_precision ((HIGH));
-#define WPN_FX_GROUND(HIT,HIGH)									eech_wpn_ground ((HIT), (HIGH));
-#define WPN_FX_IMPACT(CLASS,SURVIVE)							eech_wpn_impact ((CLASS), (SURVIVE));
 
-#define WPN_FX_CONTACT_ANY(HIT,OLD,NEW)							eech_wpn_contact_any ((HIT), (OLD), (NEW));
-#define WPN_FX_CONTACT_TREES(HIT,OLD,NEW)						eech_wpn_contact_trees ((HIT), (OLD), (NEW));
+
+#define WPN_FX_STEP_ECHO(EVENT)									eech_wpn_step_echo ((EVENT));
 
 #define WPN_FX_UPDATE_STAGE(EN,STAGE)							eech_wpn_update_stage ((EN), (STAGE));
 #define WPN_FX_DECOY_BEGIN(TIMER)								eech_wpn_decoy_begin ((TIMER));
@@ -172,21 +159,9 @@ extern void eech_wpn_destroy (entity *en);
 #define WPN_FX_DISPERSION(H,P)
 #define WPN_FX_BIRTH_END(EN,RAW,SUB)
 
-#define WPN_FX_PATH(PATH)
-#define WPN_FX_SUBMUNITIONS(COUNT)
-#define WPN_FX_TRACKING(TRACKING)
-#define WPN_FX_GUIDANCE(TYPE,VALID)
-#define WPN_FX_GUIDANCE_SOURCE(LAUNCHER,CHANGES,PRESENT)
-#define WPN_FX_TGT_BRANCH(BRANCH,TAKEN)
-#define WPN_FX_TGT_END(VALID,POSITION)
-#define WPN_FX_INTERCEPT(WV,TV,POINT)
-#define WPN_FX_GUIDED(KIND,A,B,C,D)
-#define WPN_FX_PRECISION(HIGH)
-#define WPN_FX_GROUND(HIT,HIGH)
-#define WPN_FX_IMPACT(CLASS,SURVIVE)
 
-#define WPN_FX_CONTACT_ANY(HIT,OLD,NEW)
-#define WPN_FX_CONTACT_TREES(HIT,OLD,NEW)
+
+#define WPN_FX_STEP_ECHO(EVENT)
 
 #define WPN_FX_UPDATE_STAGE(EN,STAGE)
 #define WPN_FX_DECOY_BEGIN(TIMER)

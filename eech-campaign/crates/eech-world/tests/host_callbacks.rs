@@ -355,7 +355,7 @@ assert(near(r.required_heading, math.pi / 2) and near(r.required_pitch, 0), 'a t
 refused({ mode = 'required', device_attitude = LEVEL, tracking = { device_position = { 0, 0, 0 }, point = { 1, 0, 1 }, pitch = 0 }, heading_min = -1, heading_max = 1, pitch_min = -1, pitch_max = 1, climb = false }, 'tracking request has no package limits')
 refused({ mode = 'required', device_attitude = LEVEL, intercept_vector = { 0, 0, 1 }, unbounded = 1 }, 'unbounded must be a boolean')
 -- the host generates its own ballistic table from the weapon's figures (no cell is sent), and a request for a weapon without one is refused
-local function gun(name) return { name = name, start_weight = 0.1, final_weight = 0.1, max_range = 1000, muzzle_velocity = 900, cruise_velocity = 900, g_max = 0, boost_time = 0, cruise_time = 4, inhibit_time = 0, drag_coefficient = 0.3, flightpath_deviation = 0, boost_power = 0, sustain_power = 0, sustain_time = 0, diameter = 0.02, max_altitude = 0, ignore_gravity = false, flight_profile_or_self_destr = 0, parachute_type = false, weapon_class = 8 } end
+local function gun(name) return { name = name, start_weight = 0.1, final_weight = 0.1, max_range = 1000, muzzle_velocity = 900, cruise_velocity = 900, g_max = 0, boost_time = 0, cruise_time = 4, inhibit_time = 0, drag_coefficient = 0.3, flightpath_deviation = 0, boost_power = 0, sustain_power = 0, sustain_time = 0, diameter = 0.02, max_altitude = 0, ignore_gravity = false, flight_profile_or_self_destr = 0, parachute_type = false, weapon_class = 8, cruise_time_max_error = 0, detonation_radius = 0, max_seeker_limit = 0, max_launch_angle_error = 0, survive_ground_impact = 0, in_flight_collision_check = 0, guidance_type = 0, aiming_type = 3, decoy_type = 0, warhead_type = 3, hellfire_ii = 0, smoke_grenade = 0, submunition_count = 0, submunition_velocity_factor = 0 } end
 r = host.aim({ mode = 'table', weapon = 7, figures = gun('test gun'), first = false, last = false, echo = false, echo_cells = 0 })
 assert(r.state == 'done' and r.echo_cells == nil and r.echo == nil, 'the table is generated and nothing comes back')
 -- with an echo (the test fixture build's) the host gives back its flights and the cells of the table it generated, in the model's shape
@@ -384,6 +384,66 @@ local rangeless = gun('rangeless gun') rangeless.max_range = 0
 refused({ mode = 'table', weapon = 7, figures = rangeless, first = false, last = false, echo = false }, 'range limit')
 local slow = gun('infinite gun') slow.drag_coefficient = 1 / 0
 refused({ mode = 'table', weapon = 7, figures = slow, first = false, last = false, echo = false }, 'drag_coefficient')
+-- the host keeps every weapon's figures and flies a weapon by them (the weapon step): a pass that needs the campaign's world stops and changes nothing, and is asked
+-- again with the answers; it ends with the weapon's state, attitude and position as ordered actions
+-- (a weapon that lives has a motor: the original's weight is defined for non-zero boost and sustain times)
+local flown = gun('flown gun')
+flown.start_weight, flown.final_weight, flown.diameter, flown.boost_time, flown.sustain_time, flown.boost_power, flown.sustain_power = 5, 5, 0.1, 1, 2, 1, 1
+r = host.aim({ mode = 'figures', weapon = 21, figures = flown })
+assert(r.state == 'done', 'the figures are kept')
+local function weapon_step(weapon)
+  return { mode = 'weapon_step', weapon = weapon, echo = false, delta_time = 0.1, system_time = 1000, position = { 0, 500, 0 }, attitude = LEVEL, motion_vector = { 0, 0, 0 }, velocity = 900, weapon_lifetime = 3.0, decoy_timer = 0,
+    missile_phase = 0, loal_mode = false, weapon_on_ground = false, parachute_status = 0, kill_code = 0, entity_samples = { 100, 200, 300, 400 }, has_launcher = false, has_target = false, server = true,
+    map_min = { -100000, -1000, -100000 }, map_max = { 100000, 10000, 100000 }, answers = {}, draws = {} }
+end
+local function fly(step, answer)
+  local answers, draws = {}, {}
+  for pass = 1, 20 do
+    local request = {}
+    for k, v in pairs(step) do request[k] = v end
+    request.answers, request.draws = answers, draws
+    local out = host.aim(request)
+    if out.state == 'done' then return out end
+    assert(out.state == 'need_lookup' and out.actions == nil and #out.lookups > 0, 'a step that is not done leaves no action: ' .. tostring(out.state))
+    for _, lookup in ipairs(out.lookups) do
+      local a = { kind = lookup.kind, a = lookup.a, b = lookup.b, c = lookup.c, d = lookup.d, f = { unpack(lookup.f) } }
+      for i = 7, 12 do a.f[i] = 0 end
+      answers[#answers + 1] = answer(a) or a
+    end
+  end
+  error('the step did not finish')
+end
+local function last(out, kind) local found for _, action in ipairs(out.actions) do if action.kind == kind then found = action end end return found end
+r = host.aim(weapon_step(21))
+assert(r.state == 'need_lookup' and r.actions == nil and #r.lookups >= 1, 'with nothing answered the step stops for lookups and leaves nothing')
+local out = fly(weapon_step(21), function() end)
+local state, position = last(out, 1), last(out, 5)
+assert(state.c == 0 and near(state.f[5], 2.9) and state.f[1] < 900 and state.f[1] > 800, 'a frame of free flight: no kill code, the lifetime run down by the frame, the speed drag-reduced')
+assert(near(position.f[1], 0) and near(position.f[2], 500) and position.f[3] > 80 and position.f[3] < 90, 'and the position moved along the heading')
+-- the ground the campaign answers for decides the contact: land ends the weapon where the impact lookup says
+out = fly(weapon_step(21), function(a)
+  if a.kind == 8 then a.f[7] = 1 elseif a.kind == 9 then a.f[7], a.f[8], a.f[9], a.f[10] = 3, 1, 2, 3 end
+end)
+state, position = last(out, 1), last(out, 5)
+assert(state.c == 3 and near(position.f[1], 1) and near(position.f[2], 2) and near(position.f[3], 3), 'a weapon over land ends at hit-land at the impact point')
+out = fly(weapon_step(21), function(a)
+  if a.kind == 8 then a.f[7] = 1 elseif a.kind == 9 then a.f[7], a.f[8], a.f[9], a.f[10] = 1, 1, 2, 3 end
+end)
+assert(last(out, 1).c == 4, 'and over water at hit-water')
+-- a weapon whose lifetime has run out is over before it moves, and asks the campaign nothing
+local expired = weapon_step(21) expired.weapon_lifetime = -4.0
+out = host.aim(expired)
+assert(out.state == 'done' and last(out, 1).c == 1 and last(out, 5) == nil and last(out, 4) == nil, 'an exhausted weapon leaves its state and no position')
+refused(weapon_step(22), 'holds no figures')
+local bad = weapon_step(21) bad.entity_samples = { 1, 2, 3 }
+refused(bad, 'entity_samples must be 4 integers')
+bad = weapon_step(21) bad.position = { 0, 0 / 0, 0 }
+refused(bad, 'position')
+bad = weapon_step(21) bad.draws = { 40000 }
+refused(bad, 'outside [0, 32767]')
+bad = weapon_step(21) bad.answers = { { kind = 8, a = 0, b = 0, c = 0, d = 0, f = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } } }
+refused(bad, 'f must be 12')
+refused({ mode = 'figures', weapon = 0, figures = gun('no weapon') }, 'not a weapon')
 -- malformed requests
 refused({ mode = 'glide' }, 'unknown mode')
 refused({ mode = 'ready_update', state = 0 / 0, rate = 0.5, delta_time = 1 }, 'state must be a finite number')

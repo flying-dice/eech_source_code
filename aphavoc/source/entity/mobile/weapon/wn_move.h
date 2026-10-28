@@ -73,6 +73,7 @@ extern int
 
 extern void weapon_movement (entity *en);
 
+extern void supply_weapon_figures(void);
 extern void generate_ballistics_tables(void);
 extern void generate_guided_missiles_tables(void);
 extern float get_projectile_flight_time_fast(entity_sub_types wpn_type, float range, float height_difference);

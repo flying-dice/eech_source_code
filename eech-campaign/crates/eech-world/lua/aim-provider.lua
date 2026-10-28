@@ -17,6 +17,11 @@
 --   mode=table_slow   the same with half the muzzle velocity
 --   mode=bad_table_nil, bad_table_state, bad_table_error    a provider whose answer to the first table request is nothing, a state that is not done or need_draw, or an error:
 --                     the engine must stop AT BOOT with a clear error
+--   mode=weapon_drag  the reference host, but every figures request carries four times the weapon's drag: the host flies its own weapons by the figures it was given
+--                     (EEDCS-45), so the weapons the campaign launches fall and end differently from the reference's (kills, steps)
+--   mode=weapon_short the same with a tenth of the weapon's cruise time: its weapons are over sooner
+--   mode=bad_step_*   a provider that answers the first weapon step malformed: the engine must stop with a clear error (bad_step_state, bad_step_lookup_kind, bad_step_action_kind,
+--                     bad_step_nonfinite, bad_step_repeat, bad_step_error, bad_step_draw)
 --   mode=missing      boot without an aim provider: must fail at boot with a clear error
 --   mode=bad_*        a provider that answers the first request of a kind malformed: the engine must stop with a clear error (bad_nil, bad_state,
 --                     bad_ready_state, bad_phase, bad_nan_vector, bad_draw_for_ballistic, bad_second_draw, bad_negative_range, bad_error)
@@ -78,8 +83,11 @@ end
 
 local reference = host.aim
 -- what the campaign asked, by request mode, and what the host answered
-local counts = { table = 0, range = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0 }
+local counts = { table = 0, range = 0, figures = 0, weapon_step = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0 }
 local answers = { valid = 0, invalid = 0, need_draw = 0, lead_ok = 0, lead_no = 0, ballistic_ok = 0, ballistic_no = 0, phase_moving = 0, angle_sum = 0 }
+-- what the weapon steps came to: the passes the host was asked, the lookups it needed (by kind), the draws it asked for, and the kill codes it left (0 none ... 7)
+local steps = { passes = 0, done = 0, need_lookup = 0, need_draw = 0, kills = {}, lookups = {} }
+for code = 0, 7 do steps.kills [code] = 0 end
 
 local function counted (step, answer)
 	counts [step.mode] = counts [step.mode] + 1
@@ -93,6 +101,22 @@ local function counted (step, answer)
 		if answer.ok then answers.ballistic_ok = answers.ballistic_ok + 1 answers.angle_sum = answers.angle_sum + answer.angle else answers.ballistic_no = answers.ballistic_no + 1 end
 	elseif step.mode == "ready_update" and (answer.phase == 1 or answer.phase == 3) then
 		answers.phase_moving = answers.phase_moving + 1
+	elseif step.mode == "weapon_step" then
+		steps.passes = steps.passes + 1
+		if answer.state == "need_lookup" then
+			steps.need_lookup = steps.need_lookup + 1
+			for _, lookup in ipairs (answer.lookups) do steps.lookups [lookup.kind] = (steps.lookups [lookup.kind] or 0) + 1 end
+		elseif answer.state == "need_draw" then
+			steps.need_draw = steps.need_draw + 1
+		else
+			steps.done = steps.done + 1
+			for _, action in ipairs (answer.actions) do
+				-- the last state action of a step is the weapon as it ends the frame
+				if action.kind == 1 then steps.last_kill = action.c end
+			end
+			steps.kills [steps.last_kill or 0] = steps.kills [steps.last_kill or 0] + 1
+			steps.last_kill = nil
+		end
 	end
 	return answer
 end
@@ -155,6 +179,36 @@ function own.ballistic () return { state = "done", ok = false } end
 function own.intercept (step) return { state = "done", intercept_point = step.target.point } end
 function own.table () return { state = "done" } end
 function own.range () return { state = "done" } end
+function own.figures () return { state = "done" } end
+-- a weapon with a model of its own: it flies straight along its heading at the speed it has, for twenty seconds, and ends on the ground it meets; it needs one lookup (the
+-- terrain under its new position), no figure of EECH's, no draw and no wind.  Lookup kinds and action kinds are those of the campaign's protocol (mb_hostaim.h)
+local LOOKUP_GROUND_PROBE, ACTION_STATE, ACTION_ATTITUDE, ACTION_POSITION = 8, 1, 2, 5
+function own.weapon_step (step)
+	local dt = step.delta_time
+	local p, a = step.position, step.attitude
+	local new = { p [1] + a [7] * step.velocity * dt, p [2] + a [8] * step.velocity * dt, p [3] + a [9] * step.velocity * dt }
+	local kill = step.kill_code
+	local inside = new [1] >= step.map_min [1] and new [1] <= step.map_max [1] and new [3] >= step.map_min [3] and new [3] <= step.map_max [3]
+	if inside then
+		local below
+		for _, answer in ipairs (step.answers) do
+			if answer.kind == LOOKUP_GROUND_PROBE and answer.f [1] == new [1] and answer.f [2] == new [2] and answer.f [3] == new [3] then below = answer.f [7] ~= 0 end
+		end
+		if below == nil then
+			return { state = "need_lookup", lookups = { { kind = LOOKUP_GROUND_PROBE, a = 0, b = 0, c = 0, d = 0, f = { new [1], new [2], new [3], 0, 0, 0, 0, 0, 0, 0, 0, 0 } } } }
+		end
+		if below and kill == 0 then kill = 3 end
+	elseif kill == 0 then
+		kill = 2
+	end
+	local lifetime = step.weapon_lifetime - dt
+	if lifetime <= -20 and kill == 0 then kill = 1 end
+	return { state = "done", actions = {
+		{ kind = ACTION_STATE, a = step.missile_phase, b = step.weapon_on_ground and 1 or 0, c = kill, d = 0, f = { step.velocity, a [7] * step.velocity, a [8] * step.velocity, a [9] * step.velocity, lifetime, step.decoy_timer, 0, 0, 0, 0, 0, 0 } },
+		{ kind = ACTION_ATTITUDE, a = 0, b = 0, c = 0, d = 0, f = { a [1], a [2], a [3], a [4], a [5], a [6], a [7], a [8], a [9], 0, 0, 0 } },
+		{ kind = ACTION_POSITION, a = 0, b = 0, c = 0, d = 0, f = { inside and new [1] or p [1], inside and new [2] or p [2], inside and new [3] or p [3], 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+	} }
+end
 
 local provider
 if mode == "reference" then
@@ -179,6 +233,16 @@ elseif mode == "invalid" then
 	end
 elseif mode == "own_model" then
 	provider = function (step) return counted (step, own [step.mode] (step)) end
+elseif mode == "weapon_drag" or mode == "weapon_short" then
+	provider = function (step)
+		if step.mode == "figures" then
+			local figures = {}
+			for k, v in pairs (step.figures) do figures [k] = v end
+			if mode == "weapon_drag" then figures.drag_coefficient = figures.drag_coefficient * 4 else figures.cruise_time = figures.cruise_time * 0.1 end
+			step = with (step, { figures = figures })
+		end
+		return counted (step, reference (step))
+	end
 elseif mode == "table_drag" or mode == "table_slow" then
 	provider = function (step)
 		if step.mode == "table" then
@@ -206,12 +270,17 @@ elseif mode == "missing" then
 elseif mode:sub (1, 4) == "bad_" then
 	-- the reference host answers until the first request of the kind the mode corrupts; that answer is malformed and the engine must stop there
 	local kinds = { bad_nil = "ready_update", bad_state = "ready_update", bad_ready_state = "ready_update", bad_phase = "ready_update", bad_nan_vector = "vectors",
-		bad_draw_for_ballistic = "ballistic", bad_second_draw = "vectors", bad_negative_range = "vectors", bad_error = "ready_command" }
+		bad_draw_for_ballistic = "ballistic", bad_second_draw = "vectors", bad_negative_range = "vectors", bad_error = "ready_command",
+		bad_step_state = "weapon_step", bad_step_lookup_kind = "weapon_step", bad_step_action_kind = "weapon_step", bad_step_nonfinite = "weapon_step",
+		bad_step_repeat = "weapon_step", bad_step_error = "weapon_step", bad_step_draw = "weapon_step" }
 	local kind = assert (kinds [mode], "unknown bad mode " .. mode)
 	local armed = true
 	provider = function (step)
 		local answer = reference (step)
-		if armed and step.mode == kind and (mode ~= "bad_second_draw" or step.draw ~= nil) and (mode ~= "bad_negative_range" or answer.state == "done") then
+		if armed and step.mode == kind and (mode ~= "bad_second_draw" or step.draw ~= nil) and (mode ~= "bad_negative_range" or answer.state == "done")
+			and (mode ~= "bad_step_lookup_kind" or answer.state == "need_lookup") and (mode ~= "bad_step_action_kind" or answer.state == "done")
+			and (mode ~= "bad_step_nonfinite" or (answer.state == "done" and #answer.actions > 0)) and (mode ~= "bad_step_repeat" or #step.answers > 0)
+			and (mode ~= "bad_step_draw" or #step.draws >= 0) then
 			armed = false
 			if mode == "bad_nil" then return nil
 			elseif mode == "bad_state" then return { state = "later" }
@@ -221,7 +290,18 @@ elseif mode:sub (1, 4) == "bad_" then
 			elseif mode == "bad_draw_for_ballistic" then return { state = "need_draw" }
 			elseif mode == "bad_second_draw" then return { state = "need_draw" }
 			elseif mode == "bad_negative_range" then answer.intercept_range = -1 return answer
-			elseif mode == "bad_error" then error ("provider failed on purpose")
+			elseif mode == "bad_error" or mode == "bad_step_error" then error ("provider failed on purpose")
+			elseif mode == "bad_step_state" then return { state = "later" }
+			elseif mode == "bad_step_lookup_kind" then answer.lookups [1].kind = 99 return answer
+			elseif mode == "bad_step_action_kind" then if #answer.actions == 0 then answer.actions = { { kind = 99, a = 0, b = 0, c = 0, d = 0, f = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } } } else answer.actions [1].kind = 99 end return answer
+			elseif mode == "bad_step_nonfinite" then answer.actions [1].f [1] = 0 / 0 return answer
+			elseif mode == "bad_step_repeat" then
+				-- asks again for a lookup the campaign has just answered
+				local given = step.answers [1]
+				return { state = "need_lookup", lookups = { { kind = given.kind, a = given.a, b = given.b, c = given.c, d = given.d, f = { given.f [1], given.f [2], given.f [3], given.f [4], given.f [5], given.f [6], 0, 0, 0, 0, 0, 0 } } } }
+			elseif mode == "bad_step_draw" then
+				-- asks for a draw it has already used up, until the campaign's room for them is gone
+				return { state = "need_draw" }
 			end
 		end
 		return counted (step, answer)

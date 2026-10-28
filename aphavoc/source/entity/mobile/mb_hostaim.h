@@ -73,13 +73,19 @@ enum campaign_aim_mode
 	CAMPAIGN_AIM_LEAD,
 	CAMPAIGN_AIM_BALLISTIC,
 	CAMPAIGN_AIM_INTERCEPT,
-	CAMPAIGN_AIM_RANGE
+	CAMPAIGN_AIM_RANGE,
+	/* boot: one weapon's physical figures, for the host to keep (every weapon, not only those with a table or a range run) */
+	CAMPAIGN_AIM_FIGURES,
+	/* one frame of one weapon's flight (EEDCS-45): the weapon's state and the answers to the lookups so far in, the state it left as ordered actions out */
+	CAMPAIGN_AIM_WEAPON_STEP
 };
 
 enum campaign_aim_state
 {
 	CAMPAIGN_AIM_DONE = 1,
-	CAMPAIGN_AIM_NEED_DRAW
+	CAMPAIGN_AIM_NEED_DRAW,
+	/* WEAPON_STEP: the host needs the answers to the listed lookups and asks again with them */
+	CAMPAIGN_AIM_NEED_LOOKUP
 };
 
 enum campaign_aim_event_kind
@@ -94,8 +100,64 @@ enum campaign_aim_event_kind
 	/* TABLE echo: one simulated flight, in order: velocity test in a, pitch index in b, range marks filled in c, steps in d; f[0] the end time, f[1] the range values */
 	CAMPAIGN_AIM_EVENT_TABLE_FLIGHT,
 	/* RANGE echo: one range run, in order: zero_pitch in a, whether it ran in b, whether the diagnostic file was open in c; f[0..3] the end z, y, velocity and lifetime */
-	CAMPAIGN_AIM_EVENT_RANGE_RESULT
+	CAMPAIGN_AIM_EVENT_RANGE_RESULT,
+	/* WEAPON_STEP echo (the test fixture build only): the hooks of the original weapon_movement the host's step passed, in order.  The branch numbers they carry are the
+	   fixture's own (mb_wpnfx.h) */
+	CAMPAIGN_AIM_EVENT_STEP_PATH = 20,
+	CAMPAIGN_AIM_EVENT_STEP_SUBMUNITIONS,
+	CAMPAIGN_AIM_EVENT_STEP_TRACKING,
+	CAMPAIGN_AIM_EVENT_STEP_GUIDANCE,
+	CAMPAIGN_AIM_EVENT_STEP_GUIDANCE_SOURCE,
+	CAMPAIGN_AIM_EVENT_STEP_TGT_BRANCH,
+	CAMPAIGN_AIM_EVENT_STEP_TGT_END,
+	CAMPAIGN_AIM_EVENT_STEP_INTERCEPT,
+	CAMPAIGN_AIM_EVENT_STEP_GUIDED,
+	CAMPAIGN_AIM_EVENT_STEP_PRECISION,
+	CAMPAIGN_AIM_EVENT_STEP_GROUND,
+	CAMPAIGN_AIM_EVENT_STEP_IMPACT,
+	CAMPAIGN_AIM_EVENT_STEP_CONTACT_ANY,
+	CAMPAIGN_AIM_EVENT_STEP_CONTACT_TREES
 };
+
+/* WEAPON_STEP lookups: pure questions of the campaign's world the host's step asks, answered by value (the kind, a, b and f[0..5] are repeated in the answer, which fills
+   f[6..11] as r0...).  The host's step asks them in rounds; the campaign answers each round and asks again. */
+enum campaign_step_lookup
+{
+	CAMPAIGN_STEP_LOOKUP_VIEW_WEAPON = 1,		/* r0 the camera is viewing this weapon */
+	CAMPAIGN_STEP_LOOKUP_LAUNCHER_EO,			/* r0..r2 the launcher's EO tracking point, r3 it is valid */
+	CAMPAIGN_STEP_LOOKUP_LAUNCHER_INT,			/* a: 0 the launcher is not an AI, 1 its laser is on, 2 it has line of sight to its target.  r0 */
+	CAMPAIGN_STEP_LOOKUP_LAUNCHER_TARGET,		/* the launcher's target.  r0 it has one, r1 it is the weapon's own target, r2..r4 its position */
+	CAMPAIGN_STEP_LOOKUP_TARGET_INT,			/* a: which target (0 the weapon's own, 1 the launcher's); b: 0 mobile, 1 decoy type, 2 radar jammer on, 3 infra-red jammer on, 4 airborne aircraft, 5 not an AI.  r0 */
+	CAMPAIGN_STEP_LOOKUP_TARGET_VEC,			/* a: which target; b: 0 position, 1 target point, 2 motion vector.  r0..r2 */
+	CAMPAIGN_STEP_LOOKUP_WIND,					/* f0..f2 a point.  r0..r2 the wind velocity there */
+	CAMPAIGN_STEP_LOOKUP_GROUND_PROBE,			/* f0..f2 a point inside the map area.  r0 it is below the ground */
+	CAMPAIGN_STEP_LOOKUP_GROUND_IMPACT,			/* f0..f2 the old position, f3..f5 the new.  r0 the terrain class, r1..r3 the impact point */
+	CAMPAIGN_STEP_LOOKUP_FACE_NORMAL,			/* f0, f2 x and z.  r0..r2 the terrain face normal there */
+	CAMPAIGN_STEP_LOOKUP_ELEVATION,				/* f0, f2 x and z.  r0 the terrain elevation there */
+	CAMPAIGN_STEP_LOOKUP_COLLISION,				/* a: which target is the weapon's now (-1 none); f0..f2 the old position, f3..f5 the new.  r0 something was hit, r1 it is not the weapon's target, r2 its type, r3..r5 where the segment meets it */
+	CAMPAIGN_STEP_LOOKUP_TREES,					/* f0..f2 the old position, f3..f5 the new.  r0 a tree was hit, r1..r3 where the segment meets it */
+	CAMPAIGN_STEP_LOOKUPS
+};
+
+/* WEAPON_STEP actions: what the step left, in the order the campaign applies it to its mirror of the weapon.  The echo events the original's hooks saw before an action
+   are the first `d` of the echo list (the fixture build replays them before it applies the action). */
+enum campaign_step_action
+{
+	CAMPAIGN_STEP_ACTION_STATE = 1,			/* a missile phase, b weapon on ground, c kill code; f0 velocity, f1..f3 motion vector, f4 weapon lifetime, f5 decoy timer */
+	CAMPAIGN_STEP_ACTION_ATTITUDE,			/* f0..f8 the attitude matrix, row by row */
+	CAMPAIGN_STEP_ACTION_SPAWN,				/* a the number of submunitions, f0 their parent velocity: they leave from the weapon as it is now */
+	CAMPAIGN_STEP_ACTION_TACVIEW,			/* the weapon is written to the Tacview recording, if one is open */
+	CAMPAIGN_STEP_ACTION_POSITION,			/* f0..f2 the weapon's position */
+	CAMPAIGN_STEP_ACTION_TARGET_LINK,		/* a: 0 the weapon has no target now, 1 its target is the launcher's, 2 its target is the one the collision lookup hit */
+	CAMPAIGN_STEP_ACTION_SMOKE_EFFECT,		/* the killed-explosion effect, with the kill code at hit-land for its duration */
+	CAMPAIGN_STEP_ACTIONS
+};
+
+#define CAMPAIGN_STEP_ANSWERS_MAX 128
+#define CAMPAIGN_STEP_DRAWS_MAX 8
+#define CAMPAIGN_STEP_ACTIONS_MAX 32
+#define CAMPAIGN_STEP_LOOKUPS_MAX 16
+#define CAMPAIGN_STEP_ROUNDS_MAX 64
 
 enum campaign_aim_lead_path
 {
@@ -140,7 +202,45 @@ typedef struct campaign_weapon_figures
 	int flight_profile_or_self_destr;
 	int parachute_type;
 	unsigned int weapon_class;
+	/* what the host's weapon step reads from the database besides the above (EEDCS-45): four floats, then the ints.  hellfire_ii and smoke_grenade are facts about the
+	   weapon the original tested by sub type; submunition_count and submunition_velocity_factor are the database's burst_duration and acquire_parent_forward_velocity of
+	   the next sub type, which a conventional-munitions weapon spawns (0 when there is none) */
+	float cruise_time_max_error;
+	float detonation_radius;
+	float max_seeker_limit;
+	float max_launch_angle_error;
+	int survive_ground_impact;
+	int in_flight_collision_check;
+	int guidance_type;
+	int aiming_type;
+	int decoy_type;
+	int warhead_type;
+	int hellfire_ii;
+	int smoke_grenade;
+	int submunition_count;
+	int submunition_velocity_factor;
 } campaign_weapon_figures;
+
+/* WEAPON_STEP: the weapon as the campaign holds it.  The entity-local random stream never leaves the campaign: its first four outputs are all any one call of the
+   original uses (raw integers in [0, 32767]) */
+typedef struct campaign_weapon_state
+{
+	float position[3];
+	float attitude[9];
+	float motion_vector[3];
+	float velocity;
+	float weapon_lifetime;
+	float decoy_timer;
+	int missile_phase;
+	int loal_mode;
+	int weapon_on_ground;
+	int parachute_status;
+	int kill_code;
+	int entity_samples[4];
+	int has_launcher;
+	int has_target;
+	int server;
+} campaign_weapon_state;
 
 typedef struct campaign_aim_step
 {
@@ -214,6 +314,15 @@ typedef struct campaign_aim_step
 	float height_diff_or_pitch;
 	int simplified;
 	int fixed_pitch;
+
+	/* WEAPON_STEP (delta_time, map_min and map_max above are the frame's and the map's): the clock, the weapon, the lookups answered so far and the samples of the
+	   campaign's shared stream given so far */
+	unsigned int system_time;
+	campaign_weapon_state weapon_state;
+	int answer_count;
+	campaign_aim_event answers[CAMPAIGN_STEP_ANSWERS_MAX];
+	int draw_count;
+	int draws[CAMPAIGN_STEP_DRAWS_MAX];
 } campaign_aim_step;
 
 typedef struct campaign_aim_result
@@ -249,6 +358,11 @@ typedef struct campaign_aim_result
 	const campaign_aim_event *echo;
 	/* TABLE echo: the number of floats the host wrote at echo_cells */
 	size_t echo_cell_count;
+	/* WEAPON_STEP: the lookups the host still needs (NEED_LOOKUP), or the actions it left (DONE) */
+	int lookup_count;
+	campaign_aim_event lookups[CAMPAIGN_STEP_LOOKUPS_MAX];
+	int action_count;
+	campaign_aim_event actions[CAMPAIGN_STEP_ACTIONS_MAX];
 } campaign_aim_result;
 
 typedef int (*campaign_aim_fn)
@@ -284,5 +398,15 @@ campaign_aim_result campaign_aim_ask (campaign_aim_step *step, int allow_draw);
    weapon: the host runs its range simulations).  Asks for an echo (the test fixture build) when echo_cells is not NULL, and returns the result (its echo is valid until the
    next request). */
 campaign_aim_result campaign_aim_generate (int mode, int weapon, const campaign_weapon_figures *figures, int pass_first, int pass_last, float *echo_cells, size_t echo_cell_capacity);
+
+/* Hands the host one weapon's figures to keep (CAMPAIGN_AIM_FIGURES). */
+void campaign_aim_supply_figures (int weapon, const campaign_weapon_figures *figures);
+
+/* Answers one lookup of a weapon step: copies the question into `answer` and fills f[6..11].  Stops the engine on a lookup the campaign cannot answer. */
+typedef void (*campaign_step_answer_fn) (const campaign_aim_event *lookup, campaign_aim_event *answer, void *context);
+
+/* Runs one weapon's step to its end: asks the host, answers the lookups it needs and takes the draws it asks for, and asks again, until it is done (at most
+   CAMPAIGN_STEP_ROUNDS_MAX rounds).  `step` carries the weapon and is the campaign's to fill; the result holds the actions (and the echo the fixture build asked for). */
+campaign_aim_result campaign_aim_weapon_step (campaign_aim_step *step, campaign_step_answer_fn answer, void *context);
 
 #endif

@@ -33,6 +33,20 @@ pub struct Figures {
     pub flight_profile_or_self_destr: c_int,
     pub parachute_type: c_int,
     pub weapon_class: c_uint,
+    pub cruise_time_max_error: f32,
+    pub detonation_radius: f32,
+    pub max_seeker_limit: f32,
+    pub max_launch_angle_error: f32,
+    pub survive_ground_impact: c_int,
+    pub in_flight_collision_check: c_int,
+    pub guidance_type: c_int,
+    pub aiming_type: c_int,
+    pub decoy_type: c_int,
+    pub warhead_type: c_int,
+    pub hellfire_ii: c_int,
+    pub smoke_grenade: c_int,
+    pub submunition_count: c_int,
+    pub submunition_velocity_factor: c_int,
 }
 
 impl Figures {
@@ -56,6 +70,17 @@ impl Figures {
             self.sustain_time,
             self.diameter,
             self.max_altitude,
+        ]
+    }
+
+    /// The four floats appended after `weapon_class`.
+    #[must_use]
+    pub fn extra_floats(&self) -> [f32; 4] {
+        [
+            self.cruise_time_max_error,
+            self.detonation_radius,
+            self.max_seeker_limit,
+            self.max_launch_angle_error,
         ]
     }
 
@@ -201,4 +226,204 @@ pub fn range_weapon(figures: &Figures) -> Result<[RangeRecord; 2], String> {
         return Err("a range simulation asked for a draw or a wind sample it was not given".into());
     }
     Ok(results)
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+// The weapon step (EEDCS-45): one weapon's movement for one frame, a pure question of the weapon's state and the answers to the lookups it asked for (`csrc/wn_flight.c`).
+
+/// The most actions, lookups and echo events one step can produce, and the most draws it can be given (the C step's own limits).
+pub const STEP_ACTIONS_MAX: usize = 32;
+pub const STEP_LOOKUPS_MAX: usize = 16;
+pub const STEP_ECHO_MAX: usize = 64;
+pub const STEP_DRAWS_MAX: usize = 8;
+/// The most lookup answers a request may carry (a step asks for a few dozen at most).
+pub const STEP_ANSWERS_MAX: usize = 128;
+
+/// A lookup, an answer to one, an action or an echo event: `wf_event`. A lookup is its kind, the integers a to d and the floats f[0..6]; its answer repeats them and fills
+/// f[6..12].
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct StepEvent {
+    pub kind: c_int,
+    pub a: c_int,
+    pub b: c_int,
+    pub c: c_int,
+    pub d: c_int,
+    pub f: [f32; 12],
+}
+
+/// `wf_step_in`.
+#[repr(C)]
+struct RawStepIn {
+    figures: *const Figures,
+    delta_time: f32,
+    system_time: c_uint,
+    position: [f32; 3],
+    attitude: [f32; 9],
+    motion_vector: [f32; 3],
+    velocity: f32,
+    weapon_lifetime: f32,
+    decoy_timer: f32,
+    missile_phase: c_int,
+    loal_mode: c_int,
+    weapon_on_ground: c_int,
+    parachute_status: c_int,
+    kill_code: c_int,
+    entity_samples: [c_int; 4],
+    has_launcher: c_int,
+    has_target: c_int,
+    server: c_int,
+    map_min: [f32; 3],
+    map_max: [f32; 3],
+    echo: c_int,
+    answers: *const StepEvent,
+    answer_count: c_int,
+    draws: *const c_int,
+    draw_count: c_int,
+}
+
+/// `wf_step_out`.
+#[repr(C)]
+struct RawStepOut {
+    actions: [StepEvent; STEP_ACTIONS_MAX],
+    action_count: c_int,
+    lookups: [StepEvent; STEP_LOOKUPS_MAX],
+    lookup_count: c_int,
+    echo: [StepEvent; STEP_ECHO_MAX],
+    echo_count: c_int,
+    need_lookup: c_int,
+    need_draw: c_int,
+    failed: c_int,
+    reason: [c_char; 96],
+}
+
+extern "C" {
+    fn eech_wn_weapon_step(input: *const RawStepIn, output: *mut RawStepOut) -> c_int;
+}
+
+/// The weapon as the campaign holds it, and the world constants the step needs.
+#[derive(Clone, Debug, PartialEq)]
+pub struct StepInput {
+    pub delta_time: f32,
+    pub system_time: u32,
+    pub position: [f32; 3],
+    pub attitude: [f32; 9],
+    pub motion_vector: [f32; 3],
+    pub velocity: f32,
+    pub weapon_lifetime: f32,
+    pub decoy_timer: f32,
+    pub missile_phase: i32,
+    pub loal_mode: bool,
+    pub weapon_on_ground: bool,
+    pub parachute_status: i32,
+    pub kill_code: i32,
+    pub entity_samples: [i32; 4],
+    pub has_launcher: bool,
+    pub has_target: bool,
+    pub server: bool,
+    pub map_min: [f32; 3],
+    pub map_max: [f32; 3],
+    pub echo: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum StepState {
+    Done,
+    NeedLookup,
+    NeedDraw,
+}
+
+/// What one pass of the step produced: its actions when it is done, the lookups it still needs, or a draw.
+#[derive(Clone, Debug, PartialEq)]
+pub struct StepOutcome {
+    pub state: StepState,
+    pub actions: Vec<StepEvent>,
+    pub lookups: Vec<StepEvent>,
+    pub echo: Vec<StepEvent>,
+}
+
+/// Runs one pass of a weapon's step. The figures are the host's own for the weapon; `answers` are the lookups answered so far and `draws` the samples of the campaign's random
+/// stream given so far. An error for a state the step cannot run on or a failure of the step itself (the weapon asks for what it does not have).
+pub fn weapon_step(figures: &Figures, input: &StepInput, answers: &[StepEvent], draws: &[i32]) -> Result<StepOutcome, String> {
+    let finite = |what: &str, values: &[f32]| -> Result<(), String> {
+        if values.iter().all(|value| value.is_finite()) {
+            Ok(())
+        } else {
+            Err(format!("the weapon step's {what} must be finite"))
+        }
+    };
+    finite("delta time", &[input.delta_time])?;
+    finite("position", &input.position)?;
+    finite("attitude", &input.attitude)?;
+    finite("motion vector", &input.motion_vector)?;
+    finite("state", &[input.velocity, input.weapon_lifetime, input.decoy_timer])?;
+    finite("map extent", &input.map_min)?;
+    finite("map extent", &input.map_max)?;
+    if answers.len() > STEP_ANSWERS_MAX {
+        return Err(format!(
+            "the weapon step was given {} lookup answers, more than the {STEP_ANSWERS_MAX} it takes",
+            answers.len()
+        ));
+    }
+    if draws.len() > STEP_DRAWS_MAX {
+        return Err(format!(
+            "the weapon step was given {} draws, more than the {STEP_DRAWS_MAX} it takes",
+            draws.len()
+        ));
+    }
+    if draws.iter().any(|draw| !(0..=32767).contains(draw)) || input.entity_samples.iter().any(|draw| !(0..=32767).contains(draw)) {
+        return Err("a random sample given to the weapon step is outside [0, 32767]".into());
+    }
+    let raw = RawStepIn {
+        figures,
+        delta_time: input.delta_time,
+        system_time: input.system_time,
+        position: input.position,
+        attitude: input.attitude,
+        motion_vector: input.motion_vector,
+        velocity: input.velocity,
+        weapon_lifetime: input.weapon_lifetime,
+        decoy_timer: input.decoy_timer,
+        missile_phase: input.missile_phase,
+        loal_mode: c_int::from(input.loal_mode),
+        weapon_on_ground: c_int::from(input.weapon_on_ground),
+        parachute_status: input.parachute_status,
+        kill_code: input.kill_code,
+        entity_samples: input.entity_samples,
+        has_launcher: c_int::from(input.has_launcher),
+        has_target: c_int::from(input.has_target),
+        server: c_int::from(input.server),
+        map_min: input.map_min,
+        map_max: input.map_max,
+        echo: c_int::from(input.echo),
+        answers: answers.as_ptr(),
+        answer_count: answers.len() as c_int,
+        draws: draws.as_ptr(),
+        draw_count: draws.len() as c_int,
+    };
+    // SAFETY: plain data; all-zero is a valid value of every field. Boxed because the output is several kilobytes.
+    let mut out: Box<RawStepOut> = Box::new(unsafe { std::mem::zeroed() });
+    // SAFETY: the figures, the answers and the draws are valid for the call and the counts passed are their lengths; the output is a writable `RawStepOut`.
+    let status = unsafe { eech_wn_weapon_step(&raw, &mut *out) };
+    if status != 0 || out.failed != 0 {
+        let bytes = out.reason.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect::<Vec<_>>();
+        return Err(format!("the weapon step failed: {}", String::from_utf8_lossy(&bytes)));
+    }
+    let counted = |what: &str, count: c_int, max: usize| -> Result<usize, String> {
+        usize::try_from(count)
+            .ok()
+            .filter(|count| *count <= max)
+            .ok_or_else(|| format!("the weapon step reported {count} {what}"))
+    };
+    let state = if out.need_lookup != 0 {
+        StepState::NeedLookup
+    } else if out.need_draw != 0 {
+        StepState::NeedDraw
+    } else {
+        StepState::Done
+    };
+    let actions = out.actions[..counted("actions", out.action_count, STEP_ACTIONS_MAX)?].to_vec();
+    let lookups = out.lookups[..counted("lookups", out.lookup_count, STEP_LOOKUPS_MAX)?].to_vec();
+    let echo = out.echo[..counted("echo events", out.echo_count, STEP_ECHO_MAX)?].to_vec();
+    Ok(StepOutcome { state, actions, lookups, echo })
 }

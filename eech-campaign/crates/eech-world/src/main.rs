@@ -95,10 +95,39 @@ fn exact_numbers<const N: usize>(lua: &Lua, table: &LuaTable, field: &str) -> Re
     Ok(numbers)
 }
 
-/// The scalars `names` (comma-separated field names of `table`, `N` of them) exactly as Lua holds them, in one call: the formatting of
-/// `exact_f64s` for several scalar fields at once, which the aiming exchange (a request per entity per update) makes worth having. The Lua function
-/// for a name list is built once and kept in the registry.
-/// The physical figures a `table` or `range` request carries (EEDCS-45), exactly as the campaign mirrored them from its weapon database.
+/// An integer field of a request table (an integral number within `i32`).
+fn lua_i32(table: &LuaTable, field: &str) -> Result<i32, String> {
+    match table.get::<LuaValue>(field).map_err(|e| e.to_string())? {
+        LuaValue::Integer(value) => i32::try_from(value).map_err(|_| format!("{field} {value} is out of range")),
+        LuaValue::Number(value) if value.fract() == 0.0 && value.abs() < 2_147_483_648.0 => Ok(value as i32),
+        other => Err(format!("{field} must be an integer, got {}", other.type_name())),
+    }
+}
+
+/// A weapon step's lookup answers from a request: a list of tables `{ kind, a, b, c, d, f = { 12 numbers } }`.
+fn step_events(lua: &Lua, table: &LuaTable, field: &str) -> Result<Vec<flight::StepEvent>, String> {
+    let list = match table.get::<LuaValue>(field).map_err(|e| e.to_string())? {
+        LuaValue::Table(list) => list,
+        other => return Err(format!("{field} must be a list, got {}", other.type_name())),
+    };
+    let mut events = Vec::new();
+    for value in list.sequence_values::<LuaValue>() {
+        let LuaValue::Table(row) = value.map_err(|e| e.to_string())? else {
+            return Err(format!("{field} holds a value that is not an event table"));
+        };
+        events.push(flight::StepEvent {
+            kind: lua_i32(&row, "kind")?,
+            a: lua_i32(&row, "a")?,
+            b: lua_i32(&row, "b")?,
+            c: lua_i32(&row, "c")?,
+            d: lua_i32(&row, "d")?,
+            f: exact_numbers::<12>(lua, &row, "f")?,
+        });
+    }
+    Ok(events)
+}
+
+/// The physical figures a `table`, `range` or `figures` request carries (EEDCS-45), exactly as the campaign mirrored them from its weapon database.
 fn weapon_figures(lua: &Lua, request: &LuaTable) -> Result<flight::Figures, String> {
     let facts: LuaTable = match request.get::<LuaValue>("figures").map_err(|e| e.to_string())? {
         LuaValue::Table(facts) => facts,
@@ -114,6 +143,8 @@ fn weapon_figures(lua: &Lua, request: &LuaTable) -> Result<flight::Figures, Stri
             &facts,
             "start_weight,final_weight,max_range,muzzle_velocity,cruise_velocity,g_max,boost_time,cruise_time,inhibit_time,drag_coefficient,flightpath_deviation,boost_power,sustain_power,sustain_time,diameter,max_altitude",
         )?;
+    let [cruise_time_max_error, detonation_radius, max_seeker_limit, max_launch_angle_error] =
+        exact_fields::<4>(lua, &facts, "cruise_time_max_error,detonation_radius,max_seeker_limit,max_launch_angle_error")?;
     let flag = |field: &str| -> Result<bool, String> {
         match facts.get::<LuaValue>(field).map_err(|e| e.to_string())? {
             LuaValue::Boolean(value) => Ok(value),
@@ -122,7 +153,9 @@ fn weapon_figures(lua: &Lua, request: &LuaTable) -> Result<flight::Figures, Stri
     };
     let integer = |field: &str| -> Result<i64, String> {
         match facts.get::<LuaValue>(field).map_err(|e| e.to_string())? {
-            LuaValue::Integer(value) => Ok(value),
+            // Lua's integer is i32 on the 32-bit targets and i64 elsewhere; the conversion is the identity on the latter.
+            #[allow(clippy::useless_conversion)]
+            LuaValue::Integer(value) => Ok(i64::from(value)),
             LuaValue::Number(value) if value.fract() == 0.0 && value.abs() < 4.0e9 => Ok(value as i64),
             other => Err(format!("figures {field} must be an integer, got {other:?}")),
         }
@@ -150,9 +183,26 @@ fn weapon_figures(lua: &Lua, request: &LuaTable) -> Result<flight::Figures, Stri
     figures.flight_profile_or_self_destr = i32::try_from(integer("flight_profile_or_self_destr")?).map_err(|e| e.to_string())?;
     figures.parachute_type = i32::from(flag("parachute_type")?);
     figures.weapon_class = u32::try_from(integer("weapon_class")?).map_err(|e| e.to_string())?;
+    figures.cruise_time_max_error = cruise_time_max_error;
+    figures.detonation_radius = detonation_radius;
+    figures.max_seeker_limit = max_seeker_limit;
+    figures.max_launch_angle_error = max_launch_angle_error;
+    figures.survive_ground_impact = i32::try_from(integer("survive_ground_impact")?).map_err(|e| e.to_string())?;
+    figures.in_flight_collision_check = i32::try_from(integer("in_flight_collision_check")?).map_err(|e| e.to_string())?;
+    figures.guidance_type = i32::try_from(integer("guidance_type")?).map_err(|e| e.to_string())?;
+    figures.aiming_type = i32::try_from(integer("aiming_type")?).map_err(|e| e.to_string())?;
+    figures.decoy_type = i32::try_from(integer("decoy_type")?).map_err(|e| e.to_string())?;
+    figures.warhead_type = i32::try_from(integer("warhead_type")?).map_err(|e| e.to_string())?;
+    figures.hellfire_ii = i32::try_from(integer("hellfire_ii")?).map_err(|e| e.to_string())?;
+    figures.smoke_grenade = i32::try_from(integer("smoke_grenade")?).map_err(|e| e.to_string())?;
+    figures.submunition_count = i32::try_from(integer("submunition_count")?).map_err(|e| e.to_string())?;
+    figures.submunition_velocity_factor = i32::try_from(integer("submunition_velocity_factor")?).map_err(|e| e.to_string())?;
     Ok(figures)
 }
 
+/// The scalars `names` (comma-separated field names of `table`, `N` of them) exactly as Lua holds them, in one call: the formatting of
+/// `exact_f64s` for several scalar fields at once, which the aiming exchange (a request per entity per update) makes worth having. The Lua function
+/// for a name list is built once and kept in the registry.
 fn exact_fields<const N: usize>(lua: &Lua, table: &LuaTable, names: &'static str) -> Result<[f32; N], String> {
     let key = format!("eech_exact_fields:{names}");
     let format: LuaFunction = match lua.named_registry_value(&key) {
@@ -1649,6 +1699,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     6 => "lead_result",
                                     7 => "table_flight",
                                     8 => "range_result",
+                                    20 => "step_path",
+                                    21 => "step_submunitions",
+                                    22 => "step_tracking",
+                                    23 => "step_guidance",
+                                    24 => "step_guidance_source",
+                                    25 => "step_tgt_branch",
+                                    26 => "step_tgt_end",
+                                    27 => "step_intercept",
+                                    28 => "step_guided",
+                                    29 => "step_precision",
+                                    30 => "step_ground",
+                                    31 => "step_impact",
+                                    32 => "step_contact_any",
+                                    33 => "step_contact_trees",
                                     other => return Err(fail(format!("the model produced an unknown echo kind {other}"))),
                                 },
                             )?;
@@ -1727,6 +1791,89 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             echo_into(&Some(events))?;
                         }
                         result.set("state", "done")?;
+                    }
+                    "figures" => {
+                        // every weapon's figures, kept by the weapon's number: the host flies a weapon by them
+                        let weapon: i32 = step.get("weapon")?;
+                        let figures = weapon_figures(lua, &step).map_err(fail)?;
+                        aim.borrow_mut().set_figures(weapon, &figures).map_err(fail)?;
+                        result.set("state", "done")?;
+                    }
+                    "weapon_step" => {
+                        // one frame of one weapon's flight: the weapon in, the lookups it still needs or the ordered actions it leaves out (flight.rs weapon_step)
+                        let weapon = lua_i32(&step, "weapon").map_err(fail)?;
+                        let echo = echo_of()?;
+                        let [delta_time, velocity, weapon_lifetime, decoy_timer] =
+                            exact_fields::<4>(lua, &step, "delta_time,velocity,weapon_lifetime,decoy_timer").map_err(fail)?;
+                        let entity_samples: [i32; 4] = step
+                            .get::<Vec<i32>>("entity_samples")?
+                            .try_into()
+                            .map_err(|_| fail("entity_samples must be 4 integers".into()))?;
+                        let input = flight::StepInput {
+                            delta_time,
+                            system_time: step.get::<u32>("system_time")?,
+                            position: exact_numbers::<3>(lua, &step, "position").map_err(fail)?,
+                            attitude: exact_numbers::<9>(lua, &step, "attitude").map_err(fail)?,
+                            motion_vector: exact_numbers::<3>(lua, &step, "motion_vector").map_err(fail)?,
+                            velocity,
+                            weapon_lifetime,
+                            decoy_timer,
+                            missile_phase: lua_i32(&step, "missile_phase").map_err(fail)?,
+                            loal_mode: flag(&step, "loal_mode")?,
+                            weapon_on_ground: flag(&step, "weapon_on_ground")?,
+                            parachute_status: lua_i32(&step, "parachute_status").map_err(fail)?,
+                            kill_code: lua_i32(&step, "kill_code").map_err(fail)?,
+                            entity_samples,
+                            has_launcher: flag(&step, "has_launcher")?,
+                            has_target: flag(&step, "has_target")?,
+                            server: flag(&step, "server")?,
+                            map_min: exact_numbers::<3>(lua, &step, "map_min").map_err(fail)?,
+                            map_max: exact_numbers::<3>(lua, &step, "map_max").map_err(fail)?,
+                            echo,
+                        };
+                        let answers = step_events(lua, &step, "answers").map_err(fail)?;
+                        let draws = step.get::<Vec<i32>>("draws")?;
+                        let outcome = aim.borrow().weapon_step(weapon, &input, &answers, &draws).map_err(fail)?;
+                        let events = |events: &[flight::StepEvent]| -> LuaResult<LuaTable> {
+                            let list = lua.create_table()?;
+                            for (index, event) in events.iter().enumerate() {
+                                let row = lua.create_table()?;
+                                row.set("kind", event.kind)?;
+                                row.set("a", event.a)?;
+                                row.set("b", event.b)?;
+                                row.set("c", event.c)?;
+                                row.set("d", event.d)?;
+                                row.set("f", event.f.to_vec())?;
+                                list.set(index + 1, row)?;
+                            }
+                            Ok(list)
+                        };
+                        match outcome.state {
+                            flight::StepState::NeedDraw => result.set("state", "need_draw")?,
+                            flight::StepState::NeedLookup => {
+                                result.set("state", "need_lookup")?;
+                                result.set("lookups", events(&outcome.lookups)?)?;
+                            }
+                            flight::StepState::Done => {
+                                result.set("state", "done")?;
+                                result.set("actions", events(&outcome.actions)?)?;
+                                if echo {
+                                    let echoed = outcome
+                                        .echo
+                                        .iter()
+                                        .map(|event| aim::Event {
+                                            kind: event.kind,
+                                            a: event.a,
+                                            b: event.b,
+                                            c: event.c,
+                                            d: event.d,
+                                            f: event.f,
+                                        })
+                                        .collect::<Vec<_>>();
+                                    echo_into(&Some(echoed))?;
+                                }
+                            }
+                        }
                     }
                     "ready_update" => {
                         check_id("source_host_id")?;

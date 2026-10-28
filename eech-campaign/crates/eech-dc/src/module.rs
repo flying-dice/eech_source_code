@@ -426,6 +426,10 @@ fn weapon_figures_table(lua: &Lua, figures: &WeaponFigures) -> Result<LuaTable, 
         ("sustain_time", figures.sustain_time),
         ("diameter", figures.diameter),
         ("max_altitude", figures.max_altitude),
+        ("cruise_time_max_error", figures.cruise_time_max_error),
+        ("detonation_radius", figures.detonation_radius),
+        ("max_seeker_limit", figures.max_seeker_limit),
+        ("max_launch_angle_error", figures.max_launch_angle_error),
     ] {
         table.set(field, value).map_err(e)?;
     }
@@ -433,6 +437,16 @@ fn weapon_figures_table(lua: &Lua, figures: &WeaponFigures) -> Result<LuaTable, 
     table.set("flight_profile_or_self_destr", figures.flight_profile_or_self_destr).map_err(e)?;
     table.set("parachute_type", figures.parachute_type != 0).map_err(e)?;
     table.set("weapon_class", figures.weapon_class).map_err(e)?;
+    table.set("survive_ground_impact", figures.survive_ground_impact).map_err(e)?;
+    table.set("in_flight_collision_check", figures.in_flight_collision_check).map_err(e)?;
+    table.set("guidance_type", figures.guidance_type).map_err(e)?;
+    table.set("aiming_type", figures.aiming_type).map_err(e)?;
+    table.set("decoy_type", figures.decoy_type).map_err(e)?;
+    table.set("warhead_type", figures.warhead_type).map_err(e)?;
+    table.set("hellfire_ii", figures.hellfire_ii).map_err(e)?;
+    table.set("smoke_grenade", figures.smoke_grenade).map_err(e)?;
+    table.set("submunition_count", figures.submunition_count).map_err(e)?;
+    table.set("submunition_velocity_factor", figures.submunition_velocity_factor).map_err(e)?;
     Ok(table)
 }
 
@@ -459,6 +473,42 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
             table.set("first", data.first).map_err(e)?;
             table.set("last", data.last).map_err(e)?;
             table.set("echo", data.echo).map_err(e)?;
+        }
+        AimRequest::Figures(data) => {
+            table.set("mode", "figures").map_err(e)?;
+            table.set("weapon", data.weapon).map_err(e)?;
+            table.set("figures", weapon_figures_table(lua, &data.figures)?).map_err(e)?;
+        }
+        AimRequest::WeaponStep(data) => {
+            let state = &data.state;
+            table.set("mode", "weapon_step").map_err(e)?;
+            table.set("echo", data.echo).map_err(e)?;
+            table.set("weapon", data.weapon).map_err(e)?;
+            table.set("delta_time", data.delta_time).map_err(e)?;
+            table.set("system_time", data.system_time).map_err(e)?;
+            table.set("map_min", data.map_min.to_vec()).map_err(e)?;
+            table.set("map_max", data.map_max.to_vec()).map_err(e)?;
+            table.set("position", state.position.to_vec()).map_err(e)?;
+            table.set("attitude", state.attitude.to_vec()).map_err(e)?;
+            table.set("motion_vector", state.motion_vector.to_vec()).map_err(e)?;
+            table.set("velocity", state.velocity).map_err(e)?;
+            table.set("weapon_lifetime", state.weapon_lifetime).map_err(e)?;
+            table.set("decoy_timer", state.decoy_timer).map_err(e)?;
+            table.set("missile_phase", state.missile_phase).map_err(e)?;
+            table.set("loal_mode", state.loal_mode).map_err(e)?;
+            table.set("weapon_on_ground", state.weapon_on_ground).map_err(e)?;
+            table.set("parachute_status", state.parachute_status).map_err(e)?;
+            table.set("kill_code", state.kill_code).map_err(e)?;
+            table.set("entity_samples", state.entity_samples.to_vec()).map_err(e)?;
+            table.set("has_launcher", state.has_launcher).map_err(e)?;
+            table.set("has_target", state.has_target).map_err(e)?;
+            table.set("server", state.server).map_err(e)?;
+            let answers = lua.create_table().map_err(e)?;
+            for (index, answer) in data.answers.iter().enumerate() {
+                answers.set(index + 1, aim_event_table(lua, answer)?).map_err(e)?;
+            }
+            table.set("answers", answers).map_err(e)?;
+            table.set("draws", data.draws.clone()).map_err(e)?;
         }
         AimRequest::ReadyUpdate(data) => {
             table.set("mode", "ready_update").map_err(e)?;
@@ -568,6 +618,43 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
     Ok(table)
 }
 
+/// A weapon step's lookup, answer or action as a Lua table: `{ kind, a, b, c, d, f = { 12 numbers } }`.
+fn aim_event_table(lua: &Lua, event: &AimEvent) -> Result<LuaTable, String> {
+    let e = |error: LuaError| error.to_string();
+    let table = lua.create_table().map_err(e)?;
+    table.set("kind", event.kind).map_err(e)?;
+    table.set("a", event.a).map_err(e)?;
+    table.set("b", event.b).map_err(e)?;
+    table.set("c", event.c).map_err(e)?;
+    table.set("d", event.d).map_err(e)?;
+    table.set("f", event.f.to_vec()).map_err(e)?;
+    Ok(table)
+}
+
+/// A list of a weapon step's events from the host's answer: tables `{ kind, a, b, c, d, f }`, each integer exact and each float exact and finite.
+fn aim_event_list(lua: &Lua, table: &LuaTable, field: &str) -> Result<Vec<AimEvent>, String> {
+    let list = match table.get::<LuaValue>(field).map_err(|e| e.to_string())? {
+        LuaValue::Nil => return Ok(Vec::new()),
+        LuaValue::Table(list) => list,
+        other => return Err(format!("aim result {field} must be a list, got {}", other.type_name())),
+    };
+    let mut events = Vec::new();
+    for value in list.sequence_values::<LuaValue>() {
+        let LuaValue::Table(event) = value.map_err(|e| e.to_string())? else {
+            return Err(format!("aim result {field} holds a value that is not an event table"));
+        };
+        events.push(AimEvent {
+            kind: aim_integer(&event, "kind")?,
+            a: aim_integer(&event, "a")?,
+            b: aim_integer(&event, "b")?,
+            c: aim_integer(&event, "c")?,
+            d: aim_integer(&event, "d")?,
+            f: exact_numbers::<12>(lua, &event, "f").map_err(|e| format!("aim result {field} {e}"))?,
+        });
+    }
+    Ok(events)
+}
+
 fn aim_integer(table: &LuaTable, field: &str) -> Result<i32, String> {
     match table.get::<LuaValue>(field).map_err(|e| e.to_string())? {
         LuaValue::Integer(value) => i32::try_from(value).map_err(|_| format!("aim result {field} {value} is out of range")),
@@ -604,9 +691,23 @@ fn aim_echo(lua: &Lua, table: &LuaTable) -> Result<Option<Vec<AimEvent>>, String
                 "lead_result" => 6,
                 "table_flight" => 7,
                 "range_result" => 8,
+                "step_path" => 20,
+                "step_submunitions" => 21,
+                "step_tracking" => 22,
+                "step_guidance" => 23,
+                "step_guidance_source" => 24,
+                "step_tgt_branch" => 25,
+                "step_tgt_end" => 26,
+                "step_intercept" => 27,
+                "step_guided" => 28,
+                "step_precision" => 29,
+                "step_ground" => 30,
+                "step_impact" => 31,
+                "step_contact_any" => 32,
+                "step_contact_trees" => 33,
                 other => {
                     return Err(format!(
-                        "aim result echo kind {other:?} is not intercept, lead_path, lead_range, lead_iteration, ballistic, lead_result, table_flight or range_result"
+                        "aim result echo kind {other:?} is not intercept, lead_path, lead_range, lead_iteration, ballistic, lead_result, table_flight, range_result or a step_* kind"
                     ))
                 }
             },
@@ -642,14 +743,22 @@ fn call_aim(lua: &Lua, function: &LuaFunction, request: AimRequest) -> Result<Ai
     let mut reply = AimReply::default();
     match state.as_str() {
         "need_draw" => {
-            if !matches!(request, AimRequest::Vectors(_) | AimRequest::Lead(_)) {
+            if !matches!(request, AimRequest::Vectors(_) | AimRequest::Lead(_) | AimRequest::WeaponStep(_)) {
                 return Err("aim result need_draw answers a request that cannot take a draw".into());
             }
             reply.need_draw = true;
             return Ok(reply);
         }
+        "need_lookup" => {
+            if !matches!(request, AimRequest::WeaponStep(_)) {
+                return Err("aim result need_lookup answers a request that cannot take lookups".into());
+            }
+            reply.need_lookup = true;
+            reply.lookups = aim_event_list(lua, &table, "lookups")?;
+            return Ok(reply);
+        }
         "done" => {}
-        other => return Err(format!("aim result state {other:?} is not done or need_draw")),
+        other => return Err(format!("aim result state {other:?} is not done, need_draw or need_lookup")),
     }
     match &request {
         AimRequest::Table(data) => {
@@ -671,7 +780,10 @@ fn call_aim(lua: &Lua, function: &LuaFunction, request: AimRequest) -> Result<Ai
                 }
             }
         }
-        AimRequest::Range(_) => {}
+        AimRequest::Range(_) | AimRequest::Figures(_) => {}
+        AimRequest::WeaponStep(_) => {
+            reply.actions = aim_event_list(lua, &table, "actions")?;
+        }
         AimRequest::ReadyUpdate(_) => {
             reply.ready_state = number("ready_state")?;
             reply.phase = aim_integer(&table, "phase")?;

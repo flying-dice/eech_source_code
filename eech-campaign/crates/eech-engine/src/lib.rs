@@ -1094,6 +1094,20 @@ pub struct WeaponFigures {
     pub flight_profile_or_self_destr: i32,
     pub parachute_type: i32,
     pub weapon_class: u32,
+    pub cruise_time_max_error: f32,
+    pub detonation_radius: f32,
+    pub max_seeker_limit: f32,
+    pub max_launch_angle_error: f32,
+    pub survive_ground_impact: i32,
+    pub in_flight_collision_check: i32,
+    pub guidance_type: i32,
+    pub aiming_type: i32,
+    pub decoy_type: i32,
+    pub warhead_type: i32,
+    pub hellfire_ii: i32,
+    pub smoke_grenade: i32,
+    pub submunition_count: i32,
+    pub submunition_velocity_factor: i32,
 }
 
 /// An unguided weapon's figures, handed to the host once at boot: the host simulates the weapon's flight and keeps the ballistic table that results (no cell crosses the
@@ -1117,6 +1131,49 @@ pub struct AimRange {
     pub first: bool,
     pub last: bool,
     pub echo: bool,
+}
+
+/// One weapon's figures, handed to the host at boot to keep (every weapon, whether or not it has a table or a range run): the host flies the weapon by them.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimFigures {
+    pub weapon: i32,
+    pub figures: WeaponFigures,
+}
+
+/// The weapon as the campaign holds it for one frame of its flight. The entity-local random stream never leaves the campaign: `entity_samples` are its first four outputs
+/// (raw integers in [0, 32767]), all any one call of the original uses.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimWeaponState {
+    pub position: [f32; 3],
+    pub attitude: [f32; 9],
+    pub motion_vector: [f32; 3],
+    pub velocity: f32,
+    pub weapon_lifetime: f32,
+    pub decoy_timer: f32,
+    pub missile_phase: i32,
+    pub loal_mode: bool,
+    pub weapon_on_ground: bool,
+    pub parachute_status: i32,
+    pub kill_code: i32,
+    pub entity_samples: [i32; 4],
+    pub has_launcher: bool,
+    pub has_target: bool,
+    pub server: bool,
+}
+
+/// One frame of one weapon's flight: the weapon, the clock and the frame, and what the host has been told so far in answer to the lookups it asked for (`answers`, each
+/// the lookup repeated with its results in `f[6..12]`) and the samples of the campaign's shared random stream it has been given (`draws`, raw integers in [0, 32767]).
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimWeaponStep {
+    pub echo: bool,
+    pub weapon: i32,
+    pub delta_time: f32,
+    pub system_time: u32,
+    pub map_min: [f32; 3],
+    pub map_max: [f32; 3],
+    pub state: AimWeaponState,
+    pub answers: Vec<AimEvent>,
+    pub draws: Vec<i32>,
 }
 
 /// The figures of a weapon the host aims with. `present` is false when there is no weapon (a zero speed).
@@ -1267,6 +1324,8 @@ pub struct AimIntercept {
 pub enum AimRequest {
     Table(AimTable),
     Range(AimRange),
+    Figures(AimFigures),
+    WeaponStep(AimWeaponStep),
     ReadyUpdate(AimReadyUpdate),
     ReadyCommand(AimReadyCommand),
     Required(AimRequired),
@@ -1293,6 +1352,11 @@ pub struct AimEvent {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct AimReply {
     pub need_draw: bool,
+    /// A weapon step only: the host needs the answers to `lookups` and asks again.
+    pub need_lookup: bool,
+    /// A weapon step: the lookups it still needs (with `need_lookup`), or the actions it left, in the order the campaign applies them (when done).
+    pub lookups: Vec<AimEvent>,
+    pub actions: Vec<AimEvent>,
     pub result: bool,
     pub ready_state: f32,
     pub phase: i32,
@@ -2264,6 +2328,10 @@ fn weapon_figures(source: &sys::eech_weapon_figures) -> Result<WeaponFigures, St
         source.sustain_time,
         source.diameter,
         source.max_altitude,
+        source.cruise_time_max_error,
+        source.detonation_radius,
+        source.max_seeker_limit,
+        source.max_launch_angle_error,
     ];
     if floats.iter().any(|value| !value.is_finite()) {
         return Err(format!("aim received non-finite figures for weapon {name}"));
@@ -2290,6 +2358,20 @@ fn weapon_figures(source: &sys::eech_weapon_figures) -> Result<WeaponFigures, St
         flight_profile_or_self_destr: source.flight_profile_or_self_destr,
         parachute_type: source.parachute_type,
         weapon_class: source.weapon_class,
+        cruise_time_max_error: source.cruise_time_max_error,
+        detonation_radius: source.detonation_radius,
+        max_seeker_limit: source.max_seeker_limit,
+        max_launch_angle_error: source.max_launch_angle_error,
+        survive_ground_impact: source.survive_ground_impact,
+        in_flight_collision_check: source.in_flight_collision_check,
+        guidance_type: source.guidance_type,
+        aiming_type: source.aiming_type,
+        decoy_type: source.decoy_type,
+        warhead_type: source.warhead_type,
+        hellfire_ii: source.hellfire_ii,
+        smoke_grenade: source.smoke_grenade,
+        submunition_count: source.submunition_count,
+        submunition_velocity_factor: source.submunition_velocity_factor,
     })
 }
 
@@ -2374,6 +2456,76 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                     echo,
                 })
             }
+        }
+        sys::EECH_AIM_FIGURES => {
+            let figures = weapon_figures(&source.figures)?;
+            if source.weapon <= 0 {
+                return Err(format!("aim received figures for weapon {}, which is not a weapon", source.weapon));
+            }
+            AimRequest::Figures(AimFigures {
+                weapon: source.weapon,
+                figures,
+            })
+        }
+        sys::EECH_AIM_WEAPON_STEP => {
+            let state = &source.weapon_state;
+            finite("weapon position", &state.position)?;
+            finite("weapon attitude", &state.attitude)?;
+            finite("weapon motion vector", &state.motion_vector)?;
+            finite("weapon state", &[state.velocity, state.weapon_lifetime, state.decoy_timer, source.delta_time])?;
+            finite("map bound", &source.map_min)?;
+            finite("map bound", &source.map_max)?;
+            if source.weapon <= 0 {
+                return Err(format!("aim received a step of weapon {}, which is not a weapon", source.weapon));
+            }
+            if !(0..=sys::EECH_STEP_ANSWERS_MAX as c_int).contains(&source.answer_count)
+                || !(0..=sys::EECH_STEP_DRAWS_MAX as c_int).contains(&source.draw_count)
+            {
+                return Err("aim received a weapon step with an answer or draw count out of range".into());
+            }
+            let draws = source.draws[..source.draw_count as usize].to_vec();
+            if draws.iter().chain(state.entity_samples.iter()).any(|sample| !(0..=32767).contains(sample)) {
+                return Err("aim received a weapon step with a random sample outside [0, 32767]".into());
+            }
+            let mut answers = Vec::with_capacity(source.answer_count as usize);
+            for answer in &source.answers[..source.answer_count as usize] {
+                finite("lookup answer", &answer.f)?;
+                answers.push(AimEvent {
+                    kind: answer.kind,
+                    a: answer.a,
+                    b: answer.b,
+                    c: answer.c,
+                    d: answer.d,
+                    f: answer.f,
+                });
+            }
+            AimRequest::WeaponStep(AimWeaponStep {
+                echo,
+                weapon: source.weapon,
+                delta_time: source.delta_time,
+                system_time: source.system_time,
+                map_min: source.map_min,
+                map_max: source.map_max,
+                state: AimWeaponState {
+                    position: state.position,
+                    attitude: state.attitude,
+                    motion_vector: state.motion_vector,
+                    velocity: state.velocity,
+                    weapon_lifetime: state.weapon_lifetime,
+                    decoy_timer: state.decoy_timer,
+                    missile_phase: state.missile_phase,
+                    loal_mode: checked_bool("loal_mode", state.loal_mode)?,
+                    weapon_on_ground: checked_bool("weapon_on_ground", state.weapon_on_ground)?,
+                    parachute_status: state.parachute_status,
+                    kill_code: state.kill_code,
+                    entity_samples: state.entity_samples,
+                    has_launcher: checked_bool("has_launcher", state.has_launcher)?,
+                    has_target: checked_bool("has_target", state.has_target)?,
+                    server: checked_bool("server", state.server)?,
+                },
+                answers,
+                draws,
+            })
         }
         sys::EECH_AIM_READY_UPDATE => {
             finite("ready figure", &[source.ready_state, source.ready_rate, source.delta_time])?;
@@ -2524,12 +2676,54 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
 fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech_aim_result, String> {
     // SAFETY: the result is plain data; all-zero is a valid value of every field (the echo pointer is the campaign's, set after the call).
     let mut answer: sys::eech_aim_result = unsafe { std::mem::zeroed() };
+    let event = |event: &AimEvent| sys::eech_aim_event {
+        kind: event.kind,
+        a: event.a,
+        b: event.b,
+        c: event.c,
+        d: event.d,
+        f: event.f,
+    };
     if reply.need_draw {
-        if source.mode != sys::EECH_AIM_VECTORS && source.mode != sys::EECH_AIM_LEAD {
+        if source.mode != sys::EECH_AIM_VECTORS && source.mode != sys::EECH_AIM_LEAD && source.mode != sys::EECH_AIM_WEAPON_STEP {
             return Err("aim asked for a draw in answer to a request that cannot take one".into());
         }
         answer.state = sys::EECH_AIM_NEED_DRAW;
         return Ok(answer);
+    }
+    if reply.need_lookup {
+        if source.mode != sys::EECH_AIM_WEAPON_STEP {
+            return Err("aim asked for lookups in answer to a request that cannot take them".into());
+        }
+        if reply.lookups.is_empty() || reply.lookups.len() > sys::EECH_STEP_LOOKUPS_MAX {
+            return Err(format!(
+                "aim asked for {} lookups, not 1 to {}",
+                reply.lookups.len(),
+                sys::EECH_STEP_LOOKUPS_MAX
+            ));
+        }
+        answer.state = sys::EECH_AIM_NEED_LOOKUP;
+        answer.lookup_count = reply.lookups.len() as c_int;
+        for (slot, lookup) in answer.lookups.iter_mut().zip(&reply.lookups) {
+            *slot = event(lookup);
+        }
+        return Ok(answer);
+    }
+    if !reply.actions.is_empty() {
+        if source.mode != sys::EECH_AIM_WEAPON_STEP {
+            return Err("aim answered a request that cannot carry actions with some".into());
+        }
+        if reply.actions.len() > sys::EECH_STEP_ACTIONS_MAX {
+            return Err(format!(
+                "aim answered with {} actions, more than the {} a step can carry",
+                reply.actions.len(),
+                sys::EECH_STEP_ACTIONS_MAX
+            ));
+        }
+        answer.action_count = reply.actions.len() as c_int;
+        for (slot, action) in answer.actions.iter_mut().zip(&reply.actions) {
+            *slot = event(action);
+        }
     }
     answer.state = sys::EECH_AIM_DONE;
     answer.result = c_int::from(reply.result);

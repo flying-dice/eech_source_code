@@ -1229,6 +1229,149 @@ void eech_wpn_contact_trees (int hit, const vec3d *old_position, const vec3d *ne
 	}
 }
 
+/* The host's weapon step echoes the hooks of the original weapon_movement it passed, in order (the campaign's step asks for it in this build only); each is replayed here
+   into the hook the original called, with the values the host's step computed.  The hit entity the contact hook looks at is a stand-in that only carries its type. */
+void eech_wpn_step_echo (const campaign_aim_event *event)
+{
+	vec3d position, old_position, new_position;
+	entity hit;
+
+	switch (event->kind)
+	{
+		case CAMPAIGN_AIM_EVENT_STEP_PATH:
+		{
+			if ((event->a < 0) || (event->a >= EECH_WPN_PATHS))
+			{
+				debug_fatal ("weapon fixture: the host's step echoed path %d", event->a);
+			}
+
+			eech_wpn_path (event->a);
+
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_STEP_SUBMUNITIONS:
+		{
+			eech_wpn_submunitions (event->a);
+
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_STEP_TRACKING:
+		{
+			eech_wpn_tracking (event->a);
+
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_STEP_GUIDANCE:
+		{
+			eech_wpn_guidance (event->a, event->b);
+
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_STEP_GUIDANCE_SOURCE:
+		{
+			eech_wpn_guidance_source (event->a, event->b, event->c);
+
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_STEP_TGT_BRANCH:
+		{
+			if ((event->a < 0) || (event->a >= EECH_WPN_TGTS))
+			{
+				debug_fatal ("weapon fixture: the host's step echoed target branch %d", event->a);
+			}
+
+			eech_wpn_tgt_branch (event->a, event->b);
+
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_STEP_TGT_END:
+		{
+			position.x = event->f[0];
+			position.y = event->f[1];
+			position.z = event->f[2];
+
+			eech_wpn_tgt_end (event->a, &position);
+
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_STEP_INTERCEPT:
+		{
+			position.x = event->f[2];
+			position.y = event->f[3];
+			position.z = event->f[4];
+
+			eech_wpn_intercept (event->f[0], event->f[1], &position);
+
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_STEP_GUIDED:
+		{
+			if ((event->a < 0) || (event->a >= EECH_WPN_GUIDED_KINDS))
+			{
+				debug_fatal ("weapon fixture: the host's step echoed guided kind %d", event->a);
+			}
+
+			eech_wpn_guided (event->a, event->f[0], event->f[1], event->f[2], event->f[3]);
+
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_STEP_PRECISION:
+		{
+			eech_wpn_precision (event->a);
+
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_STEP_GROUND:
+		{
+			eech_wpn_ground (event->a, event->b);
+
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_STEP_IMPACT:
+		{
+			eech_wpn_impact (event->a, event->b);
+
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_STEP_CONTACT_ANY:
+		{
+			old_position.x = event->f[0];
+			old_position.y = event->f[1];
+			old_position.z = event->f[2];
+
+			new_position.x = event->f[3];
+			new_position.y = event->f[4];
+			new_position.z = event->f[5];
+
+			memset (&hit, 0, sizeof (hit));
+
+			hit.type = (entity_types) event->b;
+
+			eech_wpn_contact_any (event->a ? &hit : NULL, &old_position, &new_position);
+
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_STEP_CONTACT_TREES:
+		{
+			old_position.x = event->f[0];
+			old_position.y = event->f[1];
+			old_position.z = event->f[2];
+
+			new_position.x = event->f[3];
+			new_position.y = event->f[4];
+			new_position.z = event->f[5];
+
+			eech_wpn_contact_trees (event->a, &old_position, &new_position);
+
+			break;
+		}
+		default:
+		{
+			debug_fatal ("weapon fixture: the host's step echoed an event of kind %d", event->kind);
+		}
+	}
+}
+
 void eech_wpn_move_end (entity *en)
 {
 	const weapon *raw = (const weapon *) get_local_entity_data (en);

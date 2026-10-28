@@ -589,8 +589,17 @@ pub const EECH_AIM_LEAD: c_int = 7;
 pub const EECH_AIM_BALLISTIC: c_int = 8;
 pub const EECH_AIM_INTERCEPT: c_int = 9;
 pub const EECH_AIM_RANGE: c_int = 10;
+pub const EECH_AIM_FIGURES: c_int = 11;
+pub const EECH_AIM_WEAPON_STEP: c_int = 12;
 pub const EECH_AIM_DONE: c_int = 1;
 pub const EECH_AIM_NEED_DRAW: c_int = 2;
+pub const EECH_AIM_NEED_LOOKUP: c_int = 3;
+pub const EECH_STEP_ANSWERS_MAX: usize = 128;
+pub const EECH_STEP_DRAWS_MAX: usize = 8;
+pub const EECH_STEP_ACTIONS_MAX: usize = 32;
+pub const EECH_STEP_LOOKUPS_MAX: usize = 16;
+pub const EECH_AIM_EVENT_STEP_FIRST: c_int = 20;
+pub const EECH_AIM_EVENT_STEP_LAST: c_int = 33;
 pub const EECH_AIM_EVENT_INTERCEPT: c_int = 1;
 pub const EECH_AIM_EVENT_LEAD_PATH: c_int = 2;
 pub const EECH_AIM_EVENT_LEAD_RANGE: c_int = 3;
@@ -637,6 +646,41 @@ pub struct eech_weapon_figures {
     pub flight_profile_or_self_destr: c_int,
     pub parachute_type: c_int,
     pub weapon_class: c_uint,
+    pub cruise_time_max_error: f32,
+    pub detonation_radius: f32,
+    pub max_seeker_limit: f32,
+    pub max_launch_angle_error: f32,
+    pub survive_ground_impact: c_int,
+    pub in_flight_collision_check: c_int,
+    pub guidance_type: c_int,
+    pub aiming_type: c_int,
+    pub decoy_type: c_int,
+    pub warhead_type: c_int,
+    pub hellfire_ii: c_int,
+    pub smoke_grenade: c_int,
+    pub submunition_count: c_int,
+    pub submunition_velocity_factor: c_int,
+}
+
+/// The weapon as the campaign holds it, in a weapon step (aphavoc/.../mb_hostaim.h campaign_weapon_state), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_weapon_state {
+    pub position: [f32; 3],
+    pub attitude: [f32; 9],
+    pub motion_vector: [f32; 3],
+    pub velocity: f32,
+    pub weapon_lifetime: f32,
+    pub decoy_timer: f32,
+    pub missile_phase: c_int,
+    pub loal_mode: c_int,
+    pub weapon_on_ground: c_int,
+    pub parachute_status: c_int,
+    pub kill_code: c_int,
+    pub entity_samples: [c_int; 4],
+    pub has_launcher: c_int,
+    pub has_target: c_int,
+    pub server: c_int,
 }
 
 /// One request of the host-owned aiming and readiness exchange (aphavoc/.../mb_hostaim.h), field for field.
@@ -696,6 +740,12 @@ pub struct eech_aim_step {
     pub height_diff_or_pitch: f32,
     pub simplified: c_int,
     pub fixed_pitch: c_int,
+    pub system_time: c_uint,
+    pub weapon_state: eech_weapon_state,
+    pub answer_count: c_int,
+    pub answers: [eech_aim_event; EECH_STEP_ANSWERS_MAX],
+    pub draw_count: c_int,
+    pub draws: [c_int; EECH_STEP_DRAWS_MAX],
 }
 
 #[repr(C)]
@@ -722,6 +772,10 @@ pub struct eech_aim_result {
     pub echo_count: c_int,
     pub echo: *const eech_aim_event,
     pub echo_cell_count: usize,
+    pub lookup_count: c_int,
+    pub lookups: [eech_aim_event; EECH_STEP_LOOKUPS_MAX],
+    pub action_count: c_int,
+    pub actions: [eech_aim_event; EECH_STEP_ACTIONS_MAX],
 }
 
 pub type eech_aim_callback =
