@@ -17,8 +17,12 @@ Exit status: 0 every evaluated check passed and the run is complete (PROCESS and
 completed/0): the checks that could be evaluated passed, the rest are NOT_EVALUATED.  Nothing here changes the emitter, a golden or a tolerance; the file is read line by line
 under --max-bytes and a line over 4 MiB is a failure, never a huge read.
 
-Schema notes (facts of the emitter, not assumptions): the hash keys `damage collision blast repair timed order hash` are always strings, so in a `cmb-kind` row the COUNT `blast`
-arrives as a decimal string; this audit reads it as an integer there and says so.  A run-wide counter that is a hash of nothing yet is the FNV offset basis cbf29ce484222325.
+Schema notes (facts of the emitter, not assumptions). TWO SCHEMAS of the `cmb-kind` row exist and the audit declares which it found:
+  legacy     the original f41 run (natural-01 and its binaries, kept as written) was parsed by a combat-report.lua that protected hash WORDS, so the `cmb-kind` COUNTER `blast`
+             arrived as a decimal JSON string ("69") while every other counter was a number; `cmb-hash blast` was and is a 16-hex-digit string
+  corrected  lua/combat-report.lua protects a hash only inside the `cmb-hash` event, so `cmb-kind blast` is a number
+A trace must be one or the other (mixed is a failure), no OTHER cmb-kind field may be a non-number, and `--require-corrected-schema` fails a legacy trace.  The audit reads the
+legacy counter as an integer; nothing is rewritten.  A run-wide hash of nothing yet is the FNV offset basis cbf29ce484222325.
 """
 import argparse
 import json
@@ -99,6 +103,7 @@ def main():
     ap.add_argument('--frame-ms', type=int, default=100)
     ap.add_argument('--checkpoint-every', type=float, default=60)
     ap.add_argument('--seed', type=int, default=1)
+    ap.add_argument('--require-corrected-schema', action='store_true', help='fail a trace whose cmb-kind blast counter is a string (the legacy f41 schema)')
     ap.add_argument('--partial', action='store_true', help='the run is still going: evaluate what exists, never exit 0')
     ap.add_argument('--max-bytes', type=int, default=256 * 1024 * 1024)
     ap.add_argument('--summary')
@@ -182,6 +187,33 @@ def main():
             if not (isinstance(v, str) and HEX16.match(v)):
                 bad_hash.append((k, h, v))
     au.ok('ARTIFACT', 'six hashes (damage collision blast repair timed order) in every report are 16 lowercase hex digits written as strings', not bad_hash and bool(hash_lines), f'{len(hash_lines)} reports; bad: {bad_hash[:3]}')
+
+    # ---- the declared typing of the cmb-kind rows
+    kind_rows = [r for r in rows if r.get('event') == 'cmb-kind']
+    blast_values = [r['blast'] for r in kind_rows if 'blast' in r]
+    schema = 'none'
+    if blast_values:
+        strings = [v for v in blast_values if isinstance(v, str)]
+        numbers = [v for v in blast_values if isinstance(v, (int, float)) and not isinstance(v, bool)]
+        if strings and numbers:
+            schema = 'mixed'
+        elif strings:
+            schema = 'legacy_string'
+        elif numbers:
+            schema = 'number'
+        else:
+            schema = 'other'
+    non_numbers = [(r.get('type'), f, v) for r in kind_rows for f, v in r.items()
+                   if f not in ('event', 'scope', 'at', 'type', 'blast') and (isinstance(v, bool) or not isinstance(v, (int, float)))]
+    legacy_ok = schema != 'legacy_string' or all(re.fullmatch(r'\d+', v) for v in blast_values)
+    au.ok('ARTIFACT', 'every cmb-kind counter is a number, except the declared legacy f41 `blast` decimal string', not non_numbers, f'non-numbers: {non_numbers[:2]}')
+    if schema == 'none':
+        au.add('ARTIFACT', 'cmb-kind blast counter typing', 'NOT_EVALUATED', 'no cmb-kind rows')
+    elif schema == 'legacy_string':
+        au.ok('ARTIFACT', 'cmb-kind blast counter typing: LEGACY schema (decimal strings), accepted and declared' if not a.require_corrected_schema else 'cmb-kind blast counter typing: corrected schema required',
+              legacy_ok and not a.require_corrected_schema, f'{len(blast_values)} rows carry blast as a JSON string; the corrected parser writes a number; the audit reads it as an integer')
+    else:
+        au.ok('ARTIFACT', f'cmb-kind blast counter typing: {schema}', schema == 'number', f'{len(blast_values)} rows')
 
     bad_integrity = []
     for k in ordered_keys:
@@ -327,7 +359,7 @@ def main():
     # ---- verdict
     evaluated_incomplete = (not complete) or a.partial or (a.run_json is None) or (not process_done)
     status = 'FAIL' if au.failed() else ('INCOMPLETE' if evaluated_incomplete else 'PASS')
-    summary = {'trace': a.trace, 'bytes': size, 'status': status, 'process_done': process_done, 'artifact_complete': complete, 'checks': au.results, 'coverage': cov}
+    summary = {'trace': a.trace, 'bytes': size, 'status': status, 'schema': {'cmb_kind_blast_counter': schema}, 'process_done': process_done, 'artifact_complete': complete, 'checks': au.results, 'coverage': cov}
     for r in au.results:
         print(f'{r["status"]:<13} [{r["section"]}] {r["name"]}' + (f' :: {r["detail"]}' if r['status'] != 'PASS' and r['detail'] else ''))
     if cov:

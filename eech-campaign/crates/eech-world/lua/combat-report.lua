@@ -29,9 +29,12 @@ return function (out)
 		out:flush ()
 	end
 
-	-- the six hashes of the `cmb-hash` line are 16 hex digits and are always strings, even when every digit is decimal (a number would lose the leading zeros and, above 2^53, the
-	-- low digits)
-	local string_keys = { damage = true, collision = true, blast = true, repair = true, timed = true, order = true, hash = true }
+	-- the six hashes of the `cmb-hash` line are 16 hex digits and are strings, even when every digit is decimal (a number would lose the leading zeros and, above 2^53, the low
+	-- digits).  They are hashes ONLY in that event: the word `blast` is also a COUNTER in a `cmb-kind` row, where a number is right.  So what is protected is a field of an event,
+	-- never a word.  (The original f41 run wrote the cmb-kind counter as a string because this table used to be a set of words; that run's raw trace is kept as written.)
+	local string_fields = {
+		["cmb-hash"] = { damage = true, collision = true, blast = true, repair = true, timed = true, order = true },
+	}
 
 	-- one JSON object per report line: the first word is the event, `key=value` words are its fields; a sample line keeps its text whole
 	local function emit_report (scope, at, report)
@@ -43,8 +46,9 @@ return function (out)
 				t.key = key
 				t.text = text
 			else
+				local protected = string_fields [event] or {}
 				for k, v in string.gmatch (rest, "(%S+)=(%S+)") do
-					t [k] = (not string_keys [k] and tonumber (v)) or v
+					t [k] = (not protected [k] and tonumber (v)) or v
 				end
 			end
 			emit (t)

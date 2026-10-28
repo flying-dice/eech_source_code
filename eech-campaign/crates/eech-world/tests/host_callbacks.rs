@@ -642,9 +642,16 @@ writer.emit_report('run', 600, table.concat({
   'cmb-hash damage=0123456789abcdef collision=ffffffffffffffff blast=00000000000000ff repair=0000000000000000 timed=0000000000000000 order=1',
   'cmb-integrity depth_max=2 depth_overflow=0 trusted=1',
   'cmb-kind type=HELICOPTER collisions=3 damage_sum=5.5',
+  -- the SAME word `blast` is a hash in cmb-hash (above) and a COUNTER in a cmb-kind row: its type follows the event, not the word
+  'cmb-kind type=CITY_BUILDING collisions=70 direct=1 blast=69 applied=69 candidates=105876',
+  'cmb-kind type=SEGMENT collisions=8 direct=0 blast=0000000000000008 applied=8',
+  'cmb-repair resupply=5 fixed_restore=0 other=0 zero_to_positive=0',
+  'cmb-timed kind=1 attempts=626574 draws=364 hits=43 fatal=0',
+  'cmb-ev seq=7 kind=timed type=1 receiver=ENTITY_TYPE_HELICOPTER draws=1 new_level=0',
 }, '\n'))
 local text = table.concat(written)
 local function has(fragment) assert(text:find(fragment, 1, true), 'missing ' .. fragment .. ' in ' .. text) end
+local function lacks(fragment) assert(not text:find(fragment, 1, true), 'unexpected ' .. fragment .. ' in ' .. text) end
 has('"damage":"0123456789012345"')
 has('"collision":"9007199254740993"')
 has('"blast":"0000000000000255"')
@@ -658,6 +665,17 @@ has('"depth_max":2')
 has('"trusted":1')
 has('"collisions":3')
 has('"type":"HELICOPTER"')
+-- the counter named like a hash is a number in a cmb-kind row, and the hash named like a counter is a string in the cmb-hash line, in the same report
+has('"blast":69,')
+lacks('"blast":"69"')
+has('"blast":8,')
+has('"blast":"0000000000000255"')
+lacks('"blast":255')
+-- other counters stay numbers (including the ones that share a word with a hash key elsewhere) and a name that looks like one stays what the emitter wrote
+has('"resupply":5')
+has('"hits":43')
+has('"kind":"timed"')
+has('"type":1}')
 print('COMBAT_REPORT=ok')
 "#;
 

@@ -5,7 +5,7 @@ usage: combat-trace-audit-selftest.py <complete trace.jsonl from lua/combat-char
 
 The base is a real trace (not a trace made by a copy of the emitter): the audit must accept it unchanged (exit 0), and it must reject each of a list of single, targeted
 corruptions of that same file with the exit status that corruption deserves (1 a failure, 2 incomplete).  Each corruption is a byte-for-byte edit of one fact:
-a hash written as a number, an integrity flag, a missing event, a wrong boot configuration, a missing final run event, a counter that goes down, a run that is not finished.
+a hash written as a number, an integrity flag, a missing event, a wrong boot configuration, a missing final run event, a counter that goes down, a run that is not finished, and the typing of the cmb-kind `blast` counter (legacy decimal string, corrected number, mixed, another counter as a string, a hash-labelled `blast` as a number).
 Writes the corrupted copies under the work directory (default: a temporary directory) and prints one line per case; exit 0 only if every case behaved as stated.
 """
 import json
@@ -107,6 +107,33 @@ def main():
     case('process_exited_nonzero', copy(), 1, run=rj2)
 
     case('partial_flag_never_exits_0', copy(), 2, extra=('--partial',))
+
+    # the typing of the cmb-kind `blast` COUNTER: the real trace is the legacy f41 schema (decimal strings); the corrected parser writes numbers
+    case('legacy_schema_requires_corrected_fails', copy(), 1, extra=('--require-corrected-schema',))
+
+    r = copy()
+    for x in r:
+        if x.get('event') == 'cmb-kind' and isinstance(x.get('blast'), str):
+            x['blast'] = int(x['blast'])
+    case('corrected_schema_numbers_pass', r, 0)
+    case('corrected_schema_numbers_pass_when_required', r, 0, extra=('--require-corrected-schema',))
+
+    r = [dict(x) for x in r]
+    kinds = [x for x in r if x.get('event') == 'cmb-kind']
+    kinds[0]['blast'] = str(kinds[0]['blast'])  # one legacy string among numbers
+    case('mixed_schema_fails', r, 1)
+
+    r = copy()
+    next(x for x in r if x.get('event') == 'cmb-kind' and 'collisions' in x)['collisions'] = str(next(x for x in r if x.get('event') == 'cmb-kind' and 'collisions' in x)['collisions'])
+    case('another_counter_as_string_fails', r, 1)
+
+    r = copy()
+    next(x for x in r if x.get('event') == 'cmb-kind' and isinstance(x.get('blast'), str))['blast'] = 'abc'
+    case('legacy_blast_not_decimal_fails', r, 1)
+
+    r = copy()
+    next(x for x in r if x.get('event') == 'cmb-hash' and x.get('scope') == 'run')['blast'] = 255  # the hash named like a counter must stay a string
+    case('hash_blast_as_number_fails', r, 1)
 
     bad = 0
     for name, ok, detail in results:
