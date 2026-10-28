@@ -696,3 +696,41 @@ campaign decision, credit, awareness, route or repair policy, accounting or D1 c
   shipping roots of `lua/object-report-case.lua` (site none / damage + raise / destroyed + duplicate / own-identity destroyed + unknown; segment none / destroyed; 5 s, 100 ms, 12 s) with the default and controlled
   comparisons; the essential reads are the actual before/after state of the chosen structure and the specific primary errors of the controls, plus the new subject counters; the default raw protocols and the closed
   bridge pair must be compared with their retained bytes. Whole D2 is not complete: the native validation, the whole-scope audit and the shipping gates remain.
+
+## Correction of a Windows runtime memory-safety defect found by the first native run of Step 6 (`f4700bbab`)
+
+The Root built the corrected Step 6 source `f4700bbab` (fixture and shipping, both 42 exports verified) and ran the six shipping roots of `lua/object-report-case.lua`. **All six terminated with the driver at 1 and the
+native process at -1073741819 (0xC0000005)**, each with only the boot row in its trace (no census, before, receipt, after or control): `root-r3-f470-six-report-crashes.json` and
+`root-r3-f470-structure-crash-disassembly.log` (raw, preserved). None of them establishes report influence, withholding, generic-host authority or an expected refusal. The earlier source reviews and the C checks did not
+see it: their fake entity heap was as large as the compile-time ceiling, so the defect was invisible to them.
+
+* **The defect, verified in the source.** `campaign_object_structures` (`mb_hostobj.c`) walked the entity heap up to `MAX_NUM_ENTITIES` (524,288, the compile-time ceiling). The heap a run holds is
+  `number_of_entities` slots (`initialise_entity_heap`, `en_heap.c`: it sets `number_of_entities` and `malloc`s that many; `init.c` passes 125,000 or 135,000), and `get_local_entity_ptr` is `&entities[index]` with no check.
+  The first read past the allocation, the entity's type in the loop (`mov (%rbx),%ecx` at DLL RVA 0x1c68b5, a 32-byte stride up to the limit 0x1000000 = 524,288 x 32), faulted. `engine:structures()` is the first call of the witness
+  after its warm-up, which is why every root died there.
+* **The fix: every slot index of the registry is bounded by the capacity actually allocated.** `heap_capacity ()` is `number_of_entities` (a heap that does not hold between 1 and the ceiling is refused by name). The
+  enumeration walks `[0, capacity)`; the identity map (`record_of_entity`) is allocated for the capacity of the run (it was the ceiling, 2 MiB too large) and remembers it (`map_capacity`); the lookup, the identification and
+  the release of an identity bound their index by that capacity. A heap that changes size while identities exist is refused, not silently re-read (a reset at engine boot forgets the map). Nothing else changed: the six
+  structure kinds, the ascending slot order, the identities, their lifecycle, the report semantics, the real handlers, the entity allocation, the numbering of recordings, the physical numbers, draws and the
+  notification, kill and update order are as before; the ceiling was not changed, no heap was enlarged and no address was skipped. A dead segment keeps its stored health (500).
+* **Audit.** The new registry had the ceiling in four places (the lookup, the identification, the allocation, the release) as well as the enumeration; all five are now bounded by the capacity. No other file of Steps 5
+  and 6 indexes the heap by slot (the roster sizes its maps by `number_of_entities`, as it did). One pre-existing test-only use of the ceiling remains outside this registry and is NOT changed here:
+  `fixture_hosted_entity` in `eech_engine.c` (the dependent and loss fixtures) checks `index >= MAX_NUM_ENTITIES` before `get_local_entity_ptr`; it is not part of the shipping module and did not run.
+* **The test that would have found it.** `c-checks/object-stub/project.h` and `object_checks.c` now model the real shape: the ceiling is 4,096 slots, the heap of a run is `calloc`ed EXACTLY `number_of_entities` slots (so a
+  sanitizer sees any read past it) and the accessor counts every slot index outside the capacity (`out_of_range_reads`) and returns a harmless slot so a check can report it instead of crashing; the stub no longer assumes
+  that the capacity equals the ceiling. New checks (82 in all, ASan and UBSan): for five runtime capacities (8, 20, 37, 64, 129), with a site, a segment in the middle, a pylon in the LAST slot, a weapon and a mobile
+  that are not structures, every structure is listed, in ascending slot order, the last slot is reached, no slot outside the capacity is read (also on a second listing with the identities held, which asks the host no
+  more), and the identity of the last slot ends with its entity; two capacities in turn across the reset the engine does at boot; a heap whose size changes while identities exist is refused on both the enumeration and the
+  identification path; a heap of no slots is refused; an entity at index = capacity is refused before the host is asked. The checks assert the contract (what is listed, in what order, what was read), not an iterator.
+* **Red, then green, at the real boundary.** `c-checks/run-object-checks-pre-capacity.sh` runs the current checks against the `mb_hostobj.c` of `f4700bbab`: it compiles and runs under ASan/UBSan, and the capacity
+  checks fail (19 failures of 82: for every one of the five capacities the reads outside the allocation, in the first listing's accounting, in the second listing and in the release, plus the size-change, no-heap and
+  index-at-capacity refusals; the ordering and listing checks pass, since the defect reads past the allocation and finds nothing there): `checks/object-checks-8-red-pre-capacity-f4700bbab.log` (an earlier red of the
+  81-check version is `object-checks-6-red-pre-capacity-f4700bbab.log`). GREEN with the fix: `checks/object-checks-7.log`, 82 checks, 0 failures. The mutation controller (`mutate-object-checks.sh`) now removes 23 rules, the
+  new ones being the enumeration walking to the ceiling, the capacity being the ceiling and the size-change guard of the identification, all caught, both setup controls as expected
+  (`checks/object-mutation-6.log`; the run before, which found two gaps in the controller itself, is retained as `object-mutation-5-failed-controller-gaps.log`). The claims of the earlier corrections are unchanged: the
+  reverse-namespace red was 52 checks with 5 failures before and 56 with 0 after, the full roster function is not executed by this fake heap, and the three subject baselines are passing baselines, not negative controls.
+* **Real tree.** `cargo test --locked` (workspace, which compiles the whole campaign tree, links the kernel crate with the macro off and runs the public Lua host) and the fixture-feature tests exit 0; `cargo fmt --check` exit 0;
+  syntax-only compile 22 OK. No Rust changed, so Clippy was not repeated. The failed attempts are retained.
+* **State.** Candidate, NOT accepted. The newly found runtime failure is repaired in source; nothing of this SHA has been Windows-built or run natively, and the source checks above do not establish that the native run
+  works: the Root builds a fresh clean source and reruns the six roots. The closed source reviews of the earlier findings do not establish this heap safety. The compatibility pair that the Root ran on `f4700bbab` (the
+  bridge pair, 320,598 bytes) shows only that the rest of the build behaves as before, not that `structures()` works. Whole D2 is not complete.

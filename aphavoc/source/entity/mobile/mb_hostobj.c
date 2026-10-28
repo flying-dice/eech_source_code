@@ -55,6 +55,22 @@ static size_t
 static int
 	*record_of_entity = NULL;
 
+// The slots of the entity heap that record_of_entity covers.  MAX_NUM_ENTITIES is only the compile-time CEILING of the heap: the heap a run holds is number_of_entities slots (initialise_entity_heap), and
+// get_local_entity_ptr does not check, so every slot index here is bounded by the capacity actually allocated, never by the ceiling.
+static int
+	map_capacity = 0;
+
+// the capacity of the entity heap this run allocated
+static int heap_capacity (void)
+{
+	if ((number_of_entities <= 0) || (number_of_entities > MAX_NUM_ENTITIES))
+	{
+		debug_fatal ("host objects: the entity heap holds %d slots, which is not a heap this run allocated", number_of_entities);
+	}
+
+	return number_of_entities;
+}
+
 // open-addressing table over the records by identity (record number + 1; 0 empty); records are never removed so no tombstones are needed
 static int
 	*table = NULL;
@@ -177,6 +193,7 @@ void campaign_object_reset (void)
 
 	records = NULL;
 	record_of_entity = NULL;
+	map_capacity = 0;
 	table = NULL;
 	record_count = 0;
 	record_capacity = 0;
@@ -199,7 +216,7 @@ const char *campaign_object_host_id (struct ENTITY *en)
 	{
 		int index = get_local_entity_index (en);
 
-		if (record_of_entity && (index >= 0) && (index < MAX_NUM_ENTITIES) && record_of_entity[index])
+		if (record_of_entity && (index >= 0) && (index < map_capacity) && record_of_entity[index])
 		{
 			return records[record_of_entity[index] - 1].host_id;
 		}
@@ -267,9 +284,9 @@ const char *campaign_object_identify (struct ENTITY *en)
 
 	index = get_local_entity_index (en);
 
-	if ((index < 0) || (index >= MAX_NUM_ENTITIES))
+	if ((index < 0) || (index >= heap_capacity ()))
 	{
-		debug_fatal ("host objects: entity %d is outside the entity heap", index);
+		debug_fatal ("host objects: entity %d is outside the entity heap of %d slots", index, heap_capacity ());
 	}
 
 	memset (&request, 0, sizeof (request));
@@ -297,12 +314,18 @@ const char *campaign_object_identify (struct ENTITY *en)
 
 	if (!record_of_entity)
 	{
-		record_of_entity = (int *) calloc ((size_t) MAX_NUM_ENTITIES, sizeof (int));
+		record_of_entity = (int *) calloc ((size_t) heap_capacity (), sizeof (int));
 
 		if (!record_of_entity)
 		{
 			debug_fatal ("host objects: cannot allocate the identity map of the entity heap");
 		}
+
+		map_capacity = heap_capacity ();
+	}
+	else if (map_capacity != heap_capacity ())
+	{
+		debug_fatal ("host objects: the entity heap changed from %d to %d slots while identities exist", map_capacity, heap_capacity ());
 	}
 
 	if (record_count == record_capacity)
@@ -353,7 +376,7 @@ void campaign_object_release_entity (struct ENTITY *en)
 
 	index = get_local_entity_index (en);
 
-	if ((index < 0) || (index >= MAX_NUM_ENTITIES) || !record_of_entity[index])
+	if ((index < 0) || (index >= map_capacity) || !record_of_entity[index])
 	{
 		return;
 	}
@@ -486,11 +509,19 @@ void campaign_object_report_apply (const campaign_object_report *report, campaig
 
 int campaign_object_structures (campaign_object_snapshot_fn callback, void *user)
 {
-	int index, count;
+	int index, count, capacity;
 
 	count = 0;
 
-	for (index = 0; index < MAX_NUM_ENTITIES; index++)
+	// the slots the heap holds, not the ceiling it could have held
+	capacity = heap_capacity ();
+
+	if (record_of_entity && (map_capacity != capacity))
+	{
+		debug_fatal ("host objects: the entity heap changed from %d to %d slots while identities exist", map_capacity, capacity);
+	}
+
+	for (index = 0; index < capacity; index++)
 	{
 		struct ENTITY *en = get_local_entity_ptr (index);
 

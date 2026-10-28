@@ -67,12 +67,18 @@ struct ENTITY
 
 typedef struct ENTITY entity;
 
-#define MAX_NUM_ENTITIES 64
+/* the compile-time CEILING of the heap, as in the engine: a run allocates number_of_entities slots (initialise_entity_heap), far fewer, and get_local_entity_ptr does not check */
+#define MAX_NUM_ENTITIES 4096
 
-extern struct ENTITY fake_entities[MAX_NUM_ENTITIES];
+/* the heap THIS run allocated: exactly number_of_entities slots (malloc, so a sanitizer sees any read past it) */
+extern struct ENTITY *fake_entities;
+extern int number_of_entities;
+/* the accessor counts every slot index outside the allocated capacity (and hands back a harmless slot so the check can report it instead of crashing) */
+extern int out_of_range_reads;
+struct ENTITY *fake_entity_at (int index);
 extern comms_model_types fake_comms_model;
 
-#define get_local_entity_ptr(INDEX) (&fake_entities[(INDEX)])
+#define get_local_entity_ptr(INDEX) (fake_entity_at ((INDEX)))
 #define get_local_entity_type(EN) ((entity_types) (EN)->type)
 #define get_comms_model() (fake_comms_model)
 

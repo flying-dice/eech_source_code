@@ -11,7 +11,22 @@
 jmp_buf harness_fatal;
 char harness_message[512];
 
-struct ENTITY fake_entities[MAX_NUM_ENTITIES];
+struct ENTITY *fake_entities = NULL;
+int number_of_entities = 0;
+int out_of_range_reads = 0;
+static struct ENTITY fake_dummy;
+
+struct ENTITY *fake_entity_at (int index)
+{
+	if ((index < 0) || (index >= number_of_entities))
+	{
+		out_of_range_reads++;
+
+		return &fake_dummy;
+	}
+
+	return &fake_entities[index];
+}
 comms_model_types fake_comms_model = COMMS_MODEL_SERVER;
 
 void debug_fatal (const char *format, ...)
@@ -213,11 +228,15 @@ static int host_aim (const campaign_aim_step *step, campaign_aim_result *result,
 	return 0;
 }
 
-static void world_reset (void)
+/* a run with a heap of `capacity` slots: allocated exactly that big (initialise_entity_heap), far below the compile-time ceiling MAX_NUM_ENTITIES, and the registry and the roster start afresh */
+static void world_reset_with (int capacity)
 {
 	campaign_aim_host host;
 
-	memset (fake_entities, 0, sizeof (fake_entities));
+	free (fake_entities);
+	fake_entities = (struct ENTITY *) calloc ((size_t) capacity, sizeof (struct ENTITY));
+	number_of_entities = capacity;
+	out_of_range_reads = 0;
 	roster_reset ();
 	campaign_object_reset ();
 	memset (&host, 0, sizeof (host));
@@ -230,6 +249,11 @@ static void world_reset (void)
 	fake_comms_model = COMMS_MODEL_SERVER;
 	harness_message[0] = '\0';
 	memset (&last_request, 0, sizeof (last_request));
+}
+
+static void world_reset (void)
+{
+	world_reset_with (64);
 }
 
 static void place (int index, entity_types type, int alive, int damage, int initial)
@@ -302,12 +326,18 @@ static int try_report (const char *id, int has_level, int level, int destroyed)
 
 static int collected, collected_alive;
 static char collected_first[CAMPAIGN_OBJECT_ID_MAX + 1];
+static int sorted_subtypes[256], sorted_count;
 
 static void collect (const campaign_object_snapshot *object, void *user)
 {
 	if (collected == 0)
 	{
 		snprintf (collected_first, sizeof (collected_first), "%s", object->host_id);
+	}
+
+	if (sorted_count < 256)
+	{
+		sorted_subtypes[sorted_count++] = object->sub_type;
 	}
 
 	collected++;
@@ -534,6 +564,91 @@ int main (void)
 		memset (&envelope, 0, sizeof (envelope));
 		campaign_aim_identify (&envelope, NULL, &fake_entities[1]);
 		check (strcmp (envelope.target_host_id, "obj-2") == 0 && host_calls == 2, "an object that took the released slot is a new incarnation with a new identity, never the old one");
+	}
+
+	/* ================ the heap a run allocated is SMALLER than the compile-time ceiling (EEDCS-46, R3: the real Windows runs read past it) ================ */
+	{
+		static const int capacities[] = { 8, 20, 37, 64, 129 };
+		int c;
+
+		for (c = 0; c < (int) (sizeof (capacities) / sizeof (capacities[0])); c++)
+		{
+			int capacity = capacities[c], last = capacity - 1, middle = capacity / 2 > 5 ? capacity / 2 : 5, listed, i, in_order;
+			char what[220];
+
+			world_reset_with (capacity);
+			place (1, ENTITY_TYPE_SITE, 1, 90, 90);
+			place (middle, ENTITY_TYPE_SEGMENT, 1, 500, 500);
+			place (last, ENTITY_TYPE_PYLON, 0, 0, 10);
+			place (2, ENTITY_TYPE_WEAPON, 1, 1, 1);
+			place (4, ENTITY_TYPE_ROUTED_VEHICLE, 1, 50, 50);
+			sorted_count = 0;
+			collected = collected_alive = 0;
+			listed = campaign_object_structures (collect, NULL);
+			in_order = 1;
+
+			for (i = 1; i < sorted_count; i++)
+			{
+				in_order = in_order && sorted_subtypes[i - 1] < sorted_subtypes[i];
+			}
+
+			snprintf (what, sizeof (what), "heap of %d slots (ceiling %d): every structure in range is listed, in slot order, and the last slot is reached", capacity, MAX_NUM_ENTITIES);
+			check (listed == 3 && collected == 3 && sorted_count == 3 && in_order && sorted_subtypes[0] == 41 && sorted_subtypes[2] == 40 + last, what);
+			snprintf (what, sizeof (what), "heap of %d slots: no slot outside the allocated capacity was read", capacity);
+			check (out_of_range_reads == 0, what);
+			collected = 0;
+			listed = campaign_object_structures (collect, NULL);
+			snprintf (what, sizeof (what), "heap of %d slots: listed again, the identities held, still inside the capacity and without asking the host again", capacity);
+			check (listed == 3 && out_of_range_reads == 0 && host_calls == 3, what);
+			campaign_object_release_entity (&fake_entities[last]);
+			snprintf (what, sizeof (what), "heap of %d slots: the identity of the last slot ends with it, inside the capacity", capacity);
+			check (campaign_object_host_id (&fake_entities[last]) == NULL && out_of_range_reads == 0, what);
+		}
+
+		/* more than one runtime capacity, with the reset the engine does at boot: the previous heap's identities and map are forgotten */
+		world_reset_with (20);
+		place (19, ENTITY_TYPE_SITE, 1, 90, 90);
+		check (try_identify (19) && campaign_object_host_id (&fake_entities[19]) != NULL, "a heap of 20 slots identifies its last slot");
+		world_reset_with (37);
+		place (36, ENTITY_TYPE_SITE, 1, 90, 90);
+		check (try_identify (36) && campaign_object_host_id (&fake_entities[36]) != NULL && out_of_range_reads == 0, "after a reset a heap of 37 slots identifies its last slot, the earlier map forgotten");
+		/* a heap that changes size under live identities is refused, not re-read */
+		number_of_entities = 20;
+		harness_message[0] = '\0';
+		if (setjmp (harness_fatal))
+		{
+			accepted = 0;
+		}
+		else
+		{
+			collected = 0;
+			campaign_object_structures (collect, NULL);
+			accepted = 1;
+		}
+		check (!accepted && refused_with ("changed from 37 to 20 slots"), "a heap whose size changes while identities exist is refused, not re-read");
+		/* ... on the identify path too: a structure in range of the new size is not identified into a map of the old one */
+		number_of_entities = 20;
+		place (5, ENTITY_TYPE_SITE, 1, 90, 90);
+		accepted = try_identify (5);
+		check (!accepted && refused_with ("changed from 37 to 20 slots"), "an identity is not issued into a map of another heap size either");
+		number_of_entities = 0;
+		harness_message[0] = '\0';
+		if (setjmp (harness_fatal))
+		{
+			accepted = 0;
+		}
+		else
+		{
+			campaign_object_structures (collect, NULL);
+			accepted = 1;
+		}
+		check (!accepted && refused_with ("not a heap this run allocated"), "and a heap of no slots is not a heap");
+		/* a slot index at the capacity is outside the heap: the memory is there (this allocation has one more) but the heap does not hold it */
+		world_reset_with (11);
+		number_of_entities = 10;
+		place (10, ENTITY_TYPE_SITE, 1, 90, 90);
+		accepted = try_identify (10);
+		check (!accepted && refused_with ("outside the entity heap of 10 slots") && host_calls == 0, "an entity whose slot index is the capacity is refused before the host is asked");
 	}
 
 	printf ("%d checks, %d failures\n", checks, failures);
