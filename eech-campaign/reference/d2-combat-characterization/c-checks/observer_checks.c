@@ -85,7 +85,8 @@ static long field (const char *prefix, const char *type, const char *key)
 
 		if (type)
 		{
-			snprintf (needle, sizeof (needle), " type=%s ", type);
+			/* a plain name is a kind row's type; a "key=value" selects a row by that field (a timed row by its kind) */
+			snprintf (needle, sizeof (needle), strchr (type, '=') ? " %s " : " type=%s ", type);
 
 			if (!strstr (line, needle) || strstr (line, needle) > strchr (line, '\n'))
 			{
@@ -191,6 +192,26 @@ static void nested (entity *receiver, entity *sender, double modifier)
 
 static int reads_at_release;
 
+/* the slot is freed during the handler and reused by another entity of the SAME kind, with the SAME data representation: type and data alone cannot tell it from the
+   receiver, only the slot's generation can */
+static void freed_and_reused_same_kind (entity *receiver, entity *sender, double modifier)
+{
+	int slot = (int) (receiver - entities);
+
+	eech_cmb_release (receiver);
+
+	reads_at_release = reads[slot];
+
+	levels[slot] = 77;
+	alives[slot] = 1;
+}
+
+/* an ordinary handler: the receiver loses health and keeps its slot */
+static void damaged_in_place (entity *receiver, entity *sender, double modifier)
+{
+	levels[receiver - entities] -= 1;
+}
+
 static void freed_and_reused (entity *receiver, entity *sender, double modifier)
 {
 	int slot = (int) (receiver - entities);
@@ -289,6 +310,21 @@ int main (void)
 	check (field ("cmb-kind", "SITE", "destroyed") == 1 && field ("cmb-kind", "SITE", "fatal") == 1, "the receiver is reported destroyed");
 	check (field ("cmb-kind", "SCENIC", "collisions") == 0 || field ("cmb-kind", "SCENIC", "collisions") == -1, "and the entity that reused the slot is not credited with the collision");
 
+	/* the same, when the reusing entity has the same kind and the same data: an ordinary handler leaves the receiver in place (not destroyed); a handler that frees the slot is
+	   reported destroyed although the slot's type and data are exactly what they were */
+	set_entity (0, ENTITY_TYPE_OBJECT, 6, 1);
+	scenario = damaged_in_place;
+	notify (ENTITY_MESSAGE_COLLISION, &pool[0], &pool[5], 0.5);
+	check (field ("cmb-kind", "OBJECT", "collisions") == 1 && field ("cmb-kind", "OBJECT", "destroyed") == 0 && field ("cmb-kind", "OBJECT", "fatal") == 0,
+		"an object that kept its slot is the same receiver afterwards: not destroyed, not fatal");
+	scenario = freed_and_reused_same_kind;
+	notify (ENTITY_MESSAGE_COLLISION, &pool[0], &pool[5], 0.5);
+	scenario = NULL;
+	check (pool[0].type == ENTITY_TYPE_OBJECT && pool[0].data == &data_marker[0], "(the slot still holds the same kind and the same data after the handler)");
+	check (field ("cmb-kind", "OBJECT", "collisions") == 2 && field ("cmb-kind", "OBJECT", "destroyed") == 1 && field ("cmb-kind", "OBJECT", "fatal") == 1,
+		"a slot freed and reused by an entity of the same kind and data is still reported destroyed: the generation, not the type and data, decides");
+	check (reads[0] == reads_at_release, "and nothing was read from that slot after it was freed");
+
 	/* every damage entry has exactly one exit */
 	eech_cmb_damage_begin (&pool[4], NULL);
 	eech_cmb_damage_exit (EECH_CMB_DAMAGE_EXIT_NO_WEAPON);
@@ -323,17 +359,18 @@ int main (void)
 	random_number_seed = (int) ((uint32_t) random_number_seed * 1103515245u + 12345u);
 	eech_cmb_timed_hit (&pool[4], 0);
 	eech_cmb_timed_end ();
-	check (field ("cmb-timed", NULL, "attempts") == 0 || 1, "timed rows are reported");
-	{
-		static char report[200000];
-		char *ship, *aa;
+	/* a roll that drew but did not fire is an attempt with a draw and no hit */
+	eech_cmb_timed_begin (EECH_CMB_TIMED_HELICOPTER);
+	random_number_seed = (int) ((uint32_t) random_number_seed * 1103515245u + 12345u);
+	eech_cmb_timed_end ();
 
-		eech_cmb_trace_get (report, sizeof (report));
-		ship = strstr (report, "cmb-timed kind=6 ");
-		aa = strstr (report, "cmb-timed kind=4 ");
-		check (ship && strstr (ship, "attempts=1 draws=0 hits=0 fatal=0"), "a roll whose condition took no draw and did not fire: one attempt, no draw, no hit");
-		check (aa && strstr (aa, "attempts=1 draws=1 hits=1 fatal=1"), "a roll that drew once and fired to zero health: one attempt, one draw, one fatal hit");
-	}
+	check (field ("cmb-timed", "kind=6", "attempts") == 1 && field ("cmb-timed", "kind=6", "draws") == 0 && field ("cmb-timed", "kind=6", "hits") == 0 && field ("cmb-timed", "kind=6", "fatal") == 0,
+		"a roll whose condition took no draw and did not fire: one attempt, no draw, no hit, not fatal");
+	check (field ("cmb-timed", "kind=4", "attempts") == 1 && field ("cmb-timed", "kind=4", "draws") == 1 && field ("cmb-timed", "kind=4", "hits") == 1 && field ("cmb-timed", "kind=4", "fatal") == 1,
+		"a roll that drew once and fired to zero health: one attempt (the END after the hit does not count it twice), one draw, one fatal hit");
+	check (field ("cmb-timed", "kind=1", "attempts") == 1 && field ("cmb-timed", "kind=1", "draws") == 1 && field ("cmb-timed", "kind=1", "hits") == 0,
+		"a roll that drew once and did not fire: one attempt, one draw, no hit");
+	check (field ("cmb-timed", "kind=3", "attempts") == 0 && field ("cmb-timed", "kind=2", "attempts") == 0, "the kinds that were not rolled have no attempts");
 
 	printf ("%s: %d checks, %d failures\n", failures ? "OBSERVER_CHECKS=FAILED" : "OBSERVER_CHECKS=ok", checks, failures);
 

@@ -629,3 +629,64 @@ fn the_provider_and_the_controlled_witness_find_the_model_files_beside_them_when
         assert!(!text.contains("own-model.lua"), "{script}: {text}");
     }
 }
+
+// The combat report's six hashes are sixteen-digit strings. A hash of decimal digits only must not be read as a number (that would drop its leading zeros and, above 2^53,
+// its low digits): the test loads the SAME writer and parser the characterisation script uses (lua/combat-report.lua) with a synthetic report and reads what it wrote.
+const COMBAT_REPORT_SCRIPT: &str = r#"
+local make = dofile('@LUA_DIR@/combat-report.lua')
+local written = {}
+local sink = { write = function(_, text) written[#written + 1] = text end, flush = function() end }
+local writer = make(sink)
+writer.emit_report('run', 600, table.concat({
+  'cmb-hash damage=0123456789012345 collision=9007199254740993 blast=0000000000000255 repair=1000000000000000 timed=0000000000000001 order=12345678901234567890',
+  'cmb-hash damage=0123456789abcdef collision=ffffffffffffffff blast=00000000000000ff repair=0000000000000000 timed=0000000000000000 order=1',
+  'cmb-integrity depth_max=2 depth_overflow=0 trusted=1',
+  'cmb-kind type=HELICOPTER collisions=3 damage_sum=5.5',
+}, '\n'))
+local text = table.concat(written)
+local function has(fragment) assert(text:find(fragment, 1, true), 'missing ' .. fragment .. ' in ' .. text) end
+has('"damage":"0123456789012345"')
+has('"collision":"9007199254740993"')
+has('"blast":"0000000000000255"')
+has('"repair":"1000000000000000"')
+has('"timed":"0000000000000001"')
+has('"order":"12345678901234567890"')
+has('"timed":"0000000000000000"')
+has('"order":"1"')
+-- a count stays a number and a name stays a name
+has('"depth_max":2')
+has('"trusted":1')
+has('"collisions":3')
+has('"type":"HELICOPTER"')
+print('COMBAT_REPORT=ok')
+"#;
+
+#[test]
+fn the_combat_report_keeps_every_hash_a_string_and_the_script_finds_its_report_module_beside_it() {
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\\', "/");
+    let script = std::env::temp_dir().join(format!("eech-world-combat-report-{}.lua", std::process::id()));
+    std::fs::write(&script, COMBAT_REPORT_SCRIPT.replace("@LUA_DIR@", &lua_dir)).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("COMBAT_REPORT=ok"), "{stdout}\n{stderr}");
+
+    // run as the main script, the characterisation script finds the module beside it (its root does not exist, so it ends at the boot)
+    let out = std::env::temp_dir().join(format!("eech-world-combat-main-{}.jsonl", std::process::id()));
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world"))
+        .arg(format!("{lua_dir}/combat-characterization.lua"))
+        .arg("root=/nonexistent-root-for-a-script-test")
+        .arg(format!("out={}", out.display().to_string().replace('\\', "/")))
+        .output()
+        .unwrap();
+    let _ = std::fs::remove_file(&out);
+    let text = format!("{}\n{}", String::from_utf8_lossy(&run.stdout), String::from_utf8_lossy(&run.stderr));
+    assert!(!text.contains("combat-report.lua"), "the module was not found beside the script: {text}");
+}

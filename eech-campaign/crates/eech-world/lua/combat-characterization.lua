@@ -27,52 +27,10 @@ local scenarios = {
 local scenario = assert (scenarios [args.scenario or "lebanon_retail"], "scenario=lebanon_retail|georgia_retail|georgia")
 local seed = 1
 
--- a string as a JSON string with every control character, quote, backslash and non-ASCII byte escaped losslessly (a byte >= 0x80 is written as the code point of the same value, i.e.
--- the Latin-1 reading): nothing in the recorded text is replaced or dropped
-local escapes = { ['"'] = '\\"', ['\\'] = '\\\\', ['\n'] = '\\n', ['\r'] = '\\r', ['\t'] = '\\t' }
-local function json_string (s)
-	return '"' .. (string.gsub (s, '[%c"\\\128-\255]', function (c) return escapes [c] or string.format ("\\u%04x", string.byte (c)) end)) .. '"'
-end
-
-local function number_or_string (v)
-	-- a non-finite number is not valid JSON: keep it as the string it printed as, so the comparator sees it rather than a parse error
-	if v ~= v or v == math.huge or v == -math.huge then
-		return json_string (tostring (v))
-	end
-	return tostring (v)
-end
-
-local function emit (t)
-	local parts = {}
-	for k, v in pairs (t) do
-		local value = type (v) == "string" and json_string (v) or number_or_string (v)
-		parts [#parts + 1] = json_string (k) .. ":" .. value
-	end
-	table.sort (parts)
-	out:write ("{" .. table.concat (parts, ",") .. "}\n")
-	out:flush ()
-end
-
--- hashes (16 hex digits) and the track hash are always strings, even when every digit is decimal
-local string_keys = { damage = true, collision = true, blast = true, repair = true, hash = true }
-
--- one JSON object per report line: the first word is the event, `key=value` words are its fields; a sample line keeps its text whole
-local function emit_report (scope, at, report)
-	for line in string.gmatch (report, "[^\n]+") do
-		local event, rest = string.match (line, "^(%S+)%s*(.*)$")
-		local t = { event = event, scope = scope, at = at }
-		if event == "cmb-sample" then
-			local key, text = string.match (rest, "^key=(%S+)%s+(.*)$")
-			t.key = key
-			t.text = text
-		else
-			for k, v in string.gmatch (rest, "(%S+)=(%S+)") do
-				t [k] = (not string_keys [k] and tonumber (v)) or v
-			end
-		end
-		emit (t)
-	end
-end
+-- the JSON Lines writer and the report parser are a file of their own, next to this one, so that the host tests load the same code (lua/combat-report.lua)
+local here = (debug.getinfo (1, "S").source:match ("^@?(.*[/\\])") or "")
+local report_writer = dofile (here .. "combat-report.lua") (out)
+local emit, emit_report = report_writer.emit, report_writer.emit_report
 
 local function emit_events (at)
 	emit_report ("log", at, engine:cmb_events ())
