@@ -1,0 +1,128 @@
+[
+  {
+    "name": "h1-pref",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pref-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "5f56ce16367bb216833d369f7089e287901405be660ce51b50d36b72c1da6122"
+  },
+  {
+    "name": "h1-pnever",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pnever-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "82c5865269b53ffa38459bf1983817d6531528cf14e6494024a4801bf77b4fed"
+  },
+  {
+    "name": "h1-pown",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pown-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "c2ce5090e7e68a983616fc0f4889142a645c0237642733791cdd8e2bad9c4b7f"
+  },
+  {
+    "name": "h1-pseduce",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pseduce-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "e8e4715a5c87f9fd9b3dc74863d0bd11480c8fd0d4b3efead3e8a3830c72f0c3"
+  },
+  {
+    "name": "h1-pfast",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pfast-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "4a1b1a68202c201fc63109450b85eddd3d3f0b9f34a4844b4f02ad088d32437f"
+  },
+  {
+    "name": "h1-prelslow",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-prelslow-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "d4ee99fe2de53c4a2885d296d954f001415c78740568792a0b2940a9b27f7cf0"
+  },
+  {
+    "name": "h1-pdrag",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pdrag-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "f4bb01eb2be6f10b43fae29b46fd65b2ce5e09ce2bbaf8fee3cdf50d5710799d"
+  },
+  {
+    "name": "h1-pshort",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pshort-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "80fc0a9f13ffd671532b9b3463b38386eb9f9ad2f11bd3fc2475aea74deab462"
+  },
+  {
+    "name": "h1-pbss",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pbss-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "641c6648bcbb8fddcb349dad72a0428f6a8a409ae5f9b32b5c557e97993f3f70"
+  },
+  {
+    "name": "h1-pbsl",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pbsl-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "295b376d686106eeca62a60f2eb9b30a41dbedf19371131333a992c860fc5f43"
+  },
+  {
+    "name": "h1-pbsa",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pbsa-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "ea5fba99939b51a69b0944e14554e50e13bf8c55456999c438fc1965ed4d6a6d"
+  },
+  {
+    "name": "h1-pbsn",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pbsn-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "3f5b6bb602a2e7f1cb6b54a47e2a4df441cb77b5f390433db59d1ae0da3fe479"
+  },
+  {
+    "name": "h1-pbsr",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pbsr-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "803c7d2474f4f9277c72f15f43c534fdf64f661d2be1e0fcb93eb7fc1b7a2f83"
+  },
+  {
+    "name": "h1-pbse",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pbse-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "eb228c535b03d67f32938b01dd81ae038641a068d30d7d018998b42bf5ae330d"
+  },
+  {
+    "name": "h1-pbsd",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pbsd-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "377b3ae3b7122c847e9153ad5432108756a864a6b8fd95eaf3143546f8cc52d2"
+  },
+  {
+    "name": "h1-pbba",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pbba-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "5a1805bb546f0d19e9a55a0af806e7aaf09601f068dc90d27989fdeffb7313ff"
+  },
+  {
+    "name": "h1-pbrb",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pbrb-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "305bd6a1eddec5141c2f4b6127b4fbdb44d2a8eb6049fd593ba95098503a8d0d"
+  },
+  {
+    "name": "h1-pbdf",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pbdf-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "5bf6c8e1d493cc5709e74ee874e6f7dc643d4e9a2b4bd39ed3ead188bea18416"
+  },
+  {
+    "name": "h1-pbsf",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pbsf-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "b092da002a9e6be86c80a016d1dc3c1643bb06016c8f210d97914d59f37dbb3f"
+  },
+  {
+    "name": "h1-pbrf",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pbrf-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "ae4c692c91b7da141f7cf9d812976a9ba7d5cc2d38828cd1e18a81caef703d93"
+  },
+  {
+    "name": "h1-pbrn",
+    "log": "R:/d2-evidence/weapon-characterization-20261027/root-h1-pbrn-provider-post-input.log",
+    "actual_post_input_exit": 0,
+    "sha256": "a1c2a43ebe3066bda20e1c31129f362431875a9347493b5e91feec473fcff528"
+  }
+]
