@@ -29,6 +29,18 @@ size_t eech_engine_aim_layout (int which)
 		case 12: return offsetof (campaign_damage_figures, burst_duration);
 		case 13: return offsetof (campaign_aim_step, weapon_state);
 		case 14: return offsetof (campaign_aim_step, answers);
+		case 15: return sizeof (campaign_damage_request);
+		case 16: return sizeof (campaign_damage_result);
+		case 17: return offsetof (campaign_aim_step, damage);
+		case 18: return offsetof (campaign_aim_result, damage);
+		case 19: return offsetof (campaign_damage_request, weapon_speed);
+		case 20: return offsetof (campaign_damage_request, armour_level);
+		case 21: return offsetof (campaign_damage_request, armour_front);
+		case 22: return offsetof (campaign_damage_request, target_attitude);
+		case 23: return offsetof (campaign_damage_request, target_not_ai);
+		case 24: return offsetof (campaign_damage_request, player_modifier);
+		case 25: return offsetof (campaign_damage_request, critical_model);
+		case 26: return offsetof (campaign_damage_result, critical_before);
 	}
 
 	return (size_t) -1;

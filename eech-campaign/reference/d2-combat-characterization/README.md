@@ -97,3 +97,9 @@ The forecast of `weapon_damage_capability` (no weapon) moved to the host; see `e
 (`strict-preprocess-47-2.log`: the eleven other combat-hook sources identical to the baseline, `damage.c` different only by the forecast change; `-1` is the noisier first form) and the
 real-header syntax check (`syntax-check-47-1.log`). Evidence note: `checks/case-helper-status-controls-2.txt` FAILED one assertion (it ran the controller with a previous driver the controller does not model); the
 trailing `CONTROLLER_EXIT=0` in it is the wrapper's, not the controller's, and it is never an inner pass. `checks/case-helper-status-controls-3.txt` is the passing record.
+
+## Second physical extraction: the damage of a hit (candidate, not accepted)
+
+See `eech-campaign/docs/m5-combat-extraction.md` (step 2). Source checks in `checks/`: `damage-checks-*.log` (50 checks of the real `mb_hostaim.c` under AddressSanitizer and UndefinedBehaviorSanitizer),
+`damage-mutant-1.log` (removing three guards fails 4 of them, exit 1), the Rust tests (`test-r46-*.log`), Clippy, the real-header syntax and strict feature-off preprocess records of this change, and the
+re-run of the forecast checks on the extended `mb_hostaim.c` (`forecast-checks-3.log`). No native run exists for this candidate.

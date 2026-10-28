@@ -1242,6 +1242,42 @@ pub struct AimForecast {
     pub echo: bool,
 }
 
+/// One hit that reached a damage handler (EEDCS-46, real weapon), by value: see `eech_damage_request` (mb_hostaim.h campaign_damage_request).  `draw` is the sample of the
+/// campaign's shared random stream (a raw integer in [0, 32767]) the host asked for, once the campaign has taken it.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimDamage {
+    pub weapon: i32,
+    pub weapon_warhead: i32,
+    pub warhead: i32,
+    pub damage_capability: i32,
+    pub armor_penetration_capability: i32,
+    pub burst_duration: f32,
+    pub weapon_speed: f32,
+    pub weapon_cruise_velocity: f32,
+    pub damage_modifier: f32,
+    pub armour_level: i32,
+    pub armour_easy: bool,
+    pub armour_model: i32,
+    pub armour_front: f32,
+    pub armour_rear: f32,
+    pub armour_side: f32,
+    pub weapon_position: [f32; 3],
+    pub target_position: [f32; 3],
+    pub target_attitude: [f32; 9],
+    pub target_not_ai: bool,
+    /// The player's damage setting, if the campaign could resolve one for the difficulty.
+    pub player_modifier: Option<f32>,
+    pub has_launcher: bool,
+    pub multiplier: i32,
+    pub invulnerable: bool,
+    pub cheat_guard: bool,
+    pub damage_level: i32,
+    pub initial_damage_level: i32,
+    pub critical_model: i32,
+    pub draw: Option<i32>,
+    pub echo: bool,
+}
+
 /// One frame of one weapon's flight, or (with `birth`) its birth: the weapon, the clock and the frame, and what the host has been told so far in answer to the lookups it asked for (`answers`, each
 /// the lookup repeated with its results in `f[6..12]`) and the samples of the campaign's shared random stream it has been given (`draws`, raw integers in [0, 32767]).
 #[derive(Clone, Debug, PartialEq)]
@@ -1410,6 +1446,7 @@ pub enum AimRequest {
     WeaponStep(AimWeaponStep),
     Release(AimRelease),
     Forecast(AimForecast),
+    Damage(AimDamage),
     Animate(AimAnimate),
     ReadyUpdate(AimReadyUpdate),
     ReadyCommand(AimReadyCommand),
@@ -1448,6 +1485,14 @@ pub struct AimReply {
     pub release_last_shot: Option<u32>,
     /// A forecast only: the capability, never negative.
     pub forecast_capability: i32,
+    /// A damage question only: see `eech_damage_result`.
+    pub damage_exited: bool,
+    pub damage_capability: i32,
+    pub damage_written: bool,
+    pub damage_new_level: i32,
+    pub damage_critical_before: i32,
+    pub damage_critical_after: i32,
+    pub damage_bad_modifier: bool,
     /// An animation only: the parachute's state, and the weapon's lifetime when the animation reset it.
     pub animate_status: i32,
     pub animate_lifetime: Option<f32>,
@@ -2618,6 +2663,71 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                 echo,
             })
         }
+        sys::EECH_AIM_DAMAGE => {
+            let request = &source.damage;
+            finite(
+                "damage figure",
+                &[
+                    request.figures.burst_duration,
+                    request.weapon_speed,
+                    request.weapon_cruise_velocity,
+                    request.damage_modifier,
+                    request.armour_front,
+                    request.armour_rear,
+                    request.armour_side,
+                    request.player_modifier,
+                ],
+            )?;
+            finite("damage position", &request.weapon_position)?;
+            finite("damage position", &request.target_position)?;
+            finite("damage attitude", &request.target_attitude)?;
+            if source.weapon <= 0 {
+                return Err(format!("aim received a damage question about weapon {}, which is not a weapon", source.weapon));
+            }
+            if !(0..=2).contains(&request.armour_model) || !(0..=3).contains(&request.critical_model) {
+                return Err(format!(
+                    "aim received a damage question with armour model {} and critical model {}",
+                    request.armour_model, request.critical_model
+                ));
+            }
+            if matches!(request.critical_model, 1 | 3) && request.initial_damage_level <= 0 {
+                return Err(format!(
+                    "aim received a damage question about a health classified with initial level {}",
+                    request.initial_damage_level
+                ));
+            }
+            AimRequest::Damage(AimDamage {
+                weapon: source.weapon,
+                weapon_warhead: request.figures.weapon_warhead,
+                warhead: request.figures.warhead,
+                damage_capability: request.figures.damage_capability,
+                armor_penetration_capability: request.figures.armor_penetration_capability,
+                burst_duration: request.figures.burst_duration,
+                weapon_speed: request.weapon_speed,
+                weapon_cruise_velocity: request.weapon_cruise_velocity,
+                damage_modifier: request.damage_modifier,
+                armour_level: request.armour_level,
+                armour_easy: checked_bool("damage armour_easy", request.armour_easy)?,
+                armour_model: request.armour_model,
+                armour_front: request.armour_front,
+                armour_rear: request.armour_rear,
+                armour_side: request.armour_side,
+                weapon_position: request.weapon_position,
+                target_position: request.target_position,
+                target_attitude: request.target_attitude,
+                target_not_ai: checked_bool("damage target_not_ai", request.target_not_ai)?,
+                player_modifier: checked_bool("damage player_modifier_valid", request.player_modifier_valid)?.then_some(request.player_modifier),
+                has_launcher: checked_bool("damage has_launcher", request.has_launcher)?,
+                multiplier: request.multiplier,
+                invulnerable: checked_bool("damage invulnerable", request.invulnerable)?,
+                cheat_guard: checked_bool("damage cheat_guard", request.cheat_guard)?,
+                damage_level: request.damage_level,
+                initial_damage_level: request.initial_damage_level,
+                critical_model: request.critical_model,
+                draw: draw()?,
+                echo,
+            })
+        }
         sys::EECH_AIM_ANIMATE => {
             finite("animation figure", &[source.animate_lifetime, source.animate_motion_y])?;
             if source.weapon <= 0 {
@@ -2869,6 +2979,7 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
             source.mode,
             sys::EECH_AIM_VECTORS
                 | sys::EECH_AIM_LEAD
+                | sys::EECH_AIM_DAMAGE
                 | sys::EECH_AIM_WEAPON_STEP
                 | sys::EECH_AIM_WEAPON_BIRTH
                 | sys::EECH_AIM_WEAPON_DECOY
@@ -2911,6 +3022,17 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
             answer.release_write_last_shot = 1;
             answer.release_last_shot = last_shot;
         }
+    }
+    if source.mode == sys::EECH_AIM_DAMAGE {
+        answer.damage = sys::eech_damage_result {
+            exited: c_int::from(reply.damage_exited),
+            capability: reply.damage_capability,
+            written: c_int::from(reply.damage_written),
+            new_level: reply.damage_new_level,
+            critical_before: reply.damage_critical_before,
+            critical_after: reply.damage_critical_after,
+            bad_modifier: c_int::from(reply.damage_bad_modifier),
+        };
     }
     if source.mode == sys::EECH_AIM_FORECAST {
         if reply.forecast_capability < 0 {
@@ -6138,6 +6260,184 @@ mod tests {
         assert_eq!(layout(12), offset_of!(sys::eech_damage_figures, burst_duration));
         assert_eq!(layout(13), offset_of!(sys::eech_aim_step, weapon_state));
         assert_eq!(layout(14), offset_of!(sys::eech_aim_step, answers));
+        assert_eq!(layout(15), size_of::<sys::eech_damage_request>(), "campaign_damage_request");
+        assert_eq!(layout(16), size_of::<sys::eech_damage_result>(), "campaign_damage_result");
+        assert_eq!(layout(17), offset_of!(sys::eech_aim_step, damage));
+        assert_eq!(layout(18), offset_of!(sys::eech_aim_result, damage));
+        assert_eq!(layout(19), offset_of!(sys::eech_damage_request, weapon_speed));
+        assert_eq!(layout(20), offset_of!(sys::eech_damage_request, armour_level));
+        assert_eq!(layout(21), offset_of!(sys::eech_damage_request, armour_front));
+        assert_eq!(layout(22), offset_of!(sys::eech_damage_request, target_attitude));
+        assert_eq!(layout(23), offset_of!(sys::eech_damage_request, target_not_ai));
+        assert_eq!(layout(24), offset_of!(sys::eech_damage_request, player_modifier));
+        assert_eq!(layout(25), offset_of!(sys::eech_damage_request, critical_model));
+        assert_eq!(layout(26), offset_of!(sys::eech_damage_result, critical_before));
+    }
+
+    fn damage_step() -> sys::eech_aim_step {
+        let mut step = blank_aim_step(sys::EECH_AIM_DAMAGE);
+        step.weapon = 54;
+        step.damage.figures = sys::eech_damage_figures {
+            weapon_warhead: 5,
+            warhead: 5,
+            damage_capability: 100,
+            armor_penetration_capability: 1,
+            burst_duration: 0.0,
+        };
+        step.damage.weapon_speed = 300.0;
+        step.damage.weapon_cruise_velocity = 250.0;
+        step.damage.damage_modifier = 0.5;
+        step.damage.armour_level = 4;
+        step.damage.armour_model = 1;
+        step.damage.armour_front = 1.0;
+        step.damage.armour_rear = 0.5;
+        step.damage.armour_side = 0.75;
+        step.damage.weapon_position = [1.0, 2.0, 3.0];
+        step.damage.target_position = [0.0, 0.0, 0.0];
+        step.damage.target_attitude = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+        step.damage.target_not_ai = 1;
+        step.damage.player_modifier_valid = 1;
+        step.damage.player_modifier = 0.66;
+        step.damage.has_launcher = 1;
+        step.damage.multiplier = 2;
+        step.damage.damage_level = 80;
+        step.damage.initial_damage_level = 100;
+        step.damage.critical_model = 1;
+        step
+    }
+
+    #[test]
+    fn a_damage_request_carries_the_hit_by_value_takes_the_one_sample_and_the_hosts_answer_comes_back() {
+        let mut step = damage_step();
+        // the first question has no sample: the host asks for one (a damage question may; a forecast may not)
+        let (seen, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_NEED_DRAW), "{error}");
+        let Some(AimRequest::Damage(first)) = seen else {
+            panic!("the host was not asked about the hit")
+        };
+        assert_eq!(first.draw, None);
+        // asked again with the sample the campaign took, the host answers
+        step.has_draw = 1;
+        step.draw_sample = 12345;
+        let (seen, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                damage_capability: 61,
+                damage_written: true,
+                damage_new_level: 19,
+                damage_critical_before: 0,
+                damage_critical_after: 1,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        let Some(AimRequest::Damage(request)) = seen else {
+            panic!("the host was not asked about the hit")
+        };
+        assert_eq!(request.draw, Some(12345));
+        assert_eq!(
+            (
+                request.weapon,
+                request.weapon_warhead,
+                request.warhead,
+                request.damage_capability,
+                request.armor_penetration_capability
+            ),
+            (54, 5, 5, 100, 1)
+        );
+        assert_eq!(
+            (request.weapon_speed, request.weapon_cruise_velocity, request.damage_modifier),
+            (300.0, 250.0, 0.5)
+        );
+        assert_eq!((request.armour_level, request.armour_easy, request.armour_model), (4, false, 1));
+        assert_eq!((request.armour_front, request.armour_rear, request.armour_side), (1.0, 0.5, 0.75));
+        assert_eq!((request.weapon_position, request.target_position), ([1.0, 2.0, 3.0], [0.0; 3]));
+        assert_eq!(request.target_attitude, [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]);
+        assert_eq!(
+            (request.target_not_ai, request.player_modifier, request.has_launcher, request.multiplier),
+            (true, Some(0.66), true, 2)
+        );
+        assert_eq!((request.invulnerable, request.cheat_guard), (false, false));
+        assert_eq!((request.damage_level, request.initial_damage_level, request.critical_model), (80, 100, 1));
+        // the host's own numbers are what the campaign gets back, none computed in this layer
+        let d = result.damage;
+        assert_eq!(
+            (
+                result.state,
+                d.exited,
+                d.capability,
+                d.written,
+                d.new_level,
+                d.critical_before,
+                d.critical_after,
+                d.bad_modifier
+            ),
+            (sys::EECH_AIM_DONE, 0, 61, 1, 19, 0, 1, 0)
+        );
+        // a player whose damage setting the campaign could not resolve is carried as a missing setting
+        step.damage.player_modifier_valid = 0;
+        let (seen, _, code, _) = aim_crossing(&step, |_| Ok(AimReply::default()));
+        assert_eq!(code, 0);
+        assert!(matches!(seen, Some(AimRequest::Damage(ref r)) if r.player_modifier.is_none()));
+    }
+
+    #[test]
+    fn a_damage_request_refuses_what_has_no_defined_answer_and_never_takes_a_lookup() {
+        let ok = |_: AimRequest| Ok(AimReply::default());
+        for (what, mutate) in [
+            (
+                "weapon",
+                Box::new(|s: &mut sys::eech_aim_step| s.weapon = 0) as Box<dyn Fn(&mut sys::eech_aim_step)>,
+            ),
+            ("armour model", Box::new(|s: &mut sys::eech_aim_step| s.damage.armour_model = 3)),
+            ("critical model", Box::new(|s: &mut sys::eech_aim_step| s.damage.critical_model = 4)),
+            ("initial level", Box::new(|s: &mut sys::eech_aim_step| s.damage.initial_damage_level = 0)),
+            ("flag", Box::new(|s: &mut sys::eech_aim_step| s.damage.invulnerable = 2)),
+            ("position", Box::new(|s: &mut sys::eech_aim_step| s.damage.target_position[1] = f32::NAN)),
+            ("attitude", Box::new(|s: &mut sys::eech_aim_step| s.damage.target_attitude[4] = f32::INFINITY)),
+            ("speed", Box::new(|s: &mut sys::eech_aim_step| s.damage.weapon_speed = f32::NAN)),
+            (
+                "sample",
+                Box::new(|s: &mut sys::eech_aim_step| {
+                    s.has_draw = 1;
+                    s.draw_sample = 40000;
+                }),
+            ),
+        ] {
+            let mut bad = damage_step();
+            mutate(&mut bad);
+            let (seen, _, code, error) = aim_crossing(&bad, ok);
+            assert!(seen.is_none() && code != 0 && !error.is_empty(), "{what}: {error}");
+        }
+        // a person has no initial level to divide by and is not classified: that is a legal question
+        let mut person = damage_step();
+        person.damage.critical_model = 2;
+        person.damage.initial_damage_level = 0;
+        let (seen, _, code, error) = aim_crossing(&person, ok);
+        assert!(seen.is_some() && code == 0, "{error}");
+        // a damage question asks for no lookup
+        let step = damage_step();
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                lookups: vec![AimEvent {
+                    kind: 1,
+                    a: 0,
+                    b: 0,
+                    c: 0,
+                    d: 0,
+                    f: [0.0; 12],
+                }],
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("cannot take them"), "{error}");
+        let (_, _, code, error) = aim_crossing(&step, |_| Err("the host has no model for this hit".into()));
+        assert!(code != 0 && error.contains("no model"), "{error}");
     }
 
     #[test]

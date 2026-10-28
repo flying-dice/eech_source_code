@@ -55,6 +55,18 @@
  *                  campaign resolves that definition relationship and sends the munition's figures; the host applies the conventional-munitions arithmetic.  The test fixture
  *                  build asks for an echo (one event) of the reference host's intermediate values, which it replays into its observer in the order the original produced.
  *
+ *   DAMAGE         the damage of ONE HIT that reached a damage handler (EEDCS-46, real weapon): whether the player's invulnerability stops it, the weapon's capability against
+ *                  the target (the original's weapon_damage_capability for a real weapon), the armour the weapon meets (the original's get_local_entity_armour_thickness: the
+ *                  table level, and for a vehicle or an aircraft the aspect the weapon arrives at), the player's damage setting and the multiplayer multiplier, whether the capability
+ *                  is applied to the health and the health it leaves (the subtraction and its clamp at zero), and the critical-state classification of the target before and after
+ *                  (the original's vehicle_critically_damaged and aircraft_critically_damaged; a person is never critical and a fixed structure has none).  The campaign sends
+ *                  everything by value (nothing of the campaign's entities, no identity, index, pointer or seed) and keeps the sounds a hit makes, the setting of the health and
+ *                  its side effects, the credit and the kill, the player-setting table, the multiplayer multiplier's record and the debug display.  The arithmetic takes ONE
+ *                  sample of the campaign's shared random stream (the original's frand1 ()): the host answers NEED_DRAW once, after the invulnerability test (an invulnerable
+ *                  player's hit takes none), and is asked again with the raw integer in [0, 32767] from which it forms the double with the macro's own expression.  A
+ *                  second request for a sample, a lookup, an answer that contradicts the request (an invulnerable target hit, health written under the cheat guard, health
+ *                  raised, a classification the target's model cannot have) is refused.  A host with a model of its own answers from it and needs none of EECH's arithmetic.
+ *
  * The optional echo is an ordered list of the reference host's intermediate values (the points of its prediction), requested only by the
  * test-fixture build; the shipping module never asks for it.
  */
@@ -104,7 +116,9 @@ enum campaign_aim_mode
 	/* a seeker's answer to the decoy it was tracking expiring: whether it goes back to the decoy's launcher (the step protocol) */
 	CAMPAIGN_AIM_WEAPON_REACQUIRE,
 	/* the damage a weapon is capable of against a target, asked with no weapon in flight (EEDCS-46): a pure question, DONE only */
-	CAMPAIGN_AIM_FORECAST
+	CAMPAIGN_AIM_FORECAST,
+	/* the damage of one hit that reached a damage handler (EEDCS-46): NEED_DRAW once, then DONE */
+	CAMPAIGN_AIM_DAMAGE
 };
 
 enum campaign_aim_state
@@ -132,6 +146,8 @@ enum campaign_aim_event_kind
 	   armour, 2 high-explosive splash), b the capability before the player's damage setting, c the warhead type the arithmetic used, d the final capability; f[0] the damage
 	   modifier as it stood at the end (the splash path rewrites it), f[1] the penetration capability, f[2] the armour thickness, f[3] the random modifier (1: a forecast has none) */
 	CAMPAIGN_AIM_EVENT_FORECAST,
+	/* DAMAGE echo (the test fixture build only): as the forecast's, for a hit; a hit stopped by the player's invulnerability echoes none */
+	CAMPAIGN_AIM_EVENT_DAMAGE,
 	/* WEAPON_STEP echo (the test fixture build only): the hooks of the original weapon_movement the host's step passed, in order.  The branch numbers they carry are the
 	   fixture's own (mb_wpnfx.h) */
 	CAMPAIGN_AIM_EVENT_STEP_PATH = 20,
@@ -280,6 +296,69 @@ typedef struct campaign_damage_figures
 	float burst_duration;
 } campaign_damage_figures;
 
+/* DAMAGE: how the armour of a target is modelled, and how its critical state is classified */
+enum campaign_damage_armour
+{
+	CAMPAIGN_DAMAGE_ARMOUR_PLAIN = 0,		/* the table level only (a fixed structure) */
+	CAMPAIGN_DAMAGE_ARMOUR_VEHICLE,			/* the level scaled by the aspect, from the vehicle definition's front, rear and side armour */
+	CAMPAIGN_DAMAGE_ARMOUR_AIRCRAFT			/* the level scaled by the aspect, from the aircraft armour figures */
+};
+
+enum campaign_damage_critical
+{
+	CAMPAIGN_DAMAGE_CRITICAL_NONE = 0,		/* no classification (a fixed structure): both classes are 0 */
+	CAMPAIGN_DAMAGE_CRITICAL_VEHICLE,		/* 0, or 1 (critical) below 15 percent of the initial level */
+	CAMPAIGN_DAMAGE_CRITICAL_PERSON,		/* never critical: both classes are 0 */
+	CAMPAIGN_DAMAGE_CRITICAL_AIRCRAFT		/* 0, 1 (mortal) below 30 percent, or 2 (critical) below 5 percent */
+};
+
+/* DAMAGE: one hit, by value.  `figures` are the weapon's damage figures as the forecast's; `weapon_speed` is the weapon's velocity and `weapon_cruise_velocity` its own
+   definition's.  The armour: the target's table level, whether the launcher is a player at the easiest difficulty (the armour is then 0.1), the model, and for a vehicle
+   the definition's front, rear and side armour; the two positions and the attitude matrix (row by row) are read only for a vehicle or an aircraft.  The settings: whether the
+   target is not an AI and, then, the player's damage setting (`player_modifier_valid` is 0 when the campaign found none for the difficulty, which the original stopped on
+   only when it needed it); whether the weapon has a launcher and the multiplayer multiplier then; the player's invulnerability (read only for a player); the cheat guard
+   (the debug option and the session's cheats, which stop any health from being written).  The health: the level, the initial level and the classification. */
+typedef struct campaign_damage_request
+{
+	campaign_damage_figures figures;
+	float weapon_speed;
+	float weapon_cruise_velocity;
+	float damage_modifier;
+	int armour_level;
+	int armour_easy;
+	int armour_model;
+	float armour_front;
+	float armour_rear;
+	float armour_side;
+	float weapon_position[3];
+	float target_position[3];
+	float target_attitude[9];
+	int target_not_ai;
+	int player_modifier_valid;
+	float player_modifier;
+	int has_launcher;
+	int multiplier;
+	int invulnerable;
+	int cheat_guard;
+	int damage_level;
+	int initial_damage_level;
+	int critical_model;
+} campaign_damage_request;
+
+/* DAMAGE answer: `exited` the invulnerability stopped the hit (nothing else is meaningful but the unchanged health); `capability` the hit's capability (any integer: a hit of zero
+   or less does nothing); `written` the health is set to `new_level` (and is not otherwise); the classes of the target's critical state before and after; `bad_modifier` the
+   target is a player and the host needed a damage setting the campaign could not resolve. */
+typedef struct campaign_damage_result
+{
+	int exited;
+	int capability;
+	int written;
+	int new_level;
+	int critical_before;
+	int critical_after;
+	int bad_modifier;
+} campaign_damage_result;
+
 /* WEAPON_STEP: the weapon as the campaign holds it.  The entity-local random stream never leaves the campaign: its first four outputs are all any one call of the
    original uses (raw integers in [0, 32767]) */
 typedef struct campaign_weapon_state
@@ -408,6 +487,9 @@ typedef struct campaign_aim_step
 	float forecast_player_modifier;
 	float forecast_damage_modifier;
 	float forecast_velocity;
+
+	/* DAMAGE (`weapon` is the weapon sub type; the sample is has_draw and draw_sample above) */
+	campaign_damage_request damage;
 } campaign_aim_step;
 
 typedef struct campaign_aim_result
@@ -459,6 +541,8 @@ typedef struct campaign_aim_result
 	float animate_lifetime;
 	/* FORECAST: the capability, never negative */
 	int forecast_capability;
+	/* DAMAGE */
+	campaign_damage_result damage;
 } campaign_aim_result;
 
 typedef int (*campaign_aim_fn)
@@ -534,6 +618,10 @@ campaign_aim_result campaign_aim_release (int weapon, int has_timer, unsigned in
    the player's damage setting), for these two arguments of the original function.  A pure question: no draw is taken, none may be asked for.  `echo` asks the reference host for
    the observer's echo (the test fixture build); the result's echo is valid until the next request. */
 campaign_aim_result campaign_aim_forecast (int weapon, const campaign_damage_figures *figures, int armour_level, int target_not_ai, float player_modifier, float damage_modifier, float velocity, int echo);
+
+/* The damage of one hit (CAMPAIGN_AIM_DAMAGE) of `weapon` (a sub type): the campaign takes the one sample of its stream the host asks for.  `echo` asks the reference host for the
+   observer's echo (the test fixture build); the result's echo is valid until the next request. */
+campaign_aim_result campaign_aim_damage (int weapon, const campaign_damage_request *request, int echo);
 
 /* One frame of a falling weapon's parachute (CAMPAIGN_AIM_ANIMATE). */
 campaign_aim_result campaign_aim_animate (int weapon, int status, int on_ground, float lifetime, float motion_y);

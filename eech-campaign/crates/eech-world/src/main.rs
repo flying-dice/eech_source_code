@@ -1711,6 +1711,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     7 => "table_flight",
                                     8 => "range_result",
                                     9 => "forecast",
+                                    10 => "damage",
                                     20 => "step_path",
                                     21 => "step_submunitions",
                                     22 => "step_tracking",
@@ -1996,6 +1997,80 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 d: outcome.capability,
                                 f,
                             }]))?;
+                        }
+                    }
+                    "damage" => {
+                        // one hit that reached a damage handler (cmb.rs damage): everything by value, the campaign's one random sample asked for as a draw.  The answer is the whole of what
+                        // the hit does: whether the invulnerability stopped it, the capability, whether and to what level the health is written, and the critical classes
+                        let weapon = lua_i32(&step, "weapon").map_err(fail)?;
+                        if weapon <= 0 {
+                            return Err(fail(format!("a damage question about weapon {weapon}, which is not a weapon")));
+                        }
+                        let [burst_duration, weapon_speed, weapon_cruise_velocity, damage_modifier, armour_front, armour_rear, armour_side] =
+                            exact_fields::<7>(
+                                lua,
+                                &step,
+                                "burst_duration,weapon_speed,weapon_cruise_velocity,damage_modifier,armour_front,armour_rear,armour_side",
+                            )
+                            .map_err(fail)?;
+                        let player_modifier = match step.get::<LuaValue>("player_modifier")? {
+                            LuaValue::Nil => None,
+                            _ => Some(one(&step, "player_modifier")?),
+                        };
+                        let input = cmb::DamageInput {
+                            weapon_warhead: lua_i32(&step, "weapon_warhead").map_err(fail)?,
+                            warhead: lua_i32(&step, "warhead").map_err(fail)?,
+                            damage_capability: lua_i32(&step, "damage_capability").map_err(fail)?,
+                            armor_penetration_capability: lua_i32(&step, "armor_penetration_capability").map_err(fail)?,
+                            burst_duration,
+                            weapon_speed,
+                            weapon_cruise_velocity,
+                            damage_modifier,
+                            armour_level: lua_i32(&step, "armour_level").map_err(fail)?,
+                            armour_easy: flag(&step, "armour_easy")?,
+                            armour_model: lua_i32(&step, "armour_model").map_err(fail)?,
+                            armour_front,
+                            armour_rear,
+                            armour_side,
+                            weapon_position: exact_numbers::<3>(lua, &step, "weapon_position").map_err(fail)?,
+                            target_position: exact_numbers::<3>(lua, &step, "target_position").map_err(fail)?,
+                            target_attitude: exact_numbers::<9>(lua, &step, "target_attitude").map_err(fail)?,
+                            not_ai: flag(&step, "target_not_ai")?,
+                            player_modifier,
+                            has_launcher: flag(&step, "has_launcher")?,
+                            multiplier: lua_i32(&step, "multiplier").map_err(fail)?,
+                            invulnerable: flag(&step, "invulnerable")?,
+                            cheat_guard: flag(&step, "cheat_guard")?,
+                            damage_level: lua_i32(&step, "damage_level").map_err(fail)?,
+                            initial_damage_level: lua_i32(&step, "initial_damage_level").map_err(fail)?,
+                            critical_model: lua_i32(&step, "critical_model").map_err(fail)?,
+                        };
+                        let echo = flag(&step, "echo")?;
+                        match cmb::damage(&input, draw_of()?).map_err(|error| fail(format!("weapon {weapon}: {error}")))? {
+                            cmb::DamageStep::NeedDraw => result.set("state", "need_draw")?,
+                            cmb::DamageStep::Done(outcome) => {
+                                result.set("state", "done")?;
+                                result.set("exited", outcome.exited)?;
+                                result.set("capability", outcome.capability)?;
+                                result.set("written", outcome.written)?;
+                                result.set("new_level", outcome.new_level)?;
+                                result.set("critical_before", outcome.critical_before)?;
+                                result.set("critical_after", outcome.critical_after)?;
+                                result.set("bad_modifier", outcome.bad_modifier)?;
+                                if echo && !outcome.exited && !outcome.bad_modifier {
+                                    // the original's observer hooks of the capability, in one event, for the campaign build that records a trace
+                                    let mut f = [0.0f32; 12];
+                                    f[..4].copy_from_slice(&[outcome.damage_modifier, outcome.penetration, outcome.armour, outcome.random_modifier]);
+                                    echo_into(&Some(vec![aim::Event {
+                                        kind: 10,
+                                        a: outcome.path,
+                                        b: outcome.raw,
+                                        c: outcome.warhead,
+                                        d: outcome.capability,
+                                        f,
+                                    }]))?;
+                                }
+                            }
                         }
                     }
                     "ready_update" => {

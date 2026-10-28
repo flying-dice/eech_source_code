@@ -377,6 +377,29 @@ void eech_cmb_capability_forecast (entity *target, int weapon_type, const campai
 	eech_cmb_capability_end (NULL, target, event->f[0], weapon_type, event->c, event->f[1], event->f[2], event->f[3], capability);
 }
 
+/* the capability of a REAL weapon is the host's (EEDCS-46): the campaign began the original's hooks before the host took its one sample, and the reference host echoes the rest
+   in ONE event; this replays the path when one ran, the raw capability and the end, in the order the original made them.  A host that echoes nothing is not observed. */
+void eech_cmb_capability_damage (entity *wpn, entity *target, int weapon_type, const campaign_aim_event *events, int count, int capability)
+{
+	const campaign_aim_event *event;
+
+	if (!events || count != 1)
+	{
+		return;
+	}
+
+	event = &events[0];
+
+	if (event->a)
+	{
+		eech_cmb_capability_path (event->a);
+	}
+
+	eech_cmb_capability_raw (event->b);
+
+	eech_cmb_capability_end (wpn, target, event->f[0], weapon_type, event->c, event->f[1], event->f[2], event->f[3], capability);
+}
+
 void eech_cmb_capability_end (entity *wpn, entity *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result)
 {
 	int draws, w, player, multiplier;

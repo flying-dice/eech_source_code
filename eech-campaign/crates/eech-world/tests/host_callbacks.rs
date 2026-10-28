@@ -601,6 +601,61 @@ assert(malformed('bad_forecast_draw', host.aim, passed)(forecast()).state == 'ne
 assert(malformed('bad_forecast_fraction', host.aim, passed)(forecast()).capability == 1.5, 'or with a capability that is not an integer')
 local negative = malformed('bad_forecast_negative', host.aim, passed)
 assert(negative(forecast()).capability == -1 and negative(forecast()).capability == 31, 'the first only; the reference host answers the rest')
+-- the damage of a hit (EEDCS-46, a real weapon): the question is asked twice, the second time with the campaign's one sample; the answer is the whole of what the hit does.  The
+-- expected values are worked out by hand from the original expressions; the kernel's own tests are in src/cmb.rs
+local function hit(over)
+  local request = { mode = 'damage', weapon = 54, weapon_warhead = 3, warhead = 3, damage_capability = 12, armor_penetration_capability = 20, burst_duration = 0.0,
+    weapon_speed = 250.0, weapon_cruise_velocity = 250.0, damage_modifier = 0.0, armour_level = 10, armour_easy = false, armour_model = 0, armour_front = 0.0,
+    armour_rear = 0.0, armour_side = 0.0, weapon_position = { 0, 0, 0 }, target_position = { 0, 0, 0 }, target_attitude = { 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+    target_not_ai = false, player_modifier = 1.0, has_launcher = false, multiplier = 1, invulnerable = false, cheat_guard = false, damage_level = 50,
+    initial_damage_level = 100, critical_model = 0, echo = false }
+  for k, v in pairs(over or {}) do request[k] = v end
+  return request
+end
+r = host.aim(hit())
+assert(r.state == 'need_draw', 'the arithmetic asks for the campaign sample first')
+r = host.aim(hit({ draw = 0 }))
+assert(r.state == 'done' and r.exited == false and r.capability == 9 and r.written == true and r.new_level == 41 and r.critical_before == 0 and r.critical_after == 0 and r.bad_modifier == false and r.echo == nil,
+  'a solid shot that pierces, with the random modifier 0.75: 12 * 0.75 = 9 points off a health of 50')
+r = host.aim(hit({ draw = 0, echo = true }))
+assert(#r.echo == 1 and r.echo[1].kind == 'damage' and r.echo[1].a == 1 and r.echo[1].b == 9 and r.echo[1].c == 3 and r.echo[1].d == 9 and near(r.echo[1].f[4], 0.75), 'the original observer values in one event')
+r = host.aim(hit({ target_not_ai = true, invulnerable = true }))
+assert(r.state == 'done' and r.exited == true and r.capability == 0 and r.written == false and r.new_level == 50, 'an invulnerable player is not hit, and no sample was asked for')
+r = host.aim(hit({ draw = 0, target_not_ai = true, invulnerable = true, echo = true }))
+assert(r.exited == true and r.echo == nil, 'and a stopped hit echoes nothing')
+r = host.aim(hit({ draw = 0, critical_model = 1, damage_level = 23 }))
+assert(r.new_level == 14 and r.critical_before == 0 and r.critical_after == 1, 'a vehicle at 14 percent is critical (below 15)')
+r = host.aim(hit({ draw = 0, critical_model = 3, damage_level = 13 }))
+assert(r.new_level == 4 and r.critical_before == 1 and r.critical_after == 2, 'an aircraft goes from mortal (below 30) to critical (below 5)')
+r = host.aim(hit({ draw = 0, cheat_guard = true }))
+assert(r.capability == 9 and r.written == false and r.new_level == 50, 'the cheat guard keeps the health')
+r = host.aim(hit({ draw = 0, armour_model = 1, armour_front = 2.0, armour_rear = 0.5, armour_side = 1.0, weapon_position = { 0, 0, 100 }, echo = true }))
+assert(r.capability == 0 and r.echo[1].f[3] == 20, 'a vehicle hit from the front meets 10 * 2.0 and the penetration 15 does not go through it')
+r = host.aim(hit({ draw = 0, target_not_ai = true, player_modifier = 0.33 }))
+assert(r.capability == 2 and r.new_level == 48, 'a player is scaled by the setting after the arithmetic: 9 * 0.33 = 2.97')
+local missing = hit({ draw = 0, target_not_ai = true }) missing.player_modifier = nil
+assert(host.aim(missing).bad_modifier == true, 'a player with no damage setting is reported for the campaign to stop on')
+refused(hit({ draw = 40000 }), 'draw')
+refused(hit({ weapon = 0 }), 'not a weapon')
+refused(hit({ armour_easy = 1 }), 'armour_easy must be a boolean')
+refused(hit({ initial_damage_level = 0, critical_model = 1 }), 'cannot be classified')
+refused(hit({ weapon_position = { 0, 0 / 0, 0 } }), 'position')
+refused(hit({ echo = 1 }), 'echo must be a boolean')
+local no_level = hit() no_level.damage_level = nil
+refused(no_level, 'damage_level must be an integer')
+-- a host with a model of its own answers the same question without any of that arithmetic or the sample, and a provider that corrupts the first answer is told apart by it
+r = own_model.damage(hit({ critical_model = 1, damage_level = 30 }))
+assert(r.capability == 10 and r.written == true and r.new_level == 20 and r.critical_before == 0 and r.critical_after == 1 and r.exited == false, 'the plain model: ten points, no sample')
+assert(own_model.damage(hit({ target_not_ai = true, invulnerable = true })).exited == true, 'and it honours the invulnerability')
+assert(own_model.damage(hit({ cheat_guard = true })).written == false, 'and the cheat guard')
+assert(malformed('bad_damage_level', host.aim, passed)(hit({ draw = 0 })).new_level == -1, 'the first hit answered with health below zero')
+assert(malformed('bad_damage_exit', host.aim, passed)(hit({ draw = 0 })).exited == true, 'or stopped by an invulnerability the target has not')
+assert(malformed('bad_damage_class', host.aim, passed)(hit({ draw = 0 })).critical_after == 5, 'or with a class the target cannot have')
+assert(malformed('bad_damage_unwritten', host.aim, passed)(hit({ draw = 0 })).written == false, 'or with health changed and not written')
+assert(malformed('bad_damage_missing', host.aim, passed)(hit({ draw = 0 })).capability == nil, 'or with a field missing')
+assert(malformed('bad_damage_draw_twice', host.aim, passed)(hit({ draw = 0 })).state == 'need_draw', 'or asking for a second sample')
+local armed = malformed('bad_damage_level', host.aim, passed)
+assert(armed(hit()).state == 'need_draw' and armed(hit({ draw = 0 })).new_level == -1 and armed(hit({ draw = 0 })).new_level == 41, 'the first completed hit only; the reference host answers the rest')
 print('AIM_HOST=ok')
 ";
 

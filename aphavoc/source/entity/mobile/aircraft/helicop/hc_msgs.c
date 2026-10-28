@@ -235,13 +235,19 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 	// assess damage
 	//
 
-	old_damage_state = aircraft_critically_damaged (receiver);
+	// the classes of the critical state before and after the hit are the host's answer (they are the values of aircraft_damage_types, checked in damage.c)
+	{
+		int
+			critical_before,
+			critical_after;
 
-	damage_caused = damage_client_server_entity (receiver, sender, damage_modifier);
+		damage_caused = damage_client_server_entity_assess (receiver, sender, damage_modifier, &critical_before, &critical_after);
+
+		old_damage_state = (aircraft_damage_types) critical_before;
+		new_damage_state = (aircraft_damage_types) critical_after;
+	}
 
 	total_damage_level = get_local_entity_int_value (receiver, INT_TYPE_DAMAGE_LEVEL);
-
-	new_damage_state = aircraft_critically_damaged (receiver);
 
 	if ((old_damage_state != AIRCRAFT_DAMAGE_CRITICAL) && (new_damage_state == AIRCRAFT_DAMAGE_CRITICAL))
 	{

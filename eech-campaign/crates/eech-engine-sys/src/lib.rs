@@ -598,6 +598,7 @@ pub const EECH_AIM_WEAPON_DECOY: c_int = 16;
 pub const EECH_AIM_WEAPON_SEDUCE: c_int = 17;
 pub const EECH_AIM_WEAPON_REACQUIRE: c_int = 18;
 pub const EECH_AIM_FORECAST: c_int = 19;
+pub const EECH_AIM_DAMAGE: c_int = 20;
 pub const EECH_AIM_DONE: c_int = 1;
 pub const EECH_AIM_NEED_DRAW: c_int = 2;
 pub const EECH_AIM_NEED_LOOKUP: c_int = 3;
@@ -616,6 +617,7 @@ pub const EECH_AIM_EVENT_LEAD_RESULT: c_int = 6;
 pub const EECH_AIM_EVENT_TABLE_FLIGHT: c_int = 7;
 pub const EECH_AIM_EVENT_RANGE_RESULT: c_int = 8;
 pub const EECH_AIM_EVENT_FORECAST: c_int = 9;
+pub const EECH_AIM_EVENT_DAMAGE: c_int = 10;
 
 /// One intermediate value of the reference host's prediction, in its order (read only by the test fixture build).
 #[repr(C)]
@@ -684,6 +686,48 @@ pub struct eech_damage_figures {
     pub damage_capability: c_int,
     pub armor_penetration_capability: c_int,
     pub burst_duration: f32,
+}
+
+/// One hit, by value (aphavoc/.../mb_hostaim.h campaign_damage_request), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_damage_request {
+    pub figures: eech_damage_figures,
+    pub weapon_speed: f32,
+    pub weapon_cruise_velocity: f32,
+    pub damage_modifier: f32,
+    pub armour_level: c_int,
+    pub armour_easy: c_int,
+    pub armour_model: c_int,
+    pub armour_front: f32,
+    pub armour_rear: f32,
+    pub armour_side: f32,
+    pub weapon_position: [f32; 3],
+    pub target_position: [f32; 3],
+    pub target_attitude: [f32; 9],
+    pub target_not_ai: c_int,
+    pub player_modifier_valid: c_int,
+    pub player_modifier: f32,
+    pub has_launcher: c_int,
+    pub multiplier: c_int,
+    pub invulnerable: c_int,
+    pub cheat_guard: c_int,
+    pub damage_level: c_int,
+    pub initial_damage_level: c_int,
+    pub critical_model: c_int,
+}
+
+/// The host's answer to a hit (aphavoc/.../mb_hostaim.h campaign_damage_result), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_damage_result {
+    pub exited: c_int,
+    pub capability: c_int,
+    pub written: c_int,
+    pub new_level: c_int,
+    pub critical_before: c_int,
+    pub critical_after: c_int,
+    pub bad_modifier: c_int,
 }
 
 /// The weapon as the campaign holds it, in a weapon step (aphavoc/.../mb_hostaim.h campaign_weapon_state), field for field.
@@ -787,6 +831,7 @@ pub struct eech_aim_step {
     pub forecast_player_modifier: f32,
     pub forecast_damage_modifier: f32,
     pub forecast_velocity: f32,
+    pub damage: eech_damage_request,
 }
 
 #[repr(C)]
@@ -825,6 +870,7 @@ pub struct eech_aim_result {
     pub animate_write_lifetime: c_int,
     pub animate_lifetime: f32,
     pub forecast_capability: c_int,
+    pub damage: eech_damage_result,
 }
 
 /// What each collision lookup of a weapon step found, by the question it was asked (aphavoc/.../mb_hostaim.h campaign_step_hits).

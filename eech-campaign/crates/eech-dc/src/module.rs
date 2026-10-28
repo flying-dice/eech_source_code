@@ -570,6 +570,43 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
             table.set("velocity", data.velocity).map_err(e)?;
             table.set("echo", data.echo).map_err(e)?;
         }
+        AimRequest::Damage(data) => {
+            // one hit that reached a damage handler, everything by value; the sample of the campaign's stream is present once the host has asked for it
+            table.set("mode", "damage").map_err(e)?;
+            table.set("weapon", data.weapon).map_err(e)?;
+            table.set("weapon_warhead", data.weapon_warhead).map_err(e)?;
+            table.set("warhead", data.warhead).map_err(e)?;
+            table.set("damage_capability", data.damage_capability).map_err(e)?;
+            table.set("armor_penetration_capability", data.armor_penetration_capability).map_err(e)?;
+            table.set("burst_duration", data.burst_duration).map_err(e)?;
+            table.set("weapon_speed", data.weapon_speed).map_err(e)?;
+            table.set("weapon_cruise_velocity", data.weapon_cruise_velocity).map_err(e)?;
+            table.set("damage_modifier", data.damage_modifier).map_err(e)?;
+            table.set("armour_level", data.armour_level).map_err(e)?;
+            table.set("armour_easy", data.armour_easy).map_err(e)?;
+            table.set("armour_model", data.armour_model).map_err(e)?;
+            table.set("armour_front", data.armour_front).map_err(e)?;
+            table.set("armour_rear", data.armour_rear).map_err(e)?;
+            table.set("armour_side", data.armour_side).map_err(e)?;
+            table.set("weapon_position", data.weapon_position.to_vec()).map_err(e)?;
+            table.set("target_position", data.target_position.to_vec()).map_err(e)?;
+            table.set("target_attitude", data.target_attitude.to_vec()).map_err(e)?;
+            table.set("target_not_ai", data.target_not_ai).map_err(e)?;
+            if let Some(modifier) = data.player_modifier {
+                table.set("player_modifier", modifier).map_err(e)?;
+            }
+            table.set("has_launcher", data.has_launcher).map_err(e)?;
+            table.set("multiplier", data.multiplier).map_err(e)?;
+            table.set("invulnerable", data.invulnerable).map_err(e)?;
+            table.set("cheat_guard", data.cheat_guard).map_err(e)?;
+            table.set("damage_level", data.damage_level).map_err(e)?;
+            table.set("initial_damage_level", data.initial_damage_level).map_err(e)?;
+            table.set("critical_model", data.critical_model).map_err(e)?;
+            if let Some(draw) = data.draw {
+                table.set("draw", draw).map_err(e)?;
+            }
+            table.set("echo", data.echo).map_err(e)?;
+        }
         AimRequest::ReadyUpdate(data) => {
             table.set("mode", "ready_update").map_err(e)?;
             aim_ids_into(&table, &data.source, &None)?;
@@ -752,6 +789,7 @@ fn aim_echo(lua: &Lua, table: &LuaTable) -> Result<Option<Vec<AimEvent>>, String
                 "table_flight" => 7,
                 "range_result" => 8,
                 "forecast" => 9,
+                "damage" => 10,
                 "step_path" => 20,
                 "step_submunitions" => 21,
                 "step_tracking" => 22,
@@ -771,7 +809,7 @@ fn aim_echo(lua: &Lua, table: &LuaTable) -> Result<Option<Vec<AimEvent>>, String
                 "step_birth_dispersion" => 36,
                 other => {
                     return Err(format!(
-                        "aim result echo kind {other:?} is not intercept, lead_path, lead_range, lead_iteration, ballistic, lead_result, table_flight, range_result, forecast or a step_* kind"
+                        "aim result echo kind {other:?} is not intercept, lead_path, lead_range, lead_iteration, ballistic, lead_result, table_flight, range_result, forecast, damage or a step_* kind"
                     ))
                 }
             },
@@ -807,7 +845,10 @@ fn call_aim(lua: &Lua, function: &LuaFunction, request: AimRequest) -> Result<Ai
     let mut reply = AimReply::default();
     match state.as_str() {
         "need_draw" => {
-            if !matches!(request, AimRequest::Vectors(_) | AimRequest::Lead(_) | AimRequest::WeaponStep(_)) {
+            if !matches!(
+                request,
+                AimRequest::Vectors(_) | AimRequest::Lead(_) | AimRequest::WeaponStep(_) | AimRequest::Damage(_)
+            ) {
                 return Err("aim result need_draw answers a request that cannot take a draw".into());
             }
             reply.need_draw = true;
@@ -868,6 +909,16 @@ fn call_aim(lua: &Lua, function: &LuaFunction, request: AimRequest) -> Result<Ai
         AimRequest::Forecast(_) => {
             // the capability is the host's own integer; the echo (the test fixture build's) is read below
             reply.forecast_capability = aim_integer(&table, "capability")?;
+        }
+        AimRequest::Damage(_) => {
+            // the host's whole answer to the hit, each field mandatory and exact: a missing or mistyped one is an error, never a default
+            reply.damage_exited = aim_boolean(&table, "exited")?;
+            reply.damage_capability = aim_integer(&table, "capability")?;
+            reply.damage_written = aim_boolean(&table, "written")?;
+            reply.damage_new_level = aim_integer(&table, "new_level")?;
+            reply.damage_critical_before = aim_integer(&table, "critical_before")?;
+            reply.damage_critical_after = aim_integer(&table, "critical_after")?;
+            reply.damage_bad_modifier = aim_boolean(&table, "bad_modifier")?;
         }
         AimRequest::ReadyUpdate(_) => {
             reply.ready_state = number("ready_state")?;

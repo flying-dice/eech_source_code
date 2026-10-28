@@ -27,6 +27,30 @@ function own.release () return { state = "done", refuse = false, burst_size = 1 
 
 -- the damage forecast (EEDCS-46): a weapon with a damage figure can do 5 points of damage to anything, whatever its armour, its warhead or the player's setting; one with
 -- none does nothing.  It needs none of EECH's arithmetic, takes no random sample and asks the campaign for nothing.
+-- the damage of a hit (EEDCS-46): the player's invulnerability stops it; otherwise a weapon with a damage figure does 10 points to anything, whatever its armour, warhead,
+-- speed or the settings (and takes no sample of the campaign's stream), and the health is written unless the cheat guard stops it.  A vehicle is critical at a quarter of its
+-- initial health or less; an aircraft is mortal at half and critical at a tenth; a person and a fixed structure are never classified.
+local function critical_class (step, level)
+	local initial = step.initial_damage_level
+	if step.critical_model == 1 then return level * 4 <= initial and 1 or 0 end
+	if step.critical_model == 3 then
+		if level * 10 <= initial then return 2 end
+		return level * 2 <= initial and 1 or 0
+	end
+	return 0
+end
+
+function own.damage (step)
+	local class = critical_class (step, step.damage_level)
+	if step.target_not_ai and step.invulnerable then
+		return { state = "done", exited = true, capability = 0, written = false, new_level = step.damage_level, critical_before = class, critical_after = class, bad_modifier = false }
+	end
+	local capability = step.damage_capability > 0 and 10 or 0
+	local written = capability > 0 and not step.cheat_guard
+	local level = written and math.max (step.damage_level - capability, 0) or step.damage_level
+	return { state = "done", exited = false, capability = capability, written = written, new_level = level, critical_before = class, critical_after = critical_class (step, level), bad_modifier = false }
+end
+
 function own.forecast (step) return { state = "done", capability = step.damage_capability > 0 and 5 or 0 } end
 
 -- after the flight: this model has no parachute (a falling crate is as it was), a decoy's timer restarts at half a second with no sample taken, a seeker is never drawn

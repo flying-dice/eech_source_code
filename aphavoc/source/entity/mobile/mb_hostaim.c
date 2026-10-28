@@ -91,6 +91,7 @@ static const char *mode_name (int mode)
 		case CAMPAIGN_AIM_WEAPON_SEDUCE: return "weapon_seduce";
 		case CAMPAIGN_AIM_WEAPON_REACQUIRE: return "weapon_reacquire";
 		case CAMPAIGN_AIM_FORECAST: return "forecast";
+		case CAMPAIGN_AIM_DAMAGE: return "damage";
 	}
 
 	return "unknown";
@@ -176,6 +177,25 @@ static void validate_request (const campaign_aim_step *step)
 				!isfinite (step->forecast_player_modifier) || !isfinite (step->forecast_damage_modifier) || !isfinite (step->forecast_velocity))
 			{
 				debug_fatal ("host aim: a forecast request with inconsistent figures for weapon %d", step->weapon);
+			}
+
+			break;
+		}
+		case CAMPAIGN_AIM_DAMAGE:
+		{
+			const campaign_damage_request *damage = &step->damage;
+
+			// every figure is finite, the flags are booleans, the models are known, and a health that is classified has an initial level to divide by.  A hit of any capability is
+			// legal (a capability of zero or less does nothing), as is an armour level of any sign (the original only logged a zero), so neither is narrowed here
+			if ((step->weapon <= 0) || !isfinite (damage->figures.burst_duration) || !isfinite (damage->weapon_speed) || !isfinite (damage->weapon_cruise_velocity) ||
+				!isfinite (damage->damage_modifier) || !isfinite (damage->armour_front) || !isfinite (damage->armour_rear) || !isfinite (damage->armour_side) ||
+				!all_finite (damage->weapon_position, 3) || !all_finite (damage->target_position, 3) || !all_finite (damage->target_attitude, 9) || !isfinite (damage->player_modifier) ||
+				(damage->armour_easy & ~1) || (damage->target_not_ai & ~1) || (damage->player_modifier_valid & ~1) || (damage->has_launcher & ~1) || (damage->invulnerable & ~1) ||
+				(damage->cheat_guard & ~1) || (damage->armour_model < CAMPAIGN_DAMAGE_ARMOUR_PLAIN) || (damage->armour_model > CAMPAIGN_DAMAGE_ARMOUR_AIRCRAFT) ||
+				(damage->critical_model < CAMPAIGN_DAMAGE_CRITICAL_NONE) || (damage->critical_model > CAMPAIGN_DAMAGE_CRITICAL_AIRCRAFT) ||
+				(((damage->critical_model == CAMPAIGN_DAMAGE_CRITICAL_VEHICLE) || (damage->critical_model == CAMPAIGN_DAMAGE_CRITICAL_AIRCRAFT)) && (damage->initial_damage_level <= 0)))
+			{
+				debug_fatal ("host aim: a damage request with inconsistent figures for weapon %d", step->weapon);
 			}
 
 			break;
@@ -326,9 +346,15 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 				debug_fatal ("host aim: host aim asked a weapon_step request for more than %d draws", CAMPAIGN_STEP_DRAWS_MAX);
 			}
 		}
-		else if (((step->mode != CAMPAIGN_AIM_VECTORS) && (step->mode != CAMPAIGN_AIM_LEAD)) || step->has_draw)
+		else if (((step->mode != CAMPAIGN_AIM_VECTORS) && (step->mode != CAMPAIGN_AIM_LEAD) && (step->mode != CAMPAIGN_AIM_DAMAGE)) || step->has_draw)
 		{
 			debug_fatal ("host aim: host aim asked for a draw in answer to a %s request%s", mode_name (step->mode), step->has_draw ? " that already carried one" : "");
+		}
+
+		// the player's invulnerability stops a hit before its arithmetic: a hit that is stopped takes no sample of the shared stream
+		if ((step->mode == CAMPAIGN_AIM_DAMAGE) && step->damage.target_not_ai && step->damage.invulnerable)
+		{
+			debug_fatal ("host aim: host aim asked for a draw in answer to a damage request for weapon %d against an invulnerable target", step->weapon);
 		}
 
 		return;
@@ -482,6 +508,66 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 
 			break;
 		}
+		case CAMPAIGN_AIM_DAMAGE:
+		{
+			const campaign_damage_request *request = &step->damage;
+			const campaign_damage_result *damage = &result->damage;
+			int not_applicable = (request->critical_model == CAMPAIGN_DAMAGE_CRITICAL_NONE) || (request->critical_model == CAMPAIGN_DAMAGE_CRITICAL_PERSON);
+			int highest = (request->critical_model == CAMPAIGN_DAMAGE_CRITICAL_AIRCRAFT) ? 2 : ((request->critical_model == CAMPAIGN_DAMAGE_CRITICAL_VEHICLE) ? 1 : 0);
+
+			if ((damage->exited & ~1) || (damage->written & ~1) || (damage->bad_modifier & ~1) || (not_applicable && (damage->critical_before || damage->critical_after)) ||
+				(damage->critical_before < 0) || (damage->critical_before > highest) || (damage->critical_after < 0) || (damage->critical_after > highest))
+			{
+				debug_fatal ("host aim: host aim answered a damage request for weapon %d with exit %d, written %d, classes %d and %d (the target's classes are 0 to %d)", step->weapon,
+					damage->exited, damage->written, damage->critical_before, damage->critical_after, highest);
+			}
+
+			// the player's invulnerability is the campaign's setting, given as a figure: the hit is stopped by it, and only by it, and a stopped hit takes no sample and changes nothing
+			if (damage->exited != (request->target_not_ai && request->invulnerable))
+			{
+				debug_fatal ("host aim: host aim answered a damage request for weapon %d with exit %d for a target %s", step->weapon, damage->exited,
+					request->invulnerable && request->target_not_ai ? "that is invulnerable" : "that is not");
+			}
+
+			if (damage->exited && (step->has_draw || damage->capability || damage->written || damage->bad_modifier || (damage->new_level != request->damage_level) ||
+				(damage->critical_before != damage->critical_after)))
+			{
+				debug_fatal ("host aim: host aim answered a damage request for weapon %d with a hit that the invulnerability stopped and still changed something", step->weapon);
+			}
+
+			// a player's damage setting that the campaign could not resolve is the host's to report, and only for a player that had none
+			if (damage->bad_modifier && (request->player_modifier_valid || !request->target_not_ai))
+			{
+				debug_fatal ("host aim: host aim answered a damage request for weapon %d with a missing damage setting that the request carried or did not need", step->weapon);
+			}
+
+			if (damage->bad_modifier)
+			{
+				// the campaign stops with the original's message; nothing else of the answer is used
+				break;
+			}
+
+			// health is written only for a hit that does damage and not under the cheat guard, to a level from zero up to what it was; when it is not written it is as it was, and
+			// the classes did not change
+			if (damage->written && (request->cheat_guard || (damage->new_level < 0) || (damage->new_level > ((request->damage_level > 0) ? request->damage_level : 0))))
+			{
+				debug_fatal ("host aim: host aim answered a damage request for weapon %d writing health %d over %d%s", step->weapon, damage->new_level, request->damage_level,
+					request->cheat_guard ? " under the cheat guard" : "");
+			}
+
+			if (!damage->written && ((damage->new_level != request->damage_level) || (damage->critical_before != damage->critical_after)))
+			{
+				debug_fatal ("host aim: host aim answered a damage request for weapon %d changing health or its class without writing it", step->weapon);
+			}
+
+			// the echo (the fixture build's) is exactly one damage event agreeing with the answer, or none; a stopped hit has none
+			if (step->echo && result->has_echo && (damage->exited || (result->echo_count != 1) || (result->echo[0].kind != CAMPAIGN_AIM_EVENT_DAMAGE) || (result->echo[0].d != damage->capability)))
+			{
+				debug_fatal ("host aim: host aim echoed a damage that is not one event agreeing with its answer");
+			}
+
+			break;
+		}
 		case CAMPAIGN_AIM_RELEASE:
 		{
 			if ((result->release_refuse & ~1) || (result->release_write_last_shot & ~1) || (result->release_burst_size < 0) || (result->release_burst_size > 100000) ||
@@ -559,7 +645,7 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 		for (i = 0; i < result->echo_count; i++)
 		{
 			if (!(((result->echo[i].kind >= CAMPAIGN_AIM_EVENT_INTERCEPT) && (result->echo[i].kind <= CAMPAIGN_AIM_EVENT_RANGE_RESULT)) ||
-				((step->mode == CAMPAIGN_AIM_FORECAST) && (result->echo[i].kind == CAMPAIGN_AIM_EVENT_FORECAST)) ||
+				((step->mode == CAMPAIGN_AIM_FORECAST) && (result->echo[i].kind == CAMPAIGN_AIM_EVENT_FORECAST)) || ((step->mode == CAMPAIGN_AIM_DAMAGE) && (result->echo[i].kind == CAMPAIGN_AIM_EVENT_DAMAGE)) ||
 				(step_mode (step->mode) && (result->echo[i].kind >= CAMPAIGN_AIM_EVENT_STEP_PATH) && (result->echo[i].kind <= CAMPAIGN_AIM_EVENT_STEP_BIRTH_DISPERSION))) ||
 				!all_finite (result->echo[i].f, 12))
 			{
@@ -844,6 +930,24 @@ campaign_aim_result campaign_aim_forecast (int weapon, const campaign_damage_fig
 
 	// a pure question: ask_once refuses a NEED_DRAW (no sample of the shared stream is taken for a forecast) and a NEED_LOOKUP
 	return ask_once (&step);
+}
+
+campaign_aim_result campaign_aim_damage (int weapon, const campaign_damage_request *request, int echo)
+{
+	campaign_aim_step step;
+
+	memset (&step, 0, sizeof (step));
+
+	step.mode = CAMPAIGN_AIM_DAMAGE;
+
+	step.weapon = weapon;
+
+	step.damage = *request;
+
+	step.echo = echo ? TRUE : FALSE;
+
+	// the hit takes at most one sample of the campaign's stream: campaign_aim_ask takes it once, after the host asks, and asks again
+	return campaign_aim_ask (&step, TRUE);
 }
 
 campaign_aim_result campaign_aim_animate (int weapon, int status, int on_ground, float lifetime, float motion_y)

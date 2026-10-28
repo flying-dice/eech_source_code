@@ -24,11 +24,17 @@
 --   mode=release_slow the same with a quarter of the weapon's rate of fire: the launchers let fewer rounds go (the host's rate-of-fire gate)
 --   mode=forecast_armoured the reference host, but every damage forecast is made against twice the target's armour level plus one: the host's physical forecast
 --                     is what the campaign weighs its packages by (EEDCS-46), so the weapons it selects and fires differ from the reference's
+--   mode=damage_armoured the reference host, but every hit is answered against three times the target's armour level plus one; mode=damage_double against twice the weapon's
+--                     damage figure; mode=damage_none a hit does nothing (no sample is taken, the player's invulnerability is still honoured): the host's physical damage is what the
+--                     campaign applies to health and acts on (EEDCS-46), so the losses, the credit and the kills differ from the reference's while the forecasts do not
 --   mode=forecast_zero the reference host, but every damage forecast is zero: no package is capable of damage, so the campaign selects and fires no weapon
 --   mode=seduce_never the reference host, but a seeker asked about a decoy is told the decoys have no effect: no seeker is drawn to a decoy (the host's seduction)
 --   mode=reacquire_never the reference host, but a seeker whose decoy expired is told to drop the lock: it does not go back to the decoy's launcher (the campaign unlinks it)
 --   mode=bad_forecast_negative, bad_forecast_draw, bad_forecast_fraction   a provider whose answer to the first damage forecast is a negative capability, a request for
 --                     a sample of the shared random stream (a forecast takes none), or a capability that is not an integer: the engine must stop with a clear error
+--   mode=bad_damage_level, bad_damage_draw_twice, bad_damage_exit, bad_damage_class, bad_damage_unwritten, bad_damage_missing   a provider whose answer to the first hit is
+--                     health written below zero, a second request for a sample, a stop by invulnerability of a target that is not invulnerable, a critical class the target
+--                     cannot have, a health changed without being written, or an answer with a field missing: the engine must stop with a clear error
 --   mode=bad_step_*   a provider that answers the first weapon step malformed: the engine must stop with a clear error (bad_step_state, bad_step_lookup_kind, bad_step_action_kind,
 --                     bad_step_nonfinite, bad_step_repeat, bad_step_error, bad_step_draw)
 --   mode=bad_birth_action, bad_release_burst   the first weapon birth answered with a step's action, the first release with no rounds and no refusal
@@ -93,12 +99,13 @@ end
 
 local reference = host.aim
 -- what the campaign asked, by request mode, and what the host answered
-local counts = { table = 0, range = 0, figures = 0, weapon_step = 0, weapon_birth = 0, release = 0, animate = 0, weapon_decoy = 0, weapon_seduce = 0, weapon_reacquire = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0, forecast = 0 }
+local counts = { table = 0, range = 0, figures = 0, weapon_step = 0, weapon_birth = 0, release = 0, animate = 0, weapon_decoy = 0, weapon_seduce = 0, weapon_reacquire = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0, forecast = 0, damage = 0 }
 local answers = { valid = 0, invalid = 0, need_draw = 0, lead_ok = 0, lead_no = 0, ballistic_ok = 0, ballistic_no = 0, phase_moving = 0, angle_sum = 0 }
 -- what the weapon steps came to: the passes the host was asked, the lookups it needed (by kind), the draws it asked for, and the kill codes it left (0 none ... 7)
 local steps = { passes = 0, done = 0, need_lookup = 0, need_draw = 0, kills = {}, lookups = {}, births = 0, birth_velocity = 0, releases = 0, release_refused = 0, release_rounds = 0,
 	decoy_updates = 0, decoy_restarts = 0, seduce_asked = 0, seduce_locked = 0, seduce_retargeted = 0, reacquire_asked = 0, reacquire_returned = 0,
-	forecasts = 0, forecast_sum = 0, forecast_zero = 0 }
+	forecasts = 0, forecast_sum = 0, forecast_zero = 0,
+	damage_draws = 0, damage_hits = 0, damage_sum = 0, damage_exited = 0, damage_written = 0, damage_critical = 0, damage_fatal = 0 }
 for code = 0, 7 do steps.kills [code] = 0 end
 
 local function counted (step, answer)
@@ -139,6 +146,17 @@ local function counted (step, answer)
 		steps.forecasts = steps.forecasts + 1
 		steps.forecast_sum = steps.forecast_sum + answer.capability
 		if answer.capability == 0 then steps.forecast_zero = steps.forecast_zero + 1 end
+	elseif step.mode == "damage" then
+		if answer.state == "need_draw" then
+			steps.damage_draws = steps.damage_draws + 1
+		else
+			steps.damage_hits = steps.damage_hits + 1
+			steps.damage_sum = steps.damage_sum + answer.capability
+			if answer.exited then steps.damage_exited = steps.damage_exited + 1 end
+			if answer.written then steps.damage_written = steps.damage_written + 1 end
+			if answer.critical_after > answer.critical_before then steps.damage_critical = steps.damage_critical + 1 end
+			if answer.written and answer.new_level <= 0 then steps.damage_fatal = steps.damage_fatal + 1 end
+		end
 	elseif step.mode == "release" then
 		steps.releases = steps.releases + 1
 		if answer.refuse then steps.release_refused = steps.release_refused + 1 else steps.release_rounds = steps.release_rounds + answer.burst_size end
@@ -199,6 +217,19 @@ elseif mode == "own_model" then
 elseif mode == "forecast_armoured" then
 	provider = function (step)
 		if step.mode == "forecast" then step = with (step, { armour_level = step.armour_level * 2 + 1 }) end
+		return counted (step, reference (step))
+	end
+elseif mode == "damage_armoured" or mode == "damage_double" then
+	provider = function (step)
+		if step.mode == "damage" then
+			if mode == "damage_armoured" then step = with (step, { armour_level = step.armour_level * 3 + 1 })
+			else step = with (step, { damage_capability = step.damage_capability * 2 }) end
+		end
+		return counted (step, reference (step))
+	end
+elseif mode == "damage_none" then
+	provider = function (step)
+		if step.mode == "damage" then return counted (step, own.damage (with (step, { damage_capability = 0 }))) end
 		return counted (step, reference (step))
 	end
 elseif mode == "forecast_zero" then
@@ -326,7 +357,9 @@ emit { event = "summary", mode = mode, frames = frames_run, failure = failure or
 	decoy_updates = steps.decoy_updates, decoy_restarts = steps.decoy_restarts, seduce_asked = steps.seduce_asked, seduce_locked = steps.seduce_locked,
 	seduce_retargeted = steps.seduce_retargeted,
 	reacquire_asked = steps.reacquire_asked, reacquire_returned = steps.reacquire_returned,
-	forecasts = steps.forecasts, forecast_sum = steps.forecast_sum, forecast_zero = steps.forecast_zero }
+	forecasts = steps.forecasts, forecast_sum = steps.forecast_sum, forecast_zero = steps.forecast_zero,
+	damage_draws = steps.damage_draws, damage_hits = steps.damage_hits, damage_sum = steps.damage_sum, damage_exited = steps.damage_exited, damage_written = steps.damage_written,
+	damage_critical = steps.damage_critical, damage_fatal = steps.damage_fatal }
 out:close ()
 io.stderr:write (string.format ("aim-provider: mode=%s ready_update=%d ready_command=%d required=%d step=%d vectors=%d (valid %d invalid %d) lead=%d ballistic=%d intercept=%d need_draw=%d ready_moving=%d weapon_births=%d losses=%d failure=%s\n",
 	mode, counts.ready_update, counts.ready_command, counts.required, counts.step, counts.vectors, answers.valid, answers.invalid, counts.lead, counts.ballistic, counts.intercept,

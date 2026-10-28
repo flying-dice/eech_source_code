@@ -70,6 +70,9 @@
 
 #include "entity/mobile/mb_hostaim.h"
 
+// the classes of an aircraft's critical state that the host answers (mb_hostaim.h) are the values of aircraft_damage_types
+typedef char campaign_aircraft_classes_are_aircraft_damage_types[((AIRCRAFT_DAMAGE_NONE == 0) && (AIRCRAFT_DAMAGE_MORTAL == 1) && (AIRCRAFT_DAMAGE_CRITICAL == 2)) ? 1 : -1];
+
 #include "ai/highlevl/highlevl.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,16 +96,68 @@ static object_3d_index_numbers
 extern int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier, entity_sub_types weapon_type, float velocity);
 
 static float get_player_damage_modifier (entity *en);
+static int resolve_player_damage_modifier (entity *en, float *modifier, int *difficulty);
+
+typedef weapon weapon_data_raw;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int damage_client_server_entity (entity *en, entity *weapon, float damage_modifier)
+/** The damage figures of a weapon, by value (campaign_damage_figures): those of its own definition, or, for a conventional-munitions weapon (which carries its damage in the
+ *  munition it scatters, the next entry of the database, the relationship wn_creat.c relies on), those of the munition.  The host applies the arithmetic.
+ */
+static void fill_damage_figures (campaign_damage_figures *figures, entity_sub_types weapon_type)
 {
+	const weapon_data
+		*row;
+
+	row = &weapon_database[weapon_type];
+
+	figures->weapon_warhead = row->warhead_type;
+
+	if (row->warhead_type == WEAPON_WARHEAD_TYPE_CONVENTIONAL_MUNITIONS)
+	{
+		if ((weapon_type + 1) >= NUM_ENTITY_SUB_TYPE_WEAPONS)
+		{
+			debug_fatal ("DAMAGE: conventional munitions weapon %d has no munition entry after it in the database", weapon_type);
+		}
+
+		row = &weapon_database[weapon_type + 1];
+	}
+
+	figures->warhead = row->warhead_type;
+	figures->damage_capability = row->damage_capability;
+	figures->armor_penetration_capability = row->armor_penetration_capability;
+	figures->burst_duration = row->burst_duration;
+}
+
+/** The damage of one hit that reached a damage handler (EEDCS-46).  The physical part is the host's (mb_hostaim.h, DAMAGE): whether the player's invulnerability stops the hit, the
+ *  weapon's capability against the target (a real weapon: its one sample of the random stream, which this takes when the host asks, its speed, the armour it meets and the
+ *  player's damage setting and the multiplayer multiplier), whether the capability is applied to the health and the health it leaves, and the critical-state classification of the
+ *  target before and after.  This keeps what is the campaign's: the sounds a hit makes (they come first, as they did, and so before the host's answer), the settings the host is
+ *  given as values, the debug display, the SETTING of the health with its side effects, and what the handlers do with the classes (the credit and the kill).
+ *  `critical_before` and `critical_after` (optional) are the classes of the target's critical state (vehicle_critically_damaged and aircraft_critically_damaged returned them); a
+ *  hit that was not asked of the host (no weapon, or stopped by invulnerability) changed nothing, and both are 0, so no handler sees a transition.
+ */
+int damage_client_server_entity_assess (entity *en, entity *weapon, float damage_modifier, int *critical_before, int *critical_after)
+{
+	campaign_damage_request
+		request;
+
+	campaign_aim_result
+		answer;
+
 	int
 		damage_capability,
-		damage_level;
+		not_ai,
+		invulnerable,
+		difficulty = 0,
+		i,
+		temp;
+
+	entity_sub_types
+		weapon_type;
 
 	weapon_warhead_types
 		warhead_type;
@@ -110,6 +165,16 @@ int damage_client_server_entity (entity *en, entity *weapon, float damage_modifi
 	ASSERT (en);
 
 	CMB_FX_DAMAGE_BEGIN (en, weapon)
+
+	if (critical_before)
+	{
+		*critical_before = 0;
+	}
+
+	if (critical_after)
+	{
+		*critical_after = 0;
+	}
 
 	if (!weapon)
 	{
@@ -126,7 +191,9 @@ int damage_client_server_entity (entity *en, entity *weapon, float damage_modifi
 
 	ASSERT ((warhead_type >= WEAPON_WARHEAD_TYPE_NONE) && (warhead_type < NUM_WEAPON_WARHEAD_TYPES));
 
-	if (get_local_entity_int_value (en, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
+	not_ai = (get_local_entity_int_value (en, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI);
+
+	if (not_ai)
 	{
 		sound_sample_indices
 			int_sound,
@@ -214,45 +281,223 @@ int damage_client_server_entity (entity *en, entity *weapon, float damage_modifi
 				&ext_sound										// sample index list
 			);
 		}
+	}
 
-		//
-		// invulnerability option for players
-		//
+	weapon_type = (entity_sub_types) get_local_entity_int_value (weapon, INT_TYPE_ENTITY_SUB_TYPE);
 
-		if (get_local_entity_int_value (en, INT_TYPE_INVULNERABLE_FROM_WEAPONS))
+	memset (&request, 0, sizeof (request));
+
+	fill_damage_figures (&request.figures, weapon_type);
+
+	request.weapon_speed = ((weapon_data_raw *) get_local_entity_data (weapon))->mob.velocity;
+	request.weapon_cruise_velocity = weapon_database[weapon_type].cruise_velocity;
+	request.damage_modifier = damage_modifier;
+
+	// the armour the weapon meets (get_local_entity_armour_thickness): the launcher's difficulty, the table level and, for a vehicle or an aircraft, the data of the aspect
+	request.armour_level = get_local_entity_int_value (en, INT_TYPE_ARMOR_LEVEL);
+
+	{
+		entity
+			*launcher,
+			*pilot;
+
+		launcher = get_local_entity_parent (weapon, LIST_TYPE_LAUNCHED_WEAPON);
+
+		if (launcher && (get_local_entity_int_value (launcher, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI))
 		{
-			CMB_FX_DAMAGE_EXIT (EECH_CMB_DAMAGE_EXIT_INVULNERABLE)
+			pilot = get_local_entity_first_child (launcher, LIST_TYPE_AIRCREW);
 
-			return 0;
+			if (pilot && ((game_difficulty_settings) get_local_entity_int_value (pilot, INT_TYPE_DIFFICULTY_LEVEL) == GAME_DIFFICULTY_EASY))
+			{
+				request.armour_easy = TRUE;
+			}
 		}
 	}
 
-	damage_level = get_local_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL);
+	if (get_local_entity_int_value (en, INT_TYPE_IDENTIFY_VEHICLE) || get_local_entity_int_value (en, INT_TYPE_IDENTIFY_AIRCRAFT))
+	{
+		vec3d
+			*target_position,
+			*weapon_position;
 
-	damage_capability = weapon_damage_capability (weapon, en, damage_modifier, get_local_entity_int_value (weapon, INT_TYPE_ENTITY_SUB_TYPE), FALSE);
+		matrix3x3
+			*target_attitude;
+
+		if (get_local_entity_int_value (en, INT_TYPE_IDENTIFY_VEHICLE))
+		{
+			entity_sub_types
+				sub_type;
+
+			sub_type = (entity_sub_types) get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE);
+
+			request.armour_model = CAMPAIGN_DAMAGE_ARMOUR_VEHICLE;
+			request.armour_front = vehicle_database[sub_type].armour_front;
+			request.armour_rear = vehicle_database[sub_type].armour_rear;
+			request.armour_side = vehicle_database[sub_type].armour_side;
+		}
+		else
+		{
+			request.armour_model = CAMPAIGN_DAMAGE_ARMOUR_AIRCRAFT;
+		}
+
+		target_position = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
+		weapon_position = get_local_entity_vec3d_ptr (weapon, VEC3D_TYPE_POSITION);
+		target_attitude = get_local_entity_attitude_matrix_ptr (en);
+
+		request.target_position[0] = target_position->x;
+		request.target_position[1] = target_position->y;
+		request.target_position[2] = target_position->z;
+		request.weapon_position[0] = weapon_position->x;
+		request.weapon_position[1] = weapon_position->y;
+		request.weapon_position[2] = weapon_position->z;
+
+		for (i = 0; i < 9; i++)
+		{
+			request.target_attitude[i] = (*target_attitude)[i / 3][i % 3];
+		}
+	}
+
+	// the settings the host is given as values: a player's invulnerability, damage setting and the multiplayer multiplier
+	invulnerable = not_ai ? get_local_entity_int_value (en, INT_TYPE_INVULNERABLE_FROM_WEAPONS) : FALSE;
+
+	request.target_not_ai = not_ai;
+	request.invulnerable = invulnerable ? TRUE : FALSE;
+
+	if (not_ai)
+	{
+		request.player_modifier_valid = resolve_player_damage_modifier (en, &request.player_modifier, &difficulty);
+	}
+	else
+	{
+		request.player_modifier = 1.0;
+	}
+
+	if (weapon->weapon_data->launched_weapon_link.parent)
+	{
+		request.has_launcher = TRUE;
+		request.multiplier = comms_weapon_damage_multiplier_value (weapon->weapon_data->launched_weapon_link.parent, FALSE, weapon_type);
+	}
 
 	ASSERT (get_session_entity ());
 
-	if (damage_capability > 0 && (!command_line_debug_damage_invulnerable || !get_local_entity_int_value (get_session_entity (), INT_TYPE_CHEATS_ENABLED)))
+	request.cheat_guard = (command_line_debug_damage_invulnerable && get_local_entity_int_value (get_session_entity (), INT_TYPE_CHEATS_ENABLED)) ? TRUE : FALSE;
+
+	// the health, and how the critical state of the target is classified (a fixed structure has none and a person is never critical)
+	request.damage_level = get_local_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL);
+	request.initial_damage_level = get_local_entity_int_value (en, INT_TYPE_INITIAL_DAMAGE_LEVEL);
+
+	switch (get_local_entity_type (en))
 	{
-		damage_level -= damage_capability;
+		case ENTITY_TYPE_PERSON:
+			request.critical_model = CAMPAIGN_DAMAGE_CRITICAL_PERSON;
+			break;
+		case ENTITY_TYPE_ANTI_AIRCRAFT:
+		case ENTITY_TYPE_ROUTED_VEHICLE:
+		case ENTITY_TYPE_SHIP_VEHICLE:
+			request.critical_model = CAMPAIGN_DAMAGE_CRITICAL_VEHICLE;
+			break;
+		case ENTITY_TYPE_HELICOPTER:
+		case ENTITY_TYPE_FIXED_WING:
+			request.critical_model = CAMPAIGN_DAMAGE_CRITICAL_AIRCRAFT;
+			break;
+		default:
+			request.critical_model = CAMPAIGN_DAMAGE_CRITICAL_NONE;
+	}
 
-		damage_level = max (damage_level, 0);
+	// a hit the player's invulnerability stops never reaches the capability's arithmetic: its hooks begin when the original's did, before the sample is taken
+	if (!invulnerable)
+	{
+		CMB_FX_CAPABILITY_BEGIN ()
+	}
 
-		set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, damage_level);
+	answer = campaign_aim_damage (weapon_type, &request, CMB_FX_DAMAGE_ECHO);
 
-		CMB_FX_DAMAGE_WRITTEN (en, damage_level)
+	if (answer.damage.bad_modifier)
+	{
+		debug_fatal ("DAMAGE: No player damage modifier for difficulty level %d", difficulty);
+	}
+
+	if (answer.damage.exited)
+	{
+		CMB_FX_DAMAGE_EXIT (EECH_CMB_DAMAGE_EXIT_INVULNERABLE)
+
+		return 0;
+	}
+
+	CMB_FX_CAPABILITY_DAMAGE (weapon, en, weapon_type, answer)
+
+	damage_capability = answer.damage.capability;
+
+	if (command_line_debug_show_damage) // draw damage value
+	{
+		viewpoint
+			temp_vp;
+		vec3d
+			temp_vec;
+		int
+			digit,
+			zero = TRUE,
+			p = 1000;
+
+		get_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &temp_vp.position);
+		get_local_entity_attitude_matrix (weapon, temp_vp.attitude);
+		temp_vec.x = 4;
+		temp_vec.y = temp_vec.z = 0;
+		multiply_matrix3x3_vec3d(&temp_vec, temp_vp.attitude, &temp_vec);
+		temp_vp.position.x -= 2 * temp_vec.x;
+		temp_vp.position.y -= 2 * temp_vec.y;
+		temp_vp.position.z -= 2 * temp_vec.z;
+
+		temp = damage_capability;
+
+		for (i = 3; i >= 0; i-- )
+		{
+			digit = temp / p;
+			if (digit)
+				zero = FALSE;
+
+			if (!zero)
+				create_debug_3d_object (&temp_vp, OBJECT_3D_DIG_0 + digit, 2, 5.0);
+
+			temp %= p;
+			p /= 10;
+			temp_vp.position.x += temp_vec.x;
+			temp_vp.position.y += temp_vec.y;
+			temp_vp.position.z += temp_vec.z;
+		}
+	}
+
+	if (answer.damage.written)
+	{
+		set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, answer.damage.new_level);
+
+		CMB_FX_DAMAGE_WRITTEN (en, answer.damage.new_level)
 
 		#if DEBUG_MODULE
 
-		debug_log ("DAMAGE: %s hit = %d , new damage level = %d", get_local_entity_string (en, STRING_TYPE_FULL_NAME), damage_capability, damage_level);
+		debug_log ("DAMAGE: %s hit = %d , new damage level = %d", get_local_entity_string (en, STRING_TYPE_FULL_NAME), damage_capability, answer.damage.new_level);
 
 		#endif
 	}
 
 	CMB_FX_DAMAGE_END (en, weapon, damage_modifier, damage_capability)
 
+	if (critical_before)
+	{
+		*critical_before = answer.damage.critical_before;
+	}
+
+	if (critical_after)
+	{
+		*critical_after = answer.damage.critical_after;
+	}
+
 	return damage_capability;
+}
+
+int damage_client_server_entity (entity *en, entity *weapon, float damage_modifier)
+{
+	return damage_client_server_entity_assess (en, weapon, damage_modifier, NULL, NULL);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -362,9 +607,6 @@ static int weapon_damage_forecast (entity *target, float damage_modifier, entity
 	campaign_aim_result
 		result;
 
-	const weapon_data
-		*row;
-
 	int
 		not_ai;
 
@@ -373,24 +615,7 @@ static int weapon_damage_forecast (entity *target, float damage_modifier, entity
 
 	ASSERT (target);
 
-	row = &weapon_database[weapon_type];
-
-	figures.weapon_warhead = row->warhead_type;
-
-	if (row->warhead_type == WEAPON_WARHEAD_TYPE_CONVENTIONAL_MUNITIONS)
-	{
-		if ((weapon_type + 1) >= NUM_ENTITY_SUB_TYPE_WEAPONS)
-		{
-			debug_fatal ("DAMAGE: conventional munitions weapon %d has no munition entry after it in the database", weapon_type);
-		}
-
-		row = &weapon_database[weapon_type + 1];
-	}
-
-	figures.warhead = row->warhead_type;
-	figures.damage_capability = row->damage_capability;
-	figures.armor_penetration_capability = row->armor_penetration_capability;
-	figures.burst_duration = row->burst_duration;
+	fill_damage_figures (&figures, weapon_type);
 
 	not_ai = (get_local_entity_int_value (target, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI);
 
@@ -408,151 +633,15 @@ static int weapon_damage_forecast (entity *target, float damage_modifier, entity
 
 int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier, entity_sub_types weapon_type, float velocity)
 {
-	int
-		result = 0,
-		i,
-		temp,
-		high_explosive = FALSE,
-		warhead_type;
-
-	float
-		weapon_armor_penetration_capability,
-		random_modifier = 1,
-		target_armor_thickness,
-		armor_modifier,
-		damage_capability,
-		armor_penetration_capability;
-	weapon
-		*raw;
-
 	ASSERT (target);
 
-	if (!wpn)
+	// the capability of a REAL weapon is part of the host's answer to a hit (damage_client_server_entity); only the forecast, with no weapon in flight, is asked on its own
+	if (wpn)
 	{
-		// no weapon in flight: the forecast, which is the host's physical answer
-		return weapon_damage_forecast (target, damage_modifier, weapon_type, velocity);
+		debug_fatal ("DAMAGE: the capability of a real weapon is asked of the host with the hit it belongs to, not on its own");
 	}
 
-	CMB_FX_CAPABILITY_BEGIN()
-
-	switch (weapon_database[weapon_type].warhead_type)
-	{
-		case WEAPON_WARHEAD_TYPE_CONVENTIONAL_MUNITIONS:
-			warhead_type = weapon_database[weapon_type + 1].warhead_type;
-			damage_capability = weapon_database[weapon_type + 1].damage_capability * weapon_database[weapon_type + 1].burst_duration / 3;
-			armor_penetration_capability = weapon_database[weapon_type + 1].armor_penetration_capability;
-			break;
-		default:
-			warhead_type = weapon_database[weapon_type].warhead_type;
-			damage_capability = weapon_database[weapon_type].damage_capability;
-			armor_penetration_capability = weapon_database[weapon_type].armor_penetration_capability;
-	}
-	
-	if (wpn) // only for real weapon!
-	{
-		raw = (weapon *) get_local_entity_data (wpn);
-
-		target_armor_thickness = get_local_entity_armour_thickness (target, wpn);
-		random_modifier = frand1();
-
-		if (warhead_type >= WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK && 
-				warhead_type <= WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_AIRCRAFT)
-		{
-			velocity = 1;	
-			high_explosive = TRUE;
-			random_modifier = 0.75 + 2 * random_modifier * random_modifier * random_modifier; // random chance from 75% to 275%, average 100%
-		}
-		else
-		{
-			velocity = raw->mob.velocity / weapon_database[weapon_type].cruise_velocity;
-			random_modifier = 0.75 + 0.5 * random_modifier; // random chance from 75% to 125%, average 100%
-		}
-
-	}
-	
-	weapon_armor_penetration_capability = armor_penetration_capability * random_modifier * velocity;
-	
-	if (weapon_armor_penetration_capability >= target_armor_thickness && damage_modifier < 0.01) // weapon pierces through the armor
-	{
-		result = (int) (damage_capability * random_modifier * velocity);
-
-		CMB_FX_CAPABILITY_PATH (1)
-
-		#if DEBUG_MODULE
-			debug_log("DAMAGE: DIRECT HIT - weapon penetration %.1f, target armor %.1f, damage_modifier %.4f, random modifier %.4f, damage %d", 
-					weapon_armor_penetration_capability, target_armor_thickness, damage_modifier, random_modifier, result);
-		#endif
-		
-	}
-	else if (high_explosive)
-	{
-		float he_warheads = WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_AIRCRAFT - WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK; // subtract 1
-		
-		damage_modifier = 1 - pow(damage_modifier, pow((float)(warhead_type - WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK + 1) / he_warheads, 1.5f));
-		armor_modifier =  min(1.0f, damage_capability * damage_modifier * random_modifier / pow(target_armor_thickness, 1.5f));
-		
-		result = (int) (damage_capability * damage_modifier * armor_modifier * random_modifier);
-
-		CMB_FX_CAPABILITY_PATH (2)
-
-		#if DEBUG_MODULE
-			debug_log("DAMAGE: SPLASH DAMAGE - weapon penetration %.1f, target armor %.1f, damage_modifier %.4f, armor modifier %.4f, random modifier %.4f, damage %d", 
-					weapon_armor_penetration_capability, target_armor_thickness, damage_modifier, armor_modifier, random_modifier, result);
-		#endif
-
-	}
-	
-	CMB_FX_CAPABILITY_RAW (result)
-
-	if (get_local_entity_int_value (target, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-		result *= get_player_damage_modifier (target);
-	
-	if (wpn) // damage multiplier for clients
-		if (wpn->weapon_data->launched_weapon_link.parent)
-			result *= comms_weapon_damage_multiplier_value(wpn->weapon_data->launched_weapon_link.parent, FALSE, weapon_type);
-
-	if (wpn && command_line_debug_show_damage) // draw damage value
-	{
-		viewpoint
-			temp_vp;
-		vec3d
-			temp_vec;
-		int
-			digit,
-			zero = TRUE,
-			p = 1000;
-		
-		get_local_entity_vec3d (target, VEC3D_TYPE_POSITION, &temp_vp.position);
-		get_local_entity_attitude_matrix (wpn, temp_vp.attitude);
-		temp_vec.x = 4;
-		temp_vec.y = temp_vec.z = 0;
-		multiply_matrix3x3_vec3d(&temp_vec, temp_vp.attitude, &temp_vec);
-		temp_vp.position.x -= 2 * temp_vec.x;
-		temp_vp.position.y -= 2 * temp_vec.y;
-		temp_vp.position.z -= 2 * temp_vec.z;
-
-		temp = result;
-
-		for (i = 3; i >= 0; i-- )
-		{
-			digit = temp / p;
-			if (digit)
-				zero = FALSE;
-
-			if (!zero)
-				create_debug_3d_object (&temp_vp, OBJECT_3D_DIG_0 + digit, 2, 5.0);
-
-			temp %= p;
-			p /= 10;
-			temp_vp.position.x += temp_vec.x;
-			temp_vp.position.y += temp_vec.y;
-			temp_vp.position.z += temp_vec.z;
-		}
-	}
-
-	CMB_FX_CAPABILITY_END (wpn, target, damage_modifier, weapon_type, warhead_type, weapon_armor_penetration_capability, target_armor_thickness, random_modifier, result)
-
-	return result;
+	return weapon_damage_forecast (target, damage_modifier, weapon_type, velocity);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -706,7 +795,8 @@ static struct PLAYER_DAMAGE_MODIFIER_TABLE
 		(game_difficulty_settings) -1
 	};
 
-float get_player_damage_modifier (entity *en)
+/** The player's damage setting of a target, without the fatal error: TRUE and the setting, or FALSE and the difficulty that has none.  A target with no pilot has the setting 1. */
+static int resolve_player_damage_modifier (entity *en, float *modifier, int *difficulty_out)
 {
 	int
 		loop;
@@ -719,28 +809,50 @@ float get_player_damage_modifier (entity *en)
 
 	ASSERT (en);
 
+	*modifier = 1.0;
+
 	pilot_en = get_local_entity_first_child (en, LIST_TYPE_AIRCREW);
 
 	if (pilot_en)
 	{
 		difficulty = (game_difficulty_settings) get_local_entity_int_value (pilot_en, INT_TYPE_DIFFICULTY_LEVEL);
-	
+
+		*difficulty_out = difficulty;
+
 		loop = 0;
-	
+
 		while (player_damage_modifier_table [loop].difficulty >= 0)
 		{
 			if (player_damage_modifier_table [loop].difficulty == difficulty)
 			{
-				return player_damage_modifier_table [loop].damage_modifier;
+				*modifier = player_damage_modifier_table [loop].damage_modifier;
+
+				return TRUE;
 			}
-	
+
 			loop ++;
 		}
-	
+
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+float get_player_damage_modifier (entity *en)
+{
+	float
+		modifier;
+
+	int
+		difficulty = 0;
+
+	if (!resolve_player_damage_modifier (en, &modifier, &difficulty))
+	{
 		debug_fatal ("DAMAGE: No player damage modifier for difficulty level %d", difficulty);
 	}
-	
-	return 1.0;
+
+	return modifier;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
