@@ -877,6 +877,8 @@ void create_client_server_weapon_killed_explosion_effect (entity *en)
 	// apply damage to surrounding objects and/or target
 	//
 
+	CMB_FX_EXPLOSION_BEGIN (kill_code)
+
 	switch (kill_code)
 	{
 		case WEAPON_KILL_CODE_EXHAUSTED:
@@ -954,6 +956,8 @@ void create_client_server_weapon_killed_explosion_effect (entity *en)
 			debug_fatal ("EXPLOSN : Invalid weapon kill code ( %d )", kill_code);
 		}
 	}
+
+	CMB_FX_EXPLOSION_END ()
 
 	#if DEBUG_MODULE > 1
 

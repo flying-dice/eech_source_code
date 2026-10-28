@@ -107,8 +107,12 @@ int damage_client_server_entity (entity *en, entity *weapon, float damage_modifi
 
 	ASSERT (en);
 
+	CMB_FX_DAMAGE_BEGIN (en, weapon)
+
 	if (!weapon)
 	{
+		CMB_FX_DAMAGE_EXIT (EECH_CMB_DAMAGE_EXIT_NO_WEAPON)
+
 		return 0;
 	}
 
@@ -215,7 +219,7 @@ int damage_client_server_entity (entity *en, entity *weapon, float damage_modifi
 
 		if (get_local_entity_int_value (en, INT_TYPE_INVULNERABLE_FROM_WEAPONS))
 		{
-			CMB_FX_DAMAGE_INVULNERABLE (en)
+			CMB_FX_DAMAGE_EXIT (EECH_CMB_DAMAGE_EXIT_INVULNERABLE)
 
 			return 0;
 		}

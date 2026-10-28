@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_cmbfx.h"
+
 #include "entity/tacview/tacview.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -315,18 +317,24 @@ static void update_server (entity *en)
 
 					update_aircraft_decoy_release (en);
 
+					CMB_FX_TIMED_BEGIN (EECH_CMB_TIMED_HELICOPTER)
+
 					if (damage_type > AIRCRAFT_DAMAGE_NONE)
 						if (frand1() < pow((float)damage_type, 4) * get_delta_time())
 						{
 							int damage_level = max(0, get_local_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL) - 1);
 
 							set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, damage_level);
+
+							CMB_FX_TIMED_HIT (en, damage_level)
 							
 							if (damage_level <= 0)
 								kill_client_server_entity (en);
 							
 							return;
 						}
+
+					CMB_FX_TIMED_END ()
 				}
 
 				//

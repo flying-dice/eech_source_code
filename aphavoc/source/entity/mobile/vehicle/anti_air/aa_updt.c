@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_cmbfx.h"
+
 #include "entity/tacview/tacview.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,6 +99,8 @@ static void update_server (entity *en)
 
 	// fire damage
 	
+	CMB_FX_TIMED_BEGIN (EECH_CMB_TIMED_ANTI_AIRCRAFT_FIRE)
+
 	if (damage_level && (explosive_quality & EXPLOSIVE_QUALITY_EXPLOSIVE || explosive_quality & EXPLOSIVE_QUALITY_FLAMMABLE) && 
 			vehicle_critically_damaged(en) && frand1() < 2 * get_delta_time())
 	{
@@ -104,9 +108,13 @@ static void update_server (entity *en)
 
 		set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, max(0, damage_level));
 
+		CMB_FX_TIMED_HIT (en, max(0, damage_level))
+
 		if (damage_level <= 0)
 			kill_client_server_entity (en);
 	}
+
+	CMB_FX_TIMED_END ()
 
 	if (raw->vh.mob.alive && !vehicle_critically_damaged(en))
 	{

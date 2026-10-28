@@ -2,21 +2,29 @@
  * TEST-ONLY physical combat-resolution characterisation (EEDCS-46). Compiled only with the `weapon-fixture` feature (the same fixture build as the physical
  * weapon-execution observer; its reports are separate); never part of the shipping module.
  *
- * entity/system/en_msgs/en_msgs.c, entity/mobile/weapon/damage.c, entity/special/effect/explosn/explosn.c and entity/mobile/mb_msgs.c, built with
- * EECH_WEAPON_FIXTURE, call the eech_cmb_* hooks declared in entity/mobile/mb_cmbfx.h from inside the original code. The hooks only observe (see that header).
+ * entity/system/en_msgs/en_msgs.c, entity/system/en_main/en_heap.c, entity/mobile/weapon/damage.c, entity/special/effect/explosn/explosn.c, entity/mobile/mb_msgs.c,
+ * entity/fixed/fixed.c and the six per-frame update files, built with EECH_WEAPON_FIXTURE, call the eech_cmb_* hooks declared in entity/mobile/mb_cmbfx.h from inside the
+ * original code. The hooks only observe (see that header).
  *
  *   damage_hash     every weapon_damage_capability call, in order: whether a real weapon or the no-weapon forecast, the weapon type and warhead, which arithmetic ran
  *                   (armour penetrated, high-explosive splash, none), the penetration, the armour and the random modifier as exact float bits, the result before and after
  *                   the player and multiplayer modifiers, and the number of draws it took from the shared random stream
- *   collision_hash  every ENTITY_MESSAGE_COLLISION delivery, in order: the receiver's kind, the sender (weapon type or entity kind), the modifier, the damage level and the
- *                   alive flag before and after the handler, whether the handler destroyed the receiver, and what damage_client_server_entity applied
+ *   collision_hash  every ENTITY_MESSAGE_COLLISION delivery to one of the thirteen kinds that hold a damage level (six mobile, seven fixed), in order: the receiver's kind,
+ *                   the sender (weapon type or entity kind), the modifier, the damage level and the alive flag before and after the handler, whether the receiver was
+ *                   destroyed during the handler, and what damage_client_server_entity applied
  *   blast_hash      every damage_objects_within_explosion_damage_radius call, in order: the capability and radius, each candidate examined in the order it was visited
- *                   (kind, range, modifier) and what was done to it (collision notification, rocket destroyed, nothing)
- *   repair_hash     every write of the damage level by the repair handler (a D4 coupling, observed so it is classified, not lost)
+ *                   (kind, range, modifier) and what was done to it (collision notification, rocket destroyed, nothing); and the explosion invocation each call belongs to
+ *   repair_hash     every write of the damage level that restores health (the mobile resupply repair and the fixed-structure restore: D4 coupling, observed so it is
+ *                   classified, not lost)
+ *   timed_hash      every per-frame timed health attempt (helicopter and fixed-wing fire, a person's bleeding, an anti-aircraft, routed or ship vehicle's fire): the kind,
+ *                   the draws the original's condition took from the shared stream, whether it fired and the health it left
+ *   order_hash      the order in which the categories above happened
  *
  * No hash, event or counter carries an entity pointer, index, heap address or seed. The shared random stream is observed only by the number of draws between two
- * points. A hook reads only fields the original has already stored; after a collision handler an entity whose slot no longer holds the receiver is reported as
- * destroyed and read for nothing else.
+ * points. IDENTITY: the receiver of a collision is identified across its handler by a fixture-private generation of its slot, advanced when the entity heap frees the slot
+ * (eech_cmb_release); a slot freed during the handler is reported as destroyed and read for nothing else, so a slot reused by another entity is never read as the receiver.
+ * COVERAGE LIMITS, declared in the report: deliveries to kinds that hold no damage level (a bridge, a cargo, a weapon) are only counted, never read (a bridge is notified
+ * by its segments with no fourth argument); nesting deeper than NEST_MAX frames and any release of a slot outside the entity array are counted and make the trace untrusted.
  */
 
 #ifdef EECH_WEAPON_FIXTURE
@@ -34,12 +42,25 @@
 
 #define LOG_EVENTS 32768
 #define LOG_TEXT 400
+#define NEST_MAX 8
+#define GEN_SLOTS 262144
 
 #define FNV_OFFSET 14695981039346656037ull
 #define FNV_PRIME 1099511628211ull
 
 #define CAP_PATHS 3		/* 0 none, 1 armour penetrated, 2 high-explosive splash */
 #define WARHEADS 16
+
+enum category
+{
+	CAT_CAPABILITY = 1,
+	CAT_DAMAGE,
+	CAT_COLLISION,
+	CAT_BLAST,
+	CAT_EXPLOSION,
+	CAT_REPAIR,
+	CAT_TIMED
+};
 
 struct kind_row
 {
@@ -49,49 +70,66 @@ struct kind_row
 	int max_damage;
 };
 
+struct timed_row
+{
+	uint64_t attempts, draws, hits, fatal;
+};
+
 struct fixture_trace
 {
-	uint64_t damage_hash, collision_hash, blast_hash, repair_hash;
+	uint64_t damage_hash, collision_hash, blast_hash, repair_hash, timed_hash, order_hash;
 	uint64_t capability_calls, capability_real, capability_forecast, capability_paths[CAP_PATHS], capability_draws, capability_player, capability_multiplier;
 	uint64_t warhead_real[WARHEADS], warhead_forecast[WARHEADS], warhead_direct[WARHEADS], warhead_splash[WARHEADS];
-	uint64_t damage_calls, damage_no_weapon, damage_invulnerable_calls, damage_written, damage_unwritten;
-	uint64_t blast_calls, blast_zero_radius, blast_target_skipped, blast_repeats, blast_max_candidates, blast_candidates, blast_by_kill[NUM_WEAPON_KILL_CODES];
-	uint64_t collision_nested_max, repair_writes, repair_zero_to_positive;
-	uint64_t log_overflow, installed;
+	uint64_t damage_entries, damage_exit_no_weapon, damage_exit_invulnerable, damage_exit_done, damage_written, damage_unwritten;
+	uint64_t explosions, explosion_blast_calls_max, explosions_with_repeated_blast, blast_outside_explosion;
+	uint64_t blast_calls, blast_zero_radius, blast_candidates, blast_max_candidates, blast_by_kill[NUM_WEAPON_KILL_CODES];
+	uint64_t repair_writes[3], repair_zero_to_positive;
+	uint64_t depth_max, depth_overflow, depth_unbalanced, identity_unknown, release_outside, releases, observed_deliveries, unobserved_deliveries[NUM_ENTITY_TYPES];
+	uint64_t installed, log_overflow;
 	struct kind_row kinds[NUM_ENTITY_TYPES];
+	struct timed_row timed[EECH_CMB_TIMEDS];
 };
 
 static struct fixture_trace trace;
 static int primed;
 
+static uint32_t generation[GEN_SLOTS];
+
 static char log_pool[LOG_EVENTS][LOG_TEXT];
 static int log_count, log_drained;
 static uint64_t log_seq;
 
-/* the calls in flight */
-#define NEST_MAX 8
-static struct
+/* the collision handlers in flight (a handler can notify another entity, so they nest) */
+struct collision_frame
 {
-	int active, type, level, alive, sender_weapon, sender_type, sender_sub;
+	int type, level, alive, sender_weapon, sender_type, sender_sub, slot;
+	uint32_t generation;
 	double modifier;
-	int cap_calls, cap_result, applied, damage_end;
-	int invulnerable;
-} collisions[NEST_MAX];
+	int cap_calls, cap_result, applied, damage_end, invulnerable;
+};
+
+static struct collision_frame collision_frames[NEST_MAX];
 static int depth;
 
 static struct
 {
-	int active, rng0, path, raw, real, written, level_written;
+	int active, rng0, path, raw;
 } cur_cap;
 
 static struct
 {
 	int active, kill_code, candidates, notified, rockets;
-	uint64_t seq;
-	void *weapon;
 } cur_blast;
-static void *last_blast_weapon;
-static int last_blast_kill_code = -1;
+
+static struct
+{
+	int active, kill_code, blast_calls;
+} cur_explosion;
+
+static struct
+{
+	int active, kind, rng0;
+} cur_timed;
 
 static void fold (uint64_t *hash, uint32_t word)
 {
@@ -121,7 +159,7 @@ static void fold_f (uint64_t *hash, float value)
 static void primed_reset (void)
 {
 	memset (&trace, 0, sizeof (trace));
-	trace.damage_hash = trace.collision_hash = trace.blast_hash = trace.repair_hash = FNV_OFFSET;
+	trace.damage_hash = trace.collision_hash = trace.blast_hash = trace.repair_hash = trace.timed_hash = trace.order_hash = FNV_OFFSET;
 	primed = 1;
 }
 
@@ -131,6 +169,11 @@ static void ready (void)
 	{
 		primed_reset ();
 	}
+}
+
+static void order (enum category category)
+{
+	fold (&trace.order_hash, (uint32_t) category);
 }
 
 static int draws_between (int before, int after)
@@ -164,6 +207,32 @@ static int valid_type (int type)
 static const char *type_name (int type)
 {
 	return valid_type (type) ? get_entity_type_name ((entity_types) type) : "invalid";
+}
+
+/* the thirteen kinds whose collision handlers read the damage modifier and which hold a damage level */
+static int observed_kind (int type)
+{
+	switch (type)
+	{
+		case ENTITY_TYPE_ANTI_AIRCRAFT:
+		case ENTITY_TYPE_CITY_BUILDING:
+		case ENTITY_TYPE_FIXED_WING:
+		case ENTITY_TYPE_HELICOPTER:
+		case ENTITY_TYPE_OBJECT:
+		case ENTITY_TYPE_PERSON:
+		case ENTITY_TYPE_PYLON:
+		case ENTITY_TYPE_ROUTED_VEHICLE:
+		case ENTITY_TYPE_SCENIC:
+		case ENTITY_TYPE_SEGMENT:
+		case ENTITY_TYPE_SHIP_VEHICLE:
+		case ENTITY_TYPE_SITE:
+		case ENTITY_TYPE_SITE_UPDATABLE:
+		{
+			return 1;
+		}
+	}
+
+	return 0;
 }
 
 static int warhead_index (int warhead)
@@ -209,6 +278,51 @@ static int entity_alive (entity *en)
 	return get_local_entity_int_value (en, INT_TYPE_ALIVE) ? 1 : 0;
 }
 
+/* the slot of an entity in the entity array, or -1 when it is not in it (or beyond the generation table) */
+static int slot_of (entity *en)
+{
+	if (entities && en >= entities && en < entities + number_of_entities && (en - entities) < GEN_SLOTS)
+	{
+		return (int) (en - entities);
+	}
+
+	return -1;
+}
+
+/* the frame of the collision handler now running, or NULL when none is or it is deeper than the table */
+static struct collision_frame *current_frame (void)
+{
+	if (depth > 0 && depth <= NEST_MAX)
+	{
+		return &collision_frames[depth - 1];
+	}
+
+	return NULL;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* slot generations */
+
+void eech_cmb_release (entity *en)
+{
+	int slot;
+
+	ready ();
+
+	trace.releases++;
+
+	slot = slot_of (en);
+
+	if (slot < 0)
+	{
+		trace.release_outside++;
+
+		return;
+	}
+
+	generation[slot]++;
+}
+
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 /* damage capability */
 
@@ -224,7 +338,7 @@ void eech_cmb_capability_begin (void)
 
 void eech_cmb_capability_path (int path)
 {
-	if (cur_cap.active)
+	if (cur_cap.active && path >= 0 && path < CAP_PATHS)
 	{
 		cur_cap.path = path;
 	}
@@ -241,6 +355,7 @@ void eech_cmb_capability_raw (int result)
 void eech_cmb_capability_end (entity *wpn, entity *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result)
 {
 	int draws, w, player, multiplier;
+	struct collision_frame *frame;
 
 	ready ();
 
@@ -298,32 +413,59 @@ void eech_cmb_capability_end (entity *wpn, entity *target, float modifier, int w
 	fold (&trace.damage_hash, (uint32_t) target->type);
 	fold (&trace.damage_hash, (uint32_t) player);
 
-	if (depth > 0)
+	order (CAT_CAPABILITY);
+
+	frame = current_frame ();
+
+	if (frame)
 	{
-		collisions[depth - 1].cap_calls++;
-		collisions[depth - 1].cap_result = result;
+		frame->cap_calls++;
+		frame->cap_result = result;
 	}
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
-/* damage_client_server_entity */
+/* damage_client_server_entity: every entry has exactly one exit (no weapon, invulnerable, or done) */
 
-void eech_cmb_damage_invulnerable (entity *en)
+void eech_cmb_damage_begin (entity *en, entity *weapon)
 {
 	(void) en;
+	(void) weapon;
 
 	ready ();
 
-	trace.damage_invulnerable_calls++;
+	trace.damage_entries++;
+}
 
-	if (depth > 0)
+void eech_cmb_damage_exit (int reason)
+{
+	struct collision_frame *frame;
+
+	ready ();
+
+	if (reason == EECH_CMB_DAMAGE_EXIT_NO_WEAPON)
 	{
-		collisions[depth - 1].invulnerable = 1;
+		trace.damage_exit_no_weapon++;
 	}
+	else
+	{
+		trace.damage_exit_invulnerable++;
+
+		frame = current_frame ();
+
+		if (frame)
+		{
+			frame->invulnerable = 1;
+		}
+	}
+
+	order (CAT_DAMAGE);
 }
 
 void eech_cmb_damage_written (entity *en, int new_level)
 {
+	struct collision_frame *frame;
+
 	(void) en;
 	(void) new_level;
 
@@ -331,35 +473,39 @@ void eech_cmb_damage_written (entity *en, int new_level)
 
 	trace.damage_written++;
 
-	if (depth > 0)
+	frame = current_frame ();
+
+	if (frame)
 	{
-		collisions[depth - 1].applied = 1;
+		frame->applied = 1;
 	}
 }
 
 void eech_cmb_damage_end (entity *en, entity *weapon, float modifier, int capability)
 {
+	struct collision_frame *frame;
+
 	(void) en;
+	(void) weapon;
 	(void) modifier;
 
 	ready ();
 
-	trace.damage_calls++;
+	trace.damage_exit_done++;
 
-	if (!weapon)
-	{
-		trace.damage_no_weapon++;
-	}
+	frame = current_frame ();
 
-	if (capability > 0 && depth > 0 && !collisions[depth - 1].applied)
+	if (capability > 0 && frame && !frame->applied)
 	{
 		trace.damage_unwritten++;
 	}
 
-	if (depth > 0)
+	if (frame)
 	{
-		collisions[depth - 1].damage_end = capability;
+		frame->damage_end = capability;
 	}
+
+	order (CAT_DAMAGE);
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
@@ -367,75 +513,96 @@ void eech_cmb_damage_end (entity *en, entity *weapon, float modifier, int capabi
 
 static void collision_begin (entity *receiver, entity *sender, double modifier)
 {
+	struct collision_frame *frame;
+	int slot;
+
 	ready ();
 
-	if (depth >= NEST_MAX)
+	depth++;
+
+	if ((uint64_t) depth > trace.depth_max)
 	{
-		depth++;
+		trace.depth_max = (uint64_t) depth;
+	}
+
+	if (depth > NEST_MAX)
+	{
+		/* beyond the table: counted, makes the trace untrusted, and no frame is written or read for it */
+		trace.depth_overflow++;
 
 		return;
 	}
 
-	memset (&collisions[depth], 0, sizeof (collisions[depth]));
+	frame = &collision_frames[depth - 1];
 
-	collisions[depth].active = 1;
-	collisions[depth].type = receiver->type;
-	collisions[depth].level = get_local_entity_int_value (receiver, INT_TYPE_DAMAGE_LEVEL);
-	collisions[depth].alive = entity_alive (receiver);
-	collisions[depth].modifier = modifier;
+	memset (frame, 0, sizeof (*frame));
+
+	slot = slot_of (receiver);
+
+	frame->slot = slot;
+	frame->generation = (slot >= 0) ? generation[slot] : 0;
+
+	if (slot < 0)
+	{
+		trace.identity_unknown++;
+	}
+
+	frame->type = receiver->type;
+	frame->level = get_local_entity_int_value (receiver, INT_TYPE_DAMAGE_LEVEL);
+	frame->alive = entity_alive (receiver);
+	frame->modifier = modifier;
 
 	if (sender && (sender->type == ENTITY_TYPE_WEAPON))
 	{
-		collisions[depth].sender_weapon = 1;
-		collisions[depth].sender_type = sender->type;
-		collisions[depth].sender_sub = get_local_entity_int_value (sender, INT_TYPE_ENTITY_SUB_TYPE);
+		frame->sender_weapon = 1;
+		frame->sender_type = sender->type;
+		frame->sender_sub = get_local_entity_int_value (sender, INT_TYPE_ENTITY_SUB_TYPE);
 	}
 	else
 	{
-		collisions[depth].sender_type = sender ? sender->type : -1;
-	}
-
-	depth++;
-
-	if ((uint64_t) depth > trace.collision_nested_max)
-	{
-		trace.collision_nested_max = (uint64_t) depth;
+		frame->sender_type = sender ? sender->type : -1;
 	}
 }
 
-static void collision_end (entity *receiver, entity *sender)
+static void collision_end (entity *receiver)
 {
 	int index, destroyed, level1, alive1, fatal, type;
 	struct kind_row *row;
-
-	(void) sender;
+	struct collision_frame *frame;
 
 	ready ();
 
 	if (depth <= 0)
 	{
+		trace.depth_unbalanced++;
+
 		return;
 	}
 
+	index = depth - 1;
+
 	depth--;
 
-	if (depth >= NEST_MAX)
+	if (index >= NEST_MAX)
 	{
 		return;
 	}
 
-	index = depth;
-	type = collisions[index].type;
-	/* an entity the handler destroyed no longer holds its slot: nothing but that fact is read from it */
-	destroyed = (receiver->type != (entity_types) type) || !receiver->data;
+	frame = &collision_frames[index];
+	type = frame->type;
+	/* the receiver is the same entity only if its slot has not been freed since the handler began (and, as a second check, still holds its kind); an entity that is not
+	   provably the receiver is reported as destroyed and read for nothing else */
+	destroyed = (frame->slot < 0) || (generation[frame->slot] != frame->generation) || (receiver->type != (entity_types) type) || !receiver->data;
 	level1 = destroyed ? 0 : get_local_entity_int_value (receiver, INT_TYPE_DAMAGE_LEVEL);
 	alive1 = destroyed ? 0 : entity_alive (receiver);
 	fatal = destroyed || (level1 <= 0);
 	row = valid_type (type) ? &trace.kinds[type] : &trace.kinds[0];
 
+	trace.observed_deliveries++;
+
 	row->collisions++;
 
-	if (collisions[index].sender_weapon)
+	if (frame->sender_weapon)
 	{
 		row->from_weapon++;
 	}
@@ -444,7 +611,7 @@ static void collision_end (entity *receiver, entity *sender)
 		row->from_other++;
 	}
 
-	if (collisions[index].modifier == 0.0)
+	if (frame->modifier == 0.0)
 	{
 		row->direct++;
 	}
@@ -453,14 +620,14 @@ static void collision_end (entity *receiver, entity *sender)
 		row->blast++;
 	}
 
-	if (collisions[index].applied)
+	if (frame->applied)
 	{
 		row->applied++;
-		row->damage_sum += (double) (collisions[index].level - level1);
+		row->damage_sum += (double) (frame->level - level1);
 
-		if (collisions[index].level - level1 > row->max_damage)
+		if (frame->level - level1 > row->max_damage)
 		{
-			row->max_damage = collisions[index].level - level1;
+			row->max_damage = frame->level - level1;
 		}
 	}
 	else
@@ -468,12 +635,12 @@ static void collision_end (entity *receiver, entity *sender)
 		row->no_damage++;
 	}
 
-	if (collisions[index].invulnerable)
+	if (frame->invulnerable)
 	{
 		row->invulnerable++;
 	}
 
-	if (!collisions[index].alive)
+	if (!frame->alive)
 	{
 		row->already_dead++;
 	}
@@ -489,27 +656,29 @@ static void collision_end (entity *receiver, entity *sender)
 	}
 
 	fold (&trace.collision_hash, (uint32_t) type);
-	fold (&trace.collision_hash, collisions[index].sender_weapon ? 1u : 0u);
-	fold (&trace.collision_hash, (uint32_t) (collisions[index].sender_weapon ? collisions[index].sender_sub : collisions[index].sender_type));
-	fold_f (&trace.collision_hash, (float) collisions[index].modifier);
-	fold (&trace.collision_hash, (uint32_t) collisions[index].level);
+	fold (&trace.collision_hash, frame->sender_weapon ? 1u : 0u);
+	fold (&trace.collision_hash, (uint32_t) (frame->sender_weapon ? frame->sender_sub : frame->sender_type));
+	fold_f (&trace.collision_hash, (float) frame->modifier);
+	fold (&trace.collision_hash, (uint32_t) frame->level);
 	fold (&trace.collision_hash, (uint32_t) level1);
-	fold (&trace.collision_hash, (uint32_t) collisions[index].alive);
+	fold (&trace.collision_hash, (uint32_t) frame->alive);
 	fold (&trace.collision_hash, (uint32_t) alive1);
 	fold (&trace.collision_hash, (uint32_t) destroyed);
-	fold (&trace.collision_hash, (uint32_t) collisions[index].cap_calls);
-	fold (&trace.collision_hash, (uint32_t) collisions[index].cap_result);
-	fold (&trace.collision_hash, (uint32_t) collisions[index].applied);
-	fold (&trace.collision_hash, (uint32_t) collisions[index].invulnerable);
+	fold (&trace.collision_hash, (uint32_t) frame->cap_calls);
+	fold (&trace.collision_hash, (uint32_t) frame->cap_result);
+	fold (&trace.collision_hash, (uint32_t) frame->applied);
+	fold (&trace.collision_hash, (uint32_t) frame->invulnerable);
+
+	order (CAT_COLLISION);
 
 	log_event ("kind=collision receiver=%s sender=%s sub=%d modifier=%.9g level0=%d level1=%d alive0=%d alive1=%d destroyed=%d capability=%d applied=%d invulnerable=%d depth=%d",
-		type_name (type), collisions[index].sender_weapon ? "weapon" : type_name (collisions[index].sender_type), collisions[index].sender_weapon ? collisions[index].sender_sub : -1,
-		collisions[index].modifier, collisions[index].level, level1, collisions[index].alive, alive1, destroyed, collisions[index].damage_end, collisions[index].applied,
-		collisions[index].invulnerable, depth);
+		type_name (type), frame->sender_weapon ? "weapon" : type_name (frame->sender_type), frame->sender_weapon ? frame->sender_sub : -1, frame->modifier, frame->level, level1,
+		frame->alive, alive1, destroyed, frame->damage_end, frame->applied, frame->invulnerable, depth);
 }
 
-/* the original handlers, by receiver kind, and the one wrapper every wrapped kind is registered with: it reads the receiver, runs the original handler on the same
-   arguments (the modifier is read from a COPY of the argument list), reads the receiver again, and returns the original's answer */
+/* the original handlers, by receiver kind, and the one wrapper every registered kind is routed through: for the observed kinds it reads the receiver and the damage modifier
+   (from a COPY of the argument list), runs the original on the same arguments and reads the receiver again; for every other kind it only counts the delivery and runs the
+   original, never touching the argument list (a bridge is notified with no fourth argument) */
 extern int (*message_responses[NUM_ENTITY_TYPES][NUM_ENTITY_MESSAGES]) (entity_messages message, entity *receiver, entity *sender, va_list pargs);
 
 static int (*original_collision[NUM_ENTITY_TYPES]) (entity_messages message, entity *receiver, entity *sender, va_list pargs);
@@ -520,17 +689,24 @@ static int collision_wrapper (entity_messages message, entity *receiver, entity 
 	double modifier;
 	int acknowledge, type;
 
+	type = receiver->type;
+
+	if (!observed_kind (type))
+	{
+		trace.unobserved_deliveries[valid_type (type) ? type : 0]++;
+
+		return original_collision[type] (message, receiver, sender, pargs);
+	}
+
 	va_copy (copy, pargs);
 	modifier = va_arg (copy, double);
 	va_end (copy);
-
-	type = receiver->type;
 
 	collision_begin (receiver, sender, modifier);
 
 	acknowledge = original_collision[type] (message, receiver, sender, pargs);
 
-	collision_end (receiver, sender);
+	collision_end (receiver);
 
 	return acknowledge;
 }
@@ -559,7 +735,50 @@ void eech_cmb_install (void *default_response)
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
-/* explosion blast */
+/* explosion blast: a blast call belongs to the explosion invocation it runs inside, not to a weapon's address */
+
+void eech_cmb_explosion_begin (int kill_code)
+{
+	ready ();
+
+	memset (&cur_explosion, 0, sizeof (cur_explosion));
+
+	cur_explosion.active = 1;
+	cur_explosion.kill_code = kill_code;
+
+	trace.explosions++;
+}
+
+void eech_cmb_explosion_end (void)
+{
+	ready ();
+
+	if (!cur_explosion.active)
+	{
+		return;
+	}
+
+	if ((uint64_t) cur_explosion.blast_calls > trace.explosion_blast_calls_max)
+	{
+		trace.explosion_blast_calls_max = (uint64_t) cur_explosion.blast_calls;
+	}
+
+	/* a land hit blasts twice in one invocation (the crater branch falls through into the case that blasts again) */
+	if (cur_explosion.blast_calls >= 2)
+	{
+		trace.explosions_with_repeated_blast++;
+	}
+
+	fold (&trace.blast_hash, 0xE0710510u);
+	fold (&trace.blast_hash, (uint32_t) cur_explosion.kill_code);
+	fold (&trace.blast_hash, (uint32_t) cur_explosion.blast_calls);
+
+	order (CAT_EXPLOSION);
+
+	log_event ("kind=explosion kill_code=%d blast_calls=%d", cur_explosion.kill_code, cur_explosion.blast_calls);
+
+	cur_explosion.active = 0;
+}
 
 void eech_cmb_blast_begin (entity *en, entity *target, int capability, float radius)
 {
@@ -572,7 +791,6 @@ void eech_cmb_blast_begin (entity *en, entity *target, int capability, float rad
 	cur_blast.active = 1;
 	kill_code = get_local_entity_int_value (en, INT_TYPE_WEAPON_KILL_CODE);
 	cur_blast.kill_code = kill_code;
-	cur_blast.weapon = en;
 
 	trace.blast_calls++;
 
@@ -581,14 +799,14 @@ void eech_cmb_blast_begin (entity *en, entity *target, int capability, float rad
 		trace.blast_by_kill[kill_code]++;
 	}
 
-	/* the same weapon asked to blast twice in a row with the same kill code: the land hit's deliberate fall-through */
-	if (last_blast_weapon == (void *) en && last_blast_kill_code == kill_code)
+	if (cur_explosion.active)
 	{
-		trace.blast_repeats++;
+		cur_explosion.blast_calls++;
 	}
-
-	last_blast_weapon = (void *) en;
-	last_blast_kill_code = kill_code;
+	else
+	{
+		trace.blast_outside_explosion++;
+	}
 
 	if (radius == 0.0f)
 	{
@@ -602,8 +820,8 @@ void eech_cmb_blast_begin (entity *en, entity *target, int capability, float rad
 	fold_f (&trace.blast_hash, radius);
 	fold (&trace.blast_hash, target ? 1u : 0u);
 
-	log_event ("kind=blast-begin kill_code=%d sub=%d capability=%d radius=%.9g has_target=%d", kill_code, get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE), capability,
-		(double) radius, target ? 1 : 0);
+	log_event ("kind=blast-begin kill_code=%d sub=%d capability=%d radius=%.9g has_target=%d in_explosion=%d", kill_code, get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE),
+		capability, (double) radius, target ? 1 : 0, cur_explosion.active);
 }
 
 void eech_cmb_blast_candidate (entity *object, float range, float radius)
@@ -628,8 +846,8 @@ void eech_cmb_blast_candidate (entity *object, float range, float radius)
 	fold (&trace.blast_hash, (uint32_t) in_range);
 }
 
-/* an object inside the radius, with its modifier: everything but a weapon is sent a collision (and the collision hook then records the damage it did); a weapon in range is
-   only a rocket-destruction candidate */
+/* an object inside the radius, with its modifier: everything but a weapon is sent a collision (and the collision wrapper then records the damage it did); a weapon in range
+   is only a rocket-destruction candidate */
 void eech_cmb_blast_notify (entity *object, float modifier)
 {
 	int type = object->type;
@@ -677,30 +895,116 @@ void eech_cmb_blast_end (void)
 	fold (&trace.blast_hash, (uint32_t) cur_blast.notified);
 	fold (&trace.blast_hash, (uint32_t) cur_blast.rockets);
 
+	order (CAT_BLAST);
+
 	log_event ("kind=blast-end kill_code=%d candidates=%d notified=%d rockets=%d", cur_blast.kill_code, cur_blast.candidates, cur_blast.notified, cur_blast.rockets);
 
 	cur_blast.active = 0;
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
-/* repair */
+/* repair and restore */
 
-void eech_cmb_repair (entity *en, int old_level, int new_level)
+void eech_cmb_repair (entity *en, int old_level, int new_level, int source)
 {
 	ready ();
 
-	trace.repair_writes++;
+	if (source < 1 || source > 2)
+	{
+		source = 0;
+	}
+
+	trace.repair_writes[source]++;
 
 	if (old_level <= 0 && new_level > 0)
 	{
 		trace.repair_zero_to_positive++;
 	}
 
+	fold (&trace.repair_hash, (uint32_t) source);
 	fold (&trace.repair_hash, (uint32_t) en->type);
 	fold (&trace.repair_hash, (uint32_t) old_level);
 	fold (&trace.repair_hash, (uint32_t) new_level);
 
-	log_event ("kind=repair entity=%s level0=%d level1=%d", type_name (en->type), old_level, new_level);
+	order (CAT_REPAIR);
+
+	log_event ("kind=repair source=%s entity=%s level0=%d level1=%d", source == EECH_CMB_REPAIR_RESUPPLY ? "resupply" : source == EECH_CMB_REPAIR_FIXED_RESTORE ? "fixed_restore" : "unknown",
+		type_name (en->type), old_level, new_level);
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* timed health loss: the per-frame fire and bleeding rolls. BEGIN is before the original's condition (which may or may not draw), HIT is inside the body that lowers health,
+   END after the condition when the body did not run */
+
+static void timed_finish (int hit, int new_level, entity *en)
+{
+	int draws = draws_between (cur_timed.rng0, random_number_seed);
+	struct timed_row *row = &trace.timed[cur_timed.kind];
+
+	row->attempts++;
+	row->draws += (uint64_t) draws;
+
+	if (hit)
+	{
+		row->hits++;
+
+		if (new_level <= 0)
+		{
+			row->fatal++;
+		}
+	}
+
+	fold (&trace.timed_hash, (uint32_t) cur_timed.kind);
+	fold (&trace.timed_hash, (uint32_t) draws);
+	fold (&trace.timed_hash, (uint32_t) hit);
+
+	if (hit)
+	{
+		fold (&trace.timed_hash, (uint32_t) new_level);
+		fold (&trace.timed_hash, (uint32_t) en->type);
+
+		order (CAT_TIMED);
+
+		log_event ("kind=timed type=%d receiver=%s draws=%d new_level=%d", cur_timed.kind, type_name (en->type), draws, new_level);
+	}
+
+	cur_timed.active = 0;
+}
+
+void eech_cmb_timed_begin (int kind)
+{
+	ready ();
+
+	cur_timed.active = 0;
+
+	if (kind < 1 || kind >= EECH_CMB_TIMEDS)
+	{
+		return;
+	}
+
+	cur_timed.active = 1;
+	cur_timed.kind = kind;
+	cur_timed.rng0 = random_number_seed;
+}
+
+void eech_cmb_timed_hit (entity *en, int new_level)
+{
+	ready ();
+
+	if (cur_timed.active)
+	{
+		timed_finish (1, new_level, en);
+	}
+}
+
+void eech_cmb_timed_end (void)
+{
+	ready ();
+
+	if (cur_timed.active)
+	{
+		timed_finish (0, 0, NULL);
+	}
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
@@ -742,6 +1046,7 @@ static int report (char *text, int capacity)
 {
 	struct out out;
 	int t, w;
+	uint64_t exits;
 
 	out.text = text;
 	out.capacity = capacity;
@@ -749,18 +1054,26 @@ static int report (char *text, int capacity)
 	out.overflow = 0;
 	text[0] = 0;
 
-	emit (&out, "cmb-hash damage=%016llx collision=%016llx blast=%016llx repair=%016llx\n", (unsigned long long) trace.damage_hash, (unsigned long long) trace.collision_hash,
-		(unsigned long long) trace.blast_hash, (unsigned long long) trace.repair_hash);
+	exits = trace.damage_exit_no_weapon + trace.damage_exit_invulnerable + trace.damage_exit_done;
+
+	emit (&out, "cmb-hash damage=%016llx collision=%016llx blast=%016llx repair=%016llx timed=%016llx order=%016llx\n", (unsigned long long) trace.damage_hash,
+		(unsigned long long) trace.collision_hash, (unsigned long long) trace.blast_hash, (unsigned long long) trace.repair_hash, (unsigned long long) trace.timed_hash,
+		(unsigned long long) trace.order_hash);
+	emit (&out, "cmb-integrity depth_max=%llu depth_overflow=%llu depth_unbalanced=%llu identity_unknown=%llu release_outside=%llu log_overflow=%llu releases=%llu trusted=%d\n",
+		(unsigned long long) trace.depth_max, (unsigned long long) trace.depth_overflow, (unsigned long long) trace.depth_unbalanced, (unsigned long long) trace.identity_unknown,
+		(unsigned long long) trace.release_outside, (unsigned long long) trace.log_overflow, (unsigned long long) trace.releases,
+		(trace.depth_overflow || trace.depth_unbalanced || trace.identity_unknown || trace.release_outside || trace.log_overflow) ? 0 : 1);
 	emit (&out, "cmb-capability calls=%llu real=%llu forecast=%llu none=%llu penetrated=%llu splash=%llu draws=%llu player_target=%llu multiplier_moved=%llu\n",
 		(unsigned long long) trace.capability_calls, (unsigned long long) trace.capability_real, (unsigned long long) trace.capability_forecast,
 		(unsigned long long) trace.capability_paths[0], (unsigned long long) trace.capability_paths[1], (unsigned long long) trace.capability_paths[2],
 		(unsigned long long) trace.capability_draws, (unsigned long long) trace.capability_player, (unsigned long long) trace.capability_multiplier);
-	emit (&out, "cmb-damage calls=%llu no_weapon=%llu invulnerable=%llu written=%llu positive_unwritten=%llu\n", (unsigned long long) trace.damage_calls,
-		(unsigned long long) trace.damage_no_weapon, (unsigned long long) trace.damage_invulnerable_calls, (unsigned long long) trace.damage_written,
-		(unsigned long long) trace.damage_unwritten);
-	emit (&out, "cmb-blast calls=%llu zero_radius=%llu candidates=%llu max_candidates=%llu repeats_same_weapon=%llu nested_collision_max=%llu\n", (unsigned long long) trace.blast_calls,
-		(unsigned long long) trace.blast_zero_radius, (unsigned long long) trace.blast_candidates, (unsigned long long) trace.blast_max_candidates,
-		(unsigned long long) trace.blast_repeats, (unsigned long long) trace.collision_nested_max);
+	emit (&out, "cmb-damage entries=%llu exit_no_weapon=%llu exit_invulnerable=%llu exit_done=%llu balanced=%d written=%llu positive_unwritten=%llu\n",
+		(unsigned long long) trace.damage_entries, (unsigned long long) trace.damage_exit_no_weapon, (unsigned long long) trace.damage_exit_invulnerable,
+		(unsigned long long) trace.damage_exit_done, trace.damage_entries == exits ? 1 : 0, (unsigned long long) trace.damage_written, (unsigned long long) trace.damage_unwritten);
+	emit (&out, "cmb-explosion invocations=%llu max_blast_calls=%llu with_repeated_blast=%llu blast_outside_invocation=%llu\n", (unsigned long long) trace.explosions,
+		(unsigned long long) trace.explosion_blast_calls_max, (unsigned long long) trace.explosions_with_repeated_blast, (unsigned long long) trace.blast_outside_explosion);
+	emit (&out, "cmb-blast calls=%llu zero_radius=%llu candidates=%llu max_candidates=%llu\n", (unsigned long long) trace.blast_calls, (unsigned long long) trace.blast_zero_radius,
+		(unsigned long long) trace.blast_candidates, (unsigned long long) trace.blast_max_candidates);
 
 	for (w = 0; w < NUM_WEAPON_KILL_CODES; w++)
 	{
@@ -793,10 +1106,22 @@ static int report (char *text, int capacity)
 				(unsigned long long) r->fatal, (unsigned long long) r->destroyed, (unsigned long long) r->already_dead, r->damage_sum, r->max_damage,
 				(unsigned long long) r->candidates, (unsigned long long) r->in_range, (unsigned long long) r->notified, (unsigned long long) r->rocket_kills);
 		}
+
+		if (trace.unobserved_deliveries[t])
+		{
+			emit (&out, "cmb-unobserved type=%s deliveries=%llu note=counted_only_no_damage_level_or_no_modifier_argument\n", type_name (t), (unsigned long long) trace.unobserved_deliveries[t]);
+		}
 	}
 
-	emit (&out, "cmb-install wrapped_collision_handlers=%llu\n", (unsigned long long) trace.installed);
-	emit (&out, "cmb-repair writes=%llu zero_to_positive=%llu\n", (unsigned long long) trace.repair_writes, (unsigned long long) trace.repair_zero_to_positive);
+	for (t = 1; t < EECH_CMB_TIMEDS; t++)
+	{
+		emit (&out, "cmb-timed kind=%d attempts=%llu draws=%llu hits=%llu fatal=%llu\n", t, (unsigned long long) trace.timed[t].attempts, (unsigned long long) trace.timed[t].draws,
+			(unsigned long long) trace.timed[t].hits, (unsigned long long) trace.timed[t].fatal);
+	}
+
+	emit (&out, "cmb-install wrapped_collision_handlers=%llu observed_deliveries=%llu\n", (unsigned long long) trace.installed, (unsigned long long) trace.observed_deliveries);
+	emit (&out, "cmb-repair resupply=%llu fixed_restore=%llu other=%llu zero_to_positive=%llu\n", (unsigned long long) trace.repair_writes[EECH_CMB_REPAIR_RESUPPLY],
+		(unsigned long long) trace.repair_writes[EECH_CMB_REPAIR_FIXED_RESTORE], (unsigned long long) trace.repair_writes[0], (unsigned long long) trace.repair_zero_to_positive);
 	emit (&out, "cmb-log events=%llu stored=%d drained=%d overflow=%llu\n", (unsigned long long) log_seq, log_count, log_drained, (unsigned long long) trace.log_overflow);
 
 	return out.overflow ? -1 : 0;

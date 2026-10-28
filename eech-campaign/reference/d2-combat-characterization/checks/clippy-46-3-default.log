@@ -6,6 +6,6 @@ RUSTUP_ADD_EXIT=0
     Checking eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
     Checking eech-campaign v0.1.0 (/src/eech-campaign/crates/eech-campaign)
     Checking eech-harness v0.1.0 (/src/eech-campaign/crates/eech-harness)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7m 19s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7m 15s
 CARGO_EXIT=0
 DOCKER_EXIT=0

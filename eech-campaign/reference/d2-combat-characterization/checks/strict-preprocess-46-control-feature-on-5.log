@@ -1,0 +1,432 @@
+aphavoc/source/entity/mobile/weapon/damage.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-28 02:51:20.082867603 +0000
++++ /tmp/off.pp	2026-10-28 02:51:20.090867603 +0000
+@@ -32104,6 +32104,48 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++struct ENTITY;
++enum eech_cmb_timed
++{
++ EECH_CMB_TIMED_HELICOPTER = 1,
++ EECH_CMB_TIMED_FIXED_WING,
++ EECH_CMB_TIMED_PERSON_BLEEDING,
++ EECH_CMB_TIMED_ANTI_AIRCRAFT_FIRE,
++ EECH_CMB_TIMED_ROUTED_FIRE,
++ EECH_CMB_TIMED_SHIP_FIRE,
++ EECH_CMB_TIMEDS
++};
++enum eech_cmb_damage_exit
++{
++ EECH_CMB_DAMAGE_EXIT_NO_WEAPON = 1,
++ EECH_CMB_DAMAGE_EXIT_INVULNERABLE
++};
++enum eech_cmb_repair_source
++{
++ EECH_CMB_REPAIR_RESUPPLY = 1,
++ EECH_CMB_REPAIR_FIXED_RESTORE
++};
++extern void eech_cmb_install (void *default_response);
++extern void eech_cmb_release (struct ENTITY *en);
++extern void eech_cmb_capability_begin (void);
++extern void eech_cmb_capability_path (int path);
++extern void eech_cmb_capability_raw (int result);
++extern void eech_cmb_capability_end (struct ENTITY *wpn, struct ENTITY *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result);
++extern void eech_cmb_damage_begin (struct ENTITY *en, struct ENTITY *weapon);
++extern void eech_cmb_damage_exit (int reason);
+aphavoc/source/entity/system/en_msgs/en_msgs.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-28 02:51:20.810867609 +0000
++++ /tmp/off.pp	2026-10-28 02:51:20.822867609 +0000
+@@ -32104,6 +32104,48 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++struct ENTITY;
++enum eech_cmb_timed
++{
++ EECH_CMB_TIMED_HELICOPTER = 1,
++ EECH_CMB_TIMED_FIXED_WING,
++ EECH_CMB_TIMED_PERSON_BLEEDING,
++ EECH_CMB_TIMED_ANTI_AIRCRAFT_FIRE,
++ EECH_CMB_TIMED_ROUTED_FIRE,
++ EECH_CMB_TIMED_SHIP_FIRE,
++ EECH_CMB_TIMEDS
++};
++enum eech_cmb_damage_exit
++{
++ EECH_CMB_DAMAGE_EXIT_NO_WEAPON = 1,
++ EECH_CMB_DAMAGE_EXIT_INVULNERABLE
++};
++enum eech_cmb_repair_source
++{
++ EECH_CMB_REPAIR_RESUPPLY = 1,
++ EECH_CMB_REPAIR_FIXED_RESTORE
++};
++extern void eech_cmb_install (void *default_response);
++extern void eech_cmb_release (struct ENTITY *en);
++extern void eech_cmb_capability_begin (void);
++extern void eech_cmb_capability_path (int path);
++extern void eech_cmb_capability_raw (int result);
++extern void eech_cmb_capability_end (struct ENTITY *wpn, struct ENTITY *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result);
++extern void eech_cmb_damage_begin (struct ENTITY *en, struct ENTITY *weapon);
++extern void eech_cmb_damage_exit (int reason);
+aphavoc/source/entity/mobile/mb_msgs.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-28 02:51:21.574867616 +0000
++++ /tmp/off.pp	2026-10-28 02:51:21.582867616 +0000
+@@ -32104,6 +32104,48 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++struct ENTITY;
++enum eech_cmb_timed
++{
++ EECH_CMB_TIMED_HELICOPTER = 1,
++ EECH_CMB_TIMED_FIXED_WING,
++ EECH_CMB_TIMED_PERSON_BLEEDING,
++ EECH_CMB_TIMED_ANTI_AIRCRAFT_FIRE,
++ EECH_CMB_TIMED_ROUTED_FIRE,
++ EECH_CMB_TIMED_SHIP_FIRE,
++ EECH_CMB_TIMEDS
++};
++enum eech_cmb_damage_exit
++{
++ EECH_CMB_DAMAGE_EXIT_NO_WEAPON = 1,
++ EECH_CMB_DAMAGE_EXIT_INVULNERABLE
++};
++enum eech_cmb_repair_source
++{
++ EECH_CMB_REPAIR_RESUPPLY = 1,
++ EECH_CMB_REPAIR_FIXED_RESTORE
++};
++extern void eech_cmb_install (void *default_response);
++extern void eech_cmb_release (struct ENTITY *en);
++extern void eech_cmb_capability_begin (void);
++extern void eech_cmb_capability_path (int path);
++extern void eech_cmb_capability_raw (int result);
++extern void eech_cmb_capability_end (struct ENTITY *wpn, struct ENTITY *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result);
++extern void eech_cmb_damage_begin (struct ENTITY *en, struct ENTITY *weapon);
++extern void eech_cmb_damage_exit (int reason);
+aphavoc/source/entity/special/effect/explosn/explosn.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-28 02:51:22.294867623 +0000
++++ /tmp/off.pp	2026-10-28 02:51:22.302867623 +0000
+@@ -32104,6 +32104,48 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++struct ENTITY;
++enum eech_cmb_timed
++{
++ EECH_CMB_TIMED_HELICOPTER = 1,
++ EECH_CMB_TIMED_FIXED_WING,
++ EECH_CMB_TIMED_PERSON_BLEEDING,
++ EECH_CMB_TIMED_ANTI_AIRCRAFT_FIRE,
++ EECH_CMB_TIMED_ROUTED_FIRE,
++ EECH_CMB_TIMED_SHIP_FIRE,
++ EECH_CMB_TIMEDS
++};
++enum eech_cmb_damage_exit
++{
++ EECH_CMB_DAMAGE_EXIT_NO_WEAPON = 1,
++ EECH_CMB_DAMAGE_EXIT_INVULNERABLE
++};
++enum eech_cmb_repair_source
++{
++ EECH_CMB_REPAIR_RESUPPLY = 1,
++ EECH_CMB_REPAIR_FIXED_RESTORE
++};
++extern void eech_cmb_install (void *default_response);
++extern void eech_cmb_release (struct ENTITY *en);
++extern void eech_cmb_capability_begin (void);
++extern void eech_cmb_capability_path (int path);
++extern void eech_cmb_capability_raw (int result);
++extern void eech_cmb_capability_end (struct ENTITY *wpn, struct ENTITY *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result);
++extern void eech_cmb_damage_begin (struct ENTITY *en, struct ENTITY *weapon);
++extern void eech_cmb_damage_exit (int reason);
+aphavoc/source/entity/system/en_main/en_heap.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-28 02:51:23.038867629 +0000
++++ /tmp/off.pp	2026-10-28 02:51:23.046867629 +0000
+@@ -32104,6 +32104,48 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++struct ENTITY;
++enum eech_cmb_timed
++{
++ EECH_CMB_TIMED_HELICOPTER = 1,
++ EECH_CMB_TIMED_FIXED_WING,
++ EECH_CMB_TIMED_PERSON_BLEEDING,
++ EECH_CMB_TIMED_ANTI_AIRCRAFT_FIRE,
++ EECH_CMB_TIMED_ROUTED_FIRE,
++ EECH_CMB_TIMED_SHIP_FIRE,
++ EECH_CMB_TIMEDS
++};
++enum eech_cmb_damage_exit
++{
++ EECH_CMB_DAMAGE_EXIT_NO_WEAPON = 1,
++ EECH_CMB_DAMAGE_EXIT_INVULNERABLE
++};
++enum eech_cmb_repair_source
++{
++ EECH_CMB_REPAIR_RESUPPLY = 1,
++ EECH_CMB_REPAIR_FIXED_RESTORE
++};
++extern void eech_cmb_install (void *default_response);
++extern void eech_cmb_release (struct ENTITY *en);
++extern void eech_cmb_capability_begin (void);
++extern void eech_cmb_capability_path (int path);
++extern void eech_cmb_capability_raw (int result);
++extern void eech_cmb_capability_end (struct ENTITY *wpn, struct ENTITY *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result);
++extern void eech_cmb_damage_begin (struct ENTITY *en, struct ENTITY *weapon);
++extern void eech_cmb_damage_exit (int reason);
+aphavoc/source/entity/fixed/fixed.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-28 02:51:23.762867636 +0000
++++ /tmp/off.pp	2026-10-28 02:51:23.770867636 +0000
+@@ -32104,6 +32104,48 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++struct ENTITY;
++enum eech_cmb_timed
++{
++ EECH_CMB_TIMED_HELICOPTER = 1,
++ EECH_CMB_TIMED_FIXED_WING,
++ EECH_CMB_TIMED_PERSON_BLEEDING,
++ EECH_CMB_TIMED_ANTI_AIRCRAFT_FIRE,
++ EECH_CMB_TIMED_ROUTED_FIRE,
++ EECH_CMB_TIMED_SHIP_FIRE,
++ EECH_CMB_TIMEDS
++};
++enum eech_cmb_damage_exit
++{
++ EECH_CMB_DAMAGE_EXIT_NO_WEAPON = 1,
++ EECH_CMB_DAMAGE_EXIT_INVULNERABLE
++};
++enum eech_cmb_repair_source
++{
++ EECH_CMB_REPAIR_RESUPPLY = 1,
++ EECH_CMB_REPAIR_FIXED_RESTORE
++};
++extern void eech_cmb_install (void *default_response);
++extern void eech_cmb_release (struct ENTITY *en);
++extern void eech_cmb_capability_begin (void);
++extern void eech_cmb_capability_path (int path);
++extern void eech_cmb_capability_raw (int result);
++extern void eech_cmb_capability_end (struct ENTITY *wpn, struct ENTITY *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result);
++extern void eech_cmb_damage_begin (struct ENTITY *en, struct ENTITY *weapon);
++extern void eech_cmb_damage_exit (int reason);
+aphavoc/source/entity/mobile/aircraft/helicop/hc_updt.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-28 02:51:24.498867646 +0000
++++ /tmp/off.pp	2026-10-28 02:51:24.506867646 +0000
+@@ -32104,6 +32104,48 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++struct ENTITY;
++enum eech_cmb_timed
++{
++ EECH_CMB_TIMED_HELICOPTER = 1,
++ EECH_CMB_TIMED_FIXED_WING,
++ EECH_CMB_TIMED_PERSON_BLEEDING,
++ EECH_CMB_TIMED_ANTI_AIRCRAFT_FIRE,
++ EECH_CMB_TIMED_ROUTED_FIRE,
++ EECH_CMB_TIMED_SHIP_FIRE,
++ EECH_CMB_TIMEDS
++};
++enum eech_cmb_damage_exit
++{
++ EECH_CMB_DAMAGE_EXIT_NO_WEAPON = 1,
++ EECH_CMB_DAMAGE_EXIT_INVULNERABLE
++};
++enum eech_cmb_repair_source
++{
++ EECH_CMB_REPAIR_RESUPPLY = 1,
++ EECH_CMB_REPAIR_FIXED_RESTORE
++};
++extern void eech_cmb_install (void *default_response);
++extern void eech_cmb_release (struct ENTITY *en);
++extern void eech_cmb_capability_begin (void);
++extern void eech_cmb_capability_path (int path);
++extern void eech_cmb_capability_raw (int result);
++extern void eech_cmb_capability_end (struct ENTITY *wpn, struct ENTITY *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result);
++extern void eech_cmb_damage_begin (struct ENTITY *en, struct ENTITY *weapon);
++extern void eech_cmb_damage_exit (int reason);
+aphavoc/source/entity/mobile/aircraft/fixwing/fw_updt.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-28 02:51:25.222867660 +0000
++++ /tmp/off.pp	2026-10-28 02:51:25.230867660 +0000
+@@ -32104,6 +32104,48 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++struct ENTITY;
++enum eech_cmb_timed
++{
++ EECH_CMB_TIMED_HELICOPTER = 1,
++ EECH_CMB_TIMED_FIXED_WING,
++ EECH_CMB_TIMED_PERSON_BLEEDING,
++ EECH_CMB_TIMED_ANTI_AIRCRAFT_FIRE,
++ EECH_CMB_TIMED_ROUTED_FIRE,
++ EECH_CMB_TIMED_SHIP_FIRE,
++ EECH_CMB_TIMEDS
++};
++enum eech_cmb_damage_exit
++{
++ EECH_CMB_DAMAGE_EXIT_NO_WEAPON = 1,
++ EECH_CMB_DAMAGE_EXIT_INVULNERABLE
++};
++enum eech_cmb_repair_source
++{
++ EECH_CMB_REPAIR_RESUPPLY = 1,
++ EECH_CMB_REPAIR_FIXED_RESTORE
++};
++extern void eech_cmb_install (void *default_response);
++extern void eech_cmb_release (struct ENTITY *en);
++extern void eech_cmb_capability_begin (void);
++extern void eech_cmb_capability_path (int path);
++extern void eech_cmb_capability_raw (int result);
++extern void eech_cmb_capability_end (struct ENTITY *wpn, struct ENTITY *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result);
++extern void eech_cmb_damage_begin (struct ENTITY *en, struct ENTITY *weapon);
++extern void eech_cmb_damage_exit (int reason);
+aphavoc/source/entity/mobile/vehicle/person/ps_updt.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-28 02:51:25.926867674 +0000
++++ /tmp/off.pp	2026-10-28 02:51:25.934867674 +0000
+@@ -32104,6 +32104,48 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++struct ENTITY;
++enum eech_cmb_timed
++{
++ EECH_CMB_TIMED_HELICOPTER = 1,
++ EECH_CMB_TIMED_FIXED_WING,
++ EECH_CMB_TIMED_PERSON_BLEEDING,
++ EECH_CMB_TIMED_ANTI_AIRCRAFT_FIRE,
++ EECH_CMB_TIMED_ROUTED_FIRE,
++ EECH_CMB_TIMED_SHIP_FIRE,
++ EECH_CMB_TIMEDS
++};
++enum eech_cmb_damage_exit
++{
++ EECH_CMB_DAMAGE_EXIT_NO_WEAPON = 1,
++ EECH_CMB_DAMAGE_EXIT_INVULNERABLE
++};
++enum eech_cmb_repair_source
++{
++ EECH_CMB_REPAIR_RESUPPLY = 1,
++ EECH_CMB_REPAIR_FIXED_RESTORE
++};
++extern void eech_cmb_install (void *default_response);
++extern void eech_cmb_release (struct ENTITY *en);
++extern void eech_cmb_capability_begin (void);
++extern void eech_cmb_capability_path (int path);
++extern void eech_cmb_capability_raw (int result);
++extern void eech_cmb_capability_end (struct ENTITY *wpn, struct ENTITY *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result);
++extern void eech_cmb_damage_begin (struct ENTITY *en, struct ENTITY *weapon);
++extern void eech_cmb_damage_exit (int reason);
+aphavoc/source/entity/mobile/vehicle/anti_air/aa_updt.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-28 02:51:26.650867689 +0000
++++ /tmp/off.pp	2026-10-28 02:51:26.654867689 +0000
+@@ -32104,6 +32104,48 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++struct ENTITY;
++enum eech_cmb_timed
++{
++ EECH_CMB_TIMED_HELICOPTER = 1,
++ EECH_CMB_TIMED_FIXED_WING,
++ EECH_CMB_TIMED_PERSON_BLEEDING,
++ EECH_CMB_TIMED_ANTI_AIRCRAFT_FIRE,
++ EECH_CMB_TIMED_ROUTED_FIRE,
++ EECH_CMB_TIMED_SHIP_FIRE,
++ EECH_CMB_TIMEDS
++};
++enum eech_cmb_damage_exit
++{
++ EECH_CMB_DAMAGE_EXIT_NO_WEAPON = 1,
++ EECH_CMB_DAMAGE_EXIT_INVULNERABLE
++};
++enum eech_cmb_repair_source
++{
++ EECH_CMB_REPAIR_RESUPPLY = 1,
++ EECH_CMB_REPAIR_FIXED_RESTORE
++};
++extern void eech_cmb_install (void *default_response);
++extern void eech_cmb_release (struct ENTITY *en);
++extern void eech_cmb_capability_begin (void);
++extern void eech_cmb_capability_path (int path);
++extern void eech_cmb_capability_raw (int result);
++extern void eech_cmb_capability_end (struct ENTITY *wpn, struct ENTITY *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result);
++extern void eech_cmb_damage_begin (struct ENTITY *en, struct ENTITY *weapon);
++extern void eech_cmb_damage_exit (int reason);
+aphavoc/source/entity/mobile/vehicle/routed/rv_updt.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-28 02:51:27.370867703 +0000
++++ /tmp/off.pp	2026-10-28 02:51:27.378867703 +0000
+@@ -32104,6 +32104,48 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++struct ENTITY;
++enum eech_cmb_timed
++{
++ EECH_CMB_TIMED_HELICOPTER = 1,
++ EECH_CMB_TIMED_FIXED_WING,
++ EECH_CMB_TIMED_PERSON_BLEEDING,
++ EECH_CMB_TIMED_ANTI_AIRCRAFT_FIRE,
++ EECH_CMB_TIMED_ROUTED_FIRE,
++ EECH_CMB_TIMED_SHIP_FIRE,
++ EECH_CMB_TIMEDS
++};
++enum eech_cmb_damage_exit
++{
++ EECH_CMB_DAMAGE_EXIT_NO_WEAPON = 1,
++ EECH_CMB_DAMAGE_EXIT_INVULNERABLE
++};
++enum eech_cmb_repair_source
++{
++ EECH_CMB_REPAIR_RESUPPLY = 1,
++ EECH_CMB_REPAIR_FIXED_RESTORE
++};
++extern void eech_cmb_install (void *default_response);
++extern void eech_cmb_release (struct ENTITY *en);
++extern void eech_cmb_capability_begin (void);
++extern void eech_cmb_capability_path (int path);
++extern void eech_cmb_capability_raw (int result);
++extern void eech_cmb_capability_end (struct ENTITY *wpn, struct ENTITY *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result);
++extern void eech_cmb_damage_begin (struct ENTITY *en, struct ENTITY *weapon);
++extern void eech_cmb_damage_exit (int reason);
+aphavoc/source/entity/mobile/vehicle/ship/sh_updt.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-28 02:51:28.118867717 +0000
++++ /tmp/off.pp	2026-10-28 02:51:28.126867718 +0000
+@@ -32104,6 +32104,48 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++struct ENTITY;
++enum eech_cmb_timed
++{
++ EECH_CMB_TIMED_HELICOPTER = 1,
++ EECH_CMB_TIMED_FIXED_WING,
++ EECH_CMB_TIMED_PERSON_BLEEDING,
++ EECH_CMB_TIMED_ANTI_AIRCRAFT_FIRE,
++ EECH_CMB_TIMED_ROUTED_FIRE,
++ EECH_CMB_TIMED_SHIP_FIRE,
++ EECH_CMB_TIMEDS
++};
++enum eech_cmb_damage_exit
++{
++ EECH_CMB_DAMAGE_EXIT_NO_WEAPON = 1,
++ EECH_CMB_DAMAGE_EXIT_INVULNERABLE
++};
++enum eech_cmb_repair_source
++{
++ EECH_CMB_REPAIR_RESUPPLY = 1,
++ EECH_CMB_REPAIR_FIXED_RESTORE
++};
++extern void eech_cmb_install (void *default_response);
++extern void eech_cmb_release (struct ENTITY *en);
++extern void eech_cmb_capability_begin (void);
++extern void eech_cmb_capability_path (int path);
++extern void eech_cmb_capability_raw (int result);
++extern void eech_cmb_capability_end (struct ENTITY *wpn, struct ENTITY *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result);
++extern void eech_cmb_damage_begin (struct ENTITY *en, struct ENTITY *weapon);
++extern void eech_cmb_damage_exit (int reason);
