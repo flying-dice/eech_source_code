@@ -68,6 +68,8 @@
 
 #include "entity/mobile/mb_cmbfx.h"
 
+#include "entity/mobile/mb_hostaim.h"
+
 #include "entity/tacview/tacview.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -82,6 +84,9 @@
 
 static void update_server (entity *en)
 {
+	campaign_health_result
+		timed;
+
 
 	anti_aircraft
 		*raw;
@@ -101,22 +106,22 @@ static void update_server (entity *en)
 	
 	CMB_FX_TIMED_BEGIN (EECH_CMB_TIMED_ANTI_AIRCRAFT_FIRE)
 
-	if (damage_level && (explosive_quality & EXPLOSIVE_QUALITY_EXPLOSIVE || explosive_quality & EXPLOSIVE_QUALITY_FLAMMABLE) && 
-			vehicle_critically_damaged(en) && frand1() < 2 * get_delta_time())
+	// the eligibility, the sample, the roll, the health a hit leaves and whether it is fatal are the host's (EEDCS-46); the setting of the health, the hooks and the kill stay here
+	vehicle_timed_health (en, damage_level, explosive_quality, &timed);
+
+	if (timed.hit)
 	{
-		damage_level--;
+		set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, timed.new_level);
 
-		set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, max(0, damage_level));
+		CMB_FX_TIMED_HIT (en, timed.new_level)
 
-		CMB_FX_TIMED_HIT (en, max(0, damage_level))
-
-		if (damage_level <= 0)
+		if (timed.fatal)
 			kill_client_server_entity (en);
 	}
 
 	CMB_FX_TIMED_END ()
 
-	if (raw->vh.mob.alive && !vehicle_critically_damaged(en))
+	if (raw->vh.mob.alive && !timed.critical_class)
 	{
 	
 		////////////////////////////////////////

@@ -113,12 +113,12 @@ nothing and gives equal classes, so no handler sees a transition.
 
 ## R1, R2, R3 from the source
 
-* **R2, the 13 collision handlers.** Twelve (the seven fixed kinds, the fixed-wing aircraft and the four vehicle kinds) go straight into `damage_client_server_entity` with no
+* **R2, the 13 collision handlers.** [The helicopter's gate described here as not moved is moved in step 3 below.] Twelve (the seven fixed kinds, the fixed-wing aircraft and the four vehicle kinds) go straight into `damage_client_server_entity` with no
   physical gate of their own. One has a gate before it: the helicopter ignores a hit by itself when it is an AI (`hc_msgs.c`, "fix to stop helicopters from killing themselves through
   firing missiles into the ground"). That gate is physical eligibility and is NOT moved in this phase (it precedes the damage call, and moving it needs the request to be asked
   before the fixture's damage hooks begin, which the retained original does not do); it is the next bounded step and is not relabelled campaign policy. The ship handler's smoke on a
   strong high-explosive direct hit (`damage_caused > 100`, a roll of the weapon's own seed) is presentation.
-* **R1, the other readers of the critical predicate.** Six kinds of reader remain on the campaign's own predicates, which read the stored health: the timed fire and bleeding rolls
+* **R1, the other readers of the critical predicate.** [Superseded by step 3 below: the class and the timed rolls are the host's.] Six kinds of reader remain on the campaign's own predicates, which read the stored health: the timed fire and bleeding rolls
   (`hc_updt`, `fw_updt`, `aa_updt`, `rv_updt`, `sh_updt`, `ps_updt`: physical eligibility and the aircraft class's power in the probability, and they draw), the per-frame gate that
   stops updating a critically damaged vehicle (`aa_updt`, `ps_updt`, `rv_updt`, `sh_updt`: a physical consequence of the state, mobility), the helicopter's critical-damage branch
   (`hc_updt`, two sites: whether a crippled helicopter keeps flying or lands), the aircraft's damaged smoke (`aircraft.c`: presentation) and the victim's speech (`aircraft.c`:
@@ -163,3 +163,80 @@ the easy-difficulty armour were not reached by any retained original run (the re
   copy into the campaign's room (`eech-dc`, `eech-engine` tests), and the production `mb_hostaim.c` validation and decoder (`c-checks/damage_checks.c`, every bit pattern that matters). The hops are
   not driven in one process: that needs a native run, which is not claimed.
 * **Coverage wording (P3).** Corrected above: the unreached anti-aircraft case is the fatal TIMED FIRE roll, not every fatal hit.
+
+# Step 3: the critical class, the six timed rolls and the helicopter's own-hit eligibility
+
+Status: candidate moved, NOT accepted. The physical health facts that are not a hit are the host's: the critical class of a vehicle and an aircraft (for every reader), what a change of
+health crosses, the six timed health rolls (eligibility, the sample, the roll, the health a hit leaves, fatal) and an AI helicopter's refusal of its own hit. The explosion and blast walk,
+the bridge collapse, the physical reporting and the audit of the whole scope are still the original campaign code or open work. Nothing here claims that combat resolution has moved.
+
+## What moved: one request, four questions
+
+`CAMPAIGN_AIM_HEALTH` (`mb_hostaim.h`), answered by `eech-world/csrc/cmb_step.c` (`cmb.rs`, `host.aim` mode `health`), by value, outside the DLL, with no fallback and no private pointer, index, layout
+or seed. The campaign keeps the setting of the health through the original setter, the observer's hooks at their original places, the kill and every consequence.
+
+* **classify** (`vehicle_critically_damaged`, `aircraft_critically_damaged` are now this question): the original's integer percentage, critical below 15 percent for a vehicle (a person never),
+  mortal below 30 and critical below 5 for an aircraft; a pure question, no sample. Every reader asks it.
+* **assess** (`assess_vehicle_damage_level`, `assess_aircraft_damage_level`, called by the health setter): the original's FLOAT percentages (a different arithmetic from the class): whether a vehicle
+  that can burn fell below 15 percent (the campaign then lights the fire, stops the vehicle and sleeps it), and for an aircraft whether it fell below 5 or 30 percent, recovered above 30, and is in
+  the health that ejects an AI crew (below 3.75 percent with more than ten points); the airborne and AI conditions, the smoke, the ejection and the return home stay in the campaign.
+* **timed** (the six updates): in the original's short-circuit order, a vehicle that can burn with health and in the critical class, a person (never: never critical), an aircraft in a class above
+  none; the host asks for the campaign's ONE sample only for an eligible target (and takes it whatever the odds, even a zero chance), rolls (`2 * dt` for the ground, `class^4 * dt` for an aircraft,
+  against the original's double `frand1`), and answers the health a hit leaves (one point less, from zero) and whether it is fatal (no health left); it also answers the class after the roll, which the
+  update's next gate uses, so a vehicle update makes ONE request.
+* **hit eligibility** (`hc_msgs.c`): the helicopter handler asks only for a hit that is its own (the identity comparison is the campaign's fact) and returns when the host says no; the reference host
+  says no exactly for an AI. A hit that is not the helicopter's own is not asked about. The hit's damage, the sounds and the hooks are as before.
+
+## R1, the actual readers of the critical class
+
+| reader | what it does with the class | now |
+|---|---|---|
+| `damage_client_server_entity_assess` (six mobile damage handlers) | credit and kill on a transition | the class comes in the DAMAGE answer (step 2) |
+| `aa_`, `rv_`, `sh_`, `ps_updt.c` `update_server` | the fire/bleeding roll and the gate that stops updating a critically damaged vehicle | the TIMED answer: roll and class after it |
+| the same four `update_client` | the same gate on a client | classify (a client does not run on the server) |
+| `hc_updt.c`, `fw_updt.c` | `damage_type` at the top of the update; the roll; the helicopter's critical branches (keeps flying or lands: mobility) | classify at the top, as before; the roll asks only for a class above none; the branches consume the host's class in the campaign (a campaign decision on a host physical fact) |
+| `aircraft.c` `switch_aircraft_damaged_smoke`, the victim's speech | smoke and speech | classify; presentation |
+| `assess_*_damage_level` | the threshold crossings that light fires, stop vehicles, switch smoke and eject | assess (the arithmetic is the host's) |
+
+No physical threshold arithmetic of the class remains in the campaign (the macros that held the numbers are unused). What remains outside the host and is NOT physical: the campaign's own return-home rule
+(`new_damage_level > 10` in `assess_aircraft_damage_level`, AI policy on a group), which is a separate rule from the eject range even though both use ten points.
+
+## R2
+
+The twelve other collision handlers have no physical gate (step 2). The helicopter's rule is now the host's answer, at the same place (before the force lookups and before any damage hook, as the original
+returned there), so the retained original's observer data for a self hit (none: no damage hooks begin) is preserved.
+
+## What the campaign refuses (before anything is applied)
+
+A flag that is not a boolean; an op or model that does not exist; a classified health, an assessment or a timed roll with no initial level; a timed roll for a fixed structure; a sample asked for a person, an
+aircraft in no class, a vehicle with no health or that cannot burn (the original drew for none); a second sample; a lookup; a class the model cannot have; a classification answered with more than a class; a
+crossing for a vehicle that cannot burn, a recovery for a vehicle, or a crossing and a recovery in one change; an ineligible target that rolled, changed or was hit; a roll with no sample, or a sample given and
+not rolled; a hit that does not lower the health by at least one and to at least zero, a fatal that does not match the health left; a refusal of a hit that is not the target's own. The DAMAGE contract of step 2
+(nonpositive capability is an unwritten no-op, never a write; the lossless bit transport of the diagnostic floats) is unchanged. A host with a model of its own answers from it (`lua/own-weapon.lua` is a plain
+one: its own classes, nothing burns by itself, a unit may hurt itself) and needs none of EECH's arithmetic or any echo; the fixture's timed counters, hashes and ordered log come from the hooks at their original
+positions, so no echo is needed.
+
+## Cost (R4)
+
+Each vehicle update now makes one request and each aircraft update one (two when it is in a class). The retained natural 600 recorded 4,134,689 anti-aircraft fire attempts and 1,026,989 helicopter attempts in 600
+simulated seconds (about 8,600 a second for those two kinds alone, before the routed vehicles, ships, persons and fixed wings), each of which was a pure local expression and is now a host exchange. The frame cost is a
+ROOT-owned measurement; no cache of the class was added, because a cache would need an invalidation at every writer of the health (the repair paths are D4), and none is justified until the cost is measured.
+
+## Evidence, and what is not available
+
+Source checks (nothing launched or built natively): the kernel against values worked out by hand (`eech-world/src/cmb.rs`: the integer classes at their boundaries and the percentage arithmetic, the float crossings,
+the sample boundaries 6553/6554 and 3276/3277, a zero chance that still takes the sample, the last point of health, a person that never rolls, an aircraft in a class, the own-hit answers); the reference host's public
+contract through `host.aim`, a plain own-model host and the malformed providers (`tests/host_callbacks.rs`); the DC module's request table and reply reader and the engine boundary with the extended layout
+(`eech-dc`, `eech-engine`); and 54 checks of the REAL `mb_hostaim.c` (`c-checks/health_checks.c`, `run-health-checks.sh`; removing five refusals fails 6). `lua/aim-provider.lua` gains `timed_never`, `timed_fast`,
+`critical_late` and `selfhit_allowed` (only the timed, classification and self-hit answers change; the forecasts, the damage and every other operation are the reference's) with counters that tell a run that triggers a
+case from one that does not (`timed_asked/eligible/rolled/hit/fatal`, `health_classified/critical/assessed/crossed`, `selfhit_asked/refused`), and the malformed modes `bad_health_class`, `bad_health_missing`,
+`bad_health_person_draw` (asked in every run that has a person), `bad_health_hit_ineligible` and `bad_health_fatal` (both need a timed hit and may not trigger in a short run: the counters say so).
+
+Characterization it must reproduce, from the retained original runs: the natural 600 (the timed attempts, draws and hits of four kinds, the exact draw/hash/order counters) and the controlled anti-aircraft 20 s
+case (201 draws, 41 or 46 hits, no timed fatal). NOT available natively and not claimed: a fatal anti-aircraft TIMED fire (the retained natural run has five fatal anti-aircraft COLLISIONS, which are covered), a
+helicopter's hit of itself, a player's health, the multiplayer multiplier and the easy-difficulty armour. A person's bleeding is source-unreachable and stays false.
+
+## Still open
+
+The explosion and its blast walk, the impact kill-code switch, the bridge collapse (R5), the physical factual reporting and the whole-scope audit (R3 for a host that must own a structure's state), and the D4 repair
+and restoration quantities (they set health through their own writers; the class is asked at the next read). Task45's full pack is active and delivery 45 precedes 46.

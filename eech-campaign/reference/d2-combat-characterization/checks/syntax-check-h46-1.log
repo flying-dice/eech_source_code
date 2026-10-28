@@ -1,0 +1,166 @@
+OK   [] aphavoc/source/entity/mobile/weapon/damage.c
+     warnings: 12
+OK   [] aphavoc/source/entity/system/en_msgs/en_msgs.c
+     warnings: 7
+OK   [] aphavoc/source/entity/mobile/mb_msgs.c
+     warnings: 44
+OK   [] aphavoc/source/entity/mobile/mb_hostaim.c
+     warnings: 7
+OK   [] aphavoc/source/entity/mobile/vehicle/vehicle.c
+     warnings: 7
+OK   [] aphavoc/source/entity/mobile/aircraft/aircraft.c
+     warnings: 7
+OK   [] aphavoc/source/entity/mobile/weapon/wn_cllsn.c
+     warnings: 7
+OK   [] aphavoc/source/entity/mobile/aircraft/helicop/hc_msgs.c
+     warnings: 52
+OK   [] aphavoc/source/entity/mobile/aircraft/fixwing/fw_msgs.c
+     warnings: 7
+OK   [] aphavoc/source/entity/mobile/vehicle/anti_air/aa_msgs.c
+     warnings: 7
+OK   [] aphavoc/source/entity/mobile/vehicle/person/ps_msgs.c
+     warnings: 7
+OK   [] aphavoc/source/entity/mobile/vehicle/routed/rv_msgs.c
+     warnings: 7
+OK   [] aphavoc/source/entity/mobile/vehicle/ship/sh_msgs.c
+     warnings: 7
+OK   [] aphavoc/source/entity/special/effect/explosn/explosn.c
+     warnings: 37
+OK   [] aphavoc/source/entity/system/en_main/en_heap.c
+     warnings: 7
+OK   [] aphavoc/source/entity/fixed/fixed.c
+     warnings: 7
+FAIL [] aphavoc/source/entity/mobile/aircraft/helicop/hc_updt.c
+      | ^
+/src/aphavoc/source/entity/mobile/aircraft/helicop/hc_updt.c: In function 'update_server':
+/src/aphavoc/source/entity/mobile/aircraft/helicop/hc_updt.c:330:49: error: implicit declaration of function 'aircraft_timed_health'; did you mean 'aircraft_fire_weapon'? [-Werror=implicit-function-declaration]
+  330 |                                                 aircraft_timed_health (en, damage_type, &timed);
+      |                                                 ^~~~~~~~~~~~~~~~~~~~~
+      |                                                 aircraft_fire_weapon
+cc1: some warnings being treated as errors
+FAIL [] aphavoc/source/entity/mobile/aircraft/fixwing/fw_updt.c
+      | ^
+/src/aphavoc/source/entity/mobile/aircraft/fixwing/fw_updt.c: In function 'update_server':
+/src/aphavoc/source/entity/mobile/aircraft/fixwing/fw_updt.c:213:25: error: implicit declaration of function 'aircraft_timed_health'; did you mean 'aircraft_fire_weapon'? [-Werror=implicit-function-declaration]
+  213 |                         aircraft_timed_health (en, damage_type, &timed);
+      |                         ^~~~~~~~~~~~~~~~~~~~~
+      |                         aircraft_fire_weapon
+cc1: some warnings being treated as errors
+FAIL [] aphavoc/source/entity/mobile/vehicle/person/ps_updt.c
+      | ^
+/src/aphavoc/source/entity/mobile/vehicle/person/ps_updt.c: In function 'update_server':
+/src/aphavoc/source/entity/mobile/vehicle/person/ps_updt.c:108:9: error: implicit declaration of function 'vehicle_timed_health' [-Werror=implicit-function-declaration]
+  108 |         vehicle_timed_health (en, damage_level, 0, &timed);
+      |         ^~~~~~~~~~~~~~~~~~~~
+cc1: some warnings being treated as errors
+FAIL [] aphavoc/source/entity/mobile/vehicle/anti_air/aa_updt.c
+      | ^
+/src/aphavoc/source/entity/mobile/vehicle/anti_air/aa_updt.c: In function 'update_server':
+/src/aphavoc/source/entity/mobile/vehicle/anti_air/aa_updt.c:110:9: error: implicit declaration of function 'vehicle_timed_health' [-Werror=implicit-function-declaration]
+  110 |         vehicle_timed_health (en, damage_level, explosive_quality, &timed);
+      |         ^~~~~~~~~~~~~~~~~~~~
+cc1: some warnings being treated as errors
+FAIL [] aphavoc/source/entity/mobile/vehicle/routed/rv_updt.c
+      | ^
+/src/aphavoc/source/entity/mobile/vehicle/routed/rv_updt.c: In function 'update_server':
+/src/aphavoc/source/entity/mobile/vehicle/routed/rv_updt.c:112:9: error: implicit declaration of function 'vehicle_timed_health' [-Werror=implicit-function-declaration]
+  112 |         vehicle_timed_health (en, damage_level, explosive_quality, &timed);
+      |         ^~~~~~~~~~~~~~~~~~~~
+cc1: some warnings being treated as errors
+FAIL [] aphavoc/source/entity/mobile/vehicle/ship/sh_updt.c
+      | ^
+/src/aphavoc/source/entity/mobile/vehicle/ship/sh_updt.c: In function 'update_server':
+/src/aphavoc/source/entity/mobile/vehicle/ship/sh_updt.c:111:9: error: implicit declaration of function 'vehicle_timed_health' [-Werror=implicit-function-declaration]
+  111 |         vehicle_timed_health (en, damage_level, explosive_quality, &timed);
+      |         ^~~~~~~~~~~~~~~~~~~~
+cc1: some warnings being treated as errors
+OK   [] eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_fixture.c
+     warnings: 0
+OK   [] eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_case.c
+     warnings: 0
+OK   [] eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c
+     warnings: 1
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/weapon/damage.c
+     warnings: 12
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/system/en_msgs/en_msgs.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/mb_msgs.c
+     warnings: 44
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/mb_hostaim.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/vehicle/vehicle.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/aircraft/aircraft.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/weapon/wn_cllsn.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/aircraft/helicop/hc_msgs.c
+     warnings: 52
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/aircraft/fixwing/fw_msgs.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/vehicle/anti_air/aa_msgs.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/vehicle/person/ps_msgs.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/vehicle/routed/rv_msgs.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/vehicle/ship/sh_msgs.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/special/effect/explosn/explosn.c
+     warnings: 37
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/system/en_main/en_heap.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/fixed/fixed.c
+     warnings: 7
+FAIL [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/aircraft/helicop/hc_updt.c
+      | ^
+/src/aphavoc/source/entity/mobile/aircraft/helicop/hc_updt.c: In function 'update_server':
+/src/aphavoc/source/entity/mobile/aircraft/helicop/hc_updt.c:330:49: error: implicit declaration of function 'aircraft_timed_health'; did you mean 'aircraft_fire_weapon'? [-Werror=implicit-function-declaration]
+  330 |                                                 aircraft_timed_health (en, damage_type, &timed);
+      |                                                 ^~~~~~~~~~~~~~~~~~~~~
+      |                                                 aircraft_fire_weapon
+cc1: some warnings being treated as errors
+FAIL [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/aircraft/fixwing/fw_updt.c
+      | ^
+/src/aphavoc/source/entity/mobile/aircraft/fixwing/fw_updt.c: In function 'update_server':
+/src/aphavoc/source/entity/mobile/aircraft/fixwing/fw_updt.c:213:25: error: implicit declaration of function 'aircraft_timed_health'; did you mean 'aircraft_fire_weapon'? [-Werror=implicit-function-declaration]
+  213 |                         aircraft_timed_health (en, damage_type, &timed);
+      |                         ^~~~~~~~~~~~~~~~~~~~~
+      |                         aircraft_fire_weapon
+cc1: some warnings being treated as errors
+FAIL [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/vehicle/person/ps_updt.c
+      | ^
+/src/aphavoc/source/entity/mobile/vehicle/person/ps_updt.c: In function 'update_server':
+/src/aphavoc/source/entity/mobile/vehicle/person/ps_updt.c:108:9: error: implicit declaration of function 'vehicle_timed_health' [-Werror=implicit-function-declaration]
+  108 |         vehicle_timed_health (en, damage_level, 0, &timed);
+      |         ^~~~~~~~~~~~~~~~~~~~
+cc1: some warnings being treated as errors
+FAIL [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/vehicle/anti_air/aa_updt.c
+      | ^
+/src/aphavoc/source/entity/mobile/vehicle/anti_air/aa_updt.c: In function 'update_server':
+/src/aphavoc/source/entity/mobile/vehicle/anti_air/aa_updt.c:110:9: error: implicit declaration of function 'vehicle_timed_health' [-Werror=implicit-function-declaration]
+  110 |         vehicle_timed_health (en, damage_level, explosive_quality, &timed);
+      |         ^~~~~~~~~~~~~~~~~~~~
+cc1: some warnings being treated as errors
+FAIL [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/vehicle/routed/rv_updt.c
+      | ^
+/src/aphavoc/source/entity/mobile/vehicle/routed/rv_updt.c: In function 'update_server':
+/src/aphavoc/source/entity/mobile/vehicle/routed/rv_updt.c:112:9: error: implicit declaration of function 'vehicle_timed_health' [-Werror=implicit-function-declaration]
+  112 |         vehicle_timed_health (en, damage_level, explosive_quality, &timed);
+      |         ^~~~~~~~~~~~~~~~~~~~
+cc1: some warnings being treated as errors
+FAIL [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/vehicle/ship/sh_updt.c
+      | ^
+/src/aphavoc/source/entity/mobile/vehicle/ship/sh_updt.c: In function 'update_server':
+/src/aphavoc/source/entity/mobile/vehicle/ship/sh_updt.c:111:9: error: implicit declaration of function 'vehicle_timed_health' [-Werror=implicit-function-declaration]
+  111 |         vehicle_timed_health (en, damage_level, explosive_quality, &timed);
+      |         ^~~~~~~~~~~~~~~~~~~~
+cc1: some warnings being treated as errors
+OK   [-DEECH_WEAPON_FIXTURE] eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_fixture.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_case.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c
+     warnings: 1
+SYNTAX_EXIT=1
+OUTER=0

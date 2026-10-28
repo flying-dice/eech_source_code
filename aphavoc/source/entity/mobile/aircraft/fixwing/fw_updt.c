@@ -68,6 +68,8 @@
 
 #include "entity/mobile/mb_cmbfx.h"
 
+#include "entity/mobile/mb_hostaim.h"
+
 #include "entity/tacview/tacview.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -202,20 +204,26 @@ static void update_server (entity *en)
 		
 		CMB_FX_TIMED_BEGIN (EECH_CMB_TIMED_FIXED_WING)
 
+		// an aircraft in a class above none is degraded: the host owns the eligibility, the sample, the roll, the health a hit leaves and whether it is fatal (EEDCS-46)
 		if (damage_type > AIRCRAFT_DAMAGE_NONE)
-			if (frand1() < pow((float)damage_type, 4) * get_delta_time())
+		{
+			campaign_health_result
+				timed;
+
+			aircraft_timed_health (en, damage_type, &timed);
+
+			if (timed.hit)
 			{
-				int damage_level = max(0, get_local_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL) - 1);
+				set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, timed.new_level);
 
-				set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, damage_level);
+				CMB_FX_TIMED_HIT (en, timed.new_level)
 
-				CMB_FX_TIMED_HIT (en, damage_level)
-
-				if (damage_level <= 0)
+				if (timed.fatal)
 					kill_client_server_entity (en);
 
 				return;
 			}
+		}
 
 		CMB_FX_TIMED_END ()
 	}

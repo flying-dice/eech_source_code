@@ -2072,6 +2072,48 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             }
                         }
                     }
+                    "health" => {
+                        // a health fact that is not a hit (cmb.rs health): the critical class, what a change of health crosses, the frame's timed roll (its one random sample asked for
+                        // as a draw, only by an eligible target) and the helicopter's refusal of its own hit
+                        let op = match step.get::<LuaValue>("op")? {
+                            LuaValue::String(name) => match &*name.to_str()? {
+                                "classify" => cmb::HEALTH_CLASSIFY,
+                                "assess" => cmb::HEALTH_ASSESS,
+                                "timed" => cmb::HEALTH_TIMED,
+                                "hit_eligible" => cmb::HEALTH_HIT_ELIGIBLE,
+                                other => return Err(fail(format!("unknown health op {other:?}"))),
+                            },
+                            other => return Err(fail(format!("op must be a string, got {}", other.type_name()))),
+                        };
+                        let input = cmb::HealthInput {
+                            op,
+                            critical_model: lua_i32(&step, "critical_model").map_err(fail)?,
+                            damage_level: lua_i32(&step, "damage_level").map_err(fail)?,
+                            initial_damage_level: lua_i32(&step, "initial_damage_level").map_err(fail)?,
+                            old_damage_level: lua_i32(&step, "old_damage_level").map_err(fail)?,
+                            explosive: flag(&step, "explosive")?,
+                            flammable: flag(&step, "flammable")?,
+                            delta_time: one(&step, "delta_time")?,
+                            aircraft_class: lua_i32(&step, "aircraft_class").map_err(fail)?,
+                            self_hit: flag(&step, "self_hit")?,
+                            target_not_ai: flag(&step, "target_not_ai")?,
+                        };
+                        match cmb::health(&input, draw_of()?).map_err(|error| fail(format!("health: {error}")))? {
+                            cmb::HealthStep::NeedDraw => result.set("state", "need_draw")?,
+                            cmb::HealthStep::Done(outcome) => {
+                                result.set("state", "done")?;
+                                result.set("critical_class", outcome.critical_class)?;
+                                result.set("crossed", outcome.crossed)?;
+                                result.set("recovered", outcome.recovered)?;
+                                result.set("eject", outcome.eject)?;
+                                result.set("eligible", outcome.eligible)?;
+                                result.set("rolled", outcome.rolled)?;
+                                result.set("hit", outcome.hit)?;
+                                result.set("new_level", outcome.new_level)?;
+                                result.set("fatal", outcome.fatal)?;
+                            }
+                        }
+                    }
                     "ready_update" => {
                         check_id("source_host_id")?;
                         let [state, rate, delta_time] = exact_fields::<3>(lua, &step, "state,rate,delta_time").map_err(fail)?;

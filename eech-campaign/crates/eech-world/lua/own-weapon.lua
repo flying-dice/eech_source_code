@@ -51,6 +51,25 @@ function own.damage (step)
 	return { state = "done", exited = false, capability = capability, written = written, new_level = level, critical_before = class, critical_after = critical_class (step, level), bad_modifier = false }
 end
 
+-- the health questions that are not a hit (EEDCS-46): the classes are this model's own (above), nothing ever burns or degrades by itself (no timed roll is eligible, so it takes no
+-- sample), a change of health crosses a threshold when it raises the class, and a unit may hurt itself
+local function health_reply (step, fields)
+	local reply = { state = "done", critical_class = 0, crossed = false, recovered = false, eject = false, eligible = false, rolled = false, hit = false, new_level = step.damage_level, fatal = false }
+	for k, v in pairs (fields or {}) do reply [k] = v end
+	return reply
+end
+
+function own.health (step)
+	if step.op == "classify" then return health_reply (step, { critical_class = critical_class (step, step.damage_level) }) end
+	if step.op == "assess" then
+		local before, after = critical_class (step, step.old_damage_level), critical_class (step, step.damage_level)
+		if step.critical_model == 3 then return health_reply (step, { crossed = after > before, recovered = after < before }) end
+		return health_reply (step, { crossed = (step.explosive or step.flammable) and after > before })
+	end
+	if step.op == "timed" then return health_reply (step, { critical_class = critical_class (step, step.damage_level) }) end
+	return health_reply (step, { eligible = true })
+end
+
 function own.forecast (step) return { state = "done", capability = step.damage_capability > 0 and 5 or 0 } end
 
 -- after the flight: this model has no parachute (a falling crate is as it was), a decoy's timer restarts at half a second with no sample taken, a seeker is never drawn

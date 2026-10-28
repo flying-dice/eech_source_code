@@ -92,6 +92,7 @@ static const char *mode_name (int mode)
 		case CAMPAIGN_AIM_WEAPON_REACQUIRE: return "weapon_reacquire";
 		case CAMPAIGN_AIM_FORECAST: return "forecast";
 		case CAMPAIGN_AIM_DAMAGE: return "damage";
+		case CAMPAIGN_AIM_HEALTH: return "health";
 	}
 
 	return "unknown";
@@ -196,6 +197,25 @@ static void validate_request (const campaign_aim_step *step)
 				(((damage->critical_model == CAMPAIGN_DAMAGE_CRITICAL_VEHICLE) || (damage->critical_model == CAMPAIGN_DAMAGE_CRITICAL_AIRCRAFT)) && (damage->initial_damage_level <= 0)))
 			{
 				debug_fatal ("host aim: a damage request with inconsistent figures for weapon %d", step->weapon);
+			}
+
+			break;
+		}
+		case CAMPAIGN_AIM_HEALTH:
+		{
+			const campaign_health_request *health = &step->health;
+			int classified = (health->critical_model == CAMPAIGN_DAMAGE_CRITICAL_VEHICLE) || (health->critical_model == CAMPAIGN_DAMAGE_CRITICAL_AIRCRAFT);
+
+			// the op and the model are known, the flags are booleans, and a health that is classified or assessed has an initial level to divide by.  A level of any value is legal
+			// (the original never narrowed it), and so is a delta time of zero
+			if ((health->op < CAMPAIGN_HEALTH_CLASSIFY) || (health->op > CAMPAIGN_HEALTH_HIT_ELIGIBLE) || (health->critical_model < CAMPAIGN_DAMAGE_CRITICAL_NONE) ||
+				(health->critical_model > CAMPAIGN_DAMAGE_CRITICAL_AIRCRAFT) || (health->explosive & ~1) || (health->flammable & ~1) || (health->self_hit & ~1) || (health->target_not_ai & ~1) ||
+				!isfinite (health->delta_time) || (health->aircraft_class < 0) || (health->aircraft_class > 2) ||
+				(((health->op == CAMPAIGN_HEALTH_CLASSIFY) || (health->op == CAMPAIGN_HEALTH_ASSESS) || (health->op == CAMPAIGN_HEALTH_TIMED)) && classified && (health->initial_damage_level <= 0)) ||
+				((health->op == CAMPAIGN_HEALTH_ASSESS) && (health->initial_damage_level <= 0)) ||
+				((health->op == CAMPAIGN_HEALTH_TIMED) && (health->critical_model == CAMPAIGN_DAMAGE_CRITICAL_NONE)))
+			{
+				debug_fatal ("host aim: a health request (op %d) with inconsistent figures", health->op);
 			}
 
 			break;
@@ -346,9 +366,23 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 				debug_fatal ("host aim: host aim asked a weapon_step request for more than %d draws", CAMPAIGN_STEP_DRAWS_MAX);
 			}
 		}
-		else if (((step->mode != CAMPAIGN_AIM_VECTORS) && (step->mode != CAMPAIGN_AIM_LEAD) && (step->mode != CAMPAIGN_AIM_DAMAGE)) || step->has_draw)
+		else if (((step->mode != CAMPAIGN_AIM_VECTORS) && (step->mode != CAMPAIGN_AIM_LEAD) && (step->mode != CAMPAIGN_AIM_DAMAGE) && (step->mode != CAMPAIGN_AIM_HEALTH)) || step->has_draw)
 		{
 			debug_fatal ("host aim: host aim asked for a draw in answer to a %s request%s", mode_name (step->mode), step->has_draw ? " that already carried one" : "");
+		}
+
+		// a timed roll takes its sample only when the target is eligible, and the campaign's own facts decide some targets before the host does: a person is never critical, an
+		// aircraft in no class is not degraded, a vehicle with no health or that cannot burn does not burn.  The original drew for none of them
+		if (step->mode == CAMPAIGN_AIM_HEALTH)
+		{
+			const campaign_health_request *health = &step->health;
+
+			if ((health->op != CAMPAIGN_HEALTH_TIMED) || (health->critical_model == CAMPAIGN_DAMAGE_CRITICAL_PERSON) ||
+				((health->critical_model == CAMPAIGN_DAMAGE_CRITICAL_AIRCRAFT) && (health->aircraft_class == 0)) ||
+				((health->critical_model == CAMPAIGN_DAMAGE_CRITICAL_VEHICLE) && ((health->damage_level == 0) || (!health->explosive && !health->flammable))))
+			{
+				debug_fatal ("host aim: host aim asked for a draw in answer to a health request (op %d) that the original answers without one", health->op);
+			}
 		}
 
 		// the player's invulnerability stops a hit before its arithmetic: a hit that is stopped takes no sample of the shared stream
@@ -582,6 +616,73 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 					{
 						debug_fatal ("host aim: host aim echoed a damage whose raw-bit half %d is %g, not an integer in [0, 65535]", i, (double) result->echo[0].f[i]);
 					}
+				}
+			}
+
+			break;
+		}
+		case CAMPAIGN_AIM_HEALTH:
+		{
+			const campaign_health_request *request = &step->health;
+			const campaign_health_result *health = &result->health;
+			int highest = (request->critical_model == CAMPAIGN_DAMAGE_CRITICAL_AIRCRAFT) ? 2 : ((request->critical_model == CAMPAIGN_DAMAGE_CRITICAL_VEHICLE) ? 1 : 0);
+
+			if ((health->crossed & ~1) || (health->recovered & ~1) || (health->eject & ~1) || (health->eligible & ~1) || (health->rolled & ~1) || (health->hit & ~1) || (health->fatal & ~1) ||
+				(health->critical_class < 0) || (health->critical_class > highest))
+			{
+				debug_fatal ("host aim: host aim answered a health request (op %d) with a flag that is not a boolean or a class %d outside 0 to %d", request->op, health->critical_class, highest);
+			}
+
+			switch (request->op)
+			{
+				case CAMPAIGN_HEALTH_CLASSIFY:
+				{
+					// a pure question: nothing else is answered
+					if (health->crossed || health->recovered || health->eject || health->eligible || health->rolled || health->hit || health->fatal)
+					{
+						debug_fatal ("host aim: host aim answered a health classification with more than a class");
+					}
+
+					break;
+				}
+				case CAMPAIGN_HEALTH_ASSESS:
+				{
+					// only an aircraft recovers or ejects, a vehicle that cannot burn crosses nothing, and a change cannot both fall below a threshold and recover above one
+					if (health->critical_class || health->eligible || health->rolled || health->hit || health->fatal ||
+						((request->critical_model != CAMPAIGN_DAMAGE_CRITICAL_AIRCRAFT) && (health->recovered || health->eject)) ||
+						((request->critical_model != CAMPAIGN_DAMAGE_CRITICAL_AIRCRAFT) && !request->explosive && !request->flammable && health->crossed) ||
+						(health->crossed && health->recovered))
+					{
+						debug_fatal ("host aim: host aim answered a health assessment (%d to %d) with an answer its model cannot give", request->old_damage_level, request->damage_level);
+					}
+
+					break;
+				}
+				case CAMPAIGN_HEALTH_TIMED:
+				{
+					int level = (request->damage_level > 0) ? request->damage_level : 0;
+
+					// an ineligible target is not rolled for and does not change; a roll took the campaign's sample; a hit needs eligibility; a hit leaves health from zero to one
+					// less than it was, and is fatal exactly when it leaves none; the class after is the class of the health the target is left with
+					if (health->crossed || health->recovered || health->eject || (!health->eligible && (health->rolled || health->hit || health->fatal || (health->new_level != request->damage_level))) ||
+						(health->rolled && !step->has_draw) || (health->hit && !health->eligible) || (!health->hit && (health->fatal || (health->new_level != request->damage_level))) ||
+						(health->hit && ((health->new_level < 0) || (health->new_level > level) || ((request->damage_level > 0) && (health->new_level >= request->damage_level)))) ||
+						(health->fatal != (health->hit && (health->new_level <= 0))) || (step->has_draw && !health->rolled))
+					{
+						debug_fatal ("host aim: host aim answered a timed health request (level %d) with eligible %d, rolled %d, hit %d, level %d, fatal %d", request->damage_level, health->eligible,
+							health->rolled, health->hit, health->new_level, health->fatal);
+					}
+
+					break;
+				}
+				case CAMPAIGN_HEALTH_HIT_ELIGIBLE:
+				{
+					if (health->critical_class || health->crossed || health->recovered || health->eject || health->rolled || health->hit || health->fatal || (!request->self_hit && !health->eligible))
+					{
+						debug_fatal ("host aim: host aim answered a hit eligibility with more than a yes or no, or refused a hit that is not the target's own");
+					}
+
+					break;
 				}
 			}
 
@@ -985,6 +1086,20 @@ float campaign_aim_damage_echo_float (const campaign_aim_event *event, int index
 	memcpy (&value, &bits, sizeof (value));
 
 	return value;
+}
+
+campaign_aim_result campaign_aim_health (const campaign_health_request *request)
+{
+	campaign_aim_step step;
+
+	memset (&step, 0, sizeof (step));
+
+	step.mode = CAMPAIGN_AIM_HEALTH;
+
+	step.health = *request;
+
+	// a timed roll takes at most one sample of the campaign's stream: campaign_aim_ask takes it once, after the host asks, and asks again
+	return campaign_aim_ask (&step, TRUE);
 }
 
 campaign_aim_result campaign_aim_animate (int weapon, int status, int on_ground, float lifetime, float motion_y)

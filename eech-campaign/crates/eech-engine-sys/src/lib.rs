@@ -599,6 +599,7 @@ pub const EECH_AIM_WEAPON_SEDUCE: c_int = 17;
 pub const EECH_AIM_WEAPON_REACQUIRE: c_int = 18;
 pub const EECH_AIM_FORECAST: c_int = 19;
 pub const EECH_AIM_DAMAGE: c_int = 20;
+pub const EECH_AIM_HEALTH: c_int = 21;
 pub const EECH_AIM_DONE: c_int = 1;
 pub const EECH_AIM_NEED_DRAW: c_int = 2;
 pub const EECH_AIM_NEED_LOOKUP: c_int = 3;
@@ -730,6 +731,38 @@ pub struct eech_damage_result {
     pub bad_modifier: c_int,
 }
 
+/// One health question that is not a hit, by value (aphavoc/.../mb_hostaim.h campaign_health_request), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_health_request {
+    pub op: c_int,
+    pub critical_model: c_int,
+    pub damage_level: c_int,
+    pub initial_damage_level: c_int,
+    pub old_damage_level: c_int,
+    pub explosive: c_int,
+    pub flammable: c_int,
+    pub delta_time: f32,
+    pub aircraft_class: c_int,
+    pub self_hit: c_int,
+    pub target_not_ai: c_int,
+}
+
+/// The host's answer to a health question (aphavoc/.../mb_hostaim.h campaign_health_result), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_health_result {
+    pub critical_class: c_int,
+    pub crossed: c_int,
+    pub recovered: c_int,
+    pub eject: c_int,
+    pub eligible: c_int,
+    pub rolled: c_int,
+    pub hit: c_int,
+    pub new_level: c_int,
+    pub fatal: c_int,
+}
+
 /// The weapon as the campaign holds it, in a weapon step (aphavoc/.../mb_hostaim.h campaign_weapon_state), field for field.
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -832,6 +865,7 @@ pub struct eech_aim_step {
     pub forecast_damage_modifier: f32,
     pub forecast_velocity: f32,
     pub damage: eech_damage_request,
+    pub health: eech_health_request,
 }
 
 #[repr(C)]
@@ -871,6 +905,7 @@ pub struct eech_aim_result {
     pub animate_lifetime: f32,
     pub forecast_capability: c_int,
     pub damage: eech_damage_result,
+    pub health: eech_health_result,
 }
 
 /// What each collision lookup of a weapon step found, by the question it was asked (aphavoc/.../mb_hostaim.h campaign_step_hits).

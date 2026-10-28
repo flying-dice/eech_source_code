@@ -607,6 +607,34 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
             }
             table.set("echo", data.echo).map_err(e)?;
         }
+        AimRequest::Health(data) => {
+            // a health fact that is not a hit, by value; the sample of the campaign's stream is present once a timed roll has asked for it
+            table.set("mode", "health").map_err(e)?;
+            table
+                .set(
+                    "op",
+                    match data.op {
+                        1 => "classify",
+                        2 => "assess",
+                        3 => "timed",
+                        _ => "hit_eligible",
+                    },
+                )
+                .map_err(e)?;
+            table.set("critical_model", data.critical_model).map_err(e)?;
+            table.set("damage_level", data.damage_level).map_err(e)?;
+            table.set("initial_damage_level", data.initial_damage_level).map_err(e)?;
+            table.set("old_damage_level", data.old_damage_level).map_err(e)?;
+            table.set("explosive", data.explosive).map_err(e)?;
+            table.set("flammable", data.flammable).map_err(e)?;
+            table.set("delta_time", data.delta_time).map_err(e)?;
+            table.set("aircraft_class", data.aircraft_class).map_err(e)?;
+            table.set("self_hit", data.self_hit).map_err(e)?;
+            table.set("target_not_ai", data.target_not_ai).map_err(e)?;
+            if let Some(draw) = data.draw {
+                table.set("draw", draw).map_err(e)?;
+            }
+        }
         AimRequest::ReadyUpdate(data) => {
             table.set("mode", "ready_update").map_err(e)?;
             aim_ids_into(&table, &data.source, &None)?;
@@ -847,7 +875,7 @@ fn call_aim(lua: &Lua, function: &LuaFunction, request: AimRequest) -> Result<Ai
         "need_draw" => {
             if !matches!(
                 request,
-                AimRequest::Vectors(_) | AimRequest::Lead(_) | AimRequest::WeaponStep(_) | AimRequest::Damage(_)
+                AimRequest::Vectors(_) | AimRequest::Lead(_) | AimRequest::WeaponStep(_) | AimRequest::Damage(_) | AimRequest::Health(_)
             ) {
                 return Err("aim result need_draw answers a request that cannot take a draw".into());
             }
@@ -919,6 +947,18 @@ fn call_aim(lua: &Lua, function: &LuaFunction, request: AimRequest) -> Result<Ai
             reply.damage_critical_before = aim_integer(&table, "critical_before")?;
             reply.damage_critical_after = aim_integer(&table, "critical_after")?;
             reply.damage_bad_modifier = aim_boolean(&table, "bad_modifier")?;
+        }
+        AimRequest::Health(_) => {
+            // the host's whole answer, each field mandatory and exact: a missing or mistyped one is an error, never a default
+            reply.health_critical_class = aim_integer(&table, "critical_class")?;
+            reply.health_crossed = aim_boolean(&table, "crossed")?;
+            reply.health_recovered = aim_boolean(&table, "recovered")?;
+            reply.health_eject = aim_boolean(&table, "eject")?;
+            reply.health_eligible = aim_boolean(&table, "eligible")?;
+            reply.health_rolled = aim_boolean(&table, "rolled")?;
+            reply.health_hit = aim_boolean(&table, "hit")?;
+            reply.health_new_level = aim_integer(&table, "new_level")?;
+            reply.health_fatal = aim_boolean(&table, "fatal")?;
         }
         AimRequest::ReadyUpdate(_) => {
             reply.ready_state = number("ready_state")?;
@@ -1936,6 +1976,66 @@ mod tests {
             .load("return { echo = { { kind = 'damage', a = 0, b = 0, c = 3, d = 0, f = { 0, 15, 0 / 0, 0.75, 0, 0, 0, 0, 0, 0, 0, 0 } } } }")
             .eval()?;
         assert!(aim_echo(&lua, &bad).is_err());
+        Ok(())
+    }
+
+    // The health question reaches the host's Lua as a table with its op by name and its facts by value; the answer is mandatory field by field and a timed roll may ask for its sample.
+    #[test]
+    fn a_health_question_reaches_lua_by_value_and_its_answer_is_read_field_by_field() -> Result<(), Box<dyn std::error::Error>> {
+        use eech_engine::AimHealth;
+        let lua = Lua::new();
+        let request = || {
+            AimRequest::Health(AimHealth {
+                op: 3,
+                critical_model: 1,
+                damage_level: 14,
+                initial_damage_level: 100,
+                old_damage_level: 14,
+                explosive: true,
+                flammable: false,
+                delta_time: 0.5,
+                aircraft_class: 0,
+                self_hit: false,
+                target_not_ai: false,
+                draw: Some(6553),
+            })
+        };
+        let answering: LuaFunction = lua
+            .load(
+                "return function(r) assert(r.mode == 'health' and r.op == 'timed' and r.critical_model == 1 and r.damage_level == 14 and r.initial_damage_level == 100 and r.explosive == true \
+                 and r.flammable == false and r.delta_time == 0.5 and r.draw == 6553 and r.self_hit == false)
+                 return { state = 'done', critical_class = 1, crossed = false, recovered = false, eject = false, eligible = true, rolled = true, hit = true, new_level = 13, fatal = false } end",
+            )
+            .eval()?;
+        let reply = call_aim(&lua, &answering, request())?;
+        assert_eq!(
+            (
+                reply.health_critical_class,
+                reply.health_eligible,
+                reply.health_rolled,
+                reply.health_hit,
+                reply.health_new_level,
+                reply.health_fatal
+            ),
+            (1, true, true, true, 13, false)
+        );
+        // a field missing is an error, never a default
+        let missing: LuaFunction = lua
+            .load("return function(r) return { state = 'done', critical_class = 1, crossed = false, recovered = false, eject = false, eligible = true, rolled = true, hit = true, fatal = false } end")
+            .eval()?;
+        assert!(call_aim(&lua, &missing, request()).err().ok_or("accepted")?.contains("new_level"));
+        // a timed roll may ask for the sample; a classification may not
+        let asking: LuaFunction = lua.load("return function(r) return { state = 'need_draw' } end").eval()?;
+        assert!(call_aim(&lua, &asking, request())?.need_draw);
+        let mut classify = request();
+        if let AimRequest::Health(ref mut h) = classify {
+            h.op = 1;
+            h.draw = None;
+        }
+        assert!(
+            call_aim(&lua, &asking, classify)?.need_draw,
+            "the module carries the request; the campaign refuses a sample asked for a classification"
+        );
         Ok(())
     }
 

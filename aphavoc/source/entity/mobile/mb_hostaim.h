@@ -118,7 +118,10 @@ enum campaign_aim_mode
 	/* the damage a weapon is capable of against a target, asked with no weapon in flight (EEDCS-46): a pure question, DONE only */
 	CAMPAIGN_AIM_FORECAST,
 	/* the damage of one hit that reached a damage handler (EEDCS-46): NEED_DRAW once, then DONE */
-	CAMPAIGN_AIM_DAMAGE
+	CAMPAIGN_AIM_DAMAGE,
+	/* the physical health facts of a target that are not a hit (EEDCS-46): its critical class, the thresholds a change of health crosses, the timed fire and bleeding rolls
+	   and the eligibility of a hit (see campaign_health_request) */
+	CAMPAIGN_AIM_HEALTH
 };
 
 enum campaign_aim_state
@@ -363,6 +366,59 @@ typedef struct campaign_damage_result
 	int bad_modifier;
 } campaign_damage_result;
 
+/* HEALTH (EEDCS-46): the physical facts about a target's health that are not a hit, by value.  `op` says which.
+ *
+ *   CLASSIFY      the critical class of a health: the original's vehicle_critically_damaged (0 or 1; a person never) and aircraft_critically_damaged (0, 1 mortal, 2 critical), from the
+ *                 level and the initial level (critical_model as for DAMAGE).  Every reader of the class asks: the damage handlers, the updates' mobility gates, the aircraft's
+ *                 damaged smoke and speech.  A pure question.
+ *   ASSESS        what a CHANGE of health (old_damage_level to damage_level) crosses, from the original's float percentages: for a vehicle that can burn (explosive or flammable) whether
+ *                 it fell below 15 percent (`crossed`: the campaign then lights the fire, stops the vehicle and sleeps it); for an aircraft whether it fell below 5 or 30 percent (`crossed`),
+ *                 whether it recovered above 30 (`recovered`) and whether the health is within the range that ejects an AI crew (`eject`: below 3.75 percent and above ten points; the
+ *                 campaign adds that the aircraft is airborne and an AI).
+ *   TIMED         the frame's timed health roll, for the six updates: a vehicle that can burn burns when critical, a person would bleed (never: a person is never critical), an aircraft
+ *                 degrades when it is in a class the update computed earlier in the same frame (aircraft_class).  The host answers whether the target is eligible, and if so asks for
+ *                 the campaign's ONE sample (NEED_DRAW), and answers the roll, the health a hit leaves (one point less, from zero up) and whether it is fatal.  An ineligible target
+ *                 takes no sample; an eligible one takes it whatever the odds.  The answer also carries the class of the health after the roll (`critical_class`), which the update's
+ *                 next gate uses.  The campaign keeps the setting of the health, the observer's hooks, the kill and what follows.
+ *   HIT_ELIGIBLE  whether a hit that is the target's own (`self_hit`) may hurt it: an AI helicopter ignores its own hits (the original's fix against helicopters killing themselves with
+ *                 missiles fired into the ground).  Asked only for a self hit; the campaign returns from the handler when the answer is no.
+ */
+enum campaign_health_op
+{
+	CAMPAIGN_HEALTH_CLASSIFY = 1,
+	CAMPAIGN_HEALTH_ASSESS,
+	CAMPAIGN_HEALTH_TIMED,
+	CAMPAIGN_HEALTH_HIT_ELIGIBLE
+};
+
+typedef struct campaign_health_request
+{
+	int op;
+	int critical_model;
+	int damage_level;
+	int initial_damage_level;
+	int old_damage_level;
+	int explosive;
+	int flammable;
+	float delta_time;
+	int aircraft_class;
+	int self_hit;
+	int target_not_ai;
+} campaign_health_request;
+
+typedef struct campaign_health_result
+{
+	int critical_class;
+	int crossed;
+	int recovered;
+	int eject;
+	int eligible;
+	int rolled;
+	int hit;
+	int new_level;
+	int fatal;
+} campaign_health_result;
+
 /* WEAPON_STEP: the weapon as the campaign holds it.  The entity-local random stream never leaves the campaign: its first four outputs are all any one call of the
    original uses (raw integers in [0, 32767]) */
 typedef struct campaign_weapon_state
@@ -494,6 +550,9 @@ typedef struct campaign_aim_step
 
 	/* DAMAGE (`weapon` is the weapon sub type; the sample is has_draw and draw_sample above) */
 	campaign_damage_request damage;
+
+	/* HEALTH (the sample of a TIMED roll is has_draw and draw_sample above) */
+	campaign_health_request health;
 } campaign_aim_step;
 
 typedef struct campaign_aim_result
@@ -547,6 +606,8 @@ typedef struct campaign_aim_result
 	int forecast_capability;
 	/* DAMAGE */
 	campaign_damage_result damage;
+	/* HEALTH */
+	campaign_health_result health;
 } campaign_aim_result;
 
 typedef int (*campaign_aim_fn)
@@ -626,6 +687,9 @@ campaign_aim_result campaign_aim_forecast (int weapon, const campaign_damage_fig
 /* The damage of one hit (CAMPAIGN_AIM_DAMAGE) of `weapon` (a sub type): the campaign takes the one sample of its stream the host asks for.  `echo` asks the reference host for the
    observer's echo (the test fixture build); the result's echo is valid until the next request. */
 campaign_aim_result campaign_aim_damage (int weapon, const campaign_damage_request *request, int echo);
+
+/* A health fact (CAMPAIGN_AIM_HEALTH): the campaign takes the one sample of its stream that a TIMED roll asks for. */
+campaign_aim_result campaign_aim_health (const campaign_health_request *request);
 
 /* The float `index` (0 the damage modifier, 1 the penetration capability, 2 the armour thickness, 3 the random modifier) of a DAMAGE echo event, rebuilt from its raw bits. */
 float campaign_aim_damage_echo_float (const campaign_aim_event *event, int index);

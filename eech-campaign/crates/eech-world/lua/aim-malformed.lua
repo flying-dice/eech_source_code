@@ -9,10 +9,35 @@ return function (mode, reference, counted)
 		bad_step_repeat = "weapon_step", bad_step_error = "weapon_step", bad_step_draw = "weapon_step", bad_birth_action = "weapon_birth", bad_release_burst = "release",
 		bad_decoy_flag = "weapon_decoy", bad_seduce_flag = "weapon_seduce", bad_reacquire_flag = "weapon_reacquire", bad_reacquire_none = "weapon_reacquire",
 		bad_forecast_negative = "forecast", bad_forecast_draw = "forecast", bad_forecast_fraction = "forecast",
-		bad_damage_level = "damage", bad_damage_draw_twice = "damage", bad_damage_exit = "damage", bad_damage_class = "damage", bad_damage_unwritten = "damage", bad_damage_missing = "damage" }
+		bad_damage_level = "damage", bad_damage_draw_twice = "damage", bad_damage_exit = "damage", bad_damage_class = "damage", bad_damage_unwritten = "damage", bad_damage_missing = "damage",
+		bad_health_class = "health", bad_health_missing = "health", bad_health_person_draw = "health", bad_health_hit_ineligible = "health", bad_health_fatal = "health" }
 	local kind = assert (kinds [mode], "unknown bad mode " .. mode)
 	local armed = true
 	return function (step)
+		-- the health providers corrupt the first answer of their kind (the person provider asks for a sample for a person, whom the original never rolls for) and let the reference
+		-- host answer the rest
+		if step.mode == "health" and mode:find ("^bad_health_") then
+			if mode == "bad_health_person_draw" then
+				if armed and step.op == "timed" and step.critical_model == 2 then
+					armed = false
+					return { state = "need_draw" }
+				end
+				return counted (step, reference (step))
+			end
+			local answer = reference (step)
+			local corrupted = false
+			if armed and answer.state == "done" then
+				if mode == "bad_health_class" and step.op == "classify" then corrupted = true answer.critical_class = 7
+				elseif mode == "bad_health_missing" and step.op == "classify" then corrupted = true answer.critical_class = nil
+				elseif mode == "bad_health_hit_ineligible" and step.op == "timed" and not answer.eligible then corrupted = true answer.hit = true answer.new_level = math.max (0, step.damage_level - 1)
+				elseif mode == "bad_health_fatal" and step.op == "timed" and answer.hit then corrupted = true answer.fatal = not answer.fatal end
+			end
+			if corrupted then
+				armed = false
+				return answer
+			end
+			return counted (step, answer)
+		end
 		-- the overdraw provider is not satisfied by a sample: it asks for another at every pass of every weapon step, without consulting the reference host, until the
 		-- campaign's room for samples is gone and the engine refuses (a legal draw is a continuation, not a refusal)
 		if mode == "bad_step_draw" and step.mode == kind then

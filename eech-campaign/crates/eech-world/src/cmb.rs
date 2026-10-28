@@ -375,6 +375,138 @@ pub fn damage(input: &DamageInput, draw: Option<i32>) -> Result<DamageStep, Stri
     }))
 }
 
+/// `cf_health_in`.
+#[repr(C)]
+struct RawHealthIn {
+    op: c_int,
+    critical_model: c_int,
+    damage_level: c_int,
+    initial_damage_level: c_int,
+    old_damage_level: c_int,
+    explosive: c_int,
+    flammable: c_int,
+    delta_time: c_float,
+    aircraft_class: c_int,
+    self_hit: c_int,
+    target_not_ai: c_int,
+    has_draw: c_int,
+    draw: c_int,
+}
+
+/// `cf_health_out`.
+#[repr(C)]
+#[derive(Default)]
+struct RawHealthOut {
+    state: c_int,
+    critical_class: c_int,
+    crossed: c_int,
+    recovered: c_int,
+    eject: c_int,
+    eligible: c_int,
+    rolled: c_int,
+    hit: c_int,
+    new_level: c_int,
+    fatal: c_int,
+    failed: c_int,
+}
+
+extern "C" {
+    fn eech_cmb_health(input: *const RawHealthIn, output: *mut RawHealthOut);
+}
+
+/// Which health question (the campaign's `campaign_health_op`).
+pub const HEALTH_CLASSIFY: i32 = 1;
+pub const HEALTH_ASSESS: i32 = 2;
+pub const HEALTH_TIMED: i32 = 3;
+pub const HEALTH_HIT_ELIGIBLE: i32 = 4;
+
+/// A health question that is not a hit, by value (`campaign_health_request`): see `mb_hostaim.h`.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct HealthInput {
+    pub op: i32,
+    pub critical_model: i32,
+    pub damage_level: i32,
+    pub initial_damage_level: i32,
+    pub old_damage_level: i32,
+    pub explosive: bool,
+    pub flammable: bool,
+    pub delta_time: f32,
+    pub aircraft_class: i32,
+    pub self_hit: bool,
+    pub target_not_ai: bool,
+}
+
+/// The answer (`campaign_health_result`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct HealthOutcome {
+    pub critical_class: i32,
+    pub crossed: bool,
+    pub recovered: bool,
+    pub eject: bool,
+    pub eligible: bool,
+    pub rolled: bool,
+    pub hit: bool,
+    pub new_level: i32,
+    pub fatal: bool,
+}
+
+/// The host's answer: the one sample of the campaign's random stream a timed roll takes (only an eligible target takes it), or the outcome.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HealthStep {
+    NeedDraw,
+    Done(HealthOutcome),
+}
+
+/// One health question.  An error for a figure that is not finite, a sample outside [0, 32767], and a classified health with no initial level to divide by.
+pub fn health(input: &HealthInput, draw: Option<i32>) -> Result<HealthStep, String> {
+    if !input.delta_time.is_finite() {
+        return Err("a health question needs a finite frame time".into());
+    }
+    if let Some(draw) = draw {
+        if !(0..=32767).contains(&draw) {
+            return Err(format!("the sample {draw} is outside [0, 32767]"));
+        }
+    }
+    let raw = RawHealthIn {
+        op: input.op,
+        critical_model: input.critical_model,
+        damage_level: input.damage_level,
+        initial_damage_level: input.initial_damage_level,
+        old_damage_level: input.old_damage_level,
+        explosive: c_int::from(input.explosive),
+        flammable: c_int::from(input.flammable),
+        delta_time: input.delta_time,
+        aircraft_class: input.aircraft_class,
+        self_hit: c_int::from(input.self_hit),
+        target_not_ai: c_int::from(input.target_not_ai),
+        has_draw: c_int::from(draw.is_some()),
+        draw: draw.unwrap_or(0),
+    };
+    let mut out = RawHealthOut::default();
+    // SAFETY: both structures are valid for the call, which keeps nothing.
+    unsafe { eech_cmb_health(&raw, &mut out) };
+    if out.failed != 0 {
+        return Err(format!(
+            "the health cannot be answered: op {} for a model {} with initial level {}",
+            input.op, input.critical_model, input.initial_damage_level
+        ));
+    }
+    if out.state != 0 {
+        return Ok(HealthStep::NeedDraw);
+    }
+    Ok(HealthStep::Done(HealthOutcome {
+        critical_class: out.critical_class,
+        crossed: out.crossed != 0,
+        recovered: out.recovered != 0,
+        eject: out.eject != 0,
+        eligible: out.eligible != 0,
+        rolled: out.rolled != 0,
+        hit: out.hit != 0,
+        new_level: out.new_level,
+        fatal: out.fatal != 0,
+    }))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -824,5 +956,226 @@ mod tests {
         bad = hit(SOLID_SHOT, 12, 20, 10, 0.0);
         bad.target_attitude[4] = f32::INFINITY;
         assert!(damage(&bad, None).unwrap_err().contains("finite"));
+    }
+
+    // ---- health that is not a hit.  The expected values are worked out by hand from the original expressions (vehicle_critically_damaged, aircraft_critically_damaged,
+    // assess_vehicle_damage_level, assess_aircraft_damage_level, the six timed rolls in the updates and the helicopter's own-hit fix).
+    fn health_input(op: i32, model: i32, level: i32, initial: i32) -> HealthInput {
+        HealthInput {
+            op,
+            critical_model: model,
+            damage_level: level,
+            initial_damage_level: initial,
+            old_damage_level: level,
+            explosive: false,
+            flammable: false,
+            delta_time: 0.1,
+            aircraft_class: 0,
+            self_hit: false,
+            target_not_ai: false,
+        }
+    }
+
+    fn answer(input: &HealthInput) -> HealthOutcome {
+        match health(input, None).unwrap() {
+            HealthStep::Done(outcome) => outcome,
+            HealthStep::NeedDraw => panic!("asked for a sample"),
+        }
+    }
+
+    fn rolled(input: &HealthInput, draw: i32) -> HealthOutcome {
+        assert_eq!(
+            health(input, None).unwrap(),
+            HealthStep::NeedDraw,
+            "an eligible target asks for its sample first"
+        );
+        match health(input, Some(draw)).unwrap() {
+            HealthStep::Done(outcome) => outcome,
+            HealthStep::NeedDraw => panic!("a second request for a sample"),
+        }
+    }
+
+    #[test]
+    fn the_critical_class_is_the_originals_integer_percentage_for_each_kind_of_target() {
+        let class = |model: i32, level: i32, initial: i32| answer(&health_input(HEALTH_CLASSIFY, model, level, initial)).critical_class;
+        // a vehicle is critical below 15 percent: 100 * level / initial in integers
+        assert_eq!(
+            (
+                class(CRITICAL_VEHICLE, 15, 100),
+                class(CRITICAL_VEHICLE, 14, 100),
+                class(CRITICAL_VEHICLE, 0, 100)
+            ),
+            (0, 1, 1)
+        );
+        assert_eq!(
+            (class(CRITICAL_VEHICLE, 1, 7), class(CRITICAL_VEHICLE, 2, 7)),
+            (1, 0),
+            "100 / 7 = 14 and 200 / 7 = 28"
+        );
+        // an aircraft is mortal below 30 and critical below 5
+        assert_eq!([30, 29, 5, 4, 0].map(|level| class(CRITICAL_AIRCRAFT, level, 100)), [0, 1, 1, 2, 2]);
+        assert_eq!(
+            class(CRITICAL_AIRCRAFT, 29, 100),
+            class(CRITICAL_AIRCRAFT, 290, 1000),
+            "the percentage, not the level"
+        );
+        // a person is never critical, whatever the health, and a fixed structure has no class
+        assert_eq!(
+            (class(CRITICAL_PERSON, 0, 100), class(CRITICAL_PERSON, 1, 0), class(CRITICAL_NONE, 0, 0)),
+            (0, 0, 0)
+        );
+        // a classified health with no initial level has nothing to divide by
+        assert!(health(&health_input(HEALTH_CLASSIFY, CRITICAL_VEHICLE, 5, 0), None)
+            .unwrap_err()
+            .contains("cannot be answered"));
+        assert!(health(&health_input(HEALTH_CLASSIFY, CRITICAL_AIRCRAFT, 5, -1), None).is_err());
+    }
+
+    #[test]
+    fn a_change_of_health_crosses_the_originals_float_thresholds() {
+        let assess = |model: i32, old: i32, new: i32, initial: i32, burns: bool| {
+            let mut input = health_input(HEALTH_ASSESS, model, new, initial);
+            input.old_damage_level = old;
+            input.explosive = burns;
+            answer(&input)
+        };
+        // a vehicle that can burn falls below 15 percent: a crossing from 15.0 (which is not below) to 14
+        assert!(assess(CRITICAL_VEHICLE, 16, 14, 100, true).crossed);
+        assert!(
+            assess(CRITICAL_VEHICLE, 15, 14, 100, true).crossed,
+            "15.0 percent is not below 15, so it was above the threshold"
+        );
+        assert!(!assess(CRITICAL_VEHICLE, 14, 13, 100, true).crossed, "already below");
+        assert!(!assess(CRITICAL_VEHICLE, 20, 16, 100, true).crossed, "not yet");
+        assert!(
+            !assess(CRITICAL_VEHICLE, 16, 14, 100, false).crossed,
+            "a vehicle that cannot burn crosses nothing"
+        );
+        assert!(assess(CRITICAL_VEHICLE, 2, 1, 7, true).crossed, "28.6 to 14.3 percent");
+        // a person that can burn is judged by the same arithmetic (its class is another matter)
+        assert!(assess(CRITICAL_PERSON, 16, 14, 100, true).crossed);
+        // an aircraft: below 5 or below 30, recovery above 30, and the health that ejects an AI crew (below 3.75 percent with more than ten points)
+        let down = assess(CRITICAL_AIRCRAFT, 60, 40, 1000, false);
+        assert_eq!(
+            (down.crossed, down.recovered, down.eject),
+            (true, false, false),
+            "6 to 4 percent crosses the critical threshold; 4 is not below 3.75"
+        );
+        let down = assess(CRITICAL_AIRCRAFT, 60, 30, 1000, false);
+        assert_eq!((down.crossed, down.eject), (true, true), "3 percent and 30 points");
+        assert!(!assess(CRITICAL_AIRCRAFT, 20, 8, 1000, false).eject, "ten points or fewer never eject");
+        let mortal = assess(CRITICAL_AIRCRAFT, 400, 290, 1000, false);
+        assert_eq!(
+            (mortal.crossed, mortal.recovered),
+            (true, false),
+            "40 to 29 percent crosses the mortal threshold"
+        );
+        let better = assess(CRITICAL_AIRCRAFT, 290, 310, 1000, false);
+        assert_eq!(
+            (better.crossed, better.recovered, better.eject),
+            (false, true, false),
+            "29 to 31 percent is a recovery"
+        );
+        assert!(!assess(CRITICAL_AIRCRAFT, 500, 450, 1000, false).crossed, "within one band");
+        assert!(health(&health_input(HEALTH_ASSESS, CRITICAL_AIRCRAFT, 5, 0), None).is_err());
+    }
+
+    #[test]
+    fn a_vehicle_that_can_burn_rolls_for_fire_only_when_critical_and_takes_one_sample_whatever_the_odds() {
+        let mut vehicle = health_input(HEALTH_TIMED, CRITICAL_VEHICLE, 14, 100);
+        vehicle.explosive = true;
+        // dt 0.1: 2 * dt = 0.2.  The sample 6553 is 0.19999, 6554 is 0.20002: the first is a hit, the next is not
+        let hit = rolled(&vehicle, 6553);
+        assert_eq!(
+            (hit.eligible, hit.rolled, hit.hit, hit.new_level, hit.fatal, hit.critical_class),
+            (true, true, true, 13, false, 1)
+        );
+        let miss = rolled(&vehicle, 6554);
+        assert_eq!(
+            (miss.eligible, miss.rolled, miss.hit, miss.new_level, miss.fatal, miss.critical_class),
+            (true, true, false, 14, false, 1)
+        );
+        // an eligible roll with no chance at all still takes its sample
+        vehicle.delta_time = 0.0;
+        let none = rolled(&vehicle, 0);
+        assert_eq!((none.rolled, none.hit), (true, false), "0 < 0 is false");
+        vehicle.delta_time = 0.1;
+        // the last point of health is fatal
+        vehicle.damage_level = 1;
+        let fatal = rolled(&vehicle, 0);
+        assert_eq!((fatal.hit, fatal.new_level, fatal.fatal, fatal.critical_class), (true, 0, true, 1));
+        // flammable burns like explosive
+        vehicle.explosive = false;
+        vehicle.flammable = true;
+        vehicle.damage_level = 14;
+        assert!(rolled(&vehicle, 0).hit);
+        // not eligible: no health, not critical, cannot burn: no sample is asked for and nothing changes
+        for (level, burns, expected_class) in [(0, true, 1), (50, true, 0), (14, false, 1)] {
+            let mut other = health_input(HEALTH_TIMED, CRITICAL_VEHICLE, level, 100);
+            other.explosive = burns;
+            let outcome = answer(&other);
+            assert_eq!(
+                (
+                    outcome.eligible,
+                    outcome.rolled,
+                    outcome.hit,
+                    outcome.new_level,
+                    outcome.fatal,
+                    outcome.critical_class
+                ),
+                (false, false, false, level, false, expected_class),
+                "level {level}"
+            );
+        }
+        // a person would bleed, and never does: its class is never critical, so there is no sample whatever its health
+        let mut person = health_input(HEALTH_TIMED, CRITICAL_PERSON, 3, 100);
+        person.explosive = true;
+        let outcome = answer(&person);
+        assert_eq!(
+            (outcome.eligible, outcome.rolled, outcome.hit, outcome.critical_class),
+            (false, false, false, 0)
+        );
+    }
+
+    #[test]
+    fn an_aircraft_in_a_class_degrades_with_the_odds_of_the_class_to_the_fourth_power() {
+        let mut aircraft = health_input(HEALTH_TIMED, CRITICAL_AIRCRAFT, 5, 100);
+        aircraft.aircraft_class = 1;
+        // dt 0.1: class 1 gives 1 * 0.1; the sample 3276 is 0.09998 and 3277 is 0.10001
+        assert_eq!(rolled(&aircraft, 3276).new_level, 4);
+        let miss = rolled(&aircraft, 3277);
+        assert_eq!((miss.rolled, miss.hit, miss.new_level), (true, false, 5));
+        // class 2 gives 16 * 0.1 = 1.6: every sample hits
+        aircraft.aircraft_class = 2;
+        assert!(rolled(&aircraft, 32767).hit);
+        // the last point is fatal; an aircraft with no health left is hit all the same and is fatal (its health stays zero)
+        aircraft.damage_level = 1;
+        let fatal = rolled(&aircraft, 0);
+        assert_eq!((fatal.new_level, fatal.fatal), (0, true));
+        aircraft.damage_level = 0;
+        let dead = rolled(&aircraft, 0);
+        assert_eq!((dead.hit, dead.new_level, dead.fatal), (true, 0, true));
+        // in no class: not eligible, no sample
+        aircraft.aircraft_class = 0;
+        aircraft.damage_level = 5;
+        let outcome = answer(&aircraft);
+        assert_eq!((outcome.eligible, outcome.rolled, outcome.hit, outcome.new_level), (false, false, false, 5));
+        // the sample is a raw integer in [0, 32767]
+        aircraft.aircraft_class = 1;
+        assert!(health(&aircraft, Some(32768)).unwrap_err().contains("outside"));
+    }
+
+    #[test]
+    fn an_ai_helicopter_ignores_its_own_hit_and_nothing_else_is_asked() {
+        let ask = |self_hit: bool, not_ai: bool| {
+            let mut input = health_input(HEALTH_HIT_ELIGIBLE, CRITICAL_NONE, 0, 0);
+            input.self_hit = self_hit;
+            input.target_not_ai = not_ai;
+            answer(&input).eligible
+        };
+        assert_eq!(
+            (ask(true, false), ask(true, true), ask(false, false), ask(false, true)),
+            (false, true, true, true)
+        );
     }
 }

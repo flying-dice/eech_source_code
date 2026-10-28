@@ -12,6 +12,11 @@
  * so the host and the original reference produce the same bits.  Neither a rounding mode nor a type is chosen here: the engine runs a host callback under its own floating point
  * mode and every float and double expression below is the engine's own, in its own order (`min`, `max`, `pow`, `fabs` and the casts are the engine's).
  *
+ * It also answers the HEALTH questions that are not a hit (aphavoc/source/entity/mobile/vehicle/vehicle.c, aircraft/aircraft.c and the six timed rolls of the vehicle and aircraft
+ * updates, expression for expression): the critical class of a health, what a change of health crosses (assess_vehicle_damage_level, assess_aircraft_damage_level: the float
+ * percentages), the frame's timed fire/bleeding/degradation roll (its eligibility, the campaign's one sample, the hit and the health it leaves) and the helicopter's refusal of its
+ * own hit.
+ *
  * What is not here: which weapons and targets meet, the sounds a hit makes, the setting of the health and its side effects, the credit and the kill, the player-setting table, the
  * multiplayer multiplier's record and the debug display of a hit (the campaign's; it sends the settings as values), and the frame's timed health rolls, the explosion and its blast
  * walk and the bridge, which are the original campaign code in this step.  The only random sample a hit takes, the original's `frand1 ()`, is the campaign's: this step asks for it
@@ -482,5 +487,165 @@ void eech_cmb_damage(const cf_damage_in *in, cf_damage_out *out)
 		out->written = 1;
 		out->new_level = damage_level;
 		out->critical_after = classify(in->critical_model, damage_level, in->initial_damage_level);
+	}
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* health that is not a hit */
+
+#define CF_HEALTH_CLASSIFY 1
+#define CF_HEALTH_ASSESS 2
+#define CF_HEALTH_TIMED 3
+#define CF_HEALTH_HIT_ELIGIBLE 4
+
+typedef struct cf_health_in
+{
+	int op;
+	int critical_model;
+	int damage_level;
+	int initial_damage_level;
+	int old_damage_level;
+	int explosive;
+	int flammable;
+	float delta_time;
+	int aircraft_class;
+	int self_hit;
+	int target_not_ai;
+	/* the sample of the campaign's stream a timed roll asked for, when it has been given */
+	int has_draw;
+	int draw;
+} cf_health_in;
+
+/* state: 1 the roll needs its one sample; failed nonzero when the question has no answer (a classified health with no initial level) */
+typedef struct cf_health_out
+{
+	int state;
+	int critical_class;
+	int crossed;
+	int recovered;
+	int eject;
+	int eligible;
+	int rolled;
+	int hit;
+	int new_level;
+	int fatal;
+	int failed;
+} cf_health_out;
+
+void eech_cmb_health(const cf_health_in *in, cf_health_out *out)
+{
+	memset(out, 0, sizeof(*out));
+	out->new_level = in->damage_level;
+
+	if ((in->critical_model == CF_CRITICAL_VEHICLE || in->critical_model == CF_CRITICAL_AIRCRAFT) && in->initial_damage_level <= 0 && in->op != CF_HEALTH_HIT_ELIGIBLE)
+	{
+		out->failed = 1;
+
+		return;
+	}
+
+	switch (in->op)
+	{
+		case CF_HEALTH_CLASSIFY:
+			out->critical_class = classify(in->critical_model, in->damage_level, in->initial_damage_level);
+			break;
+
+		case CF_HEALTH_ASSESS:
+		{
+			// assess_vehicle_damage_level and assess_aircraft_damage_level: the float percentages of the original
+			float initial_damage, old_percent_damaged, new_percent_damaged;
+
+			if (in->initial_damage_level <= 0)
+			{
+				out->failed = 1;
+
+				return;
+			}
+
+			initial_damage = (float)(in->initial_damage_level);
+
+			old_percent_damaged = (100.0 * (float)in->old_damage_level) / initial_damage;
+			new_percent_damaged = (100.0 * (float)in->damage_level) / initial_damage;
+
+			if (in->critical_model == CF_CRITICAL_AIRCRAFT)
+			{
+				out->eject = (new_percent_damaged < 0.75 * CF_AIRCRAFT_CRITICAL_DAMAGE_LEVEL && in->damage_level > 10) ? 1 : 0;
+
+				out->crossed = ((new_percent_damaged < CF_AIRCRAFT_CRITICAL_DAMAGE_LEVEL && old_percent_damaged >= CF_AIRCRAFT_CRITICAL_DAMAGE_LEVEL) ||
+					(new_percent_damaged < CF_AIRCRAFT_MORTAL_DAMAGE_LEVEL && old_percent_damaged >= CF_AIRCRAFT_MORTAL_DAMAGE_LEVEL)) ? 1 : 0;
+
+				out->recovered = (new_percent_damaged >= CF_AIRCRAFT_MORTAL_DAMAGE_LEVEL && old_percent_damaged < CF_AIRCRAFT_MORTAL_DAMAGE_LEVEL) ? 1 : 0;
+			}
+			else if (in->explosive || in->flammable)
+			{
+				out->crossed = (new_percent_damaged < CF_VEHICLE_CRITICAL_DAMAGE_LEVEL && old_percent_damaged >= CF_VEHICLE_CRITICAL_DAMAGE_LEVEL) ? 1 : 0;
+			}
+
+			break;
+		}
+
+		case CF_HEALTH_TIMED:
+		{
+			// the frame's timed roll, in the original's short-circuit order: a vehicle that can burn burns when it has health and is critical, a person would bleed (never: a person is
+			// never critical), an aircraft is degraded when the class the update computed earlier is above none; only an eligible target takes the sample, whatever the odds
+			int eligible, hit = 0, level = in->damage_level;
+			double roll;
+
+			if (in->critical_model == CF_CRITICAL_AIRCRAFT)
+			{
+				eligible = in->aircraft_class > 0;
+			}
+			else
+			{
+				eligible = in->damage_level && (in->critical_model == CF_CRITICAL_PERSON || in->explosive || in->flammable) &&
+					classify(in->critical_model, in->damage_level, in->initial_damage_level);
+			}
+
+			out->eligible = eligible ? 1 : 0;
+
+			if (eligible)
+			{
+				if (!in->has_draw)
+				{
+					out->state = 1;
+
+					return;
+				}
+
+				roll = ((double)in->draw) * (1.0 / 32767.0); // frand1 ()
+
+				if (in->critical_model == CF_CRITICAL_AIRCRAFT)
+				{
+					hit = roll < pow((float)in->aircraft_class, 4) * in->delta_time;
+				}
+				else
+				{
+					hit = roll < 2 * in->delta_time;
+				}
+
+				out->rolled = 1;
+			}
+
+			if (hit)
+			{
+				level = max(0, in->damage_level - 1);
+
+				out->hit = 1;
+				out->new_level = level;
+				out->fatal = (in->damage_level - 1 <= 0) ? 1 : 0;
+			}
+
+			out->critical_class = classify(in->critical_model, level, in->initial_damage_level);
+
+			break;
+		}
+
+		case CF_HEALTH_HIT_ELIGIBLE:
+			// a helicopter that is an AI ignores its own hit (the original's fix against helicopters killing themselves with missiles fired into the ground)
+			out->eligible = (in->self_hit && !in->target_not_ai) ? 0 : 1;
+			break;
+
+		default:
+			out->failed = 1;
 	}
 }

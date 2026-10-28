@@ -1278,6 +1278,24 @@ pub struct AimDamage {
     pub echo: bool,
 }
 
+/// One health question that is not a hit (EEDCS-46), by value: see `eech_health_request` (mb_hostaim.h campaign_health_request).  `draw` is the sample of the campaign's shared random
+/// stream (a raw integer in [0, 32767]) a timed roll asked for, once the campaign has taken it.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimHealth {
+    pub op: i32,
+    pub critical_model: i32,
+    pub damage_level: i32,
+    pub initial_damage_level: i32,
+    pub old_damage_level: i32,
+    pub explosive: bool,
+    pub flammable: bool,
+    pub delta_time: f32,
+    pub aircraft_class: i32,
+    pub self_hit: bool,
+    pub target_not_ai: bool,
+    pub draw: Option<i32>,
+}
+
 /// One frame of one weapon's flight, or (with `birth`) its birth: the weapon, the clock and the frame, and what the host has been told so far in answer to the lookups it asked for (`answers`, each
 /// the lookup repeated with its results in `f[6..12]`) and the samples of the campaign's shared random stream it has been given (`draws`, raw integers in [0, 32767]).
 #[derive(Clone, Debug, PartialEq)]
@@ -1447,6 +1465,7 @@ pub enum AimRequest {
     Release(AimRelease),
     Forecast(AimForecast),
     Damage(AimDamage),
+    Health(AimHealth),
     Animate(AimAnimate),
     ReadyUpdate(AimReadyUpdate),
     ReadyCommand(AimReadyCommand),
@@ -1493,6 +1512,16 @@ pub struct AimReply {
     pub damage_critical_before: i32,
     pub damage_critical_after: i32,
     pub damage_bad_modifier: bool,
+    /// A health question only: see `eech_health_result`.
+    pub health_critical_class: i32,
+    pub health_crossed: bool,
+    pub health_recovered: bool,
+    pub health_eject: bool,
+    pub health_eligible: bool,
+    pub health_rolled: bool,
+    pub health_hit: bool,
+    pub health_new_level: i32,
+    pub health_fatal: bool,
     /// An animation only: the parachute's state, and the weapon's lifetime when the animation reset it.
     pub animate_status: i32,
     pub animate_lifetime: Option<f32>,
@@ -2728,6 +2757,36 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                 echo,
             })
         }
+        sys::EECH_AIM_HEALTH => {
+            let request = &source.health;
+            finite("health frame time", &[request.delta_time])?;
+            if !(1..=4).contains(&request.op) || !(0..=3).contains(&request.critical_model) || !(0..=2).contains(&request.aircraft_class) {
+                return Err(format!(
+                    "aim received a health question with op {}, critical model {} and aircraft class {}",
+                    request.op, request.critical_model, request.aircraft_class
+                ));
+            }
+            if (matches!(request.critical_model, 1 | 3) || request.op == 2) && request.initial_damage_level <= 0 && request.op != 4 {
+                return Err(format!(
+                    "aim received a health question about a health with initial level {}",
+                    request.initial_damage_level
+                ));
+            }
+            AimRequest::Health(AimHealth {
+                op: request.op,
+                critical_model: request.critical_model,
+                damage_level: request.damage_level,
+                initial_damage_level: request.initial_damage_level,
+                old_damage_level: request.old_damage_level,
+                explosive: checked_bool("health explosive", request.explosive)?,
+                flammable: checked_bool("health flammable", request.flammable)?,
+                delta_time: request.delta_time,
+                aircraft_class: request.aircraft_class,
+                self_hit: checked_bool("health self_hit", request.self_hit)?,
+                target_not_ai: checked_bool("health target_not_ai", request.target_not_ai)?,
+                draw: draw()?,
+            })
+        }
         sys::EECH_AIM_ANIMATE => {
             finite("animation figure", &[source.animate_lifetime, source.animate_motion_y])?;
             if source.weapon <= 0 {
@@ -2980,6 +3039,7 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
             sys::EECH_AIM_VECTORS
                 | sys::EECH_AIM_LEAD
                 | sys::EECH_AIM_DAMAGE
+                | sys::EECH_AIM_HEALTH
                 | sys::EECH_AIM_WEAPON_STEP
                 | sys::EECH_AIM_WEAPON_BIRTH
                 | sys::EECH_AIM_WEAPON_DECOY
@@ -3022,6 +3082,19 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
             answer.release_write_last_shot = 1;
             answer.release_last_shot = last_shot;
         }
+    }
+    if source.mode == sys::EECH_AIM_HEALTH {
+        answer.health = sys::eech_health_result {
+            critical_class: reply.health_critical_class,
+            crossed: c_int::from(reply.health_crossed),
+            recovered: c_int::from(reply.health_recovered),
+            eject: c_int::from(reply.health_eject),
+            eligible: c_int::from(reply.health_eligible),
+            rolled: c_int::from(reply.health_rolled),
+            hit: c_int::from(reply.health_hit),
+            new_level: reply.health_new_level,
+            fatal: c_int::from(reply.health_fatal),
+        };
     }
     if source.mode == sys::EECH_AIM_DAMAGE {
         answer.damage = sys::eech_damage_result {
@@ -6272,6 +6345,15 @@ mod tests {
         assert_eq!(layout(24), offset_of!(sys::eech_damage_request, player_modifier));
         assert_eq!(layout(25), offset_of!(sys::eech_damage_request, critical_model));
         assert_eq!(layout(26), offset_of!(sys::eech_damage_result, critical_before));
+        assert_eq!(layout(27), size_of::<sys::eech_health_request>(), "campaign_health_request");
+        assert_eq!(layout(28), size_of::<sys::eech_health_result>(), "campaign_health_result");
+        assert_eq!(layout(29), offset_of!(sys::eech_aim_step, health));
+        assert_eq!(layout(30), offset_of!(sys::eech_aim_result, health));
+        assert_eq!(layout(31), offset_of!(sys::eech_health_request, delta_time));
+        assert_eq!(layout(32), offset_of!(sys::eech_health_request, aircraft_class));
+        assert_eq!(layout(33), offset_of!(sys::eech_health_request, target_not_ai));
+        assert_eq!(layout(34), offset_of!(sys::eech_health_result, eligible));
+        assert_eq!(layout(35), offset_of!(sys::eech_health_result, fatal));
     }
 
     fn damage_step() -> sys::eech_aim_step {
@@ -6433,6 +6515,127 @@ mod tests {
         assert_eq!(room[0].f, f);
         let armour_bits = ((room[0].f[8] as u32) << 16) | (room[0].f[9] as u32);
         assert_eq!(armour_bits, 0xFFC0_0000, "the not-a-number armour, sign and payload");
+    }
+
+    fn health_step(op: c_int) -> sys::eech_aim_step {
+        let mut step = blank_aim_step(sys::EECH_AIM_HEALTH);
+        step.health.op = op;
+        step.health.critical_model = 1;
+        step.health.damage_level = 14;
+        step.health.initial_damage_level = 100;
+        step.health.old_damage_level = 14;
+        step.health.explosive = 1;
+        step.health.delta_time = 0.1;
+        step
+    }
+
+    #[test]
+    fn a_health_question_crosses_by_value_a_timed_roll_takes_its_one_sample_and_the_answer_comes_back() {
+        let mut step = health_step(3);
+        // the host asks for the sample of an eligible target; the campaign gives it and the host rolls
+        let (seen, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_NEED_DRAW), "{error}");
+        let Some(AimRequest::Health(first)) = seen else {
+            panic!("the host was not asked")
+        };
+        assert_eq!(
+            (
+                first.op,
+                first.critical_model,
+                first.damage_level,
+                first.initial_damage_level,
+                first.explosive,
+                first.flammable,
+                first.draw
+            ),
+            (3, 1, 14, 100, true, false, None)
+        );
+        step.has_draw = 1;
+        step.draw_sample = 6553;
+        let (seen, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                health_critical_class: 1,
+                health_eligible: true,
+                health_rolled: true,
+                health_hit: true,
+                health_new_level: 13,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        let Some(AimRequest::Health(request)) = seen else {
+            panic!("the host was not asked")
+        };
+        assert_eq!((request.draw, request.delta_time), (Some(6553), 0.1));
+        let h = result.health;
+        assert_eq!(
+            (result.state, h.critical_class, h.eligible, h.rolled, h.hit, h.new_level, h.fatal, h.crossed),
+            (sys::EECH_AIM_DONE, 1, 1, 1, 1, 13, 0, 0)
+        );
+        // a self-hit question carries its two facts
+        let mut hit = health_step(4);
+        hit.health.self_hit = 1;
+        let (seen, _, code, _) = aim_crossing(&hit, |_| Ok(AimReply::default()));
+        assert_eq!(code, 0);
+        assert!(matches!(seen, Some(AimRequest::Health(ref r)) if r.op == 4 && r.self_hit && !r.target_not_ai));
+    }
+
+    #[test]
+    fn a_health_question_refuses_what_has_no_defined_answer_and_never_takes_a_lookup() {
+        let ok = |_: AimRequest| Ok(AimReply::default());
+        for (what, mutate) in [
+            (
+                "op",
+                Box::new(|s: &mut sys::eech_aim_step| s.health.op = 0) as Box<dyn Fn(&mut sys::eech_aim_step)>,
+            ),
+            ("op high", Box::new(|s: &mut sys::eech_aim_step| s.health.op = 5)),
+            ("model", Box::new(|s: &mut sys::eech_aim_step| s.health.critical_model = 4)),
+            ("class", Box::new(|s: &mut sys::eech_aim_step| s.health.aircraft_class = 3)),
+            ("flag", Box::new(|s: &mut sys::eech_aim_step| s.health.explosive = 2)),
+            ("frame", Box::new(|s: &mut sys::eech_aim_step| s.health.delta_time = f32::NAN)),
+            ("initial", Box::new(|s: &mut sys::eech_aim_step| s.health.initial_damage_level = 0)),
+            (
+                "sample",
+                Box::new(|s: &mut sys::eech_aim_step| {
+                    s.has_draw = 1;
+                    s.draw_sample = 40000;
+                }),
+            ),
+        ] {
+            let mut bad = health_step(3);
+            mutate(&mut bad);
+            let (seen, _, code, error) = aim_crossing(&bad, ok);
+            assert!(seen.is_none() && code != 0 && !error.is_empty(), "{what}: {error}");
+        }
+        // a person has no initial level to divide by and is not classified: a legal question
+        let mut person = health_step(1);
+        person.health.critical_model = 2;
+        person.health.initial_damage_level = 0;
+        let (seen, _, code, error) = aim_crossing(&person, ok);
+        assert!(seen.is_some() && code == 0, "{error}");
+        let step = health_step(1);
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                lookups: vec![AimEvent {
+                    kind: 1,
+                    a: 0,
+                    b: 0,
+                    c: 0,
+                    d: 0,
+                    f: [0.0; 12],
+                }],
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("cannot take them"), "{error}");
+        let (_, _, code, error) = aim_crossing(&step, |_| Err("the host has no model for this health".into()));
+        assert!(code != 0 && error.contains("no model"), "{error}");
     }
 
     #[test]

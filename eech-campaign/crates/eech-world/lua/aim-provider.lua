@@ -27,6 +27,12 @@
 --   mode=damage_armoured the reference host, but every hit is answered against three times the target's armour level plus one; mode=damage_double against twice the weapon's
 --                     damage figure; mode=damage_none a hit does nothing (no sample is taken, the player's invulnerability is still honoured): the host's physical damage is what the
 --                     campaign applies to health and acts on (EEDCS-46), so the losses, the credit and the kills differ from the reference's while the forecasts do not
+--   mode=timed_never  the reference host, but no target is ever eligible for a timed roll (a vehicle is told it cannot burn, an aircraft that it is in no class): nothing burns or
+--                     degrades by itself and the six timed rolls take no sample (EEDCS-46); only the timed answers differ
+--   mode=timed_fast   the same host with twenty times the frame time in every timed roll: what is eligible is hit twenty times as often (the samples taken are the same)
+--   mode=critical_late the same host with a quarter of the initial level in every classification, assessment, timed roll and hit: the critical classes begin at a quarter of the health
+--   mode=selfhit_allowed the same host, but an AI helicopter's own hit is allowed to hurt it (the helicopter handler asks only for a hit that is its own: if no helicopter hits itself in
+--                     the run the counters say so, and this mode proves nothing)
 --   mode=forecast_zero the reference host, but every damage forecast is zero: no package is capable of damage, so the campaign selects and fires no weapon
 --   mode=seduce_never the reference host, but a seeker asked about a decoy is told the decoys have no effect: no seeker is drawn to a decoy (the host's seduction)
 --   mode=reacquire_never the reference host, but a seeker whose decoy expired is told to drop the lock: it does not go back to the decoy's launcher (the campaign unlinks it)
@@ -35,6 +41,10 @@
 --   mode=bad_damage_level, bad_damage_draw_twice, bad_damage_exit, bad_damage_class, bad_damage_unwritten, bad_damage_missing   a provider whose answer to the first hit is
 --                     health written below zero, a second request for a sample, a stop by invulnerability of a target that is not invulnerable, a critical class the target
 --                     cannot have, a health changed without being written, or an answer with a field missing: the engine must stop with a clear error
+--   mode=bad_health_class, bad_health_missing, bad_health_person_draw, bad_health_hit_ineligible, bad_health_fatal   a provider whose first answer of the kind is a class no vehicle can
+--                     have, a classification with the class missing, a request for a sample for a person (who is never rolled for), a hit on a target that is not eligible, or a hit whose
+--                     fatal flag disagrees with the health it leaves: the engine must stop with a clear error.  The first three are asked in every run (an aircraft or a person updates
+--                     every frame); the last two need a timed hit and may not happen in a short run: the summary's counters say whether the case was reached
 --   mode=bad_step_*   a provider that answers the first weapon step malformed: the engine must stop with a clear error (bad_step_state, bad_step_lookup_kind, bad_step_action_kind,
 --                     bad_step_nonfinite, bad_step_repeat, bad_step_error, bad_step_draw)
 --   mode=bad_birth_action, bad_release_burst   the first weapon birth answered with a step's action, the first release with no rounds and no refusal
@@ -99,13 +109,15 @@ end
 
 local reference = host.aim
 -- what the campaign asked, by request mode, and what the host answered
-local counts = { table = 0, range = 0, figures = 0, weapon_step = 0, weapon_birth = 0, release = 0, animate = 0, weapon_decoy = 0, weapon_seduce = 0, weapon_reacquire = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0, forecast = 0, damage = 0 }
+local counts = { table = 0, range = 0, figures = 0, weapon_step = 0, weapon_birth = 0, release = 0, animate = 0, weapon_decoy = 0, weapon_seduce = 0, weapon_reacquire = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0, forecast = 0, damage = 0, health = 0 }
 local answers = { valid = 0, invalid = 0, need_draw = 0, lead_ok = 0, lead_no = 0, ballistic_ok = 0, ballistic_no = 0, phase_moving = 0, angle_sum = 0 }
 -- what the weapon steps came to: the passes the host was asked, the lookups it needed (by kind), the draws it asked for, and the kill codes it left (0 none ... 7)
 local steps = { passes = 0, done = 0, need_lookup = 0, need_draw = 0, kills = {}, lookups = {}, births = 0, birth_velocity = 0, releases = 0, release_refused = 0, release_rounds = 0,
 	decoy_updates = 0, decoy_restarts = 0, seduce_asked = 0, seduce_locked = 0, seduce_retargeted = 0, reacquire_asked = 0, reacquire_returned = 0,
 	forecasts = 0, forecast_sum = 0, forecast_zero = 0,
-	damage_draws = 0, damage_hits = 0, damage_sum = 0, damage_exited = 0, damage_written = 0, damage_critical = 0, damage_fatal = 0 }
+	damage_draws = 0, damage_hits = 0, damage_sum = 0, damage_exited = 0, damage_written = 0, damage_critical = 0, damage_fatal = 0,
+	health_draws = 0, health_classified = 0, health_critical = 0, health_assessed = 0, health_crossed = 0, timed_asked = 0, timed_eligible = 0, timed_rolled = 0, timed_hit = 0, timed_fatal = 0,
+	selfhit_asked = 0, selfhit_refused = 0 }
 for code = 0, 7 do steps.kills [code] = 0 end
 
 local function counted (step, answer)
@@ -156,6 +168,25 @@ local function counted (step, answer)
 			if answer.written then steps.damage_written = steps.damage_written + 1 end
 			if answer.critical_after > answer.critical_before then steps.damage_critical = steps.damage_critical + 1 end
 			if answer.written and answer.new_level <= 0 then steps.damage_fatal = steps.damage_fatal + 1 end
+		end
+	elseif step.mode == "health" then
+		if answer.state == "need_draw" then
+			steps.health_draws = steps.health_draws + 1
+		elseif step.op == "classify" then
+			steps.health_classified = steps.health_classified + 1
+			if answer.critical_class > 0 then steps.health_critical = steps.health_critical + 1 end
+		elseif step.op == "assess" then
+			steps.health_assessed = steps.health_assessed + 1
+			if answer.crossed then steps.health_crossed = steps.health_crossed + 1 end
+		elseif step.op == "timed" then
+			steps.timed_asked = steps.timed_asked + 1
+			if answer.eligible then steps.timed_eligible = steps.timed_eligible + 1 end
+			if answer.rolled then steps.timed_rolled = steps.timed_rolled + 1 end
+			if answer.hit then steps.timed_hit = steps.timed_hit + 1 end
+			if answer.fatal then steps.timed_fatal = steps.timed_fatal + 1 end
+		else
+			steps.selfhit_asked = steps.selfhit_asked + 1
+			if not answer.eligible then steps.selfhit_refused = steps.selfhit_refused + 1 end
 		end
 	elseif step.mode == "release" then
 		steps.releases = steps.releases + 1
@@ -217,6 +248,18 @@ elseif mode == "own_model" then
 elseif mode == "forecast_armoured" then
 	provider = function (step)
 		if step.mode == "forecast" then step = with (step, { armour_level = step.armour_level * 2 + 1 }) end
+		return counted (step, reference (step))
+	end
+elseif mode == "timed_never" or mode == "timed_fast" or mode == "critical_late" or mode == "selfhit_allowed" then
+	provider = function (step)
+		if step.mode == "health" then
+			if mode == "timed_never" and step.op == "timed" then step = with (step, { explosive = false, flammable = false, aircraft_class = 0 })
+			elseif mode == "timed_fast" and step.op == "timed" then step = with (step, { delta_time = step.delta_time * 20 })
+			elseif mode == "critical_late" and step.op ~= "hit_eligible" then step = with (step, { initial_damage_level = math.max (1, math.floor (step.initial_damage_level / 4)) })
+			elseif mode == "selfhit_allowed" and step.op == "hit_eligible" then return counted (step, own.health (step)) end
+		elseif mode == "critical_late" and step.mode == "damage" and step.critical_model ~= 0 and step.critical_model ~= 2 then
+			step = with (step, { initial_damage_level = math.max (1, math.floor (step.initial_damage_level / 4)) })
+		end
 		return counted (step, reference (step))
 	end
 elseif mode == "damage_armoured" or mode == "damage_double" then
@@ -359,7 +402,10 @@ emit { event = "summary", mode = mode, frames = frames_run, failure = failure or
 	reacquire_asked = steps.reacquire_asked, reacquire_returned = steps.reacquire_returned,
 	forecasts = steps.forecasts, forecast_sum = steps.forecast_sum, forecast_zero = steps.forecast_zero,
 	damage_draws = steps.damage_draws, damage_hits = steps.damage_hits, damage_sum = steps.damage_sum, damage_exited = steps.damage_exited, damage_written = steps.damage_written,
-	damage_critical = steps.damage_critical, damage_fatal = steps.damage_fatal }
+	damage_critical = steps.damage_critical, damage_fatal = steps.damage_fatal,
+	health_draws = steps.health_draws, health_classified = steps.health_classified, health_critical = steps.health_critical, health_assessed = steps.health_assessed,
+	health_crossed = steps.health_crossed, timed_asked = steps.timed_asked, timed_eligible = steps.timed_eligible, timed_rolled = steps.timed_rolled, timed_hit = steps.timed_hit,
+	timed_fatal = steps.timed_fatal, selfhit_asked = steps.selfhit_asked, selfhit_refused = steps.selfhit_refused }
 out:close ()
 io.stderr:write (string.format ("aim-provider: mode=%s ready_update=%d ready_command=%d required=%d step=%d vectors=%d (valid %d invalid %d) lead=%d ballistic=%d intercept=%d need_draw=%d ready_moving=%d weapon_births=%d losses=%d failure=%s\n",
 	mode, counts.ready_update, counts.ready_command, counts.required, counts.step, counts.vectors, answers.valid, answers.invalid, counts.lead, counts.ballistic, counts.intercept,

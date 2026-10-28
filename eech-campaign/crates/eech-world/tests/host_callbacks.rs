@@ -670,6 +670,60 @@ assert(malformed('bad_damage_missing', host.aim, passed)(hit({ draw = 0 })).capa
 assert(malformed('bad_damage_draw_twice', host.aim, passed)(hit({ draw = 0 })).state == 'need_draw', 'or asking for a second sample')
 local armed = malformed('bad_damage_level', host.aim, passed)
 assert(armed(hit()).state == 'need_draw' and armed(hit({ draw = 0 })).new_level == -1 and armed(hit({ draw = 0 })).new_level == 41, 'the first completed hit only; the reference host answers the rest')
+-- the health questions that are not a hit (EEDCS-46): the reference host answers them by value; the values are worked out by hand from the original expressions (the kernel's own tests are in
+-- src/cmb.rs).  A timed roll asks for the campaign's one sample only when the target is eligible
+local function health(over)
+  local request = { mode = 'health', op = 'classify', critical_model = 1, damage_level = 14, initial_damage_level = 100, old_damage_level = 14, explosive = true, flammable = false,
+    delta_time = 0.1, aircraft_class = 0, self_hit = false, target_not_ai = false }
+  for k, v in pairs(over or {}) do request[k] = v end
+  return request
+end
+r = host.aim(health())
+assert(r.state == 'done' and r.critical_class == 1 and r.crossed == false and r.eligible == false and r.hit == false and r.new_level == 14, 'a vehicle at 14 percent is critical')
+assert(host.aim(health({ damage_level = 15 })).critical_class == 0 and host.aim(health({ critical_model = 2, damage_level = 0 })).critical_class == 0, 'at 15 it is not, and a person never is')
+assert(host.aim(health({ critical_model = 3, damage_level = 29 })).critical_class == 1 and host.aim(health({ critical_model = 3, damage_level = 4 })).critical_class == 2, 'an aircraft is mortal then critical')
+r = host.aim(health({ op = 'assess', old_damage_level = 16, damage_level = 14 }))
+assert(r.crossed == true and r.recovered == false and r.eject == false, 'a vehicle that can burn falls below 15 percent')
+assert(host.aim(health({ op = 'assess', old_damage_level = 16, damage_level = 14, explosive = false })).crossed == false, 'one that cannot burn does not')
+r = host.aim(health({ op = 'assess', critical_model = 3, initial_damage_level = 1000, old_damage_level = 60, damage_level = 30 }))
+assert(r.crossed == true and r.eject == true, 'an aircraft at 3 percent and 30 points: a threshold, and the health that ejects an AI crew')
+r = host.aim(health({ op = 'assess', critical_model = 3, initial_damage_level = 1000, old_damage_level = 290, damage_level = 310 }))
+assert(r.recovered == true and r.crossed == false, 'and recovery above 30 percent')
+assert(host.aim(health({ op = 'timed' })).state == 'need_draw', 'an eligible vehicle (critical, can burn, has health) asks for the sample')
+r = host.aim(health({ op = 'timed', draw = 6553 }))
+assert(r.state == 'done' and r.eligible == true and r.rolled == true and r.hit == true and r.new_level == 13 and r.fatal == false and r.critical_class == 1, 'the sample 6553 is under 2 * 0.1: a hit, one point less')
+r = host.aim(health({ op = 'timed', draw = 6554 }))
+assert(r.rolled == true and r.hit == false and r.new_level == 14, 'and 6554 is not')
+r = host.aim(health({ op = 'timed', damage_level = 1, draw = 0 }))
+assert(r.hit == true and r.new_level == 0 and r.fatal == true, 'the last point is fatal')
+r = host.aim(health({ op = 'timed', damage_level = 50 }))
+assert(r.state == 'done' and r.eligible == false and r.rolled == false and r.new_level == 50, 'a healthy vehicle is not eligible: no sample')
+r = host.aim(health({ op = 'timed', critical_model = 2, damage_level = 3 }))
+assert(r.state == 'done' and r.eligible == false and r.critical_class == 0, 'a person never bleeds: no sample whatever its health')
+r = host.aim(health({ op = 'timed', critical_model = 3, damage_level = 5, aircraft_class = 1 }))
+assert(r.state == 'need_draw', 'an aircraft in a class asks for the sample')
+assert(host.aim(health({ op = 'timed', critical_model = 3, damage_level = 5, aircraft_class = 1, draw = 3276 })).hit == true and host.aim(health({ op = 'timed', critical_model = 3, damage_level = 5, aircraft_class = 1, draw = 3277 })).hit == false, 'class 1 gives odds of 0.1 at a frame of 0.1 s')
+assert(host.aim(health({ op = 'timed', critical_model = 3, damage_level = 5, aircraft_class = 2, draw = 32767 })).hit == true, 'class 2 always hits, and the sample was taken')
+assert(host.aim(health({ op = 'timed', critical_model = 3, damage_level = 5, aircraft_class = 0 })).eligible == false, 'in no class: nothing')
+assert(host.aim(health({ op = 'hit_eligible', critical_model = 0, damage_level = 0, initial_damage_level = 0, self_hit = true })).eligible == false, 'an AI helicopter ignores its own hit')
+assert(host.aim(health({ op = 'hit_eligible', critical_model = 0, damage_level = 0, initial_damage_level = 0, self_hit = true, target_not_ai = true })).eligible == true, 'a player does not')
+refused(health({ op = 'timed', draw = 40000 }), 'draw')
+refused(health({ op = 'bleed' }), 'unknown health op')
+refused(health({ explosive = 1 }), 'explosive must be a boolean')
+refused(health({ delta_time = 0 / 0 }), 'delta_time')
+refused(health({ initial_damage_level = 0 }), 'cannot be answered')
+local no_class = health() no_class.critical_model = nil
+refused(no_class, 'critical_model must be an integer')
+-- a host with a model of its own answers the same questions without any of that arithmetic or the sample, and a provider that corrupts the first answer of its kind is told apart by it
+assert(own_model.health(health()).critical_class == 1 and own_model.health(health({ op = 'timed' })).eligible == false and own_model.health(health({ op = 'timed' })).rolled == false, 'the plain model: its own class, and nothing burns by itself')
+assert(own_model.health(health({ op = 'assess', old_damage_level = 50, damage_level = 20 })).crossed == true and own_model.health(health({ op = 'hit_eligible', self_hit = true })).eligible == true, 'its own crossing, and a unit may hurt itself')
+assert(malformed('bad_health_class', host.aim, passed)(health()).critical_class == 7, 'the first classification answered with a class no vehicle has')
+assert(malformed('bad_health_missing', host.aim, passed)(health()).critical_class == nil, 'or with the class missing')
+assert(malformed('bad_health_person_draw', host.aim, passed)(health({ op = 'timed', critical_model = 2, damage_level = 3 })).state == 'need_draw', 'or a sample asked for a person')
+assert(malformed('bad_health_hit_ineligible', host.aim, passed)(health({ op = 'timed', damage_level = 50 })).hit == true, 'or a hit on an ineligible target')
+assert(malformed('bad_health_fatal', host.aim, passed)(health({ op = 'timed', draw = 0 })).fatal == true, 'or a hit whose fatal flag disagrees with the health it leaves')
+local classified = malformed('bad_health_class', host.aim, passed)
+assert(classified(health()).critical_class == 7 and classified(health()).critical_class == 1, 'the first only; the reference host answers the rest')
 print('AIM_HOST=ok')
 ";
 

@@ -41,6 +41,15 @@ size_t eech_engine_aim_layout (int which)
 		case 24: return offsetof (campaign_damage_request, player_modifier);
 		case 25: return offsetof (campaign_damage_request, critical_model);
 		case 26: return offsetof (campaign_damage_result, critical_before);
+		case 27: return sizeof (campaign_health_request);
+		case 28: return sizeof (campaign_health_result);
+		case 29: return offsetof (campaign_aim_step, health);
+		case 30: return offsetof (campaign_aim_result, health);
+		case 31: return offsetof (campaign_health_request, delta_time);
+		case 32: return offsetof (campaign_health_request, aircraft_class);
+		case 33: return offsetof (campaign_health_request, target_not_ai);
+		case 34: return offsetof (campaign_health_result, eligible);
+		case 35: return offsetof (campaign_health_result, fatal);
 	}
 
 	return (size_t) -1;

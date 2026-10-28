@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_hostaim.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -218,9 +220,23 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 	// Fix to stop helicopters from killing themselves through firing missiles into the ground...
 	//
 
-	if ((aggressor == receiver) && (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI))
+	// (the eligibility of a hit that is the helicopter's own is the host's, EEDCS-46; the comparison of the two identities is the campaign's fact)
+
+	if (aggressor == receiver)
 	{
-		return TRUE;
+		campaign_health_request
+			request;
+
+		memset (&request, 0, sizeof (request));
+
+		request.op = CAMPAIGN_HEALTH_HIT_ELIGIBLE;
+		request.self_hit = TRUE;
+		request.target_not_ai = (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI);
+
+		if (!campaign_aim_health (&request).health.eligible)
+		{
+			return TRUE;
+		}
 	}
 
 	//

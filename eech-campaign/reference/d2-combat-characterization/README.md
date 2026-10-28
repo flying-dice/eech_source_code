@@ -106,3 +106,9 @@ re-run of the forecast checks on the extended `mb_hostaim.c` (`forecast-checks-3
 
 Correction of `dc3113e4b` (two P2, one P3): `checks/damage-checks-red-2.log` (the four missing refusals before the fix; exit 1), `checks/damage-checks-green-3.log` (66 checks), `checks/damage-mutant-2.log`
 (three removals fail 8), `checks/echo-red-1.log` (the Lua host test RED: `echo value 3 ... -nan`), and the Rust, Clippy, syntax and ABI records of the correction (`*-c46-*`). Nothing native was run.
+
+## Third physical extraction: the critical class, the six timed rolls and the helicopter's own-hit eligibility (candidate, not accepted)
+
+See `eech-campaign/docs/m5-combat-extraction.md` (step 3). Source checks in `checks/`: `health-checks-1.log`, `health-checks-h46.log` (54 checks of the real `mb_hostaim.c` under AddressSanitizer and UndefinedBehaviorSanitizer),
+`health-mutant-1.log` (five refusals removed fail 6, exit 1), the Rust tests (`test-h46-*.log`), Clippy (`clippy-h46-*`), the real-header syntax (`syntax-check-h46-*`; the first run failed because the old staged
+headers lacked the new declarations, retained) and strict feature-off preprocess (`strict-preprocess-49-*`; the first run failed on a quoting error in its own script, retained) records. No native run exists for this candidate.

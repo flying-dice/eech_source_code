@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_hostaim.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -75,31 +77,50 @@
 #define AIRCRAFT_CRITICAL_DAMAGE_LEVEL 5
 #define MAX_META_SMOKE_LIST_ATTACHMENT_POINTS 	2
 
+/* The critical class of an aircraft's health (EEDCS-46): the host's (mb_hostaim.h, HEALTH classify), from the stored level and the definition's initial level: none, mortal below 30
+   percent, critical below 5.  Every reader asks here: the damage handlers, the helicopter's and the aircraft's updates, the damaged smoke and the victim's speech. */
 aircraft_damage_types aircraft_critically_damaged (entity *en)
 {
-
 	aircraft
 		*raw;
 
-	int
-		percent_damaged;
+	campaign_health_request
+		request;
 
 	raw = (aircraft *) get_local_entity_data (en);
 
-	percent_damaged = (100 * raw->damage_level) / aircraft_database[raw->mob.sub_type].initial_damage_level;
+	memset (&request, 0, sizeof (request));
 
-	if (percent_damaged < AIRCRAFT_CRITICAL_DAMAGE_LEVEL)
-	{
-		return AIRCRAFT_DAMAGE_CRITICAL;
-	}
-	else if (percent_damaged < AIRCRAFT_MORTAL_DAMAGE_LEVEL)
-	{
-		return AIRCRAFT_DAMAGE_MORTAL;
-	}
-	else
-	{
-		return AIRCRAFT_DAMAGE_NONE;
-	}
+	request.op = CAMPAIGN_HEALTH_CLASSIFY;
+	request.critical_model = CAMPAIGN_DAMAGE_CRITICAL_AIRCRAFT;
+	request.damage_level = raw->damage_level;
+	request.initial_damage_level = aircraft_database[raw->mob.sub_type].initial_damage_level;
+
+	return (aircraft_damage_types) campaign_aim_health (&request).health.critical_class;
+}
+
+/* The frame's timed degradation roll of an aircraft in a class (EEDCS-46): the host's eligibility (the class the update computed earlier in the frame is above none), the campaign's ONE
+   sample (taken whatever the odds), the roll, the health a hit leaves and whether it is fatal.  The caller keeps the observer's hooks, the setting of the health, the kill and the return. */
+void aircraft_timed_health (entity *en, aircraft_damage_types damage_type, campaign_health_result *out)
+{
+	aircraft
+		*raw;
+
+	campaign_health_request
+		request;
+
+	raw = (aircraft *) get_local_entity_data (en);
+
+	memset (&request, 0, sizeof (request));
+
+	request.op = CAMPAIGN_HEALTH_TIMED;
+	request.critical_model = CAMPAIGN_DAMAGE_CRITICAL_AIRCRAFT;
+	request.damage_level = get_local_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL);
+	request.initial_damage_level = aircraft_database[raw->mob.sub_type].initial_damage_level;
+	request.aircraft_class = (int) damage_type;
+	request.delta_time = get_delta_time ();
+
+	*out = campaign_aim_health (&request).health;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -276,51 +297,53 @@ void switch_aircraft_damaged_smoke (entity *en)
 
 void assess_aircraft_damage_level (entity *en, int old_damage_level, int new_damage_level)
 {
+	campaign_health_request
+		request;
 
-	float
-		initial_damage,
-		old_percent_damaged,
-		new_percent_damaged;
+	campaign_health_result
+		assessed;
 
 	if (old_damage_level == new_damage_level)
 	{
 		return;
 	}
-	
-	initial_damage = (float)(aircraft_database[get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE)].initial_damage_level);
-	
-	old_percent_damaged = (100.0 * (float)old_damage_level) / initial_damage;
-	new_percent_damaged = (100.0 * (float)new_damage_level) / initial_damage;
 
-	#if DEBUG_MODULE
-		debug_log("AIRCRAFT: %s old damage %f, new damage %f", aircraft_database [get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE)].full_name, old_percent_damaged, new_percent_damaged);
-	#endif
-		
+	// what the change crosses is the host's (the original's float percentages, EEDCS-46): the health that ejects an AI crew, the thresholds below and the recovery above; the
+	// airborne and AI conditions, the smoke, the ejection and the return home are the campaign's
+	memset (&request, 0, sizeof (request));
+
+	request.op = CAMPAIGN_HEALTH_ASSESS;
+	request.critical_model = CAMPAIGN_DAMAGE_CRITICAL_AIRCRAFT;
+	request.damage_level = new_damage_level;
+	request.old_damage_level = old_damage_level;
+	request.initial_damage_level = aircraft_database[get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE)].initial_damage_level;
+
+	assessed = campaign_aim_health (&request).health;
+
 	// Eject Pilot(s)
 
-	if (get_local_entity_int_value (en, INT_TYPE_AIRBORNE_AIRCRAFT) && get_local_entity_int_value (en, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI && new_percent_damaged < 0.75 * AIRCRAFT_CRITICAL_DAMAGE_LEVEL && new_damage_level > 10)
+	if (get_local_entity_int_value (en, INT_TYPE_AIRBORNE_AIRCRAFT) && get_local_entity_int_value (en, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI && assessed.eject)
 		initiate_aircraft_crew_ejection (en);
 
 	// update smoke
-	
-	if ((new_percent_damaged < AIRCRAFT_CRITICAL_DAMAGE_LEVEL && old_percent_damaged >= AIRCRAFT_CRITICAL_DAMAGE_LEVEL) || 
-			(new_percent_damaged < AIRCRAFT_MORTAL_DAMAGE_LEVEL && old_percent_damaged >= AIRCRAFT_MORTAL_DAMAGE_LEVEL)) // damage threshold reached
+
+	if (assessed.crossed) // damage threshold reached
 	{
 		switch_aircraft_damaged_smoke(en);
-		
+
 		if (get_comms_model() == COMMS_MODEL_SERVER && new_damage_level > 10) // return group home
 		{
 			entity
 				*group,
 				*guide,
 				*task;
-			
+
 			group = get_local_entity_parent (en, LIST_TYPE_MEMBER);
 
 			if (group)
 			{
 				guide = get_local_group_primary_guide (group);
-						
+
 				if (guide)
 				{
 					task = get_local_entity_parent (guide, LIST_TYPE_GUIDE);
@@ -334,10 +357,10 @@ void assess_aircraft_damage_level (entity *en, int old_damage_level, int new_dam
 			}
 		}
 	}
-		
-	if (new_percent_damaged >= AIRCRAFT_MORTAL_DAMAGE_LEVEL && old_percent_damaged < AIRCRAFT_MORTAL_DAMAGE_LEVEL) // recovery happened
+
+	if (assessed.recovered) // recovery happened
 		switch_aircraft_damaged_smoke(en);
-		
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
