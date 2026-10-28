@@ -204,7 +204,7 @@ static struct
 
 static struct
 {
-	int active, rng0, fuze_entered, fuze_rng0, fuze_solved, fuze_draws, dispersion;
+	int active, rng0, fuze_entered, lead_rng0, lead_draws, fuze_solved, fuze_draws, dispersion;
 	float fuze_timer, disp_heading, disp_pitch;
 } cur_birth;
 
@@ -855,18 +855,36 @@ void eech_wpn_fuze_begin (void)
 	if (cur_birth.active)
 	{
 		cur_birth.fuze_entered = 1;
-		cur_birth.fuze_rng0 = random_number_seed;
 		bump (C_birth_fuze_entered);
 	}
 }
 
-void eech_wpn_fuze_solved (float decoy_timer)
+/* The lead prediction a remote fuze is set from is asked of the campaign while the host's birth is still in flight: the draws it makes are counted where it is asked
+   (they are part of the fuze's draws, with the host's own jitter sample, which the replay adds). */
+void eech_wpn_lead_begin (void)
+{
+	if (cur_birth.active)
+	{
+		cur_birth.lead_rng0 = random_number_seed;
+	}
+}
+
+void eech_wpn_lead_end (void)
+{
+	if (cur_birth.active)
+	{
+		cur_birth.lead_draws += draws_between (cur_birth.lead_rng0, random_number_seed);
+	}
+}
+
+/* `draws` is how many draws of the shared stream the fuze took between its start and the timer being solved (the original read the stream's state at both) */
+void eech_wpn_fuze_solved (float decoy_timer, int draws)
 {
 	if (cur_birth.active)
 	{
 		cur_birth.fuze_solved = 1;
 		cur_birth.fuze_timer = decoy_timer;
-		cur_birth.fuze_draws = draws_between (cur_birth.fuze_rng0, random_number_seed);
+		cur_birth.fuze_draws = draws;
 		bump (C_birth_fuze_solved);
 		note_range (R_FUZE_DECOY_TIMER, (double) decoy_timer);
 	}
@@ -1362,6 +1380,24 @@ void eech_wpn_step_echo (const campaign_aim_event *event)
 			new_position.z = event->f[5];
 
 			eech_wpn_contact_trees (event->a, &old_position, &new_position);
+
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_STEP_BIRTH_FUZE_BEGIN:
+		{
+			eech_wpn_fuze_begin ();
+
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_STEP_BIRTH_FUZE_SOLVED:
+		{
+			eech_wpn_fuze_solved (event->f[0], cur_birth.lead_draws + 1);
+
+			break;
+		}
+		case CAMPAIGN_AIM_EVENT_STEP_BIRTH_DISPERSION:
+		{
+			eech_wpn_dispersion (event->f[0], event->f[1]);
 
 			break;
 		}

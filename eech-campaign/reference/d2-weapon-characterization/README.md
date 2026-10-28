@@ -35,3 +35,12 @@ Toolchain: repository `tools/Dockerfile` image in WSL2 `EECH-D2-Build`, rustc/ca
 ## Limits
 
 Equality evidence is hash/byte based; the Tacview recording was not visually inspected; the verified roots preserve retail 3D data (`textures.pal` is present, so the synthetic-database fallback is skipped) and load retail session terrain; one map, one seed; the controlled witness's launcher/weapon/target are test preconditions. The branches not reached are listed in the document.
+
+## Physical extraction checks (`checks/`, source commits after `abc6d35bd`)
+
+The design is in [`docs/m5-weapon-execution.md`](../../docs/m5-weapon-execution.md). These are source checks only; they are **not** a native comparison with the original behaviour, which is recorded separately when the integrated candidate has run.
+
+* `checks/cargo-test-s2-5.log`, `clippy-s2-default.log`, `clippy-s2-fixture.log`: the flight cut (`ac9b5a6d8`): affected-package tests and Clippy, actual Cargo and Docker exit 0 each (the helper `controls/cargo-run-checked.sh` propagates the real status).
+* `checks/cargo-test-s4-2.log`, `clippy-s4-default.log`, `clippy-s4-fixture.log`: the integrated source (flight, birth, release): eech-engine 44, eech-world 191 library, 19 binary, 8 host/Lua (incl. a parse of every shipped Lua script), actual exit 0; Clippy default and fixture, actual exit 0.
+* `checks/syntax-check-s4.log`: `controls/syntax-check2.sh`, the touched C sources compiled (syntax and warnings) with and without the fixture macro against the staged headers with the working tree's changed headers laid over them.
+* Earlier failures stay retained in the private evidence tree (`cargo-test-s2-1..3.log`, the first `World` alias collision and the NaN weight of a test gun with no motor times, both fixed in tests, not in the kernel, whose weight function is the original's).

@@ -1108,6 +1108,11 @@ pub struct WeaponFigures {
     pub smoke_grenade: i32,
     pub submunition_count: i32,
     pub submunition_velocity_factor: i32,
+    pub muzzle_velocity_max_error: f32,
+    pub circular_error_probable: f32,
+    pub rate_of_fire: f32,
+    pub inverse_rate_of_fire: f32,
+    pub acquire_forward: i32,
 }
 
 /// An unguided weapon's figures, handed to the host once at boot: the host simulates the weapon's flight and keeps the ballistic table that results (no cell crosses the
@@ -1159,12 +1164,25 @@ pub struct AimWeaponState {
     pub has_launcher: bool,
     pub has_target: bool,
     pub server: bool,
+    /// A birth only: the weapon is a submunition, and `velocity` is its parent weapon's.
+    pub submunition: bool,
 }
 
-/// One frame of one weapon's flight: the weapon, the clock and the frame, and what the host has been told so far in answer to the lookups it asked for (`answers`, each
+/// The rate-of-fire gate of a launcher releasing a weapon: the frame, the clock, the launcher's last-shot clock (when it has one) and whether it is not an AI.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimRelease {
+    pub weapon: i32,
+    pub delta_time: f32,
+    pub current_time: u32,
+    pub last_shot: Option<u32>,
+    pub not_ai: bool,
+}
+
+/// One frame of one weapon's flight, or (with `birth`) its birth: the weapon, the clock and the frame, and what the host has been told so far in answer to the lookups it asked for (`answers`, each
 /// the lookup repeated with its results in `f[6..12]`) and the samples of the campaign's shared random stream it has been given (`draws`, raw integers in [0, 32767]).
 #[derive(Clone, Debug, PartialEq)]
 pub struct AimWeaponStep {
+    pub birth: bool,
     pub echo: bool,
     pub weapon: i32,
     pub delta_time: f32,
@@ -1326,6 +1344,7 @@ pub enum AimRequest {
     Range(AimRange),
     Figures(AimFigures),
     WeaponStep(AimWeaponStep),
+    Release(AimRelease),
     ReadyUpdate(AimReadyUpdate),
     ReadyCommand(AimReadyCommand),
     Required(AimRequired),
@@ -1357,6 +1376,10 @@ pub struct AimReply {
     /// A weapon step: the lookups it still needs (with `need_lookup`), or the actions it left, in the order the campaign applies them (when done).
     pub lookups: Vec<AimEvent>,
     pub actions: Vec<AimEvent>,
+    /// A release only: the launcher lets nothing go; the rounds it lets go; the last-shot clock the gate wrote (even when it then refused), if it wrote one.
+    pub release_refuse: bool,
+    pub release_burst_size: i32,
+    pub release_last_shot: Option<u32>,
     pub result: bool,
     pub ready_state: f32,
     pub phase: i32,
@@ -2332,6 +2355,10 @@ fn weapon_figures(source: &sys::eech_weapon_figures) -> Result<WeaponFigures, St
         source.detonation_radius,
         source.max_seeker_limit,
         source.max_launch_angle_error,
+        source.muzzle_velocity_max_error,
+        source.circular_error_probable,
+        source.rate_of_fire,
+        source.inverse_rate_of_fire,
     ];
     if floats.iter().any(|value| !value.is_finite()) {
         return Err(format!("aim received non-finite figures for weapon {name}"));
@@ -2372,6 +2399,11 @@ fn weapon_figures(source: &sys::eech_weapon_figures) -> Result<WeaponFigures, St
         smoke_grenade: source.smoke_grenade,
         submunition_count: source.submunition_count,
         submunition_velocity_factor: source.submunition_velocity_factor,
+        muzzle_velocity_max_error: source.muzzle_velocity_max_error,
+        circular_error_probable: source.circular_error_probable,
+        rate_of_fire: source.rate_of_fire,
+        inverse_rate_of_fire: source.inverse_rate_of_fire,
+        acquire_forward: source.acquire_forward,
     })
 }
 
@@ -2467,7 +2499,21 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                 figures,
             })
         }
-        sys::EECH_AIM_WEAPON_STEP => {
+        sys::EECH_AIM_RELEASE => {
+            finite("release frame", &[source.delta_time])?;
+            if source.weapon <= 0 {
+                return Err(format!("aim received a release of weapon {}, which is not a weapon", source.weapon));
+            }
+            let has_timer = checked_bool("release_has_timer", source.release_has_timer)?;
+            AimRequest::Release(AimRelease {
+                weapon: source.weapon,
+                delta_time: source.delta_time,
+                current_time: source.system_time,
+                last_shot: has_timer.then_some(source.release_last_shot),
+                not_ai: checked_bool("release_not_ai", source.release_not_ai)?,
+            })
+        }
+        sys::EECH_AIM_WEAPON_STEP | sys::EECH_AIM_WEAPON_BIRTH => {
             let state = &source.weapon_state;
             finite("weapon position", &state.position)?;
             finite("weapon attitude", &state.attitude)?;
@@ -2500,6 +2546,7 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                 });
             }
             AimRequest::WeaponStep(AimWeaponStep {
+                birth: source.mode == sys::EECH_AIM_WEAPON_BIRTH,
                 echo,
                 weapon: source.weapon,
                 delta_time: source.delta_time,
@@ -2522,6 +2569,7 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                     has_launcher: checked_bool("has_launcher", state.has_launcher)?,
                     has_target: checked_bool("has_target", state.has_target)?,
                     server: checked_bool("server", state.server)?,
+                    submunition: checked_bool("submunition", state.submunition)?,
                 },
                 answers,
                 draws,
@@ -2685,14 +2733,17 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
         f: event.f,
     };
     if reply.need_draw {
-        if source.mode != sys::EECH_AIM_VECTORS && source.mode != sys::EECH_AIM_LEAD && source.mode != sys::EECH_AIM_WEAPON_STEP {
+        if !matches!(
+            source.mode,
+            sys::EECH_AIM_VECTORS | sys::EECH_AIM_LEAD | sys::EECH_AIM_WEAPON_STEP | sys::EECH_AIM_WEAPON_BIRTH
+        ) {
             return Err("aim asked for a draw in answer to a request that cannot take one".into());
         }
         answer.state = sys::EECH_AIM_NEED_DRAW;
         return Ok(answer);
     }
     if reply.need_lookup {
-        if source.mode != sys::EECH_AIM_WEAPON_STEP {
+        if source.mode != sys::EECH_AIM_WEAPON_STEP && source.mode != sys::EECH_AIM_WEAPON_BIRTH {
             return Err("aim asked for lookups in answer to a request that cannot take them".into());
         }
         if reply.lookups.is_empty() || reply.lookups.len() > sys::EECH_STEP_LOOKUPS_MAX {
@@ -2709,8 +2760,16 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
         }
         return Ok(answer);
     }
+    if source.mode == sys::EECH_AIM_RELEASE {
+        answer.release_refuse = c_int::from(reply.release_refuse);
+        answer.release_burst_size = reply.release_burst_size;
+        if let Some(last_shot) = reply.release_last_shot {
+            answer.release_write_last_shot = 1;
+            answer.release_last_shot = last_shot;
+        }
+    }
     if !reply.actions.is_empty() {
-        if source.mode != sys::EECH_AIM_WEAPON_STEP {
+        if source.mode != sys::EECH_AIM_WEAPON_STEP && source.mode != sys::EECH_AIM_WEAPON_BIRTH {
             return Err("aim answered a request that cannot carry actions with some".into());
         }
         if reply.actions.len() > sys::EECH_STEP_ACTIONS_MAX {
@@ -5449,6 +5508,237 @@ mod tests {
             (range.weapon, range.figures.name.as_str(), range.first, range.last, range.echo),
             (12, "M2HB_test_gun", true, false, false)
         );
+    }
+
+    #[test]
+    fn an_aim_figures_request_hands_the_host_one_weapons_figures_to_keep_and_a_weapon_that_is_not_one_never_reaches_it() {
+        let mut step = figures_step(sys::EECH_AIM_FIGURES);
+        let (seen, _, code, _) = aim_crossing(&step, |_| Ok(AimReply::default()));
+        assert_eq!(code, 0);
+        let Some(AimRequest::Figures(figures)) = seen else {
+            panic!("the host was not handed the figures")
+        };
+        assert_eq!(
+            (figures.weapon, figures.figures.name.as_str(), figures.figures.muzzle_velocity),
+            (12, "M2HB_test_gun", 890.0)
+        );
+        step.weapon = 0;
+        let (seen, _, code, error) = aim_crossing(&step, |_| panic!("the host must not be asked"));
+        assert!(seen.is_none() && code != 0, "{error}");
+        let mut infinite = figures_step(sys::EECH_AIM_FIGURES);
+        infinite.figures.rate_of_fire = f32::INFINITY;
+        let (seen, _, code, error) = aim_crossing(&infinite, |_| panic!("the host must not be asked"));
+        assert!(seen.is_none() && code != 0, "{error}");
+    }
+
+    fn step_request(mode: c_int) -> sys::eech_aim_step {
+        let mut step = blank_aim_step(mode);
+        step.weapon = 5;
+        step.delta_time = 0.1;
+        step.system_time = 4242;
+        step.map_max = [1.0e5; 3];
+        step.weapon_state.attitude = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+        step.weapon_state.velocity = 900.0;
+        step.weapon_state.weapon_lifetime = 3.0;
+        step.weapon_state.entity_samples = [1, 2, 3, 4];
+        step.weapon_state.server = 1;
+        step
+    }
+
+    fn event(kind: c_int, c: c_int, value: f32) -> AimEvent {
+        AimEvent {
+            kind,
+            a: 0,
+            b: 0,
+            c,
+            d: 0,
+            f: [value; 12],
+        }
+    }
+
+    #[test]
+    fn a_weapon_step_carries_the_weapon_the_answers_so_far_and_the_samples_given_and_the_hosts_lookups_and_actions_come_back() {
+        let mut step = step_request(sys::EECH_AIM_WEAPON_STEP);
+        step.answer_count = 1;
+        step.answers[0].kind = 8;
+        step.answers[0].f[6] = 1.0;
+        step.draw_count = 2;
+        step.draws[0] = 100;
+        step.draws[1] = 32767;
+        let (seen, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                lookups: vec![event(7, 0, 0.5)],
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0);
+        let Some(AimRequest::WeaponStep(request)) = seen else {
+            panic!("the host was not asked for a step")
+        };
+        assert!(!request.birth);
+        assert_eq!(
+            (
+                request.weapon,
+                request.delta_time,
+                request.system_time,
+                request.state.velocity,
+                request.state.entity_samples
+            ),
+            (5, 0.1, 4242, 900.0, [1, 2, 3, 4])
+        );
+        assert_eq!(
+            (request.draws.clone(), request.answers.len(), request.answers[0].kind, request.answers[0].f[6]),
+            (vec![100, 32767], 1, 8, 1.0)
+        );
+        assert_eq!(
+            (result.state, result.lookup_count, result.lookups[0].kind, result.action_count),
+            (sys::EECH_AIM_NEED_LOOKUP, 1, 7, 0)
+        );
+        // done, with the actions in order
+        let (_, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                actions: vec![event(1, 3, 2.0), event(5, 0, 7.0)],
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state, result.action_count), (0, sys::EECH_AIM_DONE, 2));
+        assert_eq!(
+            (result.actions[0].kind, result.actions[0].c, result.actions[1].kind, result.actions[1].f[0]),
+            (1, 3, 5, 7.0)
+        );
+        // a draw is asked for by the host, not given
+        let (_, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_NEED_DRAW));
+        // a birth is the same request with its flag
+        let mut birth = step_request(sys::EECH_AIM_WEAPON_BIRTH);
+        birth.weapon_state.submunition = 1;
+        let (seen, _, code, _) = aim_crossing(&birth, |_| Ok(AimReply::default()));
+        assert_eq!(code, 0);
+        assert!(matches!(seen, Some(AimRequest::WeaponStep(ref request)) if request.birth && request.state.submunition));
+    }
+
+    #[test]
+    fn a_weapon_step_the_campaign_cannot_hold_never_reaches_the_host_and_an_answer_it_cannot_take_is_refused() {
+        let mut nan = step_request(sys::EECH_AIM_WEAPON_STEP);
+        nan.weapon_state.position[1] = f32::NAN;
+        let mut draw = step_request(sys::EECH_AIM_WEAPON_STEP);
+        draw.draw_count = 1;
+        draw.draws[0] = 40000;
+        let mut answers = step_request(sys::EECH_AIM_WEAPON_STEP);
+        answers.answer_count = sys::EECH_STEP_ANSWERS_MAX as c_int + 1;
+        let mut sample = step_request(sys::EECH_AIM_WEAPON_STEP);
+        sample.weapon_state.entity_samples[3] = -1;
+        let mut flag = step_request(sys::EECH_AIM_WEAPON_STEP);
+        flag.weapon_state.has_target = 2;
+        let mut nobody = step_request(sys::EECH_AIM_WEAPON_STEP);
+        nobody.weapon = 0;
+        for (what, bad) in [
+            ("position", nan),
+            ("draw", draw),
+            ("answers", answers),
+            ("sample", sample),
+            ("flag", flag),
+            ("weapon", nobody),
+        ] {
+            let (seen, _, code, error) = aim_crossing(&bad, |_| panic!("the host must not be asked"));
+            assert!(seen.is_none() && code != 0, "{what}: {error}");
+        }
+        let step = step_request(sys::EECH_AIM_WEAPON_STEP);
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("lookups"), "{error}");
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                actions: vec![event(1, 0, 0.0); sys::EECH_STEP_ACTIONS_MAX + 1],
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("more than the"), "{error}");
+        // lookups, a draw or actions answer only a step
+        let (_, _, code, error) = aim_crossing(&blank_aim_step(sys::EECH_AIM_READY_COMMAND), |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                lookups: vec![event(7, 0, 0.0)],
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("cannot take them"), "{error}");
+        let (_, _, code, error) = aim_crossing(&figures_step(sys::EECH_AIM_TABLE), |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("cannot take one"), "{error}");
+        let (_, _, code, error) = aim_crossing(&figures_step(sys::EECH_AIM_RANGE), |_| {
+            Ok(AimReply {
+                actions: vec![event(1, 0, 0.0)],
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("cannot carry actions"), "{error}");
+    }
+
+    #[test]
+    fn a_release_request_carries_the_launchers_clock_and_the_hosts_gate_comes_back_even_when_it_refuses() {
+        let mut step = blank_aim_step(sys::EECH_AIM_RELEASE);
+        step.weapon = 5;
+        step.delta_time = 0.1;
+        step.system_time = 2000;
+        step.release_has_timer = 1;
+        step.release_last_shot = 1000;
+        step.release_not_ai = 1;
+        let (seen, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                release_refuse: true,
+                release_burst_size: 0,
+                release_last_shot: Some(2000),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0);
+        let Some(AimRequest::Release(request)) = seen else {
+            panic!("the host was not asked to release")
+        };
+        assert_eq!(
+            (request.weapon, request.delta_time, request.current_time, request.last_shot, request.not_ai),
+            (5, 0.1, 2000, Some(1000), true)
+        );
+        assert_eq!(
+            (
+                result.release_refuse,
+                result.release_burst_size,
+                result.release_write_last_shot,
+                result.release_last_shot
+            ),
+            (1, 0, 1, 2000),
+            "what the gate wrote comes back though it then refused"
+        );
+        // a launcher with no clock sends none, and a gate that wrote nothing returns nothing
+        step.release_has_timer = 0;
+        step.release_last_shot = 77;
+        let (seen, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                release_burst_size: 3,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0);
+        assert!(matches!(seen, Some(AimRequest::Release(ref request)) if request.last_shot.is_none()));
+        assert_eq!((result.release_refuse, result.release_burst_size, result.release_write_last_shot), (0, 3, 0));
+        step.weapon = 0;
+        let (seen, _, code, error) = aim_crossing(&step, |_| panic!("the host must not be asked"));
+        assert!(seen.is_none() && code != 0, "{error}");
     }
 
     #[test]

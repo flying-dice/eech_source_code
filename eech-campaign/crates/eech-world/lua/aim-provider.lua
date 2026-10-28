@@ -20,8 +20,11 @@
 --   mode=weapon_drag  the reference host, but every figures request carries four times the weapon's drag: the host flies its own weapons by the figures it was given
 --                     (EEDCS-45), so the weapons the campaign launches fall and end differently from the reference's (kills, steps)
 --   mode=weapon_short the same with a tenth of the weapon's cruise time: its weapons are over sooner
+--   mode=weapon_fast  the same with twice the muzzle velocity: the weapons the campaign launches leave faster (the host's birth), and fly and end differently
+--   mode=release_slow the same with a quarter of the weapon's rate of fire: the launchers let fewer rounds go (the host's rate-of-fire gate)
 --   mode=bad_step_*   a provider that answers the first weapon step malformed: the engine must stop with a clear error (bad_step_state, bad_step_lookup_kind, bad_step_action_kind,
 --                     bad_step_nonfinite, bad_step_repeat, bad_step_error, bad_step_draw)
+--   mode=bad_birth_action, bad_release_burst   the first weapon birth answered with a step's action, the first release with no rounds and no refusal
 --   mode=missing      boot without an aim provider: must fail at boot with a clear error
 --   mode=bad_*        a provider that answers the first request of a kind malformed: the engine must stop with a clear error (bad_nil, bad_state,
 --                     bad_ready_state, bad_phase, bad_nan_vector, bad_draw_for_ballistic, bad_second_draw, bad_negative_range, bad_error)
@@ -83,10 +86,10 @@ end
 
 local reference = host.aim
 -- what the campaign asked, by request mode, and what the host answered
-local counts = { table = 0, range = 0, figures = 0, weapon_step = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0 }
+local counts = { table = 0, range = 0, figures = 0, weapon_step = 0, weapon_birth = 0, release = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0 }
 local answers = { valid = 0, invalid = 0, need_draw = 0, lead_ok = 0, lead_no = 0, ballistic_ok = 0, ballistic_no = 0, phase_moving = 0, angle_sum = 0 }
 -- what the weapon steps came to: the passes the host was asked, the lookups it needed (by kind), the draws it asked for, and the kill codes it left (0 none ... 7)
-local steps = { passes = 0, done = 0, need_lookup = 0, need_draw = 0, kills = {}, lookups = {} }
+local steps = { passes = 0, done = 0, need_lookup = 0, need_draw = 0, kills = {}, lookups = {}, births = 0, birth_velocity = 0, releases = 0, release_refused = 0, release_rounds = 0 }
 for code = 0, 7 do steps.kills [code] = 0 end
 
 local function counted (step, answer)
@@ -101,6 +104,15 @@ local function counted (step, answer)
 		if answer.ok then answers.ballistic_ok = answers.ballistic_ok + 1 answers.angle_sum = answers.angle_sum + answer.angle else answers.ballistic_no = answers.ballistic_no + 1 end
 	elseif step.mode == "ready_update" and (answer.phase == 1 or answer.phase == 3) then
 		answers.phase_moving = answers.phase_moving + 1
+	elseif step.mode == "weapon_birth" then
+		if answer.state == "done" then
+			for _, action in ipairs (answer.actions) do
+				if action.kind == 8 then steps.births = steps.births + 1 steps.birth_velocity = steps.birth_velocity + action.f [1] end
+			end
+		end
+	elseif step.mode == "release" then
+		steps.releases = steps.releases + 1
+		if answer.refuse then steps.release_refused = steps.release_refused + 1 else steps.release_rounds = steps.release_rounds + answer.burst_size end
 	elseif step.mode == "weapon_step" then
 		steps.passes = steps.passes + 1
 		if answer.state == "need_lookup" then
@@ -180,6 +192,16 @@ function own.intercept (step) return { state = "done", intercept_point = step.ta
 function own.table () return { state = "done" } end
 function own.range () return { state = "done" } end
 function own.figures () return { state = "done" } end
+-- a launch of its own: the weapon leaves at 300 m/s along the launcher's heading, for twenty seconds, with no dispersion, no fuze and nothing asked of the campaign; the
+-- launcher lets one round go at every request (no rate of fire)
+function own.weapon_birth (step)
+	local a = step.attitude
+	return { state = "done", actions = {
+		{ kind = 8, a = 0, b = 0, c = 0, d = 0, f = { 300, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+		{ kind = 2, a = 0, b = 0, c = 0, d = 0, f = { a [1], a [2], a [3], a [4], a [5], a [6], a [7], a [8], a [9], 0, 0, 0 } },
+	} }
+end
+function own.release () return { state = "done", refuse = false, burst_size = 1 } end
 -- a weapon with a model of its own: it flies straight along its heading at the speed it has, for twenty seconds, and ends on the ground it meets; it needs one lookup (the
 -- terrain under its new position), no figure of EECH's, no draw and no wind.  Lookup kinds and action kinds are those of the campaign's protocol (mb_hostaim.h)
 local LOOKUP_GROUND_PROBE, ACTION_STATE, ACTION_ATTITUDE, ACTION_POSITION = 8, 1, 2, 5
@@ -233,12 +255,15 @@ elseif mode == "invalid" then
 	end
 elseif mode == "own_model" then
 	provider = function (step) return counted (step, own [step.mode] (step)) end
-elseif mode == "weapon_drag" or mode == "weapon_short" then
+elseif mode == "weapon_drag" or mode == "weapon_short" or mode == "weapon_fast" or mode == "release_slow" then
 	provider = function (step)
 		if step.mode == "figures" then
 			local figures = {}
 			for k, v in pairs (step.figures) do figures [k] = v end
-			if mode == "weapon_drag" then figures.drag_coefficient = figures.drag_coefficient * 4 else figures.cruise_time = figures.cruise_time * 0.1 end
+			if mode == "weapon_drag" then figures.drag_coefficient = figures.drag_coefficient * 4
+			elseif mode == "weapon_short" then figures.cruise_time = figures.cruise_time * 0.1
+			elseif mode == "weapon_fast" then figures.muzzle_velocity = figures.muzzle_velocity * 2
+			else figures.rate_of_fire, figures.inverse_rate_of_fire = figures.rate_of_fire * 0.25, figures.inverse_rate_of_fire * 4 end
 			step = with (step, { figures = figures })
 		end
 		return counted (step, reference (step))
@@ -272,7 +297,7 @@ elseif mode:sub (1, 4) == "bad_" then
 	local kinds = { bad_nil = "ready_update", bad_state = "ready_update", bad_ready_state = "ready_update", bad_phase = "ready_update", bad_nan_vector = "vectors",
 		bad_draw_for_ballistic = "ballistic", bad_second_draw = "vectors", bad_negative_range = "vectors", bad_error = "ready_command",
 		bad_step_state = "weapon_step", bad_step_lookup_kind = "weapon_step", bad_step_action_kind = "weapon_step", bad_step_nonfinite = "weapon_step",
-		bad_step_repeat = "weapon_step", bad_step_error = "weapon_step", bad_step_draw = "weapon_step" }
+		bad_step_repeat = "weapon_step", bad_step_error = "weapon_step", bad_step_draw = "weapon_step", bad_birth_action = "weapon_birth", bad_release_burst = "release" }
 	local kind = assert (kinds [mode], "unknown bad mode " .. mode)
 	local armed = true
 	provider = function (step)
@@ -280,7 +305,7 @@ elseif mode:sub (1, 4) == "bad_" then
 		if armed and step.mode == kind and (mode ~= "bad_second_draw" or step.draw ~= nil) and (mode ~= "bad_negative_range" or answer.state == "done")
 			and (mode ~= "bad_step_lookup_kind" or answer.state == "need_lookup") and (mode ~= "bad_step_action_kind" or answer.state == "done")
 			and (mode ~= "bad_step_nonfinite" or (answer.state == "done" and #answer.actions > 0)) and (mode ~= "bad_step_repeat" or #step.answers > 0)
-			and (mode ~= "bad_step_draw" or #step.draws >= 0) then
+			and (mode ~= "bad_step_draw" or #step.draws >= 0) and (mode ~= "bad_birth_action" or answer.state == "done") then
 			armed = false
 			if mode == "bad_nil" then return nil
 			elseif mode == "bad_state" then return { state = "later" }
@@ -291,6 +316,8 @@ elseif mode:sub (1, 4) == "bad_" then
 			elseif mode == "bad_second_draw" then return { state = "need_draw" }
 			elseif mode == "bad_negative_range" then answer.intercept_range = -1 return answer
 			elseif mode == "bad_error" or mode == "bad_step_error" then error ("provider failed on purpose")
+			elseif mode == "bad_birth_action" then answer.actions [1].kind = 1 return answer
+			elseif mode == "bad_release_burst" then return { state = "done", refuse = false, burst_size = 0 }
 			elseif mode == "bad_step_state" then return { state = "later" }
 			elseif mode == "bad_step_lookup_kind" then answer.lookups [1].kind = 99 return answer
 			elseif mode == "bad_step_action_kind" then if #answer.actions == 0 then answer.actions = { { kind = 99, a = 0, b = 0, c = 0, d = 0, f = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } } } else answer.actions [1].kind = 99 end return answer
@@ -366,7 +393,11 @@ end
 emit { event = "summary", mode = mode, frames = frames_run, failure = failure or "", table = counts.table, ready_update = counts.ready_update, ready_command = counts.ready_command,
 	required = counts.required, step = counts.step, vectors = counts.vectors, lead = counts.lead, ballistic = counts.ballistic, intercept = counts.intercept,
 	vectors_valid = answers.valid, vectors_invalid = answers.invalid, need_draw = answers.need_draw, lead_ok = answers.lead_ok, lead_no = answers.lead_no,
-	ballistic_ok = answers.ballistic_ok, ballistic_no = answers.ballistic_no, ready_moving = answers.phase_moving, weapon_births = births, losses = lost, angle_sum = string.format ("%.9g", answers.angle_sum) }
+	ballistic_ok = answers.ballistic_ok, ballistic_no = answers.ballistic_no, ready_moving = answers.phase_moving, weapon_births = births, losses = lost, angle_sum = string.format ("%.9g", answers.angle_sum),
+	weapon_step_passes = steps.passes, weapon_step_done = steps.done, step_need_lookup = steps.need_lookup, step_need_draw = steps.need_draw,
+	kill_exhausted = steps.kills [1], kill_out_of_bounds = steps.kills [2], kill_hit_land = steps.kills [3], kill_hit_water = steps.kills [4], kill_hit_target = steps.kills [5],
+	kill_overshot = steps.kills [6], kill_self_destruct = steps.kills [7], births_done = steps.births, birth_velocity_sum = string.format ("%.9g", steps.birth_velocity),
+	releases = steps.releases, release_refused = steps.release_refused, release_rounds = steps.release_rounds }
 out:close ()
 io.stderr:write (string.format ("aim-provider: mode=%s ready_update=%d ready_command=%d required=%d step=%d vectors=%d (valid %d invalid %d) lead=%d ballistic=%d intercept=%d need_draw=%d ready_moving=%d weapon_births=%d losses=%d failure=%s\n",
 	mode, counts.ready_update, counts.ready_command, counts.required, counts.step, counts.vectors, answers.valid, answers.invalid, counts.lead, counts.ballistic, counts.intercept,

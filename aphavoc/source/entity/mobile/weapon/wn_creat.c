@@ -66,6 +66,7 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_hostaim.h"
 #include "entity/mobile/mb_wpnfx.h"
 
 #include "entity/tacview/tacview.h"
@@ -88,6 +89,223 @@ float
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//
+// THE WEAPON'S LAUNCH (EEDCS-45)
+//
+// The host owns the physical launch: the velocity the weapon leaves with, its lifetime, its decoy or fuze timer and its attitude (the launcher's, rotated by the
+// dispersion).  The launcher lets the weapon go first (the campaign's own accounting of what it carries, and the pose the weapon leaves it in); the host answers from
+// that pose, asking the campaign for the launcher's forward velocity and for the lead prediction its fuze is set by, and for the samples of the campaign's shared random
+// stream in the order it takes them.  The entity-local stream (the weapon's own seed) never leaves the campaign: its first output goes with the request.
+//
+
+typedef struct weapon_birth_context
+{
+	entity
+		*en;
+
+	weapon
+		*raw;
+} weapon_birth_context;
+
+#define WEAPON_BIRTH_ECHO_MAX 64
+
+// answers one lookup of the host's birth: the question repeated, and its answer in f[6..11]
+static void answer_weapon_birth_lookup (const campaign_aim_event *lookup, campaign_aim_event *answer, void *user)
+{
+	weapon_birth_context
+		*context;
+
+	entity
+		*launcher,
+		*target;
+
+	vec3d
+		position,
+		intercept_point;
+
+	float
+		*r,
+		angle_of_projection,
+		time_of_flight;
+
+	context = (weapon_birth_context *) user;
+
+	launcher = context->raw->launched_weapon_link.parent;
+
+	*answer = *lookup;
+
+	r = &answer->f[6];
+
+	memset (r, 0, 6 * sizeof (float));
+
+	switch (lookup->kind)
+	{
+		case CAMPAIGN_STEP_LOOKUP_PARENT_VELOCITY:
+		{
+			r[0] = get_local_entity_float_value (launcher, FLOAT_TYPE_VELOCITY);
+
+			break;
+		}
+		case CAMPAIGN_STEP_LOOKUP_FUZE_SOLVE:
+		{
+			position.x = lookup->f[0];
+			position.y = lookup->f[1];
+			position.z = lookup->f[2];
+
+			target = get_local_entity_parent (launcher, LIST_TYPE_TARGET);
+
+			if (target)
+			{
+				// the lead prediction is the host's too (aiming): it is asked here, at the point the original asked it, and takes the campaign's samples as it needs them
+				angle_of_projection = 0.0;
+
+				time_of_flight = 0.0;
+
+				WPN_FX_LEAD_BEGIN ()
+
+				if (get_lead_and_ballistic_intercept_point_and_angle_of_projection (&position, context->raw->mob.sub_type, lookup->f[3], context->en, target, &intercept_point, &angle_of_projection, &time_of_flight))
+				{
+					r[0] = 1.0;
+
+					r[1] = time_of_flight;
+				}
+
+				WPN_FX_LEAD_END ()
+			}
+
+			break;
+		}
+		default:
+		{
+			debug_fatal ("host aim: a weapon birth asked a lookup of kind %d the campaign does not have", lookup->kind);
+		}
+	}
+}
+
+// the host's birth of a weapon: the launch state it leaves with, from the pose the launcher let it go in
+static void host_weapon_birth (entity *en, weapon *raw, const viewpoint *pose, int submunition, float parent_weapon_velocity)
+{
+	weapon_birth_context
+		context;
+
+	campaign_aim_step
+		step;
+
+	campaign_aim_result
+		result;
+
+	int
+		i,
+		seed,
+		applied = 0;
+
+	#ifdef EECH_WEAPON_FIXTURE
+
+	campaign_aim_event
+		echo[WEAPON_BIRTH_ECHO_MAX];
+
+	int
+		echo_count;
+
+	#endif
+
+	memset (&step, 0, sizeof (step));
+
+	step.mode = CAMPAIGN_AIM_WEAPON_BIRTH;
+
+	step.weapon = raw->mob.sub_type;
+
+	step.weapon_state.position[0] = raw->mob.position.x;
+	step.weapon_state.position[1] = raw->mob.position.y;
+	step.weapon_state.position[2] = raw->mob.position.z;
+
+	memcpy (step.weapon_state.attitude, pose->attitude, 9 * sizeof (float));
+
+	step.weapon_state.velocity = parent_weapon_velocity;
+	step.weapon_state.submunition = submunition;
+	step.weapon_state.has_launcher = (raw->launched_weapon_link.parent != NULL);
+	step.weapon_state.has_target = (raw->mob.target_link.parent != NULL);
+	step.weapon_state.server = (get_comms_model () == COMMS_MODEL_SERVER);
+
+	// the first output of the weapon's own stream, which the original drew from a copy of its seed
+	seed = get_client_server_entity_random_number_seed (en);
+
+	for (i = 0; i < 4; i++)
+	{
+		step.weapon_state.entity_samples[i] = rand16x (&seed);
+	}
+
+	#ifdef EECH_WEAPON_FIXTURE
+
+	step.echo = TRUE;
+
+	#endif
+
+	memset (&context, 0, sizeof (context));
+
+	context.en = en;
+
+	context.raw = raw;
+
+	result = campaign_aim_weapon_step (&step, answer_weapon_birth_lookup, &context);
+
+	#ifdef EECH_WEAPON_FIXTURE
+
+	echo_count = result.has_echo ? result.echo_count : 0;
+
+	if (echo_count > WEAPON_BIRTH_ECHO_MAX)
+	{
+		debug_fatal ("host aim: a weapon birth echoed %d events, more than the %d it can carry", echo_count, WEAPON_BIRTH_ECHO_MAX);
+	}
+
+	if (echo_count > 0)
+	{
+		memcpy (echo, result.echo, echo_count * sizeof (campaign_aim_event));
+	}
+
+	// the hooks of the original the host's birth passed (fuze, dispersion), in order
+	for (i = 0; i < echo_count; i++)
+	{
+		WPN_FX_STEP_ECHO (&echo[i])
+	}
+
+	#endif
+
+	for (i = 0; i < result.action_count; i++)
+	{
+		const campaign_aim_event
+			*action;
+
+		action = &result.actions[i];
+
+		if (action->kind == CAMPAIGN_STEP_ACTION_BIRTH)
+		{
+			raw->mob.velocity = action->f[0];
+
+			raw->weapon_lifetime = action->f[1];
+
+			raw->decoy_timer = action->f[2];
+
+			applied |= 1;
+		}
+		else if (action->kind == CAMPAIGN_STEP_ACTION_ATTITUDE)
+		{
+			memcpy (raw->mob.attitude, action->f, 9 * sizeof (float));
+
+			applied |= 2;
+		}
+		else
+		{
+			debug_fatal ("host aim: a weapon birth left an action of kind %d the campaign does not apply to a birth", action->kind);
+		}
+	}
+
+	if (applied != 3)
+	{
+		debug_fatal ("host aim: a weapon birth did not leave both its launch state and its attitude");
+	}
+}
 
 static entity *create_local (entity_types type, int index, char *pargs)
 {
@@ -195,31 +413,9 @@ static entity *create_local (entity_types type, int index, char *pargs)
 		//
 		////////////////////////////////////////
 
-		if (!submunition)
-		{
-			if (weapon_database[raw->mob.sub_type].acquire_parent_forward_velocity)
-				raw->mob.velocity = get_local_entity_float_value (raw->launched_weapon_link.parent, FLOAT_TYPE_VELOCITY);
-			else
-				raw->mob.velocity = 0.0;
-		}
-		else
-		{
-			memcpy ( vp.attitude, weapon_viewpoint->attitude, sizeof ( matrix3x3 ));
-			raw->mob.velocity = weapon_velocity;
-		}
-		
-		raw->mob.velocity += weapon_database[raw->mob.sub_type].muzzle_velocity;
-
-		seed = get_client_server_entity_random_number_seed (en);
-
-		raw->mob.velocity += 0.499 * weapon_database[raw->mob.sub_type].muzzle_velocity_max_error * sfrand1x (&seed);
-
-		raw->weapon_lifetime = weapon_database[raw->mob.sub_type].boost_time + weapon_database[raw->mob.sub_type].sustain_time;
-
-		raw->decoy_timer = get_decoy_timer_start_value (weapon_database[raw->mob.sub_type].decoy_type);
-
 		//
-		// detach weapon from launcher (get position and attitude)
+		// detach weapon from launcher (get position and attitude): the launcher lets the weapon go, then the host's birth gives it the velocity, lifetime, decoy or
+		// fuze timer and attitude it leaves with
 		//
 
 		if (!submunition)
@@ -228,57 +424,12 @@ static entity *create_local (entity_types type, int index, char *pargs)
 			raw->mob.position = vp.position;
 		}
 		else
+		{
+			memcpy ( vp.attitude, weapon_viewpoint->attitude, sizeof ( matrix3x3 ));
 			raw->mob.position = weapon_viewpoint->position;
-
-		// shells or CONVENTIONAL munitions with remote fuze, decoy_timer is time value
-		
-		if ((weapon_database[raw->mob.sub_type].warhead_type == WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_AIRCRAFT || weapon_database[raw->mob.sub_type].warhead_type == WEAPON_WARHEAD_TYPE_CONVENTIONAL_MUNITIONS) && 
-				!weapon_database[raw->mob.sub_type].guidance_type)
-		{
-			entity *target;
-			float time_of_flight, dummy;
-			vec3d intercept_point;
-			WPN_FX_FUZE_BEGIN ()
-			
-			target = get_local_entity_parent (raw->launched_weapon_link.parent, LIST_TYPE_TARGET);
-			
-			if (target)
-				if (get_lead_and_ballistic_intercept_point_and_angle_of_projection(&raw->mob.position, raw->mob.sub_type, raw->mob.velocity - weapon_database[raw->mob.sub_type].muzzle_velocity, en, target, &intercept_point, &dummy, &time_of_flight))
-				{
-					raw->decoy_timer = - (weapon_database[raw->mob.sub_type].boost_time + weapon_database[raw->mob.sub_type].sustain_time - time_of_flight + 0.5 * sfrand1() * weapon_database[raw->mob.sub_type].cruise_time_max_error);
-					
-					if (weapon_database[raw->mob.sub_type].warhead_type == WEAPON_WARHEAD_TYPE_CONVENTIONAL_MUNITIONS)
-						raw->decoy_timer -= 1.0;
-					
-					raw->decoy_timer = max(0.0f, raw->decoy_timer);
-					WPN_FX_FUZE_SOLVED (raw->decoy_timer)
-					
-					#if DEBUG_MODULE
-						debug_log("DECOY TIMER %f, velocity %f", raw->decoy_timer, raw->mob.velocity - weapon_database[raw->mob.sub_type].muzzle_velocity);
-					#endif
-				}
 		}
 
-		// arneh - add dispersion as random rotation in heading and pitch up to max error angle
-		// dispersion is ratio of circular error probability value to range (for CEP 0.5m at 1000m ratio value is 0.0005)
-
-		dispersion = weapon_database[raw->mob.sub_type].circular_error_probable;
-
-		if (dispersion > 0.0)
-		{
-			matrix3x3
-				m;
-
-			float
-				heading = 3 * sfrand1norm() * tan(dispersion),
-				pitch = 3 * sfrand1norm() * tan(dispersion);
-			
-			get_3d_transformation_matrix(m, heading, pitch, 0.0);
-			multiply_matrix3x3_matrix3x3(raw->mob.attitude, vp.attitude, m);
-			WPN_FX_DISPERSION (heading, pitch)
-		}
-		else
-			memcpy (raw->mob.attitude, vp.attitude, sizeof (matrix3x3));
+		host_weapon_birth (en, raw, &vp, submunition, weapon_velocity);
 
 		//
 		// interest level
@@ -488,89 +639,64 @@ void create_client_server_entity_weapon (entity *launcher, entity_sub_types weap
 		{
 			int loal_mode = weapon_database[weapon_sub_type].flight_profile_or_self_destr == 1 && get_local_entity_int_value (launcher, INT_TYPE_LOCK_ON_AFTER_LAUNCH);
 
-			//
-			// get burst size wrt rate of fire
-			//
+				//
+				// get burst size wrt rate of fire
+				//
+				// (the host's: how many rounds the launcher lets go this time, or none.  The launcher's last-shot clock is the campaign's own record: it goes to the host by
+				// value and comes back with what the gate wrote to it, even when the gate then refuses)
+				//
 
-			if (weapon_database[weapon_sub_type].rate_of_fire != FIRE_SINGLE_WEAPON)
-			{
-				float time_per_shot = weapon_database[weapon_sub_type].inverse_rate_of_fire * ONE_MINUTE;
-				unsigned int* last_shot = NULL;
-
-				switch (launcher->type)
 				{
-				case ENTITY_TYPE_HELICOPTER:
-					last_shot = &((helicopter*)get_local_entity_data(launcher))->ac.weapon_salvo_timer;
-					break;
+					campaign_aim_result release;
 
-				case ENTITY_TYPE_FIXED_WING:
-					last_shot = &((fixed_wing*)get_local_entity_data(launcher))->ac.weapon_salvo_timer;
-					break;
+					unsigned int* last_shot = NULL;
 
-				case ENTITY_TYPE_ANTI_AIRCRAFT:
-					last_shot = &((anti_aircraft*)get_local_entity_data(launcher))->vh.weapon_salvo_timer;
-					break;
-
-				case ENTITY_TYPE_PERSON:
-					last_shot = &((person*)get_local_entity_data(launcher))->vh.weapon_salvo_timer;
-					break;
-
-				case ENTITY_TYPE_ROUTED_VEHICLE:
-					last_shot = &((routed_vehicle*)get_local_entity_data(launcher))->vh.weapon_salvo_timer;
-					break;
-
-				case ENTITY_TYPE_SHIP_VEHICLE:
-					last_shot = &((ship_vehicle*)get_local_entity_data(launcher))->vh.weapon_salvo_timer;
-					break;
-				}
-
-				if (last_shot)
-				{
-					unsigned int current_time = get_system_time();
-					float elapsed_time = 1;
-
-					if (*last_shot > 0)
+					switch (launcher->type)
 					{
-						if (current_time < *last_shot)
-							return;
-						elapsed_time = (current_time - *last_shot) * 0.001;
-						
-						if (current_time > *last_shot + 500) //Magitek: ensure elapsed time does not continue to expire on client excessively, note 500ms is a fudge value.
-						{
-							if (get_local_entity_int_value (launcher, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)//only fix player helicopters
-							{
-								elapsed_time = get_delta_time();
-								*last_shot = current_time;
-							}
-						}
-					}
-					else
-						elapsed_time = get_delta_time();
-
-					burst_size = (int)(weapon_database[weapon_sub_type].rate_of_fire * ONE_OVER_ONE_MINUTE * elapsed_time);
-					if (burst_size < 1)
-					{
-						if (*last_shot == 0)  // first shot in salvo always get fired
-							burst_size = 1;
-						else
-							return;
+					case ENTITY_TYPE_HELICOPTER:
+						last_shot = &((helicopter*)get_local_entity_data(launcher))->ac.weapon_salvo_timer;
+						break;
+	
+					case ENTITY_TYPE_FIXED_WING:
+						last_shot = &((fixed_wing*)get_local_entity_data(launcher))->ac.weapon_salvo_timer;
+						break;
+	
+					case ENTITY_TYPE_ANTI_AIRCRAFT:
+						last_shot = &((anti_aircraft*)get_local_entity_data(launcher))->vh.weapon_salvo_timer;
+						break;
+	
+					case ENTITY_TYPE_PERSON:
+						last_shot = &((person*)get_local_entity_data(launcher))->vh.weapon_salvo_timer;
+						break;
+	
+					case ENTITY_TYPE_ROUTED_VEHICLE:
+						last_shot = &((routed_vehicle*)get_local_entity_data(launcher))->vh.weapon_salvo_timer;
+						break;
+	
+					case ENTITY_TYPE_SHIP_VEHICLE:
+						last_shot = &((ship_vehicle*)get_local_entity_data(launcher))->vh.weapon_salvo_timer;
+						break;
 					}
 
-					if (*last_shot)
-						*last_shot += (int)(burst_size * time_per_shot * 1000.0);
-					else
-						*last_shot = current_time;
+					if ((weapon_database[weapon_sub_type].rate_of_fire != FIRE_SINGLE_WEAPON) && !last_shot)
+					{
+						ASSERT(FALSE);
+					}
+
+					release = campaign_aim_release (weapon_sub_type, last_shot != NULL, last_shot ? *last_shot : 0, get_local_entity_int_value (launcher, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI);
+
+					if (release.release_write_last_shot)
+					{
+						*last_shot = release.release_last_shot;
+					}
+
+					if (release.release_refuse)
+					{
+						return;
+					}
+
+					burst_size = release.release_burst_size;
 				}
-				else
-				{
-					ASSERT(FALSE);
-					burst_size = 1;
-				}
-			}
-			else
-			{
-				burst_size = 1;
-			}
 
 			//
 			// set burst timer

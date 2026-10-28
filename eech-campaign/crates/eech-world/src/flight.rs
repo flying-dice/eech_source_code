@@ -47,6 +47,11 @@ pub struct Figures {
     pub smoke_grenade: c_int,
     pub submunition_count: c_int,
     pub submunition_velocity_factor: c_int,
+    pub muzzle_velocity_max_error: f32,
+    pub circular_error_probable: f32,
+    pub rate_of_fire: f32,
+    pub inverse_rate_of_fire: f32,
+    pub acquire_forward: c_int,
 }
 
 impl Figures {
@@ -81,6 +86,17 @@ impl Figures {
             self.detonation_radius,
             self.max_seeker_limit,
             self.max_launch_angle_error,
+        ]
+    }
+
+    /// The four floats appended after the integers of the weapon step: the birth's and the release's.
+    #[must_use]
+    pub fn launch_floats(&self) -> [f32; 4] {
+        [
+            self.muzzle_velocity_max_error,
+            self.circular_error_probable,
+            self.rate_of_fire,
+            self.inverse_rate_of_fire,
         ]
     }
 
@@ -273,6 +289,7 @@ struct RawStepIn {
     has_launcher: c_int,
     has_target: c_int,
     server: c_int,
+    submunition: c_int,
     map_min: [f32; 3],
     map_max: [f32; 3],
     echo: c_int,
@@ -299,6 +316,69 @@ struct RawStepOut {
 
 extern "C" {
     fn eech_wn_weapon_step(input: *const RawStepIn, output: *mut RawStepOut) -> c_int;
+    fn eech_wn_weapon_birth(input: *const RawStepIn, output: *mut RawStepOut) -> c_int;
+    fn eech_wn_release(input: *const RawReleaseIn, output: *mut RawReleaseOut);
+}
+
+/// `wf_release_in`.
+#[repr(C)]
+struct RawReleaseIn {
+    figures: *const Figures,
+    delta_time: f32,
+    current_time: c_uint,
+    has_timer: c_int,
+    last_shot: c_uint,
+    not_ai: c_int,
+}
+
+/// `wf_release_out`.
+#[repr(C)]
+#[derive(Default)]
+struct RawReleaseOut {
+    refuse: c_int,
+    burst_size: c_int,
+    write_last_shot: c_int,
+    last_shot: c_uint,
+}
+
+/// What the release of a weapon needs: the frame, the clock, the launcher's last-shot clock (when it has one) and whether the launcher is not an AI.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ReleaseInput {
+    pub delta_time: f32,
+    pub current_time: u32,
+    pub last_shot: Option<u32>,
+    pub not_ai: bool,
+}
+
+/// How the release came out: whether the launcher lets nothing go, the rounds it lets go, and the last-shot clock the gate wrote (even when it then refused).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ReleaseOutcome {
+    pub refuse: bool,
+    pub burst_size: i32,
+    pub last_shot: Option<u32>,
+}
+
+/// The rate-of-fire gate of a launcher releasing a weapon, by the host's figures for it. An error for figures or a frame that are not finite.
+pub fn release(figures: &Figures, input: &ReleaseInput) -> Result<ReleaseOutcome, String> {
+    if !input.delta_time.is_finite() {
+        return Err("the release's frame time must be finite".into());
+    }
+    let raw = RawReleaseIn {
+        figures,
+        delta_time: input.delta_time,
+        current_time: input.current_time,
+        has_timer: c_int::from(input.last_shot.is_some()),
+        last_shot: input.last_shot.unwrap_or(0),
+        not_ai: c_int::from(input.not_ai),
+    };
+    let mut out = RawReleaseOut::default();
+    // SAFETY: the figures and both structures are valid for the call.
+    unsafe { eech_wn_release(&raw, &mut out) };
+    Ok(ReleaseOutcome {
+        refuse: out.refuse != 0,
+        burst_size: out.burst_size,
+        last_shot: (out.write_last_shot != 0).then_some(out.last_shot),
+    })
 }
 
 /// The weapon as the campaign holds it, and the world constants the step needs.
@@ -321,6 +401,7 @@ pub struct StepInput {
     pub has_launcher: bool,
     pub has_target: bool,
     pub server: bool,
+    pub submunition: bool,
     pub map_min: [f32; 3],
     pub map_max: [f32; 3],
     pub echo: bool,
@@ -345,6 +426,16 @@ pub struct StepOutcome {
 /// Runs one pass of a weapon's step. The figures are the host's own for the weapon; `answers` are the lookups answered so far and `draws` the samples of the campaign's random
 /// stream given so far. An error for a state the step cannot run on or a failure of the step itself (the weapon asks for what it does not have).
 pub fn weapon_step(figures: &Figures, input: &StepInput, answers: &[StepEvent], draws: &[i32]) -> Result<StepOutcome, String> {
+    run_step(figures, input, answers, draws, false)
+}
+
+/// Runs one pass of a weapon's birth: the launch kinematics of a weapon the launcher has just let go (`input.position` and `input.attitude` are the pose it left the
+/// launcher in; `input.velocity` is the parent weapon's velocity for a submunition).
+pub fn weapon_birth(figures: &Figures, input: &StepInput, answers: &[StepEvent], draws: &[i32]) -> Result<StepOutcome, String> {
+    run_step(figures, input, answers, draws, true)
+}
+
+fn run_step(figures: &Figures, input: &StepInput, answers: &[StepEvent], draws: &[i32], birth: bool) -> Result<StepOutcome, String> {
     let finite = |what: &str, values: &[f32]| -> Result<(), String> {
         if values.iter().all(|value| value.is_finite()) {
             Ok(())
@@ -393,6 +484,7 @@ pub fn weapon_step(figures: &Figures, input: &StepInput, answers: &[StepEvent], 
         has_launcher: c_int::from(input.has_launcher),
         has_target: c_int::from(input.has_target),
         server: c_int::from(input.server),
+        submunition: c_int::from(input.submunition),
         map_min: input.map_min,
         map_max: input.map_max,
         echo: c_int::from(input.echo),
@@ -404,7 +496,13 @@ pub fn weapon_step(figures: &Figures, input: &StepInput, answers: &[StepEvent], 
     // SAFETY: plain data; all-zero is a valid value of every field. Boxed because the output is several kilobytes.
     let mut out: Box<RawStepOut> = Box::new(unsafe { std::mem::zeroed() });
     // SAFETY: the figures, the answers and the draws are valid for the call and the counts passed are their lengths; the output is a writable `RawStepOut`.
-    let status = unsafe { eech_wn_weapon_step(&raw, &mut *out) };
+    let status = unsafe {
+        if birth {
+            eech_wn_weapon_birth(&raw, &mut *out)
+        } else {
+            eech_wn_weapon_step(&raw, &mut *out)
+        }
+    };
     if status != 0 || out.failed != 0 {
         let bytes = out.reason.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect::<Vec<_>>();
         return Err(format!("the weapon step failed: {}", String::from_utf8_lossy(&bytes)));

@@ -84,6 +84,8 @@ static const char *mode_name (int mode)
 		case CAMPAIGN_AIM_RANGE: return "range";
 		case CAMPAIGN_AIM_FIGURES: return "figures";
 		case CAMPAIGN_AIM_WEAPON_STEP: return "weapon_step";
+		case CAMPAIGN_AIM_WEAPON_BIRTH: return "weapon_birth";
+		case CAMPAIGN_AIM_RELEASE: return "release";
 	}
 
 	return "unknown";
@@ -127,7 +129,7 @@ static void validate_request (const campaign_aim_step *step)
 		{
 			const campaign_weapon_figures *figures = &step->figures;
 
-			if ((step->weapon <= 0) || !all_finite (&figures->start_weight, 16) || !all_finite (&figures->cruise_time_max_error, 4) || (figures->max_range <= 0.0) || (figures->max_range > CAMPAIGN_TABLE_MAX_RANGE) || (figures->name[CAMPAIGN_WEAPON_NAME_MAX] != '\0') ||
+			if ((step->weapon <= 0) || !all_finite (&figures->start_weight, 16) || !all_finite (&figures->cruise_time_max_error, 4) || !all_finite (&figures->muzzle_velocity_max_error, 4) || (figures->max_range <= 0.0) || (figures->max_range > CAMPAIGN_TABLE_MAX_RANGE) || (figures->name[CAMPAIGN_WEAPON_NAME_MAX] != '\0') ||
 				((step->pass_first != FALSE) && (step->pass_first != TRUE)) || ((step->pass_last != FALSE) && (step->pass_last != TRUE)) ||
 				(step->echo && (step->mode == CAMPAIGN_AIM_TABLE) && (!step->echo_cells || (step->echo_cell_capacity != table_cell_count (figures)))))
 			{
@@ -140,21 +142,31 @@ static void validate_request (const campaign_aim_step *step)
 		{
 			const campaign_weapon_figures *figures = &step->figures;
 
-			if ((step->weapon <= 0) || !all_finite (&figures->start_weight, 16) || !all_finite (&figures->cruise_time_max_error, 4) || (figures->name[CAMPAIGN_WEAPON_NAME_MAX] != '\0'))
+			if ((step->weapon <= 0) || !all_finite (&figures->start_weight, 16) || !all_finite (&figures->cruise_time_max_error, 4) || !all_finite (&figures->muzzle_velocity_max_error, 4) || (figures->name[CAMPAIGN_WEAPON_NAME_MAX] != '\0'))
 			{
 				debug_fatal ("host aim: a figures request with inconsistent figures for weapon %d", step->weapon);
 			}
 
 			break;
 		}
+		case CAMPAIGN_AIM_RELEASE:
+		{
+			if ((step->weapon <= 0) || !isfinite (step->delta_time) || (step->release_has_timer & ~1) || (step->release_not_ai & ~1))
+			{
+				debug_fatal ("host aim: a release request with an inconsistent weapon %d", step->weapon);
+			}
+
+			break;
+		}
 		case CAMPAIGN_AIM_WEAPON_STEP:
+		case CAMPAIGN_AIM_WEAPON_BIRTH:
 		{
 			const campaign_weapon_state *state = &step->weapon_state;
 			int i;
 
 			if ((step->weapon <= 0) || !isfinite (step->delta_time) || !all_finite (step->map_min, 3) || !all_finite (step->map_max, 3) || !all_finite (state->position, 3) ||
 				!all_finite (state->attitude, 9) || !all_finite (state->motion_vector, 3) || !all_finite (&state->velocity, 3) ||
-				(state->loal_mode & ~1) || (state->weapon_on_ground & ~1) || (state->has_launcher & ~1) || (state->has_target & ~1) || (state->server & ~1) ||
+				(state->loal_mode & ~1) || (state->weapon_on_ground & ~1) || (state->has_launcher & ~1) || (state->has_target & ~1) || (state->server & ~1) || (state->submunition & ~1) ||
 				(step->answer_count < 0) || (step->answer_count > CAMPAIGN_STEP_ANSWERS_MAX) || (step->draw_count < 0) || (step->draw_count > CAMPAIGN_STEP_DRAWS_MAX))
 			{
 				debug_fatal ("host aim: a weapon_step request with an inconsistent weapon %d", step->weapon);
@@ -241,8 +253,8 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 
 	if (result->state == CAMPAIGN_AIM_NEED_LOOKUP)
 	{
-		// only a weapon step asks for lookups, and each must be a lookup the campaign can answer
-		if (step->mode != CAMPAIGN_AIM_WEAPON_STEP)
+		// only a weapon step or birth asks for lookups, and each must be a lookup the campaign can answer
+		if ((step->mode != CAMPAIGN_AIM_WEAPON_STEP) && (step->mode != CAMPAIGN_AIM_WEAPON_BIRTH))
 		{
 			debug_fatal ("host aim: host aim asked for lookups in answer to a %s request", mode_name (step->mode));
 		}
@@ -267,7 +279,7 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 	{
 		// only the lead prediction has a random jitter, and a request that already carries the sample has nothing further to ask; a weapon step takes its draws one
 		// at a time, up to the room it has
-		if (step->mode == CAMPAIGN_AIM_WEAPON_STEP)
+		if ((step->mode == CAMPAIGN_AIM_WEAPON_STEP) || (step->mode == CAMPAIGN_AIM_WEAPON_BIRTH))
 		{
 			if (step->draw_count >= CAMPAIGN_STEP_DRAWS_MAX)
 			{
@@ -414,7 +426,18 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 		{
 			break;
 		}
+		case CAMPAIGN_AIM_RELEASE:
+		{
+			if ((result->release_refuse & ~1) || (result->release_write_last_shot & ~1) || (result->release_burst_size < 0) || (result->release_burst_size > 100000) ||
+				(!result->release_refuse && (result->release_burst_size < 1)))
+			{
+				debug_fatal ("host aim: host aim answered a release request with refuse %d and %d rounds", result->release_refuse, result->release_burst_size);
+			}
+
+			break;
+		}
 		case CAMPAIGN_AIM_WEAPON_STEP:
+		case CAMPAIGN_AIM_WEAPON_BIRTH:
 		{
 			// the actions, each of a kind the campaign applies, with figures it can apply; their meaning is checked as each is applied
 			if ((result->action_count < 0) || (result->action_count > CAMPAIGN_STEP_ACTIONS_MAX))
@@ -454,7 +477,7 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 		for (i = 0; i < result->echo_count; i++)
 		{
 			if (!(((result->echo[i].kind >= CAMPAIGN_AIM_EVENT_INTERCEPT) && (result->echo[i].kind <= CAMPAIGN_AIM_EVENT_RANGE_RESULT)) ||
-				((step->mode == CAMPAIGN_AIM_WEAPON_STEP) && (result->echo[i].kind >= CAMPAIGN_AIM_EVENT_STEP_PATH) && (result->echo[i].kind <= CAMPAIGN_AIM_EVENT_STEP_CONTACT_TREES))) ||
+				(((step->mode == CAMPAIGN_AIM_WEAPON_STEP) || (step->mode == CAMPAIGN_AIM_WEAPON_BIRTH)) && (result->echo[i].kind >= CAMPAIGN_AIM_EVENT_STEP_PATH) && (result->echo[i].kind <= CAMPAIGN_AIM_EVENT_STEP_BIRTH_DISPERSION))) ||
 				!all_finite (result->echo[i].f, 12))
 			{
 				debug_fatal ("host aim: host aim sent a malformed echo event");
@@ -577,7 +600,10 @@ campaign_aim_result campaign_aim_weapon_step (campaign_aim_step *step, campaign_
 
 	int round, i, j;
 
-	step->mode = CAMPAIGN_AIM_WEAPON_STEP;
+	if ((step->mode != CAMPAIGN_AIM_WEAPON_STEP) && (step->mode != CAMPAIGN_AIM_WEAPON_BIRTH))
+	{
+		debug_fatal ("host aim: a weapon step was asked in mode %d", step->mode);
+	}
 
 	step->echo_out = step->echo ? echo_buffer : NULL;
 
@@ -629,4 +655,27 @@ campaign_aim_result campaign_aim_weapon_step (campaign_aim_step *step, campaign_
 	debug_fatal ("host aim: a weapon step did not finish in %d rounds", CAMPAIGN_STEP_ROUNDS_MAX);
 
 	return result;
+}
+
+campaign_aim_result campaign_aim_release (int weapon, int has_timer, unsigned int last_shot, int not_ai)
+{
+	campaign_aim_step step;
+
+	memset (&step, 0, sizeof (step));
+
+	step.mode = CAMPAIGN_AIM_RELEASE;
+
+	step.weapon = weapon;
+
+	step.delta_time = get_delta_time ();
+
+	step.system_time = get_system_time ();
+
+	step.release_has_timer = has_timer;
+
+	step.release_last_shot = last_shot;
+
+	step.release_not_ai = not_ai;
+
+	return ask_once (&step);
 }

@@ -85,7 +85,9 @@ extern void eech_wpn_launch_ammo (int current_count, int new_count, int decoy);
 extern void eech_wpn_launch_end (void);
 extern void eech_wpn_birth_begin (void);
 extern void eech_wpn_fuze_begin (void);
-extern void eech_wpn_fuze_solved (float decoy_timer);
+extern void eech_wpn_lead_begin (void);
+extern void eech_wpn_lead_end (void);
+extern void eech_wpn_fuze_solved (float decoy_timer, int draws);
 extern void eech_wpn_dispersion (float heading, float pitch);
 extern void eech_wpn_birth_end (entity *en, const weapon *raw, int submunition);
 
@@ -126,13 +128,12 @@ extern void eech_wpn_destroy (entity *en);
 #define WPN_FX_LAUNCH_FIRED_AT()								eech_wpn_launch_fired_at ();
 #define WPN_FX_LAUNCH_AMMO(CURRENT,NEW,DECOY)					eech_wpn_launch_ammo ((CURRENT), (NEW), (DECOY));
 #define WPN_FX_BIRTH_BEGIN()									eech_wpn_birth_begin ();
-#define WPN_FX_FUZE_BEGIN()										eech_wpn_fuze_begin ();
-#define WPN_FX_FUZE_SOLVED(TIMER)								eech_wpn_fuze_solved ((TIMER));
-#define WPN_FX_DISPERSION(H,P)									eech_wpn_dispersion ((H), (P));
 #define WPN_FX_BIRTH_END(EN,RAW,SUB)							eech_wpn_birth_end ((EN), (RAW), (SUB));
 
 
 
+#define WPN_FX_LEAD_BEGIN()										eech_wpn_lead_begin ();
+#define WPN_FX_LEAD_END()											eech_wpn_lead_end ();
 #define WPN_FX_STEP_ECHO(EVENT)									eech_wpn_step_echo ((EVENT));
 
 #define WPN_FX_UPDATE_STAGE(EN,STAGE)							eech_wpn_update_stage ((EN), (STAGE));
@@ -154,13 +155,12 @@ extern void eech_wpn_destroy (entity *en);
 #define WPN_FX_LAUNCH_FIRED_AT()
 #define WPN_FX_LAUNCH_AMMO(CURRENT,NEW,DECOY)
 #define WPN_FX_BIRTH_BEGIN()
-#define WPN_FX_FUZE_BEGIN()
-#define WPN_FX_FUZE_SOLVED(TIMER)
-#define WPN_FX_DISPERSION(H,P)
 #define WPN_FX_BIRTH_END(EN,RAW,SUB)
 
 
 
+#define WPN_FX_LEAD_BEGIN()
+#define WPN_FX_LEAD_END()
 #define WPN_FX_STEP_ECHO(EVENT)
 
 #define WPN_FX_UPDATE_STAGE(EN,STAGE)

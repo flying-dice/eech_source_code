@@ -355,7 +355,7 @@ assert(near(r.required_heading, math.pi / 2) and near(r.required_pitch, 0), 'a t
 refused({ mode = 'required', device_attitude = LEVEL, tracking = { device_position = { 0, 0, 0 }, point = { 1, 0, 1 }, pitch = 0 }, heading_min = -1, heading_max = 1, pitch_min = -1, pitch_max = 1, climb = false }, 'tracking request has no package limits')
 refused({ mode = 'required', device_attitude = LEVEL, intercept_vector = { 0, 0, 1 }, unbounded = 1 }, 'unbounded must be a boolean')
 -- the host generates its own ballistic table from the weapon's figures (no cell is sent), and a request for a weapon without one is refused
-local function gun(name) return { name = name, start_weight = 0.1, final_weight = 0.1, max_range = 1000, muzzle_velocity = 900, cruise_velocity = 900, g_max = 0, boost_time = 0, cruise_time = 4, inhibit_time = 0, drag_coefficient = 0.3, flightpath_deviation = 0, boost_power = 0, sustain_power = 0, sustain_time = 0, diameter = 0.02, max_altitude = 0, ignore_gravity = false, flight_profile_or_self_destr = 0, parachute_type = false, weapon_class = 8, cruise_time_max_error = 0, detonation_radius = 0, max_seeker_limit = 0, max_launch_angle_error = 0, survive_ground_impact = 0, in_flight_collision_check = 0, guidance_type = 0, aiming_type = 3, decoy_type = 0, warhead_type = 3, hellfire_ii = 0, smoke_grenade = 0, submunition_count = 0, submunition_velocity_factor = 0 } end
+local function gun(name) return { name = name, start_weight = 0.1, final_weight = 0.1, max_range = 1000, muzzle_velocity = 900, cruise_velocity = 900, g_max = 0, boost_time = 0, cruise_time = 4, inhibit_time = 0, drag_coefficient = 0.3, flightpath_deviation = 0, boost_power = 0, sustain_power = 0, sustain_time = 0, diameter = 0.02, max_altitude = 0, ignore_gravity = false, flight_profile_or_self_destr = 0, parachute_type = false, weapon_class = 8, cruise_time_max_error = 0, detonation_radius = 0, max_seeker_limit = 0, max_launch_angle_error = 0, survive_ground_impact = 0, in_flight_collision_check = 0, guidance_type = 0, aiming_type = 3, decoy_type = 0, warhead_type = 3, hellfire_ii = 0, smoke_grenade = 0, submunition_count = 0, submunition_velocity_factor = 0, muzzle_velocity_max_error = 0, circular_error_probable = 0, rate_of_fire = 0, inverse_rate_of_fire = 0, acquire_forward = 0 } end
 r = host.aim({ mode = 'table', weapon = 7, figures = gun('test gun'), first = false, last = false, echo = false, echo_cells = 0 })
 assert(r.state == 'done' and r.echo_cells == nil and r.echo == nil, 'the table is generated and nothing comes back')
 -- with an echo (the test fixture build's) the host gives back its flights and the cells of the table it generated, in the model's shape
@@ -435,6 +435,31 @@ local expired = weapon_step(21) expired.weapon_lifetime = -4.0
 out = host.aim(expired)
 assert(out.state == 'done' and last(out, 1).c == 1 and last(out, 5) == nil and last(out, 4) == nil, 'an exhausted weapon leaves its state and no position')
 refused(weapon_step(22), 'holds no figures')
+-- the birth of a weapon: the velocity it leaves with, its lifetime and its attitude, from the pose the launcher let it go in
+local born = gun('born gun')
+born.start_weight, born.final_weight, born.diameter, born.boost_time, born.sustain_time, born.boost_power, born.sustain_power, born.muzzle_velocity, born.acquire_forward = 5, 5, 0.1, 1, 2, 1, 1, 900, 1
+host.aim({ mode = 'figures', weapon = 23, figures = born })
+local function birth(weapon) local request = weapon_step(weapon) request.mode = 'weapon_birth' request.submunition = false return request end
+out = fly(birth(23), function(a) if a.kind == 14 then a.f[7] = 100 end end)
+local started = last(out, 8)
+assert(near(started.f[1], 1000) and started.f[2] == 3 and started.f[3] == 0, 'a weapon leaves with its launcher velocity and its muzzle velocity, for its motor lifetime')
+assert(last(out, 2).f[5] == 1 and last(out, 2).f[9] == 1 and last(out, 2).f[1] == 1, 'at the attitude the launcher let it go in')
+refused(birth(24), 'holds no figures')
+bad = birth(23) bad.submunition = 1
+refused(bad, 'submunition must be a boolean')
+-- the release of a weapon: the rate-of-fire gate of a launcher
+local cannon = gun('rated gun') cannon.rate_of_fire, cannon.inverse_rate_of_fire = 600, 1 / 600
+host.aim({ mode = 'figures', weapon = 25, figures = cannon })
+r = host.aim({ mode = 'release', weapon = 25, delta_time = 0.1, current_time = 1000, last_shot = 0, not_ai = false })
+assert(r.state == 'done' and r.refuse == false and r.burst_size == 1 and r.last_shot == 1000, 'the first shot goes and starts the launcher clock')
+r = host.aim({ mode = 'release', weapon = 25, delta_time = 0.1, current_time = 1050, last_shot = 1000, not_ai = false })
+assert(r.refuse == true and r.last_shot == nil, 'too soon: nothing goes and nothing is written')
+r = host.aim({ mode = 'release', weapon = 25, delta_time = 0.1, current_time = 1300, last_shot = 1000, not_ai = false })
+assert(r.refuse == false and r.burst_size == 3 and r.last_shot == 1300, 'three rounds owed go together')
+r = host.aim({ mode = 'release', weapon = 25, delta_time = 0.1, current_time = 1300, not_ai = false })
+assert(r.refuse == false and r.burst_size == 1 and r.last_shot == nil, 'a launcher with no clock lets one round go')
+refused({ mode = 'release', weapon = 26, delta_time = 0.1, current_time = 1000, not_ai = false }, 'holds no figures')
+refused({ mode = 'release', weapon = 25, delta_time = 0.1, current_time = 1000, not_ai = 1 }, 'not_ai must be a boolean')
 local bad = weapon_step(21) bad.entity_samples = { 1, 2, 3 }
 refused(bad, 'entity_samples must be 4 integers')
 bad = weapon_step(21) bad.position = { 0, 0 / 0, 0 }
@@ -465,4 +490,23 @@ fn aim_round_trips_through_lua_and_refuses_what_it_was_not_asked() {
     let stderr = String::from_utf8_lossy(&run.stderr);
     assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
     assert!(stdout.contains("AIM_HOST=ok"), "{stdout}\n{stderr}");
+}
+
+#[test]
+fn every_shipped_lua_script_parses_under_the_hosts_lua() {
+    let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("lua");
+    let lua = mlua::Lua::new();
+    let mut parsed = 0;
+    for entry in std::fs::read_dir(&directory).unwrap() {
+        let path = entry.unwrap().path();
+        if path.extension().is_some_and(|extension| extension == "lua") {
+            let source = std::fs::read(&path).unwrap();
+            lua.load(&source[..])
+                .set_name(path.display().to_string())
+                .into_function()
+                .unwrap_or_else(|error| panic!("{} does not parse: {error}", path.display()));
+            parsed += 1;
+        }
+    }
+    assert!(parsed >= 20, "only {parsed} scripts were found in {}", directory.display());
 }

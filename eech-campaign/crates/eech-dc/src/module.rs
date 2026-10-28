@@ -430,6 +430,10 @@ fn weapon_figures_table(lua: &Lua, figures: &WeaponFigures) -> Result<LuaTable, 
         ("detonation_radius", figures.detonation_radius),
         ("max_seeker_limit", figures.max_seeker_limit),
         ("max_launch_angle_error", figures.max_launch_angle_error),
+        ("muzzle_velocity_max_error", figures.muzzle_velocity_max_error),
+        ("circular_error_probable", figures.circular_error_probable),
+        ("rate_of_fire", figures.rate_of_fire),
+        ("inverse_rate_of_fire", figures.inverse_rate_of_fire),
     ] {
         table.set(field, value).map_err(e)?;
     }
@@ -447,6 +451,7 @@ fn weapon_figures_table(lua: &Lua, figures: &WeaponFigures) -> Result<LuaTable, 
     table.set("smoke_grenade", figures.smoke_grenade).map_err(e)?;
     table.set("submunition_count", figures.submunition_count).map_err(e)?;
     table.set("submunition_velocity_factor", figures.submunition_velocity_factor).map_err(e)?;
+    table.set("acquire_forward", figures.acquire_forward).map_err(e)?;
     Ok(table)
 }
 
@@ -481,7 +486,10 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
         }
         AimRequest::WeaponStep(data) => {
             let state = &data.state;
-            table.set("mode", "weapon_step").map_err(e)?;
+            table.set("mode", if data.birth { "weapon_birth" } else { "weapon_step" }).map_err(e)?;
+            if data.birth {
+                table.set("submunition", state.submunition).map_err(e)?;
+            }
             table.set("echo", data.echo).map_err(e)?;
             table.set("weapon", data.weapon).map_err(e)?;
             table.set("delta_time", data.delta_time).map_err(e)?;
@@ -509,6 +517,16 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
             }
             table.set("answers", answers).map_err(e)?;
             table.set("draws", data.draws.clone()).map_err(e)?;
+        }
+        AimRequest::Release(data) => {
+            table.set("mode", "release").map_err(e)?;
+            table.set("weapon", data.weapon).map_err(e)?;
+            table.set("delta_time", data.delta_time).map_err(e)?;
+            table.set("current_time", data.current_time).map_err(e)?;
+            if let Some(last_shot) = data.last_shot {
+                table.set("last_shot", last_shot).map_err(e)?;
+            }
+            table.set("not_ai", data.not_ai).map_err(e)?;
         }
         AimRequest::ReadyUpdate(data) => {
             table.set("mode", "ready_update").map_err(e)?;
@@ -705,6 +723,9 @@ fn aim_echo(lua: &Lua, table: &LuaTable) -> Result<Option<Vec<AimEvent>>, String
                 "step_impact" => 31,
                 "step_contact_any" => 32,
                 "step_contact_trees" => 33,
+                "step_birth_fuze_begin" => 34,
+                "step_birth_fuze_solved" => 35,
+                "step_birth_dispersion" => 36,
                 other => {
                     return Err(format!(
                         "aim result echo kind {other:?} is not intercept, lead_path, lead_range, lead_iteration, ballistic, lead_result, table_flight, range_result or a step_* kind"
@@ -783,6 +804,16 @@ fn call_aim(lua: &Lua, function: &LuaFunction, request: AimRequest) -> Result<Ai
         AimRequest::Range(_) | AimRequest::Figures(_) => {}
         AimRequest::WeaponStep(_) => {
             reply.actions = aim_event_list(lua, &table, "actions")?;
+        }
+        AimRequest::Release(_) => {
+            reply.release_refuse = aim_boolean(&table, "refuse")?;
+            reply.release_burst_size = aim_integer(&table, "burst_size")?;
+            reply.release_last_shot = match table.get::<LuaValue>("last_shot").map_err(|e| e.to_string())? {
+                LuaValue::Nil => None,
+                LuaValue::Integer(value) => Some(u32::try_from(value).map_err(|_| format!("aim result last_shot {value} is out of range"))?),
+                LuaValue::Number(value) if value.fract() == 0.0 && (0.0..4_294_967_296.0).contains(&value) => Some(value as u32),
+                other => return Err(format!("aim result last_shot must be an unsigned integer or absent, got {}", other.type_name())),
+            };
         }
         AimRequest::ReadyUpdate(_) => {
             reply.ready_state = number("ready_state")?;

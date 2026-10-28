@@ -77,7 +77,11 @@ enum campaign_aim_mode
 	/* boot: one weapon's physical figures, for the host to keep (every weapon, not only those with a table or a range run) */
 	CAMPAIGN_AIM_FIGURES,
 	/* one frame of one weapon's flight (EEDCS-45): the weapon's state and the answers to the lookups so far in, the state it left as ordered actions out */
-	CAMPAIGN_AIM_WEAPON_STEP
+	CAMPAIGN_AIM_WEAPON_STEP,
+	/* one weapon's birth (EEDCS-45): the launch kinematics of a weapon the launcher has just let go, in the same protocol as the step */
+	CAMPAIGN_AIM_WEAPON_BIRTH,
+	/* the rate-of-fire gate of a launcher releasing a weapon: how many rounds it lets go, or none */
+	CAMPAIGN_AIM_RELEASE
 };
 
 enum campaign_aim_state
@@ -116,7 +120,10 @@ enum campaign_aim_event_kind
 	CAMPAIGN_AIM_EVENT_STEP_GROUND,
 	CAMPAIGN_AIM_EVENT_STEP_IMPACT,
 	CAMPAIGN_AIM_EVENT_STEP_CONTACT_ANY,
-	CAMPAIGN_AIM_EVENT_STEP_CONTACT_TREES
+	CAMPAIGN_AIM_EVENT_STEP_CONTACT_TREES,
+	CAMPAIGN_AIM_EVENT_STEP_BIRTH_FUZE_BEGIN,
+	CAMPAIGN_AIM_EVENT_STEP_BIRTH_FUZE_SOLVED,
+	CAMPAIGN_AIM_EVENT_STEP_BIRTH_DISPERSION
 };
 
 /* WEAPON_STEP lookups: pure questions of the campaign's world the host's step asks, answered by value (the kind, a, b and f[0..5] are repeated in the answer, which fills
@@ -136,6 +143,8 @@ enum campaign_step_lookup
 	CAMPAIGN_STEP_LOOKUP_ELEVATION,				/* f0, f2 x and z.  r0 the terrain elevation there */
 	CAMPAIGN_STEP_LOOKUP_COLLISION,				/* a: which target is the weapon's now (-1 none); f0..f2 the old position, f3..f5 the new.  r0 something was hit, r1 it is not the weapon's target, r2 its type, r3..r5 where the segment meets it */
 	CAMPAIGN_STEP_LOOKUP_TREES,					/* f0..f2 the old position, f3..f5 the new.  r0 a tree was hit, r1..r3 where the segment meets it */
+	CAMPAIGN_STEP_LOOKUP_PARENT_VELOCITY,		/* a birth: the launcher's forward velocity.  r0 */
+	CAMPAIGN_STEP_LOOKUP_FUZE_SOLVE,			/* a birth: f0..f2 the weapon's position, f3 the velocity it leaves with less its muzzle velocity.  r0 the launcher has a target and the lead prediction to it solved, r1 the time of flight */
 	CAMPAIGN_STEP_LOOKUPS
 };
 
@@ -150,6 +159,7 @@ enum campaign_step_action
 	CAMPAIGN_STEP_ACTION_POSITION,			/* f0..f2 the weapon's position */
 	CAMPAIGN_STEP_ACTION_TARGET_LINK,		/* a: 0 the weapon has no target now, 1 its target is the launcher's, 2 its target is the one the collision lookup hit */
 	CAMPAIGN_STEP_ACTION_SMOKE_EFFECT,		/* the killed-explosion effect, with the kill code at hit-land for its duration */
+	CAMPAIGN_STEP_ACTION_BIRTH,				/* a birth: f0 the velocity the weapon leaves with, f1 its lifetime, f2 its decoy or fuze timer */
 	CAMPAIGN_STEP_ACTIONS
 };
 
@@ -219,6 +229,12 @@ typedef struct campaign_weapon_figures
 	int smoke_grenade;
 	int submunition_count;
 	int submunition_velocity_factor;
+	/* what the host's birth and release read besides the above (EEDCS-45): four floats, then whether the weapon takes its launcher's forward velocity */
+	float muzzle_velocity_max_error;
+	float circular_error_probable;
+	float rate_of_fire;
+	float inverse_rate_of_fire;
+	int acquire_forward;
 } campaign_weapon_figures;
 
 /* WEAPON_STEP: the weapon as the campaign holds it.  The entity-local random stream never leaves the campaign: its first four outputs are all any one call of the
@@ -240,6 +256,8 @@ typedef struct campaign_weapon_state
 	int has_launcher;
 	int has_target;
 	int server;
+	/* a birth: the weapon is a submunition, and `velocity` is its parent weapon's */
+	int submunition;
 } campaign_weapon_state;
 
 typedef struct campaign_aim_step
@@ -323,6 +341,11 @@ typedef struct campaign_aim_step
 	campaign_aim_event answers[CAMPAIGN_STEP_ANSWERS_MAX];
 	int draw_count;
 	int draws[CAMPAIGN_STEP_DRAWS_MAX];
+
+	/* RELEASE (delta_time and system_time above are the frame's and the clock): the launcher's last-shot clock, if it has one, and whether the launcher is not an AI */
+	int release_has_timer;
+	unsigned int release_last_shot;
+	int release_not_ai;
 } campaign_aim_step;
 
 typedef struct campaign_aim_result
@@ -363,6 +386,11 @@ typedef struct campaign_aim_result
 	campaign_aim_event lookups[CAMPAIGN_STEP_LOOKUPS_MAX];
 	int action_count;
 	campaign_aim_event actions[CAMPAIGN_STEP_ACTIONS_MAX];
+	/* RELEASE: the launcher lets nothing go; the rounds it lets go; whether the gate wrote the last-shot clock (it does even when it then refuses) and what it wrote */
+	int release_refuse;
+	int release_burst_size;
+	int release_write_last_shot;
+	unsigned int release_last_shot;
 } campaign_aim_result;
 
 typedef int (*campaign_aim_fn)
@@ -405,7 +433,10 @@ void campaign_aim_supply_figures (int weapon, const campaign_weapon_figures *fig
 /* Answers one lookup of a weapon step: copies the question into `answer` and fills f[6..11].  Stops the engine on a lookup the campaign cannot answer. */
 typedef void (*campaign_step_answer_fn) (const campaign_aim_event *lookup, campaign_aim_event *answer, void *context);
 
-/* Runs one weapon's step to its end: asks the host, answers the lookups it needs and takes the draws it asks for, and asks again, until it is done (at most
+/* The rate-of-fire gate of a launcher releasing a weapon (CAMPAIGN_AIM_RELEASE). */
+campaign_aim_result campaign_aim_release (int weapon, int has_timer, unsigned int last_shot, int not_ai);
+
+/* Runs one weapon's step or birth (the request's mode says which) to its end: asks the host, answers the lookups it needs and takes the draws it asks for, and asks again, until it is done (at most
    CAMPAIGN_STEP_ROUNDS_MAX rounds).  `step` carries the weapon and is the campaign's to fill; the result holds the actions (and the echo the fixture build asked for). */
 campaign_aim_result campaign_aim_weapon_step (campaign_aim_step *step, campaign_step_answer_fn answer, void *context);
 

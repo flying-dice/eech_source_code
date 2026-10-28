@@ -145,6 +145,11 @@ fn weapon_figures(lua: &Lua, request: &LuaTable) -> Result<flight::Figures, Stri
         )?;
     let [cruise_time_max_error, detonation_radius, max_seeker_limit, max_launch_angle_error] =
         exact_fields::<4>(lua, &facts, "cruise_time_max_error,detonation_radius,max_seeker_limit,max_launch_angle_error")?;
+    let [muzzle_velocity_max_error, circular_error_probable, rate_of_fire, inverse_rate_of_fire] = exact_fields::<4>(
+        lua,
+        &facts,
+        "muzzle_velocity_max_error,circular_error_probable,rate_of_fire,inverse_rate_of_fire",
+    )?;
     let flag = |field: &str| -> Result<bool, String> {
         match facts.get::<LuaValue>(field).map_err(|e| e.to_string())? {
             LuaValue::Boolean(value) => Ok(value),
@@ -197,6 +202,11 @@ fn weapon_figures(lua: &Lua, request: &LuaTable) -> Result<flight::Figures, Stri
     figures.smoke_grenade = i32::try_from(integer("smoke_grenade")?).map_err(|e| e.to_string())?;
     figures.submunition_count = i32::try_from(integer("submunition_count")?).map_err(|e| e.to_string())?;
     figures.submunition_velocity_factor = i32::try_from(integer("submunition_velocity_factor")?).map_err(|e| e.to_string())?;
+    figures.muzzle_velocity_max_error = muzzle_velocity_max_error;
+    figures.circular_error_probable = circular_error_probable;
+    figures.rate_of_fire = rate_of_fire;
+    figures.inverse_rate_of_fire = inverse_rate_of_fire;
+    figures.acquire_forward = i32::try_from(integer("acquire_forward")?).map_err(|e| e.to_string())?;
     Ok(figures)
 }
 
@@ -1713,6 +1723,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     31 => "step_impact",
                                     32 => "step_contact_any",
                                     33 => "step_contact_trees",
+                                    34 => "step_birth_fuze_begin",
+                                    35 => "step_birth_fuze_solved",
+                                    36 => "step_birth_dispersion",
                                     other => return Err(fail(format!("the model produced an unknown echo kind {other}"))),
                                 },
                             )?;
@@ -1799,8 +1812,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         aim.borrow_mut().set_figures(weapon, &figures).map_err(fail)?;
                         result.set("state", "done")?;
                     }
-                    "weapon_step" => {
-                        // one frame of one weapon's flight: the weapon in, the lookups it still needs or the ordered actions it leaves out (flight.rs weapon_step)
+                    "weapon_step" | "weapon_birth" => {
+                        // one frame of one weapon's flight, or its birth: the weapon in, the lookups it still needs or the ordered actions it leaves out (flight.rs weapon_step,
+                        // weapon_birth)
+                        let birth = mode == "weapon_birth";
                         let weapon = lua_i32(&step, "weapon").map_err(fail)?;
                         let echo = echo_of()?;
                         let [delta_time, velocity, weapon_lifetime, decoy_timer] =
@@ -1827,13 +1842,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             has_launcher: flag(&step, "has_launcher")?,
                             has_target: flag(&step, "has_target")?,
                             server: flag(&step, "server")?,
+                            submunition: birth && flag(&step, "submunition")?,
                             map_min: exact_numbers::<3>(lua, &step, "map_min").map_err(fail)?,
                             map_max: exact_numbers::<3>(lua, &step, "map_max").map_err(fail)?,
                             echo,
                         };
                         let answers = step_events(lua, &step, "answers").map_err(fail)?;
                         let draws = step.get::<Vec<i32>>("draws")?;
-                        let outcome = aim.borrow().weapon_step(weapon, &input, &answers, &draws).map_err(fail)?;
+                        let outcome = if birth {
+                            aim.borrow().weapon_birth(weapon, &input, &answers, &draws)
+                        } else {
+                            aim.borrow().weapon_step(weapon, &input, &answers, &draws)
+                        }
+                        .map_err(fail)?;
                         let events = |events: &[flight::StepEvent]| -> LuaResult<LuaTable> {
                             let list = lua.create_table()?;
                             for (index, event) in events.iter().enumerate() {
@@ -1873,6 +1894,28 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     echo_into(&Some(echoed))?;
                                 }
                             }
+                        }
+                    }
+                    "release" => {
+                        // the rate-of-fire gate of a launcher releasing a weapon: how many rounds it lets go, or none (flight.rs release)
+                        let weapon = lua_i32(&step, "weapon").map_err(fail)?;
+                        let outcome = aim
+                            .borrow()
+                            .release(
+                                weapon,
+                                &flight::ReleaseInput {
+                                    delta_time: one(&step, "delta_time")?,
+                                    current_time: step.get::<u32>("current_time")?,
+                                    last_shot: step.get::<Option<u32>>("last_shot")?,
+                                    not_ai: flag(&step, "not_ai")?,
+                                },
+                            )
+                            .map_err(fail)?;
+                        result.set("state", "done")?;
+                        result.set("refuse", outcome.refuse)?;
+                        result.set("burst_size", outcome.burst_size)?;
+                        if let Some(last_shot) = outcome.last_shot {
+                            result.set("last_shot", last_shot)?;
                         }
                     }
                     "ready_update" => {

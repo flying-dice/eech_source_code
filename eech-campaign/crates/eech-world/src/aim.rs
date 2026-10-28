@@ -358,6 +358,7 @@ impl Aim {
         }
         finite("weapon figure", &figures.floats())?;
         finite("weapon figure", &figures.extra_floats())?;
+        finite("weapon figure", &figures.launch_floats())?;
         self.figures.insert(weapon, *figures);
         Ok(())
     }
@@ -369,6 +370,24 @@ impl Aim {
             .get(&weapon)
             .ok_or_else(|| format!("aim weapon step for weapon {weapon}: the host holds no figures for it"))?;
         flight::weapon_step(figures, input, answers, draws).map_err(|error| format!("weapon {weapon}: {error}"))
+    }
+
+    /// One pass of a weapon's birth (`flight::weapon_birth`) on the figures this host holds for it. An error when it holds none.
+    pub fn weapon_birth(&self, weapon: i32, input: &flight::StepInput, answers: &[flight::StepEvent], draws: &[i32]) -> Result<flight::StepOutcome, String> {
+        let figures = self
+            .figures
+            .get(&weapon)
+            .ok_or_else(|| format!("aim weapon birth for weapon {weapon}: the host holds no figures for it"))?;
+        flight::weapon_birth(figures, input, answers, draws).map_err(|error| format!("weapon {weapon}: {error}"))
+    }
+
+    /// The release of a weapon (`flight::release`) on the figures this host holds for it. An error when it holds none.
+    pub fn release(&self, weapon: i32, input: &flight::ReleaseInput) -> Result<flight::ReleaseOutcome, String> {
+        let figures = self
+            .figures
+            .get(&weapon)
+            .ok_or_else(|| format!("aim release for weapon {weapon}: the host holds no figures for it"))?;
+        flight::release(figures, input).map_err(|error| format!("weapon {weapon}: {error}"))
     }
 
     /// The cells of the table generated for a weapon (the test fixture build's echo asks for them).
@@ -1209,6 +1228,7 @@ mod tests {
             has_launcher: false,
             has_target: false,
             server: true,
+            submunition: false,
             map_min: [-100_000.0, -1000.0, -100_000.0],
             map_max: [100_000.0, 10_000.0, 100_000.0],
             echo: false,
@@ -1504,5 +1524,257 @@ mod tests {
         };
         assert!(error.contains("launcher"), "{error}");
         assert!(aim.set_figures(0, &gun("x")).unwrap_err().contains("not a weapon"));
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    // the weapon's birth and release (EEDCS-45)
+
+    const LOOKUP_PARENT_VELOCITY: i32 = 14;
+    const LOOKUP_FUZE_SOLVE: i32 = 15;
+    const ACTION_BIRTH: i32 = 8;
+
+    /// Asks the host for one birth until it is done, answering from `world` and giving it `draws` in order; returns what it left and the kinds it asked, in order.
+    fn be_born(aim: &Aim, weapon: i32, input: &flight::StepInput, world: Answerer, draws: &[i32]) -> (flight::StepOutcome, Vec<i32>) {
+        let mut answers: Vec<flight::StepEvent> = Vec::new();
+        let mut given: Vec<i32> = Vec::new();
+        let mut asked = Vec::new();
+        for _ in 0..64 {
+            let outcome = aim.weapon_birth(weapon, input, &answers, &given).unwrap();
+            match outcome.state {
+                flight::StepState::Done => return (outcome, asked),
+                flight::StepState::NeedDraw => given.push(draws[given.len()]),
+                flight::StepState::NeedLookup => {
+                    assert!(outcome.actions.is_empty(), "a birth that is not done leaves no action");
+                    for lookup in outcome.lookups {
+                        asked.push(lookup.kind);
+                        let mut answer = lookup;
+                        answer.f[6..].copy_from_slice(&world(&lookup));
+                        answers.push(answer);
+                    }
+                }
+            }
+        }
+        panic!("the birth did not finish");
+    }
+
+    /// A gun that takes its launcher's velocity, with a muzzle-velocity error and no dispersion, as a launcher lets it go.
+    fn muzzle_gun(name: &str) -> flight::Figures {
+        let mut figures = flying_gun(name);
+        figures.muzzle_velocity = 900.0;
+        figures.muzzle_velocity_max_error = 10.0;
+        figures.acquire_forward = 1;
+        figures
+    }
+
+    #[test]
+    fn a_weapon_leaves_its_launcher_with_the_launchers_velocity_the_muzzle_velocity_and_the_error_of_its_own_stream() {
+        let aim = step_aim(&muzzle_gun("test gun"));
+        let mut input = round();
+        input.entity_samples = [16384, 0, 0, 0];
+        let mut world = |lookup: &flight::StepEvent| match lookup.kind {
+            LOOKUP_PARENT_VELOCITY => [100.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            _ => [0.0; 6],
+        };
+        let (born, asked) = be_born(&aim, 5, &input, &mut world, &[]);
+        assert_eq!(asked, vec![LOOKUP_PARENT_VELOCITY], "only the launcher's velocity is asked");
+        let birth = last_action(&born, ACTION_BIRTH).unwrap();
+        assert_eq!(birth.f[0], 1000.0, "the launcher's 100 plus the muzzle's 900; a sample of 16384 is no error");
+        assert_eq!(birth.f[1], 3.0, "the lifetime is the motor's boost and sustain");
+        assert_eq!(birth.f[2], 0.0, "no decoy timer");
+        assert_eq!(
+            &last_action(&born, ACTION_ATTITUDE).unwrap().f[..9],
+            &IDENTITY,
+            "without dispersion it leaves as the launcher pointed it, bit for bit"
+        );
+        // the muzzle-velocity error is the weapon's own sample, scaled
+        input.entity_samples[0] = 32767;
+        let (born, _) = be_born(&aim, 5, &input, &mut world, &[]);
+        let high = last_action(&born, ACTION_BIRTH).unwrap().f[0];
+        assert!(high > 1000.0 && high < 1005.0, "{high}");
+        // a weapon that does not take its launcher's velocity asks nothing
+        let mut standing = muzzle_gun("test gun");
+        standing.acquire_forward = 0;
+        let aim = step_aim(&standing);
+        let (born, asked) = be_born(&aim, 5, &input, &mut world, &[]);
+        assert!(asked.is_empty());
+        assert!(last_action(&born, ACTION_BIRTH).unwrap().f[0] > 900.0);
+        // a submunition leaves with its parent weapon's velocity
+        input.submunition = true;
+        input.velocity = 250.0;
+        let (born, asked) = be_born(&step_aim(&muzzle_gun("test gun")), 5, &input, &mut world, &[]);
+        assert!(asked.is_empty(), "{asked:?}");
+        assert!(last_action(&born, ACTION_BIRTH).unwrap().f[0] > 1150.0);
+    }
+
+    #[test]
+    fn dispersion_rotates_the_launchers_attitude_by_two_samples_of_the_campaigns_stream_in_order() {
+        let mut figures = muzzle_gun("test gun");
+        figures.circular_error_probable = 0.002;
+        let aim = step_aim(&figures);
+        let input = round();
+        let mut world = |_: &flight::StepEvent| [0.0; 6];
+        // without samples it stops for them
+        assert_eq!(aim.weapon_birth(5, &input, &[], &[]).unwrap().state, flight::StepState::NeedLookup);
+        let (a, _) = be_born(&aim, 5, &input, &mut world, &[24576, 8192]);
+        let (b, _) = be_born(&aim, 5, &input, &mut world, &[24576, 8192]);
+        let (swapped, _) = be_born(&aim, 5, &input, &mut world, &[8192, 24576]);
+        let attitude = |born: &flight::StepOutcome| last_action(born, ACTION_ATTITUDE).unwrap().f.map(f32::to_bits);
+        assert_eq!(attitude(&a), attitude(&b), "the same samples give the same attitude");
+        assert_ne!(attitude(&a), attitude(&swapped), "the first sample is the heading's and the second the pitch's");
+        assert_ne!(
+            &last_action(&a, ACTION_ATTITUDE).unwrap().f[..9],
+            &IDENTITY,
+            "and the weapon no longer leaves as it was pointed"
+        );
+        // a sample in the middle of the stream is no dispersion
+        let (centred, _) = be_born(&aim, 5, &input, &mut world, &[16384, 16384]);
+        assert_eq!(&last_action(&centred, ACTION_ATTITUDE).unwrap().f[..9], &IDENTITY);
+    }
+
+    #[test]
+    fn a_shell_with_a_remote_fuze_is_set_from_the_lead_prediction_the_campaign_answers() {
+        let mut shell = muzzle_gun("test shell");
+        shell.warhead_type = 7;
+        shell.cruise_time_max_error = 0.0;
+        let aim = step_aim(&shell);
+        let input = round();
+        // the launcher has no target, or the prediction does not solve: no fuze timer
+        let mut unsolved = |_: &flight::StepEvent| [0.0; 6];
+        let (born, asked) = be_born(&aim, 5, &input, &mut unsolved, &[]);
+        assert!(asked.contains(&LOOKUP_FUZE_SOLVE));
+        assert_eq!(last_action(&born, ACTION_BIRTH).unwrap().f[2], 0.0);
+        // solved: the timer is how long the shell flies less the time of flight
+        let mut solved = |lookup: &flight::StepEvent| match lookup.kind {
+            LOOKUP_FUZE_SOLVE => [1.0, 5.0, 0.0, 0.0, 0.0, 0.0],
+            _ => [0.0; 6],
+        };
+        let (born, _) = be_born(&aim, 5, &input, &mut solved, &[16384]);
+        assert_eq!(
+            last_action(&born, ACTION_BIRTH).unwrap().f[2],
+            2.0,
+            "(5 - 3) with no cruise-time error; one sample of the stream is taken"
+        );
+        // conventional munitions burst a second early
+        shell.warhead_type = 8;
+        let (born, _) = be_born(&step_aim(&shell), 5, &input, &mut solved, &[16384]);
+        assert_eq!(last_action(&born, ACTION_BIRTH).unwrap().f[2], 1.0);
+        // a guided weapon has no remote fuze to set
+        shell.guidance_type = 1;
+        let (_, asked) = be_born(&step_aim(&shell), 5, &input, &mut solved, &[]);
+        assert!(!asked.contains(&LOOKUP_FUZE_SOLVE));
+        assert!(Aim::new().weapon_birth(5, &input, &[], &[]).unwrap_err().contains("no figures"));
+    }
+
+    fn rate_limited() -> flight::Figures {
+        let mut figures = flying_gun("test cannon");
+        figures.rate_of_fire = 600.0;
+        figures.inverse_rate_of_fire = 1.0 / 600.0;
+        figures
+    }
+
+    fn gate(aim: &Aim, input: &flight::ReleaseInput) -> flight::ReleaseOutcome {
+        aim.release(5, input).unwrap()
+    }
+
+    #[test]
+    fn the_rate_of_fire_gate_lets_rounds_go_by_the_time_since_the_last_shot_and_hands_back_what_it_wrote() {
+        let aim = step_aim(&rate_limited());
+        let base = flight::ReleaseInput {
+            delta_time: 0.1,
+            current_time: 1000,
+            last_shot: Some(0),
+            not_ai: false,
+        };
+        // the first shot always goes, and starts the clock
+        assert_eq!(
+            gate(&aim, &base),
+            flight::ReleaseOutcome {
+                refuse: false,
+                burst_size: 1,
+                last_shot: Some(1000)
+            }
+        );
+        // not enough time has passed for a round: nothing goes, nothing is written
+        let early = gate(
+            &aim,
+            &flight::ReleaseInput {
+                current_time: 1050,
+                last_shot: Some(1000),
+                ..base
+            },
+        );
+        assert_eq!((early.refuse, early.last_shot), (true, None));
+        // the clock is ahead of the time (the launcher shot in the future): nothing goes
+        assert!(
+            gate(
+                &aim,
+                &flight::ReleaseInput {
+                    current_time: 900,
+                    last_shot: Some(1000),
+                    ..base
+                }
+            )
+            .refuse
+        );
+        // three rounds' time has passed: three go and the clock advances by their time
+        assert_eq!(
+            gate(
+                &aim,
+                &flight::ReleaseInput {
+                    current_time: 1300,
+                    last_shot: Some(1000),
+                    ..base
+                }
+            ),
+            flight::ReleaseOutcome {
+                refuse: false,
+                burst_size: 3,
+                last_shot: Some(1300)
+            }
+        );
+        // a clock long behind: a launcher that is not an AI is caught up to the frame, an AI's rounds are owed in full
+        let player = gate(
+            &aim,
+            &flight::ReleaseInput {
+                current_time: 2000,
+                last_shot: Some(1000),
+                not_ai: true,
+                ..base
+            },
+        );
+        assert_eq!((player.burst_size, player.last_shot), (1, Some(2100)), "{player:?}");
+        let ai = gate(
+            &aim,
+            &flight::ReleaseInput {
+                current_time: 2000,
+                last_shot: Some(1000),
+                not_ai: false,
+                ..base
+            },
+        );
+        assert_eq!((ai.burst_size, ai.last_shot), (10, Some(2000)), "{ai:?}");
+        // the catch-up is written even when the gate then refuses
+        let refused = gate(
+            &aim,
+            &flight::ReleaseInput {
+                delta_time: 0.001,
+                current_time: 2000,
+                last_shot: Some(1000),
+                not_ai: true,
+            },
+        );
+        assert_eq!((refused.refuse, refused.last_shot), (true, Some(2000)), "{refused:?}");
+        // a launcher with no clock lets one round go
+        let clockless = gate(&aim, &flight::ReleaseInput { last_shot: None, ..base });
+        assert_eq!((clockless.refuse, clockless.burst_size, clockless.last_shot), (false, 1, None));
+        // a single-shot weapon is not gated
+        let single = step_aim(&flying_gun("test gun"));
+        assert_eq!(gate(&single, &base).burst_size, 1);
+        assert_eq!(gate(&single, &base).last_shot, None);
+        assert!(Aim::new().release(5, &base).unwrap_err().contains("no figures"));
+        assert!(aim
+            .release(5, &flight::ReleaseInput { delta_time: f32::NAN, ..base })
+            .unwrap_err()
+            .contains("finite"));
     }
 }

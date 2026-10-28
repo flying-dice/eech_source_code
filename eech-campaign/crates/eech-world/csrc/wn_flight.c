@@ -117,6 +117,11 @@ typedef struct wf_figures
 	int smoke_grenade;
 	int submunition_count;
 	int submunition_velocity_factor;
+	float muzzle_velocity_max_error;
+	float circular_error_probable;
+	float rate_of_fire;
+	float inverse_rate_of_fire;
+	int acquire_forward;
 } wf_figures;
 
 /* The part of the original's `weapon` entity the integrators touch. */
@@ -1019,6 +1024,8 @@ enum
 	WL_ELEVATION,			/* f0, f2 x and z.  r0 the terrain elevation there */
 	WL_COLLISION,			/* a: which target is the weapon's now (-1 none); f0..f2 the old position, f3..f5 the new.  r0 something was hit, r1 it is not the weapon's target, r2 its type, r3..r5 where the segment meets it */
 	WL_TREES,				/* f0..f2 the old position, f3..f5 the new.  r0 a tree was hit, r1..r3 where the segment meets it */
+	WL_PARENT_VELOCITY,		/* a birth: the launcher's forward velocity.  r0 */
+	WL_FUZE_SOLVE,			/* a birth: f0..f2 the weapon's position, f3 the velocity it leaves with less its muzzle velocity.  r0 the launcher has a target and the lead prediction to it solved, r1 the time of flight */
 	WL_KINDS
 };
 
@@ -1032,6 +1039,7 @@ enum
 	WA_POSITION,			/* f0..f2 the weapon's position */
 	WA_TARGET_LINK,			/* a: 0 the weapon has no target now, 1 its target is the launcher's, 2 its target is the one the collision lookup hit */
 	WA_SMOKE_EFFECT,		/* the killed-explosion effect, with the kill code at hit-land for its duration */
+	WA_BIRTH,				/* a birth: f0 the velocity the weapon leaves with, f1 its lifetime, f2 its decoy or fuze timer */
 	WA_KINDS
 };
 
@@ -1040,7 +1048,7 @@ enum
 enum
 {
 	WE_PATH = 20, WE_SUBMUNITIONS, WE_TRACKING, WE_GUIDANCE, WE_GUIDANCE_SOURCE, WE_TGT_BRANCH, WE_TGT_END, WE_INTERCEPT, WE_GUIDED, WE_PRECISION, WE_GROUND, WE_IMPACT,
-	WE_CONTACT_ANY, WE_CONTACT_TREES
+	WE_CONTACT_ANY, WE_CONTACT_TREES, WE_BIRTH_FUZE_BEGIN, WE_BIRTH_FUZE_SOLVED, WE_BIRTH_DISPERSION
 };
 
 enum
@@ -1103,6 +1111,7 @@ typedef struct wf_step_in
 	int has_launcher;
 	int has_target;
 	int server;
+	int submunition;
 	float map_min[3];
 	float map_max[3];
 	int echo;
@@ -2891,4 +2900,319 @@ int eech_wn_weapon_step(const wf_step_in *in, wf_step_out *out)
 	}
 
 	return out->failed;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the weapon's birth (EEDCS-45): the launch kinematics of create_local, expression for expression.
+ *
+ * The same protocol as the step: the launcher has already let the weapon go (detach: its pose in `position` and `attitude`, the campaign's own accounting of what it
+ * carries) and the request carries the weapon's type, whether it is a submunition (and its parent weapon's velocity), and the first sample of the weapon's own stream.
+ * The host answers with the velocity the weapon leaves with (the launcher's forward velocity when the weapon takes it, the muzzle velocity and the muzzle-velocity
+ * error), its lifetime, its decoy or fuze timer (solved from a lead prediction the campaign answers as a lookup, with a sample of the shared stream) and its attitude (the
+ * launcher's, rotated by the dispersion: two samples of the shared stream).
+ */
+static int wf_draw_raw(wf_run *r)
+{
+	if (r->draw_cursor < r->in->draw_count)
+	{
+		return r->in->draws[r->draw_cursor++];
+	}
+
+	r->out->need_draw = 1;
+
+	longjmp(r->escape, 1);
+}
+
+/* sfrand1 () and sfrand1norm () of the campaign's shared stream, from the raw integers it gives (maths/random.h, random.c) */
+static double wf_sfrand1(wf_run *r)
+{
+	return ((double) (wf_draw_raw(r) - 16384)) * (1.0 / 16384.0);
+}
+
+static double wf_sfrand1norm(wf_run *r)
+{
+	double value = (((double) (wf_draw_raw(r) - 16384)) * (1.0 / 16384.0));
+	double positive_value = fabs(value);
+
+	return value * positive_value;
+}
+
+/* get_decoy_timer_start_value (wn_decoy.c) */
+static float wf_decoy_timer_start_value(wf_run *r, int type)
+{
+	switch (type)
+	{
+		case WF_DECOY_NONE:
+		{
+			return 0.0;
+		}
+		case WF_DECOY_CHAFF:
+		case WF_DECOY_FLARE:
+		{
+			return 0.1;
+		}
+		case WF_DECOY_SMOKE_GRENADE:
+		{
+			return 3.0;
+		}
+	}
+
+	wf_fail(r, "invalid weapon decoy type");
+
+	return 0.0;
+}
+
+#define WF_WARHEAD_HIGH_EXPLOSIVE_ANTI_AIRCRAFT 7
+
+static void wf_weapon_birth(wf_run *r)
+{
+	const wf_figures *fig = r->fig;
+	const wf_step_in *in = r->in;
+	float velocity, lifetime, decoy_timer, dispersion;
+	vec3d position;
+	matrix3x3 vp_attitude, attitude;
+
+	memcpy(&vp_attitude[0][0], in->attitude, sizeof(in->attitude));
+
+	position.x = in->position[0];
+	position.y = in->position[1];
+	position.z = in->position[2];
+
+	if (!in->submunition)
+	{
+		if (fig->acquire_forward)
+			velocity = wf_ask(r, wf_q(WL_PARENT_VELOCITY, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))[0];
+		else
+			velocity = 0.0;
+	}
+	else
+	{
+		velocity = in->velocity;
+	}
+
+	velocity += fig->muzzle_velocity;
+
+	velocity += 0.499 * fig->muzzle_velocity_max_error * wf_sfrand1x(r, 0);
+
+	lifetime = fig->boost_time + fig->sustain_time;
+
+	decoy_timer = wf_decoy_timer_start_value(r, fig->decoy_type);
+
+	// shells or CONVENTIONAL munitions with remote fuze, decoy_timer is time value
+
+	if ((fig->warhead_type == WF_WARHEAD_HIGH_EXPLOSIVE_ANTI_AIRCRAFT || fig->warhead_type == WF_WARHEAD_CONVENTIONAL_MUNITIONS) && !fig->guidance_type)
+	{
+		const float *fuze;
+
+		wf_echo(r, WE_BIRTH_FUZE_BEGIN, 0, 0, 0, 0, NULL, 0);
+
+		/* the lead prediction to the launcher's target, if it has one: r0 it solved, r1 the time of flight */
+		fuze = wf_ask(r, wf_q(WL_FUZE_SOLVE, 0, 0, 0, 0, position.x, position.y, position.z, velocity - fig->muzzle_velocity, 0, 0));
+
+		if (fuze[0] != 0.0f)
+		{
+			float time_of_flight = fuze[1];
+
+			decoy_timer = - (fig->boost_time + fig->sustain_time - time_of_flight + 0.5 * wf_sfrand1(r) * fig->cruise_time_max_error);
+
+			if (fig->warhead_type == WF_WARHEAD_CONVENTIONAL_MUNITIONS)
+				decoy_timer -= 1.0;
+
+			decoy_timer = max(0.0f, decoy_timer);
+
+			wf_echo(r, WE_BIRTH_FUZE_SOLVED, 0, 0, 0, 0, &decoy_timer, 1);
+		}
+	}
+
+	// arneh - add dispersion as random rotation in heading and pitch up to max error angle
+	// dispersion is ratio of circular error probability value to range (for CEP 0.5m at 1000m ratio value is 0.0005)
+
+	dispersion = fig->circular_error_probable;
+
+	if (dispersion > 0.0)
+	{
+		matrix3x3 m;
+
+		float
+			heading = 3 * wf_sfrand1norm(r) * tan(dispersion),
+			pitch = 3 * wf_sfrand1norm(r) * tan(dispersion);
+
+		get_3d_transformation_matrix(m, heading, pitch, 0.0);
+		multiply_matrix3x3_matrix3x3(attitude, vp_attitude, m);
+
+		{
+			float f[2];
+
+			f[0] = heading;
+			f[1] = pitch;
+
+			wf_echo(r, WE_BIRTH_DISPERSION, 0, 0, 0, 0, f, 2);
+		}
+	}
+	else
+		memcpy(attitude, vp_attitude, sizeof(matrix3x3));
+
+	{
+		float f[9];
+
+		f[0] = velocity;
+		f[1] = lifetime;
+		f[2] = decoy_timer;
+
+		wf_action(r, WA_BIRTH, 0, 0, 0, f, 3);
+
+		memcpy(f, &attitude[0][0], sizeof(f));
+
+		wf_action(r, WA_ATTITUDE, 0, 0, 0, f, 9);
+	}
+}
+
+/* The birth: the launch state in, the actions (or the lookups and draws still needed) out. */
+int eech_wn_weapon_birth(const wf_step_in *in, wf_step_out *out)
+{
+	wf_run run;
+
+	memset(out, 0, sizeof(*out));
+	memset(&run, 0, sizeof(run));
+
+	run.in = in;
+	run.out = out;
+	run.fig = in->figures;
+
+	if (!in->figures)
+	{
+		out->failed = 1;
+		snprintf(out->reason, sizeof(out->reason), "%s", "the host holds no figures for this weapon");
+
+		return 1;
+	}
+
+	run.ctx.user = &run;
+
+	if (setjmp(run.escape) == 0)
+	{
+		wf_weapon_birth(&run);
+	}
+
+	if (out->need_lookup || out->need_draw || out->failed)
+	{
+		/* a birth that has not finished has changed nothing */
+		out->action_count = 0;
+		out->echo_count = 0;
+	}
+
+	return out->failed;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the release of a weapon (EEDCS-45): the rate-of-fire gate of create_client_server_entity_weapon, expression for expression.
+ *
+ * How many rounds a launcher lets go this time, or whether it lets none: from the weapon's rate of fire, the launcher's last-shot clock (the campaign's own record,
+ * given by value and handed back with what the gate wrote to it, even when the gate then refuses: the original writes it before it decides) and the time that has passed.
+ * Whether the launcher has the ammunition, what it fires at and what follows from a shot stay the campaign's.
+ */
+typedef struct wf_release_in
+{
+	const wf_figures *figures;
+	float delta_time;
+	unsigned int current_time;
+	int has_timer;
+	unsigned int last_shot;
+	int not_ai;
+} wf_release_in;
+
+typedef struct wf_release_out
+{
+	int refuse;
+	int burst_size;
+	int write_last_shot;
+	unsigned int last_shot;
+} wf_release_out;
+
+#define WF_FIRE_SINGLE_WEAPON (0.0)
+#define WF_ONE_MINUTE (60)
+#define WF_ONE_OVER_ONE_MINUTE (1.0f / WF_ONE_MINUTE)
+
+void eech_wn_release(const wf_release_in *in, wf_release_out *out)
+{
+	const wf_figures *fig = in->figures;
+	unsigned int last_shot = in->last_shot;
+	int burst_size;
+
+	memset(out, 0, sizeof(*out));
+
+	out->last_shot = in->last_shot;
+
+	//
+	// get burst size wrt rate of fire
+	//
+
+	if (fig->rate_of_fire != WF_FIRE_SINGLE_WEAPON)
+	{
+		float time_per_shot = fig->inverse_rate_of_fire * WF_ONE_MINUTE;
+
+		if (in->has_timer)
+		{
+			unsigned int current_time = in->current_time;
+			float elapsed_time = 1;
+
+			if (last_shot > 0)
+			{
+				if (current_time < last_shot)
+				{
+					out->refuse = 1;
+
+					return;
+				}
+
+				elapsed_time = (current_time - last_shot) * 0.001;
+
+				if (current_time > last_shot + 500) //Magitek: ensure elapsed time does not continue to expire on client excessively, note 500ms is a fudge value.
+				{
+					if (in->not_ai)//only fix player helicopters
+					{
+						elapsed_time = in->delta_time;
+						last_shot = current_time;
+
+						out->write_last_shot = 1;
+						out->last_shot = last_shot;
+					}
+				}
+			}
+			else
+				elapsed_time = in->delta_time;
+
+			burst_size = (int)(fig->rate_of_fire * WF_ONE_OVER_ONE_MINUTE * elapsed_time);
+
+			if (burst_size < 1)
+			{
+				if (last_shot == 0)  // first shot in salvo always get fired
+					burst_size = 1;
+				else
+				{
+					out->refuse = 1;
+
+					return;
+				}
+			}
+
+			if (last_shot)
+				last_shot += (int)(burst_size * time_per_shot * 1000.0);
+			else
+				last_shot = current_time;
+
+			out->write_last_shot = 1;
+			out->last_shot = last_shot;
+		}
+		else
+		{
+			burst_size = 1;
+		}
+	}
+	else
+	{
+		burst_size = 1;
+	}
+
+	out->burst_size = burst_size;
 }

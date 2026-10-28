@@ -591,6 +591,8 @@ pub const EECH_AIM_INTERCEPT: c_int = 9;
 pub const EECH_AIM_RANGE: c_int = 10;
 pub const EECH_AIM_FIGURES: c_int = 11;
 pub const EECH_AIM_WEAPON_STEP: c_int = 12;
+pub const EECH_AIM_WEAPON_BIRTH: c_int = 13;
+pub const EECH_AIM_RELEASE: c_int = 14;
 pub const EECH_AIM_DONE: c_int = 1;
 pub const EECH_AIM_NEED_DRAW: c_int = 2;
 pub const EECH_AIM_NEED_LOOKUP: c_int = 3;
@@ -599,7 +601,7 @@ pub const EECH_STEP_DRAWS_MAX: usize = 8;
 pub const EECH_STEP_ACTIONS_MAX: usize = 32;
 pub const EECH_STEP_LOOKUPS_MAX: usize = 16;
 pub const EECH_AIM_EVENT_STEP_FIRST: c_int = 20;
-pub const EECH_AIM_EVENT_STEP_LAST: c_int = 33;
+pub const EECH_AIM_EVENT_STEP_LAST: c_int = 36;
 pub const EECH_AIM_EVENT_INTERCEPT: c_int = 1;
 pub const EECH_AIM_EVENT_LEAD_PATH: c_int = 2;
 pub const EECH_AIM_EVENT_LEAD_RANGE: c_int = 3;
@@ -660,6 +662,11 @@ pub struct eech_weapon_figures {
     pub smoke_grenade: c_int,
     pub submunition_count: c_int,
     pub submunition_velocity_factor: c_int,
+    pub muzzle_velocity_max_error: f32,
+    pub circular_error_probable: f32,
+    pub rate_of_fire: f32,
+    pub inverse_rate_of_fire: f32,
+    pub acquire_forward: c_int,
 }
 
 /// The weapon as the campaign holds it, in a weapon step (aphavoc/.../mb_hostaim.h campaign_weapon_state), field for field.
@@ -681,6 +688,7 @@ pub struct eech_weapon_state {
     pub has_launcher: c_int,
     pub has_target: c_int,
     pub server: c_int,
+    pub submunition: c_int,
 }
 
 /// One request of the host-owned aiming and readiness exchange (aphavoc/.../mb_hostaim.h), field for field.
@@ -746,6 +754,9 @@ pub struct eech_aim_step {
     pub answers: [eech_aim_event; EECH_STEP_ANSWERS_MAX],
     pub draw_count: c_int,
     pub draws: [c_int; EECH_STEP_DRAWS_MAX],
+    pub release_has_timer: c_int,
+    pub release_last_shot: c_uint,
+    pub release_not_ai: c_int,
 }
 
 #[repr(C)]
@@ -776,6 +787,10 @@ pub struct eech_aim_result {
     pub lookups: [eech_aim_event; EECH_STEP_LOOKUPS_MAX],
     pub action_count: c_int,
     pub actions: [eech_aim_event; EECH_STEP_ACTIONS_MAX],
+    pub release_refuse: c_int,
+    pub release_burst_size: c_int,
+    pub release_write_last_shot: c_int,
+    pub release_last_shot: c_uint,
 }
 
 pub type eech_aim_callback =

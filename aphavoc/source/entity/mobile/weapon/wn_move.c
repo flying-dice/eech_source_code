@@ -701,6 +701,8 @@ void weapon_movement (entity *en)
 
 	memset (&step, 0, sizeof (step));
 
+	step.mode = CAMPAIGN_AIM_WEAPON_STEP;
+
 	step.weapon = raw->mob.sub_type;
 
 	step.delta_time = get_delta_time ();
@@ -888,6 +890,12 @@ static void fill_weapon_figures (campaign_weapon_figures *figures, entity_sub_ty
 	figures->warhead_type = data->warhead_type;
 	figures->hellfire_ii = (wpn_type == ENTITY_SUB_TYPE_WEAPON_AGM114R_HELLFIRE_II);
 	figures->smoke_grenade = (wpn_type == ENTITY_SUB_TYPE_WEAPON_SMOKE_GRENADE);
+
+	figures->muzzle_velocity_max_error = data->muzzle_velocity_max_error;
+	figures->circular_error_probable = data->circular_error_probable;
+	figures->rate_of_fire = data->rate_of_fire;
+	figures->inverse_rate_of_fire = data->inverse_rate_of_fire;
+	figures->acquire_forward = (data->acquire_parent_forward_velocity != 0);
 
 	if ((wpn_type + 1) < NUM_ENTITY_SUB_TYPE_WEAPONS)
 	{
