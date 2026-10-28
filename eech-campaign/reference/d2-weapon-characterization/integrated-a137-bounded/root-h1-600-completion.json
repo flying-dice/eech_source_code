@@ -1,0 +1,15 @@
+{
+  "when_utc": "2026-10-28T02:13:06.110157+00:00",
+  "source": "a137fc3ec1963d88de5f0b8562145b358b50e111",
+  "build": "a137fc3ec-clean fixture dirty0",
+  "native_pid": 14924,
+  "actual_native_exit": 0,
+  "completed_utc": "2026-10-28T02:10:04.8808447Z",
+  "exit_capture": "Root held native handle across intentional controller transfer; original driver completion is NOT claimed",
+  "strict_all10532_events_comparator_actual_exit": 0,
+  "full_raw_bytes_each": 3097859,
+  "full_raw_sha256_each": "faa94591c299ddb3ae20fe8b8101a4317f431139871297e65703c042d6289c0b",
+  "post1179input_manifest_actual_exit": 0,
+  "all35exported_entries_and_BUILD_INFO_unchanged": true,
+  "remaining": "controlled/genericpositiveactivity/refusal; ordinary40/all8/post3 and finalproof/CI/normaldelivery"
+}

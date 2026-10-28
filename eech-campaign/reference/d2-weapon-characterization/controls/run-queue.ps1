@@ -1,7 +1,7 @@
 # run-natives.ps1 -Bin <fixture build dir> -Plan <comma list of name:kind[:arg]> [-Tag <log name>]
 # Sequential evidence runs (ONE native process at a time), each in a fresh root under roots\<name> and a fresh out\<name>.
 #   kind w600  : lua/weapon-characterization.lua, Lebanon, seconds = arg (default 600), 100 ms frames, 60 s checkpoints -> out\<name>\trace.jsonl
-#   kind case  : lua/weapon-case.lua (controlled launch witness), seconds of settling = arg (default 20)                  -> out\<name>\trace.jsonl
+#   kind case  : lua/weapon-case.lua (controlled launch witness), warmup seconds = arg (default 60); settle cap remains 700 -> out\<name>\trace.jsonl
 #   kind ab900 : whole-campaign control with the hooks on: lua/campaign.lua hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 observe_supply=0
 #                                                                                                                         -> out\<name>\{recording.acmi,observations.jsonl,metrics.json}
 # A PowerShell setup or terminating exception ends the plan too, with an explicit PLAN FAILED line and exit 1 (it records no native exit).
@@ -27,7 +27,7 @@ foreach ($item in $Plan.Split(',')) {
 		New-Item -ItemType Directory -Force $out | Out-Null
 		$exit = $null
 		if ($kind -eq 'w600' -or $kind -eq 'case') {
-			$arg = if ($parts.Length -gt 2) { [int]$parts[2] } else { if ($kind -eq 'w600') { 600 } else { 20 } }
+			$arg = if ($parts.Length -gt 2) { [int]$parts[2] } else { if ($kind -eq 'w600') { 600 } else { 60 } }
 			Stamp "start ${name} (${kind}, ${arg}) bin=${Bin} root=${root}"
 			if ($kind -eq 'w600') {
 				$o = & "$tools\weapon-characterization-windows.ps1" -Bin $Bin -Root $root -Out $out -Scenario lebanon_retail -Seconds $arg

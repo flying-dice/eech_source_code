@@ -34,6 +34,14 @@ Toolchain: repository `tools/Dockerfile` image in WSL2 `EECH-D2-Build`, rustc/ca
 
 ## Limits
 
+Queue reproduction correction (28 October): the optional `case` argument is the
+warmup, and now defaults to the retained original's60 seconds, with the unchanged
+700-second settle cap. The earlier helper default20 and its incorrect comment are
+preserved in Git history and the private helper-history snapshot. The actual
+accepted original w4 command used60 explicitly. The later g1 wrong-default20
+attempt was intentionally stopped and supplies no acceptance evidence. No golden,
+native input or running command was changed by this helper-only correction.
+
 Equality evidence is hash/byte based; the Tacview recording was not visually inspected; the verified roots preserve retail 3D data (`textures.pal` is present, so the synthetic-database fallback is skipped) and load retail session terrain; one map, one seed; the controlled witness's launcher/weapon/target are test preconditions. The branches not reached are listed in the document.
 
 ## Physical extraction checks (`checks/`, source commits after `abc6d35bd`)

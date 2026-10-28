@@ -1,0 +1,114 @@
+{
+  "when_utc": "2026-10-28T02:47:57.025093+00:00",
+  "scope": "Explicit safe completed bounded proof only; full raw/private roots/binaries and active logs remain outside Git",
+  "files": [
+    {
+      "file": "root-h1-600-completion.json",
+      "original": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-600-completion.json",
+      "bytes": 797,
+      "sha256": "e79a36e5b4ccb9d6009cead99856ee34279fbf355da113cebf9a0eacf87ec23d"
+    },
+    {
+      "file": "root-h1-controlled-completion.json",
+      "original": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-controlled-completion.json",
+      "bytes": 2880,
+      "sha256": "e055bdc4c764a7f7155276c5448b7903c8605d276ddc42fa1ac8757828316ab5"
+    },
+    {
+      "file": "root-h1-controlled-differences.json",
+      "original": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-controlled-differences.json",
+      "bytes": 1886,
+      "sha256": "84f5ea7b8968744fe6dc2ed33693aa100e926b8371acdaaf27edc56a6638b72c"
+    },
+    {
+      "file": "root-h1-generic-completion.json",
+      "original": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-generic-completion.json",
+      "bytes": 1813,
+      "sha256": "1fa614a9f9a295d0183b4605f50c5bc2338b24157fffda019e204ce0ac0677bd"
+    },
+    {
+      "file": "root-h1-reacquisition-causal-completion.json",
+      "original": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-reacquisition-causal-completion.json",
+      "bytes": 3564,
+      "sha256": "463dd6468e039d6347592fce97a83a45ff99cb7f33205caec187fe7b31d2087d"
+    },
+    {
+      "file": "independent-a137-bounded-runtime-review-20261028.json",
+      "original": "R:\\d2-evidence\\weapon-characterization-20261027\\independent-a137-bounded-runtime-review-20261028.json",
+      "bytes": 1384,
+      "sha256": "1671569dd010f8a56f94d52fa7c3c65f2a7486fb6241cc3d442ac5deff55cd22"
+    },
+    {
+      "file": "root-h1-600-strict.log",
+      "original": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-600-strict.log",
+      "bytes": 91,
+      "sha256": "9ba6a665e87e735c9a16f5e43ab67b3a34b736e1b70f66a6656a37b94092d606"
+    },
+    {
+      "file": "root-h1-case-verifier.log",
+      "original": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-case-verifier.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "root-h1-600-post-input.log",
+      "original": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-600-post-input.log",
+      "bytes": 252,
+      "sha256": "d30c8833ef992b831cbb9da5dc9194dfc92eef705bf996c71f859605d5d3222c"
+    },
+    {
+      "file": "root-h1-case-post-input.log",
+      "original": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-case-post-input.log",
+      "bytes": 253,
+      "sha256": "a29051808fc9d2d16826ba7cfa799bd853c37e774ccfd37e83d0f567a3ed2312"
+    },
+    {
+      "file": "root-h1-own-post-input.log",
+      "original": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-own-post-input.log",
+      "bytes": 255,
+      "sha256": "4d0385ed42e2096ff1a0fcbc67a9b77722e11e1e7fb3e8484302580330cb6802"
+    },
+    {
+      "file": "root-h1-pref-post-input.log",
+      "original": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pref-post-input.log",
+      "bytes": 251,
+      "sha256": "c649bae8f7e49b3005b6bc30657e5cc37a1d6536c3e3c14df390aa9acccd03c5"
+    },
+    {
+      "file": "root-h1-pnever-post-input.log",
+      "original": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pnever-post-input.log",
+      "bytes": 253,
+      "sha256": "3e31ddfe1194444472944a491edd8d6e823a5bc52c5443d2b3d42b5274c303db"
+    },
+    {
+      "file": "root-post-h1-own-pnever-build.json",
+      "original": "R:\\d2-evidence\\weapon-characterization-20261027\\root-post-h1-own-pnever-build.json",
+      "bytes": 9553,
+      "sha256": "a19bbe8348f825bca72c2fa4efb298b0a816b9caa1b6d4cf493ce88d8aeb4714"
+    },
+    {
+      "file": "root-controlled-lua-source-diff-aace-a137.patch",
+      "original": "R:\\d2-evidence\\weapon-characterization-20261027\\root-controlled-lua-source-diff-aace-a137.patch",
+      "bytes": 4239,
+      "sha256": "7357b29038448a4746f5847fe1e82b43a36fa268b58fec948855156cbace7088"
+    },
+    {
+      "file": "classify-h1-controlled-delta-20261028.py",
+      "original": "R:\\d2-evidence\\scripts\\classify-h1-controlled-delta-20261028.py",
+      "bytes": 3346,
+      "sha256": "161f65fa06c65451da258b1955c62fe418a09febb5bf4387bfffb3976538031a"
+    },
+    {
+      "file": "audit-h1-generic-witness-20261028.py",
+      "original": "R:\\d2-evidence\\scripts\\audit-h1-generic-witness-20261028.py",
+      "bytes": 4646,
+      "sha256": "a5679d75c418f7b81423edd06bb1f1eaace0d5753ed954f1dffb13cc854f323f"
+    },
+    {
+      "file": "audit-h1-reacquisition-causal-20261028.py",
+      "original": "R:\\d2-evidence\\scripts\\audit-h1-reacquisition-causal-20261028.py",
+      "bytes": 2116,
+      "sha256": "ca38350e4b6ddd290aec88228935bb1188095933281351f9c89671aca6fd55c7"
+    }
+  ]
+}
