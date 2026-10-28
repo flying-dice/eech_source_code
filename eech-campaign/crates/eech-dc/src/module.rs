@@ -1,9 +1,9 @@
 //! The Lua surface of the module.
 
 use eech_engine::{
-    AimEvent, AimReply, AimRequest, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship, HelicopterGuidanceAnswer,
-    HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, MovementMode, MovementResult, MovementStep, SenseMessage,
-    SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor, VehiclePose,
+    AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship,
+    HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, MovementMode, MovementResult,
+    MovementStep, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor, VehiclePose, WeaponFigures,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -405,9 +405,59 @@ fn aim_ids_into(table: &LuaTable, source: &Option<String>, target: &Option<Strin
     Ok(())
 }
 
-/// One aiming request as a Lua table: `{ mode = "table" | "ready_update" | "ready_command" | "required" | "step" | "vectors" | "lead" | "ballistic" |
-/// "intercept", ... }`. Vectors are arrays of numbers; a host identity is absent (nil) when the campaign roster has none for that end; the table
-/// of a weapon is raw weapon data, a Lua string of the little-endian IEEE-754 single-precision cells (drop angle, flight time pairs).
+fn weapon_figures_table(lua: &Lua, figures: &WeaponFigures) -> Result<LuaTable, String> {
+    let e = |error: LuaError| error.to_string();
+    let table = lua.create_table().map_err(e)?;
+    table.set("name", figures.name.as_str()).map_err(e)?;
+    for (field, value) in [
+        ("start_weight", figures.start_weight),
+        ("final_weight", figures.final_weight),
+        ("max_range", figures.max_range),
+        ("muzzle_velocity", figures.muzzle_velocity),
+        ("cruise_velocity", figures.cruise_velocity),
+        ("g_max", figures.g_max),
+        ("boost_time", figures.boost_time),
+        ("cruise_time", figures.cruise_time),
+        ("inhibit_time", figures.inhibit_time),
+        ("drag_coefficient", figures.drag_coefficient),
+        ("flightpath_deviation", figures.flightpath_deviation),
+        ("boost_power", figures.boost_power),
+        ("sustain_power", figures.sustain_power),
+        ("sustain_time", figures.sustain_time),
+        ("diameter", figures.diameter),
+        ("max_altitude", figures.max_altitude),
+        ("cruise_time_max_error", figures.cruise_time_max_error),
+        ("detonation_radius", figures.detonation_radius),
+        ("max_seeker_limit", figures.max_seeker_limit),
+        ("max_launch_angle_error", figures.max_launch_angle_error),
+        ("muzzle_velocity_max_error", figures.muzzle_velocity_max_error),
+        ("circular_error_probable", figures.circular_error_probable),
+        ("rate_of_fire", figures.rate_of_fire),
+        ("inverse_rate_of_fire", figures.inverse_rate_of_fire),
+    ] {
+        table.set(field, value).map_err(e)?;
+    }
+    table.set("ignore_gravity", figures.ignore_gravity != 0).map_err(e)?;
+    table.set("flight_profile_or_self_destr", figures.flight_profile_or_self_destr).map_err(e)?;
+    table.set("parachute_type", figures.parachute_type).map_err(e)?;
+    table.set("weapon_class", figures.weapon_class).map_err(e)?;
+    table.set("survive_ground_impact", figures.survive_ground_impact).map_err(e)?;
+    table.set("in_flight_collision_check", figures.in_flight_collision_check).map_err(e)?;
+    table.set("guidance_type", figures.guidance_type).map_err(e)?;
+    table.set("aiming_type", figures.aiming_type).map_err(e)?;
+    table.set("decoy_type", figures.decoy_type).map_err(e)?;
+    table.set("warhead_type", figures.warhead_type).map_err(e)?;
+    table.set("hellfire_ii", figures.hellfire_ii).map_err(e)?;
+    table.set("smoke_grenade", figures.smoke_grenade).map_err(e)?;
+    table.set("submunition_count", figures.submunition_count).map_err(e)?;
+    table.set("submunition_velocity_factor", figures.submunition_velocity_factor).map_err(e)?;
+    table.set("acquire_forward", figures.acquire_forward).map_err(e)?;
+    Ok(table)
+}
+
+/// One aiming request as a Lua table: `{ mode = "table" | "range" | "ready_update" | "ready_command" | "required" | "step" | "vectors" | "lead" | "ballistic" |
+/// "intercept", ... }`. Vectors are arrays of numbers; a host identity is absent (nil) when the campaign roster has none for that end. A `table` or `range` request
+/// carries the weapon's physical `figures` and the `first`/`last` flags of the boot pass: the host generates its own table (no cell is sent).
 fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String> {
     let e = |error: LuaError| error.to_string();
     let table = lua.create_table().map_err(e)?;
@@ -415,15 +465,94 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
         AimRequest::Table(data) => {
             table.set("mode", "table").map_err(e)?;
             table.set("weapon", data.weapon).map_err(e)?;
-            table.set("max_range", data.max_range).map_err(e)?;
-            table.set("velocity_tests", data.velocity_tests).map_err(e)?;
-            table.set("pitch_indices", data.pitch_indices).map_err(e)?;
-            table.set("range_values", data.range_values).map_err(e)?;
-            let mut bytes = Vec::with_capacity(data.cells.len() * 4);
-            for cell in &data.cells {
-                bytes.extend_from_slice(&cell.to_le_bytes());
+            table.set("figures", weapon_figures_table(lua, &data.figures)?).map_err(e)?;
+            table.set("first", data.first).map_err(e)?;
+            table.set("last", data.last).map_err(e)?;
+            table.set("echo", data.echo).map_err(e)?;
+            table.set("echo_cells", data.echo_cells).map_err(e)?;
+        }
+        AimRequest::Range(data) => {
+            table.set("mode", "range").map_err(e)?;
+            table.set("weapon", data.weapon).map_err(e)?;
+            table.set("figures", weapon_figures_table(lua, &data.figures)?).map_err(e)?;
+            table.set("first", data.first).map_err(e)?;
+            table.set("last", data.last).map_err(e)?;
+            table.set("echo", data.echo).map_err(e)?;
+        }
+        AimRequest::Figures(data) => {
+            table.set("mode", "figures").map_err(e)?;
+            table.set("weapon", data.weapon).map_err(e)?;
+            table.set("figures", weapon_figures_table(lua, &data.figures)?).map_err(e)?;
+        }
+        AimRequest::WeaponStep(data) => {
+            let state = &data.state;
+            table
+                .set(
+                    "mode",
+                    match data.kind {
+                        AimStepKind::Step => "weapon_step",
+                        AimStepKind::Birth => "weapon_birth",
+                        AimStepKind::Decoy => "weapon_decoy",
+                        AimStepKind::Seduce => "weapon_seduce",
+                        AimStepKind::Reacquire => "weapon_reacquire",
+                    },
+                )
+                .map_err(e)?;
+            if data.kind == AimStepKind::Birth {
+                table.set("submunition", state.submunition).map_err(e)?;
             }
-            table.set("cells", lua.create_string(&bytes).map_err(e)?).map_err(e)?;
+            if matches!(data.kind, AimStepKind::Seduce | AimStepKind::Reacquire) {
+                table.set("other_weapon", state.other_weapon).map_err(e)?;
+            }
+            if data.kind == AimStepKind::Seduce {
+                table.set("coefficient", state.coefficient).map_err(e)?;
+                table.set("effectiveness", state.effectiveness.to_vec()).map_err(e)?;
+            }
+            table.set("echo", data.echo).map_err(e)?;
+            table.set("weapon", data.weapon).map_err(e)?;
+            table.set("delta_time", data.delta_time).map_err(e)?;
+            table.set("system_time", data.system_time).map_err(e)?;
+            table.set("map_min", data.map_min.to_vec()).map_err(e)?;
+            table.set("map_max", data.map_max.to_vec()).map_err(e)?;
+            table.set("position", state.position.to_vec()).map_err(e)?;
+            table.set("attitude", state.attitude.to_vec()).map_err(e)?;
+            table.set("motion_vector", state.motion_vector.to_vec()).map_err(e)?;
+            table.set("velocity", state.velocity).map_err(e)?;
+            table.set("weapon_lifetime", state.weapon_lifetime).map_err(e)?;
+            table.set("decoy_timer", state.decoy_timer).map_err(e)?;
+            table.set("missile_phase", state.missile_phase).map_err(e)?;
+            table.set("loal_mode", state.loal_mode).map_err(e)?;
+            table.set("weapon_on_ground", state.weapon_on_ground).map_err(e)?;
+            table.set("parachute_status", state.parachute_status).map_err(e)?;
+            table.set("kill_code", state.kill_code).map_err(e)?;
+            table.set("entity_samples", state.entity_samples.to_vec()).map_err(e)?;
+            table.set("has_launcher", state.has_launcher).map_err(e)?;
+            table.set("has_target", state.has_target).map_err(e)?;
+            table.set("server", state.server).map_err(e)?;
+            let answers = lua.create_table().map_err(e)?;
+            for (index, answer) in data.answers.iter().enumerate() {
+                answers.set(index + 1, aim_event_table(lua, answer)?).map_err(e)?;
+            }
+            table.set("answers", answers).map_err(e)?;
+            table.set("draws", data.draws.clone()).map_err(e)?;
+        }
+        AimRequest::Animate(data) => {
+            table.set("mode", "animate").map_err(e)?;
+            table.set("weapon", data.weapon).map_err(e)?;
+            table.set("parachute_status", data.parachute_status).map_err(e)?;
+            table.set("weapon_on_ground", data.weapon_on_ground).map_err(e)?;
+            table.set("weapon_lifetime", data.weapon_lifetime).map_err(e)?;
+            table.set("motion_vector_y", data.motion_vector_y).map_err(e)?;
+        }
+        AimRequest::Release(data) => {
+            table.set("mode", "release").map_err(e)?;
+            table.set("weapon", data.weapon).map_err(e)?;
+            table.set("delta_time", data.delta_time).map_err(e)?;
+            table.set("current_time", data.current_time).map_err(e)?;
+            if let Some(last_shot) = data.last_shot {
+                table.set("last_shot", last_shot).map_err(e)?;
+            }
+            table.set("not_ai", data.not_ai).map_err(e)?;
         }
         AimRequest::ReadyUpdate(data) => {
             table.set("mode", "ready_update").map_err(e)?;
@@ -533,6 +662,43 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
     Ok(table)
 }
 
+/// A weapon step's lookup, answer or action as a Lua table: `{ kind, a, b, c, d, f = { 12 numbers } }`.
+fn aim_event_table(lua: &Lua, event: &AimEvent) -> Result<LuaTable, String> {
+    let e = |error: LuaError| error.to_string();
+    let table = lua.create_table().map_err(e)?;
+    table.set("kind", event.kind).map_err(e)?;
+    table.set("a", event.a).map_err(e)?;
+    table.set("b", event.b).map_err(e)?;
+    table.set("c", event.c).map_err(e)?;
+    table.set("d", event.d).map_err(e)?;
+    table.set("f", event.f.to_vec()).map_err(e)?;
+    Ok(table)
+}
+
+/// A list of a weapon step's events from the host's answer: tables `{ kind, a, b, c, d, f }`, each integer exact and each float exact and finite.
+fn aim_event_list(lua: &Lua, table: &LuaTable, field: &str) -> Result<Vec<AimEvent>, String> {
+    let list = match table.get::<LuaValue>(field).map_err(|e| e.to_string())? {
+        LuaValue::Nil => return Ok(Vec::new()),
+        LuaValue::Table(list) => list,
+        other => return Err(format!("aim result {field} must be a list, got {}", other.type_name())),
+    };
+    let mut events = Vec::new();
+    for value in list.sequence_values::<LuaValue>() {
+        let LuaValue::Table(event) = value.map_err(|e| e.to_string())? else {
+            return Err(format!("aim result {field} holds a value that is not an event table"));
+        };
+        events.push(AimEvent {
+            kind: aim_integer(&event, "kind")?,
+            a: aim_integer(&event, "a")?,
+            b: aim_integer(&event, "b")?,
+            c: aim_integer(&event, "c")?,
+            d: aim_integer(&event, "d")?,
+            f: exact_numbers::<12>(lua, &event, "f").map_err(|e| format!("aim result {field} {e}"))?,
+        });
+    }
+    Ok(events)
+}
+
 fn aim_integer(table: &LuaTable, field: &str) -> Result<i32, String> {
     match table.get::<LuaValue>(field).map_err(|e| e.to_string())? {
         LuaValue::Integer(value) => i32::try_from(value).map_err(|_| format!("aim result {field} {value} is out of range")),
@@ -567,9 +733,28 @@ fn aim_echo(lua: &Lua, table: &LuaTable) -> Result<Option<Vec<AimEvent>>, String
                 "lead_iteration" => 4,
                 "ballistic" => 5,
                 "lead_result" => 6,
+                "table_flight" => 7,
+                "range_result" => 8,
+                "step_path" => 20,
+                "step_submunitions" => 21,
+                "step_tracking" => 22,
+                "step_guidance" => 23,
+                "step_guidance_source" => 24,
+                "step_tgt_branch" => 25,
+                "step_tgt_end" => 26,
+                "step_intercept" => 27,
+                "step_guided" => 28,
+                "step_precision" => 29,
+                "step_ground" => 30,
+                "step_impact" => 31,
+                "step_contact_any" => 32,
+                "step_contact_trees" => 33,
+                "step_birth_fuze_begin" => 34,
+                "step_birth_fuze_solved" => 35,
+                "step_birth_dispersion" => 36,
                 other => {
                     return Err(format!(
-                        "aim result echo kind {other:?} is not intercept, lead_path, lead_range, lead_iteration, ballistic or lead_result"
+                        "aim result echo kind {other:?} is not intercept, lead_path, lead_range, lead_iteration, ballistic, lead_result, table_flight, range_result or a step_* kind"
                     ))
                 }
             },
@@ -605,17 +790,64 @@ fn call_aim(lua: &Lua, function: &LuaFunction, request: AimRequest) -> Result<Ai
     let mut reply = AimReply::default();
     match state.as_str() {
         "need_draw" => {
-            if !matches!(request, AimRequest::Vectors(_) | AimRequest::Lead(_)) {
+            if !matches!(request, AimRequest::Vectors(_) | AimRequest::Lead(_) | AimRequest::WeaponStep(_)) {
                 return Err("aim result need_draw answers a request that cannot take a draw".into());
             }
             reply.need_draw = true;
             return Ok(reply);
         }
+        "need_lookup" => {
+            if !matches!(request, AimRequest::WeaponStep(_)) {
+                return Err("aim result need_lookup answers a request that cannot take lookups".into());
+            }
+            reply.need_lookup = true;
+            reply.lookups = aim_event_list(lua, &table, "lookups")?;
+            return Ok(reply);
+        }
         "done" => {}
-        other => return Err(format!("aim result state {other:?} is not done or need_draw")),
+        other => return Err(format!("aim result state {other:?} is not done, need_draw or need_lookup")),
     }
     match &request {
-        AimRequest::Table(_) => {}
+        AimRequest::Table(data) => {
+            // the host's table is its own: the answer carries nothing, except the diagnostic echo the test fixture build asked for (the table's cells, little-endian
+            // single-precision pairs). The echo is optional: a host with a model of its own has no EECH table to echo, and its absence (nil) is explicit, not an error
+            if data.echo {
+                let bytes = match table.get::<LuaValue>("echo_cells").map_err(|e| e.to_string())? {
+                    LuaValue::Nil => None,
+                    LuaValue::String(bytes) => Some(bytes),
+                    other => return Err(format!("aim result echo_cells must be a string of cells or absent, got {}", other.type_name())),
+                };
+                if let Some(bytes) = bytes {
+                    let guard = bytes.as_bytes();
+                    let (words, rest) = guard.as_chunks::<4>();
+                    if !rest.is_empty() {
+                        return Err("aim result echo_cells is not a whole number of single-precision cells".into());
+                    }
+                    reply.table_cells = Some(words.iter().map(|word| f32::from_le_bytes(*word)).collect());
+                }
+            }
+        }
+        AimRequest::Range(_) | AimRequest::Figures(_) => {}
+        AimRequest::WeaponStep(_) => {
+            reply.actions = aim_event_list(lua, &table, "actions")?;
+        }
+        AimRequest::Animate(_) => {
+            reply.animate_status = aim_integer(&table, "parachute_status")?;
+            reply.animate_lifetime = match table.get::<LuaValue>("weapon_lifetime").map_err(|e| e.to_string())? {
+                LuaValue::Nil => None,
+                _ => Some(number("weapon_lifetime")?),
+            };
+        }
+        AimRequest::Release(_) => {
+            reply.release_refuse = aim_boolean(&table, "refuse")?;
+            reply.release_burst_size = aim_integer(&table, "burst_size")?;
+            reply.release_last_shot = match table.get::<LuaValue>("last_shot").map_err(|e| e.to_string())? {
+                LuaValue::Nil => None,
+                LuaValue::Integer(value) => Some(u32::try_from(value).map_err(|_| format!("aim result last_shot {value} is out of range"))?),
+                LuaValue::Number(value) if value.fract() == 0.0 && (0.0..4_294_967_296.0).contains(&value) => Some(value as u32),
+                other => return Err(format!("aim result last_shot must be an unsigned integer or absent, got {}", other.type_name())),
+            };
+        }
         AimRequest::ReadyUpdate(_) => {
             reply.ready_state = number("ready_state")?;
             reply.phase = aim_integer(&table, "phase")?;
@@ -1241,6 +1473,59 @@ impl LuaUserData for LuaEngine {
         // TEST-ONLY (feature `aim-fixture`, EEDCS-44): clears that trace; not part of the shipping module.
         #[cfg(feature = "aim-fixture")]
         methods.add_method("aim_trace_reset", |_, this, ()| this.engine.aim_trace_reset().map_err(lua_error));
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the run-wide report of the physical weapon-execution code; not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("wpn_trace", |_, this, ()| this.engine.wpn_trace().map_err(lua_error));
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the ordered weapon event log, drained from the cursor; not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("wpn_events", |_, this, ()| this.engine.wpn_events().map_err(lua_error));
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the state of one host-identified entity and its count of one weapon type; not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("wpn_case_query", |_, this, (host_id, weapon): (String, i32)| {
+            this.engine.wpn_case_query(&host_id, weapon).map_err(lua_error)
+        });
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the entity kind of a roster host id; not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("wpn_case_kind", |_, this, host_id: String| {
+            this.engine.wpn_case_kind(&host_id).map_err(lua_error)
+        });
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): one physical launch attempt through the campaign's own launch call, given the same complete host callbacks as a frame; not
+        // part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method(
+            "wpn_case_launch",
+            |lua, this, (launcher_id, target_id, weapon, salvo_count): (String, String, i32, i32)| {
+                let bind_mobile = this.bind_mobile.clone();
+                let observe_loss = this.observe_loss.clone();
+                let supply_reached = this.supply_reached.clone();
+                let move_vehicle = this.move_vehicle.clone();
+                let line_of_sight = this.line_of_sight.clone();
+                let sense = this.sense.clone();
+                let aim = this.aim.clone();
+                let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+                let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+                let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+                let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+                let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+                let mut sensor = |message| call_sense(lua, &sense, message);
+                let mut aimer = |request| call_aim(lua, &aim, request);
+                this.engine
+                    .wpn_case_launch(
+                        &launcher_id,
+                        &target_id,
+                        weapon,
+                        salvo_count,
+                        &mut binder,
+                        &mut observer,
+                        &mut reach,
+                        &mut mover,
+                        &mut sighter,
+                        &mut sensor,
+                        &mut aimer,
+                    )
+                    .map_err(lua_error)
+            },
+        );
         // TEST-ONLY (feature `sensor-fixture`, EEDCS-43): the run-wide report of the AI target scans; not part of the shipping module.
         #[cfg(feature = "sensor-fixture")]
         methods.add_method("sensor_trace", |_, this, ()| this.engine.sensor_trace().map_err(lua_error));

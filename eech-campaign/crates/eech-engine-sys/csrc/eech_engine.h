@@ -290,4 +290,20 @@ int eech_engine_aim_person_case (const char *person_id, const char *target_id, c
 int eech_engine_aim_lead_probe (const char *source_id, const char *target_id, int weapon, float sentinel, char *text, int capacity, const struct eech_engine_host *host);
 #endif
 
+#ifdef EECH_WEAPON_FIXTURE
+/*
+ * TEST-ONLY (feature weapon-fixture, EEDCS-45): see eech_wpn_fixture.c. Not part of the shipping module.
+ * The report is `key=value` text lines: five hashes, every counter, value ranges, the branch and kill-code tallies, the weapons and tables, and samples.
+ * Fails (bad argument) when the report does not fit `capacity`. The ordered event log is drained incrementally: `more` is set to 1 while events remain.
+ */
+int eech_engine_wpn_trace (char *text, int capacity);
+int eech_engine_wpn_events (char *text, int capacity, int *more);
+/* Controlled launch case: the state of one host-identified entity (and its count of one weapon type), and one physical launch attempt of one weapon type by one
+   host-identified launcher through the campaign's own launch call, with an optional host-identified target link set first. The host answers through the callbacks given. */
+int eech_engine_wpn_case_query (const char *host_id, int weapon, char *text, int capacity);
+/* The kind of a roster host id from its type field alone; reports found=0 for an unknown id. */
+int eech_engine_wpn_case_kind (const char *host_id, char *text, int capacity);
+int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id, int weapon, int salvo_count, char *text, int capacity, const struct eech_engine_host *host);
+#endif
+
 #endif

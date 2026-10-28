@@ -3,7 +3,7 @@
 
 #![allow(non_camel_case_types)]
 
-use std::ffi::{c_char, c_int, c_void};
+use std::ffi::{c_char, c_int, c_uint, c_void};
 
 pub const EECH_ENGINE_OK: c_int = 0;
 pub const EECH_ENGINE_FATAL: c_int = 1;
@@ -577,7 +577,8 @@ pub type eech_sense_callback =
     unsafe extern "C" fn(step: *const eech_sense_step, result: *mut eech_sense_result, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
 
 pub const EECH_AIM_HOST_ID_MAX: usize = 128;
-pub const EECH_AIM_ECHO_MAX: usize = 48;
+pub const EECH_AIM_ECHO_MAX: usize = 512;
+pub const EECH_WEAPON_NAME_MAX: usize = 63;
 pub const EECH_AIM_TABLE: c_int = 1;
 pub const EECH_AIM_READY_UPDATE: c_int = 2;
 pub const EECH_AIM_READY_COMMAND: c_int = 3;
@@ -587,14 +588,32 @@ pub const EECH_AIM_VECTORS: c_int = 6;
 pub const EECH_AIM_LEAD: c_int = 7;
 pub const EECH_AIM_BALLISTIC: c_int = 8;
 pub const EECH_AIM_INTERCEPT: c_int = 9;
+pub const EECH_AIM_RANGE: c_int = 10;
+pub const EECH_AIM_FIGURES: c_int = 11;
+pub const EECH_AIM_WEAPON_STEP: c_int = 12;
+pub const EECH_AIM_WEAPON_BIRTH: c_int = 13;
+pub const EECH_AIM_RELEASE: c_int = 14;
+pub const EECH_AIM_ANIMATE: c_int = 15;
+pub const EECH_AIM_WEAPON_DECOY: c_int = 16;
+pub const EECH_AIM_WEAPON_SEDUCE: c_int = 17;
+pub const EECH_AIM_WEAPON_REACQUIRE: c_int = 18;
 pub const EECH_AIM_DONE: c_int = 1;
 pub const EECH_AIM_NEED_DRAW: c_int = 2;
+pub const EECH_AIM_NEED_LOOKUP: c_int = 3;
+pub const EECH_STEP_ANSWERS_MAX: usize = 128;
+pub const EECH_STEP_DRAWS_MAX: usize = 8;
+pub const EECH_STEP_ACTIONS_MAX: usize = 32;
+pub const EECH_STEP_LOOKUPS_MAX: usize = 16;
+pub const EECH_AIM_EVENT_STEP_FIRST: c_int = 20;
+pub const EECH_AIM_EVENT_STEP_LAST: c_int = 36;
 pub const EECH_AIM_EVENT_INTERCEPT: c_int = 1;
 pub const EECH_AIM_EVENT_LEAD_PATH: c_int = 2;
 pub const EECH_AIM_EVENT_LEAD_RANGE: c_int = 3;
 pub const EECH_AIM_EVENT_LEAD_ITERATION: c_int = 4;
 pub const EECH_AIM_EVENT_BALLISTIC: c_int = 5;
 pub const EECH_AIM_EVENT_LEAD_RESULT: c_int = 6;
+pub const EECH_AIM_EVENT_TABLE_FLIGHT: c_int = 7;
+pub const EECH_AIM_EVENT_RANGE_RESULT: c_int = 8;
 
 /// One intermediate value of the reference host's prediction, in its order (read only by the test fixture build).
 #[repr(C)]
@@ -608,6 +627,77 @@ pub struct eech_aim_event {
     pub f: [f32; 12],
 }
 
+/// One weapon's physical figures (aphavoc/.../mb_hostaim.h campaign_weapon_figures), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_weapon_figures {
+    pub name: [c_char; EECH_WEAPON_NAME_MAX + 1],
+    pub start_weight: f32,
+    pub final_weight: f32,
+    pub max_range: f32,
+    pub muzzle_velocity: f32,
+    pub cruise_velocity: f32,
+    pub g_max: f32,
+    pub boost_time: f32,
+    pub cruise_time: f32,
+    pub inhibit_time: f32,
+    pub drag_coefficient: f32,
+    pub flightpath_deviation: f32,
+    pub boost_power: f32,
+    pub sustain_power: f32,
+    pub sustain_time: f32,
+    pub diameter: f32,
+    pub max_altitude: f32,
+    pub ignore_gravity: c_int,
+    pub flight_profile_or_self_destr: c_int,
+    pub parachute_type: c_int,
+    pub weapon_class: c_uint,
+    pub cruise_time_max_error: f32,
+    pub detonation_radius: f32,
+    pub max_seeker_limit: f32,
+    pub max_launch_angle_error: f32,
+    pub survive_ground_impact: c_int,
+    pub in_flight_collision_check: c_int,
+    pub guidance_type: c_int,
+    pub aiming_type: c_int,
+    pub decoy_type: c_int,
+    pub warhead_type: c_int,
+    pub hellfire_ii: c_int,
+    pub smoke_grenade: c_int,
+    pub submunition_count: c_int,
+    pub submunition_velocity_factor: c_int,
+    pub muzzle_velocity_max_error: f32,
+    pub circular_error_probable: f32,
+    pub rate_of_fire: f32,
+    pub inverse_rate_of_fire: f32,
+    pub acquire_forward: c_int,
+}
+
+/// The weapon as the campaign holds it, in a weapon step (aphavoc/.../mb_hostaim.h campaign_weapon_state), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_weapon_state {
+    pub position: [f32; 3],
+    pub attitude: [f32; 9],
+    pub motion_vector: [f32; 3],
+    pub velocity: f32,
+    pub weapon_lifetime: f32,
+    pub decoy_timer: f32,
+    pub missile_phase: c_int,
+    pub loal_mode: c_int,
+    pub weapon_on_ground: c_int,
+    pub parachute_status: c_int,
+    pub kill_code: c_int,
+    pub entity_samples: [c_int; 4],
+    pub has_launcher: c_int,
+    pub has_target: c_int,
+    pub server: c_int,
+    pub submunition: c_int,
+    pub other_weapon: c_int,
+    pub coefficient: f32,
+    pub effectiveness: [f32; 3],
+}
+
 /// One request of the host-owned aiming and readiness exchange (aphavoc/.../mb_hostaim.h), field for field.
 #[repr(C)]
 pub struct eech_aim_step {
@@ -618,12 +708,11 @@ pub struct eech_aim_step {
     pub source_host_id: [c_char; EECH_AIM_HOST_ID_MAX + 1],
     pub target_host_id: [c_char; EECH_AIM_HOST_ID_MAX + 1],
     pub weapon: c_int,
-    pub table_max_range: f32,
-    pub table_velocity_tests: c_int,
-    pub table_pitch_indices: c_int,
-    pub table_range_values: c_int,
-    pub table_cells: *const f32,
-    pub table_cell_count: usize,
+    pub figures: eech_weapon_figures,
+    pub pass_first: c_int,
+    pub pass_last: c_int,
+    pub echo_cells: *mut f32,
+    pub echo_cell_capacity: usize,
     pub ready_state: f32,
     pub ready_rate: f32,
     pub delta_time: f32,
@@ -666,6 +755,19 @@ pub struct eech_aim_step {
     pub height_diff_or_pitch: f32,
     pub simplified: c_int,
     pub fixed_pitch: c_int,
+    pub system_time: c_uint,
+    pub weapon_state: eech_weapon_state,
+    pub answer_count: c_int,
+    pub answers: [eech_aim_event; EECH_STEP_ANSWERS_MAX],
+    pub draw_count: c_int,
+    pub draws: [c_int; EECH_STEP_DRAWS_MAX],
+    pub release_has_timer: c_int,
+    pub release_last_shot: c_uint,
+    pub release_not_ai: c_int,
+    pub animate_status: c_int,
+    pub animate_on_ground: c_int,
+    pub animate_lifetime: f32,
+    pub animate_motion_y: f32,
 }
 
 #[repr(C)]
@@ -691,6 +793,41 @@ pub struct eech_aim_result {
     pub has_echo: c_int,
     pub echo_count: c_int,
     pub echo: *const eech_aim_event,
+    pub echo_cell_count: usize,
+    pub lookup_count: c_int,
+    pub lookups: [eech_aim_event; EECH_STEP_LOOKUPS_MAX],
+    pub action_count: c_int,
+    pub actions: [eech_aim_event; EECH_STEP_ACTIONS_MAX],
+    pub release_refuse: c_int,
+    pub release_burst_size: c_int,
+    pub release_write_last_shot: c_int,
+    pub release_last_shot: c_uint,
+    pub animate_status: c_int,
+    pub animate_write_lifetime: c_int,
+    pub animate_lifetime: f32,
+}
+
+/// What each collision lookup of a weapon step found, by the question it was asked (aphavoc/.../mb_hostaim.h campaign_step_hits).
+pub const EECH_STEP_HITS_MAX: usize = 16;
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct campaign_step_hit {
+    pub which: c_int,
+    pub segment: [f32; 6],
+    pub entity: *mut c_void,
+}
+
+#[repr(C)]
+pub struct campaign_step_hits {
+    pub count: c_int,
+    pub hit: [campaign_step_hit; EECH_STEP_HITS_MAX],
+}
+
+extern "C" {
+    pub fn campaign_step_hits_clear(hits: *mut campaign_step_hits);
+    pub fn campaign_step_hits_add(hits: *mut campaign_step_hits, which: c_int, segment: *const f32, entity: *mut c_void);
+    pub fn campaign_step_hits_find(hits: *const campaign_step_hits, which: c_int, segment: *const f32, entity: *mut *mut c_void) -> c_int;
 }
 
 pub type eech_aim_callback =
@@ -869,6 +1006,23 @@ extern "C" {
     pub fn eech_engine_sensor_trace(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_sensor_trace_reset() -> c_int;
     pub fn eech_engine_sensor_probe(text: *mut c_char, capacity: c_int, host: *const eech_engine_host) -> c_int;
+}
+
+#[cfg(feature = "weapon-fixture")]
+extern "C" {
+    pub fn eech_engine_wpn_trace(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_wpn_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
+    pub fn eech_engine_wpn_case_query(host_id: *const c_char, weapon: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_wpn_case_kind(host_id: *const c_char, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_wpn_case_launch(
+        launcher_id: *const c_char,
+        target_id: *const c_char,
+        weapon: c_int,
+        salvo_count: c_int,
+        text: *mut c_char,
+        capacity: c_int,
+        host: *const eech_engine_host,
+    ) -> c_int;
 }
 
 #[cfg(feature = "aim-fixture")]

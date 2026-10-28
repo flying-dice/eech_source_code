@@ -81,6 +81,15 @@ static const char *mode_name (int mode)
 		case CAMPAIGN_AIM_LEAD: return "lead";
 		case CAMPAIGN_AIM_BALLISTIC: return "ballistic";
 		case CAMPAIGN_AIM_INTERCEPT: return "intercept";
+		case CAMPAIGN_AIM_RANGE: return "range";
+		case CAMPAIGN_AIM_FIGURES: return "figures";
+		case CAMPAIGN_AIM_WEAPON_STEP: return "weapon_step";
+		case CAMPAIGN_AIM_WEAPON_BIRTH: return "weapon_birth";
+		case CAMPAIGN_AIM_RELEASE: return "release";
+		case CAMPAIGN_AIM_ANIMATE: return "animate";
+		case CAMPAIGN_AIM_WEAPON_DECOY: return "weapon_decoy";
+		case CAMPAIGN_AIM_WEAPON_SEDUCE: return "weapon_seduce";
+		case CAMPAIGN_AIM_WEAPON_REACQUIRE: return "weapon_reacquire";
 	}
 
 	return "unknown";
@@ -109,16 +118,110 @@ static void require_finite (const campaign_aim_step *step, const char *what, con
 	}
 }
 
+/* the floats of the table a weapon's figures give: velocity tests by pitch indices by `max_range / 20 + 2` ranges, two floats a cell */
+static size_t table_cell_count (const campaign_weapon_figures *figures)
+{
+	return (size_t) CAMPAIGN_TABLE_VELOCITY_TESTS * CAMPAIGN_TABLE_PITCH_INDICES * (size_t) ((int) (figures->max_range / CAMPAIGN_TABLE_RANGE_STEP) + 2) * 2;
+}
+
+// the modes of the step protocol (lookups, samples of the shared stream, ordered actions)
+static int step_mode (int mode)
+{
+	return (mode == CAMPAIGN_AIM_WEAPON_STEP) || (mode == CAMPAIGN_AIM_WEAPON_BIRTH) || (mode == CAMPAIGN_AIM_WEAPON_DECOY) || (mode == CAMPAIGN_AIM_WEAPON_SEDUCE) || (mode == CAMPAIGN_AIM_WEAPON_REACQUIRE);
+}
+
 static void validate_request (const campaign_aim_step *step)
 {
 	switch (step->mode)
 	{
 		case CAMPAIGN_AIM_TABLE:
+		case CAMPAIGN_AIM_RANGE:
 		{
-			if (!step->table_cells || (step->table_velocity_tests <= 0) || (step->table_pitch_indices <= 0) || (step->table_range_values <= 0) ||
-				(step->table_cell_count != ((size_t) step->table_velocity_tests * step->table_pitch_indices * step->table_range_values * 2)) || !isfinite (step->table_max_range))
+			const campaign_weapon_figures *figures = &step->figures;
+
+			if ((step->weapon <= 0) || !all_finite (&figures->start_weight, 16) || !all_finite (&figures->cruise_time_max_error, 4) || !all_finite (&figures->muzzle_velocity_max_error, 4) || (figures->max_range <= 0.0) || (figures->max_range > CAMPAIGN_TABLE_MAX_RANGE) || (figures->name[CAMPAIGN_WEAPON_NAME_MAX] != '\0') ||
+				((step->pass_first != FALSE) && (step->pass_first != TRUE)) || ((step->pass_last != FALSE) && (step->pass_last != TRUE)) ||
+				(step->echo && (step->mode == CAMPAIGN_AIM_TABLE) && (!step->echo_cells || (step->echo_cell_capacity != table_cell_count (figures)))))
 			{
-				debug_fatal ("host aim: a ballistic table with an inconsistent shape for weapon %d", step->weapon);
+				debug_fatal ("host aim: a %s request with inconsistent figures for weapon %d", mode_name (step->mode), step->weapon);
+			}
+
+			break;
+		}
+		case CAMPAIGN_AIM_FIGURES:
+		{
+			const campaign_weapon_figures *figures = &step->figures;
+
+			if ((step->weapon <= 0) || !all_finite (&figures->start_weight, 16) || !all_finite (&figures->cruise_time_max_error, 4) || !all_finite (&figures->muzzle_velocity_max_error, 4) || (figures->name[CAMPAIGN_WEAPON_NAME_MAX] != '\0'))
+			{
+				debug_fatal ("host aim: a figures request with inconsistent figures for weapon %d", step->weapon);
+			}
+
+			break;
+		}
+		case CAMPAIGN_AIM_RELEASE:
+		{
+			if ((step->weapon <= 0) || !isfinite (step->delta_time) || (step->release_has_timer & ~1) || (step->release_not_ai & ~1))
+			{
+				debug_fatal ("host aim: a release request with an inconsistent weapon %d", step->weapon);
+			}
+
+			break;
+		}
+		case CAMPAIGN_AIM_ANIMATE:
+		{
+			if ((step->weapon <= 0) || !isfinite (step->animate_lifetime) || !isfinite (step->animate_motion_y) || (step->animate_on_ground & ~1) || (step->animate_status < 0) ||
+				(step->animate_status > 4))
+			{
+				debug_fatal ("host aim: an animate request with an inconsistent weapon %d", step->weapon);
+			}
+
+			break;
+		}
+		case CAMPAIGN_AIM_WEAPON_STEP:
+		case CAMPAIGN_AIM_WEAPON_BIRTH:
+		case CAMPAIGN_AIM_WEAPON_DECOY:
+		case CAMPAIGN_AIM_WEAPON_SEDUCE:
+		case CAMPAIGN_AIM_WEAPON_REACQUIRE:
+		{
+			const campaign_weapon_state *state = &step->weapon_state;
+			int i;
+
+			if (!isfinite (state->coefficient) || !all_finite (state->effectiveness, 3) || (((step->mode == CAMPAIGN_AIM_WEAPON_SEDUCE) || (step->mode == CAMPAIGN_AIM_WEAPON_REACQUIRE)) && (state->other_weapon <= 0)))
+			{
+				debug_fatal ("host aim: a %s request with an inconsistent decoy or setting (decoy weapon %d)", mode_name (step->mode), state->other_weapon);
+			}
+
+			if ((step->weapon <= 0) || !isfinite (step->delta_time) || !all_finite (step->map_min, 3) || !all_finite (step->map_max, 3) || !all_finite (state->position, 3) ||
+				!all_finite (state->attitude, 9) || !all_finite (state->motion_vector, 3) || !all_finite (&state->velocity, 3) ||
+				(state->loal_mode & ~1) || (state->weapon_on_ground & ~1) || (state->has_launcher & ~1) || (state->has_target & ~1) || (state->server & ~1) || (state->submunition & ~1) ||
+				(step->answer_count < 0) || (step->answer_count > CAMPAIGN_STEP_ANSWERS_MAX) || (step->draw_count < 0) || (step->draw_count > CAMPAIGN_STEP_DRAWS_MAX))
+			{
+				debug_fatal ("host aim: a weapon_step request with an inconsistent weapon %d", step->weapon);
+			}
+
+			for (i = 0; i < 4; i++)
+			{
+				if ((state->entity_samples[i] < 0) || (state->entity_samples[i] > 32767))
+				{
+					debug_fatal ("host aim: a weapon_step request with an entity sample %d outside [0, 32767]", state->entity_samples[i]);
+				}
+			}
+
+			for (i = 0; i < step->draw_count; i++)
+			{
+				if ((step->draws[i] < 0) || (step->draws[i] > 32767))
+				{
+					debug_fatal ("host aim: a weapon_step request with a draw %d outside [0, 32767]", step->draws[i]);
+				}
+			}
+
+			for (i = 0; i < step->answer_count; i++)
+			{
+				if (!all_finite (step->answers[i].f, 12))
+				{
+					debug_fatal ("host aim: a weapon_step request with a non-finite lookup answer");
+				}
 			}
 
 			break;
@@ -171,15 +274,47 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 {
 	int i;
 
-	if ((result->state != CAMPAIGN_AIM_DONE) && (result->state != CAMPAIGN_AIM_NEED_DRAW))
+	if ((result->state != CAMPAIGN_AIM_DONE) && (result->state != CAMPAIGN_AIM_NEED_DRAW) && (result->state != CAMPAIGN_AIM_NEED_LOOKUP))
 	{
 		debug_fatal ("host aim: host aim answered state %d to a %s request", result->state, mode_name (step->mode));
 	}
 
+	if (result->state == CAMPAIGN_AIM_NEED_LOOKUP)
+	{
+		// only a weapon step or birth asks for lookups, and each must be a lookup the campaign can answer
+		if (!step_mode (step->mode))
+		{
+			debug_fatal ("host aim: host aim asked for lookups in answer to a %s request", mode_name (step->mode));
+		}
+
+		if ((result->lookup_count < 1) || (result->lookup_count > CAMPAIGN_STEP_LOOKUPS_MAX))
+		{
+			debug_fatal ("host aim: host aim asked for %d lookups in answer to a weapon_step request", result->lookup_count);
+		}
+
+		for (i = 0; i < result->lookup_count; i++)
+		{
+			if ((result->lookups[i].kind < 1) || (result->lookups[i].kind >= CAMPAIGN_STEP_LOOKUPS) || !all_finite (result->lookups[i].f, 12))
+			{
+				debug_fatal ("host aim: host aim asked a weapon_step request for a malformed lookup (kind %d)", result->lookups[i].kind);
+			}
+		}
+
+		return;
+	}
+
 	if (result->state == CAMPAIGN_AIM_NEED_DRAW)
 	{
-		// only the lead prediction has a random jitter, and a request that already carries the sample has nothing further to ask
-		if (((step->mode != CAMPAIGN_AIM_VECTORS) && (step->mode != CAMPAIGN_AIM_LEAD)) || step->has_draw)
+		// only the lead prediction has a random jitter, and a request that already carries the sample has nothing further to ask; a weapon step takes its draws one
+		// at a time, up to the room it has
+		if (step_mode (step->mode))
+		{
+			if (step->draw_count >= CAMPAIGN_STEP_DRAWS_MAX)
+			{
+				debug_fatal ("host aim: host aim asked a weapon_step request for more than %d draws", CAMPAIGN_STEP_DRAWS_MAX);
+			}
+		}
+		else if (((step->mode != CAMPAIGN_AIM_VECTORS) && (step->mode != CAMPAIGN_AIM_LEAD)) || step->has_draw)
 		{
 			debug_fatal ("host aim: host aim asked for a draw in answer to a %s request%s", mode_name (step->mode), step->has_draw ? " that already carried one" : "");
 		}
@@ -212,6 +347,24 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 	{
 		case CAMPAIGN_AIM_TABLE:
 		{
+			// the host's table is its own: the answer carries nothing, except the diagnostic echo the fixture build ASKED for. The echo is optional (a host with a model of its
+			// own has no EECH table to echo and is healthy without it), but one that is given must be exactly the table the figures give
+			if (step->echo && (result->echo_cell_count != 0) && (result->echo_cell_count != table_cell_count (&step->figures)))
+			{
+				debug_fatal ("host aim: host aim echoed %lu table cells for weapon %d, not the %lu its figures give", (unsigned long) result->echo_cell_count, step->weapon,
+					(unsigned long) table_cell_count (&step->figures));
+			}
+
+			break;
+		}
+		case CAMPAIGN_AIM_RANGE:
+		{
+			// the diagnostic echo is optional here too; one that is given is the two range runs
+			if (step->echo && result->has_echo && (result->echo_count != 2))
+			{
+				debug_fatal ("host aim: host aim echoed %d range runs for weapon %d, not 2", result->echo_count, step->weapon);
+			}
+
 			break;
 		}
 		case CAMPAIGN_AIM_READY_UPDATE:
@@ -297,6 +450,70 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 
 			break;
 		}
+		case CAMPAIGN_AIM_FIGURES:
+		{
+			break;
+		}
+		case CAMPAIGN_AIM_RELEASE:
+		{
+			if ((result->release_refuse & ~1) || (result->release_write_last_shot & ~1) || (result->release_burst_size < 0) || (result->release_burst_size > 100000) ||
+				(!result->release_refuse && (result->release_burst_size < 1)) || (result->release_write_last_shot && !step->release_has_timer))
+			{
+				debug_fatal ("host aim: host aim answered a release request with refuse %d, %d rounds and%s a last-shot clock for a launcher that %s", result->release_refuse,
+					result->release_burst_size, result->release_write_last_shot ? "" : " no", step->release_has_timer ? "has one" : "has none");
+			}
+
+			break;
+		}
+		case CAMPAIGN_AIM_ANIMATE:
+		{
+			if ((result->animate_status < 0) || (result->animate_status > 4) || (result->animate_write_lifetime & ~1) || !isfinite (result->animate_lifetime) ||
+				(!result->animate_write_lifetime && (result->animate_lifetime != 0.0)))
+			{
+				debug_fatal ("host aim: host aim answered an animate request with parachute state %d", result->animate_status);
+			}
+
+			break;
+		}
+		case CAMPAIGN_AIM_WEAPON_STEP:
+		case CAMPAIGN_AIM_WEAPON_BIRTH:
+		case CAMPAIGN_AIM_WEAPON_DECOY:
+		case CAMPAIGN_AIM_WEAPON_SEDUCE:
+		case CAMPAIGN_AIM_WEAPON_REACQUIRE:
+		{
+			// the actions, each of a kind the campaign applies, with figures it can apply; their meaning is checked as each is applied
+			if ((result->action_count < 0) || (result->action_count > CAMPAIGN_STEP_ACTIONS_MAX))
+			{
+				debug_fatal ("host aim: host aim answered a weapon_step request with %d actions", result->action_count);
+			}
+
+			for (i = 0; i < result->action_count; i++)
+			{
+				if ((result->actions[i].kind < 1) || (result->actions[i].kind >= CAMPAIGN_STEP_ACTIONS) || !all_finite (result->actions[i].f, 12))
+				{
+					debug_fatal ("host aim: host aim answered a weapon_step request with a malformed action (kind %d)", result->actions[i].kind);
+				}
+
+				if ((result->actions[i].d < 0) || (result->actions[i].d > (step->echo && result->has_echo ? result->echo_count : 0)))
+				{
+					debug_fatal ("host aim: host aim answered a weapon_step request with an action that follows %d echo events", result->actions[i].d);
+				}
+
+				// the decisions the campaign acts on are booleans: 0 or 1, nothing else, whichever is meant; checked before any is applied
+				if (((result->actions[i].kind == CAMPAIGN_STEP_ACTION_DECOY) || (result->actions[i].kind == CAMPAIGN_STEP_ACTION_REACQUIRE)) && (result->actions[i].a & ~1))
+				{
+					debug_fatal ("host aim: host aim answered a %s request with a non-boolean decision %d (action kind %d)", mode_name (step->mode), result->actions[i].a, result->actions[i].kind);
+				}
+
+				if ((result->actions[i].kind == CAMPAIGN_STEP_ACTION_SEDUCE) && ((result->actions[i].a & ~1) || (result->actions[i].b & ~1)))
+				{
+					debug_fatal ("host aim: host aim answered a %s request with non-boolean decisions %d and %d (action kind %d)", mode_name (step->mode), result->actions[i].a, result->actions[i].b,
+						result->actions[i].kind);
+				}
+			}
+
+			break;
+		}
 	}
 
 	if (result->has_echo)
@@ -313,7 +530,9 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 
 		for (i = 0; i < result->echo_count; i++)
 		{
-			if ((result->echo[i].kind < CAMPAIGN_AIM_EVENT_INTERCEPT) || (result->echo[i].kind > CAMPAIGN_AIM_EVENT_LEAD_RESULT) || !all_finite (result->echo[i].f, 12))
+			if (!(((result->echo[i].kind >= CAMPAIGN_AIM_EVENT_INTERCEPT) && (result->echo[i].kind <= CAMPAIGN_AIM_EVENT_RANGE_RESULT)) ||
+				(step_mode (step->mode) && (result->echo[i].kind >= CAMPAIGN_AIM_EVENT_STEP_PATH) && (result->echo[i].kind <= CAMPAIGN_AIM_EVENT_STEP_BIRTH_DISPERSION))) ||
+				!all_finite (result->echo[i].f, 12))
 			{
 				debug_fatal ("host aim: host aim sent a malformed echo event");
 			}
@@ -378,27 +597,208 @@ campaign_aim_result campaign_aim_ask (campaign_aim_step *step, int allow_draw)
 	return result;
 }
 
-void campaign_aim_supply_table (int weapon, float max_range, int velocity_tests, int pitch_indices, int range_values, const float *cells, size_t cell_count)
+campaign_aim_result campaign_aim_generate (int mode, int weapon, const campaign_weapon_figures *figures, int pass_first, int pass_last, float *echo_cells, size_t echo_cell_capacity)
+{
+	campaign_aim_step step;
+
+	campaign_aim_result result;
+
+	memset (&step, 0, sizeof (step));
+
+	step.mode = mode;
+
+	step.weapon = weapon;
+
+	step.figures = *figures;
+
+	step.pass_first = pass_first;
+
+	step.pass_last = pass_last;
+
+	if (echo_cells)
+	{
+		step.echo = TRUE;
+
+		step.echo_out = echo_buffer;
+
+		step.echo_capacity = CAMPAIGN_AIM_ECHO_MAX;
+
+		step.echo_cells = echo_cells;
+
+		step.echo_cell_capacity = echo_cell_capacity;
+	}
+
+	result = ask_once (&step);
+
+	return result;
+}
+
+void campaign_aim_supply_figures (int weapon, const campaign_weapon_figures *figures)
 {
 	campaign_aim_step step;
 
 	memset (&step, 0, sizeof (step));
 
-	step.mode = CAMPAIGN_AIM_TABLE;
+	step.mode = CAMPAIGN_AIM_FIGURES;
 
 	step.weapon = weapon;
 
-	step.table_max_range = max_range;
-
-	step.table_velocity_tests = velocity_tests;
-
-	step.table_pitch_indices = pitch_indices;
-
-	step.table_range_values = range_values;
-
-	step.table_cells = cells;
-
-	step.table_cell_count = cell_count;
+	step.figures = *figures;
 
 	(void) ask_once (&step);
+}
+
+campaign_aim_result campaign_aim_weapon_step (campaign_aim_step *step, campaign_step_answer_fn answer, void *context)
+{
+	campaign_aim_result result;
+
+	int round, i, j;
+
+	if (!step_mode (step->mode))
+	{
+		debug_fatal ("host aim: a weapon step was asked in mode %d", step->mode);
+	}
+
+	step->echo_out = step->echo ? echo_buffer : NULL;
+
+	step->echo_capacity = step->echo ? CAMPAIGN_AIM_ECHO_MAX : 0;
+
+	step->answer_count = 0;
+
+	step->draw_count = 0;
+
+	for (round = 0; round < CAMPAIGN_STEP_ROUNDS_MAX; round++)
+	{
+		result = ask_once (step);
+
+		if (result.state == CAMPAIGN_AIM_DONE)
+		{
+			return result;
+		}
+
+		if (result.state == CAMPAIGN_AIM_NEED_DRAW)
+		{
+			// one sample of the campaign's shared stream, at the point the original took it: the raw integer of frand1 ()
+			step->draws[step->draw_count++] = rand16 ();
+		}
+		else
+		{
+			for (i = 0; i < result.lookup_count; i++)
+			{
+				for (j = 0; j < step->answer_count; j++)
+				{
+					if ((step->answers[j].kind == result.lookups[i].kind) && (step->answers[j].a == result.lookups[i].a) && (step->answers[j].b == result.lookups[i].b) &&
+						(step->answers[j].c == result.lookups[i].c) && (step->answers[j].d == result.lookups[i].d) && !memcmp (step->answers[j].f, result.lookups[i].f, 6 * sizeof (float)))
+					{
+						debug_fatal ("host aim: host aim asked a weapon_step request again for a lookup it was already given (kind %d)", result.lookups[i].kind);
+					}
+				}
+
+				if (step->answer_count >= CAMPAIGN_STEP_ANSWERS_MAX)
+				{
+					debug_fatal ("host aim: a weapon_step request needed more than %d lookup answers", CAMPAIGN_STEP_ANSWERS_MAX);
+				}
+
+				answer (&result.lookups[i], &step->answers[step->answer_count], context);
+
+				step->answer_count++;
+			}
+		}
+	}
+
+	debug_fatal ("host aim: a weapon step did not finish in %d rounds", CAMPAIGN_STEP_ROUNDS_MAX);
+
+	return result;
+}
+
+campaign_aim_result campaign_aim_release (int weapon, int has_timer, unsigned int last_shot, int not_ai)
+{
+	campaign_aim_step step;
+
+	memset (&step, 0, sizeof (step));
+
+	step.mode = CAMPAIGN_AIM_RELEASE;
+
+	step.weapon = weapon;
+
+	step.delta_time = get_delta_time ();
+
+	step.system_time = get_system_time ();
+
+	step.release_has_timer = has_timer;
+
+	step.release_last_shot = last_shot;
+
+	step.release_not_ai = not_ai;
+
+	return ask_once (&step);
+}
+
+void campaign_step_hits_clear (campaign_step_hits *hits)
+{
+	memset (hits, 0, sizeof (*hits));
+}
+
+void campaign_step_hits_add (campaign_step_hits *hits, int which, const float *segment, struct ENTITY *entity)
+{
+	int i;
+
+	for (i = 0; i < hits->count; i++)
+	{
+		if ((hits->hit[i].which == which) && !memcmp (hits->hit[i].segment, segment, 6 * sizeof (float)))
+		{
+			debug_fatal ("host aim: a weapon step's collision question was answered twice");
+		}
+	}
+
+	if (hits->count >= CAMPAIGN_STEP_HITS_MAX)
+	{
+		debug_fatal ("host aim: a weapon step asked more than %d collision questions", CAMPAIGN_STEP_HITS_MAX);
+	}
+
+	hits->hit[hits->count].which = which;
+
+	memcpy (hits->hit[hits->count].segment, segment, 6 * sizeof (float));
+
+	hits->hit[hits->count].entity = entity;
+
+	hits->count++;
+}
+
+int campaign_step_hits_find (const campaign_step_hits *hits, int which, const float *segment, struct ENTITY **entity)
+{
+	int i;
+
+	for (i = 0; i < hits->count; i++)
+	{
+		if ((hits->hit[i].which == which) && !memcmp (hits->hit[i].segment, segment, 6 * sizeof (float)))
+		{
+			*entity = hits->hit[i].entity;
+
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+campaign_aim_result campaign_aim_animate (int weapon, int status, int on_ground, float lifetime, float motion_y)
+{
+	campaign_aim_step step;
+
+	memset (&step, 0, sizeof (step));
+
+	step.mode = CAMPAIGN_AIM_ANIMATE;
+
+	step.weapon = weapon;
+
+	step.animate_status = status;
+
+	step.animate_on_ground = on_ground;
+
+	step.animate_lifetime = lifetime;
+
+	step.animate_motion_y = motion_y;
+
+	return ask_once (&step);
 }

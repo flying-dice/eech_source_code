@@ -1,0 +1,36 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.50s
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-01e380bfce0df75c)
+
+running 9 tests
+test move_vehicle_refuses_an_unknown_id_a_foreign_pose_and_an_unknown_mode ... ok
+test line_of_sight_round_trips_through_lua_and_refuses_what_it_was_not_asked ... ok
+test a_dependent_carry_round_trips_through_lua_and_refuses_what_the_host_did_not_move ... ok
+test the_hosted_helicopter_plan_guide_and_abandon_round_trip_through_lua ... ok
+test sense_round_trips_through_lua_and_refuses_what_it_was_not_asked ... ok
+test a_failing_host_callback_returns_its_error_to_pcall ... ok
+test the_provider_and_the_controlled_witness_find_the_model_files_beside_them_when_the_binary_runs_them_as_the_main_script ... FAILED
+test aim_round_trips_through_lua_and_refuses_what_it_was_not_asked ... ok
+test every_shipped_lua_script_parses_under_the_hosts_lua ... ok
+
+failures:
+
+---- the_provider_and_the_controlled_witness_find_the_model_files_beside_them_when_the_binary_runs_them_as_the_main_script stdout ----
+
+thread 'the_provider_and_the_controlled_witness_find_the_model_files_beside_them_when_the_binary_runs_them_as_the_main_script' (163) panicked at crates/eech-world/tests/host_callbacks.rs:624:9:
+aim-provider.lua could not find a model file beside it: 
+Error: RuntimeError("cannot open own-model.lua: No such file or directory\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'dofile'\n\t[string \"/src/eech-campaign/crates/eech-world/lua/ai...\"]:164: in main chunk")
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    the_provider_and_the_controlled_witness_find_the_model_files_beside_them_when_the_binary_runs_them_as_the_main_script
+
+test result: FAILED. 8 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+error: test failed, to rerun pass `-p eech-world --test host_callbacks`
+CARGO_EXIT=101
+DOCKER_EXIT=101

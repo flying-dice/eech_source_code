@@ -21,6 +21,7 @@ los-fixture = ["eech-engine-sys/los-fixture"]
 sensor-fixture = ["eech-engine-sys/sensor-fixture"]
 # TEST-ONLY (EEDCS-44): see eech-engine-sys.
 aim-fixture = ["eech-engine-sys/aim-fixture"]
+weapon-fixture = ["eech-engine-sys/weapon-fixture"]
 
 [lints.rust]
 unsafe_op_in_unsafe_fn = "deny"

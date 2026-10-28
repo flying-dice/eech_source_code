@@ -1,0 +1,8 @@
+2026-10-27 20:49:06 start w2-case-a (case, 60) bin=R:\eech_source_code\eech-campaign\target\weapon-fixture\22db40e5b root=R:\d2-evidence\weapon-characterization-20261027\roots\w2-case-a
+R:\eech_source_code\eech-campaign\tools\weapon-case-windows.ps1 : The regular expression pattern \ is not valid.
+At R:\d2-evidence\weapon-characterization-20261027\scripts\run-natives.ps1:32 char:9
++ ...        $o = & "$tools\weapon-case-windows.ps1" -Bin $Bin -Root $root  ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (\:String) [weapon-case-windows.ps1], RuntimeException
+    + FullyQualifiedErrorId : InvalidRegularExpression,weapon-case-windows.ps1
+ 

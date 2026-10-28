@@ -1,0 +1,61 @@
+diff --git a/eech-campaign/crates/eech-world/lua/weapon-case.lua b/eech-campaign/crates/eech-world/lua/weapon-case.lua
+index fea0102c4..8bf161edd 100644
+--- a/eech-campaign/crates/eech-world/lua/weapon-case.lua
++++ b/eech-campaign/crates/eech-world/lua/weapon-case.lua
+@@ -24,6 +24,9 @@
+ --                                    the database cruise time, reported by the fixture): the source ends a weapon at lifetime <= -(cruise_time + error) or on a contact, so a
+ --                                    crate with a 511 s cruise time needs about 511 s. Optional categories (fuze timer, lock-on-after-launch, ...) are MEASURED, never promised.
+ --
++-- aim_model=own_model runs the same controlled launches under a generic host with a model of its own (lua/own-model.lua) instead of the reference host, and writes the
++-- calls the campaign made of it, by request mode, to <out>.model.json: the witness that the host's flight, launch, release and what follows are really asked and answered
++-- by a host that is not EECH's.  The default is the reference host and is unchanged.
+ -- host.args: root, warmup (simulated seconds before the cases, default 60), settle (the CAP, in simulated seconds, on the wait for the case weapons to finish; the wait is computed from the weapons, default 700),
+ --            frame_ms (default 100), out (JSON Lines path)
+ 
+@@ -37,6 +40,20 @@ local frame_ms = tonumber (args.frame_ms or "100")
+ local out = assert (io.open (assert (args.out, "out=<JSON Lines path>"), "w"))
+ local seed = 1
+ 
++local aim = host.aim
++local model_calls
++if args.aim_model == "own_model" then
++	local here = (debug.getinfo (1, "S").source:match ("^@?(.*[/\\])") or "")
++	local own = dofile (here .. "own-model.lua")
++	model_calls = {}
++	aim = function (step)
++		model_calls [step.mode] = (model_calls [step.mode] or 0) + 1
++		return own [step.mode] (step)
++	end
++elseif args.aim_model ~= nil and args.aim_model ~= "reference" then
++	error ("aim_model must be reference or own_model, not " .. tostring (args.aim_model))
++end
++
+ -- a string as a JSON string with every control character, quote, backslash and non-ASCII byte escaped losslessly (a byte >= 0x80 is written as the code point of the same value, i.e.
+ -- the Latin-1 reading): nothing in the recorded text is replaced or dropped
+ local escapes = { ['"'] = '\\"', ['\\'] = '\\\\', ['\n'] = '\\n', ['\r'] = '\\r', ['\t'] = '\\t' }
+@@ -104,7 +121,7 @@ dc.prepare_installation (root)
+ engine = dc.boot {
+ 	install_root = root, map = "..\\common\\maps\\map5", campaign_directory = "camp01", campaign = "LEBANON.CHC", gunship = "apache",
+ 	seed = seed, bind_mobile = bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
+-	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, sense = host.sense, aim = host.aim,
++	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, sense = host.sense, aim = aim,
+ }
+ emit { event = "boot", scenario = "lebanon_retail", case = "controlled_launch", warmup = warmup, settle = settle, frame_ms = frame_ms, seed = seed }
+ emit_report ("boot", 0, engine:wpn_trace ())
+@@ -411,5 +428,16 @@ emit { event = "run", elapsed = clock.elapsed_seconds, frames = frames }
+ emit_report ("run", clock.elapsed_seconds, engine:wpn_trace ())
+ emit { event = "summary", checks = #checks, failed = failed }
+ out:close ()
++if model_calls then
++	-- the calls the campaign made of the generic host, by request mode (sorted, so the file is the same for the same run)
++	local names = {}
++	for mode in pairs (model_calls) do names [#names + 1] = mode end
++	table.sort (names)
++	local parts = {}
++	for _, mode in ipairs (names) do parts [#parts + 1] = string.format ("%q:%d", mode, model_calls [mode]) end
++	local model_out = assert (io.open (args.out .. ".model.json", "w"))
++	model_out:write ("{\"aim_model\":\"own_model\",\"calls\":{" .. table.concat (parts, ",") .. "}}\n")
++	model_out:close ()
++end
+ io.stderr:write (string.format ("weapon-case: %d checks, %d failed, %d frames, clock %s\n", #checks, failed, frames, tostring (clock.elapsed_seconds)))
+ if failed > 0 then error (string.format ("weapon-case: %d checks failed", failed)) end

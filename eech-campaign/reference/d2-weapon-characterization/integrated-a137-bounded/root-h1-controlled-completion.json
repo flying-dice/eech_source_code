@@ -1,0 +1,47 @@
+{
+  "when_utc": "2026-10-28T02:33:17.620899+00:00",
+  "source": "a137fc3ec1963d88de5f0b8562145b358b50e111",
+  "build": "a137fc3ec-clean fixture dirty0",
+  "actual_native_and_driver_exit": 0,
+  "completed_utc": "2026-10-28T02:30:52Z",
+  "wall_seconds": 1248,
+  "configuration": {
+    "warmup": 60,
+    "settle": 700,
+    "frame_ms": 100,
+    "seed": 1
+  },
+  "strict_wpn_case_verifier_actual_exit": 0,
+  "checks": 11,
+  "failed": 0,
+  "raw_entire_trace_equal": false,
+  "bytes_each": 2009115,
+  "lines_each": 5762,
+  "original_sha256": "14dfda07b8cf327aff9b9daf08a22e2a2034b56f0020ad14c818a9cf262eee55",
+  "candidate_sha256": "414f0e09a19a53d23aa1e51676510b389c9cc6f6ed1bc2d7cf3ad4f0c10594e7",
+  "raw_equal_lines": 5760,
+  "physical_wpn_events_each": 5718,
+  "physical_wpn_raw_equal": true,
+  "differences": [
+    {
+      "line": 519,
+      "event": "case_launch",
+      "field": "text",
+      "old": "runtime error: eech: bad argument: rejected by the engine stack traceback: \t[C]: in ? \t[C]: in function 'pcall' \t[string \"R:/eech_source_code/eech-campaign/target/we...\"]:161: in function 'launch' \t[string \"R:/eech_source_code/eech-campaign/target/we...\"]:240: in main chunk ",
+      "new": "runtime error: eech: bad argument: rejected by the engine stack traceback: \t[C]: in ? \t[C]: in function 'pcall' \t[string \"R:/eech_source_code/eech-campaign/target/we...\"]:178: in function 'launch' \t[string \"R:/eech_source_code/eech-campaign/target/we...\"]:257: in main chunk "
+    },
+    {
+      "line": 520,
+      "event": "check",
+      "field": "detail",
+      "old": "runtime error: eech: bad argument: rejected by the engine\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'pcall'\n\t[string \"R:/eech_source_code/eech-campaign/target/we...\"]:161: in function 'launch'\n\t[string \"R:/eech_source_code/eech-campaign/target/we...\"]:240: in main chunk\n",
+      "new": "runtime error: eech: bad argument: rejected by the engine\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'pcall'\n\t[string \"R:/eech_source_code/eech-campaign/target/we...\"]:178: in function 'launch'\n\t[string \"R:/eech_source_code/eech-campaign/target/we...\"]:257: in main chunk\n"
+    }
+  ],
+  "classification": "Two unsupported-launch rejection diagnostics have Lua source positions shifted +17 by added own-model setup; all other raw lines exact. Classification awaits same independent final-evidence review.",
+  "unchanged": "No golden, tolerance, comparator, original/candidate raw or product source changed for classification; no healthy campaign rerun.",
+  "post1179_input_manifest_actual_exit": 0,
+  "post35_build_manifest_actual_exit": 0,
+  "BUILD_INFO_unchanged": true,
+  "remaining": "Generic-host positive activity/refusals; full ordinary40/all8/post3; independent proof/CI/normalmerge45. Outer cohort74298 still running."
+}

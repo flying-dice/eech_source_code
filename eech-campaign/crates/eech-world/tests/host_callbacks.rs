@@ -354,10 +354,14 @@ r = host.aim({ mode = 'required', device_attitude = LEVEL, tracking = { device_p
 assert(near(r.required_heading, math.pi / 2) and near(r.required_pitch, 0), 'a tracking point is aimed at in the horizontal plane, lowered by the ballistic pitch')
 refused({ mode = 'required', device_attitude = LEVEL, tracking = { device_position = { 0, 0, 0 }, point = { 1, 0, 1 }, pitch = 0 }, heading_min = -1, heading_max = 1, pitch_min = -1, pitch_max = 1, climb = false }, 'tracking request has no package limits')
 refused({ mode = 'required', device_attitude = LEVEL, intercept_vector = { 0, 0, 1 }, unbounded = 1 }, 'unbounded must be a boolean')
--- a ballistic table is raw data of the model's shape, and a request for a weapon without one is refused
-local cells = string.rep(string.char(0, 0, 0, 0), 5 * 85 * 7 * 2)
-r = host.aim({ mode = 'table', weapon = 7, max_range = 100, velocity_tests = 5, pitch_indices = 85, range_values = 7, cells = cells })
-assert(r.state == 'done', 'table accepted')
+-- the host generates its own ballistic table from the weapon's figures (no cell is sent), and a request for a weapon without one is refused
+local function gun(name) return { name = name, start_weight = 0.1, final_weight = 0.1, max_range = 1000, muzzle_velocity = 900, cruise_velocity = 900, g_max = 0, boost_time = 0, cruise_time = 4, inhibit_time = 0, drag_coefficient = 0.3, flightpath_deviation = 0, boost_power = 0, sustain_power = 0, sustain_time = 0, diameter = 0.02, max_altitude = 0, ignore_gravity = false, flight_profile_or_self_destr = 0, parachute_type = 0, weapon_class = 8, cruise_time_max_error = 0, detonation_radius = 0, max_seeker_limit = 0, max_launch_angle_error = 0, survive_ground_impact = 0, in_flight_collision_check = 0, guidance_type = 0, aiming_type = 3, decoy_type = 0, warhead_type = 3, hellfire_ii = 0, smoke_grenade = 0, submunition_count = 0, submunition_velocity_factor = 0, muzzle_velocity_max_error = 0, circular_error_probable = 0, rate_of_fire = 0, inverse_rate_of_fire = 0, acquire_forward = 0 } end
+r = host.aim({ mode = 'table', weapon = 7, figures = gun('test gun'), first = false, last = false, echo = false, echo_cells = 0 })
+assert(r.state == 'done' and r.echo_cells == nil and r.echo == nil, 'the table is generated and nothing comes back')
+-- with an echo (the test fixture build's) the host gives back its flights and the cells of the table it generated, in the model's shape
+r = host.aim({ mode = 'table', weapon = 9, figures = gun('echo gun'), first = false, last = false, echo = true, echo_cells = 5 * 85 * 52 * 2 })
+assert(r.state == 'done' and #r.echo_cells == 5 * 85 * 52 * 2 * 4, 'the echo carries every cell')
+assert(#r.echo == 83 and r.echo[1].kind == 'table_flight' and r.echo[1].a == 0 and r.echo[1].d > 0 and r.echo[1].f[2] == 52, 'one record per simulated flight')
 -- the lead's flight time is a partial output: sent when the prediction produced one, absent when it did not (it is never invented)
 local MAP = { map_min = { 0, 0, 0 }, map_max = { 100000, 100000, 100000 }, comms_weapon_lag = 0, source_gunship = false, echo = false }
 local function lead(device, point, parent_velocity)
@@ -372,9 +376,187 @@ assert(r.state == 'done' and r.ok == true and r.time_of_flight == nil, 'the off-
 r = lead({ 10, 0, 10 }, { 10, 0, 10 }, 0)
 assert(r.state == 'done' and r.ok == false and r.time_of_flight == nil, 'a tiny range produces none')
 refused({ mode = 'ballistic', weapon = 8, range = 50, height_diff_or_pitch = 0, simplified = false, fixed_pitch = false, parent_velocity = 0 }, 'no ballistic table for weapon 8')
-refused({ mode = 'table', weapon = 7, max_range = 100, velocity_tests = 4, pitch_indices = 85, range_values = 7, cells = cells }, 'velocity tests')
-refused({ mode = 'table', weapon = 7, max_range = 100, velocity_tests = 5, pitch_indices = 85, range_values = 6, cells = cells }, 'range values')
-refused({ mode = 'table', weapon = 7, max_range = 100, velocity_tests = 5, pitch_indices = 85, range_values = 7, cells = 'short' }, 'bytes')
+refused({ mode = 'table', weapon = 7, first = false, last = false, echo = false }, 'figures must be a table')
+refused({ mode = 'table', weapon = 7, figures = gun(''), first = false, last = false, echo = false }, 'weapon name must be 1 to 63 bytes')
+refused({ mode = 'table', weapon = 0, figures = gun('test gun'), first = false, last = false, echo = false }, 'not a weapon')
+refused({ mode = 'table', weapon = 7, figures = gun('test gun'), first = 1, last = false, echo = false }, 'first must be a boolean')
+local rangeless = gun('rangeless gun') rangeless.max_range = 0
+refused({ mode = 'table', weapon = 7, figures = rangeless, first = false, last = false, echo = false }, 'range limit')
+local slow = gun('infinite gun') slow.drag_coefficient = 1 / 0
+refused({ mode = 'table', weapon = 7, figures = slow, first = false, last = false, echo = false }, 'drag_coefficient')
+-- the host keeps every weapon's figures and flies a weapon by them (the weapon step): a pass that needs the campaign's world stops and changes nothing, and is asked
+-- again with the answers; it ends with the weapon's state, attitude and position as ordered actions
+-- (a weapon that lives has a motor: the original's weight is defined for non-zero boost and sustain times)
+local flown = gun('flown gun')
+flown.start_weight, flown.final_weight, flown.diameter, flown.boost_time, flown.sustain_time, flown.boost_power, flown.sustain_power = 5, 5, 0.1, 1, 2, 1, 1
+r = host.aim({ mode = 'figures', weapon = 21, figures = flown })
+assert(r.state == 'done', 'the figures are kept')
+local function weapon_step(weapon)
+  return { mode = 'weapon_step', weapon = weapon, echo = false, delta_time = 0.1, system_time = 1000, position = { 0, 500, 0 }, attitude = LEVEL, motion_vector = { 0, 0, 0 }, velocity = 900, weapon_lifetime = 3.0, decoy_timer = 0,
+    missile_phase = 0, loal_mode = false, weapon_on_ground = false, parachute_status = 0, kill_code = 0, entity_samples = { 100, 200, 300, 400 }, has_launcher = false, has_target = false, server = true,
+    map_min = { -100000, -1000, -100000 }, map_max = { 100000, 10000, 100000 }, answers = {}, draws = {} }
+end
+local function fly(step, answer)
+  local answers, draws = {}, {}
+  for pass = 1, 20 do
+    local request = {}
+    for k, v in pairs(step) do request[k] = v end
+    request.answers, request.draws = answers, draws
+    local out = host.aim(request)
+    if out.state == 'done' then return out end
+    assert(out.state == 'need_lookup' and out.actions == nil and #out.lookups > 0, 'a step that is not done leaves no action: ' .. tostring(out.state))
+    for _, lookup in ipairs(out.lookups) do
+      local a = { kind = lookup.kind, a = lookup.a, b = lookup.b, c = lookup.c, d = lookup.d, f = { unpack(lookup.f) } }
+      for i = 7, 12 do a.f[i] = 0 end
+      answers[#answers + 1] = answer(a) or a
+    end
+  end
+  error('the step did not finish')
+end
+local function last(out, kind) local found for _, action in ipairs(out.actions) do if action.kind == kind then found = action end end return found end
+r = host.aim(weapon_step(21))
+assert(r.state == 'need_lookup' and r.actions == nil and #r.lookups >= 1, 'with nothing answered the step stops for lookups and leaves nothing')
+local out = fly(weapon_step(21), function() end)
+local state, position = last(out, 1), last(out, 5)
+assert(state.c == 0 and near(state.f[5], 2.9) and state.f[1] < 900 and state.f[1] > 800, 'a frame of free flight: no kill code, the lifetime run down by the frame, the speed drag-reduced')
+assert(near(position.f[1], 0) and near(position.f[2], 500) and position.f[3] > 80 and position.f[3] < 90, 'and the position moved along the heading')
+-- the ground the campaign answers for decides the contact: land ends the weapon where the impact lookup says
+out = fly(weapon_step(21), function(a)
+  if a.kind == 8 then a.f[7] = 1 elseif a.kind == 9 then a.f[7], a.f[8], a.f[9], a.f[10] = 3, 1, 2, 3 end
+end)
+state, position = last(out, 1), last(out, 5)
+assert(state.c == 3 and near(position.f[1], 1) and near(position.f[2], 2) and near(position.f[3], 3), 'a weapon over land ends at hit-land at the impact point')
+out = fly(weapon_step(21), function(a)
+  if a.kind == 8 then a.f[7] = 1 elseif a.kind == 9 then a.f[7], a.f[8], a.f[9], a.f[10] = 1, 1, 2, 3 end
+end)
+assert(last(out, 1).c == 4, 'and over water at hit-water')
+-- a weapon whose lifetime has run out is over before it moves, and asks the campaign nothing
+local expired = weapon_step(21) expired.weapon_lifetime = -4.0
+out = host.aim(expired)
+assert(out.state == 'done' and last(out, 1).c == 1 and last(out, 5) == nil and last(out, 4) == nil, 'an exhausted weapon leaves its state and no position')
+refused(weapon_step(22), 'holds no figures')
+-- the birth of a weapon: the velocity it leaves with, its lifetime and its attitude, from the pose the launcher let it go in
+local born = gun('born gun')
+born.start_weight, born.final_weight, born.diameter, born.boost_time, born.sustain_time, born.boost_power, born.sustain_power, born.muzzle_velocity, born.acquire_forward = 5, 5, 0.1, 1, 2, 1, 1, 900, 1
+host.aim({ mode = 'figures', weapon = 23, figures = born })
+local function birth(weapon) local request = weapon_step(weapon) request.mode = 'weapon_birth' request.submunition = false return request end
+out = fly(birth(23), function(a) if a.kind == 14 then a.f[7] = 100 end end)
+local started = last(out, 8)
+assert(near(started.f[1], 1000) and started.f[2] == 3 and started.f[3] == 0, 'a weapon leaves with its launcher velocity and its muzzle velocity, for its motor lifetime')
+assert(last(out, 2).f[5] == 1 and last(out, 2).f[9] == 1 and last(out, 2).f[1] == 1, 'at the attitude the launcher let it go in')
+refused(birth(24), 'holds no figures')
+bad = birth(23) bad.submunition = 1
+refused(bad, 'submunition must be a boolean')
+-- the release of a weapon: the rate-of-fire gate of a launcher
+local cannon = gun('rated gun') cannon.rate_of_fire, cannon.inverse_rate_of_fire = 600, 1 / 600
+host.aim({ mode = 'figures', weapon = 25, figures = cannon })
+r = host.aim({ mode = 'release', weapon = 25, delta_time = 0.1, current_time = 1000, last_shot = 0, not_ai = false })
+assert(r.state == 'done' and r.refuse == false and r.burst_size == 1 and r.last_shot == 1000, 'the first shot goes and starts the launcher clock')
+r = host.aim({ mode = 'release', weapon = 25, delta_time = 0.1, current_time = 1050, last_shot = 1000, not_ai = false })
+assert(r.refuse == true and r.last_shot == nil, 'too soon: nothing goes and nothing is written')
+r = host.aim({ mode = 'release', weapon = 25, delta_time = 0.1, current_time = 1300, last_shot = 1000, not_ai = false })
+assert(r.refuse == false and r.burst_size == 3 and r.last_shot == 1300, 'three rounds owed go together')
+r = host.aim({ mode = 'release', weapon = 25, delta_time = 0.1, current_time = 1300, not_ai = false })
+assert(r.refuse == false and r.burst_size == 1 and r.last_shot == nil, 'a launcher with no clock lets one round go')
+refused({ mode = 'release', weapon = 26, delta_time = 0.1, current_time = 1000, not_ai = false }, 'holds no figures')
+-- after the flight: a crate's parachute, a decoy's timer and a seeker's seduction
+local crate = gun('crate') crate.parachute_type = 2
+crate.start_weight, crate.final_weight, crate.boost_time, crate.sustain_time, crate.boost_power, crate.sustain_power = 5, 5, 1, 2, 1, 1
+host.aim({ mode = 'figures', weapon = 27, figures = crate })
+r = host.aim({ mode = 'animate', weapon = 27, parachute_status = 0, weapon_on_ground = false, weapon_lifetime = -0.6, motion_vector_y = -3.0 })
+assert(r.state == 'done' and r.parachute_status == 1 and near(r.weapon_lifetime, 0), 'a falling crate opens its parachute and resets its lifetime')
+r = host.aim({ mode = 'animate', weapon = 27, parachute_status = 3, weapon_on_ground = true, weapon_lifetime = -9, motion_vector_y = 0 })
+assert(r.parachute_status == 4 and r.weapon_lifetime == nil, 'on the ground it collapses and nothing else is written')
+refused({ mode = 'animate', weapon = 27, parachute_status = 9, weapon_on_ground = false, weapon_lifetime = 0, motion_vector_y = 0 }, 'parachute state')
+refused({ mode = 'animate', weapon = 28, parachute_status = 0, weapon_on_ground = false, weapon_lifetime = 0, motion_vector_y = 0 }, 'holds no figures')
+local chaff = gun('chaff') chaff.decoy_type = 1
+local seeker = gun('seeker') seeker.guidance_type = 2
+host.aim({ mode = 'figures', weapon = 29, figures = chaff })
+host.aim({ mode = 'figures', weapon = 30, figures = seeker })
+local function decoy_step(timer) local request = weapon_step(29) request.mode = 'weapon_decoy' request.decoy_timer = timer request.delta_time = 0.1 return request end
+r = host.aim(decoy_step(0.5))
+assert(r.state == 'done' and r.actions[1].kind == 9 and r.actions[1].a == 0 and near(r.actions[1].f[1], 0.4), 'a decoy running down takes no sample')
+assert(host.aim(decoy_step(0.05)).state == 'need_draw', 'and when it runs out it asks for one')
+local drawn = decoy_step(0.05) drawn.draws = { 32767 }
+r = host.aim(drawn)
+assert(r.state == 'done' and r.actions[1].a == 1 and near(r.actions[1].f[1], 0.6), 'the restart is 0.4 plus a fifth of the sample')
+local function seduce_step(sample) local request = weapon_step(30) request.mode = 'weapon_seduce' request.other_weapon = 29 request.coefficient = 1.0 request.effectiveness = { 0.5, 0.5, 1.0 } request.draws = sample and { sample } or {} return request end
+assert(host.aim(seduce_step(nil)).state == 'need_draw', 'a seeker asked about a decoy takes a sample')
+r = host.aim(seduce_step(1000))
+assert(r.state == 'done' and r.actions[1].kind == 10 and r.actions[1].a == 1 and r.actions[1].b == 1, 'a radar seeker drawn to chaff goes for it')
+r = host.aim(seduce_step(20000))
+assert(r.actions[1].a == 0 and r.actions[1].b == 0, 'a sample over the chance does not')
+bad = seduce_step(1000) bad.effectiveness = { 0.5, 0.5 }
+refused(bad, 'effectiveness must be 3 finite numbers')
+bad = seduce_step(1000) bad.other_weapon = 31
+refused(bad, 'holds no figures')
+local function reacquire_step() local request = weapon_step(30) request.mode = 'weapon_reacquire' request.other_weapon = 29 return request end
+r = host.aim(reacquire_step())
+assert(r.state == 'done' and #r.actions == 1 and r.actions[1].kind == 11 and r.actions[1].a == 1 and r.actions[1].b == 0, 'a seeker whose decoy expired goes back to the launcher')
+local sampled = reacquire_step() sampled.draws = { 5 }
+assert(host.aim(sampled).state == 'done', 'and the answer takes no sample')
+bad = reacquire_step() bad.other_weapon = 31
+refused(bad, 'holds no figures')
+bad = reacquire_step() bad.other_weapon = nil
+refused(bad, 'other_weapon must be an integer')
+local own_model = dofile('@LUA_DIR@/own-weapon.lua')
+r = own_model.weapon_reacquire(reacquire_step())
+assert(r.state == 'done' and #r.actions == 1 and r.actions[1].kind == 11 and r.actions[1].a == 0, 'a generic host may tell the seeker to drop the lock')
+refused({ mode = 'release', weapon = 25, delta_time = 0.1, current_time = 1000, not_ai = 1 }, 'not_ai must be a boolean')
+local bad = weapon_step(21) bad.entity_samples = { 1, 2, 3 }
+refused(bad, 'entity_samples must be 4 integers')
+bad = weapon_step(21) bad.position = { 0, 0 / 0, 0 }
+refused(bad, 'position')
+bad = weapon_step(21) bad.draws = { 40000 }
+refused(bad, 'outside [0, 32767]')
+bad = weapon_step(21) bad.answers = { { kind = 8, a = 0, b = 0, c = 0, d = 0, f = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } } }
+refused(bad, 'f must be 12')
+refused({ mode = 'figures', weapon = 0, figures = gun('no weapon') }, 'not a weapon')
+-- a host with a model of its own is not made to know its own question by an exactness it does not have: the module carries the arguments of a lookup as single
+-- precision, so the model asks about points on a grid that single precision carries exactly, and recognises the campaign's answer to them
+local own = dofile('@LUA_DIR@/own-weapon.lua')
+local function carried(x)
+  -- a number as the module carries it, through the host's own conversion: the wind lookup of a step is asked at the weapon's position
+  local probe = weapon_step(21) probe.position = { x, 500, 0 }
+  for _, lookup in ipairs(host.aim(probe).lookups) do if lookup.kind == 7 then return lookup.f[1] end end
+  error('no wind lookup')
+end
+local dt = carried(0.1)
+assert(dt ~= 0.1, 'a tenth is not a single-precision number')
+local moving = weapon_step(21) moving.position = { carried(1000), carried(500), 0 } moving.delta_time = dt moving.velocity = 300 moving.attitude = LEVEL
+local asked = own.weapon_step(moving)
+assert(asked.state == 'need_lookup' and #asked.lookups == 1, 'the model asks for the ground once')
+local ground = asked.lookups[1]
+for i = 1, 3 do assert(carried(ground.f[i]) == ground.f[i], 'what the model asks is what the module carries: ' .. tostring(ground.f[i])) end
+moving.answers = { { kind = ground.kind, a = 0, b = 0, c = 0, d = 0, f = { carried(ground.f[1]), carried(ground.f[2]), carried(ground.f[3]), 0, 0, 0, 0, 0, 0, 0, 0, 0 } } }
+assert(own.weapon_step(moving).state == 'done', 'and the model recognises the answer to it')
+-- the malformed providers: the overdraw provider asks for a sample at every pass of a weapon step (a legal draw is a continuation, not a refusal), the others corrupt the
+-- first answer of their kind once and let the reference host answer the rest
+local malformed = dofile('@LUA_DIR@/aim-malformed.lua')
+local passed = function(_, answer) return answer end
+local overdraw = malformed('bad_step_draw', host.aim, passed)
+for n = 0, 12 do
+  local request = weapon_step(21) request.draws = {} for i = 1, n do request.draws[i] = 100 end
+  assert(overdraw(request).state == 'need_draw', 'the overdraw provider never settles: ' .. n .. ' samples given')
+end
+local once = malformed('bad_step_state', host.aim, passed)
+assert(once(weapon_step(21)).state == 'later', 'the first weapon step is corrupted')
+assert(once(weapon_step(21)).state == 'need_lookup', 'and the reference host answers the rest')
+assert(malformed('bad_step_state', host.aim, passed)({ mode = 'ready_update', state = 1.0, rate = 0.5, delta_time = 0.5 }).state == 'done', 'a request of another kind is answered as the reference does')
+-- the decision providers corrupt the first decision of their kind, and only a decision (a seeker that has yet to draw a sample is not corrupted)
+local flagged = malformed('bad_decoy_flag', host.aim, passed)(decoy_step(0.5))
+assert(flagged.state == 'done' and flagged.actions[1].kind == 9 and flagged.actions[1].a == 2, 'a decoy decision that is neither 0 nor 1')
+local seduced = malformed('bad_seduce_flag', host.aim, passed)
+assert(seduced(seduce_step(nil)).state == 'need_draw', 'a seduction that asks for its sample is not yet a decision')
+flagged = seduced(seduce_step(1000))
+assert(flagged.state == 'done' and flagged.actions[1].kind == 10 and flagged.actions[1].b == 3, 'a seduction decision that is neither 0 nor 1')
+flagged = malformed('bad_reacquire_flag', host.aim, passed)(reacquire_step())
+assert(flagged.state == 'done' and flagged.actions[1].kind == 11 and flagged.actions[1].a == -1, 'a reacquisition decision that is neither 0 nor 1')
+flagged = malformed('bad_reacquire_none', host.aim, passed)(reacquire_step())
+assert(flagged.state == 'done' and #flagged.actions == 0, 'a reacquisition with no decision')
+local reacquirer = malformed('bad_reacquire_flag', host.aim, passed)
+assert(reacquirer(weapon_step(21)).state == 'need_lookup', 'a request of another kind is answered as the reference does')
+assert(reacquirer(reacquire_step()).actions[1].a == -1 and reacquirer(reacquire_step()).actions[1].a == 1, 'the first decision only')
 -- malformed requests
 refused({ mode = 'glide' }, 'unknown mode')
 refused({ mode = 'ready_update', state = 0 / 0, rate = 0.5, delta_time = 1 }, 'state must be a finite number')
@@ -388,7 +570,12 @@ print('AIM_HOST=ok')
 #[test]
 fn aim_round_trips_through_lua_and_refuses_what_it_was_not_asked() {
     let script = std::env::temp_dir().join(format!("eech-world-aim-{}.lua", std::process::id()));
-    std::fs::write(&script, AIM_SCRIPT).unwrap();
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\\', "/");
+    std::fs::write(&script, AIM_SCRIPT.replace("@LUA_DIR@", &lua_dir)).unwrap();
     let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
     std::fs::remove_file(&script).unwrap();
     let run = run.unwrap();
@@ -396,4 +583,49 @@ fn aim_round_trips_through_lua_and_refuses_what_it_was_not_asked() {
     let stderr = String::from_utf8_lossy(&run.stderr);
     assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
     assert!(stdout.contains("AIM_HOST=ok"), "{stdout}\n{stderr}");
+}
+
+#[test]
+fn every_shipped_lua_script_parses_under_the_hosts_lua() {
+    let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("lua");
+    let lua = mlua::Lua::new();
+    let mut parsed = 0;
+    for entry in std::fs::read_dir(&directory).unwrap() {
+        let path = entry.unwrap().path();
+        if path.extension().is_some_and(|extension| extension == "lua") {
+            let source = std::fs::read(&path).unwrap();
+            lua.load(&source[..])
+                .set_name(path.display().to_string())
+                .into_function()
+                .unwrap_or_else(|error| panic!("{} does not parse: {error}", path.display()));
+            parsed += 1;
+        }
+    }
+    assert!(parsed >= 20, "only {parsed} scripts were found in {}", directory.display());
+}
+
+#[test]
+fn the_provider_and_the_controlled_witness_find_the_model_files_beside_them_when_the_binary_runs_them_as_the_main_script() {
+    // the binary names the main script's chunk by its path alone, so a script that looks for a file beside itself must accept a source with no leading '@'; the root does not
+    // exist, so each run ends at the boot, after it has read the model files it needs and before it flies anything
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\\', "/");
+    for (script, own_model) in [("aim-provider.lua", "mode=own_model"), ("weapon-case.lua", "aim_model=own_model")] {
+        let out = std::env::temp_dir().join(format!("eech-world-main-script-{}-{script}.out", std::process::id()));
+        let run = Command::new(env!("CARGO_BIN_EXE_eech-world"))
+            .arg(format!("{lua_dir}/{script}"))
+            .arg("root=/nonexistent-root-for-a-script-test")
+            .arg("scenario=lebanon_retail")
+            .arg(format!("out={}", out.display().to_string().replace('\\', "/")))
+            .arg(own_model)
+            .output()
+            .unwrap();
+        let _ = std::fs::remove_file(&out);
+        let text = format!("{}\n{}", String::from_utf8_lossy(&run.stdout), String::from_utf8_lossy(&run.stderr));
+        assert!(!text.contains("cannot open"), "{script} could not find a model file beside it: {text}");
+        assert!(!text.contains("own-model.lua"), "{script}: {text}");
+    }
 }

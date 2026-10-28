@@ -902,6 +902,10 @@ const SENSOR_REPORT_CAPACITY: usize = 96 * 1024;
 #[cfg(feature = "aim-fixture")]
 const AIM_REPORT_CAPACITY: usize = 96 * 1024;
 
+/// TEST-ONLY (feature `weapon-fixture`): room for one weapon-execution report or one chunk of the event log; a report that does not fit is refused, never cut short.
+#[cfg(feature = "weapon-fixture")]
+const WPN_REPORT_CAPACITY: usize = 160 * 1024;
+
 /// the booted engine (one per process)
 pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
@@ -1066,16 +1070,157 @@ pub struct SenseReply {
     pub echo: Option<SenseEcho>,
 }
 
-/// One weapon's ballistic table, raw weapon data (the product of the campaign's projectile simulation), handed to the host once: `cells` is
-/// (drop angle, flight time) float pairs, velocity test by pitch index by range, `velocity_tests * pitch_indices * range_values * 2` in all.
+/// One weapon's physical figures, mirrored from the campaign's weapon database (transitional: a host with a model of its own needs none of them).
+#[derive(Clone, Debug, PartialEq)]
+pub struct WeaponFigures {
+    pub name: String,
+    pub start_weight: f32,
+    pub final_weight: f32,
+    pub max_range: f32,
+    pub muzzle_velocity: f32,
+    pub cruise_velocity: f32,
+    pub g_max: f32,
+    pub boost_time: f32,
+    pub cruise_time: f32,
+    pub inhibit_time: f32,
+    pub drag_coefficient: f32,
+    pub flightpath_deviation: f32,
+    pub boost_power: f32,
+    pub sustain_power: f32,
+    pub sustain_time: f32,
+    pub diameter: f32,
+    pub max_altitude: f32,
+    pub ignore_gravity: i32,
+    pub flight_profile_or_self_destr: i32,
+    pub parachute_type: i32,
+    pub weapon_class: u32,
+    pub cruise_time_max_error: f32,
+    pub detonation_radius: f32,
+    pub max_seeker_limit: f32,
+    pub max_launch_angle_error: f32,
+    pub survive_ground_impact: i32,
+    pub in_flight_collision_check: i32,
+    pub guidance_type: i32,
+    pub aiming_type: i32,
+    pub decoy_type: i32,
+    pub warhead_type: i32,
+    pub hellfire_ii: i32,
+    pub smoke_grenade: i32,
+    pub submunition_count: i32,
+    pub submunition_velocity_factor: i32,
+    pub muzzle_velocity_max_error: f32,
+    pub circular_error_probable: f32,
+    pub rate_of_fire: f32,
+    pub inverse_rate_of_fire: f32,
+    pub acquire_forward: i32,
+}
+
+/// An unguided weapon's figures, handed to the host once at boot: the host simulates the weapon's flight and keeps the ballistic table that results (no cell crosses the
+/// boundary). `first` and `last` flag the ends of the pass (the host writes a diagnostic file across it). `echo` is the test fixture build's request for the host's table
+/// and flight records back (`echo_cells` is the number of floats the campaign has room for).
 #[derive(Clone, Debug, PartialEq)]
 pub struct AimTable {
     pub weapon: i32,
-    pub max_range: f32,
-    pub velocity_tests: i32,
-    pub pitch_indices: i32,
-    pub range_values: i32,
-    pub cells: Vec<f32>,
+    pub figures: WeaponFigures,
+    pub first: bool,
+    pub last: bool,
+    pub echo: bool,
+    pub echo_cells: usize,
+}
+
+/// A guided weapon's figures, handed to the host once at boot: the host runs its two range simulations and writes its diagnostic file.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimRange {
+    pub weapon: i32,
+    pub figures: WeaponFigures,
+    pub first: bool,
+    pub last: bool,
+    pub echo: bool,
+}
+
+/// One weapon's figures, handed to the host at boot to keep (every weapon, whether or not it has a table or a range run): the host flies the weapon by them.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimFigures {
+    pub weapon: i32,
+    pub figures: WeaponFigures,
+}
+
+/// The weapon as the campaign holds it for one frame of its flight. The entity-local random stream never leaves the campaign: `entity_samples` are its first four outputs
+/// (raw integers in [0, 32767]), all any one call of the original uses.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimWeaponState {
+    pub position: [f32; 3],
+    pub attitude: [f32; 9],
+    pub motion_vector: [f32; 3],
+    pub velocity: f32,
+    pub weapon_lifetime: f32,
+    pub decoy_timer: f32,
+    pub missile_phase: i32,
+    pub loal_mode: bool,
+    pub weapon_on_ground: bool,
+    pub parachute_status: i32,
+    pub kill_code: i32,
+    pub entity_samples: [i32; 4],
+    pub has_launcher: bool,
+    pub has_target: bool,
+    pub server: bool,
+    /// A birth only: the weapon is a submunition, and `velocity` is its parent weapon's.
+    pub submunition: bool,
+    /// A seduction only: the decoy's weapon number, the difficulty coefficient and the chaff, flare and smoke effectiveness settings.
+    pub other_weapon: i32,
+    pub coefficient: f32,
+    pub effectiveness: [f32; 3],
+}
+
+/// What a request of the weapon step protocol asks the host for.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AimStepKind {
+    /// A frame of a weapon's flight.
+    Step,
+    /// A weapon's birth.
+    Birth,
+    /// A decoy's update.
+    Decoy,
+    /// A seeker's answer to a decoy becoming active.
+    Seduce,
+    /// A seeker's answer to the decoy it was tracking expiring.
+    Reacquire,
+}
+
+/// One frame of a falling weapon's parachute.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimAnimate {
+    pub weapon: i32,
+    pub parachute_status: i32,
+    pub weapon_on_ground: bool,
+    pub weapon_lifetime: f32,
+    pub motion_vector_y: f32,
+}
+
+/// The rate-of-fire gate of a launcher releasing a weapon: the frame, the clock, the launcher's last-shot clock (when it has one) and whether it is not an AI.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimRelease {
+    pub weapon: i32,
+    pub delta_time: f32,
+    pub current_time: u32,
+    pub last_shot: Option<u32>,
+    pub not_ai: bool,
+}
+
+/// One frame of one weapon's flight, or (with `birth`) its birth: the weapon, the clock and the frame, and what the host has been told so far in answer to the lookups it asked for (`answers`, each
+/// the lookup repeated with its results in `f[6..12]`) and the samples of the campaign's shared random stream it has been given (`draws`, raw integers in [0, 32767]).
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimWeaponStep {
+    pub kind: AimStepKind,
+    pub echo: bool,
+    pub weapon: i32,
+    pub delta_time: f32,
+    pub system_time: u32,
+    pub map_min: [f32; 3],
+    pub map_max: [f32; 3],
+    pub state: AimWeaponState,
+    pub answers: Vec<AimEvent>,
+    pub draws: Vec<i32>,
 }
 
 /// The figures of a weapon the host aims with. `present` is false when there is no weapon (a zero speed).
@@ -1225,6 +1370,11 @@ pub struct AimIntercept {
 #[derive(Clone, Debug, PartialEq)]
 pub enum AimRequest {
     Table(AimTable),
+    Range(AimRange),
+    Figures(AimFigures),
+    WeaponStep(AimWeaponStep),
+    Release(AimRelease),
+    Animate(AimAnimate),
     ReadyUpdate(AimReadyUpdate),
     ReadyCommand(AimReadyCommand),
     Required(AimRequired),
@@ -1251,6 +1401,18 @@ pub struct AimEvent {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct AimReply {
     pub need_draw: bool,
+    /// A weapon step only: the host needs the answers to `lookups` and asks again.
+    pub need_lookup: bool,
+    /// A weapon step: the lookups it still needs (with `need_lookup`), or the actions it left, in the order the campaign applies them (when done).
+    pub lookups: Vec<AimEvent>,
+    pub actions: Vec<AimEvent>,
+    /// A release only: the launcher lets nothing go; the rounds it lets go; the last-shot clock the gate wrote (even when it then refused), if it wrote one.
+    pub release_refuse: bool,
+    pub release_burst_size: i32,
+    pub release_last_shot: Option<u32>,
+    /// An animation only: the parachute's state, and the weapon's lifetime when the animation reset it.
+    pub animate_status: i32,
+    pub animate_lifetime: Option<f32>,
     pub result: bool,
     pub ready_state: f32,
     pub phase: i32,
@@ -1270,6 +1432,9 @@ pub struct AimReply {
     /// variable alone. `Some` must be finite.
     pub time_of_flight: Option<f32>,
     pub echo: Option<Vec<AimEvent>>,
+    /// A table request's echo (the test fixture build only): the cells of the table the host generated, (drop angle, flight time) float pairs, velocity test by pitch index
+    /// by range; its length must be exactly the room the campaign gave.
+    pub table_cells: Option<Vec<f32>>,
 }
 
 fn side(value: c_int) -> Side {
@@ -2196,6 +2361,85 @@ fn aim_host_id(buffer: &[c_char], role: &str) -> Result<Option<String>, String> 
         .map_err(|_| format!("aim received a non-UTF-8 {role} host identity"))
 }
 
+fn weapon_figures(source: &sys::eech_weapon_figures) -> Result<WeaponFigures, String> {
+    let name_bytes = source.name.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect::<Vec<_>>();
+    if name_bytes.is_empty() || name_bytes.len() > sys::EECH_WEAPON_NAME_MAX {
+        return Err("aim received figures with an invalid weapon name".into());
+    }
+    let name = String::from_utf8_lossy(&name_bytes).into_owned();
+    let floats = [
+        source.start_weight,
+        source.final_weight,
+        source.max_range,
+        source.muzzle_velocity,
+        source.cruise_velocity,
+        source.g_max,
+        source.boost_time,
+        source.cruise_time,
+        source.inhibit_time,
+        source.drag_coefficient,
+        source.flightpath_deviation,
+        source.boost_power,
+        source.sustain_power,
+        source.sustain_time,
+        source.diameter,
+        source.max_altitude,
+        source.cruise_time_max_error,
+        source.detonation_radius,
+        source.max_seeker_limit,
+        source.max_launch_angle_error,
+        source.muzzle_velocity_max_error,
+        source.circular_error_probable,
+        source.rate_of_fire,
+        source.inverse_rate_of_fire,
+    ];
+    if floats.iter().any(|value| !value.is_finite()) {
+        return Err(format!("aim received non-finite figures for weapon {name}"));
+    }
+    Ok(WeaponFigures {
+        name,
+        start_weight: source.start_weight,
+        final_weight: source.final_weight,
+        max_range: source.max_range,
+        muzzle_velocity: source.muzzle_velocity,
+        cruise_velocity: source.cruise_velocity,
+        g_max: source.g_max,
+        boost_time: source.boost_time,
+        cruise_time: source.cruise_time,
+        inhibit_time: source.inhibit_time,
+        drag_coefficient: source.drag_coefficient,
+        flightpath_deviation: source.flightpath_deviation,
+        boost_power: source.boost_power,
+        sustain_power: source.sustain_power,
+        sustain_time: source.sustain_time,
+        diameter: source.diameter,
+        max_altitude: source.max_altitude,
+        ignore_gravity: source.ignore_gravity,
+        flight_profile_or_self_destr: source.flight_profile_or_self_destr,
+        parachute_type: source.parachute_type,
+        weapon_class: source.weapon_class,
+        cruise_time_max_error: source.cruise_time_max_error,
+        detonation_radius: source.detonation_radius,
+        max_seeker_limit: source.max_seeker_limit,
+        max_launch_angle_error: source.max_launch_angle_error,
+        survive_ground_impact: source.survive_ground_impact,
+        in_flight_collision_check: source.in_flight_collision_check,
+        guidance_type: source.guidance_type,
+        aiming_type: source.aiming_type,
+        decoy_type: source.decoy_type,
+        warhead_type: source.warhead_type,
+        hellfire_ii: source.hellfire_ii,
+        smoke_grenade: source.smoke_grenade,
+        submunition_count: source.submunition_count,
+        submunition_velocity_factor: source.submunition_velocity_factor,
+        muzzle_velocity_max_error: source.muzzle_velocity_max_error,
+        circular_error_probable: source.circular_error_probable,
+        rate_of_fire: source.rate_of_fire,
+        inverse_rate_of_fire: source.inverse_rate_of_fire,
+        acquire_forward: source.acquire_forward,
+    })
+}
+
 fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
     let finite = |name: &str, values: &[f32]| -> Result<(), String> {
         if values.iter().any(|value| !value.is_finite()) {
@@ -2250,26 +2494,145 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
     let source_id = || aim_host_id(&source.source_host_id, "source");
     let target_id = || aim_host_id(&source.target_host_id, "target");
     Ok(match source.mode {
-        sys::EECH_AIM_TABLE => {
-            if source.table_cells.is_null()
-                || source.table_velocity_tests <= 0
-                || source.table_pitch_indices <= 0
-                || source.table_range_values <= 0
-                || source.table_cell_count
-                    != (source.table_velocity_tests as usize) * (source.table_pitch_indices as usize) * (source.table_range_values as usize) * 2
-            {
-                return Err("aim received a ballistic table of an inconsistent shape".into());
+        sys::EECH_AIM_TABLE | sys::EECH_AIM_RANGE => {
+            let figures = weapon_figures(&source.figures)?;
+            if source.weapon <= 0 || figures.max_range <= 0.0 || figures.max_range > 200_000.0 {
+                return Err(format!("aim received figures of an inconsistent weapon {}", source.weapon));
             }
-            finite("table range limit", &[source.table_max_range])?;
-            // SAFETY: C owns the cells for the call and gave their count; the shape was checked above.
-            let cells = unsafe { std::slice::from_raw_parts(source.table_cells, source.table_cell_count) }.to_vec();
-            AimRequest::Table(AimTable {
+            let (first, last) = (checked_bool("pass_first", source.pass_first)?, checked_bool("pass_last", source.pass_last)?);
+            if source.mode == sys::EECH_AIM_TABLE {
+                if echo && (source.echo_cells.is_null() || source.echo_cell_capacity == 0) {
+                    return Err("aim was asked to echo a table with no room for it".into());
+                }
+                AimRequest::Table(AimTable {
+                    weapon: source.weapon,
+                    figures,
+                    first,
+                    last,
+                    echo,
+                    echo_cells: if echo { source.echo_cell_capacity } else { 0 },
+                })
+            } else {
+                AimRequest::Range(AimRange {
+                    weapon: source.weapon,
+                    figures,
+                    first,
+                    last,
+                    echo,
+                })
+            }
+        }
+        sys::EECH_AIM_FIGURES => {
+            let figures = weapon_figures(&source.figures)?;
+            if source.weapon <= 0 {
+                return Err(format!("aim received figures for weapon {}, which is not a weapon", source.weapon));
+            }
+            AimRequest::Figures(AimFigures {
                 weapon: source.weapon,
-                max_range: source.table_max_range,
-                velocity_tests: source.table_velocity_tests,
-                pitch_indices: source.table_pitch_indices,
-                range_values: source.table_range_values,
-                cells,
+                figures,
+            })
+        }
+        sys::EECH_AIM_RELEASE => {
+            finite("release frame", &[source.delta_time])?;
+            if source.weapon <= 0 {
+                return Err(format!("aim received a release of weapon {}, which is not a weapon", source.weapon));
+            }
+            let has_timer = checked_bool("release_has_timer", source.release_has_timer)?;
+            AimRequest::Release(AimRelease {
+                weapon: source.weapon,
+                delta_time: source.delta_time,
+                current_time: source.system_time,
+                last_shot: has_timer.then_some(source.release_last_shot),
+                not_ai: checked_bool("release_not_ai", source.release_not_ai)?,
+            })
+        }
+        sys::EECH_AIM_ANIMATE => {
+            finite("animation figure", &[source.animate_lifetime, source.animate_motion_y])?;
+            if source.weapon <= 0 {
+                return Err(format!("aim received an animation of weapon {}, which is not a weapon", source.weapon));
+            }
+            if !(0..5).contains(&source.animate_status) {
+                return Err(format!("aim received a parachute state {}", source.animate_status));
+            }
+            AimRequest::Animate(AimAnimate {
+                weapon: source.weapon,
+                parachute_status: source.animate_status,
+                weapon_on_ground: checked_bool("animate_on_ground", source.animate_on_ground)?,
+                weapon_lifetime: source.animate_lifetime,
+                motion_vector_y: source.animate_motion_y,
+            })
+        }
+        sys::EECH_AIM_WEAPON_STEP | sys::EECH_AIM_WEAPON_BIRTH | sys::EECH_AIM_WEAPON_DECOY | sys::EECH_AIM_WEAPON_SEDUCE | sys::EECH_AIM_WEAPON_REACQUIRE => {
+            let state = &source.weapon_state;
+            finite("seduction setting", &[state.coefficient])?;
+            finite("seduction setting", &state.effectiveness)?;
+            finite("weapon position", &state.position)?;
+            finite("weapon attitude", &state.attitude)?;
+            finite("weapon motion vector", &state.motion_vector)?;
+            finite("weapon state", &[state.velocity, state.weapon_lifetime, state.decoy_timer, source.delta_time])?;
+            finite("map bound", &source.map_min)?;
+            finite("map bound", &source.map_max)?;
+            if source.weapon <= 0 {
+                return Err(format!("aim received a step of weapon {}, which is not a weapon", source.weapon));
+            }
+            if !(0..=sys::EECH_STEP_ANSWERS_MAX as c_int).contains(&source.answer_count)
+                || !(0..=sys::EECH_STEP_DRAWS_MAX as c_int).contains(&source.draw_count)
+            {
+                return Err("aim received a weapon step with an answer or draw count out of range".into());
+            }
+            let draws = source.draws[..source.draw_count as usize].to_vec();
+            if draws.iter().chain(state.entity_samples.iter()).any(|sample| !(0..=32767).contains(sample)) {
+                return Err("aim received a weapon step with a random sample outside [0, 32767]".into());
+            }
+            let mut answers = Vec::with_capacity(source.answer_count as usize);
+            for answer in &source.answers[..source.answer_count as usize] {
+                finite("lookup answer", &answer.f)?;
+                answers.push(AimEvent {
+                    kind: answer.kind,
+                    a: answer.a,
+                    b: answer.b,
+                    c: answer.c,
+                    d: answer.d,
+                    f: answer.f,
+                });
+            }
+            AimRequest::WeaponStep(AimWeaponStep {
+                kind: match source.mode {
+                    sys::EECH_AIM_WEAPON_BIRTH => AimStepKind::Birth,
+                    sys::EECH_AIM_WEAPON_DECOY => AimStepKind::Decoy,
+                    sys::EECH_AIM_WEAPON_SEDUCE => AimStepKind::Seduce,
+                    sys::EECH_AIM_WEAPON_REACQUIRE => AimStepKind::Reacquire,
+                    _ => AimStepKind::Step,
+                },
+                echo,
+                weapon: source.weapon,
+                delta_time: source.delta_time,
+                system_time: source.system_time,
+                map_min: source.map_min,
+                map_max: source.map_max,
+                state: AimWeaponState {
+                    position: state.position,
+                    attitude: state.attitude,
+                    motion_vector: state.motion_vector,
+                    velocity: state.velocity,
+                    weapon_lifetime: state.weapon_lifetime,
+                    decoy_timer: state.decoy_timer,
+                    missile_phase: state.missile_phase,
+                    loal_mode: checked_bool("loal_mode", state.loal_mode)?,
+                    weapon_on_ground: checked_bool("weapon_on_ground", state.weapon_on_ground)?,
+                    parachute_status: state.parachute_status,
+                    kill_code: state.kill_code,
+                    entity_samples: state.entity_samples,
+                    has_launcher: checked_bool("has_launcher", state.has_launcher)?,
+                    has_target: checked_bool("has_target", state.has_target)?,
+                    server: checked_bool("server", state.server)?,
+                    submunition: checked_bool("submunition", state.submunition)?,
+                    other_weapon: state.other_weapon,
+                    coefficient: state.coefficient,
+                    effectiveness: state.effectiveness,
+                },
+                answers,
+                draws,
             })
         }
         sys::EECH_AIM_READY_UPDATE => {
@@ -2421,12 +2784,90 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
 fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech_aim_result, String> {
     // SAFETY: the result is plain data; all-zero is a valid value of every field (the echo pointer is the campaign's, set after the call).
     let mut answer: sys::eech_aim_result = unsafe { std::mem::zeroed() };
+    let event = |event: &AimEvent| sys::eech_aim_event {
+        kind: event.kind,
+        a: event.a,
+        b: event.b,
+        c: event.c,
+        d: event.d,
+        f: event.f,
+    };
     if reply.need_draw {
-        if source.mode != sys::EECH_AIM_VECTORS && source.mode != sys::EECH_AIM_LEAD {
+        if !matches!(
+            source.mode,
+            sys::EECH_AIM_VECTORS
+                | sys::EECH_AIM_LEAD
+                | sys::EECH_AIM_WEAPON_STEP
+                | sys::EECH_AIM_WEAPON_BIRTH
+                | sys::EECH_AIM_WEAPON_DECOY
+                | sys::EECH_AIM_WEAPON_SEDUCE
+                | sys::EECH_AIM_WEAPON_REACQUIRE
+        ) {
             return Err("aim asked for a draw in answer to a request that cannot take one".into());
         }
         answer.state = sys::EECH_AIM_NEED_DRAW;
         return Ok(answer);
+    }
+    if reply.need_lookup {
+        if !matches!(
+            source.mode,
+            sys::EECH_AIM_WEAPON_STEP | sys::EECH_AIM_WEAPON_BIRTH | sys::EECH_AIM_WEAPON_DECOY | sys::EECH_AIM_WEAPON_SEDUCE | sys::EECH_AIM_WEAPON_REACQUIRE
+        ) {
+            return Err("aim asked for lookups in answer to a request that cannot take them".into());
+        }
+        if reply.lookups.is_empty() || reply.lookups.len() > sys::EECH_STEP_LOOKUPS_MAX {
+            return Err(format!(
+                "aim asked for {} lookups, not 1 to {}",
+                reply.lookups.len(),
+                sys::EECH_STEP_LOOKUPS_MAX
+            ));
+        }
+        answer.state = sys::EECH_AIM_NEED_LOOKUP;
+        answer.lookup_count = reply.lookups.len() as c_int;
+        for (slot, lookup) in answer.lookups.iter_mut().zip(&reply.lookups) {
+            *slot = event(lookup);
+        }
+        return Ok(answer);
+    }
+    if source.mode == sys::EECH_AIM_RELEASE {
+        if reply.release_last_shot.is_some() && source.release_has_timer == 0 {
+            return Err("aim wrote a last-shot clock for a launcher that has none".into());
+        }
+        answer.release_refuse = c_int::from(reply.release_refuse);
+        answer.release_burst_size = reply.release_burst_size;
+        if let Some(last_shot) = reply.release_last_shot {
+            answer.release_write_last_shot = 1;
+            answer.release_last_shot = last_shot;
+        }
+    }
+    if source.mode == sys::EECH_AIM_ANIMATE {
+        answer.animate_status = reply.animate_status;
+        if let Some(lifetime) = reply.animate_lifetime {
+            if !lifetime.is_finite() {
+                return Err("aim answered a non-finite lifetime".into());
+            }
+            answer.animate_write_lifetime = 1;
+            answer.animate_lifetime = lifetime;
+        }
+    }
+    if !reply.actions.is_empty() {
+        if !matches!(
+            source.mode,
+            sys::EECH_AIM_WEAPON_STEP | sys::EECH_AIM_WEAPON_BIRTH | sys::EECH_AIM_WEAPON_DECOY | sys::EECH_AIM_WEAPON_SEDUCE | sys::EECH_AIM_WEAPON_REACQUIRE
+        ) {
+            return Err("aim answered a request that cannot carry actions with some".into());
+        }
+        if reply.actions.len() > sys::EECH_STEP_ACTIONS_MAX {
+            return Err(format!(
+                "aim answered with {} actions, more than the {} a step can carry",
+                reply.actions.len(),
+                sys::EECH_STEP_ACTIONS_MAX
+            ));
+        }
+        answer.action_count = reply.actions.len() as c_int;
+        for (slot, action) in answer.actions.iter_mut().zip(&reply.actions) {
+            *slot = event(action);
+        }
     }
     answer.state = sys::EECH_AIM_DONE;
     answer.result = c_int::from(reply.result);
@@ -2480,6 +2921,21 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
         }
         answer.has_echo = 1;
         answer.echo_count = events.len() as c_int;
+    }
+    if let Some(cells) = &reply.table_cells {
+        if source.mode != sys::EECH_AIM_TABLE || source.echo_cells.is_null() {
+            return Err("aim echoed table cells nobody asked for".into());
+        }
+        if cells.len() > source.echo_cell_capacity {
+            return Err(format!(
+                "aim echoed {} table cells, more than the {} it can carry",
+                cells.len(),
+                source.echo_cell_capacity
+            ));
+        }
+        // SAFETY: the campaign gave room for `echo_cell_capacity` floats at `echo_cells` for this call, and the count was checked against it.
+        unsafe { std::ptr::copy_nonoverlapping(cells.as_ptr(), source.echo_cells, cells.len()) };
+        answer.echo_cell_count = cells.len();
     }
     Ok(answer)
 }
@@ -3467,6 +3923,112 @@ impl Engine {
     pub fn aim_trace_reset(&self) -> Result<(), EngineError> {
         // SAFETY: no pointers cross.
         check(unsafe { sys::eech_engine_aim_trace_reset() })
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the run-wide report of the physical weapon-execution code (table generation at boot, launch, flight, update order,
+    /// contact and terminal facts) since process start, as `key=value` text lines. Read-only.
+    #[cfg(feature = "weapon-fixture")]
+    pub fn wpn_trace(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_wpn_trace(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-45): drains the ordered event log (births, launch outcomes, terminals, destroys, table summaries) from the cursor and returns
+    /// every event not yet returned, one `wpn-ev` line each. Read-only apart from advancing the cursor.
+    #[cfg(feature = "weapon-fixture")]
+    pub fn wpn_events(&self) -> Result<String, EngineError> {
+        let mut all = String::new();
+        loop {
+            let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
+            let mut more: std::os::raw::c_int = 0;
+            // SAFETY: the buffer and `more` outlive the call and the capacity passed is the buffer length; the engine NUL-terminates the text.
+            check(unsafe { sys::eech_engine_wpn_events(text.as_mut_ptr(), text.len() as i32, &mut more) })?;
+            // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+            all.push_str(&unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy());
+            if more == 0 {
+                return Ok(all);
+            }
+        }
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the state of one host-identified entity and its count of one weapon type, as `key=value` text.
+    #[cfg(feature = "weapon-fixture")]
+    pub fn wpn_case_query(&self, host_id: &str, weapon: i32) -> Result<String, EngineError> {
+        let host_id = std::ffi::CString::new(host_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
+        let mut text = vec![0 as std::os::raw::c_char; 4096];
+        // SAFETY: the string and the buffer outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_wpn_case_query(host_id.as_ptr(), weapon, text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the entity kind of a roster host id from its type field alone, as `key=value` text (`found=0` for an unknown id).
+    #[cfg(feature = "weapon-fixture")]
+    pub fn wpn_case_kind(&self, host_id: &str) -> Result<String, EngineError> {
+        let host_id = std::ffi::CString::new(host_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
+        let mut text = vec![0 as std::os::raw::c_char; 4096];
+        // SAFETY: the string and the buffer outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_wpn_case_kind(host_id.as_ptr(), text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-45): one physical launch attempt of one weapon type by one host-identified launcher through the campaign's own launch call,
+    /// after an optional host-identified target link set through the campaign's own link call (an empty target id sets none). Given the same complete host as a frame.
+    #[cfg(feature = "weapon-fixture")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn wpn_case_launch<F, G, H, M, L, D, A>(
+        &self,
+        launcher_id: &str,
+        target_id: &str,
+        weapon: i32,
+        salvo_count: i32,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
+        sense_fn: &mut D,
+        aim_fn: &mut A,
+    ) -> Result<String, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
+        D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
+    {
+        let launcher_id = std::ffi::CString::new(launcher_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
+        let target_id = std::ffi::CString::new(target_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
+        let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
+        // SAFETY: the strings, the buffer and the temporary host callback outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            sense_fn,
+            aim_fn,
+            |host| unsafe {
+                sys::eech_engine_wpn_case_launch(
+                    launcher_id.as_ptr(),
+                    target_id.as_ptr(),
+                    weapon,
+                    salvo_count,
+                    text.as_mut_ptr(),
+                    text.len() as i32,
+                    host,
+                )
+            },
+        )?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
     /// TEST-ONLY (feature `sensor-fixture`, EEDCS-43): clears the run-wide sensor trace.
@@ -4932,30 +5494,507 @@ mod tests {
         (seen, result, code, String::from_utf8_lossy(&text).into_owned())
     }
 
-    #[test]
-    fn an_aim_table_request_hands_the_host_its_raw_cells_and_a_table_of_the_wrong_shape_never_reaches_it() {
-        let cells = vec![0.5f32; 5 * 85 * 7 * 2];
-        let mut step = blank_aim_step(sys::EECH_AIM_TABLE);
+    fn figures_step(mode: c_int) -> sys::eech_aim_step {
+        let mut step = blank_aim_step(mode);
         step.weapon = 12;
-        step.table_max_range = 100.0;
-        step.table_velocity_tests = 5;
-        step.table_pitch_indices = 85;
-        step.table_range_values = 7;
-        step.table_cells = cells.as_ptr();
-        step.table_cell_count = cells.len();
+        for (slot, byte) in step.figures.name.iter_mut().zip(b"M2HB_test_gun\0") {
+            *slot = *byte as c_char;
+        }
+        step.figures.max_range = 100.0;
+        step.figures.muzzle_velocity = 890.0;
+        step.figures.drag_coefficient = 0.3;
+        step.figures.diameter = 0.0127;
+        step.figures.weapon_class = 8;
+        step.pass_first = 1;
+        step.pass_last = 0;
+        step
+    }
+
+    #[test]
+    fn an_aim_table_request_hands_the_host_the_weapons_figures_and_no_cell_and_figures_that_cannot_be_a_weapon_never_reach_it() {
+        let step = figures_step(sys::EECH_AIM_TABLE);
         let (seen, _, code, _) = aim_crossing(&step, |_| Ok(AimReply::default()));
         assert_eq!(code, 0);
         let Some(AimRequest::Table(table)) = seen else {
-            panic!("the host was not asked for a table")
+            panic!("the host was not asked to generate a table")
         };
         assert_eq!(
-            (table.weapon, table.max_range, table.velocity_tests, table.pitch_indices, table.range_values),
-            (12, 100.0, 5, 85, 7)
+            (
+                table.weapon,
+                table.figures.name.as_str(),
+                table.figures.max_range,
+                table.figures.muzzle_velocity
+            ),
+            (12, "M2HB_test_gun", 100.0, 890.0)
         );
-        assert_eq!(table.cells, cells);
-        step.table_cell_count -= 2;
+        assert_eq!(
+            (table.first, table.last, table.echo, table.echo_cells, table.figures.weapon_class),
+            (true, false, false, 0, 8)
+        );
+        // figures that are not a weapon's never reach the host: no name, a non-finite figure, no range, a flag that is not a boolean
+        let mut unnamed = figures_step(sys::EECH_AIM_TABLE);
+        unnamed.figures.name[0] = 0;
+        let mut infinite = figures_step(sys::EECH_AIM_TABLE);
+        infinite.figures.drag_coefficient = f32::INFINITY;
+        let mut rangeless = figures_step(sys::EECH_AIM_TABLE);
+        rangeless.figures.max_range = 0.0;
+        let mut flagged = figures_step(sys::EECH_AIM_TABLE);
+        flagged.pass_first = 2;
+        for (what, bad) in [("name", unnamed), ("figure", infinite), ("range", rangeless), ("flag", flagged)] {
+            let (seen, _, code, error) = aim_crossing(&bad, |_| panic!("the host must not be asked"));
+            assert!(seen.is_none() && code != 0, "{what}: {error}");
+        }
+    }
+
+    #[test]
+    fn an_aim_table_echo_is_written_into_the_room_the_campaign_gave_and_never_past_it() {
+        let mut room = vec![0.0f32; 6];
+        let mut step = figures_step(sys::EECH_AIM_TABLE);
+        step.echo = 1;
+        step.echo_cells = room.as_mut_ptr();
+        step.echo_cell_capacity = room.len();
+        let (seen, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                table_cells: Some(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0);
+        assert!(matches!(seen, Some(AimRequest::Table(ref table)) if table.echo && table.echo_cells == 6));
+        assert_eq!(result.echo_cell_count, 6);
+        assert_eq!(room, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                table_cells: Some(vec![0.0; 7]),
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("more than the 6"), "{error}");
+        // a host that echoes cells nobody asked for is refused
+        let quiet = figures_step(sys::EECH_AIM_TABLE);
+        let (_, _, code, error) = aim_crossing(&quiet, |_| {
+            Ok(AimReply {
+                table_cells: Some(vec![0.0; 6]),
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("nobody asked"), "{error}");
+    }
+
+    #[test]
+    fn an_aim_range_request_hands_the_host_a_guided_weapons_figures() {
+        let step = figures_step(sys::EECH_AIM_RANGE);
+        let (seen, _, code, _) = aim_crossing(&step, |_| Ok(AimReply::default()));
+        assert_eq!(code, 0);
+        let Some(AimRequest::Range(range)) = seen else {
+            panic!("the host was not asked for a range run")
+        };
+        assert_eq!(
+            (range.weapon, range.figures.name.as_str(), range.first, range.last, range.echo),
+            (12, "M2HB_test_gun", true, false, false)
+        );
+    }
+
+    #[test]
+    fn an_aim_figures_request_hands_the_host_one_weapons_figures_to_keep_and_a_weapon_that_is_not_one_never_reaches_it() {
+        let mut step = figures_step(sys::EECH_AIM_FIGURES);
+        let (seen, _, code, _) = aim_crossing(&step, |_| Ok(AimReply::default()));
+        assert_eq!(code, 0);
+        let Some(AimRequest::Figures(figures)) = seen else {
+            panic!("the host was not handed the figures")
+        };
+        assert_eq!(
+            (figures.weapon, figures.figures.name.as_str(), figures.figures.muzzle_velocity),
+            (12, "M2HB_test_gun", 890.0)
+        );
+        step.weapon = 0;
         let (seen, _, code, error) = aim_crossing(&step, |_| panic!("the host must not be asked"));
-        assert!(seen.is_none() && code != 0 && error.contains("inconsistent shape"), "{error}");
+        assert!(seen.is_none() && code != 0, "{error}");
+        let mut infinite = figures_step(sys::EECH_AIM_FIGURES);
+        infinite.figures.rate_of_fire = f32::INFINITY;
+        let (seen, _, code, error) = aim_crossing(&infinite, |_| panic!("the host must not be asked"));
+        assert!(seen.is_none() && code != 0, "{error}");
+    }
+
+    fn step_request(mode: c_int) -> sys::eech_aim_step {
+        let mut step = blank_aim_step(mode);
+        step.weapon = 5;
+        step.delta_time = 0.1;
+        step.system_time = 4242;
+        step.map_max = [1.0e5; 3];
+        step.weapon_state.attitude = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+        step.weapon_state.velocity = 900.0;
+        step.weapon_state.weapon_lifetime = 3.0;
+        step.weapon_state.entity_samples = [1, 2, 3, 4];
+        step.weapon_state.server = 1;
+        step
+    }
+
+    fn event(kind: c_int, c: c_int, value: f32) -> AimEvent {
+        AimEvent {
+            kind,
+            a: 0,
+            b: 0,
+            c,
+            d: 0,
+            f: [value; 12],
+        }
+    }
+
+    #[test]
+    fn a_weapon_step_carries_the_weapon_the_answers_so_far_and_the_samples_given_and_the_hosts_lookups_and_actions_come_back() {
+        let mut step = step_request(sys::EECH_AIM_WEAPON_STEP);
+        step.answer_count = 1;
+        step.answers[0].kind = 8;
+        step.answers[0].f[6] = 1.0;
+        step.draw_count = 2;
+        step.draws[0] = 100;
+        step.draws[1] = 32767;
+        let (seen, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                lookups: vec![event(7, 0, 0.5)],
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0);
+        let Some(AimRequest::WeaponStep(request)) = seen else {
+            panic!("the host was not asked for a step")
+        };
+        assert_eq!(request.kind, AimStepKind::Step);
+        assert_eq!(
+            (
+                request.weapon,
+                request.delta_time,
+                request.system_time,
+                request.state.velocity,
+                request.state.entity_samples
+            ),
+            (5, 0.1, 4242, 900.0, [1, 2, 3, 4])
+        );
+        assert_eq!(
+            (request.draws.clone(), request.answers.len(), request.answers[0].kind, request.answers[0].f[6]),
+            (vec![100, 32767], 1, 8, 1.0)
+        );
+        assert_eq!(
+            (result.state, result.lookup_count, result.lookups[0].kind, result.action_count),
+            (sys::EECH_AIM_NEED_LOOKUP, 1, 7, 0)
+        );
+        // done, with the actions in order
+        let (_, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                actions: vec![event(1, 3, 2.0), event(5, 0, 7.0)],
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state, result.action_count), (0, sys::EECH_AIM_DONE, 2));
+        assert_eq!(
+            (result.actions[0].kind, result.actions[0].c, result.actions[1].kind, result.actions[1].f[0]),
+            (1, 3, 5, 7.0)
+        );
+        // a draw is asked for by the host, not given
+        let (_, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_NEED_DRAW));
+        // a birth is the same request with its flag
+        let mut birth = step_request(sys::EECH_AIM_WEAPON_BIRTH);
+        birth.weapon_state.submunition = 1;
+        let (seen, _, code, _) = aim_crossing(&birth, |_| Ok(AimReply::default()));
+        assert_eq!(code, 0);
+        assert!(matches!(seen, Some(AimRequest::WeaponStep(ref request)) if request.kind == AimStepKind::Birth && request.state.submunition));
+    }
+
+    #[test]
+    fn a_weapon_step_the_campaign_cannot_hold_never_reaches_the_host_and_an_answer_it_cannot_take_is_refused() {
+        let mut nan = step_request(sys::EECH_AIM_WEAPON_STEP);
+        nan.weapon_state.position[1] = f32::NAN;
+        let mut draw = step_request(sys::EECH_AIM_WEAPON_STEP);
+        draw.draw_count = 1;
+        draw.draws[0] = 40000;
+        let mut answers = step_request(sys::EECH_AIM_WEAPON_STEP);
+        answers.answer_count = sys::EECH_STEP_ANSWERS_MAX as c_int + 1;
+        let mut sample = step_request(sys::EECH_AIM_WEAPON_STEP);
+        sample.weapon_state.entity_samples[3] = -1;
+        let mut flag = step_request(sys::EECH_AIM_WEAPON_STEP);
+        flag.weapon_state.has_target = 2;
+        let mut nobody = step_request(sys::EECH_AIM_WEAPON_STEP);
+        nobody.weapon = 0;
+        for (what, bad) in [
+            ("position", nan),
+            ("draw", draw),
+            ("answers", answers),
+            ("sample", sample),
+            ("flag", flag),
+            ("weapon", nobody),
+        ] {
+            let (seen, _, code, error) = aim_crossing(&bad, |_| panic!("the host must not be asked"));
+            assert!(seen.is_none() && code != 0, "{what}: {error}");
+        }
+        let step = step_request(sys::EECH_AIM_WEAPON_STEP);
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("lookups"), "{error}");
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                actions: vec![event(1, 0, 0.0); sys::EECH_STEP_ACTIONS_MAX + 1],
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("more than the"), "{error}");
+        // lookups, a draw or actions answer only a step
+        let (_, _, code, error) = aim_crossing(&blank_aim_step(sys::EECH_AIM_READY_COMMAND), |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                lookups: vec![event(7, 0, 0.0)],
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("cannot take them"), "{error}");
+        let (_, _, code, error) = aim_crossing(&figures_step(sys::EECH_AIM_TABLE), |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("cannot take one"), "{error}");
+        let (_, _, code, error) = aim_crossing(&figures_step(sys::EECH_AIM_RANGE), |_| {
+            Ok(AimReply {
+                actions: vec![event(1, 0, 0.0)],
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("cannot carry actions"), "{error}");
+    }
+
+    #[test]
+    fn a_weapon_steps_collision_answers_are_kept_by_the_question_they_answer_so_the_host_may_choose_among_them() {
+        // SAFETY: plain data; all-zero is a valid empty table.
+        let mut hits: sys::campaign_step_hits = unsafe { std::mem::zeroed() };
+        let (a, b, c) = (
+            [0.0f32, 500.0, 0.0, 0.0, 500.0, 90.0],
+            [0.0f32, 500.0, 0.0, 0.0, 500.0, 91.0],
+            [0.0f32, 500.0, 0.0, 5.0, 500.0, 90.0],
+        );
+        let (first, second) = (0x10usize as *mut std::ffi::c_void, 0x20usize as *mut std::ffi::c_void);
+        let find = |hits: &sys::campaign_step_hits, which: c_int, segment: &[f32; 6]| -> Option<*mut std::ffi::c_void> {
+            let mut entity = 0x99usize as *mut std::ffi::c_void;
+            // SAFETY: the table, the segment and the out pointer are valid for the call.
+            let found = unsafe { sys::campaign_step_hits_find(hits, which, segment.as_ptr(), &mut entity) };
+            (found != 0).then_some(entity)
+        };
+        // SAFETY: the table and the segments are valid for the calls; the entities are never dereferenced.
+        unsafe {
+            sys::campaign_step_hits_clear(&mut hits);
+            // a hit, then a miss, then another hit: each question keeps its own answer, whatever order the host chooses them in
+            sys::campaign_step_hits_add(&mut hits, 0, a.as_ptr(), first);
+            sys::campaign_step_hits_add(&mut hits, 0, b.as_ptr(), std::ptr::null_mut());
+            sys::campaign_step_hits_add(&mut hits, 0, c.as_ptr(), second);
+        }
+        assert_eq!(find(&hits, 0, &a), Some(first));
+        assert_eq!(find(&hits, 0, &b), Some(std::ptr::null_mut()), "a miss is an answer, and not the last hit");
+        assert_eq!(find(&hits, 0, &c), Some(second));
+        // the question includes whose target it was about, and one never asked has no answer
+        assert_eq!(find(&hits, 1, &a), None);
+        assert_eq!(find(&hits, 0, &[1.0; 6]), None);
+        // clearing forgets
+        // SAFETY: as above.
+        unsafe { sys::campaign_step_hits_clear(&mut hits) };
+        assert_eq!(find(&hits, 0, &a), None);
+    }
+
+    #[test]
+    fn an_aim_animate_request_carries_the_weapons_parachute_and_the_hosts_state_comes_back_and_a_state_it_cannot_hold_never_reaches_the_host() {
+        let mut step = blank_aim_step(sys::EECH_AIM_ANIMATE);
+        step.weapon = 5;
+        step.animate_status = 1;
+        step.animate_on_ground = 0;
+        step.animate_lifetime = -0.7;
+        step.animate_motion_y = -3.0;
+        let (seen, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                animate_status: 2,
+                animate_lifetime: Some(0.0),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0);
+        let Some(AimRequest::Animate(request)) = seen else {
+            panic!("the host was not asked to animate")
+        };
+        assert_eq!(
+            (request.weapon, request.parachute_status, request.weapon_lifetime, request.motion_vector_y),
+            (5, 1, -0.7, -3.0)
+        );
+        assert_eq!((result.animate_status, result.animate_write_lifetime, result.animate_lifetime), (2, 1, 0.0));
+        let (_, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                animate_status: 3,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(
+            (code, result.animate_status, result.animate_write_lifetime),
+            (0, 3, 0),
+            "a lifetime the animation did not reset is not written"
+        );
+        let mut bad_state = step_copy_animate(&step);
+        bad_state.animate_status = 9;
+        let mut bad_weapon = step_copy_animate(&step);
+        bad_weapon.weapon = 0;
+        let mut bad_number = step_copy_animate(&step);
+        bad_number.animate_lifetime = f32::NAN;
+        for (what, bad) in [("state", bad_state), ("weapon", bad_weapon), ("number", bad_number)] {
+            let (seen, _, code, error) = aim_crossing(&bad, |_| panic!("the host must not be asked"));
+            assert!(seen.is_none() && code != 0, "{what}: {error}");
+        }
+    }
+
+    fn step_copy_animate(step: &sys::eech_aim_step) -> sys::eech_aim_step {
+        let mut copy = blank_aim_step(sys::EECH_AIM_ANIMATE);
+        copy.weapon = step.weapon;
+        copy.animate_status = step.animate_status;
+        copy.animate_on_ground = step.animate_on_ground;
+        copy.animate_lifetime = step.animate_lifetime;
+        copy.animate_motion_y = step.animate_motion_y;
+        copy
+    }
+
+    #[test]
+    fn a_decoy_update_and_a_seduction_are_weapon_steps_with_their_own_kind_and_the_seductions_settings_cross_exactly() {
+        let decoy = step_request(sys::EECH_AIM_WEAPON_DECOY);
+        let (seen, _, code, _) = aim_crossing(&decoy, |_| Ok(AimReply::default()));
+        assert_eq!(code, 0);
+        assert!(matches!(seen, Some(AimRequest::WeaponStep(ref request)) if request.kind == AimStepKind::Decoy));
+        let mut seduce = step_request(sys::EECH_AIM_WEAPON_SEDUCE);
+        seduce.weapon_state.other_weapon = 21;
+        seduce.weapon_state.coefficient = 0.5;
+        seduce.weapon_state.effectiveness = [0.5, 0.25, 1.0];
+        let (seen, result, code, _) = aim_crossing(&seduce, |_| {
+            Ok(AimReply {
+                actions: vec![event(10, 0, 1.0)],
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0);
+        let Some(AimRequest::WeaponStep(request)) = seen else { panic!("not a step") };
+        assert_eq!(request.kind, AimStepKind::Seduce);
+        assert_eq!(
+            (request.state.other_weapon, request.state.coefficient, request.state.effectiveness),
+            (21, 0.5, [0.5, 0.25, 1.0])
+        );
+        assert_eq!((result.state, result.action_count), (sys::EECH_AIM_DONE, 1));
+        // either asks for a sample, and neither is given a setting that is not a number
+        let (_, result, code, _) = aim_crossing(&seduce, |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_NEED_DRAW));
+        seduce.weapon_state.effectiveness[2] = f32::NAN;
+        let (seen, _, code, error) = aim_crossing(&seduce, |_| panic!("the host must not be asked"));
+        assert!(seen.is_none() && code != 0, "{error}");
+    }
+
+    #[test]
+    fn a_reacquisition_is_a_weapon_step_of_its_own_kind_that_names_the_decoy_and_can_take_neither_a_sample_nor_a_lookup_answer_it_did_not_ask_for() {
+        let mut reacquire = step_request(sys::EECH_AIM_WEAPON_REACQUIRE);
+        reacquire.weapon_state.other_weapon = 21;
+        let (seen, result, code, error) = aim_crossing(&reacquire, |_| {
+            Ok(AimReply {
+                actions: vec![event(11, 0, 0.0)],
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        let Some(AimRequest::WeaponStep(request)) = seen else { panic!("not a step") };
+        assert_eq!((request.kind, request.state.other_weapon), (AimStepKind::Reacquire, 21));
+        assert_eq!((result.state, result.action_count, result.actions[0].kind), (sys::EECH_AIM_DONE, 1, 11));
+        // it may ask for a lookup or a sample like any step, which the campaign refuses it in the handler; the engine boundary only carries them
+        let (_, result, code, _) = aim_crossing(&reacquire, |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_NEED_DRAW));
+        let (_, result, code, _) = aim_crossing(&reacquire, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                lookups: vec![event(8, 0, 0.0)],
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state, result.lookup_count), (0, sys::EECH_AIM_NEED_LOOKUP, 1));
+    }
+
+    #[test]
+    fn a_release_request_carries_the_launchers_clock_and_the_hosts_gate_comes_back_even_when_it_refuses() {
+        let mut step = blank_aim_step(sys::EECH_AIM_RELEASE);
+        step.weapon = 5;
+        step.delta_time = 0.1;
+        step.system_time = 2000;
+        step.release_has_timer = 1;
+        step.release_last_shot = 1000;
+        step.release_not_ai = 1;
+        let (seen, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                release_refuse: true,
+                release_burst_size: 0,
+                release_last_shot: Some(2000),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0);
+        let Some(AimRequest::Release(request)) = seen else {
+            panic!("the host was not asked to release")
+        };
+        assert_eq!(
+            (request.weapon, request.delta_time, request.current_time, request.last_shot, request.not_ai),
+            (5, 0.1, 2000, Some(1000), true)
+        );
+        assert_eq!(
+            (
+                result.release_refuse,
+                result.release_burst_size,
+                result.release_write_last_shot,
+                result.release_last_shot
+            ),
+            (1, 0, 1, 2000),
+            "what the gate wrote comes back though it then refused"
+        );
+        // a launcher with no clock sends none, and a gate that wrote nothing returns nothing
+        step.release_has_timer = 0;
+        step.release_last_shot = 77;
+        let (seen, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                release_burst_size: 3,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0);
+        assert!(matches!(seen, Some(AimRequest::Release(ref request)) if request.last_shot.is_none()));
+        assert_eq!((result.release_refuse, result.release_burst_size, result.release_write_last_shot), (0, 3, 0));
+        // a clock written for a launcher that sent none is refused, whatever else the answer says
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                release_burst_size: 1,
+                release_last_shot: Some(5),
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("has none"), "{error}");
+        step.weapon = 0;
+        let (seen, _, code, error) = aim_crossing(&step, |_| panic!("the host must not be asked"));
+        assert!(seen.is_none() && code != 0, "{error}");
     }
 
     #[test]

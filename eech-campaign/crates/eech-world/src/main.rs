@@ -9,6 +9,7 @@
 mod crash;
 
 use eech_world::aim::{self, Aim};
+use eech_world::flight;
 use eech_world::los::{Los, LosRequest};
 use eech_world::movement::{
     Advance, CarryShape, Creation, DependentCarry, FixedWingMove, FixedWingNavigation, FixedWingPhase, FixedWingTerrain, HelicopterAnswer, HelicopterBegin,
@@ -92,6 +93,121 @@ fn exact_numbers<const N: usize>(lua: &Lua, table: &LuaTable, field: &str) -> Re
         *slot = nearest_f32(value).ok_or_else(|| shape(field, N))?;
     }
     Ok(numbers)
+}
+
+/// An integer field of a request table (an integral number within `i32`).
+fn lua_i32(table: &LuaTable, field: &str) -> Result<i32, String> {
+    match table.get::<LuaValue>(field).map_err(|e| e.to_string())? {
+        LuaValue::Integer(value) => i32::try_from(value).map_err(|_| format!("{field} {value} is out of range")),
+        LuaValue::Number(value) if value.fract() == 0.0 && value.abs() < 2_147_483_648.0 => Ok(value as i32),
+        other => Err(format!("{field} must be an integer, got {}", other.type_name())),
+    }
+}
+
+/// A weapon step's lookup answers from a request: a list of tables `{ kind, a, b, c, d, f = { 12 numbers } }`.
+fn step_events(lua: &Lua, table: &LuaTable, field: &str) -> Result<Vec<flight::StepEvent>, String> {
+    let list = match table.get::<LuaValue>(field).map_err(|e| e.to_string())? {
+        LuaValue::Table(list) => list,
+        other => return Err(format!("{field} must be a list, got {}", other.type_name())),
+    };
+    let mut events = Vec::new();
+    for value in list.sequence_values::<LuaValue>() {
+        let LuaValue::Table(row) = value.map_err(|e| e.to_string())? else {
+            return Err(format!("{field} holds a value that is not an event table"));
+        };
+        events.push(flight::StepEvent {
+            kind: lua_i32(&row, "kind")?,
+            a: lua_i32(&row, "a")?,
+            b: lua_i32(&row, "b")?,
+            c: lua_i32(&row, "c")?,
+            d: lua_i32(&row, "d")?,
+            f: exact_numbers::<12>(lua, &row, "f")?,
+        });
+    }
+    Ok(events)
+}
+
+/// The physical figures a `table`, `range` or `figures` request carries (EEDCS-45), exactly as the campaign mirrored them from its weapon database.
+fn weapon_figures(lua: &Lua, request: &LuaTable) -> Result<flight::Figures, String> {
+    let facts: LuaTable = match request.get::<LuaValue>("figures").map_err(|e| e.to_string())? {
+        LuaValue::Table(facts) => facts,
+        other => return Err(format!("figures must be a table, got {}", other.type_name())),
+    };
+    let name: String = match facts.get::<LuaValue>("name").map_err(|e| e.to_string())? {
+        LuaValue::String(name) => name.to_str().map_err(|e| e.to_string())?.to_owned(),
+        other => return Err(format!("figures name must be a string, got {}", other.type_name())),
+    };
+    let [start_weight, final_weight, max_range, muzzle_velocity, cruise_velocity, g_max, boost_time, cruise_time, inhibit_time, drag_coefficient, flightpath_deviation, boost_power, sustain_power, sustain_time, diameter, max_altitude] =
+        exact_fields::<16>(
+            lua,
+            &facts,
+            "start_weight,final_weight,max_range,muzzle_velocity,cruise_velocity,g_max,boost_time,cruise_time,inhibit_time,drag_coefficient,flightpath_deviation,boost_power,sustain_power,sustain_time,diameter,max_altitude",
+        )?;
+    let [cruise_time_max_error, detonation_radius, max_seeker_limit, max_launch_angle_error] =
+        exact_fields::<4>(lua, &facts, "cruise_time_max_error,detonation_radius,max_seeker_limit,max_launch_angle_error")?;
+    let [muzzle_velocity_max_error, circular_error_probable, rate_of_fire, inverse_rate_of_fire] = exact_fields::<4>(
+        lua,
+        &facts,
+        "muzzle_velocity_max_error,circular_error_probable,rate_of_fire,inverse_rate_of_fire",
+    )?;
+    let flag = |field: &str| -> Result<bool, String> {
+        match facts.get::<LuaValue>(field).map_err(|e| e.to_string())? {
+            LuaValue::Boolean(value) => Ok(value),
+            other => Err(format!("figures {field} must be a boolean, got {}", other.type_name())),
+        }
+    };
+    let integer = |field: &str| -> Result<i64, String> {
+        match facts.get::<LuaValue>(field).map_err(|e| e.to_string())? {
+            // Lua's integer is i32 on the 32-bit targets and i64 elsewhere; the conversion is the identity on the latter.
+            #[allow(clippy::useless_conversion)]
+            LuaValue::Integer(value) => Ok(i64::from(value)),
+            LuaValue::Number(value) if value.fract() == 0.0 && value.abs() < 4.0e9 => Ok(value as i64),
+            other => Err(format!("figures {field} must be an integer, got {other:?}")),
+        }
+    };
+    // SAFETY: plain data; all-zero is a valid value of every field.
+    let mut figures: flight::Figures = unsafe { std::mem::zeroed() };
+    figures.set_name(&name)?;
+    figures.start_weight = start_weight;
+    figures.final_weight = final_weight;
+    figures.max_range = max_range;
+    figures.muzzle_velocity = muzzle_velocity;
+    figures.cruise_velocity = cruise_velocity;
+    figures.g_max = g_max;
+    figures.boost_time = boost_time;
+    figures.cruise_time = cruise_time;
+    figures.inhibit_time = inhibit_time;
+    figures.drag_coefficient = drag_coefficient;
+    figures.flightpath_deviation = flightpath_deviation;
+    figures.boost_power = boost_power;
+    figures.sustain_power = sustain_power;
+    figures.sustain_time = sustain_time;
+    figures.diameter = diameter;
+    figures.max_altitude = max_altitude;
+    figures.ignore_gravity = i32::from(flag("ignore_gravity")?);
+    figures.flight_profile_or_self_destr = i32::try_from(integer("flight_profile_or_self_destr")?).map_err(|e| e.to_string())?;
+    figures.parachute_type = i32::try_from(integer("parachute_type")?).map_err(|e| e.to_string())?;
+    figures.weapon_class = u32::try_from(integer("weapon_class")?).map_err(|e| e.to_string())?;
+    figures.cruise_time_max_error = cruise_time_max_error;
+    figures.detonation_radius = detonation_radius;
+    figures.max_seeker_limit = max_seeker_limit;
+    figures.max_launch_angle_error = max_launch_angle_error;
+    figures.survive_ground_impact = i32::try_from(integer("survive_ground_impact")?).map_err(|e| e.to_string())?;
+    figures.in_flight_collision_check = i32::try_from(integer("in_flight_collision_check")?).map_err(|e| e.to_string())?;
+    figures.guidance_type = i32::try_from(integer("guidance_type")?).map_err(|e| e.to_string())?;
+    figures.aiming_type = i32::try_from(integer("aiming_type")?).map_err(|e| e.to_string())?;
+    figures.decoy_type = i32::try_from(integer("decoy_type")?).map_err(|e| e.to_string())?;
+    figures.warhead_type = i32::try_from(integer("warhead_type")?).map_err(|e| e.to_string())?;
+    figures.hellfire_ii = i32::try_from(integer("hellfire_ii")?).map_err(|e| e.to_string())?;
+    figures.smoke_grenade = i32::try_from(integer("smoke_grenade")?).map_err(|e| e.to_string())?;
+    figures.submunition_count = i32::try_from(integer("submunition_count")?).map_err(|e| e.to_string())?;
+    figures.submunition_velocity_factor = i32::try_from(integer("submunition_velocity_factor")?).map_err(|e| e.to_string())?;
+    figures.muzzle_velocity_max_error = muzzle_velocity_max_error;
+    figures.circular_error_probable = circular_error_probable;
+    figures.rate_of_fire = rate_of_fire;
+    figures.inverse_rate_of_fire = inverse_rate_of_fire;
+    figures.acquire_forward = i32::try_from(integer("acquire_forward")?).map_err(|e| e.to_string())?;
+    Ok(figures)
 }
 
 /// The scalars `names` (comma-separated field names of `table`, `N` of them) exactly as Lua holds them, in one call: the formatting of
@@ -1591,6 +1707,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     4 => "lead_iteration",
                                     5 => "ballistic",
                                     6 => "lead_result",
+                                    7 => "table_flight",
+                                    8 => "range_result",
+                                    20 => "step_path",
+                                    21 => "step_submunitions",
+                                    22 => "step_tracking",
+                                    23 => "step_guidance",
+                                    24 => "step_guidance_source",
+                                    25 => "step_tgt_branch",
+                                    26 => "step_tgt_end",
+                                    27 => "step_intercept",
+                                    28 => "step_guided",
+                                    29 => "step_precision",
+                                    30 => "step_ground",
+                                    31 => "step_impact",
+                                    32 => "step_contact_any",
+                                    33 => "step_contact_trees",
+                                    34 => "step_birth_fuze_begin",
+                                    35 => "step_birth_fuze_solved",
+                                    36 => "step_birth_dispersion",
                                     other => return Err(fail(format!("the model produced an unknown echo kind {other}"))),
                                 },
                             )?;
@@ -1607,18 +1742,221 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 };
                 match mode.as_str() {
                     "table" => {
-                        let bytes: LuaString = step.get("cells")?;
-                        aim.borrow_mut()
-                            .set_table(
-                                step.get("weapon")?,
-                                one(&step, "max_range")?,
-                                step.get("velocity_tests")?,
-                                step.get("pitch_indices")?,
-                                step.get("range_values")?,
-                                &bytes.as_bytes(),
+                        // the host's table is its own: it simulates the weapon from the figures and keeps what results; only the test fixture build asks for it back
+                        let weapon: i32 = step.get("weapon")?;
+                        let figures = weapon_figures(lua, &step).map_err(fail)?;
+                        let echo = flag(&step, "echo")?;
+                        let flights = aim
+                            .borrow_mut()
+                            .generate_table(weapon, &figures, flag(&step, "first")?, flag(&step, "last")?)
+                            .map_err(fail)?;
+                        if echo {
+                            let events = flights
+                                .iter()
+                                .map(|flight| {
+                                    let mut f = [0.0f32; 12];
+                                    f[0] = flight.end_time;
+                                    f[1] = flight.range_values as f32;
+                                    aim::Event {
+                                        kind: 7,
+                                        a: flight.velocity_test,
+                                        b: flight.pitch_index,
+                                        c: flight.range_mark,
+                                        d: flight.steps,
+                                        f,
+                                    }
+                                })
+                                .collect::<Vec<_>>();
+                            echo_into(&Some(events))?;
+                            let aim = aim.borrow();
+                            let cells = aim.table_cells(weapon).ok_or_else(|| fail(format!("no table was kept for weapon {weapon}")))?;
+                            let mut bytes = Vec::with_capacity(cells.len() * 4);
+                            for cell in cells {
+                                bytes.extend_from_slice(&cell.to_le_bytes());
+                            }
+                            result.set("echo_cells", lua.create_string(&bytes)?)?;
+                        }
+                        result.set("state", "done")?;
+                    }
+                    "range" => {
+                        let figures = weapon_figures(lua, &step).map_err(fail)?;
+                        let echo = flag(&step, "echo")?;
+                        let (runs, file_open) = aim
+                            .borrow_mut()
+                            .generate_range(&figures, flag(&step, "first")?, flag(&step, "last")?)
+                            .map_err(fail)?;
+                        if echo {
+                            let events = runs
+                                .iter()
+                                .map(|run| {
+                                    let mut f = [0.0f32; 12];
+                                    f[..4].copy_from_slice(&[run.end_z, run.end_y, run.end_velocity, run.end_lifetime]);
+                                    aim::Event {
+                                        kind: 8,
+                                        a: run.zero_pitch,
+                                        b: run.ran,
+                                        c: i32::from(file_open),
+                                        d: 0,
+                                        f,
+                                    }
+                                })
+                                .collect::<Vec<_>>();
+                            echo_into(&Some(events))?;
+                        }
+                        result.set("state", "done")?;
+                    }
+                    "figures" => {
+                        // every weapon's figures, kept by the weapon's number: the host flies a weapon by them
+                        let weapon: i32 = step.get("weapon")?;
+                        let figures = weapon_figures(lua, &step).map_err(fail)?;
+                        aim.borrow_mut().set_figures(weapon, &figures).map_err(fail)?;
+                        result.set("state", "done")?;
+                    }
+                    "weapon_step" | "weapon_birth" | "weapon_decoy" | "weapon_seduce" | "weapon_reacquire" => {
+                        // one frame of one weapon's flight, or its birth: the weapon in, the lookups it still needs or the ordered actions it leaves out (flight.rs weapon_step,
+                        // weapon_birth)
+                        let (birth, decoy, seduce, reacquire) = (
+                            mode == "weapon_birth",
+                            mode == "weapon_decoy",
+                            mode == "weapon_seduce",
+                            mode == "weapon_reacquire",
+                        );
+                        let weapon = lua_i32(&step, "weapon").map_err(fail)?;
+                        let echo = echo_of()?;
+                        let [delta_time, velocity, weapon_lifetime, decoy_timer] =
+                            exact_fields::<4>(lua, &step, "delta_time,velocity,weapon_lifetime,decoy_timer").map_err(fail)?;
+                        let entity_samples: [i32; 4] = step
+                            .get::<Vec<i32>>("entity_samples")?
+                            .try_into()
+                            .map_err(|_| fail("entity_samples must be 4 integers".into()))?;
+                        let input = flight::StepInput {
+                            delta_time,
+                            system_time: step.get::<u32>("system_time")?,
+                            position: exact_numbers::<3>(lua, &step, "position").map_err(fail)?,
+                            attitude: exact_numbers::<9>(lua, &step, "attitude").map_err(fail)?,
+                            motion_vector: exact_numbers::<3>(lua, &step, "motion_vector").map_err(fail)?,
+                            velocity,
+                            weapon_lifetime,
+                            decoy_timer,
+                            missile_phase: lua_i32(&step, "missile_phase").map_err(fail)?,
+                            loal_mode: flag(&step, "loal_mode")?,
+                            weapon_on_ground: flag(&step, "weapon_on_ground")?,
+                            parachute_status: lua_i32(&step, "parachute_status").map_err(fail)?,
+                            kill_code: lua_i32(&step, "kill_code").map_err(fail)?,
+                            entity_samples,
+                            has_launcher: flag(&step, "has_launcher")?,
+                            has_target: flag(&step, "has_target")?,
+                            server: flag(&step, "server")?,
+                            submunition: birth && flag(&step, "submunition")?,
+                            coefficient: if seduce { one(&step, "coefficient")? } else { 0.0 },
+                            effectiveness: if seduce {
+                                exact_numbers::<3>(lua, &step, "effectiveness").map_err(fail)?
+                            } else {
+                                [0.0; 3]
+                            },
+                            map_min: exact_numbers::<3>(lua, &step, "map_min").map_err(fail)?,
+                            map_max: exact_numbers::<3>(lua, &step, "map_max").map_err(fail)?,
+                            echo,
+                        };
+                        let answers = step_events(lua, &step, "answers").map_err(fail)?;
+                        let draws = step.get::<Vec<i32>>("draws")?;
+                        let outcome = if birth {
+                            aim.borrow().weapon_birth(weapon, &input, &answers, &draws)
+                        } else if decoy {
+                            aim.borrow().weapon_decoy(weapon, &input, &answers, &draws)
+                        } else if seduce {
+                            let decoy_weapon = lua_i32(&step, "other_weapon").map_err(fail)?;
+                            aim.borrow().weapon_seduce(weapon, decoy_weapon, &input, &answers, &draws)
+                        } else if reacquire {
+                            let decoy_weapon = lua_i32(&step, "other_weapon").map_err(fail)?;
+                            aim.borrow().weapon_reacquire(weapon, decoy_weapon, &input, &answers, &draws)
+                        } else {
+                            aim.borrow().weapon_step(weapon, &input, &answers, &draws)
+                        }
+                        .map_err(fail)?;
+                        let events = |events: &[flight::StepEvent]| -> LuaResult<LuaTable> {
+                            let list = lua.create_table()?;
+                            for (index, event) in events.iter().enumerate() {
+                                let row = lua.create_table()?;
+                                row.set("kind", event.kind)?;
+                                row.set("a", event.a)?;
+                                row.set("b", event.b)?;
+                                row.set("c", event.c)?;
+                                row.set("d", event.d)?;
+                                row.set("f", event.f.to_vec())?;
+                                list.set(index + 1, row)?;
+                            }
+                            Ok(list)
+                        };
+                        match outcome.state {
+                            flight::StepState::NeedDraw => result.set("state", "need_draw")?,
+                            flight::StepState::NeedLookup => {
+                                result.set("state", "need_lookup")?;
+                                result.set("lookups", events(&outcome.lookups)?)?;
+                            }
+                            flight::StepState::Done => {
+                                result.set("state", "done")?;
+                                result.set("actions", events(&outcome.actions)?)?;
+                                if echo {
+                                    let echoed = outcome
+                                        .echo
+                                        .iter()
+                                        .map(|event| aim::Event {
+                                            kind: event.kind,
+                                            a: event.a,
+                                            b: event.b,
+                                            c: event.c,
+                                            d: event.d,
+                                            f: event.f,
+                                        })
+                                        .collect::<Vec<_>>();
+                                    echo_into(&Some(echoed))?;
+                                }
+                            }
+                        }
+                    }
+                    "animate" => {
+                        // one frame of a falling weapon's parachute (flight.rs animate)
+                        let weapon = lua_i32(&step, "weapon").map_err(fail)?;
+                        let outcome = aim
+                            .borrow()
+                            .animate(
+                                weapon,
+                                &flight::AnimateInput {
+                                    parachute_status: lua_i32(&step, "parachute_status").map_err(fail)?,
+                                    weapon_on_ground: flag(&step, "weapon_on_ground")?,
+                                    weapon_lifetime: one(&step, "weapon_lifetime")?,
+                                    motion_vector_y: one(&step, "motion_vector_y")?,
+                                },
                             )
                             .map_err(fail)?;
                         result.set("state", "done")?;
+                        result.set("parachute_status", outcome.parachute_status)?;
+                        if let Some(lifetime) = outcome.weapon_lifetime {
+                            result.set("weapon_lifetime", lifetime)?;
+                        }
+                    }
+                    "release" => {
+                        // the rate-of-fire gate of a launcher releasing a weapon: how many rounds it lets go, or none (flight.rs release)
+                        let weapon = lua_i32(&step, "weapon").map_err(fail)?;
+                        let outcome = aim
+                            .borrow()
+                            .release(
+                                weapon,
+                                &flight::ReleaseInput {
+                                    delta_time: one(&step, "delta_time")?,
+                                    current_time: step.get::<u32>("current_time")?,
+                                    last_shot: step.get::<Option<u32>>("last_shot")?,
+                                    not_ai: flag(&step, "not_ai")?,
+                                },
+                            )
+                            .map_err(fail)?;
+                        result.set("state", "done")?;
+                        result.set("refuse", outcome.refuse)?;
+                        result.set("burst_size", outcome.burst_size)?;
+                        if let Some(last_shot) = outcome.last_shot {
+                            result.set("last_shot", last_shot)?;
+                        }
                     }
                     "ready_update" => {
                         check_id("source_host_id")?;

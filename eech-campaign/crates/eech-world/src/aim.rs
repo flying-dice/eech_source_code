@@ -1,7 +1,8 @@
 //! The host's physical aiming and weapon-system-readiness kernel (EEDCS-44, D2): where a launcher's weapon-system devices point, whether they are
 //! ready, and the intercept, lead and ballistic predictions they are aimed with. Kept in C (`csrc/aim_step.c`, EECH's own arithmetic expression for
 //! expression) and driven here one question at a time. Every question is pure: this host keeps nothing between questions except the ballistic tables
-//! the campaign hands it once at boot (raw weapon data, the product of the campaign's still-core projectile simulation).
+//! it generates itself at boot (EEDCS-45: the campaign hands it each unguided weapon's physical figures once and this host simulates the weapon's flight,
+//! `flight.rs`; no table cell crosses the boundary).
 //!
 //! Which weapon is selected, which target is aimed at, which package's devices are used, whether the weapon system should be made ready, and the fire
 //! decision are not here. The device viewpoint, the target point, the positions, speeds and motion vectors and the weapon and package figures are
@@ -11,6 +12,8 @@
 
 use std::collections::HashMap;
 use std::ffi::c_int;
+
+use crate::flight;
 
 /// The shape of a ballistic table the kernel indexes: five velocity tests, 85 pitch indices, `max_range / 20 + 2` ranges.
 const VELOCITY_TESTS: i32 = 5;
@@ -265,10 +268,13 @@ struct Table {
     cells: Vec<f32>,
 }
 
-/// The host: the ballistic tables it was given and nothing else.
+/// The host: the ballistic tables it generated and nothing else (and whether its range diagnostic file is open across a boot pass).
 #[derive(Default)]
 pub struct Aim {
     tables: HashMap<i32, Table>,
+    range_file_open: bool,
+    /// Every weapon's physical figures, by the weapon's number, as the campaign handed them over at boot (the weapon step flies a weapon by them).
+    figures: HashMap<i32, flight::Figures>,
 }
 
 fn finite(what: &str, values: &[f32]) -> Result<(), String> {
@@ -307,8 +313,167 @@ impl Aim {
         Self::default()
     }
 
-    /// Takes one weapon's ballistic table (raw weapon data: little-endian IEEE-754 single-precision (drop angle, flight time) pairs, velocity test by
-    /// pitch index by range). Replaces any table the weapon had. The shape is the one the model indexes.
+    /// Generates one unguided weapon's ballistic table from its physical figures: this host simulates the weapon's flight at every pitch and velocity test
+    /// (`flight.rs`) and keeps the table, replacing any the weapon had. `first` and `last` flag the ends of the campaign's boot pass: the diagnostic file the
+    /// simulation writes is opened before the first weapon and closed after the last. Returns what each simulated flight left behind, in order.
+    pub fn generate_table(&mut self, weapon: i32, figures: &flight::Figures, first: bool, last: bool) -> Result<Vec<flight::FlightRecord>, String> {
+        if weapon <= 0 {
+            return Err(format!("aim table for weapon {weapon} is not a weapon"));
+        }
+        finite("weapon figure", &figures.floats())?;
+        finite("weapon figure", &figures.extra_floats())?;
+        if figures.max_range <= 0.0 {
+            return Err(format!("aim figures for weapon {weapon} have no range limit"));
+        }
+        let range_values = flight::table_range_values(figures.max_range).map_err(|error| format!("aim figures for weapon {weapon}: {error}"))? as i32;
+        let mut cells = vec![0.0f32; flight::table_cell_count(figures.max_range).map_err(|error| format!("aim figures for weapon {weapon}: {error}"))?];
+        if first {
+            flight::ballistics_open();
+        }
+        let flights = flight::ballistics_weapon(figures, &mut cells);
+        if last {
+            flight::ballistics_close();
+        }
+        let flights = flights.map_err(|error| format!("weapon {weapon}: {error}"))?;
+        if cells.iter().any(|cell| !cell.is_finite()) {
+            return Err(format!("aim table for weapon {weapon} holds a non-finite cell"));
+        }
+        self.tables.insert(
+            weapon,
+            Table {
+                velocity_tests: VELOCITY_TESTS,
+                pitch_indices: PITCH_INDICES,
+                range_values,
+                max_range: figures.max_range,
+                cells,
+            },
+        );
+        Ok(flights)
+    }
+
+    /// Keeps one weapon's physical figures for its steps, replacing any it had.
+    pub fn set_figures(&mut self, weapon: i32, figures: &flight::Figures) -> Result<(), String> {
+        if weapon <= 0 {
+            return Err(format!("aim figures for weapon {weapon} are not a weapon's"));
+        }
+        finite("weapon figure", &figures.floats())?;
+        finite("weapon figure", &figures.extra_floats())?;
+        finite("weapon figure", &figures.launch_floats())?;
+        self.figures.insert(weapon, *figures);
+        Ok(())
+    }
+
+    /// One pass of a weapon's step (`flight::weapon_step`) on the figures this host holds for it. An error when it holds none.
+    pub fn weapon_step(&self, weapon: i32, input: &flight::StepInput, answers: &[flight::StepEvent], draws: &[i32]) -> Result<flight::StepOutcome, String> {
+        let figures = self
+            .figures
+            .get(&weapon)
+            .ok_or_else(|| format!("aim weapon step for weapon {weapon}: the host holds no figures for it"))?;
+        flight::weapon_step(figures, input, answers, draws).map_err(|error| format!("weapon {weapon}: {error}"))
+    }
+
+    /// One pass of a weapon's birth (`flight::weapon_birth`) on the figures this host holds for it. An error when it holds none.
+    pub fn weapon_birth(&self, weapon: i32, input: &flight::StepInput, answers: &[flight::StepEvent], draws: &[i32]) -> Result<flight::StepOutcome, String> {
+        let figures = self
+            .figures
+            .get(&weapon)
+            .ok_or_else(|| format!("aim weapon birth for weapon {weapon}: the host holds no figures for it"))?;
+        flight::weapon_birth(figures, input, answers, draws).map_err(|error| format!("weapon {weapon}: {error}"))
+    }
+
+    /// One pass of a decoy's update (`flight::weapon_decoy`) on the figures this host holds for it. An error when it holds none.
+    pub fn weapon_decoy(&self, weapon: i32, input: &flight::StepInput, answers: &[flight::StepEvent], draws: &[i32]) -> Result<flight::StepOutcome, String> {
+        let figures = self
+            .figures
+            .get(&weapon)
+            .ok_or_else(|| format!("aim decoy update for weapon {weapon}: the host holds no figures for it"))?;
+        flight::weapon_decoy(figures, input, answers, draws).map_err(|error| format!("weapon {weapon}: {error}"))
+    }
+
+    /// One pass of a seeker's answer to the decoy `decoy` becoming active (`flight::weapon_seduce`), on the figures this host holds for both. An error when it holds none.
+    pub fn weapon_seduce(
+        &self,
+        weapon: i32,
+        decoy: i32,
+        input: &flight::StepInput,
+        answers: &[flight::StepEvent],
+        draws: &[i32],
+    ) -> Result<flight::StepOutcome, String> {
+        let figures = self
+            .figures
+            .get(&weapon)
+            .ok_or_else(|| format!("aim seduction of weapon {weapon}: the host holds no figures for it"))?;
+        let decoy_figures = self
+            .figures
+            .get(&decoy)
+            .ok_or_else(|| format!("aim seduction by decoy {decoy}: the host holds no figures for it"))?;
+        flight::weapon_seduce(figures, decoy_figures, input, answers, draws).map_err(|error| format!("weapon {weapon}: {error}"))
+    }
+
+    /// One pass of a seeker's answer to the decoy `decoy` it was tracking expiring (`flight::weapon_reacquire`), on the figures this host holds for both.
+    pub fn weapon_reacquire(
+        &self,
+        weapon: i32,
+        decoy: i32,
+        input: &flight::StepInput,
+        answers: &[flight::StepEvent],
+        draws: &[i32],
+    ) -> Result<flight::StepOutcome, String> {
+        let figures = self
+            .figures
+            .get(&weapon)
+            .ok_or_else(|| format!("aim reacquisition by weapon {weapon}: the host holds no figures for it"))?;
+        let decoy_figures = self
+            .figures
+            .get(&decoy)
+            .ok_or_else(|| format!("aim reacquisition after decoy {decoy}: the host holds no figures for it"))?;
+        flight::weapon_reacquire(figures, decoy_figures, input, answers, draws).map_err(|error| format!("weapon {weapon}: {error}"))
+    }
+
+    /// One frame of a weapon's parachute (`flight::animate`) on the figures this host holds for it. An error when it holds none.
+    pub fn animate(&self, weapon: i32, input: &flight::AnimateInput) -> Result<flight::AnimateOutcome, String> {
+        let figures = self
+            .figures
+            .get(&weapon)
+            .ok_or_else(|| format!("aim animation of weapon {weapon}: the host holds no figures for it"))?;
+        flight::animate(figures, input).map_err(|error| format!("weapon {weapon}: {error}"))
+    }
+
+    /// The release of a weapon (`flight::release`) on the figures this host holds for it. An error when it holds none.
+    pub fn release(&self, weapon: i32, input: &flight::ReleaseInput) -> Result<flight::ReleaseOutcome, String> {
+        let figures = self
+            .figures
+            .get(&weapon)
+            .ok_or_else(|| format!("aim release for weapon {weapon}: the host holds no figures for it"))?;
+        flight::release(figures, input).map_err(|error| format!("weapon {weapon}: {error}"))
+    }
+
+    /// The cells of the table generated for a weapon (the test fixture build's echo asks for them).
+    #[must_use]
+    pub fn table_cells(&self, weapon: i32) -> Option<&[f32]> {
+        self.tables.get(&weapon).map(|table| table.cells.as_slice())
+    }
+
+    /// Runs one guided weapon's two range simulations and writes the diagnostic file across the boot pass (opened before the first weapon, closed after the last).
+    /// Returns the two runs' end states and whether the file was open.
+    pub fn generate_range(&mut self, figures: &flight::Figures, first: bool, last: bool) -> Result<([flight::RangeRecord; 2], bool), String> {
+        finite("weapon figure", &figures.floats())?;
+        finite("weapon figure", &figures.extra_floats())?;
+        if first {
+            self.range_file_open = flight::range_open();
+        }
+        let open = self.range_file_open;
+        let results = flight::range_weapon(figures);
+        if last {
+            flight::range_close();
+            self.range_file_open = false;
+        }
+        Ok((results?, open))
+    }
+
+    /// Test helper: stores a table from raw cells (little-endian IEEE-754 single-precision (drop angle, flight time) pairs, velocity test by pitch index by
+    /// range), as a custom host that brought its own tables would. The shape is the one the model indexes. The host's own tables come from `generate_table`.
+    #[cfg(test)]
     pub fn set_table(&mut self, weapon: i32, max_range: f32, velocity_tests: i32, pitch_indices: i32, range_values: i32, cells: &[u8]) -> Result<(), String> {
         finite("table range limit", &[max_range])?;
         if weapon <= 0 {
@@ -947,5 +1112,1031 @@ mod tests {
         let (heading, _) = person_face([0.0; 3], [-10.0, 0.0, 0.0]).unwrap();
         assert!(near(heading, -std::f32::consts::FRAC_PI_2), "{heading}");
         assert!(person_face([0.0; 3], [f32::NAN, 0.0, 0.0]).is_err());
+    }
+
+    /// A small gun: 900 m/s at the muzzle, a 1 km limit, drag and a 20 mm calibre; no rocket motor, so the lifetime is the cruise time.
+    fn gun(name: &str) -> flight::Figures {
+        // SAFETY: plain data; all-zero is a valid value of every field.
+        let mut figures: flight::Figures = unsafe { std::mem::zeroed() };
+        figures.set_name(name).unwrap();
+        figures.start_weight = 0.1;
+        figures.final_weight = 0.1;
+        figures.max_range = 1000.0;
+        figures.muzzle_velocity = 900.0;
+        figures.cruise_velocity = 900.0;
+        figures.cruise_time = 4.0;
+        figures.drag_coefficient = 0.3;
+        figures.diameter = 0.02;
+        figures.weapon_class = 1 << 3;
+        figures
+    }
+
+    /// The (drop angle, flight time) pair of one cell: velocity test, pitch index, range index.
+    fn cell(aim: &Aim, weapon: i32, test: usize, pitch: usize, range: usize) -> (f32, f32) {
+        let table = aim.tables.get(&weapon).unwrap();
+        let at = ((test * PITCH_INDICES as usize + pitch) * table.range_values as usize + range) * 2;
+        (table.cells[at], table.cells[at + 1])
+    }
+
+    #[test]
+    fn the_host_generates_the_table_from_the_figures_in_the_shape_the_model_indexes_and_repeats_it_bit_for_bit() {
+        let mut aim = Aim::new();
+        let flights = aim.generate_table(7, &gun("test gun"), false, false).unwrap();
+        let table = aim.tables.get(&7).unwrap();
+        assert_eq!(
+            (table.velocity_tests, table.pitch_indices, table.range_values),
+            (VELOCITY_TESTS, PITCH_INDICES, 52)
+        );
+        assert_eq!(table.cells.len(), 5 * 85 * 52 * 2);
+        assert!(table.cells.iter().all(|cell| cell.is_finite()));
+        // a surface-to-surface weapon (class bit 3) simulates only the first velocity test of each pitch and copies it for the other four
+        assert_eq!(flights.len(), 83, "{} flights", flights.len());
+        assert!(flights
+            .iter()
+            .all(|flight| flight.velocity_test == 0 && flight.steps > 0 && flight.range_mark <= flight.range_values));
+        for test in 1..5 {
+            for pitch in 0..85 {
+                for range in 0..52 {
+                    assert_eq!(
+                        cell(&aim, 7, test, pitch, range),
+                        cell(&aim, 7, 0, pitch, range),
+                        "test {test} pitch {pitch} range {range}"
+                    );
+                }
+            }
+        }
+        // the rows at plus and minus ninety degrees are all zero (the original never simulates them)
+        assert!((0..52).all(|range| cell(&aim, 7, 0, 0, range) == (0.0, 0.0) && cell(&aim, 7, 0, 84, range) == (0.0, 0.0)));
+        // a level shot falls and takes longer to reach a farther mark
+        let level = 42;
+        let (drop_near, time_near) = cell(&aim, 7, 0, level, 10);
+        let (drop_far, time_far) = cell(&aim, 7, 0, level, 40);
+        assert!(
+            time_far > time_near && time_near > 0.0 && drop_far > drop_near,
+            "{drop_near} {time_near} {drop_far} {time_far}"
+        );
+        // the same figures give the same table, bit for bit, and the host keeps only the latest
+        let mut again = Aim::new();
+        again.generate_table(7, &gun("test gun"), false, false).unwrap();
+        assert_eq!(
+            aim.table_cells(7).unwrap().iter().map(|cell| cell.to_bits()).collect::<Vec<_>>(),
+            again.table_cells(7).unwrap().iter().map(|cell| cell.to_bits()).collect::<Vec<_>>()
+        );
+        assert!(aim.table_cells(8).is_none());
+    }
+
+    #[test]
+    fn the_generated_table_follows_the_figures_a_host_is_given() {
+        let mut reference = Aim::new();
+        reference.generate_table(7, &gun("test gun"), false, false).unwrap();
+        let mut slow = gun("slow gun");
+        slow.muzzle_velocity = 450.0;
+        let mut draggy = gun("draggy gun");
+        draggy.drag_coefficient = 0.9;
+        let mut other = Aim::new();
+        other.generate_table(7, &slow, false, false).unwrap();
+        other.generate_table(8, &draggy, false, false).unwrap();
+        let level = 42;
+        let (_, reference_time) = cell(&reference, 7, 0, level, 40);
+        let (_, slow_time) = cell(&other, 7, 0, level, 40);
+        assert!(
+            slow_time > reference_time * 1.5,
+            "half the muzzle velocity takes much longer: {slow_time} against {reference_time}"
+        );
+        let (_, draggy_time) = cell(&other, 8, 0, level, 40);
+        assert!(draggy_time > reference_time, "more drag takes longer: {draggy_time} against {reference_time}");
+        // and the lookup the aiming uses answers differently from each table
+        let reference_ballistic = reference.ballistic(7, 800.0, 0.0, false, false, 0.0).unwrap();
+        let slow_ballistic = other.ballistic(7, 800.0, 0.0, false, false, 0.0).unwrap();
+        assert!(reference_ballistic.ok && slow_ballistic.ok);
+        assert!(
+            slow_ballistic.angle > reference_ballistic.angle,
+            "{} {}",
+            slow_ballistic.angle,
+            reference_ballistic.angle
+        );
+    }
+
+    #[test]
+    fn figures_that_cannot_be_a_weapon_are_refused_without_a_table() {
+        let mut aim = Aim::new();
+        assert!(aim.generate_table(0, &gun("test gun"), false, false).unwrap_err().contains("not a weapon"));
+        let mut infinite = gun("test gun");
+        infinite.drag_coefficient = f32::INFINITY;
+        assert!(aim.generate_table(7, &infinite, false, false).unwrap_err().contains("finite"));
+        let mut rangeless = gun("test gun");
+        rangeless.max_range = 0.0;
+        assert!(aim.generate_table(7, &rangeless, false, false).unwrap_err().contains("range limit"));
+        assert!(aim.table_cells(7).is_none());
+        let mut figures = gun("test gun");
+        assert!(figures.set_name("").is_err());
+        assert!(figures.set_name(&"x".repeat(64)).is_err());
+        assert!(figures.set_name("a\u{0}b").is_err());
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    // the weapon step (EEDCS-45): a frame of a weapon's flight, a pure question of its state and the answers to the lookups it asked for
+
+    const LOOKUP_VIEW_WEAPON: i32 = 1;
+    const LOOKUP_LAUNCHER_EO: i32 = 2;
+    const LOOKUP_LAUNCHER_INT: i32 = 3;
+    const LOOKUP_TARGET_INT: i32 = 5;
+    const LOOKUP_TARGET_VEC: i32 = 6;
+    const LOOKUP_WIND: i32 = 7;
+    const LOOKUP_GROUND_PROBE: i32 = 8;
+    const LOOKUP_GROUND_IMPACT: i32 = 9;
+    const LOOKUP_FACE_NORMAL: i32 = 10;
+    const LOOKUP_COLLISION: i32 = 12;
+    const ACTION_STATE: i32 = 1;
+    const ACTION_ATTITUDE: i32 = 2;
+    const ACTION_TARGET_LINK: i32 = 6;
+    const ACTION_POSITION: i32 = 5;
+    const IDENTITY: [f32; 9] = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+
+    /// A heavy, thick round with a short motor: a weapon whose weight is defined for a positive lifetime (the original takes a motor's times as non-zero for any weapon
+    /// that lives), so the drag it flies by is measurable in one frame.
+    fn flying_gun(name: &str) -> flight::Figures {
+        let mut figures = gun(name);
+        figures.start_weight = 5.0;
+        figures.final_weight = 5.0;
+        figures.diameter = 0.1;
+        figures.boost_time = 1.0;
+        figures.sustain_time = 2.0;
+        figures.boost_power = 1.0;
+        figures.sustain_power = 1.0;
+        figures
+    }
+
+    /// A round in flight over open ground, in a map a hundred kilometres across, level at 500 m and pointing along +z.
+    fn round() -> flight::StepInput {
+        flight::StepInput {
+            delta_time: 0.1,
+            system_time: 1000,
+            position: [0.0, 500.0, 0.0],
+            attitude: IDENTITY,
+            motion_vector: [0.0; 3],
+            velocity: 900.0,
+            weapon_lifetime: 3.0,
+            decoy_timer: 0.0,
+            missile_phase: 0,
+            loal_mode: false,
+            weapon_on_ground: false,
+            parachute_status: 0,
+            kill_code: 0,
+            entity_samples: [100, 200, 300, 400],
+            has_launcher: false,
+            has_target: false,
+            server: true,
+            submunition: false,
+            coefficient: 0.0,
+            effectiveness: [0.0; 3],
+            map_min: [-100_000.0, -1000.0, -100_000.0],
+            map_max: [100_000.0, 10_000.0, 100_000.0],
+            echo: false,
+        }
+    }
+
+    /// What a world answers: the results r0.. of a lookup.
+    type Answerer<'a> = &'a mut dyn FnMut(&flight::StepEvent) -> [f32; 6];
+
+    fn open_world(lookup: &flight::StepEvent) -> [f32; 6] {
+        let _ = lookup;
+        [0.0; 6]
+    }
+
+    /// Asks the host for one step until it is done, answering what it asks from `world` and giving it `draws` in order; returns what it left and the kinds it asked, in order.
+    fn fly(aim: &Aim, weapon: i32, input: &flight::StepInput, world: Answerer, draws: &[i32]) -> (flight::StepOutcome, Vec<i32>) {
+        let mut answers: Vec<flight::StepEvent> = Vec::new();
+        let mut given: Vec<i32> = Vec::new();
+        let mut asked = Vec::new();
+        for _ in 0..64 {
+            let outcome = aim.weapon_step(weapon, input, &answers, &given).unwrap();
+            match outcome.state {
+                flight::StepState::Done => return (outcome, asked),
+                flight::StepState::NeedDraw => given.push(draws[given.len()]),
+                flight::StepState::NeedLookup => {
+                    assert!(outcome.actions.is_empty(), "a step that is not done leaves no action");
+                    for lookup in outcome.lookups {
+                        asked.push(lookup.kind);
+                        let mut answer = lookup;
+                        answer.f[6..].copy_from_slice(&world(&lookup));
+                        answers.push(answer);
+                    }
+                }
+            }
+        }
+        panic!("the step did not finish");
+    }
+
+    fn last_action(outcome: &flight::StepOutcome, kind: i32) -> Option<flight::StepEvent> {
+        outcome.actions.iter().rev().find(|action| action.kind == kind).copied()
+    }
+
+    fn step_aim(figures: &flight::Figures) -> Aim {
+        let mut aim = Aim::new();
+        aim.set_figures(5, figures).unwrap();
+        aim
+    }
+
+    #[test]
+    fn a_free_round_flies_a_frame_by_the_figures_and_asks_only_for_the_world_it_meets() {
+        let aim = step_aim(&flying_gun("test gun"));
+        let input = round();
+        // with nothing answered it stops for lookups and has changed nothing
+        let first = aim.weapon_step(5, &input, &[], &[]).unwrap();
+        assert_eq!(first.state, flight::StepState::NeedLookup);
+        assert!(first.actions.is_empty() && !first.lookups.is_empty());
+        let (outcome, asked) = fly(&aim, 5, &input, &mut open_world, &[]);
+        assert!(
+            asked.contains(&LOOKUP_WIND) && asked.contains(&LOOKUP_VIEW_WEAPON) && asked.contains(&LOOKUP_GROUND_PROBE),
+            "{asked:?}"
+        );
+        assert!(
+            !asked.contains(&LOOKUP_LAUNCHER_EO) && !asked.contains(&LOOKUP_TARGET_INT) && !asked.contains(&LOOKUP_COLLISION),
+            "{asked:?}"
+        );
+        let state = last_action(&outcome, ACTION_STATE).unwrap();
+        assert_eq!((state.a, state.b, state.c), (0, 0, 0), "no phase change, not on the ground, no kill code");
+        assert_eq!(state.f[4].to_bits(), (3.0f32 - 0.1f32).to_bits(), "the lifetime runs down by exactly the frame");
+        assert!(state.f[0] < 900.0 && state.f[0] > 800.0, "drag slows the round: {}", state.f[0]);
+        let position = last_action(&outcome, ACTION_POSITION).unwrap();
+        assert!(position.f[2] > 80.0 && position.f[2] < 90.0, "{:?}", position.f);
+        assert_eq!(position.f[1], 500.0, "gravity acts after the move");
+        let attitude = last_action(&outcome, ACTION_ATTITUDE).unwrap();
+        assert!(attitude.f[7] < 0.0, "gravity pitches the round down: {:?}", attitude.f);
+        // the same question gives the same answer, bit for bit
+        let (again, _) = fly(&aim, 5, &input, &mut open_world, &[]);
+        assert_eq!(
+            outcome.actions.iter().map(|action| action.f.map(f32::to_bits)).collect::<Vec<_>>(),
+            again.actions.iter().map(|action| action.f.map(f32::to_bits)).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn the_host_flies_the_weapon_by_the_figures_it_was_given() {
+        let reference = step_aim(&flying_gun("test gun"));
+        let mut draggy = flying_gun("draggy gun");
+        draggy.drag_coefficient = 1.2;
+        let other = step_aim(&draggy);
+        let input = round();
+        let speed = |aim: &Aim| last_action(&fly(aim, 5, &input, &mut open_world, &[]).0, ACTION_STATE).unwrap().f[0];
+        assert!(speed(&other) < speed(&reference) - 1.0, "{} {}", speed(&other), speed(&reference));
+    }
+
+    #[test]
+    fn what_the_campaign_answers_about_the_ground_decides_how_the_weapon_ends() {
+        let mut figures = flying_gun("test gun");
+        let impact = |class: f32| {
+            move |lookup: &flight::StepEvent| match lookup.kind {
+                LOOKUP_GROUND_PROBE => [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                LOOKUP_GROUND_IMPACT => [class, 1.0, 2.0, 3.0, 0.0, 0.0],
+                _ => [0.0; 6],
+            }
+        };
+        let aim = step_aim(&figures);
+        let (land, _) = fly(&aim, 5, &round(), &mut impact(3.0), &[]);
+        assert_eq!(last_action(&land, ACTION_STATE).unwrap().c, 3, "land: hit-land");
+        assert_eq!(&last_action(&land, ACTION_POSITION).unwrap().f[..3], &[1.0, 2.0, 3.0], "at the impact point");
+        let (water, _) = fly(&aim, 5, &round(), &mut impact(1.0), &[]);
+        assert_eq!(last_action(&water, ACTION_STATE).unwrap().c, 4, "water: hit-water");
+        // a weapon that survives ground impact rests on it, aligned with the terrain
+        figures.survive_ground_impact = 1;
+        let aim = step_aim(&figures);
+        let mut sloped = |lookup: &flight::StepEvent| match lookup.kind {
+            LOOKUP_GROUND_PROBE => [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            LOOKUP_GROUND_IMPACT => [3.0, 1.0, 2.0, 3.0, 0.0, 0.0],
+            LOOKUP_FACE_NORMAL => [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+            _ => [0.0; 6],
+        };
+        let (rests, asked) = fly(&aim, 5, &round(), &mut sloped, &[]);
+        assert!(asked.contains(&LOOKUP_FACE_NORMAL));
+        let state = last_action(&rests, ACTION_STATE).unwrap();
+        assert_eq!((state.b, state.c), (1, 0), "on the ground, still alive");
+        let attitude = last_action(&rests, ACTION_ATTITUDE).unwrap();
+        assert_eq!(&attitude.f[3..6], &[0.0, 1.0, 0.0], "the weapon's up is the terrain's normal");
+    }
+
+    #[test]
+    fn a_contact_with_something_switches_the_weapon_to_it_and_ends_it() {
+        let mut figures = flying_gun("test gun");
+        figures.in_flight_collision_check = 1;
+        let aim = step_aim(&figures);
+        let segment = std::cell::Cell::new([0.0f32; 6]);
+        let mut world = |lookup: &flight::StepEvent| match lookup.kind {
+            LOOKUP_COLLISION => {
+                segment.set(lookup.f[..6].try_into().unwrap());
+                [1.0, 1.0, 5.0, 5.0, 6.0, 7.0]
+            }
+            _ => [0.0; 6],
+        };
+        let (outcome, asked) = fly(&aim, 5, &round(), &mut world, &[]);
+        assert!(asked.contains(&LOOKUP_COLLISION));
+        assert_eq!(last_action(&outcome, ACTION_STATE).unwrap().c, 5, "hit-target");
+        let link = last_action(&outcome, ACTION_TARGET_LINK).unwrap();
+        assert_eq!(link.a, 2, "the weapon's target is now what it hit");
+        assert_eq!(
+            (link.b, &link.f[..6]),
+            (-1, &segment.get()[..]),
+            "and the action names the collision question that found it, so a host that asks several may choose among them"
+        );
+        assert_eq!(
+            &last_action(&outcome, ACTION_POSITION).unwrap().f[..3],
+            &[5.0, 6.0, 7.0],
+            "where the segment met it"
+        );
+        // a collision lookup that finds nothing leaves the round flying
+        let (clear, _) = fly(&aim, 5, &round(), &mut open_world, &[]);
+        assert_eq!(last_action(&clear, ACTION_STATE).unwrap().c, 0);
+        assert!(last_action(&clear, ACTION_TARGET_LINK).is_none());
+    }
+
+    #[test]
+    fn a_weapon_that_leaves_the_map_is_put_on_its_edge_and_ends_without_asking_about_the_ground() {
+        let aim = step_aim(&flying_gun("test gun"));
+        let mut input = round();
+        input.map_max[2] = 50.0;
+        let (outcome, asked) = fly(&aim, 5, &input, &mut open_world, &[]);
+        assert!(!asked.contains(&LOOKUP_GROUND_PROBE), "{asked:?}");
+        assert_eq!(last_action(&outcome, ACTION_STATE).unwrap().c, 2, "out of bounds");
+        assert_eq!(last_action(&outcome, ACTION_POSITION).unwrap().f[2], 50.0, "on the map's edge");
+    }
+
+    #[test]
+    fn a_weapon_whose_lifetime_has_run_out_is_over_before_it_moves() {
+        let aim = step_aim(&flying_gun("test gun"));
+        let mut input = round();
+        input.weapon_lifetime = -4.0;
+        let outcome = aim.weapon_step(5, &input, &[], &[]).unwrap();
+        assert_eq!(outcome.state, flight::StepState::Done, "it asked the campaign nothing");
+        assert_eq!(last_action(&outcome, ACTION_STATE).unwrap().c, 1, "exhausted");
+        assert!(last_action(&outcome, ACTION_POSITION).is_none());
+    }
+
+    #[test]
+    fn a_guided_weapon_asks_for_the_target_and_its_spiral_takes_the_campaigns_random_samples_in_order() {
+        let mut figures = flying_gun("test missile");
+        figures.guidance_type = 1;
+        figures.flight_profile_or_self_destr = 2;
+        figures.cruise_velocity = 400.0;
+        figures.muzzle_velocity = 300.0;
+        figures.g_max = 30.0;
+        figures.boost_time = 3.0;
+        figures.sustain_time = 6.0;
+        figures.inhibit_time = 2.0;
+        figures.cruise_time = 20.0;
+        figures.max_seeker_limit = -1.0;
+        figures.boost_power = 5000.0;
+        figures.sustain_power = 2000.0;
+        figures.start_weight = 20.0;
+        figures.final_weight = 15.0;
+        figures.diameter = 0.1;
+        figures.flightpath_deviation = 0.0;
+        let aim = step_aim(&figures);
+        let mut input = round();
+        input.velocity = 300.0;
+        input.weapon_lifetime = 5.0;
+        input.has_target = true;
+        let mut world = |lookup: &flight::StepEvent| match (lookup.kind, lookup.b) {
+            (LOOKUP_TARGET_INT, 0) => [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            (LOOKUP_TARGET_VEC, 1) => [0.0, 500.0, 4000.0, 0.0, 0.0, 0.0],
+            (LOOKUP_TARGET_VEC, 2) => [0.0, 0.0, 50.0, 0.0, 0.0, 0.0],
+            (LOOKUP_TARGET_VEC, 0) => [0.0, 500.0, 4000.0, 0.0, 0.0, 0.0],
+            _ => [0.0; 6],
+        };
+        // without samples it stops for one, then another
+        assert_eq!(aim.weapon_step(5, &input, &[], &[]).unwrap().state, flight::StepState::NeedLookup);
+        let (a, _) = fly(&aim, 5, &input, &mut world, &[16000, 8000]);
+        let (b, _) = fly(&aim, 5, &input, &mut world, &[16000, 8000]);
+        let (c, _) = fly(&aim, 5, &input, &mut world, &[1000, 30000]);
+        let position = |outcome: &flight::StepOutcome| last_action(outcome, ACTION_POSITION).unwrap().f.map(f32::to_bits);
+        assert_eq!(position(&a), position(&b), "the same samples give the same flight");
+        assert_ne!(
+            position(&a),
+            position(&c),
+            "other samples give another: the spiral is the campaign's random stream, taken in the host's order"
+        );
+        // given too few samples the step asks for more
+        let mut answers = Vec::new();
+        loop {
+            let outcome = aim.weapon_step(5, &input, &answers, &[16000]).unwrap();
+            match outcome.state {
+                flight::StepState::NeedLookup => {
+                    for lookup in outcome.lookups {
+                        let mut answer = lookup;
+                        answer.f[6..].copy_from_slice(&world(&lookup));
+                        answers.push(answer);
+                    }
+                }
+                flight::StepState::NeedDraw => break,
+                flight::StepState::Done => panic!("the spiral needs two samples"),
+            }
+        }
+    }
+
+    #[test]
+    fn a_semi_active_weapon_with_no_launcher_loses_its_target_and_flies_unguided() {
+        let mut figures = flying_gun("test sarh");
+        figures.guidance_type = 2;
+        figures.cruise_velocity = 400.0;
+        figures.cruise_time = 20.0;
+        figures.max_seeker_limit = -1.0;
+        let aim = step_aim(&figures);
+        let mut input = round();
+        input.has_target = true;
+        let (outcome, _) = fly(&aim, 5, &input, &mut open_world, &[]);
+        assert_eq!(
+            last_action(&outcome, ACTION_TARGET_LINK).unwrap().a,
+            0,
+            "no guidance source: the target is dropped"
+        );
+    }
+
+    #[test]
+    fn a_step_the_host_cannot_run_is_refused_with_the_reason() {
+        let aim = step_aim(&flying_gun("test gun"));
+        assert!(Aim::new().weapon_step(5, &round(), &[], &[]).unwrap_err().contains("no figures"));
+        assert!(aim.weapon_step(6, &round(), &[], &[]).unwrap_err().contains("no figures"));
+        let mut input = round();
+        input.position[1] = f32::NAN;
+        assert!(aim.weapon_step(5, &input, &[], &[]).unwrap_err().contains("finite"));
+        input = round();
+        input.entity_samples[2] = 40000;
+        assert!(aim.weapon_step(5, &input, &[], &[]).unwrap_err().contains("[0, 32767]"));
+        assert!(aim.weapon_step(5, &round(), &[], &[0; 9]).unwrap_err().contains("draws"));
+        assert!(aim
+            .weapon_step(5, &round(), &[flight::StepEvent::default(); 129], &[])
+            .unwrap_err()
+            .contains("lookup answers"));
+        // a weapon that asks for its launcher when it has none is a failure, not a default
+        let mut laser = flying_gun("test laser");
+        laser.guidance_type = 4;
+        laser.cruise_velocity = 400.0;
+        laser.cruise_time = 20.0;
+        let mut aim = step_aim(&laser);
+        let mut input = round();
+        input.has_target = true;
+        let mut answers = Vec::new();
+        let error = loop {
+            match aim.weapon_step(5, &input, &answers, &[]) {
+                Err(error) => break error,
+                Ok(outcome) => {
+                    assert_eq!(outcome.state, flight::StepState::NeedLookup);
+                    for lookup in outcome.lookups {
+                        let mut answer = lookup;
+                        answer.f[6..].copy_from_slice(&[1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+                        answers.push(answer);
+                    }
+                }
+            }
+        };
+        assert!(error.contains("launcher"), "{error}");
+        assert!(aim.set_figures(0, &gun("x")).unwrap_err().contains("not a weapon"));
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    // the weapon's birth and release (EEDCS-45)
+
+    const LOOKUP_PARENT_VELOCITY: i32 = 14;
+    const LOOKUP_FUZE_SOLVE: i32 = 15;
+    const ACTION_BIRTH: i32 = 8;
+
+    /// Asks the host for one birth until it is done, answering from `world` and giving it `draws` in order; returns what it left and the kinds it asked, in order.
+    fn be_born(aim: &Aim, weapon: i32, input: &flight::StepInput, world: Answerer, draws: &[i32]) -> (flight::StepOutcome, Vec<i32>) {
+        let mut answers: Vec<flight::StepEvent> = Vec::new();
+        let mut given: Vec<i32> = Vec::new();
+        let mut asked = Vec::new();
+        for _ in 0..64 {
+            let outcome = aim.weapon_birth(weapon, input, &answers, &given).unwrap();
+            match outcome.state {
+                flight::StepState::Done => return (outcome, asked),
+                flight::StepState::NeedDraw => given.push(draws[given.len()]),
+                flight::StepState::NeedLookup => {
+                    assert!(outcome.actions.is_empty(), "a birth that is not done leaves no action");
+                    for lookup in outcome.lookups {
+                        asked.push(lookup.kind);
+                        let mut answer = lookup;
+                        answer.f[6..].copy_from_slice(&world(&lookup));
+                        answers.push(answer);
+                    }
+                }
+            }
+        }
+        panic!("the birth did not finish");
+    }
+
+    /// A gun that takes its launcher's velocity, with a muzzle-velocity error and no dispersion, as a launcher lets it go.
+    fn muzzle_gun(name: &str) -> flight::Figures {
+        let mut figures = flying_gun(name);
+        figures.muzzle_velocity = 900.0;
+        figures.muzzle_velocity_max_error = 10.0;
+        figures.acquire_forward = 1;
+        figures
+    }
+
+    #[test]
+    fn a_weapon_leaves_its_launcher_with_the_launchers_velocity_the_muzzle_velocity_and_the_error_of_its_own_stream() {
+        let aim = step_aim(&muzzle_gun("test gun"));
+        let mut input = round();
+        input.entity_samples = [16384, 0, 0, 0];
+        let mut world = |lookup: &flight::StepEvent| match lookup.kind {
+            LOOKUP_PARENT_VELOCITY => [100.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            _ => [0.0; 6],
+        };
+        let (born, asked) = be_born(&aim, 5, &input, &mut world, &[]);
+        assert_eq!(asked, vec![LOOKUP_PARENT_VELOCITY], "only the launcher's velocity is asked");
+        let birth = last_action(&born, ACTION_BIRTH).unwrap();
+        assert_eq!(birth.f[0], 1000.0, "the launcher's 100 plus the muzzle's 900; a sample of 16384 is no error");
+        assert_eq!(birth.f[1], 3.0, "the lifetime is the motor's boost and sustain");
+        assert_eq!(birth.f[2], 0.0, "no decoy timer");
+        assert_eq!(
+            &last_action(&born, ACTION_ATTITUDE).unwrap().f[..9],
+            &IDENTITY,
+            "without dispersion it leaves as the launcher pointed it, bit for bit"
+        );
+        // the muzzle-velocity error is the weapon's own sample, scaled
+        input.entity_samples[0] = 32767;
+        let (born, _) = be_born(&aim, 5, &input, &mut world, &[]);
+        let high = last_action(&born, ACTION_BIRTH).unwrap().f[0];
+        assert!(high > 1000.0 && high < 1005.0, "{high}");
+        // a weapon that does not take its launcher's velocity asks nothing
+        let mut standing = muzzle_gun("test gun");
+        standing.acquire_forward = 0;
+        let aim = step_aim(&standing);
+        let (born, asked) = be_born(&aim, 5, &input, &mut world, &[]);
+        assert!(asked.is_empty());
+        assert!(last_action(&born, ACTION_BIRTH).unwrap().f[0] > 900.0);
+        // a submunition leaves with its parent weapon's velocity
+        input.submunition = true;
+        input.velocity = 250.0;
+        let (born, asked) = be_born(&step_aim(&muzzle_gun("test gun")), 5, &input, &mut world, &[]);
+        assert!(asked.is_empty(), "{asked:?}");
+        assert!(last_action(&born, ACTION_BIRTH).unwrap().f[0] > 1150.0);
+    }
+
+    #[test]
+    fn dispersion_rotates_the_launchers_attitude_by_two_samples_of_the_campaigns_stream_in_order() {
+        let mut figures = muzzle_gun("test gun");
+        figures.circular_error_probable = 0.002;
+        let aim = step_aim(&figures);
+        let input = round();
+        let mut world = |_: &flight::StepEvent| [0.0; 6];
+        // without samples it stops for them
+        assert_eq!(aim.weapon_birth(5, &input, &[], &[]).unwrap().state, flight::StepState::NeedLookup);
+        let (a, _) = be_born(&aim, 5, &input, &mut world, &[24576, 8192]);
+        let (b, _) = be_born(&aim, 5, &input, &mut world, &[24576, 8192]);
+        let (swapped, _) = be_born(&aim, 5, &input, &mut world, &[8192, 24576]);
+        let attitude = |born: &flight::StepOutcome| last_action(born, ACTION_ATTITUDE).unwrap().f.map(f32::to_bits);
+        assert_eq!(attitude(&a), attitude(&b), "the same samples give the same attitude");
+        assert_ne!(attitude(&a), attitude(&swapped), "the first sample is the heading's and the second the pitch's");
+        assert_ne!(
+            &last_action(&a, ACTION_ATTITUDE).unwrap().f[..9],
+            &IDENTITY,
+            "and the weapon no longer leaves as it was pointed"
+        );
+        // a sample in the middle of the stream is no dispersion
+        let (centred, _) = be_born(&aim, 5, &input, &mut world, &[16384, 16384]);
+        assert_eq!(&last_action(&centred, ACTION_ATTITUDE).unwrap().f[..9], &IDENTITY);
+    }
+
+    #[test]
+    fn a_shell_with_a_remote_fuze_is_set_from_the_lead_prediction_the_campaign_answers() {
+        let mut shell = muzzle_gun("test shell");
+        shell.warhead_type = 7;
+        shell.cruise_time_max_error = 0.0;
+        let aim = step_aim(&shell);
+        let input = round();
+        // the launcher has no target, or the prediction does not solve: no fuze timer
+        let mut unsolved = |_: &flight::StepEvent| [0.0; 6];
+        let (born, asked) = be_born(&aim, 5, &input, &mut unsolved, &[]);
+        assert!(asked.contains(&LOOKUP_FUZE_SOLVE));
+        assert_eq!(last_action(&born, ACTION_BIRTH).unwrap().f[2], 0.0);
+        // solved: the timer is how long the shell flies less the time of flight
+        let mut solved = |lookup: &flight::StepEvent| match lookup.kind {
+            LOOKUP_FUZE_SOLVE => [1.0, 5.0, 0.0, 0.0, 0.0, 0.0],
+            _ => [0.0; 6],
+        };
+        let (born, _) = be_born(&aim, 5, &input, &mut solved, &[16384]);
+        assert_eq!(
+            last_action(&born, ACTION_BIRTH).unwrap().f[2],
+            2.0,
+            "(5 - 3) with no cruise-time error; one sample of the stream is taken"
+        );
+        // conventional munitions burst a second early
+        shell.warhead_type = 8;
+        let (born, _) = be_born(&step_aim(&shell), 5, &input, &mut solved, &[16384]);
+        assert_eq!(last_action(&born, ACTION_BIRTH).unwrap().f[2], 1.0);
+        // a guided weapon has no remote fuze to set
+        shell.guidance_type = 1;
+        let (_, asked) = be_born(&step_aim(&shell), 5, &input, &mut solved, &[]);
+        assert!(!asked.contains(&LOOKUP_FUZE_SOLVE));
+        assert!(Aim::new().weapon_birth(5, &input, &[], &[]).unwrap_err().contains("no figures"));
+    }
+
+    fn rate_limited() -> flight::Figures {
+        let mut figures = flying_gun("test cannon");
+        figures.rate_of_fire = 600.0;
+        figures.inverse_rate_of_fire = 1.0 / 600.0;
+        figures
+    }
+
+    fn gate(aim: &Aim, input: &flight::ReleaseInput) -> flight::ReleaseOutcome {
+        aim.release(5, input).unwrap()
+    }
+
+    #[test]
+    fn the_rate_of_fire_gate_lets_rounds_go_by_the_time_since_the_last_shot_and_hands_back_what_it_wrote() {
+        let aim = step_aim(&rate_limited());
+        let base = flight::ReleaseInput {
+            delta_time: 0.1,
+            current_time: 1000,
+            last_shot: Some(0),
+            not_ai: false,
+        };
+        // the first shot always goes, and starts the clock
+        assert_eq!(
+            gate(&aim, &base),
+            flight::ReleaseOutcome {
+                refuse: false,
+                burst_size: 1,
+                last_shot: Some(1000)
+            }
+        );
+        // not enough time has passed for a round: nothing goes, nothing is written
+        let early = gate(
+            &aim,
+            &flight::ReleaseInput {
+                current_time: 1050,
+                last_shot: Some(1000),
+                ..base
+            },
+        );
+        assert_eq!((early.refuse, early.last_shot), (true, None));
+        // the clock is ahead of the time (the launcher shot in the future): nothing goes
+        assert!(
+            gate(
+                &aim,
+                &flight::ReleaseInput {
+                    current_time: 900,
+                    last_shot: Some(1000),
+                    ..base
+                }
+            )
+            .refuse
+        );
+        // three rounds' time has passed: three go and the clock advances by their time
+        assert_eq!(
+            gate(
+                &aim,
+                &flight::ReleaseInput {
+                    current_time: 1300,
+                    last_shot: Some(1000),
+                    ..base
+                }
+            ),
+            flight::ReleaseOutcome {
+                refuse: false,
+                burst_size: 3,
+                last_shot: Some(1300)
+            }
+        );
+        // a clock long behind: a launcher that is not an AI is caught up to the frame, an AI's rounds are owed in full
+        let player = gate(
+            &aim,
+            &flight::ReleaseInput {
+                current_time: 2000,
+                last_shot: Some(1000),
+                not_ai: true,
+                ..base
+            },
+        );
+        assert_eq!((player.burst_size, player.last_shot), (1, Some(2100)), "{player:?}");
+        let ai = gate(
+            &aim,
+            &flight::ReleaseInput {
+                current_time: 2000,
+                last_shot: Some(1000),
+                not_ai: false,
+                ..base
+            },
+        );
+        assert_eq!((ai.burst_size, ai.last_shot), (10, Some(2000)), "{ai:?}");
+        // the catch-up is written even when the gate then refuses
+        let refused = gate(
+            &aim,
+            &flight::ReleaseInput {
+                delta_time: 0.001,
+                current_time: 2000,
+                last_shot: Some(1000),
+                not_ai: true,
+            },
+        );
+        assert_eq!((refused.refuse, refused.last_shot), (true, Some(2000)), "{refused:?}");
+        // a launcher with no clock lets one round go
+        let clockless = gate(&aim, &flight::ReleaseInput { last_shot: None, ..base });
+        assert_eq!((clockless.refuse, clockless.burst_size, clockless.last_shot), (false, 1, None));
+        // a single-shot weapon is not gated
+        let single = step_aim(&flying_gun("test gun"));
+        assert_eq!(gate(&single, &base).burst_size, 1);
+        assert_eq!(gate(&single, &base).last_shot, None);
+        assert!(Aim::new().release(5, &base).unwrap_err().contains("no figures"));
+        assert!(aim
+            .release(5, &flight::ReleaseInput { delta_time: f32::NAN, ..base })
+            .unwrap_err()
+            .contains("finite"));
+    }
+
+    #[test]
+    fn a_weapon_that_did_not_move_asks_for_the_ground_under_its_point_once() {
+        // a precise weapon (its launcher is not an AI) tests the ground at the new position and at nine points between the old and the new; when it did not move they
+        // are one point, asked once, and the step finishes
+        let aim = step_aim(&flying_gun("test gun"));
+        let mut input = round();
+        input.velocity = 0.0;
+        // coasting (no motor, no drag at rest): it does not move at all
+        input.weapon_lifetime = -1.0;
+        input.has_launcher = true;
+        let world = |lookup: &flight::StepEvent| match lookup.kind {
+            LOOKUP_LAUNCHER_INT => [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            _ => [0.0; 6],
+        };
+        let mut answers: Vec<flight::StepEvent> = Vec::new();
+        let mut ground_batches = Vec::new();
+        for _ in 0..16 {
+            let outcome = aim.weapon_step(5, &input, &answers, &[]).unwrap();
+            match outcome.state {
+                flight::StepState::Done => {
+                    assert_eq!(ground_batches, vec![1], "the ground is asked about once");
+                    assert_eq!(last_action(&outcome, ACTION_STATE).unwrap().c, 0);
+                    return;
+                }
+                flight::StepState::NeedDraw => panic!("this flight takes no sample"),
+                flight::StepState::NeedLookup => {
+                    let mut seen: Vec<(i32, i32, i32, [u32; 12])> = Vec::new();
+                    for lookup in &outcome.lookups {
+                        let key = (lookup.kind, lookup.a, lookup.b, lookup.f.map(f32::to_bits));
+                        assert!(!seen.contains(&key), "the same question twice in one batch: {lookup:?}");
+                        seen.push(key);
+                    }
+                    let probes = outcome.lookups.iter().filter(|lookup| lookup.kind == LOOKUP_GROUND_PROBE).count();
+                    if probes > 0 {
+                        ground_batches.push(probes);
+                    }
+                    for lookup in outcome.lookups {
+                        let mut answer = lookup;
+                        answer.f[6..].copy_from_slice(&world(&lookup));
+                        answers.push(answer);
+                    }
+                }
+            }
+        }
+        panic!("the step did not finish");
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    // after the flight (EEDCS-45): the parachute, the decoy and the seeker's seduction
+
+    const ACTION_DECOY: i32 = 9;
+    const ACTION_SEDUCE: i32 = 10;
+    const ACTION_REACQUIRE: i32 = 11;
+
+    fn parachute(kind: i32) -> flight::Figures {
+        let mut figures = flying_gun("test crate");
+        figures.parachute_type = kind;
+        figures
+    }
+
+    fn fall(status: i32, lifetime: f32, motion_y: f32, on_ground: bool) -> flight::AnimateInput {
+        flight::AnimateInput {
+            parachute_status: status,
+            weapon_on_ground: on_ground,
+            weapon_lifetime: lifetime,
+            motion_vector_y: motion_y,
+        }
+    }
+
+    #[test]
+    fn a_falling_crate_opens_its_parachute_in_phases_and_each_phase_resets_its_lifetime() {
+        let mut aim = Aim::new();
+        aim.set_figures(5, &parachute(2)).unwrap();
+        let step = |aim: &Aim, input| aim.animate(5, &input).unwrap();
+        // closed: it opens when its lifetime is past half a second negative and it is falling
+        assert_eq!(
+            step(&aim, fall(0, -0.4, -3.0, false)),
+            flight::AnimateOutcome {
+                parachute_status: 0,
+                weapon_lifetime: None
+            }
+        );
+        assert_eq!(
+            step(&aim, fall(0, -0.6, 3.0, false)),
+            flight::AnimateOutcome {
+                parachute_status: 0,
+                weapon_lifetime: None
+            },
+            "rising, it stays shut"
+        );
+        assert_eq!(
+            step(&aim, fall(0, -0.6, -3.0, false)),
+            flight::AnimateOutcome {
+                parachute_status: 1,
+                weapon_lifetime: Some(0.0)
+            }
+        );
+        assert_eq!(
+            step(&aim, fall(1, -0.7, -3.0, false)),
+            flight::AnimateOutcome {
+                parachute_status: 2,
+                weapon_lifetime: Some(0.0)
+            }
+        );
+        assert_eq!(step(&aim, fall(1, -0.5, -3.0, false)).parachute_status, 1, "not yet");
+        assert_eq!(
+            step(&aim, fall(2, -0.8, -3.0, false)),
+            flight::AnimateOutcome {
+                parachute_status: 3,
+                weapon_lifetime: Some(0.0)
+            }
+        );
+        assert_eq!(
+            step(&aim, fall(3, -9.0, -3.0, false)),
+            flight::AnimateOutcome {
+                parachute_status: 3,
+                weapon_lifetime: None
+            },
+            "open stays open"
+        );
+        // on the ground it collapses, whatever phase it was in, and nothing else is written
+        assert_eq!(
+            step(&aim, fall(3, -9.0, 0.0, true)),
+            flight::AnimateOutcome {
+                parachute_status: 4,
+                weapon_lifetime: None
+            }
+        );
+        assert_eq!(
+            step(&aim, fall(0, -0.6, -3.0, true)),
+            flight::AnimateOutcome {
+                parachute_status: 4,
+                weapon_lifetime: None
+            }
+        );
+    }
+
+    #[test]
+    fn an_ejector_seat_opens_by_its_own_lifetimes_and_never_resets_them_and_a_weapon_with_no_parachute_has_nothing_to_animate() {
+        let mut aim = Aim::new();
+        aim.set_figures(5, &parachute(1)).unwrap();
+        aim.set_figures(6, &parachute(0)).unwrap();
+        let step = |aim: &Aim, weapon, input| aim.animate(weapon, &input).unwrap();
+        assert_eq!(
+            step(&aim, 5, fall(0, -1.5, -3.0, false)),
+            flight::AnimateOutcome {
+                parachute_status: 1,
+                weapon_lifetime: None
+            }
+        );
+        assert_eq!(step(&aim, 5, fall(0, -0.9, -3.0, false)).parachute_status, 0);
+        assert_eq!(step(&aim, 5, fall(1, -1.2, -3.0, false)).parachute_status, 2);
+        assert_eq!(
+            step(&aim, 5, fall(2, 1.0, -3.0, false)).parachute_status,
+            3,
+            "the original's third phase tests a positive lifetime"
+        );
+        assert_eq!(step(&aim, 5, fall(2, 2.0, -3.0, false)).parachute_status, 2);
+        assert_eq!(
+            step(&aim, 5, fall(0, 0.0, 0.0, true)).parachute_status,
+            0,
+            "a seat does not collapse on the ground"
+        );
+        assert_eq!(
+            step(&aim, 6, fall(0, -9.0, -3.0, true)),
+            flight::AnimateOutcome {
+                parachute_status: 0,
+                weapon_lifetime: None
+            }
+        );
+        // a state that is not a parachute's, a number that is not finite, and a weapon the host has no figures for are refused
+        assert!(aim.animate(5, &fall(7, 0.0, 0.0, false)).unwrap_err().contains("parachute state"));
+        assert!(aim.animate(5, &fall(0, f32::NAN, 0.0, false)).unwrap_err().contains("finite"));
+        assert!(aim.animate(9, &fall(0, 0.0, 0.0, false)).unwrap_err().contains("no figures"));
+        // a seat in the collapsed state, which only a crate has, is a state it cannot continue from
+        assert!(aim.animate(5, &fall(4, 0.0, 0.0, false)).unwrap_err().contains("cannot continue"));
+    }
+
+    fn decoy_figures(decoy_type: i32, guidance_type: i32) -> flight::Figures {
+        let mut figures = flying_gun("test decoy");
+        figures.decoy_type = decoy_type;
+        figures.guidance_type = guidance_type;
+        figures
+    }
+
+    fn decoy_input(timer: f32) -> flight::StepInput {
+        let mut input = round();
+        input.decoy_timer = timer;
+        input.delta_time = 0.1;
+        input
+    }
+
+    #[test]
+    fn a_decoys_timer_runs_down_and_restarts_at_a_time_drawn_from_the_campaigns_stream_when_it_runs_out() {
+        let mut aim = Aim::new();
+        aim.set_figures(5, &decoy_figures(1, 0)).unwrap();
+        aim.set_figures(6, &decoy_figures(3, 0)).unwrap();
+        aim.set_figures(7, &flying_gun("test gun")).unwrap();
+        // while the timer has time left it runs down and takes no sample
+        let running = aim.weapon_decoy(5, &decoy_input(0.5), &[], &[]).unwrap();
+        assert_eq!(running.state, flight::StepState::Done);
+        let action = running.actions[0];
+        assert_eq!((action.kind, action.a, action.f[0].to_bits()), (ACTION_DECOY, 0, (0.5f32 - 0.1f32).to_bits()));
+        // when it runs out the host asks for a sample, and the restart is the original's: 0.4 + 0.2 of the sample (chaff and flare), 1.0 + 0.5 of it (smoke)
+        let asks = aim.weapon_decoy(5, &decoy_input(0.05), &[], &[]).unwrap();
+        assert_eq!((asks.state, asks.actions.len()), (flight::StepState::NeedDraw, 0));
+        let chaff = aim.weapon_decoy(5, &decoy_input(0.05), &[], &[32767]).unwrap();
+        let frand1 = 32767.0f64 * (1.0f64 / 32767.0f64);
+        assert_eq!(
+            (chaff.actions[0].a, chaff.actions[0].f[0].to_bits()),
+            (1, ((0.4f64 + (frand1 * 0.2f64)) as f32).to_bits())
+        );
+        let smoke = aim.weapon_decoy(6, &decoy_input(0.0), &[], &[0]).unwrap();
+        assert_eq!(
+            (smoke.actions[0].a, smoke.actions[0].f[0]),
+            (1, 1.0),
+            "a timer of exactly zero is not yet out; ran down by the frame it is"
+        );
+        // a weapon that is no decoy has no timer to run, and one the host has no figures for cannot be asked
+        assert!(aim.weapon_decoy(7, &decoy_input(0.5), &[], &[]).unwrap_err().contains("no decoy"));
+        assert!(aim.weapon_decoy(9, &decoy_input(0.5), &[], &[]).unwrap_err().contains("no figures"));
+    }
+
+    fn seduction(coefficient: f32) -> flight::StepInput {
+        let mut input = round();
+        input.coefficient = coefficient;
+        input.effectiveness = [0.5, 0.5, 1.0];
+        input
+    }
+
+    #[test]
+    fn a_seeker_goes_for_a_decoy_only_when_the_sample_is_under_the_decoys_chance_and_the_decoy_is_of_the_seekers_kind() {
+        let mut aim = Aim::new();
+        aim.set_figures(10, &decoy_figures(0, 2)).unwrap(); // a semi-active radar seeker
+        aim.set_figures(11, &decoy_figures(0, 1)).unwrap(); // an infra-red seeker
+        aim.set_figures(12, &decoy_figures(0, 4)).unwrap(); // a laser seeker
+        aim.set_figures(20, &decoy_figures(1, 0)).unwrap(); // chaff
+        aim.set_figures(21, &decoy_figures(2, 0)).unwrap(); // a flare
+        aim.set_figures(22, &decoy_figures(3, 0)).unwrap(); // a smoke grenade
+        aim.set_figures(23, &flying_gun("test gun")).unwrap(); // no decoy
+        let go = |seeker, decoy, coefficient, draws: &[i32]| {
+            let outcome = aim.weapon_seduce(seeker, decoy, &seduction(coefficient), &[], draws).unwrap();
+            assert_eq!(outcome.state, flight::StepState::Done, "{seeker} {decoy} {draws:?}");
+            let action = outcome.actions[0];
+            assert_eq!(action.kind, ACTION_SEDUCE);
+            (action.a, action.b)
+        };
+        // the chance of chaff is 0.2 ** coefficient * 0.5: 0.1 at a coefficient of 1; a sample of 1000 (0.03) is under it, 20000 (0.61) over
+        assert_eq!(go(10, 20, 1.0, &[1000]), (1, 1), "drawn to chaff, a radar seeker goes for it");
+        assert_eq!(go(10, 20, 1.0, &[20000]), (0, 0), "not drawn");
+        assert_eq!(go(10, 21, 1.0, &[1000]), (1, 0), "drawn to a flare, a radar seeker does not go for it");
+        assert_eq!(go(11, 21, 1.0, &[1000]), (1, 1), "an infra-red seeker goes for a flare");
+        assert_eq!(go(11, 20, 1.0, &[1000]), (1, 0));
+        assert_eq!(go(12, 22, 1.0, &[1000]), (1, 1), "a laser seeker goes for smoke");
+        // a smaller coefficient (an easy game) gives a decoy a larger chance: 0.2 ** 0.1 is 0.85, so chaff has 0.85 * 0.5 = 0.43 (a sample of 20000, 0.61, is over it) and smoke has 0.85 (under it)
+        assert_eq!(go(10, 20, 0.1, &[20000]), (0, 0));
+        assert_eq!(go(12, 22, 0.1, &[20000]), (1, 1));
+        // a weapon that is no decoy never draws anyone, and takes no sample
+        let none = aim.weapon_seduce(10, 23, &seduction(1.0), &[], &[]).unwrap();
+        assert_eq!((none.state, none.actions[0].a, none.actions[0].b), (flight::StepState::Done, 0, 0));
+        // the sample is taken whether or not the seeker could be seduced
+        assert_eq!(aim.weapon_seduce(10, 21, &seduction(1.0), &[], &[]).unwrap().state, flight::StepState::NeedDraw);
+        assert!(aim.weapon_seduce(10, 99, &seduction(1.0), &[], &[]).unwrap_err().contains("no figures"));
+        assert!(aim.weapon_seduce(99, 20, &seduction(1.0), &[], &[1]).unwrap_err().contains("no figures"));
+        let mut infinite = seduction(1.0);
+        infinite.effectiveness[1] = f32::INFINITY;
+        assert!(aim.weapon_seduce(10, 20, &infinite, &[], &[1]).unwrap_err().contains("finite"));
+    }
+
+    #[test]
+    fn a_seeker_whose_decoy_expired_is_told_to_go_back_to_the_launcher_with_no_sample_and_no_lookup() {
+        let mut aim = Aim::new();
+        aim.set_figures(10, &decoy_figures(0, 2)).unwrap();
+        aim.set_figures(20, &decoy_figures(1, 0)).unwrap();
+        aim.set_figures(21, &decoy_figures(2, 0)).unwrap();
+        // whichever decoy it was, and whatever the seeker's kind, the reference host's seekers return to the launcher, and the answer takes nothing from the campaign
+        for decoy in [20, 21] {
+            let outcome = aim.weapon_reacquire(10, decoy, &round(), &[], &[]).unwrap();
+            assert_eq!(outcome.state, flight::StepState::Done, "decoy {decoy}");
+            assert_eq!(outcome.actions.len(), 1, "one decision");
+            let action = outcome.actions[0];
+            assert_eq!((action.kind, action.a, action.b), (ACTION_REACQUIRE, 1, 0));
+            assert!(outcome.lookups.is_empty(), "no lookup, and the one decision is taken from no sample");
+        }
+        // a sample or a lookup answer the campaign was never asked for does not change the decision
+        let given = aim.weapon_reacquire(10, 20, &round(), &[], &[123]).unwrap();
+        assert_eq!((given.state, given.actions[0].a), (flight::StepState::Done, 1));
+        // the host holds the figures of both weapons or the question cannot be asked
+        assert!(aim.weapon_reacquire(10, 99, &round(), &[], &[]).unwrap_err().contains("no figures"));
+        assert!(aim.weapon_reacquire(99, 20, &round(), &[], &[]).unwrap_err().contains("no figures"));
+        let mut infinite = round();
+        infinite.delta_time = f32::INFINITY;
+        assert!(aim.weapon_reacquire(10, 20, &infinite, &[], &[]).unwrap_err().contains("finite"));
     }
 }

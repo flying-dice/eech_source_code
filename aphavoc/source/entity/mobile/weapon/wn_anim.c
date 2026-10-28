@@ -65,6 +65,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "project.h"
+#include "entity/mobile/mb_hostaim.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -248,18 +249,27 @@ void update_weapon_animation (entity *en)
 
 	ASSERT (entity_sub_type_weapon_valid (raw->mob.sub_type));
 
+	//
+	// the parachute of a falling crate or ejector seat is the host's: the weapons the original animated are the weapons that have one
+	//
+
 	switch (raw->mob.sub_type)
 	{
 		case ENTITY_SUB_TYPE_WEAPON_HOKUM_PILOT:
 		case ENTITY_SUB_TYPE_WEAPON_HOKUM_CO_PILOT:
-		{
-			update_weapon_ejector_seat_animation (raw);
-
-			break;
-		}
 		case ENTITY_SUB_TYPE_WEAPON_CRATE:
 		{
-			update_weapon_crate_animation (raw);
+			campaign_aim_result
+				result;
+
+			result = campaign_aim_animate (raw->mob.sub_type, raw->parachute_status, raw->weapon_on_ground, raw->weapon_lifetime, raw->mob.motion_vector.y);
+
+			raw->parachute_status = result.animate_status;
+
+			if (result.animate_write_lifetime)
+			{
+				raw->weapon_lifetime = result.animate_lifetime;
+			}
 
 			break;
 		}
