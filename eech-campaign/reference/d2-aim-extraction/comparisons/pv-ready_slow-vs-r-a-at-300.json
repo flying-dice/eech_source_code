@@ -1,0 +1,354 @@
+{
+ "provider_trace": "out/pv-ready_slow/trace.jsonl",
+ "characterization_trace": "../aim-characterization-20261026/out/r-a/trace.jsonl",
+ "checkpoint_at": 300.0,
+ "provider_report_lines": 196,
+ "reference_report_lines": 196,
+ "differing_lines": 51,
+ "hashes": {
+  "provider": {
+   "physical": "8bef9e65434bd3af",
+   "decision": "5b8f7078c03437b8"
+  },
+  "reference": {
+   "physical": "79efa18d48328638",
+   "decision": "cca4b35b00b2672c"
+  }
+ },
+ "differences_first30": [
+  {
+   "line": 1,
+   "event": "aim-hash",
+   "key": null,
+   "moved": {
+    "decision": [
+     "5b8f7078c03437b8",
+     "cca4b35b00b2672c"
+    ],
+    "physical": [
+     "8bef9e65434bd3af",
+     "79efa18d48328638"
+    ]
+   }
+  },
+  {
+   "line": 3,
+   "event": "aim-counter",
+   "key": "vec_targeted",
+   "moved": {
+    "value": [
+     42688,
+     42720
+    ]
+   }
+  },
+  {
+   "line": 6,
+   "event": "aim-counter",
+   "key": "vec_valid",
+   "moved": {
+    "value": [
+     42678,
+     42710
+    ]
+   }
+  },
+  {
+   "line": 7,
+   "event": "aim-counter",
+   "key": "vec_invalid",
+   "moved": {
+    "value": [
+     4699114,
+     4699082
+    ]
+   }
+  },
+  {
+   "line": 9,
+   "event": "aim-counter",
+   "key": "vec_stage_1",
+   "moved": {
+    "value": [
+     4695558,
+     4695526
+    ]
+   }
+  },
+  {
+   "line": 14,
+   "event": "aim-counter",
+   "key": "vec_stage_6",
+   "moved": {
+    "value": [
+     42678,
+     42710
+    ]
+   }
+  },
+  {
+   "line": 15,
+   "event": "aim-counter",
+   "key": "solve_calls",
+   "moved": {
+    "value": [
+     42678,
+     42710
+    ]
+   }
+  },
+  {
+   "line": 17,
+   "event": "aim-counter",
+   "key": "solve_guided_mobile",
+   "moved": {
+    "value": [
+     10875,
+     10907
+    ]
+   }
+  },
+  {
+   "line": 21,
+   "event": "aim-counter",
+   "key": "solve_true",
+   "moved": {
+    "value": [
+     42678,
+     42710
+    ]
+   }
+  },
+  {
+   "line": 23,
+   "event": "aim-counter",
+   "key": "intercept_calls",
+   "moved": {
+    "value": [
+     10875,
+     10907
+    ]
+   }
+  },
+  {
+   "line": 27,
+   "event": "aim-counter",
+   "key": "intercept_target_not_moving",
+   "moved": {
+    "value": [
+     9800,
+     9832
+    ]
+   }
+  },
+  {
+   "line": 61,
+   "event": "aim-counter",
+   "key": "ws_make_selected_ready",
+   "moved": {
+    "value": [
+     7437,
+     7469
+    ]
+   }
+  },
+  {
+   "line": 62,
+   "event": "aim-counter",
+   "key": "ws_ready_true",
+   "moved": {
+    "value": [
+     4426120,
+     4426540
+    ]
+   }
+  },
+  {
+   "line": 63,
+   "event": "aim-counter",
+   "key": "ws_ready_false",
+   "moved": {
+    "value": [
+     567,
+     147
+    ]
+   }
+  },
+  {
+   "line": 65,
+   "event": "aim-counter",
+   "key": "ws_required_located",
+   "moved": {
+    "value": [
+     42399,
+     42579
+    ]
+   }
+  },
+  {
+   "line": 66,
+   "event": "aim-counter",
+   "key": "ws_required_differs",
+   "moved": {
+    "value": [
+     15033,
+     15304
+    ]
+   }
+  },
+  {
+   "line": 67,
+   "event": "aim-counter",
+   "key": "ws_step_heading_short",
+   "moved": {
+    "value": [
+     7599,
+     7719
+    ]
+   }
+  },
+  {
+   "line": 68,
+   "event": "aim-counter",
+   "key": "ws_step_pitch_short",
+   "moved": {
+    "value": [
+     381,
+     377
+    ]
+   }
+  },
+  {
+   "line": 69,
+   "event": "aim-counter",
+   "key": "ws_step_heading_shared",
+   "moved": {
+    "value": [
+     7806,
+     7926
+    ]
+   }
+  },
+  {
+   "line": 71,
+   "event": "aim-counter",
+   "key": "ws_edge_climb_bump",
+   "moved": {
+    "value": [
+     6792,
+     6972
+    ]
+   }
+  },
+  {
+   "line": 72,
+   "event": "aim-counter",
+   "key": "ws_edge_hold_not_ready",
+   "moved": {
+    "value": [
+     243,
+     63
+    ]
+   }
+  },
+  {
+   "line": 76,
+   "event": "aim-counter",
+   "key": "angle_eval_aircraft_fire",
+   "moved": {
+    "value": [
+     3,
+     4
+    ]
+   }
+  },
+  {
+   "line": 77,
+   "event": "aim-counter",
+   "key": "angle_eval_aircraft_update",
+   "moved": {
+    "value": [
+     3708,
+     3670
+    ]
+   }
+  },
+  {
+   "line": 78,
+   "event": "aim-counter",
+   "key": "angle_eval_vehicle_update",
+   "moved": {
+    "value": [
+     37660,
+     38162
+    ]
+   }
+  },
+  {
+   "line": 84,
+   "event": "aim-counter",
+   "key": "reject_aircraft_update_launch_angle",
+   "moved": {
+    "value": [
+     2315,
+     2110
+    ]
+   }
+  },
+  {
+   "line": 85,
+   "event": "aim-counter",
+   "key": "reject_vehicle_update_not_ready",
+   "moved": {
+    "value": [
+     243,
+     63
+    ]
+   }
+  },
+  {
+   "line": 87,
+   "event": "aim-counter",
+   "key": "reject_vehicle_update_launch_angle",
+   "moved": {
+    "value": [
+     6483,
+     6484
+    ]
+   }
+  },
+  {
+   "line": 90,
+   "event": "aim-counter",
+   "key": "ready_state_start",
+   "moved": {
+    "value": [
+     4734160,
+     4734248
+    ]
+   }
+  },
+  {
+   "line": 91,
+   "event": "aim-counter",
+   "key": "ready_state_opening",
+   "moved": {
+    "value": [
+     567,
+     147
+    ]
+   }
+  },
+  {
+   "line": 92,
+   "event": "aim-counter",
+   "key": "ready_state_open",
+   "moved": {
+    "value": [
+     6877,
+     7329
+    ]
+   }
+  }
+ ]
+}

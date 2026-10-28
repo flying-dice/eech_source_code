@@ -1,0 +1,9 @@
+    Checking eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Checking eech-map v0.1.0 (/src/eech-campaign/crates/eech-map)
+    Checking eech-campaign v0.1.0 (/src/eech-campaign/crates/eech-campaign)
+    Checking eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+    Checking eech-harness v0.1.0 (/src/eech-campaign/crates/eech-harness)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.76s
+CARGO_EXIT=0
+DOCKER_EXIT=0

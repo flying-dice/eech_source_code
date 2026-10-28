@@ -1,0 +1,2 @@
+\common\graphics\ui\cohokum\map\fflogbar.psd
+aim-provider: mode=own_model ready_update=4746061 ready_command=1719573 required=8025 step=7554 vectors=54441 (valid 8102 invalid 46339) lead=0 ballistic=0 intercept=0 need_draw=0 ready_moving=0 weapon_births=5 losses=1 failure=none

@@ -1,0 +1,24 @@
+{
+ "candidate": "out/x2-a/trace.jsonl",
+ "reference": "../aim-characterization-20261026/out/r-a/trace.jsonl",
+ "candidate_digest": {
+  "bytes": 287242,
+  "sha256_raw": "c4e9c2b108184243b2bb48034216cad80a7bc9e6225b6229ef8148fe0823ce62",
+  "sha256_lf": "b709f052aec6f67a8bed69d6bea11d49bb400e09f5015c9ba653b5e218f8489c",
+  "lines": 1962
+ },
+ "reference_digest": {
+  "bytes": 287242,
+  "sha256_raw": "c4e9c2b108184243b2bb48034216cad80a7bc9e6225b6229ef8148fe0823ce62",
+  "sha256_lf": "b709f052aec6f67a8bed69d6bea11d49bb400e09f5015c9ba653b5e218f8489c",
+  "lines": 1962
+ },
+ "raw_bytes_equal": true,
+ "lf_bytes_equal": true,
+ "same_line_count": true,
+ "differing_lines_first20": [],
+ "differing_line_count": 0,
+ "comparator_exit": 0,
+ "comparator_stdout": "1962 events in a, 1962 in b, scopes ['checkpoint', 'run']: 0 differences",
+ "comparator_stderr": ""
+}

@@ -1,0 +1,14 @@
+eech-campaign/reference/d2-los-observation/extraction/ab/independent-comparison.json
+eech-campaign/reference/d2-los-observation/extraction/candidate-reference-comparison.json
+eech-campaign/reference/d2-los-observation/extraction/destination-baseline/baseline-post-run-inputs-georgia.log
+eech-campaign/reference/d2-los-observation/extraction/destination-baseline/baseline-post-run-inputs-lebanon-repeat.log
+eech-campaign/reference/d2-los-observation/extraction/destination-baseline/baseline-post-run-inputs-lebanon.log
+eech-campaign/reference/d2-los-observation/extraction/destination-baseline/destination-baseline-full-reference-comparison.json
+eech-campaign/reference/d2-los-observation/extraction/final-pack/complete-file-comparison.json
+eech-campaign/reference/d2-los-observation/extraction/final-pack/completion.json
+eech-campaign/reference/d2-los-observation/extraction/final-pack/original-report-display-failure.log
+eech-campaign/reference/d2-los-observation/extraction/final-pack/post-run-inputs-georgia.log
+eech-campaign/reference/d2-los-observation/extraction/final-pack/post-run-inputs-lebanon-repeat.log
+eech-campaign/reference/d2-los-observation/extraction/final-pack/post-run-inputs-lebanon.log
+eech-campaign/reference/d2-los-observation/extraction/final-pack/report-only-completion.json
+eech-campaign/reference/d2-los-observation/extraction/final-pack/report-only-completion.log

@@ -1146,6 +1146,13 @@ pub struct Creation {
     pub motion_vector: [f32; 3],
 }
 
+/// The target an infantry member with a target link turns to face: its position. The heading is the host's to form from its own record of the
+/// person's position (EEDCS-44).
+#[derive(Clone, Copy, Debug)]
+pub struct PersonFace {
+    pub target: [f32; 3],
+}
+
 #[derive(Clone, Debug)]
 pub enum Request {
     /// the campaign decided a new mobile's placement: the host computes its initial attitude and adopts the pose, once
@@ -1189,6 +1196,9 @@ pub enum Request {
     /// the campaign's parent moved and notified this attached child (membership is the campaign's): the host positions the
     /// child by the parent's displacement, as the original notification handler did, and answers the child's new pose
     DependentCarry(DependentCarry),
+    /// an infantryman with a target turns to face it: the host forms the heading from the person's retained position and the target's, turns
+    /// its record and answers the attitude and the heading (`angles[0]`)
+    PersonFace(PersonFace),
 }
 
 /// How an attached child follows its moving parent; fixed by the child's class in the original handlers.
@@ -1235,6 +1245,7 @@ impl Request {
             Request::Place { .. } => "place",
             Request::Create(_) => "create_place",
             Request::DependentCarry(_) => "dependent_carry",
+            Request::PersonFace(_) => "person_face",
         }
     }
 
@@ -1243,7 +1254,7 @@ impl Request {
         match self {
             Request::Advance(_) | Request::Stop => kind == Kind::Routed,
             Request::ShipMove(_) => kind == Kind::Ship,
-            Request::PersonBegin(_) | Request::PersonEnd(_) => kind == Kind::Person,
+            Request::PersonBegin(_) | Request::PersonEnd(_) | Request::PersonFace(_) => kind == Kind::Person,
             Request::FixedWingMove(_) | Request::FixedWingLookahead => kind == Kind::FixedWing,
             Request::HelicopterBegin(_)
             | Request::HelicopterEnd(_)
@@ -2189,6 +2200,15 @@ impl Movers {
                     }
                 }
                 Ok(settled(record.pose, false, [0.0; 3]))
+            }
+            Request::PersonFace(face) => {
+                let (heading, attitude) = crate::aim::person_face(record.pose.position, face.target)
+                    .map_err(|message| format!("host.move_vehicle: person_face for {host_id}: {message}"))?;
+                record.pose.attitude = attitude;
+                Ok(Outcome {
+                    angles: [heading, 0.0, 0.0],
+                    ..settled(record.pose, false, [0.0; 3])
+                })
             }
             Request::Place { .. } | Request::Create(_) => unreachable!("placed above"),
         };
@@ -4055,6 +4075,48 @@ mod tests {
         movers.step("v", pose(0.0, 0.0), Request::PersonEnd(PersonEnd { elevation: 1.0 })).unwrap();
         let error = movers.step("v", pose(0.0, 0.0), Request::PersonEnd(PersonEnd { elevation: 1.0 })).unwrap_err();
         assert!(error.contains("without a pending person_begin"), "{error}");
+    }
+
+    #[test]
+    fn a_person_with_a_target_is_turned_by_the_host_to_face_it() {
+        let mut movers = movers(Kind::Person, pose(0.0, 0.0));
+        // the target is due +x: the heading the host forms is a quarter turn, the attitude its heading matrix, the record keeps both
+        let faced = movers
+            .step("v", pose(0.0, 0.0), Request::PersonFace(PersonFace { target: [10.0, 0.0, 0.0] }))
+            .unwrap();
+        assert!((faced.angles[0] - std::f32::consts::FRAC_PI_2).abs() < 1.0e-6, "{:?}", faced.angles);
+        assert_near(faced.pose.position, [0.0, 0.0, 0.0]);
+        assert!(
+            (faced.pose.attitude[0]).abs() < 1.0e-6 && (faced.pose.attitude[2] + 1.0).abs() < 1.0e-6,
+            "{:?}",
+            faced.pose.attitude
+        );
+        // the next request compares against the settled record: the campaign copy that kept the old attitude is a divergence the host refuses
+        let error = movers
+            .step("v", pose(0.0, 0.0), Request::PersonBegin(person_begin([0.0, 0.0, 100.0], 1.5, false)))
+            .unwrap_err();
+        assert!(error.contains("attitude"), "{error}");
+        movers
+            .step("v", faced.pose, Request::PersonBegin(person_begin([0.0, 0.0, 100.0], 1.5, false)))
+            .unwrap();
+    }
+
+    #[test]
+    fn a_person_face_for_another_kind_or_with_a_pose_the_host_did_not_make_is_refused() {
+        let mut routed = movers(Kind::Routed, pose(0.0, 0.0));
+        let error = routed
+            .step("v", pose(0.0, 0.0), Request::PersonFace(PersonFace { target: [1.0, 0.0, 1.0] }))
+            .unwrap_err();
+        assert!(error.contains("person_face"), "{error}");
+        let mut person = movers(Kind::Person, pose(0.0, 0.0));
+        let error = person
+            .step("v", pose(3.0, 0.0), Request::PersonFace(PersonFace { target: [1.0, 0.0, 1.0] }))
+            .unwrap_err();
+        assert!(error.contains("position[0]"), "{error}");
+        let error = person
+            .step("v", pose(0.0, 0.0), Request::PersonFace(PersonFace { target: [f32::NAN, 0.0, 1.0] }))
+            .unwrap_err();
+        assert!(error.contains("person_face"), "{error}");
     }
 
     #[test]

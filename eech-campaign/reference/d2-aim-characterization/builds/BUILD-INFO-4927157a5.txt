@@ -1,0 +1,36 @@
+commit: 4927157a5285d582430025f40339e96724a356ce
+uncommitted changes in the build inputs: 0 files
+image: sha256:d9a1fa16fb39ac63f966bcb501f5b0bc88e5d508bd1a85905d7c7960f8b2e579
+rustc: rustc 1.99.1 (58cf8f9c3 2026-10-13)
+cargo: cargo 1.99.1 (5f94df478 2026-08-27)
+mingw: gcc 12-posix, gcc-mingw-w64-x86-64-posix 12.2.0-14+deb12u1+25.2+b1
+lua.dll: Lua 5.1.5 (lua-5.1.5.tar.gz, SHA-256 checked in tools/Dockerfile)
+target: x86_64-pc-windows-gnu, release, FIXTURE BUILD (eech-dc/aim-fixture): test-only, not a shipping artifact
+sha256:
+  e29d534c452d75529376a672ade4c78f5f8e12417d029f0ca2fc278f2747e25a  eech_dc.dll
+  71ef8495966e2f451cc7406bb85f65c6c9ddf07c2cbc55d653f436d26a13b7a6  eech-world.exe
+  fdd3325eab5f5fa1a1542e9ba82809960bda31a323641955348b6c223d803a05  lua.dll
+  3734a1a883bd5629fba70a95a85c7c451079b2c24b4cd4386b41ec52eba43e55  lua/aim-characterization.lua
+  45c9ccf94c47629b214b95a8243162ba415ddce7d398465f4805e821e16ef8cc  lua/aircraft-arrivals.lua
+  4176681be1c8db06654c52e29ed7caf5a3f0ccfec30576c710a297b420f39b79  lua/campaign.lua
+  0139aae776e0928e1869a44b18d321ed516d2f839d7db49478e376d7af17e117  lua/convoy-movement.lua
+  ad45a5314ebfb9681ea0b55eaafddc1a5e3db0ad755f15803248ddda2322b6cc  lua/dependent-carry.lua
+  16af04601a49edb14ca62d61c6ed3d698dee3c5c8b9aa7caddde731a5ae223bd  lua/dependent-fixture.lua
+  23b5b883ff8a696f259dc5baecb86f4c433d2d5174e78f2b02cf1e3f430f90be  lua/fixed-wing-movement.lua
+  c7acf070507d433954d22e1615325eadad0a328af318c57209af797366ddc04c  lua/helicopter-lifecycle.lua
+  ecc1f323477e052dcb41bc7ea559bc67219a578b4532c732b036f5e685c0d53c  lua/helicopter-movement.lua
+  24cc4f447f0011b0ba6392afc4892722364079636b137ed6776bb2acde6dfd8a  lua/host-identities-lifecycle.lua
+  610fad7678975939abc254a0c956dd1f8f628d12fbcc48f9e5edcc4d6b1dc15d  lua/host-identities.lua
+  a74e76ec8dbe4e7d76b6ad0a503644ce4aeb5191021a7d1cc3f1304dff344de5  lua/lifecycle.lua
+  36f72a9ab80039df9e23e78b94d90dbcf5aaf513d45f22d546ef09190ee49b52  lua/los-characterization.lua
+  4a452623b35068a3c83822dad6ed38d4cfe0f1269cee0e9177fcdba5bb4c5646  lua/los-controls.lua
+  8aba165d975ea432c3084db0107e2c47a80c3e43fe7c112f7f9b1be6e1d3e402  lua/los-provider.lua
+  d3ebc26a3fc1fd690d62e9b11cf9c0a929c2eb315f14cb6e79c241c64487ddc6  lua/loss-all-family.lua
+  dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053  lua/metrics.lua
+  68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701  lua/observations.lua
+  ea1884224e5c39c02d03a5ee9a64b9dc74a74e6c88bd5cbb155cf61175aef280  lua/remaining-arrivals.lua
+  6b9ab4ded305ee133be1c8177d2c72b4701633b606b2e4b494d7b880fc0dc335  lua/sense-provider.lua
+  9ac14cdbf38c10b62955ad7b9c75e8641451480316dc5da30ffacc918cc4bf76  lua/sensor-characterization.lua
+  f4a7e14ada43cd1773d3e33234a19c70eab82dbbbdc9bf50696eee17cd4f68ae  lua/supply-arrivals-lifecycle.lua
+  5db25e5c2d635a0b59c2be3f44d582e5992975b6c14d2918b0d37fdb691c36db  lua/supply-arrivals.lua
+  fd717898f41d425af44a7778e58d469db3422b16c0591cd6d3dd4963bc1dff9c  lua/surface-movement.lua

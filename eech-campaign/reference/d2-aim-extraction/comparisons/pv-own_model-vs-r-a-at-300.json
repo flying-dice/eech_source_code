@@ -1,0 +1,354 @@
+{
+ "provider_trace": "out/pv-own_model/trace.jsonl",
+ "characterization_trace": "../aim-characterization-20261026/out/r-a/trace.jsonl",
+ "checkpoint_at": 300.0,
+ "provider_report_lines": 180,
+ "reference_report_lines": 196,
+ "differing_lines": 144,
+ "hashes": {
+  "provider": {
+   "physical": "9f1e28e56208260e",
+   "decision": "c275a4317e85abbc"
+  },
+  "reference": {
+   "physical": "79efa18d48328638",
+   "decision": "cca4b35b00b2672c"
+  }
+ },
+ "differences_first30": [
+  {
+   "line": 1,
+   "event": "aim-hash",
+   "key": null,
+   "moved": {
+    "decision": [
+     "c275a4317e85abbc",
+     "cca4b35b00b2672c"
+    ],
+    "physical": [
+     "9f1e28e56208260e",
+     "79efa18d48328638"
+    ]
+   }
+  },
+  {
+   "line": 2,
+   "event": "aim-counter",
+   "key": "vec_calls",
+   "moved": {
+    "value": [
+     4746061,
+     4741792
+    ]
+   }
+  },
+  {
+   "line": 3,
+   "event": "aim-counter",
+   "key": "vec_targeted",
+   "moved": {
+    "value": [
+     54441,
+     42720
+    ]
+   }
+  },
+  {
+   "line": 6,
+   "event": "aim-counter",
+   "key": "vec_valid",
+   "moved": {
+    "value": [
+     8102,
+     42710
+    ]
+   }
+  },
+  {
+   "line": 7,
+   "event": "aim-counter",
+   "key": "vec_invalid",
+   "moved": {
+    "value": [
+     4737959,
+     4699082
+    ]
+   }
+  },
+  {
+   "line": 9,
+   "event": "aim-counter",
+   "key": "vec_stage_1",
+   "moved": {
+    "value": [
+     4681675,
+     4695526
+    ]
+   }
+  },
+  {
+   "line": 10,
+   "event": "aim-counter",
+   "key": "vec_stage_2",
+   "moved": {
+    "value": [
+     9945,
+     3546
+    ]
+   }
+  },
+  {
+   "line": 11,
+   "event": "aim-counter",
+   "key": "vec_stage_3",
+   "moved": {
+    "value": [
+     0,
+     10
+    ]
+   }
+  },
+  {
+   "line": 14,
+   "event": "aim-counter",
+   "key": "vec_stage_6",
+   "moved": {
+    "value": [
+     54441,
+     42710
+    ]
+   }
+  },
+  {
+   "line": 15,
+   "event": "aim-counter",
+   "key": "solve_calls",
+   "moved": {
+    "value": [
+     54441,
+     42710
+    ]
+   }
+  },
+  {
+   "line": 17,
+   "event": "aim-counter",
+   "key": "solve_guided_mobile",
+   "moved": {
+    "value": [
+     0,
+     10907
+    ]
+   }
+  },
+  {
+   "line": 18,
+   "event": "aim-counter",
+   "key": "solve_guided_static",
+   "moved": {
+    "value": [
+     8102,
+     0
+    ]
+   }
+  },
+  {
+   "line": 19,
+   "event": "aim-counter",
+   "key": "solve_angle_of_projection",
+   "moved": {
+    "value": [
+     39902,
+     24893
+    ]
+   }
+  },
+  {
+   "line": 20,
+   "event": "aim-counter",
+   "key": "solve_lead_and_ballistic",
+   "moved": {
+    "value": [
+     6437,
+     6910
+    ]
+   }
+  },
+  {
+   "line": 21,
+   "event": "aim-counter",
+   "key": "solve_true",
+   "moved": {
+    "value": [
+     8102,
+     42710
+    ]
+   }
+  },
+  {
+   "line": 22,
+   "event": "aim-counter",
+   "key": "solve_false",
+   "moved": {
+    "value": [
+     46339,
+     0
+    ]
+   }
+  },
+  {
+   "line": 23,
+   "event": "aim-counter",
+   "key": "intercept_calls",
+   "moved": {
+    "value": [
+     0,
+     10907
+    ]
+   }
+  },
+  {
+   "line": 25,
+   "event": "aim-counter",
+   "key": "intercept_iterated",
+   "moved": {
+    "value": [
+     0,
+     1075
+    ]
+   }
+  },
+  {
+   "line": 27,
+   "event": "aim-counter",
+   "key": "intercept_target_not_moving",
+   "moved": {
+    "value": [
+     0,
+     9832
+    ]
+   }
+  },
+  {
+   "line": 29,
+   "event": "aim-counter",
+   "key": "lead_calls",
+   "moved": {
+    "value": [
+     46339,
+     31803
+    ]
+   }
+  },
+  {
+   "line": 31,
+   "event": "aim-counter",
+   "key": "lead_true",
+   "moved": {
+    "value": [
+     0,
+     31803
+    ]
+   }
+  },
+  {
+   "line": 32,
+   "event": "aim-counter",
+   "key": "lead_false",
+   "moved": {
+    "value": [
+     46339,
+     0
+    ]
+   }
+  },
+  {
+   "line": 33,
+   "event": "aim-counter",
+   "key": "lead_path_tiny_range",
+   "moved": {
+    "value": [
+     46339,
+     0
+    ]
+   }
+  },
+  {
+   "line": 35,
+   "event": "aim-counter",
+   "key": "lead_path_stationary",
+   "moved": {
+    "value": [
+     0,
+     28287
+    ]
+   }
+  },
+  {
+   "line": 36,
+   "event": "aim-counter",
+   "key": "lead_path_moving",
+   "moved": {
+    "value": [
+     0,
+     3516
+    ]
+   }
+  },
+  {
+   "line": 38,
+   "event": "aim-counter",
+   "key": "lead_moving_3_iterations",
+   "moved": {
+    "value": [
+     0,
+     3516
+    ]
+   }
+  },
+  {
+   "line": 39,
+   "event": "aim-counter",
+   "key": "lead_iterations_run",
+   "moved": {
+    "value": [
+     0,
+     10548
+    ]
+   }
+  },
+  {
+   "line": 40,
+   "event": "aim-counter",
+   "key": "lead_jitter_applied",
+   "moved": {
+    "value": [
+     0,
+     3516
+    ]
+   }
+  },
+  {
+   "line": 42,
+   "event": "aim-counter",
+   "key": "lead_rng_draws_0",
+   "moved": {
+    "value": [
+     46339,
+     28287
+    ]
+   }
+  },
+  {
+   "line": 43,
+   "event": "aim-counter",
+   "key": "lead_rng_draws_1",
+   "moved": {
+    "value": [
+     0,
+     3516
+    ]
+   }
+  }
+ ]
+}

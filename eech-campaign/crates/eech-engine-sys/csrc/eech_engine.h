@@ -18,6 +18,7 @@
 #include "entity/mobile/vehicle/routed/rv_hostmv.h"
 #include "entity/mobile/mb_hostlos.h"
 #include "entity/mobile/mb_hostsense.h"
+#include "entity/mobile/mb_hostaim.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -66,6 +67,7 @@ typedef campaign_movement_result eech_movement_result;
 typedef campaign_move_vehicle_fn eech_move_vehicle_callback;
 typedef campaign_los_fn eech_line_of_sight_callback;
 typedef campaign_sense_fn eech_sense_callback;
+typedef campaign_aim_fn eech_aim_callback;
 
 struct eech_engine_host
 {
@@ -81,6 +83,8 @@ struct eech_engine_host
 	eech_line_of_sight_callback line_of_sight;
 	/* Called synchronously for each host-owned physical sensing exchange of an AI target scan (mb_hostsense.h): the host owns whether and at what range a candidate is perceived (the reference host: range, envelope, tolerance, signature and emitter arithmetic and the state a scan keeps between candidates; another host: its own model); the positions and unit figures sent with it are transitional mirrors. */
 	eech_sense_callback sense;
+	/* Called synchronously for each host-owned physical aiming or weapon-system-readiness exchange (mb_hostaim.h): the host owns where a launcher's weapon-system devices point and whether they are ready, and the lead and ballistic predictions they are aimed with (the reference host: EECH's own arithmetic and the ballistic tables it is given at boot; another host: its own model); the device viewpoint, the target point, the entity positions and speeds and the weapon figures sent with it are transitional mirrors. */
+	eech_aim_callback aim;
 	void *user;
 };
 
@@ -267,6 +271,23 @@ int eech_engine_sensor_trace_reset (void);
 /* Runs the scan group functions for every eligible live source, read-only, and reports a trace of just that sweep; the run-wide trace is not changed.
  * The surface-to-air scan asks the host for line of sight, so `host` must carry every callback, as for a frame. */
 int eech_engine_sensor_probe (char *text, int capacity, const struct eech_engine_host *host);
+#endif
+
+#ifdef EECH_AIM_FIXTURE
+/*
+ * TEST-ONLY (feature aim-fixture, EEDCS-44): see eech_aim_fixture.c. Not part of the shipping module.
+ * The report is `key=value` text lines: the physical and decision hashes, every counter, the measured value ranges, the entity kinds and
+ * weapons that aimed, and sample records. Fails (bad argument) when the report does not fit `capacity`.
+ */
+/* The run-wide trace of the aiming code since boot or the last reset. */
+int eech_engine_aim_trace (char *text, int capacity);
+int eech_engine_aim_trace_reset (void);
+/* Controlled person case: the pose of one host-identified entity, and the campaign's own target link set on one host-identified person. */
+int eech_engine_aim_person_query (const char *host_id, char *text, int capacity);
+int eech_engine_aim_person_case (const char *person_id, const char *target_id, char *text, int capacity, const struct eech_engine_host *host);
+/* The campaign's own lead-and-ballistic function asked once for two host-identified entities with the caller's time-of-flight variable set to `sentinel`; the report says
+   whether the variable still holds it. The host answers through the callbacks given. */
+int eech_engine_aim_lead_probe (const char *source_id, const char *target_id, int weapon, float sentinel, char *text, int capacity, const struct eech_engine_host *host);
 #endif
 
 #endif

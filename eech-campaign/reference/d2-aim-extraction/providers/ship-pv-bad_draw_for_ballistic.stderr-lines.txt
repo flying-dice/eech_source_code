@@ -1,0 +1,1 @@
+aim-provider: mode=bad_draw_for_ballistic ready_update=4741792 ready_command=1718114 required=42537 step=15304 vectors=46226 (valid 42710 invalid 0) lead=0 ballistic=0 intercept=0 need_draw=3516 ready_moving=215 weapon_births=185 losses=6 failure=none

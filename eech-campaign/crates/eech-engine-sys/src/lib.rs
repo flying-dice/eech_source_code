@@ -260,6 +260,8 @@ pub const EECH_MOVEMENT_HELICOPTER_ABANDON: c_int = 44;
 pub const EECH_MOVEMENT_FIXED_WING_LOOKAHEAD: c_int = 45;
 /// EEDCS-40: a movement-dependent mobile follows its parent; the host validates the parent's move and answers the dependent's pose.
 pub const EECH_MOVEMENT_DEPENDENT_CARRY: c_int = 46;
+/// EEDCS-44: an infantry member with a target turns to face it; the host forms the heading and answers the attitude and the heading (`angles[0]`).
+pub const EECH_MOVEMENT_PERSON_FACE: c_int = 47;
 /// The terrain samples a helicopter's guidance asks for at most (HELICOPTER_TERRAIN_AVOIDANCE_LOOKAHEAD_SAMPLE_NUMBER + 1).
 pub const EECH_HC_TERRAIN_SAMPLES: usize = 2;
 
@@ -433,6 +435,8 @@ pub struct eech_movement_step {
     pub dc_parent_new: [f32; 3],
     pub dc_heading: f32,
     pub dc_velocity: f32,
+    /// PERSON_FACE: the target's position.
+    pub pf_target: [f32; 3],
     /// The two tumble draws are `frand1 ()` doubles and stay doubles; last, so the double's alignment moves no other field.
     pub hc_draws: [f64; 2],
 }
@@ -572,6 +576,126 @@ pub struct eech_sense_result {
 pub type eech_sense_callback =
     unsafe extern "C" fn(step: *const eech_sense_step, result: *mut eech_sense_result, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
 
+pub const EECH_AIM_HOST_ID_MAX: usize = 128;
+pub const EECH_AIM_ECHO_MAX: usize = 48;
+pub const EECH_AIM_TABLE: c_int = 1;
+pub const EECH_AIM_READY_UPDATE: c_int = 2;
+pub const EECH_AIM_READY_COMMAND: c_int = 3;
+pub const EECH_AIM_REQUIRED: c_int = 4;
+pub const EECH_AIM_STEP: c_int = 5;
+pub const EECH_AIM_VECTORS: c_int = 6;
+pub const EECH_AIM_LEAD: c_int = 7;
+pub const EECH_AIM_BALLISTIC: c_int = 8;
+pub const EECH_AIM_INTERCEPT: c_int = 9;
+pub const EECH_AIM_DONE: c_int = 1;
+pub const EECH_AIM_NEED_DRAW: c_int = 2;
+pub const EECH_AIM_EVENT_INTERCEPT: c_int = 1;
+pub const EECH_AIM_EVENT_LEAD_PATH: c_int = 2;
+pub const EECH_AIM_EVENT_LEAD_RANGE: c_int = 3;
+pub const EECH_AIM_EVENT_LEAD_ITERATION: c_int = 4;
+pub const EECH_AIM_EVENT_BALLISTIC: c_int = 5;
+pub const EECH_AIM_EVENT_LEAD_RESULT: c_int = 6;
+
+/// One intermediate value of the reference host's prediction, in its order (read only by the test fixture build).
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_aim_event {
+    pub kind: c_int,
+    pub a: c_int,
+    pub b: c_int,
+    pub c: c_int,
+    pub d: c_int,
+    pub f: [f32; 12],
+}
+
+/// One request of the host-owned aiming and readiness exchange (aphavoc/.../mb_hostaim.h), field for field.
+#[repr(C)]
+pub struct eech_aim_step {
+    pub mode: c_int,
+    pub echo: c_int,
+    pub echo_out: *mut eech_aim_event,
+    pub echo_capacity: c_int,
+    pub source_host_id: [c_char; EECH_AIM_HOST_ID_MAX + 1],
+    pub target_host_id: [c_char; EECH_AIM_HOST_ID_MAX + 1],
+    pub weapon: c_int,
+    pub table_max_range: f32,
+    pub table_velocity_tests: c_int,
+    pub table_pitch_indices: c_int,
+    pub table_range_values: c_int,
+    pub table_cells: *const f32,
+    pub table_cell_count: usize,
+    pub ready_state: f32,
+    pub ready_rate: f32,
+    pub delta_time: f32,
+    pub ready_open: c_int,
+    pub device_attitude: [f32; 9],
+    pub intercept_vector: [f32; 3],
+    pub heading_min: f32,
+    pub heading_max: f32,
+    pub pitch_min: f32,
+    pub pitch_max: f32,
+    pub heading_rate: f32,
+    pub pitch_rate: f32,
+    pub climb: c_int,
+    pub current_heading: f32,
+    pub current_pitch: f32,
+    pub required_heading: f32,
+    pub required_pitch: f32,
+    pub unbounded: c_int,
+    pub track_pitch: f32,
+    pub aiming_type: c_int,
+    pub cruise_velocity: f32,
+    pub acquire_forward: c_int,
+    pub source_velocity: f32,
+    pub parent_velocity: f32,
+    pub device_position: [f32; 3],
+    pub target_position: [f32; 3],
+    pub target_point: [f32; 3],
+    pub target_motion_vector: [f32; 3],
+    pub target_mobile: c_int,
+    pub has_tracking: c_int,
+    pub tracking_point: [f32; 3],
+    pub map_min: [f32; 3],
+    pub map_max: [f32; 3],
+    pub comms_weapon_lag: f32,
+    pub source_gunship: c_int,
+    pub has_weapon: c_int,
+    pub has_draw: c_int,
+    pub draw_sample: c_int,
+    pub range: f32,
+    pub height_diff_or_pitch: f32,
+    pub simplified: c_int,
+    pub fixed_pitch: c_int,
+}
+
+#[repr(C)]
+pub struct eech_aim_result {
+    pub state: c_int,
+    pub result: c_int,
+    pub ready_state: f32,
+    pub phase: c_int,
+    pub required_heading: f32,
+    pub required_pitch: f32,
+    pub delta_heading: f32,
+    pub delta_pitch: f32,
+    pub new_heading: f32,
+    pub new_pitch: f32,
+    pub weapon_vector: [f32; 3],
+    pub target_vector: [f32; 3],
+    pub intercept_vector: [f32; 3],
+    pub intercept_range: f32,
+    pub intercept_point: [f32; 3],
+    pub angle: f32,
+    pub time_of_flight: f32,
+    pub has_time_of_flight: c_int,
+    pub has_echo: c_int,
+    pub echo_count: c_int,
+    pub echo: *const eech_aim_event,
+}
+
+pub type eech_aim_callback =
+    unsafe extern "C" fn(step: *const eech_aim_step, result: *mut eech_aim_result, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
+
 #[repr(C)]
 pub struct eech_engine_host {
     pub bind_mobile: Option<eech_bind_mobile_callback>,
@@ -580,6 +704,7 @@ pub struct eech_engine_host {
     pub move_vehicle: Option<eech_move_vehicle_callback>,
     pub line_of_sight: Option<eech_line_of_sight_callback>,
     pub sense: Option<eech_sense_callback>,
+    pub aim: Option<eech_aim_callback>,
     pub user: *mut c_void,
 }
 
@@ -744,6 +869,29 @@ extern "C" {
     pub fn eech_engine_sensor_trace(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_sensor_trace_reset() -> c_int;
     pub fn eech_engine_sensor_probe(text: *mut c_char, capacity: c_int, host: *const eech_engine_host) -> c_int;
+}
+
+#[cfg(feature = "aim-fixture")]
+extern "C" {
+    pub fn eech_engine_aim_trace(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_aim_trace_reset() -> c_int;
+    pub fn eech_engine_aim_person_query(host_id: *const c_char, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_aim_person_case(
+        person_id: *const c_char,
+        target_id: *const c_char,
+        text: *mut c_char,
+        capacity: c_int,
+        host: *const eech_engine_host,
+    ) -> c_int;
+    pub fn eech_engine_aim_lead_probe(
+        source_id: *const c_char,
+        target_id: *const c_char,
+        weapon: c_int,
+        sentinel: f32,
+        text: *mut c_char,
+        capacity: c_int,
+        host: *const eech_engine_host,
+    ) -> c_int;
 }
 
 // The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by

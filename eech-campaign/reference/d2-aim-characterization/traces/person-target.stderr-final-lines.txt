@@ -1,0 +1,2 @@
+eech: artwork not installed, substituting a 1x1 image: R:/d2-evidence/aim-characterization-20261026/roots/pc-t2\common\graphics\ui\cohokum\main.psd
+aim-person-case target: 0 failed checks, 60 host steps for the person

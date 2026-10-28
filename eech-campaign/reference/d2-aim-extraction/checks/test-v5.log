@@ -1,0 +1,28 @@
+error: test failed, to rerun pass `-p eech-world --lib`
+test sense::tests::a_helicopters_stealth_factor_follows_its_configuration_and_scales_the_surface_to_air_limit ... ok
+test sense::tests::surface_to_surface_uses_the_approximate_three_dimensional_range ... ok
+test movement::tests::the_vehicle_steps_belong_to_their_own_kinds ... ok
+test sense::tests::the_surface_to_air_floor_is_lowered_by_every_candidate_asked_about_and_never_restored ... ok
+test sense::tests::the_tolerance_limit_is_floor_times_one_plus_half_the_draw_and_comes_after_the_altitude_test ... ok
+test sense::tests::the_altitude_envelope_reaches_the_sources_altitude_above_the_group_ceiling ... ok
+test tacview::tests::writes_a_well_formed_acmi ... ok
+test movement::tests::the_tumble_step_hands_the_helper_the_draws_it_received_in_double ... ok
+test movement::tests::the_wing_death_attitude_forms_its_roll_draw_in_double_end_to_end ... ok
+
+failures:
+
+---- aim::tests::the_flight_time_of_a_lead_is_a_partial_output_that_the_model_never_invents stdout ----
+
+thread 'aim::tests::the_flight_time_of_a_lead_is_a_partial_output_that_the_model_never_invents' (5746) panicked at crates/eech-world/src/aim.rs:936:9:
+Lead { ok: true, intercept_point: [0.0, 5000.0, 10.0], angle: 1.568813, time_of_flight: Some(0.0), echo: None }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    aim::tests::the_flight_time_of_a_lead_is_a_partial_output_that_the_model_never_invents
+
+test result: FAILED. 174 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p eech-world --lib`
+CARGO_EXIT=101
+DOCKER_EXIT=101

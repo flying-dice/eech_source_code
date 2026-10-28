@@ -65,6 +65,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "project.h"
+#include "entity/mobile/mb_aimfx.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -308,12 +309,12 @@ void update_person_animation (entity *en)
 
 	if(get_local_entity_parent (en, LIST_TYPE_TARGET) || state == PERSON_ANIM_SHOOT_STANDING || state == PERSON_ANIM_SHOOT_CROUCHING)
 	{
+		AIM_FX_PERSON_BRANCH (en, raw->vh.mob.target_link.parent != NULL)
 		if (raw->vh.mob.target_link.parent)
 		{
 			float ps_heading;
 
 			vec3d
-				fire_heading,
 				*target_pos;
 
 			target_pos = get_local_entity_vec3d_ptr (raw->vh.mob.target_link.parent, VEC3D_TYPE_POSITION);
@@ -321,17 +322,9 @@ void update_person_animation (entity *en)
 			if(target_pos)//valid target?
 			{
 
-				fire_heading.x = target_pos->x - raw->vh.mob.position.x;
-				fire_heading.y = 0.0;
-				fire_heading.z =  target_pos->z - raw->vh.mob.position.z;
-
-				normalise_3d_vector (&fire_heading);
-
-				ps_heading = atan2 (fire_heading.x, fire_heading.z);
-
-				get_3d_transformation_heading_matrix (raw->vh.mob.attitude, ps_heading);
-
-				campaign_movement_place (en);
+				// the host turns the person to face the target and answers the heading (EEDCS-44): the facing is physical
+				ps_heading = campaign_movement_person_face (en, target_pos);
+				AIM_FX_PERSON_FACING (en, &raw->vh.mob.position, target_pos, ps_heading)
 			}
 		}
 
