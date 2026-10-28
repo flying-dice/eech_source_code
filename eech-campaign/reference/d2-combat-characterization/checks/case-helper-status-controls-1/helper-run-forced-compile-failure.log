@@ -1,0 +1,7 @@
+TEST_LINK_FLAGS=-fno-pie -no-pie
+SANITIZERS=-fsanitize=address,undefined -fno-sanitize-recover=undefined
+SANITIZER_PROBE_COMPILE_EXIT=0
+SANITIZER_PROBE_RUN_EXIT=0
+COMPILE_EXIT=1
+RUN_NOT_STARTED
+DOCKER_EXIT=1

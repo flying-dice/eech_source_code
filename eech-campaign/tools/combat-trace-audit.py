@@ -74,10 +74,23 @@ def as_int(v):
     raise ValueError(repr(v))
 
 
+def check_limits(max_bytes, line_max):
+    """The limits are validated BEFORE any read, by the shared reader as well as the command line: a line limit must be an integer of at least 1 (readline(-1) would read the whole
+    line) and a total limit an integer of at least 0.  -> list of problems."""
+    out = []
+    for name, value, minimum in (('--line-max', line_max, 1), ('--max-bytes', max_bytes, 0)):
+        if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+            out.append(f'invalid {name} {value!r}: must be an integer >= {minimum}; nothing was read')
+    return out
+
+
 def read_rows(f, max_bytes, line_max):
     """-> (rows, problems, size).  Reads a binary file object line by line UNDER the limits: every readline asks for at most min(line_max, bytes left) + 1 bytes (the one extra byte is
     the sentinel that says the limit was crossed), so a line, or a file, that is over its limit is rejected before it is retained, decoded or parsed, and never allocated whole."""
     rows, problems, size = [], [], 0
+    bad = check_limits(max_bytes, line_max)
+    if bad:
+        return rows, bad, size
     number = 0
     while True:
         remaining = max_bytes - size
@@ -109,6 +122,9 @@ def read_rows(f, max_bytes, line_max):
 
 
 def read_trace(path, max_bytes, line_max=LINE_MAX):
+    bad = check_limits(max_bytes, line_max)
+    if bad:
+        return [], bad, 0
     with open(path, 'rb') as f:
         return read_rows(f, max_bytes, line_max)
 
@@ -277,6 +293,49 @@ def main():
         detail.append('the boot report comes after the first checkpoint marker')
     au.ok('ARTIFACT', 'report structure: boot + one complete report per checkpoint marker + final, each with the nine singleton rows, six timed kinds once, optional rows unique', structure_ok and bool(groups),
           '; '.join(detail[:4]) if detail else f'{len(groups)} groups, {len(usable)} complete')
+    # ---- the emitter's ORDER, which the structure alone does not fix: after the boot report and the drained events, each checkpoint is a marker, the events drained at it (scope log
+    # only), then its report; after the last checkpoint come the drained events, the unscoped `run` marker, directly the final report, and then nothing
+    order_problems = []
+    ids = {id(r): i for i, r in enumerate(rows)}
+
+    def span_end(g):
+        return g['first'] + len(g['rows']) - 1
+
+    def only_log(lo, hi):
+        return all(x.get('scope') == 'log' and x.get('event') == 'cmb-ev' for x in rows[lo:hi])
+
+    boot_group = by_key.get(('boot', 0))
+    cursor = span_end(boot_group) if boot_group else -1
+    for r in checkpoints:
+        i = ids[id(r)]
+        g = by_key.get(('checkpoint', r.get('at')))
+        if i <= cursor:
+            order_problems.append(f'the checkpoint {r.get("at")} marker is not after the previous report')
+        if g is not None:
+            if g['first'] <= i:
+                order_problems.append(f'the report for checkpoint {r.get("at")} is not after its marker')
+            elif not only_log(i + 1, g['first']):
+                order_problems.append(f'something other than drained events is between the checkpoint {r.get("at")} marker and its report')
+            cursor = max(cursor, span_end(g))
+    if complete:
+        run_marker = runs[0]
+        ri = ids[id(run_marker)]
+        final_group = by_key.get(('run', run_marker.get('elapsed')))
+        if ri <= cursor:
+            order_problems.append('the run marker is not after the last checkpoint report')
+        elif not only_log(cursor + 1, ri):
+            order_problems.append('something other than drained events is between the last checkpoint report and the run marker')
+        if final_group is None:
+            order_problems.append('no final report for the run marker')
+        else:
+            if final_group['first'] != ri + 1:
+                order_problems.append('the final report does not directly follow the run marker')
+            if span_end(final_group) != len(rows) - 1:
+                order_problems.append(f'{len(rows) - 1 - span_end(final_group)} rows follow the final report')
+    au.ok('ARTIFACT', 'emitter order: marker, drained events, report for each checkpoint; the run marker directly before the final report, which ends the trace', not order_problems and bool(groups),
+          '; '.join(order_problems[:3]))
+    structure_ok = structure_ok and not order_problems
+
     reports = {}
     ordered_keys = []
     for g in usable:

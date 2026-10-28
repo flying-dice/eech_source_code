@@ -708,3 +708,74 @@ fn the_combat_report_keeps_every_hash_a_string_and_the_script_finds_its_report_m
     let text = format!("{}\n{}", String::from_utf8_lossy(&run.stdout), String::from_utf8_lossy(&run.stderr));
     assert!(!text.contains("combat-report.lua"), "the module was not found beside the script: {text}");
 }
+
+// The controlled witness reads what each case did as the deltas of the observer's counters between two reports. A report has INDEXED rows (a kill code, a warhead, an entity kind,
+// a timed roll's kind): each row's counter must keep its own key, or a later row overwrites an earlier one and a change disappears from the delta. The test loads the SAME
+// flatten-and-delta code the witness uses (lua/combat-counters.lua) with two reports that differ in ONE kill code's calls.
+const COMBAT_COUNTERS_SCRIPT: &str = r#"
+local counting = dofile('@LUA_DIR@/combat-counters.lua')
+local function report(code3, code7, warhead4, helicopter, timed4_draws)
+  return table.concat({
+    'cmb-hash damage=0123456789012345 collision=9007199254740993 blast=0000000000000255 repair=1000000000000000 timed=0000000000000001 order=12345678901234567890',
+    'cmb-blast calls=' .. (code3 + code7) .. ' zero_radius=70 candidates=134614 max_candidates=1519',
+    'cmb-blast-kill code=3 calls=' .. code3,
+    'cmb-blast-kill code=7 calls=' .. code7,
+    'cmb-warhead type=4 real=' .. warhead4 .. ' forecast=81613 penetrated=56906 splash=24756',
+    'cmb-warhead type=5 real=88 forecast=39485 penetrated=37506 splash=2067',
+    'cmb-kind type=ENTITY_TYPE_HELICOPTER collisions=' .. helicopter .. ' direct=45 blast=3 max_damage=17',
+    'cmb-kind type=ENTITY_TYPE_ROUTED_VEHICLE collisions=81 direct=20 blast=61 max_damage=500',
+    'cmb-timed kind=1 attempts=1026989 draws=364 hits=43 fatal=0',
+    'cmb-timed kind=4 attempts=4134689 draws=' .. timed4_draws .. ' hits=0 fatal=0',
+    'cmb-unobserved type=ENTITY_TYPE_BRIDGE deliveries=31 note=counted_only',
+  }, '\n')
+end
+local before = report(1054, 3, 49, 48, 0)
+local after = report(1056, 3, 50, 49, 7)
+
+-- each indexed row keeps its own raw value in the flattened counters (never a sum over the rows)
+local b, a = counting.counters(before), counting.counters(after)
+assert(a['cmb-blast-kill.code=3.calls'] == 1056 and a['cmb-blast-kill.code=7.calls'] == 3, 'both kill-code rows keep their own value')
+assert(a['cmb-blast-kill.calls'] == nil, 'no ambiguous key that a later kill-code row could overwrite')
+assert(a['cmb-warhead.type=4.real'] == 50 and a['cmb-warhead.type=5.real'] == 88)
+assert(a['cmb-kind.type=ENTITY_TYPE_HELICOPTER.collisions'] == 49 and a['cmb-kind.type=ENTITY_TYPE_ROUTED_VEHICLE.collisions'] == 81)
+assert(a['cmb-timed.kind=1.draws'] == 364 and a['cmb-timed.kind=4.draws'] == 7)
+assert(a['cmb-unobserved.type=ENTITY_TYPE_BRIDGE.deliveries'] == 31)
+assert(a['cmb-blast.calls'] == 1059 and b['cmb-blast.calls'] == 1057)
+
+-- the delta of a case that changed code 3 (and not the later code 7) shows code 3
+local d = counting.deltas(before, after)
+assert(d['cmb-blast-kill.code=3.calls'] == 2, 'the kill-code 3 change is visible: ' .. tostring(d['cmb-blast-kill.code=3.calls']))
+assert(d['cmb-blast-kill.code=7.calls'] == nil, 'the unchanged later kill-code row is not in the delta')
+assert(d['cmb-warhead.type=4.real'] == 1 and d['cmb-warhead.type=5.real'] == nil)
+assert(d['cmb-kind.type=ENTITY_TYPE_HELICOPTER.collisions'] == 1 and d['cmb-kind.type=ENTITY_TYPE_ROUTED_VEHICLE.collisions'] == nil)
+assert(d['cmb-timed.kind=4.draws'] == 7 and d['cmb-timed.kind=1.draws'] == nil)
+assert(d['cmb-blast.calls'] == 2)
+-- maxima are not counters; hashes are not counters; and nothing else moved
+assert(d['cmb-blast.max_candidates'] == nil and d['cmb-kind.type=ENTITY_TYPE_HELICOPTER.max_damage'] == nil)
+for k in pairs(d) do assert(not string.find(k, 'cmb-hash', 1, true), 'a hash is not a counter: ' .. k) end
+local n = 0
+for _ in pairs(d) do n = n + 1 end
+assert(n == 5, 'exactly the five changed counters: ' .. n)
+-- the reverse change (code 7 up, code 3 unchanged) is visible too, so neither row hides the other
+local d2 = counting.deltas(before, report(1054, 5, 49, 48, 0))
+assert(d2['cmb-blast-kill.code=7.calls'] == 2 and d2['cmb-blast-kill.code=3.calls'] == nil)
+print('COMBAT_COUNTERS=ok')
+"#;
+
+#[test]
+fn the_case_deltas_keep_every_indexed_report_row_apart() {
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\\', "/");
+    let script = std::env::temp_dir().join(format!("eech-world-combat-counters-{}.lua", std::process::id()));
+    std::fs::write(&script, COMBAT_COUNTERS_SCRIPT.replace("@LUA_DIR@", &lua_dir)).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("COMBAT_COUNTERS=ok"), "{stdout}\n{stderr}");
+}

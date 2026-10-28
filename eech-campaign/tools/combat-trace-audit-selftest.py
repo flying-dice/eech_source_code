@@ -256,6 +256,56 @@ def main():
     code, out = audit(big, run_json, '--max-bytes', '200')
     results.append(('cli_total_limit_fails_a_long_line_under_the_default_line_limit', code == 1 and 'larger than --max-bytes' in out, f'exit {code}'))
 
+    # ---- the emitter's ORDER (no datum changed in any of these: only where a row sits)
+    r = copy()
+    j = next(i for i, x in enumerate(r) if x.get('event') == 'run' and 'scope' not in x)
+    marker = r.pop(j)
+    r.append(marker)  # the run marker AFTER its entire final report
+    case('order_run_marker_after_its_whole_final_report', r, 1)
+
+    r = copy()
+    j = next(i for i, x in enumerate(r) if x.get('event') == 'run' and 'scope' not in x)
+    marker = r.pop(j)
+    last_540 = max(i for i, x in enumerate(r) if x.get('scope') == 'checkpoint' and x.get('at') == 540)
+    r.insert(last_540 + 1, marker)  # the run marker long before the end
+    case('order_run_marker_moved_before_the_last_checkpoints', r, 1)
+
+    r = copy()
+    j = next(i for i, x in enumerate(r) if x.get('event') == 'run' and 'scope' not in x)
+    r.insert(j + 1, {'event': 'cmb-ev', 'scope': 'log', 'at': 600, 'seq': 99999, 'kind': 'repair'})  # a row between the run marker and the final report
+    case('order_row_between_run_marker_and_final_report', r, 1)
+
+    r = copy()
+    r.append({'event': 'cmb-ev', 'scope': 'log', 'at': 600, 'seq': 99999, 'kind': 'repair'})  # a stray row after the final report
+    case('order_row_after_the_final_report', r, 1)
+
+    r = copy()
+    j = next(i for i, x in enumerate(r) if x.get('event') == 'checkpoint' and x.get('at') == 300 and 'scope' not in x)
+    r.insert(j + 1, {'event': 'case', 'name': 'not-a-drained-event'})  # something that is not a drained event between a checkpoint marker and its report
+    case('order_foreign_row_between_a_checkpoint_marker_and_its_report', r, 1)
+
+    # ---- invalid limits are refused by the SHARED reader before any read (the instrumented file sees no request at all)
+    def refused(name, max_bytes, line_max):
+        spy = Spy(b'{"a":1}\n' * 1250)
+        rows_out, problems_out, size_out = module.read_rows(spy, max_bytes, line_max)
+        ok = (spy.requests == []) and (not rows_out) and size_out == 0 and any('invalid' in x and 'nothing was read' in x for x in problems_out)
+        results.append((name, ok, f'requests {spy.requests} rows {len(rows_out)} problems {problems_out}'))
+
+    refused('reader_refuses_a_negative_line_limit_before_reading', 100_000, -2)
+    refused('reader_refuses_a_zero_line_limit_before_reading', 100_000, 0)
+    refused('reader_refuses_a_non_integer_line_limit_before_reading', 100_000, 1.5)
+    refused('reader_refuses_a_boolean_line_limit_before_reading', 100_000, True)
+    refused('reader_refuses_a_missing_line_limit_before_reading', 100_000, None)
+    refused('reader_refuses_a_negative_total_limit_before_reading', -1, 1000)
+    refused('reader_refuses_a_non_integer_total_limit_before_reading', 2.5, 1000)
+    spy = Spy(b'{"a":1}\n')
+    got = module.read_rows(spy, 100, 1000)
+    results.append(('reader_still_reads_with_valid_limits', spy.requests != [] and len(got[0]) == 1 and not got[1], f'requests {spy.requests} problems {got[1]}'))
+    code, out = audit(trace, run_json, '--line-max=-2')
+    results.append(('cli_negative_line_limit_fails_closed', code == 1 and 'invalid --line-max' in out, f'exit {code}'))
+    code, out = audit(trace, run_json, '--max-bytes=-5')
+    results.append(('cli_negative_total_limit_fails_closed', code == 1 and 'invalid --max-bytes' in out, f'exit {code}'))
+
     bad = 0
     for name, ok, detail in results:
         print(('ok   ' if ok else 'FAIL ') + name + ' :: ' + detail)

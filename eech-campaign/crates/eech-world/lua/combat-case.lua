@@ -39,6 +39,9 @@ local seed = 1
 local here = (debug.getinfo (1, "S").source:match ("^@?(.*[/\\])") or "")
 local writer = dofile (here .. "combat-report.lua") (out)
 local emit, emit_report = writer.emit, writer.emit_report
+-- the report flattening and the deltas are a file of their own too (loaded before the boot, which changes the working directory), so that the host tests load the same code
+local counting = dofile (here .. "combat-counters.lua")
+local counters, deltas = counting.counters, counting.deltas
 
 local order = {}
 local function bind_mobile (descriptor)
@@ -78,34 +81,6 @@ end
 local function drain (scope, at)
 	local text = engine:cmb_events ()
 	if scope then emit_report (scope, at, text) end
-end
-
--- the observer's counters as a flat table: `event.key`, `event.TYPE.key` for a row with a type, `timedN.key` for a timed row; numbers only
-local function counters (text)
-	local c = {}
-	for line in string.gmatch (text, "[^\n]+") do
-		local event = string.match (line, "^(%S+)")
-		if event ~= "cmb-hash" then
-			local kind = string.match (line, "^cmb%-timed kind=(%d+)")
-			local type_name = string.match (line, " type=(%S+)")
-			local prefix = kind and ("timed" .. kind) or (type_name and (event .. "." .. type_name) or event)
-			for k, v in string.gmatch (line, "(%S+)=(%S+)") do
-				local n = tonumber (v)
-				if n and k ~= "kind" then c [prefix .. "." .. k] = n end
-			end
-		end
-	end
-	return c
-end
-
--- every counter that changed between two reports, as a flat table of after - before
-local function deltas (before_text, after_text)
-	local b, a, d = counters (before_text), counters (after_text), {}
-	for k, v in pairs (a) do
-		local diff = v - (b [k] or 0)
-		if diff ~= 0 and not string.find (k, "max_", 1, true) then d [k] = diff end
-	end
-	return d
 end
 
 -- the kinds a case can choose a receiver among
@@ -282,8 +257,8 @@ for ordinal = 0, math.min (7, (census.ANTI_AIRCRAFT or 0) - 1) do
 		if done then
 			fire_ran = true
 			-- whether the fire roll ACTUALLY ran is read from the observer, not from `done`
-			local draws, hits = d ["timed4.draws"] or 0, d ["timed4.hits"] or 0
-			emit { event = "timed_activity", path = "anti_aircraft_fire", ordinal = ordinal, attempts = d ["timed4.attempts"] or 0, draws = draws, hits = hits, fatal = d ["timed4.fatal"] or 0,
+			local draws, hits = d ["cmb-timed.kind=4.draws"] or 0, d ["cmb-timed.kind=4.hits"] or 0
+			emit { event = "timed_activity", path = "anti_aircraft_fire", ordinal = ordinal, attempts = d ["cmb-timed.kind=4.attempts"] or 0, draws = draws, hits = hits, fatal = d ["cmb-timed.kind=4.fatal"] or 0,
 				rolled = draws > 0, fired = hits > 0 }
 		end
 	end
