@@ -554,6 +554,22 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
             }
             table.set("not_ai", data.not_ai).map_err(e)?;
         }
+        AimRequest::Forecast(data) => {
+            // the damage a weapon is capable of against a target, with no weapon in flight: everything by value, nothing to keep
+            table.set("mode", "forecast").map_err(e)?;
+            table.set("weapon", data.weapon).map_err(e)?;
+            table.set("weapon_warhead", data.weapon_warhead).map_err(e)?;
+            table.set("warhead", data.warhead).map_err(e)?;
+            table.set("damage_capability", data.damage_capability).map_err(e)?;
+            table.set("armor_penetration_capability", data.armor_penetration_capability).map_err(e)?;
+            table.set("burst_duration", data.burst_duration).map_err(e)?;
+            table.set("armour_level", data.armour_level).map_err(e)?;
+            table.set("target_not_ai", data.target_not_ai).map_err(e)?;
+            table.set("player_modifier", data.player_modifier).map_err(e)?;
+            table.set("damage_modifier", data.damage_modifier).map_err(e)?;
+            table.set("velocity", data.velocity).map_err(e)?;
+            table.set("echo", data.echo).map_err(e)?;
+        }
         AimRequest::ReadyUpdate(data) => {
             table.set("mode", "ready_update").map_err(e)?;
             aim_ids_into(&table, &data.source, &None)?;
@@ -735,6 +751,7 @@ fn aim_echo(lua: &Lua, table: &LuaTable) -> Result<Option<Vec<AimEvent>>, String
                 "lead_result" => 6,
                 "table_flight" => 7,
                 "range_result" => 8,
+                "forecast" => 9,
                 "step_path" => 20,
                 "step_submunitions" => 21,
                 "step_tracking" => 22,
@@ -754,7 +771,7 @@ fn aim_echo(lua: &Lua, table: &LuaTable) -> Result<Option<Vec<AimEvent>>, String
                 "step_birth_dispersion" => 36,
                 other => {
                     return Err(format!(
-                        "aim result echo kind {other:?} is not intercept, lead_path, lead_range, lead_iteration, ballistic, lead_result, table_flight, range_result or a step_* kind"
+                        "aim result echo kind {other:?} is not intercept, lead_path, lead_range, lead_iteration, ballistic, lead_result, table_flight, range_result, forecast or a step_* kind"
                     ))
                 }
             },
@@ -847,6 +864,10 @@ fn call_aim(lua: &Lua, function: &LuaFunction, request: AimRequest) -> Result<Ai
                 LuaValue::Number(value) if value.fract() == 0.0 && (0.0..4_294_967_296.0).contains(&value) => Some(value as u32),
                 other => return Err(format!("aim result last_shot must be an unsigned integer or absent, got {}", other.type_name())),
             };
+        }
+        AimRequest::Forecast(_) => {
+            // the capability is the host's own integer; the echo (the test fixture build's) is read below
+            reply.forecast_capability = aim_integer(&table, "capability")?;
         }
         AimRequest::ReadyUpdate(_) => {
             reply.ready_state = number("ready_state")?;

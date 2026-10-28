@@ -90,6 +90,7 @@ static const char *mode_name (int mode)
 		case CAMPAIGN_AIM_WEAPON_DECOY: return "weapon_decoy";
 		case CAMPAIGN_AIM_WEAPON_SEDUCE: return "weapon_seduce";
 		case CAMPAIGN_AIM_WEAPON_REACQUIRE: return "weapon_reacquire";
+		case CAMPAIGN_AIM_FORECAST: return "forecast";
 	}
 
 	return "unknown";
@@ -164,6 +165,17 @@ static void validate_request (const campaign_aim_step *step)
 			if ((step->weapon <= 0) || !isfinite (step->delta_time) || (step->release_has_timer & ~1) || (step->release_not_ai & ~1))
 			{
 				debug_fatal ("host aim: a release request with an inconsistent weapon %d", step->weapon);
+			}
+
+			break;
+		}
+		case CAMPAIGN_AIM_FORECAST:
+		{
+			// the armour level is a table value (never negative: the original takes a fractional power of it), the flags are booleans, and every figure is finite
+			if ((step->weapon <= 0) || (step->forecast_armour_level < 0) || (step->forecast_target_not_ai & ~1) || !isfinite (step->forecast_figures.burst_duration) ||
+				!isfinite (step->forecast_player_modifier) || !isfinite (step->forecast_damage_modifier) || !isfinite (step->forecast_velocity))
+			{
+				debug_fatal ("host aim: a forecast request with inconsistent figures for weapon %d", step->weapon);
 			}
 
 			break;
@@ -454,6 +466,22 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 		{
 			break;
 		}
+		case CAMPAIGN_AIM_FORECAST:
+		{
+			// the capability is a count of damage points: never negative.  The echo is optional (a host with a model of its own has none), but one that is given is exactly one
+			// forecast event, and agrees with the answer
+			if (result->forecast_capability < 0)
+			{
+				debug_fatal ("host aim: host aim answered a forecast request for weapon %d with a negative capability %d", step->weapon, result->forecast_capability);
+			}
+
+			if (step->echo && result->has_echo && ((result->echo_count != 1) || (result->echo[0].kind != CAMPAIGN_AIM_EVENT_FORECAST) || (result->echo[0].d != result->forecast_capability)))
+			{
+				debug_fatal ("host aim: host aim echoed a forecast that is not one event agreeing with its answer");
+			}
+
+			break;
+		}
 		case CAMPAIGN_AIM_RELEASE:
 		{
 			if ((result->release_refuse & ~1) || (result->release_write_last_shot & ~1) || (result->release_burst_size < 0) || (result->release_burst_size > 100000) ||
@@ -531,6 +559,7 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 		for (i = 0; i < result->echo_count; i++)
 		{
 			if (!(((result->echo[i].kind >= CAMPAIGN_AIM_EVENT_INTERCEPT) && (result->echo[i].kind <= CAMPAIGN_AIM_EVENT_RANGE_RESULT)) ||
+				((step->mode == CAMPAIGN_AIM_FORECAST) && (result->echo[i].kind == CAMPAIGN_AIM_EVENT_FORECAST)) ||
 				(step_mode (step->mode) && (result->echo[i].kind >= CAMPAIGN_AIM_EVENT_STEP_PATH) && (result->echo[i].kind <= CAMPAIGN_AIM_EVENT_STEP_BIRTH_DISPERSION))) ||
 				!all_finite (result->echo[i].f, 12))
 			{
@@ -780,6 +809,41 @@ int campaign_step_hits_find (const campaign_step_hits *hits, int which, const fl
 	}
 
 	return FALSE;
+}
+
+campaign_aim_result campaign_aim_forecast (int weapon, const campaign_damage_figures *figures, int armour_level, int target_not_ai, float player_modifier, float damage_modifier, float velocity, int echo)
+{
+	campaign_aim_step step;
+
+	memset (&step, 0, sizeof (step));
+
+	step.mode = CAMPAIGN_AIM_FORECAST;
+
+	step.weapon = weapon;
+
+	step.forecast_figures = *figures;
+
+	step.forecast_armour_level = armour_level;
+
+	step.forecast_target_not_ai = target_not_ai;
+
+	step.forecast_player_modifier = player_modifier;
+
+	step.forecast_damage_modifier = damage_modifier;
+
+	step.forecast_velocity = velocity;
+
+	if (echo)
+	{
+		step.echo = TRUE;
+
+		step.echo_out = echo_buffer;
+
+		step.echo_capacity = CAMPAIGN_AIM_ECHO_MAX;
+	}
+
+	// a pure question: ask_once refuses a NEED_DRAW (no sample of the shared stream is taken for a forecast) and a NEED_LOOKUP
+	return ask_once (&step);
 }
 
 campaign_aim_result campaign_aim_animate (int weapon, int status, int on_ground, float lifetime, float motion_y)

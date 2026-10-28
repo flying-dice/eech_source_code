@@ -68,6 +68,8 @@
 
 #include "entity/mobile/mb_cmbfx.h"
 
+#include "entity/mobile/mb_hostaim.h"
+
 #include "ai/highlevl/highlevl.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -347,6 +349,63 @@ void display_debug_kill_info (entity *victim, entity *aggressor)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/** The damage a weapon is CAPABLE of against a target, with no weapon in flight (EEDCS-46): the forecast the target selection (wn_tgt.c) makes.  The physical arithmetic is the
+ *  host's (mb_hostaim.h, FORECAST); this gathers what the original read and sends it by value, and hands back the host's answer.  It takes no sample of the random stream, as the
+ *  original took none.  Kept here: which weapon and which target (the caller's), the armour level and the player settings read from the target, and the database relationship
+ *  that a conventional-munitions weapon carries its damage in the next database entry (the munition it scatters, wn_creat.c).
+ */
+static int weapon_damage_forecast (entity *target, float damage_modifier, entity_sub_types weapon_type, float velocity)
+{
+	campaign_damage_figures
+		figures;
+
+	campaign_aim_result
+		result;
+
+	const weapon_data
+		*row;
+
+	int
+		not_ai;
+
+	float
+		player_modifier = 1.0;
+
+	ASSERT (target);
+
+	row = &weapon_database[weapon_type];
+
+	figures.weapon_warhead = row->warhead_type;
+
+	if (row->warhead_type == WEAPON_WARHEAD_TYPE_CONVENTIONAL_MUNITIONS)
+	{
+		if ((weapon_type + 1) >= NUM_ENTITY_SUB_TYPE_WEAPONS)
+		{
+			debug_fatal ("DAMAGE: conventional munitions weapon %d has no munition entry after it in the database", weapon_type);
+		}
+
+		row = &weapon_database[weapon_type + 1];
+	}
+
+	figures.warhead = row->warhead_type;
+	figures.damage_capability = row->damage_capability;
+	figures.armor_penetration_capability = row->armor_penetration_capability;
+	figures.burst_duration = row->burst_duration;
+
+	not_ai = (get_local_entity_int_value (target, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI);
+
+	if (not_ai)
+	{
+		player_modifier = get_player_damage_modifier (target);
+	}
+
+	result = campaign_aim_forecast (weapon_type, &figures, get_local_entity_int_value (target, INT_TYPE_ARMOR_LEVEL), not_ai, player_modifier, damage_modifier, velocity, CMB_FX_FORECAST_ECHO);
+
+	CMB_FX_CAPABILITY_FORECAST (target, weapon_type, result)
+
+	return result.forecast_capability;
+}
+
 int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier, entity_sub_types weapon_type, float velocity)
 {
 	int
@@ -367,6 +426,12 @@ int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier
 		*raw;
 
 	ASSERT (target);
+
+	if (!wpn)
+	{
+		// no weapon in flight: the forecast, which is the host's physical answer
+		return weapon_damage_forecast (target, damage_modifier, weapon_type, velocity);
+	}
 
 	CMB_FX_CAPABILITY_BEGIN()
 
@@ -403,16 +468,6 @@ int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier
 			random_modifier = 0.75 + 0.5 * random_modifier; // random chance from 75% to 125%, average 100%
 		}
 
-	}
-	else
-	{
-		target_armor_thickness = (float) get_local_entity_int_value (target, INT_TYPE_ARMOR_LEVEL);
-		if (warhead_type >= WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK && 
-				warhead_type <= WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_AIRCRAFT)
-		{
-			velocity = 1;	
-			high_explosive = TRUE;
-		}
 	}
 	
 	weapon_armor_penetration_capability = armor_penetration_capability * random_modifier * velocity;

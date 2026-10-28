@@ -9,6 +9,7 @@
 mod crash;
 
 use eech_world::aim::{self, Aim};
+use eech_world::cmb;
 use eech_world::flight;
 use eech_world::los::{Los, LosRequest};
 use eech_world::movement::{
@@ -1709,6 +1710,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     6 => "lead_result",
                                     7 => "table_flight",
                                     8 => "range_result",
+                                    9 => "forecast",
                                     20 => "step_path",
                                     21 => "step_submunitions",
                                     22 => "step_tracking",
@@ -1956,6 +1958,44 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         result.set("burst_size", outcome.burst_size)?;
                         if let Some(last_shot) = outcome.last_shot {
                             result.set("last_shot", last_shot)?;
+                        }
+                    }
+                    "forecast" => {
+                        // the damage a weapon is capable of against a target, with no weapon in flight (cmb.rs forecast): a pure question that takes no draw.  The weapon's damage
+                        // figures, the target's armour level and the player's setting arrive with the question; this host keeps nothing for it
+                        let weapon = lua_i32(&step, "weapon").map_err(fail)?;
+                        if weapon <= 0 {
+                            return Err(fail(format!("a forecast of weapon {weapon}, which is not a weapon")));
+                        }
+                        let [burst_duration, player_modifier, damage_modifier, velocity] =
+                            exact_fields::<4>(lua, &step, "burst_duration,player_modifier,damage_modifier,velocity").map_err(fail)?;
+                        let outcome = cmb::forecast(&cmb::ForecastInput {
+                            weapon_warhead: lua_i32(&step, "weapon_warhead").map_err(fail)?,
+                            warhead: lua_i32(&step, "warhead").map_err(fail)?,
+                            damage_capability: lua_i32(&step, "damage_capability").map_err(fail)?,
+                            armor_penetration_capability: lua_i32(&step, "armor_penetration_capability").map_err(fail)?,
+                            burst_duration,
+                            armour_level: lua_i32(&step, "armour_level").map_err(fail)?,
+                            not_ai: flag(&step, "target_not_ai")?,
+                            player_modifier,
+                            damage_modifier,
+                            velocity,
+                        })
+                        .map_err(|error| fail(format!("weapon {weapon}: {error}")))?;
+                        result.set("state", "done")?;
+                        result.set("capability", outcome.capability)?;
+                        if flag(&step, "echo")? {
+                            // the original's observer hooks of the forecast, in one event, for the campaign build that records a trace
+                            let mut f = [0.0f32; 12];
+                            f[..4].copy_from_slice(&[outcome.damage_modifier, outcome.penetration, outcome.armour, outcome.random_modifier]);
+                            echo_into(&Some(vec![aim::Event {
+                                kind: 9,
+                                a: outcome.path,
+                                b: outcome.raw,
+                                c: outcome.warhead,
+                                d: outcome.capability,
+                                f,
+                            }]))?;
                         }
                     }
                     "ready_update" => {

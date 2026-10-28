@@ -1221,6 +1221,27 @@ pub struct AimRelease {
     pub not_ai: bool,
 }
 
+/// The damage a weapon is capable of against a target, with no weapon in flight (EEDCS-46): the question by value.  `weapon_warhead` is the warhead type of the weapon's own
+/// definition; `warhead`, `damage_capability`, `armor_penetration_capability` and `burst_duration` are the figures the forecast is made from (the weapon's own, or for a
+/// conventional-munitions weapon those of the munition it scatters, as the campaign resolved them); `armour_level` is the target's table level; `target_not_ai` says the
+/// player's damage setting `player_modifier` applies; `damage_modifier` and `velocity` are the arguments of the original function.  `echo` is the test fixture build's request
+/// for the reference host's intermediate values.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimForecast {
+    pub weapon: i32,
+    pub weapon_warhead: i32,
+    pub warhead: i32,
+    pub damage_capability: i32,
+    pub armor_penetration_capability: i32,
+    pub burst_duration: f32,
+    pub armour_level: i32,
+    pub target_not_ai: bool,
+    pub player_modifier: f32,
+    pub damage_modifier: f32,
+    pub velocity: f32,
+    pub echo: bool,
+}
+
 /// One frame of one weapon's flight, or (with `birth`) its birth: the weapon, the clock and the frame, and what the host has been told so far in answer to the lookups it asked for (`answers`, each
 /// the lookup repeated with its results in `f[6..12]`) and the samples of the campaign's shared random stream it has been given (`draws`, raw integers in [0, 32767]).
 #[derive(Clone, Debug, PartialEq)]
@@ -1388,6 +1409,7 @@ pub enum AimRequest {
     Figures(AimFigures),
     WeaponStep(AimWeaponStep),
     Release(AimRelease),
+    Forecast(AimForecast),
     Animate(AimAnimate),
     ReadyUpdate(AimReadyUpdate),
     ReadyCommand(AimReadyCommand),
@@ -1424,6 +1446,8 @@ pub struct AimReply {
     pub release_refuse: bool,
     pub release_burst_size: i32,
     pub release_last_shot: Option<u32>,
+    /// A forecast only: the capability, never negative.
+    pub forecast_capability: i32,
     /// An animation only: the parachute's state, and the weapon's lifetime when the animation reset it.
     pub animate_status: i32,
     pub animate_lifetime: Option<f32>,
@@ -2560,6 +2584,40 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                 not_ai: checked_bool("release_not_ai", source.release_not_ai)?,
             })
         }
+        sys::EECH_AIM_FORECAST => {
+            finite(
+                "forecast figure",
+                &[
+                    source.forecast_figures.burst_duration,
+                    source.forecast_player_modifier,
+                    source.forecast_damage_modifier,
+                    source.forecast_velocity,
+                ],
+            )?;
+            if source.weapon <= 0 {
+                return Err(format!("aim received a forecast of weapon {}, which is not a weapon", source.weapon));
+            }
+            if source.forecast_armour_level < 0 {
+                return Err(format!(
+                    "aim received a forecast against armour level {}, below zero",
+                    source.forecast_armour_level
+                ));
+            }
+            AimRequest::Forecast(AimForecast {
+                weapon: source.weapon,
+                weapon_warhead: source.forecast_figures.weapon_warhead,
+                warhead: source.forecast_figures.warhead,
+                damage_capability: source.forecast_figures.damage_capability,
+                armor_penetration_capability: source.forecast_figures.armor_penetration_capability,
+                burst_duration: source.forecast_figures.burst_duration,
+                armour_level: source.forecast_armour_level,
+                target_not_ai: checked_bool("forecast_target_not_ai", source.forecast_target_not_ai)?,
+                player_modifier: source.forecast_player_modifier,
+                damage_modifier: source.forecast_damage_modifier,
+                velocity: source.forecast_velocity,
+                echo,
+            })
+        }
         sys::EECH_AIM_ANIMATE => {
             finite("animation figure", &[source.animate_lifetime, source.animate_motion_y])?;
             if source.weapon <= 0 {
@@ -2853,6 +2911,12 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
             answer.release_write_last_shot = 1;
             answer.release_last_shot = last_shot;
         }
+    }
+    if source.mode == sys::EECH_AIM_FORECAST {
+        if reply.forecast_capability < 0 {
+            return Err(format!("aim answered a forecast with a negative capability {}", reply.forecast_capability));
+        }
+        answer.forecast_capability = reply.forecast_capability;
     }
     if source.mode == sys::EECH_AIM_ANIMATE {
         answer.animate_status = reply.animate_status;
@@ -6051,6 +6115,141 @@ mod tests {
             })
         });
         assert_eq!((code, result.state, result.lookup_count), (0, sys::EECH_AIM_NEED_LOOKUP, 1));
+    }
+
+    // The Rust mirrors of the aim exchange are written by hand, field for field; one that drifts from the C structure is memory corruption at the first request.  The campaign
+    // reports the sizes and the offsets of the fields appended last (csrc/eech_aim_layout.c) and the mirrors must agree.
+    #[test]
+    fn the_rust_mirrors_of_the_aim_exchange_have_the_layout_the_campaign_compiled() {
+        use std::mem::{offset_of, size_of};
+        let layout = |which: c_int| unsafe { sys::eech_engine_aim_layout(which) };
+        assert_eq!(layout(0), size_of::<sys::eech_aim_step>(), "campaign_aim_step");
+        assert_eq!(layout(1), size_of::<sys::eech_aim_result>(), "campaign_aim_result");
+        assert_eq!(layout(2), size_of::<sys::eech_weapon_figures>(), "campaign_weapon_figures");
+        assert_eq!(layout(3), size_of::<sys::eech_damage_figures>(), "campaign_damage_figures");
+        assert_eq!(layout(4), offset_of!(sys::eech_aim_step, release_not_ai));
+        assert_eq!(layout(5), offset_of!(sys::eech_aim_step, animate_motion_y));
+        assert_eq!(layout(6), offset_of!(sys::eech_aim_step, forecast_figures));
+        assert_eq!(layout(7), offset_of!(sys::eech_aim_step, forecast_armour_level));
+        assert_eq!(layout(8), offset_of!(sys::eech_aim_step, forecast_velocity));
+        assert_eq!(layout(9), offset_of!(sys::eech_aim_result, release_last_shot));
+        assert_eq!(layout(10), offset_of!(sys::eech_aim_result, animate_lifetime));
+        assert_eq!(layout(11), offset_of!(sys::eech_aim_result, forecast_capability));
+        assert_eq!(layout(12), offset_of!(sys::eech_damage_figures, burst_duration));
+        assert_eq!(layout(13), offset_of!(sys::eech_aim_step, weapon_state));
+        assert_eq!(layout(14), offset_of!(sys::eech_aim_step, answers));
+    }
+
+    #[test]
+    fn a_forecast_request_carries_its_figures_by_value_and_the_hosts_capability_comes_back() {
+        let mut step = blank_aim_step(sys::EECH_AIM_FORECAST);
+        step.weapon = 54;
+        step.echo = 1;
+        step.forecast_figures = sys::eech_damage_figures {
+            weapon_warhead: 8,
+            warhead: 5,
+            damage_capability: 30,
+            armor_penetration_capability: 7,
+            burst_duration: 2.5,
+        };
+        step.forecast_armour_level = 9;
+        step.forecast_target_not_ai = 1;
+        step.forecast_player_modifier = 0.66;
+        step.forecast_damage_modifier = 0.0;
+        step.forecast_velocity = 1.0;
+        let (seen, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                forecast_capability: 41,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        let Some(AimRequest::Forecast(request)) = seen else {
+            panic!("the host was not asked to forecast")
+        };
+        assert_eq!(
+            request,
+            AimForecast {
+                weapon: 54,
+                weapon_warhead: 8,
+                warhead: 5,
+                damage_capability: 30,
+                armor_penetration_capability: 7,
+                burst_duration: 2.5,
+                armour_level: 9,
+                target_not_ai: true,
+                player_modifier: 0.66,
+                damage_modifier: 0.0,
+                velocity: 1.0,
+                echo: true,
+            }
+        );
+        // the host's own number is what the campaign gets back, not one this layer computes
+        assert_eq!((result.state, result.forecast_capability), (sys::EECH_AIM_DONE, 41));
+    }
+
+    #[test]
+    fn a_forecast_refuses_what_has_no_defined_answer_and_never_takes_a_draw_or_a_lookup() {
+        let mut step = blank_aim_step(sys::EECH_AIM_FORECAST);
+        step.weapon = 54;
+        step.forecast_player_modifier = 1.0;
+        step.forecast_velocity = 1.0;
+        let ok = |_: AimRequest| Ok(AimReply::default());
+        // malformed requests never reach the host
+        for (what, mutate) in [
+            (
+                "weapon",
+                Box::new(|s: &mut sys::eech_aim_step| s.weapon = 0) as Box<dyn Fn(&mut sys::eech_aim_step)>,
+            ),
+            ("armour", Box::new(|s: &mut sys::eech_aim_step| s.forecast_armour_level = -1)),
+            ("flag", Box::new(|s: &mut sys::eech_aim_step| s.forecast_target_not_ai = 2)),
+            ("burst", Box::new(|s: &mut sys::eech_aim_step| s.forecast_figures.burst_duration = f32::NAN)),
+            ("modifier", Box::new(|s: &mut sys::eech_aim_step| s.forecast_damage_modifier = f32::INFINITY)),
+            ("player", Box::new(|s: &mut sys::eech_aim_step| s.forecast_player_modifier = f32::NAN)),
+            ("velocity", Box::new(|s: &mut sys::eech_aim_step| s.forecast_velocity = f32::NAN)),
+        ] {
+            let mut bad = blank_aim_step(sys::EECH_AIM_FORECAST);
+            bad.weapon = 54;
+            bad.forecast_player_modifier = 1.0;
+            bad.forecast_velocity = 1.0;
+            mutate(&mut bad);
+            let (seen, _, code, error) = aim_crossing(&bad, ok);
+            assert!(seen.is_none() && code != 0 && !error.is_empty(), "{what}: {error}");
+        }
+        // a negative capability from the host is refused
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                forecast_capability: -1,
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("negative capability"), "{error}");
+        // a forecast consumes no sample of the shared stream and asks for no lookup
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("cannot take one"), "{error}");
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                lookups: vec![AimEvent {
+                    kind: 1,
+                    a: 0,
+                    b: 0,
+                    c: 0,
+                    d: 0,
+                    f: [0.0; 12],
+                }],
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("cannot take them"), "{error}");
+        // a host that fails says so
+        let (_, _, code, error) = aim_crossing(&step, |_| Err("the host has no model for this weapon".into()));
+        assert!(code != 0 && error.contains("no model"), "{error}");
     }
 
     #[test]

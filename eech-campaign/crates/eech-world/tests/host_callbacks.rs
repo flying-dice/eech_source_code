@@ -564,6 +564,43 @@ refused({ mode = 'ready_command', state = 0, open = 1 }, 'open must be a boolean
 refused({ mode = 'ready_command', source_host_id = '', state = 0, open = true }, 'source_host_id must be 1 to 128 bytes')
 refused({ mode = 'required', device_attitude = { 1, 0, 0 }, intercept_vector = { 0, 0, 1 }, heading_min = -1, heading_max = 1, pitch_min = -1, pitch_max = 1, climb = false }, 'device_attitude must be 9 finite numbers')
 refused({ mode = 'lead', weapon = 7, device_position = { 0, 0, 0 }, parent_velocity = 0, target = { position = { 0, 0, 0 }, point = { 0, 0, 0 }, motion_vector = { 0, 0, 0 }, mobile = false }, map_min = { 0, 0, 0 }, map_max = { 1, 1, 1 }, comms_weapon_lag = 0, source_gunship = false, draw = 40000 }, 'draw must be an integer in [0, 32767]')
+-- the damage forecast (EEDCS-46): a pure question answered from the figures it is sent, with no draw.  The expected values are worked out by hand from the original
+-- expressions of weapon_damage_capability (the `wpn == NULL` path); the kernel's own tests are in src/cmb.rs
+local function forecast(over)
+  local request = { mode = 'forecast', weapon = 54, weapon_warhead = 5, warhead = 5, damage_capability = 100, armor_penetration_capability = 1, burst_duration = 0.0,
+    armour_level = 4, target_not_ai = false, player_modifier = 1.0, damage_modifier = 0.5, velocity = 1.0, echo = false }
+  for k, v in pairs(over or {}) do request[k] = v end
+  return request
+end
+r = host.aim(forecast())
+assert(r.state == 'done' and r.capability == 31 and r.echo == nil, 'dual-purpose splash against armour 4: 100 * (1 - 0.5^((2/3)^1.5)) = 31.4')
+r = host.aim(forecast({ echo = true }))
+local seen = r.echo[1]
+assert(r.capability == 31 and #r.echo == 1 and seen.kind == 'forecast' and seen.a == 2 and seen.b == 31 and seen.c == 5 and seen.d == 31, 'the echo is the original observer values in one event')
+assert(near(seen.f[1], 0.31429072) and seen.f[2] == 1 and seen.f[3] == 4 and seen.f[4] == 1, 'the modifier after the splash, the penetration, the armour thickness and the random modifier (1)')
+r = host.aim(forecast({ weapon_warhead = 3, warhead = 3, damage_capability = 12, armor_penetration_capability = 20, armour_level = 10, damage_modifier = 0.0 }))
+assert(r.capability == 12, 'a solid shot that pierces does its damage figure')
+r = host.aim(forecast({ weapon_warhead = 3, warhead = 3, damage_capability = 12, armor_penetration_capability = 5, armour_level = 10, damage_modifier = 0.0 }))
+assert(r.capability == 0, 'and one that cannot pierce does nothing')
+r = host.aim(forecast({ weapon_warhead = 3, warhead = 3, armor_penetration_capability = 50, armour_level = 10, damage_modifier = 0.0, target_not_ai = true, player_modifier = 0.33 }))
+assert(r.capability == 33, 'a player target is scaled by the setting after the arithmetic: 100 * 0.33')
+r = host.aim(forecast({ weapon_warhead = 8, warhead = 3, damage_capability = 30, burst_duration = 6.0, armor_penetration_capability = 50, armour_level = 10, damage_modifier = 0.0 }))
+assert(r.capability == 60, 'a conventional-munitions weapon takes the munition figures scaled by the burst: 30 * 6 / 3')
+refused(forecast({ armour_level = -1 }), 'below zero')
+refused(forecast({ weapon = 0 }), 'not a weapon')
+refused(forecast({ target_not_ai = 1 }), 'target_not_ai must be a boolean')
+refused(forecast({ echo = 1 }), 'echo must be a boolean')
+refused(forecast({ velocity = 0 / 0 }), 'velocity')
+refused(forecast({ damage_capability = 0, armour_level = 0 }), 'not an integer')
+local missing = forecast() missing.warhead = nil
+refused(missing, 'warhead must be an integer')
+-- a host with a model of its own answers the same question without any of that arithmetic, and a provider that corrupts the answer is told apart by the first one
+assert(own_model.forecast(forecast()).capability == 5 and own_model.forecast(forecast({ damage_capability = 0 })).capability == 0, 'the plain model: a damage figure does 5, none does nothing')
+assert(malformed('bad_forecast_negative', host.aim, passed)(forecast()).capability == -1, 'the first forecast answered with a negative capability')
+assert(malformed('bad_forecast_draw', host.aim, passed)(forecast()).state == 'need_draw', 'or with a request for a sample')
+assert(malformed('bad_forecast_fraction', host.aim, passed)(forecast()).capability == 1.5, 'or with a capability that is not an integer')
+local negative = malformed('bad_forecast_negative', host.aim, passed)
+assert(negative(forecast()).capability == -1 and negative(forecast()).capability == 31, 'the first only; the reference host answers the rest')
 print('AIM_HOST=ok')
 ";
 

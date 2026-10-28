@@ -597,6 +597,7 @@ pub const EECH_AIM_ANIMATE: c_int = 15;
 pub const EECH_AIM_WEAPON_DECOY: c_int = 16;
 pub const EECH_AIM_WEAPON_SEDUCE: c_int = 17;
 pub const EECH_AIM_WEAPON_REACQUIRE: c_int = 18;
+pub const EECH_AIM_FORECAST: c_int = 19;
 pub const EECH_AIM_DONE: c_int = 1;
 pub const EECH_AIM_NEED_DRAW: c_int = 2;
 pub const EECH_AIM_NEED_LOOKUP: c_int = 3;
@@ -614,6 +615,7 @@ pub const EECH_AIM_EVENT_BALLISTIC: c_int = 5;
 pub const EECH_AIM_EVENT_LEAD_RESULT: c_int = 6;
 pub const EECH_AIM_EVENT_TABLE_FLIGHT: c_int = 7;
 pub const EECH_AIM_EVENT_RANGE_RESULT: c_int = 8;
+pub const EECH_AIM_EVENT_FORECAST: c_int = 9;
 
 /// One intermediate value of the reference host's prediction, in its order (read only by the test fixture build).
 #[repr(C)]
@@ -671,6 +673,17 @@ pub struct eech_weapon_figures {
     pub rate_of_fire: f32,
     pub inverse_rate_of_fire: f32,
     pub acquire_forward: c_int,
+}
+
+/// The damage figures a forecast is made from (aphavoc/.../mb_hostaim.h campaign_damage_figures), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_damage_figures {
+    pub weapon_warhead: c_int,
+    pub warhead: c_int,
+    pub damage_capability: c_int,
+    pub armor_penetration_capability: c_int,
+    pub burst_duration: f32,
 }
 
 /// The weapon as the campaign holds it, in a weapon step (aphavoc/.../mb_hostaim.h campaign_weapon_state), field for field.
@@ -768,6 +781,12 @@ pub struct eech_aim_step {
     pub animate_on_ground: c_int,
     pub animate_lifetime: f32,
     pub animate_motion_y: f32,
+    pub forecast_figures: eech_damage_figures,
+    pub forecast_armour_level: c_int,
+    pub forecast_target_not_ai: c_int,
+    pub forecast_player_modifier: f32,
+    pub forecast_damage_modifier: f32,
+    pub forecast_velocity: f32,
 }
 
 #[repr(C)]
@@ -805,6 +824,7 @@ pub struct eech_aim_result {
     pub animate_status: c_int,
     pub animate_write_lifetime: c_int,
     pub animate_lifetime: f32,
+    pub forecast_capability: c_int,
 }
 
 /// What each collision lookup of a weapon step found, by the question it was asked (aphavoc/.../mb_hostaim.h campaign_step_hits).
@@ -950,6 +970,8 @@ extern "C" {
     pub fn eech_engine_roster_stats(stats: *mut eech_roster_stats) -> c_int;
     pub fn eech_engine_supply_tasks(callback: eech_supply_task_callback, user: *mut c_void, count: *mut c_int) -> c_int;
     pub fn eech_engine_clock(clock: *mut eech_clock) -> c_int;
+    /// The layout of the aim exchange as the campaign compiled it (csrc/eech_aim_layout.c): sizes and offsets, for the engine's layout test.
+    pub fn eech_engine_aim_layout(which: c_int) -> usize;
     pub fn eech_engine_diagnostics() -> c_int;
     pub fn eech_set_log_sink(sink: Option<eech_log_sink>, user: *mut c_void);
 }

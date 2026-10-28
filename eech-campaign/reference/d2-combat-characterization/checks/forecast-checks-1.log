@@ -1,0 +1,33 @@
+TEST_LINK_FLAGS=-fno-pie -no-pie
+SANITIZERS=-fsanitize=address,undefined -fno-sanitize-recover=undefined
+SANITIZER_PROBE_COMPILE_EXIT=0
+SANITIZER_PROBE_RUN_EXIT=0
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/forecast_checks.c: In function 'main':
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/forecast_checks.c:267:17: warning: missing terminating " character
+  267 |         printf ("FORECAST_CHECKS=%s: %d checks, %d failures
+      |                 ^
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/forecast_checks.c:267:17: error: missing terminating " character
+  267 |         printf ("FORECAST_CHECKS=%s: %d checks, %d failures
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/forecast_checks.c:268:16: error: expected ')' before 'FAILED'
+  268 | ", failures ? "FAILED" : "ok", checks, failures);
+      |                ^~~~~~
+      |                )
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/forecast_checks.c:267:16: note: to match this '('
+  267 |         printf ("FORECAST_CHECKS=%s: %d checks, %d failures
+      |                ^
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/forecast_checks.c:268:29: warning: missing terminating " character
+  268 | ", failures ? "FAILED" : "ok", checks, failures);
+      |                             ^
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/forecast_checks.c:268:29: error: missing terminating " character
+  268 | ", failures ? "FAILED" : "ok", checks, failures);
+      |                             ^~~~~~~~~~~~~~~~~~~~~
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/forecast_checks.c:270:33: error: expected ';' before '}' token
+  270 |         return failures ? 1 : 0;
+      |                                 ^
+      |                                 ;
+  271 | }
+      | ~                                
+COMPILE_EXIT=1
+RUN_NOT_STARTED
+DOCKER_EXIT=1

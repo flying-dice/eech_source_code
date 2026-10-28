@@ -42,6 +42,19 @@
  * campaign fallback: a hosted engine with no aim callback stops at boot, and a request the host cannot answer stops the engine with the host's reason.
  * Unsupported: the triangulated range of the player's gunship (the campaign refuses to ask).
  *
+ * FORECAST (EEDCS-46, D2) is the first physical request of combat resolution:
+ *
+ *   FORECAST       the damage a weapon is CAPABLE of against a target, asked with no weapon in flight: the forecast the target selection makes (wn_tgt.c) to decide whether a
+ *                  package can hurt a target at all and to weigh packages against each other.  The campaign sends, by value, the weapon, its damage figures, the target's
+ *                  armour level, whether the target is a player and the player's damage setting, and the two arguments the original function takes (the damage modifier
+ *                  and the velocity).  The host answers the capability (an integer, never negative).  DONE only: the forecast consumes NO sample of the shared random stream
+ *                  (a NEED_DRAW or a NEED_LOOKUP is refused), as in the original.  The campaign keeps which weapons and targets are weighed, the salvo and rate-of-fire
+ *                  multiplier and what the number is compared with; the REAL weapon's capability (its draw, its velocity, the aspect armour of the target and the multiplayer
+ *                  multiplier) is not part of this request and stays in the campaign.  The damage figures are those of the weapon's own definition, or, for a
+ *                  conventional-munitions weapon (which carries its damage in the munition it scatters), those of the submunition the database names for it: the
+ *                  campaign resolves that definition relationship and sends the munition's figures; the host applies the conventional-munitions arithmetic.  The test fixture
+ *                  build asks for an echo (one event) of the reference host's intermediate values, which it replays into its observer in the order the original produced.
+ *
  * The optional echo is an ordered list of the reference host's intermediate values (the points of its prediction), requested only by the
  * test-fixture build; the shipping module never asks for it.
  */
@@ -89,7 +102,9 @@ enum campaign_aim_mode
 	/* a seeker's answer to a decoy becoming active: whether it goes for the decoy (the step protocol) */
 	CAMPAIGN_AIM_WEAPON_SEDUCE,
 	/* a seeker's answer to the decoy it was tracking expiring: whether it goes back to the decoy's launcher (the step protocol) */
-	CAMPAIGN_AIM_WEAPON_REACQUIRE
+	CAMPAIGN_AIM_WEAPON_REACQUIRE,
+	/* the damage a weapon is capable of against a target, asked with no weapon in flight (EEDCS-46): a pure question, DONE only */
+	CAMPAIGN_AIM_FORECAST
 };
 
 enum campaign_aim_state
@@ -113,6 +128,10 @@ enum campaign_aim_event_kind
 	CAMPAIGN_AIM_EVENT_TABLE_FLIGHT,
 	/* RANGE echo: one range run, in order: zero_pitch in a, whether it ran in b, whether the diagnostic file was open in c; f[0..3] the end z, y, velocity and lifetime */
 	CAMPAIGN_AIM_EVENT_RANGE_RESULT,
+	/* FORECAST echo (the test fixture build only): the original's observer hooks of the forecast in one event.  a the arithmetic path that ran (0 none, 1 the weapon pierces the
+	   armour, 2 high-explosive splash), b the capability before the player's damage setting, c the warhead type the arithmetic used, d the final capability; f[0] the damage
+	   modifier as it stood at the end (the splash path rewrites it), f[1] the penetration capability, f[2] the armour thickness, f[3] the random modifier (1: a forecast has none) */
+	CAMPAIGN_AIM_EVENT_FORECAST,
 	/* WEAPON_STEP echo (the test fixture build only): the hooks of the original weapon_movement the host's step passed, in order.  The branch numbers they carry are the
 	   fixture's own (mb_wpnfx.h) */
 	CAMPAIGN_AIM_EVENT_STEP_PATH = 20,
@@ -248,6 +267,19 @@ typedef struct campaign_weapon_figures
 	int acquire_forward;
 } campaign_weapon_figures;
 
+/* FORECAST: the damage figures of the weapon the forecast is about, by value.  `weapon_warhead` is the warhead type of the weapon's own definition.  The other four are the
+   figures the forecast is made from: those of the weapon's own definition, or, when the weapon is a conventional-munitions weapon, those of the munition the database names
+   as its submunition (the campaign resolves that relationship and the host applies the conventional-munitions arithmetic: the munition's damage scaled by its burst duration
+   over three).  `burst_duration` is the database's float, unchanged. */
+typedef struct campaign_damage_figures
+{
+	int weapon_warhead;
+	int warhead;
+	int damage_capability;
+	int armor_penetration_capability;
+	float burst_duration;
+} campaign_damage_figures;
+
 /* WEAPON_STEP: the weapon as the campaign holds it.  The entity-local random stream never leaves the campaign: its first four outputs are all any one call of the
    original uses (raw integers in [0, 32767]) */
 typedef struct campaign_weapon_state
@@ -367,6 +399,15 @@ typedef struct campaign_aim_step
 	int animate_on_ground;
 	float animate_lifetime;
 	float animate_motion_y;
+
+	/* FORECAST (`weapon` is the weapon sub type): its damage figures, the target's armour level (a table value, never negative), whether the target is not an AI and, then, the
+	   player's damage setting (1 and unused for an AI), and the two arguments of the original function: the damage modifier and the velocity */
+	campaign_damage_figures forecast_figures;
+	int forecast_armour_level;
+	int forecast_target_not_ai;
+	float forecast_player_modifier;
+	float forecast_damage_modifier;
+	float forecast_velocity;
 } campaign_aim_step;
 
 typedef struct campaign_aim_result
@@ -416,6 +457,8 @@ typedef struct campaign_aim_result
 	int animate_status;
 	int animate_write_lifetime;
 	float animate_lifetime;
+	/* FORECAST: the capability, never negative */
+	int forecast_capability;
 } campaign_aim_result;
 
 typedef int (*campaign_aim_fn)
@@ -486,6 +529,11 @@ typedef void (*campaign_step_answer_fn) (const campaign_aim_event *lookup, campa
 
 /* The rate-of-fire gate of a launcher releasing a weapon (CAMPAIGN_AIM_RELEASE). */
 campaign_aim_result campaign_aim_release (int weapon, int has_timer, unsigned int last_shot, int not_ai);
+
+/* The damage forecast (CAMPAIGN_AIM_FORECAST): the capability of `weapon` (figures as campaign_damage_figures says) against a target of this armour level, a player or not (with
+   the player's damage setting), for these two arguments of the original function.  A pure question: no draw is taken, none may be asked for.  `echo` asks the reference host for
+   the observer's echo (the test fixture build); the result's echo is valid until the next request. */
+campaign_aim_result campaign_aim_forecast (int weapon, const campaign_damage_figures *figures, int armour_level, int target_not_ai, float player_modifier, float damage_modifier, float velocity, int echo);
 
 /* One frame of a falling weapon's parachute (CAMPAIGN_AIM_ANIMATE). */
 campaign_aim_result campaign_aim_animate (int weapon, int status, int on_ground, float lifetime, float motion_y);

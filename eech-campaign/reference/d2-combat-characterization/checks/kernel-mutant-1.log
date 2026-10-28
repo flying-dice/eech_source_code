@@ -1,0 +1,42 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.69s
+     Running unittests src/lib.rs (/target/debug/deps/eech_world-49d864156aa003d7)
+
+running 7 tests
+test cmb::tests::a_conventional_munitions_weapon_takes_the_munitions_figures_scaled_by_the_burst ... FAILED
+test cmb::tests::a_non_explosive_weapon_is_scaled_by_the_velocity_argument_and_an_explosive_one_is_not ... ok
+test cmb::tests::a_question_the_original_has_no_answer_for_is_refused ... ok
+test cmb::tests::a_player_target_is_scaled_by_the_players_setting_after_the_raw_capability ... ok
+test cmb::tests::a_weapon_that_cannot_pierce_and_is_not_explosive_does_nothing ... ok
+test cmb::tests::a_weapon_that_pierces_the_armour_does_its_full_damage ... ok
+test cmb::tests::high_explosive_splash_follows_the_warhead_and_the_armour ... FAILED
+
+failures:
+
+---- cmb::tests::a_conventional_munitions_weapon_takes_the_munitions_figures_scaled_by_the_burst stdout ----
+
+thread 'cmb::tests::a_conventional_munitions_weapon_takes_the_munitions_figures_scaled_by_the_burst' (957) panicked at crates/eech-world/src/cmb.rs:223:9:
+assertion `left == right` failed
+  left: 90
+ right: 60
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- cmb::tests::high_explosive_splash_follows_the_warhead_and_the_armour stdout ----
+
+thread 'cmb::tests::high_explosive_splash_follows_the_warhead_and_the_armour' (963) panicked at crates/eech-world/src/cmb.rs:206:13:
+assertion `left == right` failed: warhead 5
+  left: 1
+ right: 0
+
+
+failures:
+    cmb::tests::a_conventional_munitions_weapon_takes_the_munitions_figures_scaled_by_the_burst
+    cmb::tests::high_explosive_splash_follows_the_warhead_and_the_armour
+
+test result: FAILED. 5 passed; 2 failed; 0 ignored; 0 measured; 197 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p eech-world --lib`
+CARGO_EXIT=101
+DOCKER_EXIT=101

@@ -352,6 +352,31 @@ void eech_cmb_capability_raw (int result)
 	}
 }
 
+/* the damage forecast is the host's (EEDCS-46): the reference host echoes the original's hooks of it in ONE event, and this replays them in the order the original made them
+   (begin, the path when one ran, the raw capability, end).  A forecast draws nothing, so the observer sees none.  A host that echoes nothing (a model of its own) is not observed. */
+void eech_cmb_capability_forecast (entity *target, int weapon_type, const campaign_aim_event *events, int count, int capability)
+{
+	const campaign_aim_event *event;
+
+	if (!events || count != 1)
+	{
+		return;
+	}
+
+	event = &events[0];
+
+	eech_cmb_capability_begin ();
+
+	if (event->a)
+	{
+		eech_cmb_capability_path (event->a);
+	}
+
+	eech_cmb_capability_raw (event->b);
+
+	eech_cmb_capability_end (NULL, target, event->f[0], weapon_type, event->c, event->f[1], event->f[2], event->f[3], capability);
+}
+
 void eech_cmb_capability_end (entity *wpn, entity *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result)
 {
 	int draws, w, player, multiplier;

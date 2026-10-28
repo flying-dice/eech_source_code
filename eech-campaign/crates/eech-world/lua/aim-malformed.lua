@@ -7,7 +7,8 @@ return function (mode, reference, counted)
 		bad_draw_for_ballistic = "ballistic", bad_second_draw = "vectors", bad_negative_range = "vectors", bad_error = "ready_command",
 		bad_step_state = "weapon_step", bad_step_lookup_kind = "weapon_step", bad_step_action_kind = "weapon_step", bad_step_nonfinite = "weapon_step",
 		bad_step_repeat = "weapon_step", bad_step_error = "weapon_step", bad_step_draw = "weapon_step", bad_birth_action = "weapon_birth", bad_release_burst = "release",
-		bad_decoy_flag = "weapon_decoy", bad_seduce_flag = "weapon_seduce", bad_reacquire_flag = "weapon_reacquire", bad_reacquire_none = "weapon_reacquire" }
+		bad_decoy_flag = "weapon_decoy", bad_seduce_flag = "weapon_seduce", bad_reacquire_flag = "weapon_reacquire", bad_reacquire_none = "weapon_reacquire",
+		bad_forecast_negative = "forecast", bad_forecast_draw = "forecast", bad_forecast_fraction = "forecast" }
 	local kind = assert (kinds [mode], "unknown bad mode " .. mode)
 	local armed = true
 	return function (step)
@@ -37,6 +38,9 @@ return function (mode, reference, counted)
 			elseif mode == "bad_reacquire_flag" then answer.actions [1].a = -1 return answer
 			elseif mode == "bad_reacquire_none" then answer.actions = {} return answer
 			elseif mode == "bad_release_burst" then return { state = "done", refuse = false, burst_size = 0 }
+			elseif mode == "bad_forecast_negative" then return { state = "done", capability = -1 }
+			elseif mode == "bad_forecast_draw" then return { state = "need_draw" }
+			elseif mode == "bad_forecast_fraction" then return { state = "done", capability = 1.5 }
 			elseif mode == "bad_step_state" then return { state = "later" }
 			elseif mode == "bad_step_lookup_kind" then answer.lookups [1].kind = 99 return answer
 			elseif mode == "bad_step_action_kind" then if #answer.actions == 0 then answer.actions = { { kind = 99, a = 0, b = 0, c = 0, d = 0, f = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } } } else answer.actions [1].kind = 99 end return answer

@@ -25,6 +25,10 @@ end
 
 function own.release () return { state = "done", refuse = false, burst_size = 1 } end
 
+-- the damage forecast (EEDCS-46): a weapon with a damage figure can do 5 points of damage to anything, whatever its armour, its warhead or the player's setting; one with
+-- none does nothing.  It needs none of EECH's arithmetic, takes no random sample and asks the campaign for nothing.
+function own.forecast (step) return { state = "done", capability = step.damage_capability > 0 and 5 or 0 } end
+
 -- after the flight: this model has no parachute (a falling crate is as it was), a decoy's timer restarts at half a second with no sample taken, a seeker is never drawn
 -- to a decoy and, if it ever followed one, drops the lock when the decoy expires (it does not go back to the launcher; the campaign unlinks it)
 function own.animate (step) return { state = "done", parachute_status = step.parachute_status } end

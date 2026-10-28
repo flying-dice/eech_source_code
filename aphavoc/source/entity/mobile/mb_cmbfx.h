@@ -53,6 +53,9 @@ extern void eech_cmb_release (struct ENTITY *en);
 extern void eech_cmb_capability_begin (void);
 extern void eech_cmb_capability_path (int path);
 extern void eech_cmb_capability_raw (int result);
+struct campaign_aim_event;
+
+extern void eech_cmb_capability_forecast (struct ENTITY *target, int weapon_type, const struct campaign_aim_event *events, int count, int capability);
 extern void eech_cmb_capability_end (struct ENTITY *wpn, struct ENTITY *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result);
 extern void eech_cmb_damage_begin (struct ENTITY *en, struct ENTITY *weapon);
 extern void eech_cmb_damage_exit (int reason);
@@ -79,6 +82,11 @@ extern void eech_cmb_timed_end (void);
 #define CMB_FX_CAPABILITY_RAW(result) eech_cmb_capability_raw (result);
 #define CMB_FX_CAPABILITY_END(wpn, target, modifier, weapon_type, warhead_type, penetration, armour, random_modifier, result) \
 	eech_cmb_capability_end (wpn, target, modifier, weapon_type, warhead_type, penetration, armour, random_modifier, result);
+
+// the forecast is the host's (EEDCS-46): the fixture build asks the reference host to echo the original's hooks of it, and replays them into the observer in their original order
+#define CMB_FX_FORECAST_ECHO 1
+#define CMB_FX_CAPABILITY_FORECAST(target, weapon_type, result) \
+	eech_cmb_capability_forecast (target, weapon_type, (result).echo, (result).has_echo ? (result).echo_count : 0, (result).forecast_capability);
 
 #define CMB_FX_DAMAGE_BEGIN(en, weapon) eech_cmb_damage_begin (en, weapon);
 #define CMB_FX_DAMAGE_EXIT(reason) eech_cmb_damage_exit (reason);
@@ -107,6 +115,8 @@ extern void eech_cmb_timed_end (void);
 #define CMB_FX_CAPABILITY_PATH(path)
 #define CMB_FX_CAPABILITY_RAW(result)
 #define CMB_FX_CAPABILITY_END(wpn, target, modifier, weapon_type, warhead_type, penetration, armour, random_modifier, result)
+#define CMB_FX_FORECAST_ECHO 0
+#define CMB_FX_CAPABILITY_FORECAST(target, weapon_type, result)
 #define CMB_FX_DAMAGE_BEGIN(en, weapon)
 #define CMB_FX_DAMAGE_EXIT(reason)
 #define CMB_FX_DAMAGE_WRITTEN(en, level)
