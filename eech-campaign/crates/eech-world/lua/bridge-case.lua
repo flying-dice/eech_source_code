@@ -166,10 +166,12 @@ local failure = bridge_case (2, chosen, segment)
 local f = fields (failure)
 emit { event = "bridge_case", done = f.done == "1", reason = f.reason or "", bridge = chosen, segment = tonumber (f.index) or -1, first_collapse = f.first_collapse == "1", scenario = scenario_name,
 	text = (failure:gsub ("\n", " ")) }
-emit_report ("bridge:after", clock.elapsed_seconds, bridge_case (1, chosen, -1))
+-- the state immediately after the failure is KEPT: with a window of zero seconds no frame runs, and it is then the last state there is (the killed segment is in the update list at once)
+local after_state = bridge_case (1, chosen, -1)
+emit_report ("bridge:after", clock.elapsed_seconds, after_state)
 
 -- the events and the last state are tallied as they are written, so that the summary says what the ORIGINAL code actually did in the window
-local tally, last_state = {}, ""
+local tally, last_state = {}, after_state
 local function count_events (text)
 	for kind in string.gmatch (text, "kind=bridge%-([%a%-]+)") do tally [kind] = (tally [kind] or 0) + 1 end
 end
@@ -188,10 +190,19 @@ if f.done == "1" then
 	end
 end
 
-local in_update_at_end = 0
-for _ in string.gmatch (last_state, "in_update=1") do in_update_at_end = in_update_at_end + 1 end
+-- the summary is read from the last state that was actually returned (the one after the last frame, or, with no frame, the one right after the failure). A state with no segment line in it is not a
+-- finished state: it is reported as not valid, with in_update_at_end -1 and landed_all false, and never counted as "nothing left in the update list"
+local in_update_at_end, segment_lines = 0, 0
+for line in string.gmatch (last_state, "[^\n]+") do
+	if line:find ("^cmb%-bridge%-segment ") then
+		segment_lines = segment_lines + 1
+		if line:find ("in_update=1", 1, true) then in_update_at_end = in_update_at_end + 1 end
+	end
+end
+local state_valid = segment_lines > 0
+if not state_valid then in_update_at_end = -1 end
 local summary = { event = "bridge_summary", done = f.done == "1", first_collapse = f.first_collapse == "1", frames = f.done == "1" and window_frames or 0, in_update_at_end = in_update_at_end,
-	landed_all = f.done == "1" and in_update_at_end == 0 }
+	state_valid = state_valid, landed_all = f.done == "1" and state_valid and in_update_at_end == 0 }
 for kind, count in pairs (tally) do summary ["n_" .. kind:gsub ("%-", "_")] = count end
 emit (summary)
 

@@ -1290,6 +1290,9 @@ fn the_case_caller_follows_the_live_ammunition_when_a_launch_spends_several_roun
 // the process with an error after 3000 frames or 200 case calls, so that a script without a bound cannot hang a test; this is a proof of argument validation, not of native physics.
 const BRIDGE_CASE_CALLER_SCRIPT: &str = r#"
 local SURVEY = [==[@SURVEY@]==]
+-- the frame count from which the stand-in's segment has left the update list (-1: it never does); and whether the state it returns is empty
+local FINISH = @FINISH@
+local EMPTY = @EMPTY@
 local calls = {}
 local time = 0
 local frames = 0
@@ -1313,7 +1316,11 @@ function engine:cmb_case_bridge(op, ordinal, index, criterion)
   calls[#calls + 1] = op .. ':' .. ordinal .. ':' .. index .. ':' .. criterion
   note('case ' .. op .. ':' .. ordinal .. ':' .. index .. ':' .. criterion)
   if op == 0 then return SURVEY end
-  if op == 1 then return 'cmb-bridge-state bridge=' .. ordinal .. ' alive=1 breaks=0\ncmb-bridge-segment bridge=' .. ordinal .. ' index=0 kind=E alive=1 in_update=1\ncmb-bridge-segment bridge=' .. ordinal .. ' index=1 kind=S alive=0 in_update=0\n' end
+  if op == 1 then
+    if EMPTY then return '' end
+    local pending = (FINISH >= 0 and frames >= FINISH) and 0 or 1
+    return 'cmb-bridge-state bridge=' .. ordinal .. ' alive=1 breaks=0\ncmb-bridge-segment bridge=' .. ordinal .. ' index=0 kind=E alive=1 in_update=' .. pending .. '\ncmb-bridge-segment bridge=' .. ordinal .. ' index=1 kind=S alive=0 in_update=0\n'
+  end
   if op == 2 then return 'cmb-bridge-fail bridge=' .. ordinal .. ' found=1 segments=3 index=' .. (index < 0 and 1 or index) .. ' criterion=0 done=1 bridge_alive=1 neighbour=2 neighbour_alive=1 first_collapse=1 armed=1\n' end
   return 'cmb-bridge-disarm armed=0\n'
 end
@@ -1336,6 +1343,11 @@ struct BridgeRun {
 }
 
 fn run_bridge_case_raw(survey: &str, extra: &[&str], base: &[&str]) -> BridgeRun {
+    run_bridge_case_with(survey, extra, base, -1, false)
+}
+
+// `finish`: the frame count from which the stand-in's segment is out of the update list (-1: never); `empty`: the state the stand-in returns is empty
+fn run_bridge_case_with(survey: &str, extra: &[&str], base: &[&str], finish: i32, empty: bool) -> BridgeRun {
     let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("lua")
         .display()
@@ -1350,6 +1362,8 @@ fn run_bridge_case_raw(survey: &str, extra: &[&str], base: &[&str]) -> BridgeRun
     let _ = std::fs::remove_file(&trace);
     let text = BRIDGE_CASE_CALLER_SCRIPT
         .replace("@SURVEY@", survey)
+        .replace("@FINISH@", &finish.to_string())
+        .replace("@EMPTY@", if empty { "true" } else { "false" })
         .replace("@TRACE@", &trace.display().to_string().replace('\u{5c}', "/"))
         .replace("@LUA_DIR@", &lua_dir);
     std::fs::write(&script, text).unwrap();
@@ -1371,7 +1385,8 @@ fn run_bridge_case_raw(survey: &str, extra: &[&str], base: &[&str]) -> BridgeRun
         std::fs::read_to_string(&out)
             .unwrap()
             .lines()
-            .filter_map(|l| serde_json::from_str(l).ok())
+            // every line of the output must parse: a malformed row is a failure here, never silently dropped
+            .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("malformed output row {l:?}: {e}")))
             .collect()
     } else {
         Vec::new()
@@ -1495,6 +1510,19 @@ fn the_bridge_witness_accepts_an_explicit_valid_selector_and_the_edge_values_and
     assert!(run.status.success(), "{}\n{}", run.stdout, run.stderr);
     assert!(run.stdout.contains("CALLS 0:0:-1:0 1:1:-1:0 2:1:2:0 1:1:-1:0 3:0:-1:0"), "{}", run.stdout);
     assert!(!run.trace.contains("frame"), "no frame was run: {}", run.trace);
+    // with no frame, the summary is read from the state right after the failure, in which the killed segment is still in the update list: nothing has landed, and it must not say so
+    let summary = bridge_summary(&run.rows);
+    assert_eq!(
+        (
+            summary["done"].as_bool(),
+            summary["frames"].as_i64(),
+            summary["in_update_at_end"].as_i64(),
+            summary["landed_all"].as_bool(),
+            summary["state_valid"].as_bool()
+        ),
+        (Some(true), Some(0), Some(1), Some(false), Some(true)),
+        "{summary}"
+    );
     // the largest values the witness accepts (a frame of a second, ten minutes of both budgets within the frame limit)
     let run = run_bridge_case_raw(
         BRIDGE_SURVEY_ONE,
@@ -1578,4 +1606,43 @@ fn the_bridge_witness_never_turns_a_segment_that_is_not_a_number_into_the_automa
         run.stdout
     );
     assert!(!run.status.success() && run.stderr.contains("segment"), "{}\n{}", run.stdout, run.stderr);
+}
+
+// the one `bridge_summary` row of a run, found in the whole of its (fully parsed) output
+fn bridge_summary(rows: &[serde_json::Value]) -> &serde_json::Value {
+    let found: Vec<&serde_json::Value> = rows.iter().filter(|r| r["event"] == "bridge_summary").collect();
+    assert_eq!(found.len(), 1, "exactly one bridge_summary row: {rows:?}");
+    found[0]
+}
+
+// The summary says the decks are finished only when a state that was actually returned says so: a window of zero seconds, a window in which the segment is still in the update list, a window in which
+// it has left it (the positive control), and a state that came back empty (which is no state at all, and counts as nothing).
+#[test]
+fn the_bridge_summary_counts_a_segment_as_finished_only_from_a_state_that_really_says_so() {
+    let args = ["bridge=1", "frame_ms=100", "warmup=0"];
+    // window, finish after, empty state, then the expected frames, in_update_at_end, landed_all, state_valid
+    let cases: &[(&str, i32, bool, i64, i64, bool, bool)] = &[
+        ("window_seconds=0", 5, false, 0, 1, false, true),
+        ("window_seconds=0.3", -1, false, 3, 1, false, true),
+        ("window_seconds=0.3", 2, false, 3, 0, true, true),
+        ("window_seconds=0.3", -1, true, 3, -1, false, false),
+        ("window_seconds=0", -1, true, 0, -1, false, false),
+    ];
+    for (window, finish, empty, frames, pending, landed, valid) in cases {
+        let mut extra = args.to_vec();
+        extra.push(window);
+        let run = run_bridge_case_with(BRIDGE_SURVEY_ONE, &extra, &[], *finish, *empty);
+        assert!(run.status.success(), "{window} {finish} {empty}:\n{}\n{}", run.stdout, run.stderr);
+        let summary = bridge_summary(&run.rows);
+        assert_eq!(
+            (
+                summary["frames"].as_i64(),
+                summary["in_update_at_end"].as_i64(),
+                summary["landed_all"].as_bool(),
+                summary["state_valid"].as_bool()
+            ),
+            (Some(*frames), Some(*pending), Some(*landed), Some(*valid)),
+            "{window} finish {finish} empty {empty}: {summary}"
+        );
+    }
 }

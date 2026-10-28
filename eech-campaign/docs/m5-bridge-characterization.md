@@ -49,7 +49,7 @@ touched by this fixture.
   `segment` an integer from 0 to 255, each absent for the automatic choice (an invalid `segment` is never the automatic one); `criterion` 0 (the only one). The frames of warmup and window together may not exceed
   10,000, and the loops stop at their bounds whatever the clock does (a frame that does not advance the clock is an error). The defaults (5, 100, 12, criterion 0) are what the root's fixed driver uses.
 * **What ran is judged from the events.** `bridge_case done` and `first_collapse` say only that the preconditions were met. `bridge_summary` counts the `bridge-*` events seen (`n_unsupported_kill`,
-  `n_link_broken`, `n_repair_task`, `n_fall`, `n_landed`, ...) and reports `in_update_at_end` (the segments still in the update list when the window ended) and `landed_all`: a window of finite length does not
+  `n_link_broken`, `n_repair_task`, `n_fall`, `n_landed`, ...) and reports `in_update_at_end` (the segments still in the update list when the window ended, read from the last state actually returned: with a window of zero seconds that is the state right after the failure, in which the killed segment is already in the list; a state with no segment line is `state_valid=false`, `in_update_at_end` -1) and `landed_all`: a window of finite length does not
   guarantee that a segment at an unknown height has landed, and the summary says whether it did.
 
 ## Expected preconditions (not evidence)
