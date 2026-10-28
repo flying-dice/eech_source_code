@@ -48,8 +48,37 @@ int get_local_entity_index (entity *en)
 	return (int) (en - fake_entities);
 }
 
+/* the instrumented entity access: a slot outside the capacity the run allocated is COUNTED and not touched (so a check reports the access that would have been out of bounds, whatever the memory behind it) */
+int type_reads_outside = 0, entity_touches_outside = 0;
+
+static int entity_outside (entity *en)
+{
+	long slot = (long) (en - fake_entities);
+
+	return (slot < 0) || (slot >= number_of_entities);
+}
+
+entity_types get_local_entity_type (entity *en)
+{
+	if (entity_outside (en))
+	{
+		type_reads_outside++;
+
+		return ENTITY_TYPE_UNKNOWN;
+	}
+
+	return (entity_types) en->type;
+}
+
 int get_local_entity_int_value (entity *en, int_types type)
 {
+	if (entity_outside (en))
+	{
+		entity_touches_outside++;
+
+		return 0;
+	}
+
 	switch (type)
 	{
 		case INT_TYPE_ALIVE: return en->alive;
@@ -64,6 +93,13 @@ int get_local_entity_int_value (entity *en, int_types type)
 
 vec3d *get_local_entity_vec3d_ptr (entity *en, vec3d_types type)
 {
+	if (entity_outside (en))
+	{
+		entity_touches_outside++;
+
+		return NULL;
+	}
+
 	return en->has_position ? &en->position : NULL;
 }
 
@@ -73,6 +109,13 @@ static int applied_count, applied_levels[64], applied_index[64];
 
 void set_client_server_entity_int_value (entity *en, int_types type, int value)
 {
+	if (entity_outside (en))
+	{
+		entity_touches_outside++;
+
+		return;
+	}
+
 	en->damage_level = value;
 	applied[applied_count] = 'S';
 	applied_levels[applied_count] = value;
@@ -81,6 +124,13 @@ void set_client_server_entity_int_value (entity *en, int_types type, int value)
 
 void kill_client_server_entity (entity *en)
 {
+	if (entity_outside (en))
+	{
+		entity_touches_outside++;
+
+		return;
+	}
+
 	en->alive = 0;
 	applied[applied_count] = 'K';
 	applied_levels[applied_count] = 0;
@@ -237,6 +287,7 @@ static void world_reset_with (int capacity)
 	fake_entities = (struct ENTITY *) calloc ((size_t) capacity, sizeof (struct ENTITY));
 	number_of_entities = capacity;
 	out_of_range_reads = 0;
+	type_reads_outside = entity_touches_outside = 0;
 	roster_reset ();
 	campaign_object_reset ();
 	memset (&host, 0, sizeof (host));
@@ -274,12 +325,29 @@ static const char *identified;
 
 static int try_identify (int index)
 {
+	harness_message[0] = '\0';
+
 	if (setjmp (harness_fatal))
 	{
 		return 0;
 	}
 
 	identified = campaign_object_identify (&fake_entities[index]);
+
+	return 1;
+}
+
+/* the cached identity of an entity, looked up for the slot `index` (which may be the capacity: only the address is formed); 1 if it returned (the identity in `identified`, NULL if none), 0 if refused */
+static int try_host_id (int index)
+{
+	harness_message[0] = '\0';
+
+	if (setjmp (harness_fatal))
+	{
+		return 0;
+	}
+
+	identified = campaign_object_host_id (&fake_entities[index]);
 
 	return 1;
 }
@@ -643,12 +711,58 @@ int main (void)
 			accepted = 1;
 		}
 		check (!accepted && refused_with ("not a heap this run allocated"), "and a heap of no slots is not a heap");
-		/* a slot index at the capacity is outside the heap: the memory is there (this allocation has one more) but the heap does not hold it */
-		world_reset_with (11);
-		number_of_entities = 10;
-		place (10, ENTITY_TYPE_SITE, 1, 90, 90);
+		/* a slot index AT the capacity is outside the heap.  The heap is allocated EXACTLY that big (no spare slot behind it), the address one past it is only formed, and the entity access functions COUNT any
+		   read of it: the registry must refuse before the type read, before the host is asked and before anything is applied */
+		world_reset_with (10);
 		accepted = try_identify (10);
-		check (!accepted && refused_with ("outside the entity heap of 10 slots") && host_calls == 0, "an entity whose slot index is the capacity is refused before the host is asked");
+		check (!accepted && refused_with ("outside the entity heap of 10 slots") && type_reads_outside == 0 && entity_touches_outside == 0 && host_calls == 0,
+			"an entity whose slot index is the capacity is refused before its type is read, before the host is asked");
+		check (try_host_id (10) == 0 && refused_with ("outside the entity heap of 10 slots") && type_reads_outside == 0 && entity_touches_outside == 0,
+			"and its cached identity is not looked up either: the slot is refused before the type read");
+		/* a rostered member whose recorded slot is the capacity: the report is refused before the member is read or anything applied */
+		roster_commit ("member-edge", 1, 10);
+		accepted = try_report ("member-edge", 1, 0, 0);
+		check (!accepted && refused_with ("outside the entity heap of 10 slots") && type_reads_outside == 0 && entity_touches_outside == 0 && applied_count == 0,
+			"a report whose rostered target is at the capacity is refused before the target is read, and applies nothing");
+	}
+
+	/* ================ identities that exist when the heap is no longer the one the registry was built for (no live resizing is supported: refuse, never re-read) ================ */
+	{
+		int host_before;
+
+		world_reset_with (37);
+		place (36, ENTITY_TYPE_SITE, 1, 90, 90);
+		place (3, ENTITY_TYPE_PYLON, 1, 60, 60);
+		try_identify (36);
+		snprintf (first, sizeof (first), "%s", identified);
+		try_identify (3);
+		snprintf (second, sizeof (second), "%s", identified);
+		host_before = host_calls;
+		applied_count = 0;
+		number_of_entities = 20;
+		type_reads_outside = entity_touches_outside = 0;
+		/* the cached identity of a slot outside the new range, and of one still inside it: neither is returned */
+		check (try_host_id (36) == 0 && refused_with ("changed from 37 to 20 slots") && type_reads_outside == 0 && entity_touches_outside == 0, "the cached identity of a slot outside the new capacity is refused, with no type read");
+		check (try_host_id (3) == 0 && refused_with ("changed from 37 to 20 slots") && type_reads_outside == 0 && entity_touches_outside == 0, "and so is one of a slot still inside it");
+		accepted = try_identify (36);
+		check (!accepted && refused_with ("changed from 37 to 20 slots") && type_reads_outside == 0 && entity_touches_outside == 0 && host_calls == host_before, "identify does not return a cached identity of the old heap, and does not ask the host");
+		accepted = try_identify (3);
+		check (!accepted && refused_with ("changed from 37 to 20 slots") && host_calls == host_before, "nor for a slot still inside the new capacity");
+		place (5, ENTITY_TYPE_SITE, 1, 90, 90);
+		accepted = try_identify (5);
+		check (!accepted && refused_with ("changed from 37 to 20 slots") && host_calls == host_before, "nor does a fresh structure get an identity asked for");
+		/* a report by the stale identities, the old slot outside the range and the old slot inside it, and by the roster's: refused before any record is followed, any entity read or anything applied */
+		accepted = try_report (first, 1, 0, 0);
+		check (!accepted && refused_with ("changed from 37 to 20 slots") && type_reads_outside == 0 && entity_touches_outside == 0 && applied_count == 0, "a report by the identity of a slot outside the new capacity is refused before it is followed");
+		accepted = try_report (second, 1, 0, 0);
+		check (!accepted && refused_with ("changed from 37 to 20 slots") && type_reads_outside == 0 && entity_touches_outside == 0 && applied_count == 0 && fake_entities[3].damage_level == 60, "and one by the identity of a slot still inside it, which stays as it was");
+		accepted = try_report ("mobile-1", 1, 0, 0);
+		check (!accepted && refused_with ("changed from 37 to 20 slots") && applied_count == 0, "and a report by a rostered member's identity");
+		/* the heap is the registry's again: the same identities work, nothing was lost by the refusals */
+		number_of_entities = 37;
+		check (try_host_id (36) == 1 && strcmp (identified, first) == 0, "back at the original capacity the cached identity is returned");
+		accepted = try_report (second, 1, 40, 0);
+		check (accepted && fake_entities[3].damage_level == 40 && applied_count == 1, "and a report by the identity applies as it always did");
 	}
 
 	printf ("%d checks, %d failures\n", checks, failures);

@@ -71,6 +71,35 @@ static int heap_capacity (void)
 	return number_of_entities;
 }
 
+// The heap the registry is asked about must be the one it was built for: a heap this run allocated, and the very capacity its map covers.  Checked BEFORE an entity is read, an identity is returned from
+// the cache, a report is resolved or the host is asked for anything; the registry supports no live resizing, so a heap that is not the same is refused, never re-read.
+static void check_heap (void)
+{
+	int capacity = heap_capacity ();
+
+	if (record_of_entity && (map_capacity != capacity))
+	{
+		debug_fatal ("host objects: the entity heap changed from %d to %d slots while identities exist", map_capacity, capacity);
+	}
+}
+
+// The slot of an entity, validated BEFORE the entity is read (no type read, no map access): the heap is the registry's and the pointer is one of its allocated slots
+static int checked_slot (struct ENTITY *en)
+{
+	int index;
+
+	check_heap ();
+
+	index = get_local_entity_index (en);
+
+	if ((index < 0) || (index >= heap_capacity ()))
+	{
+		debug_fatal ("host objects: entity %d is outside the entity heap of %d slots", index, heap_capacity ());
+	}
+
+	return index;
+}
+
 // open-addressing table over the records by identity (record number + 1; 0 empty); records are never removed so no tombstones are needed
 static int
 	*table = NULL;
@@ -203,20 +232,21 @@ void campaign_object_reset (void)
 
 const char *campaign_object_host_id (struct ENTITY *en)
 {
-	int type;
+	int type, index;
 
 	if (!en)
 	{
 		return NULL;
 	}
 
+	// the slot is validated against the heap this run allocated BEFORE the entity is read
+	index = checked_slot (en);
+
 	type = (int) get_local_entity_type (en);
 
 	if (campaign_object_is_structure (type))
 	{
-		int index = get_local_entity_index (en);
-
-		if (record_of_entity && (index >= 0) && (index < map_capacity) && record_of_entity[index])
+		if (record_of_entity && record_of_entity[index])
 		{
 			return records[record_of_entity[index] - 1].host_id;
 		}
@@ -268,6 +298,14 @@ const char *campaign_object_identify (struct ENTITY *en)
 
 	int type, index;
 
+	if (!en)
+	{
+		return NULL;
+	}
+
+	// the heap, the map and the slot are validated BEFORE a cached identity is returned, the entity is read or the host is asked for a fresh one
+	index = checked_slot (en);
+
 	id = campaign_object_host_id (en);
 
 	if (id)
@@ -280,13 +318,6 @@ const char *campaign_object_identify (struct ENTITY *en)
 	if (!campaign_object_is_structure (type))
 	{
 		return NULL;
-	}
-
-	index = get_local_entity_index (en);
-
-	if ((index < 0) || (index >= heap_capacity ()))
-	{
-		debug_fatal ("host objects: entity %d is outside the entity heap of %d slots", index, heap_capacity ());
 	}
 
 	memset (&request, 0, sizeof (request));
@@ -322,10 +353,6 @@ const char *campaign_object_identify (struct ENTITY *en)
 		}
 
 		map_capacity = heap_capacity ();
-	}
-	else if (map_capacity != heap_capacity ())
-	{
-		debug_fatal ("host objects: the entity heap changed from %d to %d slots while identities exist", map_capacity, heap_capacity ());
 	}
 
 	if (record_count == record_capacity)
@@ -391,11 +418,16 @@ void campaign_object_release_entity (struct ENTITY *en)
 // the live entity an identity names: the registry's structure, or the roster's member.  Stops with a clear error for an identity that was never issued or whose incarnation has ended
 static struct ENTITY *resolve_report_target (const char *id, int *rostered)
 {
-	int record = find_record (id);
+	int record;
 
 	struct ENTITY *member;
 
 	*rostered = FALSE;
+
+	// the heap and the map are the registry's own BEFORE any record is followed to an entity
+	check_heap ();
+
+	record = find_record (id);
 
 	if (record >= 0)
 	{
@@ -404,6 +436,12 @@ static struct ENTITY *resolve_report_target (const char *id, int *rostered)
 		if (records[record].entity_index < 0)
 		{
 			debug_fatal ("host objects: the identity \"%.40s\" belongs to a structure that no longer exists", id);
+		}
+
+		// the slot the identity was issued for is a slot of THIS heap before the pointer is formed or the entity read
+		if (records[record].entity_index >= map_capacity)
+		{
+			debug_fatal ("host objects: the identity \"%.40s\" names slot %d, outside the entity heap of %d slots", id, records[record].entity_index, map_capacity);
 		}
 
 		en = get_local_entity_ptr (records[record].entity_index);
@@ -421,6 +459,9 @@ static struct ENTITY *resolve_report_target (const char *id, int *rostered)
 		case 1:
 		{
 			*rostered = TRUE;
+
+			// a member's slot is a slot of this heap before the member is read
+			(void) checked_slot (member);
 
 			return member;
 		}
@@ -514,12 +555,9 @@ int campaign_object_structures (campaign_object_snapshot_fn callback, void *user
 	count = 0;
 
 	// the slots the heap holds, not the ceiling it could have held
-	capacity = heap_capacity ();
+	check_heap ();
 
-	if (record_of_entity && (map_capacity != capacity))
-	{
-		debug_fatal ("host objects: the entity heap changed from %d to %d slots while identities exist", map_capacity, capacity);
-	}
+	capacity = heap_capacity ();
 
 	for (index = 0; index < capacity; index++)
 	{

@@ -1,0 +1,22 @@
+TEST_LINK_FLAGS=-fno-pie -no-pie
+SANITIZERS=-fsanitize=address,undefined -fno-sanitize-recover=undefined
+SANITIZER_PROBE_COMPILE_EXIT=0
+SANITIZER_PROBE_RUN_EXIT=0
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/object_checks.c:769:17: error: expected declaration specifiers or '...' before string constant
+  769 |         printf ("%d checks, %d failures\n", checks, failures);
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/object_checks.c:769:45: error: expected declaration specifiers or '...' before 'checks'
+  769 |         printf ("%d checks, %d failures\n", checks, failures);
+      |                                             ^~~~~~
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/object_checks.c:769:53: error: expected declaration specifiers or '...' before 'failures'
+  769 |         printf ("%d checks, %d failures\n", checks, failures);
+      |                                                     ^~~~~~~~
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/object_checks.c:771:9: error: expected identifier or '(' before 'return'
+  771 |         return failures ? 1 : 0;
+      |         ^~~~~~
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/object_checks.c:772:1: error: expected identifier or '(' before '}' token
+  772 | }
+      | ^
+COMPILE_EXIT=1
+RUN_NOT_STARTED
+DOCKER_EXIT=1

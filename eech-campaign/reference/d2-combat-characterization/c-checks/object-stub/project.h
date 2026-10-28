@@ -79,7 +79,9 @@ struct ENTITY *fake_entity_at (int index);
 extern comms_model_types fake_comms_model;
 
 #define get_local_entity_ptr(INDEX) (fake_entity_at ((INDEX)))
-#define get_local_entity_type(EN) ((entity_types) (EN)->type)
+/* every read or write of an entity goes through a function that counts the ones whose slot is outside the capacity (and does not touch memory then): the registry must refuse BEFORE any of them */
+entity_types get_local_entity_type (entity *en);
+extern int type_reads_outside, entity_touches_outside;
 #define get_comms_model() (fake_comms_model)
 
 int get_local_entity_index (entity *en);

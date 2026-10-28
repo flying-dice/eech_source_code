@@ -706,19 +706,20 @@ see it: their fake entity heap was as large as the compile-time ceiling, so the 
 
 * **The defect, verified in the source.** `campaign_object_structures` (`mb_hostobj.c`) walked the entity heap up to `MAX_NUM_ENTITIES` (524,288, the compile-time ceiling). The heap a run holds is
   `number_of_entities` slots (`initialise_entity_heap`, `en_heap.c`: it sets `number_of_entities` and `malloc`s that many; `init.c` passes 125,000 or 135,000), and `get_local_entity_ptr` is `&entities[index]` with no check.
-  The first read past the allocation, the entity's type in the loop (`mov (%rbx),%ecx` at DLL RVA 0x1c68b5, a 32-byte stride up to the limit 0x1000000 = 524,288 x 32), faulted. `engine:structures()` is the first call of the witness
+  An out-of-bounds read of the entity's type in that loop (`mov (%rbx),%ecx` at DLL RVA 0x1c68b5, a 32-byte stride up to the limit 0x1000000 = 524,288 x 32) faulted; the disassembly identifies the instruction, the function and the loop, not the first invalid index. `engine:structures()` is the first call of the witness
   after its warm-up, which is why every root died there.
 * **The fix: every slot index of the registry is bounded by the capacity actually allocated.** `heap_capacity ()` is `number_of_entities` (a heap that does not hold between 1 and the ceiling is refused by name). The
-  enumeration walks `[0, capacity)`; the identity map (`record_of_entity`) is allocated for the capacity of the run (it was the ceiling, 2 MiB too large) and remembers it (`map_capacity`); the lookup, the identification and
+  enumeration walks `[0, capacity)`; the identity map (`record_of_entity`) is allocated for the capacity of the run (it was sized for the ceiling, 524,288 ints, 2 MiB in all, rather than for the 125,000 or 135,000 slots of a run) and remembers it (`map_capacity`); the lookup, the identification and
   the release of an identity bound their index by that capacity. A heap that changes size while identities exist is refused, not silently re-read (a reset at engine boot forgets the map). Nothing else changed: the six
   structure kinds, the ascending slot order, the identities, their lifecycle, the report semantics, the real handlers, the entity allocation, the numbering of recordings, the physical numbers, draws and the
   notification, kill and update order are as before; the ceiling was not changed, no heap was enlarged and no address was skipped. A dead segment keeps its stored health (500).
 * **Audit.** The new registry had the ceiling in four places (the lookup, the identification, the allocation, the release) as well as the enumeration; all five are now bounded by the capacity. No other file of Steps 5
   and 6 indexes the heap by slot (the roster sizes its maps by `number_of_entities`, as it did). One pre-existing test-only use of the ceiling remains outside this registry and is NOT changed here:
   `fixture_hosted_entity` in `eech_engine.c` (the dependent and loss fixtures) checks `index >= MAX_NUM_ENTITIES` before `get_local_entity_ptr`; it is not part of the shipping module and did not run.
-* **The test that would have found it.** `c-checks/object-stub/project.h` and `object_checks.c` now model the real shape: the ceiling is 4,096 slots, the heap of a run is `calloc`ed EXACTLY `number_of_entities` slots (so a
-  sanitizer sees any read past it) and the accessor counts every slot index outside the capacity (`out_of_range_reads`) and returns a harmless slot so a check can report it instead of crashing; the stub no longer assumes
-  that the capacity equals the ceiling. New checks (82 in all, ASan and UBSan): for five runtime capacities (8, 20, 37, 64, 129), with a site, a segment in the middle, a pylon in the LAST slot, a weapon and a mobile
+* **The test that would have found it.** `c-checks/object-stub/project.h` and `object_checks.c` now model the real shape: the ceiling is 4,096 slots, the heap of a run is `calloc`ed EXACTLY `number_of_entities` slots, and the
+  accessor `get_local_entity_ptr` counts every slot index outside the capacity (`out_of_range_reads`) and returns a harmless slot instead of the out-of-bounds one. That is guarded-access INSTRUMENTATION: it records the
+  forbidden attempts so a check can fail on them; it does NOT let AddressSanitizer observe those bad reads (the slot it returns is in bounds), so the red below complements the six real native crashes and is not a
+  sanitizer reproduction of them. The stub no longer assumes that the capacity equals the ceiling. New checks (82 in all, ASan and UBSan): for five runtime capacities (8, 20, 37, 64, 129), with a site, a segment in the middle, a pylon in the LAST slot, a weapon and a mobile
   that are not structures, every structure is listed, in ascending slot order, the last slot is reached, no slot outside the capacity is read (also on a second listing with the identities held, which asks the host no
   more), and the identity of the last slot ends with its entity; two capacities in turn across the reset the engine does at boot; a heap whose size changes while identities exist is refused on both the enumeration and the
   identification path; a heap of no slots is refused; an entity at index = capacity is refused before the host is asked. The checks assert the contract (what is listed, in what order, what was read), not an iterator.
@@ -734,3 +735,41 @@ see it: their fake entity heap was as large as the compile-time ceiling, so the 
 * **State.** Candidate, NOT accepted. The newly found runtime failure is repaired in source; nothing of this SHA has been Windows-built or run natively, and the source checks above do not establish that the native run
   works: the Root builds a fresh clean source and reruns the six roots. The closed source reviews of the earlier findings do not establish this heap safety. The compatibility pair that the Root ran on `f4700bbab` (the
   bridge pair, 320,598 bytes) shows only that the rest of the build behaves as before, not that `structures()` works. Whole D2 is not complete.
+
+## Correction of the focused review of the heap-capacity fix (`30fbdfcbc`; one P2, one P3)
+
+The focused review found the enumeration fix correct but the guards that give it meaning in the wrong ORDER, and two sentences of the previous correction beyond the evidence. No source from `30fbdfcbc` has been
+Windows-built or run natively; the six `f4700bbab` crashes remain a diagnosed failure (driver 1, native 0xC0000005, boot row only, nothing reported or guarded), and the Root's compatibility runs of that older build
+(natural 600, the bridge pair) show only that the rest of it behaved as before: they do not show that `structures()` or a report works.
+
+* **P2, the capacity guards must precede cached resolution and every entity read.** In `30fbdfcbc` `campaign_object_host_id` read the entity's type before any capacity or index check, `campaign_object_identify` returned a
+  cached identity before it compared the heap with the map (its guard sat on the fresh path, after the host had been asked), and `resolve_report_target` formed the pointer of a stored slot and read its type without
+  checking the heap. With the map built for 37 slots and a structure identified in slot 36, a heap that then reports 20 slots was refused by the enumeration but not by `campaign_object_host_id (slot 36)`,
+  `campaign_object_identify (slot 36)` or a report by that identity; and a pointer AT the capacity had its type read before the identification refused it. Now `check_heap ()` (the heap is one this run allocated and is
+  the very capacity the map covers) and `checked_slot ()` (the entity's slot is inside that capacity; pointer arithmetic only, no read) run FIRST in `campaign_object_host_id`, `campaign_object_identify` (before the
+  cache, before the type, before the host is asked), `resolve_report_target` (before a record is followed; a rostered member's slot is checked before it is read) and the enumeration. A heap that is not the registry's is
+  refused by name ("changed from N to M slots" or "outside the entity heap of N slots") and no identity is returned, no host is asked and no effect is applied. The registry still supports no live resizing; the
+  historical `campaign_object_id_ever_issued` query reads no entity and needs no scene. A redundant second size check that the new order made unreachable was removed (its mutant could not be killed). NULL stays NULL, a
+  weapon, an unrostered mobile and a kind that is not a structure still have no identity, and the identities, their lifecycle, the reset, the report semantics, the borrowed-string contract, the physics, the
+  allocation and the order of every campaign effect are unchanged.
+* **Checks that detect the early read** (`c-checks/object_checks.c`, now 94, ASan and UBSan). The entity access functions of the stub (`get_local_entity_type`, `get_local_entity_int_value`,
+  `get_local_entity_vec3d_ptr`, the setter and the kill) COUNT an access whose slot is outside the capacity and do not touch memory (`type_reads_outside`, `entity_touches_outside`); the pointer at the capacity is the
+  address one past an EXACT allocation, only formed. The checks assert refusal before the type read, before the host is asked (`host_calls`) and before anything is applied (`applied_count`): the cached identity of a slot
+  outside the new capacity and of one still inside it, `campaign_object_host_id` and `campaign_object_identify` after the capacity changed (and a fresh structure), reports by the stale identity outside the new range,
+  inside it (whose damage level stays as it was) and by a rostered member's identity, the pointer at the capacity for the identification, the cached lookup and a rostered report; and that the SAME identities work when
+  the capacity is the original again. Honest instrumentation: this is guarded-access counting, not an AddressSanitizer observation of the bad reads, which the accessors never perform; the exact allocation still gives the
+  sanitizer its teeth for any direct access elsewhere. The earlier extra-slot test (an 11-slot allocation declared as 10) could not see a type read of the one-past slot and is replaced.
+* **Red then green.** Run against the registry of `30fbdfcbc` (`run-object-checks-pre-capacity.sh` with that revision; it compiles and runs, and the 12 guard-order checks fail: the identification and the cached lookup at
+  the capacity, the rostered report at the capacity, the cached identity of both kinds of slot, identify for an old and a fresh structure, the three reports by stale identities, and the report after the capacity is
+  restored, spoiled by the earlier mis-application): `checks/object-checks-13-red-pre-guard-order-30fbdfcbc.log` (an identical earlier run is `object-checks-11-...`). GREEN with the fix:
+  `checks/object-checks-12.log`, 94 checks, 0 failures. The mutation controller removes 26 rules, the new ones being the slot check, the size consistency check, the early guard of host_id/identify and the
+  rostered target check, all caught, both setup controls as expected (`checks/object-mutation-8.log`; the runs before are retained: `object-checks-9-failed-brace-in-new-checks.log`,
+  `object-mutation-7-failed-redundant-guard-mutant.log`). The preserved logs of the earlier corrections are unchanged: 82 green and 19 red for the capacity enumeration, 23 mutants, 52 versus 56 for the reverse namespace,
+  and the passing subject baselines.
+* **P3, evidence wording corrected** in the previous section: an out-of-bounds type read faulted (the disassembly identifies the instruction, the function and the loop, not the first invalid index); the old identity
+  map was sized for the ceiling (524,288 ints, 2 MiB in all) rather than for the 125,000 or 135,000 slots of a run, which is not a stated excess; and the old red used guarded-access instrumentation that
+  complements the six real native crashes, not an AddressSanitizer reproduction.
+* **Real tree.** `cargo test --locked` (workspace: the whole campaign tree is compiled, the kernel crate is linked with the macro off, the public Lua host runs) and the fixture-feature tests exit 0, `cargo fmt --check`
+  exit 0, syntax-only compile 22 OK. No Rust changed, so Clippy was not repeated.
+* **State.** Candidate, NOT accepted; no Windows build, snapshot or native run of this source; the report path has not worked natively at any SHA. The Root rebuilds a clean snapshot only after the same reviewer closes this
+  delta and reruns the six report cases; the final comparison, shipping gates and the whole-D2 audit remain. D2, Task46 and PR105 remain active and unaccepted.
