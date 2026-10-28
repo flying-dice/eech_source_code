@@ -180,8 +180,8 @@ or seed. The campaign keeps the setting of the health through the original sette
 * **assess** (`assess_vehicle_damage_level`, `assess_aircraft_damage_level`, called by the health setter): the original's FLOAT percentages (a different arithmetic from the class): whether a vehicle
   that can burn fell below 15 percent (the campaign then lights the fire, stops the vehicle and sleeps it), and for an aircraft whether it fell below 5 or 30 percent, recovered above 30, and is in
   the health that ejects an AI crew (below 3.75 percent with more than ten points); the airborne and AI conditions, the smoke, the ejection and the return home stay in the campaign.
-* **timed** (the six updates): in the original's short-circuit order, a vehicle that can burn with health and in the critical class, a person (never: never critical), an aircraft in a class above
-  none; the host asks for the campaign's ONE sample only for an eligible target (and takes it whatever the odds, even a zero chance), rolls (`2 * dt` for the ground, `class^4 * dt` for an aircraft,
+* **timed** (the six updates; the aircraft updates ask at the existing observer point whatever the class): the physical eligibility, the roll and the health are the HOST's. The reference host, in the original's short-circuit order, a vehicle that can burn with health and in the critical class, a person (never: never critical), an aircraft in a class above
+  none; it asks for the campaign's ONE sample only for an eligible target (and takes it whatever the odds, even a zero chance), rolls (`2 * dt` for the ground, `class^4 * dt` for an aircraft,
   against the original's double `frand1`), and answers the health a hit leaves (one point less, from zero) and whether it is fatal (no health left); it also answers the class after the roll, which the
   update's next gate uses, so a vehicle update makes ONE request.
 * **hit eligibility** (`hc_msgs.c`): the helicopter handler asks only for a hit that is its own (the identity comparison is the campaign's fact) and returns when the host says no; the reference host
@@ -194,7 +194,7 @@ or seed. The campaign keeps the setting of the health through the original sette
 | `damage_client_server_entity_assess` (six mobile damage handlers) | credit and kill on a transition | the class comes in the DAMAGE answer (step 2) |
 | `aa_`, `rv_`, `sh_`, `ps_updt.c` `update_server` | the fire/bleeding roll and the gate that stops updating a critically damaged vehicle | the TIMED answer: roll and class after it |
 | the same four `update_client` | the same gate on a client | classify (a client does not run on the server) |
-| `hc_updt.c`, `fw_updt.c` | `damage_type` at the top of the update; the roll; the helicopter's critical branches (keeps flying or lands: mobility) | classify at the top, as before; the roll asks only for a class above none; the branches consume the host's class in the campaign (a campaign decision on a host physical fact) |
+| `hc_updt.c`, `fw_updt.c` | `damage_type` at the top of the update; the roll; the helicopter's critical branches (keeps flying or lands: mobility) | classify at the top, as before; the timed roll is asked whatever the class (the reference host answers ineligible, with no sample, for class none; no observer event is added: the attempt is counted at the same hook as before); the branches consume the host's class in the campaign (a campaign decision on a host physical fact) |
 | `aircraft.c` `switch_aircraft_damaged_smoke`, the victim's speech | smoke and speech | classify; presentation |
 | `assess_*_damage_level` | the threshold crossings that light fires, stop vehicles, switch smoke and eject | assess (the arithmetic is the host's) |
 
@@ -208,17 +208,18 @@ returned there), so the retained original's observer data for a self hit (none: 
 
 ## What the campaign refuses (before anything is applied)
 
-A flag that is not a boolean; an op or model that does not exist; a classified health, an assessment or a timed roll with no initial level; a timed roll for a fixed structure; a sample asked for a person, an
-aircraft in no class, a vehicle with no health or that cannot burn (the original drew for none); a second sample; a lookup; a class the model cannot have; a classification answered with more than a class; a
+A flag that is not a boolean; an op or model that does not exist; a classified health, an assessment or a timed roll with no initial level; a timed roll for a fixed structure (no such update exists, so the
+question has no meaning for one); a sample asked for anything but a timed roll (a classification, an assessment and a hit eligibility are pure questions); a second sample; a lookup; a class the model cannot have; a classification answered with more than a class; a
 crossing for a vehicle that cannot burn, a recovery for a vehicle, or a crossing and a recovery in one change; an ineligible target that rolled, changed or was hit; a roll with no sample, or a sample given and
 not rolled; a hit that does not lower the health by at least one and to at least zero, a fatal that does not match the health left; a refusal of a hit that is not the target's own. The DAMAGE contract of step 2
 (nonpositive capability is an unwritten no-op, never a write; the lossless bit transport of the diagnostic floats) is unchanged. A host with a model of its own answers from it (`lua/own-weapon.lua` is a plain
-one: its own classes, nothing burns by itself, a unit may hurt itself) and needs none of EECH's arithmetic or any echo; the fixture's timed counters, hashes and ordered log come from the hooks at their original
+one: its own classes, nothing burns by itself, a unit may hurt itself; `timed_generic` of the provider rolls for a hurt person and a hurt aircraft in no class) and needs none of EECH's arithmetic or any echo;
+the campaign does NOT veto a timed sample by the reference host's rules (a person with health, an aircraft in no class, a vehicle that cannot burn or has no health may all roll in a host's model); the fixture's timed counters, hashes and ordered log come from the hooks at their original
 positions, so no echo is needed.
 
 ## Cost (R4)
 
-Each vehicle update now makes one request and each aircraft update one (two when it is in a class). The retained natural 600 recorded 4,134,689 anti-aircraft fire attempts and 1,026,989 helicopter attempts in 600
+Each vehicle update now makes one request and each aircraft update two (the classification at the top and the timed roll). The retained natural 600 recorded 4,134,689 anti-aircraft fire attempts and 1,026,989 helicopter attempts in 600
 simulated seconds (about 8,600 a second for those two kinds alone, before the routed vehicles, ships, persons and fixed wings), each of which was a pure local expression and is now a host exchange. The frame cost is a
 ROOT-owned measurement; no cache of the class was added, because a cache would need an invalidation at every writer of the health (the repair paths are D4), and none is justified until the cost is measured.
 
@@ -228,9 +229,11 @@ Source checks (nothing launched or built natively): the kernel against values wo
 the sample boundaries 6553/6554 and 3276/3277, a zero chance that still takes the sample, the last point of health, a person that never rolls, an aircraft in a class, the own-hit answers); the reference host's public
 contract through `host.aim`, a plain own-model host and the malformed providers (`tests/host_callbacks.rs`); the DC module's request table and reply reader and the engine boundary with the extended layout
 (`eech-dc`, `eech-engine`); and 54 checks of the REAL `mb_hostaim.c` (`c-checks/health_checks.c`, `run-health-checks.sh`; removing five refusals fails 6). `lua/aim-provider.lua` gains `timed_never`, `timed_fast`,
-`critical_late` and `selfhit_allowed` (only the timed, classification and self-hit answers change; the forecasts, the damage and every other operation are the reference's) with counters that tell a run that triggers a
+`timed_generic`, `critical_late` and `selfhit_allowed` (the timed, classification and self-hit answers change; `critical_late` also changes the critical classes a DAMAGE answer reports, by substituting the
+initial level, while the capability arithmetic, the forecasts and every other answer stay the reference's) with counters that tell a run that triggers a
 case from one that does not (`timed_asked/eligible/rolled/hit/fatal`, `health_classified/critical/assessed/crossed`, `selfhit_asked/refused`), and the malformed modes `bad_health_class`, `bad_health_missing`,
-`bad_health_person_draw` (asked in every run that has a person), `bad_health_hit_ineligible` and `bad_health_fatal` (both need a timed hit and may not trigger in a short run: the counters say so).
+`bad_health_classify_draw` (asked in every run: a classification is a pure question), `bad_health_hit_ineligible` (triggers on the first completed ineligible timed answer, which any vehicle update gives; it
+needs no hit), and `bad_health_second_draw` and `bad_health_fatal` (an eligible roll, and an actual timed hit; neither may trigger in a short run: the counters say so).
 
 Characterization it must reproduce, from the retained original runs: the natural 600 (the timed attempts, draws and hits of four kinds, the exact draw/hash/order counters) and the controlled anti-aircraft 20 s
 case (201 draws, 41 or 46 hits, no timed fatal). NOT available natively and not claimed: a fatal anti-aircraft TIMED fire (the retained natural run has five fatal anti-aircraft COLLISIONS, which are covered), a
@@ -240,3 +243,16 @@ helicopter's hit of itself, a player's health, the multiplayer multiplier and th
 
 The explosion and its blast walk, the impact kill-code switch, the bridge collapse (R5), the physical factual reporting and the whole-scope audit (R3 for a host that must own a structure's state), and the D4 repair
 and restoration quantities (they set health through their own writers; the class is asked at the next read). Task45's full pack is active and delivery 45 precedes 46.
+
+## Correction of the first review of this step (`d6c878c7d`, one P2 and one P3)
+
+* **Timed eligibility is the host's (P2).** The DLL's draw gate no longer refuses a timed sample by the reference host's rules (a person, an aircraft in class none, a vehicle with no health or that cannot
+  burn), and both aircraft updates ask TIMED at the existing point whatever the class. The reference host keeps its eligibility exactly (`cmb_step.c`: a person never, class none no sample, an eligible
+  zero-chance roll still takes its sample), so the default exchange, the sample sequence and the observer's counters, hashes and ordered log are unchanged: the observer's attempt is counted at the same hook as
+  before, no phantom event is added, and a host's own timed activity shows as its hits and as the draws the hook already counts. The campaign still validates the shape (a timed roll only, one sample, no
+  lookup, consistent eligible/rolled/hit/health/fatal, a class the model can have, no timed question for a fixed structure). Production-bridge controls: a generic person with health, an aircraft in class
+  none, a vehicle that cannot burn and one with no health each take their one sample and are applied (RED against the previous gate: 8 failures; GREEN 59 checks), and the engine boundary carries them.
+* **Documentation (P3).** `bad_health_hit_ineligible` triggers on an ineligible answer (no hit needed); only `bad_health_fatal` needs a hit; `bad_health_person_draw`, which a generic person roll made valid,
+  is replaced by `bad_health_classify_draw` (a pure question asking for the sample) and `bad_health_second_draw`; `critical_late` changes the DAMAGE critical classes too; the kernel header no longer says
+  the timed rolls remain unmoved. Unavailable natively and explicit: a helicopter's own hit, a fatal anti-aircraft TIMED fire, a player's health, the multiplayer multiplier and the easy-difficulty armour; the
+  five fatal anti-aircraft COLLISIONS of the retained natural 600 are covered.

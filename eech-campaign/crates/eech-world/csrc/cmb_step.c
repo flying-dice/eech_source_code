@@ -18,8 +18,9 @@
  * own hit.
  *
  * What is not here: which weapons and targets meet, the sounds a hit makes, the setting of the health and its side effects, the credit and the kill, the player-setting table, the
- * multiplayer multiplier's record and the debug display of a hit (the campaign's; it sends the settings as values), and the frame's timed health rolls, the explosion and its blast
- * walk and the bridge, which are the original campaign code in this step.  The only random sample a hit takes, the original's `frand1 ()`, is the campaign's: this step asks for it
+ * multiplayer multiplier's record and the debug display of a hit (the campaign's; it sends the settings as values), the observer's hooks and the kill after a timed hit, the
+ * explosion and its blast walk and the bridge (the last two are the original campaign code in this step).  Which target rolls is THIS file's: the reference eligibility of a timed roll
+ * (never a person, an aircraft in a class above none, a vehicle with health that can burn in the critical class) lives here only; the campaign validates the shape of the exchange.  The only random sample a hit takes, the original's `frand1 ()`, is the campaign's: this step asks for it
  * (NEED_DRAW) and is given the raw integer, from which it forms the double with the macro's own expression.  A forecast takes none.
  *
  * The functions are pure: they keep nothing between questions.

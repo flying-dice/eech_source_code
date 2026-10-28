@@ -246,7 +246,9 @@ int main (void)
 	accepted = ask ();
 	check (!accepted && refused_with ("asked for lookups in answer to a health request"), "a lookup is refused");
 
-	/* a sample is not taken for the targets the original did not draw for */
+	/* the eligibility to roll is the HOST's: the campaign does not veto a sample by the reference host's rules.  A host with a model of its own may roll for a person with health (a person
+	   is never critical in the reference, which takes no sample), for an aircraft in no class, for a vehicle that cannot burn and for one with no health; it takes its one sample and its
+	   answer is applied like any other.  These are the controls the reference rules once stood in front of */
 	for (accepted = 0; accepted < 4; accepted++)
 	{
 		if (accepted == 0)
@@ -256,23 +258,59 @@ int main (void)
 		else if (accepted == 1)
 		{
 			a_request (CAMPAIGN_HEALTH_TIMED, CAMPAIGN_DAMAGE_CRITICAL_AIRCRAFT, 5, 100);
+			request.aircraft_class = 0;
 		}
 		else if (accepted == 2)
-		{
-			a_request (CAMPAIGN_HEALTH_TIMED, CAMPAIGN_DAMAGE_CRITICAL_VEHICLE, 0, 100);
-		}
-		else
 		{
 			a_request (CAMPAIGN_HEALTH_TIMED, CAMPAIGN_DAMAGE_CRITICAL_VEHICLE, 5, 100);
 			request.explosive = 0;
 		}
+		else
+		{
+			a_request (CAMPAIGN_HEALTH_TIMED, CAMPAIGN_DAMAGE_CRITICAL_VEHICLE, 0, 100);
+		}
 
 		host_answers ();
 		asks_for_draw = 1;
-		scripted.health.new_level = request.damage_level;
-		check (!ask () && refused_with ("answers without one") && draws_taken == 0,
-			accepted == 0 ? "a person is asked a sample for: refused, none taken" : accepted == 1 ? "an aircraft in no class: refused, none taken" :
-			accepted == 2 ? "a vehicle with no health: refused, none taken" : "a vehicle that cannot burn: refused, none taken");
+		scripted.health.eligible = 1;
+		scripted.health.rolled = 1;
+		scripted.health.hit = 1;
+		scripted.health.new_level = (request.damage_level > 0) ? request.damage_level - 1 : 0;
+		scripted.health.fatal = (scripted.health.new_level <= 0);
+
+		check (ask () && draws_taken == 1 && host_calls == 2 && seen.has_draw && seen.draw_sample == 4321 && last_result.health.hit && last_result.health.new_level == scripted.health.new_level,
+			accepted == 0 ? "a host's own stochastic bleeding for a person with health is accepted: it takes its ONE sample and its hit is returned" :
+			accepted == 1 ? "a host's own degradation of an aircraft in class 0 is accepted the same way" :
+			accepted == 2 ? "a host's own timed physics for a vehicle that cannot burn is accepted the same way" : "and for a vehicle with no health (a hit on none leaves none)");
+	}
+
+	/* ... and the same hosts that answer without a sample are accepted too (the reference host does for all of them) */
+	a_request (CAMPAIGN_HEALTH_TIMED, CAMPAIGN_DAMAGE_CRITICAL_PERSON, 5, 100);
+	host_answers ();
+	scripted.health.new_level = 5;
+	accepted = ask ();
+	check (accepted && draws_taken == 0 && !last_result.health.eligible, "the reference host's answer for a person (ineligible, no sample, nothing changes) is accepted");
+
+	/* the structure of a timed question is the campaign's: one sample at most, an answer that is consistent and safe to apply, and no such question for a fixed structure */
+	a_request (CAMPAIGN_HEALTH_TIMED, CAMPAIGN_DAMAGE_CRITICAL_PERSON, 5, 100);
+	host_answers ();
+	asks_for_draw = 1;
+	asks_twice = 1;
+	scripted.health.eligible = 1;
+	scripted.health.rolled = 1;
+	scripted.health.new_level = 5;
+	accepted = ask ();
+	check (!accepted && refused_with ("already carried one") && draws_taken == 1, "a second sample is refused for a person as for anything");
+
+	/* a pure question may not draw: a classification, an assessment and a hit eligibility */
+	for (accepted = 0; accepted < 3; accepted++)
+	{
+		a_request (accepted == 0 ? CAMPAIGN_HEALTH_CLASSIFY : accepted == 1 ? CAMPAIGN_HEALTH_ASSESS : CAMPAIGN_HEALTH_HIT_ELIGIBLE, CAMPAIGN_DAMAGE_CRITICAL_VEHICLE, 14, 100);
+		request.self_hit = 1;
+		host_answers ();
+		asks_for_draw = 1;
+		check (!ask () && refused_with ("which is a pure question") && draws_taken == 0,
+			accepted == 0 ? "a classification may not ask for a sample" : accepted == 1 ? "an assessment may not" : "a hit eligibility may not");
 	}
 
 	/* ineligible targets: no sample, nothing changes */

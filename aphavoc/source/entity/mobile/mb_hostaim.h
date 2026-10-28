@@ -375,10 +375,12 @@ typedef struct campaign_damage_result
  *                 it fell below 15 percent (`crossed`: the campaign then lights the fire, stops the vehicle and sleeps it); for an aircraft whether it fell below 5 or 30 percent (`crossed`),
  *                 whether it recovered above 30 (`recovered`) and whether the health is within the range that ejects an AI crew (`eject`: below 3.75 percent and above ten points; the
  *                 campaign adds that the aircraft is airborne and an AI).
- *   TIMED         the frame's timed health roll, for the six updates: a vehicle that can burn burns when critical, a person would bleed (never: a person is never critical), an aircraft
- *                 degrades when it is in a class the update computed earlier in the same frame (aircraft_class).  The host answers whether the target is eligible, and if so asks for
- *                 the campaign's ONE sample (NEED_DRAW), and answers the roll, the health a hit leaves (one point less, from zero up) and whether it is fatal.  An ineligible target
- *                 takes no sample; an eligible one takes it whatever the odds.  The answer also carries the class of the health after the roll (`critical_class`), which the update's
+ *   TIMED         the frame's timed health roll, for the six updates (a fixed structure has no such update, so none is asked for one).  The host owns the physical eligibility, the roll
+ *                 and the health: it answers whether the target is eligible, asks for the campaign's ONE sample (NEED_DRAW) if its model rolls, and answers the roll, the health a hit
+ *                 leaves and whether it is fatal.  The campaign sends the facts (the health, the initial level, whether the vehicle can burn, the aircraft's class from the classification
+ *                 asked earlier in the frame, the frame time) and validates only the shape: one sample at most, and an answer that is consistent and safe to apply.  The REFERENCE host
+ *                 is eligible for a vehicle with health that can burn in the critical class, a person never (a person is never critical) and an aircraft in a class above none, takes
+ *                 no sample for any other, and takes it whatever the odds for an eligible one; a host with a model of its own may roll for any of them.  The answer also carries the class of the health after the roll (`critical_class`), which the update's
  *                 next gate uses.  The campaign keeps the setting of the health, the observer's hooks, the kill and what follows.
  *   HIT_ELIGIBLE  whether a hit that is the target's own (`self_hit`) may hurt it: an AI helicopter ignores its own hits (the original's fix against helicopters killing themselves with
  *                 missiles fired into the ground).  Asked only for a self hit; the campaign returns from the handler when the answer is no.

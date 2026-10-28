@@ -112,3 +112,6 @@ Correction of `dc3113e4b` (two P2, one P3): `checks/damage-checks-red-2.log` (th
 See `eech-campaign/docs/m5-combat-extraction.md` (step 3). Source checks in `checks/`: `health-checks-1.log`, `health-checks-h46.log` (54 checks of the real `mb_hostaim.c` under AddressSanitizer and UndefinedBehaviorSanitizer),
 `health-mutant-1.log` (five refusals removed fail 6, exit 1), the Rust tests (`test-h46-*.log`), Clippy (`clippy-h46-*`), the real-header syntax (`syntax-check-h46-*`; the first run failed because the old staged
 headers lacked the new declarations, retained) and strict feature-off preprocess (`strict-preprocess-49-*`; the first run failed on a quoting error in its own script, retained) records. No native run exists for this candidate.
+
+Correction of `d6c878c7d` (timed eligibility is the host's): `checks/health-checks-red-c2.log` (the new controls against the previous draw gate: 8 failures, exit 1), `checks/health-checks-c2-*.log` (59 checks), the Rust,
+Clippy, syntax and preprocess records of the correction (`*-c2-*`). Nothing native was run.

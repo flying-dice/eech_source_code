@@ -6585,6 +6585,41 @@ mod tests {
         assert!(matches!(seen, Some(AimRequest::Health(ref r)) if r.op == 4 && r.self_hit && !r.target_not_ai));
     }
 
+    // Which targets roll is the HOST's physical eligibility: a host with a model of its own may ask for the campaign's sample for a person with health or for an aircraft in no class, and
+    // the engine boundary carries the request and the answer as it does for any other target.
+    #[test]
+    fn a_generic_hosts_timed_roll_for_a_person_or_an_aircraft_in_no_class_crosses_the_engine_boundary() {
+        for (model, class) in [(2, 0), (3, 0)] {
+            let mut step = health_step(3);
+            step.health.critical_model = model;
+            step.health.explosive = 0;
+            step.health.aircraft_class = class;
+            step.health.damage_level = 40;
+            let (seen, result, code, error) = aim_crossing(&step, |_| {
+                Ok(AimReply {
+                    need_draw: true,
+                    ..AimReply::default()
+                })
+            });
+            assert_eq!((code, result.state), (0, sys::EECH_AIM_NEED_DRAW), "model {model}: {error}");
+            assert!(matches!(seen, Some(AimRequest::Health(ref r)) if r.op == 3 && r.critical_model == model && r.draw.is_none()));
+            step.has_draw = 1;
+            step.draw_sample = 100;
+            let (_, result, code, error) = aim_crossing(&step, |_| {
+                Ok(AimReply {
+                    health_eligible: true,
+                    health_rolled: true,
+                    health_hit: true,
+                    health_new_level: 39,
+                    ..AimReply::default()
+                })
+            });
+            assert_eq!(code, 0, "model {model}: {error}");
+            let h = result.health;
+            assert_eq!((h.eligible, h.rolled, h.hit, h.new_level, h.fatal), (1, 1, 1, 39, 0));
+        }
+    }
+
     #[test]
     fn a_health_question_refuses_what_has_no_defined_answer_and_never_takes_a_lookup() {
         let ok = |_: AimRequest| Ok(AimReply::default());

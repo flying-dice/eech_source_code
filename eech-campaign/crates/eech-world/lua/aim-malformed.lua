@@ -10,15 +10,24 @@ return function (mode, reference, counted)
 		bad_decoy_flag = "weapon_decoy", bad_seduce_flag = "weapon_seduce", bad_reacquire_flag = "weapon_reacquire", bad_reacquire_none = "weapon_reacquire",
 		bad_forecast_negative = "forecast", bad_forecast_draw = "forecast", bad_forecast_fraction = "forecast",
 		bad_damage_level = "damage", bad_damage_draw_twice = "damage", bad_damage_exit = "damage", bad_damage_class = "damage", bad_damage_unwritten = "damage", bad_damage_missing = "damage",
-		bad_health_class = "health", bad_health_missing = "health", bad_health_person_draw = "health", bad_health_hit_ineligible = "health", bad_health_fatal = "health" }
+		bad_health_class = "health", bad_health_missing = "health", bad_health_classify_draw = "health", bad_health_second_draw = "health", bad_health_hit_ineligible = "health", bad_health_fatal = "health" }
 	local kind = assert (kinds [mode], "unknown bad mode " .. mode)
 	local armed = true
 	return function (step)
 		-- the health providers corrupt the first answer of their kind (the person provider asks for a sample for a person, whom the original never rolls for) and let the reference
 		-- host answer the rest
 		if step.mode == "health" and mode:find ("^bad_health_") then
-			if mode == "bad_health_person_draw" then
-				if armed and step.op == "timed" and step.critical_model == 2 then
+			if mode == "bad_health_classify_draw" then
+				-- a classification is a pure question: it may not ask for the campaign's sample
+				if armed and step.op == "classify" then
+					armed = false
+					return { state = "need_draw" }
+				end
+				return counted (step, reference (step))
+			end
+			if mode == "bad_health_second_draw" then
+				-- a timed roll takes one sample: the host that has been given it and asks again is refused
+				if armed and step.op == "timed" and step.draw ~= nil then
 					armed = false
 					return { state = "need_draw" }
 				end

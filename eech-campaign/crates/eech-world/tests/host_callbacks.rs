@@ -719,7 +719,12 @@ assert(own_model.health(health()).critical_class == 1 and own_model.health(healt
 assert(own_model.health(health({ op = 'assess', old_damage_level = 50, damage_level = 20 })).crossed == true and own_model.health(health({ op = 'hit_eligible', self_hit = true })).eligible == true, 'its own crossing, and a unit may hurt itself')
 assert(malformed('bad_health_class', host.aim, passed)(health()).critical_class == 7, 'the first classification answered with a class no vehicle has')
 assert(malformed('bad_health_missing', host.aim, passed)(health()).critical_class == nil, 'or with the class missing')
-assert(malformed('bad_health_person_draw', host.aim, passed)(health({ op = 'timed', critical_model = 2, damage_level = 3 })).state == 'need_draw', 'or a sample asked for a person')
+assert(malformed('bad_health_classify_draw', host.aim, passed)(health()).state == 'need_draw', 'or a sample asked for a classification, which is a pure question')
+assert(malformed('bad_health_second_draw', host.aim, passed)(health({ op = 'timed', draw = 6553 })).state == 'need_draw', 'or a second sample for a timed roll that has been given its one')
+local second = malformed('bad_health_second_draw', host.aim, passed)
+assert(second(health({ op = 'timed' })).state == 'need_draw' and second(health({ op = 'timed', draw = 6553 })).state == 'need_draw' and second(health({ op = 'timed', draw = 6553 })).state == 'done', 'the first only; the reference host asks for the sample first and the provider corrupts the answer to the given one')
+-- the reference host takes no sample for a person or an aircraft in no class (its eligibility, the host\'s), which the campaign accepts; a host with a model of its own may
+assert(host.aim(health({ op = 'timed', critical_model = 2, damage_level = 3 })).state == 'done' and host.aim(health({ op = 'timed', critical_model = 3, damage_level = 40, aircraft_class = 0 })).state == 'done', 'the reference host rolls for neither')
 assert(malformed('bad_health_hit_ineligible', host.aim, passed)(health({ op = 'timed', damage_level = 50 })).hit == true, 'or a hit on an ineligible target')
 assert(malformed('bad_health_fatal', host.aim, passed)(health({ op = 'timed', draw = 0 })).fatal == true, 'or a hit whose fatal flag disagrees with the health it leaves')
 local classified = malformed('bad_health_class', host.aim, passed)

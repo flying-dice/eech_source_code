@@ -371,18 +371,12 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 			debug_fatal ("host aim: host aim asked for a draw in answer to a %s request%s", mode_name (step->mode), step->has_draw ? " that already carried one" : "");
 		}
 
-		// a timed roll takes its sample only when the target is eligible, and the campaign's own facts decide some targets before the host does: a person is never critical, an
-		// aircraft in no class is not degraded, a vehicle with no health or that cannot burn does not burn.  The original drew for none of them
-		if (step->mode == CAMPAIGN_AIM_HEALTH)
+		// only a timed roll may ask for the campaign's sample: a classification, an assessment and a hit eligibility are pure questions.  WHICH targets roll (the reference host
+		// draws for an eligible one only: a vehicle with health that can burn in the critical class, an aircraft in a class above none, never a person) is the host's physical
+		// eligibility, not the campaign's: a host with a model of its own may roll for a person, for an aircraft in no class or for a vehicle that does not burn, and takes its one sample
+		if ((step->mode == CAMPAIGN_AIM_HEALTH) && (step->health.op != CAMPAIGN_HEALTH_TIMED))
 		{
-			const campaign_health_request *health = &step->health;
-
-			if ((health->op != CAMPAIGN_HEALTH_TIMED) || (health->critical_model == CAMPAIGN_DAMAGE_CRITICAL_PERSON) ||
-				((health->critical_model == CAMPAIGN_DAMAGE_CRITICAL_AIRCRAFT) && (health->aircraft_class == 0)) ||
-				((health->critical_model == CAMPAIGN_DAMAGE_CRITICAL_VEHICLE) && ((health->damage_level == 0) || (!health->explosive && !health->flammable))))
-			{
-				debug_fatal ("host aim: host aim asked for a draw in answer to a health request (op %d) that the original answers without one", health->op);
-			}
+			debug_fatal ("host aim: host aim asked for a draw in answer to a health request (op %d), which is a pure question", step->health.op);
 		}
 
 		// the player's invulnerability stops a hit before its arithmetic: a hit that is stopped takes no sample of the shared stream

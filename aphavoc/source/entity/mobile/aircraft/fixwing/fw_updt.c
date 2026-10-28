@@ -204,8 +204,8 @@ static void update_server (entity *en)
 		
 		CMB_FX_TIMED_BEGIN (EECH_CMB_TIMED_FIXED_WING)
 
-		// an aircraft in a class above none is degraded: the host owns the eligibility, the sample, the roll, the health a hit leaves and whether it is fatal (EEDCS-46)
-		if (damage_type > AIRCRAFT_DAMAGE_NONE)
+		// the host owns the eligibility (the reference host degrades an aircraft in a class above none), the sample, the roll, the health a hit leaves and whether it is fatal, and is
+		// asked at this point whatever the class (EEDCS-46)
 		{
 			campaign_health_result
 				timed;

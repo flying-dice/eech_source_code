@@ -30,7 +30,12 @@
 --   mode=timed_never  the reference host, but no target is ever eligible for a timed roll (a vehicle is told it cannot burn, an aircraft that it is in no class): nothing burns or
 --                     degrades by itself and the six timed rolls take no sample (EEDCS-46); only the timed answers differ
 --   mode=timed_fast   the same host with twenty times the frame time in every timed roll: what is eligible is hit twenty times as often (the samples taken are the same)
---   mode=critical_late the same host with a quarter of the initial level in every classification, assessment, timed roll and hit: the critical classes begin at a quarter of the health
+--   mode=timed_generic the same host, but a host with a model of its own answers the timed roll of a person with health at or under half its initial level, and of an aircraft in no class
+--                     at or under half, with a stochastic model that is not EECH's (the host asks for the campaign's one sample and hits when it is under a half): the reference host rolls for neither.
+--                     Only the timed answers of those two kinds differ; the counters `timed_generic_*` say how many rolls were its own
+--   mode=critical_late the same host with a quarter of the initial level in every classification, assessment, timed roll AND damage question of a vehicle or an aircraft: the critical
+--                     classes (the class of a health, what a change crosses, the class a hit leaves) begin at a quarter of the health; the capability arithmetic, the forecasts and every
+--                     other answer are the reference's
 --   mode=selfhit_allowed the same host, but an AI helicopter's own hit is allowed to hurt it (the helicopter handler asks only for a hit that is its own: if no helicopter hits itself in
 --                     the run the counters say so, and this mode proves nothing)
 --   mode=forecast_zero the reference host, but every damage forecast is zero: no package is capable of damage, so the campaign selects and fires no weapon
@@ -41,10 +46,12 @@
 --   mode=bad_damage_level, bad_damage_draw_twice, bad_damage_exit, bad_damage_class, bad_damage_unwritten, bad_damage_missing   a provider whose answer to the first hit is
 --                     health written below zero, a second request for a sample, a stop by invulnerability of a target that is not invulnerable, a critical class the target
 --                     cannot have, a health changed without being written, or an answer with a field missing: the engine must stop with a clear error
---   mode=bad_health_class, bad_health_missing, bad_health_person_draw, bad_health_hit_ineligible, bad_health_fatal   a provider whose first answer of the kind is a class no vehicle can
---                     have, a classification with the class missing, a request for a sample for a person (who is never rolled for), a hit on a target that is not eligible, or a hit whose
---                     fatal flag disagrees with the health it leaves: the engine must stop with a clear error.  The first three are asked in every run (an aircraft or a person updates
---                     every frame); the last two need a timed hit and may not happen in a short run: the summary's counters say whether the case was reached
+--   mode=bad_health_class, bad_health_missing, bad_health_classify_draw, bad_health_second_draw, bad_health_hit_ineligible, bad_health_fatal   a provider whose first answer of the kind is a
+--                     class no vehicle can have, a classification with the class missing, a request for the campaign's sample in answer to a classification (a pure question), a second
+--                     request for the sample of a timed roll, an ineligible timed answer that nevertheless reports a hit, or a hit whose fatal flag disagrees with the health it leaves: the
+--                     engine must stop with a clear error.  The first three are asked in every run (a classification is asked at every aircraft and client update); `bad_health_hit_ineligible`
+--                     triggers on the first completed ineligible timed answer (any vehicle update, no hit needed); `bad_health_second_draw` needs an eligible roll and `bad_health_fatal` an
+--                     actual timed hit, and may not happen in a short run: the summary's counters say whether the case was reached
 --   mode=bad_step_*   a provider that answers the first weapon step malformed: the engine must stop with a clear error (bad_step_state, bad_step_lookup_kind, bad_step_action_kind,
 --                     bad_step_nonfinite, bad_step_repeat, bad_step_error, bad_step_draw)
 --   mode=bad_birth_action, bad_release_burst   the first weapon birth answered with a step's action, the first release with no rounds and no refusal
@@ -117,7 +124,7 @@ local steps = { passes = 0, done = 0, need_lookup = 0, need_draw = 0, kills = {}
 	forecasts = 0, forecast_sum = 0, forecast_zero = 0,
 	damage_draws = 0, damage_hits = 0, damage_sum = 0, damage_exited = 0, damage_written = 0, damage_critical = 0, damage_fatal = 0,
 	health_draws = 0, health_classified = 0, health_critical = 0, health_assessed = 0, health_crossed = 0, timed_asked = 0, timed_eligible = 0, timed_rolled = 0, timed_hit = 0, timed_fatal = 0,
-	selfhit_asked = 0, selfhit_refused = 0 }
+	selfhit_asked = 0, selfhit_refused = 0, timed_generic = 0 }
 for code = 0, 7 do steps.kills [code] = 0 end
 
 local function counted (step, answer)
@@ -250,9 +257,19 @@ elseif mode == "forecast_armoured" then
 		if step.mode == "forecast" then step = with (step, { armour_level = step.armour_level * 2 + 1 }) end
 		return counted (step, reference (step))
 	end
-elseif mode == "timed_never" or mode == "timed_fast" or mode == "critical_late" or mode == "selfhit_allowed" then
+elseif mode == "timed_never" or mode == "timed_fast" or mode == "critical_late" or mode == "selfhit_allowed" or mode == "timed_generic" then
 	provider = function (step)
 		if step.mode == "health" then
+			if mode == "timed_generic" and step.op == "timed" and (step.critical_model == 2 or (step.critical_model == 3 and step.aircraft_class == 0)) and step.damage_level > 0 and step.damage_level * 2 <= step.initial_damage_level then
+				-- a host's own physical model, not EECH's: it rolls for a hurt person and for a hurt aircraft in no class, takes the campaign's one sample and hits when it is under a half
+				if step.draw == nil then return counted (step, { state = "need_draw" }) end
+				steps.timed_generic = steps.timed_generic + 1
+				local hit = step.draw < 16384
+				local level = hit and math.max (0, step.damage_level - 1) or step.damage_level
+				return counted (step, { state = "done", critical_class = reference (with (step, { op = "classify", damage_level = level })).critical_class, crossed = false, recovered = false, eject = false,
+					eligible = true, rolled = true, hit = hit, new_level = level, fatal = hit and level <= 0 })
+			end
+			if mode == "timed_generic" then return counted (step, reference (step)) end
 			if mode == "timed_never" and step.op == "timed" then step = with (step, { explosive = false, flammable = false, aircraft_class = 0 })
 			elseif mode == "timed_fast" and step.op == "timed" then step = with (step, { delta_time = step.delta_time * 20 })
 			elseif mode == "critical_late" and step.op ~= "hit_eligible" then step = with (step, { initial_damage_level = math.max (1, math.floor (step.initial_damage_level / 4)) })
@@ -405,7 +422,7 @@ emit { event = "summary", mode = mode, frames = frames_run, failure = failure or
 	damage_critical = steps.damage_critical, damage_fatal = steps.damage_fatal,
 	health_draws = steps.health_draws, health_classified = steps.health_classified, health_critical = steps.health_critical, health_assessed = steps.health_assessed,
 	health_crossed = steps.health_crossed, timed_asked = steps.timed_asked, timed_eligible = steps.timed_eligible, timed_rolled = steps.timed_rolled, timed_hit = steps.timed_hit,
-	timed_fatal = steps.timed_fatal, selfhit_asked = steps.selfhit_asked, selfhit_refused = steps.selfhit_refused }
+	timed_fatal = steps.timed_fatal, selfhit_asked = steps.selfhit_asked, selfhit_refused = steps.selfhit_refused, timed_generic = steps.timed_generic }
 out:close ()
 io.stderr:write (string.format ("aim-provider: mode=%s ready_update=%d ready_command=%d required=%d step=%d vectors=%d (valid %d invalid %d) lead=%d ballistic=%d intercept=%d need_draw=%d ready_moving=%d weapon_births=%d losses=%d failure=%s\n",
 	mode, counts.ready_update, counts.ready_command, counts.required, counts.step, counts.vectors, answers.valid, answers.invalid, counts.lead, counts.ballistic, counts.intercept,
