@@ -1606,7 +1606,8 @@ fn the_bridge_witness_says_so_and_does_nothing_when_no_bridge_meets_the_first_co
 cmb-bridge-survey bridge=0 sub_type=1 start=4 end=5 alive=1 breaks=0 segments=3 unsupported=0 first_candidate=-1 first_neighbour=-1 x=1 y=2 z=3 pattern=ESE\n";
     let (rows, stdout) = run_bridge_case_caller(survey, &[]);
     assert!(
-        stdout.contains("CALLS 0:0:-1:0\n") && stdout.contains("BRIDGE_CASE_NOT_DONE"),
+        // the whole logical line (LF or CRLF, as the platform writes it): the survey was the only call
+        stdout.lines().any(|line| line == "CALLS 0:0:-1:0") && stdout.contains("BRIDGE_CASE_NOT_DONE"),
         "only the survey was asked, and the script said it did nothing: {stdout}"
     );
     let case = rows.iter().find(|r| r["event"] == "bridge_case").unwrap();
@@ -1898,7 +1899,8 @@ fn the_object_witness_reports_a_destruction_by_identity_once_and_reads_the_state
     let first_report = trace.find("report obj-3").unwrap();
     let first_frame_after = trace[first_report..].find("frame").unwrap();
     assert!(first_frame_after > 0, "{trace}");
-    assert!(trace.ends_with("structures\n"), "the state is read last: {trace}");
+    // the last logical line of the trace (LF or CRLF, as the platform writes it) is the state read
+    assert_eq!(trace.lines().last(), Some("structures"), "the state is read last: {trace}");
 }
 
 #[test]

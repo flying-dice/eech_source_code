@@ -1,3 +1,15 @@
+# Current author note — 28 October 2026: TEST-ONLY Windows-CI portability correction (the Root's lead checkpoint below is otherwise current)
+
+GitHub run 40723326838 (job 122939836511, raw log kept at `R:/d2-evidence/combat-characterization-20261028/ci-092-windows-cross-job-122939836511-attempt2.log`) was red at `09253829b` for two
+`eech-world` test assertions only (`host_callbacks` 22 passed, 2 failed); the product build and the other suites passed. Both failures printed the semantically correct rows with Windows CRLF line ends:
+the bridge witness's `CALLS 0:0:-1:0` line (the case correctly said `BRIDGE_CASE_NOT_DONE` and acted not at all) and the object witness's last trace row `structures` (after the report and the frames). The
+correction is in the test target `crates/eech-world/tests/host_callbacks.rs` ONLY: the first now requires a whole logical line equal to `CALLS 0:0:-1:0`, the second that the last logical line of the trace equal
+`structures` (Rust `lines()`, which accepts LF and CRLF); the raw stdout and trace are not normalised, no reader or product code changed, no ordering assertion was weakened and no Windows test was skipped. Local
+check (Linux toolchain): `cargo test --locked -p eech-world --test host_callbacks` 24 passed, `cargo fmt --check` exit 0 (`checks/cargo-test-ci-crlf-host-callbacks.log`, `checks/fmt-ci-crlf-check.log`). That is NOT
+Windows coverage: the remote Windows CI of the pushed commit is the confirmation of the CRLF cases. Production build inputs (all C, Rust, Lua and shipping scripts) are unchanged from `64cf0f1c5`, and the shipping
+BUILD-INFO of the Root's active runs remains `64cf0f1c5`; but this test file lies in the `crates` tree, so the eight coarse source frontiers (equal through `09253829b`) are NOT claimed equal after it: the one
+exception is this test-only file. The Root's active full pack and final raw-frame-cost runs on the immutable clean `64cf0f1c5` are untouched and unaccepted. D2/EEDCS-18 and Task46/PR105 remain ACTIVE and UNACCEPTED, no D3.
+
 # Current D2 lead checkpoint — 28 October 2026, 16:10 UTC
 
 D2/EEDCS-18 remains ACTIVE; Task46/PR105 is UNACCEPTED; noD3. The later
