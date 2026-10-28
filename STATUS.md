@@ -1,3 +1,15 @@
+# Current D2 lead checkpoint — 28 October 2026, 13:00 UTC
+
+D2/EEDCS-18 remains ACTIVE; Task46/PR105 UNACCEPTED, noD3. R5 corrected source636ef798a is clean/pushed, Sonnet10691 actually0/PID23596gone. P1 repr(C)/all19inner offsets and P2 destructive-target continuation are independently CLOSED(cabde367...); RootP3 scopedCR metadata preserves raw copies. The rejected b268 build was NEVER RUN; its disposablecache was removed after zero references, all41exports/source/evidence retained.
+
+Corrected clean Windows fixture92864 actually0/dirty0/all41(BINF9fc034cc...). Both default bridge runs31083/17264/native0 match all320598 originalbb bytes exactly. Own physical model leaves unsupported neighbour1 alive; own-fall lands it atframe21 vsdefault5. Nil/variant99 providers trigger specificprimary native1 refusals. Allsixpost1179/all41/source identities match. Independent focused runtime review319c633f... CLOSED/no findings. Exact safe source/correction/runtime proofs and executed helpers: reference/d2-combat-characterization/bridge-636-runtime. This is direct structural failure evidence, not weapon-hit/nativeREST/occupiedvehicle/player/MP/client/wholeD2 coverage.
+
+Separate frozen636 default900 control ACTIVE original39137/native24704 creation12:53:50UTC; source/bin/root/out immutable, actual completion/full3byte comparison/postinput still pending. Do not restart on a quiet console. NEXT coding responsibility is R3 persistent structure ownership/report correlation AND physical factual reports under existingTask46, preserving campaign decisions/accounting/credit/awareness/route/repair policy/D1 consequences core. Do not defer D2 responsibilities to D3/D5 or change accepted baselines/tolerances/scenarios. Earlier accepted damage/impact/timed/bridge behavior is reusable characterization, not a reason to repeat healthy original runs.
+
+Final ordinaryshipping40/full8/post3/currentCI/independent final review/normalmerge/wholeD2 audit and finalshipping native framecost still required. Accepted Task45-parent cost is independently closed49a254.../complete3bytes unchanged; it is not a DCS budget or causal benchmark. Ledger45 publishedONCE/all5reports+oldHTML preserved; never replay. Current process identities and next gates: R:/d2-evidence/D2-LIVE-CHECKPOINT.json. Earlier paragraphs below are historical at-the-time checkpoints.
+
+---
+
 # Current D2 lead checkpoint — 28 October 2026, 12:15 UTC
 
 D2/EEDCS-18 remains ACTIVE. Task46/PR105 is UNACCEPTED; no D3. Accepted integration3b91ca347 includes delivered LOS42, sensing43, aiming44 and weapon45. No authentication change or credential copy; logged-in author and autonomous normal merges are human-directed, without fabricated self-approval.
