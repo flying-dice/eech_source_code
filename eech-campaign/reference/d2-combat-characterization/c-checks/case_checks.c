@@ -20,7 +20,7 @@ entity *entities;
 int number_of_entities;
 
 /* counters the checks read */
-static int launch_calls, sets, destroys, notifies, effects, last_sender, last_receiver, launch_creates, launch_fail;
+static int launch_calls, query_calls, sets, destroys, notifies, effects, last_sender, last_receiver, launch_creates, launch_fail, query_mode;
 static double last_modifier;
 static int launch_launcher;
 
@@ -176,7 +176,49 @@ int vehicle_critically_damaged (entity *en)
 	return (100 * level_[i] / initial_[i]) < 15;
 }
 
-/* the Task45 case launch, as the driver sees it: it creates `launch_creates` new weapon children of the launcher, or refuses */
+/* the Task45 read-only query, as the driver sees it.  The answers are the REAL helper's own shapes (csrc/eech_wpn_fixture.c eech_wpn_case_query_run; the literals are pinned against that
+   file by run-case-checks.sh): an unknown host id and an unsupported launcher kind are -1 with a wpn-case-error reason; otherwise a state line whose `alive` is the launcher's and whose
+   `warhead` is -1 for a weapon sub type that is not valid.  query_mode: 0 normal, 1 unsupported launcher kind, 2 unknown host id. */
+int eech_wpn_case_query_run (const char *host_id, int weapon, char *text, int capacity)
+{
+	int i;
+
+	query_calls++;
+
+	if (query_mode == 2)
+	{
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=no_such_host_id host_id=%s\n", host_id);
+
+		return -1;
+	}
+
+	if (query_mode == 1)
+	{
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=subject_kind_unsupported kind=ENTITY_TYPE_SCENIC\n");
+
+		return -1;
+	}
+
+	for (i = 1; i < number_of_entities; i++)
+	{
+		if (host_id_[i] && strcmp (host_id_[i], host_id) == 0)
+		{
+			int valid = weapon > 0 && weapon < 200;
+
+			snprintf (text, (size_t) capacity, "wpn-case-state host_id=%s type=helicopter alive=%d position=0,0,0 has_target=0 target_type=none weapon=%d weapon_count=%d warhead=%d guidance=0 aiming=0 decoy=0\n",
+				host_id, alive_[i], weapon, valid ? 6 : -1, valid ? 4 : -1);
+
+			return 0;
+		}
+	}
+
+	snprintf (text, (size_t) capacity, "wpn-case-error reason=no_such_host_id host_id=%s\n", host_id);
+
+	return -1;
+}
+
+/* the Task45 case launch, as the driver sees it: it creates `launch_creates` new weapon children of the launcher; `launch_fail` is the helper rejecting a launch whose launcher and
+   weapon were valid (its real reason `target_link_not_set` stands for any such rejection) */
 int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, int weapon, int salvo_count, char *text, int capacity)
 {
 	int i, made = 0;
@@ -185,7 +227,7 @@ int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, in
 
 	if (launch_fail)
 	{
-		snprintf (text, (size_t) capacity, "wpn-case-error reason=refused\n");
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=target_link_not_set\n");
 
 		return -1;
 	}
@@ -250,7 +292,7 @@ static void reset_world (void)
 	memset (host_id_, 0, sizeof (host_id_));
 	entities = pool;
 	number_of_entities = N;
-	launch_calls = sets = destroys = notifies = effects = launch_creates = launch_fail = 0;
+	launch_calls = query_calls = sets = destroys = notifies = effects = launch_creates = launch_fail = query_mode = 0;
 	last_sender = last_receiver = 0;
 	launch_launcher = 0;
 }
@@ -382,7 +424,7 @@ int main (void)
 	add (2, ENTITY_TYPE_ROUTED_VEHICLE, 10, 10, 0);
 	launch_fail = 1;
 	rc = eech_cmb_case_collide_run ("ROUTED_VEHICLE", 0, "L1", 5, 0.0, 0, text, sizeof (text));
-	check(rc == 0 && strstr (text, "launched=0") && strstr (text, "refused=1") && strstr (text, "found=1") && strstr (text, "launch=wpn-case-error|reason=refused"), "a launch the campaign refuses is DATA with its reason (not an argument error that discards it): not done, refused=1, the launch text kept as one word");
+	check(rc == -1 && strstr (text, "launch_rejected_after_validation") && strstr (text, "target_link_not_set"), "a launch the helper rejects although the launcher and the weapon were valid is an ERROR carrying the helper's own reason (not data, not discarded)");
 	check(notifies == 0 && destroys == 0, "and nothing is delivered or retired");
 
 	/* a launch that returns normally but creates no weapon (no ammunition, the release gate, a launcher that is no longer alive) is the same: data, with the launch text and its counts */
@@ -399,7 +441,7 @@ int main (void)
 	add (2, ENTITY_TYPE_CITY_BUILDING, 10, 10, 0);
 	launch_fail = 1;
 	rc = eech_cmb_case_blast_run ("CITY_BUILDING", 0, 5.0, WEAPON_KILL_CODE_HIT_LAND, "L1", 5, text, sizeof (text));
-	check(rc == 0 && strstr (text, "placed=1") && strstr (text, "launched=0") && strstr (text, "refused=1") && strstr (text, "launch=wpn-case-error|reason=refused") && effects == 0 && destroys == 0 && sets == 0, "a refused launch for a blast is data: placed, not launched, refused with its reason; nothing exploded, destroyed or set");
+	check(rc == -1 && strstr (text, "launch_rejected_after_validation") && strstr (text, "target_link_not_set") && effects == 0 && destroys == 0 && sets == 0, "a launch the helper rejects after validation is an error for a blast too; nothing exploded, destroyed or set");
 
 	reset_world ();
 	launcher_with (0);
@@ -407,6 +449,47 @@ int main (void)
 	launch_creates = 0;
 	rc = eech_cmb_case_blast_run ("CITY_BUILDING", 0, 5.0, WEAPON_KILL_CODE_HIT_LAND, "L1", 5, text, sizeof (text));
 	check(rc == 0 && strstr (text, "launched=0") && strstr (text, "refused=1") && effects == 0 && destroys == 0, "a launch that creates no weapon for a blast is data too");
+
+	/* ---- validation BEFORE the launch: an invalid argument is an error and launches and changes nothing; a dead launcher is a valid campaign outcome and is data */
+	reset_world ();
+	launcher_with (0);
+	add (2, ENTITY_TYPE_ROUTED_VEHICLE, 10, 10, 0);
+	launch_creates = 1;
+	query_mode = 1;
+	rc = eech_cmb_case_collide_run ("ROUTED_VEHICLE", 0, "L1", 5, 0.0, 0, text, sizeof (text));
+	check(rc == -1 && strstr (text, "launcher_cannot_be_used_for_a_case_launch") && strstr (text, "subject_kind_unsupported"), "an unsupported launcher kind is an ERROR with the helper's reason, not refused data");
+	check(launch_calls == 0 && notifies == 0 && destroys == 0 && sets == 0 && effects == 0, "and nothing was launched, delivered, retired or set");
+	rc = eech_cmb_case_blast_run ("ROUTED_VEHICLE", 0, 5.0, WEAPON_KILL_CODE_HIT_LAND, "L1", 5, text, sizeof (text));
+	check(rc == -1 && strstr (text, "launcher_cannot_be_used_for_a_case_launch") && launch_calls == 0 && effects == 0 && destroys == 0, "the same for a blast: an error, no launch, no explosion");
+
+	reset_world ();
+	launcher_with (0);
+	add (2, ENTITY_TYPE_ROUTED_VEHICLE, 10, 10, 0);
+	launch_creates = 1;
+	rc = eech_cmb_case_collide_run ("ROUTED_VEHICLE", 0, "L1", 0, 0.0, 0, text, sizeof (text));
+	check(rc == -1 && strstr (text, "weapon_sub_type_not_valid") && strstr (text, "weapon=0") && launch_calls == 0 && notifies == 0 && destroys == 0 && sets == 0, "an invalid weapon sub type (0) is an ERROR with no launch and no mutation");
+	rc = eech_cmb_case_collide_run ("ROUTED_VEHICLE", 0, "L1", 999, 0.0, 0, text, sizeof (text));
+	check(rc == -1 && strstr (text, "weapon_sub_type_not_valid") && launch_calls == 0, "and so is one past the table (999)");
+	rc = eech_cmb_case_blast_run ("ROUTED_VEHICLE", 0, 5.0, WEAPON_KILL_CODE_HIT_LAND, "L1", 999, text, sizeof (text));
+	check(rc == -1 && strstr (text, "weapon_sub_type_not_valid") && launch_calls == 0 && effects == 0 && destroys == 0, "and for a blast: an error, no launch, no explosion");
+
+	reset_world ();
+	launcher_with (0);
+	add (2, ENTITY_TYPE_ROUTED_VEHICLE, 10, 10, 0);
+	launch_creates = 1;
+	query_mode = 2;
+	rc = eech_cmb_case_collide_run ("ROUTED_VEHICLE", 0, "L1", 5, 0.0, 0, text, sizeof (text));
+	check(rc == -1 && strstr (text, "launcher_cannot_be_used_for_a_case_launch") && strstr (text, "no_such_host_id") && launch_calls == 0, "a host id the helper does not know is an ERROR with its reason (the case never launches)");
+
+	reset_world ();
+	launcher_with (0);
+	add (2, ENTITY_TYPE_ROUTED_VEHICLE, 10, 10, 0);
+	launch_creates = 1;
+	alive_[1] = 0;
+	rc = eech_cmb_case_collide_run ("ROUTED_VEHICLE", 0, "L1", 5, 0.0, 0, text, sizeof (text));
+	check(rc == 0 && strstr (text, "launched=0") && strstr (text, "refused=1") && strstr (text, "launcher_not_alive") && launch_calls == 0 && notifies == 0 && destroys == 0, "a launcher that is not alive is a valid campaign refusal: DATA (refused=1, launcher_not_alive), and the launch helper is not called");
+	rc = eech_cmb_case_blast_run ("ROUTED_VEHICLE", 0, 5.0, WEAPON_KILL_CODE_HIT_LAND, "L1", 5, text, sizeof (text));
+	check(rc == 0 && strstr (text, "placed=1") && strstr (text, "refused=1") && strstr (text, "launcher_not_alive") && launch_calls == 0 && effects == 0 && destroys == 0, "and for a blast: data, placed, nothing exploded or retired");
 
 	/* a launch that works says so, with the launch text */
 	reset_world ();

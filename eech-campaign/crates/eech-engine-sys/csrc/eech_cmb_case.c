@@ -28,6 +28,7 @@
 #include <math.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -37,6 +38,7 @@
 #include "eech_headless.h"
 
 extern int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, int weapon, int salvo_count, char *text, int capacity);
+extern int eech_wpn_case_query_run (const char *host_id, int weapon, char *text, int capacity);
 
 /* the most launched-weapon children a launcher may already have, and the most weapons one launch may create, that this driver will account for exactly: beyond either the case
    is refused (before the launch for the first; after it, with every provably new weapon retired and the counts reported, for the second), never truncated */
@@ -226,13 +228,25 @@ static void one_word (const char *from, char *to, int capacity)
 	to[i] = 0;
 }
 
+/* the integer after `key` in a Task45 state report, or `fallback` when the key is not there */
+static int report_int (const char *report, const char *key, int fallback)
+{
+	const char *at = strstr (report, key);
+
+	return at ? atoi (at + strlen (key)) : fallback;
+}
+
 /* launches one weapon from the host-identified launcher through the Task45 case launch (the campaign's own launch call, which asks the host for the birth) and returns the
    weapons it created, found as the launcher's launched-weapon children that were not there before.  FAIL CLOSED: a launcher that already has more children than the snapshot
    holds is refused BEFORE the launch (the new weapons could not be told from the old); a launch that creates more weapons than the table holds retires every one of them (all
    provably new) and is reported as an error with the counts.
-   RETURNS: n > 0 the weapons created; 0 when the campaign REFUSED the launch or created nothing (no ammunition, the release gate's rate of fire, a launcher that is no longer
-   alive): that is a result of the campaign, not an argument error, so it is DATA, and `detail` holds the launch result (the Task45 text with the counts before and after, or the
-   reason it gave) as one word; -1 for an error of the case itself (`text` holds it).  `detail` is also filled when weapons were created. */
+   The launcher and the weapon are validated BEFORE the launch, by the Task45 read-only query (the helper's own checks of the host id, the launcher kind and the weapon sub type),
+   because the launch helper answers an unsupported launcher kind, an invalid weapon sub type and a dead launcher with the SAME nonzero status: an invalid argument is an error and
+   a dead launcher is a valid campaign outcome (the campaign does not launch from a dead launcher), and only the validation can tell them apart.  Nothing is changed by it.
+   RETURNS: n > 0 the weapons created; 0 when the campaign REFUSED the launch or created nothing (a launcher that is not alive, no ammunition, the release gate's rate of fire):
+   that is a result of the campaign, not an argument error, so it is DATA, and `detail` holds the launch result (the Task45 text with the counts before and after, or the reason)
+   as one word; -1 for an error (an unusable launcher, an invalid weapon sub type, a launch the helper rejects after both were validated, or the case's own limits; `text` holds
+   it).  `detail` is also filled when weapons were created. */
 static int launch_new (const char *launcher_id, int weapon, entity **created, char *detail, int detail_capacity, char *text, int capacity)
 {
 	entity *launcher = find_by_host_id (launcher_id);
@@ -246,6 +260,28 @@ static int launch_new (const char *launcher_id, int weapon, entity **created, ch
 	if (!launcher)
 	{
 		return case_error (text, capacity, "no_such_launcher_host_id", launcher_id);
+	}
+
+	if (eech_wpn_case_query_run (launcher_id, weapon, launch_text, (int) sizeof (launch_text)) != 0)
+	{
+		one_word (launch_text, detail, detail_capacity);
+
+		return case_error (text, capacity, "launcher_cannot_be_used_for_a_case_launch", detail);
+	}
+
+	if (report_int (launch_text, " warhead=", -1) < 0)
+	{
+		snprintf (detail, (size_t) detail_capacity, "weapon=%d", weapon);
+
+		return case_error (text, capacity, "weapon_sub_type_not_valid", detail);
+	}
+
+	if (report_int (launch_text, " alive=", 0) == 0)
+	{
+		/* a valid campaign outcome: the campaign does not launch from a dead launcher, and nothing was launched or changed */
+		snprintf (detail, (size_t) detail_capacity, "case-refused|reason=launcher_not_alive");
+
+		return 0;
 	}
 
 	existing = count_children (launcher);
@@ -264,9 +300,10 @@ static int launch_new (const char *launcher_id, int weapon, entity **created, ch
 
 	if (eech_wpn_case_launch_run (launcher_id, "", weapon, 1, launch_text, (int) sizeof (launch_text)) != 0)
 	{
+		/* the launcher and the weapon were validated above, so this is not a refusal of the campaign: it is an error, with the helper's own reason */
 		one_word (launch_text, detail, detail_capacity);
 
-		return 0;
+		return case_error (text, capacity, "launch_rejected_after_validation", detail);
 	}
 
 	one_word (launch_text, detail, detail_capacity);

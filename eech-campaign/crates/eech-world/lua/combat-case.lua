@@ -110,6 +110,7 @@ local function ammunition (w)
 end
 -- `w` (optional) is the carrier the case launches from.  A launch the campaign REFUSED (`refused=1`: no ammunition, the release gate, a launcher no longer alive) is data, and the
 -- case is NOT done: the engine's text keeps the reason.
+local last_before, last_after = -1, -1
 local function run_case (name, call, after_steps, precondition_ok, w)
 	case_count = case_count + 1
 	drain ("pre:" .. name, clock.elapsed_seconds)
@@ -118,11 +119,12 @@ local function run_case (name, call, after_steps, precondition_ok, w)
 	emit_report ("case:" .. name .. ":before", at, before_text)
 	local ammo_before = ammunition (w)
 	local ok, text = pcall (call)
+	last_before, last_after = ammo_before, ammunition (w)
 	local f = ok and fields (tostring (text)) or {}
 	local done = ok and ((precondition_ok and precondition_ok (f)) or (not precondition_ok and f.found == "1" and f.placed ~= "0" and f.refused ~= "1")) or false
 	if done then case_done = case_done + 1 end
 	if after_steps and done then step (after_steps) end
-	emit { event = "case", name = name, ok = ok and true or false, done = done and true or false, refused = f.refused == "1", ammo_before = ammo_before, ammo_after = ammunition (w),
+	emit { event = "case", name = name, ok = ok and true or false, done = done and true or false, refused = f.refused == "1", ammo_before = ammo_before, ammo_after = last_after,
 		text = (tostring (text):gsub ("\n", " ")) }
 	local after_text = engine:cmb_trace ()
 	emit_report ("case:" .. name .. ":after", clock.elapsed_seconds, after_text)
@@ -174,8 +176,10 @@ for _, k in ipairs (kinds) do selected [#selected + 1] = k end
 for _, k in ipairs (control) do selected [#selected + 1] = k end
 
 -- the weapon classes the damage arithmetic distinguishes by warhead: 1 solid shot, 3..6 high explosive (anti tank, dual purpose, plain, anti aircraft), 7 conventional munitions.
--- A case run spends its carrier's ammunition, so the carrier is the first one that can AFFORD the plan (lua/combat-plan.lua), or else the one with the most, with the shortfall
--- reported.  The first controlled run took the first carrier whatever its count and was refused after six launches.
+-- A case run spends its carrier's ammunition, and one launch call fires a salvo of weapons that each spend their burst size of rounds, so the plan's `planned` figure is an ESTIMATE of
+-- launch calls and a carrier's round count below it can not cover the plan (it never promises that a count above it does).  The carrier of a class is the first one that is not
+-- estimated short (lua/combat-plan.lua), else the one with the most, with the estimated shortfall reported; the class of a ROLE is chosen the same way below; and every case picks
+-- its carrier from the LIVE ammunition.  The first controlled run took the first carrier whatever its count and was refused after six launches.
 local planned_launches = planning.need ((function ()
 	local n = 0
 	for _, k in ipairs (selected) do if (census [k] or 0) > 0 then n = n + 1 end end
@@ -195,8 +199,8 @@ local classes = {
 local usable = {}
 for _, c in ipairs (classes) do
 	local launcher, weapon, warhead, count, shortfall = carrier (c.wanted)
-	emit { event = "weapon_class", class = c.name, launcher = launcher or "none", weapon = weapon or -1, warhead = warhead or -1, count = count or 0, planned = planned_launches, shortfall = shortfall or 0 }
-	if launcher then usable [#usable + 1] = { class = c.name, launcher = launcher, weapon = weapon } end
+	emit { event = "weapon_class", class = c.name, launcher = launcher or "none", weapon = weapon or -1, warhead = warhead or -1, count = count or 0, planned = planned_launches, estimated_shortfall = shortfall or 0 }
+	if launcher then usable [#usable + 1] = { class = c.name, launcher = launcher, weapon = weapon, key = launcher .. ":" .. weapon, count = count, shortfall = shortfall or 0 } end
 end
 emit { event = "inventory", launchers = #launchers, usable_classes = #usable }
 
@@ -208,23 +212,59 @@ local function blast (kind, offset, kill_code, w)
 end
 
 -- ---------------------------------------------------------------------------------------------------------------- cases
--- two weapon classes are enough to take both arithmetic branches (armour penetration, high-explosive splash): a high-explosive class and a solid-shot or conventional one
+-- two weapon ROLES are enough to take both arithmetic branches (armour penetration, high-explosive splash): a high-explosive role and a solid-shot or conventional one.  The class of
+-- a role is the first in the order below that is not estimated short of the plan, so a dual-purpose carrier of six rounds does not displace an affordable plain high-explosive one; when
+-- none is affordable, the one with the most ammunition.  The role (its class names) is the script's own and is never widened: the warhead is never changed outside it, and a case never
+-- fires from an entity that does not carry a class of the role.  The carriers of a role, the chosen one first, are what every case picks from by live ammunition.
+local roles = {
+	{ name = "high_explosive", classes = { "he_dual_purpose", "he_plain", "he_anti_aircraft", "he_anti_tank" } },
+	{ name = "solid_or_conventional", classes = { "solid_shot", "conventional" } },
+}
 local chosen = {}
-for _, wanted in ipairs { { "he_dual_purpose", "he_plain", "he_anti_aircraft", "he_anti_tank" }, { "solid_shot", "conventional" } } do
-	for _, name in ipairs (wanted) do
-		for _, w in ipairs (usable) do if w.class == name then chosen [#chosen + 1] = w break end end
-		if #chosen > 0 and chosen [#chosen].class == name then break end
+for _, role in ipairs (roles) do
+	local candidates = {}
+	for _, name in ipairs (role.classes) do
+		for _, w in ipairs (usable) do if w.class == name then candidates [#candidates + 1] = w break end end
+	end
+	local w, reason = planning.choose_class (candidates)
+	if w then
+		w.role_name, w.role = role.name, { w }
+		for _, c in ipairs (candidates) do if c ~= w then w.role [#w.role + 1] = c end end
+		chosen [#chosen + 1] = w
+		emit { event = "chosen_weapon_class", class = w.class, launcher = w.launcher, weapon = w.weapon, role = role.name, count = w.count, planned = planned_launches, estimated_shortfall = w.shortfall,
+			reason = reason, preferred = candidates [1].class, alternates = #candidates - 1 }
 	end
 end
-for _, w in ipairs (chosen) do emit { event = "chosen_weapon_class", class = w.class, launcher = w.launcher, weapon = w.weapon } end
+
+-- a case launches from the carrier of the role that has ammunition NOW (a read-only query for this case); what the last launch cost is kept, so that a carrier whose launches spend
+-- several rounds is not picked with fewer.  A role with no carrier left is a case NOT attempted and said so, never a launch from something else.
+local debit, last_pick = {}, {}
+local function launch_case (name_for, call_for, base, kind)
+	local w, live = planning.pick (base.role, ammunition, debit)
+
+	if not w then
+		emit { event = "case_skipped", name = name_for (base), kind = kind, role = base.role_name, reason = "no carrier of the role had ammunition for another launch" }
+		return
+	end
+
+	if w ~= (last_pick [base] or base) then
+		emit { event = "carrier_changed", role = base.role_name, from = (last_pick [base] or base).class, to = w.class, ammo = live, reason = "the earlier carrier had no ammunition for another launch" }
+	end
+	last_pick [base] = w
+
+	local done, f, d = run_case (name_for (w), function () return call_for (w) end, nil, nil, w)
+	planning.note_debit (debit, w, last_before, last_after)
+
+	return done, f, d
+end
 
 -- direct hit (modifier 0.0) and blast-range collision (0.5) by each chosen class on the first living entity of each selected kind: the arithmetic branch, the draw, the health
 -- write and the fatal decision of that kind's handler
 for _, kind in ipairs (selected) do
 	if (census [kind] or 0) > 0 then
-		for _, w in ipairs (chosen) do
-			run_case ("direct_" .. kind .. "_" .. w.class, function () return collide (kind, 0.0, w, false) end, nil, nil, w)
-			run_case ("blast_modifier_" .. kind .. "_" .. w.class, function () return collide (kind, 0.5, w, false) end, nil, nil, w)
+		for _, base in ipairs (chosen) do
+			launch_case (function (c) return "direct_" .. kind .. "_" .. c.class end, function (c) return collide (kind, 0.0, c, false) end, base, kind)
+			launch_case (function (c) return "blast_modifier_" .. kind .. "_" .. c.class end, function (c) return collide (kind, 0.5, c, false) end, base, kind)
 		end
 	else
 		emit { event = "case_skipped", kind = kind, reason = "no living entity of the kind in the world" }
@@ -243,13 +283,13 @@ local exploder = chosen [1]
 if exploder then
 	for _, kind in ipairs (selected) do
 		if (census [kind] or 0) > 0 then
-			run_case ("explosion_HIT_LAND_" .. kind, function () return blast (kind, 5.0, KILL.HIT_LAND, exploder) end, nil, nil, exploder)
+			launch_case (function () return "explosion_HIT_LAND_" .. kind end, function (c) return blast (kind, 5.0, KILL.HIT_LAND, c) end, exploder, kind)
 		end
 	end
 	-- and one hit on target, which blasts everything but the target
 	for _, kind in ipairs (selected) do
 		if (census [kind] or 0) > 0 then
-			run_case ("explosion_HIT_TARGET_" .. kind, function () return blast (kind, 5.0, KILL.HIT_TARGET, exploder) end, nil, nil, exploder)
+			launch_case (function () return "explosion_HIT_TARGET_" .. kind end, function (c) return blast (kind, 5.0, KILL.HIT_TARGET, c) end, exploder, kind)
 			break
 		end
 	end

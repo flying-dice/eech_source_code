@@ -807,6 +807,38 @@ assert(planning.choose(launchers, function(w) return w == 7 end, 4) == nil, 'no 
 -- the solid class is chosen by its own warhead, and a carrier that holds both is read per weapon
 id, weapon, warhead, count, shortfall = planning.choose(launchers, function(w) return w == 1 end, 12)
 assert(id == 'eech-world:2784' and weapon == 76 and count == 12 and shortfall == 0)
+-- the class of a role: the first class that is not estimated short, else the one with the most ammunition
+local dual = { class = 'he_dual_purpose', count = 6, shortfall = 4 }
+local plain = { class = 'he_plain', count = 100, shortfall = 0 }
+local aa = { class = 'he_anti_aircraft', count = 30, shortfall = 0 }
+local c, why = planning.choose_class({ dual, plain, aa })
+assert(c == plain and why == 'first_affordable_alternate', 'the affordable alternate, not the preferred class that is short')
+c, why = planning.choose_class({ plain, dual })
+assert(c == plain and why == 'preferred', 'the preferred class when it is affordable')
+c, why = planning.choose_class({ { class = 'a', count = 3, shortfall = 7 }, { class = 'b', count = 5, shortfall = 5 }, { class = 'c', count = 5, shortfall = 5 } })
+assert(c.class == 'b' and why == 'none_affordable_most_ammunition', 'none affordable: the most ammunition, the first on a tie')
+assert(planning.choose_class({}) == nil, 'no class, no choice')
+-- the carrier a case launches from NOW is read from the live count and the rounds one launch cost
+local role = { { key = 'A', class = 'he_dual_purpose' }, { key = 'B', class = 'he_plain' } }
+local live = { A = 10, B = 100 }
+local debit = {}
+local function count(carrier) return live[carrier.key] end
+local p = planning.pick(role, count, debit)
+assert(p.key == 'A', 'the chosen carrier while it has ammunition')
+planning.note_debit(debit, p, 10, 6)
+assert(debit.A == 4, 'a salvo that spent four rounds is remembered: ' .. tostring(debit.A))
+planning.note_debit(debit, p, 6, 5)
+assert(debit.A == 4, 'a cheaper launch does not lower the learned cost')
+planning.note_debit(debit, p, 5, 5)
+planning.note_debit(debit, p, -1, 3)
+assert(debit.A == 4, 'a launch that spent nothing, or an unreadable count, changes nothing')
+live.A = 2
+p = planning.pick(role, count, debit)
+assert(p.key == 'B', 'two rounds left cannot pay four: the next carrier of the role')
+live.A, live.B = 0, 0
+assert(planning.pick(role, count, debit) == nil, 'no carrier with ammunition: nothing is picked (the case is not attempted)')
+live.A, live.B = -1, 3
+assert(planning.pick(role, count, debit).key == 'B', 'an unreadable count is not ammunition')
 print('COMBAT_PLAN=ok')
 "#;
 
@@ -826,4 +858,181 @@ fn the_case_carrier_is_one_that_can_afford_the_plan() {
     let stderr = String::from_utf8_lossy(&run.stderr);
     assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
     assert!(stdout.contains("COMBAT_PLAN=ok"), "{stdout}\n{stderr}");
+}
+
+// CALLER-LEVEL test of the controlled witness's carrier choice (EEDCS-46, the 871 review): the REAL lua/combat-case.lua and its shared modules run against a small stand-in for the
+// engine (inventory, launch cost, refusal and the report texts only; the C driver and its guards are checked elsewhere). A launch spends `@DEBIT@` rounds (a salvo of weapons, each
+// spending its burst size), and one that cannot be afforded is refused (`refused=1`, ammunition unchanged), as the C driver reports it. Nothing here is the campaign's physics.
+const COMBAT_CASE_CALLER_SCRIPT: &str = r#"
+local LAUNCHERS = @LAUNCHERS@
+local DEBIT = @DEBIT@
+local ammo, launches, refused = {}, {}, {}
+for _, l in ipairs(LAUNCHERS) do for _, i in ipairs(l.items) do ammo[l.id .. ':' .. i.weapon] = i.count end end
+local time = 0
+local engine = {}
+function engine:clock() return { elapsed_seconds = time } end
+function engine:frame(ms) time = time + ms / 1000 end
+function engine:cmb_events() return '' end
+function engine:cmb_trace() return 'cmb-blast calls=0\n' end
+local LIVE = { ENTITY_TYPE_PERSON = 1, ENTITY_TYPE_PYLON = 1, ENTITY_TYPE_ROUTED_VEHICLE = 1 }
+function engine:cmb_case_state(op, kind, ordinal, percent)
+  if op == 0 then
+    local lines = {}
+    for _, k in ipairs({ 'ANTI_AIRCRAFT', 'OBJECT', 'PERSON', 'PYLON', 'ROUTED_VEHICLE', 'SCENIC', 'SITE', 'SITE_UPDATABLE' }) do
+      lines[#lines + 1] = 'cmb-case-census kind=ENTITY_TYPE_' .. k .. ' live=' .. (LIVE['ENTITY_TYPE_' .. k] or 0)
+    end
+    return table.concat(lines, '\n') .. '\n'
+  end
+  return 'cmb-case-health kind=' .. kind .. ' found=1 eligible=0\n'
+end
+function engine:wpn_case_query(id, w)
+  for _, l in ipairs(LAUNCHERS) do
+    if l.id == id then
+      for _, i in ipairs(l.items) do
+        if i.weapon == w then return 'wpn-case-state host_id=' .. id .. ' alive=1 weapon=' .. w .. ' weapon_count=' .. ammo[id .. ':' .. w] .. ' warhead=' .. i.warhead .. '\n' end
+      end
+      return 'wpn-case-state host_id=' .. id .. ' alive=1 weapon=' .. w .. ' weapon_count=0 warhead=-1\n'
+    end
+  end
+  error('no such launcher ' .. id)
+end
+function engine:cmb_case_act(op, kind, ordinal, launcher, weapon, amount, kill_code, weaponless)
+  if op == 1 and weaponless then
+    return 'cmb-case-collide kind=' .. kind .. ' ordinal=0 live=1 found=1 weapon=0 weaponless=1 launched=0 refused=0 modifier=0 level_before=1 alive_before=1 launch=none\n'
+  end
+  local key = launcher .. ':' .. weapon
+  launches[key] = (launches[key] or 0) + 1
+  local head = op == 1 and ('cmb-case-collide kind=' .. kind .. ' ordinal=0 live=1 found=1 weapon=' .. weapon .. ' weaponless=0') or ('cmb-case-blast kind=' .. kind .. ' ordinal=0 live=1 found=1 placed=1 weapon=' .. weapon .. ' kill_code=' .. kill_code .. ' offset=5')
+  if (ammo[key] or 0) < DEBIT then
+    refused[key] = (refused[key] or 0) + 1
+    return head .. ' launched=0 refused=1 launch=wpn-case-launch|ok\n'
+  end
+  ammo[key] = ammo[key] - DEBIT
+  return head .. ' launched=1 refused=0 launch=wpn-case-launch|ok\n'
+end
+local bound = 0
+host.bind_mobile = function() bound = bound + 1; return LAUNCHERS[bound].id end
+package.loaded['eech_dc'] = {
+  prepare_installation = function() end,
+  boot = function(cfg) for _ = 1, #LAUNCHERS do cfg.bind_mobile({}) end return engine end,
+}
+dofile('@LUA_DIR@/combat-case.lua')
+local keys = {}
+for k in pairs(launches) do keys[#keys + 1] = k end
+table.sort(keys)
+for _, k in ipairs(keys) do print('LAUNCHES ' .. k .. ' calls=' .. launches[k] .. ' refused=' .. (refused[k] or 0) .. ' left=' .. ammo[k]) end
+print('CALLER_DONE')
+"#;
+
+fn run_combat_case_caller(launchers: &str, debit: u32) -> (Vec<serde_json::Value>, String) {
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\u{5c}', "/");
+    let tag = format!("{}-{}", std::process::id(), debit);
+    let script = std::env::temp_dir().join(format!("eech-world-combat-caller-{tag}.lua"));
+    let out = std::env::temp_dir().join(format!("eech-world-combat-caller-{tag}.jsonl"));
+    let text = COMBAT_CASE_CALLER_SCRIPT
+        .replace("@LAUNCHERS@", launchers)
+        .replace("@DEBIT@", &debit.to_string())
+        .replace("@LUA_DIR@", &lua_dir);
+    std::fs::write(&script, text).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world"))
+        .arg(&script)
+        .arg("root=none")
+        .arg(format!("out={}", out.display().to_string().replace('\u{5c}', "/")))
+        .arg("warmup=1")
+        .output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout).to_string();
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("CALLER_DONE"), "{stdout}\n{stderr}");
+    let rows: Vec<serde_json::Value> = std::fs::read_to_string(&out)
+        .unwrap()
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap())
+        .collect();
+    std::fs::remove_file(&out).unwrap();
+    (rows, stdout)
+}
+
+fn rows_of<'a>(rows: &'a [serde_json::Value], event: &str) -> Vec<&'a serde_json::Value> {
+    rows.iter().filter(|r| r["event"] == event).collect()
+}
+
+// the preferred high-explosive class (dual purpose) is held by a carrier of six rounds while a plain high-explosive carrier holds a hundred: the caller must keep the estimate through
+// the class choice and take the affordable alternate of the SAME role, instead of the first class and then thirteen refusals
+#[test]
+fn the_case_caller_takes_the_affordable_alternate_class_of_its_role() {
+    let launchers = "{ { id = 'eech-world:2690', items = { { weapon = 54, count = 6, warhead = 4 } } },\
+ { id = 'eech-world:2700', items = { { weapon = 55, count = 100, warhead = 5 } } },\
+ { id = 'eech-world:2784', items = { { weapon = 76, count = 40, warhead = 1 } } } }";
+    let (rows, stdout) = run_combat_case_caller(launchers, 1);
+    // BEHAVIOUR first: no launch the campaign refused for want of ammunition
+    assert!(
+        stdout.lines().filter(|l| l.starts_with("LAUNCHES")).all(|l| l.contains("refused=0")),
+        "a launch was refused for want of ammunition: {stdout}"
+    );
+    let chosen = rows_of(&rows, "chosen_weapon_class");
+    let he = chosen.iter().find(|r| r["role"] == "high_explosive").expect("a high explosive class is chosen");
+    assert_eq!(he["class"], "he_plain", "the affordable alternate, not the preferred class of six rounds: {he}");
+    assert_eq!(he["reason"], "first_affordable_alternate");
+    assert_eq!(he["preferred"], "he_dual_purpose");
+    assert_eq!(he["estimated_shortfall"], 0);
+    // the per-class rows keep the count and the estimated shortfall of the unaffordable class
+    let classes = rows_of(&rows, "weapon_class");
+    let dual = classes.iter().find(|r| r["class"] == "he_dual_purpose").unwrap();
+    assert_eq!(
+        (dual["count"].as_i64(), dual["planned"].as_i64(), dual["estimated_shortfall"].as_i64()),
+        (Some(6), Some(10), Some(4)),
+        "{dual}"
+    );
+    // no launch from the six-round carrier, no refusal, every launching case done
+    assert!(!stdout.contains("LAUNCHES eech-world:2690:54"), "{stdout}");
+    let cases = rows_of(&rows, "case");
+    assert!(cases.iter().all(|r| r["refused"] == false), "no refusal: {stdout}");
+    assert_eq!(cases.iter().filter(|r| r["done"] == true).count(), cases.len(), "every case done");
+    assert!(stdout.contains("LAUNCHES eech-world:2700:55 calls=10 refused=0 left=90"), "{stdout}");
+}
+
+// a launch spends a SALVO: here four rounds. A carrier of ten rounds is not estimated short of the ten launch calls of the plan, so it is chosen, but only two launches fit; the cases
+// must then pick the other carrier of the role from the LIVE count (and not be refused), and never launch from anything outside the role
+#[test]
+fn the_case_caller_follows_the_live_ammunition_when_a_launch_spends_several_rounds() {
+    let launchers = "{ { id = 'eech-world:2690', items = { { weapon = 54, count = 10, warhead = 4 } } },\
+ { id = 'eech-world:2700', items = { { weapon = 55, count = 100, warhead = 5 } } },\
+ { id = 'eech-world:2784', items = { { weapon = 76, count = 40, warhead = 1 } } },\
+ { id = 'eech-world:2800', items = { { weapon = 77, count = 500, warhead = 2 } } } }";
+    let (rows, stdout) = run_combat_case_caller(launchers, 4);
+    // BEHAVIOUR first: no launch the campaign refused for want of ammunition
+    assert!(
+        stdout.lines().filter(|l| l.starts_with("LAUNCHES")).all(|l| l.contains("refused=0")),
+        "a launch was refused for want of ammunition: {stdout}"
+    );
+    let chosen = rows_of(&rows, "chosen_weapon_class");
+    let he = chosen.iter().find(|r| r["role"] == "high_explosive").unwrap();
+    assert_eq!(he["class"], "he_dual_purpose", "ten rounds are not estimated short of ten launch calls: {he}");
+    assert_eq!(he["reason"], "preferred");
+    let changed = rows_of(&rows, "carrier_changed");
+    assert_eq!(
+        changed.len(),
+        1,
+        "exactly one change, once the live count (2) cannot pay the learned cost (4): {stdout}"
+    );
+    assert_eq!(
+        (changed[0]["from"].as_str(), changed[0]["to"].as_str()),
+        (Some("he_dual_purpose"), Some("he_plain"))
+    );
+    let cases = rows_of(&rows, "case");
+    assert!(cases.iter().all(|r| r["refused"] == false), "no case was refused: {stdout}");
+    // the cases record the ammunition they spent
+    let first = cases.iter().find(|r| r["name"].as_str().unwrap().ends_with("he_dual_purpose")).unwrap();
+    assert_eq!((first["ammo_before"].as_i64(), first["ammo_after"].as_i64()), (Some(10), Some(6)), "{first}");
+    assert!(stdout.contains("LAUNCHES eech-world:2690:54 calls=2 refused=0 left=2"), "{stdout}");
+    assert!(stdout.contains("LAUNCHES eech-world:2700:55 calls=8 refused=0 left=68"), "{stdout}");
+    // the carrier of an unrelated class (warhead 2, not part of any role) was never fired
+    assert!(!stdout.contains("eech-world:2800"), "{stdout}");
 }
