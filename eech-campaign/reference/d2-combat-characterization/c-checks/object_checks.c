@@ -45,6 +45,12 @@ unsigned int get_system_time (void) { return 0; }
 
 int get_local_entity_index (entity *en)
 {
+	/* the harmless slot handed back for a forbidden index is not an element of the heap: its index is the invalid one, and it is recognised BEFORE any pointer subtraction (which is only defined within one array) */
+	if (en == &fake_dummy)
+	{
+		return -1;
+	}
+
 	return (int) (en - fake_entities);
 }
 
@@ -53,7 +59,15 @@ int type_reads_outside = 0, entity_touches_outside = 0;
 
 static int entity_outside (entity *en)
 {
-	long slot = (long) (en - fake_entities);
+	long slot;
+
+	/* the dummy of a forbidden index is outside by definition, decided before any pointer subtraction */
+	if (en == &fake_dummy)
+	{
+		return TRUE;
+	}
+
+	slot = (long) (en - fake_entities);
 
 	return (slot < 0) || (slot >= number_of_entities);
 }
