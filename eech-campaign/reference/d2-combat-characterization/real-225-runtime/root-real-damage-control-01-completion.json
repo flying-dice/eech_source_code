@@ -1,0 +1,52 @@
+{
+  "when_utc": "2026-10-28T07:47:15.351264+00:00",
+  "source": "225ff4abd886f188e63e83d5d3c3b688f26d1a86",
+  "actual_original_controller50679_exit": 0,
+  "actual_native_exit": 0,
+  "run_record": {
+    "status": "completed",
+    "when_utc": "2026-10-28T07:09:31.2320660Z",
+    "binary": "R:\\d2-evidence\\combat-real-source-225ff4abd\\eech-campaign\\target\\weapon-fixture\\combat-real-225ff4abd\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-real-source-225ff4abd/eech-campaign/target/weapon-fixture/combat-real-225ff4abd/lua/campaign.lua root=R:/d2-evidence/combat-characterization-20261028/roots/real-damage-control-01 scenario=lebanon_retail hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/combat-characterization-20261028/out/real-damage-control-01/recording.acmi observe=R:/d2-evidence/combat-characterization-20261028/out/real-damage-control-01/observations.jsonl metrics=R:/d2-evidence/combat-characterization-20261028/out/real-damage-control-01/metrics.json observe_supply=0",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/real-damage-control-01",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/real-damage-control-01",
+    "kind": "Real-damage candidate physical-output control; comparison with retained original required, not combat census or fullpack acceptance",
+    "reference_provenance": "Retained ab-base root provenance inferred; no independent original input verification invented",
+    "capacity": "Lead permits seven native processes on eight physical cores, separated roots; one implementation lane",
+    "actual_native_exit": 0,
+    "native_pid": 22704,
+    "created_utc": "2026-10-28T07:09:31.2464526Z",
+    "completed_utc": "2026-10-28T07:45:56.5360832Z"
+  },
+  "complete_comparator_actual_exit": 0,
+  "files": [
+    {
+      "file": "recording.acmi",
+      "bytes": 11363845,
+      "sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+      "complete_bytes_equal_to_retained_ab_base": true
+    },
+    {
+      "file": "observations.jsonl",
+      "bytes": 6629273,
+      "sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+      "complete_bytes_equal_to_retained_ab_base": true
+    },
+    {
+      "file": "metrics.json",
+      "bytes": 11777,
+      "sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+      "complete_bytes_equal_to_retained_ab_base": true
+    }
+  ],
+  "post1179_input_actual_exit": 0,
+  "post40_export_verifier_actual_exit": 0,
+  "all40_exports_and_BUILD_INFO_unchanged": true,
+  "source_clean": true,
+  "limits": [
+    "Focused900 physical-output control, not ordinary fullpack or combat census",
+    "Retained ab-base input-root provenance inferred, not independently verified here",
+    "Complete byte comparison is not visual Tacview inspection",
+    "Task45 delivers before46; remainingtimed/impactblast/bridge/factualreport/wholeD2 scope not closed"
+  ]
+}

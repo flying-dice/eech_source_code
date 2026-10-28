@@ -1,8 +1,8 @@
 /* A focused C-level check of the campaign's half of the HEALTH questions (EEDCS-46: the critical class, what a change of health crosses, the six timed health rolls and the helicopter's
    own-hit eligibility): it compiles the real aphavoc/source/entity/mobile/mb_hostaim.c against a stand-in for the engine's project.h and drives campaign_aim_health with a scripted host.
    It asserts what the campaign SENDS (by value), that the host's answer is returned whole (a changed host changes the outcome), that the campaign takes the ONE sample of its random
-   stream a timed roll asks for only when the host asks for it, once, and for no target the original did not draw for (a person, an aircraft in no class, a vehicle with no health or
-   that cannot burn), and what the campaign REFUSES before it applies anything: an answer that contradicts the request (an ineligible target rolled or changed, a hit without
+   stream once for a timed roll when the host asks, including a generic model's person, class-zero aircraft, non-burning vehicle or empty-health vehicle;
+   and what the campaign REFUSES before it applies anything: an answer that contradicts the request (an ineligible target rolled or changed, a hit without
    eligibility, a roll without the sample, a hit that leaves the wrong health, a fatal that does not match, a class the model cannot have, a pure question answered with more) and a
    missing, failing or malformed host.  It checks the campaign's bridge; it is NOT a native run and says nothing about the arithmetic (the host's: eech-world src/cmb.rs).  Run by
    run-health-checks.sh. */

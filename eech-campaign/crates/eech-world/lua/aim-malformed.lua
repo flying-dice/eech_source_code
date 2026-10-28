@@ -14,8 +14,8 @@ return function (mode, reference, counted)
 	local kind = assert (kinds [mode], "unknown bad mode " .. mode)
 	local armed = true
 	return function (step)
-		-- the health providers corrupt the first answer of their kind (the person provider asks for a sample for a person, whom the original never rolls for) and let the reference
-		-- host answer the rest
+		-- the health providers corrupt the first answer of their kind: pure-question and repeated draws are invalid; a generic timed draw for a person is valid
+		-- the reference host answers requests that the selected mode does not corrupt
 		if step.mode == "health" and mode:find ("^bad_health_") then
 			if mode == "bad_health_classify_draw" then
 				-- a classification is a pure question: it may not ask for the campaign's sample

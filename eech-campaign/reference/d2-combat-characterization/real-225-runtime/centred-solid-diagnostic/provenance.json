@@ -1,0 +1,46 @@
+{
+  "created_utc": "2026-10-28T06:54:22.066992+00:00",
+  "template_source": "35c3d677758d7c0e7b664267c25508220412e4a5",
+  "template_file": "R:\\d2-evidence\\combat-controlled-source-35c3d6777\\eech-campaign\\target\\weapon-fixture\\combat-controlled-35c3d6777\\lua\\combat-case.lua",
+  "template_sha256": "3de3505a64ed1f994edc21f825d38e9c568acb2310391d9642d2d3ecfeb9e264",
+  "variant_file": "R:\\d2-evidence\\combat-characterization-20261028\\centred-solid-diagnostic\\centred-solid-case.lua",
+  "variant_sha256": "f4a086759f6a5427df3e7b2e5ce52af72d258f591291091c4bb4ab223de91ae2",
+  "literal_replacements": [
+    {
+      "before": "local exploder = chosen [1]",
+      "after": "local exploder = chosen [2]\nassert (exploder and exploder.class == \"solid_shot\", \"centred-solid diagnostic needs the selected solid-shot carrier, never an alternate warhead\")"
+    },
+    {
+      "before": "blast (kind, 5.0, KILL.HIT_LAND, c)",
+      "after": "blast (kind, 0.0, KILL.HIT_LAND, c)"
+    },
+    {
+      "before": "blast (kind, 5.0, KILL.HIT_TARGET, c)",
+      "after": "blast (kind, 0.0, KILL.HIT_TARGET, c)"
+    }
+  ],
+  "dependencies": [
+    {
+      "file": "combat-report.lua",
+      "source": "R:\\d2-evidence\\combat-controlled-source-35c3d6777\\eech-campaign\\target\\weapon-fixture\\combat-controlled-35c3d6777\\lua\\combat-report.lua",
+      "sha256": "5acc3856920a4259208426603dfdba9ab713073b185f1ca119e2b2c82f111a4e",
+      "copied_exact": true
+    },
+    {
+      "file": "combat-counters.lua",
+      "source": "R:\\d2-evidence\\combat-controlled-source-35c3d6777\\eech-campaign\\target\\weapon-fixture\\combat-controlled-35c3d6777\\lua\\combat-counters.lua",
+      "sha256": "cf5a4c270240a06106ba7c2226f26e9857e380278a418f7453f1ae5ca724b900",
+      "copied_exact": true
+    },
+    {
+      "file": "combat-plan.lua",
+      "source": "R:\\d2-evidence\\combat-controlled-source-35c3d6777\\eech-campaign\\target\\weapon-fixture\\combat-controlled-35c3d6777\\lua\\combat-plan.lua",
+      "sha256": "8c08f1f3cd4ec4ffe953edf4b39edae0c8588497d0d179ae8855f4e55b8224bd",
+      "copied_exact": true
+    }
+  ],
+  "Lua51_compile_only_exit": 0,
+  "state": "UNRUN, new original/candidate diagnostic needed for reviewP2 centred-solid echo. No game native launched.",
+  "preconditions": "warmup60/frame100/timed0/kindsROUTED_VEHICLE/controlOBJECT; expected existing actualsolid76, assertsolidclass; bothland/targetexplosions offset0; judge actualdirectcollision/damage/no-write/hashes, notdone; AAsetter/PERSONpredicate remain but no timedframes.",
+  "purpose": "Exercise actual native host->Lua->DLL diagnostic roundtrip at zero-separation solidhit; compare original35 with correctedcandidate using exactly same private script/dependencies."
+}

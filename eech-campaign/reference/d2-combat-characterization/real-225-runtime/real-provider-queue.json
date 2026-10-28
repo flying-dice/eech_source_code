@@ -1,0 +1,48 @@
+{
+  "status": "completed",
+  "updated_utc": "2026-10-28T07:52:36.1530117Z",
+  "completed": [
+    {
+      "name": "real-provider-reference-01",
+      "mode": "reference",
+      "actual_driver_native_exit": 0
+    },
+    {
+      "name": "real-provider-none-01",
+      "mode": "damage_none",
+      "actual_driver_native_exit": 0
+    },
+    {
+      "name": "real-provider-bad-level-01",
+      "mode": "bad_damage_level",
+      "actual_driver_native_exit": 0
+    },
+    {
+      "name": "real-provider-bad-draw-twice-01",
+      "mode": "bad_damage_draw_twice",
+      "actual_driver_native_exit": 0
+    },
+    {
+      "name": "real-provider-bad-exit-01",
+      "mode": "bad_damage_exit",
+      "actual_driver_native_exit": 0
+    },
+    {
+      "name": "real-provider-bad-class-01",
+      "mode": "bad_damage_class",
+      "actual_driver_native_exit": 0
+    },
+    {
+      "name": "real-provider-bad-unwritten-01",
+      "mode": "bad_damage_unwritten",
+      "actual_driver_native_exit": 0
+    },
+    {
+      "name": "real-provider-bad-missing-01",
+      "mode": "bad_damage_missing",
+      "actual_driver_native_exit": 0
+    }
+  ],
+  "actual_exit": 0,
+  "scope": "All8 driver/native exits0; not evidence of authority/refusal alone"
+}
