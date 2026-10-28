@@ -1,0 +1,92 @@
+{
+  "schema": "independent-bounded-runtime-review/v1",
+  "reviewer": "/root/d2_los_review",
+  "created_utc": "2026-10-28T16:08:15.326994+00:00",
+  "runtime_source": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "test_only_equivalent_source": "a89a668ae2fa5594a93fb6bbccf46e1c9b7bff38",
+  "scope": "Six newly completed shipping64cf structures/report/withhold/refusal cases plus the new one-shot v1 auditor. Earlier source, old failures and component compatibility reviews reused, not repeated.",
+  "disposition": "ACTUAL_SIX_RUNTIME_FACTS_ACCEPTED_WITH_BOUNDED_LIMITS; V1_AUDITOR_P2_OPEN_PENDING_NEW_HELPER_CORRECTION",
+  "runtime_findings": [],
+  "helper_findings": [
+    {
+      "priority": "P2",
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\audit-r3-64cf-six.py",
+      "line": 26,
+      "related_lines": [
+        15,
+        18,
+        27,
+        30,
+        37,
+        38,
+        46,
+        49,
+        65,
+        66
+      ],
+      "title": "Require exact cases, event order and correlated receipts before issuing six-case PASS",
+      "mechanism": "v1 builds an unordered dictionary of trace events and checks presence/values, never sequence. A control moved before boot or after-state moved before receipt still satisfies its checks. It does not require exactly the six expected driver cases: removing the own-identity case leaves all five hard-coded comparison cases available and can still produce PASS while post-inputs merely has length6. Receipt host_id and before/after health are never matched to the chosen object, and summary alive/health fields are not matched to before/after rows.",
+      "consequence": "This one-shot helper can accept structurally incomplete or incoherent proof; its PASS alone is insufficient for future publication/reuse. Independent strict inspection here found all six actual retained traces correctly ordered and correlated, so no native-run defect or native rerun requirement was found.",
+      "bounded_correction": "Preserve v1 script/proof. Add exact six-case/config-set validation and per-mode exact event sequence, boot/run configuration checks, chosen-object receipt and summary state correlation; require successful original drivers/native exits as before. Include moved-control/after-before-receipt, missing-own, receipt-ID/value and summary mismatch controls on unchanged in-memory data. No physical source, baselines, tolerance or native changes needed.",
+      "control_status": "Concrete acceptance mechanism established from source; reviewer did not execute v1 or modify input traces. Root acknowledged and is preparing v2 separately; that new code is not part of this review."
+    }
+  ],
+  "verified": {
+    "actual_processes": "All6 original-driver exit0 records match completed native0 run records with unique original PIDs/created/completed times. Held-handle launcher uses actual process ExitCode; no report-only exit substitution or recovery. Parent tool completion observations are retained in supplied original-driver records.",
+    "configs": "Exact expected six kind/report/control/identity combinations, Lebanon retail/seed1/warmup5/frame100/window12, actual immutable64cf shipping binary and script hashes.",
+    "raw_order": "Every raw JSON line parsed, duplicate JSON keys and non-finite literals rejected, exact per-mode event sequence checked. Receipt and summary fields correlated to actual before/after states. All raw hashes/rows match the completion proof.",
+    "census": "All6 census63136, duplicate identities0; six kinds:54825city-building,3205pylon,1778scenic,1312segment,1875site,141site-updatable. Actual asked_identify63136 despite both enumerations, supporting cached identity reuse in this witness.",
+    "withhold_damage_destroy": "Matched site before2000/alive. Withhold stays2000/alive; damage report gives receipt1000 and actual after1000/alive. Destroyed site is actually dead with stored health2000 and alive-site1875to1874. Own issued own-world/structure/5951 is accepted and yields the same selected site death; only identify callback differs.",
+    "guards": "Repair, duplicate destruction and unknown ID have refused=true with the specific primary message both in object_control error and native stderr. Guards are terminal script operations; pcall catches refusal and native0 is expected, not a claim of recovery for subsequent engine use.",
+    "segment": "Matched selected segment health500/alive. Withhold retains1312living segments; destroyed report produces selected dead/health500 and1310living, with positive bridge kill/neighbour/shape/vehicles/fall questions absent from withhold. Counts cover complete window; no report-only route/repair-policy counter claim or exact additional-segment identity claim.",
+    "inputs": "All6 post logs actual0/hashes matched. Independently reread and hashed every1179manifest file in each root:7074 files total; all sizes/SHA256 match frozen retail manifest.",
+    "binary_source": "All42 initial/post/current export hashes and BUILD-INFO matched independently. BINF3410ac4174a259e0ee211e4bb05361a819e1c1da54a300abe93968eff08e169d declares actual64cf/dirty0. Frozen Git stayed clean at64cf; all8 pinned runtime/build/scenario frontiers independently equal a89a, without relabelling binary as a89a."
+  },
+  "verification_data": {
+    "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-r3-64cf-six-verification-data-20261028.json",
+    "sha256": "662da64de24403d9281930a424f49811ce6d5e9dfafd43e182cbcbe61846d559",
+    "contains": "All six raw/run/stdout/stderr hashes, actual selected states/counters/configs/process times, all42 export hashes and per-root input-hash count."
+  },
+  "preserved_input_identities": [
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-64cf-six-report-completion.json",
+      "sha256": "3a9140ad1f6925e28b85bfe669550924e5cb501c165f42e378a9a06ce976f4e2"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\audit-r3-64cf-six.py",
+      "sha256": "471204245fa801f86f56fe32bbf6ace8e65f72cbfe3e08dcbf877b2ef2e40ec8"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-64cf-six-original-driver-exits.json",
+      "sha256": "952aa8b3a2233e461c202d9cb617f3d806b5198bcbe20b21a506654fed40e856"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-64cf-shipping-six-prelaunch.json",
+      "sha256": "cdc6447a242a06a5da34b617b2fa052179c38a7adc7a0f52df538f5cd23d749a"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-64cf-six-post-inputs.json",
+      "sha256": "202d57cc4837279719fe68a9cf5f3f05b1aa0bd7045572efe7e563473ebb594b"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-64cf-six-post-build.json",
+      "sha256": "855eea30339c6d16b1bb9afc715d31a4511c20c1265d228ece24f4d9854b11e1"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-clean-r3-64cf-shipping-manifest.json",
+      "sha256": "00580806f4592947032753da3538ef70e8ed6af6bf8fa65c85354fb47371877f"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-a89a-harness-only-source-equivalence.json",
+      "sha256": "e3f3e4b3745a692edc7adcbe92eb6f8deeb56f527c0373a213f43c24e0605a07"
+    }
+  ],
+  "limits": [
+    "Controlled host-reported physical facts and read-only inventory coverage of all6kinds; mutation coverage only site and segment. No weapon-hit reports or all-family mutation claim.",
+    "Own case changes identity issuance only, not an independent whole combat solver. Host subject-context counters are context, not state/consequence proof alone.",
+    "No native malicious cross-registry ID collision, stale-incarnation/slot-reuse injection, arbitrary-delay/save-restore, client/player/MP/Georgia or occupied-vehicle coverage claimed. Closed source contract tests remain separate evidence.",
+    "No Tacview from these focused API cases, no final shipping/full40/full8/post3/finalcost/CI/normalmerge/whole-D2 acceptance. Final pack started separately by Root and is outside this completed-evidence pass.",
+    "Old f470 six01 access violations remain retained failures; no baseline, input, golden, tolerance, native output or exit status was altered.",
+    "No product source review, builds, native campaigns, tests, process changes, agents or remote writes performed by reviewer. Only private independent verification/report JSON files written."
+  ]
+}

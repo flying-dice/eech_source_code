@@ -1,0 +1,123 @@
+{
+  "schema": "independent-focused-review/v1",
+  "reviewer": "/root/d2_los_review",
+  "created_utc": "2026-10-28T16:03:44.972037+00:00",
+  "base_sha": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "reviewed_sha": "a89a668ae2fa5594a93fb6bbccf46e1c9b7bff38",
+  "scope": "Test-only sentinel guard and three newly retained bounded harness logs, plus STATUS provenance. Closed production source review not repeated.",
+  "disposition": "TEST_ONLY_P3_RESOLVED; NO_NEW_CODE_FINDINGS; ONE_NONBLOCKING_STATUS_PROVENANCE_P3",
+  "resolved": [
+    {
+      "id": "HARNESS-DUMMY-POINTER-SUBTRACTION",
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\c-checks\\object_checks.c",
+      "lines": [
+        49,
+        68
+      ],
+      "assessment": "get_local_entity_index returns -1 for &fake_dummy and entity_outside returns TRUE for it before subtracting pointers. Other test pointers are array or one-past pointers. This removes the concrete unrelated-object subtraction on the old-red path without changing production code, assertion count or expected values."
+    }
+  ],
+  "findings": [
+    {
+      "priority": "P3",
+      "id": "STATUS-CLIPPY-RUN-PROVENANCE",
+      "path": "R:\\d2-sensor-detections\\STATUS.md",
+      "line": 6,
+      "title": "Distinguish earlier reused Clippy evidence from actual64cf runs",
+      "mechanism": "The new STATUS phrase says workspace, fixture, fmt, syntax and Clippy runs of64cf are reused. The unchanged64cf extraction documentation explicitly states that Clippy was not repeated because Rust did not change. No new64cf Clippy log exists in this delta.",
+      "bounded_correction": "Say workspace/fixture/fmt/syntax checks from64cf and earlier unchanged-Rust Clippy evidence are reused. Metadata wording only; no workspace, Clippy, build or native rerun required.",
+      "blocks_native_launch": false
+    }
+  ],
+  "bounded_evidence": {
+    "eech-campaign/reference/d2-combat-characterization/checks/object-checks-14-dummy-safe-harness.log": {
+      "markers": [
+        "SANITIZER_PROBE_COMPILE_EXIT=0",
+        "SANITIZER_PROBE_RUN_EXIT=0",
+        "COMPILE_EXIT=0",
+        "94 checks, 0 failures",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ],
+      "asan_or_ubsan_error_marker": false
+    },
+    "eech-campaign/reference/d2-combat-characterization/checks/object-checks-15-red-pre-guard-order-30fbdfcbc-dummy-safe-harness.log": {
+      "markers": [
+        "COMPILE_EXIT=0",
+        "94 checks, 12 failures",
+        "RUN_EXIT=1",
+        "DOCKER_EXIT=1"
+      ],
+      "asan_or_ubsan_error_marker": false
+    },
+    "eech-campaign/reference/d2-combat-characterization/checks/object-mutation-9-dummy-safe-harness.log": {
+      "markers": [
+        "94 checks, 15 failures",
+        "94 checks, 29 failures",
+        "94 checks, 3 failures",
+        "94 checks, 11 failures",
+        "94 checks, 11 failures",
+        "94 checks, 1 failures",
+        "CAUGHT=26 FAILED=0 SETUP_CONTROLS_AS_EXPECTED=2 SETUP_CONTROLS_WRONG=0 CONTROL_OK=1",
+        "DOCKER_EXIT=0"
+      ],
+      "asan_or_ubsan_error_marker": false
+    }
+  },
+  "evidence_assessment": [
+    "New green: sanitizer probe compile/run0, harness compile0,94checks0failures,run0,Docker0.",
+    "Same94 assertions against old30fb: compile0,12assertionfailures,run1,Docker1; no sanitizer-error marker or setup failure. The instrumentation still records forbidden attempts rather than physically reading outside allocation.",
+    "Mutation controller: unmutated94/0 baseline;26runtime assertion catches at compile0/run1; build-failure and timeout controls classified separately, not counted as catches.",
+    "Earlier logs retained; new filenames distinguish the corrected harness. Existing workspace checks were not repeated and no test was launched by this reviewer."
+  ],
+  "integrity": {
+    "head_before_and_after": "a89a668ae2fa5594a93fb6bbccf46e1c9b7bff38",
+    "clean_before_and_after": true,
+    "all_five_changed_worktree_canonical_blobs_match_pinned_git": true,
+    "diff_check_actual_exit": 0,
+    "production_or_build_input_changes_in_delta": false,
+    "source_pins": [
+      {
+        "path": "STATUS.md",
+        "git_blob": "853999fa1b83ded834c5e136d98a4a36f6bb65df",
+        "sha256": "93889e1624966d4e5b9a2beb6a98b33e9731a86a11bab218a752c2f15172b877",
+        "bytes": 69562,
+        "worktree_canonical_match": true
+      },
+      {
+        "path": "eech-campaign/reference/d2-combat-characterization/c-checks/object_checks.c",
+        "git_blob": "d5bd7782d41d034452cccfd4545710776023fdc0",
+        "sha256": "212b574c21906cd6764b3157caa5b3d83588e70503762405d59f8ce5a646eeec",
+        "bytes": 33928,
+        "worktree_canonical_match": true
+      },
+      {
+        "path": "eech-campaign/reference/d2-combat-characterization/checks/object-checks-14-dummy-safe-harness.log",
+        "git_blob": "270568dbcf0e61353f5bbfef0afd32ba4401097d",
+        "sha256": "d4eb1f514119f7d34d09446cabf91581e48a5edeba8e8e09b7adcf891fc4a964",
+        "bytes": 6842,
+        "worktree_canonical_match": true
+      },
+      {
+        "path": "eech-campaign/reference/d2-combat-characterization/checks/object-checks-15-red-pre-guard-order-30fbdfcbc-dummy-safe-harness.log",
+        "git_blob": "2271e444b1593ac7793012c269c73899e5341407",
+        "sha256": "2fe8a27e59668df69775fc8e1167914882ae724f5d15a16a5d216727577007b3",
+        "bytes": 6752,
+        "worktree_canonical_match": true
+      },
+      {
+        "path": "eech-campaign/reference/d2-combat-characterization/checks/object-mutation-9-dummy-safe-harness.log",
+        "git_blob": "494ccc8f5b9a75a68b96225816176c8b909893ba",
+        "sha256": "946d3251804625d8ca1bec6ddf546039b79f5448a44322d61e2bc227c40c7ec1",
+        "bytes": 4153,
+        "worktree_canonical_match": true
+      }
+    ]
+  },
+  "limits": [
+    "Only private independent report written; no implementation edits, builds, tests, native runs, process or remote changes.",
+    "Frozen shipping build is64cf and must retain its exact identity even if source-tree equivalence to this test-only commit is proven separately by Root. No Windows build or native result inferred from these stand-in controls.",
+    "Production guard-order source closure from review SHA5b1f02166eeff003eed6337846e9c8a7f31d2db7361e2d62a9063fc81385147a remains unchanged.",
+    "Six02 report runs, corrected full40/full8/post3/final frame-cost/current CI/normal merge/whole-D2 audit remain pending at this review. Earlier f470 failed report cases remain failures, and successful old-source component comparisons are not relabelled."
+  ]
+}

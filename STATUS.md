@@ -1,9 +1,35 @@
+# Current D2 lead checkpoint — 28 October 2026, 16:10 UTC
+
+D2/EEDCS-18 remains ACTIVE; Task46/PR105 is UNACCEPTED; noD3. The later
+at-the-time author/history paragraphs below are superseded by this checkpoint.
+Physical combat/R3 runtime64cf0f1c5 has a clean ordinary Windows shipping build
+(original build/outer0, all42 exports). Test-only candidatea89a668ae has identical
+eight runtime/build/scenario frontiers; the build is never relabelled. The same
+reviewer closed production capacity/guard-order and harness sentinel corrections.
+Six native report cases now complete originaldriver/native0: actual site health
+2000→1000 under damage, destruction changes actualalive, withholding preserves
+state, own-issued identity works, and three primary invalid-report guards refuse.
+Segment destruction reaches real bridge handlers (alive segments1312→1310).
+All6post1179 manifests/all42 exports match. Runtimeb3f34540 and corrected evidence
+auditor6f2acae1 are independently closed. Exact safe evidence and declared failures:
+`eech-campaign/reference/d2-combat-characterization/r3-corrected-runtime/`.
+
+Final ordinary shipping pack38810/PID23828 creation16:06:29UTC is RUNNING on
+immutable64cf after actual preflight0/40expected checks; allfour native campaigns
+started16:08:29–32UTC. Complete40/full8/post3 recording equality is NOT passed.
+Final raw frame-cost probe8557/native17720 creation16:08:47UTC is also RUNNING,
+with fresh1179 inputs and actual shipping Lua DLL calibration reused only by exact
+hash equality. No final cost/900s equality claim yet. CurrentCI/finalreview/normal
+merge46 and whole-D2 reconciliation/closure remain. Campaign decisions and
+consequences staycore; terrain/model, entity mirrors, shared RNG/effects/sounds
+remain declared coupling. No accepted baseline or tolerance changed.
+
 # Current author checkpoint — 28 October 2026 (the lines below are historical unless they say otherwise)
 
 The newest SOURCE candidate is the shipping source of `64cf0f1c5551a2e59309a92917c32e6189d8ae60` (product C, Rust and Lua, shipping scripts, runtime quantities and all eight build/scenario source frontiers are identical in the commit that carries this paragraph, which changes only a TEST harness: the focused review closed the guard-order P2 and found one test-only P3, that the fake heap's harmless slot for a forbidden index was subtracted from `fake_entities` before being rejected, which is undefined C on the old-red report path; `object_checks.c` now recognises that slot explicitly before any pointer subtraction). It orders the structure registry's guards so that the entity heap, the identity map and the
 entity's slot are validated BEFORE any entity read, cached identity, report resolution or host question (the focused review of `30fbdfcbc` found `campaign_object_host_id`, `campaign_object_identify` and the report
 resolution reading or returning first), and corrects two sentences of the previous correction's evidence wording. Source checks only: the real registry and driver against a fake heap allocated exactly the run's capacity with
-instrumented entity access (94 checks, ASan/UBSan, 26 mutants caught; against `30fbdfcbc` the 12 guard-order checks fail), the real campaign tree compiled, workspace and fixture `cargo test`, fmt and syntax (the C-harness figures were rerun with the corrected harness under NEW logs `object-checks-14-dummy-safe-harness.log` 94/0 green under ASan/UBSan, `object-checks-15-red-pre-guard-order-30fbdfcbc-dummy-safe-harness.log` 94 checks with 12 failed assertions against the `30fbdfcbc` registry, compiled and run, no sanitizer or setup failure, and `object-mutation-9-dummy-safe-harness.log` 26 caught, both setup controls as expected; the workspace, fixture, fmt, syntax and Clippy runs of `64cf0f1c5` are REUSED, because no product or Rust code changed since; the earlier logs are kept, and the earlier harness's guarded-access instrumentation, like this one, counts forbidden accesses and does not let a sanitizer observe an out-of-bounds read). NO Windows build, snapshot
+instrumented entity access (94 checks, ASan/UBSan, 26 mutants caught; against `30fbdfcbc` the 12 guard-order checks fail), the real campaign tree compiled, workspace and fixture `cargo test`, fmt and syntax (the C-harness figures were rerun with the corrected harness under NEW logs `object-checks-14-dummy-safe-harness.log` 94/0 green under ASan/UBSan, `object-checks-15-red-pre-guard-order-30fbdfcbc-dummy-safe-harness.log` 94 checks with 12 failed assertions against the `30fbdfcbc` registry, compiled and run, no sanitizer or setup failure, and `object-mutation-9-dummy-safe-harness.log` 26 caught, both setup controls as expected; the workspace, fixture, fmt and syntax runs from `64cf0f1c5` are reused, together with earlier unchanged-Rust Clippy evidence (Clippy was not repeated at `64cf0f1c5`), because no product or Rust code changed since; the earlier logs are kept, and the earlier harness's guarded-access instrumentation, like this one, counts forbidden accesses and does not let a sanitizer observe an out-of-bounds read). NO Windows build, snapshot
 or native run of this source; the six `f4700bbab` report roots crashed (0xC0000005, boot row only) and no report or guard has run natively at any SHA; the older-build compatibility runs do not show that the report path works.
 D2/EEDCS-18 and Task46/PR105 remain ACTIVE and UNACCEPTED, with no D3; the Root's fresh six-case rerun, final comparison, shipping gates and the whole-D2 audit are all still required.
 
