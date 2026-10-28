@@ -1,0 +1,44 @@
+{
+  "created_utc": "2026-10-28T09:24:58.923926+00:00",
+  "source": "511156c1c9a0cffa37f4364646cb7d9a1d222a3e",
+  "purpose": "Actual public-native positive generic PERSON timed draw: reference PERSON has3HP and bothdefaultshotsfatal, official180genericuntriggered. HostownonepointDAMAGEleaveslivingwoundedperson, ownstochasticTIMED usescampaignsingle sample.",
+  "wrapper": "R:\\d2-evidence\\combat-characterization-20261028\\timed-generic-person-probe.lua",
+  "wrapper_sha256": "13f15948e3dcac724a0cfcb8c577e307ce49b575e3ab7d29caaecec56ed4a412",
+  "driver": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-generic-person-probe.ps1",
+  "driver_sha256": "2159d32cdeb1e7073274abe2af969c02534289c476c89fd95a7cc047ba880ce8",
+  "driver_original": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-aa-probe.ps1",
+  "driver_original_sha256": "56b5f324e8b18e5ea988f11314e2cb29d043ad83d397119ffb68d0869b6f1993",
+  "driver_literal_replacements": [
+    [
+      "'timed_never','timed_rate150','bad_health_second_draw','bad_health_fatal'",
+      "'timed_generic_person'"
+    ],
+    [
+      "timed-aa-probe.lua",
+      "timed-generic-person-probe.lua"
+    ],
+    [
+      "Focused changed-host AA authority/refusal",
+      "Focused own-DAMAGE plus generic-PERSON TIMED authority"
+    ],
+    [
+      "TIMED_AA_PROBE_NATIVE_",
+      "TIMED_GENERIC_PERSON_NATIVE_"
+    ]
+  ],
+  "lua51_compile_only_actual_status": 0,
+  "case_script": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\lua\\combat-case.lua",
+  "case_script_sha256": "3de3505a64ed1f994edc21f825d38e9c568acb2310391d9642d2d3ecfeb9e264",
+  "case": "timed-generic-person-01",
+  "mode": "timed_generic_person",
+  "expected_native_exit": 0,
+  "native_arguments": "unchanged full39casefixture/warmup60/frame100/timed20/seed1/freshretailroot",
+  "limits": [
+    "Changes DAMAGE model AND samplepolicy AND PERSON TIMED physics, not a timed-only causal control",
+    "DefaultPERSON bleeding remains source-unreachable; this is intentional ownhostphysicalmodel variation",
+    "Actual generic_samples>0 and corePERSONtimed event/hpchange required; untriggered/error is not pass",
+    "FatalPERSON ifobserved is ownmodel-induced, not referencePERSON or fatalAATIMED/selfhit coverage",
+    "Sameexistingcasescript/helpers untouched; case precondition text/census may change legitimately from differentdamageanswers; no defaultbyteidentityclaim",
+    "No productsource/baseline/tolerance change; native/source-review/runtimegates remain"
+  ]
+}

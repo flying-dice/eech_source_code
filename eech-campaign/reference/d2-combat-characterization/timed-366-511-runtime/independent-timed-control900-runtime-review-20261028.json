@@ -1,0 +1,89 @@
+{
+  "review_utc": "2026-10-28T08:59:03.410629+00:00",
+  "reviewer": "single independent Codex /root/d2_los_review",
+  "scope": "NEW completed timed366900 physical-output proof only; no source/code re-review, edits, tests, builds or native launches.",
+  "disposition": "No findings; focused900 physical-output proof closed for actual366 runtime.",
+  "actual_runtime_source": "366d5591430025173dbbae30c0378c1cf6b08894",
+  "source_clean": true,
+  "actual_original_controller59291_exit": 0,
+  "actual_native_exit": 0,
+  "native_pid": 22140,
+  "completed_utc": "2026-10-28T08:49:34.9975092Z",
+  "run_record": {
+    "status": "completed",
+    "when_utc": "2026-10-28T08:08:32.4456604Z",
+    "binary": "R:\\d2-evidence\\combat-timed-source-366d55914\\eech-campaign\\target\\weapon-fixture\\combat-timed-366d55914\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-timed-source-366d55914/eech-campaign/target/weapon-fixture/combat-timed-366d55914/lua/campaign.lua root=R:/d2-evidence/combat-characterization-20261028/roots/timed-control-01 scenario=lebanon_retail hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/combat-characterization-20261028/out/timed-control-01/recording.acmi observe=R:/d2-evidence/combat-characterization-20261028/out/timed-control-01/observations.jsonl metrics=R:/d2-evidence/combat-characterization-20261028/out/timed-control-01/metrics.json observe_supply=0",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/timed-control-01",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/timed-control-01",
+    "kind": "Timed/critical candidate physical-output control; comparison with retained original required, not combat census or fullpack acceptance",
+    "reference_provenance": "Retained ab-base root provenance inferred; no independent original input verification invented",
+    "capacity": "Lead permits seven native processes on eight physical cores, separated roots; one implementation lane",
+    "actual_native_exit": 0,
+    "native_pid": 22140,
+    "created_utc": "2026-10-28T08:08:32.4589938Z",
+    "completed_utc": "2026-10-28T08:49:34.9975092Z"
+  },
+  "complete_raw_files": [
+    {
+      "file": "recording.acmi",
+      "bytes": 11363845,
+      "sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+      "independent_complete_byte_equality": true
+    },
+    {
+      "file": "observations.jsonl",
+      "bytes": 6629273,
+      "sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+      "independent_complete_byte_equality": true
+    },
+    {
+      "file": "metrics.json",
+      "bytes": 11777,
+      "sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+      "independent_complete_byte_equality": true
+    }
+  ],
+  "preservation": {
+    "post_inputs_independently_rehashed": 1179,
+    "input_bytes": 102239559,
+    "combined_input_manifest_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+    "all40_exports_independently_rehashed_equal_initial_post": true,
+    "BUILD_INFO_sha256": "953f7c2868de8bed8cb36ba4bceacd2c00c868e895a64709a919508e9fecb4d5",
+    "BUILD_INFO_dirty_files": 0,
+    "recorded_post_input_actual_exit": 0,
+    "recorded_post_export_actual_exit": 0,
+    "source_clean": true,
+    "originals_untouched": true
+  },
+  "proof_files": [
+    {
+      "file": "root-timed-control-01-completion.json",
+      "sha256": "c5d3a13c092e5c6d6a3d37b4838daf75bceadbfcefc1f047f4727b2f33dd2674"
+    },
+    {
+      "file": "root-timed-control-01-complete-comparison.json",
+      "sha256": "656e18ba479a21fa264b75d836b6092b3e8ab60fa1d7706f1aa9efca5584064e"
+    },
+    {
+      "file": "root-timed-control-01-post-inputs.log",
+      "sha256": "6b931ff70b287289e64dc5a1c3d294e75c0b8c4f4444e6f9f741786ab6281134"
+    },
+    {
+      "file": "root-timed-control-01-post-build.json",
+      "sha256": "54674009d738cdb3cfcddb1c9b9d36e14bda0730eebc1fbda7fcdd5d1b4a7fb2"
+    },
+    {
+      "file": "root-clean-timed-366d559-fixture-manifest.json",
+      "sha256": "6d4f8895e7c8101ba1680baaa3d6f0ae85361427ec29523f9ef31e04993e2803"
+    }
+  ],
+  "process_evidence": "Completed held-handle original run record/native0 agrees with completion proof; original controller59291actual0 is separately observed root process evidence, not inferred from file equality.",
+  "limits": [
+    "Actual366source/bin identity retained. Previously reviewed511fixture-only source equivalence supports unaffected-path reuse, not object identity or relabelled511 execution.",
+    "Retained ab-base input-root provenance inferred, not independently verified here.",
+    "Full complete-file byte equality is not visual Tacview inspection or900combat-event census.",
+    "Elapsed2462.54s under concurrent load is not a matched performance/DCSframe benchmark.",
+    "No provider-trigger, full40/all8/post3, remainingimpact/blast/bridge/factualreport or wholeTask46/D2 acceptance from this control."
+  ]
+}

@@ -1,0 +1,282 @@
+{
+  "reviewed_utc": "2026-10-28T09:49:24.019075+00:00",
+  "reviewer": "independent Codex delivery reviewer",
+  "scope": "NEW generic PERSON native evidence and honestly partial180 provider cohort only; no unchanged source/helper/AA/default re-review",
+  "source_before": {
+    "sha": "511156c1c9a0cffa37f4364646cb7d9a1d222a3e",
+    "status": ""
+  },
+  "source_after": {
+    "sha": "511156c1c9a0cffa37f4364646cb7d9a1d222a3e",
+    "status": ""
+  },
+  "findings": [],
+  "disposition": "bounded evidence accepted with explicit limits; not all11 cohort success or whole Task46 acceptance",
+  "generic_person": {
+    "controller_recorded_actual_exit": 0,
+    "original_exec": 26882,
+    "native_pid": 15716,
+    "native_exit": 0,
+    "trace_bytes": 403360,
+    "trace_sha256": "c316b0a53d6bbace17bfb28e1e8271c82fcb2a5da0d9e3e53a7e45981b95d7b5",
+    "cases_all_ok_including_valid_refusals": 39,
+    "trusted_integrity_reports": 79,
+    "contiguous_events": 75,
+    "person_damage_transitions": [
+      [
+        3,
+        2
+      ],
+      [
+        2,
+        1
+      ]
+    ],
+    "own_timed_samples": 4,
+    "own_timed_hits": 1,
+    "own_timed_fatals": 1,
+    "core_PERSON_timed_event": {
+      "at": 80.19896697998,
+      "draws": 1,
+      "event": "cmb-ev",
+      "kind": "timed",
+      "new_level": 0,
+      "receiver": "ENTITY_TYPE_PERSON",
+      "scope": "case:timed_health_ANTI_AIRCRAFT_0:log",
+      "seq": 9,
+      "type": 3
+    },
+    "core_PERSON_counters": {
+      "at": 80.19896697998,
+      "attempts": 105280,
+      "draws": 4,
+      "event": "cmb-timed",
+      "fatal": 1,
+      "hits": 1,
+      "kind": 3,
+      "scope": "run"
+    },
+    "PERSON_census": [
+      140,
+      139
+    ],
+    "scope": "Combined own DAMAGE model/sample policy plus stochastic PERSON TIMED; not timed-only/default reference comparison; proves actual generic host authority through core health application"
+  },
+  "partial_cohort": {
+    "original_queue_actual_exit": 1,
+    "original_queue_exec": 84276,
+    "retained_queue_sha256": "d17c0d00d4f32a7b949dcd6f191e4f10e50ea41207b1586092ee9e43475572b4",
+    "healthy_untriggered": 5,
+    "specific_refusals": 4,
+    "untriggered_assertion_failure": 1,
+    "fatal180": "NOTSTARTED, output absent",
+    "records": [
+      {
+        "name": "timed-provider-reference-01",
+        "mode": "reference",
+        "native_exit": 0,
+        "frames": 1801,
+        "summary_sha256": "cd472b5faf8f4f3779b1884548c2fc4749540e8d2aa74d1ecb134ccaeff99ed0",
+        "run_sha256": "a5bb59420c8f708fb91ac88c3a1293d88cef4f0ca3ef9d8e874a7fa5e5c2c4cd",
+        "log_sha256": "42e7509ccc6ddb2ce01669aa027305cde32c149fdde7de2bbe74f35cc60df0b0",
+        "failure": "",
+        "disposition": "healthy but timed trigger absent; no authority proof"
+      },
+      {
+        "name": "timed-provider-never-01",
+        "mode": "timed_never",
+        "native_exit": 0,
+        "frames": 1801,
+        "summary_sha256": "6e0b5c5e69979bdcb4baef117bdeb46c9a7a4ec7b2850af1839d2d7ee2fe5344",
+        "run_sha256": "0c126b6b983e5b97e43da408c36a3a09c743a6c1c89ae172a5d4e51fb9e7307e",
+        "log_sha256": "d4a4c56733f7e81e17db3f4dfd8c451a9fe72b6516523bd410a534c493c3125d",
+        "failure": "",
+        "disposition": "healthy but timed trigger absent; no authority proof"
+      },
+      {
+        "name": "timed-provider-fast-01",
+        "mode": "timed_fast",
+        "native_exit": 0,
+        "frames": 1801,
+        "summary_sha256": "be6bfdbe2c1d8aed683f8a6e599f21028b68f410fd5de96e3c60a3fa971942a0",
+        "run_sha256": "4163c0c7b35bbc2d11763a7253b42ed448a653155599897684074906ebaaa397",
+        "log_sha256": "84f5ea1934251ad4e2bf786f89aaa5f32dcb3d3cf7acf443286d96322e24591e",
+        "failure": "",
+        "disposition": "healthy but timed trigger absent; no authority proof"
+      },
+      {
+        "name": "timed-provider-late-01",
+        "mode": "critical_late",
+        "native_exit": 0,
+        "frames": 1801,
+        "summary_sha256": "777a952872b71c78bd5bcfe29fa05818640cc6cff1be676d49f1ee4b03e7431d",
+        "run_sha256": "8111473d0deb93344199cce42a4ce2463df4a9a7b60242ddf817d09b8adf1a56",
+        "log_sha256": "423bdb9fbf878c3c2c51fdc3043a7ef11744d776448ad7a8bfd70492d4934e13",
+        "failure": "",
+        "disposition": "healthy but timed trigger absent; no authority proof"
+      },
+      {
+        "name": "timed-provider-generic-01",
+        "mode": "timed_generic",
+        "native_exit": 0,
+        "frames": 1801,
+        "summary_sha256": "995903e881d168909fc70bcda6c9949bc47fa1063a6886cf765a8b64624ec6f5",
+        "run_sha256": "c77acd3c89dfab5649fb77d932b02cc519415ae4309a905db17727a81cc47cfe",
+        "log_sha256": "2f52784f8a0fba6284d2d84203684cb4612305043d2f28a823c62bb5807b10d0",
+        "failure": "",
+        "disposition": "healthy but timed trigger absent; no authority proof"
+      },
+      {
+        "name": "timed-provider-bad-class-01",
+        "mode": "bad_health_class",
+        "native_exit": 0,
+        "frames": 0,
+        "summary_sha256": "62c5248149aadd1862c86e93be94089146d7a876e166d3a05c4c261af5f433fa",
+        "run_sha256": "4f01a678f1764ff98f181922ebc4ef9faf7838ee53ddbf59be3b3d31bb58e2f4",
+        "log_sha256": "0ed30428be977bdb3ff90a18967625a3ce2e61b8e9ccbc46530ddf4a8726b53b",
+        "failure": "runtime error: eech: EECH fatal error: host aim: host aim answered a health request (op 1) with a flag that is not a boolean or a class 7 outside 0 to 2",
+        "disposition": "genuine specific primary refusal; harness caught error and returned native0"
+      },
+      {
+        "name": "timed-provider-bad-missing-01",
+        "mode": "bad_health_missing",
+        "native_exit": 0,
+        "frames": 0,
+        "summary_sha256": "67cc4d3ac24250da966bb1eb7511d430245ceac58204a8729c1612bf1dcc5026",
+        "run_sha256": "61ba4f8a929ce3954053e691f7d2639b2813442793cd68e0d279274e9a28ff13",
+        "log_sha256": "65664d552c7806bf11a17eeb959d11825063325daabf0fa0a8e651be4b40f237",
+        "failure": "runtime error: eech: EECH fatal error: host aim: host aim failed for a health request: aim result critical_class must be an integer, got nil",
+        "disposition": "genuine specific primary refusal; harness caught error and returned native0"
+      },
+      {
+        "name": "timed-provider-bad-classify-draw-01",
+        "mode": "bad_health_classify_draw",
+        "native_exit": 0,
+        "frames": 0,
+        "summary_sha256": "ec214344ec8e8066c03e78f81ec49c012d2f96c505a1277eb652450b91edf664",
+        "run_sha256": "fb9e1adbd8cb98c9c79e2e44798f4e57244f6a3ac374d40f6b4cd91e57a68f9d",
+        "log_sha256": "bce606bd1a9e8b8e35402197159a0d9cfecb40cf974bfb5e07847de337ba8a1a",
+        "failure": "runtime error: eech: EECH fatal error: host aim: host aim asked for a draw in answer to a health request (op 1), which is a pure question",
+        "disposition": "genuine specific primary refusal; harness caught error and returned native0"
+      },
+      {
+        "name": "timed-provider-bad-second-draw-01",
+        "mode": "bad_health_second_draw",
+        "native_exit": 1,
+        "frames": 1801,
+        "summary_sha256": "99548561ae9e88ee56d14f8726ffe9a92d515513e57502ddfc7b1341c08cf522",
+        "run_sha256": "b2a9f5716bfb45614a6f6996fd0580885b3ac74b8c4cbe2d5d73e6e5e66b9ed5",
+        "log_sha256": "1d6f2e763150aba7a62c820f8e9508f09d971cb808c12ec08cd3dc9cf06dc4e1",
+        "failure": "",
+        "disposition": "untriggered final assertion; actual failure retained, not a refusal or demonstrated unsafe acceptance"
+      },
+      {
+        "name": "timed-provider-bad-ineligible-01",
+        "mode": "bad_health_hit_ineligible",
+        "native_exit": 0,
+        "frames": 0,
+        "summary_sha256": "8ad48870d62da5f410445f82d05225bb703d4c74b590e8a11c48e764cf04a5d1",
+        "run_sha256": "d189f0ad59ea8f58fd210d387539cb7123a8a8fc8c8683ccfcba29a1ca4a979c",
+        "log_sha256": "7073bcac424d03c29049db0f93b2fe6dbc40d20f64fea6a40bd57c8be30668e2",
+        "failure": "runtime error: eech: EECH fatal error: host aim: host aim answered a timed health request (level 1200) with eligible 0, rolled 0, hit 1, level 1199, fatal 0",
+        "disposition": "genuine specific primary refusal; harness caught error and returned native0"
+      }
+    ],
+    "console_interleaving": "bad-ineligible duplicate summary console line is interrupted by process-exit output; full specific primary native debug_fatal message and structured summary are intact"
+  },
+  "preservation": {
+    "roots": [
+      {
+        "name": "timed-provider-reference-01",
+        "independently_rehashed_inputs": 1179,
+        "post_log_sha256": "a2635f20733e18b9d2932a52601567c0a88e7e46fd2a0e37e2f579e62d956d13",
+        "recorded_post_exit": 0
+      },
+      {
+        "name": "timed-provider-never-01",
+        "independently_rehashed_inputs": 1179,
+        "post_log_sha256": "37a0aef650b39d08623f6daa443235d1a9b5b8f5ec0360b870b1814564958e90",
+        "recorded_post_exit": 0
+      },
+      {
+        "name": "timed-provider-fast-01",
+        "independently_rehashed_inputs": 1179,
+        "post_log_sha256": "77a86fd4945f02873020c272cf54ffd67385738d4f613d55c41a270a6130f339",
+        "recorded_post_exit": 0
+      },
+      {
+        "name": "timed-provider-late-01",
+        "independently_rehashed_inputs": 1179,
+        "post_log_sha256": "649399984a15da859ab0cb25a33848c95566c12a7ecf912d465fa9dedf45351a",
+        "recorded_post_exit": 0
+      },
+      {
+        "name": "timed-provider-generic-01",
+        "independently_rehashed_inputs": 1179,
+        "post_log_sha256": "6caee89715c29f559e23c648eb8f23e4b30df193f4ee42bdc7d2fbe0d3087460",
+        "recorded_post_exit": 0
+      },
+      {
+        "name": "timed-provider-bad-class-01",
+        "independently_rehashed_inputs": 1179,
+        "post_log_sha256": "c6db8822e3f20c5da99062bea8d35c4e1e6544b3ce02aebcbf601930c70ae7a9",
+        "recorded_post_exit": 0
+      },
+      {
+        "name": "timed-provider-bad-missing-01",
+        "independently_rehashed_inputs": 1179,
+        "post_log_sha256": "8059bee0e676b31c747bf984a6a45805c027775a9eb7dcecbbe2822e749a933b",
+        "recorded_post_exit": 0
+      },
+      {
+        "name": "timed-provider-bad-classify-draw-01",
+        "independently_rehashed_inputs": 1179,
+        "post_log_sha256": "ce250bbd8bbe3d54749035087b7fd1e72e1d00046fe47ebc665ff1826f45876f",
+        "recorded_post_exit": 0
+      },
+      {
+        "name": "timed-provider-bad-second-draw-01",
+        "independently_rehashed_inputs": 1179,
+        "post_log_sha256": "cdc8c18ebcfe3183add1fbcea4270cca3d9706e41aa59c551f8f0ccd7e51a917",
+        "recorded_post_exit": 0
+      },
+      {
+        "name": "timed-provider-bad-ineligible-01",
+        "independently_rehashed_inputs": 1179,
+        "post_log_sha256": "eafade849a8eb83bee33e71b9bd9e286abaf6777280394a748709bd27be87bab",
+        "recorded_post_exit": 0
+      },
+      {
+        "name": "timed-generic-person-01",
+        "independently_rehashed_inputs": 1179,
+        "post_log_sha256": "5d12c931f5931b025d2ea05fcc50a1c262847b47a1a576a0baa6f6b7c8142223",
+        "recorded_post_exit": 0
+      }
+    ],
+    "exports_independently_hashed": 40,
+    "BUILDINFO_sha256": "0e02acdda5cf7b6c1db53a90541b2bd56df92700d6fb3abb5cf60693794a19ea",
+    "wrapper_driver_case_hashes_verified": {
+      "wrapper": "13f15948e3dcac724a0cfcb8c577e307ce49b575e3ab7d29caaecec56ed4a412",
+      "driver": "2159d32cdeb1e7073274abe2af969c02534289c476c89fd95a7cc047ba880ce8",
+      "driver_original": "56b5f324e8b18e5ea988f11314e2cb29d043ad83d397119ffb68d0869b6f1993",
+      "case_script": "3de3505a64ed1f994edc21f825d38e9c568acb2310391d9642d2d3ecfeb9e264"
+    },
+    "proof_hashes": {
+      "root-timed-generic-person-probe-completion.json": "41933debfb493629303823f28c01032c42df4a4d666d73a39e5d9c621c2055ec",
+      "root-timed-provider-partial-cohort-completion.json": "f0e37b8d170f4cb2c8478a2976a086182d75bd4f7cf73d797ab098370ca0a66b",
+      "root-timed-provider-and-person-post-inputs.json": "b9e22cdc60e63b80f72da7f91628efef76c9947d8a4348bf70f297a249f4c8ac",
+      "root-timed-provider-and-person-post-build.json": "f6825f5ff21a9deda4682855bb0da59e927cb903d25b21fd2bb8d924365eddbb",
+      "root-clean-timed-scope-511156-fixture-manifest.json": "41e6117990ecef2997cbecd16ee8a23bfb78d6e435076a4a6e3c915ffd74b2d4",
+      "root-timed-generic-person-probe-plan.json": "62b88c91d2e2b428264e2dce031e654925477d116b072c18e7d31c7a0d34f977",
+      "root-timed-provider-corrected-driver-plan.json": "692906ff5082712727fe7e6aac8ac5ded4e961c4d7b497c9307627faf3bfb7f7"
+    }
+  },
+  "limits": [
+    "No all11 success: original queue failed1 at untriggered second-draw assertion; separate ineligible refusal is not fabricated queue completion.",
+    "Five healthy180 cases have zero timed eligibility/samples; not timed authority proof.",
+    "Specific bad-class/missing/pure-classify-draw/ineligible-hit refusals are meaningful despite harness-caught native0; not healthy scenario passes.",
+    "No default PERSON bleeding, reference fatalAA, selfhit, player/MP/easy-mode or whole Task46 delivery claim.",
+    "No source edits, native/build/test execution, baseline/tolerance changes or raw trace writes during review.",
+    "Original process outer statuses are retained controller evidence; not reconstructed solely from run records or PASS fields."
+  ]
+}
