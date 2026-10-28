@@ -1,0 +1,11 @@
+{
+  "original_tool_session": 8557,
+  "actual_original_driver_exit": 0,
+  "actual_native_exit_reported_by_held_handle": 0,
+  "native_pid": 17720,
+  "native_created_utc": "2026-10-28T16:08:47.0545905Z",
+  "observed_completion_chunk": "6fb81e",
+  "observation_cell": "2667",
+  "runtime_source": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "scope": "Actual original driver and native completion observed; post-checks and independent review are separate gates. Fullpack38810 remains active."
+}

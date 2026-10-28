@@ -1,0 +1,243 @@
+{
+  "when_utc": "2026-10-28T16:50:22.713003+00:00",
+  "status": "PASS bounded final native900/frame-cost/control; independent review pending; fullpack remains ACTIVE",
+  "runtime_source": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "source": "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5",
+  "source_clean": true,
+  "candidate_metadata": "aa19f0e085c9635e964142e134e80bf96c6bc253",
+  "production_equivalence": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-scope-publication-aa19f0e08.json",
+  "coarse_crates_exception": "Only integration-test host_callbacks.rs differs; production inputs unchanged, no8treeequalityclaim",
+  "run": {
+    "status": "completed",
+    "when_utc": "2026-10-28T16:08:46.8183090Z",
+    "binary": "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\target\\windows-d2-combat-final-64cf0f1c5\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-characterization-20261028/final-frame-64cf-lua/campaign.lua root=R:/d2-evidence/combat-characterization-20261028/roots/frame-cost-final-d2-900-01 scenario=lebanon_retail hours=0.25 frame_ms=100 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/combat-characterization-20261028/out/frame-cost-final-d2-900-01/recording.acmi observe=R:/d2-evidence/combat-characterization-20261028/out/frame-cost-final-d2-900-01/observations.jsonl metrics=R:/d2-evidence/combat-characterization-20261028/out/frame-cost-final-d2-900-01/metrics.json observe_supply=0 frame_cost=R:/d2-evidence/combat-characterization-20261028/out/frame-cost-final-d2-900-01/frame-cost.jsonl",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/frame-cost-final-d2-900-01",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/frame-cost-final-d2-900-01",
+    "script": "R:/d2-evidence/combat-characterization-20261028/final-frame-64cf-lua/campaign.lua",
+    "script_sha256": "31ebba83848f143dd42ca3ac7233230ac2c36eeaa63532c673ed75d124eb88df",
+    "build_info_sha256": "3410ac4174a259e0ee211e4bb05361a819e1c1da54a300abe93968eff08e169d",
+    "kind": "R4 observational shipping-script copy: timing ONLY engine:frame; no DCS scheduling/budget or final pack acceptance",
+    "resource_context": "Background process list captured separately; raw distributions do not prove causal benchmark attribution",
+    "actual_native_exit": 0,
+    "native_pid": 17720,
+    "created_utc": "2026-10-28T16:08:47.0545905Z",
+    "completed_utc": "2026-10-28T16:48:18.3018545Z"
+  },
+  "driver": {
+    "original_tool_session": 8557,
+    "actual_original_driver_exit": 0,
+    "actual_native_exit_reported_by_held_handle": 0,
+    "native_pid": 17720,
+    "native_created_utc": "2026-10-28T16:08:47.0545905Z",
+    "observed_completion_chunk": "6fb81e",
+    "observation_cell": "2667",
+    "runtime_source": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+    "scope": "Actual original driver and native completion observed; post-checks and independent review are separate gates. Fullpack38810 remains active."
+  },
+  "postchecks": [
+    {
+      "check": 0,
+      "command": "& C:/Users/starscream/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe -B -X utf8 R:/d2-evidence/combat-characterization-20261028/audit-final-frame-samples.py R:/d2-evidence/combat-characterization-20261028/out/frame-cost-final-d2-900-01/frame-cost.jsonl --expected-frames 9000 --out R:/d2-evidence/combat-characterization-20261028/root-final-frame-64cf-raw-samples-audit.json",
+      "actual_exit": 0,
+      "chunk_id": "eb4212"
+    },
+    {
+      "check": 1,
+      "command": "& R:/d2-evidence/compare-campaign-artifacts.ps1 -Baseline R:/d2-evidence/los-characterization-baseline-20261026/out/ab-base -Candidate R:/d2-evidence/combat-characterization-20261028/out/frame-cost-final-d2-900-01 -Out R:/d2-evidence/combat-characterization-20261028/root-final-frame-64cf-complete-artifacts.json",
+      "actual_exit": 0,
+      "chunk_id": "4283ea"
+    },
+    {
+      "check": 2,
+      "command": "& C:/Users/starscream/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe -B -X utf8 R:/d2-evidence/combat-reports-guarded-source-64cf0f1c5/eech-campaign/tools/input-manifest.py R:/d2-evidence/combat-characterization-20261028/roots/frame-cost-final-d2-900-01 --compare R:/d2-evidence/combat-reports-guarded-source-64cf0f1c5/eech-campaign/reference/lebanon-3h/inputs.json > R:/d2-evidence/combat-characterization-20261028/root-final-frame-64cf-post-inputs.log\n$frameInputCode=$LASTEXITCODE\nGet-Content R:/d2-evidence/combat-characterization-20261028/root-final-frame-64cf-post-inputs.log -Tail 4\nexit $frameInputCode",
+      "actual_exit": 0,
+      "chunk_id": "30b0e7"
+    },
+    {
+      "check": 3,
+      "command": "& R:/d2-evidence/verify-build-manifest.ps1 -Bin R:/d2-evidence/combat-reports-guarded-source-64cf0f1c5/eech-campaign/target/windows-d2-combat-final-64cf0f1c5 -Out R:/d2-evidence/combat-characterization-20261028/root-final-frame-64cf-post-build.json",
+      "actual_exit": 0,
+      "chunk_id": "4e8e62"
+    }
+  ],
+  "recomputed_raw_timing": {
+    "passed": true,
+    "frames": 9000,
+    "windows": 15,
+    "recomputed": {
+      "mean_ms": 260.26277777777767,
+      "max_ms": 563.9999999999645,
+      "p50_ms": 253.9999999999054,
+      "p95_ms": 370.00000000011823,
+      "p99_ms": 429.0000000000873
+    },
+    "samples_file": "R:\\d2-evidence\\combat-characterization-20261028\\out\\frame-cost-final-d2-900-01\\frame-cost.jsonl",
+    "samples_bytes": 556377,
+    "samples_sha256": "447e0581deb484739e273108eebba7526d2d8676bf9dfac2e13fd2d97d971848",
+    "limits": "Elapsed native engine:frame only, quantized os.clock under recorded load; no DCS callback/scheduling budget or causal benchmark. Original native/controller completion and default artifact/input/build/source checks required separately."
+  },
+  "all3_complete_artifacts": {
+    "baseline": "R:/d2-evidence/los-characterization-baseline-20261026/out/ab-base",
+    "candidate": "R:/d2-evidence/combat-characterization-20261028/out/frame-cost-final-d2-900-01",
+    "scope": "Complete artifact bytes only; native exits and configuration require separate verification",
+    "results": [
+      {
+        "file": "recording.acmi",
+        "baseline_bytes": 11363845,
+        "candidate_bytes": 11363845,
+        "baseline_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "candidate_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "matches": true
+      },
+      {
+        "file": "observations.jsonl",
+        "baseline_bytes": 6629273,
+        "candidate_bytes": 6629273,
+        "baseline_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "candidate_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "matches": true
+      },
+      {
+        "file": "metrics.json",
+        "baseline_bytes": 11777,
+        "candidate_bytes": 11777,
+        "baseline_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "candidate_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "matches": true
+      }
+    ],
+    "passed": true
+  },
+  "all1179_post_inputs_match": true,
+  "post_input_log": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-post-inputs.log",
+  "all42_exports_match": true,
+  "build_info_sha256": "3410ac4174a259e0ee211e4bb05361a819e1c1da54a300abe93968eff08e169d",
+  "timer_prelaunch": {
+    "when_utc": "2026-10-28T16:08:42.541125+00:00",
+    "runtime_source": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+    "bin": "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\target\\windows-d2-combat-final-64cf0f1c5",
+    "root": "R:\\d2-evidence\\combat-characterization-20261028\\roots\\frame-cost-final-d2-900-01",
+    "script": "R:\\d2-evidence\\combat-characterization-20261028\\final-frame-64cf-lua\\campaign.lua",
+    "script_sha256": "31ebba83848f143dd42ca3ac7233230ac2c36eeaa63532c673ed75d124eb88df",
+    "shipping_campaign_sha256": "a50bf7952f2379f06cab8b18ed060fab20568e2768f405118c0b802b85069fcb",
+    "build_info_sha256": "3410ac4174a259e0ee211e4bb05361a819e1c1da54a300abe93968eff08e169d",
+    "checks": [
+      {
+        "command": [
+          "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\tools\\input-manifest.py",
+          "R:\\d2-evidence\\combat-characterization-20261028\\roots\\frame-cost-final-d2-900-01",
+          "--compare",
+          "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+        ],
+        "actual_exit": 0,
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-pre-inputs.log",
+        "log_sha256": "7590a1ea1f3977551006791381b011adbd024d377b2503677956996e573c68fa"
+      },
+      {
+        "command": [
+          "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "R:/check-lua-syntax.py",
+          "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\target\\windows-d2-combat-final-64cf0f1c5\\lua.dll",
+          "R:\\d2-evidence\\combat-characterization-20261028\\final-frame-64cf-lua\\campaign.lua"
+        ],
+        "actual_exit": 0,
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-lua-syntax.log",
+        "log_sha256": "6bc9364224063eb9bb37255f7a695d64fc4e4817f6068a5914298f2bacf03a3a"
+      }
+    ],
+    "lua_dll_sha256": "aae318d583c251350442fcd58d0872df27002291de0b82414c3e35c7dfce20f8",
+    "reused_exact_dll_calibration": "R:\\d2-evidence\\combat-characterization-20261028\\root-finalshipping-lua-clock-calibration-f4700bbab.json",
+    "reused_calibration_sha256": "477dc16abe4f8b0da6360afbee08df5f1ca32d86f2d625794ba75d9ff0f817b0",
+    "calibration_scope": "Retained f470 calibration applies to exactly equal Lua DLL bytes; not relabelled as64cf measurement. os.clock advanced during idle, elapsed rather than CPU-only.",
+    "helper_review": "R:\\d2-evidence\\combat-characterization-20261028\\independent-final-frame-helpers-review-20261028.json",
+    "limits": "Prelaunch only.900s/9000frames/15windows; raw samples outside timed engine:frame span; record actual background load. No DCS scheduling budget, causal parent comparison or finalpack acceptance."
+  },
+  "files": [
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\frame-cost-final-d2-900-01\\run.json",
+      "bytes": 1823,
+      "sha256": "3ca586c9b07c04e140ef0422852f29cd36323c59747b2c4db29d228dce195016"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\frame-cost-final-d2-900-01\\frame-cost.jsonl",
+      "bytes": 556377,
+      "sha256": "447e0581deb484739e273108eebba7526d2d8676bf9dfac2e13fd2d97d971848"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\frame-cost-final-d2-900-01\\background-processes-start.json",
+      "bytes": 5133,
+      "sha256": "d5b75d12626a45bf5146eaf2188dca90cc82895abcb6ccf6bd91e9849bd36cab"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-prelaunch.json",
+      "bytes": 3028,
+      "sha256": "41ff52e29435aefb373f023dddde754084582c1c39c2c4c3b0c6b582e3fb8722"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-original-driver-exit.json",
+      "bytes": 491,
+      "sha256": "c8734cbf7c253994a67c9ea50c4a2815f2c8ccbb86f240a4fa1b3ff449264ac0"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-raw-samples-audit.json",
+      "bytes": 733,
+      "sha256": "0f17643a48fe7d412a17eadaedd886bb0bae8c69a5eb5ade92b9f63dcca54b7c"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-complete-artifacts.json",
+      "bytes": 1320,
+      "sha256": "fdb6a6e4219432dc76d077a1d0f3ff065fe4acae793b7796fdef33fd41348620"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-post-inputs.log",
+      "bytes": 325,
+      "sha256": "026836bb25a27f6090284d53f5be5475d81b956e81aa1b466d978532162f57f3"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-post-build.json",
+      "bytes": 11450,
+      "sha256": "fef6130afece4bfc13e4bcb0504f1fb32304b321742a83bd9a6e0cd4adb5b1e9"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-postcheck-exits.json",
+      "bytes": 1970,
+      "sha256": "8a1e5305edeb08c97eecd5b21e85ec0c65449ae8e3ca7e4d48a0fd3d5f817d16"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\audit-final-frame-samples.py",
+      "bytes": 5311,
+      "sha256": "c1f80b12ef13e45c7df1ebc098bc1a42d8783feb072e187b522972a025983863"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\run-frame-cost.ps1",
+      "bytes": 2776,
+      "sha256": "9cc90470dfbf188ceaa26ea4a4c3c277251130763ac5ef6427ff943c758ae172"
+    },
+    {
+      "path": "R:\\d2-evidence\\prepare-final-frame-measurement.py",
+      "bytes": 5208,
+      "sha256": "f8183850d6cd2e37e7064cdef1c7eee517ced46f667aaf53a220341c5774e797"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\final-frame-cost-scope-and-followup.md",
+      "bytes": 2856,
+      "sha256": "290cf2f28921345007007df9d3c342a3c20400e554cb884c9941bf2efa2d8f96"
+    }
+  ],
+  "baseline_original_root_provenance": "INFERRED as previously declared; no claim that original ab-base root was newly verified",
+  "scope_followup": "R:\\d2-evidence\\combat-characterization-20261028\\final-frame-cost-scope-and-followup.md",
+  "limitations": [
+    "Elapsed engine:frame plus nested callbacks only, not outerobjects/recording/metrics/DCSscheduling.",
+    "Fourconcurrentfullpackcampaigns, localtargetedRustchecks andread-onlyartifactI/O overlap; sampleI/O outside span can affect laterload. No causal parentcomparison or DCSbudget.",
+    "ExactLuaDLLcalibration reused only by equalSHAaae318; timerquantization retained; raw17gsamples exported.",
+    "Fullpack38810/runner23828/fournatives remainsACTIVE. This900control does not prove40/full8/post3/finalreview/normalmerge/wholeD2acceptance."
+  ]
+}

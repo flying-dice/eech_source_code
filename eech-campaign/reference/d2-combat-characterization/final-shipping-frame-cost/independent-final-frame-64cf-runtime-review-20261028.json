@@ -1,0 +1,145 @@
+{
+  "schema": "independent-bounded-final-frame-cost-review/v1",
+  "created_utc": "2026-10-28T16:52:29.269083+00:00",
+  "reviewer": "/root/d2_los_review",
+  "runtime_source": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "candidate_metadata_at_completion": "aa19f0e085c9635e964142e134e80bf96c6bc253",
+  "disposition": "FINAL_NATIVE_FRAME_COST_MEASUREMENT_AND900_CONTROL_VERIFIED_WITH_LIMITS; NO_FINDINGS; NOT_DCS_BUDGET_OR_FULLPACK_ACCEPTANCE",
+  "findings": [],
+  "scope": "Only new completed final64cf ordinary-shipping900s cost/control proof and interpretation. Reused803f6eb7 helper review and closed source/test/scope chain; no repeated old-source review or native rerun.",
+  "actual_completion": {
+    "original_tool_session": 8557,
+    "actual_original_driver_exit": 0,
+    "original_tool_completion_chunk": "6fb81e",
+    "native_pid": 17720,
+    "native_created_utc": "2026-10-28T16:08:47.0545905Z",
+    "native_completed_utc": "2026-10-28T16:48:18.3018545Z",
+    "actual_held_native_exit": 0,
+    "postchecker_actual_exits": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "assessment": "Completed original run record matches retained original driver capture and all4postchecks. Native run.out is empty as retained; no fabricated script footer, recovered exit, restart or report-only substitution."
+  },
+  "raw_measurement": {
+    "samples_sha256": "447e0581deb484739e273108eebba7526d2d8676bf9dfac2e13fd2d97d971848",
+    "samples_bytes": 556377,
+    "rows": 9017,
+    "frames": 9000,
+    "complete_windows": 15,
+    "window_frames": 600,
+    "recomputed_statistics_ms": {
+      "mean_ms": 260.26277777777767,
+      "max_ms": 563.9999999999645,
+      "p50_ms": 253.9999999999054,
+      "p95_ms": 370.00000000011823,
+      "p99_ms": 429.0000000000873
+    },
+    "assessment": "Independently parsed every JSON row with duplicate-key/non-finite rejection, verified frame1..9000contiguous exactly once and one600frame window at each correct boundary, header first/complete last. Recomputed window means/maxima and nearest-rank global quantiles from raw samples. Declared9-significant-digit aggregates match within only their reviewed serialization precision; raw17g samples unchanged."
+  },
+  "artifacts_inputs_build": {
+    "full_control_artifacts": [
+      {
+        "file": "recording.acmi",
+        "bytes": 11363845,
+        "sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "all_bytes_equal": true
+      },
+      {
+        "file": "observations.jsonl",
+        "bytes": 6629273,
+        "sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "all_bytes_equal": true
+      },
+      {
+        "file": "metrics.json",
+        "bytes": 11777,
+        "sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "all_bytes_equal": true
+      }
+    ],
+    "comparison": "All bytes independently compared to retainedab-base; sizes/SHA256 match known accepted values, not prefixes or visual inspection.",
+    "post_retail_files_independently_hashed": 1179,
+    "post_exports_independently_hashed": 42,
+    "build_info_sha256": "3410ac4174a259e0ee211e4bb05361a819e1c1da54a300abe93968eff08e169d",
+    "frozen_source_clean_before_after": true,
+    "source_identity": "Actual64cf BINF/dirty0 retained. Seven coarse trees plus test-only host_callbacks exception in later metadata were previously verified; no8-tree or later-build relabelling.",
+    "baseline_root_provenance": "INFERRED for originalab-base root, explicitly retained; current retail root verified independently."
+  },
+  "instrumentation_and_clock": {
+    "generator_sha256": "f8183850d6cd2e37e7064cdef1c7eee517ced46f667aaf53a220341c5774e797",
+    "auditor_sha256": "c1f80b12ef13e45c7df1ebc098bc1a42d8783feb072e187b522972a025983863",
+    "driver_sha256": "9cc90470dfbf188ceaa26ea4a4c3c277251130763ac5ef6427ff943c758ae172",
+    "shipping_campaign_sha256": "a50bf7952f2379f06cab8b18ed060fab20568e2768f405118c0b802b85069fcb",
+    "instrumented_script_sha256": "31ebba83848f143dd42ca3ac7233230ac2c36eeaa63532c673ed75d124eb88df",
+    "companion_metrics_observations": "Exact copies of actual shipping files independently byte-compared. Reviewed generator/input identity reused; original remaining campaign script and sole frame call preserved.",
+    "lua_dll_sha256": "aae318d583c251350442fcd58d0872df27002291de0b82414c3e35c7dfce20f8",
+    "calibration_sha256": "477dc16abe4f8b0da6360afbee08df5f1ca32d86f2d625794ba75d9ff0f817b0",
+    "clock_scope": "Retained f470 calibration valid by exact actualLuaDLL bytes, not relabelled64cf calibration. Its idle intervals advance os.clock with near-zero Python processCPU, consistent with elapsed/quantized clock. Time span only engine:frame plus nested callbacks."
+  },
+  "interpretation": {
+    "followup_path": "R:\\d2-evidence\\combat-characterization-20261028\\final-frame-cost-scope-and-followup.md",
+    "followup_sha256": "290cf2f28921345007007df9d3c342a3c20400e554cb884c9941bf2efa2d8f96",
+    "assessment": [
+      "Run measures mean260.263ms and max564ms elapsed per engineframe in this instrumented loaded native execution;100ms simulated step is not a wall-time allowance. No threshold/budget pass is inferred.",
+      "Four other native campaigns are present in the retained start snapshot; local targeted Rust checks and read-only artifactI/O overlap. No counterfactual causal comparison to Task45parent is justified.",
+      "Object enumeration/recording/metrics/outerLua and per-frame serialization are outside measured span; serialization can affect subsequent load. Measurements are not pureCPU or fullmission-callback costs.",
+      "Concrete DCS follow-up correctly asks for same DLL/intended mission host, representative workload/configuration, total callback elapsed vs DLL/hostAPI spans, thread affinity/reentrancy/scheduling/overruns/errors/outcomes and an explicitly agreed budget. This remains an unanswered DCS-specific check under M5 risks/M6 plan, not a native budget result or live-DCS acceptance."
+    ]
+  },
+  "reused_helper_review": {
+    "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-final-frame-helpers-review-20261028.json",
+    "sha256": "803f6eb7cb2c74268acf1bbe2796b741a29bf7dbe90f1e1199e0c7cdbf17e095"
+  },
+  "independent_verification_data": {
+    "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-final-frame-64cf-verification-data-20261028.json",
+    "sha256": "9b613c3ff842512ee9459ba6822b137b769f1ca284dafb5d0f58549d851effc1",
+    "contents": "15recomputed windows/statistics,3complete artifacthashes,source/scriptprovenance/input-export counts and4concurrentcampaign count; full9000rawsamples remain external."
+  },
+  "input_proof_identities": [
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-completion.json",
+      "sha256": "0d8eec76a3f31c4fb9406d343e8632c1d94db42c0ad741fe0a4f43ba077be7d8"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-raw-samples-audit.json",
+      "sha256": "0f17643a48fe7d412a17eadaedd886bb0bae8c69a5eb5ade92b9f63dcca54b7c"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-complete-artifacts.json",
+      "sha256": "fdb6a6e4219432dc76d077a1d0f3ff065fe4acae793b7796fdef33fd41348620"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-post-inputs.log",
+      "sha256": "026836bb25a27f6090284d53f5be5475d81b956e81aa1b466d978532162f57f3"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-post-build.json",
+      "sha256": "fef6130afece4bfc13e4bcb0504f1fb32304b321742a83bd9a6e0cd4adb5b1e9"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-original-driver-exit.json",
+      "sha256": "c8734cbf7c253994a67c9ea50c4a2815f2c8ccbb86f240a4fa1b3ff449264ac0"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-postcheck-exits.json",
+      "sha256": "8a1e5305edeb08c97eecd5b21e85ec0c65449ae8e3ca7e4d48a0fd3d5f817d16"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\final-frame-cost-scope-and-followup.md",
+      "sha256": "290cf2f28921345007007df9d3c342a3c20400e554cb884c9941bf2efa2d8f96"
+    }
+  ],
+  "pending_gates": [
+    "Separate active fullpack38810/runner23828/fourcampaigns: actualcompletion/exact40/full8/post3/source-build identity still required. This900control does not replace them.",
+    "Final evidence publication/currentexact-head CI/finalreview/normalmerge/Task46delivery/Epic18acceptance. Lead reports currentaa19all9CIgreen, but remoteCI review was outside this cost-evidence pass.",
+    "Live DCS callback/threading/scheduling/budget and broader M5/M6 acceptance remain separate."
+  ],
+  "method_limits": [
+    "No implementation edit, build/test/native launch, agents, process/remote changes by reviewer. Only private independent verification/report JSON written.",
+    "No reread/re-review of unchanged physics, prior raw campaigns or helper implementation; identity rechecks and new raw artifact/statistical recomputation only.",
+    "Recorded costs are observations with stated load, not a claimed causal regression, performance guarantee or DCSframe-budget approval."
+  ]
+}

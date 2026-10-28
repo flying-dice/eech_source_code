@@ -1,3 +1,26 @@
+# Current D2 lead checkpoint — 28 October 2026, 16:53 UTC
+
+D2/EEDCS-18 and Task46/PR105 remain ACTIVE/UNACCEPTED; noD3. Final ordinary
+shipping64cf frame-cost/900s control is independently CLOSEDa3a2ee76: original
+8557/native17720 actual0 (completed16:48:18UTC), all9000rawsamples/15windows
+recomputed, mean260.2627778ms/max564/p50254/p95370/p99429, all3COMPLETE
+Tacview/observation/metric files byte-identical, post1179inputs/all42exports and
+frozen source unchanged. Exact safe proofs and timing-only raw samples:
+`eech-campaign/reference/d2-combat-characterization/final-shipping-frame-cost/`.
+This is loaded, quantized elapsed engine:frame; no causal parent comparison or
+DCSbudget pass. Scope/follow-up is retained with the evidence.
+
+All9CI passed at aa19, including actualWindows24host_callbacks confirmation;
+source/scope/metadata reviews are closed. Seven coarse frontiers match actual
+runtime64cf, with only the integration-test target differing in crates; production
+inputs are unchanged and the build is never relabelled. This new publication
+needs passing current-head checks before delivery. Full originalpack38810 /
+runner23828 (created16:06:29UTC) andfourcampaigns remain ACTIVE. Complete40/full8/
+post3, finalcompletepack review, normalmerge46 and wholeEpic18acceptance remain
+gates. Campaign decisions/consequences staycore; declared terrain/model/mirror/
+RNG/effects/sounds coupling remains. Historical paragraphs below retain their
+at-the-time scope and are superseded by this checkpoint.
+
 # Current D2 lead checkpoint — 28 October 2026, 16:23 UTC
 
 D2/EEDCS-18 and Task46/PR105 remain ACTIVE/UNACCEPTED; noD3. Provisional finite
