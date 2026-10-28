@@ -1,0 +1,67 @@
+{
+  "when_utc": "2026-10-28T13:32:34.658247+00:00",
+  "source": "636ef798a9368dfb3c55fe5c77d144009e7f3491",
+  "source_clean": true,
+  "original_exec": 39137,
+  "actual_original_driver_and_native_exit": 0,
+  "run": {
+    "status": "completed",
+    "when_utc": "2026-10-28T12:53:50.3442289Z",
+    "binary": "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\target\\weapon-fixture\\combat-bridge-corrected-636ef798a\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-bridge-corrected-source-636ef798a/eech-campaign/target/weapon-fixture/combat-bridge-corrected-636ef798a/lua/campaign.lua root=R:/d2-evidence/combat-characterization-20261028/roots/bridge-control-01 scenario=lebanon_retail hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/combat-characterization-20261028/out/bridge-control-01/recording.acmi observe=R:/d2-evidence/combat-characterization-20261028/out/bridge-control-01/observations.jsonl metrics=R:/d2-evidence/combat-characterization-20261028/out/bridge-control-01/metrics.json observe_supply=0",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/bridge-control-01",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/bridge-control-01",
+    "kind": "R5 bridge candidate default900 physical-output control; complete retained artifact comparison required, not a combat census or fullpack acceptance",
+    "reference_provenance": "Retained ab-base root provenance inferred; no independent original input verification invented",
+    "capacity": "Lead permits seven native processes on eight physical cores, separated roots; one implementation lane",
+    "actual_native_exit": 0,
+    "native_pid": 24704,
+    "created_utc": "2026-10-28T12:53:50.3583723Z",
+    "completed_utc": "2026-10-28T13:29:53.0555996Z"
+  },
+  "complete_comparison": {
+    "baseline": "R:/d2-evidence/los-characterization-baseline-20261026/out/ab-base",
+    "candidate": "R:/d2-evidence/combat-characterization-20261028/out/bridge-control-01",
+    "scope": "Complete artifact bytes only; native exits and configuration require separate verification",
+    "results": [
+      {
+        "file": "recording.acmi",
+        "baseline_bytes": 11363845,
+        "candidate_bytes": 11363845,
+        "baseline_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "candidate_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "matches": true
+      },
+      {
+        "file": "observations.jsonl",
+        "baseline_bytes": 6629273,
+        "candidate_bytes": 6629273,
+        "baseline_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "candidate_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "matches": true
+      },
+      {
+        "file": "metrics.json",
+        "baseline_bytes": 11777,
+        "candidate_bytes": 11777,
+        "baseline_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "candidate_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "matches": true
+      }
+    ],
+    "passed": true
+  },
+  "post1179_manifest_exit": 0,
+  "all41exports_verified": true,
+  "BINF_sha256": "9fc034ccd849dd0583ebd10d912af698318dbf0c937d88ae11d0932f1729a68f",
+  "post_inputs_log": "root-corrected636-bridge-control-01-post-inputs.log",
+  "post_build": "root-corrected636-bridge-control-01-post-build.json",
+  "scope": "CorrectedR5 default900 complete rawartifact comparison only; not a new family census, visualinspection, performancebenchmark or shipping/fullD2 acceptance",
+  "limits": [
+    "Retained ab-base original input-root provenance remains inferred; candidate verified1179",
+    "Source636 frozen; do not relabel as active R3 workingtree or new metadata3bf",
+    "No b268 native ever; no restart/recovery of this original39137 controller",
+    "Independent NEW900evidence review pending; closedR5source/sixfocused/publication reused",
+    "R3structure/reportownership/factualreports and allfinalshipping/CI/review/normalmerge/wholeD2gates remain"
+  ]
+}

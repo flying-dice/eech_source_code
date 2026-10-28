@@ -1,3 +1,13 @@
+# Current D2 lead checkpoint — 28 October 2026, 14:12 UTC
+
+D2/EEDCS-18 ACTIVE; Task46/PR105 UNACCEPTED; noD3. Sole Sonnet5.5High65623/PID24340 actually exited0 at14:11:14UTC. R3 source0ca067d1ef94e51264a4f4a9da40e38c8a14e10a is clean/pushed: host-issued per-incarnation structure identities, window identity correlation and public physical report_object/structures path. Default+fixture Cargo/Clippy/fmt, layout, C guards/mutants/differentials/header checks pass. NEW combined independent source/probe review is NEXT. No R3 Windows build or native run yet; source checks and receipt assertions do not establish campaign-state effects.
+
+Corrected636 R5 default900 is independently CLOSED6a8a15ff: original39137/native24704 actually0, all3 COMPLETE Tacview/observation/metric files byte identical; post1179/all41/sourceclean. Six exact safe copies: reference/d2-combat-characterization/bridge-636-control900. This supersedes earlier pending labels without changing original records. It is not R3, final shipping or wholeD2 evidence. Ledger47 was publishedONCE/read back with all5 reports and allpreviousHTML preserved; never replay.
+
+Six fresh1179 report/withhold/guard roots and finalshipping Georgia1174/Lebanon1179/repeat1179 roots are verified and UNRUN. Root private native wrapper parses0; review precedes a fresh clean shipping build and actual report-state/guard/default comparisons. Final ordinaryshipping40/full8/post3, finalnativeframecost/currentCI/independentfinalreview/normalmerge/Jira46Done/wholeEpic18auditDone remain. New raw-sample timing helpers independently CLOSED803f6eb7 (setup-only, no final native result). Campaign decisions/credit/awareness/accounting/route/repair policy and D1 consequences stay core. Current process/evidence/next gate: R:/d2-evidence/D2-LIVE-CHECKPOINT.json; whole-D2 audit draft explicitly incomplete. Earlier entries below retain at-the-time history.
+
+---
+
 # Current D2 lead checkpoint — 28 October 2026, 13:00 UTC
 
 D2/EEDCS-18 remains ACTIVE; Task46/PR105 UNACCEPTED, noD3. R5 corrected source636ef798a is clean/pushed, Sonnet10691 actually0/PID23596gone. P1 repr(C)/all19inner offsets and P2 destructive-target continuation are independently CLOSED(cabde367...); RootP3 scopedCR metadata preserves raw copies. The rejected b268 build was NEVER RUN; its disposablecache was removed after zero references, all41exports/source/evidence retained.
