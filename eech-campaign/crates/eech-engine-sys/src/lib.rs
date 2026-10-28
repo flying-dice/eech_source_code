@@ -1010,6 +1010,8 @@ extern "C" {
 
 #[cfg(feature = "weapon-fixture")]
 extern "C" {
+    pub fn eech_engine_cmb_trace(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_cmb_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
     pub fn eech_engine_wpn_trace(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_wpn_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
     pub fn eech_engine_wpn_case_query(host_id: *const c_char, weapon: c_int, text: *mut c_char, capacity: c_int) -> c_int;

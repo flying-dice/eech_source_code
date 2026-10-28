@@ -3925,6 +3925,35 @@ impl Engine {
         check(unsafe { sys::eech_engine_aim_trace_reset() })
     }
 
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the run-wide report of the physical combat-resolution code (damage capability, collisions, blasts, repair writes) since
+    /// process start, as `key=value` text lines. Read-only.
+    #[cfg(feature = "weapon-fixture")]
+    pub fn cmb_trace(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_cmb_trace(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): drains the ordered combat event log (collisions, blasts, repairs) from the cursor and returns every event not yet returned,
+    /// one `cmb-ev` line each. Read-only apart from advancing the cursor.
+    #[cfg(feature = "weapon-fixture")]
+    pub fn cmb_events(&self) -> Result<String, EngineError> {
+        let mut all = String::new();
+        loop {
+            let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
+            let mut more: std::os::raw::c_int = 0;
+            // SAFETY: the buffer and `more` outlive the call and the capacity passed is the buffer length; the engine NUL-terminates the text.
+            check(unsafe { sys::eech_engine_cmb_events(text.as_mut_ptr(), text.len() as i32, &mut more) })?;
+            // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+            all.push_str(&unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy());
+            if more == 0 {
+                return Ok(all);
+            }
+        }
+    }
+
     /// TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the run-wide report of the physical weapon-execution code (table generation at boot, launch, flight, update order,
     /// contact and terminal facts) since process start, as `key=value` text lines. Read-only.
     #[cfg(feature = "weapon-fixture")]

@@ -1,0 +1,5 @@
+aphavoc/source/entity/mobile/weapon/damage.c: strict feature-off equivalence PASS (1277781 bytes preprocessed)
+aphavoc/source/entity/system/en_msgs/en_msgs.c: strict feature-off equivalence PASS (1266682 bytes preprocessed)
+aphavoc/source/entity/mobile/mb_msgs.c: strict feature-off equivalence PASS (1354631 bytes preprocessed)
+aphavoc/source/entity/special/effect/explosn/explosn.c: strict feature-off equivalence PASS (1294181 bytes preprocessed)
+STRICT_EXIT=0

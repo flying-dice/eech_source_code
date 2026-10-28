@@ -1,0 +1,136 @@
+aphavoc/source/entity/mobile/weapon/damage.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-28 02:33:40.906863499 +0000
++++ /tmp/off.pp	2026-10-28 02:33:40.910863499 +0000
+@@ -32104,6 +32104,21 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++struct ENTITY;
++extern void eech_cmb_install (void *default_response);
++extern void eech_cmb_capability_begin (void);
++extern void eech_cmb_capability_path (int path);
++extern void eech_cmb_capability_raw (int result);
++extern void eech_cmb_capability_end (struct ENTITY *wpn, struct ENTITY *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result);
++extern void eech_cmb_damage_invulnerable (struct ENTITY *en);
++extern void eech_cmb_damage_written (struct ENTITY *en, int new_level);
++extern void eech_cmb_damage_end (struct ENTITY *en, struct ENTITY *weapon, float modifier, int capability);
++extern void eech_cmb_blast_begin (struct ENTITY *en, struct ENTITY *target, int capability, float radius);
++extern void eech_cmb_blast_candidate (struct ENTITY *object, float range, float radius);
++extern void eech_cmb_blast_notify (struct ENTITY *object, float modifier);
++extern void eech_cmb_blast_rocket (struct ENTITY *object, float modifier);
++extern void eech_cmb_blast_end (void);
++extern void eech_cmb_repair (struct ENTITY *en, int old_level, int new_level);
+ extern void create_patrol_task(entity *group, entity *keysite, entity_sides side);
+ extern void initialise_high_level_ai (void);
+ extern void deinitialise_high_level_ai (void);
+@@ -32244,6 +32259,7 @@
+   }
+   if ((fn_get_local_entity_int_value[(((en))->type)][(((INT_TYPE_INVULNERABLE_FROM_WEAPONS)))] ((en), (int_types)(INT_TYPE_INVULNERABLE_FROM_WEAPONS))))
+   {
++   eech_cmb_damage_invulnerable (en);
+    return 0;
+   }
+  }
+@@ -32255,7 +32271,9 @@
+   damage_level -= damage_capability;
+   damage_level = (((damage_level) > (0)) ? (damage_level) : (0));
+aphavoc/source/entity/system/en_msgs/en_msgs.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-28 02:33:41.610863555 +0000
++++ /tmp/off.pp	2026-10-28 02:33:41.618863556 +0000
+@@ -32104,6 +32104,21 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++struct ENTITY;
++extern void eech_cmb_install (void *default_response);
++extern void eech_cmb_capability_begin (void);
++extern void eech_cmb_capability_path (int path);
++extern void eech_cmb_capability_raw (int result);
++extern void eech_cmb_capability_end (struct ENTITY *wpn, struct ENTITY *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result);
++extern void eech_cmb_damage_invulnerable (struct ENTITY *en);
++extern void eech_cmb_damage_written (struct ENTITY *en, int new_level);
++extern void eech_cmb_damage_end (struct ENTITY *en, struct ENTITY *weapon, float modifier, int capability);
++extern void eech_cmb_blast_begin (struct ENTITY *en, struct ENTITY *target, int capability, float radius);
++extern void eech_cmb_blast_candidate (struct ENTITY *object, float range, float radius);
++extern void eech_cmb_blast_notify (struct ENTITY *object, float modifier);
++extern void eech_cmb_blast_rocket (struct ENTITY *object, float modifier);
++extern void eech_cmb_blast_end (void);
++extern void eech_cmb_repair (struct ENTITY *en, int old_level, int new_level);
+ const char
+  *entity_message_names [] =
+  {
+@@ -32274,4 +32289,5 @@
+  overload_update_message_responses ();
+  overload_waypoint_message_responses ();
+  overload_weapon_message_responses ();
++ eech_cmb_install ((void *) default_message_response);
+ }
+aphavoc/source/entity/mobile/mb_msgs.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-28 02:33:42.374863616 +0000
++++ /tmp/off.pp	2026-10-28 02:33:42.382863617 +0000
+@@ -32104,6 +32104,21 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++struct ENTITY;
++extern void eech_cmb_install (void *default_response);
++extern void eech_cmb_capability_begin (void);
++extern void eech_cmb_capability_path (int path);
++extern void eech_cmb_capability_raw (int result);
++extern void eech_cmb_capability_end (struct ENTITY *wpn, struct ENTITY *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result);
++extern void eech_cmb_damage_invulnerable (struct ENTITY *en);
++extern void eech_cmb_damage_written (struct ENTITY *en, int new_level);
++extern void eech_cmb_damage_end (struct ENTITY *en, struct ENTITY *weapon, float modifier, int capability);
++extern void eech_cmb_blast_begin (struct ENTITY *en, struct ENTITY *target, int capability, float radius);
++extern void eech_cmb_blast_candidate (struct ENTITY *object, float range, float radius);
++extern void eech_cmb_blast_notify (struct ENTITY *object, float modifier);
++extern void eech_cmb_blast_rocket (struct ENTITY *object, float modifier);
++extern void eech_cmb_blast_end (void);
++extern void eech_cmb_repair (struct ENTITY *en, int old_level, int new_level);
+ extern void assign_keysite_tasks (entity *keysite, task_category_types category);
+ extern entity *get_suitable_registered_group (entity *task, int *idle_group_count);
+ extern int assign_primary_task_to_group (entity *group_en, entity *task_en);
+@@ -32977,6 +32992,7 @@
+   (fn_set_client_server_entity_float_value[(((receiver))->type)][(((FLOAT_TYPE_SLEEP)))][(system_comms_model)] ((receiver), (FLOAT_TYPE_SLEEP), (sleep)));
+   assess_group_supplies (group);
+  }
++ eech_cmb_repair (receiver, (fn_get_local_entity_int_value[(((receiver))->type)][(((INT_TYPE_DAMAGE_LEVEL)))] ((receiver), (int_types)(INT_TYPE_DAMAGE_LEVEL))), (fn_get_local_entity_int_value[(((receiver))->type)][(((INT_TYPE_INITIAL_DAMAGE_LEVEL)))] ((receiver), (int_types)(INT_TYPE_INITIAL_DAMAGE_LEVEL))));
+  (fn_set_client_server_entity_int_value[(((receiver))->type)][(((INT_TYPE_DAMAGE_LEVEL)))][(system_comms_model)] ((receiver), (INT_TYPE_DAMAGE_LEVEL), ((fn_get_local_entity_int_value[(((receiver))->type)][(((INT_TYPE_INITIAL_DAMAGE_LEVEL)))] ((receiver), (int_types)(INT_TYPE_INITIAL_DAMAGE_LEVEL))))));
+  if (!((fn_get_local_entity_int_value[(((receiver))->type)][(((INT_TYPE_DAMAGE_LEVEL)))] ((receiver), (int_types)(INT_TYPE_DAMAGE_LEVEL))) > 0)) (write_debug_log ("get_local_entity_int_value (receiver, INT_TYPE_DAMAGE_LEVEL) > 0", "aphavoc/source/entity/mobile/mb_msgs.c", SOURCE_LINE));
+  (fn_set_client_server_entity_vec3d[(((receiver))->type)][(((VEC3D_TYPE_POSITION)))][(system_comms_model)] ((receiver), (VEC3D_TYPE_POSITION), ((fn_get_local_entity_vec3d_ptr[(((receiver))->type)][(((VEC3D_TYPE_POSITION)))] ((receiver), (VEC3D_TYPE_POSITION))))));
+aphavoc/source/entity/special/effect/explosn/explosn.c: strict feature-off equivalence DIFFERS
+--- /tmp/base.pp	2026-10-28 02:33:43.086863673 +0000
++++ /tmp/off.pp	2026-10-28 02:33:43.094863674 +0000
+@@ -32104,6 +32104,21 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++struct ENTITY;
++extern void eech_cmb_install (void *default_response);
++extern void eech_cmb_capability_begin (void);
++extern void eech_cmb_capability_path (int path);
++extern void eech_cmb_capability_raw (int result);
++extern void eech_cmb_capability_end (struct ENTITY *wpn, struct ENTITY *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result);
++extern void eech_cmb_damage_invulnerable (struct ENTITY *en);
++extern void eech_cmb_damage_written (struct ENTITY *en, int new_level);
++extern void eech_cmb_damage_end (struct ENTITY *en, struct ENTITY *weapon, float modifier, int capability);
++extern void eech_cmb_blast_begin (struct ENTITY *en, struct ENTITY *target, int capability, float radius);
++extern void eech_cmb_blast_candidate (struct ENTITY *object, float range, float radius);
++extern void eech_cmb_blast_notify (struct ENTITY *object, float modifier);
++extern void eech_cmb_blast_rocket (struct ENTITY *object, float modifier);
++extern void eech_cmb_blast_end (void);
++extern void eech_cmb_repair (struct ENTITY *en, int old_level, int new_level);
+ static int create_meta_explosion_sprites( meta_explosion_component *explosion_component, vec3d *position, entity *parent, int *entity_index_list );
+ static int create_meta_explosion_objects( meta_explosion_component *explosion_component, vec3d *position, int *entity_index_list );
+ static int create_meta_explosion_particles( meta_explosion_component *explosion_component, vec3d *position, int *entity_index_list );
+@@ -32679,8 +32694,10 @@
+  warhead_type = (weapon_warhead_types) (fn_get_local_entity_int_value[(((en))->type)][(((INT_TYPE_WEAPON_WARHEAD_TYPE)))] ((en), (int_types)(INT_TYPE_WEAPON_WARHEAD_TYPE)));
+  damage_capability = (fn_get_local_entity_int_value[(((en))->type)][(((INT_TYPE_DAMAGE_CAPABILITY)))] ((en), (int_types)(INT_TYPE_DAMAGE_CAPABILITY)));
+  damage_radius = sqrt((float)damage_capability);
++ eech_cmb_blast_begin (en, target, damage_capability, damage_radius);
+  if (damage_radius == 0.0)
+  {
++  eech_cmb_blast_end ();
+   return;
+  }
+  explosion_position = (fn_get_local_entity_vec3d_ptr[(((en))->type)][(((VEC3D_TYPE_POSITION)))] ((en), (VEC3D_TYPE_POSITION)));

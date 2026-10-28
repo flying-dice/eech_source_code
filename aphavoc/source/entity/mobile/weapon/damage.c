@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_cmbfx.h"
+
 #include "ai/highlevl/highlevl.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -213,6 +215,8 @@ int damage_client_server_entity (entity *en, entity *weapon, float damage_modifi
 
 		if (get_local_entity_int_value (en, INT_TYPE_INVULNERABLE_FROM_WEAPONS))
 		{
+			CMB_FX_DAMAGE_INVULNERABLE (en)
+
 			return 0;
 		}
 	}
@@ -231,12 +235,16 @@ int damage_client_server_entity (entity *en, entity *weapon, float damage_modifi
 
 		set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, damage_level);
 
+		CMB_FX_DAMAGE_WRITTEN (en, damage_level)
+
 		#if DEBUG_MODULE
 
 		debug_log ("DAMAGE: %s hit = %d , new damage level = %d", get_local_entity_string (en, STRING_TYPE_FULL_NAME), damage_capability, damage_level);
 
 		#endif
 	}
+
+	CMB_FX_DAMAGE_END (en, weapon, damage_modifier, damage_capability)
 
 	return damage_capability;
 }
@@ -356,6 +364,8 @@ int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier
 
 	ASSERT (target);
 
+	CMB_FX_CAPABILITY_BEGIN()
+
 	switch (weapon_database[weapon_type].warhead_type)
 	{
 		case WEAPON_WARHEAD_TYPE_CONVENTIONAL_MUNITIONS:
@@ -407,6 +417,8 @@ int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier
 	{
 		result = (int) (damage_capability * random_modifier * velocity);
 
+		CMB_FX_CAPABILITY_PATH (1)
+
 		#if DEBUG_MODULE
 			debug_log("DAMAGE: DIRECT HIT - weapon penetration %.1f, target armor %.1f, damage_modifier %.4f, random modifier %.4f, damage %d", 
 					weapon_armor_penetration_capability, target_armor_thickness, damage_modifier, random_modifier, result);
@@ -422,6 +434,8 @@ int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier
 		
 		result = (int) (damage_capability * damage_modifier * armor_modifier * random_modifier);
 
+		CMB_FX_CAPABILITY_PATH (2)
+
 		#if DEBUG_MODULE
 			debug_log("DAMAGE: SPLASH DAMAGE - weapon penetration %.1f, target armor %.1f, damage_modifier %.4f, armor modifier %.4f, random modifier %.4f, damage %d", 
 					weapon_armor_penetration_capability, target_armor_thickness, damage_modifier, armor_modifier, random_modifier, result);
@@ -429,6 +443,8 @@ int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier
 
 	}
 	
+	CMB_FX_CAPABILITY_RAW (result)
+
 	if (get_local_entity_int_value (target, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
 		result *= get_player_damage_modifier (target);
 	
@@ -474,6 +490,8 @@ int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier
 			temp_vp.position.z += temp_vec.z;
 		}
 	}
+
+	CMB_FX_CAPABILITY_END (wpn, target, damage_modifier, weapon_type, warhead_type, weapon_armor_penetration_capability, target_armor_thickness, random_modifier, result)
 
 	return result;
 }

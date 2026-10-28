@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_cmbfx.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1003,8 +1005,12 @@ void damage_objects_within_explosion_damage_radius (entity *en, entity *target)
 
 	damage_radius = sqrt((float)damage_capability);
 
+	CMB_FX_BLAST_BEGIN (en, target, damage_capability, damage_radius)
+
 	if (damage_radius == 0.0)
 	{
+		CMB_FX_BLAST_END ()
+
 		return;
 	}
 
@@ -1077,6 +1083,8 @@ void damage_objects_within_explosion_damage_radius (entity *en, entity *target)
 							{
 								range = get_3d_range (explosion_position, object_position);
 
+				CMB_FX_BLAST_CANDIDATE (object, range, damage_radius)
+
 								if (range && (range < damage_radius))
 								{
 									damage_modifier = range / damage_radius; // less value - more damage!
@@ -1085,6 +1093,8 @@ void damage_objects_within_explosion_damage_radius (entity *en, entity *target)
 									debug_log ("EXPLOSN : damage radius %.2f, range %.2f, damage modifier = %f", damage_radius, range, damage_modifier);
 									#endif
 
+									CMB_FX_BLAST_NOTIFY (object, damage_modifier)
+
 									if (object->type != ENTITY_TYPE_WEAPON)
 										notify_local_entity (ENTITY_MESSAGE_COLLISION, object, en, damage_modifier);
 									else if (1 - pow(damage_modifier, pow((float)(warhead_type - 3) / 3, 1.5f)) > 0.75 && get_local_entity_int_value (object, INT_TYPE_WEAPON_ROCKET))
@@ -1092,6 +1102,8 @@ void damage_objects_within_explosion_damage_radius (entity *en, entity *target)
 										#if DEBUG_MODULE
 										debug_log ("EXPLOSN : MISSILE DESTROYED!");
 										#endif
+
+										CMB_FX_BLAST_ROCKET (object, damage_modifier)
 
 										set_local_entity_int_value (object, INT_TYPE_WEAPON_KILL_CODE, WEAPON_KILL_CODE_OVERSHOT_TARGET);
 									}
@@ -1107,6 +1119,8 @@ void damage_objects_within_explosion_damage_radius (entity *en, entity *target)
 			}
 		}
 	}
+
+	CMB_FX_BLAST_END ()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

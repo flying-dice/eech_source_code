@@ -1473,6 +1473,12 @@ impl LuaUserData for LuaEngine {
         // TEST-ONLY (feature `aim-fixture`, EEDCS-44): clears that trace; not part of the shipping module.
         #[cfg(feature = "aim-fixture")]
         methods.add_method("aim_trace_reset", |_, this, ()| this.engine.aim_trace_reset().map_err(lua_error));
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the run-wide report of the physical combat-resolution code; not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("cmb_trace", |_, this, ()| this.engine.cmb_trace().map_err(lua_error));
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the ordered combat event log, drained from the cursor; not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("cmb_events", |_, this, ()| this.engine.cmb_events().map_err(lua_error));
         // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the run-wide report of the physical weapon-execution code; not part of the shipping module.
         #[cfg(feature = "weapon-fixture")]
         methods.add_method("wpn_trace", |_, this, ()| this.engine.wpn_trace().map_err(lua_error));
