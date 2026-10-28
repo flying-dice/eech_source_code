@@ -687,6 +687,12 @@ void create_client_server_entity_weapon (entity *launcher, entity_sub_types weap
 
 					if (release.release_write_last_shot)
 					{
+						// (the answer is checked against the request, and the launcher has a clock whenever the request sent one)
+						if (!last_shot)
+						{
+							debug_fatal ("host aim: a release wrote a last-shot clock for a launcher that has none");
+						}
+
 						*last_shot = release.release_last_shot;
 					}
 

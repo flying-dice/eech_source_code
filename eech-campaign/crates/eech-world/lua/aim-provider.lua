@@ -22,6 +22,7 @@
 --   mode=weapon_short the same with a tenth of the weapon's cruise time: its weapons are over sooner
 --   mode=weapon_fast  the same with twice the muzzle velocity: the weapons the campaign launches leave faster (the host's birth), and fly and end differently
 --   mode=release_slow the same with a quarter of the weapon's rate of fire: the launchers let fewer rounds go (the host's rate-of-fire gate)
+--   mode=seduce_never the reference host, but a seeker asked about a decoy is told the decoys have no effect: no seeker is drawn to a decoy (the host's seduction)
 --   mode=bad_step_*   a provider that answers the first weapon step malformed: the engine must stop with a clear error (bad_step_state, bad_step_lookup_kind, bad_step_action_kind,
 --                     bad_step_nonfinite, bad_step_repeat, bad_step_error, bad_step_draw)
 --   mode=bad_birth_action, bad_release_burst   the first weapon birth answered with a step's action, the first release with no rounds and no refusal
@@ -86,10 +87,11 @@ end
 
 local reference = host.aim
 -- what the campaign asked, by request mode, and what the host answered
-local counts = { table = 0, range = 0, figures = 0, weapon_step = 0, weapon_birth = 0, release = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0 }
+local counts = { table = 0, range = 0, figures = 0, weapon_step = 0, weapon_birth = 0, release = 0, animate = 0, weapon_decoy = 0, weapon_seduce = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0 }
 local answers = { valid = 0, invalid = 0, need_draw = 0, lead_ok = 0, lead_no = 0, ballistic_ok = 0, ballistic_no = 0, phase_moving = 0, angle_sum = 0 }
 -- what the weapon steps came to: the passes the host was asked, the lookups it needed (by kind), the draws it asked for, and the kill codes it left (0 none ... 7)
-local steps = { passes = 0, done = 0, need_lookup = 0, need_draw = 0, kills = {}, lookups = {}, births = 0, birth_velocity = 0, releases = 0, release_refused = 0, release_rounds = 0 }
+local steps = { passes = 0, done = 0, need_lookup = 0, need_draw = 0, kills = {}, lookups = {}, births = 0, birth_velocity = 0, releases = 0, release_refused = 0, release_rounds = 0,
+	decoy_updates = 0, decoy_restarts = 0, seduce_asked = 0, seduce_locked = 0, seduce_retargeted = 0 }
 for code = 0, 7 do steps.kills [code] = 0 end
 
 local function counted (step, answer)
@@ -109,6 +111,17 @@ local function counted (step, answer)
 			for _, action in ipairs (answer.actions) do
 				if action.kind == 8 then steps.births = steps.births + 1 steps.birth_velocity = steps.birth_velocity + action.f [1] end
 			end
+		end
+	elseif step.mode == "weapon_decoy" then
+		if answer.state == "done" then
+			steps.decoy_updates = steps.decoy_updates + 1
+			if answer.actions [1].a == 1 then steps.decoy_restarts = steps.decoy_restarts + 1 end
+		end
+	elseif step.mode == "weapon_seduce" then
+		if answer.state == "done" then
+			steps.seduce_asked = steps.seduce_asked + 1
+			steps.seduce_locked = steps.seduce_locked + answer.actions [1].a
+			steps.seduce_retargeted = steps.seduce_retargeted + answer.actions [1].b
 		end
 	elseif step.mode == "release" then
 		steps.releases = steps.releases + 1
@@ -140,97 +153,9 @@ local function with (step, changes)
 	return copy
 end
 
-local function normalise (v)
-	local length = math.sqrt (v [1] * v [1] + v [2] * v [2] + v [3] * v [3])
-	if length == 0 then return { 0, 0, -1 }, 0 end
-	return { v [1] / length, v [2] / length, v [3] / length }, length
-end
-
--- the plain model of mode=own_model: instant readiness, snapping devices, a bearing in the device frame, guided weapons intercept the target's point
-local own = {}
-function own.ready_update (step)
-	return { state = "done", ready_state = (step.state >= 1.5 and step.state < 2.5) and 2.0 or (step.state < 0.5 and 0.0 or step.state), phase = (step.state >= 1.5 and step.state < 2.5) and 2 or 0 }
-end
-function own.ready_command (step) return { state = "done", ready_state = step.open and 2.0 or 0.0 } end
-function own.required (step)
-	-- the intercept vector in the device frame by the transpose of its attitude (rows are the device axes), then a bearing; a gun aimed at a tracking point
-	-- takes the plain direction to it
-	local m, v = step.device_attitude, step.intercept_vector
-	if step.tracking then
-		local d, p = step.tracking.device_position, step.tracking.point
-		v = normalise { p [1] - d [1], p [2] - d [2], p [3] - d [3] }
-	end
-	local x = m [1] * v [1] + m [2] * v [2] + m [3] * v [3]
-	local y = m [4] * v [1] + m [5] * v [2] + m [6] * v [3]
-	local z = m [7] * v [1] + m [8] * v [2] + m [9] * v [3]
-	local heading = math.atan2 (x, z)
-	local pitch = math.atan2 (y, math.sqrt (x * x + z * z))
-	if not step.unbounded then
-		heading = math.max (step.heading_min, math.min (step.heading_max, heading))
-		pitch = math.max (step.pitch_min, math.min (step.pitch_max, pitch))
-	end
-	return { state = "done", required_heading = heading, required_pitch = pitch }
-end
-function own.step (step)
-	local heading = math.max (step.heading_min, math.min (step.heading_max, step.required_heading))
-	return { state = "done", delta_heading = heading - step.current_heading, delta_pitch = step.required_pitch - step.current_pitch, new_heading = heading, new_pitch = step.required_pitch }
-end
-function own.vectors (step)
-	local nothing = { 0, 0, -1 }
-	if step.tracking_point or step.weapon.aiming_type ~= "intercept_point" then
-		-- the model has no solution for an unguided weapon or a tracking point
-		return { state = "done", valid = false, weapon_vector = nothing, target_vector = nothing, intercept_vector = nothing, intercept_range = 0 }
-	end
-	local d, a, p = step.device_position, step.device_attitude, step.target.point
-	local to_point, range = normalise { p [1] - d [1], p [2] - d [2], p [3] - d [3] }
-	local to_target = normalise { step.target.position [1] - d [1], step.target.position [2] - d [2], step.target.position [3] - d [3] }
-	return { state = "done", valid = true, weapon_vector = { a [7], a [8], a [9] }, target_vector = to_target, intercept_vector = to_point, intercept_range = range }
-end
-function own.lead (step) return { state = "done", ok = false, intercept_point = step.target.point, angle = 0 } end
-function own.ballistic () return { state = "done", ok = false } end
-function own.intercept (step) return { state = "done", intercept_point = step.target.point } end
-function own.table () return { state = "done" } end
-function own.range () return { state = "done" } end
-function own.figures () return { state = "done" } end
--- a launch of its own: the weapon leaves at 300 m/s along the launcher's heading, for twenty seconds, with no dispersion, no fuze and nothing asked of the campaign; the
--- launcher lets one round go at every request (no rate of fire)
-function own.weapon_birth (step)
-	local a = step.attitude
-	return { state = "done", actions = {
-		{ kind = 8, a = 0, b = 0, c = 0, d = 0, f = { 300, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-		{ kind = 2, a = 0, b = 0, c = 0, d = 0, f = { a [1], a [2], a [3], a [4], a [5], a [6], a [7], a [8], a [9], 0, 0, 0 } },
-	} }
-end
-function own.release () return { state = "done", refuse = false, burst_size = 1 } end
--- a weapon with a model of its own: it flies straight along its heading at the speed it has, for twenty seconds, and ends on the ground it meets; it needs one lookup (the
--- terrain under its new position), no figure of EECH's, no draw and no wind.  Lookup kinds and action kinds are those of the campaign's protocol (mb_hostaim.h)
-local LOOKUP_GROUND_PROBE, ACTION_STATE, ACTION_ATTITUDE, ACTION_POSITION = 8, 1, 2, 5
-function own.weapon_step (step)
-	local dt = step.delta_time
-	local p, a = step.position, step.attitude
-	local new = { p [1] + a [7] * step.velocity * dt, p [2] + a [8] * step.velocity * dt, p [3] + a [9] * step.velocity * dt }
-	local kill = step.kill_code
-	local inside = new [1] >= step.map_min [1] and new [1] <= step.map_max [1] and new [3] >= step.map_min [3] and new [3] <= step.map_max [3]
-	if inside then
-		local below
-		for _, answer in ipairs (step.answers) do
-			if answer.kind == LOOKUP_GROUND_PROBE and answer.f [1] == new [1] and answer.f [2] == new [2] and answer.f [3] == new [3] then below = answer.f [7] ~= 0 end
-		end
-		if below == nil then
-			return { state = "need_lookup", lookups = { { kind = LOOKUP_GROUND_PROBE, a = 0, b = 0, c = 0, d = 0, f = { new [1], new [2], new [3], 0, 0, 0, 0, 0, 0, 0, 0, 0 } } } }
-		end
-		if below and kill == 0 then kill = 3 end
-	elseif kill == 0 then
-		kill = 2
-	end
-	local lifetime = step.weapon_lifetime - dt
-	if lifetime <= -20 and kill == 0 then kill = 1 end
-	return { state = "done", actions = {
-		{ kind = ACTION_STATE, a = step.missile_phase, b = step.weapon_on_ground and 1 or 0, c = kill, d = 0, f = { step.velocity, a [7] * step.velocity, a [8] * step.velocity, a [9] * step.velocity, lifetime, step.decoy_timer, 0, 0, 0, 0, 0, 0 } },
-		{ kind = ACTION_ATTITUDE, a = 0, b = 0, c = 0, d = 0, f = { a [1], a [2], a [3], a [4], a [5], a [6], a [7], a [8], a [9], 0, 0, 0 } },
-		{ kind = ACTION_POSITION, a = 0, b = 0, c = 0, d = 0, f = { inside and new [1] or p [1], inside and new [2] or p [2], inside and new [3] or p [3], 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-	} }
-end
+-- the plain model of mode=own_model (and of the controlled launch witness with aim_model=own_model) is a file of its own, next to this one
+local here = (debug.getinfo (1, "S").source:match ("^@(.*[/\\])") or "")
+local own = dofile (here .. "own-model.lua")
 
 local provider
 if mode == "reference" then
@@ -255,6 +180,11 @@ elseif mode == "invalid" then
 	end
 elseif mode == "own_model" then
 	provider = function (step) return counted (step, own [step.mode] (step)) end
+elseif mode == "seduce_never" then
+	provider = function (step)
+		if step.mode == "weapon_seduce" then step = with (step, { effectiveness = { 0, 0, 0 } }) end
+		return counted (step, reference (step))
+	end
 elseif mode == "weapon_drag" or mode == "weapon_short" or mode == "weapon_fast" or mode == "release_slow" then
 	provider = function (step)
 		if step.mode == "figures" then
@@ -294,45 +224,7 @@ elseif mode == "missing" then
 	provider = nil
 elseif mode:sub (1, 4) == "bad_" then
 	-- the reference host answers until the first request of the kind the mode corrupts; that answer is malformed and the engine must stop there
-	local kinds = { bad_nil = "ready_update", bad_state = "ready_update", bad_ready_state = "ready_update", bad_phase = "ready_update", bad_nan_vector = "vectors",
-		bad_draw_for_ballistic = "ballistic", bad_second_draw = "vectors", bad_negative_range = "vectors", bad_error = "ready_command",
-		bad_step_state = "weapon_step", bad_step_lookup_kind = "weapon_step", bad_step_action_kind = "weapon_step", bad_step_nonfinite = "weapon_step",
-		bad_step_repeat = "weapon_step", bad_step_error = "weapon_step", bad_step_draw = "weapon_step", bad_birth_action = "weapon_birth", bad_release_burst = "release" }
-	local kind = assert (kinds [mode], "unknown bad mode " .. mode)
-	local armed = true
-	provider = function (step)
-		local answer = reference (step)
-		if armed and step.mode == kind and (mode ~= "bad_second_draw" or step.draw ~= nil) and (mode ~= "bad_negative_range" or answer.state == "done")
-			and (mode ~= "bad_step_lookup_kind" or answer.state == "need_lookup") and (mode ~= "bad_step_action_kind" or answer.state == "done")
-			and (mode ~= "bad_step_nonfinite" or (answer.state == "done" and #answer.actions > 0)) and (mode ~= "bad_step_repeat" or #step.answers > 0)
-			and (mode ~= "bad_step_draw" or #step.draws >= 0) and (mode ~= "bad_birth_action" or answer.state == "done") then
-			armed = false
-			if mode == "bad_nil" then return nil
-			elseif mode == "bad_state" then return { state = "later" }
-			elseif mode == "bad_ready_state" then return { state = "done", ready_state = 5.0, phase = 0 }
-			elseif mode == "bad_phase" then return { state = "done", ready_state = 1.0, phase = 7 }
-			elseif mode == "bad_nan_vector" then answer.weapon_vector = { 0 / 0, 0, 0 } return answer
-			elseif mode == "bad_draw_for_ballistic" then return { state = "need_draw" }
-			elseif mode == "bad_second_draw" then return { state = "need_draw" }
-			elseif mode == "bad_negative_range" then answer.intercept_range = -1 return answer
-			elseif mode == "bad_error" or mode == "bad_step_error" then error ("provider failed on purpose")
-			elseif mode == "bad_birth_action" then answer.actions [1].kind = 1 return answer
-			elseif mode == "bad_release_burst" then return { state = "done", refuse = false, burst_size = 0 }
-			elseif mode == "bad_step_state" then return { state = "later" }
-			elseif mode == "bad_step_lookup_kind" then answer.lookups [1].kind = 99 return answer
-			elseif mode == "bad_step_action_kind" then if #answer.actions == 0 then answer.actions = { { kind = 99, a = 0, b = 0, c = 0, d = 0, f = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } } } else answer.actions [1].kind = 99 end return answer
-			elseif mode == "bad_step_nonfinite" then answer.actions [1].f [1] = 0 / 0 return answer
-			elseif mode == "bad_step_repeat" then
-				-- asks again for a lookup the campaign has just answered
-				local given = step.answers [1]
-				return { state = "need_lookup", lookups = { { kind = given.kind, a = given.a, b = given.b, c = given.c, d = given.d, f = { given.f [1], given.f [2], given.f [3], given.f [4], given.f [5], given.f [6], 0, 0, 0, 0, 0, 0 } } } }
-			elseif mode == "bad_step_draw" then
-				-- asks for a draw it has already used up, until the campaign's room for them is gone
-				return { state = "need_draw" }
-			end
-		end
-		return counted (step, answer)
-	end
+	provider = dofile (here .. "aim-malformed.lua") (mode, reference, counted)
 else
 	error ("unknown mode " .. mode)
 end
@@ -397,7 +289,9 @@ emit { event = "summary", mode = mode, frames = frames_run, failure = failure or
 	weapon_step_passes = steps.passes, weapon_step_done = steps.done, step_need_lookup = steps.need_lookup, step_need_draw = steps.need_draw,
 	kill_exhausted = steps.kills [1], kill_out_of_bounds = steps.kills [2], kill_hit_land = steps.kills [3], kill_hit_water = steps.kills [4], kill_hit_target = steps.kills [5],
 	kill_overshot = steps.kills [6], kill_self_destruct = steps.kills [7], births_done = steps.births, birth_velocity_sum = string.format ("%.9g", steps.birth_velocity),
-	releases = steps.releases, release_refused = steps.release_refused, release_rounds = steps.release_rounds }
+	releases = steps.releases, release_refused = steps.release_refused, release_rounds = steps.release_rounds,
+	decoy_updates = steps.decoy_updates, decoy_restarts = steps.decoy_restarts, seduce_asked = steps.seduce_asked, seduce_locked = steps.seduce_locked,
+	seduce_retargeted = steps.seduce_retargeted }
 out:close ()
 io.stderr:write (string.format ("aim-provider: mode=%s ready_update=%d ready_command=%d required=%d step=%d vectors=%d (valid %d invalid %d) lead=%d ballistic=%d intercept=%d need_draw=%d ready_moving=%d weapon_births=%d losses=%d failure=%s\n",
 	mode, counts.ready_update, counts.ready_command, counts.required, counts.step, counts.vectors, answers.valid, answers.invalid, counts.lead, counts.ballistic, counts.intercept,

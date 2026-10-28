@@ -44,3 +44,10 @@ The design is in [`docs/m5-weapon-execution.md`](../../docs/m5-weapon-execution.
 * `checks/cargo-test-s4-2.log`, `clippy-s4-default.log`, `clippy-s4-fixture.log`: the integrated source (flight, birth, release): eech-engine 44, eech-world 191 library, 19 binary, 8 host/Lua (incl. a parse of every shipped Lua script), actual exit 0; Clippy default and fixture, actual exit 0.
 * `checks/syntax-check-s4.log`: `controls/syntax-check2.sh`, the touched C sources compiled (syntax and warnings) with and without the fixture macro against the staged headers with the working tree's changed headers laid over them.
 * Earlier failures stay retained in the private evidence tree (`cargo-test-s2-1..3.log`, the first `World` alias collision and the NaN weight of a test gun with no motor times, both fixed in tests, not in the kernel, whose weight function is the original's).
+
+## Diagnostic native run of the flight, launch and release cut (`d71fec4fb`)
+
+`builds/BUILD-INFO-d71fec4fb-fixture.txt`, `builds/build-fixture-d71fec4fb.log`: clean fixture build (BUILD_EXIT 0, zero uncommitted inputs). This build still had the reviewed post-flight seam in the campaign and the five reviewed defects, so its runs are **diagnostic**, not acceptance.
+
+* `s4-600-a` (Lebanon, seed 1, 100 ms, 600 s): native exit 0 after 1,210 s; the trace is **byte-identical** to the retained original (3,097,859 bytes, SHA-256 `faa94591c299ddb3ae20fe8b8101a4317f431139871297e65703c042d6289c0b`); `tools/wpn-trace-compare.py` strict: 10,532 events, scopes boot, checkpoint, log and run, 0 differences. The live trace was also compared as a prefix against the original every 90 s while it grew (`tools/prefix-diff.py` in the private tree), equal at every sample.
+* The controlled launch witness on the same build is recorded with its result when it has completed.

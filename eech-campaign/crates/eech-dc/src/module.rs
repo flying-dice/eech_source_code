@@ -1,9 +1,9 @@
 //! The Lua surface of the module.
 
 use eech_engine::{
-    AimEvent, AimReply, AimRequest, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship, HelicopterGuidanceAnswer,
-    HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, MovementMode, MovementResult, MovementStep, SenseMessage,
-    SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor, VehiclePose, WeaponFigures,
+    AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship,
+    HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, MovementMode, MovementResult,
+    MovementStep, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor, VehiclePose, WeaponFigures,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -439,7 +439,7 @@ fn weapon_figures_table(lua: &Lua, figures: &WeaponFigures) -> Result<LuaTable, 
     }
     table.set("ignore_gravity", figures.ignore_gravity != 0).map_err(e)?;
     table.set("flight_profile_or_self_destr", figures.flight_profile_or_self_destr).map_err(e)?;
-    table.set("parachute_type", figures.parachute_type != 0).map_err(e)?;
+    table.set("parachute_type", figures.parachute_type).map_err(e)?;
     table.set("weapon_class", figures.weapon_class).map_err(e)?;
     table.set("survive_ground_impact", figures.survive_ground_impact).map_err(e)?;
     table.set("in_flight_collision_check", figures.in_flight_collision_check).map_err(e)?;
@@ -486,9 +486,24 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
         }
         AimRequest::WeaponStep(data) => {
             let state = &data.state;
-            table.set("mode", if data.birth { "weapon_birth" } else { "weapon_step" }).map_err(e)?;
-            if data.birth {
+            table
+                .set(
+                    "mode",
+                    match data.kind {
+                        AimStepKind::Step => "weapon_step",
+                        AimStepKind::Birth => "weapon_birth",
+                        AimStepKind::Decoy => "weapon_decoy",
+                        AimStepKind::Seduce => "weapon_seduce",
+                    },
+                )
+                .map_err(e)?;
+            if data.kind == AimStepKind::Birth {
                 table.set("submunition", state.submunition).map_err(e)?;
+            }
+            if data.kind == AimStepKind::Seduce {
+                table.set("other_weapon", state.other_weapon).map_err(e)?;
+                table.set("coefficient", state.coefficient).map_err(e)?;
+                table.set("effectiveness", state.effectiveness.to_vec()).map_err(e)?;
             }
             table.set("echo", data.echo).map_err(e)?;
             table.set("weapon", data.weapon).map_err(e)?;
@@ -517,6 +532,14 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
             }
             table.set("answers", answers).map_err(e)?;
             table.set("draws", data.draws.clone()).map_err(e)?;
+        }
+        AimRequest::Animate(data) => {
+            table.set("mode", "animate").map_err(e)?;
+            table.set("weapon", data.weapon).map_err(e)?;
+            table.set("parachute_status", data.parachute_status).map_err(e)?;
+            table.set("weapon_on_ground", data.weapon_on_ground).map_err(e)?;
+            table.set("weapon_lifetime", data.weapon_lifetime).map_err(e)?;
+            table.set("motion_vector_y", data.motion_vector_y).map_err(e)?;
         }
         AimRequest::Release(data) => {
             table.set("mode", "release").map_err(e)?;
@@ -804,6 +827,13 @@ fn call_aim(lua: &Lua, function: &LuaFunction, request: AimRequest) -> Result<Ai
         AimRequest::Range(_) | AimRequest::Figures(_) => {}
         AimRequest::WeaponStep(_) => {
             reply.actions = aim_event_list(lua, &table, "actions")?;
+        }
+        AimRequest::Animate(_) => {
+            reply.animate_status = aim_integer(&table, "parachute_status")?;
+            reply.animate_lifetime = match table.get::<LuaValue>("weapon_lifetime").map_err(|e| e.to_string())? {
+                LuaValue::Nil => None,
+                _ => Some(number("weapon_lifetime")?),
+            };
         }
         AimRequest::Release(_) => {
             reply.release_refuse = aim_boolean(&table, "refuse")?;

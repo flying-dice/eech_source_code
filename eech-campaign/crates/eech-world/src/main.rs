@@ -186,7 +186,7 @@ fn weapon_figures(lua: &Lua, request: &LuaTable) -> Result<flight::Figures, Stri
     figures.max_altitude = max_altitude;
     figures.ignore_gravity = i32::from(flag("ignore_gravity")?);
     figures.flight_profile_or_self_destr = i32::try_from(integer("flight_profile_or_self_destr")?).map_err(|e| e.to_string())?;
-    figures.parachute_type = i32::from(flag("parachute_type")?);
+    figures.parachute_type = i32::try_from(integer("parachute_type")?).map_err(|e| e.to_string())?;
     figures.weapon_class = u32::try_from(integer("weapon_class")?).map_err(|e| e.to_string())?;
     figures.cruise_time_max_error = cruise_time_max_error;
     figures.detonation_radius = detonation_radius;
@@ -1812,10 +1812,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         aim.borrow_mut().set_figures(weapon, &figures).map_err(fail)?;
                         result.set("state", "done")?;
                     }
-                    "weapon_step" | "weapon_birth" => {
+                    "weapon_step" | "weapon_birth" | "weapon_decoy" | "weapon_seduce" => {
                         // one frame of one weapon's flight, or its birth: the weapon in, the lookups it still needs or the ordered actions it leaves out (flight.rs weapon_step,
                         // weapon_birth)
-                        let birth = mode == "weapon_birth";
+                        let (birth, decoy, seduce) = (mode == "weapon_birth", mode == "weapon_decoy", mode == "weapon_seduce");
                         let weapon = lua_i32(&step, "weapon").map_err(fail)?;
                         let echo = echo_of()?;
                         let [delta_time, velocity, weapon_lifetime, decoy_timer] =
@@ -1843,6 +1843,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             has_target: flag(&step, "has_target")?,
                             server: flag(&step, "server")?,
                             submunition: birth && flag(&step, "submunition")?,
+                            coefficient: if seduce { one(&step, "coefficient")? } else { 0.0 },
+                            effectiveness: if seduce {
+                                exact_numbers::<3>(lua, &step, "effectiveness").map_err(fail)?
+                            } else {
+                                [0.0; 3]
+                            },
                             map_min: exact_numbers::<3>(lua, &step, "map_min").map_err(fail)?,
                             map_max: exact_numbers::<3>(lua, &step, "map_max").map_err(fail)?,
                             echo,
@@ -1851,6 +1857,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         let draws = step.get::<Vec<i32>>("draws")?;
                         let outcome = if birth {
                             aim.borrow().weapon_birth(weapon, &input, &answers, &draws)
+                        } else if decoy {
+                            aim.borrow().weapon_decoy(weapon, &input, &answers, &draws)
+                        } else if seduce {
+                            let decoy_weapon = lua_i32(&step, "other_weapon").map_err(fail)?;
+                            aim.borrow().weapon_seduce(weapon, decoy_weapon, &input, &answers, &draws)
                         } else {
                             aim.borrow().weapon_step(weapon, &input, &answers, &draws)
                         }
@@ -1894,6 +1905,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     echo_into(&Some(echoed))?;
                                 }
                             }
+                        }
+                    }
+                    "animate" => {
+                        // one frame of a falling weapon's parachute (flight.rs animate)
+                        let weapon = lua_i32(&step, "weapon").map_err(fail)?;
+                        let outcome = aim
+                            .borrow()
+                            .animate(
+                                weapon,
+                                &flight::AnimateInput {
+                                    parachute_status: lua_i32(&step, "parachute_status").map_err(fail)?,
+                                    weapon_on_ground: flag(&step, "weapon_on_ground")?,
+                                    weapon_lifetime: one(&step, "weapon_lifetime")?,
+                                    motion_vector_y: one(&step, "motion_vector_y")?,
+                                },
+                            )
+                            .map_err(fail)?;
+                        result.set("state", "done")?;
+                        result.set("parachute_status", outcome.parachute_status)?;
+                        if let Some(lifetime) = outcome.weapon_lifetime {
+                            result.set("weapon_lifetime", lifetime)?;
                         }
                     }
                     "release" => {

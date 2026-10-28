@@ -297,6 +297,9 @@ struct RawStepIn {
     answer_count: c_int,
     draws: *const c_int,
     draw_count: c_int,
+    other: *const Figures,
+    coefficient: f32,
+    effectiveness: [f32; 3],
 }
 
 /// `wf_step_out`.
@@ -317,7 +320,77 @@ struct RawStepOut {
 extern "C" {
     fn eech_wn_weapon_step(input: *const RawStepIn, output: *mut RawStepOut) -> c_int;
     fn eech_wn_weapon_birth(input: *const RawStepIn, output: *mut RawStepOut) -> c_int;
+    fn eech_wn_weapon_decoy(input: *const RawStepIn, output: *mut RawStepOut) -> c_int;
+    fn eech_wn_weapon_seduce(input: *const RawStepIn, output: *mut RawStepOut) -> c_int;
+    fn eech_wn_weapon_animate(input: *const RawAnimateIn, output: *mut RawAnimateOut);
     fn eech_wn_release(input: *const RawReleaseIn, output: *mut RawReleaseOut);
+}
+
+/// `wf_animate_in`.
+#[repr(C)]
+struct RawAnimateIn {
+    figures: *const Figures,
+    parachute_status: c_int,
+    weapon_on_ground: c_int,
+    weapon_lifetime: f32,
+    motion_vector_y: f32,
+}
+
+/// `wf_animate_out`.
+#[repr(C)]
+#[derive(Default)]
+struct RawAnimateOut {
+    failed: c_int,
+    parachute_status: c_int,
+    write_lifetime: c_int,
+    weapon_lifetime: f32,
+}
+
+/// What the parachute animation of a weapon needs: its parachute, whether it rests on the ground, its lifetime and how it is moving vertically.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AnimateInput {
+    pub parachute_status: i32,
+    pub weapon_on_ground: bool,
+    pub weapon_lifetime: f32,
+    pub motion_vector_y: f32,
+}
+
+/// What the animation left: the parachute's state, and the weapon's lifetime when the animation reset it.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AnimateOutcome {
+    pub parachute_status: i32,
+    pub weapon_lifetime: Option<f32>,
+}
+
+/// The number of states a parachute has (closed, three phases of opening, collapsed).
+const PARACHUTE_STATES: i32 = 5;
+
+/// One frame of a falling crate's or ejector seat's parachute (`update_weapon_ejector_seat_animation`, `update_weapon_crate_animation`), by the host's figures for it. A
+/// weapon with no parachute is left as it is. An error for a state that is not a parachute's or a number that is not finite.
+pub fn animate(figures: &Figures, input: &AnimateInput) -> Result<AnimateOutcome, String> {
+    if !input.weapon_lifetime.is_finite() || !input.motion_vector_y.is_finite() {
+        return Err("the animation's lifetime and motion must be finite".into());
+    }
+    if !(0..PARACHUTE_STATES).contains(&input.parachute_status) {
+        return Err(format!("{} is not a parachute state", input.parachute_status));
+    }
+    let raw = RawAnimateIn {
+        figures,
+        parachute_status: input.parachute_status,
+        weapon_on_ground: c_int::from(input.weapon_on_ground),
+        weapon_lifetime: input.weapon_lifetime,
+        motion_vector_y: input.motion_vector_y,
+    };
+    let mut out = RawAnimateOut::default();
+    // SAFETY: the figures and both structures are valid for the call.
+    unsafe { eech_wn_weapon_animate(&raw, &mut out) };
+    if out.failed != 0 || !(0..PARACHUTE_STATES).contains(&out.parachute_status) {
+        return Err("the parachute animation reached a state it cannot continue from".into());
+    }
+    Ok(AnimateOutcome {
+        parachute_status: out.parachute_status,
+        weapon_lifetime: (out.write_lifetime != 0).then_some(out.weapon_lifetime),
+    })
 }
 
 /// `wf_release_in`.
@@ -402,6 +475,9 @@ pub struct StepInput {
     pub has_target: bool,
     pub server: bool,
     pub submunition: bool,
+    /// A seduction only: the difficulty coefficient and the chaff, flare and smoke effectiveness settings the campaign gives.
+    pub coefficient: f32,
+    pub effectiveness: [f32; 3],
     pub map_min: [f32; 3],
     pub map_max: [f32; 3],
     pub echo: bool,
@@ -426,16 +502,46 @@ pub struct StepOutcome {
 /// Runs one pass of a weapon's step. The figures are the host's own for the weapon; `answers` are the lookups answered so far and `draws` the samples of the campaign's random
 /// stream given so far. An error for a state the step cannot run on or a failure of the step itself (the weapon asks for what it does not have).
 pub fn weapon_step(figures: &Figures, input: &StepInput, answers: &[StepEvent], draws: &[i32]) -> Result<StepOutcome, String> {
-    run_step(figures, input, answers, draws, false)
+    run_step(figures, input, answers, draws, StepKind::Step, None)
+}
+
+/// What a request of the step protocol asks the host for.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum StepKind {
+    /// A frame of a weapon's flight.
+    Step,
+    /// A weapon's birth.
+    Birth,
+    /// A decoy's update: its timer.
+    Decoy,
+    /// A seeker's answer to a decoy becoming active.
+    Seduce,
+}
+
+/// Runs one pass of a decoy's update: the timer runs down and, when it runs out, restarts at a time drawn from the campaign's stream.
+pub fn weapon_decoy(figures: &Figures, input: &StepInput, answers: &[StepEvent], draws: &[i32]) -> Result<StepOutcome, String> {
+    run_step(figures, input, answers, draws, StepKind::Decoy, None)
+}
+
+/// Runs one pass of a seeker's answer to a decoy becoming active: `figures` are the seeker's, `decoy` the decoy's.
+pub fn weapon_seduce(figures: &Figures, decoy: &Figures, input: &StepInput, answers: &[StepEvent], draws: &[i32]) -> Result<StepOutcome, String> {
+    run_step(figures, input, answers, draws, StepKind::Seduce, Some(decoy))
 }
 
 /// Runs one pass of a weapon's birth: the launch kinematics of a weapon the launcher has just let go (`input.position` and `input.attitude` are the pose it left the
 /// launcher in; `input.velocity` is the parent weapon's velocity for a submunition).
 pub fn weapon_birth(figures: &Figures, input: &StepInput, answers: &[StepEvent], draws: &[i32]) -> Result<StepOutcome, String> {
-    run_step(figures, input, answers, draws, true)
+    run_step(figures, input, answers, draws, StepKind::Birth, None)
 }
 
-fn run_step(figures: &Figures, input: &StepInput, answers: &[StepEvent], draws: &[i32], birth: bool) -> Result<StepOutcome, String> {
+fn run_step(
+    figures: &Figures,
+    input: &StepInput,
+    answers: &[StepEvent],
+    draws: &[i32],
+    kind: StepKind,
+    other: Option<&Figures>,
+) -> Result<StepOutcome, String> {
     let finite = |what: &str, values: &[f32]| -> Result<(), String> {
         if values.iter().all(|value| value.is_finite()) {
             Ok(())
@@ -450,6 +556,8 @@ fn run_step(figures: &Figures, input: &StepInput, answers: &[StepEvent], draws: 
     finite("state", &[input.velocity, input.weapon_lifetime, input.decoy_timer])?;
     finite("map extent", &input.map_min)?;
     finite("map extent", &input.map_max)?;
+    finite("seduction setting", &[input.coefficient])?;
+    finite("seduction setting", &input.effectiveness)?;
     if answers.len() > STEP_ANSWERS_MAX {
         return Err(format!(
             "the weapon step was given {} lookup answers, more than the {STEP_ANSWERS_MAX} it takes",
@@ -492,15 +600,19 @@ fn run_step(figures: &Figures, input: &StepInput, answers: &[StepEvent], draws: 
         answer_count: answers.len() as c_int,
         draws: draws.as_ptr(),
         draw_count: draws.len() as c_int,
+        other: other.map_or(std::ptr::null(), std::ptr::from_ref),
+        coefficient: input.coefficient,
+        effectiveness: input.effectiveness,
     };
     // SAFETY: plain data; all-zero is a valid value of every field. Boxed because the output is several kilobytes.
     let mut out: Box<RawStepOut> = Box::new(unsafe { std::mem::zeroed() });
     // SAFETY: the figures, the answers and the draws are valid for the call and the counts passed are their lengths; the output is a writable `RawStepOut`.
     let status = unsafe {
-        if birth {
-            eech_wn_weapon_birth(&raw, &mut *out)
-        } else {
-            eech_wn_weapon_step(&raw, &mut *out)
+        match kind {
+            StepKind::Step => eech_wn_weapon_step(&raw, &mut *out),
+            StepKind::Birth => eech_wn_weapon_birth(&raw, &mut *out),
+            StepKind::Decoy => eech_wn_weapon_decoy(&raw, &mut *out),
+            StepKind::Seduce => eech_wn_weapon_seduce(&raw, &mut *out),
         }
     };
     if status != 0 || out.failed != 0 {

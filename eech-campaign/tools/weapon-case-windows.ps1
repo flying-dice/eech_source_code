@@ -6,6 +6,7 @@
 #   -Out      the directory for trace.jsonl, run.log and run.out
 #   -Warmup   simulated seconds the war runs before the controlled calls (default 60)
 #   -Settle   simulated seconds allowed for the case weapons to reach their terminal fact (the CAP; default 700)
+#   -AimModel own_model runs the controlled launches under a generic host with a model of its own (lua/own-model.lua) and writes its call counts to trace.jsonl.model.json
 #
 # The native exit is the script's exit (nonzero when a check failed or the engine stopped). The paths must hold no spaces (use a subst drive): the native argv is not quoted here.
 param(
@@ -14,7 +15,8 @@ param(
 	[Parameter(Mandatory = $true)] [string] $Out,
 	[int] $Warmup = 60,
 	[int] $Settle = 700,
-	[int] $FrameMs = 100
+	[int] $FrameMs = 100,
+	[string] $AimModel = ''
 )
 $ErrorActionPreference = 'Stop'
 $bin = (Resolve-Path $Bin).Path
@@ -24,7 +26,8 @@ New-Item -ItemType Directory -Force $Out | Out-Null
 $out = (Resolve-Path $Out).Path
 foreach ($p in @($bin, $Root, $out)) { if ($p -match '\s') { throw "path with a space: $p" } }
 $script = (Join-Path $bin 'lua\weapon-case.lua') -replace '\\', '/'
-$arguments = @($script, "root=$($Root -replace '\\', '/')", "warmup=$Warmup", "settle=$Settle", "frame_ms=$FrameMs", "out=$((Join-Path $out 'trace.jsonl') -replace '\\', '/')") -join ' '
+$arguments = @($script, "root=$($Root -replace '\\', '/')", "warmup=$Warmup", "settle=$Settle", "frame_ms=$FrameMs", "out=$((Join-Path $out 'trace.jsonl') -replace '\\', '/')") + $(if ($AimModel) { @("aim_model=$AimModel") } else { @() })
+$arguments = $arguments -join ' '
 $start = Get-Date
 $proc = Start-Process -FilePath $world -WorkingDirectory $out -NoNewWindow -PassThru -RedirectStandardError (Join-Path $out 'run.log') `
 	-RedirectStandardOutput (Join-Path $out 'run.out') -ArgumentList $arguments

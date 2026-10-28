@@ -81,7 +81,13 @@ enum campaign_aim_mode
 	/* one weapon's birth (EEDCS-45): the launch kinematics of a weapon the launcher has just let go, in the same protocol as the step */
 	CAMPAIGN_AIM_WEAPON_BIRTH,
 	/* the rate-of-fire gate of a launcher releasing a weapon: how many rounds it lets go, or none */
-	CAMPAIGN_AIM_RELEASE
+	CAMPAIGN_AIM_RELEASE,
+	/* one frame of a falling weapon's parachute (a crate's or an ejector seat's) */
+	CAMPAIGN_AIM_ANIMATE,
+	/* a decoy's update: its timer, and the restart drawn from the shared stream when it runs out (the step protocol) */
+	CAMPAIGN_AIM_WEAPON_DECOY,
+	/* a seeker's answer to a decoy becoming active: whether it goes for the decoy (the step protocol) */
+	CAMPAIGN_AIM_WEAPON_SEDUCE
 };
 
 enum campaign_aim_state
@@ -157,9 +163,11 @@ enum campaign_step_action
 	CAMPAIGN_STEP_ACTION_SPAWN,				/* a the number of submunitions, f0 their parent velocity: they leave from the weapon as it is now */
 	CAMPAIGN_STEP_ACTION_TACVIEW,			/* the weapon is written to the Tacview recording, if one is open */
 	CAMPAIGN_STEP_ACTION_POSITION,			/* f0..f2 the weapon's position */
-	CAMPAIGN_STEP_ACTION_TARGET_LINK,		/* a: 0 the weapon has no target now, 1 its target is the launcher's, 2 its target is the one the collision lookup hit */
+	CAMPAIGN_STEP_ACTION_TARGET_LINK,		/* a: 0 the weapon has no target now, 1 its target is the launcher's, 2 its target is what a collision lookup hit: b the target that lookup was about and f0..f5 its segment name it */
 	CAMPAIGN_STEP_ACTION_SMOKE_EFFECT,		/* the killed-explosion effect, with the kill code at hit-land for its duration */
 	CAMPAIGN_STEP_ACTION_BIRTH,				/* a birth: f0 the velocity the weapon leaves with, f1 its lifetime, f2 its decoy or fuze timer */
+	CAMPAIGN_STEP_ACTION_DECOY,				/* a decoy's update: a the timer ran out and restarted (the campaign tells the seekers locked on its launcher), f0 the timer now */
+	CAMPAIGN_STEP_ACTION_SEDUCE,			/* a seeker's answer to a decoy becoming active: a it was drawn to it, b it goes for it (the campaign makes the link) */
 	CAMPAIGN_STEP_ACTIONS
 };
 
@@ -258,6 +266,10 @@ typedef struct campaign_weapon_state
 	int server;
 	/* a birth: the weapon is a submunition, and `velocity` is its parent weapon's */
 	int submunition;
+	/* a seduction: the decoy's weapon number, the difficulty coefficient, and the chaff, flare and smoke effectiveness settings (campaign settings, given as figures) */
+	int other_weapon;
+	float coefficient;
+	float effectiveness[3];
 } campaign_weapon_state;
 
 typedef struct campaign_aim_step
@@ -346,6 +358,12 @@ typedef struct campaign_aim_step
 	int release_has_timer;
 	unsigned int release_last_shot;
 	int release_not_ai;
+
+	/* ANIMATE: the weapon's parachute, whether it rests on the ground, its lifetime and its vertical motion */
+	int animate_status;
+	int animate_on_ground;
+	float animate_lifetime;
+	float animate_motion_y;
 } campaign_aim_step;
 
 typedef struct campaign_aim_result
@@ -391,6 +409,10 @@ typedef struct campaign_aim_result
 	int release_burst_size;
 	int release_write_last_shot;
 	unsigned int release_last_shot;
+	/* ANIMATE: the parachute's state, and the weapon's lifetime when the animation reset it */
+	int animate_status;
+	int animate_write_lifetime;
+	float animate_lifetime;
 } campaign_aim_result;
 
 typedef int (*campaign_aim_fn)
@@ -410,6 +432,32 @@ typedef struct campaign_aim_host
 
 struct ENTITY;
 struct VEC3D;
+
+/* WEAPON_STEP: what each collision lookup of one step found, by the question it was asked (the target it was about and the segment).  The questions are public; what
+   they found is the campaign's own entity, which never crosses the boundary: a target-link action names the question, and the campaign finds its own answer.  A host
+   may ask several collision questions in a step and choose among the answers. */
+#define CAMPAIGN_STEP_HITS_MAX 16
+
+typedef struct campaign_step_hit
+{
+	int which;
+	float segment[6];
+	struct ENTITY *entity;
+} campaign_step_hit;
+
+typedef struct campaign_step_hits
+{
+	int count;
+	campaign_step_hit hit[CAMPAIGN_STEP_HITS_MAX];
+} campaign_step_hits;
+
+void campaign_step_hits_clear (campaign_step_hits *hits);
+
+/* records what the collision question (which, segment) found (a miss is a NULL entity); a question answered twice, or more than the room, stops the engine */
+void campaign_step_hits_add (campaign_step_hits *hits, int which, const float *segment, struct ENTITY *entity);
+
+/* what the collision question (which, segment) found: whether it was asked and answered, and the entity it hit (NULL for a miss) */
+int campaign_step_hits_find (const campaign_step_hits *hits, int which, const float *segment, struct ENTITY **entity);
 
 void campaign_aim_set_host (const campaign_aim_host *host);
 
@@ -436,7 +484,10 @@ typedef void (*campaign_step_answer_fn) (const campaign_aim_event *lookup, campa
 /* The rate-of-fire gate of a launcher releasing a weapon (CAMPAIGN_AIM_RELEASE). */
 campaign_aim_result campaign_aim_release (int weapon, int has_timer, unsigned int last_shot, int not_ai);
 
-/* Runs one weapon's step or birth (the request's mode says which) to its end: asks the host, answers the lookups it needs and takes the draws it asks for, and asks again, until it is done (at most
+/* One frame of a falling weapon's parachute (CAMPAIGN_AIM_ANIMATE). */
+campaign_aim_result campaign_aim_animate (int weapon, int status, int on_ground, float lifetime, float motion_y);
+
+/* Runs one weapon's step, birth, decoy update or seduction (the request's mode says which) to its end: asks the host, answers the lookups it needs and takes the draws it asks for, and asks again, until it is done (at most
    CAMPAIGN_STEP_ROUNDS_MAX rounds).  `step` carries the weapon and is the campaign's to fill; the result holds the actions (and the echo the fixture build asked for). */
 campaign_aim_result campaign_aim_weapon_step (campaign_aim_step *step, campaign_step_answer_fn answer, void *context);
 

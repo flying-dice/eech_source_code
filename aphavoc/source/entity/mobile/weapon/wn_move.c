@@ -143,11 +143,13 @@ typedef struct weapon_step_context
 {
 	entity
 		*en,
-		*launcher_target,
-		*hit_target;
+		*launcher_target;
 
 	weapon
 		*raw;
+
+	campaign_step_hits
+		hits;
 } weapon_step_context;
 
 // the target a lookup is about: which = 0 the weapon's own target as the step began, 1 the launcher's target (once a lookup has asked for it), -1 none
@@ -463,7 +465,7 @@ static void answer_weapon_step_lookup (const campaign_aim_event *lookup, campaig
 
 			hit = get_line_of_sight_collision_entity (get_local_entity_parent (context->en, LIST_TYPE_LAUNCHED_WEAPON), NULL, &p, &q, &intercept, &face_normal);
 
-			context->hit_target = hit;
+			campaign_step_hits_add (&context->hits, lookup->a, lookup->f, hit);
 
 			r[0] = hit ? 1.0 : 0.0;
 
@@ -611,9 +613,15 @@ static void apply_weapon_step_action (weapon_step_context *context, const campai
 			}
 			else if (action->a == 2)
 			{
-				if (!context->hit_target)
+				entity
+					*hit_target;
+
+				// what the collision question the action names found: the question is public, the entity never was
+				hit_target = NULL;
+
+				if (!campaign_step_hits_find (&context->hits, action->b, action->f, &hit_target) || !hit_target)
 				{
-					debug_fatal ("host aim: a weapon step switched the weapon to a target it did not hit");
+					debug_fatal ("host aim: a weapon step switched the weapon to a target that the collision question it names did not hit");
 				}
 
 				//
@@ -622,7 +630,7 @@ static void apply_weapon_step_action (weapon_step_context *context, const campai
 
 				delete_local_entity_from_parents_child_list (en, LIST_TYPE_TARGET);
 
-				insert_local_entity_into_parents_child_list (en, LIST_TYPE_TARGET, context->hit_target, NULL);
+				insert_local_entity_into_parents_child_list (en, LIST_TYPE_TARGET, hit_target, NULL);
 			}
 			else
 			{
@@ -875,7 +883,8 @@ static void fill_weapon_figures (campaign_weapon_figures *figures, entity_sub_ty
 	figures->max_altitude = data->max_altitude;
 	figures->ignore_gravity = data->ignore_gravity;
 	figures->flight_profile_or_self_destr = data->flight_profile_or_self_destr;
-	figures->parachute_type = (wpn_type == ENTITY_SUB_TYPE_WEAPON_HOKUM_PILOT) || (wpn_type == ENTITY_SUB_TYPE_WEAPON_HOKUM_CO_PILOT) || (wpn_type == ENTITY_SUB_TYPE_WEAPON_CRATE);
+	// the parachute a falling weapon opens: 0 none, 1 an ejector seat, 2 a crate
+	figures->parachute_type = ((wpn_type == ENTITY_SUB_TYPE_WEAPON_HOKUM_PILOT) || (wpn_type == ENTITY_SUB_TYPE_WEAPON_HOKUM_CO_PILOT)) ? 1 : ((wpn_type == ENTITY_SUB_TYPE_WEAPON_CRATE) ? 2 : 0);
 	figures->weapon_class = data->weapon_class;
 
 	figures->cruise_time_max_error = data->cruise_time_max_error;

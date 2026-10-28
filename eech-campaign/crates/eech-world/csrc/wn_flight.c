@@ -1037,9 +1037,11 @@ enum
 	WA_SPAWN,				/* a the number of submunitions, f0 their parent velocity: they leave from the weapon as it is now */
 	WA_TACVIEW,				/* the weapon is written to the Tacview recording, if one is open */
 	WA_POSITION,			/* f0..f2 the weapon's position */
-	WA_TARGET_LINK,			/* a: 0 the weapon has no target now, 1 its target is the launcher's, 2 its target is the one the collision lookup hit */
+	WA_TARGET_LINK,			/* a: 0 the weapon has no target now, 1 its target is the launcher's, 2 its target is what a collision lookup hit: b the target that lookup was about and f0..f5 its segment name it */
 	WA_SMOKE_EFFECT,		/* the killed-explosion effect, with the kill code at hit-land for its duration */
 	WA_BIRTH,				/* a birth: f0 the velocity the weapon leaves with, f1 its lifetime, f2 its decoy or fuze timer */
+	WA_DECOY,				/* a decoy's update: a the timer ran out and restarted (the campaign tells the seekers locked on its launcher), f0 the timer now */
+	WA_SEDUCE,				/* a seeker's answer to a decoy becoming active: a it was drawn to it, b it goes for it (the campaign makes the link) */
 	WA_KINDS
 };
 
@@ -1119,6 +1121,10 @@ typedef struct wf_step_in
 	int answer_count;
 	const int *draws;
 	int draw_count;
+	/* a seduction: the decoy's figures, the difficulty coefficient and the chaff, flare and smoke effectiveness settings the campaign gives */
+	const wf_figures *other;
+	float coefficient;
+	float effectiveness[3];
 } wf_step_in;
 
 typedef struct wf_step_out
@@ -1285,7 +1291,26 @@ static const wf_event *wf_find(wf_run *r, const wf_query *q)
 	return NULL;
 }
 
-/* Asks for a batch of lookups: when every one is answered, returns; otherwise records each one that is not (a batch is asked for in one round) and stops the step. */
+/* whether the same question is already among the lookups this pass has recorded */
+static int wf_recorded(const wf_run *r, const wf_query *q)
+{
+	int i;
+
+	for (i = 0; i < r->out->lookup_count; i++)
+	{
+		const wf_event *e = &r->out->lookups[i];
+
+		if (e->kind == q->kind && e->a == q->a && e->b == q->b && e->c == q->c && e->d == q->d && memcmp(e->f, q->f, sizeof(q->f)) == 0)
+		{
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+/* Asks for a batch of lookups: when every one is answered, returns; otherwise records each one that is not (a batch is asked for in one round) and stops the step.  The same
+   question twice in a batch (a weapon that did not move asks for the ground under one point ten times) is asked once, at its first place. */
 static void wf_need(wf_run *r, const wf_query *queries, int count)
 {
 	int i, missing = 0;
@@ -1295,6 +1320,11 @@ static void wf_need(wf_run *r, const wf_query *queries, int count)
 		if (!wf_find(r, &queries[i]))
 		{
 			missing++;
+
+			if (wf_recorded(r, &queries[i]))
+			{
+				continue;
+			}
 
 			if (r->out->lookup_count >= WF_LOOKUPS_MAX)
 			{
@@ -2555,7 +2585,18 @@ static void wf_weapon_movement(wf_run *r)
 		{
 			if (high_precision_collision || (!r->has_target))
 			{
-				const float *hit = wf_ask(r, wf_q(WL_COLLISION, wf_target_which(r), 0, 0, 0, old_position.x, old_position.y, old_position.z, new_position.x, new_position.y, new_position.z));
+				float asked[6];
+				int asked_which = wf_target_which(r);
+				const float *hit;
+
+				asked[0] = old_position.x;
+				asked[1] = old_position.y;
+				asked[2] = old_position.z;
+				asked[3] = new_position.x;
+				asked[4] = new_position.y;
+				asked[5] = new_position.z;
+
+				hit = wf_ask(r, wf_q(WL_COLLISION, asked_which, 0, 0, 0, asked[0], asked[1], asked[2], asked[3], asked[4], asked[5]));
 
 				{
 					float f[6];
@@ -2582,10 +2623,10 @@ static void wf_weapon_movement(wf_run *r)
 					if (hit[1] != 0.0f)
 					{
 						//
-						// switch target parent to new_target (on server only)
+						// switch target parent to new_target (on server only): to what the lookup just made found
 						//
 
-						wf_action(r, WA_TARGET_LINK, 2, 0, 0, NULL, 0);
+						wf_action(r, WA_TARGET_LINK, 2, asked_which, 0, asked, 6);
 					}
 
 					wf_echo_path(r, WP_CONTACT_TARGET);
@@ -3215,4 +3256,373 @@ void eech_wn_release(const wf_release_in *in, wf_release_out *out)
 	}
 
 	out->burst_size = burst_size;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* after the flight (EEDCS-45): what a weapon does between its movement and its death, expression for expression.
+ *
+ * Three physical things the original did in the weapon's update after weapon_movement, none of them rendering:
+ *   - the parachute (update_weapon_ejector_seat_animation, update_weapon_crate_animation): a falling crate or ejector seat opens its parachute in phases, and a crate's phases
+ *     reset its lifetime; the parachute's state is the drag the flight is flown by;
+ *   - the decoy (update_decoy): a decoy's timer runs down, and when it runs out it restarts at a time drawn from the shared stream;
+ *   - the seeker's seduction (response_to_decoy_active, get_weapon_locked_onto_decoy): whether a weapon locked on a launcher whose decoy has just become active goes for the
+ *     decoy instead, from the decoy's kind, the seeker's kind and a sample of the shared stream.
+ * The campaign keeps what is its own: which weapons are locked on which launcher (it tells the seeker that a decoy became active), the difficulty and effectiveness settings
+ * (they go in as figures), and the link it makes when the host says a seeker was seduced.
+ */
+#define WF_PARACHUTE_CLOSED 0
+#define WF_PARACHUTE_OPEN1 1
+#define WF_PARACHUTE_OPEN2 2
+#define WF_PARACHUTE_OPEN3 3
+#define WF_PARACHUTE_COLLAPSED 4
+
+typedef struct wf_animate_in
+{
+	const wf_figures *figures;
+	int parachute_status;
+	int weapon_on_ground;
+	float weapon_lifetime;
+	float motion_vector_y;
+} wf_animate_in;
+
+typedef struct wf_animate_out
+{
+	int failed;
+	int parachute_status;
+	int write_lifetime;
+	float weapon_lifetime;
+} wf_animate_out;
+
+void eech_wn_weapon_animate(const wf_animate_in *in, wf_animate_out *out)
+{
+	float lifetime = in->weapon_lifetime;
+	int status = in->parachute_status;
+
+	memset(out, 0, sizeof(*out));
+
+	switch (in->figures->parachute_type)
+	{
+		////////////////////////////////////////
+		case 1:		/* an ejector seat (update_weapon_ejector_seat_animation) */
+		////////////////////////////////////////
+		{
+			switch (status)
+			{
+				case WF_PARACHUTE_CLOSED:
+				{
+					if ((lifetime < -1.0) && (in->motion_vector_y < 0.0))
+						status = WF_PARACHUTE_OPEN1;
+
+					break;
+				}
+				case WF_PARACHUTE_OPEN1:
+				{
+					if (lifetime < -1.1)
+					{
+						status = WF_PARACHUTE_OPEN2;
+					}
+
+					break;
+				}
+				case WF_PARACHUTE_OPEN2:
+				{
+					if (lifetime < 1.2)
+					{
+						status = WF_PARACHUTE_OPEN3;
+					}
+
+					break;
+				}
+				case WF_PARACHUTE_OPEN3:
+				{
+					break;
+				}
+				default:
+				{
+					out->failed = 1;
+				}
+			}
+
+			break;
+		}
+		////////////////////////////////////////
+		case 2:		/* a crate (update_weapon_crate_animation) */
+		////////////////////////////////////////
+		{
+			if (in->weapon_on_ground)
+			{
+				status = WF_PARACHUTE_COLLAPSED;
+			}
+
+			switch (status)
+			{
+				case WF_PARACHUTE_CLOSED:
+				{
+					if ((lifetime < - 0.5) && (in->motion_vector_y < 0.0))
+					{
+						status = WF_PARACHUTE_OPEN1;
+
+						out->write_lifetime = 1;
+						out->weapon_lifetime = 0.0;
+					}
+
+					break;
+				}
+				case WF_PARACHUTE_OPEN1:
+				{
+					if (lifetime < - 0.6)
+					{
+						status = WF_PARACHUTE_OPEN2;
+
+						out->write_lifetime = 1;
+						out->weapon_lifetime = 0.0;
+					}
+
+					break;
+				}
+				case WF_PARACHUTE_OPEN2:
+				{
+					if (lifetime < - 0.7)
+					{
+						status = WF_PARACHUTE_OPEN3;
+
+						out->write_lifetime = 1;
+						out->weapon_lifetime = 0.0;
+					}
+
+					break;
+				}
+				case WF_PARACHUTE_OPEN3:
+				case WF_PARACHUTE_COLLAPSED:
+				{
+					break;
+				}
+				default:
+				{
+					out->failed = 1;
+				}
+			}
+
+			break;
+		}
+		default:
+		{
+			/* a weapon with no parachute has no animation to run */
+			break;
+		}
+	}
+
+	out->parachute_status = status;
+}
+
+/* get_decoy_timer_restart_value (wn_decoy.c) */
+static float wf_decoy_timer_restart_value(wf_run *r, int type)
+{
+	float timer;
+
+	switch (type)
+	{
+		case WF_DECOY_NONE:
+		{
+			timer = 0.0;
+
+			break;
+		}
+		case WF_DECOY_CHAFF:
+		{
+			timer = 0.4 + (wf_draw(r) * 0.2);
+
+			break;
+		}
+		case WF_DECOY_FLARE:
+		{
+			timer = 0.4 + (wf_draw(r) * 0.2);
+
+			break;
+		}
+		case WF_DECOY_SMOKE_GRENADE:
+		{
+			timer = 1.0 + (wf_draw(r) * 0.5);
+
+			break;
+		}
+		default:
+		{
+			wf_fail(r, "invalid weapon decoy type");
+
+			timer = 0.0;
+		}
+	}
+
+	return (timer);
+}
+
+/* update_decoy (wn_decoy.c): the timer runs down; at zero it restarts, and the campaign tells the seekers locked on the launcher that the decoy became active */
+static void wf_weapon_decoy(wf_run *r)
+{
+	float timer = r->in->decoy_timer;
+	float f[1];
+	int restarted = 0;
+
+	if (r->fig->decoy_type == WF_DECOY_NONE)
+	{
+		wf_fail(r, "a weapon that is no decoy has no decoy timer to run");
+	}
+
+	timer -= r->in->delta_time;
+
+	if (timer < 0.0)
+	{
+		timer = wf_decoy_timer_restart_value(r, r->fig->decoy_type);
+
+		restarted = 1;
+	}
+
+	f[0] = timer;
+
+	wf_action(r, WA_DECOY, restarted, 0, 0, f, 1);
+}
+
+/* response_to_decoy_active (wn_msgs.c) with get_weapon_locked_onto_decoy (wn_decoy.c): the sample is drawn first, whether or not the seeker can be seduced */
+static void wf_weapon_seduce(wf_run *r)
+{
+	const wf_figures *decoy = r->in->other;
+	int decoy_type, locked, retarget = 0;
+	float coefficient = r->in->coefficient;
+
+	if (!decoy)
+	{
+		wf_fail(r, "the host holds no figures for the decoy");
+	}
+
+	decoy_type = decoy->decoy_type;
+
+	switch (decoy_type)
+	{
+		case WF_DECOY_NONE:
+		{
+			locked = FALSE;
+
+			break;
+		}
+		case WF_DECOY_CHAFF:
+		{
+			locked = wf_draw(r) < (pow(0.2, coefficient) * r->in->effectiveness[0]);
+
+			break;
+		}
+		case WF_DECOY_FLARE:
+		{
+			locked = wf_draw(r) < (pow(0.2, coefficient) * r->in->effectiveness[1]);
+
+			break;
+		}
+		case WF_DECOY_SMOKE_GRENADE:
+		{
+			locked = wf_draw(r) < (pow(0.2, coefficient) * r->in->effectiveness[2]);
+
+			break;
+		}
+		default:
+		{
+			wf_fail(r, "invalid weapon decoy type");
+
+			locked = FALSE;
+		}
+	}
+
+	if (locked)
+	{
+		switch (r->fig->guidance_type)
+		{
+			case WF_GUIDANCE_NONE:
+			{
+				break;
+			}
+			case WF_GUIDANCE_SEMI_ACTIVE_RADAR:
+			case WF_GUIDANCE_ACTIVE_RADAR:
+			{
+				if (decoy_type == WF_DECOY_CHAFF)
+				{
+					retarget = 1;
+				}
+
+				break;
+			}
+			case WF_GUIDANCE_PASSIVE_INFRA_RED:
+			{
+				if (decoy_type == WF_DECOY_FLARE)
+				{
+					retarget = 1;
+				}
+
+				break;
+			}
+			case WF_GUIDANCE_SEMI_ACTIVE_LASER:
+			case WF_GUIDANCE_SEMI_ACTIVE_LASER_BEAM_RIDING:
+			case WF_GUIDANCE_ACTIVE_LASER:
+			case WF_GUIDANCE_WIRE_GUIDED:
+			case WF_GUIDANCE_RADIO_COMMAND:
+			{
+				if (decoy_type == WF_DECOY_SMOKE_GRENADE)
+				{
+					retarget = 1;
+				}
+
+				break;
+			}
+			default:
+			{
+				wf_fail(r, "invalid weapon guidance type");
+			}
+		}
+	}
+
+	wf_action(r, WA_SEDUCE, locked != 0, retarget, 0, NULL, 0);
+}
+
+/* The entry of a step that has one body and no snapshot: the decoy's and the seduction's. */
+static int wf_entry(const wf_step_in *in, wf_step_out *out, void (*body)(wf_run *))
+{
+	wf_run run;
+
+	memset(out, 0, sizeof(*out));
+	memset(&run, 0, sizeof(run));
+
+	run.in = in;
+	run.out = out;
+	run.fig = in->figures;
+
+	if (!in->figures)
+	{
+		out->failed = 1;
+		snprintf(out->reason, sizeof(out->reason), "%s", "the host holds no figures for this weapon");
+
+		return 1;
+	}
+
+	run.ctx.user = &run;
+
+	if (setjmp(run.escape) == 0)
+	{
+		body(&run);
+	}
+
+	if (out->need_lookup || out->need_draw || out->failed)
+	{
+		out->action_count = 0;
+		out->echo_count = 0;
+	}
+
+	return out->failed;
+}
+
+int eech_wn_weapon_decoy(const wf_step_in *in, wf_step_out *out)
+{
+	return wf_entry(in, out, wf_weapon_decoy);
+}
+
+int eech_wn_weapon_seduce(const wf_step_in *in, wf_step_out *out)
+{
+	return wf_entry(in, out, wf_weapon_seduce);
 }
