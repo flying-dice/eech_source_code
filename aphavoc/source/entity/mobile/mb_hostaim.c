@@ -10,6 +10,7 @@
 
 #include "project.h"
 
+#include <limits.h>
 #include <math.h>
 #include <string.h>
 
@@ -93,6 +94,8 @@ static const char *mode_name (int mode)
 		case CAMPAIGN_AIM_FORECAST: return "forecast";
 		case CAMPAIGN_AIM_DAMAGE: return "damage";
 		case CAMPAIGN_AIM_HEALTH: return "health";
+		case CAMPAIGN_AIM_IMPACT: return "impact";
+		case CAMPAIGN_AIM_BLAST: return "blast";
 	}
 
 	return "unknown";
@@ -220,6 +223,48 @@ static void validate_request (const campaign_aim_step *step)
 
 			break;
 		}
+		case CAMPAIGN_AIM_IMPACT:
+		{
+			const campaign_impact_request *impact = &step->impact;
+
+			// the kill code is the campaign's (any value: the host says whether the dispatch knows it), the flags are booleans, a target that is alive is a target, and the terrain fact
+			// is only given once it has been read
+			if (!all_finite (impact->position, 3) || (impact->has_target & ~1) || (impact->target_alive & ~1) || (impact->terrain_known & ~1) || (impact->terrain_draws_crater & ~1) ||
+				(impact->target_alive && !impact->has_target) || (impact->terrain_draws_crater && !impact->terrain_known))
+			{
+				debug_fatal ("host aim: an impact request with an inconsistent kill code %d", impact->kill_code);
+			}
+
+			break;
+		}
+		case CAMPAIGN_AIM_BLAST:
+		{
+			const campaign_blast_request *blast = &step->blast;
+			int i;
+
+			if (!all_finite (blast->position, 3) || (blast->has_target & ~1) || (blast->sector_side_length <= 0) || (blast->min_x_sector > blast->max_x_sector) ||
+				(blast->min_z_sector > blast->max_z_sector) || (blast->window_valid & ~1) || (blast->window_end & ~1) || (blast->window_count < 0) || (blast->window_count > CAMPAIGN_BLAST_WINDOW_MAX) ||
+				(blast->window_after < 0) || (!blast->window_valid && (blast->window_count || blast->window_end || blast->window_after)) ||
+				(blast->window_valid && ((blast->window_sx < blast->min_x_sector) || (blast->window_sx > blast->max_x_sector) || (blast->window_sz < blast->min_z_sector) ||
+				(blast->window_sz > blast->max_z_sector))))
+			{
+				debug_fatal ("host aim: a blast request with inconsistent figures (capability %d)", blast->damage_capability);
+			}
+
+			for (i = 0; i < blast->window_count; i++)
+			{
+				const campaign_blast_entry *entry = &blast->window[i];
+
+				if ((entry->handle <= 0) || (entry->readable & ~1) || (entry->alive & ~1) || (entry->has_position & ~1) || (entry->rocket & ~1) || (entry->excluded & ~1) ||
+					!all_finite (entry->position, 3) || (!entry->readable && (entry->alive || entry->has_position || entry->rocket)) ||
+					(!entry->has_position && ((entry->position[0] != 0.0f) || (entry->position[1] != 0.0f) || (entry->position[2] != 0.0f))) || ((i > 0) && (entry->handle <= blast->window[i - 1].handle)))
+				{
+					debug_fatal ("host aim: a blast request with an inconsistent object %d in its window", i);
+				}
+			}
+
+			break;
+		}
 		case CAMPAIGN_AIM_ANIMATE:
 		{
 			if ((step->weapon <= 0) || !isfinite (step->animate_lifetime) || !isfinite (step->animate_motion_y) || (step->animate_on_ground & ~1) || (step->animate_status < 0) ||
@@ -329,6 +374,99 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 	if ((result->state != CAMPAIGN_AIM_DONE) && (result->state != CAMPAIGN_AIM_NEED_DRAW) && (result->state != CAMPAIGN_AIM_NEED_LOOKUP))
 	{
 		debug_fatal ("host aim: host aim answered state %d to a %s request", result->state, mode_name (step->mode));
+	}
+
+	if (step->mode == CAMPAIGN_AIM_BLAST)
+	{
+		const campaign_blast_request *blast = &step->blast;
+		const campaign_blast_result *answer = &result->blast;
+
+		// the radius is the host's, and whatever its model it is a length: finite and not below zero.  Every answer repeats it
+		if (!isfinite (answer->radius) || (answer->radius < 0.0f))
+		{
+			debug_fatal ("host aim: host aim answered a blast request with a damage radius of %g", (double) answer->radius);
+		}
+
+		if (result->state == CAMPAIGN_AIM_NEED_LOOKUP)
+		{
+			// a window: of a sector the map holds, from its start or after an object (whether that is the one the campaign can supply is checked as the walk asks)
+			if ((answer->need_sx < blast->min_x_sector) || (answer->need_sx > blast->max_x_sector) || (answer->need_sz < blast->min_z_sector) || (answer->need_sz > blast->max_z_sector) ||
+				(answer->need_after < 0) || answer->action || answer->handle || (answer->modifier != 0.0f))
+			{
+				debug_fatal ("host aim: host aim asked a blast request for a malformed window (sector %d, %d after %d)", answer->need_sx, answer->need_sz, answer->need_after);
+			}
+		}
+		else if (result->state == CAMPAIGN_AIM_NEED_DRAW)
+		{
+			debug_fatal ("host aim: host aim asked for a draw in answer to a blast request, which takes none");
+		}
+		else
+		{
+			// the object reached, if any: an action the campaign knows, the handle of an object of the window it supplied, and a fraction of the radius
+			if ((answer->action < CAMPAIGN_BLAST_DONE) || (answer->action > CAMPAIGN_BLAST_INTERCEPT) || answer->need_sx || answer->need_sz || answer->need_after ||
+				((answer->action == CAMPAIGN_BLAST_DONE) && (answer->handle || (answer->modifier != 0.0f))) ||
+				((answer->action != CAMPAIGN_BLAST_DONE) && ((answer->handle <= 0) || !isfinite (answer->modifier) || (answer->modifier < 0.0f) || (answer->modifier > 1.0f))))
+			{
+				debug_fatal ("host aim: host aim answered a blast request with action %d, object %d and modifier %g", answer->action, answer->handle, (double) answer->modifier);
+			}
+		}
+	}
+	else if (step->mode == CAMPAIGN_AIM_IMPACT)
+	{
+		const campaign_impact_result *plan = &result->impact;
+
+		if (result->state == CAMPAIGN_AIM_NEED_DRAW)
+		{
+			debug_fatal ("host aim: host aim asked for a draw in answer to an impact request, which takes none");
+		}
+
+		if (result->state == CAMPAIGN_AIM_NEED_LOOKUP)
+		{
+			// the terrain fact, once: asked again with it, the host may not ask again
+			if (!plan->need_terrain || (plan->need_terrain & ~1) || step->impact.terrain_known || plan->invalid || plan->crater || plan->direct_hit || plan->blasts || plan->exclude_target)
+			{
+				debug_fatal ("host aim: host aim asked an impact request for the terrain %s", step->impact.terrain_known ? "again" : "with a plan");
+			}
+		}
+		else if (plan->need_terrain || (plan->invalid & ~1) || (plan->crater & ~1) || (plan->direct_hit & ~1) || (plan->exclude_target & ~1) || (plan->blasts < 0) || (plan->blasts > 2) ||
+			(plan->invalid && (plan->crater || plan->direct_hit || plan->blasts || plan->exclude_target)) || (plan->crater && !step->impact.terrain_known) ||
+			(plan->direct_hit && !step->impact.has_target) || (plan->exclude_target && !plan->blasts))
+		{
+			// a plan: a crater only on a terrain the campaign has read, a direct hit only on a target there is, at most two blasts, and nothing alongside a code it does not know
+			debug_fatal ("host aim: host aim answered an impact request (kill code %d) with an inconsistent plan: invalid %d, crater %d, direct hit %d, %d blasts, exclusion %d", step->impact.kill_code,
+				plan->invalid, plan->crater, plan->direct_hit, plan->blasts, plan->exclude_target);
+		}
+	}
+
+	if ((step->mode == CAMPAIGN_AIM_BLAST) || (step->mode == CAMPAIGN_AIM_IMPACT))
+	{
+		// these answers are fully validated above; only the echo (the fixture's, optional) remains
+		if (result->has_echo)
+		{
+			if (!step->echo)
+			{
+				debug_fatal ("host aim: host aim sent an echo nobody asked for");
+			}
+
+			if ((step->mode != CAMPAIGN_AIM_BLAST) || (result->echo_count < 0) || (result->echo_count > step->blast.window_count))
+			{
+				debug_fatal ("host aim: host aim sent %d echo events to a %s request", result->echo_count, mode_name (step->mode));
+			}
+
+			for (i = 0; i < result->echo_count; i++)
+			{
+				const campaign_aim_event *event = &result->echo[i];
+
+				if ((event->kind != CAMPAIGN_AIM_EVENT_BLAST) || (event->a < 0) || (event->a >= step->blast.window_count) || (event->b < 0) || (event->b > 3) ||
+					!all_finite (event->f, 12) || (event->f[1] != result->blast.radius) ||
+					((i > 0) && (event->a <= result->echo[i - 1].a)) || (!(event->b & 1) && (event->f[2] != 0.0f)) || ((event->b & 2) && !(event->b & 1)))
+				{
+					debug_fatal ("host aim: host aim sent a malformed blast echo event %d", i);
+				}
+			}
+		}
+
+		return;
 	}
 
 	if (result->state == CAMPAIGN_AIM_NEED_LOOKUP)
@@ -1115,4 +1253,282 @@ campaign_aim_result campaign_aim_animate (int weapon, int status, int on_ground,
 	step.animate_motion_y = motion_y;
 
 	return ask_once (&step);
+}
+
+campaign_impact_result campaign_aim_impact (int kill_code, int has_target, int target_alive, const float *position, campaign_impact_terrain_fn terrain, void *context)
+{
+	campaign_aim_step step;
+
+	campaign_aim_result result;
+
+	memset (&step, 0, sizeof (step));
+
+	step.mode = CAMPAIGN_AIM_IMPACT;
+
+	step.impact.kill_code = kill_code;
+
+	step.impact.has_target = has_target ? TRUE : FALSE;
+
+	step.impact.target_alive = target_alive ? TRUE : FALSE;
+
+	step.impact.position[0] = position[0];
+
+	step.impact.position[1] = position[1];
+
+	step.impact.position[2] = position[2];
+
+	// a pure question: no sample is taken (campaign_aim_ask refuses a host that asks for one)
+	result = campaign_aim_ask (&step, FALSE);
+
+	if (result.state == CAMPAIGN_AIM_NEED_LOOKUP)
+	{
+		// the terrain fact at the impact position, which the original read for a land hit only (the host asks for it only when its plan needs it), is read once
+		if (!terrain)
+		{
+			debug_fatal ("host aim: host aim asked an impact request for the terrain and the campaign has none to give");
+		}
+
+		step.impact.terrain_draws_crater = terrain (context) ? TRUE : FALSE;
+
+		step.impact.terrain_known = TRUE;
+
+		result = campaign_aim_ask (&step, FALSE);
+
+		if (result.state != CAMPAIGN_AIM_DONE)
+		{
+			debug_fatal ("host aim: host aim did not answer an impact request once it had the terrain");
+		}
+	}
+
+	return result.impact;
+}
+
+#define CAMPAIGN_BLAST_ROUNDS_MAX 1048576
+
+// supplies the window of sector (sx, sz) following `after` (NULL: from the start of the list) as the host asked, naming each object for this blast only
+static void blast_supply (campaign_blast_request *blast, const struct campaign_blast_walk *walk, void **objects, int *next_handle, int sx, int sz, const void *after, int after_handle)
+{
+	int
+		count,
+		end,
+		i;
+
+	memset (blast->window, 0, sizeof (blast->window));
+
+	end = FALSE;
+
+	count = walk->window (walk->context, sx, sz, after, blast->window, objects, CAMPAIGN_BLAST_WINDOW_MAX, &end);
+
+	if ((count < 0) || (count > CAMPAIGN_BLAST_WINDOW_MAX) || (end & ~1))
+	{
+		debug_fatal ("host aim: the campaign's window of sector %d, %d holds %d objects", sx, sz, count);
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		if (*next_handle >= INT_MAX)
+		{
+			debug_fatal ("host aim: a blast named more objects than it can number");
+		}
+
+		blast->window[i].handle = (*next_handle)++;
+	}
+
+	blast->window_valid = TRUE;
+
+	blast->window_sx = sx;
+
+	blast->window_sz = sz;
+
+	blast->window_after = after_handle;
+
+	blast->window_count = count;
+
+	blast->window_end = end;
+}
+
+void campaign_aim_blast (const float *position, int damage_capability, int warhead_type, int has_target, const struct campaign_blast_walk *walk)
+{
+	campaign_aim_step step;
+
+	campaign_aim_result result;
+
+	void *objects[CAMPAIGN_BLAST_WINDOW_MAX];
+
+	int
+		rounds,
+		begun,
+		next_handle,
+		have_sector,
+		last_sx,
+		last_sz;
+
+	float
+		radius;
+
+	memset (&step, 0, sizeof (step));
+
+	memset (objects, 0, sizeof (objects));
+
+	step.mode = CAMPAIGN_AIM_BLAST;
+
+	step.echo = walk->echo ? TRUE : FALSE;
+
+	step.blast.position[0] = position[0];
+
+	step.blast.position[1] = position[1];
+
+	step.blast.position[2] = position[2];
+
+	step.blast.damage_capability = damage_capability;
+
+	step.blast.warhead_type = warhead_type;
+
+	step.blast.has_target = has_target ? TRUE : FALSE;
+
+	step.blast.sector_side_length = walk->sector_side_length;
+
+	step.blast.min_x_sector = walk->min_x_sector;
+
+	step.blast.max_x_sector = walk->max_x_sector;
+
+	step.blast.min_z_sector = walk->min_z_sector;
+
+	step.blast.max_z_sector = walk->max_z_sector;
+
+	rounds = 0;
+
+	begun = FALSE;
+
+	next_handle = 1;
+
+	have_sector = FALSE;
+
+	last_sx = 0;
+
+	last_sz = 0;
+
+	radius = 0.0f;
+
+	for (;;)
+	{
+		rounds++;
+
+		if (rounds > CAMPAIGN_BLAST_ROUNDS_MAX)
+		{
+			debug_fatal ("host aim: a blast did not finish within %d questions", CAMPAIGN_BLAST_ROUNDS_MAX);
+		}
+
+		// a blast takes no sample of the shared stream (campaign_aim_ask refuses a host that asks for one)
+		result = campaign_aim_ask (&step, FALSE);
+
+		if (!begun)
+		{
+			begun = TRUE;
+
+			radius = result.blast.radius;
+
+			walk->begin (walk->context, radius);
+		}
+		else if (result.blast.radius != radius)
+		{
+			debug_fatal ("host aim: host aim changed the damage radius of a blast from %g to %g", (double) radius, (double) result.blast.radius);
+		}
+
+		if (walk->echo && result.has_echo && walk->examined)
+		{
+			walk->examined (walk->context, &result, objects, step.blast.window_count);
+		}
+
+		if (result.state == CAMPAIGN_AIM_NEED_LOOKUP)
+		{
+			int
+				sx,
+				sz,
+				after_handle;
+
+			sx = result.blast.need_sx;
+
+			sz = result.blast.need_sz;
+
+			after_handle = result.blast.need_after;
+
+			if (after_handle == 0)
+			{
+				// the start of a sector's list: a sector later in the walk's order than the last one (rows of sectors, each from its first), so a host cannot ask the same question forever
+				if (have_sector && ((sz < last_sz) || ((sz == last_sz) && (sx <= last_sx))))
+				{
+					debug_fatal ("host aim: host aim asked a blast request for sector %d, %d after sector %d, %d", sx, sz, last_sx, last_sz);
+				}
+
+				have_sector = TRUE;
+
+				last_sx = sx;
+
+				last_sz = sz;
+
+				blast_supply (&step.blast, walk, objects, &next_handle, sx, sz, NULL, 0);
+			}
+			else
+			{
+				// the rest of a list a full window did not hold: the same sector, after the last object offered
+				if (!step.blast.window_valid || step.blast.window_end || (step.blast.window_count < 1) || (sx != step.blast.window_sx) || (sz != step.blast.window_sz) ||
+					(after_handle != step.blast.window[step.blast.window_count - 1].handle))
+				{
+					debug_fatal ("host aim: host aim asked a blast request for the objects of sector %d, %d after object %d, which is not where the window ended", sx, sz, after_handle);
+				}
+
+				blast_supply (&step.blast, walk, objects, &next_handle, sx, sz, objects[step.blast.window_count - 1], after_handle);
+			}
+
+			continue;
+		}
+
+		if (result.blast.action == CAMPAIGN_BLAST_DONE)
+		{
+			break;
+		}
+
+		{
+			int
+				index,
+				i,
+				handle;
+
+			void
+				*object;
+
+			handle = result.blast.handle;
+
+			index = -1;
+
+			for (i = 0; i < step.blast.window_count; i++)
+			{
+				if (step.blast.window[i].handle == handle)
+				{
+					index = i;
+				}
+			}
+
+			// only an object of the window the campaign supplied can be reached: a rocket is destroyed only if it is a weapon (its kill code is set)
+			if (index < 0)
+			{
+				debug_fatal ("host aim: host aim reached object %d, which is not in the window it was given", handle);
+			}
+
+			if ((result.blast.action == CAMPAIGN_BLAST_INTERCEPT) && !step.blast.window[index].rocket)
+			{
+				debug_fatal ("host aim: host aim destroyed object %d as a rocket, which the campaign does not know as one", handle);
+			}
+
+			object = objects[index];
+
+			walk->apply (walk->context, object, result.blast.action, result.blast.modifier);
+
+			// the walk goes on after that object, from the list as it is now: its notification may have killed objects and changed lists
+			blast_supply (&step.blast, walk, objects, &next_handle, step.blast.window_sx, step.blast.window_sz, object, handle);
+		}
+	}
+
+	walk->end (walk->context);
 }

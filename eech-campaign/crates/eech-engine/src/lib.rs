@@ -1296,6 +1296,57 @@ pub struct AimHealth {
     pub draw: Option<i32>,
 }
 
+/// What a weapon's death does to the world (EEDCS-46), by value: see `eech_impact_request` (mb_hostaim.h campaign_impact_request).  `terrain_draws_crater` is the terrain fact at the impact
+/// position once the campaign has read it for the host (`None` until the host has asked).
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimImpact {
+    pub kill_code: i32,
+    pub has_target: bool,
+    pub target_alive: bool,
+    pub terrain_draws_crater: Option<bool>,
+    pub position: [f32; 3],
+}
+
+/// One object of a sector's list the campaign offered to the host (EEDCS-46), by value: see `eech_blast_entry` (mb_hostaim.h campaign_blast_entry).  `handle` names the object for
+/// this blast only.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AimBlastEntry {
+    pub handle: i32,
+    pub entity_type: i32,
+    pub readable: bool,
+    pub alive: bool,
+    pub has_position: bool,
+    pub rocket: bool,
+    pub excluded: bool,
+    pub position: [f32; 3],
+}
+
+/// The window of a sector's list the host asked for: the sector, the handle it follows (0: the start of the list), whether the list ends with it, and the objects in list order.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimBlastWindow {
+    pub sx: i32,
+    pub sz: i32,
+    pub after: i32,
+    pub end: bool,
+    pub entries: Vec<AimBlastEntry>,
+}
+
+/// One area blast (EEDCS-46), by value: see `eech_blast_request` (mb_hostaim.h campaign_blast_request).  The first request carries no window.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimBlast {
+    pub position: [f32; 3],
+    pub damage_capability: i32,
+    pub warhead_type: i32,
+    pub has_target: bool,
+    pub sector_side_length: i32,
+    pub min_x_sector: i32,
+    pub max_x_sector: i32,
+    pub min_z_sector: i32,
+    pub max_z_sector: i32,
+    pub window: Option<AimBlastWindow>,
+    pub echo: bool,
+}
+
 /// One frame of one weapon's flight, or (with `birth`) its birth: the weapon, the clock and the frame, and what the host has been told so far in answer to the lookups it asked for (`answers`, each
 /// the lookup repeated with its results in `f[6..12]`) and the samples of the campaign's shared random stream it has been given (`draws`, raw integers in [0, 32767]).
 #[derive(Clone, Debug, PartialEq)]
@@ -1466,6 +1517,8 @@ pub enum AimRequest {
     Forecast(AimForecast),
     Damage(AimDamage),
     Health(AimHealth),
+    Impact(AimImpact),
+    Blast(AimBlast),
     Animate(AimAnimate),
     ReadyUpdate(AimReadyUpdate),
     ReadyCommand(AimReadyCommand),
@@ -1522,6 +1575,20 @@ pub struct AimReply {
     pub health_hit: bool,
     pub health_new_level: i32,
     pub health_fatal: bool,
+    /// An impact question only: see `eech_impact_result`.  With `need_lookup` the host asks for the terrain fact (`impact_need_terrain`).
+    pub impact_need_terrain: bool,
+    pub impact_invalid: bool,
+    pub impact_crater: bool,
+    pub impact_direct_hit: bool,
+    pub impact_blasts: i32,
+    pub impact_exclude_target: bool,
+    /// A blast question only: see `eech_blast_result`.  The radius is reported with every answer.  With `need_lookup` the host asks for the window at `blast_need` (sector x, sector
+    /// z, the handle it follows); otherwise the answer is the action (0 the walk is over, 1 a collision, 2 a rocket destroyed) and, for an action, the object and the modifier.
+    pub blast_radius: f32,
+    pub blast_need: Option<(i32, i32, i32)>,
+    pub blast_action: i32,
+    pub blast_handle: i32,
+    pub blast_modifier: f32,
     /// An animation only: the parachute's state, and the weapon's lifetime when the animation reset it.
     pub animate_status: i32,
     pub animate_lifetime: Option<f32>,
@@ -2787,6 +2854,80 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                 draw: draw()?,
             })
         }
+        sys::EECH_AIM_IMPACT => {
+            let request = &source.impact;
+            finite("impact position", &request.position)?;
+            let terrain_known = checked_bool("impact terrain_known", request.terrain_known)?;
+            let draws_crater = checked_bool("impact terrain_draws_crater", request.terrain_draws_crater)?;
+            let has_target = checked_bool("impact has_target", request.has_target)?;
+            let target_alive = checked_bool("impact target_alive", request.target_alive)?;
+            if (target_alive && !has_target) || (draws_crater && !terrain_known) {
+                return Err("aim received an impact question that is inconsistent about its target or its terrain".into());
+            }
+            AimRequest::Impact(AimImpact {
+                kill_code: request.kill_code,
+                has_target,
+                target_alive,
+                terrain_draws_crater: terrain_known.then_some(draws_crater),
+                position: request.position,
+            })
+        }
+        sys::EECH_AIM_BLAST => {
+            let request = &source.blast;
+            finite("blast position", &request.position)?;
+            let window_valid = checked_bool("blast window_valid", request.window_valid)?;
+            let window_end = checked_bool("blast window_end", request.window_end)?;
+            if request.sector_side_length <= 0
+                || request.min_x_sector > request.max_x_sector
+                || request.min_z_sector > request.max_z_sector
+                || !(0..=sys::EECH_BLAST_WINDOW_MAX as c_int).contains(&request.window_count)
+                || (!window_valid && (request.window_count != 0 || window_end || request.window_after != 0))
+                || request.window_after < 0
+            {
+                return Err("aim received a blast question with inconsistent sector figures or window".into());
+            }
+            let window = if window_valid {
+                let mut entries = Vec::with_capacity(request.window_count as usize);
+                for entry in request.window.iter().take(request.window_count as usize) {
+                    finite("blast object position", &entry.position)?;
+                    if entry.handle <= 0 {
+                        return Err(format!("aim received a blast object with handle {}", entry.handle));
+                    }
+                    entries.push(AimBlastEntry {
+                        handle: entry.handle,
+                        entity_type: entry.kind,
+                        readable: checked_bool("blast readable", entry.readable)?,
+                        alive: checked_bool("blast alive", entry.alive)?,
+                        has_position: checked_bool("blast has_position", entry.has_position)?,
+                        rocket: checked_bool("blast rocket", entry.rocket)?,
+                        excluded: checked_bool("blast excluded", entry.excluded)?,
+                        position: entry.position,
+                    });
+                }
+                Some(AimBlastWindow {
+                    sx: request.window_sx,
+                    sz: request.window_sz,
+                    after: request.window_after,
+                    end: window_end,
+                    entries,
+                })
+            } else {
+                None
+            };
+            AimRequest::Blast(AimBlast {
+                position: request.position,
+                damage_capability: request.damage_capability,
+                warhead_type: request.warhead_type,
+                has_target: checked_bool("blast has_target", request.has_target)?,
+                sector_side_length: request.sector_side_length,
+                min_x_sector: request.min_x_sector,
+                max_x_sector: request.max_x_sector,
+                min_z_sector: request.min_z_sector,
+                max_z_sector: request.max_z_sector,
+                window,
+                echo,
+            })
+        }
         sys::EECH_AIM_ANIMATE => {
             finite("animation figure", &[source.animate_lifetime, source.animate_motion_y])?;
             if source.weapon <= 0 {
@@ -3022,6 +3163,36 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
     })
 }
 
+/// Writes the reference host's echo into the room the campaign gave for it.
+fn copy_echo(source: &sys::eech_aim_step, events: &[AimEvent], answer: &mut sys::eech_aim_result) -> Result<(), String> {
+    if source.echo_out.is_null() || source.echo_capacity <= 0 {
+        return Err("aim sent an echo nobody asked for".into());
+    }
+    if events.len() > source.echo_capacity as usize {
+        return Err(format!(
+            "aim echoed {} events, more than the {} it can carry",
+            events.len(),
+            source.echo_capacity
+        ));
+    }
+    for (index, event) in events.iter().enumerate() {
+        // SAFETY: the campaign gave room for `echo_capacity` events at `echo_out` for this call, and `index` is below it.
+        unsafe {
+            source.echo_out.add(index).write(sys::eech_aim_event {
+                kind: event.kind,
+                a: event.a,
+                b: event.b,
+                c: event.c,
+                d: event.d,
+                f: event.f,
+            });
+        }
+    }
+    answer.has_echo = 1;
+    answer.echo_count = events.len() as c_int;
+    Ok(())
+}
+
 fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech_aim_result, String> {
     // SAFETY: the result is plain data; all-zero is a valid value of every field (the echo pointer is the campaign's, set after the call).
     let mut answer: sys::eech_aim_result = unsafe { std::mem::zeroed() };
@@ -3050,6 +3221,33 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
         }
         answer.state = sys::EECH_AIM_NEED_DRAW;
         return Ok(answer);
+    }
+    if reply.need_lookup && source.mode == sys::EECH_AIM_IMPACT {
+        if !reply.impact_need_terrain {
+            return Err("aim asked an impact question for lookups other than the terrain".into());
+        }
+        answer.state = sys::EECH_AIM_NEED_LOOKUP;
+        answer.impact.need_terrain = 1;
+        return Ok(answer);
+    }
+    if source.mode == sys::EECH_AIM_BLAST {
+        answer.blast.radius = reply.blast_radius;
+        if reply.need_lookup {
+            let Some((sx, sz, after)) = reply.blast_need else {
+                return Err("aim asked a blast question for a lookup that is not a window".into());
+            };
+            answer.state = sys::EECH_AIM_NEED_LOOKUP;
+            answer.blast.need_sx = sx;
+            answer.blast.need_sz = sz;
+            answer.blast.need_after = after;
+            if let Some(events) = &reply.echo {
+                copy_echo(source, events, &mut answer)?;
+            }
+            return Ok(answer);
+        }
+        answer.blast.action = reply.blast_action;
+        answer.blast.handle = reply.blast_handle;
+        answer.blast.modifier = reply.blast_modifier;
     }
     if reply.need_lookup {
         if !matches!(
@@ -3094,6 +3292,16 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
             hit: c_int::from(reply.health_hit),
             new_level: reply.health_new_level,
             fatal: c_int::from(reply.health_fatal),
+        };
+    }
+    if source.mode == sys::EECH_AIM_IMPACT {
+        answer.impact = sys::eech_impact_result {
+            need_terrain: 0,
+            invalid: c_int::from(reply.impact_invalid),
+            crater: c_int::from(reply.impact_crater),
+            direct_hit: c_int::from(reply.impact_direct_hit),
+            blasts: reply.impact_blasts,
+            exclude_target: c_int::from(reply.impact_exclude_target),
         };
     }
     if source.mode == sys::EECH_AIM_DAMAGE {
@@ -3169,31 +3377,7 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
         answer.has_time_of_flight = 1;
     }
     if let Some(events) = &reply.echo {
-        if source.echo_out.is_null() || source.echo_capacity <= 0 {
-            return Err("aim sent an echo nobody asked for".into());
-        }
-        if events.len() > source.echo_capacity as usize {
-            return Err(format!(
-                "aim echoed {} events, more than the {} it can carry",
-                events.len(),
-                source.echo_capacity
-            ));
-        }
-        for (index, event) in events.iter().enumerate() {
-            // SAFETY: the campaign gave room for `echo_capacity` events at `echo_out` for this call, and `index` is below it.
-            unsafe {
-                source.echo_out.add(index).write(sys::eech_aim_event {
-                    kind: event.kind,
-                    a: event.a,
-                    b: event.b,
-                    c: event.c,
-                    d: event.d,
-                    f: event.f,
-                });
-            }
-        }
-        answer.has_echo = 1;
-        answer.echo_count = events.len() as c_int;
+        copy_echo(source, events, &mut answer)?;
     }
     if let Some(cells) = &reply.table_cells {
         if source.mode != sys::EECH_AIM_TABLE || source.echo_cells.is_null() {
@@ -6345,6 +6529,265 @@ mod tests {
         assert_eq!((code, result.state, result.lookup_count), (0, sys::EECH_AIM_NEED_LOOKUP, 1));
     }
 
+    fn impact_step() -> sys::eech_aim_step {
+        let mut step = blank_aim_step(sys::EECH_AIM_IMPACT);
+        step.impact.kill_code = 5;
+        step.impact.has_target = 1;
+        step.impact.target_alive = 1;
+        step.impact.position = [250.0, 12.0, 750.0];
+        step
+    }
+
+    #[test]
+    fn an_impact_question_carries_the_kill_code_and_the_targets_facts_asks_for_the_terrain_once_and_the_plan_comes_back() {
+        let mut step = impact_step();
+        let (seen, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                impact_need_terrain: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state, result.impact.need_terrain), (0, sys::EECH_AIM_NEED_LOOKUP, 1), "{error}");
+        assert_eq!(
+            seen,
+            Some(AimRequest::Impact(AimImpact {
+                kill_code: 5,
+                has_target: true,
+                target_alive: true,
+                terrain_draws_crater: None,
+                position: [250.0, 12.0, 750.0],
+            }))
+        );
+        // asked again with the terrain the campaign read, the host plans: a crater, a direct hit and two blasts that leave the target out
+        step.impact.terrain_known = 1;
+        step.impact.terrain_draws_crater = 1;
+        let (seen, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                impact_crater: true,
+                impact_direct_hit: true,
+                impact_blasts: 2,
+                impact_exclude_target: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        assert!(matches!(seen, Some(AimRequest::Impact(ref r)) if r.terrain_draws_crater == Some(true)));
+        let p = result.impact;
+        assert_eq!(
+            (result.state, p.need_terrain, p.invalid, p.crater, p.direct_hit, p.blasts, p.exclude_target),
+            (sys::EECH_AIM_DONE, 0, 0, 1, 1, 2, 1)
+        );
+        // a code the host does not know is carried as such
+        let (_, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                impact_invalid: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.impact.invalid), (0, 1));
+    }
+
+    #[test]
+    fn an_impact_question_refuses_what_has_no_defined_answer_and_never_takes_a_sample() {
+        let step = impact_step();
+        // a sample is not part of the exchange
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert_ne!(code, 0, "an impact question may not ask for a sample");
+        assert!(error.contains("cannot take one"), "{error}");
+        // a lookup other than the terrain
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                ..AimReply::default()
+            })
+        });
+        assert_ne!(code, 0);
+        assert!(error.contains("terrain"), "{error}");
+        // a request that is not one: a position that is not finite, a target that is alive and not there, a crater on a terrain not read, a flag that is not a boolean
+        for (name, change) in [
+            (
+                "position",
+                Box::new(|s: &mut sys::eech_aim_step| s.impact.position[1] = f32::NAN) as Box<dyn Fn(&mut sys::eech_aim_step)>,
+            ),
+            ("alive without target", Box::new(|s: &mut sys::eech_aim_step| s.impact.has_target = 0)),
+            ("crater unread", Box::new(|s: &mut sys::eech_aim_step| s.impact.terrain_draws_crater = 1)),
+            ("flag", Box::new(|s: &mut sys::eech_aim_step| s.impact.terrain_known = 2)),
+        ] {
+            let mut bad = impact_step();
+            change(&mut bad);
+            let (seen, _, code, _) = aim_crossing(&bad, |_| Ok(AimReply::default()));
+            assert_ne!(code, 0, "{name}");
+            assert!(seen.is_none(), "{name}: the host was asked");
+        }
+    }
+
+    fn blast_step(window: bool) -> sys::eech_aim_step {
+        let mut step = blank_aim_step(sys::EECH_AIM_BLAST);
+        step.blast.position = [150.0, 5.0, 150.0];
+        step.blast.damage_capability = 400;
+        step.blast.warhead_type = 7;
+        step.blast.has_target = 1;
+        step.blast.sector_side_length = 100;
+        step.blast.max_x_sector = 2;
+        step.blast.max_z_sector = 2;
+        if window {
+            step.blast.window_valid = 1;
+            step.blast.window_sx = 1;
+            step.blast.window_sz = 1;
+            step.blast.window_after = 7;
+            step.blast.window_count = 2;
+            step.blast.window_end = 1;
+            step.blast.window[0] = sys::eech_blast_entry {
+                handle: 8,
+                kind: 6,
+                readable: 1,
+                alive: 1,
+                has_position: 1,
+                rocket: 0,
+                excluded: 0,
+                position: [160.0, 5.0, 150.0],
+            };
+            step.blast.window[1] = sys::eech_blast_entry {
+                handle: 9,
+                kind: 37,
+                readable: 1,
+                alive: 1,
+                has_position: 1,
+                rocket: 1,
+                excluded: 1,
+                position: [155.0, 5.0, 150.0],
+            };
+        }
+        step
+    }
+
+    #[test]
+    fn a_blast_question_carries_the_explosion_and_the_window_by_value_and_the_hosts_walk_comes_back() {
+        // the first question has no window: the host asks for one (the sector, and the handle it follows)
+        let (seen, result, code, error) = aim_crossing(&blast_step(false), |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                blast_radius: 20.0,
+                blast_need: Some((1, 1, 0)),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_NEED_LOOKUP), "{error}");
+        assert_eq!(
+            (result.blast.radius, result.blast.need_sx, result.blast.need_sz, result.blast.need_after),
+            (20.0, 1, 1, 0)
+        );
+        let Some(AimRequest::Blast(first)) = seen else {
+            panic!("the host was not asked about the blast")
+        };
+        assert_eq!(
+            (first.position, first.damage_capability, first.warhead_type, first.has_target),
+            ([150.0, 5.0, 150.0], 400, 7, true)
+        );
+        assert_eq!(
+            (
+                first.sector_side_length,
+                first.min_x_sector,
+                first.max_x_sector,
+                first.min_z_sector,
+                first.max_z_sector
+            ),
+            (100, 0, 2, 0, 2)
+        );
+        assert!(first.window.is_none());
+        // supplied the window, the host reaches an object and the campaign is told what to do with it
+        let (seen, result, code, error) = aim_crossing(&blast_step(true), |_| {
+            Ok(AimReply {
+                blast_radius: 20.0,
+                blast_action: 1,
+                blast_handle: 8,
+                blast_modifier: 0.5,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_DONE), "{error}");
+        assert_eq!(
+            (result.blast.radius, result.blast.action, result.blast.handle, result.blast.modifier),
+            (20.0, 1, 8, 0.5)
+        );
+        let Some(AimRequest::Blast(second)) = seen else {
+            panic!("the host was not asked about the blast")
+        };
+        let Some(window) = second.window else { panic!("the window did not cross") };
+        assert_eq!((window.sx, window.sz, window.after, window.end, window.entries.len()), (1, 1, 7, true, 2));
+        assert_eq!(
+            window.entries[1],
+            AimBlastEntry {
+                handle: 9,
+                entity_type: 37,
+                readable: true,
+                alive: true,
+                has_position: true,
+                rocket: true,
+                excluded: true,
+                position: [155.0, 5.0, 150.0],
+            }
+        );
+        // the walk's end names nothing
+        let (_, result, code, _) = aim_crossing(&blast_step(true), |_| {
+            Ok(AimReply {
+                blast_radius: 20.0,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.blast.action, result.blast.handle), (0, 0, 0));
+    }
+
+    #[test]
+    fn a_blast_question_refuses_what_has_no_defined_answer_and_never_takes_a_sample() {
+        let (_, _, code, error) = aim_crossing(&blast_step(true), |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert_ne!(code, 0, "a blast may not ask for a sample");
+        assert!(error.contains("cannot take one"), "{error}");
+        // a lookup that is not a window
+        let (_, _, code, error) = aim_crossing(&blast_step(true), |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                blast_radius: 20.0,
+                ..AimReply::default()
+            })
+        });
+        assert_ne!(code, 0);
+        assert!(error.contains("not a window"), "{error}");
+        // a request the campaign would not send
+        for (name, change) in [
+            (
+                "position",
+                Box::new(|s: &mut sys::eech_aim_step| s.blast.position[0] = f32::INFINITY) as Box<dyn Fn(&mut sys::eech_aim_step)>,
+            ),
+            ("sector", Box::new(|s: &mut sys::eech_aim_step| s.blast.sector_side_length = 0)),
+            ("rectangle", Box::new(|s: &mut sys::eech_aim_step| s.blast.min_x_sector = 5)),
+            ("window count", Box::new(|s: &mut sys::eech_aim_step| s.blast.window_count = 17)),
+            ("handle", Box::new(|s: &mut sys::eech_aim_step| s.blast.window[0].handle = 0)),
+            (
+                "object position",
+                Box::new(|s: &mut sys::eech_aim_step| s.blast.window[1].position[2] = f32::NAN),
+            ),
+            ("flag", Box::new(|s: &mut sys::eech_aim_step| s.blast.window[0].alive = 2)),
+            ("window not valid but counted", Box::new(|s: &mut sys::eech_aim_step| s.blast.window_valid = 0)),
+        ] {
+            let mut bad = blast_step(true);
+            change(&mut bad);
+            let (seen, _, code, _) = aim_crossing(&bad, |_| Ok(AimReply::default()));
+            assert_ne!(code, 0, "{name}");
+            assert!(seen.is_none(), "{name}: the host was asked");
+        }
+    }
     // The Rust mirrors of the aim exchange are written by hand, field for field; one that drifts from the C structure is memory corruption at the first request.  The campaign
     // reports the sizes and the offsets of the fields appended last (csrc/eech_aim_layout.c) and the mirrors must agree.
     #[test]
@@ -6387,6 +6830,32 @@ mod tests {
         assert_eq!(layout(33), offset_of!(sys::eech_health_request, target_not_ai));
         assert_eq!(layout(34), offset_of!(sys::eech_health_result, eligible));
         assert_eq!(layout(35), offset_of!(sys::eech_health_result, fatal));
+        // the impact and blast exchange (EEDCS-46)
+        assert_eq!(layout(36), size_of::<sys::eech_impact_request>(), "campaign_impact_request");
+        assert_eq!(layout(37), size_of::<sys::eech_impact_result>(), "campaign_impact_result");
+        assert_eq!(layout(38), size_of::<sys::eech_blast_entry>(), "campaign_blast_entry");
+        assert_eq!(layout(39), size_of::<sys::eech_blast_request>(), "campaign_blast_request");
+        assert_eq!(layout(40), size_of::<sys::eech_blast_result>(), "campaign_blast_result");
+        assert_eq!(layout(41), offset_of!(sys::eech_aim_step, impact));
+        assert_eq!(layout(42), offset_of!(sys::eech_aim_step, blast));
+        assert_eq!(layout(43), offset_of!(sys::eech_aim_result, impact));
+        assert_eq!(layout(44), offset_of!(sys::eech_aim_result, blast));
+        assert_eq!(layout(45), offset_of!(sys::eech_blast_request, window));
+        assert_eq!(layout(46), offset_of!(sys::eech_blast_entry, position));
+        assert_eq!(layout(47), offset_of!(sys::eech_blast_result, modifier));
+        assert_eq!(layout(48), offset_of!(sys::eech_impact_request, position));
+        assert_eq!(layout(49), offset_of!(sys::eech_blast_request, window_valid));
+        assert_eq!(sys::EECH_BLAST_WINDOW_MAX, 16);
+        // the campaign's enum values the reference host's kernel hard-codes (eech-world csrc/cmb_step.c; its own test compares the same two lists): the thirteen kinds a blast
+        // examines, in the order of the probe's cases 60 to 72, and the weapon kill codes 0 to 7
+        let entity_types: Vec<usize> = (60..=72).map(layout).collect();
+        assert_eq!(
+            entity_types,
+            vec![1, 6, 10, 14, 19, 21, 23, 24, 26, 28, 29, 30, 37],
+            "ENTITY_TYPES the blast examines"
+        );
+        let kill_codes: Vec<usize> = (80..=87).map(layout).collect();
+        assert_eq!(kill_codes, vec![0, 1, 2, 3, 4, 5, 6, 7], "WEAPON_KILL_CODES");
     }
 
     fn damage_step() -> sys::eech_aim_step {

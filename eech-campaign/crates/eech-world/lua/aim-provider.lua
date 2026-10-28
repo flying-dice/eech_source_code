@@ -55,6 +55,17 @@
 --   mode=bad_step_*   a provider that answers the first weapon step malformed: the engine must stop with a clear error (bad_step_state, bad_step_lookup_kind, bad_step_action_kind,
 --                     bad_step_nonfinite, bad_step_repeat, bad_step_error, bad_step_draw)
 --   mode=bad_birth_action, bad_release_burst   the first weapon birth answered with a step's action, the first release with no rounds and no refusal
+--   mode=impact_none  the reference host, but a weapon's death does nothing to the world (EEDCS-46): no crater, no direct hit, no blast, whatever the kill code; mode=impact_own a host
+--                     with a model of its own for the dispatch: a land hit blasts ONCE with no crater and never asks for the terrain, and the other deaths as the plain model; only the
+--                     dispatch differs, and the counters `impact_denied` (a plan the reference would have acted on, answered with none) and `impact_own_land` say the case was reached
+--   mode=blast_small  the reference host, but every blast is asked at a quarter of the weapon's damage capability (half the radius: the host's physical radius is what the campaign
+--                     applies, EEDCS-46); mode=blast_none the reference host's radius, but the host reaches no object; mode=blast_own a host with a plain model of its own (a fixed thirty
+--                     metres, the explosion's own sector, every placed object whatever its kind); the counters `blast_shrunk`, `blast_denied` and `blast_own` count the blasts each changed
+--   mode=bad_impact_*, bad_blast_*  a provider whose first answer of the kind is malformed: bad_impact_crater (a crater on a terrain the campaign has not read), bad_impact_draw (a request for
+--                     a sample), bad_impact_blasts (three blasts), bad_blast_handle (an object that is not in the window), bad_blast_radius (a radius that changes within a blast),
+--                     bad_blast_draw, bad_blast_sector (a window outside the map), bad_blast_repeat (the same sector's start asked twice), bad_blast_modifier (a modifier above one) and
+--                     bad_blast_rocket (a collision-free destruction of an object the campaign does not know as a rocket): the engine must stop with a clear error.  The blast modes need a
+--                     blast that reaches an object (`bad_blast_handle`, `bad_blast_modifier`, `bad_blast_rocket`) or a second sector (`bad_blast_repeat`) and may not trigger in a short run
 --   mode=missing      boot without an aim provider: must fail at boot with a clear error
 --   mode=bad_*        a provider that answers the first request of a kind malformed: the engine must stop with a clear error (bad_nil, bad_state,
 --                     bad_ready_state, bad_phase, bad_nan_vector, bad_draw_for_ballistic, bad_second_draw, bad_negative_range, bad_error)
@@ -116,7 +127,7 @@ end
 
 local reference = host.aim
 -- what the campaign asked, by request mode, and what the host answered
-local counts = { table = 0, range = 0, figures = 0, weapon_step = 0, weapon_birth = 0, release = 0, animate = 0, weapon_decoy = 0, weapon_seduce = 0, weapon_reacquire = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0, forecast = 0, damage = 0, health = 0 }
+local counts = { table = 0, range = 0, figures = 0, weapon_step = 0, weapon_birth = 0, release = 0, animate = 0, weapon_decoy = 0, weapon_seduce = 0, weapon_reacquire = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0, forecast = 0, damage = 0, health = 0, impact = 0, blast = 0 }
 local answers = { valid = 0, invalid = 0, need_draw = 0, lead_ok = 0, lead_no = 0, ballistic_ok = 0, ballistic_no = 0, phase_moving = 0, angle_sum = 0 }
 -- what the weapon steps came to: the passes the host was asked, the lookups it needed (by kind), the draws it asked for, and the kill codes it left (0 none ... 7)
 local steps = { passes = 0, done = 0, need_lookup = 0, need_draw = 0, kills = {}, lookups = {}, births = 0, birth_velocity = 0, releases = 0, release_refused = 0, release_rounds = 0,
@@ -124,7 +135,9 @@ local steps = { passes = 0, done = 0, need_lookup = 0, need_draw = 0, kills = {}
 	forecasts = 0, forecast_sum = 0, forecast_zero = 0,
 	damage_draws = 0, damage_hits = 0, damage_sum = 0, damage_exited = 0, damage_written = 0, damage_critical = 0, damage_fatal = 0,
 	health_draws = 0, health_classified = 0, health_critical = 0, health_assessed = 0, health_crossed = 0, timed_asked = 0, timed_eligible = 0, timed_rolled = 0, timed_hit = 0, timed_fatal = 0,
-	selfhit_asked = 0, selfhit_refused = 0, timed_generic = 0 }
+	selfhit_asked = 0, selfhit_refused = 0, timed_generic = 0,
+	impact_asked = 0, impact_terrain = 0, impact_land = 0, impact_blasts = 0, impact_crater = 0, impact_direct = 0, impact_invalid = 0, impact_denied = 0, impact_own_land = 0,
+	blast_begun = 0, blast_zero = 0, blast_windows = 0, blast_collisions = 0, blast_intercepts = 0, blast_ended = 0, blast_shrunk = 0, blast_denied = 0, blast_own = 0 }
 for code = 0, 7 do steps.kills [code] = 0 end
 
 local function counted (step, answer)
@@ -195,6 +208,26 @@ local function counted (step, answer)
 			steps.selfhit_asked = steps.selfhit_asked + 1
 			if not answer.eligible then steps.selfhit_refused = steps.selfhit_refused + 1 end
 		end
+	elseif step.mode == "impact" then
+		if answer.state == "need_lookup" then
+			steps.impact_terrain = steps.impact_terrain + 1
+		else
+			steps.impact_asked = steps.impact_asked + 1
+			if step.kill_code == 3 then steps.impact_land = steps.impact_land + 1 end
+			steps.impact_blasts = steps.impact_blasts + answer.blasts
+			if answer.crater then steps.impact_crater = steps.impact_crater + 1 end
+			if answer.direct_hit then steps.impact_direct = steps.impact_direct + 1 end
+			if answer.invalid then steps.impact_invalid = steps.impact_invalid + 1 end
+		end
+	elseif step.mode == "blast" then
+		if step.window == nil then
+			steps.blast_begun = steps.blast_begun + 1
+			if answer.radius == 0 then steps.blast_zero = steps.blast_zero + 1 end
+		end
+		if answer.state == "need_lookup" then steps.blast_windows = steps.blast_windows + 1
+		elseif answer.action == "collision" then steps.blast_collisions = steps.blast_collisions + 1
+		elseif answer.action == "intercept" then steps.blast_intercepts = steps.blast_intercepts + 1
+		else steps.blast_ended = steps.blast_ended + 1 end
 	elseif step.mode == "release" then
 		steps.releases = steps.releases + 1
 		if answer.refuse then steps.release_refused = steps.release_refused + 1 else steps.release_rounds = steps.release_rounds + answer.burst_size end
@@ -290,6 +323,33 @@ elseif mode == "damage_armoured" or mode == "damage_double" then
 elseif mode == "damage_none" then
 	provider = function (step)
 		if step.mode == "damage" then return counted (step, own.damage (with (step, { damage_capability = 0 }))) end
+		return counted (step, reference (step))
+	end
+elseif mode == "impact_none" or mode == "impact_own" or mode == "blast_small" or mode == "blast_none" or mode == "blast_own" then
+	provider = function (step)
+		if step.mode == "impact" then
+			if mode == "impact_none" then
+				-- the host's physical decision: nothing a weapon's death does reaches the world.  The reference plan (asked with the terrain given, so it never asks for it) says what was denied
+				local planned = reference (with (step, { terrain_draws_crater = false }))
+				if planned.blasts > 0 or planned.direct_hit then steps.impact_denied = steps.impact_denied + 1 end
+				return counted (step, { state = "done", invalid = planned.invalid, crater = false, direct_hit = false, blasts = 0, exclude_target = false })
+			elseif mode == "impact_own" then
+				if step.kill_code == 3 then steps.impact_own_land = steps.impact_own_land + 1 end
+				return counted (step, own.impact (step))
+			end
+		elseif step.mode == "blast" then
+			if mode == "blast_small" then
+				if step.window == nil and step.damage_capability >= 4 then steps.blast_shrunk = steps.blast_shrunk + 1 end
+				step = with (step, { damage_capability = math.floor (step.damage_capability / 4) })
+			elseif mode == "blast_none" then
+				local radius = reference (step).radius
+				if step.window == nil and radius > 0 then steps.blast_denied = steps.blast_denied + 1 end
+				return counted (step, { state = "done", radius = radius, action = "none" })
+			elseif mode == "blast_own" then
+				if step.window == nil then steps.blast_own = steps.blast_own + 1 end
+				return counted (step, own.blast (step))
+			end
+		end
 		return counted (step, reference (step))
 	end
 elseif mode == "forecast_zero" then
@@ -422,7 +482,11 @@ emit { event = "summary", mode = mode, frames = frames_run, failure = failure or
 	damage_critical = steps.damage_critical, damage_fatal = steps.damage_fatal,
 	health_draws = steps.health_draws, health_classified = steps.health_classified, health_critical = steps.health_critical, health_assessed = steps.health_assessed,
 	health_crossed = steps.health_crossed, timed_asked = steps.timed_asked, timed_eligible = steps.timed_eligible, timed_rolled = steps.timed_rolled, timed_hit = steps.timed_hit,
-	timed_fatal = steps.timed_fatal, selfhit_asked = steps.selfhit_asked, selfhit_refused = steps.selfhit_refused, timed_generic = steps.timed_generic }
+	timed_fatal = steps.timed_fatal, selfhit_asked = steps.selfhit_asked, selfhit_refused = steps.selfhit_refused, timed_generic = steps.timed_generic,
+	impact_asked = steps.impact_asked, impact_terrain = steps.impact_terrain, impact_land = steps.impact_land, impact_blasts = steps.impact_blasts, impact_crater = steps.impact_crater,
+	impact_direct = steps.impact_direct, impact_invalid = steps.impact_invalid, impact_denied = steps.impact_denied, impact_own_land = steps.impact_own_land,
+	blast_begun = steps.blast_begun, blast_zero = steps.blast_zero, blast_windows = steps.blast_windows, blast_collisions = steps.blast_collisions, blast_intercepts = steps.blast_intercepts,
+	blast_ended = steps.blast_ended, blast_shrunk = steps.blast_shrunk, blast_denied = steps.blast_denied, blast_own = steps.blast_own }
 out:close ()
 io.stderr:write (string.format ("aim-provider: mode=%s ready_update=%d ready_command=%d required=%d step=%d vectors=%d (valid %d invalid %d) lead=%d ballistic=%d intercept=%d need_draw=%d ready_moving=%d weapon_births=%d losses=%d failure=%s\n",
 	mode, counts.ready_update, counts.ready_command, counts.required, counts.step, counts.vectors, answers.valid, answers.invalid, counts.lead, counts.ballistic, counts.intercept,

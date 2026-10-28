@@ -7,6 +7,9 @@
 //! Its second question is the DAMAGE of a hit (EEDCS-46, real weapon): the capability of a real weapon against a target (its one random sample is the campaign's, asked for as a
 //! draw), the armour the weapon meets (the aspect armour of a vehicle or an aircraft), the player's invulnerability and cheat guard, the health the capability leaves and the
 //! critical-state classification before and after, all by value.
+//!
+//! Its later questions are the health facts that are not a hit and, last, what a weapon's death does to the world: the dispatch on its kill code (impact) and one area blast (last), walked
+//! through windows of the campaign's sector lists the campaign supplies as the walk asks, the campaign acting on each object this host reaches before the walk continues.
 
 use std::ffi::{c_float, c_int};
 
@@ -505,6 +508,327 @@ pub fn health(input: &HealthInput, draw: Option<i32>) -> Result<HealthStep, Stri
         new_level: out.new_level,
         fatal: out.fatal != 0,
     }))
+}
+
+/// `cf_impact_in`.
+#[repr(C)]
+struct RawImpactIn {
+    kill_code: c_int,
+    has_target: c_int,
+    target_alive: c_int,
+    terrain_known: c_int,
+    terrain_draws_crater: c_int,
+}
+
+/// `cf_impact_out`.
+#[repr(C)]
+#[derive(Default)]
+struct RawImpactOut {
+    need_terrain: c_int,
+    invalid: c_int,
+    crater: c_int,
+    direct_hit: c_int,
+    blasts: c_int,
+    exclude_target: c_int,
+}
+
+/// The most objects one window of a sector's list holds (`CF_BLAST_WINDOW_MAX`, the campaign's `CAMPAIGN_BLAST_WINDOW_MAX`).
+pub const BLAST_WINDOW_MAX: usize = 16;
+
+/// `cf_blast_entry`.
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+struct RawBlastEntry {
+    handle: c_int,
+    kind: c_int,
+    readable: c_int,
+    alive: c_int,
+    has_position: c_int,
+    rocket: c_int,
+    excluded: c_int,
+    position: [c_float; 3],
+}
+
+/// `cf_blast_in`.
+#[repr(C)]
+struct RawBlastIn {
+    position: [c_float; 3],
+    damage_capability: c_int,
+    warhead_type: c_int,
+    has_target: c_int,
+    sector_side_length: c_int,
+    min_x_sector: c_int,
+    max_x_sector: c_int,
+    min_z_sector: c_int,
+    max_z_sector: c_int,
+    window_valid: c_int,
+    window_sx: c_int,
+    window_sz: c_int,
+    window_after: c_int,
+    window_count: c_int,
+    window_end: c_int,
+    window: [RawBlastEntry; BLAST_WINDOW_MAX],
+}
+
+/// `cf_blast_echo`.
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+struct RawBlastEcho {
+    index: c_int,
+    flags: c_int,
+    range: c_float,
+    radius: c_float,
+    modifier: c_float,
+}
+
+/// `cf_blast_out`.
+#[repr(C)]
+#[derive(Default)]
+struct RawBlastOut {
+    state: c_int,
+    failed: c_int,
+    radius: c_float,
+    need_sx: c_int,
+    need_sz: c_int,
+    need_after: c_int,
+    action: c_int,
+    handle: c_int,
+    modifier: c_float,
+    echo_count: c_int,
+    echo: [RawBlastEcho; BLAST_WINDOW_MAX],
+}
+
+extern "C" {
+    fn eech_cmb_impact(input: *const RawImpactIn, output: *mut RawImpactOut);
+    fn eech_cmb_blast(input: *const RawBlastIn, output: *mut RawBlastOut);
+}
+
+/// The campaign's weapon kill codes (`weapon.h`) the dispatch knows; the engine's tests compare them with the campaign as compiled.
+pub const KILL_OK: i32 = 0;
+pub const KILL_EXHAUSTED: i32 = 1;
+pub const KILL_OUT_OF_BOUNDS: i32 = 2;
+pub const KILL_HIT_LAND: i32 = 3;
+pub const KILL_HIT_WATER: i32 = 4;
+pub const KILL_HIT_TARGET: i32 = 5;
+pub const KILL_OVERSHOT_TARGET: i32 = 6;
+pub const KILL_SELF_DESTRUCT: i32 = 7;
+
+/// The campaign's entity types (`en_types.h`) a blast examines, in the order of the engine layout probe's cases 60 to 72.
+pub const BLAST_ENTITY_TYPES: [i32; 13] = [1, 6, 10, 14, 19, 21, 23, 24, 26, 28, 29, 30, 37];
+/// The weapon entity type: a weapon in range is a rocket-destruction candidate and is never sent a collision.
+pub const ENTITY_WEAPON: i32 = 37;
+
+/// The impact question (`campaign_impact_request`): the kill code, whether the weapon has a target and it is alive, and the terrain fact once the campaign has read it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ImpactInput {
+    pub kill_code: i32,
+    pub has_target: bool,
+    pub target_alive: bool,
+    /// Whether the terrain at the impact position takes a crater, once the campaign has read it.
+    pub terrain_draws_crater: Option<bool>,
+}
+
+/// The plan (`campaign_impact_result`), in the original's order: the crater, the direct hit, then the blasts.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ImpactPlan {
+    pub invalid: bool,
+    pub crater: bool,
+    pub direct_hit: bool,
+    pub blasts: i32,
+    pub exclude_target: bool,
+}
+
+/// The host's answer: the terrain fact it needs (a land hit only), or the plan.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ImpactStep {
+    NeedTerrain,
+    Done(ImpactPlan),
+}
+
+/// What a weapon's death does to the world.  Pure: it keeps nothing.
+pub fn impact(input: &ImpactInput) -> ImpactStep {
+    let raw = RawImpactIn {
+        kill_code: input.kill_code,
+        has_target: c_int::from(input.has_target),
+        target_alive: c_int::from(input.target_alive),
+        terrain_known: c_int::from(input.terrain_draws_crater.is_some()),
+        terrain_draws_crater: c_int::from(input.terrain_draws_crater.unwrap_or(false)),
+    };
+    let mut out = RawImpactOut::default();
+    // SAFETY: both structures are valid for the call, which keeps nothing.
+    unsafe { eech_cmb_impact(&raw, &mut out) };
+    if out.need_terrain != 0 {
+        return ImpactStep::NeedTerrain;
+    }
+    ImpactStep::Done(ImpactPlan {
+        invalid: out.invalid != 0,
+        crater: out.crater != 0,
+        direct_hit: out.direct_hit != 0,
+        blasts: out.blasts,
+        exclude_target: out.exclude_target != 0,
+    })
+}
+
+/// One object of a sector's list the campaign offered (`campaign_blast_entry`).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct BlastEntry {
+    pub handle: i32,
+    pub entity_type: i32,
+    pub readable: bool,
+    pub alive: bool,
+    pub has_position: bool,
+    pub rocket: bool,
+    pub excluded: bool,
+    pub position: [f32; 3],
+}
+
+/// The window of a sector's list the host asked for and the campaign supplied: the sector, the handle it follows (0: the start of the list), whether the list ends with it.
+#[derive(Clone, Debug, PartialEq)]
+pub struct BlastWindow {
+    pub sx: i32,
+    pub sz: i32,
+    pub after: i32,
+    pub end: bool,
+    pub entries: Vec<BlastEntry>,
+}
+
+/// One area blast question (`campaign_blast_request`): the explosion, the map's sector figures and, once supplied, the window.
+#[derive(Clone, Debug, PartialEq)]
+pub struct BlastInput {
+    pub position: [f32; 3],
+    pub damage_capability: i32,
+    pub warhead_type: i32,
+    pub has_target: bool,
+    pub sector_side_length: i32,
+    pub min_x_sector: i32,
+    pub max_x_sector: i32,
+    pub min_z_sector: i32,
+    pub max_z_sector: i32,
+    pub window: Option<BlastWindow>,
+}
+
+/// What the host asked for or reached.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum BlastStep {
+    /// The window of sector (sx, sz) after the handle (0: from the start of the list).
+    NeedWindow { sx: i32, sz: i32, after: i32 },
+    /// The walk is over.
+    Over,
+    /// The object `handle` is sent a collision with `modifier`.
+    Collision { handle: i32, modifier: f32 },
+    /// The rocket `handle` is destroyed.
+    Intercept { handle: i32, modifier: f32 },
+}
+
+/// One candidate the walk examined in the window it was given (the fixture's echo).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct BlastExamined {
+    pub index: i32,
+    pub in_range: bool,
+    pub intercepted: bool,
+    pub range: f32,
+    pub radius: f32,
+    pub modifier: f32,
+}
+
+/// The answer: the damage radius (every answer repeats it), the step and the candidates examined.
+#[derive(Clone, Debug, PartialEq)]
+pub struct BlastOutcome {
+    pub radius: f32,
+    pub step: BlastStep,
+    pub examined: Vec<BlastExamined>,
+}
+
+/// One area blast question.  An error for a figure that is not finite, a radius or a sector the arithmetic cannot convert, a window outside the rectangle the radius covers, and a
+/// window of more objects than the campaign sends.
+pub fn blast(input: &BlastInput) -> Result<BlastOutcome, String> {
+    if !input.position.iter().all(|v| v.is_finite()) {
+        return Err("a blast needs a finite position".into());
+    }
+    let mut raw = RawBlastIn {
+        position: input.position,
+        damage_capability: input.damage_capability,
+        warhead_type: input.warhead_type,
+        has_target: c_int::from(input.has_target),
+        sector_side_length: input.sector_side_length,
+        min_x_sector: input.min_x_sector,
+        max_x_sector: input.max_x_sector,
+        min_z_sector: input.min_z_sector,
+        max_z_sector: input.max_z_sector,
+        window_valid: 0,
+        window_sx: 0,
+        window_sz: 0,
+        window_after: 0,
+        window_count: 0,
+        window_end: 0,
+        window: [RawBlastEntry::default(); BLAST_WINDOW_MAX],
+    };
+    if let Some(window) = &input.window {
+        if window.entries.len() > BLAST_WINDOW_MAX {
+            return Err(format!("a window holds {} objects, not more than {BLAST_WINDOW_MAX}", window.entries.len()));
+        }
+        raw.window_valid = 1;
+        raw.window_sx = window.sx;
+        raw.window_sz = window.sz;
+        raw.window_after = window.after;
+        raw.window_count = window.entries.len() as c_int;
+        raw.window_end = c_int::from(window.end);
+        for (slot, entry) in raw.window.iter_mut().zip(&window.entries) {
+            *slot = RawBlastEntry {
+                handle: entry.handle,
+                kind: entry.entity_type,
+                readable: c_int::from(entry.readable),
+                alive: c_int::from(entry.alive),
+                has_position: c_int::from(entry.has_position),
+                rocket: c_int::from(entry.rocket),
+                excluded: c_int::from(entry.excluded),
+                position: entry.position,
+            };
+        }
+    }
+    let mut out = RawBlastOut::default();
+    // SAFETY: both structures are valid for the call, which keeps nothing.
+    unsafe { eech_cmb_blast(&raw, &mut out) };
+    if out.failed != 0 {
+        return Err(format!(
+            "the blast cannot be answered: capability {}, sector side {}, window sector {}, {}",
+            input.damage_capability, input.sector_side_length, raw.window_sx, raw.window_sz
+        ));
+    }
+    let step = match (out.state, out.action) {
+        (1, _) => BlastStep::NeedWindow {
+            sx: out.need_sx,
+            sz: out.need_sz,
+            after: out.need_after,
+        },
+        (_, 1) => BlastStep::Collision {
+            handle: out.handle,
+            modifier: out.modifier,
+        },
+        (_, 2) => BlastStep::Intercept {
+            handle: out.handle,
+            modifier: out.modifier,
+        },
+        _ => BlastStep::Over,
+    };
+    let examined = out
+        .echo
+        .iter()
+        .take(usize::try_from(out.echo_count).unwrap_or(0).min(BLAST_WINDOW_MAX))
+        .map(|e| BlastExamined {
+            index: e.index,
+            in_range: e.flags & 1 != 0,
+            intercepted: e.flags & 2 != 0,
+            range: e.range,
+            radius: e.radius,
+            modifier: e.modifier,
+        })
+        .collect();
+    Ok(BlastOutcome {
+        radius: out.radius,
+        step,
+        examined,
+    })
 }
 
 #[cfg(test)]
@@ -1177,5 +1501,327 @@ mod tests {
             (ask(true, false), ask(true, true), ask(false, false), ask(false, true)),
             (false, true, true, true)
         );
+    }
+
+    // ---- the impact dispatch and the area blast (EEDCS-46).  The expected values are worked out by hand from the original expressions, not read back from this code.
+
+    fn impact_plan(kill_code: i32, has_target: bool, target_alive: bool, terrain: Option<bool>) -> ImpactStep {
+        impact(&ImpactInput {
+            kill_code,
+            has_target,
+            target_alive,
+            terrain_draws_crater: terrain,
+        })
+    }
+
+    fn done(step: ImpactStep) -> ImpactPlan {
+        match step {
+            ImpactStep::Done(plan) => plan,
+            ImpactStep::NeedTerrain => panic!("the plan needed the terrain"),
+        }
+    }
+
+    #[test]
+    fn the_dispatch_on_the_kill_code_is_the_originals_in_its_order() {
+        let plan = |code| done(impact_plan(code, true, true, Some(true)));
+        // no blast for a weapon that ran out, left the map or hit water
+        for code in [KILL_EXHAUSTED, KILL_OUT_OF_BOUNDS, KILL_HIT_WATER] {
+            let p = plan(code);
+            assert_eq!(
+                (p.invalid, p.crater, p.direct_hit, p.blasts, p.exclude_target),
+                (false, false, false, 0, false),
+                "code {code}"
+            );
+        }
+        // one blast, and no crater or direct hit, for an overshot or self-destroyed weapon
+        for code in [KILL_OVERSHOT_TARGET, KILL_SELF_DESTRUCT] {
+            let p = plan(code);
+            assert_eq!(
+                (p.invalid, p.crater, p.direct_hit, p.blasts, p.exclude_target),
+                (false, false, false, 1, false),
+                "code {code}"
+            );
+        }
+        // a hit on the target: the direct hit, then ONE blast that leaves the target out
+        let p = plan(KILL_HIT_TARGET);
+        assert_eq!((p.invalid, p.crater, p.direct_hit, p.blasts, p.exclude_target), (false, false, true, 1, true));
+        // a target that is dead gets no direct hit but is still left out; no target at all is neither
+        let dead = done(impact_plan(KILL_HIT_TARGET, true, false, None));
+        assert_eq!((dead.direct_hit, dead.blasts, dead.exclude_target), (false, 1, true));
+        let none = done(impact_plan(KILL_HIT_TARGET, false, false, None));
+        assert_eq!((none.direct_hit, none.blasts, none.exclude_target), (false, 1, false));
+        // a land hit needs the terrain, once; it then blasts TWICE (the deliberate fall-through), with a crater only where the terrain takes one
+        assert_eq!(impact_plan(KILL_HIT_LAND, false, false, None), ImpactStep::NeedTerrain);
+        let crater = done(impact_plan(KILL_HIT_LAND, false, false, Some(true)));
+        assert_eq!(
+            (crater.crater, crater.direct_hit, crater.blasts, crater.exclude_target),
+            (true, false, 2, false)
+        );
+        let bare = done(impact_plan(KILL_HIT_LAND, true, true, Some(false)));
+        assert_eq!((bare.crater, bare.direct_hit, bare.blasts, bare.exclude_target), (false, false, 2, false));
+        // no other code is known, and the terrain is asked for no other code
+        for code in [KILL_OK, 8, -1, 99] {
+            let p = done(impact_plan(code, true, true, None));
+            assert_eq!(
+                (p.invalid, p.crater, p.direct_hit, p.blasts, p.exclude_target),
+                (true, false, false, 0, false),
+                "code {code}"
+            );
+        }
+    }
+
+    const SIDE: i32 = 100;
+
+    fn entry(handle: i32, entity_type: i32, position: [f32; 3]) -> BlastEntry {
+        BlastEntry {
+            handle,
+            entity_type,
+            readable: true,
+            alive: true,
+            has_position: true,
+            rocket: false,
+            excluded: false,
+            position,
+        }
+    }
+
+    fn blast_input(position: [f32; 3], capability: i32, warhead: i32, window: Option<BlastWindow>) -> BlastInput {
+        BlastInput {
+            position,
+            damage_capability: capability,
+            warhead_type: warhead,
+            has_target: false,
+            sector_side_length: SIDE,
+            min_x_sector: 0,
+            max_x_sector: 99,
+            min_z_sector: 0,
+            max_z_sector: 99,
+            window,
+        }
+    }
+
+    fn window(sx: i32, sz: i32, after: i32, end: bool, entries: Vec<BlastEntry>) -> Option<BlastWindow> {
+        Some(BlastWindow { sx, sz, after, end, entries })
+    }
+
+    const CITY_BUILDING: i32 = 6;
+    const PERSON: i32 = 19;
+    const WEAPON: i32 = ENTITY_WEAPON;
+    const CAMERA: i32 = 3;
+
+    #[test]
+    fn a_blast_asks_for_the_first_sector_of_the_rectangle_its_radius_covers_and_keeps_nothing() {
+        // capability 400: radius 20.  From (250, 250) the rectangle is sector 2 on both axes (230 to 270 over 100)
+        let out = blast(&blast_input([250.0, 0.0, 250.0], 400, 4, None)).unwrap();
+        assert_eq!(
+            (out.radius, out.step, out.examined.len()),
+            (20.0, BlastStep::NeedWindow { sx: 2, sz: 2, after: 0 }, 0)
+        );
+        // capability 10000: radius 100, from (250, 250) the rectangle is sectors 1 to 3; the walk starts at its first
+        let wide = blast(&blast_input([250.0, 0.0, 250.0], 10000, 4, None)).unwrap();
+        assert_eq!((wide.radius, wide.step), (100.0, BlastStep::NeedWindow { sx: 1, sz: 1, after: 0 }));
+        // a capability of zero is a radius of zero: the walk is over before any window, whatever the map
+        let zero = blast(&blast_input([250.0, 0.0, 250.0], 0, 4, None)).unwrap();
+        assert_eq!((zero.radius, zero.step, zero.examined.len()), (0.0, BlastStep::Over, 0));
+        // the rectangle is bounded to the map's sectors: from (250, 250) with the map ending at sector 2, the wide blast covers 1 to 2
+        let mut small = blast_input([250.0, 0.0, 250.0], 10000, 4, None);
+        small.max_x_sector = 2;
+        small.max_z_sector = 2;
+        small.window = window(2, 2, 0, true, vec![]);
+        assert_eq!(
+            blast(&small).unwrap().step,
+            BlastStep::Over,
+            "the last sector of the bounded rectangle ends the walk"
+        );
+        // the sector of a negative coordinate truncates toward zero as the original's integer conversion does: -70 / 100 is sector 0, not -1
+        let mut negative = blast_input([-50.0, 0.0, 250.0], 400, 4, None);
+        negative.min_x_sector = -5;
+        negative.max_x_sector = 5;
+        assert_eq!(blast(&negative).unwrap().step, BlastStep::NeedWindow { sx: 0, sz: 2, after: 0 });
+        // a radius the arithmetic cannot convert (a negative capability is a radius that is not a number) has no answer
+        assert!(blast(&blast_input([250.0, 0.0, 250.0], -4, 4, None)).is_err());
+        // and so does a window outside the rectangle
+        assert!(blast(&blast_input([250.0, 0.0, 250.0], 400, 4, window(5, 5, 0, true, vec![]))).is_err());
+    }
+
+    #[test]
+    fn the_walk_visits_the_rectangle_in_rows_and_each_list_in_order_in_windows() {
+        // radius 100 around (250, 250) is sectors 1 to 3 on both axes
+        let at = |sx, sz, after, end| {
+            blast(&blast_input([250.0, 0.0, 250.0], 10000, 4, window(sx, sz, after, end, vec![])))
+                .unwrap()
+                .step
+        };
+        assert_eq!(
+            at(1, 1, 0, true),
+            BlastStep::NeedWindow { sx: 2, sz: 1, after: 0 },
+            "the next sector of the row"
+        );
+        assert_eq!(
+            at(3, 1, 0, true),
+            BlastStep::NeedWindow { sx: 1, sz: 2, after: 0 },
+            "the next row, from its first sector"
+        );
+        assert_eq!(at(3, 2, 0, true), BlastStep::NeedWindow { sx: 1, sz: 3, after: 0 });
+        assert_eq!(at(3, 3, 0, true), BlastStep::Over, "the last sector ends the walk");
+        // a window that did not hold the rest of the list asks for what follows its last object, in the same sector
+        let sixteen: Vec<BlastEntry> = (1..=16).map(|h| entry(h, CAMERA, [0.0; 3])).collect();
+        let more = blast(&blast_input([250.0, 0.0, 250.0], 10000, 4, window(2, 1, 0, false, sixteen))).unwrap();
+        assert_eq!(more.step, BlastStep::NeedWindow { sx: 2, sz: 1, after: 16 });
+        // a window with objects left but none in it cannot be continued
+        assert!(blast(&blast_input([250.0, 0.0, 250.0], 10000, 4, window(2, 1, 0, false, vec![]))).is_err());
+    }
+
+    #[test]
+    fn a_candidate_is_reached_only_alive_with_a_position_of_a_kind_that_is_examined_strictly_inside_the_radius() {
+        // radius 20 around (250, 250): ranges are exact (a vertical offset, so the range is the offset)
+        let here = [250.0, 0.0, 250.0];
+        let base = |range: f32| entry(0, CITY_BUILDING, [250.0, range, 250.0]);
+        let run = |entries: Vec<BlastEntry>| blast(&blast_input(here, 400, 4, window(2, 2, 0, true, entries))).unwrap();
+        let numbered = |mut e: Vec<BlastEntry>| {
+            for (i, item) in e.iter_mut().enumerate() {
+                item.handle = i as i32 + 1;
+            }
+            e
+        };
+        // range 10 is inside: a collision with the modifier 10 / 20 = 0.5, after the candidate
+        let hit = run(numbered(vec![base(10.0)]));
+        assert_eq!(hit.step, BlastStep::Collision { handle: 1, modifier: 0.5 });
+        assert_eq!(hit.examined.len(), 1);
+        assert_eq!(
+            (
+                hit.examined[0].index,
+                hit.examined[0].in_range,
+                hit.examined[0].range,
+                hit.examined[0].radius,
+                hit.examined[0].modifier
+            ),
+            (0, true, 10.0, 20.0, 0.5)
+        );
+        // range exactly 0 and exactly the radius are not inside (the original's strict range != 0 and range < radius): examined, never reached
+        let edge = run(numbered(vec![base(0.0), base(20.0), base(19.0)]));
+        assert_eq!(edge.step, BlastStep::Collision { handle: 3, modifier: 0.95 });
+        let flags: Vec<(i32, bool, f32)> = edge.examined.iter().map(|e| (e.index, e.in_range, e.modifier)).collect();
+        assert_eq!(flags, vec![(0, false, 0.0), (1, false, 0.0), (2, true, 0.95)]);
+        // not examined at all: the excluded target, a dead object, one with no position, one the campaign cannot read, a kind outside the thirteen
+        let mut excluded = base(5.0);
+        excluded.excluded = true;
+        let mut dead = base(5.0);
+        dead.alive = false;
+        let mut unplaced = base(5.0);
+        unplaced.has_position = false;
+        let mut unread = base(5.0);
+        unread.readable = false;
+        unread.alive = false;
+        unread.has_position = false;
+        let mut camera = base(5.0);
+        camera.entity_type = CAMERA;
+        let skipped = run(numbered(vec![excluded, dead, unplaced, unread, camera, base(5.0)]));
+        assert_eq!(skipped.step, BlastStep::Collision { handle: 6, modifier: 0.25 });
+        assert_eq!(skipped.examined.iter().map(|e| e.index).collect::<Vec<_>>(), vec![5]);
+        // a window with nothing to reach ends the walk when its sector is the rectangle's last (this one is a single sector)
+        let quiet = run(numbered(vec![base(0.0), base(30.0)]));
+        assert_eq!(quiet.step, BlastStep::Over);
+        assert_eq!(quiet.examined.len(), 2);
+        // the damage modifier is the float quotient: 7 / 20 is 0.35 as a float
+        let seven = run(numbered(vec![base(7.0)]));
+        assert_eq!(
+            seven.step,
+            BlastStep::Collision {
+                handle: 1,
+                modifier: 7.0f32 / 20.0f32
+            }
+        );
+        // a person is a kind that is examined too
+        let mut person = base(5.0);
+        person.entity_type = PERSON;
+        assert_eq!(run(numbered(vec![person])).step, BlastStep::Collision { handle: 1, modifier: 0.25 });
+    }
+
+    #[test]
+    fn a_rocket_is_destroyed_by_the_warheads_threshold_and_a_weapon_is_never_sent_a_collision() {
+        let here = [250.0, 0.0, 250.0];
+        let rocket_at = |range: f32, rocket: bool| {
+            let mut e = entry(1, WEAPON, [250.0, range, 250.0]);
+            e.rocket = rocket;
+            e
+        };
+        let run = |warhead: i32, e: BlastEntry| blast(&blast_input(here, 400, warhead, window(2, 2, 0, true, vec![e]))).unwrap();
+        // high-explosive anti-aircraft (7): the exponent is ((7 - 3) / 3) ^ 1.5 = 1.5396.  At a quarter of the radius 0.25 ^ 1.5396 = 0.1183, and 1 - 0.1183 = 0.8817 is above 0.75
+        let destroyed = run(7, rocket_at(5.0, true));
+        assert_eq!(destroyed.step, BlastStep::Intercept { handle: 1, modifier: 0.25 });
+        assert_eq!((destroyed.examined[0].in_range, destroyed.examined[0].intercepted), (true, true));
+        // a weapon that is not a rocket is in range and examined, and nothing more
+        let missile = run(7, rocket_at(5.0, false));
+        assert_eq!(missile.step, BlastStep::Over, "no action for a weapon that is not a rocket");
+        assert_eq!((missile.examined[0].in_range, missile.examined[0].intercepted), (true, false));
+        // at half the radius 0.5 ^ 1.5396 = 0.3441, and 1 - 0.3441 = 0.6559 is below the threshold
+        assert_eq!(run(7, rocket_at(10.0, true)).step, BlastStep::Over);
+        // anti-tank (4): the exponent (1 / 3) ^ 1.5 = 0.19245: even at a hundredth of the radius 0.01 ^ 0.19245 = 0.4121, and 0.5879 is below the threshold
+        assert_eq!(run(4, rocket_at(0.2, true)).step, BlastStep::Over);
+        // solid shot (3): the exponent is zero, every modifier gives 1 and 1 - 1 = 0
+        assert_eq!(run(3, rocket_at(5.0, true)).step, BlastStep::Over);
+        // a warhead below 3 gives a negative base to the fractional power, which is not a number: the comparison is false, whatever the rocket
+        assert_eq!(run(0, rocket_at(5.0, true)).step, BlastStep::Over);
+        // a weapon at the explosion's own position is never reached (range 0), and one at the radius is not inside
+        assert_eq!(run(7, rocket_at(0.0, true)).step, BlastStep::Over);
+        assert_eq!(run(7, rocket_at(20.0, true)).step, BlastStep::Over);
+    }
+    // The kernel hard-codes the campaign's enum values (csrc/cmb_step.c): the engine's test reads them from the campaign as compiled (eech-engine, the aim layout probe's cases 60 to 72
+    // and 80 to 87) and compares them with these same two lists, written out there too.
+    #[test]
+    fn the_enum_values_the_kernel_hard_codes_are_the_ones_the_engine_tests_compare_with_the_campaign() {
+        assert_eq!(BLAST_ENTITY_TYPES, [1, 6, 10, 14, 19, 21, 23, 24, 26, 28, 29, 30, 37]);
+        assert_eq!(ENTITY_WEAPON, 37);
+        assert_eq!(
+            [
+                KILL_OK,
+                KILL_EXHAUSTED,
+                KILL_OUT_OF_BOUNDS,
+                KILL_HIT_LAND,
+                KILL_HIT_WATER,
+                KILL_HIT_TARGET,
+                KILL_OVERSHOT_TARGET,
+                KILL_SELF_DESTRUCT
+            ],
+            [0, 1, 2, 3, 4, 5, 6, 7]
+        );
+        // and every one of the thirteen kinds is examined by the walk, while a kind next to them is not
+        for kind in BLAST_ENTITY_TYPES {
+            let mut e = BlastEntry {
+                handle: 1,
+                entity_type: kind,
+                readable: true,
+                alive: true,
+                has_position: true,
+                rocket: false,
+                excluded: false,
+                position: [250.0, 10.0, 250.0],
+            };
+            let step = |e: BlastEntry| {
+                blast(&BlastInput {
+                    position: [250.0, 0.0, 250.0],
+                    damage_capability: 400,
+                    warhead_type: 4,
+                    has_target: false,
+                    sector_side_length: 100,
+                    min_x_sector: 0,
+                    max_x_sector: 99,
+                    min_z_sector: 0,
+                    max_z_sector: 99,
+                    window: Some(BlastWindow {
+                        sx: 2,
+                        sz: 2,
+                        after: 0,
+                        end: true,
+                        entries: vec![e],
+                    }),
+                })
+                .unwrap()
+            };
+            assert_eq!(step(e).examined.len(), 1, "kind {kind} is examined");
+            e.entity_type = kind + 100;
+            assert_eq!(step(e).examined.len(), 0, "kind {} is not", kind + 100);
+        }
     }
 }

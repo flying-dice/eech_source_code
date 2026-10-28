@@ -65,9 +65,11 @@ extern void eech_cmb_damage_end (struct ENTITY *en, struct ENTITY *weapon, float
 extern void eech_cmb_explosion_begin (int kill_code);
 extern void eech_cmb_explosion_end (void);
 extern void eech_cmb_blast_begin (struct ENTITY *en, struct ENTITY *target, int capability, float radius);
-extern void eech_cmb_blast_candidate (struct ENTITY *object, float range, float radius);
-extern void eech_cmb_blast_notify (struct ENTITY *object, float modifier);
-extern void eech_cmb_blast_rocket (struct ENTITY *object, float modifier);
+struct campaign_aim_result;
+
+// the blast walk is the host's (EEDCS-46): the fixture build asks the reference host to echo the candidates it examined, and replays the original's hooks for them (candidate, notify,
+// rocket) in the order the original made them, just before the campaign acts on the object the host reached
+extern void eech_cmb_blast_examined (void *context, const struct campaign_aim_result *result, void *const *objects, int count);
 extern void eech_cmb_blast_end (void);
 extern void eech_cmb_repair (struct ENTITY *en, int old_level, int new_level, int source);
 extern void eech_cmb_timed_begin (int kind);
@@ -100,9 +102,8 @@ extern void eech_cmb_timed_end (void);
 #define CMB_FX_EXPLOSION_BEGIN(kill_code) eech_cmb_explosion_begin (kill_code);
 #define CMB_FX_EXPLOSION_END() eech_cmb_explosion_end ();
 #define CMB_FX_BLAST_BEGIN(en, target, capability, radius) eech_cmb_blast_begin (en, target, capability, radius);
-#define CMB_FX_BLAST_CANDIDATE(object, range, radius) eech_cmb_blast_candidate (object, range, radius);
-#define CMB_FX_BLAST_NOTIFY(object, modifier) eech_cmb_blast_notify (object, modifier);
-#define CMB_FX_BLAST_ROCKET(object, modifier) eech_cmb_blast_rocket (object, modifier);
+#define CMB_FX_BLAST_ECHO 1
+#define CMB_FX_BLAST_EXAMINED eech_cmb_blast_examined
 #define CMB_FX_BLAST_END() eech_cmb_blast_end ();
 
 #define CMB_FX_REPAIR(en, old_level, new_level, source) eech_cmb_repair (en, old_level, new_level, source);
@@ -130,9 +131,8 @@ extern void eech_cmb_timed_end (void);
 #define CMB_FX_EXPLOSION_BEGIN(kill_code)
 #define CMB_FX_EXPLOSION_END()
 #define CMB_FX_BLAST_BEGIN(en, target, capability, radius)
-#define CMB_FX_BLAST_CANDIDATE(object, range, radius)
-#define CMB_FX_BLAST_NOTIFY(object, modifier)
-#define CMB_FX_BLAST_ROCKET(object, modifier)
+#define CMB_FX_BLAST_ECHO 0
+#define CMB_FX_BLAST_EXAMINED NULL
 #define CMB_FX_BLAST_END()
 #define CMB_FX_REPAIR(en, old_level, new_level, source)
 #define CMB_FX_TIMED_BEGIN(kind)

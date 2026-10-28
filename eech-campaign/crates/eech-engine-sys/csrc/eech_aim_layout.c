@@ -50,6 +50,43 @@ size_t eech_engine_aim_layout (int which)
 		case 33: return offsetof (campaign_health_request, target_not_ai);
 		case 34: return offsetof (campaign_health_result, eligible);
 		case 35: return offsetof (campaign_health_result, fatal);
+		/* IMPACT and BLAST (EEDCS-46) */
+		case 36: return sizeof (campaign_impact_request);
+		case 37: return sizeof (campaign_impact_result);
+		case 38: return sizeof (campaign_blast_entry);
+		case 39: return sizeof (campaign_blast_request);
+		case 40: return sizeof (campaign_blast_result);
+		case 41: return offsetof (campaign_aim_step, impact);
+		case 42: return offsetof (campaign_aim_step, blast);
+		case 43: return offsetof (campaign_aim_result, impact);
+		case 44: return offsetof (campaign_aim_result, blast);
+		case 45: return offsetof (campaign_blast_request, window);
+		case 46: return offsetof (campaign_blast_entry, position);
+		case 47: return offsetof (campaign_blast_result, modifier);
+		case 48: return offsetof (campaign_impact_request, position);
+		case 49: return offsetof (campaign_blast_request, window_valid);
+		/* the campaign's enum values the reference host's kernel hard-codes: the thirteen kinds a blast examines and the weapon kill codes */
+		case 60: return (size_t) ENTITY_TYPE_ANTI_AIRCRAFT;
+		case 61: return (size_t) ENTITY_TYPE_CITY_BUILDING;
+		case 62: return (size_t) ENTITY_TYPE_FIXED_WING;
+		case 63: return (size_t) ENTITY_TYPE_HELICOPTER;
+		case 64: return (size_t) ENTITY_TYPE_PERSON;
+		case 65: return (size_t) ENTITY_TYPE_PYLON;
+		case 66: return (size_t) ENTITY_TYPE_ROUTED_VEHICLE;
+		case 67: return (size_t) ENTITY_TYPE_SCENIC;
+		case 68: return (size_t) ENTITY_TYPE_SEGMENT;
+		case 69: return (size_t) ENTITY_TYPE_SHIP_VEHICLE;
+		case 70: return (size_t) ENTITY_TYPE_SITE;
+		case 71: return (size_t) ENTITY_TYPE_SITE_UPDATABLE;
+		case 72: return (size_t) ENTITY_TYPE_WEAPON;
+		case 80: return (size_t) WEAPON_KILL_CODE_OK;
+		case 81: return (size_t) WEAPON_KILL_CODE_EXHAUSTED;
+		case 82: return (size_t) WEAPON_KILL_CODE_OUT_OF_BOUNDS;
+		case 83: return (size_t) WEAPON_KILL_CODE_HIT_LAND;
+		case 84: return (size_t) WEAPON_KILL_CODE_HIT_WATER;
+		case 85: return (size_t) WEAPON_KILL_CODE_HIT_TARGET;
+		case 86: return (size_t) WEAPON_KILL_CODE_OVERSHOT_TARGET;
+		case 87: return (size_t) WEAPON_KILL_CODE_SELF_DESTRUCT;
 	}
 
 	return (size_t) -1;

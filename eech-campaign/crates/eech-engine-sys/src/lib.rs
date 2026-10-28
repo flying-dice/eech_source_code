@@ -600,6 +600,8 @@ pub const EECH_AIM_WEAPON_REACQUIRE: c_int = 18;
 pub const EECH_AIM_FORECAST: c_int = 19;
 pub const EECH_AIM_DAMAGE: c_int = 20;
 pub const EECH_AIM_HEALTH: c_int = 21;
+pub const EECH_AIM_IMPACT: c_int = 22;
+pub const EECH_AIM_BLAST: c_int = 23;
 pub const EECH_AIM_DONE: c_int = 1;
 pub const EECH_AIM_NEED_DRAW: c_int = 2;
 pub const EECH_AIM_NEED_LOOKUP: c_int = 3;
@@ -763,6 +765,82 @@ pub struct eech_health_result {
     pub fatal: c_int,
 }
 
+/// The dispatch of a weapon's death, by value (aphavoc/.../mb_hostaim.h campaign_impact_request), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_impact_request {
+    pub kill_code: c_int,
+    pub has_target: c_int,
+    pub target_alive: c_int,
+    pub terrain_known: c_int,
+    pub terrain_draws_crater: c_int,
+    pub position: [f32; 3],
+}
+
+/// The host's plan for a weapon's death (aphavoc/.../mb_hostaim.h campaign_impact_result), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_impact_result {
+    pub need_terrain: c_int,
+    pub invalid: c_int,
+    pub crater: c_int,
+    pub direct_hit: c_int,
+    pub blasts: c_int,
+    pub exclude_target: c_int,
+}
+
+/// The most objects one window of a sector's list holds (aphavoc/.../mb_hostaim.h CAMPAIGN_BLAST_WINDOW_MAX).
+pub const EECH_BLAST_WINDOW_MAX: usize = 16;
+
+/// One object of a sector's list offered to the host (aphavoc/.../mb_hostaim.h campaign_blast_entry), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_blast_entry {
+    pub handle: c_int,
+    pub kind: c_int,
+    pub readable: c_int,
+    pub alive: c_int,
+    pub has_position: c_int,
+    pub rocket: c_int,
+    pub excluded: c_int,
+    pub position: [f32; 3],
+}
+
+/// One area blast, by value (aphavoc/.../mb_hostaim.h campaign_blast_request), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_blast_request {
+    pub position: [f32; 3],
+    pub damage_capability: c_int,
+    pub warhead_type: c_int,
+    pub has_target: c_int,
+    pub sector_side_length: c_int,
+    pub min_x_sector: c_int,
+    pub max_x_sector: c_int,
+    pub min_z_sector: c_int,
+    pub max_z_sector: c_int,
+    pub window_valid: c_int,
+    pub window_sx: c_int,
+    pub window_sz: c_int,
+    pub window_after: c_int,
+    pub window_count: c_int,
+    pub window_end: c_int,
+    pub window: [eech_blast_entry; EECH_BLAST_WINDOW_MAX],
+}
+
+/// The host's answer to a blast question (aphavoc/.../mb_hostaim.h campaign_blast_result), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_blast_result {
+    pub radius: f32,
+    pub need_sx: c_int,
+    pub need_sz: c_int,
+    pub need_after: c_int,
+    pub action: c_int,
+    pub handle: c_int,
+    pub modifier: f32,
+}
+
 /// The weapon as the campaign holds it, in a weapon step (aphavoc/.../mb_hostaim.h campaign_weapon_state), field for field.
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -866,6 +944,8 @@ pub struct eech_aim_step {
     pub forecast_velocity: f32,
     pub damage: eech_damage_request,
     pub health: eech_health_request,
+    pub impact: eech_impact_request,
+    pub blast: eech_blast_request,
 }
 
 #[repr(C)]
@@ -906,6 +986,8 @@ pub struct eech_aim_result {
     pub forecast_capability: c_int,
     pub damage: eech_damage_result,
     pub health: eech_health_result,
+    pub impact: eech_impact_result,
+    pub blast: eech_blast_result,
 }
 
 /// What each collision lookup of a weapon step found, by the question it was asked (aphavoc/.../mb_hostaim.h campaign_step_hits).

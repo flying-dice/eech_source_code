@@ -1,0 +1,5 @@
+OK   [] eech-campaign/crates/eech-engine-sys/csrc/eech_aim_layout.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] eech-campaign/crates/eech-engine-sys/csrc/eech_aim_layout.c
+     warnings: 7
+SYNTAX_EXIT=0

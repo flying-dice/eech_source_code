@@ -116,4 +116,42 @@ function own.weapon_step (step)
 	} }
 end
 
+-- what a weapon's death does to the world (EEDCS-46): a plain model that is not EECH's.  A weapon that ran out, left the map or hit water does nothing; any other death (a land hit,
+-- an overshot or self-destroyed weapon, a hit on its target) blasts ONCE, without a crater, so it never asks for the terrain; a hit on the target sends it a direct hit when it is alive
+-- and leaves it out of the blast.  A kill code it does not know is not a death it knows.  The codes are the campaign's (weapon.h): 1 exhausted, 2 out of bounds, 4 water.
+function own.impact (step)
+	local code = step.kill_code
+	if code == 1 or code == 2 or code == 4 then return { state = "done", invalid = false, crater = false, direct_hit = false, blasts = 0, exclude_target = false } end
+	if code == 3 or code == 6 or code == 7 then return { state = "done", invalid = false, crater = false, direct_hit = false, blasts = 1, exclude_target = false } end
+	if code == 5 then return { state = "done", invalid = false, crater = false, direct_hit = step.has_target and step.target_alive, blasts = 1, exclude_target = step.has_target } end
+	return { state = "done", invalid = true, crater = false, direct_hit = false, blasts = 0, exclude_target = false }
+end
+
+-- one area blast of a plain model: a fixed radius of thirty metres whatever the weapon, reaching only the sector the explosion is in (whole sectors of the campaign's map), in the
+-- order of the list, every object that is alive and placed, whatever its kind, strictly inside the radius and not the excluded target; it never destroys a rocket.  It needs none of
+-- EECH's tables: the window it asks for is the campaign's list of the sector, which is all it knows of the world.
+local BLAST_RADIUS = 30
+function own.blast (step)
+	local sx = math.min (math.max (math.floor (step.position [1] / step.sector_side_length), step.min_x_sector), step.max_x_sector)
+	local sz = math.min (math.max (math.floor (step.position [3] / step.sector_side_length), step.min_z_sector), step.max_z_sector)
+	local window = step.window
+	if window == nil then return { state = "need_lookup", radius = BLAST_RADIUS, need = { sx = sx, sz = sz, after = 0 } } end
+	local p = step.position
+	for index, object in ipairs (window.objects) do
+		if object.readable and object.alive and object.has_position and not object.excluded then
+			local q = object.position
+			local range = math.sqrt ((p [1] - q [1]) ^ 2 + (p [2] - q [2]) ^ 2 + (p [3] - q [3]) ^ 2)
+			if range > 0 and range < BLAST_RADIUS then
+				-- the module carries the modifier as a single-precision number, and a model that reported it in double precision would be refused as inexact
+				return { state = "done", radius = BLAST_RADIUS, action = "collision", handle = object.handle, modifier = math.floor (range / BLAST_RADIUS * 1024) / 1024 }
+			end
+		end
+	end
+	if not window.list_ends then
+		local last = window.objects [#window.objects]
+		return { state = "need_lookup", radius = BLAST_RADIUS, need = { sx = window.sx, sz = window.sz, after = last.handle } }
+	end
+	return { state = "done", radius = BLAST_RADIUS, action = "none" }
+end
+
 return own

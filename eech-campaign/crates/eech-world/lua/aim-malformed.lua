@@ -10,11 +10,61 @@ return function (mode, reference, counted)
 		bad_decoy_flag = "weapon_decoy", bad_seduce_flag = "weapon_seduce", bad_reacquire_flag = "weapon_reacquire", bad_reacquire_none = "weapon_reacquire",
 		bad_forecast_negative = "forecast", bad_forecast_draw = "forecast", bad_forecast_fraction = "forecast",
 		bad_damage_level = "damage", bad_damage_draw_twice = "damage", bad_damage_exit = "damage", bad_damage_class = "damage", bad_damage_unwritten = "damage", bad_damage_missing = "damage",
-		bad_health_class = "health", bad_health_missing = "health", bad_health_classify_draw = "health", bad_health_second_draw = "health", bad_health_hit_ineligible = "health", bad_health_fatal = "health" }
+		bad_health_class = "health", bad_health_missing = "health", bad_health_classify_draw = "health", bad_health_second_draw = "health", bad_health_hit_ineligible = "health", bad_health_fatal = "health",
+		bad_impact_crater = "impact", bad_impact_draw = "impact", bad_impact_blasts = "impact",
+		bad_blast_handle = "blast", bad_blast_radius = "blast", bad_blast_draw = "blast", bad_blast_sector = "blast", bad_blast_repeat = "blast", bad_blast_modifier = "blast", bad_blast_rocket = "blast" }
 	local kind = assert (kinds [mode], "unknown bad mode " .. mode)
 	local armed = true
 	return function (step)
 		-- the health providers corrupt the first answer of their kind: pure-question and repeated draws are invalid; a generic timed draw for a person is valid
+		-- the impact and blast providers corrupt the first answer that can carry their fault; a mode whose fault needs a walk that reaches an object or a second sector may not be
+		-- reached in a short run, and the summary's counters say so
+		if (step.mode == "impact" and mode:find ("^bad_impact_")) or (step.mode == "blast" and mode:find ("^bad_blast_")) then
+			local answer = reference (step)
+			if armed then
+				if mode == "bad_impact_crater" and step.terrain_draws_crater == nil then
+					-- a crater on a terrain the campaign has not read for it
+					armed = false
+					return { state = "done", invalid = false, crater = true, direct_hit = false, blasts = 1, exclude_target = false }
+				elseif mode == "bad_impact_draw" then
+					armed = false
+					return { state = "need_draw" }
+				elseif mode == "bad_impact_blasts" and answer.state == "done" and not answer.invalid then
+					armed = false
+					answer.blasts = 3
+					return answer
+				elseif mode == "bad_blast_draw" then
+					armed = false
+					return { state = "need_draw" }
+				elseif mode == "bad_blast_sector" and answer.state == "need_lookup" then
+					armed = false
+					answer.need = { sx = step.max_x_sector + 1, sz = step.max_z_sector + 1, after = 0 }
+					return answer
+				elseif mode == "bad_blast_repeat" and answer.state == "need_lookup" and answer.need.after == 0 and step.window ~= nil then
+					-- asks for the start of the sector it has just been given
+					armed = false
+					answer.need = { sx = step.window.sx, sz = step.window.sz, after = 0 }
+					return answer
+				elseif mode == "bad_blast_radius" and step.window ~= nil and answer.radius > 0 then
+					armed = false
+					answer.radius = answer.radius + 1
+					return answer
+				elseif mode == "bad_blast_handle" and answer.state == "done" and answer.action ~= "none" then
+					armed = false
+					answer.handle = 99999
+					return answer
+				elseif mode == "bad_blast_modifier" and answer.state == "done" and answer.action ~= "none" then
+					armed = false
+					answer.modifier = 2
+					return answer
+				elseif mode == "bad_blast_rocket" and answer.state == "done" and answer.action == "collision" then
+					armed = false
+					answer.action = "intercept"
+					return answer
+				end
+			end
+			return counted (step, answer)
+		end
 		-- the reference host answers requests that the selected mode does not corrupt
 		if step.mode == "health" and mode:find ("^bad_health_") then
 			if mode == "bad_health_classify_draw" then

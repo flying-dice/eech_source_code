@@ -67,6 +67,27 @@
  *                  second request for a sample, a lookup, an answer that contradicts the request (an invulnerable target hit, health written under the cheat guard, health
  *                  raised, a classification the target's model cannot have) is refused.  A host with a model of its own answers from it and needs none of EECH's arithmetic.
  *
+ *   HEALTH         (see campaign_health_request below.)
+ *
+ *   IMPACT         (EEDCS-46) what a weapon's death does to the world: the dispatch on its kill code.  The campaign sends the kill code and the facts the dispatch reads (whether the
+ *                  weapon has a target and it is alive; the impact position).  The host answers the PLAN in the original's order: whether a ground crater is made (the host
+ *                  asks for the terrain fact it needs, NEED_LOOKUP, and is asked again with it: the original read it for a land hit only), whether the target is first sent a direct
+ *                  hit, how many area blasts follow (0, 1, or the land hit's deliberate two) and whether they leave the target out; or that the code is not one the dispatch knows
+ *                  (the campaign then stops with the original's message).  The campaign keeps the effects (the crater entity, the explosion and collision effects chosen by the
+ *                  kill code) and sends the notifications.
+ *
+ *   BLAST          (EEDCS-46) one area blast: which objects it reaches, and with what.  The HOST owns the damage radius, the sector rectangle, the order of the walk, which objects
+ *                  are candidates, the range and the strict in-range test, the exclusion of the target, the damage modifier and the rocket interception (the warhead's threshold).  The
+ *                  campaign sends the explosion (position, the weapon's damage capability and warhead type) and the map's sector figures, and supplies the facts of the world the host
+ *                  asks for as WINDOWS: up to CAMPAIGN_BLAST_WINDOW_MAX objects of one sector's list, in list order, from the start of a sector or after the object last offered (a
+ *                  declared transitional mirror: a host that owns its world answers from its own objects).  Every object in a window is named by a HANDLE the campaign gives it for
+ *                  this blast only (an opaque, positive, per-blast number: no pointer, no index, no list layout, no persistent identity), which is how a fixed structure, which the
+ *                  roster does not cover, is reported.  The host answers: that it needs a window (NEED_LOOKUP: sector and after-handle), or DONE with the NEXT object the blast reaches
+ *                  and what the campaign must do (send it a collision with the modifier, or destroy a rocket), or DONE with nothing more.  The campaign applies each answer BEFORE the
+ *                  walk continues and asks again after the object it applied, from the list as it is then (the original read the successor of an object after notifying it, and a
+ *                  notification can kill objects and alter lists): the campaign never freezes the candidate set.  A blast takes no sample.  The campaign keeps what a collision does to
+ *                  the object (accounting, credit, the D1 consequences), setting a destroyed rocket's kill code, and the effects.
+ *
  * The optional echo is an ordered list of the reference host's intermediate values (the points of its prediction), requested only by the
  * test-fixture build; the shipping module never asks for it.
  */
@@ -121,7 +142,11 @@ enum campaign_aim_mode
 	CAMPAIGN_AIM_DAMAGE,
 	/* the physical health facts of a target that are not a hit (EEDCS-46): its critical class, the thresholds a change of health crosses, the timed fire and bleeding rolls
 	   and the eligibility of a hit (see campaign_health_request) */
-	CAMPAIGN_AIM_HEALTH
+	CAMPAIGN_AIM_HEALTH,
+	/* what a weapon's death does to the world: the plan of the dispatch on its kill code (EEDCS-46); NEED_LOOKUP asks for the terrain fact once */
+	CAMPAIGN_AIM_IMPACT,
+	/* one area blast (EEDCS-46): the host walks the world through windows the campaign supplies and names the next object it reaches; NEED_LOOKUP asks for a window */
+	CAMPAIGN_AIM_BLAST
 };
 
 enum campaign_aim_state
@@ -155,6 +180,10 @@ enum campaign_aim_event_kind
 	   number (the hit then does nothing).  The exchange carries finite floats only, so each travels as its raw 32-bit pattern, losslessly, as two exact 16-bit halves (high then
 	   low) in f[4..11], value by value in the order above; f[0..3] repeat the finite ones (0 for the others) for a reader.  campaign_aim_damage_echo_float rebuilds them. */
 	CAMPAIGN_AIM_EVENT_DAMAGE,
+	/* BLAST echo (the test fixture build only): one event per object the walk examined as a candidate (alive, with a position, of a kind it examines), in the order examined, in the
+	   window the request carried: a the object's index in the window, b the flags (bit 0 the range is strictly inside the radius, bit 1 the object is a rocket the blast destroys),
+	   f[0] the range, f[1] the radius, f[2] the damage modifier (0 when not in range).  The fixture replays them into its observer in the original's order. */
+	CAMPAIGN_AIM_EVENT_BLAST,
 	/* WEAPON_STEP echo (the test fixture build only): the hooks of the original weapon_movement the host's step passed, in order.  The branch numbers they carry are the
 	   fixture's own (mb_wpnfx.h) */
 	CAMPAIGN_AIM_EVENT_STEP_PATH = 20,
@@ -421,6 +450,92 @@ typedef struct campaign_health_result
 	int fatal;
 } campaign_health_result;
 
+/* IMPACT (EEDCS-46): the dispatch on a weapon's kill code, by value.  `kill_code` is the weapon's (the campaign's enum, weapon.h); `has_target` and `target_alive` are the campaign's
+   facts about the weapon's target link (`target_alive` is 0 without one); `terrain_known` says the campaign has read the terrain at the impact position, and then
+   `terrain_draws_crater` is whether that terrain takes a crater.  The position is the weapon's. */
+typedef struct campaign_impact_request
+{
+	int kill_code;
+	int has_target;
+	int target_alive;
+	int terrain_known;
+	int terrain_draws_crater;
+	float position[3];
+} campaign_impact_request;
+
+/* IMPACT answer (state DONE): the plan in the original's order, crater first, then the direct hit, then `blasts` blasts.  `need_terrain` (state NEED_LOOKUP): the host needs the terrain
+   fact at the impact position and is asked again with it.  `invalid`: the kill code is not one the dispatch knows (nothing else is planned). */
+typedef struct campaign_impact_result
+{
+	int need_terrain;
+	int invalid;
+	int crater;
+	int direct_hit;
+	int blasts;
+	int exclude_target;
+} campaign_impact_result;
+
+#define CAMPAIGN_BLAST_WINDOW_MAX 16
+
+/* BLAST: one object of a sector's list, offered to the host.  `handle` names it for this blast only (positive, unique within the blast).  `type` is the campaign's entity type
+   (entity_types, en_types.h); `readable` says the campaign can read the object's state (the kinds a blast examines): when it is 0 `alive`, `has_position`, `rocket` and the position
+   are 0.  `rocket` is the weapon's rocket flag (read for a weapon only), `excluded` says the object is the blast's excluded target (the campaign's identity fact). */
+typedef struct campaign_blast_entry
+{
+	int handle;
+	int type;
+	int readable;
+	int alive;
+	int has_position;
+	int rocket;
+	int excluded;
+	float position[3];
+} campaign_blast_entry;
+
+/* BLAST: one area blast, by value.  The explosion: its position, the weapon's damage capability and warhead type, and whether the blast leaves a target out.  The map's sector
+   figures (the side length of a sector and the sector rectangle the map holds).  The window the host last asked for, once it has been supplied: the sector it is in, the handle it
+   follows (0 for the start of the sector's list), how many objects it holds and whether the sector's list ends with it.  The first request carries no window. */
+typedef struct campaign_blast_request
+{
+	float position[3];
+	int damage_capability;
+	int warhead_type;
+	int has_target;
+	int sector_side_length;
+	int min_x_sector;
+	int max_x_sector;
+	int min_z_sector;
+	int max_z_sector;
+	int window_valid;
+	int window_sx;
+	int window_sz;
+	int window_after;
+	int window_count;
+	int window_end;
+	campaign_blast_entry window[CAMPAIGN_BLAST_WINDOW_MAX];
+} campaign_blast_request;
+
+enum campaign_blast_action
+{
+	CAMPAIGN_BLAST_DONE = 0,		/* the walk is over */
+	CAMPAIGN_BLAST_COLLISION,		/* send the object a collision with `modifier` */
+	CAMPAIGN_BLAST_INTERCEPT		/* destroy a rocket: set its kill code to overshot-target */
+};
+
+/* BLAST answer.  `radius` is the damage radius the host computed (reported with every answer; it must not change within a blast).  State NEED_LOOKUP: the host needs the window at
+   (need_sx, need_sz) following `need_after` (0: from the start of the sector's list).  State DONE: `action`, and for an action the `handle` of the object in the request's window and
+   the `modifier` (a fraction of the radius, in [0, 1]). */
+typedef struct campaign_blast_result
+{
+	float radius;
+	int need_sx;
+	int need_sz;
+	int need_after;
+	int action;
+	int handle;
+	float modifier;
+} campaign_blast_result;
+
 /* WEAPON_STEP: the weapon as the campaign holds it.  The entity-local random stream never leaves the campaign: its first four outputs are all any one call of the
    original uses (raw integers in [0, 32767]) */
 typedef struct campaign_weapon_state
@@ -555,6 +670,10 @@ typedef struct campaign_aim_step
 
 	/* HEALTH (the sample of a TIMED roll is has_draw and draw_sample above) */
 	campaign_health_request health;
+
+	/* IMPACT, BLAST (no sample is taken for either) */
+	campaign_impact_request impact;
+	campaign_blast_request blast;
 } campaign_aim_step;
 
 typedef struct campaign_aim_result
@@ -610,6 +729,9 @@ typedef struct campaign_aim_result
 	campaign_damage_result damage;
 	/* HEALTH */
 	campaign_health_result health;
+	/* IMPACT, BLAST */
+	campaign_impact_result impact;
+	campaign_blast_result blast;
 } campaign_aim_result;
 
 typedef int (*campaign_aim_fn)
@@ -692,6 +814,40 @@ campaign_aim_result campaign_aim_damage (int weapon, const campaign_damage_reque
 
 /* A health fact (CAMPAIGN_AIM_HEALTH): the campaign takes the one sample of its stream that a TIMED roll asks for. */
 campaign_aim_result campaign_aim_health (const campaign_health_request *request);
+
+/* The dispatch of a weapon's death (CAMPAIGN_AIM_IMPACT): the plan, with the terrain fact supplied when the host asks for it.  `terrain` is called at most once, with the impact
+   position, and returns whether the terrain there takes a crater; the original read it only for a land hit.  A pure question: no sample is taken. */
+typedef int (*campaign_impact_terrain_fn) (void *context);
+
+campaign_impact_result campaign_aim_impact (int kill_code, int has_target, int target_alive, const float *position, campaign_impact_terrain_fn terrain, void *context);
+
+/* One area blast (CAMPAIGN_AIM_BLAST), driven by the campaign for the host: `window` fills the request's window as the host asks (the sector, the handle it follows or 0, and the
+   room), returning the objects in list order and whether the list ends with them; `apply` is given each object the host reaches, in order, and acts on it BEFORE the next question.
+   `begin(radius)` is called once, with the radius the host computed, before the first object. */
+struct campaign_blast_walk
+{
+	/* the map's sector figures, given to the host as values (the original read them from the world map) */
+	int sector_side_length;
+	int min_x_sector;
+	int max_x_sector;
+	int min_z_sector;
+	int max_z_sector;
+	/* the test fixture build asks the reference host for its echo of the candidates it examined (the shipping module never does) */
+	int echo;
+	/* fills window[0..max) with the objects of sector (sx, sz) following the object `after` (NULL: from the start of the list); returns how many, and sets *end when the list ends with them */
+	int (*window) (void *context, int sx, int sz, const void *after, campaign_blast_entry *entries, void **objects, int max, int *end);
+	/* the object the host reached: act on it (a collision with the modifier, or a rocket's destruction); the walk then continues after that object, from the list as it is */
+	void (*apply) (void *context, void *object, int action, float modifier);
+	/* the radius the host computed, once, before the first object (the observer's blast begins here) */
+	void (*begin) (void *context, float radius);
+	/* the echo of the candidates the host examined in the window it was given (the test fixture build only); `objects` are the window's objects, in order */
+	void (*examined) (void *context, const campaign_aim_result *result, void *const *objects, int count);
+	/* the walk is over */
+	void (*end) (void *context);
+	void *context;
+};
+
+void campaign_aim_blast (const float *position, int damage_capability, int warhead_type, int has_target, const struct campaign_blast_walk *walk);
 
 /* The float `index` (0 the damage modifier, 1 the penetration capability, 2 the armour thickness, 3 the random modifier) of a DAMAGE echo event, rebuilt from its raw bits. */
 float campaign_aim_damage_echo_float (const campaign_aim_event *event, int index);

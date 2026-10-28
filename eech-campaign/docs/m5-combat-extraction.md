@@ -241,7 +241,7 @@ helicopter's hit of itself, a player's health, the multiplayer multiplier and th
 
 ## Still open
 
-The explosion and its blast walk, the impact kill-code switch, the bridge collapse (R5), the physical factual reporting and the whole-scope audit (R3 for a host that must own a structure's state), and the D4 repair
+[The explosion and its blast walk and the impact kill-code switch are moved in step 4 below.] The bridge collapse (R5), the physical factual reporting and the whole-scope audit (R3 for a host that must own a structure's state), and the D4 repair
 and restoration quantities (they set health through their own writers; the class is asked at the next read). Task45's full pack is active and delivery 45 precedes 46.
 
 ## Correction of the first review of this step (`d6c878c7d`, one P2 and one P3)
@@ -284,3 +284,97 @@ engine.
   --check` exit 0 (`checks/fmt-c3.log`; the first check, which only found the layout of the new binding, is retained as `fmt-c3-failed-first.log`), Clippy default and with `eech-dc/weapon-fixture` over all targets with
   `-D warnings`, exit 0 (`checks/clippy-c3-*.log`). No sociable bridge test can exercise this scope without a native build, because the defect is in the native engine entry; the caller-level stand-in
   (`host_callbacks.rs`) replaces the engine and could not have caught it, and no mock was added that would pretend to.
+
+# Step 4: the impact dispatch and the area blast
+
+Status: candidate moved, NOT accepted; nothing native was run or built for it. What a weapon's death does to the world and the whole physical selection of an area blast are the host's: the dispatch on the
+kill code, the damage radius, the sector rectangle, the order of the walk, which objects are candidates, the range and the strict in-range test, the exclusion of the target, the damage modifier and the rocket
+interception. The campaign still sends each notification, sets a destroyed rocket's kill code, makes the crater and the explosion effects, and everything a notification causes (accounting, credit, tasks,
+awareness, routes, the D1 transactions). The bridge collapse (R5), the physical factual reporting, a host that owns a structure's state, the D4 repair quantities and the whole-scope audit are still open, and the
+bridge's original behaviour has to be characterised before its physics moves.
+
+## What moved: two requests
+
+* **IMPACT** (`CAMPAIGN_AIM_IMPACT`, `explosn.c create_client_server_weapon_killed_explosion_effect`): the switch on the kill code. The campaign sends the kill code, whether the weapon has a target and it is alive,
+  and the impact position. The host answers the PLAN in the original's order: a crater, a direct hit on the target, then 0, 1 or the land hit's deliberate 2 blasts, and whether they leave the target out; or that the code
+  is not one it knows (the campaign stops with the original's message). Only a land hit needs the terrain, which the campaign reads on request (`NEED_LOOKUP`, answered once; the original read it for a land hit only,
+  at the same point, with the same assertion), so a host whose plan needs no terrain never causes the read. The reference kernel: no blast for an exhausted weapon, one that left the map or one that hit water; a
+  land hit makes a crater where the terrain takes one and blasts twice; an overshot or self-destroyed weapon blasts once; a hit on the target sends it the direct hit if it is alive, then blasts once without it.
+* **BLAST** (`CAMPAIGN_AIM_BLAST`, `damage_objects_within_explosion_damage_radius`): one area blast. The campaign sends the explosion (position, the weapon's damage capability and warhead type, whether it has a target),
+  the map's sector figures (side length and the sector rectangle) and, as the host asks, WINDOWS of the sectors' lists. The host answers that it needs a window (sector and the handle it follows, 0 for the start of the
+  list), or the NEXT object it reaches and what the campaign must do (a collision with the modifier, or the destruction of a rocket), or that the walk is over. It reports its radius with every answer and may not
+  change it. A blast takes no sample of the shared random stream.
+
+## The order the original had, kept
+
+The original read an object's successor AFTER notifying it, and a notification can kill objects, unlink them or add to a list. The campaign therefore never freezes the candidate set: it acts on each object the host
+reaches BEFORE it asks again, and the window it then supplies is the sector's list AS IT IS after the notification (`campaign_aim_blast`: after an action the next window is read from the successor of the object that
+was just acted on, with the original's own `get_local_entity_child_succ` on the same pointer). A window holds at most 16 objects; the host examines them in order and stops at the first it must act on, so the
+objects it read beyond are read again after the notification. The campaign holds the objects it offered by pointer for the life of the blast and never gives the host a pointer: the host names an object by its
+**handle**.
+
+## R3, the identity of a fixed structure or any object it reports
+
+A blast reaches scenery, buildings, pylons, segments and sites, which the group roster (mobiles only) does not identify. The identity an affected object carries is a **handle**: a positive number the campaign gives
+each object of each window for THIS blast only. No pointer, heap index, list layout or persistent identity crosses, nothing is registered anywhere (no existing roster, reference-key or entity numbering is touched, so
+no mobile or projectile identity, allocation order or recording byte can change), and the campaign accepts only a handle of an object in the window it just supplied (a stale, repeated or invented handle is
+refused before anything is applied). A fixed structure is therefore reported like any other object. The honest limit: a host that owns its world and names objects it was never offered (for instance by an identity
+it keeps itself) needs a persistent identity for structures, which is D5's registration and not needed here; such a host answers from the windows, which are a declared transitional mirror of the campaign's lists.
+
+## What the campaign refuses (before anything is applied)
+
+A request with a non-finite figure, a sector of no length or an empty rectangle, a window of more objects than the room or one that is not where the host asked; an answer with a radius that is not a length or
+changes, a sample asked for (a blast and an impact take none), a window outside the map's sectors, the start of a sector's list asked twice or out of the walk's order (so a host cannot ask forever), a continuation
+that is not after the last object offered in the same sector, an object that is not in the window, a modifier outside [0, 1] or not a number, the destruction of an object the campaign does not know as a rocket,
+an action it does not know, an end of the walk that names an object, an echo nobody asked for or that names an object not in the window; and for an impact a crater on a terrain not read, a direct hit on a target there
+is none of, more than two blasts, a target left out of no blast, any plan beside a code the host does not know, and the terrain asked for twice. It does NOT veto by the reference's rules: a host may reach a weapon
+with a collision, a dead object, or an object of any kind it chooses from the window (the campaign only can reach what it offered). A host with a model of its own answers from it (`lua/own-weapon.lua`: a land hit
+blasts once with no crater and never asks for the terrain; a fixed thirty-metre blast of the explosion's own sector that reaches every placed object of any kind).
+
+## What the campaign still supplies, as declared coupling
+
+The window is a mirror of the campaign's own sector lists (type, whether the campaign can read the object, alive, position, rocket flag, whether it is the excluded target): the kinds the original read (the thirteen of its
+switch) are offered with their state; any other kind is offered with its type only. The numeric entity types and kill codes the reference kernel compares are the campaign's enums; the engine's layout probe reads them
+from the campaign as compiled and the engine test compares them with the kernel's lists. Terrain (the crater fact) stays the campaign's service until D3. Rendering, effects and sound stay the campaign's.
+
+## Cost
+
+A weapon's death makes one IMPACT request (1,475 explosions in the retained natural 600) and each blast one request per window of up to 16 objects of the sectors its radius covers, plus one per object it reaches.
+The retained natural 600 recorded 2,233 blasts and 173,225 candidates, so a blast examines about 78 candidates: a handful of requests, each of about 1 KB. The frame cost is a ROOT-owned measurement.
+
+## Evidence, and what is not available
+
+Source checks only (nothing native):
+
+* **Differential against the original** (`c-checks/blast_differential.c`, `run-blast-differential.sh`): the original walk, transcribed from `explosn.c` at the baseline over a fake world, against the new path (the
+  real `mb_hostaim.c` driver, the reference kernel linked in, the campaign's window and notification callbacks); 6,000 random worlds and explosions, 255,003 events, every candidate, notification, rocket
+  destruction and effect of a notification on the lists (a kill of the next object, an unlink, an addition) in the same order with the same bits, including 1,105 objects exactly one radius away: failures 0,
+  sanitizers on. Ten mutations of the driver or the kernel (inclusive radius, a range of zero counting, the rocket threshold and flag, the target not skipped, dead objects as candidates, the row order, the
+  unbounded rectangle, a weapon sent a collision, a stale window) are each caught (`mutate-blast-differential.sh`).
+* **The campaign's bridge** (`c-checks/blast_checks.c`, `run-blast-checks.sh`, 54 checks of the real `mb_hostaim.c`): what is sent, the order of action against the reading of the list, the windows and their handles,
+  a changed host, and each refusal above; ten mutations of the campaign's rules are each caught (`mutate-blast-checks.sh`).
+* **The kernel against values worked out by hand** (`eech-world/src/cmb.rs`: all kill codes, the rectangle and its truncation toward zero, the bounds, the windows and rows, the strict range, the exclusion, the kinds,
+  the rocket threshold for four warheads including the one whose exponent is not a number), **the reference host's public contract** through `host.aim`, a plain own-model host and the malformed providers
+  (`tests/host_callbacks.rs`), **the DC module's tables and readers** and **the engine boundary** with the extended layout (`eech-dc`, `eech-engine`); fmt, default and fixture Clippy, the real-header syntax check
+  of 25 sources and fixtures with the fixture feature on and off (plus the layout probe), and the strict feature-off preprocess (the sources this step does not touch are identical to the baseline; `explosn.c`
+  differs by design and carries no fixture hook in the shipping view). The earlier forecast, damage and health production checks were rerun against the changed `mb_hostaim.c` (25, 66 and 59 checks, all passing).
+
+The fixture build replays the original's blast hooks (candidate, notification, rocket) from the reference host's echo, in the original's order and before the campaign acts, so the blast hash, the explosion
+accounting and the ordered log are produced by the same hooks; a host that echoes nothing is not observed.
+
+Providers for the ROOT-owned native authority and refusal runs (`lua/aim-provider.lua`): `impact_none` (a death does nothing to the world), `impact_own` (a land hit blasts once, no crater, no terrain asked),
+`blast_small` (a quarter of the capability: half the radius), `blast_none` (the radius, no object reached), `blast_own` (the plain model), with counters that tell a run that reaches a case from one that does not
+(`impact_asked/terrain/land/blasts/crater/direct/denied/own_land`, `blast_begun/windows/collisions/intercepts/ended/shrunk/denied/own`); and the malformed `bad_impact_crater`, `bad_impact_draw`,
+`bad_impact_blasts`, `bad_blast_draw`, `bad_blast_sector`, `bad_blast_handle`, `bad_blast_modifier`, `bad_blast_rocket`, `bad_blast_radius`, `bad_blast_repeat` (the last five need a blast that reaches an
+object or a second sector and may not trigger in a short run: the counters say so).
+
+What the retained originals characterise and a native run of this candidate must reproduce: the f41 natural 600 (1,475 explosion invocations, 2,233 blast calls, 173,225 candidates, 160 zero-radius blasts, kill codes
+1,964 land, 104 target, 3 overshot, 162 self-destruct, the twelve trusted groups and six hashes) and the original35 SITE/SU and centred-solid cases (the land hit's double blast and the linked target; the
+zero-radius centred case). Not claimed: the 29 launch refusals of the controlled 39-case run, which reached only 10 cases, and any path no retained run reached. An object a blast reaches is notified through the
+campaign's unchanged handlers; the differential proves the walk, not those handlers.
+
+## Still open
+
+The bridge collapse (R5): a test-only characterisation of the ORIGINAL segment and bridge behaviour must be added and run before its rules move. The physical factual reporting, R3 for a host that owns a structure's
+state (a persistent identity), the D4 repair and restoration quantities, and the whole-scope D2 audit. Task45 delivery precedes Task46, and the full shipping 40, all 8, post 3, current CI, independent review and
+the normal merge still gate it.

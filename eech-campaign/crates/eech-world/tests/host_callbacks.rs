@@ -729,8 +729,86 @@ assert(malformed('bad_health_hit_ineligible', host.aim, passed)(health({ op = 't
 assert(malformed('bad_health_fatal', host.aim, passed)(health({ op = 'timed', draw = 0 })).fatal == true, 'or a hit whose fatal flag disagrees with the health it leaves')
 local classified = malformed('bad_health_class', host.aim, passed)
 assert(classified(health()).critical_class == 7 and classified(health()).critical_class == 1, 'the first only; the reference host answers the rest')
-print('AIM_HOST=ok')
-";
+-- the impact dispatch and the area blast (EEDCS-46): the reference host answers them by value; the expected values are worked out by hand (the kernel's own tests are in src/cmb.rs)
+local function impact(over)
+  local request = { mode = 'impact', kill_code = 5, has_target = true, target_alive = true, position = { 250, 12, 750 } }
+  for k, v in pairs(over or {}) do request[k] = v end
+  return request
+end
+r = host.aim(impact())
+assert(r.state == 'done' and r.direct_hit == true and r.blasts == 1 and r.exclude_target == true and r.crater == false and r.invalid == false, 'a hit on the target: the direct hit, then one blast that leaves it out')
+r = host.aim(impact({ target_alive = false }))
+assert(r.direct_hit == false and r.blasts == 1 and r.exclude_target == true, 'a target that is dead gets no direct hit but is still left out')
+r = host.aim(impact({ kill_code = 3 }))
+assert(r.state == 'need_lookup' and r.need == 'terrain', 'a land hit needs the terrain at the impact point')
+r = host.aim(impact({ kill_code = 3, terrain_draws_crater = true }))
+assert(r.state == 'done' and r.crater == true and r.blasts == 2 and r.direct_hit == false, 'a land hit on terrain that takes a crater: the crater, then two blasts')
+assert(host.aim(impact({ kill_code = 3, terrain_draws_crater = false })).crater == false and host.aim(impact({ kill_code = 3, terrain_draws_crater = false })).blasts == 2, 'and on terrain that does not, two blasts and no crater')
+assert(host.aim(impact({ kill_code = 1 })).blasts == 0 and host.aim(impact({ kill_code = 2 })).blasts == 0 and host.aim(impact({ kill_code = 4 })).blasts == 0, 'a weapon that ran out, left the map or hit water blasts nothing')
+assert(host.aim(impact({ kill_code = 6 })).blasts == 1 and host.aim(impact({ kill_code = 7 })).blasts == 1 and host.aim(impact({ kill_code = 6 })).direct_hit == false, 'an overshot or self-destroyed weapon blasts once')
+assert(host.aim(impact({ kill_code = 0 })).invalid == true and host.aim(impact({ kill_code = 8 })).invalid == true, 'a code the dispatch does not know')
+refused(impact({ kill_code = 'x' }), 'kill_code')
+refused(impact({ terrain_draws_crater = 1 }), 'terrain_draws_crater must be a boolean')
+refused(impact({ has_target = 1 }), 'has_target must be a boolean')
+r = own_model.impact(impact({ kill_code = 3 }))
+assert(r.blasts == 1 and r.crater == false and r.state == 'done', 'a plain model blasts a land hit once, with no crater, and never asks for the terrain')
+assert(own_model.impact(impact({ kill_code = 5 })).direct_hit == true and own_model.impact(impact({ kill_code = 1 })).blasts == 0 and own_model.impact(impact({ kill_code = 9 })).invalid == true, 'its other deaths')
+assert(malformed('bad_impact_draw', host.aim, passed)(impact()).state == 'need_draw', 'a sample asked for an impact')
+local crater = malformed('bad_impact_crater', host.aim, passed)(impact({ kill_code = 3 }))
+assert(crater.state == 'done' and crater.crater == true, 'a crater on a terrain that has not been read')
+assert(malformed('bad_impact_blasts', host.aim, passed)(impact()).blasts == 3, 'or three blasts')
+local function blast(over)
+  local request = { mode = 'blast', position = { 250, 0, 250 }, damage_capability = 400, warhead_type = 7, has_target = false, sector_side_length = 100,
+    min_x_sector = 0, max_x_sector = 99, min_z_sector = 0, max_z_sector = 99, echo = false }
+  for k, v in pairs(over or {}) do request[k] = v end
+  return request
+end
+local function object(handle, kind, y, extra)
+  local o = { handle = handle, entity_type = kind, readable = true, alive = true, has_position = true, rocket = false, excluded = false, position = { 250, y, 250 } }
+  for k, v in pairs(extra or {}) do o[k] = v end
+  return o
+end
+local function window(objects, ends, sx, sz, after) return { sx = sx or 2, sz = sz or 2, after = after or 0, list_ends = ends, objects = objects } end
+r = host.aim(blast())
+assert(r.state == 'need_lookup' and r.radius == 20 and r.need.sx == 2 and r.need.sz == 2 and r.need.after == 0, 'capability 400 is a radius of 20 and, from (250, 250), the one sector 2, 2')
+r = host.aim(blast({ damage_capability = 0 }))
+assert(r.state == 'done' and r.radius == 0 and r.action == 'none', 'a capability of zero is a radius of zero: nothing to walk')
+r = host.aim(blast({ damage_capability = 10000 }))
+assert(r.need.sx == 1 and r.need.sz == 1 and r.radius == 100, 'capability 10000 is a radius of 100: sectors 1 to 3, from the first')
+r = host.aim(blast({ window = window({ object(1, 6, 0), object(2, 6, 10) }, true) }))
+assert(r.state == 'done' and r.action == 'collision' and r.handle == 2 and r.modifier == 0.5 and r.radius == 20, 'range 0 is never reached; 10 of 20 is a collision with the modifier 0.5')
+r = host.aim(blast({ echo = true, window = window({ object(1, 6, 0), object(2, 6, 10) }, true) }))
+assert(#r.echo == 2 and r.echo[1].kind == 'blast' and r.echo[1].a == 0 and r.echo[1].b == 0 and r.echo[2].a == 1 and r.echo[2].b == 1 and r.echo[2].f[1] == 10 and r.echo[2].f[2] == 20 and r.echo[2].f[3] == 0.5, 'the echo is the candidates examined, in order, with their range, radius and modifier')
+r = host.aim(blast({ window = window({ object(1, 6, 10, { excluded = true }), object(2, 3, 5), object(3, 6, 5, { alive = false }), object(4, 6, 20), object(5, 6, 5, { has_position = false }) }, true) }))
+assert(r.state == 'done' and r.action == 'none', 'the excluded target, a kind not examined, a dead object, one exactly at the radius and one with no position are not reached')
+r = host.aim(blast({ window = window({ object(5, 6, 30) }, false) }))
+assert(r.state == 'need_lookup' and r.need.sx == 2 and r.need.sz == 2 and r.need.after == 5, 'a list that did not end is continued after its last object')
+r = host.aim(blast({ damage_capability = 10000, window = window({}, true, 1, 1) }))
+assert(r.need.sx == 2 and r.need.sz == 1 and r.need.after == 0, 'the next sector of the row')
+r = host.aim(blast({ window = window({ object(3, 37, 5, { rocket = true }) }, true) }))
+assert(r.action == 'intercept' and r.handle == 3 and r.modifier == 0.25, 'a rocket a quarter of the radius from a high-explosive anti-aircraft blast is destroyed (1 - 0.25^1.54 = 0.88)')
+r = host.aim(blast({ window = window({ object(3, 37, 10, { rocket = true }) }, true) }))
+assert(r.action == 'none', 'and not at half the radius (1 - 0.5^1.54 = 0.66)')
+r = host.aim(blast({ window = window({ object(3, 37, 5) }, true) }))
+assert(r.action == 'none', 'a weapon that is not a rocket is examined and left alone')
+refused(blast({ window = window({}, true, 9, 9) }), 'cannot be answered')
+refused(blast({ damage_capability = -4 }), 'cannot be answered')
+refused(blast({ position = { 0 / 0, 0, 0 } }), 'position')
+refused(blast({ has_target = 0 }), 'has_target must be a boolean')
+local plain = own_model.blast(blast())
+assert(plain.state == 'need_lookup' and plain.radius == 30 and plain.need.sx == 2 and plain.need.sz == 2, 'a plain model: thirty metres, the sector of the explosion')
+r = own_model.blast(blast({ window = window({ object(1, 3, 10) }, true) }))
+assert(r.action == 'collision' and r.handle == 1 and r.modifier == 341 / 1024, 'it reaches an object of any kind that is alive and placed')
+assert(own_model.blast(blast({ window = window({ object(1, 3, 40) }, true) })).action == 'none', 'and none beyond its radius')
+assert(malformed('bad_blast_draw', host.aim, passed)(blast()).state == 'need_draw', 'a sample asked for a blast')
+assert(malformed('bad_blast_sector', host.aim, passed)(blast()).need.sx == 100, 'a window of a sector outside the map')
+assert(malformed('bad_blast_handle', host.aim, passed)(blast({ window = window({ object(1, 6, 10) }, true) })).handle == 99999, 'an object that is not in the window')
+assert(malformed('bad_blast_modifier', host.aim, passed)(blast({ window = window({ object(1, 6, 10) }, true) })).modifier == 2, 'a modifier above one')
+assert(malformed('bad_blast_rocket', host.aim, passed)(blast({ window = window({ object(1, 6, 10) }, true) })).action == 'intercept', 'a destruction of an object that is not a rocket')
+assert(malformed('bad_blast_radius', host.aim, passed)(blast({ window = window({ object(1, 6, 30) }, true) })).radius == 21, 'a radius that changes within a blast')
+local again = malformed('bad_blast_repeat', host.aim, passed)(blast({ damage_capability = 10000, window = window({}, true, 1, 1) }))
+assert(again.need.sx == 1 and again.need.sz == 1 and again.need.after == 0, 'the start of a sector asked for again')
+print('AIM_HOST=ok')";
 
 #[test]
 fn aim_round_trips_through_lua_and_refuses_what_it_was_not_asked() {

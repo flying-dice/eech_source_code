@@ -17,9 +17,9 @@
  * percentages), the frame's timed fire/bleeding/degradation roll (its eligibility, the campaign's one sample, the hit and the health it leaves) and the helicopter's refusal of its
  * own hit.
  *
- * What is not here: which weapons and targets meet, the sounds a hit makes, the setting of the health and its side effects, the credit and the kill, the player-setting table, the
+ * It also answers what a weapon's DEATH does to the world (aphavoc/source/entity/special/effect/explosn/explosn.c, expression for expression): the dispatch on its kill code (no blast for\n * a weapon that ran out, left the map or hit water; a land hit's crater where the terrain takes one and its deliberate TWO blasts; one blast for an overshot or self-destroyed weapon; a hit on\n * the target's direct hit and one blast that leaves it out) and the area blast (the damage radius, the rectangle of sectors it covers bounded to the map, the walk over the sectors and over each\n * sector's list in order, the candidates, the range and the strict in-range test, the modifier, the rocket interception).  The blast is asked one object at a time: the campaign supplies\n * the windows of the sectors' lists and acts on each object this host reaches BEFORE the walk continues from the list as it is then.\n *\n * What is not here: which weapons and targets meet, the sounds a hit makes, the setting of the health and its side effects, the credit and the kill, the player-setting table, the
  * multiplayer multiplier's record and the debug display of a hit (the campaign's; it sends the settings as values), the observer's hooks and the kill after a timed hit, the
- * explosion and its blast walk and the bridge (the last two are the original campaign code in this step).  Which target rolls is THIS file's: the reference eligibility of a timed roll
+ * effects of an explosion and the notification each object receives (the campaign's), and the bridge (the original campaign code until its own step).  Which target rolls is THIS file's: the reference eligibility of a timed roll
  * (never a person, an aircraft in a class above none, a vehicle with health that can burn in the critical class) lives here only; the campaign validates the shape of the exchange.  The only random sample a hit takes, the original's `frand1 ()`, is the campaign's: this step asks for it
  * (NEED_DRAW) and is given the raw integer, from which it forms the double with the macro's own expression.  A forecast takes none.
  *
@@ -649,4 +649,362 @@ void eech_cmb_health(const cf_health_in *in, cf_health_out *out)
 		default:
 			out->failed = 1;
 	}
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the impact of a weapon's death and the area blast (EEDCS-46) */
+
+/* the campaign's weapon kill codes (weapon.h WEAPON_KILL_CODES) and entity types (en_types.h ENTITY_TYPES): the layout probe of the engine's tests reads them from the campaign as
+   compiled and compares them with these */
+#define CF_KILL_EXHAUSTED 1
+#define CF_KILL_OUT_OF_BOUNDS 2
+#define CF_KILL_HIT_LAND 3
+#define CF_KILL_HIT_WATER 4
+#define CF_KILL_HIT_TARGET 5
+#define CF_KILL_OVERSHOT_TARGET 6
+#define CF_KILL_SELF_DESTRUCT 7
+
+#define CF_ET_ANTI_AIRCRAFT 1
+#define CF_ET_CITY_BUILDING 6
+#define CF_ET_FIXED_WING 10
+#define CF_ET_HELICOPTER 14
+#define CF_ET_PERSON 19
+#define CF_ET_PYLON 21
+#define CF_ET_ROUTED_VEHICLE 23
+#define CF_ET_SCENIC 24
+#define CF_ET_SEGMENT 26
+#define CF_ET_SHIP_VEHICLE 28
+#define CF_ET_SITE 29
+#define CF_ET_SITE_UPDATABLE 30
+#define CF_ET_WEAPON 37
+
+#define CF_BLAST_WINDOW_MAX 16
+
+typedef struct cf_impact_in
+{
+	int kill_code;
+	int has_target;
+	int target_alive;
+	int terrain_known;
+	int terrain_draws_crater;
+} cf_impact_in;
+
+typedef struct cf_impact_out
+{
+	int need_terrain;
+	int invalid;
+	int crater;
+	int direct_hit;
+	int blasts;
+	int exclude_target;
+} cf_impact_out;
+
+/* The dispatch of create_client_server_weapon_killed_explosion_effect on the weapon's kill code, in the original's order (the crater, the direct hit, the blasts): no blast for an
+   exhausted weapon, one that left the map or one that hit water; a land hit makes a crater where the terrain takes one and blasts TWICE (the original's deliberate fall-through); an
+   overshot or self-destroyed weapon blasts once; a hit on the target sends the target a direct hit if it is there and alive and then blasts once without it; any other code is not
+   known.  Only a land hit needs the terrain, and it is asked for once. */
+void eech_cmb_impact(const cf_impact_in *in, cf_impact_out *out)
+{
+	memset(out, 0, sizeof(*out));
+
+	switch (in->kill_code)
+	{
+		case CF_KILL_EXHAUSTED:
+		case CF_KILL_OUT_OF_BOUNDS:
+		case CF_KILL_HIT_WATER:
+			break;
+
+		case CF_KILL_HIT_LAND:
+			if (!in->terrain_known)
+			{
+				out->need_terrain = 1;
+
+				return;
+			}
+
+			out->crater = in->terrain_draws_crater ? 1 : 0;
+			out->blasts = 2;
+			break;
+
+		case CF_KILL_OVERSHOT_TARGET:
+		case CF_KILL_SELF_DESTRUCT:
+			out->blasts = 1;
+			break;
+
+		case CF_KILL_HIT_TARGET:
+			out->direct_hit = (in->has_target && in->target_alive) ? 1 : 0;
+			out->blasts = 1;
+			out->exclude_target = in->has_target ? 1 : 0;
+			break;
+
+		default:
+			out->invalid = 1;
+	}
+}
+
+typedef struct cf_blast_entry
+{
+	int handle;
+	int type;
+	int readable;
+	int alive;
+	int has_position;
+	int rocket;
+	int excluded;
+	float position[3];
+} cf_blast_entry;
+
+typedef struct cf_blast_in
+{
+	float position[3];
+	int damage_capability;
+	int warhead_type;
+	int has_target;
+	int sector_side_length;
+	int min_x_sector;
+	int max_x_sector;
+	int min_z_sector;
+	int max_z_sector;
+	int window_valid;
+	int window_sx;
+	int window_sz;
+	int window_after;
+	int window_count;
+	int window_end;
+	cf_blast_entry window[CF_BLAST_WINDOW_MAX];
+} cf_blast_in;
+
+/* one object examined as a candidate: its index in the window, the flags (1 strictly inside the radius, 2 a rocket destroyed), the range, the radius and the modifier */
+typedef struct cf_blast_echo
+{
+	int index;
+	int flags;
+	float range;
+	float radius;
+	float modifier;
+} cf_blast_echo;
+
+/* state: 0 the answer is final (`action`: 0 the walk is over, 1 a collision, 2 a rocket destroyed), 1 the host needs the window at (need_sx, need_sz) after `need_after`; failed nonzero when
+   the question has no answer */
+typedef struct cf_blast_out
+{
+	int state;
+	int failed;
+	float radius;
+	int need_sx;
+	int need_sz;
+	int need_after;
+	int action;
+	int handle;
+	float modifier;
+	int echo_count;
+	cf_blast_echo echo[CF_BLAST_WINDOW_MAX];
+} cf_blast_out;
+
+static int blast_examines(int type)
+{
+	switch (type)
+	{
+		case CF_ET_ANTI_AIRCRAFT:
+		case CF_ET_CITY_BUILDING:
+		case CF_ET_FIXED_WING:
+		case CF_ET_HELICOPTER:
+		case CF_ET_PERSON:
+		case CF_ET_PYLON:
+		case CF_ET_ROUTED_VEHICLE:
+		case CF_ET_SCENIC:
+		case CF_ET_SEGMENT:
+		case CF_ET_SHIP_VEHICLE:
+		case CF_ET_SITE:
+		case CF_ET_SITE_UPDATABLE:
+		case CF_ET_WEAPON:
+			return 1;
+
+		default:
+			return 0;
+	}
+}
+
+/* modules/maths/range.c get_3d_range */
+static float blast_range(const float *v1, const float *v2)
+{
+	float dx, dy, dz, range;
+
+	dx = v1[0] - v2[0];
+	dy = v1[1] - v2[1];
+	dz = v1[2] - v2[2];
+
+	range = sqrt((dx * dx) + (dy * dy) + (dz * dz));
+
+	return range;
+}
+
+/* One question of an area blast (damage_objects_within_explosion_damage_radius, expression for expression): the damage radius, the rectangle of sectors the radius covers bounded to the
+   map's, the walk over the sectors (rows, each from its first sector) and over each sector's list in order, the target left out, the kinds that are examined, an object that is alive
+   and has a position, its range, the strict in-range test, the modifier, and the interception of a rocket.  It asks for the window of the first sector, examines the window it is given
+   up to the first object that needs the campaign to act (a collision, or a rocket's destruction), and otherwise asks for the next window: the rest of the list the window did not hold, or
+   the first window of the next sector, or ends the walk.  It keeps nothing between questions: the window carries where the walk is. */
+void eech_cmb_blast(const cf_blast_in *in, cf_blast_out *out)
+{
+	float damage_radius, temp_x, temp_z;
+	int min_sector_x, max_sector_x, min_sector_z, max_sector_z, i;
+
+	memset(out, 0, sizeof(*out));
+
+	damage_radius = sqrt((float)in->damage_capability);
+	out->radius = damage_radius;
+
+	if (damage_radius == 0.0)
+	{
+		return;
+	}
+
+	temp_x = in->position[0] - damage_radius;
+	temp_z = in->position[2] - damage_radius;
+
+	if (!convertible(temp_x) || !convertible(temp_z) || in->sector_side_length <= 0)
+	{
+		out->failed = 1;
+
+		return;
+	}
+
+	min_sector_x = (int)temp_x;
+	min_sector_x /= in->sector_side_length;
+	min_sector_z = (int)temp_z;
+	min_sector_z /= in->sector_side_length;
+
+	temp_x = in->position[0] + damage_radius;
+	temp_z = in->position[2] + damage_radius;
+
+	if (!convertible(temp_x) || !convertible(temp_z))
+	{
+		out->failed = 1;
+
+		return;
+	}
+
+	max_sector_x = (int)temp_x;
+	max_sector_x /= in->sector_side_length;
+	max_sector_z = (int)temp_z;
+	max_sector_z /= in->sector_side_length;
+
+	min_sector_x = bound(min_sector_x, in->min_x_sector, in->max_x_sector);
+	max_sector_x = bound(max_sector_x, in->min_x_sector, in->max_x_sector);
+
+	min_sector_z = bound(min_sector_z, in->min_z_sector, in->max_z_sector);
+	max_sector_z = bound(max_sector_z, in->min_z_sector, in->max_z_sector);
+
+	if (min_sector_x > max_sector_x || min_sector_z > max_sector_z)
+	{
+		return;
+	}
+
+	if (!in->window_valid)
+	{
+		out->state = 1;
+		out->need_sx = min_sector_x;
+		out->need_sz = min_sector_z;
+		out->need_after = 0;
+
+		return;
+	}
+
+	if (in->window_sx < min_sector_x || in->window_sx > max_sector_x || in->window_sz < min_sector_z || in->window_sz > max_sector_z || in->window_count < 0 ||
+		in->window_count > CF_BLAST_WINDOW_MAX || (!in->window_end && in->window_count == 0))
+	{
+		out->failed = 1;
+
+		return;
+	}
+
+	for (i = 0; i < in->window_count; i++)
+	{
+		const cf_blast_entry *object = &in->window[i];
+		float range, damage_modifier;
+		int in_range;
+
+		if (object->excluded) // skip target, as it is dealt with elsewhere
+		{
+			continue;
+		}
+
+		if (!blast_examines(object->type) || !object->readable || !object->alive || !object->has_position)
+		{
+			continue;
+		}
+
+		range = blast_range(in->position, object->position);
+
+		in_range = (range && (range < damage_radius)) ? 1 : 0;
+
+		out->echo[out->echo_count].index = i;
+		out->echo[out->echo_count].flags = in_range;
+		out->echo[out->echo_count].range = range;
+		out->echo[out->echo_count].radius = damage_radius;
+		out->echo[out->echo_count].modifier = 0.0f;
+
+		if (in_range)
+		{
+			damage_modifier = range / damage_radius; // less value - more damage!
+
+			out->echo[out->echo_count].modifier = damage_modifier;
+
+			if (object->type != CF_ET_WEAPON)
+			{
+				out->echo_count++;
+				out->action = 1;
+				out->handle = object->handle;
+				out->modifier = damage_modifier;
+
+				return;
+			}
+
+			if (1 - pow(damage_modifier, pow((float)(in->warhead_type - 3) / 3, 1.5f)) > 0.75 && object->rocket)
+			{
+				out->echo[out->echo_count].flags = 3;
+				out->echo_count++;
+				out->action = 2;
+				out->handle = object->handle;
+				out->modifier = damage_modifier;
+
+				return;
+			}
+		}
+
+		out->echo_count++;
+	}
+
+	out->state = 1;
+
+	if (!in->window_end)
+	{
+		// the rest of this sector's list, after the last object the window held
+		out->need_sx = in->window_sx;
+		out->need_sz = in->window_sz;
+		out->need_after = in->window[in->window_count - 1].handle;
+
+		return;
+	}
+
+	if (in->window_sx < max_sector_x)
+	{
+		out->need_sx = in->window_sx + 1;
+		out->need_sz = in->window_sz;
+		out->need_after = 0;
+
+		return;
+	}
+
+	if (in->window_sz < max_sector_z)
+	{
+		out->need_sx = min_sector_x;
+		out->need_sz = in->window_sz + 1;
+		out->need_after = 0;
+
+		return;
+	}
+
+	// the last sector's list has ended: the walk is over
+	out->state = 0;
 }

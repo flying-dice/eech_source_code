@@ -874,7 +874,7 @@ void eech_cmb_blast_begin (entity *en, entity *target, int capability, float rad
 		capability, (double) radius, target ? 1 : 0, cur_explosion.active);
 }
 
-void eech_cmb_blast_candidate (entity *object, float range, float radius)
+static void eech_cmb_blast_candidate (entity *object, float range, float radius)
 {
 	int type = object->type;
 	struct kind_row *row = valid_type (type) ? &trace.kinds[type] : &trace.kinds[0];
@@ -898,7 +898,7 @@ void eech_cmb_blast_candidate (entity *object, float range, float radius)
 
 /* an object inside the radius, with its modifier: everything but a weapon is sent a collision (and the collision wrapper then records the damage it did); a weapon in range
    is only a rocket-destruction candidate */
-void eech_cmb_blast_notify (entity *object, float modifier)
+static void eech_cmb_blast_notify (entity *object, float modifier)
 {
 	int type = object->type;
 	struct kind_row *row = valid_type (type) ? &trace.kinds[type] : &trace.kinds[0];
@@ -917,7 +917,7 @@ void eech_cmb_blast_notify (entity *object, float modifier)
 	fold_f (&trace.blast_hash, modifier);
 }
 
-void eech_cmb_blast_rocket (entity *object, float modifier)
+static void eech_cmb_blast_rocket (entity *object, float modifier)
 {
 	int type = object->type;
 	struct kind_row *row = valid_type (type) ? &trace.kinds[type] : &trace.kinds[0];
@@ -932,6 +932,41 @@ void eech_cmb_blast_rocket (entity *object, float modifier)
 	fold_f (&trace.blast_hash, modifier);
 }
 
+/* The blast walk is the host's (EEDCS-46): the reference host echoes one event per candidate it examined in the window it was given, in the order examined, and this replays the
+   original's hooks for them (the candidate, the notification of an object inside the radius, the destruction of a rocket) in the order the original made them.  The campaign calls
+   it just before it acts on the object the host reached, so the hooks of the candidates before that object, and of that object itself, precede the collision it causes, as they did.
+   A host that echoes nothing is not observed. */
+void eech_cmb_blast_examined (void *context, const campaign_aim_result *result, void *const *objects, int count)
+{
+	int i;
+
+	(void) context;
+
+	for (i = 0; i < result->echo_count; i++)
+	{
+		const campaign_aim_event *event = &result->echo[i];
+		entity *object;
+
+		if ((event->kind != CAMPAIGN_AIM_EVENT_BLAST) || (event->a < 0) || (event->a >= count))
+		{
+			continue;
+		}
+
+		object = (entity *) objects[event->a];
+
+		eech_cmb_blast_candidate (object, event->f[0], event->f[1]);
+
+		if (event->b & 1)
+		{
+			eech_cmb_blast_notify (object, event->f[2]);
+		}
+
+		if (event->b & 2)
+		{
+			eech_cmb_blast_rocket (object, event->f[2]);
+		}
+	}
+}
 void eech_cmb_blast_end (void)
 {
 	ready ();
