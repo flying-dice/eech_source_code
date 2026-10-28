@@ -1,0 +1,47 @@
+== control (unmutated copy)
+37 checks, 0 failures
+CONTROL compile=0 run=0 class=PASSED
+== mutant: identity_ends_with_the_entity
+37 checks, 3 failures
+MUTANT identity_ends_with_the_entity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: slot_forgets_the_identity
+37 checks, 3 failures
+MUTANT slot_forgets_the_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: no_duplicate_identity
+37 checks, 8 failures
+MUTANT no_duplicate_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: no_roster_collision
+37 checks, 7 failures
+MUTANT no_roster_collision: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: no_control_characters
+37 checks, 3 failures
+MUTANT no_control_characters: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: fact_applied_once
+37 checks, 2 failures
+MUTANT fact_applied_once: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: no_repair_by_report
+37 checks, 1 failures
+MUTANT no_repair_by_report: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: no_negative_level
+37 checks, 2 failures
+MUTANT no_negative_level: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: server_only
+37 checks, 1 failures
+MUTANT server_only: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: zero_level_kills
+37 checks, 2 failures
+MUTANT zero_level_kills: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: destruction_leaves_level
+37 checks, 2 failures
+MUTANT destruction_leaves_level: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: stale_roster_identity
+37 checks, 1 failures
+MUTANT stale_roster_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: identity_issued_once
+37 checks, 5 failures
+MUTANT identity_issued_once: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: empty_report
+37 checks, 1 failures
+MUTANT empty_report: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+sh: 62: Syntax error: "(" unexpected
+DOCKER_EXIT=2

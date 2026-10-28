@@ -540,3 +540,104 @@ default output of the bridge case, and without broadening or shrinking D2.
   five by-design differences (`strict-preprocess-r5c.log`).
 * **State.** Candidate, NOT accepted, nothing native run; the seven verified R5 roots stay UNRUN for the rejected build. R3 persistent structure ownership and report correlation and the physical factual
   reports remain next D2 work; D4 repair quantities, D3 services, the whole-scope audit and the shipping gates remain. Whole D2 is not complete.
+
+# Step 6: the identity of a structure and the physical facts the host reports (R3 and the factual reports)
+
+Status: candidate, NOT accepted; nothing native was run or built for it (the root owns native builds and runs). The corrected Step 5 source `636ef798a` is independently closed; this step is built on it. It closes the
+two responsibilities Step 5 left explicitly open: R3 (a persistent, host-issued identity and a lifecycle for the physical objects the host must act on or report that the roster did not identify: the structures) and
+the physical factual reports (the host tells the campaign a physical fact about an object, by that identity, and the campaign's own handlers produce the consequences). It does not claim whole D2.
+
+## What was missing, from the source
+
+* `mb_hostaim.c fill_host_id` resolved only the roster's mobile identities. A blast or a bridge walk named a structure, a segment or a vehicle only by a **handle** that exists for that one walk (Steps 4 and 5): a window
+  position token, not an identity, and not usable to say anything about the object later.
+* Fixed structures (sites, their updatables, city buildings, pylons, scenery, bridge segments) had no identity at all, so a host that owns the physical world could not tell the campaign that one of them was damaged
+  or destroyed. The only inbound report was the D1 loss report (`report_loss`), which exists for the six mobile families' group members and only for a loss the campaign chose to withhold.
+* The callers that apply a physical fact to a structure were read from the source: every structure's collision response (`py_msgs.c`, `sn_msgs.c`, `st_msgs.c`, `su_msgs.c`, `cb_msgs.c`, `sg_msgs.c`) calls
+  `damage_client_server_entity` (the host's DAMAGE answer, applied by `set_client_server_entity_int_value (INT_TYPE_DAMAGE_LEVEL)`) and then `kill_client_server_entity` when the level is zero or below; the kill
+  handlers are the campaign's consequences (task notifications, the explosion and sound effects, and for a segment the bridge's collision, the collapse questions to the host and the vehicles walk; for a rostered
+  mobile the D1 loss observation and transaction). A report needs no new consequence: it must reach those two steps.
+
+## What moved
+
+* **Identity (`mb_hostobj.c`, new).** `CAMPAIGN_AIM_IDENTIFY` (`mb_hostaim.h`): the first time the campaign has to name a structure to the host it asks the host for the structure's opaque identity, by value (the kind, the
+  sub type, the side, whether it is alive, its damage levels, its position and the campaign's own count of identities asked for; never a pointer, a heap index or a seed). The host answers 1 to 128 bytes of UTF-8; the
+  campaign copies it and never parses or derives it. The identity ends with the physical incarnation: `set_free_entity` ends it (through the same conditional hook as the roster's, `group.h`), so a reused entity slot
+  is a new incarnation that is issued a new identity, and the old identity names nothing. The identity is refused if it is empty, longer than 128 bytes, contains a control character, was issued before (by
+  any incarnation) or is the identity of a roster member (so a mobile is **not bound twice**: a rostered mobile keeps the roster's identity everywhere, and a weapon or an unrostered mobile has none).
+  The six kinds: city building, pylon, scenery, segment, site, site updatable. A bridge has none: it dies through its segments (a destroyed report on a whole bridge would destroy the entity and its children, not
+  kill it).
+* **Offered objects carry their identity (`explosn.c blast_window`).** Every window entry of a blast or a vehicles walk carries the identity the host gave the object (empty if it has none), identifying a structure
+  now if the host has not yet been asked. The host still selects the object by the window's handle (a position token for the walk, and the continuation of the walk) but must now **repeat the identity** of the
+  object it names; a different one, none for an object offered with one, or one for an object offered with none is refused before anything is applied. A stale or misdirected action cannot affect another object.
+* **The facts the host reports (`campaign_object_report_apply`, `eech_engine_report_object`, `engine:report_object`).** `{ host_id, damage_level?, destroyed? }`. The campaign resolves the identity (the
+  structures' registry, then the roster), refuses one that is unknown, ended or of a bridge/weapon/unrostered mobile, a client, an object that is already destroyed (the fact is applied once), a damage level
+  above the current one (a report cannot repair) or below zero, and a report that says nothing; then, in the order the collision response takes them, it **sets the damage level** and **kills the object** if the host
+  says it is destroyed or the level is zero. A destruction does not touch the stored damage level (a dead segment keeps its 500). Nothing is read from the object after the kill. Who destroyed it (credit,
+  awareness) is the campaign's policy and a report cannot claim it. The host is given for the questions the real handlers then ask it (a segment's kill asks the host about the collapse, the neighbours, the
+  fall and the vehicles walk).
+* **The structures, listed (`engine:structures()`).** Every structure with its identity, kind, sub type, side, whether it is alive, damage levels and position, as copied values (no entity index), identifying those
+  not yet identified (the host is asked once for each). This is how a host learns which identity belongs to which structure of the world before it reports.
+* **Reference host and a host of its own.** `eech-world` issues `eech-world:object:<n>` from its own count and repeats the offered identity in blast and vehicle actions. `lua/own-weapon.lua own.identify` is a plain
+  model that is not EECH's and not eech-world's (`own-world/structure/<serial>`); the provider mode `identity_own` uses it, and `lua/object-report-case.lua identity=own` too. Malformed providers:
+  `bad_identify_empty|long|missing|control|draw|repeat`, `bad_blast_identity`, `bad_blast_identity_missing`, `bad_bridge_identity` (each makes the engine stop with a clear error; the counters say whether the run
+  reached them).
+
+## What the core validates, and what it leaves to the host
+
+The campaign validates identity, lifetime and shape: the identity is the one it issued and still names a live incarnation of a structure or a rostered mobile; the fields are finite, bounded and consistent; the
+fact is applied once and in order; the application is safe. It does not veto by a physical rule: **which** structures the host reports, how much damage, when, and whether it reports at all are the host's. A host
+that reports nothing leaves the structure as it is (`report=none` in the witness is that control). Target and weapon choices, engagement, awareness, credit, route and repair-task policy and quantities, accounting
+and the D1 consequences stay in EECH_DC: the report goes through the object's own handlers and adds none.
+
+## The ABI and layout evidence (observable, not attribute strings)
+
+Every new or changed DTO is mirrored by hand, so the engine's tests read from the campaign **as compiled** (`csrc/eech_aim_layout.c`, cases 130 to 165) the size, the alignment and the offset of every field of
+`campaign_identify_request`, `campaign_identify_result`, the new `host_id` of the window entry and `target_host_id` of the blast and bridge results, `eech_object_report`, `eech_object_report_receipt` and
+`eech_structure`, and compare them with the mirrors' (Step 5's P1 showed an outer size is not enough). Limit: these are the Linux compiler's and target's layouts of a declaration whose layout `repr(C)` fixes; a
+Windows build is observed by a build that runs the probes.
+
+## Evidence
+
+* **The registry and the report application, against the real code** (`c-checks/object_checks.c`, ASan and UBSan; the REAL `mb_hostobj.c` and `mb_hostaim.c` over a small fake entity heap whose slots are released and
+  reused and whose engine operations record what they were asked): 37 checks, 0 failures (`checks/object-checks-1.log`): the identity is asked once from the facts by value; a weapon, a bridge and an unrostered
+  mobile have none; a rostered mobile keeps the roster's; the duplicate, rostered, empty, overlong, control-character and sample-asking answers are refused; a released structure has no identity; a report
+  with an ended identity is refused, and **a reused slot is untouched** by it; a destruction kills once, leaves the stored level, and is refused the second time; a level is set before the kill; no repair;
+  nothing is applied by a client. The mutation controller removes 15 rules one at a time (`c-checks/mutate-object-checks.sh`): all 15 caught, both setup controls as expected
+  (`checks/object-mutation-3.log`; the first two runs, which found a pattern and a script defect of the controller itself, are retained as `object-mutation-1-failed-pattern.log` and
+  `object-mutation-2-failed-mangled-script.log`).
+* **The window identities and the repeat, through the real driver** (`bridge_checks.c`, 70 checks; `blast_checks.c`, 63 checks; 0 failures): an object is offered under its identity and the host's repeat of it is
+  accepted; another identity, none, an identity for an object that has none, an unterminated identity in a window entry and an identity beside an answer that names no object are each refused with nothing
+  applied. Mutation: the bridge controller 15 mutants and the blast controller 14, all caught (`checks/bridge-mutation-r3.log`, `checks/blast-mutation-r3.log`). The differentials (84,036 comparisons for the
+  bridge, 6,000 scenarios for the blast) were rerun against the changed driver and pass.
+* **The Rust/Lua boundary** (`cargo test --locked`, workspace, and with `eech-dc/weapon-fixture`, both exit 0): the identify question crosses by value and the issued identity is read; a missing, empty,
+  overlong or NUL-containing identity, a sample and a lookup are refused; the window identities cross and the host's repeat comes back; the layout tests above; the public Lua host (`host_callbacks.rs`): the
+  reference host's identify mode and its repeat, the plain model, every malformed identity provider; and the controlled witness `lua/object-report-case.lua` against a stand-in engine (flow, selection, the
+  report made once and by its identity, the withheld-report control, the refusing controls, and argument refusal before boot). Default and fixture Clippy with `-D warnings` and `cargo fmt --check` exit 0.
+  The first compile of every step that failed is retained (`checks/*-failed-*.log`).
+* **Not available:** any native run. The stand-in engine and the fake entity heap prove the contract, the order and the lifetime rules, not the campaign's real handlers; the real tree compiles in the Linux cargo
+  build (`eech-engine-sys` compiles `mb_hostobj.c`, `gp_roster.c`, `explosn.c` and `eech_engine.c`), nothing more.
+* **A red, and its limit.** The layout probes of the new DTOs passed on the first run (the DTOs are `repr(C)` from the start), so there is no observed red for them; their value is that they would fail if a
+  declaration drifted. The behaviours that are new have no earlier version to fail against, so the checks above were shown to detect their absence by the mutation controllers (each rule removed, the check fails)
+  rather than by an old driver.
+
+## The control plan for the root (nothing here is native)
+
+1. **Default and controlled scenarios unchanged.** The identity of an offered structure is asked of the host lazily (an extra `identify` exchange the first time a structure is offered in a blast or a walk); it takes
+   no sample, changes no physics and no order of the campaign. The raw default 600 s/900 s protocols, the 600 s event logs and the bridge pair (5/100/12/criterion 0, 320,598 bytes) must be compared with their
+   retained bytes; any difference is classified, none is accepted by rewriting a golden.
+2. **The new witnesses** (`lua/object-report-case.lua`, shipping module only, no fixture build): `kind=site report=destroyed` against `report=none` (the structure is dead / alive afterwards), `report=damage`, and
+   `kind=segment report=destroyed` (the summary's `object_aim_counts` show the real handlers asking the host about the collapse), each with `identity=reference` and `identity=own`; and the controls
+   `control=unknown|duplicate|raise` (each ends the run with the engine's refusal). These are reported facts, not weapon hits.
+3. **The provider runs**: `identity_own` and the malformed `bad_identify_*`, `bad_blast_identity*`, `bad_bridge_identity` (some need a blast or a walk that reaches a structure and may not trigger in a plain war: the
+   counters `identify_asked`, `blast_identified`, `vehicles_identified` say so).
+
+## Declared limits and what remains of D2
+
+* Identities are issued at the first physical need (a window offer or `engine:structures()`), not at world load, and live for the process: save/restore of identities, a host that needs an identity before the
+  campaign has presented the structure, and the structures of kinds other than the six are not supported. A mobile that is not a roster member and a weapon have no identity.
+* A report states a damage level and/or a destruction. It carries no weapon, launcher or credit (the original credits a player kill only when the collision names an aggressor, so a reported kill earns none: declared); the arrival of a weapon's impact and the hit facts remain the questions of Steps 1 to 4. Reports are applied by the
+  server; arbitrary delay, final-member loss and save/restore of the D1 loss transaction keep their D1 limits.
+* **Still open in D2 (not claimed complete):** the root's native validation of this step and of the corrected Step 5 composition (default, controlled, host-authority and refusal), the whole-scope D2 audit
+  (every combat and perception responsibility traced against the final tree), the final ordinary shipping 40, all 8, post 3, current CI, independent review and normal merge, and the final native frame-cost
+  evidence. D4 repair quantities, D3 services and D5 integration are not touched.

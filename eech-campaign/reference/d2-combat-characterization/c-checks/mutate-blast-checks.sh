@@ -60,6 +60,8 @@ setup_control() {
 }
 mutate continuation_after "(after_handle != step.blast.window\[step.blast.window_count - 1\].handle)" "0"
 mutate modifier_upper_bound "(answer->modifier > 1.0f)" "(answer->modifier > 100.0f)"
+mutate identity_of_the_object_named "(strcmp (offered, claimed) != 0)" "0"
+mutate identity_beside_no_object "(answer->target_host_id\[0\] \&\& (result->state != CAMPAIGN_AIM_DONE || answer->action == CAMPAIGN_BLAST_DONE))" "0"
 mutate radius_must_not_change "else if (result.blast.radius != radius)" "else if (0)"
 mutate crater_needs_terrain "(plan->crater \&\& !step->impact.terrain_known)" "0"
 mutate sector_started_once "if ((visited_sx \[i\] == sx) \&\& (visited_sz \[i\] == sz))" "if (0)"

@@ -1614,6 +1614,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     {
         let aim = Rc::new(RefCell::new(Aim::new()));
+        // the opaque identities this host issues for structures (CAMPAIGN_AIM_IDENTIFY): its own monotonic count, not derived from anything the campaign sends
+        let next_object_id = Cell::new(1_u64);
         host.set(
             "aim",
             lua.create_function(move |lua, step: LuaTable| {
@@ -2144,9 +2146,28 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             }
                         }
                     }
+                    "identify" => {
+                        // the identity of a structure the campaign has to name to this host for the first time (mb_hostobj.h): the host issues it from its own count and keeps the facts the campaign sent
+                        // by value to correlate its own world's object with it.  The reference host has no world of structures of its own, so it records nothing
+                        let _entity_type = lua_i32(&step, "entity_type").map_err(fail)?;
+                        let _sub_type = lua_i32(&step, "sub_type").map_err(fail)?;
+                        let _side = lua_i32(&step, "side").map_err(fail)?;
+                        let _alive = flag(&step, "alive")?;
+                        let _position = exact_numbers::<3>(lua, &step, "position").map_err(fail)?;
+                        let _serial = lua_i32(&step, "serial").map_err(fail)?;
+                        let id = next_object_id.get();
+                        let Some(next) = id.checked_add(1) else {
+                            return Err(fail("identity counter exhausted".into()));
+                        };
+                        next_object_id.set(next);
+                        result.set("state", "done")?;
+                        result.set("host_id", format!("eech-world:object:{id}"))?;
+                    }
                     "blast" => {
                         // one area blast (cmb.rs blast): the radius, the sector rectangle and the walk are this host's; the campaign supplies the windows of the sectors' lists the walk asks
                         // for and acts on the object the host reaches before the walk goes on.  No draw is taken
+                        // the identities the campaign offered the objects of the window under (a rostered mobile's or a structure's): the host repeats the one of the object it reaches
+                        let mut offered_ids: Vec<(i32, String)> = Vec::new();
                         let window = match step.get::<LuaValue>("window")? {
                             LuaValue::Nil => None,
                             LuaValue::Table(window) => {
@@ -2154,6 +2175,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 let mut entries = Vec::new();
                                 for value in objects.sequence_values::<LuaTable>() {
                                     let object = value?;
+                                    if let Some(id) = object.get::<Option<String>>("host_id")? {
+                                        offered_ids.push((lua_i32(&object, "handle").map_err(fail)?, id));
+                                    }
                                     entries.push(cmb::BlastEntry {
                                         handle: lua_i32(&object, "handle").map_err(fail)?,
                                         entity_type: lua_i32(&object, "entity_type").map_err(fail)?,
@@ -2206,12 +2230,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 result.set("state", "done")?;
                                 result.set("action", "collision")?;
                                 result.set("handle", handle)?;
+                                if let Some((_, id)) = offered_ids.iter().find(|(offered, _)| *offered == handle) {
+                                    result.set("host_id", id.as_str())?;
+                                }
                                 result.set("modifier", modifier)?;
                             }
                             cmb::BlastStep::Intercept { handle, modifier } => {
                                 result.set("state", "done")?;
                                 result.set("action", "intercept")?;
                                 result.set("handle", handle)?;
+                                if let Some((_, id)) = offered_ids.iter().find(|(offered, _)| *offered == handle) {
+                                    result.set("host_id", id.as_str())?;
+                                }
                                 result.set("modifier", modifier)?;
                             }
                         }
@@ -2239,6 +2269,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     "bridge" => {
                         // the physical collapse of a bridge segment (cmb.rs bridge): whether an unsupported span collapses, the damaged shape, which neighbours are told, the fall (the terrain under the segment asked
                         // for, as a lookup, when the fall needs it) and the vehicles a killed segment kills (walked through windows of the sector's list).  None takes a draw
+                        let mut offered_ids: Vec<(i32, String)> = Vec::new();
                         let op = match step.get::<LuaValue>("op")? {
                             LuaValue::String(name) => match &*name.to_str()? {
                                 "kill" => cmb::BRIDGE_KILL,
@@ -2263,6 +2294,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 let mut entries = Vec::new();
                                 for value in objects.sequence_values::<LuaTable>() {
                                     let object = value?;
+                                    if let Some(id) = object.get::<Option<String>>("host_id")? {
+                                        offered_ids.push((lua_i32(&object, "handle").map_err(fail)?, id));
+                                    }
                                     entries.push(cmb::BlastEntry {
                                         handle: lua_i32(&object, "handle").map_err(fail)?,
                                         entity_type: lua_i32(&object, "entity_type").map_err(fail)?,
@@ -2368,6 +2402,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 result.set("state", "done")?;
                                 result.set("action", "act")?;
                                 result.set("handle", handle)?;
+                                if let Some((_, id)) = offered_ids.iter().find(|(offered, _)| *offered == handle) {
+                                    result.set("host_id", id.as_str())?;
+                                }
                             }
                         }
                     }

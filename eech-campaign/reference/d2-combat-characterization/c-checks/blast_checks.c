@@ -69,6 +69,7 @@ typedef struct fake_object
 	int excluded;
 	float position[3];
 	int next;
+	char host_id[CAMPAIGN_AIM_HOST_ID_MAX + 1];	/* the identity the campaign offers the object under: every object of this world has one ("obj-<index + 1>") */
 } fake_object;
 
 static fake_object world[OBJECTS];
@@ -95,6 +96,7 @@ static int world_add (int sx, int sz, int type, int alive, int rocket)
 	world[index].rocket = rocket;
 	world[index].position[0] = 100.0f * (float) sx + 50.0f;
 	world[index].position[2] = 100.0f * (float) sz + 50.0f;
+	snprintf (world[index].host_id, sizeof (world[index].host_id), "obj-%d", index + 1);
 
 	while (*link)
 	{
@@ -141,6 +143,7 @@ static int walk_window (void *context, int sx, int sz, const void *after, campai
 		entries[count].position[0] = item->position[0];
 		entries[count].position[1] = item->position[1];
 		entries[count].position[2] = item->position[2];
+		memcpy (entries[count].host_id, item->host_id, sizeof (entries[count].host_id));
 		objects[count] = (void *) (intptr_t) object;
 		count++;
 		object = item->next;
@@ -239,6 +242,9 @@ enum faults
 {
 	FAULT_NONE,
 	FAULT_UNKNOWN_HANDLE,
+	FAULT_IDENTITY_WRONG,
+	FAULT_IDENTITY_MISSING,
+	FAULT_IDENTITY_BESIDE_END,
 	FAULT_MODIFIER_HIGH,
 	FAULT_MODIFIER_NAN,
 	FAULT_MODIFIER_NEGATIVE,
@@ -389,6 +395,21 @@ static int host_aim_inner (const campaign_aim_step *step, campaign_aim_result *r
 			result->blast.modifier = 0.5f;
 			result->blast.action = entry->rocket ? CAMPAIGN_BLAST_INTERCEPT : CAMPAIGN_BLAST_COLLISION;
 
+			/* the host repeats the identity of the object it reaches, as the campaign offered it */
+			memcpy (result->blast.target_host_id, entry->host_id, sizeof (result->blast.target_host_id));
+
+			if (fault == FAULT_IDENTITY_WRONG && fault_armed)
+			{
+				fault_armed = 0;
+				snprintf (result->blast.target_host_id, sizeof (result->blast.target_host_id), "another-%s", entry->host_id);
+			}
+
+			if (fault == FAULT_IDENTITY_MISSING && fault_armed)
+			{
+				fault_armed = 0;
+				memset (result->blast.target_host_id, 0, sizeof (result->blast.target_host_id));
+			}
+
 			if (fault == FAULT_UNKNOWN_HANDLE && fault_armed)
 			{
 				fault_armed = 0;
@@ -433,10 +454,20 @@ static int host_aim_inner (const campaign_aim_step *step, campaign_aim_result *r
 				result->echo = step->echo_out;
 			}
 
+			if (fault == FAULT_IDENTITY_BESIDE_END && fault_armed)
+			{
+				fault_armed = 0;
+				result->blast.action = CAMPAIGN_BLAST_DONE;
+				result->blast.handle = 0;
+				result->blast.modifier = 0.0f;
+			}
+
 			if (fault == FAULT_DONE_WITH_HANDLE && fault_armed)
 			{
 				fault_armed = 0;
 				result->blast.action = CAMPAIGN_BLAST_DONE;
+				/* the walk ends and names an object; the identity is not repeated, so this check is of the handle alone (an identity beside an end is refused too, by its own check) */
+				memset (result->blast.target_host_id, 0, sizeof (result->blast.target_host_id));
 			}
 
 			if (step->echo && step->echo_out)
@@ -843,6 +874,8 @@ int main (void)
 		} faults[] =
 		{
 			{ FAULT_UNKNOWN_HANDLE, "not in the window", "an object that is not in the window" },
+			{ FAULT_IDENTITY_WRONG, "but the campaign offered it as", "another identity than the one the object was offered under" },
+			{ FAULT_IDENTITY_MISSING, "but the campaign offered it as", "no identity for an object that was offered with one" },
 			{ FAULT_MODIFIER_HIGH, "modifier", "a modifier above one" },
 			{ FAULT_MODIFIER_NAN, "modifier", "a modifier that is not a number" },
 			{ FAULT_MODIFIER_NEGATIVE, "modifier", "a negative modifier" },
@@ -856,7 +889,8 @@ int main (void)
 			{ FAULT_UNKNOWN_ACTION, "action", "an action the campaign does not know" },
 			{ FAULT_ECHO_UNASKED, "nobody asked for", "an echo nobody asked for" },
 			{ FAULT_NEGATIVE_AFTER, "malformed window", "a window after a negative handle" },
-			{ FAULT_DONE_WITH_HANDLE, "action 0", "an end of the walk that names an object" }
+			{ FAULT_DONE_WITH_HANDLE, "action 0", "an end of the walk that names an object" },
+			{ FAULT_IDENTITY_BESIDE_END, "identity beside an answer that names no object", "an identity beside an end of the walk" }
 		};
 
 		for (i = 0; i < (int) (sizeof (faults) / sizeof (faults[0])); i++)

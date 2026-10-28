@@ -1840,3 +1840,33 @@ void campaign_roster_get_stats (campaign_roster_stats *stats)
 	stats->duplicate_comparisons = duplicate_comparisons;
 	stats->duplicate_scan_seconds = (double) duplicate_scan_ticks / CLOCKS_PER_SEC;
 }
+
+/*
+ * Where an opaque host identity stands in the roster (EEDCS-46, R3): 0 the roster never issued it, 1 it names a live physical incarnation (returned in *member), 2 it named an incarnation that
+ * has ended (the entity was released and its slot may serve another object, which the old identity never names).  A copy of nothing: the entity is looked up from the record each time.
+ */
+int campaign_roster_find_host_id (const char *host_id, entity **member)
+{
+	size_t i;
+	if (member)
+	{
+		*member = NULL;
+	}
+	for (i = 0; i < record_count; ++i)
+	{
+		const campaign_member_record *record = &records[i];
+		if (strcmp (record->host_id, host_id) == 0)
+		{
+			if (!record->physical_present)
+			{
+				return 2;
+			}
+			if (member)
+			{
+				*member = get_local_entity_ptr (record->current_entity_index);
+			}
+			return 1;
+		}
+	}
+	return 0;
+}

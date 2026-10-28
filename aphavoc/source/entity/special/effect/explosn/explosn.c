@@ -70,6 +70,8 @@
 
 #include "entity/mobile/mb_hostaim.h"
 
+#include "entity/mobile/mb_hostobj.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1033,6 +1035,9 @@ static int blast_window (void *context, int sx, int sz, const void *after, campa
 	blast_context
 		*blast;
 
+	const char
+		*id;
+
 	entity
 		*sect,
 		*object;
@@ -1072,6 +1077,14 @@ static int blast_window (void *context, int sx, int sz, const void *after, campa
 		if (blast_readable (object->type))
 		{
 			entry->readable = TRUE;
+
+			// the identity the host gave the object (a rostered mobile's or a structure's; a structure is identified now, the first time the campaign names it to the host); a weapon has none
+			id = campaign_object_identify (object);
+
+			if (id)
+			{
+				memcpy (entry->host_id, id, strlen (id) + 1);
+			}
 
 			entry->alive = get_local_entity_int_value (object, INT_TYPE_ALIVE) ? TRUE : FALSE;
 

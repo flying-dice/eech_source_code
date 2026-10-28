@@ -100,3 +100,9 @@ campaign/world link split. The existing loss structural proof remains the
 starting campaign-consequence implementation. Identity alone neither moves
 loss authority nor proves the required causal difference when a host report is
 withheld.
+
+## Structures (EEDCS-46, R3)
+
+The roster identifies the physical group members of the six mobile families. The structures a host must act on or report (sites, their updatables, city buildings, pylons, scenery, bridge segments) are identified by the
+same kind of opaque, host-issued, per-incarnation identity, asked of the host through the aim exchange (`CAMPAIGN_AIM_IDENTIFY`) and ended when the entity is released; a rostered mobile keeps the roster's identity and is
+never bound twice. See `m5-combat-extraction.md`, Step 6, for the contract, the report path (`engine:report_object`, `engine:structures()`) and the limits.

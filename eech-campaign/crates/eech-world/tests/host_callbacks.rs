@@ -884,6 +884,39 @@ assert(alive_moved.landed == true and alive_moved.landed_y == 1, 'a living segme
 local rest_nonfinite = malformed('bad_bridge_rest_nonfinite', host.aim, passed)(bridge({ op = 'rest', alive = false, terrain = { height = 100, water = false } }))
 assert(rest_nonfinite.landed_y ~= rest_nonfinite.landed_y, 'a resting height that is not a number')
 assert(handle.handle == 99999, 'an object that is not in the window')
+-- the identities of the physical objects that are not rostered mobiles (EEDCS-46, R3): the host issues one for a structure from its own count, an offered object carries the identity it was given, and the host repeats it for the object it reaches
+local function identify(over)
+  local request = { mode = 'identify', entity_type = 5, sub_type = 41, side = 2, alive = true, damage_level = 80, initial_damage_level = 100, position = { 100, 5, 250 }, serial = 1 }
+  for k, v in pairs(over or {}) do request[k] = v end
+  return request
+end
+r = host.aim(identify())
+assert(r.state == 'done' and r.host_id == 'eech-world:object:1', 'the reference host issues an identity from its own count')
+assert(host.aim(identify({ serial = 9 })).host_id == 'eech-world:object:2' and host.aim(identify({ serial = 9 })).host_id == 'eech-world:object:3', 'a new one each time, whatever the campaign sent')
+refused(identify({ position = { 0 / 0, 0, 0 } }), 'position')
+refused(identify({ alive = 1 }), 'alive must be a boolean')
+refused(identify({ serial = 'x' }), 'serial')
+r = host.aim(blast({ window = window({ object(1, 6, 0), object(2, 6, 10, { host_id = 'obj-2' }) }, true) }))
+assert(r.action == 'collision' and r.handle == 2 and r.host_id == 'obj-2', 'the identity the object was offered under is repeated for the object the blast reaches')
+r = host.aim(blast({ window = window({ object(1, 6, 10) }, true) }))
+assert(r.action == 'collision' and r.handle == 1 and r.host_id == nil, 'an object offered with none is repeated as none')
+r = host.aim(bridge({ op = 'vehicles', position = { 250, 5, 250 }, window = { sx = 2, sz = 2, after = 0, list_ends = true, objects = { vehicle(7, 3, { host_id = 'veh-7' }) } } }))
+assert(r.action == 'act' and r.handle == 7 and r.host_id == 'veh-7', 'and for the vehicle a collapse kills')
+r = own_model.blast(blast({ window = window({ object(1, 3, 10, { host_id = 'obj-1' }) }, true) }))
+assert(r.action == 'collision' and r.host_id == 'obj-1', 'a plain model repeats the identity too')
+r = own_model.identify(identify({ serial = 4 }))
+assert(r.state == 'done' and r.host_id == 'own-world/structure/4', 'a plain model issues its own kind of identity')
+assert(malformed('bad_identify_empty', host.aim, passed)(identify()).host_id == '', 'a provider that issues an empty identity')
+assert(#malformed('bad_identify_long', host.aim, passed)(identify()).host_id == 129, 'one that is too long')
+assert(malformed('bad_identify_missing', host.aim, passed)(identify()).host_id == nil, 'one that issues none')
+assert(malformed('bad_identify_control', host.aim, passed)(identify()).host_id:find('\\n', 1, true), 'one with a control character')
+assert(malformed('bad_identify_draw', host.aim, passed)(identify()).state == 'need_draw', 'one that asks for a sample')
+local repeating = malformed('bad_identify_repeat', host.aim, passed)
+local issued_first = repeating(identify()).host_id
+assert(repeating(identify()).host_id == issued_first, 'one that issues the same identity twice')
+assert(malformed('bad_blast_identity', host.aim, passed)(blast({ window = window({ object(2, 6, 10, { host_id = 'obj-2' }) }, true) })).host_id == 'x-obj-2', 'a blast answer with the identity of another object')
+assert(malformed('bad_blast_identity_missing', host.aim, passed)(blast({ window = window({ object(2, 6, 10, { host_id = 'obj-2' }) }, true) })).host_id == nil, 'and with none for an object offered with one')
+assert(malformed('bad_bridge_identity', host.aim, passed)(bridge({ op = 'vehicles', position = { 250, 5, 250 }, window = { sx = 2, sz = 2, after = 0, list_ends = true, objects = { vehicle(7, 3, { host_id = 'veh-7' }) } } })).host_id == 'x-veh-7', 'a vehicles answer with the identity of another object')
 print('AIM_HOST=ok')";
 
 #[test]
@@ -1718,4 +1751,222 @@ fn the_bridge_summary_counts_a_segment_as_finished_only_from_a_state_that_really
             "{window} finish {finish} empty {empty}: {summary}"
         );
     }
+}
+
+// The controlled object-report witness (EEDCS-46, R3; lua/object-report-case.lua) against a small stand-in for the engine: only its flow and its argument safety are checked here (the census, the choice of the
+// first alive structure of the kind, the report made once and by its identity, the bounded window, the state read afterwards, the control that ends the run, and that a malformed argument is refused BEFORE
+// the engine is booted).  Whether a real report changes the campaign's state is the native run's to show, through the real handlers.
+const OBJECT_CASE_CALLER_SCRIPT: &str = r#"
+local time = 0
+local function note(text)
+  local f = io.open('@TRACE@', 'a')
+  f:write(text, '\n')
+  f:close()
+end
+local structures = {
+  { host_id = 'obj-1', kind = 'pylon', sub_type = 2, side = 'neutral', alive = true, damage_level = 40, initial_damage_level = 40, position = { 1, 2, 3 } },
+  { host_id = 'obj-2', kind = 'site', sub_type = 5, side = 'blue', alive = false, damage_level = 0, initial_damage_level = 90, position = { 4, 5, 6 } },
+  { host_id = 'obj-3', kind = 'site', sub_type = 5, side = 'blue', alive = true, damage_level = 90, initial_damage_level = 90, position = { 7, 8, 9 } },
+  { host_id = 'obj-4', kind = 'site', sub_type = 6, side = 'red', alive = true, damage_level = 60, initial_damage_level = 60, position = { 7, 8, 9 } },
+}
+local engine = {}
+function engine:clock() return { elapsed_seconds = time } end
+function engine:frame(ms) time = time + ms / 1000 note('frame') end
+function engine:structures()
+  note('structures')
+  local copy = {}
+  for i, s in ipairs(structures) do
+    local c = {}
+    for k, v in pairs(s) do c[k] = v end
+    copy[i] = c
+  end
+  return copy
+end
+function engine:report_object(report)
+  local found
+  for _, s in ipairs(structures) do if s.host_id == report.host_id then found = s end end
+  if found == nil then error('host objects: the identity "' .. report.host_id .. '" was never issued', 0) end
+  if not found.alive then error('host objects: "' .. report.host_id .. '" is already destroyed: a fact is applied once', 0) end
+  local before = found.damage_level
+  if report.damage_level ~= nil then
+    if report.damage_level > before then error('host objects: a damage level of ' .. report.damage_level .. ' cannot be repaired by a report', 0) end
+    found.damage_level = report.damage_level
+  end
+  local killed = report.destroyed == true or (report.damage_level ~= nil and report.damage_level <= 0)
+  if killed then found.alive = false end
+  note('report ' .. report.host_id .. ' ' .. tostring(report.damage_level) .. ' ' .. tostring(report.destroyed))
+  return { entity_type = 5, rostered = false, damage_level_before = before, damage_level_after = found.damage_level, killed = killed }
+end
+package.loaded['eech_dc'] = {
+  prepare_installation = function() note('prepare') end,
+  boot = function() note('boot') return engine end,
+}
+dofile('@LUA_DIR@/object-report-case.lua')
+print('OBJECT_CALLER_DONE')
+"#;
+
+fn run_object_case(extra: &[&str]) -> (std::process::ExitStatus, String, String, String, Vec<serde_json::Value>) {
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\u{5c}', "/");
+    static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let tag = format!("{}-{}", std::process::id(), COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
+    let script = std::env::temp_dir().join(format!("eech-world-object-caller-{tag}.lua"));
+    let out = std::env::temp_dir().join(format!("eech-world-object-caller-{tag}.jsonl"));
+    let trace = std::env::temp_dir().join(format!("eech-world-object-caller-{tag}.trace"));
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    let text = OBJECT_CASE_CALLER_SCRIPT
+        .replace("@TRACE@", &trace.display().to_string().replace('\u{5c}', "/"))
+        .replace("@LUA_DIR@", &lua_dir);
+    std::fs::write(&script, text).unwrap();
+    let mut command = Command::new(env!("CARGO_BIN_EXE_eech-world"));
+    command
+        .arg(&script)
+        .arg("root=none")
+        .arg(format!("out={}", out.display().to_string().replace('\u{5c}', "/")))
+        .arg("warmup=0.2")
+        .arg("frame_ms=100")
+        .arg("window_seconds=0.25");
+    for arg in extra {
+        command.arg(arg);
+    }
+    let run = command.output().unwrap();
+    std::fs::remove_file(&script).unwrap();
+    let rows = if out.exists() {
+        std::fs::read_to_string(&out)
+            .unwrap()
+            .lines()
+            .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("malformed output row {l:?}: {e}")))
+            .collect()
+    } else {
+        Vec::new()
+    };
+    let trace_text = std::fs::read_to_string(&trace).unwrap_or_default();
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    (
+        run.status,
+        String::from_utf8_lossy(&run.stdout).to_string(),
+        String::from_utf8_lossy(&run.stderr).to_string(),
+        trace_text,
+        rows,
+    )
+}
+
+#[test]
+fn the_object_witness_reports_a_destruction_by_identity_once_and_reads_the_state_afterwards() {
+    let (status, stdout, stderr, trace, rows) = run_object_case(&["kind=site", "report=destroyed"]);
+    assert!(status.success() && stdout.contains("OBJECT_CASE_DONE"), "{stdout}\n{stderr}");
+    let census = rows.iter().find(|r| r["event"] == "object_census").unwrap();
+    assert_eq!((census["structures"].as_i64(), census["duplicate_identities"].as_i64()), (Some(4), Some(0)));
+    // the first ALIVE structure of the kind: obj-2 is dead and is passed over
+    let before = rows.iter().find(|r| r["event"] == "object_before").unwrap();
+    assert_eq!((before["host_id"].as_str(), before["alive"].as_bool()), (Some("obj-3"), Some(true)));
+    assert_eq!(trace.matches("report obj-3 nil true").count(), 1, "{trace}");
+    assert_eq!(trace.matches("report ").count(), 1, "{trace}");
+    let receipt = rows.iter().find(|r| r["event"] == "object_receipt").unwrap();
+    assert_eq!(receipt["killed"].as_bool(), Some(true));
+    let summary = rows.iter().find(|r| r["event"] == "object_summary").unwrap();
+    assert_eq!(
+        (
+            summary["done"].as_bool(),
+            summary["changed"].as_bool(),
+            summary["alive_before"].as_bool(),
+            summary["alive_after"].as_bool()
+        ),
+        (Some(true), Some(true), Some(true), Some(false)),
+        "{summary}"
+    );
+    // the report is made before the window of frames, and the state is read after it
+    let first_report = trace.find("report obj-3").unwrap();
+    let first_frame_after = trace[first_report..].find("frame").unwrap();
+    assert!(first_frame_after > 0, "{trace}");
+    assert!(trace.ends_with("structures\n"), "the state is read last: {trace}");
+}
+
+#[test]
+fn the_object_witness_with_no_report_is_the_control_that_changes_nothing() {
+    let (status, stdout, stderr, trace, rows) = run_object_case(&["kind=site", "report=none"]);
+    assert!(status.success(), "{stdout}\n{stderr}");
+    assert_eq!(trace.matches("report ").count(), 0, "a withheld report reports nothing: {trace}");
+    let summary = rows.iter().find(|r| r["event"] == "object_summary").unwrap();
+    assert_eq!(
+        (summary["changed"].as_bool(), summary["alive_after"].as_bool()),
+        (Some(false), Some(true)),
+        "{summary}"
+    );
+    assert!(rows.iter().all(|r| r["event"] != "object_receipt"));
+}
+
+#[test]
+fn the_object_witness_reports_a_damage_level_and_ends_a_run_with_the_control_that_must_be_refused() {
+    let (status, stdout, stderr, trace, rows) = run_object_case(&["kind=pylon", "report=damage", "level=15"]);
+    assert!(status.success(), "{stdout}\n{stderr}");
+    assert!(trace.contains("report obj-1 15 nil"), "{trace}");
+    let summary = rows.iter().find(|r| r["event"] == "object_summary").unwrap();
+    assert_eq!(
+        (
+            summary["damage_before"].as_i64(),
+            summary["damage_after"].as_i64(),
+            summary["alive_after"].as_bool()
+        ),
+        (Some(40), Some(15), Some(true)),
+        "{summary}"
+    );
+    // a default level is half the current one
+    let (_, _, _, trace, _) = run_object_case(&["kind=pylon", "report=damage"]);
+    assert!(trace.contains("report obj-1 20 nil"), "{trace}");
+    for (control, fragment) in [
+        ("unknown", "was never issued"),
+        ("duplicate", "already destroyed"),
+        ("raise", "cannot be repaired"),
+    ] {
+        let report = if control == "duplicate" {
+            "report=destroyed"
+        } else if control == "raise" {
+            "report=damage"
+        } else {
+            "report=destroyed"
+        };
+        let (status, stdout, stderr, _, rows) = run_object_case(&["kind=site", report, &format!("control={control}")]);
+        assert!(status.success(), "{control}: {stdout}\n{stderr}");
+        let row = rows
+            .iter()
+            .find(|r| r["event"] == "object_control")
+            .unwrap_or_else(|| panic!("{control}: no control row"));
+        assert_eq!(row["refused"].as_bool(), Some(true), "{control}: {row}");
+        assert!(row["error"].as_str().unwrap().contains(fragment), "{control}: {row}");
+        // the control is the last row: nothing is recorded after a refusal
+        assert_eq!(rows.last().unwrap()["event"], "object_control", "{control}");
+    }
+}
+
+#[test]
+fn the_object_witness_says_so_when_there_is_no_such_structure_and_refuses_a_malformed_argument_before_booting() {
+    let (status, _, _, trace, rows) = run_object_case(&["kind=scenic"]);
+    assert!(status.success(), "{trace}");
+    let summary = rows.iter().find(|r| r["event"] == "object_summary").unwrap();
+    assert_eq!(summary["done"].as_bool(), Some(false));
+    assert_eq!(trace.matches("report ").count(), 0, "nothing was reported: {trace}");
+    for (bad, what) in [
+        ("kind=bridge", "kind must be one of"),
+        ("report=heal", "report must be one of"),
+        ("control=stale", "control must be one of"),
+        ("level=-1", "level must be a whole number"),
+        ("index=1.5", "index must be a whole number"),
+        ("identity=magic", "identity must be one of"),
+    ] {
+        let (status, _, stderr, trace, rows) = run_object_case(&[bad]);
+        assert!(!status.success(), "{bad} was accepted");
+        assert!(stderr.contains(what), "{bad}: {stderr}");
+        assert!(trace.is_empty() && rows.is_empty(), "{bad}: the engine was booted or a row written: {trace}");
+    }
+    let (status, _, stderr, trace, _) = run_object_case(&["control=duplicate", "report=none"]);
+    assert!(
+        !status.success() && stderr.contains("control=duplicate needs report=destroyed") && trace.is_empty(),
+        "{stderr}"
+    );
 }

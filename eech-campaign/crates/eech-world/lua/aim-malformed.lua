@@ -14,15 +14,38 @@ return function (mode, reference, counted)
 		bad_impact_crater = "impact", bad_impact_draw = "impact", bad_impact_blasts = "impact",
 		bad_blast_handle = "blast", bad_blast_radius = "blast", bad_blast_draw = "blast", bad_blast_sector = "blast", bad_blast_repeat = "blast", bad_blast_modifier = "blast", bad_blast_rocket = "blast",
 		bad_bridge_kill_dead = "bridge", bad_bridge_variant = "bridge", bad_bridge_notify_absent = "bridge", bad_bridge_landed_not_fell = "bridge", bad_bridge_nonfinite = "bridge",
-		bad_bridge_draw = "bridge", bad_bridge_handle = "bridge", bad_bridge_terrain_twice = "bridge", bad_bridge_rest_alive = "bridge", bad_bridge_rest_nonfinite = "bridge" }
+		bad_bridge_draw = "bridge", bad_bridge_handle = "bridge", bad_bridge_terrain_twice = "bridge", bad_bridge_rest_alive = "bridge", bad_bridge_rest_nonfinite = "bridge",
+		bad_bridge_identity = "bridge", bad_blast_identity = "blast", bad_blast_identity_missing = "blast",
+		bad_identify_empty = "identify", bad_identify_long = "identify", bad_identify_missing = "identify", bad_identify_control = "identify", bad_identify_draw = "identify", bad_identify_repeat = "identify" }
 	local kind = assert (kinds [mode], "unknown bad mode " .. mode)
 	local armed = true
+	local issued = nil
 	return function (step)
 		-- the health providers corrupt the first answer of their kind: pure-question and repeated draws are invalid; a generic timed draw for a person is valid
 		-- the impact and blast providers corrupt the first answer that can carry their fault; a mode whose fault needs a walk that reaches an object or a second sector may not be
 		-- reached in a short run, and the summary's counters say so
 		-- the bridge providers corrupt the first answer that can carry their fault; a fault that needs a walked bridge (a dead segment's collision, a neighbour that is not there, a vehicle in reach) may not
 		-- be reached in a plain war, and the summary's counters say so
+		-- the identity providers corrupt the first answer that can carry their fault: the identity a host issues for a structure (empty, too long, missing, with a control character, a sample asked for,
+		-- or one it issued before), and the identity it repeats for the object it names in a blast or a vehicles walk (another, or none for an object that was offered with one)
+		if step.mode == "identify" and mode:find ("^bad_identify_") then
+			local answer = reference (step)
+			if mode == "bad_identify_repeat" then
+				if armed and issued ~= nil then
+					armed = false
+					return { state = "done", host_id = issued }
+				end
+				issued = issued or answer.host_id
+			elseif armed then
+				armed = false
+				if mode == "bad_identify_empty" then return { state = "done", host_id = "" }
+				elseif mode == "bad_identify_long" then return { state = "done", host_id = string.rep ("x", 129) }
+				elseif mode == "bad_identify_missing" then return { state = "done" }
+				elseif mode == "bad_identify_control" then return { state = "done", host_id = "bad\nidentity" }
+				elseif mode == "bad_identify_draw" then return { state = "need_draw" } end
+			end
+			return counted (step, answer)
+		end
 		if step.mode == "bridge" and mode:find ("^bad_bridge_") then
 			local answer = reference (step)
 			if armed then
@@ -55,6 +78,10 @@ return function (mode, reference, counted)
 				elseif mode == "bad_bridge_rest_nonfinite" and step.op == "rest" and answer.state == "done" and answer.landed then
 					armed = false
 					answer.landed_y = 0 / 0
+					return answer
+				elseif mode == "bad_bridge_identity" and step.op == "vehicles" and answer.state == "done" and answer.action == "act" then
+					armed = false
+					answer.host_id = "x-" .. (answer.host_id or "none")
 					return answer
 				elseif mode == "bad_bridge_handle" and step.op == "vehicles" and answer.state == "done" and answer.action == "act" then
 					armed = false
@@ -100,6 +127,14 @@ return function (mode, reference, counted)
 				elseif mode == "bad_blast_handle" and answer.state == "done" and answer.action ~= "none" then
 					armed = false
 					answer.handle = 99999
+					return answer
+				elseif mode == "bad_blast_identity" and answer.state == "done" and answer.action ~= "none" then
+					armed = false
+					answer.host_id = "x-" .. (answer.host_id or "none")
+					return answer
+				elseif mode == "bad_blast_identity_missing" and answer.state == "done" and answer.action ~= "none" and answer.host_id ~= nil then
+					armed = false
+					answer.host_id = nil
 					return answer
 				elseif mode == "bad_blast_modifier" and answer.state == "done" and answer.action ~= "none" then
 					armed = false

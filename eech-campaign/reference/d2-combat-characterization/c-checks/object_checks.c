@@ -1,0 +1,405 @@
+/* Checks of the host-issued identity of the physical objects that are not rostered mobiles and of the physical facts the host reports about them (EEDCS-46, R3): the REAL
+   aphavoc/source/entity/mobile/mb_hostobj.c (the structures' roster and the report application) and the REAL mb_hostaim.c (the IDENTIFY exchange and its validation), compiled against object-stub/project.h
+   and driven with a scripted host over a small fake entity heap.  The engine operations the registry applies (set a damage level, kill an object) are recorded, so the order and the once-only effect of a report
+   are observable; the entity list is a plain array whose slots the checks release and reuse.  It is NOT a native run.  Run by run-object-checks.sh. */
+#include "project.h"
+
+#include "entity/mobile/mb_hostaim.h"
+
+#include "entity/mobile/mb_hostobj.h"
+
+jmp_buf harness_fatal;
+char harness_message[512];
+
+struct ENTITY fake_entities[MAX_NUM_ENTITIES];
+comms_model_types fake_comms_model = COMMS_MODEL_SERVER;
+
+void debug_fatal (const char *format, ...)
+{
+	va_list arguments;
+
+	va_start (arguments, format);
+	vsnprintf (harness_message, sizeof (harness_message), format, arguments);
+	va_end (arguments);
+	longjmp (harness_fatal, 1);
+}
+
+int rand16 (void) { return 0; }
+float get_delta_time (void) { return 0.1f; }
+unsigned int get_system_time (void) { return 0; }
+
+int get_local_entity_index (entity *en)
+{
+	return (int) (en - fake_entities);
+}
+
+int get_local_entity_int_value (entity *en, int_types type)
+{
+	switch (type)
+	{
+		case INT_TYPE_ALIVE: return en->alive;
+		case INT_TYPE_DAMAGE_LEVEL: return en->damage_level;
+		case INT_TYPE_INITIAL_DAMAGE_LEVEL: return en->initial_damage_level;
+		case INT_TYPE_ENTITY_SUB_TYPE: return en->sub_type;
+		case INT_TYPE_SIDE: return en->side;
+	}
+
+	return 0;
+}
+
+vec3d *get_local_entity_vec3d_ptr (entity *en, vec3d_types type)
+{
+	return en->has_position ? &en->position : NULL;
+}
+
+/* what the registry applied, in order: 'S' a damage level set, 'K' a kill */
+static char applied[64];
+static int applied_count, applied_levels[64], applied_index[64];
+
+void set_client_server_entity_int_value (entity *en, int_types type, int value)
+{
+	en->damage_level = value;
+	applied[applied_count] = 'S';
+	applied_levels[applied_count] = value;
+	applied_index[applied_count++] = get_local_entity_index (en);
+}
+
+void kill_client_server_entity (entity *en)
+{
+	en->alive = 0;
+	applied[applied_count] = 'K';
+	applied_levels[applied_count] = 0;
+	applied_index[applied_count++] = get_local_entity_index (en);
+}
+
+/* the roster: one rostered mobile (entity 7) with the identity "mobile-1", and one ended incarnation "mobile-0" */
+const char *campaign_roster_host_id (entity *en)
+{
+	return get_local_entity_index (en) == 7 ? "mobile-1" : NULL;
+}
+
+int campaign_roster_find_host_id (const char *host_id, entity **member)
+{
+	if (member)
+	{
+		*member = NULL;
+	}
+
+	if (strcmp (host_id, "mobile-1") == 0)
+	{
+		if (member)
+		{
+			*member = &fake_entities[7];
+		}
+
+		return 1;
+	}
+
+	return strcmp (host_id, "mobile-0") == 0 ? 2 : 0;
+}
+
+static int checks, failures;
+
+static void check (int ok, const char *what)
+{
+	checks++;
+
+	if (!ok)
+	{
+		failures++;
+		printf ("FAIL %s\n", what);
+	}
+	else
+	{
+		printf ("ok   %s\n", what);
+	}
+}
+
+static int refused_with (const char *text)
+{
+	return strstr (harness_message, text) != NULL;
+}
+
+/* ---- the scripted host: it issues "obj-<n>" (its own count) unless a check scripts something else */
+static int host_calls, host_serial_seen[16], host_serial_count;
+static campaign_identify_request last_request;
+static const char *scripted_id;
+static int asks_draw;
+static int issued_count;
+
+static int host_aim (const campaign_aim_step *step, campaign_aim_result *result, char *error, size_t error_size, void *user)
+{
+	host_calls++;
+
+	memset (result, 0, sizeof (*result));
+
+	if (step->mode != CAMPAIGN_AIM_IDENTIFY)
+	{
+		snprintf (error, error_size, "unexpected mode %d", step->mode);
+
+		return 1;
+	}
+
+	last_request = step->identify;
+
+	if (host_serial_count < 16)
+	{
+		host_serial_seen[host_serial_count++] = step->identify.serial;
+	}
+
+	if (asks_draw)
+	{
+		result->state = CAMPAIGN_AIM_NEED_DRAW;
+
+		return 0;
+	}
+
+	result->state = CAMPAIGN_AIM_DONE;
+
+	if (scripted_id)
+	{
+		/* memcpy of a field's width, so that a check can hand over an identity that does not end inside it */
+		memcpy (result->identify.host_id, scripted_id, strlen (scripted_id) < sizeof (result->identify.host_id) ? strlen (scripted_id) + 1 : sizeof (result->identify.host_id));
+	}
+	else
+	{
+		snprintf (result->identify.host_id, sizeof (result->identify.host_id), "obj-%d", ++issued_count);
+	}
+
+	return 0;
+}
+
+static void world_reset (void)
+{
+	campaign_aim_host host;
+
+	memset (fake_entities, 0, sizeof (fake_entities));
+	campaign_object_reset ();
+	memset (&host, 0, sizeof (host));
+	host.aim = host_aim;
+	campaign_aim_set_host (&host);
+	host_calls = host_serial_count = issued_count = 0;
+	scripted_id = NULL;
+	asks_draw = 0;
+	applied_count = 0;
+	fake_comms_model = COMMS_MODEL_SERVER;
+	harness_message[0] = '\0';
+	memset (&last_request, 0, sizeof (last_request));
+}
+
+static void place (int index, entity_types type, int alive, int damage, int initial)
+{
+	fake_entities[index].type = type;
+	fake_entities[index].alive = alive;
+	fake_entities[index].damage_level = damage;
+	fake_entities[index].initial_damage_level = initial;
+	fake_entities[index].sub_type = 40 + index;
+	fake_entities[index].side = 2;
+	fake_entities[index].has_position = TRUE;
+	fake_entities[index].position.x = 100.0f * index;
+	fake_entities[index].position.y = 5.0f;
+	fake_entities[index].position.z = 250.0f;
+}
+
+static const char *identified;
+
+static int try_identify (int index)
+{
+	if (setjmp (harness_fatal))
+	{
+		return 0;
+	}
+
+	identified = campaign_object_identify (&fake_entities[index]);
+
+	return 1;
+}
+
+static campaign_object_report_receipt receipt;
+
+static int try_report (const char *id, int has_level, int level, int destroyed)
+{
+	campaign_object_report report;
+
+	memset (&report, 0, sizeof (report));
+	snprintf (report.host_id, sizeof (report.host_id), "%s", id);
+	report.has_damage_level = has_level;
+	report.damage_level = level;
+	report.destroyed = destroyed;
+	memset (&receipt, 0, sizeof (receipt));
+	harness_message[0] = '\0';
+
+	if (setjmp (harness_fatal))
+	{
+		return 0;
+	}
+
+	campaign_object_report_apply (&report, &receipt);
+
+	return 1;
+}
+
+static int collected, collected_alive;
+static char collected_first[CAMPAIGN_OBJECT_ID_MAX + 1];
+
+static void collect (const campaign_object_snapshot *object, void *user)
+{
+	if (collected == 0)
+	{
+		snprintf (collected_first, sizeof (collected_first), "%s", object->host_id);
+	}
+
+	collected++;
+	collected_alive += object->alive;
+}
+
+int main (void)
+{
+	char first[CAMPAIGN_OBJECT_ID_MAX + 1];
+	char second[CAMPAIGN_OBJECT_ID_MAX + 1];
+	int accepted;
+
+	/* ================ the identity is asked of the host once, from the object's facts by value ================ */
+	world_reset ();
+	place (1, ENTITY_TYPE_SITE, 1, 80, 100);
+	accepted = try_identify (1);
+	check (accepted && identified && strcmp (identified, "obj-1") == 0 && host_calls == 1, "a structure is identified by asking the host");
+	check (last_request.entity_type == ENTITY_TYPE_SITE && last_request.sub_type == 41 && last_request.side == 2 && last_request.alive == 1 && last_request.damage_level == 80 &&
+		last_request.initial_damage_level == 100 && last_request.position[0] == 100.0f && last_request.position[2] == 250.0f && last_request.serial == 1, "the facts cross by value, with the campaign's own count and no heap index");
+	snprintf (first, sizeof (first), "%s", identified);
+	accepted = try_identify (1);
+	check (accepted && strcmp (identified, first) == 0 && host_calls == 1, "and once: the identity is kept, the host is not asked again");
+	check (campaign_object_host_id (&fake_entities[1]) && strcmp (campaign_object_host_id (&fake_entities[1]), first) == 0, "the identity is readable without calling the host");
+
+	/* ================ the objects that are not structures ================ */
+	place (5, ENTITY_TYPE_WEAPON, 1, 1, 1);
+	place (6, ENTITY_TYPE_BRIDGE, 1, 0, 0);
+	place (7, ENTITY_TYPE_ROUTED_VEHICLE, 1, 50, 50);
+	place (8, ENTITY_TYPE_ROUTED_VEHICLE, 1, 50, 50);
+	host_calls = 0;
+	accepted = try_identify (5);
+	check (accepted && identified == NULL && host_calls == 0, "a weapon has no identity and the host is not asked");
+	accepted = try_identify (6);
+	check (accepted && identified == NULL && host_calls == 0, "a bridge has none either (its segments do)");
+	accepted = try_identify (7);
+	check (accepted && identified && strcmp (identified, "mobile-1") == 0 && host_calls == 0, "a rostered mobile keeps the identity of the roster: it is not bound twice");
+	accepted = try_identify (8);
+	check (accepted && identified == NULL && host_calls == 0, "an unrostered mobile has none");
+
+	/* ================ what the host may issue ================ */
+	place (2, ENTITY_TYPE_PYLON, 1, 10, 10);
+	scripted_id = first;
+	accepted = try_identify (2);
+	check (!accepted && refused_with ("which it issued before") && campaign_object_host_id (&fake_entities[2]) == NULL, "an identity the host issued before is refused and binds nothing");
+	scripted_id = "mobile-1";
+	accepted = try_identify (2);
+	check (!accepted && refused_with ("of a rostered member"), "so is the identity of a rostered member");
+	scripted_id = "mobile-0";
+	accepted = try_identify (2);
+	check (!accepted && refused_with ("of a rostered member"), "and one a roster member had once");
+	scripted_id = "";
+	accepted = try_identify (2);
+	check (!accepted && refused_with ("issued no identity"), "an empty identity is refused");
+	{
+		char long_id[200];
+
+		memset (long_id, 'x', sizeof (long_id));
+		long_id[199] = '\0';
+		scripted_id = long_id;
+		accepted = try_identify (2);
+		check (!accepted && refused_with ("issued no identity"), "one that does not end inside its 128 bytes is refused");
+	}
+	scripted_id = "bad\nidentity";
+	accepted = try_identify (2);
+	check (!accepted && refused_with ("control character"), "one with a control character is refused");
+	scripted_id = NULL;
+	asks_draw = 1;
+	accepted = try_identify (2);
+	check (!accepted && refused_with ("identify request with state"), "a sample asked for in answer to an identify question is refused");
+	asks_draw = 0;
+	accepted = try_identify (2);
+	check (accepted && identified && strcmp (identified, "obj-2") == 0, "after the refusals the next structure is identified normally");
+
+	/* ================ the incarnation ends with the entity ================ */
+	world_reset ();
+	place (1, ENTITY_TYPE_SEGMENT, 1, 500, 500);
+	try_identify (1);
+	snprintf (first, sizeof (first), "%s", identified);
+	campaign_object_release_entity (&fake_entities[1]);
+	check (campaign_object_host_id (&fake_entities[1]) == NULL, "a released structure has no identity");
+	accepted = try_report (first, 1, 0, 0);
+	check (!accepted && refused_with ("no longer exists") && applied_count == 0, "a report with the identity of an ended incarnation is refused and applies nothing");
+	/* the slot is reused by another object */
+	place (1, ENTITY_TYPE_SEGMENT, 1, 500, 500);
+	accepted = try_report (first, 1, 0, 0);
+	check (!accepted && refused_with ("no longer exists") && applied_count == 0 && fake_entities[1].alive == 1, "and so is one whose entity slot now holds another object: that object is untouched");
+	try_identify (1);
+	snprintf (second, sizeof (second), "%s", identified);
+	check (strcmp (first, second) != 0, "the new incarnation is issued a new identity");
+	accepted = try_report (second, 1, 400, 0);
+	check (accepted && fake_entities[1].damage_level == 400, "which does name it");
+
+	/* ================ a report applies the collision steps, once ================ */
+	world_reset ();
+	place (1, ENTITY_TYPE_SEGMENT, 1, 500, 500);
+	place (2, ENTITY_TYPE_SITE, 1, 100, 100);
+	place (3, ENTITY_TYPE_PYLON, 1, 60, 60);
+	place (7, ENTITY_TYPE_ROUTED_VEHICLE, 1, 50, 50);
+	try_identify (1);
+	snprintf (first, sizeof (first), "%s", identified);
+	try_identify (2);
+	snprintf (second, sizeof (second), "%s", identified);
+	accepted = try_report (first, 0, 0, 1);
+	check (accepted && applied_count == 1 && applied[0] == 'K' && applied_index[0] == 1 && fake_entities[1].damage_level == 500 && receipt.killed && receipt.damage_level_before == 500 && receipt.damage_level_after == 500,
+		"a destruction kills the structure and leaves its stored damage level as it was (a dead segment keeps 500)");
+	accepted = try_report (first, 0, 0, 1);
+	check (!accepted && refused_with ("already destroyed") && applied_count == 1, "the fact is applied once: a second report of it is refused");
+	applied_count = 0;
+	accepted = try_report (second, 1, 40, 0);
+	check (accepted && applied_count == 1 && applied[0] == 'S' && applied_levels[0] == 40 && !receipt.killed && fake_entities[2].alive == 1 && receipt.damage_level_after == 40, "a damage level above zero is set and the structure lives");
+	accepted = try_report (second, 1, 41, 0);
+	check (!accepted && refused_with ("cannot be repaired") && fake_entities[2].damage_level == 40, "a report cannot raise a damage level");
+	accepted = try_report (second, 1, -1, 0);
+	check (!accepted && refused_with ("cannot be repaired"), "or lower it below zero");
+	applied_count = 0;
+	accepted = try_report (second, 1, 0, 0);
+	check (accepted && applied_count == 2 && applied[0] == 'S' && applied[1] == 'K' && applied_levels[0] == 0 && receipt.killed && fake_entities[2].alive == 0, "a damage level of zero is set and then the structure is killed, in that order");
+	accepted = try_report (second, 1, 0, 0);
+	check (!accepted && refused_with ("already destroyed"), "and it is destroyed once");
+	accepted = try_report ("never-issued", 1, 0, 0);
+	check (!accepted && refused_with ("was never issued"), "an identity nobody issued is refused");
+	accepted = try_report ("", 1, 0, 0);
+	check (!accepted && refused_with ("without an identity"), "a report without an identity is refused");
+	accepted = try_report (first, 0, 0, 0);
+	check (!accepted && refused_with ("states neither"), "a report that says nothing is refused");
+	accepted = try_report (first, 0, 5, 1);
+	check (!accepted && refused_with ("states neither"), "and one with a level but no statement of it");
+	applied_count = 0;
+	accepted = try_report ("mobile-1", 1, 20, 0);
+	check (accepted && receipt.rostered && applied_count == 1 && applied[0] == 'S' && applied_index[0] == 7, "a rostered mobile is reported by the identity of the roster, through the same steps");
+	accepted = try_report ("mobile-0", 1, 0, 0);
+	check (!accepted && refused_with ("no longer exists"), "a rostered member that ended is refused");
+	place (4, ENTITY_TYPE_PYLON, 1, 30, 30);
+	try_identify (4);
+	fake_comms_model = COMMS_MODEL_CLIENT;
+	applied_count = 0;
+	accepted = try_report (identified, 1, 0, 0);
+	check (!accepted && refused_with ("server only") && applied_count == 0, "a client applies nothing");
+	fake_comms_model = COMMS_MODEL_SERVER;
+
+	/* ================ the structures, identified now if they have no identity yet ================ */
+	world_reset ();
+	place (1, ENTITY_TYPE_SITE, 1, 100, 100);
+	place (2, ENTITY_TYPE_SCENIC, 0, 0, 10);
+	place (3, ENTITY_TYPE_CITY_BUILDING, 1, 20, 20);
+	place (4, ENTITY_TYPE_WEAPON, 1, 1, 1);
+	place (5, ENTITY_TYPE_ROUTED_VEHICLE, 1, 50, 50);
+	collected = collected_alive = 0;
+	check (campaign_object_structures (collect, NULL) == 3 && collected == 3 && collected_alive == 2 && host_calls == 3 && strcmp (collected_first, "obj-1") == 0, "the structures are listed, in entity-list order, each identified by the host once");
+	collected = 0;
+	check (campaign_object_structures (collect, NULL) == 3 && host_calls == 3, "and listed again without asking the host");
+
+	printf ("%d checks, %d failures\n", checks, failures);
+
+	return failures ? 1 : 0;
+}

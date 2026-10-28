@@ -67,6 +67,7 @@ static int sweep;							/* the host asks for a fresh sector every time */
 static int fault;
 static int asks_draw;						/* the host asks for a sample of the random stream */
 static int host_skips_weapons;				/* the scripted vehicles host never names a weapon */
+static int host_identity_mode;					/* the vehicles host repeats the offered identity (0), another (1), or none (2) of the object it names */
 
 #define WEAPON_TYPE 37					/* a kind of object whose kill is its destruction, in the fake world */
 
@@ -154,6 +155,15 @@ static int host_aim (const campaign_aim_step *step, campaign_aim_result *result,
 				result->bridge.action = 1;
 				result->bridge.handle = bridge->window[i].handle;
 
+				if (host_identity_mode == 0)
+				{
+					memcpy (result->bridge.target_host_id, bridge->window[i].host_id, sizeof (result->bridge.target_host_id));
+				}
+				else if (host_identity_mode == 1)
+				{
+					snprintf (result->bridge.target_host_id, sizeof (result->bridge.target_host_id), "another-%s", bridge->window[i].host_id);
+				}
+
 				if (scripted.bridge.handle)
 				{
 					result->bridge.handle = scripted.bridge.handle;
@@ -212,6 +222,7 @@ static void host_installed (void)
 	terrain_asks_remaining = 0;
 	vehicles_mode = 1;
 	host_skips_weapons = 0;
+	host_identity_mode = 0;
 	vehicles_sx = vehicles_sz = 2;
 	sweep = 0;
 	fault = FAULT_NONE;
@@ -318,6 +329,7 @@ typedef struct fake_object
 	int type;			/* 0: a routed vehicle (23) */
 	int destroys;		/* its kill IS its destruction (a weapon): unlinked, freed, the slot poisoned or reused */
 	int released;
+	char host_id[CAMPAIGN_AIM_HOST_ID_MAX + 1];	/* the identity the campaign offers the object under; empty for none */
 } fake_object;
 
 static fake_object world[OBJECTS];
@@ -384,6 +396,7 @@ static int walk_window (void *context, int sx, int sz, const void *after, campai
 	while (object && count < max)
 	{
 		entries[count].type = world[object - 1].type ? world[object - 1].type : 23;
+		memcpy (entries[count].host_id, world[object - 1].host_id, sizeof (entries[count].host_id));
 		entries[count].readable = 1;
 		entries[count].alive = world[object - 1].alive;
 		entries[count].has_position = 1;
@@ -841,6 +854,45 @@ int main (void)
 	world_clear ();
 	accepted = ask_vehicles ();
 	check (!accepted && refused_with ("the host has no model for this bridge"), "a failing host stops a vehicles walk with its reason");
+
+	/* ================ identities (EEDCS-46, R3): an object is offered under the identity the host gave it, and the host repeats it for the object it names ================ */
+	host_installed ();
+	world_clear ();
+	i = world_add (2, 2, 1);
+	snprintf (world[i - 1].host_id, sizeof (world[i - 1].host_id), "obj-A");
+	accepted = ask_vehicles ();
+	check (accepted && kills_applied == 1 && requests[1].bridge.window_count == 1 && strcmp (requests[1].bridge.window[0].host_id, "obj-A") == 0, "an object is offered under its identity and the host's repeat of it is accepted");
+	host_installed ();
+	world_clear ();
+	i = world_add (2, 2, 1);
+	snprintf (world[i - 1].host_id, sizeof (world[i - 1].host_id), "obj-A");
+	host_identity_mode = 1;
+	accepted = ask_vehicles ();
+	check (!accepted && refused_with ("but the campaign offered it as \"obj-A\"") && kills_applied == 0, "another identity for the object the handle selects is refused before anything is applied");
+	host_installed ();
+	world_clear ();
+	i = world_add (2, 2, 1);
+	snprintf (world[i - 1].host_id, sizeof (world[i - 1].host_id), "obj-A");
+	host_identity_mode = 2;
+	accepted = ask_vehicles ();
+	check (!accepted && refused_with ("but the campaign offered it as \"obj-A\"") && kills_applied == 0, "and so is none, for an object that was offered with one");
+	host_installed ();
+	world_clear ();
+	world_add (2, 2, 1);
+	host_identity_mode = 1;
+	accepted = ask_vehicles ();
+	check (!accepted && refused_with ("but the campaign offered it as \"\"") && kills_applied == 0, "an identity claimed for an object that was offered with none is refused too");
+	host_installed ();
+	world_clear ();
+	i = world_add (2, 2, 1);
+	memset (world[i - 1].host_id, 'x', sizeof (world[i - 1].host_id));
+	accepted = ask_vehicles ();
+	check (!accepted && refused_with ("inconsistent object"), "a window entry whose identity does not end inside its field is refused");
+	host_installed ();
+	scripted.bridge.kill = 0;
+	snprintf (scripted.bridge.target_host_id, sizeof (scripted.bridge.target_host_id), "obj-A");
+	accepted = ask_kill (3, 1, 1);
+	check (!accepted && refused_with ("identity beside an answer that names no object"), "an identity beside an answer that names no object is refused");
 
 	printf ("%d checks, %d failures\n", checks, failures);
 

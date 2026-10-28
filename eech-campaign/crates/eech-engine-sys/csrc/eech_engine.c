@@ -242,6 +242,7 @@ static void boot (const struct eech_engine_config *config)
 	reinitialise_entity_system ();
 	campaign_roster_reset ();
 	campaign_supply_arrival_reset ();
+	campaign_object_reset ();
 
 	/* GUNSHIP_TYPE (host) */
 	create_campaign (get_current_game_session ());
@@ -369,6 +370,81 @@ int eech_engine_report_loss (const char *host_id, struct eech_loss_report_receip
 	receipt->group_physical_members_before = source.group_physical_members_before;
 	receipt->tasks_retired_expire = source.tasks_retired_expire;
 	receipt->tasks_completed_on_report = source.tasks_completed_on_report;
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_report_object (const struct eech_object_report *report, struct eech_object_report_receipt *receipt, const struct eech_engine_host *host)
+{
+	campaign_object_report source;
+	campaign_object_report_receipt applied;
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!report || !receipt || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	memset (&source, 0, sizeof (source));
+	memcpy (source.host_id, report->host_id, sizeof (source.host_id));
+	source.has_damage_level = report->has_damage_level;
+	source.damage_level = report->damage_level;
+	source.destroyed = report->destroyed;
+	campaign_object_report_apply (&source, &applied);
+	receipt->entity_type = applied.entity_type;
+	receipt->rostered = applied.rostered;
+	receipt->damage_level_before = applied.damage_level_before;
+	receipt->damage_level_after = applied.damage_level_after;
+	receipt->killed = applied.killed;
+	LEAVE (EECH_ENGINE_OK);
+}
+
+struct structure_callback_context
+{
+	eech_structure_callback callback;
+	void *user;
+};
+
+static void copy_structure (const campaign_object_snapshot *source, void *user)
+{
+	struct structure_callback_context *context = (struct structure_callback_context *) user;
+	struct eech_structure structure;
+	structure.host_id = source->host_id;
+	switch (source->entity_type)
+	{
+	case ENTITY_TYPE_CITY_BUILDING: structure.kind = EECH_STRUCTURE_CITY_BUILDING; break;
+	case ENTITY_TYPE_PYLON: structure.kind = EECH_STRUCTURE_PYLON; break;
+	case ENTITY_TYPE_SCENIC: structure.kind = EECH_STRUCTURE_SCENIC; break;
+	case ENTITY_TYPE_SEGMENT: structure.kind = EECH_STRUCTURE_SEGMENT; break;
+	case ENTITY_TYPE_SITE: structure.kind = EECH_STRUCTURE_SITE; break;
+	default: structure.kind = EECH_STRUCTURE_SITE_UPDATABLE; break;
+	}
+	structure.entity_type = source->entity_type;
+	structure.sub_type = source->sub_type;
+	structure.side = source->side;
+	structure.alive = source->alive;
+	structure.damage_level = source->damage_level;
+	structure.initial_damage_level = source->initial_damage_level;
+	memcpy (structure.position, source->position, sizeof (structure.position));
+	context->callback (&structure, context->user);
+}
+
+int eech_engine_structures (eech_structure_callback callback, void *user, int *count, const struct eech_engine_host *host)
+{
+	struct structure_callback_context context;
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!callback || !count || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	context.callback = callback;
+	context.user = user;
+	*count = campaign_object_structures (copy_structure, &context);
 	LEAVE (EECH_ENGINE_OK);
 }
 

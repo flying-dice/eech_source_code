@@ -149,7 +149,9 @@ enum campaign_aim_mode
 	/* one area blast (EEDCS-46): the host walks the world through windows the campaign supplies and names the next object it reaches; NEED_LOOKUP asks for a window */
 	CAMPAIGN_AIM_BLAST,
 	/* the physical collapse of a bridge segment (EEDCS-46, R5): whether an unsupported span collapses, the damaged shape, which neighbours are told, the fall to the floor, the vehicles on a killed segment */
-	CAMPAIGN_AIM_BRIDGE
+	CAMPAIGN_AIM_BRIDGE,
+	/* the host issues the opaque identity of a physical object that is not a rostered mobile (EEDCS-46, R3): a structure the host must act on or report; asked once per incarnation, never reused */
+	CAMPAIGN_AIM_IDENTIFY
 };
 
 enum campaign_aim_state
@@ -496,6 +498,8 @@ typedef struct campaign_blast_entry
 	int rocket;
 	int excluded;
 	float position[3];
+	/* the host-issued identity of the object (a rostered mobile's, or a structure's issued by IDENTIFY); empty for an object that has none (a weapon, an unrostered person) */
+	char host_id[CAMPAIGN_AIM_HOST_ID_MAX + 1];
 } campaign_blast_entry;
 
 /* BLAST: one area blast, by value.  The explosion: its position, the weapon's damage capability and warhead type, and whether the blast leaves a target out.  The map's sector
@@ -540,6 +544,8 @@ typedef struct campaign_blast_result
 	int action;
 	int handle;
 	float modifier;
+	/* the identity of the object `handle` names, repeated by the host: required when the window entry has one, empty when it has none */
+	char target_host_id[CAMPAIGN_AIM_HOST_ID_MAX + 1];
 } campaign_blast_result;
 
 /* BRIDGE (EEDCS-46, R5): the physical collapse of a bridge and its segments, by value.  `op` says which question.
@@ -639,7 +645,29 @@ typedef struct campaign_bridge_result
 	int need_after;
 	int action;
 	int handle;
+	/* VEHICLES: the identity of the object `handle` names, repeated by the host (as for a blast) */
+	char target_host_id[CAMPAIGN_AIM_HOST_ID_MAX + 1];
 } campaign_bridge_result;
+
+/* IDENTIFY (EEDCS-46, R3): the facts of a physical object that is not a rostered mobile (a structure) when the campaign first needs to name it to the host, by value.  `serial` counts the identities
+   the campaign has asked for (from 1, never reused): a diagnostic, not a heap index, and not a way to find the object again.  The host answers the opaque identity it issues for the object (1 to 128 bytes of
+   UTF-8, no NUL, never one it issued before): the campaign copies it, never parses it and never derives one itself */
+typedef struct campaign_identify_request
+{
+	int entity_type;
+	int sub_type;
+	int side;
+	int alive;
+	int damage_level;
+	int initial_damage_level;
+	float position[3];
+	int serial;
+} campaign_identify_request;
+
+typedef struct campaign_identify_result
+{
+	char host_id[CAMPAIGN_AIM_HOST_ID_MAX + 1];
+} campaign_identify_result;
 /* WEAPON_STEP: the weapon as the campaign holds it.  The entity-local random stream never leaves the campaign: its first four outputs are all any one call of the
    original uses (raw integers in [0, 32767]) */
 typedef struct campaign_weapon_state
@@ -781,6 +809,9 @@ typedef struct campaign_aim_step
 
 	/* BRIDGE (no sample is taken) */
 	campaign_bridge_request bridge;
+
+	/* IDENTIFY (no sample is taken) */
+	campaign_identify_request identify;
 } campaign_aim_step;
 
 typedef struct campaign_aim_result
@@ -841,6 +872,8 @@ typedef struct campaign_aim_result
 	campaign_blast_result blast;
 	/* BRIDGE */
 	campaign_bridge_result bridge;
+	/* IDENTIFY */
+	campaign_identify_result identify;
 } campaign_aim_result;
 
 typedef int (*campaign_aim_fn)
@@ -981,6 +1014,10 @@ campaign_bridge_result campaign_aim_bridge_rest (int segment_kind, int alive, co
 /* The vehicles a killed segment kills: the host walks the segment's sector through the windows the campaign supplies (`walk->window`), and each object it names is given to `walk->apply` (action 1: kill it)
    BEFORE the walk goes on; `walk->sector_side_length` and the sector rectangle are the map's.  `begin`, `examined` and `end` are not used. */
 void campaign_aim_segment_vehicles (const float *position, float segment_length, const struct campaign_blast_walk *walk);
+
+/* The identity the host issues for a physical object that is not a rostered mobile (IDENTIFY): copied into `host_id`, which has room for CAMPAIGN_AIM_HOST_ID_MAX + 1 bytes.  Stops with a clear error if the
+   host answers none, a malformed one or the identity of another object (the campaign checks the last against every identity it knows: mb_hostobj.c) */
+void campaign_aim_identify_object (const campaign_identify_request *request, char *host_id);
 /* The float `index` (0 the damage modifier, 1 the penetration capability, 2 the armour thickness, 3 the random modifier) of a DAMAGE echo event, rebuilt from its raw bits. */
 float campaign_aim_damage_echo_float (const campaign_aim_event *event, int index);
 

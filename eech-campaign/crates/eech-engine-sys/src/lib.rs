@@ -603,6 +603,16 @@ pub const EECH_AIM_HEALTH: c_int = 21;
 pub const EECH_AIM_IMPACT: c_int = 22;
 pub const EECH_AIM_BLAST: c_int = 23;
 pub const EECH_AIM_BRIDGE: c_int = 24;
+/// The host issues the opaque identity of a structure (aphavoc/.../mb_hostaim.h CAMPAIGN_AIM_IDENTIFY).
+pub const EECH_AIM_IDENTIFY: c_int = 25;
+
+/// The kinds of structure (csrc/eech_engine.h EECH_STRUCTURE_*).
+pub const EECH_STRUCTURE_CITY_BUILDING: c_int = 1;
+pub const EECH_STRUCTURE_PYLON: c_int = 2;
+pub const EECH_STRUCTURE_SCENIC: c_int = 3;
+pub const EECH_STRUCTURE_SEGMENT: c_int = 4;
+pub const EECH_STRUCTURE_SITE: c_int = 5;
+pub const EECH_STRUCTURE_SITE_UPDATABLE: c_int = 6;
 pub const EECH_AIM_DONE: c_int = 1;
 pub const EECH_AIM_NEED_DRAW: c_int = 2;
 pub const EECH_AIM_NEED_LOOKUP: c_int = 3;
@@ -805,6 +815,8 @@ pub struct eech_blast_entry {
     pub rocket: c_int,
     pub excluded: c_int,
     pub position: [f32; 3],
+    /// The host-issued identity of the object, NUL-terminated; empty when it has none.
+    pub host_id: [c_char; EECH_AIM_HOST_ID_MAX + 1],
 }
 
 /// One area blast, by value (aphavoc/.../mb_hostaim.h campaign_blast_request), field for field.
@@ -840,6 +852,8 @@ pub struct eech_blast_result {
     pub action: c_int,
     pub handle: c_int,
     pub modifier: f32,
+    /// The identity of the object `handle` names, repeated by the host (empty when the object has none).
+    pub target_host_id: [c_char; EECH_AIM_HOST_ID_MAX + 1],
 }
 
 /// A bridge question, by value (aphavoc/.../mb_hostaim.h campaign_bridge_request), field for field.
@@ -897,6 +911,29 @@ pub struct eech_bridge_result {
     pub need_after: c_int,
     pub action: c_int,
     pub handle: c_int,
+    /// VEHICLES: the identity of the object `handle` names, repeated by the host.
+    pub target_host_id: [c_char; EECH_AIM_HOST_ID_MAX + 1],
+}
+
+/// The facts of a structure the host is asked to issue an identity for (aphavoc/.../mb_hostaim.h campaign_identify_request), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_identify_request {
+    pub entity_type: c_int,
+    pub sub_type: c_int,
+    pub side: c_int,
+    pub alive: c_int,
+    pub damage_level: c_int,
+    pub initial_damage_level: c_int,
+    pub position: [f32; 3],
+    pub serial: c_int,
+}
+
+/// The identity the host issued (aphavoc/.../mb_hostaim.h campaign_identify_result), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_identify_result {
+    pub host_id: [c_char; EECH_AIM_HOST_ID_MAX + 1],
 }
 
 /// The weapon as the campaign holds it, in a weapon step (aphavoc/.../mb_hostaim.h campaign_weapon_state), field for field.
@@ -1005,6 +1042,7 @@ pub struct eech_aim_step {
     pub impact: eech_impact_request,
     pub blast: eech_blast_request,
     pub bridge: eech_bridge_request,
+    pub identify: eech_identify_request,
 }
 
 #[repr(C)]
@@ -1048,6 +1086,7 @@ pub struct eech_aim_result {
     pub impact: eech_impact_result,
     pub blast: eech_blast_result,
     pub bridge: eech_bridge_result,
+    pub identify: eech_identify_result,
 }
 
 /// What each collision lookup of a weapon step found, by the question it was asked (aphavoc/.../mb_hostaim.h campaign_step_hits).
@@ -1169,6 +1208,41 @@ pub struct eech_loss_report_receipt {
     pub tasks_completed_on_report: c_int,
 }
 
+/// A physical fact the host reports about an object it holds the identity of (csrc/eech_engine.h eech_object_report), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_object_report {
+    pub host_id: [c_char; EECH_AIM_HOST_ID_MAX + 1],
+    pub has_damage_level: c_int,
+    pub damage_level: c_int,
+    pub destroyed: c_int,
+}
+
+/// What one object report applied (csrc/eech_engine.h eech_object_report_receipt), field for field.
+#[repr(C)]
+#[derive(Default)]
+pub struct eech_object_report_receipt {
+    pub entity_type: c_int,
+    pub rostered: c_int,
+    pub damage_level_before: c_int,
+    pub damage_level_after: c_int,
+    pub killed: c_int,
+}
+
+/// One structure the host holds an identity for (csrc/eech_engine.h eech_structure), field for field.
+#[repr(C)]
+pub struct eech_structure {
+    pub host_id: *const c_char,
+    pub kind: c_int,
+    pub entity_type: c_int,
+    pub sub_type: c_int,
+    pub side: c_int,
+    pub alive: c_int,
+    pub damage_level: c_int,
+    pub initial_damage_level: c_int,
+    pub position: [f32; 3],
+}
+
 #[repr(C)]
 #[derive(Default)]
 pub struct eech_clock {
@@ -1179,6 +1253,7 @@ pub struct eech_clock {
 
 pub type eech_object_callback = unsafe extern "C" fn(object: *const eech_object, user: *mut c_void);
 pub type eech_member_callback = unsafe extern "C" fn(member: *const eech_member, user: *mut c_void);
+pub type eech_structure_callback = unsafe extern "C" fn(structure: *const eech_structure, user: *mut c_void);
 pub type eech_supply_task_callback = unsafe extern "C" fn(task: *const eech_supply_task, user: *mut c_void);
 pub type eech_log_sink = unsafe extern "C" fn(level: c_int, message: *const c_char, user: *mut c_void);
 
@@ -1186,6 +1261,8 @@ extern "C" {
     pub fn eech_engine_boot(config: *const eech_engine_config, host: *const eech_engine_host) -> c_int;
     pub fn eech_engine_frame(milliseconds: u32, host: *const eech_engine_host) -> c_int;
     pub fn eech_engine_report_loss(host_id: *const c_char, receipt: *mut eech_loss_report_receipt) -> c_int;
+    pub fn eech_engine_report_object(report: *const eech_object_report, receipt: *mut eech_object_report_receipt, host: *const eech_engine_host) -> c_int;
+    pub fn eech_engine_structures(callback: eech_structure_callback, user: *mut c_void, count: *mut c_int, host: *const eech_engine_host) -> c_int;
     pub fn eech_engine_fatal_message() -> *const c_char;
     pub fn eech_engine_prepare_installation(root: *const c_char) -> c_int;
     pub fn eech_engine_objects(callback: eech_object_callback, user: *mut c_void, count: *mut c_int) -> c_int;

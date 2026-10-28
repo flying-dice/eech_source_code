@@ -1,0 +1,14 @@
+RUSTUP_ADD_EXIT=0
+error: expected item, found keyword `let`
+ --> /src/eech-campaign/crates/eech-engine/src/lib.rs:2:9
+  |
+2 | ...   let ids: Vec<Option<String>> = window.entries.into_iter().map(|e| e.host_id).collect(); headless EECH engine: the whole of Enem...
+  |       ^^^
+  |       |
+  |       `let` cannot be used for global variables
+  |       help: consider using `static` or `const` instead of `let`
+  |
+  = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
+
+FMT_FIX_EXIT=1
+DOCKER_EXIT=0

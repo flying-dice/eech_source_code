@@ -19,6 +19,7 @@
 #include "entity/mobile/mb_hostlos.h"
 #include "entity/mobile/mb_hostsense.h"
 #include "entity/mobile/mb_hostaim.h"
+#include "entity/mobile/mb_hostobj.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -108,6 +109,55 @@ struct eech_loss_report_receipt
  * The receipt is written only when the report succeeds; on any other result it is untouched.
  */
 int eech_engine_report_loss (const char *host_id, struct eech_loss_report_receipt *receipt);
+
+/*
+ * A physical fact the host reports about an object it holds the identity of (EEDCS-46, R3; mb_hostobj.h): its damage level is now N and/or it is destroyed.  The campaign applies it once through the
+ * object's own collision steps, so every consequence follows from the real handlers; the host is given for the questions those handlers ask it.  The receipt is written only when the report succeeds.
+ */
+struct eech_object_report
+{
+	char host_id[129];
+	int has_damage_level;
+	int damage_level;
+	int destroyed;
+};
+
+struct eech_object_report_receipt
+{
+	int entity_type;
+	int rostered;
+	int damage_level_before;
+	int damage_level_after;
+	int killed;
+};
+
+int eech_engine_report_object (const struct eech_object_report *report, struct eech_object_report_receipt *receipt, const struct eech_engine_host *host);
+
+/* Every structure the host holds an identity for, identified now if it has none (the host is asked); copied values, strings live for the engine session */
+#define EECH_STRUCTURE_CITY_BUILDING 1
+#define EECH_STRUCTURE_PYLON 2
+#define EECH_STRUCTURE_SCENIC 3
+#define EECH_STRUCTURE_SEGMENT 4
+#define EECH_STRUCTURE_SITE 5
+#define EECH_STRUCTURE_SITE_UPDATABLE 6
+
+struct eech_structure
+{
+	const char *host_id;
+	/* the kind of structure, one of the EECH_STRUCTURE_ values: the campaign's own classification, not an entity-type number */
+	int kind;
+	int entity_type;
+	int sub_type;
+	int side;
+	int alive;
+	int damage_level;
+	int initial_damage_level;
+	float position[3];
+};
+
+typedef void (*eech_structure_callback) (const struct eech_structure *structure, void *user);
+
+int eech_engine_structures (eech_structure_callback callback, void *user, int *count, const struct eech_engine_host *host);
 
 const char *eech_engine_fatal_message (void);
 

@@ -97,6 +97,7 @@ static const char *mode_name (int mode)
 		case CAMPAIGN_AIM_IMPACT: return "impact";
 		case CAMPAIGN_AIM_BLAST: return "blast";
 		case CAMPAIGN_AIM_BRIDGE: return "bridge";
+		case CAMPAIGN_AIM_IDENTIFY: return "identify";
 	}
 
 	return "unknown";
@@ -115,6 +116,22 @@ static int all_finite (const float *values, int count)
 	}
 
 	return TRUE;
+}
+
+// an identity in a fixed field must end inside it (the host and the campaign both write NUL-terminated strings of at most CAMPAIGN_AIM_HOST_ID_MAX bytes)
+static int host_id_terminated (const char *id)
+{
+	return memchr (id, '\0', CAMPAIGN_AIM_HOST_ID_MAX + 1) != NULL;
+}
+
+// the host names an object by its position in the window (the handle), which is only a token for THIS walk, and repeats the identity the campaign gave the object: a host that is talking about another
+// object than the one the handle selects is stopped before anything is applied.  An object with no identity (a weapon, an unrostered person) is repeated as none
+static void check_target_identity (const char *offered, const char *claimed, int handle)
+{
+	if (!host_id_terminated (claimed) || (strcmp (offered, claimed) != 0))
+	{
+		debug_fatal ("host aim: host aim named object %d with the identity \"%.40s\", but the campaign offered it as \"%.40s\"", handle, host_id_terminated (claimed) ? claimed : "(unterminated)", offered);
+	}
 }
 
 static void require_finite (const campaign_aim_step *step, const char *what, const float *values, int count)
@@ -224,6 +241,19 @@ static void validate_request (const campaign_aim_step *step)
 
 			break;
 		}
+		case CAMPAIGN_AIM_IDENTIFY:
+		{
+			const campaign_identify_request *identify = &step->identify;
+
+			// a physical object, by value: finite figures, boolean flags, a serial that counts from one and a damage level that is not below zero
+			if ((identify->entity_type <= 0) || (identify->sub_type < 0) || (identify->alive & ~1) || !all_finite (identify->position, 3) || (identify->damage_level < 0) ||
+				(identify->initial_damage_level < 0) || (identify->serial <= 0))
+			{
+				debug_fatal ("host aim: an identify request with inconsistent figures");
+			}
+
+			break;
+		}
 		case CAMPAIGN_AIM_BRIDGE:
 		{
 			const campaign_bridge_request *bridge = &step->bridge;
@@ -250,7 +280,7 @@ static void validate_request (const campaign_aim_step *step)
 				const campaign_blast_entry *entry = &bridge->window[i];
 
 				if ((entry->handle <= 0) || (entry->readable & ~1) || (entry->alive & ~1) || (entry->has_position & ~1) || (entry->rocket & ~1) || (entry->excluded & ~1) ||
-					!all_finite (entry->position, 3) || (!entry->readable && (entry->alive || entry->has_position || entry->rocket)) ||
+					!all_finite (entry->position, 3) || !host_id_terminated (entry->host_id) || (!entry->readable && (entry->alive || entry->has_position || entry->rocket)) ||
 					(!entry->has_position && ((entry->position[0] != 0.0f) || (entry->position[1] != 0.0f) || (entry->position[2] != 0.0f))) || ((i > 0) && (entry->handle <= bridge->window[i - 1].handle)))
 				{
 					debug_fatal ("host aim: a bridge request with an inconsistent object %d in its window", i);
@@ -292,7 +322,7 @@ static void validate_request (const campaign_aim_step *step)
 				const campaign_blast_entry *entry = &blast->window[i];
 
 				if ((entry->handle <= 0) || (entry->readable & ~1) || (entry->alive & ~1) || (entry->has_position & ~1) || (entry->rocket & ~1) || (entry->excluded & ~1) ||
-					!all_finite (entry->position, 3) || (!entry->readable && (entry->alive || entry->has_position || entry->rocket)) ||
+					!all_finite (entry->position, 3) || !host_id_terminated (entry->host_id) || (!entry->readable && (entry->alive || entry->has_position || entry->rocket)) ||
 					(!entry->has_position && ((entry->position[0] != 0.0f) || (entry->position[1] != 0.0f) || (entry->position[2] != 0.0f))) || ((i > 0) && (entry->handle <= blast->window[i - 1].handle)))
 				{
 					debug_fatal ("host aim: a blast request with an inconsistent object %d in its window", i);
@@ -412,10 +442,33 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 		debug_fatal ("host aim: host aim answered state %d to a %s request", result->state, mode_name (step->mode));
 	}
 
+	if (step->mode == CAMPAIGN_AIM_IDENTIFY)
+	{
+		const char *id = result->identify.host_id;
+
+		if (result->has_echo || (result->state != CAMPAIGN_AIM_DONE))
+		{
+			debug_fatal ("host aim: host aim answered an identify request with state %d or an echo, which it does not take", result->state);
+		}
+
+		if (!host_id_terminated (id) || (id[0] == '\0'))
+		{
+			debug_fatal ("host aim: host aim issued no identity (empty, or longer than %d bytes) in answer to an identify request", CAMPAIGN_AIM_HOST_ID_MAX);
+		}
+
+		return;
+	}
+
 	if (step->mode == CAMPAIGN_AIM_BRIDGE)
 	{
 		const campaign_bridge_request *request = &step->bridge;
 		const campaign_bridge_result *answer = &result->bridge;
+
+		// the identity of the object a vehicles answer names is that answer's alone: nothing else carries one
+		if (!host_id_terminated (answer->target_host_id) || (answer->target_host_id[0] && ((request->op != CAMPAIGN_BRIDGE_VEHICLES) || !answer->action)))
+		{
+			debug_fatal ("host aim: host aim answered a bridge request (op %d) with an identity beside an answer that names no object", request->op);
+		}
 
 		if (result->has_echo)
 		{
@@ -552,6 +605,12 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 	{
 		const campaign_blast_request *blast = &step->blast;
 		const campaign_blast_result *answer = &result->blast;
+
+		// the identity of the object an action names is that action's alone
+		if (!host_id_terminated (answer->target_host_id) || (answer->target_host_id[0] && (result->state != CAMPAIGN_AIM_DONE || answer->action == CAMPAIGN_BLAST_DONE)))
+		{
+			debug_fatal ("host aim: host aim answered a blast request with an identity beside an answer that names no object");
+		}
 
 		// the radius is the host's, and whatever its model it is a length: finite and not below zero.  Every answer repeats it
 		if (!isfinite (answer->radius) || (answer->radius < 0.0f))
@@ -1702,6 +1761,8 @@ void campaign_aim_blast (const float *position, int damage_capability, int warhe
 				debug_fatal ("host aim: host aim destroyed object %d as a rocket, which the campaign does not know as one", handle);
 			}
 
+			check_target_identity (step.blast.window[index].host_id, result.blast.target_host_id, handle);
+
 			object = objects[index];
 
 			walk->apply (walk->context, object, result.blast.action, result.blast.modifier);
@@ -2067,6 +2128,8 @@ void campaign_aim_segment_vehicles (const float *position, float segment_length,
 				debug_fatal ("host aim: host aim named object %d to kill, which is not a living object of the window it was given", handle);
 			}
 
+			check_target_identity (step.bridge.window[index].host_id, result.bridge.target_host_id, handle);
+
 			object = objects[index];
 
 			// the walk resumes through the object it just killed (the list is read from its successor AFTER the kill), so an object whose kill releases it is refused before the kill is applied:
@@ -2082,4 +2145,24 @@ void campaign_aim_segment_vehicles (const float *position, float segment_length,
 			bridge_supply (&step.bridge, walk, objects, &next_handle, step.bridge.window_sx, step.bridge.window_sz, object, handle);
 		}
 	}
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the identity of a physical object that is not a rostered mobile (CAMPAIGN_AIM_IDENTIFY, EEDCS-46 R3): the HOST issues it, once per incarnation of the object, from the facts of the object by value
+
+void campaign_aim_identify_object (const campaign_identify_request *request, char *host_id)
+{
+	campaign_aim_step step;
+
+	campaign_aim_result result;
+
+	memset (&step, 0, sizeof (step));
+
+	step.mode = CAMPAIGN_AIM_IDENTIFY;
+
+	step.identify = *request;
+
+	result = campaign_aim_ask (&step, FALSE);
+
+	memcpy (host_id, result.identify.host_id, CAMPAIGN_AIM_HOST_ID_MAX + 1);
 }

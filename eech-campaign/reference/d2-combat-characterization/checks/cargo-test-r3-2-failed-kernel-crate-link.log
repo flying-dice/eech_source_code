@@ -1,0 +1,20 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+   Compiling eech-campaign v0.1.0 (/src/eech-campaign/crates/eech-campaign)
+error: linking with `cc` failed: exit status: 1
+  |
+  = note:  "cc" "-m64" "/target/debug/deps/rustc26fvIa/symbols.o" "<59 object files omitted>" "-Wl,--as-needed" "-Wl,-Bstatic" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib/{libtest-*,libgetopts-*,librustc_std_workspace_std-*}.rlib" "/target/debug/deps/libeech_sys-c3d95934aa9681a4.rlib" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib/{libstd-*,libpanic_unwind-*,libobject-*,libmemchr-*,libaddr2line-*,libgimli-*,libcfg_if-*,librustc_demangle-*,libstd_detect-*,libhashbrown-*,librustc_std_workspace_alloc-*,libminiz_oxide-*,libadler2-*,libunwind-*,liblibc-*,librustc_std_workspace_core-*,liballoc-*,libcore-*,libcompiler_builtins-*}.rlib" "-Wl,-Bdynamic" "-lm" "-lgcc_s" "-lutil" "-lrt" "-lpthread" "-lm" "-ldl" "-lc" "-L" "/target/debug/deps/rustc26fvIa/raw-dylibs" "-B<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/bin/gcc-ld" "-fuse-ld=lld" "-Wl,--eh-frame-hdr" "-Wl,-z,noexecstack" "-L" "/target/debug/build/eech-sys-d160274038919ff6/out/eech" "-L" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib" "-o" "/target/debug/deps/smoke-25152ee9c6c9e389" "-Wl,--gc-sections" "-pie" "-Wl,-z,relro,-z,now" "-nodefaultlibs"
+  = note: some arguments are omitted. use `--verbose` to show all linker arguments
+  = note: rust-lld: error: undefined symbol: campaign_object_release_entity
+          >>> referenced by en_heap.c:506 (/src/aphavoc/source/entity/system/en_main/en_heap.c:506)
+          >>>               5d61cf721c0c2bc6-en_heap.o:(set_free_entity) in archive /target/debug/deps/libeech_sys-c3d95934aa9681a4.rlib
+          collect2: error: ld returned 1 exit status
+
+
+error: could not compile `eech-sys` (test "smoke") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+CARGO_EXIT=101
+DOCKER_EXIT=101

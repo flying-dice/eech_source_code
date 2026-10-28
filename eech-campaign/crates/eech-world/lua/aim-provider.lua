@@ -136,7 +136,7 @@ end
 
 local reference = host.aim
 -- what the campaign asked, by request mode, and what the host answered
-local counts = { table = 0, range = 0, figures = 0, weapon_step = 0, weapon_birth = 0, release = 0, animate = 0, weapon_decoy = 0, weapon_seduce = 0, weapon_reacquire = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0, forecast = 0, damage = 0, health = 0, impact = 0, blast = 0, bridge = 0 }
+local counts = { table = 0, range = 0, figures = 0, weapon_step = 0, weapon_birth = 0, release = 0, animate = 0, weapon_decoy = 0, weapon_seduce = 0, weapon_reacquire = 0, ready_update = 0, ready_command = 0, required = 0, step = 0, vectors = 0, lead = 0, ballistic = 0, intercept = 0, forecast = 0, damage = 0, health = 0, impact = 0, blast = 0, bridge = 0, identify = 0 }
 local answers = { valid = 0, invalid = 0, need_draw = 0, lead_ok = 0, lead_no = 0, ballistic_ok = 0, ballistic_no = 0, phase_moving = 0, angle_sum = 0 }
 -- what the weapon steps came to: the passes the host was asked, the lookups it needed (by kind), the draws it asked for, and the kill codes it left (0 none ... 7)
 local steps = { passes = 0, done = 0, need_lookup = 0, need_draw = 0, kills = {}, lookups = {}, births = 0, birth_velocity = 0, releases = 0, release_refused = 0, release_rounds = 0,
@@ -148,7 +148,8 @@ local steps = { passes = 0, done = 0, need_lookup = 0, need_draw = 0, kills = {}
 	impact_asked = 0, impact_terrain = 0, impact_land = 0, impact_blasts = 0, impact_crater = 0, impact_direct = 0, impact_invalid = 0, impact_denied = 0, impact_own_land = 0,
 	blast_begun = 0, blast_zero = 0, blast_windows = 0, blast_collisions = 0, blast_intercepts = 0, blast_ended = 0, blast_shrunk = 0, blast_denied = 0, blast_own = 0,
 	bridge_kill_asked = 0, bridge_kill_yes = 0, bridge_kill_withheld = 0, bridge_shape_asked = 0, bridge_neighbour_asked = 0, bridge_neighbour_told = 0, bridge_fall_asked = 0, bridge_fell = 0,
-	bridge_landed = 0, bridge_removed = 0, bridge_vehicle_windows = 0, bridge_vehicles_killed = 0, bridge_rest_asked = 0, bridge_rest_landed = 0, bridge_slowed = 0, bridge_own = 0 }
+	bridge_landed = 0, bridge_removed = 0, bridge_vehicle_windows = 0, bridge_vehicles_killed = 0, bridge_rest_asked = 0, bridge_rest_landed = 0, bridge_slowed = 0, bridge_own = 0,
+	identify_asked = 0, identify_own = 0, blast_identified = 0, vehicles_identified = 0 }
 for code = 0, 7 do steps.kills [code] = 0 end
 
 local function counted (step, answer)
@@ -239,6 +240,9 @@ local function counted (step, answer)
 		elseif answer.action == "collision" then steps.blast_collisions = steps.blast_collisions + 1
 		elseif answer.action == "intercept" then steps.blast_intercepts = steps.blast_intercepts + 1
 		else steps.blast_ended = steps.blast_ended + 1 end
+		if answer.state == "done" and answer.host_id ~= nil then steps.blast_identified = steps.blast_identified + 1 end
+	elseif step.mode == "identify" then
+		steps.identify_asked = steps.identify_asked + 1
 	elseif step.mode == "bridge" then
 		if step.op == "kill" then
 			steps.bridge_kill_asked = steps.bridge_kill_asked + 1
@@ -257,7 +261,10 @@ local function counted (step, answer)
 			if answer.landed then steps.bridge_rest_landed = steps.bridge_rest_landed + 1 end
 		elseif step.op == "vehicles" then
 			if answer.state == "need_lookup" then steps.bridge_vehicle_windows = steps.bridge_vehicle_windows + 1
-			elseif answer.action == "act" then steps.bridge_vehicles_killed = steps.bridge_vehicles_killed + 1 end
+			elseif answer.action == "act" then
+				steps.bridge_vehicles_killed = steps.bridge_vehicles_killed + 1
+				if answer.host_id ~= nil then steps.vehicles_identified = steps.vehicles_identified + 1 end
+			end
 		end
 	elseif step.mode == "release" then
 		steps.releases = steps.releases + 1
@@ -380,6 +387,15 @@ elseif mode == "impact_none" or mode == "impact_own" or mode == "blast_small" or
 				if step.window == nil then steps.blast_own = steps.blast_own + 1 end
 				return counted (step, own.blast (step))
 			end
+		end
+		return counted (step, reference (step))
+	end
+elseif mode == "identity_own" then
+	-- a host with identities of its own for the structures the campaign names to it (EEDCS-46, R3); every other question is the reference's, whose blast and vehicle answers repeat the identity they were offered
+	provider = function (step)
+		if step.mode == "identify" then
+			steps.identify_own = steps.identify_own + 1
+			return counted (step, own.identify (step))
 		end
 		return counted (step, reference (step))
 	end
@@ -538,7 +554,8 @@ emit { event = "summary", mode = mode, frames = frames_run, failure = failure or
 	bridge_kill_asked = steps.bridge_kill_asked, bridge_kill_yes = steps.bridge_kill_yes, bridge_kill_withheld = steps.bridge_kill_withheld, bridge_shape_asked = steps.bridge_shape_asked,
 	bridge_neighbour_asked = steps.bridge_neighbour_asked, bridge_neighbour_told = steps.bridge_neighbour_told, bridge_fall_asked = steps.bridge_fall_asked, bridge_fell = steps.bridge_fell,
 	bridge_landed = steps.bridge_landed, bridge_removed = steps.bridge_removed, bridge_vehicle_windows = steps.bridge_vehicle_windows, bridge_vehicles_killed = steps.bridge_vehicles_killed,
-	bridge_rest_asked = steps.bridge_rest_asked, bridge_rest_landed = steps.bridge_rest_landed, bridge_slowed = steps.bridge_slowed, bridge_own = steps.bridge_own }
+	bridge_rest_asked = steps.bridge_rest_asked, bridge_rest_landed = steps.bridge_rest_landed, bridge_slowed = steps.bridge_slowed, bridge_own = steps.bridge_own,
+	identify_asked = steps.identify_asked, identify_own = steps.identify_own, blast_identified = steps.blast_identified, vehicles_identified = steps.vehicles_identified }
 out:close ()
 io.stderr:write (string.format ("aim-provider: mode=%s ready_update=%d ready_command=%d required=%d step=%d vectors=%d (valid %d invalid %d) lead=%d ballistic=%d intercept=%d need_draw=%d ready_moving=%d weapon_births=%d losses=%d failure=%s\n",
 	mode, counts.ready_update, counts.ready_command, counts.required, counts.step, counts.vectors, answers.valid, answers.invalid, counts.lead, counts.ballistic, counts.intercept,

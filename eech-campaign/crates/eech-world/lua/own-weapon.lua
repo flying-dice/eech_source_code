@@ -143,7 +143,7 @@ function own.blast (step)
 			local range = math.sqrt ((p [1] - q [1]) ^ 2 + (p [2] - q [2]) ^ 2 + (p [3] - q [3]) ^ 2)
 			if range > 0 and range < BLAST_RADIUS then
 				-- this plain model quantizes its modifier to 1/1024, its own choice: the module reads the modifier as a single-precision number, so any finite double is accepted and rounded to the nearest one
-				return { state = "done", radius = BLAST_RADIUS, action = "collision", handle = object.handle, modifier = math.floor (range / BLAST_RADIUS * 1024) / 1024 }
+				return { state = "done", radius = BLAST_RADIUS, action = "collision", handle = object.handle, host_id = object.host_id, modifier = math.floor (range / BLAST_RADIUS * 1024) / 1024 }
 			end
 		end
 	end
@@ -176,6 +176,12 @@ function own.bridge (step)
 		return { state = "done", landed = true, landed_y = step.terrain.height }
 	end
 	return { state = "done", action = "none" }
+end
+
+-- the identity of a structure (EEDCS-46, R3): a plain model that is not EECH's and not eech-world's.  The host issues whatever opaque text it likes, once per incarnation; this one numbers the structures it
+-- is told of by the campaign's own count of the identities it has asked for, behind a prefix a host of another world would not use.  It needs no table of EECH's.
+function own.identify (step)
+	return { state = "done", host_id = "own-world/structure/" .. tostring (step.serial) }
 end
 
 return own

@@ -812,6 +812,50 @@ pub struct Member {
     pub in_group: bool,
 }
 
+/// The kind of structure the host holds an identity for: the campaign's own classification (csrc/eech_engine.h EECH_STRUCTURE_*), not an entity-type number.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StructureKind {
+    CityBuilding,
+    Pylon,
+    Scenic,
+    Segment,
+    Site,
+    SiteUpdatable,
+}
+
+/// One structure the host holds an identity for (EEDCS-46, R3): a copy of its state at the call.  The identity is opaque and was issued by the host; it is not an entity index.
+#[derive(Clone, Debug, Serialize)]
+pub struct Structure {
+    pub host_id: String,
+    pub kind: StructureKind,
+    pub entity_type: i32,
+    pub sub_type: i32,
+    pub side: Side,
+    pub alive: bool,
+    pub damage_level: i32,
+    pub initial_damage_level: i32,
+    pub position: [f32; 3],
+}
+
+/// A physical fact the host reports about an object it holds the identity of: its damage level is now `damage_level` and/or it is `destroyed`.  See mb_hostobj.h.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ObjectReport {
+    pub host_id: String,
+    pub damage_level: Option<i32>,
+    pub destroyed: bool,
+}
+
+/// What one object report applied, copied from the performed campaign steps; an observation, never an input.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct ObjectReceipt {
+    pub entity_type: i32,
+    pub rostered: bool,
+    pub damage_level_before: i32,
+    pub damage_level_after: i32,
+    pub killed: bool,
+}
+
 /// Actual current campaign state for an extant SUPPLY task.
 #[derive(Clone, Debug, Serialize)]
 pub struct SupplyTask {
@@ -1307,9 +1351,23 @@ pub struct AimImpact {
     pub position: [f32; 3],
 }
 
+/// The facts of a structure the campaign asks the host to issue an identity for (EEDCS-46, R3), by value: see `eech_identify_request` (mb_hostaim.h campaign_identify_request).  `serial` counts the
+/// identities the campaign has asked for; it is a diagnostic, not a heap index.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimIdentify {
+    pub entity_type: i32,
+    pub sub_type: i32,
+    pub side: i32,
+    pub alive: bool,
+    pub damage_level: i32,
+    pub initial_damage_level: i32,
+    pub position: [f32; 3],
+    pub serial: i32,
+}
+
 /// One object of a sector's list the campaign offered to the host (EEDCS-46), by value: see `eech_blast_entry` (mb_hostaim.h campaign_blast_entry).  `handle` names the object for
-/// this blast only.
-#[derive(Clone, Copy, Debug, PartialEq)]
+/// this blast only; `host_id` is the persistent identity the host issued for the object (a rostered mobile's or a structure's) when it has one.
+#[derive(Clone, Debug, PartialEq)]
 pub struct AimBlastEntry {
     pub handle: i32,
     pub entity_type: i32,
@@ -1319,6 +1377,7 @@ pub struct AimBlastEntry {
     pub rocket: bool,
     pub excluded: bool,
     pub position: [f32; 3],
+    pub host_id: Option<String>,
 }
 
 /// The window of a sector's list the host asked for: the sector, the handle it follows (0: the start of the list), whether the list ends with it, and the objects in list order.
@@ -1548,6 +1607,7 @@ pub enum AimRequest {
     Impact(AimImpact),
     Blast(AimBlast),
     Bridge(AimBridge),
+    Identify(AimIdentify),
     Animate(AimAnimate),
     ReadyUpdate(AimReadyUpdate),
     ReadyCommand(AimReadyCommand),
@@ -1617,6 +1677,8 @@ pub struct AimReply {
     pub blast_need: Option<(i32, i32, i32)>,
     pub blast_action: i32,
     pub blast_handle: i32,
+    /// The identity of the object `blast_handle` names, repeated (see `eech_blast_result`).
+    pub blast_target_host_id: Option<String>,
     pub blast_modifier: f32,
     /// A bridge question only: see `eech_bridge_result`.  With `need_lookup` the host asks for the terrain (`bridge_need_terrain`) or, for the vehicles walk, the window at `bridge_need`.
     pub bridge_kill: bool,
@@ -1632,6 +1694,10 @@ pub struct AimReply {
     pub bridge_need: Option<(i32, i32, i32)>,
     pub bridge_action: i32,
     pub bridge_handle: i32,
+    /// The identity of the object `bridge_handle` names, repeated.
+    pub bridge_target_host_id: Option<String>,
+    /// An identify request only: the identity the host issued.
+    pub identify_host_id: Option<String>,
     /// An animation only: the parachute's state, and the weapon's lifetime when the animation reset it.
     pub animate_status: i32,
     pub animate_lifetime: Option<f32>,
@@ -2583,6 +2649,24 @@ fn aim_host_id(buffer: &[c_char], role: &str) -> Result<Option<String>, String> 
         .map_err(|_| format!("aim received a non-UTF-8 {role} host identity"))
 }
 
+/// An identity as the NUL-terminated field the campaign reads: empty for none, otherwise 1 to 128 bytes of UTF-8 with no NUL (the string already is UTF-8).
+fn host_id_buffer(id: &Option<String>, role: &str) -> Result<[c_char; sys::EECH_AIM_HOST_ID_MAX + 1], String> {
+    let mut buffer = [0 as c_char; sys::EECH_AIM_HOST_ID_MAX + 1];
+    if let Some(id) = id {
+        let bytes = id.as_bytes();
+        if bytes.is_empty() || bytes.len() > sys::EECH_AIM_HOST_ID_MAX || bytes.contains(&0) {
+            return Err(format!(
+                "aim answered a {role} host identity that is empty, longer than {} bytes or holds a NUL",
+                sys::EECH_AIM_HOST_ID_MAX
+            ));
+        }
+        for (slot, byte) in buffer.iter_mut().zip(bytes) {
+            *slot = *byte as c_char;
+        }
+    }
+    Ok(buffer)
+}
+
 fn weapon_figures(source: &sys::eech_weapon_figures) -> Result<WeaponFigures, String> {
     let name_bytes = source.name.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect::<Vec<_>>();
     if name_bytes.is_empty() || name_bytes.len() > sys::EECH_WEAPON_NAME_MAX {
@@ -2945,6 +3029,7 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                         rocket: checked_bool("blast rocket", entry.rocket)?,
                         excluded: checked_bool("blast excluded", entry.excluded)?,
                         position: entry.position,
+                        host_id: aim_host_id(&entry.host_id, "blast object")?,
                     });
                 }
                 Some(AimBlastWindow {
@@ -2969,6 +3054,23 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                 max_z_sector: request.max_z_sector,
                 window,
                 echo,
+            })
+        }
+        sys::EECH_AIM_IDENTIFY => {
+            let request = &source.identify;
+            finite("identify position", &request.position)?;
+            if request.entity_type <= 0 || request.sub_type < 0 || request.damage_level < 0 || request.initial_damage_level < 0 || request.serial <= 0 {
+                return Err("aim received an identify question with inconsistent figures".into());
+            }
+            AimRequest::Identify(AimIdentify {
+                entity_type: request.entity_type,
+                sub_type: request.sub_type,
+                side: request.side,
+                alive: checked_bool("identify alive", request.alive)?,
+                damage_level: request.damage_level,
+                initial_damage_level: request.initial_damage_level,
+                position: request.position,
+                serial: request.serial,
             })
         }
         sys::EECH_AIM_BRIDGE => {
@@ -3009,6 +3111,7 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                         rocket: checked_bool("bridge rocket", entry.rocket)?,
                         excluded: checked_bool("bridge excluded", entry.excluded)?,
                         position: entry.position,
+                        host_id: aim_host_id(&entry.host_id, "bridge object")?,
                     });
                 }
                 Some(AimBlastWindow {
@@ -3348,6 +3451,17 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
         answer.impact.need_terrain = 1;
         return Ok(answer);
     }
+    if source.mode == sys::EECH_AIM_IDENTIFY {
+        if reply.need_draw || reply.need_lookup || reply.echo.is_some() {
+            return Err("aim answered an identify question with a draw, a lookup or an echo, which it does not take".into());
+        }
+        if reply.identify_host_id.is_none() {
+            return Err("aim issued no identity in answer to an identify question".into());
+        }
+        answer.state = sys::EECH_AIM_DONE;
+        answer.identify.host_id = host_id_buffer(&reply.identify_host_id, "issued")?;
+        return Ok(answer);
+    }
     if source.mode == sys::EECH_AIM_BRIDGE {
         if reply.need_lookup {
             answer.state = sys::EECH_AIM_NEED_LOOKUP;
@@ -3379,6 +3493,7 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
             need_after: 0,
             action: reply.bridge_action,
             handle: reply.bridge_handle,
+            target_host_id: host_id_buffer(&reply.bridge_target_host_id, "bridge target")?,
         };
         if reply.echo.is_some() {
             return Err("aim sent an echo to a bridge question, which has none".into());
@@ -3402,6 +3517,7 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
         }
         answer.blast.action = reply.blast_action;
         answer.blast.handle = reply.blast_handle;
+        answer.blast.target_host_id = host_id_buffer(&reply.blast_target_host_id, "blast target")?;
         answer.blast.modifier = reply.blast_modifier;
     }
     if reply.need_lookup {
@@ -4887,6 +5003,132 @@ impl Engine {
             tasks_retired_expire: r.tasks_retired_expire,
             tasks_completed_on_report: r.tasks_completed_on_report,
         })
+    }
+
+    /// Applies one physical fact the host reports about an object it holds the identity of (EEDCS-46, R3): a structure's, issued by `AimRequest::Identify`, or a rostered mobile's.  The campaign applies it
+    /// once through the object's own collision steps, so the consequences come from the real handlers, which ask the host for the physical facts they need (the complete host is given as for a frame).
+    /// An identity that is unknown, ended or not of such an object, an object already destroyed and a report that would raise a damage level fail visibly and change nothing.
+    #[allow(clippy::too_many_arguments)]
+    pub fn report_object<F, G, H, M, L, D, A>(
+        &self,
+        report: &ObjectReport,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
+        sense_fn: &mut D,
+        aim_fn: &mut A,
+    ) -> Result<ObjectReceipt, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
+        D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
+    {
+        let bytes = report.host_id.as_bytes();
+        if bytes.is_empty() || bytes.len() > sys::EECH_AIM_HOST_ID_MAX || bytes.contains(&0) {
+            return Err(EngineError::BadArgument(
+                "an object report needs an identity of 1 to 128 bytes without a NUL".into(),
+            ));
+        }
+        let mut raw = sys::eech_object_report {
+            host_id: [0 as c_char; sys::EECH_AIM_HOST_ID_MAX + 1],
+            has_damage_level: c_int::from(report.damage_level.is_some()),
+            damage_level: report.damage_level.unwrap_or(0),
+            destroyed: c_int::from(report.destroyed),
+        };
+        for (slot, byte) in raw.host_id.iter_mut().zip(bytes) {
+            *slot = *byte as c_char;
+        }
+        let mut receipt = sys::eech_object_report_receipt::default();
+        // SAFETY: the report and the receipt outlive the call; the temporary host callback is valid for the call; the receipt is read only on success.
+        with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            sense_fn,
+            aim_fn,
+            |host| unsafe { sys::eech_engine_report_object(&raw, &mut receipt, host) },
+        )?;
+        Ok(ObjectReceipt {
+            entity_type: receipt.entity_type,
+            rostered: receipt.rostered != 0,
+            damage_level_before: receipt.damage_level_before,
+            damage_level_after: receipt.damage_level_after,
+            killed: receipt.killed != 0,
+        })
+    }
+
+    /// Every structure with its identity, identified now (the host is asked, once per incarnation) if it has none; copies of values (EEDCS-46, R3).
+    #[allow(clippy::too_many_arguments)]
+    pub fn structures<F, G, H, M, L, D, A>(
+        &self,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
+        sense_fn: &mut D,
+        aim_fn: &mut A,
+    ) -> Result<Vec<Structure>, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
+        D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
+    {
+        unsafe extern "C" fn collect(structure: *const sys::eech_structure, user: *mut c_void) {
+            // SAFETY: the engine passes a valid structure; user is the Vec below.
+            let (structure, out) = unsafe { (&*structure, &mut *(user as *mut Vec<Structure>)) };
+            let host_id = if structure.host_id.is_null() {
+                String::new()
+            } else {
+                // SAFETY: identities are NUL-terminated for the engine session.
+                unsafe { CStr::from_ptr(structure.host_id) }.to_string_lossy().into_owned()
+            };
+            out.push(Structure {
+                host_id,
+                kind: match structure.kind {
+                    sys::EECH_STRUCTURE_CITY_BUILDING => StructureKind::CityBuilding,
+                    sys::EECH_STRUCTURE_PYLON => StructureKind::Pylon,
+                    sys::EECH_STRUCTURE_SCENIC => StructureKind::Scenic,
+                    sys::EECH_STRUCTURE_SEGMENT => StructureKind::Segment,
+                    sys::EECH_STRUCTURE_SITE => StructureKind::Site,
+                    _ => StructureKind::SiteUpdatable,
+                },
+                entity_type: structure.entity_type,
+                sub_type: structure.sub_type,
+                side: side(structure.side),
+                alive: structure.alive != 0,
+                damage_level: structure.damage_level,
+                initial_damage_level: structure.initial_damage_level,
+                position: structure.position,
+            });
+        }
+        let mut out: Vec<Structure> = Vec::new();
+        let mut count: c_int = 0;
+        let out_ptr = (&mut out as *mut Vec<Structure>).cast::<c_void>();
+        // SAFETY: the callback only touches `out` during the call; the temporary host callback is valid for the call.
+        with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            sense_fn,
+            aim_fn,
+            |host| unsafe { sys::eech_engine_structures(collect, out_ptr, &mut count, host) },
+        )?;
+        Ok(out)
     }
 
     pub fn objects(&self) -> Result<Vec<Object>, EngineError> {
@@ -6849,6 +7091,7 @@ mod tests {
                 rocket: 0,
                 excluded: 0,
                 position: [160.0, 5.0, 150.0],
+                host_id: [0 as c_char; sys::EECH_AIM_HOST_ID_MAX + 1],
             };
             step.blast.window[1] = sys::eech_blast_entry {
                 handle: 9,
@@ -6859,6 +7102,7 @@ mod tests {
                 rocket: 1,
                 excluded: 1,
                 position: [155.0, 5.0, 150.0],
+                host_id: test_id("mob-9"),
             };
         }
         step
@@ -6929,6 +7173,7 @@ mod tests {
                 rocket: true,
                 excluded: true,
                 position: [155.0, 5.0, 150.0],
+                host_id: Some("mob-9".into()),
             }
         );
         // the walk's end names nothing
@@ -6984,6 +7229,14 @@ mod tests {
             assert_ne!(code, 0, "{name}");
             assert!(seen.is_none(), "{name}: the host was asked");
         }
+    }
+    /// An identity as the NUL-terminated field a window entry carries.
+    fn test_id(text: &str) -> [c_char; sys::EECH_AIM_HOST_ID_MAX + 1] {
+        let mut field = [0 as c_char; sys::EECH_AIM_HOST_ID_MAX + 1];
+        for (slot, byte) in field.iter_mut().zip(text.as_bytes()) {
+            *slot = *byte as c_char;
+        }
+        field
     }
     fn bridge_step(op: c_int) -> sys::eech_aim_step {
         let mut step = blank_aim_step(sys::EECH_AIM_BRIDGE);
@@ -7128,6 +7381,7 @@ mod tests {
             rocket: 0,
             excluded: 0,
             position: [255.0, 5.0, 250.0],
+            host_id: test_id("veh-4"),
         };
         let (seen, result, code, _) = aim_crossing(&step, |_| {
             Ok(AimReply {
@@ -7178,6 +7432,239 @@ mod tests {
             assert!(seen.is_none(), "{name}: the host was asked");
         }
     }
+    fn identify_step() -> sys::eech_aim_step {
+        let mut step = blank_aim_step(sys::EECH_AIM_IDENTIFY);
+        step.identify.entity_type = 5;
+        step.identify.sub_type = 41;
+        step.identify.side = 2;
+        step.identify.alive = 1;
+        step.identify.damage_level = 80;
+        step.identify.initial_damage_level = 100;
+        step.identify.position = [100.0, 5.0, 250.0];
+        step.identify.serial = 3;
+        step
+    }
+    fn text_of(field: &[c_char]) -> String {
+        field.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).map(char::from).collect()
+    }
+
+    #[test]
+    fn a_structure_identity_is_asked_of_the_host_by_value_and_the_one_it_issues_comes_back_whole() {
+        let (seen, result, code, error) = aim_crossing(&identify_step(), |_| {
+            Ok(AimReply {
+                identify_host_id: Some("eech-world:object:7".into()),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_DONE), "{error}");
+        assert_eq!(text_of(&result.identify.host_id), "eech-world:object:7");
+        assert_eq!(
+            seen,
+            Some(AimRequest::Identify(AimIdentify {
+                entity_type: 5,
+                sub_type: 41,
+                side: 2,
+                alive: true,
+                damage_level: 80,
+                initial_damage_level: 100,
+                position: [100.0, 5.0, 250.0],
+                serial: 3,
+            }))
+        );
+        // what has no defined answer: no identity, an overlong or empty one, a NUL inside it, a sample, a lookup
+        for (what, reply) in [
+            ("no identity", AimReply::default()),
+            (
+                "an overlong identity",
+                AimReply {
+                    identify_host_id: Some("x".repeat(129)),
+                    ..AimReply::default()
+                },
+            ),
+            (
+                "an empty identity",
+                AimReply {
+                    identify_host_id: Some(String::new()),
+                    ..AimReply::default()
+                },
+            ),
+            (
+                "a NUL inside the identity",
+                AimReply {
+                    identify_host_id: Some("a\0b".into()),
+                    ..AimReply::default()
+                },
+            ),
+            (
+                "a sample",
+                AimReply {
+                    need_draw: true,
+                    identify_host_id: Some("a".into()),
+                    ..AimReply::default()
+                },
+            ),
+            (
+                "a lookup",
+                AimReply {
+                    need_lookup: true,
+                    identify_host_id: Some("a".into()),
+                    ..AimReply::default()
+                },
+            ),
+        ] {
+            let (_, _, code, error) = aim_crossing(&identify_step(), |_| Ok(reply.clone()));
+            assert_ne!(code, 0, "{what} was accepted");
+            assert!(
+                error.contains("identity") || error.contains("identify") || error.contains("draw") || error.contains("lookup"),
+                "{what}: {error}"
+            );
+        }
+        // a request the campaign would not send
+        type Change = fn(&mut sys::eech_aim_step);
+        let changes: [(&str, Change); 4] = [
+            ("a non-finite position", |s| s.identify.position[1] = f32::NAN),
+            ("a serial that does not count from one", |s| s.identify.serial = 0),
+            ("a flag that is not a boolean", |s| s.identify.alive = 2),
+            ("a negative damage level", |s| s.identify.damage_level = -1),
+        ];
+        for (name, change) in changes {
+            let mut bad = identify_step();
+            change(&mut bad);
+            let (seen, _, code, _) = aim_crossing(&bad, |_| Ok(AimReply::default()));
+            assert_ne!(code, 0, "{name}");
+            assert!(seen.is_none(), "{name}: the host was asked");
+        }
+    }
+
+    #[test]
+    fn the_identity_of_an_offered_object_crosses_and_the_hosts_repeat_of_it_comes_back() {
+        // a blast: the entry carries the identity the host gave the object (none for a weapon), and the host repeats it for the object it reaches
+        let (seen, result, code, error) = aim_crossing(&blast_step(true), |_| {
+            Ok(AimReply {
+                blast_radius: 20.0,
+                blast_action: 1,
+                blast_handle: 9,
+                blast_modifier: 0.5,
+                blast_target_host_id: Some("mob-9".into()),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_DONE), "{error}");
+        assert_eq!(text_of(&result.blast.target_host_id), "mob-9");
+        let Some(AimRequest::Blast(blast)) = seen else { panic!("not a blast") };
+        let Some(window) = blast.window else { panic!("the window did not cross") };
+        let ids: Vec<Option<String>> = window.entries.into_iter().map(|e| e.host_id).collect();
+        assert_eq!(ids, vec![None, Some("mob-9".to_string())]);
+        // none repeated is none on the wire; an overlong one is refused
+        let (_, result, code, _) = aim_crossing(&blast_step(true), |_| {
+            Ok(AimReply {
+                blast_radius: 20.0,
+                blast_action: 1,
+                blast_handle: 8,
+                blast_modifier: 0.5,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, text_of(&result.blast.target_host_id)), (0, String::new()));
+        let (_, _, code, error) = aim_crossing(&blast_step(true), |_| {
+            Ok(AimReply {
+                blast_radius: 20.0,
+                blast_action: 1,
+                blast_handle: 9,
+                blast_modifier: 0.5,
+                blast_target_host_id: Some("x".repeat(129)),
+                ..AimReply::default()
+            })
+        });
+        assert_ne!(code, 0);
+        assert!(error.contains("identity"), "{error}");
+        // a bridge vehicles walk: the same
+        let mut step = bridge_step(5);
+        step.bridge.segment_length = 10.0;
+        step.bridge.sector_side_length = 100;
+        step.bridge.max_x_sector = 9;
+        step.bridge.max_z_sector = 9;
+        step.bridge.window_valid = 1;
+        step.bridge.window_sx = 2;
+        step.bridge.window_sz = 2;
+        step.bridge.window_count = 1;
+        step.bridge.window_end = 1;
+        step.bridge.window[0] = sys::eech_blast_entry {
+            handle: 4,
+            kind: 23,
+            readable: 1,
+            alive: 1,
+            has_position: 1,
+            rocket: 0,
+            excluded: 0,
+            position: [255.0, 5.0, 250.0],
+            host_id: test_id("veh-4"),
+        };
+        let (seen, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                bridge_action: 1,
+                bridge_handle: 4,
+                bridge_target_host_id: Some("veh-4".into()),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state, result.bridge.handle), (0, sys::EECH_AIM_DONE, 4), "{error}");
+        assert_eq!(text_of(&result.bridge.target_host_id), "veh-4");
+        let Some(AimRequest::Bridge(bridge)) = seen else {
+            panic!("not a bridge question")
+        };
+        let Some(window) = bridge.window else { panic!("the window did not cross") };
+        assert_eq!(window.entries[0].host_id.as_deref(), Some("veh-4"));
+    }
+
+    // The identity DTOs are mirrored by hand, field for field; as for the weapon state, an outer size does not establish the inner order, so every field's offset and the alignment are read from the campaign as
+    // compiled (csrc/eech_aim_layout.c cases 130 to 164).
+    #[test]
+    fn the_object_identity_dtos_have_the_layout_the_campaign_compiled() {
+        use std::mem::{align_of, offset_of, size_of};
+        let layout = |which: c_int| unsafe { sys::eech_engine_aim_layout(which) };
+        assert_eq!(layout(130), size_of::<sys::eech_identify_request>(), "campaign_identify_request");
+        assert_eq!(layout(131), offset_of!(sys::eech_identify_request, sub_type));
+        assert_eq!(layout(132), offset_of!(sys::eech_identify_request, side));
+        assert_eq!(layout(133), offset_of!(sys::eech_identify_request, alive));
+        assert_eq!(layout(134), offset_of!(sys::eech_identify_request, damage_level));
+        assert_eq!(layout(135), offset_of!(sys::eech_identify_request, initial_damage_level));
+        assert_eq!(layout(136), offset_of!(sys::eech_identify_request, position));
+        assert_eq!(layout(137), offset_of!(sys::eech_identify_request, serial));
+        assert_eq!(layout(138), size_of::<sys::eech_identify_result>(), "campaign_identify_result");
+        assert_eq!(layout(139), offset_of!(sys::eech_aim_step, identify));
+        assert_eq!(layout(140), offset_of!(sys::eech_aim_result, identify));
+        assert_eq!(layout(141), offset_of!(sys::eech_blast_entry, host_id));
+        assert_eq!(layout(142), offset_of!(sys::eech_blast_result, target_host_id));
+        assert_eq!(layout(143), offset_of!(sys::eech_bridge_result, target_host_id));
+        assert_eq!(layout(144), sys::EECH_AIM_IDENTIFY as usize);
+        assert_eq!(layout(145), size_of::<sys::eech_object_report>(), "eech_object_report");
+        assert_eq!(layout(146), offset_of!(sys::eech_object_report, has_damage_level));
+        assert_eq!(layout(147), offset_of!(sys::eech_object_report, damage_level));
+        assert_eq!(layout(148), offset_of!(sys::eech_object_report, destroyed));
+        assert_eq!(layout(149), size_of::<sys::eech_object_report_receipt>(), "eech_object_report_receipt");
+        assert_eq!(layout(150), offset_of!(sys::eech_object_report_receipt, rostered));
+        assert_eq!(layout(151), offset_of!(sys::eech_object_report_receipt, damage_level_before));
+        assert_eq!(layout(152), offset_of!(sys::eech_object_report_receipt, damage_level_after));
+        assert_eq!(layout(153), offset_of!(sys::eech_object_report_receipt, killed));
+        assert_eq!(layout(154), size_of::<sys::eech_structure>(), "eech_structure");
+        assert_eq!(layout(165), offset_of!(sys::eech_structure, kind));
+        assert_eq!(layout(155), offset_of!(sys::eech_structure, entity_type));
+        assert_eq!(layout(156), offset_of!(sys::eech_structure, sub_type));
+        assert_eq!(layout(157), offset_of!(sys::eech_structure, side));
+        assert_eq!(layout(158), offset_of!(sys::eech_structure, alive));
+        assert_eq!(layout(159), offset_of!(sys::eech_structure, damage_level));
+        assert_eq!(layout(160), offset_of!(sys::eech_structure, initial_damage_level));
+        assert_eq!(layout(161), offset_of!(sys::eech_structure, position));
+        assert_eq!(layout(162), align_of::<sys::eech_identify_request>());
+        assert_eq!(layout(163), align_of::<sys::eech_object_report>());
+        assert_eq!(layout(164), align_of::<sys::eech_structure>());
+        // and the first field of each, which sits at zero in both
+        assert_eq!(offset_of!(sys::eech_identify_request, entity_type), 0);
+        assert_eq!(offset_of!(sys::eech_object_report, host_id), 0);
+        assert_eq!(offset_of!(sys::eech_structure, host_id), 0);
+    }
+
     // The weapon state is embedded in the C-layout aim step and read by the campaign as campaign_weapon_state, so its INNER field order is part of the ABI: a same-size outer offset does not
     // establish it.  Every field's offset, the size and the alignment are read from the campaign as compiled (csrc/eech_aim_layout.c cases 100 to 120).
     fn weapon_state_layout_mismatches(rust_size: usize, rust_align: usize, rust_offsets: [usize; 19]) -> Vec<usize> {
