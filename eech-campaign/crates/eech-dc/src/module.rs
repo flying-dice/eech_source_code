@@ -1476,6 +1476,53 @@ impl LuaUserData for LuaEngine {
         // TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the run-wide report of the physical combat-resolution code; not part of the shipping module.
         #[cfg(feature = "weapon-fixture")]
         methods.add_method("cmb_trace", |_, this, ()| this.engine.cmb_trace().map_err(lua_error));
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-46): controlled combat cases of the original campaign that launch nothing (op 0 census, op 1 set a health percentage); not part
+        // of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("cmb_case_state", |_, this, (op, kind, ordinal, percent): (i32, String, i32, i32)| {
+            this.engine.cmb_case_state(op, &kind, ordinal, percent).map_err(lua_error)
+        });
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-46): controlled combat cases that launch a real weapon (op 1 collide, op 2 blast), given the same complete host as a frame; not part
+        // of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method(
+            "cmb_case_act",
+            |lua, this, (op, kind, ordinal, launcher_id, weapon, amount, kill_code, weaponless): (i32, String, i32, String, i32, f64, i32, bool)| {
+                let bind_mobile = this.bind_mobile.clone();
+                let observe_loss = this.observe_loss.clone();
+                let supply_reached = this.supply_reached.clone();
+                let move_vehicle = this.move_vehicle.clone();
+                let line_of_sight = this.line_of_sight.clone();
+                let sense = this.sense.clone();
+                let aim = this.aim.clone();
+                let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+                let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+                let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+                let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+                let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+                let mut sensor = |message| call_sense(lua, &sense, message);
+                let mut aimer = |request| call_aim(lua, &aim, request);
+                this.engine
+                    .cmb_case_act(
+                        op,
+                        &kind,
+                        ordinal,
+                        &launcher_id,
+                        weapon,
+                        amount,
+                        kill_code,
+                        weaponless,
+                        &mut binder,
+                        &mut observer,
+                        &mut reach,
+                        &mut mover,
+                        &mut sighter,
+                        &mut sensor,
+                        &mut aimer,
+                    )
+                    .map_err(lua_error)
+            },
+        );
         // TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the ordered combat event log, drained from the cursor; not part of the shipping module.
         #[cfg(feature = "weapon-fixture")]
         methods.add_method("cmb_events", |_, this, ()| this.engine.cmb_events().map_err(lua_error));

@@ -3936,6 +3936,82 @@ impl Engine {
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): a controlled combat case that launches nothing (op 0 the census of living entities per health-bearing kind; op 1 the
+    /// `ordinal`-th living entity of `kind` set to `percent` of its initial health), as `key=value` text.
+    #[cfg(feature = "weapon-fixture")]
+    pub fn cmb_case_state(&self, op: i32, kind: &str, ordinal: i32, percent: i32) -> Result<String, EngineError> {
+        let kind = std::ffi::CString::new(kind).map_err(|_| EngineError::BadArgument("a kind contains a NUL byte".into()))?;
+        let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
+        // SAFETY: the string and the buffer outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_cmb_case_state(op, kind.as_ptr(), ordinal, percent, text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): a controlled combat case that launches a real weapon through the campaign's own launch call (op 1: the `ordinal`-th living
+    /// entity of `kind` is delivered a collision with modifier `amount`, by that weapon or by none; op 2: the weapon is put through the campaign's own killed-weapon explosion
+    /// `amount` metres from that entity with `kill_code`). Given the same complete host as a frame.
+    #[cfg(feature = "weapon-fixture")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn cmb_case_act<F, G, H, M, L, D, A>(
+        &self,
+        op: i32,
+        kind: &str,
+        ordinal: i32,
+        launcher_id: &str,
+        weapon: i32,
+        amount: f64,
+        kill_code: i32,
+        weaponless: bool,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
+        sense_fn: &mut D,
+        aim_fn: &mut A,
+    ) -> Result<String, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
+        D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
+    {
+        let kind = std::ffi::CString::new(kind).map_err(|_| EngineError::BadArgument("a kind contains a NUL byte".into()))?;
+        let launcher_id = std::ffi::CString::new(launcher_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
+        let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
+        // SAFETY: the strings, the buffer and the temporary host callback outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            sense_fn,
+            aim_fn,
+            |host| unsafe {
+                sys::eech_engine_cmb_case_act(
+                    op,
+                    kind.as_ptr(),
+                    ordinal,
+                    launcher_id.as_ptr(),
+                    weapon,
+                    amount,
+                    kill_code,
+                    i32::from(weaponless),
+                    text.as_mut_ptr(),
+                    text.len() as i32,
+                    host,
+                )
+            },
+        )?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
     /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): drains the ordered combat event log (collisions, blasts, repairs) from the cursor and returns every event not yet returned,
     /// one `cmb-ev` line each. Read-only apart from advancing the cursor.
     #[cfg(feature = "weapon-fixture")]

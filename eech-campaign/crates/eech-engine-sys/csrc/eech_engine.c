@@ -1265,12 +1265,58 @@ int eech_engine_aim_person_case (const char *person_id, const char *target_id, c
  * Nothing here calls a weapon function except the controlled case, which calls launch_client_server_weapon once, as the family fire code does.
  */
 extern int eech_cmb_trace_get (char *text, int capacity);
+extern int eech_cmb_case_census_run (char *text, int capacity);
+extern int eech_cmb_case_health_run (const char *kind, int ordinal, int percent, char *text, int capacity);
+extern int eech_cmb_case_collide_run (const char *kind, int ordinal, const char *launcher_id, int weapon, double modifier, int weaponless, char *text, int capacity);
+extern int eech_cmb_case_blast_run (const char *kind, int ordinal, double offset, int kill_code, const char *launcher_id, int weapon, char *text, int capacity);
 extern int eech_cmb_events_get (char *text, int capacity);
 extern int eech_wpn_trace_get (char *text, int capacity);
 extern int eech_wpn_events_get (char *text, int capacity);
 extern int eech_wpn_case_query_run (const char *host_id, int weapon, char *text, int capacity);
 extern int eech_wpn_case_kind_run (const char *host_id, char *text, int capacity);
 extern int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, int weapon, int salvo_count, char *text, int capacity);
+
+int eech_engine_cmb_case_state (int op, const char *kind, int ordinal, int percent, char *text, int capacity)
+{
+	int rc;
+
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!kind || !text || (capacity <= 0) || (op < 0) || (op > 1))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	rc = (op == 0) ? eech_cmb_case_census_run (text, capacity) : eech_cmb_case_health_run (kind, ordinal, percent, text, capacity);
+	if (rc != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_cmb_case_act (int op, const char *kind, int ordinal, const char *launcher_id, int weapon, double amount, int kill_code, int weaponless, char *text, int capacity, const struct eech_engine_host *host)
+{
+	int rc;
+
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!kind || !launcher_id || !text || (capacity <= 0) || (op < 1) || (op > 2))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	rc = (op == 1) ? eech_cmb_case_collide_run (kind, ordinal, launcher_id, weapon, amount, weaponless, text, capacity) : eech_cmb_case_blast_run (kind, ordinal, amount, kill_code, launcher_id, weapon, text, capacity);
+	if (rc != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
 
 int eech_engine_cmb_trace (char *text, int capacity)
 {

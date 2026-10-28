@@ -307,6 +307,12 @@ int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id,
 /* The physical combat-resolution report (EEDCS-46, see eech_cmb_fixture.c): damage capability, collision, blast and repair hashes and counters; and the ordered event log,
    drained incrementally like the weapon log. Read-only. */
 int eech_engine_cmb_trace (char *text, int capacity);
+/* Controlled combat cases of the ORIGINAL campaign (EEDCS-46, see eech_cmb_case.c).  state: op 0 the census of living entities per health-bearing kind, op 1 the n-th living
+   entity of `kind` set to `percent` of its initial health.  act (given the same complete host as a frame, because it launches a real weapon): op 1 the n-th living entity of
+   `kind` is delivered a collision with `amount` as the modifier by a real weapon (or by none if weaponless), op 2 a real weapon is put through the campaign's own killed-weapon
+   explosion `amount` metres from that entity with `kill_code`. */
+int eech_engine_cmb_case_state (int op, const char *kind, int ordinal, int percent, char *text, int capacity);
+int eech_engine_cmb_case_act (int op, const char *kind, int ordinal, const char *launcher_id, int weapon, double amount, int kill_code, int weaponless, char *text, int capacity, const struct eech_engine_host *host);
 int eech_engine_cmb_events (char *text, int capacity, int *more);
 #endif
 
