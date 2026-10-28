@@ -1,0 +1,67 @@
+{
+  "when_utc": "2026-10-28T06:43:02.760186+00:00",
+  "scope": "Complete forecast-only900 physical-output control; not900eventcensus or shippingfullpack acceptance",
+  "source": "891c36d72c274361af11600b85e51b2aab1542cd",
+  "reviewed_runtime_source": "91bc07e075ad4d58061d0304f3d90389997ee6bc",
+  "actual_original_controller21668_exit": 0,
+  "actual_native_exit": 0,
+  "run_record": {
+    "status": "completed",
+    "when_utc": "2026-10-28T06:04:41.0795116Z",
+    "binary": "R:\\d2-evidence\\combat-forecast-source-891c36d72\\eech-campaign\\target\\weapon-fixture\\combat-forecast-891c36d72\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-forecast-source-891c36d72/eech-campaign/target/weapon-fixture/combat-forecast-891c36d72/lua/campaign.lua root=R:/d2-evidence/combat-characterization-20261028/roots/forecast-control-01 scenario=lebanon_retail hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/combat-characterization-20261028/out/forecast-control-01/recording.acmi observe=R:/d2-evidence/combat-characterization-20261028/out/forecast-control-01/observations.jsonl metrics=R:/d2-evidence/combat-characterization-20261028/out/forecast-control-01/metrics.json observe_supply=0",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/forecast-control-01",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/forecast-control-01",
+    "kind": "Forecast candidate physical-output control; comparison with retained original required, not combat census or fullpack acceptance",
+    "reference_provenance": "Retained ab-base root provenance inferred; no independent original input verification invented",
+    "capacity": "Lead permits seven native processes on eight physical cores, separated roots; one implementation lane",
+    "actual_native_exit": 0,
+    "native_pid": 23936,
+    "created_utc": "2026-10-28T06:04:41.0965791Z",
+    "completed_utc": "2026-10-28T06:40:52.2804987Z"
+  },
+  "complete3artifact_comparator_actual_exit": 0,
+  "all3_complete_files_byte_identical": true,
+  "known_baseline_sizes_and_sha256_match": true,
+  "comparison": {
+    "baseline": "R:/d2-evidence/los-characterization-baseline-20261026/out/ab-base",
+    "candidate": "R:/d2-evidence/combat-characterization-20261028/out/forecast-control-01",
+    "scope": "Complete artifact bytes only; native exits and configuration require separate verification",
+    "results": [
+      {
+        "file": "recording.acmi",
+        "baseline_bytes": 11363845,
+        "candidate_bytes": 11363845,
+        "baseline_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "candidate_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "matches": true
+      },
+      {
+        "file": "observations.jsonl",
+        "baseline_bytes": 6629273,
+        "candidate_bytes": 6629273,
+        "baseline_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "candidate_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "matches": true
+      },
+      {
+        "file": "metrics.json",
+        "baseline_bytes": 11777,
+        "candidate_bytes": 11777,
+        "baseline_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "candidate_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "matches": true
+      }
+    ],
+    "passed": true
+  },
+  "post1179_input_actual_exit": 0,
+  "post40_export_verifier_actual_exit": 0,
+  "all40_exports_and_BUILD_INFO_unchanged": true,
+  "frozen_source_clean": true,
+  "limits": [
+    "Retained ab-base original input-root provenance remains inferred; no new historical verification claimed.",
+    "Full-file byte comparison, not visual inspection or900combat event census.",
+    "Forecast-onlyfocusedproof; realdamage/timed/impactblast/bridge/report work and finalordinary40/all8/post3/currentCI/normaldelivery remain."
+  ]
+}
