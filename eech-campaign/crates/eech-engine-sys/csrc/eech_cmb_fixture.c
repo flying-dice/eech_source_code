@@ -397,7 +397,9 @@ void eech_cmb_capability_damage (entity *wpn, entity *target, int weapon_type, c
 
 	eech_cmb_capability_raw (event->b);
 
-	eech_cmb_capability_end (wpn, target, event->f[0], weapon_type, event->c, event->f[1], event->f[2], event->f[3], capability);
+	/* the four intermediate floats arrive as raw bits (they can legitimately be a NaN: a hit with no direction) */
+	eech_cmb_capability_end (wpn, target, campaign_aim_damage_echo_float (event, 0), weapon_type, event->c, campaign_aim_damage_echo_float (event, 1), campaign_aim_damage_echo_float (event, 2),
+		campaign_aim_damage_echo_float (event, 3), capability);
 }
 
 void eech_cmb_capability_end (entity *wpn, entity *target, float modifier, int weapon_type, int warhead_type, float penetration, float armour, float random_modifier, int result)

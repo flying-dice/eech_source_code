@@ -174,6 +174,23 @@ static int refused_with (const char *text)
 	return strstr (harness_message, text) != NULL;
 }
 
+/* the raw bits of echo float `index` (0 the damage modifier ... 3 the random modifier) as two exact halves in f[4..11], and back */
+static void set_bits (campaign_aim_event *event, int index, unsigned int bits)
+{
+	event->f[4 + 2 * index] = (float) (bits >> 16);
+	event->f[5 + 2 * index] = (float) (bits & 0xFFFFu);
+}
+
+static unsigned int echo_bits (const campaign_aim_event *event, int index)
+{
+	float value = campaign_aim_damage_echo_float (event, index);
+	unsigned int bits;
+
+	memcpy (&bits, &value, sizeof (bits));
+
+	return bits;
+}
+
 int main (void)
 {
 	int accepted;
@@ -268,6 +285,28 @@ int main (void)
 	host_answers (9, 1, 0, 0, 1);
 	accepted = ask (0);
 	check (accepted && last_result.damage.new_level == 0, "health taken to exactly zero is legal");
+	/* a hit of zero or less capability does nothing (the original writes health only for a capability above zero): a write for one is refused, whatever level it writes */
+	host_answers (0, 1, 0, 0, 1);
+	accepted = ask (0);
+	check (!accepted && refused_with ("which does nothing"), "a write of health 0 for a hit of capability 0 (it would kill a healthy target) is refused");
+	host_answers (0, 1, 70, 0, 0);
+	accepted = ask (0);
+	check (!accepted && refused_with ("which does nothing"), "so is any other write for a hit of capability 0");
+	host_answers (-5, 1, 0, 0, 1);
+	accepted = ask (0);
+	check (!accepted && refused_with ("which does nothing"), "and for a negative capability");
+	host_answers (-2147483647 - 1, 1, 79, 0, 0);
+	accepted = ask (0);
+	check (!accepted && refused_with ("which does nothing"), "and for the most negative one");
+	host_answers (-5, 0, 80, 0, 0);
+	accepted = ask (0);
+	check (accepted && !last_result.damage.written && last_result.damage.new_level == 80, "a negative capability that writes nothing stays a legal no-op answer");
+	host_answers (0, 0, 80, 1, 1);
+	accepted = ask (0);
+	check (accepted, "and so does a zero one, whatever class the unchanged health has");
+	host_answers (1, 1, 79, 0, 0);
+	accepted = ask (0);
+	check (accepted && last_result.damage.written && last_result.damage.new_level == 79, "a capability of 1 may be written");
 	host_answers (9, 0, 70, 0, 0);
 	accepted = ask (0);
 	check (!accepted && refused_with ("changing health or its class without writing it"), "health changed without being written is refused");
@@ -371,6 +410,71 @@ int main (void)
 	scripted.echo_count = 1;
 	accepted = ask (0);
 	check (!accepted && refused_with ("echo nobody asked for"), "an echo nobody asked for is refused");
+	/* the raw-bit transport of the four intermediate floats: a centred hit has a not-a-number aspect armour and does nothing; the echo is finite floats and gives the bits back */
+	a_hit ();
+	host_answers (0, 0, 80, 0, 0);
+	scripted_echo[0].kind = CAMPAIGN_AIM_EVENT_DAMAGE;
+	scripted_echo[0].a = 0;
+	scripted_echo[0].c = 3;
+	scripted_echo[0].d = 0;
+	set_bits (&scripted_echo[0], 0, 0x00000000u);	/* the damage modifier 0.0 */
+	set_bits (&scripted_echo[0], 1, 0x41700000u);	/* the penetration 15.0 */
+	set_bits (&scripted_echo[0], 2, 0xFFC00000u);	/* the armour: the not-a-number x86 gives 0 / 0, sign set */
+	set_bits (&scripted_echo[0], 3, 0x3F400000u);	/* the random modifier 0.75 */
+	scripted_echo_count = 1;
+	scripted.has_echo = 1;
+	scripted.echo_count = 1;
+	accepted = ask (1);
+	check (accepted && last_result.has_echo && last_result.damage.capability == 0 && !last_result.damage.written, "a centred hit's echo (a not-a-number armour as raw bits) is accepted: the hit does nothing and writes nothing");
+	check (accepted && echo_bits (&last_result.echo[0], 2) == 0xFFC00000u && echo_bits (&last_result.echo[0], 1) == 0x41700000u && echo_bits (&last_result.echo[0], 3) == 0x3F400000u && echo_bits (&last_result.echo[0], 0) == 0u,
+		"and the four values come back bit for bit, the not-a-number with its sign");
+	check (accepted && isnan (campaign_aim_damage_echo_float (&last_result.echo[0], 2)) && campaign_aim_damage_echo_float (&last_result.echo[0], 3) == 0.75f, "as the value the observer saw");
+	{
+		/* every pattern that matters, through the same two halves */
+		static const unsigned int patterns[] = { 0x7FC12345u, 0xFFC00000u, 0xFFFFFFFFu, 0x80000000u, 0x7F800000u, 0xFF800000u, 0x00000001u, 0x7F7FFFFFu, 0x3F400000u, 0x00000000u };
+		campaign_aim_event event;
+		int k, index, same = 1;
+
+		for (k = 0; k < (int) (sizeof (patterns) / sizeof (patterns[0])); k++)
+		{
+			memset (&event, 0, sizeof (event));
+
+			for (index = 0; index < 4; index++)
+			{
+				set_bits (&event, index, patterns[(k + index) % (int) (sizeof (patterns) / sizeof (patterns[0]))]);
+			}
+
+			for (index = 0; index < 4; index++)
+			{
+				same = same && (echo_bits (&event, index) == patterns[(k + index) % (int) (sizeof (patterns) / sizeof (patterns[0]))]);
+			}
+		}
+
+		check (same, "every bit pattern that matters (payloads, signs, zero, infinities, a denormal, the largest finite) survives the halves");
+	}
+	host_answers (0, 0, 80, 0, 0);
+	scripted_echo[0].kind = CAMPAIGN_AIM_EVENT_DAMAGE;
+	scripted_echo[0].d = 0;
+	scripted_echo[0].f[8] = 65536.0f;
+	scripted_echo_count = 1;
+	scripted.has_echo = 1;
+	scripted.echo_count = 1;
+	accepted = ask (1);
+	check (!accepted && refused_with ("raw-bit half 8"), "a raw-bit half above 65535 is refused");
+	scripted_echo[0].f[8] = -1.0f;
+	accepted = ask (1);
+	check (!accepted && refused_with ("raw-bit half 8"), "or below zero");
+	scripted_echo[0].f[8] = 1.5f;
+	accepted = ask (1);
+	check (!accepted && refused_with ("raw-bit half 8"), "or not an integer");
+	scripted_echo[0].f[8] = 0.0f;
+	scripted_echo[0].f[2] = NAN;
+	accepted = ask (1);
+	check (!accepted && refused_with ("malformed echo event"), "a not-a-number in the readable floats is still refused: finite validation is not weakened");
+	scripted_echo[0].f[2] = 0.0f;
+	scripted_echo[0].f[5] = INFINITY;
+	accepted = ask (1);
+	check (!accepted, "and an infinity in a half");
 	a_hit ();
 	request.invulnerable = 1;
 	host_answers (0, 0, 80, 0, 0);

@@ -2058,16 +2058,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 result.set("critical_after", outcome.critical_after)?;
                                 result.set("bad_modifier", outcome.bad_modifier)?;
                                 if echo && !outcome.exited && !outcome.bad_modifier {
-                                    // the original's observer hooks of the capability, in one event, for the campaign build that records a trace
-                                    let mut f = [0.0f32; 12];
-                                    f[..4].copy_from_slice(&[outcome.damage_modifier, outcome.penetration, outcome.armour, outcome.random_modifier]);
+                                    // the original's observer hooks of the capability, in one event, for the campaign build that records a trace; the four intermediate floats travel as
+                                    // raw bits (cmb.rs damage_echo_floats), because one of them can legitimately be a NaN
                                     echo_into(&Some(vec![aim::Event {
                                         kind: 10,
                                         a: outcome.path,
                                         b: outcome.raw,
                                         c: outcome.warhead,
                                         d: outcome.capability,
-                                        f,
+                                        f: cmb::damage_echo_floats(&outcome),
                                     }]))?;
                                 }
                             }

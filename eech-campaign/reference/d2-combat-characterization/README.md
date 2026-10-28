@@ -103,3 +103,6 @@ trailing `CONTROLLER_EXIT=0` in it is the wrapper's, not the controller's, and i
 See `eech-campaign/docs/m5-combat-extraction.md` (step 2). Source checks in `checks/`: `damage-checks-*.log` (50 checks of the real `mb_hostaim.c` under AddressSanitizer and UndefinedBehaviorSanitizer),
 `damage-mutant-1.log` (removing three guards fails 4 of them, exit 1), the Rust tests (`test-r46-*.log`), Clippy, the real-header syntax and strict feature-off preprocess records of this change, and the
 re-run of the forecast checks on the extended `mb_hostaim.c` (`forecast-checks-3.log`). No native run exists for this candidate.
+
+Correction of `dc3113e4b` (two P2, one P3): `checks/damage-checks-red-2.log` (the four missing refusals before the fix; exit 1), `checks/damage-checks-green-3.log` (66 checks), `checks/damage-mutant-2.log`
+(three removals fail 8), `checks/echo-red-1.log` (the Lua host test RED: `echo value 3 ... -nan`), and the Rust, Clippy, syntax and ABI records of the correction (`*-c46-*`). Nothing native was run.

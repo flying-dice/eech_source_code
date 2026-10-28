@@ -6385,6 +6385,56 @@ mod tests {
         assert!(matches!(seen, Some(AimRequest::Damage(ref r)) if r.player_modifier.is_none()));
     }
 
+    // The fixture build's echo of a hit travels as raw-bit halves (a hit with no direction has a not-a-number aspect armour); the engine writes the events into the room the
+    // campaign gave, exactly.
+    #[test]
+    fn a_damage_echo_of_raw_bit_halves_reaches_the_campaigns_room_unchanged() {
+        let mut room = [sys::eech_aim_event {
+            kind: 0,
+            a: 0,
+            b: 0,
+            c: 0,
+            d: 0,
+            f: [0.0; 12],
+        }; 4];
+        let mut step = damage_step();
+        step.has_draw = 1;
+        step.draw_sample = 0;
+        step.echo = 1;
+        step.echo_out = room.as_mut_ptr();
+        step.echo_capacity = 4;
+        let mut f = [0.0f32; 12];
+        f[1] = 15.0;
+        f[3] = 0.75;
+        f[6..].copy_from_slice(&[16752.0, 0.0, 65472.0, 0.0, 16192.0, 0.0]);
+        let (_, result, code, error) = aim_crossing(&step, |request| {
+            let Some(()) = matches!(request, AimRequest::Damage(ref r) if r.echo && r.draw == Some(0)).then_some(()) else {
+                return Err("not the damage question with its echo".into());
+            };
+            Ok(AimReply {
+                damage_new_level: 80,
+                echo: Some(vec![AimEvent {
+                    kind: sys::EECH_AIM_EVENT_DAMAGE,
+                    a: 0,
+                    b: 0,
+                    c: 3,
+                    d: 0,
+                    f,
+                }]),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        assert_eq!((result.has_echo, result.echo_count), (1, 1));
+        assert_eq!(
+            (room[0].kind, room[0].a, room[0].b, room[0].c, room[0].d),
+            (sys::EECH_AIM_EVENT_DAMAGE, 0, 0, 3, 0)
+        );
+        assert_eq!(room[0].f, f);
+        let armour_bits = ((room[0].f[8] as u32) << 16) | (room[0].f[9] as u32);
+        assert_eq!(armour_bits, 0xFFC0_0000, "the not-a-number armour, sign and payload");
+    }
+
     #[test]
     fn a_damage_request_refuses_what_has_no_defined_answer_and_never_takes_a_lookup() {
         let ok = |_: AimRequest| Ok(AimReply::default());

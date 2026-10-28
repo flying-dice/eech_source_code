@@ -97,7 +97,8 @@ The campaign refuses, before anything is applied: a second sample; a sample for 
 invulnerable; a stopped hit that still changed something; health written under the cheat guard, below zero or above what it was; health or a class changed without being written; a
 class the target's model cannot have (a person and a fixed structure have none, a vehicle 0 or 1, an aircraft 0 to 2); a missing-setting report that the request did not allow; an
 echo that is not exactly one agreeing event; a lookup; a failing, absent or malformed host; and a request with a non-finite figure, a model that does not exist or a classified
-health with no initial level. It does NOT refuse a capability of zero or less (the original's arithmetic can give one, and such a hit does nothing) or an armour level of any sign.
+health with no initial level. It does NOT refuse a capability of zero or less (the original's arithmetic can give one, and such a hit does nothing) or an armour level of any sign; but it DOES refuse any write of health
+for such a hit, because the original writes health only for a capability above zero (a hit that does nothing may not kill). An unwritten zero or negative answer is the valid no-op.
 A host with a model of its own answers from it (`lua/own-weapon.lua` is a plain one: ten points, no sample, the guards honoured) and needs none of EECH's arithmetic.
 
 ## Order, and what the campaign keeps
@@ -143,5 +144,22 @@ ROOT-owned native authority and refusal runs, which report the hits, samples, lo
 
 Not available and not claimed: any native run of this candidate. The original characterization it must reproduce is the retained one: the f41 natural 600 (234 real capability draws,
 234 balanced damage entries and exits, six hashes, 6,440 ordered events) and the 900 control, the 9d7 and 35c3 controlled runs (the HE writes, the PERSON writes, the solid-shot
-capability calls without writes, the weaponless exits) and the two SITE probes. The player's own damage, invulnerability, the multiplayer multiplier, a fatal anti-aircraft hit and
-the easy-difficulty armour were not reached by any retained original run; they are covered here by the source arithmetic and the contract checks only.
+capability calls without writes, the weaponless exits) and the two SITE probes. The player's own damage, invulnerability, the multiplayer multiplier and
+the easy-difficulty armour were not reached by any retained original run (the retained natural 600 DID record five fatal anti-aircraft COLLISIONS, which are covered; what no retained run reached is the fatal anti-aircraft TIMED FIRE roll, which is a later phase, and the controlled anti-aircraft cases drew 201 times with 41 or 46 hits and no timed fatal); they are covered here by the source arithmetic and the contract checks only.
+
+## Correction of the first review of the damage candidate (`dc3113e4b`)
+
+* **A nonpositive capability may not write health (P2).** `mb_hostaim.c` now refuses a DONE answer that writes health for a capability of zero or less (a zero capability with a write to level
+  0 had passed the range checks and the handler would have killed a healthy target). Unwritten zero and negative answers stay legal. The production C guard has the cases both ways (RED
+  before the fix: four refusals missing; GREEN after).
+* **The diagnostic echo carries a legitimate not-a-number (P2).** A weapon at the target's own position has no direction: its aspect armour is a not-a-number, the original's comparison with it is
+  false and the hit does nothing (capability 0, nothing written, kernel outcome unchanged). The fixture build asks for the echo of the original's observer values, and the exchange validates
+  echo floats as finite, so that legitimate diagnostic became fatal. The echo of a hit now carries each of the four intermediate floats (the damage modifier as it ends, the penetration, the armour
+  thickness, the random modifier) as its RAW 32-bit pattern, as two exact 16-bit halves in `f[4..11]` (sign, payload and order preserved; `f[0..3]` repeat the finite ones for a reader and are 0
+  otherwise). Validation of the physical request and answer is not weakened: a float that is not finite is still refused everywhere, and the halves must be integers in [0, 65535]. The campaign
+  rebuilds the floats with `campaign_aim_damage_echo_float` and the fixture observer folds the exact bits, so the damage hash and accounting of a centred hit are the original's. An independent
+  host sends no echo at all. No layout changed (the event already had twelve floats); the only public representation change is this documented use of `f[4..11]` of the DAMAGE echo event.
+  Checked at each hop with the production code: the reference kernel and its Lua reply (`tests/host_callbacks.rs`, RED before the fix with `echo value 3 ... -nan`), the DC module reader and the engine's
+  copy into the campaign's room (`eech-dc`, `eech-engine` tests), and the production `mb_hostaim.c` validation and decoder (`c-checks/damage_checks.c`, every bit pattern that matters). The hops are
+  not driven in one process: that needs a native run, which is not claimed.
+* **Coverage wording (P3).** Corrected above: the unreached anti-aircraft case is the fatal TIMED FIRE roll, not every fatal hit.

@@ -1915,6 +1915,30 @@ mod tests {
         .eval()
     }
 
+    // The fixture build's echo of a hit carries the observer's four intermediate floats as raw bits in finite halves (a hit with no direction has a not-a-number aspect armour); the
+    // reader keeps them exactly, and a not-a-number sent as a float is still refused: finite validation is not weakened.
+    #[test]
+    fn a_damage_echo_of_raw_bit_halves_is_read_exactly_and_a_not_a_number_float_is_still_refused() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let table: LuaTable = lua
+            .load("return { echo = { { kind = 'damage', a = 0, b = 0, c = 3, d = 0, f = { 0, 15, 0, 0.75, 0, 0, 16752, 0, 65472, 0, 16192, 0 } } } }")
+            .eval()?;
+        let events = aim_echo(&lua, &table)?.ok_or("no echo")?;
+        let [event] = events.as_slice() else {
+            return Err("the echo is not one event".into());
+        };
+        assert_eq!((event.kind, event.a, event.b, event.c, event.d), (10, 0, 0, 3, 0));
+        assert_eq!(event.f, [0.0, 15.0, 0.0, 0.75, 0.0, 0.0, 16752.0, 0.0, 65472.0, 0.0, 16192.0, 0.0]);
+        let bits = |index: usize| Some(((*event.f.get(4 + 2 * index)? as u32) << 16) | (*event.f.get(5 + 2 * index)? as u32));
+        assert_eq!((bits(1), bits(2), bits(3)), (Some(0x4170_0000), Some(0xFFC0_0000), Some(0x3F40_0000)));
+        // the old representation, a NaN as a float, is refused at this boundary
+        let bad: LuaTable = lua
+            .load("return { echo = { { kind = 'damage', a = 0, b = 0, c = 3, d = 0, f = { 0, 15, 0 / 0, 0.75, 0, 0, 0, 0, 0, 0, 0, 0 } } } }")
+            .eval()?;
+        assert!(aim_echo(&lua, &bad).is_err());
+        Ok(())
+    }
+
     #[test]
     fn a_vehicle_lifecycle_answer_without_its_vector_is_an_error() -> Result<(), Box<dyn std::error::Error>> {
         let lua = Lua::new();

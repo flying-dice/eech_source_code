@@ -631,6 +631,20 @@ r = host.aim(hit({ draw = 0, cheat_guard = true }))
 assert(r.capability == 9 and r.written == false and r.new_level == 50, 'the cheat guard keeps the health')
 r = host.aim(hit({ draw = 0, armour_model = 1, armour_front = 2.0, armour_rear = 0.5, armour_side = 1.0, weapon_position = { 0, 0, 100 }, echo = true }))
 assert(r.capability == 0 and r.echo[1].f[3] == 20, 'a vehicle hit from the front meets 10 * 2.0 and the penetration 15 does not go through it')
+-- a weapon at the target's own position has no direction: the aspect armour is not a number, the hit does nothing and writes nothing (the original's comparison with it is false), and the
+-- diagnostic echo of the fixture build still carries every intermediate value, as raw bits, with every number the reply holds finite
+local centred = host.aim(hit({ draw = 0, armour_model = 1, armour_front = 2.0, armour_rear = 0.5, armour_side = 1.0, echo = true }))
+assert(centred.state == 'done' and centred.capability == 0 and centred.written == false and centred.new_level == 50 and centred.exited == false, 'a centred solid hit does nothing and writes nothing')
+assert(#centred.echo == 1 and centred.echo[1].kind == 'damage' and centred.echo[1].a == 0 and centred.echo[1].b == 0 and centred.echo[1].c == 3 and centred.echo[1].d == 0, 'and is still echoed, with no arithmetic path')
+for i = 1, 12 do
+  local v = centred.echo[1].f[i]
+  assert(v == v and v ~= math.huge and v ~= -math.huge, 'echo value ' .. i .. ' is a finite number: ' .. tostring(v))
+end
+-- the armour (the third value; its halves are f[9], f[10]) is the quiet not-a-number of the aspect arithmetic, as raw bits; the random modifier 0.75 is 0x3F400000 (f[11], f[12])
+local armour_high = centred.echo[1].f[9]
+assert(armour_high >= 32704 and armour_high < 65536 and armour_high % 32768 >= 32704, 'the armour is a quiet NaN as raw bits: ' .. tostring(armour_high))
+assert(centred.echo[1].f[11] == 16192 and centred.echo[1].f[12] == 0, 'and the random modifier is 0.75 bit for bit')
+assert(centred.echo[1].f[3] == 0 and centred.echo[1].f[4] == 0.75, 'the readable copy of the value that is not finite is 0, and of a finite one the value')
 r = host.aim(hit({ draw = 0, target_not_ai = true, player_modifier = 0.33 }))
 assert(r.capability == 2 and r.new_level == 48, 'a player is scaled by the setting after the arithmetic: 9 * 0.33 = 2.97')
 local missing = hit({ draw = 0, target_not_ai = true }) missing.player_modifier = nil

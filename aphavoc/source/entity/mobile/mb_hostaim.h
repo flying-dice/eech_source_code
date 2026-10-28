@@ -146,7 +146,11 @@ enum campaign_aim_event_kind
 	   armour, 2 high-explosive splash), b the capability before the player's damage setting, c the warhead type the arithmetic used, d the final capability; f[0] the damage
 	   modifier as it stood at the end (the splash path rewrites it), f[1] the penetration capability, f[2] the armour thickness, f[3] the random modifier (1: a forecast has none) */
 	CAMPAIGN_AIM_EVENT_FORECAST,
-	/* DAMAGE echo (the test fixture build only): as the forecast's, for a hit; a hit stopped by the player's invulnerability echoes none */
+	/* DAMAGE echo (the test fixture build only): a path in a, the capability before the player's setting in b, the warhead in c and the final capability in d, as the forecast's; a hit
+	   stopped by the player's invulnerability echoes none.  The four intermediate floats the original's observer saw (the damage modifier as it stood at the end, the penetration
+	   capability, the armour thickness and the random modifier) are NOT always finite: a weapon at the target's own position has no direction and its aspect armour is not a
+	   number (the hit then does nothing).  The exchange carries finite floats only, so each travels as its raw 32-bit pattern, losslessly, as two exact 16-bit halves (high then
+	   low) in f[4..11], value by value in the order above; f[0..3] repeat the finite ones (0 for the others) for a reader.  campaign_aim_damage_echo_float rebuilds them. */
 	CAMPAIGN_AIM_EVENT_DAMAGE,
 	/* WEAPON_STEP echo (the test fixture build only): the hooks of the original weapon_movement the host's step passed, in order.  The branch numbers they carry are the
 	   fixture's own (mb_wpnfx.h) */
@@ -622,6 +626,9 @@ campaign_aim_result campaign_aim_forecast (int weapon, const campaign_damage_fig
 /* The damage of one hit (CAMPAIGN_AIM_DAMAGE) of `weapon` (a sub type): the campaign takes the one sample of its stream the host asks for.  `echo` asks the reference host for the
    observer's echo (the test fixture build); the result's echo is valid until the next request. */
 campaign_aim_result campaign_aim_damage (int weapon, const campaign_damage_request *request, int echo);
+
+/* The float `index` (0 the damage modifier, 1 the penetration capability, 2 the armour thickness, 3 the random modifier) of a DAMAGE echo event, rebuilt from its raw bits. */
+float campaign_aim_damage_echo_float (const campaign_aim_event *event, int index);
 
 /* One frame of a falling weapon's parachute (CAMPAIGN_AIM_ANIMATE). */
 campaign_aim_result campaign_aim_animate (int weapon, int status, int on_ground, float lifetime, float motion_y);

@@ -263,6 +263,32 @@ pub enum DamageStep {
     Done(DamageOutcome),
 }
 
+/// The fixture build's diagnostic echo of a hit, as the twelve floats of an echo event.  The observer's four intermediate values (the damage modifier as it stood at the end, the
+/// penetration capability, the armour thickness and the random modifier) are NOT always finite numbers: a weapon at the target's own position has no direction, its aspect armour is
+/// not a number, and the original's comparison with it is false (the hit does nothing).  The diagnostic exchange refuses non-finite floats, so each value travels as its raw 32-bit
+/// pattern, losslessly (sign, payload and order), as two exact 16-bit halves in `f[4..12]` (the high half then the low half, value by value in the order above); `f[0..4]` repeat
+/// the values that are finite (and are 0 otherwise) for a reader.  The physical request and answer are never carried this way.
+#[must_use]
+pub fn damage_echo_floats(outcome: &DamageOutcome) -> [f32; 12] {
+    let values = [outcome.damage_modifier, outcome.penetration, outcome.armour, outcome.random_modifier];
+    let mut f = [0.0f32; 12];
+    for (index, value) in values.iter().enumerate() {
+        if value.is_finite() {
+            f[index] = *value;
+        }
+        let bits = value.to_bits();
+        f[4 + 2 * index] = (bits >> 16) as f32;
+        f[5 + 2 * index] = (bits & 0xFFFF) as f32;
+    }
+    f
+}
+
+/// The value `index` (0 the damage modifier, 1 the penetration, 2 the armour thickness, 3 the random modifier) of a damage echo's floats, from its raw bits.
+#[must_use]
+pub fn damage_echo_value(f: &[f32; 12], index: usize) -> f32 {
+    f32::from_bits(((f[4 + 2 * index] as u32) << 16) | (f[5 + 2 * index] as u32))
+}
+
 /// One hit.  An error for a figure that is not finite and for a health classified with no initial level to divide by.  `draw` is the sample the campaign gave, if it has.
 pub fn damage(input: &DamageInput, draw: Option<i32>) -> Result<DamageStep, String> {
     let finite = [
@@ -630,6 +656,65 @@ mod tests {
         centred.armour_easy = false;
         let outcome = resolve(&centred, 0);
         assert!(outcome.capability <= 0 && !outcome.written, "{outcome:?}");
+    }
+
+    #[test]
+    fn the_diagnostic_echo_of_a_hit_carries_every_intermediate_value_as_raw_bits_even_when_it_is_not_a_number() {
+        // the centred hit: no direction, so the aspect armour is not a number; the hit does nothing; the echo is all finite floats and gives the armour back bit for bit
+        let mut vehicle = hit(SOLID_SHOT, 12, 20, 10, 0.0);
+        vehicle.armour_model = ARMOUR_VEHICLE;
+        vehicle.armour_front = 2.0;
+        vehicle.armour_rear = 0.5;
+        vehicle.armour_side = 1.0;
+        let outcome = resolve(&vehicle, 0);
+        assert!(outcome.armour.is_nan(), "the aspect armour of a hit with no direction is not a number");
+        assert_eq!(
+            (outcome.capability, outcome.written, outcome.path),
+            (0, false, 0),
+            "the original's outcome: a hit that does nothing"
+        );
+        let f = damage_echo_floats(&outcome);
+        assert!(f.iter().all(|value| value.is_finite()), "{f:?}");
+        assert_eq!(
+            damage_echo_value(&f, 2).to_bits(),
+            outcome.armour.to_bits(),
+            "the NaN's sign and payload survive"
+        );
+        assert_eq!(damage_echo_value(&f, 3).to_bits(), outcome.random_modifier.to_bits());
+        assert_eq!(damage_echo_value(&f, 1).to_bits(), outcome.penetration.to_bits());
+        assert_eq!(damage_echo_value(&f, 0).to_bits(), outcome.damage_modifier.to_bits());
+        assert_eq!(f[2], 0.0, "the readable copy of a value that is not finite is 0");
+        // a finite hit: the readable copies are the values and the bits agree
+        let outcome = resolve(&hit(HE_DUAL_PURPOSE, 100, 1, 4, 0.5), 0);
+        let f = damage_echo_floats(&outcome);
+        assert_eq!(
+            (f[0], f[1], f[2], f[3]),
+            (outcome.damage_modifier, outcome.penetration, outcome.armour, outcome.random_modifier)
+        );
+        for (index, value) in [outcome.damage_modifier, outcome.penetration, outcome.armour, outcome.random_modifier]
+            .into_iter()
+            .enumerate()
+        {
+            assert_eq!(damage_echo_value(&f, index).to_bits(), value.to_bits());
+        }
+        // every bit pattern that matters: a NaN with a payload and a sign, minus zero, an infinity, the smallest denormal and the largest finite
+        for bits in [
+            0x7FC1_2345u32,
+            0xFFC0_0000,
+            0xFFFF_FFFF,
+            0x8000_0000,
+            0x7F80_0000,
+            0xFF80_0000,
+            0x0000_0001,
+            0x7F7F_FFFF,
+            0x3F40_0000,
+        ] {
+            let mut synthetic = outcome;
+            synthetic.armour = f32::from_bits(bits);
+            let f = damage_echo_floats(&synthetic);
+            assert!(f.iter().all(|value| value.is_finite()), "{bits:#x}");
+            assert_eq!(damage_echo_value(&f, 2).to_bits(), bits, "{bits:#x}");
+        }
     }
 
     #[test]

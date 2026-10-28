@@ -547,8 +547,15 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 				break;
 			}
 
-			// health is written only for a hit that does damage and not under the cheat guard, to a level from zero up to what it was; when it is not written it is as it was, and
-			// the classes did not change
+			// health is written only for a hit that does damage (the original writes it only for a capability above zero: a hit of zero or less does nothing and may not kill) and
+			// not under the cheat guard, to a level from zero up to what it was; when it is not written it is as it was, and the classes did not change.  A host is free to
+			// decide the health a positive capability leaves, and to write none for it
+			if (damage->written && (damage->capability <= 0))
+			{
+				debug_fatal ("host aim: host aim answered a damage request for weapon %d writing health %d over %d for a hit of capability %d, which does nothing", step->weapon,
+					damage->new_level, request->damage_level, damage->capability);
+			}
+
 			if (damage->written && (request->cheat_guard || (damage->new_level < 0) || (damage->new_level > ((request->damage_level > 0) ? request->damage_level : 0))))
 			{
 				debug_fatal ("host aim: host aim answered a damage request for weapon %d writing health %d over %d%s", step->weapon, damage->new_level, request->damage_level,
@@ -560,10 +567,22 @@ static void validate_result (const campaign_aim_step *step, const campaign_aim_r
 				debug_fatal ("host aim: host aim answered a damage request for weapon %d changing health or its class without writing it", step->weapon);
 			}
 
-			// the echo (the fixture build's) is exactly one damage event agreeing with the answer, or none; a stopped hit has none
+			// the echo (the fixture build's) is exactly one damage event agreeing with the answer, or none; a stopped hit has none.  Its raw-bit halves (f[4..11]) are exact integers in
+			// [0, 65535]: they carry the four intermediate floats of the original's observer, any of which can be a legitimate not-a-number (see mb_hostaim.h)
 			if (step->echo && result->has_echo && (damage->exited || (result->echo_count != 1) || (result->echo[0].kind != CAMPAIGN_AIM_EVENT_DAMAGE) || (result->echo[0].d != damage->capability)))
 			{
 				debug_fatal ("host aim: host aim echoed a damage that is not one event agreeing with its answer");
+			}
+
+			if (step->echo && result->has_echo)
+			{
+				for (i = 4; i < 12; i++)
+				{
+					if ((result->echo[0].f[i] < 0.0f) || (result->echo[0].f[i] > 65535.0f) || (result->echo[0].f[i] != floorf (result->echo[0].f[i])))
+					{
+						debug_fatal ("host aim: host aim echoed a damage whose raw-bit half %d is %g, not an integer in [0, 65535]", i, (double) result->echo[0].f[i]);
+					}
+				}
 			}
 
 			break;
@@ -948,6 +967,24 @@ campaign_aim_result campaign_aim_damage (int weapon, const campaign_damage_reque
 
 	// the hit takes at most one sample of the campaign's stream: campaign_aim_ask takes it once, after the host asks, and asks again
 	return campaign_aim_ask (&step, TRUE);
+}
+
+// the raw bits of a float are carried in an unsigned int
+typedef char campaign_float_is_unsigned_int_sized[(sizeof (float) == sizeof (unsigned int)) ? 1 : -1];
+
+float campaign_aim_damage_echo_float (const campaign_aim_event *event, int index)
+{
+	unsigned int
+		bits;
+
+	float
+		value;
+
+	bits = (((unsigned int) event->f[4 + 2 * index]) << 16) | ((unsigned int) event->f[5 + 2 * index]);
+
+	memcpy (&value, &bits, sizeof (value));
+
+	return value;
 }
 
 campaign_aim_result campaign_aim_animate (int weapon, int status, int on_ground, float lifetime, float motion_y)
