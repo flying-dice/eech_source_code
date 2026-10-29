@@ -436,3 +436,22 @@ See reference/d3-ground-characterization/composition-physical-red-checkpoint.jso
 for exact source/test identities and limits. Native raw evidence and both original
 and composed frozen binaries remain private and immutable. No baseline/tolerance
 change, G1 acceptance, G2 cutover or full shipping-pack pass is claimed.
+
+## Fixed coordinate reader — bounded native physical GREEN
+
+The earlier RED checkpoint remains preserved. A single numeric request reader
+fix at4b2043500 prevents LuaValue integer coercion from erasing signed zero/tiny
+f32 values. Original native case14 tracing showed why directed rounding makes
+that loss physical. No solver, arithmetic, case, hash, baseline or tolerance changed.
+
+Clean compositionfebbb7cc5 built0/all46 files; all three original20k/5k/two-repeat
+native probes completed0 with119 strict rows each and all pre/post-input checks0.
+Every physical fold/counter/emitted sample and common cache observation matches
+originalc119 through the unchanged comparator (three exits0). The two complete
+Lebanon raw files match byte for byte. Legacy/semantic diagnostic hashes remain
+separate. Linux terrain library6/6, callback40/40 and affected lint/fmt pass0.
+
+Safe evidence: reference/d3-ground-characterization/coordinate-native-conformance-febbb7cc5.json.
+The40 callbacks are not the shipping40; final-source ordinary shipping evidence,
+independent completed-evidence review, CI and normal delivery remain pending.
+No G2 extraction or whole-D3 acceptance is claimed.
