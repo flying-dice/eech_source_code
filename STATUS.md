@@ -1,3 +1,33 @@
+# D2 combat and perception — implementation delivery record
+
+29 October 2026. The physical D2 increment is delivered on integration through
+PR105, merge a44e2b3483aab5f5b51aad47dd67e3ece5874da9. Its fetched merge tree
+exactly matches reviewed candidate 6220bd5d9. The sole independent combined
+final technical review found no blocking findings, and all nine CI checks
+passed at that candidate. Exact review, CI, merge and cleanup records:
+eech-campaign/reference/d2-combat-characterization/final-delivery/.
+
+The original shipping pack exited 0: all 40 accepted checks pass, all eight
+complete Tacview/observation/metric artifacts remain byte identical, and three
+external plus one internal post-input checks pass. The 42-entry build manifest
+and BUILD-INFO are unchanged. Runtime source remains
+64cf0f1c5551a2e59309a92917c32e6189d8ae60; metadata commits never relabel it.
+Full raw evidence and retail data remain private and preserved. The completed
+named Windows build cache was removed after export and zero-reference checks.
+
+The whole-D2 responsibility and coverage matrix is
+docs/handover/D2-SCOPE-AUDIT.md. Campaign decisions and consequences stay in
+EECH_DC. Terrain/model services, entity mirrors/heap, shared RNG, effects/sounds
+and later-epic repair/logistics coupling retain their explicit dispositions.
+No active D2 solver is assigned to D5. D3 has not started.
+
+The authoritative acceptance and live work-item statuses are
+[EEDCS-46](https://flying-dice.atlassian.net/browse/EEDCS-46),
+[D2/EEDCS-18](https://flying-dice.atlassian.net/browse/EEDCS-18) and the
+[migration ledger](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994).
+This implementation-delivery record supersedes the older at-time checkpoints
+below without removing their failed experiments, provenance or limitations.
+
 # Current D2 lead checkpoint — final native validation complete
 
 The original shipping regression completed on 28 October 2026 at 23:53:56 UTC.
