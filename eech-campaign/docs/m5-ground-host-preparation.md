@@ -1,6 +1,6 @@
 # D3 G2: ground contact, reference-host preparation (EEDCS-48)
 
-**Status: Linux build, existing terrain-library guards, vocabulary check, formatting and host Clippy pass. Retail Windows conformance and independent review are pending.** Branch `codex/d3-ground-host-preparation`, base `1b6218b06a0d0ca61f884a4b913c0c1e5ded3b01`. This prepares the HOST side of
+**Status: kernel Windows conformance on all three retail roots passed and independent kernel review closed without findings at `14bfd3ed6`. The newer Lua transport and handoff harness passed Linux build/guards/lint; their Windows/retail execution and independent review are pending.** Branch `codex/d3-ground-host-preparation`, base `1b6218b06a0d0ca61f884a4b913c0c1e5ded3b01`. This prepares the HOST side of
 the below-ground and ground-impact extraction. It binds nothing: the campaign DLL (`wn_move.c`, `mb_hostterrain.c`, the public module bridge) is unchanged and still computes both
 itself, and the shipping behaviour is unchanged. Production cutover follows Task47 delivery and integration re-verification (ledger 14548994; Epic EEDCS-21). No completed extraction, shipping
 pass, G2 cutover or D3 completion is claimed. The original characterisation (`m5-ground-characterization.md`) and its retained c119 raws are the oracle and are not touched.
@@ -61,3 +61,61 @@ circuits, the lazy hint refusal, the caller-owned world area, the non-finite and
 3. With a verified private root per map: `EECH_TERRAIN_DIR=<root>/common/maps/map<N>/terrain EECH_GROUND_ORACLE=<c119 ground.jsonl for that map> cargo test -p eech-world --test ground_conformance -- --nocapture`
    for Lebanon, Georgia and the separate Lebanon repeat. Expected: no difference lines; the printed physical folds equal the oracle's `ground-physical` row.
 4. Then the existing `terrain_conformance`, `terrain_backend`, `terrain_provider_harness` tests, unchanged, to show the point solver itself is undisturbed.
+
+## Host provider operations and the public handoff checks (second host-preparation step; Linux guards passed, retail execution pending)
+
+**Still HOST preparation, not a delivered DLL capability.** The campaign DLL does not send these requests; nothing about shipping behaviour, `wn_move.c`, `mb_hostterrain.c` or the public module bridge changes.
+
+### The provider operations (`src/terrain.rs`, the existing Lua provider; point, fast and map branches and the exact-bits coordinate reader are unchanged)
+
+```
+{ op = "ground_below",  world = { min_x, min_z, max_x, max_z }, x, y, z, hint? }
+{ op = "ground_impact", world = { min_x, min_z, max_x, max_z }, above = { x, y, z }, below = { x, y, z }, hint? }
+
+ground_below  -> { below = bool, queried = bool, record = nil | { last_elevation, normal = { nx, ny, nz }, type, stored, hint? } }
+ground_impact -> { above = { x, y, z }, below = { x, y, z }, impact = { x, y, z }, type, record = { last_elevation, normal = { nx, ny, nz }, type, stored, hint? } }
+```
+
+- **The physics is the reviewed kernel's.** Each arm only parses, calls `Terrain::ground_below` / `ground_impact` and shapes the reply; there is no second Lua solver and no precomputed core off-map boolean. `world` is campaign geography data; the
+  host performs the physical off-map predicate with it and never assumes it equals the terrain's extents.
+- **Numbers.** Every coordinate, nested ones included, is read with the same `coordinate` reader: a Lua number only (a numeric string, boolean, table or nil is refused, naming where, e.g. `world.min_x: min_x must be a number, got string`),
+  an exact single-precision value, the exact bits Lua holds (signed zero and subnormals survive in both directions), one field lookup per field. A missing nested table is `<field> must be a table, got nil`.
+  The kernel's policy for non-finite input stays what it is (`terrain ground: a coordinate is not finite`, `... the world area is missing or not finite`); G1's point and fast handling is not changed.
+- **Record.** `record` is absent exactly when `queried` is false, and then the future caller keeps its WHOLE existing record. When present it is the complete last record: `stored` is independent of the hint, and a host that keeps no hint omits it.
+  `type` is an EECH terrain type id; the type -> class mapping stays the campaign's. The kernel's assertion counters are not part of the reply, and no hint, cache index or record layout is required of a generic host.
+- **Hint.** Its shape is parsed here (host-private, `terrain hint: not a hint this host issued` for a malformed one); its tag is checked by the kernel only when the terrain is first READ, so a well-formed altered hint changes nothing for an answer
+  decided outside the world area or above the sector maximum, and is refused (`terrain hint:`) on a read.
+
+### Checks (Root owns every run)
+
+Actual working-tree Linux execution completed with exit0 at 2026-10-29T17:18:24Z:
+format/check, six terrain-library tests, six wrapper/verdict guards, two map-free
+transport guards and host all-target Clippy passed. The real-map transport and
+public native handoff functions explicitly SKIPPED without their required
+environment. They are not retail or boundary proof. See the committed
+`reference/d3-ground-host-preparation/lua-linux-working-completion.json` and log
+for exact source hashes, invocation and scope. Windows execution and independent
+review of this new Lua step remain pending.
+
+| File | What it is | Needs |
+|---|---|---|
+| `lua/ground-provider-transport.lua` + `tests/ground_provider.rs` | DIRECT mode, in the actual host code (`terrain::install`) on a verified retail map: reply shapes, complete-or-absent record, caller-owned world, cold/warm hint flow, corrected endpoints and impact, signed zero and `math.ldexp (1, -149)` round trips, one getter read, about 20 strict refusals, non-finite and off-terrain refusals. Inputs are exact singles (integers, `math.ldexp`) | `EECH_TERRAIN_DIR` (else the map test prints SKIPPED; two map-free guards always run) |
+| `lua/ground-handoff-verdict.lua`, `lua/ground-handoff.lua` + `tests/ground_handoff.rs` (guards) | the wrapper and its verdict against a stand-in DRIVER that asks chosen operations: delegation unchanged (answers and refusals), operation counts, its own arguments stripped, control fails on a ground request, no traffic is a setup failure, the RED marker only after a healthy run | nothing (always run) |
+| `tests/ground_handoff.rs` (public control and RED) | runs the ESTABLISHED `lua/ground-characterization.lua` unchanged, under the wrapper, in a real host process against a real DLL with the `ground-fixture` feature | `EECH_WORLD_BIN`, `EECH_GROUND_ROOT_CONTROL`, `EECH_GROUND_ROOT_REQUIRED` (two fresh verified roots: the engine writes into its root); optional `EECH_GROUND_SCENARIO`, `EECH_HANDOFF_DIR` |
+
+**Public control and RED.** Root packages a TEST-ONLY hybrid: the new host executable with the unchanged frozen ground-fixture DLL (`.../target/ground-fixture/coordinate-fixed-febbb7cc5`); its per-component identities are explicit and it is never shipping
+evidence. The test writes the three scripts (embedded with `include_str!`, so the source named by the build is what runs) beside its output and starts the host hidden (`CREATE_NO_WINDOW` on Windows) with
+`scenario=lebanon_retail points=200 impacts=50 repeats=1 seconds=3 after=1` (healthy 100 ms frames before and after the probe), `handoff=control|required`, `handoff_out=<summary>`.
+The wrapper counts the provider's requests by operation and delegates every one to the host's own provider unchanged.
+
+- **Control** (`handoff=control`, expected GREEN on the unmoved DLL): the driver completes (a `state_digest` row, `ground-semantic-record restored=1`), `point` > 0 (real original traffic), `ground_below` = `ground_impact` = 0.
+  Summary row: `{"event":"ground_handoff","handoff":"control","healthy":true,"passed":true,"point":N,"fast":N,"map":N,"ground_below":0,"ground_impact":0,...}`.
+- **Required** (`handoff=required`, expected RED on the unmoved DLL): the same healthy run, then exit non-zero with the stderr marker **`GROUND-HANDOFF-RED`** ("no ground_below or ground_impact request reached the host terrain provider (N point request(s)): the
+  DLL still computes the ground predicates and the impact search itself"); summary `healthy:true, passed:false, ground_below:0, ground_impact:0`, written before the failure. A driver that fails first reports
+  `ground-handoff: the healthy driver failed before the boundary could be judged: ...` (never the marker), and a run that asked no point question is a `SETUP FAILURE` (never the marker).
+- **Limits.** The `ground_probe` seam exercises the ORIGINAL queries through the public Lua -> module path; it does not exercise `wn_move.c`'s launch glue (the weapon fixture build is a different DLL), so a later pass here is not the weapon
+  authority/refusal witness, which remains a required cutover test. Real original traffic here is the G1 point/map/fast service only.
+
+### Still coupled
+The DLL's `wn_move` glue, a new `mb_hostterrain` operation and its client, the public bridge (`TERRAIN_BRIDGE` carries only map/point/fast), the DLL-side sector rows used by G2, the other `point_below_ground`/`point_above_ground` consumers
+(avionics, particles), G3, loader/solver removal, and the spatial/model, environment and time inputs remain D3 scope. D4/D5 have not started. Nothing here is a cutover, a completed extraction, shipping evidence or Task48/D3 closure.

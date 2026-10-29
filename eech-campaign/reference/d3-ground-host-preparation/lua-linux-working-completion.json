@@ -1,0 +1,31 @@
+{
+  "actual_exit": 0,
+  "completed_utc": "2026-10-29T17:18:24.9641451Z",
+  "scope": "Working tree host Lua adapter build/guards/lint; no retail/native hybrid env, skips not proof",
+  "hashes": [
+    {
+      "path": "eech-campaign/crates/eech-world/src/terrain.rs",
+      "sha256": "de8fac26da6ba03cd36f29ba6c8ce7fbcccf8df1a583f862f3fd4e15be7c4c14"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/ground_provider.rs",
+      "sha256": "91a5898d1bcc99be09c3d5ce0a3d5a4f96fb3ff5f27a875f8359ff839e8b494a"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/ground_handoff.rs",
+      "sha256": "3841939461647761e0715077ccb2fe316405c767b7e5ce82e11f8253a098904e"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/ground-provider-transport.lua",
+      "sha256": "6a1886f57bbf14a41b94b7a811c6794e793600aea7cc68ab524b2eee7671242b"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/ground-handoff.lua",
+      "sha256": "11a6821d4cb14d89bde5eb56bfd7d9579fbcff5afb0ef258e33bdb317a29e56d"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/ground-handoff-verdict.lua",
+      "sha256": "aab4161f5aab4acaaf37beb21ad513a6e7f6a7ad2309c695c03dd93719ec6ec3"
+    }
+  ]
+}

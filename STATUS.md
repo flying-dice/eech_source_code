@@ -1,52 +1,45 @@
-# Latest execution checkpoint — host kernel conformance GREEN
+# D3 ground-host preparation checkpoint — 2026-10-29
 
-Clean measured source14bfd3ed6 Windows host-test build0; all4 payload hashes verify.
-Actual native terrain_backend17/17 and ground_conformance4/4 on EACH fresh verified
-Georgia/Lebanon/separate-repeat root pass0, with NO skips. All pre/post-input
-manifests pass0; immutable originalc119 raw hashes remain unchanged. Original20k/
-5k physical folds/counters/samples/common cache facts match; the host's second
-full sweep equals its first. Source/native independent review is now in progress.
-No DLL G2 dispatch, public authority, shipping acceptance or extraction delivery is
-proved. See reference/d3-ground-host-preparation/windows-conformance-14bfd3ed6.json.
+EEDCS-48 / Epic EEDCS-21; branch `codex/d3-ground-host-preparation`,
+base `1b6218b06a0d0ca61f884a4b913c0c1e5ded3b01`.
+Authority: live M5 goal 11534337 v3 and migration ledger 14548994 v59.
+D1/D2 are accepted. D3 remains in progress; D4/D5 have not started.
 
-The following records preparation scope and earlier pre-native gates.
+The host ground kernel at `14bfd3ed63e906759a7e688068a1f8090bb74db7`
+passed actual Windows terrain_backend 17/17 and ground_conformance 4/4 on EACH
+fresh verified Georgia, Lebanon and separate Lebanon repeat root, without skips.
+All pre/post input manifests passed; original c119 raw hashes are unchanged.
+Physical folds, counters, samples and common cache facts match the original;
+the host's second full sweep equals its first. Independent review of that exact
+kernel and evidence closed with no actionable findings. See
+`eech-campaign/reference/d3-ground-host-preparation/`.
 
-# D3 G2 host ground preparation — retail conformance pending
+The next host-only step adds Lua `ground_below`/`ground_impact` transport,
+direct retail-map tests and a healthy old-DLL control/required-handoff RED harness.
+Its actual Linux working-tree build, formatting and all-target host Clippy passed
+at 17:18:24Z. Six terrain library tests and eight map-free wrapper/guard tests
+ran and passed. Two additional functions explicitly SKIPPED: the real-map
+transport test and the public native control/RED test. Their reported Cargo
+success proves neither path. Source hashes and the complete Linux log are retained.
+This new Lua step has not yet had Windows/retail execution or independent review.
 
-EEDCS-48 / D3 EEDCS-21, branch codex/d3-ground-host-preparation, base1b6218b06.
-Authority: M5 goal11534337v3 and ledger14548994v58. D1/D2 accepted; D3 active;
-D4/D5 not started. No G2 production DLL cutover or completed extraction claimed.
+No production DLL G2 dispatch, client, `wn_move` or public module bridge changed.
+The Lua layer is host preparation, not a delivered extraction. Next: build a
+named clean Windows host/test snapshot; run direct transport on both maps, then
+the healthy old-DLL control and expected missing-handoff RED using an explicitly
+identified test-only hybrid with the unchanged frozen febbb7cc5 fixture DLL.
+Investigate differences and independently review the new source and results.
+Production G2 cutover waits Task47 delivery and reverified integration.
 
-Reference-host below-ground/impact kernels, internal above/sector-maximum helpers,
-complete semantic record results and original-case conformance code are prepared.
-Campaign supplies world bounds as data; the host performs the physical off-map
-predicate. Original float/double expressions, ASSERT evaluation side effects,
-short circuits, shared record/hints and endpoint correction/aliasing are retained
-by source implementation; actual original-oracle conformance is still unproved.
-The DLL/client/wn_move/public module bridge are unchanged. G2 production binding
-waits Task47 normal delivery and reverified integration.
+Task47's ordinary shipping pack from clean source
+`1156c8fbbdb80783164a95f54f1f782cea328307` remains running and untouched.
+Outer PID17636, runner24412 and native PIDs13480/22388/15952/14740 were verified
+against creation times and commands at this checkpoint. Tool session59652 owns
+the run. Retained Tacview/observation prefixes matched; complete40/eight full
+files/post-input checks and delivery are still pending. Do not restart on silence.
 
-Actual Linux build0, six existing terrain-library tests, one real vocabulary test,
-format/check and host all-target Clippy pass0. Three retail-dependent test functions
-explicitly SKIPPED without their environment; their reported Cargo success is NOT
-conformance. Windows portability was corrected by embedding only repository source
-vocabulary texts at compile time, keeping parsing/validation. No private data is
-embedded and no hand-written expected class table is substituted.
-
-Next: clean named Windows host-test build and real20k/5k/two-repeat conformance on
-fresh verified Georgia/Lebanon/separate-repeat roots against immutablec119 raws;
-classify every difference, independently review new source/results, then prepare
-public healthy old-DLL RED/authority before any later required handoff. No baseline,
-case, generator, physical fold, tolerance or solver formula was changed to get green.
-See docs/m5-ground-host-preparation.md and reference/d3-ground-host-preparation/.
-
-Task47 corrected ordinary115 shipping pack remains LIVE and untouched, tool59652,
-outer17636/runner24412/native13480/22388/15952/14740. All9 CI checks at its latest
-published metadata head passed. Latest checked3.55MB Tacview/2.61MB observations
-are exact prefixes only. Complete40/eight full files/post-inputs and delivery remain.
-
-Other direct above/below consumers, geometry/model/tree queries, physical loaders,
-environment/weather/RNG, host-time inputs and whole-D3 closure remain in scope.
-Root source-only clock/weather census is private evidence, not accepted extraction.
-Raw inputs/recordings/binaries/snapshots and execution details stay in R:/d3-evidence;
-D3-NEXT-ACTION.json records live process identities. Do not restart on quiet output.
+Other above/below consumers, collision/tree/model queries, physical loaders,
+weather/environment/RNG and host-time inputs remain D3 scope. No baseline,
+tolerance, original oracle or generator was changed. Private retail inputs,
+binaries and raw recordings stay outside Git in `R:/d3-evidence`; external
+`D3-NEXT-ACTION.json` and `D3-REQUIREMENTS.json` carry the continuation state.

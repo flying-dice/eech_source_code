@@ -939,6 +939,91 @@ fn seasonal_provider(lua: &Lua, dir: PathBuf, asserted: Option<bool>) -> LuaResu
     })
 }
 
+// ---- the ground operations of the provider (EEDCS-48, D3 G2; HOST PREPARATION: the campaign DLL does not send them yet) ----
+//
+//   { op = "ground_below",  world = { min_x, min_z, max_x, max_z }, x, y, z, hint? }
+//   { op = "ground_impact", world = { min_x, min_z, max_x, max_z }, above = { x, y, z }, below = { x, y, z }, hint? }
+//
+// `world` is the campaign's world-map area: geography DATA the campaign supplies; the host performs the physical off-map predicate with it and never assumes it equals
+// the terrain's extents. Every number is read with `coordinate` (a Lua number only, an exact single, the exact bits Lua holds, one field lookup). The calculations are the
+// reviewed `Terrain::ground_below` and `Terrain::ground_impact`; nothing here computes a ground predicate. The hint is parsed here (host-private shape) and its tag is
+// validated by the kernel when the terrain is first READ, so a decided-without-a-read answer never looks at it.
+//
+// Replies, by value:
+//   ground_below:  { below = bool, queried = bool, record = nil | { last_elevation, normal = { nx, ny, nz }, type, stored, hint? } }
+//   ground_impact: { above = { x, y, z }, below = { x, y, z }, impact = { x, y, z }, type, record = { last_elevation, normal = { nx, ny, nz }, type, stored, hint? } }
+// `record` is absent exactly when `queried` is false (the caller then keeps its whole record); when present it is the complete last record: `stored` is independent of `hint`,
+// and a host that keeps no hint simply omits it. `type` is an EECH terrain type id; the type -> class mapping is the campaign's. The diagnostic assertion counters of the
+// kernel are not part of the reply.
+
+/// A request field that must be a table (the nested shapes of the ground operations).
+fn request_table(request: &LuaTable, field: &str) -> LuaResult<LuaTable> {
+    match request.get::<LuaValue>(field)? {
+        LuaValue::Table(table) => Ok(table),
+        other => Err(LuaError::runtime(format!("host.terrain: {field} must be a table, got {}", other.type_name()))),
+    }
+}
+
+/// `coordinate` of `path.key`: the same strict read, its refusal naming where it was.
+fn nested_coordinate(reader: &CoordinateReader, table: &LuaTable, path: &str, key: &str) -> LuaResult<f32> {
+    coordinate(reader, table, key).map_err(|error| match error {
+        LuaError::RuntimeError(message) => LuaError::runtime(format!("host.terrain: {path}.{key}: {}", message.trim_start_matches("host.terrain: "))),
+        other => other,
+    })
+}
+
+fn request_world(reader: &CoordinateReader, request: &LuaTable) -> LuaResult<GroundWorld> {
+    let world = request_table(request, "world")?;
+    Ok(GroundWorld {
+        min_x: nested_coordinate(reader, &world, "world", "min_x")?,
+        min_z: nested_coordinate(reader, &world, "world", "min_z")?,
+        max_x: nested_coordinate(reader, &world, "world", "max_x")?,
+        max_z: nested_coordinate(reader, &world, "world", "max_z")?,
+    })
+}
+
+fn request_position(reader: &CoordinateReader, request: &LuaTable, field: &str) -> LuaResult<[f32; 3]> {
+    let position = request_table(request, field)?;
+    Ok([
+        nested_coordinate(reader, &position, field, "x")?,
+        nested_coordinate(reader, &position, field, "y")?,
+        nested_coordinate(reader, &position, field, "z")?,
+    ])
+}
+
+/// The record's hint, nil or the host-private string form: its shape is parsed here, its tag is not (the kernel checks that when it reads the terrain).
+fn request_hint(request: &LuaTable) -> LuaResult<Option<Hint>> {
+    match request.get::<LuaValue>("hint")? {
+        LuaValue::Nil => Ok(None),
+        LuaValue::String(text) => Ok(Some(decode_hint(&text.to_str()?).map_err(LuaError::runtime)?)),
+        other => Err(LuaError::runtime(format!(
+            "host.terrain: hint must be a string or nil, got {}",
+            other.type_name()
+        ))),
+    }
+}
+
+fn position_table(lua: &Lua, position: &[f32; 3]) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    table.set("x", f64::from(position[0]))?;
+    table.set("y", f64::from(position[1]))?;
+    table.set("z", f64::from(position[2]))?;
+    Ok(table)
+}
+
+/// The complete record a query left, by value: values, `stored` (independent of the hint) and the optional hint.
+fn record_table(lua: &Lua, record: &Answer) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    table.set("last_elevation", f64::from(record.last_elevation))?;
+    table.set("normal", record.normal.iter().map(|c| f64::from(*c)).collect::<Vec<f64>>())?;
+    table.set("type", record.kind)?;
+    table.set("stored", record.stored)?;
+    if let Some(hint) = record.hint {
+        table.set("hint", encode_hint(&hint))?;
+    }
+    Ok(table)
+}
+
 fn respond(lua: &Lua, terrain: &Terrain, request: &LuaTable) -> LuaResult<LuaTable> {
     {
         let op: String = match request.get::<LuaValue>("op")? {
@@ -991,6 +1076,43 @@ fn respond(lua: &Lua, terrain: &Terrain, request: &LuaTable) -> LuaResult<LuaTab
                 let elevation = terrain.fast_elevation(x, z).map_err(|e| LuaError::runtime(format!("host.terrain: {e}")))?;
                 let table = lua.create_table()?;
                 table.set("elevation", f64::from(elevation))?;
+                Ok(table)
+            }
+            "ground_below" => {
+                let reader = coordinate_reader(lua)?;
+                let world = request_world(&reader, request)?;
+                let (x, y, z) = (
+                    coordinate(&reader, request, "x")?,
+                    coordinate(&reader, request, "y")?,
+                    coordinate(&reader, request, "z")?,
+                );
+                let hint = request_hint(request)?;
+                let answer = terrain
+                    .ground_below(&world, x, y, z, hint.as_ref())
+                    .map_err(|e| LuaError::runtime(format!("host.terrain: {e}")))?;
+                let table = lua.create_table()?;
+                table.set("below", answer.below)?;
+                table.set("queried", answer.queried)?;
+                if let Some(record) = &answer.record {
+                    table.set("record", record_table(lua, record)?)?;
+                }
+                Ok(table)
+            }
+            "ground_impact" => {
+                let reader = coordinate_reader(lua)?;
+                let world = request_world(&reader, request)?;
+                let above = request_position(&reader, request, "above")?;
+                let below = request_position(&reader, request, "below")?;
+                let hint = request_hint(request)?;
+                let answer = terrain
+                    .ground_impact(&world, above, below, hint.as_ref())
+                    .map_err(|e| LuaError::runtime(format!("host.terrain: {e}")))?;
+                let table = lua.create_table()?;
+                table.set("above", position_table(lua, &answer.above)?)?;
+                table.set("below", position_table(lua, &answer.below)?)?;
+                table.set("impact", position_table(lua, &answer.impact)?)?;
+                table.set("type", answer.kind)?;
+                table.set("record", record_table(lua, &answer.record)?)?;
                 Ok(table)
             }
             other => Err(LuaError::runtime(format!("host.terrain: unknown op {other:?}"))),

@@ -1,0 +1,218 @@
+{
+  "schema": "independent-review-v1",
+  "reviewed_utc": "2026-10-29T16:57:50.846485+00:00",
+  "reviewer": "sole independent Codex delivery reviewer",
+  "task": "EEDCS-48 host-only ground-kernel preparation",
+  "repository": "R:\\d3-evidence\\ground-host-first-source-20261029",
+  "base": "1b6218b06a0d0ca61f884a4b913c0c1e5ded3b01",
+  "head": "14bfd3ed63e906759a7e688068a1f8090bb74db7",
+  "head_clean_before_and_after": true,
+  "scope": "One combined new-delta correctness, clean-code, numerical/control-flow fidelity, boundary/FFI/memory/lifetime/concurrency/FPU and conformance-evidence review. Read-only source; no supplied tests, builds, native executables, campaigns, process/cache/auth or external actions run by reviewer; no delegation.",
+  "changed_paths": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/csrc/terrain_ref.c",
+    "eech-campaign/crates/eech-world/csrc/terrain_ref.h",
+    "eech-campaign/crates/eech-world/src/terrain.rs",
+    "eech-campaign/crates/eech-world/tests/ground_conformance.rs",
+    "eech-campaign/docs/m5-ground-host-preparation.md",
+    "eech-campaign/reference/d3-ground-host-preparation/linux-build-and-vocabulary-working.json"
+  ],
+  "disposition": "NO_ACTIONABLE_FINDINGS_FOR_HOST_ONLY_PREPARATION",
+  "findings": [],
+  "tested_source_hashes_verified": [
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/terrain_ref.c",
+      "sha256": "84c4b12427b5272bf5bc27f1b8b15661d2df6e2821568aa0d9fbcb20f30ed2f6"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/terrain_ref.h",
+      "sha256": "e0947615ada6fcaa3f630e758456a050821653e1f7750900cb6eddb1333910d3"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/terrain.rs",
+      "sha256": "cf07089efd346f3ddb0183a36ceabab479d15c19c5b97fece636c183bc67dab2"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/ground_conformance.rs",
+      "sha256": "43c63e5246d0def59799ca26489a86aff236f5a7fba03b838285d94ab5c0b7cd"
+    }
+  ],
+  "source_assessment": [
+    {
+      "sources": [
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.c:4065",
+        "eech-campaign/crates/eech-world/src/terrain.rs:653"
+      ],
+      "result": "All new safe Rust entry points hold the existing all-map solver mutex across each C operation or complete conformance sweep. C saves/restores the FPU environment and selects FE_TOWARDZERO; nested conformance calls remain on the same map under that lock. Geometry ownership and map lifetime are reused, not reimplemented."
+    },
+    {
+      "sources": [
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.c:4122",
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.c:4277"
+      ],
+      "result": "Below/above short circuits, sector-maximum-before-point-query order, original double literals, endpoint correction, ASSERT-predicate terrain read, midpoint order, squared-range stop, and final point read match the original source. World x/z extents are caller data; no universal campaign-grid/terrain-grid identity is introduced."
+    },
+    {
+      "sources": [
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.h:96",
+        "eech-campaign/crates/eech-world/src/terrain.rs:354"
+      ],
+      "result": "By-value record data and an optional existing opaque map hint are returned only when queried; no-read below answers have None, preserving caller record state. Invalid hints are checked lazily when read. Corrected above/below endpoints and impact are distinct values, allowing the actual below-output alias shape to be reconstructed without pointer export. Terrain-class vocabulary remains campaign-owned."
+    },
+    {
+      "sources": [
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.c:5112",
+        "eech-campaign/crates/eech-world/tests/ground_conformance.rs:156"
+      ],
+      "result": "Counts, class-table cardinality/values and map extent are bounded. Fixed sample quotas fit the 12/32 arrays. C/Rust inner-field ordering and scalar widths were checked; actual x86_64 Windows executions exercise the boundary. No independent 32-bit ABI execution or claim is added."
+    },
+    {
+      "sources": [
+        "eech-campaign/crates/eech-world/tests/ground_conformance.rs:24",
+        "eech-campaign/crates/eech-world/tests/ground_conformance.rs:310"
+      ],
+      "result": "The test embeds and parses actual repository-owned terrain enum/database texts; no private retail samples or handwritten class table are embedded. The independent c119 oracle is parsed as retained, not regenerated or normalized. All four physical folds, corresponding physical counters, class/type counts, endpoint diagnostics, semantic query/cache counters and 12+32 ordered samples are compared. A second entire host sweep must equal the first."
+    }
+  ],
+  "evidence": {
+    "linux_completion": {
+      "path": "R:\\d3-evidence\\ground-host-prep-linux-working-completion.json",
+      "sha256": "d28c0443618b5652e86d0bb78bffd01059ca2663b3f4a1bd6e3b02ad40594a8c",
+      "actual_exit_recorded": 0,
+      "terrain_library_tests": 6,
+      "vocabulary_tests": 1,
+      "map_dependent_tests_skipped": 3,
+      "host_all_targets_clippy_and_fmt_recorded": 0
+    },
+    "windows_build": {
+      "completion": "R:\\d3-evidence\\build-ground-host-tests-14bfd3ed6-completion.json",
+      "actual_exit_recorded": 0,
+      "build_info_sha256": "f33cff7a2b87979d33c729d68152b271721621d0c448efa64b62dd515958b029",
+      "source": "14bfd3ed63e906759a7e688068a1f8090bb74db7",
+      "target": "x86_64-pc-windows-gnu release test-only",
+      "payloads_verified": [
+        {
+          "file": "ground_conformance.exe",
+          "bytes": 2890902,
+          "sha256": "6a5a4800744713d7038f6205307790a904c8e5324525323ce29907bc64779df1"
+        },
+        {
+          "file": "terrain_backend.exe",
+          "bytes": 2760083,
+          "sha256": "0315d86b2d4fb7a21c46364a52e8d84d550c7d244863efa0a5bd7481f9400d56"
+        },
+        {
+          "file": "terrain_conformance.exe",
+          "bytes": 2815062,
+          "sha256": "5d340ac0276dd4b94508b9a7330d817b6fe2b071723c2fafee4d0bf09d60d6bd"
+        },
+        {
+          "file": "lua.dll",
+          "bytes": 615397,
+          "sha256": "7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b"
+        }
+      ]
+    },
+    "native_controller": {
+      "path": "R:\\d3-evidence\\ground-host-first-14bfd3ed6-native-20261029\\controller.json",
+      "sha256": "25d1079e85ea5c50a8d9194323afa76208c5466144b1bd6d92e4669a32aa51ad",
+      "actual_outer_exit_recorded": 0,
+      "actual_backend_exit_recorded": 0,
+      "backend_tests": 17,
+      "backend_log_sha256": "cd3c3a286f4c8be57b57784f4f951e2e3a1af4df4029c26b651763a34910b549",
+      "scope": "Recorded original controller/subprocess exits plus independently hashed raw logs and immutable payload/oracle identities; reviewer did not execute these tests."
+    },
+    "runs": [
+      {
+        "scenario": "lebanon",
+        "actual_native_exit_recorded": 0,
+        "pre_input_check_exit": 0,
+        "post_input_check_exit": 0,
+        "native_log_sha256": "9d8873e7a93a34367baffd6785b2abb2f9d411ee9961df841740a3ad9b7d5532",
+        "oracle_sha256": "248ca1e81a4c72bad8011d28f77271c28aba916dec16dd4b17602c7c38f00b91",
+        "oracle_bytes": 39349,
+        "strict_original_json_rows": 117,
+        "original_measurement_rows_per_repeat": 57,
+        "original_measurement_repeats_equal": true,
+        "points_per_sweep": 20000,
+        "impacts_per_sweep": 5000,
+        "seed": 20261029,
+        "point_samples_per_sweep": 12,
+        "impact_samples_per_sweep": 32,
+        "physical_folds": {
+          "combined": "ea3064a7736c904f",
+          "above": "b419196047efb93d",
+          "below": "54db721aed53d535",
+          "impact": "e1c9860d868fc6e3"
+        },
+        "pre_post_input_log_sha256": "9e0482917025cdc7294f165459121f31f5688ce7ce7ec59c362fc916bf6cf602",
+        "input_file_count": 1179
+      },
+      {
+        "scenario": "lebanon-repeat",
+        "actual_native_exit_recorded": 0,
+        "pre_input_check_exit": 0,
+        "post_input_check_exit": 0,
+        "native_log_sha256": "0e18eb3235b4c5a334f881ae707b978f4a09a8334fdce9b35d65ee65f5eedace",
+        "oracle_sha256": "248ca1e81a4c72bad8011d28f77271c28aba916dec16dd4b17602c7c38f00b91",
+        "oracle_bytes": 39349,
+        "strict_original_json_rows": 117,
+        "original_measurement_rows_per_repeat": 57,
+        "original_measurement_repeats_equal": true,
+        "points_per_sweep": 20000,
+        "impacts_per_sweep": 5000,
+        "seed": 20261029,
+        "point_samples_per_sweep": 12,
+        "impact_samples_per_sweep": 32,
+        "physical_folds": {
+          "combined": "ea3064a7736c904f",
+          "above": "b419196047efb93d",
+          "below": "54db721aed53d535",
+          "impact": "e1c9860d868fc6e3"
+        },
+        "pre_post_input_log_sha256": "e7802b19855977af562fefd715695036fa2879b618fa8a8c449a4bce7011a0b7",
+        "input_file_count": 1179
+      },
+      {
+        "scenario": "georgia",
+        "actual_native_exit_recorded": 0,
+        "pre_input_check_exit": 0,
+        "post_input_check_exit": 0,
+        "native_log_sha256": "4fd65118291cb7ad874b9e1c747a513c0d4fafa4d5f713bbec9000830235e8b3",
+        "oracle_sha256": "5d2d40ed04ad77d485d09fea3e7afef340967edae52a8013dd0b80327092844a",
+        "oracle_bytes": 39327,
+        "strict_original_json_rows": 117,
+        "original_measurement_rows_per_repeat": 57,
+        "original_measurement_repeats_equal": true,
+        "points_per_sweep": 20000,
+        "impacts_per_sweep": 5000,
+        "seed": 20261029,
+        "point_samples_per_sweep": 12,
+        "impact_samples_per_sweep": 32,
+        "physical_folds": {
+          "combined": "03c997493d4ab73d",
+          "above": "0c97c389344445d4",
+          "below": "9201db667b7422d1",
+          "impact": "f659d0d3669dcbe4"
+        },
+        "pre_post_input_log_sha256": "c5b4d37605b8ee9679631a2c5dd710c3e04fe18d05c50ded6a55020c3c1a1ac5",
+        "input_file_count": 1174
+      }
+    ],
+    "preservation": "All three original oracle hashes match the previously closed c119 originals. Original report repeats match after excluding only repeat_index and the separate repeat_identical control footer; original raw bytes were never rewritten. All per-run pre/post input logs are byte identical and contain IDENTICAL. Four current payload hashes match BUILD-INFO and controller."
+  },
+  "limits": [
+    "No production DLL/client/wn_move/public bridge wiring changed: this is host-kernel preparation, not a host-authoritative campaign cutover or delivered extraction.",
+    "Conformance compares original repeat 1 and independently asserts a full second host sweep is identical; the retained original 57-row measurements also match across repeats. It does not compare private legacy ground-record/ground-hash layout/index/pointer diagnostics.",
+    "The supplied retail Georgia and Lebanon worlds have equal world/terrain extents; an additional API test uses distinct world bounds. This does not establish every possible map/geometry/season or arbitrary world/Y input combination.",
+    "No new generic-provider/Lua/DLL protocol or public old-DLL authority refusal is implemented or tested here. No independent 32-bit execution, sanitizer run, DCS scheduling/performance or visual inspection claim is made.",
+    "Linux no-environment execution includes three explicitly skipped map-dependent functions; those are not counted as conformance. The later Windows map runs have four actual tests and no skips each.",
+    "Task47 final-source ordinary shipping validation remains pending and was untouched. No final shipping pack, Task47/Task48 delivery, integration merge, whole-D3 completion or GitHub APPROVED claim is made."
+  ],
+  "next_bounded_gates": [
+    "No correction is required by this review of the pinned preparation delta.",
+    "After Task47 delivery/integration re-verification: review the new public G2 request/answer/record contract and all actual caller wiring/removal delta, preserve campaign class/world data ownership, and demonstrate a healthy old-DLL public authority RED before accepting the host cutover.",
+    "Collect candidate public/generic/refusal/default campaign and final-source ordinary shipping evidence for the eventual cutover. Continue remaining finite D3 responsibilities; do not infer completion from this kernel checkpoint."
+  ],
+  "review_setup_note": "One reviewer-only repeat comparison initially included the extra repeat_identical footer in repeat 2; its assertion stopped before any report write. The comparison was corrected to the 57 actual ground-* measurement rows. This was not a source/build/native failure; no input, oracle, supplied checker or raw evidence changed."
+}
