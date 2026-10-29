@@ -143,30 +143,50 @@ local config = {
 	supply_reached = host.supply_reached, line_of_sight = line_of_sight, sense = host.sense, aim = host.aim,
 	terrain = provider,
 }
--- What counts as the contract's refusal, in each mode (anything else is a setup or unrelated failure and fails the check):
+-- THE CONTRACT MARKERS. The campaign's refusals of a missing or malformed terrain provider carry a stable bracketed marker, so that this driver can tell the
+-- contract's refusal from any other failure that merely mentions "terrain" (a missing terrain.ffp, an unrelated boot or frame error). The DLL client that
+-- implements the provider contract must put exactly this text, once, in the error it raises:
+--
+--     [terrain-provider:missing]         boot was given no terrain provider (refused at boot)
+--     [terrain-provider:point.answer]    a point query's answer was not a table (nil)
+--     [terrain-provider:point.elevation] a point answer's elevation was missing, not a number, or not finite
+--     [terrain-provider:point.normal]    a point answer's normal was not three finite numbers
+--     [terrain-provider:point.type]      a point answer's surface type was not an integer in the EECH terrain-type range
+--     [terrain-provider:point.hint]      a point answer's hint was neither a string nor nil (or not one the campaign can store)
+--     [terrain-provider:point.callback]  the provider function itself raised an error; the message must also carry the provider's own text
+--
+-- Per mode (anything else is a setup or unrelated failure and fails the check):
 --   a healthy mode (reference, raised, generic) must boot and run to the end; any boot or frame error fails;
---   missing must be refused AT BOOT with an error that names the terrain provider (so a campaign that boots is a failure of the contract, and an
---   unrelated boot error is a failure of the setup);
---   bad_* must stop the engine, at boot or in a frame, with an error that names the terrain provider, AFTER the malformed answer was actually sent
---   (a failure with nothing sent, or a run that ends without failing, is not the refusal); bad_error must also carry the provider's own message.
+--   missing must be refused AT BOOT with the missing marker (a campaign that boots is a failure of the contract; a boot error without the marker is a failure
+--   of the setup, whatever else it names);
+--   bad_* must stop the engine, at boot or in a frame, with ITS marker above, after the malformed answer was actually sent (a failure with nothing sent, a
+--   failure carrying another mode's marker or none, or a run that ends without failing is not the refusal); bad_error must also carry the provider's sentinel.
+local markers = {
+	missing = "[terrain-provider:missing]",
+	bad_nil = "[terrain-provider:point.answer]",
+	bad_elevation = "[terrain-provider:point.elevation]",
+	bad_normal = "[terrain-provider:point.normal]",
+	bad_type = "[terrain-provider:point.type]",
+	bad_hint = "[terrain-provider:point.hint]",
+	bad_error = "[terrain-provider:point.callback]",
+}
+local sentinel = "provider failed on purpose"
+
 local function first_line (value)
 	return (tostring (value):gsub ("\n.*", ""))
 end
 
-local function names_terrain (message)
-	return message:lower ():find ("terrain", 1, true) ~= nil
-end
-
 local function check_refusal (where, message)
+	local marker = markers [mode]
+	assert (marker, "terrain-provider: no contract marker is defined for mode " .. mode)
 	if mode == "missing" then
 		assert (where == "boot", "terrain-provider: a campaign without a terrain provider booted and ran")
-		assert (names_terrain (message), "terrain-provider: the boot failed without naming the terrain provider (an unrelated boot error?): " .. message)
 	else
-		assert (malformed_sent, "terrain-provider: the campaign failed (" .. where .. ") but the malformed terrain answer was never sent: " .. message)
-		assert (names_terrain (message), "terrain-provider: the " .. where .. " failure does not name the terrain provider (an unrelated error?): " .. message)
-		if mode == "bad_error" then
-			assert (message:find ("provider failed on purpose", 1, true), "terrain-provider: the provider's own error was not carried: " .. message)
-		end
+		assert (malformed_sent and calls.point >= 1, "terrain-provider: the campaign failed (" .. where .. ") but the malformed terrain answer was never sent: " .. message)
+	end
+	assert (message:find (marker, 1, true), "terrain-provider: the " .. where .. " failure does not carry the contract marker " .. marker .. " (an unrelated error?): " .. message)
+	if mode == "bad_error" then
+		assert (message:find (sentinel, 1, true), "terrain-provider: the provider's own error was not carried: " .. message)
 	end
 end
 

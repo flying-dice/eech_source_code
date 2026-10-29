@@ -1,4 +1,24 @@
-# D3 terrain services — committed source checkpoint, validation pending
+# D3 terrain services — host kernel conformance passed, public handoff next
+
+29 October 2026. Clean runtime source 6f13beae1 built the Windows fixture and
+focused test executables with actual exit 0. All seven asset-free backend tests
+pass; all three retail conformance tests pass on each map, including original
+point/primed and fast-elevation hashes. Both original quick fast-oracle probes
+exited 0. Original point hashes and all old raw report rows match except one
+diagnostic source-line field per map (558 -> 585, verified same statement).
+This explicit diagnostic difference is retained; no output was normalized.
+Both post-input manifests and all 44 new fixture files still match. Evidence:
+eech-campaign/reference/d3-terrain-characterization/backend-validation-6f13beae1.json.
+
+Five first-review findings are closed by the independent correction review.
+The remaining refusal-harness finding has a new source-only marker/negative-
+control correction and word-reference coverage, awaiting compiled tests/review.
+Production DLL dispatch is unchanged: no physical service has moved yet.
+Next: actual old-DLL public red cases, then implement the required host callback,
+preserve behavior and complete shipping40/eight comparisons and normal delivery.
+Other D3 groups and the missing-fast-grid generation gap remain outstanding.
+
+The earlier checkpoint records below retain their at-the-time limits.
 
 29 October 2026. User-requested commit/push checkpoint on
 codex/d3-terrain-services for EEDCS-47 / draft PR107. The host point/fast/map-facts

@@ -3,13 +3,16 @@
 Base `6bbaa8197a4843181d03cd355d562af998c75321`, branch `codex/d3-terrain-services`, 29 October 2026.
 Census and group map: [`docs/handover/D3-SCOPE-AUDIT.md`](../../../docs/handover/D3-SCOPE-AUDIT.md).
 
-**Status: original a8 Windows fixture controls completed; new f4 host backend
-checkpoint fails compilation and is under review. No physical service has moved.**
+**Status: original a8 controls completed; corrected 6f Windows host kernel passes
+both retail-map conformance cases. Production DLL dispatch is unchanged.**
 [`original-controls-a8effa9f3.json`](original-controls-a8effa9f3.json) summarizes
 the completed original controls and complete 900-second recording equality.
 Raw recordings, retail data and binaries remain private. Source findings and
-planned checks below retain their stated limits; no backend conformance,
-fast-oracle result or new shipping acceptance is claimed.
+planned checks below retain their stated limits. The newer
+[`backend-validation-6f13beae1.json`](backend-validation-6f13beae1.json) records
+the seven synthetic tests, both three-test retail runs and original fast oracles.
+The initial f4 compile failure and one diagnostic source-line shift are retained.
+Public callback authority and new shipping acceptance remain unproven.
 
 ## What is prepared
 
@@ -315,3 +318,52 @@ interleaved queries and sweeps. The private-data checks in `terrain_conformance.
 Proposed commands (Root): `cargo test --locked -p eech-world --test terrain_backend` and `cargo test --locked -p eech-world terrain`, then the gated conformance run as
 above with `EECH_TERRAIN_DIR=R:/d3-evidence/backend-test-roots/lebanon/common/maps/map5/terrain` (Georgia: `map3`), and the Lua harness against the unmoved DLL.
 Not done: the missing-grid generation of the original remains a named compatibility gap to reconcile; it is not declared unsupported here to ease acceptance.
+
+## Provider contract markers, driver guards and 16-bit-reference coverage (source only; not built or run by the author)
+
+Base `6f13beae1`. The Root's real Windows run of `terrain_backend.exe` (7 tests, exit 0, `terrain-backend-tests-6f13beae1-completion.json`) is separate evidence
+for the *previous* tests on synthetic data; it is not retail conformance and does not cover anything in this section.
+
+### The markers the DLL client must emit (for the next handoff)
+
+`lua/terrain-provider.lua` now accepts a refusal only when the first line of the engine's error carries the stable marker for that mode. The future DLL client
+that implements the `terrain` provider contract must put exactly this text, once, in the error it raises (wording around it is free):
+
+| Mode | Marker | When the campaign raises it |
+|---|---|---|
+| `missing` | `[terrain-provider:missing]` | at boot, when no terrain provider was given |
+| `bad_nil` | `[terrain-provider:point.answer]` | a point answer is not a table |
+| `bad_elevation` | `[terrain-provider:point.elevation]` | the elevation is missing, not a number, or not finite |
+| `bad_normal` | `[terrain-provider:point.normal]` | the normal is not three finite numbers |
+| `bad_type` | `[terrain-provider:point.type]` | the surface type is not an integer in the EECH terrain-type range |
+| `bad_hint` | `[terrain-provider:point.hint]` | the hint is neither a string nor nil |
+| `bad_error` | `[terrain-provider:point.callback]` | the provider function raised; the message must also carry the provider's own text (the driver's sentinel is `provider failed on purpose`) |
+
+Rules the driver enforces: `missing` fails only at boot and with the missing marker (a boot that succeeds, or an unrelated error that merely names the terrain,
+such as a missing `terrain.ffp`, fails the check); each `bad_*` mode passes only if its malformed answer was actually sent (`malformed_sent` and at least one
+point call), the failure carries that mode's own marker (another mode's marker, or none, fails), and a run that never fails fails; healthy modes fail on any boot
+or frame error and on a provider that is never consulted. Requested and completed frames are reported separately. On the unmoved DLL the markers never
+appear and the provider is never consulted, so the check is RED for the missing contract and not for a setup accident.
+
+### Driver guards (local; not campaign acceptance)
+
+`tests/terrain_provider_harness.rs` runs the real, unmodified script under a real Lua 5.1 state (`mlua`), with one controlled collaborator in place of the
+campaign DLL: `require ("eech_dc")` returns a `boot` and an engine whose boot and frame behaviour (which provider requests it makes, which error it raises, when)
+each case chooses. Cases that must pass: each `bad_*` mode with its own marker after the malformed call (at boot, and in a frame), `bad_error` with marker and
+sentinel, `missing` with its marker at boot, and the healthy modes. Cases that must fail, with the reason checked: an unrelated terrain-named error
+(`cannot open terrain.ffp`, "the terrain could not be loaded"), another mode's marker, no marker, the marker only on a later line, a refusal before the
+malformed answer was sent (nothing asked, or only the map asked), a `bad_*` run that completes, a `missing` run that boots, `bad_error` without its sentinel or
+without its marker, and healthy modes that fail at boot or in a frame or never consult the provider. They use no map, engine or asset, and prove nothing about
+the DLL.
+
+### Sixteen-bit references
+
+The earlier synthetic tests all used sectors of fewer than 257 points, i.e. the byte-reference branch. `tests/terrain_backend.rs` now also builds sectors of 256,
+257 and 304 points (the last with the fourth corner stored at index 299, so the 16-bit reference has a non-zero high byte) through the real loader and query: the
+answers are bit-for-bit those of the byte-reference map of the same square at every pad from 0 to 7 (odd and even coordinate and reference offsets), a hint on a
+16-bit-reference sector takes the fast path and leaves itself unchanged, a point in the second triangle (reading the corner at index 299) is found, and 16-bit
+references to the first index past the count, 305, 60000 and 65535 are refused with "names point" while 303 is accepted. The existing seven tests are unchanged.
+No kernel code changed in this batch.
+
+Commands for the Root (not run by the author): `cargo test --locked -p eech-world --test terrain_provider_harness` and `--test terrain_backend`; `cargo fmt --check`
+is needed (rustfmt is not available to the author). The missing-grid generation of the original remains a named compatibility gap and is not declared unsupported.

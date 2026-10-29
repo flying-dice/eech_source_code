@@ -8,9 +8,9 @@ Epic [EEDCS-21](https://flying-dice.atlassian.net/browse/EEDCS-21) and Task
 [EEDCS-47](https://flying-dice.atlassian.net/browse/EEDCS-47). Old W07/W08 wording, the
 TypeScript experiments and earlier inventories are not authority.
 
-**Status: original a8 fixture controls completed; host backend checkpoint f4 does
-not compile and is under one independent combined review. No physical service
-has moved.** Sections 2 to 6 record the initial source survey; section 7 gives
+**Status: original a8 fixture controls completed; corrected 6f host backend
+compiles and passes both retail-map conformance cases. Production DLL dispatch
+is unchanged: no physical service has moved.** Sections 2 to 6 record the initial source survey; section 7 gives
 current execution evidence. Original controls do not establish host ownership.
 Accepted D2 evidence (`D2-SCOPE-AUDIT.md`, `reference/d2-combat-characterization/final-shipping-fullpack`,
 baseline `R:/d2-evidence/baseline-host-20261026-shortpath`, bundle `R:/eech-regression-20261025`,
@@ -152,6 +152,16 @@ These are candidates for the D3 services, not claims of DCS behaviour; M6 verifi
   fixture compile exited 1 at `terrain_ref.c:1444` (unmatched `#endif`). No backend
   native run, fast-oracle result or host authority is established. Production DLL
   dispatch remains unchanged. The new parser/FFI/harness delta is under review.
+- **Corrected kernel validation:** clean 6f13beae1 Windows fixture/focused-test
+  builds exited 0. Seven synthetic production-loader/query/sweep/concurrency tests
+  and three real-map conformance tests on each map pass, including new original
+  fast-elevation hashes. All old original smoke rows remain exact except one
+  source-diagnostic line shift per map (558 -> 585, same statement verified).
+  Both post-input manifests and all 44 exported fixture files match. See
+  `backend-validation-6f13beae1.json` in the reference directory. This does not
+  establish public campaign authority or shipping acceptance. Five review
+  findings close by source; stricter refusal markers and word-reference test
+  coverage are the next tiny delta before actual production handoff.
 - **Feature-off limit:** the old solver/control logic is unchanged by inspection,
   but exact preprocessed identity is not claimed: diagnostic source locations
   shift. A new shipping build and regression remain delivery requirements.

@@ -40,6 +40,12 @@ struct Shape {
     off_poly: Option<u32>,
     off_surface: Option<u32>,
     polygons: u16,
+    /// filler points after the four corners; with `points + extra_points >= 257` the sector uses 16-bit references
+    extra_points: u16,
+    /// the index the fourth corner is stored at (3 unless a test moves it, e.g. beyond 255 to need the high byte of a 16-bit reference)
+    corner: u16,
+    /// the last reference of the face, when a test wants a particular one (16-bit maps; the byte maps use `reference`)
+    word_reference: Option<u16>,
 }
 
 impl Default for Shape {
@@ -56,6 +62,9 @@ impl Default for Shape {
             off_poly: None,
             off_surface: None,
             polygons: 1,
+            extra_points: 0,
+            corner: 3,
+            word_reference: None,
         }
     }
 }
@@ -63,16 +72,30 @@ impl Default for Shape {
 fn build(shape: Shape) -> Parts {
     let mut geometry = vec![0xAAu8; shape.pad];
     let off_xz = geometry.len() as u32;
-    for (x, z) in [(-A, -A), (-A, A), (A, A), (A, -A)] {
-        le16(&mut geometry, x as u16);
-        le16(&mut geometry, z as u16);
+    // the file holds `total` points: the square's corners at 0, 1, 2 and `corner`, filler (at the map's origin) everywhere else
+    let total = usize::from(shape.points) + usize::from(shape.extra_points);
+    let mut points = vec![(0i16, 0i16); total.max(usize::from(shape.corner) + 1).max(4)];
+    points[0] = (-A, -A);
+    points[1] = (-A, A);
+    points[2] = (A, A);
+    points[usize::from(shape.corner)] = (A, -A);
+    for (x, z) in &points {
+        le16(&mut geometry, *x as u16);
+        le16(&mut geometry, *z as u16);
     }
     let off_y = geometry.len() as u32;
-    for _ in 0..4 {
+    for _ in &points {
         le16(&mut geometry, shape.y);
     }
     let off_ref = geometry.len() as u32;
-    geometry.extend_from_slice(&[0, 1, 2, shape.reference]);
+    if total < 257 {
+        geometry.extend_from_slice(&[0, 1, 2, shape.word_reference.map_or(shape.reference, |w| w as u8)]);
+    } else {
+        // 16-bit references, as the solver reads them for a sector of 257 points or more
+        for reference in [0u16, 1, 2, shape.word_reference.unwrap_or(shape.corner)] {
+            le16(&mut geometry, reference);
+        }
+    }
     let off_poly = geometry.len() as u32;
     geometry.push(shape.face_byte);
     let off_surface = geometry.len() as u32;
@@ -84,7 +107,7 @@ fn build(shape: Shape) -> Parts {
     le16(&mut sector, 1);
     sector.extend_from_slice(&0.0f32.to_le_bytes());
     sector.extend_from_slice(&32767.0f32.to_le_bytes());
-    le16(&mut sector, shape.points);
+    le16(&mut sector, shape.points + shape.extra_points);
     le16(&mut sector, 0);
     le16(&mut sector, shape.polygons);
     for _ in 0..5 {
@@ -380,4 +403,87 @@ fn the_fast_grid_loads_checked_and_interpolates() {
         map(Shape::default()).fast_elevation(0.0, 0.0).is_err(),
         "a map without a grid is a refusal, never a generated grid"
     );
+}
+
+/// A sector of 257 points or more is read through 16-bit references (the other tests use the byte-reference branch). This goes through the real
+/// loader and query on such sectors: the answers are bit-for-bit those of the byte-reference map of the same square, at every alignment of the
+/// 16-bit coordinate and reference arrays, with a reference whose high byte is non-zero, and a hint on such a sector takes the fast path.
+#[test]
+fn sixteen_bit_references_answer_like_byte_references_at_any_alignment() {
+    let reference = map(Shape::default()).query(X, Z, None).unwrap();
+    // 256 points still use byte references and 257 the first 16-bit ones; the fourth corner is stored beyond index 255 (high byte non-zero)
+    for (name, shape) in [
+        (
+            "256 points (byte references)",
+            Shape {
+                extra_points: 252,
+                ..Shape::default()
+            },
+        ),
+        (
+            "257 points (16-bit references)",
+            Shape {
+                extra_points: 253,
+                ..Shape::default()
+            },
+        ),
+        (
+            "304 points, corner at 299",
+            Shape {
+                extra_points: 300,
+                corner: 299,
+                ..Shape::default()
+            },
+        ),
+    ] {
+        for pad in 0..8 {
+            let answer = map(Shape { pad, ..shape }).query(X, Z, None).unwrap();
+            assert!(answer.found, "{name}, pad {pad}");
+            assert_eq!(answer.elevation.to_bits(), reference.elevation.to_bits(), "{name}, pad {pad}");
+            assert_eq!(answer.normal.map(f32::to_bits), reference.normal.map(f32::to_bits), "{name}, pad {pad}");
+            assert_eq!(answer.kind, reference.kind, "{name}, pad {pad}");
+        }
+    }
+
+    let wide = map(Shape {
+        extra_points: 300,
+        corner: 299,
+        pad: 3,
+        ..Shape::default()
+    });
+    let first = wide.query(X, Z, None).unwrap();
+    let hint = first.hint.expect("a face found leaves a hint");
+    let again = wide.query(X, Z, Some(&hint)).unwrap();
+    assert!(
+        again.fast_attempted && again.fast_hit,
+        "a hint on a 16-bit-reference sector brings the fast path"
+    );
+    assert_eq!(again.elevation.to_bits(), first.elevation.to_bits());
+    assert_eq!(again.hint, Some(hint));
+    // a point in the second triangle of the fan (reads the fourth corner, index 299) is found as well
+    let second = wide.query(1536.0, 512.0, None).unwrap();
+    assert!(second.found && (second.elevation - 1000.0).abs() < 0.01, "{second:?}");
+}
+
+/// A 16-bit reference to a point the sector does not have is refused at load, not read: the first index past the count, and the top of the range.
+#[test]
+fn an_out_of_range_sixteen_bit_reference_is_refused() {
+    for bad in [304u16, 305, 60000, 65535] {
+        let parts = build(Shape {
+            extra_points: 300,
+            word_reference: Some(bad),
+            ..Shape::default()
+        });
+        let error = Terrain::from_bytes(&parts.sector, &parts.geometry, None, 5)
+            .err()
+            .unwrap_or_else(|| panic!("accepted reference {bad}"));
+        assert!(error.contains("names point"), "{bad}: {error}");
+    }
+    // and the last valid one is accepted
+    let parts = build(Shape {
+        extra_points: 300,
+        word_reference: Some(303),
+        ..Shape::default()
+    });
+    assert!(Terrain::from_bytes(&parts.sector, &parts.geometry, None, 5).is_ok());
 }
