@@ -1,3 +1,29 @@
+# Latest Task48 progress — reviewed host ground kernel; public handoff pending
+
+Existing EEDCS-48 / PR108. Host-only preparation branch codex/d3-ground-host-preparation
+is pushed at55c06998b; actual clean measured source14bfd3ed6 has native Windows
+backend17/17 and ground_conformance4/4 on EACH fresh Georgia/Lebanon/separate-repeat
+root, no skips, all pre/post-inputs0. Original20k/5k physical hashes/counters/samples/
+common cache observations match immutablec119; a second host sweep equals its first.
+Linux terrain-library6 + vocabulary1 and host Clippy/fmt0 pass; earlier3no-env skips
+are explicit, not proof. All4 native build payload hashes verify.
+
+One independent source/native review of14bf found no actionable findings, report
+SHA10132850f6080d8c3b3a13c0f96b345044532a13f1fc3cfa127422c85fc6d2e1.
+Reviewed preparation supplies caller-world bounds as DATA, computes the physical
+predicate in host, preserves complete semantic record/hint results and no-read
+short circuits, ASSERT predicate side effects and endpoint alias reconstruction.
+This is host preparation; the production DLL/client/wn_move still use the old path.
+
+The sole Sonnet5.5High lane is adding Lua-provider exposure and real direct/healthy
+old-DLL missing-handoff checks in the isolated preparation branch. Those NEW changes
+are currently source in progress, unbuilt/unrun/unreviewed; no public authority,
+G2 cutover, completed Task48 or D3 acceptance is claimed. Task47 delivery/base
+verification still gates production G2 switching. Full D3 scope is retained.
+
+Safe evidence: eech-campaign/reference/d3-ground-host-preparation/.
+The following is the previous checkpoint, retained with its source identities.
+
 # D3 ground-contact — original characterization and G1 compatibility complete
 
 EEDCS-48 / PR108, branch codex/d3-ground-contact. Original characterization and
