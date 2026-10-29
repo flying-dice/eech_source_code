@@ -1,3 +1,39 @@
+# Current D3 component — EEDCS-50 host-owned collision-model store (29 October 2026): SOURCE PREPARED, UNBUILT, UNRUN
+
+Base: branch `codex/d3-model-geometry` at the reviewed original characterization (`366622e0c` fixture and measurements; driver `309b3f050`, independent closure with no open findings),
+integration ancestry `6bbaa8197`. Live authority: the M5 goal (Confluence 11534337) and the migration ledger (14548994); Epic EEDCS-21 (D3) and Task EEDCS-50 In Progress. D4 and D5 have not
+started. The six-process Task 47 shipping run (115) is still live elsewhere (59 MB Tacview / 41 MB OBS prefixes equal only; no complete 40-check / eight-artifact acceptance); production G2/G3
+still wait for validated preceding delivery. This entry makes no claim about any of that, and it is not Task Done, not whole-D3, not production.
+
+**What is new (actual implementation, not another fixture):** the first host-owned model component. `eech_world::models::ModelStore` loads the collision-model data from the retail DISK assets by
+the host, independently of the campaign DLL: `bininfo.bin` names (checked against the compiled list), `3dobjs.bin/.pts/.sp` objects, every `3dobjdb.bin` scene record (walked by its own counts),
+binary-hex `OBJECTS/????.EEO` overrides and named `OBJECTS/<dir>/*.EES` scenes (versions -1 to -3, per-directory `.EEO` resolution). Private legacy layout; Lua sees only semantic values
+(`host.model_store`, `scene`, `triangle`, `summary`, `compare_original`). The original's numeric code (object-bounding-box triangle scaling; 3dsubobj.c scene bounds and radius) is reused in
+`csrc/model_step.c` under a round-toward-zero guard that restores the caller's complete x87/SSE state on every path. The decoder's integer walk is the original's, translated exactly, over
+bounds-checked arrays: a read is allowed as far as the BACKED array extends (not the object's own counts), so the 45 mixed-layout and 14 custom-object models are decoded where backed and
+refused (`unbacked_*`) where not, with the legacy semantics reproduced, not repaired. Missing assets are NOT RUN; truncated or inconsistent files are refusals; no synthetic fallback.
+Files and formats: `eech-campaign/docs/m5-model-host-store.md`. Changed: `src/models.rs`, `src/model_host.rs`, `csrc/model_step.c`, `data/scene-names.txt` (derived from `modules/3d/3dmodels.h`),
+`build.rs`, `src/lib.rs`, `src/main.rs` (one registration line), `lua/model-host-compare.lua`, `tools/model-host-compare-windows.ps1`, `tests/model_store.rs`, the docs. The existing model driver,
+its tests and the fixture are unchanged. No production dispatch moved; the campaign DLL still runs the original loader and queries.
+
+**Original measurements reused (not repeated):** `compare_original` reads the retained original report (3025 scenes per root; 769 safe, 2009 absent, 14 custom, 45 face-mismatch, 188 no-scene; the
+selected MI24, KRIVAK, Ka-50, pipe, building and pylon rows) as the oracle. Nothing is derived from the store as an expectation. The 14 custom and 45 mixed-layout scenes have NO original triangles
+(the original refused them); the host's answers for them are listed as such, not as matches, and a minimal feature-only original probe over the ranges the store reports backed is the next
+characterisation if the Root wants them equivalence-measured. Raw assets and triangle coordinates stay private.
+
+**Guards written (not run):** loader refusals at every truncation, bad counts and magic, scene and object indices, header totals, missing assets, name disagreement; the C1 mapping; overrides
+(applied, ignored version, invalid, truncated, ambiguous); named scenes (object numbering, missing object, unsupported version, unresolved name); the mixed-layout backing refusal; arguments and
+depths; caller floating-point control and status restored bit for bit and the answer independent of the caller's rounding mode, and an unmasked caller refused; the store is `Send + Sync`
+immutable data; the driver and comparator on a fixture installation (match, nine kinds of alteration found and counted, unreadable or empty reports refused, NOT RUN, no overwrite). The
+fixture installations are written by the tests in the original's formats; the only numeric expectations are identities (scale exactly 1.0; caller-independence), not a physical oracle.
+
+**Next (Root):** format, build, run the guards (Linux and Windows, with `EECH_WORLD_BIN` for the physical host), fix what the compiler and Clippy find; then the retail comparison with
+`tools/model-host-compare-windows.ps1` on fresh verified Georgia, Lebanon and a repeat root against the retained original report, with input post-checks; investigate every mismatch (a
+mismatch is a finding, never a tolerance); then one combined independent review. After that: the custom and mixed-layout original probe, the production hand-off of the model data to the object and
+tree queries, and the remaining whole-D3 scope: model hierarchy, viewpoint, device, muzzle and target-point services, entity collision, the terrain, spatial, environment and host-time services,
+and the removal of the physical solvers and loaders from EECH_DC. Campaign policy, geography, routes, timers and consequences stay in EECH_DC. No Git, build, test or native action was taken in
+this lane.
+
 # D3 checkpoint — original retail model characterization reviewed; host loader next
 
 Task50 original-model preparation is independently closed with no open findings.

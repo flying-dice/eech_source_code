@@ -4,6 +4,8 @@ pub mod aim;
 pub mod cmb;
 pub mod flight;
 pub mod los;
+pub mod model_host;
+pub mod models;
 pub mod movement;
 pub mod sense;
 pub mod tacview;

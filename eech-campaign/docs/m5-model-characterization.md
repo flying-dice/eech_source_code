@@ -158,3 +158,5 @@ face-layout mismatches were refused, not decoded); the host-owned read-only mode
 reusing these scenarios against the new path; model hierarchy, viewpoint, device, muzzle and target-point services; entity collision and the terrain / environment / host-time services
 and the physical solver/loader removal from EECH_DC. Campaign policy, geography, routes, timers and consequences stay in EECH_DC. The whole-engine DLL still couples D3 to the
 original C model code; this probe does not remove that coupling.
+
+The first host-owned model component that follows this characterisation (source prepared, unbuilt, unrun) is described in [`m5-model-host-store.md`](m5-model-host-store.md).

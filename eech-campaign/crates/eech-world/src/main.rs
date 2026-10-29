@@ -2692,6 +2692,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             })?,
         )?;
     }
+    eech_world::model_host::register(&lua, &host)?;
     lua.globals().set("host", host)?;
 
     let source = std::fs::read_to_string(script)?;
