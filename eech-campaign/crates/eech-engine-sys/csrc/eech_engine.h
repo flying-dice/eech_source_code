@@ -370,4 +370,34 @@ int eech_engine_cmb_case_bridge (int op, int ordinal, int index, int criterion, 
 int eech_engine_cmb_events (char *text, int capacity, int *more);
 #endif
 
+#ifdef EECH_COLLISION_FIXTURE
+/*
+ * TEST-ONLY (feature collision-fixture, EEDCS-49): see eech_collision_fixture.c. Not part of the shipping module.
+ * One probe of the original get_line_of_sight_collision_entity and get_line_of_sight_collision_tree against the loaded world: a finite structured
+ * case set taken from the real sector lists and tree data, plus entity_cases and tree_cases seeded random cases from a private generator
+ * seeded with seed. The report is key=value text lines: the census, per-kind hit counts, exclusion and ordering counters, cache and
+ * miss-write counters, an order-dependent physical fold (float bit patterns), a separate legacy fold, and bounded raw samples. The shared terrain
+ * point record is restored byte for byte; the game's random stream and a sector-list fingerprint (entity type, flags, position and mobile motion; not city buildings or
+ * identities, so a bounded observation and not a proof of purity) are compared before and after. The three update-flag bit arrays the original moving collision clears
+ * as a side effect are copied before the probe, the original queries' effect on them is reported (col-flags), and they are written back before the final fingerprint. All six FP exceptions must be masked in the x87 control word and
+ * the SSE MXCSR (read, never written). Needs no host. A refused
+ * probe (a precondition not held, a report that does not fit) writes "col-refused reason=..." and fails as a bad argument; each of entity_cases
+ * and tree_cases is 0 to 20000.
+ */
+int eech_engine_collision_probe (uint32_t seed, int entity_cases, int tree_cases, char *text, int capacity);
+/*
+ * The optional private tree-query transcript of the probe (off by default; the probe's report is identical either way). Arming clears it and makes the next probe record every
+ * tree query it makes, with the terrain lookups the original made. Reading: kind 0 returns the state row and the facts block, kind 1 returns records [offset, offset + count),
+ * count 1 to 256; *total is the number of records held. An offset at or past the end is a successful empty page; bad arguments are refused; a text that does not fit is refused. See eech_collision_fixture.c.
+ */
+int eech_engine_collision_trace_arm (int on);
+int eech_engine_collision_trace_read (int kind, int offset, int count, char *text, int capacity, int *total);
+/*
+ * The optional CONTROLLED FOREST GEOMETRY WITNESS (EEDCS-49, test-only; off by default, and the default probe is unchanged). Arming applies to the NEXT collision probe only and is consumed by it
+ * whatever its outcome. The armed probe supplies the forest tree object a small fixture-owned collision model for the duration of that probe (a copy of the real object table plus the
+ * model, the real table untouched), runs the unchanged original queries, restores everything and appends a col-geometry-witness row that states the restoration. See eech_collision_fixture.c.
+ */
+int eech_engine_collision_geometry_arm (int on);
+#endif
+
 #endif

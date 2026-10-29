@@ -1380,6 +1380,14 @@ extern "C" {
     ) -> c_int;
 }
 
+#[cfg(feature = "collision-fixture")]
+extern "C" {
+    pub fn eech_engine_collision_probe(seed: u32, entity_cases: c_int, tree_cases: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_collision_trace_arm(on: c_int) -> c_int;
+    pub fn eech_engine_collision_geometry_arm(on: c_int) -> c_int;
+    pub fn eech_engine_collision_trace_read(kind: c_int, offset: c_int, count: c_int, text: *mut c_char, capacity: c_int, total: *mut c_int) -> c_int;
+}
+
 #[cfg(feature = "aim-fixture")]
 extern "C" {
     pub fn eech_engine_aim_trace(text: *mut c_char, capacity: c_int) -> c_int;

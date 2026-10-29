@@ -1,3 +1,969 @@
+# Original geometry witness — independently CLOSED; native47a and diagnosticb44 evidence retained
+
+The original forest-geometry witness preparation is closed with no open finding.
+Native measurements remain labelled `47a4af0d1a5a5694c1678147a19240b071627fac`;
+the stricter checker and its tests are reviewed/tested at
+`b44d2c96faa4e84e92b0f7507d81e4d80106edb9`. No native DLL rebuild is claimed for
+the diagnostic-only correction: ten exact Git blob identities establish reuse.
+All15054 original queries and29894 ordered replies match through host library
+and actual Lua; default f3 reports/transcripts and controlled537 transcripts
+remain byte identical. All native state/refusal controls, input checks and49
+original export hashes remain as measured and independently verified.
+
+Linux formatting/18 driver guards/Clippy and actual Windows18 guards pass;
+the invalid host override still refuses101. The14 actual old/new driver cases
+prove five newly blocked impossible histories, a healthy input accepted by both,
+and the preexisting neutral-depth refusal preserved. Root's original aggregate
+exit1 is retained: it expected the wrong failure-event name. Separate read-only
+assessment0 uses the actual `trace_failed` stage, preserves all outputs and was
+independently reviewed. No failed result was overwritten or labelled exit0.
+
+Final focused closure SHA256:
+`4a97eb5468dc7cbc3202a9f68d572e7cd376441347f60624349d2d68c3606573`.
+The original CHANGES_REQUIRED reviewd796 remains immutable. Safe validation,
+source-reuse, assessment and closure reports are under
+`reference/d3-collision-characterization/`.
+
+This is characterization/preparation, not Task49 or D3 delivery. Production
+queries and model loading still run in the DLL. New EEDCS-50 now starts the
+required collision-model loader/geometry extraction from freshly verified
+integration6bbaa8197, with real retail model characterization first. Task47
+shipping115 remains live; checked48.5MB Tacview/32.7MB observation prefixes match
+only. Full40/eight-complete-artifact acceptance and normal delivery are pending.
+Required model/entity/environment/time/solver-loader removal remains D3 scope;
+D4/D5 have not started.
+
+# Original geometry witness — 47a4af0d1 runtime and native evidence GREEN; the review's one P2 (decoder call-history conservation) PREPARED, UNRUN (EEDCS-49, D3)
+
+## Measured on 47a4af0d1 (Root; retained, not repeated here, and not an acceptance)
+
+Fresh Windows build 35133 exit 0 with all 49 fixture and test exports. Linux 77060: format, the 18 driver guards and all-host-target Clippy 0. Windows 18070: all 18 guards 0, the missing-host override
+control correctly refused (101), all 5 hashes unchanged. Native 64020: controller 0; all 3 pre/post inputs 0; all 49 payloads unchanged. The same 3 private CRLF native state controls (one-shot trace, public range
+refusal, Lua conversion refusal) are now GREEN with byte-equal before/after sidecars. The 3 default 206-row reports and transcripts are still EXACT f3; the 3 controlled complete transcripts are EXACT the original
+537 ones (Georgia 4802 queries / 9598 lookups, each Lebanon 5126 / 10148). The library and the real-host Lua replays match every bit and every ordered reply; the library Up/Down/Zero control and status preservation hold. The
+ORIGINAL controlled geometry made 6 triangles with a real hit, a later-depth hit, misses, partial writes, exhausted walks, all 4 flag combinations and gaps `none`. No production, model-loader, shipping or D3
+acceptance. Safe summary `R:/d3-evidence/tree-geometry-state-47a4af0d1-native-summary.json`, validation `…-validation.json`, raw `R:/d3-evidence/tree-geometry-state-47a4af0d1-native-20261029`.
+
+The ONE independent combined review of all 47a code and evidence (`R:/d3-evidence/independent-original-forest-geometry-review-47a4af0d1-20261029.json`, SHA256
+d796840610b1ca6b50ec4f5a08af8bfe73f2659aa8075510654db9d84a60c285) is complete with exactly one P2 and no other C ownership, restoration, arithmetic, FFI or source finding. Its CHANGES_REQUIRED verdict is retained
+until the changed checker closes below. The closed 8c452f197 component and the 47a physical code are not re-reviewed or changed.
+
+## The P2 and the correction (validator and collaborator only; no C, engine, module, host-kernel or physical-input change)
+
+`check_witness` accepted decoder call histories that cannot occur, and so did the stand-in's healthy input: for example `g_calls=2 g_true=2 g_last=1 g_depth=0` (a hit at depth 0 asks once), later depths with the same calls,
+and the exhausted `g_calls=3 g_true=2 g_last=0 g_depth=1` (an exhausted walk asks 6 times yes and once no). The report buckets are recomputed from the same fields, so coherent buckets did not prove a possible call sequence.
+The 18-guard positive accepted that input: a known checker weakness, not a native physical failure.
+
+New rule in `lua/collision-characterization.lua` (after all the older bounds and hit implications, which are unchanged), for the FIXED 6-triangle model, with F = `g_calls - g_true`:
+`g_true = 6 * F + (g_last == 1 ? g_depth + 1 : 0)`; and when `g_true > 0` and `g_last == 0` the last yes is at depth 5. A query that never asked keeps the neutral zero depth. It checks call-history conservation only, not
+an intersection or any answer. Root's independent audit of the actual native histories (`R:/d3-evidence/geometry-47a-native-history-conservation-audit.json`: Georgia 4802, each Lebanon 5126, ZERO violations, original trace
+hashes unchanged) agrees; no native campaign or witness is re-run for this.
+
+Diagnostics (new): `tq N: g_true T is impossible: F completed walks of 6 triangles and a final walk that hit at depth D / did not hit make E` and `tq N: an exhausted walk's last yes is at depth 5, g_depth is D`. The existing
+diagnostics (`g_true … more than g_calls`, never-answered with a last answer or depth, last yes without a hit, depth outside the model) keep their text and order ahead of them.
+
+## Collaborator (stand-in) and guards
+
+* Healthy histories are now POSSIBLE ones (`walk_history`): geometry hits at depth 0 to 5 after none, one or two complete walks of other trees; a hit through the quad path after one or two complete walks (g_last 0,
+  depth 5); true misses after one to three complete walks; and no-call misses. The report buckets are still derived from the same fields.
+* Six new single-defect modes, each with COHERENT report buckets so that only the new rule can reject them (tests in `tests/host_callbacks.rs`; the guard array grows from 20 to 26):
+
+| mode | history | expected reason |
+| --- | --- | --- |
+| `witness_history_true_count` | calls 2, true 2, last 1, depth 0 | `tq 0: g_true 2 is impossible: 0 completed walks of 6 triangles and a final walk that hit at depth 0 make 1` |
+| `witness_history_final_depth` | calls 2, true 2, last 1, depth 3 | `tq 0: g_true 2 is impossible: 0 completed walks of 6 triangles and a final walk that hit at depth 3 make 4` |
+| `witness_history_incomplete_walk` | calls 3, true 2, last 0, depth 1 | `g_true 2 is impossible: 1 completed walks of 6 triangles and a final walk that did not hit make 6` |
+| `witness_history_exhausted_depth` | calls 7, true 6, last 0, depth 4 | `an exhausted walk's last yes is at depth 5, g_depth is 4` |
+| `witness_history_calls_without_true` | calls 3, true 0, last 0, depth 0 | `g_true 0 is impossible: 3 completed walks of 6 triangles and a final walk that did not hit make 18` |
+| `witness_history_zero_call_depth` | calls 0, true 0, last 0, depth 2 | `a query the geometry branch never answered has a last answer or a depth` (the older rule: refused by the OLD driver too) |
+
+## Root: old/new driver matrix (NOT RUN)
+
+Run the NEW stand-in (`tests/lua/collision-caller.lua`) in `ok` and in each of the six modes, with `geometry_witness=yes` and a fresh `trace_out`, against BOTH the retained 47a driver and the new driver. Expected: `ok` is accepted by
+both (the healthy histories satisfy every older bound too); the OLD driver ACCEPTS the first five modes (exit 0) and refuses `witness_history_zero_call_depth`; the NEW driver refuses all six with the reasons above, leaves the
+transcript file empty and writes no success row. Then: format, the Linux `cargo test -p eech-world --test host_callbacks collision` guards (26 witness guards + 3 argument refusals + the rest), Clippy, and the actual
+Windows guards. Verify that the native-code blobs, the fixture exports and the 3 private CRLF scripts are unchanged. The same reviewer then gets only the changed validator, collaborator and guards and the new evidence;
+the model-loader extraction starts after this closes. Task47 shipping115 (original six processes) is untouched. Full D3 (model, entity, environment, time and solver/loader removal), G1, production authority, the DCS mapping
+and D4/D5 remain open.
+
+---
+
+# Original forest-geometry witness — 537c36faf measured (physical, default and host agree); three REAL state-contract defects found; corrections PREPARED, UNBUILT, UNRUN (EEDCS-49, D3)
+
+## Measured on frozen source `537c36faf` (Root; preserved, not repeated or rewritten here)
+
+Source tree `tree-geometry-original-source-537c36faf`. The ordinary wrapper's Windows fixture, driver and tree tests build 71228 exit 0 with all 49 exports verified. Linux 58033: format, all 18 collision driver
+guards and host all-target Clippy 0. Windows 32952: all 18 guards 0, plus the missing-host override control refused with 101 as it must; all 5 test-export hashes unchanged. Native 45228: controller 1 for the
+three boundary failures below, NOT for a physical answer. Every pre/post input manifest passed and all 49 payloads are unchanged. Summary
+`R:/d3-evidence/tree-geometry-original-537c36faf-first-measurements.json`; immutable raw `R:/d3-evidence/tree-geometry-original-537c36faf-native-20261029`.
+
+* All 3 default 206-row reports and the complete original transcripts are BYTE IDENTICAL to the reviewed f3 ones (witness off changes nothing).
+* The controlled ORIGINAL decoder produced 6 triangles; all restoration flags 1; all four flag combinations, geometry hits, hits at depth above 0, misses, partial writes and exhausted walks were observed; geometry
+  coverage gaps `none`.
+* Georgia 4802 queries / 9598 ordered lookups and each Lebanon 5126 / 10148 match EVERY output bit through BOTH the actual Windows library and the real-host Lua replay. The host tree C, library and Lua API are
+  UNCHANGED. This is new characterization of the ORIGINAL geometry branch and decoder plus agreement of the existing host kernel on it; it is not the model-loader extraction and not production delivery. The new
+  witness itself is unreviewed and not accepted; the old 8c452f197 component review remains closed.
+
+## The three real RED controls (each exit 1; preserved unchanged, to be re-run GREEN)
+
+Real public host-Lua to native C witnesses, byte-copied into the repository with the same contents and SHA-256:
+`tests/lua/tree-geometry-one-shot-control.lua` (614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15), `tests/lua/tree-geometry-refused-probe-control.lua`
+(ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895), `tests/lua/tree-geometry-conversion-refused-control.lua` (b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0).
+Their originals under `R:/d3-evidence/` and their saved outputs are not rewritten.
+
+1. DEFAULT then CONTROLLED then DEFAULT on ONE trace arming: the default report and facts came back byte identical, but the next default record pages kept `g_calls g_true g_last g_depth`. Cause:
+   `trace_witness` (how the held records are written) was set to 1 while the facts were built for a controlled probe and cleared only by `collision_trace_arm`, never per probe.
+2. `collision_geometry_arm(true)` then `collision_probe(20261029, -1, 5)`: the range refusal happened in `Engine::collision_probe` before any C, so the arming survived and the next valid probe was controlled.
+3. `collision_geometry_arm(true)` then `collision_probe("not-a-seed", 5, 5)`: the typed tuple conversion refused before the Lua method body ran, so the arming survived likewise.
+
+## The corrections (source only; no mesh, vertex, original math, call order, baseline, tolerance or host-kernel change)
+
+* State representation (1): in `probe_run_body`, `trace_witness = witness_active` is set immediately AFTER `trace_reset_records()` (which does not touch it) in the same `if (trace_armed)` block that rebuilds the facts, and the
+  assignment inside `trace_build_facts` is removed. The flag therefore always describes the records held: a controlled probe's pages carry the geometry fields; a default probe on the same arming writes the old
+  bytes again; arming still clears it. A probe that does not touch the transcript leaves records and flag together.
+* One-shot at every entered refusal (2 and 3), at each layer, with no ambient/session framework:
+  * C engine entry `eech_engine_collision_probe`: the `ENGINE_RUNNING` check and the argument check now call `eech_collision_geometry_arm_run(0)` before refusing (byte-safe edit; the file's single NUL byte preserved).
+  * `Engine::collision_probe` (Rust): the body moved to `collision_probe_entered`; ANY `Err` (the range refusal before C, the engine's refusals, the report refusals) clears the arming with `collision_geometry_arm(false)`
+    (idempotent; its own failure is ignored because an engine that is not running cannot be armed).
+  * Lua method `collision_probe` (eech-dc): it now takes the raw argument list (`mlua::MultiValue`) and converts it INSIDE the method with `FromLuaMulti` into the same `(u32, i32, i32)`, the same scalar conversions and
+    coercions the typed signature used; any error (conversion, engine) clears the arming and the original error is returned unchanged. The error TEXT of a conversion refusal can differ in its argument-position prefix from the
+    typed signature's, since mlua adds that prefix only for typed arguments; the refusal itself and the engine's reasons are unchanged. No `RefCell` or other borrow is held across the conversion, which can run Lua metamethods.
+  A completed probe still consumes the arming in C; a successful probe never clears anything extra.
+* No new test double: the three real scripts above are the boundary tests (a mock would only prove its own setup). The 18 portable driver guards and the 3 argument refusals are unchanged.
+
+Publication provenance: the three native controls retain their exact measured
+private CRLF bytes for RED/GREEN execution. Git publishes canonical LF copies;
+their separate SHA256 values and decoded-text equality are recorded in
+`reference/d3-collision-characterization/geometry-witness-publication-provenance-754dda36e.json`.
+The first safe measurement summary has the same disclosed CRLF/LF distinction.
+No original report, transcript, recording or accepted output was normalized.
+
+## Root: expected next steps (NOT RUN)
+
+Freeze the corrected source; rebuild the Windows fixture, driver and tree tests and Linux format/Clippy; re-run the three EXACT script bytes natively against the fresh binaries (expect `TREE_GEOMETRY_ONE_SHOT_OK` and
+`TREE_GEOMETRY_REFUSAL_CONSUMES_ARM_OK` twice, exit 0, with the saved before/controlled/after sidecars: default before == default after; controlled with the witness fields; refused-probe and conversion-refused next probe
+equal to the earlier default); re-run the default passivity (206-row reports and transcripts still byte identical to f3), the controlled capture and the Georgia/Lebanon library and Lua replays; then ONE independent review of
+this witness before the required model-loader extraction. Full D3 remains incomplete: model loader, entity collision, G1 integration, production authority, the DCS mapping, shipping. Shipping115 is untouched.
+
+---
+
+# Original forest-tree GEOMETRY witness — source PREPARED, UNBUILT, UNRUN, unreviewed (EEDCS-49, D3 characterization before the model-loading extraction)
+
+This completes the partial checkpoint 5154bc7e7 (the feature-only observation hook in `en_cllsn.c`) into a bounded, controlled witness of the ORIGINAL forest-tree geometry branch and the ORIGINAL
+model-triangle decoder. Nothing here was built, formatted, tested or run. The measured host tree preparation at `8c452f197449d3a08b8f7bfbad5c34ae652c22c1` (below) is unchanged and not re-reviewed;
+no host kernel, loader or Lua API file was touched. Production dispatch is unchanged; the shipping expansion of the new macro is exactly the original call. Task47 shipping115 is untouched.
+Task49 and D3 remain In Progress; the model loader, the host geometry branch's agreement with the original, entity collision, G1 integration, production authority and the DCS mapping remain open.
+
+## Why
+
+The measured retail maps give the forest tree object NO collision triangles (`tf-forest geometry=0`), so the original's type-1 geometry branch of `get_line_of_sight_collision_tree` has never run against
+them: the 554/600/600 exact replays prove the quad path only. The host kernel carries the geometry branch as the original's text but unexercised, and the model-loading responsibility cannot be moved
+before the ORIGINAL's decoder and branch have been measured on a known input.
+
+## What the witness is (all answers are the original code's)
+
+* Input (environment, constants, labelled controlled): a fixture-owned model of 12 points, 3 faces (a quad, a triangle and a pentagon, so fan order and depth order), 2 surfaces whose per-surface point tables are
+  not the identity (surface 0 permutes its 7 entries, surface 1 restarts local indexes at 0 with 5), 16-bit points scaled by a bounding box of x/z plus or minus 0.25 and y 0 to 1, and the zero SENTINEL surface the original
+  reads after the last face of the last surface. It makes 6 triangles (4-gon: 2, triangle: 1, 5-gon: 3). Decoded coordinates, fan order, scaling and the walk are produced ONLY by the original
+  `get_object_3d_collision_object_geometry_triangle`; the fixture never decodes, intersects or predicts.
+* Seam: the original reads the model through `objects_3d_data[objects_3d_scene_database[FOREST_TREE_OBJECT].collision_object_index]`. Index 0 (the retail null object, which the accepted C1 patch maps to -1) is NOT used.
+  The witness copies the real object table (`total_number_of_raw_3d_objects + 1` entries, content identical, checked), appends its own object after the last real index, points `objects_3d_data` at the copy and
+  sets only the forest scene's `collision_object_index` to the appended index, for exactly one probe. Entity queries see an identical table; no real object, tree, file, list or position is changed; the real type-1
+  trees of the loaded map are the trees.
+* Restoration (every path: normal, the body's own refusals, report too big): the scene index and the `objects_3d_data` pointer are put back FIRST, the copy is freed AFTER. The report then states `data_restored`
+  (pointer), `scene_restored` (index), `copy_identical`, the hash of the WHOLE real object table before/after, the hash of the forest scene entry before/after and the scene index before/after; the driver
+  requires every one, and a failed restoration is a failed run with the raw report kept (`report_invalid`).
+* Observation: `en_cllsn.c`'s two reads of the decoder go through `TREE_QUERY_GEOMETRY_TRIANGLE`; under `EECH_COLLISION_FIXTURE` it calls the fixture wrapper, which calls the original decoder once, with the same
+  arguments in the same order, and records by value (calls, yes answers, last answer, depth of the last yes). No extra decoder, terrain or intersection query exists. From it: per stage (0 primary cold, 1 primary warm,
+  2 nearer-check cold, 3 nearer-check warm) the queries made, those that ENTERED the branch, those that HIT through it (the first successful triangle returns at once), those that hit through the quad path although geometry
+  was present, and those that walked a tree's triangles to the end; and for stage 0 which triangle depth hit.
+* One-shot arming: `engine:collision_geometry_arm(true)` (new, feature-only, mirroring `collision_trace_arm`) applies to the NEXT `collision_probe` and is consumed by it whatever its outcome, so no disarm path exists.
+  The driver gets `geometry_witness=yes` (requires `probe=yes` and `trace_out`; anything else is refused before booting).
+
+## Default (witness off) is unchanged
+
+The unarmed probe is the original probe body byte for byte (it was only renamed and wrapped): same report rows, same transcript rows and bytes. The new row, fact row and per-query fields exist only when armed. In
+the driver, without `geometry_witness=yes` a `col-geometry-witness` row, a `tf-witness` row or a `g_*` field is an UNKNOWN row/key and is refused, so the reviewed f3 default reports (205 ordinary values, 206 trace-report
+rows) must still compare byte for byte; Root's native default run is the proof, not this statement.
+
+## New report/transcript shape (checks, not physical answers)
+
+* Report row `col-geometry-witness`: `label=controlled_forest_geometry source=fixture_owned_mesh installed restored data_restored scene_restored copy_identical objects_count scene_index_before scene_index_after
+  objects_before objects_after entry_before entry_after mesh_points=12 mesh_faces=3 mesh_surfaces=2 mesh_triangles=6 mesh_fold` then `q0 b0 g0 o0 e0 ... q3 b3 g3 o3 e3` and `d0..d7 dbeyond`.
+* Transcript: `trace-start` carries `geometry_witness=controlled_forest_geometry`; a `tf-witness` facts row; `tf-forest geometry=1 triangles=6` with 6 `tf-triangle` rows (the ORIGINAL's decoded output); every `tq` row gains
+  `g_calls g_true g_last g_depth`. Everything else (tf-map, tf-sample, caller bits, ordered terrain lookups, final hit/point/normal bits) is the existing format, so `tests/tree_conformance.rs` and
+  `lua/tree-collision-replay.lua` replay the SAME transcript (the Lua replay now accepts recorded triangles; it still refuses a capped, miscounted or out-of-order list).
+* Driver checks: exactly the labels/mesh constants above; `restored` and the four identity elements; `tf-forest geometry=1`, `triangles=6`; per query `g_true <= g_calls`, a never-answered branch has no last answer or depth,
+  a last yes is a hit, `g_depth < 6`; and the report's per-stage `q/b/g/o/e` and depth counts must EQUAL the same counts recomputed from the transcript's per-query facts.
+* Named coverage gaps (never a pass, `require_coverage=yes` fails on them): `geometry_branch_never_entered`, `no_geometry_hit`, `no_geometry_hit_after_the_first_triangle`, `geometry_walk_never_exhausted`,
+  `no_geometry_query_miss`, `no_geometry_miss_with_a_partial_write`, `geometry_branch_not_seen_with_flags_<ignore_edge>_<skip_top>` for each of the four flag combinations. Event `geometry_witness_coverage` carries the counts.
+
+## Changed files
+
+`aphavoc/.../en_cllsn.c` (already in 5154bc7e7); `eech-campaign/crates/eech-engine-sys/csrc/eech_collision_fixture.c` (model, install/remove, wrapper, accounting, rows, one-shot arm, wrapped entry),
+`eech_engine.c` (byte-safe append of `eech_engine_collision_geometry_arm`; its single NUL byte preserved), `eech_engine.h`, `eech-engine-sys/src/lib.rs`, `eech-engine/src/lib.rs`, `eech-dc/src/module.rs`
+(`collision_geometry_arm`), `eech-world/lua/collision-characterization.lua`, `lua/tree-collision-replay.lua`, `tests/lua/collision-caller.lua` (stand-in: arm method, witness row, geometry fields, 20 single-defect modes),
+`tests/host_callbacks.rs` (3 new tests: acceptance + default isolation, 20 single-defect controls + the unarmed fact control, 3 argument refusals); this file and the collision doc. No host tree kernel/loader/API file changed.
+
+## Root: commands and expected shapes (NOT RUN)
+
+1. Build a fresh clean collision-fixture engine on Windows as for the d5 fixture (`tools/build-windows-collision-fixture.sh`), then verify exports include `eech_engine_collision_geometry_arm`.
+2. DEFAULT passivity (witness off): the same run as the reviewed f3 smokes (seed 20261029, `entity_cases=200 tree_cases=200 seconds=0 repeats=2`, `trace_out=<new>`) on Georgia and Lebanon retail roots; the report
+   rows and trace bytes must equal the reviewed f3 default ones.
+3. WITNESS: `eech-world lua/collision-characterization.lua root=<fresh verified retail root> out=<new.jsonl> scenario=<lebanon_retail|georgia_retail> seed=20261029 entity_cases=200 tree_cases=2000 seconds=0
+   repeats=2 geometry_witness=yes trace_out=<new.trace.jsonl>` (add `require_coverage=yes` to make any named gap fatal). Expect: exit 0, `col-geometry-witness` with `installed=restored=data_restored=scene_restored=copy_identical=1`,
+   equal before/after hashes and scene index (`-1` expected on the retail DB but not assumed), `mesh_triangles=6`, `tf-forest geometry=1 triangles=6`, `b0>0`, `g0>0`, hits at more than one depth, `e0>0`, misses,
+   all four flag combinations seen, a stable transcript across the two repeats, and the world/RNG/record/flags guards as before. These are shape checks; no physical answer is expected here.
+4. Cross-check the host (a FINDING about the host kernel's geometry branch, not about the original): `EECH_TREE_REQUIRED=1 EECH_TREE_TRANSCRIPT=<witness trace> EECH_TREE_MAP_DIR=<map terrain dir>
+   cargo test -p eech-world --test tree_conformance -- --nocapture` and `eech-world lua/tree-collision-replay.lua transcript=<…> map_dir=<…>`. A mismatch must be reported as such, never normalised.
+5. Portable: `cargo test -p eech-world --test host_callbacks collision` (the driver against the stand-in), then format and Clippy; then the ONE independent review of the new witness before any model-loader extraction.
+
+## Remaining unknowns
+
+Whether the retail DB's forest scene index is -1 (expected from C1) or an empty object; whether the 128 KiB report buffer and the 160 KiB facts buffer hold the witness additions (a clean `report_does_not_fit` refusal
+if not); whether real type-1 trees fall in the structured target classes (the random cases draw from all trees); how many random cases hit at depth above 0 and miss with partial writes (named gaps otherwise); the exact
+hit/miss/point/normal bits (they are the original's and are what the host must later match); `acos`/`sqrt` library agreement between the original build and the host build on those cases.
+
+---
+
+# Host tree loader/kernel preparation — reviewed, exact original-query replay; production still coupled
+
+Measured frozen source `8c452f197449d3a08b8f7bfbad5c34ae652c22c1` passes the
+focused Linux and actual Windows checks. Linux format,17 tree units,1 real-host
+Lua test and all-host-target Clippy with warnings denied complete0. Windows
+build0/all8 exports verified;17 units and1 real-host Lua test pass. All554 Georgia
+and600 each Lebanon/repeat original queries match every answer bit and all
+1102/1120/1120 ordered terrain lookups through both library and real host Lua.
+Library Up/Down/Zero replays also match, with caller x87/SSE control/status and
+nonzero exception flags restored. Every pre/post-input check passes; all native
+payloads and immutable original transcripts remain unchanged.
+
+The same six protocol and three getter controls reproduce old defects and pass
+on this source: sparse geometry refuses, failed ordinary or reentrant begin and
+terrain requests cannot leave a query answerable, and healthy controls remain
+valid. The one combined review and focused correction follow-up are CLOSED with
+no open findings. Final review SHA256:
+`4258f1b94e9eeb0821a1dc692190451ee1606454dc2631e148261605d47876ca`.
+Safe validation SHA256:
+`4687c6a8297188b58c17e72acac3797cc92b4f45a7bd759a73adf238a7c50243`.
+Reports are under `eech-campaign/reference/d3-collision-characterization/`.
+Original/intermediate failures and the initial C5 review remain immutable.
+
+Ledger14548994v65 readback preserves all prior HTML and all five epic reports
+exactly; Jira10860 records closure of preparation. Four closed Windows Cargo
+caches were removed only after all8 exports, all3 cached/exported logs and zero
+container owners verified. Frozen sources, tested binaries, roots, successes and
+failures remain retained. Current8c and shared caches and shipping115 are untouched.
+The latest checked shipping prefixes are43.4MB Tacview/28.7MB observations exact;
+all six original process identities remain live. Full-pack acceptance is pending.
+
+This is host-component preparation, not production ownership or Task49/D3
+acceptance. Campaign queries still run the original DLL service. Next: establish
+a controlled ORIGINAL forest-geometry/model-decoder witness before moving the
+remaining required model loading/geometry services. Native forest geometry was
+absent from these retail captures. Entity collision, G1 integration, public
+authority/refusal, DCS mapping/workarounds and shipping remain required. Actual
+unmasked-exception entries and induced environment-operation failures are not
+claimed exercised. Task47 shipping115 remains live; only partial recording
+equality is available. ProductionG2/G3 delivery gates remain. D4/D5 have not started.
+
+
+# Host tree kernel — f81eb31bc runtime controls PASS; Linux Clippy 101 on two test-only lints; the two edits PREPARED, UNBUILT, UNRUN (EEDCS-49, D3 preparation)
+
+Measured by Root on f81eb31bc454492c57d64dbd8cf0c0105041b1e5 (retained, not re-derived here): Windows build 0 with 8 exports; Linux 17 tree unit tests, 1 real-host Lua transport test and fmt 0; Root's same 6 protocol controls
+and same 3 re-entrant getter controls all PASS on the new host (an erroring or malformed getter can no longer continue a nested query; the healthy getter is unchanged); the 3-map native original replay (controller 42087)
+was still running, Georgia already 0 on both paths with every original bit exact, the full results being Root's to collect. The reviewer inspected only the f81 delta and has no further correction finding; closure awaits the
+actual checks. There is no overall acceptance yet. Linux Clippy now gets past the previous three lints and fails with exactly three errors that are two tiny edits in `tests/tree_conformance.rs` only
+(raw `R:/d3-evidence/tree-host-final-linux-f81eb31bc-20261029.log`, Linux invocation 101).
+
+Prepared (source only; no host library, `main.rs`, C, FPU, physics, loader or protocol change; no lint allow or suppression, no dependency or toolchain change):
+1. `doc_lazy_continuation` (lines 17 and 18): a blank `//!` line now separates the bullet list from the paragraph "The loader is checked ..."; the prose is unchanged.
+2. `manual_is_multiple_of` (line 54): `text.len() % 2 != 0` is now `!text.len().is_multiple_of(2)`, the same odd-length hex refusal; parsing and expected bits are unchanged. (`is_multiple_of` on unsigned integers needs a
+   recent stable Rust, as Clippy's own suggestion implies; Root's builds show whether every toolchain has it.)
+
+Root will format and freeze the new source, run `cargo clippy --keep-going` to expose any remaining independent target issue, the appropriate checks, and then the same reviewer closes only these edits and the evidence. The allocation
+wording that Root qualified is kept. Forest geometry (model loader and native witness), entity collision, G1 integration, production authority, the DCS mapping or documented workaround (live DCS execution is M6) and shipping
+remain D3 requirements. This does not complete Task49, production or D3.
+
+---
+
+# Host tree kernel — reviewer's remaining pending-query seam (re-entrant `__index` during `begin`): measured RED, cleanup PREPARED, UNBUILT, UNRUN (EEDCS-49, D3 preparation)
+
+## Measured state of the 684fb6981 source (retained; this does NOT cover the new code)
+
+684fb6981 already measured: Windows 17/17 units, 1/1 real-host Lua transport, ALL 554/600/600 original queries with 1102/1120/1120 lookups exact through the library (default and Up/Down/Zero callers with non-zero
+exception status restored) AND Lua, all 3 pre/post manifests 0 and all 8 payloads unchanged; Root's unchanged protocol script passing all 6 cases. Linux 17/17 units, Lua transport and fmt passed and Clippy exit 101 on three
+style lints; those three fixes (as_chunks, expect_err, a local `Case` alias) are PREPARED in the working tree, UNCOMMITTED, UNBUILT, UNRUN and are preserved here.
+
+## The seam (found by the same reviewer's closure of the five pending-query/protocol fixes only)
+
+`begin` abandoned the OLD pending query before it read its Lua fields, but reading a field can run Lua (`__index`). A getter can re-enter `host.tree_collision` with a VALID begin and then raise an error or return a
+malformed `old_position`: the OUTER begin is refused, but the NESTED query it created survives and a later `terrain` continues it. Root's actual RED on the frozen 684 host (SHA256
+706f4b39b005381a447421a03531297f425c0c2162938decded246db3615fd43; private `R:/d3-evidence/tree-host-reentrant-red-684fb6981-20261029/controller.json`; script
+`R:/d3-evidence/tree-host-reentrant-begin-control-20261029.lua` SHA256 2bb59f7553686b0edc9a3d253d6c7b05866effc04e8b1055aff46a193b058244, to be replayed UNCHANGED against the next host): each real getter ran
+exactly once; `getter_error` and `getter_malformed` each gave outer accepted=false but continued=true / `need_terrain` (ghost continuation); `healthy_reentry` gave outer accepted=true, continued=true. All 3 diagnostic
+native processes exited 0. These observe the bug; they are not pass claims.
+
+## The cleanup (source only; no formula, FPU, loader, physical or protocol change)
+
+`src/main.rs`, `host.tree_collision{mode='begin'}`: the whole argument parse AND the call into the kernel now run inside one small `Result` scope; EVERY `Err` leaving that scope abandons whatever is pending AT THAT
+MOMENT (including a nested query the getter started) before the error is returned. The earlier pre-parse abandon stays (it still closes the old query on an ordinary malformed request). No `RefCell` borrow is held
+while Lua runs: each borrow is taken for one call and dropped, so a re-entering getter never meets a held borrow. There is no recursion ban and no transaction framework, so the healthy control is unchanged: a getter
+that starts a nested query and then returns a valid vector still yields an accepted outer begin that replaces the nested query and continues. `terrain` already abandoned after a parse error and still does.
+
+Real-host controls added to `tests/tree_collision_host.rs` (all old protocol, tiny / negative-zero and geometry checks kept): a metatable getter that starts a valid nested begin and then (a) errors, (b) returns a 2-element
+`old_position`: the outer begin is refused, the getter ran exactly once and the next `terrain` is refused with "no query open"; (c) returns a valid vector: the outer begin is accepted and the request continues to the new
+end point.
+
+## Root's next step (expected, NOT RUN)
+
+Format; freeze the combined source (three lint fixes + this cleanup); Linux fmt and Clippy and the unit tests; Windows build, the 17 contracts plus the new getter control, the library and Lua replays of all 554/600/600
+original queries, Root's protocol script and the re-entrant script old -> new (the RED must become: both bad cases refused AND not continued, the healthy case unchanged); then the same reviewer checks only the new fixes
+and evidence. Original oracles, baselines and tolerances are untouched. Geometry (model loader, native witness), entity collision, G1 integration, production authority, the DCS mapping or documented workaround (live DCS
+execution is M6), shipping and the rest of D3 remain open; Task49, D3 and the extraction are not complete.
+
+---
+
+# Host tree kernel — 684fb6981 measured GREEN on Windows and protocol controls; Linux Clippy 101 on three style lints; the three fixes PREPARED, UNBUILT, UNRUN (EEDCS-49, D3 preparation)
+
+## Actual 684fb6981 results (Root-measured; retained)
+
+* Windows: build 0, all 8 exports verified; native controller 23989 terminal, 0 collected: 17/17 tree unit tests, 1/1 real-host Lua transport test, and ALL 554 Georgia / 600 Lebanon / 600 repeat original queries with
+  1102 / 1120 / 1120 recorded lookups exact through the library AND the Lua path, every exit 0, no skips. The library replays in Up, Down and Zero were bit-exact with the caller's x87/SSE control and status words and its
+  NON-ZERO exception flags restored; the default replay is exact too. All 3 pre/post manifests 0, all 8 payloads and every original transcript hash unchanged. Raw
+  `R:/d3-evidence/tree-host-boundary-684fb6981-native-20261029/controller.json` and logs.
+* Root's UNCHANGED protocol script (SHA256 fa77370fbd1cfd20fe1bf43378474b775deea189a85978813be6e361fae149de) now passes all 6 cases: valid dense list and healthy pending unchanged; sparse and holey lists refused; a
+  pending request cannot continue after a bad begin or a bad terrain answer. Green controller `R:/d3-evidence/tree-host-boundary-green-684fb6981-20261029/controller.json`; the d726 RED is retained.
+* Linux: 17/17 units, 1/1 real-host Lua transport and format PASS; Clippy exit 101 on exactly three style lints (below). Raw `R:/d3-evidence/tree-host-boundary-linux-684fb6981-20261029.log`. Linux is NOT overall passed.
+  No review of 684fb6981 has been performed yet; the same reviewer will check only the changed fixes and this evidence.
+
+## The three Clippy fixes (source only; no allow/suppression, no dependency or toolchain change; no physical, FPU or protocol change)
+
+1. `chunks_exact_to_as_chunks` in the loader: the data file's whole records are now taken with `data_file.as_chunks::<RECORD_BYTES>().0.iter()` and decoded with `TreeRecord::from_bytes(*chunk)`: the same whole 8-byte
+   records in the same order, no `try_into`/`expect`; the bytes after the last whole record are the remainder and are still counted as the census's trailing bytes (computed from the length, as before).
+2. `err_expect` in the map-metadata test: `result.err().expect("accepted")` became `result.expect_err("accepted")` (TreeMap already implements Debug, so no new Debug implementation was needed). It still panics if the
+   forged map is accepted and still asserts the diagnostic text. The other `.err()` calls are on `TreeScene` results, which have no Debug and were not flagged.
+3. `type_complexity` in the rounding test: a local `type Case = (Arc<TreeScene>, [f32; 3], [f32; 3], (bool, bool));` replaces the long tuple type. Nothing else changed.
+
+Everything else of 684fb6981 is kept: the 17 unit tests, the thread-affinity compile-time contract, the map revalidation, the complete caller state (x87 environment and MXCSR) restoration, the dense-geometry and fail-closed
+protocol checks, and all expected data, goldens and tolerances. Note: `as_chunks` needs a recent stable Rust (Clippy's own suggestion implies the Linux toolchain has it); Root's Windows rebuild shows whether that
+toolchain does as well. Root will freeze a new source, rerun Linux fmt/Clippy and the Windows proof (original queries, Lua, protocol controls), then the same reviewer closes only these fixes.
+
+Still D3 requirements, not done: forest geometry / model loader and a native original-geometry witness, entity collision, G1 terrain integration, production authority, the DCS mapping or documented workaround (live DCS
+execution is M6), and shipping. Task47 shipping115 is untouched. This does not complete Task49, D3 or the extraction.
+
+---
+
+# SUPERSEDED (kept for the record): the review-batch section for 684fb6981 as prepared, before its measurement
+
+# Host tree kernel — d72610f85 measured: default library and Lua replays bit-exact, boundary checks FAILED; independent-review batch PREPARED, UNBUILT, UNRUN (EEDCS-49, D3 preparation)
+
+## What the d72610f85 native measurements actually showed (terminal; NOT an acceptance and NOT "overall passed")
+
+* Windows host and test build 0, all 8 exports verified. Linux: 15/15 tree unit tests passed; the real-host Lua transport test FAILED (exit 101) at the newly reached negative-zero assertion; Clippy not reached.
+  Windows: 14 unit tests passed and 1 FAILED (the new environment-restoration test); the Lua transport test failed 101.
+* ALL captured original queries (554 Georgia / 600 Lebanon / 600 repeat; 1102 / 1120 / 1120 recorded terrain replies) replay through the default library path with ZERO mismatches of lookups and ZERO answer-bit
+  mismatches, and each full real-host Lua replay exits 0 with zero mismatches. The rounding correction therefore made the default-caller replays bit-exact. This is evidence for those replays only.
+* The library replay under a caller in Up also had zero bit mismatches, and then FAILED the environment assertion: before `63/63`, SSE rounding 2, x87 Up, flags 0; after `63/63`, SSE rounding 3, x87 Up, flags 32.
+  The Down and Zero replays were not reached. Controller 11796, terminal, 1 collected. Raw `R:/d3-evidence/tree-host-rounding-d72610f85-native-20261029/controller.json` and case logs. All 3 pre/post input
+  manifests 0, all 8 payloads and every original transcript hash unchanged.
+* Negative zero diagnosed by Root without source changes (`R:/d3-evidence/tree-host-negative-zero-d72610f85-diagnostic-20261029/controller.json`): the test's `local negative_zero = 0 * -1` is folded by this Lua to a
+  POSITIVE zero (reciprocal +inf, `%.17g` "0"). Constructing it as `-1 / math.huge` gives a genuine negative zero (reciprocal -inf, "-0") and the whole synthetic transport script then exits 0 with the tiny expected bits.
+* Root's protocol RED controls against the same host (`R:/d3-evidence/tree-host-boundary-red-d72610f85-20261029/controller.json`, script
+  `R:/d3-evidence/tree-host-boundary-controls-20261029.lua` SHA256 `fa77370fbd1cfd20fe1bf43378474b775deea189a85978813be6e361fae149de`, to be replayed UNCHANGED against the next host): a dense valid geometry list was
+  accepted, and so were sparse `{[2]=tri}` and holey `{[1]=tri,[3]=tri}` lists (bad acceptances); a pending request continued after a malformed `begin` was refused and after a non-finite `terrain` answer was refused
+  (ghost continuations). A healthy pending request continues. These are measured defects, not pass claims.
+
+## The single independent review's batch, and what the prepared source does (source only; arithmetic untouched — the reviewer found NO discrepancy between the C and the original arithmetic)
+
+1. P2 map invariant. `TreeMap`'s public fields let a forged value bypass `new()` (for example min_x = max_x = f32::MAX with 2 sectors could reach an undefined C float-to-int conversion; the reviewer did not execute that malformed native query). The invariant is
+   now REVALIDATED: `TreeMap::validate()` (the checks of `new`, which now calls it) is called first by EVERY public scene constructor: `without_trees`, `from_bytes`, and `load` including its absent-file path.
+   Valid metadata and all math unchanged. Unit test `a_tree_map_built_by_hand_is_revalidated_by_every_scene_constructor` feeds nine forged literals to all four paths (none is executed in C) and checks the valid map
+   and an empty triangle list; an empty `Triangles(vec![])` is itself refused (it is not a statement about the geometry).
+2. P2 complete caller floating-point state. On the Windows toolchain `fesetenv` did not give back MXCSR (the SSE rounding stayed round-toward-zero and the inexact flag stayed raised). The C entry now saves the x87
+   environment (`fegetenv`) AND the whole MXCSR (`stmxcsr`: control and status bits), sets round-toward-zero in both units and reads both back, runs the original arithmetic, and on EVERY exit restores with
+   `fesetenv` then `ldmxcsr` and reads MXCSR back; a restore (or set) that does not read back as expected is `TREE_ENVIRONMENT`: the answer is withheld and the query closed. The exception masks are saved/restored
+   exactly and never weakened; unmasked callers are still refused up front. `ScopedRounding` uses the same save/restore. `FpState` now also carries the raw x87 control word and raw MXCSR. The library and the
+   real-query tests now enter from callers in each rounding mode with a NON-CLEAR exception status (inexact and divide-by-zero raised before the call; asserted non-zero) and compare masks, rounding, raw control
+   words, raw MXCSR and raised flags before and after. An actual unmasked-exception entry and an actual `fesetround`/`fesetenv`/`ldmxcsr` failure are NOT exercised and not claimed.
+3. P2 thread affinity. `ScopedRounding` carries a `PhantomData<*const ()>`, so it is neither `Send` nor `Sync`. A compile-time contract in the unit tests (the `AmbiguousIfSend`/`AmbiguousIfSync` technique of the
+   static_assertions crate, no new dependency) fails the test build if either bound is ever implemented.
+4. P2 dense geometry. `host.tree_collision{mode='load'}` requires `forest_geometry` to be `"absent"` or a DENSE ordered list (`dense_length`: every key an integer 1..n, no hole or extra key) of triangles that are
+   each a dense list of exactly nine numbers; a sparse, holey, empty or malformed list is refused BEFORE any geometry is discarded or absence is assumed, and a refused load leaves the loaded scene untouched. Host
+   script controls: `{[2]=tri}`, `{[1]=tri,[3]=tri}`, `{}`, an eight-number triangle, a holey triangle and a non-table item are refused; `{tri, tri}` and `"absent"` are accepted. No physical oracle was added and
+   native geometry is not claimed validated.
+5. P2 pending-query cleanup. The Lua `begin` abandons any pending query BEFORE parsing its arguments (a begin replaces the pending query anyway), and a `terrain` whose elevation cannot be read abandons it; in Rust a
+   non-finite `terrain` answer closes the pending query. Contract: a refused begin or terrain answer ends the pending query, so a later valid `terrain` is refused with "no query open"; a refused `load` changes
+   neither the scene nor a pending query. The real-host script covers pending -> malformed begin, pending -> non-boolean flag, pending -> non-finite elevation, pending -> non-numeric elevation, and the healthy
+   pending control that continues. Root's unchanged protocol script above is the second check.
+6. P3 negative zero. The synthetic script constructs it as `-1 / math.huge` and asserts `1 / negative_zero == -math.huge`; the expected `80000000` and the numeric reader are unchanged.
+7. P3 loader wording. The module documentation no longer says "before anything is allocated": it says the two files are read whole, each size is first checked against `MAX_SECTOR_FILE_BYTES` and
+   `MAX_DATA_FILE_BYTES` (a bound on what `fs::read` allocates; retail Georgia is 226 KB and 6.8 MB), the forest triangles are flattened as given, and every length, multiplication and span is checked in `u64`
+   with sector-table byte sizes checked before allocating that table and each sector's record span checked before tree-record decoding or indexing. No format change.
+
+## Changed files in this batch (under `eech-campaign/crates/eech-world/`)
+
+`csrc/tree_step.c`, `src/trees.rs`, `src/main.rs`, `tests/tree_collision_host.rs`, `tests/tree_conformance.rs`, plus this file and `eech-campaign/docs/m5-collision-characterization.md`.
+
+## Root's next step (expected, NOT RUN)
+
+Format; freeze a NEW source; build Windows and Linux; `cargo test -p eech-world --lib trees`, `--test tree_collision_host`, then for EACH of Georgia / Lebanon / Lebanon-repeat the library replay
+(`--test tree_conformance`, `EECH_TREE_REQUIRED=1`, which repeats in Up / Down / Zero with a non-clear caller status) and `lua/tree-collision-replay.lua`; replay Root's unchanged protocol controls old -> new;
+then the SAME reviewer checks only the new fixes and evidence. Nothing here claims D3, Task49 or extraction complete: geometry (model loader, native witness), entity collision, G1 integration, production authority,
+shipping, and the DCS mapping or documented workaround (a D3 requirement; live DCS execution is M6) remain open. Task47 shipping115 is untouched.
+
+---
+
+# SUPERSEDED (kept for the record): rounding-environment correction d72610f85 — see the measurements above
+
+# Host tree kernel — first native checks FAILED (real RED); rounding-environment correction PREPARED, UNBUILT, UNRUN (EEDCS-49, D3 preparation)
+
+## What the first native checks of source 0db20ab3a46582110bd7c4706c26edaaa9335478 actually showed (retained; terminal; NOT passed)
+
+* Windows build 0, all 8 exported manifest entries verified; frozen binary `…/eech-campaign/target/tree-host/0db20ab3a`; controller `tree-host-first-windows-0db20ab3a-20261029-completion.json`.
+* Linux: 14/14 tree library unit tests pass; the real-host Lua transport test FAILED at its assertion `both outside: no lookups at all` (Linux invocation exit 101; Clippy not reached). Windows: 14/14 tree
+  library units pass; the same Lua transport test FAILED. Raw log `tree-host-first-linux-0db20ab3a-20261029.log`.
+* Windows replay of ALL 554 Georgia / 600 Lebanon / 600 repeat captured queries with their 1102 / 1120 / 1120 recorded terrain replies, through BOTH the library path (exit 101) and the host Lua path
+  (exit 1) on each scenario: the loader, census and native samples agreed, but OUTPUT BITS DIFFERED. The retained diagnostic list is bounded (its 41 entries are not the number of failing queries).
+  First actual tq 0 Georgia point `45e0dec9,41ed10b2,48584704` against the original `45e0dec9,41ed10b2,48584703`; other retained examples differ by one bit in x, y or z. Raw per-case logs and
+  controller JSON under `R:/d3-evidence/tree-host-first-0db20ab3a-native-20261029`; all 3 pre/post manifests 0, all 8 payloads and every original transcript hash unchanged. The raw expected data is
+  unchanged and is the oracle.
+
+## Diagnosis (two separate defects; neither is a change to the original's physics)
+
+1. MISSING ENVIRONMENT BOUNDARY (the numerical failure). The original runs under round-toward-zero: `eech_engine.c` ENTER saves the caller's `fenv` and sets `FE_TOWARDZERO`, LEAVE and the fatal path restore
+   it, the collision fixture refuses captures unless `fegetround() == FE_TOWARDZERO`, and the original `get_terrain_3d_sector` sets it again. The first source read and required only the exception masks
+   (63/63) and explicitly left rounding alone, so it executed under the caller's ordinary round-to-nearest, which is not equivalent. Masks of 63/63 do not establish rounding.
+2. WRONG SYNTHETIC EXPECTATION in `tests/tree_collision_host.rs` (a test defect, not a kernel defect). The case `{-1,10,1024} -> {5000,10,1024}` was expected to miss because "both outside: no lookups". The
+   segment runs along z = 1024 at y = 10 and actually CROSSES the tree at the middle of sector (0,0). An end point outside the map only avoids the terrain lookup for that end (its radial altitude is
+   taken as 0 / the old one's); it never makes the collision FALSE, and a `done` answer with no `need_terrain` first simply means no lookup was needed. The test now asserts the real contract: that
+   segment gives `done` immediately with a HIT at the hand-derived point (1024, 10, 1024), normal +x; and a both-outside segment that crosses no tree (z = 3000) gives `done`, a miss, and the caller's own
+   point and normal. The original behaviour was not changed to suit the old expectation. The assertions after that point in the script had not been reached by the failed run; they were re-read against the
+   source and the kernel text (ordering, refusals, exact tiny / negative-zero reads) and no further defect was found by reading, which is not a run.
+
+## The correction (source only; math, loader, query and scan order, partial writes, tie rules, triangles and recorded data untouched)
+
+`csrc/tree_step.c`: the former `eech_tree_begin` / `eech_tree_terrain` bodies are now private `noinline` functions, and each public entry wraps them (the pattern of the host-private terrain_ref.c of G1, not imported):
+1. read the x87 and SSE exception masks and REQUIRE 63 and 63 BEFORE any arithmetic; on failure return `TREE_MASKS`, compute nothing, change nothing, and the query is closed. The kernel never masks exceptions.
+2. `fegetenv` the caller's environment; `fesetround(FE_TOWARDZERO)`; either failing is `TREE_ENVIRONMENT` (the caller's environment is put back if it was touched).
+3. run the original's arithmetic (begin: the in-map tests, radial altitudes, scan; terrain: the radial altitude and scan).
+4. `fesetenv` the caller's environment on EVERY exit: lookup request, final answer, scene fault, masks refusal path (nothing set), environment failure. If the restore itself fails the answer is withheld,
+   the query is closed and the call returns `TREE_ENVIRONMENT`. An out-of-sequence `terrain` returns before touching the environment.
+No guard state exists between calls, so none is held across the Lua/campaign callbacks that supply elevations. The bodies are not inlined into the entries so no arithmetic is scheduled outside the guard. The file is
+deliberately NOT built with `-frounding-math`: the original's compile-time constant folds (e.g. `19/127.0f`, `PI2 - 0.01`) happened at the default rounding; the host must fold the same constants the same way.
+Whether this reproduces the original is established only by Root's replay of the captured queries, not by reasoning.
+`src/trees.rs`: the Rust-side mask check is removed (the C entry is authoritative); codes -3 / -4 map to clear errors; new public environment helpers `rounding()`, `Rounding`, `exception_flags()`,
+`clear_exception_flags()` and the RAII `ScopedRounding` (saves and restores the whole caller environment) exist only to enter the kernel from a caller in another mode in tests and reports.
+
+## New boundary checks (all source only)
+
+* Library unit test `the_answer_does_not_depend_on_the_callers_rounding_and_the_callers_environment_is_restored`: five hand-derived-class cases (plane hit with division and normalisation, top-quad hit, a miss,
+  a both-outside segment that still hits with no lookup, a geometry-branch triangle hit) entered from a caller in Nearest, Up, Down and Zero; answers and lookup requests compared as bits across all four,
+  the caller's rounding checked after EVERY call into the kernel (including after a lookup request), and masks, rounding and raised exception flags compared before and after.
+* `tests/tree_conformance.rs` (the real queries): the unchanged full replay, then the same replay against the same recorded bits from callers in Up, Down and Zero, with the environment compared before and after
+  each; no assertion relaxed and no oracle touched.
+* The real-host Lua path starts in the host process's own caller rounding (it cannot change it) and is the compatibility path for that mode only; other modes are covered by the library path above. Preserved: the
+  tiny / negative-zero transport checks and the real malformed, refusal and out-of-sequence guards.
+* NOT covered: entry with exceptions UNMASKED (the masks refusal is a source guard only; no test enables exceptions) and an actual `fesetround` / `fesetenv` failure (not inducible safely). Neither is claimed.
+
+## Root's next step (expected, NOT RUN)
+
+Freeze a NEW source; build Linux and Windows; run `cargo test -p eech-world --lib trees`, `--test tree_collision_host`, and for EACH of Georgia / Lebanon / Lebanon-repeat both the library replay
+(`--test tree_conformance`, with `EECH_TREE_REQUIRED=1`, which now also repeats under Up / Down / Zero) and `lua/tree-collision-replay.lua`; then format, Clippy, and the ONE independent review of this component.
+Any remaining difference is investigated from the raw logs; nothing is normalised. Production dispatch is unchanged; geometry (model loader and native geometry witness), entity collision, G1 integration, production
+authority and shipping stay open. Task47 shipping115 is untouched.
+
+---
+
+# SUPERSEDED (kept for the record): first source 0db20ab3a — PREPARED, UNBUILT, UNRUN
+
+# Host tree loader and tree segment kernel — source PREPARED, UNBUILT, UNRUN (EEDCS-49, D3 preparation; not Task49/D3 completion)
+
+This completes the preserved partial work (checkpoint f0bd165c9) into the first host-owned physical component, as source only. Nothing was compiled, formatted, tested or run by the
+implementation writer; every statement below describes what the source is meant to do and what Root must run, not a result. The campaign DLL's tree queries still run the ORIGINAL solver; no
+production dispatch, accepted baseline, tolerance, capture, oracle or original physical file changed. Production G2/G3 cutover stays gated on the preceding delivery and verified integration;
+Task47 frozen shipping115 is untouched; D4/D5 have not started; whole D3 remains open.
+
+## Changed files (all under `eech-campaign/crates/eech-world/`)
+
+* `csrc/tree_step.c` — NEW. The host-private C kernel: EECH's own `get_line_of_sight_collision_tree` (en_cllsn.c) with `get_3d_line_quad_intersection` and
+  `get_3d_line_triangle_intersection` (maths/vector.c), expression for expression, as a resumable NeedTerrain/Done state machine. Built with the existing `eech_steps` flags and `eech_arith.h`.
+* `src/trees.rs` — NEW. Checked ownership and API: `TreeRecord` (explicit 8-byte decode), `TreeMap` (checked terrain metadata), `ForestGeometry` (must be stated), `TreeScene` (loader, immutable owned
+  storage, census), `TreeCollision` (one open query, `begin`/`terrain`/`abandon`), `fp_state` (read-only), plus focused unit tests with hand-derived expectations.
+* `src/lib.rs` (`pub mod trees`), `build.rs` (`tree_step.c` in the `cc` file list and `rerun-if-changed`), `src/main.rs` (`host.tree_collision`, the reference host's Lua transport).
+* `tests/tree_conformance.rs` — NEW. Replays EVERY captured original query through the library path (needs the retail inputs below; says plainly "NOT RUN" without them).
+* `tests/tree_collision_host.rs` — NEW. Starts the real `eech-world` host on a Lua script against a tiny map written by the test (ordered lookups, refusals, out-of-sequence, exact number reads).
+* `lua/tree-collision-replay.lua` — NEW. The same real-query replay through the host's Lua transport (Lua -> host -> C kernel -> Lua), with the host's bit echoes compared as strings.
+* `STATUS.md`, `docs/m5-collision-characterization.md` — this record.
+
+## Component ownership (what moved under the host and what did not)
+
+Host-owned in this source: the tree_pos.sec/.dat file reading and checking, the decoded tree records and sector tables, the map metadata the tree query reads (supplied explicitly, see below), the
+optional forest-tree triangles, and the whole tree segment calculation including its normals, intercepts, flags, nearest-tree choice and the early exits. Campaign-owned and unchanged: every decision
+about when and why a tree query is made. Still the CAMPAIGN DLL's, supplied as values through NeedTerrain: the two terrain elevations the original reads (one at the old end point, then one at the
+new one, only for end points inside the map). The kernel makes no terrain call of its own and no extra or reordered lookup, so the shared terrain point hint/record effects of the original stay
+visible for the later G1 composition. The surrounding ENTITY collision (the UPDATED/delta-time coupling and the `&=` getter) is the next component and is not touched.
+
+## Lifetime model
+
+`TreeScene` owns every table (records, sector `count`/`first` pairs, flat triangle floats) and is immutable after construction. `TreeCollision` holds an `Arc<TreeScene>` and one opaque query block.
+Each kernel call is handed a descriptor built from that `Arc` for the duration of the call; the C side retains no pointer between calls, so a pending query can never outlive its storage and
+dropping the holder drops the query. Raw pointers exist only inside the module's `unsafe` calls; the public Rust API and the Lua contract carry values only. The Rust and C layouts are compared at
+`TreeCollision::new` (record 10 bytes, sector 8, scene descriptor size) and a mismatch is an error.
+
+## Loader behaviour
+
+Files are found by listing the map directory and matching `tree_pos.sec`/`tree_pos.dat` ignoring ASCII case, then opening the entry's OWN spelling (Georgia/map3 lower case, Lebanon/map5 upper case);
+nothing is renamed and case-insensitivity is never assumed; two spellings of one name are refused. Both files absent (or one) is a known "no trees loaded" in the census; a header that differs from the
+terrain's sector counts is a known "no trees loaded" (the original ditches the trees there) and the census records the header. Anything else wrong (file shorter than its header, negative count or
+offset, a sector reaching past the data file, offset+count overflow) is an error, with every length computed in 64 bits before allocation. Trailing bytes are counted in the census and not interpreted.
+Records are decoded explicitly: x i16 LE at 0, z i16 LE at 2, y u16 LE at 4, colour at 6, last byte height (low 7 bits) and type (high bit); SEC is LE i32 width and height then row-major (z, x)
+pairs of count and record offset. The original's scan order is kept (x outer, z inner, each sector's trees in file order).
+
+## Map metadata (G1 dependency)
+
+This branch predates the unaccepted G1 terrain host module, so `TreeMap` (min/max x and z, terrain sector counts, terrain minimum height and scaled height difference) is an EXPLICIT constructor:
+the conformance test and replay script feed the facts the original recorded (`tf-map`) as controlled inputs. Production will reuse the accepted host terrain module's metadata; it must not borrow
+DLL pointers. No second world, no core-owned scene API and no terrain loader were added.
+
+## Geometry (remaining D3 dependencies, explicit)
+
+The kernel includes the original's geometry branch (type-1 tree and a forest-tree collision triangle at depth 0: the identity-matrix transform, the height/position scaling, the do/while over the
+triangles, and an immediate return on the first triangle hit). `ForestGeometry` has no default: it is `KnownAbsent` (the original's triangle function returns FALSE at depth 0, the retail facts) or
+the decoded triangles. Retail Georgia and Lebanon record geometry 0 / 0 triangles, so ONLY the quad path is numerically compared with the original by the retail data; the geometry branch is the
+original's text carried over, unrun against any native witness, and its hand-derived unit test is a worked example, not a conformance claim. REMAINING for D3: the model geometry LOADER (decoding the
+forest-tree collision object's faces to triangles, 3dobjdb.c) and a controlled native geometry witness before complete query delivery.
+
+## Floating point (SUPERSEDED by the section at the top of this file)
+
+The first source only READ the exception masks and ran under the caller's rounding; that was the defect the first native replay exposed. The current source reads and requires the masks (63 / 63), saves the
+caller's environment, runs the original's arithmetic under FE_TOWARDZERO and restores the caller's environment on every exit. Division by `dx`/`dz` is unguarded and IEEE results are kept; the host converts
+a position to a sector with a C truncation, as the patched 64-bit engine does.
+
+## Declared limits and numerical unknowns
+
+* End points must be finite and terrain elevations finite; the original accepts NaN/infinity and the host refuses them (no captured query contains one).
+* `acos` and `sqrt` come from the host C library; whether they match the original build's last bit near the 2*pi-0.01 threshold is verified only through the conformance replay, never assumed.
+* The sector scan is bounds-checked against the table (a second line of defence); the original reads without a check. Consistent metadata makes it unreachable.
+* A DCS tree-raycast equivalent is NOT designed or claimed here. The needed DCS mapping or documented workaround remains a D3 acceptance requirement; live DCS execution belongs to M6.
+* The conformance claim exists only after Root runs the replay below and every one of the 554/600/600 queries and 1102/1120/1120 lookups matches.
+
+## What Root runs (expected, NOT YET RUN)
+
+Retail inputs (private, unmodified; raw reviewed captures in `R:/d3-evidence/tree-input-f3fd93dfb-smokes-20261029/<scenario>/tree-transcript.jsonl`, capture review SHA d71fcaea…2d8 at f3fd93dfb,
+Git LF copy SHA 5c48a1cd…c22; map trees in `R:/d3-evidence/tree-input-roots-f3fd93dfb-20261029/`):
+
+| scenario | EECH_TREE_TRANSCRIPT | EECH_TREE_MAP_DIR | expected counts |
+| --- | --- | --- | --- |
+| georgia | `…/georgia/tree-transcript.jsonl` | `…/tree-input-roots-f3fd93dfb-20261029/georgia/common/maps/map3/terrain` | 554 queries, 1102 lookups, tree_total 848187, sectors 8689 |
+| lebanon | `…/lebanon/tree-transcript.jsonl` | `…/lebanon/common/maps/map5/terrain` | 600 queries, 1120 lookups, tree_total 213955, sectors 1338 |
+| lebanon-repeat | `…/lebanon-repeat/tree-transcript.jsonl` | `…/lebanon-repeat/common/maps/map5/terrain` | 600 queries, 1120 lookups |
+
+1. Library path, per scenario (set `EECH_TREE_REQUIRED=1`; a run without the two paths prints `TREE_CONFORMANCE NOT RUN` and proves nothing):
+   `cargo test -p eech-world --test tree_conformance -- --nocapture` — prints `TREE_CONFORMANCE … mismatches=0` and passes only if every query's lookups and answer bits match.
+2. Lua path, per scenario: `eech-world lua/tree-collision-replay.lua transcript=<…> map_dir=<…>` — prints `TREE_LUA_REPLAY_LOADED …` then `TREE_LUA_REPLAY_DONE queries=… mismatches=0`, or errors.
+3. Synthetic and unit contracts: `cargo test -p eech-world --lib trees` and `cargo test -p eech-world --test tree_collision_host` (set `EECH_WORLD_BIN` to run a separately built host).
+4. Then format, host Clippy, the existing eech-world suite (nothing else was edited), and the one independent review of this new component.
+
+Any difference is investigated as a regression, an unsupported case or a harness defect; the transcripts and expectations are never normalised, re-recorded or loosened.
+
+---
+
+The earlier "User-requested Git checkpoint" block (partial files preserved at f0bd165c9, UNBUILT/UNRUN) is superseded by the section above; the reviewed capture evidence below is unchanged.
+
+# Current tree-input capture — reviewed and measured; host kernel preparation next
+
+Capture review is CLOSED with no open findings at f3fd93dfb2ad81b6cbe4d89174953376efd07611.
+Review SHA256 d71fcaea939a6207b2267a45ad7183d05eae74a6621e0ff329e3ac71a5d82fd8.
+The three findings (page arithmetic, capped facts, paired-query/lookup coherence)
+are resolved. Clean Windows fixture build0/all43 exports; Linux and actualWindows
+15/15 driver/report/transcript/I-O tests, format and host Clippy0. Real public
+Lua/module/C paging passes normal108-record/last pages, six EOF/extreme-offset
+empty pages and six invalid-argument refusals, with pre/post inputs0 and no skips.
+
+Three corrected retail trace probes complete0/pre/post0. Every old205 report value
+matches541; all six complete206-row reports/transcripts match the initial41 bytes.
+Georgia captures554 queries/1102 actual terrain lookups; Lebanon600/1120. Warm
+pairs, lookup coordinates/order, native8-byte packing and separate repeat bytes
+are independently verified. No raw sample or oracle changed. Forest geometry is0
+on these maps; native geometry/cap branches remain unexercised and are not counted
+as full tree geometry coverage. Bounded checker red/green has10 actual old0/new1
+malformed cases and three valid boundary cases passing both.
+
+The next Task49 work prepares the host-owned tree file loader and physical kernel
+against these immutable inputs. Production entity/tree collision, model geometry
+loaders, public authority/refusal, shipping and normal delivery remain required.
+Task47 shipping115 is still live; checked31.2MB Tacview/19.7MB observation prefixes
+match, with no complete-pack acceptance. ProductionG2/G3 gates and the full D3
+model/environment/time/required-physical-solver/loader scope stay open. D4/D5 have
+not started. The following records earlier checkpoints with their at-time status.
+
+# Third capture P2 (warm-pair and lookup coherence) — correction UNBUILT, UNRUN; all three P2 source corrections now prepared (working tree over 41f94952e)
+
+The one independent source sweep of the NEW capture (41f94952e) is complete with exactly three P2s and no others: (1) paging arithmetic and (2) capped forest-geometry acceptance, both already
+prepared, and (3) pair/lookup coherence, addressed here in the real driver only (no C, physical, solver, query, generator, hook or fold change; no actual C wrong lookup was observed).
+The checker counted a stage-1 warm record as warm agreement from its hit/point/normal without requiring it to be the same query as its stage-0 record (a changed warm endpoint was accepted), did the
+same for stage 3 against stage 2, and never tied the supplied terrain lookups to the recorded endpoints (the valid stand-in had A.z=1 but l0.z=2). Now:
+* A stage-1 record must equal its preceding stage-0 record, and a stage-3 record its preceding stage-2 record, in group, kind, role, ignore_edge, skip_top, a, b, initial point and initial normal
+  (the existing fixed initial-output checks remain). Answers (hit, intercept, normal) and terrain ELEVATIONS are NOT compared across cold/warm, because cached hints can legitimately differ, and no
+  physical answer is recomputed.
+* The recorded lookups must be exactly what the original does: the x and z (bit for bit) of the old endpoint then the new endpoint, in that order, each only if it lies inside the map by
+  point_inside_map_area (en_world.h 149: x and z only, min and max INCLUSIVE, y ignored), using the captured tf-map bounds and an exact f32-bit-to-value conversion (signed zero, infinities and NaN
+  handled as the original's float comparisons would; actual data is never sanitised). The lookup count must equal the number inside; unused-lookup zeroing, the overflow guard and the strict schema are kept.
+* The valid stand-in's lookups are now derived from its endpoints (old, then new, inside the stand-in map), so the feasible positive is coherent; its counters, answers and the 77 report controls are unchanged.
+New real-driver controls beside the 11 earlier transcript controls (20 now): trace_warm_endpoint, trace_warm_flags, trace_warm_context (stage 1) and trace_near_warm_context (stage 3), and
+trace_lookup_x, trace_lookup_z, trace_lookup_order, trace_lookup_count, trace_outside_wrong; each is a single defect that the old 41 driver accepts (so Root can reproduce the actual false pass with the same
+stand-in and host) and the new driver refuses with, respectively: "tq 1 against its stage 0 record 0: b is 40000001,41000000,40400000, expected 40000000,41000000,40400000"; "... ignore_edge is 1,
+expected 0"; "... kind is 5, expected 0"; "tq 3 against its stage 2 record 2: role is 7, expected 0"; "tq 0: lookup 1 x is 3f800001, expected 3f800000"; "tq 0: lookup 2 z is 40400001, expected
+40400000"; "tq 0: lookup 1 x is 40000000, expected 3f800000"; "tq 0: lookups is 1, expected 2"; "tq 0: lookups is 2, expected 1". Three ACCEPTING controls (trace_outside_ok, trace_boundary_inclusive,
+trace_boundary_outside_ok) show the checker is not stricter than the original's inclusive rule. The cap-512 control, the I/O, alias, default trace-off and capture-positive tests are retained.
+
+Valid actual data must remain valid, and Root's independent audit (tree-query-context-41f94952e-audit.json) says it does against these same rules: Georgia 554 records / 277 matched warm pairs / 1102
+ordered lookups; Lebanon and the repeat 600 / 300 / 1120; every pair matches all nine signature fields, and lookup counts, x, z and order match the inclusive endpoint-in-map predicate, with no
+height answer derived. The raw transcripts and the 205 old report rows are immutable and are not rewritten. Source 41 remains NOT finally accepted: its three P2s are corrected in source only, UNBUILT and
+UNRUN. Root formats, freezes and builds the combined source once and supplies the actual C paging witness, guards, traces and old/new red/green to the same reviewer.
+
+The 5416adb3b / 54e5ece85 review stays closed within its old scope. No host tree kernel or loader has started; it waits for Root's validation of the new capture. All required whole-D3 entity, tree
+geometry, environment, time, physical solver and loader-removal work remains; Task47 shipping115 is live and untouched; the production G2/G3 gates remain; D4/D5 have not started.
+
+# Capped forest-facts P2 and the actual source 41f94952e capture results — correction UNBUILT, UNRUN (working tree over 41f94952e)
+
+Second P2 from the same ongoing combined capture review: check_trace validated tf-forest.geometry and the triangle count but never required capped == 0. The emitter stops at 512 forest
+triangles and writes capped=1 when another exists, so a coherent truncated facts block (512 indexed rows, triangles=512, capped=1) could reach trace_written, trace-end and done. A truncated
+forest geometry is not a complete input for a host loader or kernel. Corrected in the real driver only: tf-forest must have capped == 0 ("tf-forest: capped is 1, expected 0") or the transcript
+is not complete; geometry is not dropped, baselines are not widened and the capped set is never presented as whole. No physical C, solver, trajectory, query, generator or hook change. The current
+retail data (forest geometry 0, capped 0) stays valid and unchanged. Real-driver control trace_forest_capped (a coherent 512-row truncation the emitter can actually produce, not a one-triangle
+capped flag, which the emitter cannot produce) joins the transcript controls (11); the 77 report controls, I/O fault, alias and capture-positive tests are retained. Root's bounded red/green: the old
+41 driver must falsely accept this stand-in transcript, the new driver must refuse it with exactly that diagnostic. UNBUILT/UNRUN until Root executes it.
+
+Actual results of frozen source 41f94952e (Root's, collected): Windows fixture build exit0 with all 43 exports; Linux 14/14 plus format and Clippy exit0; actual Windows 14/14 with the missing-host
+control exit101 as expected, controller exit0 and all four guard payloads unchanged. Three fresh retail trace probes (seed20261029, entity200/tree200/repeats2/seconds0/trace_out) native and controller
+exit0 with all three pre/post input checks0; EVERY old 205 report-row value equals source 5416adb3b exactly, the only addition being trace_written (206). Georgia: 568 transcript rows, 554 actual tree
+queries, 1102 terrain lookups; Lebanon and the separate repeat: 614 rows, 600 queries, 1120 lookups; all ordinal and overflow guards pass; the separate Lebanon whole report AND transcript are byte
+equal. Native facts: tf-layout record_size 8, offsets x0 z2 y4 colour6, height_only 000000000000007f, type_only 0000000000000080, probe feff3412cdabefd5; forest geometry 0, capped 0. Exact audit
+R:/d3-evidence/tree-input-41f94952e-audit.json; raw tree-input-41f94952e-smokes-20261029. This shows passivity for the tested cases; it is NOT acceptance of source 41f94952e, which carries the known
+paging and capped-check defects. The 5416adb3b / 54e5ece85 review stays closed within its old scope.
+
+No host tree kernel or loader has started. The one combined new-capture review stays open until the paging bound, the capped check, the native paging witness and new actual tests are verified.
+Task47 shipping115 is live and untouched. All required D3 geometry, entity, environment, time and loader solvers remain required; D4/D5 have not started. Root formats, freezes and rebuilds the
+combined new source after this follow-up.
+
+# Transcript paging P2 (signed overflow before clipping) — bounded SOURCE correction, UNBUILT, UNRUN (working tree over 41f94952e)
+
+One combined independent review of the NEW tree capture found a concrete P2: eech_collision_trace_read_run computed the signed int end = offset + count before clipping it to the record count,
+while the Rust wrapper and the C entry accept any non-negative i32 offset with count up to 256, so an offset near INT_MAX reached signed overflow in the C itself. (A build with -fwrapv would have
+wrapped it to a negative sum and returned an empty page by accident, which is why the old behaviour was not observably different; the defect was the unsafe arithmetic, not a wrong page.)
+Corrected in the C read function only, independent of the Rust and entry guards: it now refuses a missing buffer or total pointer, a kind other than 0 or 1, a negative offset, or a count outside
+1 to 256 (col-trace-refused reason=bad_arguments); an offset at or beyond the record count is the END of the transcript, a SUCCESSFUL EMPTY page with the total still reported; otherwise the page is
+min(count, records - offset) records from offset, computed from a value already known to be below TRACE_MAX, so no addition can overflow. Normal paging, the reported total and the refusal of
+bad arguments keep their documented meaning. This is paging only: no captured record, physical C, fold, case set, query order or report changed, and no output expectation changed.
+Native witness (not a stand-in; a mock cannot show the C arithmetic is safe): tests/lua/collision-trace-paging.lua, run by Root with the actual built host and DLL on a fresh verified root:
+  eech-world.exe collision-trace-paging.lua root=<root> out=<new .jsonl> [scenario=lebanon_retail|georgia_retail|georgia]
+It arms the transcript, runs one small probe (seed 20261029, 5+5 cases, seconds0), then checks the normal pages of 256 (counts, starting ordinals, unchanged total), the last record alone,
+END pages at offsets total, total+1, 2147483647, 2147483646, 2147483392 (INT_MAX-255) and 2147483391, each count 256 and each a successful empty page with the total, and six refusals (negative
+offset, count 0, count 257, kind 2, kind -1, offset beyond 32 bits). A pass is exactly the printed line COLLISION_TRACE_PAGING_OK total=.. normal_pages=.. end_pages=6 refusals=6; anything else, or
+no line, is a failure and never a skip. Linux/Windows driver guards and the existing 14 stand-in tests are unaffected by this change.
+
+Frozen 41f94952e stays the known initial paging-defect source identity, not an accepted source. Actual results to date (Root's, not this edit's): its Windows fixture and driver guard build exit0 at
+19:27:56Z (image 87cd7e37766a7253713f125b4866ad915115728ccb4551883a92d8dfdc8d509a, physical exports verified); Linux format, 14 driver/report/transcript/I-O tests and all-target Clippy passed;
+the first retail trace probes (three fresh roots, seed20261029, entity200/tree200/repeats2/seconds0/trace_out, tool86719) and the Windows 14-test run (98355) were LIVE when this was written and are
+not recorded as passed. The one combined new-capture review is still in progress; the source 5416adb3b / 54e5ece85 correction review stays closed and all prior raw is preserved. Task47 shipping115
+is live and untouched; there is no host kernel or loader and no cutover; whole D3 stays active; D4/D5 have not started. Root formats, pins, rebuilds and runs the combined next source and supplies the
+completed results to the same reviewer.
+
+# Trace instrumentation prebuild correction (driver I/O and resource cleanup) — SOURCE ONLY, UNBUILT, UNRUN (working tree over 03413ccd3)
+
+Root's focused prebuild inspection found a false-success path in the NEW transcript driver code: the trace writer ignored the results of file write and flush, the final close was ignored,
+so trace_written and a normal done could follow a disk error; and the armed transcript and open file were cleaned up only on the happy path. Also trace_out=dir/./name could alias a just-created
+output file that a string comparison does not catch. Corrected in the real driver only (no C, arithmetic, generator, order, terrain hook, physical fold or report change; trace off is unchanged):
+* every trace write and flush is checked (new trace_write, with encode_line shared by the unchanged report writer): "could not be written"/"could not be flushed" fail the run before trace_written;
+  the final close is checked ("could not be closed"); a file is accepted only when the output holds trace_written, whatever its last line says. Partial output is kept, never marked accepted.
+* with a trace file the probe/read/check/repeat/write path runs under one handler: on any failure it records trace_failed, disarms the transcript if armed, closes the file, and re-raises the
+  ORIGINAL error unchanged; a disarm or close error during cleanup is recorded as trace_cleanup_failed and never replaces the primary diagnostic or turns the failure into a pass.
+* the existing-file check is repeated immediately after the output is created and before the trace file is created, so an alias of the output (dir/./name, and on Windows case or drive spellings)
+  is resolved by the operating system and refused, never truncated; the output is closed on refusal. This is a check then a create, NOT claimed race-proof; Root uses fresh unique names.
+Real-script stand-in controls (the stand-in proxies only the new trace file): write, flush, close and disarm failures (non-zero, no trace_written/coverage/done, trace_failed recorded, disarm and
+close accounted, a cleanup failure recorded without hiding the first error) and a dir/./name alias control. The 10 transcript controls now also require disarm and a trace_failed record. All 77
+report controls, trace-off output and the positive capture test are unchanged. UNRUN until Root executes it; no physical or query source change.
+
+Read-only file-format facts from Root's audit (tree-file-format-audit-20261029.json, exit0; they do NOT replace the native sizeof and per-record height/type verification the trace performs):
+Georgia tree_pos.sec/.dat (lowercase names) 848187 eight-byte records, 2894 with the high bit of the last byte set; Lebanon TREE_POS.SEC/.DAT (uppercase) 213955 records, 371 high-bit; stride, counts
+and header dimensions match the measured native census. The host loader and kernel are NOT started: they wait for Root's run of the trace and its review.
+
+# Next G3a step: private TREE-QUERY TRANSCRIPT instrumentation prepared — UNBUILT, UNRUN (working tree over 03413ccd3)
+
+Inherited, closed boundaries (not re-reviewed, not re-run): the correction phase is closed. One independent pass found no open findings at native 5416adb3b and final driver 54e5ece85
+(report SHA-256 92ad84e8764c6a0b4068712a3faf9f82bb7ca4bfbcd46861193bb50776931bff, reference/d3-collision-characterization/independent-correction-review-54e5ece85.json); all five
+moving 120s+30s native cases and the controller exited0 with input checks0 and the original queries' flag effects restored; Linux 10/10 with format and Clippy, Windows 10/10 with the
+invalid-override control101 expected and the four old 438 false-pass cases reproduced; fresh 54e driver with the unchanged 5416adb3b native binary gave all 205 boot-report rows byte-identical.
+The old d5 moving failures stay failed with no valid oracle. Live authority read by Root: M5 goal v3, ledger v62 (all prior HTML and the five epic reports exact), Task49 In Progress under
+D3/EEDCS-21, draft PR109. All D3 terrain/spatial/model/environment/time, required physical solver and loader removal remain D3 scope (not deferred to D5; an unsupported or refused query is not
+completion). Campaign geography, routes, timers, scheduling, decisions and consequences stay in EECH_DC. D4/D5 have not started. Task47 corrected shipping115 (tool59652) is LIVE; Task48
+host kernel/Lua prep is closed but production G2 is NOT cut over. No G2/G3 production cutover before validated preceding delivery and verified integration.
+
+What was prepared (fixture-only, feature-gated, no host kernel, loader, production dispatch or framework): the missing INPUT characterization the host-owned tree kernel and tree-file loader
+need. Every tree query the probe makes (primary cold and warm, shortened nearer-check cold and warm) can be recorded in execution order in a bounded private transcript: ordinal, group, kind,
+role, stage, the two flags, f32 endpoint bits, the caller's initial intercept (zero) and normal (sentinel) bits, the ORDERED terrain lookups the original actually made (x, z, the elevation
+it returned) and the final hit, intercept and normal bits including a miss's partial writes. Lookups are captured passively: en_cllsn.c's two terrain-elevation calls in
+get_line_of_sight_collision_tree go through a TREE_QUERY_TERRAIN_ELEVATION macro that, without EECH_COLLISION_FIXTURE, expands to exactly the original get_3d_terrain_elevation call (14 lines
+added to en_cllsn.c; the division lines move from 2021/2024 to 2035/2038), and with it calls a fixture function that makes the identical call, returns the identical float and records.
+No extra terrain query, no solver arithmetic, control flow, generator, call count or order, getter, FPU mask, RNG, quad/triangle helper or early return is changed; the flag/terrain snapshot,
+effects report and restoration are untouched. A facts block records the tree record layout measured natively (size, member offsets and a known-pattern byte dump that fixes the packed
+height/type bit order: the declaration is eight bytes on these builds, not six, but nothing is assumed), the scales and bounds, the forest tree object's collision triangles and the first live
+records as raw bytes. Raw output is private and out of Git. Interface: Lua driver argument trace_out=<path> (default off; the report is identical either way), engine:collision_trace_arm(on)
+and engine:collision_trace_read(kind, offset, count) (kind0 state+facts, kind1 records, count 1..256). Bounds: 32768 records (about 4 per random tree case plus about 160 structured, so the
+driver requires tree_cases <= 8000 with trace_out), 160 KiB of facts, 512 forest triangles; overflow, an extra lookup or a facts overflow is flagged and the driver FAILS rather than truncate.
+Cleanup/safety: an existing trace file is never overwritten (refused before anything is opened or booted), the file is created before the run and written only after every repeat's
+transcript has passed, so a failed run leaves it empty; a transcript without trace-end is incomplete; the transcript statics are cleared on arm and disarmed after the repeats.
+The driver parses the transcript strictly and checks it against its own report (record counts per group and stage, hits, warm agreement, miss-time writes, derived zero-extent rays, tree
+census and map facts, initial outputs, stage order, no unrecorded lookup) and requires repeated transcripts to be identical; 10 transcript negative controls, 3 argument guards and a
+complete-transcript positive test were added to the real-script tests. The 77 report controls, strict-JSON retention and the host-path override are unchanged.
+
+Not done: nothing here is built or run. Root formats, freezes and builds ONE new named fixture, runs seconds0 with the existing seed20261029/entity200/tree200/repeats2 and trace_out on
+fresh verified Georgia, Lebanon and separate-repeat roots, compares all 205 existing report rows/folds/samples/counters with 5416adb3b (new metadata separate), inspects the lookup
+counts, pair order and raw transcripts, and obtains one independent review of the NEW instrumentation and evidence. Only then does the host-owned tree loader/kernel start. That work must
+preserve the 8-byte tree file layout, float/double promotions and FPU, map gates and sector/tree order, the 35 m and 0.1 early returns, the flags, strict-nearest quad and first-triangle
+rules, partial writes and the ordered terrain cache effects, with the full remaining D3 scope. A first quad-path-with-geometry refusal would be preparation only; no permanent unsupported or
+miss substitute is approved and no unverified DCS API is claimed. Unresolved risk: the transcript is captured at the C wrapper, so the elevation values are the original's return values as
+floats; a build whose float evaluation differed would show it as a changed old fold, which Root compares.
+
+# Current collision checkpoint — correction review closed; host preparation next
+
+Independent correction review is closed with no open findings at native source
+5416adb3b and final driver/helper source54e5ece85. Retained review SHA256:
+92ad84e8764c6a0b4068712a3faf9f82bb7ca4bfbcd46861193bb50776931bff.
+All three original boot probes and five moving/control cases complete0; actual
+query flag effects are reported and restored, repeated reports agree and coarse
+campaign digest pairs match. Coverage gaps and the old failed d5 runs remain.
+
+Final actual-driver checks pass10/10 on both Linux and Windows; Linux format and
+host all-target Clippy pass. Four impossible-flag reports actually pass the old
+driver and fail the corrected one; legitimate added-bit counts pass both. A
+missing Windows host path fails explicitly. Fresh54e driver/unchanged541 native
+boot reports match all previous205 rows byte for byte. All input checks pass;
+the retained runtime remains541, without a relabelled native build or oracle.
+
+No collision responsibility has moved to production. The next bounded Task49
+step captures tree-query inputs, ordered terrain lookups and outputs without
+altering original queries, then prepares a host tree loader/kernel. The source
+tree record is eight bytes (not six); file parsing and bit order require measured
+verification. Entity collision, model geometry and the full tree geometry path
+remain required withinD3. No unsupported tree path may become a completed query.
+Task47 shipping115 is still live; latest23.4MB Tacview/14.6MB observation prefixes
+match accepted bytes, with no full-pack acceptance yet. Production G2/G3 delivery
+and the remaining whole-D3 environment/time/solver/loader work remain required.
+
+Safe evidence and the independent review are under
+eech-campaign/reference/d3-collision-characterization/. Two closed d5 Cargo
+caches were removed after full build-log export, payload and ownership checks;
+all source, binaries, successful/failed raw runs and retail roots are retained.
+The following sections preserve earlier checkpoints with their at-time status.
+
+# Current collision state: source 5416adb3b moving witnesses complete; col-flags feasibility follow-up UNBUILT, UNRUN (working tree over 438940d39)
+
+Actual results (all by Root, none by this edit). Source 5416adb3b: Windows physical build exit0 with 43 entries; three boot probes exit0 with every old d5 199-row value identical (six new
+diagnostic rows separate). Its five moving 120s+30s native cases (controller tool68773) have all TERMINATED exit0: all five pre/post checks0; probe and control coarse identity/kind/side/alive digests
+equal; the separate Lebanon entire reports are byte identical and both probe-report repeats identical; FPU masks 63/63 and record/RNG/world/flag restoration hold. Georgia: 10 changed updated-flag
+words, 62 cleared bits, restored1, 5 moving targets; Lebanon and its repeat: 6 selected moving targets. Exact raw and controller output: collision-observer-5416adb3b-controls-20261029 (private).
+These are original-behaviour observations with explicit gaps: no new physical or Tacview claim; the old d5 failed moving probes stay failed with no valid oracle. Source 438940d39: Linux 9/9, format
+and all-target Clippy exit0; Windows guard and matching host built exit0 with the four payloads hashed. The actual Windows override run now passes all9 tests using a verified host path
+containing spaces, and the invalid-host control fails101 with the explicit no-fallback diagnostic. All4 payloads remain unchanged. All12 retained native flag rows satisfy the stronger bounds.
+
+New bounded P2 from the one combined independent review (driver feasibility validation of col-flags, not a C snapshot defect): zero changed words with a nonzero cleared bit was accepted, counts
+could exceed 32 bits per changed word, and one array's changed words with no bits could be hidden by another array's clears. Source follow-up in the REAL driver, UNBUILT/UNRUN, no change to C,
+production code, generation, folds, masks or restoration: (1) each array's cleared_bits <= 32 x its changed_words; (2) the minimum additions, sum over arrays of max(0, changed_words - cleared_bits),
+must be <= added_bits (a changed word with no cleared bit in its own array differs only by an added bit); (3) sum(cleared_bits) + added_bits <= 32 x sum(changed_words). added_bits is NOT forced to 0
+and the existing nonnegative, capacity, lower-bound and hash checks stay. Four one-defect stand-in controls (bits with no changed word; per-array overflow; aggregate overflow; a changed array
+lacking bits despite another's clears) and one positive control (realisable aggregated added bits are accepted); 77 negative controls now. Dynamic bit-31/refusal coverage is not claimed.
+Root audits the stronger rules against all retained native flag rows without changing them, runs new Linux and Windows guards, and may run fresh boot probes through the new driver with the
+unchanged 5416adb3b C binary, clearly labelled. One combined independent review remains pending. No collision query is extracted; production G2 remains gated and Task47 shipping115 is live and untouched;
+whole D3 stays active; D4 and D5 have not started.
+
+# Collision driver Windows setup defect and host-path override — follow-up UNBUILT, UNRUN (working tree over d16c08bec)
+
+Actual results to date. Source 5416adb3b: Windows physical build exit0 with 43 entries; three native boot probes exit0 with 205 rows each, every old d5 199-row value matching (the six new
+diagnostic rows are separate); Lebanon raw reports identical; all pre/post checks0. Its moving 120s+30s probes/control/repeat (tool68773, controller13108) are LIVE and not accepted.
+Source d16c08bec: Linux 9/9 driver tests, format and all-target Clippy PASS (exit0). Its Windows driver guard binary built (exit0; the three exported entries match before and after), but the
+actual Windows run is TERMINAL exit101 with 0/9 passed: every test failed identically with OS error 3 at the command.output unwrap in run_collision_case. Cause: the helper still started
+Command::new(env!("CARGO_BIN_EXE_eech-world")), the Linux build path baked in at compile time; the earlier include_str driver embedding removed the source-path dependence but not the executable-path
+one. No driver or physical test passed on Windows, no baseline changed; the failed log and completion are preserved.
+
+Follow-up (test helper only; production, fixture C, driver validation, generation, folds, order, masks and restoration untouched): run_collision_case now starts collision_host_exe(). The runtime
+override is EECH_WORLD_BIN (the name the ground handoff tests already use): when set it names the eech-world executable to start, read as an OsString/PathBuf so spaces work; a set value that is not an existing
+file FAILS the test with a clear message (no fallback, skip or pass); unset, the ordinary cargo path is used. Only the collision driver tests use it; the other old host_callbacks tests are not touched.
+The 73 malformed-report controls and the strict-JSON retention assertions are unchanged. This change is UNBUILT and UNRUN until Root exports the matching same-source eech-world.exe beside the test and lua.dll,
+sets the override for that single native process and runs all 9 on Windows. One combined new-delta independent review is pending. No collision query is extracted; whole D3 stays active; Task47
+shipping tool59652 is untouched; no D4 or D5.
+
+# Current collision checkpoint — corrected native boot reports match retained original values
+
+The clean Windows fixture at 5416adb3b built successfully (actual exit 0), with all
+43 exported payloads verified. Georgia, Lebanon and the separate Lebanon repeat
+boot probes each exit 0 with 205 strict JSON rows, restored terrain/update flags,
+unchanged game RNG and both FP exception masks 63. Every value in all 199 retained
+d5 boot rows matches, including physical/legacy folds and samples; the six added
+rows are new census/FP/flag diagnostics. Full raw Lebanon repeat reports match.
+All three pre/post input manifests pass. This is bounded boot evidence with the
+original coverage gaps; it is neither moving-case conformance nor shipping proof.
+
+Fresh 120s+30s original-query probes and matched controls are running on immutable
+5416adb3b. The test-only expectation correction below changes two strings, with no
+native/driver behavior change; its Linux/Windows checks and independent delta
+review remain pending. Task47 shipping115 remains running unchanged. No collision
+responsibility has moved; production G2 and the rest of D3 remain required.
+
+The following sections preserve earlier results and their at-the-time status.
+
+# Source 5416adb3b Linux guard result and test-expectation follow-up — follow-up UNRUN
+
+Actual first Linux run of corrected source 5416adb3b is TERMINAL (exit 101; completion collision-driver-linux-5416adb3b-completion.json, 18:40:16Z): format passed, 8 driver
+tests passed, 1 failed, and Clippy did not run (the script stops at the first failure). The failure is in the_collision_driver_names_the_one_defect_in_a_report_and_writes_no_success_row:
+the validator correctly reported "col-entity-common struct: hit + miss is 71, expected 44" for mode common_cases_wrong (the stand-in sets cases 44), while the test still expected "expected 72".
+That is a stale test expectation left over from the coherent 15-target valid stand-in, not a physical regression and not a validator or stand-in defect.
+
+Follow-up (test source only; production source, native C and driver semantics unchanged; UNRUN until Root executes it): every one of the 73 negative-mode expectations was re-derived from the
+CURRENT stand-in values and validator order. Two were stale and are corrected: common_cases_wrong (expected 44, as the stand-in sets) and census_paths_wrong (the stand-in sets box_path 7, so
+"geometry_path + box_path is 16, expected 18", not 17). All other expectations match. Nothing was weakened; all 73 negative controls, the strict-JSON report retention and the positive valid-world
+constraints remain. Root formats and runs this corrected test source, cross-builds its Windows guard binary and pins every measured source; the initial failure is preserved.
+
+The Windows physical build of 5416adb3b is LIVE and has not passed. The old d5 failed moving probes stay failed with no valid oracle. The same independent review remains CHANGES REQUIRED pending the
+new source and actual results. Whole D3 stays active; no production G2/G3, D4 or D5.
+
+# Fixture observer P1 — SOURCE CORRECTION PREPARED, UNBUILT, UNRUN (working tree over f8092241d)
+
+The terminal long-run failure (world_unchanged0 after1200 frames; both controls complete) is explained: the d5 fingerprint called the ORIGINAL destructive INT_TYPE_UPDATED getter
+(mb_int.c398 `array[index] &= mask`), which clears the other bits of the entity's 32-entity word in the bounded up_update.c arrays. Old d5 zero-frame smokes, the failed moving probes
+and the coarse-only controls stay as measured d5 identities with their limited scope; there is no valid moving oracle and none is normalised. The production getter and the original
+collision code (which itself calls the getter) are untouched.
+
+Source correction, none of it built or run: the fingerprint reads the RAW updated bit (no getter); the three bounded flag arrays are copied in full before anything is observed, the
+ORIGINAL queries' effect on them is measured against the copy and reported as LEGACY diagnostics (col-flags: hashes and counts only), the copy is written back on every exit and before the
+FINAL fingerprint (so any other change is still caught; the terrain record is restored as before; the game RNG is not reset). The driver requires restoration and coherent counts; a rejected
+real report is now retained whole as raw_report in the private output (JSON-escaped), as is a differing repeat. Tests: seven col-flags negative controls and a strict-JSON round trip of
+a retained report. The fingerprint still excludes CITY children and identities and the warm counters still cover primary queries only; no state-purity claim. Root builds ONE new clean
+source, runs Linux and cross-built Windows guards, zero-frame conformance with masks, and fresh moving probe/control witnesses before any of this is accepted. The same review remains
+CHANGES REQUIRED. Whole D3 stays active; no production G2/G3, D4 or D5.
+
+# Current collision gate — observed destructive-flag observer defect; no moving oracle
+
+The original long run is TERMINAL1 (tool84252;18:18:29Z). All three probes fail
+native1 after1200frames with world_unchanged0, before measurements/digest/coverage
+are accepted. Both controls complete1500frames/native0; all5post-inputs0 and43
+exports unchanged. Pair digest comparison is UNAVAILABLE, not an observed mismatch;
+failed Lebanon raw equality is failure reproducibility only. Old d5 boot-smoke
+results retain their limited scope. Safe failure proof and the full independent
+review are in reference/d3-collision-characterization/ under eech-campaign.
+
+The same combined review requires changes:1P1/4P2/1P3. Source-only corrections for
+bucket/target completeness, verified FP masks/derived-axis accounting, portable
+actual-script guards and precise scope wording are prepared but UNBUILT/UNRUN.
+The NEW P1 remains OPEN: world_fold calls the original destructive UPDATED getter
+(mb_int.c398 uses &=), changing shared flags before measurement. Original moving
+collision also legitimately invokes it. Before ANY new build, the sole Sonnet lane
+must add nondestructive fixture observation, bounded flag snapshot/effects report/
+restore on all exits, preserving production &= and all original queries/order.
+Do not relax the assertion or normalize a moving oracle. The production queries,
+case generator/fold algorithms, baselines/tolerances remain unchanged.
+
+The following records earlier checkpoints and the first source-correction batch.
+
+# Collision fixture reviewer corrections — SOURCE ONLY, UNBUILT, UNRUN (working tree over publication bd2a31949)
+
+One combined independent review of pinned d5ca5ee5b found four P2 defects and one P3 scope issue; all are corrected in source after the pinned d5 build and smokes.
+The d5 build, its three seconds0 smokes and the five live 120s+30s processes remain measured identities of the d5 source: this is NOT a new corrected-source pass, and nothing
+below was compiled or executed. Original queries, the structured and random case generators and order, and the physical folds are unchanged.
+
+1. Exact hit-type conservation: summed col-entity-type hits must equal each group's hits (was <=); deleted-bucket and all-omitted negative controls.
+2. Exact target selection: new row col-census-class (class census, not only selection); col-targets must equal min(class census, 3) for all ten classes and the class census must
+   agree with col-census-entity/-tree; the positive stand-in was impossible and is now coherent (quota-binding classes included); under-selection controls added.
+3. FP mask contract: the probe reads (fnstcw, stmxcsr; never writes) the x87 and SSE masks and requires all six in both (63/63) or is refused; reported as col-fp. d5 did not check
+   this and nothing infers it did. The primary random tree rays with zero x or z extent are still skipped and counted (skipped_axis); the DERIVED shortened nearer-check ray, which
+   can reach en_cllsn.c 2021/2024 with a zero extent, is queried unscreened and counted (derived_axis, new field, must be <= nearer_checked). Source axis checks alone are not a full physics statement.
+4. Portable guards: the Rust tests embed the actual driver with include_str! and copy it to the private test directory (@DRIVER@); no source-machine path at run time. Root cross-builds and runs it on Windows.
+5. P3: the world fingerprint covers sector-list entities' type/flags/position and mobile motion/updated flag plus delta time, not city buildings or identities; warm counters cover primary
+   queries only; repeated reports plus a coarse digest are repeatability and bounded observations, not candidate-state purity or Tacview equivalence. Messages and docs say so.
+
+Still required: Root builds a NEW clean named correction, runs Linux and cross-built Windows guards and native smokes with masks, compares physical folds/samples/counters with retained d5
+(separating the new rows/fields), and obtains same-review delta verification. D3 stays active; production G2/G3 switching, remaining model/weather/time/loader services, D4 and D5 are unchanged.
+
+# Latest original collision native checkpoint — smokes completed; controls live
+
+Clean measured source d5ca5ee5bb1f784318ce9c76903169cb97bbe362 Windows fixture
+build0; all43 exports verified. Actual Georgia/Lebanon/separate-repeat seconds0
+probes (200 random cases per family, two reports) each native0/pre/post-input0,
+199 strict rows, report-repeat equality and restoration/RNG/candidate-state flags1.
+Separate Lebanon raw reports are byte identical. Source/original samples stay
+immutable. Safe aggregate: reference/d3-collision-characterization/ under eech-campaign.
+
+Coverage is GAPPED: no moving target at boot, no terrain-aligned fixed object,
+no forest collision geometry or geometry-tree target; Georgia also has no two-object
+ray. These remain limits, not full characterization. Axis-aligned tree rays and
+player/gunship reachability are still unresolved. No extraction/shipping claim.
+
+Five fresh original probe/control processes are LIVE on the SAME frozen d5 build:
+Georgia pair, Lebanon pair and separate Lebanon probe;120s before +30s after,
+100ms/1500frames,2000random per family/two reports. Controller21768/tool84252,
+natives2840/9504/25404/20896/16772 born18:12:03Z; exact identities recorded privately.
+Full controls/moving coverage/post-inputs and one combined new-source/native review
+are in progress. No Tacview is generated by these probes; the digest control is
+identity/kind/side/alive only, not positions/all-state/recording equality.
+
+PR109 continues this Task49. Task47 shipping11559652 remains live and untouched;
+production G2 delivery and remaining model/weather/time/loader services stay D3.
+The following records the preceding checkpoints with their at-time limitations.
+
+# Latest collision characterization checkpoint — driver guards passed
+
+Actual working-tree Linux format/check, eight the_collision_driver_* tests and
+host all-target Clippy passed0 at 2026-10-29T18:02:22Z. These are stand-in/driver
+flow and schema tests, not original C/retail collision evidence. Exact tested
+hashes and log are in reference/d3-collision-characterization/ under eech-campaign.
+Three fresh reserved Georgia/Lebanon/separate-repeat roots match the repository
+input manifests; no native collision campaign has run on them yet.
+
+Next: clean named Windows collision-fixture build and verified exports; first
+seconds=0 native probes, then seconds=120 paired probe/control runs and separate
+repeat, all on verified private roots. Record actual exits, differences and coverage
+gaps, independently review new source/results, then continue host extraction.
+Production switching waits validated preceding deliveries and freshly verified
+integration. Ground host kernel/Lua preparation reviews are closed; production G2
+handoff/shipping delivery and Task47 final shipping115 still remain. Whole D3 scope
+is retained; D4/D5 not started. Current ledger is14548994v60; the following records
+the author's earlier live v59 read and source-preparation checkpoint.
+
+# D3 object and tree collision queries (EEDCS-49) — original characterisation source prepared
+
+29 October 2026. **Source only: unbuilt, unrun, unreviewed.** Task [EEDCS-49](https://flying-dice.atlassian.net/browse/EEDCS-49) (parent
+[D3/EEDCS-21](https://flying-dice.atlassian.net/browse/EEDCS-21)) on branch `codex/d3-object-tree-collision`, base accepted integration
+`6bbaa8197a4843181d03cd355d562af998c75321` (clean when work began). Live authority read 29 October: M5 goal v3, migration ledger v59, EEDCS-49 and
+EEDCS-21 (no tool was unavailable). D1 and D2 are accepted; D3 is the only active epic; D4/D5 have not started.
+
+Gate advanced: original characterisation of `get_line_of_sight_collision_entity` and `get_line_of_sight_collision_tree` before any ownership change.
+**No physical responsibility has moved, no production dispatch changed, and nothing here completes EEDCS-49, G3a or D3.** Production G3 switching still
+waits for validated preceding delivery (EEDCS-47 shipping regression, the G2 host-Lua review) and freshly verified integration.
+
+Prepared (all feature-gated test-only; none in the shipping module): `collision-fixture` feature chain `eech-dc` → `eech-engine` → `eech-engine-sys`;
+`csrc/eech_collision_fixture.c` (calls the ORIGINAL functions with the consumers' call shape against the loaded sector lists, 3D object database and tree
+data); `eech_engine_collision_probe` entry in `eech_engine.c/.h`; `Engine::collision_probe`; Lua method `engine:collision_probe`;
+`lua/collision-characterization.lua` (arguments checked before anything is opened or booted, strict JSON, report accepted only as a whole, coverage
+stated); `tools/build-windows-collision-fixture.sh`; a stand-in and `the_collision_driver_*` tests; and
+[docs/m5-collision-characterization.md](eech-campaign/docs/m5-collision-characterization.md) with the source findings, finite case set, report schema,
+unsupported inputs, run command and risks.
+
+Source findings worth the lead's attention (read from the source; **not runtime evidence**): the entity query is first-found in a fixed scan order,
+not nearest-hit; exclusion tests only the sector-list entity, so excluding a city building does nothing and excluding its city excludes all of its
+buildings; both intersection helpers write the face normal (and the plane-crossing point) before deciding hit or miss, so a miss can leave written
+outputs that the weapon-step lookup reports to the host; the tree query has two tie rules (first triangle hit versus nearest quad) and divides by the
+segment's x and z extents; both queries write the shared terrain point record. The gunship consumers (`co_force.c` uses the face normal) are compiled; their
+reachability disposition is not decided here.
+
+Not done and still required: compile the clean named fixture build; execute the stand-in tests (their expected messages were derived by reading the
+driver); run the native probes on fresh verified Georgia, Lebanon and Lebanon-repeat roots at `seconds=0` and `120`, with and without probe, and
+`repeats>=2`; learn whether the retail worlds offer tree data, moving targets, buildings and geometry targets (the `coverage` event says); classify
+differences; independent review. Adding `lua/collision-characterization.lua` adds one entry to the build file manifest; the C and Rust changes outside the
+feature are `#ifdef`/`cfg` only and are expected, but not verified, to leave shipping bytes unchanged. No baseline, tolerance, scenario or seed changed;
+all prior records below are preserved.
+
 # D2 combat and perception — implementation delivery record
 
 29 October 2026. The physical D2 increment is delivered on integration through

@@ -1761,6 +1761,39 @@ impl LuaUserData for LuaEngine {
                 .map_err(lua_error)?;
             los_trace_table(lua, &trace)
         });
+        // TEST-ONLY (feature `collision-fixture`, EEDCS-49): the probe of the original object and tree collision queries against the loaded world; not part of the shipping
+        // module. It needs no host callbacks: neither query asks one. The seed is a whole number; the case counts are checked again by the engine wrapper. The engine refuses it
+        // unless every floating-point exception is masked (x87 and SSE), which it only reads.
+        //
+        // The arguments are converted HERE, from the raw argument list, with the same conversions the typed tuple (u32, i32, i32) used (`FromLuaMulti`), so that a conversion refusal is
+        // inside the method: a probe that was entered consumes any arming of the controlled geometry witness (`collision_geometry_arm`) whatever refuses it, and the next probe is
+        // never unexpectedly controlled. Nothing is borrowed across the conversion (it can run Lua metamethods); the engine call clears the arming itself on its own refusals.
+        #[cfg(feature = "collision-fixture")]
+        methods.add_method("collision_probe", |lua, this, arguments: mlua::MultiValue| {
+            let result: mlua::Result<String> = (|| {
+                let (seed, entity_cases, tree_cases): (u32, i32, i32) = mlua::FromLuaMulti::from_lua_multi(arguments, lua)?;
+                this.engine.collision_probe(seed, entity_cases, tree_cases).map_err(lua_error)
+            })();
+            if result.is_err() {
+                let _ = this.engine.collision_geometry_arm(false);
+            }
+            result
+        });
+        // TEST-ONLY (feature `collision-fixture`, EEDCS-49): the optional private tree-query transcript of the collision probe (arm, then read the state and facts or a chunk of records);
+        // not part of the shipping module.
+        #[cfg(feature = "collision-fixture")]
+        methods.add_method("collision_trace_arm", |_, this, on: bool| {
+            this.engine.collision_trace_arm(on).map_err(lua_error)
+        });
+        // TEST-ONLY (feature `collision-fixture`, EEDCS-49): arms the controlled forest geometry witness for the NEXT collision_probe only (consumed by it); not part of the shipping module.
+        #[cfg(feature = "collision-fixture")]
+        methods.add_method("collision_geometry_arm", |_, this, on: bool| {
+            this.engine.collision_geometry_arm(on).map_err(lua_error)
+        });
+        #[cfg(feature = "collision-fixture")]
+        methods.add_method("collision_trace_read", |_, this, (kind, offset, count): (i32, i32, i32)| {
+            this.engine.collision_trace_read(kind, offset, count).map_err(lua_error)
+        });
         // TEST-ONLY (feature `aim-fixture`, EEDCS-44): the run-wide report of the physical weapon-aiming code; not part of the shipping module.
         #[cfg(feature = "aim-fixture")]
         methods.add_method("aim_trace", |_, this, ()| this.engine.aim_trace().map_err(lua_error));

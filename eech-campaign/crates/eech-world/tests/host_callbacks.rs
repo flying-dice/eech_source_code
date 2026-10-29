@@ -1986,3 +1986,1044 @@ fn the_object_witness_says_so_when_there_is_no_such_structure_and_refuses_a_malf
         "{stderr}"
     );
 }
+
+// The object and tree collision characterisation driver (EEDCS-49; lua/collision-characterization.lua) against a small stand-in for the engine: only its argument safety, its flow and its own checks of
+// what the probe returns are exercised here (the arguments refused BEFORE anything is opened, required or booted; the probe called with the asked seed and counts as often as asked; the control that does
+// not probe; the report parsed into typed events with hash words kept as text; a refused probe whose text is strict JSON; a repeat that differs; a world that offers no tree data, which is stated as a coverage
+// gap and fails only when coverage is required; and a table of reports with ONE defect each). The stand-in (tests/lua/collision-caller.lua, loaded with include_str!) loads the ACTUAL driver, embedded the same way and copied to the private test directory, so no source-machine path is used at run time writes a complete
+// well-formed report and measures nothing about the collision queries: whether the original behaves as characterised is the native run's to show, with a DLL built with the `collision-fixture` feature.
+const COLLISION_CASE_CALLER_SCRIPT: &str = include_str!("lua/collision-caller.lua");
+// The real driver, embedded at compile time. The test copies it to a private file and the stand-in loads that copy, so a test executable cross-built on one machine and run on another
+// needs no source path, and there is no second implementation of the driver's validation to drift from the real one.
+const COLLISION_DRIVER_SCRIPT: &str = include_str!("../lua/collision-characterization.lua");
+
+// The host executable the collision driver tests start. Cargo bakes the path of its own build of eech-world into the test at compile time (CARGO_BIN_EXE_eech-world), which is the build
+// machine's path: a test executable cross-built on Linux and run on Windows would try to start a Linux path. EECH_WORLD_BIN, when set, names the executable to start instead, read at run
+// time as an OsString path (spaces are fine). A set value that is not an existing file FAILS the test with a clear message; it never falls back, skips or passes. Unset, the ordinary cargo
+// path is used. Only the collision driver tests use it.
+fn collision_host_exe() -> std::path::PathBuf {
+    match std::env::var_os("EECH_WORLD_BIN") {
+        Some(path) => {
+            let path = std::path::PathBuf::from(path);
+            assert!(
+                path.is_file(),
+                "EECH_WORLD_BIN is set to {path:?}, which is not an existing file: the collision driver tests will not fall back to the compiled-in cargo path"
+            );
+            path
+        }
+        None => std::path::PathBuf::from(env!("CARGO_BIN_EXE_eech-world")),
+    }
+}
+
+fn run_collision_case(mode: &str, extra: &[&str]) -> (std::process::ExitStatus, String, String, String, Vec<serde_json::Value>) {
+    static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let tag = format!("{}-{}", std::process::id(), COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
+    let script = std::env::temp_dir().join(format!("eech-world-collision-caller-{tag}.lua"));
+    let driver = std::env::temp_dir().join(format!("eech-world-collision-driver-{tag}.lua"));
+    let out = std::env::temp_dir().join(format!("eech-world-collision-caller-{tag}.jsonl"));
+    let trace = std::env::temp_dir().join(format!("eech-world-collision-caller-{tag}.trace"));
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    let text = COLLISION_CASE_CALLER_SCRIPT
+        .replace("@MODE@", mode)
+        .replace("@TRACE@", &trace.display().to_string().replace('\u{5c}', "/"))
+        .replace("@DRIVER@", &driver.display().to_string().replace('\u{5c}', "/"));
+    std::fs::write(&script, text).unwrap();
+    std::fs::write(&driver, COLLISION_DRIVER_SCRIPT).unwrap();
+    let mut command = Command::new(collision_host_exe());
+    let out_text = out.display().to_string().replace('\u{5c}', "/");
+    // @OUT_DOT_ALIAS@ in an extra argument is another spelling of the same output file (dir/./name), for the path-alias control
+    let out_alias = match out_text.rfind('/') {
+        Some(i) => format!("{}/.{}", &out_text[..i], &out_text[i..]),
+        None => out_text.clone(),
+    };
+    command.arg(&script).arg("root=none").arg(format!("out={out_text}"));
+    for arg in extra {
+        command.arg(arg.replace("@OUT_DOT_ALIAS@", &out_alias));
+    }
+    let run = command.output().unwrap();
+    std::fs::remove_file(&script).unwrap();
+    std::fs::remove_file(&driver).unwrap();
+    let rows = if out.exists() {
+        std::fs::read_to_string(&out)
+            .unwrap()
+            .lines()
+            .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("malformed output row {l:?}: {e}")))
+            .collect()
+    } else {
+        Vec::new()
+    };
+    let trace_text = std::fs::read_to_string(&trace).unwrap_or_default();
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    (
+        run.status,
+        String::from_utf8_lossy(&run.stdout).to_string(),
+        String::from_utf8_lossy(&run.stderr).to_string(),
+        trace_text,
+        rows,
+    )
+}
+
+// the digest the driver computes over the object list in id order (a modular polynomial hash), written out here from the stand-in's two objects
+fn collision_expected_digest() -> String {
+    let mut digest: u64 = 5381;
+    for byte in "1:ground_vehicle:red:false;2:helicopter:blue:true;".bytes() {
+        digest = (digest * 31 + u64::from(byte)) % 2_147_483_647;
+    }
+    format!("{digest:08x}")
+}
+
+// the message the driver refuses with: its own prefix and the reason
+fn collision_refusal(reason: &str) -> String {
+    format!("collision-characterization: {reason}")
+}
+
+const COLLISION_NO_TREE_GAPS: &str = "no_tree_data_loaded,forest_tree_object_has_no_collision_geometry,no_quad_plane_tree_target,no_geometry_tree_target,no_structured_tree_hit,no_tree_hit_with_the_consumer_flags";
+
+#[test]
+fn the_collision_driver_probes_with_the_asked_seed_and_counts_as_often_as_asked_and_parses_the_report() {
+    let (status, stdout, stderr, trace, rows) = run_collision_case(
+        "ok",
+        &[
+            "entity_cases=40",
+            "tree_cases=40",
+            "seed=77",
+            "repeats=3",
+            "seconds=1",
+            "after=1",
+            "frame_ms=500",
+        ],
+    );
+    assert!(status.success() && stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert!(
+        stdout.contains("COLLISION_CHARACTERIZATION_DONE probed=true repeats=3 coverage_gaps=none"),
+        "the driver must say what ran: {stdout}"
+    );
+    assert_eq!(trace.matches("probe 77 40 40").count(), 3, "{trace}");
+    assert_eq!(trace.matches("frame").count(), 4, "{trace}");
+    // two frames, then the probes, then two more frames, then nothing
+    let first_probe = trace.find("probe ").unwrap();
+    let last_probe = trace.rfind("probe ").unwrap();
+    assert_eq!(trace[..first_probe].matches("frame").count(), 2, "{trace}");
+    assert_eq!(trace[last_probe..].matches("frame").count(), 2, "{trace}");
+    // a hash word of decimal digits stays text; a count is a number
+    let legacy = rows.iter().find(|r| r["event"] == "col-legacy").unwrap();
+    assert_eq!(legacy["entity_struct"].as_str(), Some("1234567890123456"), "{legacy}");
+    let physical = rows.iter().find(|r| r["event"] == "col-physical").unwrap();
+    assert_eq!(physical["entity_struct"].as_str(), Some("fedcba9876543210"), "{physical}");
+    assert_eq!(
+        rows.iter().filter(|r| r["event"] == "col-physical").count(),
+        3,
+        "every repeat records the physical fold"
+    );
+    let guard = rows.iter().find(|r| r["event"] == "col-guard").unwrap();
+    assert_eq!(
+        (
+            guard["record_restored"].as_i64(),
+            guard["rng_unchanged"].as_i64(),
+            guard["world_unchanged"].as_i64(),
+            guard["record_words_before"].as_str(),
+            guard["record_words_after"].as_str()
+        ),
+        (Some(1), Some(1), Some(1), Some("0123456789abcdef"), Some("0123456789abcdef")),
+        "{guard}"
+    );
+    let exclusion = rows.iter().find(|r| r["event"] == "col-entity-exclusion").unwrap();
+    // 15 structured entity targets: min(census, 3) of each of the eight classes (1+1, 3+1, 2+3, 1+3), not a hand-picked small set
+    assert_eq!(exclusion["through_cases"].as_i64(), Some(15), "{exclusion}");
+    let class_census = rows.iter().find(|r| r["event"] == "col-census-class").unwrap();
+    let targets = rows.iter().find(|r| r["event"] == "col-targets").unwrap();
+    assert_eq!(
+        (
+            class_census["stationary_geometry"].as_i64(),
+            targets["stationary_geometry"].as_i64(),
+            class_census["tree_quad"].as_i64(),
+            targets["tree_quad"].as_i64()
+        ),
+        (Some(5), Some(3), Some(40), Some(3)),
+        "the quota binds: {class_census} {targets}"
+    );
+    let fp = rows.iter().find(|r| r["event"] == "col-fp").unwrap();
+    assert_eq!((fp["x87_masks"].as_i64(), fp["sse_masks"].as_i64()), (Some(63), Some(63)), "{fp}");
+    // the update-flag arrays: restored to the copy, with the original queries' own effect on them reported as legacy diagnostics (hashes and counts, no array)
+    let flags = rows.iter().find(|r| r["event"] == "col-flags").unwrap();
+    assert_eq!(
+        (
+            flags["restored"].as_i64(),
+            flags["before"].as_str(),
+            flags["after_restore"].as_str(),
+            flags["after_queries"].as_str(),
+            flags["updated_cleared_bits"].as_i64()
+        ),
+        (Some(1), Some("1122334455667788"), Some("1122334455667788"), Some("aabbccddeeff0011"), Some(7)),
+        "{flags}"
+    );
+    // keyed rows: one per key per repeat, none dropped or merged
+    assert_eq!(rows.iter().filter(|r| r["event"] == "col-entity-kind").count(), 7 * 3);
+    assert_eq!(rows.iter().filter(|r| r["event"] == "col-tree-kind").count(), 11 * 3);
+    assert_eq!(rows.iter().filter(|r| r["event"] == "col-tree-flags").count(), 8 * 3);
+    let sample = rows.iter().find(|r| r["event"] == "col-sample").unwrap();
+    assert_eq!(
+        (sample["a"].as_str(), sample["type"].as_i64()),
+        (Some("3f800000,40000000,3f800000"), Some(5)),
+        "{sample}"
+    );
+    assert_eq!(rows.iter().filter(|r| r["event"] == "repeat_identical" && r["ok"] == true).count(), 2);
+    let coverage = rows.iter().find(|r| r["event"] == "coverage").expect("the coverage row");
+    assert_eq!(
+        (
+            coverage["gaps"].as_str(),
+            coverage["gap_count"].as_i64(),
+            coverage["moving_targets"].as_i64(),
+            coverage["structured_entity_hits"].as_i64(),
+            coverage["structured_tree_hits"].as_i64(),
+            coverage["random_entity_hits"].as_i64(),
+            coverage["random_tree_hits"].as_i64()
+        ),
+        (Some("none"), Some(0), Some(2), Some(5), Some(6), Some(10), Some(7)),
+        "{coverage}"
+    );
+    // the new facts are stated, not implied: the masks read, the primary random tree rays skipped for a zero extent, and the derived rays that were queried and counted
+    assert_eq!(
+        (
+            coverage["fp_x87_masks"].as_i64(),
+            coverage["fp_sse_masks"].as_i64(),
+            coverage["fp_arch"].as_str(),
+            coverage["skipped_axis_rays"].as_i64(),
+            coverage["derived_axis_rays"].as_i64()
+        ),
+        (Some(63), Some(63), Some("x86_64"), Some(4), Some(3)),
+        "{coverage}"
+    );
+    let digest = rows.iter().find(|r| r["event"] == "state_digest").unwrap();
+    assert_eq!(
+        (
+            digest["objects"].as_i64(),
+            digest["alive"].as_i64(),
+            digest["probed"].as_bool(),
+            digest["digest"].as_str()
+        ),
+        (Some(2), Some(1), Some(true), Some(collision_expected_digest().as_str())),
+        "{digest}"
+    );
+    let done = rows.iter().find(|r| r["event"] == "done").unwrap();
+    assert_eq!((done["probed"].as_bool(), done["coverage_gaps"].as_str()), (Some(true), Some("none")), "{done}");
+}
+
+#[test]
+fn the_collision_driver_control_does_not_probe_and_ends_with_the_same_digest_and_no_coverage_claim() {
+    let (status, stdout, stderr, trace, rows) = run_collision_case("ok", &["probe=no", "seconds=1", "after=1", "frame_ms=500"]);
+    assert!(status.success(), "{stderr}");
+    assert!(
+        stdout.contains("COLLISION_CHARACTERIZATION_DONE probed=false repeats=0 coverage_gaps=not_probed"),
+        "{stdout}"
+    );
+    assert_eq!(trace.matches("probe ").count(), 0, "the control must not probe: {trace}");
+    assert!(rows.iter().any(|r| r["event"] == "probe_skipped"));
+    assert!(
+        rows.iter()
+            .all(|r| !r["event"].as_str().unwrap_or("").starts_with("col-") && r["event"] != "coverage"),
+        "no probe report and no coverage claim in the control"
+    );
+    let digest = rows.iter().find(|r| r["event"] == "state_digest").unwrap();
+    assert_eq!(
+        (digest["probed"].as_bool(), digest["digest"].as_str()),
+        (Some(false), Some(collision_expected_digest().as_str())),
+        "{digest}"
+    );
+}
+
+#[test]
+fn the_collision_driver_refuses_a_malformed_argument_before_booting_or_writing_anything() {
+    for (bad, what) in [
+        (vec!["entity_cases=abc"], "entity_cases must be a whole number"),
+        (vec!["entity_cases=-1"], "entity_cases must be a whole number"),
+        (vec!["entity_cases=1.5"], "entity_cases must be a whole number"),
+        (vec!["entity_cases=20001"], "entity_cases must be a whole number from 0 to 20000"),
+        (vec!["tree_cases=1e3"], "tree_cases must be a whole number"),
+        (vec!["tree_cases=20001"], "tree_cases must be a whole number from 0 to 20000"),
+        (vec!["seed=0"], "seed must be a whole number from 1"),
+        (vec!["seed=4294967296"], "seed must be a whole number from 1"),
+        (vec!["repeats=0"], "repeats must be a whole number from 1 to 5"),
+        (vec!["repeats=6"], "repeats must be a whole number from 1 to 5"),
+        (vec!["seconds=3601"], "seconds must be a whole number from 0 to 3600"),
+        (vec!["after=3601"], "after must be a whole number from 0 to 3600"),
+        (vec!["frame_ms=0"], "frame_ms must be a whole number from 1 to 1000"),
+        (vec!["frame_ms=1", "seconds=3600", "after=3600"], "the most this driver runs is"),
+        (vec!["scenario=nowhere"], "scenario must be lebanon_retail, georgia_retail or georgia"),
+        (vec!["probe=maybe"], "probe must be one of yes, no"),
+        (vec!["require_coverage=maybe"], "require_coverage must be one of no, yes"),
+        (vec!["entity=5"], "unknown argument 'entity'"),
+        (vec!["points=5"], "unknown argument 'points'"),
+    ] {
+        let (status, _, stderr, trace, rows) = run_collision_case("ok", &bad);
+        assert!(!status.success(), "{bad:?} was accepted");
+        assert!(stderr.contains(what), "{bad:?}: {stderr}");
+        assert!(trace.is_empty() && rows.is_empty(), "{bad:?}: the engine was booted or a row written: {trace}");
+    }
+}
+
+// REGRESSION GUARD (the same defect the ground driver once had): JSON strings written with Lua's %q are Lua source, not JSON; a tab or any other control byte is left raw, which a strict parser refuses. The
+// stand-in refuses the probe with a text that has a traceback's tabs and newlines, a quote, a backslash, every control byte 0 to 31 in order and UTF-8. `run_collision_case` parses EVERY row of the output with
+// serde_json, which refuses a raw control character inside a string, so reaching the assertions already proves each row is strict JSON; the refusal must also come back byte for byte.
+#[test]
+fn the_collision_driver_records_a_refusal_with_every_control_byte_as_strict_json_and_loses_none_of_it() {
+    let controls: String = (0u8..32).map(char::from).collect();
+    let expected = format!("col-refused reason=bad \"quoted\" back\\slash\n\tstack traceback:\n\t[C]: in function 'error'\n\tcontrols={controls} end \u{e9}");
+    let (status, stdout, stderr, trace, rows) = run_collision_case("refuse_controls", &["entity_cases=5", "tree_cases=5"]);
+    assert!(!status.success() && !stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert!(stderr.contains("the probe was refused"), "{stderr}");
+    let refused: Vec<_> = rows.iter().filter(|r| r["event"] == "probe_refused").collect();
+    assert_eq!(refused.len(), 1, "{rows:?}");
+    assert_eq!(
+        refused[0]["error"].as_str(),
+        Some(expected.as_str()),
+        "the refusal text must round-trip exactly"
+    );
+    assert_eq!(refused[0]["repeat_index"].as_i64(), Some(1));
+    assert!(rows.iter().any(|r| r["event"] == "boot"), "the boot row is still there and parsed");
+    assert!(
+        rows.iter()
+            .all(|r| r["event"] != "state_digest" && r["event"] != "coverage" && r["event"] != "done"),
+        "no success row after a refusal"
+    );
+    assert_eq!(trace.matches("probe ").count(), 1, "{trace}");
+}
+
+#[test]
+fn the_collision_driver_fails_on_a_refused_probe_and_on_a_repeat_that_differs() {
+    // an engine that refuses the probe: the refusal is recorded and the run fails, never a quiet success
+    let (status, stdout, stderr, trace, rows) = run_collision_case("refuse", &["entity_cases=5", "tree_cases=5"]);
+    assert!(!status.success() && !stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert!(stderr.contains("the probe was refused") && stderr.contains("no_terrain_loaded"), "{stderr}");
+    let refused = rows.iter().find(|r| r["event"] == "probe_refused").expect("the refusal is recorded");
+    assert!(refused["error"].as_str().unwrap().contains("no_terrain_loaded"), "{refused}");
+    assert!(rows.iter().all(|r| r["event"] != "state_digest"), "no digest after a refusal");
+    assert_eq!(trace.matches("probe ").count(), 1, "the run stops at the first refusal: {trace}");
+
+    // two well-formed reports that differ: the second is not the first, so the report is not repeatable for its request
+    let (status, stdout, stderr, _, rows) = run_collision_case("differs_between_repeats", &["entity_cases=5", "tree_cases=5"]);
+    assert!(!status.success() && !stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
+    let message = collision_refusal("repeat 2 differs from repeat 1: the report is not repeatable for the seed and the loaded world");
+    assert!(stderr.contains(&message), "{stderr}");
+    let same = rows.iter().find(|r| r["event"] == "repeat_identical").expect("the comparison is recorded");
+    assert_eq!(same["ok"].as_bool(), Some(false), "{same}");
+    assert!(
+        rows.iter().all(|r| r["event"] != "state_digest" && r["event"] != "done"),
+        "no success row after a repeat that differs"
+    );
+}
+
+// A world with no tree data is a complete, valid report (every tree family has zero cases, the two edge rays miss) and a stated coverage gap, not a pass and not an error, unless the run requires coverage.
+#[test]
+fn the_collision_driver_states_a_coverage_gap_and_fails_on_it_only_when_coverage_is_required() {
+    let (status, stdout, stderr, _, rows) = run_collision_case("no_trees", &["entity_cases=20", "tree_cases=20"]);
+    assert!(status.success() && stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert!(
+        stdout.contains(&format!(
+            "COLLISION_CHARACTERIZATION_DONE probed=true repeats=2 coverage_gaps={COLLISION_NO_TREE_GAPS}"
+        )),
+        "a run with a gap must not say it passed: {stdout}"
+    );
+    let coverage = rows.iter().find(|r| r["event"] == "coverage").unwrap();
+    assert_eq!(
+        (coverage["gaps"].as_str(), coverage["gap_count"].as_i64()),
+        (Some(COLLISION_NO_TREE_GAPS), Some(6)),
+        "{coverage}"
+    );
+    let done = rows.iter().find(|r| r["event"] == "done").unwrap();
+    assert_eq!(done["coverage_gaps"].as_str(), Some(COLLISION_NO_TREE_GAPS), "{done}");
+
+    let (status, stdout, stderr, _, rows) = run_collision_case("no_trees", &["entity_cases=20", "tree_cases=20", "require_coverage=yes"]);
+    assert!(
+        !status.success() && !stdout.contains("COLLISION_CALLER_DONE") && !stdout.contains("COLLISION_CHARACTERIZATION_DONE"),
+        "{stdout}\n{stderr}"
+    );
+    let message = collision_refusal(&format!("require_coverage=yes and the world offered no case for: {COLLISION_NO_TREE_GAPS}"));
+    assert!(stderr.contains(&message), "{stderr}");
+    assert!(
+        rows.iter().any(|r| r["event"] == "coverage"),
+        "the gap is in the record even when the run fails"
+    );
+}
+
+#[test]
+fn the_collision_driver_accepts_a_report_with_no_random_cases_and_a_report_with_no_entity_cases() {
+    // the structured cases always run; zero random cases of either family is a valid request
+    for args in [
+        ["entity_cases=0", "tree_cases=0"],
+        ["entity_cases=0", "tree_cases=25"],
+        ["entity_cases=25", "tree_cases=0"],
+    ] {
+        let (status, stdout, stderr, _, rows) = run_collision_case("ok", &args);
+        assert!(status.success() && stdout.contains("COLLISION_CALLER_DONE"), "{args:?}: {stdout}\n{stderr}");
+        assert!(rows.iter().any(|r| r["event"] == "state_digest"), "{args:?}");
+    }
+}
+
+// Reports with ONE defect each, from the stand-in, run through the REAL driver. Each must fail the run with exactly the named reason (not any error that happens to contain a similar word), record it as
+// `report_invalid` once, write no row of the rejected report, and write no success row: no `repeat_identical`, `coverage`, `state_digest` or `done`. A measurement that is absent, of the wrong type or width, or
+// inconsistent with the request is never read as zero, as nil equal to nil, or as a pass. The requested counts are 40 and 40, so the stand-in's random hits are 10 entity and 7 tree, its struct hits 12 and its entity targets 15.
+#[test]
+fn the_collision_driver_names_the_one_defect_in_a_report_and_writes_no_success_row() {
+    let counts: &[&str] = &["entity_cases=40", "tree_cases=40"];
+    let defects: [(&str, &str); 77] = [
+        ("unrestored", "col-guard: record_restored is 0, expected 1"),
+        (
+            "words_differ",
+            "the probe did not restore the shared terrain record: words 0123456789abcdef -> ffffffffffffffff",
+        ),
+        ("rng_changed", "col-guard: rng_unchanged is 0, expected 1"),
+        ("world_flag", "col-guard: world_unchanged is 0, expected 1"),
+        (
+            "world_fold_differs",
+            "the sector-list fingerprint changed during the probe: fold 00112233445566ff -> ffffffffffffffff",
+        ),
+        ("flags_row_missing", "the report has no col-flags row"),
+        ("flags_unrestored", "col-flags: restored is 0, expected 1"),
+        (
+            "flags_hash_differs",
+            "the update-flag arrays were not restored to the copy taken before the probe: fold 1122334455667788 -> ffffffffffffffff",
+        ),
+        ("flags_changed_over_words", "col-flags: updated_changed_words is 99999, more than 16384"),
+        ("flags_changed_without_bits", "col-flags: changed words is 3, more than 0"),
+        (
+            "flags_hash_inconsistent",
+            "col-flags: 3 changed words but after_queries 1122334455667788 against before 1122334455667788",
+        ),
+        ("flags_words_zero", "col-flags: words is 0, expected at least 1"),
+        ("flags_bits_without_changed_words", "col-flags: updated_cleared_bits is 1, more than 0"),
+        ("flags_cleared_over_capacity", "col-flags: updated_cleared_bits is 97, more than 96"),
+        ("flags_aggregate_over_capacity", "col-flags: cleared bits + added_bits is 97, more than 96"),
+        (
+            "flags_array_lacks_bits",
+            "col-flags: changed words without a cleared bit in their own array need at least 2 added bits, added_bits is 0",
+        ),
+        ("raw_with_controls", "the report has an unknown row 'col-extra'"),
+        ("fp_x87_unmasked", "col-fp: x87_masks is 59, expected 63"),
+        ("fp_sse_unmasked", "col-fp: sse_masks is 0, expected 63"),
+        ("fp_missing_row", "the report has no col-fp row"),
+        ("fp_arch_bad", "col-fp: arch must be a token of letters, digits and underscores, got 'x86-64'"),
+        (
+            "wrongheader",
+            "the report is for seed 20261029 entity_cases 41 tree_cases 40, not the 20261029 40 40 asked",
+        ),
+        ("quota_changed", "col-probe: per_class is 4, expected 3"),
+        ("sample_quota_changed", "col-probe: samples_hit is 32, expected 16"),
+        ("physical_missing_row", "the report has no col-physical row"),
+        ("physical_missing_field", "col-physical: tree_struct is missing"),
+        ("physical_short", "col-physical: tree_struct must be 16 lowercase hex digits, got '1'"),
+        (
+            "physical_upper",
+            "col-physical: entity_struct must be 16 lowercase hex digits, got 'FEDCBA9876543210'",
+        ),
+        ("legacy_missing_row", "the report has no col-legacy row"),
+        ("count_hex", "col-targets: moving_box must be a decimal count, got '0x1'"),
+        ("count_negative", "col-targets: fixed_box must be a decimal count, got '-1'"),
+        ("count_float", "col-entity-exclusion: src_removed must be a decimal count, got '1.5'"),
+        ("flag_two", "col-census-tree: forest_geometry must be 0 or 1, got '2'"),
+        ("hex_width", "col-map: delta_time must be 8 lowercase hex digits, got '3dcccc'"),
+        ("common_cases_wrong", "col-entity-common struct: hit + miss is 71, expected 44"),
+        ("warm_sum", "col-entity-common struct: warm_same + warm_different is 40, expected 71"),
+        ("touched_more_than_cases", "col-tree-common struct: record_touched is 99, more than 74"),
+        ("nearer_more_than_checked", "col-entity-common struct: nearer_exists is 11, more than 10"),
+        ("derived_over_checked", "col-tree-common struct: derived_axis is 5, more than 4"),
+        ("derived_missing", "col-tree-common: derived_axis is missing"),
+        ("entity_derived_axis", "col-entity-common struct: derived_axis is 1, expected 0"),
+        ("exclusion_more_than_base", "col-entity-exclusion: src_removed is 4, more than 3"),
+        ("chain_not_nested", "col-entity-exclusion: chain_depth3 is 3, more than 2"),
+        (
+            "hit_target_other_sum",
+            "col-entity-exclusion: through_hit_target + through_hit_other is 4, expected 5",
+        ),
+        ("targets_over_quota", "col-targets: fixed_box is 4, more than 3"),
+        ("entity_unselected", "col-targets: stationary_geometry is 0, expected 3"),
+        ("entity_under_selected_small_class", "col-targets: moving_box is 0, expected 1"),
+        ("entity_under_selected_at_quota", "col-targets: fixed_box is 2, expected 3"),
+        ("tree_under_selected", "col-targets: tree_quad is 2, expected 3"),
+        ("tree_unselected", "col-targets: tree_geometry is 0, expected 3"),
+        ("class_census_missing", "the report has no col-census-class row"),
+        ("class_census_sum", "col-census-class: fixed_geometry + fixed_box is 5, expected 6"),
+        ("class_census_geometry_sum", "col-census-class: moving_geometry + moving_box is 3, expected 2"),
+        ("class_census_tree_sum", "col-census-class: tree_quad + tree_geometry is 99, expected 100"),
+        ("class_census_tree_split", "col-census-class: tree_geometry is 59, expected 60"),
+        ("census_paths_wrong", "col-census-entity: geometry_path + box_path is 16, expected 18"),
+        ("tree_total_wrong", "col-census-tree: trees_type0 + trees_type1 is 99, expected 100"),
+        ("tree_flag_cases", "col-tree-flags quad/0/0: cases is 4, expected 3"),
+        ("tree_flag_hits", "col-tree-flags: hits against struct/through hits is 7, expected 6"),
+        ("kind_missing", "the report has no col-entity-kind row for struct/edge"),
+        ("kind_duplicate", "the report has more than one col-entity-kind row for struct/edge"),
+        ("kind_unexpected", "the report has an unexpected col-entity-kind row for struct/bogus"),
+        ("tree_kind_missing", "the report has no col-tree-kind row for struct/short"),
+        ("type_group_bad", "col-entity-type elsewhere/5: group must be struct or random"),
+        ("type_name_bad", "col-entity-type: 'a' is not key=value"),
+        ("type_hits_over", "col-entity-type: struct hits is 13, expected 12"),
+        ("type_bucket_missing", "col-entity-type: struct hits is 7, expected 12"),
+        ("type_random_bucket_missing", "col-entity-type: random hits is 5, expected 10"),
+        ("type_buckets_omitted", "col-entity-type: struct hits is 0, expected 12"),
+        ("sample_missing", "col-sample: entity hit samples is 15, expected 16"),
+        ("sample_unknown_kind", "col-sample: kind must be entity or tree, got 'rock'"),
+        (
+            "sample_triple_short",
+            "col-sample: a must be three 8-digit lowercase hex words joined by commas, got '3f800000,40000000'",
+        ),
+        ("unknown_row", "the report has an unknown row 'col-extra'"),
+        ("duplicate_row", "the report has more than one col-map row"),
+        ("unexpected_key", "col-guard: unexpected key bonus"),
+        ("bare_word", "col-map: 'oops' is not key=value"),
+        ("duplicate_key", "col-map: world_sectors_x appears twice"),
+    ];
+    for (mode, reason) in defects {
+        let (status, stdout, stderr, trace, rows) = run_collision_case(mode, counts);
+        assert!(!status.success() && !stdout.contains("COLLISION_CALLER_DONE"), "{mode}: {stdout}\n{stderr}");
+        assert!(stderr.contains(&collision_refusal(reason)), "{mode}: expected {reason:?} in {stderr}");
+        let invalid: Vec<_> = rows.iter().filter(|r| r["event"] == "report_invalid").collect();
+        assert_eq!(invalid.len(), 1, "{mode}: {rows:?}");
+        assert!(invalid[0]["error"].as_str().unwrap().contains(reason), "{mode}: {}", invalid[0]);
+        // the exact text the fixture returned is retained (the stand-in's report always opens with its col-probe row), never reduced to the error text
+        let raw = invalid[0]["raw_report"]
+            .as_str()
+            .unwrap_or_else(|| panic!("{mode}: no raw_report retained: {}", invalid[0]));
+        assert!(
+            raw.starts_with("col-probe seed=20261029 ") && raw.ends_with('\n') && raw.lines().count() > 20,
+            "{mode}: {raw:?}"
+        );
+        assert!(
+            rows.iter().all(|r| {
+                let event = r["event"].as_str().unwrap_or("");
+                !event.starts_with("col-") && !matches!(event, "repeat_identical" | "coverage" | "state_digest" | "done")
+            }),
+            "{mode}: a row of the rejected report or a success row was written: {rows:?}"
+        );
+        assert_eq!(
+            trace.matches("probe ").count(),
+            1,
+            "{mode}: the run stops at the first rejected report: {trace}"
+        );
+    }
+}
+
+// A rejected report is kept in the private output as the exact text the fixture returned, JSON-escaped: the stand-in's report ends with an unknown row whose value holds a quote, a backslash, a
+// control byte and UTF-8. `run_collision_case` parses every row with serde_json (which refuses a raw control character), so reaching the assertions proves the row is strict JSON; the retained
+// text must also come back byte for byte at its end, and its other rows must be intact. A repeat that differs keeps the differing report the same way.
+#[test]
+fn the_collision_driver_keeps_a_rejected_report_whole_as_strict_json() {
+    let (status, stdout, stderr, _, rows) = run_collision_case("raw_with_controls", &["entity_cases=5", "tree_cases=5"]);
+    assert!(!status.success() && !stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
+    let invalid: Vec<_> = rows.iter().filter(|r| r["event"] == "report_invalid").collect();
+    assert_eq!(invalid.len(), 1, "{rows:?}");
+    let raw = invalid[0]["raw_report"].as_str().expect("the raw report is retained");
+    assert!(raw.ends_with("col-extra x=\u{1}\"\\\u{e9}\n"), "{raw:?}");
+    assert!(
+        raw.contains("\ncol-guard record_restored=1 ") && raw.contains("\ncol-flags restored=1 words=16384 "),
+        "{raw:?}"
+    );
+    assert!(
+        raw.lines()
+            .next()
+            .is_some_and(|l| l.starts_with("col-probe seed=20261029 entity_random=5 tree_random=5 ")),
+        "{raw:?}"
+    );
+    assert!(
+        rows.iter().all(|r| !r["event"].as_str().unwrap_or("").starts_with("col-")),
+        "no row of the rejected report is written as a result"
+    );
+
+    let (status, _, _, _, rows) = run_collision_case("differs_between_repeats", &["entity_cases=5", "tree_cases=5"]);
+    assert!(!status.success());
+    let same = rows.iter().find(|r| r["event"] == "repeat_identical").expect("the comparison is recorded");
+    assert_eq!(same["ok"].as_bool(), Some(false), "{same}");
+    let raw = same["raw_report"].as_str().expect("the differing report is retained");
+    assert!(
+        raw.contains("col-legacy entity_struct=0000000000000002 "),
+        "the second report, whose legacy word the stand-in changed: {raw:?}"
+    );
+}
+
+// The flag-count feasibility rules do not force added_bits to 0: the original only clears, but a diagnostic that reports aggregated added bits which the counts can realise is accepted.
+// Here the moved array has 2 changed words and no cleared bit, so it needs at least 2 added bits, which the report states.
+#[test]
+fn the_collision_driver_accepts_flag_counts_with_realisable_added_bits() {
+    let (status, stdout, stderr, _, rows) = run_collision_case("flags_added_bits_legitimate", &["entity_cases=5", "tree_cases=5"]);
+    assert!(status.success() && stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
+    let flags = rows.iter().find(|r| r["event"] == "col-flags").expect("the flags row is recorded");
+    assert_eq!(
+        (
+            flags["moved_changed_words"].as_i64(),
+            flags["moved_cleared_bits"].as_i64(),
+            flags["added_bits"].as_i64()
+        ),
+        (Some(2), Some(0), Some(2)),
+        "{flags}"
+    );
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// The optional private tree-query transcript (trace_out): the driver's own checks of it, against a stand-in that lays out a transcript consistent with its report.
+
+fn collision_trace_path() -> std::path::PathBuf {
+    static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    std::env::temp_dir().join(format!(
+        "eech-world-collision-tree-trace-{}-{}.jsonl",
+        std::process::id(),
+        COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
+    ))
+}
+
+type CollisionCaseResult = (std::process::ExitStatus, String, String, String, Vec<serde_json::Value>);
+
+// Runs a case with trace_out set to a fresh path; returns the case result and the path (the caller reads and removes the file).
+fn run_collision_trace_case(mode: &str, extra: &[&str]) -> (CollisionCaseResult, std::path::PathBuf) {
+    let path = collision_trace_path();
+    let _ = std::fs::remove_file(&path);
+    let argument = format!("trace_out={}", path.display().to_string().replace('\u{5c}', "/"));
+    let mut arguments: Vec<&str> = extra.to_vec();
+    arguments.push(&argument);
+    (run_collision_case(mode, &arguments), path)
+}
+
+#[test]
+fn the_collision_driver_writes_a_complete_private_tree_transcript_only_when_asked() {
+    let ((status, stdout, stderr, trace, rows), path) = run_collision_trace_case("ok", &["entity_cases=40", "tree_cases=40"]);
+    assert!(status.success() && stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
+    // armed before each of the two probes, disarmed once after them
+    assert_eq!(
+        (trace.matches("trace_arm true").count(), trace.matches("trace_arm false").count()),
+        (2, 1),
+        "{trace}"
+    );
+    let text = std::fs::read_to_string(&path).expect("the transcript file");
+    let _ = std::fs::remove_file(&path);
+    let lines: Vec<serde_json::Value> = text
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("transcript row not strict JSON {l:?}: {e}")))
+        .collect();
+    assert_eq!(lines.first().map(|l| l["event"].as_str()), Some(Some("trace-start")), "{:?}", lines.first());
+    assert_eq!(lines.last().map(|l| l["event"].as_str()), Some(Some("trace-end")), "{:?}", lines.last());
+    // 2 x (74 + 36) primary queries (cold and warm) and 2 x (4 + 7) nearer-check queries
+    let queries: Vec<_> = lines.iter().filter(|l| l["event"] == "tq").collect();
+    assert_eq!(queries.len(), 242);
+    assert_eq!(lines.last().unwrap()["records"].as_i64(), Some(242));
+    assert!(
+        queries.iter().enumerate().all(|(i, q)| q["ordinal"].as_i64() == Some(i as i64)),
+        "contiguous ordinals"
+    );
+    let layout = lines.iter().find(|l| l["event"] == "tf-layout").expect("the layout fact");
+    assert_eq!(layout["record_size"].as_i64(), Some(8), "{layout}");
+    assert_eq!(lines.iter().filter(|l| l["event"] == "tf-triangle").count(), 2);
+    // a hex word stays text, a count is a number
+    assert_eq!(queries[0]["a"].as_str(), Some("3f800000,40000000,3f800000"), "{}", queries[0]);
+    assert_eq!(queries[0]["lookups"].as_i64(), Some(2), "{}", queries[0]);
+    let written = rows.iter().find(|r| r["event"] == "trace_written").expect("the written event");
+    assert_eq!(written["records"].as_i64(), Some(242), "{written}");
+
+    // off by default: no transcript is armed or read, and no trace event is written
+    let (status, stdout, stderr, trace, rows) = run_collision_case("ok", &["entity_cases=40", "tree_cases=40"]);
+    assert!(status.success() && stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert!(!trace.contains("trace_arm") && rows.iter().all(|r| r["event"] != "trace_written"), "{trace}");
+}
+
+// One defect each in the transcript. Each must fail the run with exactly the named reason, write no transcript content (the file exists, created before the run, and stays empty, so an
+// incomplete transcript can never look complete), and write no success row.
+#[test]
+fn the_collision_driver_names_the_one_defect_in_a_transcript_and_leaves_the_file_empty() {
+    let controls: [(&str, &str); 20] = [
+        ("trace_overflow", "tr-state: overflow is 1, expected 0"),
+        ("trace_extra_lookups", "tr-state: extra_lookups is 3, expected 0"),
+        ("trace_short", "tr-state: records is 241, expected 242"),
+        ("trace_stage_order", "tq 1: stage 0 where stage 1 was expected"),
+        ("trace_warm_differs", "tq group struct: warm agreements is 73, expected 74"),
+        (
+            "trace_init_normal",
+            "tq 0: init_normal is 00000000,00000000,00000000, expected 5a5a5a5a,5a5a5a5a,5a5a5a5a",
+        ),
+        ("trace_not_repeatable", "the tree-query transcript of repeat 2 differs from repeat 1"),
+        ("trace_facts_tree_total", "tf-map: tree_total is 99, expected 100"),
+        ("trace_triangle_count", "tf-forest: triangles is 3, expected 2"),
+        // 512 indexed triangle rows, triangles=512 and capped=1: a coherent truncation the emitter can produce, which an old checker accepted as a complete transcript
+        ("trace_forest_capped", "tf-forest: capped is 1, expected 0"),
+        // a warm repeat (stage 1) or nearer-check warm repeat (stage 3) that is not the same query as its cold one; an old checker counted these as the same query
+        (
+            "trace_warm_endpoint",
+            "tq 1 against its stage 0 record 0: b is 40000001,41000000,40400000, expected 40000000,41000000,40400000",
+        ),
+        ("trace_warm_flags", "tq 1 against its stage 0 record 0: ignore_edge is 1, expected 0"),
+        ("trace_warm_context", "tq 1 against its stage 0 record 0: kind is 5, expected 0"),
+        ("trace_near_warm_context", "tq 3 against its stage 2 record 2: role is 7, expected 0"),
+        // recorded terrain lookups that are not the original's: the endpoints' x and z, in order, only for endpoints inside the (inclusive) map
+        ("trace_lookup_x", "tq 0: lookup 1 x is 3f800001, expected 3f800000"),
+        ("trace_lookup_z", "tq 0: lookup 2 z is 40400001, expected 40400000"),
+        ("trace_lookup_order", "tq 0: lookup 1 x is 40000000, expected 3f800000"),
+        ("trace_lookup_count", "tq 0: lookups is 1, expected 2"),
+        ("trace_outside_wrong", "tq 0: lookups is 2, expected 1"),
+        ("trace_unknown_row", "the transcript has an unknown row 'tq-extra'"),
+    ];
+    for (mode, reason) in controls {
+        let ((status, stdout, stderr, trace, rows), path) = run_collision_trace_case(mode, &["entity_cases=40", "tree_cases=40"]);
+        let size = std::fs::metadata(&path).map(|m| m.len());
+        let _ = std::fs::remove_file(&path);
+        assert!(!status.success() && !stdout.contains("COLLISION_CALLER_DONE"), "{mode}: {stdout}\n{stderr}");
+        assert!(stderr.contains(&collision_refusal(reason)), "{mode}: expected {reason:?} in {stderr}");
+        assert_eq!(
+            size.ok(),
+            Some(0),
+            "{mode}: the transcript file must exist and be empty after a rejected transcript"
+        );
+        // the armed transcript is disarmed on the failure path, and the failure is recorded as such
+        assert_eq!(trace.matches("trace_arm false").count(), 1, "{mode}: {trace}");
+        assert!(rows.iter().any(|r| r["event"] == "trace_failed"), "{mode}: no trace_failed event: {rows:?}");
+        assert!(
+            rows.iter()
+                .all(|r| !matches!(r["event"].as_str().unwrap_or(""), "trace_written" | "coverage" | "state_digest" | "done")),
+            "{mode}: a success row was written: {rows:?}"
+        );
+    }
+}
+
+#[test]
+fn the_collision_driver_refuses_bad_trace_arguments_before_booting_or_touching_files() {
+    // an existing file is never overwritten
+    let existing = collision_trace_path();
+    std::fs::write(&existing, "keep me").unwrap();
+    let argument = format!("trace_out={}", existing.display().to_string().replace('\u{5c}', "/"));
+    let (status, _, stderr, trace, rows) = run_collision_case("ok", &[&argument]);
+    assert!(
+        !status.success() && stderr.contains("already exists: an existing file is never overwritten"),
+        "{stderr}"
+    );
+    assert!(trace.is_empty() && rows.is_empty(), "the engine was booted or a row written: {trace}");
+    assert_eq!(std::fs::read_to_string(&existing).unwrap(), "keep me");
+    let _ = std::fs::remove_file(&existing);
+
+    // the transcript is of the probe's queries: a control without a probe has none to trace
+    let fresh = collision_trace_path();
+    let argument = format!("trace_out={}", fresh.display().to_string().replace('\u{5c}', "/"));
+    let (status, _, stderr, trace, rows) = run_collision_case("ok", &["probe=no", &argument]);
+    assert!(!status.success() && stderr.contains("trace_out needs probe=yes"), "{stderr}");
+    assert!(
+        trace.is_empty() && rows.is_empty() && !fresh.exists(),
+        "nothing may be opened or booted: {trace}"
+    );
+
+    // another spelling of the output file itself (dir/./name) is the same file: it is found existing once the output is created, and is never truncated
+    let (status, _, stderr, trace, rows) = run_collision_case("ok", &["trace_out=@OUT_DOT_ALIAS@"]);
+    assert!(
+        !status.success() && stderr.contains("already exists: an existing file is never overwritten"),
+        "{stderr}"
+    );
+    assert!(trace.is_empty() && rows.is_empty(), "the engine was booted or a row written: {trace}");
+
+    // more random tree cases than the fixture's bounded transcript can hold
+    let (status, _, stderr, trace, rows) = run_collision_case("ok", &["tree_cases=8001", &argument]);
+    assert!(!status.success() && stderr.contains("trace_out needs tree_cases at most 8000"), "{stderr}");
+    assert!(
+        trace.is_empty() && rows.is_empty() && !fresh.exists(),
+        "nothing may be opened or booted: {trace}"
+    );
+}
+
+// Failures of the new trace file's own I/O and of the disarm fail the run closed: before trace_written and done, with the failure recorded, the transcript disarmed and the file
+// closed, and a cleanup error never replaces the primary diagnostic. A file is accepted only when the output holds trace_written.
+#[test]
+fn the_collision_driver_fails_closed_on_trace_write_flush_close_and_disarm_errors() {
+    for (mode, reason) in [
+        (
+            "trace_io_write",
+            "collision-characterization: the tree-query transcript could not be written: stand-in write failure",
+        ),
+        (
+            "trace_io_flush",
+            "collision-characterization: the tree-query transcript could not be flushed: stand-in flush failure",
+        ),
+        (
+            "trace_io_close",
+            "collision-characterization: the tree-query transcript could not be closed: stand-in close failure",
+        ),
+        ("trace_disarm_fails", "stand-in disarm failure"),
+    ] {
+        let ((status, stdout, stderr, trace, rows), path) = run_collision_trace_case(mode, &["entity_cases=40", "tree_cases=40"]);
+        let text = std::fs::read_to_string(&path).unwrap_or_default();
+        let _ = std::fs::remove_file(&path);
+        assert!(
+            !status.success() && !stdout.contains("COLLISION_CALLER_DONE") && !stdout.contains("COLLISION_CHARACTERIZATION_DONE"),
+            "{mode}: {stdout}\n{stderr}"
+        );
+        assert!(stderr.contains(reason), "{mode}: expected {reason:?} in {stderr}");
+        assert!(
+            rows.iter()
+                .all(|r| !matches!(r["event"].as_str().unwrap_or(""), "trace_written" | "coverage" | "state_digest" | "done")),
+            "{mode}: a success row was written: {rows:?}"
+        );
+        assert_eq!(rows.iter().filter(|r| r["event"] == "trace_failed").count(), 1, "{mode}: {rows:?}");
+        let complete = text.lines().last().is_some_and(|l| l.contains("\"event\":\"trace-end\""));
+        match mode {
+            // nothing reached the file; the disarm that failed is attempted again by the cleanup, which also fails and is recorded without hiding the first error
+            "trace_io_write" => assert!(text.is_empty() && trace.matches("trace_arm false").count() == 1, "{mode}: {trace}"),
+            "trace_io_flush" => assert!(
+                !text.is_empty() && !complete && trace.matches("trace_arm false").count() == 1,
+                "{mode}: {trace}"
+            ),
+            // every line and the end line were written, but the close failed: the file is NOT accepted, because the output has no trace_written
+            "trace_io_close" => assert!(complete && trace.matches("trace_arm false").count() == 1, "{mode}: {trace}"),
+            _ => {
+                assert!(text.is_empty() && trace.matches("trace_arm false").count() == 2, "{mode}: {trace}");
+                assert!(
+                    rows.iter().any(|r| r["event"] == "trace_cleanup_failed" && r["what"] == "disarm"),
+                    "{mode}: {rows:?}"
+                );
+            }
+        }
+    }
+}
+
+// Valid transcripts the coherence checks must ACCEPT: the new endpoint outside the map (one lookup, the second unused and zero), exactly on the inclusive maximum bound (two lookups) and one ulp
+// past it (one lookup). They guard against a checker that is stricter than the original's inclusive point_inside_map_area, which would reject real data.
+#[test]
+fn the_collision_driver_accepts_outside_and_boundary_endpoints_with_the_original_lookup_rule() {
+    for mode in ["trace_outside_ok", "trace_boundary_inclusive", "trace_boundary_outside_ok"] {
+        let ((status, stdout, stderr, _, rows), path) = run_collision_trace_case(mode, &["entity_cases=40", "tree_cases=40"]);
+        let text = std::fs::read_to_string(&path).unwrap_or_default();
+        let _ = std::fs::remove_file(&path);
+        assert!(status.success() && stdout.contains("COLLISION_CALLER_DONE"), "{mode}: {stdout}\n{stderr}");
+        assert!(rows.iter().any(|r| r["event"] == "trace_written"), "{mode}: {rows:?}");
+        assert!(
+            text.lines().last().is_some_and(|l| l.contains("\"event\":\"trace-end\"")),
+            "{mode}: the transcript is complete"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// The controlled forest geometry witness (EEDCS-49): the DRIVER's flow and its checks of what a witnessed probe returns, against the stand-in. Whether the original's geometry branch
+// behaves as characterised is the native run's to show, with a DLL built with the `collision-fixture` feature and the retail roots; nothing here measures it.
+
+fn read_transcript_rows(path: &std::path::Path) -> Vec<serde_json::Value> {
+    std::fs::read_to_string(path)
+        .expect("the transcript file")
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("transcript row not strict JSON {l:?}: {e}")))
+        .collect()
+}
+
+#[test]
+fn the_collision_driver_accepts_a_complete_controlled_geometry_witness_labels_it_and_names_what_it_did_not_reach() {
+    let ((status, stdout, stderr, trace, rows), path) = run_collision_trace_case("ok", &["entity_cases=40", "tree_cases=40", "geometry_witness=yes"]);
+    assert!(status.success() && stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
+    // armed before each of the two probes (one-shot: nothing to disarm), the transcript armed and disarmed as always
+    assert_eq!(
+        (trace.matches("geometry_arm true").count(), trace.matches(" witness").count()),
+        (2, 2),
+        "{trace}"
+    );
+    assert_eq!(
+        (trace.matches("trace_arm true").count(), trace.matches("trace_arm false").count()),
+        (2, 1),
+        "{trace}"
+    );
+    let lines = read_transcript_rows(&path);
+    let _ = std::fs::remove_file(&path);
+    // labelled as controlled, in the output, in the transcript's first row and in its facts
+    assert_eq!(
+        rows.iter().find(|r| r["event"] == "boot").unwrap()["geometry_witness"].as_str(),
+        Some("controlled_forest_geometry"),
+        "{rows:?}"
+    );
+    assert_eq!(lines[0]["geometry_witness"].as_str(), Some("controlled_forest_geometry"), "{}", lines[0]);
+    let facts = lines.iter().find(|l| l["event"] == "tf-witness").expect("the tf-witness facts row");
+    assert_eq!(facts["mesh_triangles"].as_i64(), Some(6), "{facts}");
+    assert_eq!(lines.iter().filter(|l| l["event"] == "tf-triangle").count(), 6);
+    let forest = lines.iter().find(|l| l["event"] == "tf-forest").unwrap();
+    assert_eq!((forest["geometry"].as_i64(), forest["triangles"].as_i64()), (Some(1), Some(6)), "{forest}");
+    // every tree query carries its geometry-branch facts
+    let queries: Vec<_> = lines.iter().filter(|l| l["event"] == "tq").collect();
+    assert_eq!(queries.len(), 242);
+    assert!(
+        queries
+            .iter()
+            .all(|q| ["g_calls", "g_true", "g_last", "g_depth"].iter().all(|k| q[*k].is_i64())),
+        "every tq has the geometry fields"
+    );
+    // the report row states the restoration
+    let witness = rows.iter().find(|r| r["event"] == "col-geometry-witness").expect("the report's witness row");
+    for key in ["installed", "restored", "data_restored", "scene_restored", "copy_identical"] {
+        assert_eq!(witness[key].as_i64(), Some(1), "{key}: {witness}");
+    }
+    assert_eq!(witness["objects_before"], witness["objects_after"], "{witness}");
+    assert_eq!(witness["entry_before"], witness["entry_after"], "{witness}");
+    // coverage is stated: the stand-in only ever asks with the consumer flags, so the other combinations are named gaps, and a partial write is not seen
+    let coverage = rows
+        .iter()
+        .find(|r| r["event"] == "geometry_witness_coverage")
+        .expect("the witness coverage row");
+    assert!(
+        coverage["branch_entered"].as_i64().unwrap() > 0 && coverage["geometry_hits"].as_i64().unwrap() > 0,
+        "{coverage}"
+    );
+    assert_eq!(coverage["restored"].as_i64(), Some(1), "{coverage}");
+    let gaps = coverage["gaps"].as_str().unwrap();
+    for gap in [
+        "geometry_branch_not_seen_with_flags_0_0",
+        "geometry_branch_not_seen_with_flags_1_0",
+        "geometry_branch_not_seen_with_flags_1_1",
+        "no_geometry_miss_with_a_partial_write",
+    ] {
+        assert!(gaps.contains(gap), "{gap} not named in {gaps}");
+    }
+    assert!(!gaps.contains("geometry_branch_not_seen_with_flags_0_1"), "{gaps}");
+    let done = rows.iter().find(|r| r["event"] == "done").unwrap();
+    assert!(
+        done["coverage_gaps"].as_str().unwrap().contains("no_geometry_miss_with_a_partial_write"),
+        "{done}"
+    );
+
+    // off by default: no arming, no label, no witness row, and a report and transcript exactly as before
+    let ((status, stdout, stderr, trace, rows), path) = run_collision_trace_case("ok", &["entity_cases=40", "tree_cases=40"]);
+    assert!(status.success() && stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
+    let lines = read_transcript_rows(&path);
+    let _ = std::fs::remove_file(&path);
+    assert!(!trace.contains("geometry_arm"), "{trace}");
+    assert!(
+        rows.iter()
+            .all(|r| r["event"] != "col-geometry-witness" && r["event"] != "geometry_witness_coverage" && r.get("geometry_witness").is_none()),
+        "{rows:?}"
+    );
+    assert!(
+        lines
+            .iter()
+            .all(|l| l["event"] != "tf-witness" && l.get("geometry_witness").is_none() && l.get("g_calls").is_none()),
+        "a witness field leaked into the default transcript"
+    );
+    assert_eq!(lines.iter().filter(|l| l["event"] == "tf-triangle").count(), 2);
+}
+
+// One defect each in the witness, in its row, its facts or its per-query fields. Each must fail the run with the named reason, leave the transcript file empty and write no success row.
+#[test]
+fn the_collision_driver_names_the_one_defect_in_a_geometry_witness_and_leaves_the_transcript_empty() {
+    let witness = ["entity_cases=40", "tree_cases=40", "geometry_witness=yes"];
+    let controls: [(&str, &[&str], &str); 26] = [
+        // restoration: every element of it is required, none is inferred from another
+        ("witness_not_restored", &witness, "col-geometry-witness: restored is 0, expected 1"),
+        ("witness_data_not_restored", &witness, "col-geometry-witness: data_restored is 0, expected 1"),
+        ("witness_scene_not_restored", &witness, "col-geometry-witness: scene_restored is 0, expected 1"),
+        ("witness_copy_differs", &witness, "col-geometry-witness: copy_identical is 0, expected 1"),
+        (
+            "witness_objects_differ",
+            &witness,
+            "col-geometry-witness: objects_after is 0123456789abcdee, expected 0123456789abcdef",
+        ),
+        (
+            "witness_entry_differs",
+            &witness,
+            "col-geometry-witness: entry_after is 00112233445566fe, expected 00112233445566ff",
+        ),
+        (
+            "witness_scene_index_differs",
+            &witness,
+            "col-geometry-witness: scene_index_after is 4096, expected -1",
+        ),
+        // the model and its label are the emitter's
+        ("witness_wrong_mesh", &witness, "col-geometry-witness: mesh_points is 11, expected 12"),
+        (
+            "witness_label_wrong",
+            &witness,
+            "col-geometry-witness: label is some_other_witness, expected controlled_forest_geometry",
+        ),
+        ("witness_facts_mismatch", &witness, "tf-witness: mesh_points is 13, expected 12"),
+        ("witness_triangle_count", &witness, "tf-forest: triangles is 5, expected 6"),
+        // the report's per-stage counts must agree with the transcript's per-query facts
+        ("witness_count_mismatch", &witness, "col-geometry-witness: b0 against the transcript is"),
+        ("witness_depth_mismatch", &witness, "col-geometry-witness: d0 against the transcript is"),
+        // per-query facts that cannot be: the first successful triangle returns at once, so a last yes is a hit; counts and depths are bounded
+        (
+            "witness_last_without_hit",
+            &witness,
+            "the last triangle answered yes but the query is not a hit",
+        ),
+        ("witness_depth_range", &witness, "tq 0: g_depth 6 is outside the model's 6 triangles"),
+        ("witness_true_exceeds_calls", &witness, "tq 0: g_true 2 is more than g_calls 1"),
+        // IMPOSSIBLE decoder call histories whose report buckets (recomputed from the same fields) are coherent, so only the conservation rule can reject them. For the fixed 6-triangle
+        // model a complete walk asks 6 times yes and once no, a walk that hits at depth d asks d + 1 times yes: g_true = 6 * F + (hit ? d + 1 : 0) with F = g_calls - g_true, and an
+        // exhausted history's last yes is at depth 5. (zero_call_depth is also refused by the older neutral-depth rule: the old driver refuses it too, the other five it accepted.)
+        (
+            "witness_history_true_count",
+            &witness,
+            "tq 0: g_true 2 is impossible: 0 completed walks of 6 triangles and a final walk that hit at depth 0 make 1",
+        ),
+        (
+            "witness_history_final_depth",
+            &witness,
+            "tq 0: g_true 2 is impossible: 0 completed walks of 6 triangles and a final walk that hit at depth 3 make 4",
+        ),
+        (
+            "witness_history_incomplete_walk",
+            &witness,
+            "g_true 2 is impossible: 1 completed walks of 6 triangles and a final walk that did not hit make 6",
+        ),
+        (
+            "witness_history_exhausted_depth",
+            &witness,
+            "an exhausted walk's last yes is at depth 5, g_depth is 4",
+        ),
+        (
+            "witness_history_calls_without_true",
+            &witness,
+            "g_true 0 is impossible: 3 completed walks of 6 triangles and a final walk that did not hit make 18",
+        ),
+        (
+            "witness_history_zero_call_depth",
+            &witness,
+            "a query the geometry branch never answered has a last answer or a depth",
+        ),
+        // armed but no row, and a witness that cannot be armed
+        ("witness_row_missing", &witness, "the report has no col-geometry-witness row"),
+        ("witness_arm_fails", &witness, "the geometry witness could not be armed: stand-in arm failure"),
+        // NOT armed: a witness row or a witness field is unknown and refused, so the default report and transcript stay exactly what they were
+        (
+            "witness_row_unarmed",
+            &["entity_cases=40", "tree_cases=40"],
+            "the report has an unknown row 'col-geometry-witness'",
+        ),
+        ("witness_field_unarmed", &["entity_cases=40", "tree_cases=40"], "tq: unexpected key g_calls"),
+    ];
+    for (mode, args, reason) in controls {
+        let ((status, stdout, stderr, trace, rows), path) = run_collision_trace_case(mode, args);
+        let size = std::fs::metadata(&path).map(|m| m.len());
+        let _ = std::fs::remove_file(&path);
+        assert!(!status.success() && !stdout.contains("COLLISION_CALLER_DONE"), "{mode}: {stdout}\n{stderr}");
+        assert!(stderr.contains(reason), "{mode}: expected {reason:?} in {stderr}");
+        assert_eq!(
+            size.ok(),
+            Some(0),
+            "{mode}: the transcript file must exist and be empty after a rejected witness"
+        );
+        assert_eq!(trace.matches("trace_arm false").count(), 1, "{mode}: {trace}");
+        assert!(
+            rows.iter().all(|r| !matches!(
+                r["event"].as_str().unwrap_or(""),
+                "trace_written" | "coverage" | "state_digest" | "done" | "geometry_witness_coverage"
+            )),
+            "{mode}: a success row was written: {rows:?}"
+        );
+    }
+    // a witness fact in an unarmed run
+    let ((status, _, stderr, _, _), path) = run_collision_trace_case("witness_facts_unarmed", &["entity_cases=40", "tree_cases=40"]);
+    let _ = std::fs::remove_file(&path);
+    assert!(
+        !status.success() && stderr.contains("the transcript has an unknown row 'tf-witness'"),
+        "{stderr}"
+    );
+}
+
+#[test]
+fn the_collision_driver_refuses_bad_geometry_witness_arguments_before_booting() {
+    for (args, reason) in [
+        (vec!["geometry_witness=maybe"], "geometry_witness must be one of no, yes, got 'maybe'"),
+        (vec!["geometry_witness=yes"], "geometry_witness=yes needs trace_out"),
+        (vec!["geometry_witness=yes", "probe=no"], "geometry_witness=yes needs probe=yes"),
+    ] {
+        let (status, _, stderr, trace, rows) = run_collision_case("ok", &args);
+        assert!(!status.success() && stderr.contains(reason), "{args:?}: {stderr}");
+        assert!(trace.is_empty() && rows.is_empty(), "{args:?}: the engine was booted or a row written: {trace}");
+    }
+}

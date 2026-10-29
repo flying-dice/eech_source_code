@@ -1,0 +1,249 @@
+{
+  "source": "47a4af0d1a5a5694c1678147a19240b071627fac",
+  "scope": "Original witness and existing host geometry agreement only; no production/model-loader/shipping/D3 acceptance",
+  "windows_build_exit": 0,
+  "linux_fmt_18guards_clippy_exit": 0,
+  "windows_18guards_exit": 0,
+  "invalid_host_override_expected_exit": 101,
+  "native_controller_exit": 0,
+  "all49exports_verified_unchanged": true,
+  "actual_old_red_control_scripts_new_green": true,
+  "original_default_and_controlled_transcripts_preserved": true,
+  "all3_actual_native_history_audits_zero_violations": true,
+  "review_state": "FIRST COMBINED REVIEW IN PROGRESS; interimP2 strict diagnostic history validation/stand-in coherence must be fixed; runtime pass is not witness acceptance",
+  "evidence": {
+    "windows_build": {
+      "path": "R:\\d3-evidence\\tree-geometry-state-windows-47a4af0d1-20261029-completion.json",
+      "sha256": "2fc95a65905e386c112ef89d17861598a388c472521afd828baaf3defd66b397"
+    },
+    "linux": {
+      "path": "R:\\d3-evidence\\tree-geometry-state-linux-47a4af0d1-20261029-completion.json",
+      "sha256": "ea2f8e23284bf172ac2bb1cae1df20f75f6e532602a84ba0eeb99667b72eb14a"
+    },
+    "windows_guards": {
+      "path": "R:\\d3-evidence\\tree-geometry-state-driver-windows-47a4af0d1-actual-20261029\\controller.json",
+      "sha256": "bbe2a266cb929af40244721250ef4f0e9599ba75634a7cc93757bd95d51612fe"
+    },
+    "native": {
+      "path": "R:\\d3-evidence\\tree-geometry-state-47a4af0d1-native-20261029\\controller.json",
+      "sha256": "8cf4c921a5815cdc6c9a587fd9a238374de71c25a804c658b8d3fe371b739d9d"
+    },
+    "history_audit": {
+      "path": "R:\\d3-evidence\\geometry-47a-native-history-conservation-audit.json",
+      "sha256": "0123d2f8519c94eca0299a134c80422516190348c4730236e5276393c317867c"
+    },
+    "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\BUILD-INFO.txt": {
+      "sha256": "03c4195509d653aafa05d7030ff4ef81ce9f0e52174e3f103b43233bbf09b4a6"
+    },
+    "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-driver-tests\\tree-geometry-state-47a4af0d1\\BUILD-INFO.txt": {
+      "sha256": "2313534314b81d9c1fa6e0e9c37a50f53f46f820bdff20abed832156bc508202"
+    },
+    "R:\\d3-evidence\\tree-geometry-state-47a4af0d1-native-20261029\\georgia-host-library-geometry.log": {
+      "sha256": "b59db60b438df96e3ff8e9c7e216f2c0154424cb82db5747e4f46805bbcdb648"
+    },
+    "R:\\d3-evidence\\tree-geometry-state-47a4af0d1-native-20261029\\lebanon-host-library-geometry.log": {
+      "sha256": "5330f7b96e9e4220b46f4627cb1a0e9b52cbb44091120465d5498cfd84a0d24c"
+    },
+    "R:\\d3-evidence\\tree-geometry-state-47a4af0d1-native-20261029\\lebanon-repeat-host-library-geometry.log": {
+      "sha256": "672790e60b81a003d442682d80ce0fcf9ca31c28b448a1ce42447d3284da68e5"
+    }
+  },
+  "exports": [
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\eech_dc.dll",
+      "sha256": "8679621653648debb51a278a79a5756d82f75678084460483480d94fcc83c27e"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\eech-world.exe",
+      "sha256": "0f331166f0c6253bd8f93ea030594f0ef26cf5bb6ce7ff295dd3f7332927b510"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua.dll",
+      "sha256": "7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\aim-characterization.lua",
+      "sha256": "262b525ebac326071ad00833a2d7f69f20735637aba458f1fa3f30e2710a8200"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\aim-lead-probe.lua",
+      "sha256": "0ff667e8db8dbf0132ff472fdc50d0f4b7eec6d0899eca86ad02e8404a6dc68c"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\aim-malformed.lua",
+      "sha256": "1fa81d7ba056ef3b8ca74c848a3089a1bbdea36a355b9483d2c873353e470285"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\aim-person-case.lua",
+      "sha256": "60c46bb5a0056e31c03e31805fbca3cd9cd68efbecfaada71d5416b970caf3e8"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\aim-provider.lua",
+      "sha256": "5f150ea8d697695396e6539567a7a164f52da3494ca60191e3e2ee04ac54584a"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\aircraft-arrivals.lua",
+      "sha256": "a98055c3b50f966a5ec9409914ed6ff42b54425b70fc18324c24e82f1bb6e2cd"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\bridge-case.lua",
+      "sha256": "a92b0152a8606de635b829c8b92c9525e8476dd4bd9ef57140fead5ff8603eaf"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\campaign.lua",
+      "sha256": "a50bf7952f2379f06cab8b18ed060fab20568e2768f405118c0b802b85069fcb"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\collision-characterization.lua",
+      "sha256": "b8a1f33a1d55ec73ae07003a8ce281f7d4145274242c617a56dae680b566f2a9"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\combat-case.lua",
+      "sha256": "3de3505a64ed1f994edc21f825d38e9c568acb2310391d9642d2d3ecfeb9e264"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\combat-characterization.lua",
+      "sha256": "46196da6720804dc291c98eafa8dc677381a648a03ecb15737456618e8a44fe7"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\combat-counters.lua",
+      "sha256": "cf5a4c270240a06106ba7c2226f26e9857e380278a418f7453f1ae5ca724b900"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\combat-plan.lua",
+      "sha256": "8c08f1f3cd4ec4ffe953edf4b39edae0c8588497d0d179ae8855f4e55b8224bd"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\combat-report.lua",
+      "sha256": "5acc3856920a4259208426603dfdba9ab713073b185f1ca119e2b2c82f111a4e"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\convoy-movement.lua",
+      "sha256": "d9e9bb643815fe64468f3a0c22d00f37b9e430179db95fd67272a576b5e5aca9"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\dependent-carry.lua",
+      "sha256": "801c423a0e6f84202b3ff448f2cccd61c98a144175be4c3f46bad2f471e64a23"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\dependent-fixture.lua",
+      "sha256": "ae7abd20d3479d2f0e27f8881ec0c1e53fab2408475821b57fcff16d5ef23549"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\fixed-wing-movement.lua",
+      "sha256": "4cdc6953ab2caed4cf75809420e967898087fcd717fc18a2e54f8cd2f75ff44c"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\helicopter-lifecycle.lua",
+      "sha256": "660784ba1fc82348b84b1168f6ee1fcdec29943fe7ab3d206662d2f8e7d4a7b2"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\helicopter-movement.lua",
+      "sha256": "b2c6b9d0bfe6086918d3a479361b050e90a0f9560d1ca20bdaafeccf20b5c458"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\host-identities-lifecycle.lua",
+      "sha256": "cedf6e8822d27b1339e7619d10001ae7ad8b5998781b1296e323219196a1341c"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\host-identities.lua",
+      "sha256": "e651a6b6af64eb807320f878116ee43c7cff8b82e4ede7ab10d0bbe8ca2de55a"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\lifecycle.lua",
+      "sha256": "9f2fe751146e7a2beb7b0b26e758c9db47c0a5c1e82cd82612ac8d03430bbb79"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\los-characterization.lua",
+      "sha256": "979b875cd6691214574155de2d61dcd52921eb4bef5f8a7e33d8d8d72b03333c"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\los-controls.lua",
+      "sha256": "e0bda6eccf19d40270b21a7f82e9fe9239a563932f86036e73c9019e0d4a528f"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\los-provider.lua",
+      "sha256": "7b7442eb54e1a93770909210336453991d851c16ba68584b64894241d5d43d71"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\loss-all-family.lua",
+      "sha256": "a4e0da2b9ff2ed202875a32555e6d032351ee1ab8a39f2f2a8cae56b65af30de"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\metrics.lua",
+      "sha256": "dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\object-report-case.lua",
+      "sha256": "95239065594c06c2b2580636d5b2cd77c0fa8790049a1f6619ed2cbf9acacd72"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\observations.lua",
+      "sha256": "68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\own-model.lua",
+      "sha256": "1bfc0c23f29cd08fd899c098ad4e7c1c0be03722c69f743ecb5bfad5fca2d603"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\own-weapon.lua",
+      "sha256": "ca1c8487ed4c17feffdd5079b2eb070cf5606d10327f1fa5c123647de0289499"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\remaining-arrivals.lua",
+      "sha256": "eb5ee7f4ff8e331b66d47b9f49d9d048fc279e4c9a8e4f7e7260c8a9b800f920"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\sense-provider.lua",
+      "sha256": "ed69830bc2aa8cdeef48b8bf94378404124596bf9c1d72d9ff69b4738776dfd5"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\sensor-characterization.lua",
+      "sha256": "d663631053cc7ba34156eac7a52bea4911c225c7089263b6bbaed887e25e3ffa"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\supply-arrivals-lifecycle.lua",
+      "sha256": "0b4d04a2f14a31e119128510f7df84736dc55e67030d58a325ca040d313aa584"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\supply-arrivals.lua",
+      "sha256": "c62f951c2c0fe8da457b2f2e983012f0d7978a0f5d84f183d66c3b0203b23ccf"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\surface-movement.lua",
+      "sha256": "3277d3bafecdbe7ba5784097180a39f81643cc5c857ac4766522af072245351d"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\tree-collision-replay.lua",
+      "sha256": "820d6609ad44446b4b4cc25825913cfab3124b73630f405e9d77d7e1375fcfd8"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\weapon-case.lua",
+      "sha256": "df5b29996ce319eefa81935199e5aab7cd368553c129a5963db46674d5bc3074"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-fixture\\tree-geometry-state-47a4af0d1\\lua\\weapon-characterization.lua",
+      "sha256": "b9b04c789020296f642ab9aa5c0979b0f126fbdc220daf3ea75ee3a2b2310f81"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-driver-tests\\tree-geometry-state-47a4af0d1\\host_callbacks.exe",
+      "sha256": "9c8f66eecf5f8a898d9b399c3da6150578cf442f460936b9d01e98d5cbd43d4b"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-driver-tests\\tree-geometry-state-47a4af0d1\\tree_conformance.exe",
+      "sha256": "f9443411975aef97f9c6adc5379471624410f3fabb40c654357c36e70c1b5e63"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-driver-tests\\tree-geometry-state-47a4af0d1\\eech-world.exe",
+      "sha256": "479becd75cccb29dafed13a309d909f2b420e6fbfd9b3e69815278025f26f967"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-driver-tests\\tree-geometry-state-47a4af0d1\\lua.dll",
+      "sha256": "7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b"
+    },
+    {
+      "file": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\target\\collision-driver-tests\\tree-geometry-state-47a4af0d1\\build.log",
+      "sha256": "c6e1c9974762c41fd2ac714a77f84ed8722ba6d9221795d9940b1601e8c4f2cf"
+    }
+  ]
+}

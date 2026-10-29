@@ -56,7 +56,8 @@ fn check(code: c_int) -> Result<(), EngineError> {
 /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the report text of a controlled combat case when the engine rejected its arguments. The case driver writes its reason
 /// (`cmb-case-error reason=... detail=...`) into the report buffer before it returns the argument error, and `check` turns every argument error into "rejected by the engine";
 /// this keeps the reason instead of discarding it. Any other failure, and a rejection that wrote nothing, is unchanged.
-#[cfg(feature = "weapon-fixture")]
+/// The collision probe (feature `collision-fixture`, EEDCS-49) writes `col-refused reason=...` the same way and uses it too.
+#[cfg(any(feature = "weapon-fixture", feature = "collision-fixture"))]
 fn keep_case_reason(status: Result<(), EngineError>, text: &[std::os::raw::c_char]) -> Result<String, EngineError> {
     // SAFETY: the buffer was zero-filled and the engine NUL-terminates anything it writes within it.
     let report = unsafe { CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned();
@@ -959,6 +960,22 @@ const SENSOR_REPORT_CAPACITY: usize = 96 * 1024;
 /// TEST-ONLY (feature `aim-fixture`): room for one aiming report; a report that does not fit is refused, never cut short.
 #[cfg(feature = "aim-fixture")]
 const AIM_REPORT_CAPACITY: usize = 96 * 1024;
+
+/// TEST-ONLY (feature `collision-fixture`, EEDCS-49): room for one collision report; a report that does not fit is refused, never cut short.
+#[cfg(feature = "collision-fixture")]
+const COLLISION_REPORT_CAPACITY: usize = 128 * 1024;
+
+/// TEST-ONLY (feature `collision-fixture`, EEDCS-49): room for one chunk of the tree-query transcript or its facts block; a text that does not fit is refused, never cut short.
+#[cfg(feature = "collision-fixture")]
+const COLLISION_TRACE_CAPACITY: usize = 256 * 1024;
+
+/// TEST-ONLY (feature `collision-fixture`, EEDCS-49): the most transcript records one read returns.
+#[cfg(feature = "collision-fixture")]
+pub const COLLISION_TRACE_CHUNK_MAX: i32 = 256;
+
+/// TEST-ONLY (feature `collision-fixture`, EEDCS-49): the most random entity cases or random tree cases one probe is asked for.
+#[cfg(feature = "collision-fixture")]
+pub const COLLISION_PROBE_CASES_MAX: i32 = 20_000;
 
 /// TEST-ONLY (feature `weapon-fixture`): room for one weapon-execution report or one chunk of the event log; a report that does not fit is refused, never cut short.
 #[cfg(feature = "weapon-fixture")]
@@ -4533,6 +4550,72 @@ impl Engine {
         check(unsafe { sys::eech_engine_sensor_trace(text.as_mut_ptr(), text.len() as i32) })?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `collision-fixture`, EEDCS-49): one probe of the original `get_line_of_sight_collision_entity` and `get_line_of_sight_collision_tree` against the
+    /// loaded world (see `csrc/eech_collision_fixture.c`): a finite structured case set from the real sector lists and tree data, plus `entity_cases` and `tree_cases` seeded
+    /// random cases. It returns the report as `key=value` text lines. The probe requires all six floating-point exceptions masked in both the x87 control word and the SSE MXCSR (read, never
+    /// written). The shared terrain point record is restored byte for byte, the game's random stream is compared before and after, and a sector-list fingerprint (not a proof of purity: it
+    /// covers sector-list entities' type, flags, position, mobile motion and the raw updated bit, not city buildings or identities) is compared before and after, the second time after the
+    /// update-flag arrays (which the original moving collision itself clears) were copied back from the copy taken first; the original queries' effect on them is reported as legacy diagnostics. A request out of range, or one the engine refuses (a precondition not held, a report that does not fit), fails; a refusal keeps
+    /// the engine's reason (`col-refused reason=...`).
+    ///
+    /// A probe that was entered consumes any arming of the controlled geometry witness (`collision_geometry_arm`) whatever happens to it: a refusal here, before the engine is
+    /// called, clears the arming exactly as the engine's own refusals and a completed probe do, so the next probe is never unexpectedly controlled.
+    #[cfg(feature = "collision-fixture")]
+    pub fn collision_probe(&self, seed: u32, entity_cases: i32, tree_cases: i32) -> Result<String, EngineError> {
+        let result = self.collision_probe_entered(seed, entity_cases, tree_cases);
+        if result.is_err() {
+            // idempotent; its own failure (an engine that is not running) leaves nothing armed that this could clear
+            let _ = self.collision_geometry_arm(false);
+        }
+        result
+    }
+
+    #[cfg(feature = "collision-fixture")]
+    fn collision_probe_entered(&self, seed: u32, entity_cases: i32, tree_cases: i32) -> Result<String, EngineError> {
+        if !(0..=COLLISION_PROBE_CASES_MAX).contains(&entity_cases) || !(0..=COLLISION_PROBE_CASES_MAX).contains(&tree_cases) {
+            return Err(EngineError::BadArgument(format!(
+                "collision_probe: entity_cases and tree_cases must each be 0 to {COLLISION_PROBE_CASES_MAX}, got {entity_cases} and {tree_cases}"
+            )));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; COLLISION_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        let status = check(unsafe { sys::eech_engine_collision_probe(seed, entity_cases, tree_cases, text.as_mut_ptr(), text.len() as i32) });
+        keep_case_reason(status, &text)
+    }
+
+    /// TEST-ONLY (feature `collision-fixture`, EEDCS-49): arms (or disarms) the private tree-query transcript of the collision probe; arming clears it. The probe's report is
+    /// identical either way.
+    #[cfg(feature = "collision-fixture")]
+    pub fn collision_trace_arm(&self, on: bool) -> Result<(), EngineError> {
+        // SAFETY: no pointers cross.
+        check(unsafe { sys::eech_engine_collision_trace_arm(c_int::from(on)) })
+    }
+
+    /// TEST-ONLY (feature `collision-fixture`, EEDCS-49): arms (or disarms) the controlled forest geometry witness for the NEXT `collision_probe` only; the probe consumes the arming
+    /// whatever its outcome. Armed, the probe gives the forest tree object a small fixture-owned collision model for its duration (see `csrc/eech_collision_fixture.c`), runs the unchanged
+    /// original queries, restores everything it replaced and appends a `col-geometry-witness` row that states the restoration. Unarmed, the probe and its report are unchanged.
+    #[cfg(feature = "collision-fixture")]
+    pub fn collision_geometry_arm(&self, on: bool) -> Result<(), EngineError> {
+        // SAFETY: no pointers cross.
+        check(unsafe { sys::eech_engine_collision_geometry_arm(c_int::from(on)) })
+    }
+
+    /// TEST-ONLY (feature `collision-fixture`, EEDCS-49): reads the transcript back. `kind` 0 returns the state row and the facts block; `kind` 1 returns the records
+    /// `offset` to `offset + count` (`count` 1 to 256). The second value is the number of records the transcript holds. A text that does not fit is refused.
+    #[cfg(feature = "collision-fixture")]
+    pub fn collision_trace_read(&self, kind: i32, offset: i32, count: i32) -> Result<(String, i32), EngineError> {
+        if !(0..=1).contains(&kind) || offset < 0 || !(1..=COLLISION_TRACE_CHUNK_MAX).contains(&count) {
+            return Err(EngineError::BadArgument(format!(
+                "collision_trace_read: kind must be 0 or 1, offset 0 or more and count 1 to {COLLISION_TRACE_CHUNK_MAX}, got {kind}, {offset}, {count}"
+            )));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; COLLISION_TRACE_CAPACITY];
+        let mut total: c_int = 0;
+        // SAFETY: the buffer and the total outlive the call and the capacity passed is the buffer's length; the engine NUL-terminates the text.
+        let status = check(unsafe { sys::eech_engine_collision_trace_read(kind, offset, count, text.as_mut_ptr(), text.len() as i32, &mut total) });
+        Ok((keep_case_reason(status, &text)?, total))
     }
 
     /// TEST-ONLY (feature `aim-fixture`, EEDCS-44): the run-wide report of the physical weapon-aiming code the campaign's own update loop has run

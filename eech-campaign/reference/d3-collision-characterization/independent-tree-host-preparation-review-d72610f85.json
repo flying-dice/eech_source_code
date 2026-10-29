@@ -1,0 +1,185 @@
+{
+  "review_kind": "One combined new host tree source correctness, clean-code, boundary/FFI/lifecycle/numeric and actual-evidence pass",
+  "reviewed_utc": "2026-10-29T20:38:07.259353+00:00",
+  "base": "00d1cef8fdd64fae52e4bc0fb45fc3039d296498",
+  "head": "d72610f85bc71ecf554c074025e699115e8eb0a1",
+  "frozen_snapshot": "R:\\d3-evidence\\tree-host-rounding-source-20261029",
+  "snapshot_clean_before_and_after": true,
+  "verdict": "CORRECTIONS REQUIRED: five P2 findings and two P3 corrections. Host-only preparation remains unaccepted; no production cutover/shipping/task49/whole-D3 approval.",
+  "findings": [
+    {
+      "id": "P2-map-invariant",
+      "priority": 2,
+      "path": "R:\\d3-evidence\\tree-host-rounding-source-20261029\\eech-campaign\\crates\\eech-world\\src\\trees.rs",
+      "line": 105,
+      "related_lines": [
+        241,
+        254,
+        355,
+        630
+      ],
+      "problem": "TreeMap has public fields and can be constructed or mutated without new(). All scene constructors trust it. The safe Rust API can therefore pass invalid map bounds/sector dimensions to unsafe C.",
+      "concrete_path": "For example min_x=max_x=f32::MAX and sectors_x=sectors_z=2 can be passed to without_trees; a finite outside segment is clamped to f32::MAX in scan640 then get_terrain_3d_sector488 converts f32::MAX/2048 to int, outside its representable range. This is undefined C conversion, not a valid no-trees answer.",
+      "correction": "Make validated map invariants unforgeable or revalidate in every scene construction path, including absent-file/no-trees paths, before storing or FFI. Add public-API invalid literal/mutation coverage; preserve valid arithmetic.",
+      "evidence_status": "Source-confirmed safe public path; reviewer did not execute malformed native input."
+    },
+    {
+      "id": "P2-fp-restoration",
+      "priority": 2,
+      "path": "R:\\d3-evidence\\tree-host-rounding-source-20261029\\eech-campaign\\crates\\eech-world\\csrc\\tree_step.c",
+      "line": 979,
+      "related_lines": [
+        1004,
+        1038,
+        1068
+      ],
+      "problem": "The guard relies only on fegetenv/fesetenv and does not actually restore the complete caller SSE control/status state on the supported Windows build.",
+      "concrete_path": "All three actual Windows library replays first match default and Up numerical outputs, then fail restoration: before x87/SSE masks63/63, SSE RC2, x87 Up, flags0; after SSE RC3 and flags32 while x87 still Up. Windows unit contracts independently fail Nearest with RC0->3/flags0->33.",
+      "correction": "Explicitly preserve/restore relevant MXCSR and x87 environment across every entry outcome on the supported target, keeping original internal rounding and exception-mask refusal. Retain these REDs; verify caller modes and existing nonzero flags at request/done/refusal boundaries without weakening expectations.",
+      "evidence_status": "Actual Windows native failure101, retained controller/log hashes; numerical matches do not make restoration pass."
+    },
+    {
+      "id": "P2-rounding-thread-affinity",
+      "priority": 2,
+      "path": "R:\\d3-evidence\\tree-host-rounding-source-20261029\\eech-campaign\\crates\\eech-world\\src\\trees.rs",
+      "line": 535,
+      "related_lines": [
+        540,
+        563
+      ],
+      "problem": "Public ScopedRounding contains only Vec<u64> and auto-implements Send/Sync although it captures and later restores calling-thread state.",
+      "concrete_path": "Safe Rust can create the guard on thread A, move it to B, and drop there. B receives A's saved FP state and A remains in the changed rounding mode; the stated lexical caller-state restoration is false.",
+      "correction": "Make the guard thread-bound (!Send/!Sync), or keep it private to tests with an equivalent enforced thread-local lifetime. Add a bounded type-level/compile control; do not require a new campaign.",
+      "evidence_status": "Source/type-system confirmed; no cross-thread native experiment executed."
+    },
+    {
+      "id": "P2-sparse-geometry",
+      "priority": 2,
+      "path": "R:\\d3-evidence\\tree-host-rounding-source-20261029\\eech-campaign\\crates\\eech-world\\src\\main.rs",
+      "line": 1516,
+      "problem": "Lua forest_geometry is read with sequence_values, which ends at the first nil. A sparse list or a hole silently drops later triangles instead of refusing malformed physical geometry.",
+      "concrete_path": "forest_geometry={[2]=triangle} becomes an empty Triangles mesh; a valid triangle1 followed by a hole silently omits its tail. The kernel then falls back to the quad path or consumes only a prefix.",
+      "correction": "Validate an actual dense ordered triangle list and reject holes/non-list keys rather than silently truncating. Add actual-host sparse/hole controls, with a valid dense geometry positive. Do not derive geometry or claim a native original-model witness.",
+      "evidence_status": "Source-confirmed and reproduced by actual unchanged d726 host in same-pass six-case protocol diagnostics; diagnostic process0 is not a passing negative guard."
+    },
+    {
+      "id": "P2-pending-lua-refusal",
+      "priority": 2,
+      "path": "R:\\d3-evidence\\tree-host-rounding-source-20261029\\eech-campaign\\crates\\eech-world\\src\\main.rs",
+      "line": 1551,
+      "related_lines": [
+        1566
+      ],
+      "problem": "New begin/terrain requests can fail parsing before TreeCollision is reached, leaving an old pending query live. Direct Rust begin clears open before validation, so the two interfaces differ.",
+      "concrete_path": "Valid begin returns NeedTerrain; a malformed replacement begin (e.g. old_position has only two numbers) is refused before holder.begin; a later terrain answer still advances the prior query. Nonfinite terrain parse refusal likewise leaves it pending. The synthetic test claims refused requests leave no query open but only tests unrelated completed states and manually abandons after the nonfinite reply.",
+      "correction": "Make the Lua boundary fail closed on malformed replacement/response requests, clearing/abandoning the pending query before accepting later continuation; cover pending->bad begin/terrain->later terrain refusal in the real host test. Preserve normal begin/request/answer ordering and arithmetic.",
+      "evidence_status": "Source-confirmed and reproduced by actual unchanged d726 host in same-pass six-case protocol diagnostics; diagnostic process0 is not a passing negative guard."
+    },
+    {
+      "id": "P3-negative-zero-test",
+      "priority": 3,
+      "path": "R:\\d3-evidence\\tree-host-rounding-source-20261029\\eech-campaign\\crates\\eech-world\\tests\\tree_collision_host.rs",
+      "line": 106,
+      "problem": "local negative_zero=0*-1 is folded by this Lua5.1 to positive zero, so the test does not supply its claimed -0 input.",
+      "correction": "Construct runtime negative zero, e.g. -1/math.huge, retain expected80000000 and tiny/subnormal checks. Do not change the reviewed exact numeric reader to satisfy a wrong input.",
+      "evidence_status": "Actual unchanged d726 host diagnostic: original construction reciprocal+inf/format0 exits1; only runtime construction replacement gives reciprocal-inf/format-0 and whole script0/TREE_COLLISION_HOST_OK."
+    },
+    {
+      "id": "P3-allocation-claim",
+      "priority": 3,
+      "path": "R:\\d3-evidence\\tree-host-rounding-source-20261029\\eech-campaign\\crates\\eech-world\\src\\trees.rs",
+      "line": 27,
+      "problem": "The claim that lengths are checked before anything is allocated is overbroad: load() uses std::fs::read before from_bytes validates, and geometry_from allocates before header checks.",
+      "correction": "Qualify the precise checks before indexing/decoding, or add corresponding preallocation validation. Do not imply unbounded filesystem read is already bounded by these checks.",
+      "evidence_status": "Source/documentation correspondence only; no OOM/runtime defect asserted."
+    }
+  ],
+  "positive_source_assessment": [
+    "Tree data and sector tables are host-owned immutable Rust storage held by Arc through each query. C receives borrowed descriptors per call and retains no scene pointer. Query storage is private, size-queried and u64-aligned; no private campaign pointer/heap index/seed crosses this component.",
+    "Explicit little-endian8-byte file decode preserves signed x/z, unsigned y, colour and height7/type1. Case-insensitive discovery opens actual spellings, refuses ambiguity, preserves both-absent/one-absent and header-mismatch no-tree semantics. Count/offset ranges are checked before tree indexing; zero-count offsets are not dereferenced.",
+    "Read-only token comparison found triangle and quad intersection bodies identical to original vector.c after excluding ASSERT/debug code. Tree scan changes examined are scene access, safe forward indexing instead of pointer-before-array, fault refusal and resumable terrain requests; math order/constants/promotions/ties/continue/miss partial writes match the original text.",
+    "Terrain requests remain old then new only for inclusive in-map endpoints. Early false outcomes and outside-endpoint behavior are preserved. No original solver fallback or campaign policy was added to the host component; production DLL dispatch remains original and untouched.",
+    "Raw C/Rust record/sector/scene/request field declarations correspond in current x86_64 build; size checks cover record/sector/scene. Query memory is opaque. No32-bit execution or comprehensive C-field-offset probe is claimed.",
+    "The kernel uses a per-entry FPU guard and no guard across Lua/campaign callbacks. The design is appropriate but actual Windows complete-state restoration is defective as recorded above.",
+    "KnownAbsent versus decoded triangles is explicit. Original model geometry decoding/ownership and native positive forest-geometry witness are still required D3 work. Synthetic triangle checks are hand-derived examples, not a native original model oracle."
+  ],
+  "actual_evidence": {
+    "reviewer_activity": "Read-only Git/files/hash and own Python text/token/hash analyses only; no builds/tests/Lua/native campaigns/process/cache or Git mutations.",
+    "prior_first_host_checkpoint": "Retained0db20ab3a46582110bd7c4706c26edaaa9335478 controller1; units0, synthetic Lua101 due wrong outside-endpoint no-hit expectation; all3 library101/Lua1 original replays retained numerical mismatches. Bounded mismatch diagnostics are not total failure counts.",
+    "d726_windows_build": {
+      "actual_exit": 0,
+      "build_info_sha256": "5dbc2c046db17b69fd8ada4169be0100a32acb8fe967a88a6cea91f9a504f458",
+      "file_manifest_entries_rehashed": 8,
+      "host_sha256": "b22ab6307e56215ca72b434f29884b3a144b81dd234259f3676fab8ad4aa3730",
+      "scope": "Test-only host/tests, no campaign DLL built, not shipping"
+    },
+    "d726_linux": "Actual outer101.15 tree library tests passed; Lua transport test failed at bad negative-zero construction. Clippy not reached, not a pass. Formatting recorded0.",
+    "d726_windows_native": "Actual controller1. Windows units14passed/1failed at FP restoration; synthetic Lua transport101 at negative-zero construction. All3 real library replay processes101 at Up state restoration, not numerical mismatch; all3 direct real Lua full replays0.14 command logs independently rehashed against controller.",
+    "measured_replay_results": [
+      {
+        "map": "georgia",
+        "queries": 554,
+        "lookups": 1102,
+        "hits": 98,
+        "misses": 456,
+        "misses_that_wrote": 126,
+        "default_and_Up_bit_mismatches": 0,
+        "library_exit": 101,
+        "lua_exit": 0
+      },
+      {
+        "map": "lebanon and separate repeat",
+        "queries": 600,
+        "lookups": 1120,
+        "hits": 146,
+        "misses": 454,
+        "misses_that_wrote": 166,
+        "default_and_Up_bit_mismatches": 0,
+        "library_exit": 101,
+        "lua_exit": 0
+      }
+    ],
+    "restoration_failure": "Before Up: masks63/63,SSE RC2,x87 Up,flags0; after masks63/63,SSE RC3,x87 Up,flags32. Unit Nearest independently RC0->3/flags0->33. No Down/Zero full-library success can be inferred after test aborts at Up.",
+    "negative_zero_diagnostic": "Same unchanged host; exact extracted synthetic script plus diagnostic prints, only dynamic -0 construction differs between cases. Original actual1, dynamic actual0 including tiny/subnormal and expected sign-bit assertions. This isolates test construction, not reader sign loss.",
+    "immutability": "All8 d726 manifest entries rehashed, original f3 transcript hashes unchanged, all3 pre/post input records0, source clean. Native results remain labelled d726; no relabelled future correction.",
+    "original_transcript_sha256": {
+      "georgia": "0647eea11e9c87777ce47183c905ae47011ebce9da10ce7d2a8cc87b0e180adc",
+      "lebanon_and_repeat": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00"
+    },
+    "protocol_red_controls": "Additional same-pass actual d726 host diagnostic: six processes0 with exact script fa77370fbd1cfd20fe1bf43378474b775deea189a85978813be6e361fae149de and unchanged host b22ab6307e56215ca72b434f29884b3a144b81dd234259f3676fab8ad4aa3730. Dense geometry accepted as valid control; sparse[2] and hole-after1/[3] also accepted (defect). Healthy pending continued; malformed begin/terrain each refused but old pending continued (defect). Logs rehashed. Diagnostic process0 records the defect, not acceptance."
+  },
+  "finite_correction_and_verification": [
+    "One correction batch for the five source guards and two test/documentation issues; retain all failed logs/oracles unchanged.",
+    "Meaningful public API/actual-host malformed map, sparse geometry and pending-refusal controls; thread-bound guard type control; actual Windows full FP-state restoration with masks retained, caller modes and nonzero flags at each boundary.",
+    "Fresh corrected source/build identity, then rerun affected focused units/Lua/library comparisons. Reuse unchanged original captures and map inputs. No healthy original campaign rerun is required solely for these guards.",
+    "Do not count source-only guards, skipped map tests, CLI success or zero numerical mismatches as complete environment/ownership acceptance."
+  ],
+  "limits": [
+    "No host production authority or DLL tree dispatch has moved. This is component preparation; full Task49 and D3 remain open.",
+    "Native retail forest geometry is absent; hand-derived synthetic geometry and copied source do not establish original model-decoder or full native geometry fidelity.",
+    "G1 terrain data/height integration, entity collision, model spatial services, DCS mapping and required loader removal remain D3 responsibilities, not deferred solely to D5.",
+    "No32-bit native/FPU configuration coverage, DCS execution, whole campaign state proof, final shipping40/eight-file comparison or whole-D3 acceptance.",
+    "Task47 frozen shipping115 and all unrelated live work/processes/caches were untouched. No formal GitHub approval or external publication."
+  ],
+  "source_sha256": {
+    "R:\\d3-evidence\\tree-host-rounding-source-20261029\\eech-campaign\\crates\\eech-world\\csrc\\tree_step.c": "76020a4f674490bc917d420ba1fc4d25a0b985fc61b86836a49b3861e96cfdc9",
+    "R:\\d3-evidence\\tree-host-rounding-source-20261029\\eech-campaign\\crates\\eech-world\\src\\trees.rs": "81f2b831f74749bc05b13db01a1c33dea3cc2b85384ec6634caf9a94d1a4aed0",
+    "R:\\d3-evidence\\tree-host-rounding-source-20261029\\eech-campaign\\crates\\eech-world\\src\\main.rs": "944b442b2fec2ec6b2aa4b58d9abf0f4473658f1b7990327c179b8e84217d408",
+    "R:\\d3-evidence\\tree-host-rounding-source-20261029\\eech-campaign\\crates\\eech-world\\src\\lib.rs": "ede5a57581a4c2c1f454a11bfccc50db78f829446ac18b65e902abcd87256eeb",
+    "R:\\d3-evidence\\tree-host-rounding-source-20261029\\eech-campaign\\crates\\eech-world\\build.rs": "ec2401b3676d3e896f65a0dd2cdc7a4e0d50d1ad457e472ba17c3fd3b9813264",
+    "R:\\d3-evidence\\tree-host-rounding-source-20261029\\eech-campaign\\crates\\eech-world\\tests\\tree_conformance.rs": "e6a693b8a9f3090cccdbdf884b7d64112d7cf9c69e9df51eda7ba3373fd35610",
+    "R:\\d3-evidence\\tree-host-rounding-source-20261029\\eech-campaign\\crates\\eech-world\\tests\\tree_collision_host.rs": "1c812f255fc08fb1daf6aef1f2e3db17914c40c1f68642c481effbbcef69afab",
+    "R:\\d3-evidence\\tree-host-rounding-source-20261029\\eech-campaign\\crates\\eech-world\\lua\\tree-collision-replay.lua": "9e34c201b0d5ece771f4dd4f324a3654aa72f384bca65c97519ed5896289e523"
+  },
+  "evidence_sha256": {
+    "R:\\d3-evidence\\tree-host-rounding-linux-d72610f85-20261029-completion.json": "5e7917857a32758e9932f540d8e9d98a93258f064c29113b80005717d253df76",
+    "R:\\d3-evidence\\tree-host-rounding-linux-d72610f85-20261029.log": "6da6ab618016188b0c70511edd06c5b0bb6a26e930b8d3526d2658583aa223ca",
+    "R:\\d3-evidence\\tree-host-rounding-windows-d72610f85-20261029-completion.json": "e3709653da28bb3bfe76b43c13bf796f7960c215dfbf23b8a90f4438dde0a711",
+    "R:\\d3-evidence\\tree-host-rounding-d72610f85-native-20261029\\controller.json": "e42f875d72a73749aa70517419888ccc77f10d3bb77b062fac474851c6338050",
+    "R:\\d3-evidence\\tree-host-negative-zero-d72610f85-diagnostic-20261029\\controller.json": "9a0e09d8e72e5f8a4d1812e1e5c15bb8d61eadcc456023b78611429d2271460b",
+    "R:\\d3-evidence\\tree-host-first-0db20ab3a-native-20261029\\controller.json": "9a32ca3ae36fe3b77cac482831561eaa6db05c3e13ec6aab45f18c23fa1785dc",
+    "R:\\d3-evidence\\tree-host-boundary-red-d72610f85-20261029\\controller.json": "7e508d8d08a1e91d952830336ac733bb298db833a3c5e9e36ba690f716e8afdf",
+    "R:\\d3-evidence\\tree-host-boundary-controls-20261029.lua": "fa77370fbd1cfd20fe1bf43378474b775deea189a85978813be6e361fae149de"
+  },
+  "source_inspection_completed_before_author_corrections_started": true
+}

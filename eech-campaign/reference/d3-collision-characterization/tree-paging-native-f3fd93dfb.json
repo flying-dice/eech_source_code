@@ -1,0 +1,74 @@
+{
+  "source": "f3fd93dfb2ad81b6cbe4d89174953376efd07611",
+  "status": "completed",
+  "pid": 6744,
+  "started_utc": "2026-10-29T19:50:53.453548+00:00",
+  "scope": "Real public Lua/module/C normal/extreme/invalid paging only, one small original probe; not kernel/shipping proof",
+  "commands": [
+    {
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\tree-input-source-f3fd93dfb\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\tree-paging-root-f3fd93dfb-20261029",
+        "--compare",
+        "R:\\d3-evidence\\tree-input-source-f3fd93dfb\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 18068,
+      "log": "R:\\d3-evidence\\tree-paging-native-f3fd93dfb-20261029\\pre-inputs.log",
+      "actual_exit": 0,
+      "log_sha256": "2e5ef5b6fb563f071ec1b304179a19861691b6f20fc6d20a4c44841d7e2482eb"
+    },
+    {
+      "argv": [
+        "R:\\d3-evidence\\tree-input-source-f3fd93dfb\\eech-campaign\\target\\collision-fixture\\tree-input-f3fd93dfb\\eech-world.exe",
+        "R:\\d3-evidence\\tree-input-source-f3fd93dfb\\eech-campaign\\crates\\eech-world\\tests\\lua\\collision-trace-paging.lua",
+        "root=R:/d3-evidence/tree-paging-root-f3fd93dfb-20261029",
+        "out=R:/d3-evidence/tree-paging-native-f3fd93dfb-20261029/paging.jsonl",
+        "scenario=lebanon_retail"
+      ],
+      "pid": 11448,
+      "log": "R:\\d3-evidence\\tree-paging-native-f3fd93dfb-20261029\\native.log",
+      "actual_exit": 0,
+      "log_sha256": "b8e8fc764c7b9c95bb34d5492eb8a4ac39948ab27e83456c7282d91c600cca38"
+    },
+    {
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\tree-input-source-f3fd93dfb\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\tree-paging-root-f3fd93dfb-20261029",
+        "--compare",
+        "R:\\d3-evidence\\tree-input-source-f3fd93dfb\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 25584,
+      "log": "R:\\d3-evidence\\tree-paging-native-f3fd93dfb-20261029\\post-inputs.log",
+      "actual_exit": 0,
+      "log_sha256": "2e5ef5b6fb563f071ec1b304179a19861691b6f20fc6d20a4c44841d7e2482eb"
+    }
+  ],
+  "verified_payloads": 43,
+  "script_sha256": "1062e2cb555e5d36fe4e89dd09e40a2d7335d355330b8f73db1c8143875105bc",
+  "actual_native_exit": 0,
+  "pre_inputs": 0,
+  "post_inputs": 0,
+  "rows": 16,
+  "done": [
+    {
+      "event": "done",
+      "total": 108,
+      "normal_pages": 1,
+      "end_pages": 6,
+      "refusals": 6
+    }
+  ],
+  "raw_sha256": "a6096262598ac000da31d8316fb56ce20d152ae21ad6ea36619351a2fd2f6826",
+  "valid": true,
+  "exports_unchanged": true,
+  "actual_exit": 0,
+  "completed_utc": "2026-10-29T19:51:11.696645+00:00"
+}

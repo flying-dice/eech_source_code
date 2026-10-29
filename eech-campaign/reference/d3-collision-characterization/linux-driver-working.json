@@ -1,0 +1,19 @@
+{
+  "actual_exit": 0,
+  "completed_utc": "2026-10-29T18:02:22.4490289Z",
+  "scope": "Working-tree real Linux Lua driver/stand-in guards, formatting and host lint only; no original physical query or retail campaign executed",
+  "hashes": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "sha256": "28e102709358fa585750a30599254d92a13d15b6044d49cf00279d784d1a3c64"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/collision-caller.lua",
+      "sha256": "df9d0021e2c627b0ee1f24de960f8956ec4835b0f86996537aa9c3b5029188af"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/collision-characterization.lua",
+      "sha256": "33ab4c532db72ab6b74e904942e67ef785d6dbbf863ea6101394c97ede161e40"
+    }
+  ]
+}

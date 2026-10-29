@@ -1,0 +1,53 @@
+{
+  "task": "EEDCS-49",
+  "epic": "EEDCS-21",
+  "branch": "codex/d3-object-tree-collision",
+  "parent_commit": "f8092241da4f953b5f7e28c87af989a50617b845",
+  "state": "source checkpoint; not built, runtime validated, independently accepted or merged",
+  "implementation": {
+    "model": "claude-sonnet-5-5",
+    "effort": "high",
+    "session": "39ea8c20-d032-41ae-bbbb-c52fb100b440",
+    "actual_exit": 0,
+    "completed_utc": "2026-10-29T18:36:37.9956528Z"
+  },
+  "changes": [
+    "Fixture fingerprint reads update bits without invoking the destructive original getter.",
+    "Snapshot all three bounded update-flag arrays before observation; report original query effects and restore the snapshot before the final fingerprint and on refusal exits.",
+    "Retain rejected or differing raw reports in private JSON diagnostics; extend actual-driver schema controls.",
+    "Keep production getters, collision query bodies, case generation, query order and physical fold algorithms unchanged."
+  ],
+  "validation": {
+    "cargo_fmt_all_check": "passed after applying rustfmt",
+    "new_source_build": "not run",
+    "new_source_driver_tests": "not run",
+    "new_source_native_probes": "not run",
+    "new_source_tacview_comparison": "not run",
+    "independent_review": "previous combined review remains changes required; correction delta not yet reviewed"
+  },
+  "retained_evidence": {
+    "original_source": "d5ca5ee5bb1f784318ce9c76903169cb97bbe362",
+    "boot_smokes": "three zero-frame probes passed with coverage gaps; bounded evidence only",
+    "moving_probes": "all three failed after 1200 frames before accepted measurements or digest",
+    "controls": "both no-probe controls completed 1500 frames; identity/kind/side/alive digest only",
+    "moving_oracle": "unavailable; failed report equality is failure reproducibility only",
+    "private_artifacts": "retained locally outside Git; retail data, binaries and raw physical samples are excluded"
+  },
+  "continuation": [
+    "Build one frozen correction revision and run Linux plus cross-built Windows actual-driver guards.",
+    "Run fresh verified zero-frame probes; compare shared physical folds and samples against retained d5 boot evidence while separating new diagnostics.",
+    "Run fresh moving probes and matched controls; investigate differences without changing accepted baselines or tolerances.",
+    "Obtain independent review of the new delta and actual results before normal delivery."
+  ],
+  "other_work": {
+    "terrain_branch": "codex/d3-terrain-services",
+    "terrain_head": "7b51efedbf62ac69c7670a11a01ea721c1fd0aba",
+    "terrain_shipping_source": "1156c8fbbdb80783164a95f54f1f782cea328307",
+    "terrain_shipping": "still running at checkpoint; all six original process identities verified; final full-pack acceptance unavailable",
+    "ground_branch": "codex/d3-ground-contact",
+    "ground_head": "0f4495c354165cde5b15a4553df4e0b4ab31cf8d",
+    "ground_state": "reviewed host preparation only; production cutover remains gated by terrain delivery",
+    "ledger": "14548994 version 61; prior content and five epic reports preserved",
+    "whole_d3": "incomplete; remaining geometry, environment, time, reachability and loader responsibilities remain in scope"
+  }
+}

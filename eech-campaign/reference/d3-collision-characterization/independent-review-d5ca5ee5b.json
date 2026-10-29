@@ -1,0 +1,368 @@
+{
+  "schema": "independent-review-v1",
+  "reviewed_utc": "2026-10-29T18:29:53.923687+00:00",
+  "task": "EEDCS-49 original collision-characterization",
+  "repository": "R:\\d3-evidence\\collision-original-src-d5ca5ee5b",
+  "base_supplied": "6bbaa8197a4843181d03cd355d562af998c75321",
+  "head": "d5ca5ee5bb1f784318ce9c76903169cb97bbe362",
+  "frozen_head_file_verified_before_after": true,
+  "disposition": "CHANGES_REQUIRED; ORIGINAL_MOVING_CHARACTERIZATION_NOT_ACCEPTED",
+  "findings": [
+    {
+      "id": "P1-OBSERVER-DESTRUCTIVE-UPDATED",
+      "priority": 1,
+      "file": "R:\\d3-evidence\\collision-original-src-d5ca5ee5b\\eech-campaign\\crates\\eech-engine-sys\\csrc\\eech_collision_fixture.c",
+      "line": 631,
+      "title": "Read the update bit without mutating shared frame flags, and restore query effects at probe boundary",
+      "mechanism": "world_fold calls get_local_entity_int_value(INT_TYPE_UPDATED) before the first measured query and again afterwards. Original mb_int.c:398 implements this getter as updated_entities[index] &= mask, clearing other entities bits in the same32-entity word. The observer therefore changes the state that en_cllsn.c:1330 uses to select old/new swept positions. A post-fold also clears bits. The original collision query itself calls that same destructive getter; that legacy effect must be distinguished from observer contamination.",
+      "evidence": "All three120s probe runs actually exit1 with world_unchanged=0; no-probe controls finish. The source-side mutation mechanism is verified; no isolated native flag-word diagnostic was retained, so attribution of every changed bit is not claimed. Boot smokes cannot establish full flag-state purity.",
+      "bounded_correction": "Use a fixture-only nondestructive raw-bit peek for observation. Snapshot the relevant full bounded flag state before the measured sweep; retain all original query calls/order and getter effects inside that sequence, record pre/post-query effects as legacy diagnostics, then restore at the probe boundary, including post-snapshot refusal/overflow paths. Assert restoration separately from measured query effects. Do not modify production &= or hide the mutation by omitting the field/world check. The flag arrays are bounded static arrays in up_update.c:86\u201388, not runtime heap maps. Add meaningful same-word/multiple-word/bit31 and refusal/restoration checks, then obtain new moving-original native evidence."
+    },
+    {
+      "id": "P2-TYPE-BUCKET-CONSERVATION",
+      "priority": 2,
+      "file": "R:\\d3-evidence\\collision-original-src-d5ca5ee5b\\eech-campaign\\crates\\eech-world\\lua\\collision-characterization.lua",
+      "line": 416,
+      "title": "Require exact conservation of the emitted positive type-hit buckets",
+      "mechanism": "The emitter writes every positive per-type bucket, but the checker only requires their sum <= group hit count. Deleting one or all positive col-entity-type rows still reaches successful coverage/done. The stand-in positive itself has12 structured hits but only4 bucket hits, which is impossible for the C emitter.",
+      "bounded_correction": "Require exact summed type-hit equality to each group hit count, and positive valid dynamic rows; correct the positive collaborator and add real-script missing-positive-row/all-positive-rows deletion controls. Actual d5 smoke buckets already conserve all hits, so retain those raw measurements unchanged."
+    },
+    {
+      "id": "P2-TARGET-SELECTION-COMPLETENESS",
+      "priority": 2,
+      "file": "R:\\d3-evidence\\collision-original-src-d5ca5ee5b\\eech-campaign\\crates\\eech-world\\lua\\collision-characterization.lua",
+      "line": 348,
+      "title": "Check the targets the census necessarily supplies, not only upper bounds",
+      "mechanism": "Only maximum quotas/census bounds are checked. A positive census can be paired with under-selected or zero targets and consistently reduced case rows, then accepted as a coverage gap. The current positive stand-in has4 stationary candidates but selects only1+1, and40quad/60geometry trees with only2/1 selected; both contradict first3-per-class collection.",
+      "bounded_correction": "For each entity family with totalN and two geometry classes require min(N,3) <= selected_total <= min(N,6), alongside individual quotas and existing bounds, unless exact subgroup census is provided. Tree classes are already derivable: geometry target count=min(type1,3) when forest geometry exists, else0; quad count=min(type0,3) with geometry or min(total,3) without it. Repair positive fixtures to feasible emitter data and add under-selection controls. Do not invent collision hits or new physical expectations."
+    },
+    {
+      "id": "P2-DERIVED-AXIS-FP-CONTRACT",
+      "priority": 2,
+      "file": "R:\\d3-evidence\\collision-original-src-d5ca5ee5b\\eech-campaign\\crates\\eech-engine-sys\\csrc\\eech_collision_fixture.c",
+      "line": 888,
+      "title": "Verify the floating-point mask assumption for all actual tree rays",
+      "mechanism": "The initial random ray checks zero x/z extents at1335, but shortened near-hit rays are passed directly through query_tree. A returned f32 hit point at large coordinates can round one component to the source while the other advances more than0.1m; the derived ray can then reach original en_cllsn.c:2021/2024 division with a zero extent. The declaration that such rays are never probed is not established; fegetround at1404 checks rounding, not exception masks. No actual unmasked exception/crash is claimed.",
+      "bounded_correction": "The lead-adopted minimal remedy is suitable: read/require all six exception masks in both x87 control word and SSE MXCSR before probing, without changing masks or original calls/generator/folds; count derived axis rays distinctly and correct unsupported wording, retaining legitimate vertical/short early-gate cases. Verify the new guard in a new named build; do not retroactively claim d5 recorded these control words."
+    },
+    {
+      "id": "P2-CROSS-BUILT-DRIVER-PATH",
+      "priority": 2,
+      "file": "R:\\d3-evidence\\collision-original-src-d5ca5ee5b\\eech-campaign\\crates\\eech-world\\tests\\host_callbacks.rs",
+      "line": 1998,
+      "title": "Embed the actual driver instead of looking for the build machine source path",
+      "mechanism": "run_collision_case substitutes env!(CARGO_MANIFEST_DIR)/lua into the stand-in, whose final dofile uses it. A Windows executable cross-built in the Linux container carries /src/... or another Linux-only path, so these new guard tests fail setup on Windows instead of testing the driver. Linux8/8 does not exercise portability.",
+      "bounded_correction": "Embed the actual collision driver with include_str and write it into a private per-test directory beside the collaborator, then run the real script there. Preserve existing guard assertions and run the cross-built tests on actual Windows; no campaign war is needed for this correction."
+    },
+    {
+      "id": "P3-EXACT-STATE-WARM-SCOPE",
+      "priority": 3,
+      "file": "R:\\d3-evidence\\collision-original-src-d5ca5ee5b\\eech-campaign\\docs\\m5-collision-characterization.md",
+      "line": 128,
+      "title": "State precisely which candidate state and warm answers are measured",
+      "mechanism": "world_fold traverses sector-list entities but not CITY_BUILDING children and contains no per-entity identity. Nearer warm query results at C:853/890 are discarded, while primary warm answers are counted. Header/API/docs claim every collision candidate state/list membership and per-query warm behavior are measured. No observed building/identity mutation is asserted.",
+      "bounded_correction": "Either extend the relevant guards or qualify the prose/counters to the exact sampled state and primary-query warm scope. This wording-only scope correction cannot resolve the independently observed P1 destructive-read defect."
+    }
+  ],
+  "scope": "One combined new-source correctness, clean-code, boundary/FFI/lifetime/memory/FPU/RNG, driver-test and completed-original evidence review. No unchangedG1/G2/D2 review; no delegation. Reviewer used read-only files/JSON/hashing and wrote only this review; no supplied scripts/tests/compiler/native campaigns/process/cache/auth/Git operations/external writes were executed.",
+  "source_hashes": {
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_collision_fixture.c": "dfa098273f9eb14d66e8722c81f123eb51e1e581973afd1c418683b9035ec2db",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c": "87261161897257ca1bc0d70baf77860ee9b3cd577d0ce475e46d92d0cab8504f",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h": "e06544fe4113543295e54616c450fe8a83d053d6cb16c71f19aba5606d34038f",
+    "eech-campaign/crates/eech-engine-sys/src/lib.rs": "dee9bfb4c40c490d7dfd5e91e8eecd071056431927befcf032c94ce883fb7860",
+    "eech-campaign/crates/eech-engine/src/lib.rs": "5dd8c0eef0f1653476641dce097901bd3d6d41488abe797cfc14ca1c62861083",
+    "eech-campaign/crates/eech-dc/src/module.rs": "6dabee5af8858d0a076350f4e208d237bfad83573a3bb783b99a018368980b17",
+    "eech-campaign/crates/eech-world/lua/collision-characterization.lua": "33ab4c532db72ab6b74e904942e67ef785d6dbbf863ea6101394c97ede161e40",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "28e102709358fa585750a30599254d92a13d15b6044d49cf00279d784d1a3c64",
+    "eech-campaign/crates/eech-world/tests/lua/collision-caller.lua": "df9d0021e2c627b0ee1f24de960f8956ec4835b0f86996537aa9c3b5029188af",
+    "eech-campaign/tools/build-windows-collision-fixture.sh": "cd8ba9d5220606a2f9627a83ad6de45f70a27a567c26cb3d42e1fbe8331af91c"
+  },
+  "otherwise_observed": [
+    "Fixture/API/Cargo feature gating is explicit; original entity/tree query calls remain the source of answers. No host ownership extraction or new physical solver is implemented.",
+    "Scalar C/Rust arguments match; counts are bounded0..20000, output buffer128KiB is initialized, vsnprintf reports overflow, C restores the shared terrain snapshot before report-overflow refusal, and Rust keeps the refusal reason. Static probe storage is protected by the existing serialized engine entry.",
+    "Inputs and output vectors are initialized before observing partial/miss writes; physical folds use actual scalar/vector bit patterns and address-free hit facts. The separate legacy fold uses private heap-slot/record diagnostics and must not become a generic host contract. Miss-write counters detect value changes from initialized output/sentinel, not instrumented identical-value stores.",
+    "Physical query formulas and original RNG calls are not rewritten. The private generators use statement-ordered draws. New fixture code does not set the game RNG. Native reported RNG equality is a bounded check, not proof of all simulator state.",
+    "This pre-G1 base uses original in-core terrain functions, so the hostless OBSERVE entry works here. A later G1 integration must re-check actual callback requirements; this review does not authorize retaining NULL host scope after new host-querying callers are composed."
+  ],
+  "linux_evidence": {
+    "actual_exit_recorded": 0,
+    "actual_driver_guard_functions": 8,
+    "tested_three_hashes_match_frozen_source": true,
+    "completion_sha256": "9c903615c808b4cd3b0d1d95ae471d8008a22a4768e00f5c8ff10709563e9c9b",
+    "log_sha256": "c5eb1bd8003229a4e28ac4bba55dce4698aae021c1c8fbd6fd339a09d1d93715",
+    "limits": "Stand-in flow/schema/format/hostClippy only; no physical C/retail proof and no Windows guard portability proof."
+  },
+  "build": {
+    "source": "d5ca5ee5bb1f784318ce9c76903169cb97bbe362",
+    "actual_exit_recorded": 0,
+    "completion_sha256": "bc245027dc10807d52848cfc72f4a616fab57906400865781f8680edded44073",
+    "build_info_sha256": "4f5ed339d87ca642094557ad5fdf4748073d58f1be5908c55fe0fb7d567c26e0",
+    "manifest_entries_verified_now": 43,
+    "dirty_inputs_recorded": 0,
+    "kind": "x86_64-pc-windows-gnu collision-fixture; not shipping"
+  },
+  "smokes": {
+    "actual_outer_exit_recorded": 0,
+    "controller_sha256": "4a21112cecaf716f5292fc62bb71f6b510a1e2c6c30438058dbe4eb05e6624ed",
+    "completion_sha256": "33508889b33e32ff77a8665a77955d906f1b657ec3a6967afb012033a5939b80",
+    "runs": [
+      {
+        "scenario": "georgia",
+        "actual_native_exit": 0,
+        "pre_post_inputs": [
+          0,
+          0
+        ],
+        "raw_bytes": 37102,
+        "raw_sha256": "7eb8191f907f6d053a7ee307aef22c9e76afdb1c78876a7e66838e4bf5145235",
+        "native_log_sha256": "49fcc93cedbcd5fd65d254e380a446f3e9511b28e75284f75d6cff332ade7d8d",
+        "strict_rows": 199,
+        "col_report_rows_per_repeat": 96,
+        "two_reports_equal": true,
+        "actual_positive_type_buckets_complete": true,
+        "physical_folds": {
+          "entity_random": "01496aa63538d93a",
+          "entity_struct": "01f36798b749adcf",
+          "event": "col-physical",
+          "repeat_index": 1,
+          "tree_random": "5063e2abd132b861",
+          "tree_struct": "4a69a8adbab47ab1"
+        },
+        "coverage": {
+          "event": "coverage",
+          "gap_count": 5,
+          "gaps": "no_moving_mobile_target,no_terrain_aligned_fixed_object,no_two_object_ray_for_scan_order,forest_tree_object_has_no_collision_geometry,no_geometry_tree_target",
+          "moving_targets": 0,
+          "random_entity_hits": 94,
+          "random_tree_hits": 30,
+          "structured_entity_hits": 14,
+          "structured_tree_hits": 6
+        }
+      },
+      {
+        "scenario": "lebanon",
+        "actual_native_exit": 0,
+        "pre_post_inputs": [
+          0,
+          0
+        ],
+        "raw_bytes": 37076,
+        "raw_sha256": "35a2cdd2fe29910ec22e4dcaa5d5ed9ecb491ac61b46ac5eefe2af421bd9cdc9",
+        "native_log_sha256": "4084f9b809a17fce7a8444c279fc31b4f76525b9137c3837d2c77d920b46f8a9",
+        "strict_rows": 199,
+        "col_report_rows_per_repeat": 96,
+        "two_reports_equal": true,
+        "actual_positive_type_buckets_complete": true,
+        "physical_folds": {
+          "entity_random": "591f91b14e200f7e",
+          "entity_struct": "2c348a2f2876d081",
+          "event": "col-physical",
+          "repeat_index": 1,
+          "tree_random": "dc007f0a0c53ad77",
+          "tree_struct": "920225059f996e6b"
+        },
+        "coverage": {
+          "event": "coverage",
+          "gap_count": 4,
+          "gaps": "no_moving_mobile_target,no_terrain_aligned_fixed_object,forest_tree_object_has_no_collision_geometry,no_geometry_tree_target",
+          "moving_targets": 0,
+          "random_entity_hits": 84,
+          "random_tree_hits": 53,
+          "structured_entity_hits": 14,
+          "structured_tree_hits": 6
+        }
+      },
+      {
+        "scenario": "lebanon-repeat",
+        "actual_native_exit": 0,
+        "pre_post_inputs": [
+          0,
+          0
+        ],
+        "raw_bytes": 37076,
+        "raw_sha256": "35a2cdd2fe29910ec22e4dcaa5d5ed9ecb491ac61b46ac5eefe2af421bd9cdc9",
+        "native_log_sha256": "41b58299b532150cde308a62394681991f59cfb3333e58326ac77fcea63b7e57",
+        "strict_rows": 199,
+        "col_report_rows_per_repeat": 96,
+        "two_reports_equal": true,
+        "actual_positive_type_buckets_complete": true,
+        "physical_folds": {
+          "entity_random": "591f91b14e200f7e",
+          "entity_struct": "2c348a2f2876d081",
+          "event": "col-physical",
+          "repeat_index": 1,
+          "tree_random": "dc007f0a0c53ad77",
+          "tree_struct": "920225059f996e6b"
+        },
+        "coverage": {
+          "event": "coverage",
+          "gap_count": 4,
+          "gaps": "no_moving_mobile_target,no_terrain_aligned_fixed_object,forest_tree_object_has_no_collision_geometry,no_geometry_tree_target",
+          "moving_targets": 0,
+          "random_entity_hits": 84,
+          "random_tree_hits": 53,
+          "structured_entity_hits": 14,
+          "structured_tree_hits": 6
+        }
+      }
+    ],
+    "separate_lebanon_full_bytes_equal": true,
+    "actual_emitter_type_buckets_and_justified_target_constraints_independently_satisfied": true,
+    "limits": "Boot seconds0, private200random cases/family, repeats2. Gapped stationary-world physical measurements only; no moving/aligned-fixed/geometry-tree proof, and Georgia no two-object scan-order ray. Reported world-state flags do not cure P1 or establish full observer purity."
+  },
+  "long_controls": {
+    "actual_original_tool84252_terminal_exit_supplied_by_lead": 1,
+    "actual_outer_exit_recorded": 1,
+    "completion_sha256": "8ba71bcd8009cae0e84703cb11b43f217dca1d81f090a0f97459d07217f992dc",
+    "controller_sha256": "da9425f74566a9a0e78a9c2445fc739f03c1902c8ec31a198b7fb4a6e7dabeb3",
+    "configuration": {
+      "before_seconds": 120,
+      "after_seconds": 30,
+      "frame_ms": 100,
+      "seed": 20261029,
+      "entity_random": 2000,
+      "tree_random": 2000,
+      "repeats": 2
+    },
+    "runs": [
+      {
+        "case": "georgia-probe",
+        "actual_native_exit": 1,
+        "pre_post_inputs": [
+          0,
+          0
+        ],
+        "raw_bytes": 358,
+        "raw_sha256": "654f33c8267c3b5ad5a9aebb6daab1ee620756993aceacaa5e4a8efd9a15cc70",
+        "native_log_sha256": "941d8fc14403ffdfc45d377222906bf3fb50ae773818272e826f94d3f1dc9787",
+        "strict_rows": 3,
+        "report_invalid": [
+          {
+            "error": "collision-characterization: col-guard: world_unchanged is 0, expected 1",
+            "event": "report_invalid",
+            "repeat_index": 1
+          }
+        ],
+        "state_digest": [],
+        "done": []
+      },
+      {
+        "case": "lebanon-probe",
+        "actual_native_exit": 1,
+        "pre_post_inputs": [
+          0,
+          0
+        ],
+        "raw_bytes": 358,
+        "raw_sha256": "f0138ec5275a7bc97e05a8e28394eb04b6436c53dcc44a5d498af9d885111d8e",
+        "native_log_sha256": "5edbe0b47640bec86a08e9fe940e2ddff9695a09cb50cb309c6d7fd7fd93d20a",
+        "strict_rows": 3,
+        "report_invalid": [
+          {
+            "error": "collision-characterization: col-guard: world_unchanged is 0, expected 1",
+            "event": "report_invalid",
+            "repeat_index": 1
+          }
+        ],
+        "state_digest": [],
+        "done": []
+      },
+      {
+        "case": "georgia-control",
+        "actual_native_exit": 0,
+        "pre_post_inputs": [
+          0,
+          0
+        ],
+        "raw_bytes": 481,
+        "raw_sha256": "c55d5d9b162acc6d0abba4d361822b81418d82e2cf0d07ffa50edf43b200eaa5",
+        "native_log_sha256": "23a48963f69e98ef319591a1a2c951801ada829dbb20465eba9ecc5f73c5ece9",
+        "strict_rows": 6,
+        "report_invalid": [],
+        "state_digest": [
+          {
+            "alive": 1483,
+            "digest": "0ffb3b0d",
+            "event": "state_digest",
+            "objects": 1483,
+            "probed": false
+          }
+        ],
+        "done": [
+          {
+            "coverage_gaps": "not_probed",
+            "event": "done",
+            "probed": false
+          }
+        ]
+      },
+      {
+        "case": "lebanon-repeat",
+        "actual_native_exit": 1,
+        "pre_post_inputs": [
+          0,
+          0
+        ],
+        "raw_bytes": 358,
+        "raw_sha256": "f0138ec5275a7bc97e05a8e28394eb04b6436c53dcc44a5d498af9d885111d8e",
+        "native_log_sha256": "5b7af5308f34163c938705515b56076ab98af55b4cb8dd1944f898944520d5c2",
+        "strict_rows": 3,
+        "report_invalid": [
+          {
+            "error": "collision-characterization: col-guard: world_unchanged is 0, expected 1",
+            "event": "report_invalid",
+            "repeat_index": 1
+          }
+        ],
+        "state_digest": [],
+        "done": []
+      },
+      {
+        "case": "lebanon-control",
+        "actual_native_exit": 0,
+        "pre_post_inputs": [
+          0,
+          0
+        ],
+        "raw_bytes": 481,
+        "raw_sha256": "864a4c280b0db66c41ddb4011f899b7c967a3b5d0677181021d36c8a8b2aaa58",
+        "native_log_sha256": "475a65e8562a0bb3eb4c3d6ff8d941e3f2a99057ddea26c04fe330acb036f8a0",
+        "strict_rows": 6,
+        "report_invalid": [],
+        "state_digest": [
+          {
+            "alive": 1722,
+            "digest": "50143464",
+            "event": "state_digest",
+            "objects": 1727,
+            "probed": false
+          }
+        ],
+        "done": [
+          {
+            "coverage_gaps": "not_probed",
+            "event": "done",
+            "probed": false
+          }
+        ]
+      }
+    ],
+    "all_five_pre_post_inputs_recorded_and_logs_verified_equal": true,
+    "all43_entries_still_match_build_info": true,
+    "failed_separate_lebanon_raw_equal": true,
+    "limits": "All3probes stop after1200frames at report_invalid world_unchanged0; only3strict rows, no emitted collision measurement/report, no afterframes/digest/coverage/done. Failed Lebanon raw equality is reproducible failure only. The2controls complete1500frames and only identity/kind/side/alive digests. Probe/control digest comparison is UNAVAILABLE, not an observed digest inequality. No Tacview or complete recordings were generated."
+  },
+  "publication": {
+    "declared_metadata_head": "bd2a31949341eba90376cf825c713dfa81fbff9f",
+    "measured_runtime_remains": "d5ca5ee5bb1f784318ce9c76903169cb97bbe362",
+    "build_copy_sha256": "567abb30566714ae2b1305067e5efa19a4bf302008b041e7072158e35fa915b5",
+    "smoke_copy_sha256": "45fd3d1e3127b9936065de45f69f718baa1218c2fe4086870a155952ec18a36f",
+    "verification": "Read safe published files as explicitly requested. Aggregate fields equal private controller; its recorded private controller hash verifies. Publication expressly distinguishes LF serialization from immutable private raw SHA fields. No raw coordinate samples/retail assets/binaries are in these two files. No independent Git-blob operation was performed under this task limit. Pending/live labels are historical metadata, not actual terminal proof."
+  },
+  "remaining_limits": [
+    "Corrections and meaningful new red/green checks/new named native fixture are required before accepting moving-original characterization or designing/accepting the production cutover. Keep d5 failures and prior valid measurements intact; no golden rewrite/tolerance change or production &= fix.",
+    "The original implementation has first-found scan/city exclusion, miss output and tree tie semantics to preserve or explicitly govern. This fixture does not yet establish all moving/aligned/geometry-tree/player/client/MP branches. Axis FP conditions are not retroactively verified by successful old runs.",
+    "G3 model/device/subobject/target-point/other spatial services, environment/time and physical loader/solver removal remain whole-D3 work. No Task49 delivery, G3 extraction, shipping, whole-D3 or GitHub APPROVED claim. Task47 shipping processes/inputs were untouched."
+  ],
+  "continuity": "Pinned source inspection was completed before the lead began the sole correction lane. This report additionally incorporates the genuinely new actual long-run failure proof supplied during the same pass. Mutable correction working files were not inspected."
+}

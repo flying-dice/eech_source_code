@@ -1,0 +1,26 @@
+{
+  "reviewed_validator_tested_head": "b44d2c96faa4e84e92b0f7507d81e4d80106edb9",
+  "reused_native_measured_head": "47a4af0d1a5a5694c1678147a19240b071627fac",
+  "status": "Original forest geometry witness preparation CLOSED; no open review finding",
+  "review_sha256": "4a97eb5468dc7cbc3202a9f68d572e7cd376441347f60624349d2d68c3606573",
+  "original_changes_required_review_sha256": "d796840610b1ca6b50ec4f5a08af8bfe73f2659aa8075510654db9d84a60c285",
+  "linux_format_18guards_clippy_actual_exit": 0,
+  "windows_host_guard_build_actual_exit": 0,
+  "windows_18guards_actual_exit": 0,
+  "missing_host_override_expected_refusal_exit": 101,
+  "windows_four_exports_unchanged": true,
+  "actual_driver_matrix_cases": 14,
+  "new_impossible_histories_old_accept_new_refuse": 5,
+  "healthy_input_old_new_both_accept": true,
+  "preexisting_neutral_depth_old_new_both_refuse": true,
+  "original_matrix_aggregate_exit": 1,
+  "read_only_correct_assessment_exit": 0,
+  "assessment_disclosure": "Original Root aggregate expected report_invalid; actual trace-validation stage emits trace_failed. Original records and all14 process exits preserved; separate read-only recovery independently reviewed.",
+  "native_evidence": "Actual47a original controls/default-f3 equality/control537 transcript equality/full3-map host library and Lua bit replay/49exports/input proofs retained unchanged; ten source blob identities prove reuse. All15054actualcallhistories independently satisfy new rule. No new native C/DLL build claimed at b44.",
+  "scope_limits": "No production host authority, model-loader removal, Task49 delivery, full shipping acceptance or D3 completion. Task50 original-model characterization now starts from verified6b.",
+  "evidence": {
+    "independent-original-geometry-validator-closure-b44d2c96f-20261029.json": "4a97eb5468dc7cbc3202a9f68d572e7cd376441347f60624349d2d68c3606573",
+    "geometry-b44-native-source-reuse-proof.json": "d1d68597c3044ad262f4ec8a0aaa0a8dc005f2b648f4728263e80c8fe7e0d0da",
+    "geometry-history-driver-b44d2c96f-assessment-recovery.json": "822fb71a2cff73cdd9fa79350ccf780c9c4acf147e599684ca78689874fd333b"
+  }
+}

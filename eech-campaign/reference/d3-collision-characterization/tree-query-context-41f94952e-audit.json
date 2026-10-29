@@ -1,0 +1,32 @@
+{
+  "when_utc": "2026-10-29T19:38:56.181935+00:00",
+  "source": "41f94952e1c06b40286a790795ce51e141629530",
+  "scope": "Existing actual C trace pair signatures and supplied lookup X/Z/order only; no terrain elevation, collision answer or solver re-derived",
+  "runs": [
+    {
+      "scenario": "georgia",
+      "transcript_sha256": "0647eea11e9c87777ce47183c905ae47011ebce9da10ce7d2a8cc87b0e180adc",
+      "query_records": 554,
+      "matched_warm_pairs": 277,
+      "matched_supplied_lookup_arguments": 1102,
+      "all_pass": true
+    },
+    {
+      "scenario": "lebanon",
+      "transcript_sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00",
+      "query_records": 600,
+      "matched_warm_pairs": 300,
+      "matched_supplied_lookup_arguments": 1120,
+      "all_pass": true
+    },
+    {
+      "scenario": "lebanon-repeat",
+      "transcript_sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00",
+      "query_records": 600,
+      "matched_warm_pairs": 300,
+      "matched_supplied_lookup_arguments": 1120,
+      "all_pass": true
+    }
+  ],
+  "actual_exit": 0
+}

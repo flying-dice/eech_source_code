@@ -1,0 +1,145 @@
+{
+  "review_kind": "Single combined new tree-input capture correctness, clean-code, boundary/FFI/numeric and completed-evidence review, with focused corrections in the same pass",
+  "reviewed_utc": "2026-10-29T19:54:53.765132+00:00",
+  "base": "03413ccd33ef14da169354bae8ebb2cf0fad5495",
+  "initial_reviewed_head": "41f94952e1c06b40286a790795ce51e141629530",
+  "final_reviewed_head": "f3fd93dfb2ad81b6cbe4d89174953376efd07611",
+  "initial_snapshot": "R:\\d3-evidence\\tree-input-source-41f94952e",
+  "final_snapshot": "R:\\d3-evidence\\tree-input-source-f3fd93dfb",
+  "both_snapshots_clean_before_and_after": true,
+  "verdict": "CLOSED: all three P2 findings resolved; no remaining actionable finding in this bounded capture delta. Original-query capture only, not host extraction, production authority, shipping, task49 or whole-D3 acceptance.",
+  "open_findings": [],
+  "resolved_findings": [
+    {
+      "id": "P2-page-overflow",
+      "priority": 2,
+      "initial_path": "R:\\d3-evidence\\tree-input-source-41f94952e\\eech-campaign\\crates\\eech-engine-sys\\csrc\\eech_collision_fixture.c",
+      "initial_line": 1746,
+      "mechanism": "An accepted i32 offset such as INT_MAX plus count256 overflowed signed end=offset+count before clipping to trace_n.",
+      "resolution_path": "R:\\d3-evidence\\tree-input-source-f3fd93dfb\\eech-campaign\\crates\\eech-engine-sys\\csrc\\eech_collision_fixture.c",
+      "resolution_line": 1728,
+      "resolution": "C independently validates pointers/capacity/kind/offset/count, reports total, returns successful empty EOF before arithmetic, and limits page by trace_n-offset. offset+page is bounded by trace_n<=32768.",
+      "evidence": "Actual public Lua/module/C native witness passed normal108-record page, last record, six EOF offsets including INT_MAX and near-overflow values, six real argument refusals, exact PAGING_OK; original controller/native0, pre/post inputs0."
+    },
+    {
+      "id": "P2-truncated-facts",
+      "priority": 2,
+      "initial_path": "R:\\d3-evidence\\tree-input-source-41f94952e\\eech-campaign\\crates\\eech-world\\lua\\collision-characterization.lua",
+      "initial_line": 729,
+      "mechanism": "Coherent512 indexed triangle rows with capped1 were accepted as complete, despite a known omitted tail.",
+      "resolution_path": "R:\\d3-evidence\\tree-input-source-f3fd93dfb\\eech-campaign\\crates\\eech-world\\lua\\collision-characterization.lua",
+      "resolution_line": 763,
+      "resolution": "Requires capped0 before accepting capture; does not widen/drop/redefine geometry.",
+      "evidence": "Same actual host41 and f3 collaborator: old41 driver0 versus corrected driver1 for coherent512 capped geometry, retained report and empty capture, no trace_written/done. Actual retail forest geometry0/capped0 is unaffected."
+    },
+    {
+      "id": "P2-query-context",
+      "priority": 2,
+      "initial_path": "R:\\d3-evidence\\tree-input-source-41f94952e\\eech-campaign\\crates\\eech-world\\lua\\collision-characterization.lua",
+      "initial_line": 749,
+      "mechanism": "Warm pairs were counted as the same query without matching context/endpoints/flags, and supplied lookup coordinates/order/count were not correlated to original endpoint-in-map gates.",
+      "resolution_path": "R:\\d3-evidence\\tree-input-source-f3fd93dfb\\eech-campaign\\crates\\eech-world\\lua\\collision-characterization.lua",
+      "resolution_line": 725,
+      "resolution": "Nine signature fields match stages1/0 and3/2; exact decoded-f32 inclusive map predicates determine only expected lookup endpoint count/XZ/order. No elevation, hit, intercept or normal is re-derived; warm elevation results need not be identical.",
+      "evidence": "Nine genuine old0/new1 single-defect context/lookup controls plus three valid outside/inclusive/one-ulp-outside controls0 on both drivers. All measured41 pairs277/300/300 and provided lookup counts1102/1120/1120 independently satisfy the stronger rules."
+    }
+  ],
+  "source_assessment": [
+    "Feature-OFF macro expands directly to the two original get_3d_terrain_elevation calls; no shipping solver/generator rewrite. Diagnostic source locations may shift; no blanket diagnostic-byte equivalence claim.",
+    "Feature-ON wrapper makes one original lookup at each original site and records by-value f32 bits after that call. Query begin/end copies original endpoints and initial/final outputs without private pointer exposure. No added terrain lookup or RNG draw was found.",
+    "Static32768-record capture and160KiB facts have checked overflow flags; private text transport uses bounded256-record pages and initialized256KiB Rust buffer. Capture/current-record lifetime is confined to serialized fixture entry/query spans; arm/disarm resets private state.",
+    "Facts use native record size/offsets/synthetic packing, actual scales/census, decompressed forest triangles and first8 raw records. C geometry cap is now fail-closed at driver acceptance. No generic host requirement or public legacy index was introduced.",
+    "Driver checks transcript schema/order/report correspondence and exact repeat text, checked capture write/flush/close and cleanup/disarm. trace_written is emitted only after successful close. Check-then-create alias refusal is not race-proof exclusive creation.",
+    "New C paging correction changes only transcript access; physical queries/generator/folds remain unchanged from measured41. Current f3 source has no additional actionable correction defect."
+  ],
+  "independently_verified_evidence": {
+    "execution_limit": "Reviewer ran only read-only Git/file/hash/own Python analyses; no supplied tests/audits/builds/Lua/native/process or cache actions were executed.",
+    "initial_41": {
+      "fixture_manifest_entries_rehashed": 43,
+      "build_info_sha256": "354f924d7440fdbe752cd8ff4f7306a61eb4f8313dc911102d6429dae7e1f8c3",
+      "guard_manifest_entries_rehashed": 4,
+      "native_controllers": "Three native0, all recorded pre/native/post commands0; Linux14/14/fmt/Clippy0 and actual Windows14/14 plus expected invalid-override101/controller0 retained."
+    },
+    "final_f3": {
+      "fixture_manifest_entries_rehashed": 43,
+      "build_info_sha256": "cf98274a7820123cca3c2f7f65a0e0b83bfbcfe869978be9444d3f1b8ba9fbd3",
+      "guard_manifest_entries_rehashed": 4,
+      "guard_build_info_sha256": "65d78be7851d83e24db805f5428c52229ff5d3d621c5a7a42362cc8e4ac68a49",
+      "native_controllers": "Fresh three retail native0 and six pre/post input checks0; controller9 commands all0. Linux15/15/fmt/Clippy0, actual Windows15/15 plus expected missing-host101/controller0; logs and hashes checked."
+    },
+    "raw_comparisons": [
+      {
+        "map": "georgia",
+        "old_541_rows": 205,
+        "capture_rows": 206,
+        "only_extra_row": "trace_written",
+        "all_old_ordered_values_equal": true,
+        "report_sha256": "fa280a6e35ecc0cd8f8d0a0d845bdad1717df7223f2f5daeed3aec963e03774f",
+        "transcript_rows": 568,
+        "transcript_bytes": 240705,
+        "transcript_sha256": "0647eea11e9c87777ce47183c905ae47011ebce9da10ce7d2a8cc87b0e180adc",
+        "queries": 554,
+        "lookups": 1102,
+        "warm_pairs": 277
+      },
+      {
+        "map": "lebanon and separate repeat",
+        "old_541_rows": 205,
+        "capture_rows": 206,
+        "only_extra_row": "trace_written",
+        "all_old_ordered_values_equal": true,
+        "report_sha256": "8f0e3f602c84aa2e3f352ebfa5de3e46ee4faf1a7079d98d79a9c3573abcda3b",
+        "transcript_rows": 614,
+        "transcript_bytes": 260557,
+        "transcript_sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00",
+        "queries": 600,
+        "lookups": 1120,
+        "warm_pairs": 300
+      }
+    ],
+    "six_complete_files_41_to_f3_byte_equal": true,
+    "separate_lebanon_report_and_transcript_byte_equal": true,
+    "native_facts": "Verified record8 bytes, offsets0/2/4/6, synthetic pattern feff3412cdabefd5 and bitfield7f/80. First8 native sample bytes match SEC-derived DAT offsets on both maps; all SEC counts/ranges conserve native848187 Georgia and213955 Lebanon trees and nonempty-sector census. No retail sample bytes are included in this report.",
+    "checker_controls": "Rehashed26 actual runs:10 malformed old0/new1 including coherent512, three valid boundary models0 on both; same host41, collaboratorf3 and only driver differs; no physical C or oracle change.",
+    "real_paging": "Native0/controller0 on fresh Lebanon;16 strict JSON rows,108 records,1 normal page,last107,six empty EOF offsets,six argument errors, exact PAGING_OK. Actual C arithmetic exercised for large in-range offsets; invalid argument paths may refuse in Rust before C. Pre/post inputs0 and43 payload hashes unchanged."
+  },
+  "limits_and_remaining_gates": [
+    "Retail forest geometry0/capped0 on both maps: no native positive forest-triangle branch or512-cap world. Cap-refusal proof is coherent synthetic actual-driver validation, not native geometry coverage.",
+    "New capture probes are boot seconds0 with200 random cases per family and two repeats. They do not replace prior moving controls or close remaining aligned-fixed/tree-geometry/two-object coverage gaps.",
+    "All205 prior report values remain exact; initial41 and correctedf3 full capture files are identical. This supports measured x86_64 outputs, not every unobserved intermediate or32-bit/x87/FPU configuration. Previously unrecorded near-warm answers have no independent old transcript oracle.",
+    "Record/restoration/RNG/world flags and repeat text are observed fixture guards, not an all-state campaign fingerprint or full shipping recording comparison.",
+    "No host tree loader/kernel, production collision cutover, public production authority, final shipping pack, task49 or whole-D3 completion is established. Full geometry/model/spatial services and loader removal remain D3 responsibilities; no unsupported miss substitute is approved.",
+    "Task47 frozen shipping115 and all unrelated processes/caches were untouched. No formal GitHub approval or external publication was performed."
+  ],
+  "next_bounded_action": "No further correction is required for this capture delta. Root may use the bounded input contract/evidence for the next independently reviewable host tree preparation; missing native geometry coverage must remain explicit.",
+  "source_file_sha256": {
+    "STATUS.md": "d81ba05e47b3af2d19594ef267017695fc949e88f060ed498a276207c77326a1",
+    "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c": "f9789e5ab614d7198691fd538cb321365fb206f9c5df0977575e8c0eef9347a9",
+    "eech-campaign/crates/eech-dc/src/module.rs": "6a53ffdaf43fedd252983ce41d6ccd187be976b892eb44ae07a530abc3829635",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_collision_fixture.c": "8e8c65dc8fcd6dd9ea0a73b3508ff46fed2c304e3e902f0259654080acab2635",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c": "4391261815cc664a458ad11c1c5844a097699af348d0d1dcbbf72fb5d0f05616",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h": "eda5789f3bfe3e6dca74360ad132f0c9abffa60939a466110b96f84f7bde8edc",
+    "eech-campaign/crates/eech-engine-sys/src/lib.rs": "fbedb352d36310da8e07f4523032c5d11a555f40a3d854d38eb403f1e8b417d7",
+    "eech-campaign/crates/eech-engine/src/lib.rs": "b46b8a99b053cb0b51bfa8da920bebb9ba822c3eaa20c98c0ab462a88c8f2a9e",
+    "eech-campaign/crates/eech-world/lua/collision-characterization.lua": "5e506f5d7eaa9a00be234a5d4ece876e0b5ade25b370ed068de5cd4542e689e1",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "c16791e95d54c634b080647aaf242aefc74f60670ce15151a24c66d66c75236e",
+    "eech-campaign/crates/eech-world/tests/lua/collision-caller.lua": "35fb26a1347b6bb6c409c74cb6e0ae1deaa2c7af9c833b80a4a6a6869498612b",
+    "eech-campaign/crates/eech-world/tests/lua/collision-trace-paging.lua": "1062e2cb555e5d36fe4e89dd09e40a2d7335d355330b8f73db1c8143875105bc",
+    "eech-campaign/docs/m5-collision-characterization.md": "a376985c702bf8c34b9e658cd17e22250d848f515d64b545a47fa3caa6966e12"
+  },
+  "evidence_file_sha256": {
+    "R:\\d3-evidence\\tree-input-41f94952e-audit.json": "bcf797ef8b8ac43d8c5fb9d2ae36fd44ff240a2a236920b9b6dbd0423a5787cd",
+    "R:\\d3-evidence\\tree-input-41f94952e-smokes-20261029\\controller.json": "e1bab0cffdfeecd520cc0fbef5f58540a77f74015034072f0906224abe91bd89",
+    "R:\\d3-evidence\\tree-input-f3fd93dfb-audit.json": "6ad2a9967f10dfae29a02ef4b6dba7e376b5b72fb8fe31b38d631662ef6735f8",
+    "R:\\d3-evidence\\tree-input-f3fd93dfb-smokes-20261029\\controller.json": "2e32b95597f55b93a29d97b2990e0665ed48e21d8996e2d10defe992e65e3d4c",
+    "R:\\d3-evidence\\tree-capture-41-to-f3fd93dfb-full-byte-comparison.json": "37a006027abb6e58c91c4923ded4ef5b819d91294ed7e15b4a7db8987e3f0a3a",
+    "R:\\d3-evidence\\tree-capture-checker-red-green-f3fd93dfb-20261029\\controller.json": "8b43ee9ed74ed4b4ebede2eb7ee72dedba6a64858ebde9f7dc380343c2bbe8e8",
+    "R:\\d3-evidence\\tree-input-driver-linux-f3fd93dfb-completion.json": "87a7ab5f3014f1970ca33f5ed1332494c9b22b6b037c6c48cccc608b2fbc35d3",
+    "R:\\d3-evidence\\tree-input-driver-linux-f3fd93dfb.log": "4a4814a84775a325a89335297e717f1e9389a71dcab1c93eaea66c85e4c42199",
+    "R:\\d3-evidence\\tree-input-driver-windows-f3fd93dfb-actual-20261029\\controller.json": "51813cfc245ce9871ac143756f548a4eedae508fcd48945955019ac4f491fa2f",
+    "R:\\d3-evidence\\tree-paging-native-f3fd93dfb-20261029\\controller.json": "3213748b932c9f4d3e2460e5d8ec286751859e4a88320dfabe77790ac38f90c7",
+    "R:\\d3-evidence\\tree-paging-native-f3fd93dfb-20261029\\paging.jsonl": "a6096262598ac000da31d8316fb56ce20d152ae21ad6ea36619351a2fd2f6826",
+    "R:\\d3-evidence\\tree-paging-native-f3fd93dfb-20261029\\native.log": "b8e8fc764c7b9c95bb34d5492eb8a4ac39948ab27e83456c7282d91c600cca38",
+    "R:\\d3-evidence\\build-tree-input-f3fd93dfb-completion.json": "1965eba8e9d327c18cb1833cabbbe0b1e5e2d9e72b0e79c4c80aef62d8e9b6f1"
+  }
+}
