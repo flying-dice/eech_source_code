@@ -1,3 +1,37 @@
+# D3 checkpoint — original geometry witness closed; Task50 model-data work active
+
+Original forest-geometry witness preparation is independently CLOSED with no
+open finding. Native measurements remain47a4af0d1; the corrected diagnostic
+driver is reviewed/tested atb44d2c96f and published with closure/evidence through
+Task49 branchf2473817b. Final closure SHA256:
+4a97eb5468dc7cbc3202a9f68d572e7cd376441347f60624349d2d68c3606573.
+All15054 original queries/29894 ordered replies match host library and real Lua;
+default f3 reports/transcripts and controlled537 transcripts remain byte exact.
+Native state/refusal/input/export evidence remains47a, justified by exact source
+identity; no new native DLL build is claimed for the diagnostic-only fix.
+
+Linux/Windows18 diagnostic guards pass. The14 actual old/new driver runs show
+five newly rejected impossible histories, healthy inputs accepted by both and
+the old neutral-depth refusal preserved. Root's aggregate exit1 is retained;
+the independently reviewed read-only assessment0 corrects its event-label
+mistake (`trace_failed`, not `report_invalid`) without changing any raw run.
+Jira10862 and ledger14548994v67 record closure; prior HTML/all5 epic reports
+read back exactly. The original changes-required review/failures remain intact.
+
+EEDCS-50, Host collision-model loading and geometry, is now In Progress. Its
+dedicated branchcodex/d3-model-geometry starts at freshly fetched accepted
+integration6bbaa8197; worktreeR:/d3-evidence/model-geometry-20261029. The sole
+Sonnet5.5High lane is preparing real retail model/original-accessor
+characterization (tool8289, localcontext20f8be8d-68b1-4ff9-947f-73e2362b0071),
+before implementing the host loader. Nothing new there has been built/run.
+
+No additional production service is delivered by this preparation. Model loading
+and collision queries remain coupled to the DLL. Task47 shipping115 continues;
+checked48.5MB Tacview/32.7MB observation prefixes match only. Full40/eight complete
+artifacts/post-input checks and normal delivery remain pending. Required model,
+entity, environment, host-time and native physical solver/loader removal remain
+whole-D3 work; D4/D5 have not started.
+
 # D3 checkpoint — original geometry measured; fixture state corrections in progress
 
 Frozen/pushed Task49 source `537c36fafae6e16555bcea0c95b4a272921cfd93` now builds
