@@ -1,6 +1,6 @@
 # D3 G2: ground contact, reference-host preparation (EEDCS-48)
 
-**Status: kernel Windows conformance on all three retail roots passed and independent kernel review closed without findings at `14bfd3ed6`. The newer Lua transport and handoff harness passed Linux build/guards/lint and actual Windows retail/control/RED checks at `516d2e3f60`; independent review of that new delta is pending.** Branch `codex/d3-ground-host-preparation`, base `1b6218b06a0d0ca61f884a4b913c0c1e5ded3b01`. This prepares the HOST side of
+**Status: kernel Windows conformance on all three retail roots passed and independent kernel review closed without findings at `14bfd3ed6`. The newer Lua transport and handoff harness passed Linux build/guards/lint and actual Windows retail/control/RED checks at `516d2e3f60`; one independent review of that new delta closed without open findings.** Branch `codex/d3-ground-host-preparation`, base `1b6218b06a0d0ca61f884a4b913c0c1e5ded3b01`. This prepares the HOST side of
 the below-ground and ground-impact extraction. It binds nothing: the campaign DLL (`wn_move.c`, `mb_hostterrain.c`, the public module bridge) is unchanged and still computes both
 itself, and the shipping behaviour is unchanged. Production cutover follows Task47 delivery and integration re-verification (ledger 14548994; Epic EEDCS-21). No completed extraction, shipping
 pass, G2 cutover or D3 completion is claimed. The original characterisation (`m5-ground-characterization.md`) and its retained c119 raws are the oracle and are not touched.
@@ -144,5 +144,13 @@ hybrid explicitly identifies the new516d2e3f60 host and frozenfebbb7cc5 fixture 
 The priorf66 mistaken diagnostic expectation failure remains preserved. This
 proves the prepared host Lua path and the old DLL's missing handoff, not production
 G2 authority, weapon launch-glue coverage or shipping conformance. Independent
-review of this new delta is in progress. See reference/d3-ground-host-preparation/
+review of this new delta is closed without open findings. See reference/d3-ground-host-preparation/
 lua-native-516d2e3f60.json. Raw retail rays/recordings/binaries remain private.
+
+The sole combined review pins measured516d2e3f60 and publication0e4987b5a.
+It verified the P3 CRLF-private/LF-Git failure-copy provenance correction; both
+hashes and all29 original decoded rows match. See independent-lua-review-516d2e3f60.json
+(report SHAdeab8ab8c39e518bddf755d0045f8223c9989f018d5475e6fbdcc270cce86dcb).
+Only the closed obsolete firstf66 Windows Cargo cache was removed after exact
+export/build-log verification and zero-owner checks. Source, tested binaries,
+raw failures and roots remain preserved; shipping115 and current caches untouched.

@@ -1,0 +1,24 @@
+{
+  "removed_only": "eech-win-tests-d3-ground-host-lua-f66ba1f139-20261029",
+  "completed_utc": "2026-10-29T17:35:42.1325401Z",
+  "exported_payloads_verified": [
+    {
+      "file": "eech-world.exe",
+      "sha256": "de4f5996e5e161c9cc1ff6a68cad2fecb1155507efd39a18a6becfc08d33d015"
+    },
+    {
+      "file": "ground_provider.exe",
+      "sha256": "5c7be6a7273b756b2663fccf1dd6114bd8931145bc50b08c21b5fc4141f8e19b"
+    },
+    {
+      "file": "ground_handoff.exe",
+      "sha256": "82b18feae8eba4097e41c8a72c5bbadbfc0c843e5859e898d9e13c2729672311"
+    },
+    {
+      "file": "lua.dll",
+      "sha256": "7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b"
+    }
+  ],
+  "scope": "Closed obsolete first Lua Windows target only; build log exact comparison and zero Docker owners before removal. All source/binaries/failed raw evidence/root copies kept; corrected516/native test target and shipping115/shared resources untouched.",
+  "actual_exit": 0
+}

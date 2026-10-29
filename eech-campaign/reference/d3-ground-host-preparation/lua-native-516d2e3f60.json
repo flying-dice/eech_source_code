@@ -36,7 +36,7 @@
       "raw_sha256": "68bf4401a926e7f17ec7e3908b383e1ca7efb64af674756ecdc09c92d499f0d0"
     }
   ],
-  "review": "Independent review of new Lua delta in progress; no completed extraction/shipping claim",
+  "review": "One combined independent new-Lua review closed without open findings; measured516d2e3f60 and publication0e4987b5a; P3 newline provenance issue corrected/verified, not a runtime defect. Report independent-lua-review-516d2e3f60.json SHAdeab8ab8c39e518bddf755d0045f8223c9989f018d5475e6fbdcc270cce86dcb. No formal GitHub approval/cutover/shipping claim.",
   "driver_witnesses": {
     "control": {
       "digest_rows": [
