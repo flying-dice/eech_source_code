@@ -186,6 +186,8 @@
   "independent_review": {
     "file": "independent-host-backend-review-f4b61a475.json",
     "sha256": "2a53309a00090fd4b692fbdb2e82e70656133385b51d75f4bd1729de1c903d26",
-    "scope": "Bounded original a8 R1-R5 audit passes; new f4 source requests changes, not accepted"
+    "scope": "Bounded original a8 R1-R5 audit passes; new f4 source requests changes, not accepted",
+    "private_original_sha256": "2a53309a00090fd4b692fbdb2e82e70656133385b51d75f4bd1729de1c903d26",
+    "serialization": "Published report is Git LF; private original retains original bytes. Both describe the same review; runtime evidence is never normalized."
   }
 }
