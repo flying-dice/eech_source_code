@@ -1,0 +1,69 @@
+OK   [] aphavoc/source/entity/special/bridge/br_msgs.c
+     warnings: 7
+FAIL [] aphavoc/source/entity/fixed/segment/sg_updt.c
+      | ^
+/src/aphavoc/source/entity/fixed/segment/sg_updt.c: In function 'update_server':
+/src/aphavoc/source/entity/fixed/segment/sg_updt.c:146:87: error: 'campaign_segment_terrain' undeclared (first use in this function); did you mean 'campaign_fixed_wing_terrain'?
+  146 |         fall = campaign_aim_bridge_fall ((int) sub_type, position, get_delta_time (), campaign_segment_terrain, pos);
+      |                                                                                       ^~~~~~~~~~~~~~~~~~~~~~~~
+      |                                                                                       campaign_fixed_wing_terrain
+/src/aphavoc/source/entity/fixed/segment/sg_updt.c:146:87: note: each undeclared identifier is reported only once for each function it appears in
+OK   [] aphavoc/source/entity/fixed/segment/sg_dstry.c
+     warnings: 7
+OK   [] aphavoc/source/entity/fixed/segment/sg_dbase.c
+     warnings: 7
+FAIL [] aphavoc/source/entity/fixed/segment/sg_pack.c
+      | ^
+/src/aphavoc/source/entity/fixed/segment/sg_pack.c: In function 'unpack_local_segment_data':
+/src/aphavoc/source/entity/fixed/segment/sg_pack.c:285:117: error: 'campaign_segment_terrain' undeclared (first use in this function); did you mean 'campaign_fixed_wing_terrain'?
+  285 |                                 rest = campaign_aim_bridge_rest ((int) raw->fix.sub_type, raw->fix.alive, position, campaign_segment_terrain, pos);
+      |                                                                                                                     ^~~~~~~~~~~~~~~~~~~~~~~~
+      |                                                                                                                     campaign_fixed_wing_terrain
+/src/aphavoc/source/entity/fixed/segment/sg_pack.c:285:117: note: each undeclared identifier is reported only once for each function it appears in
+OK   [] aphavoc/source/entity/mobile/mb_hostaim.c
+     warnings: 7
+OK   [] aphavoc/source/entity/special/effect/explosn/explosn.c
+     warnings: 11
+OK   [] eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_fixture.c
+     warnings: 0
+OK   [] eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_case.c
+     warnings: 0
+OK   [] eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c
+     warnings: 1
+OK   [] eech-campaign/crates/eech-engine-sys/csrc/eech_aim_layout.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/special/bridge/br_msgs.c
+     warnings: 7
+FAIL [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/fixed/segment/sg_updt.c
+      | ^
+/src/aphavoc/source/entity/fixed/segment/sg_updt.c: In function 'update_server':
+/src/aphavoc/source/entity/fixed/segment/sg_updt.c:146:87: error: 'campaign_segment_terrain' undeclared (first use in this function); did you mean 'campaign_fixed_wing_terrain'?
+  146 |         fall = campaign_aim_bridge_fall ((int) sub_type, position, get_delta_time (), campaign_segment_terrain, pos);
+      |                                                                                       ^~~~~~~~~~~~~~~~~~~~~~~~
+      |                                                                                       campaign_fixed_wing_terrain
+/src/aphavoc/source/entity/fixed/segment/sg_updt.c:146:87: note: each undeclared identifier is reported only once for each function it appears in
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/fixed/segment/sg_dstry.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/fixed/segment/sg_dbase.c
+     warnings: 7
+FAIL [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/fixed/segment/sg_pack.c
+      | ^
+/src/aphavoc/source/entity/fixed/segment/sg_pack.c: In function 'unpack_local_segment_data':
+/src/aphavoc/source/entity/fixed/segment/sg_pack.c:285:117: error: 'campaign_segment_terrain' undeclared (first use in this function); did you mean 'campaign_fixed_wing_terrain'?
+  285 |                                 rest = campaign_aim_bridge_rest ((int) raw->fix.sub_type, raw->fix.alive, position, campaign_segment_terrain, pos);
+      |                                                                                                                     ^~~~~~~~~~~~~~~~~~~~~~~~
+      |                                                                                                                     campaign_fixed_wing_terrain
+/src/aphavoc/source/entity/fixed/segment/sg_pack.c:285:117: note: each undeclared identifier is reported only once for each function it appears in
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/mobile/mb_hostaim.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/special/effect/explosn/explosn.c
+     warnings: 11
+OK   [-DEECH_WEAPON_FIXTURE] eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_fixture.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_case.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c
+     warnings: 1
+OK   [-DEECH_WEAPON_FIXTURE] eech-campaign/crates/eech-engine-sys/csrc/eech_aim_layout.c
+     warnings: 7
+SYNTAX_EXIT=1

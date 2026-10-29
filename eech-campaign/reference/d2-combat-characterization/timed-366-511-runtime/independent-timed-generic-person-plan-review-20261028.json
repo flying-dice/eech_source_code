@@ -1,0 +1,102 @@
+{
+  "review_utc": "2026-10-28T09:27:47.215889+00:00",
+  "reviewer": "single independent Codex /root/d2_los_review",
+  "scope": "NEW private genericPERSON operational wrapper/driver/plan only; no product-source/math re-review, edits, tests, native or builds.",
+  "disposition": "No findings; suitable bounded combined-model probe after final preservation/prelaunch/capacity gates. Native authority remains pending.",
+  "planned_source": "511156c1c9a0cffa37f4364646cb7d9a1d222a3e",
+  "plan_sha256": "62b88c91d2e2b428264e2dce031e654925477d116b072c18e7d31c7a0d34f977",
+  "files": [
+    {
+      "kind": "wrapper",
+      "file": "R:\\d2-evidence\\combat-characterization-20261028\\timed-generic-person-probe.lua",
+      "bytes": 3006,
+      "sha256": "13f15948e3dcac724a0cfcb8c577e307ce49b575e3ab7d29caaecec56ed4a412"
+    },
+    {
+      "kind": "driver",
+      "file": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-generic-person-probe.ps1",
+      "bytes": 2559,
+      "sha256": "2159d32cdeb1e7073274abe2af969c02534289c476c89fd95a7cc047ba880ce8"
+    },
+    {
+      "kind": "driver_original",
+      "file": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-aa-probe.ps1",
+      "bytes": 2573,
+      "sha256": "56b5f324e8b18e5ea988f11314e2cb29d043ad83d397119ffb68d0869b6f1993"
+    },
+    {
+      "kind": "case_script",
+      "file": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\lua\\combat-case.lua",
+      "bytes": 20536,
+      "sha256": "3de3505a64ed1f994edc21f825d38e9c568acb2310391d9642d2d3ecfeb9e264"
+    },
+    {
+      "kind": "unchanged_frozen_case_dependency",
+      "file": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\lua\\combat-report.lua",
+      "bytes": 2976,
+      "sha256": "5acc3856920a4259208426603dfdba9ab713073b185f1ca119e2b2c82f111a4e"
+    },
+    {
+      "kind": "unchanged_frozen_case_dependency",
+      "file": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\lua\\combat-plan.lua",
+      "bytes": 4303,
+      "sha256": "8c08f1f3cd4ec4ffe953edf4b39edae0c8588497d0d179ae8855f4e55b8224bd"
+    },
+    {
+      "kind": "unchanged_frozen_case_dependency",
+      "file": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\lua\\combat-counters.lua",
+      "bytes": 2213,
+      "sha256": "cf5a4c270240a06106ba7c2226f26e9857e380278a418f7453f1ae5ca724b900"
+    }
+  ],
+  "damage_reply_contract": [
+    "Only DAMAGE critical_modelPERSON(2) and not invulnerable-player branch is replaced. Other DAMAGE, including invulnerable player targets, delegates to reference.",
+    "capability is integer1 only for positive definition damage_capability, otherwise0; written exactly capability>0. New health is max(0,old-1) when written and exactly old when unwritten. Thus nonpositive capability never writes.",
+    "exited=false, critical_before/after=0 match PERSON model bounds; bad_modifier=false and all mandatory fields supplied. Generic optional echo absent is allowed by existing contract; no private table, identity, pointer or seed required.",
+    "This host does not ask for a DAMAGE sample and intentionally changes the physical model and shared sample policy. No isolated damage-amount or timed-only causal claim."
+  ],
+  "timed_reply_contract": [
+    "Only positive-health wounded PERSON (damage_level<initial) is given this host model. This tests positive stored health; HEALTH input has no independent alive field, so do not claim a separate host alive predicate.",
+    "First callback without draw asks need_draw; second with supplied raw draw returns done. No second request, local RNG, heap index or seed used.",
+    "Own hit condition rawdraw<4096 gives4096of32768 outcomes, lowers health by1/clamped0, fatal exactly hit&&new_level<=0, class0; all required flags/fields supplied.",
+    "Reference CLASSIFY remainsPERSON0; ownTIMED eligibility is intentionally independent of default PERSON critical predicate. No reference bleeding/fatalAA/selfhit proof follows."
+  ],
+  "binding_cleanup": [
+    "Provider installed before unchanged combat-case.lua boot captures host.aim; frozen511 full-callback fixture scope already source/native closed.",
+    "Captured original function prevents self-recursion and handles all other operations. The reference host kernel call is not a reentrant engine frame entry.",
+    "Global host.aim restored after protected dofile, flat summary emitted and failure rethrown. Existing booted engine retains its callback clone, but wrapper performs no further engine operation before process completion/error."
+  ],
+  "driver_review": {
+    "exact_declared_derivative_of_reviewed_AA_driver": true,
+    "source_sha256": "56b5f324e8b18e5ea988f11314e2cb29d043ad83d397119ffb68d0869b6f1993",
+    "new_sha256": "2159d32cdeb1e7073274abe2af969c02534289c476c89fd95a7cc047ba880ce8",
+    "preserved_controls": "Safe native argv paths, freshOut refusal, Hidden process, held native handle, actual exit propagation and recorded wrapper/case hashes unchanged.",
+    "actual_arguments": "full39 cases, seed1 in unchanged case, warmup60/frame100/timed20; extra probe mode does not edit scenario."
+  },
+  "prepared_root": {
+    "record": {
+      "prepared_utc": "2026-10-28T09:25:03.634921+00:00",
+      "root": "R:\\d2-evidence\\combat-characterization-20261028\\roots\\timed-generic-person-01",
+      "input_manifest_actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-generic-person-01-inputs-before.log",
+      "state": "Freshunused genericPERSON probe; newplan/helperreview andcapacity gate beforelaunch"
+    },
+    "record_sha256": "c52b2d6c281efda39a00f456f5356fa8b90ca04236a7cd5f0262ab1ec32f355d",
+    "posture": "Preparation log states1179identical/actual0. This helper review did not rehash root; final prelaunch input/build/hash/capacity gates remain lead-owned."
+  },
+  "native_acceptance_requirements": [
+    "Actualnative/controller0 plus completed full controlled script and integrity; errors or untriggered do not pass.",
+    "generic_samples>0 with corresponding corePERSON cmb-timed draws/hits and ordered timed new_level/health-change events; reconcile wrapper replies with actual core observations.",
+    "Verify actual PERSON DAMAGE replies/writes leave a positive wounded target (expected3->2->1 where launch preconditions permit), not merely case done.",
+    "If PERSON fatal is observed, identify it as intentional own-model TIMED behavior, never default source-unreachable bleeding or fatalAA proof.",
+    "Preserve changed case/census/precondition records honestly: different DAMAGE and RNG policy may change later entities and case outcomes. No default fullraw or isolated preAAprefix identity required.",
+    "Rehash frozen40exports+BINF, wrapper/driver/case/dependencies and1179inputs postrun; no baseline/tolerance/golden mutation."
+  ],
+  "limits": [
+    "Combined own DAMAGE model + changed sample consumption + own PERSON TIMED physics.",
+    "No timed-only, unchangeddefault, alltimedmodes, selfhit/player/MP/easy/fatalAA or fullTask46/D2/full40 acceptance.",
+    "All5healthy180 modes remained untriggered for timed eligible/sample activity; original queue untouched.",
+    "Lua5.1compile-only0 and PSparse0 recorded by lead; no compiler/parser/runtime check rerun by reviewer."
+  ],
+  "native_status": "No new native launched or judged in this review."
+}

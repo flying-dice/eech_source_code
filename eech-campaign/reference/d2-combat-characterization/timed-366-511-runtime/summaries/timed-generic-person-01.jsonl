@@ -1,0 +1,1 @@
+{"event":"timed_generic_person_probe","failure":"","generic_draw_requests":4,"generic_fatals":1,"generic_hits":1,"generic_samples":4,"last_generic_level":0,"last_person_damage_level":1,"person_damage_answers":2,"person_damage_writes":2,"scope":"own DAMAGE model plus stochastic PERSON TIMED model; not a timed-only or default-byte comparison","script_completed":true}

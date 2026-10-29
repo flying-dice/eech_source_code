@@ -1,0 +1,13 @@
+{
+  "status": "completed",
+  "started_utc": "2026-10-28T16:01:03.2665205Z",
+  "controller_pid": 22852,
+  "controller_created_utc": "2026-10-28T16:01:02.9269789Z",
+  "source": "R:/d2-evidence/combat-reports-guarded-source-64cf0f1c5",
+  "source_sha": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "profile": "ordinary shipping",
+  "script": "R:/d2-evidence/combat-characterization-20261028/root-build-r3-guarded-64cf0f1c5-shipping.sh",
+  "log": "R:/d2-evidence/combat-characterization-20261028/root-build-r3-guarded-64cf0f1c5-shipping.log",
+  "actual_build_exit": 0,
+  "completed_utc": "2026-10-28T16:03:33.3773644Z"
+}

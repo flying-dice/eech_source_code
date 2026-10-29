@@ -1,0 +1,59 @@
+TEST_LINK_FLAGS=-fno-pie -no-pie
+SANITIZERS=-fsanitize=address,undefined -fno-sanitize-recover=undefined
+SANITIZER_PROBE_COMPILE_EXIT=0
+SANITIZER_PROBE_RUN_EXIT=0
+REAL_HELPER_PIN_OK reason=subject_kind_unsupported
+REAL_HELPER_PIN_OK reason=launcher_kind_unsupported
+REAL_HELPER_PIN_OK reason=launcher_target_or_weapon_not_valid
+REAL_HELPER_PIN_OK reason=target_link_not_set
+REAL_HELPER_PIN_OK reason=no_such_host_id
+REAL_HELPER_PIN_OK alive=%d position=
+REAL_HELPER_PIN_OK weapon_count=%d warhead=%d
+REAL_HELPER_PIN_OK valid_sub_type (weapon) ? (int) weapon_database[weapon].warhead_type : -1
+REAL_HELPER_PIN_OK !get_local_entity_int_value (launcher, INT_TYPE_ALIVE)
+REAL_HELPER_PINS_MISSING=0
+COMPILE_EXIT=0
+ok   a person is reported never critical (the original predicate asked once, FALSE) and not eligible
+ok   and its health was not touched, not even to 1 percent
+ok   an anti-aircraft vehicle that is neither explosive nor flammable has no fire roll: not eligible
+ok   and its health was not touched
+ok   20 percent is NOT critical (strictly below 15 is): not eligible, and the health is put back
+ok   the health is exactly what it was
+ok   14 percent of a flammable vehicle is critical by the original predicate: eligible, health set to 14
+ok   a vehicle too small to have a positive health below 15 percent (initial 5: one point is 20 percent) is not eligible and is restored
+ok   ordinal 1 is the second living vehicle of the kind and only that one
+ok   an ordinal past the living entities is not found and not eligible
+ok   a kind with no vehicle critical predicate is refused
+ok   257 existing children: refused BEFORE the launch (the snapshot cannot be complete)
+ok   nothing was launched, retired or delivered
+ok   exactly 256 existing children is the boundary the snapshot holds: the case runs
+ok   and only the one weapon the launch created was retired, none of the 256 old ones
+ok   a launch that creates 300 weapons is an explicit error with the counts
+ok   all 300 new weapons were retired, none of the 3 old ones, and nothing was delivered
+ok   a launch that creates exactly 256 weapons is accounted in full: delivered once, all 256 retired
+ok   a launch the helper rejects although the launcher and the weapon were valid is an ERROR carrying the helper's own reason (not data, not discarded)
+ok   and nothing is delivered or retired
+ok   a launch that creates no weapon is data too, with the launch text, and delivers and retires nothing
+ok   a launch the helper rejects after validation is an error for a blast too; nothing exploded, destroyed or set
+ok   a launch that creates no weapon for a blast is data too
+ok   an unsupported launcher kind is an ERROR with the helper's reason, not refused data
+ok   and nothing was launched, delivered, retired or set
+ok   the same for a blast: an error, no launch, no explosion
+ok   an invalid weapon sub type (0) is an ERROR with no launch and no mutation
+ok   and so is one past the table (999)
+ok   and for a blast: an error, no launch, no explosion
+ok   a host id the helper does not know is an ERROR with its reason (the case never launches)
+ok   a launcher that is not alive is a valid campaign refusal: DATA (refused=1, launcher_not_alive), and the launch helper is not called
+ok   and for a blast: data, placed, nothing exploded or retired
+ok   a launch that works reports refused=0 and the launch text
+ok   a weaponless collision launches nothing and delivers with no sender
+ok   the default 5 m offset from an entity 2 m inside the east edge is off the map: reported not done
+ok   nothing was launched, set, destroyed or exploded (and the setter's engine stop was not reached)
+ok   a negative offset past the west edge is off the map too
+ok   a non-finite offset is refused before anything happens
+ok   an on-map placement launches once, runs the killed-weapon explosion once and destroys the weapon once
+ok   the weapon was placed 5 m east of the receiver with the chosen kill code
+ok   a hit on target links the exploding weapon to the receiver before the explosion
+CASE_CHECKS=ok: 41 checks, 0 failures
+RUN_EXIT=0
+DOCKER_EXIT=0

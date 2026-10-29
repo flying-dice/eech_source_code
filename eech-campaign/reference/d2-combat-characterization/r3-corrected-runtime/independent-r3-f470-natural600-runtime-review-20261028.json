@@ -1,0 +1,118 @@
+{
+  "reviewed_utc": "2026-10-28T15:23:44.716875+00:00",
+  "reviewer": "single independent Codex delivery reviewer",
+  "scope": "NEW completed f470 natural600 compatibility evidence only. Closedcf90 bridgepair/sixfailure and sourcec398/publication4bca/earliersemantics reused. No agents/build/native/test/sourceedit or mutableauthorheapfix inspection.",
+  "runtime_source": "f4700bbab0e28c367c660b8c3bc353c89ad0dac9",
+  "source_status_before": "clean",
+  "source_status_after": "clean",
+  "findings": [],
+  "disposition": "Bounded referencephysical/diagnostic compatibility PASS; no new evidence finding. Does NOT clear six0xC0000005 inventorycrashes or establish physicalreport/withhold/guard/generichost/fullshipping/wholeD2 acceptance.",
+  "run": {
+    "status": "completed",
+    "when_utc": "2026-10-28T14:57:53.3681057Z",
+    "binary": "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\target\\weapon-fixture\\combat-reports-corrected-f4700bbab\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-reports-corrected-source-f4700bbab/eech-campaign/target/weapon-fixture/combat-reports-corrected-f4700bbab/lua/combat-characterization.lua root=R:/d2-evidence/combat-characterization-20261028/roots/r3-compat-natural600-01 scenario=lebanon_retail seconds=600 frame_ms=100 checkpoint_every=60 out=R:/d2-evidence/combat-characterization-20261028/out/r3-compat-natural600-01/trace.jsonl",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/r3-compat-natural600-01",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/r3-compat-natural600-01",
+    "kind": "Corrected R3 correlation candidate natural600 witness; complete retained trace comparison required, not fullpack acceptance",
+    "actual_native_exit": 0,
+    "native_pid": 22052,
+    "created_utc": "2026-10-28T14:57:53.4799478Z",
+    "completed_utc": "2026-10-28T15:20:09.5229360Z"
+  },
+  "original_controller": {
+    "session": 76545,
+    "actual_driver_exit_observed": 0,
+    "actual_native_exit": 0,
+    "provenance": "Lead observed originaltool terminal0; heldhandle runrecord completed/native0 coherent. No report-onlyexit substitution/restart."
+  },
+  "complete_trace": {
+    "bytes": 984994,
+    "sha256": "a90f687151df132dfad3496cd304f538e3f9c1e2b0ffbbdde3255adebba90c42",
+    "baseline": "R:\\d2-evidence\\combat-characterization-20261028\\out\\impact-natural-01\\trace.jsonl",
+    "complete_baseline_bytes_equal": true,
+    "lines": 6868,
+    "contiguous_events": 6440,
+    "trusted_reports": 12,
+    "corrected_schema": {
+      "cmb_kind_blast_counter": "number"
+    },
+    "repo_audit_actual_exit": 0,
+    "all_repo_checks_pass": true,
+    "repo_check_count": 27
+  },
+  "coverage": "Physical/observer measurements exactly equal retained e0/timed/real/forecast corrected schema record: same data/counters/hashes/ordered measured events by fullraw bytes. No new allfamily/player/MP/unreached-path claims. Natural script does not call structures()/report_object, so reportinventory bug remains untouched.",
+  "build_inputs": {
+    "verified_current_inputs": 1179,
+    "all_expected_sizes_and_hashes_match": true,
+    "input_combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+    "actual_post_manifest_exit": 0,
+    "current_exports": 42,
+    "BINF_sha256": "ffa0650ed7cbb1a253fd6bbc633200960225d56f7fc905d7b0428ca863b3282d",
+    "initial_bridgepair_naturalpost_all_current_matches": true,
+    "actual_source_f470_not_new_heapfix": true
+  },
+  "limitations": [
+    "Legacy f41 whole raw remains FALSE due124declaredquotedblastcounter changes; no normalization/tolerance/golden rewrite. Currentcorrected e0raw equality TRUE.",
+    "Referencecompatibility is separate from hostreportauthority/refusal/state/consequences. Sixcrashes remain diagnosedFAILURE/unaccepted; sourcecapacityfix stillnew/unreviewed/unrun.",
+    "No visualinspection/Tacview/performance/DCSbudget/fullshipping40/full8/post3/CI/normalmerge/wholeD2 claim.",
+    "No mutable author1d931+heapfix read or approval; separate currentwork does not relabel frozenf470 runtime."
+  ],
+  "artifact_pins": [
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\root-r3-f470-natural600-completion.json",
+      "bytes": 20403,
+      "sha256": "0e775267dc6da2a5a2bbf510a9781a744b27a6e4ff68f7c29f540eeb01b06e5a"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\r3-compat-natural600-01\\trace.jsonl",
+      "bytes": 984994,
+      "sha256": "a90f687151df132dfad3496cd304f538e3f9c1e2b0ffbbdde3255adebba90c42"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\r3-compat-natural600-01\\run.json",
+      "bytes": 1140,
+      "sha256": "741bd95a4ebcf38e814cdb206b4b37f87f3584acea4c8e96961e424eb16282d5"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\r3-compat-natural600-01\\run.log",
+      "bytes": 42943,
+      "sha256": "409713e0a1d81fa2ddd1639240423313a67b40f6fdd705dd2d3a9c5f2039c9b6"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\r3-compat-natural600-01\\run.out",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-f470-natural600-repo-audit.json",
+      "bytes": 14091,
+      "sha256": "ef9b0d7ca9adcce76833c4967da83551b32dea00c43b2e39cb01c2a50140e55d"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-f470-natural600-post-inputs.log",
+      "bytes": 324,
+      "sha256": "ab2ced57f88acc1baca782ea0851db0fb99c5884d38a19670c35dfb667b95d03"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-f470-natural600-post-build.json",
+      "bytes": 11468,
+      "sha256": "aa421892b6ea795ac8591aca05215722ccef2607d02d6b77be26454eb6dcf70b"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\run-r3-natural.ps1",
+      "bytes": 1910,
+      "sha256": "519942eb01f39bf3c98ee56050e7ffc09d1ac5a64d77a08920a162b6854c8d8d"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\target\\weapon-fixture\\combat-reports-corrected-f4700bbab\\lua\\combat-characterization.lua",
+      "bytes": 5094,
+      "sha256": "46196da6720804dc291c98eafa8dc677381a648a03ecb15737456618e8a44fe7"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\tools\\combat-trace-audit.py",
+      "bytes": 34714,
+      "sha256": "a6640ccd4183f662401b15555a911bd6de5d3bb376d6ab0bc356211a23f8ea99"
+    }
+  ]
+}

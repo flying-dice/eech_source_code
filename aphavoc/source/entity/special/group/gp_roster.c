@@ -819,61 +819,6 @@ static int find_duplicate_host_id (const char *host_id)
 	return FALSE;
 }
 
-static int valid_utf8 (const unsigned char *text, size_t length)
-{
-	size_t i = 0;
-	while (i < length)
-	{
-		unsigned char first = text[i++];
-		unsigned int codepoint;
-		int remaining;
-		if (first < 0x80)
-		{
-			continue;
-		}
-		if ((first >= 0xC2) && (first <= 0xDF))
-		{
-			codepoint = first & 0x1F;
-			remaining = 1;
-		}
-		else if ((first >= 0xE0) && (first <= 0xEF))
-		{
-			codepoint = first & 0x0F;
-			remaining = 2;
-		}
-		else if ((first >= 0xF0) && (first <= 0xF4))
-		{
-			codepoint = first & 0x07;
-			remaining = 3;
-		}
-		else
-		{
-			return FALSE;
-		}
-		if (i + (size_t) remaining > length)
-		{
-			return FALSE;
-		}
-		while (remaining--)
-		{
-			unsigned char continuation = text[i++];
-			if ((continuation & 0xC0) != 0x80)
-			{
-				return FALSE;
-			}
-			codepoint = (codepoint << 6) | (continuation & 0x3F);
-		}
-		if (((codepoint < 0x800) && (first >= 0xE0)) ||
-			((codepoint < 0x10000) && (first >= 0xF0)) ||
-			((codepoint >= 0xD800) && (codepoint <= 0xDFFF)) ||
-			(codepoint > 0x10FFFF))
-		{
-			return FALSE;
-		}
-	}
-	return TRUE;
-}
-
 void campaign_roster_reset (void)
 {
 	free (records);
@@ -1026,19 +971,9 @@ void campaign_roster_link_member (entity *group, entity *member)
 		{
 			debug_fatal ("campaign roster: host bind_mobile failed: %s", error[0] ? error : "unspecified error");
 		}
-		length = strnlen (host_id, CAMPAIGN_HOST_ID_MAX + 1);
-		if ((length == 0) || (length > CAMPAIGN_HOST_ID_MAX))
-		{
-			debug_fatal ("campaign roster: host bind_mobile returned an invalid identity length");
-		}
-		if (!valid_utf8 ((const unsigned char *) host_id, length))
-		{
-			debug_fatal ("campaign roster: host bind_mobile returned a non-UTF-8 identity");
-		}
-		if (find_duplicate_host_id (host_id))
-		{
-			debug_fatal ("campaign roster: host identity %s was reused for a new physical incarnation", host_id);
-		}
+		// the identity is accepted or refused here, before anything is committed: its length and encoding, that no incarnation of the roster had it, and that it was never issued for a structure
+		campaign_roster_accept_host_id (host_id, find_duplicate_host_id);
+		length = strlen (host_id);
 
 		ensure_record_capacity ();
 		record = &records[record_count];
@@ -1839,4 +1774,34 @@ void campaign_roster_get_stats (campaign_roster_stats *stats)
 {
 	stats->duplicate_comparisons = duplicate_comparisons;
 	stats->duplicate_scan_seconds = (double) duplicate_scan_ticks / CLOCKS_PER_SEC;
+}
+
+/*
+ * Where an opaque host identity stands in the roster (EEDCS-46, R3): 0 the roster never issued it, 1 it names a live physical incarnation (returned in *member), 2 it named an incarnation that
+ * has ended (the entity was released and its slot may serve another object, which the old identity never names).  A copy of nothing: the entity is looked up from the record each time.
+ */
+int campaign_roster_find_host_id (const char *host_id, entity **member)
+{
+	size_t i;
+	if (member)
+	{
+		*member = NULL;
+	}
+	for (i = 0; i < record_count; ++i)
+	{
+		const campaign_member_record *record = &records[i];
+		if (strcmp (record->host_id, host_id) == 0)
+		{
+			if (!record->physical_present)
+			{
+				return 2;
+			}
+			if (member)
+			{
+				*member = get_local_entity_ptr (record->current_entity_index);
+			}
+			return 1;
+		}
+	}
+	return 0;
 }

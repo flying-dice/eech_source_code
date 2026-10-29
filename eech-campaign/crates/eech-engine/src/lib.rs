@@ -53,6 +53,20 @@ fn check(code: c_int) -> Result<(), EngineError> {
     }
 }
 
+/// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the report text of a controlled combat case when the engine rejected its arguments. The case driver writes its reason
+/// (`cmb-case-error reason=... detail=...`) into the report buffer before it returns the argument error, and `check` turns every argument error into "rejected by the engine";
+/// this keeps the reason instead of discarding it. Any other failure, and a rejection that wrote nothing, is unchanged.
+#[cfg(feature = "weapon-fixture")]
+fn keep_case_reason(status: Result<(), EngineError>, text: &[std::os::raw::c_char]) -> Result<String, EngineError> {
+    // SAFETY: the buffer was zero-filled and the engine NUL-terminates anything it writes within it.
+    let report = unsafe { CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned();
+    match status {
+        Ok(()) => Ok(report),
+        Err(EngineError::BadArgument(_)) if !report.trim().is_empty() => Err(EngineError::BadArgument(report.trim().to_string())),
+        Err(error) => Err(error),
+    }
+}
+
 fn cstring(s: &str) -> Result<CString, EngineError> {
     CString::new(s).map_err(|_| EngineError::BadArgument(format!("{s:?} contains NUL")))
 }
@@ -798,6 +812,50 @@ pub struct Member {
     pub in_group: bool,
 }
 
+/// The kind of structure the host holds an identity for: the campaign's own classification (csrc/eech_engine.h EECH_STRUCTURE_*), not an entity-type number.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StructureKind {
+    CityBuilding,
+    Pylon,
+    Scenic,
+    Segment,
+    Site,
+    SiteUpdatable,
+}
+
+/// One structure the host holds an identity for (EEDCS-46, R3): a copy of its state at the call.  The identity is opaque and was issued by the host; it is not an entity index.
+#[derive(Clone, Debug, Serialize)]
+pub struct Structure {
+    pub host_id: String,
+    pub kind: StructureKind,
+    pub entity_type: i32,
+    pub sub_type: i32,
+    pub side: Side,
+    pub alive: bool,
+    pub damage_level: i32,
+    pub initial_damage_level: i32,
+    pub position: [f32; 3],
+}
+
+/// A physical fact the host reports about an object it holds the identity of: its damage level is now `damage_level` and/or it is `destroyed`.  See mb_hostobj.h.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ObjectReport {
+    pub host_id: String,
+    pub damage_level: Option<i32>,
+    pub destroyed: bool,
+}
+
+/// What one object report applied, copied from the performed campaign steps; an observation, never an input.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct ObjectReceipt {
+    pub entity_type: i32,
+    pub rostered: bool,
+    pub damage_level_before: i32,
+    pub damage_level_after: i32,
+    pub killed: bool,
+}
+
 /// Actual current campaign state for an extant SUPPLY task.
 #[derive(Clone, Debug, Serialize)]
 pub struct SupplyTask {
@@ -1207,6 +1265,181 @@ pub struct AimRelease {
     pub not_ai: bool,
 }
 
+/// The damage a weapon is capable of against a target, with no weapon in flight (EEDCS-46): the question by value.  `weapon_warhead` is the warhead type of the weapon's own
+/// definition; `warhead`, `damage_capability`, `armor_penetration_capability` and `burst_duration` are the figures the forecast is made from (the weapon's own, or for a
+/// conventional-munitions weapon those of the munition it scatters, as the campaign resolved them); `armour_level` is the target's table level; `target_not_ai` says the
+/// player's damage setting `player_modifier` applies; `damage_modifier` and `velocity` are the arguments of the original function.  `echo` is the test fixture build's request
+/// for the reference host's intermediate values.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimForecast {
+    pub weapon: i32,
+    pub weapon_warhead: i32,
+    pub warhead: i32,
+    pub damage_capability: i32,
+    pub armor_penetration_capability: i32,
+    pub burst_duration: f32,
+    pub armour_level: i32,
+    pub target_not_ai: bool,
+    pub player_modifier: f32,
+    pub damage_modifier: f32,
+    pub velocity: f32,
+    pub echo: bool,
+}
+
+/// One hit that reached a damage handler (EEDCS-46, real weapon), by value: see `eech_damage_request` (mb_hostaim.h campaign_damage_request).  `draw` is the sample of the
+/// campaign's shared random stream (a raw integer in [0, 32767]) the host asked for, once the campaign has taken it.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimDamage {
+    pub weapon: i32,
+    pub weapon_warhead: i32,
+    pub warhead: i32,
+    pub damage_capability: i32,
+    pub armor_penetration_capability: i32,
+    pub burst_duration: f32,
+    pub weapon_speed: f32,
+    pub weapon_cruise_velocity: f32,
+    pub damage_modifier: f32,
+    pub armour_level: i32,
+    pub armour_easy: bool,
+    pub armour_model: i32,
+    pub armour_front: f32,
+    pub armour_rear: f32,
+    pub armour_side: f32,
+    pub weapon_position: [f32; 3],
+    pub target_position: [f32; 3],
+    pub target_attitude: [f32; 9],
+    pub target_not_ai: bool,
+    /// The player's damage setting, if the campaign could resolve one for the difficulty.
+    pub player_modifier: Option<f32>,
+    pub has_launcher: bool,
+    pub multiplier: i32,
+    pub invulnerable: bool,
+    pub cheat_guard: bool,
+    pub damage_level: i32,
+    pub initial_damage_level: i32,
+    pub critical_model: i32,
+    pub draw: Option<i32>,
+    pub echo: bool,
+    /// The identity of the object that is hit (a rostered mobile's or a structure's), when it has one.
+    pub target_host_id: Option<String>,
+}
+
+/// One health question that is not a hit (EEDCS-46), by value: see `eech_health_request` (mb_hostaim.h campaign_health_request).  `draw` is the sample of the campaign's shared random
+/// stream (a raw integer in [0, 32767]) a timed roll asked for, once the campaign has taken it.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimHealth {
+    pub op: i32,
+    pub critical_model: i32,
+    pub damage_level: i32,
+    pub initial_damage_level: i32,
+    pub old_damage_level: i32,
+    pub explosive: bool,
+    pub flammable: bool,
+    pub delta_time: f32,
+    pub aircraft_class: i32,
+    pub self_hit: bool,
+    pub target_not_ai: bool,
+    pub draw: Option<i32>,
+    /// The identity of the object whose health it is, when it has one.
+    pub target_host_id: Option<String>,
+}
+
+/// What a weapon's death does to the world (EEDCS-46), by value: see `eech_impact_request` (mb_hostaim.h campaign_impact_request).  `terrain_draws_crater` is the terrain fact at the impact
+/// position once the campaign has read it for the host (`None` until the host has asked).
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimImpact {
+    pub kill_code: i32,
+    pub has_target: bool,
+    pub target_alive: bool,
+    pub terrain_draws_crater: Option<bool>,
+    pub position: [f32; 3],
+    /// The identity of the weapon's target, when it has a target that has one.
+    pub target_host_id: Option<String>,
+}
+
+/// The facts of a structure the campaign asks the host to issue an identity for (EEDCS-46, R3), by value: see `eech_identify_request` (mb_hostaim.h campaign_identify_request).  `serial` counts the
+/// identities the campaign has asked for; it is a diagnostic, not a heap index.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimIdentify {
+    pub entity_type: i32,
+    pub sub_type: i32,
+    pub side: i32,
+    pub alive: bool,
+    pub damage_level: i32,
+    pub initial_damage_level: i32,
+    pub position: [f32; 3],
+    pub serial: i32,
+}
+
+/// One object of a sector's list the campaign offered to the host (EEDCS-46), by value: see `eech_blast_entry` (mb_hostaim.h campaign_blast_entry).  `handle` names the object for
+/// this blast only; `host_id` is the persistent identity the host issued for the object (a rostered mobile's or a structure's) when it has one.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimBlastEntry {
+    pub handle: i32,
+    pub entity_type: i32,
+    pub readable: bool,
+    pub alive: bool,
+    pub has_position: bool,
+    pub rocket: bool,
+    pub excluded: bool,
+    pub position: [f32; 3],
+    pub host_id: Option<String>,
+}
+
+/// The window of a sector's list the host asked for: the sector, the handle it follows (0: the start of the list), whether the list ends with it, and the objects in list order.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimBlastWindow {
+    pub sx: i32,
+    pub sz: i32,
+    pub after: i32,
+    pub end: bool,
+    pub entries: Vec<AimBlastEntry>,
+}
+
+/// One area blast (EEDCS-46), by value: see `eech_blast_request` (mb_hostaim.h campaign_blast_request).  The first request carries no window.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimBlast {
+    pub position: [f32; 3],
+    pub damage_capability: i32,
+    pub warhead_type: i32,
+    pub has_target: bool,
+    pub sector_side_length: i32,
+    pub min_x_sector: i32,
+    pub max_x_sector: i32,
+    pub min_z_sector: i32,
+    pub max_z_sector: i32,
+    pub window: Option<AimBlastWindow>,
+    pub echo: bool,
+}
+
+/// One question about the physical collapse of a bridge segment (EEDCS-46, R5), by value: see `eech_bridge_request` (mb_hostaim.h campaign_bridge_request).  The terrain is present once the campaign has
+/// read it for the host; the window is the vehicles walk's.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AimBridge {
+    pub op: i32,
+    pub segment_kind: i32,
+    pub alive: bool,
+    pub server: bool,
+    pub pred_present: bool,
+    pub pred_alive: bool,
+    pub succ_present: bool,
+    pub succ_alive: bool,
+    pub which: i32,
+    pub neighbour_present: bool,
+    pub neighbour_kind: i32,
+    pub neighbour_alive: bool,
+    pub position: [f32; 3],
+    pub delta_time: f32,
+    pub terrain: Option<(f32, bool)>,
+    pub segment_length: f32,
+    pub sector_side_length: i32,
+    pub min_x_sector: i32,
+    pub max_x_sector: i32,
+    pub min_z_sector: i32,
+    pub max_z_sector: i32,
+    pub window: Option<AimBlastWindow>,
+}
+
 /// One frame of one weapon's flight, or (with `birth`) its birth: the weapon, the clock and the frame, and what the host has been told so far in answer to the lookups it asked for (`answers`, each
 /// the lookup repeated with its results in `f[6..12]`) and the samples of the campaign's shared random stream it has been given (`draws`, raw integers in [0, 32767]).
 #[derive(Clone, Debug, PartialEq)]
@@ -1374,6 +1607,13 @@ pub enum AimRequest {
     Figures(AimFigures),
     WeaponStep(AimWeaponStep),
     Release(AimRelease),
+    Forecast(AimForecast),
+    Damage(AimDamage),
+    Health(AimHealth),
+    Impact(AimImpact),
+    Blast(AimBlast),
+    Bridge(AimBridge),
+    Identify(AimIdentify),
     Animate(AimAnimate),
     ReadyUpdate(AimReadyUpdate),
     ReadyCommand(AimReadyCommand),
@@ -1410,6 +1650,60 @@ pub struct AimReply {
     pub release_refuse: bool,
     pub release_burst_size: i32,
     pub release_last_shot: Option<u32>,
+    /// A forecast only: the capability, never negative.
+    pub forecast_capability: i32,
+    /// A damage question only: see `eech_damage_result`.
+    pub damage_exited: bool,
+    pub damage_capability: i32,
+    pub damage_written: bool,
+    pub damage_new_level: i32,
+    pub damage_critical_before: i32,
+    pub damage_critical_after: i32,
+    pub damage_bad_modifier: bool,
+    /// A health question only: see `eech_health_result`.
+    pub health_critical_class: i32,
+    pub health_crossed: bool,
+    pub health_recovered: bool,
+    pub health_eject: bool,
+    pub health_eligible: bool,
+    pub health_rolled: bool,
+    pub health_hit: bool,
+    pub health_new_level: i32,
+    pub health_fatal: bool,
+    /// An impact question only: see `eech_impact_result`.  With `need_lookup` the host asks for the terrain fact (`impact_need_terrain`).
+    pub impact_need_terrain: bool,
+    pub impact_invalid: bool,
+    pub impact_crater: bool,
+    pub impact_direct_hit: bool,
+    pub impact_blasts: i32,
+    pub impact_exclude_target: bool,
+    /// A blast question only: see `eech_blast_result`.  The radius is reported with every answer.  With `need_lookup` the host asks for the window at `blast_need` (sector x, sector
+    /// z, the handle it follows); otherwise the answer is the action (0 the walk is over, 1 a collision, 2 a rocket destroyed) and, for an action, the object and the modifier.
+    pub blast_radius: f32,
+    pub blast_need: Option<(i32, i32, i32)>,
+    pub blast_action: i32,
+    pub blast_handle: i32,
+    /// The identity of the object `blast_handle` names, repeated (see `eech_blast_result`).
+    pub blast_target_host_id: Option<String>,
+    pub blast_modifier: f32,
+    /// A bridge question only: see `eech_bridge_result`.  With `need_lookup` the host asks for the terrain (`bridge_need_terrain`) or, for the vehicles walk, the window at `bridge_need`.
+    pub bridge_kill: bool,
+    pub bridge_variant: i32,
+    pub bridge_notify: bool,
+    pub bridge_need_terrain: bool,
+    pub bridge_fell: bool,
+    pub bridge_dropped_y: f32,
+    pub bridge_floor_height: f32,
+    pub bridge_landed: bool,
+    pub bridge_landed_y: f32,
+    pub bridge_remove: bool,
+    pub bridge_need: Option<(i32, i32, i32)>,
+    pub bridge_action: i32,
+    pub bridge_handle: i32,
+    /// The identity of the object `bridge_handle` names, repeated.
+    pub bridge_target_host_id: Option<String>,
+    /// An identify request only: the identity the host issued.
+    pub identify_host_id: Option<String>,
     /// An animation only: the parachute's state, and the weapon's lifetime when the animation reset it.
     pub animate_status: i32,
     pub animate_lifetime: Option<f32>,
@@ -2361,6 +2655,24 @@ fn aim_host_id(buffer: &[c_char], role: &str) -> Result<Option<String>, String> 
         .map_err(|_| format!("aim received a non-UTF-8 {role} host identity"))
 }
 
+/// An identity as the NUL-terminated field the campaign reads: empty for none, otherwise 1 to 128 bytes of UTF-8 with no NUL (the string already is UTF-8).
+fn host_id_buffer(id: &Option<String>, role: &str) -> Result<[c_char; sys::EECH_AIM_HOST_ID_MAX + 1], String> {
+    let mut buffer = [0 as c_char; sys::EECH_AIM_HOST_ID_MAX + 1];
+    if let Some(id) = id {
+        let bytes = id.as_bytes();
+        if bytes.is_empty() || bytes.len() > sys::EECH_AIM_HOST_ID_MAX || bytes.contains(&0) {
+            return Err(format!(
+                "aim answered a {role} host identity that is empty, longer than {} bytes or holds a NUL",
+                sys::EECH_AIM_HOST_ID_MAX
+            ));
+        }
+        for (slot, byte) in buffer.iter_mut().zip(bytes) {
+            *slot = *byte as c_char;
+        }
+    }
+    Ok(buffer)
+}
+
 fn weapon_figures(source: &sys::eech_weapon_figures) -> Result<WeaponFigures, String> {
     let name_bytes = source.name.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect::<Vec<_>>();
     if name_bytes.is_empty() || name_bytes.len() > sys::EECH_WEAPON_NAME_MAX {
@@ -2544,6 +2856,306 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
                 current_time: source.system_time,
                 last_shot: has_timer.then_some(source.release_last_shot),
                 not_ai: checked_bool("release_not_ai", source.release_not_ai)?,
+            })
+        }
+        sys::EECH_AIM_FORECAST => {
+            finite(
+                "forecast figure",
+                &[
+                    source.forecast_figures.burst_duration,
+                    source.forecast_player_modifier,
+                    source.forecast_damage_modifier,
+                    source.forecast_velocity,
+                ],
+            )?;
+            if source.weapon <= 0 {
+                return Err(format!("aim received a forecast of weapon {}, which is not a weapon", source.weapon));
+            }
+            if source.forecast_armour_level < 0 {
+                return Err(format!(
+                    "aim received a forecast against armour level {}, below zero",
+                    source.forecast_armour_level
+                ));
+            }
+            AimRequest::Forecast(AimForecast {
+                weapon: source.weapon,
+                weapon_warhead: source.forecast_figures.weapon_warhead,
+                warhead: source.forecast_figures.warhead,
+                damage_capability: source.forecast_figures.damage_capability,
+                armor_penetration_capability: source.forecast_figures.armor_penetration_capability,
+                burst_duration: source.forecast_figures.burst_duration,
+                armour_level: source.forecast_armour_level,
+                target_not_ai: checked_bool("forecast_target_not_ai", source.forecast_target_not_ai)?,
+                player_modifier: source.forecast_player_modifier,
+                damage_modifier: source.forecast_damage_modifier,
+                velocity: source.forecast_velocity,
+                echo,
+            })
+        }
+        sys::EECH_AIM_DAMAGE => {
+            let request = &source.damage;
+            finite(
+                "damage figure",
+                &[
+                    request.figures.burst_duration,
+                    request.weapon_speed,
+                    request.weapon_cruise_velocity,
+                    request.damage_modifier,
+                    request.armour_front,
+                    request.armour_rear,
+                    request.armour_side,
+                    request.player_modifier,
+                ],
+            )?;
+            finite("damage position", &request.weapon_position)?;
+            finite("damage position", &request.target_position)?;
+            finite("damage attitude", &request.target_attitude)?;
+            if source.weapon <= 0 {
+                return Err(format!("aim received a damage question about weapon {}, which is not a weapon", source.weapon));
+            }
+            if !(0..=2).contains(&request.armour_model) || !(0..=3).contains(&request.critical_model) {
+                return Err(format!(
+                    "aim received a damage question with armour model {} and critical model {}",
+                    request.armour_model, request.critical_model
+                ));
+            }
+            if matches!(request.critical_model, 1 | 3) && request.initial_damage_level <= 0 {
+                return Err(format!(
+                    "aim received a damage question about a health classified with initial level {}",
+                    request.initial_damage_level
+                ));
+            }
+            AimRequest::Damage(AimDamage {
+                weapon: source.weapon,
+                weapon_warhead: request.figures.weapon_warhead,
+                warhead: request.figures.warhead,
+                damage_capability: request.figures.damage_capability,
+                armor_penetration_capability: request.figures.armor_penetration_capability,
+                burst_duration: request.figures.burst_duration,
+                weapon_speed: request.weapon_speed,
+                weapon_cruise_velocity: request.weapon_cruise_velocity,
+                damage_modifier: request.damage_modifier,
+                armour_level: request.armour_level,
+                armour_easy: checked_bool("damage armour_easy", request.armour_easy)?,
+                armour_model: request.armour_model,
+                armour_front: request.armour_front,
+                armour_rear: request.armour_rear,
+                armour_side: request.armour_side,
+                weapon_position: request.weapon_position,
+                target_position: request.target_position,
+                target_attitude: request.target_attitude,
+                target_not_ai: checked_bool("damage target_not_ai", request.target_not_ai)?,
+                player_modifier: checked_bool("damage player_modifier_valid", request.player_modifier_valid)?.then_some(request.player_modifier),
+                has_launcher: checked_bool("damage has_launcher", request.has_launcher)?,
+                multiplier: request.multiplier,
+                invulnerable: checked_bool("damage invulnerable", request.invulnerable)?,
+                cheat_guard: checked_bool("damage cheat_guard", request.cheat_guard)?,
+                damage_level: request.damage_level,
+                initial_damage_level: request.initial_damage_level,
+                critical_model: request.critical_model,
+                draw: draw()?,
+                echo,
+                target_host_id: target_id()?,
+            })
+        }
+        sys::EECH_AIM_HEALTH => {
+            let request = &source.health;
+            finite("health frame time", &[request.delta_time])?;
+            if !(1..=4).contains(&request.op) || !(0..=3).contains(&request.critical_model) || !(0..=2).contains(&request.aircraft_class) {
+                return Err(format!(
+                    "aim received a health question with op {}, critical model {} and aircraft class {}",
+                    request.op, request.critical_model, request.aircraft_class
+                ));
+            }
+            if (matches!(request.critical_model, 1 | 3) || request.op == 2) && request.initial_damage_level <= 0 && request.op != 4 {
+                return Err(format!(
+                    "aim received a health question about a health with initial level {}",
+                    request.initial_damage_level
+                ));
+            }
+            AimRequest::Health(AimHealth {
+                op: request.op,
+                critical_model: request.critical_model,
+                damage_level: request.damage_level,
+                initial_damage_level: request.initial_damage_level,
+                old_damage_level: request.old_damage_level,
+                explosive: checked_bool("health explosive", request.explosive)?,
+                flammable: checked_bool("health flammable", request.flammable)?,
+                delta_time: request.delta_time,
+                aircraft_class: request.aircraft_class,
+                self_hit: checked_bool("health self_hit", request.self_hit)?,
+                target_not_ai: checked_bool("health target_not_ai", request.target_not_ai)?,
+                draw: draw()?,
+                target_host_id: target_id()?,
+            })
+        }
+        sys::EECH_AIM_IMPACT => {
+            let request = &source.impact;
+            finite("impact position", &request.position)?;
+            let terrain_known = checked_bool("impact terrain_known", request.terrain_known)?;
+            let draws_crater = checked_bool("impact terrain_draws_crater", request.terrain_draws_crater)?;
+            let has_target = checked_bool("impact has_target", request.has_target)?;
+            let target_alive = checked_bool("impact target_alive", request.target_alive)?;
+            if (target_alive && !has_target) || (draws_crater && !terrain_known) {
+                return Err("aim received an impact question that is inconsistent about its target or its terrain".into());
+            }
+            AimRequest::Impact(AimImpact {
+                kill_code: request.kill_code,
+                has_target,
+                target_alive,
+                terrain_draws_crater: terrain_known.then_some(draws_crater),
+                position: request.position,
+                target_host_id: target_id()?,
+            })
+        }
+        sys::EECH_AIM_BLAST => {
+            let request = &source.blast;
+            finite("blast position", &request.position)?;
+            let window_valid = checked_bool("blast window_valid", request.window_valid)?;
+            let window_end = checked_bool("blast window_end", request.window_end)?;
+            if request.sector_side_length <= 0
+                || request.min_x_sector > request.max_x_sector
+                || request.min_z_sector > request.max_z_sector
+                || !(0..=sys::EECH_BLAST_WINDOW_MAX as c_int).contains(&request.window_count)
+                || (!window_valid && (request.window_count != 0 || window_end || request.window_after != 0))
+                || request.window_after < 0
+            {
+                return Err("aim received a blast question with inconsistent sector figures or window".into());
+            }
+            let window = if window_valid {
+                let mut entries = Vec::with_capacity(request.window_count as usize);
+                for entry in request.window.iter().take(request.window_count as usize) {
+                    finite("blast object position", &entry.position)?;
+                    if entry.handle <= 0 {
+                        return Err(format!("aim received a blast object with handle {}", entry.handle));
+                    }
+                    entries.push(AimBlastEntry {
+                        handle: entry.handle,
+                        entity_type: entry.kind,
+                        readable: checked_bool("blast readable", entry.readable)?,
+                        alive: checked_bool("blast alive", entry.alive)?,
+                        has_position: checked_bool("blast has_position", entry.has_position)?,
+                        rocket: checked_bool("blast rocket", entry.rocket)?,
+                        excluded: checked_bool("blast excluded", entry.excluded)?,
+                        position: entry.position,
+                        host_id: aim_host_id(&entry.host_id, "blast object")?,
+                    });
+                }
+                Some(AimBlastWindow {
+                    sx: request.window_sx,
+                    sz: request.window_sz,
+                    after: request.window_after,
+                    end: window_end,
+                    entries,
+                })
+            } else {
+                None
+            };
+            AimRequest::Blast(AimBlast {
+                position: request.position,
+                damage_capability: request.damage_capability,
+                warhead_type: request.warhead_type,
+                has_target: checked_bool("blast has_target", request.has_target)?,
+                sector_side_length: request.sector_side_length,
+                min_x_sector: request.min_x_sector,
+                max_x_sector: request.max_x_sector,
+                min_z_sector: request.min_z_sector,
+                max_z_sector: request.max_z_sector,
+                window,
+                echo,
+            })
+        }
+        sys::EECH_AIM_IDENTIFY => {
+            let request = &source.identify;
+            finite("identify position", &request.position)?;
+            if request.entity_type <= 0 || request.sub_type < 0 || request.damage_level < 0 || request.initial_damage_level < 0 || request.serial <= 0 {
+                return Err("aim received an identify question with inconsistent figures".into());
+            }
+            AimRequest::Identify(AimIdentify {
+                entity_type: request.entity_type,
+                sub_type: request.sub_type,
+                side: request.side,
+                alive: checked_bool("identify alive", request.alive)?,
+                damage_level: request.damage_level,
+                initial_damage_level: request.initial_damage_level,
+                position: request.position,
+                serial: request.serial,
+            })
+        }
+        sys::EECH_AIM_BRIDGE => {
+            let request = &source.bridge;
+            finite("bridge position", &request.position)?;
+            finite("bridge figure", &[request.delta_time, request.terrain_height, request.segment_length])?;
+            if !(1..=6).contains(&request.op) || request.segment_length < 0.0 {
+                return Err(format!(
+                    "aim received a bridge question with op {} and segment length {}",
+                    request.op, request.segment_length
+                ));
+            }
+            let terrain_known = checked_bool("bridge terrain_known", request.terrain_known)?;
+            let window_valid = checked_bool("bridge window_valid", request.window_valid)?;
+            let window_end = checked_bool("bridge window_end", request.window_end)?;
+            if !(0..=sys::EECH_BLAST_WINDOW_MAX as c_int).contains(&request.window_count)
+                || request.window_after < 0
+                || (request.op != 5 && (window_valid || request.window_count != 0 || window_end || request.window_after != 0))
+                || (request.op == 5
+                    && (request.sector_side_length <= 0 || request.min_x_sector > request.max_x_sector || request.min_z_sector > request.max_z_sector))
+                || (!window_valid && (request.window_count != 0 || window_end || request.window_after != 0))
+            {
+                return Err("aim received a bridge question with inconsistent sector figures or window".into());
+            }
+            let window = if window_valid {
+                let mut entries = Vec::with_capacity(request.window_count as usize);
+                for entry in request.window.iter().take(request.window_count as usize) {
+                    finite("bridge object position", &entry.position)?;
+                    if entry.handle <= 0 {
+                        return Err(format!("aim received a bridge object with handle {}", entry.handle));
+                    }
+                    entries.push(AimBlastEntry {
+                        handle: entry.handle,
+                        entity_type: entry.kind,
+                        readable: checked_bool("bridge readable", entry.readable)?,
+                        alive: checked_bool("bridge alive", entry.alive)?,
+                        has_position: checked_bool("bridge has_position", entry.has_position)?,
+                        rocket: checked_bool("bridge rocket", entry.rocket)?,
+                        excluded: checked_bool("bridge excluded", entry.excluded)?,
+                        position: entry.position,
+                        host_id: aim_host_id(&entry.host_id, "bridge object")?,
+                    });
+                }
+                Some(AimBlastWindow {
+                    sx: request.window_sx,
+                    sz: request.window_sz,
+                    after: request.window_after,
+                    end: window_end,
+                    entries,
+                })
+            } else {
+                None
+            };
+            AimRequest::Bridge(AimBridge {
+                op: request.op,
+                segment_kind: request.segment_kind,
+                alive: checked_bool("bridge alive", request.alive)?,
+                server: checked_bool("bridge server", request.server)?,
+                pred_present: checked_bool("bridge pred_present", request.pred_present)?,
+                pred_alive: checked_bool("bridge pred_alive", request.pred_alive)?,
+                succ_present: checked_bool("bridge succ_present", request.succ_present)?,
+                succ_alive: checked_bool("bridge succ_alive", request.succ_alive)?,
+                which: i32::from(checked_bool("bridge which", request.which)?),
+                neighbour_present: checked_bool("bridge neighbour_present", request.neighbour_present)?,
+                neighbour_kind: request.neighbour_kind,
+                neighbour_alive: checked_bool("bridge neighbour_alive", request.neighbour_alive)?,
+                position: request.position,
+                delta_time: request.delta_time,
+                terrain: terrain_known.then_some((request.terrain_height, checked_bool("bridge terrain_water", request.terrain_water)?)),
+                segment_length: request.segment_length,
+                sector_side_length: request.sector_side_length,
+                min_x_sector: request.min_x_sector,
+                max_x_sector: request.max_x_sector,
+                min_z_sector: request.min_z_sector,
+                max_z_sector: request.max_z_sector,
+                window,
             })
         }
         sys::EECH_AIM_ANIMATE => {
@@ -2781,6 +3393,36 @@ fn aim_request(source: &sys::eech_aim_step) -> Result<AimRequest, String> {
     })
 }
 
+/// Writes the reference host's echo into the room the campaign gave for it.
+fn copy_echo(source: &sys::eech_aim_step, events: &[AimEvent], answer: &mut sys::eech_aim_result) -> Result<(), String> {
+    if source.echo_out.is_null() || source.echo_capacity <= 0 {
+        return Err("aim sent an echo nobody asked for".into());
+    }
+    if events.len() > source.echo_capacity as usize {
+        return Err(format!(
+            "aim echoed {} events, more than the {} it can carry",
+            events.len(),
+            source.echo_capacity
+        ));
+    }
+    for (index, event) in events.iter().enumerate() {
+        // SAFETY: the campaign gave room for `echo_capacity` events at `echo_out` for this call, and `index` is below it.
+        unsafe {
+            source.echo_out.add(index).write(sys::eech_aim_event {
+                kind: event.kind,
+                a: event.a,
+                b: event.b,
+                c: event.c,
+                d: event.d,
+                f: event.f,
+            });
+        }
+    }
+    answer.has_echo = 1;
+    answer.echo_count = events.len() as c_int;
+    Ok(())
+}
+
 fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech_aim_result, String> {
     // SAFETY: the result is plain data; all-zero is a valid value of every field (the echo pointer is the campaign's, set after the call).
     let mut answer: sys::eech_aim_result = unsafe { std::mem::zeroed() };
@@ -2797,6 +3439,8 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
             source.mode,
             sys::EECH_AIM_VECTORS
                 | sys::EECH_AIM_LEAD
+                | sys::EECH_AIM_DAMAGE
+                | sys::EECH_AIM_HEALTH
                 | sys::EECH_AIM_WEAPON_STEP
                 | sys::EECH_AIM_WEAPON_BIRTH
                 | sys::EECH_AIM_WEAPON_DECOY
@@ -2807,6 +3451,83 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
         }
         answer.state = sys::EECH_AIM_NEED_DRAW;
         return Ok(answer);
+    }
+    if reply.need_lookup && source.mode == sys::EECH_AIM_IMPACT {
+        if !reply.impact_need_terrain {
+            return Err("aim asked an impact question for lookups other than the terrain".into());
+        }
+        answer.state = sys::EECH_AIM_NEED_LOOKUP;
+        answer.impact.need_terrain = 1;
+        return Ok(answer);
+    }
+    if source.mode == sys::EECH_AIM_IDENTIFY {
+        if reply.need_draw || reply.need_lookup || reply.echo.is_some() {
+            return Err("aim answered an identify question with a draw, a lookup or an echo, which it does not take".into());
+        }
+        if reply.identify_host_id.is_none() {
+            return Err("aim issued no identity in answer to an identify question".into());
+        }
+        answer.state = sys::EECH_AIM_DONE;
+        answer.identify.host_id = host_id_buffer(&reply.identify_host_id, "issued")?;
+        return Ok(answer);
+    }
+    if source.mode == sys::EECH_AIM_BRIDGE {
+        if reply.need_lookup {
+            answer.state = sys::EECH_AIM_NEED_LOOKUP;
+            if reply.bridge_need_terrain {
+                answer.bridge.need_terrain = 1;
+            } else if let Some((sx, sz, after)) = reply.bridge_need {
+                answer.bridge.need_sx = sx;
+                answer.bridge.need_sz = sz;
+                answer.bridge.need_after = after;
+            } else {
+                return Err("aim asked a bridge question for a lookup that is neither the terrain nor a window".into());
+            }
+            return Ok(answer);
+        }
+        answer.state = sys::EECH_AIM_DONE;
+        answer.bridge = sys::eech_bridge_result {
+            kill: c_int::from(reply.bridge_kill),
+            variant: reply.bridge_variant,
+            notify: c_int::from(reply.bridge_notify),
+            need_terrain: 0,
+            fell: c_int::from(reply.bridge_fell),
+            dropped_y: reply.bridge_dropped_y,
+            floor_height: reply.bridge_floor_height,
+            landed: c_int::from(reply.bridge_landed),
+            landed_y: reply.bridge_landed_y,
+            remove: c_int::from(reply.bridge_remove),
+            need_sx: 0,
+            need_sz: 0,
+            need_after: 0,
+            action: reply.bridge_action,
+            handle: reply.bridge_handle,
+            target_host_id: host_id_buffer(&reply.bridge_target_host_id, "bridge target")?,
+        };
+        if reply.echo.is_some() {
+            return Err("aim sent an echo to a bridge question, which has none".into());
+        }
+        return Ok(answer);
+    }
+    if source.mode == sys::EECH_AIM_BLAST {
+        answer.blast.radius = reply.blast_radius;
+        if reply.need_lookup {
+            let Some((sx, sz, after)) = reply.blast_need else {
+                return Err("aim asked a blast question for a lookup that is not a window".into());
+            };
+            answer.state = sys::EECH_AIM_NEED_LOOKUP;
+            answer.blast.need_sx = sx;
+            answer.blast.need_sz = sz;
+            answer.blast.need_after = after;
+            if let Some(events) = &reply.echo {
+                copy_echo(source, events, &mut answer)?;
+            }
+            return Ok(answer);
+        }
+        answer.blast.action = reply.blast_action;
+        answer.blast.handle = reply.blast_handle;
+        answer.blast.target_host_id = host_id_buffer(&reply.blast_target_host_id, "blast target")?;
+        answer.blast.modifier = reply.blast_modifier;
     }
     if reply.need_lookup {
         if !matches!(
@@ -2839,6 +3560,46 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
             answer.release_write_last_shot = 1;
             answer.release_last_shot = last_shot;
         }
+    }
+    if source.mode == sys::EECH_AIM_HEALTH {
+        answer.health = sys::eech_health_result {
+            critical_class: reply.health_critical_class,
+            crossed: c_int::from(reply.health_crossed),
+            recovered: c_int::from(reply.health_recovered),
+            eject: c_int::from(reply.health_eject),
+            eligible: c_int::from(reply.health_eligible),
+            rolled: c_int::from(reply.health_rolled),
+            hit: c_int::from(reply.health_hit),
+            new_level: reply.health_new_level,
+            fatal: c_int::from(reply.health_fatal),
+        };
+    }
+    if source.mode == sys::EECH_AIM_IMPACT {
+        answer.impact = sys::eech_impact_result {
+            need_terrain: 0,
+            invalid: c_int::from(reply.impact_invalid),
+            crater: c_int::from(reply.impact_crater),
+            direct_hit: c_int::from(reply.impact_direct_hit),
+            blasts: reply.impact_blasts,
+            exclude_target: c_int::from(reply.impact_exclude_target),
+        };
+    }
+    if source.mode == sys::EECH_AIM_DAMAGE {
+        answer.damage = sys::eech_damage_result {
+            exited: c_int::from(reply.damage_exited),
+            capability: reply.damage_capability,
+            written: c_int::from(reply.damage_written),
+            new_level: reply.damage_new_level,
+            critical_before: reply.damage_critical_before,
+            critical_after: reply.damage_critical_after,
+            bad_modifier: c_int::from(reply.damage_bad_modifier),
+        };
+    }
+    if source.mode == sys::EECH_AIM_FORECAST {
+        if reply.forecast_capability < 0 {
+            return Err(format!("aim answered a forecast with a negative capability {}", reply.forecast_capability));
+        }
+        answer.forecast_capability = reply.forecast_capability;
     }
     if source.mode == sys::EECH_AIM_ANIMATE {
         answer.animate_status = reply.animate_status;
@@ -2896,31 +3657,7 @@ fn aim_answer(source: &sys::eech_aim_step, reply: &AimReply) -> Result<sys::eech
         answer.has_time_of_flight = 1;
     }
     if let Some(events) = &reply.echo {
-        if source.echo_out.is_null() || source.echo_capacity <= 0 {
-            return Err("aim sent an echo nobody asked for".into());
-        }
-        if events.len() > source.echo_capacity as usize {
-            return Err(format!(
-                "aim echoed {} events, more than the {} it can carry",
-                events.len(),
-                source.echo_capacity
-            ));
-        }
-        for (index, event) in events.iter().enumerate() {
-            // SAFETY: the campaign gave room for `echo_capacity` events at `echo_out` for this call, and `index` is below it.
-            unsafe {
-                source.echo_out.add(index).write(sys::eech_aim_event {
-                    kind: event.kind,
-                    a: event.a,
-                    b: event.b,
-                    c: event.c,
-                    d: event.d,
-                    f: event.f,
-                });
-            }
-        }
-        answer.has_echo = 1;
-        answer.echo_count = events.len() as c_int;
+        copy_echo(source, events, &mut answer)?;
     }
     if let Some(cells) = &reply.table_cells {
         if source.mode != sys::EECH_AIM_TABLE || source.echo_cells.is_null() {
@@ -3925,6 +4662,184 @@ impl Engine {
         check(unsafe { sys::eech_engine_aim_trace_reset() })
     }
 
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the run-wide report of the physical combat-resolution code (damage capability, collisions, blasts, repair writes) since
+    /// process start, as `key=value` text lines. Read-only.
+    #[cfg(feature = "weapon-fixture")]
+    pub fn cmb_trace(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_cmb_trace(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): a controlled combat case that launches nothing (op 0 the census of living entities per health-bearing kind; op 1 the
+    /// `ordinal`-th living entity of `kind` set to `percent` of its initial health), as `key=value` text. Given the same complete host as a frame: the health case sets a health
+    /// through the campaign's own setter and asks the critical predicate, and the host answers both (the physical health facts are the host's since EEDCS-46).
+    #[cfg(feature = "weapon-fixture")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn cmb_case_state<F, G, H, M, L, D, A>(
+        &self,
+        op: i32,
+        kind: &str,
+        ordinal: i32,
+        percent: i32,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
+        sense_fn: &mut D,
+        aim_fn: &mut A,
+    ) -> Result<String, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
+        D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
+    {
+        let kind = std::ffi::CString::new(kind).map_err(|_| EngineError::BadArgument("a kind contains a NUL byte".into()))?;
+        let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
+        // SAFETY: the string, the buffer and the temporary host callback outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        let status = with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            sense_fn,
+            aim_fn,
+            |host| unsafe { sys::eech_engine_cmb_case_state(op, kind.as_ptr(), ordinal, percent, text.as_mut_ptr(), text.len() as i32, host) },
+        );
+        keep_case_reason(status, &text)
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): a controlled combat case that launches a real weapon through the campaign's own launch call (op 1: the `ordinal`-th living
+    /// entity of `kind` is delivered a collision with modifier `amount`, by that weapon or by none; op 2: the weapon is put through the campaign's own killed-weapon explosion
+    /// `amount` metres from that entity with `kill_code`). Given the same complete host as a frame.
+    #[cfg(feature = "weapon-fixture")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn cmb_case_act<F, G, H, M, L, D, A>(
+        &self,
+        op: i32,
+        kind: &str,
+        ordinal: i32,
+        launcher_id: &str,
+        weapon: i32,
+        amount: f64,
+        kill_code: i32,
+        weaponless: bool,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
+        sense_fn: &mut D,
+        aim_fn: &mut A,
+    ) -> Result<String, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
+        D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
+    {
+        let kind = std::ffi::CString::new(kind).map_err(|_| EngineError::BadArgument("a kind contains a NUL byte".into()))?;
+        let launcher_id = std::ffi::CString::new(launcher_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
+        let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
+        // SAFETY: the strings, the buffer and the temporary host callback outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        let status = with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            sense_fn,
+            aim_fn,
+            |host| unsafe {
+                sys::eech_engine_cmb_case_act(
+                    op,
+                    kind.as_ptr(),
+                    ordinal,
+                    launcher_id.as_ptr(),
+                    weapon,
+                    amount,
+                    kill_code,
+                    i32::from(weaponless),
+                    text.as_mut_ptr(),
+                    text.len() as i32,
+                    host,
+                )
+            },
+        );
+        keep_case_reason(status, &text)
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46, R5): the controlled bridge case of the ORIGINAL collapse (op 0 survey of every bridge, op 1 state of the bridge at `ordinal`, op 2 the declared direct
+    /// structural failure of segment `index` of it, or of the first by `criterion` when `index` is -1, op 3 disarm the observer), as `key=value` text. Given the same complete host as a frame, because the
+    /// failure runs the campaign's own kill, explosion effects and consequences and the campaign asks the host for the physical facts they need.
+    #[cfg(feature = "weapon-fixture")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn cmb_case_bridge<F, G, H, M, L, D, A>(
+        &self,
+        op: i32,
+        ordinal: i32,
+        index: i32,
+        criterion: i32,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
+        sense_fn: &mut D,
+        aim_fn: &mut A,
+    ) -> Result<String, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
+        D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
+    {
+        let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
+        // SAFETY: the buffer and the temporary host callback outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        let status = with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            sense_fn,
+            aim_fn,
+            |host| unsafe { sys::eech_engine_cmb_case_bridge(op, ordinal, index, criterion, text.as_mut_ptr(), text.len() as i32, host) },
+        );
+        keep_case_reason(status, &text)
+    }
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): drains the ordered combat event log (collisions, blasts, repairs) from the cursor and returns every event not yet returned,
+    /// one `cmb-ev` line each. Read-only apart from advancing the cursor.
+    #[cfg(feature = "weapon-fixture")]
+    pub fn cmb_events(&self) -> Result<String, EngineError> {
+        let mut all = String::new();
+        loop {
+            let mut text = vec![0 as std::os::raw::c_char; WPN_REPORT_CAPACITY];
+            let mut more: std::os::raw::c_int = 0;
+            // SAFETY: the buffer and `more` outlive the call and the capacity passed is the buffer length; the engine NUL-terminates the text.
+            check(unsafe { sys::eech_engine_cmb_events(text.as_mut_ptr(), text.len() as i32, &mut more) })?;
+            // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+            all.push_str(&unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy());
+            if more == 0 {
+                return Ok(all);
+            }
+        }
+    }
+
     /// TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the run-wide report of the physical weapon-execution code (table generation at boot, launch, flight, update order,
     /// contact and terminal facts) since process start, as `key=value` text lines. Read-only.
     #[cfg(feature = "weapon-fixture")]
@@ -4097,6 +5012,132 @@ impl Engine {
             tasks_retired_expire: r.tasks_retired_expire,
             tasks_completed_on_report: r.tasks_completed_on_report,
         })
+    }
+
+    /// Applies one physical fact the host reports about an object it holds the identity of (EEDCS-46, R3): a structure's, issued by `AimRequest::Identify`, or a rostered mobile's.  The campaign applies it
+    /// once through the object's own collision steps, so the consequences come from the real handlers, which ask the host for the physical facts they need (the complete host is given as for a frame).
+    /// An identity that is unknown, ended or not of such an object, an object already destroyed and a report that would raise a damage level fail visibly and change nothing.
+    #[allow(clippy::too_many_arguments)]
+    pub fn report_object<F, G, H, M, L, D, A>(
+        &self,
+        report: &ObjectReport,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
+        sense_fn: &mut D,
+        aim_fn: &mut A,
+    ) -> Result<ObjectReceipt, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
+        D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
+    {
+        let bytes = report.host_id.as_bytes();
+        if bytes.is_empty() || bytes.len() > sys::EECH_AIM_HOST_ID_MAX || bytes.contains(&0) {
+            return Err(EngineError::BadArgument(
+                "an object report needs an identity of 1 to 128 bytes without a NUL".into(),
+            ));
+        }
+        let mut raw = sys::eech_object_report {
+            host_id: [0 as c_char; sys::EECH_AIM_HOST_ID_MAX + 1],
+            has_damage_level: c_int::from(report.damage_level.is_some()),
+            damage_level: report.damage_level.unwrap_or(0),
+            destroyed: c_int::from(report.destroyed),
+        };
+        for (slot, byte) in raw.host_id.iter_mut().zip(bytes) {
+            *slot = *byte as c_char;
+        }
+        let mut receipt = sys::eech_object_report_receipt::default();
+        // SAFETY: the report and the receipt outlive the call; the temporary host callback is valid for the call; the receipt is read only on success.
+        with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            sense_fn,
+            aim_fn,
+            |host| unsafe { sys::eech_engine_report_object(&raw, &mut receipt, host) },
+        )?;
+        Ok(ObjectReceipt {
+            entity_type: receipt.entity_type,
+            rostered: receipt.rostered != 0,
+            damage_level_before: receipt.damage_level_before,
+            damage_level_after: receipt.damage_level_after,
+            killed: receipt.killed != 0,
+        })
+    }
+
+    /// Every structure with its identity, identified now (the host is asked, once per incarnation) if it has none; copies of values (EEDCS-46, R3).
+    #[allow(clippy::too_many_arguments)]
+    pub fn structures<F, G, H, M, L, D, A>(
+        &self,
+        bind_mobile_fn: &mut F,
+        observe_loss_fn: &mut G,
+        supply_reached_fn: &mut H,
+        move_vehicle_fn: &mut M,
+        line_of_sight_fn: &mut L,
+        sense_fn: &mut D,
+        aim_fn: &mut A,
+    ) -> Result<Vec<Structure>, EngineError>
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
+        D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
+    {
+        unsafe extern "C" fn collect(structure: *const sys::eech_structure, user: *mut c_void) {
+            // SAFETY: the engine passes a valid structure; user is the Vec below.
+            let (structure, out) = unsafe { (&*structure, &mut *(user as *mut Vec<Structure>)) };
+            let host_id = if structure.host_id.is_null() {
+                String::new()
+            } else {
+                // SAFETY: the identity is NUL-terminated and borrowed for this callback only (the registry may move it when it grows); it is copied into an owned String here, before the call returns.
+                unsafe { CStr::from_ptr(structure.host_id) }.to_string_lossy().into_owned()
+            };
+            out.push(Structure {
+                host_id,
+                kind: match structure.kind {
+                    sys::EECH_STRUCTURE_CITY_BUILDING => StructureKind::CityBuilding,
+                    sys::EECH_STRUCTURE_PYLON => StructureKind::Pylon,
+                    sys::EECH_STRUCTURE_SCENIC => StructureKind::Scenic,
+                    sys::EECH_STRUCTURE_SEGMENT => StructureKind::Segment,
+                    sys::EECH_STRUCTURE_SITE => StructureKind::Site,
+                    _ => StructureKind::SiteUpdatable,
+                },
+                entity_type: structure.entity_type,
+                sub_type: structure.sub_type,
+                side: side(structure.side),
+                alive: structure.alive != 0,
+                damage_level: structure.damage_level,
+                initial_damage_level: structure.initial_damage_level,
+                position: structure.position,
+            });
+        }
+        let mut out: Vec<Structure> = Vec::new();
+        let mut count: c_int = 0;
+        let out_ptr = (&mut out as *mut Vec<Structure>).cast::<c_void>();
+        // SAFETY: the callback only touches `out` during the call; the temporary host callback is valid for the call.
+        with_host(
+            bind_mobile_fn,
+            observe_loss_fn,
+            supply_reached_fn,
+            move_vehicle_fn,
+            line_of_sight_fn,
+            sense_fn,
+            aim_fn,
+            |host| unsafe { sys::eech_engine_structures(collect, out_ptr, &mut count, host) },
+        )?;
+        Ok(out)
     }
 
     pub fn objects(&self) -> Result<Vec<Object>, EngineError> {
@@ -5934,6 +6975,1407 @@ mod tests {
             })
         });
         assert_eq!((code, result.state, result.lookup_count), (0, sys::EECH_AIM_NEED_LOOKUP, 1));
+    }
+
+    fn carried_target_identity(seen: Option<AimRequest>, what: &str) -> Option<String> {
+        match seen {
+            Some(AimRequest::Damage(d)) => d.target_host_id,
+            Some(AimRequest::Health(h)) => h.target_host_id,
+            Some(AimRequest::Impact(i)) => i.target_host_id,
+            other => panic!("{what}: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn the_identity_of_the_object_a_damage_a_health_and_an_impact_question_is_about_crosses_and_a_bad_one_is_refused() {
+        // a hit, a health fact and a weapon's death about an object that has an identity carry it; one about an object that has none carries none
+        for (what, mut step) in [("damage", damage_step()), ("health", health_step(3)), ("impact", impact_step())] {
+            step.target_host_id = test_id("veh:7");
+            let (seen, _, _, _) = aim_crossing(&step, |_| Ok(AimReply::default()));
+            assert_eq!(carried_target_identity(seen, what).as_deref(), Some("veh:7"), "{what}");
+            step.target_host_id = [0 as c_char; sys::EECH_AIM_HOST_ID_MAX + 1];
+            let (seen, _, _, _) = aim_crossing(&step, |_| Ok(AimReply::default()));
+            assert_eq!(carried_target_identity(seen, what), None, "{what}: an object with no identity carries none");
+            // an identity that does not end inside its field, and one that is not UTF-8, are refused before the host is asked
+            step.target_host_id = [b'x' as c_char; sys::EECH_AIM_HOST_ID_MAX + 1];
+            let (seen, _, code, error) = aim_crossing(&step, |_| Ok(AimReply::default()));
+            assert!(
+                code != 0 && seen.is_none() && error.contains("host identity"),
+                "{what}: overlong: {code} {error}"
+            );
+            step.target_host_id = test_id("veh:7");
+            step.target_host_id[0] = 0xff_u8 as c_char;
+            let (seen, _, code, error) = aim_crossing(&step, |_| Ok(AimReply::default()));
+            assert!(
+                code != 0 && seen.is_none() && error.contains("host identity"),
+                "{what}: not UTF-8: {code} {error}"
+            );
+        }
+    }
+
+    fn impact_step() -> sys::eech_aim_step {
+        let mut step = blank_aim_step(sys::EECH_AIM_IMPACT);
+        step.impact.kill_code = 5;
+        step.impact.has_target = 1;
+        step.impact.target_alive = 1;
+        step.impact.position = [250.0, 12.0, 750.0];
+        step.target_host_id = test_id("site:9");
+        step
+    }
+
+    #[test]
+    fn an_impact_question_carries_the_kill_code_and_the_targets_facts_asks_for_the_terrain_once_and_the_plan_comes_back() {
+        let mut step = impact_step();
+        let (seen, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                impact_need_terrain: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state, result.impact.need_terrain), (0, sys::EECH_AIM_NEED_LOOKUP, 1), "{error}");
+        assert_eq!(
+            seen,
+            Some(AimRequest::Impact(AimImpact {
+                kill_code: 5,
+                has_target: true,
+                target_alive: true,
+                terrain_draws_crater: None,
+                position: [250.0, 12.0, 750.0],
+                target_host_id: Some("site:9".into()),
+            }))
+        );
+        // asked again with the terrain the campaign read, the host plans: a crater, a direct hit and two blasts that leave the target out
+        step.impact.terrain_known = 1;
+        step.impact.terrain_draws_crater = 1;
+        let (seen, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                impact_crater: true,
+                impact_direct_hit: true,
+                impact_blasts: 2,
+                impact_exclude_target: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        assert!(matches!(seen, Some(AimRequest::Impact(ref r)) if r.terrain_draws_crater == Some(true)));
+        let p = result.impact;
+        assert_eq!(
+            (result.state, p.need_terrain, p.invalid, p.crater, p.direct_hit, p.blasts, p.exclude_target),
+            (sys::EECH_AIM_DONE, 0, 0, 1, 1, 2, 1)
+        );
+        // a code the host does not know is carried as such
+        let (_, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                impact_invalid: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.impact.invalid), (0, 1));
+    }
+
+    #[test]
+    fn an_impact_question_refuses_what_has_no_defined_answer_and_never_takes_a_sample() {
+        let step = impact_step();
+        // a sample is not part of the exchange
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert_ne!(code, 0, "an impact question may not ask for a sample");
+        assert!(error.contains("cannot take one"), "{error}");
+        // a lookup other than the terrain
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                ..AimReply::default()
+            })
+        });
+        assert_ne!(code, 0);
+        assert!(error.contains("terrain"), "{error}");
+        // a request that is not one: a position that is not finite, a target that is alive and not there, a crater on a terrain not read, a flag that is not a boolean
+        for (name, change) in [
+            (
+                "position",
+                Box::new(|s: &mut sys::eech_aim_step| s.impact.position[1] = f32::NAN) as Box<dyn Fn(&mut sys::eech_aim_step)>,
+            ),
+            ("alive without target", Box::new(|s: &mut sys::eech_aim_step| s.impact.has_target = 0)),
+            ("crater unread", Box::new(|s: &mut sys::eech_aim_step| s.impact.terrain_draws_crater = 1)),
+            ("flag", Box::new(|s: &mut sys::eech_aim_step| s.impact.terrain_known = 2)),
+        ] {
+            let mut bad = impact_step();
+            change(&mut bad);
+            let (seen, _, code, _) = aim_crossing(&bad, |_| Ok(AimReply::default()));
+            assert_ne!(code, 0, "{name}");
+            assert!(seen.is_none(), "{name}: the host was asked");
+        }
+    }
+
+    fn blast_step(window: bool) -> sys::eech_aim_step {
+        let mut step = blank_aim_step(sys::EECH_AIM_BLAST);
+        step.blast.position = [150.0, 5.0, 150.0];
+        step.blast.damage_capability = 400;
+        step.blast.warhead_type = 7;
+        step.blast.has_target = 1;
+        step.blast.sector_side_length = 100;
+        step.blast.max_x_sector = 2;
+        step.blast.max_z_sector = 2;
+        if window {
+            step.blast.window_valid = 1;
+            step.blast.window_sx = 1;
+            step.blast.window_sz = 1;
+            step.blast.window_after = 7;
+            step.blast.window_count = 2;
+            step.blast.window_end = 1;
+            step.blast.window[0] = sys::eech_blast_entry {
+                handle: 8,
+                kind: 6,
+                readable: 1,
+                alive: 1,
+                has_position: 1,
+                rocket: 0,
+                excluded: 0,
+                position: [160.0, 5.0, 150.0],
+                host_id: [0 as c_char; sys::EECH_AIM_HOST_ID_MAX + 1],
+            };
+            step.blast.window[1] = sys::eech_blast_entry {
+                handle: 9,
+                kind: 37,
+                readable: 1,
+                alive: 1,
+                has_position: 1,
+                rocket: 1,
+                excluded: 1,
+                position: [155.0, 5.0, 150.0],
+                host_id: test_id("mob-9"),
+            };
+        }
+        step
+    }
+
+    #[test]
+    fn a_blast_question_carries_the_explosion_and_the_window_by_value_and_the_hosts_walk_comes_back() {
+        // the first question has no window: the host asks for one (the sector, and the handle it follows)
+        let (seen, result, code, error) = aim_crossing(&blast_step(false), |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                blast_radius: 20.0,
+                blast_need: Some((1, 1, 0)),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_NEED_LOOKUP), "{error}");
+        assert_eq!(
+            (result.blast.radius, result.blast.need_sx, result.blast.need_sz, result.blast.need_after),
+            (20.0, 1, 1, 0)
+        );
+        let Some(AimRequest::Blast(first)) = seen else {
+            panic!("the host was not asked about the blast")
+        };
+        assert_eq!(
+            (first.position, first.damage_capability, first.warhead_type, first.has_target),
+            ([150.0, 5.0, 150.0], 400, 7, true)
+        );
+        assert_eq!(
+            (
+                first.sector_side_length,
+                first.min_x_sector,
+                first.max_x_sector,
+                first.min_z_sector,
+                first.max_z_sector
+            ),
+            (100, 0, 2, 0, 2)
+        );
+        assert!(first.window.is_none());
+        // supplied the window, the host reaches an object and the campaign is told what to do with it
+        let (seen, result, code, error) = aim_crossing(&blast_step(true), |_| {
+            Ok(AimReply {
+                blast_radius: 20.0,
+                blast_action: 1,
+                blast_handle: 8,
+                blast_modifier: 0.5,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_DONE), "{error}");
+        assert_eq!(
+            (result.blast.radius, result.blast.action, result.blast.handle, result.blast.modifier),
+            (20.0, 1, 8, 0.5)
+        );
+        let Some(AimRequest::Blast(second)) = seen else {
+            panic!("the host was not asked about the blast")
+        };
+        let Some(window) = second.window else { panic!("the window did not cross") };
+        assert_eq!((window.sx, window.sz, window.after, window.end, window.entries.len()), (1, 1, 7, true, 2));
+        assert_eq!(
+            window.entries[1],
+            AimBlastEntry {
+                handle: 9,
+                entity_type: 37,
+                readable: true,
+                alive: true,
+                has_position: true,
+                rocket: true,
+                excluded: true,
+                position: [155.0, 5.0, 150.0],
+                host_id: Some("mob-9".into()),
+            }
+        );
+        // the walk's end names nothing
+        let (_, result, code, _) = aim_crossing(&blast_step(true), |_| {
+            Ok(AimReply {
+                blast_radius: 20.0,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.blast.action, result.blast.handle), (0, 0, 0));
+    }
+
+    #[test]
+    fn a_blast_question_refuses_what_has_no_defined_answer_and_never_takes_a_sample() {
+        let (_, _, code, error) = aim_crossing(&blast_step(true), |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert_ne!(code, 0, "a blast may not ask for a sample");
+        assert!(error.contains("cannot take one"), "{error}");
+        // a lookup that is not a window
+        let (_, _, code, error) = aim_crossing(&blast_step(true), |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                blast_radius: 20.0,
+                ..AimReply::default()
+            })
+        });
+        assert_ne!(code, 0);
+        assert!(error.contains("not a window"), "{error}");
+        // a request the campaign would not send
+        for (name, change) in [
+            (
+                "position",
+                Box::new(|s: &mut sys::eech_aim_step| s.blast.position[0] = f32::INFINITY) as Box<dyn Fn(&mut sys::eech_aim_step)>,
+            ),
+            ("sector", Box::new(|s: &mut sys::eech_aim_step| s.blast.sector_side_length = 0)),
+            ("rectangle", Box::new(|s: &mut sys::eech_aim_step| s.blast.min_x_sector = 5)),
+            ("window count", Box::new(|s: &mut sys::eech_aim_step| s.blast.window_count = 17)),
+            ("handle", Box::new(|s: &mut sys::eech_aim_step| s.blast.window[0].handle = 0)),
+            (
+                "object position",
+                Box::new(|s: &mut sys::eech_aim_step| s.blast.window[1].position[2] = f32::NAN),
+            ),
+            ("flag", Box::new(|s: &mut sys::eech_aim_step| s.blast.window[0].alive = 2)),
+            ("window not valid but counted", Box::new(|s: &mut sys::eech_aim_step| s.blast.window_valid = 0)),
+        ] {
+            let mut bad = blast_step(true);
+            change(&mut bad);
+            let (seen, _, code, _) = aim_crossing(&bad, |_| Ok(AimReply::default()));
+            assert_ne!(code, 0, "{name}");
+            assert!(seen.is_none(), "{name}: the host was asked");
+        }
+    }
+    /// An identity as the NUL-terminated field a window entry carries.
+    fn test_id(text: &str) -> [c_char; sys::EECH_AIM_HOST_ID_MAX + 1] {
+        let mut field = [0 as c_char; sys::EECH_AIM_HOST_ID_MAX + 1];
+        for (slot, byte) in field.iter_mut().zip(text.as_bytes()) {
+            *slot = *byte as c_char;
+        }
+        field
+    }
+    fn bridge_step(op: c_int) -> sys::eech_aim_step {
+        let mut step = blank_aim_step(sys::EECH_AIM_BRIDGE);
+        step.bridge.op = op;
+        step.bridge.segment_kind = 3;
+        step.bridge.alive = 1;
+        step.bridge.server = 1;
+        step.bridge.position = [250.0, 120.0, 250.0];
+        step.bridge.delta_time = 0.1;
+        step
+    }
+
+    #[test]
+    fn a_bridge_question_carries_the_facts_by_value_and_each_answer_comes_back_whole() {
+        // KILL
+        let (seen, result, code, error) = aim_crossing(&bridge_step(1), |_| {
+            Ok(AimReply {
+                bridge_kill: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state, result.bridge.kill), (0, sys::EECH_AIM_DONE, 1), "{error}");
+        assert!(
+            matches!(seen, Some(AimRequest::Bridge(ref b)) if b.op == 1 && b.segment_kind == 3 && b.alive && b.server && b.terrain.is_none() && b.window.is_none())
+        );
+        // SHAPE
+        let mut shape = bridge_step(2);
+        shape.bridge.pred_present = 1;
+        shape.bridge.succ_present = 1;
+        shape.bridge.succ_alive = 1;
+        let (seen, result, code, _) = aim_crossing(&shape, |_| {
+            Ok(AimReply {
+                bridge_variant: 2,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.bridge.variant), (0, 2));
+        assert!(matches!(seen, Some(AimRequest::Bridge(ref b)) if b.pred_present && !b.pred_alive && b.succ_present && b.succ_alive));
+        // NEIGHBOUR
+        let mut neighbour = bridge_step(3);
+        neighbour.bridge.which = 1;
+        neighbour.bridge.neighbour_present = 1;
+        let (seen, result, code, _) = aim_crossing(&neighbour, |_| {
+            Ok(AimReply {
+                bridge_notify: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.bridge.notify), (0, 1));
+        assert!(matches!(seen, Some(AimRequest::Bridge(ref b)) if b.which == 1 && b.neighbour_present));
+        // FALL: the host asks for the terrain, then, given it, answers the fall
+        let (_, result, code, error) = aim_crossing(&bridge_step(4), |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                bridge_need_terrain: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state, result.bridge.need_terrain), (0, sys::EECH_AIM_NEED_LOOKUP, 1), "{error}");
+        let mut fall = bridge_step(4);
+        fall.bridge.terrain_known = 1;
+        fall.bridge.terrain_height = 100.0;
+        fall.bridge.terrain_water = 1;
+        let (seen, result, code, _) = aim_crossing(&fall, |_| {
+            Ok(AimReply {
+                bridge_fell: true,
+                bridge_dropped_y: 119.0,
+                bridge_floor_height: 99.0,
+                bridge_remove: false,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(
+            (
+                code,
+                result.bridge.fell,
+                result.bridge.dropped_y,
+                result.bridge.floor_height,
+                result.bridge.landed,
+                result.bridge.remove
+            ),
+            (0, 1, 119.0, 99.0, 0, 0)
+        );
+        assert!(matches!(seen, Some(AimRequest::Bridge(ref b)) if b.terrain == Some((100.0, true))));
+        // REST: the terrain is asked for once, then the height the host rests the dead segment at comes back and nothing else
+        let mut rest = bridge_step(6);
+        rest.bridge.alive = 0;
+        let (_, result, code, error) = aim_crossing(&rest, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                bridge_need_terrain: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state, result.bridge.need_terrain), (0, sys::EECH_AIM_NEED_LOOKUP, 1), "{error}");
+        rest.bridge.terrain_known = 1;
+        rest.bridge.terrain_height = 100.0;
+        let (seen, result, code, _) = aim_crossing(&rest, |_| {
+            Ok(AimReply {
+                bridge_landed: true,
+                bridge_landed_y: 100.0,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(
+            (code, result.bridge.landed, result.bridge.landed_y, result.bridge.fell, result.bridge.remove),
+            (0, 1, 100.0, 0, 0)
+        );
+        assert!(matches!(seen, Some(AimRequest::Bridge(ref b)) if b.op == 6 && !b.alive && b.terrain == Some((100.0, false))));
+    }
+
+    #[test]
+    fn a_bridge_vehicles_walk_carries_its_window_and_the_hosts_walk_comes_back() {
+        let mut step = bridge_step(5);
+        step.bridge.segment_length = 10.0;
+        step.bridge.sector_side_length = 100;
+        step.bridge.max_x_sector = 9;
+        step.bridge.max_z_sector = 9;
+        let (_, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                bridge_need: Some((2, 2, 0)),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(
+            (code, result.state, result.bridge.need_sx, result.bridge.need_sz, result.bridge.need_after),
+            (0, sys::EECH_AIM_NEED_LOOKUP, 2, 2, 0),
+            "{error}"
+        );
+        step.bridge.window_valid = 1;
+        step.bridge.window_sx = 2;
+        step.bridge.window_sz = 2;
+        step.bridge.window_count = 1;
+        step.bridge.window_end = 1;
+        step.bridge.window[0] = sys::eech_blast_entry {
+            handle: 4,
+            kind: 23,
+            readable: 1,
+            alive: 1,
+            has_position: 1,
+            rocket: 0,
+            excluded: 0,
+            position: [255.0, 5.0, 250.0],
+            host_id: test_id("veh-4"),
+        };
+        let (seen, result, code, _) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                bridge_action: 1,
+                bridge_handle: 4,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.bridge.action, result.bridge.handle), (0, 1, 4));
+        assert!(matches!(seen, Some(AimRequest::Bridge(ref b)) if b.window.as_ref().is_some_and(|w| w.entries.len() == 1 && w.entries[0].handle == 4)));
+    }
+
+    #[test]
+    fn a_bridge_question_refuses_what_has_no_defined_answer_and_never_takes_a_sample() {
+        let (_, _, code, error) = aim_crossing(&bridge_step(1), |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert_ne!(code, 0, "a bridge question may not ask for a sample");
+        assert!(error.contains("cannot take one"), "{error}");
+        // a lookup that is neither the terrain nor a window
+        let (_, _, code, error) = aim_crossing(&bridge_step(4), |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                ..AimReply::default()
+            })
+        });
+        assert_ne!(code, 0);
+        assert!(error.contains("neither the terrain nor a window"), "{error}");
+        // a request the campaign would not send
+        for (name, change) in [
+            (
+                "op",
+                Box::new(|s: &mut sys::eech_aim_step| s.bridge.op = 9) as Box<dyn Fn(&mut sys::eech_aim_step)>,
+            ),
+            ("position", Box::new(|s: &mut sys::eech_aim_step| s.bridge.position[1] = f32::NAN)),
+            ("delta time", Box::new(|s: &mut sys::eech_aim_step| s.bridge.delta_time = f32::INFINITY)),
+            ("flag", Box::new(|s: &mut sys::eech_aim_step| s.bridge.alive = 2)),
+            ("length", Box::new(|s: &mut sys::eech_aim_step| s.bridge.segment_length = -1.0)),
+            ("window on a fall", Box::new(|s: &mut sys::eech_aim_step| s.bridge.window_valid = 1)),
+        ] {
+            let mut bad = bridge_step(4);
+            change(&mut bad);
+            let (seen, _, code, _) = aim_crossing(&bad, |_| Ok(AimReply::default()));
+            assert_ne!(code, 0, "{name}");
+            assert!(seen.is_none(), "{name}: the host was asked");
+        }
+    }
+    fn identify_step() -> sys::eech_aim_step {
+        let mut step = blank_aim_step(sys::EECH_AIM_IDENTIFY);
+        step.identify.entity_type = 5;
+        step.identify.sub_type = 41;
+        step.identify.side = 2;
+        step.identify.alive = 1;
+        step.identify.damage_level = 80;
+        step.identify.initial_damage_level = 100;
+        step.identify.position = [100.0, 5.0, 250.0];
+        step.identify.serial = 3;
+        step
+    }
+    fn text_of(field: &[c_char]) -> String {
+        field.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).map(char::from).collect()
+    }
+
+    #[test]
+    fn a_structure_identity_is_asked_of_the_host_by_value_and_the_one_it_issues_comes_back_whole() {
+        let (seen, result, code, error) = aim_crossing(&identify_step(), |_| {
+            Ok(AimReply {
+                identify_host_id: Some("eech-world:object:7".into()),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_DONE), "{error}");
+        assert_eq!(text_of(&result.identify.host_id), "eech-world:object:7");
+        assert_eq!(
+            seen,
+            Some(AimRequest::Identify(AimIdentify {
+                entity_type: 5,
+                sub_type: 41,
+                side: 2,
+                alive: true,
+                damage_level: 80,
+                initial_damage_level: 100,
+                position: [100.0, 5.0, 250.0],
+                serial: 3,
+            }))
+        );
+        // what has no defined answer: no identity, an overlong or empty one, a NUL inside it, a sample, a lookup
+        for (what, reply) in [
+            ("no identity", AimReply::default()),
+            (
+                "an overlong identity",
+                AimReply {
+                    identify_host_id: Some("x".repeat(129)),
+                    ..AimReply::default()
+                },
+            ),
+            (
+                "an empty identity",
+                AimReply {
+                    identify_host_id: Some(String::new()),
+                    ..AimReply::default()
+                },
+            ),
+            (
+                "a NUL inside the identity",
+                AimReply {
+                    identify_host_id: Some("a\0b".into()),
+                    ..AimReply::default()
+                },
+            ),
+            (
+                "a sample",
+                AimReply {
+                    need_draw: true,
+                    identify_host_id: Some("a".into()),
+                    ..AimReply::default()
+                },
+            ),
+            (
+                "a lookup",
+                AimReply {
+                    need_lookup: true,
+                    identify_host_id: Some("a".into()),
+                    ..AimReply::default()
+                },
+            ),
+        ] {
+            let (_, _, code, error) = aim_crossing(&identify_step(), |_| Ok(reply.clone()));
+            assert_ne!(code, 0, "{what} was accepted");
+            assert!(
+                error.contains("identity") || error.contains("identify") || error.contains("draw") || error.contains("lookup"),
+                "{what}: {error}"
+            );
+        }
+        // a request the campaign would not send
+        type Change = fn(&mut sys::eech_aim_step);
+        let changes: [(&str, Change); 4] = [
+            ("a non-finite position", |s| s.identify.position[1] = f32::NAN),
+            ("a serial that does not count from one", |s| s.identify.serial = 0),
+            ("a flag that is not a boolean", |s| s.identify.alive = 2),
+            ("a negative damage level", |s| s.identify.damage_level = -1),
+        ];
+        for (name, change) in changes {
+            let mut bad = identify_step();
+            change(&mut bad);
+            let (seen, _, code, _) = aim_crossing(&bad, |_| Ok(AimReply::default()));
+            assert_ne!(code, 0, "{name}");
+            assert!(seen.is_none(), "{name}: the host was asked");
+        }
+    }
+
+    #[test]
+    fn the_identity_of_an_offered_object_crosses_and_the_hosts_repeat_of_it_comes_back() {
+        // a blast: the entry carries the identity the host gave the object (none for a weapon), and the host repeats it for the object it reaches
+        let (seen, result, code, error) = aim_crossing(&blast_step(true), |_| {
+            Ok(AimReply {
+                blast_radius: 20.0,
+                blast_action: 1,
+                blast_handle: 9,
+                blast_modifier: 0.5,
+                blast_target_host_id: Some("mob-9".into()),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_DONE), "{error}");
+        assert_eq!(text_of(&result.blast.target_host_id), "mob-9");
+        let Some(AimRequest::Blast(blast)) = seen else { panic!("not a blast") };
+        let Some(window) = blast.window else { panic!("the window did not cross") };
+        let ids: Vec<Option<String>> = window.entries.into_iter().map(|e| e.host_id).collect();
+        assert_eq!(ids, vec![None, Some("mob-9".to_string())]);
+        // none repeated is none on the wire; an overlong one is refused
+        let (_, result, code, _) = aim_crossing(&blast_step(true), |_| {
+            Ok(AimReply {
+                blast_radius: 20.0,
+                blast_action: 1,
+                blast_handle: 8,
+                blast_modifier: 0.5,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, text_of(&result.blast.target_host_id)), (0, String::new()));
+        let (_, _, code, error) = aim_crossing(&blast_step(true), |_| {
+            Ok(AimReply {
+                blast_radius: 20.0,
+                blast_action: 1,
+                blast_handle: 9,
+                blast_modifier: 0.5,
+                blast_target_host_id: Some("x".repeat(129)),
+                ..AimReply::default()
+            })
+        });
+        assert_ne!(code, 0);
+        assert!(error.contains("identity"), "{error}");
+        // a bridge vehicles walk: the same
+        let mut step = bridge_step(5);
+        step.bridge.segment_length = 10.0;
+        step.bridge.sector_side_length = 100;
+        step.bridge.max_x_sector = 9;
+        step.bridge.max_z_sector = 9;
+        step.bridge.window_valid = 1;
+        step.bridge.window_sx = 2;
+        step.bridge.window_sz = 2;
+        step.bridge.window_count = 1;
+        step.bridge.window_end = 1;
+        step.bridge.window[0] = sys::eech_blast_entry {
+            handle: 4,
+            kind: 23,
+            readable: 1,
+            alive: 1,
+            has_position: 1,
+            rocket: 0,
+            excluded: 0,
+            position: [255.0, 5.0, 250.0],
+            host_id: test_id("veh-4"),
+        };
+        let (seen, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                bridge_action: 1,
+                bridge_handle: 4,
+                bridge_target_host_id: Some("veh-4".into()),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state, result.bridge.handle), (0, sys::EECH_AIM_DONE, 4), "{error}");
+        assert_eq!(text_of(&result.bridge.target_host_id), "veh-4");
+        let Some(AimRequest::Bridge(bridge)) = seen else {
+            panic!("not a bridge question")
+        };
+        let Some(window) = bridge.window else { panic!("the window did not cross") };
+        assert_eq!(window.entries[0].host_id.as_deref(), Some("veh-4"));
+    }
+
+    // The identity DTOs are mirrored by hand, field for field; as for the weapon state, an outer size does not establish the inner order, so every field's offset and the alignment are read from the campaign as
+    // compiled (csrc/eech_aim_layout.c cases 130 to 164).
+    #[test]
+    fn the_object_identity_dtos_have_the_layout_the_campaign_compiled() {
+        use std::mem::{align_of, offset_of, size_of};
+        let layout = |which: c_int| unsafe { sys::eech_engine_aim_layout(which) };
+        assert_eq!(layout(130), size_of::<sys::eech_identify_request>(), "campaign_identify_request");
+        assert_eq!(layout(131), offset_of!(sys::eech_identify_request, sub_type));
+        assert_eq!(layout(132), offset_of!(sys::eech_identify_request, side));
+        assert_eq!(layout(133), offset_of!(sys::eech_identify_request, alive));
+        assert_eq!(layout(134), offset_of!(sys::eech_identify_request, damage_level));
+        assert_eq!(layout(135), offset_of!(sys::eech_identify_request, initial_damage_level));
+        assert_eq!(layout(136), offset_of!(sys::eech_identify_request, position));
+        assert_eq!(layout(137), offset_of!(sys::eech_identify_request, serial));
+        assert_eq!(layout(138), size_of::<sys::eech_identify_result>(), "campaign_identify_result");
+        assert_eq!(layout(139), offset_of!(sys::eech_aim_step, identify));
+        assert_eq!(layout(140), offset_of!(sys::eech_aim_result, identify));
+        assert_eq!(layout(141), offset_of!(sys::eech_blast_entry, host_id));
+        assert_eq!(layout(142), offset_of!(sys::eech_blast_result, target_host_id));
+        assert_eq!(layout(143), offset_of!(sys::eech_bridge_result, target_host_id));
+        assert_eq!(layout(144), sys::EECH_AIM_IDENTIFY as usize);
+        assert_eq!(layout(145), size_of::<sys::eech_object_report>(), "eech_object_report");
+        assert_eq!(layout(146), offset_of!(sys::eech_object_report, has_damage_level));
+        assert_eq!(layout(147), offset_of!(sys::eech_object_report, damage_level));
+        assert_eq!(layout(148), offset_of!(sys::eech_object_report, destroyed));
+        assert_eq!(layout(149), size_of::<sys::eech_object_report_receipt>(), "eech_object_report_receipt");
+        assert_eq!(layout(150), offset_of!(sys::eech_object_report_receipt, rostered));
+        assert_eq!(layout(151), offset_of!(sys::eech_object_report_receipt, damage_level_before));
+        assert_eq!(layout(152), offset_of!(sys::eech_object_report_receipt, damage_level_after));
+        assert_eq!(layout(153), offset_of!(sys::eech_object_report_receipt, killed));
+        assert_eq!(layout(154), size_of::<sys::eech_structure>(), "eech_structure");
+        assert_eq!(layout(165), offset_of!(sys::eech_structure, kind));
+        assert_eq!(layout(155), offset_of!(sys::eech_structure, entity_type));
+        assert_eq!(layout(156), offset_of!(sys::eech_structure, sub_type));
+        assert_eq!(layout(157), offset_of!(sys::eech_structure, side));
+        assert_eq!(layout(158), offset_of!(sys::eech_structure, alive));
+        assert_eq!(layout(159), offset_of!(sys::eech_structure, damage_level));
+        assert_eq!(layout(160), offset_of!(sys::eech_structure, initial_damage_level));
+        assert_eq!(layout(161), offset_of!(sys::eech_structure, position));
+        assert_eq!(layout(162), align_of::<sys::eech_identify_request>());
+        assert_eq!(layout(163), align_of::<sys::eech_object_report>());
+        assert_eq!(layout(164), align_of::<sys::eech_structure>());
+        // and the first field of each, which sits at zero in both
+        assert_eq!(offset_of!(sys::eech_identify_request, entity_type), 0);
+        assert_eq!(offset_of!(sys::eech_object_report, host_id), 0);
+        assert_eq!(offset_of!(sys::eech_structure, host_id), 0);
+    }
+
+    // The weapon state is embedded in the C-layout aim step and read by the campaign as campaign_weapon_state, so its INNER field order is part of the ABI: a same-size outer offset does not
+    // establish it.  Every field's offset, the size and the alignment are read from the campaign as compiled (csrc/eech_aim_layout.c cases 100 to 120).
+    fn weapon_state_layout_mismatches(rust_size: usize, rust_align: usize, rust_offsets: [usize; 19]) -> Vec<usize> {
+        let layout = |which: c_int| unsafe { sys::eech_engine_aim_layout(which) };
+        let mut wrong = Vec::new();
+        if layout(100) != rust_size {
+            wrong.push(100);
+        }
+        if layout(101) != rust_align {
+            wrong.push(101);
+        }
+        for (index, offset) in rust_offsets.iter().enumerate() {
+            if layout(102 + index as c_int) != *offset {
+                wrong.push(102 + index);
+            }
+        }
+        wrong
+    }
+    #[test]
+    fn the_inner_layout_of_the_weapon_state_is_the_campaigns() {
+        use std::mem::{align_of, offset_of, size_of};
+        type W = sys::eech_weapon_state;
+        let offsets = [
+            offset_of!(W, position),
+            offset_of!(W, attitude),
+            offset_of!(W, motion_vector),
+            offset_of!(W, velocity),
+            offset_of!(W, weapon_lifetime),
+            offset_of!(W, decoy_timer),
+            offset_of!(W, missile_phase),
+            offset_of!(W, loal_mode),
+            offset_of!(W, weapon_on_ground),
+            offset_of!(W, parachute_status),
+            offset_of!(W, kill_code),
+            offset_of!(W, entity_samples),
+            offset_of!(W, has_launcher),
+            offset_of!(W, has_target),
+            offset_of!(W, server),
+            offset_of!(W, submunition),
+            offset_of!(W, other_weapon),
+            offset_of!(W, coefficient),
+            offset_of!(W, effectiveness),
+        ];
+        assert_eq!(weapon_state_layout_mismatches(size_of::<W>(), align_of::<W>(), offsets), Vec::<usize>::new());
+        // A control: the comparison does fail for a mirror whose fields are in another order (the first two integers swapped), so a pass above is not an empty check.
+        #[repr(C)]
+        struct Reordered {
+            position: [f32; 3],
+            attitude: [f32; 9],
+            motion_vector: [f32; 3],
+            velocity: f32,
+            weapon_lifetime: f32,
+            decoy_timer: f32,
+            loal_mode: c_int,
+            missile_phase: c_int,
+            weapon_on_ground: c_int,
+            parachute_status: c_int,
+            kill_code: c_int,
+            entity_samples: [c_int; 4],
+            has_launcher: c_int,
+            has_target: c_int,
+            server: c_int,
+            submunition: c_int,
+            other_weapon: c_int,
+            coefficient: f32,
+            effectiveness: [f32; 3],
+        }
+        let control = [
+            offset_of!(Reordered, position),
+            offset_of!(Reordered, attitude),
+            offset_of!(Reordered, motion_vector),
+            offset_of!(Reordered, velocity),
+            offset_of!(Reordered, weapon_lifetime),
+            offset_of!(Reordered, decoy_timer),
+            offset_of!(Reordered, missile_phase),
+            offset_of!(Reordered, loal_mode),
+            offset_of!(Reordered, weapon_on_ground),
+            offset_of!(Reordered, parachute_status),
+            offset_of!(Reordered, kill_code),
+            offset_of!(Reordered, entity_samples),
+            offset_of!(Reordered, has_launcher),
+            offset_of!(Reordered, has_target),
+            offset_of!(Reordered, server),
+            offset_of!(Reordered, submunition),
+            offset_of!(Reordered, other_weapon),
+            offset_of!(Reordered, coefficient),
+            offset_of!(Reordered, effectiveness),
+        ];
+        // by NAME, the reordered mirror puts missile_phase and loal_mode in each other's slots: the comparison names exactly those two (size and alignment still agree)
+        assert_eq!(
+            weapon_state_layout_mismatches(size_of::<Reordered>(), align_of::<Reordered>(), control),
+            vec![108, 109]
+        );
+    }
+    // The Rust mirrors of the aim exchange are written by hand, field for field; one that drifts from the C structure is memory corruption at the first request.  The campaign
+    // reports the sizes and the offsets of the fields appended last (csrc/eech_aim_layout.c) and the mirrors must agree.
+    #[test]
+    fn the_rust_mirrors_of_the_aim_exchange_have_the_layout_the_campaign_compiled() {
+        use std::mem::{offset_of, size_of};
+        let layout = |which: c_int| unsafe { sys::eech_engine_aim_layout(which) };
+        assert_eq!(layout(0), size_of::<sys::eech_aim_step>(), "campaign_aim_step");
+        assert_eq!(layout(1), size_of::<sys::eech_aim_result>(), "campaign_aim_result");
+        assert_eq!(layout(2), size_of::<sys::eech_weapon_figures>(), "campaign_weapon_figures");
+        assert_eq!(layout(3), size_of::<sys::eech_damage_figures>(), "campaign_damage_figures");
+        assert_eq!(layout(4), offset_of!(sys::eech_aim_step, release_not_ai));
+        assert_eq!(layout(5), offset_of!(sys::eech_aim_step, animate_motion_y));
+        assert_eq!(layout(6), offset_of!(sys::eech_aim_step, forecast_figures));
+        assert_eq!(layout(7), offset_of!(sys::eech_aim_step, forecast_armour_level));
+        assert_eq!(layout(8), offset_of!(sys::eech_aim_step, forecast_velocity));
+        assert_eq!(layout(9), offset_of!(sys::eech_aim_result, release_last_shot));
+        assert_eq!(layout(10), offset_of!(sys::eech_aim_result, animate_lifetime));
+        assert_eq!(layout(11), offset_of!(sys::eech_aim_result, forecast_capability));
+        assert_eq!(layout(12), offset_of!(sys::eech_damage_figures, burst_duration));
+        assert_eq!(layout(13), offset_of!(sys::eech_aim_step, weapon_state));
+        assert_eq!(layout(14), offset_of!(sys::eech_aim_step, answers));
+        assert_eq!(layout(15), size_of::<sys::eech_damage_request>(), "campaign_damage_request");
+        assert_eq!(layout(16), size_of::<sys::eech_damage_result>(), "campaign_damage_result");
+        assert_eq!(layout(17), offset_of!(sys::eech_aim_step, damage));
+        assert_eq!(layout(18), offset_of!(sys::eech_aim_result, damage));
+        assert_eq!(layout(19), offset_of!(sys::eech_damage_request, weapon_speed));
+        assert_eq!(layout(20), offset_of!(sys::eech_damage_request, armour_level));
+        assert_eq!(layout(21), offset_of!(sys::eech_damage_request, armour_front));
+        assert_eq!(layout(22), offset_of!(sys::eech_damage_request, target_attitude));
+        assert_eq!(layout(23), offset_of!(sys::eech_damage_request, target_not_ai));
+        assert_eq!(layout(24), offset_of!(sys::eech_damage_request, player_modifier));
+        assert_eq!(layout(25), offset_of!(sys::eech_damage_request, critical_model));
+        assert_eq!(layout(26), offset_of!(sys::eech_damage_result, critical_before));
+        assert_eq!(layout(27), size_of::<sys::eech_health_request>(), "campaign_health_request");
+        assert_eq!(layout(28), size_of::<sys::eech_health_result>(), "campaign_health_result");
+        assert_eq!(layout(29), offset_of!(sys::eech_aim_step, health));
+        assert_eq!(layout(30), offset_of!(sys::eech_aim_result, health));
+        assert_eq!(layout(31), offset_of!(sys::eech_health_request, delta_time));
+        assert_eq!(layout(32), offset_of!(sys::eech_health_request, aircraft_class));
+        assert_eq!(layout(33), offset_of!(sys::eech_health_request, target_not_ai));
+        assert_eq!(layout(34), offset_of!(sys::eech_health_result, eligible));
+        assert_eq!(layout(35), offset_of!(sys::eech_health_result, fatal));
+        // the impact and blast exchange (EEDCS-46)
+        assert_eq!(layout(36), size_of::<sys::eech_impact_request>(), "campaign_impact_request");
+        assert_eq!(layout(37), size_of::<sys::eech_impact_result>(), "campaign_impact_result");
+        assert_eq!(layout(38), size_of::<sys::eech_blast_entry>(), "campaign_blast_entry");
+        assert_eq!(layout(39), size_of::<sys::eech_blast_request>(), "campaign_blast_request");
+        assert_eq!(layout(40), size_of::<sys::eech_blast_result>(), "campaign_blast_result");
+        assert_eq!(layout(41), offset_of!(sys::eech_aim_step, impact));
+        assert_eq!(layout(42), offset_of!(sys::eech_aim_step, blast));
+        assert_eq!(layout(43), offset_of!(sys::eech_aim_result, impact));
+        assert_eq!(layout(44), offset_of!(sys::eech_aim_result, blast));
+        assert_eq!(layout(45), offset_of!(sys::eech_blast_request, window));
+        assert_eq!(layout(46), offset_of!(sys::eech_blast_entry, position));
+        assert_eq!(layout(47), offset_of!(sys::eech_blast_result, modifier));
+        assert_eq!(layout(48), offset_of!(sys::eech_impact_request, position));
+        assert_eq!(layout(49), offset_of!(sys::eech_blast_request, window_valid));
+        assert_eq!(sys::EECH_BLAST_WINDOW_MAX, 16);
+        // the bridge exchange (EEDCS-46, R5)
+        assert_eq!(layout(50), size_of::<sys::eech_bridge_request>(), "campaign_bridge_request");
+        assert_eq!(layout(51), size_of::<sys::eech_bridge_result>(), "campaign_bridge_result");
+        assert_eq!(layout(52), offset_of!(sys::eech_aim_step, bridge));
+        assert_eq!(layout(53), offset_of!(sys::eech_aim_result, bridge));
+        assert_eq!(layout(54), offset_of!(sys::eech_bridge_request, position));
+        assert_eq!(layout(55), offset_of!(sys::eech_bridge_request, terrain_known));
+        assert_eq!(layout(56), offset_of!(sys::eech_bridge_request, segment_length));
+        assert_eq!(layout(57), offset_of!(sys::eech_bridge_request, window));
+        assert_eq!(layout(58), offset_of!(sys::eech_bridge_result, dropped_y));
+        assert_eq!(layout(59), offset_of!(sys::eech_bridge_result, handle));
+        // the campaign's entity sub types of a bridge segment the reference kernel hard-codes (end, supported mid, unsupported mid)
+        assert_eq!((90..=92).map(layout).collect::<Vec<usize>>(), vec![1, 2, 3], "ENTITY_SUB_TYPE_FIXED_BRIDGE_*");
+        assert_eq!(
+            (93..=98).map(layout).collect::<Vec<usize>>(),
+            vec![1, 2, 3, 4, 5, 6],
+            "campaign_bridge_op: the numbers the reference host and the DC module name"
+        );
+        // the campaign's enum values the reference host's kernel hard-codes (eech-world csrc/cmb_step.c; its own test compares the same two lists): the thirteen kinds a blast
+        // examines, in the order of the probe's cases 60 to 72, and the weapon kill codes 0 to 7
+        let entity_types: Vec<usize> = (60..=72).map(layout).collect();
+        assert_eq!(
+            entity_types,
+            vec![1, 6, 10, 14, 19, 21, 23, 24, 26, 28, 29, 30, 37],
+            "ENTITY_TYPES the blast examines"
+        );
+        let kill_codes: Vec<usize> = (80..=87).map(layout).collect();
+        assert_eq!(kill_codes, vec![0, 1, 2, 3, 4, 5, 6, 7], "WEAPON_KILL_CODES");
+    }
+
+    fn damage_step() -> sys::eech_aim_step {
+        let mut step = blank_aim_step(sys::EECH_AIM_DAMAGE);
+        step.weapon = 54;
+        step.damage.figures = sys::eech_damage_figures {
+            weapon_warhead: 5,
+            warhead: 5,
+            damage_capability: 100,
+            armor_penetration_capability: 1,
+            burst_duration: 0.0,
+        };
+        step.damage.weapon_speed = 300.0;
+        step.damage.weapon_cruise_velocity = 250.0;
+        step.damage.damage_modifier = 0.5;
+        step.damage.armour_level = 4;
+        step.damage.armour_model = 1;
+        step.damage.armour_front = 1.0;
+        step.damage.armour_rear = 0.5;
+        step.damage.armour_side = 0.75;
+        step.damage.weapon_position = [1.0, 2.0, 3.0];
+        step.damage.target_position = [0.0, 0.0, 0.0];
+        step.damage.target_attitude = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+        step.damage.target_not_ai = 1;
+        step.damage.player_modifier_valid = 1;
+        step.damage.player_modifier = 0.66;
+        step.damage.has_launcher = 1;
+        step.damage.multiplier = 2;
+        step.damage.damage_level = 80;
+        step.damage.initial_damage_level = 100;
+        step.damage.critical_model = 1;
+        step
+    }
+
+    #[test]
+    fn a_damage_request_carries_the_hit_by_value_takes_the_one_sample_and_the_hosts_answer_comes_back() {
+        let mut step = damage_step();
+        // the first question has no sample: the host asks for one (a damage question may; a forecast may not)
+        let (seen, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_NEED_DRAW), "{error}");
+        let Some(AimRequest::Damage(first)) = seen else {
+            panic!("the host was not asked about the hit")
+        };
+        assert_eq!(first.draw, None);
+        // asked again with the sample the campaign took, the host answers
+        step.has_draw = 1;
+        step.draw_sample = 12345;
+        let (seen, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                damage_capability: 61,
+                damage_written: true,
+                damage_new_level: 19,
+                damage_critical_before: 0,
+                damage_critical_after: 1,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        let Some(AimRequest::Damage(request)) = seen else {
+            panic!("the host was not asked about the hit")
+        };
+        assert_eq!(request.draw, Some(12345));
+        assert_eq!(
+            (
+                request.weapon,
+                request.weapon_warhead,
+                request.warhead,
+                request.damage_capability,
+                request.armor_penetration_capability
+            ),
+            (54, 5, 5, 100, 1)
+        );
+        assert_eq!(
+            (request.weapon_speed, request.weapon_cruise_velocity, request.damage_modifier),
+            (300.0, 250.0, 0.5)
+        );
+        assert_eq!((request.armour_level, request.armour_easy, request.armour_model), (4, false, 1));
+        assert_eq!((request.armour_front, request.armour_rear, request.armour_side), (1.0, 0.5, 0.75));
+        assert_eq!((request.weapon_position, request.target_position), ([1.0, 2.0, 3.0], [0.0; 3]));
+        assert_eq!(request.target_attitude, [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]);
+        assert_eq!(
+            (request.target_not_ai, request.player_modifier, request.has_launcher, request.multiplier),
+            (true, Some(0.66), true, 2)
+        );
+        assert_eq!((request.invulnerable, request.cheat_guard), (false, false));
+        assert_eq!((request.damage_level, request.initial_damage_level, request.critical_model), (80, 100, 1));
+        // the host's own numbers are what the campaign gets back, none computed in this layer
+        let d = result.damage;
+        assert_eq!(
+            (
+                result.state,
+                d.exited,
+                d.capability,
+                d.written,
+                d.new_level,
+                d.critical_before,
+                d.critical_after,
+                d.bad_modifier
+            ),
+            (sys::EECH_AIM_DONE, 0, 61, 1, 19, 0, 1, 0)
+        );
+        // a player whose damage setting the campaign could not resolve is carried as a missing setting
+        step.damage.player_modifier_valid = 0;
+        let (seen, _, code, _) = aim_crossing(&step, |_| Ok(AimReply::default()));
+        assert_eq!(code, 0);
+        assert!(matches!(seen, Some(AimRequest::Damage(ref r)) if r.player_modifier.is_none()));
+    }
+
+    // The fixture build's echo of a hit travels as raw-bit halves (a hit with no direction has a not-a-number aspect armour); the engine writes the events into the room the
+    // campaign gave, exactly.
+    #[test]
+    fn a_damage_echo_of_raw_bit_halves_reaches_the_campaigns_room_unchanged() {
+        let mut room = [sys::eech_aim_event {
+            kind: 0,
+            a: 0,
+            b: 0,
+            c: 0,
+            d: 0,
+            f: [0.0; 12],
+        }; 4];
+        let mut step = damage_step();
+        step.has_draw = 1;
+        step.draw_sample = 0;
+        step.echo = 1;
+        step.echo_out = room.as_mut_ptr();
+        step.echo_capacity = 4;
+        let mut f = [0.0f32; 12];
+        f[1] = 15.0;
+        f[3] = 0.75;
+        f[6..].copy_from_slice(&[16752.0, 0.0, 65472.0, 0.0, 16192.0, 0.0]);
+        let (_, result, code, error) = aim_crossing(&step, |request| {
+            let Some(()) = matches!(request, AimRequest::Damage(ref r) if r.echo && r.draw == Some(0)).then_some(()) else {
+                return Err("not the damage question with its echo".into());
+            };
+            Ok(AimReply {
+                damage_new_level: 80,
+                echo: Some(vec![AimEvent {
+                    kind: sys::EECH_AIM_EVENT_DAMAGE,
+                    a: 0,
+                    b: 0,
+                    c: 3,
+                    d: 0,
+                    f,
+                }]),
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        assert_eq!((result.has_echo, result.echo_count), (1, 1));
+        assert_eq!(
+            (room[0].kind, room[0].a, room[0].b, room[0].c, room[0].d),
+            (sys::EECH_AIM_EVENT_DAMAGE, 0, 0, 3, 0)
+        );
+        assert_eq!(room[0].f, f);
+        let armour_bits = ((room[0].f[8] as u32) << 16) | (room[0].f[9] as u32);
+        assert_eq!(armour_bits, 0xFFC0_0000, "the not-a-number armour, sign and payload");
+    }
+
+    fn health_step(op: c_int) -> sys::eech_aim_step {
+        let mut step = blank_aim_step(sys::EECH_AIM_HEALTH);
+        step.health.op = op;
+        step.health.critical_model = 1;
+        step.health.damage_level = 14;
+        step.health.initial_damage_level = 100;
+        step.health.old_damage_level = 14;
+        step.health.explosive = 1;
+        step.health.delta_time = 0.1;
+        step
+    }
+
+    #[test]
+    fn a_health_question_crosses_by_value_a_timed_roll_takes_its_one_sample_and_the_answer_comes_back() {
+        let mut step = health_step(3);
+        // the host asks for the sample of an eligible target; the campaign gives it and the host rolls
+        let (seen, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!((code, result.state), (0, sys::EECH_AIM_NEED_DRAW), "{error}");
+        let Some(AimRequest::Health(first)) = seen else {
+            panic!("the host was not asked")
+        };
+        assert_eq!(
+            (
+                first.op,
+                first.critical_model,
+                first.damage_level,
+                first.initial_damage_level,
+                first.explosive,
+                first.flammable,
+                first.draw
+            ),
+            (3, 1, 14, 100, true, false, None)
+        );
+        step.has_draw = 1;
+        step.draw_sample = 6553;
+        let (seen, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                health_critical_class: 1,
+                health_eligible: true,
+                health_rolled: true,
+                health_hit: true,
+                health_new_level: 13,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        let Some(AimRequest::Health(request)) = seen else {
+            panic!("the host was not asked")
+        };
+        assert_eq!((request.draw, request.delta_time), (Some(6553), 0.1));
+        let h = result.health;
+        assert_eq!(
+            (result.state, h.critical_class, h.eligible, h.rolled, h.hit, h.new_level, h.fatal, h.crossed),
+            (sys::EECH_AIM_DONE, 1, 1, 1, 1, 13, 0, 0)
+        );
+        // a self-hit question carries its two facts
+        let mut hit = health_step(4);
+        hit.health.self_hit = 1;
+        let (seen, _, code, _) = aim_crossing(&hit, |_| Ok(AimReply::default()));
+        assert_eq!(code, 0);
+        assert!(matches!(seen, Some(AimRequest::Health(ref r)) if r.op == 4 && r.self_hit && !r.target_not_ai));
+    }
+
+    // Which targets roll is the HOST's physical eligibility: a host with a model of its own may ask for the campaign's sample for a person with health or for an aircraft in no class, and
+    // the engine boundary carries the request and the answer as it does for any other target.
+    #[test]
+    fn a_generic_hosts_timed_roll_for_a_person_or_an_aircraft_in_no_class_crosses_the_engine_boundary() {
+        for (model, class) in [(2, 0), (3, 0)] {
+            let mut step = health_step(3);
+            step.health.critical_model = model;
+            step.health.explosive = 0;
+            step.health.aircraft_class = class;
+            step.health.damage_level = 40;
+            let (seen, result, code, error) = aim_crossing(&step, |_| {
+                Ok(AimReply {
+                    need_draw: true,
+                    ..AimReply::default()
+                })
+            });
+            assert_eq!((code, result.state), (0, sys::EECH_AIM_NEED_DRAW), "model {model}: {error}");
+            assert!(matches!(seen, Some(AimRequest::Health(ref r)) if r.op == 3 && r.critical_model == model && r.draw.is_none()));
+            step.has_draw = 1;
+            step.draw_sample = 100;
+            let (_, result, code, error) = aim_crossing(&step, |_| {
+                Ok(AimReply {
+                    health_eligible: true,
+                    health_rolled: true,
+                    health_hit: true,
+                    health_new_level: 39,
+                    ..AimReply::default()
+                })
+            });
+            assert_eq!(code, 0, "model {model}: {error}");
+            let h = result.health;
+            assert_eq!((h.eligible, h.rolled, h.hit, h.new_level, h.fatal), (1, 1, 1, 39, 0));
+        }
+    }
+
+    #[test]
+    fn a_health_question_refuses_what_has_no_defined_answer_and_never_takes_a_lookup() {
+        let ok = |_: AimRequest| Ok(AimReply::default());
+        for (what, mutate) in [
+            (
+                "op",
+                Box::new(|s: &mut sys::eech_aim_step| s.health.op = 0) as Box<dyn Fn(&mut sys::eech_aim_step)>,
+            ),
+            ("op high", Box::new(|s: &mut sys::eech_aim_step| s.health.op = 5)),
+            ("model", Box::new(|s: &mut sys::eech_aim_step| s.health.critical_model = 4)),
+            ("class", Box::new(|s: &mut sys::eech_aim_step| s.health.aircraft_class = 3)),
+            ("flag", Box::new(|s: &mut sys::eech_aim_step| s.health.explosive = 2)),
+            ("frame", Box::new(|s: &mut sys::eech_aim_step| s.health.delta_time = f32::NAN)),
+            ("initial", Box::new(|s: &mut sys::eech_aim_step| s.health.initial_damage_level = 0)),
+            (
+                "sample",
+                Box::new(|s: &mut sys::eech_aim_step| {
+                    s.has_draw = 1;
+                    s.draw_sample = 40000;
+                }),
+            ),
+        ] {
+            let mut bad = health_step(3);
+            mutate(&mut bad);
+            let (seen, _, code, error) = aim_crossing(&bad, ok);
+            assert!(seen.is_none() && code != 0 && !error.is_empty(), "{what}: {error}");
+        }
+        // a person has no initial level to divide by and is not classified: a legal question
+        let mut person = health_step(1);
+        person.health.critical_model = 2;
+        person.health.initial_damage_level = 0;
+        let (seen, _, code, error) = aim_crossing(&person, ok);
+        assert!(seen.is_some() && code == 0, "{error}");
+        let step = health_step(1);
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                lookups: vec![AimEvent {
+                    kind: 1,
+                    a: 0,
+                    b: 0,
+                    c: 0,
+                    d: 0,
+                    f: [0.0; 12],
+                }],
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("cannot take them"), "{error}");
+        let (_, _, code, error) = aim_crossing(&step, |_| Err("the host has no model for this health".into()));
+        assert!(code != 0 && error.contains("no model"), "{error}");
+    }
+
+    #[test]
+    fn a_damage_request_refuses_what_has_no_defined_answer_and_never_takes_a_lookup() {
+        let ok = |_: AimRequest| Ok(AimReply::default());
+        for (what, mutate) in [
+            (
+                "weapon",
+                Box::new(|s: &mut sys::eech_aim_step| s.weapon = 0) as Box<dyn Fn(&mut sys::eech_aim_step)>,
+            ),
+            ("armour model", Box::new(|s: &mut sys::eech_aim_step| s.damage.armour_model = 3)),
+            ("critical model", Box::new(|s: &mut sys::eech_aim_step| s.damage.critical_model = 4)),
+            ("initial level", Box::new(|s: &mut sys::eech_aim_step| s.damage.initial_damage_level = 0)),
+            ("flag", Box::new(|s: &mut sys::eech_aim_step| s.damage.invulnerable = 2)),
+            ("position", Box::new(|s: &mut sys::eech_aim_step| s.damage.target_position[1] = f32::NAN)),
+            ("attitude", Box::new(|s: &mut sys::eech_aim_step| s.damage.target_attitude[4] = f32::INFINITY)),
+            ("speed", Box::new(|s: &mut sys::eech_aim_step| s.damage.weapon_speed = f32::NAN)),
+            (
+                "sample",
+                Box::new(|s: &mut sys::eech_aim_step| {
+                    s.has_draw = 1;
+                    s.draw_sample = 40000;
+                }),
+            ),
+        ] {
+            let mut bad = damage_step();
+            mutate(&mut bad);
+            let (seen, _, code, error) = aim_crossing(&bad, ok);
+            assert!(seen.is_none() && code != 0 && !error.is_empty(), "{what}: {error}");
+        }
+        // a person has no initial level to divide by and is not classified: that is a legal question
+        let mut person = damage_step();
+        person.damage.critical_model = 2;
+        person.damage.initial_damage_level = 0;
+        let (seen, _, code, error) = aim_crossing(&person, ok);
+        assert!(seen.is_some() && code == 0, "{error}");
+        // a damage question asks for no lookup
+        let step = damage_step();
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                lookups: vec![AimEvent {
+                    kind: 1,
+                    a: 0,
+                    b: 0,
+                    c: 0,
+                    d: 0,
+                    f: [0.0; 12],
+                }],
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("cannot take them"), "{error}");
+        let (_, _, code, error) = aim_crossing(&step, |_| Err("the host has no model for this hit".into()));
+        assert!(code != 0 && error.contains("no model"), "{error}");
+    }
+
+    #[test]
+    fn a_forecast_request_carries_its_figures_by_value_and_the_hosts_capability_comes_back() {
+        let mut step = blank_aim_step(sys::EECH_AIM_FORECAST);
+        step.weapon = 54;
+        step.echo = 1;
+        step.forecast_figures = sys::eech_damage_figures {
+            weapon_warhead: 8,
+            warhead: 5,
+            damage_capability: 30,
+            armor_penetration_capability: 7,
+            burst_duration: 2.5,
+        };
+        step.forecast_armour_level = 9;
+        step.forecast_target_not_ai = 1;
+        step.forecast_player_modifier = 0.66;
+        step.forecast_damage_modifier = 0.0;
+        step.forecast_velocity = 1.0;
+        let (seen, result, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                forecast_capability: 41,
+                ..AimReply::default()
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        let Some(AimRequest::Forecast(request)) = seen else {
+            panic!("the host was not asked to forecast")
+        };
+        assert_eq!(
+            request,
+            AimForecast {
+                weapon: 54,
+                weapon_warhead: 8,
+                warhead: 5,
+                damage_capability: 30,
+                armor_penetration_capability: 7,
+                burst_duration: 2.5,
+                armour_level: 9,
+                target_not_ai: true,
+                player_modifier: 0.66,
+                damage_modifier: 0.0,
+                velocity: 1.0,
+                echo: true,
+            }
+        );
+        // the host's own number is what the campaign gets back, not one this layer computes
+        assert_eq!((result.state, result.forecast_capability), (sys::EECH_AIM_DONE, 41));
+    }
+
+    #[test]
+    fn a_forecast_refuses_what_has_no_defined_answer_and_never_takes_a_draw_or_a_lookup() {
+        let mut step = blank_aim_step(sys::EECH_AIM_FORECAST);
+        step.weapon = 54;
+        step.forecast_player_modifier = 1.0;
+        step.forecast_velocity = 1.0;
+        let ok = |_: AimRequest| Ok(AimReply::default());
+        // malformed requests never reach the host
+        for (what, mutate) in [
+            (
+                "weapon",
+                Box::new(|s: &mut sys::eech_aim_step| s.weapon = 0) as Box<dyn Fn(&mut sys::eech_aim_step)>,
+            ),
+            ("armour", Box::new(|s: &mut sys::eech_aim_step| s.forecast_armour_level = -1)),
+            ("flag", Box::new(|s: &mut sys::eech_aim_step| s.forecast_target_not_ai = 2)),
+            ("burst", Box::new(|s: &mut sys::eech_aim_step| s.forecast_figures.burst_duration = f32::NAN)),
+            ("modifier", Box::new(|s: &mut sys::eech_aim_step| s.forecast_damage_modifier = f32::INFINITY)),
+            ("player", Box::new(|s: &mut sys::eech_aim_step| s.forecast_player_modifier = f32::NAN)),
+            ("velocity", Box::new(|s: &mut sys::eech_aim_step| s.forecast_velocity = f32::NAN)),
+        ] {
+            let mut bad = blank_aim_step(sys::EECH_AIM_FORECAST);
+            bad.weapon = 54;
+            bad.forecast_player_modifier = 1.0;
+            bad.forecast_velocity = 1.0;
+            mutate(&mut bad);
+            let (seen, _, code, error) = aim_crossing(&bad, ok);
+            assert!(seen.is_none() && code != 0 && !error.is_empty(), "{what}: {error}");
+        }
+        // a negative capability from the host is refused
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                forecast_capability: -1,
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("negative capability"), "{error}");
+        // a forecast consumes no sample of the shared stream and asks for no lookup
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_draw: true,
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("cannot take one"), "{error}");
+        let (_, _, code, error) = aim_crossing(&step, |_| {
+            Ok(AimReply {
+                need_lookup: true,
+                lookups: vec![AimEvent {
+                    kind: 1,
+                    a: 0,
+                    b: 0,
+                    c: 0,
+                    d: 0,
+                    f: [0.0; 12],
+                }],
+                ..AimReply::default()
+            })
+        });
+        assert!(code != 0 && error.contains("cannot take them"), "{error}");
+        // a host that fails says so
+        let (_, _, code, error) = aim_crossing(&step, |_| Err("the host has no model for this weapon".into()));
+        assert!(code != 0 && error.contains("no model"), "{error}");
     }
 
     #[test]

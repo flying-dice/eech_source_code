@@ -9,6 +9,7 @@
 mod crash;
 
 use eech_world::aim::{self, Aim};
+use eech_world::cmb;
 use eech_world::flight;
 use eech_world::los::{Los, LosRequest};
 use eech_world::movement::{
@@ -1613,6 +1614,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     {
         let aim = Rc::new(RefCell::new(Aim::new()));
+        // the opaque identities this host issues for structures (CAMPAIGN_AIM_IDENTIFY): its own monotonic count, not derived from anything the campaign sends
+        let next_object_id = Cell::new(1_u64);
         host.set(
             "aim",
             lua.create_function(move |lua, step: LuaTable| {
@@ -1709,6 +1712,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     6 => "lead_result",
                                     7 => "table_flight",
                                     8 => "range_result",
+                                    9 => "forecast",
+                                    10 => "damage",
+                                    11 => "blast",
                                     20 => "step_path",
                                     21 => "step_submunitions",
                                     22 => "step_tracking",
@@ -1956,6 +1962,456 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         result.set("burst_size", outcome.burst_size)?;
                         if let Some(last_shot) = outcome.last_shot {
                             result.set("last_shot", last_shot)?;
+                        }
+                    }
+                    "forecast" => {
+                        // the damage a weapon is capable of against a target, with no weapon in flight (cmb.rs forecast): a pure question that takes no draw.  The weapon's damage
+                        // figures, the target's armour level and the player's setting arrive with the question; this host keeps nothing for it
+                        let weapon = lua_i32(&step, "weapon").map_err(fail)?;
+                        if weapon <= 0 {
+                            return Err(fail(format!("a forecast of weapon {weapon}, which is not a weapon")));
+                        }
+                        let [burst_duration, player_modifier, damage_modifier, velocity] =
+                            exact_fields::<4>(lua, &step, "burst_duration,player_modifier,damage_modifier,velocity").map_err(fail)?;
+                        let outcome = cmb::forecast(&cmb::ForecastInput {
+                            weapon_warhead: lua_i32(&step, "weapon_warhead").map_err(fail)?,
+                            warhead: lua_i32(&step, "warhead").map_err(fail)?,
+                            damage_capability: lua_i32(&step, "damage_capability").map_err(fail)?,
+                            armor_penetration_capability: lua_i32(&step, "armor_penetration_capability").map_err(fail)?,
+                            burst_duration,
+                            armour_level: lua_i32(&step, "armour_level").map_err(fail)?,
+                            not_ai: flag(&step, "target_not_ai")?,
+                            player_modifier,
+                            damage_modifier,
+                            velocity,
+                        })
+                        .map_err(|error| fail(format!("weapon {weapon}: {error}")))?;
+                        result.set("state", "done")?;
+                        result.set("capability", outcome.capability)?;
+                        if flag(&step, "echo")? {
+                            // the original's observer hooks of the forecast, in one event, for the campaign build that records a trace
+                            let mut f = [0.0f32; 12];
+                            f[..4].copy_from_slice(&[outcome.damage_modifier, outcome.penetration, outcome.armour, outcome.random_modifier]);
+                            echo_into(&Some(vec![aim::Event {
+                                kind: 9,
+                                a: outcome.path,
+                                b: outcome.raw,
+                                c: outcome.warhead,
+                                d: outcome.capability,
+                                f,
+                            }]))?;
+                        }
+                    }
+                    "damage" => {
+                        // the object that is hit, if it has an identity: the host's own, checked for shape only
+                        check_id("target_host_id")?;
+                        // one hit that reached a damage handler (cmb.rs damage): everything by value, the campaign's one random sample asked for as a draw.  The answer is the whole of what
+                        // the hit does: whether the invulnerability stopped it, the capability, whether and to what level the health is written, and the critical classes
+                        let weapon = lua_i32(&step, "weapon").map_err(fail)?;
+                        if weapon <= 0 {
+                            return Err(fail(format!("a damage question about weapon {weapon}, which is not a weapon")));
+                        }
+                        let [burst_duration, weapon_speed, weapon_cruise_velocity, damage_modifier, armour_front, armour_rear, armour_side] =
+                            exact_fields::<7>(
+                                lua,
+                                &step,
+                                "burst_duration,weapon_speed,weapon_cruise_velocity,damage_modifier,armour_front,armour_rear,armour_side",
+                            )
+                            .map_err(fail)?;
+                        let player_modifier = match step.get::<LuaValue>("player_modifier")? {
+                            LuaValue::Nil => None,
+                            _ => Some(one(&step, "player_modifier")?),
+                        };
+                        let input = cmb::DamageInput {
+                            weapon_warhead: lua_i32(&step, "weapon_warhead").map_err(fail)?,
+                            warhead: lua_i32(&step, "warhead").map_err(fail)?,
+                            damage_capability: lua_i32(&step, "damage_capability").map_err(fail)?,
+                            armor_penetration_capability: lua_i32(&step, "armor_penetration_capability").map_err(fail)?,
+                            burst_duration,
+                            weapon_speed,
+                            weapon_cruise_velocity,
+                            damage_modifier,
+                            armour_level: lua_i32(&step, "armour_level").map_err(fail)?,
+                            armour_easy: flag(&step, "armour_easy")?,
+                            armour_model: lua_i32(&step, "armour_model").map_err(fail)?,
+                            armour_front,
+                            armour_rear,
+                            armour_side,
+                            weapon_position: exact_numbers::<3>(lua, &step, "weapon_position").map_err(fail)?,
+                            target_position: exact_numbers::<3>(lua, &step, "target_position").map_err(fail)?,
+                            target_attitude: exact_numbers::<9>(lua, &step, "target_attitude").map_err(fail)?,
+                            not_ai: flag(&step, "target_not_ai")?,
+                            player_modifier,
+                            has_launcher: flag(&step, "has_launcher")?,
+                            multiplier: lua_i32(&step, "multiplier").map_err(fail)?,
+                            invulnerable: flag(&step, "invulnerable")?,
+                            cheat_guard: flag(&step, "cheat_guard")?,
+                            damage_level: lua_i32(&step, "damage_level").map_err(fail)?,
+                            initial_damage_level: lua_i32(&step, "initial_damage_level").map_err(fail)?,
+                            critical_model: lua_i32(&step, "critical_model").map_err(fail)?,
+                        };
+                        let echo = flag(&step, "echo")?;
+                        match cmb::damage(&input, draw_of()?).map_err(|error| fail(format!("weapon {weapon}: {error}")))? {
+                            cmb::DamageStep::NeedDraw => result.set("state", "need_draw")?,
+                            cmb::DamageStep::Done(outcome) => {
+                                result.set("state", "done")?;
+                                result.set("exited", outcome.exited)?;
+                                result.set("capability", outcome.capability)?;
+                                result.set("written", outcome.written)?;
+                                result.set("new_level", outcome.new_level)?;
+                                result.set("critical_before", outcome.critical_before)?;
+                                result.set("critical_after", outcome.critical_after)?;
+                                result.set("bad_modifier", outcome.bad_modifier)?;
+                                if echo && !outcome.exited && !outcome.bad_modifier {
+                                    // the original's observer hooks of the capability, in one event, for the campaign build that records a trace; the four intermediate floats travel as
+                                    // raw bits (cmb.rs damage_echo_floats), because one of them can legitimately be a NaN
+                                    echo_into(&Some(vec![aim::Event {
+                                        kind: 10,
+                                        a: outcome.path,
+                                        b: outcome.raw,
+                                        c: outcome.warhead,
+                                        d: outcome.capability,
+                                        f: cmb::damage_echo_floats(&outcome),
+                                    }]))?;
+                                }
+                            }
+                        }
+                    }
+                    "health" => {
+                        // the object whose health it is, if it has an identity: the host's own, checked for shape only
+                        check_id("target_host_id")?;
+                        // a health fact that is not a hit (cmb.rs health): the critical class, what a change of health crosses, the frame's timed roll (its one random sample asked for
+                        // as a draw, only by an eligible target) and the helicopter's refusal of its own hit
+                        let op = match step.get::<LuaValue>("op")? {
+                            LuaValue::String(name) => match &*name.to_str()? {
+                                "classify" => cmb::HEALTH_CLASSIFY,
+                                "assess" => cmb::HEALTH_ASSESS,
+                                "timed" => cmb::HEALTH_TIMED,
+                                "hit_eligible" => cmb::HEALTH_HIT_ELIGIBLE,
+                                other => return Err(fail(format!("unknown health op {other:?}"))),
+                            },
+                            other => return Err(fail(format!("op must be a string, got {}", other.type_name()))),
+                        };
+                        let input = cmb::HealthInput {
+                            op,
+                            critical_model: lua_i32(&step, "critical_model").map_err(fail)?,
+                            damage_level: lua_i32(&step, "damage_level").map_err(fail)?,
+                            initial_damage_level: lua_i32(&step, "initial_damage_level").map_err(fail)?,
+                            old_damage_level: lua_i32(&step, "old_damage_level").map_err(fail)?,
+                            explosive: flag(&step, "explosive")?,
+                            flammable: flag(&step, "flammable")?,
+                            delta_time: one(&step, "delta_time")?,
+                            aircraft_class: lua_i32(&step, "aircraft_class").map_err(fail)?,
+                            self_hit: flag(&step, "self_hit")?,
+                            target_not_ai: flag(&step, "target_not_ai")?,
+                        };
+                        match cmb::health(&input, draw_of()?).map_err(|error| fail(format!("health: {error}")))? {
+                            cmb::HealthStep::NeedDraw => result.set("state", "need_draw")?,
+                            cmb::HealthStep::Done(outcome) => {
+                                result.set("state", "done")?;
+                                result.set("critical_class", outcome.critical_class)?;
+                                result.set("crossed", outcome.crossed)?;
+                                result.set("recovered", outcome.recovered)?;
+                                result.set("eject", outcome.eject)?;
+                                result.set("eligible", outcome.eligible)?;
+                                result.set("rolled", outcome.rolled)?;
+                                result.set("hit", outcome.hit)?;
+                                result.set("new_level", outcome.new_level)?;
+                                result.set("fatal", outcome.fatal)?;
+                            }
+                        }
+                    }
+                    "impact" => {
+                        // the weapon's target, if it has an identity, is the host's own: checked for shape only
+                        check_id("target_host_id")?;
+                        // what a weapon's death does to the world (cmb.rs impact): the plan for its kill code.  A land hit needs the terrain at the impact position, which the campaign reads
+                        // on request; no other code asks for it
+                        let kill_code = lua_i32(&step, "kill_code").map_err(fail)?;
+                        let terrain = match step.get::<LuaValue>("terrain_draws_crater")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Boolean(draws) => Some(draws),
+                            other => return Err(fail(format!("terrain_draws_crater must be a boolean, got {}", other.type_name()))),
+                        };
+                        match cmb::impact(&cmb::ImpactInput {
+                            kill_code,
+                            has_target: flag(&step, "has_target")?,
+                            target_alive: flag(&step, "target_alive")?,
+                            terrain_draws_crater: terrain,
+                        }) {
+                            cmb::ImpactStep::NeedTerrain => {
+                                result.set("state", "need_lookup")?;
+                                result.set("need", "terrain")?;
+                            }
+                            cmb::ImpactStep::Done(plan) => {
+                                result.set("state", "done")?;
+                                result.set("invalid", plan.invalid)?;
+                                result.set("crater", plan.crater)?;
+                                result.set("direct_hit", plan.direct_hit)?;
+                                result.set("blasts", plan.blasts)?;
+                                result.set("exclude_target", plan.exclude_target)?;
+                            }
+                        }
+                    }
+                    "identify" => {
+                        // the identity of a structure the campaign has to name to this host for the first time (mb_hostobj.h): the host issues it from its own count and keeps the facts the campaign sent
+                        // by value to correlate its own world's object with it.  The reference host has no world of structures of its own, so it records nothing
+                        let _entity_type = lua_i32(&step, "entity_type").map_err(fail)?;
+                        let _sub_type = lua_i32(&step, "sub_type").map_err(fail)?;
+                        let _side = lua_i32(&step, "side").map_err(fail)?;
+                        let _alive = flag(&step, "alive")?;
+                        let _position = exact_numbers::<3>(lua, &step, "position").map_err(fail)?;
+                        let _serial = lua_i32(&step, "serial").map_err(fail)?;
+                        let id = next_object_id.get();
+                        let Some(next) = id.checked_add(1) else {
+                            return Err(fail("identity counter exhausted".into()));
+                        };
+                        next_object_id.set(next);
+                        result.set("state", "done")?;
+                        result.set("host_id", format!("eech-world:object:{id}"))?;
+                    }
+                    "blast" => {
+                        // one area blast (cmb.rs blast): the radius, the sector rectangle and the walk are this host's; the campaign supplies the windows of the sectors' lists the walk asks
+                        // for and acts on the object the host reaches before the walk goes on.  No draw is taken
+                        // the identities the campaign offered the objects of the window under (a rostered mobile's or a structure's): the host repeats the one of the object it reaches
+                        let mut offered_ids: Vec<(i32, String)> = Vec::new();
+                        let window = match step.get::<LuaValue>("window")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Table(window) => {
+                                let objects: LuaTable = window.get("objects")?;
+                                let mut entries = Vec::new();
+                                for value in objects.sequence_values::<LuaTable>() {
+                                    let object = value?;
+                                    if let Some(id) = object.get::<Option<String>>("host_id")? {
+                                        offered_ids.push((lua_i32(&object, "handle").map_err(fail)?, id));
+                                    }
+                                    entries.push(cmb::BlastEntry {
+                                        handle: lua_i32(&object, "handle").map_err(fail)?,
+                                        entity_type: lua_i32(&object, "entity_type").map_err(fail)?,
+                                        readable: flag(&object, "readable")?,
+                                        alive: flag(&object, "alive")?,
+                                        has_position: flag(&object, "has_position")?,
+                                        rocket: flag(&object, "rocket")?,
+                                        excluded: flag(&object, "excluded")?,
+                                        position: exact_numbers::<3>(lua, &object, "position").map_err(fail)?,
+                                    });
+                                }
+                                Some(cmb::BlastWindow {
+                                    sx: lua_i32(&window, "sx").map_err(fail)?,
+                                    sz: lua_i32(&window, "sz").map_err(fail)?,
+                                    after: lua_i32(&window, "after").map_err(fail)?,
+                                    end: flag(&window, "list_ends")?,
+                                    entries,
+                                })
+                            }
+                            other => return Err(fail(format!("window must be a table, got {}", other.type_name()))),
+                        };
+                        let outcome = cmb::blast(&cmb::BlastInput {
+                            position: exact_numbers::<3>(lua, &step, "position").map_err(fail)?,
+                            damage_capability: lua_i32(&step, "damage_capability").map_err(fail)?,
+                            warhead_type: lua_i32(&step, "warhead_type").map_err(fail)?,
+                            has_target: flag(&step, "has_target")?,
+                            sector_side_length: lua_i32(&step, "sector_side_length").map_err(fail)?,
+                            min_x_sector: lua_i32(&step, "min_x_sector").map_err(fail)?,
+                            max_x_sector: lua_i32(&step, "max_x_sector").map_err(fail)?,
+                            min_z_sector: lua_i32(&step, "min_z_sector").map_err(fail)?,
+                            max_z_sector: lua_i32(&step, "max_z_sector").map_err(fail)?,
+                            window,
+                        })
+                        .map_err(|error| fail(format!("blast: {error}")))?;
+                        result.set("radius", outcome.radius)?;
+                        match outcome.step {
+                            cmb::BlastStep::NeedWindow { sx, sz, after } => {
+                                let need = lua.create_table()?;
+                                need.set("sx", sx)?;
+                                need.set("sz", sz)?;
+                                need.set("after", after)?;
+                                result.set("state", "need_lookup")?;
+                                result.set("need", need)?;
+                            }
+                            cmb::BlastStep::Over => {
+                                result.set("state", "done")?;
+                                result.set("action", "none")?;
+                            }
+                            cmb::BlastStep::Collision { handle, modifier } => {
+                                result.set("state", "done")?;
+                                result.set("action", "collision")?;
+                                result.set("handle", handle)?;
+                                if let Some((_, id)) = offered_ids.iter().find(|(offered, _)| *offered == handle) {
+                                    result.set("host_id", id.as_str())?;
+                                }
+                                result.set("modifier", modifier)?;
+                            }
+                            cmb::BlastStep::Intercept { handle, modifier } => {
+                                result.set("state", "done")?;
+                                result.set("action", "intercept")?;
+                                result.set("handle", handle)?;
+                                if let Some((_, id)) = offered_ids.iter().find(|(offered, _)| *offered == handle) {
+                                    result.set("host_id", id.as_str())?;
+                                }
+                                result.set("modifier", modifier)?;
+                            }
+                        }
+                        if flag(&step, "echo")? {
+                            // the candidates the walk examined in the window it was given, in the order examined, for the campaign build that records a trace
+                            let events = outcome
+                                .examined
+                                .iter()
+                                .map(|e| {
+                                    let mut f = [0.0f32; 12];
+                                    f[..3].copy_from_slice(&[e.range, e.radius, e.modifier]);
+                                    aim::Event {
+                                        kind: 11,
+                                        a: e.index,
+                                        b: i32::from(e.in_range) | (i32::from(e.intercepted) << 1),
+                                        c: 0,
+                                        d: 0,
+                                        f,
+                                    }
+                                })
+                                .collect();
+                            echo_into(&Some(events))?;
+                        }
+                    }
+                    "bridge" => {
+                        // the physical collapse of a bridge segment (cmb.rs bridge): whether an unsupported span collapses, the damaged shape, which neighbours are told, the fall (the terrain under the segment asked
+                        // for, as a lookup, when the fall needs it) and the vehicles a killed segment kills (walked through windows of the sector's list).  None takes a draw
+                        let mut offered_ids: Vec<(i32, String)> = Vec::new();
+                        let op = match step.get::<LuaValue>("op")? {
+                            LuaValue::String(name) => match &*name.to_str()? {
+                                "kill" => cmb::BRIDGE_KILL,
+                                "shape" => cmb::BRIDGE_SHAPE,
+                                "neighbour" => cmb::BRIDGE_NEIGHBOUR,
+                                "fall" => cmb::BRIDGE_FALL,
+                                "vehicles" => cmb::BRIDGE_VEHICLES,
+                                "rest" => cmb::BRIDGE_REST,
+                                other => return Err(fail(format!("unknown bridge op {other:?}"))),
+                            },
+                            other => return Err(fail(format!("op must be a string, got {}", other.type_name()))),
+                        };
+                        let terrain = match step.get::<LuaValue>("terrain")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Table(terrain) => Some((one(&terrain, "height")?, flag(&terrain, "water")?)),
+                            other => return Err(fail(format!("terrain must be a table, got {}", other.type_name()))),
+                        };
+                        let window = match step.get::<LuaValue>("window")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Table(window) => {
+                                let objects: LuaTable = window.get("objects")?;
+                                let mut entries = Vec::new();
+                                for value in objects.sequence_values::<LuaTable>() {
+                                    let object = value?;
+                                    if let Some(id) = object.get::<Option<String>>("host_id")? {
+                                        offered_ids.push((lua_i32(&object, "handle").map_err(fail)?, id));
+                                    }
+                                    entries.push(cmb::BlastEntry {
+                                        handle: lua_i32(&object, "handle").map_err(fail)?,
+                                        entity_type: lua_i32(&object, "entity_type").map_err(fail)?,
+                                        readable: flag(&object, "readable")?,
+                                        alive: flag(&object, "alive")?,
+                                        has_position: flag(&object, "has_position")?,
+                                        rocket: flag(&object, "rocket")?,
+                                        excluded: flag(&object, "excluded")?,
+                                        position: exact_numbers::<3>(lua, &object, "position").map_err(fail)?,
+                                    });
+                                }
+                                Some(cmb::BlastWindow {
+                                    sx: lua_i32(&window, "sx").map_err(fail)?,
+                                    sz: lua_i32(&window, "sz").map_err(fail)?,
+                                    after: lua_i32(&window, "after").map_err(fail)?,
+                                    end: flag(&window, "list_ends")?,
+                                    entries,
+                                })
+                            }
+                            other => return Err(fail(format!("window must be a table, got {}", other.type_name()))),
+                        };
+                        let input = cmb::BridgeInput {
+                            op,
+                            segment_kind: lua_i32(&step, "segment_kind").map_err(fail)?,
+                            alive: flag(&step, "alive")?,
+                            server: flag(&step, "server")?,
+                            pred_present: flag(&step, "pred_present")?,
+                            pred_alive: flag(&step, "pred_alive")?,
+                            succ_present: flag(&step, "succ_present")?,
+                            succ_alive: flag(&step, "succ_alive")?,
+                            which: lua_i32(&step, "which").map_err(fail)?,
+                            neighbour_present: flag(&step, "neighbour_present")?,
+                            neighbour_kind: lua_i32(&step, "neighbour_kind").map_err(fail)?,
+                            neighbour_alive: flag(&step, "neighbour_alive")?,
+                            position: exact_numbers::<3>(lua, &step, "position").map_err(fail)?,
+                            delta_time: one(&step, "delta_time")?,
+                            terrain,
+                            segment_length: one(&step, "segment_length")?,
+                            sector_side_length: lua_i32(&step, "sector_side_length").map_err(fail)?,
+                            min_x_sector: lua_i32(&step, "min_x_sector").map_err(fail)?,
+                            max_x_sector: lua_i32(&step, "max_x_sector").map_err(fail)?,
+                            min_z_sector: lua_i32(&step, "min_z_sector").map_err(fail)?,
+                            max_z_sector: lua_i32(&step, "max_z_sector").map_err(fail)?,
+                            window,
+                        };
+                        match cmb::bridge(&input).map_err(|error| fail(format!("bridge: {error}")))? {
+                            cmb::BridgeStep::Kill(kill) => {
+                                result.set("state", "done")?;
+                                result.set("kill", kill)?;
+                            }
+                            cmb::BridgeStep::Variant(variant) => {
+                                result.set("state", "done")?;
+                                result.set("variant", variant)?;
+                            }
+                            cmb::BridgeStep::Notify(notify) => {
+                                result.set("state", "done")?;
+                                result.set("notify", notify)?;
+                            }
+                            cmb::BridgeStep::NeedTerrain => {
+                                result.set("state", "need_lookup")?;
+                                result.set("need", "terrain")?;
+                            }
+                            cmb::BridgeStep::Fall {
+                                fell,
+                                dropped_y,
+                                floor_height,
+                                landed,
+                                landed_y,
+                                remove,
+                            } => {
+                                result.set("state", "done")?;
+                                result.set("fell", fell)?;
+                                result.set("landed", landed)?;
+                                result.set("remove", remove)?;
+                                if fell {
+                                    result.set("dropped_y", dropped_y)?;
+                                    result.set("floor_height", floor_height)?;
+                                }
+                                if landed {
+                                    result.set("landed_y", landed_y)?;
+                                }
+                            }
+                            cmb::BridgeStep::Rest { landed, landed_y } => {
+                                result.set("state", "done")?;
+                                result.set("landed", landed)?;
+                                if landed {
+                                    result.set("landed_y", landed_y)?;
+                                }
+                            }
+                            cmb::BridgeStep::NeedWindow { sx, sz, after } => {
+                                let need = lua.create_table()?;
+                                need.set("sx", sx)?;
+                                need.set("sz", sz)?;
+                                need.set("after", after)?;
+                                result.set("state", "need_lookup")?;
+                                result.set("need", need)?;
+                            }
+                            cmb::BridgeStep::Over => {
+                                result.set("state", "done")?;
+                                result.set("action", "none")?;
+                            }
+                            cmb::BridgeStep::Act { handle } => {
+                                result.set("state", "done")?;
+                                result.set("action", "act")?;
+                                result.set("handle", handle)?;
+                                if let Some((_, id)) = offered_ids.iter().find(|(offered, _)| *offered == handle) {
+                                    result.set("host_id", id.as_str())?;
+                                }
+                            }
                         }
                     }
                     "ready_update" => {

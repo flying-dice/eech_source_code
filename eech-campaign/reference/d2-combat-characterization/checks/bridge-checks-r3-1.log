@@ -1,0 +1,85 @@
+TEST_LINK_FLAGS=-fno-pie -no-pie
+SANITIZERS=-fsanitize=address,undefined -fno-sanitize-recover=undefined
+SANITIZER_PROBE_COMPILE_EXIT=0
+SANITIZER_PROBE_RUN_EXIT=0
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/bridge_checks.c: In function 'host_aim':
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/bridge_checks.c:164:131: warning: '%s' directive output may be truncated writing up to 128 bytes into a region of size 121 [-Wformat-truncation=]
+  164 |                                         snprintf (result->bridge.target_host_id, sizeof (result->bridge.target_host_id), "another-%s", bridge->window[i].host_id);
+      |                                                                                                                                   ^~
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/bridge_checks.c:164:41: note: 'snprintf' output between 9 and 137 bytes into a destination of size 129
+  164 |                                         snprintf (result->bridge.target_host_id, sizeof (result->bridge.target_host_id), "another-%s", bridge->window[i].host_id);
+      |                                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+COMPILE_EXIT=0
+ok   a kill question is one question that takes no sample, and the host's yes is returned
+ok   the segment's kind, its alive flag and whether this is a server cross by value
+ok   a changed host that holds the span up is obeyed
+ok   and one that kills a supported segment is not vetoed by the reference's rule (the campaign only refuses what it cannot apply)
+ok   the kill of a segment that is not alive is refused (its kill would run again)
+ok   and the kill by a client
+ok   a kill answer with another answer beside it is refused
+ok   a flag that is not a boolean is refused
+ok   a failing host stops the engine with its reason
+ok   no host stops the engine at the first request
+ok   the segment's own alive flag and each neighbour's presence and alive flag cross by value, and the variant comes back
+ok   a changed host's variant is used as given, whatever the facts
+ok   a variant that does not exist is refused
+ok   and a negative one
+ok   a shape answer with more than a variant is refused
+ok   a request that says a neighbour that is not there is alive is not sent
+ok   which neighbour it is and what the campaign knows of it cross by value
+ok   a host that tells no neighbour (the propagation withheld) is obeyed
+ok   a neighbour that is not there cannot be told
+ok   the host asks for the terrain, the campaign reads it ONCE and asks again with it
+ok   the segment's kind, position and the frame time cross, no sample is taken, and the fall comes back whole
+ok   a host that needs no terrain is never given it (a supported segment leaves the list)
+ok   a landing with its position and the leaving of the list comes back whole
+ok   a host that drops a segment and never lands it (below the floor it reports) is not vetoed
+ok   a landing without a fall is refused
+ok   a position for a fall that did not happen is refused
+ok   a drop that is not a number is refused
+ok   a flag that is not a boolean is refused
+ok   the terrain asked for a second time is refused (it is read once)
+ok   a fall answered with a kill beside it is refused
+ok   a rest request asks for the terrain, the campaign reads it ONCE and asks again with it
+ok   the segment's kind, whether it is alive and its position cross, no sample is taken, and the height comes back
+ok   a host that leaves the segment where it was saved needs no terrain and moves nothing
+ok   a segment that is alive is not moved by an unpack
+ok   a height for a rest that did not happen is refused
+ok   a resting height that is not a number is refused
+ok   a rest answered with a fall beside it is refused
+ok   and with the leaving of an update list that it is not in
+ok   the terrain asked for a second time is refused
+ok   a request for a sample in answer to a rest question is refused
+ok   a request for a sample in answer to a kill question is refused
+ok   ... to a shape question
+ok   ... to a neighbour question
+ok   ... to a fall question
+ok   the campaign kills each living object the host names, in the host's order, and takes no sample
+ok   the segment's position and length (data) and the map's sector figures cross; the first request has no window
+ok   an object a kill unlinked is not offered: the list continues as it is after the kill
+ok   a vehicle in the second window is reached
+ok   a host that kills no vehicle (they ride it out) is obeyed
+ok   a living weapon the host names is refused before its kill is applied (nothing is released, no list is read through it)
+ok   and the same where the world would reuse the released slot at once: nothing is applied
+ok   a host that names the routed vehicles around an offered weapon kills them and leaves the weapon (the refusal is for naming it)
+ok   a dead weapon is not offered as living and is never named
+ok   control: with no guard the walk applies the kill and then reads the list through the released object
+ok   control: with no guard and a reused slot the walk silently continues in another sector's list and kills an object it was never offered
+ok   control: no guard at all is still a walk (a blast walk's objects are never released by its action)
+ok   an object that is not in the window is refused before anything is killed
+ok   and a dead object (killing it would run its kill again)
+ok   a window of a sector outside the map is refused
+ok   a continuation after an object other than the last offered is refused
+ok   and a negative one
+ok   the start of the sector just walked, asked a second time, is refused
+ok   a walk of more than 4096 fresh sectors is refused at the 4097th
+ok   a failing host stops a vehicles walk with its reason
+ok   an object is offered under its identity and the host's repeat of it is accepted
+ok   another identity for the object the handle selects is refused before anything is applied
+ok   and so is none, for an object that was offered with one
+ok   an identity claimed for an object that was offered with none is refused too
+ok   a window entry whose identity does not end inside its field is refused
+ok   an identity beside an answer that names no object is refused
+70 checks, 0 failures
+RUN_EXIT=0
+DOCKER_EXIT=0

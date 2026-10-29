@@ -1,0 +1,64 @@
+{
+  "when_utc": "2026-10-28T04:22:45.515564+00:00",
+  "scope": "Original automatic observer physical-output900 control, NOT event census/fullpack/extraction acceptance",
+  "source": "f41fd92027e4833ee25a0dfd5985df38ec90f218",
+  "actual_original_driver_exec68891_exit": 0,
+  "actual_native_exit": 0,
+  "run_record": {
+    "status": "completed",
+    "when_utc": "2026-10-28T03:44:05.0682601Z",
+    "binary": "R:\\d2-evidence\\combat-original-source-f41fd9202\\eech-campaign\\target\\weapon-fixture\\combat-original-f41fd9202\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-original-source-f41fd9202/eech-campaign/target/weapon-fixture/combat-original-f41fd9202/lua/campaign.lua root=R:/d2-evidence/combat-characterization-20261028/roots/observer-control-01 scenario=lebanon_retail hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/combat-characterization-20261028/out/observer-control-01/recording.acmi observe=R:/d2-evidence/combat-characterization-20261028/out/observer-control-01/observations.jsonl metrics=R:/d2-evidence/combat-characterization-20261028/out/observer-control-01/metrics.json observe_supply=0",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/observer-control-01",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/observer-control-01",
+    "kind": "Original observer physical-output control, not combat census or fullpack acceptance",
+    "reference_provenance": "Retained ab-base root provenance inferred; no independent original input verification invented",
+    "capacity": "Lead permits seven native processes on eight physical cores, separated roots; one implementation lane",
+    "actual_native_exit": 0,
+    "native_pid": 11184,
+    "created_utc": "2026-10-28T03:44:05.0823680Z",
+    "completed_utc": "2026-10-28T04:21:01.4843005Z"
+  },
+  "full3_comparator_actual_exit": 0,
+  "comparison": {
+    "baseline": "R:/d2-evidence/los-characterization-baseline-20261026/out/ab-base",
+    "candidate": "R:/d2-evidence/combat-characterization-20261028/out/observer-control-01",
+    "scope": "Complete artifact bytes only; native exits and configuration require separate verification",
+    "results": [
+      {
+        "file": "recording.acmi",
+        "baseline_bytes": 11363845,
+        "candidate_bytes": 11363845,
+        "baseline_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "candidate_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "matches": true
+      },
+      {
+        "file": "observations.jsonl",
+        "baseline_bytes": 6629273,
+        "candidate_bytes": 6629273,
+        "baseline_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "candidate_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "matches": true
+      },
+      {
+        "file": "metrics.json",
+        "baseline_bytes": 11777,
+        "candidate_bytes": 11777,
+        "baseline_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "candidate_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "matches": true
+      }
+    ],
+    "passed": true
+  },
+  "post1179_input_manifest_actual_exit": 0,
+  "all37_exports_and_BUILD_INFO_manifest_unchanged": true,
+  "source_still_clean_and_same_head": true,
+  "limits": [
+    "Retained ab-base original root provenance inferred, not independently verified.",
+    "Canonical campaign.lua enables automatic C observer but does not drain its log; this is physical-output control only, no900 combatcensus/integrity claim.",
+    "Tacview complete-file equality, not visual inspection.",
+    "Newcontrolled witness stillneedsfocusedreviewclosure/cleannewbuild/actualcases beforephysical extraction; Task45 delivery precedes46."
+  ]
+}

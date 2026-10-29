@@ -1,0 +1,6 @@
+595c595
+< 	destroyed = (frame->slot < 0) || (generation[frame->slot] != frame->generation) || (receiver->type != (entity_types) type) || !receiver->data;
+---
+> 	destroyed = (frame->slot < 0) || 0 || (receiver->type != (entity_types) type) || !receiver->data;
+COMPILE_EXIT=1
+DOCKER_EXIT=1

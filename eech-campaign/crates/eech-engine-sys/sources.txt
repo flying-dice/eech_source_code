@@ -196,6 +196,7 @@ aphavoc/source/entity/mobile/mb_funcs.c
 aphavoc/source/entity/mobile/mb_hostlos.c
 aphavoc/source/entity/mobile/mb_hostsense.c
 aphavoc/source/entity/mobile/mb_hostaim.c
+aphavoc/source/entity/mobile/mb_hostobj.c
 aphavoc/source/entity/mobile/mb_int.c
 aphavoc/source/entity/mobile/mb_list.c
 aphavoc/source/entity/mobile/mb_move.c
@@ -447,6 +448,7 @@ aphavoc/source/entity/special/group/gp_int.c
 aphavoc/source/entity/special/group/gp_list.c
 aphavoc/source/entity/special/group/gp_loss.c
 aphavoc/source/entity/special/group/gp_roster.c
+aphavoc/source/entity/special/group/gp_rosterid.c
 aphavoc/source/entity/special/group/gp_msgs.c
 aphavoc/source/entity/special/group/gp_pack.c
 aphavoc/source/entity/special/group/gp_ptr.c

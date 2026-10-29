@@ -242,6 +242,7 @@ static void boot (const struct eech_engine_config *config)
 	reinitialise_entity_system ();
 	campaign_roster_reset ();
 	campaign_supply_arrival_reset ();
+	campaign_object_reset ();
 
 	/* GUNSHIP_TYPE (host) */
 	create_campaign (get_current_game_session ());
@@ -369,6 +370,81 @@ int eech_engine_report_loss (const char *host_id, struct eech_loss_report_receip
 	receipt->group_physical_members_before = source.group_physical_members_before;
 	receipt->tasks_retired_expire = source.tasks_retired_expire;
 	receipt->tasks_completed_on_report = source.tasks_completed_on_report;
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_report_object (const struct eech_object_report *report, struct eech_object_report_receipt *receipt, const struct eech_engine_host *host)
+{
+	campaign_object_report source;
+	campaign_object_report_receipt applied;
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!report || !receipt || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	memset (&source, 0, sizeof (source));
+	memcpy (source.host_id, report->host_id, sizeof (source.host_id));
+	source.has_damage_level = report->has_damage_level;
+	source.damage_level = report->damage_level;
+	source.destroyed = report->destroyed;
+	campaign_object_report_apply (&source, &applied);
+	receipt->entity_type = applied.entity_type;
+	receipt->rostered = applied.rostered;
+	receipt->damage_level_before = applied.damage_level_before;
+	receipt->damage_level_after = applied.damage_level_after;
+	receipt->killed = applied.killed;
+	LEAVE (EECH_ENGINE_OK);
+}
+
+struct structure_callback_context
+{
+	eech_structure_callback callback;
+	void *user;
+};
+
+static void copy_structure (const campaign_object_snapshot *source, void *user)
+{
+	struct structure_callback_context *context = (struct structure_callback_context *) user;
+	struct eech_structure structure;
+	structure.host_id = source->host_id;
+	switch (source->entity_type)
+	{
+	case ENTITY_TYPE_CITY_BUILDING: structure.kind = EECH_STRUCTURE_CITY_BUILDING; break;
+	case ENTITY_TYPE_PYLON: structure.kind = EECH_STRUCTURE_PYLON; break;
+	case ENTITY_TYPE_SCENIC: structure.kind = EECH_STRUCTURE_SCENIC; break;
+	case ENTITY_TYPE_SEGMENT: structure.kind = EECH_STRUCTURE_SEGMENT; break;
+	case ENTITY_TYPE_SITE: structure.kind = EECH_STRUCTURE_SITE; break;
+	default: structure.kind = EECH_STRUCTURE_SITE_UPDATABLE; break;
+	}
+	structure.entity_type = source->entity_type;
+	structure.sub_type = source->sub_type;
+	structure.side = source->side;
+	structure.alive = source->alive;
+	structure.damage_level = source->damage_level;
+	structure.initial_damage_level = source->initial_damage_level;
+	memcpy (structure.position, source->position, sizeof (structure.position));
+	context->callback (&structure, context->user);
+}
+
+int eech_engine_structures (eech_structure_callback callback, void *user, int *count, const struct eech_engine_host *host)
+{
+	struct structure_callback_context context;
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!callback || !count || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	context.callback = callback;
+	context.user = user;
+	*count = campaign_object_structures (copy_structure, &context);
 	LEAVE (EECH_ENGINE_OK);
 }
 
@@ -1264,11 +1340,115 @@ int eech_engine_aim_person_case (const char *person_id, const char *target_id, c
  * update loop runs (eech_wpn_fixture.c), the ordered event log, and the controlled launch case. Reading runs inside the engine entry, as the game's own calls do.
  * Nothing here calls a weapon function except the controlled case, which calls launch_client_server_weapon once, as the family fire code does.
  */
+extern int eech_cmb_trace_get (char *text, int capacity);
+extern int eech_cmb_case_census_run (char *text, int capacity);
+extern int eech_cmb_case_health_run (const char *kind, int ordinal, int percent, char *text, int capacity);
+extern int eech_cmb_case_bridge_run (int op, int ordinal, int index, int criterion, char *text, int capacity);
+extern int eech_cmb_case_collide_run (const char *kind, int ordinal, const char *launcher_id, int weapon, double modifier, int weaponless, char *text, int capacity);
+extern int eech_cmb_case_blast_run (const char *kind, int ordinal, double offset, int kill_code, const char *launcher_id, int weapon, char *text, int capacity);
+extern int eech_cmb_events_get (char *text, int capacity);
 extern int eech_wpn_trace_get (char *text, int capacity);
 extern int eech_wpn_events_get (char *text, int capacity);
 extern int eech_wpn_case_query_run (const char *host_id, int weapon, char *text, int capacity);
 extern int eech_wpn_case_kind_run (const char *host_id, char *text, int capacity);
 extern int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, int weapon, int salvo_count, char *text, int capacity);
+
+int eech_engine_cmb_case_state (int op, const char *kind, int ordinal, int percent, char *text, int capacity, const struct eech_engine_host *host)
+{
+	int rc;
+
+	/* the health case sets a health through the campaign's own setter and asks the critical predicate, both physical questions the host answers: it runs in the host's scope */
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!kind || !text || (capacity <= 0) || (op < 0) || (op > 1))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	rc = (op == 0) ? eech_cmb_case_census_run (text, capacity) : eech_cmb_case_health_run (kind, ordinal, percent, text, capacity);
+	if (rc != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_cmb_case_act (int op, const char *kind, int ordinal, const char *launcher_id, int weapon, double amount, int kill_code, int weaponless, char *text, int capacity, const struct eech_engine_host *host)
+{
+	int rc;
+
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!kind || !launcher_id || !text || (capacity <= 0) || (op < 1) || (op > 2))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	rc = (op == 1) ? eech_cmb_case_collide_run (kind, ordinal, launcher_id, weapon, amount, weaponless, text, capacity) : eech_cmb_case_blast_run (kind, ordinal, amount, kill_code, launcher_id, weapon, text, capacity);
+	if (rc != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* The controlled bridge case (EEDCS-46, R5; see eech_cmb_case.c): the survey and the state of the bridges, the declared structural failure of one segment, and the disarming of the observer.  Given the
+   same complete host as a frame, because the failure runs the campaign's own kill, explosion effects and consequences. */
+int eech_engine_cmb_case_bridge (int op, int ordinal, int index, int criterion, char *text, int capacity, const struct eech_engine_host *host)
+{
+	ENTER (OPERATION_OBSERVE, host);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || (op < 0) || (op > 3))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_cmb_case_bridge_run (op, ordinal, index, criterion, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_cmb_trace (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_cmb_trace_get (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* returns EECH_ENGINE_OK with `more` set to 1 while undrained events remain */
+int eech_engine_cmb_events (char *text, int capacity, int *more)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || !more)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	*more = eech_cmb_events_get (text, capacity);
+	LEAVE (EECH_ENGINE_OK);
+}
 
 int eech_engine_wpn_trace (char *text, int capacity)
 {

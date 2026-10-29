@@ -1,0 +1,2 @@
+# Retain the failed compiler diagnostic verbatim, including its underline spaces.
+forecast-checks-1.log -whitespace

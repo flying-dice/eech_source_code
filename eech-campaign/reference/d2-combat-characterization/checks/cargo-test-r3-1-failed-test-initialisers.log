@@ -1,0 +1,43 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+error[E0063]: missing field `host_id` in initializer of `AimBlastEntry`
+    --> crates/eech-dc/src/module.rs:2495:35
+     |
+2495 |                     entries: vec![AimBlastEntry {
+     |                                   ^^^^^^^^^^^^^ missing `host_id`
+
+For more information about this error, try `rustc --explain E0063`.
+error: could not compile `eech-dc` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error[E0063]: missing field `host_id` in initializer of `eech_blast_entry`
+    --> crates/eech-engine/src/lib.rs:7059:36
+     |
+7059 |             step.blast.window[0] = sys::eech_blast_entry {
+     |                                    ^^^^^^^^^^^^^^^^^^^^^ missing `host_id`
+
+error[E0063]: missing field `host_id` in initializer of `eech_blast_entry`
+    --> crates/eech-engine/src/lib.rs:7069:36
+     |
+7069 |             step.blast.window[1] = sys::eech_blast_entry {
+     |                                    ^^^^^^^^^^^^^^^^^^^^^ missing `host_id`
+
+error[E0063]: missing field `host_id` in initializer of `AimBlastEntry`
+    --> crates/eech-engine/src/lib.rs:7139:13
+     |
+7139 |             AimBlastEntry {
+     |             ^^^^^^^^^^^^^ missing `host_id`
+
+error[E0063]: missing field `host_id` in initializer of `eech_blast_entry`
+    --> crates/eech-engine/src/lib.rs:7338:33
+     |
+7338 |         step.bridge.window[0] = sys::eech_blast_entry {
+     |                                 ^^^^^^^^^^^^^^^^^^^^^ missing `host_id`
+
+error: could not compile `eech-engine` (lib test) due to 4 previous errors
+CARGO_EXIT=101
+DOCKER_EXIT=101

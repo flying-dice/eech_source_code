@@ -597,6 +597,22 @@ pub const EECH_AIM_ANIMATE: c_int = 15;
 pub const EECH_AIM_WEAPON_DECOY: c_int = 16;
 pub const EECH_AIM_WEAPON_SEDUCE: c_int = 17;
 pub const EECH_AIM_WEAPON_REACQUIRE: c_int = 18;
+pub const EECH_AIM_FORECAST: c_int = 19;
+pub const EECH_AIM_DAMAGE: c_int = 20;
+pub const EECH_AIM_HEALTH: c_int = 21;
+pub const EECH_AIM_IMPACT: c_int = 22;
+pub const EECH_AIM_BLAST: c_int = 23;
+pub const EECH_AIM_BRIDGE: c_int = 24;
+/// The host issues the opaque identity of a structure (aphavoc/.../mb_hostaim.h CAMPAIGN_AIM_IDENTIFY).
+pub const EECH_AIM_IDENTIFY: c_int = 25;
+
+/// The kinds of structure (csrc/eech_engine.h EECH_STRUCTURE_*).
+pub const EECH_STRUCTURE_CITY_BUILDING: c_int = 1;
+pub const EECH_STRUCTURE_PYLON: c_int = 2;
+pub const EECH_STRUCTURE_SCENIC: c_int = 3;
+pub const EECH_STRUCTURE_SEGMENT: c_int = 4;
+pub const EECH_STRUCTURE_SITE: c_int = 5;
+pub const EECH_STRUCTURE_SITE_UPDATABLE: c_int = 6;
 pub const EECH_AIM_DONE: c_int = 1;
 pub const EECH_AIM_NEED_DRAW: c_int = 2;
 pub const EECH_AIM_NEED_LOOKUP: c_int = 3;
@@ -614,6 +630,8 @@ pub const EECH_AIM_EVENT_BALLISTIC: c_int = 5;
 pub const EECH_AIM_EVENT_LEAD_RESULT: c_int = 6;
 pub const EECH_AIM_EVENT_TABLE_FLIGHT: c_int = 7;
 pub const EECH_AIM_EVENT_RANGE_RESULT: c_int = 8;
+pub const EECH_AIM_EVENT_FORECAST: c_int = 9;
+pub const EECH_AIM_EVENT_DAMAGE: c_int = 10;
 
 /// One intermediate value of the reference host's prediction, in its order (read only by the test fixture build).
 #[repr(C)]
@@ -671,6 +689,251 @@ pub struct eech_weapon_figures {
     pub rate_of_fire: f32,
     pub inverse_rate_of_fire: f32,
     pub acquire_forward: c_int,
+}
+
+/// The damage figures a forecast is made from (aphavoc/.../mb_hostaim.h campaign_damage_figures), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_damage_figures {
+    pub weapon_warhead: c_int,
+    pub warhead: c_int,
+    pub damage_capability: c_int,
+    pub armor_penetration_capability: c_int,
+    pub burst_duration: f32,
+}
+
+/// One hit, by value (aphavoc/.../mb_hostaim.h campaign_damage_request), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_damage_request {
+    pub figures: eech_damage_figures,
+    pub weapon_speed: f32,
+    pub weapon_cruise_velocity: f32,
+    pub damage_modifier: f32,
+    pub armour_level: c_int,
+    pub armour_easy: c_int,
+    pub armour_model: c_int,
+    pub armour_front: f32,
+    pub armour_rear: f32,
+    pub armour_side: f32,
+    pub weapon_position: [f32; 3],
+    pub target_position: [f32; 3],
+    pub target_attitude: [f32; 9],
+    pub target_not_ai: c_int,
+    pub player_modifier_valid: c_int,
+    pub player_modifier: f32,
+    pub has_launcher: c_int,
+    pub multiplier: c_int,
+    pub invulnerable: c_int,
+    pub cheat_guard: c_int,
+    pub damage_level: c_int,
+    pub initial_damage_level: c_int,
+    pub critical_model: c_int,
+}
+
+/// The host's answer to a hit (aphavoc/.../mb_hostaim.h campaign_damage_result), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_damage_result {
+    pub exited: c_int,
+    pub capability: c_int,
+    pub written: c_int,
+    pub new_level: c_int,
+    pub critical_before: c_int,
+    pub critical_after: c_int,
+    pub bad_modifier: c_int,
+}
+
+/// One health question that is not a hit, by value (aphavoc/.../mb_hostaim.h campaign_health_request), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_health_request {
+    pub op: c_int,
+    pub critical_model: c_int,
+    pub damage_level: c_int,
+    pub initial_damage_level: c_int,
+    pub old_damage_level: c_int,
+    pub explosive: c_int,
+    pub flammable: c_int,
+    pub delta_time: f32,
+    pub aircraft_class: c_int,
+    pub self_hit: c_int,
+    pub target_not_ai: c_int,
+}
+
+/// The host's answer to a health question (aphavoc/.../mb_hostaim.h campaign_health_result), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_health_result {
+    pub critical_class: c_int,
+    pub crossed: c_int,
+    pub recovered: c_int,
+    pub eject: c_int,
+    pub eligible: c_int,
+    pub rolled: c_int,
+    pub hit: c_int,
+    pub new_level: c_int,
+    pub fatal: c_int,
+}
+
+/// The dispatch of a weapon's death, by value (aphavoc/.../mb_hostaim.h campaign_impact_request), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_impact_request {
+    pub kill_code: c_int,
+    pub has_target: c_int,
+    pub target_alive: c_int,
+    pub terrain_known: c_int,
+    pub terrain_draws_crater: c_int,
+    pub position: [f32; 3],
+}
+
+/// The host's plan for a weapon's death (aphavoc/.../mb_hostaim.h campaign_impact_result), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_impact_result {
+    pub need_terrain: c_int,
+    pub invalid: c_int,
+    pub crater: c_int,
+    pub direct_hit: c_int,
+    pub blasts: c_int,
+    pub exclude_target: c_int,
+}
+
+/// The most objects one window of a sector's list holds (aphavoc/.../mb_hostaim.h CAMPAIGN_BLAST_WINDOW_MAX).
+pub const EECH_BLAST_WINDOW_MAX: usize = 16;
+
+/// One object of a sector's list offered to the host (aphavoc/.../mb_hostaim.h campaign_blast_entry), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_blast_entry {
+    pub handle: c_int,
+    pub kind: c_int,
+    pub readable: c_int,
+    pub alive: c_int,
+    pub has_position: c_int,
+    pub rocket: c_int,
+    pub excluded: c_int,
+    pub position: [f32; 3],
+    /// The host-issued identity of the object, NUL-terminated; empty when it has none.
+    pub host_id: [c_char; EECH_AIM_HOST_ID_MAX + 1],
+}
+
+/// One area blast, by value (aphavoc/.../mb_hostaim.h campaign_blast_request), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_blast_request {
+    pub position: [f32; 3],
+    pub damage_capability: c_int,
+    pub warhead_type: c_int,
+    pub has_target: c_int,
+    pub sector_side_length: c_int,
+    pub min_x_sector: c_int,
+    pub max_x_sector: c_int,
+    pub min_z_sector: c_int,
+    pub max_z_sector: c_int,
+    pub window_valid: c_int,
+    pub window_sx: c_int,
+    pub window_sz: c_int,
+    pub window_after: c_int,
+    pub window_count: c_int,
+    pub window_end: c_int,
+    pub window: [eech_blast_entry; EECH_BLAST_WINDOW_MAX],
+}
+
+/// The host's answer to a blast question (aphavoc/.../mb_hostaim.h campaign_blast_result), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_blast_result {
+    pub radius: f32,
+    pub need_sx: c_int,
+    pub need_sz: c_int,
+    pub need_after: c_int,
+    pub action: c_int,
+    pub handle: c_int,
+    pub modifier: f32,
+    /// The identity of the object `handle` names, repeated by the host (empty when the object has none).
+    pub target_host_id: [c_char; EECH_AIM_HOST_ID_MAX + 1],
+}
+
+/// A bridge question, by value (aphavoc/.../mb_hostaim.h campaign_bridge_request), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_bridge_request {
+    pub op: c_int,
+    pub segment_kind: c_int,
+    pub alive: c_int,
+    pub server: c_int,
+    pub pred_present: c_int,
+    pub pred_alive: c_int,
+    pub succ_present: c_int,
+    pub succ_alive: c_int,
+    pub which: c_int,
+    pub neighbour_present: c_int,
+    pub neighbour_kind: c_int,
+    pub neighbour_alive: c_int,
+    pub position: [f32; 3],
+    pub delta_time: f32,
+    pub terrain_known: c_int,
+    pub terrain_height: f32,
+    pub terrain_water: c_int,
+    pub segment_length: f32,
+    pub sector_side_length: c_int,
+    pub min_x_sector: c_int,
+    pub max_x_sector: c_int,
+    pub min_z_sector: c_int,
+    pub max_z_sector: c_int,
+    pub window_valid: c_int,
+    pub window_sx: c_int,
+    pub window_sz: c_int,
+    pub window_after: c_int,
+    pub window_count: c_int,
+    pub window_end: c_int,
+    pub window: [eech_blast_entry; EECH_BLAST_WINDOW_MAX],
+}
+
+/// The host's answer to a bridge question (aphavoc/.../mb_hostaim.h campaign_bridge_result), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_bridge_result {
+    pub kill: c_int,
+    pub variant: c_int,
+    pub notify: c_int,
+    pub need_terrain: c_int,
+    pub fell: c_int,
+    pub dropped_y: f32,
+    pub floor_height: f32,
+    pub landed: c_int,
+    pub landed_y: f32,
+    pub remove: c_int,
+    pub need_sx: c_int,
+    pub need_sz: c_int,
+    pub need_after: c_int,
+    pub action: c_int,
+    pub handle: c_int,
+    /// VEHICLES: the identity of the object `handle` names, repeated by the host.
+    pub target_host_id: [c_char; EECH_AIM_HOST_ID_MAX + 1],
+}
+
+/// The facts of a structure the host is asked to issue an identity for (aphavoc/.../mb_hostaim.h campaign_identify_request), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_identify_request {
+    pub entity_type: c_int,
+    pub sub_type: c_int,
+    pub side: c_int,
+    pub alive: c_int,
+    pub damage_level: c_int,
+    pub initial_damage_level: c_int,
+    pub position: [f32; 3],
+    pub serial: c_int,
+}
+
+/// The identity the host issued (aphavoc/.../mb_hostaim.h campaign_identify_result), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_identify_result {
+    pub host_id: [c_char; EECH_AIM_HOST_ID_MAX + 1],
 }
 
 /// The weapon as the campaign holds it, in a weapon step (aphavoc/.../mb_hostaim.h campaign_weapon_state), field for field.
@@ -768,6 +1031,18 @@ pub struct eech_aim_step {
     pub animate_on_ground: c_int,
     pub animate_lifetime: f32,
     pub animate_motion_y: f32,
+    pub forecast_figures: eech_damage_figures,
+    pub forecast_armour_level: c_int,
+    pub forecast_target_not_ai: c_int,
+    pub forecast_player_modifier: f32,
+    pub forecast_damage_modifier: f32,
+    pub forecast_velocity: f32,
+    pub damage: eech_damage_request,
+    pub health: eech_health_request,
+    pub impact: eech_impact_request,
+    pub blast: eech_blast_request,
+    pub bridge: eech_bridge_request,
+    pub identify: eech_identify_request,
 }
 
 #[repr(C)]
@@ -805,6 +1080,13 @@ pub struct eech_aim_result {
     pub animate_status: c_int,
     pub animate_write_lifetime: c_int,
     pub animate_lifetime: f32,
+    pub forecast_capability: c_int,
+    pub damage: eech_damage_result,
+    pub health: eech_health_result,
+    pub impact: eech_impact_result,
+    pub blast: eech_blast_result,
+    pub bridge: eech_bridge_result,
+    pub identify: eech_identify_result,
 }
 
 /// What each collision lookup of a weapon step found, by the question it was asked (aphavoc/.../mb_hostaim.h campaign_step_hits).
@@ -926,6 +1208,41 @@ pub struct eech_loss_report_receipt {
     pub tasks_completed_on_report: c_int,
 }
 
+/// A physical fact the host reports about an object it holds the identity of (csrc/eech_engine.h eech_object_report), field for field.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct eech_object_report {
+    pub host_id: [c_char; EECH_AIM_HOST_ID_MAX + 1],
+    pub has_damage_level: c_int,
+    pub damage_level: c_int,
+    pub destroyed: c_int,
+}
+
+/// What one object report applied (csrc/eech_engine.h eech_object_report_receipt), field for field.
+#[repr(C)]
+#[derive(Default)]
+pub struct eech_object_report_receipt {
+    pub entity_type: c_int,
+    pub rostered: c_int,
+    pub damage_level_before: c_int,
+    pub damage_level_after: c_int,
+    pub killed: c_int,
+}
+
+/// One structure the host holds an identity for (csrc/eech_engine.h eech_structure), field for field.
+#[repr(C)]
+pub struct eech_structure {
+    pub host_id: *const c_char,
+    pub kind: c_int,
+    pub entity_type: c_int,
+    pub sub_type: c_int,
+    pub side: c_int,
+    pub alive: c_int,
+    pub damage_level: c_int,
+    pub initial_damage_level: c_int,
+    pub position: [f32; 3],
+}
+
 #[repr(C)]
 #[derive(Default)]
 pub struct eech_clock {
@@ -936,6 +1253,7 @@ pub struct eech_clock {
 
 pub type eech_object_callback = unsafe extern "C" fn(object: *const eech_object, user: *mut c_void);
 pub type eech_member_callback = unsafe extern "C" fn(member: *const eech_member, user: *mut c_void);
+pub type eech_structure_callback = unsafe extern "C" fn(structure: *const eech_structure, user: *mut c_void);
 pub type eech_supply_task_callback = unsafe extern "C" fn(task: *const eech_supply_task, user: *mut c_void);
 pub type eech_log_sink = unsafe extern "C" fn(level: c_int, message: *const c_char, user: *mut c_void);
 
@@ -943,6 +1261,8 @@ extern "C" {
     pub fn eech_engine_boot(config: *const eech_engine_config, host: *const eech_engine_host) -> c_int;
     pub fn eech_engine_frame(milliseconds: u32, host: *const eech_engine_host) -> c_int;
     pub fn eech_engine_report_loss(host_id: *const c_char, receipt: *mut eech_loss_report_receipt) -> c_int;
+    pub fn eech_engine_report_object(report: *const eech_object_report, receipt: *mut eech_object_report_receipt, host: *const eech_engine_host) -> c_int;
+    pub fn eech_engine_structures(callback: eech_structure_callback, user: *mut c_void, count: *mut c_int, host: *const eech_engine_host) -> c_int;
     pub fn eech_engine_fatal_message() -> *const c_char;
     pub fn eech_engine_prepare_installation(root: *const c_char) -> c_int;
     pub fn eech_engine_objects(callback: eech_object_callback, user: *mut c_void, count: *mut c_int) -> c_int;
@@ -950,6 +1270,8 @@ extern "C" {
     pub fn eech_engine_roster_stats(stats: *mut eech_roster_stats) -> c_int;
     pub fn eech_engine_supply_tasks(callback: eech_supply_task_callback, user: *mut c_void, count: *mut c_int) -> c_int;
     pub fn eech_engine_clock(clock: *mut eech_clock) -> c_int;
+    /// The layout of the aim exchange as the campaign compiled it (csrc/eech_aim_layout.c): sizes and offsets, for the engine's layout test.
+    pub fn eech_engine_aim_layout(which: c_int) -> usize;
     pub fn eech_engine_diagnostics() -> c_int;
     pub fn eech_set_log_sink(sink: Option<eech_log_sink>, user: *mut c_void);
 }
@@ -1010,6 +1332,39 @@ extern "C" {
 
 #[cfg(feature = "weapon-fixture")]
 extern "C" {
+    pub fn eech_engine_cmb_trace(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_cmb_case_state(
+        op: c_int,
+        kind: *const c_char,
+        ordinal: c_int,
+        percent: c_int,
+        text: *mut c_char,
+        capacity: c_int,
+        host: *const eech_engine_host,
+    ) -> c_int;
+    pub fn eech_engine_cmb_case_act(
+        op: c_int,
+        kind: *const c_char,
+        ordinal: c_int,
+        launcher_id: *const c_char,
+        weapon: c_int,
+        amount: f64,
+        kill_code: c_int,
+        weaponless: c_int,
+        text: *mut c_char,
+        capacity: c_int,
+        host: *const eech_engine_host,
+    ) -> c_int;
+    pub fn eech_engine_cmb_case_bridge(
+        op: c_int,
+        ordinal: c_int,
+        index: c_int,
+        criterion: c_int,
+        text: *mut c_char,
+        capacity: c_int,
+        host: *const eech_engine_host,
+    ) -> c_int;
+    pub fn eech_engine_cmb_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
     pub fn eech_engine_wpn_trace(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_wpn_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
     pub fn eech_engine_wpn_case_query(host_id: *const c_char, weapon: c_int, text: *mut c_char, capacity: c_int) -> c_int;

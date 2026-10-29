@@ -1,0 +1,179 @@
+{
+  "schema": "independent-bounded-runtime-review-v1",
+  "preserved_utc": "2026-10-28T07:34:52.359431+00:00",
+  "reviewer": "/root/d2_los_review",
+  "scope": "NEW completed real225 SITE/SITE_UPDATABLE candidate evidence against retained originals only. Prior unchanged source/original reviews not repeated; timed author checkout not accessed. No tests, builds, native launches or agents.",
+  "disposition": "No actionable findings. Both complete raw traces equal retained original35 and preserve the measured fixed-kind damage/blast behavior within the stated coverage.",
+  "candidate_source": "225ff4abd886f188e63e83d5d3c3b688f26d1a86",
+  "frozen_candidate_clean": true,
+  "process": {
+    "original_queue_session": 85064,
+    "actual_original_queue_exit_recorded": 0,
+    "queue_record_completed": true,
+    "queue_actual_exit_recorded": 0,
+    "record_matches_root_proof": true,
+    "limit": "Completed records and trusted root actual outer result inspected; process exit is separate from raw/delta evidence."
+  },
+  "records": [
+    {
+      "kind": "SITE",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\controlled-site-01\\trace.jsonl",
+      "candidate": "R:\\d2-evidence\\combat-characterization-20261028\\out\\real-damage-site-01\\trace.jsonl",
+      "bytes_each": 113688,
+      "sha256_each": "102e90ea2a55caca71e24ab58ce2b0005080f99df19b32fef0280882f50071ee",
+      "complete_raw_bytes_equal": true,
+      "cases": 9,
+      "done": 9,
+      "refusals": 0,
+      "trusted_reports": 19,
+      "contiguous_events": 31,
+      "native_pid": 23676,
+      "actual_native_exit_recorded": 0,
+      "actual_driver_exit_recorded": 0,
+      "completed_utc": "2026-10-28T07:21:12.6403310Z",
+      "configuration": "R:/d2-evidence/combat-real-source-225ff4abd/eech-campaign/target/weapon-fixture/combat-real-225ff4abd/lua/combat-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/real-damage-site-01 out=R:/d2-evidence/combat-characterization-20261028/out/real-damage-site-01/trace.jsonl warmup=60 frame_ms=100 timed_seconds=0 kinds=SITE control=OBJECT",
+      "measured": {
+        "he_direct_modifier_writes": 2,
+        "solid_capability_calls": 2,
+        "solid_writes": 0,
+        "weaponless_exits": 1,
+        "explosion_invocations": 2,
+        "blast_calls": 3,
+        "land_double_blast": true,
+        "selected_kind_applied": 7,
+        "selected_kind_fatal": 5,
+        "selected_kind_area_notifications": 4,
+        "full_run_damage_writes": 20,
+        "full_run_real_capabilities": 22,
+        "new_timed_draws": 0
+      },
+      "input_files_independently_rehashed": 1179,
+      "input_mismatches": 0,
+      "post_input_actual_exit_recorded": 0
+    },
+    {
+      "kind": "SITE_UPDATABLE",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\controlled-site-updatable-01\\trace.jsonl",
+      "candidate": "R:\\d2-evidence\\combat-characterization-20261028\\out\\real-damage-site-updatable-01\\trace.jsonl",
+      "bytes_each": 116036,
+      "sha256_each": "e3f324a264d912e48a991de769508656ba5b5d6e30d0447e21a7fd1c74644c1e",
+      "complete_raw_bytes_equal": true,
+      "cases": 9,
+      "done": 9,
+      "refusals": 0,
+      "trusted_reports": 19,
+      "contiguous_events": 19,
+      "native_pid": 20844,
+      "actual_native_exit_recorded": 0,
+      "actual_driver_exit_recorded": 0,
+      "completed_utc": "2026-10-28T07:22:55.1272056Z",
+      "configuration": "R:/d2-evidence/combat-real-source-225ff4abd/eech-campaign/target/weapon-fixture/combat-real-225ff4abd/lua/combat-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/real-damage-site-updatable-01 out=R:/d2-evidence/combat-characterization-20261028/out/real-damage-site-updatable-01/trace.jsonl warmup=60 frame_ms=100 timed_seconds=0 kinds=SITE_UPDATABLE control=OBJECT",
+      "measured": {
+        "he_direct_modifier_writes": 2,
+        "solid_capability_calls": 2,
+        "solid_writes": 0,
+        "weaponless_exits": 1,
+        "explosion_invocations": 2,
+        "blast_calls": 3,
+        "land_double_blast": true,
+        "selected_kind_applied": 8,
+        "selected_kind_fatal": 3,
+        "selected_kind_area_notifications": 5,
+        "full_run_damage_writes": 8,
+        "full_run_real_capabilities": 10,
+        "new_timed_draws": 0
+      },
+      "input_files_independently_rehashed": 1179,
+      "input_mismatches": 0,
+      "post_input_actual_exit_recorded": 0
+    }
+  ],
+  "preservation": {
+    "each_candidate_root_inputs_independently_rehashed": 1179,
+    "mismatches_both": 0,
+    "exports_independently_rehashed": 40,
+    "export_mismatches": 0,
+    "initial_post_expected_maps_equal": true,
+    "build_info_sha256": "ca4525cdf197bfe166b3ee9f7d6b0151f3328c054e5bc75890028300e56c3599",
+    "build_info_matches_initial_post": true,
+    "build_info_commit225_dirty0": true,
+    "post_export_verifier_actual_exit_recorded": 0
+  },
+  "findings": [],
+  "limits": [
+    "Nine done rows are preconditions; positive coverage is established by actual damage/capability/collision/blast deltas.",
+    "Two HE direct/modifier writes per selected kind; two solid capability calls produce no health writes, not positive solid damage.",
+    "HIT_TARGET includes a direct collision and excludes its linked target only from the area walk.",
+    "First living receiver can change after a fatal hit; not a same-entity modifier comparison.",
+    "No timed frames/draws added, but AA critical-health setter and PERSON predicate still execute.",
+    "No all13-kind, player/MP/invulnerability/easy-armour or timed-phase coverage inferred.",
+    "R1/R2/timed/blast/bridge/report source responsibilities and wider real-hit natural600/900/provider/full40 delivery gates remain separate pending or active; not whole Task46/D2 acceptance."
+  ],
+  "artifact_pins": [
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\controlled-site-01\\trace.jsonl",
+      "bytes": 113688,
+      "sha256": "102e90ea2a55caca71e24ab58ce2b0005080f99df19b32fef0280882f50071ee"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\real-damage-site-01\\trace.jsonl",
+      "bytes": 113688,
+      "sha256": "102e90ea2a55caca71e24ab58ce2b0005080f99df19b32fef0280882f50071ee"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\real-damage-site-01\\run.json",
+      "bytes": 1065,
+      "sha256": "e2ad0f289b1c1882ee2eace2ab186a6871535b6ac0d379737f851f0ab08f92a3"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-real-damage-site-01-post-inputs.log",
+      "bytes": 307,
+      "sha256": "f8f95acaace69034e03dea9fb078cb858ccd6877e2c05c3cde4df3322e17fcf8"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\controlled-site-updatable-01\\trace.jsonl",
+      "bytes": 116036,
+      "sha256": "e3f324a264d912e48a991de769508656ba5b5d6e30d0447e21a7fd1c74644c1e"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\real-damage-site-updatable-01\\trace.jsonl",
+      "bytes": 116036,
+      "sha256": "e3f324a264d912e48a991de769508656ba5b5d6e30d0447e21a7fd1c74644c1e"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\real-damage-site-updatable-01\\run.json",
+      "bytes": 1115,
+      "sha256": "d16f6d2ec24ba75d449f4a288a3424b46a969527d4331fffbd33722d7cba651c"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-real-damage-site-updatable-01-post-inputs.log",
+      "bytes": 317,
+      "sha256": "16f56676033fe061a279d889c45a86548066a8cd685d7f0cb62404239de199e6"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-real-sites-completion.json",
+      "bytes": 34635,
+      "sha256": "fd6d95afcfe12e7501f369f958942896f6cadfadd3e4d83aa7cea11ee17b1fc0"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\real-sites-queue.json",
+      "bytes": 424,
+      "sha256": "ce2b6c135da1a610272ae297f7f348009bee220d5897fa47b3b495989d4d2d47"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\run-real-sites-queue.ps1",
+      "bytes": 1366,
+      "sha256": "1c55febd87544a592f39a3d1efb568c70f8155e9a1c114a5d6ff24671ee2ba03"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-real-sites-post-build.json",
+      "bytes": 10911,
+      "sha256": "95dfbf2c61a0e81bf430329ad8b9d72892fb9b75315cc7cb0fcb15d02e10ded9"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-clean-real-225ff-fixture-manifest.json",
+      "bytes": 10911,
+      "sha256": "7d6df4b003459a32373e2f68d8ae929244adb3de71019253dce86d2295b2cad8"
+    }
+  ]
+}

@@ -66,6 +66,12 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_cmbfx.h"
+
+#include "entity/mobile/mb_hostaim.h"
+
+#include "entity/mobile/mb_hostobj.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -812,6 +818,32 @@ int count_entities_in_meta_explosion( meta_explosion_types type )
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//
+// the terrain fact the host asks for when its plan for a land hit needs it (EEDCS-46, IMPACT): whether the terrain at the impact point takes a crater.  The original read it at this
+// point for a land hit only; the host asks for it only then
+//
+
+static int impact_terrain (void *context)
+{
+	vec3d
+		*pos;
+
+	terrain_3d_point_data
+		point_data;
+
+	pos = (vec3d *) context;
+
+	memset (&point_data, 0, sizeof (terrain_3d_point_data));
+
+	ASSERT(point_inside_map_area(pos));
+	get_3d_terrain_point_data (pos->x, pos->z, &point_data);
+
+	return get_terrain_type_draw_crater (point_data.terrain_type);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void create_client_server_weapon_killed_explosion_effect (entity *en)
 {
 	vec3d
@@ -826,9 +858,6 @@ void create_client_server_weapon_killed_explosion_effect (entity *en)
 
 	weapon_warhead_types
 		warhead_type;
-
-	terrain_3d_point_data
-		point_data;
 
 	ASSERT (en);
 
@@ -875,83 +904,68 @@ void create_client_server_weapon_killed_explosion_effect (entity *en)
 	// apply damage to surrounding objects and/or target
 	//
 
-	switch (kill_code)
-	{
-		case WEAPON_KILL_CODE_EXHAUSTED:
-		case WEAPON_KILL_CODE_OUT_OF_BOUNDS:
-		case WEAPON_KILL_CODE_HIT_WATER:
-		{
-			//
-			// do nothing
-			//
+	CMB_FX_EXPLOSION_BEGIN (kill_code)
 
-			break;
+	//
+	// what the weapon's death does to the world is the HOST's (EEDCS-46, mb_hostaim.h IMPACT): whether it makes a crater, sends its target a direct hit and how many blasts follow.
+	// The campaign supplies the facts the dispatch reads (the kill code, the target link, the terrain on request) and performs the effects and the notifications in the original's
+	// order: the crater, the direct hit, then the blasts
+	//
+
+	{
+		campaign_impact_result
+			plan;
+
+		entity
+			*target;
+
+		float
+			position [3];
+
+		int
+			blast;
+
+		target = get_local_entity_parent (en, LIST_TYPE_TARGET);
+
+		position [0] = pos->x;
+		position [1] = pos->y;
+		position [2] = pos->z;
+
+		plan = campaign_aim_impact (target, (int) kill_code, target != NULL, (target != NULL) && get_local_entity_int_value (target, INT_TYPE_ALIVE), position, impact_terrain, pos);
+
+		if (plan.invalid)
+		{
+			debug_fatal ("EXPLOSN : Invalid weapon kill code ( %d )", kill_code);
 		}
-		case WEAPON_KILL_CODE_HIT_LAND:
+
+		if (plan.crater)
 		{
 			//
 			// create a crater
 			//
 
-			memset (&point_data, 0, sizeof (terrain_3d_point_data));
-
-			ASSERT(point_inside_map_area(pos));
-			get_3d_terrain_point_data (pos->x, pos->z, &point_data);
-
-			if (get_terrain_type_draw_crater (point_data.terrain_type))
-			{
-				create_client_server_weapon_hit_ground_crater (en, pos);
-			}
-
-			damage_objects_within_explosion_damage_radius (en, NULL);
-
-			//
-			// deliberate fall-through
-			//
+			create_client_server_weapon_hit_ground_crater (en, pos);
 		}
-		case WEAPON_KILL_CODE_OVERSHOT_TARGET:
-		case WEAPON_KILL_CODE_SELF_DESTRUCT:
+
+		if (plan.direct_hit)
 		{
-			//
-			// notify all objects within blast radius
-			//
-
-			damage_objects_within_explosion_damage_radius (en, NULL);
-
-			break;
-		}
-		case WEAPON_KILL_CODE_HIT_TARGET:
-		{
-			entity
-				*target;
-
-			target = get_local_entity_parent (en, LIST_TYPE_TARGET);
-
 			//
 			// notify the target of a direct hit
 			//
 
-			if (target)
-			{
-				if (get_local_entity_int_value (target, INT_TYPE_ALIVE))
-				{
-					notify_local_entity (ENTITY_MESSAGE_COLLISION, target, en, 0.0);
-				}
-			}
-
-			//
-			// notify all objects within blast radius ( except the target )
-			//
-
-			damage_objects_within_explosion_damage_radius (en, target);
-
-			break;
+			notify_local_entity (ENTITY_MESSAGE_COLLISION, target, en, 0.0);
 		}
-		default:
+
+		//
+		// notify all objects within blast radius ( except the target, when the host leaves it out )
+		//
+
+		for (blast = 0; blast < plan.blasts; blast ++)
 		{
-			debug_fatal ("EXPLOSN : Invalid weapon kill code ( %d )", kill_code);
+			damage_objects_within_explosion_damage_radius (en, plan.exclude_target ? target : NULL);
 		}
 	}
+	CMB_FX_EXPLOSION_END ()
 
 	#if DEBUG_MODULE > 1
 
@@ -970,145 +984,228 @@ void create_client_server_weapon_killed_explosion_effect (entity *en)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void damage_objects_within_explosion_damage_radius (entity *en, entity *target)
+//
+// One area blast (EEDCS-46, mb_hostaim.h BLAST).  The HOST owns the damage radius, the sector rectangle, the order of the walk, the candidates, the range and the strict in-range
+// test, the exclusion of the target, the damage modifier and the rocket interception.  The campaign supplies the facts of the world the host asks for, a window of a sector's list at
+// a time, and sends the notification (or sets the destroyed rocket's kill code) for each object the host reaches BEFORE the walk goes on: the original read an object's successor
+// after notifying it, and a notification can kill objects and change lists, so the candidates are never frozen.
+//
+
+typedef struct blast_context
 {
-	float
-		range,
-		temp_x,
-		temp_z,
-		damage_radius,
-		damage_modifier;
+	entity
+		*en,
+		*target;
 
 	int
-		sx,
-		sz,
-		min_sector_x,
-		max_sector_x,
-		min_sector_z,
-		max_sector_z,
 		damage_capability;
+} blast_context;
 
-	vec3d
-		*explosion_position,
-		*object_position;
-
-	entity
-		*sect,
-		*object;
-	weapon_warhead_types
-		warhead_type;
-
-	warhead_type = (weapon_warhead_types) get_local_entity_int_value (en, INT_TYPE_WEAPON_WARHEAD_TYPE);
-	damage_capability = get_local_entity_int_value (en, INT_TYPE_DAMAGE_CAPABILITY);
-
-	damage_radius = sqrt((float)damage_capability);
-
-	if (damage_radius == 0.0)
+// the kinds of object a blast can read the state of (the original read it for these and no other)
+static int blast_readable (entity_types type)
+{
+	switch (type)
 	{
-		return;
-	}
-
-	explosion_position = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
-
-	temp_x = explosion_position->x - damage_radius;
-	temp_z = explosion_position->z - damage_radius;
-
-	get_x_sector (min_sector_x, temp_x);
-	get_z_sector (min_sector_z, temp_z);
-
-	temp_x = explosion_position->x + damage_radius;
-	temp_z = explosion_position->z + damage_radius;
-
-	get_x_sector (max_sector_x, temp_x);
-	get_z_sector (max_sector_z, temp_z);
-
-	min_sector_x = bound (min_sector_x, MIN_MAP_X_SECTOR, MAX_MAP_X_SECTOR);
-	max_sector_x = bound (max_sector_x, MIN_MAP_X_SECTOR, MAX_MAP_X_SECTOR);
-
-	min_sector_z = bound (min_sector_z, MIN_MAP_Z_SECTOR, MAX_MAP_Z_SECTOR);
-	max_sector_z = bound (max_sector_z, MIN_MAP_Z_SECTOR, MAX_MAP_Z_SECTOR);
-
-	for (sz = min_sector_z; sz <= max_sector_z; sz ++)
-	{
-		for (sx = min_sector_x; sx <= max_sector_x; sx ++)
+		case ENTITY_TYPE_ANTI_AIRCRAFT:
+		case ENTITY_TYPE_CITY_BUILDING:
+		case ENTITY_TYPE_FIXED_WING:
+		case ENTITY_TYPE_HELICOPTER:
+		case ENTITY_TYPE_PERSON:
+		case ENTITY_TYPE_PYLON:
+		case ENTITY_TYPE_ROUTED_VEHICLE:
+		case ENTITY_TYPE_SCENIC:
+		case ENTITY_TYPE_SEGMENT:
+		case ENTITY_TYPE_SHIP_VEHICLE:
+		case ENTITY_TYPE_SITE:
+		case ENTITY_TYPE_SITE_UPDATABLE:
+		case ENTITY_TYPE_WEAPON:
 		{
-			sect = get_local_raw_sector_entity (sx, sz);
-
-			//
-			// search for damagable objects
-			//
-
-			object = get_local_entity_first_child (sect, LIST_TYPE_SECTOR);
-
-			while (object)
-			{
-				if (object == target)
-				{
-					//
-					// skip target, as it is dealt with elsewhere
-					//
-
-					object = get_local_entity_child_succ (object, LIST_TYPE_SECTOR);
-
-					continue;
-				}
-
-				switch (object->type)
-				{
-					case ENTITY_TYPE_ANTI_AIRCRAFT:
-					case ENTITY_TYPE_CITY_BUILDING:
-					case ENTITY_TYPE_FIXED_WING:
-					case ENTITY_TYPE_HELICOPTER:
-					case ENTITY_TYPE_PERSON:
-					case ENTITY_TYPE_PYLON:
-					case ENTITY_TYPE_ROUTED_VEHICLE:
-					case ENTITY_TYPE_SCENIC:
-					case ENTITY_TYPE_SEGMENT:
-					case ENTITY_TYPE_SHIP_VEHICLE:
-					case ENTITY_TYPE_SITE:
-					case ENTITY_TYPE_SITE_UPDATABLE:
-					case ENTITY_TYPE_WEAPON:
-					{
-						if (get_local_entity_int_value (object, INT_TYPE_ALIVE))
-						{
-							object_position = get_local_entity_vec3d_ptr (object, VEC3D_TYPE_POSITION);
-
-							if (object_position)
-							{
-								range = get_3d_range (explosion_position, object_position);
-
-								if (range && (range < damage_radius))
-								{
-									damage_modifier = range / damage_radius; // less value - more damage!
-
-									#if DEBUG_MODULE
-									debug_log ("EXPLOSN : damage radius %.2f, range %.2f, damage modifier = %f", damage_radius, range, damage_modifier);
-									#endif
-
-									if (object->type != ENTITY_TYPE_WEAPON)
-										notify_local_entity (ENTITY_MESSAGE_COLLISION, object, en, damage_modifier);
-									else if (1 - pow(damage_modifier, pow((float)(warhead_type - 3) / 3, 1.5f)) > 0.75 && get_local_entity_int_value (object, INT_TYPE_WEAPON_ROCKET))
-									{
-										#if DEBUG_MODULE
-										debug_log ("EXPLOSN : MISSILE DESTROYED!");
-										#endif
-
-										set_local_entity_int_value (object, INT_TYPE_WEAPON_KILL_CODE, WEAPON_KILL_CODE_OVERSHOT_TARGET);
-									}
-								}
-							}
-						}
-
-						break;
-					}
-				}
-
-				object = get_local_entity_child_succ (object, LIST_TYPE_SECTOR);
-			}
+			return TRUE;
+		}
+		default:
+		{
+			return FALSE;
 		}
 	}
 }
 
+// the objects of sector (sx, sz) following `after` (NULL: from the start of the sector's list), in list order, with the facts the host judges them by
+static int blast_window (void *context, int sx, int sz, const void *after, campaign_blast_entry *entries, void **objects, int max, int *end)
+{
+	blast_context
+		*blast;
+
+	const char
+		*id;
+
+	entity
+		*sect,
+		*object;
+
+	vec3d
+		*object_position;
+
+	int
+		count;
+
+	blast = (blast_context *) context;
+
+	if (after)
+	{
+		object = get_local_entity_child_succ ((entity *) after, LIST_TYPE_SECTOR);
+	}
+	else
+	{
+		sect = get_local_raw_sector_entity (sx, sz);
+
+		object = get_local_entity_first_child (sect, LIST_TYPE_SECTOR);
+	}
+
+	count = 0;
+
+	while (object && (count < max))
+	{
+		campaign_blast_entry
+			*entry;
+
+		entry = &entries [count];
+
+		entry->type = (int) object->type;
+
+		entry->excluded = (object == blast->target) ? TRUE : FALSE;
+
+		if (blast_readable (object->type))
+		{
+			entry->readable = TRUE;
+
+			// the identity the host gave the object (a rostered mobile's or a structure's; a structure is identified now, the first time the campaign names it to the host); a weapon has none
+			id = campaign_object_identify (object);
+
+			if (id)
+			{
+				memcpy (entry->host_id, id, strlen (id) + 1);
+			}
+
+			entry->alive = get_local_entity_int_value (object, INT_TYPE_ALIVE) ? TRUE : FALSE;
+
+			object_position = get_local_entity_vec3d_ptr (object, VEC3D_TYPE_POSITION);
+
+			if (object_position)
+			{
+				entry->has_position = TRUE;
+
+				entry->position [0] = object_position->x;
+				entry->position [1] = object_position->y;
+				entry->position [2] = object_position->z;
+			}
+
+			if (object->type == ENTITY_TYPE_WEAPON)
+			{
+				entry->rocket = get_local_entity_int_value (object, INT_TYPE_WEAPON_ROCKET) ? TRUE : FALSE;
+			}
+		}
+
+		objects [count] = object;
+
+		count ++;
+
+		object = get_local_entity_child_succ (object, LIST_TYPE_SECTOR);
+	}
+
+	*end = (object == NULL) ? TRUE : FALSE;
+
+	return count;
+}
+
+// the same window of a sector's list for a walk that excludes no object (the vehicles a killed bridge segment kills, sg_dstry.c): the facts the host judges the objects by are the blast's
+int campaign_sector_window (int sx, int sz, const void *after, struct campaign_blast_entry *entries, void **objects, int max, int *end)
+{
+	blast_context
+		none;
+
+	none.en = NULL;
+	none.target = NULL;
+	none.damage_capability = 0;
+
+	return blast_window (&none, sx, sz, after, entries, objects, max, end);
+}
+
+static void blast_begin (void *context, float radius)
+{
+	blast_context
+		*blast;
+
+	blast = (blast_context *) context;
+
+	CMB_FX_BLAST_BEGIN (blast->en, blast->target, blast->damage_capability, radius)
+}
+
+// the host reached an object: a collision for it, or a rocket destroyed
+static void blast_apply (void *context, void *object, int action, float modifier)
+{
+	blast_context
+		*blast;
+
+	blast = (blast_context *) context;
+
+	if (action == CAMPAIGN_BLAST_COLLISION)
+	{
+		notify_local_entity (ENTITY_MESSAGE_COLLISION, (entity *) object, blast->en, modifier);
+	}
+	else
+	{
+		set_local_entity_int_value ((entity *) object, INT_TYPE_WEAPON_KILL_CODE, WEAPON_KILL_CODE_OVERSHOT_TARGET);
+	}
+}
+
+static void blast_end (void *context)
+{
+	CMB_FX_BLAST_END ()
+}
+
+void damage_objects_within_explosion_damage_radius (entity *en, entity *target)
+{
+	blast_context
+		blast;
+
+	struct campaign_blast_walk
+		walk;
+
+	vec3d
+		*explosion_position;
+
+	explosion_position = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
+
+	blast.en = en;
+	blast.target = target;
+	blast.damage_capability = get_local_entity_int_value (en, INT_TYPE_DAMAGE_CAPABILITY);
+
+	memset (&walk, 0, sizeof (walk));
+
+	walk.sector_side_length = SECTOR_SIDE_LENGTH;
+	walk.min_x_sector = MIN_MAP_X_SECTOR;
+	walk.max_x_sector = MAX_MAP_X_SECTOR;
+	walk.min_z_sector = MIN_MAP_Z_SECTOR;
+	walk.max_z_sector = MAX_MAP_Z_SECTOR;
+	walk.echo = CMB_FX_BLAST_ECHO;
+	walk.window = blast_window;
+	walk.apply = blast_apply;
+	walk.begin = blast_begin;
+	walk.examined = CMB_FX_BLAST_EXAMINED;
+	walk.end = blast_end;
+	walk.context = &blast;
+
+	{
+		float
+			position [3];
+
+		position [0] = explosion_position->x;
+		position [1] = explosion_position->y;
+		position [2] = explosion_position->z;
+
+		campaign_aim_blast (position, blast.damage_capability, get_local_entity_int_value (en, INT_TYPE_WEAPON_WARHEAD_TYPE), target != NULL, &walk);
+	}
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

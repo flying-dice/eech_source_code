@@ -1,0 +1,283 @@
+{
+  "when_utc": "2026-10-28T09:08:30.552828+00:00",
+  "source": "511156c1c9a0cffa37f4364646cb7d9a1d222a3e",
+  "plan": {
+    "created_utc": "2026-10-28T08:53:59.273090+00:00",
+    "purpose": "Resolve untriggered180timed controls with characterized forcedAA14percent/20s via unchanged controlled script; no defaultretail rerun",
+    "source": "511156c1c9a0cffa37f4364646cb7d9a1d222a3e",
+    "wrapper": "R:\\d2-evidence\\combat-characterization-20261028\\timed-aa-probe.lua",
+    "wrapper_sha256": "84c87c680eb789ea8339f8439b32e082fe444bd5d19fb4d02fe453bcbba53f6c",
+    "driver": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-aa-probe.ps1",
+    "driver_sha256": "56b5f324e8b18e5ea988f11314e2cb29d043ad83d397119ffb68d0869b6f1993",
+    "case_script": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\lua\\combat-case.lua",
+    "case_script_sha256": "3de3505a64ed1f994edc21f825d38e9c568acb2310391d9642d2d3ecfeb9e264",
+    "lua51_compile_only_checks": [
+      {
+        "name": "compile_only_control",
+        "actual_lua_status": 0,
+        "expected": 0
+      },
+      {
+        "name": "invalid_syntax_control",
+        "actual_lua_status": 3,
+        "expected": 3
+      },
+      {
+        "name": "private_aa_probe",
+        "actual_lua_status": 0,
+        "expected": 0
+      }
+    ],
+    "baseline_reused": "Completed35484/native0 corrected511controlled02 all403523bytes exactlyoriginal35, independentreviewclosed; no reference rerun merelyforhandover",
+    "natural_positive_timed_first_report_at_sim_seconds": 480,
+    "reference180_observed_timed_eligible_rolled_hit": 0,
+    "unchanged_active_queue": "84276 stillruns original11cases/180s, no file/plan/driver/queue/source mutation; reached/absent evidence judged honestly",
+    "native_arguments_common": "same full39case script, warmup60/frame100/timed_seconds20/seed1/freshverifiedretailroot",
+    "cases": [
+      {
+        "name": "timed-aa-never-01",
+        "mode": "timed_never",
+        "expected_native_exit": 0
+      },
+      {
+        "name": "timed-aa-rate150-01",
+        "mode": "timed_rate150",
+        "expected_native_exit": 0
+      },
+      {
+        "name": "timed-aa-second-draw-01",
+        "mode": "bad_health_second_draw",
+        "expected_native_exit": 1
+      },
+      {
+        "name": "timed-aa-fatal-01",
+        "mode": "bad_health_fatal",
+        "expected_native_exit": 1
+      }
+    ],
+    "limits": [
+      "Only hostHEALTH/TIMED answers vary; all other steps forward unchanged and originalcase source/helpers unchanged",
+      "Referencebaseline actual201AA draws/41hits/0fatal, all-worldAAattempts138489distinct",
+      "timed_never varies eligibility plus sample consumption; rate150 changes requested physicaldelta only, actualcampaignframe timing stays100ms",
+      "Malformed modes reuse pinned aim-malformed.lua, must reach corresponding counters AND specific native primaryrefusal; secondaryenginepoison/nonzero alone notpass",
+      "No new baseline/golden/tolerance/pack/source physics changes; no defaultTacview acceptance inferred; no selfhit/nativefatalAA claim absentactualactivity"
+    ]
+  },
+  "reused_reference_controller35484_actual_exit": 0,
+  "reused_reference_AA_delta": {
+    "attempts": 138489,
+    "draws": 201,
+    "hits": 41,
+    "fatal": 0,
+    "last_observed_timed_new_level": 54
+  },
+  "records": [
+    {
+      "name": "timed-aa-never-01",
+      "mode": "timed_never",
+      "actual_original_controller": 74685,
+      "actual_driver_native_exit": 0,
+      "run_record": {
+        "status": "completed",
+        "when_utc": "2026-10-28T08:57:30.0773409Z",
+        "binary": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-characterization-20261028/timed-aa-probe.lua root=R:/d2-evidence/combat-characterization-20261028/roots/timed-aa-never-01 out=R:/d2-evidence/combat-characterization-20261028/out/timed-aa-never-01/trace.jsonl warmup=60 frame_ms=100 timed_seconds=20 timed_probe_mode=timed_never case_script=R:/d2-evidence/combat-timed-scope-source-511156c1c/eech-campaign/target/weapon-fixture/combat-timed-scope-511156c1c/lua/combat-case.lua probe_summary=R:/d2-evidence/combat-characterization-20261028/out/timed-aa-never-01/probe-summary.jsonl",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/timed-aa-never-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/timed-aa-never-01",
+        "mode": "timed_never",
+        "kind": "Focused changed-host AA authority/refusal around unchanged controlled scenario; expected error must match actual reason",
+        "wrapper_sha256": "84c87c680eb789ea8339f8439b32e082fe444bd5d19fb4d02fe453bcbba53f6c",
+        "case_script_sha256": "3de3505a64ed1f994edc21f825d38e9c568acb2310391d9642d2d3ecfeb9e264",
+        "actual_native_exit": 0,
+        "native_pid": 19284,
+        "created_utc": "2026-10-28T08:57:30.0914113Z",
+        "completed_utc": "2026-10-28T09:00:59.6923884Z"
+      },
+      "trace_bytes": 395875,
+      "trace_sha256": "3a12b062e2571a7a2650a01c36ffa6b2848c0d8c091b5a6b55608db703ae3eb8",
+      "summary_bytes": 336,
+      "summary_sha256": "86128ff5ab406ad9aa24e225b3ebf47c221f796f210ccf5bc08382b212d874c0",
+      "summary": {
+        "draw_requests": 0,
+        "eligible_answers": 0,
+        "event": "timed_aa_probe",
+        "failure": "",
+        "hit_answers": 0,
+        "inconsistent_fatal_answers": 0,
+        "mode": "timed_never",
+        "requests_with_sample": 0,
+        "scope": "changed host answers around the unchanged controlled fixture; not a default byte comparison or fullpack",
+        "script_completed": true,
+        "second_draw_requests": 0
+      },
+      "preAA_prefix_bytes_equal": 375051,
+      "all39_case_records_equal": true,
+      "trusted_report_groups": 79,
+      "contiguous_events": 33,
+      "AA_core_observer_delta": {
+        "attempts": 138489,
+        "draws": 0,
+        "hits": 0,
+        "fatal": 0
+      },
+      "last_observed_AA_timed_level": null,
+      "trace_complete": true,
+      "post1179_input_actual_exit": 0
+    },
+    {
+      "name": "timed-aa-rate150-01",
+      "mode": "timed_rate150",
+      "actual_original_controller": 4280,
+      "actual_driver_native_exit": 0,
+      "run_record": {
+        "status": "completed",
+        "when_utc": "2026-10-28T08:57:40.2325816Z",
+        "binary": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-characterization-20261028/timed-aa-probe.lua root=R:/d2-evidence/combat-characterization-20261028/roots/timed-aa-rate150-01 out=R:/d2-evidence/combat-characterization-20261028/out/timed-aa-rate150-01/trace.jsonl warmup=60 frame_ms=100 timed_seconds=20 timed_probe_mode=timed_rate150 case_script=R:/d2-evidence/combat-timed-scope-source-511156c1c/eech-campaign/target/weapon-fixture/combat-timed-scope-511156c1c/lua/combat-case.lua probe_summary=R:/d2-evidence/combat-characterization-20261028/out/timed-aa-rate150-01/probe-summary.jsonl",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/timed-aa-rate150-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/timed-aa-rate150-01",
+        "mode": "timed_rate150",
+        "kind": "Focused changed-host AA authority/refusal around unchanged controlled scenario; expected error must match actual reason",
+        "wrapper_sha256": "84c87c680eb789ea8339f8439b32e082fe444bd5d19fb4d02fe453bcbba53f6c",
+        "case_script_sha256": "3de3505a64ed1f994edc21f825d38e9c568acb2310391d9642d2d3ecfeb9e264",
+        "actual_native_exit": 0,
+        "native_pid": 12504,
+        "created_utc": "2026-10-28T08:57:40.2456740Z",
+        "completed_utc": "2026-10-28T09:01:07.8541646Z"
+      },
+      "trace_bytes": 406113,
+      "trace_sha256": "b25ba0a69b08dedbb0721b9a44b60e8fd3fa8ba6b775f019d05e29564ea0445a",
+      "summary_bytes": 345,
+      "summary_sha256": "655650a2d9aab2f2f79c70c21b80c3437f217e266779267d4235f13c570e7243",
+      "summary": {
+        "draw_requests": 201,
+        "eligible_answers": 201,
+        "event": "timed_aa_probe",
+        "failure": "",
+        "hit_answers": 55,
+        "inconsistent_fatal_answers": 0,
+        "mode": "timed_rate150",
+        "requests_with_sample": 201,
+        "scope": "changed host answers around the unchanged controlled fixture; not a default byte comparison or fullpack",
+        "script_completed": true,
+        "second_draw_requests": 0
+      },
+      "preAA_prefix_bytes_equal": 375051,
+      "all39_case_records_equal": true,
+      "trusted_report_groups": 79,
+      "contiguous_events": 88,
+      "AA_core_observer_delta": {
+        "attempts": 138489,
+        "draws": 201,
+        "hits": 55,
+        "fatal": 0
+      },
+      "last_observed_AA_timed_level": 40,
+      "trace_complete": true,
+      "post1179_input_actual_exit": 0
+    },
+    {
+      "name": "timed-aa-second-draw-01",
+      "mode": "bad_health_second_draw",
+      "actual_original_controller": 75186,
+      "actual_driver_native_exit": 1,
+      "run_record": {
+        "status": "completed",
+        "when_utc": "2026-10-28T09:03:08.1050650Z",
+        "binary": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-characterization-20261028/timed-aa-probe.lua root=R:/d2-evidence/combat-characterization-20261028/roots/timed-aa-second-draw-01 out=R:/d2-evidence/combat-characterization-20261028/out/timed-aa-second-draw-01/trace.jsonl warmup=60 frame_ms=100 timed_seconds=20 timed_probe_mode=bad_health_second_draw case_script=R:/d2-evidence/combat-timed-scope-source-511156c1c/eech-campaign/target/weapon-fixture/combat-timed-scope-511156c1c/lua/combat-case.lua probe_summary=R:/d2-evidence/combat-characterization-20261028/out/timed-aa-second-draw-01/probe-summary.jsonl",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/timed-aa-second-draw-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/timed-aa-second-draw-01",
+        "mode": "bad_health_second_draw",
+        "kind": "Focused changed-host AA authority/refusal around unchanged controlled scenario; expected error must match actual reason",
+        "wrapper_sha256": "84c87c680eb789ea8339f8439b32e082fe444bd5d19fb4d02fe453bcbba53f6c",
+        "case_script_sha256": "3de3505a64ed1f994edc21f825d38e9c568acb2310391d9642d2d3ecfeb9e264",
+        "actual_native_exit": 1,
+        "native_pid": 19248,
+        "created_utc": "2026-10-28T09:03:08.1188794Z",
+        "completed_utc": "2026-10-28T09:05:03.3834518Z"
+      },
+      "trace_bytes": 375051,
+      "trace_sha256": "64bc9c73361d270cdaa48a0f9259279ad42b746ecd9280e1981cea2ed9574480",
+      "summary_bytes": 913,
+      "summary_sha256": "e062ebb5d3c5d43feda57c19e5afa30d9c11238924b12960a892c2dfe1ff57ae",
+      "summary": {
+        "draw_requests": 2,
+        "eligible_answers": 0,
+        "event": "timed_aa_probe",
+        "failure": "runtime error: eech: EECH fatal error: host aim: host aim asked for a draw in answer to a health request that already carried one\nstack traceback:\n\t[C]: in function 'frame'\n\t...ure/combat-timed-scope-511156c1c/lua/combat-case.lua:70: in function 'step'\n\t...ure/combat-timed-scope-511156c1c/lua/combat-case.lua:126: in function 'run_case'\n\t...ure/combat-timed-scope-511156c1c/lua/combat-case.lua:310: in main chunk\n\t[C]: in function '_G.dofile'\n\t[C]: in function 'pcall'\n\t[string \"R:/d2-evidence/combat-characterization-2026...\"]:57: in main chunk\n",
+        "hit_answers": 0,
+        "inconsistent_fatal_answers": 0,
+        "mode": "bad_health_second_draw",
+        "requests_with_sample": 1,
+        "scope": "changed host answers around the unchanged controlled fixture; not a default byte comparison or fullpack",
+        "script_completed": false,
+        "second_draw_requests": 1
+      },
+      "preAA_prefix_bytes_equal": 375051,
+      "specific_primary_refusal": "asked for a draw in answer to a health request that already carried one",
+      "raw_log_bytes": 43607,
+      "raw_log_sha256": "f66f12120db0a21a8fc0d41a853109fc010a7af279de490c66869f0c545b33eb",
+      "trace_complete": false,
+      "expected_failed_native": true,
+      "post1179_input_actual_exit": 0
+    },
+    {
+      "name": "timed-aa-fatal-01",
+      "mode": "bad_health_fatal",
+      "actual_original_controller": 45477,
+      "actual_driver_native_exit": 1,
+      "run_record": {
+        "status": "completed",
+        "when_utc": "2026-10-28T09:03:18.3019858Z",
+        "binary": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-characterization-20261028/timed-aa-probe.lua root=R:/d2-evidence/combat-characterization-20261028/roots/timed-aa-fatal-01 out=R:/d2-evidence/combat-characterization-20261028/out/timed-aa-fatal-01/trace.jsonl warmup=60 frame_ms=100 timed_seconds=20 timed_probe_mode=bad_health_fatal case_script=R:/d2-evidence/combat-timed-scope-source-511156c1c/eech-campaign/target/weapon-fixture/combat-timed-scope-511156c1c/lua/combat-case.lua probe_summary=R:/d2-evidence/combat-characterization-20261028/out/timed-aa-fatal-01/probe-summary.jsonl",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/timed-aa-fatal-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/timed-aa-fatal-01",
+        "mode": "bad_health_fatal",
+        "kind": "Focused changed-host AA authority/refusal around unchanged controlled scenario; expected error must match actual reason",
+        "wrapper_sha256": "84c87c680eb789ea8339f8439b32e082fe444bd5d19fb4d02fe453bcbba53f6c",
+        "case_script_sha256": "3de3505a64ed1f994edc21f825d38e9c568acb2310391d9642d2d3ecfeb9e264",
+        "actual_native_exit": 1,
+        "native_pid": 22412,
+        "created_utc": "2026-10-28T09:03:18.3149072Z",
+        "completed_utc": "2026-10-28T09:05:13.6677929Z"
+      },
+      "trace_bytes": 375051,
+      "trace_sha256": "64bc9c73361d270cdaa48a0f9259279ad42b746ecd9280e1981cea2ed9574480",
+      "summary_bytes": 930,
+      "summary_sha256": "eee8454506d84125898816081733e557656837efdba7daa9c7c3dbd72fe8b97b",
+      "summary": {
+        "draw_requests": 2,
+        "eligible_answers": 2,
+        "event": "timed_aa_probe",
+        "failure": "runtime error: eech: EECH fatal error: host aim: host aim answered a timed health request (level 95) with eligible 1, rolled 1, hit 1, level 94, fatal 1\nstack traceback:\n\t[C]: in function 'frame'\n\t...ure/combat-timed-scope-511156c1c/lua/combat-case.lua:70: in function 'step'\n\t...ure/combat-timed-scope-511156c1c/lua/combat-case.lua:126: in function 'run_case'\n\t...ure/combat-timed-scope-511156c1c/lua/combat-case.lua:310: in main chunk\n\t[C]: in function '_G.dofile'\n\t[C]: in function 'pcall'\n\t[string \"R:/d2-evidence/combat-characterization-2026...\"]:57: in main chunk\n",
+        "hit_answers": 1,
+        "inconsistent_fatal_answers": 1,
+        "mode": "bad_health_fatal",
+        "requests_with_sample": 2,
+        "scope": "changed host answers around the unchanged controlled fixture; not a default byte comparison or fullpack",
+        "script_completed": false,
+        "second_draw_requests": 0
+      },
+      "preAA_prefix_bytes_equal": 375051,
+      "specific_primary_refusal": "answered a timed health request (level 95) with eligible 1, rolled 1, hit 1, level 94, fatal 1",
+      "raw_log_bytes": 42207,
+      "raw_log_sha256": "ca0ff0665878e4e9464aa8a7da7f4981524e514ad3fbc2010f7acbde146cbd6f",
+      "trace_complete": false,
+      "expected_failed_native": true,
+      "post1179_input_actual_exit": 0
+    }
+  ],
+  "all40_exports_BUILD_INFO_unchanged": true,
+  "post40_export_verifier_actual_exit": 0,
+  "source_clean": true,
+  "scope": "Genuine native timed eligibility/rate authority and two hit-dependent structural refusals; unchanged controlled fixture/preconditions and byte-identical preAA prefix",
+  "limits": [
+    "Differenthostanswers intentionally change finalphysicaltraces, not defaultbyteacceptance",
+    "Neverchangeseligibilityandsampleconsumption; rate150measures201draws/55corehitsvs201/41reference, lastobservedtimednew_level40vs54, not a newfatalAAclaim",
+    "Negativeprobes are actualexpectednative1/incomplete traces with specificprimaryguards, not healthycampaigns or poison-only claims",
+    "Original11case180squeue unchanged; absenttimedtriggersremainUNTRIGGERED, not retroactivelypromoted",
+    "No selfhit/player/MP/easy/nativePERSONbleed claim; fullTask46/D2/shipping40all8post3 gates remain"
+  ]
+}

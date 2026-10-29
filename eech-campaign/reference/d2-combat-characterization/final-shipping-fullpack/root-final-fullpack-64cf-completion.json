@@ -1,0 +1,247 @@
+{
+  "observed_utc": "2026-10-28T23:56:32.817564+00:00",
+  "classification": "Final ordinary shipping native fullpack acceptance gates passed; delivery not complete",
+  "runtime_source": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "author_head_at_native_validation": "daf3960d845def1b59d29c7fa1a07480f5936390",
+  "original_tool_session": 38810,
+  "controller_exit_code": 0,
+  "controller_terminal_chunk": "ad9e24",
+  "actual_controller_output": "ORIGINAL_PACK_EXIT=0; LAUNCHER_COMPLETION=True",
+  "original_pack_exit_code": 0,
+  "original_pack_completed_utc": "2026-10-28T23:53:56.298682+00:00",
+  "wrapper_completed_utc": "2026-10-28T23:54:10.580446+00:00",
+  "original_process_ids_now_absent": [
+    23828,
+    24104,
+    22180,
+    16388,
+    15568
+  ],
+  "accepted_check_count": 40,
+  "exact_accepted_check_set": true,
+  "all_checks_pass": true,
+  "complete_eight_file_comparison": {
+    "scope": "Complete artifact comparison only; actual exits and post-input manifests must be verified separately",
+    "partial_prefix_only": false,
+    "accepted_checks_each": 40,
+    "results": [
+      {
+        "file": "reference/run1/recording.acmi",
+        "baseline": {
+          "bytes": 117690861,
+          "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+        },
+        "candidate": {
+          "bytes": 117690861,
+          "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run1/observations.jsonl",
+        "baseline": {
+          "bytes": 85716447,
+          "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+        },
+        "candidate": {
+          "bytes": 85716447,
+          "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run1/metrics.json",
+        "baseline": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "candidate": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run2/recording.acmi",
+        "baseline": {
+          "bytes": 117690861,
+          "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+        },
+        "candidate": {
+          "bytes": 117690861,
+          "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run2/observations.jsonl",
+        "baseline": {
+          "bytes": 85716447,
+          "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+        },
+        "candidate": {
+          "bytes": 85716447,
+          "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run2/metrics.json",
+        "baseline": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "candidate": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "matches": true
+      },
+      {
+        "file": "regress/georgia_retail.json",
+        "baseline": {
+          "bytes": 22427,
+          "sha256": "7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d"
+        },
+        "candidate": {
+          "bytes": 22427,
+          "sha256": "7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d"
+        },
+        "matches": true
+      },
+      {
+        "file": "regress/lebanon_retail.json",
+        "baseline": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "candidate": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "matches": true
+      }
+    ],
+    "passed": true
+  },
+  "three_external_post_input_checks": {
+    "georgia": {
+      "exit_code": 0,
+      "log": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\post-inputs-georgia.log"
+    },
+    "lebanon": {
+      "exit_code": 0,
+      "log": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\post-inputs-lebanon.log"
+    },
+    "lebanon_repeat": {
+      "exit_code": 0,
+      "log": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\post-inputs-lebanon_repeat.log"
+    }
+  },
+  "additional_internal_lebanon_post_input_check": {
+    "when_utc": "2026-10-28T23:55:26.072628+00:00",
+    "command": [
+      "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+      "-B",
+      "-X",
+      "utf8",
+      "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\tools\\input-manifest.py",
+      "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\roots\\lebanon-regress",
+      "--compare",
+      "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+    ],
+    "exit_code": 0,
+    "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-internal-lebanon-post-inputs.log",
+    "log_sha256": "90c7fa45c381fa1a55f352239ebb5b86ecb3e83660ca587f98c07258e2fde9ea",
+    "manifest": "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+    "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "scope": "Additional post-input check for runner internal Lebanon copy; accepted 40-check set and three external post-checks unchanged."
+  },
+  "shipping_manifest": {
+    "entries": 42,
+    "all_match": true,
+    "build_info_sha256": "3410ac4174a259e0ee211e4bb05361a819e1c1da54a300abe93968eff08e169d",
+    "proof": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-post-build.json"
+  },
+  "scenario_config": "Original established runner: Georgia/Lebanon regression plus Lebanon twice recorded, 3 simulated hours, seed1, frame100ms; accepted baselines/tolerances unchanged.",
+  "production_equivalence": "7/8 coarse frontiers equal; only crates difference is integration-test host_callbacks.rs. Production compilation inputs unchanged. Actual runtime build remains64cf.",
+  "production_equivalence_proof": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-publication-daf3960d8.json",
+  "evidence": [
+    {
+      "path": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\run.json",
+      "bytes": 815,
+      "sha256": "09e5cc55be2fc3a16a7503a8c42cb44d38c22515029db52767db719132c3ee44"
+    },
+    {
+      "path": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\completion.json",
+      "bytes": 781,
+      "sha256": "b57603f92a40f06481bfd2ebae5dedbf1b69db9da51449a027b5e30473d021fc"
+    },
+    {
+      "path": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\report.json",
+      "bytes": 39140,
+      "sha256": "4f47a1b4271c206a6fd40a8ced9af3e13ce9a8aeb298b2c927b4eec853ef69ec"
+    },
+    {
+      "path": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\reference\\summary.txt",
+      "bytes": 1366,
+      "sha256": "37c79ed5027a0bf3b69c32a77ab47ed947ce182365af894cdd5013c7bd67ebb8"
+    },
+    {
+      "path": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\logs\\regress.txt",
+      "bytes": 3209,
+      "sha256": "f77700c20a79ee0bfffed423a3f6775fb865814cb402fc2c7823be2337294da6"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-complete-eight-files.json",
+      "bytes": 3221,
+      "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-post-build.json",
+      "bytes": 11450,
+      "sha256": "8a1dc6145066a5bf04858015a286ae00628ae9e6ec1fe9aa5ae443491ed5bd16"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-internal-lebanon-post-inputs.json",
+      "bytes": 1117,
+      "sha256": "9d451d1a3e10f0bf91b26b5f5451ff3fe5bdf1f0363da1b798dc04a7a820568a"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-clean-source-identities.json",
+      "bytes": 423,
+      "sha256": "0e38e36c7ad7e7ca1f3ffd62331466283351499f85e624d7aad978ba797780aa"
+    },
+    {
+      "path": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\post-inputs-georgia.log",
+      "bytes": 311,
+      "sha256": "ce102f0fa06def8a1afbc9c4b0f64c2052b65beda718f8b30960fc89a9dcd82d"
+    },
+    {
+      "path": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\post-inputs-lebanon.log",
+      "bytes": 299,
+      "sha256": "c3df3a214c52124cadd3358f9104369da5a7f134d03e3630b48138b415c64f35"
+    },
+    {
+      "path": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\post-inputs-lebanon_repeat.log",
+      "bytes": 306,
+      "sha256": "24d212fd889b19eab3f343f2d3bceab10b8fcd3cf671b74800d65250c359e675"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-internal-lebanon-post-inputs.log",
+      "bytes": 322,
+      "sha256": "90c7fa45c381fa1a55f352239ebb5b86ecb3e83660ca587f98c07258e2fde9ea"
+    }
+  ],
+  "raw_assets_policy": "Complete recordings, observations, scenario roots and binaries remain private; proof metadata may be published.",
+  "independent_final_review": "Pending new completed-fullpack review; prior source/runtime/cost reviews reused within their stated limits.",
+  "remaining": [
+    "Independent final fullpack/composition and new publication review",
+    "Current-head CI and normal PR105 merge; fetched merge-tree verification",
+    "Task46 Done and wholeEpic18 scope acceptance/Done; Confluence final ledger append preserving five reports",
+    "Completed disposable cache cleanup with zero live references"
+  ],
+  "native_fullpack_complete": true,
+  "goal_complete": false,
+  "restarted": false
+}

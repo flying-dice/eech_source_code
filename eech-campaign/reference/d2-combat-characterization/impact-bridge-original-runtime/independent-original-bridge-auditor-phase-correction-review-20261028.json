@@ -1,0 +1,186 @@
+{
+  "reviewed_utc": "2026-10-28T11:10:09.361210+00:00",
+  "reviewer": "same independent Codex reviewer",
+  "scope": "Focused ROOT private auditor phase/time/capped-read correction and controls only; no unchanged source/native/oldruntime audit repeated",
+  "finding_disposition": {
+    "BRIDGE-AUDITOR-PHASE-ORDER": "RESOLVED"
+  },
+  "findings": [],
+  "helper_before": {
+    "path": "R:\\d2-evidence\\combat-characterization-20261028\\audit-original-bridge-before-phase-fix.py",
+    "sha256": "754f9c835e3e2742551686e941f556c8eb26b7ef9c9704408aefcaae4ad02346"
+  },
+  "helper_after_before_and_after_review": {
+    "path": "R:\\d2-evidence\\combat-characterization-20261028\\audit-original-bridge.py",
+    "sha256": "694193f476a5156d9ba5ab9e5bb683be1840a2d68daeb4b2bf66edda21d0308a"
+  },
+  "implementation": "Allowed rows remain validated first; exact script-phase rank must be nondecreasing, covering boot/warmup/survey/before report+state/pre-failure/case/after state/frame0log/each stateN+logN/summary/disarm/after report/run. Census must precede survey. Every scoped row timestamp must equal actual pre/final/corresponding state-frame time. Empty event drains remain valid. Original per-group/cardinality/seq/trust checks retained. Trace stream.read is capped at16MiB+1 before accepted-size check and parsing, replacing unbounded read_bytes.",
+  "new_red_green_controls": [
+    {
+      "name": "moved_disarm",
+      "old_actual_exit": 0,
+      "old_false_PASS": true,
+      "new_actual_exit": 1,
+      "new_FAIL_reason": "marker/report/state/log phase ordering",
+      "corrupt_trace_sha256": "a7cdad9cd80edb6ace27b0d0965338b9ecd7e2fd94b2b648e685621fa3042ca6",
+      "old_summary_sha256": "9fe4e79b5918a74ea92103901bfc92681ba30aeab33360a556338c14f07cb7c7",
+      "old_log_sha256": "54cfe28e7952629478966f0a55298213de6d09a5fbd069426c34dbd119ca3d8b",
+      "new_summary_sha256": "78df3478856c222c6debc21f8099416b3bfc8272e171849a6a82367d0d1f6d1c",
+      "new_log_sha256": "aa65e68a8276a235f8074cf553c52ff18737bb7e41e11cfe4d0b6e9bff08385b"
+    },
+    {
+      "name": "relabeled_frame_logs",
+      "old_actual_exit": 0,
+      "old_false_PASS": true,
+      "new_actual_exit": 1,
+      "new_FAIL_reason": "marker/report/state/log phase ordering",
+      "corrupt_trace_sha256": "4bf9f358a7c321aaa845a4e618b58947b1a80c1006ddfe0dc00f514e91531200",
+      "old_summary_sha256": "b1b5d415fdcdfbe0dbe1cd853b82d3b1f497942267572005f87a9eb5d9273162",
+      "old_log_sha256": "bde3b0dc00fcc0cb9f685f42e77719f9874618729a8a575796753a260272a049",
+      "new_summary_sha256": "62f63892414e17b425f588645a71e7fe83f297bfa165387c9bed764682d351fb",
+      "new_log_sha256": "0943e5f81dc93fd1cc989944acae021fdcf2a0c1d9d92331086dc0bbfd398d00"
+    },
+    {
+      "name": "wrong_frame_time",
+      "old_actual_exit": 0,
+      "old_false_PASS": true,
+      "new_actual_exit": 1,
+      "new_FAIL_reason": "row time disagrees with its matching state/phase: frame:1:log",
+      "corrupt_trace_sha256": "6eead2378f687489ea67cb031b6c1cf268aa729b6167bb78c8e07e12ee99502e",
+      "old_summary_sha256": "15f7a97e5d552839cf6095a0171b6204f17ce51877ff792d4c9297c78effd6b0",
+      "old_log_sha256": "d30c6535c908f427aac2169f59c94d0939f330a5bbd8cb7079870a8f0d3e9221",
+      "new_summary_sha256": "9f470750a732bc2ccc3a493a135f723ad5566308c7f341e8de0f1a6bd5ddd379",
+      "new_log_sha256": "5b99b99d12ddd7cd0a32c64af2e2c4e4b8ddb9ecc39af4fac32587b819e6d612"
+    },
+    {
+      "name": "misplaced_before_report",
+      "old_actual_exit": 0,
+      "old_false_PASS": true,
+      "new_actual_exit": 1,
+      "new_FAIL_reason": "marker/report/state/log phase ordering",
+      "corrupt_trace_sha256": "2520d8da645123a0cde9698b406af591f716847f675e5aafe25bdc4a208cde2b",
+      "old_summary_sha256": "10cae24364c9bd3d40077885d493d758c551b7b7bed984e1ff7d994072bae2eb",
+      "old_log_sha256": "5e3968dfebb4fbee0d4cc79f92f59ad15ed26107be38b7d0b3cef46a70cdcbad",
+      "new_summary_sha256": "cbd7a1a1fdb106a681bd0ecfae2d21a99534c793c6854d3749e2e0d1099f0967",
+      "new_log_sha256": "24a7f2d683dd7636f24ee1019482a1e7b047af6f852c878cd2e83a777fe12a6e"
+    },
+    {
+      "name": "premature_case_marker",
+      "old_actual_exit": 0,
+      "old_false_PASS": true,
+      "new_actual_exit": 1,
+      "new_FAIL_reason": "marker/report/state/log phase ordering",
+      "corrupt_trace_sha256": "0a3917a83499242c249ad5aec396013d65a6abe4be5e4306700b50691d4e904e",
+      "old_summary_sha256": "73a34be75b1e770c62ef6b6bf659520322849cefadcd8b15cc650db74c02f019",
+      "old_log_sha256": "f0eb186f695dfbc99ff4e4aaf7a0d00ce34b67e03122d7e45a6700f25daa9b35",
+      "new_summary_sha256": "14caf5361088586674e4c090f91c814f447997c092d119dff71aece93e102656",
+      "new_log_sha256": "4ab3e3fa703ec67be09590bfb46aec30a408d43fae6bdffe1054f1ee83870207"
+    }
+  ],
+  "prior_control_regressions": [
+    {
+      "name": "valid_original",
+      "actual_exit": 0,
+      "reason": null,
+      "summary_sha256": "ce084f539492145382dcb2c3a4e85da51404ebb13a8de50a085e77c1d926ffd7",
+      "log_sha256": "df0ec16290a73977c0937b80ade9d37ea33638b03c9504daaa28f49671aca850"
+    },
+    {
+      "name": "missing_segment",
+      "actual_exit": 1,
+      "reason": "missing or extra segment row",
+      "summary_sha256": "7e266f79cebc14a374e3225cdecd602be724300ea5a1766b85c4f64985cb3423",
+      "log_sha256": "8c28417641f01c9dc0a43df2f409480083f17ef2dd151b3fa9079608169ab80f"
+    },
+    {
+      "name": "duplicate_state",
+      "actual_exit": 1,
+      "reason": "missing, duplicate or reordered state group",
+      "summary_sha256": "fa979f1bd4372388e31d77a35be38c53e8e3992440c6818b641cb7bd05bf1516",
+      "log_sha256": "f4a1bd3b44db5a44a0fe9a6da78b398aa74e1f41d6f8b1a844ae649db4f8b012"
+    },
+    {
+      "name": "wrong_sequence",
+      "actual_exit": 1,
+      "reason": "event sequence gap/duplicate/reordering",
+      "summary_sha256": "e5ef2b02b72bc9bc5de4ce2ccf63738855b730d79b0fda94244dcc4af4f56f94",
+      "log_sha256": "e58ff23a70589e3e7f786aaca2611849b9e44f88af449ef3fd19aff05ccac548"
+    },
+    {
+      "name": "false_landing",
+      "actual_exit": 1,
+      "reason": "summary not derived from final actual state",
+      "summary_sha256": "1a8fb24911967e427f1f8822a7584e3540d622a037fd49359ee650b5ea6baf54",
+      "log_sha256": "697955cdc2e5eab5dd7deacaf4a12ef9d1b7c31e9db57442c0e081f4a3f208ca"
+    },
+    {
+      "name": "unknown_event",
+      "actual_exit": 1,
+      "reason": "unknown or misplaced event: unknown_bridge_row",
+      "summary_sha256": "0c43835d00d973149d822d029e5cd68451b9ed1c210b2c851edc2b98ff10f41f",
+      "log_sha256": "b0aac67cc9ab2b7cc856642c9fc67dc67f0f51c90629d613211d104cd43844b6"
+    },
+    {
+      "name": "unbounded_census",
+      "actual_exit": 1,
+      "reason": "survey cardinality",
+      "summary_sha256": "cf1ce2343f85e9a118efd8af4ae87ccb78553bfdfe11678e16bdb9c9ea10fe81",
+      "log_sha256": "4f18a448586a47585aaeaafe5189b33ddca4eb0488930c5c6d0bf22f97323f0b"
+    },
+    {
+      "name": "malformed_json",
+      "actual_exit": 1,
+      "reason": "Expecting value: line 1 column 10 (char 9)",
+      "summary_sha256": "c26796ea15410ebda7ea008e99a546c6817304b4c2858854d525b613c2b865cf",
+      "log_sha256": "f2e26d27d0340fc4d4003a95e3337a971ce34d21d51947c5b6b994827e6f1def"
+    }
+  ],
+  "raw_native_preservation": [
+    {
+      "name": "bridge-original-lebanon-01",
+      "unchanged_raw_sha256": "d4c198afc3be5d5bb03f6c5b25800351c37700cf2cd0c0f5cbeda802ebafc6c3",
+      "unchanged_run_record_sha256": "4ed91eabd4b9f83e66b4cc0c1ff645661d357ff3b2451be7ab2e03c6f8b4c82a",
+      "new_final_audit_sha256": "ce084f539492145382dcb2c3a4e85da51404ebb13a8de50a085e77c1d926ffd7",
+      "new_final_audit_log_sha256": "df0ec16290a73977c0937b80ade9d37ea33638b03c9504daaa28f49671aca850",
+      "actual_final_audit_exit_recorded": 0
+    },
+    {
+      "name": "bridge-original-lebanon-repeat-01",
+      "unchanged_raw_sha256": "d4c198afc3be5d5bb03f6c5b25800351c37700cf2cd0c0f5cbeda802ebafc6c3",
+      "unchanged_run_record_sha256": "9cf559d9dde034f2d23cd0ce0bfe5a8888d09753e592672bfcc2e84328c5656a",
+      "new_final_audit_sha256": "edc6650f887933eb9ff299e5f278e2644e395f7289b3b29013ab5c94e7e61059",
+      "new_final_audit_log_sha256": "2e140371117afd382fa22e431cb2f20297413ed63f15da02b7fc268ee8cd00b4",
+      "actual_final_audit_exit_recorded": 0
+    }
+  ],
+  "paircompletion_metadata": {
+    "preserved_before": "R:\\d2-evidence\\combat-characterization-20261028\\root-original-bridge-pair-completion-before-phase-fix.json",
+    "before_sha256": "07ee1af190fbb1a81600c6343d028d654218da726e0163d4655ee7048e564e61",
+    "after_sha256": "115c959ffe5cc2ce43195dc7ba991f7e373687c3c3528e94c6fd61f117ff94af",
+    "changed_top_fields_only": [
+      "auditor_phase_fix",
+      "auditor_sha256",
+      "prior_auditor_P2",
+      "remaining"
+    ],
+    "native_records_entirely_unchanged": true
+  },
+  "main_source_status": {
+    "sha": "bbfea21fcdb808162e246f1fd74c15a705ba2e54",
+    "status": "clean",
+    "no_product_source_changes_in_helper_correction": true
+  },
+  "disposition": "Focused helper P2 closed, no new findings. Previously independently verified ORIGINAL native bridge characterization pair and impact900 closure stand; original bridge evidence gate is now closed within its declared one-bridge/direct-structural-failure scope, before R5physics extraction.",
+  "limits": [
+    "No helper/tests/build/native process executed in this reviewer pass; source and retained actual-red/green logs read only.",
+    "Capped raw input bounds one read at16MiB+1; parsing/rows have additional bounded allocations, not a measured peakmemory claim.",
+    "No raw native traces/runrecords/baselines/tolerances changed; no new native rerun necessary.",
+    "This auditor structurally validates the fixed5/100/12 original witness; it is not a second physical solver or a general bridge-world coverage proof.",
+    "Original oneLebanonbridge/type/height/directfailure scope, no weapon-hit/Georgia/playerMPclient/occupiedvehicle/arbitraryheight claim.",
+    "R5physical implementation,R3persistentstructureidentity/reportcorrelation,physicalreports/remainingimpactprovidercohort/finalshipping40all8post3/currentCI/review/normalmerge/wholeD2audit remain."
+  ],
+  "proof_hashes": {
+    "root-original-bridge-auditor-phase-red.json": "6044f2ed9b248a4f1fe1d1ff9248dea574a9b10a3bfeaf52052e8d05a7f6011d",
+    "root-original-bridge-auditor-phase-fix.json": "ec7214e26be574284ea3259c4c73c984170f54d5184b82860b642840dc5ae5fd"
+  }
+}

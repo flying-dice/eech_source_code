@@ -1,0 +1,191 @@
+{
+  "scope": "Exact safe closed-source/focused-runtime evidence and executed helper byte copies. Private full raw traces/retail data/binaries remain outside Git. Root verifies committed Git blobs after commit. At-the-time pending-review labels are superseded by the included closing independent reports.",
+  "files": [
+    {
+      "name": "independent-bridge-physical-source-and-publication-review-b268c7e5a-20261028.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-bridge-physical-source-and-publication-review-b268c7e5a-20261028.json",
+      "bytes": 34735,
+      "sha256": "6a20c55e9979784cf6b2cd4000306a1f703172e35762235690e35fd8880df189"
+    },
+    {
+      "name": "independent-bridge-physical-correction-review-636ef798a-20261028.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-bridge-physical-correction-review-636ef798a-20261028.json",
+      "bytes": 38454,
+      "sha256": "cabde36775a9972243fb92b74c5127d2295e56c7f70c9453972cac38a3a9412f"
+    },
+    {
+      "name": "independent-corrected636-bridge-focused-runtime-review-20261028.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-corrected636-bridge-focused-runtime-review-20261028.json",
+      "bytes": 37605,
+      "sha256": "319c633fcd47bb7bce3225f24667d2d3eb98374003093d459af85c299b28a432"
+    },
+    {
+      "name": "root-clean-corrected-bridge-636ef798a-fixture-manifest.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-clean-corrected-bridge-636ef798a-fixture-manifest.json",
+      "bytes": 5228,
+      "sha256": "a05d59a42cb43d75714246b46fa7e2287ae843550a42c1b5b8652693ad3e219c"
+    },
+    {
+      "name": "root-clean-corrected-bridge-source-prebuild-636ef798a.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-clean-corrected-bridge-source-prebuild-636ef798a.json",
+      "bytes": 674,
+      "sha256": "b3700e455db8263d8058cd55ff8653a1f30cf18ed03200a44b45153a5d758c7d"
+    },
+    {
+      "name": "root-corrected636-seven-prelaunch-inputs.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-corrected636-seven-prelaunch-inputs.json",
+      "bytes": 5568,
+      "sha256": "ebdbc76b967a9fe58aad05293c778383f132d3d5405777cab461ab2f8c8c63d9"
+    },
+    {
+      "name": "root-corrected636-bridge-six-focused-completion.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-corrected636-bridge-six-focused-completion.json",
+      "bytes": 29200,
+      "sha256": "f0689095eb78f4dc63cef268d74681f73a8ac5e737d8ed71cc79e3e6f7dc7f9c"
+    },
+    {
+      "name": "root-corrected636-bridge-pair-byte-comparison.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-corrected636-bridge-pair-byte-comparison.json",
+      "bytes": 4160,
+      "sha256": "c0d1925e79cc9ff2556948174a435bad21d2d53b59258dd986d3a90d1bd47c78"
+    },
+    {
+      "name": "root-corrected636-bridge-pair-post-inputs.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-corrected636-bridge-pair-post-inputs.json",
+      "bytes": 1342,
+      "sha256": "2337902767553903f7a98ea624786d5e45a45d61ddb0689e2174194019cec18a"
+    },
+    {
+      "name": "root-corrected636-bridge-pair-post-build.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-corrected636-bridge-pair-post-build.json",
+      "bytes": 11197,
+      "sha256": "4e32f89494b6e2a9b992561eb282ade813d110f798e87b77e98f3da0a8c95bea"
+    },
+    {
+      "name": "root-corrected636-four-providers-post-inputs.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-corrected636-four-providers-post-inputs.json",
+      "bytes": 2612,
+      "sha256": "a614e7d2020af2bd7e0636efdd3711c7147b331af29578988c15aa00ed624b24"
+    },
+    {
+      "name": "root-corrected636-four-providers-post-build.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-corrected636-four-providers-post-build.json",
+      "bytes": 11197,
+      "sha256": "d3488b07aa8115b0065a8efdf4e85f61349d6e657649e6721281ef8536bd536a"
+    },
+    {
+      "name": "root-corrected636-bridge-first-unchanged-auditor.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-corrected636-bridge-first-unchanged-auditor.json",
+      "bytes": 2793,
+      "sha256": "08dbbbe79d8ffb3dd38082b5efa9d7e7ec2b428df020eab3427c27290c4ffa48"
+    },
+    {
+      "name": "root-corrected636-bridge-repeat-unchanged-auditor.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-corrected636-bridge-repeat-unchanged-auditor.json",
+      "bytes": 2800,
+      "sha256": "4f12dba30aa4ba115ce14f94bd193b851356d825205fbddfad220fdb092cdbce"
+    },
+    {
+      "name": "root-rejected-host-bridge-b268c7e5a-build-record.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-rejected-host-bridge-b268c7e5a-build-record.json",
+      "bytes": 5362,
+      "sha256": "9d23ec0192579b2c7b9ade9e76444aa4925d32745235ffe9842373b8aa60714b"
+    },
+    {
+      "name": "root-r5-publication-P3-correction-5eadd5fe8.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-r5-publication-P3-correction-5eadd5fe8.json",
+      "bytes": 925,
+      "sha256": "8129b8c481f23ed5d85f9c0c7eafe5759328e2b5e080acbc1b30425911049643"
+    },
+    {
+      "name": "bridge-provider-probe.lua",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-provider-probe.lua",
+      "bytes": 3104,
+      "sha256": "73a0d5ca1ff873a789b22dde2b9df2a34d383ef8edb890f948b9a4091de35b7a"
+    },
+    {
+      "name": "run-host-bridge.ps1",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\run-host-bridge.ps1",
+      "bytes": 2659,
+      "sha256": "59f52b2142beed54ae02a455962dfb08b671d16db4cd63b3614ef1733e759b76"
+    },
+    {
+      "name": "run-bridge-provider-probe.ps1",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\run-bridge-provider-probe.ps1",
+      "bytes": 3244,
+      "sha256": "ba5183f7864e55798d30ec7de5a703b7ecaab4f76ab5101ba9c2ede110903c5d"
+    },
+    {
+      "name": "run-bridge-control.ps1",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\run-bridge-control.ps1",
+      "bytes": 2209,
+      "sha256": "b5687029f25888eaa2ea51a3b539e3711e1c2b89f047356208102d0518362bf1"
+    },
+    {
+      "name": "audit-original-bridge.py",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\audit-original-bridge.py",
+      "bytes": 11586,
+      "sha256": "694193f476a5156d9ba5ab9e5bb683be1840a2d68daeb4b2bf66edda21d0308a"
+    },
+    {
+      "name": "bridge-host-lebanon-01-run.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\bridge-host-lebanon-01\\run.json",
+      "bytes": 1467,
+      "sha256": "e7fdaaaa66a8a3b1311570555e09ba0c43ee5cae0d14956d13181dafcf086885"
+    },
+    {
+      "name": "bridge-host-lebanon-repeat-01-run.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\bridge-host-lebanon-repeat-01\\run.json",
+      "bytes": 1495,
+      "sha256": "da8eddf61771130a7f996457a06d6bed06b615c088dc4e0dd4656988331e97b3"
+    },
+    {
+      "name": "bridge-provider-own-01-run.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-own-01\\run.json",
+      "bytes": 1973,
+      "sha256": "a93368e8c15edf1043a6bb717f07bd020c19996dc865f1deafab50e3d311fdb8"
+    },
+    {
+      "name": "bridge-provider-own-01-provider.jsonl",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-own-01\\provider.jsonl",
+      "bytes": 171,
+      "sha256": "3aa4d5573a3f53117966f1d00b2b93fbcc38a32a0e699dbcea9c9320d62527fe"
+    },
+    {
+      "name": "bridge-provider-own-fall-01-run.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-own-fall-01\\run.json",
+      "bytes": 2008,
+      "sha256": "fc1f42524c78134aa402f416fdc3ec40e6a5f20b7af6ec33be85c8410a7b7820"
+    },
+    {
+      "name": "bridge-provider-own-fall-01-provider.jsonl",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-own-fall-01\\provider.jsonl",
+      "bytes": 183,
+      "sha256": "251a0279de76ce328dda36811e66b9292ed5fe5d26fc8e075b01dfc325b86a79"
+    },
+    {
+      "name": "bridge-provider-missing-01-run.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-missing-01\\run.json",
+      "bytes": 2000,
+      "sha256": "1c4d380fbffd6e126e2ccf843683740c68b80c87dd64ff64480f6bdff4197e73"
+    },
+    {
+      "name": "bridge-provider-missing-01-provider.jsonl",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-missing-01\\provider.jsonl",
+      "bytes": 176,
+      "sha256": "c9aea38a8bc1c4e52f9821cf67ecf0d4acf4388db6a39cba5eddc7015383bc76"
+    },
+    {
+      "name": "bridge-provider-bad-shape-01-run.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-bad-shape-01\\run.json",
+      "bytes": 2015,
+      "sha256": "f50ee75fef0f32fd247bedc66e010198e3b9cd4a70829fff418b580be353f391"
+    },
+    {
+      "name": "bridge-provider-bad-shape-01-provider.jsonl",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-bad-shape-01\\provider.jsonl",
+      "bytes": 178,
+      "sha256": "26275aabe576fa0f77a758a723bafdcfc5d3c71f131759f8804188c158ccdd76"
+    }
+  ]
+}

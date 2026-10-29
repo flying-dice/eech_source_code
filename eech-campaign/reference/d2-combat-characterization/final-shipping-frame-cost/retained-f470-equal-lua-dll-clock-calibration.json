@@ -1,0 +1,34 @@
+{
+  "when_utc": "2026-10-28T15:06:27.519677+00:00",
+  "python_pid": 24100,
+  "scope": "Timer calibration only, NO campaign boot/frame/run. Changed shippingLuaDLL identity justifies checking actualos.clock; oldTask45calibration retained, never relabelled.",
+  "source_sha": "f4700bbab0e28c367c660b8c3bc353c89ad0dac9",
+  "lua_dll": "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\target\\windows-d2-combat-final-f4700bbab\\lua.dll",
+  "lua_dll_sha256": "aae318d583c251350442fcd58d0872df27002291de0b82414c3e35c7dfce20f8",
+  "build_info_sha256": "f114e6590240230b5c08b0c78efa4814db5b977524cd29e2224b0dae2b158169",
+  "samples": [
+    {
+      "requested_idle_seconds": 0.125,
+      "actual_wall_seconds": 0.12539489986374974,
+      "python_process_cpu_seconds": 0.0,
+      "lua_os_clock_advance_seconds": 0.127,
+      "lua_advance_to_wall_ratio": 1.0128003621996933
+    },
+    {
+      "requested_idle_seconds": 0.25,
+      "actual_wall_seconds": 0.25042599998414516,
+      "python_process_cpu_seconds": 0.0,
+      "lua_os_clock_advance_seconds": 0.251,
+      "lua_advance_to_wall_ratio": 1.0022920943348181
+    },
+    {
+      "requested_idle_seconds": 0.5,
+      "actual_wall_seconds": 0.5002912001218647,
+      "python_process_cpu_seconds": 0.0,
+      "lua_os_clock_advance_seconds": 0.5,
+      "lua_advance_to_wall_ratio": 0.9994179387488852
+    }
+  ],
+  "observation": "os.clock advances during deliberate idle while processCPU is near zero; consistent with elapsed time, not processCPU-only. Raw intervals/ratios retained; no performance budget or benchmark pass inferred.",
+  "native_frame_cost_still_unrun": true
+}

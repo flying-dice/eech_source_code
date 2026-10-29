@@ -282,12 +282,14 @@ typedef struct GROUP group;
 
 #ifdef EECH_CAMPAIGN_HOST_IDENTITIES
 #include "gp_roster.h"
+#include "entity/mobile/mb_hostobj.h"
 #else
 #define CAMPAIGN_LOSS_FORWARD 1
 #define CAMPAIGN_LOSS_WITHHOLD 2
 #define campaign_roster_link_member(GROUP,MEMBER) ((void) 0)
 #define campaign_roster_unlink_member(GROUP,MEMBER) ((void) 0)
 #define campaign_roster_release_entity(ENTITY) ((void) 0)
+#define campaign_object_release_entity(ENTITY) ((void) 0)
 #define campaign_roster_observe_credit(MEMBER) (1)
 /* Without host identities there is no report: the ticket only carries the entities and every phase applies at once. */
 typedef struct campaign_loss_ticket

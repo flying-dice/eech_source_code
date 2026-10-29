@@ -1,0 +1,20 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+    Checking eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+error: expected item, found keyword `let`
+ --> crates/eech-engine/src/lib.rs:2:9
+  |
+2 | ...   let ids: Vec<Option<String>> = window.entries.into_iter().map(|e| e.host_id).collect(); headless EECH engine: the whole of Enem...
+  |       ^^^
+  |       |
+  |       `let` cannot be used for global variables
+  |       help: consider using `static` or `const` instead of `let`
+  |
+  = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
+
+error: could not compile `eech-engine` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `eech-engine` (lib test) due to 1 previous error
+CARGO_EXIT=101
+DOCKER_EXIT=101

@@ -19,6 +19,7 @@
 #include "entity/mobile/mb_hostlos.h"
 #include "entity/mobile/mb_hostsense.h"
 #include "entity/mobile/mb_hostaim.h"
+#include "entity/mobile/mb_hostobj.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -108,6 +109,56 @@ struct eech_loss_report_receipt
  * The receipt is written only when the report succeeds; on any other result it is untouched.
  */
 int eech_engine_report_loss (const char *host_id, struct eech_loss_report_receipt *receipt);
+
+/*
+ * A physical fact the host reports about an object it holds the identity of (EEDCS-46, R3; mb_hostobj.h): its damage level is now N and/or it is destroyed.  The campaign applies it once through the
+ * object's own collision steps, so every consequence follows from the real handlers; the host is given for the questions those handlers ask it.  The receipt is written only when the report succeeds.
+ */
+struct eech_object_report
+{
+	char host_id[129];
+	int has_damage_level;
+	int damage_level;
+	int destroyed;
+};
+
+struct eech_object_report_receipt
+{
+	int entity_type;
+	int rostered;
+	int damage_level_before;
+	int damage_level_after;
+	int killed;
+};
+
+int eech_engine_report_object (const struct eech_object_report *report, struct eech_object_report_receipt *receipt, const struct eech_engine_host *host);
+
+/* Every structure the host holds an identity for, identified now if it has none (the host is asked).  `host_id` is BORROWED: it is valid only inside the callback, for that one call (the registry may grow while the
+   enumeration identifies the next structure, which moves the strings), so the callback must copy it at once, as the Rust collector does.  The other fields are copied values. */
+#define EECH_STRUCTURE_CITY_BUILDING 1
+#define EECH_STRUCTURE_PYLON 2
+#define EECH_STRUCTURE_SCENIC 3
+#define EECH_STRUCTURE_SEGMENT 4
+#define EECH_STRUCTURE_SITE 5
+#define EECH_STRUCTURE_SITE_UPDATABLE 6
+
+struct eech_structure
+{
+	const char *host_id;
+	/* the kind of structure, one of the EECH_STRUCTURE_ values: the campaign's own classification, not an entity-type number */
+	int kind;
+	int entity_type;
+	int sub_type;
+	int side;
+	int alive;
+	int damage_level;
+	int initial_damage_level;
+	float position[3];
+};
+
+typedef void (*eech_structure_callback) (const struct eech_structure *structure, void *user);
+
+int eech_engine_structures (eech_structure_callback callback, void *user, int *count, const struct eech_engine_host *host);
 
 const char *eech_engine_fatal_message (void);
 
@@ -304,6 +355,19 @@ int eech_engine_wpn_case_query (const char *host_id, int weapon, char *text, int
 /* The kind of a roster host id from its type field alone; reports found=0 for an unknown id. */
 int eech_engine_wpn_case_kind (const char *host_id, char *text, int capacity);
 int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id, int weapon, int salvo_count, char *text, int capacity, const struct eech_engine_host *host);
+/* The physical combat-resolution report (EEDCS-46, see eech_cmb_fixture.c): damage capability, collision, blast and repair hashes and counters; and the ordered event log,
+   drained incrementally like the weapon log. Read-only. */
+int eech_engine_cmb_trace (char *text, int capacity);
+/* Controlled combat cases of the ORIGINAL campaign (EEDCS-46, see eech_cmb_case.c).  state: op 0 the census of living entities per health-bearing kind, op 1 the n-th living
+   entity of `kind` set to `percent` of its initial health.  Both are given the same complete host as a frame: the health case sets a health through the campaign's own setter and asks the
+   critical predicate, which are physical questions the host answers (a request with no host callback stops the engine, as everywhere).  act (also because it launches a real weapon): op 1 the n-th living entity of
+   `kind` is delivered a collision with `amount` as the modifier by a real weapon (or by none if weaponless), op 2 a real weapon is put through the campaign's own killed-weapon
+   explosion `amount` metres from that entity with `kill_code`. */
+int eech_engine_cmb_case_state (int op, const char *kind, int ordinal, int percent, char *text, int capacity, const struct eech_engine_host *host);
+int eech_engine_cmb_case_act (int op, const char *kind, int ordinal, const char *launcher_id, int weapon, double amount, int kill_code, int weaponless, char *text, int capacity, const struct eech_engine_host *host);
+/* The controlled bridge case of the ORIGINAL collapse (EEDCS-46, R5, see eech_cmb_case.c): op 0 survey of every bridge, op 1 state of the bridge at ordinal, op 2 the declared structural failure of one\n   segment of it (index, or -1 for the first by criterion), op 3 disarm the observer.  Given the same complete host as a frame. */
+int eech_engine_cmb_case_bridge (int op, int ordinal, int index, int criterion, char *text, int capacity, const struct eech_engine_host *host);
+int eech_engine_cmb_events (char *text, int capacity, int *more);
 #endif
 
 #endif

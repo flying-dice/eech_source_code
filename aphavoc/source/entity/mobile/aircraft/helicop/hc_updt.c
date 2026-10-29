@@ -66,6 +66,10 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_cmbfx.h"
+
+#include "entity/mobile/mb_hostaim.h"
+
 #include "entity/tacview/tacview.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -315,18 +319,30 @@ static void update_server (entity *en)
 
 					update_aircraft_decoy_release (en);
 
-					if (damage_type > AIRCRAFT_DAMAGE_NONE)
-						if (frand1() < pow((float)damage_type, 4) * get_delta_time())
-						{
-							int damage_level = max(0, get_local_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL) - 1);
+					CMB_FX_TIMED_BEGIN (EECH_CMB_TIMED_HELICOPTER)
 
-							set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, damage_level);
-							
-							if (damage_level <= 0)
+					// the host owns the eligibility (the reference host degrades an aircraft in a class above none), the sample, the roll, the health a hit leaves and whether it is fatal, and is
+					// asked at this point whatever the class (EEDCS-46)
+					{
+						campaign_health_result
+							timed;
+
+						aircraft_timed_health (en, damage_type, &timed);
+
+						if (timed.hit)
+						{
+							set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, timed.new_level);
+
+							CMB_FX_TIMED_HIT (en, timed.new_level)
+
+							if (timed.fatal)
 								kill_client_server_entity (en);
-							
+
 							return;
 						}
+					}
+
+					CMB_FX_TIMED_END ()
 				}
 
 				//

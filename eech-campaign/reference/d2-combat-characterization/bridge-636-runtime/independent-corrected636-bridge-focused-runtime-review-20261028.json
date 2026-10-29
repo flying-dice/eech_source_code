@@ -1,0 +1,824 @@
+{
+  "reviewed_utc": "2026-10-28T13:03:48.929543+00:00",
+  "reviewer": "one independent Codex delivery reviewer",
+  "scope": "Six completed corrected636 runtime proofs only; closed source/probe-plan/original/impact/frame-cost semantics reused. No agents/build/tests/native launched; separate900 excluded.",
+  "runtime_source": "636ef798a9368dfb3c55fe5c77d144009e7f3491",
+  "source_status_before": "clean",
+  "source_status_after": "clean",
+  "closed_source_review_sha256": "cabde36775a9972243fb92b74c5127d2295e56c7f70c9453972cac38a3a9412f",
+  "findings": [],
+  "disposition": "Six focused runs supported within stated limits; default fullraw equivalence, actual generic physical influence and two genuine specific refusals. Not900/fullpack/wholeD2 acceptance.",
+  "runs": [
+    {
+      "name": "bridge-host-lebanon-01",
+      "bytes": 320598,
+      "sha256": "d4c198afc3be5d5bb03f6c5b25800351c37700cf2cd0c0f5cbeda802ebafc6c3",
+      "actual_run": {
+        "status": "completed",
+        "when_utc": "2026-10-28T12:52:15.8051945Z",
+        "binary": "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\target\\weapon-fixture\\combat-bridge-corrected-636ef798a\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-bridge-corrected-source-636ef798a/eech-campaign/target/weapon-fixture/combat-bridge-corrected-636ef798a/lua/bridge-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/bridge-host-lebanon-01 scenario=lebanon_retail out=R:/d2-evidence/combat-characterization-20261028/out/bridge-host-lebanon-01/trace.jsonl warmup=5 frame_ms=100 window_seconds=12 criterion=0",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/bridge-host-lebanon-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/bridge-host-lebanon-01",
+        "scenario": "lebanon_retail",
+        "kind": "R5 host bridge candidate: same original direct structural failure/5s warmup/100ms/12s window/criterion0. Default complete original/repeat equality, actual guards/postinputs/build and independent review required; not shipping/fullD2 acceptance.",
+        "bridge_script_sha256": "a92b0152a8606de635b829c8b92c9525e8476dd4bd9ef57140fead5ff8603eaf",
+        "build_info_sha256": "9fc034ccd849dd0583ebd10d912af698318dbf0c937d88ae11d0932f1729a68f",
+        "actual_native_exit": 0,
+        "native_pid": 21760,
+        "created_utc": "2026-10-28T12:52:15.9494817Z",
+        "completed_utc": "2026-10-28T12:52:37.9654890Z"
+      },
+      "state_groups": 122,
+      "segment_rows": 976,
+      "contiguous_events": 40,
+      "bridge_events": {
+        "collision": 11,
+        "shape": 11,
+        "child_killed": 2,
+        "link_broken": 1,
+        "repair_task": 1,
+        "update_inserted": 2,
+        "segment_update": 5,
+        "unsupported_kill": 1,
+        "supported_removed": 1,
+        "fall": 4,
+        "landed": 1
+      },
+      "trusted_reports": 3,
+      "phase_order_and_matching_times": true,
+      "summary": {
+        "done": true,
+        "event": "bridge_summary",
+        "first_collapse": true,
+        "frames": 120,
+        "in_update_at_end": 0,
+        "landed_all": true,
+        "n_child_killed": 2,
+        "n_collision": 11,
+        "n_fall": 4,
+        "n_landed": 1,
+        "n_link_broken": 1,
+        "n_repair_task": 1,
+        "n_segment_update": 5,
+        "n_shape": 11,
+        "n_supported_removed": 1,
+        "n_unsupported_kill": 1,
+        "n_update_inserted": 2,
+        "state_valid": true
+      },
+      "final_first_two": [
+        {
+          "alive": 0,
+          "at": 17.099931716919,
+          "bridge": 0,
+          "damage": 500,
+          "event": "cmb-bridge-segment",
+          "in_update": 0,
+          "index": 0,
+          "kind": "E",
+          "pred_alive": -1,
+          "scope": "frame:120:state",
+          "shape": 336,
+          "sub": 1,
+          "succ_alive": 0,
+          "type": 18,
+          "x": 31067.3945,
+          "y": 97.5575485,
+          "z": 3666.54443
+        },
+        {
+          "alive": 0,
+          "at": 17.099931716919,
+          "bridge": 0,
+          "damage": 500,
+          "event": "cmb-bridge-segment",
+          "in_update": 0,
+          "index": 1,
+          "kind": "U",
+          "pred_alive": 0,
+          "scope": "frame:120:state",
+          "shape": 334,
+          "sub": 3,
+          "succ_alive": 1,
+          "type": 20,
+          "x": 31093.207,
+          "y": 92.432045,
+          "z": 3681.76538
+        }
+      ],
+      "landings": [
+        {
+          "a": 0,
+          "alive": 0,
+          "at": 5.599995136261,
+          "b": 0,
+          "bridge": 0,
+          "event": "cmb-ev",
+          "f": 92.432045,
+          "kind": "bridge-landed",
+          "of": 8,
+          "scope": "frame:5:log",
+          "seg": 1,
+          "seq": 40,
+          "shape": 334,
+          "sub": 3,
+          "y": 92.432045
+        }
+      ],
+      "complete_original_raw_equal": true,
+      "post_inputs_log_sha256": "880447a81f9cf9a30fb50450ded6fbd39bdcb6cd3ccd5576de689f04174e3b1b"
+    },
+    {
+      "name": "bridge-host-lebanon-repeat-01",
+      "bytes": 320598,
+      "sha256": "d4c198afc3be5d5bb03f6c5b25800351c37700cf2cd0c0f5cbeda802ebafc6c3",
+      "actual_run": {
+        "status": "completed",
+        "when_utc": "2026-10-28T12:52:15.8044553Z",
+        "binary": "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\target\\weapon-fixture\\combat-bridge-corrected-636ef798a\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-bridge-corrected-source-636ef798a/eech-campaign/target/weapon-fixture/combat-bridge-corrected-636ef798a/lua/bridge-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/bridge-host-lebanon-repeat-01 scenario=lebanon_retail out=R:/d2-evidence/combat-characterization-20261028/out/bridge-host-lebanon-repeat-01/trace.jsonl warmup=5 frame_ms=100 window_seconds=12 criterion=0",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/bridge-host-lebanon-repeat-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/bridge-host-lebanon-repeat-01",
+        "scenario": "lebanon_retail",
+        "kind": "R5 host bridge candidate: same original direct structural failure/5s warmup/100ms/12s window/criterion0. Default complete original/repeat equality, actual guards/postinputs/build and independent review required; not shipping/fullD2 acceptance.",
+        "bridge_script_sha256": "a92b0152a8606de635b829c8b92c9525e8476dd4bd9ef57140fead5ff8603eaf",
+        "build_info_sha256": "9fc034ccd849dd0583ebd10d912af698318dbf0c937d88ae11d0932f1729a68f",
+        "actual_native_exit": 0,
+        "native_pid": 19928,
+        "created_utc": "2026-10-28T12:52:15.9494822Z",
+        "completed_utc": "2026-10-28T12:52:37.6136308Z"
+      },
+      "state_groups": 122,
+      "segment_rows": 976,
+      "contiguous_events": 40,
+      "bridge_events": {
+        "collision": 11,
+        "shape": 11,
+        "child_killed": 2,
+        "link_broken": 1,
+        "repair_task": 1,
+        "update_inserted": 2,
+        "segment_update": 5,
+        "unsupported_kill": 1,
+        "supported_removed": 1,
+        "fall": 4,
+        "landed": 1
+      },
+      "trusted_reports": 3,
+      "phase_order_and_matching_times": true,
+      "summary": {
+        "done": true,
+        "event": "bridge_summary",
+        "first_collapse": true,
+        "frames": 120,
+        "in_update_at_end": 0,
+        "landed_all": true,
+        "n_child_killed": 2,
+        "n_collision": 11,
+        "n_fall": 4,
+        "n_landed": 1,
+        "n_link_broken": 1,
+        "n_repair_task": 1,
+        "n_segment_update": 5,
+        "n_shape": 11,
+        "n_supported_removed": 1,
+        "n_unsupported_kill": 1,
+        "n_update_inserted": 2,
+        "state_valid": true
+      },
+      "final_first_two": [
+        {
+          "alive": 0,
+          "at": 17.099931716919,
+          "bridge": 0,
+          "damage": 500,
+          "event": "cmb-bridge-segment",
+          "in_update": 0,
+          "index": 0,
+          "kind": "E",
+          "pred_alive": -1,
+          "scope": "frame:120:state",
+          "shape": 336,
+          "sub": 1,
+          "succ_alive": 0,
+          "type": 18,
+          "x": 31067.3945,
+          "y": 97.5575485,
+          "z": 3666.54443
+        },
+        {
+          "alive": 0,
+          "at": 17.099931716919,
+          "bridge": 0,
+          "damage": 500,
+          "event": "cmb-bridge-segment",
+          "in_update": 0,
+          "index": 1,
+          "kind": "U",
+          "pred_alive": 0,
+          "scope": "frame:120:state",
+          "shape": 334,
+          "sub": 3,
+          "succ_alive": 1,
+          "type": 20,
+          "x": 31093.207,
+          "y": 92.432045,
+          "z": 3681.76538
+        }
+      ],
+      "landings": [
+        {
+          "a": 0,
+          "alive": 0,
+          "at": 5.599995136261,
+          "b": 0,
+          "bridge": 0,
+          "event": "cmb-ev",
+          "f": 92.432045,
+          "kind": "bridge-landed",
+          "of": 8,
+          "scope": "frame:5:log",
+          "seg": 1,
+          "seq": 40,
+          "shape": 334,
+          "sub": 3,
+          "y": 92.432045
+        }
+      ],
+      "complete_original_raw_equal": true,
+      "post_inputs_log_sha256": "34cd864a2c7be7b89292f20b7ae3327042214b8c994bfe5d50b9e4d7d0833588"
+    },
+    {
+      "name": "bridge-provider-own-01",
+      "bytes": 314736,
+      "sha256": "0dac351726453d013f2418d9cda50684ead7c58571c6b0e3418b20d433e34b6c",
+      "actual_run": {
+        "status": "completed",
+        "when_utc": "2026-10-28T12:53:50.3734322Z",
+        "binary": "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\target\\weapon-fixture\\combat-bridge-corrected-636ef798a\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-characterization-20261028/bridge-provider-probe.lua root=R:/d2-evidence/combat-characterization-20261028/roots/bridge-provider-own-01 scenario=lebanon_retail out=R:/d2-evidence/combat-characterization-20261028/out/bridge-provider-own-01/trace.jsonl warmup=5 frame_ms=100 window_seconds=12 criterion=0 bridge_mode=own bridge_script=R:/d2-evidence/combat-bridge-corrected-source-636ef798a/eech-campaign/target/weapon-fixture/combat-bridge-corrected-636ef798a/lua/bridge-case.lua own_script=R:/d2-evidence/combat-bridge-corrected-source-636ef798a/eech-campaign/target/weapon-fixture/combat-bridge-corrected-636ef798a/lua/own-weapon.lua provider_out=R:/d2-evidence/combat-characterization-20261028/out/bridge-provider-own-01/provider.jsonl",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/bridge-provider-own-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/bridge-provider-own-01",
+        "scenario": "lebanon_retail",
+        "kind": "R5 altered-host bridge probe: own/own-fall authority or specific expected refusal. Default raw equality does not apply; a nonzero native exit alone is not a genuine refusal.",
+        "provider_mode": "own",
+        "probe_script_sha256": "73a0d5ca1ff873a789b22dde2b9df2a34d383ef8edb890f948b9a4091de35b7a",
+        "own_script_sha256": "00538561919fcf17f2103375ac5699d4786b94f0d1fe504f861806623f6d3fe8",
+        "bridge_script_sha256": "a92b0152a8606de635b829c8b92c9525e8476dd4bd9ef57140fead5ff8603eaf",
+        "build_info_sha256": "9fc034ccd849dd0583ebd10d912af698318dbf0c937d88ae11d0932f1729a68f",
+        "actual_native_exit": 0,
+        "native_pid": 23880,
+        "created_utc": "2026-10-28T12:53:50.4227879Z",
+        "completed_utc": "2026-10-28T12:54:12.9591074Z"
+      },
+      "state_groups": 122,
+      "segment_rows": 976,
+      "contiguous_events": 9,
+      "bridge_events": {
+        "collision": 1,
+        "shape": 1,
+        "child_killed": 1,
+        "link_broken": 1,
+        "repair_task": 1,
+        "update_inserted": 1,
+        "segment_update": 1,
+        "fall": 1,
+        "landed": 1
+      },
+      "trusted_reports": 3,
+      "phase_order_and_matching_times": true,
+      "summary": {
+        "done": true,
+        "event": "bridge_summary",
+        "first_collapse": true,
+        "frames": 120,
+        "in_update_at_end": 0,
+        "landed_all": true,
+        "n_child_killed": 1,
+        "n_collision": 1,
+        "n_fall": 1,
+        "n_landed": 1,
+        "n_link_broken": 1,
+        "n_repair_task": 1,
+        "n_segment_update": 1,
+        "n_shape": 1,
+        "n_update_inserted": 1,
+        "state_valid": true
+      },
+      "final_first_two": [
+        {
+          "alive": 0,
+          "at": 17.099931716919,
+          "bridge": 0,
+          "damage": 500,
+          "event": "cmb-bridge-segment",
+          "in_update": 0,
+          "index": 0,
+          "kind": "E",
+          "pred_alive": -1,
+          "scope": "frame:120:state",
+          "shape": 336,
+          "sub": 1,
+          "succ_alive": 1,
+          "type": 18,
+          "x": 31067.3945,
+          "y": 97.6055069,
+          "z": 3666.54443
+        },
+        {
+          "alive": 1,
+          "at": 17.099931716919,
+          "bridge": 0,
+          "damage": 500,
+          "event": "cmb-bridge-segment",
+          "in_update": 0,
+          "index": 1,
+          "kind": "U",
+          "pred_alive": 0,
+          "scope": "frame:120:state",
+          "shape": 333,
+          "sub": 3,
+          "succ_alive": 1,
+          "type": 20,
+          "x": 31093.207,
+          "y": 96.384964,
+          "z": 3681.76538
+        }
+      ],
+      "landings": [
+        {
+          "a": 0,
+          "alive": 0,
+          "at": 5.1999955177307,
+          "b": 0,
+          "bridge": 0,
+          "event": "cmb-ev",
+          "f": 97.6055069,
+          "kind": "bridge-landed",
+          "of": 8,
+          "scope": "frame:1:log",
+          "seg": 0,
+          "seq": 9,
+          "shape": 336,
+          "sub": 1,
+          "y": 97.6055069
+        }
+      ],
+      "provider": {
+        "mode": "own",
+        "script_completed": true,
+        "requests": 7,
+        "kills": 1,
+        "shapes": 1,
+        "neighbours": 2,
+        "falls": 2,
+        "rests": 0,
+        "vehicles": 1,
+        "other": 0,
+        "own": 7,
+        "changed_falls": 0,
+        "malformed": 0
+      },
+      "post_inputs_log_sha256": "33ec635a2dee346c84ba1d85ddf52298762490c7a85588eafbd51bbe2e63c023"
+    },
+    {
+      "name": "bridge-provider-own-fall-01",
+      "bytes": 338912,
+      "sha256": "b5e9be0c0a5f84714895a089d6ad028b8dc08e01eeec1a75b21d8d369f6881b8",
+      "actual_run": {
+        "status": "completed",
+        "when_utc": "2026-10-28T12:53:50.3730171Z",
+        "binary": "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\target\\weapon-fixture\\combat-bridge-corrected-636ef798a\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-characterization-20261028/bridge-provider-probe.lua root=R:/d2-evidence/combat-characterization-20261028/roots/bridge-provider-own-fall-01 scenario=lebanon_retail out=R:/d2-evidence/combat-characterization-20261028/out/bridge-provider-own-fall-01/trace.jsonl warmup=5 frame_ms=100 window_seconds=12 criterion=0 bridge_mode=own_fall bridge_script=R:/d2-evidence/combat-bridge-corrected-source-636ef798a/eech-campaign/target/weapon-fixture/combat-bridge-corrected-636ef798a/lua/bridge-case.lua own_script=R:/d2-evidence/combat-bridge-corrected-source-636ef798a/eech-campaign/target/weapon-fixture/combat-bridge-corrected-636ef798a/lua/own-weapon.lua provider_out=R:/d2-evidence/combat-characterization-20261028/out/bridge-provider-own-fall-01/provider.jsonl",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/bridge-provider-own-fall-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/bridge-provider-own-fall-01",
+        "scenario": "lebanon_retail",
+        "kind": "R5 altered-host bridge probe: own/own-fall authority or specific expected refusal. Default raw equality does not apply; a nonzero native exit alone is not a genuine refusal.",
+        "provider_mode": "own_fall",
+        "probe_script_sha256": "73a0d5ca1ff873a789b22dde2b9df2a34d383ef8edb890f948b9a4091de35b7a",
+        "own_script_sha256": "00538561919fcf17f2103375ac5699d4786b94f0d1fe504f861806623f6d3fe8",
+        "bridge_script_sha256": "a92b0152a8606de635b829c8b92c9525e8476dd4bd9ef57140fead5ff8603eaf",
+        "build_info_sha256": "9fc034ccd849dd0583ebd10d912af698318dbf0c937d88ae11d0932f1729a68f",
+        "actual_native_exit": 0,
+        "native_pid": 12332,
+        "created_utc": "2026-10-28T12:53:50.4298353Z",
+        "completed_utc": "2026-10-28T12:54:12.9902592Z"
+      },
+      "state_groups": 122,
+      "segment_rows": 976,
+      "contiguous_events": 137,
+      "bridge_events": {
+        "collision": 43,
+        "shape": 43,
+        "child_killed": 2,
+        "link_broken": 1,
+        "repair_task": 1,
+        "update_inserted": 2,
+        "segment_update": 21,
+        "unsupported_kill": 1,
+        "fall": 21,
+        "landed": 2
+      },
+      "trusted_reports": 3,
+      "phase_order_and_matching_times": true,
+      "summary": {
+        "done": true,
+        "event": "bridge_summary",
+        "first_collapse": true,
+        "frames": 120,
+        "in_update_at_end": 0,
+        "landed_all": true,
+        "n_child_killed": 2,
+        "n_collision": 43,
+        "n_fall": 21,
+        "n_landed": 2,
+        "n_link_broken": 1,
+        "n_repair_task": 1,
+        "n_segment_update": 21,
+        "n_shape": 43,
+        "n_unsupported_kill": 1,
+        "n_update_inserted": 2,
+        "state_valid": true
+      },
+      "final_first_two": [
+        {
+          "alive": 0,
+          "at": 17.099931716919,
+          "bridge": 0,
+          "damage": 500,
+          "event": "cmb-bridge-segment",
+          "in_update": 0,
+          "index": 0,
+          "kind": "E",
+          "pred_alive": -1,
+          "scope": "frame:120:state",
+          "shape": 336,
+          "sub": 1,
+          "succ_alive": 0,
+          "type": 18,
+          "x": 31067.3945,
+          "y": 97.6055069,
+          "z": 3666.54443
+        },
+        {
+          "alive": 0,
+          "at": 17.099931716919,
+          "bridge": 0,
+          "damage": 500,
+          "event": "cmb-bridge-segment",
+          "in_update": 0,
+          "index": 1,
+          "kind": "U",
+          "pred_alive": 0,
+          "scope": "frame:120:state",
+          "shape": 334,
+          "sub": 3,
+          "succ_alive": 1,
+          "type": 20,
+          "x": 31093.207,
+          "y": 92.432045,
+          "z": 3681.76538
+        }
+      ],
+      "landings": [
+        {
+          "a": 0,
+          "alive": 0,
+          "at": 5.1999955177307,
+          "b": 0,
+          "bridge": 0,
+          "event": "cmb-ev",
+          "f": 97.6055069,
+          "kind": "bridge-landed",
+          "of": 8,
+          "scope": "frame:1:log",
+          "seg": 0,
+          "seq": 16,
+          "shape": 336,
+          "sub": 1,
+          "y": 97.6055069
+        },
+        {
+          "a": 0,
+          "alive": 0,
+          "at": 7.1999936103821,
+          "b": 0,
+          "bridge": 0,
+          "event": "cmb-ev",
+          "f": 92.432045,
+          "kind": "bridge-landed",
+          "of": 8,
+          "scope": "frame:21:log",
+          "seg": 1,
+          "seq": 137,
+          "shape": 334,
+          "sub": 3,
+          "y": 92.432045
+        }
+      ],
+      "provider": {
+        "mode": "own_fall",
+        "script_completed": true,
+        "requests": 175,
+        "kills": 43,
+        "shapes": 43,
+        "neighbours": 42,
+        "falls": 42,
+        "rests": 0,
+        "vehicles": 5,
+        "other": 0,
+        "own": 0,
+        "changed_falls": 21,
+        "malformed": 0
+      },
+      "post_inputs_log_sha256": "f1ae6aef08bc24d5ef68bea0990d4b1b92a9fa536e4a4be8067ec07997b055b9"
+    },
+    {
+      "name": "bridge-provider-missing-01",
+      "bytes": 38882,
+      "sha256": "82e62eeec62d0804f44487d4886b7e4ab9bd8a73d0a9eab4a650bd79121f534a",
+      "actual_run": {
+        "status": "completed",
+        "when_utc": "2026-10-28T12:53:50.3801555Z",
+        "binary": "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\target\\weapon-fixture\\combat-bridge-corrected-636ef798a\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-characterization-20261028/bridge-provider-probe.lua root=R:/d2-evidence/combat-characterization-20261028/roots/bridge-provider-missing-01 scenario=lebanon_retail out=R:/d2-evidence/combat-characterization-20261028/out/bridge-provider-missing-01/trace.jsonl warmup=5 frame_ms=100 window_seconds=12 criterion=0 bridge_mode=missing bridge_script=R:/d2-evidence/combat-bridge-corrected-source-636ef798a/eech-campaign/target/weapon-fixture/combat-bridge-corrected-636ef798a/lua/bridge-case.lua own_script=R:/d2-evidence/combat-bridge-corrected-source-636ef798a/eech-campaign/target/weapon-fixture/combat-bridge-corrected-636ef798a/lua/own-weapon.lua provider_out=R:/d2-evidence/combat-characterization-20261028/out/bridge-provider-missing-01/provider.jsonl",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/bridge-provider-missing-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/bridge-provider-missing-01",
+        "scenario": "lebanon_retail",
+        "kind": "R5 altered-host bridge probe: own/own-fall authority or specific expected refusal. Default raw equality does not apply; a nonzero native exit alone is not a genuine refusal.",
+        "provider_mode": "missing",
+        "probe_script_sha256": "73a0d5ca1ff873a789b22dde2b9df2a34d383ef8edb890f948b9a4091de35b7a",
+        "own_script_sha256": "00538561919fcf17f2103375ac5699d4786b94f0d1fe504f861806623f6d3fe8",
+        "bridge_script_sha256": "a92b0152a8606de635b829c8b92c9525e8476dd4bd9ef57140fead5ff8603eaf",
+        "build_info_sha256": "9fc034ccd849dd0583ebd10d912af698318dbf0c937d88ae11d0932f1729a68f",
+        "actual_native_exit": 1,
+        "native_pid": 8992,
+        "created_utc": "2026-10-28T12:53:50.4311949Z",
+        "completed_utc": "2026-10-28T12:53:58.2887386Z"
+      },
+      "state_groups": 1,
+      "segment_rows": 8,
+      "contiguous_events": 0,
+      "bridge_events": {},
+      "trusted_reports": 1,
+      "phase_order_and_matching_times": true,
+      "specific_primary_refusal": "aim must return a result table, got nil",
+      "provider": {
+        "mode": "missing",
+        "script_completed": false,
+        "requests": 1,
+        "kills": 0,
+        "shapes": 0,
+        "neighbours": 0,
+        "falls": 0,
+        "rests": 0,
+        "vehicles": 1,
+        "other": 0,
+        "own": 0,
+        "changed_falls": 0,
+        "malformed": 1
+      },
+      "post_inputs_log_sha256": "7f203fd56ebc72ce3854c1500cefbfa08508541968fed89ea9d0d6a18364b64e"
+    },
+    {
+      "name": "bridge-provider-bad-shape-01",
+      "bytes": 38882,
+      "sha256": "82e62eeec62d0804f44487d4886b7e4ab9bd8a73d0a9eab4a650bd79121f534a",
+      "actual_run": {
+        "status": "completed",
+        "when_utc": "2026-10-28T12:53:50.3801602Z",
+        "binary": "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\target\\weapon-fixture\\combat-bridge-corrected-636ef798a\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-characterization-20261028/bridge-provider-probe.lua root=R:/d2-evidence/combat-characterization-20261028/roots/bridge-provider-bad-shape-01 scenario=lebanon_retail out=R:/d2-evidence/combat-characterization-20261028/out/bridge-provider-bad-shape-01/trace.jsonl warmup=5 frame_ms=100 window_seconds=12 criterion=0 bridge_mode=bad_shape bridge_script=R:/d2-evidence/combat-bridge-corrected-source-636ef798a/eech-campaign/target/weapon-fixture/combat-bridge-corrected-636ef798a/lua/bridge-case.lua own_script=R:/d2-evidence/combat-bridge-corrected-source-636ef798a/eech-campaign/target/weapon-fixture/combat-bridge-corrected-636ef798a/lua/own-weapon.lua provider_out=R:/d2-evidence/combat-characterization-20261028/out/bridge-provider-bad-shape-01/provider.jsonl",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/bridge-provider-bad-shape-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/bridge-provider-bad-shape-01",
+        "scenario": "lebanon_retail",
+        "kind": "R5 altered-host bridge probe: own/own-fall authority or specific expected refusal. Default raw equality does not apply; a nonzero native exit alone is not a genuine refusal.",
+        "provider_mode": "bad_shape",
+        "probe_script_sha256": "73a0d5ca1ff873a789b22dde2b9df2a34d383ef8edb890f948b9a4091de35b7a",
+        "own_script_sha256": "00538561919fcf17f2103375ac5699d4786b94f0d1fe504f861806623f6d3fe8",
+        "bridge_script_sha256": "a92b0152a8606de635b829c8b92c9525e8476dd4bd9ef57140fead5ff8603eaf",
+        "build_info_sha256": "9fc034ccd849dd0583ebd10d912af698318dbf0c937d88ae11d0932f1729a68f",
+        "actual_native_exit": 1,
+        "native_pid": 22676,
+        "created_utc": "2026-10-28T12:53:50.4301681Z",
+        "completed_utc": "2026-10-28T12:53:58.3095784Z"
+      },
+      "state_groups": 1,
+      "segment_rows": 8,
+      "contiguous_events": 0,
+      "bridge_events": {},
+      "trusted_reports": 1,
+      "phase_order_and_matching_times": true,
+      "specific_primary_refusal": "variant 99 outside the known ones",
+      "provider": {
+        "mode": "bad_shape",
+        "script_completed": false,
+        "requests": 4,
+        "kills": 1,
+        "shapes": 1,
+        "neighbours": 0,
+        "falls": 0,
+        "rests": 0,
+        "vehicles": 2,
+        "other": 0,
+        "own": 0,
+        "changed_falls": 0,
+        "malformed": 1
+      },
+      "post_inputs_log_sha256": "ca8cf5fcb3d614d21874b39c97d26464a1480a1ce869a8815251978804a7a1e9"
+    }
+  ],
+  "artifact_pins": [
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-host-lebanon-01\\trace.jsonl",
+      "sha256": "d4c198afc3be5d5bb03f6c5b25800351c37700cf2cd0c0f5cbeda802ebafc6c3"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-host-lebanon-01\\run.json",
+      "sha256": "e7fdaaaa66a8a3b1311570555e09ba0c43ee5cae0d14956d13181dafcf086885"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-host-lebanon-01\\run.log",
+      "sha256": "0afaf7f9bf0e20c9fff39439dfe5eb16a7698eb9048f9fbf84565af3101333cd"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-host-lebanon-01\\run.out",
+      "sha256": "c780bbb26af9e00a6ca21446a9ae2f78d5d17bfe885086535175d9744e255616"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-host-lebanon-repeat-01\\trace.jsonl",
+      "sha256": "d4c198afc3be5d5bb03f6c5b25800351c37700cf2cd0c0f5cbeda802ebafc6c3"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-host-lebanon-repeat-01\\run.json",
+      "sha256": "da8eddf61771130a7f996457a06d6bed06b615c088dc4e0dd4656988331e97b3"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-host-lebanon-repeat-01\\run.log",
+      "sha256": "af6941d6c97db4665e7e29273b8064c4be00e956b525f8788a04b6f67de6547f"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-host-lebanon-repeat-01\\run.out",
+      "sha256": "c780bbb26af9e00a6ca21446a9ae2f78d5d17bfe885086535175d9744e255616"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-own-01\\trace.jsonl",
+      "sha256": "0dac351726453d013f2418d9cda50684ead7c58571c6b0e3418b20d433e34b6c"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-own-01\\run.json",
+      "sha256": "a93368e8c15edf1043a6bb717f07bd020c19996dc865f1deafab50e3d311fdb8"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-own-01\\run.log",
+      "sha256": "7d70ba22b5524cde24dd210ad6dbb7c1b09d15c524775bef1e31fff1eed40ce0"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-own-01\\run.out",
+      "sha256": "c780bbb26af9e00a6ca21446a9ae2f78d5d17bfe885086535175d9744e255616"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-own-01\\provider.jsonl",
+      "sha256": "3aa4d5573a3f53117966f1d00b2b93fbcc38a32a0e699dbcea9c9320d62527fe"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-own-fall-01\\trace.jsonl",
+      "sha256": "b5e9be0c0a5f84714895a089d6ad028b8dc08e01eeec1a75b21d8d369f6881b8"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-own-fall-01\\run.json",
+      "sha256": "fc1f42524c78134aa402f416fdc3ec40e6a5f20b7af6ec33be85c8410a7b7820"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-own-fall-01\\run.log",
+      "sha256": "50dc12127087f4b88abd0c41fcd56678423d746743a9e932bded575362e401b4"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-own-fall-01\\run.out",
+      "sha256": "c780bbb26af9e00a6ca21446a9ae2f78d5d17bfe885086535175d9744e255616"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-own-fall-01\\provider.jsonl",
+      "sha256": "251a0279de76ce328dda36811e66b9292ed5fe5d26fc8e075b01dfc325b86a79"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-missing-01\\trace.jsonl",
+      "sha256": "82e62eeec62d0804f44487d4886b7e4ab9bd8a73d0a9eab4a650bd79121f534a"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-missing-01\\run.json",
+      "sha256": "1c4d380fbffd6e126e2ccf843683740c68b80c87dd64ff64480f6bdff4197e73"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-missing-01\\run.log",
+      "sha256": "14e420c4e98d85dcd3614125e4800a2071a56889f6bd96632663287cf06c800b"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-missing-01\\run.out",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-missing-01\\provider.jsonl",
+      "sha256": "c9aea38a8bc1c4e52f9821cf67ecf0d4acf4388db6a39cba5eddc7015383bc76"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-bad-shape-01\\trace.jsonl",
+      "sha256": "82e62eeec62d0804f44487d4886b7e4ab9bd8a73d0a9eab4a650bd79121f534a"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-bad-shape-01\\run.json",
+      "sha256": "f50ee75fef0f32fd247bedc66e010198e3b9cd4a70829fff418b580be353f391"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-bad-shape-01\\run.log",
+      "sha256": "e3903369394009e8f300a1d9cda9ff92f57ac10578439e733e91557543840162"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-bad-shape-01\\run.out",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\out\\bridge-provider-bad-shape-01\\provider.jsonl",
+      "sha256": "26275aabe576fa0f77a758a723bafdcfc5d3c71f131759f8804188c158ccdd76"
+    }
+  ],
+  "inputs": [
+    {
+      "name": "bridge-host-lebanon-01",
+      "independent_current_files": 1179,
+      "bytes": 102239559,
+      "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "all_expected_sizes_and_hashes_match": true
+    },
+    {
+      "name": "bridge-host-lebanon-repeat-01",
+      "independent_current_files": 1179,
+      "bytes": 102239559,
+      "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "all_expected_sizes_and_hashes_match": true
+    },
+    {
+      "name": "bridge-provider-own-01",
+      "independent_current_files": 1179,
+      "bytes": 102239559,
+      "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "all_expected_sizes_and_hashes_match": true
+    },
+    {
+      "name": "bridge-provider-own-fall-01",
+      "independent_current_files": 1179,
+      "bytes": 102239559,
+      "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "all_expected_sizes_and_hashes_match": true
+    },
+    {
+      "name": "bridge-provider-missing-01",
+      "independent_current_files": 1179,
+      "bytes": 102239559,
+      "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "all_expected_sizes_and_hashes_match": true
+    },
+    {
+      "name": "bridge-provider-bad-shape-01",
+      "independent_current_files": 1179,
+      "bytes": 102239559,
+      "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "all_expected_sizes_and_hashes_match": true
+    }
+  ],
+  "build": {
+    "actual_build_exec": 92864,
+    "actual_build_outer_exit": 0,
+    "verified_current_exports": 41,
+    "BINF_sha256": "9fc034ccd849dd0583ebd10d912af698318dbf0c937d88ae11d0932f1729a68f",
+    "image": "sha256:8e57ca53e64685a5e069ba6c5125cbb889926e4ada4585f49d08effec4990fa4",
+    "prebuild_before_launcher": {
+      "when_utc": "2026-10-28T12:48:04.986666+00:00",
+      "source": "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a",
+      "head": "636ef798a9368dfb3c55fe5c77d144009e7f3491",
+      "clone_original_exec": 92118,
+      "clone_actual_exit": 0,
+      "clean_before_build_launcher": true,
+      "no_alternates": true,
+      "clone_local_configs": "core.autocrlf=false/core.longpaths=true before checkout",
+      "author_original_exec": 10691,
+      "author_actual_exit": 0,
+      "author_pid23596_gone": true,
+      "source_parent": "8b5e73ae20b745b91436353a089dbe3704477acd correction;636 log-only trim",
+      "review": "Focused NEW P1/P2 correction + RootP3 metadata review NEXT; no native yet"
+    },
+    "b268": "Rejected ABI source neverrun; not relabelled"
+  },
+  "process_exit_provenance": "Native runrecords actual heldhandle exits checked. Original controller exits31083/17264/14364/79501=0 and negative command/native1 supplied by lead actual tool observations plus retained runrecords; not inferred from PASS or report-only recovery.",
+  "driver_and_probe_scope": "Previously closed driver heldhandle/Hidden/freshout/exits reused; current run hashes bind same wrapper and exported bridge/own scripts. Auditor historical ORIGINAL scope string not current runtime identity. Altered hosts checked independently for strict JSON/allphase/time/state cardinality/eventcounts/trust/summary; no reference physical-formula requirement imposed.",
+  "limits": [
+    "Declared direct structural failure, not weaponhit. One Lebanon bridge0/eightsegments; no Georgia/player/MP/client/arbitrary geometry proof.",
+    "No native occupied-vehicle positivekill/unsafeWEAPON-targetkill or savedworldREST proof. Routed_alive454 aggregate does not establish individual occupancy/orders.",
+    "Own model influence includes resulting physical/world feedback, not isolated fixedRNG or default byte-equality claim.",
+    "Badshape has earlier valid KILL1/VEHICLES2 answers; no zero-prior-effects claim. Missing is nil result table, not absent callback registration. Expected negative partialtraces/native1, not healthy completion.",
+    "900control39137/native24704 deliberately not read/reviewed; no Tacview/fullpack acceptance.",
+    "R3 persistent structure/reportownership and factualreports NEXTD2; final40/full8/post3/CI/normalmerge/wholeD2 pending."
+  ],
+  "inspection_note": "One exploratory file inventory was overbroad/noisy; subsequently used exact proof paths. No mutation or native/test invocation."
+}

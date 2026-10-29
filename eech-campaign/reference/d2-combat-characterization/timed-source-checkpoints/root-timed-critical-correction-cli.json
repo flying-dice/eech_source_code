@@ -1,0 +1,12 @@
+{
+  "status": "completed",
+  "pid": 5068,
+  "created_utc": "2026-10-28T07:46:17.5868388Z",
+  "command": "-p --resume f8561f85-1ce4-4047-97df-48f777bbc752 --model claude-sonnet-5-5 --effort high --permission-mode bypassPermissions --disallowedTools Agent,Task --output-format stream-json --verbose",
+  "cwd": "R:/d2-sensor-detections",
+  "prompt": "R:/d2-combat-timed-critical-review-fixes-20261028.txt",
+  "stdout": "R:/d2-claude-combat-timed-critical-review-fixes-20261028.jsonl",
+  "stderr": "R:/d2-claude-combat-timed-critical-review-fixes-20261028.stderr.log",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-28T07:54:40.7129280Z"
+}

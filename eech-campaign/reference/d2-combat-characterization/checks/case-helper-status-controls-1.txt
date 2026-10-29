@@ -1,0 +1,10 @@
+ok   run-case-checks.sh normal: exit 0
+ok     log: probe, compile, run and Docker status 0 and CASE_CHECKS=ok
+ok   run-case-checks.sh forced compile failure: exit 1 (the outer status)
+ok     log: COMPILE_EXIT=1, RUN_NOT_STARTED, no RUN_EXIT line, DOCKER_EXIT=1
+ok   case-mutation-previous-driver.sh normal: a NONZERO exit (the mutant's own: 134)
+ok     log: COMPILE_EXIT=0, checks FAIL, the off-map engine stop, no CASE_CHECKS=ok
+ok     RUN_EXIT (134), DOCKER_EXIT (134) and the helper's exit (134) are the same nonzero status
+ok   case-mutation-previous-driver.sh forced compile failure: exit 1 (the outer status)
+ok     log: COMPILE_EXIT=1, RUN_NOT_STARTED, no RUN_EXIT line, DOCKER_EXIT=1
+CASE_HELPER_STATUS_CONTROLS=ok: every expected status was asserted (this controller's exit 0 is that assertion; the helpers propagate their own nonzero statuses)

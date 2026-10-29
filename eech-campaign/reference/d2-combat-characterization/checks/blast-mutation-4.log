@@ -1,0 +1,48 @@
+== control (unmutated copy)
+60 checks, 0 failures
+CONTROL compile=0 run=0 class=PASSED
+== mutant: continuation_after
+60 checks, 1 failures
+MUTANT continuation_after: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: modifier_upper_bound
+60 checks, 1 failures
+MUTANT modifier_upper_bound: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: radius_must_not_change
+60 checks, 2 failures
+MUTANT radius_must_not_change: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: crater_needs_terrain
+60 checks, 1 failures
+MUTANT crater_needs_terrain: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: sector_started_once
+60 checks, 3 failures
+MUTANT sector_started_once: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: sector_bound
+/tmp/m/mb_hostaim.c:1473:16: runtime error: index 4096 out of bounds for type 'int [4096]'
+MUTANT sector_bound: CAUGHT class=CAUGHT_SANITIZER compile=0 run=1
+== mutant: row_order_reintroduced
+60 checks, 3 failures
+MUTANT row_order_reintroduced: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: blasts_at_most_two
+60 checks, 1 failures
+MUTANT blasts_at_most_two: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: direct_hit_needs_target
+60 checks, 1 failures
+MUTANT direct_hit_needs_target: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: window_sector_in_map
+60 checks, 1 failures
+MUTANT window_sector_in_map: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: rocket_must_be_known
+60 checks, 1 failures
+MUTANT rocket_must_be_known: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: terrain_asked_once
+60 checks, 1 failures
+MUTANT terrain_asked_once: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== setup control: cannot_compile
+/tmp/m/mb_hostaim.c:14:2: error: #error a copy that cannot compile
+   14 | #error a copy that cannot compile
+      |  ^~~~~
+SETUP CONTROL cannot_compile: class=BUILD_FAILURE as expected (compile=1 run=-), not a catch
+== setup control: never_ends
+SETUP CONTROL never_ends: class=TIMEOUT as expected (compile=0 run=124), not a catch
+CAUGHT=12 FAILED=0 SETUP_CONTROLS_AS_EXPECTED=2 SETUP_CONTROLS_WRONG=0 CONTROL_OK=1
+DOCKER_EXIT=0

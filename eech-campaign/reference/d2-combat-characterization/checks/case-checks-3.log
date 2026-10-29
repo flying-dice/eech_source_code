@@ -1,0 +1,40 @@
+TEST_LINK_FLAGS=-fno-pie -no-pie
+SANITIZERS=-fsanitize=address,undefined -fno-sanitize-recover=undefined
+SANITIZER_PROBE_COMPILE_EXIT=0
+SANITIZER_PROBE_RUN_EXIT=0
+COMPILE_EXIT=0
+ok   a person is reported never critical (the original predicate asked once, FALSE) and not eligible
+ok   and its health was not touched, not even to 1 percent
+ok   an anti-aircraft vehicle that is neither explosive nor flammable has no fire roll: not eligible
+ok   and its health was not touched
+ok   20 percent is NOT critical (strictly below 15 is): not eligible, and the health is put back
+ok   the health is exactly what it was
+ok   14 percent of a flammable vehicle is critical by the original predicate: eligible, health set to 14
+ok   a vehicle too small to have a positive health below 15 percent (initial 5: one point is 20 percent) is not eligible and is restored
+ok   ordinal 1 is the second living vehicle of the kind and only that one
+ok   an ordinal past the living entities is not found and not eligible
+ok   a kind with no vehicle critical predicate is refused
+ok   257 existing children: refused BEFORE the launch (the snapshot cannot be complete)
+ok   nothing was launched, retired or delivered
+ok   exactly 256 existing children is the boundary the snapshot holds: the case runs
+ok   and only the one weapon the launch created was retired, none of the 256 old ones
+ok   a launch that creates 300 weapons is an explicit error with the counts
+ok   all 300 new weapons were retired, none of the 3 old ones, and nothing was delivered
+ok   a launch that creates exactly 256 weapons is accounted in full: delivered once, all 256 retired
+ok   a launch the campaign refuses is DATA with its reason (not an argument error that discards it): not done, refused=1, the launch text kept as one word
+ok   and nothing is delivered or retired
+ok   a launch that creates no weapon is data too, with the launch text, and delivers and retires nothing
+ok   a refused launch for a blast is data: placed, not launched, refused with its reason; nothing exploded, destroyed or set
+ok   a launch that creates no weapon for a blast is data too
+ok   a launch that works reports refused=0 and the launch text
+ok   a weaponless collision launches nothing and delivers with no sender
+ok   the default 5 m offset from an entity 2 m inside the east edge is off the map: reported not done
+ok   nothing was launched, set, destroyed or exploded (and the setter's engine stop was not reached)
+ok   a negative offset past the west edge is off the map too
+ok   a non-finite offset is refused before anything happens
+ok   an on-map placement launches once, runs the killed-weapon explosion once and destroys the weapon once
+ok   the weapon was placed 5 m east of the receiver with the chosen kill code
+ok   a hit on target links the exploding weapon to the receiver before the explosion
+CASE_CHECKS=ok: 32 checks, 0 failures
+RUN_EXIT=0
+DOCKER_EXIT=0

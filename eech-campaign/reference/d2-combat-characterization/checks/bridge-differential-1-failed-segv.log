@@ -1,0 +1,14 @@
+TEST_LINK_FLAGS=-fno-pie -no-pie
+SANITIZERS=-fsanitize=address,undefined -fno-sanitize-recover=undefined
+SANITIZER_PROBE_COMPILE_EXIT=0
+SANITIZER_PROBE_RUN_EXIT=0
+COMPILE_EXIT=0
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==26==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x7c2256dc6e7e bp 0x6d53ed2944180c4c sp 0x6d53ed2944180c4c T0)
+==26==The signal is caused by a READ memory access.
+==26==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+AddressSanitizer:DEADLYSIGNAL
+AddressSanitizer: nested bug in the same thread, aborting.
+RUN_EXIT=1
+DOCKER_EXIT=1

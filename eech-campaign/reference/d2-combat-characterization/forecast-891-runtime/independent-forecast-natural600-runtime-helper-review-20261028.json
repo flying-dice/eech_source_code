@@ -1,0 +1,154 @@
+{
+  "schema": "independent-bounded-runtime-helper-review-v1",
+  "preserved_utc": "2026-10-28T06:28:38.033245+00:00",
+  "reviewer": "/root/d2_los_review",
+  "scope": "NEW completed forecast600 evidence plus new private declared-schema comparison helper only. No unchanged source review, tests/helper self-test rerun, native/build launch, agents or moving author checkout access. An independent in-memory artifact comparison and preservation rehashes were performed.",
+  "disposition": "No actionable findings. Default forecast600 measured conformance supported with exactly124 declared counter-typing changes; raw whole-trace equality is false.",
+  "frozen_source": {
+    "path": "R:\\d2-evidence\\combat-forecast-source-891c36d72",
+    "metadata_sha": "891c36d72c274361af11600b85e51b2aab1542cd",
+    "reviewed_runtime_sha": "91bc07e075ad4d58061d0304f3d90389997ee6bc",
+    "clean_at_verification": true
+  },
+  "process": {
+    "original_controller": 58185,
+    "actual_original_controller_exit_recorded": 0,
+    "native_pid": 7208,
+    "actual_native_exit_recorded": 0,
+    "status": "completed",
+    "created_utc": "2026-10-28T06:04:30.9928662Z",
+    "completed_utc": "2026-10-28T06:25:09.4365815Z",
+    "run_record_matches_completion_record": true,
+    "limit": "Completed records and trusted root actual outer-exit capture inspected; reviewer did not launch or watch this native execution live."
+  },
+  "complete_trace_comparison": {
+    "baseline_bytes": 985242,
+    "baseline_sha256": "da5ff65fba3892afb2b7e90c7d573384277e9596e26303c32e2a7b1459da9b77",
+    "candidate_bytes": 984994,
+    "candidate_sha256": "a90f687151df132dfad3496cd304f538e3f9c1e2b0ffbbdde3255adebba90c42",
+    "baseline_lines": 6868,
+    "candidate_lines": 6868,
+    "raw_bytes_identical": false,
+    "independent_comparison": "For each differing line, parsed objects must agree on every field except blast; old event must be cmb-kind with decimal string blast, new blast must be integer with same decimal text, and candidate bytes must equal original after removal of exactly the two blast-value quotes. No reserialization or normalization used. All other lines compared exactly including line endings.",
+    "exact_allowed_lines": 124,
+    "checkpoint_changes": 111,
+    "run_changes": 13,
+    "unexpected_line_differences": 0,
+    "independent_line_change_list_matches_helper_output": true,
+    "complete_ordered_event_rows": 6440,
+    "event_sequence_exact_1_through_6440": true,
+    "trusted_complete_report_groups": 12,
+    "all_six_cumulative_hashes_and_other_counters_equal": true,
+    "final_forecasts": 574382,
+    "final_real_capabilities": 234,
+    "final_capability_draws": 234,
+    "final_damage_writes": 230,
+    "frames": 6001,
+    "elapsed_seconds": 600.00250244141,
+    "limit": "This establishes equality of the retained physical measurements (including cumulative hashes), not a separate per-forecast input/output trace or all possible inputs."
+  },
+  "helper_review": {
+    "path": "R:\\d2-evidence\\combat-characterization-20261028\\compare-combat-declared-schema.py",
+    "sha256": "8296ef0d38945d863136fefa87ecf880428ea59acb40e83e9aba6914a57adad8",
+    "matches_completed_helper_identity": true,
+    "read_bound_bytes_per_trace": 16777216,
+    "mandatory_baseline_sha256": true,
+    "known_original_baseline_sha_independently_verified": true,
+    "line_count_insertion_deletion_and_line_endings_fail_closed": true,
+    "allowlist": "Only one exact canonical decimal blast string-to-number byte substitution on a cmb-kind row; any other changed byte is a difference.",
+    "writes": "Only separately named fresh analysis JSON via exclusive create; neither input trace opened for writing.",
+    "six_focused_self_controls": "Read the six assertions and inspected recorded actual0; did not rerun them. They accept the declared change and reject changed value/kind/hash-event/newline removal/unchanged row.",
+    "separate_gates": "Helper intentionally does not establish schema/completeness or process completion. Required corrected-schema audit and actual process/build/input gates remain separate.",
+    "comparator_actual_exit_recorded": 0
+  },
+  "repository_audit": {
+    "actual_exit_recorded": 0,
+    "status": "PASS",
+    "artifact_complete": true,
+    "process_done": true,
+    "corrected_schema": {
+      "cmb_kind_blast_counter": "number"
+    },
+    "all_checks_pass": true,
+    "run_report_rows_match_completion_record": true,
+    "coverage_limit": "One seed/scenario. Natural trace still has seven health-bearing collision kinds, four active timed paths, no player-target/multiplayer modifier movement/invulnerability/weaponless collision/fixed restore or rocket killed by blast. Prior controlled originals remain separate; no all13 or new whole-path coverage asserted."
+  },
+  "preservation": {
+    "input_files_independently_rehashed": 1179,
+    "input_mismatches": 0,
+    "input_manifest_bytes": 102239559,
+    "input_manifest_combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+    "post_input_actual_exit_recorded": 0,
+    "export_files_independently_rehashed": 40,
+    "export_mismatches": 0,
+    "initial_post_expected_export_maps_equal": true,
+    "build_info_sha256": "b22f01109b5fbcd00377bfd65780cda005d3fd812b3aa740f04be8b7770c1807",
+    "build_info_matches_initial_and_post": true,
+    "post_export_verifier_actual_exit_recorded": 0,
+    "baseline_immutable_sha_reverified": true
+  },
+  "findings": [],
+  "pending_gates": [
+    "900 control21668 remains active and unaccepted here; no complete three-file comparison inferred.",
+    "Shipping full40/all8/post3/currentCI/normal delivery remain separate pending gates.",
+    "No acceptance of moving real-damage source, whole Task46 or D2.",
+    "No frame-time/performance acceptance or additional coverage inferred from this single deterministic600 run."
+  ],
+  "artifact_pins": [
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\compare-combat-declared-schema.py",
+      "bytes": 4080,
+      "sha256": "8296ef0d38945d863136fefa87ecf880428ea59acb40e83e9aba6914a57adad8"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-natural-01-completion.json",
+      "bytes": 15840,
+      "sha256": "35f382341e17be06cf78f85e8b3ab3e35e5a2f70e1be7f80603164bf414083a4"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-natural-01-audit.json",
+      "bytes": 14082,
+      "sha256": "db10b5023c77f8bb413938ca1bcf9d1ca6c238b57ed01a05f40442febfc8f822"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-natural-01-audit.log",
+      "bytes": 6313,
+      "sha256": "d6f4c5097c9e6f98594b60a23d8887e4af348e1d73cf09cde00eb7e7b37462c9"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-natural-01-declared-schema-comparison.json",
+      "bytes": 16296,
+      "sha256": "f3d27db42f331ac8f4076bfc0828301b61f6e50dc2bb0461200e09c3296dfe3b"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-natural-01-post-inputs.log",
+      "bytes": 311,
+      "sha256": "06bd9c319d003fd37e04b7d4b4c767eb93397a5c0ff459c8602d21c0682eb4a3"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-natural-01-post-build.json",
+      "bytes": 10919,
+      "sha256": "f995252109a0f7c90c699eff7191c2adb3234dc17ad2511b3101ffdd471e9b2d"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-clean-forecast-891c36-fixture-manifest.json",
+      "bytes": 10919,
+      "sha256": "7fdb6bf267e36f8ed3c2b18d9deb959230a9ba39eef3f2441cf1b2ffd8af71fb"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-natural-01\\run.json",
+      "bytes": 1066,
+      "sha256": "ad37d4a52cd01081e7951ce3607fc3e7c25697b2a2ed18d5bc0b51fcd40c790c"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-natural-01\\trace.jsonl",
+      "bytes": 984994,
+      "sha256": "a90f687151df132dfad3496cd304f538e3f9c1e2b0ffbbdde3255adebba90c42"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\natural-01\\trace.jsonl",
+      "bytes": 985242,
+      "sha256": "da5ff65fba3892afb2b7e90c7d573384277e9596e26303c32e2a7b1459da9b77"
+    }
+  ]
+}

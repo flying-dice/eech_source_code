@@ -1,0 +1,766 @@
+{
+  "scope": "Strict complete trace bytes with ONLY declared cmb-kind blast string-to-number typing differences; raw files unchanged",
+  "baseline": {
+    "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\natural-01\\trace.jsonl",
+    "bytes": 985242,
+    "sha256": "da5ff65fba3892afb2b7e90c7d573384277e9596e26303c32e2a7b1459da9b77"
+  },
+  "candidate": {
+    "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-natural-01\\trace.jsonl",
+    "bytes": 984994,
+    "sha256": "a90f687151df132dfad3496cd304f538e3f9c1e2b0ffbbdde3255adebba90c42"
+  },
+  "raw_bytes_identical": false,
+  "baseline_lines": 6868,
+  "candidate_lines": 6868,
+  "declared_schema_changes": [
+    {
+      "line": 531,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ANTI_AIRCRAFT",
+      "value": 0
+    },
+    {
+      "line": 533,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_CITY_BUILDING",
+      "value": 12
+    },
+    {
+      "line": 534,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_FIXED_WING",
+      "value": 0
+    },
+    {
+      "line": 535,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_HELICOPTER",
+      "value": 0
+    },
+    {
+      "line": 536,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PERSON",
+      "value": 0
+    },
+    {
+      "line": 537,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PYLON",
+      "value": 0
+    },
+    {
+      "line": 538,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ROUTED_VEHICLE",
+      "value": 10
+    },
+    {
+      "line": 539,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SCENIC",
+      "value": 0
+    },
+    {
+      "line": 540,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SEGMENT",
+      "value": 2
+    },
+    {
+      "line": 541,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE",
+      "value": 0
+    },
+    {
+      "line": 542,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE_UPDATABLE",
+      "value": 0
+    },
+    {
+      "line": 543,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_WEAPON",
+      "value": 0
+    },
+    {
+      "line": 1490,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ANTI_AIRCRAFT",
+      "value": 0
+    },
+    {
+      "line": 1492,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_CITY_BUILDING",
+      "value": 42
+    },
+    {
+      "line": 1493,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_FIXED_WING",
+      "value": 0
+    },
+    {
+      "line": 1494,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_HELICOPTER",
+      "value": 0
+    },
+    {
+      "line": 1495,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PERSON",
+      "value": 0
+    },
+    {
+      "line": 1496,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PYLON",
+      "value": 0
+    },
+    {
+      "line": 1497,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ROUTED_VEHICLE",
+      "value": 15
+    },
+    {
+      "line": 1498,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SCENIC",
+      "value": 0
+    },
+    {
+      "line": 1499,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SEGMENT",
+      "value": 4
+    },
+    {
+      "line": 1500,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE",
+      "value": 0
+    },
+    {
+      "line": 1501,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE_UPDATABLE",
+      "value": 0
+    },
+    {
+      "line": 1502,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_WEAPON",
+      "value": 0
+    },
+    {
+      "line": 1859,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ANTI_AIRCRAFT",
+      "value": 0
+    },
+    {
+      "line": 1861,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_CITY_BUILDING",
+      "value": 42
+    },
+    {
+      "line": 1862,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_FIXED_WING",
+      "value": 0
+    },
+    {
+      "line": 1863,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_HELICOPTER",
+      "value": 0
+    },
+    {
+      "line": 1864,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PERSON",
+      "value": 0
+    },
+    {
+      "line": 1865,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PYLON",
+      "value": 0
+    },
+    {
+      "line": 1866,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ROUTED_VEHICLE",
+      "value": 15
+    },
+    {
+      "line": 1867,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SCENIC",
+      "value": 0
+    },
+    {
+      "line": 1868,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SEGMENT",
+      "value": 8
+    },
+    {
+      "line": 1869,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE",
+      "value": 0
+    },
+    {
+      "line": 1870,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE_UPDATABLE",
+      "value": 0
+    },
+    {
+      "line": 1871,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_WEAPON",
+      "value": 0
+    },
+    {
+      "line": 2484,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ANTI_AIRCRAFT",
+      "value": 0
+    },
+    {
+      "line": 2486,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_CITY_BUILDING",
+      "value": 49
+    },
+    {
+      "line": 2487,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_FIXED_WING",
+      "value": 0
+    },
+    {
+      "line": 2488,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_HELICOPTER",
+      "value": 0
+    },
+    {
+      "line": 2489,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PERSON",
+      "value": 0
+    },
+    {
+      "line": 2490,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PYLON",
+      "value": 0
+    },
+    {
+      "line": 2491,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ROUTED_VEHICLE",
+      "value": 15
+    },
+    {
+      "line": 2492,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SCENIC",
+      "value": 0
+    },
+    {
+      "line": 2493,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SEGMENT",
+      "value": 8
+    },
+    {
+      "line": 2494,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE",
+      "value": 0
+    },
+    {
+      "line": 2495,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE_UPDATABLE",
+      "value": 0
+    },
+    {
+      "line": 2496,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_WEAPON",
+      "value": 0
+    },
+    {
+      "line": 2965,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ANTI_AIRCRAFT",
+      "value": 0
+    },
+    {
+      "line": 2967,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_CITY_BUILDING",
+      "value": 49
+    },
+    {
+      "line": 2968,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_FIXED_WING",
+      "value": 0
+    },
+    {
+      "line": 2969,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_HELICOPTER",
+      "value": 0
+    },
+    {
+      "line": 2970,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PERSON",
+      "value": 0
+    },
+    {
+      "line": 2971,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PYLON",
+      "value": 0
+    },
+    {
+      "line": 2972,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ROUTED_VEHICLE",
+      "value": 32
+    },
+    {
+      "line": 2973,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SCENIC",
+      "value": 0
+    },
+    {
+      "line": 2974,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SEGMENT",
+      "value": 8
+    },
+    {
+      "line": 2975,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE",
+      "value": 0
+    },
+    {
+      "line": 2976,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE_UPDATABLE",
+      "value": 0
+    },
+    {
+      "line": 2977,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_WEAPON",
+      "value": 0
+    },
+    {
+      "line": 4631,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ANTI_AIRCRAFT",
+      "value": 0
+    },
+    {
+      "line": 4633,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_CITY_BUILDING",
+      "value": 55
+    },
+    {
+      "line": 4634,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_FIXED_WING",
+      "value": 0
+    },
+    {
+      "line": 4635,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_HELICOPTER",
+      "value": 1
+    },
+    {
+      "line": 4636,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PERSON",
+      "value": 0
+    },
+    {
+      "line": 4637,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PYLON",
+      "value": 0
+    },
+    {
+      "line": 4638,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ROUTED_VEHICLE",
+      "value": 33
+    },
+    {
+      "line": 4639,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SCENIC",
+      "value": 0
+    },
+    {
+      "line": 4640,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SEGMENT",
+      "value": 8
+    },
+    {
+      "line": 4641,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE",
+      "value": 0
+    },
+    {
+      "line": 4642,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE_UPDATABLE",
+      "value": 0
+    },
+    {
+      "line": 4643,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_WEAPON",
+      "value": 0
+    },
+    {
+      "line": 5304,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ANTI_AIRCRAFT",
+      "value": 0
+    },
+    {
+      "line": 5306,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_CITY_BUILDING",
+      "value": 66
+    },
+    {
+      "line": 5307,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_FIXED_WING",
+      "value": 0
+    },
+    {
+      "line": 5308,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_HELICOPTER",
+      "value": 1
+    },
+    {
+      "line": 5309,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PERSON",
+      "value": 0
+    },
+    {
+      "line": 5310,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PYLON",
+      "value": 0
+    },
+    {
+      "line": 5311,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ROUTED_VEHICLE",
+      "value": 38
+    },
+    {
+      "line": 5312,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SCENIC",
+      "value": 0
+    },
+    {
+      "line": 5313,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SEGMENT",
+      "value": 8
+    },
+    {
+      "line": 5314,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SHIP_VEHICLE",
+      "value": 0
+    },
+    {
+      "line": 5315,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE",
+      "value": 0
+    },
+    {
+      "line": 5316,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE_UPDATABLE",
+      "value": 0
+    },
+    {
+      "line": 5317,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_WEAPON",
+      "value": 0
+    },
+    {
+      "line": 5812,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ANTI_AIRCRAFT",
+      "value": 0
+    },
+    {
+      "line": 5814,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_CITY_BUILDING",
+      "value": 66
+    },
+    {
+      "line": 5815,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_FIXED_WING",
+      "value": 0
+    },
+    {
+      "line": 5816,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_HELICOPTER",
+      "value": 2
+    },
+    {
+      "line": 5817,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PERSON",
+      "value": 0
+    },
+    {
+      "line": 5818,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PYLON",
+      "value": 0
+    },
+    {
+      "line": 5819,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ROUTED_VEHICLE",
+      "value": 48
+    },
+    {
+      "line": 5820,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SCENIC",
+      "value": 0
+    },
+    {
+      "line": 5821,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SEGMENT",
+      "value": 8
+    },
+    {
+      "line": 5822,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SHIP_VEHICLE",
+      "value": 0
+    },
+    {
+      "line": 5823,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE",
+      "value": 0
+    },
+    {
+      "line": 5824,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE_UPDATABLE",
+      "value": 0
+    },
+    {
+      "line": 5825,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_WEAPON",
+      "value": 0
+    },
+    {
+      "line": 6805,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ANTI_AIRCRAFT",
+      "value": 0
+    },
+    {
+      "line": 6807,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_CITY_BUILDING",
+      "value": 69
+    },
+    {
+      "line": 6808,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_FIXED_WING",
+      "value": 1
+    },
+    {
+      "line": 6809,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_HELICOPTER",
+      "value": 3
+    },
+    {
+      "line": 6810,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PERSON",
+      "value": 0
+    },
+    {
+      "line": 6811,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_PYLON",
+      "value": 0
+    },
+    {
+      "line": 6812,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_ROUTED_VEHICLE",
+      "value": 61
+    },
+    {
+      "line": 6813,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SCENIC",
+      "value": 0
+    },
+    {
+      "line": 6814,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SEGMENT",
+      "value": 8
+    },
+    {
+      "line": 6815,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SHIP_VEHICLE",
+      "value": 0
+    },
+    {
+      "line": 6816,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE",
+      "value": 0
+    },
+    {
+      "line": 6817,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_SITE_UPDATABLE",
+      "value": 0
+    },
+    {
+      "line": 6818,
+      "scope": "checkpoint",
+      "type": "ENTITY_TYPE_WEAPON",
+      "value": 0
+    },
+    {
+      "line": 6846,
+      "scope": "run",
+      "type": "ENTITY_TYPE_ANTI_AIRCRAFT",
+      "value": 0
+    },
+    {
+      "line": 6848,
+      "scope": "run",
+      "type": "ENTITY_TYPE_CITY_BUILDING",
+      "value": 69
+    },
+    {
+      "line": 6849,
+      "scope": "run",
+      "type": "ENTITY_TYPE_FIXED_WING",
+      "value": 1
+    },
+    {
+      "line": 6850,
+      "scope": "run",
+      "type": "ENTITY_TYPE_HELICOPTER",
+      "value": 3
+    },
+    {
+      "line": 6851,
+      "scope": "run",
+      "type": "ENTITY_TYPE_PERSON",
+      "value": 0
+    },
+    {
+      "line": 6852,
+      "scope": "run",
+      "type": "ENTITY_TYPE_PYLON",
+      "value": 0
+    },
+    {
+      "line": 6853,
+      "scope": "run",
+      "type": "ENTITY_TYPE_ROUTED_VEHICLE",
+      "value": 61
+    },
+    {
+      "line": 6854,
+      "scope": "run",
+      "type": "ENTITY_TYPE_SCENIC",
+      "value": 0
+    },
+    {
+      "line": 6855,
+      "scope": "run",
+      "type": "ENTITY_TYPE_SEGMENT",
+      "value": 8
+    },
+    {
+      "line": 6856,
+      "scope": "run",
+      "type": "ENTITY_TYPE_SHIP_VEHICLE",
+      "value": 0
+    },
+    {
+      "line": 6857,
+      "scope": "run",
+      "type": "ENTITY_TYPE_SITE",
+      "value": 0
+    },
+    {
+      "line": 6858,
+      "scope": "run",
+      "type": "ENTITY_TYPE_SITE_UPDATABLE",
+      "value": 0
+    },
+    {
+      "line": 6859,
+      "scope": "run",
+      "type": "ENTITY_TYPE_WEAPON",
+      "value": 0
+    }
+  ],
+  "unexpected_difference_count": 0,
+  "first_unexpected_line_numbers": [],
+  "passed": true,
+  "separate_gates": "Actual native/driver exits, repository completeness/schema audit, build/input identity, and strict full campaign recording comparisons remain required"
+}

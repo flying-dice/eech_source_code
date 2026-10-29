@@ -1,0 +1,12 @@
+{
+  "reviewer": "/root/d2_los_review, SAME independent reviewer",
+  "head": "871b5136230c9bc7cf6e079d6d351e6295b067cb",
+  "all14_pinned_hashes_match_before_after": true,
+  "findings": [
+    {"priority": "P2", "paths": ["lua/combat-case.lua:198", "lua/combat-plan.lua:21"], "issue": "Class selection drops count/shortfall, preferring unaffordable dualpurpose over affordablealternateHE. Budget compares LAUNCHCALLS toROUNDS; salvos/bursts consume multiple rounds.", "fix": "Preserve affordability through class choice; accountdebit OR explicitestimate+livepercase selection/refusal, testalternateclassfallbackandmultiroundcost."},
+    {"priority": "P2", "path": "csrc/eech_cmb_case.c:264", "issue": "Every helpererror becomesrefuseddata, includinginvalidweaponsubtypes/unsupportedlauncherkinds.", "fix": "Validateargumentsseparately, retainerrors forinvalidinputs; reserve refusaldata forvalidcampaignoutcomes."}
+  ],
+  "bounded_source_closure": "New Rust C-reasonpreservation/refusalreporting otherwiseboundedandsound",
+  "independent_original_partial_verification": "Rawhash/size/39cases/79trustedreports/contiguousevents/all39exportsverified. Physicaldeltas:6HEhealthwrites;12solidshotcapabilitycallsWITHOUThealthwrites;6weaponlessexits;AA201draws46hits0fatal. OBJECTabsent/PERSONbleedsourceunreachable.",
+  "limits": "13rejectionsunaccepted; ammunitionexhaustionINFERREDnotprovenoldrawdiagnostic; no871nativeproof. No builds/campaigns/edits performedinreview."
+}

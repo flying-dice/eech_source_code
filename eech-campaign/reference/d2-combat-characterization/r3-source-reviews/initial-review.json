@@ -1,0 +1,958 @@
+{
+  "reviewed_utc": "2026-10-28T14:23:00.093558+00:00",
+  "reviewer": "single independent Codex delivery reviewer",
+  "scope": "ONE combined NEW R3 source correctness/clean-code/boundary+Root probe plan+six-copy publication pass.3bf..aff pinned; product0ca. Closed R5/earlier groups/source/runtime/timing semantics reused, not repeated. No agents, edits, builds, tests or native campaigns executed.",
+  "base_sha": "3bf510dd989211b29c13cf5628022ea727cdb3a8",
+  "product_sha": "0ca067d1ef94e51264a4f4a9da40e38c8a14e10a",
+  "reviewed_sha_before": "aff4904fd9363255c789b457fe8d4971fde685e3",
+  "reviewed_sha_after": "aff4904fd9363255c789b457fe8d4971fde685e3",
+  "source_status_before": "clean",
+  "source_status_after": "clean",
+  "findings": [
+    {
+      "priority": "P1",
+      "id": "R3-REVERSE-CROSS-REGISTRY-ID-COLLISION",
+      "title": "Reject a later mobile bind that reuses any issued structure identity",
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\aphavoc\\source\\entity\\special\\group\\gp_roster.c",
+      "line": 1038,
+      "supporting_sources": [
+        {
+          "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\mb_hostobj.c",
+          "line": 226
+        },
+        {
+          "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\mb_hostobj.c",
+          "line": 366
+        }
+      ],
+      "mechanism": "New structure issuance rejects IDs already held by current/retired roster entries, but campaign_roster_link_member only checks find_duplicate_host_id against roster records before committing a later bind. A host can issue structureX first and later return sameX for a new mobile. Both registries accept it; resolve_report_target checks structure records before roster, so report_object(X) intended for the mobile damages/kills the structure. If structureX was retired, its retained record shadows the new mobile and refuses the report as ended. The ever-issued/no-reuse invariant must hold in both directions.",
+      "bounded_correction": "Expose a private ever-issued structure-ID query/shared namespace check and invoke it before committing a roster bind, including retired IDs. Preserve mobile default numbering/RNG, opaque IDs and independent host authority; no namespace parsing or pointer/index leakage. Add both-order live/retired/same-slot controls exercising real binding/registry integration before record commit; existing object_checks uses fixed roster stub and cannot detect this reverse bind defect.",
+      "evidence": "Verified actual gp_roster.c:1025..1051 callback/length/UTF8/roster-onlyduplicate/commit; mb_hostobj.c:226..235 structure-before-roster issuecheck and366 onward structure-first resolve. No native reproduction claimed."
+    },
+    {
+      "priority": "P2",
+      "id": "R3-PHYSICAL-SUBJECT-CORRELATION-INCOMPLETE",
+      "title": "Carry registered persistent identities in actual physical-subject requests",
+      "file": "R:\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\mb_hostaim.c",
+      "line": 41,
+      "supporting_sources": [
+        {
+          "file": "R:\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\mb_hostaim.c",
+          "line": 65
+        },
+        {
+          "file": "R:\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\mb_hostaim.c",
+          "line": 1418
+        },
+        {
+          "file": "R:\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\mb_hostaim.c",
+          "line": 1454
+        },
+        {
+          "file": "R:\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\mb_hostaim.c",
+          "line": 1489
+        },
+        {
+          "file": "R:\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\weapon\\damage.c",
+          "line": 413
+        },
+        {
+          "file": "R:\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\vehicle\\vehicle.c",
+          "line": 441
+        },
+        {
+          "file": "R:\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\aircraft\\aircraft.c",
+          "line": 123
+        },
+        {
+          "file": "R:\\d2-sensor-detections\\aphavoc\\source\\entity\\special\\effect\\explosn\\explosn.c",
+          "line": 934
+        }
+      ],
+      "mechanism": "New persistent IDs are wired into blast/bridgevehicle windows and inbound reports, but common source/target fill_host_id still consults only roster, so even a registered structure has no ID in that envelope. Real DAMAGE/HEALTH/IMPACT helpers zero the envelope and copy only by-value figures; calls with an actual subject do not convey its available persistent identity. Host state/report correlation is therefore window-only plus inboundAPI, not all physical subjects. Stateless numeric solvers can remain valid, but this does not fulfill the broader R3 persistent-correlation responsibility by itself.",
+      "bounded_correction": "Per lead scope disposition received during this same pass, wire available structure/roster identities into common source/target envelopes and real DAMAGE/HEALTH/IMPACT actual-subject context. Keep pure subjectless forecasts/table queries subjectless; do not invent IDs for weapons/unrostered entities or change solver/arithmetic/RNG/order/campaign policy. Add focused public-boundary checks for knownstructure and rostered subject metadata, including still-absent legitimate subjects; then new defaultnative evidence remains required.",
+      "lead_disposition": "Root explicitly adopted remaining R3correlation gap into this correction batch, identity metadata/context only. No additional current fullreview round requested. Initial reviewer observation was scope-qualified; this final disposition is now actionable P2 before claiming R3 source closure."
+    },
+    {
+      "priority": "P3",
+      "id": "R3-STRUCTURE-CALLBACK-STRING-LIFETIME",
+      "title": "Document the actual borrowed lifetime of structure identity strings",
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\crates\\eech-engine-sys\\csrc\\eech_engine.h",
+      "line": 136,
+      "supporting_sources": [
+        {
+          "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\mb_hostobj.c",
+          "line": 307
+        },
+        {
+          "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\mb_hostobj.c",
+          "line": 503
+        }
+      ],
+      "mechanism": "New header promises strings live for the engine session, but IDs are inline in the reallocatable records array. Subsequent identification/capacity growth can invalidate a saved constchar* even during the same enumeration/session. Current Rust collector copies in callback immediately; no current Lua dangling-pointer use found.",
+      "bounded_correction": "State callback-only borrowed validity/require immediate copying, or provide stable per-record storage if session lifetime is intended. A documentation correction suffices for the current copying Rust consumer; do not claim new native heap failure."
+    }
+  ],
+  "disposition": "Source NOT closed/NOT accepted until P1 reverse namespace collision and P2 actual-subject correlation corrected; P3 borrowed-string wording should be corrected in same batch. No additional confirmed product/probe/publication finding. R3 Windows/native/final gates remain pending.",
+  "source_assessment": {
+    "registry": "Six structure kinds only; host issues1..128byte opaque text once per physical incarnation, structure and roster IDs reused rather than rebinding mobile. Releasehook called before slot becomesUNKNOWN; tombstoned structure IDs retained, same-slot reuse oldID cannot resolve under current hook; reset clears session. Arrays/hash table private, no public heapindex/pointer/seed. serial is issued count, not entityindex. Future capacities/int exhaustion not claimed reached.",
+    "reports": "C validates terminated/nonempty identity, exact boolean/presence fields, current incarnation, server,alive,no negative/repair levels before applying. Requested destroy may preserve positive storedhealth (deadsegment500 valid). Cache receipt fields before actions; set damage before real kill; no target reads after kill. Full7callbackhost supplied at actual engine entry; receipt copied only on success. Existing engine ENTER/LEAVE restores host/FPU/fatal context, forbids nested entry. No aggressor/score input added, original policy/consequence handlers reused.",
+    "ownership": "New inbound report path reaches actual setter/kill and resulting D1/bridge handlers; campaign choice/route/repair/accounting/awareness/credit policy untouched. No new physical formula, fallback or RNGdraw added. Host report/withhold influence requires new native evidence, not receipts/standins alone.",
+    "DTOs": "All new Rust FFI declarations have real standalone repr(C). C compiled query130..165 checks new/changed field offsets/sizes and pointer-dependent structure alignment against Rust; first-field zero fromreprC/Cstandard. Char129 capacities match existing128-byte roster/aim limit, bounded strings copied across Rust/Lua; UTF8/NUL/length checks at public boundary. Layout tests Linux target, not new Windows observed layout.",
+    "correlation_scope_observation": "New persistent correlation demonstrably wired into blast/bridgevehicle windows and report_object/structures. Existing common aim source/target envelope fill_host_id atmb_hostaim.c42..69 remains roster-only; direct DAMAGE/HEALTH/IMPACT helpers remain by-value without persistent subject IDs. This pass does not claim all physical request envelopes carry structure IDs; classify in wholeD2 scope audit rather than treating unchanged stateless solvers as a newly invented defect or demanding broad rewrite here. Lead adopted this exact gap as actionable boundedP2 in same correction batch; see finding R3-PHYSICAL-SUBJECT-CORRELATION-INCOMPLETE.",
+    "unsupported": "Bridgeparent/weapon/unrostered mobile not assigned structure identity; six fixed kinds/generic rostered mobiles supported. Arbitrarydelay,save/restore,D1transaction limits declared, not claimed native. Fixed common getters checked support subtype/side/alive/initialhealth for six kinds.",
+    "tests": "Real mb_hostobj+mb_hostaim linked with fake entityheap and fixed roster stub checks37guard cases/order/reuse; meaningful but no actual roster binding integration (P1gap).15object/15bridge/14blast mutants are compiled runtime catches, separate compile/timeout setup controls. No artificial previousdriver red for new API; documented mutations rather than fabricated red. Real handler native effects pending."
+  },
+  "probe_plan": {
+    "driver": "R:\\d2-evidence\\combat-characterization-20261028\\run-object-report-case.ps1",
+    "sha256": "7019ad4fb7d33258c59c414f93fac8bf429beefaba10dbe5583d6b06fbe7063c",
+    "roots_preparation_sha256": "0eef74f045c6dbcb901321f95401e662acbdb6b884487a0b2c75dc6bd9dcc4c9",
+    "six_fresh_manifest_records_actual0": true,
+    "scope": "Heldhandle/Hidden/actualExitCode/newoutput/path guards and script+BINF hashes appropriate; parses0 according lead. Six planned shipping cases site-none/damage+raise/destroy+duplicate/ownidentitydestroy+unknown andsegmentnone/destroy at5/100/12. No launch by reviewer.",
+    "witness": "Actual object-report-case.lua validates finite/bounded args before output/prepare/boot,10kframe/progress bounds, copiedstructures census/IDdupcount,firstALIVEkind target,identityreport once, boundedframes and after-state. donefalse/no-target valid disposition, not proof. Expected pcallrefusals may exitnative0; require actualspecificerror/refusedtrue and no poisonedsecondary-only acceptance.",
+    "essential_runtime_checks": "Require actual censusuniqueIDs/samechosenobject, report_none staysalive vs reported statechange, exacthealth monotonicvalues, segment realhandler/aim activity vs matchednone, controlspecificprimaryreasons and postinput/build. Full-run aimcounts include boot/warmup/ambientcalls, not an isolated report-only delta or route/repair effect by themselves; reuse source chain/closed bridge semantics honestly and judge actual state, not counts/receipt/native0 alone.",
+    "limits": "Six cases not all kinds/player/MP/client/arbitrarydelay/unsafeweapon/occupiedvehicle/same-slot/nativecrossregistry proof. No current R3 native results."
+  },
+  "existing_check_logs": [
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\cargo-test-r3-13.log",
+      "sha256": "214cbc6a9b2902625d8784693d176d78d0cafcc1d0b02f244afd7e4c1a878735",
+      "markers": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\cargo-test-r3-fixture.log",
+      "sha256": "0296c73980dda2f4e60b04310b36a8b8359556f8ed81582c6549f49157d58f05",
+      "markers": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\clippy-r3-default.log",
+      "sha256": "0c689f67bbc5cc788e826542f061b7d42e6ea46e106d4164cd5916712ad24be5",
+      "markers": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\clippy-r3-fixture.log",
+      "sha256": "ef37b0622abe4cf22630955a3fe54f1050064f0587ce165c3f15b5df9d2bab72",
+      "markers": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\fmt-r3-check.log",
+      "sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "markers": [
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\object-checks-1.log",
+      "sha256": "36a5de5b45334391f5e698831cb5f28708753eddb8230b6c4f7236eff78372d9",
+      "markers": [
+        "SANITIZER_PROBE_COMPILE_EXIT=0",
+        "SANITIZER_PROBE_RUN_EXIT=0",
+        "COMPILE_EXIT=0",
+        "37 checks, 0 failures",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\object-mutation-3.log",
+      "sha256": "e243322d469dd9323dbb805ae97c01a61fbf67ab4576edc03bcde52507003868",
+      "markers": [
+        "37 checks, 0 failures",
+        "37 checks, 3 failures",
+        "37 checks, 3 failures",
+        "37 checks, 8 failures",
+        "37 checks, 7 failures",
+        "37 checks, 3 failures",
+        "37 checks, 2 failures",
+        "37 checks, 1 failures",
+        "37 checks, 2 failures",
+        "37 checks, 1 failures",
+        "37 checks, 2 failures",
+        "37 checks, 2 failures",
+        "37 checks, 1 failures",
+        "37 checks, 5 failures",
+        "37 checks, 1 failures",
+        "37 checks, 5 failures",
+        "CAUGHT=15 FAILED=0 SETUP_CONTROLS_AS_EXPECTED=2 SETUP_CONTROLS_WRONG=0 CONTROL_OK=1",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\bridge-checks-r3-1.log",
+      "sha256": "be311fa036667590a89a6bed7707b781574c6e05148fc510272ed80adf03bfdf",
+      "markers": [
+        "SANITIZER_PROBE_COMPILE_EXIT=0",
+        "SANITIZER_PROBE_RUN_EXIT=0",
+        "COMPILE_EXIT=0",
+        "70 checks, 0 failures",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\blast-checks-r3-3.log",
+      "sha256": "70ecdff7989ee4934bd1f92e699cdf22bb757fdc7c969dc357e6b66ec43a9225",
+      "markers": [
+        "SANITIZER_PROBE_COMPILE_EXIT=0",
+        "SANITIZER_PROBE_RUN_EXIT=0",
+        "COMPILE_EXIT=0",
+        "63 checks, 0 failures",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\bridge-mutation-r3.log",
+      "sha256": "e2b222f0861b7ec820103bb0ef73f3babd205970e97cda657ec8dcd9493da00f",
+      "markers": [
+        "70 checks, 0 failures",
+        "70 checks, 2 failures",
+        "70 checks, 1 failures",
+        "70 checks, 1 failures",
+        "70 checks, 1 failures",
+        "70 checks, 2 failures",
+        "70 checks, 1 failures",
+        "70 checks, 1 failures",
+        "70 checks, 1 failures",
+        "70 checks, 1 failures",
+        "70 checks, 1 failures",
+        "70 checks, 1 failures",
+        "70 checks, 2 failures",
+        "70 checks, 3 failures",
+        "70 checks, 1 failures",
+        "CAUGHT=15 FAILED=0 SETUP_CONTROLS_AS_EXPECTED=2 SETUP_CONTROLS_WRONG=0 CONTROL_OK=1",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\blast-mutation-r3.log",
+      "sha256": "c15a55cd5e73e305deb4e00352223cdbb1c18f0bcbf101d10e644dfc4acab5b1",
+      "markers": [
+        "63 checks, 0 failures",
+        "63 checks, 1 failures",
+        "63 checks, 1 failures",
+        "63 checks, 2 failures",
+        "63 checks, 1 failures",
+        "63 checks, 2 failures",
+        "63 checks, 1 failures",
+        "63 checks, 3 failures",
+        "63 checks, 3 failures",
+        "63 checks, 1 failures",
+        "63 checks, 1 failures",
+        "63 checks, 1 failures",
+        "63 checks, 1 failures",
+        "63 checks, 1 failures",
+        "CAUGHT=14 FAILED=0 SETUP_CONTROLS_AS_EXPECTED=2 SETUP_CONTROLS_WRONG=0 CONTROL_OK=1",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\bridge-differential-r3.log",
+      "sha256": "de9bc0f3e9531ec82ebd9d5e86d8cff560ccd7041072b18e2977eb2fe1834bdd",
+      "markers": [
+        "SANITIZER_PROBE_COMPILE_EXIT=0",
+        "SANITIZER_PROBE_RUN_EXIT=0",
+        "COMPILE_EXIT=0",
+        "compared 84036, fell 20001, landed 9804, over water 6690, on the boundary 5455, vehicle walks 4000, vehicles killed 10104, effects on the lists 4426, zero length 308, rested 3329, rested over water 1151, failures 0",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\blast-differential-r3.log",
+      "sha256": "f1f11543da3644cde89e3b6054cf10dcf89ac69bbc46dc9dffa5af103cc7f073",
+      "markers": [
+        "SANITIZER_PROBE_COMPILE_EXIT=0",
+        "SANITIZER_PROBE_RUN_EXIT=0",
+        "COMPILE_EXIT=0",
+        "scenarios 6000, events 255003, candidates 94445, collisions 53647, rockets destroyed 1467, weapons in range 11737, effects on the lists 26593, zero radius 424, objects exactly one radius away 1105, failures 0",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\syntax-r3-1.log",
+      "sha256": "509041f0354c7a539ba6cfa213b362b4756e9b165af87d20535468e96d106045",
+      "markers": [
+        "SYNTAX_EXIT=0"
+      ]
+    }
+  ],
+  "retained_failed_setup_compile_test_logs": [
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\cargo-build-r3-1-failed-misplaced-identify-case.log",
+      "sha256": "7dc3d1df29771ca959bdae1bb58b0e9e372a19e5bf9fb676db65607530c42961",
+      "bytes": 881637
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\cargo-test-r3-1-failed-test-initialisers.log",
+      "sha256": "827230c2ddb9c56d4b0327796803c1bac9bee23341076b75e873f6d4857a98ba",
+      "bytes": 1996
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\cargo-test-r3-11-failed-nested-emit.log",
+      "sha256": "b6c6b66fdaee21d3a78529cdfb7166390b17b4e8cb31661f5e00f56938c12aec",
+      "bytes": 29509
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\cargo-test-r3-2-failed-kernel-crate-link.log",
+      "sha256": "880cb0602dc3363987521f88f4e16d7e78a263399b4ea87afc82367b3e96a748",
+      "bytes": 2127
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\cargo-test-r3-4-failed-draw-wording.log",
+      "sha256": "2d1c78ebe3cb4c4954049b3f068df246641fd83764d757b097f4cd9631108699",
+      "bytes": 8196
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\cargo-test-r3-6-failed-lua-escape.log",
+      "sha256": "325a8c8ae812b89d53c197e2f209e6e24c87fa6b0627f7d6946ac6fc4afdfb05",
+      "bytes": 27209
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\cargo-test-r3-7-failed-lua-escape-2.log",
+      "sha256": "a2a2b15a50c7711971b752fa7fcca12b79f8867ce3456f51a30a3b517dd00403",
+      "bytes": 27207
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\cargo-test-r3-9-failed-test-import.log",
+      "sha256": "197413ef77409f927a09adf0af69a2285d48afdd86740097d014cb124d57e459",
+      "bytes": 874
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\clippy-r3-1-failed-default.log",
+      "sha256": "592762763308c227b6fedcd24a367ee29f8b43ef0ff4224d525de8bced81f1df",
+      "bytes": 2103
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\clippy-r3-1-failed-fixture.log",
+      "sha256": "e0f8e94ca7ca2de24721c09b73757c42cb910d6ad9bd4e1d2df5cde24efd56c9",
+      "bytes": 1967
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\clippy-r3-2-failed-default-corrupted-edit.log",
+      "sha256": "fb9296d1e9929e9ed066dd92129d57ba1f1cc5227d63c1d466b737017d8dccf9",
+      "bytes": 913
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\clippy-r3-2-failed-fixture-corrupted-edit.log",
+      "sha256": "7992685054692d9fc35ed315091e312ad818d5db1a42422a649ebcfd524d47b1",
+      "bytes": 847
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\object-mutation-1-failed-pattern.log",
+      "sha256": "8b4b7d7790ec19a70e8dd1ac0456670826411e0930cfa2b7bdbc787fa285e27e",
+      "bytes": 2399
+    },
+    {
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\object-mutation-2-failed-mangled-script.log",
+      "sha256": "4e61917a8664f8de891a9e331c5168f1ad230f43a50b16f25112acd0ac799050",
+      "bytes": 1928
+    }
+  ],
+  "publication": {
+    "copies": [
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/bridge-636-control900/completion.json",
+        "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-corrected636-bridge-control-01-completion.json",
+        "bytes": 4210,
+        "sha256": "19f1fa6affd0db7e6539797955157f32d77c92883c05d33ca426e83f0d6a7187",
+        "private_worktree_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/bridge-636-control900/complete-comparison.json",
+        "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-corrected636-bridge-control-01-complete-comparison.json",
+        "bytes": 1311,
+        "sha256": "397a97643d0dee0f5f7651c8919cbcd35687a5423cd31bf8db5146cc83ccb2f5",
+        "private_worktree_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/bridge-636-control900/post-build.json",
+        "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-corrected636-bridge-control-01-post-build.json",
+        "bytes": 11197,
+        "sha256": "f97d4d35a5f1a30113d174ed6c06ff05b17d1c9e602725ba3f6916d4842f3826",
+        "private_worktree_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/bridge-636-control900/post-inputs.log",
+        "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-corrected636-bridge-control-01-post-inputs.log",
+        "bytes": 317,
+        "sha256": "c489890b1199e980f2ef5888aa4657629edd42ec934194343979b759bacefc24",
+        "private_worktree_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/bridge-636-control900/independent-review.json",
+        "source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-corrected636-bridge-control900-review-20261028.json",
+        "bytes": 18685,
+        "sha256": "6a8a15ff7fd1833f2f9db2827882d6c256201de5112a0906fdfdf51016282181",
+        "private_worktree_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/bridge-636-control900/run.json",
+        "source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\bridge-control-01\\run.json",
+        "bytes": 1595,
+        "sha256": "f47bd8990559a01a901506e4d83055a8411707ae677230e1dc2e006cc7c39ba1",
+        "private_worktree_git_exact": true
+      }
+    ],
+    "attrs": "* -text whitespace=cr-at-eol",
+    "only_six_safe_copies_plus_readme_attrs_manifest": true,
+    "product_to_metadata_frontiers": [
+      {
+        "path": "aphavoc",
+        "object": "6707a77bc8c160add61ded5cdf567b2b55ae5f6a",
+        "unchanged_metadata_frontier": true
+      },
+      {
+        "path": "modules",
+        "object": "cb40c4563825739137c59de394ed92ca9bf8ab9c",
+        "unchanged_metadata_frontier": true
+      },
+      {
+        "path": "eech-campaign/crates",
+        "object": "fd14417bcb6b780e8bf2b501710eb03c26986eb2",
+        "unchanged_metadata_frontier": true
+      },
+      {
+        "path": "eech-campaign/Cargo.toml",
+        "object": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+        "unchanged_metadata_frontier": true
+      },
+      {
+        "path": "eech-campaign/Cargo.lock",
+        "object": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+        "unchanged_metadata_frontier": true
+      },
+      {
+        "path": "eech-campaign/tools",
+        "object": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1",
+        "unchanged_metadata_frontier": true
+      },
+      {
+        "path": "eech-campaign/regression",
+        "object": "090bd08a26859a8d1ce0907473e049142342aa75",
+        "unchanged_metadata_frontier": true
+      },
+      {
+        "path": "eech-campaign/scenarios",
+        "object": "d9a521c0db9069d557a5d73b0c68f055f79e7baa",
+        "unchanged_metadata_frontier": true
+      }
+    ],
+    "root_proof_sha256": "97822d55da4afaf50335bd47127d0b338912e5cb675c9380ed94b41f85703437",
+    "claims": "README/STATUS distinguish closed actual636900 from new unvalidated0ca source. Original39137/native24704 facts/full3/post1179/all41 closure6a8a15ff reused without raw-runtime reaudit. Historical pending labels preserved/superseded; no retail/binaries/fullraw or exit relabeling. No publication findings."
+  },
+  "diffcheck_actual_exit": 0,
+  "changed_file_pins": [
+    {
+      "path": "STATUS.md",
+      "raw_sha256": "aacc70f4faca4d1d7c8bfb3547269c3190acac1d8ae18dac1fabda7464cb523d",
+      "canonical_git_blob": "f554f60417332e63859e7aa8f02b8bf50b714e40",
+      "bytes": 59752
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.c",
+      "raw_sha256": "37bbc15f70738c41d6130b0ae39cd0a23a975514ec4584326f7a9fbbbf3a1e29",
+      "canonical_git_blob": "4eb0ee9df9cb860c272b2220d4475f64c6dad974",
+      "bytes": 81610
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.h",
+      "raw_sha256": "f7639e708800ea75656f1a6230adc896d1d92ae8d8ca7c4e365d5a9cf10e4ee4",
+      "canonical_git_blob": "5c7d774b0d2816685ff59458bc9a4aa9718b9820",
+      "bytes": 63344
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostobj.c",
+      "raw_sha256": "b1364bf1483b90c585688e59cac54917dd1f082dafbe91290971c04c5165cc48",
+      "canonical_git_blob": "a8b4462ff16f760d51e78de30ecae84d07aee0b8",
+      "bytes": 12377
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostobj.h",
+      "raw_sha256": "282ef166777ebd88f856ccbd9a3268e77565488fade41fd6ca5584e5e5ca6110",
+      "canonical_git_blob": "d04729b5132bf9e44d5f6cb5b9f61713319b615f",
+      "bytes": 5550
+    },
+    {
+      "path": "aphavoc/source/entity/special/effect/explosn/explosn.c",
+      "raw_sha256": "a52132fa348ee51b471575ae3a2d328d8600d895b99a3ca3dfa43dc04b1929ec",
+      "canonical_git_blob": "efb2ffb87994c623c377195334e10a1c26b04b6d",
+      "bytes": 43386
+    },
+    {
+      "path": "aphavoc/source/entity/special/group/gp_roster.c",
+      "raw_sha256": "0c3128d63c6189835dc8c54a031f7abe77de00f7677a7e39208d01f19a76feb7",
+      "canonical_git_blob": "7585cd45eb6fefca1de4114eb241695242a078db",
+      "bytes": 67655
+    },
+    {
+      "path": "aphavoc/source/entity/special/group/gp_roster.h",
+      "raw_sha256": "c10aa1ba6f96a73327b161a5537d02c78649524db2f358ccf91c79fdf6881883",
+      "canonical_git_blob": "f6702a203a0d453cdc007599d82d8f4d70947156",
+      "bytes": 7003
+    },
+    {
+      "path": "aphavoc/source/entity/special/group/group.h",
+      "raw_sha256": "4be29730938a2f342574114f6e3f33c35217167b6038e9a98c43fd937cec3cd7",
+      "canonical_git_blob": "46007e5a1ef38e5e8d18ff0530f87ba745fc1798",
+      "bytes": 12645
+    },
+    {
+      "path": "aphavoc/source/entity/system/en_main/en_heap.c",
+      "raw_sha256": "cb46f91e902186ab675813cbfa952f3fc029817a27deb9277afbb3c05d23454a",
+      "canonical_git_blob": "52cf45ae10f1f36be2e5af6d7f11bc400359c56c",
+      "bytes": 18495
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "raw_sha256": "3c8bc07545027eecbc3040026c09353da9bc04b5155cd036f7d5d7a5f62b7abf",
+      "canonical_git_blob": "8f4d11f70623fe9f922c8df2a0da87fa8f46262c",
+      "bytes": 154773
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_aim_layout.c",
+      "raw_sha256": "80ac921e61befc8543b5838b622a23b18729d0e6bce209d4b3c5418a0dff81c5",
+      "canonical_git_blob": "7bf321bda94b38832615ebfed9a44aada16d3553",
+      "bytes": 10481
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "raw_sha256": "095e591088331a31dd71838217e698acd580b30daf2467864b5e063f6298df67",
+      "canonical_git_blob": "3b559f5a009ca29cbc2a7543d281a136adc20fcc",
+      "bytes": 56283
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h",
+      "raw_sha256": "44b4d61bb2ec680d29386caf11e6f765f31f838c1262fb04bea36ea5304c1300",
+      "canonical_git_blob": "a78d6630cf4c1a98c4a4c5b1ec4c9b5907d60a30",
+      "bytes": 19854
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/sources.txt",
+      "raw_sha256": "3c9ed2d1872d1ce53dd1341b77598e4dc43787611fadb06b55555510446799fd",
+      "canonical_git_blob": "02404f9fd37fdd07fb7c7d45c0f82fca07d28dee",
+      "bytes": 53829
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "raw_sha256": "1254cfc9bb2d11be529ed28ee6da58140687f6a3650b6dabf088acae211849e9",
+      "canonical_git_blob": "93b2def14ef0d11a72022c619cde554d5f4cb5dc",
+      "bytes": 50005
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "raw_sha256": "b70d1976ed478c72f594068372cc61314f4629529ed026f66ecaa4e76d2df437",
+      "canonical_git_blob": "906af48f2ebf8c5416d86a6977ea032062770eab",
+      "bytes": 392726
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/aim-malformed.lua",
+      "raw_sha256": "1fa81d7ba056ef3b8ca74c848a3089a1bbdea36a355b9483d2c873353e470285",
+      "canonical_git_blob": "94e0f1cca8d4bb19046a31e803b4381191a5cb85",
+      "bytes": 15311
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/aim-provider.lua",
+      "raw_sha256": "5f150ea8d697695396e6539567a7a164f52da3494ca60191e3e2ee04ac54584a",
+      "canonical_git_blob": "b557e4f54f43f4eaa3935f6e3c75c02e0896a48c",
+      "bytes": 42005
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/object-report-case.lua",
+      "raw_sha256": "6c9d9ad5db016e5b4abb31889efd596a1e4921131b04de0f978fc71dbca7cdb3",
+      "canonical_git_blob": "b3c56b88738433d79dcad244499672b0c355b83b",
+      "bytes": 11258
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/own-weapon.lua",
+      "raw_sha256": "ca1c8487ed4c17feffdd5079b2eb070cf5606d10327f1fa5c123647de0289499",
+      "canonical_git_blob": "4ecd315cffd63d8f4832f69f263d158be8459b4a",
+      "bytes": 13663
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/main.rs",
+      "raw_sha256": "81bfa0980b0297f44b52b63144ef21fc66cb7210988c51f9d0b422feebe18bc5",
+      "canonical_git_blob": "c52dbb4e052a664aa3fbb99dcbef1ab8cad893a1",
+      "bytes": 180970
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "raw_sha256": "50bd987ebb3ec3249d1915917aae566188de4061d7423c5de587ae27d81b7721",
+      "canonical_git_blob": "0bd9561af7790baf2398e4d304f9eff9909134a3",
+      "bytes": 143257
+    },
+    {
+      "path": "eech-campaign/docs/m5-combat-extraction.md",
+      "raw_sha256": "53a33d937e7b89f88b7ba2810ddf9a59439994dadbde990b4563ba49a4625542",
+      "canonical_git_blob": "807abfa84f972d57c4d3f12532186e83b5e86c25",
+      "bytes": 89475
+    },
+    {
+      "path": "eech-campaign/docs/m5-host-identities.md",
+      "raw_sha256": "8a82e0be103afd757ba352f09226d009172ce02312235ce3c508c6ad9009baba",
+      "canonical_git_blob": "2d0f2e2d63241dcbdf605793ff157968a8aab3be",
+      "bytes": 6557
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/bridge-636-control900/.gitattributes",
+      "raw_sha256": "730a35ae3d558080083c3103d9ac8100c3f6561678092abe341701dfa331eb1d",
+      "canonical_git_blob": "4f7fc3ef1406bfab189a4a14744c344f36d77d9a",
+      "bytes": 29
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/bridge-636-control900/README.md",
+      "raw_sha256": "19fc10414859ed231d4d94dbc828110c5ac9fb35b31aa64bedee5df8ee10bdee",
+      "canonical_git_blob": "ac14d5c88d782b2f2999ee33388cac6b3e0a136e",
+      "bytes": 1205
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/bridge-636-control900/complete-comparison.json",
+      "raw_sha256": "397a97643d0dee0f5f7651c8919cbcd35687a5423cd31bf8db5146cc83ccb2f5",
+      "canonical_git_blob": "2ea57723ae142a9be7c0bc9a5b4862ae1a9996b8",
+      "bytes": 1311
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/bridge-636-control900/completion.json",
+      "raw_sha256": "19f1fa6affd0db7e6539797955157f32d77c92883c05d33ca426e83f0d6a7187",
+      "canonical_git_blob": "2958f12f5b57ebaa2159b7fd856a04b9170a62cf",
+      "bytes": 4210
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/bridge-636-control900/exact-copies.json",
+      "raw_sha256": "bf59bde8131dec8242d810ac43d133e1ea4b7bc2d12b6636e090b8202384a312",
+      "canonical_git_blob": "9fe38afff86c3c16bede56ee1881f062716d0d49",
+      "bytes": 1853
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/bridge-636-control900/independent-review.json",
+      "raw_sha256": "6a8a15ff7fd1833f2f9db2827882d6c256201de5112a0906fdfdf51016282181",
+      "canonical_git_blob": "e964c7e2e0ceee5cea63d3f6cad8f5fa27688288",
+      "bytes": 18685
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/bridge-636-control900/post-build.json",
+      "raw_sha256": "f97d4d35a5f1a30113d174ed6c06ff05b17d1c9e602725ba3f6916d4842f3826",
+      "canonical_git_blob": "5969cab0d1fe79455c55167d349476695c35a02e",
+      "bytes": 11197
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/bridge-636-control900/post-inputs.log",
+      "raw_sha256": "c489890b1199e980f2ef5888aa4657629edd42ec934194343979b759bacefc24",
+      "canonical_git_blob": "b3b331d5b64ee466fbf86271f55658d7e3a537c6",
+      "bytes": 317
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/bridge-636-control900/run.json",
+      "raw_sha256": "f47bd8990559a01a901506e4d83055a8411707ae677230e1dc2e006cc7c39ba1",
+      "canonical_git_blob": "64dd40af8ae740ae611d116cebf4d2c7e2baffac",
+      "bytes": 1595
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/blast_checks.c",
+      "raw_sha256": "9bbdfc4fb2a07c8c8e280061c2c26d9e9b4f8cb50d111401ee8a51d20d431855",
+      "canonical_git_blob": "37d4b3b705a4b5bb3bf287763429738f4c0159a4",
+      "bytes": 35429
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/bridge_checks.c",
+      "raw_sha256": "e40a2cfd8c532a96c1b4232b26fee1440f41584d03e1355eafeceb0efe13d3df",
+      "canonical_git_blob": "ed689ebf11019730f5c6eb776dbc4540feaf7278",
+      "bytes": 33648
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/mutate-blast-checks.sh",
+      "raw_sha256": "4a905a25453ef4f0008e6c7c7f0e05ecc372d425e0245819a3bfa25bd05ea9ed",
+      "canonical_git_blob": "f0dd622ce2f01e720ffec24e9045ba1112a9575d",
+      "bytes": 6006
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/mutate-bridge-checks.sh",
+      "raw_sha256": "aeee98aa20ff11dbd03e920838b700c42c08ecdff620dfa2d5bac8fdd8d4a70c",
+      "canonical_git_blob": "69b6df98b0d31c2fd8e5d88bd5d4e2e260c33625",
+      "bytes": 6121
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/mutate-object-checks.sh",
+      "raw_sha256": "392b955800cb141709f102a81da6c8a440a6ef07eb0159337298b3ef918d82c4",
+      "canonical_git_blob": "5b011f61fce5b3c361e690ba914f879e6abc417b",
+      "bytes": 5897
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/object-stub/project.h",
+      "raw_sha256": "9ad333a77a26b1e05ea65e0b38edae4076e3605df1924aac579cee6c3f68cac1",
+      "canonical_git_blob": "acbf0effdd3da1d04f0b8b98a32706c9054a751b",
+      "bytes": 2443
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/object_checks.c",
+      "raw_sha256": "2a03d6126df4d502daca53d2dbdbb6f1a10b114074aa71254ba15f5890dfe8fb",
+      "canonical_git_blob": "c3569fce0a80216ec9d36e9c3dfa25c37b5fa99a",
+      "bytes": 15736
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/run-object-checks.sh",
+      "raw_sha256": "68ddb1a878580ab57192922f6d38eaf4dfcde73debd294e75043fac8ba0782d3",
+      "canonical_git_blob": "594e835be472ad2fb52aa27f83a4a6c2ac12256d",
+      "bytes": 2118
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-checks-r3-1.log",
+      "raw_sha256": "861d1469450a92357736c4b735b600dbcd76fb5ffc2a67294021611f6fdff036",
+      "canonical_git_blob": "71dc7388c26bc089391f4748c8f54689d1a59c5a",
+      "bytes": 4808
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-checks-r3-2.log",
+      "raw_sha256": "eb8fc5bfb06fb92ec2034522a25f56f306aa74b9ef54752fb399668fd728040a",
+      "canonical_git_blob": "24d4be6c9f090c144c7e2a3e22790a8991972ff8",
+      "bytes": 6057
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-checks-r3-3.log",
+      "raw_sha256": "70ecdff7989ee4934bd1f92e699cdf22bb757fdc7c969dc357e6b66ec43a9225",
+      "canonical_git_blob": "fc1b050b5397d3c7958531dd3ffe02f2af0f6af4",
+      "bytes": 6130
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-differential-r3.log",
+      "raw_sha256": "f1f11543da3644cde89e3b6054cf10dcf89ac69bbc46dc9dffa5af103cc7f073",
+      "canonical_git_blob": "7954e281cc5275c1d185ed5099eae02fbfc6cb9d",
+      "bytes": 412
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-mutation-r3.log",
+      "raw_sha256": "c15a55cd5e73e305deb4e00352223cdbb1c18f0bcbf101d10e644dfc4acab5b1",
+      "canonical_git_blob": "fd30c7b4597bb470fa6d5110508560610614277b",
+      "bytes": 2434
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/bridge-checks-r3-1.log",
+      "raw_sha256": "be311fa036667590a89a6bed7707b781574c6e05148fc510272ed80adf03bfdf",
+      "canonical_git_blob": "b1f542fd621c2f2d4e92b0147745c86744f4f0e4",
+      "bytes": 6390
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/bridge-differential-r3.log",
+      "raw_sha256": "de9bc0f3e9531ec82ebd9d5e86d8cff560ccd7041072b18e2977eb2fe1834bdd",
+      "canonical_git_blob": "cc4e69d665dbdc9d1785dfee63015290f3cf4456",
+      "bytes": 524
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/bridge-mutation-r3.log",
+      "raw_sha256": "e2b222f0861b7ec820103bb0ef73f3babd205970e97cda657ec8dcd9493da00f",
+      "canonical_git_blob": "36879741b616025f2ce2f53c5e3298a8150eaa5b",
+      "bytes": 2691
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-build-r3-1-failed-misplaced-identify-case.log",
+      "raw_sha256": "7dc3d1df29771ca959bdae1bb58b0e9e372a19e5bf9fb676db65607530c42961",
+      "canonical_git_blob": "6d249231f16dd17b90dd3b40dbd6581715685535",
+      "bytes": 881637
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-build-r3-2.log",
+      "raw_sha256": "831fecc30a7d6a6db44efcb47eedf0b4052c2adc82206f308e6c8b499925695f",
+      "canonical_git_blob": "f9f53e3fa7ee77273c6a764557348a152159b970",
+      "bytes": 365
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3-1-failed-test-initialisers.log",
+      "raw_sha256": "827230c2ddb9c56d4b0327796803c1bac9bee23341076b75e873f6d4857a98ba",
+      "canonical_git_blob": "7f18bd1519328f0ce16e608f11a483381d8405f2",
+      "bytes": 1996
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3-10.log",
+      "raw_sha256": "812bb6620def98e99f95763772f22fa219e0499ddebf9331251dd06c75b79877",
+      "canonical_git_blob": "d6c93acf83dd859495975139cba717f9e27e8aed",
+      "bytes": 39795
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3-11-failed-nested-emit.log",
+      "raw_sha256": "b6c6b66fdaee21d3a78529cdfb7166390b17b4e8cb31661f5e00f56938c12aec",
+      "canonical_git_blob": "5eb083433dc7d07fefcf91ce2fdef8581f2fd200",
+      "bytes": 29509
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3-12-world.log",
+      "raw_sha256": "3b5a29f82a3ff6f087133b0da2dc065f4c257bcee3ad3082f589aad520fe7720",
+      "canonical_git_blob": "b792886f9a1339b4e860f26e42eef0c84a84b95a",
+      "bytes": 27351
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3-13.log",
+      "raw_sha256": "214cbc6a9b2902625d8784693d176d78d0cafcc1d0b02f244afd7e4c1a878735",
+      "canonical_git_blob": "a35f10a7df961eda79c34c71ac3fd4717fbe9019",
+      "bytes": 40347
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3-2-failed-kernel-crate-link.log",
+      "raw_sha256": "880cb0602dc3363987521f88f4e16d7e78a263399b4ea87afc82367b3e96a748",
+      "canonical_git_blob": "56562cc63bd6e44d8a35ccda998fbea1c0712dd0",
+      "bytes": 2127
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3-3.log",
+      "raw_sha256": "03b9dd0211755cd39be16f615ac3bee39dcc68aeff0851a5ef5bb382788f8eaf",
+      "canonical_git_blob": "1ffce6826feb82ecb8503b2d0ecf54d848dc7d02",
+      "bytes": 39749
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3-4-failed-draw-wording.log",
+      "raw_sha256": "2d1c78ebe3cb4c4954049b3f068df246641fd83764d757b097f4cd9631108699",
+      "canonical_git_blob": "03272150828332b242b68d6a3026932f146a2661",
+      "bytes": 8196
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3-5-engine.log",
+      "raw_sha256": "beb6c2449e1ebac8956333ee27434049a74858b4bf400f29a7147d778050c881",
+      "canonical_git_blob": "c435eb5e13cba57236e7b70432c5f806867427ee",
+      "bytes": 7627
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3-6-failed-lua-escape.log",
+      "raw_sha256": "325a8c8ae812b89d53c197e2f209e6e24c87fa6b0627f7d6946ac6fc4afdfb05",
+      "canonical_git_blob": "0bb4790023bb55465db79a3fc973788c44f405e7",
+      "bytes": 27209
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3-7-failed-lua-escape-2.log",
+      "raw_sha256": "a2a2b15a50c7711971b752fa7fcca12b79f8867ce3456f51a30a3b517dd00403",
+      "canonical_git_blob": "476fda9895e0a614339899d5bfff422aadf91dd4",
+      "bytes": 27207
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3-8-world.log",
+      "raw_sha256": "a0ff42600cf1e30a61899e09fee7baddace46fe1f49babddac2d787891f9437e",
+      "canonical_git_blob": "674e6204907b06be7949755768bf73e0c119f8d7",
+      "bytes": 27012
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3-9-failed-test-import.log",
+      "raw_sha256": "197413ef77409f927a09adf0af69a2285d48afdd86740097d014cb124d57e459",
+      "canonical_git_blob": "4518b3ed1abacec546472cf17594fc55c92bc6a4",
+      "bytes": 874
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3-fixture.log",
+      "raw_sha256": "0296c73980dda2f4e60b04310b36a8b8359556f8ed81582c6549f49157d58f05",
+      "canonical_git_blob": "b25f64dcd875f6ea0d8807dd8b6856e97ca016f6",
+      "bytes": 36520
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-r3-1-failed-default.log",
+      "raw_sha256": "592762763308c227b6fedcd24a367ee29f8b43ef0ff4224d525de8bced81f1df",
+      "canonical_git_blob": "749698bf97c6d214e807f11b2c1572d74d63ebc7",
+      "bytes": 2103
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-r3-1-failed-fixture.log",
+      "raw_sha256": "e0f8e94ca7ca2de24721c09b73757c42cb910d6ad9bd4e1d2df5cde24efd56c9",
+      "canonical_git_blob": "30b1991ca63de0033b0c6b421bd079f055e69f43",
+      "bytes": 1967
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-r3-2-failed-default-corrupted-edit.log",
+      "raw_sha256": "fb9296d1e9929e9ed066dd92129d57ba1f1cc5227d63c1d466b737017d8dccf9",
+      "canonical_git_blob": "2eba2d8b0f293dc655d6adb495f32ea612e96499",
+      "bytes": 913
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-r3-2-failed-fixture-corrupted-edit.log",
+      "raw_sha256": "7992685054692d9fc35ed315091e312ad818d5db1a42422a649ebcfd524d47b1",
+      "canonical_git_blob": "15ea077d9b7f394a93b8bbf09eee4ce6ba0f0466",
+      "bytes": 847
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-r3-default.log",
+      "raw_sha256": "0c689f67bbc5cc788e826542f061b7d42e6ea46e106d4164cd5916712ad24be5",
+      "canonical_git_blob": "7fa20e3094e43e9f77b3998ee5ebe3ddb3575c3d",
+      "bytes": 500
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-r3-fixture.log",
+      "raw_sha256": "ef37b0622abe4cf22630955a3fe54f1050064f0587ce165c3f15b5df9d2bab72",
+      "canonical_git_blob": "a1ce9815a23b6d077e01ec044856ffdf84a1ca91",
+      "bytes": 284
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/fmt-r3-check.log",
+      "raw_sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "canonical_git_blob": "fb443baa65a38fe198b61549de69630e8a4fb6fb",
+      "bytes": 43
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/fmt-r3-fix.log",
+      "raw_sha256": "b124c325297d43393c804bf6c88c72eb566198af4b69d3207c6e225e8bd65af4",
+      "canonical_git_blob": "0440576237c2695add363d04eb55ec4e3083f490",
+      "bytes": 47
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/fmt-r3-fix2.log",
+      "raw_sha256": "65f1218c737128d3421f239c8d29e2f19775059f41a5b1b44b6b959bd2ccad18",
+      "canonical_git_blob": "3f59c8569593899f6438f9b6ac230989c8cf584c",
+      "bytes": 559
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/fmt-r3-fix3.log",
+      "raw_sha256": "b124c325297d43393c804bf6c88c72eb566198af4b69d3207c6e225e8bd65af4",
+      "canonical_git_blob": "0440576237c2695add363d04eb55ec4e3083f490",
+      "bytes": 47
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/object-checks-1.log",
+      "raw_sha256": "36a5de5b45334391f5e698831cb5f28708753eddb8230b6c4f7236eff78372d9",
+      "canonical_git_blob": "4115abaa03ebd953f985ff6c00edd59ac46db77d",
+      "bytes": 2304
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/object-mutation-1-failed-pattern.log",
+      "raw_sha256": "8b4b7d7790ec19a70e8dd1ac0456670826411e0930cfa2b7bdbc787fa285e27e",
+      "canonical_git_blob": "2da1f621286690c853790445c701229a7774e574",
+      "bytes": 2399
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/object-mutation-2-failed-mangled-script.log",
+      "raw_sha256": "4e61917a8664f8de891a9e331c5168f1ad230f43a50b16f25112acd0ac799050",
+      "canonical_git_blob": "bacd4ba89c6aecda9fdfe69fd8e15bb9c1bdec4b",
+      "bytes": 1928
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/object-mutation-3.log",
+      "raw_sha256": "e243322d469dd9323dbb805ae97c01a61fbf67ab4576edc03bcde52507003868",
+      "canonical_git_blob": "1e8b7c639e9e0191bc3d4a0a32985ff3b6ab0671",
+      "bytes": 2470
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/syntax-r3-1.log",
+      "raw_sha256": "509041f0354c7a539ba6cfa213b362b4756e9b165af87d20535468e96d106045",
+      "canonical_git_blob": "366eb35bca39f1502d9cb9e34a8a45ffc6312541",
+      "bytes": 1927
+    }
+  ],
+  "remaining": [
+    "Correct P1/P2/P3, pin/review resulting NEW correction delta only.",
+    "Fresh clean shipping build/Windows identity/layout,exports/default native and actual report influence/refusal proofs.",
+    "WholeD2 audit including structure correlation/report scope and remaining responsibilities.",
+    "Finalordinaryshipping40/full8/post3/finalnativeframecost/currentCI/finalreview/normalmerge46/Jira46Done/Epic18audit. NoD3."
+  ],
+  "final_scope_disposition_utc": "2026-10-28T14:23:48.080773+00:00",
+  "preserved_pre_disposition_snapshot": {
+    "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-r3-structure-reports-source-review-aff4904fd-20261028.pre-lead-correlation-disposition.json",
+    "sha256": "f8d5905bbb4303a77046c9738f596987d2cf4b48bdaa6165f8ce0ae3af267eaf",
+    "reason": "Initial report was written while lead clarified correlation gap as bounded correction responsibility; preserve unpublished earlier snapshot, finalreport includes exactsources/disposition."
+  }
+}

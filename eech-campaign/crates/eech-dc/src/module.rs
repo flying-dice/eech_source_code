@@ -3,7 +3,7 @@
 use eech_engine::{
     AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship,
     HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, MovementMode, MovementResult,
-    MovementStep, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor, VehiclePose, WeaponFigures,
+    MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor, VehiclePose, WeaponFigures,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -554,6 +554,220 @@ fn aim_request_table(lua: &Lua, request: &AimRequest) -> Result<LuaTable, String
             }
             table.set("not_ai", data.not_ai).map_err(e)?;
         }
+        AimRequest::Forecast(data) => {
+            // the damage a weapon is capable of against a target, with no weapon in flight: everything by value, nothing to keep
+            table.set("mode", "forecast").map_err(e)?;
+            table.set("weapon", data.weapon).map_err(e)?;
+            table.set("weapon_warhead", data.weapon_warhead).map_err(e)?;
+            table.set("warhead", data.warhead).map_err(e)?;
+            table.set("damage_capability", data.damage_capability).map_err(e)?;
+            table.set("armor_penetration_capability", data.armor_penetration_capability).map_err(e)?;
+            table.set("burst_duration", data.burst_duration).map_err(e)?;
+            table.set("armour_level", data.armour_level).map_err(e)?;
+            table.set("target_not_ai", data.target_not_ai).map_err(e)?;
+            table.set("player_modifier", data.player_modifier).map_err(e)?;
+            table.set("damage_modifier", data.damage_modifier).map_err(e)?;
+            table.set("velocity", data.velocity).map_err(e)?;
+            table.set("echo", data.echo).map_err(e)?;
+        }
+        AimRequest::Damage(data) => {
+            // one hit that reached a damage handler, everything by value; the sample of the campaign's stream is present once the host has asked for it
+            table.set("mode", "damage").map_err(e)?;
+            aim_ids_into(&table, &None, &data.target_host_id)?;
+            table.set("weapon", data.weapon).map_err(e)?;
+            table.set("weapon_warhead", data.weapon_warhead).map_err(e)?;
+            table.set("warhead", data.warhead).map_err(e)?;
+            table.set("damage_capability", data.damage_capability).map_err(e)?;
+            table.set("armor_penetration_capability", data.armor_penetration_capability).map_err(e)?;
+            table.set("burst_duration", data.burst_duration).map_err(e)?;
+            table.set("weapon_speed", data.weapon_speed).map_err(e)?;
+            table.set("weapon_cruise_velocity", data.weapon_cruise_velocity).map_err(e)?;
+            table.set("damage_modifier", data.damage_modifier).map_err(e)?;
+            table.set("armour_level", data.armour_level).map_err(e)?;
+            table.set("armour_easy", data.armour_easy).map_err(e)?;
+            table.set("armour_model", data.armour_model).map_err(e)?;
+            table.set("armour_front", data.armour_front).map_err(e)?;
+            table.set("armour_rear", data.armour_rear).map_err(e)?;
+            table.set("armour_side", data.armour_side).map_err(e)?;
+            table.set("weapon_position", data.weapon_position.to_vec()).map_err(e)?;
+            table.set("target_position", data.target_position.to_vec()).map_err(e)?;
+            table.set("target_attitude", data.target_attitude.to_vec()).map_err(e)?;
+            table.set("target_not_ai", data.target_not_ai).map_err(e)?;
+            if let Some(modifier) = data.player_modifier {
+                table.set("player_modifier", modifier).map_err(e)?;
+            }
+            table.set("has_launcher", data.has_launcher).map_err(e)?;
+            table.set("multiplier", data.multiplier).map_err(e)?;
+            table.set("invulnerable", data.invulnerable).map_err(e)?;
+            table.set("cheat_guard", data.cheat_guard).map_err(e)?;
+            table.set("damage_level", data.damage_level).map_err(e)?;
+            table.set("initial_damage_level", data.initial_damage_level).map_err(e)?;
+            table.set("critical_model", data.critical_model).map_err(e)?;
+            if let Some(draw) = data.draw {
+                table.set("draw", draw).map_err(e)?;
+            }
+            table.set("echo", data.echo).map_err(e)?;
+        }
+        AimRequest::Health(data) => {
+            // a health fact that is not a hit, by value; the sample of the campaign's stream is present once a timed roll has asked for it
+            table.set("mode", "health").map_err(e)?;
+            aim_ids_into(&table, &None, &data.target_host_id)?;
+            table
+                .set(
+                    "op",
+                    match data.op {
+                        1 => "classify",
+                        2 => "assess",
+                        3 => "timed",
+                        _ => "hit_eligible",
+                    },
+                )
+                .map_err(e)?;
+            table.set("critical_model", data.critical_model).map_err(e)?;
+            table.set("damage_level", data.damage_level).map_err(e)?;
+            table.set("initial_damage_level", data.initial_damage_level).map_err(e)?;
+            table.set("old_damage_level", data.old_damage_level).map_err(e)?;
+            table.set("explosive", data.explosive).map_err(e)?;
+            table.set("flammable", data.flammable).map_err(e)?;
+            table.set("delta_time", data.delta_time).map_err(e)?;
+            table.set("aircraft_class", data.aircraft_class).map_err(e)?;
+            table.set("self_hit", data.self_hit).map_err(e)?;
+            table.set("target_not_ai", data.target_not_ai).map_err(e)?;
+            if let Some(draw) = data.draw {
+                table.set("draw", draw).map_err(e)?;
+            }
+        }
+        AimRequest::Impact(data) => {
+            // what a weapon's death does to the world: the kill code and the facts the dispatch reads, by value.  `terrain_draws_crater` is present once the host has asked for the terrain
+            table.set("mode", "impact").map_err(e)?;
+            aim_ids_into(&table, &None, &data.target_host_id)?;
+            table.set("kill_code", data.kill_code).map_err(e)?;
+            table.set("has_target", data.has_target).map_err(e)?;
+            table.set("target_alive", data.target_alive).map_err(e)?;
+            table.set("position", data.position.to_vec()).map_err(e)?;
+            if let Some(draws) = data.terrain_draws_crater {
+                table.set("terrain_draws_crater", draws).map_err(e)?;
+            }
+        }
+        AimRequest::Blast(data) => {
+            // one area blast: the explosion, the map's sector figures and, once the host has asked for one, the window of a sector's list it was given.  Each object is named for this
+            // blast only by its handle
+            table.set("mode", "blast").map_err(e)?;
+            table.set("position", data.position.to_vec()).map_err(e)?;
+            table.set("damage_capability", data.damage_capability).map_err(e)?;
+            table.set("warhead_type", data.warhead_type).map_err(e)?;
+            table.set("has_target", data.has_target).map_err(e)?;
+            table.set("sector_side_length", data.sector_side_length).map_err(e)?;
+            table.set("min_x_sector", data.min_x_sector).map_err(e)?;
+            table.set("max_x_sector", data.max_x_sector).map_err(e)?;
+            table.set("min_z_sector", data.min_z_sector).map_err(e)?;
+            table.set("max_z_sector", data.max_z_sector).map_err(e)?;
+            table.set("echo", data.echo).map_err(e)?;
+            if let Some(window) = &data.window {
+                let window_table = lua.create_table().map_err(e)?;
+                window_table.set("sx", window.sx).map_err(e)?;
+                window_table.set("sz", window.sz).map_err(e)?;
+                window_table.set("after", window.after).map_err(e)?;
+                window_table.set("list_ends", window.end).map_err(e)?;
+                let objects = lua.create_table().map_err(e)?;
+                for (index, entry) in window.entries.iter().enumerate() {
+                    let object = lua.create_table().map_err(e)?;
+                    object.set("handle", entry.handle).map_err(e)?;
+                    object.set("entity_type", entry.entity_type).map_err(e)?;
+                    object.set("readable", entry.readable).map_err(e)?;
+                    object.set("alive", entry.alive).map_err(e)?;
+                    object.set("has_position", entry.has_position).map_err(e)?;
+                    object.set("rocket", entry.rocket).map_err(e)?;
+                    object.set("excluded", entry.excluded).map_err(e)?;
+                    object.set("position", entry.position.to_vec()).map_err(e)?;
+                    if let Some(id) = &entry.host_id {
+                        object.set("host_id", id.as_str()).map_err(e)?;
+                    }
+                    objects.set(index + 1, object).map_err(e)?;
+                }
+                window_table.set("objects", objects).map_err(e)?;
+                table.set("window", window_table).map_err(e)?;
+            }
+        }
+        AimRequest::Identify(data) => {
+            // the facts of a structure the host is asked to issue an identity for, by value
+            table.set("mode", "identify").map_err(e)?;
+            table.set("entity_type", data.entity_type).map_err(e)?;
+            table.set("sub_type", data.sub_type).map_err(e)?;
+            table.set("side", data.side).map_err(e)?;
+            table.set("alive", data.alive).map_err(e)?;
+            table.set("damage_level", data.damage_level).map_err(e)?;
+            table.set("initial_damage_level", data.initial_damage_level).map_err(e)?;
+            table.set("position", data.position.to_vec()).map_err(e)?;
+            table.set("serial", data.serial).map_err(e)?;
+        }
+        AimRequest::Bridge(data) => {
+            // a question about the physical collapse of a bridge segment, by value; `terrain` is present once the host has asked for it, `window` once the vehicles walk has been given one
+            table.set("mode", "bridge").map_err(e)?;
+            table
+                .set(
+                    "op",
+                    match data.op {
+                        1 => "kill",
+                        2 => "shape",
+                        3 => "neighbour",
+                        4 => "fall",
+                        5 => "vehicles",
+                        _ => "rest",
+                    },
+                )
+                .map_err(e)?;
+            table.set("segment_kind", data.segment_kind).map_err(e)?;
+            table.set("alive", data.alive).map_err(e)?;
+            table.set("server", data.server).map_err(e)?;
+            table.set("pred_present", data.pred_present).map_err(e)?;
+            table.set("pred_alive", data.pred_alive).map_err(e)?;
+            table.set("succ_present", data.succ_present).map_err(e)?;
+            table.set("succ_alive", data.succ_alive).map_err(e)?;
+            table.set("which", data.which).map_err(e)?;
+            table.set("neighbour_present", data.neighbour_present).map_err(e)?;
+            table.set("neighbour_kind", data.neighbour_kind).map_err(e)?;
+            table.set("neighbour_alive", data.neighbour_alive).map_err(e)?;
+            table.set("position", data.position.to_vec()).map_err(e)?;
+            table.set("delta_time", data.delta_time).map_err(e)?;
+            if let Some((height, water)) = data.terrain {
+                let terrain = lua.create_table().map_err(e)?;
+                terrain.set("height", height).map_err(e)?;
+                terrain.set("water", water).map_err(e)?;
+                table.set("terrain", terrain).map_err(e)?;
+            }
+            table.set("segment_length", data.segment_length).map_err(e)?;
+            table.set("sector_side_length", data.sector_side_length).map_err(e)?;
+            table.set("min_x_sector", data.min_x_sector).map_err(e)?;
+            table.set("max_x_sector", data.max_x_sector).map_err(e)?;
+            table.set("min_z_sector", data.min_z_sector).map_err(e)?;
+            table.set("max_z_sector", data.max_z_sector).map_err(e)?;
+            if let Some(window) = &data.window {
+                let window_table = lua.create_table().map_err(e)?;
+                window_table.set("sx", window.sx).map_err(e)?;
+                window_table.set("sz", window.sz).map_err(e)?;
+                window_table.set("after", window.after).map_err(e)?;
+                window_table.set("list_ends", window.end).map_err(e)?;
+                let objects = lua.create_table().map_err(e)?;
+                for (index, entry) in window.entries.iter().enumerate() {
+                    let object = lua.create_table().map_err(e)?;
+                    object.set("handle", entry.handle).map_err(e)?;
+                    object.set("entity_type", entry.entity_type).map_err(e)?;
+                    object.set("readable", entry.readable).map_err(e)?;
+                    object.set("alive", entry.alive).map_err(e)?;
+                    object.set("has_position", entry.has_position).map_err(e)?;
+                    object.set("rocket", entry.rocket).map_err(e)?;
+                    object.set("excluded", entry.excluded).map_err(e)?;
+                    object.set("position", entry.position.to_vec()).map_err(e)?;
+                    if let Some(id) = &entry.host_id {
+                        object.set("host_id", id.as_str()).map_err(e)?;
+                    }
+                    objects.set(index + 1, object).map_err(e)?;
+                }
+                window_table.set("objects", objects).map_err(e)?;
+                table.set("window", window_table).map_err(e)?;
+            }
+        }
         AimRequest::ReadyUpdate(data) => {
             table.set("mode", "ready_update").map_err(e)?;
             aim_ids_into(&table, &data.source, &None)?;
@@ -707,6 +921,15 @@ fn aim_integer(table: &LuaTable, field: &str) -> Result<i32, String> {
     }
 }
 
+/// A text field that may be absent: the identity of an object an action names, repeated by the host (the campaign compares it with the identity it offered the object under).
+fn aim_optional_text(table: &LuaTable, field: &str) -> Result<Option<String>, String> {
+    match table.get::<LuaValue>(field).map_err(|e| e.to_string())? {
+        LuaValue::Nil => Ok(None),
+        LuaValue::String(text) => Ok(Some(text.to_str().map_err(|e| e.to_string())?.to_owned())),
+        other => Err(format!("aim result {field} must be a string, got {}", other.type_name())),
+    }
+}
+
 fn aim_boolean(table: &LuaTable, field: &str) -> Result<bool, String> {
     match table.get::<LuaValue>(field).map_err(|e| e.to_string())? {
         LuaValue::Boolean(value) => Ok(value),
@@ -735,6 +958,9 @@ fn aim_echo(lua: &Lua, table: &LuaTable) -> Result<Option<Vec<AimEvent>>, String
                 "lead_result" => 6,
                 "table_flight" => 7,
                 "range_result" => 8,
+                "forecast" => 9,
+                "damage" => 10,
+                "blast" => 11,
                 "step_path" => 20,
                 "step_submunitions" => 21,
                 "step_tracking" => 22,
@@ -754,7 +980,7 @@ fn aim_echo(lua: &Lua, table: &LuaTable) -> Result<Option<Vec<AimEvent>>, String
                 "step_birth_dispersion" => 36,
                 other => {
                     return Err(format!(
-                        "aim result echo kind {other:?} is not intercept, lead_path, lead_range, lead_iteration, ballistic, lead_result, table_flight, range_result or a step_* kind"
+                        "aim result echo kind {other:?} is not intercept, lead_path, lead_range, lead_iteration, ballistic, lead_result, table_flight, range_result, forecast, damage, blast or a step_* kind"
                     ))
                 }
             },
@@ -790,19 +1016,57 @@ fn call_aim(lua: &Lua, function: &LuaFunction, request: AimRequest) -> Result<Ai
     let mut reply = AimReply::default();
     match state.as_str() {
         "need_draw" => {
-            if !matches!(request, AimRequest::Vectors(_) | AimRequest::Lead(_) | AimRequest::WeaponStep(_)) {
+            if !matches!(
+                request,
+                AimRequest::Vectors(_) | AimRequest::Lead(_) | AimRequest::WeaponStep(_) | AimRequest::Damage(_) | AimRequest::Health(_)
+            ) {
                 return Err("aim result need_draw answers a request that cannot take a draw".into());
             }
             reply.need_draw = true;
             return Ok(reply);
         }
         "need_lookup" => {
-            if !matches!(request, AimRequest::WeaponStep(_)) {
-                return Err("aim result need_lookup answers a request that cannot take lookups".into());
+            match &request {
+                AimRequest::WeaponStep(_) => {
+                    reply.need_lookup = true;
+                    reply.lookups = aim_event_list(lua, &table, "lookups")?;
+                    return Ok(reply);
+                }
+                AimRequest::Impact(_) => {
+                    // the only thing an impact question can ask for is the terrain fact at the impact position
+                    match table.get::<LuaValue>("need").map_err(|e| e.to_string())? {
+                        LuaValue::String(need) if &*need.to_str().map_err(|e| e.to_string())? == "terrain" => {}
+                        _ => return Err("aim result need_lookup answers an impact question with a need that is not the terrain".into()),
+                    }
+                    reply.need_lookup = true;
+                    reply.impact_need_terrain = true;
+                    return Ok(reply);
+                }
+                AimRequest::Blast(_) => {
+                    // the only thing a blast question can ask for is the window of a sector's list: { sx, sz, after }
+                    let LuaValue::Table(need) = table.get::<LuaValue>("need").map_err(|e| e.to_string())? else {
+                        return Err("aim result need_lookup answers a blast question with no window to supply".into());
+                    };
+                    reply.need_lookup = true;
+                    reply.blast_radius = number("radius")?;
+                    reply.blast_need = Some((aim_integer(&need, "sx")?, aim_integer(&need, "sz")?, aim_integer(&need, "after")?));
+                    reply.echo = aim_echo(lua, &table)?;
+                    return Ok(reply);
+                }
+                AimRequest::Bridge(_) => {
+                    // a bridge question can ask for the terrain under the segment (a fall) or, for the vehicles walk, the window { sx, sz, after }
+                    reply.need_lookup = true;
+                    match table.get::<LuaValue>("need").map_err(|e| e.to_string())? {
+                        LuaValue::String(need) if &*need.to_str().map_err(|e| e.to_string())? == "terrain" => reply.bridge_need_terrain = true,
+                        LuaValue::Table(need) => {
+                            reply.bridge_need = Some((aim_integer(&need, "sx")?, aim_integer(&need, "sz")?, aim_integer(&need, "after")?));
+                        }
+                        _ => return Err("aim result need_lookup answers a bridge question with a need that is neither the terrain nor a window".into()),
+                    }
+                    return Ok(reply);
+                }
+                _ => return Err("aim result need_lookup answers a request that cannot take lookups".into()),
             }
-            reply.need_lookup = true;
-            reply.lookups = aim_event_list(lua, &table, "lookups")?;
-            return Ok(reply);
         }
         "done" => {}
         other => return Err(format!("aim result state {other:?} is not done, need_draw or need_lookup")),
@@ -847,6 +1111,109 @@ fn call_aim(lua: &Lua, function: &LuaFunction, request: AimRequest) -> Result<Ai
                 LuaValue::Number(value) if value.fract() == 0.0 && (0.0..4_294_967_296.0).contains(&value) => Some(value as u32),
                 other => return Err(format!("aim result last_shot must be an unsigned integer or absent, got {}", other.type_name())),
             };
+        }
+        AimRequest::Forecast(_) => {
+            // the capability is the host's own integer; the echo (the test fixture build's) is read below
+            reply.forecast_capability = aim_integer(&table, "capability")?;
+        }
+        AimRequest::Damage(_) => {
+            // the host's whole answer to the hit, each field mandatory and exact: a missing or mistyped one is an error, never a default
+            reply.damage_exited = aim_boolean(&table, "exited")?;
+            reply.damage_capability = aim_integer(&table, "capability")?;
+            reply.damage_written = aim_boolean(&table, "written")?;
+            reply.damage_new_level = aim_integer(&table, "new_level")?;
+            reply.damage_critical_before = aim_integer(&table, "critical_before")?;
+            reply.damage_critical_after = aim_integer(&table, "critical_after")?;
+            reply.damage_bad_modifier = aim_boolean(&table, "bad_modifier")?;
+        }
+        AimRequest::Health(_) => {
+            // the host's whole answer, each field mandatory and exact: a missing or mistyped one is an error, never a default
+            reply.health_critical_class = aim_integer(&table, "critical_class")?;
+            reply.health_crossed = aim_boolean(&table, "crossed")?;
+            reply.health_recovered = aim_boolean(&table, "recovered")?;
+            reply.health_eject = aim_boolean(&table, "eject")?;
+            reply.health_eligible = aim_boolean(&table, "eligible")?;
+            reply.health_rolled = aim_boolean(&table, "rolled")?;
+            reply.health_hit = aim_boolean(&table, "hit")?;
+            reply.health_new_level = aim_integer(&table, "new_level")?;
+            reply.health_fatal = aim_boolean(&table, "fatal")?;
+        }
+        AimRequest::Impact(_) => {
+            // the plan, each field mandatory and exact: a missing or mistyped one is an error, never a default
+            reply.impact_invalid = aim_boolean(&table, "invalid")?;
+            reply.impact_crater = aim_boolean(&table, "crater")?;
+            reply.impact_direct_hit = aim_boolean(&table, "direct_hit")?;
+            reply.impact_blasts = aim_integer(&table, "blasts")?;
+            reply.impact_exclude_target = aim_boolean(&table, "exclude_target")?;
+        }
+        AimRequest::Blast(_) => {
+            // the radius with every answer, then the action: nothing more to do ("none"), a collision for the object, or a rocket destroyed.  An action names its object (the handle it
+            // was offered under) and the modifier; the walk's end names neither
+            reply.blast_radius = number("radius")?;
+            let action = match table.get::<LuaValue>("action").map_err(|e| e.to_string())? {
+                LuaValue::String(text) => text.to_str().map_err(|e| e.to_string())?.to_owned(),
+                other => return Err(format!("aim result action must be a string, got {}", other.type_name())),
+            };
+            reply.blast_action = match action.as_str() {
+                "none" => 0,
+                "collision" => 1,
+                "intercept" => 2,
+                other => return Err(format!("aim result action {other:?} is not none, collision or intercept")),
+            };
+            if reply.blast_action != 0 {
+                reply.blast_handle = aim_integer(&table, "handle")?;
+                reply.blast_target_host_id = aim_optional_text(&table, "host_id")?;
+                reply.blast_modifier = number("modifier")?;
+            }
+        }
+        AimRequest::Identify(_) => {
+            // the identity the host issues for the structure: a string, mandatory (the campaign checks it is new, printable and not longer than 128 bytes)
+            reply.identify_host_id = match aim_optional_text(&table, "host_id")? {
+                Some(id) => Some(id),
+                None => return Err("aim result host_id must be a string for an identify request".into()),
+            };
+        }
+        AimRequest::Bridge(data) => {
+            // the answer of the op, each field mandatory and exact; a fall names its figures only for what it did
+            match data.op {
+                1 => reply.bridge_kill = aim_boolean(&table, "kill")?,
+                2 => reply.bridge_variant = aim_integer(&table, "variant")?,
+                3 => reply.bridge_notify = aim_boolean(&table, "notify")?,
+                4 => {
+                    reply.bridge_fell = aim_boolean(&table, "fell")?;
+                    reply.bridge_landed = aim_boolean(&table, "landed")?;
+                    reply.bridge_remove = aim_boolean(&table, "remove")?;
+                    if reply.bridge_fell {
+                        reply.bridge_dropped_y = number("dropped_y")?;
+                        reply.bridge_floor_height = number("floor_height")?;
+                    }
+                    if reply.bridge_landed {
+                        reply.bridge_landed_y = number("landed_y")?;
+                    }
+                }
+                6 => {
+                    // where a segment rests when a saved world is unpacked: the height it rests at, or nothing
+                    reply.bridge_landed = aim_boolean(&table, "landed")?;
+                    if reply.bridge_landed {
+                        reply.bridge_landed_y = number("landed_y")?;
+                    }
+                }
+                _ => {
+                    let action = match table.get::<LuaValue>("action").map_err(|e| e.to_string())? {
+                        LuaValue::String(text) => text.to_str().map_err(|e| e.to_string())?.to_owned(),
+                        other => return Err(format!("aim result action must be a string, got {}", other.type_name())),
+                    };
+                    reply.bridge_action = match action.as_str() {
+                        "none" => 0,
+                        "act" => 1,
+                        other => return Err(format!("aim result action {other:?} is not none or act")),
+                    };
+                    if reply.bridge_action != 0 {
+                        reply.bridge_handle = aim_integer(&table, "handle")?;
+                        reply.bridge_target_host_id = aim_optional_text(&table, "host_id")?;
+                    }
+                }
+            }
         }
         AimRequest::ReadyUpdate(_) => {
             reply.ready_state = number("ready_state")?;
@@ -1473,6 +1840,120 @@ impl LuaUserData for LuaEngine {
         // TEST-ONLY (feature `aim-fixture`, EEDCS-44): clears that trace; not part of the shipping module.
         #[cfg(feature = "aim-fixture")]
         methods.add_method("aim_trace_reset", |_, this, ()| this.engine.aim_trace_reset().map_err(lua_error));
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the run-wide report of the physical combat-resolution code; not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("cmb_trace", |_, this, ()| this.engine.cmb_trace().map_err(lua_error));
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-46): controlled combat cases of the original campaign that launch nothing (op 0 census, op 1 set a health percentage), given the
+        // same complete host as a frame because the health case sets a health and asks the critical predicate, which the host answers; not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("cmb_case_state", |lua, this, (op, kind, ordinal, percent): (i32, String, i32, i32)| {
+            let bind_mobile = this.bind_mobile.clone();
+            let observe_loss = this.observe_loss.clone();
+            let supply_reached = this.supply_reached.clone();
+            let move_vehicle = this.move_vehicle.clone();
+            let line_of_sight = this.line_of_sight.clone();
+            let sense = this.sense.clone();
+            let aim = this.aim.clone();
+            let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+            let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+            let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+            let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+            let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+            let mut sensor = |message| call_sense(lua, &sense, message);
+            let mut aimer = |request| call_aim(lua, &aim, request);
+            this.engine
+                .cmb_case_state(
+                    op,
+                    &kind,
+                    ordinal,
+                    percent,
+                    &mut binder,
+                    &mut observer,
+                    &mut reach,
+                    &mut mover,
+                    &mut sighter,
+                    &mut sensor,
+                    &mut aimer,
+                )
+                .map_err(lua_error)
+        });
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-46): controlled combat cases that launch a real weapon (op 1 collide, op 2 blast), given the same complete host as a frame; not part
+        // of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method(
+            "cmb_case_act",
+            |lua, this, (op, kind, ordinal, launcher_id, weapon, amount, kill_code, weaponless): (i32, String, i32, String, i32, f64, i32, bool)| {
+                let bind_mobile = this.bind_mobile.clone();
+                let observe_loss = this.observe_loss.clone();
+                let supply_reached = this.supply_reached.clone();
+                let move_vehicle = this.move_vehicle.clone();
+                let line_of_sight = this.line_of_sight.clone();
+                let sense = this.sense.clone();
+                let aim = this.aim.clone();
+                let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+                let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+                let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+                let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+                let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+                let mut sensor = |message| call_sense(lua, &sense, message);
+                let mut aimer = |request| call_aim(lua, &aim, request);
+                this.engine
+                    .cmb_case_act(
+                        op,
+                        &kind,
+                        ordinal,
+                        &launcher_id,
+                        weapon,
+                        amount,
+                        kill_code,
+                        weaponless,
+                        &mut binder,
+                        &mut observer,
+                        &mut reach,
+                        &mut mover,
+                        &mut sighter,
+                        &mut sensor,
+                        &mut aimer,
+                    )
+                    .map_err(lua_error)
+            },
+        );
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-46, R5): the controlled bridge case of the ORIGINAL collapse (op 0 survey, op 1 state, op 2 the declared direct structural failure of a segment, op 3
+        // disarm), given the same complete host as a frame; not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("cmb_case_bridge", |lua, this, (op, ordinal, index, criterion): (i32, i32, i32, i32)| {
+            let bind_mobile = this.bind_mobile.clone();
+            let observe_loss = this.observe_loss.clone();
+            let supply_reached = this.supply_reached.clone();
+            let move_vehicle = this.move_vehicle.clone();
+            let line_of_sight = this.line_of_sight.clone();
+            let sense = this.sense.clone();
+            let aim = this.aim.clone();
+            let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+            let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+            let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+            let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+            let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+            let mut sensor = |message| call_sense(lua, &sense, message);
+            let mut aimer = |request| call_aim(lua, &aim, request);
+            this.engine
+                .cmb_case_bridge(
+                    op,
+                    ordinal,
+                    index,
+                    criterion,
+                    &mut binder,
+                    &mut observer,
+                    &mut reach,
+                    &mut mover,
+                    &mut sighter,
+                    &mut sensor,
+                    &mut aimer,
+                )
+                .map_err(lua_error)
+        }); // TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the ordered combat event log, drained from the cursor; not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("cmb_events", |_, this, ()| this.engine.cmb_events().map_err(lua_error));
         // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the run-wide report of the physical weapon-execution code; not part of the shipping module.
         #[cfg(feature = "weapon-fixture")]
         methods.add_method("wpn_trace", |_, this, ()| this.engine.wpn_trace().map_err(lua_error));
@@ -1596,6 +2077,99 @@ impl LuaUserData for LuaEngine {
                     .map_err(lua_error)
             },
         );
+        // The structures with the identity the host issued for each (EEDCS-46, R3): one that has none is identified now, which asks the host once for it.  Copied values; the identity is opaque.
+        methods.add_method("structures", |lua, this, ()| {
+            let bind_mobile = this.bind_mobile.clone();
+            let observe_loss = this.observe_loss.clone();
+            let supply_reached = this.supply_reached.clone();
+            let move_vehicle = this.move_vehicle.clone();
+            let line_of_sight = this.line_of_sight.clone();
+            let sense = this.sense.clone();
+            let aim = this.aim.clone();
+            let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+            let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+            let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+            let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+            let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+            let mut sensor = |message| call_sense(lua, &sense, message);
+            let mut aimer = |request| call_aim(lua, &aim, request);
+            let structures = this
+                .engine
+                .structures(&mut binder, &mut observer, &mut reach, &mut mover, &mut sighter, &mut sensor, &mut aimer)
+                .map_err(lua_error)?;
+            lua.to_value_with(&structures, options())
+        });
+        // A physical fact the host reports about an object it holds the identity of (EEDCS-46, R3): { host_id = <identity>, damage_level = <integer, optional>, destroyed = <boolean, optional> }.
+        // The campaign applies it once through the object's own handlers (which ask the host what they need) and returns what it applied.
+        methods.add_method("report_object", |lua, this, report: LuaTable| {
+            let host_id = match report.get::<LuaValue>("host_id")? {
+                LuaValue::String(text) => text.to_str()?.to_owned(),
+                other => {
+                    return Err(LuaError::runtime(format!(
+                        "eech: bad argument: report host_id must be a string, got {}",
+                        other.type_name()
+                    )))
+                }
+            };
+            let damage_level = match report.get::<LuaValue>("damage_level")? {
+                LuaValue::Nil => None,
+                LuaValue::Integer(level) => {
+                    Some(i32::try_from(level).map_err(|_| LuaError::runtime("eech: bad argument: report damage_level is out of range"))?)
+                }
+                LuaValue::Number(level) if level.fract() == 0.0 && level.abs() < 2147483648.0 => Some(level as i32),
+                other => {
+                    return Err(LuaError::runtime(format!(
+                        "eech: bad argument: report damage_level must be an integer, got {}",
+                        other.type_name()
+                    )))
+                }
+            };
+            let destroyed = match report.get::<LuaValue>("destroyed")? {
+                LuaValue::Nil => false,
+                LuaValue::Boolean(destroyed) => destroyed,
+                other => {
+                    return Err(LuaError::runtime(format!(
+                        "eech: bad argument: report destroyed must be a boolean, got {}",
+                        other.type_name()
+                    )))
+                }
+            };
+            if damage_level.is_none() && !destroyed {
+                return Err(LuaError::runtime("eech: bad argument: a report states a damage_level or destroyed = true"));
+            }
+            let bind_mobile = this.bind_mobile.clone();
+            let observe_loss = this.observe_loss.clone();
+            let supply_reached = this.supply_reached.clone();
+            let move_vehicle = this.move_vehicle.clone();
+            let line_of_sight = this.line_of_sight.clone();
+            let sense = this.sense.clone();
+            let aim = this.aim.clone();
+            let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+            let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+            let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+            let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+            let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+            let mut sensor = |message| call_sense(lua, &sense, message);
+            let mut aimer = |request| call_aim(lua, &aim, request);
+            let receipt = this
+                .engine
+                .report_object(
+                    &ObjectReport {
+                        host_id,
+                        damage_level,
+                        destroyed,
+                    },
+                    &mut binder,
+                    &mut observer,
+                    &mut reach,
+                    &mut mover,
+                    &mut sighter,
+                    &mut sensor,
+                    &mut aimer,
+                )
+                .map_err(lua_error)?;
+            lua.to_value_with(&receipt, options())
+        });
         methods.add_method("report_loss", |lua, this, host_id: String| {
             let receipt = this.engine.report_loss(&host_id).map_err(lua_error)?;
             lua.to_value_with(&receipt, options())
@@ -1790,6 +2364,429 @@ mod tests {
         .eval()
     }
 
+    // The fixture build's echo of a hit carries the observer's four intermediate floats as raw bits in finite halves (a hit with no direction has a not-a-number aspect armour); the
+    // reader keeps them exactly, and a not-a-number sent as a float is still refused: finite validation is not weakened.
+    #[test]
+    fn a_damage_echo_of_raw_bit_halves_is_read_exactly_and_a_not_a_number_float_is_still_refused() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let table: LuaTable = lua
+            .load("return { echo = { { kind = 'damage', a = 0, b = 0, c = 3, d = 0, f = { 0, 15, 0, 0.75, 0, 0, 16752, 0, 65472, 0, 16192, 0 } } } }")
+            .eval()?;
+        let events = aim_echo(&lua, &table)?.ok_or("no echo")?;
+        let [event] = events.as_slice() else {
+            return Err("the echo is not one event".into());
+        };
+        assert_eq!((event.kind, event.a, event.b, event.c, event.d), (10, 0, 0, 3, 0));
+        assert_eq!(event.f, [0.0, 15.0, 0.0, 0.75, 0.0, 0.0, 16752.0, 0.0, 65472.0, 0.0, 16192.0, 0.0]);
+        let bits = |index: usize| Some(((*event.f.get(4 + 2 * index)? as u32) << 16) | (*event.f.get(5 + 2 * index)? as u32));
+        assert_eq!((bits(1), bits(2), bits(3)), (Some(0x4170_0000), Some(0xFFC0_0000), Some(0x3F40_0000)));
+        // the old representation, a NaN as a float, is refused at this boundary
+        let bad: LuaTable = lua
+            .load("return { echo = { { kind = 'damage', a = 0, b = 0, c = 3, d = 0, f = { 0, 15, 0 / 0, 0.75, 0, 0, 0, 0, 0, 0, 0, 0 } } } }")
+            .eval()?;
+        assert!(aim_echo(&lua, &bad).is_err());
+        Ok(())
+    }
+
+    // The health question reaches the host's Lua as a table with its op by name and its facts by value; the answer is mandatory field by field and a timed roll may ask for its sample.
+    #[test]
+    fn a_health_question_reaches_lua_by_value_and_its_answer_is_read_field_by_field() -> Result<(), Box<dyn std::error::Error>> {
+        use eech_engine::AimHealth;
+        let lua = Lua::new();
+        let request = || {
+            AimRequest::Health(AimHealth {
+                op: 3,
+                critical_model: 1,
+                damage_level: 14,
+                initial_damage_level: 100,
+                old_damage_level: 14,
+                explosive: true,
+                flammable: false,
+                delta_time: 0.5,
+                aircraft_class: 0,
+                self_hit: false,
+                target_not_ai: false,
+                draw: Some(6553),
+                target_host_id: Some("veh:5".into()),
+            })
+        };
+        let answering: LuaFunction = lua
+            .load(
+                "return function(r) assert(r.mode == 'health' and r.op == 'timed' and r.critical_model == 1 and r.damage_level == 14 and r.initial_damage_level == 100 and r.explosive == true \
+                 and r.flammable == false and r.delta_time == 0.5 and r.draw == 6553 and r.self_hit == false and r.target_host_id == 'veh:5')
+                 return { state = 'done', critical_class = 1, crossed = false, recovered = false, eject = false, eligible = true, rolled = true, hit = true, new_level = 13, fatal = false } end",
+            )
+            .eval()?;
+        let reply = call_aim(&lua, &answering, request())?;
+        assert_eq!(
+            (
+                reply.health_critical_class,
+                reply.health_eligible,
+                reply.health_rolled,
+                reply.health_hit,
+                reply.health_new_level,
+                reply.health_fatal
+            ),
+            (1, true, true, true, 13, false)
+        );
+        // a field missing is an error, never a default
+        let missing: LuaFunction = lua
+            .load("return function(r) return { state = 'done', critical_class = 1, crossed = false, recovered = false, eject = false, eligible = true, rolled = true, hit = true, fatal = false } end")
+            .eval()?;
+        assert!(call_aim(&lua, &missing, request()).err().ok_or("accepted")?.contains("new_level"));
+        // a timed roll may ask for the sample; a classification may not
+        let asking: LuaFunction = lua.load("return function(r) return { state = 'need_draw' } end").eval()?;
+        assert!(call_aim(&lua, &asking, request())?.need_draw);
+        let mut classify = request();
+        if let AimRequest::Health(ref mut h) = classify {
+            h.op = 1;
+            h.draw = None;
+        }
+        assert!(
+            call_aim(&lua, &asking, classify)?.need_draw,
+            "the module carries the request; the campaign refuses a sample asked for a classification"
+        );
+        Ok(())
+    }
+
+    // The impact question reaches the host's Lua with its kill code and the target's facts by value, and the terrain only once the campaign has read it; the plan is read field by field
+    // and the one lookup it may ask for is the terrain.
+    #[test]
+    fn an_impact_question_reaches_lua_by_value_and_its_plan_is_read_field_by_field() -> Result<(), Box<dyn std::error::Error>> {
+        use eech_engine::AimImpact;
+        let lua = Lua::new();
+        let request = |terrain: Option<bool>| {
+            AimRequest::Impact(AimImpact {
+                kill_code: 3,
+                has_target: true,
+                target_alive: false,
+                terrain_draws_crater: terrain,
+                position: [250.0, 12.0, 750.0],
+                target_host_id: Some("site:9".into()),
+            })
+        };
+        let planning: LuaFunction = lua
+            .load(
+                "return function(r) assert(r.mode == 'impact' and r.kill_code == 3 and r.has_target == true and r.target_alive == false and r.position[1] == 250 and r.position[3] == 750 and r.target_host_id == 'site:9')
+                 if r.terrain_draws_crater == nil then return { state = 'need_lookup', need = 'terrain' } end
+                 assert(r.terrain_draws_crater == true)
+                 return { state = 'done', invalid = false, crater = true, direct_hit = false, blasts = 2, exclude_target = false } end",
+            )
+            .eval()?;
+        let first = call_aim(&lua, &planning, request(None))?;
+        assert!(first.need_lookup && first.impact_need_terrain);
+        let plan = call_aim(&lua, &planning, request(Some(true)))?;
+        assert_eq!(
+            (
+                plan.impact_invalid,
+                plan.impact_crater,
+                plan.impact_direct_hit,
+                plan.impact_blasts,
+                plan.impact_exclude_target
+            ),
+            (false, true, false, 2, false)
+        );
+        // a field missing is an error, never a default; and only the terrain may be asked for
+        let missing: LuaFunction = lua
+            .load("return function(r) return { state = 'done', invalid = false, crater = true, direct_hit = false, exclude_target = false } end")
+            .eval()?;
+        assert!(call_aim(&lua, &missing, request(Some(true))).err().ok_or("accepted")?.contains("blasts"));
+        let other: LuaFunction = lua.load("return function(r) return { state = 'need_lookup', need = 'wind' } end").eval()?;
+        assert!(call_aim(&lua, &other, request(None)).is_err());
+        Ok(())
+    }
+
+    // The blast question reaches the host's Lua with the explosion, the map's sector figures and the window of the sector's list it was given (each object by value, named by its handle);
+    // the host's walk comes back as a window it needs, or as the action on one object, and the echo of the candidates it examined is read when it is sent.
+    #[test]
+    fn a_blast_question_reaches_lua_by_value_and_the_walk_is_read_field_by_field() -> Result<(), Box<dyn std::error::Error>> {
+        use eech_engine::{AimBlast, AimBlastEntry, AimBlastWindow};
+        let lua = Lua::new();
+        let request = |window: bool| {
+            AimRequest::Blast(AimBlast {
+                position: [150.0, 5.0, 150.0],
+                damage_capability: 400,
+                warhead_type: 7,
+                has_target: true,
+                sector_side_length: 100,
+                min_x_sector: 0,
+                max_x_sector: 2,
+                min_z_sector: 0,
+                max_z_sector: 2,
+                window: window.then(|| AimBlastWindow {
+                    sx: 1,
+                    sz: 1,
+                    after: 7,
+                    end: true,
+                    entries: vec![AimBlastEntry {
+                        handle: 8,
+                        entity_type: 37,
+                        readable: true,
+                        alive: true,
+                        has_position: true,
+                        rocket: true,
+                        excluded: false,
+                        position: [160.0, 5.0, 150.0],
+                        host_id: Some("obj-8".into()),
+                    }],
+                }),
+                echo: true,
+            })
+        };
+        let walking: LuaFunction = lua
+            .load(
+                "return function(r) assert(r.mode == 'blast' and r.damage_capability == 400 and r.warhead_type == 7 and r.has_target == true and r.sector_side_length == 100 and r.max_x_sector == 2 \
+                 and r.position[1] == 150 and r.echo == true)
+                 if r.window == nil then return { state = 'need_lookup', radius = 20, need = { sx = 1, sz = 1, after = 0 } } end
+                 local w = r.window
+                 assert(w.sx == 1 and w.sz == 1 and w.after == 7 and w.list_ends == true and #w.objects == 1)
+                 local o = w.objects[1]
+                 assert(o.handle == 8 and o.entity_type == 37 and o.readable and o.alive and o.has_position and o.rocket and not o.excluded and o.position[1] == 160)
+                 return { state = 'done', radius = 20, action = 'intercept', handle = 8, modifier = 0.25,
+                          echo = { { kind = 'blast', a = 0, b = 3, c = 0, d = 0, f = { 5, 20, 0.25, 0, 0, 0, 0, 0, 0, 0, 0, 0 } } } } end",
+            )
+            .eval()?;
+        let need = call_aim(&lua, &walking, request(false))?;
+        assert!(need.need_lookup);
+        assert_eq!((need.blast_radius, need.blast_need), (20.0, Some((1, 1, 0))));
+        let reached = call_aim(&lua, &walking, request(true))?;
+        assert_eq!(
+            (reached.blast_radius, reached.blast_action, reached.blast_handle, reached.blast_modifier),
+            (20.0, 2, 8, 0.25)
+        );
+        let echo = reached.echo.ok_or("no echo")?;
+        let [event] = echo.as_slice() else {
+            return Err("the echo is not one event".into());
+        };
+        assert_eq!((event.kind, event.a, event.b), (11, 0, 3));
+        assert_eq!(event.f.get(..3), Some(&[5.0, 20.0, 0.25][..]));
+        // the walk's end, with no object
+        let over: LuaFunction = lua
+            .load("return function(r) return { state = 'done', radius = 20, action = 'none' } end")
+            .eval()?;
+        let done = call_aim(&lua, &over, request(true))?;
+        assert_eq!((done.blast_action, done.blast_handle, done.blast_modifier), (0, 0, 0.0));
+        // a field missing, an action that is not one, a modifier that is not exact, and a lookup that is not a window are errors
+        for (what, body) in [
+            ("radius", "return { state = 'done', action = 'none' }"),
+            ("action", "return { state = 'done', radius = 20 }"),
+            ("is not none", "return { state = 'done', radius = 20, action = 'explode' }"),
+            ("handle", "return { state = 'done', radius = 20, action = 'collision', modifier = 0.5 }"),
+            ("modifier", "return { state = 'done', radius = 20, action = 'collision', handle = 8 }"),
+            ("window", "return { state = 'need_lookup', radius = 20 }"),
+            ("sx", "return { state = 'need_lookup', radius = 20, need = { sz = 1, after = 0 } }"),
+        ] {
+            let f: LuaFunction = lua.load(format!("return function(r) {body} end")).eval()?;
+            assert!(call_aim(&lua, &f, request(true)).err().ok_or("accepted")?.contains(what), "{what}");
+        }
+        Ok(())
+    }
+    // The bridge question reaches the host's Lua with its facts by value and, for a fall, the terrain only once the host has asked for it; each op's answer is read field by field.
+    #[test]
+    fn a_bridge_question_reaches_lua_by_value_and_each_answer_is_read_field_by_field() -> Result<(), Box<dyn std::error::Error>> {
+        use eech_engine::AimBridge;
+        let lua = Lua::new();
+        let request = |op: i32, terrain: Option<(f32, bool)>| {
+            AimRequest::Bridge(AimBridge {
+                op,
+                segment_kind: 3,
+                alive: true,
+                server: true,
+                pred_present: true,
+                pred_alive: false,
+                succ_present: false,
+                succ_alive: false,
+                which: 1,
+                neighbour_present: true,
+                neighbour_kind: 2,
+                neighbour_alive: true,
+                position: [250.0, 120.0, 250.0],
+                delta_time: 0.1,
+                terrain,
+                segment_length: 10.0,
+                sector_side_length: 100,
+                min_x_sector: 0,
+                max_x_sector: 9,
+                min_z_sector: 0,
+                max_z_sector: 9,
+                window: None,
+            })
+        };
+        let host: LuaFunction = lua
+            .load(
+                "return function(r) assert(r.mode == 'bridge' and r.segment_kind == 3 and r.alive == true and r.server == true and r.pred_present == true and r.pred_alive == false and r.which == 1 \
+                 and r.neighbour_present == true and r.neighbour_kind == 2 and r.position[2] == 120 and r.segment_length == 10 and r.sector_side_length == 100 and r.window == nil)
+                 if r.op == 'kill' then return { state = 'done', kill = true } end
+                 if r.op == 'shape' then return { state = 'done', variant = 4 } end
+                 if r.op == 'neighbour' then return { state = 'done', notify = true } end
+                 if r.op == 'fall' then
+                   if r.terrain == nil then return { state = 'need_lookup', need = 'terrain' } end
+                   assert(r.terrain.height == 100 and r.terrain.water == true)
+                   return { state = 'done', fell = true, landed = true, remove = true, dropped_y = 99.5, floor_height = 99, landed_y = 99 }
+                 end
+                 if r.op == 'rest' then
+                   if r.terrain == nil then return { state = 'need_lookup', need = 'terrain' } end
+                   return { state = 'done', landed = true, landed_y = r.terrain.height - 1 }
+                 end
+                 return { state = 'need_lookup', need = { sx = 2, sz = 2, after = 0 } } end",
+            )
+            .eval()?;
+        assert!(call_aim(&lua, &host, request(1, None))?.bridge_kill);
+        assert_eq!(call_aim(&lua, &host, request(2, None))?.bridge_variant, 4);
+        assert!(call_aim(&lua, &host, request(3, None))?.bridge_notify);
+        let asking = call_aim(&lua, &host, request(4, None))?;
+        assert!(asking.need_lookup && asking.bridge_need_terrain);
+        let fall = call_aim(&lua, &host, request(4, Some((100.0, true))))?;
+        assert_eq!(
+            (
+                fall.bridge_fell,
+                fall.bridge_landed,
+                fall.bridge_remove,
+                fall.bridge_dropped_y,
+                fall.bridge_floor_height,
+                fall.bridge_landed_y
+            ),
+            (true, true, true, 99.5, 99.0, 99.0)
+        );
+        let walk = call_aim(&lua, &host, request(5, None))?;
+        assert!(walk.need_lookup && walk.bridge_need == Some((2, 2, 0)));
+        // REST: the terrain is asked for, then the height the host rests the segment at comes back
+        let asking = call_aim(&lua, &host, request(6, None))?;
+        assert!(asking.need_lookup && asking.bridge_need_terrain);
+        let rest = call_aim(&lua, &host, request(6, Some((100.0, true))))?;
+        assert_eq!(
+            (rest.bridge_landed, rest.bridge_landed_y, rest.bridge_fell, rest.bridge_remove),
+            (true, 99.0, false, false)
+        );
+        let stays: LuaFunction = lua.load("return function(r) return { state = 'done', landed = false } end").eval()?;
+        let stayed = call_aim(&lua, &stays, request(6, None))?;
+        assert_eq!((stayed.bridge_landed, stayed.bridge_landed_y), (false, 0.0));
+        let unsaid: LuaFunction = lua.load("return function(r) return { state = 'done', landed = true } end").eval()?;
+        assert!(call_aim(&lua, &unsaid, request(6, Some((1.0, false))))
+            .err()
+            .ok_or("accepted")?
+            .contains("landed_y"));
+        // a field missing, an action that is not one, and a lookup that is neither are errors; a fall that did not fall names no figure
+        for (what, body) in [
+            ("kill", "return { state = 'done' }"),
+            ("variant", "return { state = 'done', notify = true }"),
+            ("fell", "return { state = 'done', landed = false, remove = true }"),
+            (
+                "dropped_y",
+                "return { state = 'done', fell = true, landed = false, remove = false, floor_height = 1 }",
+            ),
+            (
+                "landed_y",
+                "return { state = 'done', fell = true, landed = true, remove = true, dropped_y = 1, floor_height = 1 }",
+            ),
+            ("neither", "return { state = 'need_lookup', need = 'wind' }"),
+        ] {
+            let op = match what {
+                "kill" => 1,
+                "variant" => 2,
+                _ => 4,
+            };
+            let f: LuaFunction = lua.load(format!("return function(r) {body} end")).eval()?;
+            assert!(
+                call_aim(&lua, &f, request(op, Some((1.0, false)))).err().ok_or("accepted")?.contains(what),
+                "{what}"
+            );
+        }
+        let quiet: LuaFunction = lua
+            .load("return function(r) return { state = 'done', fell = false, landed = false, remove = true } end")
+            .eval()?;
+        let supported = call_aim(&lua, &quiet, request(4, None))?;
+        assert_eq!((supported.bridge_fell, supported.bridge_remove, supported.bridge_dropped_y), (false, true, 0.0));
+        let act: LuaFunction = lua
+            .load("return function(r) return { state = 'done', action = 'act', handle = 7 } end")
+            .eval()?;
+        let acted = call_aim(&lua, &act, request(5, None))?;
+        assert_eq!((acted.bridge_action, acted.bridge_handle), (1, 7));
+        let bad: LuaFunction = lua.load("return function(r) return { state = 'done', action = 'explode' } end").eval()?;
+        assert!(call_aim(&lua, &bad, request(5, None)).err().ok_or("accepted")?.contains("is not none or act"));
+        Ok(())
+    }
+    // The identity of a structure is asked of the host by value and the one it issues is read as a string, never defaulted; the identity an offered object carries reaches Lua, and the identity the host repeats for
+    // the object an action names is read as an optional string (the campaign compares it with the one it offered).
+    #[test]
+    fn a_structure_identity_question_reaches_lua_by_value_and_the_identities_of_offered_objects_are_read() -> Result<(), Box<dyn std::error::Error>> {
+        use eech_engine::{AimBlast, AimBlastEntry, AimBlastWindow, AimIdentify};
+        let lua = Lua::new();
+        let identify = AimRequest::Identify(AimIdentify {
+            entity_type: 5,
+            sub_type: 41,
+            side: 2,
+            alive: true,
+            damage_level: 80,
+            initial_damage_level: 100,
+            position: [100.0, 5.0, 250.0],
+            serial: 3,
+        });
+        let host: LuaFunction = lua
+            .load(
+                "return function(r) assert(r.mode == 'identify' and r.entity_type == 5 and r.sub_type == 41 and r.side == 2 and r.alive == true and r.damage_level == 80 and r.initial_damage_level == 100 \
+                 and r.position[1] == 100 and r.position[3] == 250 and r.serial == 3)
+                 return { state = 'done', host_id = 'dcs:static:' .. r.serial } end",
+            )
+            .eval()?;
+        assert_eq!(call_aim(&lua, &host, identify.clone())?.identify_host_id.as_deref(), Some("dcs:static:3"));
+        // an identity that is missing or not a string is an error, not a default
+        for (what, body) in [
+            ("missing", "return { state = 'done' }"),
+            ("not a string", "return { state = 'done', host_id = 7 }"),
+        ] {
+            let f: LuaFunction = lua.load(format!("return function(r) {body} end")).eval()?;
+            assert!(call_aim(&lua, &f, identify.clone()).is_err(), "{what}");
+        }
+        // an offered object carries its identity into the window the host reads; the host repeats it for the object it reaches
+        let entry = |handle: i32, id: Option<&str>| AimBlastEntry {
+            handle,
+            entity_type: 6,
+            readable: true,
+            alive: true,
+            has_position: true,
+            rocket: false,
+            excluded: false,
+            position: [160.0, 5.0, 150.0],
+            host_id: id.map(str::to_owned),
+        };
+        let blast = AimRequest::Blast(AimBlast {
+            position: [150.0, 5.0, 150.0],
+            damage_capability: 400,
+            warhead_type: 7,
+            has_target: false,
+            sector_side_length: 100,
+            min_x_sector: 0,
+            max_x_sector: 2,
+            min_z_sector: 0,
+            max_z_sector: 2,
+            window: Some(AimBlastWindow {
+                sx: 1,
+                sz: 1,
+                after: 0,
+                end: true,
+                entries: vec![entry(1, None), entry(2, Some("site:2"))],
+            }),
+            echo: false,
+        });
+        let host: LuaFunction = lua
+            .load(
+                "return function(r) assert(r.window.objects[1].host_id == nil and r.window.objects[2].host_id == 'site:2')
+                 return { state = 'done', radius = 20, action = 'collision', handle = 2, modifier = 0.5, host_id = r.window.objects[2].host_id } end",
+            )
+            .eval()?;
+        let reply = call_aim(&lua, &host, blast.clone())?;
+        assert_eq!((reply.blast_handle, reply.blast_target_host_id.as_deref()), (2, Some("site:2")));
+        let silent: LuaFunction = lua
+            .load("return function(r) return { state = 'done', radius = 20, action = 'collision', handle = 1, modifier = 0.5 } end")
+            .eval()?;
+        assert_eq!(call_aim(&lua, &silent, blast.clone())?.blast_target_host_id, None);
+        let wrong_type: LuaFunction = lua
+            .load("return function(r) return { state = 'done', radius = 20, action = 'collision', handle = 1, modifier = 0.5, host_id = 5 } end")
+            .eval()?;
+        assert!(call_aim(&lua, &wrong_type, blast).is_err());
+        Ok(())
+    }
     #[test]
     fn a_vehicle_lifecycle_answer_without_its_vector_is_an_error() -> Result<(), Box<dyn std::error::Error>> {
         let lua = Lua::new();

@@ -22,6 +22,7 @@ fn main() {
         "sense_step.c",
         "aim_step.c",
         "wn_flight.c",
+        "cmb_step.c",
     ] {
         println!("cargo::rerun-if-changed=csrc/{file}");
     }
@@ -40,6 +41,7 @@ fn main() {
         .file("csrc/sense_step.c")
         .file("csrc/aim_step.c")
         .file("csrc/wn_flight.c")
+        .file("csrc/cmb_step.c")
         .opt_level_str(&opt)
         .debug(true)
         .pic(true)

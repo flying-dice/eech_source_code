@@ -1,0 +1,62 @@
+{
+  "created_utc": "2026-10-28T08:53:59.273090+00:00",
+  "purpose": "Resolve untriggered180timed controls with characterized forcedAA14percent/20s via unchanged controlled script; no defaultretail rerun",
+  "source": "511156c1c9a0cffa37f4364646cb7d9a1d222a3e",
+  "wrapper": "R:\\d2-evidence\\combat-characterization-20261028\\timed-aa-probe.lua",
+  "wrapper_sha256": "84c87c680eb789ea8339f8439b32e082fe444bd5d19fb4d02fe453bcbba53f6c",
+  "driver": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-aa-probe.ps1",
+  "driver_sha256": "56b5f324e8b18e5ea988f11314e2cb29d043ad83d397119ffb68d0869b6f1993",
+  "case_script": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\lua\\combat-case.lua",
+  "case_script_sha256": "3de3505a64ed1f994edc21f825d38e9c568acb2310391d9642d2d3ecfeb9e264",
+  "lua51_compile_only_checks": [
+    {
+      "name": "compile_only_control",
+      "actual_lua_status": 0,
+      "expected": 0
+    },
+    {
+      "name": "invalid_syntax_control",
+      "actual_lua_status": 3,
+      "expected": 3
+    },
+    {
+      "name": "private_aa_probe",
+      "actual_lua_status": 0,
+      "expected": 0
+    }
+  ],
+  "baseline_reused": "Completed35484/native0 corrected511controlled02 all403523bytes exactlyoriginal35, independentreviewclosed; no reference rerun merelyforhandover",
+  "natural_positive_timed_first_report_at_sim_seconds": 480,
+  "reference180_observed_timed_eligible_rolled_hit": 0,
+  "unchanged_active_queue": "84276 stillruns original11cases/180s, no file/plan/driver/queue/source mutation; reached/absent evidence judged honestly",
+  "native_arguments_common": "same full39case script, warmup60/frame100/timed_seconds20/seed1/freshverifiedretailroot",
+  "cases": [
+    {
+      "name": "timed-aa-never-01",
+      "mode": "timed_never",
+      "expected_native_exit": 0
+    },
+    {
+      "name": "timed-aa-rate150-01",
+      "mode": "timed_rate150",
+      "expected_native_exit": 0
+    },
+    {
+      "name": "timed-aa-second-draw-01",
+      "mode": "bad_health_second_draw",
+      "expected_native_exit": 1
+    },
+    {
+      "name": "timed-aa-fatal-01",
+      "mode": "bad_health_fatal",
+      "expected_native_exit": 1
+    }
+  ],
+  "limits": [
+    "Only hostHEALTH/TIMED answers vary; all other steps forward unchanged and originalcase source/helpers unchanged",
+    "Referencebaseline actual201AA draws/41hits/0fatal, all-worldAAattempts138489distinct",
+    "timed_never varies eligibility plus sample consumption; rate150 changes requested physicaldelta only, actualcampaignframe timing stays100ms",
+    "Malformed modes reuse pinned aim-malformed.lua, must reach corresponding counters AND specific native primaryrefusal; secondaryenginepoison/nonzero alone notpass",
+    "No new baseline/golden/tolerance/pack/source physics changes; no defaultTacview acceptance inferred; no selfhit/nativefatalAA claim absentactualactivity"
+  ]
+}

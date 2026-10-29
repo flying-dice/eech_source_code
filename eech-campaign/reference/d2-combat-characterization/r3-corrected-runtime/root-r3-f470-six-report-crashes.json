@@ -1,0 +1,442 @@
+{
+  "when_utc": "2026-10-28T15:14:16.737397+00:00",
+  "status": "FAIL - NEW actual Windows runtime memory safety bug; none of six cases accepted",
+  "runtime_source": "f4700bbab0e28c367c660b8c3bc353c89ad0dac9",
+  "source": "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab",
+  "source_clean": true,
+  "bin": "R:/d2-evidence/combat-reports-corrected-source-f4700bbab/eech-campaign/target/windows-d2-combat-final-f4700bbab",
+  "build_info_sha256": "f114e6590240230b5c08b0c78efa4814db5b977524cd29e2224b0dae2b158169",
+  "all42_exports_unchanged": true,
+  "results": [
+    {
+      "name": "object-report-site-none-01",
+      "original_tool_session": 91201,
+      "actual_original_driver_exit_observed": 1,
+      "actual_native_exit": -1073741819,
+      "native_exit_hex": "0xC0000005",
+      "run": {
+        "status": "completed",
+        "when_utc": "2026-10-28T15:05:19.0568406Z",
+        "binary": "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\target\\windows-d2-combat-final-f4700bbab\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-reports-corrected-source-f4700bbab/eech-campaign/target/windows-d2-combat-final-f4700bbab/lua/object-report-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/object-report-site-none-01 scenario=lebanon_retail out=R:/d2-evidence/combat-characterization-20261028/out/object-report-site-none-01/trace.jsonl warmup=5 frame_ms=100 window_seconds=12 kind=site report=none control=none identity=reference",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/object-report-site-none-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/object-report-site-none-01",
+        "kind": "site",
+        "report": "none",
+        "control": "none",
+        "identity": "reference",
+        "purpose": "R3 shipping API witness: physical report/withhold state and end-of-run refusal. Native exit alone is insufficient; inspect actual completed census/before/after/summary and primary guard.",
+        "limits": "Controlled host-reported fact, not a weapon hit, fullpack, performance result, arbitrary-delay or all-family coverage.",
+        "script_sha256": "95239065594c06c2b2580636d5b2cd77c0fa8790049a1f6619ed2cbf9acacd72",
+        "build_info_sha256": "f114e6590240230b5c08b0c78efa4814db5b977524cd29e2224b0dae2b158169",
+        "actual_native_exit": -1073741819,
+        "native_pid": 23808,
+        "created_utc": "2026-10-28T15:05:19.2325143Z",
+        "completed_utc": "2026-10-28T15:05:32.1373512Z"
+      },
+      "only_trace_event": "boot",
+      "census_report_state_and_guards_reached": false,
+      "primary_exception": "eech-world: fatal exception 0xc0000005 at 0x7ffb211f68b5 (R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\target\\windows-d2-combat-final-f4700bbab\\eech_dc.dll + 0x1c68b5); access [0, 2059023912960]",
+      "files": [
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-site-none-01\\run.json",
+          "bytes": 1644,
+          "sha256": "dafc3cd4031dd73593a83cef25f36ac6f67b28281c8f98dcea72544a5bd37319"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-site-none-01\\trace.jsonl",
+          "bytes": 194,
+          "sha256": "d067c84e0bf9c4f2df2c497fff949ae4c33ec06439aa78a6b954a242701b1b6c"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-site-none-01\\run.log",
+          "bytes": 41610,
+          "sha256": "e3d5028d319b0189627627df9b04aef62d6c2a2da70ab2fe88f199f480fd4786"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-site-none-01\\run.out",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "post_input_actual_exit": 0,
+      "post_input_command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-site-none-01",
+        "--compare",
+        "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "post_input_log": {
+        "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-f470-crash-post-inputs-object-report-site-none-01.log",
+        "bytes": 327,
+        "sha256": "bdc36e581ac314029037f591bd9a6ce078d9c5addaab290032c91ffc557fec27"
+      }
+    },
+    {
+      "name": "object-report-site-damage-raise-01",
+      "original_tool_session": 44273,
+      "actual_original_driver_exit_observed": 1,
+      "actual_native_exit": -1073741819,
+      "native_exit_hex": "0xC0000005",
+      "run": {
+        "status": "completed",
+        "when_utc": "2026-10-28T15:05:19.0593794Z",
+        "binary": "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\target\\windows-d2-combat-final-f4700bbab\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-reports-corrected-source-f4700bbab/eech-campaign/target/windows-d2-combat-final-f4700bbab/lua/object-report-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/object-report-site-damage-raise-01 scenario=lebanon_retail out=R:/d2-evidence/combat-characterization-20261028/out/object-report-site-damage-raise-01/trace.jsonl warmup=5 frame_ms=100 window_seconds=12 kind=site report=damage control=raise identity=reference",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/object-report-site-damage-raise-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/object-report-site-damage-raise-01",
+        "kind": "site",
+        "report": "damage",
+        "control": "raise",
+        "identity": "reference",
+        "purpose": "R3 shipping API witness: physical report/withhold state and end-of-run refusal. Native exit alone is insufficient; inspect actual completed census/before/after/summary and primary guard.",
+        "limits": "Controlled host-reported fact, not a weapon hit, fullpack, performance result, arbitrary-delay or all-family coverage.",
+        "script_sha256": "95239065594c06c2b2580636d5b2cd77c0fa8790049a1f6619ed2cbf9acacd72",
+        "build_info_sha256": "f114e6590240230b5c08b0c78efa4814db5b977524cd29e2224b0dae2b158169",
+        "actual_native_exit": -1073741819,
+        "native_pid": 7908,
+        "created_utc": "2026-10-28T15:05:19.2325801Z",
+        "completed_utc": "2026-10-28T15:05:31.7981221Z"
+      },
+      "only_trace_event": "boot",
+      "census_report_state_and_guards_reached": false,
+      "primary_exception": "eech-world: fatal exception 0xc0000005 at 0x7ffb211f68b5 (R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\target\\windows-d2-combat-final-f4700bbab\\eech_dc.dll + 0x1c68b5); access [0, 1618062004224]",
+      "files": [
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-site-damage-raise-01\\run.json",
+          "bytes": 1681,
+          "sha256": "fc90ed7833fef8be91dbfd19bfd9852cf169190a6457438881772a8162c078bb"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-site-damage-raise-01\\trace.jsonl",
+          "bytes": 197,
+          "sha256": "2ed924f8cdae611de49a322e3f06814f6bb63d7de5f003d2426bc1ad8a77183a"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-site-damage-raise-01\\run.log",
+          "bytes": 45718,
+          "sha256": "7eb1c3e0513b6be9376b5f5508521a7f4b403c62af0e7756c57cf0d7e666e9a3"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-site-damage-raise-01\\run.out",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "post_input_actual_exit": 0,
+      "post_input_command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-site-damage-raise-01",
+        "--compare",
+        "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "post_input_log": {
+        "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-f470-crash-post-inputs-object-report-site-damage-raise-01.log",
+        "bytes": 335,
+        "sha256": "f9851bbe4df51fd408b3fe94a7ae252bd6fc695339aa4baa8c247f2294a86134"
+      }
+    },
+    {
+      "name": "object-report-site-destroy-duplicate-01",
+      "original_tool_session": 84065,
+      "actual_original_driver_exit_observed": 1,
+      "actual_native_exit": -1073741819,
+      "native_exit_hex": "0xC0000005",
+      "run": {
+        "status": "completed",
+        "when_utc": "2026-10-28T15:05:19.0736133Z",
+        "binary": "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\target\\windows-d2-combat-final-f4700bbab\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-reports-corrected-source-f4700bbab/eech-campaign/target/windows-d2-combat-final-f4700bbab/lua/object-report-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/object-report-site-destroy-duplicate-01 scenario=lebanon_retail out=R:/d2-evidence/combat-characterization-20261028/out/object-report-site-destroy-duplicate-01/trace.jsonl warmup=5 frame_ms=100 window_seconds=12 kind=site report=destroyed control=duplicate identity=reference",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/object-report-site-destroy-duplicate-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/object-report-site-destroy-duplicate-01",
+        "kind": "site",
+        "report": "destroyed",
+        "control": "duplicate",
+        "identity": "reference",
+        "purpose": "R3 shipping API witness: physical report/withhold state and end-of-run refusal. Native exit alone is insufficient; inspect actual completed census/before/after/summary and primary guard.",
+        "limits": "Controlled host-reported fact, not a weapon hit, fullpack, performance result, arbitrary-delay or all-family coverage.",
+        "script_sha256": "95239065594c06c2b2580636d5b2cd77c0fa8790049a1f6619ed2cbf9acacd72",
+        "build_info_sha256": "f114e6590240230b5c08b0c78efa4814db5b977524cd29e2224b0dae2b158169",
+        "actual_native_exit": -1073741819,
+        "native_pid": 6764,
+        "created_utc": "2026-10-28T15:05:19.2325974Z",
+        "completed_utc": "2026-10-28T15:05:30.3935510Z"
+      },
+      "only_trace_event": "boot",
+      "census_report_state_and_guards_reached": false,
+      "primary_exception": "eech-world: fatal exception 0xc0000005 at 0x7ffb211f68b5 (R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\target\\windows-d2-combat-final-f4700bbab\\eech_dc.dll + 0x1c68b5); access [0, 2335141904384]",
+      "files": [
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-site-destroy-duplicate-01\\run.json",
+          "bytes": 1715,
+          "sha256": "fb7f9130474a61a7f5fab24a8667a56ada90b2e96d3ebf9c9329d2d0d34ce825"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-site-destroy-duplicate-01\\trace.jsonl",
+          "bytes": 204,
+          "sha256": "e8921d7444a3efdef53837395c8bcef14c2fa2dd6bd1a5f2ca3170224dc57cd6"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-site-destroy-duplicate-01\\run.log",
+          "bytes": 45712,
+          "sha256": "09d817d1786b3d8d408a0779eb025b6a3be74377edf7d99a3c4407a688819b50"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-site-destroy-duplicate-01\\run.out",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "post_input_actual_exit": 0,
+      "post_input_command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-site-destroy-duplicate-01",
+        "--compare",
+        "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "post_input_log": {
+        "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-f470-crash-post-inputs-object-report-site-destroy-duplicate-01.log",
+        "bytes": 340,
+        "sha256": "84ec2de78567d7c0dd0f297095fe64bbe0194bb507827b4a4717656e9b38223c"
+      }
+    },
+    {
+      "name": "object-report-site-own-destroy-unknown-01",
+      "original_tool_session": 38984,
+      "actual_original_driver_exit_observed": 1,
+      "actual_native_exit": -1073741819,
+      "native_exit_hex": "0xC0000005",
+      "run": {
+        "status": "completed",
+        "when_utc": "2026-10-28T15:05:19.0912315Z",
+        "binary": "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\target\\windows-d2-combat-final-f4700bbab\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-reports-corrected-source-f4700bbab/eech-campaign/target/windows-d2-combat-final-f4700bbab/lua/object-report-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/object-report-site-own-destroy-unknown-01 scenario=lebanon_retail out=R:/d2-evidence/combat-characterization-20261028/out/object-report-site-own-destroy-unknown-01/trace.jsonl warmup=5 frame_ms=100 window_seconds=12 kind=site report=destroyed control=unknown identity=own",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/object-report-site-own-destroy-unknown-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/object-report-site-own-destroy-unknown-01",
+        "kind": "site",
+        "report": "destroyed",
+        "control": "unknown",
+        "identity": "own",
+        "purpose": "R3 shipping API witness: physical report/withhold state and end-of-run refusal. Native exit alone is insufficient; inspect actual completed census/before/after/summary and primary guard.",
+        "limits": "Controlled host-reported fact, not a weapon hit, fullpack, performance result, arbitrary-delay or all-family coverage.",
+        "script_sha256": "95239065594c06c2b2580636d5b2cd77c0fa8790049a1f6619ed2cbf9acacd72",
+        "build_info_sha256": "f114e6590240230b5c08b0c78efa4814db5b977524cd29e2224b0dae2b158169",
+        "actual_native_exit": -1073741819,
+        "native_pid": 23292,
+        "created_utc": "2026-10-28T15:05:19.2325863Z",
+        "completed_utc": "2026-10-28T15:05:30.5966200Z"
+      },
+      "only_trace_event": "boot",
+      "census_report_state_and_guards_reached": false,
+      "primary_exception": "eech-world: fatal exception 0xc0000005 at 0x7ffb211f68b5 (R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\target\\windows-d2-combat-final-f4700bbab\\eech_dc.dll + 0x1c68b5); access [0, 2648782450688]",
+      "files": [
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-site-own-destroy-unknown-01\\run.json",
+          "bytes": 1708,
+          "sha256": "4baeca3ebdff8e0d0c1f971bc675f5c1779018a92972421b7956a70351bd89bb"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-site-own-destroy-unknown-01\\trace.jsonl",
+          "bytes": 196,
+          "sha256": "e1f08393ba149309f0bb8e858bf41f84339eaf53bf6a924770dbd710b1dbc72c"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-site-own-destroy-unknown-01\\run.log",
+          "bytes": 45709,
+          "sha256": "27af3f6dcc27b136c501ffcdcf73e8022b0cfbcb4939a0f3661fd9d92fe804c7"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-site-own-destroy-unknown-01\\run.out",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "post_input_actual_exit": 0,
+      "post_input_command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-site-own-destroy-unknown-01",
+        "--compare",
+        "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "post_input_log": {
+        "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-f470-crash-post-inputs-object-report-site-own-destroy-unknown-01.log",
+        "bytes": 342,
+        "sha256": "5a9b7c31a64c02d10ffa120dcb95217e20ce732edbebaadcb6bf2d30ecf5bd43"
+      }
+    },
+    {
+      "name": "object-report-segment-none-01",
+      "original_tool_session": 92154,
+      "actual_original_driver_exit_observed": 1,
+      "actual_native_exit": -1073741819,
+      "native_exit_hex": "0xC0000005",
+      "run": {
+        "status": "completed",
+        "when_utc": "2026-10-28T15:05:19.1017912Z",
+        "binary": "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\target\\windows-d2-combat-final-f4700bbab\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-reports-corrected-source-f4700bbab/eech-campaign/target/windows-d2-combat-final-f4700bbab/lua/object-report-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/object-report-segment-none-01 scenario=lebanon_retail out=R:/d2-evidence/combat-characterization-20261028/out/object-report-segment-none-01/trace.jsonl warmup=5 frame_ms=100 window_seconds=12 kind=segment report=none control=none identity=reference",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/object-report-segment-none-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/object-report-segment-none-01",
+        "kind": "segment",
+        "report": "none",
+        "control": "none",
+        "identity": "reference",
+        "purpose": "R3 shipping API witness: physical report/withhold state and end-of-run refusal. Native exit alone is insufficient; inspect actual completed census/before/after/summary and primary guard.",
+        "limits": "Controlled host-reported fact, not a weapon hit, fullpack, performance result, arbitrary-delay or all-family coverage.",
+        "script_sha256": "95239065594c06c2b2580636d5b2cd77c0fa8790049a1f6619ed2cbf9acacd72",
+        "build_info_sha256": "f114e6590240230b5c08b0c78efa4814db5b977524cd29e2224b0dae2b158169",
+        "actual_native_exit": -1073741819,
+        "native_pid": 6788,
+        "created_utc": "2026-10-28T15:05:19.2325474Z",
+        "completed_utc": "2026-10-28T15:05:32.0155194Z"
+      },
+      "only_trace_event": "boot",
+      "census_report_state_and_guards_reached": false,
+      "primary_exception": "eech-world: fatal exception 0xc0000005 at 0x7ffb211f68b5 (R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\target\\windows-d2-combat-final-f4700bbab\\eech_dc.dll + 0x1c68b5); access [0, 1491644723200]",
+      "files": [
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-segment-none-01\\run.json",
+          "bytes": 1661,
+          "sha256": "afd192e2710e524c1f07b648817921b1c51f768e824603c28520c666b2b5b2bf"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-segment-none-01\\trace.jsonl",
+          "bytes": 197,
+          "sha256": "5f923dcb7afa81cb04b30283738028fe64d8a9f9569a5ced80bbf031f5c32f52"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-segment-none-01\\run.log",
+          "bytes": 41606,
+          "sha256": "af5123aae264c218310b76bd2e5075cf5516a04f5a7d298c3a3981483b2c8a67"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-segment-none-01\\run.out",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "post_input_actual_exit": 0,
+      "post_input_command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-segment-none-01",
+        "--compare",
+        "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "post_input_log": {
+        "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-f470-crash-post-inputs-object-report-segment-none-01.log",
+        "bytes": 330,
+        "sha256": "24cd946f83a0e22ca26598cc7bf29ac089dfcc6ad988d145a05426c910eabd0c"
+      }
+    },
+    {
+      "name": "object-report-segment-destroy-01",
+      "original_tool_session": 29361,
+      "actual_original_driver_exit_observed": 1,
+      "actual_native_exit": -1073741819,
+      "native_exit_hex": "0xC0000005",
+      "run": {
+        "status": "completed",
+        "when_utc": "2026-10-28T15:05:19.1325944Z",
+        "binary": "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\target\\windows-d2-combat-final-f4700bbab\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-reports-corrected-source-f4700bbab/eech-campaign/target/windows-d2-combat-final-f4700bbab/lua/object-report-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/object-report-segment-destroy-01 scenario=lebanon_retail out=R:/d2-evidence/combat-characterization-20261028/out/object-report-segment-destroy-01/trace.jsonl warmup=5 frame_ms=100 window_seconds=12 kind=segment report=destroyed control=none identity=reference",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/object-report-segment-destroy-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/object-report-segment-destroy-01",
+        "kind": "segment",
+        "report": "destroyed",
+        "control": "none",
+        "identity": "reference",
+        "purpose": "R3 shipping API witness: physical report/withhold state and end-of-run refusal. Native exit alone is insufficient; inspect actual completed census/before/after/summary and primary guard.",
+        "limits": "Controlled host-reported fact, not a weapon hit, fullpack, performance result, arbitrary-delay or all-family coverage.",
+        "script_sha256": "95239065594c06c2b2580636d5b2cd77c0fa8790049a1f6619ed2cbf9acacd72",
+        "build_info_sha256": "f114e6590240230b5c08b0c78efa4814db5b977524cd29e2224b0dae2b158169",
+        "actual_native_exit": -1073741819,
+        "native_pid": 22832,
+        "created_utc": "2026-10-28T15:05:19.2324322Z",
+        "completed_utc": "2026-10-28T15:05:30.3851086Z"
+      },
+      "only_trace_event": "boot",
+      "census_report_state_and_guards_reached": false,
+      "primary_exception": "eech-world: fatal exception 0xc0000005 at 0x7ffb211f68b5 (R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\target\\windows-d2-combat-final-f4700bbab\\eech_dc.dll + 0x1c68b5); access [0, 2653356212224]",
+      "files": [
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-segment-destroy-01\\run.json",
+          "bytes": 1684,
+          "sha256": "30d856662c4729b18c3b611576aa402a27002600b542a0e0a97bf96aed1f5d27"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-segment-destroy-01\\trace.jsonl",
+          "bytes": 202,
+          "sha256": "507f4a4a92f5a51094c2e491cde88df1744d814bb474ce3c5e2c248c89e19f59"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-segment-destroy-01\\run.log",
+          "bytes": 41602,
+          "sha256": "1f0e1e11298cb4fcb72843628822f7d89e5c897029ede273dfc3d64302e446f2"
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\object-report-segment-destroy-01\\run.out",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "post_input_actual_exit": 0,
+      "post_input_command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-segment-destroy-01",
+        "--compare",
+        "R:\\d2-evidence\\combat-reports-corrected-source-f4700bbab\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "post_input_log": {
+        "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-f470-crash-post-inputs-object-report-segment-destroy-01.log",
+        "bytes": 333,
+        "sha256": "1e83cf4504f12f345d45fc11262cae919170cede65cf450abcdfd9ca90c62ac1"
+      }
+    }
+  ],
+  "post_all6_inputs_exit0": true,
+  "observed_fault": {
+    "exception": "0xC0000005 read access violation",
+    "dll_rva": "0x1c68b5",
+    "preferred_image_base": "0x180000000",
+    "instruction": "mov (%rbx),%ecx in campaign_object_structures; entity type read",
+    "loop": "increments32bytes perentity and compares against0x1000000 (524288*32)",
+    "disassembly": {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-f470-structure-crash-disassembly.log",
+      "bytes": 3233,
+      "sha256": "7c313cc38321e8422b496a246ac8011162357b5f39643e84434d716e8fa0aa32"
+    },
+    "addr2line_limit": "No usable line info returned (??); symbol/instruction identified by objdump, no successful full stack unwind claim."
+  },
+  "source_cause": {
+    "file": "aphavoc/source/entity/mobile/mb_hostobj.c",
+    "line": 493,
+    "condition": "for (index = 0; index < MAX_NUM_ENTITIES; index++)",
+    "actual_allocation": "en_heap.c227..238 sets number_of_entities=num_entities and allocates that many; init.c935/937 supplies135000 or125000, belowMAX524288",
+    "classification": "Enumeration reads past actual allocated heap; correct runtime bound, do not enlarge allocation/retune or omit supported kinds. Nativecrashes are behavioral red; existingfakeheapMAX==capacity hid this."
+  },
+  "scope": "Boot only, no census/before/receipt/after/control: NO physical report, withhold effect, generic-host authority or rejection coverage. All useful raw failures/roots/binaries/source retained. Fullshipping pack held. Separate f470 natural600 and completedbridgepair remain distinct evidence, never relabelled fixedsource."
+}
