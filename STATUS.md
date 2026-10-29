@@ -1,3 +1,17 @@
+# User-requested Git checkpoint — implementation stopped and partial source preserved
+
+On 29 October 2026 the user requested committing and pushing all current work.
+The sole Claude writer (verified PID 21552, local session
+`39ea8c20-d032-41ae-bbbb-c52fb100b440`) was interrupted for a consistent checkpoint.
+Task49 branch `codex/d3-object-tree-collision`, pushed at
+`f0bd165c9399d7dd92d05946cc402d154b61ddcf`, preserves partial `tree_step.c` and
+`trees.rs` files. They are not wired into the build/module, compiled, tested or
+independently reviewed; source comments are intentions, not accepted evidence.
+Resume that focused implementation context and complete its integration and
+original-query replay before claiming extraction. Existing reviewed capture
+evidence and G2 preparation remain unchanged. Task47 shipping115 was left running;
+complete byte identity remains pending. D3 is incomplete; D4/D5 have not started.
+
 # Current whole-D3 checkpoint — tree inputs reviewed; host loader/kernel preparation active
 
 Task49 draftPR109 is published at00d1cef8fdd64fae52e4bc0fb45fc3039d296498. The
