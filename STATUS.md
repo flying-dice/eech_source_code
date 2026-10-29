@@ -1,60 +1,39 @@
-# D3 ground/G1 composition — physical compatibility GREEN
+# D3 G2 host ground preparation — retail conformance pending
 
-Supplemental branch codex/d3-ground-g1-compose; no duplicate delivery PR.
-Measured cleanfebbb7cc5 contains readerfix4b2043500. This is a test-only composition
-with unaccepted G1, not G2 production cutover or shipping acceptance.
+EEDCS-48 / D3 EEDCS-21, branch codex/d3-ground-host-preparation, base1b6218b06.
+Authority: M5 goal11534337v3 and ledger14548994v58. D1/D2 accepted; D3 active;
+D4/D5 not started. No G2 production DLL cutover or completed extraction claimed.
 
-29 October 2026. Authority: M5 goal11534337v3 and ledger14548994v58 (live).
-D1/D2 are accepted. D3/EEDCS-21 is In Progress; D4/D5 have not started. Campaign
-geography, routes, planning, timers, scheduling and consequences remain in EECH_DC.
-Other physical spatial/model, environment, host-time and required DLL solver/loader
-removal remain whole-D3 scope; Task47/48 do not exhaust the epic.
+Reference-host below-ground/impact kernels, internal above/sector-maximum helpers,
+complete semantic record results and original-case conformance code are prepared.
+Campaign supplies world bounds as data; the host performs the physical off-map
+predicate. Original float/double expressions, ASSERT evaluation side effects,
+short circuits, shared record/hints and endpoint correction/aliasing are retained
+by source implementation; actual original-oracle conformance is still unproved.
+The DLL/client/wn_move/public module bridge are unchanged. G2 production binding
+waits Task47 normal delivery and reverified integration.
 
-The ground-query fixture found an extraction regression in G1: LuaValue conversion
-erased signed zero and tiny request coordinates. Unchanged-binary prefix bisection
-located case14. Two clean diagnostic builds/native runs reproduced the unchanged
-prefix15 hashes exactly and traced a terrain-height/inputY difference at the
-smallest positive Z float. Directed rounding means this lost input can affect height.
-The old one-test library RED (executed1/exit101) and every raw failure are retained;
-the earlier zero-test invocation is explicitly setup-only, never pass evidence.
+Actual Linux build0, six existing terrain-library tests, one real vocabulary test,
+format/check and host all-target Clippy pass0. Three retail-dependent test functions
+explicitly SKIPPED without their environment; their reported Cargo success is NOT
+conformance. Windows portability was corrected by embedding only repository source
+vocabulary texts at compile time, keeping parsing/validation. No private data is
+embedded and no hand-written expected class table is substituted.
 
-The focused numeric-only reader preserves exact bits with one field lookup, keeps
-finite exact-f32 validation and prior NaN/infinity behavior, and changes no physical
-solver, arithmetic formula, RNG order, case generator, baseline or tolerance.
-Actual Linux terrain library6/6, host callback40/40, host all-target Clippy and fmt
-pass0; these40 callback guards are not the shipping40.
+Next: clean named Windows host-test build and real20k/5k/two-repeat conformance on
+fresh verified Georgia/Lebanon/separate-repeat roots against immutablec119 raws;
+classify every difference, independently review new source/results, then prepare
+public healthy old-DLL RED/authority before any later required handoff. No baseline,
+case, generator, physical fold, tolerance or solver formula was changed to get green.
+See docs/m5-ground-host-preparation.md and reference/d3-ground-host-preparation/.
 
-Clean test-only compositionfebbb7cc5 built0/all46 manifest entries. Georgia,
-Lebanon and separate Lebanon-repeat each completed original20k points/5k impacts,
-two repeats, native0/pre/post-input0 and119 strict rows. The unchanged comparator
-exits0 on all three: all four physical hashes, physical counters/emitted samples,
-and common cache observations match immutable originalc119 exactly. Both complete
-Lebanon raw files are byte identical. Legacy/semantic diagnostic hashes remain
-separate. This closes the bounded physical RED; it is not shipping acceptance.
+Task47 corrected ordinary115 shipping pack remains LIVE and untouched, tool59652,
+outer17636/runner24412/native13480/22388/15952/14740. All9 CI checks at its latest
+published metadata head passed. Latest checked3.55MB Tacview/2.61MB observations
+are exact prefixes only. Complete40/eight full files/post-inputs and delivery remain.
 
-Safe proof: eech-campaign/reference/d3-ground-characterization/
-coordinate-native-conformance-febbb7cc5.json. The independent source and fixed-native review found no actionable findings,
-pinned to measuredfeb/code4b (reportSHA5b704bde1060ee5b1cc8a6e8ee6403d9ae7e5d7057ee669c56cbc749a0d00292).
-Later publication metadata is outside that pass; no formal approval is claimed.
-
-The corrected ordinary shipping source1156c8fbb built0/all45 exports verified;
-fresh-root preflight0/exact40. Its full unchanged pack is RUNNING: outerPID17636,
-runner24412; native13480/22388 created16:14:55Z and15952/14740 created16:14:58Z.
-Tool59652; output R:/d3-evidence/shipping-terrain-coordinate-1156c8fbb-final-pack.
-Confirm exact creation times/argv in the private checkpoint before any action.
-Seed1,100ms,3simhours are unchanged. Full40/eight complete files/post-inputs,
-applicable currentCI, final completed-evidence review and normal merge remain.
-All9 hosted checks passed at115; later evidence-only heads require current checks.
-
-The old06 run was intentionally superseded after verifying all four PID/creation/
-argv identities. Its original runner actualexit1 is retained, not a completed pass.
-Final27.2MB Tacview/16.95MB observation prefixes remain exact, all FOUR old
-post-input manifests pass0, and every raw/partial artifact/source/binary remains.
-The initial wrong checkpoint-key guard stopped before any mutation; its setup
-failure is separately classified. No G2 production cutover or task/epic closure.
-Ledger v58 readback preserves all prior HTML and all five epic reports exactly.
-Jira47comment10848 and48comment10849 record the bounded fix/new shipping run.
-
-Private inputs, raw coordinates, recordings, source/binary snapshots and logs stay
-under R:/d3-evidence. Keep useful RED/partial evidence; remove only disposable
-closed caches after verification. Execution checkpoint: R:/d3-evidence/D3-NEXT-ACTION.json.
+Other direct above/below consumers, geometry/model/tree queries, physical loaders,
+environment/weather/RNG, host-time inputs and whole-D3 closure remain in scope.
+Root source-only clock/weather census is private evidence, not accepted extraction.
+Raw inputs/recordings/binaries/snapshots and execution details stay in R:/d3-evidence;
+D3-NEXT-ACTION.json records live process identities. Do not restart on quiet output.
