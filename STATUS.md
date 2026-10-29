@@ -2,7 +2,7 @@
 
 29 October 2026. EEDCS-48 / EEDCS-21 In Progress. Branch codex/d3-ground-contact
 starts from accepted integration6bbaa8197a4843181d03cd355d562af998c75321.
-Authority: M5 goal11534337v3, migration ledger14548994v55. D3 is incomplete;
+Authority: M5 goal11534337v3, migration ledger14548994v56. D3 is incomplete;
 D4/D5 have not started. Campaign geography/routes/timers/scheduling/consequences
 stay in EECH_DC. Other D3 spatial/model/environment/time groups remain in scope.
 
@@ -26,7 +26,7 @@ It also found raw traceback tabs made those old REFUSAL rows invalid JSON; the
 healthy c119 positive measurements are strictly valid. The latest encoder repair
 preserves all control characters through proper JSON escapes. Actual Linux host/
 Lua5.1 driver tests now11PASS, affected Clippy0, formatting/check0, Lua parses0 and
-diffcheck0. New encoder-delta review and healthy-measurement reuse review pending.
+diffcheck0. Independent encoder-delta and healthy-measurement reuse review passed with no findings.
 Original C/case/hash expressions are unchanged by that encoder repair.
 
 The separate original probe/no-probe control runs from immutable c119 on two
@@ -41,7 +41,7 @@ RUNNING on four roots. Latest checked prefixes: both15,085,218-byte Tacview and
 both9,359,360-byte observations equal accepted bytes. Complete40/eight-file and
 post-input gates, final review/currentCI/normal delivery remain pending.
 
-Next: close encoder-delta review and collect the existing control processes to
+Next: collect the existing control processes to
 actual completion, verify evidence and record original behavior/limits. Do not
 cut over G2 production before Task47 delivery and integration verification. Then
 perform the host extraction, actual authority/refusal proof, unchanged shipping
@@ -52,3 +52,9 @@ Preserve raw successes/failures and tested snapshots/binaries. Two closed a14/06
 fixture target caches were removed after86 exported entries verified and raw build
 logs exported; current native/control/shipping targets, sources, registry/daemon,
 R: mapping and all live outputs remain intact.
+
+Review of bc3e5ba96 accepted the JSON repair and reuse of healthy c119 measurements
+with their original source/binary identities preserved. No new native build is
+claimed. Ledger v56 readback preserves all prior HTML and all five epic charts
+exactly; the new progress appendix differs only by generated local IDs. Eleven
+actual driver tests and affected Clippy pass; hosted CI at the new head is pending.
