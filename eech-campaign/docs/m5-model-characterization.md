@@ -1,6 +1,6 @@
 # D3: characterisation of the original collision-model data and accessors (EEDCS-50)
 
-**Status: SOURCE PREPARED, UNBUILT, UNRUN.** Nothing in this document has been compiled, linked, run or measured. It describes a test-only probe and what its first run must show.
+**Current status: Windows fixture built; three original retail catalogues completed with exit 0.** See `../reference/d3-model-characterization/original-catalogues-366622e0c-summary.json` for the measured source, build identity, results and limits. Selected retail triangle queries, host loader extraction and independent Task50 review remain pending. The source-only preparation notes below describe the initial checkpoint.
 It is not a production capability, not D3 acceptance and not evidence about any retail model. Authority: the live M5 goal (Confluence 11534337) and the migration ledger
 (Confluence 14548994); Jira [EEDCS-50](https://flying-dice.atlassian.net/browse/EEDCS-50) under Epic EEDCS-21 (D3). Candidate base: integration `6bbaa8197`
 (accepted D2), branch `codex/d3-model-geometry`. The Task 49 files are not in this base and are not assumed.
@@ -86,7 +86,7 @@ metadata; the retained raw output is the evidence. Nothing is repaired.
 No frame is stepped; no entity, table, pointer, model byte, retail file or random stream is written or drawn from. The use count reads each entity's shape through the ordinary getter
 (the default for a type without a shape is the invalid index); it does not use the legacy updating getter. The probe makes no physical query other than the four accessors named.
 
-## Commands for the Root (not run)
+## Commands and preparation-time expectations
 
 ```
 # build (Git Bash, Docker with Linux containers), from a clean checkout of the exact commit to be characterised; a fresh, uniquely named volume gives a clean build
