@@ -1,0 +1,70 @@
+{
+  "kind": "Independent focused Task48 forced-sample correction review",
+  "created_utc": "2026-10-29T14:33:48.311219+00:00",
+  "repository": "R:\\eech_source_code",
+  "base": "06ce4b7bcff6617c35f32e740bcb57c9c1cc1c19",
+  "head": "9e607637f750e2a08d0cb6c36d79709a68296d15",
+  "clean_pinned_head_at_start": true,
+  "disposition": "Consolidated forced sample-prefix/gap/tail/quota P2 source-resolved; no remaining executable/source blocker found. A minor quota-rationale P3 in pinned comments/prose was corrected by Root in three explicitly inspected uncommitted wording-only lines during this same pass. Corrected original fixture build/native/oracle gates remain pending.",
+  "findings": [],
+  "closure": [
+    "Exact header quotas2/4 now match the unchanged C emitter constants; malformed header cannot redefine the sample contract.",
+    "Both families reject a skipped case before any already-observed class has reached its quota. Gap check precedes accounting for the later sample, so future saturation cannot excuse an earlier omission. Unsaturated unfinished tails are rejected.",
+    "Zero-case family with last=-1/cases0 remains valid; one-case and complete small families are supported. Once a class has already saturated, omissions may legitimately belong to it; no unreported point-tag population or RNG sequence is invented.",
+    "Existing strictly increasing unique IDs/domains/per-class caps/exact per-impact-type counts are retained. The all-five-type0 malformed IDs0,2,3,4 are rejected despite cardinality4; dropped point n1/n2/tail are covered.",
+    "Original C, warm sequence and physical/legacy folds are unchanged; previous source and safety review reused."
+  ],
+  "meaningful_tests_and_evidence": {
+    "actual_driver_tests": "Corrected working-tree completion/log actual0: nine real Linux host/Lua5.1 driver tests, including the expanded defect table and positive small/saturated/default-repeat cases. Affected host_callbacks Clippy finishes0; fmt/check/parses scope is accurately recorded.",
+    "exact_identity": "All four tested-path SHA256 values exactly match pinned9e Git blobs: actual driver, embedded collaborator, host_callbacks tests, unchanged C fixture. These are not anonymous floating-source results.",
+    "prior_test_failure": "Old06 run has6passed/1failed101. Failure counted samples across default2 reports as if one; corrected positives explicitly request repeats1 and separately test default2 totals and12/32 per repeat. This preserves stronger repeat coverage rather than weakening physical expectations.",
+    "actual_red_green": "Exact same caller bytes SHA c11b34e608f34f8c2492970c364fd8014ca83c94f368ba609688b873b142fd9e. Old06 driver actual0 emits point IDs0,2,3,4 and one success digest; corrected driver actual1 emits one specific report_invalid for missing case1 and no digest. Raw files independently read/hashed. This is driver-truthfulness red/green, not original physics/native EECH proof.",
+    "limits": "Replay uses the real Lua host with a controlled collaborator; no original C ground query is executed by it. New original-retail probes/oracles are not claimed passed."
+  },
+  "wording_only_followup": {
+    "requested_by": "Root during the same pinned review",
+    "issue": "Pinned comments incorrectly said a larger quota excuses omitted cases; exact guard was correct. Changed text neutrally states that altering quotas changes which samples are required/permitted.",
+    "checked_diff": "Exactly one comment/prose line replaced in each of three paths; no executable line or test expectation changed.",
+    "working_tree_sha256": {
+      "eech-campaign/crates/eech-world/lua/ground-characterization.lua": "596a19c07e010ada22f5916bdf6700629043d2a29859d195f99347a3f4599ce6",
+      "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "45f77288e5ce155aa772f56cb3d9862739359c1cf95b03462936f8dea231f792",
+      "eech-campaign/docs/m5-ground-characterization.md": "81e0f41088db1bc72e5a383f0f7f91f32f46b16e4a4b1c3c1c872bcd9150323e"
+    },
+    "diff_sha256": "5610d68c61625d9725e997341411dd9a655d6d49da177cb5aac57f395b799dcf",
+    "identity_limit": "These three wording bytes are reviewed uncommitted follow-up, not falsely attributed to clean9e or its tested hashes. Current HEAD remains9e; tested executable source is unchanged."
+  },
+  "limits": [
+    "No reviewer source edits, tests/build/compiler/Lua/native execution, process/cache action, delegation or external writes. Only pinned source/artifact reads, hashes/comparisons and this authorized private report.",
+    "Clean9e fixture build is Root-owned and still pending in supplied context; no corrected original native, repeat/probe-control, oracle or shipping acceptance inferred. Earlier a14/06 compile facts stay separately source-labelled.",
+    "Task47 frozen06 processes/cache/source untouched. Task48/whole-D3 not complete; no unchanged broader review repeated."
+  ],
+  "changed_path_sha256": {
+    "STATUS.md": "6b8a71481f4321f16b72676909530b0d6f0212df93b0c1251f1aa3c3d542c671",
+    "eech-campaign/crates/eech-world/lua/ground-characterization.lua": "a083d5a0926eb9aa793f2849ada5cb9412337ff0efd98870f5f1b13f694624be",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "8efd2e180a8460cdf4283e4af147151af75e05d3c56b5923e86fa6f54bc46d81",
+    "eech-campaign/crates/eech-world/tests/lua/ground-caller.lua": "5d4b70ea16b22fca71f50749f112ac3f3c7c333cb7bf05e139f92875c4b5fe85",
+    "eech-campaign/docs/m5-ground-characterization.md": "570f6e9805e373cb8eb6dcc4358403b7b7343411bfce1b0291cf430e0178033e",
+    "eech-campaign/reference/d3-ground-characterization/corrected-driver-execution.json": "b64b019ff4f50475689fc39c8978b2f34bc40c23a676ef009b70787a23584730",
+    "eech-campaign/reference/d3-ground-characterization/driver-06-positive-count-failure.json": "34bb391f2bd67854f07d484b965a6e6df41b92bc2a1bd4ce6d42ee9a8f745908",
+    "eech-campaign/reference/d3-ground-characterization/independent-sample-completeness-review-06ce4b7bc.json": "f1ae4dce0b711f6cdfecccf70d250aa54ab26b1b91be075810d8823d15739655",
+    "eech-campaign/reference/d3-ground-characterization/original-06-build-completion.json": "7c9f705de7496914063648ab94fe221b073d0ad2c1c7166fe8a617d712bb44ae",
+    "eech-campaign/reference/d3-ground-characterization/sample-omission-green-working.json": "80cbf7427d58cd56fa51e0bf875da86a80708512837f8c44f9655f3d4ef50516",
+    "eech-campaign/reference/d3-ground-characterization/sample-omission-red-06.json": "2ca38c90dc0fd3092d91a4d0fcd8dec298e4d3086dbd72780523b7ba1129f4fc"
+  },
+  "evidence_sha256": {
+    "ground-driver-linux-corrected-working-completion.json": "f4b4e4a69b7367d199fbd7f93fdad77b647d6a5dd560e86cda08059787f1bff4",
+    "ground-driver-linux-corrected-working.log": "645ee70947ca6cb54d335c12eb445521c81844192197b940b96c2389738c8ec4",
+    "ground-driver-linux-06ce4b7bc-completion.json": "9e09a3163cfbb19cb9419f0e83a0e8398242e12fef6547e90c8b3c342cbd9432",
+    "ground-driver-linux-06ce4b7bc.log": "b3ff1b048d4104620a8616c479bf00c21670ec0dae2b9fa7b299ea8b83a7ac5b",
+    "reproduce-ground-sample-omission-red-06ce4b7bc.sh": "32e6da3dfd549df62fc521383c144524ecd51b557542df5764388417cdd7ff8d",
+    "reproduce-ground-sample-omission-green-working.sh": "29e487af233460ffce754058a50ca7f92faa029402b8fe5963fcebb1fcfc21ef"
+  },
+  "replay_raw_sha256": {
+    "ground-sample-omission-red-06ce4b7bc\\caller.lua": "c11b34e608f34f8c2492970c364fd8014ca83c94f368ba609688b873b142fd9e",
+    "ground-sample-omission-red-06ce4b7bc\\ground.jsonl": "6abcb11022e085958253bf9385988b56cbb0460273b088650b5d4f5b951cc159",
+    "ground-sample-omission-red-06ce4b7bc\\native.log": "1fc9e13ac406028d442b8c47e2d3cd5cf90764c6476a5cb70a72446a9be12060",
+    "ground-sample-omission-green-working-20261029\\caller.lua": "c11b34e608f34f8c2492970c364fd8014ca83c94f368ba609688b873b142fd9e",
+    "ground-sample-omission-green-working-20261029\\ground.jsonl": "f37d0cc57639c389a482c478331fba3c627072a6ad2dfa3eabbd311e438ae138",
+    "ground-sample-omission-green-working-20261029\\native.log": "615570ef2666206fe013470d40c1d0d244854c727a8ba79d774ece62b2d9ae76"
+  }
+}

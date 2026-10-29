@@ -140,7 +140,9 @@ end
 local SCHEMA = {
 	["ground-probe"] = { { "seed", "count" }, { "points", "count" }, { "impacts", "count" }, { "samples_per_point_tag", "count" },
 		{ "samples_per_impact_type", "count" } },
-	["ground-map"] = { { "sectors_x", "count" }, { "sectors_z", "count" }, { "sector_side", "count" } },
+	-- the campaign's grid (it fixes the map extents) and the physical terrain's grid (which the sector boundaries belong to): two grids, reported apart
+	["ground-map"] = { { "world_sectors_x", "count" }, { "world_sectors_z", "count" }, { "world_sector_side", "count" }, { "terrain_sectors_x", "count" },
+		{ "terrain_sectors_z", "count" }, { "terrain_sector_side", "count" } },
 	["ground-record"] = { { "anchored", "flag" }, { "restored", "flag" }, { "words_before", "hex16" }, { "words_after", "hex16" } },
 	["ground-points"] = { { "cases", "count" }, { "in_map", "count" }, { "off_map", "count" }, { "input_mutated", "count" } },
 	["ground-above"] = { { "cases", "count" }, { "true", "count" }, { "false", "count" }, { "record_touched", "count" },
@@ -177,7 +179,7 @@ local FOLD_EMPTY = "cbf29ce484222325"
 
 -- The sample quotas are compile-time constants of the fixture (POINT_SAMPLES_PER_TAG and IMPACT_SAMPLES_PER_TYPE in eech_ground_fixture.c), written into the
 -- header of every report. The completeness checks below are only as strong as the quota they assume, so a header that names any other quota is refused
--- rather than believed: a larger quota would excuse unsampled cases that the emitter takes.
+-- rather than believed: a changed quota would redefine which sample rows are required or permitted.
 local EMITTER_POINT_QUOTA, EMITTER_IMPACT_QUOTA = 2, 4
 
 -- one row's words after the event, as raw `key=value` text: a word that is not key=value, or a key that appears twice, is refused
@@ -267,7 +269,16 @@ local function read_report (report, repeat_index)
 	need_equal ("ground-probe", "samples_per_point_tag", header.samples_per_point_tag, EMITTER_POINT_QUOTA)
 	need_equal ("ground-probe", "samples_per_impact_type", header.samples_per_impact_type, EMITTER_IMPACT_QUOTA)
 	local map = rows ["ground-map"]
-	if map.sectors_x < 1 or map.sectors_z < 1 or map.sector_side < 1 then refuse ("ground-map: the map has no sectors") end
+	for _, key in ipairs { "world_sectors_x", "world_sectors_z", "world_sector_side", "terrain_sectors_x", "terrain_sectors_z", "terrain_sector_side" } do
+		if map [key] < 1 then refuse ("ground-map: " .. key .. " is " .. map [key] .. ", the map has no sectors") end
+	end
+	-- The grids may differ (the campaign's sectors can be larger than the terrain's) but the ground they cover must not: the fixture refuses a probe whose world
+	-- extents differ from the terrain's (reason world_map_is_not_the_terrain_extents), so a report that carries two grids covering different extents is not a
+	-- report of that probe. The extent is sectors times side, less 1 in both, so the products are compared.
+	need_equal ("ground-map", "world extent in x (world_sectors_x * world_sector_side)", map.world_sectors_x * map.world_sector_side,
+		map.terrain_sectors_x * map.terrain_sector_side)
+	need_equal ("ground-map", "world extent in z (world_sectors_z * world_sector_side)", map.world_sectors_z * map.world_sector_side,
+		map.terrain_sectors_z * map.terrain_sector_side)
 
 	-- the shared terrain record is left exactly as it was found
 	local record = rows ["ground-record"]

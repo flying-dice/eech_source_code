@@ -2227,7 +2227,7 @@ fn ground_refusal(reason: &str) -> String {
 fn the_ground_driver_names_the_one_defect_in_a_report_and_writes_no_success_row() {
     let counts: &[&str] = &["points=5", "impacts=5"];
     let no_impacts: &[&str] = &["points=5", "impacts=0"];
-    let defects: [(&str, &[&str], &str); 60] = [
+    let defects: [(&str, &[&str], &str); 65] = [
         (
             "unrestored",
             counts,
@@ -2282,7 +2282,21 @@ fn the_ground_driver_names_the_one_defect_in_a_report_and_writes_no_success_row(
         ("unknown_row", counts, "the report has an unknown row 'ground-extra'"),
         ("unexpected_key", counts, "ground-asserts: unexpected key bonus"),
         ("bare_word", counts, "ground-map: 'oops' is not key=value"),
-        ("duplicate_key", counts, "ground-map: sectors_x appears twice"),
+        ("duplicate_key", counts, "ground-map: world_sectors_x appears twice"),
+        // the campaign grid and the terrain grid are two grids over one extent: every count present and positive, the extents they cover equal
+        ("map_old_schema", counts, "ground-map: world_sectors_x is missing"),
+        ("map_terrain_key_missing", counts, "ground-map: terrain_sectors_z is missing"),
+        ("map_zero_grid", counts, "ground-map: terrain_sector_side is 0, the map has no sectors"),
+        (
+            "map_extent_x_differs",
+            counts,
+            "ground-map: world extent in x (world_sectors_x * world_sector_side) is 12288, expected 14336",
+        ),
+        (
+            "map_extent_z_differs",
+            counts,
+            "ground-map: world extent in z (world_sectors_z * world_sector_side) is 8192, expected 10240",
+        ),
         ("empty_fold", counts, "ground-hash: above is cbf29ce484222325 for 5 cases"),
         ("full_fold", no_impacts, "ground-physical: impact is 3333333333333333 for 0 cases"),
         ("sample_bad_hex", counts, "ground-sample: x must be 8 lowercase hex digits, got '4000'"),
@@ -2410,12 +2424,30 @@ fn the_ground_driver_refuses_a_skipped_sample_case_before_any_class_is_full_and_
             "impact_concentrated_gap",
             "ground-sample: impact case 1 is not sampled, but no type has reached 4 samples (the gap is cases 1 to 1)",
         ),
-        // the quotas are the emitter's constants (2 and 4); a header naming another is refused, so a larger quota cannot excuse unsampled cases
+        // the quotas are the emitter's constants (2 and 4); a header cannot redefine which samples are required or permitted
         ("header_sample_cap_zero", "ground-probe: samples_per_point_tag is 0, expected 2"),
         ("header_point_quota_larger", "ground-probe: samples_per_point_tag is 3, expected 2"),
         ("header_impact_quota_larger", "ground-probe: samples_per_impact_type is 8, expected 4"),
     ] {
         assert_ground_defect(mode, counts, reason);
+    }
+}
+
+// REGRESSION: the fixture once required the campaign's sector grid to equal the terrain's and refused every retail map (the campaign's sectors are larger than the
+// terrain's). The two grids are reported apart; only the extents they cover must agree.
+#[test]
+fn the_ground_driver_accepts_a_campaign_grid_that_differs_from_the_terrain_grid_and_the_same_grid() {
+    for (mode, world, terrain) in [("ok", "3x2 of 4096", "6x4 of 2048"), ("map_grids_same", "6x4 of 2048", "6x4 of 2048")] {
+        let (status, stdout, stderr, _, rows) = run_ground_case(mode, &["points=5", "impacts=5", "repeats=1"]);
+        assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{mode}: {stdout}\n{stderr}");
+        let map = rows
+            .iter()
+            .find(|r| r["event"] == "ground-map")
+            .unwrap_or_else(|| panic!("{mode}: no ground-map row"));
+        let grid = |side: &str, x: &str, z: &str| format!("{}x{} of {}", map[x], map[z], map[side]);
+        assert_eq!(grid("world_sector_side", "world_sectors_x", "world_sectors_z"), world, "{mode}: {map}");
+        assert_eq!(grid("terrain_sector_side", "terrain_sectors_x", "terrain_sectors_z"), terrain, "{mode}: {map}");
+        assert!(rows.iter().any(|r| r["event"] == "state_digest"), "{mode}");
     }
 }
 

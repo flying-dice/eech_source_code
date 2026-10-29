@@ -54,7 +54,9 @@ local function build(seed, points, impacts)
   -- every point is above the ground and not below it, so the sampled answers (above=1, below=0) agree with the counters
   local rows = {
     { 'ground-probe', { { 'seed', seed }, { 'points', points }, { 'impacts', impacts }, { 'samples_per_point_tag', 2 }, { 'samples_per_impact_type', 4 } } },
-    { 'ground-map', { { 'sectors_x', 5 }, { 'sectors_z', 4 }, { 'sector_side', 2048 } } },
+    -- two grids over the same ground: the campaign's sectors are twice the terrain's (3 x 2 of 4096 m against 6 x 4 of 2048 m), as a campaign may be
+    { 'ground-map', { { 'world_sectors_x', 3 }, { 'world_sectors_z', 2 }, { 'world_sector_side', 4096 }, { 'terrain_sectors_x', 6 }, { 'terrain_sectors_z', 4 },
+      { 'terrain_sector_side', 2048 } } },
     { 'ground-record', { { 'anchored', 1 }, { 'restored', 1 }, { 'words_before', '0123456789abcdef' }, { 'words_after', '0123456789abcdef' } } },
     { 'ground-points', { { 'cases', points }, { 'in_map', points }, { 'off_map', 0 }, { 'input_mutated', 0 } } },
     { 'ground-above', { { 'cases', points }, { 'true', points }, { 'false', 0 }, { 'record_touched', points }, { 'true_record_untouched', 0 },
@@ -206,7 +208,16 @@ local modes = {
   unknown_row = function(r) r[#r + 1] = { 'ground-extra', { { 'n', 1 } } } end,
   unexpected_key = function(r) add_field(r, 'ground-asserts', 'bonus', 1) end,
   bare_word = function(r) add_word(r, 'ground-map', 'oops') end,
-  duplicate_key = function(r) add_field(r, 'ground-map', 'sectors_x', 5) end,
+  duplicate_key = function(r) add_field(r, 'ground-map', 'world_sectors_x', 3) end,
+  -- the grids: the same grid for both is accepted; the extents they cover must agree; every count is present and at least 1
+  map_grids_same = function(r)
+    set(r, 'ground-map', 'world_sectors_x', 6) set(r, 'ground-map', 'world_sectors_z', 4) set(r, 'ground-map', 'world_sector_side', 2048)
+  end,
+  map_extent_x_differs = function(r) set(r, 'ground-map', 'terrain_sectors_x', 7) end,
+  map_extent_z_differs = function(r) set(r, 'ground-map', 'terrain_sectors_z', 5) end,
+  map_terrain_key_missing = function(r) drop(r, 'ground-map', 'terrain_sectors_z') end,
+  map_zero_grid = function(r) set(r, 'ground-map', 'terrain_sector_side', 0) end,
+  map_old_schema = function(r) row(r, 'ground-map')[2] = { { 'sectors_x', 5 }, { 'sectors_z', 4 }, { 'sector_side', 2048 } } end,
   empty_fold = function(r) set(r, 'ground-hash', 'above', EMPTY) end,
   full_fold = function(r) set(r, 'ground-physical', 'impact', '3333333333333333') end,
   sample_bad_hex = function(r) set(r, 'ground-sample', 'x', '4000', 'point') end,

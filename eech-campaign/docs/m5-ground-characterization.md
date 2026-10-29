@@ -74,7 +74,7 @@ Terrain heights used to place points come from a private point-data record. Ever
    proven by writing two distinct words through it and reading them back through `get_3d_terrain_point_data_elevation (NULL)` and `..._type (NULL)`; otherwise the probe is refused.
 2. **Restoration**: the record is snapshotted before the first case and written back byte for byte after the last. Restoration is by construction; the independent evidence is that repeat 2's
    `words_before` (and so its whole report) equals repeat 1's, and the probe/control digest below. If the engine stops mid-probe (`debug_fatal`) the record is not restored; the engine is then failed anyway.
-3. **Point cases** (`ground-above`, `ground-below`, `ground-complement`): tags 0 and 1 interior points, 2 sector boundaries (`k * 2048`, one float below, one above), 3 and 4 map edges (`0`, `-0.0`, the
+3. **Point cases** (`ground-above`, `ground-below`, `ground-complement`): tags 0 and 1 interior points, 2 sector boundaries (`k * 2048` in the **physical terrain's** grid, one float below, one above), 3 and 4 map edges (`0`, `-0.0`, the
    next float above 0, `1`, the maximum, one float below it, `maximum - 1`, `2048`), 5 **outside the map area**. The height is one of sixteen offsets from the terrain elevation `e` and the sector maximum `M`:
    `e-500, e-1, e-0.001, nextbelow(e), e, nextabove(e), e+0.001, e+1, e+500, nextbelow(M), M, nextabove(M), M-1, M+1, MIN_MAP_Y, MAX_MAP_Y`.
    `point_above_ground` is asked **only** when `point_inside_map_area` holds (it stops the engine otherwise); `point_below_ground` is asked for every point, including outside the map area. Each is
@@ -121,7 +121,7 @@ A probe that does not hold these writes `ground-refused reason=...` and fails; n
 |---|---|
 | `fpu_not_round_toward_zero` | not inside an engine entry |
 | `no_terrain_loaded` | no terrain or no sectors |
-| `world_map_is_not_the_terrain_extents` | the macros read the world map and the terrain functions read the terrain's: they must agree on sector side, counts and the four extents (bit-exact) |
+| `world_map_is_not_the_terrain_extents` | the macros read the world map and the terrain functions read the terrain's: the four **extents** (minimum and maximum, x and z) must agree bit for bit, because only an extent mismatch lets the off-map fatal be reached. The sector grids need not agree (below) |
 | `empty_map` | |
 | `shared_record_not_reachable_through_accessors` | the anchor check failed |
 | `report_does_not_fit_the_capacity` | |
@@ -233,7 +233,7 @@ case numbers or out-of-domain tags and types passed. The driver now checks what 
   one inside has `above` 0 or 1; samples with `above` 1 or 0, `below` 1 or 0, `alias_equal` 1 or 0 and `warm_same` 1 or 0 are at most the matching counter (`true`, `false`, `alias_equal`, `alias_unequal`,
   `warm_same`, `warm_different`). Distinct case numbers make each sampled case a case that was counted once;
 - the header's quotas are the emitter's compile-time constants, `POINT_SAMPLES_PER_TAG` 2 and `IMPACT_SAMPLES_PER_TYPE` 4 in `eech_ground_fixture.c`, written into every report's header. The driver accepts
-  **only those values** (a header naming another is refused as `samples_per_point_tag is N, expected 2`), because every completeness check below assumes the quota and a larger one would excuse cases the emitter takes;
+  **only those values** (a header naming another is refused as `samples_per_point_tag is N, expected 2`), because every completeness check below assumes the quota; changing it would redefine which samples are required or permitted;
 - **no case may be skipped before a class is full** (see the next subsection).
 
 Tests (second review): 22 more single-defect reports through the real driver (61 in all at that revision, each compared with its exact message; the zero-quota case now lives in the forced-gap test below, so the table holds 60), and positive runs with the caps binding (40 cases each: 12 point and 32 impact samples), not binding (5 each:
@@ -289,3 +289,34 @@ verify. Its separate Windows guard executable compiled0 but has not run. A clean
 snapshot of this corrected source must be built before the original retail probe,
 repeat and probe/control gates. No original oracle exists yet; final independent
 source-delta review and all host-extraction/shipping delivery gates remain pending.
+
+## 8. Correction after the first original Windows attempt (fixture repair; no original behaviour changed)
+
+**What happened.** The first original Windows attempt (clean `9e607637f`; all three probes: Georgia, Lebanon, Lebanon repeat) booted and was refused before any case with
+`ground-refused reason=world_map_is_not_the_terrain_extents`. The raw `ground.jsonl` and `run.json` of each are preserved by Root outside Git. No oracle exists from them, no count or hash was produced, and none
+is rewritten here. All build entries and pre-inputs were verified clean, so this was neither a setup nor a missing-data failure: the fixture's own precondition was wrong.
+
+**Why.** Two different grids exist and the first form of the fixture conflated them:
+
+- the **campaign's** world map (`en_world.c: set_entity_world_map_size`, fed by `MAP_X_SIZE`, `MAP_Z_SIZE`, `MAP_SECTOR_SIZE` read in `parsgen.c`) has extents `sectors * side - 1`. The private Lebanon campaign file
+  declares 38 by 46 sectors of side 4096;
+- the **physical terrain** (`terrdata.c`) has extents `terrain_sectors * TERRAIN_3D_SECTOR_SIDE_LENGTH - 1`, and `TERRAIN_3D_SECTOR_SIDE_LENGTH` is 2048.
+
+Equal extents do not need equal grids (38 sectors of 4096 m and 76 of 2048 m are the same 155 648 m less one). The first precondition required `SECTOR_SIDE_LENGTH == 2048` and equal sector counts, so it refused a map whose
+extents agreed. It also took the **campaign's** sector counts to place the **physical** sector boundaries (`boundary_coord`, and impact type 7) by multiplying them by 2048, which on such a map would have placed the
+boundaries over only half the ground. This is a defect in the fixture's assumptions. The original functions, their numerics and their order are untouched; the original behaviour was never reached, so nothing about it was
+learned or changed.
+
+**Repair.**
+
+- The refusal now requires only what the off-map fatal depends on: the four world-map extents equal the four terrain extents **bit for bit**. That check is unchanged in strength and is not relaxed. The grid-equality terms are removed.
+- Physical sector boundaries (the point cases of tag 2 and the impact cases of type 7) are counted in the **terrain's** grid (`terrain_3d_sector_x_max`, `terrain_3d_sector_z_max`), the grid they belong to. The campaign's
+  grid is kept for the report only. The random draws, the case construction and the order are otherwise unchanged; on a map whose two grids agree the cases are identical to the first form.
+- `ground-map` reports both grids: `world_sectors_x world_sectors_z world_sector_side terrain_sectors_x terrain_sectors_z terrain_sector_side`. The driver requires all six, each at least 1, and requires that the extents
+  they imply agree (`world_sectors * world_sector_side == terrain_sectors * terrain_sector_side`, in x and z), so a report cannot claim a probe that the fixture would have refused. The old key names
+  (`sectors_x`, `sectors_z`, `sector_side`) are refused as a missing key.
+- Tests (driver truthfulness only): a stand-in whose two grids differ (3 by 2 of 4096 against 6 by 4 of 2048) is the new positive baseline, the same grid for both is accepted, and the old schema, a missing terrain key, a zero
+  side and an extent that differs in x or in z are each refused by exact message.
+
+**Pending, nothing run.** The C change, the driver and the tests have not been built or executed by this lane. Root's fresh retry of the original probes is the first evidence that the repaired precondition admits the
+retail maps; until it exists, no original behaviour is characterised.

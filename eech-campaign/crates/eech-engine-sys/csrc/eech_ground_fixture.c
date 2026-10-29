@@ -334,7 +334,10 @@ struct probe
 	terrain_3d_point_data *record;
 	terrain_3d_point_data sentinel;
 	float max_x, max_z;
+	/* the PHYSICAL terrain's sector grid (TERRAIN_3D_SECTOR_SIDE_LENGTH metres a side): the grid the sector boundaries and the sector maximum belong to */
 	int sectors_x, sectors_z;
+	/* the CAMPAIGN's grid (world_map): it only fixes the map extents, and need not be the terrain's grid; reported, never used to place a physical boundary */
+	int world_sectors_x, world_sectors_z, world_side;
 	uint32_t rng;
 };
 
@@ -850,14 +853,17 @@ int eech_ground_probe_run (uint32_t seed, int points, int impacts, char *text, i
 		refuse (text, capacity, "no_terrain_loaded");
 		return -1;
 	}
-	if (SECTOR_SIDE_LENGTH != TERRAIN_3D_SECTOR_SIDE_LENGTH || NUM_MAP_X_SECTORS != terrain_3d_sector_x_max || NUM_MAP_Z_SECTORS != terrain_3d_sector_z_max
-		|| float_bits (MIN_MAP_X) != float_bits (terrain_3d_min_map_x) || float_bits (MIN_MAP_Z) != float_bits (terrain_3d_min_map_z)
+	/* The macros read the world map (set from the campaign's own grid: x sectors * sector side - 1) and the terrain functions read the terrain's extents (terrain
+	   sectors * TERRAIN_3D_SECTOR_SIDE_LENGTH - 1). Equal extents do NOT need equal grids: a campaign grid of N sectors of 4096 m covers the same ground as a
+	   terrain grid of 2N sectors of 2048 m. Only the extents matter to the off-map fatal, so only they are required to agree (bit for bit); the two grids are
+	   different things and are reported separately. */
+	if (float_bits (MIN_MAP_X) != float_bits (terrain_3d_min_map_x) || float_bits (MIN_MAP_Z) != float_bits (terrain_3d_min_map_z)
 		|| float_bits (MAX_MAP_X) != float_bits (terrain_3d_max_map_x) || float_bits (MAX_MAP_Z) != float_bits (terrain_3d_max_map_z))
 	{
 		refuse (text, capacity, "world_map_is_not_the_terrain_extents");
 		return -1;
 	}
-	if (!(MAX_MAP_X > 0.0f) || !(MAX_MAP_Z > 0.0f) || NUM_MAP_X_SECTORS < 1 || NUM_MAP_Z_SECTORS < 1)
+	if (!(MAX_MAP_X > 0.0f) || !(MAX_MAP_Z > 0.0f) || NUM_MAP_X_SECTORS < 1 || NUM_MAP_Z_SECTORS < 1 || SECTOR_SIDE_LENGTH < 1)
 	{
 		refuse (text, capacity, "empty_map");
 		return -1;
@@ -869,8 +875,12 @@ int eech_ground_probe_run (uint32_t seed, int points, int impacts, char *text, i
 	p->record = shared_record ();
 	p->max_x = MAX_MAP_X;
 	p->max_z = MAX_MAP_Z;
-	p->sectors_x = NUM_MAP_X_SECTORS;
-	p->sectors_z = NUM_MAP_Z_SECTORS;
+	/* sector boundaries are PHYSICAL terrain boundaries, so they are counted in the terrain's grid, not the campaign's */
+	p->sectors_x = terrain_3d_sector_x_max;
+	p->sectors_z = terrain_3d_sector_z_max;
+	p->world_sectors_x = NUM_MAP_X_SECTORS;
+	p->world_sectors_z = NUM_MAP_Z_SECTORS;
+	p->world_side = SECTOR_SIDE_LENGTH;
 	p->rng = seed ? seed : 1u;
 	make_sentinel (&p->sentinel);
 
@@ -911,7 +921,8 @@ int eech_ground_probe_run (uint32_t seed, int points, int impacts, char *text, i
 
 	emit (&out, "ground-probe seed=%u points=%d impacts=%d samples_per_point_tag=%d samples_per_impact_type=%d\n", (unsigned) seed, points, impacts,
 		POINT_SAMPLES_PER_TAG, IMPACT_SAMPLES_PER_TYPE);
-	emit (&out, "ground-map sectors_x=%d sectors_z=%d sector_side=%d\n", p->sectors_x, p->sectors_z, (int) TERRAIN_3D_SECTOR_SIDE_LENGTH);
+	emit (&out, "ground-map world_sectors_x=%d world_sectors_z=%d world_sector_side=%d terrain_sectors_x=%d terrain_sectors_z=%d terrain_sector_side=%d\n", p->world_sectors_x,
+		p->world_sectors_z, p->world_side, p->sectors_x, p->sectors_z, (int) TERRAIN_3D_SECTOR_SIDE_LENGTH);
 	emit (&out, "ground-record anchored=1 restored=%d words_before=%016llx words_after=%016llx\n", restored, (unsigned long long) record_hash_before,
 		(unsigned long long) record_hash_after);
 	emit (&out, "ground-points cases=%d in_map=%d off_map=%d input_mutated=%d\n", t->points, t->above_cases, t->off_map_cases, t->input_mutated);
