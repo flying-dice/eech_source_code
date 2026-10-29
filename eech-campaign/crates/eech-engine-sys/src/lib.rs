@@ -1403,6 +1403,15 @@ extern "C" {
     ) -> c_int;
 }
 
+/// TEST-ONLY (feature model-fixture, EEDCS-50): read-only questions to the original model accessors; see csrc/eech_model_fixture.c.
+#[cfg(feature = "model-fixture")]
+extern "C" {
+    pub fn eech_engine_model_summary(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_catalogue(first: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_geometry(scene: c_int, first_depth: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_state(text: *mut c_char, capacity: c_int) -> c_int;
+}
+
 // The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by
 // target) cannot move any float or int before it; the C struct in rv_hostmv.h declares them last as well.
 const _: () = assert!(core::mem::offset_of!(eech_movement_step, hc_draws) > core::mem::offset_of!(eech_movement_step, gv_water));

@@ -1,3 +1,32 @@
+# Current D3 checkpoint — EEDCS-50 (29 October 2026): original collision-model probe PREPARED, UNBUILT, UNRUN
+
+Live authority: the M5 goal (Confluence 11534337) and the migration ledger (Confluence 14548994), read by the Root; Epic [EEDCS-21](https://flying-dice.atlassian.net/browse/EEDCS-21)
+(D3) In Progress; Task [EEDCS-50](https://flying-dice.atlassian.net/browse/EEDCS-50) "M5 D3: Host collision-model loading and geometry" In Progress. Branch `codex/d3-model-geometry`,
+base accepted integration `6bbaa8197a4843181d03cd355d562af998c75321`. The Task 49 object/tree-query files and features are NOT in this base. D4 and D5 have not started.
+This is preparation: it is not production, not the Task's Done, and not D3 acceptance. The six-process Task 47 ordinary shipping run (115) is still live elsewhere; this
+worktree makes no claim about it (its latest Tacview/OBS prefixes are exact prefixes only; no complete 40-check / eight-artifact acceptance exists).
+
+Scope of D3 (unchanged): the physical terrain, spatial, model and environment services and the native loaders and solvers they need leave EECH_DC. Campaign geography, routes, timers,
+scheduling, selection, decisions and consequences stay native in EECH_DC. EECH_WORLD may reuse the original C physics; no language rewrite, renderer, DCS clone or second campaign.
+Required DCS calls, or named bounded data workarounds, and the model loader / mapping definitions are D3, not deferred to D5 or M6 (only live DCS execution is M6).
+
+Evidence reused, not redone: Task 49 forest-geometry witness (original native `47a4af0d1`, stricter driver `b44d2c96f`; one combined review and one focused correction, closure
+`4a97eb54…` CLOSED, no open findings). Its six triangles came from the real original accessor on a controlled, scoped-down mesh: a decoder witness, **not** proof of a disk loader
+or of any retail model. Its raw reports and the source blobs are retained and untouched.
+
+This step (see [`eech-campaign/docs/m5-model-characterization.md`](eech-campaign/docs/m5-model-characterization.md)): a test-only, feature-gated (`model-fixture`) probe that asks the
+ORIGINAL compiled model accessors a finite catalogue and selected geometry queries through host Lua → public `eech_dc` → original C, plus a read-only safety verdict (the decoder reads
+one surface past the object on its last step, trusts every index and crashes on a NULL surface list, so it is called only where the loaded tables show the memory backed) and a
+before/after table-state digest. It implements no loader, parser or geometry algorithm and removes no production dispatch. Changed: `eech_model_fixture.c` (new), `eech_engine.{c,h}`
+(gated tail / declarations; the existing bytes and the file's single NUL are an unchanged prefix), the `eech-engine-sys`, `eech-engine` and `eech-dc` feature chains and Lua methods,
+`lua/model-characterization.lua`, `tools/build-windows-model-fixture.sh`, `tools/model-characterization-windows.ps1`, and this record. Nothing was compiled, linted, run or
+measured in this lane (no toolchain was invoked); the C and Rust are unreviewed by a compiler.
+
+Next unmet measurements (Root): clean fixture build with BUILD-INFO / payload / flag checks; the catalogue on fresh verified Georgia and Lebanon roots (retail database required;
+a synthetic one is refused); selection of real campaign-used vehicle and building models from the catalogue; full original triangle runs for them, repeated; then the host-owned
+read-only model data and loader, reusing the same scenarios. Remaining D3 gates: model hierarchy, viewpoint, device, muzzle and target-point services, and all terrain / spatial /
+environment / host-time services; the whole-engine DLL coupling is still present. The older checkpoints below describe D2 and are unchanged.
+
 # D2 combat and perception — implementation delivery record
 
 29 October 2026. The physical D2 increment is delivered on integration through

@@ -341,6 +341,24 @@ int eech_engine_aim_person_case (const char *person_id, const char *target_id, c
 int eech_engine_aim_lead_probe (const char *source_id, const char *target_id, int weapon, float sentinel, char *text, int capacity, const struct eech_engine_host *host);
 #endif
 
+#ifdef EECH_MODEL_FIXTURE
+/*
+ * TEST-ONLY (feature model-fixture, EEDCS-50): see eech_model_fixture.c. Not part of the shipping module.
+ * Read-only questions to the ORIGINAL model accessors. The reports are `key=value` text lines; floats are 0x%08x bit patterns; no address
+ * appears. Each fails (bad argument) on an out-of-range argument or when the report does not fit `capacity`. None needs a host.
+ */
+/* The table sizes the other entries are bounded by. */
+int eech_engine_model_summary (char *text, int capacity);
+/* One page of the scene catalogue: scenes first .. first+count-1 (count <= the summary's page_scenes), each with the original scene accessors' answers,
+   the collision-object metadata, the safety verdict of the original decoder and the number of loaded entities that use the scene. */
+int eech_engine_model_catalogue (int first, int count, char *text, int capacity);
+/* One page of the original collision-triangle accessor for one scene: depths first_depth .. first_depth+count-1 (count <= the summary's page_triangles),
+   one original call per depth, ascending, stopping at the first false. A scene the safety verdict refuses is reported refused and the original is not called. */
+int eech_engine_model_geometry (int scene, int first_depth, int count, char *text, int capacity);
+/* Hashes of every table these entries read (the scene table, the object table, the surface block, the addresses, the arrays the decoder reads). */
+int eech_engine_model_state (char *text, int capacity);
+#endif
+
 #ifdef EECH_WEAPON_FIXTURE
 /*
  * TEST-ONLY (feature weapon-fixture, EEDCS-45): see eech_wpn_fixture.c. Not part of the shipping module.

@@ -960,6 +960,16 @@ const SENSOR_REPORT_CAPACITY: usize = 96 * 1024;
 #[cfg(feature = "aim-fixture")]
 const AIM_REPORT_CAPACITY: usize = 96 * 1024;
 
+/// TEST-ONLY (feature `model-fixture`): room for one model report; a report that does not fit is refused, never cut short.
+#[cfg(feature = "model-fixture")]
+const MODEL_REPORT_CAPACITY: usize = 192 * 1024;
+
+/// TEST-ONLY (feature `model-fixture`): the most scenes one catalogue page and the most depths one geometry page may ask for. The same numbers bound the C side.
+#[cfg(feature = "model-fixture")]
+pub const MODEL_PAGE_SCENES: i32 = 96;
+#[cfg(feature = "model-fixture")]
+pub const MODEL_PAGE_TRIANGLES: i32 = 256;
+
 /// TEST-ONLY (feature `weapon-fixture`): room for one weapon-execution report or one chunk of the event log; a report that does not fit is refused, never cut short.
 #[cfg(feature = "weapon-fixture")]
 const WPN_REPORT_CAPACITY: usize = 160 * 1024;
@@ -4660,6 +4670,56 @@ impl Engine {
     pub fn aim_trace_reset(&self) -> Result<(), EngineError> {
         // SAFETY: no pointers cross.
         check(unsafe { sys::eech_engine_aim_trace_reset() })
+    }
+
+    /// TEST-ONLY (feature `model-fixture`, EEDCS-50): runs one read-only model question and returns its `key=value` text. The report is NUL-terminated by the engine within
+    /// the buffer; a refused argument or a report that does not fit is a bad-argument error.
+    #[cfg(feature = "model-fixture")]
+    fn model_report(call: impl FnOnce(*mut std::os::raw::c_char, i32) -> i32) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; MODEL_REPORT_CAPACITY];
+        check(call(text.as_mut_ptr(), text.len() as i32))?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `model-fixture`, EEDCS-50): the table sizes and page bounds of the model questions.
+    #[cfg(feature = "model-fixture")]
+    pub fn model_summary(&self) -> Result<String, EngineError> {
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_summary(text, capacity) })
+    }
+
+    /// TEST-ONLY (feature `model-fixture`, EEDCS-50): one page of the scene catalogue, scenes `first ..= first + count - 1`. `first` and `count` are checked here before
+    /// the engine is entered.
+    #[cfg(feature = "model-fixture")]
+    pub fn model_catalogue(&self, first: i32, count: i32) -> Result<String, EngineError> {
+        if first < 1 || !(1..=MODEL_PAGE_SCENES).contains(&count) {
+            return Err(EngineError::BadArgument(format!(
+                "model catalogue page: first {first} must be at least 1 and count {count} within 1..={MODEL_PAGE_SCENES}"
+            )));
+        }
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_catalogue(first, count, text, capacity) })
+    }
+
+    /// TEST-ONLY (feature `model-fixture`, EEDCS-50): one page of the original collision-triangle accessor for one scene, depths `first_depth ..= first_depth + count - 1`.
+    /// The arguments are checked here before the engine is entered, and again by the engine; the engine refuses a scene whose loaded data it cannot show to be backed.
+    #[cfg(feature = "model-fixture")]
+    pub fn model_geometry(&self, scene: i32, first_depth: i32, count: i32) -> Result<String, EngineError> {
+        if scene < 1 || first_depth < 0 || !(1..=MODEL_PAGE_TRIANGLES).contains(&count) || first_depth > i32::MAX - MODEL_PAGE_TRIANGLES {
+            return Err(EngineError::BadArgument(format!(
+                "model geometry page: scene {scene} must be at least 1, first_depth {first_depth} non-negative and count {count} within 1..={MODEL_PAGE_TRIANGLES}"
+            )));
+        }
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_geometry(scene, first_depth, count, text, capacity) })
+    }
+
+    /// TEST-ONLY (feature `model-fixture`, EEDCS-50): hashes of every table the model questions read.
+    #[cfg(feature = "model-fixture")]
+    pub fn model_state(&self) -> Result<String, EngineError> {
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_state(text, capacity) })
     }
 
     /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the run-wide report of the physical combat-resolution code (damage capability, collisions, blasts, repair writes) since

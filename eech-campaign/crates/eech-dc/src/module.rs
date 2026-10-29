@@ -1840,6 +1840,25 @@ impl LuaUserData for LuaEngine {
         // TEST-ONLY (feature `aim-fixture`, EEDCS-44): clears that trace; not part of the shipping module.
         #[cfg(feature = "aim-fixture")]
         methods.add_method("aim_trace_reset", |_, this, ()| this.engine.aim_trace_reset().map_err(lua_error));
+        // TEST-ONLY (feature `model-fixture`, EEDCS-50): read-only questions to the original collision-model accessors; not part of the shipping module. The arguments are
+        // whole numbers within the page bounds, checked before the engine is entered.
+        #[cfg(feature = "model-fixture")]
+        methods.add_method("model_summary", |_, this, ()| this.engine.model_summary().map_err(lua_error));
+        #[cfg(feature = "model-fixture")]
+        methods.add_method("model_catalogue", |_, this, (first, count): (LuaValue, LuaValue)| {
+            let first = model_int(&first, "first", 1, i32::MAX - 1)?;
+            let count = model_int(&count, "count", 1, eech_engine::MODEL_PAGE_SCENES)?;
+            this.engine.model_catalogue(first, count).map_err(lua_error)
+        });
+        #[cfg(feature = "model-fixture")]
+        methods.add_method("model_geometry", |_, this, (scene, first_depth, count): (LuaValue, LuaValue, LuaValue)| {
+            let scene = model_int(&scene, "scene", 1, i32::MAX - 1)?;
+            let first_depth = model_int(&first_depth, "first_depth", 0, i32::MAX - eech_engine::MODEL_PAGE_TRIANGLES)?;
+            let count = model_int(&count, "count", 1, eech_engine::MODEL_PAGE_TRIANGLES)?;
+            this.engine.model_geometry(scene, first_depth, count).map_err(lua_error)
+        });
+        #[cfg(feature = "model-fixture")]
+        methods.add_method("model_state", |_, this, ()| this.engine.model_state().map_err(lua_error));
         // TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the run-wide report of the physical combat-resolution code; not part of the shipping module.
         #[cfg(feature = "weapon-fixture")]
         methods.add_method("cmb_trace", |_, this, ()| this.engine.cmb_trace().map_err(lua_error));
@@ -2196,6 +2215,28 @@ impl LuaUserData for LuaEngine {
         });
         methods.add_method("diagnostics", |_, this, ()| this.engine.diagnostics().map_err(lua_error));
     }
+}
+
+/// TEST-ONLY (feature `model-fixture`, EEDCS-50): a Lua number that must be a whole number within `min..=max`. A missing, non-numeric, non-finite, fractional or
+/// out-of-range value is refused here, before the engine is entered.
+#[cfg(feature = "model-fixture")]
+fn model_int(value: &LuaValue, name: &str, min: i32, max: i32) -> LuaResult<i32> {
+    let number = match value {
+        LuaValue::Integer(i) => *i as f64,
+        LuaValue::Number(n) => *n,
+        other => {
+            return Err(LuaError::runtime(format!(
+                "eech: bad argument: {name} must be a number, got {}",
+                other.type_name()
+            )))
+        }
+    };
+    if !number.is_finite() || number.fract() != 0.0 || number < f64::from(min) || number > f64::from(max) {
+        return Err(LuaError::runtime(format!(
+            "eech: bad argument: {name} must be a whole number within {min}..={max}"
+        )));
+    }
+    Ok(number as i32)
 }
 
 fn gunship(name: &str) -> LuaResult<Gunship> {

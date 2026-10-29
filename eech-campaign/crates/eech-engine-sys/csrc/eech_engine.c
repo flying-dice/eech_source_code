@@ -1539,3 +1539,74 @@ int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id,
 }
 
 #endif
+
+#ifdef EECH_MODEL_FIXTURE
+
+/*
+ * TEST-ONLY original collision-model characterisation (EEDCS-50): read-only questions to the original model accessors about the models the
+ * retail data loaded (eech_model_fixture.c). They run inside the engine entry, so they see EECH's round-toward-zero mode as the game's own
+ * calls do. None of them constructs an entity, replaces a table or draws a random number. The reports are text, `key=value` lines; nothing in
+ * them is an address, and floats are bit patterns. A report that does not fit `capacity` is refused, never cut short.
+ */
+extern int eech_model_summary_run (char *text, int capacity);
+extern int eech_model_catalogue_run (int first, int count, char *text, int capacity);
+extern int eech_model_geometry_run (int scene, int first_depth, int count, char *text, int capacity);
+extern int eech_model_state_run (char *text, int capacity);
+
+int eech_engine_model_summary (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_summary_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_catalogue (int first, int count, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_catalogue_run (first, count, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_geometry (int scene, int first_depth, int count, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_geometry_run (scene, first_depth, count, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_state (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_state_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
