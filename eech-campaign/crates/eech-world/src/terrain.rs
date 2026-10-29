@@ -509,14 +509,63 @@ pub fn decode_hint(text: &str) -> Result<Hint, String> {
     })
 }
 
+/// Reads a request number with the exact bits Lua holds. mlua 0.10 on Lua 5.1 turns any number within `f64::EPSILON` of an integer into `LuaValue::Integer`
+/// when it is read as a `LuaValue` (main.rs `exact_numbers`), so a `-0.0` or a subnormal such as 1.4e-45 arrived as 0: the sign of a zero and every tiny magnitude were
+/// erased before the terrain was asked. (The kernel's `coordinate - 1024` is computed under the engine's round-toward-zero mode, which does not absorb a tiny offset the way
+/// round-to-nearest would, so the erased bits can reach an answer.)
+/// A typed `f64` read of a real Lua number (`lua_tonumberx`) keeps every bit, but it also accepts a numeric string; so the field is looked up ONCE, in a small Lua
+/// function (the same lookup a `request.get` makes, metamethods included), which records its type and, only for a real `number`, the unchanged value in a scratch table the
+/// Rust side then reads. A string, nil, boolean or table is refused as before.
+const COORDINATE_READER_KEY: &str = "eech_world_terrain_coordinate_reader";
+
+const COORDINATE_READER: &str = r#"
+local slot = {}
+return {
+	slot = slot,
+	read = function (request, field)
+		local value = request [field]
+		local kind = type (value)
+		slot.kind = kind
+		slot.is_number = kind == "number"
+		if kind == "number" then slot.value = value else slot.value = nil end
+	end,
+}
+"#;
+
+/// The coordinate reader of a Lua state: made once, kept in the registry.
+struct CoordinateReader {
+    read: LuaFunction,
+    slot: LuaTable,
+}
+
+fn coordinate_reader(lua: &Lua) -> LuaResult<CoordinateReader> {
+    let reader = match lua.named_registry_value::<LuaValue>(COORDINATE_READER_KEY)? {
+        LuaValue::Table(reader) => reader,
+        _ => {
+            let reader: LuaTable = lua
+                .load(COORDINATE_READER)
+                .set_name("eech terrain coordinate reader")
+                .into_function()?
+                .call(())?;
+            lua.set_named_registry_value(COORDINATE_READER_KEY, reader.clone())?;
+            reader
+        }
+    };
+    Ok(CoordinateReader {
+        read: reader.get("read")?,
+        slot: reader.get("slot")?,
+    })
+}
+
 /// A request number that is exactly a single-precision value (the campaign's own), or not a finite number at all (the original answers a NaN
 /// position with the map corner); any other double would be silently rounded and is refused.
-fn coordinate(request: &LuaTable, field: &str) -> LuaResult<f32> {
-    let value = match request.get::<LuaValue>(field)? {
-        LuaValue::Number(value) => value,
-        LuaValue::Integer(value) => value as f64,
-        other => return Err(LuaError::runtime(format!("host.terrain: {field} must be a number, got {}", other.type_name()))),
-    };
+fn coordinate(reader: &CoordinateReader, request: &LuaTable, field: &str) -> LuaResult<f32> {
+    reader.read.call::<()>((request, field))?;
+    if !reader.slot.get::<bool>("is_number")? {
+        let kind: String = reader.slot.get("kind")?;
+        return Err(LuaError::runtime(format!("host.terrain: {field} must be a number, got {kind}")));
+    }
+    let value: f64 = reader.slot.get("value")?;
     let single = value as f32;
     if value.is_finite() && f64::from(single) != value {
         return Err(LuaError::runtime(format!(
@@ -602,7 +651,8 @@ fn respond(lua: &Lua, terrain: &Terrain, request: &LuaTable) -> LuaResult<LuaTab
         match op.as_str() {
             "map" => facts_table(lua, terrain.facts()),
             "point" => {
-                let (x, z) = (coordinate(request, "x")?, coordinate(request, "z")?);
+                let reader = coordinate_reader(lua)?;
+                let (x, z) = (coordinate(&reader, request, "x")?, coordinate(&reader, request, "z")?);
                 let hint = match request.get::<LuaValue>("hint")? {
                     LuaValue::Nil => None,
                     LuaValue::String(text) => Some(decode_hint(&text.to_str()?).map_err(LuaError::runtime)?),
@@ -639,7 +689,8 @@ fn respond(lua: &Lua, terrain: &Terrain, request: &LuaTable) -> LuaResult<LuaTab
                 Ok(table)
             }
             "fast" => {
-                let (x, z) = (coordinate(request, "x")?, coordinate(request, "z")?);
+                let reader = coordinate_reader(lua)?;
+                let (x, z) = (coordinate(&reader, request, "x")?, coordinate(&reader, request, "z")?);
                 let elevation = terrain.fast_elevation(x, z).map_err(|e| LuaError::runtime(format!("host.terrain: {e}")))?;
                 let table = lua.create_table()?;
                 table.set("elevation", f64::from(elevation))?;
@@ -793,5 +844,113 @@ mod tests {
         assert_eq!(map_number_of(Path::new("root/common/maps/map16/terrain")).unwrap(), 16);
         assert!(map_number_of(Path::new("root/common/maps/lebanon/terrain")).is_err());
         assert!(map_number_of(Path::new("terrain")).is_err());
+    }
+
+    // EEDCS-48 / EEDCS-47 regression: the original reader failed the actual library test for both fields of negative zero,
+    // the smallest positive/negative subnormal and the smallest normal (one executed test, exit 101).
+    //
+    // The campaign's bridge hands the provider a Lua table `{ op, x, z, hint, winter }` whose x and z are Lua numbers made from the query's single-precision floats, and
+    // `coordinate` reads them back with `request.get::<LuaValue>`. main.rs documents (exact_numbers) that mlua 0.10 on Lua 5.1 reports ANY number within f64::EPSILON of an integer
+    // as `LuaValue::Integer`, so -0.0 and values such as 1.4e-45 arrive as Integer(0) and `coordinate` returns +0.0: the sign of a zero and every sub-epsilon magnitude are erased
+    // before the terrain is asked. The original ground fixture's point generator deliberately asks for -0.0 and the next float above 0.0 (map-edge coordinates).
+    //
+    // This builds the request exactly as the bridge does (a Lua function making the table from Rust f64 arguments) and asserts the exact f32 bits `coordinate` returns, for the
+    // edge values and for ordinary ones. The engine's directed rounding can preserve the effect of tiny coordinate differences;
+    // case-level traces and original/candidate native probes establish the physical consequence separately from this input contract.
+    #[test]
+    fn a_request_coordinate_keeps_its_exact_single_precision_bits_including_signed_zero_and_tiny_values() {
+        let lua = Lua::new();
+        let reader = coordinate_reader(&lua).expect("the coordinate reader");
+        let bridge: LuaFunction = lua
+            .load("return function (op, x, z) return { op = op, x = x, z = z } end")
+            .eval()
+            .expect("the request builder");
+        let cases: [(&str, f32); 12] = [
+            ("negative zero", -0.0),
+            ("positive zero", 0.0),
+            ("smallest positive", f32::from_bits(1)),
+            ("smallest negative", -f32::from_bits(1)),
+            ("smallest normal", f32::MIN_POSITIVE),
+            ("one", 1.0),
+            ("a sector boundary", 2048.0),
+            ("one float below a sector boundary", 2048.0_f32.next_down()),
+            ("an ordinary fraction", 1234.5678),
+            ("a large integer-valued coordinate", 155_647.0),
+            ("one float below it", 155_647.0_f32.next_down()),
+            ("an ordinary negative", -17.25),
+        ];
+        // every case is checked before the test fails, so one run classifies all of them
+        let mut wrong = Vec::new();
+        for (label, value) in cases {
+            let request: LuaTable = bridge.call(("point", f64::from(value), f64::from(value))).expect("a request");
+            for field in ["x", "z"] {
+                match coordinate(&reader, &request, field) {
+                    Ok(read) if read.to_bits() == value.to_bits() => {}
+                    Ok(read) => wrong.push(format!(
+                        "{label} ({field}): the provider read {:#010x}, the campaign sent {:#010x}",
+                        read.to_bits(),
+                        value.to_bits()
+                    )),
+                    Err(e) => wrong.push(format!("{label} ({field}): refused: {e}")),
+                }
+            }
+        }
+        assert!(wrong.is_empty(), "coordinates that did not arrive with their exact bits:\n{}", wrong.join("\n"));
+    }
+
+    // The numeric boundary of `coordinate` (EEDCS-48 / EEDCS-47): a typed f64 read keeps every bit of a real Lua number but would also take a numeric string, so the contract is
+    // checked at the same boundary, on real Lua values: only a Lua number is a coordinate; a number that is not exactly a single is refused, not rounded; NaN and the infinities are
+    // passed on (the solver answers them), not refused.
+    #[test]
+    fn a_request_coordinate_is_numeric_only_exact_single_precision_and_passes_nan_and_infinities_on() {
+        let lua = Lua::new();
+        let reader = coordinate_reader(&lua).expect("the coordinate reader");
+        let request: LuaTable = lua
+            .load(
+                "return { s = '1.5', b = true, t = {}, f = function () end, n = 0.1, big = 1e39, tiny = 1e-50, nan = 0/0, pinf = 1/0, ninf = -1/0, one = 1.5 }",
+            )
+            .eval()
+            .expect("a request");
+        // not a number: refused with the type named; a numeric string is not a number
+        for (field, kind) in [("s", "string"), ("b", "boolean"), ("t", "table"), ("f", "function"), ("absent", "nil")] {
+            let error = coordinate(&reader, &request, field).expect_err(field).to_string();
+            assert!(
+                error.contains(&format!("host.terrain: {field} must be a number, got {kind}")),
+                "{field}: {error}"
+            );
+        }
+        // a finite double that is not exactly a single: refused, never rounded (0.1, beyond the single range, below the smallest subnormal single)
+        for field in ["n", "big", "tiny"] {
+            let error = coordinate(&reader, &request, field).expect_err(field).to_string();
+            assert!(
+                error.contains(&format!("host.terrain: {field} ")) && error.contains("is not an exact single-precision value"),
+                "{field}: {error}"
+            );
+        }
+        // NaN and the infinities are forwarded as they are
+        assert!(coordinate(&reader, &request, "nan").expect("nan").is_nan());
+        assert_eq!(coordinate(&reader, &request, "pinf").expect("+inf").to_bits(), f32::INFINITY.to_bits());
+        assert_eq!(coordinate(&reader, &request, "ninf").expect("-inf").to_bits(), f32::NEG_INFINITY.to_bits());
+        assert_eq!(coordinate(&reader, &request, "one").expect("1.5").to_bits(), 1.5_f32.to_bits());
+    }
+
+    // The field is read ONCE (a getter may be stateful, and a type check followed by a second read would see another value): this request answers 1.5 the first time it is asked
+    // and a string afterwards, and counts its reads.
+    #[test]
+    fn a_request_coordinate_reads_its_field_exactly_once() {
+        let lua = Lua::new();
+        let reader = coordinate_reader(&lua).expect("the coordinate reader");
+        let (request, reads): (LuaTable, LuaFunction) = lua
+            .load(
+                "local reads = 0
+                 local request = setmetatable ({}, { __index = function (_, key) reads = reads + 1 if reads == 1 then return 1.5 end return 'later' end })
+                 return request, function () return reads end",
+            )
+            .into_function()
+            .expect("the witness")
+            .call(())
+            .expect("the witness request");
+        assert_eq!(coordinate(&reader, &request, "x").expect("the first read").to_bits(), 1.5_f32.to_bits());
+        assert_eq!(reads.call::<i32>(()).expect("the count"), 1, "the field was read more than once");
     }
 }
