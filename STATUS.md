@@ -1,3 +1,64 @@
+# Host tree kernel — first native checks FAILED (real RED); rounding-environment correction PREPARED, UNBUILT, UNRUN (EEDCS-49, D3 preparation)
+
+## What the first native checks of source 0db20ab3a46582110bd7c4706c26edaaa9335478 actually showed (retained; terminal; NOT passed)
+
+* Windows build 0, all 8 exported manifest entries verified; frozen binary `…/eech-campaign/target/tree-host/0db20ab3a`; controller `tree-host-first-windows-0db20ab3a-20261029-completion.json`.
+* Linux: 14/14 tree library unit tests pass; the real-host Lua transport test FAILED at its assertion `both outside: no lookups at all` (Linux invocation exit 101; Clippy not reached). Windows: 14/14 tree
+  library units pass; the same Lua transport test FAILED. Raw log `tree-host-first-linux-0db20ab3a-20261029.log`.
+* Windows replay of ALL 554 Georgia / 600 Lebanon / 600 repeat captured queries with their 1102 / 1120 / 1120 recorded terrain replies, through BOTH the library path (exit 101) and the host Lua path
+  (exit 1) on each scenario: the loader, census and native samples agreed, but OUTPUT BITS DIFFERED. The retained diagnostic list is bounded (its 41 entries are not the number of failing queries).
+  First actual tq 0 Georgia point `45e0dec9,41ed10b2,48584704` against the original `45e0dec9,41ed10b2,48584703`; other retained examples differ by one bit in x, y or z. Raw per-case logs and
+  controller JSON under `R:/d3-evidence/tree-host-first-0db20ab3a-native-20261029`; all 3 pre/post manifests 0, all 8 payloads and every original transcript hash unchanged. The raw expected data is
+  unchanged and is the oracle.
+
+## Diagnosis (two separate defects; neither is a change to the original's physics)
+
+1. MISSING ENVIRONMENT BOUNDARY (the numerical failure). The original runs under round-toward-zero: `eech_engine.c` ENTER saves the caller's `fenv` and sets `FE_TOWARDZERO`, LEAVE and the fatal path restore
+   it, the collision fixture refuses captures unless `fegetround() == FE_TOWARDZERO`, and the original `get_terrain_3d_sector` sets it again. The first source read and required only the exception masks
+   (63/63) and explicitly left rounding alone, so it executed under the caller's ordinary round-to-nearest, which is not equivalent. Masks of 63/63 do not establish rounding.
+2. WRONG SYNTHETIC EXPECTATION in `tests/tree_collision_host.rs` (a test defect, not a kernel defect). The case `{-1,10,1024} -> {5000,10,1024}` was expected to miss because "both outside: no lookups". The
+   segment runs along z = 1024 at y = 10 and actually CROSSES the tree at the middle of sector (0,0). An end point outside the map only avoids the terrain lookup for that end (its radial altitude is
+   taken as 0 / the old one's); it never makes the collision FALSE, and a `done` answer with no `need_terrain` first simply means no lookup was needed. The test now asserts the real contract: that
+   segment gives `done` immediately with a HIT at the hand-derived point (1024, 10, 1024), normal +x; and a both-outside segment that crosses no tree (z = 3000) gives `done`, a miss, and the caller's own
+   point and normal. The original behaviour was not changed to suit the old expectation. The assertions after that point in the script had not been reached by the failed run; they were re-read against the
+   source and the kernel text (ordering, refusals, exact tiny / negative-zero reads) and no further defect was found by reading, which is not a run.
+
+## The correction (source only; math, loader, query and scan order, partial writes, tie rules, triangles and recorded data untouched)
+
+`csrc/tree_step.c`: the former `eech_tree_begin` / `eech_tree_terrain` bodies are now private `noinline` functions, and each public entry wraps them (the pattern of the host-private terrain_ref.c of G1, not imported):
+1. read the x87 and SSE exception masks and REQUIRE 63 and 63 BEFORE any arithmetic; on failure return `TREE_MASKS`, compute nothing, change nothing, and the query is closed. The kernel never masks exceptions.
+2. `fegetenv` the caller's environment; `fesetround(FE_TOWARDZERO)`; either failing is `TREE_ENVIRONMENT` (the caller's environment is put back if it was touched).
+3. run the original's arithmetic (begin: the in-map tests, radial altitudes, scan; terrain: the radial altitude and scan).
+4. `fesetenv` the caller's environment on EVERY exit: lookup request, final answer, scene fault, masks refusal path (nothing set), environment failure. If the restore itself fails the answer is withheld,
+   the query is closed and the call returns `TREE_ENVIRONMENT`. An out-of-sequence `terrain` returns before touching the environment.
+No guard state exists between calls, so none is held across the Lua/campaign callbacks that supply elevations. The bodies are not inlined into the entries so no arithmetic is scheduled outside the guard. The file is
+deliberately NOT built with `-frounding-math`: the original's compile-time constant folds (e.g. `19/127.0f`, `PI2 - 0.01`) happened at the default rounding; the host must fold the same constants the same way.
+Whether this reproduces the original is established only by Root's replay of the captured queries, not by reasoning.
+`src/trees.rs`: the Rust-side mask check is removed (the C entry is authoritative); codes -3 / -4 map to clear errors; new public environment helpers `rounding()`, `Rounding`, `exception_flags()`,
+`clear_exception_flags()` and the RAII `ScopedRounding` (saves and restores the whole caller environment) exist only to enter the kernel from a caller in another mode in tests and reports.
+
+## New boundary checks (all source only)
+
+* Library unit test `the_answer_does_not_depend_on_the_callers_rounding_and_the_callers_environment_is_restored`: five hand-derived-class cases (plane hit with division and normalisation, top-quad hit, a miss,
+  a both-outside segment that still hits with no lookup, a geometry-branch triangle hit) entered from a caller in Nearest, Up, Down and Zero; answers and lookup requests compared as bits across all four,
+  the caller's rounding checked after EVERY call into the kernel (including after a lookup request), and masks, rounding and raised exception flags compared before and after.
+* `tests/tree_conformance.rs` (the real queries): the unchanged full replay, then the same replay against the same recorded bits from callers in Up, Down and Zero, with the environment compared before and after
+  each; no assertion relaxed and no oracle touched.
+* The real-host Lua path starts in the host process's own caller rounding (it cannot change it) and is the compatibility path for that mode only; other modes are covered by the library path above. Preserved: the
+  tiny / negative-zero transport checks and the real malformed, refusal and out-of-sequence guards.
+* NOT covered: entry with exceptions UNMASKED (the masks refusal is a source guard only; no test enables exceptions) and an actual `fesetround` / `fesetenv` failure (not inducible safely). Neither is claimed.
+
+## Root's next step (expected, NOT RUN)
+
+Freeze a NEW source; build Linux and Windows; run `cargo test -p eech-world --lib trees`, `--test tree_collision_host`, and for EACH of Georgia / Lebanon / Lebanon-repeat both the library replay
+(`--test tree_conformance`, with `EECH_TREE_REQUIRED=1`, which now also repeats under Up / Down / Zero) and `lua/tree-collision-replay.lua`; then format, Clippy, and the ONE independent review of this component.
+Any remaining difference is investigated from the raw logs; nothing is normalised. Production dispatch is unchanged; geometry (model loader and native geometry witness), entity collision, G1 integration, production
+authority and shipping stay open. Task47 shipping115 is untouched.
+
+---
+
+# SUPERSEDED (kept for the record): first source 0db20ab3a — PREPARED, UNBUILT, UNRUN
+
 # Host tree loader and tree segment kernel — source PREPARED, UNBUILT, UNRUN (EEDCS-49, D3 preparation; not Task49/D3 completion)
 
 This completes the preserved partial work (checkpoint f0bd165c9) into the first host-owned physical component, as source only. Nothing was compiled, formatted, tested or run by the
@@ -55,12 +116,11 @@ the decoded triangles. Retail Georgia and Lebanon record geometry 0 / 0 triangle
 original's text carried over, unrun against any native witness, and its hand-derived unit test is a worked example, not a conformance claim. REMAINING for D3: the model geometry LOADER (decoding the
 forest-tree collision object's faces to triangles, 3dobjdb.c) and a controlled native geometry witness before complete query delivery.
 
-## Floating point
+## Floating point (SUPERSEDED by the section at the top of this file)
 
-The kernel is compiled with the existing host flags and `eech_arith.h`, so float/double promotion is the original's (`sqrt` narrowed to float, `TREE_RADIUS`, `0.5`, `25.0` double; the tree position
-and height scaling as written). `begin` and `terrain` READ the x87 exception masks and MXCSR masks (and report the SSE rounding control) and refuse unless both are 63; they never set or change
-anything, so there is nothing to restore. Division by `dx`/`dz` is unguarded and IEEE results are kept. The rounding mode is reported, not judged; the original's `set_fpu_rounding_mode_zero` in
-`get_terrain_3d_sector` is not reproduced (the host converts with a C truncation, as the patched 64-bit engine does).
+The first source only READ the exception masks and ran under the caller's rounding; that was the defect the first native replay exposed. The current source reads and requires the masks (63 / 63), saves the
+caller's environment, runs the original's arithmetic under FE_TOWARDZERO and restores the caller's environment on every exit. Division by `dx`/`dz` is unguarded and IEEE results are kept; the host converts
+a position to a sector with a C truncation, as the patched 64-bit engine does.
 
 ## Declared limits and numerical unknowns
 

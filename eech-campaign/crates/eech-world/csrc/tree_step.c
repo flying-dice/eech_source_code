@@ -24,8 +24,19 @@
  *   - the geometry branch: a tree of type 1 is tested against the forest tree's collision triangles when the original has any, and the first
  *     triangle hit returns TRUE at once, without the nearest choice.
  *
- * What is not here: the debug drawing, the ASSERTs, and the original's side effect of setting the x87 rounding mode to zero in
- * get_terrain_3d_sector (the conversion to a sector number is a C truncation, as in the 64-bit patched engine). The decoding of the model's
+ * The floating-point environment (a missing boundary found by the first native replay, which differed from the original by one bit in places):
+ * the original runs under round-toward-zero. The engine entry saves the caller's environment and sets FE_TOWARDZERO for everything it runs, and
+ * the original's get_terrain_3d_sector sets it again. Every public entry here (eech_tree_begin, eech_tree_terrain) therefore (1) reads and
+ * REQUIRES the x87 and SSE exception masks to be 63 and 63 before any arithmetic (never masking exceptions itself), (2) saves the caller's
+ * environment with fegetenv, (3) sets FE_TOWARDZERO, (4) runs the original's arithmetic, and (5) restores the caller's environment with fesetenv
+ * on EVERY exit: a lookup request, a final answer, a fault, a refusal. Nothing of the guard is held between calls, so no guard state is held
+ * across the Lua/campaign callbacks that supply the elevations. The bodies are not inlined into the entries, so no arithmetic can be scheduled
+ * outside the guard, and the file is deliberately NOT compiled with -frounding-math: the original's compile-time constant folding (for example
+ * 19/127.0f and PI2 - 0.01) happened at the default rounding, and the host must fold the same constants the same way. Whether this reproduces
+ * the original is established only by the replay of the captured queries, not by this comment.
+ *
+ * What is not here: the debug drawing, the ASSERTs, and the conversion in get_terrain_3d_sector being a C truncation as in the 64-bit patched
+ * engine (the rounding-mode side effect of that function is covered by the entry discipline above). The decoding of the model's
  * collision faces into triangles (3dobjdb.c get_object_3d_collision_object_geometry_triangle) is not the host's yet: the scene says either that
  * there are no triangles (the retail facts) or supplies them already decoded, and no other state is accepted.
  *
@@ -38,6 +49,7 @@
  *
  * The state is one open query. A new eech_tree_begin replaces whatever was open; an answer with nothing pending is refused.
  */
+#include <fenv.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -71,6 +83,10 @@ enum
 #define TREE_OK 0
 #define TREE_OUT_OF_SEQUENCE (-1)
 #define TREE_FAULT (-2)
+/* the thread's floating-point exception masks are not the original's (63 and 63), or cannot be read: nothing was computed */
+#define TREE_MASKS (-3)
+/* the floating-point environment could not be saved, set or restored: the query is closed and its answer, if any, withheld */
+#define TREE_ENVIRONMENT (-4)
 
 /* terrain_3d_tree_data, decoded explicitly by src/trees.rs from the 8 bytes a retail record occupies; src/trees.rs asserts the same size */
 typedef struct eech_tree
@@ -158,7 +174,7 @@ size_t eech_tree_scene_size(void)
 /*
  * The floating-point exception masks of this thread, read and never written (the fixture's guard reads the same two registers): the low six
  * bits of the x87 control word and bits 7 to 12 of MXCSR, each 63 when every exception is masked, as the original's callers have them. The
- * SSE rounding control is reported too, and is not judged here.  Returns 0, or -1 where the registers cannot be read.
+ * SSE rounding control is reported too (the entries below set round-toward-zero themselves).  Returns 0, or -1 where the registers cannot be read.
  */
 int eech_tree_fp_state(int *x87_masks, int *sse_masks, int *sse_rounding)
 {
@@ -891,8 +907,8 @@ static int after_old_elevation(eech_tree_query *q, const eech_tree_scene *scene,
  * Starts a query: the segment from `old_position` to `new_position`, the two flags, and the intercept point and normal the caller passes in
  * (which a miss leaves, or partly overwrites, exactly as the original's out parameters). `out` says what is needed next. Replaces any open query.
  */
-int eech_tree_begin(eech_tree_query *q, const eech_tree_scene *scene, const float *old_position, const float *new_position, const float *intercept_point,
-	const float *face_normal, int ignore_forest_edge_trees, int skip_tree_top_test, eech_tree_request *out)
+static int __attribute__((noinline)) begin_body(eech_tree_query *q, const eech_tree_scene *scene, const float *old_position, const float *new_position,
+	const float *intercept_point, const float *face_normal, int ignore_forest_edge_trees, int skip_tree_top_test, eech_tree_request *out)
 {
 	memset(out, 0, sizeof(*out));
 	memset(q, 0, sizeof(*q));
@@ -931,7 +947,7 @@ int eech_tree_begin(eech_tree_query *q, const eech_tree_scene *scene, const floa
  * The campaign's elevation for the lookup just asked about. Returns TREE_OK, TREE_OUT_OF_SEQUENCE when no lookup is pending (nothing changes), or
  * TREE_FAULT when the scene does not cover a sector the scan reaches (the query is closed).
  */
-int eech_tree_terrain(eech_tree_query *q, const eech_tree_scene *scene, float elevation, eech_tree_request *out)
+static int __attribute__((noinline)) terrain_body(eech_tree_query *q, const eech_tree_scene *scene, float elevation, eech_tree_request *out)
 {
 	memset(out, 0, sizeof(*out));
 
@@ -952,4 +968,170 @@ int eech_tree_terrain(eech_tree_query *q, const eech_tree_scene *scene, float el
 	}
 
 	return (TREE_OUT_OF_SEQUENCE);
+}
+
+/* ------------------------------------------------------------------------------------------------------------------------------------ */
+/* The environment boundary of the public entries (see the header comment). */
+/* ------------------------------------------------------------------------------------------------------------------------------------ */
+
+/* Reads and requires the original's exception masks, then saves the caller's environment and sets round-toward-zero. TREE_OK, TREE_MASKS or TREE_ENVIRONMENT; on a
+ * non-OK result the environment is as the caller left it. */
+static int enter_environment(fenv_t *caller)
+{
+	int x87_masks = 0, sse_masks = 0, sse_rounding = 0;
+
+	if (eech_tree_fp_state(&x87_masks, &sse_masks, &sse_rounding) != 0 || x87_masks != 63 || sse_masks != 63)
+	{
+		return (TREE_MASKS);
+	}
+
+	if (fegetenv(caller) != 0)
+	{
+		return (TREE_ENVIRONMENT);
+	}
+
+	if (fesetround(FE_TOWARDZERO) != 0)
+	{
+		fesetenv(caller);
+
+		return (TREE_ENVIRONMENT);
+	}
+
+	return (TREE_OK);
+}
+
+/* Restores the caller's environment: the result of the call when that works, TREE_ENVIRONMENT (and the query closed, the answer withheld) when it does not. */
+static int leave_environment(const fenv_t *caller, eech_tree_query *q, eech_tree_request *out, int result)
+{
+	if (fesetenv(caller) != 0)
+	{
+		q->awaiting = AWAIT_NONE;
+		memset(out, 0, sizeof(*out));
+
+		return (TREE_ENVIRONMENT);
+	}
+
+	return (result);
+}
+
+/*
+ * Starts a query: the segment from `old_position` to `new_position`, the two flags, and the intercept point and normal the caller passes in
+ * (which a miss leaves, or partly overwrites, exactly as the original's out parameters). `out` says what is needed next. Replaces any open query.
+ * Returns TREE_OK, TREE_FAULT (the scene does not cover a sector the scan reached), TREE_MASKS or TREE_ENVIRONMENT; on a refusal the query is closed.
+ */
+int eech_tree_begin(eech_tree_query *q, const eech_tree_scene *scene, const float *old_position, const float *new_position, const float *intercept_point,
+	const float *face_normal, int ignore_forest_edge_trees, int skip_tree_top_test, eech_tree_request *out)
+{
+	fenv_t caller;
+	int entered, result;
+
+	memset(out, 0, sizeof(*out));
+	memset(q, 0, sizeof(*q));
+
+	entered = enter_environment(&caller);
+
+	if (entered != TREE_OK)
+	{
+		return (entered);
+	}
+
+	result = begin_body(q, scene, old_position, new_position, intercept_point, face_normal, ignore_forest_edge_trees, skip_tree_top_test, out);
+
+	return (leave_environment(&caller, q, out, result));
+}
+
+/*
+ * The campaign's elevation for the lookup just asked about. Returns TREE_OK, TREE_OUT_OF_SEQUENCE when no lookup is pending (nothing changes and the
+ * environment is not touched), TREE_FAULT, TREE_MASKS or TREE_ENVIRONMENT (the query is closed).
+ */
+int eech_tree_terrain(eech_tree_query *q, const eech_tree_scene *scene, float elevation, eech_tree_request *out)
+{
+	fenv_t caller;
+	int entered, result;
+
+	memset(out, 0, sizeof(*out));
+
+	if (q->awaiting != AWAIT_OLD_ELEVATION && q->awaiting != AWAIT_NEW_ELEVATION)
+	{
+		return (TREE_OUT_OF_SEQUENCE);
+	}
+
+	entered = enter_environment(&caller);
+
+	if (entered != TREE_OK)
+	{
+		q->awaiting = AWAIT_NONE;
+
+		return (entered);
+	}
+
+	result = terrain_body(q, scene, elevation, out);
+
+	return (leave_environment(&caller, q, out, result));
+}
+
+/* ------------------------------------------------------------------------------------------------------------------------------------ */
+/* Environment access for the boundary tests and the host's reports: reading and setting the CALLING thread's state, never used by the entries. */
+/* ------------------------------------------------------------------------------------------------------------------------------------ */
+
+/* 0 nearest, 1 upward, 2 downward, 3 toward zero, -1 anything else */
+int eech_tree_rounding(void)
+{
+	switch (fegetround())
+	{
+		case FE_TONEAREST:
+			return (0);
+		case FE_UPWARD:
+			return (1);
+		case FE_DOWNWARD:
+			return (2);
+		case FE_TOWARDZERO:
+			return (3);
+	}
+
+	return (-1);
+}
+
+/* sets the calling thread's rounding (0 nearest, 1 upward, 2 downward, 3 toward zero); 0 on success */
+int eech_tree_set_rounding(int which)
+{
+	switch (which)
+	{
+		case 0:
+			return (fesetround(FE_TONEAREST));
+		case 1:
+			return (fesetround(FE_UPWARD));
+		case 2:
+			return (fesetround(FE_DOWNWARD));
+		case 3:
+			return (fesetround(FE_TOWARDZERO));
+	}
+
+	return (-1);
+}
+
+size_t eech_tree_fenv_size(void)
+{
+	return sizeof(fenv_t);
+}
+
+int eech_tree_fenv_save(void *environment)
+{
+	return (fegetenv((fenv_t *) environment));
+}
+
+int eech_tree_fenv_restore(const void *environment)
+{
+	return (fesetenv((const fenv_t *) environment));
+}
+
+/* the calling thread's raised exception flags, as the platform's FE_ bits (0 when none) */
+int eech_tree_exception_flags(void)
+{
+	return (fetestexcept(FE_ALL_EXCEPT));
+}
+
+int eech_tree_clear_exception_flags(void)
+{
+	return (feclearexcept(FE_ALL_EXCEPT));
 }

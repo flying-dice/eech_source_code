@@ -27,6 +27,16 @@
 //!   error. Lengths are checked in `u64` arithmetic before anything is allocated or indexed.
 //! * Trailing bytes beyond what the header and the whole records account for are accepted and counted in the census, not interpreted.
 //!
+//! # Floating-point environment
+//!
+//! The original runs under round-toward-zero: the engine entry saves the caller's environment and sets `FE_TOWARDZERO` for everything it runs, and
+//! `get_terrain_3d_sector` sets it again. Every kernel entry therefore reads and REQUIRES the x87 and SSE exception masks to be 63 and 63 before any
+//! arithmetic (it never masks exceptions itself), saves the caller's environment, sets round-toward-zero, runs the original's arithmetic and restores the
+//! caller's environment on every exit, a request, an answer or a refusal. No guard is held between calls, so none is held across the callbacks that supply the
+//! elevations, and the answer does not depend on the caller's rounding mode (see [`ScopedRounding`]). A failure to save, set or restore the environment
+//! closes the query and is an error, never a silent success. Exceptions that are unmasked in the caller are refused, not handled; no test enters the
+//! kernel with unmasked exceptions, so that refusal is a source guard, not runtime-proven.
+//!
 //! # Dependencies that remain
 //!
 //! * The map metadata ([`TreeMap`]: extents, terrain sector counts, the terrain height range the tree heights use) is the TERRAIN's; the terrain
@@ -470,6 +480,93 @@ extern "C" {
         out: *mut RawRequest,
     ) -> c_int;
     fn eech_tree_terrain(query: *mut c_void, scene: *const RawScene, elevation: f32, out: *mut RawRequest) -> c_int;
+    fn eech_tree_rounding() -> c_int;
+    fn eech_tree_set_rounding(which: c_int) -> c_int;
+    fn eech_tree_fenv_size() -> usize;
+    fn eech_tree_fenv_save(environment: *mut c_void) -> c_int;
+    fn eech_tree_fenv_restore(environment: *const c_void) -> c_int;
+    fn eech_tree_exception_flags() -> c_int;
+    fn eech_tree_clear_exception_flags() -> c_int;
+}
+
+/// The rounding mode of a thread's floating-point environment.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Rounding {
+    Nearest,
+    Up,
+    Down,
+    Zero,
+}
+
+/// The CALLING thread's current rounding mode. The kernel's entries set round-toward-zero for their own arithmetic and restore the caller's
+/// environment before they return, so this reads the same before and after a call.
+pub fn rounding() -> Result<Rounding, String> {
+    // SAFETY: reads the calling thread's floating-point environment.
+    match unsafe { eech_tree_rounding() } {
+        0 => Ok(Rounding::Nearest),
+        1 => Ok(Rounding::Up),
+        2 => Ok(Rounding::Down),
+        3 => Ok(Rounding::Zero),
+        other => Err(format!("the rounding mode is not one of the four standard modes ({other})")),
+    }
+}
+
+/// The calling thread's raised floating-point exception flags as the platform's `FE_` bits (0 when none are raised).
+#[must_use]
+pub fn exception_flags() -> i32 {
+    // SAFETY: reads the calling thread's floating-point status.
+    unsafe { eech_tree_exception_flags() }
+}
+
+/// Clears the calling thread's raised floating-point exception flags (test setup).
+pub fn clear_exception_flags() -> Result<(), String> {
+    // SAFETY: changes only the calling thread's floating-point status flags.
+    if unsafe { eech_tree_clear_exception_flags() } == 0 {
+        Ok(())
+    } else {
+        Err("the floating-point exception flags could not be cleared".into())
+    }
+}
+
+/// Test and report support: sets the CALLING thread's rounding mode for as long as the value lives and then restores the whole floating-point
+/// environment it found (rounding, masks and flags). It exists to enter the tree kernel from a caller whose rounding is not the original's.
+/// It is not used by the kernel, which does its own save, set and restore on every call. Code run while one is alive is subject to the mode,
+/// so a user keeps what it does in between to integer work.
+pub struct ScopedRounding {
+    saved: Vec<u64>,
+}
+
+impl ScopedRounding {
+    pub fn set(mode: Rounding) -> Result<Self, String> {
+        // SAFETY: a size query, then a save into a block of that size and 8-byte alignment.
+        let mut saved = vec![0u64; unsafe { eech_tree_fenv_size() }.div_ceil(8)];
+        // SAFETY: `saved` is large enough for the platform's environment type.
+        if unsafe { eech_tree_fenv_save(saved.as_mut_ptr().cast()) } != 0 {
+            return Err("the floating-point environment could not be saved".into());
+        }
+        let which = match mode {
+            Rounding::Nearest => 0,
+            Rounding::Up => 1,
+            Rounding::Down => 2,
+            Rounding::Zero => 3,
+        };
+        // SAFETY: changes only the calling thread's rounding mode.
+        if unsafe { eech_tree_set_rounding(which) } != 0 {
+            // SAFETY: restoring what was just saved.
+            unsafe { eech_tree_fenv_restore(saved.as_ptr().cast()) };
+            return Err(format!("the rounding mode {mode:?} could not be set"));
+        }
+        Ok(Self { saved })
+    }
+}
+
+impl Drop for ScopedRounding {
+    fn drop(&mut self) {
+        // SAFETY: restoring the environment saved by `set`.
+        if unsafe { eech_tree_fenv_restore(self.saved.as_ptr().cast()) } != 0 {
+            eprintln!("tree collision: the caller's floating-point environment could not be restored");
+        }
+    }
 }
 
 /// The floating-point state of the calling thread, read and never written: the exception masks (63 when every exception is masked, as the
@@ -553,19 +650,6 @@ impl TreeCollision {
         &self.scene
     }
 
-    /// The kernel's arithmetic is EECH's with every floating-point exception masked: refuse to run on a thread where that is not so, and never
-    /// change the thread's state (there is nothing to restore).
-    fn require_masks() -> Result<(), String> {
-        let state = fp_state()?;
-        if state.x87_masks != 63 || state.sse_masks != 63 {
-            return Err(format!(
-                "tree collision needs every floating-point exception masked (x87 {}, SSE {}, expected 63 and 63)",
-                state.x87_masks, state.sse_masks
-            ));
-        }
-        Ok(())
-    }
-
     /// Starts a query for the segment from `old_position` to `new_position`. `intercept_point` and `face_normal` are the caller's own, inputs to the
     /// original's out parameters: a miss returns them as the original leaves them. Replaces any open query.
     pub fn begin(
@@ -580,7 +664,6 @@ impl TreeCollision {
         self.open = false;
         finite3(&old_position, "old position")?;
         finite3(&new_position, "new position")?;
-        Self::require_masks()?;
         let scene = self.scene.raw();
         let mut raw = RawRequest::default();
         // SAFETY: `query` is the kernel's block, sized by it; `scene` describes storage `self.scene` keeps alive for the call; the vectors and
@@ -609,7 +692,6 @@ impl TreeCollision {
         if !self.open {
             return Err("tree collision: a terrain answer arrived with no query open".into());
         }
-        Self::require_masks()?;
         let scene = self.scene.raw();
         let mut raw = RawRequest::default();
         // SAFETY: as in `begin`.
@@ -628,6 +710,23 @@ impl TreeCollision {
             -1 => {
                 self.open = false;
                 return Err("tree collision: a terrain answer arrived but none was asked for".into());
+            }
+            -3 => {
+                self.open = false;
+                // the kernel read the masks before any arithmetic and computed nothing; say what it saw
+                return Err(match fp_state() {
+                    Ok(state) => format!(
+                        "tree collision needs every floating-point exception masked (x87 {}, SSE {}, expected 63 and 63); nothing was computed and the thread's state is unchanged",
+                        state.x87_masks, state.sse_masks
+                    ),
+                    Err(e) => format!("tree collision cannot confirm the floating-point exception masks: {e}"),
+                });
+            }
+            -4 => {
+                self.open = false;
+                return Err(
+                    "tree collision: the floating-point environment could not be saved, set or restored; the query is closed and no answer is given".into(),
+                );
             }
             _ => {
                 self.open = false;
@@ -1055,6 +1154,78 @@ mod tests {
         let (answer, asked) = run(&scene, [0.0, 10.0, 0.0], [4095.0, 10.0, 4095.0], (false, true), |_, _| 0.0);
         assert_eq!(asked.len(), 2);
         let _ = done(answer);
+    }
+
+    /// One query driven to its answer with the elevation 0 for every lookup, as bits only (no floating-point arithmetic in the test itself, so it is safe to run in a
+    /// changed rounding mode), together with whether the caller's rounding mode was still `mode` after EVERY call into the kernel, a lookup request included.
+    fn answer_bits(scene: &Arc<TreeScene>, old: [f32; 3], new: [f32; 3], flags: (bool, bool), mode: Rounding) -> (Vec<u32>, bool) {
+        let mut query = TreeCollision::new(scene.clone()).unwrap();
+        let mut bits = Vec::new();
+        let mut rounding_kept = true;
+        let mut next = query.begin(old, new, [1.0, 2.0, 3.0], [4.0, 5.0, 6.0], flags.0, flags.1).unwrap();
+        loop {
+            rounding_kept &= rounding() == Ok(mode);
+            match next {
+                TreeRequest::NeedTerrain { endpoint, x, z } => {
+                    bits.extend([u32::from(endpoint == Endpoint::New), x.to_bits(), z.to_bits()]);
+                    next = query.terrain(0.0).unwrap();
+                }
+                TreeRequest::Done { hit, point, normal } => {
+                    bits.push(u32::from(hit));
+                    bits.extend(point.map(f32::to_bits));
+                    bits.extend(normal.map(f32::to_bits));
+                    return (bits, rounding_kept);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn the_answer_does_not_depend_on_the_callers_rounding_and_the_callers_environment_is_restored() {
+        // The original runs under round-toward-zero (the engine entry sets it; get_terrain_3d_sector sets it again), so every kernel entry runs its arithmetic under it
+        // whatever mode the caller is in, and gives the caller's environment back. The cases cover a plane hit with a normalisation and a division (the first
+        // hand-derived example), a top-quad hit, a miss, a segment with both end points outside the map that still crosses the tree (no lookup is asked, and it HITS:
+        // an outside end point only avoids the terrain lookup), and a triangle hit through the geometry branch.
+        let triangle = vec![[[0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]];
+        let geometry = scene_with(&[tree(0, 0, 0, 127, 1)], ForestGeometry::Triangles(triangle));
+        let cases: Vec<(Arc<TreeScene>, [f32; 3], [f32; 3], (bool, bool))> = vec![
+            (lone_tree(), [1000.0, 10.0, 1024.0], [1048.0, 10.0, 1024.0], (false, true)),
+            (lone_tree(), [1021.0, 30.0, 1024.0], [1023.0, 26.0, 1024.0], (false, false)),
+            (lone_tree(), [1000.0, 40.0, 1024.0], [1048.0, 40.0, 1024.0], (false, true)),
+            (lone_tree(), [-1.0, 10.0, 1024.0], [5000.0, 10.0, 1024.0], (false, true)),
+            (geometry, [1000.0, 5.0, 1030.0], [1048.0, 5.0, 1030.0], (false, true)),
+        ];
+        let mut baseline: Option<Vec<(Vec<u32>, bool)>> = None;
+        for mode in [Rounding::Nearest, Rounding::Up, Rounding::Down, Rounding::Zero] {
+            let scope = ScopedRounding::set(mode).unwrap();
+            clear_exception_flags().unwrap();
+            let before = (fp_state().unwrap(), rounding().unwrap(), exception_flags());
+            let results: Vec<(Vec<u32>, bool)> = cases
+                .iter()
+                .map(|(scene, old, new, flags)| answer_bits(scene, *old, *new, *flags, mode))
+                .collect();
+            let after = (fp_state().unwrap(), rounding().unwrap(), exception_flags());
+            drop(scope);
+            assert_eq!(before.1, mode, "the test's own setup");
+            assert_eq!(
+                before, after,
+                "the caller's masks, rounding and raised flags are given back unchanged under {mode:?}"
+            );
+            assert!(
+                results.iter().all(|(_, kept)| *kept),
+                "the caller's rounding was still {mode:?} after every call into the kernel"
+            );
+            match &baseline {
+                None => baseline = Some(results),
+                Some(first) => assert_eq!(
+                    &results, first,
+                    "the answer bits under a caller in {mode:?} differ from those under a caller in Nearest"
+                ),
+            }
+        }
+        // the segment with both end points outside the map really does cross the tree: no lookup is asked and the answer is a hit
+        let outside = &baseline.unwrap()[3].0;
+        assert_eq!(outside[0], 1, "a hit, with no lookup requests before it");
     }
 
     #[test]

@@ -81,8 +81,17 @@ assert(miss.point[1] == 1 and miss.point[2] == 2 and miss.point[3] == 3 and miss
 local one = begin({ -1, 10, 1024 }, { 1048, 10, 1024 })
 assert(one.state == 'need_terrain' and one.endpoint == 'new')
 host.tree_collision({ mode = 'terrain', elevation = 0 })
-local none = begin({ -1, 10, 1024 }, { 5000, 10, 1024 })
-assert(none.state == 'done' and none.hit == false, 'both outside: no lookups at all')
+-- Both end points outside the map: NO lookup is asked (an outside end point has radial altitude 0 and nothing to look up), but that does not make the answer a miss.
+-- This segment runs along z = 1024 and y = 10 from x = -1 to x = 5000 and so still crosses the tree standing at (1024, 1024): the answer is available at once
+-- (state done, no need_terrain) and it is a HIT at the same hand-derived point as above. Outside end points only avoid the terrain lookups.
+local through = begin({ -1, 10, 1024 }, { 5000, 10, 1024 })
+assert(through.state == 'done' and through.hit == true, 'both outside: no lookups, and the segment still crosses the tree')
+near(through.point, { 1024, 10, 1024 })
+near(through.normal, { 1, 0, 0 })
+-- and when the segment does not come near any tree, the same no-lookup answer is a miss that leaves the caller's own point and normal
+local clear = begin({ -1, 10, 3000 }, { 5000, 10, 3000 })
+assert(clear.state == 'done' and clear.hit == false, 'both outside, clear of every tree')
+assert(clear.point[1] == 1 and clear.point[2] == 2 and clear.point[3] == 3 and clear.normal[1] == 4 and clear.normal[2] == 5 and clear.normal[3] == 6)
 
 -- malformed requests are refused, and a refused request leaves no query open
 refused({ mode = 'begin', old_position = { 0, 0 }, new_position = { 1, 0, 0 }, intercept_point = { 0, 0, 0 }, face_normal = { 0, 0, 0 }, ignore_forest_edge_trees = false, skip_tree_top_test = false }, 'old_position')

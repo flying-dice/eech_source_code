@@ -19,7 +19,10 @@
 //!
 //! The retail facts record no forest tree collision triangles, so the geometry branch of the kernel is NOT exercised by retail data; if a transcript
 //! did record triangles this test would hand them to the kernel as the host-owned mesh, and says which case ran.
-use eech_world::trees::{ForestGeometry, TreeCollision, TreeMap, TreeRecord, TreeRequest, TreeScene, RECORD_BYTES, SECTOR_SIDE};
+use eech_world::trees::{
+    clear_exception_flags, exception_flags, fp_state, rounding, ForestGeometry, Rounding, ScopedRounding, TreeCollision, TreeMap, TreeRecord, TreeRequest,
+    TreeScene, RECORD_BYTES, SECTOR_SIDE,
+};
 use serde_json::Value;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -421,4 +424,38 @@ fn every_captured_original_tree_query_replays_bit_for_bit_through_the_host_loade
     assert_eq!(summary.queries, queries.len());
     // a replay that never hit, or never missed, would prove little: the capture was built with both
     assert!(summary.hits > 0 && summary.misses > 0, "hits {} misses {}", summary.hits, summary.misses);
+
+    // The same replay, against the same recorded bits, entered from callers whose rounding mode is NOT the one the process normally runs in. The original runs under
+    // round-toward-zero and the kernel runs its arithmetic under it whatever the caller is in, so the answers must not move and the caller's masks, rounding and raised
+    // flags must be given back. Nothing is relaxed: the oracle is the original's recorded bits in every mode.
+    for mode in [Rounding::Up, Rounding::Down, Rounding::Zero] {
+        let scope = ScopedRounding::set(mode).unwrap();
+        clear_exception_flags().unwrap();
+        let before = (fp_state().unwrap(), rounding().unwrap(), exception_flags());
+        let replayed = replay(&scene, &queries);
+        let after = (fp_state().unwrap(), rounding().unwrap(), exception_flags());
+        drop(scope);
+        let replayed = replayed.unwrap();
+        println!(
+            "TREE_CONFORMANCE caller_rounding={mode:?} queries={} lookups={} mismatches={}",
+            replayed.queries,
+            replayed.lookups,
+            replayed.mismatches.len()
+        );
+        assert_eq!(before.1, mode, "the test's own setup");
+        assert_eq!(
+            before, after,
+            "the caller's masks, rounding and raised flags are given back unchanged under {mode:?}"
+        );
+        assert!(
+            replayed.mismatches.is_empty(),
+            "from a caller in {mode:?} the host differs from the original on {} checks:\n{}",
+            replayed.mismatches.len(),
+            replayed.mismatches.join("\n")
+        );
+        assert_eq!(
+            (replayed.queries, replayed.lookups, replayed.hits, replayed.misses),
+            (summary.queries, summary.lookups, summary.hits, summary.misses)
+        );
+    }
 }

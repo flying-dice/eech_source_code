@@ -1,3 +1,10 @@
+Host tree kernel, first native checks of 0db20ab3a (FAILED; STATUS.md has the full record): Windows and Linux library units passed, the real-host Lua transport test failed on a wrong synthetic expectation (a segment with both
+end points outside the map still crosses the tree: no terrain lookup does not mean a miss; the test is corrected, the kernel was not), and the replay of all 554 / 600 / 600 captured queries differed from the original by one bit in
+places because the kernel ran under the caller's round-to-nearest while the original runs under round-toward-zero (the engine entry sets FE_TOWARDZERO and restores the caller's environment; get_terrain_3d_sector sets it
+again). Correction PREPARED, UNBUILT, UNRUN: every tree_step.c entry now requires exception masks 63 / 63 before arithmetic, saves the caller's environment, runs under FE_TOWARDZERO and restores the caller's
+environment on every exit (no guard held across callbacks); tests enter from callers in nearest / up / down / zero and compare answer bits, rounding after every call, masks and raised flags; the real-query replay
+repeats in each mode against the same unchanged recorded bits. Unmasked-exception entry and an environment-operation failure are not exercised.
+
 Host tree loader and kernel (EEDCS-49, D3 PREPARATION; source prepared, UNBUILT, UNRUN; STATUS.md has the full record): the first host-owned physical component is in source under eech-world. csrc/tree_step.c is EECH's own
 get_line_of_sight_collision_tree with its line-quad and line-triangle intersections, expression for expression, as a resumable NeedTerrain/Done machine (the two terrain elevations the original reads, old
 then new, only for end points inside the map, stay the campaign's, supplied by value); src/trees.rs owns the checked tree_pos.sec/.dat loader (8-byte records decoded explicitly, file spelling as on disk, absent

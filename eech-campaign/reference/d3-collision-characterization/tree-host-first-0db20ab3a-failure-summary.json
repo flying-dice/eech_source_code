@@ -1,0 +1,172 @@
+{
+  "source": "0db20ab3a46582110bd7c4706c26edaaa9335478",
+  "status": "FAILED; retained original-query evidence, not host extraction acceptance",
+  "scope": "Host tree preparation ONLY; no campaign DLL built or production handoff/shipping acceptance",
+  "generated_utc": "2026-10-29T20:28:00.461695+00:00",
+  "windows_build_actual_exit": 0,
+  "verified_exports": 8,
+  "exports_unchanged": true,
+  "build_info_sha256": "122d7c19909bceb56907c08c6f94d55c5c30bfd90cd4e617bda1ed922ea3bc0b",
+  "library_unit_tests": {
+    "linux_passed": 14,
+    "windows_passed": 14,
+    "note": "Focused synthetic contracts; not original numeric conformance"
+  },
+  "linux_invocation_actual_exit": 101,
+  "linux_clippy": "NOT REACHED after real-host Lua failure",
+  "real_host_lua_contract": {
+    "actual_exit": 101,
+    "finding": "Test incorrectly assumes outside endpoints imply no collision. The chosen segment crosses the map and its center tree; no terrain lookups does not imply FALSE."
+  },
+  "native_controller_actual_exit": 1,
+  "cases": [
+    {
+      "case": "georgia",
+      "expected_queries": 554,
+      "expected_lookups": 1102,
+      "original_transcript_sha256": "0647eea11e9c87777ce47183c905ae47011ebce9da10ce7d2a8cc87b0e180adc",
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "library_actual_exit": 101,
+      "lua_actual_exit": 1,
+      "not_run": false,
+      "exact_complete_replay": false
+    },
+    {
+      "case": "lebanon",
+      "expected_queries": 600,
+      "expected_lookups": 1120,
+      "original_transcript_sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00",
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "library_actual_exit": 101,
+      "lua_actual_exit": 1,
+      "not_run": false,
+      "exact_complete_replay": false
+    },
+    {
+      "case": "lebanon-repeat",
+      "expected_queries": 600,
+      "expected_lookups": 1120,
+      "original_transcript_sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00",
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "library_actual_exit": 101,
+      "lua_actual_exit": 1,
+      "not_run": false,
+      "exact_complete_replay": false
+    }
+  ],
+  "numeric_finding": {
+    "observed": "Library and real host-Lua original replay produce bit differences, including retained one-bit intercept-coordinate differences.",
+    "source_contract": "Original engine ENTER sets FE_TOWARDZERO and restores caller fenv. First host draft requires masks63/63 but omits original rounding.",
+    "causation": "Strong source-based explanation pending correction and new actual replay; not yet a measured green causation proof.",
+    "diagnostic_limit": "The mismatch list is bounded. Its printed41 entries are not a total count of failing queries."
+  },
+  "evidence": [
+    {
+      "file": "controller.json",
+      "sha256": "9a32ca3ae36fe3b77cac482831561eaa6db05c3e13ec6aab45f18c23fa1785dc",
+      "bytes": 14051,
+      "retained": "PRIVATE raw, not included in Git"
+    },
+    {
+      "file": "tree-host-first-linux-0db20ab3a-20261029.log",
+      "sha256": "f6c14ab99d65758f00d1e1a9c9c8489b5305dab02c2a96a29714378adc9f02ba",
+      "bytes": 1702,
+      "retained": "PRIVATE raw, not included in Git"
+    },
+    {
+      "file": "tree-host-first-windows-0db20ab3a-20261029.log",
+      "sha256": "122d7c19909bceb56907c08c6f94d55c5c30bfd90cd4e617bda1ed922ea3bc0b",
+      "bytes": 1025,
+      "retained": "PRIVATE raw, not included in Git"
+    },
+    {
+      "file": "georgia-library-replay.log",
+      "sha256": "d38e50384072361c78f9eed66dcea87414b84856b73c9b6d5983534f1efeac69",
+      "bytes": 4719,
+      "retained": "PRIVATE raw, not included in Git"
+    },
+    {
+      "file": "georgia-lua-replay.log",
+      "sha256": "37ca45a97102dfafee4a9726f6547ec72d1567732e370c911e598b6f8af52b7c",
+      "bytes": 4498,
+      "retained": "PRIVATE raw, not included in Git"
+    },
+    {
+      "file": "georgia-post-inputs.log",
+      "sha256": "5fdd99a3a2f076eff2e1b773bd17f60d9052ff80dff53fe05510b4e85b662dc1",
+      "bytes": 312,
+      "retained": "PRIVATE raw, not included in Git"
+    },
+    {
+      "file": "georgia-pre-inputs.log",
+      "sha256": "5fdd99a3a2f076eff2e1b773bd17f60d9052ff80dff53fe05510b4e85b662dc1",
+      "bytes": 312,
+      "retained": "PRIVATE raw, not included in Git"
+    },
+    {
+      "file": "lebanon-library-replay.log",
+      "sha256": "1f0b5b4c7af23458c6bea0e2d888edd91232beea2f380dfc97489df9d0e15389",
+      "bytes": 4720,
+      "retained": "PRIVATE raw, not included in Git"
+    },
+    {
+      "file": "lebanon-lua-replay.log",
+      "sha256": "8717be4e647d925e9b00bb30ea75410f628967f97658b09cc09bd8825f7f000c",
+      "bytes": 4498,
+      "retained": "PRIVATE raw, not included in Git"
+    },
+    {
+      "file": "lebanon-post-inputs.log",
+      "sha256": "a945d5827d07c9962d9d83b51662cbc802afafc6074a1fe6fbc0513254839492",
+      "bytes": 300,
+      "retained": "PRIVATE raw, not included in Git"
+    },
+    {
+      "file": "lebanon-pre-inputs.log",
+      "sha256": "a945d5827d07c9962d9d83b51662cbc802afafc6074a1fe6fbc0513254839492",
+      "bytes": 300,
+      "retained": "PRIVATE raw, not included in Git"
+    },
+    {
+      "file": "lebanon-repeat-library-replay.log",
+      "sha256": "003cb6b64d1c9e0e62d183d902d33d327a2071059f26678b5c402d1a917e1181",
+      "bytes": 4734,
+      "retained": "PRIVATE raw, not included in Git"
+    },
+    {
+      "file": "lebanon-repeat-lua-replay.log",
+      "sha256": "8717be4e647d925e9b00bb30ea75410f628967f97658b09cc09bd8825f7f000c",
+      "bytes": 4498,
+      "retained": "PRIVATE raw, not included in Git"
+    },
+    {
+      "file": "lebanon-repeat-post-inputs.log",
+      "sha256": "d2b95c32e53452602a3036cfbcb258a1aec4f91c83c7319a2a40e17e626a6e65",
+      "bytes": 307,
+      "retained": "PRIVATE raw, not included in Git"
+    },
+    {
+      "file": "lebanon-repeat-pre-inputs.log",
+      "sha256": "d2b95c32e53452602a3036cfbcb258a1aec4f91c83c7319a2a40e17e626a6e65",
+      "bytes": 307,
+      "retained": "PRIVATE raw, not included in Git"
+    },
+    {
+      "file": "lua-transport-contracts.log",
+      "sha256": "6c1701cdc7effc848383c5e46286e37a1e8f99e6f5bd4ceb6c4e9cd438069fae",
+      "bytes": 817,
+      "retained": "PRIVATE raw, not included in Git"
+    },
+    {
+      "file": "unit-contracts.log",
+      "sha256": "a2d6f5ca5988e053f15658864d05211246754ce467764a4f88051f17f7c83d41",
+      "bytes": 1420,
+      "retained": "PRIVATE raw, not included in Git"
+    }
+  ],
+  "next": "Correct original rounding/restoration and mistaken synthetic test, rebuild new frozen source, replay all554/600/600 original queries through library AND Lua, then independent new-component review.",
+  "limits": "Native forest geometry absent; model loader, native geometry witness, entity collision, production authority/refusal, shipping and whole D3 acceptance remain required. No original input/oracle, baseline, tolerance or production dispatch changed."
+}
