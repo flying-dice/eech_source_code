@@ -1,3 +1,28 @@
+# D3 checkpoint — original retail model characterization reviewed; host loader next
+
+Task50 original-model preparation is independently closed with no open findings.
+Original native measurements remain366622e0c; the corrected diagnostic driver and
+portable guards are reviewed at309b3f050. Closure report SHA256:
+ab48e5079bcc07f119236d31555f70c082f733ae5a979956071bd6d6b8a62bce.
+Linux format/all8 guard groups/all-target Clippy pass. Windows host/test build0,
+all8 guard groups pass; an explicit invalid-host override is correctly refused.
+All3 new-driver native catalogue/selected-geometry runs complete0 and preserve
+exact original catalogue and geometry row bytes, including line endings. State,
+clock, input and original43 payload checks remain unchanged. Native366 is not
+relabeled as a new DLL build. C441 Clippy and Windows harness failures, and Root's
+aggregate log-label error with reviewed read-only recovery, remain retained.
+
+No physical responsibility has moved in this preparation. Collision-model
+loading/queries remain in the DLL. Next is the actual host-owned collision model
+loader/query component within EEDCS-50, preserving original fan/depth/scaling and
+required binary/EEO/EES input semantics. The active custom/mixed-layout gaps must
+be investigated; no always-absent substitute is accepted. Model hierarchy,
+viewpoint/device/muzzle/target-point, entity collision, environment, host-time and
+required physical solver/loader removal remain whole-D3 work. Campaign decisions,
+consequences, geography, routes and timers stay in EECH_DC. Task47 original
+shipping115 continues; full40/eight complete files/post-input and normal delivery
+remain pending. D3 stays In Progress; D4/D5 have not started.
+
 # Current D3 test-harness fix — EEDCS-50 model driver guards (29 October 2026): SOURCE ONLY, UNBUILT, UNRUN
 
 Driver source `c44173556` (frozen) passed the Linux guards (8/8), formatting and the Root's actual-native checks of the corrected driver with the original `366622e0c` DLL; Linux all-target Clippy
