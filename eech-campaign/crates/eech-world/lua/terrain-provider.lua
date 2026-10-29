@@ -6,7 +6,11 @@
 -- visible failure. Modes (one per process, as the engine is one per process):
 --   mode=reference   the reference host's own terrain, unchanged: the control
 --   mode=raised      the reference terrain with every elevation (point, stored, fast) raised by `raise` metres (default 10000)
---   mode=generic     a host with no EECH data: an analytic surface, no hints, the reference map's extents only
+--   mode=generic     a host with no EECH data: an analytic surface (land, type 9, everywhere), no hints, the reference map's extents only. It is an INPUT-WORLD
+--                    VARIATION, not a hint test: all land changes the campaign's geography (Lebanon: popread.c terrain-class WATER selection -> the BLUE TARAWA model
+--                    -> a required named keysite), and the actual run fails at the campaign parser (USS TARAWA missing). That failure is recorded, not caught.
+--   mode=nohint      POSITIVE: the reference physical answers (same geography) with `hint` and `stored` removed from every point answer; map and fast unchanged.
+--                    Tests optional cache hints with compatible geography; reference-backed, not a data-free world
 --   mode=missing     boot without a terrain provider: must fail at boot with a clear error
 --   mode=bad_*       a provider answering a malformed value at its first point query: the engine must stop with a clear error
 --                    (bad_nil, bad_elevation, bad_normal, bad_type, bad_hint, bad_error)
@@ -21,7 +25,9 @@
 --   reference, raised, generic: provider calls = 0 and the boot placement and line-of-sight sums are identical in all three;
 --   missing: boot SUCCEEDS (no refusal); bad_*: nothing fails (the provider is never asked).
 -- EXPECTED after the extraction: reference calls > 0 and the same sums as the baseline; raised changes both sums (by `raise` per sample);
---   generic boots and runs with provider calls > 0; missing and every bad_* fail with a clear error naming the terrain provider.
+--   nohint boots and runs with provider calls > 0; removing hints can change the original solver's order-dependent physical answers. Generic was expected to
+--   boot and run with provider calls > 0, but the actual Lebanon run
+--   fails (its all-land world is a different geography, see above) and that failure stands; missing and every bad_* fail with a clear error naming the terrain provider.
 --
 -- host.args: root, scenario (lebanon_retail default, georgia_retail), seconds (default 30), frame_ms (default 100), mode (default reference),
 --            raise (default 10000), out (JSON Lines summary path)
@@ -92,6 +98,18 @@ elseif mode == "generic" then
 		-- a host with no EECH data: land (type 9), an upward normal, no hint
 		return { elevation = elevation, last_elevation = elevation, normal = { 0, 1, 0 }, type = 9 }
 	end)
+elseif mode == "nohint" then
+	-- POSITIVE mode, reference-backed: the same physical answers as the reference host (so the same geography), with the optional cache state removed. It
+	-- tests a host that keeps no per-record hint and says nothing about whether a surface is stored (the bridge reads a missing `stored` as true). It is NOT a
+	-- data-free analytic world; map and fast are the reference's, unchanged.
+	provider = counted (function (request)
+		local answer = reference (request)
+		if request.op == "point" then
+			answer.hint = nil
+			answer.stored = nil
+		end
+		return answer
+	end)
 elseif mode == "missing" then
 	provider = nil
 elseif mode:sub (1, 4) == "bad_" then
@@ -156,7 +174,7 @@ local config = {
 --     [terrain-provider:point.callback]  the provider function itself raised an error; the message must also carry the provider's own text
 --
 -- Per mode (anything else is a setup or unrelated failure and fails the check):
---   a healthy mode (reference, raised, generic) must boot and run to the end; any boot or frame error fails;
+--   a healthy mode (reference, raised, nohint, generic) must boot and run to the end; any boot or frame error fails;
 --   missing must be refused AT BOOT with the missing marker (a campaign that boots is a failure of the contract; a boot error without the marker is a failure
 --   of the setup, whatever else it names);
 --   bad_* must stop the engine, at boot or in a frame, with ITS marker above, after the malformed answer was actually sent (a failure with nothing sent, a

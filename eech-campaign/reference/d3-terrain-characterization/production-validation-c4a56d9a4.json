@@ -1,0 +1,174 @@
+{
+  "source": "c4a56d9a4238dcb6c489d0a0fe09037ba4024f3b",
+  "integration_base": "6bbaa8197a4843181d03cd355d562af998c75321",
+  "created_utc": "2026-10-29T12:44:46.1695389Z",
+  "task": "EEDCS-47",
+  "epic": "EEDCS-21",
+  "kind": "Bounded production terrain validation; not task or epic acceptance",
+  "shipping_build_actual_exit": 0,
+  "image": "sha256:296558921701a74603aa92b499ee2ec28afaf595e0766eb5f2d6a34921294f30",
+  "dll_sha256": "dbc11ec1d77ae12ce7cfdfec026de97dfe8830a4e50459bf0d34251d417d299e",
+  "host_sha256": "334345a23287a65af6f0e545e7b555596ef4ca40a1ab80479be55cd614e8e44e",
+  "build_entries_verified": 45,
+  "post_public_build_mismatches": 0,
+  "grid_cases": [
+    {
+      "map": "lebanon",
+      "full_grid_native_exit": 0,
+      "generated_probe_native_exit": 0,
+      "provided_grid_native_exit": 0,
+      "provided_grid_tests_passed": 3,
+      "full_grid_bytes": 4202516,
+      "host_sha256": "d3a707e8d21964b3f8df8d28f8d2a5afd88c0aa52e648fc3495a25aa6a26aa42",
+      "original_sha256": "d3a707e8d21964b3f8df8d28f8d2a5afd88c0aa52e648fc3495a25aa6a26aa42",
+      "whole_file_equal": true,
+      "scope": "Complete header and every post byte; independent original-generated oracle, not supplied retail baseline replacement"
+    },
+    {
+      "map": "georgia",
+      "full_grid_native_exit": 0,
+      "generated_probe_native_exit": 0,
+      "provided_grid_native_exit": 0,
+      "provided_grid_tests_passed": 3,
+      "full_grid_bytes": 8400916,
+      "host_sha256": "83ac8c715274a117cbbef80e4665065746a6b0bf77c1b50b8b1aa1dd45d9700c",
+      "original_sha256": "83ac8c715274a117cbbef80e4665065746a6b0bf77c1b50b8b1aa1dd45d9700c",
+      "whole_file_equal": true,
+      "scope": "Complete header and every post byte; independent original-generated oracle, not supplied retail baseline replacement"
+    }
+  ],
+  "public_cases": [
+    {
+      "mode": "reference",
+      "copy_exit": 1,
+      "pre_input_exit": 0,
+      "controller_exit": 0,
+      "native_exit": 0,
+      "post_input_exit": 0
+    },
+    {
+      "mode": "raised",
+      "copy_exit": 1,
+      "pre_input_exit": 0,
+      "controller_exit": 0,
+      "native_exit": 0,
+      "post_input_exit": 0
+    },
+    {
+      "mode": "generic",
+      "copy_exit": 1,
+      "pre_input_exit": 0,
+      "controller_exit": 1,
+      "native_exit": 1,
+      "post_input_exit": 0
+    },
+    {
+      "mode": "missing",
+      "copy_exit": 1,
+      "pre_input_exit": 0,
+      "controller_exit": 0,
+      "native_exit": 0,
+      "post_input_exit": 0
+    },
+    {
+      "mode": "bad_nil",
+      "copy_exit": 1,
+      "pre_input_exit": 0,
+      "controller_exit": 0,
+      "native_exit": 0,
+      "post_input_exit": 0
+    },
+    {
+      "mode": "bad_elevation",
+      "copy_exit": 1,
+      "pre_input_exit": 0,
+      "controller_exit": 0,
+      "native_exit": 0,
+      "post_input_exit": 0
+    },
+    {
+      "mode": "bad_normal",
+      "copy_exit": 1,
+      "pre_input_exit": 0,
+      "controller_exit": 0,
+      "native_exit": 0,
+      "post_input_exit": 0
+    },
+    {
+      "mode": "bad_type",
+      "copy_exit": 1,
+      "pre_input_exit": 0,
+      "controller_exit": 0,
+      "native_exit": 0,
+      "post_input_exit": 0
+    },
+    {
+      "mode": "bad_hint",
+      "copy_exit": 1,
+      "pre_input_exit": 0,
+      "controller_exit": 0,
+      "native_exit": 0,
+      "post_input_exit": 0
+    },
+    {
+      "mode": "bad_error",
+      "copy_exit": 1,
+      "pre_input_exit": 0,
+      "controller_exit": 0,
+      "native_exit": 0,
+      "post_input_exit": 0
+    }
+  ],
+  "reference": {
+    "event": "summary",
+    "failure": "",
+    "fast_calls": 0,
+    "frames_completed": 1,
+    "frames_requested": 1,
+    "los_terrain_count": 1164,
+    "los_terrain_sum": "232000.902",
+    "malformed_sent": false,
+    "map_calls": 1,
+    "mode": "reference",
+    "placed_count": 1444,
+    "placed_sum": "759892.264",
+    "point_calls": 79152
+  },
+  "raised": {
+    "event": "summary",
+    "failure": "",
+    "fast_calls": 0,
+    "frames_completed": 1,
+    "frames_requested": 1,
+    "los_terrain_count": 1164,
+    "los_terrain_sum": "11872000.8",
+    "malformed_sent": false,
+    "map_calls": 1,
+    "mode": "raised",
+    "placed_count": 1444,
+    "placed_sum": "10659892.1",
+    "point_calls": 79152
+  },
+  "generic_disposition": "FAILED positive driver, actual native/controller1. All-land analytic answers remove required naval campaign geography: popread.c1696 WATER selects TARAWA anchorage, then campaign parser cannot find USS TARAWA. Preserved as explicit changed-world variation, not hidden or accepted as refusal. Compatible reference-backed nohint positive driver is being added; no runtime claim.",
+  "test_results": {
+    "backend": "16/17 passed; factory guard cannot deserialize Lua error userdata as String; source-only tostring correction pending",
+    "engine_terrain_unit_tests": "9/9 PASS0, including all six mismatched operation/reply pairs, actual callback and season/refusal",
+    "driver": "6/6 actual Windows PASS0",
+    "world_terrain_unit_tests": "18/18 PASS0",
+    "boot_contract": "FAILED101: temporary Lua state destroyed before returned Table consumed; source-only lifetime correction pending"
+  },
+  "setup_failures": [
+    "First focused compile exited125 before compiler because old immutable image no longer exists; retry with shipping-recorded image exited0",
+    "Unit compile itself0; first export controller1 because normal and test world exe both existed. Export-only recovery selected exact cargo-reported test executable, exited0; original controller1 retained"
+  ],
+  "review": "c4 combined correction review: four shipping P2 source findings closed; fixture season and loader comments need bounded corrections, prepared in author worktree",
+  "pending": [
+    "Corrected harnesses and fixture season validation",
+    "Public shipping nohint witness; public fast dispatch evidence",
+    "Current CI header-extraction compatibility fix",
+    "Final ordinary shipping40/eight complete comparisons, post-inputs, independent new-delta review and normal merge",
+    "All remaining whole-D3 geometry/model/environment/time/loader groups"
+  ],
+  "baseline_or_tolerances_changed": false,
+  "tacview_comparison": "No new candidate full-pack or Tacview equality claimed"
+}

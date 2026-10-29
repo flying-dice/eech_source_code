@@ -853,7 +853,8 @@ fn the_provider_factory_opens_the_map_for_the_season_the_engine_reports() {
             "local provider = host.terrain_provider ('{}', 'maps/map5')
              local first = provider ({{ op = 'point', x = 512.0, z = 1536.0, winter = true }})
              assert (type (first.elevation) == 'number' and first.stored == true)
-             return pcall (provider, {{ op = 'map', winter = false }})",
+             local ok, err = pcall (provider, {{ op = 'map', winter = false }})
+             return ok, tostring (err)",
             both.root_text()
         ))
         .eval()

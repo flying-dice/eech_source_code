@@ -1,3 +1,45 @@
+# D3 terrain services — generated-grid equality and public authority verified
+
+29 October 2026. Clean runtime c4a56d9a4 has an ordinary Windows build0 and
+all45 exported entries verify before and after the public cases. Its generated
+terrain.sim header and EVERY post match the independent original-generated
+files byte for byte on both retail maps (Lebanon4,202,516bytes; Georgia8,400,916).
+The original20k point/primed/fast comparisons pass on both generated grids; all
+three provided-grid conformance checks pass on each map. Accepted retail files,
+baselines and tolerances are unchanged. Safe audit: production-validation-c4a56d9a4.json
+under eech-campaign/reference/d3-terrain-characterization/.
+
+Public reference and raised cases completed native/controller0, with all pre/post
+inputs unchanged. Reference placement1444/759892.264 and LOS1164/232000.902 equal
+the original; raising host terrain changes both sums. Missing and all six malformed
+provider cases refuse with the specific expected markers, native/controller0.
+Fast calls remain0 in this frame. The all-land analytic generic case FAILED1:
+changed WATER geography removes the required USS TARAWA anchorage (popread.c1696),
+then the campaign parser refuses. It remains a failed input-world variation;
+no swallowed error or acceptance is claimed. A separate reference-backed nohint
+positive driver is prepared, unrun. It removes optional hints/stored metadata;
+legacy hint order dependence may change physical answers in that variant.
+
+Actual Windows engine terrain callback tests pass9/9 and world terrain-related
+unit tests18/18. The Lua refusal harness passes6/6. Backend tests passed16/17;
+one factory test could not deserialize Lua error userdata. The boot-contract
+test failed when its temporary Lua owner was dropped too soon. Root corrected
+only those harness defects; new executions are pending. Setup failures (missing
+old Docker image; ambiguous unit-executable export) remain separately preserved.
+
+Independent c4 review source-closes all four prior shipping P2s. Its remaining
+face-driver season and inaccurate loader wording are corrected in source, along
+with guards for optional native season, compatible nohint replies, and a CI
+compatibility repair preserving the original legacy struct first for unchanged
+text extractors. These are not yet built/reviewed/accepted. All42 Lua sources
+parse; Rust formatting passes. The DLL still loads/generates its separate2D grid,
+and remaining geometry/model/environment/time groups are whole-D3 work.
+
+Task47/PR107 and Epic21 remain In Progress. Final shipping40/eight complete
+Tacview/observation/metric equality, current CI, new-delta independent review and
+normal merge remain required. No candidate full-pack/Tacview equality or D3
+completion is claimed. Earlier at-the-time checkpoints follow.
+
 # D3 terrain services — point handoff smoke passed; corrections in progress
 
 Production G1 source 251bfe15b has a clean ordinary Windows build/controller 0;

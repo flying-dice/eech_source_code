@@ -233,13 +233,25 @@ behaviour remain source-only.
 
 ### Public-provider RED harness
 
-`lua/terrain-provider.lua` boots the real campaign with a `terrain` provider (`reference`, `raised`, `generic`, `missing`, `bad_nil`, `bad_elevation`,
+`lua/terrain-provider.lua` boots the real campaign with a `terrain` provider (`reference`, `raised`, `generic`, `nohint`, `missing`, `bad_nil`, `bad_elevation`,
 `bad_normal`, `bad_type`, `bad_hint`, `bad_error`) and observes only the public surface: the elevation of every mobile handed to `bind_mobile` (boot
 placement), the elevations the campaign reports in the host's line-of-sight dialogue, and the provider's call counts. On the **unmoved** baseline the
 `terrain` key is ignored (the boot reads only the keys it knows), so the run is the contract's RED: the provider is never consulted, `raised` equals
 `reference`, `missing` boots, and no `bad_*` mode fails. After the extraction the script header lists the expected effects. Run it with an external
 `eech-world` built from this source (the shipped a8 bundle has no `host.terrain_open`) against the immutable a8 DLL; the frozen 43-file bundle must
 not be modified.
+
+**Mode `generic` is an input-world variation, and its actual c4 failure is recorded, not caught.** `generic` answers land (type 9) everywhere, which is a different
+geography, not merely a host without hints. The actual c4 Windows run of Lebanon fails at the campaign parser (`USS TARAWA` missing) after 77162 host calls. Root's trace: the
+campaign's own policy source `popread.c` (around line 1696) selects by terrain class WATER; with no water the BLUE TARAWA model and its ANCHORAGE are never placed and a required
+named keysite is absent. That is the campaign legitimately reacting to the world it was given. The mode, its strict assertions and this failed result stay as they are: the failure is
+never an expected boundary refusal, and `generic` is not made to pass. The actual c4 results for `reference` (placement 1444/759892.264, LOS 1164/232000.902, both matching the
+original), `raised` (values change), `missing` and every `bad_*` (native/controller 0, pre and post input manifests 0) are Root's record, not restated here as new evidence.
+
+**Mode `nohint` is the positive test of optional cache hints.** It takes the reference host's physical answers (so the same geography) and removes `hint` and `stored` from every
+point answer (a missing `stored` is read as true), delegating `map` and `fast` unchanged. It is reference-backed, not a data-free analytic world. Its driver guard is in
+`tests/terrain_provider_harness.rs` (in the healthy-mode loop, plus an assertion on the actual script that only the point answer loses the two fields). The actual `nohint`
+runtime on the Windows DLL has not been run; its expected placement and LOS sums are the reference's.
 
 ### Risks and what remains
 
@@ -421,7 +433,11 @@ movement's old test of `terrain_face == NULL` is now `get_3d_terrain_point_data_
 cleared", the same condition as the original's stale non-NULL face pointer (which stays non-NULL after a later no-face or Cuba answer: the original clears only `terrain_sector`
 there, so the client's flag is sticky until `clear_3d_terrain_point_data`). The hint plays no part in it: a host that returns no hint still leaves the record with a face, which
 the reference host reports as `stored = (the record's face pointer is set after the query)` and a generic host as the default `true`. The real predicate is exercised through
-the real client by the fixture entry `terrain_face_probe` (`lua/terrain-has-face.lua`, modes `reference` and `generic`); Root runs it, it has not been run.
+the real client by the fixture entry `terrain_face_probe` (`lua/terrain-has-face.lua`, modes `reference` and `generic`, optional argument `winter=true|false`: omitted means no override and no assertion, the session's actual season being captured). The script takes both the
+season and the map's centre from the boot's own requests and answers (captured by a wrapper around the provider; it asks the provider nothing after boot and forces no season),
+and, when `winter` is given, requires the engine to report that season. `tests/terrain_has_face_harness.rs` runs that real script, unmodified, under a real Lua state with a controlled
+collaborator in both modes and both seasons (a different map per season, a hint-based predicate caught only in the generic mode, a boot that never asked for the map facts, an
+engine reporting the other season); it is a driver guard with no retail asset and does not replace the Root's run of the actual fixture, which has not been run.
 
 Refusals stop the engine with a first-line marker `[terrain-provider:<marker>]` (the Rust bridge in `eech-dc/src/module.rs`, `TERRAIN_BRIDGE`, validates in Lua where
 the values are):
@@ -460,7 +476,7 @@ dimensions, +2 m on land and -5000 on the sea; then the COAST PASS, which moves 
 (`check_coastal_river_intersection` over the coastal paths of `route/rivers.nde`+`rivers.wp`, else `rivdata.*`, in the original's neighbour order, in place and in its
 expressions); then every remaining -5000 becomes `sea_height - 1` = -2) and saves it. `host_terrain_open` now does the same in memory, on its own record, under
 round-toward-zero; the host reads the river files itself (reference host only: a generic or DCS host has no such files and needs none of this). A grid that is GIVEN is used
-as it is and its rivers are not read. It does not write the file; the DLL does not load it either (the 2D-map loader that does is not called by the headless boot).
+as it is and its rivers are not read. The host does not write the file. The DLL still does its own: the headless boot runs `load_3d_terrain_game_data` -> `zone_sc.c` `load_2d_terrain`, which loads `terrain.sim` or, when it is absent, generates the DLL's own grid with `terrsel.c` (its sampling is a series of `get_3d_terrain_point_data` calls, so in the moved build they are questions to the terrain provider, asked while the terrain loads and before the map facts) and saves the file into the installation. That DLL-owned grid and river load are the named transitional 2D-map coupling (G2); the host's grid, generated or loaded from the same file, is a separate one, and nothing here shows the two hold the same values.
 Covered by synthetic-map tests (`a_generated_grid_without_coastal_rivers_ends_sea_posts_at_minus_two`, `a_coastal_river_moves_the_sea_post_beside_the_land_to_the_crossing`,
 the malformed-river and river-discovery tests): they show the arithmetic on a hand-made split map, not equality with the original. **The equality** is
 `terrain_conformance.rs::the_host_generated_grid_equals_the_originals_terrain_sim` (`EECH_TERRAIN_DIR` a grid-less private copy, `EECH_GRID_ORACLE` the original-generated
@@ -502,7 +518,7 @@ of the sector counts: until G2/G3 move, a DCS host cannot satisfy `map.facts`. T
 `eech-dc` unit tests drive the real bridge and answer parsing with Lua providers (exact figures, every marker, the 127/128 hint limit, a raising provider, the fast and map
 operations); `tests/terrain_boot_contract.rs` boots the real module without a provider; `tests/terrain_backend.rs` gains the generated-grid test; the driver guards
 (`terrain_provider_harness.rs`) are unchanged and now describe a contract the DLL implements. Public GREEN to run (Root): `terrain-provider.lua` modes `reference`
-(placement 1444/759892.264 and LOS 1164/232000.902 expected, as measured on the original), `raised` (both sums must change), `generic`, `missing` and each `bad_*`.
+(placement 1444/759892.264 and LOS 1164/232000.902 expected, as measured on the original), `raised` (both sums must change), `nohint` (positive; no optional cache hint, with compatible reference geography; not yet run; legacy hint order dependence may alter physical answers), `missing` and each `bad_*`; `generic` is the recorded all-land variation (above), not a GREEN case.
 
 ### Risks and open items
 

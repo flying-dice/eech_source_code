@@ -40,10 +40,14 @@
  * eech-world/tests/terrain_conformance.rs); this file does not claim a moved-build hash equals an original one, and it does not add a physical-only hash
  * (that would change the oracle format).
  *
- * The fast elevation: `terrain-probe-fast-hash available=` reports whether THIS module's own grid pointer (terrain_3d_simple_elevation_grid) is set. By
- * inspection boot never loads it (the grid is loaded by load_2d_terrain, which the headless boot does not call), and in the moved build the grid is the
- * host's: `available=0` here does not mean the host has no grid. The host's fast elevation is compared by the host-side sweep and by the host-owned
- * conformance tests, not by this probe.
+ * The fast elevation: `terrain-probe-fast-hash available=` reports whether THIS module's own grid pointer (terrain_3d_simple_elevation_grid) is set. The
+ * headless boot does reach the loader that sets it: eech_engine.c load_3d_terrain_game_data -> zone_sc.c load_2d_terrain -> terrmap.c, which loads
+ * terrain.sim or, when it is absent, generates the grid with the DLL's own terrsel.c generate_terrain_simple_elevation (its sampling is a series of
+ * get_3d_terrain_point_data calls, so in the moved build they are questions to the terrain provider, asked while the terrain loads) and saves the file.
+ * That DLL-owned grid is a named transitional coupling (G2, the 2D map), separate from the host's grid. In the moved build the fast-elevation ANSWERS
+ * the probe samples come from the host (get_3d_terrain_fast_elevation is the client's request), while `available` still reports the DLL's own grid: the
+ * two agree only in that both exist, and this probe does not show that they hold the same values. The host's grid is compared by the host-side sweep and by
+ * the host-owned conformance tests, not by this probe.
  *
  * The same script and the same hashes are used before and after any extraction, so a difference is a difference in answers only where the two reports are
  * built the same way (see above). Points are kept at least 1 cm inside the map: the off-map path asserts in the original and is not probed.

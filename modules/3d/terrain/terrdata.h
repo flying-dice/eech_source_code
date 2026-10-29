@@ -334,40 +334,7 @@ typedef struct TERRAIN_3D_SECTOR terrain_3d_sector;
 //
 ////////////////////////////////////////
 
-#ifdef EECH_CAMPAIGN_HOST_TERRAIN
-
-//
-// EEDCS-47 (D3), the headless campaign module: the find-fast record is the campaign's own bookkeeping of what the host told it, and holds no pointer into
-// terrain geometry.  last_elevation, face_normal and terrain_type are the values the host's last answer stored.  hint is the host's opaque state for the
-// record (a bounded string the campaign only keeps and returns: its meaning, if any, is the host's), empty when the record has none.  face_stored is true
-// once an answer has said the record holds a surface (the host says so by value, whether or not it returns a hint), until the record is cleared: it is what
-// the legacy "terrain_face != NULL" test of the fixed-wing movement asks (a stale face stays a face after a later no-face answer).  A zeroed record is a fresh one.
-//
-
-#ifndef CAMPAIGN_TERRAIN_HINT_MAX
-#define CAMPAIGN_TERRAIN_HINT_MAX 127
-#endif
-
-struct TERRAIN_3D_POINT_DATA
-{
-
-	float
-		last_elevation;
-
-	terrain_types
-		terrain_type;
-
-	vec3d
-		face_normal;
-
-	int
-		face_stored;
-
-	char
-		hint [CAMPAIGN_TERRAIN_HINT_MAX + 1];
-};
-
-#else
+#ifndef EECH_CAMPAIGN_HOST_TERRAIN
 
 struct TERRAIN_3D_POINT_DATA
 {
@@ -403,6 +370,39 @@ struct TERRAIN_3D_POINT_DATA
 
 	vec3d
 		face_normal;
+};
+
+#else
+
+//
+// EEDCS-47 (D3), the headless campaign module: the find-fast record is the campaign's own bookkeeping of what the host told it, and holds no pointer into
+// terrain geometry.  last_elevation, face_normal and terrain_type are the values the host's last answer stored.  hint is the host's opaque state for the
+// record (a bounded string the campaign only keeps and returns: its meaning, if any, is the host's), empty when the record has none.  face_stored is true
+// once an answer has said the record holds a surface (the host says so by value, whether or not it returns a hint), until the record is cleared: it is what
+// the legacy "terrain_face != NULL" test of the fixed-wing movement asks (a stale face stays a face after a later no-face answer).  A zeroed record is a fresh one.
+//
+
+#ifndef CAMPAIGN_TERRAIN_HINT_MAX
+#define CAMPAIGN_TERRAIN_HINT_MAX 127
+#endif
+
+struct TERRAIN_3D_POINT_DATA
+{
+
+	float
+		last_elevation;
+
+	terrain_types
+		terrain_type;
+
+	vec3d
+		face_normal;
+
+	int
+		face_stored;
+
+	char
+		hint [CAMPAIGN_TERRAIN_HINT_MAX + 1];
 };
 #endif
 

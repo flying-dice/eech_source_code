@@ -10,7 +10,9 @@
 --
 -- Both must leave a record with a face after a successful point query, and none when fresh and after a clear. Nothing here is tuned to pass.
 --
--- host.args: root, scenario (lebanon_retail default, georgia_retail, georgia), mode (reference default, generic)
+-- host.args: root, scenario (lebanon_retail default, georgia_retail, georgia), mode (reference default, generic), winter (optional: omitted means no override and no
+-- assertion, the season is whatever the session actually has and is captured from the boot; true or false boots with that explicit season and requires the engine
+-- to report it to the provider)
 local function refuse (message)
 	error ("terrain-has-face: " .. message, 0)
 end
@@ -35,35 +37,51 @@ local scenario = scenarios [text_arg ("scenario", "lebanon_retail")]
 if scenario == nil then refuse ("scenario is not lebanon_retail, georgia_retail or georgia") end
 local mode = text_arg ("mode", "reference")
 if mode ~= "reference" and mode ~= "generic" then refuse ("mode is not reference or generic") end
+-- optional: omitted is no override (the session's actual season) and no assertion; an explicit season is booted with and asserted
+local winter
+if args.winter ~= nil then
+	if args.winter ~= "true" and args.winter ~= "false" then refuse ("winter is not true or false") end
+	winter = args.winter == "true"
+end
 
 local reference = host.terrain_provider (root, scenario.map)
-local provider = reference
-if mode == "generic" then
-	provider = function (request)
-		local answer = reference (request)
-		if request.op == "point" then
-			answer.hint = nil
-			answer.stored = nil
-		end
-		return answer
+
+-- The engine tells the provider the season it was booted in (`winter` on every request) and asks the map facts at boot. Both are captured here, from the
+-- boot's own requests and answers, and used below: nothing asks the provider again after boot, so nothing can force a season (or a map) of this script's own.
+local seen_winter, boot_facts
+local function provider (request)
+	if type (request.winter) ~= "boolean" then refuse ("a terrain request carries no boolean winter") end
+	if seen_winter ~= nil and seen_winter ~= request.winter then refuse ("the engine's season changed between terrain requests") end
+	seen_winter = request.winter
+	local answer = reference (request)
+	if request.op == "map" and boot_facts == nil then
+		boot_facts = { min_x = answer.min_x, min_z = answer.min_z, max_x = answer.max_x, max_z = answer.max_z }
 	end
+	if mode == "generic" and request.op == "point" then
+		answer.hint = nil
+		answer.stored = nil
+	end
+	return answer
 end
 
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
 local engine = dc.boot {
 	install_root = root, map = scenario.map, terrain = provider, campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache",
-	seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
+	seed = 1, winter = winter, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
 	supply_reached = host.supply_reached,
 	line_of_sight = host.line_of_sight,
 	sense = host.sense, aim = host.aim,
 }
 
--- the map's centre, from the host's own facts
-local facts = reference { op = "map", winter = false }
-local x = 0.5 * (facts.min_x + facts.max_x)
-local z = 0.5 * (facts.min_z + facts.max_z)
--- the probe takes single-precision positions: pass the nearest single the host will see
+if seen_winter == nil or boot_facts == nil then refuse ("the boot never asked the provider for the map facts: no season or centre to probe") end
+if winter ~= nil and seen_winter ~= winter then
+	refuse (string.format ("the engine reported winter=%s but the boot asked for winter=%s", tostring (seen_winter), tostring (winter)))
+end
+
+-- the map's centre, from the facts the boot's own map question was answered with
+local x = 0.5 * (boot_facts.min_x + boot_facts.max_x)
+local z = 0.5 * (boot_facts.min_z + boot_facts.max_z)
 local report = engine:terrain_face_probe (x, z)
 local fields = {}
 for key, value in string.gmatch (report, "(%S+)=(%S+)") do fields [key] = value end

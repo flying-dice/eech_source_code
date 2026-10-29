@@ -48,7 +48,8 @@ const SCRIPT: &str = r#"
 
 #[test]
 fn a_boot_without_a_terrain_provider_is_refused_with_the_missing_marker() {
-    let results: mlua::Table = host_lua().load(SCRIPT).eval().unwrap();
+    let lua = host_lua();
+    let results: mlua::Table = lua.load(SCRIPT).eval().unwrap();
     let get = |name: &str| results.get::<String>(name).unwrap();
     for name in ["no_terrain", "terrain_number", "terrain_table"] {
         let message = get(name);

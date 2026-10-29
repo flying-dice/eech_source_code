@@ -42,7 +42,7 @@ fn run(mode: &str, boot: &str, frame: &str) -> (Result<(), String>, String) {
             terrain_open = function (spec)
                 return function (request)
                     if request.op == "map" then return {{ sector_x_max = 1 }} end
-                    if request.op == "point" then return {{ elevation = 100, last_elevation = 100, normal = {{ 0, 1, 0 }}, type = 9 }} end
+                    if request.op == "point" then return {{ elevation = 100, last_elevation = 100, normal = {{ 0, 1, 0 }}, type = 9, hint = "h", stored = true }} end
                     return {{ elevation = 100 }}
                 end
             end,
@@ -220,7 +220,7 @@ fn a_missing_provider_is_accepted_only_as_the_missing_marker_at_boot() {
 
 #[test]
 fn a_healthy_mode_fails_on_any_failure_and_on_a_provider_that_is_never_asked() {
-    for mode in ["reference", "raised", "generic"] {
+    for mode in ["reference", "raised", "nohint", "generic"] {
         let summary = must_pass(mode, run(mode, r#"pcall (config.terrain, { op = "point", x = 1.0, z = 2.0 })"#, ""));
         assert!(
             summary.contains(&format!("\"frames_completed\":{FRAMES}")) && summary.contains(&format!("\"frames_requested\":{FRAMES}")),
@@ -242,4 +242,44 @@ fn a_healthy_mode_fails_on_any_failure_and_on_a_provider_that_is_never_asked() {
         // the unmoved baseline's red: it boots and runs, and never consults the provider
         must_fail(mode, "never consulted", run(mode, "", ""));
     }
+}
+
+/// `nohint` is the reference's physical answers without the optional cache state: the point answer loses `hint` and `stored` (the stand-in reference gives
+/// both, and `reference` mode passes them on), while the map and fast answers are the reference's, untouched. The assertions run in the collaborator's boot, on
+/// what the script's provider returns, so a failed one is a boot failure of the real script.
+#[test]
+fn the_nohint_mode_removes_only_the_hint_and_stored_from_point_answers() {
+    let ask = r#"
+        local point = config.terrain ({ op = "point", x = 1.0, z = 2.0 })
+        local map = config.terrain ({ op = "map" })
+        local fast = config.terrain ({ op = "fast", x = 1.0, z = 2.0 })
+        assert (point.elevation == 100 and point.last_elevation == 100 and point.type == 9 and point.normal [2] == 1, "the physical point answer changed")
+        assert (map.sector_x_max == 1 and fast.elevation == 100, "map or fast changed")
+    "#;
+    must_pass(
+        "reference control",
+        run(
+            "reference",
+            &format!(r#"{ask} assert (point.hint == "h" and point.stored == true, "the stand-in gives no hint")"#),
+            "",
+        ),
+    );
+    must_pass(
+        "nohint",
+        run(
+            "nohint",
+            &format!(r#"{ask} assert (point.hint == nil and point.stored == nil, "nohint kept the hint or stored")"#),
+            "",
+        ),
+    );
+    // the check bites: the same assertion fails on the reference, which keeps both
+    must_fail(
+        "nohint check on reference",
+        "nohint kept the hint or stored",
+        run(
+            "reference",
+            &format!(r#"{ask} assert (point.hint == nil and point.stored == nil, "nohint kept the hint or stored")"#),
+            "",
+        ),
+    );
 }
