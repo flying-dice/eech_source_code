@@ -1,3 +1,26 @@
+# Current D3 correction — EEDCS-50 diagnostic-driver response validation (29 October 2026): SOURCE ONLY, UNBUILT, UNRUN
+
+Measured (Root, fixture `366622e0c08b2caaa5a5317f5197c0ee3d7050e9`, original DLL): three retail catalogues of 3,025 scenes each and eleven selected scenes per root run through the
+real host Lua → public `eech_dc` → original accessors, with the first-measurement results in the checkpoint below and in `eech-campaign/reference/d3-model-characterization/`. The sole
+independent reviewer confirmed one P2 on the diagnostic Lua driver and no other defect in the C, FFI or observer on the verified loaded-table contract. That P2 was reproduced against the actual
+original DLL by corrupting only the report text (a `safe` header with an invented zero-call `original_false` end; a count-correct catalogue page with a repeated scene id): both were accepted with
+`done failures=0`.
+
+This correction (new, not measured, not reviewed): `lua/model-characterization.lua` now validates every reply as a report (shape, identity, order, cardinality, completion; never geometry
+mathematics) and refuses, with a `report-refused` row and an error before any `done`, what it cannot support; genuine absent / refused / unbacked / capped / partial-write outcomes are kept as
+what they are. New portable guards `crates/eech-world/tests/model_characterization.rs` run the real driver under the real host Lua against a response stand-in (healthy multi-page, absent,
+refused, empty, unbacked, capped and anomaly cases accepted; the two measured controls and about 60 other malformed replies refused; argument / synthetic-database / existing-output refusals
+before boot). They are response-contract tests, not physics and not loader proof. Changed in this correction: the driver, the new test file, `docs/m5-model-characterization.md` and this record.
+No C, Rust product, FFI, feature API, parser or host-loader source changed; `eech_engine.c` (one NUL) is untouched. Nothing was compiled, linted or run in this lane, and the new Lua and Rust
+are checked only by reading.
+
+Source identity: the driver and test are not native build inputs, so the `366622e0c` DLL is reusable only if the Root verifies the exact C/Rust native-source identity first; it must not be relabelled
+as a new build. Next (Root): Linux and Windows guards; the same two corruption controls red → green against the corrected driver; the three retail measurements rerun and compared with the first;
+a focused review of the changed source. No independent closure of this correction exists yet. Original Task 47 shipping run 115 remains live and unaccepted. Remaining whole-D3 requirements are
+unchanged: custom-object and mixed-layout original characterisation (14 custom and 45 layout-mismatch scenes were refused, not decoded), the host-owned read-only model data and loader/geometry
+move (next, not dropped), model hierarchy / viewpoint / device / muzzle / target-point services, entity collision, environment and host-time services, and removal of the physical solvers and
+loaders from EECH_DC. Campaign policy, geography, routes, timers and consequences stay in EECH_DC. D4 and D5 have not started. The earlier source-preparation paragraphs below are historical.
+
 # D3 checkpoint — model fixture built; three retail catalogues measured
 
 EEDCS-50 / draft PR110, measured source `366622e0c08b2caaa5a5317f5197c0ee3d7050e9`.

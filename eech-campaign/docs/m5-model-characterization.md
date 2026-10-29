@@ -105,15 +105,51 @@ Exit 3 with `NOT RUN: <reason>` means a prerequisite is absent (no binaries, no 
 * `provenance database=retail`; `catalogue` pages each carry exactly the requested number of `model-scene` rows, and the pages cover `1 .. scene_last-1` once.
 * `catalogue-status` rows show positive (`safe`) and absent cases; the Root chooses real campaign-used vehicle and building scenes from `uses > 0` and the status, and records the
   families and counts actually found. If none is `safe`, that is a finding with the refusal reasons, not a fixture failure.
-* every `model-tri` row has `return` 0 or 1; `return=1` rows have `writes=9`; `return=0` rows have `writes=0`; depths ascend from the page start by one; the walk ends in `model-end`
-  (`original_false`, `end_probe_unbacked` or `beyond_safe_bound`) or is explicitly `model-capped`; a `capped` or `unbacked` model is not a full capture.
+* every `model-tri` row has `return` 0 or 1, `writes` 0..9 agreeing with its nine coordinate words (`p` present exactly when `writes` > 0, `writes` equal to the words that differ from
+  the buffer sentinel); depths ascend from the page start by one; a false return is followed at once by its `original_false` end. A false that nevertheless wrote, or a true that wrote
+  fewer than nine words, is the original's own behaviour: it is recorded and left for the Root to read, not refused. The walk ends in `model-end` (`original_false`,
+  `end_probe_unbacked` or `beyond_safe_bound`) or is explicitly `model-capped`; a `capped` or `unbacked` model is not a full capture.
 * `model tables unchanged` and `clock unchanged` checks pass; `model-state` before and after are identical.
 * run 1 and a repeated run on a fresh root produce identical catalogue and geometry rows (the float bit patterns), or the difference is reported.
 
+## Diagnostic report validation (correction after the first original measurement; UNBUILT, UNRUN)
+
+The first measurement (fixture `366622e0c`, three retail catalogues and selected geometry) showed the driver trusting its replies: two controls, made against the original DLL by
+corrupting the reply text only, were accepted with `done failures=0`: a `safe` header followed by an invented `original_false` end with zero calls and no triangles, and a catalogue
+page of the right size whose scene identities repeated. The native code, the safety analysis and the numeric readers were not at fault; the DLL's own argument checks reject
+non-integral values (including `1.0000000000000002`), and that was not changed.
+
+`lua/model-characterization.lua` now reads each reply as a report before believing it. A reply that fails writes a `report-refused` row (the offending rows are already in the output
+before it), closes the file and stops with an error before any `done`. What is checked is shape, identity, order, cardinality and completion, never the geometry:
+
+* **summary / state / clock**: exactly one well-formed row (whole-number sizes, 16-digit hashes, a clock with its three fields); an empty or missing reply is refused.
+* **catalogue page**: the header echoes `first`, `count` and `scene_last`; exactly `count` `model-scene` rows follow, scene `first` upward each once and in order, none repeated, none foreign,
+  each with the metadata the fixture always writes (name, whole numbers, a verdict from the finite set the fixture can write, float bit patterns for radius and bounds, `uses`/`use_types`
+  agreeing, `absent` exactly when the collision index is -1, and for a callable model its `fan_bound`, `end_read_backed` and `max_depth`).
+* **geometry page**: the header echoes `scene`, `first` and `count`, is well formed, and keeps the model's identity from page to page. An `absent` model is exactly one false, writeless call
+  at the requested depth; a refused verdict is exactly one `model-refused` row naming the same scene, status and detail and no call. For a callable model the depths are contiguous from
+  the page start; the reply ends in one terminal row for the same scene at the depth reached, with a reason its rows support: `original_false` only immediately after an original call
+  that returned false at that depth (an invented one with zero calls is refused), `end_probe_unbacked` only for a model whose end read is unbacked at `fan_bound`,
+  `beyond_safe_bound` only beyond the backed range and not at `fan_bound`; the closing row names the same scene and its call count equals the rows. A page with no terminal row must hold
+  exactly the requested number of calls. Truncated, repeated, skipped, reordered, post-false, extra and contradictory rows are refused.
+
+Explicit genuine outcomes are accepted as what they are (absence, refusal, an unbacked end, a capped walk, an original false at any depth, a partial write), with their limitations
+unchanged. `fan_bound` is used only to check that the fixture's own gate rows are self-consistent; it is never compared with where the original returned false.
+
+Portable guards (`crates/eech-world/tests/model_characterization.rs`) run the REAL driver under the real host Lua against a stand-in `eech_dc` that formats this report protocol from a
+table of ten invented scenes and corrupts one reply per case. They are response-contract tests only: they say nothing about what a retail model contains and prove neither the C
+analysis nor a loader. They cover a healthy run (three catalogue pages with a short last, multi-page geometry, absent, refused, empty, an unbacked end, a false on a later page's first row,
+an end inside the first page, a capped walk), the two measured controls, about 60 malformed replies (catalogue, summary, state, clock, geometry; see the test table), accepted original
+anomalies, a changed model state (still a failed check, as before), a refusal that stops the run before it asks anything further, and the argument / synthetic-database / existing-output
+refusals before boot. They have not been compiled or run.
+
 ## Not done / next unmet measurements
 
-Not built, not run, not reviewed. Next, in order: (1) the Root builds the fixture on a clean tree and verifies BUILD-INFO and flags; (2) the catalogue run on fresh verified Georgia and
-Lebanon roots, with input post-checks; (3) the Root selects real vehicle and building scenes and records them; (4) the selected geometry runs, full triangle lists, repeated;
-(5) only then host-owned read-only model data and the loader/geometry implementation (private legacy layout inside, public Lua semantic only), reusing these scenarios against the new
-path. Remaining D3 scope outside this step: model hierarchy, viewpoint, device, muzzle and target-point services, and the whole terrain/spatial/environment/host-time set.
-The whole-engine DLL still couples D3 to the original C model code; that coupling is not removed by this probe.
+Original measurements exist for fixture `366622e0c` (see `reference/d3-model-characterization/` and STATUS.md); the diagnostic-driver correction above is UNBUILT and UNRUN, and no
+independent review has closed it. Next: the Root runs the portable guards on Linux and Windows and replays the same two corruption controls against the corrected driver (red, then
+green), reruns the three retail measurements with it and compares them with the first, and verifies the exact C/Rust native-source identity before reusing the `366622e0c` DLL (a driver-only
+change is not a new native build and must not be relabelled as one). Still open, whole-D3 requirements: the custom-object and mixed-layout original cases (14 custom objects and 45
+face-layout mismatches were refused, not decoded); the host-owned read-only model data and the loader/geometry implementation (private legacy layout inside, public Lua semantic only),
+reusing these scenarios against the new path; model hierarchy, viewpoint, device, muzzle and target-point services; entity collision and the terrain / environment / host-time services
+and the physical solver/loader removal from EECH_DC. Campaign policy, geography, routes, timers and consequences stay in EECH_DC. The whole-engine DLL still couples D3 to the
+original C model code; this probe does not remove that coupling.
