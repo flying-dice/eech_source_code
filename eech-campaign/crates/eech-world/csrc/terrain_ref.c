@@ -2382,11 +2382,15 @@ void host_terrain_close (host_terrain *map)
 		free (map);
 	}
 }
-static int host_terrain_generate_grid (host_terrain *map, char *error, size_t error_size);
+struct host_rivers;
+static int host_terrain_generate_grid (host_terrain *map, const struct host_rivers *rivers, char *error, size_t error_size);
+static int host_terrain_build_grid (host_terrain *map, const uint8_t *river_nodes, size_t river_node_length, const uint8_t *river_paths, size_t river_path_length, char *error,
+	size_t error_size);
 
 
 /* terrdata.c load_3d_terrain, for the facts and sectors the solver reads, from memory. The file offsets are into `geometry` (terrain.ffp). */
 host_terrain *host_terrain_open (const uint8_t *sector, size_t sector_length, const uint8_t *geometry, size_t geometry_length, const uint8_t *grid, size_t grid_length,
+	const uint8_t *river_nodes, size_t river_node_length, const uint8_t *river_paths, size_t river_path_length,
 	int32_t map_number, uint64_t map_key, char *error, size_t error_size)
 {
 	host_terrain *map;
@@ -2631,7 +2635,7 @@ host_terrain *host_terrain_open (const uint8_t *sector, size_t sector_length, co
 		map->facts.fast_x_grid = gx;
 		map->facts.fast_z_grid = gz;
 	}
-	else if (host_terrain_generate_grid (map, error, error_size))
+	else if (host_terrain_build_grid (map, river_nodes, river_node_length, river_paths, river_path_length, error, error_size))
 	{
 		/* a map with no terrain.sim: the original generates the grid at load from the point query (and saves it); so does the host, in memory */
 		host_terrain_close (map);
@@ -2659,18 +2663,446 @@ static void host_terrain_enter (const host_terrain *map)
 	current_terrain_version.map_number = map->facts.map_number;
 }
 
+
+/*
+ * The coastal rivers the original's grid generation reads (terrmap.c load_2d_terrain_contour_river_data): the river nodes (route/rivers.nde, or rivdata.nde when
+ * there is no rivers.nde) and the river paths (rivers.wp / rivdata.wp), each a count followed by little-endian records.  Only the paths of type
+ * TEMP_TERRAIN_TYPE_COASTAL_RIVER matter to the grid (check_coastal_river_intersection), and only a grid that is generated reads them; a path of any other
+ * type is read past and ignored.  The original trusts the files; here a count or an index that does not fit the file is an error.
+ */
+typedef struct host_river_path
+{
+	int from, to, type, count;
+	const float *points; /* count x (x, y, z), into point_store */
+} host_river_path;
+
+typedef struct host_rivers
+{
+	int node_count;
+	float *nodes; /* node_count x (x, y, z) */
+	int path_count;
+	host_river_path *paths;
+	float *point_store;
+} host_rivers;
+
+static void host_rivers_free (host_rivers *rivers)
+{
+	free (rivers->nodes);
+	free (rivers->paths);
+	free (rivers->point_store);
+	memset (rivers, 0, sizeof (*rivers));
+}
+
+static int host_rivers_load (const uint8_t *node_bytes, size_t node_length, const uint8_t *path_bytes, size_t path_length, host_rivers *rivers, char *error, size_t error_size)
+{
+	struct cursor n, p, second;
+	uint64_t total = 0;
+	int i, k;
+	float *store;
+
+	memset (rivers, 0, sizeof (*rivers));
+
+	n.p = node_bytes;
+	n.end = node_bytes + node_length;
+	n.bad = FALSE;
+	rivers->node_count = (int) read_u (&n, 4);
+
+	if (n.bad || rivers->node_count < 0 || (uint64_t) rivers->node_count * 12u > (uint64_t) (n.end - n.p))
+	{
+		return fail (error, error_size, "terrain: the river node file is malformed (%d nodes in %zu bytes)", rivers->node_count, node_length);
+	}
+
+	if (rivers->node_count)
+	{
+		rivers->nodes = (float *) malloc ((size_t) rivers->node_count * 3 * sizeof (float));
+
+		if (!rivers->nodes)
+		{
+			return fail (error, error_size, "terrain: out of memory");
+		}
+
+		for (i = 0; i < rivers->node_count * 3; i++)
+		{
+			rivers->nodes[i] = read_f (&n);
+		}
+	}
+
+	p.p = path_bytes;
+	p.end = path_bytes + path_length;
+	p.bad = FALSE;
+	rivers->path_count = (int) read_u (&p, 4);
+
+	if (p.bad || rivers->path_count < 0 || (uint64_t) rivers->path_count * 16u > (uint64_t) (p.end - p.p))
+	{
+		{
+			int declared = rivers->path_count;
+
+			host_rivers_free (rivers);
+
+			return fail (error, error_size, "terrain: the river path file is malformed (%d paths in %zu bytes)", declared, path_length);
+		}
+	}
+
+	second = p;
+
+	/* the first pass reads each header and steps over its points, to size the store (as the original's does) */
+	for (i = 0; i < rivers->path_count; i++)
+	{
+		int count;
+
+		(void) read_u (&p, 4);
+		(void) read_u (&p, 4);
+		(void) read_u (&p, 4);
+		count = (int) read_u (&p, 4);
+
+		if (p.bad || count < 0 || (uint64_t) count * 12u > (uint64_t) (p.end - p.p))
+		{
+			host_rivers_free (rivers);
+
+			return fail (error, error_size, "terrain: river path %d does not fit its file", i);
+		}
+
+		p.p += (size_t) count * 12u;
+		total += (uint64_t) count;
+	}
+
+	rivers->paths = (host_river_path *) calloc ((size_t) rivers->path_count + 1, sizeof (host_river_path));
+	rivers->point_store = (float *) malloc (((size_t) total + 1) * 3 * sizeof (float));
+
+	if (!rivers->paths || !rivers->point_store)
+	{
+		host_rivers_free (rivers);
+
+		return fail (error, error_size, "terrain: out of memory");
+	}
+
+	store = rivers->point_store;
+
+	for (i = 0; i < rivers->path_count; i++)
+	{
+		host_river_path *path = &rivers->paths[i];
+
+		path->from = (int) read_u (&second, 4);
+		path->to = (int) read_u (&second, 4);
+		path->type = (int) read_u (&second, 4);
+		path->count = (int) read_u (&second, 4);
+		path->points = store;
+
+		for (k = 0; k < path->count * 3; k++)
+		{
+			*store++ = read_f (&second);
+		}
+
+		/* only a coastal river is read by the grid, and it must name nodes the file has */
+		if (path->type == TEMP_TERRAIN_TYPE_COASTAL_RIVER && (path->from < 0 || path->from >= rivers->node_count || path->to < 0 || path->to >= rivers->node_count))
+		{
+			host_rivers_free (rivers);
+
+			return fail (error, error_size, "terrain: coastal river path %d names a node the node file does not have", i);
+		}
+	}
+
+	return 0;
+}
+
+typedef struct host_vec2d
+{
+	float x, y;
+} host_vec2d;
+
+/* vector.c line_line_2d_intercept, verbatim but for the types */
+static int host_line_line_2d_intercept (const host_vec2d *p1, const host_vec2d *p2, const host_vec2d *q1, const host_vec2d *q2, host_vec2d *intercept_point)
+{
+	float
+		ax1, ax2, ay1, ay2,
+		bx1, bx2, by1, by2,
+		dax, day,
+		dbx, dby;
+
+	float
+		x, y,
+		s, t,
+		ma, mb,
+		ca, cb;
+
+	ax1 = p1->x;
+	ay1 = p1->y;
+	ax2 = p2->x;
+	ay2 = p2->y;
+
+	bx1 = q1->x;
+	by1 = q1->y;
+	bx2 = q2->x;
+	by2 = q2->y;
+
+	dax = ax2 - ax1;
+	day = ay2 - ay1;
+
+	dbx = bx2 - bx1;
+	dby = by2 - by1;
+
+	//
+	// check for verticals
+	//
+
+	if ( ( dax == 0.0 ) && ( dbx == 0.0 ) )
+	{
+		return FALSE;
+	}
+
+	if ( dax == 0.0 )
+	{
+		x = ax1;
+
+		mb = dby / dbx;
+
+		cb = by1 - ( mb * bx1 );
+
+		y = ( mb * x ) + cb;
+	}
+	else if ( dbx == 0.0 )
+	{
+		x = bx1;
+
+		ma = day / dax;
+
+		ca = ay1 - ( ma * ax1 );
+
+		y = ( ma * x ) + ca;
+	}
+	else
+	{
+		//
+		// find gradients
+		//
+
+		ma = day / dax;
+		mb = dby / dbx;
+
+		if ( ma == mb )
+		{
+			// lines are parallel
+
+			return FALSE;
+		}
+
+		//
+		// find constants
+		//
+
+		ca = ay1 - ( ma * ax1 );
+		cb = by1 - ( mb * bx1 );
+
+		//
+		// find intercept points
+		//
+
+		x = ( cb - ca ) / ( ma - mb );
+		y = ( ma * x ) + ca;
+	}
+
+	intercept_point->x = x;
+	intercept_point->y = y;
+
+	//
+	// now work out if the lines actually cross
+	//
+
+	// line a
+
+	if ( fabs( day ) > fabs( dax ) )
+	{
+		s = ( y - ay1 ) / day;
+	}
+	else
+	{
+		s = ( x - ax1 ) / dax;
+	}
+
+	// line b
+
+	if ( fabs( dby ) > fabs( dbx ) )
+	{
+		t = ( y - by1 ) / dby;
+	}
+	else
+	{
+		t = ( x - bx1 ) / dbx;
+	}
+
+	//
+	// if the intercept point lies on both lines then return TRUE ( i.e. the lines cross )
+	//
+
+	if ( ( t >= 0.0 ) && ( t <= 1.0 ) )
+	{
+		if ( ( s >= 0.0 ) && ( s <= 1.0 ) )
+		{
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+/* terrmap.c check_coastal_river_intersection, expression for expression, over the coastal paths loaded above */
+static float host_check_coastal_river_intersection (const host_rivers *rivers, float x1, float z1, float x2, float z2)
+{
+	int
+		count;
+
+	float
+		dx,
+		dy,
+		t;
+
+	host_vec2d
+		pt1,
+		pt2,
+		pt3,
+		pt4,
+		intercept_point;
+
+	//
+	// Go through all the coastal rivers checking the lines against this edge
+	//
+
+	pt1.x = x1;
+	pt1.y = z1;
+
+	pt2.x = x2;
+	pt2.y = z2;
+
+	dx = fabs ( x2 - x1 );
+	dy = fabs ( z2 - z1 );
+
+	t = -1;
+
+	for ( count = 0; count < rivers->path_count; count++ )
+	{
+		const host_river_path *path = &rivers->paths[count];
+
+		if ( path->type == TEMP_TERRAIN_TYPE_COASTAL_RIVER )
+		{
+			const float *from = rivers->nodes + 3 * (size_t) path->from;
+			const float *to = rivers->nodes + 3 * (size_t) path->to;
+
+			if ( path->count == 0 )
+			{
+				pt3.x = from[0];
+				pt3.y = from[2];
+
+				pt4.x = to[0];
+				pt4.y = to[2];
+
+				if ( host_line_line_2d_intercept ( &pt1, &pt2, &pt3, &pt4, &intercept_point ) )
+				{
+					if ( dx > dy )
+					{
+						t = ( intercept_point.x - pt1.x ) / ( pt2.x - pt1.x );
+					}
+					else
+					{
+						t = ( intercept_point.y - pt1.y ) / ( pt2.y - pt1.y );
+					}
+
+					return ( t );
+				}
+			}
+			else
+			{
+				const float
+					*sub_positions;
+
+				int
+					sub_count;
+
+				sub_positions = path->points;
+
+				sub_count = 0;
+
+				pt3.x = from[0];
+				pt3.y = from[2];
+
+				pt4.x = sub_positions[0];
+				pt4.y = sub_positions[2];
+
+				if ( host_line_line_2d_intercept ( &pt1, &pt2, &pt3, &pt4, &intercept_point ) )
+				{
+					if ( dx > dy )
+					{
+						t = ( intercept_point.x - pt1.x ) / ( pt2.x - pt1.x );
+					}
+					else
+					{
+						t = ( intercept_point.y - pt1.y ) / ( pt2.y - pt1.y );
+					}
+
+					return ( t );
+				}
+
+				for ( sub_count = 0; sub_count < ( path->count - 1 ); sub_count++ )
+				{
+					pt3.x = sub_positions[3 * sub_count];
+					pt3.y = sub_positions[3 * sub_count + 2];
+
+					pt4.x = sub_positions[3 * ( sub_count + 1 )];
+					pt4.y = sub_positions[3 * ( sub_count + 1 ) + 2];
+
+					if ( host_line_line_2d_intercept ( &pt1, &pt2, &pt3, &pt4, &intercept_point ) )
+					{
+						if ( dx > dy )
+						{
+							t = ( intercept_point.x - pt1.x ) / ( pt2.x - pt1.x );
+						}
+						else
+						{
+							t = ( intercept_point.y - pt1.y ) / ( pt2.y - pt1.y );
+						}
+
+						return ( t );
+					}
+				}
+
+				pt3.x = sub_positions[3 * sub_count];
+				pt3.y = sub_positions[3 * sub_count + 2];
+
+				pt4.x = to[0];
+				pt4.y = to[2];
+
+				if ( host_line_line_2d_intercept ( &pt1, &pt2, &pt3, &pt4, &intercept_point ) )
+				{
+					if ( dx > dy )
+					{
+						t = ( intercept_point.x - pt1.x ) / ( pt2.x - pt1.x );
+					}
+					else
+					{
+						t = ( intercept_point.y - pt1.y ) / ( pt2.y - pt1.y );
+					}
+
+					return ( t );
+				}
+			}
+		}
+	}
+
+	return ( -1 );
+}
 /*
  * terrsel.c generate_terrain_simple_elevation (256.0), for a map that has no terrain.sim.  The original builds the fast grid at load by asking the point
  * query for every gridpost, on the shared record, in this order (x fastest), and then saves the file; the host does the same with its own record (cleared
  * at the start, as the original's shared record is cleared when a map is loaded) and keeps the grid in memory instead of writing it into the installation.
- * The expressions, the power-of-two rounding of the dimensions and the sea rule (a sea gridpost is -5000, any other is its elevation plus 2) are the
- * original's, kept in order; the sampling runs under round-toward-zero as the engine's does.
+ * The expressions, the power-of-two rounding of the dimensions and the sampling rule (a sea gridpost is -5000, any other is its elevation plus 2) are the
+ * original's, kept in order, and so is the postprocessing: the coast pass (a sea post beside a land post that a coastal river crosses between is moved to the
+ * crossing, in place and in the original's neighbour order) and then every remaining -5000 becomes sea_height - 1 (-2). The arithmetic runs under
+ * round-toward-zero as the engine's does.
  */
-static int host_terrain_generate_grid (host_terrain *map, char *error, size_t error_size)
+static int host_terrain_generate_grid (host_terrain *map, const struct host_rivers *rivers, char *error, size_t error_size)
 {
 	const float elevation_grid_size = 256.0f;
 	int x_size, z_size, x_grid, z_grid, power, x_rounded, z_rounded;
-	float x_elevation_grid_size, z_elevation_grid_size;
+	float x_elevation_grid_size, z_elevation_grid_size, sea_height;
 	terrain_3d_point_data record;
 	fenv_t saved;
 	float *grid;
@@ -2780,6 +3212,162 @@ static int host_terrain_generate_grid (host_terrain *map, char *error, size_t er
 		}
 	}
 
+
+	//
+	// Now go through detecting the coast line (terrsel.c, in the original's order, in place: a post the pass has already adjusted is a neighbour's height2)
+	//
+
+	sea_height = -1;
+
+	for ( z_grid = 0; z_grid < z_size; z_grid++ )
+	{
+		for ( x_grid = 0; x_grid < x_size; x_grid++ )
+		{
+			float
+				height1,
+				height2;
+
+			height1 = grid[((size_t)z_grid*x_size)+x_grid];
+
+			if ( height1 == -5000 )
+			{
+				int
+					checked;
+
+				float
+					t,
+					x1,
+					z1;
+
+				checked = FALSE;
+
+				x1 = x_grid * x_elevation_grid_size;
+				z1 = z_grid * z_elevation_grid_size;
+
+				if ( ( !checked ) && ( z_grid < ( z_size - 1 ) ) && ( x_grid < ( x_size - 1 ) ) )
+				{
+					height2 = grid[(((size_t)(z_grid+1)*x_size)+x_grid+1)];
+
+					if ( height2 > 0 )
+					{
+						t = host_check_coastal_river_intersection ( rivers, x1, z1, x1 + x_elevation_grid_size, z1 + z_elevation_grid_size );
+
+						if ( t != -1.0 )
+						{
+							height1 = ( sea_height - ( t * height2 ) ) / ( 1.0f - t );
+
+							checked = TRUE;
+						}
+					}
+				}
+
+				if ( ( !checked ) && ( z_grid > 0 ) && ( x_grid > 0 ) )
+				{
+					height2 = grid[(((size_t)(z_grid-1)*x_size)+x_grid-1)];
+
+					if ( height2 > 0 )
+					{
+						t = host_check_coastal_river_intersection ( rivers, x1, z1, x1 - x_elevation_grid_size, z1 - z_elevation_grid_size );
+
+						if ( t != -1.0 )
+						{
+							height1 = ( sea_height - ( t * height2 ) ) / ( 1.0f - t );
+
+							checked = TRUE;
+						}
+					}
+				}
+
+				if ( ( !checked ) && ( z_grid > 0 ) )
+				{
+					height2 = grid[(((size_t)(z_grid-1)*x_size)+x_grid)];
+
+					if ( height2 > 0 )
+					{
+						t = host_check_coastal_river_intersection ( rivers, x1, z1, x1, z1 - z_elevation_grid_size );
+
+						if ( t != -1.0 )
+						{
+							height1 = ( sea_height - ( t * height2 ) ) / ( 1.0f - t );
+
+							checked = TRUE;
+						}
+					}
+				}
+
+				if ( ( !checked ) && ( x_grid > 0 ) )
+				{
+					height2 = grid[(((size_t)z_grid*x_size)+x_grid-1)];
+
+					if ( height2 > 0 )
+					{
+						t = host_check_coastal_river_intersection ( rivers, x1, z1, x1 - x_elevation_grid_size, z1 );
+
+						if ( t != -1.0 )
+						{
+							height1 = ( sea_height - ( t * height2 ) ) / ( 1.0f - t );
+
+							checked = TRUE;
+						}
+					}
+				}
+
+				if ( ( !checked ) && ( x_grid < ( x_size - 1 ) ) )
+				{
+					height2 = grid[(((size_t)z_grid*x_size)+x_grid+1)];
+
+					if ( height2 > 0 )
+					{
+						t = host_check_coastal_river_intersection ( rivers, x1, z1, x1 + x_elevation_grid_size, z1 );
+
+						if ( t != -1.0 )
+						{
+							height1 = ( sea_height - ( t * height2 ) ) / ( 1.0f - t );
+
+							checked = TRUE;
+						}
+					}
+				}
+
+				if ( ( !checked ) && ( z_grid < ( z_size - 1 ) ) )
+				{
+					height2 = grid[(((size_t)(z_grid+1)*x_size)+x_grid)];
+
+					if ( height2 > 0 )
+					{
+						t = host_check_coastal_river_intersection ( rivers, x1, z1, x1, z1 + z_elevation_grid_size );
+
+						if ( t != -1.0 )
+						{
+							height1 = ( sea_height - ( t * height2 ) ) / ( 1.0f - t );
+
+							checked = TRUE;
+						}
+					}
+				}
+
+				if ( checked )
+				{
+					grid[(((size_t)z_grid*x_size)+x_grid)] = height1;
+				}
+			}
+		}
+	}
+
+	//
+	// Now bring the sea points into line
+	//
+
+	for ( z_grid = 0; z_grid < z_size; z_grid++ )
+	{
+		for ( x_grid = 0; x_grid < x_size; x_grid++ )
+		{
+			if ( grid[(((size_t)z_grid*x_size)+x_grid)] == -5000 )
+			{
+				grid[(((size_t)z_grid*x_size)+x_grid)] = sea_height -1;
+			}
+		}
+	}
 	fesetenv ( &saved );
 
 	map->generated = grid;
@@ -2789,6 +3377,72 @@ static int host_terrain_generate_grid (host_terrain *map, char *error, size_t er
 	map->facts.fast_height = z_size;
 	map->facts.fast_x_grid = x_elevation_grid_size;
 	map->facts.fast_z_grid = z_elevation_grid_size;
+
+	return 0;
+}
+
+/* the generated grid: the coastal rivers, when the map has river files, then the generation itself (terrsel.c order: rivers load before the grid) */
+static int host_terrain_build_grid (host_terrain *map, const uint8_t *river_nodes, size_t river_node_length, const uint8_t *river_paths, size_t river_path_length, char *error,
+	size_t error_size)
+{
+	host_rivers rivers;
+	int rc;
+
+	memset (&rivers, 0, sizeof (rivers));
+
+	if (river_nodes && river_paths && host_rivers_load (river_nodes, river_node_length, river_paths, river_path_length, &rivers, error, error_size))
+	{
+		return -1;
+	}
+
+	rc = host_terrain_generate_grid (map, &rivers, error, error_size);
+
+	host_rivers_free (&rivers);
+
+	return rc;
+}
+
+/* The fast grid exactly as terrain.sim holds it (a header of i32 width and height and f32 x and z sizes, then the f32 posts): a diagnostic snapshot for comparing
+   a generated grid with the original's file. `out` must hold host_terrain_grid_size bytes. */
+size_t host_terrain_grid_size (const host_terrain *map)
+{
+	return map->grid ? 16 + (size_t) map->facts.fast_width * (size_t) map->facts.fast_height * 4 : 0;
+}
+
+int host_terrain_copy_grid (const host_terrain *map, uint8_t *out, size_t capacity, char *error, size_t error_size)
+{
+	size_t size = host_terrain_grid_size (map), i;
+	int32_t header[2];
+	float sizes[2];
+
+	if (!size || capacity < size)
+	{
+		return fail (error, error_size, "terrain: the grid snapshot needs %zu bytes and a grid (got %zu)", size, capacity);
+	}
+
+	header[0] = map->facts.fast_width;
+	header[1] = map->facts.fast_height;
+	sizes[0] = map->facts.fast_x_grid;
+	sizes[1] = map->facts.fast_z_grid;
+
+	for (i = 0; i < 2; i++)
+	{
+		uint32_t bits;
+
+		memcpy (&bits, &header[i], 4);
+		out[4 * i] = (uint8_t) bits;
+		out[4 * i + 1] = (uint8_t) (bits >> 8);
+		out[4 * i + 2] = (uint8_t) (bits >> 16);
+		out[4 * i + 3] = (uint8_t) (bits >> 24);
+		memcpy (&bits, &sizes[i], 4);
+		out[8 + 4 * i] = (uint8_t) bits;
+		out[8 + 4 * i + 1] = (uint8_t) (bits >> 8);
+		out[8 + 4 * i + 2] = (uint8_t) (bits >> 16);
+		out[8 + 4 * i + 3] = (uint8_t) (bits >> 24);
+	}
+
+	/* the posts are copied as the little-endian bytes the file holds (this host is little-endian, as the original's) */
+	memcpy (out + 16, map->grid, size - 16);
 
 	return 0;
 }
@@ -2969,6 +3623,8 @@ int host_terrain_query (const host_terrain *map, float x, float z, const host_te
 	out->clamped = host_note_clamped;
 	out->cuba = host_note_cuba;
 	out->nan_position = host_note_nan;
+
+	out->stored = record.terrain_face != NULL;
 
 	hint_from_record (map, &record, out);
 

@@ -39,6 +39,8 @@ struct eech_engine_config
 	/* GUNSHIP_TYPE_* of the (server) player; its side is the player's side */
 	int gunship_type;
 	uint32_t random_seed;
+	/* nonzero: the session is in winter (the global season the original reads when it picks the terrain files; set before the terrain loads) */
+	int winter;
 	/* extra EECH.INI-style command line arguments, NULL-terminated (may be NULL) */
 	const char *const *arguments;
 };
@@ -343,6 +345,11 @@ int eech_engine_terrain_trace_reset (void);
  * emitting the first `emit` samples (at most 256) in full; the run-wide trace and the shared find-fast record are left as found.
  */
 int eech_engine_terrain_probe (uint32_t seed, int count, int emit, char *text, int capacity);
+/*
+ * The campaign's record predicate (get_3d_terrain_point_data_has_face, which the fixed-wing movement asks) through the real client queries at (x, z), on a private
+ * and on the shared record: fresh, after a query, after a second one, after clear. Only the host-terrain build has the predicate; elsewhere it fails (bad argument).
+ */
+int eech_engine_terrain_face_probe (float x, float z, char *text, int capacity);
 #endif
 
 #ifdef EECH_AIM_FIXTURE

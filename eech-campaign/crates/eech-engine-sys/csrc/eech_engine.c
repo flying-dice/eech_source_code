@@ -242,6 +242,11 @@ static void boot (const struct eech_engine_config *config)
 	session_cloud_puffs = command_line_cloud_puffs;
 	session_comms_packet_data_size = command_line_comms_packet_data_size;
 	set_valid_combat_zone (TRUE);
+	/* the season is read by load_3d_terrain_game_data when it picks the terrain files (terrdata.c); native sets it earlier (sparm_sc.c notify_session_parameters) */
+	if (config->winter)
+	{
+		set_global_season (SESSION_SEASON_WINTER);
+	}
 	load_3d_terrain_game_data ();
 	/* EEDCS-47: the extents and heights the core reads are the host's, before anything reads them */
 	campaign_terrain_install_map_facts ();
@@ -1292,6 +1297,26 @@ int eech_engine_terrain_probe (uint32_t seed, int count, int emit, char *text, i
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
 	if (eech_terrain_probe_run (seed, count, emit, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+extern int eech_terrain_face_probe_run (float x, float z, char *text, int capacity);
+
+int eech_engine_terrain_face_probe (float x, float z, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_terrain_face_probe_run (x, z, text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}

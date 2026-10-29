@@ -8,7 +8,9 @@
 //! - `{ op = "map" }`: the map facts the campaign reads once (extents, sector counts, heights, the fast grid's size).
 //! - `{ op = "point", x, z, hint }`: elevation, stored elevation, face normal and surface type at a point, using the EECH `terrain_types` ids
 //!   as the surface vocabulary. `hint` is the opaque string this host last returned for the same record, or nil for a cleared record;
-//!   the answer carries the record's next `hint` (a string, or nil when the query left none). A host that keeps no such state returns no
+//!   the answer carries the record's next `hint` (a string, or nil when the query left none) and `stored`, by value: whether the record holds a
+//!   surface afterwards (the legacy "a face is stored" test; independent of the hint, so a host that keeps no per-record state returns no hint and
+//!   `stored = true`, or leaves `stored` out, which means true). A host that keeps no such state returns no
 //!   hint and ignores one it is given.
 //! - `{ op = "fast", x, z }`: the fast grid's elevation.
 //!
@@ -87,6 +89,7 @@ struct RawAnswer {
     normal: [f32; 3],
     kind: i32,
     has_hint: i32,
+    stored: i32,
     hint: Hint,
     fast_attempted: i32,
     fast_hit: i32,
@@ -141,12 +144,18 @@ extern "C" {
         geometry_length: usize,
         grid: *const u8,
         grid_length: usize,
+        river_nodes: *const u8,
+        river_node_length: usize,
+        river_paths: *const u8,
+        river_path_length: usize,
         map_number: i32,
         map_key: u64,
         error: *mut c_char,
         error_size: usize,
     ) -> *mut c_void;
     fn host_terrain_close(map: *mut c_void);
+    fn host_terrain_grid_size(map: *const c_void) -> usize;
+    fn host_terrain_copy_grid(map: *const c_void, out: *mut u8, capacity: usize, error: *mut c_char, error_size: usize) -> i32;
     fn host_terrain_get_facts(map: *const c_void, out: *mut Facts);
     fn host_terrain_query(map: *const c_void, x: f32, z: f32, hint: *const Hint, out: *mut RawAnswer, error: *mut c_char, error_size: usize) -> i32;
     fn host_terrain_fast_elevation(map: *const c_void, x: f32, z: f32, out: *mut f32, error: *mut c_char, error_size: usize) -> i32;
@@ -170,6 +179,9 @@ pub struct Answer {
     pub normal: [f32; 3],
     pub kind: i32,
     pub hint: Option<Hint>,
+    /// the record holds a face after this query (the legacy `terrain_face != NULL`, which stays true after a later no-face or Cuba answer): the
+    /// campaign's `get_3d_terrain_point_data_has_face`, carried by value and independent of the hint
+    pub stored: bool,
     pub fast_attempted: bool,
     pub fast_hit: bool,
     pub found: bool,
@@ -227,19 +239,44 @@ pub fn map_number_of(terrain_dir: &Path) -> Result<i32, String> {
         .map_err(|_| format!("terrain: the directory {parent:?} above {} does not end in a map number", terrain_dir.display()))
 }
 
+/// The sector file of a season (terrdata.c, load_3d_terrain_game_data): in winter the pair `default-W.sec` and `default-W.rgb` when BOTH exist,
+/// otherwise the default `default.sec` (the colour file is not read here, but its presence decides the pair). The two seasons never mix: a lone
+/// `default-W.sec` or `default-W.rgb` is ignored. `None` when the chosen sector file does not exist.
+pub fn sector_file(terrain_dir: &Path, winter: bool) -> Option<PathBuf> {
+    if winter {
+        if let (Some(sector), Some(_)) = (find_file(terrain_dir, "default-W.sec"), find_file(terrain_dir, "default-W.rgb")) {
+            return Some(sector);
+        }
+    }
+    find_file(terrain_dir, "default.sec")
+}
+
+/// The river node and path files of the map above `terrain_dir` (terrmap.c, load_2d_terrain): `route/rivers.nde` with `rivers.wp`, else
+/// `route/rivdata.nde` with `rivdata.wp`; `None` for a map with neither (a home-made map without rivers). A node file whose path file is missing is
+/// an error: the original would read a file that is not there.
+pub fn river_files(terrain_dir: &Path) -> Result<Option<(PathBuf, PathBuf)>, String> {
+    let route = match terrain_dir.parent().and_then(|map| find_file(map, "route")) {
+        Some(route) => route,
+        None => return Ok(None),
+    };
+    for (nodes, paths) in [("rivers.nde", "rivers.wp"), ("rivdata.nde", "rivdata.wp")] {
+        if let Some(node_file) = find_file(&route, nodes) {
+            let path_file = find_file(&route, paths).ok_or_else(|| format!("terrain: {} has no {paths} beside it", node_file.display()))?;
+            return Ok(Some((node_file, path_file)));
+        }
+    }
+    Ok(None)
+}
+
 impl Terrain {
     /// Loads the map in `terrain_dir` (the `map<N>/terrain` directory): `terrain.ffp`, the sector file and, when present, `terrain.sim`.
-    /// The sector file is `default.sec`, or in winter `default-W.sec` when both it and `default-W.rgb` exist (terrdata.c), so the season is
-    /// an explicit input. `map_number` overrides the number taken from the path. A map without `terrain.sim` gets the fast grid the original builds at
-    /// load (256 m posts from the point query; the host keeps it in memory instead of writing it into the installation).
+    /// The sector file is the season's pair (`sector_file`): in winter `default-W.sec` when both it and `default-W.rgb` exist (terrdata.c), else
+    /// `default.sec`; the season is an input, taken by the provider from the engine's map request. `map_number` overrides the number taken from the
+    /// path. A map without `terrain.sim` gets the fast grid the original builds at load (256 m posts from the point query, the coast pass over the
+    /// map's coastal rivers in `<map>/route/` and the sea normalisation; the host keeps it in memory instead of writing it into the installation).
     pub fn open(terrain_dir: &Path, winter: bool, map_number: Option<i32>) -> Result<Terrain, String> {
         let geometry_path = find_file(terrain_dir, "terrain.ffp").ok_or_else(|| format!("terrain: no terrain.ffp in {}", terrain_dir.display()))?;
-        let sector_path = (if winter && find_file(terrain_dir, "default-W.sec").is_some() && find_file(terrain_dir, "default-W.rgb").is_some() {
-            find_file(terrain_dir, "default-W.sec")
-        } else {
-            find_file(terrain_dir, "default.sec")
-        })
-        .ok_or_else(|| format!("terrain: no default.sec in {}", terrain_dir.display()))?;
+        let sector_path = sector_file(terrain_dir, winter).ok_or_else(|| format!("terrain: no default.sec in {}", terrain_dir.display()))?;
         let number = match map_number {
             Some(number) => number,
             None => map_number_of(terrain_dir)?,
@@ -251,17 +288,43 @@ impl Terrain {
             Some(path) => Some(read(&path)?),
             None => None,
         };
-        Terrain::from_bytes(&sector, &geometry, grid, number)
+        // only a generated grid reads the rivers (terrmap.c load_2d_terrain: rivers.nde and rivers.wp, else rivdata.*, in the map's route directory)
+        let rivers = match grid {
+            Some(_) => None,
+            None => river_files(terrain_dir)?
+                .map(|(nodes, paths)| Ok::<_, String>((read(&nodes)?, read(&paths)?)))
+                .transpose()?,
+        };
+        Terrain::from_bytes_with_rivers(&sector, &geometry, grid, rivers.as_ref().map(|(n, p)| (n.as_slice(), p.as_slice())), number)
     }
 
-    /// Builds a map from the bytes of `default.sec`, `terrain.ffp` and (when there is one) `terrain.sim`. The kernel checks every offset and count
-    /// against the lengths and copies what it keeps; a malformed input is an error, never a read outside the buffers.
+    /// Builds a map from the bytes of `default.sec`, `terrain.ffp` and (when there is one) `terrain.sim`; a map without a grid generates one with no
+    /// coastal rivers (see `from_bytes_with_rivers`). The kernel checks every offset and count against the lengths and copies what it keeps; a
+    /// malformed input is an error, never a read outside the buffers.
     pub fn from_bytes(sector: &[u8], geometry: &[u8], grid: Option<Vec<u8>>, map_number: i32) -> Result<Terrain, String> {
+        Terrain::from_bytes_with_rivers(sector, geometry, grid, None, map_number)
+    }
+
+    /// `from_bytes`, with the bytes of the map's river nodes and river paths (`rivers.nde`/`rivers.wp` or `rivdata.nde`/`rivdata.wp`) for the coast
+    /// pass of a generated grid. They are read while the grid is generated and not kept; a map that has a grid ignores them.
+    pub fn from_bytes_with_rivers(
+        sector: &[u8],
+        geometry: &[u8],
+        grid: Option<Vec<u8>>,
+        rivers: Option<(&[u8], &[u8])>,
+        map_number: i32,
+    ) -> Result<Terrain, String> {
         let mut error = [0 as c_char; 512];
+        let (nodes, paths) = match rivers {
+            Some((nodes, paths)) => (nodes.as_ptr(), paths.as_ptr()),
+            None => (std::ptr::null(), std::ptr::null()),
+        };
+        let (node_length, path_length) = rivers.map_or((0, 0), |(nodes, paths)| (nodes.len(), paths.len()));
         // generating the fast grid of a map without one uses the solver, so opening takes the solver lock as a query does
         let _guard = solver_lock();
-        // SAFETY: the sector and geometry slices are valid for their lengths for the call only (the kernel copies what it keeps); the grid buffer is
-        // kept alive in the returned value for as long as the map exists; `error` is valid for its length.
+        // SAFETY: the sector, geometry and river slices are valid for their lengths for the call only (the kernel copies what it keeps and reads the
+        // rivers only while generating); the grid buffer is kept alive in the returned value for as long as the map exists; `error` is valid for
+        // its length.
         let map = unsafe {
             host_terrain_open(
                 sector.as_ptr(),
@@ -270,6 +333,10 @@ impl Terrain {
                 geometry.len(),
                 grid.as_ref().map_or(std::ptr::null(), |g| g.as_ptr()),
                 grid.as_ref().map_or(0, |g| g.len()),
+                nodes,
+                node_length,
+                paths,
+                path_length,
                 map_number,
                 new_map_key(),
                 error.as_mut_ptr(),
@@ -283,6 +350,25 @@ impl Terrain {
         // SAFETY: `map` is a live map and `facts` is a valid out pointer.
         unsafe { host_terrain_get_facts(map, &mut facts) };
         Ok(Terrain { map, facts, _grid: grid })
+    }
+
+    /// DIAGNOSTIC. The fast grid exactly as `terrain.sim` holds it (i32 width, i32 height, f32 x size, f32 z size, then the f32 posts, little endian),
+    /// whether it was read from the file or generated; an error when the map has no grid. For comparing a generated grid with the original's file.
+    pub fn grid_snapshot(&self) -> Result<Vec<u8>, String> {
+        let _guard = solver_lock();
+        // SAFETY: the map is live.
+        let size = unsafe { host_terrain_grid_size(self.map) };
+        if size == 0 {
+            return Err("terrain: this map has no fast elevation grid".into());
+        }
+        let mut bytes = vec![0u8; size];
+        let mut error = [0 as c_char; 256];
+        // SAFETY: the map is live, `bytes` has the capacity it is told, and `error` is valid for its length.
+        let status = unsafe { host_terrain_copy_grid(self.map, bytes.as_mut_ptr(), bytes.len(), error.as_mut_ptr(), error.len()) };
+        if status != 0 {
+            return Err(message(&error));
+        }
+        Ok(bytes)
     }
 
     pub fn facts(&self) -> &Facts {
@@ -316,6 +402,7 @@ impl Terrain {
             normal: raw.normal,
             kind: raw.kind,
             hint: (raw.has_hint != 0).then_some(raw.hint),
+            stored: raw.stored != 0,
             fast_attempted: raw.fast_attempted != 0,
             fast_hit: raw.fast_hit != 0,
             found: raw.found != 0,
@@ -461,7 +548,53 @@ fn facts_table(lua: &Lua, facts: &Facts) -> LuaResult<LuaTable> {
 
 /// The provider function for a loaded map: see the module comment for the vocabulary.
 pub fn provider(lua: &Lua, terrain: Rc<Terrain>) -> LuaResult<LuaFunction> {
+    lua.create_function(move |lua, request: LuaTable| respond(lua, &terrain, &request))
+}
+
+/// The provider for the map of a boot, opened when the first question arrives and for the season that question carries (`winter`, from the engine:
+/// the global season the original reads when it picks its terrain files). `asserted` is the season the script expects, if it says (the optional third
+/// argument of `host.terrain_provider`): the engine's season is the truth, so a script that is wrong is refused rather than served another season's
+/// map. A later question for another season is refused too: one boot, one map, never a mix of the two seasons' files.
+fn seasonal_provider(lua: &Lua, dir: PathBuf, asserted: Option<bool>) -> LuaResult<LuaFunction> {
+    let opened: std::cell::RefCell<Option<(bool, Rc<Terrain>)>> = std::cell::RefCell::new(None);
     lua.create_function(move |lua, request: LuaTable| {
+        let winter = match request.get::<LuaValue>("winter")? {
+            LuaValue::Boolean(winter) => winter,
+            other => {
+                return Err(LuaError::runtime(format!(
+                    "host.terrain_provider: the request must carry the season as a boolean `winter`, got {}",
+                    other.type_name()
+                )))
+            }
+        };
+        if asserted.is_some_and(|expected| expected != winter) {
+            return Err(LuaError::runtime(format!(
+                "host.terrain_provider: the script asserted winter = {} but the engine's season is winter = {winter}",
+                !winter
+            )));
+        }
+        let terrain = {
+            let mut slot = opened.borrow_mut();
+            match &*slot {
+                Some((season, terrain)) if *season == winter => terrain.clone(),
+                Some((season, _)) => {
+                    return Err(LuaError::runtime(format!(
+                        "host.terrain_provider: the map was opened for winter = {season} and is now asked for winter = {winter}"
+                    )))
+                }
+                None => {
+                    let terrain = open_cached(&dir, winter, None).map_err(|e| LuaError::runtime(format!("host.terrain_provider: {e}")))?;
+                    *slot = Some((winter, terrain.clone()));
+                    terrain
+                }
+            }
+        };
+        respond(lua, &terrain, &request)
+    })
+}
+
+fn respond(lua: &Lua, terrain: &Terrain, request: &LuaTable) -> LuaResult<LuaTable> {
+    {
         let op: String = match request.get::<LuaValue>("op")? {
             LuaValue::String(op) => op.to_str()?.to_string(),
             other => return Err(LuaError::runtime(format!("host.terrain: op must be a string, got {}", other.type_name()))),
@@ -469,7 +602,7 @@ pub fn provider(lua: &Lua, terrain: Rc<Terrain>) -> LuaResult<LuaFunction> {
         match op.as_str() {
             "map" => facts_table(lua, terrain.facts()),
             "point" => {
-                let (x, z) = (coordinate(&request, "x")?, coordinate(&request, "z")?);
+                let (x, z) = (coordinate(request, "x")?, coordinate(request, "z")?);
                 let hint = match request.get::<LuaValue>("hint")? {
                     LuaValue::Nil => None,
                     LuaValue::String(text) => Some(decode_hint(&text.to_str()?).map_err(LuaError::runtime)?),
@@ -488,6 +621,7 @@ pub fn provider(lua: &Lua, terrain: Rc<Terrain>) -> LuaResult<LuaFunction> {
                 table.set("last_elevation", f64::from(answer.last_elevation))?;
                 table.set("normal", answer.normal.iter().map(|c| f64::from(*c)).collect::<Vec<f64>>())?;
                 table.set("type", answer.kind)?;
+                table.set("stored", answer.stored)?;
                 if let Some(hint) = answer.hint {
                     table.set("hint", encode_hint(&hint))?;
                 }
@@ -505,7 +639,7 @@ pub fn provider(lua: &Lua, terrain: Rc<Terrain>) -> LuaResult<LuaFunction> {
                 Ok(table)
             }
             "fast" => {
-                let (x, z) = (coordinate(&request, "x")?, coordinate(&request, "z")?);
+                let (x, z) = (coordinate(request, "x")?, coordinate(request, "z")?);
                 let elevation = terrain.fast_elevation(x, z).map_err(|e| LuaError::runtime(format!("host.terrain: {e}")))?;
                 let table = lua.create_table()?;
                 table.set("elevation", f64::from(elevation))?;
@@ -513,7 +647,7 @@ pub fn provider(lua: &Lua, terrain: Rc<Terrain>) -> LuaResult<LuaFunction> {
             }
             other => Err(LuaError::runtime(format!("host.terrain: unknown op {other:?}"))),
         }
-    })
+    }
 }
 
 thread_local! {
@@ -548,13 +682,16 @@ pub fn terrain_dir_for(install_root: &str, map: &str) -> PathBuf {
 /// Installs `host.terrain_provider (install_root, map [, winter])`: the reference host's terrain provider for the map a campaign boots with, to be given to
 /// `dc.boot` as `terrain = ...`. It is a small shared helper for the reference host's scripts, not a default: the module never takes a provider from the
 /// host's globals, and a boot without `terrain` is refused.
+///
+/// The map is opened lazily, when the engine first asks, and for the season that question carries (`request.winter`, the global season the original reads
+/// when it picks `default-W.sec`/`default-W.rgb` or `default.sec`/`default.rgb`; `dc.boot { winter = true }` can explicitly override that native selection). The optional
+/// `winter` argument is not a season to serve but an assertion of the one the script expects: a mismatch with the engine's season is refused. (The
+/// engine's season is the only source, so the host's files and the sector data the campaign's own module loads can never be of different seasons.)
 fn install_provider(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
     host.set(
         "terrain_provider",
         lua.create_function(|lua, (install_root, map, winter): (String, String, Option<bool>)| {
-            let dir = terrain_dir_for(&install_root, &map);
-            let terrain = open_cached(&dir, winter.unwrap_or(false), None).map_err(|e| LuaError::runtime(format!("host.terrain_provider: {e}")))?;
-            provider(lua, terrain)
+            seasonal_provider(lua, terrain_dir_for(&install_root, &map), winter)
         })?,
     )
 }

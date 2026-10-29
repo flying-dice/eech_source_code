@@ -48,6 +48,8 @@ pub struct eech_engine_config {
     pub campaign_filename: *const c_char,
     pub gunship_type: c_int,
     pub random_seed: u32,
+    /// nonzero: the session is in winter (the global season the original reads when it picks the terrain files, set before the terrain loads)
+    pub winter: c_int,
     pub arguments: *const *const c_char,
 }
 
@@ -1127,6 +1129,8 @@ pub const EECH_TERRAIN_TYPE_COUNT: c_int = 62;
 #[repr(C)]
 pub struct eech_terrain_request {
     pub op: c_int,
+    /// the season the campaign was loaded in, on every request (nonzero: winter)
+    pub winter: c_int,
     pub x: f32,
     pub z: f32,
     pub hint: [c_char; EECH_TERRAIN_HINT_MAX + 1],
@@ -1149,6 +1153,8 @@ pub struct eech_terrain_reply {
     pub last_elevation: f32,
     pub normal: [f32; 3],
     pub kind: c_int,
+    /// POINT: nonzero when the record holds a surface after this reply (independent of the hint)
+    pub stored: c_int,
     pub hint: [c_char; EECH_TERRAIN_HINT_MAX + 1],
 }
 
@@ -1381,6 +1387,7 @@ extern "C" {
     pub fn eech_engine_terrain_trace(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_terrain_trace_reset() -> c_int;
     pub fn eech_engine_terrain_probe(seed: u32, count: c_int, emit: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_terrain_face_probe(x: f32, z: f32, text: *mut c_char, capacity: c_int) -> c_int;
 }
 
 #[cfg(feature = "weapon-fixture")]

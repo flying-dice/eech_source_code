@@ -210,3 +210,61 @@ fn the_fast_grid_returns_its_node_values() {
     assert!(terrain.fast_elevation(f32::NAN, 0.0).is_err());
     assert!(terrain.fast_elevation(0.0, f32::INFINITY).is_err());
 }
+
+/// The grid the host GENERATES for a map with no terrain.sim, byte for byte against the one the original generated and saved for the same map
+/// (terrsel.c generate_terrain_simple_elevation and save_terrain_simple_elevation: the sampling, the coast pass over the map's coastal rivers and the sea
+/// normalisation). The original's file is private and never in Git, so this is driven by the environment and does nothing, loudly, without it:
+///
+///   EECH_TERRAIN_DIR        a `map<N>/terrain` directory WITHOUT a terrain.sim (a private copy, its route/ rivers beside it); a directory that has one is refused,
+///                           because the file would be read and nothing would be generated
+///   EECH_GRID_ORACLE        the terrain.sim the original wrote for that map (private)
+///   EECH_GRID_OUTPUT        optional: where to write the host's generated grid in the same layout, for the Root to hash or compare elsewhere; an existing
+///                           file is never overwritten
+///
+/// The comparison reports counts and the first few differing posts (index, both bit patterns); it never prints the grid.
+#[test]
+fn the_host_generated_grid_equals_the_originals_terrain_sim() {
+    let (Some(dir), Some(oracle)) = (std::env::var_os("EECH_TERRAIN_DIR"), std::env::var_os("EECH_GRID_ORACLE")) else {
+        eprintln!("terrain_conformance: SKIPPED (EECH_TERRAIN_DIR and EECH_GRID_ORACLE are not both set): the generated grid was NOT compared");
+        return;
+    };
+    let dir = PathBuf::from(dir);
+    let has_file = std::fs::read_dir(&dir)
+        .expect("the terrain directory is readable")
+        .filter_map(|e| e.ok())
+        .any(|e| e.file_name().to_string_lossy().eq_ignore_ascii_case("terrain.sim"));
+    assert!(!has_file, "{} holds a terrain.sim: the grid would be read, not generated", dir.display());
+
+    let terrain = Terrain::open(&dir, false, None).expect("the private map loads");
+    let ours = terrain.grid_snapshot().expect("the host generated a grid");
+    let original = std::fs::read(&oracle).expect("the original's grid is readable");
+
+    if let Some(output) = std::env::var_os("EECH_GRID_OUTPUT") {
+        use std::io::Write;
+        let mut file = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&output)
+            .unwrap_or_else(|e| panic!("EECH_GRID_OUTPUT {:?} is not written (it must not exist): {e}", output));
+        file.write_all(&ours).expect("the generated grid is written");
+    }
+
+    let header = |bytes: &[u8]| -> Vec<u8> { bytes.iter().take(16).copied().collect() };
+    assert_eq!(header(&ours), header(&original), "the grid header (width, height, x and z size)");
+    assert_eq!(ours.len(), original.len(), "the grid size in bytes");
+    let mut differing = Vec::new();
+    let mut count = 0usize;
+    for (index, (host, theirs)) in ours[16..].chunks_exact(4).zip(original[16..].chunks_exact(4)).enumerate() {
+        if host != theirs {
+            count += 1;
+            if differing.len() < 8 {
+                differing.push(format!(
+                    "post {index}: host {:08x}, original {:08x}",
+                    u32::from_le_bytes([host[0], host[1], host[2], host[3]]),
+                    u32::from_le_bytes([theirs[0], theirs[1], theirs[2], theirs[3]])
+                ));
+            }
+        }
+    }
+    assert_eq!(count, 0, "{count} posts of {} differ; the first: {differing:?}", (ours.len() - 16) / 4);
+}

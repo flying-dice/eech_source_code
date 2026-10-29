@@ -7,12 +7,15 @@
  *
  * The exchange is one synchronous host callback with three operations, each a single request and a single reply:
  *
+ *   Every request carries the season the terrain was loaded in (`winter`), captured before the first question: the host serves the map of that season.
+ *
  *   MAP    the map facts the core reads once at boot (campaign_terrain_install_map_facts): the sector counts, the extents, the lowest and highest
  *          heights and the scaled height difference, and the size of the fast grid (0 when the host has none).
  *   POINT  the query of get_3d_terrain_point_data.  The request is the position and the record's hint; the reply is what the query returns and
  *          what it stores in the record: the elevation it returns, the elevation it stores (`last_elevation`: it differs from the returned one only
  *          where the host says so, e.g. the original's Cuba flaw area), the face normal, the surface type (an EECH terrain_types id) and the
- *          record's next hint.
+ *          record's next hint, and (`stored`, by value) whether the record holds a surface afterwards: the legacy "a face is stored" test of the fixed-wing movement
+ *          asks that, never the hint, so a host that returns no hint still answers it.
  *   FAST   the fast gridpost elevation at a position.
  *
  * The HINT is the host's opaque state for one find-fast record (the original kept pointers into its own terrain geometry there).  The campaign stores
@@ -44,6 +47,8 @@ enum campaign_terrain_op
 typedef struct campaign_terrain_request
 {
 	int op;
+	/* every operation: the season the campaign was loaded in, as the original chose its terrain files (terrdata.c: winter uses default-W.sec and default-W.rgb when both exist, else the default pair); the host answers for the map of that season */
+	int winter;
 	/* POINT and FAST */
 	float x, z;
 	/* POINT: the record's hint; empty when it has none */
@@ -63,6 +68,8 @@ typedef struct campaign_terrain_reply
 	float last_elevation;
 	float normal[3];
 	int type;
+	/* POINT: nonzero when the record holds a surface after this reply (the legacy "a face is stored"); independent of the hint, which a host may never return */
+	int stored;
 	char hint[CAMPAIGN_TERRAIN_HINT_MAX + 1];
 } campaign_terrain_reply;
 

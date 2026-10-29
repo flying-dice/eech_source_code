@@ -274,3 +274,16 @@ suitability, geography, route planning and consequences are unchanged. Named tra
 `default.sec`/`terrain.ffp` for the sector users (G2: trees, per-sector types, ground impact, the 2D map), the object/model/device geometry (G3a to G3c), weather and time.
 Contract, DCS mapping and workarounds, the consumer audit, the tests added and the risks (notably the cost of about 7,700 provider round trips per frame) are in
 `eech-campaign/reference/d3-terrain-characterization/README.md`. Not claimed: compilation, any run, the public GREEN, the ordinary shipping regression, or D3 delivery.
+
+### Correction batch after the independent production-source review of `251bfe15b` (source only; not built or run by the author)
+
+Four P2 and one P3 finding. (1) The reference host's missing-grid generation stopped at the -5000 sampling; it now ports the rest of `terrsel.c` in the original's order and
+arithmetic: the coast pass over the map's coastal rivers (`route/rivers.nde`+`rivers.wp`, else `rivdata.*`, read by the reference host only) and the sea normalisation to
+`sea_height - 1` (-2). A diagnostic `Terrain::grid_snapshot` and a gated byte-equality conformance test compare the generated grid with the original's `terrain.sim`
+through private paths; the Root's earlier RED (host fast hashes `5c3a49e99f95388c`, `b3bddb7ef4f1746a`) stays as evidence. (2) The engine's terrain callback now
+refuses every answer of the wrong kind for the question, before writing anything. (3) The winter file pair is selected from the season the engine reports (`dc.boot { winter }`,
+captured by the client before its first question and sent on every request); the reference host opens its map lazily for that season and falls back to the default pair
+unless both `default-W.sec` and `default-W.rgb` exist, as `terrdata.c` does. (4) Whether the record holds a face is the host's word (`stored`, by value), no longer inferred
+from a hint, so a host without hints still answers the fixed-wing predicate; a fixture entry drives the real predicate. (5) Fixture comparability claims and the symbol-check
+wording are corrected in `eech_terrain_fixture.c` and the README. Nothing in this batch is compiled, formatted or run; no conformance, GREEN or acceptance claim; the
+named transitional coupling is unchanged. Details are in `eech-campaign/reference/d3-terrain-characterization/README.md`.

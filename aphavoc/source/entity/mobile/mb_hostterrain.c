@@ -30,7 +30,12 @@ void campaign_terrain_set_host (const campaign_terrain_host *host)
 	}
 }
 
-static void ask (const campaign_terrain_request *request, campaign_terrain_reply *reply, const char *what)
+// the season the terrain was loaded in: the global season is read where the original read it (terrdata.c, when it chose the sector and colour files), which
+// is before the first question of any kind, and kept: the campaign file's own season tag is parsed later and must not change which map the host serves
+static int season_captured;
+static int season_winter;
+
+static void ask (campaign_terrain_request *request, campaign_terrain_reply *reply, const char *what)
 {
 	char
 		error[CAMPAIGN_TERRAIN_ERROR_MAX + 1];
@@ -39,6 +44,14 @@ static void ask (const campaign_terrain_request *request, campaign_terrain_reply
 	{
 		debug_fatal ("host terrain: [terrain-provider:missing] no terrain provider is installed (%s)", what);
 	}
+
+	if (!season_captured)
+	{
+		season_winter = (get_global_season () == SESSION_SEASON_WINTER);
+		season_captured = TRUE;
+	}
+
+	request->winter = season_winter;
 
 	memset (reply, 0, sizeof (*reply));
 
@@ -163,7 +176,7 @@ float get_3d_terrain_point_data ( float x, float z, terrain_3d_point_data *point
 	ask (&request, &reply, "point");
 
 	if (!all_finite (&reply.elevation, 2) || !all_finite (reply.normal, 3) || (reply.type < 0) || (reply.type >= TERRAIN_TYPE_LAST) ||
-		(memchr (reply.hint, '\0', sizeof (reply.hint)) == NULL))
+		((reply.stored != FALSE) && (reply.stored != TRUE)) || (memchr (reply.hint, '\0', sizeof (reply.hint)) == NULL))
 	{
 		debug_fatal ("host terrain: [terrain-provider:point.answer] the host's point answer is malformed");
 	}
@@ -174,10 +187,12 @@ float get_3d_terrain_point_data ( float x, float z, terrain_3d_point_data *point
 	point_data->face_normal.z = reply.normal[2];
 	point_data->terrain_type = reply.type;
 
-	// an answer without a hint leaves the record without one, as a query that found no face did; face_stored remembers that a face was once stored
+	// an answer without a hint leaves the record without one, as a query that found no face did; the hint is the host's own business and says nothing about
+	// whether a surface is stored: the host says that, by value, and the record remembers that a face was once stored (until it is cleared) as the original's
+	// stale face pointer did
 	strcpy (point_data->hint, reply.hint);
 
-	if (reply.hint[0])
+	if (reply.stored)
 	{
 		point_data->face_stored = TRUE;
 	}

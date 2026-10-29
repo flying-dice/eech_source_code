@@ -111,8 +111,8 @@ extern terrain_3d_point_data *eech_terrain_system_point_data ( void );
 #ifdef EECH_CAMPAIGN_HOST_TERRAIN
 
 //
-// EEDCS-47 (D3): the record holds no pointers, so the legacy tests of its internals ("terrain_face == NULL" in the fixed-wing movement) ask this: has an
-// answer left the record a face (a hint) since it was cleared?  Implemented, like every query of this module, by aphavoc/.../mb_hostterrain.c.
+// EEDCS-47 (D3): the record holds no pointers, so the legacy tests of its internals ("terrain_face == NULL" in the fixed-wing movement) ask this: did an
+// answer say the record holds a face (by value, not by hint) since it was cleared?  Implemented, like every query of this module, by aphavoc/.../mb_hostterrain.c.
 //
 
 extern int get_3d_terrain_point_data_has_face ( terrain_3d_point_data *point_data );

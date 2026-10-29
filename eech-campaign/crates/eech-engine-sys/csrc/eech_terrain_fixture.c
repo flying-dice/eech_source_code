@@ -29,10 +29,24 @@
  * AFTER THE G1 HANDOFF (EEDCS-47, build define EECH_CAMPAIGN_HOST_TERRAIN): the solver is the host's, and the observer in terrelev.c no longer exists. The
  * same hook (eech_terrain_record) is then called by the campaign's client in aphavoc/source/entity/mobile/mb_hostterrain.c, which sees only what the host
  * answered: it cannot tell a hint hit from a sector scan, a face not found or the Cuba area, so those counters read as a client's view (the hint was
- * sent, the answer carried a hint) and are NOT comparable with the original's. The point answers, the hashes over them and the fast elevation are
- * comparable: a moved-build report is evidence of what the campaign now receives, not a repeat of the original characterisation.
- * The same script and the same hashes are used before and after any extraction, so a difference is a difference in answers. Points are
- * kept at least 1 cm inside the map: the off-map path asserts in the original and is not probed.
+ * sent, the answer carried a hint) and are NOT comparable with the original's.
+ *
+ * COMPARABILITY OF THE HASHES AND COUNTERS, stated exactly. The physical values (returned elevation, stored elevation, normal, surface type) are the
+ * comparable part. The order-dependent hashes are NOT comparable with an unmoved report as they stand: fold_answer folds a seventh word, fast_hit, and the
+ * client always reports fast_hit as FALSE (it cannot know), so a moved-build primed hash and run hash differ from the original's wherever the original hit
+ * its hint, even if every physical value is identical; the counters that depend on fast_hit or on the sector scan (hint hits, scans, not found, Cuba,
+ * private/shared primed fast) read the same way. A like-for-like comparison of a moved report with the original's is the physical words alone (words 0..5 of
+ * fold_answer), which the host-side sweep reproduces (the same hashes of the kernel's own sweep are compared with the ORIGINAL probe in
+ * eech-world/tests/terrain_conformance.rs); this file does not claim a moved-build hash equals an original one, and it does not add a physical-only hash
+ * (that would change the oracle format).
+ *
+ * The fast elevation: `terrain-probe-fast-hash available=` reports whether THIS module's own grid pointer (terrain_3d_simple_elevation_grid) is set. By
+ * inspection boot never loads it (the grid is loaded by load_2d_terrain, which the headless boot does not call), and in the moved build the grid is the
+ * host's: `available=0` here does not mean the host has no grid. The host's fast elevation is compared by the host-side sweep and by the host-owned
+ * conformance tests, not by this probe.
+ *
+ * The same script and the same hashes are used before and after any extraction, so a difference is a difference in answers only where the two reports are
+ * built the same way (see above). Points are kept at least 1 cm inside the map: the off-map path asserts in the original and is not probed.
  */
 
 #ifdef EECH_TERRAIN_FIXTURE
@@ -667,4 +681,82 @@ int eech_terrain_probe_run (uint32_t seed, int count, int emit, char *text, int 
 	return out.failed ? -1 : 0;
 }
 
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the record predicate (moved build only) */
+
+#ifdef EECH_CAMPAIGN_HOST_TERRAIN
+
+/*
+ * Drives the campaign's REAL client queries (mb_hostterrain.c) and the predicate the fixed-wing movement asks (get_3d_terrain_point_data_has_face, fw_move.c)
+ * on a private record and on the shared one, at (x, z), and reports what each step left: has_face on a fresh record, after a point query (with whether the
+ * record then holds a hint, which a host may never return), after a second query at the same point, and after clear_3d_terrain_point_data. Whether a face is
+ * stored is the host's word (the reply's `stored`), not the hint's: a host that returns no hint but answers a point must still leave the record with a
+ * face. The shared record is saved and restored, and the run-wide trace is left alone (the probe's own queries go to the probe trace).
+ */
+int eech_terrain_face_probe_run (float x, float z, char *text, int capacity)
+{
+	struct text out = { text, capacity, 0, 0 };
+	struct terrain_trace *saved = active_trace;
+	terrain_3d_point_data *shared = eech_terrain_system_point_data ();
+	terrain_3d_point_data shared_saved = *shared;
+	terrain_3d_point_data record;
+	int fresh, after_query, hint_after_query, after_again, after_clear, shared_fresh, shared_after_query, shared_after_clear;
+	float elevation;
+
+	if (capacity <= 0)
+	{
+		return -1;
+	}
+
+	text[0] = '\0';
+
+	if (!(x > terrain_3d_min_map_x) || !(x < terrain_3d_max_map_x) || !(z > terrain_3d_min_map_z) || !(z < terrain_3d_max_map_z))
+	{
+		return -2;
+	}
+
+	trace_reset (&probe_trace);
+	active_trace = &probe_trace;
+
+	memset (&record, 0, sizeof (record));
+	fresh = get_3d_terrain_point_data_has_face (&record);
+	elevation = get_3d_terrain_point_data (x, z, &record);
+	after_query = get_3d_terrain_point_data_has_face (&record);
+	hint_after_query = record.hint[0] != '\0';
+	(void) get_3d_terrain_point_data (x, z, &record);
+	after_again = get_3d_terrain_point_data_has_face (&record);
+	clear_3d_terrain_point_data (&record);
+	after_clear = get_3d_terrain_point_data_has_face (&record);
+
+	clear_3d_terrain_point_data (NULL);
+	shared_fresh = get_3d_terrain_point_data_has_face (NULL);
+	(void) get_3d_terrain_point_data (x, z, NULL);
+	shared_after_query = get_3d_terrain_point_data_has_face (NULL);
+	clear_3d_terrain_point_data (NULL);
+	shared_after_clear = get_3d_terrain_point_data_has_face (NULL);
+
+	*shared = shared_saved;
+	active_trace = saved;
+
+	put (&out, "terrain-face-probe elevation=%08x fresh=%d after_query=%d hint_after_query=%d after_again=%d after_clear=%d shared_fresh=%d shared_after_query=%d shared_after_clear=%d\n",
+		float_bits (elevation), fresh, after_query, hint_after_query, after_again, after_clear, shared_fresh, shared_after_query, shared_after_clear);
+
+	return out.failed ? -1 : 0;
+}
+
+#else
+
+int eech_terrain_face_probe_run (float x, float z, char *text, int capacity)
+{
+	(void) x;
+	(void) z;
+	(void) text;
+	(void) capacity;
+
+	/* the record of the unmoved build holds pointers, and the predicate does not exist there */
+	return -3;
+}
+
+#endif
 #endif

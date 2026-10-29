@@ -176,8 +176,10 @@ engine DLL's symbols.
 ### Source-backed inputs (verified by reading `terrdata.c`, `terrsel.c`, `terrmap.c`, `zone_sc.c`, `parsgen.c`)
 
 - Files: `<install>/common/maps/map<N>/terrain/`. `load_3d_terrain` also maps `default.rgb` (colours, tree files) which the solver does not
-  use; the winter rule needs both `default-W.sec` and `default-W.rgb` to exist. **Season is an explicit input** (`winter`), set in the
-  original from the campaign file's SEASON tag; the production wiring must derive it from the campaign data. The map number is the trailing
+  use; the winter rule needs both `default-W.sec` and `default-W.rgb` to exist, else the default pair (the two seasons are never mixed). **Season is carried by the engine**: native
+  sets the global season (`sparm_sc.c` 146-170) before `terrdata.c` reads it at 219. Headless boot preserves that native setting unless `dc.boot { winter = true }`
+  explicitly selects winter before loading. The client captures the loaded map's season before its first question and sends it as `winter` on EVERY terrain request; the reference host opens the map lazily for that
+  season (details under "The reference host"). The campaign file's SEASON tag is parsed later and does not change which map the host serves. The map number is the trailing
   digits of the directory above `terrain` (the Cuba flaw rule is `map_number == 2`).
 - `default.sec`: version `u32`, width `u16`, height `u16`, min and max height `f32`, then `width*height` 48-byte sector records (counts,
   radius, three heights and six offsets into `terrain.ffp`, two unused), then the approximation list the solver does not read. Checked against
@@ -381,15 +383,17 @@ run**; the Root builds, runs the tests, the public GREEN and the shipping 40-che
 | Point surface query (`get_3d_terrain_point_data`, `get_3d_terrain_elevation`, the record getters, `clear_3d_terrain_point_data`) | the original solver in the DLL (`modules/3d/terrain/terrelev.c`) | `aphavoc/source/entity/mobile/mb_hostterrain.c` asks the host; the solver is not compiled |
 | Fast gridpost elevation (`get_3d_terrain_fast_elevation`) | `terrsel.c` arithmetic over a grid the DLL loaded | the same client asks the host; the arithmetic in `terrsel.c` is not compiled |
 | Map extents and heights the core reads | the DLL's loader | the host's, installed once straight after the terrain loads (`campaign_terrain_install_map_facts`) |
-| The find-fast record (`terrain_3d_point_data`) | pointers into the DLL's terrain geometry | `last_elevation`, `face_normal`, `terrain_type`, a `face_stored` flag and a bounded opaque `hint` string; no pointer |
+| The find-fast record (`terrain_3d_point_data`) | pointers into the DLL's terrain geometry | `last_elevation`, `face_normal`, `terrain_type`, a `face_stored` flag (the host's word, by value, not the hint's) and a bounded opaque `hint` string; no pointer |
 | Terrain class, ground-vehicle suitability, geography, route planning, task generation, every consequence | the campaign | the campaign (unchanged: `terr_db.c`, `ai_route.c`, `popread.c`, ...) |
 
 **Compile and dispatch separation.** The headless build defines `EECH_CAMPAIGN_HOST_TERRAIN` (`eech-engine-sys/build/main.rs`). Under it `terrelev.c` is
 wholly excluded (`#ifndef`) and `terrsel.c` excludes only `get_3d_terrain_fast_elevation`; the original text stays for the original game build and as the
 reference the host kernel was taken from. `mb_hostterrain.c` (added to `sources.txt`) implements the module's public queries and contains no terrain arithmetic or
 geometry; its only terrain source is the host callback. No fallback path exists: with no provider installed the first query stops the engine. To verify on the
-built DLL (Root): the symbols `point_inside_terrain_*` and `system_point_data` of the original solver must be absent, `get_3d_terrain_point_data` and
-`get_3d_terrain_fast_elevation` must resolve into `mb_hostterrain.o`, and `terrain_elevation_point_*_references` must be absent.
+built DLL (Root): the symbols of the original triangle and numerical solver (`point_inside_terrain_*`, and the solver's own scratch-reference statics and
+`terrain_elevation_point_*_references`) must be absent, and `get_3d_terrain_point_data` and `get_3d_terrain_fast_elevation` must resolve into `mb_hostterrain.o`. The
+check is on the ABSENCE AND OWNERSHIP of the original solver's symbols, not on the name `system_point_data`: `mb_hostterrain.c` legitimately owns a static of that name
+(the shared find-fast record of queries that pass none, a plain value cache with no pointer), which must be defined in `mb_hostterrain.o` and nowhere in the solver.
 
 **Required provider.** `dc.boot { ..., terrain = <function> }`. A boot without it, or with a non-function, is refused before anything boots with
 `eech: [terrain-provider:missing] ...`; another missing callback is still reported as itself. The engine installs the provider before it loads the terrain
@@ -398,21 +402,26 @@ from globals.
 
 ### The provider contract (host Lua -> module)
 
-`terrain (request) -> answer`, a Lua function called synchronously with a table `{ op, x, z, hint }`:
+`terrain (request) -> answer`, a Lua function called synchronously with a table `{ op, x, z, hint, winter }`. `winter` is a boolean on EVERY request: the season the terrain
+was loaded in (the global season native `terrdata.c` reads to choose `default-W.sec`/`default-W.rgb` or the default pair), captured by the client before its first question.
+A host serves the map of that season; a host with one map ignores it.
 
 | op | request | answer (all fields required unless marked) |
 |---|---|---|
-| `map` | `{ op = "map" }` | `sector_x_max`, `sector_z_max` (integers >= 1), `fast_width`, `fast_height` (integers >= 0), `min_x`, `min_z`, `max_x`, `max_z`, `min_height`, `max_height`, `scaled_height_difference` (finite) |
-| `point` | `{ op = "point", x, z, hint }`; `hint` is the string this host last returned for the same record, or nil | `elevation` (what the query returns), `last_elevation` (what it stores; it differs from `elevation` only where the host says so, e.g. the original's Cuba flaw area), `normal` (three finite numbers, stored as given: never normalised or repaired), `type` (an integer 0..61, the EECH `terrain_types` ids), `hint` (optional: nil, or 1 to 127 printable ASCII bytes) |
-| `fast` | `{ op = "fast", x, z }` | `elevation` (finite) |
+| `map` | `{ op = "map", winter }` | `sector_x_max`, `sector_z_max` (integers >= 1), `fast_width`, `fast_height` (integers >= 0), `min_x`, `min_z`, `max_x`, `max_z`, `min_height`, `max_height`, `scaled_height_difference` (finite) |
+| `point` | `{ op = "point", x, z, hint }`; `hint` is the string this host last returned for the same record, or nil | `elevation` (what the query returns), `last_elevation` (what it stores; it differs from `elevation` only where the host says so, e.g. the original's Cuba flaw area), `normal` (three finite numbers, stored as given: never normalised or repaired), `type` (an integer 0..61, the EECH `terrain_types` ids), `hint` (optional: nil, or 1 to 127 printable ASCII bytes), `stored` (optional boolean; nil means true: a provider that returns a surface for the point has stored one) |
+| `fast` | `{ op = "fast", x, z, winter }` | `elevation` (finite) |
 
 `x` and `z` are exactly the campaign's single-precision position (a not-a-number position is passed on as it is: the original answered it with the map corner and
 the reference host does). Numbers cross as exact doubles and are read back through `%.17g` and the nearest `f32`, as every other number the engine takes from a host
 callback (the engine calls the provider under round-toward-zero); a subnormal and a negative zero survive bit for bit. The campaign keeps one hint per record, in the
 order and on the record the original used (a shared record when the caller passes none, private ones in entities and locals), stores it, and sends it with the next
 query on that record: it never parses, builds or compares one, and a host that keeps no such state returns no hint and ignores the one it is given. The fixed-wing
-movement's old test of `terrain_face == NULL` is now `get_3d_terrain_point_data_has_face`: "an answer has left a hint since the record was cleared", the same
-condition as the original's stale non-NULL face pointer.
+movement's old test of `terrain_face == NULL` is now `get_3d_terrain_point_data_has_face`: "an answer has said the record holds a surface (`stored`) since the record was
+cleared", the same condition as the original's stale non-NULL face pointer (which stays non-NULL after a later no-face or Cuba answer: the original clears only `terrain_sector`
+there, so the client's flag is sticky until `clear_3d_terrain_point_data`). The hint plays no part in it: a host that returns no hint still leaves the record with a face, which
+the reference host reports as `stored = (the record's face pointer is set after the query)` and a generic host as the default `true`. The real predicate is exercised through
+the real client by the fixture entry `terrain_face_probe` (`lua/terrain-has-face.lua`, modes `reference` and `generic`); Root runs it, it has not been run.
 
 Refusals stop the engine with a first-line marker `[terrain-provider:<marker>]` (the Rust bridge in `eech-dc/src/module.rs`, `TERRAIN_BRIDGE`, validates in Lua where
 the values are):
@@ -420,7 +429,8 @@ the values are):
 | Marker | Raised when |
 |---|---|
 | `missing` | no terrain provider at boot (or not a function) |
-| `map.answer` / `point.answer` / `fast.answer` | the answer is not a table |
+| `map.answer` / `point.answer` / `fast.answer` | the answer is not a table, or (engine callback) the provider answered a question with the other kind of answer: all six wrong op/answer pairings are refused before anything is written |
+| `point.stored` | `stored` is neither nil nor a boolean |
 | `map.facts` | a map fact is missing, not finite, or not an integer where required; the host's sector counts differ from the terrain the campaign loaded (see below) |
 | `point.elevation` | `elevation` or `last_elevation` missing or not finite |
 | `point.normal` | `normal` is not three finite numbers |
@@ -434,16 +444,30 @@ not an unwinding across C. The driver `lua/terrain-provider.lua` and `tests/terr
 
 ### The reference host
 
-`host.terrain_provider (install_root, map [, winter])` (new, `eech-world/src/terrain.rs`) returns the reference host's provider for the map a campaign boots with (the
-map path is relative to `cohokum`, as EECH's: `..\common\maps\map5`); it caches the loaded map, so two providers for one map share it and its hint identity.
-`host.terrain_open { terrain_dir, winter, map_number }` is unchanged. Each reference script that boots the DLL passes `terrain = host.terrain_provider (root, <its map>)`:
-all of `eech-world/lua/*.lua` that call `dc.boot` (including `campaign.lua`, which the regression runner uses), and the characterisation and fixture scripts. The
-provider uses the verbatim EECH numeric kernel in `csrc/terrain_ref.c`; an alternative host answers from its own physical world and needs none of it.
+`host.terrain_provider (install_root, map [, winter])` (`eech-world/src/terrain.rs`) returns the reference host's provider for the map a campaign boots with (the
+map path is relative to `cohokum`, as EECH's: `..\common\maps\map5`). **The map is opened lazily, when the engine first asks, for the season that question carries**
+(`request.winter`); the optional `winter` argument is an assertion of the season the script expects, not a source of it (a mismatch with the engine's season is refused, as is a
+later question for the other season: one boot, one map, never a mix). The files of a season are `default-W.sec` only when `default-W.rgb` exists as well, else `default.sec`
+(`sector_file`; tests with distinct tiny summer and winter fixtures: both present, each missing, summer only, winter only, and through the real factory). It caches the loaded
+map, so two providers for one map share it and its hint identity. `host.terrain_open { terrain_dir, winter, map_number }` stays eager and explicit (the conformance
+driver). Each reference script that boots the DLL passes `terrain = host.terrain_provider (root, <its map>)`; it normally follows native season selection, while
+`winter = true` can explicitly select a winter run. This registration covers all of
+`eech-world/lua/*.lua` that call `dc.boot` (including `campaign.lua`, which the regression runner uses), and the characterisation and fixture scripts. The provider uses
+the verbatim EECH numeric kernel in `csrc/terrain_ref.c`; an alternative host answers from its own physical world and needs none of it.
 
 **Missing fast grid.** The original builds the grid when `terrain.sim` is absent (`generate_terrain_simple_elevation`, 256 m posts from the point query, power-of-two
-dimensions, +2 m on land and -5000 on the sea) and saves it. `host_terrain_open` now does the same in memory, on its own record, with the original's expressions, under
-round-toward-zero; it is covered by `a_map_without_a_fast_grid_gets_the_generated_one`. It does not write the file; the DLL still loads or, if the file is absent,
-builds and saves its own copy for the 2D map (a transitional use, below). Both retail maps have the file, so this path is not exercised by the baselines.
+dimensions, +2 m on land and -5000 on the sea; then the COAST PASS, which moves a sea post beside a land post to the crossing of a coastal river
+(`check_coastal_river_intersection` over the coastal paths of `route/rivers.nde`+`rivers.wp`, else `rivdata.*`, in the original's neighbour order, in place and in its
+expressions); then every remaining -5000 becomes `sea_height - 1` = -2) and saves it. `host_terrain_open` now does the same in memory, on its own record, under
+round-toward-zero; the host reads the river files itself (reference host only: a generic or DCS host has no such files and needs none of this). A grid that is GIVEN is used
+as it is and its rivers are not read. It does not write the file; the DLL does not load it either (the 2D-map loader that does is not called by the headless boot).
+Covered by synthetic-map tests (`a_generated_grid_without_coastal_rivers_ends_sea_posts_at_minus_two`, `a_coastal_river_moves_the_sea_post_beside_the_land_to_the_crossing`,
+the malformed-river and river-discovery tests): they show the arithmetic on a hand-made split map, not equality with the original. **The equality** is
+`terrain_conformance.rs::the_host_generated_grid_equals_the_originals_terrain_sim` (`EECH_TERRAIN_DIR` a grid-less private copy, `EECH_GRID_ORACLE` the original-generated
+file, optional `EECH_GRID_OUTPUT` written with create-new), a byte comparison of the grid snapshot (`Terrain::grid_snapshot`, terrain.sim's layout) that reports counts and the
+first differing posts and never dumps the grid. It has not been run. Before this correction the generation stopped at the -5000 sampling (Root's RED: host fast hashes
+`5c3a49e99f95388c` Lebanon and `b3bddb7ef4f1746a` Georgia against the originals' `12f0edcddd5d840c` and `aa1179597dceabc4`, logs `missing-grid-red-251bfe15b-*`), which is
+preserved as evidence.
 
 ### Boot facts
 

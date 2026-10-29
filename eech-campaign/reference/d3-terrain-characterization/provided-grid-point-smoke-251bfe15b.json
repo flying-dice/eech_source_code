@@ -1,0 +1,41 @@
+{
+  "source": "251bfe15b4f1a21c3cdd987db9dbf416be508287",
+  "scope": "ONE100ms frame on original provided-grid root with valid referenceprovider; known4P2/1P3sourcefindings stillopen. Diagnostic only, not deliveredTask or fullregression.",
+  "native": {
+    "status": "completed",
+    "kind": "Public terrain-provider case on ordinary shipping build; not full-pack acceptance",
+    "source": "251bfe15b4f1a21c3cdd987db9dbf416be508287",
+    "build_info_sha256": "056c0f590401c6eddd865ddffc2cc4e7c5dff9334efcb18f18104d065da30992",
+    "launcher_sha256": "f4631670f739538f9bf4b6fcef4b3f0da8fbfa6cbf3a815e1b6b17e83aac7571",
+    "mode": "reference",
+    "arguments": "R:/d3-evidence/terrain-handoff-source-251bfe15b/eech-campaign/target/windows-terrain-handoff-251bfe15b/lua/terrain-provider.lua root=R:/d3-evidence/provider-diagnostic-251bfe15b-root scenario=lebanon_retail seconds=0.1 frame_ms=100 mode=reference out=R:/d3-evidence/provider-diagnostic-251bfe15b-reference/summary.jsonl",
+    "binary": "R:\\d3-evidence\\terrain-handoff-source-251bfe15b\\eech-campaign\\target\\windows-terrain-handoff-251bfe15b\\eech-world.exe",
+    "script": "R:/d3-evidence/terrain-handoff-source-251bfe15b/eech-campaign/target/windows-terrain-handoff-251bfe15b/lua/terrain-provider.lua",
+    "script_sha256": "9627dfbd2c1ca2e30f7a89c2d7771ebe56264c4eb57fe442d80d3d04bb4c33dd",
+    "actual_native_exit": 0,
+    "pid": 6200,
+    "created_utc": "2026-10-29T11:47:34.1768867Z",
+    "completed_utc": "2026-10-29T11:47:38.0521981Z"
+  },
+  "summary": {
+    "event": "summary",
+    "failure": "",
+    "fast_calls": 0,
+    "frames_completed": 1,
+    "frames_requested": 1,
+    "los_terrain_count": 1164,
+    "los_terrain_sum": "232000.902",
+    "malformed_sent": false,
+    "map_calls": 1,
+    "mode": "reference",
+    "placed_count": 1444,
+    "placed_sum": "759892.264",
+    "point_calls": 79152
+  },
+  "original_public_reference": "R:/d3-evidence/provider-red-572b98f15/reference/summary.jsonl",
+  "matches_original_placement_and_LOS_for_frame": true,
+  "fast_operation_not_exercised": true,
+  "post_input_actual_exit": 0,
+  "all44_shipping_entries_post_match": true,
+  "production_source_review": "R:/d3-evidence/independent-terrain-production-source-review-251bfe15b.json"
+}

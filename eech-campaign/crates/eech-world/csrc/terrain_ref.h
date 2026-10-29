@@ -40,15 +40,25 @@ typedef struct host_terrain_answer
 	float normal[3];
 	int32_t type;
 	int32_t has_hint;     /* 0 when the query cleared the record's hint (no face found, or the Cuba flaw area) */
+	int32_t stored;       /* 1 when the record holds a face after the query (the legacy "terrain_face != NULL": it stays so after a later no-face or Cuba answer) */
 	host_terrain_hint hint;
 	int32_t fast_attempted, fast_hit, found, clamped, cuba, nan_position; /* what the query did, for the conformance record */
 } host_terrain_answer;
 
-/* The buffers belong to the caller and must outlive the map. `grid` may be NULL: the original generates the fast grid when terrain.sim is missing, and so does the host (in memory, from the point query). Returns NULL and a message on a malformed input. */
+/* The buffers belong to the caller and must outlive the map. `grid` may be NULL: the original generates the fast grid when terrain.sim is missing, and so does the host
+   (in memory, from the point query, then the coast pass and the sea normalisation). The generation reads the map's coastal rivers (route/rivers.nde and rivers.wp, or
+   rivdata.nde and rivdata.wp): pass both river buffers, or NULL for both when the map has none; they are read only while generating and may be released after the call.
+   Returns NULL and a message on a malformed input. */
 host_terrain *host_terrain_open (const uint8_t *sector, size_t sector_length, const uint8_t *geometry, size_t geometry_length, const uint8_t *grid, size_t grid_length,
+	const uint8_t *river_nodes, size_t river_node_length, const uint8_t *river_paths, size_t river_path_length,
 	int32_t map_number, uint64_t map_key, char *error, size_t error_size);
 void host_terrain_close (host_terrain *map);
 void host_terrain_get_facts (const host_terrain *map, host_terrain_facts *out);
+
+/* DIAGNOSTIC. The fast grid as terrain.sim holds it (i32 width, i32 height, f32 x size, f32 z size, then the f32 posts, little-endian), for comparing a grid the
+   host generated with the original's file. Size is 0 when the map has no grid; the copy fails when `capacity` is smaller than the size. */
+size_t host_terrain_grid_size (const host_terrain *map);
+int host_terrain_copy_grid (const host_terrain *map, uint8_t *out, size_t capacity, char *error, size_t error_size);
 
 /* 0 on success; otherwise a message (a malformed hint, a position that is not finite for the fast grid, no fast grid). The hint and loader checks are meant to keep every read inside the map; that is by inspection, not yet tested or reviewed. */
 int host_terrain_query (const host_terrain *map, float x, float z, const host_terrain_hint *hint, host_terrain_answer *out, char *error, size_t error_size);

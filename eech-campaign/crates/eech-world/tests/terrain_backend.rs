@@ -319,7 +319,7 @@ fn the_sweep_keeps_the_original_bounds_and_returns_only_what_it_produced() {
         samples.iter().all(|s| s.result > 999.0 && s.result < 1001.0 && s.kind == i32::from(LAND)),
         "every returned sample is a real answer: {samples:?}"
     );
-    assert_eq!(report.fast_available, 0);
+    assert_eq!(report.fast_available, 1, "a map without a terrain.sim has the grid the host generated");
     assert_eq!(terrain.conformance_sweep(7, 20, 4).unwrap().0, report, "the sweep is deterministic");
 }
 
@@ -402,7 +402,8 @@ fn the_fast_grid_loads_checked_and_interpolates() {
 }
 
 /// A map with no terrain.sim gets the fast grid the original builds at load (terrsel.c generate_terrain_simple_elevation, 256 m posts, dimensions rounded
-/// to a power of two, +2 m on land and -5000 on the sea), from the host's own point query; it is not refused, and it is not written anywhere.
+/// to a power of two, +2 m on land and -5000 on the sea, then the coast pass and the sea normalisation: every remaining -5000 becomes -2), from the host's own
+/// point query; it is not refused, and it is not written anywhere.
 #[test]
 fn a_map_without_a_fast_grid_gets_the_generated_one() {
     // one 2048 m sector: 8 cells of 256 m, so 9 posts a side
@@ -414,13 +415,13 @@ fn a_map_without_a_fast_grid_gets_the_generated_one() {
         let height = land.fast_elevation(x, z).unwrap();
         assert!((height - 1002.0).abs() < 0.05, "land post at {x},{z}: {height}");
     }
-    // the sea rule: -5000, not the elevation plus 2
+    // the sea rule: -5000 while sampling, then the sea normalisation (terrsel.c: sea_height - 1, and sea_height is -1) leaves -2, not the elevation plus 2
     let sea = map(Shape {
         surface: 7,
         ..Shape::default()
     });
-    assert_eq!(sea.fast_elevation(0.0, 0.0).unwrap(), -5000.0);
-    assert_eq!(sea.fast_elevation(1024.0, 512.0).unwrap(), -5000.0);
+    assert_eq!(sea.fast_elevation(0.0, 0.0).unwrap(), -2.0);
+    assert_eq!(sea.fast_elevation(1024.0, 512.0).unwrap(), -2.0);
     // the grid is deterministic and each map has its own
     assert_eq!(
         map(Shape::default()).fast_elevation(300.0, 700.0).unwrap().to_bits(),
@@ -516,4 +517,349 @@ fn an_out_of_range_sixteen_bit_reference_is_refused() {
         ..Shape::default()
     });
     assert!(Terrain::from_bytes(&parts.sector, &parts.geometry, None, 5).is_ok());
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------
+// The generated fast grid's coast pass and sea normalisation (terrsel.c generate_terrain_simple_elevation), on a one-sector map split into land and sea.
+// ---------------------------------------------------------------------------------------------------------------------------------------------------
+
+/// `TEMP_TERRAIN_TYPE_COASTAL_RIVER` (modules/3d/terrain/terrtype.h: FOREST_TOP is 46, then FRINGE, POWER_LINE, TELEPHONE_LINE, SEA_BANK, COASTAL_RIVER).
+const COASTAL_RIVER: u32 = 51;
+const SEA: u8 = 7;
+
+/// A one-sector map (2048 m square) split north-south at x = 1152 m: flat land on the west of the line, sea on the east. The two faces are two four-point
+/// fans of the same square shape as `build`'s, the second flagged "the surface changes here" so that it reads the second surface (the sea). The split lies
+/// between the posts of the 256 m grid (x = 1024 on land, x = 1280 on the sea), so no post is on the shared edge.
+fn coast_parts() -> Parts {
+    let split: i16 = 2048; // 128 m east of the sector's centre line, in the file's 1/16 m units
+    let points: [(i16, i16); 8] = [(-A, -A), (-A, A), (split, A), (split, -A), (split, -A), (split, A), (A, A), (A, -A)];
+    let mut geometry = Vec::new();
+    let off_xz = geometry.len() as u32;
+    for (x, z) in points {
+        le16(&mut geometry, x as u16);
+        le16(&mut geometry, z as u16);
+    }
+    let off_y = geometry.len() as u32;
+    for _ in points {
+        le16(&mut geometry, 1000);
+    }
+    let off_ref = geometry.len() as u32;
+    geometry.extend_from_slice(&[0, 1, 2, 3, 4, 5, 6, 7]);
+    let off_poly = geometry.len() as u32;
+    geometry.extend_from_slice(&[4, 4 | 0x80]);
+    let off_surface = geometry.len() as u32;
+    geometry.extend_from_slice(&[LAND, SEA]);
+
+    let mut sector = Vec::new();
+    le32(&mut sector, 1);
+    le16(&mut sector, 1);
+    le16(&mut sector, 1);
+    sector.extend_from_slice(&0.0f32.to_le_bytes());
+    sector.extend_from_slice(&32767.0f32.to_le_bytes());
+    le16(&mut sector, 8);
+    le16(&mut sector, 0);
+    le16(&mut sector, 2);
+    for _ in 0..5 {
+        le16(&mut sector, 0);
+    }
+    le32(&mut sector, off_y);
+    le32(&mut sector, off_xz);
+    le32(&mut sector, off_ref);
+    le32(&mut sector, off_poly);
+    le32(&mut sector, off_surface);
+    for _ in 0..3 {
+        le32(&mut sector, 0);
+    }
+    le32(&mut sector, 0);
+    Parts { sector, geometry }
+}
+
+fn lef(out: &mut Vec<u8>, value: f32) {
+    out.extend_from_slice(&value.to_le_bytes());
+}
+
+/// The river node file (a count, then x, y, z of each node) and path file (a count, then from, to, type and point count of each path, then its points).
+fn rivers(nodes: &[[f32; 3]], paths: &[(u32, u32, u32, &[[f32; 3]])]) -> (Vec<u8>, Vec<u8>) {
+    let mut node_bytes = Vec::new();
+    le32(&mut node_bytes, nodes.len() as u32);
+    for node in nodes {
+        node.iter().for_each(|c| lef(&mut node_bytes, *c));
+    }
+    let mut path_bytes = Vec::new();
+    le32(&mut path_bytes, paths.len() as u32);
+    for (from, to, kind, points) in paths {
+        for word in [*from, *to, *kind, points.len() as u32] {
+            le32(&mut path_bytes, word);
+        }
+        points.iter().flatten().for_each(|c| lef(&mut path_bytes, *c));
+    }
+    (node_bytes, path_bytes)
+}
+
+/// A post of the generated grid, from the diagnostic snapshot (terrain.sim's layout: a 16-byte header, then the posts, x fastest).
+fn post(snapshot: &[u8], width: usize, x: usize, z: usize) -> f32 {
+    let at = 16 + 4 * (z * width + x);
+    f32::from_le_bytes([snapshot[at], snapshot[at + 1], snapshot[at + 2], snapshot[at + 3]])
+}
+
+fn coast_map(rivers: Option<(&[u8], &[u8])>) -> Result<Terrain, String> {
+    let parts = coast_parts();
+    Terrain::from_bytes_with_rivers(&parts.sector, &parts.geometry, None, rivers, 5)
+}
+
+/// Without rivers the coast pass changes nothing and every sea post ends at sea_height - 1 = -2; the land posts are the sampled elevation plus 2. The
+/// snapshot is the grid in terrain.sim's layout: its header is the grid's size, whichever way the grid came to be.
+#[test]
+fn a_generated_grid_without_coastal_rivers_ends_sea_posts_at_minus_two() {
+    let terrain = coast_map(None).expect("the split map loads");
+    let snapshot = terrain.grid_snapshot().expect("a generated grid has a snapshot");
+    assert_eq!(snapshot.len(), 16 + 4 * 81);
+    assert_eq!(i32::from_le_bytes([snapshot[0], snapshot[1], snapshot[2], snapshot[3]]), 9);
+    assert_eq!(i32::from_le_bytes([snapshot[4], snapshot[5], snapshot[6], snapshot[7]]), 9);
+    assert_eq!(f32::from_le_bytes([snapshot[8], snapshot[9], snapshot[10], snapshot[11]]), 256.0);
+    assert_eq!(f32::from_le_bytes([snapshot[12], snapshot[13], snapshot[14], snapshot[15]]), 256.0);
+    for z in 1..8 {
+        for x in 0..=4 {
+            let land = post(&snapshot, 9, x, z);
+            assert!((land - 1002.0).abs() < 0.05, "land post {x},{z}: {land}");
+        }
+        for x in 5..9 {
+            assert_eq!(post(&snapshot, 9, x, z), -2.0, "sea post {x},{z}");
+        }
+    }
+    // the snapshot of a grid that was given is that grid
+    let parts = coast_parts();
+    let given = grid(2, 2, 2048.0, 2048.0, &[10.0, 20.0, 30.0, 40.0]);
+    let with_file = Terrain::from_bytes(&parts.sector, &parts.geometry, Some(given.clone()), 5).unwrap();
+    assert_eq!(with_file.grid_snapshot().unwrap(), given);
+}
+
+/// A coastal river across the shore moves the sea post beside the land post to the crossing (check_coastal_river_intersection, in the original's neighbour
+/// order and in place): height1 = (sea_height - t * height2) / (1 - t), with sea_height = -1. The river runs north-south along x = 1152 m, the
+/// split, so the sea posts at x = 1280 m (column 5) have the land post at x = 1024 m (column 4) to their north-west and the segment between them meets
+/// the river half way: t = 0.5, so the post becomes -2 - h2 (about -1004 for a land post of about 1002). The posts further out have only sea (or an already
+/// adjusted post, which is below zero) as neighbours and end at -2.
+#[test]
+fn a_coastal_river_moves_the_sea_post_beside_the_land_to_the_crossing() {
+    let river = [[1152.0, 0.0, 0.0], [1152.0, 0.0, 2048.0]];
+    let (nodes, paths) = rivers(&river, &[(0, 1, COASTAL_RIVER, &[])]);
+    let terrain = coast_map(Some((&nodes, &paths))).expect("the split map loads with its river");
+    let snapshot = terrain.grid_snapshot().unwrap();
+    for z in 1..8 {
+        // the neighbour the pass used: the north-west one (z - 1, x - 1), which comes before the others
+        let land = post(&snapshot, 9, 4, z - 1);
+        let expected = (-1.0 - 0.5 * land) / 0.5;
+        let moved = post(&snapshot, 9, 5, z);
+        assert!((moved - expected).abs() < 0.01, "post 5,{z}: {moved}, expected about {expected}");
+        assert!(moved < -1000.0 && moved > -1010.0, "post 5,{z} is the land's height mirrored: {moved}");
+        for x in 6..9 {
+            assert_eq!(post(&snapshot, 9, x, z), -2.0, "sea post {x},{z} has no land beside it");
+        }
+        assert!((post(&snapshot, 9, 4, z) - 1002.0).abs() < 0.05, "a land post is not touched");
+    }
+    // the same pass over a river file that is not the coastal type, or one that does not cross the shore, changes nothing
+    for (name, river_nodes, kind) in [
+        ("a river of another type", river, COASTAL_RIVER + 1),
+        ("a coastal river far from the shore", [[100.0, 0.0, 0.0], [100.0, 0.0, 2048.0]], COASTAL_RIVER),
+    ] {
+        let (nodes, paths) = rivers(&river_nodes, &[(0, 1, kind, &[])]);
+        let snapshot = coast_map(Some((&nodes, &paths))).unwrap().grid_snapshot().unwrap();
+        assert!((1..8).all(|z| (5..9).all(|x| post(&snapshot, 9, x, z) == -2.0)), "{name} moved a sea post");
+    }
+}
+
+/// A coastal river with intermediate points is walked point by point (the segments from the first node through the points to the last), as the original does; a point on the line changes no crossing.
+#[test]
+fn a_point_on_the_rivers_line_leaves_the_river_where_it_was() {
+    // the river bends: from (1152, 0) east to (1152, 1000), a point, then back to (1152, 2048)
+    let nodes = [[1152.0, 0.0, 0.0], [1152.0, 0.0, 2048.0]];
+    let (node_bytes, path_bytes) = rivers(&nodes, &[(0, 1, COASTAL_RIVER, &[[1152.0, 0.0, 1000.0]])]);
+    let walked = coast_map(Some((&node_bytes, &path_bytes))).unwrap().grid_snapshot().unwrap();
+    let (node_bytes, path_bytes) = rivers(&nodes, &[(0, 1, COASTAL_RIVER, &[])]);
+    let direct = coast_map(Some((&node_bytes, &path_bytes))).unwrap().grid_snapshot().unwrap();
+    assert_eq!(walked, direct, "a point on the line leaves the river where it was");
+}
+
+/// A malformed river file is an error with a message, never a read outside the file; a grid that is given needs no rivers and ignores them.
+#[test]
+fn a_malformed_river_file_is_refused_and_a_given_grid_ignores_rivers() {
+    let river = [[1152.0, 0.0, 0.0], [1152.0, 0.0, 2048.0]];
+    let (nodes, paths) = rivers(&river, &[(0, 1, COASTAL_RIVER, &[])]);
+    for (name, bad_nodes, bad_paths) in [
+        ("nodes cut short", nodes[..nodes.len() - 1].to_vec(), paths.clone()),
+        ("no node file", Vec::new(), paths.clone()),
+        ("paths cut short", nodes.clone(), paths[..paths.len() - 1].to_vec()),
+        ("no path file", nodes.clone(), Vec::new()),
+        ("a count the file cannot hold", u32::MAX.to_le_bytes().to_vec(), paths.clone()),
+    ] {
+        let error = coast_map(Some((&bad_nodes, &bad_paths))).err().unwrap_or_else(|| panic!("accepted {name}"));
+        assert!(error.contains("river"), "{name}: {error}");
+    }
+    // a coastal river that names a node the node file does not have
+    let (nodes_two, paths_missing) = rivers(&river, &[(0, 5, COASTAL_RIVER, &[])]);
+    assert!(coast_map(Some((&nodes_two, &paths_missing))).is_err());
+    // the same bad rivers do not matter to a map that has its grid
+    let parts = coast_parts();
+    let given = grid(2, 2, 2048.0, 2048.0, &[10.0, 20.0, 30.0, 40.0]);
+    assert!(Terrain::from_bytes_with_rivers(&parts.sector, &parts.geometry, Some(given), Some((&nodes_two, &paths_missing)), 5).is_ok());
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------
+// The season's files (terrdata.c load_3d_terrain_game_data): winter uses default-W.sec only when default-W.rgb exists too, else the default pair; the two
+// seasons are never mixed. The fixture maps differ in the one number the sector file carries that the facts show, the map's maximum height.
+// ---------------------------------------------------------------------------------------------------------------------------------------------------
+
+const SUMMER_MAX: f32 = 32767.0;
+const WINTER_MAX: f32 = 16383.0;
+
+fn seasonal_sector(max_height: f32) -> Vec<u8> {
+    let mut sector = build(Shape::default()).sector;
+    // the map's lowest and highest height follow the sector count (u32) and the two sector counts (u16 each)
+    sector[12..16].copy_from_slice(&max_height.to_le_bytes());
+    sector
+}
+
+/// A map directory `<root>/cohokum/maps/map5/terrain` with the files given; removed when dropped.
+struct MapDir {
+    root: std::path::PathBuf,
+}
+
+impl MapDir {
+    fn new(files: &[&str]) -> MapDir {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+        static SERIAL: AtomicUsize = AtomicUsize::new(0);
+        let root = std::env::temp_dir().join(format!("terrain-season-{}-{}", std::process::id(), SERIAL.fetch_add(1, Ordering::Relaxed)));
+        let terrain = root.join("cohokum").join("maps").join("map5").join("terrain");
+        std::fs::create_dir_all(&terrain).expect("the fixture directory");
+        std::fs::write(terrain.join("terrain.ffp"), build(Shape::default()).geometry).unwrap();
+        for file in files {
+            let content = match *file {
+                "default.sec" => seasonal_sector(SUMMER_MAX),
+                "default-W.sec" => seasonal_sector(WINTER_MAX),
+                _ => vec![0u8; 4], // a colour file: only its presence matters to the choice
+            };
+            std::fs::write(terrain.join(file), content).unwrap();
+        }
+        MapDir { root }
+    }
+
+    fn terrain(&self) -> std::path::PathBuf {
+        self.root.join("cohokum").join("maps").join("map5").join("terrain")
+    }
+
+    fn root_text(&self) -> String {
+        self.root.to_string_lossy().replace('\\', "/")
+    }
+}
+
+impl Drop for MapDir {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.root);
+    }
+}
+
+fn max_height(dir: &MapDir, winter: bool) -> f32 {
+    Terrain::open(&dir.terrain(), winter, None).expect("the fixture map opens").facts().max_height
+}
+
+#[test]
+fn winter_uses_the_winter_pair_only_when_both_files_exist() {
+    let both = MapDir::new(&["default.sec", "default.rgb", "default-W.sec", "default-W.rgb"]);
+    assert_eq!(max_height(&both, true), WINTER_MAX, "both winter files exist: the winter sector file");
+    assert_eq!(max_height(&both, false), SUMMER_MAX, "summer never reads the winter files");
+    let no_colour = MapDir::new(&["default.sec", "default.rgb", "default-W.sec"]);
+    assert_eq!(
+        max_height(&no_colour, true),
+        SUMMER_MAX,
+        "default-W.rgb is missing: the default pair, not default-W.sec"
+    );
+    let no_sector = MapDir::new(&["default.sec", "default.rgb", "default-W.rgb"]);
+    assert_eq!(max_height(&no_sector, true), SUMMER_MAX, "default-W.sec is missing: the default pair");
+    let summer_only = MapDir::new(&["default.sec", "default.rgb"]);
+    assert_eq!(
+        max_height(&summer_only, true),
+        SUMMER_MAX,
+        "a map with no winter files serves its default pair in winter"
+    );
+    assert_eq!(max_height(&summer_only, false), SUMMER_MAX);
+    // only a winter pair and no default sector file: winter works, summer has nothing to read
+    let winter_only = MapDir::new(&["default-W.sec", "default-W.rgb"]);
+    assert_eq!(max_height(&winter_only, true), WINTER_MAX);
+    assert!(Terrain::open(&winter_only.terrain(), false, None).is_err());
+}
+
+/// The path of the river files: `route/rivers.nde` with `rivers.wp`, else `rivdata.nde` with `rivdata.wp`, found whatever the case of the names.
+#[test]
+fn the_rivers_are_found_where_the_original_looks() {
+    use eech_world::terrain::river_files;
+    let map = MapDir::new(&["default.sec"]);
+    let terrain = map.terrain();
+    assert_eq!(river_files(&terrain).unwrap(), None, "a map with no route directory has no rivers");
+    let route = terrain.parent().unwrap().join("Route");
+    std::fs::create_dir_all(&route).unwrap();
+    assert_eq!(river_files(&terrain).unwrap(), None, "a route directory with no river files has none");
+    std::fs::write(route.join("RIVDATA.NDE"), [0u8; 4]).unwrap();
+    assert!(river_files(&terrain).is_err(), "a node file with no path file beside it is an error");
+    std::fs::write(route.join("rivdata.wp"), [0u8; 4]).unwrap();
+    let (nodes, paths) = river_files(&terrain).unwrap().expect("rivdata is found");
+    assert!(nodes.ends_with("RIVDATA.NDE") && paths.ends_with("rivdata.wp"));
+    std::fs::write(route.join("rivers.nde"), [0u8; 4]).unwrap();
+    std::fs::write(route.join("rivers.wp"), [0u8; 4]).unwrap();
+    let (nodes, paths) = river_files(&terrain).unwrap().expect("rivers is found");
+    assert!(nodes.ends_with("rivers.nde") && paths.ends_with("rivers.wp"), "rivers.* come before rivdata.*");
+}
+
+/// Through the REAL factory (`host.terrain_provider`) and the provider function it returns: the map is opened for the season the first question carries,
+/// each season's question gets that season's files, a script that asserts the wrong season is refused, and a later question for the other season is
+/// refused rather than served from the other season's map.
+#[test]
+fn the_provider_factory_opens_the_map_for_the_season_the_engine_reports() {
+    use mlua::Lua;
+    let both = MapDir::new(&["default.sec", "default.rgb", "default-W.sec", "default-W.rgb"]);
+    let no_colour = MapDir::new(&["default.sec", "default.rgb", "default-W.sec"]);
+    let lua = Lua::new();
+    let host = lua.create_table().unwrap();
+    eech_world::terrain::install(&lua, &host).unwrap();
+    lua.globals().set("host", host).unwrap();
+    let ask = |dir: &MapDir, season: &str, assertion: &str| -> Result<f64, String> {
+        lua.load(format!(
+            "local provider = host.terrain_provider ('{}', 'maps/map5'{assertion})
+             return provider ({{ op = 'map', winter = {season} }}).max_height",
+            dir.root_text()
+        ))
+        .eval::<f64>()
+        .map_err(|e| e.to_string())
+    };
+    assert_eq!(ask(&both, "true", "").unwrap(), f64::from(WINTER_MAX));
+    assert_eq!(ask(&both, "false", "").unwrap(), f64::from(SUMMER_MAX));
+    assert_eq!(
+        ask(&no_colour, "true", "").unwrap(),
+        f64::from(SUMMER_MAX),
+        "winter without the colour file is the default pair"
+    );
+    assert_eq!(
+        ask(&both, "true", ", true").unwrap(),
+        f64::from(WINTER_MAX),
+        "an assertion that agrees with the engine changes nothing"
+    );
+    let wrong = ask(&both, "true", ", false").expect_err("an assertion that the engine contradicts is refused");
+    assert!(wrong.contains("asserted"), "{wrong}");
+    let none = ask(&both, "nil", "").expect_err("a question with no season is refused");
+    assert!(none.contains("season"), "{none}");
+
+    // one boot, one map: the first question fixes the season; a point question may be the first, and the other season afterwards is refused
+    let outcome: (bool, String) = lua
+        .load(format!(
+            "local provider = host.terrain_provider ('{}', 'maps/map5')
+             local first = provider ({{ op = 'point', x = 512.0, z = 1536.0, winter = true }})
+             assert (type (first.elevation) == 'number' and first.stored == true)
+             return pcall (provider, {{ op = 'map', winter = false }})",
+            both.root_text()
+        ))
+        .eval()
+        .unwrap();
+    assert!(
+        !outcome.0 && outcome.1.contains("winter = true") && outcome.1.contains("winter = false"),
+        "{outcome:?}"
+    );
 }
